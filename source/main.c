@@ -1,6 +1,8 @@
 #include <3ds.h>
 #include <stdio.h>
 
+#include "include/lua/lua.h"
+
 int main(int argc, char **argv) {
 
 	gfxInitDefault();
