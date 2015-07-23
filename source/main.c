@@ -40,7 +40,6 @@ void registerFunction(char const * const tableName, char const * const funcName,
 	lua_pop(L, 1); // pop table from stack
 
 	luaL_dostring(L, concat(concat(concat("love.", tableName), " = "), tableName)); // Ugly, will be replaced.
-	luaL_dostring(L, concat(tableName, " = nil"));
 
 }
 
@@ -64,7 +63,8 @@ int main() {
 
 	consoleInit(GFX_BOTTOM, NULL);
 
-	luaL_dostring(L, "table.foreach(_G, print)");
+	luaL_dostring(L, "print('love.graphics:')");
+	luaL_dostring(L, "table.foreach(love.graphics, print)");
 
 	while (aptMainLoop()) {
 
@@ -73,7 +73,8 @@ int main() {
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			//sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
-			luaL_dostring(L, "print(love.timer.getFPS())");
+			luaL_dostring(L, "love.graphics.rectangle('line', 5, 5, 50, 50)");
+			luaL_dostring(L, "love.graphics.circle(100, 100, 50, 50)");
 		sf2d_end_frame();
 
 		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
