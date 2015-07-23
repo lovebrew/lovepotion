@@ -59,12 +59,13 @@ int main() {
 	initLoveTimer(L);
 
 	sf2d_init();
-	sf2d_set_clear_color(RGBA8(0x40, 0x40, 0x40, 0xFF));
+	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF));
 
 	consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "print('love.graphics:')");
 	luaL_dostring(L, "table.foreach(love.graphics, print)");
+	luaL_dostring(L, "boxx, boxy = 50, 50");
 
 	while (aptMainLoop()) {
 
@@ -72,11 +73,15 @@ int main() {
 
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
+			if(keysHeld()&KEY_LEFT)luaL_dostring(L, "boxx = boxx - 1");
+			if(keysHeld()&KEY_RIGHT)luaL_dostring(L, "boxx = boxx + 1");
+
 			//sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
-			luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
+			//luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
 			luaL_dostring(L, "love.graphics.setColor(0, 0, 255)");
-			luaL_dostring(L, "love.graphics.rectangle('fill', 5, 5, 50, 50)");
-			luaL_dostring(L, "love.graphics.setColor(0, 0, 0)");
+			//luaL_dostring(L, "print(love.graphics.getColor())");
+			luaL_dostring(L, "love.graphics.rectangle('fill', boxx, boxy, 50, 50)");
+			luaL_dostring(L, "love.graphics.setColor(255, 0, 0)");
 			luaL_dostring(L, "love.graphics.circle('fill', 100, 100, 50, 50)");
 		sf2d_end_frame();
 

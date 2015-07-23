@@ -12,7 +12,16 @@
 #include <3ds.h>
 #include <sf2d.h>
 
-u32* currentColor;
+int currentR = 0xFF;
+int currentG = 0xFF;
+int currentB = 0xFF;
+int currentA = 0xFF;
+
+u32 getCurrentColor() {
+
+	return RGBA8(currentR, currentG, currentB, currentA);
+
+}
 
 static int graphicsBGColor(lua_State *L) { // love.graphics.setBackgroundColor()
 
@@ -26,12 +35,34 @@ static int graphicsBGColor(lua_State *L) { // love.graphics.setBackgroundColor()
 
 static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 
+	int argc = lua_gettop(L);
+
 	int r = luaL_checkinteger(L, 1);
 	int g = luaL_checkinteger(L, 2);
 	int b = luaL_checkinteger(L, 3);
-	int a = luaL_checkinteger(L, 4);
+	int a = NULL;
 
-	currentColor = RGBA8(r, g, b, a);
+	if (argc > 3)a = luaL_checkinteger(L, 4);
+
+	if (a == NULL) {
+		a = currentA;
+	}
+
+	currentR = r;
+	currentG = g;
+	currentB = b;
+	currentA = a;
+
+}
+
+static int graphicsGetColor(lua_State *L) { // love.graphics.getColor()
+
+	lua_pushnumber(L, currentR);
+	lua_pushnumber(L, currentG);
+	lua_pushnumber(L, currentB);
+	lua_pushnumber(L, currentA);
+
+	return 4;
 
 }
 
@@ -44,13 +75,13 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 	int h = luaL_checkinteger(L, 5);
 
 	if (strcmp(mode, "fill") == 0) {
-		sf2d_draw_rectangle(x, y, w, h, currentColor);
+		sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
 	} else if (strcmp(mode, "line") == 0) {
-		sf2d_draw_line(x, y, x, y + h, currentColor);
-		sf2d_draw_line(x, y, x + w, y, currentColor);
+		sf2d_draw_line(x, y, x, y + h, getCurrentColor());
+		sf2d_draw_line(x, y, x + w, y, getCurrentColor());
 
-		sf2d_draw_line(x + w, y, x + w, y + h, currentColor);
-		sf2d_draw_line(x, y + h, x + w, y + h, currentColor);
+		sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
+		sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
 	}
 
 	return 0;
@@ -64,8 +95,8 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 	int y = luaL_checkinteger(L, 3);
 	int r = luaL_checkinteger(L, 4);
 
-	sf2d_draw_line(x, y, x, y, currentColor); // Fixes weird circle bug.
-	sf2d_draw_fill_circle(x, y, r, currentColor);
+	sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
+	sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	return 0;
 
@@ -75,6 +106,7 @@ int initLoveGraphics(lua_State *L) {
 
 	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
 	registerFunction("graphics", "setColor", graphicsSetColor);
+	registerFunction("graphics", "getColor", graphicsGetColor);
 	registerFunction("graphics", "rectangle", graphicsRectangle);
 	registerFunction("graphics", "circle", graphicsCircle);
 
