@@ -90,6 +90,7 @@ int main() {
 
 	initLoveGraphics(L); // Init modules.
 	initLoveTimer(L);
+	initLoveSystem(L);
 
 	sf2d_init();
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF));
@@ -98,7 +99,7 @@ int main() {
 
 	luaL_dostring(L, "print('LovePotion 0.0.1 (Love2D for 3DS)')");
 	luaL_dostring(L, "print('love.graphics:')");
-	luaL_dostring(L, "table.foreach(love.graphics, print)");
+	luaL_dostring(L, "table.foreach(love.system, print)");
 	luaL_dostring(L, "boxx, boxy = 50, 50");
 
 	while (aptMainLoop()) {

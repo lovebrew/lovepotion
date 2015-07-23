@@ -12,7 +12,7 @@
 #include <3ds.h>
 #include <sf2d.h>
 
-static int timerFPS(lua_State *L) {
+static int timerFPS(lua_State *L) { // love.timer.getFPS()
 
 	lua_pushnumber(L, sf2d_get_fps());
 
@@ -25,5 +25,5 @@ int initLoveTimer(lua_State *L) {
 	registerFunction("timer", "getFPS", timerFPS);
 
 	return 1;
-	
+
 }
