@@ -1,3 +1,25 @@
+// This code is licensed under the MIT Open Source License.
+
+// Copyright (c) 2015 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
+
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+
 #include "include/lua/lua.h"
 #include "include/lua/lualib.h"
 #include "include/lua/lauxlib.h"
@@ -11,6 +33,17 @@
 #include <math.h>
 #include <3ds.h>
 #include <sf2d.h>
+
+// This is how you load in scripts for now.
+// I know, I know, very messy, very unintuitive.
+// But this is until I can figure out how to load files from the 3DS's filesystem.
+// Until then, LovePotion is mostly a proof of concept.
+
+const char* script = ""
+"love.graphics.setBackgroundColor(0, 255, 0);"
+"love.graphics.setColor(0, 0, 255);"
+"love.graphics.rectangle('fill', boxx, boxy, 50, 50)";
+
 
 lua_State *L;
 
@@ -79,15 +112,18 @@ int main() {
 			if(keysHeld()&KEY_UP)luaL_dostring(L, "boxy = boxy - 1");
 			if(keysHeld()&KEY_DOWN)luaL_dostring(L, "boxy = boxy + 1");
 
-			//sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
-			luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
-			luaL_dostring(L, "love.graphics.setColor(0, 0, 255)");
-			//luaL_dostring(L, "print(love.graphics.getColor())");
-			luaL_dostring(L, "love.graphics.rectangle('fill', boxx, boxy, 50, 50)");
-			luaL_dostring(L, "love.graphics.setColor(255, 0, 0)");
-			luaL_dostring(L, "love.graphics.circle('fill', 100, 100, 50, 50)");
-			//luaL_dostring(L, "print(love.graphics.getSide())");
-			luaL_dostring(L, "love.graphics.set3D(true)");
+			// //sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+			// luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
+			// luaL_dostring(L, "love.graphics.setColor(0, 0, 255)");
+			// //luaL_dostring(L, "print(love.graphics.getColor())");
+			// luaL_dostring(L, "love.graphics.rectangle('fill', boxx, boxy, 50, 50)");
+			// luaL_dostring(L, "love.graphics.setColor(255, 0, 0)");
+			// luaL_dostring(L, "love.graphics.circle('fill', 100, 100, 50, 50)");
+			// //luaL_dostring(L, "print(love.graphics.getSide())");
+			// luaL_dostring(L, "love.graphics.set3D(true)");
+
+			luaL_dostring(L, script);
+
 		sf2d_end_frame();
 
 		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
