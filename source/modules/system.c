@@ -41,6 +41,7 @@ static int systemGetOS(lua_State *L) { // love.system.getOS()
 
 int initLoveSystem(lua_State *L) {
 
+	registerFunction("system", "openURL", systemOpenURL);
 	registerFunction("system", "getOS", systemGetOS);
 	return 1;
 

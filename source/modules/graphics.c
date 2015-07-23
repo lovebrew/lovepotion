@@ -17,6 +17,8 @@ int currentG = 0xFF;
 int currentB = 0xFF;
 int currentA = 0xFF;
 
+int currentScreen = 0;
+
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
@@ -114,6 +116,20 @@ static int graphicsGetScreen(lua_State *L) { // love.graphics.getScreen()
 
 }
 
+static int graphicsSetScreen(lua_State *L) { // love.graphics.setScreen()
+
+	const char *screen = luaL_checkstring(L, 1);
+
+	if (screen == "top") {
+		currentScreen = 0;
+	} else if (screen == "bottom") {
+		currentScreen = 1;
+	}
+
+	return 0;
+
+}
+
 static int graphicsGetSide(lua_State *L) {
 
 	if (sf2d_get_current_side() == GFX_LEFT) { // love.graphics.getSide()
@@ -134,6 +150,7 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "rectangle", graphicsRectangle);
 	registerFunction("graphics", "circle", graphicsCircle);
 	registerFunction("graphics", "getScreen", graphicsGetScreen);
+	registerFunction("graphics", "setScreen", graphicsSetScreen);
 	registerFunction("graphics", "getSide", graphicsGetSide);
 
 	return 1;
