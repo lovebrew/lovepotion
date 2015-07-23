@@ -2,13 +2,20 @@
 #include "include/lua/lualib.h"
 #include "include/lua/lauxlib.h"
 
+#include "shared.h"
+
 #include <3ds.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char **argv) {
+lua_State *L;
 
-	lua_State *L;
+void error(lua_State *L, char *msg) {
+	fprintf(stderr, "\nFATAL ERROR:\n  %s: %s\n\n",
+		msg, lua_tostring(L, -1));
+}
+
+int main(int argc, char **argv) {
 
 	L = luaL_newstate();
 	luaL_openlibs(L);
@@ -17,7 +24,11 @@ int main(int argc, char **argv) {
 
 	consoleInit(GFX_BOTTOM, NULL);
 
-	printf("Hello, World!");
+	initLoveGraphics(L);
+
+	luaL_dostring(L, "for i=1, 5 do print('Hello, world!') end");
+
+	//printf("Hello, World!");
 
 	while (aptMainLoop()) {
 
@@ -25,7 +36,7 @@ int main(int argc, char **argv) {
 
 		u32 kDown = hidKeysDown();
 
-		if (kDown & KEY_START) break;
+		if (kDown & KEY_UP) break;
 
 		gfxFlushBuffers();
 		gfxSwapBuffers();
@@ -34,6 +45,10 @@ int main(int argc, char **argv) {
 
 	}
 
+	gfxExit();
+
 	lua_close(L);
+
+	return 0;
 
 }
