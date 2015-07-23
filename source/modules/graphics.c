@@ -104,6 +104,30 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 }
 
+static int graphicsLine(lua_State *L) { // love.graphics.line() -- Broken
+
+	int argc = lua_gettop(L);
+	int i = 0;
+
+	if ((argc/2)*2 == argc) {
+		for( i; i < argc / 2; i++) {
+
+			int t = i * 4;
+
+			int x1 = luaL_checkinteger(L, t + 1);
+			int y1 = luaL_checkinteger(L, t + 2);
+			int x2 = luaL_checkinteger(L, t + 3);
+			int y2 = luaL_checkinteger(L, t + 4);
+
+			sf2d_draw_line(x1, y1, x1, y1, getCurrentColor());
+
+		}
+	}
+
+	return 0;
+
+}
+
 static int graphicsGetScreen(lua_State *L) { // love.graphics.getScreen()
 
 	if (sf2d_get_current_screen() == GFX_TOP) {
@@ -142,7 +166,7 @@ static int graphicsGetSide(lua_State *L) {
 
 }
 
-static int graphicsPresent(lua_State *L) {
+static int graphicsPresent(lua_State *L) { // love.graphics.present()
 
 	sf2d_swapbuffers();
 
@@ -157,6 +181,7 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "getColor", graphicsGetColor);
 	registerFunction("graphics", "rectangle", graphicsRectangle);
 	registerFunction("graphics", "circle", graphicsCircle);
+	registerFunction("graphics", "line", graphicsLine);
 	registerFunction("graphics", "getScreen", graphicsGetScreen);
 	registerFunction("graphics", "setScreen", graphicsSetScreen);
 	registerFunction("graphics", "getSide", graphicsGetSide);
