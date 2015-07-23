@@ -24,6 +24,17 @@ static int graphicsBGColor(lua_State *L) {
 
 }
 
+static int graphicsSetColor(lua_State *L) {
+
+	int r = luaL_checkinteger(L, 1);
+	int g = luaL_checkinteger(L, 2);
+	int b = luaL_checkinteger(L, 3);
+	int a = luaL_checkinteger(L, 3);
+
+	currentColor = RGBA8(r, g, b, a);
+
+}
+
 static int graphicsRectangle(lua_State *L) {
 
 	const char *mode = luaL_checkstring(L, 1);
@@ -33,13 +44,13 @@ static int graphicsRectangle(lua_State *L) {
 	int h = luaL_checkinteger(L, 5);
 
 	if (strcmp(mode, "fill") == 0) {
-		sf2d_draw_rectangle(x, y, w, h, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+		sf2d_draw_rectangle(x, y, w, h, currentColor);
 	} else if (strcmp(mode, "line") == 0) {
-		sf2d_draw_line(x, y, x, y + h, RGBA8(0xFF, 0x00, 0x00, 0xFF));
-		sf2d_draw_line(x, y, x + w, y, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+		sf2d_draw_line(x, y, x, y + h, currentColor);
+		sf2d_draw_line(x, y, x + w, y, currentColor);
 
-		sf2d_draw_line(x + w, y, x + w, y + h, RGBA8(0xFF, 0x00, 0x00, 0xFF));
-		sf2d_draw_line(x, y + h, x + w, y + h, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+		sf2d_draw_line(x + w, y, x + w, y + h, currentColor);
+		sf2d_draw_line(x, y + h, x + w, y + h, currentColor);
 	}
 
 	return 0;
@@ -53,16 +64,20 @@ static int graphicsCircle(lua_State *L) {
 	int y = luaL_checkinteger(L, 3);
 	int r = luaL_checkinteger(L, 4);
 
-	sf2d_draw_line(x, y, x, y, RGBA8(0xFF, 0x00, 0x00, 0xFF)); // Fixes weird circle bug.
-	sf2d_draw_fill_circle(x, y, r, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+	sf2d_draw_line(x, y, x, y, currentColor); // Fixes weird circle bug.
+	sf2d_draw_fill_circle(x, y, r, currentColor);
 
 	return 0;
 
 }
 
 int initLoveGraphics(lua_State *L) {
+
 	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
+	registerFunction("graphics", "setColor", graphicsSetColor);
 	registerFunction("graphics", "rectangle", graphicsRectangle);
 	registerFunction("graphics", "circle", graphicsCircle);
+
 	return 1;
+
 }
