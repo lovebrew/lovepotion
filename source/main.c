@@ -44,6 +44,8 @@ const char* script = ""
 "boxx = 50;"
 "boxy = 50;"
 ""
+"print('Hello, world!')"
+""
 "function love.draw()"
 "love.graphics.setBackgroundColor(0, 255, 0)"
 "love.graphics.setColor(0, 0, 255)"
@@ -101,8 +103,8 @@ int main() {
 	consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')");
-	luaL_dostring(L, "print('love.graphics:')");
-	luaL_dostring(L, "table.foreach(love.graphics, print)");
+	//luaL_dostring(L, "print('love.graphics:')");
+	//luaL_dostring(L, "table.foreach(love.graphics, print)");
 
 	luaL_dostring(L, script);
 
