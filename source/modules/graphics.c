@@ -142,6 +142,14 @@ static int graphicsGetSide(lua_State *L) {
 
 }
 
+static int graphicsPresent(lua_State *L) {
+
+	sf2d_swapbuffers();
+
+	return 0;
+
+}
+
 int initLoveGraphics(lua_State *L) {
 
 	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
@@ -152,6 +160,7 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "getScreen", graphicsGetScreen);
 	registerFunction("graphics", "setScreen", graphicsSetScreen);
 	registerFunction("graphics", "getSide", graphicsGetSide);
+	registerFunction("graphics", "present", graphicsPresent);
 
 	return 1;
 

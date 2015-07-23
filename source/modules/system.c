@@ -20,15 +20,16 @@ static int systemOpenURL() { // love.system.openURL() -- Might not work on all s
 	// Clear buffers
 	memset(buf0, 0, 0x300);
 	memset(buf1, 0, 0x20);
-	return 0;
 
 	aptOpenSession();
 
-	APT_PrepareToDoAppJump(NULL, 0, 0x20009D020, 0);
+	APT_PrepareToDoAppJump(NULL, 0, 0x20009D020, 0); // Browser App ID
 
 	APT_DoAppJump(NULL, 0x300, 0x20, buf0, buf1);
 
 	aptCloseSession();
+
+	return 0;
 
 }
 

@@ -40,10 +40,15 @@
 // Until then, LovePotion is mostly a proof of concept.
 
 const char* script = ""
-"love.graphics.setBackgroundColor(0, 255, 0);"
-"love.graphics.setColor(0, 0, 255);"
-"love.graphics.rectangle('fill', boxx, boxy, 50, 50)";
-
+""
+"boxx = 50;"
+"boxy = 50;"
+""
+"function love.draw()"
+"love.graphics.setBackgroundColor(0, 255, 0)"
+"love.graphics.setColor(0, 0, 255)"
+"love.graphics.rectangle('fill', boxx, boxy, 50, 50)"
+"end";
 
 lua_State *L;
 
@@ -76,11 +81,6 @@ void registerFunction(char const * const tableName, char const * const funcName,
 
 }
 
-void error(lua_State *L, char *msg) {
-	fprintf(stderr, "\nFATAL ERROR:\n  %s: %s\n\n",
-		msg, lua_tostring(L, -1));
-}
-
 int main() {
 
 	L = luaL_newstate();
@@ -97,10 +97,11 @@ int main() {
 
 	consoleInit(GFX_BOTTOM, NULL);
 
-	luaL_dostring(L, "print('LovePotion 0.0.1 (Love2D for 3DS)')");
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')");
 	luaL_dostring(L, "print('love.graphics:')");
-	luaL_dostring(L, "table.foreach(love.system, print)");
-	luaL_dostring(L, "boxx, boxy = 50, 50");
+	luaL_dostring(L, "table.foreach(love.graphics, print)");
+
+	luaL_dostring(L, script);
 
 	while (aptMainLoop()) {
 
@@ -113,24 +114,14 @@ int main() {
 			if(keysHeld()&KEY_UP)luaL_dostring(L, "boxy = boxy - 1");
 			if(keysHeld()&KEY_DOWN)luaL_dostring(L, "boxy = boxy + 1");
 
-			// //sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
-			// luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
-			// luaL_dostring(L, "love.graphics.setColor(0, 0, 255)");
-			// //luaL_dostring(L, "print(love.graphics.getColor())");
-			// luaL_dostring(L, "love.graphics.rectangle('fill', boxx, boxy, 50, 50)");
-			// luaL_dostring(L, "love.graphics.setColor(255, 0, 0)");
-			// luaL_dostring(L, "love.graphics.circle('fill', 100, 100, 50, 50)");
-			// //luaL_dostring(L, "print(love.graphics.getSide())");
-			// luaL_dostring(L, "love.graphics.set3D(true)");
-
-			luaL_dostring(L, script);
+			luaL_dostring(L, "if love.draw then love.draw() end");
 
 		sf2d_end_frame();
 
 		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 		// sf2d_end_frame();
 
-		sf2d_swapbuffers();
+		luaL_dostring(L, "love.graphics.present()");
 
 	}
 
