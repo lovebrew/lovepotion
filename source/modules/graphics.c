@@ -102,6 +102,30 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 }
 
+static int graphicsGetScreen(lua_State *L) { // love.graphics.getScreen()
+
+	if (sf2d_get_current_screen() == GFX_TOP) {
+		lua_pushstring(L, "top");
+	} else if (sf2d_get_current_screen() == GFX_BOTTOM) {
+		lua_pushstring(L, "bottom");
+	}
+
+	return 1;
+
+}
+
+static int graphicsGetSide(lua_State *L) {
+
+	if (sf2d_get_current_side() == GFX_LEFT) { // love.graphics.getSide()
+		lua_pushstring(L, "left");
+	} else if (sf2d_get_current_side() == GFX_RIGHT) {
+		lua_pushstring(L, "right");
+	}
+
+	return 1;
+
+}
+
 int initLoveGraphics(lua_State *L) {
 
 	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
@@ -109,6 +133,8 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "getColor", graphicsGetColor);
 	registerFunction("graphics", "rectangle", graphicsRectangle);
 	registerFunction("graphics", "circle", graphicsCircle);
+	registerFunction("graphics", "getScreen", graphicsGetScreen);
+	registerFunction("graphics", "getSide", graphicsGetSide);
 
 	return 1;
 

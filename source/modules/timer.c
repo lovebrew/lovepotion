@@ -21,6 +21,9 @@ static int timerFPS(lua_State *L) {
 }
 
 int initLoveTimer(lua_State *L) {
+
 	registerFunction("timer", "getFPS", timerFPS);
+
 	return 1;
+	
 }
