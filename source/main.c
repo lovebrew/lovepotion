@@ -4,48 +4,85 @@
 
 #include "shared.h"
 
-#include <3ds.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
+#include <time.h>
+#include <math.h>
+#include <3ds.h>
+#include <sf2d.h>
 
 lua_State *L;
+
+char* concat(char *s1, char *s2) {
+	char *result = malloc(strlen(s1)+strlen(s2)+1);
+	strcpy(result, s1);
+	strcat(result, s2);
+	return result;
+}
+
+void registerFunction(char const * const tableName, char const * const funcName, void (*funcPointer)) {
+
+	lua_getfield(L, LUA_GLOBALSINDEX, tableName); // push table onto stack
+	if (!lua_istable(L, -1)) {
+		lua_createtable(L, 0, 1); // create new table
+		lua_setfield(L, LUA_GLOBALSINDEX, tableName); // add it to global context
+
+		// reset table on stack
+		lua_pop(L, 1); // pop table (nil value) from stack
+		lua_getfield(L, LUA_GLOBALSINDEX, tableName); // push table onto stack
+	}
+
+	lua_pushstring(L, funcName); // push key onto stack
+	lua_pushcfunction(L, funcPointer); // push value onto stack
+	lua_settable(L, -3); // add key-value pair to table
+
+	lua_pop(L, 1); // pop table from stack
+
+	luaL_dostring(L, concat(concat(concat("love.", tableName), " = "), tableName)); // Ugly, will be replaced.
+	luaL_dostring(L, concat(tableName, " = nil"));
+
+}
 
 void error(lua_State *L, char *msg) {
 	fprintf(stderr, "\nFATAL ERROR:\n  %s: %s\n\n",
 		msg, lua_tostring(L, -1));
 }
 
-int main(int argc, char **argv) {
+int main() {
 
 	L = luaL_newstate();
 	luaL_openlibs(L);
 
-	gfxInitDefault();
+	luaL_dostring(L, "if not love then love = {} end");
+
+	initLoveGraphics(L); // Init modules.
+
+	sf2d_init();
+	sf2d_set_clear_color(RGBA8(0x40, 0x40, 0x40, 0xFF));
 
 	consoleInit(GFX_BOTTOM, NULL);
 
-	initLoveGraphics(L);
-
-	luaL_dostring(L, "for i=1, 5 do print('Hello, world!') end");
-
-	//printf("Hello, World!");
+	luaL_dostring(L, "table.foreach(_G, print)");
 
 	while (aptMainLoop()) {
 
 		hidScanInput();
 
-		u32 kDown = hidKeysDown();
+		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-		if (kDown & KEY_UP) break;
+			//sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+			luaL_dostring(L, "love.graphics.rectangle(5, 5, 50, 50)");
+		sf2d_end_frame();
 
-		gfxFlushBuffers();
-		gfxSwapBuffers();
+		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+		// sf2d_end_frame();
 
-		gspWaitForVBlank();
+		sf2d_swapbuffers();
 
 	}
 
-	gfxExit();
+	sf2d_fini();
 
 	lua_close(L);
 
