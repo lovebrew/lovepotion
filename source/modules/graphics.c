@@ -14,7 +14,7 @@
 
 u32* currentColor;
 
-static int graphicsBGColor(lua_State *L) {
+static int graphicsBGColor(lua_State *L) { // love.graphics.setBackgroundColor()
 
 	int r = luaL_checkinteger(L, 1);
 	int g = luaL_checkinteger(L, 2);
@@ -24,18 +24,18 @@ static int graphicsBGColor(lua_State *L) {
 
 }
 
-static int graphicsSetColor(lua_State *L) {
+static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 
 	int r = luaL_checkinteger(L, 1);
 	int g = luaL_checkinteger(L, 2);
 	int b = luaL_checkinteger(L, 3);
-	int a = luaL_checkinteger(L, 3);
+	int a = luaL_checkinteger(L, 4);
 
 	currentColor = RGBA8(r, g, b, a);
 
 }
 
-static int graphicsRectangle(lua_State *L) {
+static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 
 	const char *mode = luaL_checkstring(L, 1);
 	int x = luaL_checkinteger(L, 2);
@@ -57,7 +57,7 @@ static int graphicsRectangle(lua_State *L) {
 
 }
 
-static int graphicsCircle(lua_State *L) {
+static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 	//const char *mode = luaL_checkstring(L, 1);
 	int x = luaL_checkinteger(L, 2);

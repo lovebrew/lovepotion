@@ -76,6 +76,7 @@ int main() {
 			luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
 			luaL_dostring(L, "love.graphics.setColor(0, 0, 255)");
 			luaL_dostring(L, "love.graphics.rectangle('fill', 5, 5, 50, 50)");
+			luaL_dostring(L, "love.graphics.setColor(0, 0, 0)");
 			luaL_dostring(L, "love.graphics.circle('fill', 100, 100, 50, 50)");
 		sf2d_end_frame();
 
