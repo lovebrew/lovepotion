@@ -73,8 +73,9 @@ int main() {
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			//sf2d_draw_rectangle(50, 50, 100, 100, RGBA8(0xFF, 0x00, 0x00, 0xFF));
+			luaL_dostring(L, "love.graphics.setBackgroundColor(0, 255, 0)");
 			luaL_dostring(L, "love.graphics.rectangle('line', 5, 5, 50, 50)");
-			luaL_dostring(L, "love.graphics.circle(100, 100, 50, 50)");
+			luaL_dostring(L, "love.graphics.circle('fill', 100, 100, 50, 50)");
 		sf2d_end_frame();
 
 		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
