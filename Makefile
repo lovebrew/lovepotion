@@ -32,6 +32,10 @@ SOURCES		:=	source source/include source/include/lua source/modules source/libs/
 DATA		:=	data
 INCLUDES	:=	include
 
+APP_TITLE	:=	LovePotion
+APP_AUTHOR	:=	VideahGams
+APP_DESCRIPTION	:=	Love2D for 3DS
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------

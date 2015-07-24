@@ -116,11 +116,6 @@ int main() {
 
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-			if(keysHeld()&KEY_LEFT)luaL_dostring(L, "boxx = boxx - 1");
-			if(keysHeld()&KEY_RIGHT)luaL_dostring(L, "boxx = boxx + 1");
-			if(keysHeld()&KEY_UP)luaL_dostring(L, "boxy = boxy - 1");
-			if(keysHeld()&KEY_DOWN)luaL_dostring(L, "boxy = boxy + 1");
-
 			luaL_dostring(L, "if love.draw then love.draw() end");
 
 		sf2d_end_frame();
