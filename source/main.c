@@ -52,7 +52,7 @@ const char* script = ""
 "love.graphics.rectangle('fill', boxx, boxy, 50, 50)"
 "love.graphics.setColor(255, 0, 0)"
 "love.graphics.circle('fill', 200, 150, 50, 50)"
-"love.graphics.line(50, 30, 200, 50)"
+"love.graphics.line(50, 30, 200, 50);"
 "end";
 
 lua_State *L;
@@ -98,6 +98,7 @@ int main() {
 	initLoveGraphics(L); // Init modules.
 	initLoveTimer(L);
 	initLoveSystem(L);
+	initLoveKeyboard(L);
 
 	sf2d_init();
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF));
@@ -112,11 +113,17 @@ int main() {
 
 	while (aptMainLoop()) {
 
-		hidScanInput();
+		luaL_dostring(L, "love.keyboard.scan()");
 
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			luaL_dostring(L, "if love.draw then love.draw() end");
+
+			// love.keyboard.isDown() testing, will remove once script loading is working.
+			luaL_dostring(L, "if love.keyboard.isDown('cpadleft') then boxx = boxx - 1 end");
+			luaL_dostring(L, "if love.keyboard.isDown('cpadright') then boxx = boxx + 1 end");
+			luaL_dostring(L, "if love.keyboard.isDown('cpadup') then boxy = boxy - 1 end");
+			luaL_dostring(L, "if love.keyboard.isDown('cpaddown') then boxy = boxy + 1 end");
 
 		sf2d_end_frame();
 
