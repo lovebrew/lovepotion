@@ -38,10 +38,16 @@ I do not have a 3DS nor Cubic Ninja to test the second method.
 
 **LövePotion** is developed using [Citra](http://citra-emu.org/).
 
+* **Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-**
+
+Stop right there kiddo, this is for Homebrew only.
+
+This is not for releasing a real 3DS title. I dunno, contact Nintendo if thats what you want.
+
 
 # Credits
 
- * Smealum and everyone who worked on [ctrulib](https://github.com/smealum/ctrulib) and [Ninjhax](smealum.net/ninjhax)
+ * Smealum and everyone who worked on [ctrulib](https://github.com/smealum/ctrulib) and [Ninjhax](http://smealum.net/ninjhax)
  * xerpi for [sf2dlib](https://github.com/xerpi/sf2dlib)
  * Everyone who has worked on [Citra](http://citra-emu.org/)
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)

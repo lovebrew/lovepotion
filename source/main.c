@@ -64,7 +64,7 @@ char* concat(char *s1, char *s2) {
 	return result;
 }
 
-// Stolen from some StackOverflow question, needs replacing.
+// Stolen from some StackOverflow question, doesn't work as it should, needs replacing.
 
 void registerFunction(char const * const tableName, char const * const funcName, void (*funcPointer)) {
 
