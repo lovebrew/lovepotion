@@ -104,7 +104,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 }
 
-static int graphicsLine(lua_State *L) { // love.graphics.line() -- Broken
+static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 
 	int argc = lua_gettop(L);
 	int i = 0;
@@ -119,7 +119,7 @@ static int graphicsLine(lua_State *L) { // love.graphics.line() -- Broken
 			int x2 = luaL_checkinteger(L, t + 3);
 			int y2 = luaL_checkinteger(L, t + 4);
 
-			sf2d_draw_line(x1, y1, x1, y1, getCurrentColor());
+			sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
 
 		}
 	}

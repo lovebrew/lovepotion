@@ -52,7 +52,7 @@ const char* script = ""
 "love.graphics.rectangle('fill', boxx, boxy, 50, 50)"
 "love.graphics.setColor(255, 0, 0)"
 "love.graphics.circle('fill', 200, 150, 50, 50)"
-"love.graphics.line(50, 50, 200, 50, 25, 40)"
+"love.graphics.line(50, 30, 200, 50)"
 "end";
 
 lua_State *L;
