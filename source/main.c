@@ -64,6 +64,8 @@ char* concat(char *s1, char *s2) {
 	return result;
 }
 
+// Stolen from some StackOverflow question, needs replacing.
+
 void registerFunction(char const * const tableName, char const * const funcName, void (*funcPointer)) {
 
 	lua_getfield(L, LUA_GLOBALSINDEX, tableName); // push table onto stack
@@ -82,7 +84,7 @@ void registerFunction(char const * const tableName, char const * const funcName,
 
 	lua_pop(L, 1); // pop table from stack
 
-	luaL_dostring(L, concat(concat(concat("love.", tableName), " = "), tableName)); // Ugly, will be replaced.
+	luaL_dostring(L, concat(concat(concat("love.", tableName), " = "), tableName)); // Ew.
 
 }
 
@@ -102,7 +104,7 @@ int main() {
 
 	consoleInit(GFX_BOTTOM, NULL);
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')");
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
 	//luaL_dostring(L, "print('love.graphics:')");
 	//luaL_dostring(L, "table.foreach(love.graphics, print)");
 
@@ -122,6 +124,8 @@ int main() {
 			luaL_dostring(L, "if love.draw then love.draw() end");
 
 		sf2d_end_frame();
+
+		// TODO: Work on being able to draw to both screens.
 
 		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 		// sf2d_end_frame();
