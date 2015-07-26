@@ -3,9 +3,9 @@ language: c
 sudo: required
 
 cache:
-	apt: true
-	directories:
-	 - /home/travis/devkitPro
+  apt: true
+  directories:
+    - /home/travis/devkitPro
 
 before_install:
  - export DEVKITPRO=/home/travis/devkitPro
