@@ -5,7 +5,7 @@ sudo: required
 cache:
   apt: true
   directories:
-    - /home/travis/devkitPro
+    - /home/travis/devkitpro
 
 before_install:
  - export DEVKITPRO=/home/travis/devkitpro
