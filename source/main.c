@@ -34,27 +34,6 @@
 #include <3ds.h>
 #include <sf2d.h>
 
-// This is how you load in scripts for now.
-// I know, I know, very messy, very unintuitive.
-// But this is until I can figure out how to load files from the 3DS's filesystem.
-// Until then, LovePotion is mostly a proof of concept.
-
-const char* script = ""
-""
-"boxx = 50;"
-"boxy = 50;"
-""
-"print('Hello, world!')"
-""
-"function love.draw()"
-"love.graphics.setBackgroundColor(0, 255, 0)"
-"love.graphics.setColor(0, 0, 255)"
-"love.graphics.rectangle('fill', boxx, boxy, 50, 50)"
-"love.graphics.setColor(255, 0, 0)"
-"love.graphics.circle('fill', 200, 150, 50, 50)"
-"love.graphics.line(50, 30, 200, 50);"
-"end";
-
 lua_State *L;
 
 char* concat(char *s1, char *s2) {
@@ -109,21 +88,20 @@ int main() {
 	//luaL_dostring(L, "print('love.graphics:')");
 	//luaL_dostring(L, "table.foreach(love.graphics, print)");
 
-	luaL_dostring(L, script);
+	//luaL_dostring(L, script);
+
+	luaL_dofile(L, "LovePotion/main.lua");
+	luaL_dostring(L, "if love.load then love.load() end");
 
 	while (aptMainLoop()) {
 
 		luaL_dostring(L, "love.keyboard.scan()");
 
+		luaL_dostring(L, "if love.update then love.update() end"); // TODO: Pass delta-time.
+
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			luaL_dostring(L, "if love.draw then love.draw() end");
-
-			// love.keyboard.isDown() testing, will remove once script loading is working.
-			luaL_dostring(L, "if love.keyboard.isDown('cpadleft') then boxx = boxx - 1 end");
-			luaL_dostring(L, "if love.keyboard.isDown('cpadright') then boxx = boxx + 1 end");
-			luaL_dostring(L, "if love.keyboard.isDown('cpadup') then boxy = boxy - 1 end");
-			luaL_dostring(L, "if love.keyboard.isDown('cpaddown') then boxy = boxy + 1 end");
 
 		sf2d_end_frame();
 
