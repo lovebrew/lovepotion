@@ -10,6 +10,7 @@ cache:
 before_install:
  - export DEVKITPRO=/home/travis/devkitpro
  - export DEVKITARM=${DEVKITPRO}/devkitARM
+ - export AEMSTRO=$DEVKITPRO/aemstro
  - mkdir $DEVKITPRO
  - cd $DEVKITPRO
  - wget -N http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
@@ -18,6 +19,7 @@ install:
  - cd $DEVKITPRO
  - sudo perl devkitARMupdate.pl /home/travis/devkitpro
  - cd $DEVKITPRO
+ - git clone https://github.com/smealum/aemstro
  - git clone https://github.com/xerpi/sf2dlib
  - cd sf2dlib/libsf2d
  - make
