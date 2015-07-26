@@ -8,7 +8,7 @@ cache:
     - /home/travis/devkitPro
 
 before_install:
- - export DEVKITPRO=/home/travis/devkitPro
+ - export DEVKITPRO=/home/travis/devkitpro
  - export DEVKITARM=${DEVKITPRO}/devkitARM
  - mkdir $DEVKITPRO
  - cd $DEVKITPRO
@@ -17,6 +17,10 @@ before_install:
 install:
  - cd $DEVKITPRO
  - sudo perl devkitARMupdate.pl
+ - git clone https://github.com/smealum/ctrulib.git
+ - cd ctrulib/libctru
+ - make
+ - make install
  - cd $TRAVIS_BUILD_DIR
 
 script:
