@@ -17,10 +17,10 @@ before_install:
 install:
  - cd $DEVKITPRO
  - sudo perl devkitARMupdate.pl
- - git clone https://github.com/smealum/ctrulib.git
- - cd ctrulib/libctru
+ - cd $DEVKITPRO
+ - git clone https://github.com/xerpi/sf2dlib
+ - cd sf2dlib/libsf2d
  - make
- - make install
  - cd $TRAVIS_BUILD_DIR
 
 script:
