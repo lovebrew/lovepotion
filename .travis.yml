@@ -1,0 +1,24 @@
+language: c
+
+sudo: required
+
+cache:
+	apt: true
+	directories:
+	 - /home/travis/devkitPro
+
+before_install:
+ - export DEVKITPRO=/home/travis/devkitPro
+ - export DEVKITARM=${DEVKITPRO}/devkitARM
+ - mkdir $DEVKITPRO
+ - cd $DEVKITPRO
+ - wget -N http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
+
+install:
+ - cd $DEVKITPRO
+ - sudo perl devkitARMupdate.pl
+ - cd $TRAVIS_BUILD_DIR
+
+script:
+ - $TRAVIS_BUILD_DIR/
+ - make
