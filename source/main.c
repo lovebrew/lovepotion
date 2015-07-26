@@ -97,7 +97,9 @@ int main() {
 
 		luaL_dostring(L, "love.keyboard.scan()");
 
-		luaL_dostring(L, "if love.update then love.update() end"); // TODO: Pass delta-time.
+		luaL_dostring(L, "love.timer.step()");
+
+		luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"); // TODO: Pass delta-time.
 
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
