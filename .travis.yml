@@ -16,9 +16,7 @@ before_install:
 
 install:
  - cd $DEVKITPRO
- - sudo perl devkitARMupdate.pl
- - cd $DEVKITARM
- - ls
+ - sudo perl devkitARMupdate.pl /home/travis/devkitpro
  - cd $DEVKITPRO
  - git clone https://github.com/xerpi/sf2dlib
  - cd sf2dlib/libsf2d
