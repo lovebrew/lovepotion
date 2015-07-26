@@ -20,6 +20,8 @@ Right now? Very unlikely.
 
 There currently isn't a proper way of loading scripts, and a lot of the API hasn't been implimented yet.
 
+If you want to try, place your games files in a folder called LovePotion on your SD Card.
+
 * **Can I help?**
 
 Yes, I need all the help I can get. I am new to C, so my code will probably be quite messy, and I don't have the talent that a lot of other people have. 
