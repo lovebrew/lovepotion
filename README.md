@@ -16,7 +16,7 @@ The dream is to be able to run Love2D games on 3DS, but at its current stage all
 
 * **Can I run my Love2D game on this?**
 
-Right now? Very unlikely. A lot of the API hasn't been implimented yet.
+Right now? Very unlikely. A lot of the API hasn't been implemented yet.
 
 If you want to try, place your games files in a folder called LovePotion on your SD Card.
 
