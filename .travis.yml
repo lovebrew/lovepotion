@@ -15,10 +15,10 @@ before_install:
  - wget -N http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
 
 install:
- - export DEVKITPRO=/home/travis/devkitpro
- - export DEVKITARM=${DEVKITPRO}/devkitARM
  - cd $DEVKITPRO
  - sudo perl devkitARMupdate.pl
+ - cd $DEVKITARM
+ - ls
  - cd $DEVKITPRO
  - git clone https://github.com/xerpi/sf2dlib
  - cd sf2dlib/libsf2d
