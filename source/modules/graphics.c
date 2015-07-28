@@ -17,6 +17,9 @@ int currentG = 0xFF;
 int currentB = 0xFF;
 int currentA = 0xFF;
 
+int TOP_SCREEN = 0;
+int BOT_SCREEN = 1;
+
 int currentScreen = 0;
 
 u32 getCurrentColor() {
@@ -174,6 +177,41 @@ static int graphicsPresent(lua_State *L) { // love.graphics.present()
 
 }
 
+static int graphicsGetWidth(lua_State *L) { // love.graphics.getWidth()
+
+	int topWidth = 400;
+	int botWidth = 320;
+
+	int returnWidth;
+
+	// TODO: Take screen sides into account.
+
+	if (currentScreen == TOP_SCREEN) {
+
+		returnWidth = topWidth;
+
+	} else if (currentScreen == BOT_SCREEN) {
+
+		returnWidth = botWidth;
+
+	}
+
+	lua_pushnumber(L, returnWidth);
+
+	return 1;
+
+}
+
+static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
+
+	int returnWidth = 240;
+
+	lua_pushnumber(L, returnWidth);
+
+	return 1;
+
+}
+
 int initLoveGraphics(lua_State *L) {
 
 	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
@@ -186,6 +224,8 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "setScreen", graphicsSetScreen);
 	registerFunction("graphics", "getSide", graphicsGetSide);
 	registerFunction("graphics", "present", graphicsPresent);
+	registerFunction("graphics", "getWidth", graphicsGetWidth);
+	registerFunction("graphics", "getHeight", graphicsGetHeight);
 
 	return 1;
 
