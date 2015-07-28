@@ -147,10 +147,10 @@ static int graphicsSetScreen(lua_State *L) { // love.graphics.setScreen()
 
 	const char *screen = luaL_checkstring(L, 1);
 
-	if (screen == "top") {
-		currentScreen = 0;
-	} else if (screen == "bottom") {
-		currentScreen = 1;
+	if (strcmp(screen, "top") == 0) {
+		currentScreen = TOP_SCREEN;
+	} else if (strcmp(screen, "bottom") == 0) {
+		currentScreen = BOT_SCREEN;
 	}
 
 	return 0;

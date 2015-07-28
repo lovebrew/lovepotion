@@ -40,10 +40,41 @@ static int systemGetOS(lua_State *L) { // love.system.getOS()
 
 }
 
+static int systemGetPowerInfo(lua_State *L) { // love.system.getPowerInfo() TODO: Test this.
+
+	u8 batteryStateBool;
+	PTMU_GetBatteryChargeState(NULL, &batteryStateBool);
+
+	const char *batteryState;
+
+	if (batteryStateBool == 0) {
+
+		batteryState = "battery";
+
+	} else if (batteryStateBool == 1) {
+
+		batteryState = "charging";
+
+	}
+
+	u8 batteryPercent;
+
+	PTMU_GetBatteryLevel(NULL, &batteryPercent);
+
+	lua_pushstring(L, batteryState);
+	lua_pushnumber(L, batteryPercent);
+	lua_pushnil(L);
+
+	return 3;
+
+}
+
 int initLoveSystem(lua_State *L) {
 
 	registerFunction("system", "openURL", systemOpenURL);
 	registerFunction("system", "getOS", systemGetOS);
+	registerFunction("system", "getPowerInfo", systemGetPowerInfo);
+
 	return 1;
 
 }
