@@ -10,22 +10,22 @@ function love.load()
 
 	love.graphics.setScreen("bottom")
 
-	print(love.graphics.getScreen())
+	print('')
 
 	print('Bottom Screen Width: ' .. love.graphics.getWidth())
 	print('Bottom Screen Height: ' .. love.graphics.getHeight())
 
-	love.graphics.setBackgroundColor(0, 255, 0)
+	love.graphics.setBackgroundColor(200, 200, 200)
 
 end
 
 function love.draw()
 
 	love.graphics.setColor(0, 0, 255)
-	love.graphics.rectangle('fill', boxx, boxy, 50, 50)
-	love.graphics.setColor(255, 0, 0)
-	love.graphics.circle('fill', 200, 150, 50, 50)
-	love.graphics.line(50, 30, 200, 50)
+	-- love.graphics.rectangle('fill', boxx, boxy, 50, 50)
+	-- love.graphics.setColor(255, 0, 0)
+	-- love.graphics.circle('fill', 200, 150, 50, 50)
+	-- love.graphics.line(50, 30, 200, 50)
 
 end
 

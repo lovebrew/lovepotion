@@ -33,6 +33,9 @@
 #include <math.h>
 #include <3ds.h>
 #include <sf2d.h>
+#include <sfil.h>
+
+#include "logo_png.h"
 
 lua_State *L;
 
@@ -93,6 +96,8 @@ int main() {
 	luaL_dofile(L, "LovePotion/main.lua");
 	luaL_dostring(L, "if love.load then love.load() end");
 
+	sf2d_texture *tex2 = sfil_load_PNG_buffer(logo_png, SF2D_PLACE_RAM);
+
 	while (aptMainLoop()) {
 
 		luaL_dostring(L, "love.keyboard.scan()");
@@ -104,6 +109,8 @@ int main() {
 		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			luaL_dostring(L, "if love.draw then love.draw() end");
+
+			sf2d_draw_texture(tex2, 400/2 - tex2->width/2, 240/2 - tex2->height/2);
 
 		sf2d_end_frame();
 

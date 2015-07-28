@@ -157,9 +157,9 @@ static int graphicsSetScreen(lua_State *L) { // love.graphics.setScreen()
 
 }
 
-static int graphicsGetSide(lua_State *L) {
+static int graphicsGetSide(lua_State *L) { // love.graphics.getSide()
 
-	if (sf2d_get_current_side() == GFX_LEFT) { // love.graphics.getSide()
+	if (sf2d_get_current_side() == GFX_LEFT) {
 		lua_pushstring(L, "left");
 	} else if (sf2d_get_current_side() == GFX_RIGHT) {
 		lua_pushstring(L, "right");
