@@ -34,6 +34,7 @@
 #include <3ds.h>
 #include <sf2d.h>
 #include <sfil.h>
+#include <sftd.h>
 
 #include "logo_png.h"
 
@@ -85,6 +86,8 @@ int main() {
 	sf2d_init();
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF));
 
+	sftd_init();
+
 	consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
@@ -96,7 +99,9 @@ int main() {
 	luaL_dofile(L, "LovePotion/main.lua");
 	luaL_dostring(L, "if love.load then love.load() end");
 
-	sf2d_texture *tex2 = sfil_load_PNG_buffer(logo_png, SF2D_PLACE_RAM);
+	//sf2d_texture *tex2 = sfil_load_PNG_buffer(logo_png, SF2D_PLACE_RAM);
+
+	luaL_dostring(L, "love.graphics.setFont()");
 
 	while (aptMainLoop()) {
 

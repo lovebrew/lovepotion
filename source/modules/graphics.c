@@ -12,6 +12,10 @@
 #include <3ds.h>
 #include <sf2d.h>
 #include <sfil.h>
+#include <sftd.h>
+
+#include "Vera_ttf.h"
+
 
 int currentR = 0xFF;
 int currentG = 0xFF;
@@ -22,6 +26,9 @@ int TOP_SCREEN = 0;
 int BOT_SCREEN = 1;
 
 int currentScreen = 0;
+
+sftd_font *currentFont = NULL;
+int currentFontSize = 16;
 
 u32 getCurrentColor() {
 
@@ -213,7 +220,7 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 
 }
 
-static int graphicsNewImage(lua_State *L) {
+static int graphicsNewImage(lua_State *L) { // love.graphics.newImage() -- Broken
 
 	const char *path = luaL_checkstring(L, 1);
 
@@ -225,11 +232,45 @@ static int graphicsNewImage(lua_State *L) {
 
 }
 
-static int graphicsDraw(lua_State *L) {
+static int graphicsDraw(lua_State *L) { // love.graphics.draw() -- Broken
 
 	sf2d_texture *tex = sfil_load_PNG_buffer(luaL_checkudata(L, 1, ""), SF2D_PLACE_RAM);
 
 	sf2d_draw_texture(tex, 200, 200);
+
+	return 0;
+
+}
+
+static int graphicsSetFont(lua_State *L) { // love.graphics.setFont() -- Old, needs updating to 0.8.0+
+
+	int argc = lua_gettop(L);
+
+	if (argc == 0) {
+
+		currentFont = sftd_load_font_mem(Vera_ttf, Vera_ttf_size);
+		currentFontSize = 16;
+
+	} else {
+
+		const char *path = luaL_checkstring(L, 1);
+		currentFontSize = luaL_checkinteger(L, 2);
+
+		currentFont = sftd_load_font_file(path);
+
+	}
+
+	return 0;
+
+}
+
+static int graphicsPrint(lua_State *L) { // love.graphics.print() -- Partial
+
+	const char *printText = luaL_checkstring(L, 1);
+	int x = luaL_checkinteger(L, 2);
+	int y = luaL_checkinteger(L, 3);
+
+	sftd_draw_text(currentFont, x / 2, (y + currentFontSize) / 2, getCurrentColor(), currentFontSize, printText);
 
 	return 0;
 
@@ -251,6 +292,8 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "getHeight", graphicsGetHeight);
 	registerFunction("graphics", "newImage", graphicsNewImage);
 	registerFunction("graphics", "draw", graphicsDraw);
+	registerFunction("graphics", "setFont", graphicsSetFont);
+	registerFunction("graphics", "print", graphicsPrint);
 
 	return 1;
 
