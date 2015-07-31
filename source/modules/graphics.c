@@ -251,7 +251,7 @@ static int graphicsSetFont(lua_State *L) { // love.graphics.setFont() -- Old, ne
 	if (argc == 0) {
 
 		currentFont = sftd_load_font_mem(Vera_ttf, Vera_ttf_size);
-		currentFontSize = 16;
+		currentFontSize = 12;
 
 	} else {
 
