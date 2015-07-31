@@ -55,7 +55,9 @@ static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 	int b = luaL_checkinteger(L, 3);
 	int a = NULL;
 
-	if (argc > 3)a = luaL_checkinteger(L, 4);
+	if (argc > 3) {
+		a = luaL_checkinteger(L, 4);
+	}
 
 	if (a == NULL) {
 		a = currentA;
