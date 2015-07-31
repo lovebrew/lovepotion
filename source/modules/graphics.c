@@ -44,6 +44,8 @@ static int graphicsBGColor(lua_State *L) { // love.graphics.setBackgroundColor()
 
 	sf2d_set_clear_color(RGBA8(r, g, b, 0xFF));
 
+	return 0;
+
 }
 
 static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
@@ -67,6 +69,8 @@ static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 	currentG = g;
 	currentB = b;
 	currentA = a;
+
+	return 0;
 
 }
 

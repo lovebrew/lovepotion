@@ -122,6 +122,9 @@ int main() {
 		// TODO: Work on being able to draw to both screens.
 
 		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+
+		// 	luaL_dostring(L, "if love.draw then love.draw() end");
+
 		// sf2d_end_frame();
 
 		luaL_dostring(L, "love.graphics.present()");
