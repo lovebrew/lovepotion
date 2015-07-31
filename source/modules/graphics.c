@@ -11,6 +11,7 @@
 #include <math.h>
 #include <3ds.h>
 #include <sf2d.h>
+#include <sfil.h>
 
 int currentR = 0xFF;
 int currentG = 0xFF;
@@ -25,7 +26,7 @@ int currentScreen = 0;
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
-
+ 
 }
 
 static int graphicsBGColor(lua_State *L) { // love.graphics.setBackgroundColor()
@@ -212,6 +213,28 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 
 }
 
+static int graphicsNewImage(lua_State *L) {
+
+	const char *path = luaL_checkstring(L, 1);
+
+	sf2d_texture *tex = sfil_load_PNG_file(path, SF2D_PLACE_RAM);
+
+	lua_pushlightuserdata(L, tex);
+
+	return 1;
+
+}
+
+static int graphicsDraw(lua_State *L) {
+
+	sf2d_texture *tex = sfil_load_PNG_buffer(luaL_checkudata(L, 1, ""), SF2D_PLACE_RAM);
+
+	sf2d_draw_texture(tex, 200, 200);
+
+	return 0;
+
+}
+
 int initLoveGraphics(lua_State *L) {
 
 	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
@@ -226,6 +249,8 @@ int initLoveGraphics(lua_State *L) {
 	registerFunction("graphics", "present", graphicsPresent);
 	registerFunction("graphics", "getWidth", graphicsGetWidth);
 	registerFunction("graphics", "getHeight", graphicsGetHeight);
+	registerFunction("graphics", "newImage", graphicsNewImage);
+	registerFunction("graphics", "draw", graphicsDraw);
 
 	return 1;
 

@@ -110,7 +110,7 @@ int main() {
 
 			luaL_dostring(L, "if love.draw then love.draw() end");
 
-			sf2d_draw_texture(tex2, 400/2 - tex2->width/2, 240/2 - tex2->height/2);
+			//sf2d_draw_texture(tex2, 400/2 - tex2->width/2, 240/2 - tex2->height/2);
 
 		sf2d_end_frame();
 
