@@ -2,23 +2,23 @@
 	<img src="http://i.imgur.com/uJQNDys.png"/>
 </p>
 
-**LövePotion** is an unofficial work in progress implementation of the [LÖVE2D](https://love2d.org/) API for 3DS Homebrew.
+**LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
 
 <p align="center">
 	<img src="http://i.imgur.com/fAQshYl.png"/>
 </p>
 
 
-The dream is to be able to run Love2D games on 3DS, but at its current stage all it can really do is draw primative shapes.
+The dream is to be able to run Löve games on 3DS, but at its current stage all it can really do is draw primative shapes.
 
 
 # FAQ
 
-* **Can I run my Love2D game on this?**
+* **Can I run my Löve game on this?**
 
 Right now? Very unlikely. A lot of the API hasn't been implemented yet.
 
-If you want to try, place your games files in a folder called LovePotion on your SD Card.
+If you want to try, place your games files in a folder called LövePotion on your SD Card.
 
 * **Can I help?**
 
@@ -51,7 +51,7 @@ This is not for releasing a real 3DS title. I dunno, contact Nintendo if thats w
  * xerpi for [sf2dlib](https://github.com/xerpi/sf2dlib)
  * Everyone who has worked on [Citra](http://citra-emu.org/)
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)
- * All of the Love2D community, for being awesome
+ * All of the Löve community, for being awesome
  * Anyone that I forgot
  
 
