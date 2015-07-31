@@ -5,11 +5,11 @@
 **LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
 
 <p align="center">
-	<img src="http://i.imgur.com/fAQshYl.png"/>
+	<img src="http://i.imgur.com/AodHhaG.png"/>
 </p>
 
 
-The dream is to be able to run Löve games on 3DS, but at its current stage all it can really do is draw primative shapes.
+The dream is to be able to run Löve games on 3DS, but at its current stage all it can really do is draw primative shapes/images/text.
 
 
 # FAQ
