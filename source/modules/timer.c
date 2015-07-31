@@ -13,13 +13,18 @@
 #include <sf2d.h>
 #include <time.h>
 
+int roundNumber(float num)
+{
+    return num < 0 ? num - 0.5 : num + 0.5;
+}
+
 int prevTime = 0;
 int currTime = 0;
 long double dt;
 
 static int timerFPS(lua_State *L) { // love.timer.getFPS()
 
-	lua_pushnumber(L, sf2d_get_fps());
+	lua_pushnumber(L, roundNumber(sf2d_get_fps()));
 
 	return 1;
 
