@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "include/lua/lua.h"
-#include "include/lua/lualib.h"
-#include "include/lua/lauxlib.h"
+#include "libs/lua/lua.h"
+#include "libs/lua/lualib.h"
+#include "libs/lua/lauxlib.h"
 
 #include "shared.h"
 

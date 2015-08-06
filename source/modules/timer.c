@@ -1,6 +1,6 @@
-#include "../include/lua/lua.h"
-#include "../include/lua/lualib.h"
-#include "../include/lua/lauxlib.h"
+#include "../libs/lua/lua.h"
+#include "../libs/lua/lualib.h"
+#include "../libs/lua/lauxlib.h"
 
 #include "../shared.h"
 
@@ -13,8 +13,7 @@
 #include <sf2d.h>
 #include <time.h>
 
-int roundNumber(float num)
-{
+int roundNumber(float num) {
     return num < 0 ? num - 0.5 : num + 0.5;
 }
 
