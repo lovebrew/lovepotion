@@ -20,21 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "libs/lua/lua.h"
-#include "libs/lua/lualib.h"
-#include "libs/lua/lauxlib.h"
-
 #include "shared.h"
-
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <3ds.h>
-#include <sf2d.h>
-#include <sfil.h>
-#include <sftd.h>
 
 #include "logo_png.h"
 
