@@ -27,7 +27,7 @@ int BOT_SCREEN = 1;
 
 int currentScreen = 0;
 
-sftd_font *currentFont = NULL;
+sftd_font *currentFont;
 int currentFontSize = 16;
 
 u32 getCurrentColor() {
