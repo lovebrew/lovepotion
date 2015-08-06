@@ -71,6 +71,7 @@ int main() {
 	luaL_dostring(L, "if not love then love = {} end");
 
 	initLoveGraphics(L); // Init modules.
+	initLoveWindow(L);
 	initLoveTimer(L);
 	initLoveSystem(L);
 	initLoveKeyboard(L);
@@ -129,7 +130,6 @@ int main() {
 		sf2d_end_frame();
 
 		luaL_dostring(L, "love.graphics.present()");
-
 
 	}
 
