@@ -84,10 +84,9 @@ int main() {
 	consoleInit(GFX_TOP, NULL);
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
-	//luaL_dostring(L, "print('love.graphics:')");
-	//luaL_dostring(L, "table.foreach(love.graphics, print)");
 
-	//luaL_dostring(L, script);
+	luaL_dostring(L, "package.path = 'LovePotion/?.lua;LovePotion/?/init.lua'"); // Set default requiring path.
+	luaL_dostring(L, "package.cpath = 'LovePotion/?.lua;LovePotion/?/init.lua'");
 
 	luaL_dofile(L, "LovePotion/main.lua");
 	luaL_dostring(L, "if love.load then love.load() end");
@@ -99,22 +98,6 @@ int main() {
 	luaL_dostring(L, "love.graphics.setFont()");
 
 	while (aptMainLoop()) {
-
-		// luaL_dostring(L, "love.keyboard.scan()");
-
-		// luaL_dostring(L, "love.timer.step()");
-
-		// luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"); // TODO: Pass delta-time.
-
-		// // sf2d_start_frame(GFX_TOP, GFX_LEFT);
-
-		// // 	luaL_dostring(L, "if love.draw then love.draw() end");
-
-		// // sf2d_end_frame();
-
-		// // TODO: Work on being able to draw to both screens.
-
-		// luaL_dostring(L, "love.graphics.present()");
 
 		int res = luaL_dostring(L,
 			"local print = print\n"
