@@ -23,6 +23,7 @@
 #include "libs/lua/lua.h"
 #include "libs/lua/lualib.h"
 #include "libs/lua/lauxlib.h"
+#include "libs/lua/compat-5.2.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -38,4 +39,3 @@ extern lua_State *L;
 extern int currentScreen;
 extern int drawScreen;
 extern char dsNames[32][32];
-extern void registerFunction();

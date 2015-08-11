@@ -22,65 +22,47 @@
 
 #include "../shared.h"
 
-int roundNumber(float num) {
-    return num < 0 ? num - 0.5 : num + 0.5;
-}
+#define LOVE_VERSION "0.9.0"
 
-int prevTime = 0;
-int currTime = 0;
-long double dt;
+static int loveGetVersion(lua_State *L) {
 
-static int timerFPS(lua_State *L) { // love.timer.getFPS()
-
-	lua_pushnumber(L, roundNumber(sf2d_get_fps()));
-
+	lua_pushstring(L, LOVE_VERSION);
 	return 1;
 
 }
 
-static int timerGetTime(lua_State *L) { // love.timer.getTime()
+static int initLoveSystem(lua_State *L);
+static int initLoveGraphics(lua_State *L);
+static int initLoveTimer(lua_State *L);
+static int initLoveKeyboard(lua_State *L);
+static int initLoveWindow(lua_State *L);
 
-	int m = osGetTime();
+int initLove(lua_State *L) {
 
-	lua_pushnumber(L, m);
-
-	return 1;
-
-}
-
-static int timerStep(lua_State *L) { // love.timer.step()
-
-	prevTime = currTime;
-
-	currTime = osGetTime();
-
-	dt = currTime - prevTime;
-
-	dt = dt * 0.001;
-
-	return 0;
-
-}
-
-static int timerGetDelta() { // love.timer.getDelta()
-
-	lua_pushnumber(L, dt);
-
-	return 1;
-
-}
-
-int initLoveTimer(lua_State *L) {
+	int i;
 
 	luaL_Reg reg[] = {
-		{ "getFPS",		timerFPS		},
-		{ "getTime",	timerGetTime	},
-		{ "step",		timerStep		},
-		{ "getDelta",	timerGetDelta	},
+		{ "getVersion",	loveGetVersion },
 		{ 0, 0 },
 	};
 
 	luaL_newlib(L, reg);
+
+	// Thanks to rxi for this https://github.com/rxi/lovedos/blob/master/src/love.c#L51
+
+	struct { char *name; int (*fn)(lua_State *L); } mods[] = {
+		{ "system",   initLoveSystem    },
+		{ "graphics", initLoveGraphics  },
+		{ "timer",    initLoveTimer     },
+		{ "keyboard", initLoveKeyboard  },
+		{ "window",   initLoveWindow    },
+		{ 0 },
+	};
+
+	for (i = 0; mods[i].name; i++) {
+		mods[i].fn(L);
+		lua_setfield(L, -2, mods[i].name);
+	}
 
 	return 1;
 

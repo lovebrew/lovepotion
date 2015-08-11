@@ -40,8 +40,13 @@ int windowGetDisplayCount(lua_State *L) {
 
 int initLoveWindow(lua_State *L) {
 
-	registerFunction("window", "setMode", windowSetMode);
-	registerFunction("window", "getDisplayCount", windowGetDisplayCount);
+	luaL_Reg reg[] = {
+		{ "setMode",			windowSetMode			},
+		{ "getDisplayCount",	windowGetDisplayCount	},
+		{ 0, 0 },
+	};
+
+	luaL_newlib(L, reg);
 
 	return 1;
 

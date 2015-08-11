@@ -85,8 +85,13 @@ int keyboardIsDown(lua_State *L) { // love.keyboard.isDown()
 
 int initLoveKeyboard(lua_State *L) {
 
-	registerFunction("keyboard", "scan", keyboardScan);
-	registerFunction("keyboard", "isDown", keyboardIsDown);
+	luaL_Reg reg[] = {
+		{ "scan",	keyboardScan	},
+		{ "isDown",	keyboardIsDown	},
+		{ 0, 0 },
+	};
+
+	luaL_newlib(L, reg);
 
 	return 1;
 

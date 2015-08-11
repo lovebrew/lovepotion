@@ -43,7 +43,7 @@ u32 getCurrentColor() {
  
 }
 
-static int graphicsBGColor(lua_State *L) { // love.graphics.setBackgroundColor()
+static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgroundColor()
 
 	int r = luaL_checkinteger(L, 1);
 	int g = luaL_checkinteger(L, 2);
@@ -291,22 +291,27 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print() -- Partial
 
 int initLoveGraphics(lua_State *L) {
 
-	registerFunction("graphics", "setBackgroundColor", graphicsBGColor);
-	registerFunction("graphics", "setColor", graphicsSetColor);
-	registerFunction("graphics", "getColor", graphicsGetColor);
-	registerFunction("graphics", "rectangle", graphicsRectangle);
-	registerFunction("graphics", "circle", graphicsCircle);
-	registerFunction("graphics", "line", graphicsLine);
-	registerFunction("graphics", "getScreen", graphicsGetScreen);
-	registerFunction("graphics", "setScreen", graphicsSetScreen);
-	registerFunction("graphics", "getSide", graphicsGetSide);
-	registerFunction("graphics", "present", graphicsPresent);
-	registerFunction("graphics", "getWidth", graphicsGetWidth);
-	registerFunction("graphics", "getHeight", graphicsGetHeight);
-	registerFunction("graphics", "newImage", graphicsNewImage);
-	registerFunction("graphics", "draw", graphicsDraw);
-	registerFunction("graphics", "setFont", graphicsSetFont);
-	registerFunction("graphics", "print", graphicsPrint);
+	luaL_Reg reg[] = {
+		{ "setBackgroundColor",	graphicsSetBackgroundColor	},
+		{ "setColor",			graphicsSetColor			},
+		{ "getColor",			graphicsGetColor			},
+		{ "rectangle",			graphicsRectangle			},
+		{ "circle",				graphicsCircle				},
+		{ "line",				graphicsLine				},
+		{ "getScreen",			graphicsGetScreen			},
+		{ "setScreen",			graphicsSetScreen			},
+		{ "getSide",			graphicsGetSide				},
+		{ "present",			graphicsPresent				},
+		{ "getWidth",			graphicsGetWidth			},
+		{ "getHeight",			graphicsGetHeight			},
+		{ "newImage",			graphicsNewImage			},
+		{ "draw",				graphicsDraw				},
+		{ "setFont",			graphicsSetFont				},
+		{ "print",				graphicsPrint				},
+		{ 0, 0 },
+	};
+
+	luaL_newlib(L, reg);
 
 	return 1;
 

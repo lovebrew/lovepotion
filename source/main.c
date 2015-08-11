@@ -39,42 +39,15 @@ char* concat(char *s1, char *s2) {
 	return result;
 }
 
-// Stolen from some StackOverflow question, doesn't work as it should, needs replacing.
-
-void registerFunction(char const * const tableName, char const * const funcName, void (*funcPointer)) {
-
-	lua_getfield(L, LUA_GLOBALSINDEX, tableName); // push table onto stack
-	if (!lua_istable(L, -1)) {
-		lua_createtable(L, 0, 1); // create new table
-		lua_setfield(L, LUA_GLOBALSINDEX, tableName); // add it to global context
-
-		// reset table on stack
-		lua_pop(L, 1); // pop table (nil value) from stack
-		lua_getfield(L, LUA_GLOBALSINDEX, tableName); // push table onto stack
-	}
-
-	lua_pushstring(L, funcName); // push key onto stack
-	lua_pushcfunction(L, funcPointer); // push value onto stack
-	lua_settable(L, -3); // add key-value pair to table
-
-	lua_pop(L, 1); // pop table from stack
-
-	luaL_dostring(L, concat(concat(concat("love.", tableName), " = "), tableName)); // Ew.
-
-}
+static int initLove(lua_State *L);
 
 int main() {
 
 	L = luaL_newstate();
 	luaL_openlibs(L);
+	luaL_requiref(L, "love", initLove, 1);
 
 	luaL_dostring(L, "if not love then love = {} end");
-
-	initLoveGraphics(L); // Init modules.
-	initLoveWindow(L);
-	initLoveTimer(L);
-	initLoveSystem(L);
-	initLoveKeyboard(L);
 
 	sf2d_init();
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF));

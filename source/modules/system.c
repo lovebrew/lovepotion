@@ -81,9 +81,14 @@ static int systemGetPowerInfo(lua_State *L) { // love.system.getPowerInfo() TODO
 
 int initLoveSystem(lua_State *L) {
 
-	registerFunction("system", "openURL", systemOpenURL);
-	registerFunction("system", "getOS", systemGetOS);
-	registerFunction("system", "getPowerInfo", systemGetPowerInfo);
+	luaL_Reg reg[] = {
+		{ "openURL",		systemOpenURL		},
+		{ "getOS",			systemGetOS			},
+		{ "getPowerInfo",	systemGetPowerInfo	},
+		{ 0, 0 },
+	};
+
+	luaL_newlib(L, reg);
 
 	return 1;
 
