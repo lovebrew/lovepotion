@@ -39,7 +39,7 @@ char* concat(char *s1, char *s2) {
 	return result;
 }
 
-static int initLove(lua_State *L);
+int initLove(lua_State *L);
 
 int main() {
 
