@@ -49,6 +49,7 @@ This is not for releasing a real 3DS title. I dunno, contact Nintendo if thats w
 
  * Smealum and everyone who worked on [ctrulib](https://github.com/smealum/ctrulib) and [Ninjhax](http://smealum.net/ninjhax)
  * xerpi for [sf2dlib](https://github.com/xerpi/sf2dlib) and [sftdlib](https://github.com/xerpi/sftdlib) and [sfillib](https://github.com/xerpi/sfillib)
+ * Everyone who worked on [lua-compat-5.2](https://github.com/keplerproject/lua-compat-5.2)
  * Everyone who has worked on [Citra](http://citra-emu.org/)
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)
  * All of the Löve community, for being awesome
