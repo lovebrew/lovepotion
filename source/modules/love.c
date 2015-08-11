@@ -31,11 +31,11 @@ static int loveGetVersion(lua_State *L) {
 
 }
 
-static int initLoveSystem(lua_State *L);
-static int initLoveGraphics(lua_State *L);
-static int initLoveTimer(lua_State *L);
-static int initLoveKeyboard(lua_State *L);
-static int initLoveWindow(lua_State *L);
+int initLoveSystem(lua_State *L);
+int initLoveGraphics(lua_State *L);
+int initLoveTimer(lua_State *L);
+int initLoveKeyboard(lua_State *L);
+int initLoveWindow(lua_State *L);
 
 int initLove(lua_State *L) {
 
