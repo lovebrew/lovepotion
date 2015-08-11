@@ -47,12 +47,10 @@ int main() {
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", initLove, 1);
 
-	luaL_dostring(L, "if not love then love = {} end");
+	sf2d_init(); // 2D Drawing lib
+	sftd_init(); // Text Drawing lib
 
-	sf2d_init();
-	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF));
-
-	sftd_init();
+	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color
 
 	consoleInit(GFX_TOP, NULL);
 
@@ -89,6 +87,7 @@ int main() {
 
 	}
 
+	sftd_fini();
 	sf2d_fini();
 
 	lua_close(L);
