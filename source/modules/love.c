@@ -38,9 +38,23 @@ int initLoveKeyboard(lua_State *L);
 int initLoveWindow(lua_State *L);
 int initLoveEvent(lua_State *L);
 
+int initImageClass(lua_State *L);
+
 int initLove(lua_State *L) {
 
+	// Thanks to rxi for this https://github.com/rxi/lovedos/blob/master/src/love.c
+
 	int i;
+
+	int (*classes[])(lua_State *L) = {
+		initImageClass,
+		NULL,
+	};
+
+	for (i = 0; classes[i]; i++) {
+		classes[i](L);
+		lua_pop(L, 1);
+	}
 
 	luaL_Reg reg[] = {
 		{ "getVersion",	loveGetVersion },
@@ -48,8 +62,6 @@ int initLove(lua_State *L) {
 	};
 
 	luaL_newlib(L, reg);
-
-	// Thanks to rxi for this https://github.com/rxi/lovedos/blob/master/src/love.c#L51
 
 	struct { char *name; int (*fn)(lua_State *L); } mods[] = {
 		{ "system",   initLoveSystem    },

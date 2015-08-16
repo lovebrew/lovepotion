@@ -24,6 +24,7 @@
 #include "libs/lua/lualib.h"
 #include "libs/lua/lauxlib.h"
 #include "libs/lua/compat-5.2.h"
+#include "libs/luaobj/luaobj.h"
 
 #include <stdio.h>
 #include <string.h>

@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/include source/libs/lua source/modules source/libs/libsf2d/include
+SOURCES		:=	source source/include source/libs/lua source/modules source/objects source/libs/libsf2d/include source/libs/luaobj
 DATA		:=	data
 INCLUDES	:=	include
 

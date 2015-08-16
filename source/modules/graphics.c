@@ -233,23 +233,14 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 
 }
 
-static int graphicsNewImage(lua_State *L) { // love.graphics.newImage() -- Broken
+static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
-	const char *path = luaL_checkstring(L, 1);
+	sf2d_texture *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
-	sf2d_texture *tex = sfil_load_PNG_file(path, SF2D_PLACE_RAM);
+	int x = luaL_checkinteger(L, 2);	
+	int y = luaL_checkinteger(L, 3);	
 
-	lua_pushlightuserdata(L, tex);
-
-	return 1;
-
-}
-
-static int graphicsDraw(lua_State *L) { // love.graphics.draw() -- Broken
-
-	sf2d_texture *tex = sfil_load_PNG_buffer(luaL_checkudata(L, 1, ""), SF2D_PLACE_RAM);
-
-	sf2d_draw_texture(tex, 200, 200);
+	sf2d_draw_texture(img, x, y);
 
 	return 0;
 
@@ -289,6 +280,8 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print() -- Partial
 
 }
 
+int imageNew(lua_State *L);
+
 int initLoveGraphics(lua_State *L) {
 
 	luaL_Reg reg[] = {
@@ -304,7 +297,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "present",			graphicsPresent				},
 		{ "getWidth",			graphicsGetWidth			},
 		{ "getHeight",			graphicsGetHeight			},
-		{ "newImage",			graphicsNewImage			},
+		{ "newImage",			imageNew					},
 		{ "draw",				graphicsDraw				},
 		{ "setFont",			graphicsSetFont				},
 		{ "print",				graphicsPrint				},
