@@ -32,13 +32,6 @@ u32 kUp;
 
 touchPosition touch;
 
-char* concat(char *s1, char *s2) {
-	char *result = malloc(strlen(s1)+strlen(s2)+1);
-	strcpy(result, s1);
-	strcat(result, s2);
-	return result;
-}
-
 int initLove(lua_State *L);
 
 int main() {
@@ -61,10 +54,6 @@ int main() {
 
 	luaL_dofile(L, "LovePotion/main.lua");
 	luaL_dostring(L, "if love.load then love.load() end");
-
-	//sf2d_texture *tex2 = sfil_load_PNG_buffer(logo_png, SF2D_PLACE_RAM);
-
-	//sf2d_draw_texture(tex2, 400/2 - tex2->width/2, 240/2 - tex2->height/2);
 
 	luaL_dostring(L, "love.graphics.setFont()");
 
