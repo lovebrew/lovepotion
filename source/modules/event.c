@@ -20,23 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "libs/lua/lua.h"
-#include "libs/lua/lualib.h"
-#include "libs/lua/lauxlib.h"
-#include "libs/lua/compat-5.2.h"
+#include "../shared.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <3ds.h>
-#include <sf2d.h>
-#include <sfil.h>
-#include <sftd.h>
+int shouldQuit = 0;
 
-extern lua_State *L;
-extern int currentScreen;
-extern int drawScreen;
-extern char dsNames[32][32];
-extern int shouldQuit;
+static int eventQuit(lua_State *L) { // love.event.quit()
+
+	shouldQuit = 1;
+
+	return 0;
+
+}
+
+int initLoveEvent(lua_State *L) {
+
+	luaL_Reg reg[] = {
+		{ "quit", eventQuit },
+		{ 0, 0 },
+	};
+
+	luaL_newlib(L, reg);
+
+	return 1;
+
+}

@@ -40,10 +40,10 @@ int main() {
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", initLove, 1);
 
-	sf2d_init(); // 2D Drawing lib
-	sftd_init(); // Text Drawing lib
+	sf2d_init(); // 2D Drawing lib.
+	sftd_init(); // Text Drawing lib.
 
-	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color
+	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
 	consoleInit(GFX_TOP, NULL);
 
@@ -58,6 +58,8 @@ int main() {
 	luaL_dostring(L, "love.graphics.setFont()");
 
 	while (aptMainLoop()) {
+
+		if (shouldQuit == 1) break; // Quit event, untested.
 
 		int res = luaL_dostring(L,
 			"local print = print\n"

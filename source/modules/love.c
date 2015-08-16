@@ -24,7 +24,7 @@
 
 #define LOVE_VERSION "0.9.0"
 
-static int loveGetVersion(lua_State *L) {
+static int loveGetVersion(lua_State *L) { // love.getVersion()
 
 	lua_pushstring(L, LOVE_VERSION);
 	return 1;
@@ -36,6 +36,7 @@ int initLoveGraphics(lua_State *L);
 int initLoveTimer(lua_State *L);
 int initLoveKeyboard(lua_State *L);
 int initLoveWindow(lua_State *L);
+int initLoveEvent(lua_State *L);
 
 int initLove(lua_State *L) {
 
@@ -56,6 +57,7 @@ int initLove(lua_State *L) {
 		{ "timer",    initLoveTimer     },
 		{ "keyboard", initLoveKeyboard  },
 		{ "window",   initLoveWindow    },
+		{ "event",    initLoveEvent     },
 		{ 0 },
 	};
 
