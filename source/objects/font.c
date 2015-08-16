@@ -48,18 +48,21 @@ const char *fontDefaultInit(love_font *self, int size) {
 int fontNew(lua_State *L) { // love.graphics.newFont()
 
 	const char *filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
+	int size = lua_isnoneornil(L, 2) ? NULL : luaL_checkinteger(L, 2);
 
 	love_font *self = luaobj_newudata(L, sizeof(*self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
+	if (size == NULL) size = 14;
+
 	if (filename) {
 
-		const char *error = fontInit(self, filename, 16);
+		const char *error = fontInit(self, filename, size);
 
 	} else {
 
-		fontDefaultInit(self, 16);
+		fontDefaultInit(self, size);
 	}
 
 	return 1;
