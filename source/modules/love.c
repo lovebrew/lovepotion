@@ -39,6 +39,7 @@ int initLoveWindow(lua_State *L);
 int initLoveEvent(lua_State *L);
 
 int initImageClass(lua_State *L);
+int initFontClass(lua_State *L);
 
 int initLove(lua_State *L) {
 
@@ -48,6 +49,7 @@ int initLove(lua_State *L) {
 
 	int (*classes[])(lua_State *L) = {
 		initImageClass,
+		initFontClass,
 		NULL,
 	};
 

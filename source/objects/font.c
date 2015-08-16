@@ -20,29 +20,71 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "libs/lua/lua.h"
-#include "libs/lua/lualib.h"
-#include "libs/lua/lauxlib.h"
-#include "libs/lua/compat-5.2.h"
-#include "libs/luaobj/luaobj.h"
+#include "../shared.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <3ds.h>
-#include <sf2d.h>
-#include <sfil.h>
-#include <sftd.h>
+#include "Vera_ttf.h"
 
-typedef struct {
-	sftd_font *font;
-	int size;
-} love_font;
+#define CLASS_TYPE  LUAOBJ_TYPE_FONT
+#define CLASS_NAME  "Font"
 
-extern lua_State *L;
-extern int currentScreen;
-extern int drawScreen;
-extern char dsNames[32][32];
-extern int shouldQuit;
+const char *fontInit(love_font *self, const char *filename, int size) {
+
+	self->font = sftd_load_font_file(filename);
+	self->size = size;
+
+	return NULL;
+
+}
+
+const char *fontDefaultInit(love_font *self, int size) {
+
+	self->font = sftd_load_font_mem(Vera_ttf, Vera_ttf_size);
+	self->size = size;
+
+	return NULL;
+
+}
+
+int fontNew(lua_State *L) { // love.graphics.newFont()
+
+	const char *filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
+
+	love_font *self = luaobj_newudata(L, sizeof(*self));
+
+	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+	if (filename) {
+
+		const char *error = fontInit(self, filename, 16);
+
+	} else {
+
+		fontDefaultInit(self, 16);
+	}
+
+	return 1;
+
+}
+
+int fontGC(lua_State *L) { // Garbage Collection
+
+	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	sftd_free_font(self);
+
+	return 0;
+
+}
+
+int initFontClass(lua_State *L) {
+
+	luaL_Reg reg[] = {
+		{ "new",   fontNew           },
+		{ "__gc",  fontGC            },
+		{ 0, 0 },
+	};
+
+  luaobj_newclass(L, CLASS_NAME, NULL, fontNew, reg);
+
+  return 1;
+
+}

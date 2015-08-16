@@ -34,8 +34,7 @@ int BOT_SCREEN = 1;
 
 int currentScreen = 0;
 
-sftd_font *currentFont;
-int currentFontSize = 16;
+love_font *currentFont;
 
 u32 getCurrentColor() {
 
@@ -246,41 +245,31 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 }
 
-static int graphicsSetFont(lua_State *L) { // love.graphics.setFont() -- Old, needs updating to 0.8.0+
+static int graphicsSetFont(lua_State *L) { // love.graphics.setFont()
 
-	int argc = lua_gettop(L);
 
-	if (argc == 0) {
+	love_font *font = luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
+	currentFont = font;
 
-		currentFont = sftd_load_font_mem(Vera_ttf, Vera_ttf_size);
-		currentFontSize = 12;
-
-	} else {
-
-		const char *path = luaL_checkstring(L, 1);
-		currentFontSize = luaL_checkinteger(L, 2);
-
-		currentFont = sftd_load_font_file(path);
-
-	}
 
 	return 0;
 
 }
 
-static int graphicsPrint(lua_State *L) { // love.graphics.print() -- Partial
+static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
 	const char *printText = luaL_checkstring(L, 1);
 	int x = luaL_checkinteger(L, 2);
 	int y = luaL_checkinteger(L, 3);
 
-	sftd_draw_text(currentFont, x / 2, (y + currentFontSize) / 2, getCurrentColor(), currentFontSize, printText);
+	sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
 
 	return 0;
 
 }
 
 int imageNew(lua_State *L);
+int fontNew(lua_State *L);
 
 int initLoveGraphics(lua_State *L) {
 
@@ -298,6 +287,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "getWidth",			graphicsGetWidth			},
 		{ "getHeight",			graphicsGetHeight			},
 		{ "newImage",			imageNew					},
+		{ "newFont",			fontNew						},
 		{ "draw",				graphicsDraw				},
 		{ "setFont",			graphicsSetFont				},
 		{ "print",				graphicsPrint				},

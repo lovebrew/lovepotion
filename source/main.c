@@ -55,8 +55,6 @@ int main() {
 	luaL_dofile(L, "LovePotion/main.lua");
 	luaL_dostring(L, "if love.load then love.load() end");
 
-	luaL_dostring(L, "love.graphics.setFont()");
-
 	while (aptMainLoop()) {
 
 		if (shouldQuit == 1) break; // Quit event, untested.

@@ -28,7 +28,7 @@ int roundNumber(float num) {
 
 int prevTime = 0;
 int currTime = 0;
-long double dt;
+float dt;
 
 static int timerFPS(lua_State *L) { // love.timer.getFPS()
 
