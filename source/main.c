@@ -45,7 +45,7 @@ int main() {
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
-	consoleInit(GFX_TOP, NULL);
+	consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
 
@@ -66,7 +66,7 @@ int main() {
 			"love.timer.step()\n"
 			"if love.update then love.update(love.timer.getDelta()) end");
 
-		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+		sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 			luaL_dostring(L, "if love.draw then love.draw() end");
 
