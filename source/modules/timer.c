@@ -42,7 +42,7 @@ static int timerGetTime(lua_State *L) { // love.timer.getTime()
 
 	int m = osGetTime();
 
-	lua_pushnumber(L, m);
+	lua_pushnumber(L, m * 0.001);
 
 	return 1;
 
