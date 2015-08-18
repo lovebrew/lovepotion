@@ -78,11 +78,34 @@ int fontGC(lua_State *L) { // Garbage Collection
 
 }
 
+int fontGetWidth(lua_State *L) { // font:getWidth()
+
+	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	const char *text = luaL_checkstring(L, 2);
+	int num = strlen(text);
+
+	lua_pushinteger(L, self->size * num); // Not correct, needs replacing.
+
+	return 1;
+
+}
+
+int fontGetHeight(lua_State *L) { // font:getHeight()
+
+	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	lua_pushinteger(L, self->size);
+
+	return 1;
+
+}
+
 int initFontClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{ "new",   fontNew           },
-		{ "__gc",  fontGC            },
+		{ "new",       fontNew       },
+		{ "__gc",      fontGC        },
+		{ "getWidth",  fontGetWidth  },
+		{ "getHeight", fontGetHeight },
 		{ 0, 0 },
 	};
 

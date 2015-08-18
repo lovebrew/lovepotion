@@ -84,8 +84,6 @@ int imageGetHeight(lua_State *L) { // image:getHeight()
 
 }
 
-
-
 int initImageClass(lua_State *L) {
 
 	luaL_Reg reg[] = {

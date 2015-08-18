@@ -1,5 +1,6 @@
-sftd.o: /home/ruairidh/GitHub/sftdlib/libsftd/source/sftd.c \
- /home/ruairidh/GitHub/sftdlib/libsftd/include/sftd.h \
+sftd.o: \
+ /home/ruairidh/GitHub/LovePotion/source/libs/libsftd/source/sftd.c \
+ /home/ruairidh/GitHub/LovePotion/source/libs/libsftd/include/sftd.h \
  /opt/devkitpro/libctru/include/3ds.h \
  /opt/devkitpro/libctru/include/3ds/types.h \
  /opt/devkitpro/libctru/include/3ds/svc.h \
@@ -55,7 +56,7 @@ sftd.o: /home/ruairidh/GitHub/sftdlib/libsftd/source/sftd.c \
  /opt/devkitpro/portlibs/armv6k/include/freetype2/ftmoderr.h \
  /opt/devkitpro/portlibs/armv6k/include/freetype2/fterrdef.h
 
-/home/ruairidh/GitHub/sftdlib/libsftd/include/sftd.h:
+/home/ruairidh/GitHub/LovePotion/source/libs/libsftd/include/sftd.h:
 
 /opt/devkitpro/libctru/include/3ds.h:
 
