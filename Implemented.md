@@ -1,4 +1,4 @@
-# Implimented
+# Implemented
 This is all of the API that is currently implemented, partial or otherwise.
 
 # Callbacks
