@@ -84,7 +84,7 @@ int fontGetWidth(lua_State *L) { // font:getWidth()
 	const char *text = luaL_checkstring(L, 2);
 	int num = strlen(text);
 
-	lua_pushinteger(L, self->size * num); // Not correct, needs replacing.
+	lua_pushinteger(L, (self->size * num) / 2); // Not correct, needs replacing.
 
 	return 1;
 
