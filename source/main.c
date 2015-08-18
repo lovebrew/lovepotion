@@ -26,12 +26,6 @@
 
 lua_State *L;
 
-u32 kDown;
-u32 kHeld;
-u32 kUp;
-
-touchPosition touch;
-
 int initLove(lua_State *L);
 
 int main() {
@@ -47,7 +41,7 @@ int main() {
 
 	consoleInit(GFX_BOTTOM, NULL);
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.0.1\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.1.\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
 
 	luaL_dostring(L, "package.path = 'LovePotion/?.lua;LovePotion/?/init.lua'"); // Set default requiring path.
 	luaL_dostring(L, "package.cpath = 'LovePotion/?.lua;LovePotion/?/init.lua'");
@@ -58,17 +52,9 @@ int main() {
 
 	while (aptMainLoop()) {
 
-		hidScanInput();
-
-		kDown = hidKeysDown();
-
-		if (kDown & KEY_START) break;
-
 		if (shouldQuit == 1) break; // Quit event, untested.
 
 		int res = luaL_dostring(L,
-			"local print = print\n"
-			"local xpcall = xpcall\n"
 			"love.keyboard.scan()\n"
 			"love.timer.step()\n"
 			"if love.update then love.update(love.timer.getDelta()) end");

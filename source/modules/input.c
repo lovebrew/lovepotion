@@ -26,6 +26,11 @@ u32 kDown;
 u32 kHeld;
 u32 kUp;
 
+touchPosition touch;
+
+int lastPosx = 0;
+int lastPosy = 0;
+
 char dsNames[32][32] = {
 		"a", "b", "select", "start",
 		"dright", "dleft", "dup", "ddown",
@@ -48,13 +53,37 @@ char keyNames[32][32] = { // TODO: Improve these.
 		"KEY_CPAD_RIGHT", "KEY_CPAD_LEFT", "KEY_CPAD_UP", "KEY_CPAD_DOWN"
 };
 
-int keyboardScan(lua_State *L) { // love.keyboard.scan()
+int inputScan(lua_State *L) { // love.keyboard.scan()
 
 	hidScanInput();
 
 	kDown = hidKeysDown();
 	kHeld = hidKeysHeld();
 	kUp = hidKeysUp();
+
+	hidTouchRead(&touch);
+
+	if (kDown & BIT(20)) { // BIT(20) == "touch"
+
+		lua_getfield(L, LUA_GLOBALSINDEX, "love");
+		lua_getfield(L, -1, "mousepressed");
+		lua_remove(L, -2);
+
+		if (!lua_isnil(L, -1)) {
+
+			lua_pushinteger(L, touch.px);
+			lua_pushinteger(L, touch.py);
+			lua_pushstring(L, "l");
+			lua_pushboolean(L, 1);
+
+			lua_call(L, 4, 0);
+
+			lastPosx = touch.px;
+			lastPosy = touch.py;
+
+		}
+
+	}
 
 	return 0;
 
@@ -86,7 +115,7 @@ int keyboardIsDown(lua_State *L) { // love.keyboard.isDown()
 int initLoveKeyboard(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{ "scan",	keyboardScan	},
+		{ "scan",	inputScan	},
 		{ "isDown",	keyboardIsDown	},
 		{ 0, 0 },
 	};
