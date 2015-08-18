@@ -39,31 +39,39 @@ int main() {
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
-	consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_TOP, NULL);
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.1.0\x1b[0m (Love2D for 3DS)'); print('')"); // Ew again.
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.1.0\x1b[0m (LOVE for 3DS)'); print('')"); // Ew again.
 
 	luaL_dostring(L, "package.path = 'LovePotion/?.lua;LovePotion/?/init.lua'"); // Set default requiring path.
 	luaL_dostring(L, "package.cpath = 'LovePotion/?.lua;LovePotion/?/init.lua'");
 
-	luaL_dofile(L, "LovePotion/main.lua");
+	if (luaL_dofile(L, "LovePotion/main.lua")) printf("Error: %s", lua_tostring(L,-1));
 
-	luaL_dostring(L, "if love.load then love.load() end");
+	if (luaL_dostring(L, "if love.load then love.load() end")) printf("Error: %s", lua_tostring(L,-1));
 
 	while (aptMainLoop()) {
 
 		if (shouldQuit == 1) break; // Quit event, untested.
 
-		int res = luaL_dostring(L,
+		if (luaL_dostring(L,
 			"love.keyboard.scan()\n"
 			"love.timer.step()\n"
-			"if love.update then love.update(love.timer.getDelta()) end");
+			"if love.update then love.update(love.timer.getDelta()) end")) {
+				printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
+		}
 
-		sf2d_start_frame(GFX_TOP, GFX_LEFT);
+		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-			luaL_dostring(L, "if love.draw then love.draw() end");
+			if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
 
 		sf2d_end_frame();
+
+		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+
+		// 	luaL_dostring(L, "if love.draw then love.draw() end");
+
+		// sf2d_end_frame();
 
 		luaL_dostring(L, "love.graphics.present()");
 

@@ -29,10 +29,7 @@ int currentG = 0xFF;
 int currentB = 0xFF;
 int currentA = 0xFF;
 
-int TOP_SCREEN = 0;
-int BOT_SCREEN = 1;
-
-int currentScreen = 0;
+int currentScreen = GFX_BOTTOM;
 
 love_font *currentFont;
 
@@ -93,69 +90,81 @@ static int graphicsGetColor(lua_State *L) { // love.graphics.getColor()
 
 static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 
-	const char *mode = luaL_checkstring(L, 1);
-	int x = luaL_checkinteger(L, 2);
-	int y = luaL_checkinteger(L, 3);
-	int w = luaL_checkinteger(L, 4);
-	int h = luaL_checkinteger(L, 5);
+	if (sf2d_get_current_screen() == currentScreen) {
 
-	if (strcmp(mode, "fill") == 0) {
-		sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
-	} else if (strcmp(mode, "line") == 0) {
-		sf2d_draw_line(x, y, x, y + h, getCurrentColor());
-		sf2d_draw_line(x, y, x + w, y, getCurrentColor());
+		const char *mode = luaL_checkstring(L, 1);
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		int w = luaL_checkinteger(L, 4);
+		int h = luaL_checkinteger(L, 5);
 
-		sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
-		sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
+		if (strcmp(mode, "fill") == 0) {
+			sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
+		} else if (strcmp(mode, "line") == 0) {
+			sf2d_draw_line(x, y, x, y + h, getCurrentColor());
+			sf2d_draw_line(x, y, x + w, y, getCurrentColor());
+
+			sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
+			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
+		}
+
+		return 0;
+
 	}
-
-	return 0;
 
 }
 
 static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
-	//const char *mode = luaL_checkstring(L, 1);
-	int x = luaL_checkinteger(L, 2);
-	int y = luaL_checkinteger(L, 3);
-	int r = luaL_checkinteger(L, 4);
+	if (sf2d_get_current_screen() == currentScreen) {
 
-	sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
-	sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+		//const char *mode = luaL_checkstring(L, 1);
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
+		int r = luaL_checkinteger(L, 4);
 
-	return 0;
+		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
+		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+
+		return 0;
+
+	}
 
 }
 
 static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 
-	int argc = lua_gettop(L);
-	int i = 0;
+	if (sf2d_get_current_screen() == currentScreen) {
 
-	if ((argc/2)*2 == argc) {
-		for( i; i < argc / 2; i++) {
+		int argc = lua_gettop(L);
+		int i = 0;
 
-			int t = i * 4;
+		if ((argc/2)*2 == argc) {
+			for( i; i < argc / 2; i++) {
 
-			int x1 = luaL_checkinteger(L, t + 1);
-			int y1 = luaL_checkinteger(L, t + 2);
-			int x2 = luaL_checkinteger(L, t + 3);
-			int y2 = luaL_checkinteger(L, t + 4);
+				int t = i * 4;
 
-			sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
+				int x1 = luaL_checkinteger(L, t + 1);
+				int y1 = luaL_checkinteger(L, t + 2);
+				int x2 = luaL_checkinteger(L, t + 3);
+				int y2 = luaL_checkinteger(L, t + 4);
 
+				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
+
+			}
 		}
-	}
 
-	return 0;
+		return 0;
+
+	}
 
 }
 
 static int graphicsGetScreen(lua_State *L) { // love.graphics.getScreen()
 
-	if (sf2d_get_current_screen() == GFX_TOP) {
+	if (currentScreen == GFX_TOP) {
 		lua_pushstring(L, "top");
-	} else if (sf2d_get_current_screen() == GFX_BOTTOM) {
+	} else if (currentScreen == GFX_BOTTOM) {
 		lua_pushstring(L, "bottom");
 	}
 
@@ -168,9 +177,9 @@ static int graphicsSetScreen(lua_State *L) { // love.graphics.setScreen()
 	const char *screen = luaL_checkstring(L, 1);
 
 	if (strcmp(screen, "top") == 0) {
-		currentScreen = TOP_SCREEN;
+		currentScreen = GFX_TOP;
 	} else if (strcmp(screen, "bottom") == 0) {
-		currentScreen = BOT_SCREEN;
+		currentScreen = GFX_BOTTOM;
 	}
 
 	return 0;
@@ -206,11 +215,11 @@ static int graphicsGetWidth(lua_State *L) { // love.graphics.getWidth()
 
 	// TODO: Take screen sides into account.
 
-	if (currentScreen == TOP_SCREEN) {
+	if (currentScreen == GFX_TOP) {
 
 		returnWidth = topWidth;
 
-	} else if (currentScreen == BOT_SCREEN) {
+	} else if (currentScreen == GFX_BOTTOM) {
 
 		returnWidth = botWidth;
 
@@ -234,12 +243,16 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 
 static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
-	love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	if (sf2d_get_current_screen() == currentScreen) {
 
-	int x = luaL_checkinteger(L, 2);	
-	int y = luaL_checkinteger(L, 3);	
+		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
-	sf2d_draw_texture(img->texture, x, y);
+		int x = luaL_checkinteger(L, 2);	
+		int y = luaL_checkinteger(L, 3);	
+
+		sf2d_draw_texture(img->texture, x, y);
+
+	}
 
 	return 0;
 
@@ -258,13 +271,17 @@ static int graphicsSetFont(lua_State *L) { // love.graphics.setFont()
 
 static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
-	const char *printText = luaL_checkstring(L, 1);
-	int x = luaL_checkinteger(L, 2);
-	int y = luaL_checkinteger(L, 3);
+	if (sf2d_get_current_screen() == currentScreen) {
 
-	sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
+		const char *printText = luaL_checkstring(L, 1);
+		int x = luaL_checkinteger(L, 2);
+		int y = luaL_checkinteger(L, 3);
 
-	return 0;
+		sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
+
+		return 0;
+
+	}
 
 }
 
