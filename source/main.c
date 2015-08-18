@@ -53,9 +53,16 @@ int main() {
 	luaL_dostring(L, "package.cpath = 'LovePotion/?.lua;LovePotion/?/init.lua'");
 
 	luaL_dofile(L, "LovePotion/main.lua");
+
 	luaL_dostring(L, "if love.load then love.load() end");
 
 	while (aptMainLoop()) {
+
+		hidScanInput();
+
+		kDown = hidKeysDown();
+
+		if (kDown & KEY_START) break;
 
 		if (shouldQuit == 1) break; // Quit event, untested.
 
@@ -76,10 +83,10 @@ int main() {
 
 	}
 
+	lua_close(L);
+
 	sftd_fini();
 	sf2d_fini();
-
-	lua_close(L);
 
 	return 0;
 

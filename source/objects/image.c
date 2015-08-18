@@ -25,19 +25,9 @@
 #define CLASS_TYPE  LUAOBJ_TYPE_IMAGE
 #define CLASS_NAME  "Image"
 
-const char *imageInit(sf2d_texture *self, const char *filename) {
+const char *imageInit(love_image *self, const char *filename) {
 
-	sf2d_texture *texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
-
-	self->tiled = texture->tiled;
-	self->place = texture->place;
-	self->pixel_format = texture->pixel_format;
-	self->width = texture->width;
-	self->height = texture->height;
-	self->pow2_w = texture->pow2_w;
-	self->pow2_h = texture->pow2_h;
-	self->data_size = texture->data_size;
-	self->data = texture->data;
+	self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
 
 	return NULL;
 
@@ -47,7 +37,7 @@ int imageNew(lua_State *L) { // love.graphics.newImage()
 
 	const char *filename = luaL_checkstring(L, 1);
 
-	sf2d_texture *self = luaobj_newudata(L, sizeof(*self));
+	love_image *self = luaobj_newudata(L, sizeof(*self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
@@ -59,8 +49,8 @@ int imageNew(lua_State *L) { // love.graphics.newImage()
 
 int imageGC(lua_State *L) { // Garbage Collection
 
-	sf2d_texture *self = luaobj_checkudata(L, 1, CLASS_TYPE);
-	sf2d_free_texture(self);
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	sf2d_free_texture(self->texture);
 
 	return 0;
 
@@ -68,9 +58,9 @@ int imageGC(lua_State *L) { // Garbage Collection
 
 int imageGetDimensions(lua_State *L) { // image:getDimensions()
 
-	sf2d_texture *self = luaobj_checkudata(L, 1, CLASS_TYPE);
-	lua_pushinteger(L, self->width);
-	lua_pushinteger(L, self->height);
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	lua_pushinteger(L, self->texture->width);
+	lua_pushinteger(L, self->texture->height);
 
 	return 2;
 
@@ -78,8 +68,8 @@ int imageGetDimensions(lua_State *L) { // image:getDimensions()
 
 int imageGetWidth(lua_State *L) { // image:getWidth()
 
-	sf2d_texture *self = luaobj_checkudata(L, 1, CLASS_TYPE);
-	lua_pushinteger(L, self->width);
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	lua_pushinteger(L, self->texture->width);
 
 	return 1;
 
@@ -87,12 +77,14 @@ int imageGetWidth(lua_State *L) { // image:getWidth()
 
 int imageGetHeight(lua_State *L) { // image:getHeight()
 
-	sf2d_texture *self = luaobj_checkudata(L, 1, CLASS_TYPE);
-	lua_pushinteger(L, self->height);
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	lua_pushinteger(L, self->texture->height);
 
 	return 1;
 
 }
+
+
 
 int initImageClass(lua_State *L) {
 

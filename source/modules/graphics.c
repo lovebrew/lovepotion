@@ -234,12 +234,12 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 
 static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
-	sf2d_texture *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
 	int x = luaL_checkinteger(L, 2);	
 	int y = luaL_checkinteger(L, 3);	
 
-	sf2d_draw_texture(img, x, y);
+	sf2d_draw_texture(img->texture, x, y);
 
 	return 0;
 

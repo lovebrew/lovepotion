@@ -37,6 +37,10 @@
 #include <sftd.h>
 
 typedef struct {
+	sf2d_texture *texture;
+} love_image;
+
+typedef struct {
 	sftd_font *font;
 	int size;
 } love_font;

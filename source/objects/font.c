@@ -72,7 +72,7 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 int fontGC(lua_State *L) { // Garbage Collection
 
 	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
-	sftd_free_font(self);
+	sftd_free_font(self->font);
 
 	return 0;
 
