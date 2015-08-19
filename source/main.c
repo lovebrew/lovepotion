@@ -22,8 +22,6 @@
 
 #include "shared.h"
 
-#include "logo_png.h"
-
 lua_State *L;
 
 int initLove(lua_State *L);
