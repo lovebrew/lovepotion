@@ -43,10 +43,10 @@ int main() {
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.1.0\x1b[0m (LOVE for 3DS)'); print('')"); // Ew again.
 
-	luaL_dostring(L, "package.path = 'LovePotion/?.lua;LovePotion/?/init.lua'"); // Set default requiring path.
-	luaL_dostring(L, "package.cpath = 'LovePotion/?.lua;LovePotion/?/init.lua'");
+	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
+	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
 
-	if (luaL_dofile(L, "LovePotion/main.lua")) printf("Error: %s", lua_tostring(L,-1));
+	if (luaL_dofile(L, "game/main.lua")) printf("Error: %s", lua_tostring(L,-1));
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) printf("Error: %s", lua_tostring(L,-1));
 
