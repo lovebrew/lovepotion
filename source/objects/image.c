@@ -37,11 +37,15 @@ int imageNew(lua_State *L) { // love.graphics.newImage()
 
 	const char *filename = luaL_checkstring(L, 1);
 
+	char final[strlen(rootDir) + strlen(filename) + 2];
+
+	combine(final, rootDir, filename);
+
 	love_image *self = luaobj_newudata(L, sizeof(*self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = imageInit(self, filename);
+	const char *error = imageInit(self, final);
 
 	return 1;
 
