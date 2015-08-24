@@ -50,9 +50,6 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 	const char *filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
 	int size = lua_isnoneornil(L, 2) ? NULL : luaL_checkinteger(L, 2);
 
-	char final[strlen(rootDir) + strlen(filename) + 2];
-	combine(final, rootDir, filename); // rootDir/filepath
-
 	love_font *self = luaobj_newudata(L, sizeof(*self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
@@ -60,6 +57,9 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 	if (size == NULL) size = 14;
 
 	if (filename) {
+
+		char final[strlen(rootDir) + strlen(filename) + 2];
+		combine(final, rootDir, filename); // rootDir/filepath
 
 		const char *error = fontInit(self, final, size);
 

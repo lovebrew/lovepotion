@@ -108,9 +108,9 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
 		}
 
-		return 0;
-
 	}
+
+	return 0;
 
 }
 
@@ -126,9 +126,9 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
-		return 0;
-
 	}
+
+	return 0;
 
 }
 
@@ -154,9 +154,9 @@ static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 			}
 		}
 
-		return 0;
-
 	}
+
+	return 0;
 
 }
 
@@ -250,7 +250,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		int x = luaL_checkinteger(L, 2);	
 		int y = luaL_checkinteger(L, 3);	
 
-		sf2d_draw_texture(img->texture, x, y);
+		sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
 
 	}
 
@@ -260,10 +260,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 static int graphicsSetFont(lua_State *L) { // love.graphics.setFont()
 
-
-	love_font *font = luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
-	currentFont = font;
-
+	currentFont = luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
 
 	return 0;
 
@@ -273,20 +270,26 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		const char *printText = luaL_checkstring(L, 1);
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
+		if (currentFont) {
 
-		sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
+			const char *printText = luaL_checkstring(L, 1);
+			int x = luaL_checkinteger(L, 2);
+			int y = luaL_checkinteger(L, 3);
 
-		return 0;
+			sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
+
+		}
 
 	}
+
+	return 0;
 
 }
 
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
+
+const char *fontDefaultInit(love_font *self, int size);
 
 int initLoveGraphics(lua_State *L) {
 

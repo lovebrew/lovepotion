@@ -1,6 +1,6 @@
 sf2d_texture.o: \
- /home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/source/sf2d_texture.c \
- /home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/include/sf2d.h \
+ /home/ruairidh/GitHub/sf2dlib/libsf2d/source/sf2d_texture.c \
+ /home/ruairidh/GitHub/sf2dlib/libsf2d/include/sf2d.h \
  /opt/devkitpro/libctru/include/3ds.h \
  /opt/devkitpro/libctru/include/3ds/types.h \
  /opt/devkitpro/libctru/include/3ds/svc.h \
@@ -40,10 +40,10 @@ sf2d_texture.o: \
  /opt/devkitpro/libctru/include/3ds/gpu/shbin.h \
  /opt/devkitpro/libctru/include/3ds/gpu/shaderProgram.h \
  /opt/devkitpro/libctru/include/3ds/sdmc.h \
- /home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/include/sf2d_private.h \
- /home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/include/sf2d.h
+ /home/ruairidh/GitHub/sf2dlib/libsf2d/include/sf2d_private.h \
+ /home/ruairidh/GitHub/sf2dlib/libsf2d/include/sf2d.h
 
-/home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/include/sf2d.h:
+/home/ruairidh/GitHub/sf2dlib/libsf2d/include/sf2d.h:
 
 /opt/devkitpro/libctru/include/3ds.h:
 
@@ -123,6 +123,6 @@ sf2d_texture.o: \
 
 /opt/devkitpro/libctru/include/3ds/sdmc.h:
 
-/home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/include/sf2d_private.h:
+/home/ruairidh/GitHub/sf2dlib/libsf2d/include/sf2d_private.h:
 
-/home/ruairidh/GitHub/LovePotion/source/libs/libsf2d/include/sf2d.h:
+/home/ruairidh/GitHub/sf2dlib/libsf2d/include/sf2d.h:

@@ -85,6 +85,27 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 
 	}
 
+	int i;
+	for (i = 0; i < 32; i++) {
+		if (kDown & BIT(i)) {
+			if (strcmp(keyNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
+				
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "keypressed");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1)) {
+
+					lua_pushstring(L, dsNames[i]);
+					lua_pushboolean(L, 0);
+
+					lua_call(L, 2, 0);
+
+				}
+			}
+		} 
+	}
+
 	return 0;
 
 }

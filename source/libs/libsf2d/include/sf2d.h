@@ -280,6 +280,8 @@ void sf2d_draw_fill_circle(int x, int y, int radius, u32 color);
  * @param pixel_format the pixel_format of the texture
  * @param place where to allocate the texture
  * @return a pointer to the newly created texture
+ * @note Before drawing the texture, it needs to be tiled
+ *       by calling sf2d_texture_tile32.
  */
 sf2d_texture *sf2d_create_texture(int width, int height, sf2d_texfmt pixel_format, sf2d_place place);
 
@@ -343,13 +345,56 @@ void sf2d_bind_texture_parameters(const sf2d_texture *texture, GPU_TEXUNIT unit,
 void sf2d_draw_texture(const sf2d_texture *texture, int x, int y);
 
 /**
- * @brief Draws a texture with rotation
+ * @brief Draws a texture blended with a color
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param color the color to blend with the texture
+ */
+void sf2d_draw_texture_blend(const sf2d_texture *texture, int x, int y, u32 color);
+
+/**
+ * @brief Draws a texture with rotation around a hotspot
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param rad rotation (in radians) to draw the texture
+ * @param center_x the x position of the hotspot
+ * @param center_y the y position of the hotspot
+ */
+void sf2d_draw_texture_rotate_hotspot(const sf2d_texture *texture, int x, int y, float rad, float center_x, float center_y);
+
+/**
+ * @brief Draws a texture with rotation around a hotspot with a color
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param rad rotation (in radians) to draw the texture
+ * @param center_x the x position of the hotspot
+ * @param center_y the y position of the hotspot
+ * @param color the color to blend with the texture
+ */
+void sf2d_draw_texture_rotate_hotspot_blend(const sf2d_texture *texture, int x, int y, float rad, float center_x, float center_y, u32 color);
+
+
+/**
+ * @brief Draws a texture with rotation around its center
  * @param texture the texture to draw
  * @param x the x coordinate to draw the texture to
  * @param y the y coordinate to draw the texture to
  * @param rad rotation (in radians) to draw the texture
  */
 void sf2d_draw_texture_rotate(const sf2d_texture *texture, int x, int y, float rad);
+
+/**
+ * @brief Draws a texture with rotation around its center with color
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param rad rotation (in radians) to draw the texture
+ * @param color the color to blend with the texture
+ */
+void sf2d_draw_texture_rotate_blend(const sf2d_texture *texture, int x, int y, float rad, u32 color);
 
 /**
  * @brief Draws a part of a texture
@@ -364,6 +409,19 @@ void sf2d_draw_texture_rotate(const sf2d_texture *texture, int x, int y, float r
 void sf2d_draw_texture_part(const sf2d_texture *texture, int x, int y, int tex_x, int tex_y, int tex_w, int tex_h);
 
 /**
+ * @brief Draws a part of a texture with color
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param tex_x the starting point (x coordinate) where to start drawing
+ * @param tex_y the starting point (y coordinate) where to start drawing
+ * @param tex_w the width to draw from the starting point
+ * @param tex_h the height to draw from the starting point
+ * @param color the color to blend with the texture
+ */
+void sf2d_draw_texture_part_blend(const sf2d_texture *texture, int x, int y, int tex_x, int tex_y, int tex_w, int tex_h, u32 color);
+
+/**
  * @brief Draws a texture with scaling
  * @param texture the texture to draw
  * @param x the x coordinate to draw the texture to
@@ -372,6 +430,46 @@ void sf2d_draw_texture_part(const sf2d_texture *texture, int x, int y, int tex_x
  * @param y_scale the y scale
  */
 void sf2d_draw_texture_scale(const sf2d_texture *texture, int x, int y, float x_scale, float y_scale);
+
+/**
+ * @brief Draws a texture with scaling with color
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param x_scale the x scale
+ * @param y_scale the y scale
+ * @param color the color to blend with the texture
+ */
+void sf2d_draw_texture_scale_blend(const sf2d_texture *texture, int x, int y, float x_scale, float y_scale, u32 color);
+
+/**
+ * @brief Draws a part of a texture, with scaling
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param tex_x the starting point (x coordinate) where to start drawing
+ * @param tex_y the starting point (y coordinate) where to start drawing
+ * @param tex_w the width to draw from the starting point
+ * @param tex_h the height to draw from the starting point
+ * @param x_scale the x scale
+ * @param y_scale the y scale
+ */
+void sf2d_draw_texture_part_scale(const sf2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale);
+
+/**
+ * @brief Draws a part of a texture, with scaling, with color
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param tex_x the starting point (x coordinate) where to start drawing
+ * @param tex_y the starting point (y coordinate) where to start drawing
+ * @param tex_w the width to draw from the starting point
+ * @param tex_h the height to draw from the starting point
+ * @param x_scale the x scale
+ * @param y_scale the y scale
+ * @param color the color to blend with the texture
+ */
+void sf2d_draw_texture_part_scale_blend(const sf2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale, u32 color);
 
 /**
  * @brief Draws a part of a texture, with rotation and scaling
@@ -386,29 +484,23 @@ void sf2d_draw_texture_scale(const sf2d_texture *texture, int x, int y, float x_
  * @param x_scale the x scale
  * @param y_scale the y scale
  */
-void sf2d_draw_texture_rotate_cut_scale(const sf2d_texture *texture, int x, int y, float rad, int tex_x, int tex_y, int tex_w, int tex_h, float x_scale, float y_scale);
+void sf2d_draw_texture_part_rotate_scale(const sf2d_texture *texture, int x, int y, float rad, int tex_x, int tex_y, int tex_w, int tex_h, float x_scale, float y_scale);
 
 /**
- * @brief Draws a texture blended with a color
+ * @brief Draws a part of a texture, with rotation, scaling and color
  * @param texture the texture to draw
  * @param x the x coordinate to draw the texture to
  * @param y the y coordinate to draw the texture to
- * @param color the color to blend with the texture
- */
-void sf2d_draw_texture_blend(const sf2d_texture *texture, int x, int y, u32 color);
-
-/**
- * @brief Draws a part of a texture blended with a color
- * @param texture the texture to draw
- * @param x the x coordinate to draw the texture to
- * @param y the y coordinate to draw the texture to
+ * @param rad rotation (in radians) to draw the texture
  * @param tex_x the starting point (x coordinate) where to start drawing
  * @param tex_y the starting point (y coordinate) where to start drawing
  * @param tex_w the width to draw from the starting point
  * @param tex_h the height to draw from the starting point
+ * @param x_scale the x scale
+ * @param y_scale the y scale
  * @param color the color to blend with the texture
  */
-void sf2d_draw_texture_part_blend(const sf2d_texture *texture, int x, int y, int tex_x, int tex_y, int tex_w, int tex_h, u32 color);
+void sf2d_draw_texture_part_rotate_scale_blend(const sf2d_texture *texture, int x, int y, float rad, int tex_x, int tex_y, int tex_w, int tex_h, float x_scale, float y_scale, u32 color);
 
 /**
  * @brief Draws a texture blended in a certain depth
@@ -424,6 +516,22 @@ void sf2d_draw_texture_part_blend(const sf2d_texture *texture, int x, int y, int
  *       opaque textures to get good results.
  */
 void sf2d_draw_texture_depth(const sf2d_texture *texture, int x, int y, signed short z);
+
+/**
+ * @brief Draws a texture blended in a certain depth
+ * @param texture the texture to draw
+ * @param x the x coordinate to draw the texture to
+ * @param y the y coordinate to draw the texture to
+ * @param z the depth to draw the texture to
+ * @param color the color to blend with the texture
+ * @note The z parameter is a value in the [-32768, +32767] range,
+ *       where -32768 is the deepest and +32767 the toppest.
+ *       By default, the textures are drawn at z = 0.
+ *       Keep in mind that this function won't do
+ *       Order-independent transparency (OIT), so you should use fully
+ *       opaque textures to get good results.
+ */
+void sf2d_draw_texture_depth_blend(const sf2d_texture *texture, int x, int y, signed short z, u32 color);
 
 /**
  * @brief Draws a texture using custom texture coordinates and parameters

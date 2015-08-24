@@ -51,3 +51,5 @@ extern int drawScreen;
 extern char dsNames[32][32];
 extern char *rootDir;
 extern int shouldQuit;
+extern love_font *currentFont;
+extern const char *fontDefaultInit();
