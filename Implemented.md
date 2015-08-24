@@ -7,6 +7,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.draw - ✓
 * love.update - ✓
 * love.mousepressed - ✓
+* love.keypressed - ✓
 
 # love
 
