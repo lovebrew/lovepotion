@@ -14,29 +14,31 @@ The dream is to be able to run Löve games on 3DS, but at its current stage all 
 
 # FAQ
 
-* **Can I run my Löve game on this?**
+* **Can I run my LÖVE game on this?**
 
 Right now? Very unlikely. A lot of the API hasn't been implemented yet.
 
-If you want to try, place your games files in a folder called LövePotion on your SD Card.
+If you want to try, place your games files in a folder the game folder that comes with LövePotion.
 
 * **Can I help?**
 
 Yes, I need all the help I can get. I am new to C, so my code will probably be quite messy, and I don't have the talent that a lot of other people have. 
 
-Just fork the project and send in a pull request and I'll look over it.
+Just send in a pull request and I'll look over it.
 
 * **How do I build this?**
 
-Follow the instructions [here](http://3dbrew.org/wiki/Setting_up_Development_Environment) then run make. I recommend you do it on Linux.
+I don't recommend building this yourself right now, instead just ask me for a build.
 
 * **How do I run this?**
 
-There are 2 ways to run this, and thats by either using the [Citra](http://citra-emu.org) emulator or running it on a 3DS with [Ninjhax](smealum.net/ninjhax). 
+There are ~~2 ways~~ a ton of ways to run this.
+ * [Citra Emulator](http://citra-emu.org)
+ * [Ninjhax](smealum.net/ninjhax)
+ * [IronHax](http://smealum.github.io/3ds)
+ * [TubeHax](http://smealum.github.io/3ds/)
 
-I do not have a 3DS nor Cubic Ninja to test the second method. 
-
-**LövePotion** is developed using [Citra](http://citra-emu.org/).
+**LövePotion** is developed using [Citra](http://citra-emu.org/) and [IronHax](http://smealum.github.io/3ds/).
 
 * **Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-**
 
@@ -44,16 +46,20 @@ Stop right there kiddo, this is for Homebrew only.
 
 This is not for releasing a real 3DS title. I dunno, contact Nintendo if thats what you want.
 
+# Showcase
+
+ * [Space Shooter Game](http://novaember.com/s/8f9453/FIrGGQ.mp4) by Darkwater
+ * [Ludum Dare 33 Entry](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=31436) by me
 
 # Credits
 
- * Smealum and everyone who worked on [ctrulib](https://github.com/smealum/ctrulib) and [Ninjhax](http://smealum.net/ninjhax)
+ * Smealum and everyone who worked on [ctrulib](https://github.com/smealum/ctrulib) and ~~[Ninjhax](http://smealum.net/ninjhax)~~ all the Hax!
  * xerpi for [sf2dlib](https://github.com/xerpi/sf2dlib) and [sftdlib](https://github.com/xerpi/sftdlib) and [sfillib](https://githubcom/xerpi/sfillib)
  * Everyone who worked on [lua-compat-5.2](https://github.com/keplerproject/lua-compat-5.2)
  * Everyone who has worked on [Citra](http://citra-emu.org/)
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)
- * rxi for [lovedos](https://github.com/rxi/lovedos) which has been good for learning
- * All of the Löve community, for being awesome
+ * rxi for [lovedos](https://github.com/rxi/lovedos) which has been good learning material (I also used his luaobj util)
+ * All of the LÖVE community, for being awesome
  * Anyone that I forgot
  
 
