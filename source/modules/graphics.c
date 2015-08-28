@@ -22,8 +22,6 @@
 
 #include "../shared.h"
 
-#include "Vera_ttf.h"
-
 int currentR = 0xFF;
 int currentG = 0xFF;
 int currentB = 0xFF;
@@ -33,10 +31,29 @@ int currentScreen = GFX_BOTTOM;
 
 love_font *currentFont;
 
+int transX = 0;
+int transY = 0;
+int isPushed = 0;
+
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
  
+}
+
+int translateCoords(int *x, int *y) {
+
+	// Emulates the functionality of lg.translate
+
+	if (isPushed) {
+
+		*x = *x + transX;
+		*y = *y + transY;
+
+	}
+
+	return 0;
+
 }
 
 static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgroundColor()
@@ -93,8 +110,12 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 	if (sf2d_get_current_screen() == currentScreen) {
 
 		const char *mode = luaL_checkstring(L, 1);
+
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
+
+		translateCoords(&x, &y);
+
 		int w = luaL_checkinteger(L, 4);
 		int h = luaL_checkinteger(L, 5);
 
@@ -123,6 +144,8 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 		int y = luaL_checkinteger(L, 3);
 		int r = luaL_checkinteger(L, 4);
 
+		translateCoords(&x, &y);
+
 		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
@@ -148,6 +171,9 @@ static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 				int y1 = luaL_checkinteger(L, t + 2);
 				int x2 = luaL_checkinteger(L, t + 3);
 				int y2 = luaL_checkinteger(L, t + 4);
+
+				translateCoords(&x1, &y1);
+				translateCoords(&x2, &y2);
 
 				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
 
@@ -248,7 +274,9 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
 		int x = luaL_checkinteger(L, 2);	
-		int y = luaL_checkinteger(L, 3);	
+		int y = luaL_checkinteger(L, 3);
+
+		translateCoords(&x, &y);
 
 		sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
 
@@ -276,9 +304,64 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print()
 			int x = luaL_checkinteger(L, 2);
 			int y = luaL_checkinteger(L, 3);
 
+			translateCoords(&x, &y);
+
 			sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
 
 		}
+
+	}
+
+	return 0;
+
+}
+
+static int graphicsPush(lua_State *L) { // love.graphics.push()
+
+	if (sf2d_get_current_screen() == currentScreen) {
+
+		isPushed = 1;
+
+	}
+
+	return 0;
+
+}
+
+static int graphicsPop(lua_State *L) { // love.graphics.pop()
+
+	if (sf2d_get_current_screen() == currentScreen) {
+
+		isPushed = 0;
+
+	}
+
+	return 0;
+
+}
+
+static int graphicsOrigin(lua_State *L) { // love.graphics.origin()
+
+	if (sf2d_get_current_screen() == currentScreen) {
+
+		transX = 0;
+		transY = 0;
+
+	}
+
+	return 0;
+
+}
+
+static int graphicsTranslate(lua_State *L) { // love.graphics.translate()
+
+	if (sf2d_get_current_screen() == currentScreen) {
+
+		int dx = luaL_checkinteger(L, 1);
+		int dy = luaL_checkinteger(L, 2);
+
+		transX = dx;
+		transY = dy;
 
 	}
 
@@ -311,6 +394,10 @@ int initLoveGraphics(lua_State *L) {
 		{ "draw",				graphicsDraw				},
 		{ "setFont",			graphicsSetFont				},
 		{ "print",				graphicsPrint				},
+		{ "push",				graphicsPush				},
+		{ "pop",				graphicsPop					},
+		{ "origin",				graphicsOrigin				},
+		{ "translate",			graphicsTranslate			},
 		{ 0, 0 },
 	};
 
