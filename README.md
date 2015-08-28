@@ -30,7 +30,7 @@ I don't recommend building this yourself right now, instead just ask me for a bu
 
 There are ~~2 ways~~ a ton of ways to run this.
  * [Citra Emulator](http://citra-emu.org)
- * [Ninjhax](smealum.net/ninjhax)
+ * [Ninjhax](http://smealum.net/ninjhax)
  * [IronHax](http://smealum.github.io/3ds)
  * [TubeHax](http://smealum.github.io/3ds/)
 
