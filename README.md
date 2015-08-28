@@ -8,10 +8,6 @@
 	<img src="http://i.imgur.com/AodHhaG.png"/>
 </p>
 
-
-The dream is to be able to run Löve games on 3DS, but at its current stage all it can really do is draw primative shapes/images/text.
-
-
 # FAQ
 
 * **Can I run my LÖVE game on this?**
