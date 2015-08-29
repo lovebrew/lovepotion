@@ -32,6 +32,10 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.draw - **Partial**
 * love.graphics.setFont - ✓
 * love.graphics.print - ✓
+* love.graphics.push - ✓
+* love.graphics.pop - ✓
+* love.graphics.origin - ✓
+* love.graphics.translate - ✓
 
 # love.timer
 
