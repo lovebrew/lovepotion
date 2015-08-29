@@ -5,7 +5,7 @@
 **LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
 
 <p align="center">
-	<img src="http://i.imgur.com/AodHhaG.png"/>
+	<img src="http://i.imgur.com/G9QjjjN.png"/>
 </p>
 
 # FAQ
