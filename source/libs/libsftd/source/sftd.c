@@ -1,6 +1,6 @@
 #include "sftd.h"
 #include <wchar.h>
-#include <sf2d.h>
+#include "../../libsf2d/include/sf2d.h"
 #include <ft2build.h>
 #include FT_CACHE_H
 #include FT_FREETYPE_H

@@ -26,15 +26,16 @@
 #include "libs/lua/compat-5.2.h"
 #include "libs/luaobj/luaobj.h"
 
+#include "libs/libsf2d/include/sf2d.h"
+#include <sfil.h>
+#include <sftd.h>
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <3ds.h>
-#include <sf2d.h>
-#include <sfil.h>
-#include <sftd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>

@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/include source/libs/lua source/modules source/objects source/libs/libsf2d/include source/libs/luaobj
+SOURCES		:=	source source/include source/libs/lua source/modules source/objects source/libs/libsf2d source/libs/luaobj
 DATA		:=	data
 INCLUDES	:=	include
 
@@ -58,7 +58,7 @@ LIBS	:= -lsfil -lpng -ljpeg -lz -lsf2d -lctru -lm -lsftd -lfreetype
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(DEVKITPRO)/libsf2d $(CURDIR)/source/libs/libsfil $(CURDIR)/source/libs/libsftd
+LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/source/libs/libsf2d $(CURDIR)/source/libs/libsfil $(CURDIR)/source/libs/libsftd
 
 
 #---------------------------------------------------------------------------------
@@ -127,13 +127,25 @@ endif
 all: $(BUILD)
 
 $(BUILD):
+	$(MAKE) -C source/libs/libsf2d/
+	$(MAKE) -C source/libs/libsftd/
+	$(MAKE) -C source/libs/libsfil/
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
-	@echo clean ...
+
+	@echo Cleaning LovePotion ...
 	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf
+	@echo clean ...
+
+	@echo Cleaning sf2dlib ...
+	$(MAKE) -C source/libs/libsf2d/ clean
+	@echo Cleaning sftdlib ...
+	$(MAKE) -C source/libs/libsftd/ clean
+	@echo Cleaning sfillib ...
+	$(MAKE) -C source/libs/libsfil/ clean
 
 
 #---------------------------------------------------------------------------------
