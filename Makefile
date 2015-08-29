@@ -127,9 +127,9 @@ endif
 all: $(BUILD)
 
 $(BUILD):
-	$(MAKE) -C source/libs/libsf2d/
-	$(MAKE) -C source/libs/libsftd/
-	$(MAKE) -C source/libs/libsfil/
+	$(MAKE) --no-print-directory -C source/libs/libsf2d/
+	$(MAKE) --no-print-directory -C source/libs/libsftd/
+	$(MAKE) --no-print-directory -C source/libs/libsfil/
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
@@ -141,11 +141,11 @@ clean:
 	@echo clean ...
 
 	@echo Cleaning sf2dlib ...
-	$(MAKE) -C source/libs/libsf2d/ clean
+	$(MAKE) --no-print-directory -C source/libs/libsf2d/ clean
 	@echo Cleaning sftdlib ...
-	$(MAKE) -C source/libs/libsftd/ clean
+	$(MAKE) --no-print-directory -C source/libs/libsftd/ clean
 	@echo Cleaning sfillib ...
-	$(MAKE) -C source/libs/libsfil/ clean
+	$(MAKE) --no-print-directory -C source/libs/libsfil/ clean
 
 
 #---------------------------------------------------------------------------------
