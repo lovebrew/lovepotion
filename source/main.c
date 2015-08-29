@@ -20,11 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-char *rootDir = "game";
-
 #include "shared.h"
 
-#include "Vera_ttf.h"
+char *rootDir = "game";
 
 lua_State *L;
 
@@ -41,7 +39,7 @@ int main() {
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
-	// consoleInit(GFX_TOP, NULL);
+	consoleInit(GFX_TOP, NULL);
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 0.1.0\x1b[0m (LOVE for 3DS)'); print('')"); // Ew again.
 
@@ -54,7 +52,7 @@ int main() {
 
 	while (aptMainLoop()) {
 
-		if (shouldQuit == 1) break; // Quit event, untested.
+		if (shouldQuit == 1) break; // Quit event
 
 		if (luaL_dostring(L,
 			"love.keyboard.scan()\n"
@@ -63,11 +61,11 @@ int main() {
 				printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
 		}
 
-		sf2d_start_frame(GFX_TOP, GFX_LEFT);
+		// sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-			if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
+		// 	if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
 
-		sf2d_end_frame();
+		// sf2d_end_frame();
 
 		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 

@@ -29,6 +29,8 @@
 
 const char *fontInit(love_font *self, const char *filename, int size) {
 
+	if (!fileExists(filename)) return "Could not open font. Does not exist.";
+
 	self->font = sftd_load_font_file(filename);
 	self->size = size;
 
@@ -62,6 +64,8 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 		combine(final, rootDir, filename); // rootDir/filepath
 
 		const char *error = fontInit(self, final, size);
+
+		if (error) luaError(L, error);
 
 	} else {
 

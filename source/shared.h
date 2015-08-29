@@ -35,6 +35,9 @@
 #include <sf2d.h>
 #include <sfil.h>
 #include <sftd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 typedef struct {
 	sf2d_texture *texture;
