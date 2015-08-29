@@ -33,8 +33,8 @@ DATA		:=	data
 INCLUDES	:=	include
 
 APP_TITLE	:=	LovePotion
-APP_AUTHOR	:=	VideahGams
-APP_DESCRIPTION	:=	Love2D for 3DS
+APP_AUTHOR	:=	Ruairidh 'VideahGams' Carmichael
+APP_DESCRIPTION	:=	Implementation of the LOVE framework for 3DS.
 
 #---------------------------------------------------------------------------------
 # options for code generation
