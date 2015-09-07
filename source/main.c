@@ -46,6 +46,8 @@ int main() {
 	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
 	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
 
+	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
+
 	if (luaL_dofile(L, "game/main.lua")) printf("Error: %s", lua_tostring(L,-1));
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) printf("Error: %s", lua_tostring(L,-1));
