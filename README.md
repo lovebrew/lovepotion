@@ -47,6 +47,10 @@ This is not for releasing a real 3DS title. I dunno, contact Nintendo if thats w
  * [Space Shooter Game](http://novaember.com/s/8f9453/FIrGGQ.mp4) by Darkwater
  * [Ludum Dare 33 Entry](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=31436) by me
 
+# Dependencies
+
+LövePotion requires the 3DS portlibs to build correctly, these are not included and must be downloaded, built, and installed correctly from [here](https://github.com/xerpi/3ds_portlibs).
+
 # Credits
 
  * Smealum and everyone who worked on [ctrulib](https://github.com/smealum/ctrulib) and ~~[Ninjhax](http://smealum.net/ninjhax)~~ all the Hax!
