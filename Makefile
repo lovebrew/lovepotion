@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/include source/libs/lua source/modules source/objects source/libs/libsf2d source/libs/luaobj
+SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj
 DATA		:=	data
 INCLUDES	:=	include
 
@@ -127,25 +127,50 @@ endif
 all: $(BUILD)
 
 $(BUILD):
-	$(MAKE) --no-print-directory -C source/libs/libsf2d/
-	$(MAKE) --no-print-directory -C source/libs/libsftd/
-	$(MAKE) --no-print-directory -C source/libs/libsfil/
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
+build-sf2dlib:
+	@make -C source/libs/libsf2d build
+
+build-sftdlib:
+	@make -C source/libs/libsftd build
+
+build-sfillib:
+	@make -C source/libs/libsfil build
+
+build-all:
+	@echo Building sf2dlib...
+	@make build-sf2dlib
+	@echo Building sftdlib...
+	@make build-sftdlib
+	@echo Building sfillib...
+	@make build-sfillib
+	@echo Building ctruLua...
+	@make build
+
 #---------------------------------------------------------------------------------
 clean:
-
-	@echo Cleaning LovePotion ...
 	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf
-	@echo clean ...
 
-	@echo Cleaning sf2dlib ...
-	$(MAKE) --no-print-directory -C source/libs/libsf2d/ clean
-	@echo Cleaning sftdlib ...
-	$(MAKE) --no-print-directory -C source/libs/libsftd/ clean
-	@echo Cleaning sfillib ...
-	$(MAKE) --no-print-directory -C source/libs/libsfil/ clean
+clean-sf2dlib:
+	@make -C source/libs/libsf2d clean
+
+clean-sftdlib:
+	@make -C source/libs/libsftd clean
+
+clean-sfillib:
+	@make -C source/libs/libsfil clean
+
+clean-all:
+	@echo Cleaning sf2dlib...
+	@make clean-sf2dlib
+	@echo Cleaning sftdlib...
+	@make clean-sftdlib
+	@echo Cleaning sfillib...
+	@make clean-sfillib
+	@echo Cleaning LovePotion...
+	@make clean
 
 
 #---------------------------------------------------------------------------------
