@@ -74,5 +74,5 @@ This is all of the API that is currently implemented, partial or otherwise.
 
 ### Font
 
-* font:getWidth - **Partial**
+* font:getWidth - ✓
 * font:getHeight - ✓
