@@ -58,8 +58,8 @@ This is all of the API that is currently implemented, partial or otherwise.
 
 # love.system
 
-* love.getOS - ✓
-* love.getPowerInfo - ✓
+* love.system.getOS - ✓
+* love.system.getPowerInfo - ✓
 
 # Objects
 
