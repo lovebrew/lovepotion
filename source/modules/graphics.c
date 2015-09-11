@@ -335,7 +335,7 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
 			translateCoords(&x, &y);
 
-			sftd_draw_text(currentFont->font, x / 2, (y + currentFont->size) / 2, getCurrentColor(), currentFont->size, printText);
+			sftd_draw_text(currentFont->font, x, y, getCurrentColor(), currentFont->size, printText);
 
 		}
 

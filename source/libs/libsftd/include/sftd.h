@@ -105,6 +105,49 @@ void sftd_draw_wtext(sftd_font *font, int x, int y, unsigned int color, unsigned
  */
 void sftd_draw_wtextf(sftd_font *font, int x, int y, unsigned int color, unsigned int size, const wchar_t *text, ...);
 
+/**
+ * @brief Returns the width of the given text in pixels
+ * @param font the font used to calculate the width
+ * @param size the font size
+ * @param text a pointer to the text that will be used to calculate the length
+ */
+int sftd_get_text_width(sftd_font *font, unsigned int size, char *text);
+
+/**
+ * @brief Draws text using a font. The text will wrap after the pixels specified in lineWidth.
+ * @param font the font to use
+ * @param x the x coordinate to draw the text to
+ * @param y the y coordinate to draw the text to
+ * @param color the color to draw the font
+ * @param size the font size
+ * @param lineWidth The length of one line before a line break accours.
+ * @param text a pointer to the text to draw
+ */
+void sftd_draw_text_wrap(sftd_font *font, int x, int y, unsigned int color, unsigned int size, unsigned int lineWidth, const char *text);
+
+/**
+ * @brief Calculates the bounding box of the text wih the given attributes.
+ * @param boundingWidth Pointer to the address where the width will be stored.
+ * @param boundingHeight Pointer to the address where the height will be stored.
+ * @param font the font to use
+ * @param size the font size
+ * @param lineWidth The length of one line before a line break accours.
+ * @param text a pointer to the text to draw
+ */
+void sftd_calc_bounding_box(int *boundingWidth, int *boundingHeight, sftd_font *font, unsigned int size, unsigned int lineWidth, const char *text);
+
+/**
+ * @brief Draws formatted text using a font.  The text will wrap after the pixels specified in lineWidth.
+ * @param font the font to use
+ * @param x the x coordinate to draw the text to
+ * @param y the y coordinate to draw the text to
+ * @param color the color to draw the font
+ * @param size the font size
+ * @param lineWidth The length of one line before a line break accours.
+ * @param text a pointer to the text to draw
+ * @param ... variable arguments
+ */
+void sftd_draw_textf_wrap(sftd_font *font, int x, int y, unsigned int color, unsigned int size, unsigned int lineWidth, const char *text, ...);
 
 #ifdef __cplusplus
 }
