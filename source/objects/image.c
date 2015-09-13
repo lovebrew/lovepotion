@@ -54,17 +54,13 @@ const char *imageInit(love_image *self, const char *filename) {
 int imageNew(lua_State *L) { // love.graphics.newImage()
 
 	const char *filename = luaL_checkstring(L, 1);
-
 	char final[strlen(rootDir) + strlen(filename) + 2];
-
 	combine(final, rootDir, filename);
 
 	love_image *self = luaobj_newudata(L, sizeof(*self));
-
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
 	const char *error = imageInit(self, final);
-
 	if (error) luaError(L, error);
 
 	return 1;
@@ -74,7 +70,11 @@ int imageNew(lua_State *L) { // love.graphics.newImage()
 int imageGC(lua_State *L) { // Garbage Collection
 
 	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (!self->texture) return 0;
+
 	sf2d_free_texture(self->texture);
+	self->texture = NULL;
 
 	return 0;
 
