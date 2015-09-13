@@ -302,12 +302,21 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
-		int x = luaL_checkinteger(L, 2);	
+		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
+		float rad = luaL_optnumber(L, 4, 0);
 
 		translateCoords(&x, &y);
 
-		sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+		if (rad == 0) {
+
+			sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+
+		} else {
+
+			sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+
+		}
 
 	}
 
