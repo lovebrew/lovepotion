@@ -59,3 +59,9 @@ void luaError(lua_State *L, char *message) {
 	lua_pushstring(L, message);
 	lua_error(L);
 }
+
+const char *fileExtension(const char *filename) {
+	const char *dot = strrchr(filename, '.');
+	if(!dot || dot == filename) return "";
+	return dot + 1;
+}

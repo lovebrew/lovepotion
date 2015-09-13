@@ -29,7 +29,23 @@ const char *imageInit(love_image *self, const char *filename) {
 
 	if (!fileExists(filename)) return "Could not open image. Does not exist.";
 
-	self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+	const char *ext = fileExtension(filename);
+
+	if (strncmp(ext, "png", 3) == 0) {
+
+		self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+
+	} else if (strncmp(ext, "bmp", 3) == 0) {
+		
+		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
+
+	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3)) {
+		
+		self->texture = sfil_load_JPEG_file(filename, SF2D_PLACE_RAM);
+
+	} else {
+		return "Unknown image type.";
+	}
 
 	return NULL;
 
