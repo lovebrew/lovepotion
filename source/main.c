@@ -71,7 +71,7 @@ int main() {
 
 		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-			luaL_dostring(L, "if love.draw then love.draw() end");
+			if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
 
 		sf2d_end_frame();
 
