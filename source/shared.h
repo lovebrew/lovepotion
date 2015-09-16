@@ -56,4 +56,5 @@ extern char dsNames[32][32];
 extern char *rootDir;
 extern int shouldQuit;
 extern love_font *currentFont;
+extern int is3D;
 extern const char *fontDefaultInit();

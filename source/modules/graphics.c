@@ -35,6 +35,8 @@ int transX = 0;
 int transY = 0;
 int isPushed = 0;
 
+int is3D = 0;
+
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
@@ -407,6 +409,23 @@ static int graphicsTranslate(lua_State *L) { // love.graphics.translate()
 
 }
 
+static int graphicsSet3D(lua_State *L) {
+
+	is3D = lua_toboolean(L, 1);
+	sf2d_set_3D(is3D);
+
+	return 0;
+
+}
+
+static int graphicsGet3D(lua_State *L) {
+
+	lua_pushboolean(L, is3D);
+
+	return 1;
+
+}
+
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
 
@@ -436,6 +455,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "pop",				graphicsPop					},
 		{ "origin",				graphicsOrigin				},
 		{ "translate",			graphicsTranslate			},
+		{ "set3D",				graphicsSet3D				},
+		{ "get3D",				graphicsGet3D				},
 		{ 0, 0 },
 	};
 
