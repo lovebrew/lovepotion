@@ -12,19 +12,22 @@
 
 * **Can I run my LÖVE game on this?**
 
-Right now? Very unlikely. A lot of the API hasn't been implemented yet.
+Running your game without any changes is very unlikely, so it's recommended to currently use LövePotion to make games from the ground up.
 
-If you want to try, place your games files in a folder the game folder that comes with LövePotion.
+If you want to try, place your games files in the game folder.
 
 * **Can I help?**
 
 Yes, I need all the help I can get. I am new to C, so my code will probably be quite messy, and I don't have the talent that a lot of other people have. 
 
-Just send in a pull request and I'll look over it.
+If you have anything to contribute just make a pull request.
 
 * **How do I build this?**
 
-I don't recommend building this yourself right now, instead just ask me for a build.
+Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, and run make.
+LövePotion will most likely not build on anything but Linux, and I haven't tested that it builds at all on any other machine.
+
+If you can/can't get it built, please tell me.
 
 * **How do I run this?**
 
@@ -36,16 +39,20 @@ There are ~~2 ways~~ a ton of ways to run this.
 
 **LövePotion** is developed using [Citra](http://citra-emu.org/) and [IronHax](http://smealum.github.io/3ds/).
 
+There are also other ways, but I know next to nothing of these methods.
+
 * **Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-**
 
 Stop right there kiddo, this is for Homebrew only.
 
-This is not for releasing a real 3DS title. I dunno, contact Nintendo if thats what you want.
+This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's what you want.
 
 # Showcase
 
  * [Space Shooter Game](http://novaember.com/s/8f9453/FIrGGQ.mp4) by Darkwater
  * [Ludum Dare 33 Entry](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=31436) by me
+
+Send me your projects so I can showcase them here!
 
 # Dependencies
 
