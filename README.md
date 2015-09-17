@@ -8,6 +8,10 @@
 	<img src="http://i.imgur.com/G9QjjjN.png"/>
 </p>
 
+# Binaries
+
+Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable releases.
+
 # FAQ
 
 * **Can I run my LÖVE game on this?**
