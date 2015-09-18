@@ -150,35 +150,8 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		translateCoords(&x, &y);
 
-		if (mode == "fill") {
-
-			sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
-			sf2d_draw_fill_circle(x, y, r, getCurrentColor());
-
-		}
-
-		if (mode == "line") {
-
-			int lineAng;
-			int oldX;
-			int oldY;
-			int h = x; // x
-			int k = y; // y
-			int r = 50;
-
-			for (lineAng = 0; lineAng < 360; lineAng += step) {
-
-				int oldX = h;
-				int oldY = y;
-
-				h = x + r*cos(lineAng);
-				k = y - r*sin(lineAng);
-				sf2d_draw_line(oldX, oldY, h, k, getCurrentColor());
-
-
-			}
-
-		}
+		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
+		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	}
 
