@@ -22,67 +22,21 @@
 
 #include "../shared.h"
 
-#define LOVE_VERSION "0.9.0"
+bool soundEnabled;
 
-static int loveGetVersion(lua_State *L) { // love.getVersion()
+int sourceNew(lua_State *L);
 
-	lua_pushstring(L, LOVE_VERSION);
-	return 1;
+int initLoveAudio(lua_State *L) {
 
-}
-
-int initLoveSystem(lua_State *L);
-int initLoveGraphics(lua_State *L);
-int initLoveTimer(lua_State *L);
-int initLoveKeyboard(lua_State *L);
-int initLoveWindow(lua_State *L);
-int initLoveEvent(lua_State *L);
-int initLoveAudio(lua_State *L);
-
-int initImageClass(lua_State *L);
-int initFontClass(lua_State *L);
-int initSourceClass(lua_State *L);
-
-int initLove(lua_State *L) {
-
-	// Thanks to rxi for this https://github.com/rxi/lovedos/blob/master/src/love.c
-
-	int i;
-
-	int (*classes[])(lua_State *L) = {
-		initImageClass,
-		initFontClass,
-		initSourceClass,
-		NULL,
-	};
-
-	for (i = 0; classes[i]; i++) {
-		classes[i](L);
-		lua_pop(L, 1);
-	}
+	if(csndInit()==0)soundEnabled=true;
+	else soundEnabled=false;
 
 	luaL_Reg reg[] = {
-		{ "getVersion",	loveGetVersion },
+		{ "newSource",	sourceNew},
 		{ 0, 0 },
 	};
 
 	luaL_newlib(L, reg);
-
-	struct { char *name; int (*fn)(lua_State *L); } mods[] = {
-		{ "system",   initLoveSystem    },
-		{ "graphics", initLoveGraphics  },
-		{ "timer",    initLoveTimer     },
-		{ "keyboard", initLoveKeyboard  },
-		{ "window",   initLoveWindow    },
-		{ "event",    initLoveEvent     },
-		{ "audio",    initLoveAudio     },
-		{ 0 },
-	};
-
-	for (i = 0; mods[i].name; i++) {
-		mods[i].fn(L);
-		lua_setfield(L, -2, mods[i].name);
-	}
 
 	return 1;
 

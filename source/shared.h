@@ -49,6 +49,13 @@ typedef struct {
 	int size;
 } love_font;
 
+typedef struct {
+	u8* data;
+	u32 size;
+	u32 format;
+	bool used;
+} love_source;
+
 extern lua_State *L;
 extern int currentScreen;
 extern int drawScreen;
@@ -58,3 +65,4 @@ extern int shouldQuit;
 extern love_font *currentFont;
 extern int is3D;
 extern const char *fontDefaultInit();
+extern bool soundEnabled;

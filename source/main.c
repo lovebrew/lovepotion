@@ -39,7 +39,7 @@ int main() {
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
-	// consoleInit(GFX_TOP, NULL);
+	consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.2 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
 
@@ -81,11 +81,11 @@ int main() {
 
 		}
 
-		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+		// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-			if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
+		// 	if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
 
-		sf2d_end_frame();
+		// sf2d_end_frame();
 
 		luaL_dostring(L, "love.graphics.present()");
 
@@ -95,6 +95,8 @@ int main() {
 
 	sftd_fini();
 	sf2d_fini();
+
+	if (soundEnabled) csndExit();
 
 	return 0;
 
