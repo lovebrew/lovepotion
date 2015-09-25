@@ -6,7 +6,7 @@ BasicInfo:
   Logo                    : Nintendo # Nintendo / Licensed / Distributed / iQue / iQueForSystem
 
 TitleInfo:
-  UniqueId                : $(APP_UNIQUE_ID)
+  UniqueId                : 0x1043
   Category                : Application
   
 CardInfo:
