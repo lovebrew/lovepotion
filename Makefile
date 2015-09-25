@@ -187,10 +187,10 @@ $(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds
 endif
 
 $(OUTPUT).3ds	:	$(OUTPUT)stripped.elf
-	@$(TOPDIR)/tools/./makerom -f cci -o $(OUTPUT).3ds -rsf "$(TOPDIR)/3ds_workaround.rsf" -target d -exefslogo -elf $(OUTPUT)stripped.elf -icon "$(TOPDIR)/cxi/icon.icn" -banner "$(TOPDIR)/cxi/banner.bnr"
+	@$(TOPDIR)/tools/./makerom -f cci -o $(OUTPUT).3ds -rsf "$(TOPDIR)/3ds_workaround.rsf" -target d -exefslogo -elf $(OUTPUT)stripped.elf -icon "$(TOPDIR)/icon.bin" -banner "$(TOPDIR)/banner.bin"
 
 $(OUTPUT).cia	:	$(OUTPUT)stripped.elf
-	@$(TOPDIR)/tools/./makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -rsf "$(TOPDIR)/cia_workaround.rsf" -icon icon.bin -banner banner.bin -exefslogo -target t
+	@$(TOPDIR)/tools/./makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT)stripped.elf -rsf "$(TOPDIR)/cia_workaround.rsf" -icon "$(TOPDIR)/icon.bin" -banner "$(TOPDIR)/banner.bin" -exefslogo -target t
 
 $(OUTPUT).elf	:	$(OFILES)
 
