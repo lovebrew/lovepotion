@@ -61,9 +61,27 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 	kHeld = hidKeysHeld();
 	kUp = hidKeysUp();
 
+	if (kUp & BIT(20)) { // love.mousereleased()
+
+		lua_getfield(L, LUA_GLOBALSINDEX, "love");
+		lua_getfield(L, -1, "mousereleased");
+		lua_remove(L, -2);
+
+		if (!lua_isnil(L, -1)) {
+
+			lua_pushinteger(L, touch.px);
+			lua_pushinteger(L, touch.py);
+			lua_pushstring(L, "l");
+
+			lua_call(L, 3, 0);
+
+		}
+
+	}
+
 	hidTouchRead(&touch);
 
-	if (kDown & BIT(20)) { // BIT(20) == "touch"
+	if (kDown & BIT(20)) { // BIT(20) == "touch" -- love.mousepressed()
 
 		lua_getfield(L, LUA_GLOBALSINDEX, "love");
 		lua_getfield(L, -1, "mousepressed");
@@ -74,9 +92,8 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 			lua_pushinteger(L, touch.px);
 			lua_pushinteger(L, touch.py);
 			lua_pushstring(L, "l");
-			lua_pushboolean(L, 1);
 
-			lua_call(L, 4, 0);
+			lua_call(L, 3, 0);
 
 			lastPosx = touch.px;
 			lastPosy = touch.py;
@@ -86,7 +103,7 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 	}
 
 	int i;
-	for (i = 0; i < 32; i++) {
+	for (i = 0; i < 32; i++) { // love.keypressed()
 		if (kDown & BIT(i)) {
 			if (strcmp(keyNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
 				
@@ -100,6 +117,25 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 					lua_pushboolean(L, 0);
 
 					lua_call(L, 2, 0);
+
+				}
+			}
+		} 
+	}
+
+	for (i = 0; i < 32; i++) { // love.keyreleased()
+		if (kUp & BIT(i)) {
+			if (strcmp(keyNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
+				
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "keyreleased");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1)) {
+
+					lua_pushstring(L, dsNames[i]);
+
+					lua_call(L, 1, 0);
 
 				}
 			}
