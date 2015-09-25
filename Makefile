@@ -146,12 +146,12 @@ build-all:
 	@make build-sftdlib
 	@echo Building sfillib...
 	@make build-sfillib
-	@echo Building ctruLua...
+	@echo Building LovePotion...
 	@make build
 
 #---------------------------------------------------------------------------------
 clean:
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).3ds $(OUTPUT).cia $(OUTPUT).smdh $(TARGET).elf $(OUTPUT)stripped.elf
 
 clean-sf2dlib:
 	@make -C source/libs/libsf2d clean
@@ -172,7 +172,6 @@ clean-all:
 	@echo Cleaning LovePotion...
 	@make clean
 
-
 #---------------------------------------------------------------------------------
 else
 
@@ -182,12 +181,22 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(NO_SMDH)),)
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).smdh
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds $(OUTPUT).smdh
 else
-$(OUTPUT).3dsx	:	$(OUTPUT).elf
+$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds
 endif
 
+$(OUTPUT).3ds	:	$(OUTPUT)stripped.elf
+	@$(TOPDIR)/tools/./makerom -f cci -o $(OUTPUT).3ds -rsf "$(TOPDIR)/3ds_workaround.rsf" -target d -exefslogo -elf $(OUTPUT)stripped.elf -icon "$(TOPDIR)/cxi/icon.icn" -banner "$(TOPDIR)/cxi/banner.bnr"
+
+$(OUTPUT).cia	:	$(OUTPUT)stripped.elf
+	@$(TOPDIR)/tools/./makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT).elf -rsf "$(TOPDIR)/cia_workaround.rsf" -icon icon.bin -banner banner.bin -exefslogo -target t
+
 $(OUTPUT).elf	:	$(OFILES)
+
+$(OUTPUT)stripped.elf : $(OUTPUT).elf
+	cp -f $(OUTPUT).elf $(OUTPUT)stripped.elf
+	@arm-none-eabi-strip $(OUTPUT)stripped.elf
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
