@@ -28,6 +28,15 @@ lua_State *L;
 
 int initLove(lua_State *L);
 
+bool errorOccured = false;
+
+void displayError() {
+
+	errorOccured = true;
+	printf(lua_tostring(L, -1));
+
+}
+
 int main() {
 
 	L = luaL_newstate();
@@ -48,46 +57,72 @@ int main() {
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
 
-	if (luaL_dofile(L, "game/main.lua")) printf("Error: %s", lua_tostring(L,-1));
+	if (luaL_dofile(L, "game/main.lua")) displayError();
 
-	if (luaL_dostring(L, "if love.load then love.load() end")) printf("Error: %s", lua_tostring(L,-1));
+	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
 	while (aptMainLoop()) {
 
 		if (shouldQuit == 1) break; // Quit event
 
-		if (luaL_dostring(L,
-			"love.keyboard.scan()\n"
-			"love.timer.step()\n"
-			"if love.update then love.update(love.timer.getDelta()) end")) {
-				printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
-		}
+		if (!errorOccured) {
 
-		// Top screen
+			if (luaL_dostring(L,
+				"love.keyboard.scan()\n"
+				"love.timer.step()\n"
+				"if love.update then love.update(love.timer.getDelta()) end")) {
+					displayError();
+			}
 
-		sf2d_start_frame(GFX_TOP, GFX_LEFT);
+			// Top screen
 
-			if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
+			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-		sf2d_end_frame();
-
-		if (is3D) {
-
-			sf2d_start_frame(GFX_TOP, GFX_RIGHT);
-
-				if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
+				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
 			sf2d_end_frame();
 
+			if (is3D) {
+
+				sf2d_start_frame(GFX_TOP, GFX_RIGHT);
+
+					if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+
+				sf2d_end_frame();
+
+			}
+
+			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+
+				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+
+			sf2d_end_frame();
+
+			luaL_dostring(L, "love.graphics.present()");
+
+		} else {
+
+			hidScanInput();
+			u32 kTempDown = hidKeysDown();
+			if (kTempDown & KEY_START) shouldQuit = 1;
+
+			sf2d_set_clear_color(RGBA8(0x59, 0x9D, 0xDC, 0xFF));
+
+			sf2d_start_frame(GFX_TOP, GFX_LEFT);
+
+			luaL_dostring(L, "love.graphics.setFont(_defaultFont_)");
+			luaL_dostring(L, "love.graphics.print('Oops, a Lua error has occured', 25, 25)");
+			luaL_dostring(L, "love.graphics.print('Press Start to quit', 25, 40)");
+
+			sf2d_end_frame();
+
+			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+
+			sf2d_end_frame();
+
+			sf2d_swapbuffers();
+
 		}
-
-		sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
-
-			if (luaL_dostring(L, "if love.draw then love.draw() end")) printf("\x1b[3;3HError: %s", lua_tostring(L,-1));
-
-		sf2d_end_frame();
-
-		luaL_dostring(L, "love.graphics.present()");
 
 	}
 
