@@ -50,7 +50,7 @@ int main() {
 
 	// consoleInit(GFX_BOTTOM, NULL);
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.2 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.3 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
 
 	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
 	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
