@@ -38,6 +38,8 @@ There are ~~2 ways~~ a ton of ways to run this.
  * [Ninjhax](http://smealum.net/ninjhax)
  * [IronHax](http://smealum.github.io/3ds)
  * [TubeHax](http://smealum.github.io/3ds/)
+ * [BrowserHax](http://smealum.github.io/3ds/)
+ * [ThemeHax](http://smealum.github.io/3ds/)
 
 **LövePotion** is developed using [Citra](http://citra-emu.org/) and [IronHax](http://smealum.github.io/3ds/).
 
