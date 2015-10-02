@@ -52,7 +52,7 @@ int main() {
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.4 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.5 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
 
 	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
 	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
