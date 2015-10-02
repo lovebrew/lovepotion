@@ -50,12 +50,23 @@ int main() {
 
 	// consoleInit(GFX_BOTTOM, NULL);
 
+	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
+
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.4 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
 
 	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
 	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
 
-	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
+	luaL_dostring(L, 
+		"function love.errhand(msg)\n"
+		"love.graphics.setBackgroundColor(89, 157, 220)\n"
+		"love.graphics.setScreen('top')\n"
+		"love.graphics.setFont(_defaultFont_)\n"
+		"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
+		"love.graphics.print('Press Start to quit', 25, 40)\n"
+		"love.graphics.print(msg, 25, 70)\n"
+		"end"
+	); // default love.errhand()
 
 	if (luaL_dofile(L, "game/main.lua")) displayError();
 
@@ -106,21 +117,22 @@ int main() {
 			u32 kTempDown = hidKeysDown();
 			if (kTempDown & KEY_START) shouldQuit = 1;
 
-			sf2d_set_clear_color(RGBA8(0x59, 0x9D, 0xDC, 0xFF));
+			char *errhandler[512];
+			snprintf(errhandler, sizeof errhandler, "%s%s%s", "love.errhand(\"", lua_tostring(L, -1), "\")");
 
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-			luaL_dostring(L, "love.graphics.setFont(_defaultFont_)");
-			luaL_dostring(L, "love.graphics.print('Oops, a Lua error has occured', 25, 25)");
-			luaL_dostring(L, "love.graphics.print('Press Start to quit', 25, 40)");
+				luaL_dostring(L, errhandler);
 
 			sf2d_end_frame();
 
 			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
+				luaL_dostring(L, errhandler);
+
 			sf2d_end_frame();
 
-			sf2d_swapbuffers();
+			luaL_dostring(L, "love.graphics.present()");
 
 		}
 
