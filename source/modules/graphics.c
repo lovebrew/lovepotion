@@ -331,6 +331,29 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
 }
 
+static int graphicsPrintFormat(lua_State *L) {
+
+	if (sf2d_get_current_screen() == currentScreen) {
+
+		if (currentFont) {
+
+			const char *printText = luaL_checkstring(L, 1);
+			int x = luaL_checkinteger(L, 2);
+			int y = luaL_checkinteger(L, 3);
+			int limit = luaL_checkinteger(L, 4);
+
+			translateCoords(&x, &y);
+
+			sftd_draw_text_wrap(currentFont->font, x, y, getCurrentColor(), currentFont->size, limit, printText);
+
+		}
+
+	}
+
+	return 0;
+
+}
+
 static int graphicsPush(lua_State *L) { // love.graphics.push()
 
 	if (sf2d_get_current_screen() == currentScreen) {
@@ -442,6 +465,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "draw",				graphicsDraw				},
 		{ "setFont",			graphicsSetFont				},
 		{ "print",				graphicsPrint				},
+		{ "printf",				graphicsPrintFormat			},
 		{ "push",				graphicsPush				},
 		{ "pop",				graphicsPop					},
 		{ "origin",				graphicsOrigin				},

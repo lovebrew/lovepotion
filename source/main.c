@@ -64,7 +64,7 @@ int main() {
 		"love.graphics.setFont(_defaultFont_)\n"
 		"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
 		"love.graphics.print('Press Start to quit', 25, 40)\n"
-		"love.graphics.print(msg, 25, 70)\n"
+		"love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)\n"
 		"end"
 	); // default love.errhand()
 
