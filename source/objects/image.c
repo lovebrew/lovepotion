@@ -39,7 +39,7 @@ const char *imageInit(love_image *self, const char *filename) {
 		
 		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
 
-	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3)) {
+	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3) == 0) {
 		
 		self->texture = sfil_load_JPEG_file(filename, SF2D_PLACE_RAM);
 
