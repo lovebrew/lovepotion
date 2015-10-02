@@ -37,6 +37,8 @@ int isPushed = 0;
 
 int is3D = 0;
 
+int currentLineWidth = 1;
+
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
@@ -124,11 +126,11 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 		if (strcmp(mode, "fill") == 0) {
 			sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
 		} else if (strcmp(mode, "line") == 0) {
-			sf2d_draw_line(x, y, x, y + h, getCurrentColor());
-			sf2d_draw_line(x, y, x + w, y, getCurrentColor());
+			sf2d_draw_line(x, y, x, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y, x + w, y, currentLineWidth, getCurrentColor());
 
-			sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
-			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
+			sf2d_draw_line(x + w, y, x + w, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y + h, x + w, y + h, currentLineWidth, getCurrentColor());
 		}
 
 	}
@@ -150,7 +152,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		translateCoords(&x, &y);
 
-		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
+		sf2d_draw_line(x, y, x, y, 1, getCurrentColor()); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	}
@@ -179,7 +181,7 @@ static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 				translateCoords(&x1, &y1);
 				translateCoords(&x2, &y2);
 
-				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
+				sf2d_draw_line(x1, y1, x2, y2, currentLineWidth, getCurrentColor());
 
 			}
 		}
@@ -382,7 +384,7 @@ static int graphicsTranslate(lua_State *L) { // love.graphics.translate()
 
 }
 
-static int graphicsSet3D(lua_State *L) {
+static int graphicsSet3D(lua_State *L) { // love.graphics.set3D()
 
 	is3D = lua_toboolean(L, 1);
 	sf2d_set_3D(is3D);
@@ -391,9 +393,25 @@ static int graphicsSet3D(lua_State *L) {
 
 }
 
-static int graphicsGet3D(lua_State *L) {
+static int graphicsGet3D(lua_State *L) { // love.graphics.get3D()
 
 	lua_pushboolean(L, is3D);
+
+	return 1;
+
+}
+
+static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
+
+	currentLineWidth = luaL_checkinteger(L, 1);
+
+	return 0;
+
+}
+
+static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
+
+	lua_pushnumber(L, currentLineWidth);
 
 	return 1;
 
@@ -430,6 +448,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "translate",			graphicsTranslate			},
 		{ "set3D",				graphicsSet3D				},
 		{ "get3D",				graphicsGet3D				},
+		{ "setLineWidth",		graphicsSetLineWidth		},
+		{ "getLineWidth",		graphicsGetLineWidth		},
 		{ 0, 0 },
 	};
 

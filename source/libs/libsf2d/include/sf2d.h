@@ -236,7 +236,7 @@ void sf2d_set_clear_color(u32 color);
  * @param y1 y coordinate of the sceond dot
  * @param color the color to draw the line
  */
-void sf2d_draw_line(int x0, int y0, int x1, int y1, u32 color);
+void sf2d_draw_line(int x0, int y0, int x1, int y1, int thickness, u32 color);
 
 /**
  * @brief Draws a rectangle

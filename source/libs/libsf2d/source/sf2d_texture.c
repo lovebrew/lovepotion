@@ -231,7 +231,7 @@ static inline void sf2d_draw_texture_generic(const sf2d_texture *texture, int x,
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture(const sf2d_texture *texture, int x, int y)
@@ -300,7 +300,7 @@ static inline void sf2d_draw_texture_rotate_hotspot_generic(const sf2d_texture *
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture_rotate_hotspot(const sf2d_texture *texture, int x, int y, float rad, float center_x, float center_y)
@@ -362,7 +362,7 @@ static inline void sf2d_draw_texture_part_generic(const sf2d_texture *texture, i
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture_part(const sf2d_texture *texture, int x, int y, int tex_x, int tex_y, int tex_w, int tex_h)
@@ -410,7 +410,7 @@ static inline void sf2d_draw_texture_scale_generic(const sf2d_texture *texture, 
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture_scale(const sf2d_texture *texture, int x, int y, float x_scale, float y_scale)
@@ -460,7 +460,7 @@ static inline void sf2d_draw_texture_part_scale_generic(const sf2d_texture *text
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture_part_scale(const sf2d_texture *texture, float x, float y, float tex_x, float tex_y, float tex_w, float tex_h, float x_scale, float y_scale)
@@ -520,7 +520,7 @@ static inline void sf2d_draw_texture_part_rotate_scale_generic(const sf2d_textur
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture_part_rotate_scale(const sf2d_texture *texture, int x, int y, float rad, int tex_x, int tex_y, int tex_w, int tex_h, float x_scale, float y_scale)
@@ -569,7 +569,7 @@ static inline void sf2d_draw_texture_depth_generic(const sf2d_texture *texture, 
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 void sf2d_draw_texture_depth(const sf2d_texture *texture, int x, int y, signed short z)
@@ -614,7 +614,7 @@ void sf2d_draw_quad_uv(const sf2d_texture *texture, float left, float top, float
 		(u8[]){2} // number of attributes for each buffer
 	);
 
-	GPU_DrawArray(GPU_TRIANGLE_STRIP, 4);
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
 // Grabbed from Citra Emulator (citra/src/video_core/utils.h)
