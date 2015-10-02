@@ -38,6 +38,8 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.pop - ✓
 * love.graphics.origin - ✓
 * love.graphics.translate - ✓
+* love.graphics.setLineWidth - **partial**
+* love.graphics.getLineWidth - ✓
 
 # love.timer
 
