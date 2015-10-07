@@ -2,10 +2,12 @@
 	<img src="http://i.imgur.com/uJQNDys.png"/>
 </p>
 
-![](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)
-![](https://img.shields.io/github/stars/VideahGams/LovePotion.svg?style=flat-square)
-![](https://img.shields.io/github/forks/VideahGams/LovePotion.svg?style=flat-square)
-![](https://img.shields.io/github/issues/VideahGams/LovePotion.svg?style=flat-square)
+<p align="center">
+	<img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square"/>
+	<img src="https://img.shields.io/github/stars/VideahGams/LovePotion.svg?style=flat-square"/>
+	<img src="https://img.shields.io/github/forks/VideahGams/LovePotion.svg?style=flat-square"/>
+	<img src="https://img.shields.io/github/issues/VideahGams/LovePotion.svg?style=flat-square"/>
+</p>
 
 **LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
 
