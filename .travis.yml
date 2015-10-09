@@ -3,8 +3,8 @@ language: c
 sudo: required
 
 before_install:
-  - apt-get update
-  - apt-get install python3
+  - sudo apt-get update
+  - sudo apt-get install python3
   - export CC=arm-none-eabi-gcc
   - export CXX=arm-none-eabi-g++
   - export DEVKITPRO=${HOME}/devkitPro
