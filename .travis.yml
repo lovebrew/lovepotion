@@ -11,7 +11,7 @@ before_install:
   - export DEVKITARM=${DEVKITPRO}/devkitARM
   - export CTRULIB=${DEVKITPRO}/libctru
   - export AEMSTRO=${DEVKITPRO}/aemstro
-  - export PORTLIBS=${DEVKITPRO}/portlibs
+  - export PORTLIBS=${DEVKITPRO}/portlibs/armv6k
   - sh .travis-deps.sh
 
 script:
