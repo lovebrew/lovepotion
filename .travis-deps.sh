@@ -17,6 +17,7 @@ wget https://raw.githubusercontent.com/smealum/aemstro/master/aemstro_as.py
 cd -
 
 # Build and install portlibs
+mkdir ${DEVKITPRO}/portlibs
 git clone https://github.com/cpp3ds/3ds_portlibs.git
 cd 3ds_portlibs
 
@@ -28,13 +29,13 @@ wget http://downloads.xiph.org/releases/ogg/libogg-1.3.2.tar.xz
 wget http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.xz
 
 make zlib
-make install-zlib
+sudo make install-zlib
 make libogg
 make install
 make freetype
 make libpng
 make libjpeg-turbo
 make libvorbis
-make install
+sudo make install
 
 cd -
