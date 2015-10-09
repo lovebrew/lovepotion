@@ -1,14 +1,13 @@
 language: c
 
-sudo: required
+sudo: false
 
 before_install:
   - sudo apt-get update
   - sudo apt-get install python3
-  - sudo apt-get install binutils
   - export CC=arm-none-eabi-gcc
   - export CXX=arm-none-eabi-g++
-  - export DEVKITPRO=/home/travis/devkitPro
+  - export DEVKITPRO=${HOME}/devkitPro
   - export DEVKITARM=${DEVKITPRO}/devkitARM
   - export CTRULIB=${DEVKITPRO}/libctru
   - export AEMSTRO=${DEVKITPRO}/aemstro

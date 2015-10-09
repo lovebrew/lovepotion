@@ -5,11 +5,11 @@ set -x
 # Build and install devkitARM + ctrulib
 wget http://sourceforge.net/projects/devkitpro/files/Automated%20Installer/devkitARMupdate.pl
 git clone https://github.com/smealum/ctrulib.git
-sudo perl devkitARMupdate.pl
+perl devkitARMupdate.pl
 
 # Get latest ctrulib and overwrite bundled one
 cd ctrulib/libctru && make ; cd -
-sudo cp -rf ctrulib/libctru/ ${DEVKITPRO}
+cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
 # Get aemstro_as.py
 mkdir ${AEMSTRO} && cd ${AEMSTRO}
@@ -17,7 +17,7 @@ wget https://raw.githubusercontent.com/smealum/aemstro/master/aemstro_as.py
 cd -
 
 # Build and install portlibs
-sudo mkdir ${DEVKITPRO}/portlibs && sudo mkdir ${PORTLIBS}
+mkdir ${DEVKITPRO}/portlibs && mkdir ${PORTLIBS}
 git clone https://github.com/cpp3ds/3ds_portlibs.git
 cd 3ds_portlibs
 
@@ -29,10 +29,10 @@ wget http://downloads.xiph.org/releases/ogg/libogg-1.3.2.tar.xz
 wget http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.xz
 
 make zlib
-sudo make install-zlib
+make install-zlib
 make freetype
 make libpng
 make libjpeg-turbo
-sudo make install
+make install
 
 cd -
