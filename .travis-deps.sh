@@ -11,9 +11,10 @@ sudo perl devkitARMupdate.pl
 cd ctrulib/libctru && make ; cd -
 sudo cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
-# Get aemstro.py
-git pull https://github.com/smealum/aemstro.git
-sudo cp -rf aemstro ${DEVKITPRO}
+# Get aemstro_as.py
+cd ${AEMSTRO}
+wget https://raw.githubusercontent.com/smealum/aemstro/master/aemstro_as.py
+cd -
 
 # Build and install portlibs
 git clone https://github.com/cpp3ds/3ds_portlibs.git
