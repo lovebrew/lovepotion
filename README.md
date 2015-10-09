@@ -7,6 +7,7 @@
 	<img src="https://img.shields.io/github/stars/VideahGams/LovePotion.svg?style=flat-square"/>
 	<img src="https://img.shields.io/github/forks/VideahGams/LovePotion.svg?style=flat-square"/>
 	<img src="https://img.shields.io/github/issues/VideahGams/LovePotion.svg?style=flat-square"/>
+	<img src="https://img.shields.io/travis/VideahGams/LovePotion.svg?style=flat-square"/>
 </p>
 
 **LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
