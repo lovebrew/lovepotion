@@ -17,7 +17,7 @@ wget https://raw.githubusercontent.com/smealum/aemstro/master/aemstro_as.py
 cd -
 
 # Build and install portlibs
-mkdir ${DEVKITPRO}/portlibs
+sudo mkdir ${PORTLIBS}
 git clone https://github.com/cpp3ds/3ds_portlibs.git
 cd 3ds_portlibs
 
