@@ -1,0 +1,17 @@
+language: c
+
+sudo: required
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install python3
+  - export CC=arm-none-eabi-gcc
+  - export CXX=arm-none-eabi-g++
+  - export DEVKITPRO=/home/travis/devkitPro
+  - export DEVKITARM=${DEVKITPRO}/devkitARM
+  - export CTRULIB=${DEVKITPRO}/libctru
+  - export AEMSTRO=${DEVKITPRO}/aemstro
+  - sh .travis-deps.sh
+
+script:
+  - make build-all
