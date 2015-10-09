@@ -30,12 +30,9 @@ wget http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.xz
 
 make zlib
 sudo make install-zlib
-make libogg
-sudo make install
 make freetype
 make libpng
 make libjpeg-turbo
-make libvorbis
 sudo make install
 
 cd -
