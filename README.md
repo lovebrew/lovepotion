@@ -16,7 +16,7 @@
 	<img src="http://i.imgur.com/G9QjjjN.png"/>
 </p>
 
-Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable releases.
+Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable releases. Join `#lovepotion` on OFTC for help/discussion/chat etc.
 
 # FAQ
 
