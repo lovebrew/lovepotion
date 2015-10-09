@@ -12,7 +12,7 @@ cd ctrulib/libctru && make ; cd -
 sudo cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
 # Get aemstro_as.py
-cd ${AEMSTRO}
+mkdir ${AEMSTRO} && cd ${AEMSTRO}
 wget https://raw.githubusercontent.com/smealum/aemstro/master/aemstro_as.py
 cd -
 
