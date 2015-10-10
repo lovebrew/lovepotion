@@ -70,7 +70,7 @@ Send me your projects so I can showcase them here!
 
 # Dependencies
 
-LövePotion requires the 3DS portlibs to build correctly, these are not included and must be downloaded, built, and installed correctly from [here](https://github.com/xerpi/3ds_portlibs).
+LövePotion requires the 3DS portlibs to build correctly, these are not included and must be downloaded, built, and installed correctly from [here](https://github.com/cpp3ds/3ds_portlibs).
 
 # Credits
 
