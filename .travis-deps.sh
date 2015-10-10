@@ -30,9 +30,12 @@ wget http://downloads.xiph.org/releases/vorbis/libvorbis-1.3.5.tar.xz
 
 make zlib
 make install-zlib
+make libogg
+make install # Need to install libogg for libvorbis
 make freetype
 make libpng
 make libjpeg-turbo
+make libvorbis
 make install
 
 cd -
