@@ -39,6 +39,8 @@ int is3D = 0;
 
 int currentLineWidth = 1;
 
+int currentDepth = 0;
+
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
@@ -51,8 +53,19 @@ int translateCoords(int *x, int *y) {
 
 	if (isPushed) {
 
-		*x = *x + transX;
-		*y = *y + transY;
+		*x += transX;
+		*y += transY;
+
+	}
+
+	// Sets depth of objects
+
+	if (is3D) {
+
+		float slider = CONFIG_3D_SLIDERSTATE;
+
+		if (sf2d_get_current_side() == GFX_LEFT) *x -= (slider * currentDepth);
+		if (sf2d_get_current_side() == GFX_RIGHT) *x += (slider * currentDepth);
 
 	}
 
@@ -443,6 +456,22 @@ static int graphicsGet3D(lua_State *L) { // love.graphics.get3D()
 
 }
 
+static int graphicsSetDepth(lua_State *L) { // love.graphics.setDepth()
+
+	currentDepth = luaL_checkinteger(L, 1);
+
+	return 0;
+
+}
+
+static int graphicsGetDepth(lua_State *L) {
+
+	lua_pushnumber(L, currentDepth);
+
+	return 1;
+
+}
+
 static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
 
 	currentLineWidth = luaL_checkinteger(L, 1);
@@ -491,6 +520,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "translate",			graphicsTranslate			},
 		{ "set3D",				graphicsSet3D				},
 		{ "get3D",				graphicsGet3D				},
+		{ "setDepth",			graphicsSetDepth			},
+		{ "getDepth",			graphicsGetDepth			},
 		{ "setLineWidth",		graphicsSetLineWidth		},
 		{ "getLineWidth",		graphicsGetLineWidth		},
 		{ 0, 0 },

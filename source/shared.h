@@ -40,6 +40,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
+
 typedef struct {
 	sf2d_texture *texture;
 } love_image;

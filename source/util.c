@@ -22,6 +22,8 @@
 
 #include "shared.h"
 
+#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
+
 void combine(char* destination, const char* path1, const char* path2) {
 	
 	if(path1 == NULL && path2 == NULL) {
