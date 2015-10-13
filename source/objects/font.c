@@ -56,7 +56,7 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	if (size == NULL) size = 14;
+	if (!size) size = 14;
 
 	if (filename) {
 
@@ -90,7 +90,7 @@ int fontGetWidth(lua_State *L) { // font:getWidth()
 	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 	const char *text = luaL_checkstring(L, 2);
 
-	lua_pushinteger(L, sftd_get_text_width(self->font, self->size, text)); // Not correct, needs replacing.
+	lua_pushinteger(L, sftd_get_text_width(self->font, self->size, text));
 
 	return 1;
 
