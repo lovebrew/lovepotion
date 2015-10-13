@@ -3,7 +3,11 @@
 -- love.load() is called once when a LövePotion game is ran.
 function love.load()
 
-	math.randomseed(os.time()) -- Seeds the random number generator with the time (Actually makes it random)
+	-- Enables 3D mode.
+	love.graphics.set3D(true)
+
+	-- Seeds the random number generator with the time (Actually makes it random)
+	math.randomseed(os.time())
 
 	 -- Sets the current screen for draw calls to draw to.
 	 -- Lasts until it is called again.
@@ -52,12 +56,16 @@ function love.draw()
 	love.graphics.draw(background, 0, 0)
 
 	-- Cycle through all the bubbles in the bubble list, and draw them on their current screen
+	-- aswell as drawing them at certain depths for 3D.
 	for i, bubble in ipairs(bubbles) do
 		love.graphics.setScreen(bubble.state)
+		love.graphics.setDepth(bubble.size / 5)
 		love.graphics.rectangle('fill', bubble.x, bubble.y, bubble.size, bubble.size)
 	end
 
-	love.graphics.setScreen('top') -- Reset the screen to top after drawing bubbles on bottom.
+	-- Reset the screen to top after drawing bubbles on bottom, aswell as reset the depth.
+	love.graphics.setScreen('top')
+	love.graphics.setDepth(1)
 
 	-- Draws the framerate
 	love.graphics.setColor(255, 255, 255)
