@@ -56,8 +56,7 @@ int fileExists (char *filename){
 }
 
 void luaError(lua_State *L, char *message) {
-	lua_pushstring(L, message);
-	lua_error(L);
+	luaL_error(L, message);
 }
 
 const char *fileExtension(const char *filename) {
@@ -74,4 +73,20 @@ char* concat(char *s1, char *s2) {
 	strcat(result, s2);
 
 	return result;
+}
+
+int getType(const char *name) {
+
+	const char *ext = fileExtension(name);
+
+	if (strncmp(ext, "png", 3) == 0) {
+		return 0;
+	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3) == 0) {
+		return 1;
+	} else if (strncmp(ext, "bmp", 3) == 0) {
+		return 2;
+	} else {
+		return 4;
+	}
+
 }

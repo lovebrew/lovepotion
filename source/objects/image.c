@@ -27,24 +27,20 @@
 
 const char *imageInit(love_image *self, const char *filename) {
 
-	if (!fileExists(filename)) return "Could not open image. Does not exist.";
+	int type = getType(filename);
 
-	const char *ext = fileExtension(filename);
-
-	if (strncmp(ext, "png", 3) == 0) {
+	if (type == 0) { // PNG
 
 		self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
 
-	} else if (strncmp(ext, "bmp", 3) == 0) {
-		
-		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
-
-	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3) == 0) {
+	} else if (type == 1) { // JPG
 		
 		self->texture = sfil_load_JPEG_file(filename, SF2D_PLACE_RAM);
 
-	} else {
-		return "Unknown image type.";
+	} else if (type == 2) { // BMP
+		
+		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
+
 	}
 
 	return NULL;
@@ -56,6 +52,11 @@ int imageNew(lua_State *L) { // love.graphics.newImage()
 	const char *filename = luaL_checkstring(L, 1);
 	char final[strlen(rootDir) + strlen(filename) + 2];
 	combine(final, rootDir, filename);
+
+	if (!fileExists(final)) luaError(L, "Could not open image. Does not exist.");
+
+	int type = getType(final);
+	if (type == 4) luaError(L, "Unknown image type.");
 
 	love_image *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
