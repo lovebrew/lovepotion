@@ -25,6 +25,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.line - **Partial**
 * love.graphics.setScreen - ✓
 * love.graphics.getScreen - ✓
+* love.graphics.getSide - ✓
 * love.graphics.present - ✓
 * love.graphics.getDimensions - ✓
 * love.graphics.getWidth - ✓
@@ -39,6 +40,10 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.pop - ✓
 * love.graphics.origin - ✓
 * love.graphics.translate - ✓
+* love.graphics.set3D - ✓
+* love.graphics.get3D - ✓
+* love.graphics.setDepth - ✓
+* love.graphics.getDepth - ✓
 * love.graphics.setLineWidth - **Partial**
 * love.graphics.getLineWidth - ✓
 

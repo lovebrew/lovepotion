@@ -464,7 +464,7 @@ static int graphicsSetDepth(lua_State *L) { // love.graphics.setDepth()
 
 }
 
-static int graphicsGetDepth(lua_State *L) {
+static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 
 	lua_pushnumber(L, currentDepth);
 
