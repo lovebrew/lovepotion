@@ -56,6 +56,9 @@ This is all of the API that is currently implemented, partial or otherwise.
 # love.mouse
 
 * love.mouse.isDown - ✓
+* love.mouse.getX - ✓
+* love.mouse.getY - ✓
+* love.mouse.getPosition - ✓
 
 # love.event
 

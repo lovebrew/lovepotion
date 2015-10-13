@@ -183,6 +183,31 @@ int mouseIsDown(lua_State *L) { // love.mouse.isDown()
 
 }
 
+int mouseGetX(lua_State *L) { // love.mouse.getX()
+
+	lua_pushinteger(L, touch.px);
+
+	return 1;
+
+}
+
+int mouseGetY(lua_State *L) { // love.mouse.getY()
+
+	lua_pushinteger(L, touch.py);
+
+	return 1;
+
+}
+
+int mouseGetPosition(lua_State *L) { // love.mouse.getPosition()
+
+	lua_pushinteger(L, touch.px);
+	lua_pushinteger(L, touch.py);
+
+	return 2;
+
+}
+
 int initLoveKeyboard(lua_State *L) {
 
 	luaL_Reg reg[] = {
@@ -200,7 +225,10 @@ int initLoveKeyboard(lua_State *L) {
 int initLoveMouse(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{ "isDown",	mouseIsDown	},
+		{ "isDown",			mouseIsDown			},
+		{ "getX",			mouseGetX			},
+		{ "getY",			mouseGetY			},
+		{ "getPosition",	mouseGetPosition	},
 		{ 0, 0 },
 	};
 
