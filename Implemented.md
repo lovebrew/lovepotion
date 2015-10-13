@@ -53,6 +53,10 @@ This is all of the API that is currently implemented, partial or otherwise.
 
 * love.keyboard.isDown - ✓
 
+# love.mouse
+
+* love.mouse.isDown - ✓
+
 # love.event
 
 * love.event.quit - ✓
