@@ -113,7 +113,7 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		const char *mode = luaL_checkstring(L, 1);
+		char *mode = luaL_checkstring(L, 1);
 
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
@@ -145,7 +145,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		int step = 15;
 
-		const char *mode = luaL_checkstring(L, 1);
+		char *mode = luaL_checkstring(L, 1);
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
 		int r = luaL_checkinteger(L, 4);
@@ -206,7 +206,7 @@ static int graphicsGetScreen(lua_State *L) { // love.graphics.getScreen()
 
 static int graphicsSetScreen(lua_State *L) { // love.graphics.setScreen()
 
-	const char *screen = luaL_checkstring(L, 1);
+	char *screen = luaL_checkstring(L, 1);
 
 	if (strcmp(screen, "top") == 0) {
 		currentScreen = GFX_TOP;
@@ -315,7 +315,7 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
 		if (currentFont) {
 
-			const char *printText = luaL_checkstring(L, 1);
+			char *printText = luaL_checkstring(L, 1);
 			int x = luaL_checkinteger(L, 2);
 			int y = luaL_checkinteger(L, 3);
 
@@ -337,12 +337,31 @@ static int graphicsPrintFormat(lua_State *L) {
 
 		if (currentFont) {
 
-			const char *printText = luaL_checkstring(L, 1);
+			char *printText = luaL_checkstring(L, 1);
 			int x = luaL_checkinteger(L, 2);
 			int y = luaL_checkinteger(L, 3);
 			int limit = luaL_checkinteger(L, 4);
+			char *align = luaL_optstring(L, 5, "left");
+
+			int width = sftd_get_text_width(currentFont->font, currentFont->size, printText);
+
+			if (strcmp(align, "center") == 0) {
+
+				if (width < limit) {
+					x += (limit / 2) - (width / 2);
+				}
+
+			} else if (strcmp(align, "right") == 0) {
+
+				if (width < limit) {
+					x += limit - width;
+				}
+
+			}
 
 			translateCoords(&x, &y);
+
+			if (x > 0) limit += x; // Quick text wrap fix, needs removing once sf2dlib is updated.
 
 			sftd_draw_text_wrap(currentFont->font, x, y, getCurrentColor(), currentFont->size, limit, printText);
 
