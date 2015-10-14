@@ -87,25 +87,10 @@ static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgr
 
 static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 
-	int argc = lua_gettop(L);
-
-	int r = luaL_checkinteger(L, 1);
-	int g = luaL_checkinteger(L, 2);
-	int b = luaL_checkinteger(L, 3);
-	int a = NULL;
-
-	if (argc > 3) {
-		a = luaL_checkinteger(L, 4);
-	}
-
-	if (a == NULL) {
-		a = currentA;
-	}
-
-	currentR = r;
-	currentG = g;
-	currentB = b;
-	currentA = a;
+	currentR = luaL_checkinteger(L, 1);
+	currentG = luaL_checkinteger(L, 2);
+	currentB = luaL_checkinteger(L, 3);
+	currentA = luaL_optnumber(L, 4, currentA);
 
 	return 0;
 
