@@ -65,6 +65,7 @@ This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's 
  * [Ludum Dare 33 Entry](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=31436) by me
  * [NumberFucker3DS](https://github.com/VideahGams/NumberFucker3DS) by unek & me
  * [SpaceFruit](https://gbatemp.net/threads/release-space-fruit.399088/) by TurtleP
+ * [Loophole](https://gbatemp.net/threads/release-loophole-3ds-port.399585/) by Aaron Butterworth & CKlidify
 
 Send me your projects so I can showcase them here!
 
