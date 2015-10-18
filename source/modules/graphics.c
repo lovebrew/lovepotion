@@ -33,9 +33,9 @@ love_font *currentFont;
 
 int transX = 0;
 int transY = 0;
-int isPushed = 0;
+bool isPushed = false;
 
-int is3D = 0;
+bool is3D = false;
 
 int currentLineWidth = 1;
 
@@ -375,7 +375,7 @@ static int graphicsPush(lua_State *L) { // love.graphics.push()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		isPushed = 1;
+		isPushed = true;
 
 	}
 
@@ -387,7 +387,7 @@ static int graphicsPop(lua_State *L) { // love.graphics.pop()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		isPushed = 0;
+		isPushed = false;
 
 	}
 

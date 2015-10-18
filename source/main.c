@@ -75,7 +75,7 @@ int main() {
 
 	while (aptMainLoop()) {
 
-		if (shouldQuit == 1) break; // Quit event
+		if (shouldQuit) break; // Quit event
 
 		if (!errorOccured) {
 

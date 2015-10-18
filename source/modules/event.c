@@ -22,11 +22,11 @@
 
 #include "../shared.h"
 
-int shouldQuit = 0;
+bool shouldQuit = false;
 
 static int eventQuit(lua_State *L) { // love.event.quit()
 
-	shouldQuit = 1;
+	shouldQuit = true;
 
 	return 0;
 
