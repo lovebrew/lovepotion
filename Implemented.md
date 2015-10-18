@@ -10,6 +10,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.mousereleased - ✓
 * love.keypressed - ✓
 * love.keyreleased - ✓
+* love.quit - ✓
 
 # love
 

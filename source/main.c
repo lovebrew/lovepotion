@@ -59,13 +59,13 @@ int main() {
 
 	luaL_dostring(L, 
 		"function love.errhand(msg)\n"
-		"love.graphics.setBackgroundColor(89, 157, 220)\n"
-		"love.graphics.setScreen('top')\n"
-		"love.graphics.setFont(_defaultFont_)\n"
-		"love.graphics.setColor(255, 255, 255, 255)\n"
-		"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
-		"love.graphics.print('Press Start to quit', 25, 40)\n"
-		"love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)\n"
+			"love.graphics.setBackgroundColor(89, 157, 220)\n"
+			"love.graphics.setScreen('top')\n"
+			"love.graphics.setFont(_defaultFont_)\n"
+			"love.graphics.setColor(255, 255, 255, 255)\n"
+			"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
+			"love.graphics.print('Press Start to quit', 25, 40)\n"
+			"love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)\n"
 		"end"
 	); // default love.errhand()
 
@@ -75,7 +75,27 @@ int main() {
 
 	while (aptMainLoop()) {
 
-		if (shouldQuit) break; // Quit event
+		if (shouldQuit) {
+
+			bool shouldAbort = false;
+
+			// lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			// lua_getfield(L, -1, "quit");
+			// lua_remove(L, -2);
+
+			// if (!lua_isnil(L, -1)) {
+
+			// 	lua_call(L, 0, 1);
+			// 	shouldAbort = lua_toboolean(L, 1);
+			// 	lua_pop(L, 1);
+
+			// }; TODO: Do this properly.
+
+			if (luaL_dostring(L, "if love.quit then love.quit() end")) displayError();
+
+			if (!shouldAbort && !errorOccured) break;
+
+		} // Quit event
 
 		if (!errorOccured) {
 
@@ -87,12 +107,15 @@ int main() {
 			}
 
 			// Top screen
+			// Left side
 
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
 			sf2d_end_frame();
+
+			// Right side
 
 			if (is3D) {
 
@@ -103,6 +126,8 @@ int main() {
 				sf2d_end_frame();
 
 			}
+
+			// Bot screen
 
 			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
@@ -118,7 +143,7 @@ int main() {
 			u32 kTempDown = hidKeysDown();
 			if (kTempDown & KEY_START) shouldQuit = 1;
 
-			char *errhandler[512];
+			char *errhandler[1024];
 			snprintf(errhandler, sizeof errhandler, "%s%s%s", "love.errhand(\"", lua_tostring(L, -1), "\")");
 
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
