@@ -64,6 +64,8 @@ static int timerStep(lua_State *L) { // love.timer.step()
 
 static int timerGetDelta() { // love.timer.getDelta()
 
+	if (dt < 0) dt = 0; // Fix nasty timer bug
+
 	lua_pushnumber(L, dt);
 
 	return 1;
