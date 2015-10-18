@@ -87,10 +87,18 @@ static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgr
 
 static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 
-	currentR = luaL_checkinteger(L, 1);
-	currentG = luaL_checkinteger(L, 2);
-	currentB = luaL_checkinteger(L, 3);
-	currentA = luaL_optnumber(L, 4, currentA);
+	if (lua_isnumber(L, -1)) {
+
+		currentR = luaL_checkinteger(L, 1);
+		currentG = luaL_checkinteger(L, 2);
+		currentB = luaL_checkinteger(L, 3);
+		currentA = luaL_optnumber(L, 4, currentA);
+
+	} else if (lua_istable(L, -1)) {
+
+		luaError(L, "Table support for setColor is not implemented yet. Use unpack(insertTableHere) until it is.");
+
+	}
 
 	return 0;
 

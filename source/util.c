@@ -92,3 +92,12 @@ int getType(const char *name) {
 	}
 
 }
+
+int getfield (int key) {
+	int result;
+	lua_pushstring(L, key);
+	lua_gettable(L, -2);
+	result = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	return result; // TODO: Fix this
+}
