@@ -22,7 +22,7 @@
 
 #include "../shared.h"
 
-#define LOVE_VERSION "0.9.0"
+#define LOVE_VERSION "0.10.0"
 
 static int loveGetVersion(lua_State *L) { // love.getVersion()
 
