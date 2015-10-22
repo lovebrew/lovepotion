@@ -45,9 +45,11 @@ There are ~~2 ways~~ a ton of ways to run this.
  * [Citra Emulator](http://citra-emu.org)
  * [Ninjhax](http://smealum.net/ninjhax)
  * [IronHax](http://smealum.github.io/3ds)
- * [TubeHax](http://smealum.github.io/3ds/)
+ * ~~TubeHax~~ RIP :(
  * [BrowserHax](http://smealum.github.io/3ds/)
  * [ThemeHax](http://smealum.github.io/3ds/)
+ * [OoTHax](https://gbatemp.net/threads/tutorial-how-to-install-oot3dhax.396339/)
+ * [SmashHax](https://gbatemp.net/threads/yellows8-just-realesed-smashhax.397124/)
 
 **LövePotion** is developed using [Citra](http://citra-emu.org/) and [IronHax](http://smealum.github.io/3ds/).
 
