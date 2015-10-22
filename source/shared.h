@@ -52,7 +52,7 @@ typedef struct {
 } love_font;
 
 typedef struct {
-	u8* data;
+	u8* buffer;
 	u32 size;
 	u32 format;
 	bool used;

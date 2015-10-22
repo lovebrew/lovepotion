@@ -24,15 +24,25 @@
 
 bool soundEnabled;
 
+static int audioStop(lua_State *L) {
+
+	CSND_SetPlayState(0x8, 0); //Stops audio playback.
+	CSND_UpdateInfo(0);
+
+	return 0;
+
+}
+
 int sourceNew(lua_State *L);
 
 int initLoveAudio(lua_State *L) {
 
-	if(csndInit()==0)soundEnabled=true;
-	else soundEnabled=false;
+	if(csndInit() == 0) soundEnabled = true;
+	else soundEnabled = false;
 
 	luaL_Reg reg[] = {
-		{ "newSource",	sourceNew},
+		{ "stop",		audioStop	},
+		{ "newSource",	sourceNew	},
 		{ 0, 0 },
 	};
 

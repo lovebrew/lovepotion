@@ -38,6 +38,9 @@ function love.load()
 	potionText.x = 50
 	potionText.y = 75
 
+	-- Load the beep sound from a .raw file to play on exit
+	exitSound = love.audio.newSource('beep.raw')
+
  	-- Sets the background color to a nice blue
 	love.graphics.setBackgroundColor(88, 186, 255)
 
@@ -153,7 +156,16 @@ function love.keypressed(key)
 
 	-- If the start button is pressed, we return to the Homebrew Launcher
 	if key == 'start' then
-		love.event.quit() 
+		love.event.quit()
 	end
+
+end
+
+-- love.quit is called when LövePotion is quitting.
+-- You can put all your cleanup code and the likes here.
+function love.quit()
+
+	-- Plays the exit beep sound.
+	exitSound:play()
 
 end

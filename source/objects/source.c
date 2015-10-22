@@ -27,70 +27,71 @@
 #define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
 #define CLASS_NAME  "Source"
 
-int channel;
+int channel = 0;
 
 const char *sourceInit(love_source *self, const char *filename) {
-	
-	if (!fileExists(filename)) {
-		return "Could not open source. Does not exist.";
-	}
 
-	const char *ext = fileExtension(filename);
+	if (fileExists(filename)) {
 
-	if (strncmp(ext, "raw", 3) == 0) {
+		const char *ext = fileExtension(filename);
 
-		FILE* file = fopen(filename, "rb+");
+		if (strncmp(ext, "raw", 3) == 0) {
 
-		if (!file) return "Failure to open source.";
+			FILE *file = fopen(filename, "rb");
 
-		u8* buffer;
-		long lsize;
-		fseek(file, 0, SEEK_END);
-		lsize = ftell(file);
-		rewind(file);
-		buffer = (u8*)malloc(lsize);
+			if (file) {
 
-		self->size = lsize;
+				fseek(file, 0, SEEK_END);
+				self->size = ftell(file);
+				fseek(file, 0, SEEK_SET);
+				self->buffer = linearAlloc(self->size);
 
-		if(!buffer) {
+				if (!self->buffer) {
+					fclose(file);
+					return "Could not allocate sound buffer";
+				}
+
+				fread(self->buffer, 1, self->size, file);
+
+				self->format = SOUND_FORMAT_16BIT;
+				self->used = false;
+
+			}
+
 			fclose(file);
-			return "Could not allocate sound buffer";
-		}
-			
-		fread(buffer, 1, lsize, file);
-		fclose(file);
 
-		self->data = buffer;
-		self->used = false;
-		self->format = SOUND_FORMAT_16BIT;
+		} else return "Unknown audio type";
 
-	}
+	} else return "Could not open source, does not exist.";
+
 
 	return NULL;
 
 }
 
-void sourcePlay(lua_State *L) { //source:play()
+void sourcePlay(lua_State *L) { // source:play()
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	printf("\n Attempting to play sound ...");
-	printf(soundEnabled ? "true" : "false");
+	if (!self || !self->buffer || !self->format || !soundEnabled) {
 
-	if (!self || !self->data || !self->format || !soundEnabled) return;
+		luaError(L, "There was an error playing the source, sound may not be available.");
+		return;
+
+	}
 	
 	channel++;
 	channel%=8;
 
 	self->used = true;
-	csndPlaySound(channel+8, self->format, 22050, 1.0, 0.0, (u32*)self->data, (u32*)self->data, self->size);
+	csndPlaySound(channel+8, self->format | SOUND_ONE_SHOT, 44100, 1, 0, self->buffer, self->buffer, self->size);
 
 	printf("\n Played sound.");
 
 }
 
 
-int sourceNew(lua_State *L) { //love.audio.newSource()
+int sourceNew(lua_State *L) { // love.audio.newSource()
 
 	const char *filename = luaL_checkstring(L, 1);
 	char final[strlen(rootDir) + strlen(filename) + 2];
@@ -107,11 +108,25 @@ int sourceNew(lua_State *L) { //love.audio.newSource()
 
 }
 
+int sourceGC(lua_State *L) { // Garbage Collection
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (!self->buffer) return 0;
+
+	linearFree(self->buffer);
+	self->buffer = NULL;
+
+	return 0;
+
+}
+
 int initSourceClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
 		{"new", sourceNew},
-		{"play", sourcePlay}
+		{"__gc", sourceGC},
+		{"play", sourcePlay},
 	};
 
 	luaobj_newclass(L, CLASS_NAME, NULL, sourceNew, reg);
