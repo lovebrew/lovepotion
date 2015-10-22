@@ -79,6 +79,11 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.system.getOS - ✓
 * love.system.getPowerInfo - ✓
 
+# love.audio
+
+* love.audio.newSource - **Partial**
+* love.audio.stop - ✓
+
 # Objects
 
 * Image - ✓
@@ -94,3 +99,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 
 * font:getWidth - ✓
 * font:getHeight - ✓
+
+### Sound
+
+* source:play - ✓
