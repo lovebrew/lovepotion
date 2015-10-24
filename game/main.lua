@@ -39,7 +39,7 @@ function love.load()
 	potionText.y = 75
 
 	-- Load the beep sound from a .raw file to play on exit
-	exitSound = love.audio.newSource('beep.raw')
+	exitSound = love.audio.newSource('beep.wav')
 
  	-- Sets the background color to a nice blue
 	love.graphics.setBackgroundColor(88, 186, 255)

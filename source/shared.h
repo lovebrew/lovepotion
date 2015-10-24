@@ -53,8 +53,11 @@ typedef struct {
 
 typedef struct {
 	u8* buffer;
-	u32 size;
+	u64 size;
 	u32 format;
+	char *extension;
+	u32 samplerate;
+	int channel;
 	bool used;
 } love_source;
 
@@ -68,3 +71,4 @@ extern love_font *currentFont;
 extern bool is3D;
 extern const char *fontDefaultInit();
 extern bool soundEnabled;
+extern bool channelList[32];

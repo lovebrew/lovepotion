@@ -20,14 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-//http://hellomico.com/getting-started/convert-audio-to-raw/
+// http://hellomico.com/getting-started/convert-audio-to-raw/
 
 #include "../shared.h"
 
 #define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
 #define CLASS_NAME  "Source"
 
-int channel = 0;
+bool channelList[32];
+
+int getOpenChannel() {
+
+	int i;
+	for (i = 0; i < 32; i++) {
+		if (!channelList[i]) {
+			channelList[i] = true;
+			return i + 8;
+		}
+	}
+
+	return NULL;
+
+}
 
 const char *sourceInit(love_source *self, const char *filename) {
 
@@ -55,6 +69,45 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 				self->format = SOUND_FORMAT_16BIT;
 				self->used = false;
+				self->channel = getOpenChannel();
+				self->samplerate = 44100;
+				self->extension = ext;
+
+			}
+
+			fclose(file);
+
+		} else if (strncmp(ext, "wav", 3) == 0) {
+
+			FILE *file = fopen(filename, "rb");
+
+			if (file) {
+
+				u32 samplerate;
+
+				fseek(file, 0, SEEK_END);
+				self->size = ftell(file);
+				fseek(file, 0, SEEK_SET);
+
+				self->buffer = linearAlloc(self->size - 44);
+
+				if (!self->buffer) {
+					fclose(file);
+					return "Could not allocate sound buffer";
+				}
+
+				fseek(file, 44, SEEK_SET);
+				fread(self->buffer, 1, self->size - 44, file);
+				fseek(file, 0, SEEK_SET);
+
+				fseek(file, 24, SEEK_SET);
+				fread(&self->samplerate, 1, 4, file);
+				fseek(file, 0, SEEK_SET);
+
+				self->format = SOUND_FORMAT_16BIT;
+				self->used = false;
+				self->channel = getOpenChannel();
+				self->extension = ext;
 
 			}
 
@@ -64,32 +117,9 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 	} else return "Could not open source, does not exist.";
 
-
 	return NULL;
 
 }
-
-void sourcePlay(lua_State *L) { // source:play()
-
-	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
-
-	if (!self || !self->buffer || !self->format || !soundEnabled) {
-
-		luaError(L, "There was an error playing the source, sound may not be available.");
-		return;
-
-	}
-	
-	channel++;
-	channel%=8;
-
-	self->used = true;
-	csndPlaySound(channel+8, self->format | SOUND_ONE_SHOT, 44100, 1, 0, self->buffer, self->buffer, self->size);
-
-	printf("\n Played sound.");
-
-}
-
 
 int sourceNew(lua_State *L) { // love.audio.newSource()
 
@@ -108,6 +138,40 @@ int sourceNew(lua_State *L) { // love.audio.newSource()
 
 }
 
+int sourcePlay(lua_State *L) { // source:play()
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (!self || !self->buffer || !self->format || !soundEnabled) {
+
+		luaError(L, "There was an error playing the source, sound may not be available.");
+		return;
+
+	}
+
+	self->used = true;
+	csndPlaySound(self->channel, self->format | SOUND_ONE_SHOT, self->samplerate, 1, 0, self->buffer, self->buffer, self->size);
+
+	return 0;
+
+}
+
+int sourceStop(lua_State *L) { // source:stop()
+
+	// TODO
+
+	return 0;
+
+}
+
+int sourceIsPlaying(lua_State *L) { // source:isPlaying()
+
+	// TODO
+
+	return 0;
+
+}
+
 int sourceGC(lua_State *L) { // Garbage Collection
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -117,6 +181,8 @@ int sourceGC(lua_State *L) { // Garbage Collection
 	linearFree(self->buffer);
 	self->buffer = NULL;
 
+	channelList[self->channel - 8] = false;
+
 	return 0;
 
 }
@@ -124,9 +190,12 @@ int sourceGC(lua_State *L) { // Garbage Collection
 int initSourceClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{"new", sourceNew},
-		{"__gc", sourceGC},
-		{"play", sourcePlay},
+		{"new",			sourceNew	},
+		{"__gc",		sourceGC	},
+		{"play",		sourcePlay	},
+		{"stop",		sourceStop	},
+		{"isPlaying",	sourceIsPlaying},
+		{ 0, 0 },
 	};
 
 	luaobj_newclass(L, CLASS_NAME, NULL, sourceNew, reg);

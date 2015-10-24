@@ -29,6 +29,7 @@ lua_State *L;
 int initLove(lua_State *L);
 
 bool errorOccured = false;
+bool forceQuit = false;
 
 void displayError() {
 
@@ -76,6 +77,8 @@ int main() {
 	while (aptMainLoop()) {
 
 		if (shouldQuit) {
+
+			if (forceQuit) break;
 
 			bool shouldAbort = false;
 
@@ -141,7 +144,10 @@ int main() {
 
 			hidScanInput();
 			u32 kTempDown = hidKeysDown();
-			if (kTempDown & KEY_START) shouldQuit = 1;
+			if (kTempDown & KEY_START) {
+				forceQuit = true;
+				shouldQuit = true;
+			}
 
 			char *errhandler[1024];
 			snprintf(errhandler, sizeof errhandler, "%s%s%s", "love.errhand(\"", lua_tostring(L, -1), "\")");
