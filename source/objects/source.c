@@ -72,6 +72,7 @@ const char *sourceInit(love_source *self, const char *filename) {
 				self->channel = getOpenChannel();
 				self->samplerate = 44100;
 				self->extension = ext;
+				self->loop = false;
 
 			}
 
@@ -108,6 +109,8 @@ const char *sourceInit(love_source *self, const char *filename) {
 				self->used = false;
 				self->channel = getOpenChannel();
 				self->extension = ext;
+				self->loop = false;
+				self->samplerate *= 2;
 
 			}
 
@@ -142,15 +145,24 @@ int sourcePlay(lua_State *L) { // source:play()
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	if (!self || !self->buffer || !self->format || !soundEnabled) {
+	if (!self || !self->buffer || !self->format || !self->samplerate || !soundEnabled) {
 
 		luaError(L, "There was an error playing the source, sound may not be available.");
 		return;
 
 	}
 
-	self->used = true;
-	csndPlaySound(self->channel, self->format | SOUND_ONE_SHOT, self->samplerate, 1, 0, self->buffer, self->buffer, self->size);
+	u8 playing;
+	csndIsPlaying(self->channel, &playing);
+
+	if (!playing) {
+
+		u32 shouldLoop = self->loop ? SOUND_REPEAT: SOUND_ONE_SHOT;
+		csndPlaySound(self->channel, self->format | shouldLoop, self->samplerate, 1, 0, self->buffer, self->buffer, self->size);
+
+		self->used = true;
+
+	}
 
 	return 0;
 
@@ -158,7 +170,11 @@ int sourcePlay(lua_State *L) { // source:play()
 
 int sourceStop(lua_State *L) { // source:stop()
 
-	// TODO
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (!self || !self->buffer || !self->format || !self->samplerate || !soundEnabled) return;
+
+	CSND_SetPlayState(self->channel, false);
 
 	return 0;
 
@@ -166,9 +182,36 @@ int sourceStop(lua_State *L) { // source:stop()
 
 int sourceIsPlaying(lua_State *L) { // source:isPlaying()
 
-	// TODO
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	u8 playing;
+	csndIsPlaying(self->channel, &playing);
+	if (playing) {
+		lua_pushboolean(L, true);
+	} else {
+		lua_pushboolean(L, false);
+	}
+
+	return 1;
+
+}
+
+int sourceSetLooping(lua_State *L) { // source:setLooping()
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	self->loop = lua_toboolean(L, 2);
 
 	return 0;
+
+}
+
+int sourceIsLooping(lua_State *L) { // source:isLooping()
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushboolean(L, self->loop);
+
+	return 1;
 
 }
 
@@ -195,6 +238,7 @@ int initSourceClass(lua_State *L) {
 		{"play",		sourcePlay	},
 		{"stop",		sourceStop	},
 		{"isPlaying",	sourceIsPlaying},
+		{"setLooping",	sourceSetLooping},
 		{ 0, 0 },
 	};
 

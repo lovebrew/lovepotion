@@ -59,6 +59,7 @@ typedef struct {
 	u32 samplerate;
 	int channel;
 	bool used;
+	bool loop;
 } love_source;
 
 extern lua_State *L;

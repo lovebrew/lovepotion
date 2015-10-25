@@ -170,6 +170,8 @@ int main() {
 
 	}
 
+	luaL_dostring(L, "love.audio.stop()");
+
 	lua_close(L);
 
 	sftd_fini();

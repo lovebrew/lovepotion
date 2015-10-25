@@ -103,3 +103,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 ### Sound
 
 * source:play - ✓
+* source:stop - ✓
+* source:setLooping - ✓
+* source:isLooping - ✓
+* source:isPlaying - ✓
