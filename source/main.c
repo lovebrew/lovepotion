@@ -60,6 +60,7 @@ int main() {
 
 	luaL_dostring(L, 
 		"function love.errhand(msg)\n"
+			"love.audio.stop()"
 			"love.graphics.setBackgroundColor(89, 157, 220)\n"
 			"love.graphics.setScreen('top')\n"
 			"love.graphics.setFont(_defaultFont_)\n"
