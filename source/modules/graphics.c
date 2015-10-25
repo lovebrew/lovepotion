@@ -285,8 +285,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
+		int x = luaL_optnumber(L, 2, 0);
+		int y = luaL_optnumber(L, 3, 0);
 		float rad = luaL_optnumber(L, 4, 0);
 
 		translateCoords(&x, &y);
