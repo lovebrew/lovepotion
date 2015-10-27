@@ -84,8 +84,6 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 			if (file) {
 
-				u32 samplerate;
-
 				fseek(file, 0, SEEK_END);
 				self->size = ftell(file);
 				fseek(file, 0, SEEK_SET);
