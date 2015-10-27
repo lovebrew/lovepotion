@@ -84,23 +84,23 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 			if (file) {
 
-				fseek(file, 0, SEEK_END);
-				self->size = ftell(file);
-				fseek(file, 0, SEEK_SET);
+				fseek(file, 0, SEEK_END); // Seek to the end of the .wav file.
+				self->size = ftell(file); // Get the total size of the .wav file.
+				fseek(file, 0, SEEK_SET); // Seek back to the start.
 
-				self->buffer = linearAlloc(self->size - 44);
+				self->buffer = linearAlloc(self->size - 44); // Allocate the buffer, remove 44 bytes because we're not storing the header in here (which is 44 bytes)
 
 				if (!self->buffer) {
 					fclose(file);
 					return "Could not allocate sound buffer";
 				}
 
-				fseek(file, 44, SEEK_SET);
-				fread(self->buffer, 1, self->size - 44, file);
-				fseek(file, 0, SEEK_SET);
+				fseek(file, 44, SEEK_SET); // Seek to 44 bytes (Where the sound data starts)
+				fread(self->buffer, 1, self->size - 44, file); // Read all of the sound data into the buffer
+				fseek(file, 0, SEEK_SET); // Not sure if this is necessary, doing it just in case.
 
-				fseek(file, 24, SEEK_SET);
-				fread(&self->samplerate, 1, 4, file);
+				fseek(file, 24, SEEK_SET); // Seek to 24 bytes (This is where the samplerate is located in the header)
+				fread(&self->samplerate, 1, 4, file); // Read the samplerate into a variable.
 				fseek(file, 0, SEEK_SET);
 
 				self->format = SOUND_FORMAT_16BIT;
@@ -108,7 +108,7 @@ const char *sourceInit(love_source *self, const char *filename) {
 				self->channel = getOpenChannel();
 				self->extension = ext;
 				self->loop = false;
-				self->samplerate *= 2;
+				self->samplerate *= 2; // You need to times the sample rate by two (not sure why)
 
 			}
 
