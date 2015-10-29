@@ -50,18 +50,16 @@ const char *imageInit(love_image *self, const char *filename) {
 int imageNew(lua_State *L) { // love.graphics.newImage()
 
 	const char *filename = luaL_checkstring(L, 1);
-	char final[strlen(rootDir) + strlen(filename) + 2];
-	combine(final, rootDir, filename);
 
-	if (!fileExists(final)) luaError(L, "Could not open image, does not exist");
+	if (!fileExists(filename)) luaError(L, "Could not open image, does not exist");
 
-	int type = getType(final);
+	int type = getType(filename);
 	if (type == 4) luaError(L, "Unknown image type");
 
 	love_image *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = imageInit(self, final);
+	const char *error = imageInit(self, filename);
 	if (error) luaError(L, error);
 
 	return 1;

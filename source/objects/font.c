@@ -67,10 +67,7 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 
 		if (filename) {
 
-			char final[strlen(rootDir) + strlen(filename) + 2];
-			combine(final, rootDir, filename); // rootDir/filepath
-
-			const char *error = fontInit(self, final, size);
+			const char *error = fontInit(self, filename, size);
 
 			if (error) luaError(L, error);
 

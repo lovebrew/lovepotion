@@ -125,13 +125,11 @@ const char *sourceInit(love_source *self, const char *filename) {
 int sourceNew(lua_State *L) { // love.audio.newSource()
 
 	const char *filename = luaL_checkstring(L, 1);
-	char final[strlen(rootDir) + strlen(filename) + 2];
-	combine(final, rootDir, filename);
 
 	love_source *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = sourceInit(self, final);
+	const char *error = sourceInit(self, filename);
 
 	if (error) luaError(L, error);
 
