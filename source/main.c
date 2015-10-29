@@ -49,6 +49,8 @@ int main() {
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.
 
+	// consoleInit(GFX_BOTTOM, NULL);
+
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
 	osSetSpeedupEnable(true); // Enables CPU speedup (I think?)
@@ -56,12 +58,11 @@ int main() {
 	// Change working directory
 	char cwd[256];
 	getcwd(cwd, 256);
-	char newCwd[261] = "sdmc:";
+	char newCwd[261];
 	strcat(newCwd, cwd);
 	strcat(newCwd, "game");
+	printf("\n%s", newCwd);
 	chdir(newCwd);
-
-	// consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
 
