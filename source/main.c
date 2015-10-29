@@ -22,7 +22,7 @@
 
 #include "shared.h"
 
-char *rootDir = "game";
+char *rootDir = "";
 
 lua_State *L;
 
@@ -51,14 +51,22 @@ int main() {
 
 	osSetSpeedupEnable(true); // Enables CPU speedup (I think?)
 
+	// Change working directory
+	char cwd[256];
+	getcwd(cwd, 256);
+	char newCwd[261] = "sdmc:";
+	strcat(newCwd, cwd);
+	strcat(newCwd, "game");
+	chdir(newCwd);
+
 	// consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
 
 	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.7 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
 
-	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
-	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
+	luaL_dostring(L, "package.path = './?.lua;./?/init.lua'"); // Set default requiring path.
+	luaL_dostring(L, "package.cpath = './?.lua;./?/init.lua'");
 
 	luaL_dostring(L, 
 		"function love.errhand(msg)\n"
@@ -73,7 +81,7 @@ int main() {
 		"end"
 	); // default love.errhand()
 
-	if (luaL_dofile(L, "game/main.lua")) displayError();
+	if (luaL_dofile(L, "main.lua")) displayError();
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
