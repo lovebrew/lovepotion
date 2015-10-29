@@ -49,6 +49,8 @@ int main() {
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
+	osSetSpeedupEnable(true); // Enables CPU speedup (I think?)
+
 	// consoleInit(GFX_BOTTOM, NULL);
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
