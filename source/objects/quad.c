@@ -20,64 +20,51 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "libs/lua/lua.h"
-#include "libs/lua/lualib.h"
-#include "libs/lua/lauxlib.h"
-#include "libs/lua/compat-5.2.h"
-#include "libs/luaobj/luaobj.h"
+#include "../shared.h"
 
-#include "libs/libsf2d/include/sf2d.h"
-#include <sfil.h>
-#include <sftd.h>
+#define CLASS_TYPE  LUAOBJ_TYPE_QUAD
+#define CLASS_NAME  "Quad"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <time.h>
-#include <math.h>
-#include <3ds.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+const char *quadInit(love_quad *self, int x, int y, int width, int height) {
 
-#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
+	self->x = luaL_checkint(L, 1);
+	self->y = luaL_checkint(L, 2);
 
-typedef struct {
-	sf2d_texture *texture;
-} love_image;
+	self->width = luaL_checkint(L, 3);
+	self->height = luaL_checkint(L, 4);
 
-typedef struct {
-	sftd_font *font;
-	int size;
-} love_font;
+	return NULL;
 
-typedef struct {
-	u8* buffer;
-	u64 size;
-	u32 format;
-	char *extension;
-	u32 samplerate;
-	int channel;
-	bool used;
-	bool loop;
-} love_source;
+}
 
-typedef struct {
-	int x;
-	int y;
-	int width;
-	int height;
-} love_quad;
+int quadNew(lua_State *L) { // love.graphics.newQuad()
 
+	int x = luaL_checkint(L, 1);
+	int y = luaL_checkint(L, 2);
 
-extern lua_State *L;
-extern int currentScreen;
-extern int drawScreen;
-extern char dsNames[32][32];
-extern char *rootDir;
-extern bool shouldQuit;
-extern love_font *currentFont;
-extern bool is3D;
-extern const char *fontDefaultInit();
-extern bool soundEnabled;
-extern bool channelList[32];
+	int width = luaL_checkint(L, 3);
+	int height = luaL_checkint(L, 4);
+
+	love_quad *self = luaobj_newudata(L, sizeof(*self));
+
+	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+	const char *error = quadInit(self, x, y, width, height);
+
+	if (error) luaError(error);
+
+	return 1;
+}
+
+int initQuadClass(lua_State *L) {
+
+	luaL_Reg reg[] = {
+		{ "new", quadNew },
+		{ 0, 0 },
+	};
+
+	luaobj_newclass(L, CLASS_NAME, NULL, quadNew, reg);
+
+	return 1;
+
+}

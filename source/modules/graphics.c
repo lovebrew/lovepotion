@@ -284,16 +284,39 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 	if (sf2d_get_current_screen() == currentScreen) {
 
 		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+		love_quad *quad = NULL;
 
-		int x = luaL_optnumber(L, 2, 0);
-		int y = luaL_optnumber(L, 3, 0);
-		float rad = luaL_optnumber(L, 4, 0);
+		int x, y;
+		float rad;
+
+		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
+
+			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+			x = luaL_optnumber(L, 3, 0);
+			y = luaL_optnumber(L, 4, 0);
+			rad = luaL_optnumber(L, 5, 0);
+
+		} else {
+
+			x = luaL_optnumber(L, 2, 0);
+			y = luaL_optnumber(L, 3, 0);
+			rad = luaL_optnumber(L, 4, 0);
+
+		}
 
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
 
-			sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+			if (!quad) {
+
+				if (img) {
+					sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+				}
+				
+			} else {
+				sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
+			}
 
 		} else {
 
@@ -483,6 +506,7 @@ static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
 
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
+int quadNew(lua_State *L);
 
 const char *fontDefaultInit(love_font *self, int size);
 
@@ -503,6 +527,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "getHeight",			graphicsGetHeight			},
 		{ "newImage",			imageNew					},
 		{ "newFont",			fontNew						},
+		{ "newQuad",			quadNew						},
 		{ "draw",				graphicsDraw				},
 		{ "setFont",			graphicsSetFont				},
 		{ "print",				graphicsPrint				},

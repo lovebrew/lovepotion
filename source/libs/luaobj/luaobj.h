@@ -24,6 +24,7 @@ typedef struct {
 #define LUAOBJ_TYPE_IMAGE  (1 << 0)
 #define LUAOBJ_TYPE_FONT   (1 << 1)
 #define LUAOBJ_TYPE_SOURCE (1 << 2)
+#define LUAOBJ_TYPE_QUAD   (1 << 3)
 
 int luaobj_newclass(lua_State *L, const char *name, const char *extends, 
                     int (*constructor)(lua_State*), luaL_Reg* reg);
