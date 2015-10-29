@@ -30,11 +30,13 @@ int initLove(lua_State *L);
 
 bool errorOccured = false;
 bool forceQuit = false;
+char *errMsg;
 
 void displayError() {
 
+	errMsg = lua_tostring(L, -1);
 	errorOccured = true;
-	printf(lua_tostring(L, -1));
+	printf(errMsg);
 
 }
 
@@ -152,18 +154,38 @@ int main() {
 				shouldQuit = true;
 			}
 
-			char *errhandler[1024];
-			snprintf(errhandler, sizeof errhandler, "%s%s%s", "love.errhand(\"", lua_tostring(L, -1), "\")");
+			// char *errhandler[1024];
+			// snprintf(errhandler, sizeof errhandler, "%s%s%s", "love.errhand(\"", lua_tostring(L, -1), "\")");
+
+			char *errMsg = lua_tostring(L, -1);
 
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-				luaL_dostring(L, errhandler);
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "errhand");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1)) {
+
+					lua_pushstring(L, errMsg);
+					lua_call(L, 1, 0);
+
+				}
 
 			sf2d_end_frame();
 
 			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-				luaL_dostring(L, errhandler);
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "errhand");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1)) {
+
+					lua_pushstring(L, errMsg);
+					lua_call(L, 1, 0);
+
+				}
 
 			sf2d_end_frame();
 
