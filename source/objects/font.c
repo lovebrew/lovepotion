@@ -24,7 +24,7 @@
 
 #include "Vera_ttf.h"
 
-int fontLimit = 3;
+int fontLimit = 2;
 int fontCounter = 0;
 
 #define CLASS_TYPE  LUAOBJ_TYPE_FONT
@@ -52,7 +52,7 @@ const char *fontDefaultInit(love_font *self, int size) {
 
 int fontNew(lua_State *L) { // love.graphics.newFont()
 
-	if (fontCounter < fontLimit) {
+	if (fontCounter <= fontLimit) {
 
 		fontCounter += 1;
 
@@ -80,7 +80,7 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 
 	} else {
 
-		luaError(L, "LovePotion currently has a 3 font limit. This limitation will hopefully be lifted in future versions.");
+		luaError(L, "LovePotion currently has a 2 font limit. This limitation will hopefully be lifted in future versions.");
 		return 0;
 
 	}
