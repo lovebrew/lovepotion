@@ -60,7 +60,7 @@ int translateCoords(int *x, int *y) {
 
 	// Sets depth of objects
 
-	if (is3D) {
+	if (is3D && sf2d_get_current_screen() == GFX_TOP) {
 
 		float slider = CONFIG_3D_SLIDERSTATE;
 
