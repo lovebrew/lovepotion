@@ -39,7 +39,7 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 	if (strncmp(ext, "raw", 3) == 0) {
 
-		FILE* file = fopen(filename, "r+");
+		FILE* file = fopen(filename, "rb+");
 
 		if (!file) return "Failure to open source.";
 
