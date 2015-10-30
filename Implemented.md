@@ -33,6 +33,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.getHeight - ✓
 * love.graphics.newImage - **Partial**
 * love.graphics.newFont - ✓
+* love.graphics.newQuad - ✓
 * love.graphics.draw - **Partial**
 * love.graphics.setFont - ✓
 * love.graphics.print - ✓
