@@ -20,26 +20,26 @@ Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable rel
 
 # FAQ
 
-* **Can I run my LÖVE game on this?**
+##### Can I run my LÖVE game on this?
 
 Running your game without any changes is very unlikely, so it's recommended to currently use LövePotion to make games from the ground up.
 
 If you want to try, place your games files in the game folder.
 
-* **Can I help?**
+##### Can I help?
 
 Yes, I need all the help I can get. I am new to C, so my code will probably be quite messy, and I don't have the talent that a lot of other people have. 
 
 If you have anything to contribute just make a pull request.
 
-* **How do I build this?**
+##### How do I build this?
 
 Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, and run make.
 LövePotion will most likely not build on anything but Linux, and I haven't tested that it builds at all on any other machine.
 
 If you can/can't get it built, please tell me.
 
-* **How do I run this?**
+##### How do I run this?
 
 There are ~~2 ways~~ a ton of ways to run this.
  * [Citra Emulator](http://citra-emu.org)
@@ -55,7 +55,7 @@ There are ~~2 ways~~ a ton of ways to run this.
 
 There are also other ways, but I know next to nothing of these methods.
 
-* **Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-**
+##### Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-
 
 Stop right there kiddo, this is for Homebrew only.
 
