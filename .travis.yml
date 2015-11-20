@@ -10,7 +10,7 @@ before_install:
   - export DEVKITPRO=${HOME}/devkitPro
   - export DEVKITARM=${DEVKITPRO}/devkitARM
   - export CTRULIB=${DEVKITPRO}/libctru
-  - export AEMSTRO=${DEVKITPRO}/aemstro
+  - export PICASSO=${DEVKITARM}/bin
   - export PORTLIBS=${DEVKITPRO}/portlibs/armv6k
   - sh .travis-deps.sh
 

@@ -11,9 +11,11 @@ perl devkitARMupdate.pl
 cd ctrulib/libctru && make ; cd -
 cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
-# Get aemstro_as.py
-mkdir ${AEMSTRO} && cd ${AEMSTRO}
-wget https://raw.githubusercontent.com/smealum/aemstro/master/aemstro_as.py
+# Get picasso
+git clone https://github.com/fincs/picasso
+cd picasso
+./autogen && ./configure && make
+mv picasso ${PICASSO}
 cd -
 
 # Build and install portlibs
