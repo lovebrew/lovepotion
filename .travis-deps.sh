@@ -12,11 +12,7 @@ cd ctrulib/libctru && make ; cd -
 cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
 # Get picasso
-git clone https://github.com/fincs/picasso
-cd picasso
-./autogen.sh && ./configure && make
-mv picasso ${PICASSO}
-cd -
+mv LovePotion/tools/picasso ${PICASSO}
 
 # Build and install portlibs
 mkdir ${DEVKITPRO}/portlibs && mkdir ${PORTLIBS}
