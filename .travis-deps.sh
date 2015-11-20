@@ -14,7 +14,7 @@ cp -rf ctrulib/libctru/ ${DEVKITPRO}
 # Get picasso
 git clone https://github.com/fincs/picasso
 cd picasso
-./autogen && ./configure && make
+./autogen.sh && ./configure && make
 mv picasso ${PICASSO}
 cd -
 
