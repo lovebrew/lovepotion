@@ -1,5 +1,5 @@
-#include "../include/sf2d.h"
-#include "../include/sf2d_private.h"
+#include "sf2d.h"
+#include "sf2d_private.h"
 #include "shader_vsh_shbin.h"
 
 

@@ -132,6 +132,7 @@ typedef struct {
 	sf2d_place place;          /**< Where the texture data resides, RAM or VRAM */
 	int tiled;                 /**< Whether the tetxure is tiled or not */
 	sf2d_texfmt pixel_format;  /**< Pixel format */
+	u32 params;                /**< Texture filters and wrapping */
 	int width;                 /**< Texture width */
 	int height;                /**< Texture height */
 	int pow2_w;                /**< Nearest power of 2 >= width */
@@ -236,7 +237,7 @@ void sf2d_set_clear_color(u32 color);
  * @param y1 y coordinate of the sceond dot
  * @param color the color to draw the line
  */
-void sf2d_draw_line(int x0, int y0, int x1, int y1, int thickness, u32 color);
+void sf2d_draw_line(int x0, int y0, int x1, int y1, u32 color);
 
 /**
  * @brief Draws a rectangle
@@ -282,6 +283,8 @@ void sf2d_draw_fill_circle(int x, int y, int radius, u32 color);
  * @return a pointer to the newly created texture
  * @note Before drawing the texture, it needs to be tiled
  *       by calling sf2d_texture_tile32.
+ *       The default texture params are both min and mag filters
+ *       GPU_NEAREST, and both S and T wrappings GPU_CLAMP_TO_BORDER.
  */
 sf2d_texture *sf2d_create_texture(int width, int height, sf2d_texfmt pixel_format, sf2d_place place);
 
@@ -335,6 +338,22 @@ void sf2d_bind_texture_color(const sf2d_texture *texture, GPU_TEXUNIT unit, u32 
  * @param params the parameters the bind with the texture
  */
 void sf2d_bind_texture_parameters(const sf2d_texture *texture, GPU_TEXUNIT unit, unsigned int params);
+
+/**
+ * @brief Changes the texture params (filters and wrapping)
+ * @param texture the texture to change the params
+ * @param params the new texture params to use. You can use the
+ *        GPU_TEXTURE_[MIN,MAG]_FILTER and GPU_TEXTURE_WRAP_[S,T]
+ *        macros as helpers.
+ */
+void sf2d_texture_set_params(sf2d_texture *texture, u32 params);
+
+/**
+ * @brief Returns the texture params
+ * @param texture the texture to get the params
+ * @return the current texture params of texture
+ */
+int sf2d_texture_get_params(const sf2d_texture *texture);
 
 /**
  * @brief Draws a texture

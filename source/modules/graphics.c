@@ -37,8 +37,6 @@ bool isPushed = false;
 
 bool is3D = false;
 
-int currentLineWidth = 1;
-
 int currentDepth = 0;
 
 u32 getCurrentColor() {
@@ -132,11 +130,11 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 		if (strcmp(mode, "fill") == 0) {
 			sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
 		} else if (strcmp(mode, "line") == 0) {
-			sf2d_draw_line(x, y, x, y + h, currentLineWidth, getCurrentColor());
-			sf2d_draw_line(x, y, x + w, y, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y, x, y + h, getCurrentColor());
+			sf2d_draw_line(x, y, x + w, y, getCurrentColor());
 
-			sf2d_draw_line(x + w, y, x + w, y + h, currentLineWidth, getCurrentColor());
-			sf2d_draw_line(x, y + h, x + w, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
+			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
 		}
 
 	}
@@ -158,7 +156,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		translateCoords(&x, &y);
 
-		sf2d_draw_line(x, y, x, y, 1, getCurrentColor()); // Fixes weird circle bug.
+		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	}
@@ -187,7 +185,7 @@ static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 				translateCoords(&x1, &y1);
 				translateCoords(&x2, &y2);
 
-				sf2d_draw_line(x1, y1, x2, y2, currentLineWidth, getCurrentColor());
+				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
 
 			}
 		}
@@ -490,17 +488,13 @@ static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 
 static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
 
-	currentLineWidth = luaL_checkinteger(L, 1);
-
-	return 0;
+ // TODO: Do this properly
 
 }
 
 static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
 
-	lua_pushnumber(L, currentLineWidth);
-
-	return 1;
+ // TODO: This too.
 
 }
 
@@ -540,8 +534,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "get3D",				graphicsGet3D				},
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
-		{ "setLineWidth",		graphicsSetLineWidth		},
-		{ "getLineWidth",		graphicsGetLineWidth		},
+		// { "setLineWidth",		graphicsSetLineWidth		},
+		// { "getLineWidth",		graphicsGetLineWidth		},
 		{ 0, 0 },
 	};
 

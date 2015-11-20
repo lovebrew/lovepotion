@@ -71,6 +71,10 @@ sf2d_texture *sf2d_create_texture(int width, int height, sf2d_texfmt pixel_forma
 	texture->tiled = 0;
 	texture->place = place;
 	texture->pixel_format = pixel_format;
+	texture->params = GPU_TEXTURE_MAG_FILTER(GPU_NEAREST)
+		| GPU_TEXTURE_MIN_FILTER(GPU_NEAREST)
+		| GPU_TEXTURE_WRAP_S(GPU_CLAMP_TO_BORDER)
+		| GPU_TEXTURE_WRAP_T(GPU_CLAMP_TO_BORDER);
 	texture->width = width;
 	texture->height = height;
 	texture->pow2_w = pow2_w;
@@ -145,7 +149,7 @@ void sf2d_bind_texture(const sf2d_texture *texture, GPU_TEXUNIT unit)
 		(u32 *)osConvertVirtToPhys((u32)texture->data),
 		texture->pow2_w,
 		texture->pow2_h,
-		GPU_TEXTURE_MAG_FILTER(GPU_NEAREST) | GPU_TEXTURE_MIN_FILTER(GPU_NEAREST),
+		texture->params,
 		texture->pixel_format
 	);
 }
@@ -169,7 +173,7 @@ void sf2d_bind_texture_color(const sf2d_texture *texture, GPU_TEXUNIT unit, u32 
 		(u32 *)osConvertVirtToPhys((u32)texture->data),
 		texture->pow2_w,
 		texture->pow2_h,
-		GPU_TEXTURE_MAG_FILTER(GPU_NEAREST) | GPU_TEXTURE_MIN_FILTER(GPU_NEAREST),
+		texture->params,
 		texture->pixel_format
 	);
 }
@@ -196,6 +200,16 @@ void sf2d_bind_texture_parameters(const sf2d_texture *texture, GPU_TEXUNIT unit,
 		params,
 		texture->pixel_format
 	);
+}
+
+void sf2d_texture_set_params(sf2d_texture *texture, u32 params)
+{
+	texture->params = params;
+}
+
+int sf2d_texture_get_params(const sf2d_texture *texture)
+{
+	return texture->params;
 }
 
 static inline void sf2d_draw_texture_generic(const sf2d_texture *texture, int x, int y)
