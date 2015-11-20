@@ -12,7 +12,7 @@ cd ctrulib/libctru && make ; cd -
 cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
 # Get picasso
-mv LovePotion/tools/picasso ${PICASSO}
+mv VideahGams/LovePotion/tools/picasso ${PICASSO}
 
 # Build and install portlibs
 mkdir ${DEVKITPRO}/portlibs && mkdir ${PORTLIBS}
