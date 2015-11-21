@@ -62,6 +62,10 @@ int imageNew(lua_State *L) { // love.graphics.newImage()
 	const char *error = imageInit(self, filename);
 	if (error) luaError(L, error);
 
+	sf2d_texture_set_params(self->texture, defaultFilter);
+	self->minFilter = defaultMinFilter;
+	self->magFilter = defaultMagFilter;
+
 	return 1;
 
 }
@@ -104,6 +108,49 @@ int imageGetHeight(lua_State *L) { // image:getHeight()
 	lua_pushinteger(L, self->texture->height);
 
 	return 1;
+
+}
+
+int imageSetFilter(lua_State *L) { // image:setFilter()
+
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char *minMode = luaL_checkstring(L, 2);
+	char *magMode = luaL_optstring(L, 3, minMode);
+
+	u32 minFilter;
+	u32 magFilter;
+
+	if (strcmp(minMode, "linear") != 0 && 
+		strcmp(minMode, "nearest") != 0 &&
+		strcmp(magMode, "linear") != 0 &&
+		strcmp(magMode, "nearest" != 0)) {
+			luaError(L, "Invalid Image Filter.");
+			return 0;
+		}
+
+	if (strcmp(minMode, "linear") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
+	if (strcmp(magMode, "linear") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR);
+	if (strcmp(minMode, "nearest") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_NEAREST);
+	if (strcmp(magMode, "nearest") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_NEAREST);
+
+	sf2d_texture_set_params(self->texture, magFilter | minFilter);
+
+	self->minFilter = minMode;
+	self->magFilter = magMode;
+
+	return 0;
+
+}
+
+int imageGetFilter(lua_State *L) { // image:getFilter()
+
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushstring(L, self->minFilter);
+	lua_pushstring(L, self->magFilter);
+
+	return 2;
 
 }
 

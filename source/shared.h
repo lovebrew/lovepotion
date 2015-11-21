@@ -44,6 +44,8 @@
 
 typedef struct {
 	sf2d_texture *texture;
+	char *minFilter;
+	char *magFilter;
 } love_image;
 
 typedef struct {
@@ -69,7 +71,6 @@ typedef struct {
 	int height;
 } love_quad;
 
-
 extern lua_State *L;
 extern int currentScreen;
 extern int drawScreen;
@@ -81,3 +82,6 @@ extern bool is3D;
 extern const char *fontDefaultInit();
 extern bool soundEnabled;
 extern bool channelList[32];
+extern u32 defaultFilter;
+extern char *defaultMinFilter;
+extern char *defaultMagFilter;

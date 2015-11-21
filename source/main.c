@@ -49,7 +49,7 @@ int main() {
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.
 
-	// consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_BOTTOM, NULL);
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
@@ -61,7 +61,6 @@ int main() {
 	char newCwd[261];
 	strcat(newCwd, cwd);
 	strcat(newCwd, "game");
-	printf("\n%s", newCwd);
 	chdir(newCwd);
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
@@ -146,11 +145,11 @@ int main() {
 
 			// Bot screen
 
-			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+			// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+			// 	if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
-			sf2d_end_frame();
+			// sf2d_end_frame();
 
 			luaL_dostring(L, "love.graphics.present()");
 
@@ -183,20 +182,20 @@ int main() {
 
 			sf2d_end_frame();
 
-			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+			// sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-				lua_getfield(L, LUA_GLOBALSINDEX, "love");
-				lua_getfield(L, -1, "errhand");
-				lua_remove(L, -2);
+			// 	lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			// 	lua_getfield(L, -1, "errhand");
+			// 	lua_remove(L, -2);
 
-				if (!lua_isnil(L, -1)) {
+			// 	if (!lua_isnil(L, -1)) {
 
-					lua_pushstring(L, errMsg);
-					lua_call(L, 1, 0);
+			// 		lua_pushstring(L, errMsg);
+			// 		lua_call(L, 1, 0);
 
-				}
+			// 	}
 
-			sf2d_end_frame();
+			// sf2d_end_frame();
 
 			luaL_dostring(L, "love.graphics.present()");
 

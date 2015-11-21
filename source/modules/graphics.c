@@ -39,6 +39,10 @@ bool is3D = false;
 
 int currentDepth = 0;
 
+u32 defaultFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR)|GPU_TEXTURE_MIN_FILTER(GPU_LINEAR); // Default Image Filter.
+char *defaultMinFilter = "linear";
+char *defaultMagFilter = "linear";
+
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
@@ -498,6 +502,45 @@ static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
 
 }
 
+static int graphicsSetDefaultFilter(lua_State *L) { // love.graphics.setDefaultFilter()
+
+	char *minMode = luaL_checkstring(L, 1);
+	char *magMode = luaL_optstring(L, 2, minMode);
+
+	u32 minFilter;
+	u32 magFilter;
+
+	if (strcmp(minMode, "linear") != 0 && 
+		strcmp(minMode, "nearest") != 0 &&
+		strcmp(magMode, "linear") != 0 &&
+		strcmp(magMode, "nearest" != 0)) {
+			luaError(L, "Invalid Image Filter.");
+			return 0;
+		}
+
+	if (strcmp(minMode, "linear") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
+	if (strcmp(magMode, "linear") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR);
+	if (strcmp(minMode, "nearest") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_NEAREST);
+	if (strcmp(magMode, "nearest") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_NEAREST);
+
+	defaultMinFilter = minMode;
+	defaultMagFilter = magMode;
+
+	defaultFilter = magFilter | minFilter;
+
+	return 0;
+
+}
+
+static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultFilter()
+
+	lua_pushstring(L, defaultMinFilter);
+	lua_pushstring(L, defaultMagFilter);
+
+	return 2;
+
+}
+
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
 int quadNew(lua_State *L);
@@ -536,6 +579,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "getDepth",			graphicsGetDepth			},
 		// { "setLineWidth",		graphicsSetLineWidth		},
 		// { "getLineWidth",		graphicsGetLineWidth		},
+		{ "setDefaultFilter",	graphicsSetDefaultFilter	},
+		{ "getDefaultFilter",	graphicsGetDefaultFilter	},
 		{ 0, 0 },
 	};
 
