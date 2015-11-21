@@ -162,6 +162,8 @@ int initImageClass(lua_State *L) {
 		{ "getDimensions",  imageGetDimensions },
 		{ "getWidth",       imageGetWidth      },
 		{ "getHeight",      imageGetHeight     },
+		{ "setFilter",      imageSetFilter     },
+		{ "getFilter",      imageGetFilter     },
 		{ 0, 0 },
 	};
 
