@@ -36,7 +36,7 @@ void displayError() {
 
 	errMsg = lua_tostring(L, -1);
 	errorOccured = true;
-	printf(errMsg);
+	printf("\e[0;31m%s\e[0m",errMsg);
 
 }
 
