@@ -23,7 +23,12 @@ extern "C" {
  * @param b the blue component of the color to create
  * @param a the alpha component of the color to create
  */
-#define RGBA8(r, g, b, a) ((((r)&0xFF)<<24) | (((g)&0xFF)<<16) | (((b)&0xFF)<<8) | (((a)&0xFF)<<0))
+#define RGBA8(r, g, b, a) ((((a)&0xFF)<<24) | (((b)&0xFF)<<16) | (((g)&0xFF)<<8) | (((r)&0xFF)<<0))
+
+#define RGBA8_GET_R(c) (((c) >>  0) & 0xFF)
+#define RGBA8_GET_G(c) (((c) >>  8) & 0xFF)
+#define RGBA8_GET_B(c) (((c) >> 16) & 0xFF)
+#define RGBA8_GET_A(c) (((c) >> 24) & 0xFF)
 
 /**
  * @brief Default size of the GPU commands FIFO buffer
@@ -96,23 +101,13 @@ typedef struct {
 } sf2d_vector_3f;
 
 /**
- * @brief Represents a four dimensional float vector
- */
-
-typedef struct {
-	float r;  /**< Red component of the vector/color */
-	float g;  /**< Green component of the vector/color */
-	float b;  /**< Blue component of the vector/color */
-	float a;  /**< Alpha component of the vector/color */
-} sf2d_vector_4f;
-
-/**
- * @brief Represents a vertex containing position and color attributes
+ * @brief Represents a vertex containing position (float)
+ *        and color (unsigned int)
  */
 
 typedef struct {
 	sf2d_vector_3f position;  /**< Position of the vertex */
-	sf2d_vector_4f color;     /**< Color of the vertex */
+	u32 color;                /**< Color of the vertex */
 } sf2d_vertex_pos_col;
 
 /**
@@ -210,6 +205,15 @@ void *sf2d_pool_malloc(u32 size);
  * @param alignment the alignment to where allocate the memory
  */
 void *sf2d_pool_memalign(u32 size, u32 alignment);
+
+/**
+ * @brief Allocates aligned memory for an array from a temporary pool. Works as sf2d_pool_malloc
+ * @param nmemb the number of elements to allocate
+ * @param size the size (and alignment) of each element to allocate
+ * @note Unlike libc's calloc, this function does not initialize to 0,
+ *       and returns a pointer aligned to size.
+ */
+void *sf2d_pool_calloc(u32 nmemb, u32 size);
 
 /**
  * @brief Returns the temporary pool's free space

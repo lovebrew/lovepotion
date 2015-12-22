@@ -58,11 +58,12 @@ int texture_atlas_insert(texture_atlas *atlas, unsigned int character, const voi
 	int i, j;
 	for (i = 0; i < height; i++) {
 		for (j = 0; j < width; j++) {
-			sf2d_set_pixel(atlas->tex, pos.x + j, pos.y + i, *(unsigned int *)(image + (j + i*width)*4));
+			sf2d_set_pixel(atlas->tex, pos.x + j, pos.y + i,
+				__builtin_bswap32(*(unsigned int *)(image + (j + i*width)*4)));
 		}
 	}
 
-	GSPGPU_FlushDataCache(NULL, atlas->tex->data, atlas->tex->data_size);
+	GSPGPU_FlushDataCache(atlas->tex->data, atlas->tex->data_size);
 
 	return 1;
 }
