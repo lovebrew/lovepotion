@@ -55,6 +55,13 @@ There are ~~2 ways~~ a ton of ways to run this.
 
 There are also other ways, but I know next to nothing of these methods.
 
+To run your game in Citra, place your game folder in these locations:
+
+| Platform | Path                            |
+|----------|---------------------------------|
+| Linux    | `~/.local/share/citra-emu/sdmc` |
+| Windows  | `[CITRA-FOLDER]/users/sdmc`     |
+
 ##### Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-
 
 Stop right there kiddo, this is for Homebrew only.
