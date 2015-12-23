@@ -151,7 +151,7 @@ build-all:
 
 #---------------------------------------------------------------------------------
 clean:
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).3ds $(OUTPUT).cia $(OUTPUT).smdh $(TARGET).elf $(OUTPUT)stripped.elf
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh
 
 clean-sf2dlib:
 	@make -C source/libs/libsf2d clean
@@ -181,9 +181,9 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(NO_SMDH)),)
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds $(OUTPUT).smdh
+$(OUTPUT).3dsx	:	$(OUTPUT).smdh
 else
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds
+$(OUTPUT).3dsx	:
 endif
 
 #---------------------------------------------------------------------------------

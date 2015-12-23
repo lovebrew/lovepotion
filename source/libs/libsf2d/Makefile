@@ -30,6 +30,10 @@ CFLAGS	:=	-g -Wall -O2\
 		$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
+
+#WILL HAVE TO BE REMOVED SOON
+CFLAGS += -DLIBCTRU_NO_DEPRECATION
+
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH)

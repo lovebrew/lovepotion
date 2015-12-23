@@ -32,7 +32,7 @@ static int systemGetOS(lua_State *L) { // love.system.getOS()
 static int systemGetPowerInfo(lua_State *L) { // love.system.getPowerInfo() TODO: Test this.
 
 	u8 batteryStateBool;
-	PTMU_GetBatteryChargeState(NULL, &batteryStateBool);
+	PTMU_GetBatteryChargeState(&batteryStateBool);
 
 	const char *batteryState;
 
@@ -48,7 +48,7 @@ static int systemGetPowerInfo(lua_State *L) { // love.system.getPowerInfo() TODO
 
 	u8 batteryPercent;
 
-	PTMU_GetBatteryLevel(NULL, &batteryPercent);
+	PTMU_GetBatteryLevel(&batteryPercent);
 
 	lua_pushstring(L, batteryState);
 	lua_pushnumber(L, batteryPercent);
