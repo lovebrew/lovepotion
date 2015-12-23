@@ -151,7 +151,7 @@ build-all:
 
 #---------------------------------------------------------------------------------
 clean:
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf
 
 clean-sf2dlib:
 	@make -C source/libs/libsf2d clean
@@ -185,16 +185,6 @@ $(OUTPUT).3dsx	:	$(OUTPUT).smdh
 else
 $(OUTPUT).3dsx	:
 endif
-
-#---------------------------------------------------------------------------------
-$(OUTPUT).3ds	:	$(OUTPUT)stripped.elf
-#---------------------------------------------------------------------------------
-	@$(TOPDIR)/tools/./makerom -f cci -o $(OUTPUT).3ds -rsf "$(TOPDIR)/3ds_workaround.rsf" -target d -exefslogo -elf $(OUTPUT)stripped.elf -icon "$(TOPDIR)/icon.bin" -banner "$(TOPDIR)/banner.bin"
-
-#---------------------------------------------------------------------------------
-$(OUTPUT).cia	:	$(OUTPUT)stripped.elf
-#---------------------------------------------------------------------------------
-	@$(TOPDIR)/tools/./makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT)stripped.elf -rsf "$(TOPDIR)/cia_workaround.rsf" -icon "$(TOPDIR)/icon.bin" -banner "$(TOPDIR)/banner.bin" -exefslogo -target t
 
 #---------------------------------------------------------------------------------
 $(OUTPUT).elf	:	$(OFILES)
