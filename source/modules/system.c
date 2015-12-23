@@ -158,35 +158,6 @@ static int systemGetRegion(lua_State *L) { // love.system.getRegion()
 
 }
 
-/* static int systemGetPowerInfo(lua_State *L) {
-
-	u8 batteryStateBool;
-	PTMU_GetBatteryChargeState(&batteryStateBool);
-
-	const char *batteryState;
-
-	if (batteryStateBool == 0) {
-
-		batteryState = "battery";
-
-	} else if (batteryStateBool == 1) {
-
-		batteryState = "charging";
-
-	}
-
-	u8 batteryPercent;
-
-	PTMU_GetBatteryLevel(&batteryPercent);
-
-	lua_pushstring(L, batteryState);
-	lua_pushnumber(L, batteryPercent);
-	lua_pushnil(L);
-
-	return 3;
-
-} */
-
 static int systemGetPowerInfo(lua_State *L){
 	
 	u8 batteryPercent;
