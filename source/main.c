@@ -48,6 +48,8 @@ int main() {
 
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.
+	cfguInit();
+	ptmuInit();
 
 	// consoleInit(GFX_BOTTOM, NULL);
 
@@ -206,6 +208,8 @@ int main() {
 
 	sftd_fini();
 	sf2d_fini();
+	cfguExit();
+	ptmuExit();
 
 	if (soundEnabled) csndExit();
 
