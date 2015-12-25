@@ -68,6 +68,9 @@ Stop right there kiddo, this is for Homebrew only.
 
 This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's what you want.
 
+##### Can I this run Mari0?
+No.
+
 # Showcase
 
  * [Space Shooter Game](http://novaember.com/s/8f9453/FIrGGQ.mp4) by Darkwater
