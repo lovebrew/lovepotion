@@ -68,7 +68,7 @@ Stop right there kiddo, this is for Homebrew only.
 
 This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's what you want.
 
-##### Can I this run Mari0?
+##### Can I use this to run Mari0?
 No.
 
 # Showcase
