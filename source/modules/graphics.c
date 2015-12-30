@@ -289,6 +289,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		love_quad *quad = NULL;
 
 		int x, y;
+		int sx, sy;
 		float rad;
 
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
@@ -297,31 +298,51 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			x = luaL_optnumber(L, 3, 0);
 			y = luaL_optnumber(L, 4, 0);
 			rad = luaL_optnumber(L, 5, 0);
+			sx = luaL_optnumber(L, 6, 0);
+			sy = luaL_optnumber(L, 7, 0);
 
 		} else {
 
 			x = luaL_optnumber(L, 2, 0);
 			y = luaL_optnumber(L, 3, 0);
 			rad = luaL_optnumber(L, 4, 0);
+			sx = luaL_optnumber(L, 5, 0);
+			sy = luaL_optnumber(L, 6, 0);
 
 		}
 
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
+			
+            if (sx == 0 && sy == 0){
+				
+			    if (!quad) {
 
-			if (!quad) {
-
-				if (img) {
-					sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
-				}
+				    if (img) {
+					    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+				    }
+				
+			    } else {
+				    sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
+			    }
 				
 			} else {
-				sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
+				
+				if (!quad) {
+
+				    if (img) {
+					    sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
+				    }
+				
+			    } else {
+				    sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
+			    }
+				
 			}
 
 		} else {
-
+            
 			sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
 
 		}
