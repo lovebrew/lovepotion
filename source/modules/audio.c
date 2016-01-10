@@ -30,6 +30,7 @@ static int audioStop(lua_State *L) { // love.audio.stop()
 	for (i = 0; i < 32; i++) {
 		if (!channelList[i]) {
 			CSND_SetPlayState(i, 0);
+			CSND_UpdateInfo(0);
 		}
 	}
 
@@ -51,6 +52,7 @@ int initLoveAudio(lua_State *L) {
 	for (i = 0; i < 32; i++) {
 		channelList[i] = false;
 		CSND_SetPlayState(i, 0);
+		CSND_UpdateInfo(0);
 	}
 
 	luaL_Reg reg[] = {

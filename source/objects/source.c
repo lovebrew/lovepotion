@@ -155,6 +155,7 @@ int sourcePlay(lua_State *L) { // source:play()
 
 		u32 shouldLoop = self->loop ? SOUND_REPEAT: SOUND_ONE_SHOT;
 		csndPlaySound(self->channel, self->format | shouldLoop, self->samplerate, 1, 0, self->buffer, self->buffer, self->size);
+		CSND_UpdateInfo(0);
 
 		self->used = true;
 
@@ -171,6 +172,7 @@ int sourceStop(lua_State *L) { // source:stop()
 	if (!self || !self->buffer || !self->format || !self->samplerate || !soundEnabled) return;
 
 	CSND_SetPlayState(self->channel, false);
+	CSND_UpdateInfo(0);
 
 	return 0;
 
@@ -196,6 +198,7 @@ int sourceSetLooping(lua_State *L) { // source:setLooping()
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 	self->loop = lua_toboolean(L, 2);
+	CSND_UpdateInfo(0);
 
 	return 0;
 
