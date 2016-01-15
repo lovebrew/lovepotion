@@ -51,7 +51,7 @@ int main() {
 	cfguInit();
 	ptmuInit();
 
-	// consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_TOP, NULL);
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
@@ -124,26 +124,26 @@ int main() {
 					displayError();
 			}
 
-			// Top screen
-			// Left side
+			// // Top screen
+			// // Left side
 
-			sf2d_start_frame(GFX_TOP, GFX_LEFT);
+			// sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+			// 	if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
-			sf2d_end_frame();
+			// sf2d_end_frame();
 
-			// Right side
+			// // Right side
 
-			if (is3D) {
+			// if (is3D) {
 
-				sf2d_start_frame(GFX_TOP, GFX_RIGHT);
+			// 	sf2d_start_frame(GFX_TOP, GFX_RIGHT);
 
-					if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+			// 		if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
-				sf2d_end_frame();
+			// 	sf2d_end_frame();
 
-			}
+			// }
 
 			// Bot screen
 
@@ -211,7 +211,7 @@ int main() {
 	cfguExit();
 	ptmuExit();
 
-	if (soundEnabled) csndExit();
+	if (soundEnabled) ndspExit();
 
 	return 0;
 

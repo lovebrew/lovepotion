@@ -20,105 +20,131 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// http://hellomico.com/getting-started/convert-audio-to-raw/
-
 #include "../shared.h"
 
-#define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
-#define CLASS_NAME  "Source"
-
-bool channelList[32];
+bool channelList[24];
 
 int getOpenChannel() {
 
-	int i;
-	for (i = 0; i < 32; i++) {
+	for (int i = 0; i <= 23; i++) {
 		if (!channelList[i]) {
 			channelList[i] = true;
-			return i + 8;
+			return i;
 		}
 	}
 
-	return NULL;
+	return -1;
 
 }
+
+#define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
+#define CLASS_NAME  "Source"
 
 const char *sourceInit(love_source *self, const char *filename) {
 
 	if (fileExists(filename)) {
 
+		for (int i=0; i<12; i++) self->mix[i] = 1.0f;
+		self->interp = NDSP_INTERP_LINEAR;
+
 		const char *ext = fileExtension(filename);
 
-		if (strncmp(ext, "raw", 3) == 0) {
+		if (strncmp(ext, "wav", 3) == 0) self->type = TYPE_WAV;
+		else self->type = TYPE_UNKNOWN;
+
+		if (self->type == TYPE_WAV) {
 
 			FILE *file = fopen(filename, "rb");
 
 			if (file) {
 
-				fseek(file, 0, SEEK_END);
-				self->size = ftell(file);
-				fseek(file, 0, SEEK_SET);
-				self->buffer = linearAlloc(self->size);
+				bool valid = true;
 
-				if (!self->buffer) {
-					fclose(file);
-					return "Could not allocate sound buffer";
+				char buff[8];
+
+				// Master chunk
+				fread(buff, 4, 1, file); // ckId
+				if (strncmp(buff, "RIFF", 4) != 0) valid = false;
+
+				fseek(file, 4, SEEK_CUR); // skip ckSize
+
+				fread(buff, 4, 1, file); // WAVEID
+				if (strncmp(buff, "WAVE", 4) != 0) valid = false;
+
+				// fmt Chunk
+				fread(buff, 4, 1, file); // ckId
+				if (strncmp(buff, "fmt ", 4) != 0) valid = false;
+
+				fread(buff, 4, 1, file); // ckSize
+				if (*buff != 16) valid = false; // should be 16 for PCM format
+
+				fread(buff, 2, 1, file); // wFormatTag
+				if (*buff != 0x0001) valid = false; // PCM format
+
+				u16 channels;
+				fread(&channels, 2, 1, file); // nChannels
+				self->channels = channels;
+				
+				u32 rate;
+				fread(&rate, 4, 1, file); // nSamplesPerSec
+				self->rate = rate;
+
+				fseek(file, 4, SEEK_CUR); // skip nAvgBytesPerSec
+
+				u16 byte_per_block; // 1 block = 1*channelCount samples
+				fread(&byte_per_block, 2, 1, file); // nBlockAlign
+
+				u16 byte_per_sample;
+				fread(&byte_per_sample, 2, 1, file); // wBitsPerSample
+				byte_per_sample /= 8; // bits -> bytes
+
+				// There may be some additionals chunks between fmt and data
+				fread(&buff, 4, 1, file); // ckId
+				while (strncmp(buff, "data", 4) != 0) {
+					u32 size;
+					fread(&size, 4, 1, file); // ckSize
+
+					fseek(file, size, SEEK_CUR); // skip chunk
+
+					int i = fread(&buff, 4, 1, file); // next chunk ckId
+
+					if (i < 4) { // reached EOF before finding a data chunk
+						valid = false;
+						break;
+					}
 				}
 
-				fread(self->buffer, 1, self->size, file);
+				// data Chunk (ckId already read)
+				u32 size;
+				fread(&size, 4, 1, file); // ckSize
+				self->size = size;
 
-				self->format = SOUND_FORMAT_16BIT;
-				self->used = false;
-				self->channel = getOpenChannel();
-				self->samplerate = 44100;
-				self->extension = ext;
-				self->loop = false;
+				self->nsamples = self->size / byte_per_block;
 
-			}
+				if (byte_per_sample == 1) self->encoding = NDSP_ENCODING_PCM8;
+				else if (byte_per_sample == 2) self->encoding = NDSP_ENCODING_PCM16;
+				else return "unknown encoding, needs to be PCM8 or PCM16";
 
-			fclose(file);
-
-		} else if (strncmp(ext, "wav", 3) == 0) {
-
-			FILE *file = fopen(filename, "rb");
-
-			if (file) {
-
-				fseek(file, 0, SEEK_END); // Seek to the end of the .wav file.
-				self->size = ftell(file); // Get the total size of the .wav file.
-				fseek(file, 0, SEEK_SET); // Seek back to the start.
-
-				self->buffer = linearAlloc(self->size - 44); // Allocate the buffer, remove 44 bytes because we're not storing the header in here (which is 44 bytes)
-
-				if (!self->buffer) {
+				if (!valid) {
 					fclose(file);
-					return "Could not allocate sound buffer";
+					return "invalid PCM wav file";
 				}
 
-				fseek(file, 44, SEEK_SET); // Seek to 44 bytes (Where the sound data starts)
-				fread(self->buffer, 1, self->size - 44, file); // Read all of the sound data into the buffer
-				fseek(file, 0, SEEK_SET); // Not sure if this is necessary, doing it just in case.
+				self->audiochannel = getOpenChannel();
 
-				fseek(file, 24, SEEK_SET); // Seek to 24 bytes (This is where the samplerate is located in the header)
-				fread(&self->samplerate, 1, 4, file); // Read the samplerate into a variable.
-				fseek(file, 0, SEEK_SET);
+				// Read data
+				if (linearSpaceFree() < self->size) return "not enough linear memory available";
+				self->data = linearAlloc(self->size);
 
-				self->format = SOUND_FORMAT_16BIT;
-				self->used = false;
-				self->channel = getOpenChannel();
-				self->extension = ext;
-				self->loop = false;
-				self->samplerate *= 2; // You need to times the sample rate by two (not sure why)
+				fread(self->data, self->size, 1, file);
 
-			}
+			} else return "Could not open source, read failure";
 
 			fclose(file);
 
 		} else return "Unknown audio type";
 
-	} else return "Could not open source, does not exist.";
-
-	return NULL;
+	} else return "Could not open source, does not exist";
 
 }
 
@@ -137,29 +163,50 @@ int sourceNew(lua_State *L) { // love.audio.newSource()
 
 }
 
-int sourcePlay(lua_State *L) { // source:play()
+int sourceGC(lua_State *L) { // Garbage Collection
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	if (!self || !self->buffer || !self->format || !self->samplerate || !soundEnabled) {
+	ndspChnWaveBufClear(self->audiochannel);
 
-		luaError(L, "There was an error playing the source, sound may not be available.");
+	linearFree(self->data);
+
+	channelList[self->audiochannel] = false;
+
+	return 0;
+
+}
+
+int sourcePlay(lua_State *L) { // source:play()
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (self->audiochannel == -1) {
+		luaError(L, "No available audio channel");
 		return;
-
 	}
 
-	u8 playing;
-	csndIsPlaying(self->channel, &playing);
+	ndspChnWaveBufClear(self->audiochannel);
+	ndspChnReset(self->audiochannel);
+	ndspChnInitParams(self->audiochannel);
+	ndspChnSetMix(self->audiochannel, self->mix);
+	ndspChnSetInterp(self->audiochannel, self->interp);
+	ndspChnSetRate(self->audiochannel, self->rate);
+	ndspChnSetFormat(self->audiochannel, NDSP_CHANNELS(self->channels) | NDSP_ENCODING(self->encoding));
 
-	if (!playing) {
+	ndspWaveBuf* waveBuf = calloc(1, sizeof(ndspWaveBuf));
 
-		u32 shouldLoop = self->loop ? SOUND_REPEAT: SOUND_ONE_SHOT;
-		csndPlaySound(self->channel, self->format | shouldLoop, self->samplerate, 1, 0, self->buffer, self->buffer, self->size);
-		CSND_UpdateInfo(0);
+	waveBuf->data_vaddr = self->data;
+	waveBuf->nsamples = self->nsamples;
+	waveBuf->looping = self->loop;
 
-		self->used = true;
+	DSP_FlushDataCache((u32*)self->data, self->size);
 
-	}
+	ndspChnWaveBufAdd(self->audiochannel, waveBuf);
 
 	return 0;
 
@@ -167,12 +214,11 @@ int sourcePlay(lua_State *L) { // source:play()
 
 int sourceStop(lua_State *L) { // source:stop()
 
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	if (!self || !self->buffer || !self->format || !self->samplerate || !soundEnabled) return;
-
-	CSND_SetPlayState(self->channel, false);
-	CSND_UpdateInfo(0);
+	ndspChnWaveBufClear(self->audiochannel);
 
 	return 0;
 
@@ -180,15 +226,11 @@ int sourceStop(lua_State *L) { // source:stop()
 
 int sourceIsPlaying(lua_State *L) { // source:isPlaying()
 
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	u8 playing;
-	csndIsPlaying(self->channel, &playing);
-	if (playing) {
-		lua_pushboolean(L, true);
-	} else {
-		lua_pushboolean(L, false);
-	}
+	lua_pushboolean(L, ndspChnIsPlaying(self->audiochannel));
 
 	return 1;
 
@@ -196,15 +238,19 @@ int sourceIsPlaying(lua_State *L) { // source:isPlaying()
 
 int sourceSetLooping(lua_State *L) { // source:setLooping()
 
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
 	self->loop = lua_toboolean(L, 2);
-	CSND_UpdateInfo(0);
 
 	return 0;
 
 }
 
 int sourceIsLooping(lua_State *L) { // source:isLooping()
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -214,18 +260,59 @@ int sourceIsLooping(lua_State *L) { // source:isLooping()
 
 }
 
-int sourceGC(lua_State *L) { // Garbage Collection
+int sourceSetVolume(lua_State *L) { // source:setVolume()
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+	float vol = luaL_checknumber(L, 2);
+	if (vol > 1.0f) vol = 1.0f;
+
+	for (int i=0; i<=3; i++) self->mix[i] = vol;
+
+	ndspChnSetMix(self->audiochannel, self->mix);
+
+	return 0;
+
+}
+
+int sourceGetVolume(lua_State *L) { // source:getVolume()
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	if (!self->buffer) return 0;
+	lua_pushnumber(L, self->mix[0]);
 
-	linearFree(self->buffer);
-	self->buffer = NULL;
+	return 1;
 
-	channelList[self->channel - 8] = false;
+}
 
-	return 0;
+int sourceTell(lua_State *L) { // source:tell()
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (!ndspChnIsPlaying(self->audiochannel)) {
+		lua_pushnumber(L, 0);
+	} else {
+		lua_pushnumber(L, (double)(ndspChnGetSamplePos(self->audiochannel)) / self->rate);
+	}
+
+	return 1;
+
+}
+
+int sourceGetDuration(lua_State *L) { // source:getDuration()
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushnumber(L, (double)(self->nsamples) / self->rate);
+
+	return 1;
 
 }
 
@@ -238,10 +325,16 @@ int initSourceClass(lua_State *L) {
 		{"stop",		sourceStop	},
 		{"isPlaying",	sourceIsPlaying},
 		{"setLooping",	sourceSetLooping},
+		{"isLooping",	sourceIsLooping},
+		{"setVolume",	sourceSetVolume},
+		{"getVolume",	sourceGetVolume},
+		{"tell",		sourceTell},
+		{"getDuration", sourceGetDuration},
 		{ 0, 0 },
 	};
 
 	luaobj_newclass(L, CLASS_NAME, NULL, sourceNew, reg);
 
 	return 1;
+
 }

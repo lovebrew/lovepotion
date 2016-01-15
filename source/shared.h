@@ -54,15 +54,41 @@ typedef struct {
 	int size;
 } love_font;
 
+// typedef struct {
+// 	u8* buffer;
+// 	u64 size;
+// 	u32 format;
+// 	char *extension;
+// 	u32 samplerate;
+// 	u32 channels;
+// 	u32 size;
+// 	bool used;
+// 	bool loop;
+// 	float mix[12];
+// 	ndspInterpType interp;
+// 	u32 numSamples;
+// } love_source;
+
+typedef enum {
+	TYPE_UNKNOWN = -1,
+	TYPE_OGG = 0,
+	TYPE_WAV = 1
+} love_source_type;
+
 typedef struct {
-	u8* buffer;
-	u64 size;
-	u32 format;
-	char *extension;
-	u32 samplerate;
-	int channel;
-	bool used;
+	love_source_type type;
+
+	float rate;
+	u32 channels;
+	u32 encoding;
+	u32 nsamples;
+	u32 size;
+	char* data;
 	bool loop;
+	int audiochannel;
+
+	float mix[12];
+	ndspInterpType interp;
 } love_source;
 
 typedef struct {
@@ -82,7 +108,7 @@ extern love_font *currentFont;
 extern bool is3D;
 extern const char *fontDefaultInit();
 extern bool soundEnabled;
-extern bool channelList[32];
+extern bool channelList[24];
 extern u32 defaultFilter;
 extern char *defaultMinFilter;
 extern char *defaultMagFilter;

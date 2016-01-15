@@ -26,13 +26,13 @@ bool soundEnabled;
 
 static int audioStop(lua_State *L) { // love.audio.stop()
 
-	int i;
-	for (i = 0; i < 32; i++) {
-		if (!channelList[i]) {
-			CSND_SetPlayState(i, 0);
-			CSND_UpdateInfo(0);
-		}
-	}
+	// int i;
+	// for (i = 0; i < 32; i++) {
+	// 	if (!channelList[i]) {
+	// 		CSND_SetPlayState(i, 0);
+	// 		CSND_UpdateInfo(0);
+	// 	}
+	// }
 
 	return 0;
 
@@ -42,18 +42,7 @@ int sourceNew(lua_State *L);
 
 int initLoveAudio(lua_State *L) {
 
-	if (csndInit() == 0) {
-		soundEnabled = true;
-	} else {
-		soundEnabled = false;
-	}
-
-	int i;
-	for (i = 0; i < 32; i++) {
-		channelList[i] = false;
-		CSND_SetPlayState(i, 0);
-		CSND_UpdateInfo(0);
-	}
+	soundEnabled = !ndspInit();
 
 	luaL_Reg reg[] = {
 		{ "stop",		audioStop	},
