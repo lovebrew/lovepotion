@@ -46,7 +46,7 @@ There are ~~2 ways~~ a ton of ways to run this.
  * [Ninjhax](http://smealum.net/ninjhax)
  * [IronHax](http://smealum.github.io/3ds)
  * ~~TubeHax~~ RIP :(
- * ~~BrowserHax~~ RIP also :(
+ * [BrowserHax](http://yls8.mtheall.com/3dsbrowserhax.php) Back from the dead!
  * [ThemeHax](http://smealum.github.io/3ds/)
  * [OoTHax](https://gbatemp.net/threads/tutorial-how-to-install-oot3dhax.396339/)
  * [SmashHax](https://gbatemp.net/threads/yellows8-just-realesed-smashhax.397124/)
