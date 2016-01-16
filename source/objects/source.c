@@ -131,6 +131,7 @@ const char *sourceInit(love_source *self, const char *filename) {
 				}
 
 				self->audiochannel = getOpenChannel();
+				self->loop = false;
 
 				// Read data
 				if (linearSpaceFree() < self->size) return "not enough linear memory available";
