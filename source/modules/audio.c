@@ -26,16 +26,29 @@ bool soundEnabled;
 
 static int audioStop(lua_State *L) { // love.audio.stop()
 
-	// int i;
-	// for (i = 0; i < 32; i++) {
-	// 	if (!channelList[i]) {
-	// 		CSND_SetPlayState(i, 0);
-	// 		CSND_UpdateInfo(0);
-	// 	}
-	// }
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	for (int i = 0; i <= 23; i++) {
+		ndspChnWaveBufClear(i);
+	}
 
 	return 0;
 
+}
+
+static int audioSetVolume(lua_State *L) {
+
+	float vol = luaL_checknumber(L, 2);
+	if (vol > 1) vol = 1;
+	if (vol < 0) vol = 0;
+
+	float mix[12];
+
+	for (int i=0; i<=3; i++) mix[i] = vol;
+	for (int i=0; i<=23; i++) ndspChnSetMix(i, mix);
+
+	return 0;
+	
 }
 
 int sourceNew(lua_State *L);

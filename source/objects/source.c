@@ -267,7 +267,8 @@ int sourceSetVolume(lua_State *L) { // source:setVolume()
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 	float vol = luaL_checknumber(L, 2);
-	if (vol > 1.0f) vol = 1.0f;
+	if (vol > 1) vol = 1;
+	if (vol < 0) vol = 0;
 
 	for (int i=0; i<=3; i++) self->mix[i] = vol;
 
