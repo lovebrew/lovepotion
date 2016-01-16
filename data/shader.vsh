@@ -10,6 +10,9 @@
 ; Uniforms
 .fvec projection[4]
 
+; Constants
+.constf RGBA8_TO_FLOAT4(0.00392156862, 0, 0, 0)
+
 .proc main
 	; outpos = projection * in.pos
 	dp4 outpos.x, projection[0].wzyx, inpos
@@ -20,8 +23,8 @@
 	; outtc0 = in.texcoord
 	mov outtc0, inarg
 
-	; outclr = in.color
-	mov outclr, inarg
+	; outclr = RGBA8_TO_FLOAT4(in.color)
+	mul outclr, RGBA8_TO_FLOAT4.xxxx, inarg
 
 	end
 .end

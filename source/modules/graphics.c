@@ -160,7 +160,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		translateCoords(&x, &y);
 
-		sf2d_draw_line(x, y, x, y, getCurrentColor()); // Fixes weird circle bug.
+		sf2d_draw_line(x, y, x, y, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	}
@@ -469,8 +469,8 @@ static int graphicsTranslate(lua_State *L) { // love.graphics.translate()
 		int dx = luaL_checkinteger(L, 1);
 		int dy = luaL_checkinteger(L, 2);
 
-		transX = dx;
-		transY = dy;
+		transX = transX + dx;
+		transY = transY + dy;
 
 	}
 
