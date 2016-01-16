@@ -36,9 +36,9 @@ static int audioStop(lua_State *L) { // love.audio.stop()
 
 }
 
-static int audioSetVolume(lua_State *L) {
+static int audioSetVolume(lua_State *L) { // love.audio.setVolume()
 
-	float vol = luaL_checknumber(L, 2);
+	float vol = luaL_checknumber(L, 1);
 	if (vol > 1) vol = 1;
 	if (vol < 0) vol = 0;
 
