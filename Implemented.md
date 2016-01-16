@@ -84,6 +84,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 
 * love.audio.newSource - **Partial**
 * love.audio.stop - ✓
+* love.audio.setVolume - **Partial**
 
 # Objects
 
@@ -110,3 +111,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * source:setLooping - ✓
 * source:isLooping - ✓
 * source:isPlaying - ✓
+* source:setVolume - ✓
+* source:getVolume - ✓
+* source:tell - ✓
+* source:getDuration - ✓
