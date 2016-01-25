@@ -72,12 +72,14 @@ This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's 
 No.
 
 # Showcase
-
+ * [Picroxx!](https://gbatemp.net/threads/picroxx-the-ultimate-picross-clone.412055) by Substance12
  * [Space Shooter Game](http://novaember.com/s/8f9453/FIrGGQ.mp4) by Darkwater
  * [Ludum Dare 33 Entry](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=31436) by me
  * [NumberFucker3DS](https://github.com/VideahGams/NumberFucker3DS) by unek & me
  * [SpaceFruit](https://gbatemp.net/threads/release-space-fruit.399088/) by TurtleP
  * [Loophole](https://gbatemp.net/threads/release-loophole-3ds-port.399585/) by Aaron Butterworth & CKlidify
+ * [Hax0r](https://gbatemp.net/threads/preview-hax0r.401707) by TurtleP
+ * [Idiot](https://gbatemp.net/threads/preview-idiot-a-puzzle-platformer.408774) by TurtleP
 
 Send me your projects so I can showcase them here!
 
