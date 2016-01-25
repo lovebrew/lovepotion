@@ -441,6 +441,8 @@ static int graphicsPop(lua_State *L) { // love.graphics.pop()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
+		transX = 0;
+		transY = 0;
 		isPushed = false;
 
 	}
