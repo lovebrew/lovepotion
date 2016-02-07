@@ -39,10 +39,12 @@ int initLoveMouse(lua_State *L);
 int initLoveWindow(lua_State *L);
 int initLoveEvent(lua_State *L);
 int initLoveAudio(lua_State *L);
+int initLoveFilesystem(lua_State *L);
 
 int initImageClass(lua_State *L);
 int initFontClass(lua_State *L);
 int initSourceClass(lua_State *L);
+int initFileClass(lua_State *L);
 int initQuadClass(lua_State *L);
 
 int initLove(lua_State *L) {
@@ -56,6 +58,7 @@ int initLove(lua_State *L) {
 		initFontClass,
 		initSourceClass,
 		initQuadClass,
+		initFileClass,
 		NULL,
 	};
 
@@ -80,6 +83,7 @@ int initLove(lua_State *L) {
 		{ "window",   initLoveWindow    },
 		{ "event",    initLoveEvent     },
 		{ "audio",    initLoveAudio     },
+		{ "filesystem",    initLoveFilesystem     },
 		{ 0 },
 	};
 
