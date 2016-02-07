@@ -39,7 +39,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
 #include <3ds/services/cfgu.h>
+
+#include "libs/tremor/ivorbiscodec.h"
+#include "libs/tremor/ivorbisfile.h"
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
@@ -54,20 +58,13 @@ typedef struct {
 	int size;
 } love_font;
 
-// typedef struct {
-// 	u8* buffer;
-// 	u64 size;
-// 	u32 format;
-// 	char *extension;
-// 	u32 samplerate;
-// 	u32 channels;
-// 	u32 size;
-// 	bool used;
-// 	bool loop;
-// 	float mix[12];
-// 	ndspInterpType interp;
-// 	u32 numSamples;
-// } love_source;
+typedef struct {
+	FILE * file;
+	const char * filename;
+	const char * mode;
+	long size;
+	long position;
+} love_file;
 
 typedef enum {
 	TYPE_UNKNOWN = -1,
@@ -78,6 +75,8 @@ typedef enum {
 typedef struct {
 	love_source_type type;
 
+	OggVorbis_File vorbisFile;
+	
 	float rate;
 	u32 channels;
 	u32 encoding;
