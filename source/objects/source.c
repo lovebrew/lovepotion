@@ -49,9 +49,20 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 		const char *ext = fileExtension(filename);
 
-		if (strncmp(ext, "wav", 3) == 0) self->type = TYPE_WAV;
-		else self->type = TYPE_UNKNOWN;
+		if (strncmp(ext, "wav", 3) == 0) {
 
+			self->type = TYPE_WAV;
+
+		} else if (strncmp(ext, "ogg", 3) == 0) { 
+
+			self->type = TYPE_OGG;
+
+		} else {
+		
+			self->type = TYPE_UNKNOWN;
+		
+		}
+		
 		if (self->type == TYPE_WAV) {
 
 			FILE *file = fopen(filename, "rb");
@@ -139,14 +150,113 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 				fread(self->data, self->size, 1, file);
 
-			} else return "Could not open source, read failure";
+			} else {
+
+				return "Could not open source, read failure";
+
+			}
 
 			fclose(file);
 
-		} else return "Unknown audio type";
+		} else if (self->type == TYPE_OGG) {
 
-	} else return "Could not open source, does not exist";
+			// Load audio file
+			FILE * file = fopen(filename, "rb");
 
+			if (file) {
+
+				if (ov_open(file, &self->vorbisFile, NULL, 0) < 0) {
+
+					return "input does not appear to be a valid ogg vorbis file or doesn't exist";
+
+				}
+
+				// Decoding Ogg Vorbis bitstream
+				vorbis_info * vorbisInfo = ov_info(&self->vorbisFile, -1);
+
+				if (vorbisInfo == NULL) {
+
+					return "could not retrieve ogg audio stream information";
+
+				}
+
+
+				self->rate = (float)vorbisInfo->rate;
+
+				self->channels = (u32)vorbisInfo->channels;
+
+				self->encoding = NDSP_ENCODING_PCM16;
+
+				self->nsamples = (u32)ov_pcm_total(&self->vorbisFile, -1);
+
+				self->size = self->nsamples * self->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
+
+				self->audiochannel = getOpenChannel();
+
+				self->loop = false;
+
+				if (linearSpaceFree() < self->size) {
+
+					return "not enough linear memory available";
+
+				}
+
+				self->data = linearAlloc(self->size);
+
+				// Decoding loop
+				int offset = 0;
+				int eof = 0;
+				int currentSection;
+
+				while (!eof) {
+					long ret = ov_read(&self->vorbisFile, &self->data[offset], 4096, &currentSection);
+
+					if (ret == 0) {
+
+						eof = 1;
+
+					} else if (ret < 0) {
+
+						ov_clear(&self->vorbisFile);
+
+						linearFree(self->data);
+
+						return "error in the ogg vorbis stream";
+
+					} else {
+
+						// TODO handle multiple links (http://xiph.org/vorbis/doc/vorbisfile/decoding.html)
+
+						offset += ret;
+
+					}
+				}
+
+				linearFree(&self->vorbisFile);
+
+				ov_clear(&self->vorbisFile);
+
+				fclose(file);
+
+				return NULL;
+
+			} else {
+
+				return "Could not open source, read failure.";
+
+			}
+
+		} else {
+		
+			return "Unknown audio type";
+
+		}
+
+	} else {
+
+		return "Could not open source, does not exist";
+
+	}
 }
 
 int sourceNew(lua_State *L) { // love.audio.newSource()
