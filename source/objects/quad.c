@@ -22,48 +22,48 @@
 
 #include "../shared.h"
 
-bool soundEnabled;
+#define CLASS_TYPE  LUAOBJ_TYPE_QUAD
+#define CLASS_NAME  "Quad"
 
-static int audioStop(lua_State *L) { // love.audio.stop()
+const char *quadInit(love_quad *self, int x, int y, int width, int height) {
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	self->x = luaL_checkint(L, 1);
+	self->y = luaL_checkint(L, 2);
 
-	for (int i = 0; i <= 23; i++) {
-		ndspChnWaveBufClear(i);
-	}
+	self->width = luaL_checkint(L, 3);
+	self->height = luaL_checkint(L, 4);
 
-	return 0;
+	return NULL;
 
 }
 
-static int audioSetVolume(lua_State *L) { // love.audio.setVolume()
+int quadNew(lua_State *L) { // love.graphics.newQuad()
 
-	float vol = luaL_checknumber(L, 1);
-	if (vol > 1) vol = 1;
-	if (vol < 0) vol = 0;
+	int x = luaL_checkint(L, 1);
+	int y = luaL_checkint(L, 2);
 
-	float mix[12];
+	int width = luaL_checkint(L, 3);
+	int height = luaL_checkint(L, 4);
 
-	for (int i=0; i<=3; i++) mix[i] = vol;
-	for (int i=0; i<=23; i++) ndspChnSetMix(i, mix);
+	love_quad *self = luaobj_newudata(L, sizeof(*self));
 
-	return 0;
-	
+	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+	const char *error = quadInit(self, x, y, width, height);
+
+	if (error) luaError(error);
+
+	return 1;
 }
 
-int sourceNew(lua_State *L);
-
-int initLoveAudio(lua_State *L) {
-
-	soundEnabled = !ndspInit();
+int initQuadClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{ "stop",		audioStop	},
-		{ "newSource",	sourceNew	},
+		{ "new", quadNew },
 		{ 0, 0 },
 	};
 
-	luaL_newlib(L, reg);
+	luaobj_newclass(L, CLASS_NAME, NULL, quadNew, reg);
 
 	return 1;
 

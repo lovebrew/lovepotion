@@ -24,16 +24,7 @@ void vector_mult_matrix4x4(const float *msrc, const sf2d_vector_3f *vsrc, sf2d_v
 
 void matrix_gpu_set_uniform(const float *m, u32 startreg)
 {
-	float mu[4*4];
-
-	int i, j;
-	for (i = 0; i < 4; i++) {
-		for (j = 0; j < 4; j++) {
-			mu[i*4 + j] = m[i*4 + (3-j)];
-		}
-	}
-
-	GPU_SetFloatUniform(GPU_VERTEX_SHADER, startreg, (u32 *)mu, 4);
+	GPU_SetFloatUniform(GPU_VERTEX_SHADER, startreg, (u32 *)m, 4);
 }
 
 void matrix_copy(float *dst, const float *src)
@@ -109,7 +100,7 @@ void matrix_swap_xy(float *m)
 void matrix_init_orthographic(float *m, float left, float right, float bottom, float top, float near, float far)
 {
 	float mo[4*4], mp[4*4];
-	
+
 	mo[0x0] = 2.0f/(right-left);
 	mo[0x1] = 0.0f;
 	mo[0x2] = 0.0f;
@@ -129,7 +120,7 @@ void matrix_init_orthographic(float *m, float left, float right, float bottom, f
 	mo[0xD] = 0.0f;
 	mo[0xE] = 0.0f;
 	mo[0xF] = 1.0f;
-	
+
 	matrix_identity4x4(mp);
 	mp[0xA] = 0.5;
 	mp[0xB] = -0.5;

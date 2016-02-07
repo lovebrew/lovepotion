@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj
+SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 DATA		:=	data
 INCLUDES	:=	include
 
@@ -151,7 +151,7 @@ build-all:
 
 #---------------------------------------------------------------------------------
 clean:
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).3ds $(OUTPUT).cia $(OUTPUT).smdh $(TARGET).elf $(OUTPUT)stripped.elf
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf
 
 clean-sf2dlib:
 	@make -C source/libs/libsf2d clean
@@ -181,20 +181,18 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(NO_SMDH)),)
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds $(OUTPUT).smdh
+$(OUTPUT).3dsx	:	$(OUTPUT).smdh
 else
-$(OUTPUT).3dsx	:	$(OUTPUT).elf $(OUTPUT).cia $(OUTPUT).3ds
+$(OUTPUT).3dsx	:
 endif
 
-$(OUTPUT).3ds	:	$(OUTPUT)stripped.elf
-	@$(TOPDIR)/tools/./makerom -f cci -o $(OUTPUT).3ds -rsf "$(TOPDIR)/3ds_workaround.rsf" -target d -exefslogo -elf $(OUTPUT)stripped.elf -icon "$(TOPDIR)/icon.bin" -banner "$(TOPDIR)/banner.bin"
-
-$(OUTPUT).cia	:	$(OUTPUT)stripped.elf
-	@$(TOPDIR)/tools/./makerom -f cia -o $(OUTPUT).cia -elf $(OUTPUT)stripped.elf -rsf "$(TOPDIR)/cia_workaround.rsf" -icon "$(TOPDIR)/icon.bin" -banner "$(TOPDIR)/banner.bin" -exefslogo -target t
-
+#---------------------------------------------------------------------------------
 $(OUTPUT).elf	:	$(OFILES)
+#---------------------------------------------------------------------------------
 
+#---------------------------------------------------------------------------------
 $(OUTPUT)stripped.elf : $(OUTPUT).elf
+#---------------------------------------------------------------------------------
 	cp -f $(OUTPUT).elf $(OUTPUT)stripped.elf
 	@arm-none-eabi-strip $(OUTPUT)stripped.elf
 
@@ -229,12 +227,11 @@ $(OUTPUT)stripped.elf : $(OUTPUT).elf
 %.vsh.o	:	%.vsh
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
-	@python $(AEMSTRO)/aemstro_as.py $< ../$(notdir $<).shbin
-	@bin2s ../$(notdir $<).shbin | $(PREFIX)as -o $@
+	@picasso -o $(notdir $<).shbin $<
+	@bin2s $(notdir $<).shbin | $(PREFIX)as -o $@
 	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(notdir $<).shbin | tr . _)`.h
 	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(notdir $<).shbin | tr . _)`.h
 	@echo "extern const u32" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(notdir $<).shbin | tr . _)`.h
-	@rm ../$(notdir $<).shbin
 
 -include $(DEPENDS)
 

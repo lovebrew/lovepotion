@@ -1,0 +1,12 @@
+/build/
+/source/libs/libsf2d/lib/
+/source/libs/libsf2d/build/
+/source/libs/libsftd/lib/
+/source/libs/libsftd/build/
+/source/libs/libsfil/lib/
+/source/libs/libsfil/build/
+*.3dsx
+*.smdh
+*.cia
+*.elf
+*.3ds

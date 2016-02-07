@@ -1,0 +1,24 @@
+language: c
+
+sudo: required
+
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install python3
+  - export CC=arm-none-eabi-gcc
+  - export CXX=arm-none-eabi-g++
+  - export DEVKITPRO=${HOME}/devkitPro
+  - export DEVKITARM=${DEVKITPRO}/devkitARM
+  - export CTRULIB=${DEVKITPRO}/libctru
+  - export PICASSO=${DEVKITARM}/bin
+  - export PORTLIBS=${DEVKITPRO}/portlibs/armv6k
+  - sh .travis-deps.sh
+
+script:
+  - make build-all
+
+notifications:
+  irc: 
+    channels:
+      - "irc.oftc.net#lovepotion"
+    skip_join: true

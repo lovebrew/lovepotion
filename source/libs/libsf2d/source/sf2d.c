@@ -1,10 +1,10 @@
-#include "../include/sf2d.h"
-#include "../include/sf2d_private.h"
+#include "sf2d.h"
+#include "sf2d_private.h"
 #include "shader_vsh_shbin.h"
 
 
 static int sf2d_initialized = 0;
-static u32 clear_color = RGBA8(0x00, 0x00, 0x00, 0xFF);
+static u32 clear_color = 0;
 static u32 *gpu_cmd = NULL;
 //GPU init variables
 static int gpu_cmd_size = 0;
@@ -35,7 +35,7 @@ static float ortho_matrix_bot[4*4];
 //Apt hook cookie
 static aptHookCookie apt_hook_cookie;
 //Functions
-static void apt_hook_func(int hook, void* param);
+static void apt_hook_func(APT_HookType hook, void *param);
 static void reset_gpu_apt_resume();
 
 int sf2d_init()
@@ -87,7 +87,7 @@ int sf2d_init_advanced(int gpucmd_size, int temppool_size)
 	cur_side = GFX_LEFT;
 
 	GPUCMD_Finalize();
-	GPUCMD_FlushAndRun(NULL);
+	GPUCMD_FlushAndRun();
 	gspWaitForP3D();
 
 	sf2d_pool_reset();
@@ -144,8 +144,8 @@ void sf2d_start_frame(gfxScreen_t screen, gfx3dSide_t side)
 	} else {
 		screen_w = 320;
 	}
-	GPU_SetViewport((u32 *)osConvertVirtToPhys((u32)gpu_depth_fb_addr),
-		(u32 *)osConvertVirtToPhys((u32)gpu_fb_addr),
+	GPU_SetViewport((u32 *)osConvertVirtToPhys(gpu_depth_fb_addr),
+		(u32 *)osConvertVirtToPhys(gpu_fb_addr),
 		0, 0, 240, screen_w);
 
 	GPU_DepthMap(-1.0f, 0.0f);
@@ -154,8 +154,8 @@ void sf2d_start_frame(gfxScreen_t screen, gfx3dSide_t side)
 	GPU_SetStencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
 	GPU_SetBlendingColor(0,0,0,0);
 	GPU_SetDepthTestAndWriteMask(true, GPU_GEQUAL, GPU_WRITE_ALL);
-	GPUCMD_AddMaskedWrite(GPUREG_0062, 0x1, 0);
-	GPUCMD_AddWrite(GPUREG_0118, 0);
+	GPUCMD_AddMaskedWrite(GPUREG_EARLYDEPTH_TEST1, 0x1, 0);
+	GPUCMD_AddWrite(GPUREG_EARLYDEPTH_TEST2, 0);
 
 	GPU_SetAlphaBlending(
 		GPU_BLEND_ADD,
@@ -177,24 +177,25 @@ void sf2d_end_frame()
 {
 	GPU_FinishDrawing();
 	GPUCMD_Finalize();
-	GPUCMD_FlushAndRun(NULL);
+	GPUCMD_FlushAndRun();
 	gspWaitForP3D();
 
 	//Copy the GPU rendered FB to the screen FB
 	if (cur_screen == GFX_TOP) {
-		GX_SetDisplayTransfer(NULL, gpu_fb_addr, GX_BUFFER_DIM(240, 400),
+		GX_DisplayTransfer(gpu_fb_addr, GX_BUFFER_DIM(240, 400),
 			(u32 *)gfxGetFramebuffer(GFX_TOP, cur_side, NULL, NULL),
 			GX_BUFFER_DIM(240, 400), 0x1000);
 	} else {
-		GX_SetDisplayTransfer(NULL, gpu_fb_addr, GX_BUFFER_DIM(240, 320),
+		GX_DisplayTransfer(gpu_fb_addr, GX_BUFFER_DIM(240, 320),
 			(u32 *)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL),
 			GX_BUFFER_DIM(240, 320), 0x1000);
 	}
 	gspWaitForPPF();
 
 	//Clear the screen
-	GX_SetMemoryFill(NULL, gpu_fb_addr, clear_color, &gpu_fb_addr[0x2EE00],
-		0x201, gpu_depth_fb_addr, 0x00000000, &gpu_depth_fb_addr[0x2EE00], 0x201);
+	GX_MemoryFill(
+		gpu_fb_addr, clear_color, &gpu_fb_addr[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH,
+		gpu_depth_fb_addr, 0, &gpu_depth_fb_addr[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
 	gspWaitForPSC0();
 }
 
@@ -202,7 +203,7 @@ void sf2d_swapbuffers()
 {
 	gfxSwapBuffersGpu();
 	if (vblank_wait) {
-		gspWaitForEvent(GSPEVENT_VBlank0, false);
+		gspWaitForEvent(GSPGPU_EVENT_VBlank0, false);
 	}
 	//Calculate FPS
 	frames++;
@@ -245,6 +246,11 @@ void *sf2d_pool_memalign(u32 size, u32 alignment)
 	return NULL;
 }
 
+void *sf2d_pool_calloc(u32 nmemb, u32 size)
+{
+	return sf2d_pool_memalign(nmemb * size, size);
+}
+
 unsigned int sf2d_pool_space_free()
 {
 	return pool_size - pool_index;
@@ -257,7 +263,11 @@ void sf2d_pool_reset()
 
 void sf2d_set_clear_color(u32 color)
 {
-	clear_color = color;
+	// GX_SetMemoryFill wants the color inverted?
+	clear_color =  RGBA8_GET_R(color) << 24 |
+		       RGBA8_GET_G(color) << 16 |
+		       RGBA8_GET_B(color) <<  8 |
+		       RGBA8_GET_A(color) <<  0;
 }
 
 void sf2d_set_scissor_test(GPU_SCISSORMODE mode, u32 x, u32 y, u32 w, u32 h)
@@ -279,7 +289,7 @@ gfx3dSide_t sf2d_get_current_side()
 	return cur_side;
 }
 
-static void apt_hook_func(int hook, void* param)
+static void apt_hook_func(APT_HookType hook, void *param)
 {
 	if (hook == APTHOOK_ONRESTORE) {
 		reset_gpu_apt_resume();
@@ -298,6 +308,6 @@ static void reset_gpu_apt_resume()
 	}
 
 	GPUCMD_Finalize();
-	GPUCMD_FlushAndRun(NULL);
+	GPUCMD_FlushAndRun();
 	gspWaitForP3D();
 }

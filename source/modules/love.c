@@ -22,7 +22,7 @@
 
 #include "../shared.h"
 
-#define LOVE_VERSION "0.9.0"
+#define LOVE_VERSION "0.10.0"
 
 static int loveGetVersion(lua_State *L) { // love.getVersion()
 
@@ -35,6 +35,7 @@ int initLoveSystem(lua_State *L);
 int initLoveGraphics(lua_State *L);
 int initLoveTimer(lua_State *L);
 int initLoveKeyboard(lua_State *L);
+int initLoveMouse(lua_State *L);
 int initLoveWindow(lua_State *L);
 int initLoveEvent(lua_State *L);
 int initLoveAudio(lua_State *L);
@@ -42,6 +43,7 @@ int initLoveAudio(lua_State *L);
 int initImageClass(lua_State *L);
 int initFontClass(lua_State *L);
 int initSourceClass(lua_State *L);
+int initQuadClass(lua_State *L);
 
 int initLove(lua_State *L) {
 
@@ -53,6 +55,7 @@ int initLove(lua_State *L) {
 		initImageClass,
 		initFontClass,
 		initSourceClass,
+		initQuadClass,
 		NULL,
 	};
 
@@ -73,6 +76,7 @@ int initLove(lua_State *L) {
 		{ "graphics", initLoveGraphics  },
 		{ "timer",    initLoveTimer     },
 		{ "keyboard", initLoveKeyboard  },
+		{ "mouse",    initLoveMouse     },
 		{ "window",   initLoveWindow    },
 		{ "event",    initLoveEvent     },
 		{ "audio",    initLoveAudio     },

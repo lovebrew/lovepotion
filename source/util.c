@@ -22,32 +22,7 @@
 
 #include "shared.h"
 
-void combine(char* destination, const char* path1, const char* path2) {
-	
-	if(path1 == NULL && path2 == NULL) {
-		strcpy(destination, "");;
-	}
-	else if(path2 == NULL || strlen(path2) == 0) {
-		strcpy(destination, path1);
-	}
-	else if(path1 == NULL || strlen(path1) == 0) {
-		strcpy(destination, path2);
-	} 
-	else {
-		char directory_separator[] = "/";
-		const char *last_char = path1;
-		while(*last_char != '\0')
-			last_char++;        
-		int append_directory_separator = 0;
-		if(strcmp(last_char, directory_separator) != 0) {
-			append_directory_separator = 1;
-		}
-		strcpy(destination, path1);
-		if(append_directory_separator)
-			strcat(destination, directory_separator);
-		strcat(destination, path2);
-	}
-}
+#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
 int fileExists (char *filename){
 	struct stat st;
@@ -56,8 +31,7 @@ int fileExists (char *filename){
 }
 
 void luaError(lua_State *L, char *message) {
-	lua_pushstring(L, message);
-	lua_error(L);
+	luaL_error(L, message);
 }
 
 const char *fileExtension(const char *filename) {
@@ -74,4 +48,29 @@ char* concat(char *s1, char *s2) {
 	strcat(result, s2);
 
 	return result;
+}
+
+int getType(const char *name) {
+
+	const char *ext = fileExtension(name);
+
+	if (strncmp(ext, "png", 3) == 0) {
+		return 0;
+	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3) == 0) {
+		return 1;
+	} else if (strncmp(ext, "bmp", 3) == 0) {
+		return 2;
+	} else {
+		return 4;
+	}
+
+}
+
+int getfield (int key) {
+	int result;
+	lua_pushstring(L, key);
+	lua_gettable(L, -2);
+	result = lua_tonumber(L, -1);
+	lua_pop(L, 1);
+	return result; // TODO: Fix this
 }

@@ -33,11 +33,15 @@ love_font *currentFont;
 
 int transX = 0;
 int transY = 0;
-int isPushed = 0;
+bool isPushed = false;
 
-int is3D = 0;
+bool is3D = false;
 
-int currentLineWidth = 1;
+int currentDepth = 0;
+
+u32 defaultFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR)|GPU_TEXTURE_MIN_FILTER(GPU_LINEAR); // Default Image Filter.
+char *defaultMinFilter = "linear";
+char *defaultMagFilter = "linear";
 
 u32 getCurrentColor() {
 
@@ -51,8 +55,19 @@ int translateCoords(int *x, int *y) {
 
 	if (isPushed) {
 
-		*x = *x + transX;
-		*y = *y + transY;
+		*x += transX;
+		*y += transY;
+
+	}
+
+	// Sets depth of objects
+
+	if (is3D && sf2d_get_current_screen() == GFX_TOP) {
+
+		float slider = CONFIG_3D_SLIDERSTATE;
+
+		if (sf2d_get_current_side() == GFX_LEFT) *x -= (slider * currentDepth);
+		if (sf2d_get_current_side() == GFX_RIGHT) *x += (slider * currentDepth);
 
 	}
 
@@ -74,25 +89,18 @@ static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgr
 
 static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 
-	int argc = lua_gettop(L);
+	if (lua_isnumber(L, -1)) {
 
-	int r = luaL_checkinteger(L, 1);
-	int g = luaL_checkinteger(L, 2);
-	int b = luaL_checkinteger(L, 3);
-	int a = NULL;
+		currentR = luaL_checkinteger(L, 1);
+		currentG = luaL_checkinteger(L, 2);
+		currentB = luaL_checkinteger(L, 3);
+		currentA = luaL_optnumber(L, 4, currentA);
 
-	if (argc > 3) {
-		a = luaL_checkinteger(L, 4);
+	} else if (lua_istable(L, -1)) {
+
+		luaError(L, "Table support for setColor is not implemented yet. Use unpack(insertTableHere) until it is.");
+
 	}
-
-	if (a == NULL) {
-		a = currentA;
-	}
-
-	currentR = r;
-	currentG = g;
-	currentB = b;
-	currentA = a;
 
 	return 0;
 
@@ -113,7 +121,7 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		const char *mode = luaL_checkstring(L, 1);
+		char *mode = luaL_checkstring(L, 1);
 
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
@@ -126,11 +134,11 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 		if (strcmp(mode, "fill") == 0) {
 			sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
 		} else if (strcmp(mode, "line") == 0) {
-			sf2d_draw_line(x, y, x, y + h, currentLineWidth, getCurrentColor());
-			sf2d_draw_line(x, y, x + w, y, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y, x, y + h, getCurrentColor());
+			sf2d_draw_line(x, y, x + w, y, getCurrentColor());
 
-			sf2d_draw_line(x + w, y, x + w, y + h, currentLineWidth, getCurrentColor());
-			sf2d_draw_line(x, y + h, x + w, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
+			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
 		}
 
 	}
@@ -145,14 +153,14 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		int step = 15;
 
-		const char *mode = luaL_checkstring(L, 1);
+		char *mode = luaL_checkstring(L, 1);
 		int x = luaL_checkinteger(L, 2);
 		int y = luaL_checkinteger(L, 3);
 		int r = luaL_checkinteger(L, 4);
 
 		translateCoords(&x, &y);
 
-		sf2d_draw_line(x, y, x, y, 1, getCurrentColor()); // Fixes weird circle bug.
+		sf2d_draw_line(x, y, x, y, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	}
@@ -181,7 +189,7 @@ static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
 				translateCoords(&x1, &y1);
 				translateCoords(&x2, &y2);
 
-				sf2d_draw_line(x1, y1, x2, y2, currentLineWidth, getCurrentColor());
+				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
 
 			}
 		}
@@ -206,7 +214,7 @@ static int graphicsGetScreen(lua_State *L) { // love.graphics.getScreen()
 
 static int graphicsSetScreen(lua_State *L) { // love.graphics.setScreen()
 
-	const char *screen = luaL_checkstring(L, 1);
+	char *screen = luaL_checkstring(L, 1);
 
 	if (strcmp(screen, "top") == 0) {
 		currentScreen = GFX_TOP;
@@ -278,19 +286,63 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 	if (sf2d_get_current_screen() == currentScreen) {
 
 		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+		love_quad *quad = NULL;
 
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
-		float rad = luaL_optnumber(L, 4, 0);
+		int x, y;
+		int sx, sy;
+		float rad;
+
+		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
+
+			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+			x = luaL_optnumber(L, 3, 0);
+			y = luaL_optnumber(L, 4, 0);
+			rad = luaL_optnumber(L, 5, 0);
+			sx = luaL_optnumber(L, 6, 0);
+			sy = luaL_optnumber(L, 7, 0);
+
+		} else {
+
+			x = luaL_optnumber(L, 2, 0);
+			y = luaL_optnumber(L, 3, 0);
+			rad = luaL_optnumber(L, 4, 0);
+			sx = luaL_optnumber(L, 5, 0);
+			sy = luaL_optnumber(L, 6, 0);
+
+		}
 
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
+			
+            if (sx == 0 && sy == 0){
+				
+			    if (!quad) {
 
-			sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+				    if (img) {
+					    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+				    }
+				
+			    } else {
+				    sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
+			    }
+				
+			} else {
+				
+				if (!quad) {
+
+				    if (img) {
+					    sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
+				    }
+				
+			    } else {
+				    sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
+			    }
+				
+			}
 
 		} else {
-
+            
 			sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
 
 		}
@@ -315,7 +367,7 @@ static int graphicsPrint(lua_State *L) { // love.graphics.print()
 
 		if (currentFont) {
 
-			const char *printText = luaL_checkstring(L, 1);
+			char *printText = luaL_checkstring(L, 1);
 			int x = luaL_checkinteger(L, 2);
 			int y = luaL_checkinteger(L, 3);
 
@@ -337,12 +389,31 @@ static int graphicsPrintFormat(lua_State *L) {
 
 		if (currentFont) {
 
-			const char *printText = luaL_checkstring(L, 1);
+			char *printText = luaL_checkstring(L, 1);
 			int x = luaL_checkinteger(L, 2);
 			int y = luaL_checkinteger(L, 3);
 			int limit = luaL_checkinteger(L, 4);
+			char *align = luaL_optstring(L, 5, "left");
+
+			int width = sftd_get_text_width(currentFont->font, currentFont->size, printText);
+
+			if (strcmp(align, "center") == 0) {
+
+				if (width < limit) {
+					x += (limit / 2) - (width / 2);
+				}
+
+			} else if (strcmp(align, "right") == 0) {
+
+				if (width < limit) {
+					x += limit - width;
+				}
+
+			}
 
 			translateCoords(&x, &y);
+
+			if (x > 0) limit += x; // Quick text wrap fix, needs removing once sf2dlib is updated.
 
 			sftd_draw_text_wrap(currentFont->font, x, y, getCurrentColor(), currentFont->size, limit, printText);
 
@@ -358,7 +429,7 @@ static int graphicsPush(lua_State *L) { // love.graphics.push()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		isPushed = 1;
+		isPushed = true;
 
 	}
 
@@ -370,7 +441,9 @@ static int graphicsPop(lua_State *L) { // love.graphics.pop()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		isPushed = 0;
+		transX = 0;
+		transY = 0;
+		isPushed = false;
 
 	}
 
@@ -398,8 +471,8 @@ static int graphicsTranslate(lua_State *L) { // love.graphics.translate()
 		int dx = luaL_checkinteger(L, 1);
 		int dy = luaL_checkinteger(L, 2);
 
-		transX = dx;
-		transY = dy;
+		transX = transX + dx;
+		transY = transY + dy;
 
 	}
 
@@ -424,24 +497,76 @@ static int graphicsGet3D(lua_State *L) { // love.graphics.get3D()
 
 }
 
-static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
+static int graphicsSetDepth(lua_State *L) { // love.graphics.setDepth()
 
-	currentLineWidth = luaL_checkinteger(L, 1);
+	currentDepth = luaL_checkinteger(L, 1);
 
 	return 0;
 
 }
 
-static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
+static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 
-	lua_pushnumber(L, currentLineWidth);
+	lua_pushnumber(L, currentDepth);
 
 	return 1;
 
 }
 
+static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
+
+ // TODO: Do this properly
+
+}
+
+static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
+
+ // TODO: This too.
+
+}
+
+static int graphicsSetDefaultFilter(lua_State *L) { // love.graphics.setDefaultFilter()
+
+	char *minMode = luaL_checkstring(L, 1);
+	char *magMode = luaL_optstring(L, 2, minMode);
+
+	u32 minFilter;
+	u32 magFilter;
+
+	if (strcmp(minMode, "linear") != 0 && 
+		strcmp(minMode, "nearest") != 0 &&
+		strcmp(magMode, "linear") != 0 &&
+		strcmp(magMode, "nearest" != 0)) {
+			luaError(L, "Invalid Image Filter.");
+			return 0;
+		}
+
+	if (strcmp(minMode, "linear") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
+	if (strcmp(magMode, "linear") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR);
+	if (strcmp(minMode, "nearest") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_NEAREST);
+	if (strcmp(magMode, "nearest") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_NEAREST);
+
+	defaultMinFilter = minMode;
+	defaultMagFilter = magMode;
+
+	defaultFilter = magFilter | minFilter;
+
+	return 0;
+
+}
+
+static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultFilter()
+
+	lua_pushstring(L, defaultMinFilter);
+	lua_pushstring(L, defaultMagFilter);
+
+	return 2;
+
+}
+
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
+int quadNew(lua_State *L);
 
 const char *fontDefaultInit(love_font *self, int size);
 
@@ -462,6 +587,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "getHeight",			graphicsGetHeight			},
 		{ "newImage",			imageNew					},
 		{ "newFont",			fontNew						},
+		{ "newQuad",			quadNew						},
 		{ "draw",				graphicsDraw				},
 		{ "setFont",			graphicsSetFont				},
 		{ "print",				graphicsPrint				},
@@ -472,8 +598,12 @@ int initLoveGraphics(lua_State *L) {
 		{ "translate",			graphicsTranslate			},
 		{ "set3D",				graphicsSet3D				},
 		{ "get3D",				graphicsGet3D				},
-		{ "setLineWidth",		graphicsSetLineWidth		},
-		{ "getLineWidth",		graphicsGetLineWidth		},
+		{ "setDepth",			graphicsSetDepth			},
+		{ "getDepth",			graphicsGetDepth			},
+		// { "setLineWidth",		graphicsSetLineWidth		},
+		// { "getLineWidth",		graphicsGetLineWidth		},
+		{ "setDefaultFilter",	graphicsSetDefaultFilter	},
+		{ "getDefaultFilter",	graphicsGetDefaultFilter	},
 		{ 0, 0 },
 	};
 

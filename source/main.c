@@ -22,18 +22,21 @@
 
 #include "shared.h"
 
-char *rootDir = "game";
+char *rootDir = "";
 
 lua_State *L;
 
 int initLove(lua_State *L);
 
 bool errorOccured = false;
+bool forceQuit = false;
+char *errMsg;
 
 void displayError() {
 
+	errMsg = lua_tostring(L, -1);
 	errorOccured = true;
-	printf(lua_tostring(L, -1));
+	printf("\e[0;31m%s\e[0m",errMsg);
 
 }
 
@@ -45,37 +48,72 @@ int main() {
 
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.
-
-	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
+	cfguInit();
+	ptmuInit();
 
 	// consoleInit(GFX_BOTTOM, NULL);
 
+	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
+
+	osSetSpeedupEnable(true); // Enables CPU speedup (I think?)
+
+	// Change working directory
+	char cwd[256];
+	getcwd(cwd, 256);
+	char newCwd[261];
+	strcat(newCwd, cwd);
+	strcat(newCwd, "game");
+	chdir(newCwd);
+
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.5 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
+	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.9 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
 
-	luaL_dostring(L, "package.path = 'game/?.lua;game/?/init.lua'"); // Set default requiring path.
-	luaL_dostring(L, "package.cpath = 'game/?.lua;game/?/init.lua'");
+	luaL_dostring(L, "package.path = './?.lua;./?/init.lua'"); // Set default requiring path.
+	luaL_dostring(L, "package.cpath = './?.lua;./?/init.lua'");
 
 	luaL_dostring(L, 
 		"function love.errhand(msg)\n"
-		"love.graphics.setBackgroundColor(89, 157, 220)\n"
-		"love.graphics.setScreen('top')\n"
-		"love.graphics.setFont(_defaultFont_)\n"
-		"love.graphics.setColor(255, 255, 255, 255)\n"
-		"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
-		"love.graphics.print('Press Start to quit', 25, 40)\n"
-		"love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)\n"
+			"love.audio.stop()"
+			"love.graphics.setBackgroundColor(89, 157, 220)\n"
+			"love.graphics.setScreen('top')\n"
+			"love.graphics.setFont(_defaultFont_)\n"
+			"love.graphics.setColor(255, 255, 255, 255)\n"
+			"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
+			"love.graphics.print('Press Start to quit', 25, 40)\n"
+			"love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)\n"
 		"end"
 	); // default love.errhand()
 
-	if (luaL_dofile(L, "game/main.lua")) displayError();
+	if (luaL_dofile(L, "main.lua")) displayError();
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
 	while (aptMainLoop()) {
 
-		if (shouldQuit == 1) break; // Quit event
+		if (shouldQuit) {
+
+			if (forceQuit) break;
+
+			bool shouldAbort = false;
+
+			// lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			// lua_getfield(L, -1, "quit");
+			// lua_remove(L, -2);
+
+			// if (!lua_isnil(L, -1)) {
+
+			// 	lua_call(L, 0, 1);
+			// 	shouldAbort = lua_toboolean(L, 1);
+			// 	lua_pop(L, 1);
+
+			// }; TODO: Do this properly.
+
+			if (luaL_dostring(L, "if love.quit then love.quit() end")) displayError();
+
+			if (!shouldAbort && !errorOccured) break;
+
+		} // Quit event
 
 		if (!errorOccured) {
 
@@ -87,12 +125,15 @@ int main() {
 			}
 
 			// Top screen
+			// Left side
 
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
 				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
 			sf2d_end_frame();
+
+			// Right side
 
 			if (is3D) {
 
@@ -103,6 +144,8 @@ int main() {
 				sf2d_end_frame();
 
 			}
+
+			// Bot screen
 
 			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
@@ -116,20 +159,40 @@ int main() {
 
 			hidScanInput();
 			u32 kTempDown = hidKeysDown();
-			if (kTempDown & KEY_START) shouldQuit = 1;
+			if (kTempDown & KEY_START) {
+				forceQuit = true;
+				shouldQuit = true;
+			}
 
-			char *errhandler[512];
-			snprintf(errhandler, sizeof errhandler, "%s%s%s", "love.errhand(\"", lua_tostring(L, -1), "\")");
+			char *errMsg = lua_tostring(L, -1);
 
 			sf2d_start_frame(GFX_TOP, GFX_LEFT);
 
-				luaL_dostring(L, errhandler);
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "errhand");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1)) {
+
+					lua_pushstring(L, errMsg);
+					lua_call(L, 1, 0);
+
+				}
 
 			sf2d_end_frame();
 
 			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-				luaL_dostring(L, errhandler);
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "errhand");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1)) {
+
+					lua_pushstring(L, errMsg);
+					lua_call(L, 1, 0);
+
+				}
 
 			sf2d_end_frame();
 
@@ -139,12 +202,16 @@ int main() {
 
 	}
 
+	luaL_dostring(L, "love.audio.stop()");
+
 	lua_close(L);
 
 	sftd_fini();
 	sf2d_fini();
+	cfguExit();
+	ptmuExit();
 
-	if (soundEnabled) csndExit();
+	if (soundEnabled) ndspExit();
 
 	return 0;
 

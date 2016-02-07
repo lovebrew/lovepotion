@@ -2,66 +2,90 @@
 	<img src="http://i.imgur.com/uJQNDys.png"/>
 </p>
 
+<p align="center">
+	<img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square"/>
+	<img src="https://img.shields.io/github/stars/VideahGams/LovePotion.svg?style=flat-square"/>
+	<img src="https://img.shields.io/github/forks/VideahGams/LovePotion.svg?style=flat-square"/>
+	<img src="https://img.shields.io/github/issues/VideahGams/LovePotion.svg?style=flat-square"/>
+	<img src="https://img.shields.io/travis/VideahGams/LovePotion.svg?style=flat-square"/>
+</p>
+
 **LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
 
 <p align="center">
 	<img src="http://i.imgur.com/G9QjjjN.png"/>
 </p>
 
-Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable releases.
+Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable releases. Join `#lovepotion` on OFTC for help/discussion/chat etc.
 
 # FAQ
 
-* **Can I run my LÖVE game on this?**
+##### Can I run my LÖVE game on this?
 
 Running your game without any changes is very unlikely, so it's recommended to currently use LövePotion to make games from the ground up.
 
 If you want to try, place your games files in the game folder.
 
-* **Can I help?**
+##### Can I help?
 
 Yes, I need all the help I can get. I am new to C, so my code will probably be quite messy, and I don't have the talent that a lot of other people have. 
 
 If you have anything to contribute just make a pull request.
 
-* **How do I build this?**
+##### How do I build this?
 
 Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, and run make.
 LövePotion will most likely not build on anything but Linux, and I haven't tested that it builds at all on any other machine.
 
 If you can/can't get it built, please tell me.
 
-* **How do I run this?**
+##### How do I run this?
 
 There are ~~2 ways~~ a ton of ways to run this.
  * [Citra Emulator](http://citra-emu.org)
  * [Ninjhax](http://smealum.net/ninjhax)
  * [IronHax](http://smealum.github.io/3ds)
- * [TubeHax](http://smealum.github.io/3ds/)
- * [BrowserHax](http://smealum.github.io/3ds/)
+ * ~~TubeHax~~ RIP :(
+ * [BrowserHax](http://yls8.mtheall.com/3dsbrowserhax.php) Back from the dead!
  * [ThemeHax](http://smealum.github.io/3ds/)
+ * [OoTHax](https://gbatemp.net/threads/tutorial-how-to-install-oot3dhax.396339/)
+ * [SmashHax](https://gbatemp.net/threads/yellows8-just-realesed-smashhax.397124/)
 
 **LövePotion** is developed using [Citra](http://citra-emu.org/) and [IronHax](http://smealum.github.io/3ds/).
 
 There are also other ways, but I know next to nothing of these methods.
 
-* **Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-**
+To run your game in Citra, place your game folder in these locations:
+
+| Platform | Path                            |
+|----------|---------------------------------|
+| Linux    | `~/.local/share/citra-emu/sdmc` |
+| Windows  | `[CITRA-FOLDER]/users/sdmc`     |
+
+##### Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-
 
 Stop right there kiddo, this is for Homebrew only.
 
 This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's what you want.
 
-# Showcase
+##### Can I use this to run Mari0?
+No.
 
+# Showcase
+ * [Picroxx!](https://gbatemp.net/threads/picroxx-the-ultimate-picross-clone.412055) by Substance12
  * [Space Shooter Game](http://novaember.com/s/8f9453/FIrGGQ.mp4) by Darkwater
  * [Ludum Dare 33 Entry](http://ludumdare.com/compo/ludum-dare-33/?action=preview&uid=31436) by me
  * [NumberFucker3DS](https://github.com/VideahGams/NumberFucker3DS) by unek & me
+ * [SpaceFruit](https://gbatemp.net/threads/release-space-fruit.399088/) by TurtleP
+ * [Loophole](https://gbatemp.net/threads/release-loophole-3ds-port.399585/) by Aaron Butterworth & CKlidify
+ * [Hax0r](https://gbatemp.net/threads/preview-hax0r.401707) by TurtleP
+ * [Idiot](https://gbatemp.net/threads/preview-idiot-a-puzzle-platformer.408774) by TurtleP
 
 Send me your projects so I can showcase them here!
 
 # Dependencies
 
-LövePotion requires the 3DS portlibs to build correctly, these are not included and must be downloaded, built, and installed correctly from [here](https://github.com/xerpi/3ds_portlibs).
+LövePotion requires the 3DS portlibs to build correctly, these are not included and must be downloaded, built, and installed correctly from [here](https://github.com/cpp3ds/3ds_portlibs).
 
 # Credits
 
@@ -71,7 +95,8 @@ LövePotion requires the 3DS portlibs to build correctly, these are not included
  * Everyone who has worked on [Citra](http://citra-emu.org/)
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)
  * rxi for [lovedos](https://github.com/rxi/lovedos) which has been good learning material (I also used his luaobj util)
- * firew0lf and everyone who worked on [ctrulua](https://github.com/Firew0lf/ctruLua)
+ * Firew0lf and everyone who worked on [ctruLua](https://github.com/Firew0lf/ctruLua)
+ * TurtleP for help/advice and being my best customer :v
  * All of the LÖVE community, for being awesome
  * Anyone that I forgot
  

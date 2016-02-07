@@ -39,9 +39,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <3ds/services/cfgu.h>
+
+#define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
 typedef struct {
 	sf2d_texture *texture;
+	char *minFilter;
+	char *magFilter;
 } love_image;
 
 typedef struct {
@@ -49,20 +54,61 @@ typedef struct {
 	int size;
 } love_font;
 
+// typedef struct {
+// 	u8* buffer;
+// 	u64 size;
+// 	u32 format;
+// 	char *extension;
+// 	u32 samplerate;
+// 	u32 channels;
+// 	u32 size;
+// 	bool used;
+// 	bool loop;
+// 	float mix[12];
+// 	ndspInterpType interp;
+// 	u32 numSamples;
+// } love_source;
+
+typedef enum {
+	TYPE_UNKNOWN = -1,
+	TYPE_OGG = 0,
+	TYPE_WAV = 1
+} love_source_type;
+
 typedef struct {
-	u8* data;
+	love_source_type type;
+
+	float rate;
+	u32 channels;
+	u32 encoding;
+	u32 nsamples;
 	u32 size;
-	u32 format;
-	bool used;
+	char* data;
+	bool loop;
+	int audiochannel;
+
+	float mix[12];
+	ndspInterpType interp;
 } love_source;
+
+typedef struct {
+	int x;
+	int y;
+	int width;
+	int height;
+} love_quad;
 
 extern lua_State *L;
 extern int currentScreen;
 extern int drawScreen;
 extern char dsNames[32][32];
 extern char *rootDir;
-extern int shouldQuit;
+extern bool shouldQuit;
 extern love_font *currentFont;
-extern int is3D;
+extern bool is3D;
 extern const char *fontDefaultInit();
 extern bool soundEnabled;
+extern bool channelList[24];
+extern u32 defaultFilter;
+extern char *defaultMinFilter;
+extern char *defaultMagFilter;

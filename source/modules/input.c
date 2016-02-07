@@ -28,6 +28,8 @@ u32 kUp;
 
 touchPosition touch;
 
+bool touchIsDown = false;
+
 int lastPosx = 0;
 int lastPosy = 0;
 
@@ -61,27 +63,11 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 	kHeld = hidKeysHeld();
 	kUp = hidKeysUp();
 
-	if (kUp & BIT(20)) { // love.mousereleased()
-
-		lua_getfield(L, LUA_GLOBALSINDEX, "love");
-		lua_getfield(L, -1, "mousereleased");
-		lua_remove(L, -2);
-
-		if (!lua_isnil(L, -1)) {
-
-			lua_pushinteger(L, touch.px);
-			lua_pushinteger(L, touch.py);
-			lua_pushstring(L, "l");
-
-			lua_call(L, 3, 0);
-
-		}
-
-	}
-
 	hidTouchRead(&touch);
 
 	if (kDown & BIT(20)) { // BIT(20) == "touch" -- love.mousepressed()
+
+		touchIsDown = true;
 
 		lua_getfield(L, LUA_GLOBALSINDEX, "love");
 		lua_getfield(L, -1, "mousepressed");
@@ -97,6 +83,26 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 
 			lastPosx = touch.px;
 			lastPosy = touch.py;
+
+		}
+
+	}
+
+	if (kUp & BIT(20)) { // love.mousereleased()
+
+		touchIsDown = false;
+
+		lua_getfield(L, LUA_GLOBALSINDEX, "love");
+		lua_getfield(L, -1, "mousereleased");
+		lua_remove(L, -2);
+
+		if (!lua_isnil(L, -1)) {
+
+			lua_pushinteger(L, touch.px);
+			lua_pushinteger(L, touch.py);
+			lua_pushstring(L, "l");
+
+			lua_call(L, 3, 0);
 
 		}
 
@@ -169,11 +175,60 @@ int keyboardIsDown(lua_State *L) { // love.keyboard.isDown()
 
 }
 
+int mouseIsDown(lua_State *L) { // love.mouse.isDown()
+
+	lua_pushboolean(L, touchIsDown);
+
+	return 1;
+
+}
+
+int mouseGetX(lua_State *L) { // love.mouse.getX()
+
+	lua_pushinteger(L, touch.px);
+
+	return 1;
+
+}
+
+int mouseGetY(lua_State *L) { // love.mouse.getY()
+
+	lua_pushinteger(L, touch.py);
+
+	return 1;
+
+}
+
+int mouseGetPosition(lua_State *L) { // love.mouse.getPosition()
+
+	lua_pushinteger(L, touch.px);
+	lua_pushinteger(L, touch.py);
+
+	return 2;
+
+}
+
 int initLoveKeyboard(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{ "scan",	inputScan	},
+		{ "scan",	inputScan		},
 		{ "isDown",	keyboardIsDown	},
+		{ 0, 0 },
+	};
+
+	luaL_newlib(L, reg);
+
+	return 1;
+
+}
+
+int initLoveMouse(lua_State *L) {
+
+	luaL_Reg reg[] = {
+		{ "isDown",			mouseIsDown			},
+		{ "getX",			mouseGetX			},
+		{ "getY",			mouseGetY			},
+		{ "getPosition",	mouseGetPosition	},
 		{ 0, 0 },
 	};
 

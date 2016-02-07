@@ -9,6 +9,7 @@
 #define SFTD_H
 
 #include <3ds.h>
+#include <../../libsf2d/include/sf2d.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -111,7 +112,7 @@ void sftd_draw_wtextf(sftd_font *font, int x, int y, unsigned int color, unsigne
  * @param size the font size
  * @param text a pointer to the text that will be used to calculate the length
  */
-int sftd_get_text_width(sftd_font *font, unsigned int size, char *text);
+int sftd_get_text_width(sftd_font *font, unsigned int size, const char *text);
 
 /**
  * @brief Draws text using a font. The text will wrap after the pixels specified in lineWidth.

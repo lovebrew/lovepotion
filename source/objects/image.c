@@ -27,24 +27,20 @@
 
 const char *imageInit(love_image *self, const char *filename) {
 
-	if (!fileExists(filename)) return "Could not open image. Does not exist.";
+	int type = getType(filename);
 
-	const char *ext = fileExtension(filename);
-
-	if (strncmp(ext, "png", 3) == 0) {
+	if (type == 0) { // PNG
 
 		self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
 
-	} else if (strncmp(ext, "bmp", 3) == 0) {
-		
-		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
-
-	} else if (strncmp(ext, "jpeg", 4) == 0 || strncmp(ext, "jpg", 3) == 0) {
+	} else if (type == 1) { // JPG
 		
 		self->texture = sfil_load_JPEG_file(filename, SF2D_PLACE_RAM);
 
-	} else {
-		return "Unknown image type.";
+	} else if (type == 2) { // BMP
+		
+		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
+
 	}
 
 	return NULL;
@@ -54,14 +50,21 @@ const char *imageInit(love_image *self, const char *filename) {
 int imageNew(lua_State *L) { // love.graphics.newImage()
 
 	const char *filename = luaL_checkstring(L, 1);
-	char final[strlen(rootDir) + strlen(filename) + 2];
-	combine(final, rootDir, filename);
+
+	if (!fileExists(filename)) luaError(L, "Could not open image, does not exist");
+
+	int type = getType(filename);
+	if (type == 4) luaError(L, "Unknown image type");
 
 	love_image *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = imageInit(self, final);
+	const char *error = imageInit(self, filename);
 	if (error) luaError(L, error);
+
+	sf2d_texture_set_params(self->texture, defaultFilter);
+	self->minFilter = defaultMinFilter;
+	self->magFilter = defaultMagFilter;
 
 	return 1;
 
@@ -108,6 +111,49 @@ int imageGetHeight(lua_State *L) { // image:getHeight()
 
 }
 
+int imageSetFilter(lua_State *L) { // image:setFilter()
+
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char *minMode = luaL_checkstring(L, 2);
+	char *magMode = luaL_optstring(L, 3, minMode);
+
+	u32 minFilter;
+	u32 magFilter;
+
+	if (strcmp(minMode, "linear") != 0 && 
+		strcmp(minMode, "nearest") != 0 &&
+		strcmp(magMode, "linear") != 0 &&
+		strcmp(magMode, "nearest" != 0)) {
+			luaError(L, "Invalid Image Filter.");
+			return 0;
+		}
+
+	if (strcmp(minMode, "linear") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_LINEAR);
+	if (strcmp(magMode, "linear") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR);
+	if (strcmp(minMode, "nearest") == 0) minFilter = GPU_TEXTURE_MIN_FILTER(GPU_NEAREST);
+	if (strcmp(magMode, "nearest") == 0) magFilter = GPU_TEXTURE_MAG_FILTER(GPU_NEAREST);
+
+	sf2d_texture_set_params(self->texture, magFilter | minFilter);
+
+	self->minFilter = minMode;
+	self->magFilter = magMode;
+
+	return 0;
+
+}
+
+int imageGetFilter(lua_State *L) { // image:getFilter()
+
+	love_image *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushstring(L, self->minFilter);
+	lua_pushstring(L, self->magFilter);
+
+	return 2;
+
+}
+
 int initImageClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
@@ -116,6 +162,8 @@ int initImageClass(lua_State *L) {
 		{ "getDimensions",  imageGetDimensions },
 		{ "getWidth",       imageGetWidth      },
 		{ "getHeight",      imageGetHeight     },
+		{ "setFilter",      imageSetFilter     },
+		{ "getFilter",      imageGetFilter     },
 		{ 0, 0 },
 	};
 

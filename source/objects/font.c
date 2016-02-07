@@ -24,6 +24,9 @@
 
 #include "Vera_ttf.h"
 
+int fontLimit = 2;
+int fontCounter = 0;
+
 #define CLASS_TYPE  LUAOBJ_TYPE_FONT
 #define CLASS_NAME  "Font"
 
@@ -49,35 +52,45 @@ const char *fontDefaultInit(love_font *self, int size) {
 
 int fontNew(lua_State *L) { // love.graphics.newFont()
 
-	const char *filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
-	int size = lua_isnoneornil(L, 2) ? NULL : luaL_checkinteger(L, 2);
+	if (fontCounter <= fontLimit) {
 
-	love_font *self = luaobj_newudata(L, sizeof(*self));
+		fontCounter += 1;
 
-	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+		const char *filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
+		int size = lua_isnoneornil(L, 2) ? NULL : luaL_checkinteger(L, 2);
 
-	if (size == NULL) size = 14;
+		love_font *self = luaobj_newudata(L, sizeof(*self));
 
-	if (filename) {
+		luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-		char final[strlen(rootDir) + strlen(filename) + 2];
-		combine(final, rootDir, filename); // rootDir/filepath
+		if (!size) size = 14;
 
-		const char *error = fontInit(self, final, size);
+		if (filename) {
 
-		if (error) luaError(L, error);
+			const char *error = fontInit(self, filename, size);
+
+			if (error) luaError(L, error);
+
+		} else {
+
+			fontDefaultInit(self, size);
+		}
+
+		return 1;
 
 	} else {
 
-		fontDefaultInit(self, size);
+		luaError(L, "LovePotion currently has a 2 font limit. This limitation will hopefully be lifted in future versions.");
+		return 0;
+
 	}
 
-	return 1;
 
 }
 
 int fontGC(lua_State *L) { // Garbage Collection
 
+	fontCounter -= 1;
 	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 	sftd_free_font(self->font);
 
@@ -90,7 +103,7 @@ int fontGetWidth(lua_State *L) { // font:getWidth()
 	love_font *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 	const char *text = luaL_checkstring(L, 2);
 
-	lua_pushinteger(L, sftd_get_text_width(self->font, self->size, text)); // Not correct, needs replacing.
+	lua_pushinteger(L, sftd_get_text_width(self->font, self->size, text));
 
 	return 1;
 
