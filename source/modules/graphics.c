@@ -290,6 +290,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		int x, y;
 		int sx, sy;
+		int ox, oy;
 		float rad;
 
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
@@ -308,7 +309,11 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			rad = luaL_optnumber(L, 4, 0);
 			sx = luaL_optnumber(L, 5, 0);
 			sy = luaL_optnumber(L, 6, 0);
-
+			ox = luaL_optnumber(L, 7, 0);
+			oy = luaL_optnumber(L, 8, 0);
+			
+			x -= ox;
+			y -= oy;
 		}
 
 		translateCoords(&x, &y);
