@@ -163,6 +163,7 @@ const char *sourceInit(love_source *self, const char *filename) {
 			// Load audio file
 			FILE * file = fopen(filename, "rb");
 
+			printf("Decoding: %s\n", filename);
 			if (file) {
 
 				if (ov_open(file, &self->vorbisFile, NULL, 0) < 0) {
@@ -238,6 +239,7 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 				fclose(file);
 
+				printf("Decoded: %s\n", filename);
 				return NULL;
 
 			} else {
