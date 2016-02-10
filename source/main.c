@@ -51,7 +51,7 @@ int main() {
 	cfguInit();
 	ptmuInit();
 
-	// consoleInit(GFX_BOTTOM, NULL);
+	//consoleInit(GFX_BOTTOM, NULL);
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 

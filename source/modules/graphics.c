@@ -358,6 +358,29 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 }
 
+static int graphicsScissor(lua_State *L) { //love.graphics.setScissor()
+
+	if (sf2d_get_current_screen() == currentScreen) {
+
+		GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
+
+		u32 x = luaL_optnumber(L, 1, 0);
+		u32 y = luaL_optnumber(L, 2, 0);
+		u32 w = luaL_optnumber(L, 3, 0);
+		u32 h = luaL_optnumber(L, 4, 0);
+
+		if (!x && !y && !w && !h) {
+			mode = GPU_SCISSOR_DISABLE;
+		}
+
+		sf2d_set_scissor_test(mode, x, y, w, h);
+		
+	}
+
+	return 0;
+
+}
+
 static int graphicsSetFont(lua_State *L) { // love.graphics.setFont()
 
 	currentFont = luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
@@ -605,6 +628,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "get3D",				graphicsGet3D				},
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
+		{ "setScissor",			graphicsScissor				},
 		// { "setLineWidth",		graphicsSetLineWidth		},
 		// { "getLineWidth",		graphicsGetLineWidth		},
 		{ "setDefaultFilter",	graphicsSetDefaultFilter	},

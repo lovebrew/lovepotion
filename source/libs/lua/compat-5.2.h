@@ -138,7 +138,7 @@ void luaL_pushresult (luaL_Buffer_52 *B);
   lua_pushvalue(L, LUA_GLOBALSINDEX)
 
 #define luaL_newlib(L, l) \
-  (lua_newtable((L)),luaL_setfuncs((L), (l), 0))
+  ( lua_newtable( (L) ), luaL_setfuncs( (L), (l), 0 ) )
 
 void luaL_checkversion (lua_State *L);
 
@@ -158,4 +158,3 @@ int luaL_getsubtable (lua_State *L, int i, const char *name);
 void luaL_traceback (lua_State *L, lua_State *L1, const char *msg, int level);
 int luaL_fileresult (lua_State *L, int stat, const char *fname);
 int luaL_execresult (lua_State *L, int stat);
-
