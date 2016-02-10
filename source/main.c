@@ -51,7 +51,7 @@ int main() {
 	cfguInit();
 	ptmuInit();
 
-	consoleInit(GFX_BOTTOM, NULL);
+	//consoleInit(GFX_BOTTOM, NULL);
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
@@ -147,11 +147,11 @@ int main() {
 
 			// Bot screen
 
-			//sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-			//	if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
-			//sf2d_end_frame();
+			sf2d_end_frame();
 
 			luaL_dostring(L, "love.graphics.present()");
 
