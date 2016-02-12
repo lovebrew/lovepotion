@@ -285,16 +285,46 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+		love_image *img;// = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 		love_quad *quad = NULL;
+		love_spritebatch *spritebatch = NULL;
 
 		int x, y;
 		int sx, sy;
+		int ox, oy;
 		float rad;
+		int quadX = 0;
+		int quadY = 0;
+
+		int quadWidth;
+		int quadHeight;
+
+		spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
+
+		if (!img) {
+
+			
+
+			//printf("Spritebatch found!\n");
+
+		} else {
+
+			quadWidth = img->texture->width;
+			quadHeight = img->texture->height;
+
+			//printf("Image found!\n");
+		}
 
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
 
 			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+			if (quad) {
+				quadX = quad->x;
+				quadY = quad->y;
+				quadWidth = quad->width;
+				quadHeight = quad->height;
+			}
+
 			x = luaL_optnumber(L, 3, 0);
 			y = luaL_optnumber(L, 4, 0);
 			rad = luaL_optnumber(L, 5, 0);
@@ -308,43 +338,30 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			rad = luaL_optnumber(L, 4, 0);
 			sx = luaL_optnumber(L, 5, 0);
 			sy = luaL_optnumber(L, 6, 0);
-
+			ox = luaL_optnumber(L, 7, 0);
+			oy = luaL_optnumber(L, 8, 0);
+			
+			x -= ox;
+			y -= oy;
 		}
 
 		translateCoords(&x, &y);
 
-		if (rad == 0) {
-			
-            if (sx == 0 && sy == 0){
-				
-			    if (!quad) {
+		if (!spritebatch) {
 
-				    if (img) {
-					    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
-				    }
-				
-			    } else {
-				    sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
-			    }
-				
-			} else {
-				
-				if (!quad) {
-
-				    if (img) {
-					    sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
-				    }
-				
-			    } else {
-				    sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
-			    }
-				
-			}
+			sf2d_draw_texture_part_rotate_scale_blend(img->texture, x, y, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
 
 		} else {
-            
-			sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
 
+			sf2d_bind_texture_color(spritebatch->resource, GPU_TEXUNIT0, getCurrentColor());
+
+			//for (int i = 0; i < spritebatch->currentImage; i++) {
+
+				GPU_DrawElements(GPU_TRIANGLES, spritebatch->elements, 4);
+
+			//}
+			
+		
 		}
 
 	}
@@ -590,6 +607,7 @@ static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultF
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
 int quadNew(lua_State *L);
+int spriteBatchNew(lua_State *L);
 
 const char *fontDefaultInit(love_font *self, int size);
 
@@ -624,6 +642,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
 		{ "setScissor",			graphicsScissor				},
+		{ "newSpriteBatch",		spriteBatchNew				},
 		// { "setLineWidth",		graphicsSetLineWidth		},
 		// { "getLineWidth",		graphicsGetLineWidth		},
 		{ "setDefaultFilter",	graphicsSetDefaultFilter	},

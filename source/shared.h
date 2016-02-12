@@ -97,6 +97,13 @@ typedef struct {
 	int height;
 } love_quad;
 
+typedef struct {
+	love_image * resource;
+	int maxImages;
+	int currentImage;
+	u32 * elements;
+} love_spritebatch;
+
 extern lua_State *L;
 extern int currentScreen;
 extern int drawScreen;

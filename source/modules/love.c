@@ -46,6 +46,7 @@ int initFontClass(lua_State *L);
 int initSourceClass(lua_State *L);
 int initFileClass(lua_State *L);
 int initQuadClass(lua_State *L);
+int initSpriteBatchClass(lua_State *L);
 
 int initLove(lua_State *L) {
 
@@ -59,6 +60,7 @@ int initLove(lua_State *L) {
 		initSourceClass,
 		initQuadClass,
 		initFileClass,
+		initSpriteBatchClass,
 		NULL,
 	};
 
