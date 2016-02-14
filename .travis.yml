@@ -3,11 +3,11 @@ language: c
 sudo: required
 
 before_install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test --yes --force-yes
   - sudo apt-get update -q
-  - sudo apt-get install gcc-4.9 -y
-  - sudo apt-get upgrade libstdc++6 -y
-  - sudo apt-get install python3 -y
+  - sudo apt-get install gcc-4.9 ---yes --force-yes
+  - sudo apt-get upgrade libstdc++6 ---yes --force-yes
+  - sudo apt-get install python3 --yes --force-yes
   - export CC=arm-none-eabi-gcc
   - export CXX=arm-none-eabi-g++
   - export DEVKITPRO=${HOME}/devkitPro
