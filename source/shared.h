@@ -111,3 +111,4 @@ extern bool channelList[24];
 extern u32 defaultFilter;
 extern char *defaultMinFilter;
 extern char *defaultMagFilter;
+extern bool isCIA;

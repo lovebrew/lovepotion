@@ -28,6 +28,8 @@ lua_State *L;
 
 int initLove(lua_State *L);
 
+bool isCIA;
+
 bool errorOccured = false;
 bool forceQuit = false;
 char *errMsg;
@@ -51,19 +53,42 @@ int main() {
 	cfguInit();
 	ptmuInit();
 
-	//consoleInit(GFX_BOTTOM, NULL);
+	// consoleInit(GFX_BOTTOM, NULL);
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
-	osSetSpeedupEnable(true); // Enables CPU speedup (I think?)
+	osSetSpeedupEnable(true); // Enables CPU speedup for a free performance boost.
+
+	// Detect if we are running on a .cia, because if we are
+	// we load from RomFS rather than the SD Card.
+
+	Result rc = romfsInit();
+
+	if (rc) {
+		isCIA = false;
+	} else {
+		isCIA = true;
+	}
 
 	// Change working directory
-	char cwd[256];
-	getcwd(cwd, 256);
-	char newCwd[261];
-	strcat(newCwd, cwd);
-	strcat(newCwd, "game");
-	chdir(newCwd);
+
+	if (isCIA) {
+
+		chdir("romfs:/");
+
+	} else {
+
+		printf("romfsInit: %08lX\n", rc);
+
+		char cwd[256];
+		getcwd(cwd, 256);
+		char newCwd[261];
+
+		strcat(newCwd, cwd);
+		strcat(newCwd, "game");
+		chdir(newCwd);
+
+	}
 
 	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
 
@@ -212,6 +237,7 @@ int main() {
 	ptmuExit();
 
 	if (soundEnabled) ndspExit();
+	if (isCIA) romfsExit();
 
 	return 0;
 

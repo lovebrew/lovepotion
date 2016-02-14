@@ -25,9 +25,13 @@
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
 int fileExists (char *filename){
-	struct stat st;
-	int result = stat(filename, &st);
-	return result == 0;
+	if (!isCIA) {
+		struct stat st;
+		int result = stat(filename, &st);
+		return result == 0;
+	} else {
+		return true; // TODO: Make this work for CIA's
+	}
 }
 
 void luaError(lua_State *L, char *message) {
@@ -42,7 +46,7 @@ const char *fileExtension(const char *filename) {
 
 char* concat(char *s1, char *s2) {
 	
-	char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
+	char *result = malloc(strlen(s1)+strlen(s2)+1); // +1 for the zero-terminator
 
 	strcpy(result, s1);
 	strcat(result, s2);

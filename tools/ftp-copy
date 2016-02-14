@@ -14,5 +14,8 @@ user $USER $PASSWD
 cd /3ds/LovePotion
 put LovePotion.3dsx
 put LovePotion.smdh
+put LovePotion.cia
 bye
 EOT
+
+echo Done.
