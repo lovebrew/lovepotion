@@ -10,4 +10,4 @@
 *.cia
 *.elf
 *.3ds
-romfs.bin
+*.bin
