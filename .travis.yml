@@ -5,10 +5,8 @@ sudo: required
 before_install:
   - export DEBIAN_FRONTEND=noninteractive
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  - sudo apt-get update -q
-  - sudo apt-get install gcc-4.9 -y
-  - sudo apt-get -o Dpkg::Options::="--force-confnew" upgrade libstdc++6 -y
-  - sudo apt-get -o Dpkg::Options::="--force-confnew" dist-upgrade -y
+  - sudo apt-get update -qq
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install gcc-4.9 libstdc++6 -y
   - sudo apt-get install python3 -y
   - export CC=arm-none-eabi-gcc
   - export CXX=arm-none-eabi-g++
