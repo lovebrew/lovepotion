@@ -3,11 +3,11 @@ language: c
 sudo: required
 
 before_install:
-  - sudo DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confnew" install couchdb
+  - export DEBIAN_FRONTEND=noninteractive
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -q
   - sudo apt-get install gcc-4.9 -y
-  - sudo apt-get upgrade libstdc++6 -y
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" upgrade libstdc++6 -y
   - sudo apt-get install python3 -y
   - export CC=arm-none-eabi-gcc
   - export CXX=arm-none-eabi-g++
