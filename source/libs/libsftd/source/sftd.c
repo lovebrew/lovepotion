@@ -2,7 +2,7 @@
 #include "texture_atlas.h"
 #include "bin_packing_2d.h"
 #include <wchar.h>
-#include <sf2d.h>
+#include "../../libsf2d/include/sf2d.h"
 #include <ft2build.h>
 #include <string.h>
 #include FT_CACHE_H

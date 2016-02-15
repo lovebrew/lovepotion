@@ -78,8 +78,6 @@ int main() {
 
 	} else {
 
-		printf("romfsInit: %08lX\n", rc);
-
 		char cwd[256];
 		getcwd(cwd, 256);
 		char newCwd[261];
