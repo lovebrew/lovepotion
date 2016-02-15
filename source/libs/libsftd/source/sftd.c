@@ -2,7 +2,7 @@
 #include "texture_atlas.h"
 #include "bin_packing_2d.h"
 #include <wchar.h>
-#include <../../libsf2d/include/sf2d.h>
+#include <sf2d.h>
 #include <ft2build.h>
 #include <string.h>
 #include FT_CACHE_H
@@ -227,6 +227,13 @@ void sftd_draw_text(sftd_font *font, int x, int y, unsigned int color, unsigned 
 	FT_ULong flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL;
 
 	while (*text) {
+		if(*text == '\n') {
+			pen_x = x;
+			pen_y += size;
+			text++;
+			continue;
+		}
+
 		glyph_index = FTC_CMapCache_Lookup(font->cmapcache, (FTC_FaceID)font, charmap_index, *text);
 
 		if (use_kerning && previous && glyph_index) {
@@ -304,6 +311,13 @@ void sftd_draw_wtext(sftd_font *font, int x, int y, unsigned int color, unsigned
 	FT_ULong flags = FT_LOAD_RENDER | FT_LOAD_TARGET_NORMAL;
 
 	while (*text) {
+		if(*text == '\n') {
+			pen_x = x;
+			pen_y += size;
+			text++;
+			continue;
+		}
+
 		glyph_index = FTC_CMapCache_Lookup(font->cmapcache, (FTC_FaceID)font, charmap_index, *text);
 
 		if (use_kerning && previous && glyph_index) {

@@ -9,7 +9,6 @@
 #define SFTD_H
 
 #include <3ds.h>
-#include <../../libsf2d/include/sf2d.h>
 
 #ifdef __cplusplus
 extern "C" {

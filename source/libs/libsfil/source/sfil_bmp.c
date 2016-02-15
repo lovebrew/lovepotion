@@ -45,11 +45,19 @@ static sf2d_texture *_sfil_load_BMP_generic(
 	sf2d_texture *texture = sf2d_create_texture(bmp_ih->biWidth, bmp_ih->biHeight,
 		GPU_RGBA8, place);
 
+	if (!texture)
+		return NULL;
+
 	seek_fn(user_data, bmp_fh->bfOffBits);
 
 	int stride = texture->pow2_w * 4;
 
 	void *buffer = malloc(row_size);
+	if (!buffer) {
+		sf2d_free_texture(texture);
+		return NULL;
+	}
+
 	unsigned int *tex_ptr;
 	unsigned int color;
 	int i, x, y;

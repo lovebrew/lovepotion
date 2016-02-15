@@ -138,6 +138,8 @@ $(OUTPUT)	:	$(OFILES)
 	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(notdir $<).shbin | tr . _)`.h
 	@echo "extern const u32" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(notdir $<).shbin | tr . _)`.h
 
+sf2d.c: shader.vsh
+
 -include $(DEPENDS)
 
 #---------------------------------------------------------------------------------------

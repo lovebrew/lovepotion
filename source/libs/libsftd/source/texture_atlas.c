@@ -15,6 +15,7 @@ texture_atlas *texture_atlas_create(int width, int height, sf2d_texfmt format, s
 	rect.h = height;
 
 	atlas->tex = sf2d_create_texture(width, height, format, place);
+	sf2d_texture_set_params(atlas->tex, GPU_TEXTURE_MAG_FILTER(GPU_LINEAR) | GPU_TEXTURE_MIN_FILTER(GPU_LINEAR));
 	sf2d_texture_tile32(atlas->tex);
 
 	atlas->bp_root = bp2d_create(&rect);

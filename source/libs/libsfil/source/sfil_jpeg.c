@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <jpeglib.h>
 
-
 static sf2d_texture *_sfil_load_JPEG_generic(struct jpeg_decompress_struct *jinfo, struct jpeg_error_mgr *jerr, sf2d_place place)
 {
+	jpeg_start_decompress(jinfo);
+
 	int row_bytes;
 	switch (jinfo->out_color_space) {
 	case JCS_RGB:
@@ -17,8 +18,10 @@ static sf2d_texture *_sfil_load_JPEG_generic(struct jpeg_decompress_struct *jinf
 	}
 
 	sf2d_texture *texture = sf2d_create_texture(jinfo->image_width,
-		jinfo->image_height,
-		GPU_RGBA8, place);
+		jinfo->image_height, GPU_RGBA8, place);
+
+	if (!texture)
+		goto exit_error;
 
 	JSAMPARRAY buffer = (JSAMPARRAY)malloc(sizeof(JSAMPROW));
 	buffer[0] = (JSAMPROW)malloc(sizeof(JSAMPLE) * row_bytes);
@@ -26,7 +29,6 @@ static sf2d_texture *_sfil_load_JPEG_generic(struct jpeg_decompress_struct *jinf
 	unsigned int i, color, *tex_ptr;
 	unsigned char *jpeg_ptr;
 	void *row_ptr = texture->data;
-	jpeg_start_decompress(jinfo);
 
 	int stride = texture->pow2_w * 4;
 
@@ -41,6 +43,8 @@ static sf2d_texture *_sfil_load_JPEG_generic(struct jpeg_decompress_struct *jinf
 		}
 	}
 
+	jpeg_finish_decompress(jinfo);
+
 	free(buffer[0]);
 	free(buffer);
 
@@ -48,6 +52,7 @@ static sf2d_texture *_sfil_load_JPEG_generic(struct jpeg_decompress_struct *jinf
 	return texture;
 
 exit_error:
+	jpeg_abort_decompress(jinfo);
 	return NULL;
 }
 
@@ -69,7 +74,6 @@ sf2d_texture *sfil_load_JPEG_file(const char *filename, sf2d_place place)
 
 	sf2d_texture *texture = _sfil_load_JPEG_generic(&jinfo, &jerr, place);
 
-	jpeg_finish_decompress(&jinfo);
 	jpeg_destroy_decompress(&jinfo);
 
 	fclose(fp);
@@ -90,7 +94,6 @@ sf2d_texture *sfil_load_JPEG_buffer(const void *buffer, unsigned long buffer_siz
 
 	sf2d_texture *texture = _sfil_load_JPEG_generic(&jinfo, &jerr, place);
 
-	jpeg_finish_decompress(&jinfo);
 	jpeg_destroy_decompress(&jinfo);
 
 	return texture;
