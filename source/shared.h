@@ -48,6 +48,10 @@
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
 typedef struct {
+    int id;
+} love_joystick;
+
+typedef struct {
 	sf2d_texture *texture;
 	char *minFilter;
 	char *magFilter;
@@ -101,6 +105,7 @@ extern lua_State *L;
 extern int currentScreen;
 extern int drawScreen;
 extern char dsNames[32][32];
+extern char keyNames[32][32];
 extern char *rootDir;
 extern bool shouldQuit;
 extern love_font *currentFont;
