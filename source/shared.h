@@ -106,6 +106,8 @@ extern int currentScreen;
 extern int drawScreen;
 extern char dsNames[32][32];
 extern char keyNames[32][32];
+extern touchPosition touch;
+extern bool touchIsDown;
 extern char *rootDir;
 extern bool shouldQuit;
 extern love_font *currentFont;

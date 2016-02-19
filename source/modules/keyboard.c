@@ -44,17 +44,6 @@ char dsNames[32][32] = {
 		"cpadright", "cpadleft", "cpadup", "cpaddown"
 };
 
-char keyNames[32][32] = { // TODO: Improve these.
-		"a", "b", "KEY_SELECT", "esc",
-		"right", "left", "up", "down",
-		"KEY_R", "KEY_L", "x", "y",
-		"", "", "KEY_ZL", "KEY_ZR",
-		"", "", "", "",
-		"touch", "", "", "",
-		"KEY_CSTICK_RIGHT", "KEY_CSTICK_LEFT", "KEY_CSTICK_UP", "KEY_CSTICK_DOWN",
-		"KEY_CPAD_RIGHT", "KEY_CPAD_LEFT", "KEY_CPAD_UP", "KEY_CPAD_DOWN"
-};
-
 int inputScan(lua_State *L) { // love.keyboard.scan()
 
 	hidScanInput();
@@ -111,7 +100,7 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 	int i;
 	for (i = 0; i < 32; i++) { // love.keypressed()
 		if (kDown & BIT(i)) {
-			if (strcmp(keyNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
+			if (strcmp(dsNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
 				
 				lua_getfield(L, LUA_GLOBALSINDEX, "love");
 				lua_getfield(L, -1, "keypressed");
@@ -131,7 +120,7 @@ int inputScan(lua_State *L) { // love.keyboard.scan()
 
 	for (i = 0; i < 32; i++) { // love.keyreleased()
 		if (kUp & BIT(i)) {
-			if (strcmp(keyNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
+			if (strcmp(dsNames[i], "touch") != 0) { // Touch shouldn't be returned in love.keypressed.
 				
 				lua_getfield(L, LUA_GLOBALSINDEX, "love");
 				lua_getfield(L, -1, "keyreleased");
@@ -156,55 +145,22 @@ int keyboardIsDown(lua_State *L) { // love.keyboard.isDown()
 
 	const char *key = luaL_checkstring(L, 1);
 
-	int boolval = 0; // 0 == false; 1 == true
+	bool down;
 
 	int i;
 	for (i = 0; i < 32; i++) {
 		if (kHeld & BIT(i)) {
-			if (strcmp(keyNames[i], "touch") != 0) { // Touch events should probably not be returned in love.keyboard.
-				if (strcmp(key, keyNames[i]) == 0 || strcmp(key, dsNames[i]) == 0) {
-					boolval = 1;
+			if (strcmp(dsNames[i], "touch") != 0) { // Touch events should probably not be returned in love.keyboard.
+				if (strcmp(key, dsNames[i]) == 0) {
+					down = true;
 				}
 			}
 		} 
 	}
 
-	lua_pushboolean(L, boolval);
+	lua_pushboolean(L, down);
 
 	return 1;
-
-}
-
-int mouseIsDown(lua_State *L) { // love.mouse.isDown()
-
-	lua_pushboolean(L, touchIsDown);
-
-	return 1;
-
-}
-
-int mouseGetX(lua_State *L) { // love.mouse.getX()
-
-	lua_pushinteger(L, touch.px);
-
-	return 1;
-
-}
-
-int mouseGetY(lua_State *L) { // love.mouse.getY()
-
-	lua_pushinteger(L, touch.py);
-
-	return 1;
-
-}
-
-int mouseGetPosition(lua_State *L) { // love.mouse.getPosition()
-
-	lua_pushinteger(L, touch.px);
-	lua_pushinteger(L, touch.py);
-
-	return 2;
 
 }
 
@@ -213,22 +169,6 @@ int initLoveKeyboard(lua_State *L) {
 	luaL_Reg reg[] = {
 		{ "scan",	inputScan		},
 		{ "isDown",	keyboardIsDown	},
-		{ 0, 0 },
-	};
-
-	luaL_newlib(L, reg);
-
-	return 1;
-
-}
-
-int initLoveMouse(lua_State *L) {
-
-	luaL_Reg reg[] = {
-		{ "isDown",			mouseIsDown			},
-		{ "getX",			mouseGetX			},
-		{ "getY",			mouseGetY			},
-		{ "getPosition",	mouseGetPosition	},
 		{ 0, 0 },
 	};
 
