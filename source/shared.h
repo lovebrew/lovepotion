@@ -20,13 +20,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "libs/lua/lua.h"
-#include "libs/lua/lualib.h"
-#include "libs/lua/lauxlib.h"
-#include "libs/lua/compat-5.2.h"
-#include "libs/luaobj/luaobj.h"
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
 
-#include "libs/libsf2d/include/sf2d.h"
+#include <compat-5.2.h>
+#include <luaobj.h>
+
+#include <sf2d.h>
 #include <sfil.h>
 #include <sftd.h>
 
@@ -42,8 +43,8 @@
 #include <dirent.h>
 #include <3ds/services/cfgu.h>
 
-#include "libs/tremor/ivorbiscodec.h"
-#include "libs/tremor/ivorbisfile.h"
+#include <ivorbiscodec.h>
+#include <ivorbisfile.h>
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 

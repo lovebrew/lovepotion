@@ -31,7 +31,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 DATA		:=	data
-INCLUDES	:=	include source/libs/tremor
+INCLUDES	:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 
 APP_TITLE	:=	LovePotion
 APP_AUTHOR	:=	Ruairidh 'VideahGams' Carmichael

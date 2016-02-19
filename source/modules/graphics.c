@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
 int currentR = 0xFF;
 int currentG = 0xFF;

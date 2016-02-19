@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
 #define CLASS_TYPE  LUAOBJ_TYPE_QUAD
 #define CLASS_NAME  "Quad"

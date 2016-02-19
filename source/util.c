@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "shared.h"
+#include <shared.h>
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 

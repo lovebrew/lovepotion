@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
-#define LOVE_VERSION "0.10.0"
+#define LOVE_VERSION "0.10.1"
 
 static int loveGetVersion(lua_State *L) { // love.getVersion()
 

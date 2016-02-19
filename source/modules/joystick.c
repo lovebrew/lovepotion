@@ -20,58 +20,58 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
 #define JOYSTICK_COUNT 1
 
 int joystickInputScan(lua_State *L) { // love.joystick.scan()
 
-    hidScanInput();
-    
+	hidScanInput();
+	
 }
 
 int joystickGetCount(lua_State *L) { //love.joystick.getJoystickCount()
-    
-    // Assuming a joystick in love is technically
-    // a gamepad with a set of controls
-    // then return 1 since the 3DS is a gamepad itself.
-    lua_pushinteger(L, JOYSTICK_COUNT);
-    
-    return 1;
-    
+	
+	// Assuming a joystick in love is technically
+	// a gamepad with a set of controls
+	// then return 1 since the 3DS is a gamepad itself.
+	lua_pushinteger(L, JOYSTICK_COUNT);
+	
+	return 1;
+	
 }
 
 int joystickGetList(lua_State *L) { //love.joystick.getJoystickList()
 
-    // Assuming a joystick in love is technically
-    // a gamepad with a set of controls
-    // then return a madeup joystick   
-    lua_newtable(L);
-    for(int i = 1; i <= JOYSTICK_COUNT; i++ ) //<< In the event that there might be more joysticks
-    {
-        lua_pushnumber(L, i);
-        joystickNew(L, i);
-        lua_rawset(L, -3);
-    }
-    
-    return 1;
+	// Assuming a joystick in love is technically
+	// a gamepad with a set of controls
+	// then return a madeup joystick   
+	lua_newtable(L);
+	for(int i = 1; i <= JOYSTICK_COUNT; i++ ) //<< In the event that there might be more joysticks
+	{
+		lua_pushnumber(L, i);
+		joystickNew(L, i);
+		lua_rawset(L, -3);
+	}
+	
+	return 1;
 
 }
 
 int joystickNew(lua_State *L);
 
 int initLoveJoystick(lua_State *L) {
-    
-    luaL_Reg reg[] = {
-        { "getJoystickCount",   joystickGetCount },
-        { "getJoysticks",       joystickGetList },
-        //{ "loadGamepadMappings",  gamepadLoadMappings},
-        //{ "setGamepadMapping",    gamepadSetMapping},
-        { 0, 0 }
-    };
-    
-    luaL_newlib(L, reg);
-    
-    return 1;
-    
+	
+	luaL_Reg reg[] = {
+		{ "getJoystickCount",   joystickGetCount },
+		{ "getJoysticks",       joystickGetList },
+		//{ "loadGamepadMappings",  gamepadLoadMappings},
+		//{ "setGamepadMapping",    gamepadSetMapping},
+		{ 0, 0 }
+	};
+	
+	luaL_newlib(L, reg);
+	
+	return 1;
+	
 }
