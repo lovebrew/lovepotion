@@ -55,25 +55,35 @@ int fontNew(lua_State *L) { // love.graphics.newFont()
 	if (fontCounter <= fontLimit) {
 
 		fontCounter += 1;
-
-		const char *filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
-		int size = lua_isnoneornil(L, 2) ? NULL : luaL_checkinteger(L, 2);
+        
+        int argc = lua_gettop(L);
+        char *filename = 0;
+        int fontSize = 14;
+        
+        //newFont(fontSize)
+        if( argc == 1){
+            fontSize = lua_isnoneornil(L, 1) ? NULL : luaL_checkinteger(L, 1);
+        }
+        
+        //newFont(filename, fontsize)
+        if( argc == 2 ) {
+            filename = lua_isnoneornil(L, 1) ? NULL : luaL_checkstring(L, 1);
+            fontSize = lua_isnoneornil(L, 2) ? NULL : luaL_checkinteger(L, 2);
+        }
 
 		love_font *self = luaobj_newudata(L, sizeof(*self));
 
 		luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-		if (!size) size = 14;
-
 		if (filename) {
 
-			const char *error = fontInit(self, filename, size);
+			const char *error = fontInit(self, filename, fontSize);
 
 			if (error) luaError(L, error);
 
 		} else {
 
-			fontDefaultInit(self, size);
+			fontDefaultInit(self, fontSize);
 		}
 
 		return 1;
