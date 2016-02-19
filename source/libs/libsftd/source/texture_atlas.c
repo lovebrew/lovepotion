@@ -1,4 +1,3 @@
-#include <sf2d.h>
 #include <stdlib.h>
 #include <string.h>
 #include "texture_atlas.h"
