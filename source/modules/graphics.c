@@ -316,8 +316,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
             
 		}
 
-        x -= ox;
-        y -= oy;
+        //x -= ox;
+        //y -= oy;
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
