@@ -350,7 +350,18 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		} else {
             
-			sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+            if (sx == 0 && sy == 0){
+                sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+            }
+            else
+            {   
+                sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture,
+                                                     x, y, 
+                                                     rad,
+                                                     sx, sy,
+                                                     ox, oy,
+                                                     getCurrentColor());
+            }
 
 		}
 
