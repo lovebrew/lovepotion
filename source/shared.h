@@ -72,6 +72,9 @@ typedef enum {
 	TYPE_WAV = 1
 } love_source_type;
 
+//In KB
+#define SOURCEBUFFSAMPLES 16384
+
 typedef struct {
 	love_source_type type;
 
@@ -86,9 +89,18 @@ typedef struct {
 	bool loop;
 	int audiochannel;
 
+	const char * loadingtype;
+
+	char streamData[8];
+	u32 offset;
+	u32 waveBufferPosition;
+
 	float mix[12];
 	ndspInterpType interp;
 } love_source;
+
+int streamCount;
+love_source * streams;
 
 typedef struct {
 	int x;

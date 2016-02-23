@@ -40,7 +40,13 @@ int getOpenChannel() {
 #define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
 #define CLASS_NAME  "Source"
 
-const char *sourceInit(love_source *self, const char *filename) {
+const char *sourceInit(love_source *self, const char *filename, const char *loadingtype) {
+
+	self->stream = ( strncmp(loadingtype, "stream", 6) == 0 ) ? true : false;
+
+	self->offset = 1;
+
+	self->waveBufferPosition = 0;
 
 	if (fileExists(filename)) {
 
@@ -144,6 +150,19 @@ const char *sourceInit(love_source *self, const char *filename) {
 				self->audiochannel = getOpenChannel();
 				self->loop = false;
 
+				if ( self->stream )
+				{
+					for (int i = 0; i < 8; i++)
+					{
+						fillBuffer(self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
+					}
+
+					streams[streamCount] = self;
+					streamCount++;
+
+					return NULL;
+				}
+
 				// Read data
 				if (linearSpaceFree() < self->size) return "not enough linear memory available";
 				self->data = linearAlloc(self->size);
@@ -194,6 +213,11 @@ const char *sourceInit(love_source *self, const char *filename) {
 				self->audiochannel = getOpenChannel();
 
 				self->loop = false;
+
+				/*if ( strncmp(self->loadingtype, "stream", 6) == 0 )
+				{
+					return NULL;
+				}*/
 
 				if (linearSpaceFree() < self->size) {
 
@@ -259,14 +283,49 @@ const char *sourceInit(love_source *self, const char *filename) {
 	}
 }
 
+//Data of the source to play, offset of the source position, size of the samples per buffer, file, type (wav/ogg)
+void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, const char * sourceType) {
+	if ( strncmp(sourceType, "wav", 3) )
+	{
+		fread(audioBuffer, size, offset + size, file)
+	}
+	
+	self->offset += size;
+}
+
+void sourceUpdate(love_source *source)
+{
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	love_source *self = source;
+	
+	if ( !self->stream ) {
+		return;
+	}
+
+	u32 position = ndspChnGetWaveBufSeq(self->audiochannel);
+
+	if (position == waveBufferPosition || position == 0) {
+		return;
+	}
+
+	self->waveBufferPosition = position;
+
+	for (int i = 0; i < 8; i++) {
+		fillBuffer(self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
+	}
+}
+
 int sourceNew(lua_State *L) { // love.audio.newSource()
 
 	const char *filename = luaL_checkstring(L, 1);
 
+	const char *type = luaL_checkstring(L, 2);
+
 	love_source *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = sourceInit(self, filename);
+	const char *error = sourceInit(self, filename, type);
 
 	if (error) luaError(L, error);
 
@@ -429,6 +488,8 @@ int sourceGetDuration(lua_State *L) { // source:getDuration()
 }
 
 int initSourceClass(lua_State *L) {
+
+	streamCount = 0;
 
 	luaL_Reg reg[] = {
 		{"new",			sourceNew	},

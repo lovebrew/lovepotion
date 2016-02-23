@@ -89,6 +89,7 @@ int main() {
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
+	printf("Linear Space Total: %d\n", linearSpaceFree());
 	while (aptMainLoop()) {
 
 		if (shouldQuit) {
@@ -122,6 +123,11 @@ int main() {
 				"love.timer.step()\n"
 				"if love.update then love.update(love.timer.getDelta()) end")) {
 					displayError();
+			}
+
+			//Update sources that stream or something
+			for (int i = 0; i < streamCount; i++) {
+				sourceUpdate(streams[i]);
 			}
 
 			// Top screen
