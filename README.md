@@ -13,7 +13,7 @@
 **LövePotion** is an unofficial work in progress implementation of the [LÖVE](https://love2d.org/) API for 3DS Homebrew.
 
 <p align="center">
-	<img src="http://i.imgur.com/G9QjjjN.png"/>
+	<img src="https://i.imgur.com/wsIfDuF.png"/>
 </p>
 
 Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable releases. Join `#lovepotion` on OFTC for help/discussion/chat etc.

@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
-#define LOVE_VERSION "0.10.0"
+#define LOVE_VERSION "0.10.1"
 
 static int loveGetVersion(lua_State *L) { // love.getVersion()
 
@@ -36,6 +36,7 @@ int initLoveGraphics(lua_State *L);
 int initLoveTimer(lua_State *L);
 int initLoveKeyboard(lua_State *L);
 int initLoveMouse(lua_State *L);
+int initLoveJoystick(lua_State *L);
 int initLoveWindow(lua_State *L);
 int initLoveEvent(lua_State *L);
 int initLoveAudio(lua_State *L);
@@ -46,7 +47,11 @@ int initFontClass(lua_State *L);
 int initSourceClass(lua_State *L);
 int initFileClass(lua_State *L);
 int initQuadClass(lua_State *L);
+<<<<<<< HEAD
 int initSpriteBatchClass(lua_State *L);
+=======
+int initJoystickClass(lua_State *L);
+>>>>>>> upstream/master
 
 int initLove(lua_State *L) {
 
@@ -60,7 +65,11 @@ int initLove(lua_State *L) {
 		initSourceClass,
 		initQuadClass,
 		initFileClass,
+<<<<<<< HEAD
 		initSpriteBatchClass,
+=======
+        initJoystickClass,
+>>>>>>> upstream/master
 		NULL,
 	};
 
@@ -82,6 +91,7 @@ int initLove(lua_State *L) {
 		{ "timer",    initLoveTimer     },
 		{ "keyboard", initLoveKeyboard  },
 		{ "mouse",    initLoveMouse     },
+        { "joystick", initLoveJoystick  },
 		{ "window",   initLoveWindow    },
 		{ "event",    initLoveEvent     },
 		{ "audio",    initLoveAudio     },

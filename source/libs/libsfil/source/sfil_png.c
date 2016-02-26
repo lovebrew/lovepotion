@@ -23,12 +23,12 @@ static sf2d_texture *_sfil_load_PNG_generic(const void *io_ptr, png_rw_ptr read_
 {
 	png_structp png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
 	if (png_ptr == NULL) {
-		goto exit_error;
+		goto error_create_read;
 	}
 
 	png_infop info_ptr = png_create_info_struct(png_ptr);
 	if (info_ptr == NULL) {
-		goto exit_destroy_read;
+		goto error_create_info;
 	}
 
 	png_bytep *row_ptrs = NULL;
@@ -37,7 +37,7 @@ static sf2d_texture *_sfil_load_PNG_generic(const void *io_ptr, png_rw_ptr read_
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)0);
 		if (row_ptrs != NULL)
 			free(row_ptrs);
-		goto exit_error;
+		return NULL;
 	}
 
 	png_set_read_fn(png_ptr, (png_voidp)io_ptr, read_data_fn);
@@ -57,8 +57,16 @@ static sf2d_texture *_sfil_load_PNG_generic(const void *io_ptr, png_rw_ptr read_
 			png_set_expand(png_ptr);
 	}
 
+	if (bit_depth == 16)
+		png_set_scale_16(png_ptr);
+
 	if (bit_depth == 8 && color_type == PNG_COLOR_TYPE_RGB)
 		png_set_filler(png_ptr, 0xFF, PNG_FILLER_AFTER);
+
+	if (color_type == PNG_COLOR_TYPE_GRAY ||
+	    color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+		png_set_gray_to_rgb(png_ptr);
+
 
 	if (color_type == PNG_COLOR_TYPE_PALETTE) {
 		png_set_palette_to_rgb(png_ptr);
@@ -77,9 +85,15 @@ static sf2d_texture *_sfil_load_PNG_generic(const void *io_ptr, png_rw_ptr read_
 	png_read_update_info(png_ptr, info_ptr);
 
 	row_ptrs = (png_bytep *)malloc(sizeof(png_bytep) * height);
+	if (!row_ptrs)
+		goto error_alloc_rows;
+
 	sf2d_texture *texture = sf2d_create_texture(width, height, GPU_RGBA8, place);
+	if (!texture)
+		goto error_create_tex;
 
 	int stride = texture->pow2_w * 4;
+
 	int i;
 	for (i = 0; i < height; i++) {
 		row_ptrs[i] = (png_bytep)(texture->data + i*stride);
@@ -93,9 +107,13 @@ static sf2d_texture *_sfil_load_PNG_generic(const void *io_ptr, png_rw_ptr read_
 	sf2d_texture_tile32(texture);
 	return texture;
 
-exit_destroy_read:
+error_create_tex:
+	free(row_ptrs);
+error_alloc_rows:
+	png_destroy_info_struct(png_ptr, &info_ptr);
+error_create_info:
 	png_destroy_read_struct(&png_ptr, (png_infopp)0, (png_infopp)0);
-exit_error:
+error_create_read:
 	return NULL;
 }
 

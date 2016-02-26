@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
 int currentR = 0xFF;
 int currentG = 0xFF;
@@ -330,7 +330,9 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			rad = luaL_optnumber(L, 5, 0);
 			sx = luaL_optnumber(L, 6, 0);
 			sy = luaL_optnumber(L, 7, 0);
-
+            ox = luaL_optnumber(L, 8, 0);
+            oy = luaL_optnumber(L, 9, 0);
+            
 		} else {
 
 			x = luaL_optnumber(L, 2, 0);
@@ -340,11 +342,17 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			sy = luaL_optnumber(L, 6, 0);
 			ox = luaL_optnumber(L, 7, 0);
 			oy = luaL_optnumber(L, 8, 0);
+<<<<<<< HEAD
 			
 			x -= ox;
 			y -= oy;
+=======
+            
+>>>>>>> upstream/master
 		}
 
+        x -= ox;
+        y -= oy;
 		translateCoords(&x, &y);
 
 		if (!spritebatch) {

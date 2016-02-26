@@ -20,13 +20,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "../shared.h"
+#include <shared.h>
 
 bool soundEnabled;
 
 static int audioStop(lua_State *L) { // love.audio.stop()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	for (int i = 0; i <= 23; i++) {
 		ndspChnWaveBufClear(i);

@@ -26,15 +26,28 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
+
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 DATA		:=	data
-INCLUDES	:=	include source/libs/tremor
+INCLUDES	:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor source/libs/sf2dlib/include source/libs/sftdlib/include source/libs/sfillib/include
 
 APP_TITLE	:=	LovePotion
 APP_AUTHOR	:=	Ruairidh 'VideahGams' Carmichael
 APP_DESCRIPTION	:=	Implementation of the LOVE framework for 3DS.
+
+ICON := meta/icon.png
+BANNER := meta/banner.png
+JINGLE := meta/jingle.wav
+
+# CIA Options
+
+APP_PRODUCT_CODE := CTR-P-LP
+APP_UNIQUE_ID := 0x1043
+APP_SYSTEM_MODE := 64MB
+APP_SYSTEM_MODE_EXT := Legacy
+APP_ROMFS_DIR := $(TOPDIR)/game
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -53,6 +66,8 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS	:= -lsfil -lpng -ljpeg -lz -lsf2d -lctru -lm -lsftd -lfreetype -logg
+
+UNAME := $(shell uname)
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -124,6 +139,7 @@ endif
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
+
 all: $(BUILD)
 
 $(BUILD):
@@ -151,7 +167,7 @@ build-all:
 
 #---------------------------------------------------------------------------------
 clean:
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT)-stripped.elf $(OUTPUT).bin $(OUTPUT).3ds $(OUTPUT).cia icon.bin banner.bin
 
 clean-sf2dlib:
 	@make -C source/libs/libsf2d clean
@@ -173,6 +189,14 @@ clean-all:
 	@make clean
 
 #---------------------------------------------------------------------------------
+install:
+	@$(TOPDIR)/tools/ftp-copy
+
+#---------------------------------------------------------------------------------
+banner:
+	@$(TOPDIR)/tools/bannertool
+
+#---------------------------------------------------------------------------------
 else
 
 DEPENDS	:=	$(OFILES:.o=.d)
@@ -181,9 +205,31 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(NO_SMDH)),)
-$(OUTPUT).3dsx	:	$(OUTPUT).smdh
+$(OUTPUT).3dsx	:	$(OUTPUT).smdh icon.bin banner.bin $(OUTPUT).elf $(OUTPUT)-stripped.elf $(OUTPUT).bin $(OUTPUT).3ds $(OUTPUT).cia
 else
-$(OUTPUT).3dsx	:
+$(OUTPUT).3dsx	:	icon.bin banner.bin $(OUTPUT).elf $(OUTPUT)-stripped.elf $(OUTPUT).bin $(OUTPUT).3ds $(OUTPUT).cia
+endif
+
+#---------------------------------------------------------------------------------
+icon.bin	:	
+#---------------------------------------------------------------------------------
+ifeq ($(UNAME), Linux)
+	@$(TOPDIR)/tools/linux/bannertool makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+else ifeq ($(UNAME), Darwin)
+	@$(TOPDIR)/tools/osx/bannertool makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+else
+	@$(TOPDIR)/tools/windows/bannertool.exe makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+endif
+
+#---------------------------------------------------------------------------------
+banner.bin	:	
+#---------------------------------------------------------------------------------
+ifeq ($(UNAME), Linux)
+	@$(TOPDIR)/tools/linux/bannertool makebanner -i $(TOPDIR)/$(BANNER) -a $(TOPDIR)/$(JINGLE) -o $(TOPDIR)/banner.bin
+else ifeq ($(UNAME), Darwin)
+	@$(TOPDIR)/tools/osx/bannertool makebanner -i $(TOPDIR)/$(BANNER) -a $(TOPDIR)/$(JINGLE) -o $(TOPDIR)/banner.bin
+else
+	@$(TOPDIR)/tools/windows/bannertool.exe makebanner -i $(TOPDIR)/$(BANNER) -a $(TOPDIR)/$(JINGLE) -o $(TOPDIR)/banner.bin
 endif
 
 #---------------------------------------------------------------------------------
@@ -191,10 +237,47 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------------
-$(OUTPUT)stripped.elf : $(OUTPUT).elf
+$(OUTPUT)-stripped.elf : $(OUTPUT).elf
 #---------------------------------------------------------------------------------
-	cp -f $(OUTPUT).elf $(OUTPUT)stripped.elf
-	@arm-none-eabi-strip $(OUTPUT)stripped.elf
+	@cp -f $(OUTPUT).elf $(OUTPUT)-stripped.elf
+	@arm-none-eabi-strip $(OUTPUT)-stripped.elf
+
+#---------------------------------------------------------------------------------
+$(OUTPUT).bin	:	
+#---------------------------------------------------------------------------------
+ifeq ($(UNAME), Linux)
+	@$(TOPDIR)/tools/linux/3dstool -cvtf romfs $(OUTPUT).bin --romfs-dir $(TOPDIR)/game
+else ifeq ($(UNAME), Darwin)
+	@$(TOPDIR)/tools/osx/3dstool -cvtf romfs $(OUTPUT).bin --romfs-dir $(TOPDIR)/game
+else
+	@$(TOPDIR)/tools/windows/3dstool.exe -cvtf romfs $(OUTPUT).bin --romfs-dir $(TOPDIR)/game
+endif
+	@echo RomFS packaged ...
+
+#---------------------------------------------------------------------------------
+$(OUTPUT).3ds	:	$(OUTPUT)-stripped.elf $(OUTPUT).bin icon.bin banner.bin
+#---------------------------------------------------------------------------------
+ifeq ($(UNAME), Linux)
+	@$(TOPDIR)/tools/linux/makerom -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+else ifeq ($(UNAME), Darwin)
+	@$(TOPDIR)/tools/osx/makerom -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t -romfs "$(OUTPUT).bin"
+else
+	@$(TOPDIR)/tools/windows/makerom.exe -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+endif
+	@echo 3DS packaged ...
+
+#---------------------------------------------------------------------------------
+$(OUTPUT).cia	:	$(OUTPUT)-stripped.elf $(OUTPUT).bin icon.bin banner.bin
+#---------------------------------------------------------------------------------
+ifeq ($(UNAME), Linux)
+	@$(TOPDIR)/tools/linux/makerom -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+else ifeq ($(UNAME), Darwin)
+	@$(TOPDIR)/tools/osx/makerom -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t -romfs "$(OUTPUT).bin"
+else
+	@$(TOPDIR)/tools/windows/makerom.exe -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+endif
+	@echo CIA packaged ...
+
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
@@ -205,7 +288,7 @@ $(OUTPUT)stripped.elf : $(OUTPUT).elf
 	@$(bin2o)
 
 #---------------------------------------------------------------------------------
-%.jpeg.o:	%.jpeg
+%.jpeg.o :	%.jpeg
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
