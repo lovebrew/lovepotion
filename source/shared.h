@@ -118,9 +118,14 @@ typedef struct {
 
 typedef struct {
 	love_image * resource;
+
 	int maxImages;
 	int currentImage;
-	u32 * elements;
+
+	sf2d_texture * texture;
+
+	int width;
+	int height;
 } love_spritebatch;
 
 extern lua_State *L;

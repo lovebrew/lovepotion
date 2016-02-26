@@ -105,6 +105,58 @@ void sf2d_free_texture(sf2d_texture *texture)
 	}
 }
 
+void sf2d_write_texture_part(sf2d_texture* source, sf2d_texture* destination, int x, int y, int tex_x, int tex_y, int tex_w, int tex_h)
+{
+    if (!destination->tiled)
+    {
+        sf2d_texture_tile32(destination);
+        destination->tiled = true;
+    }
+
+    s32 out_a, out_r, out_g, out_b;
+    s32 src_r, src_g, src_b, src_a;
+    s32 dst_r, dst_g, dst_b, dst_a;
+    u32 sourcePixel;
+    u32 destinationPixel;
+
+    for (int h = tex_y; h < tex_y + tex_h; ++h)
+    {
+        for (int w = tex_x; w < tex_x + tex_w; ++w)
+        {
+            if (x + (w - tex_x) < destination->width && y + (h - tex_y) < destination->height)
+            {
+
+                destinationPixel = sf2d_get_pixel(destination, x + (w - tex_x), y + (h - tex_y));
+                sourcePixel = sf2d_get_pixel(source, w, h);
+
+                src_a = sourcePixel & 0xFF;
+                dst_a = destinationPixel & 0xFF;
+
+                src_r = (sourcePixel & 0xFF000000) >> 24;
+                src_g = (sourcePixel & 0x00FF0000) >> 16;
+                src_b = (sourcePixel & 0x0000FF00) >> 8;
+
+                dst_r = (destinationPixel & 0xFF000000) >> 24;
+                dst_g = (destinationPixel & 0x00FF0000) >> 16;
+                dst_b = (destinationPixel & 0x0000FF00) >> 8;
+
+                out_a = src_a + ((dst_a * (255 - src_a)) / 255);
+                out_r = ((src_r * src_a) + ((dst_r * dst_a * (255 - src_a)) / 255)) / out_a;
+                out_g = ((src_g * src_a) + ((dst_g * dst_a * (255 - src_a)) / 255)) / out_a;
+                out_b = ((src_b * src_a) + ((dst_b * dst_a * (255 - src_a)) / 255)) / out_a;
+
+                if (out_a > 255) out_a = 255;
+                if (out_r > 255) out_r = 255;
+                if (out_g > 255) out_g = 255;
+                if (out_b > 255) out_b = 255;
+
+                sf2d_set_pixel(destination, x + (w - tex_x), y + (h - tex_y), (out_r << 24) | (out_g << 16) | (out_b << 8) | out_a);
+
+            }
+        }
+    }
+}
+
 void sf2d_fill_texture_from_RGBA8(sf2d_texture *dst, const void *rgba8, int source_w, int source_h)
 {
 	// TODO: add support for non-RGBA8 textures

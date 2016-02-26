@@ -37,6 +37,7 @@ char *errMsg;
 void displayError() {
 
 	errMsg = lua_tostring(L, -1);
+
 	errorOccured = true;
 	printf("\e[0;31m%s\e[0m",errMsg);
 
@@ -53,11 +54,7 @@ int main() {
 	cfguInit();
 	ptmuInit();
 
-<<<<<<< HEAD
 	consoleInit(GFX_BOTTOM, NULL);
-=======
-	// consoleInit(GFX_BOTTOM, NULL);
->>>>>>> upstream/master
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
@@ -116,7 +113,6 @@ int main() {
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
-	printf("Linear Space Total: %d\n", linearSpaceFree());
 	while (aptMainLoop()) {
 
 		if (shouldQuit) {
@@ -153,9 +149,9 @@ int main() {
 			}
 
 			//Update sources that stream or something
-			for (int i = 0; i < streamCount; i++) {
-				sourceUpdate(streams[i]);
-			}
+			//for (int i = 0; i < streamCount; i++) {
+			//	sourceUpdate(L, streams[i]);
+			//}
 
 			// Top screen
 			// Left side

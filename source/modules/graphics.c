@@ -285,39 +285,37 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		love_image *img;// = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-		love_quad *quad = NULL;
-		love_spritebatch *spritebatch = NULL;
+		love_image * img = NULL;// = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+		love_quad * quad = NULL;
+		love_spritebatch * spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
 
 		int x, y;
 		int sx, sy;
 		int ox, oy;
 		float rad;
+
 		int quadX = 0;
 		int quadY = 0;
 
 		int quadWidth;
 		int quadHeight;
 
-		spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
-
-		if (!img) {
-
-			
-
-			//printf("Spritebatch found!\n");
-
-		} else {
+		if (img) {
 
 			quadWidth = img->texture->width;
 			quadHeight = img->texture->height;
 
-			//printf("Image found!\n");
+		} else {
+
+			quadWidth = spritebatch->width;
+			quadHeight = spritebatch->height;
+
 		}
 
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
 
 			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+
 			if (quad) {
 				quadX = quad->x;
 				quadY = quad->y;
@@ -342,17 +340,12 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			sy = luaL_optnumber(L, 6, 0);
 			ox = luaL_optnumber(L, 7, 0);
 			oy = luaL_optnumber(L, 8, 0);
-<<<<<<< HEAD
-			
-			x -= ox;
-			y -= oy;
-=======
-            
->>>>>>> upstream/master
+
 		}
 
-        x -= ox;
-        y -= oy;
+		x -= ox;
+		y -= oy;
+
 		translateCoords(&x, &y);
 
 		if (!spritebatch) {
@@ -361,15 +354,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		} else {
 
-			sf2d_bind_texture_color(spritebatch->resource, GPU_TEXUNIT0, getCurrentColor());
+			sf2d_draw_texture_part_rotate_scale_blend(spritebatch->texture, x, y, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
 
-			//for (int i = 0; i < spritebatch->currentImage; i++) {
-
-				GPU_DrawElements(GPU_TRIANGLES, spritebatch->elements, 4);
-
-			//}
-			
-		
 		}
 
 	}

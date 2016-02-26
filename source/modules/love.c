@@ -47,11 +47,8 @@ int initFontClass(lua_State *L);
 int initSourceClass(lua_State *L);
 int initFileClass(lua_State *L);
 int initQuadClass(lua_State *L);
-<<<<<<< HEAD
 int initSpriteBatchClass(lua_State *L);
-=======
 int initJoystickClass(lua_State *L);
->>>>>>> upstream/master
 
 int initLove(lua_State *L) {
 
@@ -65,11 +62,8 @@ int initLove(lua_State *L) {
 		initSourceClass,
 		initQuadClass,
 		initFileClass,
-<<<<<<< HEAD
 		initSpriteBatchClass,
-=======
         initJoystickClass,
->>>>>>> upstream/master
 		NULL,
 	};
 

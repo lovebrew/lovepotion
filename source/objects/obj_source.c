@@ -296,7 +296,7 @@ void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, int sourc
 	}
 }
 
-void sourceUpdate(love_source *source) {
+void sourceUpdate(lua_State * L, love_source *source) {
 	if (!soundEnabled) luaError(L, "Could not initialize audio");
 
 	love_source *self = source;
@@ -317,40 +317,7 @@ void sourceUpdate(love_source *source) {
 
 	fillBuffer(&self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
 
-	sourcePlayBuffer(self);
-}
-
-int sourcePlayBuffer(love_source * source) { // source:play() (called internally :( )
-
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
-
-	love_source *self = source;
-
-	if (self->audiochannel == -1) {
-		luaError(L, "No available audio channel");
-		return;
-	}
-
-	ndspChnWaveBufClear(self->audiochannel);
-	ndspChnReset(self->audiochannel);
-	ndspChnInitParams(self->audiochannel);
-	ndspChnSetMix(self->audiochannel, self->mix);
-	ndspChnSetInterp(self->audiochannel, self->interp);
-	ndspChnSetRate(self->audiochannel, self->rate);
-	ndspChnSetFormat(self->audiochannel, NDSP_CHANNELS(self->channels) | NDSP_ENCODING(self->encoding));
-
-	ndspWaveBuf* waveBuf = calloc(1, sizeof(ndspWaveBuf));
-
-	waveBuf->data_vaddr = self->data;
-	waveBuf->nsamples = self->nsamples;
-	waveBuf->looping = self->loop;
-
-	DSP_FlushDataCache((u32*)self->data, self->size);
-
-	ndspChnWaveBufAdd(self->audiochannel, waveBuf);
-
-	return 0;
-
+//	sourcePlayBuffer(self);
 }
 
 int sourceNew(lua_State *L) { // love.audio.newSource()

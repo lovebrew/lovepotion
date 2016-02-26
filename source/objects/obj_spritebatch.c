@@ -37,9 +37,10 @@ const char * spriteBatchInit(love_spritebatch * self, love_image * image, int ma
 
 	self->maxImages = maxImages;
 
-	self->elements[maxImages];
-
 	self->currentImage = 0;
+
+	self->width = 0;
+	self->height = 0;
 
 	return NULL;
 
@@ -67,36 +68,50 @@ int spriteBatchAdd(lua_State * L) { //Spritebatch:add()
 
 	love_spritebatch * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	if (self->currentImage < self->maxImages) {
-		int x = luaL_checkinteger(L, 2);
-
-		int y = luaL_checkinteger(L, 3);
-
-		sf2d_vertex_pos_tex *vertices = sf2d_pool_memalign(4 * sizeof(sf2d_vertex_pos_tex), 8);
-		if (!vertices) return;
-
-		int w = self->resource->texture->width;
-		int h = self->resource->texture->height;
-
-		vertices[0].position = (sf2d_vector_3f){(float)x,   (float)y,   SF2D_DEFAULT_DEPTH};
-		vertices[1].position = (sf2d_vector_3f){(float)x+w, (float)y,   SF2D_DEFAULT_DEPTH};
-		vertices[2].position = (sf2d_vector_3f){(float)x,   (float)y+h, SF2D_DEFAULT_DEPTH};
-		vertices[3].position = (sf2d_vector_3f){(float)x+w, (float)y+h, SF2D_DEFAULT_DEPTH};
-
-		float u = self->resource->texture->width/(float)self->resource->texture->pow2_w;
-		float v = self->resource->texture->height/(float)self->resource->texture->pow2_h;
-
-		vertices[0].texcoord = (sf2d_vector_2f){0.0f, 0.0f};
-		vertices[1].texcoord = (sf2d_vector_2f){u,    0.0f};
-		vertices[2].texcoord = (sf2d_vector_2f){0.0f, v};
-		vertices[3].texcoord = (sf2d_vector_2f){u,    v};
-
-		self->elements[self->currentImage] = vertices;
-
-		self->currentImage++;
-
-		printf("Added resource to Spritebatch..\n");
+	if (self->currentImage >= self->maxImages) {
+		return 1;
 	}
+
+	int x;
+
+	int y;
+
+	love_image * src = self->resource;
+	
+	int quadX = 0;
+	int quadY = 0;
+	int quadWidth = src->texture->width;
+	int quadHeight = src->texture->height;
+
+	if (lua_type(L, 2) != LUA_TNUMBER) {
+		love_quad * quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+
+		quadX = quad->x;
+		quadY = quad->y;
+
+		quadWidth = quad->width;
+		quadHeight = quad->height;
+
+		x = luaL_checkinteger(L, 3);
+
+		y = luaL_checkinteger(L, 4);
+	} else {
+		x = luaL_checkinteger(L, 2);
+
+		y = luaL_checkinteger(L, 3);
+	}
+
+	if (x >= self->width) {
+		self->width = x + src->texture->width;
+	} else if (y >= self->height) {
+		self->height = y + src->texture->height;
+	}
+
+	//printf("Adding to batch: #%d {%dx%d @ %d, %d}\n", self->currentImage, self->width, self->height, x, y);
+
+	sf2d_write_texture_part(&src->texture, &self->texture, x, y, quadX, quadY, quadWidth, quadHeight);
+
+	self->currentImage++;
 
 	lua_pushnumber(L, self->currentImage);
 		
