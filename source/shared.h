@@ -89,7 +89,9 @@ typedef struct {
 	bool loop;
 	int audiochannel;
 
-	const char * loadingtype;
+	bool stream;
+
+	const char * filename;
 
 	char streamData[8];
 	u32 offset;

@@ -75,6 +75,8 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 
 			if (file) {
 
+				self->filename = filename;
+
 				bool valid = true;
 
 				char buff[8];
@@ -152,12 +154,9 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 
 				if ( self->stream )
 				{
-					for (int i = 0; i < 8; i++)
-					{
-						fillBuffer(self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
-					}
+					fillBuffer(&self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
 
-					streams[streamCount] = self;
+					streams[streamCount] = * self;
 					streamCount++;
 
 					return NULL;
@@ -284,17 +283,20 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 }
 
 //Data of the source to play, offset of the source position, size of the samples per buffer, file, type (wav/ogg)
-void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, const char * sourceType) {
-	if ( strncmp(sourceType, "wav", 3) )
-	{
-		fread(audioBuffer, size, offset + size, file)
+void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, int sourceType) {
+	if ( sourceType == TYPE_WAV ) {
+		for (int i = 0; i < 8; i++) {
+			fread(audioBuffer[i], size, size - offset, file);
+		
+			offset += size;
+
+			printf("Offset: %d\n", offset);
+			printf("Offset - size: %d\n", offset - size);
+		}
 	}
-	
-	self->offset += size;
 }
 
-void sourceUpdate(love_source *source)
-{
+void sourceUpdate(love_source *source) {
 	if (!soundEnabled) luaError(L, "Could not initialize audio");
 
 	love_source *self = source;
@@ -305,15 +307,50 @@ void sourceUpdate(love_source *source)
 
 	u32 position = ndspChnGetWaveBufSeq(self->audiochannel);
 
-	if (position == waveBufferPosition || position == 0) {
+	if (position == self->waveBufferPosition || position == 0) {
 		return;
 	}
 
 	self->waveBufferPosition = position;
 
-	for (int i = 0; i < 8; i++) {
-		fillBuffer(self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
+	FILE * file = fopen(self->filename, "rb");
+
+	fillBuffer(&self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
+
+	sourcePlayBuffer(self);
+}
+
+int sourcePlayBuffer(love_source * source) { // source:play() (called internally :( )
+
+	if (!soundEnabled) luaError(L, "Could not initialize audio");
+
+	love_source *self = source;
+
+	if (self->audiochannel == -1) {
+		luaError(L, "No available audio channel");
+		return;
 	}
+
+	ndspChnWaveBufClear(self->audiochannel);
+	ndspChnReset(self->audiochannel);
+	ndspChnInitParams(self->audiochannel);
+	ndspChnSetMix(self->audiochannel, self->mix);
+	ndspChnSetInterp(self->audiochannel, self->interp);
+	ndspChnSetRate(self->audiochannel, self->rate);
+	ndspChnSetFormat(self->audiochannel, NDSP_CHANNELS(self->channels) | NDSP_ENCODING(self->encoding));
+
+	ndspWaveBuf* waveBuf = calloc(1, sizeof(ndspWaveBuf));
+
+	waveBuf->data_vaddr = self->data;
+	waveBuf->nsamples = self->nsamples;
+	waveBuf->looping = self->loop;
+
+	DSP_FlushDataCache((u32*)self->data, self->size);
+
+	ndspChnWaveBufAdd(self->audiochannel, waveBuf);
+
+	return 0;
+
 }
 
 int sourceNew(lua_State *L) { // love.audio.newSource()
