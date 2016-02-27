@@ -307,8 +307,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		} else {
 
-			quadWidth = spritebatch->width;
-			quadHeight = spritebatch->height;
+			quadWidth = spritebatch->resource->texture->width;
+			quadHeight = spritebatch->resource->texture->height;
 
 		}
 
@@ -354,7 +354,15 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		} else {
 
-			sf2d_draw_texture_part_rotate_scale_blend(spritebatch->texture, x, y, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
+			if (!quad) {
+
+				for (int i = 0; i < spritebatch->currentImage; i++) {
+
+					sf2d_draw_texture_part_rotate_scale_blend(spritebatch->resource, x + spritebatch->points[i].x, y + spritebatch->points[i].y, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
+
+				}
+
+			}
 
 		}
 

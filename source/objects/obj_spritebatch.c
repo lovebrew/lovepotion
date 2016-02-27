@@ -39,9 +39,6 @@ const char * spriteBatchInit(love_spritebatch * self, love_image * image, int ma
 
 	self->currentImage = 0;
 
-	self->width = 0;
-	self->height = 0;
-
 	return NULL;
 
 }
@@ -73,24 +70,13 @@ int spriteBatchAdd(lua_State * L) { //Spritebatch:add()
 	}
 
 	int x;
-
 	int y;
 
 	love_image * src = self->resource;
-	
-	int quadX = 0;
-	int quadY = 0;
-	int quadWidth = src->texture->width;
-	int quadHeight = src->texture->height;
+	love_quad * quad = NULL;
 
 	if (lua_type(L, 2) != LUA_TNUMBER) {
-		love_quad * quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
-
-		quadX = quad->x;
-		quadY = quad->y;
-
-		quadWidth = quad->width;
-		quadHeight = quad->height;
+		quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
 
 		x = luaL_checkinteger(L, 3);
 
@@ -101,17 +87,12 @@ int spriteBatchAdd(lua_State * L) { //Spritebatch:add()
 		y = luaL_checkinteger(L, 3);
 	}
 
-	if (x >= self->width) {
-		self->width = x + src->texture->width;
-	} else if (y >= self->height) {
-		self->height = y + src->texture->height;
-	}
-
-	//printf("Adding to batch: #%d {%dx%d @ %d, %d}\n", self->currentImage, self->width, self->height, x, y);
-
-	sf2d_write_texture_part(&src->texture, &self->texture, x, y, quadX, quadY, quadWidth, quadHeight);
+	self->points[self->currentImage].x = x;
+	self->points[self->currentImage].y = y;
 
 	self->currentImage++;
+
+	//printf("Adding to batch: #%d {(%d, %d) - %d, %d}\n", self->currentImage, x, y, self->points[self->currentImage].x, self->points[self->currentImage].y);
 
 	lua_pushnumber(L, self->currentImage);
 		

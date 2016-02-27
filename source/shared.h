@@ -117,15 +117,19 @@ typedef struct {
 } love_quad;
 
 typedef struct {
+	int x;
+	int y;
+} spritebatch_point;
+
+typedef struct {
 	love_image * resource;
 
 	int maxImages;
 	int currentImage;
 
-	sf2d_texture * texture;
+	love_quad * quads;
 
-	int width;
-	int height;
+	spritebatch_point * points;
 } love_spritebatch;
 
 extern lua_State *L;
