@@ -169,31 +169,92 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 }
 
-static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
+static int graphicsLine(lua_State *L) { // love.graphics.line()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
 		int argc = lua_gettop(L);
-		int i = 0;
 
-		if ((argc/2)*2 == argc) {
-			for( i; i < argc / 2; i++) {
+        //Table version
+        if( argc == 1 ) {
 
-				int t = i * 4;
+            lua_settop(L, 1); //Remove redundant args (This in itself may be redundant)
+            luaL_checktype(L, 1, LUA_TTABLE);
+            int tableLen = lua_objlen(L, 1);
 
-				int x1 = luaL_checkinteger(L, t + 1);
-				int y1 = luaL_checkinteger(L, t + 2);
-				int x2 = luaL_checkinteger(L, t + 3);
-				int y2 = luaL_checkinteger(L, t + 4);
+            if( tableLen >= 4 ) {
 
-				translateCoords(&x1, &y1);
-				translateCoords(&x2, &y2);
+                if( tableLen % 2 == 0 ) {
 
-				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
+                    int x, y, px, py = 0;
+                    lua_pushnil(L);
+
+                    for(int i = 0; i < tableLen; i+=2 )
+                    {
+                        px = x;
+                        py = y;
+
+                        lua_rawgeti(L, 1, i+1);
+                        x = luaL_checknumber(L, -1);
+                        lua_pop(L, 1);
+
+                        lua_rawgeti(L, 1, i+2);
+                        y = luaL_checknumber(L, -1);
+                        lua_pop(L, 1);
+
+                        if( i >= 2 ) {
+
+                            sf2d_draw_line(x, y, px, py, getCurrentColor());
 
 			}
 		}
 
+	}
+                else {
+
+                    luaL_error(L, "(T)Number of vertex components must be a multiple of two");
+
+                }
+
+            } else {
+
+                luaL_error(L, "(T)Need at least two vertices to draw a line");
+
+            }
+
+
+        }
+
+        //Argument list version
+        else if( argc >= 4 ) {
+
+            if( argc % 2 == 0 ) {
+
+                int x, y, px, py = 0;
+
+                for( int i=0; i < argc; i+=2 )
+                {
+                    px = x;
+                    py = y;
+
+                    x = luaL_checknumber(L, i + 1);
+                    y = luaL_checknumber(L, i + 2);
+
+                    if( i >= 2 )
+                        sf2d_draw_line(x, y, px, py, getCurrentColor());
+                }
+
+            } else {
+
+                luaL_error(L, "Number of vertex components must be a multiple of two");
+
+            }
+
+        } else {
+
+            luaL_error(L, "Need at least two vertices to draw a line");
+
+        }
 	}
 
 	return 0;
