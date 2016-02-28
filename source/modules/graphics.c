@@ -77,9 +77,29 @@ int translateCoords(int *x, int *y) {
 
 static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgroundColor()
 
-	int r = luaL_checkinteger(L, 1);
-	int g = luaL_checkinteger(L, 2);
-	int b = luaL_checkinteger(L, 3);
+	int r, g, b;
+
+	if (lua_isnumber(L, -1)) {
+
+		r = luaL_checkinteger(L, 1);
+		g = luaL_checkinteger(L, 2);
+		b = luaL_checkinteger(L, 3);
+
+	} else if (lua_istable(L, -1)) {
+
+		for (int i = 1; i <= 4; i++) {
+
+			lua_rawgeti(L, 1, i);
+
+		}
+
+		r = luaL_checkinteger(L, -4);
+		g = luaL_checkinteger(L, -3);
+		b = luaL_checkinteger(L, -2);
+
+	}
+
+
 
 	sf2d_set_clear_color(RGBA8(r, g, b, 0xFF));
 
@@ -98,7 +118,16 @@ static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 
 	} else if (lua_istable(L, -1)) {
 
-		luaError(L, "Table support for setColor is not implemented yet. Use unpack(insertTableHere) until it is.");
+		for (int i = 1; i <= 4; i++) {
+
+			lua_rawgeti(L, 1, i);
+
+		}
+
+		currentR = luaL_checkinteger(L, -4);
+		currentG = luaL_checkinteger(L, -3);
+		currentB = luaL_checkinteger(L, -2);
+		currentA = luaL_optnumber(L, -1, currentA);
 
 	}
 
@@ -643,7 +672,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "get3D",				graphicsGet3D				},
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
-		{ "setScissor",			graphicsScissor				},
+		{ "scissor",			graphicsScissor				},
 		{ "newSpriteBatch",		spriteBatchNew				},
 		// { "setLineWidth",		graphicsSetLineWidth		},
 		// { "getLineWidth",		graphicsGetLineWidth		},

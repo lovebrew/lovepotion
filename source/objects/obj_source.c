@@ -317,7 +317,9 @@ void sourceUpdate(lua_State * L, love_source *source) {
 
 	fillBuffer(&self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
 
-//	sourcePlayBuffer(self);
+	lua_pushuserdata(self);
+
+	sourcePlay(L);
 }
 
 int sourceNew(lua_State *L) { // love.audio.newSource()
