@@ -320,7 +320,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 	if (sf2d_get_current_screen() == currentScreen) {
 		love_image * img = NULL;// = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 		love_quad * quad = NULL;
-		love_spritebatch * spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
+		love_spritebatch * spritebatch = NULL;
 
 		int x, y;
 		int sx, sy;
@@ -336,6 +336,15 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		int width;
 		int height;
 
+ 		int index = lua_absindex(L, 1);
+  		luaobj_head_t *udata = lua_touserdata(L, index);
+
+		if (udata->type & LUAOBJ_TYPE_IMAGE) {
+			img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+		} else if (udata->type & LUAOBJ_TYPE_SPRITEBATCH) {
+			spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
+		}
+
 		if (img) {
 
 			quadX = 0;
@@ -346,7 +355,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			width = quadWidth;
 			height = quadHeight;
 
-		} else {
+		} else if (spritebatch) {
 
 			quadX = 0;
 			quadY = 0;
@@ -394,7 +403,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		translateCoords(&x, &y);
 
-		if (!spritebatch) {
+		if (!spritebatch && img) {
 
 			sf2d_draw_texture_part_rotate_scale_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
 
