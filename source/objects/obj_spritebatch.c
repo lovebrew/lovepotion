@@ -39,6 +39,9 @@ const char * spriteBatchInit(love_spritebatch * self, love_image * image, int ma
 
 	self->currentImage = 0;
 
+	self->points = calloc(maxImages, sizeof(spritebatch_point));
+	self->quads = calloc(maxImages, sizeof(love_quad));
+
 	return NULL;
 
 }
@@ -72,16 +75,23 @@ int spriteBatchAdd(lua_State * L) { //Spritebatch:add()
 	int x;
 	int y;
 
-	love_image * src = self->resource;
-	love_quad * quad = NULL;
-
 	if (lua_type(L, 2) != LUA_TNUMBER) {
-		quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+		love_quad * src = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
 
 		x = luaL_checkinteger(L, 3);
 
 		y = luaL_checkinteger(L, 4);
+
+		self->quads[self->currentImage].x = src->x;
+		self->quads[self->currentImage].y = src->y;
+		self->quads[self->currentImage].width = src->width;
+		self->quads[self->currentImage].height = src->height;
 	} else {
+		self->quads[self->currentImage].x = 0;
+		self->quads[self->currentImage].y = 0;
+		self->quads[self->currentImage].width = self->resource->texture->width;
+		self->quads[self->currentImage].height = self->resource->texture->height;
+
 		x = luaL_checkinteger(L, 2);
 
 		y = luaL_checkinteger(L, 3);
@@ -91,8 +101,6 @@ int spriteBatchAdd(lua_State * L) { //Spritebatch:add()
 	self->points[self->currentImage].y = y;
 
 	self->currentImage++;
-
-	//printf("Adding to batch: #%d {(%d, %d) - %d, %d}\n", self->currentImage, x, y, self->points[self->currentImage].x, self->points[self->currentImage].y);
 
 	lua_pushnumber(L, self->currentImage);
 		

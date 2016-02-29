@@ -42,9 +42,13 @@ int getOpenChannel() {
 
 const char *sourceInit(love_source *self, const char *filename, const char *loadingtype) {
 
-	self->stream = ( strncmp(loadingtype, "stream", 6) == 0 ) ? true : false;
+	if ( strncmp(loadingtype, "stream", 6) == 0 ) {
+		self->stream = true;
+	} else {
+		self->stream = false;
+	}
 
-	self->offset = 1;
+	self->offset = 0;
 
 	self->waveBufferPosition = 0;
 
@@ -152,16 +156,6 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 				self->audiochannel = getOpenChannel();
 				self->loop = false;
 
-				if ( self->stream )
-				{
-					fillBuffer(&self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
-
-					streams[streamCount] = * self;
-					streamCount++;
-
-					return NULL;
-				}
-
 				// Read data
 				if (linearSpaceFree() < self->size) return "not enough linear memory available";
 				self->data = linearAlloc(self->size);
@@ -212,11 +206,6 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 				self->audiochannel = getOpenChannel();
 
 				self->loop = false;
-
-				/*if ( strncmp(self->loadingtype, "stream", 6) == 0 )
-				{
-					return NULL;
-				}*/
 
 				if (linearSpaceFree() < self->size) {
 
@@ -283,15 +272,15 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 }
 
 //Data of the source to play, offset of the source position, size of the samples per buffer, file, type (wav/ogg)
-void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, int sourceType) {
+void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, int sourceType, u32 sourceSize) {
+	printf("Source Type: %d\n", sourceType);
 	if ( sourceType == TYPE_WAV ) {
 		for (int i = 0; i < 8; i++) {
-			fread(audioBuffer[i], size, size - offset, file);
+			fread(audioBuffer[i], size, sourceSize - offset, file);
 		
 			offset += size;
 
 			printf("Offset: %d\n", offset);
-			printf("Offset - size: %d\n", offset - size);
 		}
 	}
 }
@@ -315,9 +304,9 @@ void sourceUpdate(lua_State * L, love_source *source) {
 
 	FILE * file = fopen(self->filename, "rb");
 
-	fillBuffer(&self->data, &self->offset, SOURCEBUFFSAMPLES, file, self->type);
+	fillBuffer(self->data, self->offset, SOURCEBUFFSAMPLES, file, self->type, self->size);
 
-	lua_pushuserdata(self);
+	lua_pushlightuserdata(L, self);
 
 	sourcePlay(L);
 }

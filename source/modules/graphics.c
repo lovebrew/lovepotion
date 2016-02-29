@@ -27,6 +27,11 @@ int currentG = 0xFF;
 int currentB = 0xFF;
 int currentA = 0xFF;
 
+u32 currentScissorX;
+u32 currentScissorY;
+u32 currentScissorWidth;
+u32 currentScissorHeight;
+
 int currentScreen = GFX_BOTTOM;
 
 love_font *currentFont;
@@ -313,7 +318,6 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 	if (sf2d_get_current_screen() == currentScreen) {
-
 		love_image * img = NULL;// = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 		love_quad * quad = NULL;
 		love_spritebatch * spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
@@ -323,22 +327,35 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		int ox, oy;
 		float rad;
 
-		int quadX = 0;
-		int quadY = 0;
+		int quadX;
+		int quadY;
 
 		int quadWidth;
 		int quadHeight;
 
+		int width;
+		int height;
+
 		if (img) {
 
+			quadX = 0;
+			quadY = 0;
 			quadWidth = img->texture->width;
 			quadHeight = img->texture->height;
 
+			width = quadWidth;
+			height = quadHeight;
+
 		} else {
+
+			quadX = 0;
+			quadY = 0;
 
 			quadWidth = spritebatch->resource->texture->width;
 			quadHeight = spritebatch->resource->texture->height;
 
+			width = quadWidth;
+			height = quadHeight;
 		}
 
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
@@ -355,8 +372,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			x = luaL_optnumber(L, 3, 0);
 			y = luaL_optnumber(L, 4, 0);
 			rad = luaL_optnumber(L, 5, 0);
-			sx = luaL_optnumber(L, 6, 0);
-			sy = luaL_optnumber(L, 7, 0);
+			sx = luaL_optnumber(L, 6, 1);
+			sy = luaL_optnumber(L, 7, 1);
             ox = luaL_optnumber(L, 8, 0);
             oy = luaL_optnumber(L, 9, 0);
             
@@ -365,8 +382,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			x = luaL_optnumber(L, 2, 0);
 			y = luaL_optnumber(L, 3, 0);
 			rad = luaL_optnumber(L, 4, 0);
-			sx = luaL_optnumber(L, 5, 0);
-			sy = luaL_optnumber(L, 6, 0);
+			sx = luaL_optnumber(L, 5, 1);
+			sy = luaL_optnumber(L, 6, 1);
 			ox = luaL_optnumber(L, 7, 0);
 			oy = luaL_optnumber(L, 8, 0);
 
@@ -379,17 +396,13 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		if (!spritebatch) {
 
-			sf2d_draw_texture_part_rotate_scale_blend(img->texture, x, y, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
+			sf2d_draw_texture_part_rotate_scale_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
 
 		} else {
 
-			if (!quad) {
+			for (int i = 0; i < spritebatch->currentImage; i++) {
 
-				for (int i = 0; i < spritebatch->currentImage; i++) {
-
-					sf2d_draw_texture_part_rotate_scale_blend(spritebatch->resource, x + spritebatch->points[i].x, y + spritebatch->points[i].y, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
-
-				}
+				sf2d_draw_texture_part_rotate_scale_blend(spritebatch->resource->texture, x + spritebatch->points[i].x + spritebatch->quads[i].width / 2, y + spritebatch->points[i].y + spritebatch->quads[i].height / 2, rad, spritebatch->quads[i].x, spritebatch->quads[i].y, spritebatch->quads[i].width, spritebatch->quads[i].height, sx, sy, getCurrentColor());
 
 			}
 
@@ -407,16 +420,16 @@ static int graphicsScissor(lua_State *L) { //love.graphics.setScissor()
 
 		GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
 
-		u32 x = luaL_optnumber(L, 1, 0);
-		u32 y = luaL_optnumber(L, 2, 0);
-		u32 w = luaL_optnumber(L, 3, 0);
-		u32 h = luaL_optnumber(L, 4, 0);
-
-		if (!x && !y && !w && !h) {
+		if (!lua_isnone(L, 1)) {
+			currentScissorX = luaL_checkinteger(L, 1);
+			currentScissorY = luaL_checkinteger(L, 2);
+			currentScissorWidth = luaL_checkinteger(L, 3);
+			currentScissorHeight = luaL_checkinteger(L, 4);
+		} else {
 			mode = GPU_SCISSOR_DISABLE;
 		}
 
-		sf2d_set_scissor_test(mode, x, y, w, h);
+		sf2d_set_scissor_test(mode, currentScissorX, currentScissorY, currentScissorWidth, currentScissorHeight);
 		
 	}
 
@@ -672,7 +685,7 @@ int initLoveGraphics(lua_State *L) {
 		{ "get3D",				graphicsGet3D				},
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
-		{ "scissor",			graphicsScissor				},
+		{ "setScissor",			graphicsScissor				},
 		{ "newSpriteBatch",		spriteBatchNew				},
 		// { "setLineWidth",		graphicsSetLineWidth		},
 		// { "getLineWidth",		graphicsGetLineWidth		},

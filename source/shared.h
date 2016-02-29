@@ -128,6 +128,7 @@ typedef struct {
 	int currentImage;
 
 	love_quad * quads;
+	bool hasQuads;
 
 	spritebatch_point * points;
 } love_spritebatch;
