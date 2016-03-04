@@ -38,6 +38,7 @@ bool isPushed = false;
 bool is3D = false;
 
 int currentDepth = 0;
+float currentLineWidth = 1.0f;
 
 u32 defaultFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR)|GPU_TEXTURE_MIN_FILTER(GPU_LINEAR); // Default Image Filter.
 char *defaultMinFilter = "linear";
@@ -134,11 +135,11 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 		if (strcmp(mode, "fill") == 0) {
 			sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
 		} else if (strcmp(mode, "line") == 0) {
-			sf2d_draw_line(x, y, x, y + h, getCurrentColor());
-			sf2d_draw_line(x, y, x + w, y, getCurrentColor());
+			sf2d_draw_line(x, y, x, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y, x + w, y, currentLineWidth, getCurrentColor());
 
-			sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
-			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
+			sf2d_draw_line(x + w, y, x + w, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y + h, x + w, y + h, currentLineWidth, getCurrentColor());
 		}
 
 	}
@@ -160,7 +161,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 		translateCoords(&x, &y);
 
-		sf2d_draw_line(x, y, x, y, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
+		sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
 	}
@@ -203,9 +204,7 @@ static int graphicsLine(lua_State *L) { // love.graphics.line()
                         lua_pop(L, 1);
 
                         if( i >= 2 ) {
-
-                            sf2d_draw_line(x, y, px, py, getCurrentColor());
-
+                            sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
 			}
 		}
 
@@ -241,7 +240,7 @@ static int graphicsLine(lua_State *L) { // love.graphics.line()
                     y = luaL_checknumber(L, i + 2);
 
                     if( i >= 2 )
-                        sf2d_draw_line(x, y, px, py, getCurrentColor());
+                        sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
                 }
 
             } else {
@@ -617,13 +616,16 @@ static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 
 static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
 
- // TODO: Do this properly
+    currentLineWidth = luaL_checknumber(L, 1);
+    
+    return 0;
 
 }
 
 static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
 
- // TODO: This too.
+    lua_pushnumber(L, currentLineWidth);
+    return 1;
 
 }
 
@@ -702,8 +704,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
 		{ "setScissor",			graphicsScissor				},
-		// { "setLineWidth",		graphicsSetLineWidth		},
-		// { "getLineWidth",		graphicsGetLineWidth		},
+		{ "setLineWidth",		graphicsSetLineWidth		},
+		{ "getLineWidth",		graphicsGetLineWidth		},
 		{ "setDefaultFilter",	graphicsSetDefaultFilter	},
 		{ "getDefaultFilter",	graphicsGetDefaultFilter	},
 		{ 0, 0 },
