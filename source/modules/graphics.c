@@ -158,6 +158,7 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
             float y = luaL_checknumber(L, 3);
             float r = luaL_checknumber(L, 4);
 
+            translateCoords(&x, &y);
 
             if( strcmp(mode, "line") == 0 ) {
 
@@ -193,10 +194,9 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
             }else if (strcmp(mode, "fill") == 0) {
 
-		//translateCoords(&x, &y); //Not sure what this does but works without it?, uncomment if im being stupid.. ditto for next line
-		//sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
-
-		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+                //Not sure if this workaround is needed anymore?
+                //sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
+                sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
             }
 
@@ -241,10 +241,10 @@ static int graphicsLine(lua_State *L) { // love.graphics.line()
 
                         if( i >= 2 ) {
                             sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
-			}
-		}
-
-	}
+                        }
+                    }
+                    
+                }
                 else {
 
                     luaL_error(L, "(T)Number of vertex components must be a multiple of two");
