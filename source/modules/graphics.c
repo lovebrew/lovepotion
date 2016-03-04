@@ -152,17 +152,53 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		int step = 15;
+            //Incoming args
+            char *mode = luaL_checkstring(L, 1);
+            float x = luaL_checknumber(L, 2);
+            float y = luaL_checknumber(L, 3);
+            float r = luaL_checknumber(L, 4);
 
-		char *mode = luaL_checkstring(L, 1);
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
-		int r = luaL_checkinteger(L, 4);
 
-		translateCoords(&x, &y);
+            if( strcmp(mode, "line") == 0 ) {
 
-		sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
+                int pointqty = 16;
+                float two_pi = (float)(3.14159265358979323846 * 2);
+                if (pointqty <= 0) pointqty = 1;
+                float angle_shift = (two_pi / pointqty);
+                float phi = .0f;
+
+                int cx, cy = 0; //Curr points
+                int px, py = 0; //Prev points
+                int fx, fy = 0; //First points
+
+                for (int i = 0; i < pointqty; ++i, phi += angle_shift){
+
+                    cx = x + r * cosf(phi);
+                    cy = y + r * sinf(phi);
+
+                    if( i >= 1 ) {
+                        sf2d_draw_line(cx, cy, px, py, currentLineWidth, getCurrentColor());
+                    }
+
+                    if( i == 0 ) {
+                        fx = cx;
+                        fy = cy;
+                    }
+
+                    px = cx;
+                    py = cy;
+                }
+
+                sf2d_draw_line(fx, fy, px, py, currentLineWidth, getCurrentColor());
+
+            }else if (strcmp(mode, "fill") == 0) {
+
+		//translateCoords(&x, &y); //Not sure what this does but works without it?, uncomment if im being stupid.. ditto for next line
+		//sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
+
 		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+
+            }
 
 	}
 
@@ -617,7 +653,7 @@ static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
 
     currentLineWidth = luaL_checknumber(L, 1);
-    
+
     return 0;
 
 }
