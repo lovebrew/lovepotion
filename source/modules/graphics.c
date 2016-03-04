@@ -46,7 +46,7 @@ char *defaultMagFilter = "linear";
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
- 
+
 }
 
 int translateCoords(int *x, int *y) {
@@ -364,7 +364,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			sy = luaL_optnumber(L, 7, 0);
             ox = luaL_optnumber(L, 8, 0);
             oy = luaL_optnumber(L, 9, 0);
-            
+
 		} else {
 
 			x = luaL_optnumber(L, 2, 0);
@@ -374,7 +374,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			sy = luaL_optnumber(L, 6, 0);
 			ox = luaL_optnumber(L, 7, 0);
 			oy = luaL_optnumber(L, 8, 0);
-            
+
 		}
 
         //x -= ox;
@@ -382,42 +382,42 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
-			
+
             if (sx == 0 && sy == 0){
-				
+
 			    if (!quad) {
 
 				    if (img) {
 					    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
 				    }
-				
+
 			    } else {
 				    sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
 			    }
-				
+
 			} else {
-				
+
 				if (!quad) {
 
 				    if (img) {
 					    sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
 				    }
-				
+
 			    } else {
 				    sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
 			    }
-				
+
 			}
 
 		} else {
-            
+
             if (sx == 0 && sy == 0){
                 sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
             }
             else
-            {   
+            {
                 sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture,
-                                                     x, y, 
+                                                     x, y,
                                                      rad,
                                                      sx, sy,
                                                      ox, oy,
@@ -448,7 +448,7 @@ static int graphicsScissor(lua_State *L) { //love.graphics.setScissor()
 		}
 
 		sf2d_set_scissor_test(mode, x, y, w, h);
-		
+
 	}
 
 	return 0;
@@ -635,7 +635,7 @@ static int graphicsSetDefaultFilter(lua_State *L) { // love.graphics.setDefaultF
 	u32 minFilter;
 	u32 magFilter;
 
-	if (strcmp(minMode, "linear") != 0 && 
+	if (strcmp(minMode, "linear") != 0 &&
 		strcmp(minMode, "nearest") != 0 &&
 		strcmp(magMode, "linear") != 0 &&
 		strcmp(magMode, "nearest" != 0)) {
@@ -664,279 +664,6 @@ static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultF
 
 	return 2;
 }
-
-//Debugging sf2dlib
-static int sf2dDrawTexture(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    sf2d_draw_texture(img->texture, x, y);
-    
-    return 0;
-}
-static int sf2dDrawTextureBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateHotspot(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    float center_x = lua_checknumber(L, 5);
-    float center_y = lua_checknumber(L, 6);
-    sf2d_draw_texture_rotate_hotspot(img->texture, x, y, rad, center_x, center_y);
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateHotspotBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    float center_x = lua_checknumber(L, 5);
-    float center_y = lua_checknumber(L, 6);
-    sf2d_draw_texture_rotate_hotspot_blend(img->texture, x, y, rad, center_x, center_y, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTextureRotate(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    sf2d_draw_texture_rotate(img->texture, x, y, rad);
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    sf2d_draw_texture_rotate_blend(img->texture, x, y, rad, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateScaleHotspot(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    float scale_x = lua_checknumber(L, 5);
-    float scale_y = lua_checknumber(L, 6);
-    float center_x = lua_checknumber(L, 7);
-    float center_y = lua_checknumber(L, 8);
-    sf2d_draw_texture_rotate_scale_hotspot(img->texture, x, y, rad, scale_x, scale_y, center_x, center_y);
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateScaleHotspotBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    float scale_x = lua_checknumber(L, 5);
-    float scale_y = lua_checknumber(L, 6);
-    float center_x = lua_checknumber(L, 7);
-    float center_y = lua_checknumber(L, 8);
-    sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture, x, y, rad, scale_x, scale_y, center_x, center_y, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateScaleShearHotspot(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    float scale_x = lua_checknumber(L, 5);
-    float scale_y = lua_checknumber(L, 6);
-    float center_x = lua_checknumber(L, 7);
-    float center_y = lua_checknumber(L, 8);
-    float shear_x = lua_checknumber(L, 9);
-    float shear_y = lua_checknumber(L, 10);
-    sf2d_draw_texture_rotate_scale_shear_hotspot(img->texture, x, y, rad, scale_x, scale_y, center_x, center_y, shear_x, shear_y);
-    
-    return 0;
-}
-static int sf2dDrawTextureRotateScaleShearHotspotBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    float scale_x = lua_checknumber(L, 5);
-    float scale_y = lua_checknumber(L, 6);
-    float center_x = lua_checknumber(L, 7);
-    float center_y = lua_checknumber(L, 8);
-    float shear_x = lua_checknumber(L, 9);
-    float shear_y = lua_checknumber(L, 10);
-    sf2d_draw_texture_rotate_scale_shear_hotspot_blend(img->texture, x, y, rad, scale_x, scale_y, center_x, center_y, shear_x, shear_y, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTexturePart(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    int tex_x = lua_checkinteger(L, 4);
-    int tex_y = lua_checkinteger(L, 5);
-    int tex_w = lua_checkinteger(L, 6);
-    int tex_h = lua_checkinteger(L, 7);
-    sf2d_draw_texture_part(img->texture, x, y, tex_x, tex_y, tex_w, tex_h);
-    
-    return 0;
-}
-static int sf2dDrawTexturePartBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    int tex_x = lua_checkinteger(L, 4);
-    int tex_y = lua_checkinteger(L, 5);
-    int tex_w = lua_checkinteger(L, 6);
-    int tex_h = lua_checkinteger(L, 7);
-    sf2d_draw_texture_part_blend(img->texture, x, y, tex_x, tex_y, tex_w, tex_h, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTextureScale(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float x_scale = lua_checknumber(L, 4);
-    float y_scale = lua_checknumber(L, 5);
-    sf2d_draw_texture_scale(img->texture, x, y, x_scale, y_scale);
-    
-    return 0;
-}
-static int sf2dDrawTextureScaleBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float x_scale = lua_checknumber(L, 4);
-    float y_scale = lua_checknumber(L, 5);
-    sf2d_draw_texture_scale_blend(img->texture, x, y, x_scale, y_scale, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTexturePartScale(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    int tex_x = lua_checkinteger(L, 4);
-    int tex_y = lua_checkinteger(L, 5);
-    int tex_w = lua_checkinteger(L, 6);
-    int tex_h = lua_checkinteger(L, 7);
-    float x_scale = lua_checknumber(L, 8);
-    float y_scale = lua_checknumber(L, 9);
-    sf2d_draw_texture_part_scale(img->texture, x, y, tex_x, tex_y, tex_w, tex_h, x_scale, y_scale);
-    
-    return 0;
-}
-static int sf2dDrawTexturePartScaleBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    int tex_x = lua_checkinteger(L, 4);
-    int tex_y = lua_checkinteger(L, 5);
-    int tex_w = lua_checkinteger(L, 6);
-    int tex_h = lua_checkinteger(L, 7);
-    float x_scale = lua_checknumber(L, 8);
-    float y_scale = lua_checknumber(L, 9);
-    sf2d_draw_texture_part_scale_blend(img->texture, x, y, tex_x, tex_y, tex_w, tex_h, x_scale, y_scale, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTexturePartRotateScale(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    int tex_x = lua_checkinteger(L, 5);
-    int tex_y = lua_checkinteger(L, 6);
-    int tex_w = lua_checkinteger(L, 7);
-    int tex_h = lua_checkinteger(L, 8);
-    float x_scale = lua_checknumber(L, 9);
-    float y_scale = lua_checknumber(L, 10);
-    sf2d_draw_texture_part_rotate_scale(img->texture, x, y, rad, tex_x, tex_y, tex_w, tex_h, x_scale, y_scale);
-    
-    return 0;
-}
-static int sf2dDrawTexturePartRotateScaleBlend(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    float rad = lua_checknumber(L, 4);
-    int tex_x = lua_checkinteger(L, 5);
-    int tex_y = lua_checkinteger(L, 6);
-    int tex_w = lua_checkinteger(L, 7);
-    int tex_h = lua_checkinteger(L, 8);
-    float x_scale = lua_checknumber(L, 9);
-    float y_scale = lua_checknumber(L, 10);
-    sf2d_draw_texture_part_rotate_scale_blend(img->texture, x, y, rad, tex_x, tex_y, tex_w, tex_h, x_scale, y_scale, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawTextureDepth(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    short z = lua_checknumber(L, 4);
-    sf2d_draw_texture_depth(img->texture, x, y, z);
-    
-    return 0;
-}
-static int sf2dDrawTextureDepthBlend(lua_State *L) {
-
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    int x = lua_checkinteger(L, 2);
-    int y = lua_checkinteger(L, 3);
-    short z = lua_checknumber(L, 4);
-    sf2d_draw_texture_depth_blend(img->texture, x, y, z, getCurrentColor());
-    
-    return 0;
-}
-static int sf2dDrawQuadUV(lua_State *L) {
-    
-    love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-
-    float left = lua_checknumber(L, 2);
-    float top = lua_checknumber(L, 3);
-    float right = lua_checknumber(L, 4);
-    float bottom = lua_checknumber(L, 5);
-    float u0 = lua_checknumber(L, 6);
-    float v0 = lua_checknumber(L, 7);
-    float u1 = lua_checknumber(L, 8);
-    float v1 = lua_checknumber(L, 9);
-    u32 params = lua_checknumber(L, 10);
-    
-    sf2d_draw_quad_uv(img->texture, left, top, right, bottom, u0, v0, u1, v1, params);
-    
-    return 0;
-}
-static int sf2dSubmitTriangleStrip(lua_State *L) {}
 
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
