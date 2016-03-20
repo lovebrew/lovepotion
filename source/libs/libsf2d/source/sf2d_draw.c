@@ -2,15 +2,36 @@
 #include "sf2d_private.h"
 #include <math.h>
 
-void sf2d_draw_line(int x0, int y0, int x1, int y1, u32 color)
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
+void sf2d_draw_line(float x0, float y0, float x1, float y1, float width, u32 color)
 {
 	sf2d_vertex_pos_col *vertices = sf2d_pool_memalign(4 * sizeof(sf2d_vertex_pos_col), 8);
 	if (!vertices) return;
 
-	vertices[0].position = (sf2d_vector_3f){(float)x0+1.0f, (float)y0+1.0f, SF2D_DEFAULT_DEPTH};
-	vertices[1].position = (sf2d_vector_3f){(float)x0-1.0f, (float)y0-1.0f, SF2D_DEFAULT_DEPTH};
-	vertices[2].position = (sf2d_vector_3f){(float)x1+1.0f, (float)y1+1.0f, SF2D_DEFAULT_DEPTH};
-	vertices[3].position = (sf2d_vector_3f){(float)x1-1.0f, (float)y1-1.0f, SF2D_DEFAULT_DEPTH};
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+
+    float nx = -dy;
+    float ny = dx;
+
+    float len = sqrt(nx * nx + ny * ny);
+
+    if (len > 0 ){
+        nx /= len;
+        ny /= len;
+    }
+
+    nx *= width*0.5f;
+    ny *= width*0.5f;
+
+    vertices[0].position = (sf2d_vector_3f){x0+nx, y0+ny, SF2D_DEFAULT_DEPTH};
+    vertices[1].position = (sf2d_vector_3f){x0-nx, y0-ny, SF2D_DEFAULT_DEPTH};
+
+    vertices[2].position = (sf2d_vector_3f){x1+nx, y1+ny, SF2D_DEFAULT_DEPTH};
+    vertices[3].position = (sf2d_vector_3f){x1-nx, y1-ny, SF2D_DEFAULT_DEPTH};
 
 	vertices[0].color = color;
 	vertices[1].color = vertices[0].color;

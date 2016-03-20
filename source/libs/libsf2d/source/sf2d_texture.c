@@ -4,6 +4,10 @@
 #include "sf2d.h"
 #include "sf2d_private.h"
 
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
 #define TEX_MIN_SIZE 8
 
 static unsigned int nibbles_per_pixel(sf2d_texfmt format)
@@ -93,6 +97,22 @@ sf2d_texture *sf2d_create_texture(int width, int height, sf2d_texfmt pixel_forma
 	return texture;
 }
 
+sf2d_rendertarget *sf2d_create_rendertarget(int width, int height)
+{
+	sf2d_texture *tx = sf2d_create_texture(width, height, TEXFMT_RGBA8, SF2D_PLACE_RAM);
+	sf2d_rendertarget *rt = malloc(sizeof(*rt));
+	//memcpy(rt, tx, sizeof(*tx));
+	rt->texture = *tx;
+	free(tx);
+	//tx = * rt->texture;
+	//rt->projection
+
+	matrix_init_orthographic(rt->projection, 0.0f, width, height, 0.0f, 0.0f, 1.0f);
+	matrix_rotate_z(rt->projection, M_PI / 2.0f);
+
+	return rt;
+}
+
 void sf2d_free_texture(sf2d_texture *texture)
 {
 	if (texture) {
@@ -103,6 +123,27 @@ void sf2d_free_texture(sf2d_texture *texture)
 		}
 		free(texture);
 	}
+}
+
+void sf2d_free_target(sf2d_rendertarget *target)
+{
+	sf2d_free_texture(&(target->texture));
+	//free(target); // unnecessary since the texture is the start of the target struct
+}
+
+void sf2d_clear_target(sf2d_rendertarget *target, u32 color) {
+	if (color == 0) { // if fully transparent, take a shortcut
+		memset(target->texture.data, 0, target->texture.width * target->texture.height * 4);
+		sf2d_texture_tile32(&(target->texture));
+		return;
+	}
+
+	color = ((color>>24)&0x000000FF) | ((color>>8)&0x0000FF00) | ((color<<8)&0x00FF0000) | ((color<<24)&0xFF000000); // reverse byte order
+
+	int itarget = target->texture.width * target->texture.height;
+	for (int i = 0; i < itarget; i++) { memcpy(target->texture.data + i*4, &color, 4); }
+
+	sf2d_texture_tile32(&(target->texture));
 }
 
 void sf2d_fill_texture_from_RGBA8(sf2d_texture *dst, const void *rgba8, int source_w, int source_h)
@@ -342,6 +383,75 @@ void sf2d_draw_texture_rotate_blend(const sf2d_texture *texture, int x, int y, f
 		texture->width/2.0f,
 		texture->height/2.0f,
 		color);
+}
+
+static inline void sf2d_draw_texture_rotate_scale_hotspot_generic(const sf2d_texture *texture, int x, int y, float rad, float scale_x, float scale_y, float center_x, float center_y)
+{
+	sf2d_vertex_pos_tex *vertices = sf2d_pool_memalign(4 * sizeof(sf2d_vertex_pos_tex), 8);
+	if (!vertices) return;
+
+	const float w = texture->width;
+	const float h = texture->height;
+    
+    vertices[0].position.x = -center_x * scale_x;
+	vertices[0].position.y = -center_y * scale_y;
+	vertices[0].position.z = SF2D_DEFAULT_DEPTH;
+
+	vertices[1].position.x = (w - center_x) * scale_x;
+	vertices[1].position.y = -center_y * scale_y;
+	vertices[1].position.z = SF2D_DEFAULT_DEPTH;
+
+	vertices[2].position.x = -center_x * scale_x;
+	vertices[2].position.y = (h - center_y) * scale_y;
+	vertices[2].position.z = SF2D_DEFAULT_DEPTH;
+
+	vertices[3].position.x = (w - center_x) * scale_x;
+	vertices[3].position.y = h - center_y * scale_y;
+	vertices[3].position.z = SF2D_DEFAULT_DEPTH;
+
+	float u = w/(float)texture->pow2_w;
+	float v = h/(float)texture->pow2_h;
+
+	vertices[0].texcoord = (sf2d_vector_2f){0.0f, 0.0f};
+	vertices[1].texcoord = (sf2d_vector_2f){u,    0.0f};
+	vertices[2].texcoord = (sf2d_vector_2f){0.0f, v};
+	vertices[3].texcoord = (sf2d_vector_2f){u,    v};
+
+	const float c = cosf(rad);
+	const float s = sinf(rad);
+	int i;
+	for (i = 0; i < 4; ++i) { // Rotate and translate
+		float _x = vertices[i].position.x;
+		float _y = vertices[i].position.y;
+		vertices[i].position.x = _x*c - _y*s + x;
+		vertices[i].position.y = _x*s + _y*c + y;
+	}
+
+	GPU_SetAttributeBuffers(
+		2, // number of attributes
+		(u32*)osConvertVirtToPhys(vertices),
+		GPU_ATTRIBFMT(0, 3, GPU_FLOAT) | GPU_ATTRIBFMT(1, 2, GPU_FLOAT),
+		0xFFFC, //0b1100
+		0x10,
+		1, //number of buffers
+		(u32[]){0x0}, // buffer offsets (placeholders)
+		(u64[]){0x10}, // attribute permutations for each buffer
+		(u8[]){2} // number of attributes for each buffer
+	);
+
+	GPU_DrawArray(GPU_TRIANGLE_STRIP, 0, 4);
+}
+
+void sf2d_draw_texture_rotate_scale_hotspot(const sf2d_texture *texture, int x, int y, float rad, float scale_x, float scale_y, float center_x, float center_y)
+{
+    sf2d_bind_texture(texture, GPU_TEXUNIT0);
+	sf2d_draw_texture_rotate_scale_hotspot_generic(texture, x, y, rad, scale_x, scale_y, center_x, center_y);
+}
+
+void sf2d_draw_texture_rotate_scale_hotspot_blend(const sf2d_texture *texture, int x, int y, float rad, float scale_x, float scale_y, float center_x, float center_y, u32 color)
+{
+    sf2d_bind_texture_color(texture, GPU_TEXUNIT0, color);
+	sf2d_draw_texture_rotate_scale_hotspot_generic(texture, x, y, rad, scale_x, scale_y, center_x, center_y);
 }
 
 static inline void sf2d_draw_texture_part_generic(const sf2d_texture *texture, int x, int y, int tex_x, int tex_y, int tex_w, int tex_h)
