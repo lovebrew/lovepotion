@@ -24,24 +24,23 @@ Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable rel
 
 Running your game without any changes is very unlikely, so it's recommended to currently use LövePotion to make games from the ground up.
 
-If you want to try, place your games files in the game folder.
-
 ##### Can I help?
 
-Yes, I need all the help I can get. I am new to C, so my code will probably be quite messy, and I don't have the talent that a lot of other people have. 
-
-If you have anything to contribute just make a pull request.
+Yes, see the [CONTRIBUTING.md](https://www.github.com/VideahGams/LovePotion/tree/master/CONTRIBUTING.md) for more details.
 
 ##### How do I build this?
 
-Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, and run make.
-LövePotion will most likely not build on anything but Linux, and I haven't tested that it builds at all on any other machine.
-
-If you can/can't get it built, please tell me.
+Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, building should work on
+Linux, Windows and Mac OSX if setup properly.
 
 ##### How do I run this?
 
-There are ~~2 ways~~ a ton of ways to run this.
+Games are loaded either from a `game` folder placed in the same directory as LövePotion is, or
+if LövePotion is built as a CIA, it's loaded from romfs which is created at compile time.
+
+To put your game in romfs, compile LövePotion with a `game` folder in the same directory.
+
+There are ~~2 ways~~ a ton of ways to run LövePotion.
  * [Citra Emulator](http://citra-emu.org)
  * [Ninjhax](http://smealum.net/ninjhax)
  * [IronHax](http://smealum.github.io/3ds)
@@ -51,7 +50,7 @@ There are ~~2 ways~~ a ton of ways to run this.
  * [OoTHax](https://gbatemp.net/threads/tutorial-how-to-install-oot3dhax.396339/)
  * [SmashHax](https://gbatemp.net/threads/yellows8-just-realesed-smashhax.397124/)
 
-**LövePotion** is developed using [Citra](http://citra-emu.org/) and [IronHax](http://smealum.github.io/3ds/).
+**LövePotion** is developed using [Citra](http://citra-emu.org/) and [MenuHax](http://smealum.github.io/3ds/).
 
 There are also other ways, but I know next to nothing of these methods.
 
@@ -96,7 +95,7 @@ LövePotion requires the 3DS portlibs to build correctly, these are not included
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)
  * rxi for [lovedos](https://github.com/rxi/lovedos) which has been good learning material (I also used his luaobj util)
  * Firew0lf and everyone who worked on [ctruLua](https://github.com/Firew0lf/ctruLua)
- * TurtleP for help/advice and being my best customer :v
+ * TurtleP for help/advice and being my best customer
  * Mik Embley for his contributions
  * All of the LÖVE community, for being awesome
  * Anyone that I forgot
