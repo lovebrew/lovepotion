@@ -38,6 +38,7 @@ bool isPushed = false;
 bool is3D = false;
 
 int currentDepth = 0;
+float currentLineWidth = 1.0f;
 
 u32 defaultFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR)|GPU_TEXTURE_MIN_FILTER(GPU_LINEAR); // Default Image Filter.
 char *defaultMinFilter = "linear";
@@ -46,7 +47,7 @@ char *defaultMagFilter = "linear";
 u32 getCurrentColor() {
 
 	return RGBA8(currentR, currentG, currentB, currentA);
- 
+
 }
 
 int translateCoords(int *x, int *y) {
@@ -94,7 +95,7 @@ static int graphicsSetColor(lua_State *L) { // love.graphics.setColor()
 		currentR = luaL_checkinteger(L, 1);
 		currentG = luaL_checkinteger(L, 2);
 		currentB = luaL_checkinteger(L, 3);
-		currentA = luaL_optnumber(L, 4, currentA);
+		currentA = luaL_optnumber(L, 4, 255);
 
 	} else if (lua_istable(L, -1)) {
 
@@ -134,11 +135,11 @@ static int graphicsRectangle(lua_State *L) { // love.graphics.rectangle()
 		if (strcmp(mode, "fill") == 0) {
 			sf2d_draw_rectangle(x, y, w, h, getCurrentColor());
 		} else if (strcmp(mode, "line") == 0) {
-			sf2d_draw_line(x, y, x, y + h, getCurrentColor());
-			sf2d_draw_line(x, y, x + w, y, getCurrentColor());
+			sf2d_draw_line(x, y, x, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y, x + w, y, currentLineWidth, getCurrentColor());
 
-			sf2d_draw_line(x + w, y, x + w, y + h, getCurrentColor());
-			sf2d_draw_line(x, y + h, x + w, y + h, getCurrentColor());
+			sf2d_draw_line(x + w, y, x + w, y + h, currentLineWidth, getCurrentColor());
+			sf2d_draw_line(x, y + h, x + w, y + h, currentLineWidth, getCurrentColor());
 		}
 
 	}
@@ -151,17 +152,53 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		int step = 15;
+            //Incoming args
+            char *mode = luaL_checkstring(L, 1);
+            float x = luaL_checknumber(L, 2);
+            float y = luaL_checknumber(L, 3);
+            float r = luaL_checknumber(L, 4);
 
-		char *mode = luaL_checkstring(L, 1);
-		int x = luaL_checkinteger(L, 2);
-		int y = luaL_checkinteger(L, 3);
-		int r = luaL_checkinteger(L, 4);
+            translateCoords(&x, &y);
 
-		translateCoords(&x, &y);
+            if( strcmp(mode, "line") == 0 ) {
 
-		sf2d_draw_line(x, y, x, y, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
-		sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+                int pointqty = 16;
+                float two_pi = (float)(3.14159265358979323846 * 2);
+                if (pointqty <= 0) pointqty = 1;
+                float angle_shift = (two_pi / pointqty);
+                float phi = .0f;
+
+                int cx, cy = 0; //Curr points
+                int px, py = 0; //Prev points
+                int fx, fy = 0; //First points
+
+                for (int i = 0; i < pointqty; ++i, phi += angle_shift){
+
+                    cx = x + r * cosf(phi);
+                    cy = y + r * sinf(phi);
+
+                    if( i >= 1 ) {
+                        sf2d_draw_line(cx, cy, px, py, currentLineWidth, getCurrentColor());
+                    }
+
+                    if( i == 0 ) {
+                        fx = cx;
+                        fy = cy;
+                    }
+
+                    px = cx;
+                    py = cy;
+                }
+
+                sf2d_draw_line(fx, fy, px, py, currentLineWidth, getCurrentColor());
+
+            }else if (strcmp(mode, "fill") == 0) {
+
+                //Not sure if this workaround is needed anymore?
+                //sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
+                sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+
+            }
 
 	}
 
@@ -169,31 +206,90 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 }
 
-static int graphicsLine(lua_State *L) { // love.graphics.line() -- Semi-Broken
+static int graphicsLine(lua_State *L) { // love.graphics.line()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
 		int argc = lua_gettop(L);
-		int i = 0;
 
-		if ((argc/2)*2 == argc) {
-			for( i; i < argc / 2; i++) {
+        //Table version
+        if( argc == 1 ) {
 
-				int t = i * 4;
+            lua_settop(L, 1); //Remove redundant args (This in itself may be redundant)
+            luaL_checktype(L, 1, LUA_TTABLE);
+            int tableLen = lua_objlen(L, 1);
 
-				int x1 = luaL_checkinteger(L, t + 1);
-				int y1 = luaL_checkinteger(L, t + 2);
-				int x2 = luaL_checkinteger(L, t + 3);
-				int y2 = luaL_checkinteger(L, t + 4);
+            if( tableLen >= 4 ) {
 
-				translateCoords(&x1, &y1);
-				translateCoords(&x2, &y2);
+                if( tableLen % 2 == 0 ) {
 
-				sf2d_draw_line(x1, y1, x2, y2, getCurrentColor());
+                    int x, y, px, py = 0;
+                    lua_pushnil(L);
 
-			}
-		}
+                    for(int i = 0; i < tableLen; i+=2 )
+                    {
+                        px = x;
+                        py = y;
 
+                        lua_rawgeti(L, 1, i+1);
+                        x = luaL_checknumber(L, -1);
+                        lua_pop(L, 1);
+
+                        lua_rawgeti(L, 1, i+2);
+                        y = luaL_checknumber(L, -1);
+                        lua_pop(L, 1);
+
+                        if( i >= 2 ) {
+                            sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
+                        }
+                    }
+                    
+                }
+                else {
+
+                    luaL_error(L, "(T)Number of vertex components must be a multiple of two");
+
+                }
+
+            } else {
+
+                luaL_error(L, "(T)Need at least two vertices to draw a line");
+
+            }
+
+
+        }
+
+        //Argument list version
+        else if( argc >= 4 ) {
+
+            if( argc % 2 == 0 ) {
+
+                int x, y, px, py = 0;
+
+                for( int i=0; i < argc; i+=2 )
+                {
+                    px = x;
+                    py = y;
+
+                    x = luaL_checknumber(L, i + 1);
+                    y = luaL_checknumber(L, i + 2);
+
+                    if( i >= 2 )
+                        sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
+                }
+
+            } else {
+
+                luaL_error(L, "Number of vertex components must be a multiple of two");
+
+            }
+
+        } else {
+
+            luaL_error(L, "Need at least two vertices to draw a line");
+
+        }
 	}
 
 	return 0;
@@ -303,7 +399,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			sy = luaL_optnumber(L, 7, 0);
             ox = luaL_optnumber(L, 8, 0);
             oy = luaL_optnumber(L, 9, 0);
-            
+
 		} else {
 
 			x = luaL_optnumber(L, 2, 0);
@@ -313,44 +409,55 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			sy = luaL_optnumber(L, 6, 0);
 			ox = luaL_optnumber(L, 7, 0);
 			oy = luaL_optnumber(L, 8, 0);
-            
+
 		}
 
-        x -= ox;
-        y -= oy;
+        //x -= ox;
+        //y -= oy;
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
-			
+
             if (sx == 0 && sy == 0){
-				
+
 			    if (!quad) {
 
 				    if (img) {
 					    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
 				    }
-				
+
 			    } else {
 				    sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
 			    }
-				
+
 			} else {
-				
+
 				if (!quad) {
 
 				    if (img) {
 					    sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
 				    }
-				
+
 			    } else {
 				    sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
 			    }
-				
+
 			}
 
 		} else {
-            
-			sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+
+            if (sx == 0 && sy == 0){
+                sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+            }
+            else
+            {
+                sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture,
+                                                     x, y,
+                                                     rad,
+                                                     sx, sy,
+                                                     ox, oy,
+                                                     getCurrentColor());
+            }
 
 		}
 
@@ -376,7 +483,7 @@ static int graphicsScissor(lua_State *L) { //love.graphics.setScissor()
 		}
 
 		sf2d_set_scissor_test(mode, x, y, w, h);
-		
+
 	}
 
 	return 0;
@@ -545,13 +652,16 @@ static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 
 static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
 
- // TODO: Do this properly
+    currentLineWidth = luaL_checknumber(L, 1);
+
+    return 0;
 
 }
 
 static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
 
- // TODO: This too.
+    lua_pushnumber(L, currentLineWidth);
+    return 1;
 
 }
 
@@ -563,7 +673,7 @@ static int graphicsSetDefaultFilter(lua_State *L) { // love.graphics.setDefaultF
 	u32 minFilter;
 	u32 magFilter;
 
-	if (strcmp(minMode, "linear") != 0 && 
+	if (strcmp(minMode, "linear") != 0 &&
 		strcmp(minMode, "nearest") != 0 &&
 		strcmp(magMode, "linear") != 0 &&
 		strcmp(magMode, "nearest" != 0)) {
@@ -591,7 +701,6 @@ static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultF
 	lua_pushstring(L, defaultMagFilter);
 
 	return 2;
-
 }
 
 int imageNew(lua_State *L);
@@ -631,8 +740,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
 		{ "setScissor",			graphicsScissor				},
-		// { "setLineWidth",		graphicsSetLineWidth		},
-		// { "getLineWidth",		graphicsGetLineWidth		},
+		{ "setLineWidth",		graphicsSetLineWidth		},
+		{ "getLineWidth",		graphicsGetLineWidth		},
 		{ "setDefaultFilter",	graphicsSetDefaultFilter	},
 		{ "getDefaultFilter",	graphicsGetDefaultFilter	},
 		{ 0, 0 },
