@@ -30,7 +30,7 @@ Yes, see the [CONTRIBUTING.md](https://www.github.com/VideahGams/LovePotion/tree
 
 #### How do I build this?
 
-Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, building should work on
+Follow [this](https://github.com/VideahGams/LovePotion/wiki/Building-L%C3%96VEPotion) guide, building should work on
 Linux, Windows and Mac OSX if setup properly.
 
 #### How do I load my game?
