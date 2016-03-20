@@ -20,25 +20,27 @@ Go [here](https://github.com/VideahGams/LovePotion/releases) for semi-stable rel
 
 # FAQ
 
-##### Can I run my LÖVE game on this?
+#### Can I run my LÖVE game on this?
 
 Running your game without any changes is very unlikely, so it's recommended to currently use LövePotion to make games from the ground up.
 
-##### Can I help?
+#### Can I help?
 
 Yes, see the [CONTRIBUTING.md](https://www.github.com/VideahGams/LovePotion/tree/master/CONTRIBUTING.md) for more details.
 
-##### How do I build this?
+#### How do I build this?
 
 Follow [this](http://3dbrew.org/wiki/Setting_up_Development_Environment) guide, building should work on
 Linux, Windows and Mac OSX if setup properly.
 
-##### How do I run this?
+#### How do I load my game?
 
 Games are loaded either from a `game` folder placed in the same directory as LövePotion is, or
 if LövePotion is built as a CIA, it's loaded from romfs which is created at compile time.
 
 To put your game in romfs, compile LövePotion with a `game` folder in the same directory.
+
+#### How do I run this?
 
 There are ~~2 ways~~ a ton of ways to run LövePotion.
  * [Citra Emulator](http://citra-emu.org)
@@ -61,13 +63,13 @@ To run your game in Citra, place your game folder in these locations:
 | Linux    | `~/.local/share/citra-emu/sdmc` |
 | Windows  | `[CITRA-FOLDER]/users/sdmc`     |
 
-##### Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-
+#### Neat! I'm gonna send my game to Nintendo and get cartridge of my game and I'l-
 
 Stop right there kiddo, this is for Homebrew only.
 
 This is not for releasing a real 3DS title. I dunno, contact Nintendo if that's what you want.
 
-##### Can I use this to run Mari0?
+#### Can I use this to run Mari0?
 No.
 
 # Showcase
