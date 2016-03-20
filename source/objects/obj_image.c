@@ -25,21 +25,68 @@
 #define CLASS_TYPE  LUAOBJ_TYPE_IMAGE
 #define CLASS_NAME  "Image"
 
+// NoGame Graphics
+#include "mosaic_png.h"
+#include "toast_back_png.h"
+#include "toast_front_png.h"
+#include "toast_eyes_closed_png.h"
+#include "toast_eyes_open_png.h"
+#include "toast_mouth_png.h"
+
+// This big wall of code is a result of not knowing a better way to load nogame graphics.
+// If you wanted to use the nogame graphics in your game
+// then here's a way to do it I guess.
+
+bool loadNoGameGraphics(love_image *self, const char *filename) {
+
+	if (strncmp(filename, "nogame:mosaic", 13) == 0) {
+		self->texture = sfil_load_PNG_buffer(mosaic_png, SF2D_PLACE_RAM);
+	} else if (strncmp(filename, "nogame:toast_back", 17) == 0) {
+		self->texture = sfil_load_PNG_buffer(toast_back_png, SF2D_PLACE_RAM);
+	} else if (strncmp(filename, "nogame:toast_front", 18) == 0) {
+		self->texture = sfil_load_PNG_buffer(toast_front_png, SF2D_PLACE_RAM);
+	} else if (strncmp(filename, "nogame:toast_eyes_closed", 24) == 0) {
+		self->texture = sfil_load_PNG_buffer(toast_eyes_closed_png, SF2D_PLACE_RAM);
+	} else if (strncmp(filename, "nogame:toast_eyes_open", 22) == 0) {
+		self->texture = sfil_load_PNG_buffer(toast_eyes_open_png, SF2D_PLACE_RAM);
+	} else if (strncmp(filename, "nogame:toast_mouth", 18) == 0) {
+		self->texture = sfil_load_PNG_buffer(toast_mouth_png, SF2D_PLACE_RAM);
+	} else {
+		return false;
+	}
+
+	return true;
+
+}
+
 const char *imageInit(love_image *self, const char *filename) {
 
 	int type = getType(filename);
 
-	if (type == 0) { // PNG
+	if (!loadNoGameGraphics(self, filename)) {
 
-		self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+		if (!fileExists(filename)) {
+			luaError(L, "Could not open image, does not exist");
+			return NULL;
+		}
 
-	} else if (type == 1) { // JPG
-		
-		self->texture = sfil_load_JPEG_file(filename, SF2D_PLACE_RAM);
+		if (type == 0) { // PNG
 
-	} else if (type == 2) { // BMP
-		
-		self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
+			self->texture = sfil_load_PNG_file(filename, SF2D_PLACE_RAM);
+
+		} else if (type == 1) { // JPG
+			
+			self->texture = sfil_load_JPEG_file(filename, SF2D_PLACE_RAM);
+
+		} else if (type == 2) { // BMP
+			
+			self->texture = sfil_load_BMP_file(filename, SF2D_PLACE_RAM);
+
+		} else if (type == 4) {
+
+			luaError(L, "Unknown image type");
+
+		}
 
 	}
 
@@ -50,11 +97,6 @@ const char *imageInit(love_image *self, const char *filename) {
 int imageNew(lua_State *L) { // love.graphics.newImage()
 
 	const char *filename = luaL_checkstring(L, 1);
-
-	if (!fileExists(filename)) luaError(L, "Could not open image, does not exist");
-
-	int type = getType(filename);
-	if (type == 4) luaError(L, "Unknown image type");
 
 	love_image *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);

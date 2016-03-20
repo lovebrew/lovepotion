@@ -152,53 +152,53 @@ static int graphicsCircle(lua_State *L) { // love.graphics.circle()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-            //Incoming args
-            char *mode = luaL_checkstring(L, 1);
-            float x = luaL_checknumber(L, 2);
-            float y = luaL_checknumber(L, 3);
-            float r = luaL_checknumber(L, 4);
+			//Incoming args
+			char *mode = luaL_checkstring(L, 1);
+			float x = luaL_checknumber(L, 2);
+			float y = luaL_checknumber(L, 3);
+			float r = luaL_checknumber(L, 4);
 
-            translateCoords(&x, &y);
+			translateCoords(&x, &y);
 
-            if( strcmp(mode, "line") == 0 ) {
+			if( strcmp(mode, "line") == 0 ) {
 
-                int pointqty = 16;
-                float two_pi = (float)(3.14159265358979323846 * 2);
-                if (pointqty <= 0) pointqty = 1;
-                float angle_shift = (two_pi / pointqty);
-                float phi = .0f;
+				int pointqty = 16;
+				float two_pi = (float)(3.14159265358979323846 * 2);
+				if (pointqty <= 0) pointqty = 1;
+				float angle_shift = (two_pi / pointqty);
+				float phi = .0f;
 
-                int cx, cy = 0; //Curr points
-                int px, py = 0; //Prev points
-                int fx, fy = 0; //First points
+				int cx, cy = 0; //Curr points
+				int px, py = 0; //Prev points
+				int fx, fy = 0; //First points
 
-                for (int i = 0; i < pointqty; ++i, phi += angle_shift){
+				for (int i = 0; i < pointqty; ++i, phi += angle_shift){
 
-                    cx = x + r * cosf(phi);
-                    cy = y + r * sinf(phi);
+					cx = x + r * cosf(phi);
+					cy = y + r * sinf(phi);
 
-                    if( i >= 1 ) {
-                        sf2d_draw_line(cx, cy, px, py, currentLineWidth, getCurrentColor());
-                    }
+					if( i >= 1 ) {
+						sf2d_draw_line(cx, cy, px, py, currentLineWidth, getCurrentColor());
+					}
 
-                    if( i == 0 ) {
-                        fx = cx;
-                        fy = cy;
-                    }
+					if( i == 0 ) {
+						fx = cx;
+						fy = cy;
+					}
 
-                    px = cx;
-                    py = cy;
-                }
+					px = cx;
+					py = cy;
+				}
 
-                sf2d_draw_line(fx, fy, px, py, currentLineWidth, getCurrentColor());
+				sf2d_draw_line(fx, fy, px, py, currentLineWidth, getCurrentColor());
 
-            }else if (strcmp(mode, "fill") == 0) {
+			}else if (strcmp(mode, "fill") == 0) {
 
-                //Not sure if this workaround is needed anymore?
-                //sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
-                sf2d_draw_fill_circle(x, y, r, getCurrentColor());
+				//Not sure if this workaround is needed anymore?
+				//sf2d_draw_line(x, y, x, y, currentLineWidth, RGBA8(0x00, 0x00, 0x00, 0x00)); // Fixes weird circle bug.
+				sf2d_draw_fill_circle(x, y, r, getCurrentColor());
 
-            }
+			}
 
 	}
 
@@ -212,84 +212,84 @@ static int graphicsLine(lua_State *L) { // love.graphics.line()
 
 		int argc = lua_gettop(L);
 
-        //Table version
-        if( argc == 1 ) {
+		//Table version
+		if( argc == 1 ) {
 
-            lua_settop(L, 1); //Remove redundant args (This in itself may be redundant)
-            luaL_checktype(L, 1, LUA_TTABLE);
-            int tableLen = lua_objlen(L, 1);
+			lua_settop(L, 1); //Remove redundant args (This in itself may be redundant)
+			luaL_checktype(L, 1, LUA_TTABLE);
+			int tableLen = lua_objlen(L, 1);
 
-            if( tableLen >= 4 ) {
+			if( tableLen >= 4 ) {
 
-                if( tableLen % 2 == 0 ) {
+				if( tableLen % 2 == 0 ) {
 
-                    int x, y, px, py = 0;
-                    lua_pushnil(L);
+					int x, y, px, py = 0;
+					lua_pushnil(L);
 
-                    for(int i = 0; i < tableLen; i+=2 )
-                    {
-                        px = x;
-                        py = y;
+					for(int i = 0; i < tableLen; i+=2 )
+					{
+						px = x;
+						py = y;
 
-                        lua_rawgeti(L, 1, i+1);
-                        x = luaL_checknumber(L, -1);
-                        lua_pop(L, 1);
+						lua_rawgeti(L, 1, i+1);
+						x = luaL_checknumber(L, -1);
+						lua_pop(L, 1);
 
-                        lua_rawgeti(L, 1, i+2);
-                        y = luaL_checknumber(L, -1);
-                        lua_pop(L, 1);
+						lua_rawgeti(L, 1, i+2);
+						y = luaL_checknumber(L, -1);
+						lua_pop(L, 1);
 
-                        if( i >= 2 ) {
-                            sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
-                        }
-                    }
-                    
-                }
-                else {
+						if( i >= 2 ) {
+							sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
+						}
+					}
+					
+				}
+				else {
 
-                    luaL_error(L, "(T)Number of vertex components must be a multiple of two");
+					luaL_error(L, "(T)Number of vertex components must be a multiple of two");
 
-                }
+				}
 
-            } else {
+			} else {
 
-                luaL_error(L, "(T)Need at least two vertices to draw a line");
+				luaL_error(L, "(T)Need at least two vertices to draw a line");
 
-            }
+			}
 
 
-        }
+		}
 
-        //Argument list version
-        else if( argc >= 4 ) {
+		//Argument list version
+		else if( argc >= 4 ) {
 
-            if( argc % 2 == 0 ) {
+			if( argc % 2 == 0 ) {
 
-                int x, y, px, py = 0;
+				int x, y, px, py = 0;
 
-                for( int i=0; i < argc; i+=2 )
-                {
-                    px = x;
-                    py = y;
+				for( int i=0; i < argc; i+=2 )
+				{
+					px = x;
+					py = y;
 
-                    x = luaL_checknumber(L, i + 1);
-                    y = luaL_checknumber(L, i + 2);
+					x = luaL_checknumber(L, i + 1);
+					y = luaL_checknumber(L, i + 2);
 
-                    if( i >= 2 )
-                        sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
-                }
+					if( i >= 2 )
+						sf2d_draw_line(x, y, px, py, currentLineWidth, getCurrentColor());
+				}
 
-            } else {
+			} else {
 
-                luaL_error(L, "Number of vertex components must be a multiple of two");
+				luaL_error(L, "Number of vertex components must be a multiple of two");
 
-            }
+			}
 
-        } else {
+		} else {
 
-            luaL_error(L, "Need at least two vertices to draw a line");
+			luaL_error(L, "Need at least two vertices to draw a line");
 
-        }
+		}
 	}
 
 	return 0;
@@ -397,8 +397,8 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			rad = luaL_optnumber(L, 5, 0);
 			sx = luaL_optnumber(L, 6, 0);
 			sy = luaL_optnumber(L, 7, 0);
-            ox = luaL_optnumber(L, 8, 0);
-            oy = luaL_optnumber(L, 9, 0);
+			ox = luaL_optnumber(L, 8, 0);
+			oy = luaL_optnumber(L, 9, 0);
 
 		} else {
 
@@ -412,52 +412,52 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		}
 
-        //x -= ox;
-        //y -= oy;
+		x -= ox; // This is wrong TODO: Do it right.
+		y -= oy;
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
 
-            if (sx == 0 && sy == 0){
+			if (sx == 0 && sy == 0){
 
-			    if (!quad) {
+				if (!quad) {
 
-				    if (img) {
-					    sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
-				    }
+					if (img) {
+						sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+					}
 
-			    } else {
-				    sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
-			    }
+				} else {
+					sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
+				}
 
 			} else {
 
 				if (!quad) {
 
-				    if (img) {
-					    sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
-				    }
+					if (img) {
+						sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
+					}
 
-			    } else {
-				    sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
-			    }
+				} else {
+					sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
+				}
 
 			}
 
 		} else {
 
-            if (sx == 0 && sy == 0){
-                sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
-            }
-            else
-            {
-                sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture,
-                                                     x, y,
-                                                     rad,
-                                                     sx, sy,
-                                                     ox, oy,
-                                                     getCurrentColor());
-            }
+			if (sx == 0 && sy == 0){
+				sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+			}
+			else
+			{
+				sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture,
+													 x, y,
+													 rad,
+													 sx, sy,
+													 ox, oy,
+													 getCurrentColor());
+			}
 
 		}
 
@@ -652,16 +652,16 @@ static int graphicsGetDepth(lua_State *L) { // love.graphics.getDepth()
 
 static int graphicsSetLineWidth(lua_State *L) { // love.graphics.setLineWidth()
 
-    currentLineWidth = luaL_checknumber(L, 1);
+	currentLineWidth = luaL_checknumber(L, 1);
 
-    return 0;
+	return 0;
 
 }
 
 static int graphicsGetLineWidth(lua_State *L) { // love.graphics.getLineWidth()
 
-    lua_pushnumber(L, currentLineWidth);
-    return 1;
+	lua_pushnumber(L, currentLineWidth);
+	return 1;
 
 }
 

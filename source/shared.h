@@ -46,6 +46,8 @@
 #include <ivorbiscodec.h>
 #include <ivorbisfile.h>
 
+#define luaL_dobuffer(L, b, n, s) (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
+
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
 typedef struct {
