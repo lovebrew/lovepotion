@@ -51,7 +51,7 @@ int joystickNew(lua_State *L, int id) {
 	
 	const char *error = joystickInit(self, id);
 	
-	if (error) luaError(error);
+	if (error) luaError(L, error);
 	
 	return 1;
 	
@@ -94,7 +94,7 @@ int joystickGetAxes(lua_State *L) {
 			if( axisId == 8 ) lua_pushinteger(L, accelData.z);
 		
 		} else {
-			luaError("AxisId out of bounds");
+			luaError(L, "AxisId out of bounds");
 		}
 		
 	}
@@ -137,7 +137,7 @@ int joystickGetAxis(lua_State *L) {
 		if( axisId == 8 ) lua_pushinteger(L, accelData.z);
 	
 	} else {
-		luaError("AxisId out of bounds");
+		luaError(L, "AxisId out of bounds");
 	}
 	
 	return 1;
@@ -165,28 +165,28 @@ int joystickGetButtonCount(lua_State *L) { //joystick:getButtonCount()
 
 int joystickGetGUID(lua_State *L) { //joystick:getGUID()
 	
-	luaError("joystick:getGamepadMapping() is not implemented");
+	luaError(L, "joystick:getGamepadMapping() is not implemented");
 	return 0;
 	
 }
 
 int joystickGetGamepadAxis(lua_State *L) { //joystick:getGamepadAxis()
 	
-	luaError("joystick:getGamepadMapping() is not implemented");
+	luaError(L, "joystick:getGamepadMapping() is not implemented");
 	return 0;
 	
 }
 
 int joystickGetGamepadMapping(lua_State *L) { //joystick:getGamepadMapping()
 	
-	luaError("joystick:getGamepadMapping() is not implemented");
+	luaError(L, "joystick:getGamepadMapping() is not implemented");
 	return 0;
 	
 }
 
 int joystickGetHat(lua_State *L) { //joystick:getHat()
 	
-	 luaError("joystick:getHat() is not implemented");
+	 luaError(L, "joystick:getHat() is not implemented");
 	return 0; //M'lua
 	
 }

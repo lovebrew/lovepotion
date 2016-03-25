@@ -261,6 +261,8 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 int sourceNew(lua_State *L) { // love.audio.newSource()
 
+	if (!soundEnabled) return 0;
+
 	const char *filename = luaL_checkstring(L, 1);
 
 	love_source *self = luaobj_newudata(L, sizeof(*self));
@@ -276,7 +278,7 @@ int sourceNew(lua_State *L) { // love.audio.newSource()
 
 int sourceGC(lua_State *L) { // Garbage Collection
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -292,13 +294,13 @@ int sourceGC(lua_State *L) { // Garbage Collection
 
 int sourcePlay(lua_State *L) { // source:play()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	if (self->audiochannel == -1) {
 		luaError(L, "No available audio channel");
-		return;
+		return 0;
 	}
 
 	ndspChnWaveBufClear(self->audiochannel);
@@ -325,7 +327,7 @@ int sourcePlay(lua_State *L) { // source:play()
 
 int sourceStop(lua_State *L) { // source:stop()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -337,7 +339,7 @@ int sourceStop(lua_State *L) { // source:stop()
 
 int sourceIsPlaying(lua_State *L) { // source:isPlaying()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -349,7 +351,7 @@ int sourceIsPlaying(lua_State *L) { // source:isPlaying()
 
 int sourceSetLooping(lua_State *L) { // source:setLooping()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -361,7 +363,7 @@ int sourceSetLooping(lua_State *L) { // source:setLooping()
 
 int sourceIsLooping(lua_State *L) { // source:isLooping()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -373,7 +375,7 @@ int sourceIsLooping(lua_State *L) { // source:isLooping()
 
 int sourceSetVolume(lua_State *L) { // source:setVolume()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 	float vol = luaL_checknumber(L, 2);
@@ -390,7 +392,7 @@ int sourceSetVolume(lua_State *L) { // source:setVolume()
 
 int sourceGetVolume(lua_State *L) { // source:getVolume()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -402,7 +404,7 @@ int sourceGetVolume(lua_State *L) { // source:getVolume()
 
 int sourceTell(lua_State *L) { // source:tell()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
@@ -418,7 +420,7 @@ int sourceTell(lua_State *L) { // source:tell()
 
 int sourceGetDuration(lua_State *L) { // source:getDuration()
 
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
+	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
 

@@ -30,7 +30,7 @@ lua_State *L;
 
 int initLove(lua_State *L);
 
-bool isCIA;
+bool romfsExists;
 
 bool errorOccured = false;
 bool forceQuit = false;
@@ -66,11 +66,11 @@ int main() {
 
 	Result rc = romfsInit();
 
-	isCIA = (rc >= 0) ? true : false;
+	romfsExists = (rc >= 0) ? true : false;
 
 	// Change working directory
 
-	if (isCIA) {
+	if (romfsExists) {
 
 		chdir("romfs:/");
 
@@ -90,19 +90,12 @@ int main() {
 
 	// If main.lua exists, execute it.
 	// If not then just load the nogame screen.
+	
 	if (fileExists("main.lua")) {
-
 		if (luaL_dofile(L, "main.lua")) displayError();
-
 	} else {
-
 		if (luaL_dobuffer(L, nogame_lua, nogame_lua_size, "nogame")) displayError();
-
 	}
-
-	// 
-
-	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
 	while (aptMainLoop()) {
 
@@ -227,7 +220,7 @@ int main() {
 	ptmuExit();
 
 	if (soundEnabled) ndspExit();
-	if (isCIA) romfsExit();
+	if (romfsExists) romfsExit();
 
 	return 0;
 
