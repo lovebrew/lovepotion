@@ -63,10 +63,11 @@ int main() {
 
 	// Detect if we are running on a .cia, because if we are
 	// we load from RomFS rather than the SD Card.
+	// TODO: Load RomFS from .3dsx's aswell.
 
 	Result rc = romfsInit();
 
-	romfsExists = (rc >= 0) ? true : false;
+	romfsExists = (rc) ? true : false;
 
 	// Change working directory
 
@@ -90,12 +91,14 @@ int main() {
 
 	// If main.lua exists, execute it.
 	// If not then just load the nogame screen.
-	
+
 	if (fileExists("main.lua")) {
 		if (luaL_dofile(L, "main.lua")) displayError();
 	} else {
 		if (luaL_dobuffer(L, nogame_lua, nogame_lua_size, "nogame")) displayError();
 	}
+
+	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
 	while (aptMainLoop()) {
 

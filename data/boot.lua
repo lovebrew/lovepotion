@@ -144,5 +144,3 @@ function love.errhand(msg)
 	love.graphics.print('Press Start to quit', 25, 40)
 	love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)
 end
-
-if love.load then love.load() end
