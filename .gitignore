@@ -6,6 +6,7 @@
 /source/libs/libsftd/build/
 /source/libs/libsfil/lib/
 /source/libs/libsfil/build/
+/game/
 *.3dsx
 *.smdh
 *.cia

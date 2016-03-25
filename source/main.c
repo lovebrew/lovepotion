@@ -67,7 +67,7 @@ int main() {
 
 	Result rc = romfsInit();
 
-	romfsExists = (rc) ? true : false;
+	romfsExists = (rc) ? false : true;
 
 	// Change working directory
 
