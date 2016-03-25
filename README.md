@@ -96,7 +96,7 @@ LövePotion requires the 3DS portlibs to build correctly, these are not included
  * Everyone who has worked on [Citra](http://citra-emu.org/)
  * Everyone who worked on [DevKitARM](http://devkitpro.org/)
  * rxi for [lovedos](https://github.com/rxi/lovedos) which has been good learning material (I also used his luaobj util)
- * Firew0lf and everyone who worked on [ctruLua](https://github.com/Firew0lf/ctruLua)
+ * Firew0lf, Reuh, Negi and everyone else who worked on [ctruLua](https://github.com/Firew0lf/ctruLua)
  * TurtleP for help/advice and being my best customer
  * Mik Embley for his contributions
  * All of the LÖVE community, for being awesome
