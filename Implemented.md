@@ -22,8 +22,8 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.setColor - ✓
 * love.graphics.getColor - ✓
 * love.graphics.rectangle - ✓
-* love.graphics.circle - **Partial**
-* love.graphics.line - **Partial**
+* love.graphics.circle - ✓
+* love.graphics.line - ✓
 * love.graphics.setScreen - ✓
 * love.graphics.getScreen - ✓
 * love.graphics.getSide - ✓
@@ -31,7 +31,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.getDimensions - ✓
 * love.graphics.getWidth - ✓
 * love.graphics.getHeight - ✓
-* love.graphics.newImage - **Partial**
+* love.graphics.newImage - ✓
 * love.graphics.newFont - ✓
 * love.graphics.newQuad - ✓
 * love.graphics.draw - **Partial**
@@ -46,7 +46,7 @@ This is all of the API that is currently implemented, partial or otherwise.
 * love.graphics.get3D - ✓
 * love.graphics.setDepth - ✓
 * love.graphics.getDepth - ✓
-* love.graphics.setLineWidth - **Partial**
+* love.graphics.setLineWidth - ✓
 * love.graphics.getLineWidth - ✓
 
 # love.timer

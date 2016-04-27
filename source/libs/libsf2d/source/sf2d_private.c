@@ -2,6 +2,10 @@
 #include <math.h>
 #include "sf2d_private.h"
 
+#ifndef M_PI
+#define M_PI (3.14159265358979323846)
+#endif
+
 //stolen from staplebutt
 void GPU_SetDummyTexEnv(u8 num)
 {

@@ -20,51 +20,19 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <shared.h>
+#ifndef UTIL_H_INCLUDED
+#define UTIL_H_INCLUDED
 
-#define CLASS_TYPE  LUAOBJ_TYPE_QUAD
-#define CLASS_NAME  "Quad"
+#include <lauxlib.h>
 
-const char *quadInit(love_quad *self, int x, int y, int width, int height) {
+int fileExists(const char *filename);
 
-	self->x = luaL_checkint(L, 1);
-	self->y = luaL_checkint(L, 2);
+void luaError(lua_State *L, char *message);
 
-	self->width = luaL_checkint(L, 3);
-	self->height = luaL_checkint(L, 4);
+const char *fileExtension(const char *filename);
 
-	return NULL;
+char* concat(char *s1, char *s2);
 
-}
+int getType(const char *name);
 
-int quadNew(lua_State *L) { // love.graphics.newQuad()
-
-	int x = luaL_checkint(L, 1);
-	int y = luaL_checkint(L, 2);
-
-	int width = luaL_checkint(L, 3);
-	int height = luaL_checkint(L, 4);
-
-	love_quad *self = luaobj_newudata(L, sizeof(*self));
-
-	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
-
-	const char *error = quadInit(self, x, y, width, height);
-
-	if (error) luaError(L, error);
-
-	return 1;
-}
-
-int initQuadClass(lua_State *L) {
-
-	luaL_Reg reg[] = {
-		{ "new", quadNew },
-		{ 0, 0 },
-	};
-
-	luaobj_newclass(L, CLASS_NAME, NULL, quadNew, reg);
-
-	return 1;
-
-}
+#endif

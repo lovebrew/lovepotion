@@ -18,6 +18,10 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 --]]
 
+-- Edited version of the actual nogame screen.
+-- a lot of nasty hacks/patches are used to get it displayed properly on 3DS,
+-- but seeing as we are only coding for one platform this shouldn't matter too much.
+
 function love.nogame()
 
 	local math = math
@@ -90,7 +94,7 @@ function love.nogame()
 	end
 
 	function Toast:center()
-		local ww, wh = 400, 240
+		local ww, wh = 300, 240
 		self.x = math.floor(ww / 2 / 32) * 32 + 16
 		self.y = math.floor(wh / 2 / 32) * 32 + 16
 	end
@@ -133,10 +137,10 @@ function love.nogame()
 
 		local look_x, look_y = self:get_look_coordinates()
 
-		love.graphics.draw(g_images.toast.back, x, y, self.r, 1, 1, 64, 64)
-		love.graphics.draw(g_images.toast.front, x + self.offset_x, y + self.offset_y, self.r, 1, 1, 64, 64)
-		love.graphics.draw(self:get_eyes_image(), x + self.offset_x * 2.5, y + self.offset_y * 2.5, self.r, 1, 1, 64, 64)
-		love.graphics.draw(g_images.toast.mouth, x + self.offset_x * 2, y + self.offset_y * 2, self.r, 1, 1, 64, 64)
+		love.graphics.draw(g_images.toast.back, x, y, self.r, 1, 1, 50, 50)
+		love.graphics.draw(g_images.toast.front, x + self.offset_x, y + self.offset_y, self.r, 1, 1, 50, 50)
+		love.graphics.draw(self:get_eyes_image(), x + self.offset_x * 2.5, y + self.offset_y * 2.5, self.r, 1, 1, 50, 50)
+		love.graphics.draw(g_images.toast.mouth, x + self.offset_x * 2, y + self.offset_y * 2, self.r, 1, 1, 50, 50)
 	end
 
 	function Toast:get_eyes_image()
@@ -182,17 +186,27 @@ function love.nogame()
 	local Mosaic = class("Mosaic")
 
 	function Mosaic:init()
+
+		self.screen = love.graphics.getScreen()
+
 		local mosaic_image = g_images.mosaic[1]
 
 		local sw, sh = mosaic_image:getDimensions()
-		local ww, wh = 400, 240
+		local ww, wh
+
+		if self.screen == "bottom" then
+			ww, wh = 300, 240
+		else
+			ww, wh = 400, 240
+		end
 
 		-- if love.window.getPixelScale() > 1 then
 		-- 	mosaic_image = g_images.mosaic[2]
 		-- end
 
 		local SIZE_X = math.floor(ww / 32 + 2)
-		local SIZE_Y = math.floor(wh / 32 + 2)
+		local SIZE_Y = math.floor(wh / 32 + 2) - 2
+
 		local SIZE = SIZE_X * SIZE_Y
 
 		-- self.batch = love.graphics.newSpriteBatch(mosaic_image, SIZE, "stream")
@@ -257,8 +271,8 @@ function love.nogame()
 				return COLORS[1 + math.floor(len) % #COLORS]
 			end,
 			function(piece, generation)
-				local dx = piece.grid_x - exclude_center_x
-				local dy = piece.grid_y - exclude_center_y
+				local dx = piece.grid_x - exclude_center_x - 1
+				local dy = piece.grid_y - exclude_center_y - 1
 				local len = generation - math.sqrt(dx ^ 2 + dy ^ 2)
 				return COLORS[1 + math.floor(len) % #COLORS]
 			end,
@@ -272,10 +286,13 @@ function love.nogame()
 		self.generator = self.generators[1]
 
 		local EXCLUDE = {}
-		for y = exclude_top,exclude_bottom do
-			EXCLUDE[y]  = {}
-			for x = exclude_left,exclude_right do
-				EXCLUDE[y][x] = true
+
+		if self.screen == 'bottom' then
+			for y = exclude_top,exclude_bottom do
+				EXCLUDE[y]  = {}
+				for x = exclude_left,exclude_right do
+					EXCLUDE[y][x] = true
+				end
 			end
 		end
 
@@ -336,9 +353,10 @@ function love.nogame()
 		local text_center_x = math.floor(ww / 2 / 32)
 
 		local no_game_text_offset = SIZE_X * exclude_bottom - exclude_area
-		put_text("No GAME", no_game_text_offset, text_center_x - 2, 1)
 
-		put_text("SUPER TOAST", 0, text_center_x - 4, exclude_top - 3)
+		if self.screen == "top" then put_text("No GAME", no_game_text_offset + 1, text_center_x - 2, -2) end
+		if self.screen == "bottom" then put_text("SUPERTOAST", 0, text_center_x - 4, exclude_top - 3) end
+
 	end
 
 	function Mosaic:addGeneration()
@@ -370,7 +388,7 @@ function love.nogame()
 	end
 
 	function Mosaic:draw()
-		self.batch:clear()
+		-- self.batch:clear()
 		love.graphics.setColor(255, 255, 255, 64)
 		for idx,piece in ipairs(self.pieces) do
 			local ct = 1 - self.color_t
@@ -382,8 +400,8 @@ function love.nogame()
 
 			-- self.batch:setColor(r, g, b)
 			-- self.batch:add(piece.quad, piece.x, piece.y, piece.r, 1, 1, 16, 16)
-			love.graphics.setColor(r, g, b)
-			love.graphics.draw(mosaic_image, piece.quad, piece.x, piece.y, piece.r, 1, 1, 16, 16)
+			love.graphics.setColor(r, g, b, 255)
+			love.graphics.draw(g_images.mosaic[1], piece.quad, piece.x, piece.y, 0, 1, 1)
 		end
 		love.graphics.setColor(255, 255, 255, 255)
 		-- love.graphics.draw(self.batch, 0, 0)
@@ -392,41 +410,60 @@ function love.nogame()
 	function love.load()
 		love.graphics.setBackgroundColor(136, 193, 206)
 
-		local function load_image(file, name)
-			return love.graphics.newImage(love.filesystem.newFileData(file, name:gsub("_", "."), "base64"))
-		end
-
 		g_images = {}
 		g_images.toast = {}
-		g_images.toast.back = load_image(toast_back_png, "toast_back.png")
-		g_images.toast.front = load_image(toast_front_png, "toast_front.png")
+		g_images.toast.back = love.graphics.newImage('nogame:toast_back')
+		g_images.toast.front = love.graphics.newImage('nogame:toast_front')
 		g_images.toast.eyes = {}
-		g_images.toast.eyes.open = load_image(toast_eyes_open_png, "toast_eyes_open.png")
-		g_images.toast.eyes.closed = load_image(toast_eyes_closed_png, "toast_eyes_closed.png")
-		g_images.toast.mouth = load_image(toast_mouth_png, "toast_mouth.png")
+		g_images.toast.eyes.open = love.graphics.newImage('nogame:toast_eyes_open')
+		g_images.toast.eyes.closed = love.graphics.newImage('nogame:toast_eyes_closed')
+		g_images.toast.mouth = love.graphics.newImage('nogame:toast_mouth')
 
 		g_images.mosaic = {}
-		g_images.mosaic[1] = load_image(mosaic_png, "mosaic.png")
-		g_images.mosaic[2] = load_image(mosaic_2x_png, "mosaic@2x.png")
+		g_images.mosaic[1] = love.graphics.newImage('nogame:mosaic')
 
 		g_entities = {}
 		g_entities.toast = Toast()
+
+		love.graphics.setScreen('bottom')
 		g_entities.mosaic = Mosaic()
+
+		love.graphics.setScreen('top')
+		g_entities.topmosaic = Mosaic()
+
 	end
 
 	function love.update(dt)
 		dt = math.min(dt, 1/10)
 		g_entities.toast:update(dt)
 		g_entities.mosaic:update(dt)
+		g_entities.topmosaic:update(dt)
 	end
 
 	function love.draw()
+
+		love.graphics.setScreen('bottom')
+
+		love.graphics.push()
+		love.graphics.translate(0, 10)
 		love.graphics.setColor(255, 255, 255)
+
 		-- love.graphics.push()
 		-- love.graphics.scale(love.window.getPixelScale())
+
 		g_entities.mosaic:draw()
 		g_entities.toast:draw()
-		-- love.graphics.pop()
+		love.graphics.pop()
+
+		love.graphics.setScreen('top')
+
+		love.graphics.push()
+		love.graphics.translate(-5, 10)
+		love.graphics.setColor(255, 255, 255)
+
+		g_entities.topmosaic:draw()
+		love.graphics.pop()
+
 	end
 
 	function love.keypressed(key)
@@ -436,14 +473,14 @@ function love.nogame()
 	end
 
 	function love.mousepressed(x, y, b)
-		local tx = x / 400
+		local tx = x / 300
 		local ty = y / 240
 		g_entities.toast:look_at(tx, ty)
 	end
 
 	function love.mousemoved(x, y)
-		if love.mouse.isDown('l') then
-			local tx = x / 400
+		if love.mouse.isDown(1) then
+			local tx = x / 300
 			local ty = y / 240
 			g_entities.toast:look_at(tx, ty)
 		end
@@ -453,4 +490,4 @@ function love.nogame()
 
 end
 
-return love.nogame
+love.nogame()

@@ -24,14 +24,10 @@
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
-int fileExists (char *filename){
-	if (!isCIA) {
-		struct stat st;
-		int result = stat(filename, &st);
-		return result == 0;
-	} else {
-		return true; // TODO: Make this work for CIA's
-	}
+int fileExists(const char *filename) {
+	FILE *file = fopen(filename, "r");
+	if (file) fclose(file);
+	return (file);
 }
 
 void luaError(lua_State *L, char *message) {
@@ -68,13 +64,4 @@ int getType(const char *name) {
 		return 4;
 	}
 
-}
-
-int getfield (int key) {
-	int result;
-	lua_pushstring(L, key);
-	lua_gettable(L, -2);
-	result = lua_tonumber(L, -1);
-	lua_pop(L, 1);
-	return result; // TODO: Fix this
 }

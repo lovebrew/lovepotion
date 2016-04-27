@@ -35,7 +35,7 @@ int lastPosy = 0;
 
 char dsNames[32][32] = {
 		"a", "b", "select", "start",
-		"dright", "dleft", "dup", "ddown",
+		"down", "left", "up", "down",
 		"rbutton", "lbutton", "x", "y",
 		"", "", "lzbutton", "rzbutton",
 		"", "", "", "",
@@ -145,7 +145,7 @@ int keyboardIsDown(lua_State *L) { // love.keyboard.isDown()
 
 	const char *key = luaL_checkstring(L, 1);
 
-	bool down;
+	bool down = false;
 
 	int i;
 	for (i = 0; i < 32; i++) {

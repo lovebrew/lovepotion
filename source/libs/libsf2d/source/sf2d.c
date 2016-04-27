@@ -1,3 +1,4 @@
+#include <string.h>
 #include "sf2d.h"
 #include "sf2d_private.h"
 #include "shader_vsh_shbin.h"
@@ -32,6 +33,10 @@ static u32 projection_desc = -1;
 //Matrix
 static float ortho_matrix_top[4*4];
 static float ortho_matrix_bot[4*4];
+//Rendertarget things
+static sf2d_rendertarget * currentRenderTarget = NULL;
+static void * targetDepthBuffer;
+static int targetDepthBufferLen = 0;
 //Apt hook cookie
 static aptHookCookie apt_hook_cookie;
 //Functions
@@ -111,6 +116,7 @@ int sf2d_fini()
 	linearFree(gpu_cmd);
 	vramFree(gpu_fb_addr);
 	vramFree(gpu_depth_fb_addr);
+	linearFree(targetDepthBuffer);
 
 	sf2d_initialized = 0;
 
@@ -173,6 +179,53 @@ void sf2d_start_frame(gfxScreen_t screen, gfx3dSide_t side)
 	GPU_SetDummyTexEnv(5);
 }
 
+void sf2d_start_frame_target(sf2d_rendertarget *target)
+{
+	sf2d_pool_reset();
+	GPUCMD_SetBufferOffset(0);
+
+	// Upload saved uniform
+	matrix_gpu_set_uniform(target->projection, projection_desc);
+
+	int bufferLen = target->texture.width * target->texture.height * 4; // apparently depth buffer is (or can be) 32bit?
+	if (bufferLen > targetDepthBufferLen) { // expand depth buffer
+		if (targetDepthBufferLen > 0) linearFree(targetDepthBuffer);
+		targetDepthBuffer = linearAlloc(bufferLen);
+		memset(targetDepthBuffer, 0, bufferLen);
+		targetDepthBufferLen = bufferLen;
+	}
+
+	GPU_SetViewport((u32 *)osConvertVirtToPhys(targetDepthBuffer),
+		(u32 *)osConvertVirtToPhys(target->texture.data),
+		0, 0, target->texture.height, target->texture.width);
+
+	currentRenderTarget = target;
+
+	GPU_DepthMap(-1.0f, 0.0f);
+	GPU_SetFaceCulling(GPU_CULL_NONE);
+	GPU_SetStencilTest(false, GPU_ALWAYS, 0x00, 0xFF, 0x00);
+	GPU_SetStencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
+	GPU_SetBlendingColor(0,0,0,0);
+	GPU_SetDepthTestAndWriteMask(true, GPU_GEQUAL, GPU_WRITE_ALL);
+	GPUCMD_AddMaskedWrite(GPUREG_EARLYDEPTH_TEST1, 0x1, 0);
+	GPUCMD_AddWrite(GPUREG_EARLYDEPTH_TEST2, 0);
+
+	GPU_SetAlphaBlending(
+		GPU_BLEND_ADD,
+		GPU_BLEND_ADD,
+		GPU_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA,
+		GPU_ONE, GPU_ZERO
+	);
+
+	GPU_SetAlphaTest(false, GPU_ALWAYS, 0x00);
+
+	GPU_SetDummyTexEnv(1);
+	GPU_SetDummyTexEnv(2);
+	GPU_SetDummyTexEnv(3);
+	GPU_SetDummyTexEnv(4);
+	GPU_SetDummyTexEnv(5);
+}
+
 void sf2d_end_frame()
 {
 	GPU_FinishDrawing();
@@ -180,23 +233,30 @@ void sf2d_end_frame()
 	GPUCMD_FlushAndRun();
 	gspWaitForP3D();
 
-	//Copy the GPU rendered FB to the screen FB
-	if (cur_screen == GFX_TOP) {
-		GX_DisplayTransfer(gpu_fb_addr, GX_BUFFER_DIM(240, 400),
-			(u32 *)gfxGetFramebuffer(GFX_TOP, cur_side, NULL, NULL),
-			GX_BUFFER_DIM(240, 400), 0x1000);
-	} else {
-		GX_DisplayTransfer(gpu_fb_addr, GX_BUFFER_DIM(240, 320),
-			(u32 *)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL),
-			GX_BUFFER_DIM(240, 320), 0x1000);
-	}
-	gspWaitForPPF();
+	if (!currentRenderTarget) {
+		//Copy the GPU rendered FB to the screen FB
+		if (cur_screen == GFX_TOP) {
+			GX_DisplayTransfer(gpu_fb_addr, GX_BUFFER_DIM(240, 400),
+				(u32 *)gfxGetFramebuffer(GFX_TOP, cur_side, NULL, NULL),
+				GX_BUFFER_DIM(240, 400), 0x1000);
+		} else {
+			GX_DisplayTransfer(gpu_fb_addr, GX_BUFFER_DIM(240, 320),
+				(u32 *)gfxGetFramebuffer(GFX_BOTTOM, GFX_LEFT, NULL, NULL),
+				GX_BUFFER_DIM(240, 320), 0x1000);
+		}
+		gspWaitForPPF();
 
-	//Clear the screen
-	GX_MemoryFill(
-		gpu_fb_addr, clear_color, &gpu_fb_addr[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH,
-		gpu_depth_fb_addr, 0, &gpu_depth_fb_addr[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
-	gspWaitForPSC0();
+		//Clear the screen
+		GX_MemoryFill(
+			gpu_fb_addr, clear_color, &gpu_fb_addr[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH,
+			gpu_depth_fb_addr, 0, &gpu_depth_fb_addr[240*400], GX_FILL_TRIGGER | GX_FILL_32BIT_DEPTH);
+		gspWaitForPSC0();
+	} else {
+		//gspWaitForPPF();
+		//gspWaitForPSC0();
+		sf2d_texture_tile32(&(currentRenderTarget->texture));
+	}
+	currentRenderTarget = NULL;
 }
 
 void sf2d_swapbuffers()

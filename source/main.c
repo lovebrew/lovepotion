@@ -21,6 +21,8 @@
 // THE SOFTWARE.
 
 #include <shared.h>
+#include "boot_lua.h"
+#include "nogame_lua.h"
 
 char *rootDir = "";
 
@@ -28,11 +30,11 @@ lua_State *L;
 
 int initLove(lua_State *L);
 
-bool isCIA;
+bool romfsExists;
 
 bool errorOccured = false;
 bool forceQuit = false;
-char *errMsg;
+const char *errMsg;
 
 void displayError() {
 
@@ -62,18 +64,15 @@ int main() {
 
 	// Detect if we are running on a .cia, because if we are
 	// we load from RomFS rather than the SD Card.
+	// TODO: Load RomFS from .3dsx's aswell.
 
 	Result rc = romfsInit();
 
-	if (rc) {
-		isCIA = false;
-	} else {
-		isCIA = true;
-	}
+	romfsExists = (rc) ? false : true;
 
 	// Change working directory
 
-	if (isCIA) {
+	if (romfsExists) {
 
 		chdir("romfs:/");
 
@@ -89,27 +88,18 @@ int main() {
 
 	}
 
-	luaL_dostring(L, "_defaultFont_ = love.graphics.newFont(); love.graphics.setFont(_defaultFont_)");
+	luaL_dobuffer(L, boot_lua, boot_lua_size, "boot"); // Do some setup Lua side.
 
-	luaL_dostring(L, "print(''); print('\x1b[1;36mLovePotion 1.0.9 BETA\x1b[0m (LOVE for 3DS)'); print('')"); // Ew.
+	// If main.lua exists, execute it.
+	// If not then just load the nogame screen.
 
-	luaL_dostring(L, "package.path = './?.lua;./?/init.lua'"); // Set default requiring path.
-	luaL_dostring(L, "package.cpath = './?.lua;./?/init.lua'");
-
-	luaL_dostring(L, 
-		"function love.errhand(msg)\n"
-			"love.audio.stop()"
-			"love.graphics.setBackgroundColor(89, 157, 220)\n"
-			"love.graphics.setScreen('top')\n"
-			"love.graphics.setFont(_defaultFont_)\n"
-			"love.graphics.setColor(255, 255, 255, 255)\n"
-			"love.graphics.print('Oops, a Lua error has occured', 25, 25)\n"
-			"love.graphics.print('Press Start to quit', 25, 40)\n"
-			"love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)\n"
-		"end"
-	); // default love.errhand()
-
-	if (luaL_dofile(L, "main.lua")) displayError();
+	if (fileExists("main.lua")) {
+		if (luaL_dofile(L, "main.lua")) displayError();
+	} else {
+		if (luaL_dobuffer(L, nogame_lua, nogame_lua_size, "nogame")) displayError();
+	}
+	
+	if (luaL_dostring(L, "love.timer.step()")) displayError();
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 
@@ -241,7 +231,7 @@ int main() {
 	ptmuExit();
 
 	if (soundEnabled) ndspExit();
-	if (isCIA) romfsExit();
+	if (romfsExists) romfsExit();
 
 	return 0;
 
