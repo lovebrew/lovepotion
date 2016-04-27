@@ -104,12 +104,7 @@ static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgr
 		b = luaL_checkinteger(L, -2);
 
 	}
-<<<<<<< HEAD
-
-
-=======
->>>>>>> a44dedd1bb240912820cdeef646c48cff61d014c
-
+	
 	sf2d_set_clear_color(RGBA8(r, g, b, 0xFF));
 
 	return 0;

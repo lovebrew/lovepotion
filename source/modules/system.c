@@ -60,6 +60,14 @@ static int systemGetModel(lua_State *L) { // love.system.getModel()
 
 }
 
+static int systemGetMemory(lua_State *L) {
+	
+	lua_pushnumber(L, linearSpaceFree())
+
+	return 1;
+	
+}
+
 static int systemGetLanguage(lua_State *L) { // love.system.getLanguage()
 	
 	u8 language;
