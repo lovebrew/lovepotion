@@ -29,6 +29,7 @@ char *rootDir = "";
 lua_State *L;
 
 int initLove(lua_State *L);
+int initSocket(lua_State * L);
 
 bool romfsExists;
 
@@ -50,6 +51,7 @@ int main() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", initLove, 1);
+	luaL_requiref(L, "socket", initSocket, false);
 
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.

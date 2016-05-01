@@ -42,6 +42,8 @@ int initLoveEvent(lua_State *L);
 int initLoveAudio(lua_State *L);
 int initLoveFilesystem(lua_State *L);
 
+int initSocket(lua_State * L);
+
 int initImageClass(lua_State *L);
 int initFontClass(lua_State *L);
 int initSourceClass(lua_State *L);

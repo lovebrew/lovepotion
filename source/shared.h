@@ -43,6 +43,16 @@
 #include <dirent.h>
 #include <3ds/services/cfgu.h>
 
+#include <3ds/services/soc.h>
+//#include <3ds/services/sslc.h>
+
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <fcntl.h>
+
 #include <ivorbiscodec.h>
 #include <ivorbisfile.h>
 
@@ -136,6 +146,13 @@ typedef struct {
 
 	spritebatch_point * points;
 } love_spritebatch;
+
+bool initializeSocket;
+typedef struct {
+	int socket;
+	struct sockaddr_in address;
+	struct hostent * host;
+} lua_socket;
 
 extern lua_State *L;
 extern int currentScreen;

@@ -251,59 +251,6 @@ int fileTell(lua_State *L) {
 
 }
 
-
-/*const char * readLine (FILE * file) {
-
-	const char * line = NULL, c;
-
-	int count = 0;
-
-	while (true) {
-
-		line = (char *) realloc (line, (count + 1) * sizeof (char));
-
-		if ((c = getc (file)) == '\n' || feof (file)) {
-
-			line[count++] = '\0';
-
-			break;
-
-		} else
-
-			line[count++] = c;
-
-		}	
-
-	}
-
-	return line;
-
-}
-
-int fileLines (lua_State *L) {
-
-	const char * line;
-
-	love_file * self = luaobj_checkudata (L, 1, CLASS_TYPE);
-
-	if (!self->file || feof (self->file)) {
-
-		lua_pushnil (L);
-
-		return 1;
-
-	}
-
-	line = readLine (self->file);
-
-	lua_pushstring (L, line);
-
-	free (line);
-	
-	return 1;
-
-}*/
-
 int initFileClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
@@ -321,7 +268,6 @@ int initFileClass(lua_State *L) {
 		{ "isOpen", fileIsOpen	},
 		{ "seek", fileSeek	},
 		{ "tell", fileTell	},
-		//{ "lines", fileLines	},
 		{ 0, 0 },
 	};
 

@@ -27,11 +27,6 @@ int currentG = 0xFF;
 int currentB = 0xFF;
 int currentA = 0xFF;
 
-u32 currentScissorX;
-u32 currentScissorY;
-u32 currentScissorWidth;
-u32 currentScissorHeight;
-
 int currentScreen = GFX_BOTTOM;
 
 love_font *currentFont;
@@ -104,7 +99,7 @@ static int graphicsSetBackgroundColor(lua_State *L) { // love.graphics.setBackgr
 		b = luaL_checkinteger(L, -2);
 
 	}
-	
+
 	sf2d_set_clear_color(RGBA8(r, g, b, 0xFF));
 
 	return 0;
@@ -412,111 +407,38 @@ static int graphicsGetHeight(lua_State *L) { // love.graphics.getHeight()
 static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 	if (sf2d_get_current_screen() == currentScreen) {
-		love_image * img = NULL;// = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-		love_quad * quad = NULL;
-		love_spritebatch * spritebatch = NULL;
+
+		love_image *img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+		love_quad *quad = NULL;
 
 		int x, y;
 		int sx, sy;
 		int ox, oy;
 		float rad;
 
-		int quadX;
-		int quadY;
-
-		int quadWidth;
-		int quadHeight;
-
-		int width;
-		int height;
-
- 		int index = lua_absindex(L, 1);
-  		luaobj_head_t *udata = lua_touserdata(L, index);
-
-		if (udata->type & LUAOBJ_TYPE_IMAGE) {
-			img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-		} else if (udata->type & LUAOBJ_TYPE_SPRITEBATCH) {
-			spritebatch = luaobj_checkudata(L, 1, LUAOBJ_TYPE_SPRITEBATCH);
-		}
-
-		if (img) {
-
-			quadX = 0;
-			quadY = 0;
-			quadWidth = img->texture->width;
-			quadHeight = img->texture->height;
-
-			width = quadWidth;
-			height = quadHeight;
-
-		} else if (spritebatch) {
-
-			quadX = 0;
-			quadY = 0;
-
-			quadWidth = spritebatch->resource->texture->width;
-			quadHeight = spritebatch->resource->texture->height;
-
-			width = quadWidth;
-			height = quadHeight;
-		}
-
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
 
 			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
-
-			if (quad) {
-				quadX = quad->x;
-				quadY = quad->y;
-				quadWidth = quad->width;
-				quadHeight = quad->height;
-			}
-
 			x = luaL_optnumber(L, 3, 0);
 			y = luaL_optnumber(L, 4, 0);
 			rad = luaL_optnumber(L, 5, 0);
-<<<<<<< HEAD
-			sx = luaL_optnumber(L, 6, 1);
-			sy = luaL_optnumber(L, 7, 1);
-            ox = luaL_optnumber(L, 8, 0);
-            oy = luaL_optnumber(L, 9, 0);
-            
-=======
 			sx = luaL_optnumber(L, 6, 0);
 			sy = luaL_optnumber(L, 7, 0);
 			ox = luaL_optnumber(L, 8, 0);
 			oy = luaL_optnumber(L, 9, 0);
 
->>>>>>> a44dedd1bb240912820cdeef646c48cff61d014c
 		} else {
 
 			x = luaL_optnumber(L, 2, 0);
 			y = luaL_optnumber(L, 3, 0);
 			rad = luaL_optnumber(L, 4, 0);
-			sx = luaL_optnumber(L, 5, 1);
-			sy = luaL_optnumber(L, 6, 1);
+			sx = luaL_optnumber(L, 5, 0);
+			sy = luaL_optnumber(L, 6, 0);
 			ox = luaL_optnumber(L, 7, 0);
 			oy = luaL_optnumber(L, 8, 0);
 
 		}
 
-<<<<<<< HEAD
-		x -= ox;
-		y -= oy;
-
-		translateCoords(&x, &y);
-
-		if (!spritebatch && img) {
-
-			sf2d_draw_texture_part_rotate_scale_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, quadX, quadY, quadWidth, quadHeight, sx, sy, getCurrentColor());
-
-		} else {
-
-			for (int i = 0; i < spritebatch->currentImage; i++) {
-
-				sf2d_draw_texture_part_rotate_scale_blend(spritebatch->resource->texture, x + spritebatch->points[i].x + spritebatch->quads[i].width / 2, y + spritebatch->points[i].y + spritebatch->quads[i].height / 2, rad, spritebatch->quads[i].x, spritebatch->quads[i].y, spritebatch->quads[i].width, spritebatch->quads[i].height, sx, sy, getCurrentColor());
-
-=======
 		x -= ox; // This is wrong TODO: Do it right.
 		y -= oy;
 		translateCoords(&x, &y);
@@ -562,7 +484,6 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 													 sx, sy,
 													 ox, oy,
 													 getCurrentColor());
->>>>>>> a44dedd1bb240912820cdeef646c48cff61d014c
 			}
 
 		}
@@ -579,22 +500,17 @@ static int graphicsScissor(lua_State *L) { //love.graphics.setScissor()
 
 		GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
 
-		if (!lua_isnone(L, 1)) {
-			currentScissorX = luaL_checkinteger(L, 1);
-			currentScissorY = luaL_checkinteger(L, 2);
-			currentScissorWidth = luaL_checkinteger(L, 3);
-			currentScissorHeight = luaL_checkinteger(L, 4);
-		} else {
+		u32 x = luaL_optnumber(L, 1, 0);
+		u32 y = luaL_optnumber(L, 2, 0);
+		u32 w = luaL_optnumber(L, 3, 0);
+		u32 h = luaL_optnumber(L, 4, 0);
+
+		if (!x && !y && !w && !h) {
 			mode = GPU_SCISSOR_DISABLE;
 		}
 
-<<<<<<< HEAD
-		sf2d_set_scissor_test(mode, currentScissorX, currentScissorY, currentScissorWidth, currentScissorHeight);
-		
-=======
 		sf2d_set_scissor_test(mode, x, y, w, h);
 
->>>>>>> a44dedd1bb240912820cdeef646c48cff61d014c
 	}
 
 	return 0;
@@ -817,7 +733,6 @@ static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultF
 int imageNew(lua_State *L);
 int fontNew(lua_State *L);
 int quadNew(lua_State *L);
-int spriteBatchNew(lua_State *L);
 
 const char *fontDefaultInit(love_font *self, int size);
 
@@ -852,14 +767,8 @@ int initLoveGraphics(lua_State *L) {
 		{ "setDepth",			graphicsSetDepth			},
 		{ "getDepth",			graphicsGetDepth			},
 		{ "setScissor",			graphicsScissor				},
-<<<<<<< HEAD
-		{ "newSpriteBatch",		spriteBatchNew				},
-		// { "setLineWidth",		graphicsSetLineWidth		},
-		// { "getLineWidth",		graphicsGetLineWidth		},
-=======
 		{ "setLineWidth",		graphicsSetLineWidth		},
 		{ "getLineWidth",		graphicsGetLineWidth		},
->>>>>>> a44dedd1bb240912820cdeef646c48cff61d014c
 		{ "setDefaultFilter",	graphicsSetDefaultFilter	},
 		{ "getDefaultFilter",	graphicsGetDefaultFilter	},
 		{ 0, 0 },
