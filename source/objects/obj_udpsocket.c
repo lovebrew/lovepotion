@@ -26,7 +26,7 @@
 #define CLASS_NAME  "Socket"
 
 int socketNewUDP(lua_State * L) { //require("socket").udp()
-	lua_socket * self = lua_newuserdata(L, sizeof(* self));
+	lua_socket * self = luaobj_newudata(L, sizeof(* self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
@@ -53,7 +53,7 @@ int socketInitUDP(lua_socket * self) {
 }
 
 int socketNewTCP(lua_State * L) {
-	lua_socket * self = lua_newuserdata(L, sizeof(* self));
+	lua_socket * self = luaobj_newudata(L, sizeof(* self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
@@ -80,7 +80,7 @@ int socketInitTCP(lua_socket * self) {
 }
 
 int socketClose(lua_State *L) { //socket:close
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	closesocket(self->socket);
 
@@ -88,7 +88,7 @@ int socketClose(lua_State *L) { //socket:close
 }
 
 int socketGetPeerName(lua_State * L) { //socket:getpeername
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	struct sockaddr_in address;
 
@@ -104,7 +104,7 @@ int socketGetPeerName(lua_State * L) { //socket:getpeername
 }
 
 int socketGetSocketName(lua_State * L) { //socket:getsockname
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	struct sockaddr_in address;
 	socklen_t addressSize = sizeof(address);
@@ -117,7 +117,7 @@ int socketGetSocketName(lua_State * L) { //socket:getsockname
 }
 
 int socketReceive(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	int datagramSize = luaL_optnumber(L, 2, 8192);
 
@@ -133,7 +133,7 @@ int socketReceive(lua_State * L) {
 }
 
 int socketReceiveFrom(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	//Get the data first
 	int datagramSize = luaL_optnumber(L, 2, 8192);
@@ -154,7 +154,7 @@ int socketReceiveFrom(lua_State * L) {
 }
 
 int socketSend(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	char * data = luaL_checkstring(L, 2);
 
@@ -176,7 +176,7 @@ int socketSend(lua_State * L) {
 }
 
 int socketSendTo(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	char * data = luaL_checkstring(L, 2);
 
@@ -206,7 +206,7 @@ int socketSendTo(lua_State * L) {
 }
 
 int socketListen(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	int maxListeners = luaL_optnumber(L, 2, 16);
 
@@ -216,7 +216,7 @@ int socketListen(lua_State * L) {
 }
 
 int socketConnect(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	char * address = luaL_checkstring(L, 2);
 
@@ -250,7 +250,7 @@ int socketConnect(lua_State * L) {
 }
 
 int socketAccept(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	lua_socket * tcp = socketNewTCP(L);
 
@@ -268,7 +268,7 @@ int socketAccept(lua_State * L) {
 }
 
 int socketBind(lua_State * L) {
-	lua_socket * self = luaL_checkudata(L, 1, "Socket");
+	lua_socket * self = luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	char * address = luaL_checkstring(L, 2);
 
@@ -285,6 +285,7 @@ int socketBind(lua_State * L) {
 int initSocketClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
+		{"new", socketNewUDP},
 		{"close",	socketClose},
 		{"getpeername",	socketGetPeerName},
 		{"getsockname", socketGetSocketName},
