@@ -22,7 +22,7 @@
 
 #include <shared.h>
 
-int socketNewUDP(lua_State * L);
+int newUDP(lua_State * L);
 int socketNewTCP(lua_State * L);
 
 static int socketShutdown(lua_State * L) {
@@ -47,7 +47,7 @@ int initSocket(lua_State *L) {
 	}
 
 	luaL_Reg reg[] = {
-		{"udp", socketNewUDP},
+		{"udp", newUDP},
 		{"tcp", socketNewTCP},
 		{ 0, 0 },
 	};

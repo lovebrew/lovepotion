@@ -25,16 +25,6 @@
 #define CLASS_TYPE  LUAOBJ_TYPE_SOCKET
 #define CLASS_NAME  "Socket"
 
-int socketNewUDP(lua_State * L) { //require("socket").udp()
-	lua_socket * self = luaobj_newudata(L, sizeof(* self));
-
-	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
-
-	socketInitUDP(self);
-
-	return 1;
-}
-
 int socketInitUDP(lua_socket * self) {
 	self->socket = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -48,6 +38,16 @@ int socketInitUDP(lua_socket * self) {
 
 	self->address.sin_family = AF_INET;
 	fcntl(self->socket, F_SETFL, fcntl(self->socket, F_GETFL, 0) | O_NONBLOCK);
+
+	return 0;
+}
+
+int newUDP(lua_State * L) { //require("socket").udp()
+	lua_socket * self = luaobj_newudata(L, sizeof(* self));
+
+	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+	socketInitUDP(self);
 
 	return 1;
 }
@@ -285,7 +285,7 @@ int socketBind(lua_State * L) {
 int initSocketClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{"new", socketNewUDP},
+		{"new", newUDP},
 		{"close",	socketClose},
 		{"getpeername",	socketGetPeerName},
 		{"getsockname", socketGetSocketName},
@@ -300,9 +300,7 @@ int initSocketClass(lua_State *L) {
 		{0,	0},
 	};
 
-  luaobj_newclass(L, CLASS_NAME, NULL, socketNewUDP, reg);
-
-  //luaobj_newclass(L, CLASS_NAME, NULL, socketNewTCP, reg);
+  luaobj_newclass(L, CLASS_NAME, NULL, newUDP, reg);
 
   return 1;
 
