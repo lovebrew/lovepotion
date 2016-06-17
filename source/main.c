@@ -97,6 +97,8 @@ int main() {
 	} else {
 		if (luaL_dobuffer(L, nogame_lua, nogame_lua_size, "nogame")) displayError();
 	}
+	
+	if (luaL_dostring(L, "love.timer.step()")) displayError();
 
 	if (luaL_dostring(L, "if love.load then love.load() end")) displayError();
 

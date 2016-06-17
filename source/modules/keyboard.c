@@ -35,7 +35,7 @@ int lastPosy = 0;
 
 char dsNames[32][32] = {
 		"a", "b", "select", "start",
-		"down", "left", "up", "down",
+		"right", "left", "up", "down",
 		"rbutton", "lbutton", "x", "y",
 		"", "", "lzbutton", "rzbutton",
 		"", "", "", "",
