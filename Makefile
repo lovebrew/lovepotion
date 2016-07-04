@@ -47,7 +47,6 @@ APP_PRODUCT_CODE := CTR-P-LP
 APP_UNIQUE_ID := 0x1043
 APP_SYSTEM_MODE := 64MB
 APP_SYSTEM_MODE_EXT := Legacy
-APP_ROMFS_DIR := game
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -75,6 +74,12 @@ UNAME := $(shell uname)
 #---------------------------------------------------------------------------------
 LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/source/libs/libsf2d $(CURDIR)/source/libs/libsfil $(CURDIR)/source/libs/libsftd $(CURDIR)/source/libs/tremor
 
+#---------------------------------------------------------------------------------
+# load game folder into romfs if it exists
+#---------------------------------------------------------------------------------
+ifneq ($(wildcard $(CURDIR)/game/.),)
+	APP_ROMFS_DIR := game
+endif
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -136,8 +141,8 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
-ifneq ($(ROMFS),)
-	export _3DSXFLAGS += --romfs=$(CURDIR)/$(ROMFS)
+ifneq ($(APP_ROMFS_DIR),)
+	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 endif
 
 .PHONY: $(BUILD) clean all
