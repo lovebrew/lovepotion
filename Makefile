@@ -78,7 +78,7 @@ LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/source/libs/libsf2d $(CURDIR)/source
 # load game folder into romfs if it exists
 #---------------------------------------------------------------------------------
 ifneq ($(wildcard $(CURDIR)/game/.),)
-	APP_ROMFS_DIR := game
+	export APP_ROMFS_DIR := game
 endif
 
 #---------------------------------------------------------------------------------
@@ -145,6 +145,19 @@ ifneq ($(APP_ROMFS_DIR),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 endif
 
+#---------------------------------------------------------------------------------
+# arguments for cia and 3ds building
+#---------------------------------------------------------------------------------
+export BUILD_ARGS := \
+-DAPP_TITLE=$(APP_TITLE) \
+-DAPP_PRODUCT_CODE=$(APP_PRODUCT_CODE) \
+-DAPP_ROMFS_DIR=$(CURDIR)/$(APP_ROMFS_DIR) \
+-DAPP_UNIQUE_ID=$(APP_UNIQUE_ID) \
+-DAPP_SYSTEM_MODE=$(APP_SYSTEM_MODE) \
+-DAPP_SYSTEM_MODE_EXT=$(APP_SYSTEM_MODE_EXT) \
+-elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" \
+-icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t
+
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
@@ -165,6 +178,7 @@ build-sfillib:
 	@make -C source/libs/libsfil build
 
 build-all:
+	@echo $(BUILD_ARGS)
 	@echo Building sf2dlib...
 	@make build-sf2dlib
 	@echo Building sftdlib...
@@ -249,11 +263,11 @@ $(OUTPUT).elf	:	$(OFILES)
 $(OUTPUT).3ds	:	$(OUTPUT).elf icon.bin banner.bin
 #---------------------------------------------------------------------------------
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/makerom -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t
+	@$(TOPDIR)/tools/linux/makerom -f cci -o $(OUTPUT).3ds $(BUILD_ARGS)
 else ifeq ($(UNAME), Darwin)
-	@$(TOPDIR)/tools/osx/makerom -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t
+	@$(TOPDIR)/tools/osx/makerom -f cci -o $(OUTPUT).3ds $(BUILD_ARGS)
 else
-	@$(TOPDIR)/tools/windows/makerom.exe -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t
+	@$(TOPDIR)/tools/windows/makerom.exe -f cci -o $(OUTPUT).3ds $(BUILD_ARGS)
 endif
 	@echo 3DS packaged ...
 
@@ -261,11 +275,11 @@ endif
 $(OUTPUT).cia	:	$(OUTPUT).elf icon.bin banner.bin
 #---------------------------------------------------------------------------------
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/makerom -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t
+	@$(TOPDIR)/tools/linux/makerom -f cia -o $(OUTPUT).cia $(BUILD_ARGS)
 else ifeq ($(UNAME), Darwin)
-	@$(TOPDIR)/tools/osx/makerom -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t
+	@$(TOPDIR)/tools/osx/makerom -f cia -o $(OUTPUT).cia $(BUILD_ARGS)
 else
-	@$(TOPDIR)/tools/windows/makerom.exe -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t
+	@$(TOPDIR)/tools/windows/makerom.exe -f cia -o $(OUTPUT).cia $(BUILD_ARGS)
 endif
 	@echo CIA packaged ...
 
