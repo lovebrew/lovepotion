@@ -31,7 +31,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 DATA		:=	data
-INCLUDES	:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor source/libs/sf2dlib/include source/libs/sftdlib/include source/libs/sfillib/include
+INCLUDES	:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 
 APP_TITLE	:=	LovePotion
 APP_AUTHOR	:=	Ruairidh 'VideahGams' Carmichael
@@ -146,7 +146,7 @@ ifneq ($(APP_ROMFS_DIR),)
 endif
 
 #---------------------------------------------------------------------------------
-# arguments for cia and 3ds building
+# arguments for cia and 3ds building, kind of a mess
 #---------------------------------------------------------------------------------
 export BUILD_ARGS := \
 -DAPP_TITLE=$(APP_TITLE) \
@@ -168,56 +168,14 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-build-sf2dlib:
-	@make -C source/libs/libsf2d build
-
-build-sftdlib:
-	@make -C source/libs/libsftd build
-
-build-sfillib:
-	@make -C source/libs/libsfil build
-
-build-all:
-	@echo $(BUILD_ARGS)
-	@echo Building sf2dlib...
-	@make build-sf2dlib
-	@echo Building sftdlib...
-	@make build-sftdlib
-	@echo Building sfillib...
-	@make build-sfillib
-	@echo Building LovePotion...
-	@make build
-
 #---------------------------------------------------------------------------------
 clean:
 	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT).3ds $(OUTPUT).cia icon.bin banner.bin
-
-clean-sf2dlib:
-	@make -C source/libs/libsf2d clean
-
-clean-sftdlib:
-	@make -C source/libs/libsftd clean
-
-clean-sfillib:
-	@make -C source/libs/libsfil clean
-
-clean-all:
-	@echo Cleaning sf2dlib...
-	@make clean-sf2dlib
-	@echo Cleaning sftdlib...
-	@make clean-sftdlib
-	@echo Cleaning sfillib...
-	@make clean-sfillib
-	@echo Cleaning LovePotion...
-	@make clean
+	@echo clean ...
 
 #---------------------------------------------------------------------------------
 install:
 	@$(TOPDIR)/tools/ftp-copy
-
-#---------------------------------------------------------------------------------
-banner:
-	@$(TOPDIR)/tools/bannertool
 
 #---------------------------------------------------------------------------------
 else
