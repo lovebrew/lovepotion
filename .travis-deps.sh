@@ -11,9 +11,6 @@ perl devkitARMupdate.pl
 cd ctrulib/libctru && make ; cd -
 cp -rf ctrulib/libctru/ ${DEVKITPRO}
 
-# Get picasso
-mv tools/picasso ${PICASSO}
-
 # Build and install portlibs
 mkdir ${DEVKITPRO}/portlibs && mkdir ${PORTLIBS}
 git clone https://github.com/cpp3ds/3ds_portlibs.git
