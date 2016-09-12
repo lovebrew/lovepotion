@@ -40,7 +40,6 @@ const char *errMsg;
 void displayError() {
 
 	errMsg = lua_tostring(L, -1);
-
 	errorOccured = true;
 	printf("\e[0;31m%s\e[0m",errMsg);
 
@@ -51,14 +50,14 @@ int main() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", initLove, 1);
-	luaL_requiref(L, "socket", initSocket, false);
+	luaL_requiref(L, "socket", initSocket, 0);
 
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.
 	cfguInit();
 	ptmuInit();
 
-	//consoleInit(GFX_BOTTOM, NULL);
+	// consoleInit(GFX_BOTTOM, NULL);
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
@@ -139,11 +138,6 @@ int main() {
 				"if love.update then love.update(love.timer.getDelta()) end")) {
 					displayError();
 			}
-
-			//Update sources that stream or something
-			//for (int i = 0; i < streamCount; i++) {
-			//	sourceUpdate(L, streams[i]);
-			//}
 
 			// Top screen
 			// Left side

@@ -31,7 +31,7 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 DATA		:=	data
-INCLUDES	:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor source/libs/sf2dlib/include source/libs/sftdlib/include source/libs/sfillib/include
+INCLUDES	:=	source source/libs/lua source/modules source/objects source/libs/luaobj source/libs/tremor
 
 APP_TITLE	:=	LovePotion
 APP_AUTHOR	:=	Ruairidh 'VideahGams' Carmichael
@@ -47,7 +47,6 @@ APP_PRODUCT_CODE := CTR-P-LP
 APP_UNIQUE_ID := 0x1043
 APP_SYSTEM_MODE := 64MB
 APP_SYSTEM_MODE_EXT := Legacy
-APP_ROMFS_DIR := $(TOPDIR)/game
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -65,7 +64,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lsfil -lpng -ljpeg -lz -lsf2d -lctru -lm -lsftd -lfreetype -logg
+LIBS	:= -lsfil -lpng -ljpeg -lz -lsf2d -lctru -lm -lsftd -lfreetype -logg -lcitro3d
 
 UNAME := $(shell uname)
 
@@ -75,6 +74,12 @@ UNAME := $(shell uname)
 #---------------------------------------------------------------------------------
 LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/source/libs/libsf2d $(CURDIR)/source/libs/libsfil $(CURDIR)/source/libs/libsftd $(CURDIR)/source/libs/tremor
 
+#---------------------------------------------------------------------------------
+# load game folder into romfs if it exists
+#---------------------------------------------------------------------------------
+ifneq ($(wildcard $(CURDIR)/game/.),)
+	export APP_ROMFS_DIR := game
+endif
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -136,6 +141,23 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
+ifneq ($(APP_ROMFS_DIR),)
+	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
+endif
+
+#---------------------------------------------------------------------------------
+# arguments for cia and 3ds building, kind of a mess
+#---------------------------------------------------------------------------------
+export BUILD_ARGS := \
+-DAPP_TITLE=$(APP_TITLE) \
+-DAPP_PRODUCT_CODE=$(APP_PRODUCT_CODE) \
+-DAPP_ROMFS_DIR=$(CURDIR)/$(APP_ROMFS_DIR) \
+-DAPP_UNIQUE_ID=$(APP_UNIQUE_ID) \
+-DAPP_SYSTEM_MODE=$(APP_SYSTEM_MODE) \
+-DAPP_SYSTEM_MODE_EXT=$(APP_SYSTEM_MODE_EXT) \
+-elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" \
+-icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t
+
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
@@ -146,55 +168,14 @@ $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
-build-sf2dlib:
-	@make -C source/libs/libsf2d build
-
-build-sftdlib:
-	@make -C source/libs/libsftd build
-
-build-sfillib:
-	@make -C source/libs/libsfil build
-
-build-all:
-	@echo Building sf2dlib...
-	@make build-sf2dlib
-	@echo Building sftdlib...
-	@make build-sftdlib
-	@echo Building sfillib...
-	@make build-sfillib
-	@echo Building LovePotion...
-	@make build
-
 #---------------------------------------------------------------------------------
 clean:
-	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT)-stripped.elf $(OUTPUT).bin $(OUTPUT).3ds $(OUTPUT).cia icon.bin banner.bin
-
-clean-sf2dlib:
-	@make -C source/libs/libsf2d clean
-
-clean-sftdlib:
-	@make -C source/libs/libsftd clean
-
-clean-sfillib:
-	@make -C source/libs/libsfil clean
-
-clean-all:
-	@echo Cleaning sf2dlib...
-	@make clean-sf2dlib
-	@echo Cleaning sftdlib...
-	@make clean-sftdlib
-	@echo Cleaning sfillib...
-	@make clean-sfillib
-	@echo Cleaning LovePotion...
-	@make clean
+	@rm -fr $(BUILD) $(TARGET).3dsx $(OUTPUT).smdh $(OUTPUT).elf $(OUTPUT).3ds $(OUTPUT).cia icon.bin banner.bin
+	@echo clean ...
 
 #---------------------------------------------------------------------------------
 install:
 	@$(TOPDIR)/tools/ftp-copy
-
-#---------------------------------------------------------------------------------
-banner:
-	@$(TOPDIR)/tools/bannertool
 
 #---------------------------------------------------------------------------------
 else
@@ -205,9 +186,9 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(NO_SMDH)),)
-$(OUTPUT).3dsx	:	$(OUTPUT).smdh icon.bin banner.bin $(OUTPUT).elf $(OUTPUT)-stripped.elf $(OUTPUT).bin $(OUTPUT).3ds $(OUTPUT).cia
+$(OUTPUT).3dsx	:	$(OUTPUT).smdh icon.bin banner.bin $(OUTPUT).elf $(OUTPUT).3ds $(OUTPUT).cia
 else
-$(OUTPUT).3dsx	:	icon.bin banner.bin $(OUTPUT).elf $(OUTPUT)-stripped.elf $(OUTPUT).bin $(OUTPUT).3ds $(OUTPUT).cia
+$(OUTPUT).3dsx	:	icon.bin banner.bin $(OUTPUT).elf $(OUTPUT).3ds $(OUTPUT).cia
 endif
 
 #---------------------------------------------------------------------------------
@@ -237,44 +218,26 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------
 
 #---------------------------------------------------------------------------------
-$(OUTPUT)-stripped.elf : $(OUTPUT).elf
-#---------------------------------------------------------------------------------
-	@cp -f $(OUTPUT).elf $(OUTPUT)-stripped.elf
-	@arm-none-eabi-strip $(OUTPUT)-stripped.elf
-
-#---------------------------------------------------------------------------------
-$(OUTPUT).bin	:	
+$(OUTPUT).3ds	:	$(OUTPUT).elf icon.bin banner.bin
 #---------------------------------------------------------------------------------
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/3dstool -cvtf romfs $(OUTPUT).bin --romfs-dir $(TOPDIR)/game
+	@$(TOPDIR)/tools/linux/makerom -f cci -o $(OUTPUT).3ds $(BUILD_ARGS)
 else ifeq ($(UNAME), Darwin)
-	@$(TOPDIR)/tools/osx/3dstool -cvtf romfs $(OUTPUT).bin --romfs-dir $(TOPDIR)/game
+	@$(TOPDIR)/tools/osx/makerom -f cci -o $(OUTPUT).3ds $(BUILD_ARGS)
 else
-	@$(TOPDIR)/tools/windows/3dstool.exe -cvtf romfs $(OUTPUT).bin --romfs-dir $(TOPDIR)/game
-endif
-	@echo RomFS packaged ...
-
-#---------------------------------------------------------------------------------
-$(OUTPUT).3ds	:	$(OUTPUT)-stripped.elf $(OUTPUT).bin icon.bin banner.bin
-#---------------------------------------------------------------------------------
-ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/makerom -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
-else ifeq ($(UNAME), Darwin)
-	@$(TOPDIR)/tools/osx/makerom -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t -romfs "$(OUTPUT).bin"
-else
-	@$(TOPDIR)/tools/windows/makerom.exe -f cci -o $(OUTPUT).3ds -DAPP_ENCRYPTED=true -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+	@$(TOPDIR)/tools/windows/makerom.exe -f cci -o $(OUTPUT).3ds $(BUILD_ARGS)
 endif
 	@echo 3DS packaged ...
 
 #---------------------------------------------------------------------------------
-$(OUTPUT).cia	:	$(OUTPUT)-stripped.elf $(OUTPUT).bin icon.bin banner.bin
+$(OUTPUT).cia	:	$(OUTPUT).elf icon.bin banner.bin
 #---------------------------------------------------------------------------------
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/makerom -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+	@$(TOPDIR)/tools/linux/makerom -f cia -o $(OUTPUT).cia $(BUILD_ARGS)
 else ifeq ($(UNAME), Darwin)
-	@$(TOPDIR)/tools/osx/makerom -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t -romfs "$(OUTPUT).bin"
+	@$(TOPDIR)/tools/osx/makerom -f cia -o $(OUTPUT).cia $(BUILD_ARGS)
 else
-	@$(TOPDIR)/tools/windows/makerom.exe -f cia -o $(OUTPUT).cia -DAPP_ENCRYPTED=false -elf $(OUTPUT)-stripped.elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin  -exefslogo -target t -romfs "$(OUTPUT).bin"
+	@$(TOPDIR)/tools/windows/makerom.exe -f cia -o $(OUTPUT).cia $(BUILD_ARGS)
 endif
 	@echo CIA packaged ...
 
@@ -311,16 +274,29 @@ endif
 	@echo $(notdir $<)
 	@$(bin2o)
 
-# WARNING: This is not the right way to do this! TODO: Do it right!
 #---------------------------------------------------------------------------------
-%.vsh.o	:	%.vsh
+# rules for assembling GPU shaders
 #---------------------------------------------------------------------------------
+define shader-as
+	$(eval CURBIN := $(patsubst %.shbin.o,%.shbin,$(notdir $@)))
+	picasso -o $(CURBIN) $1
+	bin2s $(CURBIN) | $(AS) -o $@
+	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u8" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(CURBIN) | tr . _)`.h
+	echo "extern const u32" `(echo $(CURBIN) | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(CURBIN) | tr . _)`.h
+endef
+
+%.shbin.o : %.v.pica %.g.pica
+	@echo $(notdir $^)
+	@$(call shader-as,$^)
+
+%.shbin.o : %.v.pica
 	@echo $(notdir $<)
-	@picasso -o $(notdir $<).shbin $<
-	@bin2s $(notdir $<).shbin | $(PREFIX)as -o $@
-	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"_end[];" > `(echo $(notdir $<).shbin | tr . _)`.h
-	@echo "extern const u8" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`"[];" >> `(echo $(notdir $<).shbin | tr . _)`.h
-	@echo "extern const u32" `(echo $(notdir $<).shbin | sed -e 's/^\([0-9]\)/_\1/' | tr . _)`_size";" >> `(echo $(notdir $<).shbin | tr . _)`.h
+	@$(call shader-as,$<)
+
+%.shbin.o : %.shlist
+	@echo $(notdir $<)
+	@$(call shader-as,$(foreach file,$(shell cat $<),$(dir $<)/$(file)))
 
 -include $(DEPENDS)
 

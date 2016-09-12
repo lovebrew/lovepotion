@@ -34,11 +34,8 @@ Follow [this](https://github.com/VideahGams/LovePotion/wiki/Building-L%C3%96VEPo
 Linux, Windows and Mac OSX if setup properly.
 
 #### How do I load my game?
-
-Games are loaded either from a `game` folder placed in the same directory as LövePotion is, or
-if LövePotion is built as a CIA, it's loaded from romfs which is created at compile time.
-
-To put your game in romfs, compile LövePotion with a `game` folder in the same directory.
+Games are loaded either from a `game` folder placed in the same directory as a built 3dsx, or
+loaded directly from RomFS if LövePotion is built with a `game` folder in its directory.
 
 #### How do I run this?
 
@@ -85,8 +82,11 @@ No.
 Send me your projects so I can showcase them here!
 
 # Dependencies
-
-LövePotion requires the 3DS portlibs to build correctly, these are not included and must be downloaded, built, and installed correctly from [here](https://github.com/cpp3ds/3ds_portlibs).
+The following dependencies are required to be installed properly in your dev environment for LovePotion to build.
+ * [3ds_portlibs](https://github.com/cpp3ds/3ds_portlibs)
+ * [sf2dlib](https://github.com/xerpi/sf2dlib)
+ * [sftdlib](https://github.com/xerpi/sftdlib)
+ * [sfillib](https://github.com/xerpi/sfillib)
 
 # Credits
 

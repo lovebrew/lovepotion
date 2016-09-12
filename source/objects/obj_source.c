@@ -40,17 +40,7 @@ int getOpenChannel() {
 #define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
 #define CLASS_NAME  "Source"
 
-const char *sourceInit(love_source *self, const char *filename, const char *loadingtype) {
-
-	if ( strncmp(loadingtype, "stream", 6) == 0 ) {
-		self->stream = true;
-	} else {
-		self->stream = false;
-	}
-
-	self->offset = 0;
-
-	self->waveBufferPosition = 0;
+const char *sourceInit(love_source *self, const char *filename) {
 
 	if (fileExists(filename)) {
 
@@ -78,8 +68,6 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 			FILE *file = fopen(filename, "rb");
 
 			if (file) {
-
-				self->filename = filename;
 
 				bool valid = true;
 
@@ -271,58 +259,16 @@ const char *sourceInit(love_source *self, const char *filename, const char *load
 	}
 }
 
-//Data of the source to play, offset of the source position, size of the samples per buffer, file, type (wav/ogg)
-void fillBuffer(char * audioBuffer, u32 offset, u32 size, FILE * file, int sourceType, u32 sourceSize) {
-	printf("Source Type: %d\n", sourceType);
-	if ( sourceType == TYPE_WAV ) {
-		for (int i = 0; i < 8; i++) {
-			fread(audioBuffer[i], size, sourceSize - offset, file);
-		
-			offset += size;
-
-			printf("Offset: %d\n", offset);
-		}
-	}
-}
-
-void sourceUpdate(lua_State * L, love_source *source) {
-	if (!soundEnabled) luaError(L, "Could not initialize audio");
-
-	love_source *self = source;
-	
-	if ( !self->stream ) {
-		return;
-	}
-
-	u32 position = ndspChnGetWaveBufSeq(self->audiochannel);
-
-	if (position == self->waveBufferPosition || position == 0) {
-		return;
-	}
-
-	self->waveBufferPosition = position;
-
-	FILE * file = fopen(self->filename, "rb");
-
-	fillBuffer(self->data, self->offset, SOURCEBUFFSAMPLES, file, self->type, self->size);
-
-	lua_pushlightuserdata(L, self);
-
-	sourcePlay(L);
-}
-
 int sourceNew(lua_State *L) { // love.audio.newSource()
 
 	if (!soundEnabled) return 0;
 
 	const char *filename = luaL_checkstring(L, 1);
 
-	const char *type = luaL_checkstring(L, 2);
-
 	love_source *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = sourceInit(self, filename, type);
+	const char *error = sourceInit(self, filename);
 
 	if (error) luaError(L, error);
 
@@ -485,8 +431,6 @@ int sourceGetDuration(lua_State *L) { // source:getDuration()
 }
 
 int initSourceClass(lua_State *L) {
-
-	streamCount = 0;
 
 	luaL_Reg reg[] = {
 		{"new",			sourceNew	},

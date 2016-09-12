@@ -41,7 +41,6 @@ int initLoveWindow(lua_State *L);
 int initLoveEvent(lua_State *L);
 int initLoveAudio(lua_State *L);
 int initLoveFilesystem(lua_State *L);
-
 int initSocket(lua_State * L);
 
 int initImageClass(lua_State *L);
@@ -65,7 +64,7 @@ int initLove(lua_State *L) {
 		initQuadClass,
 		initFileClass,
         initJoystickClass,
-        initSocketClass,
+		initSocketClass,
 		NULL,
 	};
 

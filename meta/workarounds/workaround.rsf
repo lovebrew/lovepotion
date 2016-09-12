@@ -15,7 +15,7 @@ Option:
   UseOnSD                 : true # true if App is to be installed to SD
   FreeProductCode         : true # Removes limitations on ProductCode
   MediaFootPadding        : false # If true CCI files are created with padding
-  EnableCrypt             : $(APP_ENCRYPTED) # Enables encryption for NCCH and CIA
+  EnableCrypt             : false # Enables encryption for NCCH and CIA"
   EnableCompress          : true # Compresses where applicable (currently only exefs:/.code)
   
 AccessControlInfo:

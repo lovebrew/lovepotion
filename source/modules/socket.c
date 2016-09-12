@@ -22,13 +22,16 @@
 
 #include <shared.h>
 
+bool initializeSocket;
+static void * socketBuffer;
+
 int newUDP(lua_State * L);
 int socketNewTCP(lua_State * L);
 
-static int socketShutdown(lua_State * L) {
+int socketShutdown(lua_State * L) {
 	if (initializeSocket) {
 		socExit();
-
+		
 		initializeSocket = false;
 	}
 
@@ -37,18 +40,21 @@ static int socketShutdown(lua_State * L) {
 
 int initSocket(lua_State *L) {
 	if (!initializeSocket) {
-		u32 socketSize = 0x100000;
+		socketBuffer = memalign(0x1000, 0x100000);
 
-		u32 * memorySize = (u32 *) memalign(0x1000, socketSize);
+		Result socketIsInitialized = socInit(socketBuffer, 0x100000);
 
-		Result socketIsInitialized = socInit(memorySize, socketSize);
-
-		initializeSocket = true;
+		if (R_FAILED(socketIsInitialized)) {
+			luaError(L, "Failed to initialize LuaSocket.");
+		} else {
+			initializeSocket = true;
+		}
 	}
 
 	luaL_Reg reg[] = {
 		{"udp", newUDP},
 		{"tcp", socketNewTCP},
+		{"shutdown", socketShutdown},
 		{ 0, 0 },
 	};
 
@@ -61,5 +67,4 @@ int initSocket(lua_State *L) {
 	luaL_newlib(L, reg);
 
 	return 1;
-
 }

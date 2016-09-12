@@ -230,7 +230,6 @@ int initLoveFilesystem(lua_State *L) {
 		{ "isFile",	filesystemIsFile},
 		{ "isDirectory",	filesystemIsDirectory},
 		{ "write",	filesystemWrite},
-		{ "remove", filesystemRemove},
 		{ 0, 0 },
 	};
 

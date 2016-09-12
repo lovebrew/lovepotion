@@ -43,8 +43,8 @@
 #include <dirent.h>
 #include <3ds/services/cfgu.h>
 
-#include <3ds/services/soc.h>
-//#include <3ds/services/sslc.h>
+#include <ivorbiscodec.h>
+#include <ivorbisfile.h>
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -52,9 +52,6 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <fcntl.h>
-
-#include <ivorbiscodec.h>
-#include <ivorbisfile.h>
 
 #include "util.h"
 
@@ -91,9 +88,6 @@ typedef enum {
 	TYPE_WAV = 1
 } love_source_type;
 
-//In KB
-#define SOURCEBUFFSAMPLES 16384
-
 typedef struct {
 	love_source_type type;
 
@@ -108,20 +102,9 @@ typedef struct {
 	bool loop;
 	int audiochannel;
 
-	bool stream;
-
-	const char * filename;
-
-	char streamData[8];
-	u32 offset;
-	u32 waveBufferPosition;
-
 	float mix[12];
 	ndspInterpType interp;
 } love_source;
-
-int streamCount;
-love_source * streams;
 
 typedef struct {
 	int x;
@@ -130,28 +113,13 @@ typedef struct {
 	int height;
 } love_quad;
 
-typedef struct {
-	int x;
-	int y;
-} spritebatch_point;
-
-typedef struct {
-	love_image * resource;
-
-	int maxImages;
-	int currentImage;
-
-	love_quad * quads;
-	bool hasQuads;
-
-	spritebatch_point * points;
-} love_spritebatch;
-
-bool initializeSocket;
+#define SOCKETSIZE 8192
 typedef struct {
 	int socket;
 	struct sockaddr_in address;
 	struct hostent * host;
+	char * ip;
+	int port;
 } lua_socket;
 
 extern lua_State *L;
