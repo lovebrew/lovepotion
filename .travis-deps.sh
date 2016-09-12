@@ -35,10 +35,12 @@ make install
 
 cd -
 
+git clone https://github.com/fincs/citro3d
 git clone https://github.com/xerpi/sf2dlib
 git clone https://github.com/xerpi/sftdlib
 git clone https://github.com/xerpi/sfillib
 
+cd citro3d && make install && cd -
 cd sf2dlib/libsf2d && make install && cd -
 cd sftdlib/libsftd && make install && cd -
 cd sfillib/libsfil && make install && cd -
