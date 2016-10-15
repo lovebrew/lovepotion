@@ -29,13 +29,13 @@ char *rootDir = "";
 lua_State *L;
 
 int initLove(lua_State *L);
-int initSocket(lua_State * L);
 
 bool romfsExists;
 
 bool errorOccured = false;
 bool forceQuit = false;
 const char *errMsg;
+bool irrstEnabled = false;
 
 void displayError() {
 
@@ -50,14 +50,17 @@ int main() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", initLove, 1);
-	luaL_requiref(L, "socket", initSocket, 0);
 
 	sf2d_init(); // 2D Drawing lib.
 	sftd_init(); // Text Drawing lib.
 	cfguInit();
 	ptmuInit();
+	
+	Result ir = irrstInit();
 
-	// consoleInit(GFX_BOTTOM, NULL);
+	//consoleInit(GFX_BOTTOM, NULL);
+
+	irrstEnabled = (ir) ? false : true;
 
 	sf2d_set_clear_color(RGBA8(0x0, 0x0, 0x0, 0xFF)); // Reset background color.
 
@@ -225,6 +228,8 @@ int main() {
 	sf2d_fini();
 	cfguExit();
 	ptmuExit();
+	
+	if (irrstEnabled) irrstExit();
 
 	if (soundEnabled) ndspExit();
 	if (romfsExists) romfsExit();

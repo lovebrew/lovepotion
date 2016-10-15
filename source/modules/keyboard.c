@@ -26,6 +26,8 @@ u32 kDown;
 u32 kHeld;
 u32 kUp;
 
+u32 cHeld;
+
 touchPosition touch;
 
 bool touchIsDown = false;
@@ -47,6 +49,12 @@ char dsNames[32][32] = {
 int inputScan(lua_State *L) { // love.keyboard.scan()
 
 	hidScanInput();
+
+	if (irrstEnabled) {
+		irrstScanInput();
+
+		cHeld = irrstKeysHeld();
+	}
 
 	kDown = hidKeysDown();
 	kHeld = hidKeysHeld();
@@ -149,7 +157,7 @@ int keyboardIsDown(lua_State *L) { // love.keyboard.isDown()
 
 	int i;
 	for (i = 0; i < 32; i++) {
-		if (kHeld & BIT(i)) {
+		if ((kHeld | cHeld) & BIT(i)) {
 			if (strcmp(dsNames[i], "touch") != 0) { // Touch events should probably not be returned in love.keyboard.
 				if (strcmp(key, dsNames[i]) == 0) {
 					down = true;

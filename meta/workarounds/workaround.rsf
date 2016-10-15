@@ -187,6 +187,7 @@ AccessControlInfo:
    - csnd:SND
    - am:u
    - ns:s
+   - ir:rst
 
 
 SystemControlInfo:

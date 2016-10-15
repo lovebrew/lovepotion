@@ -66,7 +66,7 @@ int joystickGetAxes(lua_State *L) {
 		
 		int axisId = luaL_checkinteger(L, i);
 		
-		if( axisId < 3 ) { // Circle Axes
+		if( axisId < 5 ) { // Circle Axes
 			
 			circlePosition circleData;
 			hidCircleRead(&circleData);
@@ -74,24 +74,31 @@ int joystickGetAxes(lua_State *L) {
 			if( axisId == 1 ) lua_pushinteger(L, circleData.dx);
 			if( axisId == 2 ) lua_pushinteger(L, circleData.dy);
 			
-		} else if( axisId < 6 ) { // Gyro Axes
+			circlePosition cStickData;
+			irrstCstickRead(&cStickData);
+
+			if( axisId == 3 ) lua_pushinteger(L, cStickData.dx);
+			if( axisId == 4 ) lua_pushinteger(L, cStickData.dy);
+
+		} else if( axisId < 8 ) { // Gyro Axes
 			
 			HIDUSER_EnableGyroscope();
 			angularRate gyroData;
 			hidGyroRead(&gyroData);
 			
-			if( axisId == 3 ) lua_pushinteger(L, gyroData.x);
-			if( axisId == 4 ) lua_pushinteger(L, gyroData.y);
-			if( axisId == 5 ) lua_pushinteger(L, gyroData.z);
+			if( axisId == 5 ) lua_pushinteger(L, gyroData.x);
+			if( axisId == 6 ) lua_pushinteger(L, gyroData.y);
+			if( axisId == 7 ) lua_pushinteger(L, gyroData.z);
 			
-		} else if ( axisId < 9 ) { // Accelloremeter Axes
+		} else if ( axisId < 11 ) { // Accelloremeter Axes
 		
 			HIDUSER_EnableAccelerometer();
 			accelVector accelData;
 			hidAccelRead(&accelData);
-			if( axisId == 6 ) lua_pushinteger(L, accelData.x);
-			if( axisId == 7 ) lua_pushinteger(L, accelData.y);
-			if( axisId == 8 ) lua_pushinteger(L, accelData.z);
+
+			if( axisId == 8 ) lua_pushinteger(L, accelData.x);
+			if( axisId == 9 ) lua_pushinteger(L, accelData.y);
+			if( axisId == 10 ) lua_pushinteger(L, accelData.z);
 		
 		} else {
 			luaError(L, "AxisId out of bounds");

@@ -113,6 +113,12 @@ typedef struct {
 	int height;
 } love_quad;
 
+typedef struct {
+	int width;
+	int height;
+	sf2d_rendertarget * target;
+} love_canvas;
+
 #define SOCKETSIZE 8192
 typedef struct {
 	int socket;
@@ -139,4 +145,4 @@ extern bool channelList[24];
 extern u32 defaultFilter;
 extern char *defaultMinFilter;
 extern char *defaultMagFilter;
-extern bool isCIA;
+extern bool irrstEnabled;
