@@ -31,7 +31,7 @@ Yes, see the [CONTRIBUTING.md](https://www.github.com/VideahGams/LovePotion/tree
 #### How do I build this?
 
 Follow [this](https://github.com/VideahGams/LovePotion/wiki/Building-L%C3%96VEPotion) guide, building should work on
-Linux, Windows and Mac OSX if setup properly.
+Linux, Windows and macOS if setup properly.
 
 #### How do I load my game?
 Games are loaded either from a `game` folder placed in the same directory as a built 3dsx, or
@@ -39,15 +39,8 @@ loaded directly from RomFS if LövePotion is built with a `game` folder in its d
 
 #### How do I run this?
 
-There are ~~2 ways~~ a ton of ways to run LövePotion.
- * [Citra Emulator](http://citra-emu.org)
- * [Ninjhax](http://smealum.net/ninjhax)
- * [IronHax](http://smealum.github.io/3ds)
- * ~~TubeHax~~ RIP :(
- * [BrowserHax](http://yls8.mtheall.com/3dsbrowserhax.php) Back from the dead!
- * [MenuHax](http://smealum.github.io/3ds/)
- * [OoTHax](https://gbatemp.net/threads/tutorial-how-to-install-oot3dhax.396339/)
- * [SmashHax](https://gbatemp.net/threads/yellows8-just-realesed-smashhax.397124/)
+There are a ton of ways to run LövePotion.
+[Start here!](http://smealum.github.io/3ds/)
 
 **LövePotion** is developed using [Citra](http://citra-emu.org/) and [MenuHax](http://smealum.github.io/3ds/).
 
@@ -78,12 +71,14 @@ No.
  * [Loophole](https://gbatemp.net/threads/release-loophole-3ds-port.399585/) by Aaron Butterworth & CKlidify
  * [Hax0r](https://gbatemp.net/threads/preview-hax0r.401707) by TurtleP
  * [Idiot](https://gbatemp.net/threads/preview-idiot-a-puzzle-platformer.408774) by TurtleP
+ * [ravimid](https://hoksy.itch.io/ravimid) by hoksy "raisin bran" jp
 
 Send me your projects so I can showcase them here!
 
 # Dependencies
 The following dependencies are required to be installed properly in your dev environment for LovePotion to build.
  * [3ds_portlibs](https://github.com/cpp3ds/3ds_portlibs)
+ * [citro3d](https://github.com/fincs/citro3d)
  * [sf2dlib](https://github.com/xerpi/sf2dlib)
  * [sftdlib](https://github.com/xerpi/sftdlib)
  * [sfillib](https://github.com/xerpi/sfillib)
@@ -107,7 +102,7 @@ The following dependencies are required to be installed properly in your dev env
 
 This code is licensed under the MIT Open Source License.
 
-Copyright (c) 2015 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
+Copyright (c) 2015-2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
