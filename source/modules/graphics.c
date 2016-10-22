@@ -439,7 +439,11 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 		}
 
-		x -= ox; // This is wrong TODO: Do it right.
+		float local_sin = sin(rad);
+		float local_cos = cos(rad);
+		x += (local_cos * (-ox) - local_sin * (-oy) + ox);
+		y += (local_sin * (-ox) + local_cos * (-oy) + oy);
+		x -= ox;
 		y -= oy;
 		translateCoords(&x, &y);
 
@@ -482,7 +486,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 													 x, y,
 													 rad,
 													 sx, sy,
-													 ox, oy,
+													 0, 0,
 													 getCurrentColor());
 			}
 
