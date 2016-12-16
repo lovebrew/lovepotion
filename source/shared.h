@@ -146,3 +146,4 @@ extern u32 defaultFilter;
 extern char *defaultMinFilter;
 extern char *defaultMagFilter;
 extern bool irrstEnabled;
+extern char * identity;

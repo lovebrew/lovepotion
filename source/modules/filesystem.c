@@ -28,38 +28,32 @@ int filesystemRead(lua_State *L) {
 
 	const char * filename = luaL_checkstring(L, 1);
 
-	if (filename) {
-
-		FILE * file = fopen(filename, "rb");
+	FILE * file = fopen(filename, "rb");
 		
-		fseek(file, 0, SEEK_END);
+	fseek(file, 0, SEEK_END);
 
-		long fsize = ftell(file);
+	long fsize = ftell(file);
 
-		fseek(file, 0, SEEK_SET);
+	fseek(file, 0, SEEK_SET);
 
-		char *string = malloc(fsize + 1);
+	char *string = malloc(fsize + 1);
 
-		fread(string, fsize, 1, file);
+	fread(string, fsize, 1, file);
 
-		lua_pushstring(L, string);
+	lua_pushstring(L, string);
 
-		fclose(file);
+	fclose(file);
 
-		return 1;
-
-	}
-
-	return 0;
+	return 1;
 }
 
 int filesystemCreateDirectory(lua_State *L) {
 
 	const char * directoryName = luaL_checkstring(L, 1);
 
-	if (directoryName) {
-		mkdir(directoryName, 0777);
-	}
+	mkdir(directoryName, 0777);
+	
+	return 0;
 }
 
 int filesystemGetDirectoryItems(lua_State *L) {
@@ -204,7 +198,13 @@ int filesystemLoad(lua_State *L) {
 
 }
 
-int filesystemSetRequirePath(lua_State *L) {
+int filesystemSetIdentity(lua_State *L) {
+
+	const char * newIdentity = luaL_checkstring(L, 1);
+
+	identity = newIdentity;
+
+	return 0;
 
 }
 
@@ -219,8 +219,6 @@ int fileOpen(lua_State *L);
 
 int initLoveFilesystem(lua_State *L) {
 
-	printf("init filesystem\n");
-
 	luaL_Reg reg[] = {
 		{ "newFile", 		fileNew },
 		{ "read", 		filesystemRead },
@@ -230,6 +228,8 @@ int initLoveFilesystem(lua_State *L) {
 		{ "isFile",	filesystemIsFile},
 		{ "isDirectory",	filesystemIsDirectory},
 		{ "write",	filesystemWrite},
+		{ "remove",	filesystemRemove},
+		{ "setIdentity", filesystemSetIdentity},
 		{ 0, 0 },
 	};
 

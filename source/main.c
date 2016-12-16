@@ -37,6 +37,9 @@ bool forceQuit = false;
 const char *errMsg;
 bool irrstEnabled = false;
 
+char * identity = "SuperGame";
+char * path = "sdmc:/LovePotion/";
+
 void displayError() {
 
 	errMsg = lua_tostring(L, -1);
@@ -93,6 +96,9 @@ int main() {
 	}
 
 	luaL_dobuffer(L, boot_lua, boot_lua_size, "boot"); // Do some setup Lua side.
+
+	//in general, make the LovePotion folder cause ye
+	mkdir(path, 0777);
 
 	// If main.lua exists, execute it.
 	// If not then just load the nogame screen.
