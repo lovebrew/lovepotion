@@ -40,6 +40,8 @@ bool irrstEnabled = false;
 char * identity = "SuperGame";
 char * path = "sdmc:/LovePotion/";
 
+float updateDelay = STREAM_RATE;
+
 void displayError() {
 
 	errMsg = lua_tostring(L, -1);
@@ -61,7 +63,7 @@ int main() {
 	
 	Result ir = irrstInit();
 
-	//consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_BOTTOM, NULL);
 
 	irrstEnabled = (ir) ? false : true;
 
@@ -148,6 +150,15 @@ int main() {
 					displayError();
 			}
 
+
+			//update streams
+			if (updateDelay > 0) {
+				updateDelay -= dt;
+			} else {
+				updateStreams();
+				updateDelay = STREAM_RATE;
+			}
+
 			// Top screen
 			// Left side
 
@@ -171,11 +182,11 @@ int main() {
 
 			// Bot screen
 
-			sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
+			//sf2d_start_frame(GFX_BOTTOM, GFX_LEFT);
 
-				if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
+			//	if (luaL_dostring(L, "if love.draw then love.draw() end")) displayError();
 
-			sf2d_end_frame();
+			//sf2d_end_frame();
 
 			luaL_dostring(L, "love.graphics.present()");
 

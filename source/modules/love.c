@@ -50,6 +50,7 @@ int initFileClass(lua_State *L);
 int initQuadClass(lua_State *L);
 int initJoystickClass(lua_State *L);
 int initSocketClass(lua_State *L);
+int initCanvasClass(lua_State *L);
 
 int initLove(lua_State *L) {
 
@@ -65,6 +66,7 @@ int initLove(lua_State *L) {
 		initFileClass,
         initJoystickClass,
 		initSocketClass,
+		initCanvasClass,
 		NULL,
 	};
 

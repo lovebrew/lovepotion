@@ -23,7 +23,7 @@
 -- This is a bit messy
 -- But it means we can move stuff out of main.c
 
-print('\n \x1b[1;36mLovePotion 1.0.9 BETA\x1b[0m (LOVE for 3DS) \n')
+print('LovePotion 1.0.9 BETA (LOVE for 3DS)\n')
 
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'

@@ -23,6 +23,7 @@
 #include <shared.h>
 
 bool channelList[24];
+love_source * streams[24];
 
 int getOpenChannel() {
 
@@ -37,10 +38,41 @@ int getOpenChannel() {
 
 }
 
+void updateStreams() {
+	
+	for (int i = 0; i <= 23; i++) {
+		if (streams[i] != NULL) {
+			love_source * self = streams[i];
+
+			if (!ndspChnIsPlaying(self->audiochannel)) {
+				if (!self->eof) {
+					//linearFree(self->data);
+
+					if (self->type == TYPE_OGG) {
+						if (ov_seekable(&self->vorbisFile) && ov_raw_tell(&self->vorbisFile) != self->position)
+							ov_raw_seek(&self->vorbisFile, self->position);
+
+						char * err = sourceOggDecodeStream(self, true);
+
+						if (err != NULL)
+							printf("\nError: %s\n", err);
+
+						sourceStreamPlay(self);
+					}
+					
+				}
+			}
+		} else {
+			continue;
+		}
+	}
+
+}
+
 #define CLASS_TYPE  LUAOBJ_TYPE_SOURCE
 #define CLASS_NAME  "Source"
 
-const char *sourceInit(love_source *self, const char *filename) {
+const char *sourceInit(love_source *self, const char *filename, const char * type) {
 
 	if (fileExists(filename)) {
 
@@ -62,10 +94,14 @@ const char *sourceInit(love_source *self, const char *filename) {
 			self->type = TYPE_UNKNOWN;
 		
 		}
+
+		const char * err = NULL;
+
+		self->stream = (strncmp(type, "stream", 6) == 0) ? true : false;
+		
+		FILE * file = fopen(filename, "rb");
 		
 		if (self->type == TYPE_WAV) {
-
-			FILE *file = fopen(filename, "rb");
 
 			if (file) {
 
@@ -160,26 +196,16 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 		} else if (self->type == TYPE_OGG) {
 
-			// Load audio file
-			FILE * file = fopen(filename, "rb");
-
 			if (file) {
 
-				if (ov_open(file, &self->vorbisFile, NULL, 0) < 0) {
-
+				if (ov_open(file, &self->vorbisFile, NULL, 0) < 0)
 					return "input does not appear to be a valid ogg vorbis file or doesn't exist";
-
-				}
 
 				// Decoding Ogg Vorbis bitstream
 				vorbis_info * vorbisInfo = ov_info(&self->vorbisFile, -1);
 
-				if (vorbisInfo == NULL) {
-
+				if (vorbisInfo == NULL) //No ogg info
 					return "could not retrieve ogg audio stream information";
-
-				}
-
 
 				self->rate = (float)vorbisInfo->rate;
 
@@ -189,56 +215,40 @@ const char *sourceInit(love_source *self, const char *filename) {
 
 				self->nsamples = (u32)ov_pcm_total(&self->vorbisFile, -1);
 
-				self->size = self->nsamples * self->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
-
 				self->audiochannel = getOpenChannel();
 
 				self->loop = false;
 
-				if (linearSpaceFree() < self->size) {
+				if (!self->stream) {
 
-					return "not enough linear memory available";
+					self->size = self->nsamples * self->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
 
+					if (linearSpaceFree() < self->size)
+						return "not enough linear memory available";
+
+					self->data = linearAlloc(self->size);
+
+					err = sourceOggDecodeFull(self);
+					
+					linearFree(&self->vorbisFile);
+
+					ov_clear(&self->vorbisFile);
+
+					fclose(file);
+					
+				} else {
+					self->chunkSamples = fmin(round(0.1 * self->rate), self->nsamples);
+					self->size = self->chunkSamples * self->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
+
+					if (linearSpaceFree() < self->size)
+						return "not enough linear memory available";
+
+					err = sourceOggDecodeStream(self, false);
+
+					streams[self->audiochannel] = self;
 				}
 
-				self->data = linearAlloc(self->size);
-
-				// Decoding loop
-				int offset = 0;
-				int eof = 0;
-				int currentSection;
-
-				while (!eof) {
-					long ret = ov_read(&self->vorbisFile, &self->data[offset], 4096, &currentSection);
-
-					if (ret == 0) {
-
-						eof = 1;
-
-					} else if (ret < 0) {
-
-						ov_clear(&self->vorbisFile);
-
-						linearFree(self->data);
-
-						return "error in the ogg vorbis stream";
-
-					} else {
-
-						// TODO handle multiple links (http://xiph.org/vorbis/doc/vorbisfile/decoding.html)
-
-						offset += ret;
-
-					}
-				}
-
-				linearFree(&self->vorbisFile);
-
-				ov_clear(&self->vorbisFile);
-
-				fclose(file);
-
-				return NULL;
+				return err;
 
 			} else {
 
@@ -259,16 +269,92 @@ const char *sourceInit(love_source *self, const char *filename) {
 	}
 }
 
+// Decoding loop
+const char * sourceOggDecodeFull(love_source * self) {
+
+	int offset = 0;
+	int eof = 0;
+	int currentSection;
+
+	while (!eof) {
+	
+		long ret = ov_read(&self->vorbisFile, &self->data[offset], 4096, &currentSection);
+
+		if (ret == 0) {
+
+			eof = 1;
+			
+		} else if (ret < 0) {
+			ov_clear(&self->vorbisFile);
+
+			linearFree(self->data);
+
+			return "error in the ogg vorbis stream";
+		} else {
+			// TODO handle multiple links (http://xiph.org/vorbis/doc/vorbisfile/decoding.html)
+
+			offset += ret;
+		}
+	}
+
+	return NULL;
+	
+}
+
+const char * sourceOggDecodeStream(love_source * self, bool updateDecode) {
+
+	int offset = 0;
+
+	self->data = linearAlloc(self->size);
+
+	while (!self->eof && offset < self->size) {
+	
+		long ret = ov_read(&self->vorbisFile, &self->data[offset], fmin(self->size - offset, 4096), &self->currentSection);
+
+		if (ret == 0) {
+
+			self->eof = 1;
+			
+		} else if (ret < 0) {
+			ov_clear(&self->vorbisFile);
+
+			linearFree(self->data);
+
+			return "error in the ogg vorbis stream";
+		} else {
+			offset += ret;
+		}
+	}
+
+	self->position = ov_raw_tell(&self->vorbisFile);
+
+	if (updateDecode) {
+		self->size = offset;
+		self->chunkSamples = self->size / self->channels / 2;
+		self->nsamples = self->chunkSamples;
+	}
+
+	printf("\nPosition: %d\nSize: %d\nSamples: %d, EOF: %d\n", self->position, self->size, self->chunkSamples, self->eof);
+
+	return NULL;
+
+}
+
 int sourceNew(lua_State *L) { // love.audio.newSource()
 
-	if (!soundEnabled) return 0;
+	if (!soundEnabled) {
+		luaError(L, "Could not intialize NDSP.\nPlease dump your dspfirm!");
+		return 0;
+	}
 
 	const char *filename = luaL_checkstring(L, 1);
+
+	const char * type = luaL_optstring(L, 2, "static");
 
 	love_source *self = luaobj_newudata(L, sizeof(*self));
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char *error = sourceInit(self, filename);
+	const char *error = sourceInit(self, filename, type);
 
 	if (error) luaError(L, error);
 
@@ -297,6 +383,37 @@ int sourcePlay(lua_State *L) { // source:play()
 	if (!soundEnabled) return 0;
 
 	love_source *self = luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (self->audiochannel == -1) {
+		luaError(L, "No available audio channel");
+		return 0;
+	}
+
+	ndspChnWaveBufClear(self->audiochannel);
+	ndspChnReset(self->audiochannel);
+	ndspChnInitParams(self->audiochannel);
+	ndspChnSetMix(self->audiochannel, self->mix);
+	ndspChnSetInterp(self->audiochannel, self->interp);
+	ndspChnSetRate(self->audiochannel, self->rate);
+	ndspChnSetFormat(self->audiochannel, NDSP_CHANNELS(self->channels) | NDSP_ENCODING(self->encoding));
+
+	ndspWaveBuf* waveBuf = calloc(1, sizeof(ndspWaveBuf));
+
+	waveBuf->data_vaddr = self->data;
+	waveBuf->nsamples = self->nsamples;
+	waveBuf->looping = self->loop;
+
+	DSP_FlushDataCache((u32*)self->data, self->size);
+
+	ndspChnWaveBufAdd(self->audiochannel, waveBuf);
+
+	return 0;
+
+}
+
+void sourceStreamPlay(love_source * self) { // source:play()
+
+	if (!soundEnabled) return 0;
 
 	if (self->audiochannel == -1) {
 		luaError(L, "No available audio channel");

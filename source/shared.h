@@ -59,6 +59,8 @@
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
+#define STREAM_RATE (0.017648 * 3.7)
+
 typedef struct {
     int id;
 } love_joystick;
@@ -98,12 +100,19 @@ typedef struct {
 	u32 encoding;
 	u32 nsamples;
 	u32 size;
-	char* data;
+	char * data;
 	bool loop;
 	int audiochannel;
 
 	float mix[12];
 	ndspInterpType interp;
+	
+	bool stream; //if it should stream
+	
+	long position;
+	int currentSection;
+	u32 chunkSamples;
+	int eof;
 } love_source;
 
 typedef struct {
@@ -116,8 +125,13 @@ typedef struct {
 typedef struct {
 	int width;
 	int height;
-	sf2d_rendertarget * target;
+	C3D_RenderTarget * target;
 } love_canvas;
+
+typedef struct {
+	love_image * img;
+	love_canvas * canvas;
+} love_drawable;
 
 #define SOCKETSIZE 8192
 typedef struct {
@@ -140,6 +154,13 @@ extern bool shouldQuit;
 extern love_font *currentFont;
 extern bool is3D;
 extern const char *fontDefaultInit();
+
+const char * sourceOggDecodeFull(love_source * self);
+const char * sourceOggDecodeStream(love_source * self, bool updateDecode);
+void sourceStreamPlay(love_source * self);
+void updateStreams();
+
+extern love_source * streams[24];
 extern bool soundEnabled;
 extern bool channelList[24];
 extern u32 defaultFilter;
@@ -147,3 +168,4 @@ extern char *defaultMinFilter;
 extern char *defaultMagFilter;
 extern bool irrstEnabled;
 extern char * identity;
+extern float dt;
