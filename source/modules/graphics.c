@@ -417,7 +417,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
 			start = 3;
 		}
-
+    
 		float x = luaL_optnumber(L, start + 0, 0);
 		float y = luaL_optnumber(L, start + 1, 0);
 		float rotation = luaL_optnumber(L, start + 2, 0);
