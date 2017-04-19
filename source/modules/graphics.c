@@ -43,6 +43,7 @@ float currentLineWidth = 1.0f;
 u32 defaultFilter = GPU_TEXTURE_MAG_FILTER(GPU_LINEAR)|GPU_TEXTURE_MIN_FILTER(GPU_LINEAR); // Default Image Filter.
 char *defaultMinFilter = "linear";
 char *defaultMagFilter = "linear";
+love_canvas * currentCanvas = NULL;
 
 u32 getCurrentColor() {
 
@@ -408,39 +409,103 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 
 	if (sf2d_get_current_screen() == currentScreen) {
 
-		love_image * img = luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-		love_quad * quad = NULL;
+		love_image *img = NULL;
+		love_quad *quad = NULL;
+		love_canvas * canvas = NULL;
 
-		int start = 2;
+
+		int x, y;
+		int sx, sy;
+		int ox, oy;
+		float rad;
+
+		luaobj_head_t * udata = lua_touserdata(L, lua_absindex(L, 1));
+
+		if (!udata) {
+			luaError(L, "No object found. Expected: Image or Canvas");
+		} else {
+			printf("image check\n");
+			img = (udata->type & LUAOBJ_TYPE_IMAGE) ? udata + 1 : NULL;
+
+			if (!img) {
+				printf("canvas check\n");
+				canvas = luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+			}
+		}
 
 		if (!lua_isnone(L, 2) && lua_type(L, 2) != LUA_TNUMBER) {
+
 			quad = luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
-			start = 3;
+			x = luaL_optnumber(L, 3, 0);
+			y = luaL_optnumber(L, 4, 0);
+			rad = luaL_optnumber(L, 5, 0);
+			sx = luaL_optnumber(L, 6, 0);
+			sy = luaL_optnumber(L, 7, 0);
+			ox = luaL_optnumber(L, 8, 0);
+			oy = luaL_optnumber(L, 9, 0);
+
+		} else {
+
+			x = luaL_optnumber(L, 2, 0);
+			y = luaL_optnumber(L, 3, 0);
+			rad = luaL_optnumber(L, 4, 0);
+			sx = luaL_optnumber(L, 5, 0);
+			sy = luaL_optnumber(L, 6, 0);
+			ox = luaL_optnumber(L, 7, 0);
+			oy = luaL_optnumber(L, 8, 0);
+
 		}
 
-		float x = luaL_optnumber(L, start + 0, 0);
-		float y = luaL_optnumber(L, start + 1, 0);
-		float rotation = luaL_optnumber(L, start + 2, 0);
-		float scaleX = luaL_optnumber(L, start + 3, 1);
-		float scaleY = luaL_optnumber(L, start + 4, 1);
-		float offsetX = luaL_optnumber(L, start + 5, 0);
-		float offsetY = luaL_optnumber(L, start + 6, 0);
-
-		float local_sin = sin(rotation);
-		float local_cos = cos(rotation);
-		x += (local_cos * (-offsetX) - local_sin * (-offsetY) + offsetX);
-		y += (local_sin * (-offsetX) + local_cos * (-offsetY) + offsetY);
-
-		x -= offsetX; // This is wrong TODO: Do it right.
-		y -= offsetY;
-		
+		float local_sin = sin(rad);
+		float local_cos = cos(rad);
+		x += (local_cos * (-ox) - local_sin * (-oy) + ox);
+		y += (local_sin * (-ox) + local_cos * (-oy) + oy);
+		x -= ox;
+		y -= oy;
 		translateCoords(&x, &y);
 
-		if (!quad) {
-			sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture, x, y, rotation, scaleX, scaleY, offsetX, offsetY, getCurrentColor());
+		if (rad == 0) {
+
+			if (sx == 0 && sy == 0){
+
+				if (!quad) {
+
+					if (img) {
+						printf("draw image @ %d, %d\n", x, y);
+						sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
+					} else if (canvas) {
+						printf("draw canvas @ %d, %d\n", x, y);
+						sf2d_draw_texture_blend(canvas->target, x, y, getCurrentColor());
+					}
+
+				} else {
+					sf2d_draw_texture_part_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, getCurrentColor());
+				}
+
+			} else {
+
+				if (!quad) {
+
+					if (img) {
+						sf2d_draw_texture_scale_blend(img->texture, x, y, sx, sy, getCurrentColor());
+					}
+
+				} else {
+					sf2d_draw_texture_part_scale_blend(img->texture, x, y, quad->x, quad->y, quad->width, quad->height, sx, sy, getCurrentColor());
+				}
+
+			}
+
 		} else {
-			sf2d_draw_texture_part_rotate_scale_blend(img->texture, x, y, rotation, quad->x, quad->y, quad->width, quad->height, scaleX, scaleY, getCurrentColor());
+
+			if (sx == 0 && sy == 0){
+				sf2d_draw_texture_rotate_blend(img->texture, x + img->texture->width / 2, y + img->texture->height / 2, rad, getCurrentColor());
+			} else {
+				sf2d_draw_texture_rotate_scale_hotspot_blend(img->texture, x, y, rad, sx, sy, 0, 0, getCurrentColor());
+			}
+
 		}
+
 	}
 
 	return 0;
@@ -683,19 +748,27 @@ static int graphicsGetDefaultFilter(lua_State *L) { // love.graphics.getDefaultF
 	return 2;
 }
 
-int canvasRenderStart(love_canvas * canvas);
-int canvasRenderEnd();
-
 static int graphicsSetCanvas(lua_State * L) {
-
-	love_canvas * canvas = NULL;
+	
+	gfxScreen_t screen = GFX_TOP;
+	if (currentScreen == GFX_BOTTOM)
+		screen = GFX_BOTTOM;
 
 	if (!lua_isnoneornil(L, 1)) {
-		canvas = luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
-		
-		canvasRenderStart(canvas);
+		currentCanvas = luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+
+		sf2d_start_frame(screen, GFX_LEFT);
 	} else {
-		canvasRenderEnd();
+		sf2d_end_frame();
+
+		sf2d_swapbuffers();
+
+		u8 * frame = gfxGetFramebuffer(screen, GFX_LEFT, NULL, NULL);
+
+		sf2d_fill_texture_from_RGBA8(currentCanvas->target, frame, currentCanvas->width, currentCanvas->height);
+
+		//sf2d_free_texture(currentCanvas->target);
+		//currentCanvas->target = NULL;
 	}
 	
 	return 0;

@@ -59,7 +59,7 @@
 
 #define CONFIG_3D_SLIDERSTATE (*(float*)0x1FF81080)
 
-#define STREAM_RATE (0.017648 * 3.7)
+#define STREAM_RATE 0.08  //refill rate?
 
 typedef struct {
     int id;
@@ -109,6 +109,7 @@ typedef struct {
 	
 	bool stream; //if it should stream
 	
+	double time;
 	long position;
 	int currentSection;
 	u32 chunkSamples;
@@ -125,13 +126,8 @@ typedef struct {
 typedef struct {
 	int width;
 	int height;
-	C3D_RenderTarget * target;
+	sf2d_texture * target;
 } love_canvas;
-
-typedef struct {
-	love_image * img;
-	love_canvas * canvas;
-} love_drawable;
 
 #define SOCKETSIZE 8192
 typedef struct {

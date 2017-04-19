@@ -44,13 +44,15 @@ void updateStreams() {
 		if (streams[i] != NULL) {
 			love_source * self = streams[i];
 
-			if (!ndspChnIsPlaying(self->audiochannel)) {
+			if (ndspChnIsPlaying(self->audiochannel)) {
 				if (!self->eof) {
-					//linearFree(self->data);
 
 					if (self->type == TYPE_OGG) {
-						if (ov_seekable(&self->vorbisFile) && ov_raw_tell(&self->vorbisFile) != self->position)
+						if (ov_seekable(&self->vorbisFile) && ov_raw_tell(&self->vorbisFile) != self->position) {
 							ov_raw_seek(&self->vorbisFile, self->position);
+						}
+						
+						self->time += (double)(self->nsamples) / self->rate;
 
 						char * err = sourceOggDecodeStream(self, true);
 
@@ -60,6 +62,22 @@ void updateStreams() {
 						sourceStreamPlay(self);
 					}
 					
+				}
+			} else {
+				if (self->type == TYPE_OGG) {
+					if (self->eof) {
+						self->currentSection = 0;
+						self->position = 0;
+						self->time = 0;
+
+						sourceOggDecodeStream(self, true);
+
+						if (self->loop) {
+							sourceStreamPlay(self);
+						}
+
+						self->eof = 0;
+					}
 				}
 			}
 		} else {
@@ -228,7 +246,7 @@ const char *sourceInit(love_source *self, const char *filename, const char * typ
 
 					self->data = linearAlloc(self->size);
 
-					err = sourceOggDecodeFull(self);
+					sourceOggDecodeFull(self);
 					
 					linearFree(&self->vorbisFile);
 
@@ -334,8 +352,6 @@ const char * sourceOggDecodeStream(love_source * self, bool updateDecode) {
 		self->nsamples = self->chunkSamples;
 	}
 
-	printf("\nPosition: %d\nSize: %d\nSamples: %d, EOF: %d\n", self->position, self->size, self->chunkSamples, self->eof);
-
 	return NULL;
 
 }
@@ -432,7 +448,8 @@ void sourceStreamPlay(love_source * self) { // source:play()
 
 	waveBuf->data_vaddr = self->data;
 	waveBuf->nsamples = self->nsamples;
-	waveBuf->looping = self->loop;
+
+	waveBuf->looping = false;
 
 	DSP_FlushDataCache((u32*)self->data, self->size);
 
@@ -528,7 +545,14 @@ int sourceTell(lua_State *L) { // source:tell()
 	if (!ndspChnIsPlaying(self->audiochannel)) {
 		lua_pushnumber(L, 0);
 	} else {
-		lua_pushnumber(L, (double)(ndspChnGetSamplePos(self->audiochannel)) / self->rate);
+
+		int add = 0;
+		
+		if (self->stream) {
+			add = self->time;
+		}
+
+		lua_pushnumber(L, (double)(ndspChnGetSamplePos(self->audiochannel)) / self->rate + add);
 	}
 
 	return 1;

@@ -25,16 +25,13 @@
 #define CLASS_TYPE  LUAOBJ_TYPE_CANVAS
 #define CLASS_NAME  "Canvas"
 
-#define DISPLAY_TRANSFER_FLAGS (GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) | GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
-
 const char * canvasInit(love_canvas *self, int width, int height) {
     
 	self->width = width;
 	self->height = height;
-	
-	self->target = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
 
-	C3D_RenderTargetSetOutput(self->target, sf2d_get_current_screen(), GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
+	self->target = sf2d_create_texture(width, height, TEXFMT_RGBA8, SF2D_PLACE_RAM);
+	self->target->tex.data = NULL;
 
 	return NULL;
 
@@ -56,22 +53,6 @@ int canvasNew(lua_State *L) {
 
 	return 1;
 
-}
-
-int canvasRenderStart(love_canvas * canvas) {
-    C3D_RenderTargetSetClear(canvas->target, 0, 0, 0); // don't clear again until marked to
-	
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
-	C3D_FrameDrawOn(canvas->target);
-	
-	return 0;
-}
-
-int canvasRenderEnd() {
-	C3D_FrameEnd(0);
-	
-	return 0;
 }
 
 int canvasGC(lua_State *L) { // Garbage Collection
