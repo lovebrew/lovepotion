@@ -462,6 +462,7 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 		y += (local_sin * (-ox) + local_cos * (-oy) + oy);
 		x -= ox;
 		y -= oy;
+		
 		translateCoords(&x, &y);
 
 		if (rad == 0) {
@@ -471,11 +472,9 @@ static int graphicsDraw(lua_State *L) { // love.graphics.draw()
 				if (!quad) {
 
 					if (img) {
-						printf("draw image @ %d, %d\n", x, y);
 						sf2d_draw_texture_blend(img->texture, x, y, getCurrentColor());
 					} else if (canvas) {
-						printf("draw canvas @ %d, %d\n", x, y);
-						sf2d_draw_texture_blend(canvas->target, x, y, getCurrentColor());
+						//sf2d_draw_texture_blend(canvas->target, x, y, getCurrentColor());
 					}
 
 				} else {
