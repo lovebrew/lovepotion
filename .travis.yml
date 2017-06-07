@@ -1,0 +1,27 @@
+language: c
+
+sudo: required
+
+before_install:
+  - export DEBIAN_FRONTEND=noninteractive
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+  - sudo apt-get update -qq
+  - sudo apt-get -o Dpkg::Options::="--force-confnew" install gcc-4.9 libstdc++6 -y
+  - sudo apt-get install python3 -y
+  - export CC=arm-none-eabi-gcc
+  - export CXX=arm-none-eabi-g++
+  - export DEVKITPRO=${HOME}/devkitPro
+  - export DEVKITARM=${DEVKITPRO}/devkitARM
+  - export CTRULIB=${DEVKITPRO}/libctru
+  - export PICASSO=${DEVKITARM}/bin
+  - export PORTLIBS=${DEVKITPRO}/portlibs/armv6k
+  - sh .travis-deps.sh
+
+script:
+  - make
+
+notifications:
+  irc: 
+    channels:
+      - "irc.oftc.net#lovepotion"
+    skip_join: true
