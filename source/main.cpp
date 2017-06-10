@@ -14,13 +14,20 @@ extern "C" {
 
 std::string debug;
 
+#include <ivorbiscodec.h>
+#include <ivorbisfile.h>
+
 #include "common/version.h"
 #include "modules/love/love.h"
 #include <unistd.h>
 
+#include "boot_lua.h"
+
 bool LUA_ERROR = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
+
+#define luaL_dobuffer(L, b, n, s) (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
 #include "modules/audio/source.h"
 love::Source * streams[24];
@@ -69,7 +76,9 @@ int main(int argc, char ** argv)
 	printf("\n");
 
 	osSetSpeedupEnable(true);
-	
+
+	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
+
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
 	
@@ -88,7 +97,9 @@ int main(int argc, char ** argv)
 		{
 			if (luaL_dostring(L, "love.timer.step()"))
 				console->ThrowError(L);
-
+			
+			loveScan(L);
+			
 			for (int i = 0; i <= 23; i++) 
 			{
 				if (streams[i] != NULL) 

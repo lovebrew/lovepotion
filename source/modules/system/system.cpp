@@ -182,6 +182,16 @@ int System::GetWifiStatus(lua_State * L)
 	return 1;
 }
 
+int System::GetLinearMemory(lua_State * L)
+{
+	u32 linearMemory;
+
+	linearMemory = linearSpaceFree();
+	
+	lua_pushnumber(L, linearMemory);
+	return 1;
+}
+
 int systemInit(lua_State * L)
 {
 	luaL_Reg reg[] = 
@@ -194,6 +204,7 @@ int systemInit(lua_State * L)
 		{ "getWifiStatus",		love::System::GetWifiStatus		},
 		{ "getOS",				love::System::GetOS				},
 		{ "getRegion",			love::System::GetRegion			},
+		{ "getLinearMemory",	love::System::GetLinearMemory	},
 		{ 0, 0 },
 	};
 

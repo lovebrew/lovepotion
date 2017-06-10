@@ -15,169 +15,125 @@ char * Source::Init(const char * path, const char * type)
 
 	const char * extension = strrchr(path, '.');
 
-	love_source_type t = TYPE_WAV;
-	if (strncmp((extension + 1), "ogg", 3) == 0)
-		t = TYPE_OGG;
+	love_source_type t = TYPE_OGG;
+	if (strncmp((extension + 1), "ogg", 3) != 0)
+		return "Invalid Source type!";
 
 	this->stream = (strncmp(type, "stream", 6) == 0) ? true : false;
 
-	this->file = fopen(path, "r");
+	this->fileHandle = fopen(path, "r");
+	
+	char * error; 
+	if (!this->fileHandle)
+		error = "Failed to open file.";
 
-	if (t == TYPE_WAV)
-		this->DecodeWave();
+	error = this->Decode();
+
+	if (error != nullptr)
+		return error;
 
 	return nullptr;
 }
 
-void Source::DecodeWave()
-{
-	bool valid = true;
+char * Source::Decode()
+{	
+	if (ov_open(this->fileHandle, &this->vorbisFile, NULL, 0) < 0)
+		return "Invalid ogg vorbis file";
 
-	char buff[8];
+	vorbis_info * vorbisInfo = ov_info(&this->vorbisFile, -1);
 
-	// Master chunk
-	fread(buff, 4, 1, file); // ckId
-	if (strncmp(buff, "RIFF", 4) != 0) valid = false;
+	if (vorbisInfo == NULL) //No ogg info
+		return "Could not retrieve vorbis information";
 
-	fseek(file, 4, SEEK_CUR); // skip ckSize
+	this->rate = (float)vorbisInfo->rate;
 
-	fread(buff, 4, 1, file); // WAVEID
-	if (strncmp(buff, "WAVE", 4) != 0) valid = false;
+	this->channels = (u32)vorbisInfo->channels;
 
-	// fmt Chunk
-	fread(buff, 4, 1, file); // ckId
-	if (strncmp(buff, "fmt ", 4) != 0) valid = false;
+	this->encoding = NDSP_ENCODING_PCM16;
 
-	fread(buff, 4, 1, file); // ckSize
-	if (*buff != 16) valid = false; // should be 16 for PCM format
-
-	fread(buff, 2, 1, file); // wFormatTag
-	if (*buff != 0x0001) valid = false; // PCM format
-
-	u16 channels;
-	fread(&channels, 2, 1, file); // nChannels
-	this->channels = channels;
-				
-	u32 rate;
-	fread(&rate, 4, 1, file); // nSamplesPerSec
-	this->rate = rate;
-
-	fseek(file, 4, SEEK_CUR); // skip nAvgBytesPerSec
-
-	u16 byte_per_block; // 1 block = 1*channelCount samples
-	fread(&byte_per_block, 2, 1, file); // nBlockAlign
-
-	u16 byte_per_sample;
-	fread(&byte_per_sample, 2, 1, file); // wBitsPerSample
-	byte_per_sample /= 8; // bits -> bytes
-
-	// There may be some additionals chunks between fmt and data
-	fread(&buff, 4, 1, file); // ckId
-	while (strncmp(buff, "data", 4) != 0) 
-	{
-		u32 size;
-		fread(&size, 4, 1, file); // ckSize
-
-		fseek(file, size, SEEK_CUR); // skip chunk
-
-		int i = fread(&buff, 4, 1, file); // next chunk ckId
-
-		if (i < 4) // reached EOF before finding a data chunk
-		{
-			valid = false;
-			break;
-		}
-	}
-
-	// data Chunk (ckId already read)
-	u32 size;
-	fread(&size, 4, 1, file); // ckSize
-	this->size = size;
-
-	this->nsamples = this->size / byte_per_block;
-
-	if (byte_per_sample == 1) 
-		this->encoding = NDSP_ENCODING_PCM8;
-	else if (byte_per_sample == 2) 
-		this->encoding = NDSP_ENCODING_PCM16;
-	else 
-		printf("unknown encoding, needs to be PCM8 or PCM16\n");
-
-	if (!valid) 
-	{
-		fclose(file);
-		printf("invalid PCM wav file");
-	}
+	this->nsamples = (u32)ov_pcm_total(&this->vorbisFile, -1);
 
 	this->audiochannel = this->GetOpenChannel();
+
 	this->loop = false;
 
 	if (!this->stream)
 	{
-		if (linearSpaceFree() < this->size) 
-			printf("not enough linear memory available");
+		this->size = this->nsamples * this->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
 		
-		this->data = (char *)linearAlloc(this->size);
+		if (linearSpaceFree() < this->size)
+			return "not enough linear memory available";
 
-		fread(this->data, this->size, 1, file);
+		this->data = (char *)linearAlloc(this->size);
+		
+		this->FillBuffer(this->data);
+
+		ov_clear(&this->vorbisFile);
+
+		fclose(this->fileHandle);
 	}
 	else
 	{
+		this->chunkSamples = round(this->rate / 15); //round(0.1 * this->rate);
+		this->size = this->chunkSamples * this->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
 
-		this->samplesPerBuffer = this->rate / 30;
-		//printf("%d %d\n", this->nsamples, this->nsamples / 60);
-		this->data = (char *)linearAlloc(this->samplesPerBuffer * byte_per_sample * 2);
+		if (linearSpaceFree() < this->size)
+			return "not enough linear memory available";
+
+		this->data = (char *)linearAlloc(this->size);
+
+		long ret = this->FillBuffer(this->data);
 
 		memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
 
 		this->waveBuffer[0].data_vaddr = &this->data[0];
-		this->waveBuffer[0].nsamples = this->samplesPerBuffer;
+		this->waveBuffer[0].nsamples = this->chunkSamples;
 
-		this->waveBuffer[1].data_vaddr = &this->data[this->samplesPerBuffer];
-		this->waveBuffer[1].nsamples = this->samplesPerBuffer;
-
-		this->FillBuffer(this->data, this->streamOffset, this->samplesPerBuffer * 2);
-
-		this->streamOffset += this->samplesPerBuffer;
+		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples * 2];
+		this->waveBuffer[1].nsamples = this->chunkSamples;
 
 		streams[this->audiochannel] = this;
 	}
-}
 
-char * Source::GetAudio()
-{
-	return this->data;
-}
-
-u32 Source::GetSamples()
-{
-	return this->nsamples;
+	return nullptr;
 }
 
 int Source::GetOpenChannel() {
-
-	for (int i = 0; i <= 23; i++) {
-		if (!channelList[i]) {
+	for (int i = 0; i <= 23; i++)
+	{
+		if (!channelList[i]) 
+		{
 			channelList[i] = true;
 			return i;
 		}
 	}
 
 	return -1;
-
 }
 
 void Source::Update()
 {
 	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
 	{
-		this->FillBuffer(this->waveBuffer[this->fillBuffer].data_pcm16, this->streamOffset, this->waveBuffer[this->fillBuffer].nsamples);
+		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
+
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
 		
-		this->streamOffset += this->waveBuffer[this->fillBuffer].nsamples;
-
 		this->fillBuffer = !this->fillBuffer;
 	}
+
+	if (this->waveBuffer[0].status == NDSP_WBUF_DONE && this->waveBuffer[1].status == NDSP_WBUF_DONE)
+	{
+		if (feof(this->fileHandle) && this->loop)
+		{
+			this->Reset();
+		}
+	}	
+}
+
+void Source::Reset()
+{
+
 }
 
 void Source::Play()
@@ -200,25 +156,61 @@ void Source::Play()
 	} 
 	else 
 	{
-		ndspWaveBuf* waveBuf = (ndspWaveBuf *)calloc(1, sizeof(ndspWaveBuf));
+		this->waveBuffer[0].data_vaddr = this->data;
+		this->waveBuffer[0].nsamples = this->nsamples;
+		this->waveBuffer[0].looping = this->loop;
 
-		waveBuf->data_vaddr = this->data;
-		waveBuf->nsamples = this->nsamples;
-		waveBuf->looping = this->loop;
+		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[0]);
 
-		DSP_FlushDataCache((u32*)this->data, this->size);
-
-		ndspChnWaveBufAdd(this->audiochannel, waveBuf);
+		DSP_FlushDataCache(this->data, this->size);
 	}
 	
 }
-
-void Source::FillBuffer(void * audio, size_t offset, size_t ssize)
+ 
+long Source::FillBuffer(void * audio)
 {
-	u32 * destination = (u32 *)audio;
+	if (feof(this->fileHandle))
+		return -1;
+	
+	int eof = 0;
+	int offset = 0;
+	long ret = 0;
 
-	//for (int i = 0; i < size; i++)
-	fread(destination, ssize, 1, this->file);
+	int currentSection;
+	
+	char * destination = (char *)audio;
 
-	DSP_FlushDataCache(audio, ssize);
+	while (!eof)
+	{
+		int readSize = fmin(this->size - offset, 4096);
+		if (this->stream)
+			readSize = this->chunkSamples * 2;
+
+		ret = ov_read(&this->vorbisFile, &destination[offset], readSize, &currentSection);
+
+		if (ret == 0)
+		{
+			eof = 1;
+		} 
+		else if (ret < 0) 
+		{
+			ov_clear(&this->vorbisFile);
+
+			linearFree(destination);
+
+			break;
+		}
+		else 
+		{
+			offset += ret;
+
+			if (this->stream && offset >= this->size)
+				eof = 1;
+		}
+	}
+
+	if (this->stream)
+		DSP_FlushDataCache((u32 *)audio, ret);
+	
+	return 0;
 }

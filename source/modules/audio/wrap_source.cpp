@@ -17,7 +17,10 @@ int sourceNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	self->Init(path, type);
+	char * error = self->Init(path, type);
+
+	if (error)
+		luaL_error(L, error);
 
 	return 1;
 }
@@ -33,13 +36,14 @@ int sourcePlay(lua_State * L)
 
 int sourceGC(lua_State * L)
 {
-	//Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	//ndspChnWaveBufClear(self->audiochannel);
+	ndspChnWaveBufClear(self->audiochannel);
 
-	//linearFree(self->data);
+	linearFree(self->data);
 
-	//channelList[self->audiochannel] = false;
+	channelList[self->audiochannel] = false;
+	
 	return 0;
 }
 

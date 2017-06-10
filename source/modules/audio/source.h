@@ -9,32 +9,30 @@ namespace love
 		public:
 			char * Init(const char * path, const char * type);
 			void Play();
-			void FillBuffer(void * audio, size_t offset, size_t size);
-			void DecodeWave();
-			void DecodeOgg();
+			long FillBuffer(void * audio);
+			char * Decode();
 			int GetOpenChannel();
 			void Update();
-
-			char * GetAudio();
-			u32 GetSamples();
+			void Reset();
 			
+			char * data;
+			int audiochannel;
+
 		private:
 			ndspWaveBuf waveBuffer[2];
-			char * data;
-			FILE * file;
-			//OggVorbis_File vorbisFile;
-	
+
+			FILE * fileHandle;
+			OggVorbis_File vorbisFile;
+
 			u32 rate;
 			u32 channels;
 			u32 encoding;
 			u32 nsamples;
 			u32 size;
 			bool loop;
-			int audiochannel;
 
-			int samplesPerBuffer;
-
-			size_t streamOffset = 0;
+			int streamOffset;
+			int chunkSamples;
 
 			float mix[12];
 			ndspInterpType interp;

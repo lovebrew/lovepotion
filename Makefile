@@ -29,16 +29,26 @@ include $(DEVKITARM)/3ds_rules
 
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source source/libs/lua source/common source/libs/tremor source/objects source/libs/luaobj
-DATA		:=	data
-INCLUDES	:=	source source/libs/lua source/common source/libs/tremor source/objects source/libs/luaobj
+SOURCES		:=	\
+				source \
+				source/common \
+				source/modules/audio \
+				source/modules/filesystem \
+				source/modules/graphics \
+				source/modules/love \
+				source/modules/system \
+				source/modules/timer \
+				source/modules/keyboard \
+				source/modules/font \
+				source/libs/lua \
+				source/libs/tremor \
+				source/libs/luaobj
+DATA		:=	source/scripts
+INCLUDES	:=	$(SOURCES)
 
-SOURCES += source/modules/love source/modules/graphics source/modules/system source/modules/filesystem source/modules/timer source/modules/audio
-INCLUDES += source/modules/love source/modules/graphics source/modules/system source/modules/filesystem source/modules/timer source/modules/audio
-
-APP_TITLE	:=	LovePotion
-APP_AUTHOR	:=	Ruairidh 'VideahGams' Carmichael
-APP_DESCRIPTION	:=	Implementation of the LOVE framework for 3DS.
+APP_TITLE	:=	'Love Potion'
+APP_AUTHOR	:=	TurtleP
+APP_DESCRIPTION	:=	'LOVE2D for 3DS'
 
 ICON := meta/icon.png
 BANNER := meta/banner.png
@@ -75,7 +85,7 @@ UNAME := $(shell uname)
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/libs/tremor
+LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/source/libs/tremor
 
 #---------------------------------------------------------------------------------
 # load game folder into romfs if it exists
@@ -100,9 +110,10 @@ export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.cpp)))
+CPPFILES	:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.cpp))) \
+
 SFILES		:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.s)))
-BINFILES	:=	$(foreach dir, $(DATA),     $(notdir $(wildcard $(dir)/*.*)))
+BINFILES	:=	$(foreach dir, $(DATA),    $(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -121,9 +132,9 @@ endif
 export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
 			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+export INCLUDE	:=	$(foreach dir, $(INCLUDES), -I$(CURDIR)/$(dir)) \
+					$(foreach dir, $(LIBDIRS),  -I$(dir)/include) \
+					-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
