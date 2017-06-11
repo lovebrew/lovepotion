@@ -2,8 +2,8 @@
 #include "timer.h"
 
 float love::Timer::dt = 0;
-float love::Timer::lastTick = 0;
-float love::Timer::currentTick = 0;
+int love::Timer::lastTick = 0;
+int love::Timer::currentTick = 0;
 
 using love::Timer;
 

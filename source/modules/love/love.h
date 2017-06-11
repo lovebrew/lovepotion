@@ -3,6 +3,7 @@
 // Forward declare lua_State.
 struct lua_State;
 extern bool LUA_ERROR;
+extern bool CLOSE_KEYBOARD;
 
 /*
 	@brief returns the LOVE version :: Lua

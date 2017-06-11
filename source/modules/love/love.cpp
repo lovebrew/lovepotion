@@ -7,6 +7,7 @@ extern int filesystemInit(lua_State * L);
 extern int systemInit(lua_State * L);
 extern int timerInit(lua_State * L);
 extern int audioInit(lua_State * L);
+extern int keyboardInit(lua_State * L);
 
 extern int initSourceClass(lua_State * L);
 extern int initFileClass(lua_State * L);
@@ -18,6 +19,7 @@ struct { char *name; int (*fn)(lua_State *L); } modules[] =
 	{"system",		systemInit		},
 	{"timer",		timerInit		},
 	{"audio",		audioInit		},
+	{"keyboard",	keyboardInit	},
 	{0}
 };
 
@@ -46,7 +48,6 @@ int loveScan(lua_State * L)
 
 	hidTouchRead(&touch);
 
-	// love.keypressed()
 	const char * field = nullptr;
 	int args = -1;
 	int key = -1;

@@ -18,7 +18,7 @@ void Console::Enable()
 	if (!this->IsEnabled())
 		love::CONSOLE_ENABLED = true;
 
-	consoleInit(GFX_BOTTOM, NULL);
+	consoleInit(GFX_TOP, NULL);
 }
 
 bool Console::IsEnabled()

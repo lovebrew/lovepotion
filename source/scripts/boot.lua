@@ -74,6 +74,9 @@ function love.createhandlers()
 		gamepadaxis = function (j,a,v)
 			if love.gamepadaxis then return love.gamepadaxis(j,a,v) end
 		end,
+		textinput = function(t)
+			if love.textinput then return love.textinput(t) end
+		end,
 		focus = function (f)
 			if love.focus then return love.focus(f) end
 		end,

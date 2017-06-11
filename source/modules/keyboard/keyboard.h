@@ -18,7 +18,10 @@ namespace love
 			static int HasTextInput(lua_State * L);
 			static int SetTextInput(lua_State * L);
 
+
 		private:
 			Keyboard();
+			static bool TEXT_INPUT;
+			static love::SoftwareKeyboard * keyboard;
 	};
 }

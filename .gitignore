@@ -1,4 +1,4 @@
-.vscode
+/source/.vscode
 /build/
 /game/
 *.3dsx

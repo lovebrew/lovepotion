@@ -19,13 +19,15 @@ std::string debug;
 
 #include "common/version.h"
 #include "modules/love/love.h"
-#include <unistd.h>
-
-#include "boot_lua.h"
 
 bool LUA_ERROR = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
+bool runThreads = true;
+
+#include <unistd.h>
+
+#include "boot_lua.h"
 
 #define luaL_dobuffer(L, b, n, s) (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
@@ -82,15 +84,9 @@ int main(int argc, char ** argv)
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
 	
-	//std::string buf = "files = love.filesystem.getDirectoryItems('characters/')";
-	//buf += "for i = 1, #files do if love.filesystem.isFile('charactersfiles[i]) then print(files[i]) print(love.filesystem.read(files[i])) end end";
-
 	if (luaL_dostring(L, "love.timer.step()"))
 		console->ThrowError(L);
 	
-	//if (luaL_dostring(L, buf.c_str()))
-	//	console->ThrowError(L);
-
 	while (aptMainLoop())
 	{
 		if (!LUA_ERROR)
@@ -100,12 +96,16 @@ int main(int argc, char ** argv)
 			
 			loveScan(L);
 			
-			for (int i = 0; i <= 23; i++) 
-			{
-				if (streams[i] != NULL) 
-				{
+			for (int i = 0; i < 24; i++)
+				if (streams[i])
 					streams[i]->Update();
-				}
+
+			luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end");
+
+			if (CLOSE_KEYBOARD)
+			{
+				luaL_dostring(L, "love.keyboard.setTextInput(false)");
+				CLOSE_KEYBOARD =  false;
 			}
 		}
 		else
@@ -122,11 +122,14 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	luaL_dostring(L, "love.audio.stop()");
+	
 	lua_close(L);
 
 	ptmuExit();
 	cfguExit();
 	C3D_Fini();
+	gfxExit();
 	
 	if (AUDIO_ENABLED) 
 		ndspExit();

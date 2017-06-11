@@ -23,7 +23,9 @@ namespace love
 			Timer();
 
 			static float dt;
-			static float lastTick;
-			static float currentTick;
+			static int lastTick;
+			static int currentTick;
+			
+			static int frames;
 	};
 }
