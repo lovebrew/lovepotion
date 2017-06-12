@@ -114,6 +114,7 @@ CPPFILES	:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.cpp))) \
 
 SFILES		:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir, $(DATA),    $(notdir $(wildcard $(dir)/*.*)))
+PICAFILE	:= 	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -130,7 +131,8 @@ endif
 #---------------------------------------------------------------------------------
 
 export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+			$(PICAFILE:.v.pica=.shbin.o) \
+			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o) 
 
 export INCLUDE	:=	$(foreach dir, $(INCLUDES), -I$(CURDIR)/$(dir)) \
 					$(foreach dir, $(LIBDIRS),  -I$(dir)/include) \

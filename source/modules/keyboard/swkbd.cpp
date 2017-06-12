@@ -1,10 +1,11 @@
 #include "common/runtime.h"
-#include "softwarekeyboard.h"
+#include "swkbd.h"
 
 bool CLOSE_KEYBOARD = false;
-using love::SoftwareKeyboard;
 
-SoftwareKeyboard::SoftwareKeyboard()
+using love::SwKbd;
+
+SwKbd::SwKbd()
 {
 	swkbdInit(&this->keyboard, SWKBD_TYPE_NORMAL, 2, -1);
 
@@ -16,6 +17,7 @@ SoftwareKeyboard::SoftwareKeyboard()
 
 	swkbdSetFilterCallback(&this->keyboard, Close, NULL);
 
+	memset(this->text, 0, sizeof(this->text));
 
 	this->button = swkbdInputText(&this->keyboard, this->text, sizeof(this->text));
 }
@@ -27,7 +29,7 @@ static SwkbdCallbackResult Close(void * user, const char ** ppMessage, const cha
 	return SWKBD_CALLBACK_OK;
 }
 
-char * SoftwareKeyboard::GetText()
+char * SwKbd::GetText()
 {
 	return this->text;
 }

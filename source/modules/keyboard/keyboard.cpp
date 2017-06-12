@@ -1,5 +1,5 @@
 #include "common/runtime.h"
-#include "softwarekeyboard.h"
+#include "swkbd.h"
 #include "keyboard.h"
 
 using love::Keyboard;
@@ -16,7 +16,7 @@ char BUTTONS[32][32] = {
 };
 
 bool Keyboard::TEXT_INPUT = false;
-love::SoftwareKeyboard * love::Keyboard::keyboard;
+love::SwKbd * love::Keyboard::keyboard;
 
 int Keyboard::IsDown(lua_State * L)
 {
@@ -47,7 +47,7 @@ int Keyboard::SetTextInput(lua_State * L)
 	
 	if (TEXT_INPUT)
 	{
-		keyboard = new love::SoftwareKeyboard();
+		keyboard = new love::SwKbd();
 	}
 	else
 	{

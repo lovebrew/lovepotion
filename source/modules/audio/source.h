@@ -9,7 +9,7 @@ namespace love
 		public:
 			char * Init(const char * path, const char * type);
 			void Play();
-			long FillBuffer(void * audio);
+			long FillBuffer(void * audio, bool first);
 			char * Decode();
 			int GetOpenChannel();
 			void Update();

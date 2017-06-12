@@ -2,10 +2,10 @@
 
 namespace love
 {
-	class SoftwareKeyboard
+	class SwKbd
 	{
 		public:
-			SoftwareKeyboard();
+			SwKbd();
 			char * GetText();
 
 		private:

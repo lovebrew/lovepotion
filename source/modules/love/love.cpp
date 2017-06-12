@@ -11,6 +11,7 @@ extern int keyboardInit(lua_State * L);
 
 extern int initSourceClass(lua_State * L);
 extern int initFileClass(lua_State * L);
+extern int initImageClass(lua_State * L);
 
 struct { char *name; int (*fn)(lua_State *L); } modules[] = 
 {
@@ -48,69 +49,86 @@ int loveScan(lua_State * L)
 
 	hidTouchRead(&touch);
 
-	const char * field = nullptr;
-	int args = -1;
-	int key = -1;
-
 	for (int i = 0; i < 32; i++)
 	{
 		if (keyDown & BIT(i))
 		{	
 			if (strcmp(BUTTONS[i], "touch") != 0)
 			{
-				field = "keypressed";
-				args = 1;
-				key = i;
-			}
-			else
-			{
-				field = "mousepressed";
-				args = 3;
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "keypressed");
+				lua_remove(L, -2);
 
-				lastTouch[0] = touch.px;
-				lastTouch[1] = touch.px;
+				if (!lua_isnil(L, -1))
+				{
+					lua_pushstring(L, BUTTONS[i]);
+					lua_call(L, 1, 0);
+				}
 			}
-			break;
-		}
-		else if (keyUp & BIT(i))
-		{
-			if (strcmp(BUTTONS[i], "touch") != 0)
-			{
-				field = "keyreleased";
-				args = 1;
-				key = i;
-			}
-			else
-			{
-				field = "mousereleased";
-				args = 3;
-				
-			}
-			break;
 		}
 	}
 
-	if (field == nullptr)
-		return 0;
-
-	lua_getfield(L, LUA_GLOBALSINDEX, "love");
-	lua_getfield(L, -1, field);
-	lua_remove(L, -2);
-
-	if (!lua_isnil(L, -1))
+	for (int i = 0; i < 32; i++)
 	{
-		if (args == 1)
-		{
-			lua_pushstring(L, BUTTONS[key]);
+		if (keyUp & BIT(i))
+		{	
+			if (strcmp(BUTTONS[i], "touch") != 0)
+			{
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "keyreleased");
+				lua_remove(L, -2);
+
+				if (!lua_isnil(L, -1))
+				{
+					lua_pushstring(L, BUTTONS[i]);
+					lua_call(L, 1, 0);
+				}
+			}
 		}
-		else if (args == 3)
-		{
-			lua_pushinteger(L, lastTouch[0]);
-			lua_pushinteger(L, lastTouch[1]);
-			lua_pushinteger(L, 1);
+	}
+
+	for (int i = 0; i < 32; i++)
+	{
+		if (keyDown & BIT(20))
+		{	
+			lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			lua_getfield(L, -1, "mousepressed");
+			lua_remove(L, -2);
+
+			lastTouch[0] = touch.px;
+			lastTouch[1] = touch.px;
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushinteger(L, lastTouch[0]);
+				lua_pushinteger(L, lastTouch[1]);
+				lua_pushinteger(L, 1);
+
+				lua_call(L, 3, 0);
+			}
 		}
-			
-		lua_call(L, args, 0);
+	}
+
+	for (int i = 0; i < 32; i++)
+	{
+		if (keyUp & BIT(20))
+		{	
+			lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			lua_getfield(L, -1, "mousereleased");
+			lua_remove(L, -2);
+
+			lastTouch[0] = touch.px;
+			lastTouch[1] = touch.px;
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushinteger(L, lastTouch[0]);
+				lua_pushinteger(L, lastTouch[1]);
+				lua_pushinteger(L, 1);
+
+				lua_call(L, 3, 0);
+			}
+		}
 	}
 
 	return 0;
@@ -121,6 +139,7 @@ int loveInit(lua_State * L)
 	int (*classes[])(lua_State *L) = {
 		initSourceClass,
 		initFileClass,
+		initImageClass,
 		NULL,
 	};
 
@@ -141,10 +160,6 @@ int loveInit(lua_State * L)
 	{
 		modules[i].fn(L);
 		lua_setfield(L, -2, modules[i].name);
-
-		debug += "Loaded module love.";
-		debug += modules[i].name;
-		debug += "!\n";
 	}
 
 	return 1;

@@ -66,7 +66,7 @@ char * Source::Decode()
 
 		this->data = (char *)linearAlloc(this->size);
 		
-		this->FillBuffer(this->data);
+		this->FillBuffer(this->data, true);
 
 		ov_clear(&this->vorbisFile);
 
@@ -74,22 +74,22 @@ char * Source::Decode()
 	}
 	else
 	{
-		this->chunkSamples = round(this->rate / 15); //round(0.1 * this->rate);
+		this->chunkSamples = round(this->rate * 0.1); //round(0.1 * this->rate);
 		this->size = this->chunkSamples * this->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
 
 		if (linearSpaceFree() < this->size)
 			return "not enough linear memory available";
 
-		this->data = (char *)linearAlloc(this->size);
+		this->data = (char *)linearAlloc(this->size * 2);
 
-		long ret = this->FillBuffer(this->data);
+		long ret = this->FillBuffer(this->data, true);
 
 		memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
 
 		this->waveBuffer[0].data_vaddr = &this->data[0];
 		this->waveBuffer[0].nsamples = this->chunkSamples;
 
-		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples * 2];
+		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples];
 		this->waveBuffer[1].nsamples = this->chunkSamples;
 
 		streams[this->audiochannel] = this;
@@ -115,10 +115,8 @@ void Source::Update()
 {
 	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
 	{
-		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
-
-		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
-		
+		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr, false);
+			
 		this->fillBuffer = !this->fillBuffer;
 	}
 
@@ -167,7 +165,7 @@ void Source::Play()
 	
 }
  
-long Source::FillBuffer(void * audio)
+long Source::FillBuffer(void * audio, bool first)
 {
 	if (feof(this->fileHandle))
 		return -1;
@@ -186,7 +184,7 @@ long Source::FillBuffer(void * audio)
 		if (this->stream)
 			readSize = this->chunkSamples * 2;
 
-		ret = ov_read(&this->vorbisFile, &destination[offset], readSize, &currentSection);
+		ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), &currentSection);
 
 		if (ret == 0)
 		{
@@ -204,13 +202,18 @@ long Source::FillBuffer(void * audio)
 		{
 			offset += ret;
 
-			if (this->stream && offset >= this->size)
-				eof = 1;
+			if (this->stream && offset >= this->size * 2)
+				break;
 		}
 	}
 
 	if (this->stream)
+	{
 		DSP_FlushDataCache((u32 *)audio, ret);
-	
+
+		if (!first)
+			ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
+	}
+
 	return 0;
 }

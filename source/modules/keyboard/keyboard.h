@@ -22,6 +22,6 @@ namespace love
 		private:
 			Keyboard();
 			static bool TEXT_INPUT;
-			static love::SoftwareKeyboard * keyboard;
+			static love::SwKbd * keyboard;
 	};
 }

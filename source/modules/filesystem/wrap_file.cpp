@@ -105,7 +105,7 @@ int fileClose(lua_State * L)
 	return 0;
 }
 
-static int fileGC(lua_State * L)
+int fileGC(lua_State * L)
 {
 	return 0;
 }

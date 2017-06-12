@@ -20,6 +20,12 @@ std::string debug;
 #include "common/version.h"
 #include "modules/love/love.h"
 
+#include "modules/audio/source.h"
+love::Source * streams[24];
+
+#include "modules/graphics/crendertarget.h"
+#include "modules/graphics/graphics.h"
+
 bool LUA_ERROR = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
@@ -30,9 +36,6 @@ bool runThreads = true;
 #include "boot_lua.h"
 
 #define luaL_dobuffer(L, b, n, s) (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
-
-#include "modules/audio/source.h"
-love::Source * streams[24];
 
 #include "common/console.h"
 
@@ -73,7 +76,7 @@ int main(int argc, char ** argv)
 		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
 
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
-	printf("romfs: %d, %d\n", FUSED, romfs);
+
 	printf(debug.c_str());
 	printf("\n");
 
@@ -84,6 +87,9 @@ int main(int argc, char ** argv)
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
 	
+	luaL_dostring(L, "if love.load then love.load() end");
+
+	//fix delta time bug
 	if (luaL_dostring(L, "love.timer.step()"))
 		console->ThrowError(L);
 	
@@ -91,12 +97,24 @@ int main(int argc, char ** argv)
 	{
 		if (!LUA_ERROR)
 		{
+			gspWaitForVBlank();
+			//C3D_SyncFrame();
+
+			C3D_FrameBegin(0); //SYNC_DRAW
+			if (love::Graphics::Instance()->GetScreen() == GFX_BOTTOM) 
+			{
+				C3D_FrameDrawOn(love::Graphics::Instance()->GetRenderTarget(2));
+				
+				luaL_dostring(L, "if love.draw then love.draw() end");
+			}
+			C3D_FrameEnd(0);
+
+			loveScan(L);
+
 			if (luaL_dostring(L, "love.timer.step()"))
 				console->ThrowError(L);
 			
-			loveScan(L);
-			
-			for (int i = 0; i < 24; i++)
+			for (int i = 0; i <= 23; i++)
 				if (streams[i])
 					streams[i]->Update();
 
@@ -107,6 +125,9 @@ int main(int argc, char ** argv)
 				luaL_dostring(L, "love.keyboard.setTextInput(false)");
 				CLOSE_KEYBOARD =  false;
 			}
+
+			gfxFlushBuffers();
+			gfxSwapBuffers();
 		}
 		else
 		{
@@ -123,7 +144,7 @@ int main(int argc, char ** argv)
 	}
 
 	luaL_dostring(L, "love.audio.stop()");
-	
+
 	lua_close(L);
 
 	ptmuExit();

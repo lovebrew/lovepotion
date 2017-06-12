@@ -22,9 +22,6 @@
 
 -- This is a bit messy
 -- But it means we can move stuff out of main.c
-
-print('LovePotion 1.0.9 BETA (LOVE for 3DS)\n')
-
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 

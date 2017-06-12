@@ -15,16 +15,19 @@ namespace love
 				return instance;
 			}
 
-			int NewImage(lua_State * L);
 			static int GetWidth(lua_State * L);
 			static int GetHeight(lua_State * L);
 			static int SetScreen(lua_State * L);
 			static int Present(lua_State * L);
-			
+
+			gfxScreen_t GetScreen();
+			C3D_RenderTarget * GetRenderTarget(unsigned int i);
+			void InitRenderTargets();
 
 		private:
 			Graphics();
 			static gfxScreen_t currentScreen;
+			static love::CRenderTarget * bottomTarget;
 
 	};
 }
