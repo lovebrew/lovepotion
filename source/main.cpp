@@ -97,18 +97,6 @@ int main(int argc, char ** argv)
 	{
 		if (!LUA_ERROR)
 		{
-			gspWaitForVBlank();
-			//C3D_SyncFrame();
-
-			C3D_FrameBegin(0); //SYNC_DRAW
-			if (love::Graphics::Instance()->GetScreen() == GFX_BOTTOM) 
-			{
-				C3D_FrameDrawOn(love::Graphics::Instance()->GetRenderTarget(2));
-				
-				luaL_dostring(L, "if love.draw then love.draw() end");
-			}
-			C3D_FrameEnd(0);
-
 			loveScan(L);
 
 			if (luaL_dostring(L, "love.timer.step()"))
@@ -126,8 +114,11 @@ int main(int argc, char ** argv)
 				CLOSE_KEYBOARD =  false;
 			}
 
-			gfxFlushBuffers();
-			gfxSwapBuffers();
+			love::Graphics::Instance()->Render(GFX_BOTTOM);
+				
+			luaL_dostring(L, "if love.draw then love.draw() end");
+
+			love::Graphics::Instance()->SwapBuffers();
 		}
 		else
 		{

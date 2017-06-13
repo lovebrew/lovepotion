@@ -1,34 +1,44 @@
-; Uniforms
-.fvec projection[4]
-
-; Constants
-.constf myconst(0.0, 1.0, -1.0, 0.1)
-.constf myconst2(0.3, 0.0, 0.0, 0.0)
-.alias  zeros myconst.xxxx ; Vector full of zeros
-.alias  ones  myconst.yyyy ; Vector full of ones
-
 ; Outputs
 .out outpos position
 .out outtc0 texcoord0
+.out outclr color
 
-; Inputs (defined as aliases for convenience)
+; Inputs
 .alias inpos v0
-.alias intex v1
+.alias inarg v1
 
-.bool test
+; Uniforms
+.fvec projection[4]
+.fvec transform
+.bool useTransform
+
+; Constants
+.constf RGBA8_TO_FLOAT4(0.00392156862, 0, 0, 0)
 
 .proc main
-    ; Force the w component of inpos to be 1.0
-    mov r0.xyz, inpos
-    mov r0.w,   ones
+	ifu useTransform
+		; outpos = projection * transform * in.pos
+		dp4 r15.x, transform[0], inpos
+		dp4 r15.y, transform[1], inpos
+		dp4 r15.z, transform[2], inpos
+		dp4 r15.w, transform[3], inpos
+		dp4 outpos.x, projection[0], r15
+		dp4 outpos.y, projection[1], r15
+		dp4 outpos.z, projection[2], r15
+		dp4 outpos.w, projection[3], r15
+	.else
+		; outpos = projection * in.pos
+		dp4 outpos.x, projection[0], inpos
+		dp4 outpos.y, projection[1], inpos
+		dp4 outpos.z, projection[2], inpos
+		dp4 outpos.w, projection[3], inpos
+	.end
 
-    ; outpos = projectionMatrix * inpos
-    dp4 outpos.x, projection[0], r0
-    dp4 outpos.y, projection[1], r0
-    dp4 outpos.z, projection[2], r0
-    dp4 outpos.w, projection[3], r0
+	; outtc0 = in.texcoord
+	mov outtc0, inarg
 
-    mov outtc0, intex
+	; outclr = RGBA8_TO_FLOAT4(in.color)
+	mul outclr, RGBA8_TO_FLOAT4.xxxx, inarg
 
-    end
+	end
 .end
