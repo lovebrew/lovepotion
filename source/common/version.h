@@ -16,3 +16,4 @@ namespace love
 
 extern bool LUA_ERROR;
 extern bool AUDIO_ENABLED;
+extern bool LOVE_QUIT;

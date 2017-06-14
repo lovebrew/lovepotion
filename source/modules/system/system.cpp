@@ -7,7 +7,7 @@ using love::System;
 
 int System::GetOS(lua_State * L)
 {
-	lua_pushstring(L, "3ds");
+	lua_pushstring(L, "Horizon");
 
 	return 1;
 }
@@ -192,8 +192,24 @@ int System::GetLinearMemory(lua_State * L)
 	return 1;
 }
 
+void systemExit()
+{
+	ptmuExit();
+	cfguExit();
+	acExit();
+	
+	FILE * file = fopen("delet this", "w");
+	fwrite("closed!", strlen("closed!"), 1, file);
+	fflush(file);
+	fclose(file);
+}
+
 int systemInit(lua_State * L)
 {
+	cfguInit();
+	ptmuInit();
+	acInit();
+
 	luaL_Reg reg[] = 
 	{
 		{ "getLanguage",		love::System::GetSystemLanguage },

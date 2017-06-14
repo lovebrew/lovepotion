@@ -4,6 +4,7 @@
 float love::Timer::dt = 0;
 int love::Timer::lastTick = 0;
 int love::Timer::currentTick = 0;
+int love::Timer::fps = 0;
 
 using love::Timer;
 
@@ -18,7 +19,7 @@ int Timer::GetTime(lua_State * L)
 
 int Timer::GetFPS(lua_State * L)
 {
-	lua_pushnil(L);
+	lua_pushnumber(L, fps);
 
 	return 1;
 }
@@ -44,6 +45,17 @@ int Timer::GetDelta(lua_State * L)
 	lua_pushnumber(L, dt);
 
 	return 1;
+}
+
+void Timer::Tick()
+{
+	frames++;
+	u64 delta = osGetTime() - lastCountTime;
+	if (dt >= 1000) {
+		delta = frames/(delta/1000.0f);
+		frames = 0;
+		lastCountTime = osGetTime();
+	}
 }
 
 int timerInit(lua_State * L)

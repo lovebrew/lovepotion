@@ -18,6 +18,7 @@ namespace love
 			static int GetDelta(lua_State * L);
 			static int GetFPS(lua_State * L);
 			static int Step(lua_State * L);
+			void Tick();
 
 		private:
 			Timer();
@@ -25,7 +26,9 @@ namespace love
 			static float dt;
 			static int lastTick;
 			static int currentTick;
-			
-			static int frames;
+
+			static int fps;
+			u64 lastCountTime;
+			int frames;
 	};
 }

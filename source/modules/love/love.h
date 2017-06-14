@@ -17,3 +17,8 @@ int loveScan(lua_State * L);
 	@brief initializes LOVE, its modules, and their classes
 */
 int loveInit(lua_State * L);
+
+/*
+	@brief closes LOVE's modules (and services they use)
+*/
+void loveClose(lua_State * L);

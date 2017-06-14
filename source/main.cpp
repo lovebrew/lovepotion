@@ -27,6 +27,7 @@ love::Source * streams[24];
 #include "modules/graphics/graphics.h"
 
 bool LUA_ERROR = false;
+bool LOVE_QUIT = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
 bool runThreads = true;
@@ -45,9 +46,6 @@ int main(int argc, char ** argv)
 
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", loveInit, 1);
-
-	cfguInit();
-	ptmuInit();
 
 	AUDIO_ENABLED = !ndspInit();
 
@@ -70,7 +68,7 @@ int main(int argc, char ** argv)
 	
 
 	love::Console * console;
-	console->Enable();
+	//console->Enable();
 
 	if (!AUDIO_ENABLED)
 		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
@@ -95,6 +93,9 @@ int main(int argc, char ** argv)
 	
 	while (aptMainLoop())
 	{
+		if (LOVE_QUIT)
+			break;
+
 		if (!LUA_ERROR)
 		{
 			loveScan(L);
@@ -113,7 +114,12 @@ int main(int argc, char ** argv)
 				luaL_dostring(L, "love.keyboard.setTextInput(false)");
 				CLOSE_KEYBOARD =  false;
 			}
+			love::Graphics::Instance()->Render(GFX_TOP);
 
+			luaL_dostring(L, "if love.draw then love.draw() end");
+
+			love::Graphics::Instance()->SwapBuffers();
+			
 			love::Graphics::Instance()->Render(GFX_BOTTOM);
 				
 			luaL_dostring(L, "if love.draw then love.draw() end");
@@ -136,10 +142,9 @@ int main(int argc, char ** argv)
 
 	luaL_dostring(L, "love.audio.stop()");
 
-	lua_close(L);
+	printf("\nExiting..\n");
+	loveClose(L);
 
-	ptmuExit();
-	cfguExit();
 	C3D_Fini();
 	gfxExit();
 	

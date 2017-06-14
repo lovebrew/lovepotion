@@ -19,19 +19,30 @@ namespace love
 			static int GetHeight(lua_State * L);
 			static int SetScreen(lua_State * L);
 			static int Present(lua_State * L);
+
 			static int Line(lua_State * L);
+			static int Rectangle(lua_State * L);
+			static int Circle(lua_State * L);
+			static int Points(lua_State * L);
+
+			static int SetColor(lua_State * L);
+			static int SetBackgroundColor(lua_State * L);
 
 			void Render(gfxScreen_t screen);
 			void SwapBuffers();
 
 			gfxScreen_t GetScreen();
-			CRenderTarget * GetRenderTarget(unsigned int i);
+			love::CRenderTarget * GetRenderTarget(unsigned int i);
 			void InitRenderTargets();
 
 		private:
 			Graphics();
 			static gfxScreen_t currentScreen;
-			static love::CRenderTarget * bottomTarget;
-			static int render;
+			static gfxScreen_t renderScreen;
+
+			static u32 backgroundColor;
+
+			love::CRenderTarget * bottomTarget = nullptr;
+			love::CRenderTarget * topTarget = nullptr;
 	};
 }

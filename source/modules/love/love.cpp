@@ -9,18 +9,20 @@ extern int timerInit(lua_State * L);
 extern int audioInit(lua_State * L);
 extern int keyboardInit(lua_State * L);
 
+extern void systemExit();
+
 extern int initSourceClass(lua_State * L);
 extern int initFileClass(lua_State * L);
 extern int initImageClass(lua_State * L);
 
-struct { char *name; int (*fn)(lua_State *L); } modules[] = 
+struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-	{"graphics",	graphicsInit	},
-	{"filesystem",	filesystemInit	},
-	{"system",		systemInit		},
-	{"timer",		timerInit		},
-	{"audio",		audioInit		},
-	{"keyboard",	keyboardInit	},
+	{"graphics",	graphicsInit,	NULL		},
+	{"filesystem",	filesystemInit,	NULL		},
+	{"system",		systemInit,		systemExit	},
+	{"timer",		timerInit,		NULL		},
+	{"audio",		audioInit,		NULL		},
+	{"keyboard",	keyboardInit,	NULL,		},
 	{0}
 };
 
@@ -32,6 +34,11 @@ int loveGetVersion(lua_State * L)
 	lua_pushstring(L, love::CODENAME);
 
 	return 4;
+}
+
+int loveQuit(lua_State * L)
+{
+	LOVE_QUIT = true;
 }
 
 int lastTouch[2];
@@ -150,7 +157,8 @@ int loveInit(lua_State * L)
 
 	luaL_Reg reg[] = 
 	{
-		{ "getVersion",	loveGetVersion },
+		{ "getVersion",	loveGetVersion	},
+		{ "quit",		loveQuit		},
 		{ 0, 0 },
 	};
 
@@ -163,4 +171,12 @@ int loveInit(lua_State * L)
 	}
 
 	return 1;
+}
+
+void loveClose(lua_State * L)
+{
+	for (int i = 0; modules[i].close; i++)
+		modules[i].close();
+
+	lua_close(L);
 }
