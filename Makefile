@@ -27,6 +27,8 @@ include $(DEVKITARM)/3ds_rules
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
 
+VERSION		:= 1.0.9
+
 TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 SOURCES		:=	\
@@ -41,8 +43,9 @@ SOURCES		:=	\
 				source/modules/keyboard \
 				source/modules/font \
 				source/libs/lua \
-				source/libs/tremor \
-				source/libs/luaobj
+				source/libs/luaobj \
+				source/libs/lodepng \
+				source/libs/tremor
 DATA		:=	source/scripts
 INCLUDES	:=	$(SOURCES)
 
@@ -85,7 +88,7 @@ UNAME := $(shell uname)
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(CTRULIB) $(PORTLIBS) $(CURDIR)/source/libs/tremor
+LIBDIRS	:= $(CTRULIB) $(PORTLIBS)
 
 #---------------------------------------------------------------------------------
 # load game folder into romfs if it exists

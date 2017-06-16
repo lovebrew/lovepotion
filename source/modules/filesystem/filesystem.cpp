@@ -63,8 +63,6 @@ int Filesystem::IsFile(lua_State * L)
 
 	stat(path, &pathInfo);
 
-	printf("%s", path);
-
 	lua_pushboolean(L, S_ISREG(pathInfo.st_mode));
 
 	return 1;

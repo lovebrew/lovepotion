@@ -13,12 +13,12 @@ Console::Console()
 	this->hasPrinted = false;
 }
 
-void Console::Enable()
+void Console::Enable(gfxScreen_t screen)
 {
 	if (!this->IsEnabled())
 		love::CONSOLE_ENABLED = true;
 
-	consoleInit(GFX_TOP, NULL);
+	consoleInit(screen, NULL);
 }
 
 bool Console::IsEnabled()

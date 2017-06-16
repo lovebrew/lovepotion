@@ -7,7 +7,7 @@ namespace love
 		public:
 			Console();
 			bool IsEnabled();
-			void Enable();
+			void Enable(gfxScreen_t screen);
 			
 			void ThrowError(lua_State * L);
 			void ThrowError(const char * message);

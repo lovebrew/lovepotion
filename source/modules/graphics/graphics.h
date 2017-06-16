@@ -24,6 +24,7 @@ namespace love
 			static int Rectangle(lua_State * L);
 			static int Circle(lua_State * L);
 			static int Points(lua_State * L);
+			static int Draw(lua_State * L);
 
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);
@@ -41,6 +42,8 @@ namespace love
 			static gfxScreen_t renderScreen;
 
 			static u32 backgroundColor;
+
+			int inRender = 0;
 
 			love::CRenderTarget * bottomTarget = nullptr;
 			love::CRenderTarget * topTarget = nullptr;

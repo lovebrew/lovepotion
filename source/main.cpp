@@ -66,9 +66,8 @@ int main(int argc, char ** argv)
 		chdir(cwd);
 	}
 	
-
 	love::Console * console;
-	//console->Enable();
+	console->Enable(GFX_BOTTOM);
 
 	if (!AUDIO_ENABLED)
 		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
@@ -114,6 +113,7 @@ int main(int argc, char ** argv)
 				luaL_dostring(L, "love.keyboard.setTextInput(false)");
 				CLOSE_KEYBOARD =  false;
 			}
+			printf("apt\n");
 			love::Graphics::Instance()->Render(GFX_TOP);
 
 			luaL_dostring(L, "if love.draw then love.draw() end");

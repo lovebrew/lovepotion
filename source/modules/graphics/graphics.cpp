@@ -1,8 +1,10 @@
 #include "common/runtime.h"
 #include "crendertarget.h"
 
-#include "wrap_image.h"
 #include "graphics.h"
+#include "image.h"
+
+#include "wrap_image.h"
 #include "wrap_graphics.h"
 
 #include "basic_shader_shbin.h"
@@ -11,6 +13,7 @@ love::Graphics * love::Graphics::instance = 0;
 
 using love::Graphics;
 using love::CRenderTarget;
+using love::Image;
 
 int projection_desc = -1;
 
@@ -21,6 +24,7 @@ gfxScreen_t Graphics::currentScreen = GFX_TOP;
 gfxScreen_t Graphics::renderScreen = GFX_TOP;
 
 u32 Graphics::backgroundColor = 0x000000FF; //0xRRGGBBAA
+
 
 Graphics::Graphics() {}
 
@@ -117,31 +121,87 @@ int Graphics::Circle(lua_State * L)
 	if (currentScreen == renderScreen)
 		graphicsCircle(x, y, radius, segments);
 
+	return 0;
+}
+
+int Graphics::Draw(lua_State * L)
+{
+	printf("Calling draw!\n");
+	love::Image * self = (love::Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+
+	printf("Checking coordinates..\n");
+	float x = luaL_optnumber(L, 1, 0);
+	float y = luaL_optnumber(L, 2, 0);
+
+	printf("Drawing at %d, %d", x, y);
+	if (currentScreen == renderScreen)
+		graphicsDraw(self->GetTexture(), x, y, self->GetWidth(), self->GetHeight());
+
+	return 0;
 }
 
 int Graphics::Points(lua_State * L)
 {
 	int args = lua_gettop(L);
 
-	if (args == 1)
+	bool tableOfTables = false;
+
+	if (args == 1 && lua_istable(L, 1))
 	{
 		args = lua_objlen(L, 1);
 
-		if (args % 2 != 0)
-			luaL_error(L, "Points must be a multiple of two");
+		lua_rawgeti(L, 1, 1);
+		tableOfTables = lua_istable(L, -1);
+		lua_pop(L, 1);
 	}
 
+	if (args % 2 != 0 && !tableOfTables)
+		luaL_error(L, "Points must be a multiple of two");
+
+	int points = args / 2;
+	if (tableOfTables)
+		points = args;
+
+	float * coordinates = new float[points * 2];
 	if (lua_istable(L, 1))
 	{
-		for (int i = 1; i <= args / 2; i++)
-			lua_rawgeti(L, 1, i);
-		
-		float x = luaL_checknumber(L, -2);
-		float y = luaL_checknumber(L, -1);
+		if (!tableOfTables)
+		{
+			for (int i = 0; i < args; i++)
+			{
+				lua_rawgeti(L, 1, i + 1);
 
-		if (currentScreen == renderScreen)
-			graphicsPoints(x, y);
+				coordinates[i] = luaL_checknumber(L, -1);
+			
+				lua_pop(L, 1);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < args; i++)
+			{
+				lua_rawgeti(L, 1, i + 1);
+
+				for (int j = 1; j <= 2; j++)
+					lua_rawgeti(L, -j, j);
+
+				coordinates[i * 2 + 0] = luaL_checknumber(L, -2);
+				coordinates[i * 2 + 1] = luaL_checknumber(L, -1);
+
+				lua_pop(L, 3);
+			}
+		}
 	}
+
+	for (int i = 0; i < args; i++)
+	{
+		if (currentScreen == renderScreen)
+			graphicsPoints(coordinates[i * 2 + 0], coordinates[i * 2 + 1]);
+	}
+
+	delete[] coordinates;
+
+	return 0;
 }
 
 gfxScreen_t Graphics::GetScreen()
@@ -162,7 +222,7 @@ CRenderTarget * Graphics::GetRenderTarget(unsigned int i)
 			ret = this->bottomTarget;
 			break;
 		default:
-			ret = nullptr;
+			ret = this->topTarget;
 			break;
 	}
 
@@ -197,7 +257,7 @@ void Graphics::Render(gfxScreen_t screen)
 
 	if (ctarget == nullptr)
 		return;
-	
+
 	resetPool();
 	ctarget->Clear(backgroundColor);
 	
@@ -225,15 +285,16 @@ int graphicsInit(lua_State * L)
 	
 	luaL_Reg reg[] = 
 	{
+		{ "newImage",	imageNew					},
 		{ "line",		love::Graphics::Line		},
 		{ "rectangle",	love::Graphics::Rectangle	},
 		{ "circle",		love::Graphics::Circle		},
 		{ "points",		love::Graphics::Points		},
+		{ "draw",		love::Graphics::Draw		},
 		{ "getWidth",	love::Graphics::GetWidth	},
 		{ "getHeight",	love::Graphics::GetHeight	},
 		{ "setScreen",	love::Graphics::SetScreen	},
 		{ "setColor",	love::Graphics::SetColor	},
-		{ "newImage",	imageNew					},
 		{ 0, 0 },
 	};
 

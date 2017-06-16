@@ -1,4 +1,5 @@
-// Lua
+#pragma once
+
 extern "C" {
 	#include <lua.h>
 	#include <lualib.h>
@@ -11,8 +12,11 @@ extern "C" {
 #include <3ds.h>
 #include <citro3d.h>
 
+#include <lodepng.h>
+
 #include <ivorbiscodec.h>
 #include <ivorbisfile.h>
+
 
 #include <stdlib.h>
 #include <string>
