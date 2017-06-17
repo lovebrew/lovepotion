@@ -80,7 +80,7 @@ char * Source::Decode()
 		if (linearSpaceFree() < this->size)
 			return "not enough linear memory available";
 
-		this->data = (char *)linearAlloc(this->size * 2);
+		this->data = (char *)linearAlloc(this->size);
 
 		long ret = this->FillBuffer(this->data, true);
 
@@ -89,7 +89,7 @@ char * Source::Decode()
 		this->waveBuffer[0].data_vaddr = &this->data[0];
 		this->waveBuffer[0].nsamples = this->chunkSamples;
 
-		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples];
+		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples * 2];
 		this->waveBuffer[1].nsamples = this->chunkSamples;
 
 		streams[this->audiochannel] = this;
@@ -116,7 +116,9 @@ void Source::Update()
 	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
 	{
 		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr, false);
-			
+		
+		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
+		
 		this->fillBuffer = !this->fillBuffer;
 	}
 
@@ -168,7 +170,10 @@ void Source::Play()
 long Source::FillBuffer(void * audio, bool first)
 {
 	if (feof(this->fileHandle))
+	{
+		printf("eof!\n");
 		return -1;
+	}
 	
 	int eof = 0;
 	int offset = 0;
@@ -180,11 +185,11 @@ long Source::FillBuffer(void * audio, bool first)
 
 	while (!eof)
 	{
-		int readSize = fmin(this->size - offset, 4096);
-		if (this->stream)
-			readSize = this->chunkSamples * 2;
+		//int readSize = fmin(this->size - offset, 4096);
+		//if (this->stream)
+		//	readSize = this->chunkSamples * 2;
 
-		ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), &currentSection);
+		ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), &this->currentSection);
 
 		if (ret == 0)
 		{
@@ -202,18 +207,13 @@ long Source::FillBuffer(void * audio, bool first)
 		{
 			offset += ret;
 
-			if (this->stream && offset >= this->size * 2)
+			if (this->stream && offset >= this->size)
 				break;
 		}
 	}
 
 	if (this->stream)
-	{
 		DSP_FlushDataCache((u32 *)audio, ret);
-
-		if (!first)
-			ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
-	}
 
 	return 0;
 }

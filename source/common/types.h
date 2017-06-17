@@ -25,7 +25,6 @@ typedef struct
 typedef struct
 {
 	vertex3 position;
-	u32 color;
 	vertex2 quad;
 } texturePositions;
 

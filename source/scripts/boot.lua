@@ -25,8 +25,8 @@
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
-_defaultFont_ = love.graphics.newFont()
-love.graphics.setFont(_defaultFont_)
+--_defaultFont_ = love.graphics.newFont()
+--love.graphics.setFont(_defaultFont_)
 
 --SET THE GAME'S IDENTITY: REQUIRED FOR SAVE DATA
 love.filesystem.setIdentity("SuperGame")

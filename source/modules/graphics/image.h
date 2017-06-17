@@ -7,6 +7,8 @@ namespace love
 		public:
 			char * Init(const char * path);
 			void Decode();
+			void LoadTexture(void * data, int width, int height);
+
 			C3D_Tex * GetTexture();
 			int GetWidth();
 			int GetHeight();

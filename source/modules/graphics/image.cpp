@@ -12,6 +12,8 @@ char * Image::Init(const char * path)
 	this->texture = new C3D_Tex();
 
 	this->Decode();
+
+	return nullptr;
 }
 
 void Image::Decode()
@@ -30,17 +32,16 @@ void Image::Decode()
 	this->width = this->NextPow2(textureWidth);
 	this->height = this->NextPow2(textureHeight);
 
-	u32 * gpuBuffer = (u32 *)linearAlloc(this->width * this->height * 4);
+	u8 * gpuBuffer = (u8 *)linearAlloc(this->width * this->height * 4);
 
-	printf("%s %dx%d -> %dx%d\n", this->path, textureWidth, textureHeight, this->width, this->height);
 	if (isPremultiplied)
 	{
 		u32 * src = (u32 *)buffer;
 		u32 * dst = (u32 *)gpuBuffer;
 
-		for (int y = 0; y < textureHeight; y++)
+		for (unsigned y = 0; y < textureHeight; y++)
 		{
-			for (int x = 0; x < textureWidth; x++)
+			for (unsigned x = 0; x < textureWidth; x++)
 			{
 				u32 clr = *src;
 				*dst = __builtin_bswap32(clr);
@@ -56,9 +57,9 @@ void Image::Decode()
 		u8 * src = (u8 *)buffer;
 		u8 * dst = (u8 *)gpuBuffer;
 
-		for (int y = 0; y < textureHeight; y++)
+		for (unsigned y = 0; y < textureHeight; y++)
 		{
-			for (int x = 0; x < textureWidth; x++)
+			for (unsigned x = 0; x < textureWidth; x++)
 			{
 				u8 r = *src++;
 				u8 g = *src++;
@@ -76,11 +77,19 @@ void Image::Decode()
 		}
 	}
 
-	GSPGPU_FlushDataCache(gpuBuffer, this->width * this->height * 4);
+	this->LoadTexture(gpuBuffer, this->width, this->height);
+
+	free(buffer);
+	linearFree(gpuBuffer);
+}
+
+void Image::LoadTexture(void * data, int width, int height)
+{
+	GSPGPU_FlushDataCache(data, this->width * this->height * 4);
 
 	C3D_TexInit(this->texture, this->width, this->height, GPU_RGBA8);
 
-	C3D_SafeDisplayTransfer((u32 *)gpuBuffer, GX_BUFFER_DIM(this->width, this->height), (u32*)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
+	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(this->width, this->height), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
 
 	gspWaitForPPF();
 
@@ -88,12 +97,7 @@ void Image::Decode()
 
 	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 
-	printf("Loaded %s\n", this->path);
-
-	//free(buffer);
-	//linearFree(gpuBuffer);
-
-	printf("Free'd buffers\n");
+	printf("Loaded %s, %dx%d\n", this->path, this->width, this->height);
 }
 
 C3D_Tex * Image::GetTexture()

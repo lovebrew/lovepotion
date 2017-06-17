@@ -126,14 +126,12 @@ int Graphics::Circle(lua_State * L)
 
 int Graphics::Draw(lua_State * L)
 {
-	printf("Calling draw!\n");
-	love::Image * self = (love::Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	Image * self = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
-	printf("Checking coordinates..\n");
-	float x = luaL_optnumber(L, 1, 0);
-	float y = luaL_optnumber(L, 2, 0);
+	float x = luaL_optnumber(L, 2, 0);
+	float y = luaL_optnumber(L, 3, 0);
 
-	printf("Drawing at %d, %d", x, y);
+	printf("render at %f, %f\n", x, y);
 	if (currentScreen == renderScreen)
 		graphicsDraw(self->GetTexture(), x, y, self->GetWidth(), self->GetHeight());
 
@@ -253,20 +251,34 @@ void Graphics::InitRenderTargets()
 
 void Graphics::Render(gfxScreen_t screen)
 {
-	CRenderTarget * ctarget = GetRenderTarget(screen);
-
-	if (ctarget == nullptr)
-		return;
-
 	resetPool();
-	ctarget->Clear(backgroundColor);
 	
 	renderScreen = screen;
+	
+	C3D_FrameBegin(0); //SYNC_DRAW
 
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
+	switch(screen)
+	{
+		case GFX_TOP:
+			this->StartTarget(topTarget);
+			break;
+		case GFX_BOTTOM:
+			this->StartTarget(bottomTarget);
+			break;
+	}
+}
 
-	C3D_FrameDrawOn(ctarget->GetTarget());
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, ctarget->GetProjection());
+void Graphics::StartTarget(CRenderTarget * target)
+{
+	if (target->GetTarget() == nullptr)
+		return;
+
+	
+	target->Clear(backgroundColor);
+	
+	//C3D_FrameDrawOn(target->GetTarget());
+
+	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
 }
 
 void Graphics::SwapBuffers()

@@ -19,6 +19,12 @@ void Console::Enable(gfxScreen_t screen)
 		love::CONSOLE_ENABLED = true;
 
 	consoleInit(screen, NULL);
+	this->screen = screen;
+}
+
+gfxScreen_t Console::GetScreen()
+{
+	return this->screen;
 }
 
 bool Console::IsEnabled()

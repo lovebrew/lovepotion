@@ -31,6 +31,7 @@ namespace love
 
 			void Render(gfxScreen_t screen);
 			void SwapBuffers();
+			void StartTarget(love::CRenderTarget * target);
 
 			gfxScreen_t GetScreen();
 			love::CRenderTarget * GetRenderTarget(unsigned int i);

@@ -50,16 +50,13 @@ void generateVertecies(vertexPositions * vertecies)
 }
 
 void bindTexture(C3D_Tex * texture) {
-	printf("binding texture\n");
 	C3D_TexBind(0, texture); // 0 should be correct
 	
-	printf("setting up env\n");
 	C3D_TexEnv * env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
 	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
 	C3D_TexEnvColor(env, graphicsGetColor());
-	printf("done with env\n");
 }
 
 void generateTextureVertecies(texturePositions * vertecies)
@@ -67,7 +64,7 @@ void generateTextureVertecies(texturePositions * vertecies)
 	C3D_AttrInfo * attrInfo = C3D_GetAttrInfo();
 	AttrInfo_Init(attrInfo);
 	AttrInfo_AddLoader(attrInfo, 0, GPU_FLOAT, 3); // v0=position
-	AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2); // v1=quad
+	AttrInfo_AddLoader(attrInfo, 1, GPU_FLOAT, 2); // v2=quad
 
 	// Configure buffers
 	C3D_BufInfo * bufInfo = C3D_GetBufInfo();
@@ -173,7 +170,7 @@ void graphicsCircle(float x, float y, float radius, float segments)
 	C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, segments + 2);
 }
 
-void graphicsDraw(C3D_Tex * texture, float x, float y, float width, float height)
+void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 {
 	bindTexture(texture);
 
@@ -181,6 +178,8 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, float width, float height
 
 	if (!vertexList)
 		return;
+
+	printf("x: %f, y: %f, w: %d, h: %d\n", x, y, width, height);
 
 	vertexList[0].position = {x, 			y,			0.5f};
 	vertexList[1].position = {x + width,	y,			0.5f};
@@ -190,7 +189,7 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, float width, float height
 	float u = (float)width/(float)texture->width;
 	float v = (float)height/(float)texture->height;
 
-	printf("%dx%d", u, v);
+	printf("u: %f, v: %f\n", u, v);
 	vertexList[0].quad = {0.0f, 0.0f};
 	vertexList[1].quad = {u,	0.0f};
 	vertexList[2].quad = {0.0f, v};

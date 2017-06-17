@@ -33,6 +33,7 @@ namespace love
 
 			int streamOffset;
 			int chunkSamples;
+			int currentSection;
 
 			float mix[12];
 			ndspInterpType interp;

@@ -32,6 +32,7 @@ bool AUDIO_ENABLED = false;
 bool FUSED = false;
 bool runThreads = true;
 
+
 #include <unistd.h>
 
 #include "boot_lua.h"
@@ -65,17 +66,14 @@ int main(int argc, char ** argv)
 
 		chdir(cwd);
 	}
-	
-	love::Console * console;
+
+	love::Console * console = new love::Console();
 	console->Enable(GFX_BOTTOM);
 
 	if (!AUDIO_ENABLED)
 		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
 
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
-
-	printf(debug.c_str());
-	printf("\n");
 
 	osSetSpeedupEnable(true);
 
@@ -84,7 +82,8 @@ int main(int argc, char ** argv)
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
 	
-	luaL_dostring(L, "if love.load then love.load() end");
+	if(luaL_dostring(L, "if love.load then love.load() end"))
+		console->ThrowError(L);
 
 	//fix delta time bug
 	if (luaL_dostring(L, "love.timer.step()"))
@@ -106,23 +105,24 @@ int main(int argc, char ** argv)
 				if (streams[i])
 					streams[i]->Update();
 
-			luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end");
+			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
+				console->ThrowError(L);
 
 			if (CLOSE_KEYBOARD)
 			{
 				luaL_dostring(L, "love.keyboard.setTextInput(false)");
 				CLOSE_KEYBOARD =  false;
 			}
-			printf("apt\n");
+
 			love::Graphics::Instance()->Render(GFX_TOP);
 
-			luaL_dostring(L, "if love.draw then love.draw() end");
+			if (luaL_dostring(L, "if love.draw then love.draw() end"))
+				console->ThrowError(L);
 
-			love::Graphics::Instance()->SwapBuffers();
-			
-			love::Graphics::Instance()->Render(GFX_BOTTOM);
+			//love::Graphics::Instance()->Render(GFX_BOTTOM);
 				
-			luaL_dostring(L, "if love.draw then love.draw() end");
+			//if (luaL_dostring(L, "if love.draw then love.draw() end"))
+			//	console->ThrowError(L);
 
 			love::Graphics::Instance()->SwapBuffers();
 		}
@@ -142,7 +142,6 @@ int main(int argc, char ** argv)
 
 	luaL_dostring(L, "love.audio.stop()");
 
-	printf("\nExiting..\n");
 	loveClose(L);
 
 	C3D_Fini();
