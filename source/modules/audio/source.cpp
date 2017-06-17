@@ -89,7 +89,7 @@ char * Source::Decode()
 		this->waveBuffer[0].data_vaddr = &this->data[0];
 		this->waveBuffer[0].nsamples = this->chunkSamples;
 
-		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples * 2];
+		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples];
 		this->waveBuffer[1].nsamples = this->chunkSamples;
 
 		streams[this->audiochannel] = this;
@@ -207,7 +207,7 @@ long Source::FillBuffer(void * audio, bool first)
 		{
 			offset += ret;
 
-			if (this->stream && offset >= this->size)
+			if (this->stream && offset >= this->chunkSamples)
 				break;
 		}
 	}
