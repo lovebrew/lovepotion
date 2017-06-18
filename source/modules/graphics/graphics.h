@@ -28,7 +28,6 @@ namespace love
 
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);
-
 			void Render(gfxScreen_t screen);
 			void SwapBuffers();
 			void StartTarget(love::CRenderTarget * target);

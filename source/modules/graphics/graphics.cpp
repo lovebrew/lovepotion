@@ -131,7 +131,6 @@ int Graphics::Draw(lua_State * L)
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
 
-	printf("render at %f, %f\n", x, y);
 	if (currentScreen == renderScreen)
 		graphicsDraw(self->GetTexture(), x, y, self->GetWidth(), self->GetHeight());
 
@@ -276,9 +275,9 @@ void Graphics::StartTarget(CRenderTarget * target)
 	
 	target->Clear(backgroundColor);
 	
-	//C3D_FrameDrawOn(target->GetTarget());
+	C3D_FrameDrawOn(target->GetTarget());
 
-	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
+	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
 }
 
 void Graphics::SwapBuffers()

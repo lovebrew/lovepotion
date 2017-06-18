@@ -74,9 +74,9 @@ char * Source::Decode()
 	}
 	else
 	{
-		this->chunkSamples = round(this->rate * 0.1); //round(0.1 * this->rate);
-		this->size = this->chunkSamples * this->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
-
+		this->chunkSamples = this->rate * 0.1; //round(0.1 * this->rate);
+		this->size = this->chunkSamples * this->channels * 2;
+		
 		if (linearSpaceFree() < this->size)
 			return "not enough linear memory available";
 
@@ -89,7 +89,7 @@ char * Source::Decode()
 		this->waveBuffer[0].data_vaddr = &this->data[0];
 		this->waveBuffer[0].nsamples = this->chunkSamples;
 
-		this->waveBuffer[1].data_vaddr = &this->data[this->chunkSamples];
+		this->waveBuffer[1].data_vaddr = &this->data[0];
 		this->waveBuffer[1].nsamples = this->chunkSamples;
 
 		streams[this->audiochannel] = this;
@@ -152,7 +152,10 @@ void Source::Play()
 	if (this->stream)
 	{
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[0]);
+		
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[1]);
+		
+		//this->fillBuffer = !this->fillBuffer;
 	} 
 	else 
 	{
@@ -178,17 +181,11 @@ long Source::FillBuffer(void * audio, bool first)
 	int eof = 0;
 	int offset = 0;
 	long ret = 0;
-
-	int currentSection;
 	
 	char * destination = (char *)audio;
 
-	while (!eof)
+	while (!eof || (this->stream && offset < this->size))
 	{
-		//int readSize = fmin(this->size - offset, 4096);
-		//if (this->stream)
-		//	readSize = this->chunkSamples * 2;
-
 		ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), &this->currentSection);
 
 		if (ret == 0)
@@ -206,9 +203,6 @@ long Source::FillBuffer(void * audio, bool first)
 		else 
 		{
 			offset += ret;
-
-			if (this->stream && offset >= this->chunkSamples)
-				break;
 		}
 	}
 

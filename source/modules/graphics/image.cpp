@@ -11,6 +11,9 @@ char * Image::Init(const char * path)
 	this->path = path;
 	this->texture = new C3D_Tex();
 
+	this->width = 0;
+	this->height = 0;
+
 	this->Decode();
 
 	return nullptr;
@@ -29,10 +32,13 @@ void Image::Decode()
 	if (state.info_png.color.colortype != 6) 
 		isPremultiplied = true;
 
-	this->width = this->NextPow2(textureWidth);
-	this->height = this->NextPow2(textureHeight);
+	this->width = textureWidth;
+	this->height = textureHeight;
 
-	u8 * gpuBuffer = (u8 *)linearAlloc(this->width * this->height * 4);
+	int width = this->NextPow2(textureWidth);
+	int height = this->NextPow2(textureHeight);
+
+	u8 * gpuBuffer = (u8 *)linearAlloc(width * height * 4);
 
 	if (isPremultiplied)
 	{
@@ -49,7 +55,7 @@ void Image::Decode()
 				src += 4;
 				dst += 4;
 			}
-			dst += (this->width - textureWidth) * 4;
+			dst += (width - textureWidth) * 4;
 		}
 	}
 	else
@@ -73,11 +79,11 @@ void Image::Decode()
 				*dst++ = g*aa;
 				*dst++ = r*aa;
 			}
-			dst += (this->width - textureWidth) * 4;
+			dst += (width - textureWidth) * 4;
 		}
 	}
 
-	this->LoadTexture(gpuBuffer, this->width, this->height);
+	this->LoadTexture(gpuBuffer, width, height);
 
 	free(buffer);
 	linearFree(gpuBuffer);
@@ -85,19 +91,17 @@ void Image::Decode()
 
 void Image::LoadTexture(void * data, int width, int height)
 {
-	GSPGPU_FlushDataCache(data, this->width * this->height * 4);
+	GSPGPU_FlushDataCache(data, width * height * 4);
 
-	C3D_TexInit(this->texture, this->width, this->height, GPU_RGBA8);
+	C3D_TexInit(this->texture, width, height, GPU_RGBA8);
 
-	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(this->width, this->height), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
+	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(width, height), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
 
 	gspWaitForPPF();
 
 	C3D_TexSetFilter(this->texture, GPU_LINEAR, GPU_LINEAR);
 
 	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
-
-	printf("Loaded %s, %dx%d\n", this->path, this->width, this->height);
 }
 
 C3D_Tex * Image::GetTexture()

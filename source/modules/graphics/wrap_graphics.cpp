@@ -53,7 +53,7 @@ void bindTexture(C3D_Tex * texture) {
 	C3D_TexBind(0, texture); // 0 should be correct
 	
 	C3D_TexEnv * env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_CONSTANT, 0);
 	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
 	C3D_TexEnvColor(env, graphicsGetColor());
@@ -173,13 +173,11 @@ void graphicsCircle(float x, float y, float radius, float segments)
 void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 {
 	bindTexture(texture);
-
+	
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
 		return;
-
-	printf("x: %f, y: %f, w: %d, h: %d\n", x, y, width, height);
 
 	vertexList[0].position = {x, 			y,			0.5f};
 	vertexList[1].position = {x + width,	y,			0.5f};
@@ -189,7 +187,6 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 	float u = (float)width/(float)texture->width;
 	float v = (float)height/(float)texture->height;
 
-	printf("u: %f, v: %f\n", u, v);
 	vertexList[0].quad = {0.0f, 0.0f};
 	vertexList[1].quad = {u,	0.0f};
 	vertexList[2].quad = {0.0f, v};

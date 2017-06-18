@@ -23,16 +23,42 @@ int imageNew(lua_State * L)
 	return 1;
 }
 
+int imageGetWidth(lua_State * L)
+{
+	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushnumber(L, self->GetWidth());
+
+	return 1;
+}
+
+int imageGetHeight(lua_State * L)
+{
+	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushnumber(L, self->GetHeight());
+	
+	return 1;
+}
+
 int imageGC(lua_State * L)
 {
+	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	C3D_TexDelete(self->GetTexture());
+
+	delete self->GetTexture();
+
 	return 0;
 }
 
 int initImageClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{"new",			imageNew	},
-		{"__gc",		imageGC		},
+		{"new",			imageNew		},
+		{"getWidth",	imageGetWidth	},
+		{"getHeight",	imageGetHeight	},
+		{"__gc",		imageGC			},
 		{ 0, 0 },
 	};
 
