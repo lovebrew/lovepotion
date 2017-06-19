@@ -19,6 +19,7 @@ std::string debug;
 
 #include "common/version.h"
 #include "modules/love/love.h"
+#include "modules/timer/timer.h"
 
 #include "modules/audio/source.h"
 love::Source * streams[24];
@@ -44,6 +45,8 @@ bool runThreads = true;
 int main(int argc, char ** argv)
 {
 	lua_State * L = luaL_newstate();
+
+	luaL_dostring(L, "jit.off()");
 
 	luaL_openlibs(L);
 	luaL_requiref(L, "love", loveInit, 1);
@@ -125,6 +128,8 @@ int main(int argc, char ** argv)
 			//	console->ThrowError(L);
 
 			love::Graphics::Instance()->SwapBuffers();
+
+			love::Timer::Instance()->Tick();
 		}
 		else
 		{

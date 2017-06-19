@@ -195,7 +195,7 @@ char * Filesystem::GetSaveDirectory()
 	static char buf[0x80] = {0};
 
 	if (!*buf)
-		snprintf(buf, sizeof(buf), "sdmc:/LovePotion/%s/", identity);
+		snprintf(buf, sizeof(buf), "sdmc:/3ds/data/LovePotion/%s/", identity);
 
 	return buf;
 }
@@ -207,7 +207,8 @@ const char * Filesystem::GetIdentity()
 
 int filesystemInit(lua_State * L)
 {
-	mkdir("sdmc:/LovePotion/", 0777);
+	mkdir("sdmc:/3ds/data/", 0777);
+	mkdir("sdmc:/3ds/data/LovePotion/", 0777);
 	mkdir(love::Filesystem::Instance()->GetSaveDirectory(), 0777);
 
 	luaL_Reg reg[] = 

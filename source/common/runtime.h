@@ -17,6 +17,7 @@ extern "C" {
 #include <ivorbiscodec.h>
 #include <ivorbisfile.h>
 
+#include <jansson.h>
 
 #include <stdlib.h>
 #include <string>

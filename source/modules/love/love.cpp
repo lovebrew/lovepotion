@@ -14,6 +14,7 @@ extern void systemExit();
 extern int initSourceClass(lua_State * L);
 extern int initFileClass(lua_State * L);
 extern int initImageClass(lua_State * L);
+extern int initFontClass(lua_State *L);
 
 struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
@@ -147,6 +148,7 @@ int loveInit(lua_State * L)
 		initSourceClass,
 		initFileClass,
 		initImageClass,
+		initFontClass,
 		NULL,
 	};
 

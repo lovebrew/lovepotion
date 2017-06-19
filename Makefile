@@ -45,6 +45,7 @@ SOURCES		:=	\
 				source/libs/lua \
 				source/libs/luaobj \
 				source/libs/lodepng \
+				source/libs/luajit \
 				source/libs/tremor
 DATA		:=	source/scripts
 INCLUDES	:=	$(SOURCES)

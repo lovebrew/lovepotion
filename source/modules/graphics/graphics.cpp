@@ -3,8 +3,10 @@
 
 #include "graphics.h"
 #include "image.h"
+#include "font.h"
 
 #include "wrap_image.h"
+#include "wrap_font.h"
 #include "wrap_graphics.h"
 
 #include "basic_shader_shbin.h"
@@ -14,6 +16,7 @@ love::Graphics * love::Graphics::instance = 0;
 using love::Graphics;
 using love::CRenderTarget;
 using love::Image;
+using love::Font;
 
 int projection_desc = -1;
 
@@ -297,6 +300,7 @@ int graphicsInit(lua_State * L)
 	luaL_Reg reg[] = 
 	{
 		{ "newImage",	imageNew					},
+		{ "newFont",	fontNew						},
 		{ "line",		love::Graphics::Line		},
 		{ "rectangle",	love::Graphics::Rectangle	},
 		{ "circle",		love::Graphics::Circle		},

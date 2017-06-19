@@ -5,9 +5,10 @@ namespace love
 	class Font
 	{
 		public:
-			Font(const char * path);
-		
-		private:
+			char * Init(const char * path);
 
-	}
+		private:
+			FILE * fileHandle;
+
+	};
 }

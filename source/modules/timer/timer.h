@@ -27,7 +27,7 @@ namespace love
 			static int lastTick;
 			static int currentTick;
 
-			static int fps;
+			static float fps;
 			u64 lastCountTime;
 			int frames;
 	};

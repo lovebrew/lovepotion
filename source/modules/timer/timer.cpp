@@ -1,12 +1,16 @@
 #include "common/runtime.h"
 #include "timer.h"
 
+love::Timer * love::Timer::instance = 0;
+
 float love::Timer::dt = 0;
 int love::Timer::lastTick = 0;
 int love::Timer::currentTick = 0;
-int love::Timer::fps = 0;
+float love::Timer::fps = 0;
 
 using love::Timer;
+
+Timer::Timer() {}
 
 int Timer::GetTime(lua_State * L)
 {
@@ -51,8 +55,8 @@ void Timer::Tick()
 {
 	frames++;
 	u64 delta = osGetTime() - lastCountTime;
-	if (dt >= 1000) {
-		delta = frames/(delta/1000.0f);
+	if (delta >= 1000) {
+		fps = frames/(delta/1000.0f);
 		frames = 0;
 		lastCountTime = osGetTime();
 	}
