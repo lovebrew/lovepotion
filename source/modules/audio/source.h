@@ -9,7 +9,7 @@ namespace love
 		public:
 			char * Init(const char * path, const char * type);
 			void Play();
-			long FillBuffer(void * audio, bool first);
+			long FillBuffer(void * audio);
 			char * Decode();
 			int GetOpenChannel();
 			void Update();
@@ -29,6 +29,8 @@ namespace love
 			u32 encoding;
 			u32 nsamples;
 			u32 size;
+			u32 bitrate;
+
 			bool loop;
 
 			int streamOffset;
@@ -39,8 +41,8 @@ namespace love
 			ndspInterpType interp;
 			
 			bool stream; //if it should stream
-			bool fillBuffer = false;
+			bool fillBuffer;
 	};
 }
 
-extern love::Source * streams[24];
+extern std::vector<love::Source *> streams;

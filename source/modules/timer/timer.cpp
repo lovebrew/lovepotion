@@ -23,7 +23,7 @@ int Timer::GetTime(lua_State * L)
 
 int Timer::GetFPS(lua_State * L)
 {
-	lua_pushnumber(L, fps);
+	lua_pushnumber(L, round(fps));
 
 	return 1;
 }

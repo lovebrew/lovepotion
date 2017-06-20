@@ -10,7 +10,10 @@ extern "C" {
 #include <3ds.h>
 
 #include <citro3d.h>
+
+#include <stdlib.h>
 #include <string>
+#include <vector>
 
 std::string debug;
 
@@ -22,7 +25,7 @@ std::string debug;
 #include "modules/timer/timer.h"
 
 #include "modules/audio/source.h"
-love::Source * streams[24];
+std::vector<love::Source *> streams;
 
 #include "modules/graphics/crendertarget.h"
 #include "modules/graphics/graphics.h"
@@ -104,9 +107,8 @@ int main(int argc, char ** argv)
 			if (luaL_dostring(L, "love.timer.step()"))
 				console->ThrowError(L);
 			
-			for (int i = 0; i <= 23; i++)
-				if (streams[i])
-					streams[i]->Update();
+			for (int i = 0; i <= streams.size(); i++)
+				streams[i]->Update();
 
 			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
 				console->ThrowError(L);
@@ -121,12 +123,12 @@ int main(int argc, char ** argv)
 
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
-
-			//love::Graphics::Instance()->Render(GFX_BOTTOM);
+			
+			/*love::Graphics::Instance()->Render(GFX_BOTTOM);
 				
-			//if (luaL_dostring(L, "if love.draw then love.draw() end"))
-			//	console->ThrowError(L);
-
+			if (luaL_dostring(L, "if love.draw then love.draw() end"))
+				console->ThrowError(L);
+			*/
 			love::Graphics::Instance()->SwapBuffers();
 
 			love::Timer::Instance()->Tick();

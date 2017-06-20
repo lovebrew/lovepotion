@@ -27,6 +27,7 @@ char * Source::Init(const char * path, const char * type)
 	if (!this->fileHandle)
 		error = "Failed to open file.";
 
+	this->fillBuffer = false;
 	error = this->Decode();
 
 	if (error != nullptr)
@@ -53,6 +54,8 @@ char * Source::Decode()
 
 	this->nsamples = (u32)ov_pcm_total(&this->vorbisFile, -1);
 
+	this->bitrate = (u32)ov_bitrate(&this->vorbisFile, -1);
+
 	this->audiochannel = this->GetOpenChannel();
 
 	this->loop = false;
@@ -66,7 +69,7 @@ char * Source::Decode()
 
 		this->data = (char *)linearAlloc(this->size);
 		
-		this->FillBuffer(this->data, true);
+		this->FillBuffer(this->data);
 
 		ov_clear(&this->vorbisFile);
 
@@ -74,25 +77,25 @@ char * Source::Decode()
 	}
 	else
 	{
-		this->chunkSamples = this->rate * 0.1; //round(0.1 * this->rate);
+		this->chunkSamples = round(this->rate * 0.1);
 		this->size = this->chunkSamples * this->channels * 2;
-		
+
 		if (linearSpaceFree() < this->size)
 			return "not enough linear memory available";
 
 		this->data = (char *)linearAlloc(this->size);
 
-		long ret = this->FillBuffer(this->data, true);
-
 		memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
 
-		this->waveBuffer[0].data_vaddr = &this->data[0];
+		this->waveBuffer[0].data_vaddr = this->data;
+		this->FillBuffer((char *)this->waveBuffer[0].data_vaddr);
 		this->waveBuffer[0].nsamples = this->chunkSamples;
 
-		this->waveBuffer[1].data_vaddr = &this->data[0];
+		this->waveBuffer[1].data_vaddr = this->data;
+		this->FillBuffer((char *)this->waveBuffer[1].data_vaddr);
 		this->waveBuffer[1].nsamples = this->chunkSamples;
 
-		streams[this->audiochannel] = this;
+		streams.push_back(this);
 	}
 
 	return nullptr;
@@ -113,22 +116,23 @@ int Source::GetOpenChannel() {
 
 void Source::Update()
 {
-	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
-	{
-		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr, false);
-		
-		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
-		
-		this->fillBuffer = !this->fillBuffer;
-	}
-
 	if (this->waveBuffer[0].status == NDSP_WBUF_DONE && this->waveBuffer[1].status == NDSP_WBUF_DONE)
 	{
 		if (feof(this->fileHandle) && this->loop)
 		{
 			this->Reset();
 		}
+		return;
 	}	
+
+	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
+	{
+		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
+
+		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
+
+		this->fillBuffer = !this->fillBuffer;
+	}
 }
 
 void Source::Reset()
@@ -150,12 +154,9 @@ void Source::Play()
 	ndspChnSetFormat(this->audiochannel, NDSP_CHANNELS(this->channels) | NDSP_ENCODING(this->encoding));
 
 	if (this->stream)
-	{
+	{	
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[0]);
-		
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[1]);
-		
-		//this->fillBuffer = !this->fillBuffer;
 	} 
 	else 
 	{
@@ -170,23 +171,23 @@ void Source::Play()
 	
 }
  
-long Source::FillBuffer(void * audio, bool first)
+long Source::FillBuffer(void * audio)
 {
 	if (feof(this->fileHandle))
-	{
-		printf("eof!\n");
 		return -1;
-	}
 	
 	int eof = 0;
 	int offset = 0;
-	long ret = 0;
 	
 	char * destination = (char *)audio;
 
-	while (!eof || (this->stream && offset < this->size))
+	int size = 4096;
+	if (this->stream)
+		size = this->size;
+
+	while (!eof)
 	{
-		ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), &this->currentSection);
+		long ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, size), &this->currentSection);
 
 		if (ret == 0)
 		{
@@ -203,11 +204,14 @@ long Source::FillBuffer(void * audio, bool first)
 		else 
 		{
 			offset += ret;
+
+			if (this->stream && offset >= this->size)
+				break;
 		}
 	}
 
 	if (this->stream)
-		DSP_FlushDataCache((u32 *)audio, ret);
+		DSP_FlushDataCache(audio, this->size);
 
 	return 0;
 }

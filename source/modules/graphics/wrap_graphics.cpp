@@ -197,6 +197,36 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
+void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight)
+{
+	bindTexture(texture);
+	
+	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
+
+	if (!vertexList)
+		return;
+
+	vertexList[0].position = {x, 				y,					0.5f};
+	vertexList[1].position = {x + textureWidth,	y,					0.5f};
+	vertexList[2].position = {x,				y + textureHeight, 	0.5f};
+	vertexList[3].position = {x + textureWidth,	y + textureHeight, 	0.5f};
+
+	float u0 = textureX/(float)texture->width;
+	float v0 = textureY/(float)texture->height;
+
+	float u1 = (textureX + textureWidth)/(float)texture->width;
+	float v1 = (textureY + textureHeight)/(float)texture->height;
+
+	vertexList[0].quad = {u0,	v0};
+	vertexList[1].quad = {u1,	v0};
+	vertexList[2].quad = {u0,	v1};
+	vertexList[3].quad = {u1,	v1};
+
+	generateTextureVertecies(vertexList);
+
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, 4);
+}
+
 void graphicsPoints(float x, float y)
 {
 	graphicsCircle(x, y, 1, 100);

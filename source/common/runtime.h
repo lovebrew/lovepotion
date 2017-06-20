@@ -21,6 +21,7 @@ extern "C" {
 
 #include <stdlib.h>
 #include <string>
+#include <vector>
 
 #include <sys/types.h>
 #include <sys/stat.h>

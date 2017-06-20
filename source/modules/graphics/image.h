@@ -12,6 +12,7 @@ namespace love
 			C3D_Tex * GetTexture();
 			int GetWidth();
 			int GetHeight();
+			const char * GetPath();
 
 		private:
 			C3D_Tex * texture;

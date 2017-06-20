@@ -4,9 +4,11 @@
 #include "graphics.h"
 #include "image.h"
 #include "font.h"
+#include "quad.h"
 
 #include "wrap_image.h"
 #include "wrap_font.h"
+#include "wrap_quad.h"
 #include "wrap_graphics.h"
 
 #include "basic_shader_shbin.h"
@@ -17,6 +19,7 @@ using love::Graphics;
 using love::CRenderTarget;
 using love::Image;
 using love::Font;
+using love::Quad;
 
 int projection_desc = -1;
 
@@ -129,14 +132,27 @@ int Graphics::Circle(lua_State * L)
 
 int Graphics::Draw(lua_State * L)
 {
-	Image * self = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	Image * image = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	Quad * quad = nullptr;
 
-	float x = luaL_optnumber(L, 2, 0);
-	float y = luaL_optnumber(L, 3, 0);
+	int start = 2;
+	if (!lua_isnoneornil(L, 2) && !lua_isnumber(L, 2))
+	{
+		quad = (Quad *)luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+		start = 3;
+	}
+
+	float x = luaL_optnumber(L, start, 0);
+	float y = luaL_optnumber(L, start + 1, 0);
 
 	if (currentScreen == renderScreen)
-		graphicsDraw(self->GetTexture(), x, y, self->GetWidth(), self->GetHeight());
-
+	{
+		if (quad == nullptr)
+			graphicsDraw(image->GetTexture(), x, y, image->GetWidth(), image->GetHeight());
+		else
+			graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
+	}
+	
 	return 0;
 }
 
@@ -301,6 +317,7 @@ int graphicsInit(lua_State * L)
 	{
 		{ "newImage",	imageNew					},
 		{ "newFont",	fontNew						},
+		{ "newQuad",	quadNew						},
 		{ "line",		love::Graphics::Line		},
 		{ "rectangle",	love::Graphics::Rectangle	},
 		{ "circle",		love::Graphics::Circle		},

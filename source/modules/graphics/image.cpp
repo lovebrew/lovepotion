@@ -39,7 +39,7 @@ void Image::Decode()
 	int height = this->NextPow2(textureHeight);
 
 	u8 * gpuBuffer = (u8 *)linearAlloc(width * height * 4);
-
+	
 	if (isPremultiplied)
 	{
 		u32 * src = (u32 *)buffer;
@@ -91,7 +91,7 @@ void Image::Decode()
 
 void Image::LoadTexture(void * data, int width, int height)
 {
-	GSPGPU_FlushDataCache(data, width * height * 4);
+	GSPGPU_FlushDataCache((u32 *)data, width * height * 4);
 
 	C3D_TexInit(this->texture, width, height, GPU_RGBA8);
 
@@ -102,6 +102,11 @@ void Image::LoadTexture(void * data, int width, int height)
 	C3D_TexSetFilter(this->texture, GPU_LINEAR, GPU_LINEAR);
 
 	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
+}
+
+const char * Image::GetPath()
+{
+	return this->path;
 }
 
 C3D_Tex * Image::GetTexture()

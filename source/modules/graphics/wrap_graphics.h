@@ -6,6 +6,8 @@ void resetPool();
 
 void * allocateAlign(size_t size, size_t align);
 
+void bindTexture(C3D_Tex * texture);
+
 void generateVertecies(vertexPositions * vertecies);
 
 void generateTextureVertecies(texturePositions * vertecies);
@@ -19,6 +21,8 @@ void graphicsPoints(float x, float y);
 void graphicsCircle(float x, float y, float radius, float segments);
 
 void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height);
+
+void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight);
 
 void graphicsSetColor(int r, int g, int b);
 
