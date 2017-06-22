@@ -28,4 +28,8 @@ void graphicsSetColor(int r, int g, int b);
 
 void graphicsSetColor(int r, int g, int b, int a);
 
+void graphicsSetFont(love::Font * font);
+
+love::Font * graphicsGetFont();
+
 u32 graphicsGetColor();

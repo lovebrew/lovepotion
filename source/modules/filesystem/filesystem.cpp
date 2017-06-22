@@ -166,6 +166,16 @@ int Filesystem::Load(lua_State * L)
 	return 1;
 }
 
+bool Filesystem::Exists(const char * path)
+{
+	path = this->Redirect(path);
+
+	struct stat pathInfo;
+	stat(path, &pathInfo);
+
+	return S_ISDIR(pathInfo.st_mode) || S_ISREG(pathInfo.st_mode);
+}
+
 const char * Filesystem::Redirect(const char * path)
 {
 	bool saveDir = false;

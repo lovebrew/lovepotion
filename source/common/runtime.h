@@ -17,10 +17,11 @@ extern "C" {
 #include <ivorbiscodec.h>
 #include <ivorbisfile.h>
 
-#include <jansson.h>
+#include <json.hpp>
 
 #include <stdlib.h>
 #include <string>
+#include <sstream>
 #include <vector>
 
 #include <sys/types.h>

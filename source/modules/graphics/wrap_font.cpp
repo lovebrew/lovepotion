@@ -1,4 +1,8 @@
 #include "common/runtime.h"
+#include "image.h"
+#include "file.h"
+#include "quad.h"
+#include "glyph.h"
 #include "font.h"
 #include "wrap_font.h"
 
@@ -18,7 +22,7 @@ int fontNew(lua_State * L)
 	char * error = self->Init(path);
 	
 	if (error)
-		luaL_error(L, error);
+		console->ThrowError(error);
  
 	return 1;
 }

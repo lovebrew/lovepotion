@@ -1,14 +1,19 @@
 #pragma once
 
 namespace love
-{
+{	
 	class Font
 	{
 		public:
 			char * Init(const char * path);
+			love::Glyph GetGlyph(char glyph);
+			love::Image * GetSheet();
 
 		private:
-			FILE * fileHandle;
-
+			love::File * configFile;
+			love::Image * bitmap;
+			nlohmann::json configJson;
+			std::vector<love::Glyph> glyphs;
+			int chars;
 	};
 }

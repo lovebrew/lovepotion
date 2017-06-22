@@ -118,11 +118,10 @@ void Source::Update()
 {
 	if (this->waveBuffer[0].status == NDSP_WBUF_DONE && this->waveBuffer[1].status == NDSP_WBUF_DONE)
 	{
-		if (feof(this->fileHandle) && this->loop)
+		if (feof(this->fileHandle))
 		{
 			this->Reset();
 		}
-		return;
 	}	
 
 	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)

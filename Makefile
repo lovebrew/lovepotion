@@ -42,6 +42,7 @@ SOURCES		:=	\
 				source/modules/timer \
 				source/modules/keyboard \
 				source/modules/font \
+				source/libs/json \
 				source/libs/lua \
 				source/libs/luaobj \
 				source/libs/lodepng \
@@ -118,7 +119,7 @@ CPPFILES	:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.cpp))) \
 
 SFILES		:=	$(foreach dir, $(SOURCES), $(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir, $(DATA),    $(notdir $(wildcard $(dir)/*.*)))
-PICAFILE	:= 	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.v.pica)))
+PICAFILE	:= 	$(foreach dir,$(SOURCES),  $(notdir $(wildcard $(dir)/*.v.pica)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C

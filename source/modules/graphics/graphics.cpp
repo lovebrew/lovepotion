@@ -3,8 +3,10 @@
 
 #include "graphics.h"
 #include "image.h"
-#include "font.h"
+#include "file.h"
 #include "quad.h"
+#include "glyph.h"
+#include "font.h"
 
 #include "wrap_image.h"
 #include "wrap_font.h"
@@ -147,6 +149,7 @@ int Graphics::Draw(lua_State * L)
 
 	if (currentScreen == renderScreen)
 	{
+		bindTexture(image->GetTexture());
 		if (quad == nullptr)
 			graphicsDraw(image->GetTexture(), x, y, image->GetWidth(), image->GetHeight());
 		else
@@ -220,29 +223,47 @@ int Graphics::Points(lua_State * L)
 	return 0;
 }
 
+int Graphics::Print(lua_State * L)
+{
+	const char * text = luaL_checkstring(L, 1);
+	float x = luaL_checknumber(L, 2);
+	float y = luaL_checknumber(L, 3);
+
+	Font * currFont = graphicsGetFont();
+
+	if (currFont == nullptr)
+		return 0;
+
+	if (currentScreen == renderScreen)
+	{
+		C3D_Tex * texture = currFont->GetSheet()->GetTexture();
+
+		bindTexture(texture);
+		for (int i = 0; i < strlen(text); i++)
+		{
+			love::Glyph glyph = currFont->GetGlyph(text[i]);
+
+			love::Quad * quad = glyph.GetQuad();
+
+			graphicsDrawQuad(texture, x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
+		}
+	}
+
+	return 0;
+}
+
+int Graphics::SetFont(lua_State * L)
+{
+	Font * font = (Font *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
+
+	graphicsSetFont(font);
+	
+	return 0;
+}
+
 gfxScreen_t Graphics::GetScreen()
 {
 	return currentScreen;
-}
-
-CRenderTarget * Graphics::GetRenderTarget(unsigned int i)
-{
-	CRenderTarget * ret;
-
-	switch(i)
-	{
-		case 0:
-			ret = this->topTarget;
-			break;
-		case 1:
-			ret = this->bottomTarget;
-			break;
-		default:
-			ret = this->topTarget;
-			break;
-	}
-
-	return ret;
 }
 
 void Graphics::InitRenderTargets()
@@ -323,6 +344,8 @@ int graphicsInit(lua_State * L)
 		{ "circle",		love::Graphics::Circle		},
 		{ "points",		love::Graphics::Points		},
 		{ "draw",		love::Graphics::Draw		},
+		{ "print",		love::Graphics::Print		},
+		{ "setFont",	love::Graphics::SetFont		},
 		{ "getWidth",	love::Graphics::GetWidth	},
 		{ "getHeight",	love::Graphics::GetHeight	},
 		{ "setScreen",	love::Graphics::SetScreen	},

@@ -44,6 +44,7 @@ bool runThreads = true;
 #define luaL_dobuffer(L, b, n, s) (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
 #include "common/console.h"
+love::Console * console;
 
 int main(int argc, char ** argv)
 {
@@ -73,7 +74,7 @@ int main(int argc, char ** argv)
 		chdir(cwd);
 	}
 
-	love::Console * console = new love::Console();
+	console = new love::Console();
 	console->Enable(GFX_BOTTOM);
 
 	if (!AUDIO_ENABLED)
@@ -135,11 +136,6 @@ int main(int argc, char ** argv)
 		}
 		else
 		{
-			const char * errorMessage = lua_tostring(L, -1);
-
-			if (errorMessage != nullptr)
-				console->ThrowError(errorMessage);
-
 			hidScanInput();
 			u32 kTempDown = hidKeysDown();
 			if (kTempDown & KEY_START)

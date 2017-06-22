@@ -34,12 +34,9 @@ bool Console::IsEnabled()
 
 void Console::ThrowError(const char * errorMessage)
 {
-	if (!this->IsEnabled())
-		return;
-
 	if (errorMessage == nullptr)
 		return;
-	
+
 	if (!this->hasPrinted)
 	{
 		printf("\e[31;1m%s\e[0m\n", errorMessage);
@@ -51,19 +48,10 @@ void Console::ThrowError(const char * errorMessage)
 
 void Console::ThrowError(lua_State * L)
 {
-	if (!this->IsEnabled())
-		return;
-
 	const char * errorMessage = lua_tostring(L, -1);
 
 	if (errorMessage == nullptr)
 		return;
 	
-	if (!this->hasPrinted)
-	{
-		printf("\e[31;1m%s\e[0m\n", errorMessage);
-
-		LUA_ERROR = true;
-		this->hasPrinted = true;
-	}
+	this->ThrowError(errorMessage);
 }

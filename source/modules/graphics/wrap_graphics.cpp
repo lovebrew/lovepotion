@@ -1,4 +1,9 @@
 #include "common/runtime.h"
+#include "quad.h"
+#include "file.h"
+#include "glyph.h"
+#include "image.h"
+#include "font.h"
 #include "wrap_graphics.h"
 
 size_t bufferSize = 0;
@@ -9,6 +14,8 @@ int currentR = 255;
 int currentG = 255;
 int currentB = 255;
 int currentA = 255;
+
+love::Font * currentFont = nullptr;
 
 void resetPool()
 {
@@ -85,6 +92,16 @@ void graphicsSetColor(int r, int g, int b, int a)
 	graphicsSetColor(r, g, b);
 
 	currentA = a;
+}
+
+void graphicsSetFont(love::Font * font)
+{
+	currentFont = font;
+}
+
+love::Font * graphicsGetFont()
+{
+	return currentFont;
 }
 
 u32 graphicsGetColor()
@@ -171,9 +188,7 @@ void graphicsCircle(float x, float y, float radius, float segments)
 }
 
 void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
-{
-	bindTexture(texture);
-	
+{	
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
@@ -199,8 +214,6 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 
 void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight)
 {
-	bindTexture(texture);
-	
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)

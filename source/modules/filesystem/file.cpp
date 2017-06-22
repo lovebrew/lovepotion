@@ -104,6 +104,8 @@ const char * File::Read()
 
 	fread(buffer, this->GetSize(), 1, this->fileHandle);
 
+	buffer[this->GetSize()] = '\0';
+
 	return buffer;
 }
 

@@ -21,6 +21,7 @@ namespace love
 			char * GetSaveDirectory();
 			const char * GetIdentity();
 			const char * Redirect(const char * path);
+			bool Exists(const char * path);
 
 			static love::Filesystem * Instance() {
 				if (!instance)

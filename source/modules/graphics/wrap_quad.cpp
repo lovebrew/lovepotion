@@ -22,7 +22,7 @@ int quadNew(lua_State * L)
 	char * error = self->Init(x, y, width, height);
 	
 	if (error)
-		luaL_error(L, error);
+		console->ThrowError(error);
  
 	return 1;
 }

@@ -17,7 +17,7 @@ int fileNew(lua_State * L)
 	char * error = self->Init(path);
 	
 	if (error)
-		luaL_error(L, error);
+		console->ThrowError(error);
  
 	return 1;
 }
