@@ -40,7 +40,6 @@ void Image::Decode()
 
 	u8 * gpuBuffer = (u8 *)linearAlloc(width * height * 4);
 	
-	printf("%s: %d\n", this->path, isPremultiplied);
 	if (isPremultiplied)
 	{
 		u32 * src = (u32 *)buffer;

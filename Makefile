@@ -42,6 +42,8 @@ SOURCES		:=	\
 				source/modules/timer \
 				source/modules/keyboard \
 				source/modules/font \
+				source/modules/mouse \
+				source/modules/joystick \
 				source/libs/json \
 				source/libs/lua \
 				source/libs/luaobj \

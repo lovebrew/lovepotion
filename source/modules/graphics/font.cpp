@@ -8,6 +8,7 @@
 
 using love::Font;
 using love::Image;
+using love::Glyph;
 using json = nlohmann::json;
 
 char * Font::Init(const char * path)
@@ -48,32 +49,35 @@ char * Font::Init(const char * path)
 	this->bitmap->Init(bitmapPath.c_str());
 
 	this->chars = this->configJson["chars"].size();
-	printf("Glyph count: %d\n", this->chars);
-
-	//printf("%s\n", this->configJson.dump().c_str());
+	
+	this->glyphs.reserve(this->chars);
 	for (auto it = this->configJson["chars"].begin(); it != this->configJson["chars"].end(); it++)
-		this->glyphs.push_back(love::Glyph(it.key().c_str(), it.value()));
+	{
+		if (it.value().is_object())
+		{
+			love::Glyph * temp = new love::Glyph(it.value());
 
+			if (temp != nullptr)
+				this->glyphs.push_back(temp);
+		}
+	}
+	
 	return nullptr;
 }
 
-love::Glyph Font::GetGlyph(char glyph)
-{
-	for (int i = 0; i < this->chars; i++)
+love::Glyph * Font::GetGlyph(char glyph)
+{	
+	love::Glyph * ret = nullptr;
+	for (int i = 0; i < this->glyphs.size(); i++)
 	{
-		if (glyph == this->glyphs[i].GetChar())
+		if ((int)glyph == this->glyphs[i]->GetChar())
 		{
-			printf("!");
-			return this->glyphs[i];
-		}
-		else
-		{
-			printf("%c vs %c!\n", glyph, this->glyphs[i].GetChar());
-			return this->glyphs[i];
+			ret = this->glyphs[i];
+			break;
 		}
 	}
 
-	return this->glyphs[0];
+	return ret;
 }
 
 love::Image * Font::GetSheet()

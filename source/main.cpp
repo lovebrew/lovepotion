@@ -108,7 +108,7 @@ int main(int argc, char ** argv)
 			if (luaL_dostring(L, "love.timer.step()"))
 				console->ThrowError(L);
 			
-			for (int i = 0; i <= streams.size(); i++)
+			for (int i = 0; i < streams.size(); i++)
 				streams[i]->Update();
 
 			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))

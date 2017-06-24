@@ -2,22 +2,24 @@
 #include "quad.h"
 #include "glyph.h"
 
-using nlohmann::json;
+using json = nlohmann::json;
 using love::Glyph;
 
-Glyph::Glyph(const char * glyph, json config)
+Glyph::Glyph(json config)
 {
-	this->glyph = (char)std::stoi(glyph);
+	this->glyph = config["id"];
 
-	int x = config["x"].get<int>();
-	int y = config["y"].get<int>();
-	int charWidth = config["width"].get<int>();
-	int charHeight = config["height"].get<int>();
+	int x = config["x"];
+	int y = config["y"];
+	int charWidth = config["width"];
+	int charHeight = config["height"];
 
 	this->quad = new love::Quad();
 	this->quad->Init(x, y, charWidth, charHeight);
 
-	this->width = config["xadvance"].get<int>();
+	this->xadvance = config["xadvance"];
+	this->yoffset = config["yoffset"];
+	this->xoffset = config["xoffset"];
 }
 
 love::Quad * Glyph::GetQuad()
@@ -25,12 +27,22 @@ love::Quad * Glyph::GetQuad()
 	return this->quad;
 }
 
-int Glyph::GetOffsetX()
+int Glyph::GetXAdvance()
 {
-	return this->width;
+	return this->xadvance;
 }
 
-char Glyph::GetChar()
+int Glyph::GetYOffset()
+{
+	return this->yoffset;
+}
+
+int Glyph::GetXOffset()
+{
+	return this->xoffset;
+}
+
+int Glyph::GetChar()
 {
 	return this->glyph;
 }

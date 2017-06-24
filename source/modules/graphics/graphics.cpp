@@ -238,14 +238,23 @@ int Graphics::Print(lua_State * L)
 	{
 		C3D_Tex * texture = currFont->GetSheet()->GetTexture();
 
+		int width = 0;
+
 		bindTexture(texture);
+
 		for (int i = 0; i < strlen(text); i++)
 		{
-			love::Glyph glyph = currFont->GetGlyph(text[i]);
+			love::Glyph * glyph = currFont->GetGlyph(text[i]);
 
-			love::Quad * quad = glyph.GetQuad();
+			if (glyph == nullptr)
+				return 0;
+	
+			love::Quad * quad = glyph->GetQuad();
 
-			graphicsDrawQuad(texture, x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
+			if (i > 0)
+				width = width + currFont->GetGlyph(text[i - 1])->GetXAdvance(); //+ glyph->GetXOffset();
+
+			graphicsDrawQuad(texture, x + width + glyph->GetXOffset(), y + glyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
 		}
 	}
 
@@ -256,7 +265,8 @@ int Graphics::SetFont(lua_State * L)
 {
 	Font * font = (Font *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
 
-	graphicsSetFont(font);
+	if (graphicsGetFont() != font)
+		graphicsSetFont(font);
 	
 	return 0;
 }
