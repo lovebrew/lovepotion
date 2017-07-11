@@ -25,8 +25,8 @@
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
---_defaultFont_ = love.graphics.newFont()
---love.graphics.setFont(_defaultFont_)
+_defaultFont_ = love.graphics.newFont()
+love.graphics.setFont(_defaultFont_)
 
 --SET THE GAME'S IDENTITY: REQUIRED FOR SAVE DATA
 love.filesystem.setIdentity("SuperGame")
@@ -35,50 +35,80 @@ function love.createhandlers()
 
 	-- Standard callback handlers.
 	love.handlers = setmetatable({
-		keypressed = function (b,s,r)
-			if love.keypressed then return love.keypressed(b,s,r) end
+		keypressed = function (key)
+			if love.keypressed then 
+				return love.keypressed(key) 
+			end
 		end,
-		keyreleased = function (b,s)
-			if love.keyreleased then return love.keyreleased(b,s) end
+		keyreleased = function (key)
+			if love.keyreleased then 
+				return love.keyreleased(key) 
+			end
 		end,
 		mousemoved = function (x,y,dx,dy,t)
-			if love.mousemoved then return love.mousemoved(x,y,dx,dy,t) end
+			if love.mousemoved then 
+				return love.mousemoved(x,y,dx,dy,t) 
+			end
 		end,
-		mousepressed = function (x,y,b,t)
-			if love.mousepressed then return love.mousepressed(x,y,b,t) end
+		mousepressed = function (x, y, button)
+			if love.mousepressed then 
+				return love.mousepressed(x, y, button) 
+			end
 		end,
-		mousereleased = function (x,y,b,t)
-			if love.mousereleased then return love.mousereleased(x,y,b,t) end
+		mousereleased = function (x, y, button)
+			if love.mousereleased then 
+				return love.mousereleased(x, y, button)
+			end
 		end,
-		joystickpressed = function (j,b)
-			if love.joystickpressed then return love.joystickpressed(j,b) end
+		joystickpressed = function (joystick, button)
+			if love.joystickpressed then 
+				return love.joystickpressed(joystick, button)
+			end
 		end,
-		joystickreleased = function (j,b)
-			if love.joystickreleased then return love.joystickreleased(j,b) end
+		joystickreleased = function (joystick, button)
+			if love.joystickreleased then 
+				return love.joystickreleased(joystick, button)
+			end
 		end,
-		joystickaxis = function (j,a,v)
-			if love.joystickaxis then return love.joystickaxis(j,a,v) end
+		joystickaxis = function (joystick, axis, value)
+			if love.joystickaxis then 
+				return love.joystickaxis(joystick, axis, value)
+			end
 		end,
-		joystickhat = function (j,h,v)
-			if love.joystickhat then return love.joystickhat(j,h,v) end
+		joystickhat = function (joystick, hat, value)
+			if love.joystickhat then 
+				return love.joystickhat(joystick, hat, value) 
+			end
 		end,
-		gamepadpressed = function (j,b)
-			if love.gamepadpressed then return love.gamepadpressed(j,b) end
+		gamepadpressed = function (joystick, button)
+			if love.gamepadpressed then 
+				return love.gamepadpressed(joystick, button)
+			end
 		end,
-		gamepadreleased = function (j,b)
-			if love.gamepadreleased then return love.gamepadreleased(j,b) end
+		gamepadreleased = function (joystick, button)
+			if love.gamepadreleased then 
+				return love.gamepadreleased(joystick, button)
+			end
 		end,
-		gamepadaxis = function (j,a,v)
-			if love.gamepadaxis then return love.gamepadaxis(j,a,v) end
+		gamepadaxis = function (joystick, axis, value)
+			if love.gamepadaxis then 
+				return love.gamepadaxis(joystick, axis, value)
+			end
 		end,
-		textinput = function(t)
-			if love.textinput then return love.textinput(t) end
+		textinput = function(text)
+			if love.textinput then 
+				return love.textinput(text) 
+			end
 		end,
-		focus = function (f)
-			if love.focus then return love.focus(f) end
+		focus = function (focus)
+			if love.focus then 
+				return love.focus(focus) 
+			end
 		end,
-		visible = function (v)
-			if love.visible then return love.visible(v) end
+		visible = function (visible)
+			if love.visible then 
+				return love.visible(visible) 
+			end
 		end,
 		quit = function ()
 			return

@@ -22,7 +22,7 @@ SwKbd::SwKbd()
 	this->button = swkbdInputText(&this->keyboard, this->text, sizeof(this->text));
 }
 
-static SwkbdCallbackResult Close(void * user, const char ** ppMessage, const char * text, size_t textlen)
+SwkbdCallbackResult Close(void * user, const char ** ppMessage, const char * text, size_t textlen)
 {
 	CLOSE_KEYBOARD = true;
 

@@ -34,7 +34,6 @@ bool LUA_ERROR = false;
 bool LOVE_QUIT = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
-bool runThreads = true;
 
 
 #include <unistd.h>

@@ -1,26 +1,47 @@
 #include "common/runtime.h"
 #include "filesystem.h"
+
 #include "image.h"
 #include "file.h"
 #include "quad.h"
 #include "glyph.h"
 #include "font.h"
 
+#include "vera12_json.h"
+#include "vera12_png.h"
+
 using love::Font;
-using love::Image;
-using love::Glyph;
 using json = nlohmann::json;
+
+char * Font::DefaultInit()
+{
+	std::string data((char *)vera12_json, (char *)vera12_json_end);
+
+	this->configJson = json::parse(data);
+
+	this->bitmap = new love::Image();
+	this->bitmap->Init(nullptr, true);
+	this->bitmap->DecodeMemory(vera12_png, vera12_png_size);
+
+	this->chars = this->configJson["chars"].size();
+	
+	printf("(Vera, 12pt) glyphs: %d\n", this->chars);
+
+	this->glyphs.reserve(this->chars);
+	for (auto it = this->configJson["chars"].begin(); it != this->configJson["chars"].end(); it++)
+	{
+		if (it.value().is_object())
+		{
+			printf("Pushing to vector!\n");
+			this->glyphs.push_back(new love::Glyph(it.value()));
+		}
+	}
+
+	return nullptr;
+}
 
 char * Font::Init(const char * path)
 {
-	/*
-		TODO:
-		Check for path.json AND path.png
-		Load path.json via jansson portlib
-		Read and define values as needed
-		Print text to the screen
-		^ This is gonna be hell.. I already know it.. Well maybe not idk..
-	*/
 	std::string fontPath(path);
 	std::string configPath(fontPath); 
 	configPath.append(".json");
@@ -46,7 +67,7 @@ char * Font::Init(const char * path)
 	this->configJson = json::parse(data);
 	this->configFile->Close();
 
-	this->bitmap->Init(bitmapPath.c_str());
+	this->bitmap->Init(bitmapPath.c_str(), false);
 
 	this->chars = this->configJson["chars"].size();
 	
@@ -83,4 +104,14 @@ love::Glyph * Font::GetGlyph(char glyph)
 love::Image * Font::GetSheet()
 {
 	return this->bitmap;
+}
+
+int Font::GetWidth(char * glyph)
+{
+
+}
+
+int Font::GetHeight()
+{
+	return this->configJson["info"]["size"];
 }

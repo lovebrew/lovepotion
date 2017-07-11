@@ -5,9 +5,11 @@ namespace love
 	class Image
 	{
 		public:
-			char * Init(const char * path);
-			void Decode();
+			char * Init(const char * path, bool memory);
+			void Decode(unsigned char * buffer, unsigned textureWidth, unsigned textureHeight);
 			void LoadTexture(void * data, int width, int height);
+			void DecodeFile();
+			void DecodeMemory(const unsigned char * in, size_t size);
 
 			C3D_Tex * GetTexture();
 			int GetWidth();
@@ -21,6 +23,8 @@ namespace love
 			int width;
 			int height;
 			
+			bool isPremultiplied;
+
 			int NextPow2(unsigned int x);
 	};
 }

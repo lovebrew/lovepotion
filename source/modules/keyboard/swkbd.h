@@ -19,4 +19,4 @@ namespace love
 	};
 }
 
-static SwkbdCallbackResult Close(void * user, const char ** ppMessage, const char * text, size_t textlen);
+SwkbdCallbackResult Close(void * user, const char ** ppMessage, const char * text, size_t textlen);

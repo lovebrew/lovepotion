@@ -74,7 +74,7 @@ APP_SYSTEM_MODE_EXT := Legacy
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard
 
 CFLAGS	:=	-g -Wall -O2 -mword-relocations -ffunction-sections -mtp=soft \
-			-fomit-frame-pointer -ffast-math \
+			-ffast-math \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
@@ -84,7 +84,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lz -lcitro3d -lctru -lm -logg
+LIBS	:= -lz -lcitro3dd -lctrud -lm -logg -Og
 
 UNAME := $(shell uname)
 
@@ -286,7 +286,7 @@ endif
 	@$(bin2o)
 
 #---------------------------------------------------------------------------------
-%.ttf.o	:	%.ttf
+%.json.o :	%.json
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)

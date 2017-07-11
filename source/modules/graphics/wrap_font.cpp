@@ -13,14 +13,19 @@ using love::Font;
 
 int fontNew(lua_State * L)
 {
-	const char * path = luaL_checkstring(L, 1);
+	const char * path = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
 
 	Font * self = (Font *)luaobj_newudata(L, sizeof(* self));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = self->Init(path);
-	
+	char * error = nullptr;
+
+	if (path != nullptr)
+		error = self->Init(path);
+	else
+		error = self->DefaultInit();
+
 	if (error)
 		console->ThrowError(error);
  

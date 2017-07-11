@@ -6,7 +6,7 @@ using love::Image;
 #define TEXTURE_TRANSFER_FLAGS (GX_TRANSFER_FLIP_VERT(1) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |  GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 		GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) |  GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-char * Image::Init(const char * path)
+char * Image::Init(const char * path, bool memory)
 {
 	this->path = path;
 	this->texture = new C3D_Tex();
@@ -14,32 +14,55 @@ char * Image::Init(const char * path)
 	this->width = 0;
 	this->height = 0;
 
-	this->Decode();
+	this->isPremultiplied = false;
+
+	if (!memory)
+		this->DecodeFile();
 
 	return nullptr;
 }
 
-void Image::Decode()
+void Image::DecodeMemory(const unsigned char * in, size_t size)
 {
-	unsigned char * buffer;
+	unsigned char * buffer = nullptr;
 	unsigned textureWidth, textureHeight;
 
-	bool isPremultiplied = false;
+	lodepng::State state;
+	lodepng_decode32(&buffer, &textureWidth, &textureHeight, in, size);
+
+	if (state.info_png.color.colortype != 6)
+		this->isPremultiplied = true;
+
+	this->Decode(buffer, textureWidth, textureHeight);
+}
+
+void Image::DecodeFile()
+{
+	unsigned char * buffer = nullptr;
+	unsigned textureWidth, textureHeight;
+
 	lodepng::State state;
 
 	lodepng_decode32_file(&buffer, &textureWidth, &textureHeight, this->path);
 
-	if (state.info_png.color.colortype != 6) 
-		isPremultiplied = true;
+	if (state.info_png.color.colortype != 6)
+		this->isPremultiplied = true;
 
+	this->Decode(buffer, textureWidth, textureHeight);
+}
+
+void Image::Decode(unsigned char * buffer, unsigned textureWidth, unsigned textureHeight)
+{
 	this->width = textureWidth;
 	this->height = textureHeight;
 
-	int width = this->NextPow2(textureWidth);
-	int height = this->NextPow2(textureHeight);
+	int citroWidth = this->NextPow2(textureWidth);
+	int citroHeight = this->NextPow2(textureHeight);
 
-	u8 * gpuBuffer = (u8 *)linearAlloc(width * height * 4);
-	
+	C3D_TexInit(this->texture, citroWidth, citroHeight, GPU_RGBA8);
+
+	u8 * gpuBuffer = (u8 *)linearAlloc(citroWidth * citroHeight * 4);
+
 	if (isPremultiplied)
 	{
 		u32 * src = (u32 *)buffer;
@@ -51,11 +74,8 @@ void Image::Decode()
 			{
 				u32 clr = *src;
 				*dst = __builtin_bswap32(clr);
-
-				src += 4;
-				dst += 4;
 			}
-			dst += (width - textureWidth) * 4;
+			dst += (citroWidth - textureWidth) * 4;
 		}
 	}
 	else
@@ -67,35 +87,35 @@ void Image::Decode()
 		{
 			for (unsigned x = 0; x < textureWidth; x++)
 			{
-				u8 r = *src++;
-				u8 g = *src++;
-				u8 b = *src++;
-				u8 a = *src++;
-					
-				float aa = (1.0f / 255.0f) * a;
-					
-				*dst++ = a;
-				*dst++ = b*aa;
-				*dst++ = g*aa;
-				*dst++ = r*aa;
-			}
-			dst += (width - textureWidth) * 4;
-		}
-	}
+				u8 r = *(src++);
+				u8 g = *(src++);
+				u8 b = *(src++);
+				u8 a = *(src++);
 
-	this->LoadTexture(gpuBuffer, width, height);
+				float aa = (1.0f / 255.0f) * a;
+
+				*(dst++) = a;
+				*(dst++) = b*aa;
+				*(dst++) = g*aa;
+				*(dst++) = r*aa;
+			}
+			dst += (citroWidth - textureWidth) * 4;
+		}
+
+	}
+	
+	this->LoadTexture(gpuBuffer, citroWidth, citroHeight);
 
 	free(buffer);
 	linearFree(gpuBuffer);
 }
 
-void Image::LoadTexture(void * data, int width, int height)
+void Image::LoadTexture(void * data, int citroWidth, int citroHeight)
 {
-	GSPGPU_FlushDataCache((u32 *)data, width * height * 4);
 
-	C3D_TexInit(this->texture, width, height, GPU_RGBA8);
+	GSPGPU_FlushDataCache((u32 *)data, citroWidth * citroHeight * 4);
 
-	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(width, height), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
+	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
 
 	gspWaitForPPF();
 
