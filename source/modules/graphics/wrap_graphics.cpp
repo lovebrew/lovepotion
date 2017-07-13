@@ -15,6 +15,10 @@ int currentG = 255;
 int currentB = 255;
 int currentA = 255;
 
+int backgroundR = 0;
+int backgroundG = 0;
+int backgroundB = 0;
+
 love::Font * currentFont = nullptr;
 
 void resetPool()
@@ -94,6 +98,13 @@ void graphicsSetColor(int r, int g, int b, int a)
 	currentA = a;
 }
 
+void graphicsSetBackgroundColor(int r, int g, int b)
+{
+	backgroundR = r;
+	backgroundG = g;
+	backgroundB = b;
+}
+
 void graphicsSetFont(love::Font * font)
 {
 	currentFont = font;
@@ -107,6 +118,11 @@ love::Font * graphicsGetFont()
 u32 graphicsGetColor()
 {
 	return ( ( (currentA & 0xFF) << 24 ) + ( (currentB & 0xFF) << 16) + ( (currentG & 0xFF) << 8) + ( (currentR & 0xFF) << 0 ) );
+}
+
+u32 graphicsGetBackgroundColor()
+{
+	return ( ( (0xFF & 0xFF) >> 24 ) + ( (backgroundB & 0xFF) >> 16) + ( (backgroundG & 0xFF) >> 8) + ( (backgroundR & 0xFF) >> 0 ) );
 }
 
 void graphicsLine(float startx, float starty, float endx, float endy)

@@ -31,9 +31,6 @@ shaderProgram_s shader;
 gfxScreen_t Graphics::currentScreen = GFX_TOP;
 gfxScreen_t Graphics::renderScreen = GFX_TOP;
 
-u32 Graphics::backgroundColor = 0x000000FF; //0xRRGGBBAA
-
-
 Graphics::Graphics() {}
 
 int Graphics::GetWidth(lua_State * L)
@@ -82,6 +79,24 @@ int Graphics::SetColor(lua_State * L)
 	{
 		graphicsSetColor(r, g, b);
 	}
+
+	return 0;
+}
+
+int Graphics::SetBackgroundColor(lua_State * L)
+{
+	int r = luaL_checknumber(L, 1);
+	int g = luaL_checknumber(L, 2);
+	int b = luaL_checknumber(L, 3);
+
+	graphicsSetBackgroundColor(r, g, b);
+
+	return 0;
+}
+
+int Graphics::GetBackgroundColor(lua_State * L)
+{
+	printf("%x\n", graphicsGetBackgroundColor());
 
 	return 0;
 }
@@ -226,8 +241,8 @@ int Graphics::Points(lua_State * L)
 int Graphics::Print(lua_State * L)
 {
 	const char * text = luaL_checkstring(L, 1);
-	float x = luaL_checknumber(L, 2);
-	float y = luaL_checknumber(L, 3);
+	float x = luaL_optnumber(L, 2, 0);
+	float y = luaL_optnumber(L, 3, 0);
 
 	Font * currFont = graphicsGetFont();
 
@@ -280,6 +295,7 @@ void Graphics::InitRenderTargets()
 {	
 	this->topTarget = new CRenderTarget(GFX_TOP, GFX_LEFT, 400, 240);
 	this->bottomTarget = new CRenderTarget(GFX_BOTTOM, GFX_LEFT, 320, 240);
+	this->inRender = 0;
 
 	// shader and company
 	dvlb = DVLB_ParseFile((u32 *)basic_shader_shbin, basic_shader_shbin_size);
@@ -301,10 +317,10 @@ void Graphics::InitRenderTargets()
 void Graphics::Render(gfxScreen_t screen)
 {
 	resetPool();
-	
+		
 	renderScreen = screen;
 	
-	C3D_FrameBegin(0); //SYNC_DRAW
+	C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
 
 	switch(screen)
 	{
@@ -322,8 +338,7 @@ void Graphics::StartTarget(CRenderTarget * target)
 	if (target->GetTarget() == nullptr)
 		return;
 
-	
-	target->Clear(backgroundColor);
+	target->Clear(graphicsGetBackgroundColor());
 	
 	C3D_FrameDrawOn(target->GetTarget());
 
@@ -360,6 +375,8 @@ int graphicsInit(lua_State * L)
 		{ "getHeight",	love::Graphics::GetHeight	},
 		{ "setScreen",	love::Graphics::SetScreen	},
 		{ "setColor",	love::Graphics::SetColor	},
+		{ "setBackgroundColor",	love::Graphics::SetBackgroundColor	},
+		{ "getBackgroundColor", love::Graphics::GetBackgroundColor	},
 		{ 0, 0 },
 	};
 

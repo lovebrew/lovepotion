@@ -84,7 +84,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lz -lcitro3dd -lctrud -lm -logg -Og
+LIBS	:= -lz -lcitro3d -lctru -lm -logg
 
 UNAME := $(shell uname)
 

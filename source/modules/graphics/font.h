@@ -14,11 +14,13 @@ namespace love
 			love::Glyph * GetGlyph(char glyph);
 			love::Image * GetSheet();
 
+			void AddChars();
+
 		private:
 			love::File * configFile;
 			love::Image * bitmap;
 			nlohmann::json configJson;
-			std::vector<love::Glyph *> glyphs;
 			int chars;
+			love::Glyph ** glyphs;
 	};
 }

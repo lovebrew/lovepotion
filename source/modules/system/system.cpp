@@ -194,6 +194,7 @@ int System::GetLinearMemory(lua_State * L)
 
 void systemExit()
 {
+	printf("Exiting System..\n");
 	ptmuExit();
 	cfguExit();
 	acExit();

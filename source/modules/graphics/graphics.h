@@ -29,6 +29,7 @@ namespace love
 			static int Print(lua_State * L);
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);
+			static int GetBackgroundColor(lua_State * L);
 
 			void Render(gfxScreen_t screen);
 			void SwapBuffers();
@@ -46,5 +47,7 @@ namespace love
 
 			love::CRenderTarget * bottomTarget = nullptr;
 			love::CRenderTarget * topTarget = nullptr;
+
+			int inRender;
 	};
 }

@@ -84,7 +84,7 @@ int main(int argc, char ** argv)
 	osSetSpeedupEnable(true);
 
 	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
-
+	
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
 	

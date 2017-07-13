@@ -15,27 +15,17 @@ using json = nlohmann::json;
 
 char * Font::DefaultInit()
 {
-	std::string data((char *)vera12_json, (char *)vera12_json_end);
+	std::string data((char *)vera12_json, vera12_json_size);
 
 	this->configJson = json::parse(data);
 
 	this->bitmap = new love::Image();
-	this->bitmap->Init(nullptr, true);
+	this->bitmap->Init("", true);
 	this->bitmap->DecodeMemory(vera12_png, vera12_png_size);
 
 	this->chars = this->configJson["chars"].size();
-	
-	printf("(Vera, 12pt) glyphs: %d\n", this->chars);
 
-	this->glyphs.reserve(this->chars);
-	for (auto it = this->configJson["chars"].begin(); it != this->configJson["chars"].end(); it++)
-	{
-		if (it.value().is_object())
-		{
-			printf("Pushing to vector!\n");
-			this->glyphs.push_back(new love::Glyph(it.value()));
-		}
-	}
+	this->AddChars();
 
 	return nullptr;
 }
@@ -71,25 +61,30 @@ char * Font::Init(const char * path)
 
 	this->chars = this->configJson["chars"].size();
 	
-	this->glyphs.reserve(this->chars);
+	this->AddChars();
+	
+	return nullptr;
+}
+
+void Font::AddChars()
+{
+	this->glyphs = new love::Glyph*[this->chars];
+	int i = 0;
+
 	for (auto it = this->configJson["chars"].begin(); it != this->configJson["chars"].end(); it++)
 	{
 		if (it.value().is_object())
 		{
-			love::Glyph * temp = new love::Glyph(it.value());
-
-			if (temp != nullptr)
-				this->glyphs.push_back(temp);
+			this->glyphs[i] = new love::Glyph(it.value());
+			i++;
 		}
 	}
-	
-	return nullptr;
 }
 
 love::Glyph * Font::GetGlyph(char glyph)
 {	
 	love::Glyph * ret = nullptr;
-	for (int i = 0; i < this->glyphs.size(); i++)
+	for (int i = 0; i < this->chars; i++)
 	{
 		if ((int)glyph == this->glyphs[i]->GetChar())
 		{
@@ -108,7 +103,7 @@ love::Image * Font::GetSheet()
 
 int Font::GetWidth(char * glyph)
 {
-
+	return 0;
 }
 
 int Font::GetHeight()
