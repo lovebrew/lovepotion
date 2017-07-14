@@ -30,6 +30,7 @@ shaderProgram_s shader;
 
 gfxScreen_t Graphics::currentScreen = GFX_TOP;
 gfxScreen_t Graphics::renderScreen = GFX_TOP;
+bool Graphics::inRender = false;
 
 Graphics::Graphics() {}
 
@@ -112,6 +113,8 @@ int Graphics::Line(lua_State * L)
 	if (currentScreen == renderScreen)
 		graphicsLine(startx, starty, endx, endy);
 	
+	inRender = true;
+
 	return 0;
 }
 
@@ -128,6 +131,8 @@ int Graphics::Rectangle(lua_State * L)
 	if (currentScreen == renderScreen)
 		graphicsRectangle(x, y, width, height);
 
+	inRender = true;
+
 	return 0;
 }
 
@@ -143,6 +148,8 @@ int Graphics::Circle(lua_State * L)
 
 	if (currentScreen == renderScreen)
 		graphicsCircle(x, y, radius, segments);
+
+	inRender = true;
 
 	return 0;
 }
@@ -171,6 +178,8 @@ int Graphics::Draw(lua_State * L)
 			graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
 	}
 	
+	inRender = true;
+
 	return 0;
 }
 
@@ -235,6 +244,8 @@ int Graphics::Points(lua_State * L)
 
 	delete[] coordinates;
 
+	inRender = true;
+
 	return 0;
 }
 
@@ -273,6 +284,8 @@ int Graphics::Print(lua_State * L)
 		}
 	}
 
+	inRender = true;
+	
 	return 0;
 }
 
@@ -295,7 +308,6 @@ void Graphics::InitRenderTargets()
 {	
 	this->topTarget = new CRenderTarget(GFX_TOP, GFX_LEFT, 400, 240);
 	this->bottomTarget = new CRenderTarget(GFX_BOTTOM, GFX_LEFT, 320, 240);
-	this->inRender = 0;
 
 	// shader and company
 	dvlb = DVLB_ParseFile((u32 *)basic_shader_shbin, basic_shader_shbin_size);
@@ -317,9 +329,9 @@ void Graphics::InitRenderTargets()
 void Graphics::Render(gfxScreen_t screen)
 {
 	resetPool();
-		
+			
 	renderScreen = screen;
-	
+		
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
 
 	switch(screen)
@@ -339,7 +351,10 @@ void Graphics::StartTarget(CRenderTarget * target)
 		return;
 
 	target->Clear(graphicsGetBackgroundColor());
-	
+
+	if (!this->inRender)
+		return;
+
 	C3D_FrameDrawOn(target->GetTarget());
 
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());

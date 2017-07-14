@@ -48,6 +48,6 @@ namespace love
 			love::CRenderTarget * bottomTarget = nullptr;
 			love::CRenderTarget * topTarget = nullptr;
 
-			int inRender;
+			static bool inRender;
 	};
 }

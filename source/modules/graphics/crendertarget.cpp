@@ -29,6 +29,5 @@ C3D_RenderTarget * CRenderTarget::GetTarget()
 
 void CRenderTarget::Clear(u32 color)
 {
-	//C3D_FrameBufClear(&(this->target->frameBuf), C3D_CLEAR_COLOR, color, 0);
 	C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, color, 0);
 }
