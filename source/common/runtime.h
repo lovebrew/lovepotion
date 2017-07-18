@@ -23,6 +23,7 @@ extern "C" {
 #include <string>
 #include <sstream>
 #include <vector>
+#include <malloc.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -36,3 +37,7 @@ extern "C" {
 extern std::string debug;
 extern love::Console * console;
 extern bool FUSED;
+
+extern touchPosition touch;
+extern bool touchDown;
+extern int lastTouch[2];

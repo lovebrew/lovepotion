@@ -30,7 +30,6 @@ shaderProgram_s shader;
 
 gfxScreen_t Graphics::currentScreen = GFX_TOP;
 gfxScreen_t Graphics::renderScreen = GFX_TOP;
-bool Graphics::inRender = false;
 
 Graphics::Graphics() {}
 
@@ -112,8 +111,6 @@ int Graphics::Line(lua_State * L)
 
 	if (currentScreen == renderScreen)
 		graphicsLine(startx, starty, endx, endy);
-	
-	inRender = true;
 
 	return 0;
 }
@@ -131,8 +128,6 @@ int Graphics::Rectangle(lua_State * L)
 	if (currentScreen == renderScreen)
 		graphicsRectangle(x, y, width, height);
 
-	inRender = true;
-
 	return 0;
 }
 
@@ -148,8 +143,6 @@ int Graphics::Circle(lua_State * L)
 
 	if (currentScreen == renderScreen)
 		graphicsCircle(x, y, radius, segments);
-
-	inRender = true;
 
 	return 0;
 }
@@ -177,8 +170,6 @@ int Graphics::Draw(lua_State * L)
 		else
 			graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
 	}
-	
-	inRender = true;
 
 	return 0;
 }
@@ -244,8 +235,6 @@ int Graphics::Points(lua_State * L)
 
 	delete[] coordinates;
 
-	inRender = true;
-
 	return 0;
 }
 
@@ -283,8 +272,6 @@ int Graphics::Print(lua_State * L)
 			graphicsDrawQuad(texture, x + width + glyph->GetXOffset(), y + glyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
 		}
 	}
-
-	inRender = true;
 	
 	return 0;
 }
@@ -328,11 +315,16 @@ void Graphics::InitRenderTargets()
 
 void Graphics::Render(gfxScreen_t screen)
 {
-	resetPool();
+	if (!this->inRender)
+	{
+		resetPool();
+				
+		renderScreen = screen;
 			
-	renderScreen = screen;
-		
-	C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
+
+		this->inRender = true;
+	}
 
 	switch(screen)
 	{
@@ -352,9 +344,6 @@ void Graphics::StartTarget(CRenderTarget * target)
 
 	target->Clear(graphicsGetBackgroundColor());
 
-	if (!this->inRender)
-		return;
-
 	C3D_FrameDrawOn(target->GetTarget());
 
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
@@ -362,6 +351,9 @@ void Graphics::StartTarget(CRenderTarget * target)
 
 void Graphics::SwapBuffers()
 {
+	if (this->inRender)
+		this->inRender = false;
+
 	C3D_FrameEnd(0);
 }
 

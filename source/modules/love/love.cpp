@@ -8,6 +8,7 @@ extern int systemInit(lua_State * L);
 extern int timerInit(lua_State * L);
 extern int audioInit(lua_State * L);
 extern int keyboardInit(lua_State * L);
+extern int mouseInit(lua_State * L);
 
 extern void systemExit();
 
@@ -24,7 +25,8 @@ struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] =
 	{"system",		systemInit,		systemExit	},
 	{"timer",		timerInit,		NULL		},
 	{"audio",		audioInit,		NULL		},
-	{"keyboard",	keyboardInit,	NULL,		},
+	{"keyboard",	keyboardInit,	NULL		},
+	{"mouse",		mouseInit,		NULL		},
 	{0}
 };
 
@@ -44,14 +46,14 @@ int loveQuit(lua_State * L)
 }
 
 int lastTouch[2];
+touchPosition touch;
+bool touchDown = false;
 int loveScan(lua_State * L)
 {
 	hidScanInput();
 
 	u32 circleHeld;
 
-	touchPosition touch;
-	
 	u32 keyDown = hidKeysDown();
 	u32 keyHeld = hidKeysHeld();
 	u32 keyUp = hidKeysUp();
@@ -107,6 +109,8 @@ int loveScan(lua_State * L)
 			lastTouch[0] = touch.px;
 			lastTouch[1] = touch.px;
 
+			touchDown = true;
+			
 			if (!lua_isnil(L, -1))
 			{
 				lua_pushinteger(L, lastTouch[0]);
@@ -114,6 +118,7 @@ int loveScan(lua_State * L)
 				lua_pushinteger(L, 1);
 
 				lua_call(L, 3, 0);
+
 			}
 		}
 	}
@@ -128,6 +133,8 @@ int loveScan(lua_State * L)
 
 			lastTouch[0] = touch.px;
 			lastTouch[1] = touch.px;
+
+			touchDown = false;
 
 			if (!lua_isnil(L, -1))
 			{

@@ -39,6 +39,7 @@ SOURCES		:=	\
 				source/modules/graphics \
 				source/modules/love \
 				source/modules/system \
+				source/modules/socket \
 				source/modules/timer \
 				source/modules/keyboard \
 				source/modules/font \
