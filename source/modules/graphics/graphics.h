@@ -37,7 +37,7 @@ namespace love
 
 			gfxScreen_t GetScreen();
 			void InitRenderTargets();
-
+			
 		private:
 			Graphics();
 			static gfxScreen_t currentScreen;

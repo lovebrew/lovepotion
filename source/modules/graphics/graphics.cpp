@@ -357,6 +357,12 @@ void Graphics::SwapBuffers()
 	C3D_FrameEnd(0);
 }
 
+void graphicsExit()
+{
+	C3D_Fini();
+	gfxExit();
+}
+
 int graphicsInit(lua_State * L)
 {	
 	gfxInitDefault();

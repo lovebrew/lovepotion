@@ -2,6 +2,8 @@
 #include "common/version.h"
 #include "common/runtime.h"
 
+#include "modules/socket/socket.h"
+
 extern int graphicsInit(lua_State * L);
 extern int filesystemInit(lua_State * L);
 extern int systemInit(lua_State * L);
@@ -11,6 +13,7 @@ extern int keyboardInit(lua_State * L);
 extern int mouseInit(lua_State * L);
 
 extern void systemExit();
+extern void graphicsExit();
 
 extern int initSourceClass(lua_State * L);
 extern int initFileClass(lua_State * L);
@@ -20,7 +23,7 @@ extern int initQuadClass(lua_State * L);
 
 struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-	{"graphics",	graphicsInit,	NULL		},
+	{"graphics",	graphicsInit,	graphicsExit},
 	{"filesystem",	filesystemInit,	NULL		},
 	{"system",		systemInit,		systemExit	},
 	{"timer",		timerInit,		NULL		},
@@ -181,6 +184,19 @@ int loveInit(lua_State * L)
 		lua_setfield(L, -2, modules[i].name);
 	}
 
+	//Preload our package in package.preload
+	lua_getglobal(L, "package"); 
+	lua_getfield(L, -1, "preload");
+
+	//push the C function for init here
+	lua_pushcfunction(L, socketInit);
+	
+	//Set field name
+	lua_setfield(L, -2, "socket");
+
+	//throw onto the stack
+	lua_pop(L, 2);
+
 	return 1;
 }
 
@@ -189,5 +205,7 @@ void loveClose(lua_State * L)
 	for (int i = 0; modules[i].close; i++)
 		modules[i].close();
 
+	socketClose();
+	
 	lua_close(L);
 }

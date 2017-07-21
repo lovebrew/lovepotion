@@ -30,13 +30,10 @@ std::vector<love::Source *> streams;
 #include "modules/graphics/crendertarget.h"
 #include "modules/graphics/graphics.h"
 
-#include "modules/socket/http.h"
-
 bool LUA_ERROR = false;
 bool LOVE_QUIT = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
-
 
 #include <unistd.h>
 
@@ -80,8 +77,6 @@ int main(int argc, char ** argv)
 	
 	if (!AUDIO_ENABLED)
 		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
-
-	luaL_requiref(L, "http", httpInit, 1);
 
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
 
@@ -149,9 +144,6 @@ int main(int argc, char ** argv)
 	luaL_dostring(L, "love.audio.stop()");
 
 	loveClose(L);
-
-	C3D_Fini();
-	gfxExit();
 	
 	if (AUDIO_ENABLED) 
 		ndspExit();
