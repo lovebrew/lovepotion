@@ -189,7 +189,16 @@ int System::GetLinearMemory(lua_State * L)
 	linearMemory = linearSpaceFree();
 	
 	lua_pushnumber(L, linearMemory);
+	
 	return 1;
+}
+
+int System::SetConsole(lua_State * L)
+{
+	if (!console->IsEnabled())
+		console->Enable(GFX_BOTTOM); //default?
+	else
+		console->Disable();
 }
 
 void systemExit()

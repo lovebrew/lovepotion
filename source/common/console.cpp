@@ -22,6 +22,12 @@ void Console::Enable(gfxScreen_t screen)
 	this->screen = screen;
 }
 
+void Console::Disable()
+{
+	if (!this->IsEnabled())
+		love::CONSOLE_ENABLED = false;
+}
+
 gfxScreen_t Console::GetScreen()
 {
 	return this->screen;

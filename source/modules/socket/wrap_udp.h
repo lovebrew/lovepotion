@@ -8,7 +8,13 @@ int udpSetPeerName(lua_State * L);
 
 int udpSend(lua_State * L);
 
+int udpSendTo(lua_State * L);
+
 int udpReceive(lua_State * L);
+
+int udpReceiveFrom(lua_State * L);
+
+int udpSetOption(lua_State * L);
 
 int udpSetTimeout(lua_State * L);
 

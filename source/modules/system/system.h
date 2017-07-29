@@ -24,6 +24,7 @@ namespace love
 			static int GetWifiStatus(lua_State * L);
 			static int GetSystemLanguage(lua_State * L);
 			static int GetLinearMemory(lua_State * L);
+			static int SetConsole(lua_State * L);
 
 		private:
 			System();

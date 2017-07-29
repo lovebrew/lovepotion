@@ -184,19 +184,6 @@ int loveInit(lua_State * L)
 		lua_setfield(L, -2, modules[i].name);
 	}
 
-	//Preload our package in package.preload
-	lua_getglobal(L, "package"); 
-	lua_getfield(L, -1, "preload");
-
-	//push the C function for init here
-	lua_pushcfunction(L, socketInit);
-	
-	//Set field name
-	lua_setfield(L, -2, "socket");
-
-	//throw onto the stack
-	lua_pop(L, 2);
-
 	return 1;
 }
 

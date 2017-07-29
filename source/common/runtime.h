@@ -1,5 +1,7 @@
 #pragma once
 
+#define CONFIG_3D_SLIDERSTATE (*(float *)0x1FF81080)
+
 extern "C" {
 	#include <lua.h>
 	#include <lualib.h>
@@ -45,6 +47,11 @@ extern "C" {
 extern std::string debug;
 extern love::Console * console;
 extern bool FUSED;
+
+extern bool is3D;
+extern gfxScreen_t currentScreen;
+extern gfxScreen_t renderScreen;
+extern gfx3dSide_t currentSide;
 
 extern touchPosition touch;
 extern bool touchDown;

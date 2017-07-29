@@ -32,6 +32,12 @@ void graphicsSetBackgroundColor(int r, int g, int b);
 
 void graphicsSetFont(love::Font * font);
 
+void graphicsSet3D(bool enable);
+
+void graphicsSetDepth(float depth);
+
+void translateCoords(float * x, float * y);
+
 love::Font * graphicsGetFont();
 
 u32 graphicsGetColor();

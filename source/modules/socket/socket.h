@@ -6,3 +6,5 @@
 int socketInit(lua_State * L);
 
 void socketClose();
+
+void initLuaSocket(lua_State * L);

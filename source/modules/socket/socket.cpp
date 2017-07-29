@@ -7,6 +7,22 @@ void socketClose()
 	socExit();
 }
 
+void initLuaSocket(lua_State * L)
+{
+	//Preload our package in package.preload
+	lua_getglobal(L, "package"); 
+	lua_getfield(L, -1, "preload");
+
+	//push the C function for init here
+	lua_pushcfunction(L, socketInit);
+	
+	//Set field name
+	lua_setfield(L, -2, "socket");
+
+	//throw onto the stack
+	lua_pop(L, 2);
+}
+
 int socketInit(lua_State * L)
 {
 	u32 * socketBuffer = (u32 *)memalign(0x1000, 0x100000);

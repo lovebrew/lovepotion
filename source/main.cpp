@@ -29,11 +29,13 @@ std::vector<love::Source *> streams;
 
 #include "modules/graphics/crendertarget.h"
 #include "modules/graphics/graphics.h"
+#include "modules/socket/socket.h"
 
 bool LUA_ERROR = false;
 bool LOVE_QUIT = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
+bool is3D = false;
 
 #include <unistd.h>
 
@@ -73,7 +75,7 @@ int main(int argc, char ** argv)
 	}
 
 	console = new love::Console();
-	console->Enable(GFX_BOTTOM);
+	//console->Enable(GFX_BOTTOM);
 	
 	if (!AUDIO_ENABLED)
 		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
@@ -84,6 +86,8 @@ int main(int argc, char ** argv)
 
 	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 	
+	initLuaSocket(L);
+
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
 	
@@ -118,16 +122,26 @@ int main(int argc, char ** argv)
 				CLOSE_KEYBOARD =  false;
 			}
 
-			love::Graphics::Instance()->Render(GFX_TOP);
+			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
 
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
 			
-			/*love::Graphics::Instance()->Render(GFX_BOTTOM);
+			if (is3D)
+			{
+				love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
 				
+				if (luaL_dostring(L, "if love.draw then love.draw() end"))
+					console->ThrowError(L);
+			}
+
+			love::Graphics::Instance()->SwapBuffers();
+			
+			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
+
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
-			*/
+
 			love::Graphics::Instance()->SwapBuffers();
 
 			love::Timer::Instance()->Tick();

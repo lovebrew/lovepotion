@@ -28,8 +28,9 @@ int projection_desc = -1;
 DVLB_s * dvlb = nullptr;
 shaderProgram_s shader;
 
-gfxScreen_t Graphics::currentScreen = GFX_TOP;
-gfxScreen_t Graphics::renderScreen = GFX_TOP;
+gfxScreen_t currentScreen = GFX_TOP;
+gfxScreen_t renderScreen = GFX_TOP;
+gfx3dSide_t currentSide = GFX_LEFT;
 
 Graphics::Graphics() {}
 
@@ -286,15 +287,39 @@ int Graphics::SetFont(lua_State * L)
 	return 0;
 }
 
+int Graphics::Set3D(lua_State * L)
+{
+	bool enable = luaL_checkinteger(L, 1);
+
+	graphicsSet3D(enable);
+
+	return 0;
+}
+
+int Graphics::SetDepth(lua_State * L)
+{
+	float depth = luaL_checknumber(L, 1);
+
+	graphicsSetDepth(depth);
+
+	return 0;
+}
+
 gfxScreen_t Graphics::GetScreen()
 {
 	return currentScreen;
+}
+
+gfx3dSide_t Graphics::GetSide()
+{
+	return currentSide;
 }
 
 void Graphics::InitRenderTargets()
 {	
 	this->topTarget = new CRenderTarget(GFX_TOP, GFX_LEFT, 400, 240);
 	this->bottomTarget = new CRenderTarget(GFX_BOTTOM, GFX_LEFT, 320, 240);
+	this->topDepthTarget = new CRenderTarget(GFX_TOP, GFX_RIGHT, 400, 240);
 
 	// shader and company
 	dvlb = DVLB_ParseFile((u32 *)basic_shader_shbin, basic_shader_shbin_size);
@@ -313,7 +338,7 @@ void Graphics::InitRenderTargets()
 	graphicsInitWrapper();
 }
 
-void Graphics::Render(gfxScreen_t screen)
+void Graphics::Render(gfxScreen_t screen, gfx3dSide_t side)
 {
 	if (!this->inRender)
 	{
@@ -329,12 +354,17 @@ void Graphics::Render(gfxScreen_t screen)
 	switch(screen)
 	{
 		case GFX_TOP:
-			this->StartTarget(topTarget);
+			if (side == GFX_LEFT)
+				this->StartTarget(topTarget);
+			else
+				this->StartTarget(topDepthTarget);
 			break;
 		case GFX_BOTTOM:
 			this->StartTarget(bottomTarget);
 			break;
 	}
+
+	currentSide = side;
 }
 
 void Graphics::StartTarget(CRenderTarget * target)
@@ -390,6 +420,8 @@ int graphicsInit(lua_State * L)
 		{ "setColor",	love::Graphics::SetColor	},
 		{ "setBackgroundColor",	love::Graphics::SetBackgroundColor	},
 		{ "getBackgroundColor", love::Graphics::GetBackgroundColor	},
+		{ "set3D",		love::Graphics::Set3D		},
+		{ "setDepth",	love::Graphics::SetDepth	},
 		{ 0, 0 },
 	};
 

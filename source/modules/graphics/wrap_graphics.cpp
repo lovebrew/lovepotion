@@ -19,6 +19,8 @@ int backgroundR = 0;
 int backgroundG = 0;
 int backgroundB = 0;
 
+float currentDepth = 0;
+
 love::Font * currentFont = nullptr;
 
 void resetPool()
@@ -82,6 +84,27 @@ void generateTextureVertecies(texturePositions * vertecies)
 	BufInfo_Init(bufInfo);
 
 	BufInfo_Add(bufInfo, vertecies, sizeof(texturePositions), 2, 0x10);
+}
+
+void graphicsSet3D(bool enable)
+{
+	gfxSet3D(enable);
+}
+
+void graphicsSetDepth(float depth)
+{
+	currentDepth = depth;
+}
+
+void translateCoords(float * x, float * y)
+{
+	if (!is3D)
+		return;
+
+	if (currentSide == GFX_LEFT)
+		*x -= (CONFIG_3D_SLIDERSTATE * currentDepth);
+	else if (currentSide == GFX_RIGHT)
+		*x += (CONFIG_3D_SLIDERSTATE * currentDepth);
 }
 
 void graphicsSetColor(int r, int g, int b)
@@ -164,6 +187,8 @@ void graphicsLine(float startx, float starty, float endx, float endy)
 
 void graphicsRectangle(float x, float y, float width, float height)
 {
+	translateCoords(&x, &y);
+
 	vertexPositions * vertexList = (vertexPositions *)allocateAlign(4 * sizeof(vertexPositions), 8);
 
 	if (!vertexList)
@@ -184,6 +209,8 @@ void graphicsRectangle(float x, float y, float width, float height)
 
 void graphicsCircle(float x, float y, float radius, float segments)
 {
+	translateCoords(&x, &y);
+
 	vertexPositions * vertexList = (vertexPositions *)allocateAlign((segments + 2) * sizeof(vertexPositions), 8);
 
 	if (!vertexList)
@@ -204,7 +231,9 @@ void graphicsCircle(float x, float y, float radius, float segments)
 }
 
 void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
-{	
+{
+	translateCoords(&x, &y);
+
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
@@ -230,6 +259,8 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 
 void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight)
 {
+	translateCoords(&x, &y);
+
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
