@@ -245,6 +245,8 @@ int Graphics::Print(lua_State * L)
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
 
+	float originX = x;
+
 	Font * currFont = graphicsGetFont();
 
 	if (currFont == nullptr)
@@ -262,6 +264,12 @@ int Graphics::Print(lua_State * L)
 		{
 			love::Glyph * glyph = currFont->GetGlyph(text[i]);
 
+			if (text[i] == '\n')
+			{
+				x = originX;
+				y = y + currFont->GetHeight();
+			}
+			
 			if (glyph == nullptr)
 				return 0;
 	
@@ -289,7 +297,7 @@ int Graphics::SetFont(lua_State * L)
 
 int Graphics::Set3D(lua_State * L)
 {
-	bool enable = luaL_checkinteger(L, 1);
+	bool enable = lua_toboolean(L, 1);
 
 	graphicsSet3D(enable);
 

@@ -98,13 +98,14 @@ void graphicsSetDepth(float depth)
 
 void translateCoords(float * x, float * y)
 {
-	if (!is3D)
+	if (!gfxIs3D() || (gfxIs3D() && currentScreen != GFX_TOP))
 		return;
 
+	float slider = CONFIG_3D_SLIDERSTATE;
 	if (currentSide == GFX_LEFT)
-		*x -= (CONFIG_3D_SLIDERSTATE * currentDepth);
+		*x -= (slider * currentDepth);
 	else if (currentSide == GFX_RIGHT)
-		*x += (CONFIG_3D_SLIDERSTATE * currentDepth);
+		*x += (slider * currentDepth);
 }
 
 void graphicsSetColor(int r, int g, int b)
@@ -145,7 +146,7 @@ u32 graphicsGetColor()
 
 u32 graphicsGetBackgroundColor()
 {
-	return ( ( (0xFF & 0xFF) >> 24 ) + ( (backgroundB & 0xFF) >> 16) + ( (backgroundG & 0xFF) >> 8) + ( (backgroundR & 0xFF) >> 0 ) );
+	return ( ( (backgroundR & 0xFF) << 24 ) + ( (backgroundG & 0xFF) << 16) + ( (backgroundB & 0xFF) << 8) + ( (0xFF & 0xFF) << 0 ) );
 }
 
 void graphicsLine(float startx, float starty, float endx, float endy)
@@ -187,12 +188,12 @@ void graphicsLine(float startx, float starty, float endx, float endy)
 
 void graphicsRectangle(float x, float y, float width, float height)
 {
-	translateCoords(&x, &y);
-
 	vertexPositions * vertexList = (vertexPositions *)allocateAlign(4 * sizeof(vertexPositions), 8);
 
 	if (!vertexList)
 		return;
+
+	translateCoords(&x, &y);
 
 	vertexList[0].position = { x, 			y,			0.5f};
 	vertexList[1].position = { x + width,	y, 			0.5f};
@@ -209,12 +210,12 @@ void graphicsRectangle(float x, float y, float width, float height)
 
 void graphicsCircle(float x, float y, float radius, float segments)
 {
-	translateCoords(&x, &y);
-
 	vertexPositions * vertexList = (vertexPositions *)allocateAlign((segments + 2) * sizeof(vertexPositions), 8);
 
 	if (!vertexList)
 		return;
+	
+	translateCoords(&x, &y);
 
 	float angle = 0;
 	for (int i = 0; i <= segments; i++)
@@ -232,12 +233,12 @@ void graphicsCircle(float x, float y, float radius, float segments)
 
 void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 {
-	translateCoords(&x, &y);
-
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
 		return;
+
+	translateCoords(&x, &y);
 
 	vertexList[0].position = {x, 			y,			0.5f};
 	vertexList[1].position = {x + width,	y,			0.5f};
@@ -259,12 +260,12 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 
 void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight)
 {
-	translateCoords(&x, &y);
-
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
 		return;
+
+	translateCoords(&x, &y);
 
 	vertexList[0].position = {x, 				y,					0.5f};
 	vertexList[1].position = {x + textureWidth,	y,					0.5f};

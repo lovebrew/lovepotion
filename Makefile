@@ -165,7 +165,7 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
-ifneq ($(APP_ROMFS_DIR),)
+ifeq ($(strip $(USE_ROMFS)),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 endif
 

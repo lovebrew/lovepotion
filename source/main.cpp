@@ -127,7 +127,7 @@ int main(int argc, char ** argv)
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
 			
-			if (is3D)
+			if (gfxIs3D())
 			{
 				love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
 				
@@ -152,6 +152,9 @@ int main(int argc, char ** argv)
 			u32 kTempDown = hidKeysDown();
 			if (kTempDown & KEY_START)
 				break;
+
+			if (!console->IsEnabled())
+				console->Enable(GFX_BOTTOM);
 		}
 	}
 
