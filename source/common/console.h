@@ -8,7 +8,6 @@ namespace love
 			Console();
 			bool IsEnabled();
 			void Enable(gfxScreen_t screen);
-			void Disable();
 
 			void ThrowError(lua_State * L);
 			void ThrowError(const char * message);
@@ -17,5 +16,6 @@ namespace love
 		private:
 			bool hasPrinted;
 			gfxScreen_t screen;
+			bool enabled;
 	};
 } //namespace love

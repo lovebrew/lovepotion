@@ -5,7 +5,7 @@ namespace love
 	class Quad
 	{
 		public:
-			char * Init(int x, int y, int width, int height);
+			const char * Init(int x, int y, int width, int height);
 			int GetX();
 			int GetY();
 			int GetWidth();

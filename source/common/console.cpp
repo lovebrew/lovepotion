@@ -11,21 +11,16 @@ using love::Console;
 Console::Console()
 {
 	this->hasPrinted = false;
+	this->enabled = false;
 }
 
 void Console::Enable(gfxScreen_t screen)
 {
 	if (!this->IsEnabled())
-		love::CONSOLE_ENABLED = true;
+		this->enabled = true;
 
 	consoleInit(screen, NULL);
 	this->screen = screen;
-}
-
-void Console::Disable()
-{
-	if (!this->IsEnabled())
-		love::CONSOLE_ENABLED = false;
 }
 
 gfxScreen_t Console::GetScreen()
@@ -35,7 +30,7 @@ gfxScreen_t Console::GetScreen()
 
 bool Console::IsEnabled()
 {
-	return love::CONSOLE_ENABLED;
+	return this->enabled;
 }
 
 void Console::ThrowError(const char * errorMessage)
@@ -55,9 +50,6 @@ void Console::ThrowError(const char * errorMessage)
 void Console::ThrowError(lua_State * L)
 {
 	const char * errorMessage = lua_tostring(L, -1);
-
-	if (errorMessage == nullptr)
-		return;
 	
 	this->ThrowError(errorMessage);
 }

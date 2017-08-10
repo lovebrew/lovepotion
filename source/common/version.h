@@ -10,8 +10,6 @@ namespace love
 
 	static const char * VERSION = LOVE_VERSION;
 	static const char * CODENAME = "Super Toast";
-
-	static bool CONSOLE_ENABLED = true;
 } //namespace love
 
 extern bool LUA_ERROR;

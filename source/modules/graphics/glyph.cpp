@@ -20,6 +20,7 @@ Glyph::Glyph(json config)
 	this->xadvance = config["xadvance"];
 	this->yoffset = config["yoffset"];
 	this->xoffset = config["xoffset"];
+	this->width = charWidth;
 }
 
 love::Quad * Glyph::GetQuad()
@@ -40,6 +41,11 @@ int Glyph::GetYOffset()
 int Glyph::GetXOffset()
 {
 	return this->xoffset;
+}
+
+int Glyph::GetWidth()
+{
+	return this->width;
 }
 
 int Glyph::GetChar()

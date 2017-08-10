@@ -13,7 +13,7 @@ int udpNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = self->Init();
+	const char * error = self->Init();
 
 	if (error)
 		console->ThrowError(error);
@@ -95,9 +95,10 @@ int udpReceive(lua_State * L)
 	if (received == nullptr)
 		lua_pushnil(L);
 	else
+	{
 		lua_pushstring(L, received);
-
-	free(received);
+		free(received);
+	}
 
 	return 1;
 }
@@ -106,24 +107,24 @@ int udpReceiveFrom(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	char * buffer = (char *)malloc(8193);
-	char address[0x40];
+	char * buffer = (char *)calloc(1, 8192);
+	char * address = (char *)calloc(1, 0x41);
 	int port;
 
-	int length = self->ReceiveFrom(&buffer, address, &port);
+	int length = self->ReceiveFrom(buffer, address, &port);
 
 	if (length == 0)
 	{
+		lua_pushnil(L);
 		free(buffer);
-		return 0;
+		return 1;
 	}
 	
-	lua_pushlstring(L, buffer, length);
+	lua_pushstring(L, buffer);
 	lua_pushstring(L, address);
 	lua_pushinteger(L, port);
-
+	
 	free(buffer);
-	//free(address);
 
 	return 3;
 }
@@ -133,7 +134,7 @@ int udpSetOption(lua_State * L)
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	const char * option = luaL_checkstring(L, 2);
-	bool enable = luaL_checkinteger(L, 3);
+	bool enable = lua_toboolean(L, 3);
 
 	int status = self->SetOption(option, enable);
 

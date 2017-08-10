@@ -1,6 +1,6 @@
-#include "love.h"
 #include "common/version.h"
 #include "common/runtime.h"
+#include "love.h"
 
 #include "modules/socket/socket.h"
 
@@ -153,6 +153,12 @@ int loveScan(lua_State * L)
 	return 0;
 }
 
+int loveEnableConsole(lua_State * L)
+{
+	console->Enable(GFX_BOTTOM);
+	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
+}
+
 int loveInit(lua_State * L)
 {
 	int (*classes[])(lua_State *L) = {
@@ -173,6 +179,7 @@ int loveInit(lua_State * L)
 	{
 		{ "getVersion",	loveGetVersion	},
 		{ "quit",		loveQuit		},
+		{ "enableConsole",	loveEnableConsole},
 		{ 0, 0 },
 	};
 

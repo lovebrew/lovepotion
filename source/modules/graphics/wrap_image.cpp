@@ -15,7 +15,7 @@ int imageNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = self->Init(path, false);
+	const char * error = self->Init(path, false);
 	
 	if (error)
 		console->ThrowError(error);

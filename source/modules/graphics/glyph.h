@@ -10,6 +10,8 @@ namespace love
 			int GetXAdvance();
 			int GetYOffset();
 			int GetXOffset();
+			int GetWidth();
+
 			int GetChar();
 			Glyph() {};
 
@@ -23,5 +25,6 @@ namespace love
 			int xadvance;
 			int yoffset;
 			int xoffset;
+			int width;
 	};
 }

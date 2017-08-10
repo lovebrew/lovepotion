@@ -19,7 +19,7 @@ int quadNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = self->Init(x, y, width, height);
+	const char * error = self->Init(x, y, width, height);
 	
 	if (error)
 		console->ThrowError(error);

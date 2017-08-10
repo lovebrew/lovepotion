@@ -44,7 +44,6 @@ extern "C" {
 
 #define CONFIG_3D_SLIDERSTATE (*(volatile float *)0x1FF81080)
 
-extern std::string debug;
 extern love::Console * console;
 extern bool FUSED;
 

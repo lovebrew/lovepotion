@@ -14,7 +14,7 @@ int fileNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = self->Init(path);
+	const char * error = self->Init(path);
 	
 	if (error)
 		console->ThrowError(error);

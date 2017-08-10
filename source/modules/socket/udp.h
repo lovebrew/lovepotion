@@ -5,11 +5,11 @@ namespace love
 	class UDP
 	{
 		public:
-			char * Init();
+			const char * Init();
 			int SetSocketName(const char * destination, int port);
 			int Close();
 			char * Receive();
-			int ReceiveFrom(char ** outBuffer, char * outAddress, int * outPort);
+			int ReceiveFrom(char * outBuffer, char * outAddress, int * outPort);
 			int Send(const char * data, size_t len);
 			int SendTo(const char * data, size_t len, const char * destination, int port);
 			int SetOption(const char * option, bool enable);
@@ -21,7 +21,7 @@ namespace love
 			int udpSocket;
 			struct sockaddr_in address;
 			struct hostent * host;
-			char * ip;
+			const char * ip;
 			int port;
 			char * buffer;
 	};

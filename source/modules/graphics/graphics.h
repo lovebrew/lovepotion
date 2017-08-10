@@ -29,6 +29,11 @@ namespace love
 			static int Points(lua_State * L);
 			static int Draw(lua_State * L);
 			static int Print(lua_State * L);
+			static int Printf(lua_State * L);
+			static int Push(lua_State * L);
+			static int Pop(lua_State * L);
+			static int Translate(lua_State * L);
+
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);
 			static int GetBackgroundColor(lua_State * L);

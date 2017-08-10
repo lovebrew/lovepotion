@@ -7,10 +7,18 @@ namespace love
 	class Source
 	{
 		public:
-			char * Init(const char * path, const char * type);
+			const char * Init(const char * path, const char * type);
+			
 			void Play();
+			void Stop();
+			void SetLooping(bool loop);
+			void SetVolume(float volume);
+			int IsPlaying();
+			float GetDuration();
+			float Tell();
+
 			long FillBuffer(void * audio);
-			char * Decode();
+			const char * Decode();
 			int GetOpenChannel();
 			void Update();
 			void Reset();

@@ -3,7 +3,7 @@
 
 using love::Quad;
 
-char * Quad::Init(int x, int y, int width, int height)
+const char * Quad::Init(int x, int y, int width, int height)
 {
 	this->x = x;
 	this->y = y;

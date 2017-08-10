@@ -17,7 +17,7 @@ int sourceNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = self->Init(path, type);
+	const char * error = self->Init(path, type);
 
 	if (error)
 		console->ThrowError(error);
@@ -32,6 +32,63 @@ int sourcePlay(lua_State * L)
 	self->Play();
 
 	return 0;
+}
+
+int sourceSetLooping(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+	
+	bool shouldLoop = lua_toboolean(L, 2);
+	self->SetLooping(shouldLoop);
+
+	return 0;
+}
+
+int sourceIsPlaying(lua_State * L)
+{
+	Source * self =  (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushboolean(L, self->IsPlaying());
+
+	return 1;
+}
+
+int sourceStop(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	self->Stop();
+
+	return 0;
+}
+
+int sourceGetDuration(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushnumber(L, self->GetDuration());
+
+	return 1;
+}
+
+int sourceSetVolume(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	float volume = luaL_checknumber(L, 2);
+
+	self->SetVolume(volume);
+
+	return 0;
+}
+
+int sourceTell(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+	
+	lua_pushnumber(L, self->Tell());
+
+	return 1;
 }
 
 int sourceGC(lua_State * L)
@@ -51,9 +108,15 @@ int initSourceClass(lua_State *L)
 {
 
 	luaL_Reg reg[] = {
-		{"new",			sourceNew			},
-		{"play",		sourcePlay			},
-		{"__gc",		sourceGC			},
+		{ "new",				sourceNew			},
+		{ "play",				sourcePlay			},
+		{ "setLooping",			sourceSetLooping	},
+		{ "stop",				sourceStop			},
+		{ "getDuration",		sourceGetDuration	},
+		{ "tell",				sourceTell			},
+		{ "isPlaying",			sourceIsPlaying		},
+		{ "setVolume",			sourceSetVolume		},
+		{ "__gc",				sourceGC			},
 		{ 0, 0 },
 	};
 

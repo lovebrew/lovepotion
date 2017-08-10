@@ -15,8 +15,6 @@ extern "C" {
 #include <string>
 #include <vector>
 
-std::string debug;
-
 #include <ivorbiscodec.h>
 #include <ivorbisfile.h>
 
@@ -35,7 +33,7 @@ bool LUA_ERROR = false;
 bool LOVE_QUIT = false;
 bool AUDIO_ENABLED = false;
 bool FUSED = false;
-bool is3D = false;
+lua_State * L;
 
 #include <unistd.h>
 
@@ -48,11 +46,13 @@ love::Console * console;
 
 int main(int argc, char ** argv)
 {
-	lua_State * L = luaL_newstate();
+	L = luaL_newstate();
 
 	luaL_dostring(L, "jit.off()");
 
 	luaL_openlibs(L);
+	initLuaSocket(L);
+
 	luaL_requiref(L, "love", loveInit, 1);
 
 	AUDIO_ENABLED = !ndspInit();
@@ -75,27 +75,12 @@ int main(int argc, char ** argv)
 	}
 
 	console = new love::Console();
-	//console->Enable(GFX_BOTTOM);
-	
-	if (!AUDIO_ENABLED)
-		console->ThrowError("Audio failed to initialize!\nPlease dump your console's DSPfirm!");
-
-	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
 
 	osSetSpeedupEnable(true);
 
 	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 	
-	initLuaSocket(L);
-
-	if (luaL_dofile(L, "main.lua"))
-		console->ThrowError(L);
-	
 	if(luaL_dostring(L, "if love.load then love.load() end"))
-		console->ThrowError(L);
-
-	//fix delta time bug
-	if (luaL_dostring(L, "love.timer.step()"))
 		console->ThrowError(L);
 	
 	while (aptMainLoop())
@@ -110,7 +95,7 @@ int main(int argc, char ** argv)
 			if (luaL_dostring(L, "love.timer.step()"))
 				console->ThrowError(L);
 			
-			for (int i = 0; i < streams.size(); i++)
+			for (uint i = 0; i < streams.size(); i++)
 				streams[i]->Update();
 
 			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
@@ -134,13 +119,14 @@ int main(int argc, char ** argv)
 				if (luaL_dostring(L, "if love.draw then love.draw() end"))
 					console->ThrowError(L);
 			}
-
-			love::Graphics::Instance()->SwapBuffers();
 			
-			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
+			if (!console->IsEnabled())
+			{
+				love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
 
-			if (luaL_dostring(L, "if love.draw then love.draw() end"))
-				console->ThrowError(L);
+				if (luaL_dostring(L, "if love.draw then love.draw() end"))
+					console->ThrowError(L);
+			}
 
 			love::Graphics::Instance()->SwapBuffers();
 
@@ -148,13 +134,29 @@ int main(int argc, char ** argv)
 		}
 		else
 		{
+			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+
+			const char * error = lua_tostring(L, -1);
+
+			lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			lua_getfield(L, -1, "errhand");
+			lua_remove(L, -2);
+
+			if (!lua_isnil(L, -1)) 
+			{
+				lua_pushstring(L, error);
+				lua_call(L, 1, 0);
+			}
+
 			hidScanInput();
 			u32 kTempDown = hidKeysDown();
 			if (kTempDown & KEY_START)
 				break;
-
+			
 			if (!console->IsEnabled())
-				console->Enable(GFX_BOTTOM);
+				love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
+
+			love::Graphics::Instance()->SwapBuffers();
 		}
 	}
 

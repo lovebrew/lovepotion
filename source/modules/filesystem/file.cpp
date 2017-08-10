@@ -5,7 +5,7 @@
 
 using love::File;
 
-char * File::InitPath(const char * path)
+const char * File::InitPath(const char * path)
 {
 	this->fileName = path;
 	this->open = false;
@@ -15,7 +15,7 @@ char * File::InitPath(const char * path)
 	return nullptr;
 }
 
-char * File::Init(const char * name)
+const char * File::Init(const char * name)
 {
 	char * saveDirectory = love::Filesystem::Instance()->GetSaveDirectory();
 

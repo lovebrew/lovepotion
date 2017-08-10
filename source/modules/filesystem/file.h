@@ -5,8 +5,8 @@ namespace love
 	class File
 	{
 		public:
-			char * Init(const char * name);
-			char * InitPath(const char * path);
+			const char * Init(const char * name);
+			const char * InitPath(const char * path);
 
 			void Write(const char * data);
 			void Flush();

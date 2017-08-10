@@ -163,13 +163,24 @@ int Graphics::Draw(lua_State * L)
 	float x = luaL_optnumber(L, start, 0);
 	float y = luaL_optnumber(L, start + 1, 0);
 
+	float rotation = luaL_optnumber(L, start + 2, 0);
+
+	float scalarX = luaL_optnumber(L, start + 3, 1);
+	float scalarY = luaL_optnumber(L, start + 4, 1);
+
+	float offsetX = luaL_optnumber(L, start + 5, 0);
+	float offsetY = luaL_optnumber(L, start + 6, 0);
+
 	if (currentScreen == renderScreen)
 	{
+		x += offsetX;
+		y += offsetY;
+
 		bindTexture(image->GetTexture());
 		if (quad == nullptr)
-			graphicsDraw(image->GetTexture(), x, y, image->GetWidth(), image->GetHeight());
+			graphicsDraw(image->GetTexture(), x, y, image->GetWidth(), image->GetHeight(), rotation, scalarX, scalarY);
 		else
-			graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
+			graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), rotation, scalarX, scalarY);
 	}
 
 	return 0;
@@ -245,42 +256,21 @@ int Graphics::Print(lua_State * L)
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
 
-	float originX = x;
+	if (currentScreen == renderScreen)
+		graphicsPrint(text, x, y);
+	
+	return 0;
+}
 
-	Font * currFont = graphicsGetFont();
-
-	if (currFont == nullptr)
-		return 0;
+int Graphics::Printf(lua_State * L)
+{
+	const char * text = luaL_checkstring(L, 1);
+	float x = luaL_optnumber(L, 2, 0);
+	float y = luaL_optnumber(L, 3, 0);
+	float limit = luaL_optnumber(L, 4, NULL);
 
 	if (currentScreen == renderScreen)
-	{
-		C3D_Tex * texture = currFont->GetSheet()->GetTexture();
-
-		int width = 0;
-
-		bindTexture(texture);
-
-		for (int i = 0; i < strlen(text); i++)
-		{
-			love::Glyph * glyph = currFont->GetGlyph(text[i]);
-
-			if (text[i] == '\n')
-			{
-				x = originX;
-				y = y + currFont->GetHeight();
-			}
-			
-			if (glyph == nullptr)
-				return 0;
-	
-			love::Quad * quad = glyph->GetQuad();
-
-			if (i > 0)
-				width = width + currFont->GetGlyph(text[i - 1])->GetXAdvance(); //+ glyph->GetXOffset();
-
-			graphicsDrawQuad(texture, x + width + glyph->GetXOffset(), y + glyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight());
-		}
-	}
+		graphicsPrintf(text, x, y, limit);
 	
 	return 0;
 }
@@ -311,6 +301,28 @@ int Graphics::SetDepth(lua_State * L)
 	graphicsSetDepth(depth);
 
 	return 0;
+}
+
+int Graphics::Push(lua_State * L)
+{
+	graphicsPush();
+
+	return 0;
+}
+
+int Graphics::Pop(lua_State * L)
+{
+	graphicsPop();
+
+	return 0;
+}
+
+int Graphics::Translate(lua_State * L)
+{
+	float translateX = luaL_checknumber(L, 1);
+	float translateY = luaL_checknumber(L, 2);
+
+	graphicsTranslate(translateX, translateY);
 }
 
 gfxScreen_t Graphics::GetScreen()
@@ -348,16 +360,7 @@ void Graphics::InitRenderTargets()
 
 void Graphics::Render(gfxScreen_t screen, gfx3dSide_t side)
 {
-	if (!this->inRender)
-	{
-		resetPool();
-				
-		renderScreen = screen;
-			
-		C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
-
-		this->inRender = true;
-	}
+	renderScreen = screen;
 
 	switch(screen)
 	{
@@ -377,9 +380,18 @@ void Graphics::Render(gfxScreen_t screen, gfx3dSide_t side)
 
 void Graphics::StartTarget(CRenderTarget * target)
 {
+	if (!this->inRender)
+	{
+		resetPool();
+			
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
+
+		this->inRender = true;
+	}
+
 	if (target->GetTarget() == nullptr)
 		return;
-
+	
 	target->Clear(graphicsGetBackgroundColor());
 
 	C3D_FrameDrawOn(target->GetTarget());
@@ -389,8 +401,10 @@ void Graphics::StartTarget(CRenderTarget * target)
 
 void Graphics::SwapBuffers()
 {
-	if (this->inRender)
-		this->inRender = false;
+	if (!this->inRender)
+		return;
+
+	this->inRender = false;
 
 	C3D_FrameEnd(0);
 }
@@ -421,6 +435,7 @@ int graphicsInit(lua_State * L)
 		{ "points",		love::Graphics::Points		},
 		{ "draw",		love::Graphics::Draw		},
 		{ "print",		love::Graphics::Print		},
+		{ "printf",		love::Graphics::Printf		},
 		{ "setFont",	love::Graphics::SetFont		},
 		{ "getWidth",	love::Graphics::GetWidth	},
 		{ "getHeight",	love::Graphics::GetHeight	},
@@ -430,6 +445,9 @@ int graphicsInit(lua_State * L)
 		{ "getBackgroundColor", love::Graphics::GetBackgroundColor	},
 		{ "set3D",		love::Graphics::Set3D		},
 		{ "setDepth",	love::Graphics::SetDepth	},
+		{ "push",		love::Graphics::Push		},
+		{ "pop",		love::Graphics::Pop			},
+		{ "translate",	love::Graphics::Translate	},
 		{ 0, 0 },
 	};
 

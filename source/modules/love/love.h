@@ -1,7 +1,7 @@
 #pragma once
 
 // Forward declare lua_State.
-struct lua_State;
+extern lua_State * L;
 extern bool LUA_ERROR;
 extern bool CLOSE_KEYBOARD;
 
@@ -12,6 +12,8 @@ extern bool CLOSE_KEYBOARD;
 int loveGetVersion(lua_State * L);
 
 int loveScan(lua_State * L);
+
+int loveEnableConsole(lua_State * L);
 
 /*
 	@brief initializes LOVE, its modules, and their classes

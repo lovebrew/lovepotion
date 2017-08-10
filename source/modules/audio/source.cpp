@@ -5,7 +5,7 @@ using love::Source;
 
 bool channelList[24];
 
-char * Source::Init(const char * path, const char * type)
+const char * Source::Init(const char * path, const char * type)
 {
 	for (int i = 0; i < 12; i++) 
 	{
@@ -23,7 +23,7 @@ char * Source::Init(const char * path, const char * type)
 
 	this->fileHandle = fopen(path, "r");
 	
-	char * error; 
+	const char * error; 
 	if (!this->fileHandle)
 		error = "Failed to open file.";
 
@@ -36,7 +36,7 @@ char * Source::Init(const char * path, const char * type)
 	return nullptr;
 }
 
-char * Source::Decode()
+const char * Source::Decode()
 {	
 	if (ov_open(this->fileHandle, &this->vorbisFile, NULL, 0) < 0)
 		return "Invalid ogg vorbis file";
@@ -169,7 +169,45 @@ void Source::Play()
 	}
 	
 }
- 
+
+void Source::SetLooping(bool loop)
+{
+	this->loop = loop;
+}
+
+void Source::Stop()
+{
+	ndspChnWaveBufClear(this->audiochannel);
+}
+
+int Source::IsPlaying()
+{
+	return ndspChnIsPlaying(this->audiochannel);
+}
+
+void Source::SetVolume(float volume)
+{
+	volume = std::min(std::max(volume, 0.0f), 1.0f);
+
+	for (int i = 0; i<= 3; i++) 
+		this->mix[i] = volume;
+
+	ndspChnSetMix(this->audiochannel, this->mix);
+}
+
+float Source::GetDuration()
+{
+	return (float)(this->nsamples) / this->rate;
+}
+
+float Source::Tell()
+{
+	if (!ndspChnIsPlaying(this->audiochannel))
+		return 0;
+	else
+		return (float)(ndspChnGetSamplePos(this->audiochannel)) / this->rate;
+}
+
 long Source::FillBuffer(void * audio)
 {
 	if (feof(this->fileHandle))

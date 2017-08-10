@@ -13,7 +13,7 @@
 using love::Font;
 using json = nlohmann::json;
 
-char * Font::DefaultInit()
+const char * Font::DefaultInit()
 {
 	std::string data((char *)vera12_json, vera12_json_size);
 
@@ -30,7 +30,7 @@ char * Font::DefaultInit()
 	return nullptr;
 }
 
-char * Font::Init(const char * path)
+const char * Font::Init(const char * path)
 {
 	std::string fontPath(path);
 	std::string configPath(fontPath); 
@@ -101,12 +101,34 @@ love::Image * Font::GetSheet()
 	return this->bitmap;
 }
 
-int Font::GetWidth(char * glyph)
+int Font::GetWidth(char glyph)
 {
-	return 0;
+	love::Glyph * charGlyph = this->GetGlyph(glyph);
+	int width = 0;
+
+	width += charGlyph->GetXAdvance();
+
+	return width;
 }
 
 int Font::GetHeight()
 {
 	return this->configJson["info"]["size"];
+}
+
+void Font::Collect()
+{
+	if (this->bitmap != nullptr)
+		delete this->bitmap;
+
+	if (this->configFile != nullptr)
+		delete this->configFile;
+
+	if (this->glyphs)
+	{
+		for (int i = 0; i < this->chars; i++)
+			delete[] this->glyphs[i];
+		
+		delete[] this->glyphs;
+	}
 }

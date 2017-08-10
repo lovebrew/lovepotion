@@ -3,7 +3,7 @@
 
 using love::UDP;
 
-char * UDP::Init()
+const char * UDP::Init()
 {
 	this->udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
 
@@ -42,7 +42,7 @@ int UDP::SetSocketName(const char * destination, int port)
 	if (status < 0)
 		return -1;
 
-	return 0;
+	return 1;
 }
 
 int UDP::SetPeerName(const char * destination, int port)
@@ -54,7 +54,7 @@ int UDP::SetPeerName(const char * destination, int port)
 	if (status < 0)
 		return -1;
 
-	return 0;
+	return 1;
 }
 
 int UDP::SetSocketData(const char * destination, int port, bool isServer)
@@ -96,29 +96,35 @@ int UDP::SetSocketData(const char * destination, int port, bool isServer)
 	this->address.sin_port = htons(port);
 }
 
-char * UDP::Receive() //TODO: soc:U isn't recv! Fix!
+char * UDP::Receive()
 {
-	char * buffer = (char *)malloc(8193); //8192 + 1 for null term
+	char * buffer = (char *)calloc(1, 8192);
 
-	int length = recv(this->udpSocket, buffer, 8192, 0);
+	int length = recv(this->udpSocket, buffer, 8191, 0);
 
-	*(buffer + length) = 0x0;
+	if (length <= 0)
+	{
+		free(buffer);
+		return nullptr;
+	}
+
+	buffer[length] = '\0';
 
 	return buffer;
 }
 
-int UDP::ReceiveFrom(char ** outBuffer, char * outAddress, int * outPort)
+int UDP::ReceiveFrom(char * outBuffer, char * outAddress, int * outPort)
 {
-	struct sockaddr_in fromAddress;
+	struct sockaddr_in fromAddress = {0};
 	socklen_t addressLength;
 
-	int length = recvfrom(this->udpSocket, *outBuffer, 8192, 0, (struct sockaddr *)&fromAddress, &addressLength);
+	int length = recvfrom(this->udpSocket, outBuffer, 8191, 0, (struct sockaddr *)&fromAddress, &addressLength);
 
 	if (length <= 0)
 		return 0;
 
-	(*outBuffer)[length] = '\0';
-
+	outBuffer[length] = '\0';
+	
 	strncpy(outAddress, inet_ntoa(fromAddress.sin_addr), 0x40);
 	*outPort = ntohs(fromAddress.sin_port);
 
@@ -134,6 +140,8 @@ int UDP::Send(const char * data, size_t len)
 
 int UDP::SendTo(const char * data, size_t len, const char * destination, int port)
 {
+	printf("SendTo: %s:%d\n", destination, port);
+
 	struct hostent * hostInfo = gethostbyname(destination);
 
 	if (hostInfo == NULL)
@@ -145,7 +153,11 @@ int UDP::SendTo(const char * data, size_t len, const char * destination, int por
 	addressTo.sin_port = htons(port);
 	addressTo.sin_family = AF_INET;
 
+	printf("Sending data: %s!\n", data);
+
 	size_t sent = sendto(this->udpSocket, data, len, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
+
+	printf("Did we do it, Reddit? %dB sent!\n", sent);
 
 	return sent;
 }

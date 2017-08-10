@@ -20,9 +20,13 @@ void graphicsPoints(float x, float y);
 
 void graphicsCircle(float x, float y, float radius, float segments);
 
-void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height);
+void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, float rotation, float scalarX, float scalarY);
 
-void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight);
+void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY);
+
+void graphicsPrint(const char * text, float x, float y);
+
+void graphicsPrintf(const char * text, float x, float y, float limit);
 
 void graphicsSetColor(int r, int g, int b);
 
@@ -37,6 +41,12 @@ void graphicsSet3D(bool enable);
 void graphicsSetDepth(float depth);
 
 void translateCoords(float * x, float * y);
+
+void graphicsPush();
+
+void graphicsTranslate(float x, float y);
+
+void graphicsPop();
 
 love::Font * graphicsGetFont();
 

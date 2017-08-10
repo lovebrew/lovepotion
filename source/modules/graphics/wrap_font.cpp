@@ -22,7 +22,7 @@ int fontNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	char * error = nullptr;
+	const char * error = nullptr;
 	
 	if (path != nullptr)
 		error = self->Init(path);
@@ -35,8 +35,36 @@ int fontNew(lua_State * L)
 	return 1;
 }
 
+int fontGetWidth(lua_State * L)
+{
+	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	const char * text = luaL_checkstring(L, 2);
+	int width = 0;
+
+	for (int i = 0; i < strlen(text); i++)
+		width += self->GetWidth(text[i]);
+
+	lua_pushnumber(L, width);
+
+	return 1;
+}
+
+int fontGetHeight(lua_State * L)
+{
+	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushinteger(L, self->GetHeight());
+
+	return 1;
+}
+
 int fontGC(lua_State * L)
 {
+	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	//self->Collect();
+
 	return 0;
 }
 
@@ -45,6 +73,8 @@ int initFontClass(lua_State * L) {
 	luaL_Reg reg[] = 
 	{
 		{"new",			fontNew	},
+		{"getWidth",	fontGetWidth},
+		{"getHeight",	fontGetHeight},
 		{"__gc",		fontGC	},
 		{ 0, 0 },
 	};

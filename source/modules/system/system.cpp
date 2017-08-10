@@ -193,12 +193,19 @@ int System::GetLinearMemory(lua_State * L)
 	return 1;
 }
 
-int System::SetConsole(lua_State * L)
+int System::GetUsername(lua_State * L)
 {
-	if (!console->IsEnabled())
-		console->Enable(GFX_BOTTOM); //default?
-	else
-		console->Disable();
+	u8 * data = (u8 *)malloc(0x1C);
+	char * username = (char *)malloc(0x13);
+	
+	CFGU_GetConfigInfoBlk2(0x1C, 0x000A0000, data);
+
+	for (int i = 0; i < 0x13; i++)
+		username[i] = (char)((u16 *)data)[i];
+
+	lua_pushstring(L, username);
+
+	return 1;
 }
 
 void systemExit()
@@ -225,6 +232,7 @@ int systemInit(lua_State * L)
 		{ "getOS",				love::System::GetOS				},
 		{ "getRegion",			love::System::GetRegion			},
 		{ "getLinearMemory",	love::System::GetLinearMemory	},
+		{ "getUsername",		love::System::GetUsername		},
 		{ 0, 0 },
 	};
 

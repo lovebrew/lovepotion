@@ -5,16 +5,17 @@ namespace love
 	class Font
 	{
 		public:
-			char * DefaultInit();
-			char * Init(const char * path);
+			const char * DefaultInit();
+			const char * Init(const char * path);
 			
-			int GetWidth(char * glyph);
+			int GetWidth(char glyph);
 			int GetHeight();
 
 			love::Glyph * GetGlyph(char glyph);
 			love::Image * GetSheet();
 
 			void AddChars();
+			void Collect();
 
 		private:
 			love::File * configFile;

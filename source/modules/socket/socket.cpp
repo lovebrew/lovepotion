@@ -2,9 +2,11 @@
 #include "socket.h"
 #include "wrap_udp.h"
 
+u32 * socketBuffer = nullptr;
 void socketClose()
 {
-	socExit();
+	if (socketBuffer != nullptr)
+		socExit();
 }
 
 void initLuaSocket(lua_State * L)
@@ -25,7 +27,7 @@ void initLuaSocket(lua_State * L)
 
 int socketInit(lua_State * L)
 {
-	u32 * socketBuffer = (u32 *)memalign(0x1000, 0x100000);
+	socketBuffer = (u32 *)memalign(0x1000, 0x100000);
 
 	Result socketsInit = socInit(socketBuffer, 0x100000);
 

@@ -21,6 +21,11 @@ int backgroundB = 0;
 
 float currentDepth = 0;
 
+float translateX = 0;
+float translateY = 0;
+
+bool graphicsPushed = false;
+
 love::Font * currentFont = nullptr;
 
 void resetPool()
@@ -98,6 +103,12 @@ void graphicsSetDepth(float depth)
 
 void translateCoords(float * x, float * y)
 {
+	if (graphicsPushed)
+	{
+		*x += translateX;
+		*y += translateY;
+	}
+
 	if (!gfxIs3D() || (gfxIs3D() && currentScreen != GFX_TOP))
 		return;
 
@@ -231,19 +242,22 @@ void graphicsCircle(float x, float y, float radius, float segments)
 	C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, segments + 2);
 }
 
-void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
+void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, float rotation, float scalarX, float scalarY)
 {
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
 		return;
 
+	float scaleWidth = width * scalarX;
+	float scaleHeight = height * scalarY;
+
 	translateCoords(&x, &y);
 
-	vertexList[0].position = {x, 			y,			0.5f};
-	vertexList[1].position = {x + width,	y,			0.5f};
-	vertexList[2].position = {x,			y + height, 0.5f};
-	vertexList[3].position = {x + width,	y + height, 0.5f};
+	vertexList[0].position = {x, 				y,				 0.5f};
+	vertexList[1].position = {x + scaleWidth,	y,				 0.5f};
+	vertexList[2].position = {x,				y + scaleHeight, 0.5f};
+	vertexList[3].position = {x + scaleWidth,	y + scaleHeight, 0.5f};
 
 	float u = (float)width/(float)texture->width;
 	float v = (float)height/(float)texture->height;
@@ -258,19 +272,22 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height)
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
-void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight)
+void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY)
 {
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
 	if (!vertexList)
 		return;
+	
+	float scaleWidth = textureWidth * scalarX;
+	float scaleHeight = textureHeight * scalarY;
 
 	translateCoords(&x, &y);
 
 	vertexList[0].position = {x, 				y,					0.5f};
-	vertexList[1].position = {x + textureWidth,	y,					0.5f};
-	vertexList[2].position = {x,				y + textureHeight, 	0.5f};
-	vertexList[3].position = {x + textureWidth,	y + textureHeight, 	0.5f};
+	vertexList[1].position = {x + scaleWidth,	y,					0.5f};
+	vertexList[2].position = {x,				y + scaleHeight, 	0.5f};
+	vertexList[3].position = {x + scaleWidth,	y + scaleHeight, 	0.5f};
 
 	float u0 = textureX/(float)texture->width;
 	float v0 = textureY/(float)texture->height;
@@ -286,6 +303,72 @@ void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int tex
 	generateTextureVertecies(vertexList);
 
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, 4);
+}
+
+void graphicsPush()
+{
+	graphicsPushed = true;
+}
+
+void graphicsTranslate(float x, float y)
+{
+	translateX = x;
+	translateY = y;
+}
+
+void graphicsPop()
+{
+	graphicsPushed = false;
+}
+
+void graphicsPrint(const char * text, float x, float y)
+{
+	graphicsPrintf(text, x, y, NULL);
+}
+
+void graphicsPrintf(const char * text, float x, float y, float limit)
+{
+	float originX = x;
+	float originY = y;
+
+	love::Font * currFont = graphicsGetFont();
+
+	if (currFont == nullptr)
+		return;
+
+	C3D_Tex * texture = currFont->GetSheet()->GetTexture();
+
+	int width, wrapWidth = 0;
+	bindTexture(texture);
+
+	for (int i = 0; i < strlen(text); i++)
+	{
+		love::Glyph * glyph = currFont->GetGlyph(text[i]);
+
+		if (text[i] == '\n' || (limit != NULL && wrapWidth >= limit))
+		{
+			x = originX;
+			y = y + currFont->GetHeight() + 2;
+			width = 0;
+			wrapWidth = 0;
+		}
+		else
+		{
+			if (glyph == nullptr)
+				return;
+		
+			love::Quad * quad = glyph->GetQuad();
+
+			if (i > 0)
+			{	
+				if (currFont->GetGlyph(text[i - 1]) != nullptr)
+					width += currFont->GetGlyph(text[i - 1])->GetXAdvance(); //+ glyph->GetXOffset();
+			}
+			wrapWidth += currFont->GetWidth(text[i]);
+
+			graphicsDrawQuad(texture, x + width + glyph->GetXOffset(), y + glyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1);
+		}
+	}
 }
 
 void graphicsPoints(float x, float y)

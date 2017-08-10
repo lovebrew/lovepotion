@@ -28,8 +28,25 @@ package.cpath = './?.lua;./?/init.lua'
 _defaultFont_ = love.graphics.newFont()
 love.graphics.setFont(_defaultFont_)
 
---SET THE GAME'S IDENTITY: REQUIRED FOR SAVE DATA
-love.filesystem.setIdentity("SuperGame")
+local config = 
+{
+	console = false,
+	version = "1.0.9",
+	identity = "SuperGame"
+}
+
+if love.filesystem.isFile("conf.lua") then
+	success, err = pcall(require, 'conf')
+end
+
+if love.conf then
+	love.conf(config)
+end
+
+if config.console then
+	love.enableConsole()
+end
+love.filesystem.setIdentity(config.identity)
 
 function love.createhandlers()
 
@@ -130,14 +147,50 @@ end
 
 love.createhandlers()
 
-function love.errhand(msg)
+if love.filesystem.isFile("main.lua") then
+	require 'main'
+else --nogame stuff!
+
+end
+
+if love.timer then
+	love.timer.step()
+end
+
+local function wrapText(text, x, y, len)
+	local width = 0
+	local originY = y
+	local ret = ""
+
+	for word in text:gmatch("%S+% ?") do
+		width = width + _defaultFont_:getWidth(word)
+		if x + width >= len then
+			word = word .. "\n"
+			originY = originY + 18
+			width = 0
+		end
+
+		ret = ret .. word
+	end
+
+	love.graphics.print(ret, x, y)
+end
+
+function love.errhand(message)
+	message = message:gsub("./", "")
+
 	love.graphics.set3D(false)
+
 	love.audio.stop()
-	love.graphics.setBackgroundColor(89, 157, 220)
+
+	love.graphics.setBackgroundColor(66, 165, 245)
 	love.graphics.setScreen('top')
+
 	love.graphics.setFont(_defaultFont_)
 	love.graphics.setColor(255, 255, 255, 255)
-	love.graphics.print('Oops, a Lua error has occured', 25, 25)
-	love.graphics.print('Press Start to quit', 25, 40)
-	love.graphics.printf(msg, 25, 70, love.graphics.getWidth() - 50)
+
+	love.graphics.print("Error:", 16, 30)
+	wrapText(message, 16, 58, 325)
+
+	love.graphics.print("Press Start to quit", 16, love.graphics.getHeight() - 30)
 end
