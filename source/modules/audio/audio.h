@@ -14,6 +14,7 @@ namespace love
 				return instance;
 			}
 		
+		static int Play(lua_State * L);
 		static int Stop(lua_State * L);
 		static int SetVolume(lua_State * L);
 

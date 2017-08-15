@@ -28,7 +28,7 @@ void graphicsPrint(const char * text, float x, float y);
 
 void graphicsPrintf(const char * text, float x, float y, float limit);
 
-void graphicsSetColor(int r, int g, int b);
+int graphicsGetColor(int color);
 
 void graphicsSetColor(int r, int g, int b, int a);
 
@@ -47,6 +47,10 @@ void graphicsPush();
 void graphicsTranslate(float x, float y);
 
 void graphicsPop();
+
+void graphicsSetScissor(bool disable, float x, float y, float width, float height);
+
+void graphicsSetDefaultFilter(const char * min, const char * mag);
 
 love::Font * graphicsGetFont();
 

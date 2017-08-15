@@ -80,7 +80,9 @@ int Filesystem::Write(lua_State * L)
 		return 0;
 
 	file->Write(data);
-	
+	file->Flush();
+	file->Close();
+
 	delete file;
 
 	return 0;
@@ -116,6 +118,15 @@ int Filesystem::IsDirectory(lua_State * L)
 	lua_pushboolean(L, S_ISDIR(pathInfo.st_mode));
 	
 	return 1;
+}
+
+int Filesystem::CreateDirectory(lua_State * L)
+{
+	const char * path = Filesystem::Instance()->Redirect(luaL_checkstring(L, 1));
+
+	mkdir(path, 0777);
+	
+	return 0;
 }
 
 int Filesystem::GetDirectoryItems(lua_State * L)
@@ -217,10 +228,6 @@ const char * Filesystem::GetIdentity()
 
 int filesystemInit(lua_State * L)
 {
-	mkdir("sdmc:/3ds/data/", 0777);
-	mkdir("sdmc:/3ds/data/LovePotion/", 0777);
-	mkdir(love::Filesystem::Instance()->GetSaveDirectory(), 0777);
-
 	luaL_Reg reg[] = 
 	{
 		{ "newFile",			fileNew								},
@@ -230,6 +237,7 @@ int filesystemInit(lua_State * L)
 		{ "getSize",			love::Filesystem::GetSize			},
 		{ "isFile",				love::Filesystem::IsFile			},
 		{ "isDirectory",		love::Filesystem::IsDirectory		},
+		{ "createDirectory",	love::Filesystem::CreateDirectory	},
 		{ "getDirectoryItems",	love::Filesystem::GetDirectoryItems },
 		{ "read",				love::Filesystem::Read				},
 		{ "write",				love::Filesystem::Write				},

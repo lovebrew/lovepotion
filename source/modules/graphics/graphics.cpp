@@ -66,29 +66,52 @@ int Graphics::SetScreen(lua_State * L)
 
 int Graphics::SetColor(lua_State * L)
 {
-	int r = luaL_checknumber(L, 1);
-	int g = luaL_checknumber(L, 2);
-	int b = luaL_checknumber(L, 3);
-	int a = NULL;
+	int r = graphicsGetColor(0);
+	int g = graphicsGetColor(1);
+	int b = graphicsGetColor(2);
+	int a = graphicsGetColor(3);
 
-	if (!lua_isnil(L, 4) && lua_isnumber(L, 4))
-	{	
-		a = luaL_checknumber(L, 4);
-		graphicsSetColor(r, g, b, a);
+	if (!lua_istable(L, 1))
+	{
+		r = luaL_checkinteger(L, 1);
+		g = luaL_checkinteger(L, 2);
+		b = luaL_checkinteger(L, 3);
+		a = luaL_optnumber(L, 4, a);
 	}
 	else
 	{
-		graphicsSetColor(r, g, b);
+		for (int i = 1; i <= 4; i++)
+			lua_rawgeti(L, 1, i);
+		
+		r = luaL_checkinteger(L, -4);
+		g = luaL_checkinteger(L, -3);
+		b = luaL_checkinteger(L, -2);
+		a = luaL_optnumber(L, -1, a);
 	}
+
+	graphicsSetColor(r, g, b, a);
 
 	return 0;
 }
 
 int Graphics::SetBackgroundColor(lua_State * L)
 {
-	int r = luaL_checknumber(L, 1);
-	int g = luaL_checknumber(L, 2);
-	int b = luaL_checknumber(L, 3);
+	int r, g, b;
+	if (!lua_istable(L, 1))
+	{
+		r = luaL_checknumber(L, 1);
+		g = luaL_checknumber(L, 2);
+		b = luaL_checknumber(L, 3);
+	}
+	else
+	{
+		for (int i = 1; i <= 4; i++)
+			lua_rawgeti(L, 1, i);
+			
+		r = luaL_checkinteger(L, -4);
+		g = luaL_checkinteger(L, -3);
+		b = luaL_checkinteger(L, -2);
+	}
 
 	graphicsSetBackgroundColor(r, g, b);
 
@@ -325,6 +348,30 @@ int Graphics::Translate(lua_State * L)
 	graphicsTranslate(translateX, translateY);
 }
 
+int Graphics::SetScissor(lua_State * L)
+{
+	int args = lua_gettop(L);
+
+	float x = luaL_optnumber(L, 1, 0);
+	float y = luaL_optnumber(L, 2, 0);
+	float width = luaL_optnumber(L, 3, 0);
+	float height = luaL_optnumber(L, 4, 0);
+
+	graphicsSetScissor(args == 0, x, y, width, height);
+
+	return 0;
+}
+
+int Graphics::SetDefaultFilter(lua_State * L)
+{
+	const char * min = luaL_checkstring(L, 1);
+	const char * mag = luaL_checkstring(L, 2);
+
+	graphicsSetDefaultFilter(min, mag);
+
+	return 0;
+}
+
 gfxScreen_t Graphics::GetScreen()
 {
 	return currentScreen;
@@ -420,34 +467,37 @@ int graphicsInit(lua_State * L)
 	gfxInitDefault();
 	gfxSet3D(false);
 
+	resetPool();
 	C3D_Init(0x80000 * 8);
 
 	love::Graphics::Instance()->InitRenderTargets();
 	
 	luaL_Reg reg[] = 
 	{
-		{ "newImage",	imageNew					},
-		{ "newFont",	fontNew						},
-		{ "newQuad",	quadNew						},
-		{ "line",		love::Graphics::Line		},
-		{ "rectangle",	love::Graphics::Rectangle	},
-		{ "circle",		love::Graphics::Circle		},
-		{ "points",		love::Graphics::Points		},
-		{ "draw",		love::Graphics::Draw		},
-		{ "print",		love::Graphics::Print		},
-		{ "printf",		love::Graphics::Printf		},
-		{ "setFont",	love::Graphics::SetFont		},
-		{ "getWidth",	love::Graphics::GetWidth	},
-		{ "getHeight",	love::Graphics::GetHeight	},
-		{ "setScreen",	love::Graphics::SetScreen	},
-		{ "setColor",	love::Graphics::SetColor	},
+		{ "newImage",			imageNew					},
+		{ "newFont",			fontNew						},
+		{ "newQuad",			quadNew						},
+		{ "line",				love::Graphics::Line		},
+		{ "rectangle",			love::Graphics::Rectangle	},
+		{ "circle",				love::Graphics::Circle		},
+		{ "points",				love::Graphics::Points		},
+		{ "draw",				love::Graphics::Draw		},
+		{ "print",				love::Graphics::Print		},
+		{ "printf",				love::Graphics::Printf		},
+		{ "setFont",			love::Graphics::SetFont		},
+		{ "getWidth",			love::Graphics::GetWidth	},
+		{ "getHeight",			love::Graphics::GetHeight	},
+		{ "setScreen",			love::Graphics::SetScreen	},
+		{ "setColor",			love::Graphics::SetColor	},
 		{ "setBackgroundColor",	love::Graphics::SetBackgroundColor	},
 		{ "getBackgroundColor", love::Graphics::GetBackgroundColor	},
-		{ "set3D",		love::Graphics::Set3D		},
-		{ "setDepth",	love::Graphics::SetDepth	},
-		{ "push",		love::Graphics::Push		},
-		{ "pop",		love::Graphics::Pop			},
-		{ "translate",	love::Graphics::Translate	},
+		{ "set3D",				love::Graphics::Set3D		},
+		{ "setDepth",			love::Graphics::SetDepth	},
+		{ "push",				love::Graphics::Push		},
+		{ "pop",				love::Graphics::Pop			},
+		{ "translate",			love::Graphics::Translate	},
+		{ "setScissor",			love::Graphics::SetScissor	},
+		{ "setDefaultFilter",	love::Graphics::SetDefaultFilter},
 		{ 0, 0 },
 	};
 

@@ -23,6 +23,7 @@ extern "C" {
 #include "modules/timer/timer.h"
 
 #include "modules/audio/source.h"
+#include "modules/audio/wrap_source.h"
 std::vector<love::Source *> streams;
 
 #include "modules/graphics/crendertarget.h"
@@ -31,7 +32,6 @@ std::vector<love::Source *> streams;
 
 bool LUA_ERROR = false;
 bool LOVE_QUIT = false;
-bool AUDIO_ENABLED = false;
 bool FUSED = false;
 lua_State * L;
 
@@ -53,32 +53,21 @@ int main(int argc, char ** argv)
 	luaL_openlibs(L);
 	initLuaSocket(L);
 
-	luaL_requiref(L, "love", loveInit, 1);
-
-	AUDIO_ENABLED = !ndspInit();
-
+	
 	Result romfs = romfsInit();
 	FUSED = (romfs) ? false : true;
+	
+	loveChangeDir(FUSED);
 
-	if (FUSED)
-	{
-		chdir("romfs:/");
-	}
-	else
-	{
-		char cwd[256];
-		getcwd(cwd, 256);
+	luaL_requiref(L, "love", loveInit, 1);
 
-		strcat(cwd, "game/");
+	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
-		chdir(cwd);
-	}
+	loveCreateSaveDirectory();
 
 	console = new love::Console();
 
 	osSetSpeedupEnable(true);
-
-	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 	
 	if(luaL_dostring(L, "if love.load then love.load() end"))
 		console->ThrowError(L);
@@ -94,12 +83,11 @@ int main(int argc, char ** argv)
 
 			if (luaL_dostring(L, "love.timer.step()"))
 				console->ThrowError(L);
-			
-			for (uint i = 0; i < streams.size(); i++)
-				streams[i]->Update();
 
 			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
 				console->ThrowError(L);
+
+			sourceStream();
 
 			if (CLOSE_KEYBOARD)
 			{
@@ -160,12 +148,7 @@ int main(int argc, char ** argv)
 		}
 	}
 
-	luaL_dostring(L, "love.audio.stop()");
-
 	loveClose(L);
-	
-	if (AUDIO_ENABLED) 
-		ndspExit();
 	
 	if (FUSED) 
 		romfsExit();

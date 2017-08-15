@@ -15,6 +15,10 @@ int loveScan(lua_State * L);
 
 int loveEnableConsole(lua_State * L);
 
+void loveChangeDir(bool isFused);
+
+void loveCreateSaveDirectory();
+
 /*
 	@brief initializes LOVE, its modules, and their classes
 */

@@ -67,7 +67,7 @@ JINGLE := meta/jingle.wav
 APP_PRODUCT_CODE := CTR-P-LP
 APP_UNIQUE_ID := 0x1043
 APP_SYSTEM_MODE := 64MB
-APP_SYSTEM_MODE_EXT := Legacy
+APP_SYSTEM_MODE_EXT := 124MB #Legacy
 
 #---------------------------------------------------------------------------------
 # options for code generation

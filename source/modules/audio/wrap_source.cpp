@@ -91,16 +91,34 @@ int sourceTell(lua_State * L)
 	return 1;
 }
 
+void sourceStream()
+{
+	for (auto &it : streams)
+	{
+		if (it != nullptr)
+			it->Update();
+	}
+}
+
 int sourceGC(lua_State * L)
 {
 	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	ndspChnWaveBufClear(self->audiochannel);
-
-	linearFree(self->data);
-
-	channelList[self->audiochannel] = false;
+	self->Collect();
 	
+	if (self->IsStatic())
+		return 0;
+
+
+	for (auto &element : streams)
+	{
+		if (element->GetAudioChannel() == self->GetAudioChannel())
+		{
+			streams.erase(streams.begin());
+			break;
+		}
+	}
+
 	return 0;
 }
 

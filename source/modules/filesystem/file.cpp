@@ -63,7 +63,7 @@ void File::Write(const char * data)
 		return;
 
 	if (data != NULL)
-		fwrite(data, strlen(data) + 1, 1, this->fileHandle);
+		fwrite(data, strlen(data), 1, this->fileHandle);
 }
 
 int File::GetSize()

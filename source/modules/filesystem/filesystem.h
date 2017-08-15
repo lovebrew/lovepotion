@@ -17,7 +17,8 @@ namespace love
 			static int Read(lua_State * L);
 			static int Write(lua_State * L);
 			static int Load(lua_State * L);
-	
+			static int CreateDirectory(lua_State * L);
+
 			char * GetSaveDirectory();
 			const char * GetIdentity();
 			const char * Redirect(const char * path);

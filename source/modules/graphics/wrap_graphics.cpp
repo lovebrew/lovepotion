@@ -10,19 +10,22 @@ size_t bufferSize = 0;
 void * buffer = nullptr;
 size_t bufferIndent = 0;
 
-int currentR = 255;
-int currentG = 255;
-int currentB = 255;
-int currentA = 255;
+int currentR = 0xFF;
+int currentG = 0xFF;
+int currentB = 0xFF;
+int currentA = 0xFF;
 
-int backgroundR = 0;
-int backgroundG = 0;
-int backgroundB = 0;
+int backgroundR = 0x00;
+int backgroundG = 0x00;
+int backgroundB = 0x00;
 
 float currentDepth = 0;
 
 float translateX = 0;
 float translateY = 0;
+
+GPU_TEXTURE_FILTER_PARAM minFilter;
+GPU_TEXTURE_FILTER_PARAM magFilter;
 
 bool graphicsPushed = false;
 
@@ -67,11 +70,14 @@ void generateVertecies(vertexPositions * vertecies)
 	BufInfo_Add(bufInfo, vertecies, sizeof(vertexPositions), 2, 0x10);
 }
 
-void bindTexture(C3D_Tex * texture) {
+void bindTexture(C3D_Tex * texture) 
+{
 	C3D_TexBind(0, texture); // 0 should be correct
 	
 	C3D_TexEnv * env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_CONSTANT, 0);
+
+	C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA, GPU_ONE, GPU_ONE_MINUS_SRC_ALPHA);
 	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
 	C3D_TexEnvColor(env, graphicsGetColor());
@@ -119,17 +125,33 @@ void translateCoords(float * x, float * y)
 		*x += (slider * currentDepth);
 }
 
-void graphicsSetColor(int r, int g, int b)
+int graphicsGetColor(int color)
 {
-	currentR = r;
-	currentG = g;
-	currentB = b;
+	int returnColor;
+	switch (color)
+	{
+		case 0:
+			returnColor = currentR;
+			break;
+		case 1:
+			returnColor = currentG;
+			break;
+		case 2:
+			returnColor = currentB;
+			break;
+		case 3:
+			returnColor = currentA;
+			break;
+	}
+
+	return returnColor;
 }
 
 void graphicsSetColor(int r, int g, int b, int a)
 {
-	graphicsSetColor(r, g, b);
-
+	currentR = r * float(a) / 255.0f;
+	currentG = g * float(a) / 255.0f;
+	currentB = b * float(a) / 255.0f;
 	currentA = a;
 }
 
@@ -152,7 +174,7 @@ love::Font * graphicsGetFont()
 
 u32 graphicsGetColor()
 {
-	return ( ( (currentA & 0xFF) << 24 ) + ( (currentB & 0xFF) << 16) + ( (currentG & 0xFF) << 8) + ( (currentR & 0xFF) << 0 ) );
+	return ( ( (currentA & 0xFF) << 24 ) | ( (currentB & 0xFF) << 16) | ( (currentG & 0xFF) << 8) | ( (currentR & 0xFF) << 0 ) );
 }
 
 u32 graphicsGetBackgroundColor()
@@ -307,23 +329,57 @@ void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int tex
 
 void graphicsPush()
 {
-	graphicsPushed = true;
+	if (currentScreen == renderScreen)
+		graphicsPushed = true;
 }
 
 void graphicsTranslate(float x, float y)
 {
-	translateX = x;
-	translateY = y;
+	if (currentScreen == renderScreen)
+	{
+		translateX += x;
+		translateY += y;
+	}
 }
 
 void graphicsPop()
 {
-	graphicsPushed = false;
+	if (currentScreen == renderScreen)
+	{
+		graphicsPushed = false;
+		translateX = 0;
+		translateY = 0;
+	}
 }
 
 void graphicsPrint(const char * text, float x, float y)
 {
 	graphicsPrintf(text, x, y, NULL);
+}
+
+void graphicsSetScissor(bool disable, float x, float y, float width, float height)
+{
+	if (width < 0 || height < 0)
+		console->ThrowError("Scissor cannot have negative width or height.");
+
+	GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
+	if (disable)
+		mode = GPU_SCISSOR_DISABLE;
+
+	C3D_SetScissor(mode, x, y, width, height);
+}
+
+void graphicsSetDefaultFilter(const char * min, const char * mag)
+{
+	if (strncmp(min, "nearest", 7) == 0)
+		minFilter = GPU_NEAREST;
+	else if (strncmp(min, "linear", 6) == 0)
+		minFilter = GPU_LINEAR;
+
+	if (strncmp(mag, "nearest", 7) == 0)
+		magFilter = GPU_NEAREST;
+	else if (strncmp(mag, "linear", 6) == 0)
+		magFilter = GPU_LINEAR;
 }
 
 void graphicsPrintf(const char * text, float x, float y, float limit)

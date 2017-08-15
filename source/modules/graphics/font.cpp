@@ -106,7 +106,8 @@ int Font::GetWidth(char glyph)
 	love::Glyph * charGlyph = this->GetGlyph(glyph);
 	int width = 0;
 
-	width += charGlyph->GetXAdvance();
+	if (charGlyph != nullptr)
+		width += charGlyph->GetXAdvance();
 
 	return width;
 }

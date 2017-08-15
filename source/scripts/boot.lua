@@ -39,17 +39,17 @@ if love.filesystem.isFile("conf.lua") then
 	success, err = pcall(require, 'conf')
 end
 
-if love.conf then
+if success and love.conf then
 	love.conf(config)
+
+	if config.console then
+		love.enableConsole()
+	end
 end
 
-if config.console then
-	love.enableConsole()
-end
 love.filesystem.setIdentity(config.identity)
 
 function love.createhandlers()
-
 	-- Standard callback handlers.
 	love.handlers = setmetatable({
 		keypressed = function (key)
@@ -177,7 +177,7 @@ local function wrapText(text, x, y, len)
 end
 
 function love.errhand(message)
-	message = message:gsub("./", "")
+	message = message:gsub("^(./)", "")
 
 	love.graphics.set3D(false)
 

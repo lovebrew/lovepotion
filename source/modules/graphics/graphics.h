@@ -33,6 +33,8 @@ namespace love
 			static int Push(lua_State * L);
 			static int Pop(lua_State * L);
 			static int Translate(lua_State * L);
+			static int SetScissor(lua_State * L);
+			static int SetDefaultFilter(lua_State * L);
 
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);

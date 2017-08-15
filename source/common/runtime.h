@@ -50,6 +50,8 @@ extern bool FUSED;
 extern gfxScreen_t currentScreen;
 extern gfxScreen_t renderScreen;
 extern gfx3dSide_t currentSide;
+extern GPU_TEXTURE_FILTER_PARAM minFilter;
+extern GPU_TEXTURE_FILTER_PARAM magFilter;
 
 extern touchPosition touch;
 extern bool touchDown;

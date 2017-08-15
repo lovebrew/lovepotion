@@ -16,21 +16,25 @@ namespace love
 			int IsPlaying();
 			float GetDuration();
 			float Tell();
+			bool IsStatic();
 
 			long FillBuffer(void * audio);
 			const char * Decode();
 			int GetOpenChannel();
 			void Update();
 			void Reset();
-			
-			char * data;
-			int audiochannel;
+			void Collect();
+
+			int GetAudioChannel();
 
 		private:
 			ndspWaveBuf waveBuffer[2];
 
 			FILE * fileHandle;
 			OggVorbis_File vorbisFile;
+
+			char * data;
+			int audiochannel;
 
 			u32 rate;
 			u32 channels;
@@ -50,6 +54,7 @@ namespace love
 			
 			bool stream; //if it should stream
 			bool fillBuffer;
+			bool firstFill;
 	};
 }
 

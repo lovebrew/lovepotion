@@ -119,7 +119,7 @@ void Image::LoadTexture(void * data, int citroWidth, int citroHeight)
 
 	gspWaitForPPF();
 
-	C3D_TexSetFilter(this->texture, GPU_LINEAR, GPU_LINEAR);
+	C3D_TexSetFilter(this->texture, magFilter, minFilter);
 
 	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }

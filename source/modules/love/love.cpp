@@ -1,5 +1,6 @@
 #include "common/version.h"
 #include "common/runtime.h"
+#include "filesystem.h"
 #include "love.h"
 
 #include "modules/socket/socket.h"
@@ -14,6 +15,7 @@ extern int mouseInit(lua_State * L);
 
 extern void systemExit();
 extern void graphicsExit();
+extern void audioExit();
 
 extern int initSourceClass(lua_State * L);
 extern int initFileClass(lua_State * L);
@@ -27,7 +29,7 @@ struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] =
 	{"filesystem",	filesystemInit,	NULL		},
 	{"system",		systemInit,		systemExit	},
 	{"timer",		timerInit,		NULL		},
-	{"audio",		audioInit,		NULL		},
+	{"audio",		audioInit,		audioExit	},
 	{"keyboard",	keyboardInit,	NULL		},
 	{"mouse",		mouseInit,		NULL		},
 	{0}
@@ -159,6 +161,28 @@ int loveEnableConsole(lua_State * L)
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
 }
 
+void loveChangeDir(bool isFused)
+{
+	if (isFused)
+		chdir("romfs:/");
+	else
+	{
+		char cwd[256];
+		getcwd(cwd, 256);
+
+		strcat(cwd, "game/");
+
+		chdir(cwd);
+	}
+}
+
+void loveCreateSaveDirectory()
+{
+	mkdir("sdmc:/3ds/data/", 0777);
+	mkdir("sdmc:/3ds/data/LovePotion/", 0777);
+	mkdir(love::Filesystem::Instance()->GetSaveDirectory(), 0777);
+}
+
 int loveInit(lua_State * L)
 {
 	int (*classes[])(lua_State *L) = {
@@ -177,9 +201,9 @@ int loveInit(lua_State * L)
 
 	luaL_Reg reg[] = 
 	{
-		{ "getVersion",	loveGetVersion	},
-		{ "quit",		loveQuit		},
-		{ "enableConsole",	loveEnableConsole},
+		{ "getVersion",		loveGetVersion		},
+		{ "quit",			loveQuit			},
+		{ "enableConsole",	loveEnableConsole	},
 		{ 0, 0 },
 	};
 
@@ -196,6 +220,8 @@ int loveInit(lua_State * L)
 
 void loveClose(lua_State * L)
 {
+	luaL_dostring(L, "love.audio.stop()");
+
 	for (int i = 0; modules[i].close; i++)
 		modules[i].close();
 

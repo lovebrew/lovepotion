@@ -28,6 +28,8 @@ const char * Source::Init(const char * path, const char * type)
 		error = "Failed to open file.";
 
 	this->fillBuffer = false;
+	this->firstFill = true;
+
 	error = this->Decode();
 
 	if (error != nullptr)
@@ -67,9 +69,13 @@ const char * Source::Decode()
 		if (linearSpaceFree() < this->size)
 			return "not enough linear memory available";
 
+		memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
+
 		this->data = (char *)linearAlloc(this->size);
 		
-		this->FillBuffer(this->data);
+		this->waveBuffer[0].data_vaddr = this->data;
+
+		this->FillBuffer((char *)this->waveBuffer[0].data_vaddr);
 
 		ov_clear(&this->vorbisFile);
 
@@ -88,12 +94,13 @@ const char * Source::Decode()
 		memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
 
 		this->waveBuffer[0].data_vaddr = this->data;
-		this->FillBuffer((char *)this->waveBuffer[0].data_vaddr);
 		this->waveBuffer[0].nsamples = this->chunkSamples;
-
+		
 		this->waveBuffer[1].data_vaddr = this->data;
-		this->FillBuffer((char *)this->waveBuffer[1].data_vaddr);
 		this->waveBuffer[1].nsamples = this->chunkSamples;
+		this->waveBuffer[1].status = NDSP_WBUF_DONE;
+
+		this->FillBuffer(this->data);
 
 		streams.push_back(this);
 	}
@@ -116,17 +123,12 @@ int Source::GetOpenChannel() {
 
 void Source::Update()
 {
-	if (this->waveBuffer[0].status == NDSP_WBUF_DONE && this->waveBuffer[1].status == NDSP_WBUF_DONE)
-	{
-		if (feof(this->fileHandle))
-		{
-			this->Reset();
-		}
-	}	
-
 	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
 	{
-		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
+		long ret = this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
+
+		if (ret != 0)
+			return;
 
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
 
@@ -136,7 +138,10 @@ void Source::Update()
 
 void Source::Reset()
 {
-
+	fseek(this->fileHandle, 0, SEEK_SET);
+	ov_pcm_seek(&this->vorbisFile, 0);
+	this->currentSection = 0;
+	this->data = (char *)calloc(1, this->size);
 }
 
 void Source::Play()
@@ -146,6 +151,7 @@ void Source::Play()
 
 	ndspChnWaveBufClear(this->audiochannel);
 	ndspChnReset(this->audiochannel);
+	
 	ndspChnInitParams(this->audiochannel);
 	ndspChnSetMix(this->audiochannel, this->mix);
 	ndspChnSetInterp(this->audiochannel, this->interp);
@@ -155,19 +161,17 @@ void Source::Play()
 	if (this->stream)
 	{	
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[0]);
-		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[1]);
+		this->fillBuffer = !this->fillBuffer;
 	} 
 	else 
 	{
-		this->waveBuffer[0].data_vaddr = this->data;
 		this->waveBuffer[0].nsamples = this->nsamples;
 		this->waveBuffer[0].looping = this->loop;
 
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[0]);
-
-		DSP_FlushDataCache(this->data, this->size);
+		DSP_FlushDataCache((u32 *)this->data, this->size);
 	}
-	
+
 }
 
 void Source::SetLooping(bool loop)
@@ -210,24 +214,24 @@ float Source::Tell()
 
 long Source::FillBuffer(void * audio)
 {
-	if (feof(this->fileHandle))
-		return -1;
-	
 	int eof = 0;
 	int offset = 0;
-	
+
 	char * destination = (char *)audio;
 
-	int size = 4096;
+	int readSize = 4096;
 	if (this->stream)
-		size = this->size;
+		readSize = this->size;
 
 	while (!eof)
 	{
-		long ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, size), &this->currentSection);
+		long ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, readSize), &this->currentSection);
 
 		if (ret == 0)
 		{
+			if (this->stream)
+				this->Reset();
+			
 			eof = 1;
 		} 
 		else if (ret < 0) 
@@ -235,7 +239,7 @@ long Source::FillBuffer(void * audio)
 			ov_clear(&this->vorbisFile);
 
 			linearFree(destination);
-
+ 
 			break;
 		}
 		else 
@@ -247,8 +251,30 @@ long Source::FillBuffer(void * audio)
 		}
 	}
 
+	if (eof)
+		return 1;
+
 	if (this->stream)
-		DSP_FlushDataCache(audio, this->size);
+		DSP_FlushDataCache((u32 *)audio, this->size);
 
 	return 0;
+}
+
+int Source::GetAudioChannel()
+{
+	return this->audiochannel;
+}
+
+bool Source::IsStatic()
+{
+	return (this->stream == false);
+}
+
+void Source::Collect()
+{
+	ndspChnWaveBufClear(this->audiochannel);
+	
+	linearFree(this->data);
+	
+	channelList[this->audiochannel] = false;
 }
