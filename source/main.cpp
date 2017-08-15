@@ -34,6 +34,7 @@ bool LUA_ERROR = false;
 bool LOVE_QUIT = false;
 bool FUSED = false;
 lua_State * L;
+volatile bool updateAudioThread = true;
 
 #include <unistd.h>
 
@@ -61,14 +62,20 @@ int main(int argc, char ** argv)
 
 	luaL_requiref(L, "love", loveInit, 1);
 
+	console = new love::Console();
+	
 	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
 	loveCreateSaveDirectory();
 
-	console = new love::Console();
-
 	osSetSpeedupEnable(true);
 	
+	s32 priority = 0;
+	svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
+	Thread musicThread = threadCreate(sourceStream, NULL, 0x1000, priority - 1, -2, false);
+
+	printf("%p\n", musicThread);
+
 	if(luaL_dostring(L, "if love.load then love.load() end"))
 		console->ThrowError(L);
 	
@@ -86,8 +93,6 @@ int main(int argc, char ** argv)
 
 			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
 				console->ThrowError(L);
-
-			sourceStream();
 
 			if (CLOSE_KEYBOARD)
 			{
@@ -148,7 +153,12 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	updateAudioThread = false;
+
 	loveClose(L);
+
+	threadJoin(musicThread, U64_MAX);
+	threadFree(musicThread);
 	
 	if (FUSED) 
 		romfsExit();

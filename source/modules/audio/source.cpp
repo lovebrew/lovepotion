@@ -83,8 +83,8 @@ const char * Source::Decode()
 	}
 	else
 	{
-		this->chunkSamples = round(this->rate * 0.1);
-		this->size = this->chunkSamples * this->channels * 2;
+		this->size = 8192;
+		this->chunkSamples = this->size / 4;
 
 		if (linearSpaceFree() < this->size)
 			return "not enough linear memory available";
@@ -141,7 +141,6 @@ void Source::Reset()
 	fseek(this->fileHandle, 0, SEEK_SET);
 	ov_pcm_seek(&this->vorbisFile, 0);
 	this->currentSection = 0;
-	this->data = (char *)calloc(1, this->size);
 }
 
 void Source::Play()

@@ -47,6 +47,8 @@ extern "C" {
 extern love::Console * console;
 extern bool FUSED;
 
+extern volatile bool updateAudioThread;
+
 extern gfxScreen_t currentScreen;
 extern gfxScreen_t renderScreen;
 extern gfx3dSide_t currentSide;

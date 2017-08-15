@@ -2,7 +2,7 @@ function love.load()
 	print("Reading log..")
 	logErrors = {}
 	for line in love.filesystem.lines("build.log") do
-		if line:find("warning") then
+		if line:find("warning") and not line:find("libs") then
 			table.insert(logErrors, line)
 		end
 	end

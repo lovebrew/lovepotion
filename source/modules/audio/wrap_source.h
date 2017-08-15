@@ -16,6 +16,6 @@ int sourceGetDuration(lua_State * L);
 
 int sourceTell(lua_State * L);
 
-void sourceStream();
+void sourceStream(void * arg);
 
 int sourceGC(lua_State * L);

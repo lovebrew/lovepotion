@@ -467,7 +467,7 @@ int graphicsInit(lua_State * L)
 	gfxInitDefault();
 	gfxSet3D(false);
 
-	resetPool();
+	//resetPool();
 	C3D_Init(0x80000 * 8);
 
 	love::Graphics::Instance()->InitRenderTargets();

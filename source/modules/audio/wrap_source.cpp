@@ -91,12 +91,17 @@ int sourceTell(lua_State * L)
 	return 1;
 }
 
-void sourceStream()
+void sourceStream(void * arg)
 {
-	for (auto &it : streams)
+	while (updateAudioThread)
 	{
-		if (it != nullptr)
-			it->Update();
+		for (auto &it : streams)
+		{
+			if (it != nullptr)
+				it->Update();
+		}
+		
+		svcSleepThread(1000000ULL);
 	}
 }
 
