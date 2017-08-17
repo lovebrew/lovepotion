@@ -6,6 +6,8 @@ namespace love
 	{
 		public:
 			const char * Init(const char * path, bool memory);
+			void InitData(love::ImageData * other);
+
 			void Decode(unsigned char * buffer, unsigned textureWidth, unsigned textureHeight);
 			void LoadTexture(void * data, int width, int height);
 			void DecodeFile();

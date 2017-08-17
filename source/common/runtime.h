@@ -47,6 +47,7 @@ extern "C" {
 extern love::Console * console;
 extern bool FUSED;
 
+extern bool screenEnable[1];
 extern volatile bool updateAudioThread;
 
 extern gfxScreen_t currentScreen;

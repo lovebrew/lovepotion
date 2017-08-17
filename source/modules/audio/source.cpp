@@ -15,7 +15,6 @@ const char * Source::Init(const char * path, const char * type)
 
 	const char * extension = strrchr(path, '.');
 
-	love_source_type t = TYPE_OGG;
 	if (strncmp((extension + 1), "ogg", 3) != 0)
 		return "Invalid Source type!";
 
@@ -83,24 +82,22 @@ const char * Source::Decode()
 	}
 	else
 	{
-		this->size = 8192;
-		this->chunkSamples = this->size / 4;
+		this->size = 4096;
+		this->chunkSamples = this->size / this->channels / 2;
 
-		if (linearSpaceFree() < this->size)
+		if (linearSpaceFree() < this->size * 2)
 			return "not enough linear memory available";
-
-		this->data = (char *)linearAlloc(this->size);
 
 		memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
 
-		this->waveBuffer[0].data_vaddr = this->data;
+		this->waveBuffer[0].data_vaddr = linearAlloc(this->size);
 		this->waveBuffer[0].nsamples = this->chunkSamples;
 		
-		this->waveBuffer[1].data_vaddr = this->data;
+		this->waveBuffer[1].data_vaddr = linearAlloc(this->size);
 		this->waveBuffer[1].nsamples = this->chunkSamples;
 		this->waveBuffer[1].status = NDSP_WBUF_DONE;
 
-		this->FillBuffer(this->data);
+		this->FillBuffer((char *)this->waveBuffer[0].data_vaddr);
 
 		streams.push_back(this);
 	}
@@ -128,6 +125,9 @@ void Source::Update()
 		long ret = this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
 
 		if (ret != 0)
+			return;
+
+		if (!this->loop)
 			return;
 
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
@@ -215,20 +215,16 @@ long Source::FillBuffer(void * audio)
 {
 	int eof = 0;
 	int offset = 0;
-
+	
 	char * destination = (char *)audio;
-
-	int readSize = 4096;
-	if (this->stream)
-		readSize = this->size;
 
 	while (!eof)
 	{
-		long ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, readSize), &this->currentSection);
+		long ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), &this->currentSection);
 
 		if (ret == 0)
 		{
-			if (this->stream)
+			if (this->stream && feof(this->fileHandle))
 				this->Reset();
 			
 			eof = 1;
@@ -244,17 +240,13 @@ long Source::FillBuffer(void * audio)
 		else 
 		{
 			offset += ret;
-
-			if (this->stream && offset >= this->size)
-				break;
 		}
 	}
 
-	if (eof)
-		return 1;
-
-	if (this->stream)
+	if (this->stream && !feof(this->fileHandle))
 		DSP_FlushDataCache((u32 *)audio, this->size);
+	else
+		return 1;
 
 	return 0;
 }

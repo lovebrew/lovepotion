@@ -22,6 +22,7 @@ extern int initFileClass(lua_State * L);
 extern int initImageClass(lua_State * L);
 extern int initFontClass(lua_State *L);
 extern int initQuadClass(lua_State * L);
+extern int initImageDataClass(lua_State * L);
 
 struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
@@ -32,6 +33,7 @@ struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] =
 	{"audio",		audioInit,		audioExit	},
 	{"keyboard",	keyboardInit,	NULL		},
 	{"mouse",		mouseInit,		NULL		},
+	{"image",		imageInit,		NULL		},
 	{0}
 };
 
@@ -161,6 +163,20 @@ int loveEnableConsole(lua_State * L)
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
 }
 
+int loveEnableScreen(lua_State * L)
+{
+	bool topScreen = lua_toboolean(L, 1);
+	bool bottomScreen = lua_toboolean(L, 2);
+
+	if (!(topScreen | bottomScreen))
+		console->ThrowError("At least one screen needs to be active.");
+
+	screenEnable[0] = topScreen;
+	screenEnable[1] = bottomScreen;
+
+	return 0;
+}
+
 void loveChangeDir(bool isFused)
 {
 	if (isFused)
@@ -191,6 +207,7 @@ int loveInit(lua_State * L)
 		initImageClass,
 		initFontClass,
 		initQuadClass,
+		initImageDataClass,
 		NULL,
 	};
 
@@ -204,6 +221,7 @@ int loveInit(lua_State * L)
 		{ "getVersion",		loveGetVersion		},
 		{ "quit",			loveQuit			},
 		{ "enableConsole",	loveEnableConsole	},
+		//{ "enableScreen", 	loveEnableScreen	},
 		{ 0, 0 },
 	};
 

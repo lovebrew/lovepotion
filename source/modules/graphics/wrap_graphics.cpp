@@ -387,42 +387,42 @@ void graphicsPrintf(const char * text, float x, float y, float limit)
 	float originX = x;
 	float originY = y;
 
-	love::Font * currFont = graphicsGetFont();
-
-	if (currFont == nullptr)
+	if (currentFont == nullptr)
 		return;
 
-	C3D_Tex * texture = currFont->GetSheet()->GetTexture();
+	C3D_Tex * texture = currentFont->GetSheet()->GetTexture();
 
 	int width, wrapWidth = 0;
 	bindTexture(texture);
 
 	for (int i = 0; i < strlen(text); i++)
 	{
-		love::Glyph * glyph = currFont->GetGlyph(text[i]);
+		love::Glyph * currentGlyph = currentFont->GetGlyph(text[i]);
+		love::Glyph * previousGlyph = nullptr;
+
+		if (i > 0)
+			previousGlyph = currentFont->GetGlyph(text[i - 1]);
 
 		if (text[i] == '\n' || (limit != NULL && wrapWidth >= limit))
 		{
 			x = originX;
-			y = y + currFont->GetHeight() + 2;
+			y = y + currentFont->GetHeight() + 2;
 			width = 0;
 			wrapWidth = 0;
 		}
 		else
 		{
-			if (glyph == nullptr)
+			if (currentGlyph == nullptr)
 				return;
 		
-			love::Quad * quad = glyph->GetQuad();
+			love::Quad * quad = currentGlyph->GetQuad();
 
-			if (i > 0)
-			{	
-				if (currFont->GetGlyph(text[i - 1]) != nullptr)
-					width += currFont->GetGlyph(text[i - 1])->GetXAdvance(); //+ glyph->GetXOffset();
-			}
-			wrapWidth += currFont->GetWidth(text[i]);
+			if (i > 0 && text[i - 1] != '\n')
+				width += previousGlyph->GetXAdvance();
 
-			graphicsDrawQuad(texture, x + width + glyph->GetXOffset(), y + glyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1);
+			wrapWidth += currentFont->GetWidth(text[i]);
+
+			graphicsDrawQuad(texture, x + width + currentGlyph->GetXOffset(), y + currentGlyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1);
 		}
 	}
 }

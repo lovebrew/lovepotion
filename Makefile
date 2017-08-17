@@ -40,6 +40,7 @@ SOURCES		:=	\
 				source/modules/love \
 				source/modules/system \
 				source/modules/socket \
+				source/modules/image \
 				source/modules/timer \
 				source/modules/keyboard \
 				source/modules/font \
@@ -67,7 +68,7 @@ JINGLE := meta/jingle.wav
 APP_PRODUCT_CODE := CTR-P-LP
 APP_UNIQUE_ID := 0x1043
 APP_SYSTEM_MODE := 64MB
-APP_SYSTEM_MODE_EXT := 124MB #Legacy
+APP_SYSTEM_MODE_EXT := Legacy #124MB
 
 #---------------------------------------------------------------------------------
 # options for code generation

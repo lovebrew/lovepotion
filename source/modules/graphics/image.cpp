@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+#include "imagedata.h"
 #include "image.h"
 
 using love::Image;

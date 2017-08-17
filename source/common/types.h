@@ -1,11 +1,5 @@
 #pragma once
 
-typedef enum 
-{
-	TYPE_UNKNOWN = -1,
-	TYPE_OGG = 0
-} love_source_type;
-
 typedef struct
 {
 	float u, v;
@@ -27,5 +21,13 @@ typedef struct
 	vertex3 position;
 	vertex2 quad;
 } texturePositions;
+
+typedef struct
+{
+	int r;
+	int g;
+	int b;
+	int a;
+} pixel;
 
 extern char BUTTONS[32][32];

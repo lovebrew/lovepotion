@@ -19,6 +19,8 @@ void loveChangeDir(bool isFused);
 
 void loveCreateSaveDirectory();
 
+int loveEnableScreen(lua_State * L);
+
 /*
 	@brief initializes LOVE, its modules, and their classes
 */

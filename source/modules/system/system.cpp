@@ -196,13 +196,16 @@ int System::GetLinearMemory(lua_State * L)
 int System::GetUsername(lua_State * L)
 {
 	u8 * data = (u8 *)malloc(0x1C);
-	char * username = (char *)malloc(0x13);
-	
+	static wchar_t usernameConfig[0x1C];
+	char * username = (char *)malloc(0x1C);
+
 	CFGU_GetConfigInfoBlk2(0x1C, 0x000A0000, data);
 
-	for (int i = 0; i < 0x13; i++)
-		username[i] = (char)((u16 *)data)[i];
+	for (int i = 0; i < 0x1C; i++)
+		usernameConfig[i] = (wchar_t)((u16 *)data)[i];
 
+	wcstombs(username, usernameConfig, 0x1C);
+	
 	lua_pushstring(L, username);
 
 	return 1;

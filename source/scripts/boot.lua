@@ -48,6 +48,7 @@ if success and love.conf then
 end
 
 love.filesystem.setIdentity(config.identity)
+--love.enableScreen(config.window.top, config.window.bottom);
 
 function love.createhandlers()
 	-- Standard callback handlers.

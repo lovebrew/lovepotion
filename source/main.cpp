@@ -35,6 +35,7 @@ bool LOVE_QUIT = false;
 bool FUSED = false;
 lua_State * L;
 volatile bool updateAudioThread = true;
+bool screenEnable[1];
 
 #include <unistd.h>
 
@@ -100,19 +101,19 @@ int main(int argc, char ** argv)
 				CLOSE_KEYBOARD =  false;
 			}
 
-			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+				love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
 
-			if (luaL_dostring(L, "if love.draw then love.draw() end"))
-				console->ThrowError(L);
-			
-			if (gfxIs3D())
-			{
-				love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
-				
 				if (luaL_dostring(L, "if love.draw then love.draw() end"))
 					console->ThrowError(L);
-			}
-			
+				
+				if (gfxIs3D())
+				{
+					love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
+					
+					if (luaL_dostring(L, "if love.draw then love.draw() end"))
+						console->ThrowError(L);
+				}
+
 			if (!console->IsEnabled())
 			{
 				love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
