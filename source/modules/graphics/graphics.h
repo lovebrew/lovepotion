@@ -20,6 +20,7 @@ namespace love
 			static int SetScreen(lua_State * L);
 			static int Present(lua_State * L);
 			static int SetFont(lua_State * L);
+			static int GetFont(lua_State * L);
 			static int Set3D(lua_State * L);
 			static int SetDepth(lua_State * L);
 	

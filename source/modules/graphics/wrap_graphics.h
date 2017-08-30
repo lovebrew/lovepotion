@@ -28,6 +28,8 @@ void graphicsPrint(const char * text, float x, float y);
 
 void graphicsPrintf(const char * text, float x, float y, float limit);
 
+void graphicsLoadText(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY, texturePositions * vertexList, int index);
+
 int graphicsGetColor(int color);
 
 void graphicsSetColor(int r, int g, int b, int a);

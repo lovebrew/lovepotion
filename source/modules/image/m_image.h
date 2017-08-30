@@ -15,5 +15,5 @@ namespace love
 			}
 
 			static int NewImageData(lua_State * L);
-	}
+	};
 }

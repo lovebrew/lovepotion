@@ -11,7 +11,7 @@ namespace love
 			void Write(const char * data);
 			void Flush();
 			void Close();
-			const char * Read();
+			char * Read();
 			bool Open(const char * mode);
 			int GetSize();
 			bool IsOpen();

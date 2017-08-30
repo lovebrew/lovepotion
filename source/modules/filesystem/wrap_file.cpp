@@ -60,7 +60,7 @@ int fileRead(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	const char * buffer = self->Read();
+	char * buffer = strdup(self->Read());
 
 	lua_pushstring(L, buffer);
 

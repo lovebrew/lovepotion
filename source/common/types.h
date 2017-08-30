@@ -24,6 +24,11 @@ typedef struct
 
 typedef struct
 {
+	texturePositions * position;
+} vertexArray;
+
+typedef struct
+{
 	int r;
 	int g;
 	int b;

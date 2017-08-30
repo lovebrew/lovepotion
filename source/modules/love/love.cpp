@@ -12,6 +12,7 @@ extern int timerInit(lua_State * L);
 extern int audioInit(lua_State * L);
 extern int keyboardInit(lua_State * L);
 extern int mouseInit(lua_State * L);
+extern int imageInit(lua_State * L);
 
 extern void systemExit();
 extern void graphicsExit();

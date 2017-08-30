@@ -60,6 +60,11 @@ int imageDataSetPixel(lua_State * L)
 	return 0;
 }
 
+int imageDataGC(lua_State * L)
+{
+	return 0;
+}
+
 int initImageDataClass(lua_State *L) {
 	
 		luaL_Reg reg[] = {
@@ -70,7 +75,7 @@ int initImageDataClass(lua_State *L) {
 			{ 0, 0 },
 		};
 	
-		luaobj_newclass(L, CLASS_NAME, NULL, imageNew, reg);
+		luaobj_newclass(L, CLASS_NAME, NULL, imageDataNew, reg);
 	
 		return 1;
 	

@@ -2,6 +2,7 @@
 #include "crendertarget.h"
 
 #include "graphics.h"
+#include "imagedata.h"
 #include "image.h"
 #include "file.h"
 #include "quad.h"
@@ -308,6 +309,17 @@ int Graphics::SetFont(lua_State * L)
 	return 0;
 }
 
+int Graphics::GetFont(lua_State * L) //Doesn't work yet
+{
+	/*Font * currentFont = graphicsGetFont();
+
+	lua_pushlightuserdata(L, currentFont);
+	lua_gettable(L, -1);
+	lua_remove(L, -1);
+
+	return 1;*/
+}
+
 int Graphics::Set3D(lua_State * L)
 {
 	bool enable = lua_toboolean(L, 1);
@@ -357,7 +369,12 @@ int Graphics::SetScissor(lua_State * L)
 	float width = luaL_optnumber(L, 3, 0);
 	float height = luaL_optnumber(L, 4, 0);
 
-	graphicsSetScissor(args == 0, x, y, width, height);
+	int screenWidth = 400;
+	if (currentScreen == GFX_BOTTOM)
+		screenWidth = 320;
+
+	if (currentScreen == renderScreen)
+		graphicsSetScissor(args == 0, 240 - (y + height), screenWidth - (x + width), 240 - y, screenWidth - x);
 
 	return 0;
 }
@@ -485,6 +502,7 @@ int graphicsInit(lua_State * L)
 		{ "print",				love::Graphics::Print		},
 		{ "printf",				love::Graphics::Printf		},
 		{ "setFont",			love::Graphics::SetFont		},
+		{ "getFont",			love::Graphics::GetFont		},
 		{ "getWidth",			love::Graphics::GetWidth	},
 		{ "getHeight",			love::Graphics::GetHeight	},
 		{ "setScreen",			love::Graphics::SetScreen	},

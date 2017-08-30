@@ -2,6 +2,7 @@
 #include "quad.h"
 #include "file.h"
 #include "glyph.h"
+#include "imagedata.h"
 #include "image.h"
 #include "font.h"
 #include "wrap_graphics.h"
@@ -357,42 +358,22 @@ void graphicsPrint(const char * text, float x, float y)
 	graphicsPrintf(text, x, y, NULL);
 }
 
-void graphicsSetScissor(bool disable, float x, float y, float width, float height)
-{
-	if (width < 0 || height < 0)
-		console->ThrowError("Scissor cannot have negative width or height.");
-
-	GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
-	if (disable)
-		mode = GPU_SCISSOR_DISABLE;
-
-	C3D_SetScissor(mode, x, y, width, height);
-}
-
-void graphicsSetDefaultFilter(const char * min, const char * mag)
-{
-	if (strncmp(min, "nearest", 7) == 0)
-		minFilter = GPU_NEAREST;
-	else if (strncmp(min, "linear", 6) == 0)
-		minFilter = GPU_LINEAR;
-
-	if (strncmp(mag, "nearest", 7) == 0)
-		magFilter = GPU_NEAREST;
-	else if (strncmp(mag, "linear", 6) == 0)
-		magFilter = GPU_LINEAR;
-}
-
 void graphicsPrintf(const char * text, float x, float y, float limit)
 {
 	float originX = x;
 	float originY = y;
+
+	//texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions) * strlen(text), 8 * strlen(text));
+
+	//if (!vertexList)
+	//	return;
 
 	if (currentFont == nullptr)
 		return;
 
 	C3D_Tex * texture = currentFont->GetSheet()->GetTexture();
 
-	int width, wrapWidth = 0;
+	int width, wrapWidth, index = 0;
 	bindTexture(texture);
 
 	for (int i = 0; i < strlen(text); i++)
@@ -423,8 +404,63 @@ void graphicsPrintf(const char * text, float x, float y, float limit)
 			wrapWidth += currentFont->GetWidth(text[i]);
 
 			graphicsDrawQuad(texture, x + width + currentGlyph->GetXOffset(), y + currentGlyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1);
+
+			index += 4;
 		}
 	}
+
+	//generateTextureVertecies(vertexList);
+
+	//C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, index);
+}
+
+void graphicsLoadText(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY, texturePositions * vertexList, int index)
+{
+	translateCoords(&x, &y);
+
+	float scaleWidth = textureWidth * scalarX;
+	float scaleHeight = textureHeight * scalarY;
+	
+	vertexList[index + 0].position = {x,				y,					0.5f};
+	vertexList[index + 1].position = {x + scaleWidth,	y,					0.5f};
+	vertexList[index + 2].position = {x,				y + scaleHeight, 	0.5f};
+	vertexList[index + 3].position = {x + scaleWidth,	y + scaleHeight, 	0.5f};
+
+	float u0 = textureX/(float)texture->width;
+	float v0 = textureY/(float)texture->height;
+
+	float u1 = (textureX + textureWidth)/(float)texture->width;
+	float v1 = (textureY + textureHeight)/(float)texture->height;
+
+	vertexList[index + 0].quad = {u0,	v0};
+	vertexList[index + 1].quad = {u1,	v0};
+	vertexList[index + 2].quad = {u0,	v1};
+	vertexList[index + 3].quad = {u1,	v1};
+}
+
+void graphicsSetScissor(bool disable, float x, float y, float width, float height)
+{
+	if (width < 0 || height < 0)
+		console->ThrowError("Scissor cannot have negative width or height.");
+
+	GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
+	if (disable)
+		mode = GPU_SCISSOR_DISABLE;
+
+	C3D_SetScissor(mode, x, y, width, height);
+}
+
+void graphicsSetDefaultFilter(const char * min, const char * mag)
+{
+	if (strncmp(min, "nearest", 7) == 0)
+		minFilter = GPU_NEAREST;
+	else if (strncmp(min, "linear", 6) == 0)
+		minFilter = GPU_LINEAR;
+
+	if (strncmp(mag, "nearest", 7) == 0)
+		magFilter = GPU_NEAREST;
+	else if (strncmp(mag, "linear", 6) == 0)
+		magFilter = GPU_LINEAR;
 }
 
 void graphicsPoints(float x, float y)

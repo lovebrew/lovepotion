@@ -26,7 +26,7 @@ int Keyboard::IsDown(lua_State * L)
 
 	for (int i = 0; i < 32; i++)
 	{
-		if (keyHeld & BIT(i))
+		if (keyHeld & BIT(i) && strcmp(key, BUTTONS[i]) == 0)
 		{
 			if (strcmp(BUTTONS[i], "touch") != 0)
 			{

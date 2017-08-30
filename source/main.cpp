@@ -75,8 +75,6 @@ int main(int argc, char ** argv)
 	svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
 	Thread musicThread = threadCreate(sourceStream, NULL, 0x1000, priority - 1, -2, false);
 
-	printf("%p\n", musicThread);
-
 	if(luaL_dostring(L, "if love.load then love.load() end"))
 		console->ThrowError(L);
 	
@@ -101,18 +99,18 @@ int main(int argc, char ** argv)
 				CLOSE_KEYBOARD =  false;
 			}
 
-				love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
 
+			if (luaL_dostring(L, "if love.draw then love.draw() end"))
+				console->ThrowError(L);
+				
+			if (gfxIs3D())
+			{
+				love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
+					
 				if (luaL_dostring(L, "if love.draw then love.draw() end"))
 					console->ThrowError(L);
-				
-				if (gfxIs3D())
-				{
-					love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
-					
-					if (luaL_dostring(L, "if love.draw then love.draw() end"))
-						console->ThrowError(L);
-				}
+			}
 
 			if (!console->IsEnabled())
 			{

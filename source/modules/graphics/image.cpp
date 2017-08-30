@@ -125,6 +125,21 @@ void Image::LoadTexture(void * data, int citroWidth, int citroHeight)
 	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 
+void Image::SetFilter(const char * min, const char * mag)
+{
+	if (strncmp(min, "nearest", 7) == 0)
+		this->minFilter = GPU_NEAREST;
+	else if (strncmp(min, "linear", 6) == 0)
+		this->minFilter = GPU_LINEAR;
+
+	if (strncmp(mag, "nearest", 7) == 0)
+		this->magFilter = GPU_NEAREST;
+	else if (strncmp(mag, "linear", 6) == 0)
+		this->magFilter = GPU_LINEAR;
+
+	C3D_TexSetFilter(this->texture, this->magFilter, this->minFilter);
+}
+
 const char * Image::GetPath()
 {
 	return this->path;

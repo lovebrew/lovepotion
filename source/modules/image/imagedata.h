@@ -9,7 +9,7 @@ namespace love
 			int GetWidth();
 			int GetHeight();
 
-			void SetPixel(int x, int y);
+			void SetPixel(int x, int y, u32 color);
 			pixel GetPixel(int x, int y);
 
 		private:
@@ -18,7 +18,7 @@ namespace love
 			int width;
 			int height;
 			unsigned char * buffer;
-			const char * path
+			const char * path;
 			std::string data;
-	}
+	};
 }

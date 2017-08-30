@@ -91,7 +91,7 @@ int Filesystem::Write(lua_State * L)
 int Filesystem::Read(lua_State * L)
 {
 	const char * path = Filesystem::Instance()->Redirect(luaL_checkstring(L, 1));
-	const char * buffer;
+	char * buffer = nullptr;
 
 	love::File * file = new love::File;
 	file->InitPath(path);

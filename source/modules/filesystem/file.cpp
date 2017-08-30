@@ -62,8 +62,8 @@ void File::Write(const char * data)
 	if (!this->open)
 		return;
 
-	if (data != NULL)
-		fwrite(data, strlen(data), 1, this->fileHandle);
+	if (data != nullptr)
+		fwrite(data, sizeof(char), strlen(data), this->fileHandle);
 }
 
 int File::GetSize()
@@ -85,26 +85,26 @@ int File::GetSize()
 	return size;
 }
 
-const char * File::Read()
+char * File::Read()
 {
-	char * buffer;
-	std::string error;
+	char * buffer = nullptr;
+	char * error = nullptr;
 
 	if (this->fileHandle == nullptr)
 	{
-		if (errno == 2)
-			error = "File not found";
+		if (errno == ENOENT)
+			error = strdup("File not found");
 		else
-			error = "File not open for reading";
+			error = strdup("File not open for reading");
 
-		return error.c_str();
+		return error;
 	}
 
-	buffer = (char *)malloc(this->GetSize() + 1);
+	buffer = (char *)malloc(sizeof(char) * this->GetSize());
 
-	fread(buffer, this->GetSize(), 1, this->fileHandle);
+	fread(buffer, 1, this->GetSize(), this->fileHandle);
 
-	buffer[this->GetSize()] = '\0';
+	buffer[this->GetSize()] = 0x0;
 
 	return buffer;
 }

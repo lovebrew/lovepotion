@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include "imagedata.h"
+#include "wrap_imagedata.h"
 #include "m_image.h"
 
 int imageInit(lua_State * L)

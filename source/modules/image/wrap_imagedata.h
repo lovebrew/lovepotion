@@ -9,3 +9,5 @@ int imageDataGetWidth(lua_State * L);
 int imageDataGetHeight(lua_State * L);
 
 int imageDataSetPixel(lua_State * L);
+
+int imageDataGC(lua_State *  L);

@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+#include "imagedata.h"
 #include "image.h"
 #include "wrap_image.h"
 
@@ -41,6 +42,18 @@ int imageGetHeight(lua_State * L)
 	return 1;
 }
 
+int imageSetFilter(lua_State * L)
+{
+	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	const char * min = luaL_checkstring(L, 2);
+	const char * mag = luaL_checkstring(L, 3);
+
+	self->SetFilter(min, mag);
+
+	return 0;
+}
+
 int imageGC(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -58,6 +71,7 @@ int initImageClass(lua_State *L) {
 		{"new",			imageNew		},
 		{"getWidth",	imageGetWidth	},
 		{"getHeight",	imageGetHeight	},
+		{"setFilter",	imageSetFilter	},
 		{"__gc",		imageGC			},
 		{ 0, 0 },
 	};

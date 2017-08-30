@@ -265,7 +265,14 @@ void Source::Collect()
 {
 	ndspChnWaveBufClear(this->audiochannel);
 	
-	linearFree(this->data);
+	if (this->data != nullptr)
+		linearFree(this->data);
 	
+	if (this->stream)
+	{
+		linearFree((void *)this->waveBuffer[0].data_vaddr);
+		linearFree((void *)this->waveBuffer[1].data_vaddr);
+	}
+
 	channelList[this->audiochannel] = false;
 }
