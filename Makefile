@@ -55,9 +55,9 @@ SOURCES		:=	\
 DATA		:=	source/scripts
 INCLUDES	:=	$(SOURCES)
 
-APP_TITLE	:=	'Love Potion'
+APP_TITLE	:=	'Turtle Tale'
 APP_AUTHOR	:=	TurtleP
-APP_DESCRIPTION	:=	'LOVE2D for 3DS'
+APP_DESCRIPTION	:=	'Turtle Game'
 
 ICON := meta/icon.png
 BANNER := meta/banner.png
@@ -65,8 +65,8 @@ JINGLE := meta/jingle.wav
 
 # CIA Options
 
-APP_PRODUCT_CODE := CTR-P-LP
-APP_UNIQUE_ID := 0x1043
+APP_PRODUCT_CODE := CTR-P-TURT
+APP_UNIQUE_ID := 0x5DCA
 APP_SYSTEM_MODE := 64MB
 APP_SYSTEM_MODE_EXT := Legacy #124MB
 
@@ -166,7 +166,7 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
-ifeq ($(strip $(USE_ROMFS)),)
+ifneq ($(strip $(USE_ROMFS)),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 endif
 

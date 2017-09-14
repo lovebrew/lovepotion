@@ -28,6 +28,7 @@ const char * Source::Init(const char * path, const char * type)
 
 	this->fillBuffer = false;
 	this->firstFill = true;
+	this->playing = false;
 
 	error = this->Decode();
 
@@ -170,7 +171,7 @@ void Source::Play()
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[0]);
 		DSP_FlushDataCache((u32 *)this->data, this->size);
 	}
-
+	this->playing = true;
 }
 
 void Source::SetLooping(bool loop)
@@ -180,12 +181,13 @@ void Source::SetLooping(bool loop)
 
 void Source::Stop()
 {
+	this->playing = false;
 	ndspChnWaveBufClear(this->audiochannel);
 }
 
 int Source::IsPlaying()
 {
-	return ndspChnIsPlaying(this->audiochannel);
+	return this->playing;
 }
 
 void Source::SetVolume(float volume)

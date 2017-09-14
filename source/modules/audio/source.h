@@ -55,6 +55,7 @@ namespace love
 			bool stream; //if it should stream
 			bool fillBuffer;
 			bool firstFill;
+			bool playing;
 	};
 }
 

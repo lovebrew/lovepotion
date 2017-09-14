@@ -114,15 +114,7 @@ int sourceGC(lua_State * L)
 	if (self->IsStatic())
 		return 0;
 
-
-	for (auto &element : streams)
-	{
-		if (element->GetAudioChannel() == self->GetAudioChannel())
-		{
-			streams.erase(streams.begin());
-			break;
-		}
-	}
+	streams.erase(std::remove(streams.begin(), streams.end(), self), streams.end());
 
 	return 0;
 }

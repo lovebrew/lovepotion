@@ -65,7 +65,8 @@ int main(int argc, char ** argv)
 
 	console = new love::Console();
 	
-	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
+	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
+		console->ThrowError(L);
 
 	loveCreateSaveDirectory();
 
@@ -77,79 +78,71 @@ int main(int argc, char ** argv)
 
 	if(luaL_dostring(L, "if love.load then love.load() end"))
 		console->ThrowError(L);
-	
+
 	while (aptMainLoop())
 	{
 		if (LOVE_QUIT)
 			break;
 
-		if (!LUA_ERROR)
+		loveScan(L);
+
+		if (luaL_dostring(L, "love.timer.step()"))
+			console->ThrowError(L);
+
+		if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
+			console->ThrowError(L);
+
+		if (CLOSE_KEYBOARD)
 		{
-			loveScan(L);
+			luaL_dostring(L, "love.keyboard.setTextInput(false)");
+			CLOSE_KEYBOARD =  false;
+		}
 
-			if (luaL_dostring(L, "love.timer.step()"))
+		love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+		love::Graphics::Instance()->Clear(GFX_TOP, GFX_LEFT);
+
+		if (luaL_dostring(L, "if love.draw then love.draw() end"))
+			console->ThrowError(L);
+			
+		if (gfxIs3D())
+		{
+			love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
+			love::Graphics::Instance()->Clear(GFX_TOP, GFX_RIGHT);
+				
+			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
+		}
 
-			if(luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
-				console->ThrowError(L);
-
-			if (CLOSE_KEYBOARD)
-			{
-				luaL_dostring(L, "love.keyboard.setTextInput(false)");
-				CLOSE_KEYBOARD =  false;
-			}
-
-			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+		if (!console->IsEnabled())
+		{
+			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
+			love::Graphics::Instance()->Clear(GFX_BOTTOM, GFX_LEFT);
 
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
-				
-			if (gfxIs3D())
-			{
-				love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
-					
-				if (luaL_dostring(L, "if love.draw then love.draw() end"))
-					console->ThrowError(L);
-			}
-
-			if (!console->IsEnabled())
-			{
-				love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
-
-				if (luaL_dostring(L, "if love.draw then love.draw() end"))
-					console->ThrowError(L);
-			}
-
-			love::Graphics::Instance()->SwapBuffers();
-
-			love::Timer::Instance()->Tick();
 		}
+
+		if (!LUA_ERROR)
+			love::Graphics::Instance()->SwapBuffers();
 		else
 		{
 			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
-
-			const char * error = lua_tostring(L, -1);
-
-			lua_getfield(L, LUA_GLOBALSINDEX, "love");
-			lua_getfield(L, -1, "errhand");
-			lua_remove(L, -2);
-
-			if (!lua_isnil(L, -1)) 
+	
+			const char * error = console->GetError();
+	
+			if (error != nullptr)
 			{
+	
+				lua_getfield(L, LUA_GLOBALSINDEX, "love");
+				lua_getfield(L, -1, "errhand");
+				lua_remove(L, -2);
+	
 				lua_pushstring(L, error);
 				lua_call(L, 1, 0);
 			}
-
-			hidScanInput();
-			u32 kTempDown = hidKeysDown();
-			if (kTempDown & KEY_START)
-				break;
-			
-			if (!console->IsEnabled())
-				love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
-
-			love::Graphics::Instance()->SwapBuffers();
 		}
+
+		love::Timer::Instance()->Tick();
 	}
 
 	updateAudioThread = false;

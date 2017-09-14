@@ -51,6 +51,13 @@ int Timer::GetDelta(lua_State * L)
 	return 1;
 }
 
+int Timer::Sleep(lua_State * L)
+{
+	float duration = luaL_checknumber(L, 1);
+
+	svcSleepThread(1000000000ULL * duration);
+}
+
 void Timer::Tick()
 {
 	frames++;
@@ -70,6 +77,7 @@ int timerInit(lua_State * L)
 		{ "step",		love::Timer::Step		},
 		{ "getDelta",	love::Timer::GetDelta	},
 		{ "getFPS",		love::Timer::GetFPS		},
+		{ "sleep",		love::Timer::Sleep		},
 		{ 0, 0 },
 	};
 

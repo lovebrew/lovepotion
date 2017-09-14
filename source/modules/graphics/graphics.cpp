@@ -389,6 +389,20 @@ int Graphics::SetDefaultFilter(lua_State * L)
 	return 0;
 }
 
+int Graphics::Clear(lua_State * L)
+{
+	love::Graphics::Instance()->Clear(currentScreen, currentSide);
+
+	return 0;
+}
+
+int Graphics::Present(lua_State * L)
+{
+	love::Graphics::Instance()->SwapBuffers();
+
+	return 0;
+}
+
 gfxScreen_t Graphics::GetScreen()
 {
 	return currentScreen;
@@ -448,19 +462,34 @@ void Graphics::StartTarget(CRenderTarget * target)
 	{
 		resetPool();
 			
-		C3D_FrameBegin(C3D_FRAME_SYNCDRAW); //SYNC_DRAW
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
 		this->inRender = true;
 	}
-
-	if (target->GetTarget() == nullptr)
-		return;
 	
-	target->Clear(graphicsGetBackgroundColor());
-
 	C3D_FrameDrawOn(target->GetTarget());
-
+	
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
+}
+
+void Graphics::Clear(gfxScreen_t screen, gfx3dSide_t side)
+{
+	CRenderTarget * target = nullptr;
+
+	switch(screen)
+	{
+		case GFX_TOP:
+			if (side == GFX_LEFT)
+				target = topTarget;
+			else
+				target = topDepthTarget;
+			break;
+		case GFX_BOTTOM:
+			target = bottomTarget;
+			break;
+	}
+
+	target->Clear(graphicsGetBackgroundColor());
 }
 
 void Graphics::SwapBuffers()
@@ -516,6 +545,8 @@ int graphicsInit(lua_State * L)
 		{ "translate",			love::Graphics::Translate	},
 		{ "setScissor",			love::Graphics::SetScissor	},
 		{ "setDefaultFilter",	love::Graphics::SetDefaultFilter},
+		{ "clear",				love::Graphics::Clear		},
+		{ "present",			love::Graphics::Present		},
 		{ 0, 0 },
 	};
 

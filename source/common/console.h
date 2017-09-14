@@ -9,12 +9,13 @@ namespace love
 			bool IsEnabled();
 			void Enable(gfxScreen_t screen);
 
-			void ThrowError(lua_State * L);
-			void ThrowError(const char * message);
+			int ThrowError(lua_State * L);
+			int ThrowError(const char * message);
 			gfxScreen_t GetScreen();
-			
+			const char * GetError();
+
 		private:
-			bool hasPrinted;
+			const char * errorMessage;
 			gfxScreen_t screen;
 			bool enabled;
 	};

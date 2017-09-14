@@ -40,10 +40,12 @@ namespace love
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);
 			static int GetBackgroundColor(lua_State * L);
-
+			static int Clear(lua_State * L);
+			
 			void Render(gfxScreen_t screen, gfx3dSide_t side);
 			void SwapBuffers();
 			void StartTarget(love::CRenderTarget * target);
+			void Clear(gfxScreen_t screen, gfx3dSide_t side);
 
 			gfxScreen_t GetScreen();
 			gfx3dSide_t GetSide();
@@ -57,6 +59,7 @@ namespace love
 			love::CRenderTarget * bottomTarget = nullptr;
 			love::CRenderTarget * topTarget = nullptr;
 			love::CRenderTarget * topDepthTarget = nullptr;
+			love::CRenderTarget * currentTarget = nullptr;
 
 			bool inRender = false;
 	};

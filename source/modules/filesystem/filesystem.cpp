@@ -132,34 +132,40 @@ int Filesystem::CreateDirectory(lua_State * L)
 int Filesystem::GetDirectoryItems(lua_State * L)
 {
 	const char * path = Filesystem::Instance()->Redirect(luaL_checkstring(L, 1));
-	
+
 	DIR * dp;
 
 	dp = opendir(path);
 
-	lua_newtable(L);
 	int tablepos = 0;
 
 	if (dp != NULL) 
 	{
-		while (true) 
+		lua_newtable(L);
+
+		struct dirent * ep;
+		
+		while (ep = readdir(dp)) 
 		{
-			struct dirent * ep;
+			if (ep->d_name[0] == '.')
+				continue; //skip .
 
-			ep = readdir (dp);
-
-			if (ep == NULL) 
+			std::string checkPath = path;
+			checkPath += "/";
+			checkPath.append(ep->d_name);
+			
+			if (Filesystem::Instance()->Exists(checkPath.c_str()))
 			{
-				closedir(dp);
-				break;
+				tablepos++;
+
+				lua_pushnumber(L, tablepos);
+				lua_pushstring(L, ep->d_name);
+
+				lua_settable(L, -3);
 			}
-
-			lua_pushstring(L, ep->d_name);
-
-			tablepos++;
-
-			lua_rawseti(L, -2, tablepos);
 		}
+
+		closedir(dp);
 
 		return 1;
 
@@ -189,16 +195,12 @@ bool Filesystem::Exists(const char * path)
 
 const char * Filesystem::Redirect(const char * path)
 {
-	bool saveDir = false;
-	char * filepath;
+	char * filepath = nullptr;
 
 	struct stat pathInfo;
-	stat(path, &pathInfo);
+	int success = stat(path, &pathInfo);
 
-	if (!saveDir && (!S_ISREG(pathInfo.st_mode) || S_ISDIR(pathInfo.st_mode)))
-		saveDir = true;
-	
-	if (!saveDir)
+	if (success == 0)
 		return path;
 	else
 	{

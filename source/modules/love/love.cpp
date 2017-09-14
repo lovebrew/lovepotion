@@ -222,6 +222,7 @@ int loveInit(lua_State * L)
 		{ "getVersion",		loveGetVersion		},
 		{ "quit",			loveQuit			},
 		{ "enableConsole",	loveEnableConsole	},
+		{ "scan",			loveScan			},
 		//{ "enableScreen", 	loveEnableScreen	},
 		{ 0, 0 },
 	};

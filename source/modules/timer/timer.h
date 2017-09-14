@@ -18,6 +18,8 @@ namespace love
 			static int GetDelta(lua_State * L);
 			static int GetFPS(lua_State * L);
 			static int Step(lua_State * L);
+			static int Sleep(lua_State * L);
+
 			void Tick();
 
 		private:

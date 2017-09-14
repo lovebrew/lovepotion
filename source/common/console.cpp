@@ -10,7 +10,6 @@ using love::Console;
 
 Console::Console()
 {
-	this->hasPrinted = false;
 	this->enabled = false;
 }
 
@@ -33,23 +32,31 @@ bool Console::IsEnabled()
 	return this->enabled;
 }
 
-void Console::ThrowError(const char * errorMessage)
+const char * Console::GetError()
 {
-	if (errorMessage == nullptr)
-		return;
-
-	if (!this->hasPrinted)
-	{
-		printf("\e[31;1m%s\e[0m\n", errorMessage);
-		
-		LUA_ERROR = true;
-		this->hasPrinted = true;
-	}
+	return this->errorMessage;
 }
 
-void Console::ThrowError(lua_State * L)
+int Console::ThrowError(const char * errorMessage)
 {
-	const char * errorMessage = lua_tostring(L, -1);
+	if (errorMessage == nullptr)
+		return 0;
+
+	this->errorMessage = errorMessage;
+	printf("\e[31;1m%s\e[0m\n", errorMessage);
+		
+	LUA_ERROR = true;
+
+	return 0;
+}
+
+int Console::ThrowError(lua_State * L)
+{
+	const char * errorMessage = nullptr;
+	if (!lua_isnil(L, -1))
+	{
+		errorMessage = lua_tostring(L, -1);
 	
-	this->ThrowError(errorMessage);
+		this->ThrowError(errorMessage);
+	}
 }
