@@ -13,6 +13,8 @@ extern int audioInit(lua_State * L);
 extern int keyboardInit(lua_State * L);
 extern int mouseInit(lua_State * L);
 extern int imageInit(lua_State * L);
+extern int windowInit(lua_State * L);
+extern int eventInit(lua_State * L);
 
 extern void systemExit();
 extern void graphicsExit();
@@ -24,6 +26,7 @@ extern int initImageClass(lua_State * L);
 extern int initFontClass(lua_State *L);
 extern int initQuadClass(lua_State * L);
 extern int initImageDataClass(lua_State * L);
+extern int initCanvasClass(lua_State * L);
 
 struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
@@ -35,6 +38,8 @@ struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] =
 	{"keyboard",	keyboardInit,	NULL		},
 	{"mouse",		mouseInit,		NULL		},
 	{"image",		imageInit,		NULL		},
+	{"window",		windowInit,		NULL		},
+	{"event",		eventInit,		NULL		},
 	{0}
 };
 
@@ -51,6 +56,8 @@ int loveGetVersion(lua_State * L)
 int loveQuit(lua_State * L)
 {
 	LOVE_QUIT = true;
+
+	return 0;
 }
 
 int lastTouch[2];
@@ -131,6 +138,21 @@ int loveScan(lua_State * L)
 		}
 	}
 
+	if (touchDown)
+	{
+		lua_getfield(L, LUA_GLOBALSINDEX, "love");
+		lua_getfield(L, -1, "mousemoved");
+		lua_remove(L, -2);
+
+		if (!lua_isnil(L, -1))
+		{
+			lua_pushinteger(L, touch.px);
+			lua_pushinteger(L, touch.py);
+
+			lua_call(L, 2, 0);
+		}
+	}
+
 	for (int i = 0; i < 32; i++)
 	{
 		if (keyUp & BIT(20))
@@ -172,9 +194,6 @@ int loveEnableScreen(lua_State * L)
 	if (!(topScreen | bottomScreen))
 		console->ThrowError("At least one screen needs to be active.");
 
-	screenEnable[0] = topScreen;
-	screenEnable[1] = bottomScreen;
-
 	return 0;
 }
 
@@ -209,6 +228,7 @@ int loveInit(lua_State * L)
 		initFontClass,
 		initQuadClass,
 		initImageDataClass,
+		initCanvasClass,
 		NULL,
 	};
 

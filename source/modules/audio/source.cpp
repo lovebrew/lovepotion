@@ -125,10 +125,7 @@ void Source::Update()
 	{
 		long ret = this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
 
-		if (ret != 0)
-			return;
-
-		if (!this->loop)
+		if (this->reset && !this->loop)
 			return;
 
 		ndspChnWaveBufAdd(this->audiochannel, &this->waveBuffer[this->fillBuffer]);
@@ -142,6 +139,7 @@ void Source::Reset()
 	fseek(this->fileHandle, 0, SEEK_SET);
 	ov_pcm_seek(&this->vorbisFile, 0);
 	this->currentSection = 0;
+	this->reset = true;
 }
 
 void Source::Play()
@@ -172,6 +170,7 @@ void Source::Play()
 		DSP_FlushDataCache((u32 *)this->data, this->size);
 	}
 	this->playing = true;
+	this->reset = false;
 }
 
 void Source::SetLooping(bool loop)
@@ -247,8 +246,6 @@ long Source::FillBuffer(void * audio)
 
 	if (this->stream && !feof(this->fileHandle))
 		DSP_FlushDataCache((u32 *)audio, this->size);
-	else
-		return 1;
 
 	return 0;
 }

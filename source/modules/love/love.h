@@ -13,6 +13,8 @@ int loveGetVersion(lua_State * L);
 
 int loveScan(lua_State * L);
 
+int loveMouseMoved(lua_State * L);
+
 int loveEnableConsole(lua_State * L);
 
 void loveChangeDir(bool isFused);

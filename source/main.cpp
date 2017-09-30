@@ -76,7 +76,7 @@ int main(int argc, char ** argv)
 	svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
 	Thread musicThread = threadCreate(sourceStream, NULL, 0x1000, priority - 1, -2, false);
 
-	if(luaL_dostring(L, "if love.load then love.load() end"))
+	if (luaL_dostring(L, "if love.load then love.load() end"))
 		console->ThrowError(L);
 
 	while (aptMainLoop())

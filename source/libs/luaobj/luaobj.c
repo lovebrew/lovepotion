@@ -84,7 +84,8 @@ void *luaobj_checkudata(lua_State *L, int index, uint32_t type) {
   index = lua_absindex(L, index);
   luaobj_head_t *udata = lua_touserdata(L, index);
   if (!udata || !(udata->type & type)) {
-    luaL_argerror(L, index, "bad type");
+    //luaL_argerror(L, index, "bad type");
+    return NULL;
   }
   return udata + 1;
 }

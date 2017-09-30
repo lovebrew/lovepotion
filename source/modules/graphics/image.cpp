@@ -7,15 +7,33 @@ using love::Image;
 #define TEXTURE_TRANSFER_FLAGS (GX_TRANSFER_FLIP_VERT(1) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |  GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 		GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) |  GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-const char * Image::Init(const char * path, bool memory)
+void Image::BasicInit()
 {
-	this->path = path;
 	this->texture = new C3D_Tex();
-
 	this->width = 0;
 	this->height = 0;
 
 	this->isPremultiplied = false;
+}
+
+void Image::BasicInit(int width, int height)
+{
+	this->texture = new C3D_Tex();
+	this->width = width;
+	this->height = height;
+
+	C3D_TexInitVRAM(this->texture, this->NextPow2(width), this->NextPow2(height), GPU_RGBA8);
+
+	C3D_TexSetFilter(this->texture, magFilter, minFilter);
+	
+	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
+}
+
+const char * Image::Init(const char * path, bool memory)
+{
+	this->path = path;
+	
+	this->BasicInit();
 
 	if (!memory)
 		this->DecodeFile();
@@ -60,7 +78,7 @@ void Image::Decode(unsigned char * buffer, unsigned textureWidth, unsigned textu
 	int citroWidth = this->NextPow2(textureWidth);
 	int citroHeight = this->NextPow2(textureHeight);
 
-	C3D_TexInit(this->texture, citroWidth, citroHeight, GPU_RGBA8);
+	C3D_TexInitVRAM(this->texture, citroWidth, citroHeight, GPU_RGBA8);
 
 	u8 * gpuBuffer = (u8 *)linearAlloc(citroWidth * citroHeight * 4);
 
@@ -138,11 +156,6 @@ void Image::SetFilter(const char * min, const char * mag)
 		this->magFilter = GPU_LINEAR;
 
 	C3D_TexSetFilter(this->texture, this->magFilter, this->minFilter);
-}
-
-const char * Image::GetPath()
-{
-	return this->path;
 }
 
 C3D_Tex * Image::GetTexture()

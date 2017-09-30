@@ -39,6 +39,8 @@ extern "C" {
 #include <dirent.h>
 #include <stdio.h>
 
+extern bool LUA_ERROR;
+
 #include "common/console.h"
 #include "common/types.h"
 
@@ -46,6 +48,9 @@ extern "C" {
 
 extern love::Console * console;
 extern bool FUSED;
+extern bool LOVE_QUIT;
+
+extern bool AUDIO_ENABLED;
 
 extern bool screenEnable[1];
 extern volatile bool updateAudioThread;

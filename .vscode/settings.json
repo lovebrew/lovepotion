@@ -2,6 +2,7 @@
 	"files.associations": {
 		"*.cpp": "cpp",
 		"__config": "cpp",
-		"__nullptr": "cpp"
+		"__nullptr": "cpp",
+		"cmath": "cpp"
 	}
 }

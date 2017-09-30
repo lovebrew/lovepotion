@@ -35,6 +35,7 @@ SOURCES		:=	\
 				source \
 				source/common \
 				source/modules/audio \
+				source/modules/event \
 				source/modules/filesystem \
 				source/modules/graphics \
 				source/modules/love \
@@ -46,6 +47,7 @@ SOURCES		:=	\
 				source/modules/font \
 				source/modules/mouse \
 				source/modules/joystick \
+				source/modules/window \
 				source/libs/json \
 				source/libs/lua \
 				source/libs/luaobj \
@@ -55,9 +57,12 @@ SOURCES		:=	\
 DATA		:=	source/scripts
 INCLUDES	:=	$(SOURCES)
 
-APP_TITLE	:=	'Turtle Tale'
+APP_TITLE	:=	Löve Potion
 APP_AUTHOR	:=	TurtleP
-APP_DESCRIPTION	:=	'Turtle Game'
+APP_DESCRIPTION	:=	Löve2D for 3DS
+
+STRIP_TITLE	:= $(subst $\',,$(APP_TITLE))
+STRIP_DESCRIPTION	:= $(subst $\',,$(APP_DESCRIPTION))
 
 ICON := meta/icon.png
 BANNER := meta/banner.png
@@ -65,8 +70,8 @@ JINGLE := meta/jingle.wav
 
 # CIA Options
 
-APP_PRODUCT_CODE := CTR-P-TURT
-APP_UNIQUE_ID := 0x5DCA
+APP_PRODUCT_CODE := CTR-P-LP
+APP_UNIQUE_ID := 0x1043
 APP_SYSTEM_MODE := 64MB
 APP_SYSTEM_MODE_EXT := Legacy #124MB
 
@@ -101,6 +106,8 @@ LIBDIRS	:= $(CTRULIB) $(PORTLIBS)
 #---------------------------------------------------------------------------------
 ifneq ($(wildcard $(CURDIR)/game/.),)
 	export APP_ROMFS_DIR := game
+else
+	export APP_ROMFS_DIR := source/scripts/nogame
 endif
 
 #---------------------------------------------------------------------------------
@@ -166,7 +173,7 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
-ifneq ($(strip $(USE_ROMFS)),)
+ifeq ($(strip "USE_ROMFS"),)
 	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 endif
 
@@ -174,7 +181,7 @@ endif
 # arguments for cia and 3ds building, kind of a mess
 #---------------------------------------------------------------------------------
 export BUILD_ARGS := \
--DAPP_TITLE=$(APP_TITLE) \
+-DAPP_TITLE="$(APP_TITLE)" \
 -DAPP_PRODUCT_CODE=$(APP_PRODUCT_CODE) \
 -DAPP_ROMFS_DIR=$(CURDIR)/$(APP_ROMFS_DIR) \
 -DAPP_UNIQUE_ID=$(APP_UNIQUE_ID) \
@@ -219,12 +226,13 @@ endif
 #---------------------------------------------------------------------------------
 icon.bin	:	
 #---------------------------------------------------------------------------------
+
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/bannertool makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+	@$(TOPDIR)/tools/linux/bannertool makesmdh -s $(STRIP_TITLE) -l $(STRIP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 else ifeq ($(UNAME), Darwin)
-	@$(TOPDIR)/tools/osx/bannertool makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+	@$(TOPDIR)/tools/osx/bannertool makesmdh -s $(APP_TITLE) -l $(APP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 else
-	@$(TOPDIR)/tools/windows/bannertool.exe makesmdh -s $(APP_TITLE) -l $(APP_TITLE) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+	@$(TOPDIR)/tools/windows/bannertool.exe makesmdh -s $(APP_TITLE) -l $(APP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 endif
 
 #---------------------------------------------------------------------------------

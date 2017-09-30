@@ -29,6 +29,7 @@ typedef struct {
 #define LUAOBJ_TYPE_JOYSTICK (1 << 5)
 #define LUAOBJ_TYPE_UDP (1 << 6)
 #define LUAOBJ_TYPE_IMAGEDATA (1 << 7)
+#define LUAOBJ_TYPE_CANVAS (1 << 8)
 
 int luaobj_newclass(lua_State *L, const char *name, const char *extends, 
                     int (*constructor)(lua_State*), luaL_Reg* reg);

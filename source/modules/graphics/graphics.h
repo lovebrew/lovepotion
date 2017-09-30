@@ -36,6 +36,7 @@ namespace love
 			static int Translate(lua_State * L);
 			static int SetScissor(lua_State * L);
 			static int SetDefaultFilter(lua_State * L);
+			static int SetCanvas(lua_State * L);
 
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);
@@ -59,7 +60,6 @@ namespace love
 			love::CRenderTarget * bottomTarget = nullptr;
 			love::CRenderTarget * topTarget = nullptr;
 			love::CRenderTarget * topDepthTarget = nullptr;
-			love::CRenderTarget * currentTarget = nullptr;
 
 			bool inRender = false;
 	};

@@ -32,7 +32,12 @@ local config =
 {
 	console = false,
 	version = "1.0.9",
-	identity = "SuperGame"
+	identity = "SuperGame",
+	window =
+	{
+		top = true,
+		bottom = true
+	}
 }
 
 if love.filesystem.isFile("conf.lua") then
@@ -77,7 +82,8 @@ function love.errhand(message)
 	love.audio.stop()
 
 	love.graphics.setBackgroundColor(66, 165, 245)
-
+	love.graphics.clear()
+	
 	local function draw()
 		love.graphics.setScreen('top')
 
@@ -208,11 +214,7 @@ end
 
 love.createhandlers()
 
-if love.filesystem.isFile("main.lua") then
-	require 'main'
-else --nogame stuff!
-	printf("failure!\n");
-end
+require 'main'
 
 if love.timer then
 	love.timer.step()

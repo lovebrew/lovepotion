@@ -17,6 +17,14 @@ CRenderTarget::CRenderTarget(gfxScreen_t screen, gfx3dSide_t side, int width, in
 	C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, 0x000000FF, 0);
 }
 
+CRenderTarget::CRenderTarget(love::Image * texture, int width, int height)
+{
+	this->target = C3D_RenderTargetCreateFromTex(texture->GetTexture(), GPU_TEXFACE_2D, 0, GPU_RB_DEPTH24_STENCIL8);
+	Mtx_Ortho(&projection, 0.0, width, 0, height, 0.0, 1.0, true);
+
+	//C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, 0x000000FF, 0);
+}
+
 C3D_Mtx * CRenderTarget::GetProjection()
 {
 	return &this->projection;

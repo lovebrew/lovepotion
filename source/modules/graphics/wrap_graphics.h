@@ -1,5 +1,14 @@
 #pragma once
 
+#include "quad.h"
+#include "file.h"
+#include "glyph.h"
+#include "imagedata.h"
+#include "image.h"
+#include "font.h"
+
+extern int projection_desc;
+
 void graphicsInitWrapper();
 
 void resetPool();
@@ -20,9 +29,9 @@ void graphicsPoints(float x, float y);
 
 void graphicsCircle(float x, float y, float radius, float segments);
 
-void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, float rotation, float scalarX, float scalarY);
+void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, float rotation, float scalarX, float scalarY, float offsetX, float offsetY);
 
-void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY);
+void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY, float offsetX, float offsetY);
 
 void graphicsPrint(const char * text, float x, float y);
 

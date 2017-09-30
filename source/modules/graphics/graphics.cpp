@@ -14,6 +14,9 @@
 #include "wrap_quad.h"
 #include "wrap_graphics.h"
 
+#include "canvas.h"
+#include "wrap_canvas.h"
+
 #include "basic_shader_shbin.h"
 
 love::Graphics * love::Graphics::instance = 0;
@@ -23,6 +26,7 @@ using love::CRenderTarget;
 using love::Image;
 using love::Font;
 using love::Quad;
+using love::Canvas;
 
 int projection_desc = -1;
 
@@ -32,6 +36,8 @@ shaderProgram_s shader;
 gfxScreen_t currentScreen = GFX_TOP;
 gfxScreen_t renderScreen = GFX_TOP;
 gfx3dSide_t currentSide = GFX_LEFT;
+
+Canvas * lastCanvas = nullptr;
 
 Graphics::Graphics() {}
 
@@ -151,7 +157,17 @@ int Graphics::Rectangle(lua_State * L)
 	float height = luaL_checknumber(L, 5);
 
 	if (currentScreen == renderScreen)
-		graphicsRectangle(x, y, width, height);
+	{
+		if (strncmp(mode, "fill", 4) == 0)
+			graphicsRectangle(x, y, width, height);
+		else if (strncmp(mode, "line", 4) == 0)
+		{
+			graphicsLine(x, y, x + width, y); //top-left->top-right
+			graphicsLine(x, y, x, y + height); //top-left->bottom-left
+			graphicsLine(x, y + height, x + width, y + height); //bottom-left->bottom->right
+			graphicsLine(x + width, y, x + width, y + height);
+		}
+	}
 
 	return 0;
 }
@@ -167,7 +183,19 @@ int Graphics::Circle(lua_State * L)
 	float segments = luaL_optnumber(L, 5, 100);
 
 	if (currentScreen == renderScreen)
-		graphicsCircle(x, y, radius, segments);
+	{
+		if (strncmp(mode, "fill", 4) == 0)
+			graphicsCircle(x, y, radius, segments);
+		else
+		{
+			float angle = 0;
+			for (int i = 0; i <= segments; i++)
+			{
+				graphicsCircle(x + cos(angle) * radius, y + sin(angle) * radius, 1, segments);
+				angle = angle + 2 * M_PI / segments;
+			}
+		}
+	}	
 
 	return 0;
 }
@@ -175,8 +203,17 @@ int Graphics::Circle(lua_State * L)
 int Graphics::Draw(lua_State * L)
 {
 	Image * image = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	Canvas * canvas = nullptr;
 	Quad * quad = nullptr;
 
+	if (image == NULL)
+	{
+		canvas = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+
+		if (canvas->GetTexture() != nullptr)
+			image = canvas->GetTexture();
+	}
+	
 	int start = 2;
 	if (!lua_isnoneornil(L, 2) && !lua_isnumber(L, 2))
 	{
@@ -195,16 +232,16 @@ int Graphics::Draw(lua_State * L)
 	float offsetX = luaL_optnumber(L, start + 5, 0);
 	float offsetY = luaL_optnumber(L, start + 6, 0);
 
-	if (currentScreen == renderScreen)
+	if (image != NULL)
 	{
-		x += offsetX;
-		y += offsetY;
-
-		bindTexture(image->GetTexture());
-		if (quad == nullptr)
-			graphicsDraw(image->GetTexture(), x, y, image->GetWidth(), image->GetHeight(), rotation, scalarX, scalarY);
-		else
-			graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), rotation, scalarX, scalarY);
+		if (currentScreen == renderScreen)
+		{
+			bindTexture(image->GetTexture());
+			if (quad == nullptr)
+				graphicsDraw(image->GetTexture(), x, y, image->GetWidth(), image->GetHeight(), rotation, scalarX, scalarY, offsetX, offsetY);
+			else
+				graphicsDrawQuad(image->GetTexture(), x, y, quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), rotation, scalarX, scalarY, offsetX, offsetY);
+		}
 	}
 
 	return 0;
@@ -391,7 +428,10 @@ int Graphics::SetDefaultFilter(lua_State * L)
 
 int Graphics::Clear(lua_State * L)
 {
-	love::Graphics::Instance()->Clear(currentScreen, currentSide);
+	u32 backgroundColor = graphicsGetBackgroundColor();
+
+	if (lastCanvas != nullptr)
+		lastCanvas->Clear(backgroundColor);
 
 	return 0;
 }
@@ -399,6 +439,22 @@ int Graphics::Clear(lua_State * L)
 int Graphics::Present(lua_State * L)
 {
 	love::Graphics::Instance()->SwapBuffers();
+
+	return 0;
+}
+
+int Graphics::SetCanvas(lua_State * L)
+{
+	if (!lua_isnoneornil(L, 1))
+	{	
+		Canvas * self = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+
+		self->StartRender();
+
+		lastCanvas = self;
+	}
+	else
+		lastCanvas->EndRender();
 
 	return 0;
 }
@@ -523,6 +579,7 @@ int graphicsInit(lua_State * L)
 		{ "newImage",			imageNew					},
 		{ "newFont",			fontNew						},
 		{ "newQuad",			quadNew						},
+		{ "newCanvas",			canvasNew					},
 		{ "line",				love::Graphics::Line		},
 		{ "rectangle",			love::Graphics::Rectangle	},
 		{ "circle",				love::Graphics::Circle		},
@@ -547,6 +604,7 @@ int graphicsInit(lua_State * L)
 		{ "setDefaultFilter",	love::Graphics::SetDefaultFilter},
 		{ "clear",				love::Graphics::Clear		},
 		{ "present",			love::Graphics::Present		},
+		{ "setCanvas",			love::Graphics::SetCanvas	},
 		{ 0, 0 },
 	};
 

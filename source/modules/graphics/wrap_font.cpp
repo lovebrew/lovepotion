@@ -70,7 +70,8 @@ int fontGC(lua_State * L)
 	return 0;
 }
 
-int initFontClass(lua_State * L) {
+int initFontClass(lua_State * L) 
+{
 
 	luaL_Reg reg[] = 
 	{

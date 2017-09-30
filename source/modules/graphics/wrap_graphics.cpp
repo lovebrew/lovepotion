@@ -1,10 +1,4 @@
 #include "common/runtime.h"
-#include "quad.h"
-#include "file.h"
-#include "glyph.h"
-#include "imagedata.h"
-#include "image.h"
-#include "font.h"
 #include "wrap_graphics.h"
 
 size_t bufferSize = 0;
@@ -265,7 +259,7 @@ void graphicsCircle(float x, float y, float radius, float segments)
 	C3D_DrawArrays(GPU_TRIANGLE_FAN, 0, segments + 2);
 }
 
-void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, float rotation, float scalarX, float scalarY)
+void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, float rotation, float scalarX, float scalarY, float offsetX, float offsetY)
 {
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
@@ -290,12 +284,24 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, fl
 	vertexList[2].quad = {0.0f, v};
 	vertexList[3].quad = {u,	v};
 
+	if (rotation != 0)
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			float originX = vertexList[i].position.x - (x + (offsetX * scalarX));
+			float originY = vertexList[i].position.y - (y + (offsetY * scalarY));
+
+			vertexList[i].position.x = originX * cos(rotation) - originY * sin(rotation) + x;
+			vertexList[i].position.y = originX * sin(rotation) + originY * cos(rotation) + y;
+		}
+	}
+
 	generateTextureVertecies(vertexList);
 
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
-void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY)
+void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY, float offsetX, float offsetY)
 {
 	texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions), 8);
 
@@ -322,6 +328,23 @@ void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int tex
 	vertexList[1].quad = {u1,	v0};
 	vertexList[2].quad = {u0,	v1};
 	vertexList[3].quad = {u1,	v1};
+
+	for (int i = 0; i < 4; i++)
+	{
+		if (rotation != 0)
+		{
+			float originX = vertexList[i].position.x - (x + (offsetX * scalarX));
+			float originY = vertexList[i].position.y - (y + (offsetY * scalarY));
+
+			vertexList[i].position.x = originX * cos(rotation) - originY * sin(rotation) + x;
+			vertexList[i].position.y = originX * sin(rotation) + originY * cos(rotation) + y;
+		}
+		else
+		{
+			vertexList[i].position.x -= (offsetX * scalarX);
+			vertexList[i].position.y -= (offsetY * scalarY);
+		}
+	}
 
 	generateTextureVertecies(vertexList);
 
@@ -403,7 +426,7 @@ void graphicsPrintf(const char * text, float x, float y, float limit)
 
 			wrapWidth += currentFont->GetWidth(text[i]);
 
-			graphicsDrawQuad(texture, x + width + currentGlyph->GetXOffset(), y + currentGlyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1);
+			graphicsDrawQuad(texture, x + width + currentGlyph->GetXOffset(), y + currentGlyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1, 0, 0);
 
 			index += 4;
 		}

@@ -44,6 +44,7 @@ namespace love
 			u32 bitrate;
 
 			bool loop;
+			bool reset = false;
 
 			int streamOffset;
 			int chunkSamples;

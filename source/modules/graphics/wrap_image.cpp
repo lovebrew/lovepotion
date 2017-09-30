@@ -42,6 +42,16 @@ int imageGetHeight(lua_State * L)
 	return 1;
 }
 
+int imageGetDimensions(lua_State * L)
+{
+	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
+	
+	lua_pushnumber(L, self->GetWidth());
+	lua_pushnumber(L, self->GetHeight());
+	
+	return 2;
+}
+
 int imageSetFilter(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -68,11 +78,12 @@ int imageGC(lua_State * L)
 int initImageClass(lua_State *L) {
 
 	luaL_Reg reg[] = {
-		{"new",			imageNew		},
-		{"getWidth",	imageGetWidth	},
-		{"getHeight",	imageGetHeight	},
-		{"setFilter",	imageSetFilter	},
-		{"__gc",		imageGC			},
+		{"new",				imageNew		},
+		{"getWidth",		imageGetWidth	},
+		{"getHeight",		imageGetHeight	},
+		{"getDimensions",	imageGetDimensions	},
+		{"setFilter",		imageSetFilter	},
+		{"__gc",			imageGC			},
 		{ 0, 0 },
 	};
 
