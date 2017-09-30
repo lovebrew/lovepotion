@@ -214,7 +214,11 @@ end
 
 love.createhandlers()
 
-require 'main'
+if love.filesystem.isFile("main.lua") then
+	require 'main'
+else
+	love.nogame()
+end
 
 if love.timer then
 	love.timer.step()

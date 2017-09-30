@@ -57,12 +57,9 @@ SOURCES		:=	\
 DATA		:=	source/scripts
 INCLUDES	:=	$(SOURCES)
 
-APP_TITLE	:=	Löve Potion
+APP_TITLE	:=	Love Potion
 APP_AUTHOR	:=	TurtleP
-APP_DESCRIPTION	:=	Löve2D for 3DS
-
-STRIP_TITLE	:= $(subst $\',,$(APP_TITLE))
-STRIP_DESCRIPTION	:= $(subst $\',,$(APP_DESCRIPTION))
+APP_DESCRIPTION	:=	Love2D for 3DS
 
 ICON := meta/icon.png
 BANNER := meta/banner.png
@@ -173,9 +170,7 @@ ifeq ($(strip $(NO_SMDH)),)
 	export _3DSXFLAGS += --smdh=$(CURDIR)/$(TARGET).smdh
 endif
 
-ifeq ($(strip "USE_ROMFS"),)
-	export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
-endif
+export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 
 #---------------------------------------------------------------------------------
 # arguments for cia and 3ds building, kind of a mess
@@ -228,7 +223,7 @@ icon.bin	:
 #---------------------------------------------------------------------------------
 
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/bannertool makesmdh -s $(STRIP_TITLE) -l $(STRIP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+	@$(TOPDIR)/tools/linux/bannertool makesmdh -s $(APP_TITLE) -l $(APP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 else ifeq ($(UNAME), Darwin)
 	@$(TOPDIR)/tools/osx/bannertool makesmdh -s $(APP_TITLE) -l $(APP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 else

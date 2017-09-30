@@ -17,6 +17,8 @@ int loveMouseMoved(lua_State * L);
 
 int loveEnableConsole(lua_State * L);
 
+int loveNoGame(lua_State * L);
+
 void loveChangeDir(bool isFused);
 
 void loveCreateSaveDirectory();

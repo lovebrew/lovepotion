@@ -28,6 +28,8 @@ extern int initQuadClass(lua_State * L);
 extern int initImageDataClass(lua_State * L);
 extern int initCanvasClass(lua_State * L);
 
+bool IS_HOMEBREW;
+
 struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
 	{"graphics",	graphicsInit,	graphicsExit},
@@ -199,7 +201,9 @@ int loveEnableScreen(lua_State * L)
 
 void loveChangeDir(bool isFused)
 {
-	if (isFused)
+	IS_HOMEBREW = envIsHomebrew();
+
+	if (isFused && !IS_HOMEBREW)
 		chdir("romfs:/");
 	else
 	{
@@ -210,6 +214,17 @@ void loveChangeDir(bool isFused)
 
 		chdir(cwd);
 	}
+}
+
+int loveNoGame(lua_State * L)
+{
+	if (IS_HOMEBREW)
+		chdir("romfs:/");
+
+	if (luaL_dofile(L, "main.lua"))
+		console->ThrowError(L);
+
+	return 0;
 }
 
 void loveCreateSaveDirectory()
@@ -243,6 +258,7 @@ int loveInit(lua_State * L)
 		{ "quit",			loveQuit			},
 		{ "enableConsole",	loveEnableConsole	},
 		{ "scan",			loveScan			},
+		{ "nogame",			loveNoGame			},
 		//{ "enableScreen", 	loveEnableScreen	},
 		{ 0, 0 },
 	};
