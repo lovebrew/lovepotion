@@ -30,7 +30,7 @@ int System::GetPowerInfo(lua_State * L)
 {
 	u8 batteryPercent;
 	
-	PTMU_GetBatteryLevel(&batteryPercent);
+	mcuHwcGetBatteryLevel(&batteryPercent);
 	
 	u8 batteryStateBool;
 	PTMU_GetBatteryChargeState(&batteryStateBool);
@@ -38,9 +38,11 @@ int System::GetPowerInfo(lua_State * L)
 	const char * batteryState = "battery";
 	if (batteryStateBool == 1)
 		batteryState = "charging";
+	else if (batteryStateBool == 1 && batteryPercent == 100)
+		batteryState = "charged";
 	
 	lua_pushstring(L, batteryState);
-	lua_pushnumber(L, batteryPercent * 20); //PTMU_GetBatteryLevel returns a number between 0 and 5, so I multiply it for 20 to match LÖVE, which gives 0-100
+	lua_pushnumber(L, batteryPercent);
 	lua_pushnil(L);
 	
 	return 3;
@@ -216,6 +218,7 @@ void systemExit()
 	ptmuExit();
 	cfguExit();
 	acExit();
+	mcuHwcExit();
 }
 
 int systemInit(lua_State * L)
@@ -223,16 +226,17 @@ int systemInit(lua_State * L)
 	cfguInit();
 	ptmuInit();
 	acInit();
+	mcuHwcInit();
 
 	luaL_Reg reg[] = 
 	{
-		{ "getLanguage",		love::System::GetSystemLanguage },
 		{ "getPowerInfo",		love::System::GetPowerInfo 		},
 		{ "getProcessorCount",	love::System::GetProcessorCount },
+		{ "getOS",				love::System::GetOS				},
+		{ "getLanguage",		love::System::GetSystemLanguage },
 		{ "getModel",			love::System::GetModel 			},
 		{ "getWifiStrength",	love::System::GetWifiStrength	},
 		{ "getWifiStatus",		love::System::GetWifiStatus		},
-		{ "getOS",				love::System::GetOS				},
 		{ "getRegion",			love::System::GetRegion			},
 		{ "getLinearMemory",	love::System::GetLinearMemory	},
 		{ "getUsername",		love::System::GetUsername		},

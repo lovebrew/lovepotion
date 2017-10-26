@@ -2,11 +2,16 @@
 #include "socket.h"
 #include "wrap_udp.h"
 
+#include "http.h"
+#include "wrap_http.h"
+
 u32 * socketBuffer = nullptr;
 void socketClose()
 {
 	if (socketBuffer != nullptr)
 		socExit();
+
+	httpcExit();
 }
 
 void initLuaSocket(lua_State * L)
@@ -20,6 +25,20 @@ void initLuaSocket(lua_State * L)
 	
 	//Set field name
 	lua_setfield(L, -2, "socket");
+
+	//throw onto the stack
+	lua_pop(L, 2);
+
+	//HTTP
+	//Preload our package in package.preload
+	lua_getglobal(L, "package"); 
+	lua_getfield(L, -1, "preload");
+
+	//push the C function for init here
+	lua_pushcfunction(L, initHTTP);
+	
+	//Set field name
+	lua_setfield(L, -2, "socket.http");
 
 	//throw onto the stack
 	lua_pop(L, 2);

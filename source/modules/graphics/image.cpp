@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include "imagedata.h"
+#include "filesystem.h"
 #include "image.h"
 
 using love::Image;
@@ -33,6 +34,11 @@ const char * Image::Init(const char * path, bool memory)
 {
 	this->path = path;
 	
+	char * err = (char *)malloc(strlen("Could not open: file doesn't exist.") + strlen(path) + 1);
+	sprintf(err, "Could not open %s: file doesn't exist.", path);
+	if (!love::Filesystem::Instance()->Exists(path))
+		return err;
+
 	this->BasicInit();
 
 	if (!memory)

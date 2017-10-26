@@ -70,8 +70,6 @@ int imageGC(lua_State * L)
 
 	C3D_TexDelete(self->GetTexture());
 
-	delete self->GetTexture();
-
 	return 0;
 }
 

@@ -433,6 +433,10 @@ int Graphics::Clear(lua_State * L)
 	if (lastCanvas != nullptr)
 		lastCanvas->Clear(backgroundColor);
 
+	love::Graphics::Instance()->topDepthTarget->Clear(backgroundColor);
+	love::Graphics::Instance()->topTarget->Clear(backgroundColor);
+	love::Graphics::Instance()->bottomTarget->Clear(backgroundColor);
+
 	return 0;
 }
 
@@ -454,7 +458,10 @@ int Graphics::SetCanvas(lua_State * L)
 		lastCanvas = self;
 	}
 	else
+	{
 		lastCanvas->EndRender();
+		lastCanvas = nullptr;
+	}
 
 	return 0;
 }

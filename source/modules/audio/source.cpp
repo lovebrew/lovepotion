@@ -24,7 +24,7 @@ const char * Source::Init(const char * path, const char * type)
 	
 	const char * error; 
 	if (!this->fileHandle)
-		error = "Failed to open file.";
+		return "Failed to open file.";
 
 	this->fillBuffer = false;
 	this->firstFill = true;

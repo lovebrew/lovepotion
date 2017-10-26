@@ -57,13 +57,13 @@ void File::Flush()
 	fflush(this->fileHandle);
 }
 
-void File::Write(const char * data)
+void File::Write(void * data, int size)
 {	
 	if (!this->open)
 		return;
 
 	if (data != nullptr)
-		fwrite(data, sizeof(char), strlen(data), this->fileHandle);
+		fwrite(data, 1, size, this->fileHandle);
 }
 
 int File::GetSize()

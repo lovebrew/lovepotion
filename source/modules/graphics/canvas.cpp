@@ -61,3 +61,10 @@ love::Image * Canvas::GetTexture()
 {
 	return this->texture;
 }
+
+void Canvas::Collect()
+{
+	C3D_TexDelete(this->texture->GetTexture());
+
+	C3D_RenderTargetDelete(this->target->GetTarget());
+}

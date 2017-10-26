@@ -23,7 +23,7 @@ int canvasGC(lua_State * L)
 {
 	Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	//self->Collect();
+	self->Collect();
 
 	return 0;
 }

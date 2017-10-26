@@ -41,15 +41,16 @@ const char * Font::Init(const char * path)
 	std::string bitmapPath(fontPath); 
 	bitmapPath.append(".png");
 
+	char * configError = (char *)malloc(strlen("Could not load ") + strlen(path) + strlen(" does not exist.") + 1);
 	if (love::Filesystem::Instance()->Exists(configPath.c_str()))
 		this->configFile = new love::File();
 	else
-		return "Could not load font. Config does not exist.";
+		sprintf(configError, "Could not load %s: does not exist.", configPath.c_str());
 
-	if (love::Filesystem::Instance()->Exists(bitmapPath.c_str()))
-		this->bitmap = new love::Image();
-	else
-		return "Could not load font. Bitmap does not exist.";
+	if (configError)
+		return configError;
+
+	this->bitmap = new love::Image();
 
 	this->configFile->InitPath(configPath.c_str());
 	this->configFile->Open("r");
@@ -59,7 +60,9 @@ const char * Font::Init(const char * path)
 	this->configJson = json::parse(data);
 	this->configFile->Close();
 
-	this->bitmap->Init(bitmapPath.c_str(), false);
+	const char * bitmapError = this->bitmap->Init(bitmapPath.c_str(), false);
+	if (bitmapError)
+		return bitmapError;
 
 	this->chars = this->configJson["chars"].size();
 	

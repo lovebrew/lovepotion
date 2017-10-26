@@ -40,9 +40,10 @@ int fileWrite(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	const char * data = luaL_checkstring(L, 2);
+	size_t len;
+	char * data = strdup(luaL_checklstring(L, 2, &len));
 
-	self->Write(data);
+	self->Write(data, len);
 
 	return 0;
 }

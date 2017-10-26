@@ -71,7 +71,9 @@ int Filesystem::IsFile(lua_State * L)
 int Filesystem::Write(lua_State * L)
 {
 	const char * path = Filesystem::Instance()->Redirect(luaL_checkstring(L, 1));
-	const char * data = luaL_checkstring(L, 2);
+
+	size_t len;
+	char * data = strdup(luaL_checklstring(L, 2, &len));
 	
 	love::File * file = new love::File;
 	file->InitPath(path);
@@ -79,7 +81,7 @@ int Filesystem::Write(lua_State * L)
 	if (!file->Open("w"))
 		return 0;
 
-	file->Write(data);
+	file->Write(data, len);
 	file->Flush();
 	file->Close();
 
