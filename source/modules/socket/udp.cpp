@@ -94,6 +94,8 @@ int UDP::SetSocketData(const char * destination, int port, bool isServer)
 		this->address.sin_addr.s_addr = inet_addr(this->ip);
 
 	this->address.sin_port = htons(port);
+
+	return 0;
 }
 
 char * UDP::Receive()

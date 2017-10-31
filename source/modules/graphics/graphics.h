@@ -37,6 +37,7 @@ namespace love
 			static int SetScissor(lua_State * L);
 			static int SetDefaultFilter(lua_State * L);
 			static int SetCanvas(lua_State * L);
+			static int GetRendererInfo(lua_State * L);
 
 			static int SetColor(lua_State * L);
 			static int SetBackgroundColor(lua_State * L);

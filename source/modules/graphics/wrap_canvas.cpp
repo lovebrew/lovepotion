@@ -33,8 +33,6 @@ int initCanvasClass(lua_State * L)
 	luaL_Reg reg[] = 
 	{
 		{"new",			canvasNew	},
-		//{"getWidth",	fontGetWidth},
-		//{"getHeight",	fontGetHeight},
 		{"__gc",		canvasGC	},
 		{ 0, 0 },
 	};
@@ -42,5 +40,4 @@ int initCanvasClass(lua_State * L)
 	luaobj_newclass(L, CLASS_NAME, NULL, canvasNew, reg);
 
 	return 1;
-
 }

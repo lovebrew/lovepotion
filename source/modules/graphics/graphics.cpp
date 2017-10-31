@@ -127,8 +127,6 @@ int Graphics::SetBackgroundColor(lua_State * L)
 
 int Graphics::GetBackgroundColor(lua_State * L)
 {
-	printf("%x\n", graphicsGetBackgroundColor());
-
 	return 0;
 }
 
@@ -328,7 +326,7 @@ int Graphics::Printf(lua_State * L)
 	const char * text = luaL_checkstring(L, 1);
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
-	float limit = luaL_optnumber(L, 4, NULL);
+	float limit = luaL_optnumber(L, 4, -1);
 
 	if (currentScreen == renderScreen)
 		graphicsPrintf(text, x, y, limit);
@@ -355,6 +353,7 @@ int Graphics::GetFont(lua_State * L) //Doesn't work yet
 	lua_remove(L, -1);
 
 	return 1;*/
+	return 0;
 }
 
 int Graphics::Set3D(lua_State * L)
@@ -395,6 +394,8 @@ int Graphics::Translate(lua_State * L)
 	float translateY = luaL_checknumber(L, 2);
 
 	graphicsTranslate(translateX, translateY);
+
+	return 0;
 }
 
 int Graphics::SetScissor(lua_State * L)
@@ -440,6 +441,16 @@ int Graphics::Clear(lua_State * L)
 	return 0;
 }
 
+int Graphics::GetRendererInfo(lua_State * L)
+{
+	lua_pushstring(L, "OpenGL ES");
+	lua_pushstring(L, "1.1");
+	lua_pushstring(L, "Digital Media Professionals Inc.");
+	lua_pushstring(L, "DMP PICA200");
+ 
+	return 4;
+}
+
 int Graphics::Present(lua_State * L)
 {
 	love::Graphics::Instance()->SwapBuffers();
@@ -447,20 +458,30 @@ int Graphics::Present(lua_State * L)
 	return 0;
 }
 
+//Graphics.cpp
 int Graphics::SetCanvas(lua_State * L)
 {
 	if (!lua_isnoneornil(L, 1))
 	{	
 		Canvas * self = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
 
-		self->StartRender();
+		if (self->GetTarget()->GetTarget() == nullptr)
+			return 0;
+
+		//resetPool();
+
+		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+		C3D_FrameDrawOn(self->GetTarget()->GetTarget());
+
+		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, self->GetProjection());
 
 		lastCanvas = self;
 	}
 	else
 	{
-		lastCanvas->EndRender();
-		lastCanvas = nullptr;
+		if (lastCanvas != nullptr)
+			C3D_FrameEnd(0);
 	}
 
 	return 0;
@@ -602,6 +623,7 @@ int graphicsInit(lua_State * L)
 		{ "setColor",			love::Graphics::SetColor	},
 		{ "setBackgroundColor",	love::Graphics::SetBackgroundColor	},
 		{ "getBackgroundColor", love::Graphics::GetBackgroundColor	},
+		{ "getRendererInfo", 	love::Graphics::GetRendererInfo		},
 		{ "set3D",				love::Graphics::Set3D		},
 		{ "setDepth",			love::Graphics::SetDepth	},
 		{ "push",				love::Graphics::Push		},

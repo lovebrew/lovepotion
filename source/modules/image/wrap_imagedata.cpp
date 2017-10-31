@@ -65,18 +65,17 @@ int imageDataGC(lua_State * L)
 	return 0;
 }
 
-int initImageDataClass(lua_State *L) {
+int initImageDataClass(lua_State *L) 
+{
+	luaL_Reg reg[] = {
+		{"new",			imageDataNew		},
+		{"getWidth",	imageDataGetWidth	},
+		{"getHeight",	imageDataGetHeight	},
+		{"__gc",		imageDataGC			},
+		{ 0, 0 },
+	};
 	
-		luaL_Reg reg[] = {
-			{"new",			imageDataNew		},
-			{"getWidth",	imageDataGetWidth	},
-			{"getHeight",	imageDataGetHeight	},
-			{"__gc",		imageDataGC			},
-			{ 0, 0 },
-		};
+	luaobj_newclass(L, CLASS_NAME, NULL, imageDataNew, reg);
 	
-		luaobj_newclass(L, CLASS_NAME, NULL, imageDataNew, reg);
-	
-		return 1;
-	
-	}
+	return 1;
+}

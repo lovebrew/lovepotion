@@ -32,12 +32,7 @@ local config =
 {
 	console = false,
 	version = "1.0.9",
-	identity = "SuperGame",
-	window =
-	{
-		top = true,
-		bottom = true
-	}
+	identity = "SuperGame"
 }
 
 if love.filesystem.isFile("conf.lua") then

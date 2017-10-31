@@ -32,7 +32,7 @@ int fontNew(lua_State * L)
 		error = self->DefaultInit();
 
 	if (error)
-		console->ThrowError(error);
+		return luaL_error(L, "Failed to open %s: does not exist.", error);
  
 	return 1;
 }
@@ -65,7 +65,7 @@ int fontGC(lua_State * L)
 {
 	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	//self->Collect();
+	self->Collect();
 
 	return 0;
 }

@@ -21,7 +21,7 @@ freely, subject to the following restrictions:
 -- Edited version of the actual nogame screen.
 
 local last_touch = {time = 0, x = 0, y = 0}
-local pass = {"up", "up", "down", "down", "left", "right", "left", "right", "b", "a", "start"}
+local pass = {"up", "up", "down", "down", "left", "right", "left", "right", "b", "a"}
 local passTimeout = 0
 local passMaxDelay = 0.5
 

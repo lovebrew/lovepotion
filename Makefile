@@ -57,9 +57,9 @@ SOURCES		:=	\
 DATA		:=	source/scripts
 INCLUDES	:=	$(SOURCES)
 
-APP_TITLE	:=	Love Potion
+APP_TITLE	:=	'Love Potion'
 APP_AUTHOR	:=	TurtleP
-APP_DESCRIPTION	:=	Love2D for 3DS
+APP_DESCRIPTION	:=	'Love2D for 3DS'
 
 ICON := meta/icon.png
 BANNER := meta/banner.png
@@ -77,7 +77,7 @@ APP_SYSTEM_MODE_EXT := Legacy #124MB
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations -ffunction-sections -mtp=soft \
+CFLAGS	:=	-g -Wall -O0 -mword-relocations -ffunction-sections -mtp=soft \
 			-ffast-math \
 			$(ARCH)
 
@@ -176,13 +176,13 @@ export _3DSXFLAGS += --romfs=$(CURDIR)/$(APP_ROMFS_DIR)
 # arguments for cia and 3ds building, kind of a mess
 #---------------------------------------------------------------------------------
 export BUILD_ARGS := \
--DAPP_TITLE="$(APP_TITLE)" \
+-DAPP_TITLE=$(APP_TITLE) \
 -DAPP_PRODUCT_CODE=$(APP_PRODUCT_CODE) \
 -DAPP_ROMFS_DIR=$(CURDIR)/$(APP_ROMFS_DIR) \
 -DAPP_UNIQUE_ID=$(APP_UNIQUE_ID) \
 -DAPP_SYSTEM_MODE=$(APP_SYSTEM_MODE) \
 -DAPP_SYSTEM_MODE_EXT=$(APP_SYSTEM_MODE_EXT) \
--elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/workarounds/workaround.rsf" \
+-elf $(OUTPUT).elf -rsf "$(TOPDIR)/meta/build.rsf" \
 -icon $(TOPDIR)/icon.bin -banner $(TOPDIR)/banner.bin -exefslogo -target t
 
 .PHONY: $(BUILD) clean all
@@ -223,7 +223,7 @@ icon.bin	:
 #---------------------------------------------------------------------------------
 
 ifeq ($(UNAME), Linux)
-	@$(TOPDIR)/tools/linux/bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
+	@$(TOPDIR)/tools/linux/bannertool makesmdh -s $(APP_TITLE) -l $(APP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 else ifeq ($(UNAME), Darwin)
 	@$(TOPDIR)/tools/osx/bannertool makesmdh -s $(APP_TITLE) -l $(APP_DESCRIPTION) -p $(APP_AUTHOR) -i $(TOPDIR)/$(ICON) -o $(TOPDIR)/icon.bin -f visible allow3d
 else

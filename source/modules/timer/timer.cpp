@@ -56,6 +56,8 @@ int Timer::Sleep(lua_State * L)
 	float duration = luaL_checknumber(L, 1);
 
 	svcSleepThread(1000000000ULL * duration);
+
+	return 0;
 }
 
 void Timer::Tick()

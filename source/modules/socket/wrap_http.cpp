@@ -25,11 +25,7 @@ int httpRequest(lua_State * L)
 
 	http->Download();
 
-	while(!http->IsDone())
-		printf("who cares\n");
-
-	char * buffer = (char *)malloc(http->GetSize());
-	sprintf(buffer, "%u", http->GetBuffer());
+	char * buffer = (char *)http->GetBuffer();
 
 	lua_pushlstring(L, buffer, http->GetSize());
 	lua_pushnumber(L, http->GetStatusCode());

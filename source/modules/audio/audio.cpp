@@ -7,13 +7,12 @@ using love::Audio;
 
 bool AUDIO_ENABLED = false;
 
-int Audio::Stop(lua_State * L) { // love.audio.stop()
-
+int Audio::Stop(lua_State * L) 
+{
 	for (int i = 0; i <= 23; i++)
 		ndspChnWaveBufClear(i);
 
 	return 0;
-
 }
 
 int Audio::Play(lua_State * L)

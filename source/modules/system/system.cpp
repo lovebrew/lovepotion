@@ -30,7 +30,7 @@ int System::GetPowerInfo(lua_State * L)
 {
 	u8 batteryPercent;
 	
-	mcuHwcGetBatteryLevel(&batteryPercent);
+	PTMU_GetBatteryLevel(&batteryPercent);
 	
 	u8 batteryStateBool;
 	PTMU_GetBatteryChargeState(&batteryStateBool);
@@ -42,7 +42,7 @@ int System::GetPowerInfo(lua_State * L)
 		batteryState = "charged";
 	
 	lua_pushstring(L, batteryState);
-	lua_pushnumber(L, batteryPercent);
+	lua_pushnumber(L, batteryPercent * 4);
 	lua_pushnil(L);
 	
 	return 3;
@@ -218,7 +218,7 @@ void systemExit()
 	ptmuExit();
 	cfguExit();
 	acExit();
-	mcuHwcExit();
+	//mcuHwcExit();
 }
 
 int systemInit(lua_State * L)
@@ -226,7 +226,7 @@ int systemInit(lua_State * L)
 	cfguInit();
 	ptmuInit();
 	acInit();
-	mcuHwcInit();
+	//mcuHwcInit();
 
 	luaL_Reg reg[] = 
 	{

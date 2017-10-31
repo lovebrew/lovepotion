@@ -24,6 +24,8 @@ const char * ImageData::Decode()
 
 	this->width = textureWidth;
 	this->height = textureHeight;
+
+	return nullptr;
 }
 
 void ImageData::SetPixel(int x, int y, u32 color)

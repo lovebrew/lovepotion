@@ -123,7 +123,7 @@ void Source::Update()
 {
 	if (this->waveBuffer[this->fillBuffer].status == NDSP_WBUF_DONE)
 	{
-		long ret = this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
+		this->FillBuffer((char *)this->waveBuffer[this->fillBuffer].data_vaddr);
 
 		if (this->reset && !this->loop)
 			return;

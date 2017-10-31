@@ -55,7 +55,6 @@ int main(int argc, char ** argv)
 	luaL_openlibs(L);
 	initLuaSocket(L);
 
-	
 	Result romfs = romfsInit();
 	FUSED = (romfs) ? false : true;
 	

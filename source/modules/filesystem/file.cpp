@@ -24,6 +24,8 @@ const char * File::Init(const char * name)
 	strcpy(fullPath, saveDirectory);
 	strcat(fullPath, name);
 
+	free(saveDirectory);
+
 	return this->InitPath(fullPath);
 }
 

@@ -122,7 +122,8 @@ void translateCoords(float * x, float * y)
 
 int graphicsGetColor(int color)
 {
-	int returnColor;
+	int returnColor = 0;
+
 	switch (color)
 	{
 		case 0:
@@ -378,25 +379,21 @@ void graphicsPop()
 
 void graphicsPrint(const char * text, float x, float y)
 {
-	graphicsPrintf(text, x, y, NULL);
+	graphicsPrintf(text, x, y, -1);
 }
 
 void graphicsPrintf(const char * text, float x, float y, float limit)
 {
 	float originX = x;
-	float originY = y;
-
-	//texturePositions * vertexList = (texturePositions *)allocateAlign(4 * sizeof(texturePositions) * strlen(text), 8 * strlen(text));
-
-	//if (!vertexList)
-	//	return;
 
 	if (currentFont == nullptr)
 		return;
 
 	C3D_Tex * texture = currentFont->GetSheet()->GetTexture();
 
-	int width, wrapWidth, index = 0;
+	int width = 0;
+	int wrapWidth = 0;
+
 	bindTexture(texture);
 
 	for (int i = 0; i < strlen(text); i++)
@@ -407,7 +404,7 @@ void graphicsPrintf(const char * text, float x, float y, float limit)
 		if (i > 0)
 			previousGlyph = currentFont->GetGlyph(text[i - 1]);
 
-		if (text[i] == '\n' || (limit != NULL && wrapWidth >= limit))
+		if (text[i] == '\n' || (limit != -1 && wrapWidth >= limit))
 		{
 			x = originX;
 			y = y + currentFont->GetHeight() + 2;
@@ -427,14 +424,8 @@ void graphicsPrintf(const char * text, float x, float y, float limit)
 			wrapWidth += currentFont->GetWidth(text[i]);
 
 			graphicsDrawQuad(texture, x + width + currentGlyph->GetXOffset(), y + currentGlyph->GetYOffset(), quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight(), 0, 1, 1, 0, 0);
-
-			index += 4;
 		}
 	}
-
-	//generateTextureVertecies(vertexList);
-
-	//C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, index);
 }
 
 void graphicsLoadText(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY, texturePositions * vertexList, int index)

@@ -41,14 +41,10 @@ const char * Font::Init(const char * path)
 	std::string bitmapPath(fontPath); 
 	bitmapPath.append(".png");
 
-	char * configError = (char *)malloc(strlen("Could not load ") + strlen(path) + strlen(" does not exist.") + 1);
 	if (love::Filesystem::Instance()->Exists(configPath.c_str()))
 		this->configFile = new love::File();
 	else
-		sprintf(configError, "Could not load %s: does not exist.", configPath.c_str());
-
-	if (configError)
-		return configError;
+		return path;
 
 	this->bitmap = new love::Image();
 

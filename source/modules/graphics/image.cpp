@@ -23,7 +23,7 @@ void Image::BasicInit(int width, int height)
 	this->width = width;
 	this->height = height;
 
-	C3D_TexInitVRAM(this->texture, this->NextPow2(width), this->NextPow2(height), GPU_RGBA8);
+	C3D_TexInit(this->texture, this->NextPow2(width), this->NextPow2(height), GPU_RGBA8);
 
 	C3D_TexSetFilter(this->texture, magFilter, minFilter);
 	
@@ -34,10 +34,8 @@ const char * Image::Init(const char * path, bool memory)
 {
 	this->path = path;
 	
-	char * err = (char *)malloc(strlen("Could not open: file doesn't exist.") + strlen(path) + 1);
-	sprintf(err, "Could not open %s: file doesn't exist.", path);
 	if (!love::Filesystem::Instance()->Exists(path))
-		return err;
+		return path;
 
 	this->BasicInit();
 
@@ -49,7 +47,7 @@ const char * Image::Init(const char * path, bool memory)
 
 void Image::DecodeMemory(const unsigned char * in, size_t size)
 {
-	unsigned char * buffer = nullptr;
+	unsigned char * buffer;
 	unsigned textureWidth, textureHeight;
 
 	lodepng::State state;
@@ -63,12 +61,19 @@ void Image::DecodeMemory(const unsigned char * in, size_t size)
 
 void Image::DecodeFile()
 {
-	unsigned char * buffer = nullptr;
+	unsigned char * buffer;
 	unsigned textureWidth, textureHeight;
+	unsigned error;
 
 	lodepng::State state;
 
-	lodepng_decode32_file(&buffer, &textureWidth, &textureHeight, this->path);
+	error = lodepng_decode32_file(&buffer, &textureWidth, &textureHeight, this->path);
+
+	if (error)
+	{
+		printf("Error %u: %s\n", error, lodepng_error_text(error));
+		return;
+	}
 
 	if (state.info_png.color.colortype != 6)
 		this->isPremultiplied = true;

@@ -59,4 +59,6 @@ int Console::ThrowError(lua_State * L)
 	
 		this->ThrowError(errorMessage);
 	}
+
+	return 0;
 }

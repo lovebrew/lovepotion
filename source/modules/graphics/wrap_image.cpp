@@ -19,7 +19,7 @@ int imageNew(lua_State * L)
 	const char * error = self->Init(path, false);
 	
 	if (error)
-		console->ThrowError(error);
+		return luaL_error(L, "Failed to open %s: does not exist.", error);
  
 	return 1;
 }

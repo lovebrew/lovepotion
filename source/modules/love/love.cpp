@@ -30,7 +30,7 @@ extern int initCanvasClass(lua_State * L);
 
 bool IS_HOMEBREW;
 
-struct { char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
+struct { const char *name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
 	{"graphics",	graphicsInit,	graphicsExit},
 	{"filesystem",	filesystemInit,	NULL		},
@@ -68,8 +68,6 @@ bool touchDown = false;
 int loveScan(lua_State * L)
 {
 	hidScanInput();
-
-	u32 circleHeld;
 
 	u32 keyDown = hidKeysDown();
 	u32 keyHeld = hidKeysHeld();
@@ -186,6 +184,8 @@ int loveEnableConsole(lua_State * L)
 {
 	console->Enable(GFX_BOTTOM);
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", love::VERSION);
+
+	return 0;
 }
 
 int loveEnableScreen(lua_State * L)
@@ -218,8 +218,7 @@ void loveChangeDir(bool isFused)
 
 int loveNoGame(lua_State * L)
 {
-	if (IS_HOMEBREW)
-		chdir("romfs:/");
+	chdir("romfs:/");
 
 	if (luaL_dofile(L, "main.lua"))
 		console->ThrowError(L);
@@ -259,7 +258,6 @@ int loveInit(lua_State * L)
 		{ "enableConsole",	loveEnableConsole	},
 		{ "scan",			loveScan			},
 		{ "nogame",			loveNoGame			},
-		//{ "enableScreen", 	loveEnableScreen	},
 		{ 0, 0 },
 	};
 
