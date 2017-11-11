@@ -28,21 +28,21 @@ int System::GetProcessorCount(lua_State * L)
 
 int System::GetPowerInfo(lua_State * L)
 {
-	u8 batteryPercent;
-	
-	PTMU_GetBatteryLevel(&batteryPercent);
+	u8 batteryPercent = 0;
+
+	mcuHwcGetBatteryLevel(&batteryPercent);
 	
 	u8 batteryStateBool;
 	PTMU_GetBatteryChargeState(&batteryStateBool);
 	
-	const char * batteryState = "battery";
+	std::string batteryState = "battery";
 	if (batteryStateBool == 1)
 		batteryState = "charging";
 	else if (batteryStateBool == 1 && batteryPercent == 100)
 		batteryState = "charged";
-	
-	lua_pushstring(L, batteryState);
-	lua_pushnumber(L, batteryPercent * 4);
+
+	lua_pushstring(L, batteryState.c_str());
+	lua_pushnumber(L, batteryPercent);
 	lua_pushnil(L);
 	
 	return 3;
@@ -218,7 +218,7 @@ void systemExit()
 	ptmuExit();
 	cfguExit();
 	acExit();
-	//mcuHwcExit();
+	mcuHwcExit();
 }
 
 int systemInit(lua_State * L)
@@ -226,7 +226,7 @@ int systemInit(lua_State * L)
 	cfguInit();
 	ptmuInit();
 	acInit();
-	//mcuHwcInit();
+	mcuHwcInit();
 
 	luaL_Reg reg[] = 
 	{

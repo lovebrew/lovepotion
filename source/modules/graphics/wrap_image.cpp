@@ -16,10 +16,10 @@ int imageNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	const char * error = self->Init(path, false);
+	const char * error = self->Init(path, false, false);
 	
 	if (error)
-		return luaL_error(L, "Failed to open %s: does not exist.", error);
+		console->ThrowError("Failed to open %s: does not exist.", error);
  
 	return 1;
 }

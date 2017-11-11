@@ -73,7 +73,7 @@ int Filesystem::Write(lua_State * L)
 	const char * path = Filesystem::Instance()->Redirect(luaL_checkstring(L, 1));
 
 	size_t len;
-	char * data = strdup(luaL_checklstring(L, 2, &len));
+	const char * data = luaL_checklstring(L, 2, &len);
 	
 	love::File * file = new love::File;
 	file->InitPath(path);

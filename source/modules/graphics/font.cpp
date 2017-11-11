@@ -22,7 +22,7 @@ const char * Font::DefaultInit()
 	this->configJson = json::parse(data);
 
 	this->bitmap = new love::Image();
-	this->bitmap->Init("", true);
+	this->bitmap->BasicInit(true);
 	this->bitmap->DecodeMemory(vera12_png, vera12_png_size);
 
 	this->chars = this->configJson["chars"].size();
@@ -56,7 +56,7 @@ const char * Font::Init(const char * path)
 	this->configJson = json::parse(data);
 	this->configFile->Close();
 
-	const char * bitmapError = this->bitmap->Init(bitmapPath.c_str(), false);
+	const char * bitmapError = this->bitmap->Init(bitmapPath.c_str(), false, true);
 	if (bitmapError)
 		return bitmapError;
 

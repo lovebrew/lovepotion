@@ -41,7 +41,7 @@ int fileWrite(lua_State * L)
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	size_t len;
-	char * data = strdup(luaL_checklstring(L, 2, &len));
+	const char * data = luaL_checklstring(L, 2, &len);
 
 	self->Write(data, len);
 
@@ -61,7 +61,7 @@ int fileRead(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	char * buffer = strdup(self->Read());
+	const char * buffer = self->Read();
 
 	lua_pushstring(L, buffer);
 

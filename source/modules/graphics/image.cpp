@@ -8,13 +8,15 @@ using love::Image;
 #define TEXTURE_TRANSFER_FLAGS (GX_TRANSFER_FLIP_VERT(1) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) |  GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 		GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) |  GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-void Image::BasicInit()
+void Image::BasicInit(bool VRAM)
 {
 	this->texture = new C3D_Tex();
 	this->width = 0;
 	this->height = 0;
 
 	this->isPremultiplied = false;
+
+	this->VRAM = VRAM;
 }
 
 void Image::BasicInit(int width, int height)
@@ -30,24 +32,26 @@ void Image::BasicInit(int width, int height)
 	C3D_TexSetWrap(this->texture, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 
-const char * Image::Init(const char * path, bool memory)
+const char * Image::Init(const char * path, bool memory, bool VRAM)
 {
 	this->path = path;
+	this->BasicInit(VRAM);
+
+	if (path != nullptr)
+	{
+		if (!love::Filesystem::Instance()->Exists(path))
+			return path;
+
+		if (!memory)
+			this->DecodeFile();
+	}
 	
-	if (!love::Filesystem::Instance()->Exists(path))
-		return path;
-
-	this->BasicInit();
-
-	if (!memory)
-		this->DecodeFile();
-
 	return nullptr;
 }
 
 void Image::DecodeMemory(const unsigned char * in, size_t size)
 {
-	unsigned char * buffer;
+	unsigned char * buffer = nullptr;
 	unsigned textureWidth, textureHeight;
 
 	lodepng::State state;
@@ -61,7 +65,7 @@ void Image::DecodeMemory(const unsigned char * in, size_t size)
 
 void Image::DecodeFile()
 {
-	unsigned char * buffer;
+	unsigned char * buffer = nullptr;
 	unsigned textureWidth, textureHeight;
 	unsigned error;
 
@@ -71,7 +75,7 @@ void Image::DecodeFile()
 
 	if (error)
 	{
-		printf("Error %u: %s\n", error, lodepng_error_text(error));
+		printf("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), this->path);
 		return;
 	}
 
@@ -89,7 +93,10 @@ void Image::Decode(unsigned char * buffer, unsigned textureWidth, unsigned textu
 	int citroWidth = this->NextPow2(textureWidth);
 	int citroHeight = this->NextPow2(textureHeight);
 
-	C3D_TexInitVRAM(this->texture, citroWidth, citroHeight, GPU_RGBA8);
+	if (!this->VRAM)
+		C3D_TexInit(this->texture, citroWidth, citroHeight, GPU_RGBA8);
+	else
+		C3D_TexInitVRAM(this->texture, citroWidth, citroHeight, GPU_RGBA8);
 
 	u8 * gpuBuffer = (u8 *)linearAlloc(citroWidth * citroHeight * 4);
 
@@ -134,15 +141,15 @@ void Image::Decode(unsigned char * buffer, unsigned textureWidth, unsigned textu
 
 	}
 	
+	free(buffer);
+
 	this->LoadTexture(gpuBuffer, citroWidth, citroHeight);
 
-	free(buffer);
 	linearFree(gpuBuffer);
 }
 
 void Image::LoadTexture(void * data, int citroWidth, int citroHeight)
 {
-
 	GSPGPU_FlushDataCache((u32 *)data, citroWidth * citroHeight * 4);
 
 	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);

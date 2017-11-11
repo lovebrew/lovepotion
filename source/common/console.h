@@ -10,12 +10,12 @@ namespace love
 			void Enable(gfxScreen_t screen);
 
 			int ThrowError(lua_State * L);
-			int ThrowError(const char * message);
+			int ThrowError(const char * format, ...);
 			gfxScreen_t GetScreen();
-			const char * GetError();
+			char * GetError();
 
 		private:
-			const char * errorMessage;
+			char * errorMessage;
 			gfxScreen_t screen;
 			bool enabled;
 	};

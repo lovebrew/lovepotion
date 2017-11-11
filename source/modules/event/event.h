@@ -7,7 +7,7 @@ namespace love
 		static love::Event * instance;
 
 		public:
-			love::Event * Instance()
+			static love::Event * Instance()
 			{
 				if (!instance)
 					instance = new love::Event();

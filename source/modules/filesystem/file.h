@@ -8,7 +8,7 @@ namespace love
 			const char * Init(const char * name);
 			const char * InitPath(const char * path);
 
-			void Write(void * data, int len);
+			void Write(const char * data, int len);
 			void Flush();
 			void Close();
 			char * Read();

@@ -5,8 +5,8 @@ namespace love
 	class Image
 	{
 		public:
-			const char * Init(const char * path, bool memory);
-			void BasicInit();
+			const char * Init(const char * path, bool memory, bool VRAM);
+			void BasicInit(bool VRAM);
 			void BasicInit(int width, int height);
 
 			void Decode(unsigned char * buffer, unsigned textureWidth, unsigned textureHeight);
@@ -27,6 +27,7 @@ namespace love
 			int height;
 			
 			bool isPremultiplied;
+			bool VRAM;
 
 			GPU_TEXTURE_FILTER_PARAM minFilter;
 			GPU_TEXTURE_FILTER_PARAM magFilter;

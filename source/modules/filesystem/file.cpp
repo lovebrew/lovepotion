@@ -59,7 +59,7 @@ void File::Flush()
 	fflush(this->fileHandle);
 }
 
-void File::Write(void * data, int size)
+void File::Write(const char * data, int size)
 {	
 	if (!this->open)
 		return;

@@ -32,7 +32,7 @@ int fontNew(lua_State * L)
 		error = self->DefaultInit();
 
 	if (error)
-		return luaL_error(L, "Failed to open %s: does not exist.", error);
+		console->ThrowError("Failed to open %s: does not exist.", error);
  
 	return 1;
 }

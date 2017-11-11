@@ -1,6 +1,7 @@
 #include <3ds.h>
 #include <stdio.h>
 #include <sys/types.h>
+#include <stdarg.h>
 
 #include "common/runtime.h"
 #include "console.h"
@@ -32,20 +33,28 @@ bool Console::IsEnabled()
 	return this->enabled;
 }
 
-const char * Console::GetError()
+char * Console::GetError()
 {
 	return this->errorMessage;
 }
 
-int Console::ThrowError(const char * errorMessage)
+int Console::ThrowError(const char * format, ...)
 {
 	if (errorMessage == nullptr)
 		return 0;
 
-	this->errorMessage = errorMessage;
-	printf("\e[31;1m%s\e[0m\n", errorMessage);
+	va_list args;
+	va_list echo;
+
+	va_start(args, format);
+	va_copy(echo, args);
+	
+	vsprintf(this->errorMessage, format, echo);
+	vprintf(format, args);
 		
 	LUA_ERROR = true;
+
+	va_end(args);
 
 	return 0;
 }

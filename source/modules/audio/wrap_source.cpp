@@ -101,7 +101,7 @@ void sourceStream(void * arg)
 				it->Update();
 		}
 		
-		svcSleepThread(1000000ULL);
+		svcSleepThread(1e6);
 	}
 }
 
