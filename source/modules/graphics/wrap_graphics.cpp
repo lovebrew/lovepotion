@@ -26,7 +26,7 @@ bool graphicsPushed = false; // pushed to allow changes (change to stack later?)
 vec< vec<float> > transformstack; //  tfstck[0] -> 1 = translate, 2 = scale, 3 = rotate
 
 void transformDrawable(float * ox, float * oy){ // rotate, scale, and translate coords.
-	for(int i=0; i<transformstack.size(); i++){
+	for(int i=transformstack.size()-1; i>=0; i--){
 		switch( static_cast<int>(transformstack[i][0]) ){
 			case 1 : // translate
 				*ox += transformstack[i][1];
