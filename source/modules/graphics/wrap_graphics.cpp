@@ -26,6 +26,7 @@ bool graphicsPushed = false; // pushed to allow changes (change to stack later?)
 vec< vec<float> > transformstack; //  tfstck[0] -> 1 = translate, 2 = scale, 3 = rotate
 
 void transformDrawable(float * ox, float * oy){ // rotate, scale, and translate coords.
+	float nx=0.0f,ny=0.0f;
 	for(int i=transformstack.size()-1; i>=0; i--){
 		switch( static_cast<int>(transformstack[i][0]) ){
 			case 1 : // translate
@@ -37,8 +38,10 @@ void transformDrawable(float * ox, float * oy){ // rotate, scale, and translate 
 				*oy *= transformstack[i][2];
 				break;
 			case 3 : // rotate
-				*ox *= cos(transformstack[i][1]);
-				*oy *= sin(transformstack[i][1]);
+				nx = *ox; 
+				ny = *oy;
+				*ox = nx * cos(transformstack[i][1]) - ny * sin(transformstack[i][1]);
+				*oy = nx * sin(transformstack[i][1]) + ny * cos(transformstack[i][1]);
 				break;
 			default :
 				console->ThrowError("Invalid transformstack ID.");
@@ -404,7 +407,7 @@ void graphicsScale(float sx, float sy){
 }
 void graphicsRotate(float r){
 	if (currentScreen == renderScreen){
-		if(graphicsPushed) transformstack.push_back({ 2.0f, r });
+		if(graphicsPushed) transformstack.push_back({ 3.0f, r });
 		//rotate += r;
 	}
 }
