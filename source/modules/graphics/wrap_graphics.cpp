@@ -131,24 +131,6 @@ void graphicsSetDepth(float depth)
 	currentDepth = depth;
 }
 
-void translateCoords(float * x, float * y)
-{
-	if (graphicsPushed)
-	{
-		*x += translateX;
-		*y += translateY;
-	}
-
-	if (!gfxIs3D() || (gfxIs3D() && currentScreen != GFX_TOP))
-		return;
-
-	float slider = CONFIG_3D_SLIDERSTATE;
-	if (currentSide == GFX_LEFT)
-		*x -= (slider * currentDepth);
-	else if (currentSide == GFX_RIGHT)
-		*x += (slider * currentDepth);
-}
-
 int graphicsGetColor(int color)
 {
 	int returnColor = 0;
@@ -254,8 +236,6 @@ void graphicsRectangle(float x, float y, float width, float height)
 	if (!vertexList)
 		return;
 
-	//translateCoords(&x, &y);
-
 	vertexList[0].position = { x, 			y,			0.5f};
 	vertexList[1].position = { x + width,	y, 			0.5f};
 	vertexList[2].position = { x		,	y + height, 0.5f};
@@ -277,8 +257,6 @@ void graphicsCircle(float x, float y, float radius, float segments)
 
 	if (!vertexList)
 		return;
-	
-	//translateCoords(&x, &y);
 
 	float angle = 0;
 	for (int i = 0; i <= segments; i++)
@@ -304,9 +282,7 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, fl
 
 	float scaleWidth = width * scalarX;
 	float scaleHeight = height * scalarY;
-
-	//translateCoords(&x, &y);
-
+	
 	vertexList[0].position = {x, 				y,				 0.5f};
 	vertexList[1].position = {x + scaleWidth,	y,				 0.5f};
 	vertexList[2].position = {x,				y + scaleHeight, 0.5f};
@@ -394,31 +370,23 @@ void graphicsPush(){
 void graphicsTranslate(float x, float y){
 	if (currentScreen == renderScreen){
 		if(graphicsPushed) transformstack.push_back({ 1.0f, x,y });
-		//translateX += x;
-		//translateY += y;
 	}
 }
 void graphicsScale(float sx, float sy){
 	if (currentScreen == renderScreen){
 		if(graphicsPushed) transformstack.push_back({ 2.0f, sx,sy });
-		//scaleX *= x;
-		//scaleY *= y;
 	}
 }
 void graphicsRotate(float r){
 	if (currentScreen == renderScreen){
 		if(graphicsPushed) transformstack.push_back({ 3.0f, r });
-		//rotate += r;
 	}
 }
-/*
 void graphicsOrigin(){
 	if (currentScreen == renderScreen){
 		if(graphicsPushed) transformstack.clear();
-		else console->ThrowError("You must use love.graphics.push before using love.graphics.origin.");
 	}
 }
-*/
 
 void graphicsPop(){
 	if (currentScreen == renderScreen){

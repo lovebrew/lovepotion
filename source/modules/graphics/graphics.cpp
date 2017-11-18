@@ -412,6 +412,11 @@ int Graphics::Rotate(lua_State * L){
 
 	return 0;
 }
+int Graphics::Origin(lua_State * L){
+	graphicsOrigin();
+
+	return 0;
+}
 
 int Graphics::SetScissor(lua_State * L)
 {
@@ -646,6 +651,7 @@ int graphicsInit(lua_State * L)
 		{ "translate",			love::Graphics::Translate	},
 		{ "scale",				love::Graphics::Scale		},
 		{ "rotate",				love::Graphics::Rotate		},
+		{ "origin",				love::Graphics::Origin 		},
 		{ "setScissor",			love::Graphics::SetScissor	},
 		{ "setDefaultFilter",	love::Graphics::SetDefaultFilter},
 		{ "clear",				love::Graphics::Clear		},
