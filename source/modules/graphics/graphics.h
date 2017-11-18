@@ -34,6 +34,8 @@ namespace love
 			static int Push(lua_State * L);
 			static int Pop(lua_State * L);
 			static int Translate(lua_State * L);
+			static int Scale(lua_State * L);
+			static int Rotate(lua_State * L);
 			static int SetScissor(lua_State * L);
 			static int SetDefaultFilter(lua_State * L);
 			static int SetCanvas(lua_State * L);

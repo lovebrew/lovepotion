@@ -397,6 +397,21 @@ int Graphics::Translate(lua_State * L)
 
 	return 0;
 }
+int Graphics::Scale(lua_State * L){
+	float sx = luaL_checknumber(L, 1);
+	float sy = luaL_optnumber(L, 2, sx);
+
+	graphicsScale(sx,sy);
+
+	return 0;
+}
+int Graphics::Rotate(lua_State * L){
+	float r = luaL_checknumber(L, 1);
+
+	graphicsRotate(r);
+
+	return 0;
+}
 
 int Graphics::SetScissor(lua_State * L)
 {
@@ -629,6 +644,8 @@ int graphicsInit(lua_State * L)
 		{ "push",				love::Graphics::Push		},
 		{ "pop",				love::Graphics::Pop			},
 		{ "translate",			love::Graphics::Translate	},
+		{ "scale",				love::Graphics::Scale		},
+		{ "rotate",				love::Graphics::Rotate		},
 		{ "setScissor",			love::Graphics::SetScissor	},
 		{ "setDefaultFilter",	love::Graphics::SetDefaultFilter},
 		{ "clear",				love::Graphics::Clear		},

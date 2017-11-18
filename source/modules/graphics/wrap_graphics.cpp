@@ -19,10 +19,36 @@ float currentDepth = 0;
 float translateX = 0;
 float translateY = 0;
 
+// transformation values
+bool graphicsPushed = false; // pushed to allow changes (change to stack later?)
+#include <vector>
+#define vec std::vector
+vec< vec<float> > transformstack; //  tfstck[0] -> 1 = translate, 2 = scale, 3 = rotate
+
+void transformDrawable(float * ox, float * oy){ // rotate, scale, and translate coords.
+	for(int i=0; i<transformstack.size(); i++){
+		switch( static_cast<int>(transformstack[i][0]) ){
+			case 1 : // translate
+				*ox += transformstack[i][1];
+				*oy += transformstack[i][2];
+				break;
+			case 2 : // scale
+				*ox *= transformstack[i][1];
+				*oy *= transformstack[i][2];
+				break;
+			case 3 : // rotate
+				*ox *= cos(transformstack[i][1]);
+				*oy *= sin(transformstack[i][1]);
+				break;
+			default :
+				console->ThrowError("Invalid transformstack ID.");
+		}
+	}
+}
+
+
 GPU_TEXTURE_FILTER_PARAM minFilter;
 GPU_TEXTURE_FILTER_PARAM magFilter;
-
-bool graphicsPushed = false;
 
 love::Font * currentFont = nullptr;
 
@@ -207,8 +233,11 @@ void graphicsLine(float startx, float starty, float endx, float endy)
 	vertexList[2].position = { endx + nx,	endy + ny, 	0.5f };
 	vertexList[3].position = { endx - nx,	endy - ny, 	0.5f };
 
-	for (int i = 0; i <= 3; i++)
-		vertexList[i].color = graphicsGetColor();	
+	for (int i = 0; i <= 3; i++){
+		vertexList[i].color = graphicsGetColor();
+		transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
+	}
+
 
 	generateVertecies(vertexList);
 
@@ -222,15 +251,17 @@ void graphicsRectangle(float x, float y, float width, float height)
 	if (!vertexList)
 		return;
 
-	translateCoords(&x, &y);
+	//translateCoords(&x, &y);
 
 	vertexList[0].position = { x, 			y,			0.5f};
 	vertexList[1].position = { x + width,	y, 			0.5f};
 	vertexList[2].position = { x		,	y + height, 0.5f};
 	vertexList[3].position = { x + width,	y + height,	0.5f};
 
-	for (int i = 0; i <= 3; i++)
+	for (int i = 0; i <= 3; i++){
 		vertexList[i].color = graphicsGetColor();
+		transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
+	}
 
 	generateVertecies(vertexList);
 
@@ -244,13 +275,14 @@ void graphicsCircle(float x, float y, float radius, float segments)
 	if (!vertexList)
 		return;
 	
-	translateCoords(&x, &y);
+	//translateCoords(&x, &y);
 
 	float angle = 0;
 	for (int i = 0; i <= segments; i++)
 	{
 		vertexList[i].position = {x + cos(angle) * radius, y + sin(angle) * radius, 0.5f};
 		vertexList[i].color = graphicsGetColor();
+		transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
 
 		angle = angle + 2 * M_PI / segments;
 	}
@@ -270,20 +302,17 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, fl
 	float scaleWidth = width * scalarX;
 	float scaleHeight = height * scalarY;
 
-	translateCoords(&x, &y);
+	//translateCoords(&x, &y);
 
 	vertexList[0].position = {x, 				y,				 0.5f};
 	vertexList[1].position = {x + scaleWidth,	y,				 0.5f};
 	vertexList[2].position = {x,				y + scaleHeight, 0.5f};
 	vertexList[3].position = {x + scaleWidth,	y + scaleHeight, 0.5f};
 
-	float u = (float)width/(float)texture->width;
-	float v = (float)height/(float)texture->height;
-
 	vertexList[0].quad = {0.0f, 0.0f};
-	vertexList[1].quad = {u,	0.0f};
-	vertexList[2].quad = {0.0f, v};
-	vertexList[3].quad = {u,	v};
+	vertexList[1].quad = {1.0f,	0.0f};
+	vertexList[2].quad = {0.0f, 1.0f};
+	vertexList[3].quad = {1.0f,	1.0f};
 
 	if (rotation != 0)
 	{
@@ -296,6 +325,8 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, fl
 			vertexList[i].position.y = originX * sin(rotation) + originY * cos(rotation) + y;
 		}
 	}
+
+	for(int i=0; i<4; i++) transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
 
 	generateTextureVertecies(vertexList);
 
@@ -311,8 +342,6 @@ void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int tex
 	
 	float scaleWidth = textureWidth * scalarX;
 	float scaleHeight = textureHeight * scalarY;
-
-	translateCoords(&x, &y);
 
 	vertexList[0].position = {x, 				y,					0.5f};
 	vertexList[1].position = {x + scaleWidth,	y,					0.5f};
@@ -345,6 +374,8 @@ void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int tex
 			vertexList[i].position.x -= (offsetX * scalarX);
 			vertexList[i].position.y -= (offsetY * scalarY);
 		}
+
+		transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
 	}
 
 	generateTextureVertecies(vertexList);
@@ -352,30 +383,47 @@ void graphicsDrawQuad(C3D_Tex * texture, float x, float y, int textureX, int tex
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, 0, 4);
 }
 
-void graphicsPush()
-{
-	if (currentScreen == renderScreen)
-		graphicsPushed = true;
+
+void graphicsPush(){
+	if (currentScreen == renderScreen) graphicsPushed = true;
 }
 
-void graphicsTranslate(float x, float y)
-{
-	if (currentScreen == renderScreen)
-	{
-		translateX += x;
-		translateY += y;
+void graphicsTranslate(float x, float y){
+	if (currentScreen == renderScreen){
+		if(graphicsPushed) transformstack.push_back({ 1.0f, x,y });
+		//translateX += x;
+		//translateY += y;
 	}
 }
+void graphicsScale(float sx, float sy){
+	if (currentScreen == renderScreen){
+		if(graphicsPushed) transformstack.push_back({ 2.0f, sx,sy });
+		//scaleX *= x;
+		//scaleY *= y;
+	}
+}
+void graphicsRotate(float r){
+	if (currentScreen == renderScreen){
+		if(graphicsPushed) transformstack.push_back({ 2.0f, r });
+		//rotate += r;
+	}
+}
+/*
+void graphicsOrigin(){
+	if (currentScreen == renderScreen){
+		if(graphicsPushed) transformstack.clear();
+		else console->ThrowError("You must use love.graphics.push before using love.graphics.origin.");
+	}
+}
+*/
 
-void graphicsPop()
-{
-	if (currentScreen == renderScreen)
-	{
+void graphicsPop(){
+	if (currentScreen == renderScreen){
 		graphicsPushed = false;
-		translateX = 0;
-		translateY = 0;
+		transformstack.clear();
 	}
 }
+
 
 void graphicsPrint(const char * text, float x, float y)
 {
@@ -430,8 +478,6 @@ void graphicsPrintf(const char * text, float x, float y, float limit)
 
 void graphicsLoadText(C3D_Tex * texture, float x, float y, int textureX, int textureY, int textureWidth, int textureHeight, float rotation, float scalarX, float scalarY, texturePositions * vertexList, int index)
 {
-	translateCoords(&x, &y);
-
 	float scaleWidth = textureWidth * scalarX;
 	float scaleHeight = textureHeight * scalarY;
 	
@@ -450,6 +496,8 @@ void graphicsLoadText(C3D_Tex * texture, float x, float y, int textureX, int tex
 	vertexList[index + 1].quad = {u1,	v0};
 	vertexList[index + 2].quad = {u0,	v1};
 	vertexList[index + 3].quad = {u1,	v1};
+
+	for(int i=0; i<4; i++) transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
 }
 
 void graphicsSetScissor(bool disable, float x, float y, float width, float height)
