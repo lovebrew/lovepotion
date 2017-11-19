@@ -412,6 +412,14 @@ int Graphics::Rotate(lua_State * L){
 
 	return 0;
 }
+int Graphics::Shear(lua_State * L){
+	float kx = luaL_checknumber(L, 1);
+	float ky = luaL_checknumber(L, 2);
+
+	graphicsShear(kx,ky);
+
+	return 0;
+}
 int Graphics::Origin(lua_State * L){
 	graphicsOrigin();
 
@@ -651,6 +659,7 @@ int graphicsInit(lua_State * L)
 		{ "translate",			love::Graphics::Translate	},
 		{ "scale",				love::Graphics::Scale		},
 		{ "rotate",				love::Graphics::Rotate		},
+		{ "shear",				love::Graphics::Shear		},
 		{ "origin",				love::Graphics::Origin 		},
 		{ "setScissor",			love::Graphics::SetScissor	},
 		{ "setDefaultFilter",	love::Graphics::SetDefaultFilter},

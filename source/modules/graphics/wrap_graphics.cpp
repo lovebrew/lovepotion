@@ -43,6 +43,12 @@ void transformDrawable(float * ox, float * oy){ // rotate, scale, and translate 
 				*ox = nx * cos(transformstack[i][1]) - ny * sin(transformstack[i][1]);
 				*oy = nx * sin(transformstack[i][1]) + ny * cos(transformstack[i][1]);
 				break;
+			case 4 : // shear
+				nx = *ox;
+				ny = *oy;
+				*ox = nx + transformstack[i][1] * ny;
+				*oy = ny + transformstack[i][2] * nx;
+				break;
 			default :
 				console->ThrowError("Invalid transformstack ID.");
 		}
@@ -380,6 +386,11 @@ void graphicsScale(float sx, float sy){
 void graphicsRotate(float r){
 	if (currentScreen == renderScreen){
 		if(graphicsPushed) transformstack.push_back({ 3.0f, r });
+	}
+}
+void graphicsShear(float kx, float ky){
+	if (currentScreen == renderScreen){
+		if(graphicsPushed) transformstack.push_back({ 4.0f, kx,ky });
 	}
 }
 void graphicsOrigin(){
