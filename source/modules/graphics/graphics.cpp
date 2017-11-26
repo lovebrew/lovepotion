@@ -533,8 +533,6 @@ void Graphics::EnsureInRender()
 {
 	if (!this->inRender)
 	{
-		printf("ghi\n");
-
 		resetPool();
 			
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
@@ -580,8 +578,6 @@ void Graphics::SwapBuffers()
 	this->inRender = false;
 
 	C3D_FrameEnd(0);
-
-	printf("def\n");
 }
 
 bool Graphics::InFrame()
