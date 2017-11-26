@@ -397,6 +397,7 @@ int Graphics::Translate(lua_State * L)
 
 	return 0;
 }
+
 int Graphics::Scale(lua_State * L){
 	float sx = luaL_checknumber(L, 1);
 	float sy = luaL_optnumber(L, 2, sx);
@@ -405,6 +406,7 @@ int Graphics::Scale(lua_State * L){
 
 	return 0;
 }
+
 int Graphics::Rotate(lua_State * L){
 	float r = luaL_checknumber(L, 1);
 
@@ -412,6 +414,7 @@ int Graphics::Rotate(lua_State * L){
 
 	return 0;
 }
+
 int Graphics::Shear(lua_State * L){
 	float kx = luaL_checknumber(L, 1);
 	float ky = luaL_checknumber(L, 2);
@@ -420,6 +423,7 @@ int Graphics::Shear(lua_State * L){
 
 	return 0;
 }
+
 int Graphics::Origin(lua_State * L){
 	graphicsOrigin();
 

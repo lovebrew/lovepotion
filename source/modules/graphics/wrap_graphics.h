@@ -56,10 +56,15 @@ void translateCoords(float * x, float * y);
 void graphicsPush();
 
 void transformDrawable(float * ox, float * oy);
+
 void graphicsTranslate(float x, float y);
+
 void graphicsScale(float sx, float sy);
+
 void graphicsRotate(float r);
+
 void graphicsShear(float kx, float ky);
+
 void graphicsOrigin();
 
 void graphicsPop();
