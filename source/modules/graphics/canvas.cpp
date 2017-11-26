@@ -16,32 +16,6 @@ const char * Canvas::Init(int width, int height)
 	return nullptr;
 }
 
-void Canvas::StartRender()
-{
-	if (!this->renderFlag)
-	{
-		C3D_FrameBegin(0);
-
-		C3D_FrameDrawOn(this->target->GetTarget());
-		
-		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, this->GetProjection());
-		
-		//this->Clear(graphicsGetBackgroundColor());
-
-		this->renderFlag = 1;
-	}
-}
-
-void Canvas::EndRender()
-{
-	if (this->renderFlag)
-	{
-		C3D_FrameEnd(0);
-		
-		this->renderFlag = 0;
-	}
-}
-
 void Canvas::Clear(u32 color)
 {
 	this->target->Clear(color);

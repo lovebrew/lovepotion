@@ -1,0 +1,273 @@
+diff --git a/source/libs/luajit b/source/libs/luajit
+--- a/source/libs/luajit
++++ b/source/libs/luajit
+@@ -1 +1 @@
+-Subproject commit 3b5de508558ea03e4b3d4e81d4e982fe688d742b
++Subproject commit 3b5de508558ea03e4b3d4e81d4e982fe688d742b-dirty
+diff --git a/source/main.cpp b/source/main.cpp
+index 193c0ba..a34c184 100755
+--- a/source/main.cpp
++++ b/source/main.cpp
+@@ -97,16 +97,18 @@ int main(int argc, char ** argv)
+ 			CLOSE_KEYBOARD =  false;
+ 		}
+ 
+-		love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
++		printf("\x1b[29;1Hgpu: %5.2f%%  cpu: %5.2f%%  buf:%5.2f%%\n", C3D_GetDrawingTime()*3, C3D_GetProcessingTime()*3, C3D_GetCmdBufUsage()*100);
++
+ 		love::Graphics::Instance()->Clear(GFX_TOP, GFX_LEFT);
++		love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+ 
+ 		if (luaL_dostring(L, "if love.draw then love.draw() end"))
+ 			console->ThrowError(L);
+ 			
+ 		if (gfxIs3D())
+ 		{
+-			love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
+ 			love::Graphics::Instance()->Clear(GFX_TOP, GFX_RIGHT);
++			love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
+ 				
+ 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
+ 				console->ThrowError(L);
+@@ -114,18 +116,15 @@ int main(int argc, char ** argv)
+ 
+ 		if (!console->IsEnabled())
+ 		{
+-			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
+ 			love::Graphics::Instance()->Clear(GFX_BOTTOM, GFX_LEFT);
++			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
+ 
+ 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
+ 				console->ThrowError(L);
+ 		}
+ 
+-		if (!LUA_ERROR)
+-			love::Graphics::Instance()->SwapBuffers();
+-		else
+-		{
+-			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
++		if (LUA_ERROR)
++		{	love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+ 	
+ 			const char * error = console->GetError();
+ 	
+@@ -139,7 +138,8 @@ int main(int argc, char ** argv)
+ 				lua_pushstring(L, error);
+ 				lua_call(L, 1, 0);
+ 			}
+-		}
++		}	
++		love::Graphics::Instance()->SwapBuffers();
+ 
+ 		love::Timer::Instance()->Tick();
+ 	}
+diff --git a/source/modules/graphics/canvas.cpp b/source/modules/graphics/canvas.cpp
+index f444e2b..c0c9496 100755
+--- a/source/modules/graphics/canvas.cpp
++++ b/source/modules/graphics/canvas.cpp
+@@ -16,32 +16,6 @@ const char * Canvas::Init(int width, int height)
+ 	return nullptr;
+ }
+ 
+-void Canvas::StartRender()
+-{
+-	if (!this->renderFlag)
+-	{
+-		C3D_FrameBegin(0);
+-
+-		C3D_FrameDrawOn(this->target->GetTarget());
+-		
+-		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, this->GetProjection());
+-		
+-		//this->Clear(graphicsGetBackgroundColor());
+-
+-		this->renderFlag = 1;
+-	}
+-}
+-
+-void Canvas::EndRender()
+-{
+-	if (this->renderFlag)
+-	{
+-		C3D_FrameEnd(0);
+-		
+-		this->renderFlag = 0;
+-	}
+-}
+-
+ void Canvas::Clear(u32 color)
+ {
+ 	this->target->Clear(color);
+diff --git a/source/modules/graphics/canvas.h b/source/modules/graphics/canvas.h
+index 05497dd..56e6ba5 100755
+--- a/source/modules/graphics/canvas.h
++++ b/source/modules/graphics/canvas.h
+@@ -15,8 +15,6 @@ namespace love
+ 			C3D_Mtx * GetProjection();
+ 			love::Image * GetTexture();
+ 			void Clear(u32 color);
+-			void StartRender();
+-			void EndRender();
+ 			void Collect();
+ 
+ 		private:
+diff --git a/source/modules/graphics/crendertarget.cpp b/source/modules/graphics/crendertarget.cpp
+index 22a7160..a71d02f 100755
+--- a/source/modules/graphics/crendertarget.cpp
++++ b/source/modules/graphics/crendertarget.cpp
+@@ -1,5 +1,6 @@
+ #include "common/runtime.h"
+ #include "crendertarget.h"
++#include "graphics.h"
+ 
+ #define DISPLAY_TRANSFER_FLAGS \
+ 	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
+@@ -14,7 +15,7 @@ CRenderTarget::CRenderTarget(gfxScreen_t screen, gfx3dSide_t side, int width, in
+ 	C3D_RenderTargetSetOutput(this->target, screen, side, DISPLAY_TRANSFER_FLAGS);
+ 
+ 	Mtx_OrthoTilt(&projection, 0.0, width, height, 0.0, 0.0, 1.0, true);
+-	C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, 0x000000FF, 0);
++	//C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, 0x000000FF, 0);
+ }
+ 
+ CRenderTarget::CRenderTarget(love::Image * texture, int width, int height)
+@@ -37,5 +38,7 @@ C3D_RenderTarget * CRenderTarget::GetTarget()
+ 
+ void CRenderTarget::Clear(u32 color)
+ {
++	love::Graphics::Instance()->EnsureInRender();
++
+ 	C3D_FrameBufClear(&this->target->frameBuf, C3D_CLEAR_ALL, color, 0);
+ }
+\ No newline at end of file
+diff --git a/source/modules/graphics/graphics.cpp b/source/modules/graphics/graphics.cpp
+index cf64fb3..4f5bde4 100755
+--- a/source/modules/graphics/graphics.cpp
++++ b/source/modules/graphics/graphics.cpp
+@@ -468,21 +468,10 @@ int Graphics::SetCanvas(lua_State * L)
+ 		if (self->GetTarget()->GetTarget() == nullptr)
+ 			return 0;
+ 
+-		//resetPool();
+-
+-		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+-
+-		C3D_FrameDrawOn(self->GetTarget()->GetTarget());
+-
+-		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, self->GetProjection());
++		love::Graphics::Instance()->StartTarget(self->GetTarget());
+ 
+ 		lastCanvas = self;
+ 	}
+-	else
+-	{
+-		if (lastCanvas != nullptr)
+-			C3D_FrameEnd(0);
+-	}
+ 
+ 	return 0;
+ }
+@@ -540,17 +529,24 @@ void Graphics::Render(gfxScreen_t screen, gfx3dSide_t side)
+ 	currentSide = side;
+ }
+ 
+-void Graphics::StartTarget(CRenderTarget * target)
++void Graphics::EnsureInRender()
+ {
+ 	if (!this->inRender)
+ 	{
++		printf("ghi\n");
++
+ 		resetPool();
+ 			
+ 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+ 
+ 		this->inRender = true;
+ 	}
+-	
++}
++
++void Graphics::StartTarget(CRenderTarget * target)
++{
++	this->EnsureInRender();
++
+ 	C3D_FrameDrawOn(target->GetTarget());
+ 	
+ 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
+@@ -584,6 +580,13 @@ void Graphics::SwapBuffers()
+ 	this->inRender = false;
+ 
+ 	C3D_FrameEnd(0);
++
++	printf("def\n");
++}
++
++bool Graphics::InFrame()
++{
++	return this->inRender;
+ }
+ 
+ void graphicsExit()
+diff --git a/source/modules/graphics/graphics.h b/source/modules/graphics/graphics.h
+index a3c8c04..f3b57ce 100755
+--- a/source/modules/graphics/graphics.h
++++ b/source/modules/graphics/graphics.h
+@@ -49,10 +49,13 @@ namespace love
+ 			void StartTarget(love::CRenderTarget * target);
+ 			void Clear(gfxScreen_t screen, gfx3dSide_t side);
+ 
++			void EnsureInRender();
++
+ 			gfxScreen_t GetScreen();
+ 			gfx3dSide_t GetSide();
+ 			void InitRenderTargets();
+-			
++			bool InFrame();
++
+ 		private:
+ 			Graphics();
+ 
+@@ -61,7 +64,7 @@ namespace love
+ 			love::CRenderTarget * bottomTarget = nullptr;
+ 			love::CRenderTarget * topTarget = nullptr;
+ 			love::CRenderTarget * topDepthTarget = nullptr;
+-
+ 			bool inRender = false;
++			
+ 	};
+ }
+\ No newline at end of file
+diff --git a/source/modules/graphics/image.cpp b/source/modules/graphics/image.cpp
+index d01fc66..a3b635c 100755
+--- a/source/modules/graphics/image.cpp
++++ b/source/modules/graphics/image.cpp
+@@ -2,6 +2,8 @@
+ #include "imagedata.h"
+ #include "filesystem.h"
+ #include "image.h"
++#include "crendertarget.h"
++#include "graphics.h"
+ 
+ using love::Image;
+ 
+@@ -152,9 +154,18 @@ void Image::LoadTexture(void * data, int citroWidth, int citroHeight)
+ {
+ 	GSPGPU_FlushDataCache((u32 *)data, citroWidth * citroHeight * 4);
+ 
+-	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
++	if (!love::Graphics::Instance()->InFrame())
++	{	
++		C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
+ 
+-	gspWaitForPPF();
++		gspWaitForPPF();
++	}
++	else
++	{	
++		C3D_FrameSplit(0);
++
++		GX_DisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
++	}
+ 
+ 	C3D_TexSetFilter(this->texture, magFilter, minFilter);
+ 

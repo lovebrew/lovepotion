@@ -97,16 +97,16 @@ int main(int argc, char ** argv)
 			CLOSE_KEYBOARD =  false;
 		}
 
-		love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
 		love::Graphics::Instance()->Clear(GFX_TOP, GFX_LEFT);
+		love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
 
 		if (luaL_dostring(L, "if love.draw then love.draw() end"))
 			console->ThrowError(L);
 			
 		if (gfxIs3D())
 		{
-			love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
 			love::Graphics::Instance()->Clear(GFX_TOP, GFX_RIGHT);
+			love::Graphics::Instance()->Render(GFX_TOP, GFX_RIGHT);
 				
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
@@ -114,18 +114,15 @@ int main(int argc, char ** argv)
 
 		if (!console->IsEnabled())
 		{
-			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
 			love::Graphics::Instance()->Clear(GFX_BOTTOM, GFX_LEFT);
+			love::Graphics::Instance()->Render(GFX_BOTTOM, GFX_LEFT);
 
 			if (luaL_dostring(L, "if love.draw then love.draw() end"))
 				console->ThrowError(L);
 		}
 
-		if (!LUA_ERROR)
-			love::Graphics::Instance()->SwapBuffers();
-		else
-		{
-			love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
+		if (LUA_ERROR)
+		{	love::Graphics::Instance()->Render(GFX_TOP, GFX_LEFT);
 	
 			const char * error = console->GetError();
 	
@@ -139,7 +136,8 @@ int main(int argc, char ** argv)
 				lua_pushstring(L, error);
 				lua_call(L, 1, 0);
 			}
-		}
+		}	
+		love::Graphics::Instance()->SwapBuffers();
 
 		love::Timer::Instance()->Tick();
 	}

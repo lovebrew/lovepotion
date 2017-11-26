@@ -49,10 +49,13 @@ namespace love
 			void StartTarget(love::CRenderTarget * target);
 			void Clear(gfxScreen_t screen, gfx3dSide_t side);
 
+			void EnsureInRender();
+
 			gfxScreen_t GetScreen();
 			gfx3dSide_t GetSide();
 			void InitRenderTargets();
-			
+			bool InFrame();
+
 		private:
 			Graphics();
 
@@ -61,7 +64,7 @@ namespace love
 			love::CRenderTarget * bottomTarget = nullptr;
 			love::CRenderTarget * topTarget = nullptr;
 			love::CRenderTarget * topDepthTarget = nullptr;
-
 			bool inRender = false;
+			
 	};
 }

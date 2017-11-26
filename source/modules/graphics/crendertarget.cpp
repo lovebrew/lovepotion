@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include "crendertarget.h"
+#include "graphics.h"
 
 #define DISPLAY_TRANSFER_FLAGS \
 	(GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) | \
@@ -14,7 +15,7 @@ CRenderTarget::CRenderTarget(gfxScreen_t screen, gfx3dSide_t side, int width, in
 	C3D_RenderTargetSetOutput(this->target, screen, side, DISPLAY_TRANSFER_FLAGS);
 
 	Mtx_OrthoTilt(&projection, 0.0, width, height, 0.0, 0.0, 1.0, true);
-	C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, 0x000000FF, 0);
+	//C3D_RenderTargetSetClear(this->target, C3D_CLEAR_ALL, 0x000000FF, 0);
 }
 
 CRenderTarget::CRenderTarget(love::Image * texture, int width, int height)
@@ -37,5 +38,7 @@ C3D_RenderTarget * CRenderTarget::GetTarget()
 
 void CRenderTarget::Clear(u32 color)
 {
+	love::Graphics::Instance()->EnsureInRender();
+
 	C3D_FrameBufClear(&this->target->frameBuf, C3D_CLEAR_ALL, color, 0);
 }

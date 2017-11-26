@@ -2,6 +2,8 @@
 #include "imagedata.h"
 #include "filesystem.h"
 #include "image.h"
+#include "crendertarget.h"
+#include "graphics.h"
 
 using love::Image;
 
@@ -152,9 +154,18 @@ void Image::LoadTexture(void * data, int citroWidth, int citroHeight)
 {
 	GSPGPU_FlushDataCache((u32 *)data, citroWidth * citroHeight * 4);
 
-	C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
+	if (!love::Graphics::Instance()->InFrame())
+	{	
+		C3D_SafeDisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
 
-	gspWaitForPPF();
+		gspWaitForPPF();
+	}
+	else
+	{	
+		C3D_FrameSplit(0);
+
+		GX_DisplayTransfer((u32 *)data, GX_BUFFER_DIM(citroWidth, citroHeight), (u32 *)this->texture->data, GX_BUFFER_DIM(this->texture->width, this->texture->height), TEXTURE_TRANSFER_FLAGS);
+	}
 
 	C3D_TexSetFilter(this->texture, magFilter, minFilter);
 

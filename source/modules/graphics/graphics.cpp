@@ -468,20 +468,9 @@ int Graphics::SetCanvas(lua_State * L)
 		if (self->GetTarget()->GetTarget() == nullptr)
 			return 0;
 
-		//resetPool();
-
-		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
-		C3D_FrameDrawOn(self->GetTarget()->GetTarget());
-
-		C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, self->GetProjection());
+		love::Graphics::Instance()->StartTarget(self->GetTarget());
 
 		lastCanvas = self;
-	}
-	else
-	{
-		if (lastCanvas != nullptr)
-			C3D_FrameEnd(0);
 	}
 
 	return 0;
@@ -540,17 +529,24 @@ void Graphics::Render(gfxScreen_t screen, gfx3dSide_t side)
 	currentSide = side;
 }
 
-void Graphics::StartTarget(CRenderTarget * target)
+void Graphics::EnsureInRender()
 {
 	if (!this->inRender)
 	{
+		printf("ghi\n");
+
 		resetPool();
 			
 		C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
 		this->inRender = true;
 	}
-	
+}
+
+void Graphics::StartTarget(CRenderTarget * target)
+{
+	this->EnsureInRender();
+
 	C3D_FrameDrawOn(target->GetTarget());
 	
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, projection_desc, target->GetProjection());
@@ -584,6 +580,13 @@ void Graphics::SwapBuffers()
 	this->inRender = false;
 
 	C3D_FrameEnd(0);
+
+	printf("def\n");
+}
+
+bool Graphics::InFrame()
+{
+	return this->inRender;
 }
 
 void graphicsExit()

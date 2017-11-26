@@ -15,8 +15,6 @@ namespace love
 			C3D_Mtx * GetProjection();
 			love::Image * GetTexture();
 			void Clear(u32 color);
-			void StartRender();
-			void EndRender();
 			void Collect();
 
 		private:
