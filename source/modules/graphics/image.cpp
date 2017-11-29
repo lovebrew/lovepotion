@@ -109,12 +109,12 @@ void Image::Decode(unsigned char * buffer, unsigned textureWidth, unsigned textu
 
 		for (unsigned y = 0; y < textureHeight; y++)
 		{
+			dst = (u32*)gpuBuffer + citroWidth * y;
 			for (unsigned x = 0; x < textureWidth; x++)
 			{
-				u32 clr = *src;
-				*dst = __builtin_bswap32(clr);
+				u32 clr = *(src++);
+				*(dst++) = __builtin_bswap32(clr);
 			}
-			dst += (citroWidth - textureWidth) * 4;
 		}
 	}
 	else
@@ -143,10 +143,10 @@ void Image::Decode(unsigned char * buffer, unsigned textureWidth, unsigned textu
 
 	}
 	
-	free(buffer);
 
 	this->LoadTexture(gpuBuffer, citroWidth, citroHeight);
 
+	free(buffer);
 	linearFree(gpuBuffer);
 }
 

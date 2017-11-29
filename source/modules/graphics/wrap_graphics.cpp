@@ -28,7 +28,10 @@ vec< vec<float> > transformstack; //  tfstck[0] -> 1 = translate, 2 = scale, 3 =
 void transformDrawable(float * ox, float * oy) // rotate, scale, and translate coords.
 {
 	float nx=0.0f,ny=0.0f;
-	for(int i=transformstack.size()-1; i>=0; i--)
+	int i = 0;
+	float slider = CONFIG_3D_SLIDERSTATE;
+
+	for(i=transformstack.size()-1; i>=0; i--)
 	{
 		switch( static_cast<int>(transformstack[i][0]) )
 		{
@@ -39,7 +42,7 @@ void transformDrawable(float * ox, float * oy) // rotate, scale, and translate c
 				if (!gfxIs3D() || (gfxIs3D() && currentScreen != GFX_TOP))
 					break;
 
-				float slider = CONFIG_3D_SLIDERSTATE;
+				
 				if (currentSide == GFX_LEFT)
 					*ox -= (slider * currentDepth);
 				else if (currentSide == GFX_RIGHT)
@@ -307,14 +310,18 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, fl
 	vertexList[2].position = {x,				y + scaleHeight, 0.5f};
 	vertexList[3].position = {x + scaleWidth,	y + scaleHeight, 0.5f};
 
-	vertexList[0].quad = {0.0f, 0.0f};
-	vertexList[1].quad = {1.0f,	0.0f};
-	vertexList[2].quad = {0.0f, 1.0f};
-	vertexList[3].quad = {1.0f,	1.0f};
+	float u = (float)width/(float)texture->width;
+	float v = (float)height/(float)texture->height;
 
-	if (rotation != 0)
+	vertexList[0].quad = {0.0f, 0.0f};
+	vertexList[1].quad = {u,	0.0f};
+	vertexList[2].quad = {0.0f, v};
+	vertexList[3].quad = {u,	v};
+
+	
+	for (int i = 0; i < 4; i++)
 	{
-		for (int i = 0; i < 4; i++)
+		if (rotation != 0)
 		{
 			float originX = vertexList[i].position.x - (x + (offsetX * scalarX));
 			float originY = vertexList[i].position.y - (y + (offsetY * scalarY));
@@ -322,10 +329,9 @@ void graphicsDraw(C3D_Tex * texture, float x, float y, int width, int height, fl
 			vertexList[i].position.x = originX * cos(rotation) - originY * sin(rotation) + x;
 			vertexList[i].position.y = originX * sin(rotation) + originY * cos(rotation) + y;
 		}
-	}
 
-	for(int i=0; i<4; i++)
 		transformDrawable(&vertexList[i].position.x, &vertexList[i].position.y);
+	}	
 
 	generateTextureVertecies(vertexList);
 
