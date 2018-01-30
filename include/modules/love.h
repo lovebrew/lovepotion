@@ -1,3 +1,8 @@
+/*
+** love.h
+** @brief	: Handles all the modules
+*/
+
 #pragma once
 
 extern bool LUA_ERROR;

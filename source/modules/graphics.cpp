@@ -1,6 +1,8 @@
 #include "runtime.h"
 #include "graphics.h"
 
+#include <switch.h>
+
 bool isInitialized = false;
 
 void Graphics::Initialize()

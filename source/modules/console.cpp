@@ -1,8 +1,11 @@
 #include "runtime.h"
+
 #include "graphics.h"
 #include "version.h"
 
 #include <stdarg.h>
+
+#include <switch.h>
 
 bool CONSOLE_INITIALIZED = false;
 char * CONSOLE_ERROR = "";

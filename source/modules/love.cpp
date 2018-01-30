@@ -5,6 +5,8 @@
 
 #include "graphics.h"
 
+#include <switch.h>
+
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
 	{ "graphics",	Graphics::Register,		Graphics::Exit		},

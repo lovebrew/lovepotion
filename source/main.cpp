@@ -9,11 +9,13 @@ extern "C"
 }
 
 #include <string>
+
 #include "console.h"
 #include "graphics.h"
 #include "love.h"
 
 #include <stdio.h>
+
 #include <switch.h>
 
 #define luaL_dobuffer(L, b, n, s) \

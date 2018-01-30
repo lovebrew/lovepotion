@@ -10,8 +10,6 @@ extern "C"
 	#include <luaobj.h>
 }
 
-#include <switch.h>
-
 #include <string>
 #include <vector>
 
