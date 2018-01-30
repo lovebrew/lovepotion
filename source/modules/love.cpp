@@ -1,4 +1,5 @@
 #include "runtime.h"
+#include <unistd.h>
 
 #include "love.h"
 #include "version.h"
@@ -59,7 +60,7 @@ int Love::EnableConsole(lua_State * L)
 	}
 
 	if (canEnable)
-		Console::Initialize(GFX_BOTTOM);
+		Console::Initialize();
 
 	return 0;
 }

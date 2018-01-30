@@ -15,8 +15,6 @@ void Console::Initialize()
 	if (!Graphics::IsInitialized())
 		gfxInitDefault();
 
-	CONSOLE_SCREEN = screen;
-
 	consoleInit(NULL);
 
 	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", Love::VERSION.c_str());

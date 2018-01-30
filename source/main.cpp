@@ -33,6 +33,14 @@ int main()
 
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
+	std::string buff;
+	buff += "print("")";
+	buff += "print('Screen Dimensions:')";
+	buff += "print(love.graphics.getWidth() .. ' ' .. love.graphics.getHeight())";
+
+	if (luaL_dostring(L, buff.c_str()))
+		Console::ThrowError(L);
+
 	while(appletMainLoop())
 	{
 		if (ERROR || LOVE_QUIT)
