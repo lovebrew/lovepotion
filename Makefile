@@ -46,13 +46,19 @@ INCLUDES	:=	include \
 
 EXEFS_SRC	:=	game
 
+APP_TITLE	:= LovePotion
+APP_AUTHOR	:= TurtleP
+APP_VERSION	:= 1.0
+APP_TITLEID	:= 1043
+
+ICON		:= meta/icon.jpg
+
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a -mtune=mpcore -mfloat-abi=hard -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 \
-			-ffast-math \
+CFLAGS	:=	-g -Wall -O2 -ffast-math -mword-relocations -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH
@@ -62,7 +68,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx
+LIBS	:= -lnx -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

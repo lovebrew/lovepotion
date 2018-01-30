@@ -35,7 +35,15 @@ int main()
 
 	Filesystem::Initialize();
 
+	L = luaL_newstate();
+
+	luaL_openlibs(L);
 	luaL_requiref(L, "love", Love::Initialize, 1);
+
+	std::string buff = "print('OS: ' .. love.system.getOS())";
+	buff += "print(love.graphics.getWidth() .. 'x' .. love.graphics.getHeight())";
+
+	luaL_dostring(L, buff.c_str());
 
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
@@ -56,4 +64,6 @@ int main()
 	}
 
 	Love::Exit(L);
+
+	return 0;
 }

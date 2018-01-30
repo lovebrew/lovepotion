@@ -23,17 +23,17 @@ void Filesystem::Initialize()
 		//	chdir("romfs:/");
 		//else
 		//{
-		char cwd[256];
+		/*char cwd[256];
 		
 		getcwd(cwd, 256);
 
 		strcat(cwd, "game/");
 
-		chdir(cwd);
+		chdir(cwd);*/
 	//	}
 	}
 
-	mkdir(SAVE_DIR.c_str(), 0777);
+	//mkdir(SAVE_DIR.c_str(), 0777);
 }
 
 //Löve2D Functions

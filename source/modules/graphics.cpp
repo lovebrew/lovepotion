@@ -18,13 +18,17 @@ void Graphics::Initialize()
 //love.graphics.getWidth
 int Graphics::GetWidth(lua_State * L)
 {
-	return 1280;
+	lua_pushnumber(L, 1280);
+
+	return 1;
 }
 
 //love.graphics.getHeight
 int Graphics::GetHeight(lua_State * L)
 {
-	return 720;
+	lua_pushnumber(L, 720);
+	
+	return 1;
 }
 
 //End Löve2D Functions
