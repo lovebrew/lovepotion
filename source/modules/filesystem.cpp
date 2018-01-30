@@ -7,7 +7,7 @@
 
 #include <switch.h>
 
-bool ROMFS_INIT = false;
+bool ROMFS_INIT = true;
 string SAVE_DIR = "sdmc:/3ds/LovePotion";
 string IDENTITY = "SuperGame";
 
