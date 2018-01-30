@@ -11,12 +11,14 @@ extern "C"
 #include <string>
 
 #include "console.h"
+#include "filesystem.h"
 #include "graphics.h"
 #include "love.h"
 
 #include <stdio.h>
 
 #include <switch.h>
+#include "boot_lua.h"
 
 #define luaL_dobuffer(L, b, n, s) \
 	(luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
@@ -31,14 +33,11 @@ int main()
 
 	Graphics::Initialize();
 
+	Filesystem::Initialize();
+
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
-	std::string buff;
-	buff += "print("")";
-	buff += "print('Screen Dimensions:')";
-	buff += "print(love.graphics.getWidth() .. ' ' .. love.graphics.getHeight())";
-
-	if (luaL_dostring(L, buff.c_str()))
+	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
 
 	while(appletMainLoop())

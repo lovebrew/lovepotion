@@ -4,13 +4,17 @@
 #include "love.h"
 #include "version.h"
 
+#include "filesystem.h"
 #include "graphics.h"
+#include "system.h"
 
 #include <switch.h>
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
+	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		Graphics::Exit		},
+	{ "system",		System::Register,		NULL				},
 	{ 0 }
 };
 

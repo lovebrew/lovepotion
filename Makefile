@@ -38,7 +38,7 @@ SOURCES		:=	source \
 				source/modules \
 				$(LIBS)
 
-DATA		:=	data
+DATA		:=	source/scripts
 
 INCLUDES	:=	include \
 				include/modules \
@@ -183,6 +183,12 @@ $(OUTPUT).elf	:	$(OFILES)
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
 %.bin.o	:	%.bin
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+
+#---------------------------------------------------------------------------------
+%.lua.o	:	%.lua
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
