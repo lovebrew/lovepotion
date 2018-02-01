@@ -56,9 +56,9 @@ ICON		:= meta/icon.jpg
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=mpcore -mfloat-abi=hard -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffast-math -mword-relocations -ffunction-sections \
+CFLAGS	:=	-g -Wall -O2 -ffast-math -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH
