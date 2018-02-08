@@ -3,4 +3,8 @@ function love.load()
 	print("OS: " .. love.system.getOS())
 	print("Screen: " .. love.graphics.getWidth() .. "x" .. love.graphics.getHeight())
 	print("Press + to Exit")
+
+
+	print("RendererInfo:")
+	print(love.graphics.getRendererInfo())
 end

@@ -7,6 +7,9 @@
 #include "filesystem.h"
 #include "graphics.h"
 #include "system.h"
+#include "timer.h"
+
+#include "wrap_gamepad.h"
 
 #include <switch.h>
 
@@ -15,6 +18,7 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		Graphics::Exit		},
 	{ "system",		System::Register,		NULL				},
+	{ "timer",		Timer::Register,		NULL				},
 	{ 0 }
 };
 
@@ -22,7 +26,7 @@ int Love::Initialize(lua_State * L)
 {
 	int (*classes[])(lua_State *L) = 
 	{
-		NULL
+		initGamepadClass,
 	};
 
 	for (int i = 0; classes[i]; i++) 
@@ -42,8 +46,11 @@ int Love::Initialize(lua_State * L)
 	for (int i = 0; modules[i].name; i++)
 	{
 		modules[i].fn(L);
+		printf("registered %s\n", modules[i].name);
 		lua_setfield(L, -2, modules[i].name);
 	}
+
+	printf("LOVE loaded!\n");
 
 	return 1;
 }

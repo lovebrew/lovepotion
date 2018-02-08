@@ -14,10 +14,18 @@ extern "C"
 #include "filesystem.h"
 #include "graphics.h"
 #include "love.h"
+#include "timer.h"
 
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <switch.h>
+
+#include <vector>
+
+#include "gamepad.h"
+#include "wrap_gamepad.h"
+
 #include "boot_lua.h"
 
 #define luaL_dobuffer(L, b, n, s) \
@@ -31,19 +39,21 @@ int main()
 {
 	Console::Initialize();
 
-	Graphics::Initialize();
+	//Graphics::Initialize();
 
-	Filesystem::Initialize();
+	//Filesystem::Initialize();
 
 	L = luaL_newstate();
 
 	luaL_openlibs(L);
+
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
-	std::string buff = "print('OS: ' .. love.system.getOS())";
-	buff += "print(love.graphics.getWidth() .. 'x' .. love.graphics.getHeight())";
-
-	luaL_dostring(L, buff.c_str());
+	luaL_dostring(L, "print('OS: ' .. love.system.getOS())");
+	luaL_dostring(L, "print('Screen: ' .. love.graphics.getWidth() .. 'x' .. love.graphics.getHeight())");
+	luaL_dostring(L, "print('RendererInfo:')");
+	luaL_dostring(L, "print(love.graphics.getRendererInfo())");
+	luaL_dostring(L, "print('Press + to Quit')");
 
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
@@ -51,11 +61,6 @@ int main()
 	while(appletMainLoop())
 	{
 		if (ERROR || LOVE_QUIT)
-			break;
-
-		hidScanInput();
-	
-		if (hidKeysDown(CONTROLLER_P1_AUTO) & KEY_PLUS) 
 			break;
 
 		gfxFlushBuffers();

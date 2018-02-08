@@ -31,6 +31,16 @@ int Graphics::GetHeight(lua_State * L)
 	return 1;
 }
 
+int Graphics::GetRendererInfo(lua_State * L)
+{
+	lua_pushstring(L, "OpenGL");
+	lua_pushstring(L, "4.5");
+	lua_pushstring(L, "NVIDIA");
+	lua_pushstring(L, "TEGRA X1");
+ 
+	return 4;
+}
+
 //End Löve2D Functions
 
 bool Graphics::IsInitialized()
@@ -47,8 +57,9 @@ int Graphics::Register(lua_State * L)
 {
 	luaL_Reg reg[] = 
 	{
-		{ "getWidth",	GetWidth	},
-		{ "getHeight",	GetHeight	},
+		{ "getWidth",			GetWidth		},
+		{ "getHeight",			GetHeight		},
+		{ "getRendererInfo",	GetRendererInfo	},
 		{ 0, 0 }
 	};
 

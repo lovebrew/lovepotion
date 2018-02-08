@@ -8,7 +8,7 @@
 #include <switch.h>
 
 bool CONSOLE_INITIALIZED = false;
-char * CONSOLE_ERROR = "";
+string CONSOLE_ERROR = "";
 
 void Console::Initialize()
 {
@@ -17,7 +17,7 @@ void Console::Initialize()
 
 	consoleInit(NULL);
 
-	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", Love::VERSION.c_str());
+	printf("\e[1;36mLOVE\e[0m %s for Switch\n\n", Love::VERSION.c_str());
 
 	CONSOLE_INITIALIZED = true;
 }
@@ -30,17 +30,17 @@ void Console::ThrowError(const string & format, ...)
 	va_start(args, format);
 	va_copy(echo, args);
 
-	vsprintf(CONSOLE_ERROR, format.c_str(), echo);
-	luaL_error(L, "%s", CONSOLE_ERROR);
+	vsprintf((char *)CONSOLE_ERROR.data(), format.c_str(), echo);
+	luaL_error(L, "%s", CONSOLE_ERROR.c_str());
 
 	va_end(args);
 	
 	ERROR = true;
 }
 
-char * Console::GetError()
+const char * Console::GetError()
 {
-	return CONSOLE_ERROR;
+	return CONSOLE_ERROR.c_str();
 }
 
 int Console::ThrowError(lua_State * L)

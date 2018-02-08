@@ -36,12 +36,14 @@ LIBS		:= $(sort $(dir $(wildcard libraries/*/)))
 
 SOURCES		:=	source \
 				source/modules \
+				source/objects/gamepad \
 				$(LIBS)
 
 DATA		:=	source/scripts
 
 INCLUDES	:=	include \
 				include/modules \
+				include/objects/gamepad \
 				$(LIBS)
 
 EXEFS_SRC	:=	game
@@ -154,7 +156,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) -s -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:

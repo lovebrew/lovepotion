@@ -13,7 +13,7 @@ namespace Console
 	void ThrowError(const std::string & format, ...);
 	int ThrowError(lua_State * L);
 	
-	char * GetError();
+	const char * GetError();
 	
 	extern bool IsInitialized();
 }
