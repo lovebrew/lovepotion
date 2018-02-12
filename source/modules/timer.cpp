@@ -1,8 +1,6 @@
 #include "runtime.h"
 #include "timer.h"
 
-#include <switch.h>
-
 //Deltatime
 int prevTime = 0;
 int currTime = 0;

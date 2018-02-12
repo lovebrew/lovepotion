@@ -21,12 +21,9 @@ extern "C"
 
 #include <switch.h>
 
-#include <vector>
-
-#include "gamepad.h"
-#include "wrap_gamepad.h"
-
 #include "boot_lua.h"
+#include "buffer_lua.h"
+#include "wrap_gamepad.h"
 
 #define luaL_dobuffer(L, b, n, s) \
 	(luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
@@ -49,17 +46,19 @@ int main()
 
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
-	luaL_dostring(L, "print('OS: ' .. love.system.getOS())");
-	luaL_dostring(L, "print('Screen: ' .. love.graphics.getWidth() .. 'x' .. love.graphics.getHeight())");
-	luaL_dostring(L, "print('RendererInfo:')");
-	luaL_dostring(L, "print(love.graphics.getRendererInfo())");
-	luaL_dostring(L, "print('Press + to Quit')");
-
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
 
+	if (luaL_dobuffer(L, (char *)buffer_lua, buffer_lua_size, "buffer"))
+		Console::ThrowError(L);
+
+	gamepadNew(L);
+
 	while(appletMainLoop())
 	{
+		printf("MainLoop\n");
+		Love::Scan(L);
+
 		if (ERROR || LOVE_QUIT)
 			break;
 
@@ -67,6 +66,9 @@ int main()
 		gfxSwapBuffers();
 		gfxWaitForVsync();
 	}
+
+	while (ERROR)
+		printf("Rip\n");
 
 	Love::Exit(L);
 

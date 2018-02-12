@@ -1,5 +1,4 @@
 #include "runtime.h"
-#include <switch.h>
 #include "gamepad.h"
 
 vector<string> BUTTONS =
@@ -13,13 +12,24 @@ vector<string> BUTTONS =
 	"sl", "sr"
 };
 
-vector<Gamepad *> joycons;
-
 Gamepad::Gamepad(int id)
 {
 	this->id = id;
 
 	printf("Connected JoyCon %d\n", id);
+}
+
+string Gamepad::ScanInput()
+{
+	u64 key = hidKeysDown((HidControllerID)this->id);
+
+	for (uint i = 0; i < BUTTONS.size(); i ++)
+	{
+		if (key & BIT(i))
+			return BUTTONS[i];
+	}
+
+	return "nil";
 }
 
 bool Gamepad::IsDown(string button)

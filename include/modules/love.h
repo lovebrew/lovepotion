@@ -16,6 +16,8 @@ namespace Love
 
 	int EnableConsole(lua_State * L);
 
+	int Scan(lua_State * L);
+
 	int NoGame(lua_State * L);
 
 	void Exit(lua_State * L);

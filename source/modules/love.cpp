@@ -9,6 +9,7 @@
 #include "system.h"
 #include "timer.h"
 
+#include "gamepad.h"
 #include "wrap_gamepad.h"
 
 #include <switch.h>
@@ -27,6 +28,7 @@ int Love::Initialize(lua_State * L)
 	int (*classes[])(lua_State *L) = 
 	{
 		initGamepadClass,
+		NULL
 	};
 
 	for (int i = 0; classes[i]; i++) 
@@ -37,6 +39,7 @@ int Love::Initialize(lua_State * L)
 
 	luaL_Reg reg[] =
 	{
+		{ "getVersion",		GetVersion		},
 		{ "enableConsole",	EnableConsole	},
 		{ 0, 0 }
 	};
@@ -46,13 +49,39 @@ int Love::Initialize(lua_State * L)
 	for (int i = 0; modules[i].name; i++)
 	{
 		modules[i].fn(L);
-		printf("registered %s\n", modules[i].name);
 		lua_setfield(L, -2, modules[i].name);
 	}
 
-	printf("LOVE loaded!\n");
-
 	return 1;
+}
+
+int Love::Scan(lua_State * L)
+{
+	//joycon/controllers
+	hidScanInput();
+	
+	printf("Scanning..\n");
+	for (uint i = 0; i < controllers.size(); i++)
+	{
+		string button = controllers[i]->ScanInput();
+
+		if (button != "nil")
+		{
+			if (button == "plus")
+				LOVE_QUIT = true;
+		}
+	}
+
+}
+
+int Love::GetVersion(lua_State * L)
+{
+	lua_pushnumber(L, Love::VERSION_MAJOR);
+	lua_pushnumber(L, Love::VERSION_MINOR);
+	lua_pushnumber(L, Love::VERSION_REVISION);
+	lua_pushstring(L, Love::CODENAME.c_str());
+
+	return 4;
 }
 
 int Love::EnableConsole(lua_State * L)

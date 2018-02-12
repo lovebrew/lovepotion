@@ -7,10 +7,11 @@ class Gamepad
 
 		float GetAxis(int axis);
 		bool IsDown(std::string button);
+		std::string ScanInput();
 
 	private:
 		int id;
 		JoystickPosition sticks[2];
 };
 
-extern std::vector<Gamepad *> joycons;
+extern std::vector<Gamepad *> controllers;

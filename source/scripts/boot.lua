@@ -229,8 +229,6 @@ love.createhandlers()
 	if love.load then
 		love.load()
 	end
-else
-	love.nogame()
 end
 
 if love.timer then

@@ -1,8 +1,6 @@
 #include "runtime.h"
 #include "system.h"
 
-#include <switch.h>
-
 void System::Initialize()
 {
 	/*

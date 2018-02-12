@@ -5,10 +5,8 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#include <switch.h>
-
 bool ROMFS_INIT = true;
-string SAVE_DIR = "sdmc:/3ds/LovePotion";
+string SAVE_DIR = "sdmc:/switch/LovePotion";
 string IDENTITY = "SuperGame";
 
 void Filesystem::Initialize()
@@ -20,7 +18,7 @@ void Filesystem::Initialize()
 	else
 	{
 		//if (!envIsHomebrew())
-		//	chdir("romfs:/");
+		//chdir("romfs:/");
 		//else
 		//{
 		/*char cwd[256];
@@ -33,7 +31,7 @@ void Filesystem::Initialize()
 	//	}
 	}
 
-	//mkdir(SAVE_DIR.c_str(), 0777);
+	mkdir(SAVE_DIR.c_str(), 0777);
 }
 
 //Löve2D Functions

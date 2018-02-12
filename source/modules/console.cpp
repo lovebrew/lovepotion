@@ -5,8 +5,6 @@
 
 #include <stdarg.h>
 
-#include <switch.h>
-
 bool CONSOLE_INITIALIZED = false;
 string CONSOLE_ERROR = "";
 

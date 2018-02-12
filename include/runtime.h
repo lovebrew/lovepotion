@@ -18,6 +18,8 @@ extern "C"
 
 #include "console.h"
 
+#include <switch.h>
+
 using std::string;
 using std::vector;
 

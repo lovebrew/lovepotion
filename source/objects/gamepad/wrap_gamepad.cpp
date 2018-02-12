@@ -4,25 +4,20 @@
 #include "gamepad.h"
 #include "wrap_gamepad.h"
 
-#define CLASS_NAME "Joystick"
-#define CLASS_TYPE LUAOBJ_TYPE_JOYSTICK
+#define CLASS_NAME "Gamepad"
+#define CLASS_TYPE LUAOBJ_TYPE_GAMEPAD
+
+vector<Gamepad *> controllers;
 
 int gamepadNew(lua_State * L)
-{
-	return gamepadNew(L, 1);
-}
-
-int gamepadNew(lua_State * L, int id)
 {
 	void * raw_self = luaobj_newudata(L, sizeof(Gamepad));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	Gamepad * self = new (raw_self) Gamepad(id);
+	Gamepad * self = new (raw_self) Gamepad(controllers.size());
 
-	joycons.push_back(self);
- 
-	printf("Joycon! %d", joycons.size());
+	controllers.push_back(self);
 
 	return 1;
 }
@@ -36,6 +31,7 @@ int initGamepadClass(lua_State * L)
 {
 	luaL_Reg reg[] = 
 	{
+		{"new",			gamepadNew	},
 		{"__gc",		gamepadGC	},
 		{ 0, 0 },
 	};
