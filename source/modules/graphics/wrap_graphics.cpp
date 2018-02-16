@@ -31,6 +31,14 @@ void transformDrawable(float * ox, float * oy) // rotate, scale, and translate c
 	int i = 0;
 	float slider = CONFIG_3D_SLIDERSTATE;
 
+	if (gfxIs3D() && currentScreen == GFX_TOP)
+	{
+		if (currentSide == GFX_LEFT)
+			*ox -= (slider * currentDepth);
+		else if (currentSide == GFX_RIGHT)
+			*ox += (slider * currentDepth);
+	}
+
 	for(i=transformstack.size()-1; i>=0; i--)
 	{
 		switch( static_cast<int>(transformstack[i][0]) )
@@ -38,16 +46,6 @@ void transformDrawable(float * ox, float * oy) // rotate, scale, and translate c
 			case 1 : // translate
 				*ox += transformstack[i][1];
 				*oy += transformstack[i][2];
-
-				if (!gfxIs3D() || (gfxIs3D() && currentScreen != GFX_TOP))
-					break;
-
-				
-				if (currentSide == GFX_LEFT)
-					*ox -= (slider * currentDepth);
-				else if (currentSide == GFX_RIGHT)
-					*ox += (slider * currentDepth);
-				
 				break;
 			case 2 : // scale
 				*ox *= transformstack[i][1];
