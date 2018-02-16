@@ -53,7 +53,7 @@ int luaobj_newclass(lua_State *L, const char *name, const char *extends,
 }
 
 
-void luaobj_setclass(lua_State *L, uint32_t type, char *name) {
+void luaobj_setclass(lua_State *L, uint32_t type, const char *name) {
   /* Sets the the metatable of the member at the top of the stack to the
    * class-metatable of the given `name` */
   luaobj_head_t *udata = lua_touserdata(L, -1);

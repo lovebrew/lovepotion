@@ -31,7 +31,7 @@ typedef struct {
 
 int luaobj_newclass(lua_State *L, const char *name, const char *extends, 
                     int (*constructor)(lua_State*), luaL_Reg* reg);
-void luaobj_setclass(lua_State *L, uint32_t type, char *name);
+void luaobj_setclass(lua_State *L, uint32_t type, const char *name);
 void *luaobj_newudata(lua_State *L, int size);
 void *luaobj_checkudata(lua_State *L, int index, uint32_t type);
 

@@ -35,6 +35,7 @@ BUILD		:=	build
 LIBS		:= $(sort $(dir $(wildcard libraries/*/)))
 
 SOURCES		:=	source \
+				source/common \
 				source/modules \
 				source/objects/gamepad \
 				$(LIBS)
@@ -42,6 +43,7 @@ SOURCES		:=	source \
 DATA		:=	source/scripts
 
 INCLUDES	:=	include \
+				include/common \
 				include/modules \
 				include/objects/gamepad \
 				$(LIBS)
@@ -58,7 +60,7 @@ ICON		:= meta/icon.jpg
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtp=soft -fPIE
+ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS	:=	-g -Wall -O2 -ffast-math -ffunction-sections \
 			$(ARCH) $(DEFINES)

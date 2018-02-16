@@ -5,11 +5,15 @@ class Gamepad
 	public:
 		Gamepad(int id);
 
-		float GetAxis(int axis);
-		bool IsDown(std::string button);
-		std::string ScanInput();
+		std::pair<std::string, float> ScanAxes();
+		std::string ScanButtons(bool down);
+
+		bool IsDown(const std::string & button);
+		int GetID();
 
 	private:
+		HidControllerID GetInternalID();
+		
 		int id;
 		JoystickPosition sticks[2];
 };

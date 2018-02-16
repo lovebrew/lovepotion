@@ -16,12 +16,14 @@ extern "C"
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "util.h"
 #include "console.h"
 
 #include <switch.h>
 
 using std::string;
 using std::vector;
+using std::pair;
 
 // Forward declare lua_State.
 extern lua_State * L;

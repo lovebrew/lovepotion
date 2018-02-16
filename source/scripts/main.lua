@@ -16,13 +16,6 @@ end
 
 function love.gamepadpressed(joystick, button)
 	printf("Controller %d: %s was pressed", joystick:getID(), button)
-
-	if button == "plus" then
-		print("\nGoodbye!\n")
-
-		love.timer.sleep(1)
-		love.event.quit()
-	end
 end
 
 function love.gamepadreleased(joystick, button)

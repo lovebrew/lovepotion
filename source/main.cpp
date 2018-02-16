@@ -25,8 +25,7 @@ extern "C"
 #include "buffer_lua.h"
 #include "wrap_gamepad.h"
 
-#define luaL_dobuffer(L, b, n, s) \
-	(luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
+#include "util.h"
 
 lua_State * L;
 bool ERROR = false;
@@ -40,7 +39,10 @@ int main()
 
 	//Filesystem::Initialize();
 
+
 	L = luaL_newstate();
+	
+	luaL_dostring(L, "jit.off()");
 
 	luaL_openlibs(L);
 
@@ -56,7 +58,6 @@ int main()
 
 	while(appletMainLoop())
 	{
-		printf("MainLoop\n");
 		Love::Scan(L);
 
 		if (ERROR || LOVE_QUIT)

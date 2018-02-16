@@ -22,6 +22,15 @@ int gamepadNew(lua_State * L)
 	return 1;
 }
 
+int gamepadGetID(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushinteger(L, self->GetID());
+
+	return 1;
+}
+
 int gamepadGC(lua_State * L)
 {
 	return 0;
@@ -32,6 +41,7 @@ int initGamepadClass(lua_State * L)
 	luaL_Reg reg[] = 
 	{
 		{"new",			gamepadNew	},
+		{"getID",		gamepadGetID},
 		{"__gc",		gamepadGC	},
 		{ 0, 0 },
 	};

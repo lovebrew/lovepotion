@@ -29,7 +29,6 @@ void Console::ThrowError(const string & format, ...)
 	va_copy(echo, args);
 
 	vsprintf((char *)CONSOLE_ERROR.data(), format.c_str(), echo);
-	luaL_error(L, "%s", CONSOLE_ERROR.c_str());
 
 	va_end(args);
 	

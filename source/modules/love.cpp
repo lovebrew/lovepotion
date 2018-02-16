@@ -4,6 +4,7 @@
 #include "love.h"
 #include "version.h"
 
+#include "event.h"
 #include "filesystem.h"
 #include "graphics.h"
 #include "system.h"
@@ -16,6 +17,7 @@
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
+	{ "event",		Event::Register,		NULL				},
 	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		Graphics::Exit		},
 	{ "system",		System::Register,		NULL				},
@@ -59,19 +61,52 @@ int Love::Scan(lua_State * L)
 {
 	//joycon/controllers
 	hidScanInput();
-	
-	printf("Scanning..\n");
+
 	for (uint i = 0; i < controllers.size(); i++)
 	{
-		string button = controllers[i]->ScanInput();
+		string buttonDown = controllers[i]->ScanButtons(true);
+		string buttonUp = controllers[i]->ScanButtons(false);
 
-		if (button != "nil")
+		if (buttonDown != "nil")
 		{
-			if (button == "plus")
-				LOVE_QUIT = true;
+			love_getfield(L, "gamepadpressed");
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushuserdata(L, controllers[i], "Gamepad");
+				lua_pushstring(L, buttonDown.c_str());
+				lua_call(L, 2, 0);
+			}
+		}
+		else if (buttonUp != "nil")
+		{
+			love_getfield(L, "gamepadreleased");
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushuserdata(L, controllers[i], "Gamepad");
+				lua_pushstring(L, buttonUp.c_str());
+				lua_call(L, 2, 0);
+			}
+		}
+
+		pair<string, float> axisData = controllers[i]->ScanAxes();
+
+		if (axisData.second != 0)
+		{
+			love_getfield(L, "gamepadaxis");
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushuserdata(L, controllers[i], "Gamepad");
+				lua_pushstring(L, axisData.first.c_str());
+				lua_pushnumber(L, axisData.second);
+				lua_call(L, 3, 0);
+			}
 		}
 	}
 
+	return 0;
 }
 
 int Love::GetVersion(lua_State * L)
