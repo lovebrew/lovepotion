@@ -70,7 +70,8 @@ int main()
 
 	while (ERROR)
 		printf("Rip\n");
-
+	
+	gfxExit();
 	Love::Exit(L);
 
 	return 0;
