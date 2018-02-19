@@ -36,7 +36,7 @@ int main()
 {
 	Console::Initialize();
 
-	Audio::Initialize();
+	//Audio::Initialize();
 
 	//Graphics::Initialize();
 
@@ -67,9 +67,6 @@ int main()
 		gfxSwapBuffers();
 		gfxWaitForVsync();
 	}
-
-	while (ERROR)
-		printf("Rip\n");
 
 	Love::Exit(L);
 

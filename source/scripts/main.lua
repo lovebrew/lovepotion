@@ -6,6 +6,8 @@ print("LOVE:")
 print(love.getVersion())
 print('Press + to Quit\n')
 
+io.stdout:setvbuf("no")
+
 function love.load()
 
 end
@@ -25,9 +27,5 @@ end
 function love.gamepadaxis(joystick, axis, value)
 	id = joystick:getID()
 
-	if axis == "leftx" then
-		printf("Controller %d left X-Axis: %d", id, value)
-	elseif axis == "lefty" then
-		printf("Controller %d left Y-Axis: %d", id, value)
-	end
+	printf("Controller %d %s axis: %.2f", id, axis, value)
 end

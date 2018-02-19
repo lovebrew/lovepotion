@@ -13,10 +13,10 @@ vector<string> BUTTONS =
 	"sl", "sr"
 };
 
-vector<string> AXES =
+vector<HidControllerJoystick> enums =
 {
-	"leftx", "lefty",
-	"rightx", "righty"
+	JOYSTICK_LEFT,
+	JOYSTICK_RIGHT
 };
 
 Gamepad::Gamepad(int id)
@@ -64,52 +64,26 @@ string Gamepad::ScanButtons(bool isDown)
 pair<string, float> Gamepad::ScanAxes()
 {
 	HidControllerID id = this->GetInternalID();
-	u64 keyHeld = hidKeysHeld(id);
 
-	for (string axis : AXES)
+	JoystickPosition joystick = this->sticks[0];
+
+	for (HidControllerJoystick joystickEnum : enums)
 	{
-		string dir = axis.substr(axis.length() - 1);
-		string stick = axis.substr(0, axis.length() - 1);
-
-		HidControllerJoystick joystickJoystick = JOYSTICK_LEFT;
-		JoystickPosition joystick = this->sticks[0];
-
-		if (stick == "right")
-		{
-			joystickJoystick = JOYSTICK_RIGHT;
+		if (joystickEnum == JOYSTICK_RIGHT)
 			joystick = this->sticks[1];
-		}	
 
-		int value = 0;
-		if (dir == "y")
-			value = 1;
-
-		pair<string, float> data;
-
-		hidJoystickRead(&joystick, id, joystickJoystick);
-
-		if (value == 0)
-			data = std::make_pair(axis, ((float)joystick.dx / JOYSTICK_MAX));
-		else
-			data = std::make_pair(axis, ((float)joystick.dy / JOYSTICK_MAX));
-	
 		for (int i = 16; i < 24; i++)
 		{
-			if (keyHeld & BIT(i))
-			{
-				hidJoystickRead(&joystick, id, joystickJoystick);
+			hidJoystickRead(&joystick, id, joystickEnum);
 
-				if (value == 0)
-					data = std::make_pair(BUTTONS[i], ((float)joystick.dx / JOYSTICK_MAX));
-				else
-					data = std::make_pair(BUTTONS[i], ((float)joystick.dy / JOYSTICK_MAX));
-			}
+			if (BUTTONS[i].substr(BUTTONS[i].length() - 1) == "x")
+				return std::make_pair(BUTTONS[i], ((float)joystick.dx / JOYSTICK_MAX));
+			else
+				return std::make_pair(BUTTONS[i], ((float)joystick.dy / JOYSTICK_MAX));
 		}
-
-		return data;
 	}
 
-	return std::make_pair("null", 0); //bad, but it shouldn't happen
+	return std::make_pair("nil", 0);
 }
 
 bool Gamepad::IsDown(const string & button)
