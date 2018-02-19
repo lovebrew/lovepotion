@@ -4,6 +4,7 @@
 #include "love.h"
 #include "version.h"
 
+#include "audio.h"
 #include "event.h"
 #include "filesystem.h"
 #include "graphics.h"
@@ -17,6 +18,7 @@
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
+	{ "audio",		Audio::Register,		Audio::Exit			},
 	{ "event",		Event::Register,		NULL				},
 	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		Graphics::Exit		},

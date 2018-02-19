@@ -10,6 +10,7 @@ extern "C"
 
 #include <string>
 
+#include "audio.h"
 #include "console.h"
 #include "filesystem.h"
 #include "graphics.h"
@@ -35,14 +36,13 @@ int main()
 {
 	Console::Initialize();
 
+	Audio::Initialize();
+
 	//Graphics::Initialize();
 
 	//Filesystem::Initialize();
 
-
 	L = luaL_newstate();
-	
-	luaL_dostring(L, "jit.off()");
 
 	luaL_openlibs(L);
 
