@@ -53,7 +53,7 @@ string Gamepad::ScanButtons(bool isDown)
 		{
 			if ((keyDown & BIT(i)) && isDown)
 				return BUTTONS[i];
-			else if (keyUp & BIT(i) && !isDown)
+			else if ((keyUp & BIT(i)) && !isDown)
 				return BUTTONS[i];
 		}
 	}
@@ -61,23 +61,21 @@ string Gamepad::ScanButtons(bool isDown)
 	return "nil";
 }
 
-void Gamepad::ScanAxes(pair<string, float> * data)
+void Gamepad::ScanAxes(pair<string, float> & data)
 {
 	HidControllerID id = this->GetInternalID();
 
-	int start = 16;
-	int end = 20;
 	for (HidControllerJoystick joystickEnum : enums)
 	{
-		for (int i = start; i < end; i++)
+		for (int i = 16; i < 24; i++)
 		{
 			hidJoystickRead(&this->stick, id, joystickEnum);
 
-			data->first = BUTTONS[i];
+			data.first = BUTTONS[i];
 			if (BUTTONS[i].substr(BUTTONS[i].length() - 1) == "x")
-				data->second = ((float)this->stick.dx / JOYSTICK_MAX);
+				data.second = ((float)this->stick.dx / JOYSTICK_MAX);
 			else
-				data->second = ((float)this->stick.dy / JOYSTICK_MAX);
+				data.second = ((float)this->stick.dy / JOYSTICK_MAX);
 		}
 	}
 }
