@@ -34,7 +34,17 @@ function love.gamepadaxis(joystick, axis, value)
 
 	if axis == "leftx" then
 		printf("Controller %d left X-Axis: %.2f", id, value)
-	elseif axis == "lefty" then
+	end
+
+	if axis == "lefty" then
 		printf("Controller %d left Y-Axis: %.2f", id, value)
+	end
+
+	if axis == "rightx" then
+		printf("Controller %d right X-Axis: %.2f", id, value)
+	end
+
+	if axis == "righty" then
+		printf("Controller %d right Y-Axis: %.2f", id, value)
 	end
 end

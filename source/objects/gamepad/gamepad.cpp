@@ -61,29 +61,25 @@ string Gamepad::ScanButtons(bool isDown)
 	return "nil";
 }
 
-pair<string, float> Gamepad::ScanAxes()
+void Gamepad::ScanAxes(pair<string, float> * data)
 {
 	HidControllerID id = this->GetInternalID();
 
-	JoystickPosition joystick = this->sticks[0];
-
+	int start = 16;
+	int end = 20;
 	for (HidControllerJoystick joystickEnum : enums)
 	{
-		if (joystickEnum == JOYSTICK_RIGHT)
-			joystick = this->sticks[1];
-
-		for (int i = 16; i < 24; i++)
+		for (int i = start; i < end; i++)
 		{
-			hidJoystickRead(&joystick, id, joystickEnum);
+			hidJoystickRead(&this->stick, id, joystickEnum);
 
+			data->first = BUTTONS[i];
 			if (BUTTONS[i].substr(BUTTONS[i].length() - 1) == "x")
-				return std::make_pair(BUTTONS[i], ((float)joystick.dx / JOYSTICK_MAX));
+				data->second = ((float)this->stick.dx / JOYSTICK_MAX);
 			else
-				return std::make_pair(BUTTONS[i], ((float)joystick.dy / JOYSTICK_MAX));
+				data->second = ((float)this->stick.dy / JOYSTICK_MAX);
 		}
 	}
-
-	return std::make_pair("nil", 0);
 }
 
 bool Gamepad::IsDown(const string & button)

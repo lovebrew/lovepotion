@@ -5,7 +5,7 @@ class Gamepad
 	public:
 		Gamepad(int id);
 
-		std::pair<std::string, float> ScanAxes();
+		void ScanAxes(std::pair<std::string, float> * data);
 		std::string ScanButtons(bool down);
 
 		bool IsDown(const std::string & button);
@@ -15,7 +15,7 @@ class Gamepad
 		HidControllerID GetInternalID();
 		
 		int id;
-		JoystickPosition sticks[2];
+		JoystickPosition stick;
 };
 
 extern std::vector<Gamepad *> controllers;

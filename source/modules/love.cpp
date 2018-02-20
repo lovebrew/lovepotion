@@ -92,7 +92,8 @@ int Love::Scan(lua_State * L)
 			}
 		}
 
-		pair<string, float> axisData = controllers[i]->ScanAxes();
+		pair<string, float> axisData; 
+		controllers[i]->ScanAxes(&axisData);
 
 		if (axisData.second != 0)
 		{
