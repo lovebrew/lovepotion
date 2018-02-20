@@ -70,5 +70,15 @@ int main()
 
 	Love::Exit(L);
 
+	//Crash on exit workaround
+        gfxInitDefault();
+        consoleInit(NULL);
+        printf("\x1b[40;64HPress the home button to exit");
+        while(true){
+                gfxFlushBuffers();
+                gfxSwapBuffers();
+                gfxWaitForVsync();
+        }
+
 	return 0;
 }
