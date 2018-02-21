@@ -31,6 +31,50 @@ int gamepadGetID(lua_State * L)
 	return 1;
 }
 
+int gamepadGetAxis(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	int axis = luaL_checkinteger(L, 2);
+
+	float value;
+	bool valid = self->GetAxis(value, axis);
+
+	if (valid)
+	{
+		lua_pushnumber(L, value);
+
+		return 1;
+	}
+	else
+		return 0;
+}
+
+int gamepadGetButtonCount(lua_State * L)
+{
+	return 0;
+}
+
+int gamepadGetName(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushstring(L, self->GetName().c_str());
+
+	return 1;
+}
+
+int gamepadIsDown(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	string button = string(luaL_checkstring(L, 2));
+
+	lua_pushboolean(L, self->IsDown(button));
+
+	return 1;
+}
+
 int gamepadGC(lua_State * L)
 {
 	return 0;
@@ -40,9 +84,12 @@ int initGamepadClass(lua_State * L)
 {
 	luaL_Reg reg[] = 
 	{
-		{"new",			gamepadNew	},
-		{"getID",		gamepadGetID},
-		{"__gc",		gamepadGC	},
+		{"new",			gamepadNew		},
+		{"getID",		gamepadGetID	},
+		{"getName",		gamepadGetName	},
+		{"getAxis",		gamepadGetAxis	},
+		{"isDown",		gamepadIsDown	},
+		{"__gc",		gamepadGC		},
 		{ 0, 0 },
 	};
 

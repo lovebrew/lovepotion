@@ -67,33 +67,11 @@ int Love::Scan(lua_State * L)
 
 	for (uint i = 0; i < controllers.size(); i++)
 	{
-		string buttonDown = controllers[i]->ScanButtons(true);
-		string buttonUp = controllers[i]->ScanButtons(false);
+		//BUTTON INPUT
+		Love::GamepadPressed(L, controllers[i]);
 
-		if (buttonDown != "nil")
-		{
-			love_getfield(L, "gamepadpressed");
-
-			if (!lua_isnil(L, -1))
-			{
-				lua_pushuserdata(L, controllers[i], "Gamepad");
-				lua_pushstring(L, buttonDown.c_str());
-				lua_call(L, 2, 0);
-			}
-		}
-		else if (buttonUp != "nil")
-		{
-			love_getfield(L, "gamepadreleased");
-
-			if (!lua_isnil(L, -1))
-			{
-				lua_pushuserdata(L, controllers[i], "Gamepad");
-				lua_pushstring(L, buttonUp.c_str());
-				lua_call(L, 2, 0);
-			}
-		}
-
-
+		Love::GamepadReleased(L, controllers[i]);
+		
 		//LEFT STICK
 		pair<string, float> leftStick = std::make_pair("nil", 0); 
 
@@ -114,6 +92,40 @@ int Love::Scan(lua_State * L)
 	}
 
 	return 0;
+}
+
+void Love::GamepadPressed(lua_State * L, Gamepad * controller)
+{
+	string buttonDown = controllers[i]->ScanButtons(true);
+
+	if (buttonDown != "nil")
+	{
+		love_getfield(L, "gamepadpressed");
+
+		if (!lua_isnil(L, -1))
+		{
+			lua_pushuserdata(L, controllers[i], "Gamepad");
+			lua_pushstring(L, buttonDown.c_str());
+			lua_call(L, 2, 0);
+		}
+	}
+}
+
+void Love::GamepadReleased(lua_State * L, Gamepad * controller)
+{
+	string buttonUp = controllers[i]->ScanButtons(false);
+
+	if (buttonUp != "nil")
+	{
+		love_getfield(L, "gamepadreleased");
+
+		if (!lua_isnil(L, -1))
+		{
+			lua_pushuserdata(L, controllers[i], "Gamepad");
+			lua_pushstring(L, buttonUp.c_str());
+			lua_call(L, 2, 0);
+		}
+	}
 }
 
 void Love::GamepadAxis(lua_State * L, Gamepad * controller, pair<string, float> & data)

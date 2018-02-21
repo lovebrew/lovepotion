@@ -34,6 +34,12 @@ HidControllerID Gamepad::GetInternalID()
 	return (HidControllerID)indentity;
 }
 
+void Gamepad::ClampAxis(float & x)
+{
+	if (abs(x) < 0.01)
+		x = 0;
+}
+
 string Gamepad::ScanButtons(bool isDown)
 {
 	HidControllerID id = this->GetInternalID();
@@ -53,12 +59,6 @@ string Gamepad::ScanButtons(bool isDown)
 	}
 
 	return "nil";
-}
-
-void Gamepad::ClampAxis(float & x)
-{
-	if (abs(x) < 0.01)
-		x = 0;
 }
 
 void Gamepad::ScanAxes(pair<string, float> & data, HidControllerJoystick joystick, int axis)
@@ -97,6 +97,74 @@ void Gamepad::ScanAxes(pair<string, float> & data, HidControllerJoystick joystic
 	}
 
 	this->ClampAxis(data.second);
+}
+
+bool Gamepad::GetAxis(float & value, int axis)
+{
+	bool valid = true;
+
+	switch(axis)
+	{
+		case 1:
+			value = this->ReadAxis(JOYSTICK_LEFT, true);
+			break;
+		case 2:
+			value = this->ReadAxis(JOYSTICK_LEFT, false);
+			break;
+		case 4:
+			value = this->ReadAxis(JOYSTICK_RIGHT, true);
+			break;
+		case 5:
+			value = this->ReadAxis(JOYSTICK_RIGHT, false);
+			break;
+		default:
+			value = 0.0f;
+			valid = false;
+			break;
+	}
+
+	return valid;
+}
+
+int Gamepad::GetButtonCount()
+{
+	return 0;
+}
+
+string Gamepad::GetName()
+{
+	HidControllerID id = this->GetInternalID();
+
+	HidControllerLayoutType type = hidGetControllerLayout(id);
+
+	switch(type)
+	{
+		case LAYOUT_PROCONTROLLER:
+			return "Pro Controller";
+		case LAYOUT_HANDHELD:
+			return "Handheld";
+		case LAYOUT_SINGLE:
+			return "Joycon";
+		case LAYOUT_LEFT:
+			return "Left Joycon";
+		case LAYOUT_RIGHT:
+			return "Right Joycon";
+		default: //this shouldn't happen
+			return "nil";
+	}
+}
+
+float Gamepad::ReadAxis(HidControllerJoystick joystick, bool horizontal)
+{
+	HidControllerID id = this->GetInternalID();
+
+	JoystickPosition position;
+	hidJoystickRead(&position, id, joystick);
+
+	if (!horizontal)
+		return ((float)position.dy / JOYSTICK_MAX);
+
+	return ((float)position.dx / JOYSTICK_MAX);
 }
 
 bool Gamepad::IsDown(const string & button)
