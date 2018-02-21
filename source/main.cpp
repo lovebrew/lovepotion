@@ -14,7 +14,7 @@ extern "C"
 #include "console.h"
 #include "filesystem.h"
 #include "graphics.h"
-#include "love.h"
+
 #include "timer.h"
 
 #include <stdio.h>
@@ -22,9 +22,13 @@ extern "C"
 
 #include <switch.h>
 
+#include <vector>
+#include "gamepad.h"
+#include "wrap_gamepad.h"
+#include "love.h"
+
 #include "boot_lua.h"
 #include "buffer_lua.h"
-#include "wrap_gamepad.h"
 
 #include "util.h"
 

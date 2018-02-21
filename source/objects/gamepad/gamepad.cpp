@@ -61,7 +61,7 @@ void Gamepad::ClampAxis(float & x)
 		x = 0;
 }
 
-void Gamepad::ScanAxes(pair<string, float> & data, HidControllerJoystick joystick)
+void Gamepad::ScanAxes(pair<string, float> & data, HidControllerJoystick joystick, int axis)
 {
 	HidControllerID id = this->GetInternalID();
 	JoystickPosition position = this->sticks[0];
@@ -71,24 +71,29 @@ void Gamepad::ScanAxes(pair<string, float> & data, HidControllerJoystick joystic
 
 	hidJoystickRead(&position, id, joystick);
 
-	if (position.dx != 0)
+	if (axis == 0)
 	{
-		if (joystick != JOYSTICK_RIGHT)
-			data.first = "leftx";
-		else
-			data.first = "rightx";
+		if (position.dx != 0)
+		{
+			if (joystick != JOYSTICK_RIGHT)
+				data.first = "leftx";
+			else
+				data.first = "rightx";
 
-		data.second = ((float)position.dx / JOYSTICK_MAX);
+			data.second = ((float)position.dx / JOYSTICK_MAX);
+		}
 	}
-	
-	if (position.dy != 0)
+	else if (axis == 1)
 	{
-		if (joystick != JOYSTICK_RIGHT)
-			data.first = "lefty";
-		else
-			data.first = "righty";
+		if (position.dy != 0)
+		{
+			if (joystick != JOYSTICK_RIGHT)
+				data.first = "lefty";
+			else
+				data.first = "righty";
 
-		data.second = ((float)position.dy / JOYSTICK_MAX);
+			data.second = ((float)position.dy / JOYSTICK_MAX);
+		}
 	}
 
 	this->ClampAxis(data.second);

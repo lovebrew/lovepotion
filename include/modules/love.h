@@ -18,6 +18,8 @@ namespace Love
 
 	int Scan(lua_State * L);
 
+	void GamepadAxis(lua_State * L, Gamepad * controller, std::pair<std::string, float> & data);
+
 	int NoGame(lua_State * L);
 
 	void Exit(lua_State * L);

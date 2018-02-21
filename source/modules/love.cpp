@@ -1,7 +1,6 @@
 #include "runtime.h"
 #include <unistd.h>
 
-#include "love.h"
 #include "version.h"
 
 #include "audio.h"
@@ -11,10 +10,12 @@
 #include "system.h"
 #include "timer.h"
 
+#include <switch.h>
+
 #include "gamepad.h"
 #include "wrap_gamepad.h"
 
-#include <switch.h>
+#include "love.h"
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
@@ -92,42 +93,43 @@ int Love::Scan(lua_State * L)
 			}
 		}
 
-		pair<string, float> leftStick = std::make_pair("nil", 0); 
-		controllers[i]->ScanAxes(leftStick, JOYSTICK_LEFT);
 
 		//LEFT STICK
-		if (leftStick.second != 0)
-		{
-			love_getfield(L, "gamepadaxis");
+		pair<string, float> leftStick = std::make_pair("nil", 0); 
 
-			if (!lua_isnil(L, -1))
-			{
-				lua_pushuserdata(L, controllers[i], "Gamepad");
-				lua_pushstring(L, leftStick.first.c_str());
-				lua_pushnumber(L, leftStick.second);
-				lua_call(L, 3, 0);
-			}
-		}
+		controllers[i]->ScanAxes(leftStick, JOYSTICK_LEFT, 0);
+		Love::GamepadAxis(L, controllers[i], leftStick);
 
+		controllers[i]->ScanAxes(leftStick, JOYSTICK_LEFT, 1);
+		Love::GamepadAxis(L, controllers[i], leftStick);
+		
 		//RIGHT STICK
 		pair<string, float> rightStick = std::make_pair("nil", 0); 
-		controllers[i]->ScanAxes(rightStick, JOYSTICK_RIGHT);
 
-		if (rightStick.second != 0)
-		{
-			love_getfield(L, "gamepadaxis");
+		controllers[i]->ScanAxes(rightStick, JOYSTICK_RIGHT, 0);
+		Love::GamepadAxis(L, controllers[i], rightStick);
 
-			if (!lua_isnil(L, -1))
-			{
-				lua_pushuserdata(L, controllers[i], "Gamepad");
-				lua_pushstring(L, rightStick.first.c_str());
-				lua_pushnumber(L, rightStick.second);
-				lua_call(L, 3, 0);
-			}
-		}
+		controllers[i]->ScanAxes(rightStick, JOYSTICK_RIGHT, 1);
+		Love::GamepadAxis(L, controllers[i], rightStick);
 	}
 
 	return 0;
+}
+
+void Love::GamepadAxis(lua_State * L, Gamepad * controller, pair<string, float> & data)
+{
+	if (data.second != 0)
+	{
+		love_getfield(L, "gamepadaxis");
+
+		if (!lua_isnil(L, -1))
+		{
+			lua_pushuserdata(L, controller, "Gamepad");
+			lua_pushstring(L, data.first.c_str());
+			lua_pushnumber(L, data.second);
+			lua_call(L, 3, 0);
+		}
+	}
 }
 
 int Love::GetVersion(lua_State * L)

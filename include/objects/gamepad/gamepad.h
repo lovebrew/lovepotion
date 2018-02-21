@@ -5,7 +5,7 @@ class Gamepad
 	public:
 		Gamepad(int id);
 
-		void ScanAxes(std::pair<std::string, float> & data, HidControllerJoystick joystick);
+		void ScanAxes(std::pair<std::string, float> & data, HidControllerJoystick joystick, int axis);
 		std::string ScanButtons(bool down);
 
 		bool IsDown(const std::string & button);
