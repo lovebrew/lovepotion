@@ -13,12 +13,6 @@ vector<string> BUTTONS =
 	"sl", "sr"
 };
 
-vector<HidControllerJoystick> enums =
-{
-	JOYSTICK_LEFT,
-	JOYSTICK_RIGHT
-};
-
 Gamepad::Gamepad(int id)
 {
 	this->id = id;
@@ -61,23 +55,43 @@ string Gamepad::ScanButtons(bool isDown)
 	return "nil";
 }
 
-void Gamepad::ScanAxes(pair<string, float> & data)
+void Gamepad::ClampAxis(float & x)
+{
+	if (abs(x) < 0.01)
+		x = 0;
+}
+
+void Gamepad::ScanAxes(pair<string, float> & data, HidControllerJoystick joystick)
 {
 	HidControllerID id = this->GetInternalID();
+	JoystickPosition position = this->sticks[0];
 
-	for (HidControllerJoystick joystickEnum : enums)
+	if (joystick == JOYSTICK_RIGHT)
+		position = this->sticks[1];
+
+	hidJoystickRead(&position, id, joystick);
+
+	if (position.dx != 0)
 	{
-		for (int i = 16; i < 24; i++)
-		{
-			hidJoystickRead(&this->stick, id, joystickEnum);
+		if (joystick != JOYSTICK_RIGHT)
+			data.first = "leftx";
+		else
+			data.first = "rightx";
 
-			data.first = BUTTONS[i];
-			if (BUTTONS[i].substr(BUTTONS[i].length() - 1) == "x")
-				data.second = ((float)this->stick.dx / JOYSTICK_MAX);
-			else
-				data.second = ((float)this->stick.dy / JOYSTICK_MAX);
-		}
+		data.second = ((float)position.dx / JOYSTICK_MAX);
 	}
+	
+	if (position.dy != 0)
+	{
+		if (joystick != JOYSTICK_RIGHT)
+			data.first = "lefty";
+		else
+			data.first = "righty";
+
+		data.second = ((float)position.dy / JOYSTICK_MAX);
+	}
+
+	this->ClampAxis(data.second);
 }
 
 bool Gamepad::IsDown(const string & button)

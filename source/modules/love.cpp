@@ -92,18 +92,36 @@ int Love::Scan(lua_State * L)
 			}
 		}
 
-		pair<string, float> axisData = std::make_pair("nil", 0); 
-		controllers[i]->ScanAxes(axisData);
+		pair<string, float> leftStick = std::make_pair("nil", 0); 
+		controllers[i]->ScanAxes(leftStick, JOYSTICK_LEFT);
 
-		if (axisData.second != 0)
+		//LEFT STICK
+		if (leftStick.second != 0)
 		{
 			love_getfield(L, "gamepadaxis");
 
 			if (!lua_isnil(L, -1))
 			{
 				lua_pushuserdata(L, controllers[i], "Gamepad");
-				lua_pushstring(L, axisData.first.c_str());
-				lua_pushnumber(L, axisData.second);
+				lua_pushstring(L, leftStick.first.c_str());
+				lua_pushnumber(L, leftStick.second);
+				lua_call(L, 3, 0);
+			}
+		}
+
+		//RIGHT STICK
+		pair<string, float> rightStick = std::make_pair("nil", 0); 
+		controllers[i]->ScanAxes(rightStick, JOYSTICK_RIGHT);
+
+		if (rightStick.second != 0)
+		{
+			love_getfield(L, "gamepadaxis");
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushuserdata(L, controllers[i], "Gamepad");
+				lua_pushstring(L, rightStick.first.c_str());
+				lua_pushnumber(L, rightStick.second);
 				lua_call(L, 3, 0);
 			}
 		}
