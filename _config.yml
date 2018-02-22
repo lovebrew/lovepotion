@@ -1,1 +1,8 @@
 theme: jekyll-theme-slate
+
+show_downloads: false
+title: Löve Potion
+
+github:
+  3ds_url: https://github.com/TurtleP/LovePotion/
+  switch_url: https://turtlep.github.io/LovePotion
