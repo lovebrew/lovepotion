@@ -45,8 +45,8 @@ local config =
 	end
 end]]
 
---love.filesystem.setIdentity(config.identity)
---love.filesystem.createDirectory("") --defaults to save directory, so .. yep
+love.filesystem.setIdentity(config.identity)
+love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
 --[[ local defaultFont = love.graphics.newFont()
 love.graphics.setFont(defaultFont)

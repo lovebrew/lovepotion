@@ -44,7 +44,7 @@ int main()
 
 	//Graphics::Initialize();
 
-	//Filesystem::Initialize();
+	Filesystem::Initialize();
 
 	L = luaL_newstate();
 
@@ -58,14 +58,16 @@ int main()
 	if (luaL_dobuffer(L, (char *)buffer_lua, buffer_lua_size, "buffer"))
 		Console::ThrowError(L);
 
+	luaL_dostring(L, "if love.load then love.load() end");
+
 	gamepadNew(L);
 
 	while(appletMainLoop())
 	{
-		Love::Scan(L);
-
 		if (ERROR || LOVE_QUIT)
 			break;
+
+		Love::Scan(L);
 
 		gfxFlushBuffers();
 		gfxSwapBuffers();
@@ -73,15 +75,6 @@ int main()
 	}
 
 	Love::Exit(L);
-
-	//Crash on exit workaround
-	Console::Initialize();
-	printf("\x1b[40;64HPress the home button to exit");
-	while(true){
-		gfxFlushBuffers();
-		gfxSwapBuffers();
-		gfxWaitForVsync();
-	}
 
 	return 0;
 }

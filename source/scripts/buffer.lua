@@ -1,13 +1,12 @@
-print('OS: ' .. love.system.getOS())
-print('Screen: ' .. love.graphics.getWidth() .. 'x' .. love.graphics.getHeight())
-print('RendererInfo:')
-print(love.graphics.getRendererInfo())
-print("LOVE:")
-print(love.getVersion())
-print('Press + to Quit\n')
-
 function love.load()
+	print('OS: ' .. love.system.getOS())
+	print('Screen: ' .. love.graphics.getWidth() .. 'x' .. love.graphics.getHeight())
+	print('RendererInfo:')
+	print(love.graphics.getRendererInfo())
+	print("LOVE:")
+	print(love.getVersion())
 
+	print("Save Identity: " .. love.filesystem.getIdentity())
 end
 
 function printf(str, ...)
@@ -18,9 +17,6 @@ function love.gamepadpressed(joystick, button)
 	printf("Controller %d: %s was pressed", joystick:getID(), button)
 
 	if button == "plus" then
-		print("\nGoodbye!\n")
-
-		love.timer.sleep(1)
 		love.event.quit()
 	end
 end
