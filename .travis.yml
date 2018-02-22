@@ -1,0 +1,13 @@
+language: cpp
+
+before_install:
+  - export CC=arm-none-eabi-gcc
+  - export CXX=arm-none-eabi-g++
+  - export DEVKITPRO=${HOME}/devkitPro
+  - export DEVKITA64=$DEVKITPRO/devkitA64
+  - export PORTLIBS=${DEVKITPRO}/portlibs/armv6k
+  - sh .travis-deps.sh
+  
+
+script:
+  - make
