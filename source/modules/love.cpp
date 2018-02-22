@@ -96,7 +96,7 @@ int Love::Scan(lua_State * L)
 
 void Love::GamepadPressed(lua_State * L, Gamepad * controller)
 {
-	string buttonDown = controllers[i]->ScanButtons(true);
+	string buttonDown = controller->ScanButtons(true);
 
 	if (buttonDown != "nil")
 	{
@@ -104,7 +104,7 @@ void Love::GamepadPressed(lua_State * L, Gamepad * controller)
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushuserdata(L, controllers[i], "Gamepad");
+			lua_pushuserdata(L, controller, "Gamepad");
 			lua_pushstring(L, buttonDown.c_str());
 			lua_call(L, 2, 0);
 		}
@@ -113,7 +113,7 @@ void Love::GamepadPressed(lua_State * L, Gamepad * controller)
 
 void Love::GamepadReleased(lua_State * L, Gamepad * controller)
 {
-	string buttonUp = controllers[i]->ScanButtons(false);
+	string buttonUp = controller->ScanButtons(false);
 
 	if (buttonUp != "nil")
 	{
@@ -121,7 +121,7 @@ void Love::GamepadReleased(lua_State * L, Gamepad * controller)
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushuserdata(L, controllers[i], "Gamepad");
+			lua_pushuserdata(L, controller, "Gamepad");
 			lua_pushstring(L, buttonUp.c_str());
 			lua_call(L, 2, 0);
 		}
