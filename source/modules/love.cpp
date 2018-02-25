@@ -64,6 +64,7 @@ int Love::Initialize(lua_State * L)
 	return 1;
 }
 
+vector<vector<int>> touches;
 int Love::Scan(lua_State * L)
 {
 	//joycon/controllers
@@ -96,29 +97,34 @@ int Love::Scan(lua_State * L)
 	}
 
 	touchPosition touch;
-	u32 touches = hidTouchCount();
+	u32 touchCount = hidTouchCount();
 	
-	u64 touchDown = hidKeysDown(CONTROLLER_P1_AUTO);
-	u64 touchUp = hidKeysUp(CONTROLLER_P1_AUTO);
+	u64 touchDown = hidKeysDown(CONTROLLER_HANDHELD);
+	u64 touchUp = hidKeysUp(CONTROLLER_HANDHELD);
 
 	if (touchDown & KEY_TOUCH)
 	{
-		for (u32 id = 0; id < touches; id++)
+		for (u32 id = 0; id < touchCount; id++)
 		{
 			hidTouchRead(&touch, id);
 
 			love_getfield(L, "touchpressed");
 
-			if (lua_isnil(L, -1))
+			if (!lua_isnil(L, -1))
 			{
+				int x = touch.px;
+				int y = touch.py;
+	
 				lua_pushlightuserdata(L, &id);
-				lua_pushinteger(L, touch.px);
-				lua_pushinteger(L, touch.py);
+				lua_pushinteger(L, x);
+				lua_pushinteger(L, y);
 				lua_pushinteger(L, 0);
 				lua_pushinteger(L, 0);
 				lua_pushinteger(L, 1);
 
 				lua_call(L, 6, 0);
+
+				touches.push_back({id, x, y});
 			}
 
 		}
@@ -126,24 +132,21 @@ int Love::Scan(lua_State * L)
 
 	if (touchUp & KEY_TOUCH)
 	{
-		for (u32 id = 0; id < touches; id++)
+
+		love_getfield(L, "touchreleased");
+
+		if (!lua_isnil(L, -1))
 		{
-			hidTouchRead(&touch, id);
+			lua_pushlightuserdata(L, &touches.back()[0]);
+			lua_pushinteger(L, touches.back()[1]);
+			lua_pushinteger(L, touches.back()[2]);
+			lua_pushinteger(L, 0);
+			lua_pushinteger(L, 0);
+			lua_pushinteger(L, 1);
 
-			love_getfield(L, "touchreleased");
+			lua_call(L, 6, 0);
 
-			if (lua_isnil(L, -1))
-			{
-				lua_pushlightuserdata(L, &id);
-				lua_pushinteger(L, touch.px);
-				lua_pushinteger(L, touch.py);
-				lua_pushinteger(L, 0);
-				lua_pushinteger(L, 0);
-				lua_pushinteger(L, 1);
-
-				lua_call(L, 6, 0);
-			}
-
+			touches.pop_back();
 		}
 	}
 
