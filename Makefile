@@ -50,7 +50,7 @@ INCLUDES	:=	include \
 
 EXEFS_SRC	:=	game
 
-APP_TITLE	:= LovePotion
+APP_TITLE	:= Löve Potion
 APP_AUTHOR	:= TurtleP
 APP_VERSION	:= 1.0
 APP_TITLEID	:= 1043

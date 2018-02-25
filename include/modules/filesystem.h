@@ -1,5 +1,5 @@
 /*
-** filesystem.h
+** modules/filesystem.h
 ** @brief : Filesystem operations (read/write files)
 */
 
@@ -7,7 +7,7 @@
 
 namespace Filesystem
 {
-	void Initialize();
+	bool Initialize();
 
 	//Löve2D Functions
 

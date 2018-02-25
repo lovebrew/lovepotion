@@ -1,21 +1,23 @@
-#include "runtime.h"
+#include "common/runtime.h"
 #include <unistd.h>
 
-#include "version.h"
+#include "common/version.h"
 
-#include "audio.h"
-#include "event.h"
-#include "filesystem.h"
-#include "graphics.h"
-#include "system.h"
-#include "timer.h"
+#include "modules/audio.h"
+#include "modules/event.h"
+#include "modules/filesystem.h"
+#include "modules/graphics.h"
+#include "modules/mod_math.h"
+#include "modules/system.h"
+#include "modules/timer.h"
+#include "modules/touch.h"
 
 #include <switch.h>
 
 #include "gamepad.h"
 #include "wrap_gamepad.h"
 
-#include "love.h"
+#include "modules/love.h"
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
@@ -23,8 +25,10 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 	{ "event",		Event::Register,		NULL				},
 	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		Graphics::Exit		},
+	{ "math",		Math::Register,			NULL				},
 	{ "system",		System::Register,		NULL				},
 	{ "timer",		Timer::Register,		NULL				},
+	{ "touch",		Touch::Register,		NULL				},
 	{ 0 }
 };
 
@@ -91,6 +95,58 @@ int Love::Scan(lua_State * L)
 		Love::GamepadAxis(L, controllers[i], rightStick);
 	}
 
+	touchPosition touch;
+	u32 touches = hidTouchCount();
+	
+	u64 touchDown = hidKeysDown(CONTROLLER_P1_AUTO);
+	u64 touchUp = hidKeysUp(CONTROLLER_P1_AUTO);
+
+	if (touchDown & KEY_TOUCH)
+	{
+		for (u32 id = 0; id < touches; id++)
+		{
+			hidTouchRead(&touch, id);
+
+			love_getfield(L, "touchpressed");
+
+			if (lua_isnil(L, -1))
+			{
+				lua_pushlightuserdata(L, &id);
+				lua_pushinteger(L, touch.px);
+				lua_pushinteger(L, touch.py);
+				lua_pushinteger(L, 0);
+				lua_pushinteger(L, 0);
+				lua_pushinteger(L, 1);
+
+				lua_call(L, 6, 0);
+			}
+
+		}
+	}
+
+	if (touchUp & KEY_TOUCH)
+	{
+		for (u32 id = 0; id < touches; id++)
+		{
+			hidTouchRead(&touch, id);
+
+			love_getfield(L, "touchreleased");
+
+			if (lua_isnil(L, -1))
+			{
+				lua_pushlightuserdata(L, &id);
+				lua_pushinteger(L, touch.px);
+				lua_pushinteger(L, touch.py);
+				lua_pushinteger(L, 0);
+				lua_pushinteger(L, 0);
+				lua_pushinteger(L, 1);
+
+				lua_call(L, 6, 0);
+			}
+
+		}
+	}
+
 	return 0;
 }
 
@@ -104,7 +160,7 @@ void Love::GamepadPressed(lua_State * L, Gamepad * controller)
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushuserdata(L, controller, "Gamepad");
+			lua_pushinteger(L, controller->GetID());
 			lua_pushstring(L, buttonDown.c_str());
 			lua_call(L, 2, 0);
 		}
@@ -121,7 +177,7 @@ void Love::GamepadReleased(lua_State * L, Gamepad * controller)
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushuserdata(L, controller, "Gamepad");
+			lua_pushinteger(L, controller->GetID());
 			lua_pushstring(L, buttonUp.c_str());
 			lua_call(L, 2, 0);
 		}
@@ -136,7 +192,7 @@ void Love::GamepadAxis(lua_State * L, Gamepad * controller, pair<string, float> 
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushuserdata(L, controller, "Gamepad");
+			lua_pushinteger(L, controller->GetID());
 			lua_pushstring(L, data.first.c_str());
 			lua_pushnumber(L, data.second);
 			lua_call(L, 3, 0);

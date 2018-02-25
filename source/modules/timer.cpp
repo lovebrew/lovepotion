@@ -1,5 +1,5 @@
-#include "runtime.h"
-#include "timer.h"
+#include "common/runtime.h"
+#include "modules/timer.h"
 
 //Deltatime
 int prevTime = 0;

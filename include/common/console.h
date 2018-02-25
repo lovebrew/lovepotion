@@ -11,6 +11,7 @@ namespace Console
 	void Initialize();
 	
 	void ThrowError(const std::string & format, ...);
+	void ThrowError(const std::string & errorMessage);
 	int ThrowError(lua_State * L);
 	
 	const char * GetError();

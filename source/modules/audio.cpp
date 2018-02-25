@@ -1,4 +1,4 @@
-#include "runtime.h"
+#include "common/runtime.h"
 #include "audio.h"
 
 bool AUDIO_ENABLED = false;

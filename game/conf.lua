@@ -1,3 +1,3 @@
 function love.conf(t)
-	t.console = false
+	t.console = true
 end

@@ -1,4 +1,4 @@
-#include "runtime.h"
+#include "common/runtime.h"
 #include <switch.h>
 
 #include "gamepad.h"

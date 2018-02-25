@@ -1,5 +1,5 @@
 /*
-** event.h
+** modules/event.h
 ** @brief	: Handles events.. like quitting.. and other things
 */
 

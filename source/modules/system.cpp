@@ -1,5 +1,5 @@
-#include "runtime.h"
-#include "system.h"
+#include "common/runtime.h"
+#include "modules/system.h"
 
 void System::Initialize()
 {

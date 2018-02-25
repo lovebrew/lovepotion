@@ -1,5 +1,5 @@
 /*
-** love.h
+** modules/love.h
 ** @brief	: Handles all the modules
 */
 
@@ -28,3 +28,6 @@ namespace Love
 
 	void Exit(lua_State * L);
 }
+
+// Forward declare lua_State.
+struct lua_State;

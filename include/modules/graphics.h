@@ -1,5 +1,5 @@
 /*
-** graphics.h
+** modules/graphics.h
 ** @brief : Used for rendering graphics (primitives, images, text)
 */
 

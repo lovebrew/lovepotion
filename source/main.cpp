@@ -10,12 +10,12 @@ extern "C"
 
 #include <string>
 
-#include "audio.h"
-#include "console.h"
-#include "filesystem.h"
-#include "graphics.h"
+#include "modules/audio.h"
+#include "common/console.h"
+#include "modules/filesystem.h"
+#include "modules/graphics.h"
 
-#include "timer.h"
+#include "modules/timer.h"
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -25,28 +25,27 @@ extern "C"
 #include <vector>
 #include "gamepad.h"
 #include "wrap_gamepad.h"
-#include "love.h"
+#include "modules/love.h"
 
 #include "boot_lua.h"
-#include "buffer_lua.h"
 
 #include "util.h"
 
-lua_State * L;
 bool ERROR = false;
 bool LOVE_QUIT = false;
 
 int main()
 {
-	Console::Initialize();
+	//Console::Initialize();
 
 	//Audio::Initialize();
 
 	//Graphics::Initialize();
 
-	Filesystem::Initialize();
+	if (!Filesystem::Initialize())
+		Console::ThrowError("%s", "No Game!\n");
 
-	L = luaL_newstate();
+	lua_State * L = luaL_newstate();
 
 	luaL_openlibs(L);
 
@@ -54,11 +53,6 @@ int main()
 
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
-
-	if (luaL_dobuffer(L, (char *)buffer_lua, buffer_lua_size, "buffer"))
-		Console::ThrowError(L);
-
-	luaL_dostring(L, "if love.load then love.load() end");
 
 	gamepadNew(L);
 
@@ -75,6 +69,15 @@ int main()
 	}
 
 	Love::Exit(L);
+
+	while (ERROR)
+	{
+		hidScanInput();
+		u64 keyDown = hidKeysDown(CONTROLLER_P1_AUTO);
+
+		if (keyDown & KEY_PLUS)
+			break;
+	}
 
 	return 0;
 }

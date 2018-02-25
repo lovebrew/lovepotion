@@ -1,5 +1,5 @@
-#include "runtime.h"
-#include "graphics.h"
+#include "common/runtime.h"
+#include "modules/graphics.h"
 
 bool isInitialized = false;
 

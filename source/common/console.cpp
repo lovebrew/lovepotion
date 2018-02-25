@@ -1,7 +1,7 @@
-#include "runtime.h"
+#include "common/runtime.h"
 
-#include "graphics.h"
-#include "version.h"
+#include "modules/graphics.h"
+#include "common/version.h"
 
 #include <stdarg.h>
 
@@ -23,15 +23,20 @@ void Console::Initialize()
 void Console::ThrowError(const string & format, ...)
 {
 	va_list args;
-	va_list echo;
 
 	va_start(args, format);
-	va_copy(echo, args);
 
-	vsprintf((char *)CONSOLE_ERROR.data(), format.c_str(), echo);
+	vsprintf((char *)CONSOLE_ERROR.data(), format.c_str(), args);
 
 	va_end(args);
 	
+	ERROR = true;
+}
+
+void Console::ThrowError(const string & errorMessage)
+{
+	printf("%s\n", errorMessage);
+
 	ERROR = true;
 }
 

@@ -1,5 +1,5 @@
-#include "runtime.h"
-#include "event.h"
+#include "common/runtime.h"
+#include "modules/event.h"
 
 //Löve2D Functions
 

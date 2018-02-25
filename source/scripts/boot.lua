@@ -33,7 +33,8 @@ local config =
 	identity = "SuperGame"
 }
 
---[[if love.filesystem.isFile("conf.lua") then
+
+if love.filesystem.isFile("conf.lua") then
 	success, err = pcall(require, 'conf')
 
 	if success and love.conf then
@@ -43,7 +44,7 @@ local config =
 			love.enableConsole()
 		end
 	end
-end]]
+end
 
 love.filesystem.setIdentity(config.identity)
 love.filesystem.createDirectory("") --defaults to save directory, so .. yep
@@ -223,7 +224,7 @@ end
 
 love.createhandlers()
 
---[[if love.filesystem.isFile("main.lua") then
+if love.filesystem.isFile("main.lua") then
 	require 'main'
 
 	if love.load then
@@ -231,6 +232,6 @@ love.createhandlers()
 	end
 end
 
-if love.timer then
+--[[if love.timer then
 	love.timer.step()
 end]]

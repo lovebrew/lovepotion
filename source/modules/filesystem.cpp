@@ -1,5 +1,5 @@
-#include "runtime.h"
-#include "filesystem.h"
+#include "common/runtime.h"
+#include "modules/filesystem.h"
 
 #include <unistd.h>
 #include <sys/stat.h>
@@ -9,29 +9,25 @@ bool ROMFS_INIT = true;
 string SAVE_DIR = "sdmc:/switch/LovePotion";
 string IDENTITY = "SuperGame";
 
-void Filesystem::Initialize()
+bool Filesystem::Initialize()
 {
 	//ROMFS_INIT = romfsInit() ? false : true;
 
 	if (!ROMFS_INIT)
-		Console::ThrowError("Failed to mount romfs?!");
+		return false;
 	else
 	{
-		//if (!envIsHomebrew())
-		//chdir("romfs:/");
-		//else
-		//{
-		/*char cwd[256];
+		char cwd[256];
 		
 		getcwd(cwd, 256);
-
 		strcat(cwd, "game/");
 
-		chdir(cwd);*/
-	//	}
+		chdir(cwd);
 	}
 
 	mkdir(SAVE_DIR.c_str(), 0777);
+	
+	return true;
 }
 
 //Löve2D Functions

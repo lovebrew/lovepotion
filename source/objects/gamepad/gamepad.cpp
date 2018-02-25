@@ -1,4 +1,4 @@
-#include "runtime.h"
+#include "common/runtime.h"
 #include "gamepad.h"
 
 vector<string> BUTTONS =
@@ -22,7 +22,7 @@ Gamepad::Gamepad(int id)
 
 int Gamepad::GetID()
 {
-	return this->id;
+	return this->id + 1;
 }
 
 HidControllerID Gamepad::GetInternalID()
