@@ -21,7 +21,8 @@ bool Filesystem::Initialize()
 		
 		getcwd(cwd, 256);
 		strcat(cwd, "game/");
-
+		
+		//chdir("romfs:/");
 		chdir(cwd);
 	}
 

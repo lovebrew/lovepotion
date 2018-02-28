@@ -1,6 +1,25 @@
 #include "common/runtime.h"
 #include "modules/system.h"
 
+std::map<int, string> LANGUAGES =
+{
+	{SetLanguage_JA,	"Japanese"				},
+	{SetLanguage_ENUS,	"American English"		},
+	{SetLanguage_FR,	"French"				},
+	{SetLanguage_DE,	"German"				},
+	{SetLanguage_IT,	"Italian"				},
+	{SetLanguage_ES,	"Spanish"				},
+	{SetLanguage_ZHCN,	"Chinese"				},
+	{SetLanguage_KO,	"Korean"				},
+	{SetLanguage_NL,	"Dutch"					},
+	{SetLanguage_PT,	"Portuguese"			},
+	{SetLanguage_RU,	"Russian"				},
+	{SetLanguage_ZHTW,	"Taiwanese"				},
+	{SetLanguage_ENGB,	"British English"		},
+	{SetLanguage_FRCA,	"Canadian French"		},
+	{SetLanguage_ES419, "Latin American Spanish"}
+};
+
 void System::Initialize()
 {
 	/*
@@ -50,60 +69,13 @@ int System::GetRegion(lua_State * L)
 //love.system.getLanguage
 int System::GetLanguage(lua_State * L)
 {
-	u64 language;
-	setGetSystemLanguage(&language);
+	u64 languageString;
+	s32 languageID;
 
-	string value;
-	switch (language)
-	{
-		case SetLanguage_ENUS:
-			value = "American English";
-			break;
-		case SetLanguage_FR:
-			value = "French";
-			break;
-		case SetLanguage_DE:
-			value = "German";
-			break;
-		case SetLanguage_IT:
-			value = "Italian";
-			break;
-		case SetLanguage_ES:
-			value = "Spanish";
-			break;
-		case SetLanguage_ZHCN:
-			value = "Simplified Chinese";
-			break;
-		case SetLanguage_KO:
-			value = "Korean";
-			break;
-		case SetLanguage_NL:
-			value = "Dutch";
-			break;
-		case SetLanguage_PT:
-			value = "Portuguese";
-			break;
-		case SetLanguage_RU:
-			value = "Russian";
-			break;
-		case SetLanguage_ZHTW:
-			value = "Traditional Chinese";
-			break;
-		case SetLanguage_ENGB:
-			value = "British English";
-			break;
-		case SetLanguage_FRCA:
-			value = "Canadian French";
-			break;
-		case SetLanguage_ES419:
-			value = "Latin American Spanish";
-			break;
-		default:
-			value = "Japanese";
-			break;
-	}
+	setGetSystemLanguage(&languageString);
+	setMakeLanguage(languageString, &languageID);
 
-	lua_pushstring(L, value.c_str());
+	lua_pushstring(L, LANGUAGES[languageID].c_str());
 
 	return 1;
 }

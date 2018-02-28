@@ -24,7 +24,7 @@ class Source
 		void FillBuffer(void * audio);
 
 		const char * path;
-		//AudioOutBuffer buffer[2];
+		AudioOutBuffer buffer[2];
 
 		FILE * fileHandle;
 		//OggVorbis_File vorbisFile;
@@ -42,13 +42,13 @@ class Source
 		bool loop;
 		bool reset;
 
-		int currentSection;
+		//int currentSection;
 
 		///float mix[12];
 		//ndspInterpType interp;
 		
 		bool stream; //if it should stream
-		bool fillBuffer;
+		//bool fillBuffer;
 		bool playing;
 };
 

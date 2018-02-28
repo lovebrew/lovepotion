@@ -12,7 +12,9 @@ extern "C"
 
 #include <string>
 #include <vector>
+#include <map>
 
+#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 

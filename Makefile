@@ -33,11 +33,13 @@ TARGET		:=	$(notdir $(CURDIR))
 BUILD		:=	build
 
 LIBS		:= $(sort $(dir $(wildcard libraries/*/)))
+INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
+SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
 
 SOURCES		:=	source \
 				source/common \
 				source/modules \
-				source/objects/gamepad \
+				$(SRC_OBJS) \
 				$(LIBS)
 
 DATA		:=	source/scripts
@@ -45,10 +47,11 @@ DATA		:=	source/scripts
 INCLUDES	:=	include \
 				include/common \
 				include/modules \
-				include/objects/gamepad \
+				$(INC_OBJS) \
 				$(LIBS)
 
-EXEFS_SRC	:=	game
+EXEFS_SRC	:=	exefs_src
+ROMFS		:=	game
 
 APP_TITLE	:= Löve Potion
 APP_AUTHOR	:= TurtleP
