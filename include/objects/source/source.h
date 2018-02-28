@@ -38,6 +38,7 @@ class Source
 		u32 nsamples;
 		u32 size;
 		u32 bitrate;
+		u32 raw_size;
 
 		bool loop;
 		bool reset;

@@ -38,7 +38,7 @@ int main()
 {
 	//Console::Initialize();
 
-	//Audio::Initialize();
+	Audio::Initialize();
 
 	//Graphics::Initialize();
 

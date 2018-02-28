@@ -178,23 +178,27 @@ void Love::TouchPressed(lua_State * L)
 
 	if (!lua_isnil(L, -1))
 	{
-		u32 id = 0;
-		u32 x = touch.px;
-		u32 y = touch.py;
+		if (!touchDown)
+		{
+			u32 id = 0;
+			u32 x = touch.px;
+			u32 y = touch.py;
 
-		lua_pushlightuserdata(L, &id);
-		lua_pushinteger(L, x);
-		lua_pushinteger(L, y);
-		lua_pushinteger(L, 0);
-		lua_pushinteger(L, 0);
-		lua_pushinteger(L, 1);
+			lua_pushlightuserdata(L, &id);
+			lua_pushinteger(L, x);
+			lua_pushinteger(L, y);
+			lua_pushinteger(L, 0);
+			lua_pushinteger(L, 0);
+			lua_pushinteger(L, 1);
 
-		lua_call(L, 6, 0);
+			lua_call(L, 6, 0);
 
-		touchValue[0] = id;
-		touchValue[1] = x;
-		touchValue[2] = y;
-		touchDown = true;
+			touchValue[0] = id;
+			touchValue[1] = x;
+			touchValue[2] = y;
+
+			touchDown = true;
+		}
 	}
 }
 

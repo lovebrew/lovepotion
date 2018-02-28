@@ -80,11 +80,15 @@ void Source::Decode()
 	if (!valid)
 	{
 		fclose(this->fileHandle);
+		printf("Invalid wave file\n");
 		return;
 	}
 
-	u32 raw_data_size_aligned = (this->size + 0xfff) & ~0xfff;
+	this->raw_size = this->nsamples * byte_per_sample * 2;
+	u32 raw_data_size_aligned = (this->raw_size + 0xfff) & ~0xfff;
 	this->data = (char *)memalign(0x1000, raw_data_size_aligned);
+	memset(this->data, 0, raw_data_size_aligned);
+
 }
 
 void Source::Play()
@@ -92,9 +96,9 @@ void Source::Play()
 	this->buffer[0].next = 0;
 
 	this->buffer[0].buffer = this->data;
-	this->buffer[0].buffer_size = this->size;
-	this->buffer[0].data_size = this->size;
+	this->buffer[0].buffer_size = this->raw_size;
+	this->buffer[0].data_size = this->nsamples * 2;
 	this->buffer[0].data_offset = 0;
 
-	audoutAppendAudioOutBuffer(&this->buffer[0]);
+	audoutPlayBuffer(&this->buffer[0], &this->buffer[1]);
 }

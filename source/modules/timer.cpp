@@ -46,7 +46,7 @@ int Timer::Step(lua_State * L)
 {
 	prevTime = currTime;
 
-	currTime = svcGetSystemTick();
+	currTime = GetOSTime();
 
 	dt = currTime - prevTime;
 
@@ -71,27 +71,19 @@ int Timer::Sleep(lua_State * L)
 
 //End Löve2D Functions
 
-/*
-** Returns time since
-** Jan. 1, 1900 00:00
-** in milliseconds
-** See: ctrulib osGetTime
-** https://goo.gl/k5Gmwn
-*/
 float Timer::GetOSTime()
 {
-	time_t jan_time;
-	jan_time = time(NULL);
-
-	return jan_time * 1000.0f;
+	return svcGetSystemTick() / 19200;
 }
 
 void Timer::Tick()
 {
 	frames++;
 	u64 delta = GetOSTime() - lastCountTime;
-	if (delta >= 1000) {
-		fps = frames/(delta/1000.0f);
+
+	if (delta >= 1000) 
+	{
+		fps = frames;
 		frames = 0;
 		lastCountTime = GetOSTime();
 	}
