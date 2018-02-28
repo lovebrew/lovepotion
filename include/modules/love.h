@@ -24,6 +24,12 @@ namespace Love
 
 	void GamepadReleased(lua_State * L, Gamepad * controller);
 
+	void TouchPressed(lua_State * L);
+
+	void TouchMoved(lua_State * L);
+
+	void TouchReleased(lua_State * L);
+
 	int NoGame(lua_State * L);
 
 	void Exit(lua_State * L);

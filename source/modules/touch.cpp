@@ -27,7 +27,7 @@ int Touch::GetTouches(lua_State * L)
 	for (u32 i = 0; i < hidTouchCount(); i++)
 	{
 		lua_pushnumber(L, i);
-		lua_pushnumber(L, i);
+		lua_pushlightuserdata(L, &i);
 
 		lua_settable(L, -3);
 	}

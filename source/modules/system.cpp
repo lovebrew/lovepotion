@@ -9,6 +9,7 @@ void System::Initialize()
 	** Battery info (power, state)
 	** Region and language
 	*/
+	setInitialize();
 }
 
 //Löve2D Functions
@@ -38,13 +39,73 @@ int System::GetPowerInfo(lua_State * L)
 //love.system.getRegion
 int System::GetRegion(lua_State * L)
 {
+	s32 region;
+	setGetRegionCode(&region);
+
+	string value;
+
 	return 0;
 }
 
 //love.system.getLanguage
 int System::GetLanguage(lua_State * L)
 {
-	return 0;
+	u64 language;
+	setGetSystemLanguage(&language);
+
+	string value;
+	switch (language)
+	{
+		case SetLanguage_ENUS:
+			value = "American English";
+			break;
+		case SetLanguage_FR:
+			value = "French";
+			break;
+		case SetLanguage_DE:
+			value = "German";
+			break;
+		case SetLanguage_IT:
+			value = "Italian";
+			break;
+		case SetLanguage_ES:
+			value = "Spanish";
+			break;
+		case SetLanguage_ZHCN:
+			value = "Simplified Chinese";
+			break;
+		case SetLanguage_KO:
+			value = "Korean";
+			break;
+		case SetLanguage_NL:
+			value = "Dutch";
+			break;
+		case SetLanguage_PT:
+			value = "Portuguese";
+			break;
+		case SetLanguage_RU:
+			value = "Russian";
+			break;
+		case SetLanguage_ZHTW:
+			value = "Traditional Chinese";
+			break;
+		case SetLanguage_ENGB:
+			value = "British English";
+			break;
+		case SetLanguage_FRCA:
+			value = "Canadian French";
+			break;
+		case SetLanguage_ES419:
+			value = "Latin American Spanish";
+			break;
+		default:
+			value = "Japanese";
+			break;
+	}
+
+	lua_pushstring(L, value.c_str());
+
+	return 1;
 }
 
 //love.system.getWifiStrength
@@ -69,7 +130,7 @@ int System::GetUsername(lua_State * L)
 
 void System::Exit()
 {
-
+	setExit();
 }
 
 int System::Register(lua_State * L)

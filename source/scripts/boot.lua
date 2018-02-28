@@ -232,6 +232,6 @@ if love.filesystem.isFile("main.lua") then
 	end
 end
 
---[[if love.timer then
+if love.timer then
 	love.timer.step()
-end]]
+end

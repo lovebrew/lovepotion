@@ -16,7 +16,8 @@ namespace Timer
 	int Step(lua_State * L);
 
 	//End Löve2D Functions
-
+	float GetOSTime();
+	
 	void Tick();
 
 	int Register(lua_State * L);

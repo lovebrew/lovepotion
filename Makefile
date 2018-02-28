@@ -154,16 +154,19 @@ endif
 .PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(BUILD) $(TARGET).zip
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) -s -C $(BUILD) -f $(CURDIR)/Makefile
 
+$(TARGET).zip:
+	@zip -qr $(TARGET).zip $(TARGET).nro game
+
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf $(TARGET).zip
 
 
 #---------------------------------------------------------------------------------

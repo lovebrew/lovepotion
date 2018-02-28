@@ -61,11 +61,19 @@ int main()
 		if (ERROR || LOVE_QUIT)
 			break;
 
+		if (luaL_dostring(L, "if love.timer then love.timer.step() end"))
+			Console::ThrowError(L);
+
+		if (luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
+			Console::ThrowError(L);
+
 		Love::Scan(L);
 
 		gfxFlushBuffers();
 		gfxSwapBuffers();
 		gfxWaitForVsync();
+
+		Timer::Tick();
 	}
 
 	Love::Exit(L);

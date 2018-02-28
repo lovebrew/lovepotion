@@ -35,7 +35,7 @@ void Console::ThrowError(const string & format, ...)
 
 void Console::ThrowError(const string & errorMessage)
 {
-	printf("%s\n", errorMessage);
+	printf("%s\n", errorMessage.c_str());
 
 	ERROR = true;
 }

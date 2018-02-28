@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "modules/timer.h"
 
+#include <time.h>
+
 //Deltatime
 int prevTime = 0;
 int currTime = 0;
@@ -24,7 +26,7 @@ int Timer::GetFPS(lua_State * L)
 //love.timer.getTime
 int Timer::GetTime(lua_State * L)
 {
-	int osTime = svcGetSystemTick();
+	int osTime = GetOSTime();
 
 	lua_pushnumber(L, osTime * 0.001f);
 
@@ -69,14 +71,29 @@ int Timer::Sleep(lua_State * L)
 
 //End Löve2D Functions
 
+/*
+** Returns time since
+** Jan. 1, 1900 00:00
+** in milliseconds
+** See: ctrulib osGetTime
+** https://goo.gl/k5Gmwn
+*/
+float Timer::GetOSTime()
+{
+	time_t jan_time;
+	jan_time = time(NULL);
+
+	return jan_time * 1000.0f;
+}
+
 void Timer::Tick()
 {
 	frames++;
-	u64 delta = svcGetSystemTick() - lastCountTime;
+	u64 delta = GetOSTime() - lastCountTime;
 	if (delta >= 1000) {
 		fps = frames/(delta/1000.0f);
 		frames = 0;
-		lastCountTime = svcGetSystemTick();
+		lastCountTime = GetOSTime();
 	}
 }
 
