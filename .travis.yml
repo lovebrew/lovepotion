@@ -8,9 +8,9 @@ before_install:
   - export DEVKITPRO=${HOME}/devkitPro
   - export DEVKITA64=${DEVKITPRO}/devkitA64
   - mkdir ${DEVKITPRO} && mkdir ${DEVKITA64}
-  - wget https://github.com/devkitPro/buildscripts/releases/download/devkitA64_a7/devkitA64_a7-x86_64-linux.tar.xz
-  - tar xvf ./devkitA64_a7-x86_64-linux.tar.xz -C ${DEVKITA64}
-  - git clone https://github.com/switchbrew/libnx.git && cd libnx && make install && cd -
+  - wget https://raw.githubusercontent.com/devkitPro/installer/master/perl/devkitA64update.pl -O devkitA64update.pl
+  - chmod +x ./devkitA64update.pl
+  - ./devkitA64update.pl
 
 script:
   - make
