@@ -10,16 +10,17 @@ before_install:
   - mkdir ${DEVKITPRO} && mkdir ${DEVKITA64}
   - wget https://github.com/devkitPro/buildscripts/releases/download/devkitA64_a7/devkitA64_a7-x86_64-linux.tar.xz
   - tar xvf ./devkitA64_a7-x86_64-linux.tar.xz -C ${DEVKITA64}
-  - [ -d libnx ] && rm -rf libnx
+  - rm -rf libnx
   - git clone https://github.com/switchbrew/libnx.git && cd libnx && make && make install && cd -
 
 script:
   - make
-  
+
 after_success:
   - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
   - ./send.sh success $WEBHOOK_URL
+
 after_failure:
   - wget https://raw.githubusercontent.com/k3rn31p4nic/travis-ci-discord-webhook/master/send.sh
   - chmod +x send.sh
