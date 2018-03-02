@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 
-#include "source.h"
-#include "wrap_source.h"
+#include "objects/source/source.h"
+#include "objects/source/wrap_source.h"
 
 #define CLASS_TYPE LUAOBJ_TYPE_SOURCE
 #define CLASS_NAME "Source"

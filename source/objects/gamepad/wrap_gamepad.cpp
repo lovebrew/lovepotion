@@ -1,8 +1,8 @@
 #include "common/runtime.h"
 #include <switch.h>
 
-#include "gamepad.h"
-#include "wrap_gamepad.h"
+#include "objects/gamepad/gamepad.h"
+#include "objects/gamepad/wrap_gamepad.h"
 
 #define CLASS_NAME "Gamepad"
 #define CLASS_TYPE LUAOBJ_TYPE_GAMEPAD
@@ -19,7 +19,7 @@ int gamepadNew(lua_State * L)
 
 	controllers.push_back(self);
 
-	return 1;
+	return 0;
 }
 
 int gamepadGetID(lua_State * L)

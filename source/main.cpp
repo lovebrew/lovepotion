@@ -19,12 +19,14 @@ extern "C"
 
 #include <stdio.h>
 #include <stdarg.h>
+#include <map>
+#include <vector>
 
 #include <switch.h>
 
-#include <vector>
-#include "gamepad.h"
-#include "wrap_gamepad.h"
+#include "objects/gamepad/gamepad.h"
+#include "objects/gamepad/wrap_gamepad.h"
+
 #include "modules/love.h"
 
 #include "boot_lua.h"

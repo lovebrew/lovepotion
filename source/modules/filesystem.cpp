@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "modules/filesystem.h"
 
+#include "objects/file/wrap_file.h"
+
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
@@ -229,6 +231,7 @@ int Filesystem::Register(lua_State * L)
 {
 	luaL_Reg reg[] = 
 	{
+		{ "newFile",				fileNew			 },
 		{ "read",					Read			 },
 		{ "write",					Write			 },
 		{ "isFile",					IsFile			 },

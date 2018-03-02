@@ -1,5 +1,5 @@
 #include "common/runtime.h"
-#include "source.h"
+#include "objects/source/source.h"
 
 Source::Source(const char * path, bool stream)
 {
@@ -44,7 +44,7 @@ void Source::Decode()
 
 	fread(&this->rate, 4, 1, this->fileHandle); // nSamplesPerSec
 
-	fseek(this->fileHandle, 4, SEEK_CUR);
+	fseek(this->fileHandle, 4, SEEK_CUR); // skip nAvgBytesPerSec
 
 	u16 byte_per_block; // 1 block = 1*channelCount samples
 	fread(&byte_per_block, 2, 1, this->fileHandle); // nBlockAlign
@@ -57,10 +57,10 @@ void Source::Decode()
 
 	while (strncmp(buff, "data", 4) != 0) 
 	{
-		u32 size;
-		fread(&size, 4, 1, this->fileHandle); // ckSize
+		u32 ckSize;
+		fread(&ckSize, 4, 1, this->fileHandle); // ckSize
 
-		fseek(this->fileHandle, size, SEEK_CUR); // skip chunk
+		fseek(this->fileHandle, ckSize, SEEK_CUR); // skip chunk
 
 		int i = fread(&buff, 4, 1, this->fileHandle); // next chunk ckId
 
@@ -84,21 +84,20 @@ void Source::Decode()
 		return;
 	}
 
-	this->raw_size = this->nsamples * byte_per_sample * 2;
-	u32 raw_data_size_aligned = (this->raw_size + 0xfff) & ~0xfff;
-	this->data = (char *)memalign(0x1000, raw_data_size_aligned);
+	u32 raw_data_size_aligned = (this->size + 0xfff) & ~0xfff;
+	this->data = (u8 *)memalign(0x1000, raw_data_size_aligned);
 	memset(this->data, 0, raw_data_size_aligned);
 
+	fread(this->data, this->size, 1, this->fileHandle);
 }
 
 void Source::Play()
 {
-	this->buffer[0].next = 0;
+	this->buffer.next = 0;
+	this->buffer.buffer = this->data;
+	this->buffer.buffer_size = this->rate;
+	this->buffer.data_size = this->size;
+	this->buffer.data_offset = 0;
 
-	this->buffer[0].buffer = this->data;
-	this->buffer[0].buffer_size = this->raw_size;
-	this->buffer[0].data_size = this->nsamples * 2;
-	this->buffer[0].data_offset = 0;
-
-	audoutPlayBuffer(&this->buffer[0], &this->buffer[1]);
+	audoutAppendAudioOutBuffer(&this->buffer);
 }

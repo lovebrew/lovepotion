@@ -70,7 +70,7 @@ CFLAGS	:=	-g -Wall -O2 -ffast-math -ffunction-sections \
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

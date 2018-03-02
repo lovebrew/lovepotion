@@ -1,8 +1,8 @@
 #include "common/runtime.h"
-#include "audio.h"
+#include "modules/audio.h"
 
-#include "source.h"
-#include "wrap_source.h"
+#include "objects/source/source.h"
+#include "objects/source/wrap_source.h"
 
 bool AUDIO_ENABLED = false;
 

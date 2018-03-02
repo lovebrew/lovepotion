@@ -24,12 +24,12 @@ class Source
 		void FillBuffer(void * audio);
 
 		const char * path;
-		AudioOutBuffer buffer[2];
+		AudioOutBuffer buffer;
 
 		FILE * fileHandle;
 		//OggVorbis_File vorbisFile;
 
-		char * data;
+		u8 * data;
 		int audiochannel;
 
 		u32 rate;

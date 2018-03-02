@@ -9,6 +9,8 @@ int Math::SetRandomSeed(lua_State * L)
 
 	lua_getfield(L, LUA_GLOBALSINDEX, "math");
 	lua_getfield(L, -1, "randomseed");
+	lua_remove(L, -2);
+	
 	lua_pushnumber(L, RANDOM_SEED);
 
 	lua_call(L, 1, 0);
@@ -23,12 +25,14 @@ int Math::Random(lua_State * L)
 
 	lua_getfield(L, LUA_GLOBALSINDEX, "math");
 	lua_getfield(L, -1, "random");
+	lua_remove(L, -2);
+
 	lua_pushnumber(L, lower);
 	lua_pushnumber(L, upper);
 
 	lua_call(L, 2, 1);
 
-	return 0;
+	return 1;
 }
 
 int Math::GetRandomSeed(lua_State * L)

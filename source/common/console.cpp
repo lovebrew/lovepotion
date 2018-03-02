@@ -15,8 +15,6 @@ void Console::Initialize()
 
 	consoleInit(NULL);
 
-	printf("\e[1;36mLOVE\e[0m %s for Switch\n\n", Love::VERSION.c_str());
-
 	CONSOLE_INITIALIZED = true;
 }
 

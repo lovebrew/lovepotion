@@ -16,8 +16,6 @@ vector<string> BUTTONS =
 Gamepad::Gamepad(int id)
 {
 	this->id = id;
-
-	printf("Connected controller %d\n", id + 1);
 }
 
 int Gamepad::GetID()

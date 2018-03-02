@@ -14,9 +14,11 @@
 
 #include <switch.h>
 
-#include "gamepad.h"
-#include "wrap_gamepad.h"
-#include "wrap_source.h"
+#include "objects/gamepad/gamepad.h"
+#include "objects/gamepad/wrap_gamepad.h"
+
+#include "objects/file/wrap_file.h"
+#include "objects/source/wrap_source.h"
 
 #include "modules/love.h"
 
@@ -37,6 +39,7 @@ int Love::Initialize(lua_State * L)
 {
 	int (*classes[])(lua_State *L) = 
 	{
+		initFileClass,
 		initGamepadClass,
 		initSourceClass,
 		NULL
@@ -66,9 +69,8 @@ int Love::Initialize(lua_State * L)
 	return 1;
 }
 
-//vector<vector<u32>> touches;
-//u32 lastTouchCount = 0;
-u32 touchValue[3];
+vector<vector<u32>> touches;
+u32 lastTouchCount = 0;
 bool touchDown = false;
 
 int Love::Scan(lua_State * L)
@@ -105,11 +107,17 @@ int Love::Scan(lua_State * L)
 	
 	u64 touchDown = hidKeysDown(CONTROLLER_HANDHELD);
 	u64 touchUp = hidKeysUp(CONTROLLER_HANDHELD);
+	u64 touchHeld = hidKeysHeld(CONTROLLER_HANDHELD);
 
 	if (touchDown & KEY_TOUCH)
 		Love::TouchPressed(L);
 
-	Love::TouchMoved(L);
+	if (touchHeld & KEY_TOUCH)
+		Love::TouchMoved(L);
+
+	u32 touchCount = hidTouchCount();
+	if (touchCount != lastTouchCount)
+		lastTouchCount = touchCount;
 
 	if (touchUp & KEY_TOUCH)
 		Love::TouchReleased(L);
@@ -171,19 +179,20 @@ void Love::TouchPressed(lua_State * L)
 {
 	touchPosition touch;
 
-	//already a touch down
-	hidTouchRead(&touch, 0);
+	touchDown = false;
+	touches.clear();
 
-	love_getfield(L, "touchpressed");
-
-	if (!lua_isnil(L, -1))
+	for (u32 id = 0; id < hidTouchCount(); id++)
 	{
-		if (!touchDown)
-		{
-			u32 id = 0;
-			u32 x = touch.px;
-			u32 y = touch.py;
+		hidTouchRead(&touch, id);
 
+		u32 x = touch.px;
+		u32 y = touch.py;
+
+		love_getfield(L, "touchpressed");
+
+		if (!lua_isnil(L, -1))
+		{
 			lua_pushlightuserdata(L, &id);
 			lua_pushinteger(L, x);
 			lua_pushinteger(L, y);
@@ -192,67 +201,85 @@ void Love::TouchPressed(lua_State * L)
 			lua_pushinteger(L, 1);
 
 			lua_call(L, 6, 0);
-
-			touchValue[0] = id;
-			touchValue[1] = x;
-			touchValue[2] = y;
-
-			touchDown = true;
 		}
+
+		touches.push_back({id, x, y});
+		touchDown = true;
 	}
 }
 
 void Love::TouchMoved(lua_State * L)
 {
-	love_getfield(L, "touchmoved");
+
+	if (!touchDown)
+		return;
 
 	touchPosition touch;
 
-	if (touchDown)
+	for (u32 i = 0; i < hidTouchCount(); i++)
 	{
-		hidTouchRead(&touch, touchValue[0]);
+		try
+		{
+			hidTouchRead(&touch, touches[i][0]);
 
-		u32 x = touch.px;
-		u32 y = touch.py;
+			u32 x = touch.px;
+			u32 y = touch.py;
+			
+			s32 dx = touches[i][1] - x;
+			s32 dy = touches[i][2] - y;
 
-		lua_pushlightuserdata(L, &touchValue[0]);
-		lua_pushinteger(L, x);
-		lua_pushinteger(L, y);
-		lua_pushinteger(L, touch.dx);
-		lua_pushinteger(L, touch.dy);
-		lua_pushinteger(L, 1);
+			love_getfield(L, "touchmoved");
 
-		lua_call(L, 6, 0);
+			if (!lua_isnil(L, -1))
+			{
+				if (x != touches[i][1] && y != touches[i][2])
+				{
+					lua_pushlightuserdata(L, &touches[i][0]);
+					lua_pushinteger(L, touches[i][1]);
+					lua_pushinteger(L, touches[i][2]);
+					lua_pushinteger(L, dx);
+					lua_pushinteger(L, dy);
+					lua_pushinteger(L, 1);
 
-		touchValue[1] = x;
-		touchValue[2] = y;
+					lua_call(L, 6, 0);
+				}
+
+				touches[i] = {i, x, y};
+			}
+		}
+		catch (std::exception & e)
+		{
+			printf("\n");
+		}
 	}
 }
 
 void Love::TouchReleased(lua_State * L)
 {
-
-	if (touchDown)
+	/*if (touches.size() > 0)
 	{
 		love_getfield(L, "touchreleased");
 
 		if (!lua_isnil(L, -1))
 		{
-			u32 x = touchValue[1];
-			u32 y = touchValue[2];
+			for (u32 id = 0; id < touches.size(); id++)
+			{
+				u32 x = touches[id][1];
+				u32 y = touches[id][2];
 
-			lua_pushlightuserdata(L, &touchValue[0]);
-			lua_pushinteger(L, x);
-			lua_pushinteger(L, y);
-			lua_pushinteger(L, 0);
-			lua_pushinteger(L, 0);
-			lua_pushinteger(L, 1);
+				printf("[RELEASE] Touch %d: %d, %d\n", id, x, y);
 
-			lua_call(L, 6, 0);
+				lua_pushlightuserdata(L, &id);
+				lua_pushinteger(L, x);
+				lua_pushinteger(L, y);
+				lua_pushinteger(L, 0);
+				lua_pushinteger(L, 0);
+				lua_pushinteger(L, 1);
 
-			touchDown = false;
+				lua_call(L, 6, 0);
+			}
 		}
-	}
+	}*/
 }
 
 int Love::GetVersion(lua_State * L)
