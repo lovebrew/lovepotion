@@ -11,7 +11,7 @@ before_install:
   - wget https://github.com/devkitPro/buildscripts/releases/download/devkitA64_a7/devkitA64_a7-x86_64-linux.tar.xz
   - tar xvf ./devkitA64_a7-x86_64-linux.tar.xz -C ${DEVKITA64}
   - rm -rf libnx
-  - git clone https://github.com/switchbrew/libnx.git && cd libnx && make && make install && cd -
+  - git clone https://github.com/switchbrew/libnx.git && cd libnx && make install && cd -
 
 script:
   - make
