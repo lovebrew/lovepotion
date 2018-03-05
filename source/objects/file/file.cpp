@@ -82,3 +82,21 @@ char * File::Read()
 
 	return buffer;
 }
+
+u8 * File::ReadBinary()
+{
+	if (!this->open || (strncmp(this->mode, "rb", 2) != 0))
+		return NULL;
+
+	u8 * buffer;
+
+	long size = this->GetSize();
+
+	buffer = (u8 *)malloc(size * sizeof(u8));
+
+	fread(buffer, 1, size, this->fileHandle);
+
+	buffer[size] = '\0';
+
+	return buffer;
+}

@@ -72,12 +72,8 @@ local function wrapText(text, x, y, len)
 
 	love.graphics.print(ret, x, y)
 end
-
+]]
 function love.errhand(message)
-	love.graphics.set3D(false)
-
-	love.audio.stop()
-
 	message = message:gsub("^(./)", "")
 
 	local err = {}
@@ -94,10 +90,10 @@ function love.errhand(message)
 
 	love.filesystem.write("log.txt", realError)
 
-	love.graphics.setBackgroundColor(89, 157, 220)
-	love.graphics.clear()
+	--love.graphics.setBackgroundColor(89, 157, 220)
+	--love.graphics.clear()
 	
-	local function draw()
+	--[[local function draw()
 		love.graphics.setScreen("top")
 
 		love.graphics.setFont(defaultFont)
@@ -123,8 +119,8 @@ function love.errhand(message)
 		end
 	end
 
-	love.event.quit()
-end ]]
+	love.event.quit()]]
+end 
 
 function love.createhandlers()
 	-- Standard callback handlers.

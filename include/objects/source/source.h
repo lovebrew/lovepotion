@@ -9,6 +9,7 @@ class Source
 
 		void Play();
 		void SetLooping(bool loop);
+		bool IsLooping();
 		bool IsPlaying();
 		void Stop();
 		void Reset();

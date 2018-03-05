@@ -42,7 +42,7 @@ int main()
 
 	Audio::Initialize();
 
-	//Graphics::Initialize();
+	Graphics::Initialize();
 
 	if (!Filesystem::Initialize())
 		Console::ThrowError("%s", "No Game!\n");
@@ -63,10 +63,13 @@ int main()
 		if (ERROR || LOVE_QUIT)
 			break;
 
-		if (luaL_dostring(L, "if love.timer then love.timer.step() end"))
+		if (luaL_dostring(L, LOVE_TIMER_STEP))
 			Console::ThrowError(L);
 
-		if (luaL_dostring(L, "if love.update then love.update(love.timer.getDelta()) end"))
+		if (luaL_dostring(L, LOVE_UPDATE))
+			Console::ThrowError(L);
+
+		if (luaL_dostring(L, LOVE_DRAW))
 			Console::ThrowError(L);
 
 		Love::Scan(L);
@@ -78,16 +81,28 @@ int main()
 		Timer::Tick();
 	}
 
-	Love::Exit(L);
-
-	while (ERROR)
+	if (ERROR)
 	{
-		hidScanInput();
-		u64 keyDown = hidKeysDown(CONTROLLER_P1_AUTO);
+		const char * error = Console::GetError();
 
-		if (keyDown & KEY_PLUS)
-			break;
+		if (error != NULL)
+		{
+			Console::Initialize(true);
+
+			lua_getfield(L, LUA_GLOBALSINDEX, "love");
+			lua_getfield(L, -1, "errhand");
+			lua_remove(L, -2);
+
+			lua_pushstring(L, error);
+			lua_call(L, 1, 0);
+
+			gfxFlushBuffers();
+			gfxSwapBuffers();
+			gfxWaitForVsync();
+		}
 	}
+
+	Love::Exit(L);
 
 	return 0;
 }

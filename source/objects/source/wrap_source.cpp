@@ -34,6 +34,37 @@ int sourcePlay(lua_State * L)
 	return 0;
 }
 
+int sourceSetLooping(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	bool loop = false;
+	if (lua_isboolean(L, 2))
+		loop = lua_toboolean(L, 2);
+
+	self->SetLooping(loop);
+
+	return 0;
+}
+
+int sourceIsPlaying(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushboolean(L, self->IsPlaying());
+
+	return 1;
+}
+
+int sourceIsLooping(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushboolean(L, self->IsLooping());
+
+	return 1;
+}
+
 int sourceGC(lua_State * L)
 {
 	return 0;
@@ -43,9 +74,11 @@ int initSourceClass(lua_State *L)
 {
 	luaL_Reg reg[] = 
 	{
-		{ "new",				sourceNew	},
-		{ "play",				sourcePlay	},
-		{ "__gc",				sourceGC	},
+		{ "new",				sourceNew		},
+		{ "play",				sourcePlay		},
+		{ "isPlaying",			sourceIsPlaying	},
+		{ "isLooping",			sourceIsLooping	},
+		{ "__gc",				sourceGC		},
 		{ 0, 0 },
 	};
 

@@ -8,6 +8,8 @@ int sourceStop(lua_State * L);
 
 int sourceSetLooping(lua_State * L);
 
+int sourceIsLooping(lua_State * L);
+
 int sourceSetVolume(lua_State * L);
 
 int sourceIsPlaying(lua_State * L);

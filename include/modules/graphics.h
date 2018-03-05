@@ -15,6 +15,11 @@ namespace Graphics
 	int GetWidth(lua_State * L);
 	int GetHeight(lua_State * L);
 
+	int Draw(lua_State * L);
+
+	int Clear(lua_State * L);
+	int SetBackgroundColor(lua_State * L);
+
 	int GetRendererInfo(lua_State * L);
 
 	//End Löve2D Functions

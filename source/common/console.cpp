@@ -8,13 +8,16 @@
 bool CONSOLE_INITIALIZED = false;
 string CONSOLE_ERROR = "";
 
-void Console::Initialize()
+void Console::Initialize(bool error)
 {
 	if (!Graphics::IsInitialized())
 		gfxInitDefault();
 
 	consoleInit(NULL);
 
+	if (error)
+		printf(CONSOLE_ESC(1;31m));
+	
 	CONSOLE_INITIALIZED = true;
 }
 

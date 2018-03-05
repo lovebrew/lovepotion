@@ -19,6 +19,7 @@
 
 #include "objects/file/wrap_file.h"
 #include "objects/source/wrap_source.h"
+#include "objects/image/wrap_image.h"
 
 #include "modules/love.h"
 
@@ -42,6 +43,7 @@ int Love::Initialize(lua_State * L)
 		initFileClass,
 		initGamepadClass,
 		initSourceClass,
+		initImageClass,
 		NULL
 	};
 
@@ -256,18 +258,17 @@ void Love::TouchMoved(lua_State * L)
 
 void Love::TouchReleased(lua_State * L)
 {
-	/*if (touches.size() > 0)
+	if (touches.size() > 0)
 	{
 		love_getfield(L, "touchreleased");
 
 		if (!lua_isnil(L, -1))
 		{
-			for (u32 id = 0; id < touches.size(); id++)
+			if (touches.size() == 1)
 			{
+				u32 id = touches[0][0];
 				u32 x = touches[id][1];
 				u32 y = touches[id][2];
-
-				printf("[RELEASE] Touch %d: %d, %d\n", id, x, y);
 
 				lua_pushlightuserdata(L, &id);
 				lua_pushinteger(L, x);
@@ -278,8 +279,35 @@ void Love::TouchReleased(lua_State * L)
 
 				lua_call(L, 6, 0);
 			}
+			else
+			{
+				touchPosition position;
+
+				for (u32 id = 0; id < touches.size(); id++)
+				{
+					for (u32 touch = 0; touch < hidTouchCount(); touch++)
+					{
+						hidTouchRead(&position, touch);
+
+						printf("%d, %d -> %d, %d", touches[id][1], touches[id][2], position.px, position.py);
+					}
+					/*u32 x = touches[id][1];
+					u32 y = touches[id][2];
+
+					printf("[RELEASE] Touch %d: %d, %d\n", id, x, y);
+
+					lua_pushlightuserdata(L, &id);
+					lua_pushinteger(L, x);
+					lua_pushinteger(L, y);
+					lua_pushinteger(L, 0);
+					lua_pushinteger(L, 0);
+					lua_pushinteger(L, 1);
+
+					lua_call(L, 6, 0);*/
+				}
+			}
 		}
-	}*/
+	}
 }
 
 int Love::GetVersion(lua_State * L)
@@ -325,6 +353,8 @@ int Love::NoGame(lua_State * L)
 
 void Love::Exit(lua_State * L)
 {
+	controllers.clear();
+
 	for (int i = 0; modules[i].close; i++)
 		modules[i].close();
 

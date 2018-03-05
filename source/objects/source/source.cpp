@@ -91,6 +91,24 @@ void Source::Decode()
 	fread(this->data, this->size, 1, this->fileHandle);
 }
 
+bool Source::IsPlaying()
+{
+	//AudioOutState state;
+	//audoutGetAudioOutState(&state);]]
+
+	return false;
+}
+
+bool Source::IsLooping()
+{
+	return this->loop;
+}
+
+void Source::SetLooping(bool loop)
+{
+	this->loop = loop;
+}
+
 void Source::Play()
 {
 	this->buffer.next = 0;
