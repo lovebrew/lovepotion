@@ -59,6 +59,12 @@ int Graphics::SetBackgroundColor(lua_State * L)
 int Graphics::Clear(lua_State * L)
 {
 	gfxFlushBuffers();
+
+	return 0;
+}
+
+int Graphics::Present(lua_State * L)
+{
 	gfxSwapBuffers();
 	gfxWaitForVsync();
 
@@ -117,6 +123,8 @@ int Graphics::Register(lua_State * L)
 	{
 		{ "newImage",			imageNew			},
 		{ "draw",				Draw				},
+		{ "clear",				Clear				},
+		{ "present",			Present				},
 		{ "setBackgroundColor",	SetBackgroundColor	},
 		{ "getWidth",			GetWidth			},
 		{ "getHeight",			GetHeight			},

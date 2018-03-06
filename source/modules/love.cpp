@@ -55,6 +55,7 @@ int Love::Initialize(lua_State * L)
 
 	luaL_Reg reg[] =
 	{
+		{ "scan",			Scan			},
 		{ "getVersion",		GetVersion		},
 		{ "enableConsole",	EnableConsole	},
 		{ 0, 0 }
@@ -336,7 +337,7 @@ int Love::EnableConsole(lua_State * L)
 	}
 
 	if (canEnable)
-		Console::Initialize();
+		Console::Initialize(false);
 
 	return 0;
 }

@@ -99,6 +99,8 @@ int main()
 			gfxFlushBuffers();
 			gfxSwapBuffers();
 			gfxWaitForVsync();
+
+			//return luaL_error(L, "%s", error);
 		}
 	}
 

@@ -19,7 +19,7 @@ int gamepadNew(lua_State * L)
 
 	controllers.push_back(self);
 
-	return 0;
+	return 1;
 }
 
 int gamepadGetID(lua_State * L)

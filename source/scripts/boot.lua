@@ -73,54 +73,6 @@ local function wrapText(text, x, y, len)
 	love.graphics.print(ret, x, y)
 end
 ]]
-function love.errhand(message)
-	message = message:gsub("^(./)", "")
-
-	local err = {}
-
-	table.insert(err, "Error\n")
-
-	table.insert(err, message)
-
-	table.insert(err, "\nPress 'Start' to quit")
-
-	local realError = table.concat(err, "\n")
-
-	print(realError)
-
-	love.filesystem.write("log.txt", realError)
-
-	--love.graphics.setBackgroundColor(89, 157, 220)
-	--love.graphics.clear()
-	
-	--[[local function draw()
-		love.graphics.setScreen("top")
-
-		love.graphics.setFont(defaultFont)
-		love.graphics.setColor(255, 255, 255, 255)
-
-		love.graphics.print("Error:", 16, 30)
-		wrapText(message, 16, 58, 325)
-
-		love.graphics.print("Press Start to quit", 16, love.graphics.getHeight() - 30)
-
-		love.graphics.present()
-	end
-
-	draw()
-
-	while true do
-		love.keyboard.scan()
-
-		love.timer.sleep(0.001)
-
-		if love.keyboard.isDown("start") then
-			break
-		end
-	end
-
-	love.event.quit()]]
-end 
 
 function love.createhandlers()
 	-- Standard callback handlers.
@@ -219,6 +171,54 @@ function love.createhandlers()
 end
 
 love.createhandlers()
+
+function love.errhand(message)
+	message = message:gsub("^(./)", "")
+
+	local err = {}
+
+	table.insert(err, "Error\n")
+
+	table.insert(err, message)
+
+	table.insert(err, "\nPress 'Start' to quit")
+
+	local realError = table.concat(err, "\n")
+
+	--print(realError)
+
+	love.filesystem.write("log.txt", realError)
+
+	love.graphics.setBackgroundColor(89, 157, 220)
+
+	local function draw()
+		love.graphics.clear()
+		
+		--love.graphics.setFont(defaultFont)
+		--love.graphics.setColor(255, 255, 255, 255)
+
+		--love.graphics.print("Error:", 16, 30)
+		--wrapText(message, 16, 58, 325)
+
+		--love.graphics.print("Press Start to quit", 16, love.graphics.getHeight() - 30)
+
+		love.graphics.present()
+	end
+
+	draw()
+
+	--[[while true do
+		love.scan()
+
+		love.timer.sleep(0.001)
+		
+		if QUIT then
+			break
+		end
+	end
+
+	love.event.quit()]]
+end 
 
 if love.filesystem.isFile("main.lua") then
 	require 'main'

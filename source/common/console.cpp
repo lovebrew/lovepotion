@@ -13,11 +13,11 @@ void Console::Initialize(bool error)
 	if (!Graphics::IsInitialized())
 		gfxInitDefault();
 
-	consoleInit(NULL);
+	if (!error)
+		consoleInit(NULL);
+	else
+		printf(CONSOLE_ESC(H) CONSOLE_ESC(2J));
 
-	if (error)
-		printf(CONSOLE_ESC(1;31m));
-	
 	CONSOLE_INITIALIZED = true;
 }
 

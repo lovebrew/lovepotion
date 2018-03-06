@@ -18,6 +18,7 @@ namespace Graphics
 	int Draw(lua_State * L);
 
 	int Clear(lua_State * L);
+	int Present(lua_State * L);
 	int SetBackgroundColor(lua_State * L);
 
 	int GetRendererInfo(lua_State * L);

@@ -8,7 +8,7 @@
 
 namespace Console
 {
-	void Initialize(bool error = false);
+	void Initialize(bool error);
 	
 	void ThrowError(const std::string & format, ...);
 	void ThrowError(const std::string & errorMessage);
