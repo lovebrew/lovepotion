@@ -5,42 +5,37 @@
 
 Image::Image(const char * path)
 {
-	string realPath = path;
+	File exists(path);
 
-	size_t found = realPath.find(".png");
-
-	if (found != -1)
-		realPath = realPath.replace(found, 4, ".bin");
-
-	File binary(realPath.c_str());
-	binary.Open("rb");
-
-	if (!binary.IsOpen())
+	exists.Open("rb");
+	if (!exists.IsOpen())
 		Console::ThrowError("File does not exit: %s", path);
+	exists.Close();
 
-	this->sheet = binary.ReadBinary();
-	binary.Close();
+	unsigned width, height;
+	u16 error = lodepng::decode(sheet, width, height, path);
 
-	this->width = 1280;
-	this->height = 720;
+	if (error)
+		Console::ThrowError("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), path);
+
+	this->width = width;
+	this->height = height;
+
 }
 
-int Image::GetWidth()
+u16 Image::GetWidth()
 {
 	return this->width;
 }
 
-int Image::GetHeight()
+u16 Image::GetHeight()
 {
 	return this->height;
 }
 
-u8 * Image::GetImage()
+vector<u8> Image::GetImage()
 {
 	return this->sheet;
 }
 
-Image::~Image()
-{
-	free((char *)this->sheet);
-}
+Image::~Image() {}

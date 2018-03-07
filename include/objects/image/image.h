@@ -7,14 +7,14 @@ class Image
 		Image(const char * path);
 		~Image();
 
-		int GetWidth();
-		int GetHeight();
+		u16 GetWidth();
+		u16 GetHeight();
 
-		u8 * GetImage();
+		vector<u8> GetImage();
 
 	private:
-		int width;
-		int height;
+		u32 width;
+		u32 height;
 
-		u8 * sheet;
+		vector<u8> sheet;
 };

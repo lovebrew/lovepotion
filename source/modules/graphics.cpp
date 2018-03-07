@@ -31,7 +31,7 @@ int Graphics::GetWidth(lua_State * L)
 int Graphics::GetHeight(lua_State * L)
 {
 	lua_pushnumber(L, 720);
-	
+
 	return 1;
 }
 
@@ -71,27 +71,74 @@ int Graphics::Present(lua_State * L)
 	return 0;
 }
 
+void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
+{ // for adding alpha values and such
+	u32 currentColor = target[pos];
+	double curR = (double)(currentColor & 0x000000FF);
+	double curG = (double)(currentColor & 0x0000FF00 >> 8);
+	double curB = (double)(currentColor & 0x00FF0000 >> 16);
+	double curA = (double)(currentColor & 0xFF000000 >> 24)/255.0;
+
+	double newR = (double)r;
+	double newG = (double)g;
+	double newB = (double)b;
+	double newA = (double)(a/255.0);
+
+	double mixA = (1.0 - (1.0 - newA) * (1.0 - curA));
+
+	u8 outR, outG, outB;
+
+	if ((u8)(mixA*255) > 0) // cant divide by 0!
+	{
+		outR = (u8)( curR*curA*(1.0-newA)/mixA + newR*newA/mixA );
+		outG = (u8)( curG*curA*(1.0-newA)/mixA + newG*newA/mixA );
+		outB = (u8)( curB*curA*(1.0-newA)/mixA + newB*newA/mixA );
+	}
+	else
+	{
+		outR = (u8)newR;
+		outG = (u8)newG;
+		outB = (u8)newB;
+	}
+
+	target[pos] = RGBA8(outR, outG, outB, (u8)(mixA*255));
+}
+
 int Graphics::Draw(lua_State * L)
 {
-	u32 width, height;
-	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&width, (u32*)&height);
+	u32 screenwidth, screenheight;
+	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
 
 	Image * graphic = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
 
-	u8 * data = graphic->GetImage();
+	vector<u8> data = graphic->GetImage();
+	u16 width = graphic->GetWidth();
+	u16 height = graphic->GetHeight();
 
-	for (u32 fy = y; fy < height; fy++) //Access the buffer linearly.
+	if (x > screenwidth && y > screenwidth) // image outside the screen
+		return 0;
+
+	u32 pos, color;
+	for (u16 fy = 0; fy < height; fy++) //Access the buffer linearly.
 	{
-		for (u32 fx = x; fx < width; fx++)
+		for (u16 fx = 0; fx < width; fx++)
 		{
-			u32 pos = fy * width + fx;
-			FRAMEBUFFER[pos] = RGBA8_MAXALPHA(data[pos * 3 + 0], data[pos * 3 + 1], data[pos * 3 + 2]);
+			if (fy+y > screenheight || fx+x > screenwidth) // outside the screen
+				continue;
+
+			pos = (fy+y) * screenwidth + fx+x;
+
+			if (pos > screenwidth*screenheight)
+				break;
+
+			color = (fy*width+fx)*4;
+			renderto(FRAMEBUFFER, pos, data[color + 0], data[color + 1], data[color + 2], data[color + 3]);
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -101,7 +148,7 @@ int Graphics::GetRendererInfo(lua_State * L)
 	lua_pushstring(L, "4.5");
 	lua_pushstring(L, "NVIDIA");
 	lua_pushstring(L, "TEGRA X1");
- 
+
 	return 4;
 }
 
@@ -119,7 +166,7 @@ void Graphics::Exit()
 
 int Graphics::Register(lua_State * L)
 {
-	luaL_Reg reg[] = 
+	luaL_Reg reg[] =
 	{
 		{ "newImage",			imageNew			},
 		{ "draw",				Draw				},
