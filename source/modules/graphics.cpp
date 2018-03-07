@@ -121,21 +121,22 @@ int Graphics::Draw(lua_State * L)
 	u16 width = graphic->GetWidth();
 	u16 height = graphic->GetHeight();
 
-	if (x > screenwidth && y > screenwidth) // image outside the screen
-		return 0;
-
 	u32 pos, color;
 	for (u16 fy = 0; fy < height; fy++) //Access the buffer linearly.
 	{
+		if ((fy+y) < 0.0) // above screen, skip draw until on screen
+			continue;
+		if ((fy+y) >= screenheight) // below screen, end draw
+			break;
+
 		for (u16 fx = 0; fx < width; fx++)
 		{
-			if (fy+y > screenheight || fx+x > screenwidth) // outside the screen
+			if ((fx+x) < 0.0) // outside the screen on the left
 				continue;
+			if ((fx+x) >= screenwidth) // outside the screen on the right
+				break;
 
 			pos = (fy+y) * screenwidth + fx+x;
-
-			if (pos > screenwidth*screenheight)
-				break;
 
 			color = (fy*width+fx)*4;
 			renderto(FRAMEBUFFER, pos, data[color + 0], data[color + 1], data[color + 2], data[color + 3]);
