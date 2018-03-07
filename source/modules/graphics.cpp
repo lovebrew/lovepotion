@@ -84,24 +84,27 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	double newB = (double)b;
 	double newA = (double)(a/255.0);
 
-	double mixA = (1.0 - (1.0 - newA) * (1.0 - curA));
+	u8 outR, outG, outB, outA;
 
-	u8 outR, outG, outB;
-
-	if ((u8)(mixA*255) > 0) // cant divide by 0!
+	if ((u8)(curA*255) > 0 && (u8)(newA*255) > 0) // check if both alpha channels exist
 	{
+		double mixA = (1.0 - (1.0 - newA) * (1.0 - curA));
 		outR = (u8)( curR*curA*(1.0-newA)/mixA + newR*newA/mixA );
 		outG = (u8)( curG*curA*(1.0-newA)/mixA + newG*newA/mixA );
 		outB = (u8)( curB*curA*(1.0-newA)/mixA + newB*newA/mixA );
+		outA = (u8)(mixA*255);
 	}
-	else
+	else if ((u8)(newA*255) > 0) // if no color exists, add some
 	{
 		outR = (u8)newR;
 		outG = (u8)newG;
 		outB = (u8)newB;
+		outA = (u8)newA;
 	}
+	else // if theres no color (alpha==0) to add, keep the color there
+		return;
 
-	target[pos] = RGBA8(outR, outG, outB, (u8)(mixA*255));
+	target[pos] = RGBA8(outR, outG, outB, outA);
 }
 
 int Graphics::Draw(lua_State * L)
