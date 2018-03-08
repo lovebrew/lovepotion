@@ -4,6 +4,9 @@
 #include "objects/image/image.h"
 #include "objects/image/wrap_image.h"
 
+#include "objects/quad/quad.h"
+#include "objects/quad/wrap_quad.h"
+
 bool isInitialized = false;
 u32 * FRAMEBUFFER;
 
@@ -77,27 +80,27 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	double curR = (double)(currentColor & 0x000000FF);
 	double curG = (double)(currentColor & 0x0000FF00 >> 8);
 	double curB = (double)(currentColor & 0x00FF0000 >> 16);
-	double curA = (double)(currentColor & 0xFF000000 >> 24)/255.0;
+	double curA = (double)(currentColor & 0xFF000000 >> 24) / 255.0;
 
 	double newR = (double)r;
 	double newG = (double)g;
 	double newB = (double)b;
-	double newA = (double)a/255.0;
+	double newA = (double)a / 255.0;
 
 	u8 outR, outG, outB, outA;
 
-	if ((curA*255) > 0 && (newA*255) > 0) // check if both alpha channels exist
+	if ((curA * 255) > 0 && (newA * 255) > 0) // check if both alpha channels exist
 	{
 		double invA = (1.0 - newA);
 		double mixA = (1.0 - invA * (1.0 - curA));
-		invA = curA*invA/mixA;
-		newA = newA/mixA;
-		outR = curR*invA + newR*newA;
-		outG = curG*invA + newG*newA;
-		outB = curB*invA + newB*newA;
-		outA = mixA*255;
+		invA = curA * invA / mixA;
+		newA = newA / mixA;
+		outR = curR * invA + newR * newA;
+		outG = curG * invA + newG * newA;
+		outB = curB * invA + newB * newA;
+		outA = mixA * 255;
 	}
-	else if ((newA*255) > 0) // if no color exists, add some
+	else if ((newA * 255) > 0) // if no color exists, add some
 	{
 		outR = newR;
 		outG = newG;
@@ -116,9 +119,17 @@ int Graphics::Draw(lua_State * L)
 	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
 
 	Image * graphic = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	Quad * quad = nullptr;
 
-	float x = luaL_optnumber(L, 2, 0);
-	float y = luaL_optnumber(L, 3, 0);
+	int start = 2;
+	if (!lua_isnoneornil(L, 2) && !lua_isnumber(L, 2))
+	{
+		quad = (Quad *)luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
+		start = 3;
+	}
+
+	float x = luaL_optnumber(L, start + 0, 0);
+	float y = luaL_optnumber(L, start + 1, 0);
 
 	vector<u8> data = graphic->GetImage();
 	u16 width = graphic->GetWidth();
@@ -127,21 +138,21 @@ int Graphics::Draw(lua_State * L)
 	u32 pos, color;
 	for (u16 fy = 0; fy < height; fy++) //Access the buffer linearly.
 	{
-		if ((fy+y) < 0.0) // above screen, skip draw until on screen
+		if ((fy + y) < 0.0) // above screen, skip draw until on screen
 			continue;
-		if ((fy+y) >= screenheight) // below screen, end draw
+		if ((fy + y) >= screenheight) // below screen, end draw
 			break;
 
 		for (u16 fx = 0; fx < width; fx++)
 		{
-			if ((fx+x) < 0.0) // outside the screen on the left
+			if ((fx + x) < 0.0) // outside the screen on the left
 				continue;
-			if ((fx+x) >= screenwidth) // outside the screen on the right
+			if ((fx + x) >= screenwidth) // outside the screen on the right
 				break;
 
-			pos = (fy+y) * screenwidth + fx+x;
+			pos = (fy + y) * screenwidth + fx + x;
 
-			color = (fy*width+fx)*4;
+			color = (fy * width + fx) * 4;
 			renderto(FRAMEBUFFER, pos, data[color + 0], data[color + 1], data[color + 2], data[color + 3]);
 		}
 	}
@@ -176,6 +187,7 @@ int Graphics::Register(lua_State * L)
 	luaL_Reg reg[] =
 	{
 		{ "newImage",			imageNew			},
+		{ "newQuad",			quadNew				},
 		{ "draw",				Draw				},
 		{ "clear",				Clear				},
 		{ "present",			Present				},

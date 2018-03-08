@@ -20,6 +20,7 @@
 #include "objects/file/wrap_file.h"
 #include "objects/source/wrap_source.h"
 #include "objects/image/wrap_image.h"
+#include "objects/quad/wrap_quad.h"
 
 #include "modules/love.h"
 
@@ -44,6 +45,7 @@ int Love::Initialize(lua_State * L)
 		initGamepadClass,
 		initSourceClass,
 		initImageClass,
+		initQuadClass,
 		NULL
 	};
 
