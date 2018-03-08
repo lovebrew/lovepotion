@@ -1,6 +1,6 @@
 #pragma once
 
-extern "C" 
+extern "C"
 {
 	#include <lua.h>
 	#include <lualib.h>
@@ -22,6 +22,8 @@ extern "C"
 #include "common/console.h"
 
 #include <switch.h>
+
+#include <lodepng.h>
 
 using std::string;
 using std::vector;

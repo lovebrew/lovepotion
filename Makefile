@@ -37,6 +37,7 @@ INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
 
 SOURCES		:=	source \
+				source/scripts \
 				source/common \
 				source/modules \
 				$(SRC_OBJS) \
