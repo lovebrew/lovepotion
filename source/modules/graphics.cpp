@@ -82,24 +82,27 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	double newR = (double)r;
 	double newG = (double)g;
 	double newB = (double)b;
-	double newA = (double)(a/255.0);
+	double newA = (double)a/255.0;
 
 	u8 outR, outG, outB, outA;
 
-	if ((u8)(curA*255) > 0 && (u8)(newA*255) > 0) // check if both alpha channels exist
+	if ((curA*255) > 0 && (newA*255) > 0) // check if both alpha channels exist
 	{
-		double mixA = (1.0 - (1.0 - newA) * (1.0 - curA));
-		outR = (u8)( curR*curA*(1.0-newA)/mixA + newR*newA/mixA );
-		outG = (u8)( curG*curA*(1.0-newA)/mixA + newG*newA/mixA );
-		outB = (u8)( curB*curA*(1.0-newA)/mixA + newB*newA/mixA );
-		outA = (u8)(mixA*255);
+		double invA = (1.0 - newA);
+		double mixA = (1.0 - invA * (1.0 - curA));
+		invA = curA*invA/mixA;
+		newA = newA/mixA;
+		outR = curR*invA + newR*newA;
+		outG = curG*invA + newG*newA;
+		outB = curB*invA + newB*newA;
+		outA = mixA*255;
 	}
-	else if ((u8)(newA*255) > 0) // if no color exists, add some
+	else if ((newA*255) > 0) // if no color exists, add some
 	{
-		outR = (u8)newR;
-		outG = (u8)newG;
-		outB = (u8)newB;
-		outA = (u8)newA;
+		outR = newR;
+		outG = newG;
+		outB = newB;
+		outA = newA;
 	}
 	else // if theres no color (alpha==0) to add, keep the color there
 		return;
