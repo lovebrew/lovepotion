@@ -9,8 +9,9 @@
 
 bool isInitialized = false;
 u32 * FRAMEBUFFER;
+u32 backgroundColor = 0xFF000000;
 
-#define RGB(r, g, b) r | (g << (u32)8) | (b << (u32)16)
+#define RGBA(r, g, b, a) r | (g >> (u32)8) | (b >> (u32)16) | (a >> (u32)24)
 
 void Graphics::Initialize()
 {
@@ -18,60 +19,6 @@ void Graphics::Initialize()
 		gfxInitDefault();
 
 	isInitialized = true;
-}
-
-//Löve2D Functions
-
-//love.graphics.getWidth
-int Graphics::GetWidth(lua_State * L)
-{
-	lua_pushnumber(L, 1280);
-
-	return 1;
-}
-
-//love.graphics.getHeight
-int Graphics::GetHeight(lua_State * L)
-{
-	lua_pushnumber(L, 720);
-
-	return 1;
-}
-
-int Graphics::SetBackgroundColor(lua_State * L)
-{
-	u32 width, height;
-	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&width, (u32*)&height);
-
-	int r = luaL_optnumber(L, 1, 255);
-	int g = luaL_optnumber(L, 2, 255);
-	int b = luaL_optnumber(L, 3, 255);
-
-	for (u32 y = 0; y < height; y++)
-	{
-		for (u32 x = 0; x < width; x++)
-		{
-			u32 pos = y * width + x;
-			FRAMEBUFFER[pos] = RGBA8_MAXALPHA(r, g, b);
-		}
-	}
-
-	return 0;
-}
-
-int Graphics::Clear(lua_State * L)
-{
-	gfxFlushBuffers();
-
-	return 0;
-}
-
-int Graphics::Present(lua_State * L)
-{
-	gfxSwapBuffers();
-	gfxWaitForVsync();
-
-	return 0;
 }
 
 void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
@@ -113,10 +60,85 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	target[pos] = RGBA8(outR, outG, outB, outA);
 }
 
+//Löve2D Functions
+
+//love.graphics.getWidth
+int Graphics::GetWidth(lua_State * L)
+{
+	lua_pushnumber(L, 1280);
+
+	return 1;
+}
+
+//love.graphics.getHeight
+int Graphics::GetHeight(lua_State * L)
+{
+	lua_pushnumber(L, 720);
+
+	return 1;
+}
+
+int Graphics::SetBackgroundColor(lua_State * L)
+{
+	double r = luaL_optnumber(L, 1, 0);
+	double g = luaL_optnumber(L, 2, 0);
+	double b = luaL_optnumber(L, 3, 0);
+
+	u8 outR, outG, outB;
+
+	outR = r * 255;
+	outG = g * 255;
+	outB = b * 255;
+
+	backgroundColor = RGBA8(outR, outG, outB, 255);
+
+	return 0;
+}
+
+int Graphics::GetBackgroundColor(lua_State * L)
+{
+	u8 r = (backgroundColor & 0x000000FF);
+	u8 g = (backgroundColor & 0x0000FF00 >> 8);
+	u8 b = (backgroundColor & 0x00FF0000 >> 16);
+
+	lua_pushnumber(L, r);
+	lua_pushnumber(L, g);
+	lua_pushnumber(L, b);
+
+	return 3;
+}
+
+int Graphics::Clear(lua_State * L)
+{
+	u32 width, height;
+	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&width, (u32*)&height);
+
+	for (u32 y = 0; y < height; y++)
+	{
+		for (u32 x = 0; x < width; x++)
+		{
+			u32 pos = y * width + x;
+
+			FRAMEBUFFER[pos] = backgroundColor;
+		}
+	}
+
+	return 0;
+}
+
+int Graphics::Present(lua_State * L)
+{
+	gfxSwapBuffers();
+	gfxWaitForVsync();
+	gfxFlushBuffers();
+	
+	return 0;
+}
+
 int Graphics::Draw(lua_State * L)
 {
 	u32 screenwidth, screenheight;
-	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
+	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
 
 	Image * graphic = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 	Quad * quad = nullptr;
@@ -192,6 +214,7 @@ int Graphics::Register(lua_State * L)
 		{ "clear",				Clear				},
 		{ "present",			Present				},
 		{ "setBackgroundColor",	SetBackgroundColor	},
+		{ "getBackgroundColor",	GetBackgroundColor	},
 		{ "getWidth",			GetWidth			},
 		{ "getHeight",			GetHeight			},
 		{ "getRendererInfo",	GetRendererInfo		},

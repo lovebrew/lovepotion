@@ -69,14 +69,14 @@ int main()
 		if (luaL_dostring(L, LOVE_UPDATE))
 			Console::ThrowError(L);
 
+		luaL_dostring(L, "love.graphics.clear()");
+
 		if (luaL_dostring(L, LOVE_DRAW))
 			Console::ThrowError(L);
 
 		Love::Scan(L);
 
-		gfxFlushBuffers();
-		gfxSwapBuffers();
-		gfxWaitForVsync();
+		luaL_dostring(L, "love.graphics.present()");
 
 		Timer::Tick();
 	}
