@@ -1,5 +1,5 @@
-# Love Potion
-Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo 3DS.
+# Love Potion ![TravisCI build status](https://travis-ci.org/TurtleP/LovePotion.svg?branch=switch)
+Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo Switch.
 
 Please view the [wiki](https://github.com/TurtleP/LovePotion/wiki) to get started!
 
