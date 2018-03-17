@@ -7,7 +7,6 @@ matrix:
       sudo: required
 
 before_install:
-  - sudo apt update && sudo apt install liblz4-dev
   - export CC=aarch64-none-elf-gcc CXX=aarch64-none-elf-g++
   - export DEVKITPRO=${HOME}/devkitPro
   - export DEVKITA64=${DEVKITPRO}/devkitA64
