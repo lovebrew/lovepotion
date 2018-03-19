@@ -1,4 +1,5 @@
-# Love Potion ![TravisCI build status](https://travis-ci.org/TurtleP/LovePotion.svg?branch=switch)
+# Love Potion [![Build status](https://doozer.io/badge/TurtleP/LovePotion/buildstatus/switch)](https://doozer.io/TurtleP/LovePotion)
+
 Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo Switch.
 
 Please view the [wiki](https://github.com/TurtleP/LovePotion/wiki) to get started!

@@ -1,0 +1,26 @@
+{
+  "targets": {
+    "lovepotion": {
+      "buildenv": "xenial-amd64",
+      "builddeps": [
+        "build-essential",
+        "liblz4-dev",
+        "wget",
+        "git"
+      ],
+      "buildcmd": [
+        "mkdir ${DEVKITPRO} && mkdir ${DEVKITA64}",
+        "wget -O devkita64.tar.xz ${DEVKITURL}",
+        "tar xvf devkita64.tar.xz -C ${DEVKITA64}",
+        "wget https://raw.githubusercontent.com/devkitPro/installer/master/perl/devkitA64update.pl",
+        "perl devkitA64update.pl",
+        "make"
+      ],
+      "environment": {
+        "DEVKITPRO": "/project/devkitPro",
+        "DEVKITA64": "/project/devkitPro/devkitA64",
+        "DEVKITURL": "https://downloads.sourceforge.net/project/devkitpro/devkitA64/alpha7/devkitA64_a7-x86_64-linux.tar.xz"
+      }
+    }
+  }
+}
