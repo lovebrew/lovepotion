@@ -58,27 +58,18 @@ int main()
 
 	gamepadNew(L);
 
-	while(appletMainLoop())
+	/*
+	** aptMainLoop important code moved to love.cpp
+	** this was to register it as love.run
+	** for error handling purposes
+	*/
+	
+	while (appletMainLoop())
 	{
-		if (ERROR || LOVE_QUIT)
+		if (Love::IsRunning())
+			Love::Run(L);
+		else
 			break;
-
-		if (luaL_dostring(L, LOVE_TIMER_STEP))
-			Console::ThrowError(L);
-
-		if (luaL_dostring(L, LOVE_UPDATE))
-			Console::ThrowError(L);
-
-		luaL_dostring(L, "love.graphics.clear()");
-
-		if (luaL_dostring(L, LOVE_DRAW))
-			Console::ThrowError(L);
-
-		Love::Scan(L);
-
-		luaL_dostring(L, "love.graphics.present()");
-
-		Timer::Tick();
 	}
 
 	if (ERROR)
@@ -87,7 +78,7 @@ int main()
 
 		if (error != NULL)
 		{
-			Console::Initialize(true);
+			Console::Initialize(L, true);
 
 			lua_getfield(L, LUA_GLOBALSINDEX, "love");
 			lua_getfield(L, -1, "errhand");
@@ -99,8 +90,6 @@ int main()
 			gfxFlushBuffers();
 			gfxSwapBuffers();
 			gfxWaitForVsync();
-
-			//return luaL_error(L, "%s", error);
 		}
 	}
 

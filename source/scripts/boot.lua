@@ -179,17 +179,24 @@ function love.errhand(message)
 
 	table.insert(err, "Error\n")
 
-	table.insert(err, message)
+	table.insert(err, message .. "\n")
 
-	table.insert(err, "\nPress 'Start' to quit")
+	local trace = debug.traceback()
+
+	for l in trace:gmatch("(.-)\n") do
+		if not l:match("boot.lua") then
+			l = l:gsub("stack traceback:", "Traceback\n")
+			table.insert(err, l)
+		end
+	end
+
+	table.insert(err, "\nPress '+' to quit")
 
 	local realError = table.concat(err, "\n")
 
-	--print(realError)
-
 	love.filesystem.write("log.txt", realError)
 
-	love.graphics.setBackgroundColor(89, 157, 220)
+	--love.graphics.setBackgroundColor(89 / 255, 157 / 255, 220 / 255)
 
 	local function draw()
 		love.graphics.clear()
@@ -207,24 +214,36 @@ function love.errhand(message)
 
 	draw()
 
-	--[[while true do
+	while true do
 		love.scan()
 
 		love.timer.sleep(0.001)
-		
-		if QUIT then
-			break
-		end
 	end
 
-	love.event.quit()]]
+	love.event.quit()
 end 
 
-if love.filesystem.isFile("main.lua") then
-	require 'main'
+local function pseudoRequireMain()
+	return require("main")
+end
 
-	if love.load then
-		love.load()
+if love.filesystem.isFile("main.lua") then
+	--Try main
+	local result = xpcall(pseudoRequireMain, love.errhand)
+	if not result then
+		return
+	end
+
+	--See if loading works
+	result = xpcall(love.load, love.errhand)
+	if not result then
+		return
+	end
+
+	--Run the thing dammit
+	result = xpcall(love.run, love.errhand)
+	if not result then
+		return
 	end
 end
 

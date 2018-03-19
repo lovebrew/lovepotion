@@ -1,12 +1,10 @@
 language: cpp
 
-matrix:
-  include:
-    - os: linux
-      dist: xenial
-      sudo: required
+dist: xenial
+sudo: required
 
 before_install:
+  - sudo rm /var/lib/dpkg/lock
   - sudo apt install liblz4-dev
   - export CC=aarch64-none-elf-gcc CXX=aarch64-none-elf-g++
   - export DEVKITPRO=${HOME}/devkitPro

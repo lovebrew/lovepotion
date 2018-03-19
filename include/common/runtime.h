@@ -15,8 +15,10 @@ extern "C"
 #include <map>
 
 #include <malloc.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "common/util.h"
 #include "common/console.h"

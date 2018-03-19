@@ -20,6 +20,11 @@ void love_getfield(lua_State * L, const char * field)
 	lua_remove(L, -2);
 }
 
+double clamp(double low, double value, double high)
+{
+	return std::min(high, std::max(low, value));
+}
+
 std::map<int, std::string> LANGUAGES =
 {
 	{SetLanguage_JA,	"Japanese"				},

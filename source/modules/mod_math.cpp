@@ -20,6 +20,8 @@ int Math::SetRandomSeed(lua_State * L)
 
 int Math::Random(lua_State * L)
 {
+	int args = lua_gettop(L);
+
 	float lower = luaL_optnumber(L, 1, 0);
 	float upper = luaL_optnumber(L, 2, 1);
 
@@ -27,10 +29,20 @@ int Math::Random(lua_State * L)
 	lua_getfield(L, -1, "random");
 	lua_remove(L, -2);
 
-	lua_pushnumber(L, lower);
-	lua_pushnumber(L, upper);
+	if (args == 1)
+	{
+		lua_pushnumber(L, upper);
 
-	lua_call(L, 2, 1);
+		lua_call(L, 2, 1);
+	}
+	else
+	{
+		lua_pushnumber(L, lower);
+		lua_pushnumber(L, upper);
+	
+		lua_call(L, 2, 1);
+	}
+
 
 	return 1;
 }

@@ -9,7 +9,7 @@ namespace Love
 	static const int VERSION_REVISION = 0; 
 
 	static const std::string VERSION = LOVE_VERSION;
-	static const std::string CODENAME = "UNKNOWN";
+	static const std::string CODENAME = "Mysterious Mysteries";
 }
 
 extern bool IS_HOMEBREW;

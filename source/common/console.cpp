@@ -7,16 +7,19 @@
 
 bool CONSOLE_INITIALIZED = false;
 string CONSOLE_ERROR = "";
+lua_State * consoleState;
 
-void Console::Initialize(bool error)
+void Console::Initialize(lua_State * L, bool error)
 {
 	if (!Graphics::IsInitialized())
 		gfxInitDefault();
 
-	if (!error)
+	consoleState = L;
+
+	if (!CONSOLE_INITIALIZED)
 		consoleInit(NULL);
-	else
-		printf(CONSOLE_ESC(H) CONSOLE_ESC(2J));
+
+		//printf(CONSOLE_ESC(H) CONSOLE_ESC(2J));
 
 	CONSOLE_INITIALIZED = true;
 }
@@ -30,7 +33,7 @@ void Console::ThrowError(const string & format, ...)
 	vsprintf((char *)CONSOLE_ERROR.data(), format.c_str(), args);
 
 	va_end(args);
-	
+
 	ERROR = true;
 }
 

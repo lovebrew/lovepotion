@@ -58,6 +58,7 @@ int Love::Initialize(lua_State * L)
 	luaL_Reg reg[] =
 	{
 		{ "scan",			Scan			},
+		{ "run",			Run				},
 		{ "getVersion",		GetVersion		},
 		{ "enableConsole",	EnableConsole	},
 		{ 0, 0 }
@@ -77,6 +78,11 @@ int Love::Initialize(lua_State * L)
 vector<vector<u32>> touches;
 u32 lastTouchCount = 0;
 bool touchDown = false;
+
+bool Love::IsRunning()
+{
+	return (ERROR == false && LOVE_QUIT == false);
+}
 
 int Love::Scan(lua_State * L)
 {
@@ -126,6 +132,28 @@ int Love::Scan(lua_State * L)
 
 	if (touchUp & KEY_TOUCH)
 		Love::TouchReleased(L);
+
+	return 0;
+}
+
+int Love::Run(lua_State * L)
+{
+	if (luaL_dostring(L, LOVE_TIMER_STEP))
+		Console::ThrowError(L);
+
+	if (luaL_dostring(L, LOVE_UPDATE))
+		Console::ThrowError(L);
+
+	luaL_dostring(L, LOVE_CLEAR);
+
+	if (luaL_dostring(L, LOVE_DRAW))
+		Console::ThrowError(L);
+
+	Love::Scan(L);
+
+	luaL_dostring(L, LOVE_PRESENT);
+
+	Timer::Tick();
 
 	return 0;
 }
@@ -339,7 +367,7 @@ int Love::EnableConsole(lua_State * L)
 	}
 
 	if (canEnable)
-		Console::Initialize(false);
+		Console::Initialize(L, false);
 
 	return 0;
 }

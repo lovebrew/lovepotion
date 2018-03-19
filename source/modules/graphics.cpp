@@ -80,9 +80,9 @@ int Graphics::GetHeight(lua_State * L)
 
 int Graphics::SetBackgroundColor(lua_State * L)
 {
-	double r = luaL_optnumber(L, 1, 0);
-	double g = luaL_optnumber(L, 2, 0);
-	double b = luaL_optnumber(L, 3, 0);
+	double r = clamp(0, luaL_optnumber(L, 1, 0), 1);
+	double g = clamp(0, luaL_optnumber(L, 2, 0), 1);
+	double b = clamp(0, luaL_optnumber(L, 3, 0), 1);
 
 	u8 outR, outG, outB;
 

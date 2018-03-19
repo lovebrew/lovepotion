@@ -16,7 +16,11 @@ namespace Love
 
 	int EnableConsole(lua_State * L);
 
+	bool IsRunning();
+	
 	int Scan(lua_State * L);
+
+	int Run(lua_State * L);
 
 	void GamepadAxis(lua_State * L, Gamepad * controller, std::pair<std::string, float> & data);
 

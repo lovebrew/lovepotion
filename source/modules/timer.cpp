@@ -18,7 +18,7 @@ u64 lastCountTime = 0;
 //love.timer.getFPS
 int Timer::GetFPS(lua_State * L)
 {
-	lua_pushnumber(L, fps);
+	lua_pushnumber(L, round(fps));
 
 	return 1;
 }
@@ -50,7 +50,7 @@ int Timer::Step(lua_State * L)
 
 	dt = currTime - prevTime;
 
-	dt = dt * 0.001;
+	dt = dt * 0.001f;
 
 	if (dt < 0) 
 		dt = 0;
@@ -73,17 +73,18 @@ int Timer::Sleep(lua_State * L)
 
 float Timer::GetOSTime()
 {
-	return svcGetSystemTick() / 19200;
+	u64 ticks = svcGetSystemTick();
+	return (float)ticks * 1 / (19200000.0f / 1000.0f);
 }
 
 void Timer::Tick()
 {
 	frames++;
-	u64 delta = GetOSTime() - lastCountTime;
+	float delta = GetOSTime() - lastCountTime;
 
-	if (delta >= 1000) 
+	if (delta >= 1000.0f)
 	{
-		fps = frames;
+		fps = (frames / delta) * 1000.0f;
 		frames = 0;
 		lastCountTime = GetOSTime();
 	}
