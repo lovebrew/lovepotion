@@ -3,6 +3,8 @@
 ** @brief	: Handles events.. like quitting.. and other things
 */
 
+#pragma once
+
 namespace Event
 {
 	//Löve2D Functions

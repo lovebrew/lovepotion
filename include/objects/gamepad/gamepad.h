@@ -12,7 +12,8 @@ class Gamepad
 		int GetButtonCount();
 		std::string GetName();
 
-		void SetVibration(float value);
+		void SetVibration(float amp_low, float freq_low, float amp_high, float freq_high);
+		bool IsVibrationSupported();
 
 		bool IsDown(const std::string & button);
 		int GetID();
@@ -24,6 +25,11 @@ class Gamepad
 
 		int id;
 		JoystickPosition sticks[2];
+		
+		/*u32 vibrationDeviceHandles[2][2];
+		HidVibrationValue vibrationValue;
+		HidVibrationValue vibrationValue_stop;
+		HidVibrationValue vibrationValues[2];*/
 };
 
 extern std::vector<Gamepad *> controllers;

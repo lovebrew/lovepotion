@@ -29,7 +29,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
+TARGET		:=	LovePotion
 BUILD		:=	build
 
 LIBS		:= $(sort $(dir $(wildcard libraries/*/)))
@@ -66,7 +66,7 @@ ICON		:= meta/icon.jpg
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffast-math -ffunction-sections \
+CFLAGS	:=	-g -Wall -O0 -ffast-math -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH

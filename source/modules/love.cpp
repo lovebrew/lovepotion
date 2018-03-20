@@ -7,6 +7,7 @@
 #include "modules/event.h"
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
+#include "modules/joystick.h"
 #include "modules/mod_math.h"
 #include "modules/system.h"
 #include "modules/timer.h"
@@ -29,9 +30,10 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 	{ "audio",		Audio::Register,		Audio::Exit			},
 	{ "event",		Event::Register,		NULL				},
 	{ "filesystem",	Filesystem::Register,	NULL				},
-	{ "graphics",	Graphics::Register,		Graphics::Exit		},
+	{ "graphics",	Graphics::Register,		NULL				},
+	{ "joystick",	Joystick::Register,		NULL				},
 	{ "math",		Math::Register,			NULL				},
-	{ "system",		System::Register,		NULL				},
+	{ "system",		System::Register,		System::Exit		},
 	{ "timer",		Timer::Register,		NULL				},
 	{ "touch",		Touch::Register,		NULL				},
 	{ 0 }
@@ -71,6 +73,9 @@ int Love::Initialize(lua_State * L)
 		modules[i].fn(L);
 		lua_setfield(L, -2, modules[i].name);
 	}
+
+	lua_newtable(L);
+	lua_setglobal(L, "__controllers");
 
 	return 1;
 }
@@ -138,18 +143,21 @@ int Love::Scan(lua_State * L)
 
 int Love::Run(lua_State * L)
 {
+	Love::Scan(L);
+
 	if (luaL_dostring(L, LOVE_TIMER_STEP))
 		Console::ThrowError(L);
 
 	if (luaL_dostring(L, LOVE_UPDATE))
 		Console::ThrowError(L);
 
-	luaL_dostring(L, LOVE_CLEAR);
+	if (!Console::IsInitialized())
+	{	
+		luaL_dostring(L, LOVE_CLEAR);
 
-	if (luaL_dostring(L, LOVE_DRAW))
-		Console::ThrowError(L);
-
-	Love::Scan(L);
+		if (luaL_dostring(L, LOVE_DRAW))
+			Console::ThrowError(L);
+	}
 
 	luaL_dostring(L, LOVE_PRESENT);
 
@@ -168,7 +176,11 @@ void Love::GamepadPressed(lua_State * L, Gamepad * controller)
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushinteger(L, controller->GetID());
+			lua_getglobal(L, "__controllers");
+			lua_pushlightuserdata(L, controller);
+			lua_gettable(L, -2);
+			lua_remove(L, -2);
+
 			lua_pushstring(L, buttonDown.c_str());
 			lua_call(L, 2, 0);
 		}
@@ -185,7 +197,11 @@ void Love::GamepadReleased(lua_State * L, Gamepad * controller)
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushinteger(L, controller->GetID());
+			lua_getglobal(L, "__controllers");
+			lua_pushlightuserdata(L, controller);
+			lua_gettable(L, -2);
+			lua_remove(L, -2);
+
 			lua_pushstring(L, buttonUp.c_str());
 			lua_call(L, 2, 0);
 		}
@@ -200,7 +216,11 @@ void Love::GamepadAxis(lua_State * L, Gamepad * controller, pair<string, float> 
 
 		if (!lua_isnil(L, -1))
 		{
-			lua_pushinteger(L, controller->GetID());
+			lua_getglobal(L, "__controllers");
+			lua_pushlightuserdata(L, controller);
+			lua_gettable(L, -2);
+			lua_remove(L, -2);
+
 			lua_pushstring(L, data.first.c_str());
 			lua_pushnumber(L, data.second);
 			lua_call(L, 3, 0);
@@ -390,4 +410,6 @@ void Love::Exit(lua_State * L)
 		modules[i].close();
 
 	lua_close(L);
+
+	Graphics::Exit();
 }

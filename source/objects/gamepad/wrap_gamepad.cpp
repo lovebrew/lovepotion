@@ -17,6 +17,14 @@ int gamepadNew(lua_State * L)
 
 	Gamepad * self = new (raw_self) Gamepad(controllers.size());
 
+	lua_getglobal(L, "__controllers"); //get global table
+
+	lua_pushlightuserdata(L, self); //light userdata key
+	lua_pushvalue(L, 2); //push the userdata value to the key
+	lua_settable(L, -3); //set the taaable (╯°□°）╯︵ ┻━┻
+
+	lua_setglobal(L, "__controllers");
+
 	controllers.push_back(self);
 
 	return 0;
@@ -27,6 +35,15 @@ int gamepadGetID(lua_State * L)
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	lua_pushinteger(L, self->GetID());
+
+	return 1;
+}
+
+int gamepadIsVibrationSupported(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushboolean(L, self->IsVibrationSupported());
 
 	return 1;
 }
@@ -75,6 +92,20 @@ int gamepadIsDown(lua_State * L)
 	return 1;
 }
 
+int gamepadSetVibration(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	float amp_low = luaL_optnumber(L, 2, 0);
+	float freq_low = luaL_optnumber(L, 3, 160.0f);
+	float amp_high = luaL_optnumber(L, 3, 0.0f);
+	float freq_high = luaL_optnumber(L, 3, 320.0f);
+
+	self->SetVibration(amp_low, freq_low, amp_high, freq_high);
+
+	return 0;
+}
+
 int gamepadGC(lua_State * L)
 {
 	return 0;
@@ -84,12 +115,14 @@ int initGamepadClass(lua_State * L)
 {
 	luaL_Reg reg[] = 
 	{
-		{"new",			gamepadNew		},
-		{"getID",		gamepadGetID	},
-		{"getName",		gamepadGetName	},
-		{"getAxis",		gamepadGetAxis	},
-		{"isDown",		gamepadIsDown	},
-		{"__gc",		gamepadGC		},
+		{"new",						gamepadNew					},
+		{"getID",					gamepadGetID				},
+		{"getName",					gamepadGetName				},
+		{"getAxis",					gamepadGetAxis				},
+		{"setVibration",			gamepadSetVibration			},
+		{"isVibrationSupported",	gamepadIsVibrationSupported	},
+		{"isDown",					gamepadIsDown				},
+		{"__gc",					gamepadGC					},
 		{ 0, 0 },
 	};
 

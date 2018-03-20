@@ -15,6 +15,8 @@
 
 void love_getfield(lua_State * L, const char * field);
 
+void love_pushudata(lua_State * L, void * userdata, const char * metatable);
+
 extern std::map<int, std::string> LANGUAGES;
 
 extern double clamp(double low, double x, double high);

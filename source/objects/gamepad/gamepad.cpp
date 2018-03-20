@@ -16,6 +16,16 @@ vector<string> BUTTONS =
 Gamepad::Gamepad(int id)
 {
 	this->id = id;
+
+	/*
+	memset(this->vibrationValues, 0, sizeof(this->vibrationValues));
+	memset(&this->vibrationValue_stop, 0, sizeof(HidVibrationValue));
+
+	this->vibrationValue_stop.freq_low  = 160.0f;
+	this->vibrationValue_stop.freq_high = 320.0f;
+
+	hidInitializeVibrationDevices(this->vibrationDeviceHandles[0], 2, CONTROLLER_PLAYER_1, TYPE_HANDHELD | TYPE_JOYCON_PAIR);
+	*/
 }
 
 int Gamepad::GetID()
@@ -127,6 +137,25 @@ bool Gamepad::GetAxis(float & value, int axis)
 int Gamepad::GetButtonCount()
 {
 	return 0;
+}
+
+void Gamepad::SetVibration(float amp_low, float amp_high, float freq_low, float freq_high)
+{
+	/*
+	this->vibrationValue.amp_low = amp_low;
+	this->vibrationValue.amp_high = amp_high;
+
+	this->vibrationValue.freq_low = freq_low;
+	this->vibrationValue.freq_high = freq_high;
+
+	memcpy(&this->vibrationValues[0], &this->vibrationValue, sizeof(HidVibrationValue));
+	hidSendVibrationValues(VibrationDeviceHandles[0], this->vibrationValues, 2);
+	*/
+}
+
+bool Gamepad::IsVibrationSupported()
+{
+	return true;
 }
 
 string Gamepad::GetName()

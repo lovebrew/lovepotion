@@ -53,10 +53,10 @@ int main()
 
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
+	gamepadNew(L);
+
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
-
-	gamepadNew(L);
 
 	/*
 	** aptMainLoop important code moved to love.cpp

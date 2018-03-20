@@ -20,6 +20,14 @@ void love_getfield(lua_State * L, const char * field)
 	lua_remove(L, -2);
 }
 
+void love_pushudata(lua_State * L, void * userdata, const char * metatable)
+{
+	void ** object = (void **)lua_newuserdata(L, sizeof(void *));
+	*object = userdata;
+	luaL_getmetatable(L, metatable);
+	lua_setmetatable(L, -2);
+}
+
 double clamp(double low, double value, double high)
 {
 	return std::min(high, std::max(low, value));
