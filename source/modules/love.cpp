@@ -13,8 +13,6 @@
 #include "modules/timer.h"
 #include "modules/touch.h"
 
-#include <switch.h>
-
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
 

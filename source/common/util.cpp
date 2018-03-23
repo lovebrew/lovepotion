@@ -20,12 +20,15 @@ void love_getfield(lua_State * L, const char * field)
 	lua_remove(L, -2);
 }
 
-void love_pushudata(lua_State * L, void * userdata, const char * metatable)
+int love_preload(lua_State * L, lua_CFunction function, const char * name)
 {
-	void ** object = (void **)lua_newuserdata(L, sizeof(void *));
-	*object = userdata;
-	luaL_getmetatable(L, metatable);
-	lua_setmetatable(L, -2);
+	lua_getglobal(L, "package");
+	lua_getfield(L, -1, "preload");
+	lua_pushcfunction(L, function);
+	lua_setfield(L, -2, name);
+	lua_pop(L, 2);
+
+	return 0;
 }
 
 double clamp(double low, double value, double high)

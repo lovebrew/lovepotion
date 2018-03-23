@@ -15,7 +15,7 @@
 
 void love_getfield(lua_State * L, const char * field);
 
-void love_pushudata(lua_State * L, void * userdata, const char * metatable);
+int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
 extern std::map<int, std::string> LANGUAGES;
 

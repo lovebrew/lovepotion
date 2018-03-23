@@ -40,6 +40,8 @@ SOURCES		:=	source \
 				source/scripts \
 				source/common \
 				source/modules \
+				source/socket \
+				source/socket/objects/udp \
 				$(SRC_OBJS) \
 				$(LIBS)
 
@@ -48,6 +50,8 @@ DATA		:=	source/scripts
 INCLUDES	:=	include \
 				include/common \
 				include/modules \
+				include/socket \
+				include/socket/objects/udp \
 				$(INC_OBJS) \
 				$(LIBS)
 
@@ -66,7 +70,7 @@ ICON		:= meta/icon.jpg
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O0 -ffast-math -ffunction-sections \
+CFLAGS	:=	-g -Wall -O2 -ffast-math -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
 CFLAGS	+=	$(INCLUDE) -DSWITCH
@@ -76,7 +80,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx -lm
+LIBS	:= -lnx -lm -logg -lvorbis -lpng
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

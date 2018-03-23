@@ -37,9 +37,11 @@ void Console::ThrowError(const string & format, ...)
 	ERROR = true;
 }
 
-void Console::ThrowError(const string & errorMessage)
+void Console::ThrowError(const char * errorMessage)
 {
-	printf("%s\n", errorMessage.c_str());
+	CONSOLE_ERROR = errorMessage;
+
+	printf("%s\n", CONSOLE_ERROR.c_str());
 
 	ERROR = true;
 }

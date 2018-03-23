@@ -27,6 +27,7 @@ extern "C"
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
 
+#include "socket/socket.h"
 #include "modules/love.h"
 
 #include "boot_lua.h"
@@ -50,6 +51,8 @@ int main()
 	lua_State * L = luaL_newstate();
 
 	luaL_openlibs(L);
+
+	love_preload(L, Socket::Initialize, "socket");
 
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
@@ -92,6 +95,8 @@ int main()
 			gfxWaitForVsync();
 		}
 	}
+
+	Socket::Close();
 
 	Love::Exit(L);
 
