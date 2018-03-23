@@ -1,6 +1,9 @@
 #include "common/runtime.h"
 #include "modules/audio.h"
 
+#include <vorbis/codec.h>
+#include <vorbis/vorbisfile.h>
+
 #include "objects/source/source.h"
 #include "objects/source/wrap_source.h"
 

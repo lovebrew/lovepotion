@@ -32,7 +32,7 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=	LovePotion
 BUILD		:=	build
 
-LIBS		:= $(sort $(dir $(wildcard libraries/*/)))
+EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
 
@@ -43,7 +43,7 @@ SOURCES		:=	source \
 				source/socket \
 				source/socket/objects/udp \
 				$(SRC_OBJS) \
-				$(LIBS)
+				$(EXT_LIBS)
 
 DATA		:=	source/scripts
 
@@ -53,7 +53,7 @@ INCLUDES	:=	include \
 				include/socket \
 				include/socket/objects/udp \
 				$(INC_OBJS) \
-				$(LIBS)
+				$(EXT_LIBS)
 
 EXEFS_SRC	:=	exefs_src
 ROMFS		:=	game
@@ -80,7 +80,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -logg -lvorbis -lpng -lnx -lm
+LIBS	:= -lvorbis -logg -lpng -lnx -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

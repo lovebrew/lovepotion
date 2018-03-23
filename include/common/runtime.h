@@ -10,10 +10,12 @@ extern "C"
 	#include <luaobj.h>
 }
 
+//C++ headers
 #include <string>
 #include <vector>
 #include <map>
 
+//C headers
 #include <malloc.h>
 #include <math.h>
 #include <stdio.h>

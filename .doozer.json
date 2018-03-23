@@ -13,7 +13,7 @@
 		"perl devkitA64update.pl",
 		"wget ${PACMANURL}",
 		"sudo dpkg -i devkitpro-pacman.deb",
-		"yes | dkp-pacman -S switch-freetype switch-libogg switch-libpng switch-libvorbis switch-sdl2",
+		"yes | sudo dkp-pacman -S switch-freetype switch-libogg switch-libpng switch-libvorbis switch-sdl2",
         "make"
       ],
       "environment": {

@@ -1,4 +1,8 @@
 #include "common/runtime.h"
+
+#include <vorbis/codec.h>
+#include <vorbis/vorbisfile.h>
+
 #include "objects/source/source.h"
 
 Source::Source(const char * path, bool stream)
@@ -15,80 +19,90 @@ Source::Source(const char * path, bool stream)
 
 void Source::Decode()
 {
-	char buff[8];
-	bool valid = true;
+	if (ov_open(this->fileHandle, &this->vorbisFile, NULL, 0) < 0)
+		Console::ThrowError("Invalid ogg vorbis file");
 
-	fread(buff, 4, 1, this->fileHandle); // chunkId
-	if (strncmp(buff, "RIFF", 4) != 0)
-		valid = false;
+	vorbis_info * vorbisInfo = ov_info(&this->vorbisFile, -1);
 
-	fseek(this->fileHandle, 4, SEEK_CUR); // skip ckSize
+	if (vorbisInfo == NULL) //No ogg info
+		Console::ThrowError("Could not retrieve vorbis information");
 
-	fread(buff, 4, 1, this->fileHandle); // WAVEID
-	if (strncmp(buff, "WAVE", 4) != 0)
-		valid = false;
+	this->rate = (float)vorbisInfo->rate;
 
-	fread(buff, 4, 1, this->fileHandle); // fmt
-	if (strncmp(buff, "fmt", 3) != 0)
-		valid = false;
+	this->channels = (u32)vorbisInfo->channels;
+
+	//this->encoding = NDSP_ENCODING_PCM16;
+
+	this->nsamples = (u32)ov_pcm_total(&this->vorbisFile, -1);
+
+	this->bitrate = (u32)ov_bitrate(&this->vorbisFile, -1);
+
+	this->loop = false;
+
+	this->size = this->nsamples * this->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
+		
+	//if (linearSpaceFree() < this->size)
+	//	return "not enough linear memory available";
+
+	//memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
+
+	//this->data = (char *)linearAlloc(this->size);
 	
-	fread(buff, 4, 1, this->fileHandle); // format type
-	if (*buff != 16)
-		valid = false; // needs to be PCM 16
-
-	fread(buff, 2, 1, this->fileHandle); // wFormatTag
-	if (*buff != 0x0001)
-		valid = false;
-	
-	fread(&this->channels, 2, 1, this->fileHandle); // channel count
-
-	fread(&this->rate, 4, 1, this->fileHandle); // nSamplesPerSec
-
-	fseek(this->fileHandle, 4, SEEK_CUR); // skip nAvgBytesPerSec
-
-	u16 byte_per_block; // 1 block = 1*channelCount samples
-	fread(&byte_per_block, 2, 1, this->fileHandle); // nBlockAlign
-
-	u16 byte_per_sample;
-	fread(&byte_per_sample, 2, 1, this->fileHandle); // wBitsPerSample
-	byte_per_sample /= 8; // bits -> bytes
-
-	fread(&buff, 4, 1, this->fileHandle); // ckId
-
-	while (strncmp(buff, "data", 4) != 0) 
-	{
-		u32 ckSize;
-		fread(&ckSize, 4, 1, this->fileHandle); // ckSize
-
-		fseek(this->fileHandle, ckSize, SEEK_CUR); // skip chunk
-
-		int i = fread(&buff, 4, 1, this->fileHandle); // next chunk ckId
-
-		if (i < 4) { // reached EOF before finding a data chunk
-			valid = false;
-			break;
-		}
-	}
-
-	fread(&this->size, 4, 1, this->fileHandle);
-
-	this->nsamples = this->size / byte_per_block;
-
-	if (byte_per_sample != 2) // is not PCM 16
-		valid = false;
-
-	if (!valid)
-	{
-		fclose(this->fileHandle);
-		printf("Invalid wave file\n");
-		return;
-	}
+	//this->waveBuffer[0].data_vaddr = this->data;
 
 	u32 raw_data_size_aligned = (this->size + 0xfff) & ~0xfff;
 	this->data = (u8 *)memalign(0x1000, raw_data_size_aligned);
 	memset(this->data, 0, raw_data_size_aligned);
 
-	fread(this->data, this->size, 1, this->fileHandle);
+	this->FillBuffer((char *)this->data);
+
+	ov_clear(&this->vorbisFile);
+
+	fclose(this->fileHandle);
+}
+
+void Source::Reset()
+{
+	fseek(this->fileHandle, 0, SEEK_SET);
+	ov_pcm_seek(&this->vorbisFile, 0);
+	this->currentSection = 0;
+	this->reset = true;
+}
+
+void Source::FillBuffer(void * audio)
+{
+	int eof = 0;
+	int offset = 0;
+	
+	char * destination = (char *)audio;
+
+	while (!eof)
+	{
+		long ret = ov_read(&this->vorbisFile, &destination[offset], fmin(this->size - offset, 4096), 0, 2, 1, &this->currentSection);
+
+		if (ret == 0)
+		{
+			if (this->stream && feof(this->fileHandle))
+				this->Reset();
+			
+			eof = 1;
+		} 
+		else if (ret < 0) 
+		{
+			ov_clear(&this->vorbisFile);
+
+			free(destination);
+ 
+			break;
+		}
+		else 
+		{
+			offset += ret;
+		}
+	}
+
+	//if (this->stream && !feof(this->fileHandle))
+		//DSP_FlushDataCache((u32 *)audio, this->size);
 }
 
 bool Source::IsPlaying()

@@ -28,7 +28,7 @@ class Source
 		AudioOutBuffer buffer;
 
 		FILE * fileHandle;
-		//OggVorbis_File vorbisFile;
+		OggVorbis_File vorbisFile;
 
 		u8 * data;
 		int audiochannel;
@@ -41,16 +41,12 @@ class Source
 		u32 bitrate;
 		u32 raw_size;
 
+		int currentSection;
+
 		bool loop;
 		bool reset;
 
-		//int currentSection;
-
-		///float mix[12];
-		//ndspInterpType interp;
-		
-		bool stream; //if it should stream
-		//bool fillBuffer;
+		bool stream;
 		bool playing;
 };
 
