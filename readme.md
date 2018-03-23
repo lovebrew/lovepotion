@@ -1,4 +1,4 @@
-# Love Potion [![Build status](https://doozer.io/badge/TurtleP/LovePotion/buildstatus/switch)](https://doozer.io/TurtleP/LovePotion)
+# Love Potion
 
 Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo Switch.
 
