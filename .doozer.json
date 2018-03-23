@@ -12,7 +12,7 @@
         "wget ${UPDATEURL}",
 		"perl devkitA64update.pl",
 		"wget ${PACMANURL}",
-		"dpkg -i devkitpro-pacman.deb",
+		"sudo dpkg -i devkitpro-pacman.deb",
 		"yes | dkp-pacman -S switch-freetype switch-libogg switch-libpng switch-libvorbis switch-sdl2",
         "make"
       ],
