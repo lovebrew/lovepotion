@@ -1,0 +1,32 @@
+{
+  "targets": {
+    "lovepotion": {
+      "buildenv": "xenial-amd64",
+      "builddeps": [
+        "build-essential",
+        "liblz4-dev",
+        "wget",
+        "git",
+        "pacman"
+      ],
+      "buildcmd": [
+        "wget ${UPDATEURL}",
+        "perl devkitA64update.pl",
+        "pacman-key --recv F7FD5492264BB9D0",
+        "pacman-key --lsign F7FD5492264BB9D0",
+        "echo ${PACMANDATA} | sudo tee -a /etc/pacman.conf > /dev/null",
+        "pacman -Sl | grep devkitpro-keyring",
+        "make"
+      ],
+      "environment": {
+        "DEVKITPRO": "/project/devkitPro",
+        "DEVKITA64": "/project/devkitPro/devkitA64",
+        "UPDATEURL": "https://raw.githubusercontent.com/devkitPro/installer/master/perl/devkitA64update.pl",
+        "PACMANDATA": "[dkp-libs]\nServer = http://downloads.devkitpro.org/packages\n[dkp-linux]\nServer = http://downloads.devkitpro.org/packages/linux"
+      },
+      "artifacts": [
+        "*.nro"
+      ]
+    }
+  }
+}
