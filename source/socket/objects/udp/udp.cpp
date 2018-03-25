@@ -8,7 +8,7 @@ UDP::UDP()
 	this->sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (this->sockfd < 0)
-		Console::ThrowError("Failed to create UDP socket.");
+		throw Exception("Failed to create UDP socket.");
 
 	memset(&this->address, 0, sizeof(this->address));
 
@@ -18,11 +18,11 @@ UDP::UDP()
 	flags = fcntl(this->sockfd, F_GETFL, 0);
 
 	if (flags < 0)
-		Console::ThrowError("Failed to get flags for socket.");
+		throw Exception("Failed to get flags for socket.");
 
 	blocking = fcntl(this->sockfd, F_SETFL, flags + O_NONBLOCK);
 	if (blocking != 0)
-		Console::ThrowError("Failed to set non-blocking on socket.");
+		throw Exception("Failed to set non-blocking on socket.");
 
 	int bufferSize = SOCKET_BUFFERSIZE;
 

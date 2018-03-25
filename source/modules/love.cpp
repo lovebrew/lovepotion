@@ -1,6 +1,9 @@
 #include "common/runtime.h"
 #include <unistd.h>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "common/version.h"
 
 #include "modules/audio.h"
@@ -17,6 +20,7 @@
 #include "objects/gamepad/wrap_gamepad.h"
 
 #include "objects/file/wrap_file.h"
+#include "objects/font/wrap_font.h"
 #include "objects/source/wrap_source.h"
 #include "objects/image/wrap_image.h"
 #include "objects/quad/wrap_quad.h"
@@ -46,6 +50,7 @@ int Love::Initialize(lua_State * L)
 		initSourceClass,
 		initImageClass,
 		initQuadClass,
+		initFontClass,
 		NULL
 	};
 
@@ -144,17 +149,17 @@ int Love::Run(lua_State * L)
 	Love::Scan(L);
 
 	if (luaL_dostring(L, LOVE_TIMER_STEP))
-		Console::ThrowError(L);
+		throw Exception(L);
 
 	if (luaL_dostring(L, LOVE_UPDATE))
-		Console::ThrowError(L);
+		throw Exception(L);
 
 	if (!Console::IsInitialized())
 	{	
 		luaL_dostring(L, LOVE_CLEAR);
 
 		if (luaL_dostring(L, LOVE_DRAW))
-			Console::ThrowError(L);
+			throw Exception(L);
 	}
 
 	luaL_dostring(L, LOVE_PRESENT);
@@ -395,7 +400,7 @@ int Love::NoGame(lua_State * L)
 	chdir("romfs:/");
 
 	if (luaL_dofile(L, "main.lua"))
-		Console::ThrowError(L);
+		throw Exception(L);
 
 	return 0;
 }

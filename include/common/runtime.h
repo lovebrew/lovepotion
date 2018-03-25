@@ -1,5 +1,9 @@
 #pragma once
 
+//Error/Quit
+extern bool ERROR;
+extern bool LOVE_QUIT;
+
 extern "C"
 {
 	#include <lua.h>
@@ -11,6 +15,7 @@ extern "C"
 }
 
 //C++ headers
+#include <exception>
 #include <string>
 #include <vector>
 #include <map>
@@ -24,6 +29,7 @@ extern "C"
 
 #include "common/util.h"
 #include "common/console.h"
+#include "common/exception.h"
 
 #include <switch.h>
 
@@ -32,7 +38,3 @@ extern "C"
 using std::string;
 using std::vector;
 using std::pair;
-
-//Error/Quit
-extern bool ERROR;
-extern bool LOVE_QUIT;

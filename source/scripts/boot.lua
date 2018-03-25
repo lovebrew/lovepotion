@@ -49,12 +49,12 @@ end
 love.filesystem.setIdentity(config.identity)
 love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
---[[ local defaultFont = love.graphics.newFont()
+local defaultFont = love.graphics.newFont(64)
 love.graphics.setFont(defaultFont)
 
 --love.enableScreen(config.window.top, config.window.bottom);
 
-local function wrapText(text, x, y, len)
+--[[local function wrapText(text, x, y, len)
 	local width = 0
 	local originY = y
 	local ret = ""
@@ -71,8 +71,7 @@ local function wrapText(text, x, y, len)
 	end
 
 	love.graphics.print(ret, x, y)
-end
-]]
+end]]
 
 function love.createhandlers()
 	-- Standard callback handlers.
@@ -173,6 +172,8 @@ end
 love.createhandlers()
 
 function love.errhand(message)
+	message = tostring(message)
+
 	message = message:gsub("^(./)", "")
 
 	local err = {}
@@ -196,25 +197,24 @@ function love.errhand(message)
 
 	love.filesystem.write("log.txt", realError)
 
-	--love.graphics.setBackgroundColor(89 / 255, 157 / 255, 220 / 255)
+	love.graphics.setBackgroundColor(89 / 255, 157 / 255, 220 / 255)
+
+	love.graphics.setFont(defaultFont)
 
 	local function draw()
 		love.graphics.clear()
-		
-		--love.graphics.setFont(defaultFont)
-		--love.graphics.setColor(255, 255, 255, 255)
 
-		--love.graphics.print("Error:", 16, 30)
-		--wrapText(message, 16, 58, 325)
+		love.graphics.print("Error", 16, 30)
+		--love.graphics.print(message, 16, 58)
 
-		--love.graphics.print("Press Start to quit", 16, love.graphics.getHeight() - 30)
+		--love.graphics.print("Press + to Quit", 16, love.graphics.getHeight() - 30)
 
 		love.graphics.present()
 	end
 
-	draw()
-
 	while true do
+		draw()
+		
 		love.scan()
 
 		love.timer.sleep(0.001)

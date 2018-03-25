@@ -1,4 +1,8 @@
 #include "common/runtime.h"
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "modules/graphics.h"
 
 #include "objects/image/image.h"
@@ -7,9 +11,15 @@
 #include "objects/quad/quad.h"
 #include "objects/quad/wrap_quad.h"
 
+#include "objects/font/font.h"
+#include "objects/font/wrap_font.h"
+
 bool isInitialized = false;
 u32 * FRAMEBUFFER;
 u32 backgroundColor = 0xFF000000;
+
+FT_Library FREETYPE_LIBRARY;
+Font * currentFont;
 
 #define RGBA(r, g, b, a) r | (g >> (u32)8) | (b >> (u32)16) | (a >> (u32)24)
 
@@ -17,6 +27,10 @@ void Graphics::Initialize()
 {
 	if (!Console::IsInitialized())
 		gfxInitDefault();
+
+	int error = FT_Init_FreeType(&FREETYPE_LIBRARY);
+	if (error)
+		throw Exception("Failed to load FreeType library.");
 
 	isInitialized = true;
 }
@@ -60,6 +74,26 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	target[pos] = RGBA8(outR, outG, outB, outA);
 }
 
+void renderText(u32 * target, FT_Int x, FT_Int y, FT_Bitmap * bitmap) 
+{
+	u32 screenwidth, screenheight;
+	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
+
+	FT_Int x_max = x + bitmap->width;
+	FT_Int y_max = y + bitmap->rows;
+
+	FT_Int fx, fy, ix, iy;
+	u32 pos;
+
+	for (fx = x, ix = 0; fx < x_max; fx++, ix++)
+	{
+		for (fy = y, iy = 0; fy < y_max; fy++, iy++)
+		{
+			pos = (fy + y) * screenwidth + fx + x;
+			FRAMEBUFFER[pos] |= bitmap->buffer[iy * bitmap->width + ix];
+		}
+	}
+}
 //Löve2D Functions
 
 //love.graphics.getWidth
@@ -182,6 +216,62 @@ int Graphics::Draw(lua_State * L)
 	return 0;
 }
 
+int Graphics::SetFont(lua_State * L)
+{
+	Font * self = (Font *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
+
+	if (self != NULL)
+		currentFont = self;
+
+	return 0;
+}
+
+int Graphics::Print(lua_State * L)
+{
+	u32 screenwidth, screenheight;
+	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
+
+	size_t length;
+	const char * text = luaL_checklstring(L, 1, &length);
+	
+	float x = luaL_optnumber(L, 2, 0);
+	float y = luaL_optnumber(L, 3, 0);
+
+	FT_Face face = currentFont->GetFace();
+	if (!face)
+		return 0;
+
+	FT_GlyphSlot slot = face->glyph;
+	FT_UInt glyph_index = 0;
+	FT_UInt previousChar = 0;
+	int add = 0;
+
+	for (int i = 0; i < length; i++)
+	{
+		int bearing = face->glyph->metrics.horiBearingX >> 6;
+		/*if (previousChar)
+		{
+			glyph_index = FT_Get_Char_Index(face, text[i]);
+			FT_Load_Glyph(face, previousChar, FT_LOAD_NO_BITMAP);
+			add += face->glyph->advance.x;
+		}*/
+
+		int error = FT_Load_Char(face, text[i], FT_LOAD_RENDER | FT_LOAD_COLOR);
+
+		if (error)
+			continue;
+
+		renderText(FRAMEBUFFER, x + add + bearing, y, &slot->bitmap);
+
+		//if (previousChar)
+		add += face->glyph->advance.x >> 6;
+
+		previousChar = glyph_index;
+	}
+
+	return 0;
+}
+
 int Graphics::GetRendererInfo(lua_State * L)
 {
 	lua_pushstring(L, "OpenGL");
@@ -194,6 +284,11 @@ int Graphics::GetRendererInfo(lua_State * L)
 
 //End Löve2D Functions
 
+FT_Library Graphics::GetFreetypeLibrary()
+{
+	return FREETYPE_LIBRARY;
+}
+
 bool Graphics::IsInitialized()
 {
 	return isInitialized;
@@ -201,6 +296,8 @@ bool Graphics::IsInitialized()
 
 void Graphics::Exit()
 {
+	FT_Done_FreeType(FREETYPE_LIBRARY);
+
 	gfxExit();
 }
 
@@ -208,9 +305,12 @@ int Graphics::Register(lua_State * L)
 {
 	luaL_Reg reg[] =
 	{
+		{ "newFont",			fontNew				},
 		{ "newImage",			imageNew			},
 		{ "newQuad",			quadNew				},
 		{ "draw",				Draw				},
+		{ "print",				Print				},
+		{ "setFont",			SetFont				},
 		{ "clear",				Clear				},
 		{ "present",			Present				},
 		{ "setBackgroundColor",	SetBackgroundColor	},

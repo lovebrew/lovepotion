@@ -1,67 +1,16 @@
 #include "common/runtime.h"
-
-#include "modules/graphics.h"
 #include "common/version.h"
 
-#include <stdarg.h>
-
 bool CONSOLE_INITIALIZED = false;
-string CONSOLE_ERROR = "";
-lua_State * consoleState;
 
 void Console::Initialize(lua_State * L, bool error)
 {
-	if (!Graphics::IsInitialized())
-		gfxInitDefault();
-
-	consoleState = L;
+	//gfxInitDefault();
 
 	if (!CONSOLE_INITIALIZED)
 		consoleInit(NULL);
 
-		//printf(CONSOLE_ESC(H) CONSOLE_ESC(2J));
-
 	CONSOLE_INITIALIZED = true;
-}
-
-void Console::ThrowError(const string & format, ...)
-{
-	va_list args;
-
-	va_start(args, format);
-
-	vsprintf((char *)CONSOLE_ERROR.data(), format.c_str(), args);
-
-	va_end(args);
-
-	ERROR = true;
-}
-
-void Console::ThrowError(const char * errorMessage)
-{
-	CONSOLE_ERROR = errorMessage;
-
-	printf("%s\n", CONSOLE_ERROR.c_str());
-
-	ERROR = true;
-}
-
-const char * Console::GetError()
-{
-	return CONSOLE_ERROR.c_str();
-}
-
-int Console::ThrowError(lua_State * L)
-{
-	const char * errorMessage = nullptr;
-	if (!lua_isnil(L, -1))
-	{
-		errorMessage = lua_tostring(L, -1);
-
-		Console::ThrowError("%s", errorMessage);
-	}
-
-	return 0;
 }
 
 bool Console::IsInitialized()

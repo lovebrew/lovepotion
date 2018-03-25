@@ -20,3 +20,30 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name);
 extern std::map<int, std::string> LANGUAGES;
 
 extern double clamp(double low, double x, double high);
+
+/**
+ * Converts any exceptions thrown by the passed lambda function into a Lua error.
+ * lua_error (and luaL_error) cannot be called from inside the exception handler
+ * because they use longjmp, which causes undefined behaviour when the
+ * destructor of the exception would have been called.
+**/
+template <typename T>
+int lua_catchexception(lua_State * L, const T & func)
+{
+	bool should_error = false;
+
+	try
+	{
+		func();
+	}
+	catch (const std::exception & e)
+	{
+		should_error = true;
+		lua_pushstring(L, e.what());
+	}
+
+	if (should_error)
+		return luaL_error(L, "%s", lua_tostring(L, -1));
+	
+	return 0;
+}

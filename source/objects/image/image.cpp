@@ -9,14 +9,14 @@ Image::Image(const char * path)
 
 	exists.Open("rb");
 	if (!exists.IsOpen())
-		Console::ThrowError("File does not exit: %s", path);
+		throw Exception("File does not exit: %s", path);
 	exists.Close();
 
 	unsigned width, height;
 	u16 error = lodepng::decode(sheet, width, height, path);
 
 	if (error)
-		Console::ThrowError("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), path);
+		throw Exception("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), path);
 
 	this->width = width;
 	this->height = height;

@@ -50,7 +50,7 @@ void File::Write(const char * data, size_t length)
 {
 	if (!this->open || (strncmp(this->mode, "w", 1) != 0))
 	{
-		Console::ThrowError("Cannot write to file %s. File not open for writing.", this->path);
+		throw Exception("Cannot write to file %s. File not open for writing.", this->path);
 		return;
 	}
 
@@ -72,7 +72,7 @@ char * File::Read()
 {
 	if (!this->open || (strncmp(this->mode, "r", 1) != 0))
 	{
-		Console::ThrowError("Cannot read file %s. File not open for reading.", this->path);
+		throw Exception("Cannot read file %s. File not open for reading.", this->path);
 		return NULL;
 	}
 

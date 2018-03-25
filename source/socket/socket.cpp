@@ -9,7 +9,7 @@ int Socket::Initialize(lua_State * L)
 	Result ret = socketInitializeDefault();
 
 	if (ret != 0)
-		Console::ThrowError("Failed to load LuaSocket!");
+		throw Exception("Failed to load LuaSocket!");
 
 	int (*classes[])(lua_State *L) = 
 	{

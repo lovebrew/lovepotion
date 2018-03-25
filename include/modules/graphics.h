@@ -25,7 +25,12 @@ namespace Graphics
 
 	int GetRendererInfo(lua_State * L);
 
+	int SetFont(lua_State * L);
+	int Print(lua_State * L);
+
 	//End Löve2D Functions
+
+	FT_Library GetFreetypeLibrary();
 
 	int Register(lua_State * L);
 

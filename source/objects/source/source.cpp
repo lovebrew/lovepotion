@@ -11,7 +11,7 @@ Source::Source(const char * path, bool stream)
 	if (!this->fileHandle)
 	{
 		fclose(this->fileHandle);
-		Console::ThrowError("Could not open %s: does not exist.", path);
+		throw Exception("Could not open %s: does not exist.", path);
 	}
 
 	this->Decode();
@@ -20,12 +20,12 @@ Source::Source(const char * path, bool stream)
 void Source::Decode()
 {
 	if (ov_open(this->fileHandle, &this->vorbisFile, NULL, 0) < 0)
-		Console::ThrowError("Invalid ogg vorbis file");
+		throw Exception("Invalid ogg vorbis file");
 
 	vorbis_info * vorbisInfo = ov_info(&this->vorbisFile, -1);
 
 	if (vorbisInfo == NULL) //No ogg info
-		Console::ThrowError("Could not retrieve vorbis information");
+		throw Exception("Could not retrieve vorbis information");
 
 	this->rate = (float)vorbisInfo->rate;
 
@@ -40,19 +40,10 @@ void Source::Decode()
 	this->loop = false;
 
 	this->size = this->nsamples * this->channels * 2; // *2 because output is PCM16 (2 bytes/sample)
-		
-	//if (linearSpaceFree() < this->size)
-	//	return "not enough linear memory available";
 
-	//memset(this->waveBuffer, 0, sizeof(this->waveBuffer));
-
-	//this->data = (char *)linearAlloc(this->size);
-	
-	//this->waveBuffer[0].data_vaddr = this->data;
-
-	u32 raw_data_size_aligned = (this->size + 0xfff) & ~0xfff;
-	this->data = (u8 *)memalign(0x1000, raw_data_size_aligned);
-	memset(this->data, 0, raw_data_size_aligned);
+	this->rawSize = (this->size + 0xfff) & ~0xfff;
+	this->data = (char *)memalign(0x1000, this->rawSize);
+	memset(this->data, 0, this->rawSize);
 
 	this->FillBuffer((char *)this->data);
 
@@ -95,10 +86,8 @@ void Source::FillBuffer(void * audio)
  
 			break;
 		}
-		else 
-		{
+		else
 			offset += ret;
-		}
 	}
 
 	//if (this->stream && !feof(this->fileHandle))
@@ -108,7 +97,7 @@ void Source::FillBuffer(void * audio)
 bool Source::IsPlaying()
 {
 	//AudioOutState state;
-	//audoutGetAudioOutState(&state);]]
+	//audoutGetAudioOutState(&state);
 
 	return false;
 }
@@ -127,7 +116,7 @@ void Source::Play()
 {
 	this->buffer.next = 0;
 	this->buffer.buffer = this->data;
-	this->buffer.buffer_size = this->rate;
+	this->buffer.buffer_size = this->rawSize;
 	this->buffer.data_size = this->size;
 	this->buffer.data_offset = 0;
 

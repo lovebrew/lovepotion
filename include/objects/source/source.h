@@ -30,7 +30,7 @@ class Source
 		FILE * fileHandle;
 		OggVorbis_File vorbisFile;
 
-		u8 * data;
+		char * data;
 		int audiochannel;
 
 		u32 rate;
@@ -39,7 +39,7 @@ class Source
 		u32 nsamples;
 		u32 size;
 		u32 bitrate;
-		u32 raw_size;
+		u32 rawSize;
 
 		int currentSection;
 
