@@ -43,7 +43,7 @@ float Font::GetKerning(char currentChar, char previousChar, FT_Face face)
 	FT_Vector kerning = {};
 	FT_Get_Kerning(face, currentChar, previousChar, FT_KERNING_DEFAULT, &kerning);
 
-	return (float)(kerning.x);
+	return (float)(kerning.x >> 6);
 }
 
 bool Font::HasGlyph(uint glyph)

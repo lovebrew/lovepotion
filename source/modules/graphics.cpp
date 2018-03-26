@@ -249,22 +249,20 @@ int Graphics::Print(lua_State * L)
 	for (int i = 0; i < length; i++)
 	{
 		int bearing = face->glyph->metrics.horiBearingX >> 6;
-		/*if (previousChar)
-		{
-			glyph_index = FT_Get_Char_Index(face, text[i]);
-			FT_Load_Glyph(face, previousChar, FT_LOAD_NO_BITMAP);
-			add += face->glyph->advance.x;
-		}*/
+
+		glyph_index = FT_Get_Char_Index(face, text[i]);
+
+		if (previousChar)
+			add += currentFont->GetKerning(previousChar, glyph_index, face);
 
 		int error = FT_Load_Char(face, text[i], FT_LOAD_RENDER | FT_LOAD_COLOR);
 
 		if (error)
 			continue;
 
-		renderText(FRAMEBUFFER, x + add + bearing, y, &slot->bitmap);
+		renderText(FRAMEBUFFER, x + (add + slot->bitmap_left + bearing), y - slot->bitmap_top, &slot->bitmap);
 
-		//if (previousChar)
-		add += face->glyph->advance.x >> 6;
+		add += slot->advance.x >> 6;
 
 		previousChar = glyph_index;
 	}
