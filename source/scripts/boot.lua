@@ -49,8 +49,8 @@ end
 love.filesystem.setIdentity(config.identity)
 love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
-local defaultFont = love.graphics.newFont(64)
-love.graphics.setFont(defaultFont)
+--local defaultFont = love.graphics.newFont(64)
+--love.graphics.setFont(defaultFont)
 
 --love.enableScreen(config.window.top, config.window.bottom);
 

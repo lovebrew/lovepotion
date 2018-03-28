@@ -3,6 +3,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "objects/font/glyph.h"
 #include "objects/font/font.h"
 #include "objects/font/wrap_font.h"
 
@@ -32,7 +33,7 @@ int fontNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	if (path == NULL) 
+	if (path != NULL) 
 	{
 		lua_catchexception(L,
 			[&]() { Font * self = new (raw_self) Font(path, size); }

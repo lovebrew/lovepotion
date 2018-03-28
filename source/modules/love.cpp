@@ -155,12 +155,10 @@ int Love::Run(lua_State * L)
 		throw Exception(L);
 
 	if (!Console::IsInitialized())
-	{	
 		luaL_dostring(L, LOVE_CLEAR);
-
-		if (luaL_dostring(L, LOVE_DRAW))
-			throw Exception(L);
-	}
+	
+	if (luaL_dostring(L, LOVE_DRAW))
+		throw Exception(L);
 
 	luaL_dostring(L, LOVE_PRESENT);
 
@@ -376,21 +374,7 @@ int Love::GetVersion(lua_State * L)
 
 int Love::EnableConsole(lua_State * L)
 {
-	lua_Debug info;
-	int level = 0;
-
-	bool canEnable = false;
-	while (lua_getstack(L, level, &info))
-	{
-		lua_getinfo(L, "nfSl", &info);
-		if (strncmp(info.short_src, "[string \"boot\"]", 15) == 0)
-			canEnable = true;
-
-		++level;
-	}
-
-	if (canEnable)
-		Console::Initialize(L, false);
+	Console::Initialize(L, false);
 
 	return 0;
 }

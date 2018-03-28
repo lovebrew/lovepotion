@@ -11,9 +11,13 @@ bool ROMFS_INIT = true;
 string SAVE_DIR = "sdmc:/switch/LovePotion";
 string IDENTITY = "SuperGame";
 
+FILE * logFile;
+
 bool Filesystem::Initialize()
 {
 	//ROMFS_INIT = romfsInit() ? false : true;
+
+	logFile = fopen("log.txt", "w+");
 
 	if (!ROMFS_INIT)
 		return false;
@@ -224,6 +228,18 @@ string Filesystem::Redirect(const char * path)
 		return string(path);
 	else
 		return GetSaveDirectory() + string(path);
+}
+
+void Filesystem::LogToFile(const string & data)
+{
+	fwrite((char *)data.data(), 1, data.length(), logFile);
+
+	fflush(logFile);
+}
+
+void Filesystem::CloseLog()
+{
+	fclose(logFile);
 }
 
 //Register Functions

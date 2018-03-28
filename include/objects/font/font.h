@@ -8,10 +8,13 @@ class Font
 		~Font();
 
 		FT_Face GetFace();
-		float GetKerning(char currentChar, char previousChar, FT_Face face);
+		int GetKerning(int currentChar, int previousChar);
 		bool HasGlyph(uint glyph);
+		Glyph * GetGlyph(uint code);
+		int GetWidth(uint kerning, Glyph * glyph);
 
 	private:
 		FT_Face face;
 		float dpiScale;
+		std::map<int, Glyph *> glyphs;
 };

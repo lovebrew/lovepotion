@@ -11,6 +11,7 @@
 #include "objects/quad/quad.h"
 #include "objects/quad/wrap_quad.h"
 
+#include "objects/font/glyph.h"
 #include "objects/font/font.h"
 #include "objects/font/wrap_font.h"
 
@@ -74,24 +75,26 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	target[pos] = RGBA8(outR, outG, outB, outA);
 }
 
-void renderText(u32 * target, FT_Int x, FT_Int y, FT_Bitmap * bitmap) 
+void renderText(u32 * target, float x, float y, Glyph * glyph, FT_Bitmap * bitmap) 
 {
 	u32 screenwidth, screenheight;
 	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
 
-	FT_Int x_max = x + bitmap->width;
-	FT_Int y_max = y + bitmap->rows;
-
-	FT_Int fx, fy, ix, iy;
+	FT_UInt ix, iy;
 	u32 pos;
+	u32 color;
 
-	for (fx = x, ix = 0; fx < x_max; fx++, ix++)
+	std::pair<int, int> size = glyph->GetSize();
+
+	for (iy = 0; iy < bitmap->rows; iy++)
 	{
-		for (fy = y, iy = 0; fy < y_max; fy++, iy++)
+		for (ix = 0; ix < bitmap->width; ix++)
 		{
-			pos = (fy + y) * screenwidth + fx + x;
-			FRAMEBUFFER[pos] |= bitmap->buffer[iy * bitmap->width + ix];
-		}
+			pos = (iy + y) * screenwidth + x + ix;
+			color = bitmap->buffer[iy * bitmap->width + ix];
+	
+			renderto(FRAMEBUFFER, pos, color, color, color, 255); //it's all just gonna be split to RGBA anyways
+		} 
 	}
 }
 //Löve2D Functions
@@ -228,43 +231,40 @@ int Graphics::SetFont(lua_State * L)
 
 int Graphics::Print(lua_State * L)
 {
-	u32 screenwidth, screenheight;
-	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
-
 	size_t length;
 	const char * text = luaL_checklstring(L, 1, &length);
 	
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
 
-	FT_Face face = currentFont->GetFace();
-	if (!face)
-		return 0;
-
-	FT_GlyphSlot slot = face->glyph;
-	FT_UInt glyph_index = 0;
-	FT_UInt previousChar = 0;
-	int add = 0;
-
 	for (int i = 0; i < length; i++)
 	{
-		int bearing = face->glyph->metrics.horiBearingX >> 6;
+		FT_Face face = currentFont->GetFace();
 
-		glyph_index = FT_Get_Char_Index(face, text[i]);
+		if (face)
+		{
+			int error = FT_Load_Char(face, text[i], FT_LOAD_RENDER | FT_LOAD_COLOR);
 
-		if (previousChar)
-			add += currentFont->GetKerning(previousChar, glyph_index, face);
+			if (error)
+				continue;
 
-		int error = FT_Load_Char(face, text[i], FT_LOAD_RENDER | FT_LOAD_COLOR);
+			Glyph * currentGlyph = currentFont->GetGlyph(text[i]);
+			Glyph * lastglyph = nullptr;
 
-		if (error)
-			continue;
+			std::pair<int, int> corner = currentGlyph->GetCorner(); //<slot->bitmap_left, slot->bitmap_top>
+			std::pair<int, int> size = currentGlyph->GetSize(); //<slot->metrics.width / 64, slot->metrics.height / 64>
 
-		renderText(FRAMEBUFFER, x + (add + slot->bitmap_left + bearing), y - slot->bitmap_top, &slot->bitmap);
+			if (i > 0)
+				lastglyph = currentFont->GetGlyph(text[i - 1]);
 
-		add += slot->advance.x >> 6;
+			if (lastglyph != nullptr)
+				x += currentFont->GetKerning(currentGlyph->GetID(), lastglyph->GetID());
 
-		previousChar = glyph_index;
+			//printf("%c top is %d\n", text[i], corner.second);
+			renderText(FRAMEBUFFER, x + corner.first, y - corner.second, currentGlyph, &face->glyph->bitmap);
+			
+			x += currentGlyph->GetXAdvance();
+		}
 	}
 
 	return 0;
