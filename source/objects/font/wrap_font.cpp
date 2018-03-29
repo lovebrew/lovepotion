@@ -19,15 +19,19 @@ int fontNew(lua_State * L)
 	** Either first arg is string
 	** Or a number
 	*/
-	if (!lua_isnoneornil(L, 1) && lua_isstring(L, 1))
-		path = luaL_checkstring(L, 1);
-	else if (!lua_isnoneornil(L, 1) && lua_isnumber(L, 1))
-		size = luaL_checknumber(L, 1);
-	else if (lua_isnoneornil(L, 1))
-		size = 16;
+	if (!lua_isnoneornil(L, 1))
+	{
 
-	if (!lua_isnoneornil(L, 2))
-		size = luaL_checknumber(L, 2);
+		if (lua_isstring(L, 1))
+		{
+			path = luaL_checkstring(L, 1);
+			size = luaL_checknumber(L, 2);
+		}
+		else if (lua_isnumber(L, 1))
+			size = luaL_checknumber(L, 1);
+	}
+	else
+		size = 14;
 
 	void * raw_self = luaobj_newudata(L, sizeof(Font));
 
@@ -40,11 +44,7 @@ int fontNew(lua_State * L)
 		);
 	}
 	else
-	{
-		lua_catchexception(L,
-			[&]() { Font * self = new (raw_self) Font(size); }
-		);
-	}
+		Font * self = new (raw_self) Font(size);
 
 	return 1;
 }

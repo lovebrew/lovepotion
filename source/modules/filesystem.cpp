@@ -230,18 +230,6 @@ string Filesystem::Redirect(const char * path)
 		return GetSaveDirectory() + string(path);
 }
 
-void Filesystem::LogToFile(const string & data)
-{
-	fwrite((char *)data.data(), 1, data.length(), logFile);
-
-	fflush(logFile);
-}
-
-void Filesystem::CloseLog()
-{
-	fclose(logFile);
-}
-
 //Register Functions
 int Filesystem::Register(lua_State * L)
 {

@@ -18,9 +18,9 @@ class Gamepad
 		bool IsDown(const std::string & button);
 		int GetID();
 
+		void ClampAxis(float & x); 
 	private:
 		HidControllerID GetInternalID();
-		void ClampAxis(float & x); 
 		float ReadAxis(HidControllerJoystick joystick, bool horizontal);
 
 		int id;

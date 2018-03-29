@@ -14,6 +14,10 @@ extern "C"
 	#include <luaobj.h>
 }
 
+//Libs
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+
 //C++ headers
 #include <exception>
 #include <string>
@@ -27,6 +31,7 @@ extern "C"
 #include <stdlib.h>
 #include <time.h>
 
+#include "common/types.h"
 #include "common/util.h"
 #include "common/console.h"
 #include "common/exception.h"

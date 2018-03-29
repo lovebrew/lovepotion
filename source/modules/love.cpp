@@ -6,6 +6,9 @@
 
 #include "common/version.h"
 
+#include "objects/gamepad/gamepad.h"
+#include "objects/gamepad/wrap_gamepad.h"
+
 #include "modules/audio.h"
 #include "modules/event.h"
 #include "modules/filesystem.h"
@@ -15,9 +18,6 @@
 #include "modules/system.h"
 #include "modules/timer.h"
 #include "modules/touch.h"
-
-#include "objects/gamepad/gamepad.h"
-#include "objects/gamepad/wrap_gamepad.h"
 
 #include "objects/file/wrap_file.h"
 #include "objects/font/wrap_font.h"
@@ -92,39 +92,15 @@ bool Love::IsRunning()
 	return (ERROR == false && LOVE_QUIT == false);
 }
 
+SDL_Event event;
 int Love::Scan(lua_State * L)
 {
 	//joycon/controllers
-	hidScanInput();
+	//hidScanInput();
 
-	for (uint i = 0; i < controllers.size(); i++)
-	{
-		//BUTTON INPUT
-		Love::GamepadPressed(L, controllers[i]);
-
-		Love::GamepadReleased(L, controllers[i]);
-		
-		//LEFT STICK
-		pair<string, float> leftStick = std::make_pair("nil", 0); 
-
-		controllers[i]->ScanAxes(leftStick, JOYSTICK_LEFT, 0);
-		Love::GamepadAxis(L, controllers[i], leftStick);
-
-		controllers[i]->ScanAxes(leftStick, JOYSTICK_LEFT, 1);
-		Love::GamepadAxis(L, controllers[i], leftStick);
-		
-		//RIGHT STICK
-		pair<string, float> rightStick = std::make_pair("nil", 0); 
-
-		controllers[i]->ScanAxes(rightStick, JOYSTICK_RIGHT, 0);
-		Love::GamepadAxis(L, controllers[i], rightStick);
-
-		controllers[i]->ScanAxes(rightStick, JOYSTICK_RIGHT, 1);
-		Love::GamepadAxis(L, controllers[i], rightStick);
-	}
-
+	Event::JoystickEvent(L, event);
 	
-	u64 touchDown = hidKeysDown(CONTROLLER_HANDHELD);
+	/*u64 touchDown = hidKeysDown(CONTROLLER_HANDHELD);
 	u64 touchUp = hidKeysUp(CONTROLLER_HANDHELD);
 	u64 touchHeld = hidKeysHeld(CONTROLLER_HANDHELD);
 
@@ -140,7 +116,7 @@ int Love::Scan(lua_State * L)
 
 	if (touchUp & KEY_TOUCH)
 		Love::TouchReleased(L);
-
+	*/
 	return 0;
 }
 
@@ -167,9 +143,9 @@ int Love::Run(lua_State * L)
 	return 0;
 }
 
-void Love::GamepadPressed(lua_State * L, Gamepad * controller)
+/*void Love::GamepadPressed(lua_State * L, Gamepad * controller, SDL_Event event)
 {
-	string buttonDown = controller->ScanButtons(true);
+	Event::JoystickEvent(&event, controller);
 
 	if (buttonDown != "nil")
 	{
@@ -186,9 +162,9 @@ void Love::GamepadPressed(lua_State * L, Gamepad * controller)
 			lua_call(L, 2, 0);
 		}
 	}
-}
+}*/
 
-void Love::GamepadReleased(lua_State * L, Gamepad * controller)
+/*void Love::GamepadReleased(lua_State * L, Gamepad * controller)
 {
 	string buttonUp = controller->ScanButtons(false);
 
@@ -227,7 +203,7 @@ void Love::GamepadAxis(lua_State * L, Gamepad * controller, pair<string, float> 
 			lua_call(L, 3, 0);
 		}
 	}
-}
+}*/
 
 void Love::TouchPressed(lua_State * L)
 {

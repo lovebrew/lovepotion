@@ -1,11 +1,22 @@
 #include "common/runtime.h"
 
-#include "modules/joystick.h"
 #include "objects/gamepad/gamepad.h"
+#include "objects/gamepad/wrap_gamepad.h"
+#include "modules/joystick.h"
 
-void Joystick::Initialize()
+void Joystick::Initialize(lua_State * L)
 {
+	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+	
+	for (uint i = 0; i < 2; i++)
+		SDL_JoystickOpen(i);
+	
+	gamepadNew(L);
+}
 
+Gamepad * Joystick::GetJoystickFromID(int id)
+{
+	return controllers[id];
 }
 
 //Löve2D Functions

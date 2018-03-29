@@ -13,10 +13,13 @@ extern "C"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include <SDL2/SDL.h>
+
 #include "modules/audio.h"
 #include "common/exception.h"
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
+#include "modules/window.h"
 
 #include "modules/timer.h"
 
@@ -32,10 +35,12 @@ extern "C"
 
 #include "socket/socket.h"
 #include "modules/love.h"
+#include "modules/joystick.h"
 
 #include "boot_lua.h"
 
-#include "util.h"
+#include "common/types.h"
+#include "common/util.h"
 
 bool ERROR = false;
 bool LOVE_QUIT = false;
@@ -44,9 +49,11 @@ int main()
 {
 	//Console::Initialize();
 
-	Audio::Initialize();
-
 	Graphics::Initialize();
+	
+	Window::Initialize();
+
+	Audio::Initialize();
 
 	Filesystem::Initialize();
 
@@ -58,10 +65,10 @@ int main()
 
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
-	gamepadNew(L);
+	Joystick::Initialize(L);
 
-	lua_catchexception(L, [&]()
-	{ 
+	lua_catchexception(L, [L]() 
+	{
 		if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 			throw Exception(L);
 	});

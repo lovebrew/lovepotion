@@ -4,9 +4,8 @@ class Glyph
 {
 	public:
 		Glyph() {};
-		Glyph(uint code, FT_GlyphSlot slot, FT_Bitmap bitmap);
+		Glyph(uint code, FT_GlyphSlot & slot, FT_Bitmap bitmap);
 
-		int GetXAdvance();
 		int GetWidth();
 		int GetBearingX();
 
@@ -14,6 +13,7 @@ class Glyph
 		
 		std::pair<int, int> GetCorner();
 		std::pair<int, int> GetSize();
+		std::pair<int, int> GetAdvance();
 
 		int GetID();
 

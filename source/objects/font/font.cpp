@@ -14,7 +14,7 @@
 Font::Font(const char * path, int size)
 {
 	this->dpiScale = 1.0f;
-	size = floorf(size * dpiScale + 0.5f);
+	this->size = floorf(size * dpiScale + 0.5f);
 
 	int error = FT_New_Face(Graphics::GetFreetypeLibrary(), path, 0, &this->face);
 
@@ -23,19 +23,7 @@ Font::Font(const char * path, int size)
 	else if (error)
 		throw Exception("Invalid font file: %s", path);
 
-	error = FT_Set_Char_Size(this->face, 0, size << 6, 72, 72);
-
-	FT_UInt index;
-	FT_ULong character = FT_Get_First_Char(this->face, &index);
-
-	while (index != 0)
-	{
-		FT_Load_Glyph(this->face, character, FT_LOAD_DEFAULT);
-		
-		this->glyphs[character] = new Glyph(index, this->face->glyph, this->face->glyph->bitmap);
-		
-		character = FT_Get_Next_Char(this->face, character, &index);
-	}
+	error = FT_Set_Char_Size(this->face, 0, this->size << 6, 72, 72);
 }
 
 Font::Font(int size)
@@ -45,12 +33,17 @@ Font::Font(int size)
 
 	FT_New_Memory_Face(Graphics::GetFreetypeLibrary(), (const FT_Byte *)vera_ttf, vera_ttf_size, 0, &this->face);
 
-	FT_Set_Pixel_Sizes(this->face, size, size);
+	FT_Set_Char_Size(this->face, 0, this->size << 6, 72, 72);
 }
 
 Font::~Font()
 {
 	FT_Done_Face(this->face);
+}
+
+int Font::GetSize()
+{
+	return this->size;
 }
 
 int Font::GetKerning(int currentChar, int previousChar)
@@ -63,15 +56,16 @@ int Font::GetKerning(int currentChar, int previousChar)
 
 int Font::GetWidth(uint kerning, Glyph * glyph)
 {
-	int width = 0;
+	/*int width = 0;
 	std::pair<int, int> size = glyph->GetCorner();
 
 	if ((glyph->GetXAdvance() + kerning) < (size.first + kerning))
 		width += size.first + kerning;
 	else
 		width += glyph->GetXAdvance() + kerning;
+	*/
 
-	return width;
+	return 0;
 }
 
 FT_Face Font::GetFace()
@@ -79,15 +73,18 @@ FT_Face Font::GetFace()
 	return this->face;
 }
 
-bool Font::HasGlyph(uint glyph)
+bool Font::HasGlyph(FT_UInt glyph)
 {
 	return this->glyphs.find(glyph) != this->glyphs.end();
 }
 
-Glyph * Font::GetGlyph(uint glyph)
+int Font::GetGlyphData(FT_UInt glyph, FT_Face face, const string & field)
 {
-	if (this->HasGlyph(glyph))
-		return this->glyphs[glyph];
-	else
-		return nullptr; //spaaaaace
+	if (!this->HasGlyph(glyph))
+		this->glyphs[glyph] = Glyph(glyph, face->glyph, face->glyph->bitmap);
+
+	if (field == "cornerX")
+		return this->glyphs[glyph].GetCorner().first;
+	else if (field == "cornerY")
+		return this->glyphs[glyph].GetCorner().second;
 }

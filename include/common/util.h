@@ -13,13 +13,23 @@
 
 #define LOVE_PRESENT	"love.graphics.present()"
 
+#include <exception>
+
 void love_getfield(lua_State * L, const char * field);
 
 int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
+AudioType GetAudioType(const std::string & path);
+
+double clamp(double low, double x, double high);
+
+extern FILE * logFile;
+
 extern std::map<int, std::string> LANGUAGES;
 
-extern double clamp(double low, double x, double high);
+void logToFile(const std::string & data);
+
+void closeLog();
 
 /**
  * Converts any exceptions thrown by the passed lambda function into a Lua error.
@@ -39,6 +49,7 @@ int lua_catchexception(lua_State * L, const T & func)
 	catch (const std::exception & e)
 	{
 		should_error = true;
+	
 		lua_pushstring(L, e.what());
 	}
 

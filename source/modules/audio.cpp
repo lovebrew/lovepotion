@@ -11,11 +11,8 @@ bool AUDIO_ENABLED = false;
 
 void Audio::Initialize()
 {
-	AUDIO_ENABLED = !audoutInitialize();
-	if (!AUDIO_ENABLED)
-		printf("Audio output is disabled.");
-	else
-		audoutStartAudioOut();
+	if(Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 4096) != 0)
+		throw Exception("Failed to load audio!");
 }
 
 int Audio::Play(lua_State * L)

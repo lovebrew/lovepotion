@@ -13,6 +13,9 @@ extern "C"
 
 #include <switch.h>
 
+#include "common/types.h"
+#include "common/util.h"
+
 void love_getfield(lua_State * L, const char * field)
 {
 	lua_getfield(L, LUA_GLOBALSINDEX, "love");
@@ -31,9 +34,34 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name)
 	return 0;
 }
 
+AudioType GetAudioType(const std::string & path)
+{
+	size_t pos = path.find(".");
+	std::string split = path.substr(pos + 1);
+
+	if (split == "wav")
+		return AUDIO_WAV;
+	else if (split == "ogg")
+		return AUDIO_OGG;
+
+	return AUDIO_INVALID;
+}
+
 double clamp(double low, double value, double high)
 {
 	return std::min(high, std::max(low, value));
+}
+
+void logToFile(const std::string & data)
+{
+	fwrite((char *)data.data(), 1, data.length(), logFile);
+
+	fflush(logFile);
+}
+
+void closeLog()
+{
+	fclose(logFile);
 }
 
 std::map<int, std::string> LANGUAGES =

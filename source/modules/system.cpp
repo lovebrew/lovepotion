@@ -10,6 +10,7 @@ void System::Initialize()
 	** Region and language
 	*/
 	setInitialize();
+	//accountInitialize();
 }
 
 //Löve2D Functions
@@ -76,6 +77,45 @@ int System::HasWifiConnection(lua_State * L)
 //love.system.getUsername
 int System::GetUsername(lua_State * L)
 {
+	/*u128 userID = 0;
+	bool accountSelected = 0;
+	
+	AccountProfile profile;
+	AccountUserData userdata;
+	AccountProfileBase profilebase;
+
+	char username[0x21];
+
+	memset(&userdata, 0, sizeof(userdata));
+	memset(&profilebase, 0, sizeof(profilebase));
+
+	Result successCode = accountGetActiveUser(&userID, &accountSelected);
+
+	if (R_SUCCEEDED(successCode))
+	{
+		successCode = accountGetProfile(&profile, userID);
+
+		if (R_SUCCEEDED(successCode))
+		{
+			successCode = accountProfileGet(&profile, &userdata, &profilebase);
+
+			if (R_SUCCEEDED(successCode))
+			{
+				memset(username, 0, sizeof(username));
+				strncpy(username, profilebase.username, sizeof(profilebase.username));
+
+				lua_pushstring(L, username);
+
+				accountProfileClose(&profile);
+
+				return 1;
+			}
+		}
+	}
+
+	//In the event it fails, close it
+	accountProfileClose(&profile);*/
+
 	return 0;
 }
 
@@ -84,6 +124,7 @@ int System::GetUsername(lua_State * L)
 void System::Exit()
 {
 	setExit();
+	//accountExit();
 }
 
 int System::Register(lua_State * L)

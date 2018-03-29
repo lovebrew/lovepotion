@@ -8,8 +8,10 @@ void Console::Initialize(lua_State * L, bool error)
 	//gfxInitDefault();
 
 	if (!CONSOLE_INITIALIZED)
-		consoleInit(NULL);
+		consoleDebugInit(debugDevice_SVC);
 
+	stdout = stderr;
+	
 	CONSOLE_INITIALIZED = true;
 }
 

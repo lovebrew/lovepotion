@@ -5,23 +5,18 @@
 
 #include "objects/font/glyph.h"
 
-Glyph::Glyph(uint code, FT_GlyphSlot slot, FT_Bitmap bitmap)
+Glyph::Glyph(uint code, FT_GlyphSlot & slot, FT_Bitmap bitmap)
 {
 	this->id = code;
 
-	this->advanceX = slot->advance.x / 64;
-	this->advanceY = slot->advance.y / 64;
+	this->advanceX = slot->advance.x >> 6;
+	this->advanceY = slot->advance.y >> 6;
 
 	this->bitmapWidth = bitmap.width;
 	this->bitmapHeight = bitmap.rows;
 
 	this->top = slot->bitmap_top;
 	this->left = slot->bitmap_left;
-
-	this->bearingX = slot->metrics.horiBearingX / 64;
-
-	this->width = slot->metrics.width / 64;
-	this->height = slot->metrics.height / 64;
 
 	this->bitmap = bitmap;
 }
@@ -31,9 +26,9 @@ std::pair<int, int> Glyph::GetCorner()
 	return std::make_pair(this->top, this->left);
 }
 
-int Glyph::GetXAdvance()
+std::pair<int, int> Glyph::GetAdvance()
 {
-	return this->advanceX;
+	return std::make_pair(this->advanceX, this->advanceY);
 }
 
 std::pair<int, int> Glyph::GetSize()
@@ -44,11 +39,6 @@ std::pair<int, int> Glyph::GetSize()
 int Glyph::GetID()
 {
 	return this->id;
-}
-
-int Glyph::GetBearingX()
-{
-	return this->bearingX;
 }
 
 FT_Bitmap * Glyph::GetBitmap()

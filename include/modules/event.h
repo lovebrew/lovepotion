@@ -7,6 +7,8 @@
 
 namespace Event
 {
+	void JoystickEvent(lua_State * L, SDL_Event event);
+
 	//Löve2D Functions
 
 	int Quit(lua_State * L);

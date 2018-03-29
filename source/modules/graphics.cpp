@@ -4,6 +4,7 @@
 #include FT_FREETYPE_H
 
 #include "modules/graphics.h"
+#include "modules/window.h"
 
 #include "objects/image/image.h"
 #include "objects/image/wrap_image.h"
@@ -26,8 +27,8 @@ Font * currentFont;
 
 void Graphics::Initialize()
 {
-	if (!Console::IsInitialized())
-		gfxInitDefault();
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
+		throw Exception("Failed to load SDL2");
 
 	int error = FT_Init_FreeType(&FREETYPE_LIBRARY);
 	if (error)
@@ -75,7 +76,7 @@ void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
 	target[pos] = RGBA8(outR, outG, outB, outA);
 }
 
-void renderText(u32 * target, float x, float y, Glyph * glyph, FT_Bitmap * bitmap) 
+void renderText(u32 * target, float x, float y, FT_Bitmap * bitmap) 
 {
 	u32 screenwidth, screenheight;
 	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
@@ -83,8 +84,6 @@ void renderText(u32 * target, float x, float y, Glyph * glyph, FT_Bitmap * bitma
 	FT_UInt ix, iy;
 	u32 pos;
 	u32 color;
-
-	std::pair<int, int> size = glyph->GetSize();
 
 	for (iy = 0; iy < bitmap->rows; iy++)
 	{
@@ -165,9 +164,7 @@ int Graphics::Clear(lua_State * L)
 
 int Graphics::Present(lua_State * L)
 {
-	gfxSwapBuffers();
-	gfxWaitForVsync();
-	gfxFlushBuffers();
+	SDL_RenderPresent(Window::GetRenderer());
 	
 	return 0;
 }
@@ -237,33 +234,53 @@ int Graphics::Print(lua_State * L)
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
 
+	int error;
+
+	int pen_x = x;
+	int pen_y = y;
+
+	int advanceX = 0;
+	int advanceY = 0;
+
+	int offsetX = 0;
+	int offsetY = 0;
+
 	for (int i = 0; i < length; i++)
 	{
 		FT_Face face = currentFont->GetFace();
 
 		if (face)
 		{
-			int error = FT_Load_Char(face, text[i], FT_LOAD_RENDER | FT_LOAD_COLOR);
+			if (text[i] == '\n')
+			{
+				pen_y += currentFont->GetSize();
+				x = pen_x;
+			}
+			else
+			{
+				FT_UInt  glyph_index;
+				
+				/* retrieve glyph index from character code */
+				glyph_index = FT_Get_Char_Index(face, text[i]);
 
-			if (error)
-				continue;
+				/* load glyph image into the slot (erase previous one) */
+				error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
+				if ( error )
+					continue;  /* ignore errors */
 
-			Glyph * currentGlyph = currentFont->GetGlyph(text[i]);
-			Glyph * lastglyph = nullptr;
+				/* convert to an anti-aliased bitmap */
+				error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+				if ( error )
+					continue;
 
-			std::pair<int, int> corner = currentGlyph->GetCorner(); //<slot->bitmap_left, slot->bitmap_top>
-			std::pair<int, int> size = currentGlyph->GetSize(); //<slot->metrics.width / 64, slot->metrics.height / 64>
+				//offsetX = currentFont->GetGlyphData(glyph_index, face, "cornerX");
+				//offsetY = currentFont->GetGlyphData(glyph_index, face, "cornerY");
 
-			if (i > 0)
-				lastglyph = currentFont->GetGlyph(text[i - 1]);
-
-			if (lastglyph != nullptr)
-				x += currentFont->GetKerning(currentGlyph->GetID(), lastglyph->GetID());
-
-			//printf("%c top is %d\n", text[i], corner.second);
-			renderText(FRAMEBUFFER, x + corner.first, y - corner.second, currentGlyph, &face->glyph->bitmap);
-			
-			x += currentGlyph->GetXAdvance();
+				renderText(FRAMEBUFFER, x + face->glyph->bitmap_left, pen_y - face->glyph->bitmap_top, &face->glyph->bitmap);
+				
+				x += face->glyph->advance.x >> 6;
+				pen_y += face->glyph->advance.y >> 6;
+			}
 		}
 	}
 

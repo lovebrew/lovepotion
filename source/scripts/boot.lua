@@ -49,8 +49,8 @@ end
 love.filesystem.setIdentity(config.identity)
 love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
---local defaultFont = love.graphics.newFont(64)
---love.graphics.setFont(defaultFont)
+local defaultFont = love.graphics.newFont()
+love.graphics.setFont(defaultFont)
 
 --love.enableScreen(config.window.top, config.window.bottom);
 
@@ -204,10 +204,7 @@ function love.errhand(message)
 	local function draw()
 		love.graphics.clear()
 
-		love.graphics.print("Error", 16, 30)
-		--love.graphics.print(message, 16, 58)
-
-		--love.graphics.print("Press + to Quit", 16, love.graphics.getHeight() - 30)
+		love.graphics.print(realError, 16, 58)
 
 		love.graphics.present()
 	end
