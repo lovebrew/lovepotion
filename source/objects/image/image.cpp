@@ -13,10 +13,10 @@ Image::Image(const char * path)
 	exists.Close();
 
 	unsigned width, height;
-	u16 error = lodepng::decode(sheet, width, height, path);
+	//u16 error = lodepng::decode(sheet, width, height, path);
 
-	if (error)
-		throw Exception("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), path);
+	//if (error)
+	//	throw Exception("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), path);
 
 	this->width = width;
 	this->height = height;

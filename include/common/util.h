@@ -25,6 +25,8 @@ double clamp(double low, double x, double high);
 
 extern FILE * logFile;
 
+extern std::vector<std::string> KEYS;
+
 extern std::map<int, std::string> LANGUAGES;
 
 void logToFile(const std::string & data);

@@ -15,8 +15,9 @@ extern "C"
 }
 
 //Libs
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
+#include <SDL.h>
+#include <SDL_mixer.h>
+#include <png.h>
 
 //C++ headers
 #include <exception>
@@ -37,8 +38,6 @@ extern "C"
 #include "common/exception.h"
 
 #include <switch.h>
-
-#include <lodepng.h>
 
 using std::string;
 using std::vector;

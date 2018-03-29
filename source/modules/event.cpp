@@ -46,7 +46,7 @@ void Event::JoystickEvent(lua_State * L, SDL_Event event)
 					lua_gettable(L, -2);
 					lua_remove(L, -2);
 
-					lua_pushnumber(L, event.jbutton.button);
+					lua_pushstring(L, KEYS[event.jbutton.button].c_str());
 					lua_call(L, 2, 0);
 				}
 				break;

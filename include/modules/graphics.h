@@ -23,6 +23,10 @@ namespace Graphics
 	int GetBackgroundColor(lua_State * L);
 	int SetBackgroundColor(lua_State * L);
 
+	int Rectangle(lua_State * L);
+	
+	int SetColor(lua_State * L);
+
 	int GetRendererInfo(lua_State * L);
 
 	int SetFont(lua_State * L);

@@ -9,6 +9,7 @@ extern "C"
 }
 
 #include <map>
+#include <vector>
 #include <stdarg.h>
 
 #include <switch.h>
@@ -81,4 +82,14 @@ std::map<int, std::string> LANGUAGES =
 	{SetLanguage_ENGB,	"British English"		},
 	{SetLanguage_FRCA,	"Canadian French"		},
 	{SetLanguage_ES419, "Latin American Spanish"}
+};
+
+std::vector<std::string> KEYS =
+{
+	"a", "b", "x", "y",
+	"leftstick", "rightstick",
+	"l", "r", "zl", "zr",
+	"plus", "minus", "dpleft",
+	"dpup", "dpright", "dpdown",
+	"", "", "", "", "", "", "", ""
 };

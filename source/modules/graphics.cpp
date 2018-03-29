@@ -18,7 +18,9 @@
 
 bool isInitialized = false;
 u32 * FRAMEBUFFER;
-u32 backgroundColor = 0xFF000000;
+
+Color backgroundColor = { 0, 0, 0, 255 };
+Color drawColor = { 0, 0, 0, 255 };
 
 FT_Library FREETYPE_LIBRARY;
 Font * currentFont;
@@ -37,45 +39,6 @@ void Graphics::Initialize()
 	isInitialized = true;
 }
 
-void renderto(u32* target, u32 pos, u8 r, u8 g, u8 b, u8 a)
-{ // for adding alpha values and such
-	u32 currentColor = target[pos];
-	double curR = (double)(currentColor & 0x000000FF);
-	double curG = (double)(currentColor & 0x0000FF00 >> 8);
-	double curB = (double)(currentColor & 0x00FF0000 >> 16);
-	double curA = (double)(currentColor & 0xFF000000 >> 24) / 255.0;
-
-	double newR = (double)r;
-	double newG = (double)g;
-	double newB = (double)b;
-	double newA = (double)a / 255.0;
-
-	u8 outR, outG, outB, outA;
-
-	if ((curA * 255) > 0 && (newA * 255) > 0) // check if both alpha channels exist
-	{
-		double invA = (1.0 - newA);
-		double mixA = (1.0 - invA * (1.0 - curA));
-		invA = curA * invA / mixA;
-		newA = newA / mixA;
-		outR = curR * invA + newR * newA;
-		outG = curG * invA + newG * newA;
-		outB = curB * invA + newB * newA;
-		outA = mixA * 255;
-	}
-	else if ((newA * 255) > 0) // if no color exists, add some
-	{
-		outR = newR;
-		outG = newG;
-		outB = newB;
-		outA = newA;
-	}
-	else // if theres no color (alpha==0) to add, keep the color there
-		return;
-
-	target[pos] = RGBA8(outR, outG, outB, outA);
-}
-
 void renderText(u32 * target, float x, float y, FT_Bitmap * bitmap) 
 {
 	u32 screenwidth, screenheight;
@@ -92,7 +55,7 @@ void renderText(u32 * target, float x, float y, FT_Bitmap * bitmap)
 			pos = (iy + y) * screenwidth + x + ix;
 			color = bitmap->buffer[iy * bitmap->width + ix];
 	
-			renderto(FRAMEBUFFER, pos, color, color, color, 255); //it's all just gonna be split to RGBA anyways
+			//renderto(FRAMEBUFFER, pos, color, color, color, 255); //it's all just gonna be split to RGBA anyways
 		} 
 	}
 }
@@ -126,38 +89,41 @@ int Graphics::SetBackgroundColor(lua_State * L)
 	outG = g * 255;
 	outB = b * 255;
 
-	backgroundColor = RGBA8(outR, outG, outB, 255);
+	backgroundColor.r = outR;
+	backgroundColor.g = outG;
+	backgroundColor.b = outG;
 
 	return 0;
 }
 
+int Graphics::SetColor(lua_State * L)
+{
+	double r = clamp(0, luaL_optnumber(L, 1, 0), 1);
+	double g = clamp(0, luaL_optnumber(L, 2, 0), 1);
+	double b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+	double a = clamp(0, luaL_optnumber(L, 4, 1), 1);
+
+	drawColor.r = r * 255;
+	drawColor.g = g * 255;
+	drawColor.b = b * 255;
+	drawColor.a = a * 255;
+
+	SDL_SetRenderDrawColor(Window::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+}
+
 int Graphics::GetBackgroundColor(lua_State * L)
 {
-	u8 r = (backgroundColor & 0x000000FF);
-	u8 g = (backgroundColor & 0x0000FF00 >> 8);
-	u8 b = (backgroundColor & 0x00FF0000 >> 16);
-
-	lua_pushnumber(L, r);
-	lua_pushnumber(L, g);
-	lua_pushnumber(L, b);
+	lua_pushnumber(L, backgroundColor.r / 255);
+	lua_pushnumber(L, backgroundColor.g / 255);
+	lua_pushnumber(L, backgroundColor.b / 255);
 
 	return 3;
 }
 
 int Graphics::Clear(lua_State * L)
 {
-	u32 width, height;
-	FRAMEBUFFER = (u32 *)gfxGetFramebuffer((u32*)&width, (u32*)&height);
-
-	for (u32 y = 0; y < height; y++)
-	{
-		for (u32 x = 0; x < width; x++)
-		{
-			u32 pos = y * width + x;
-
-			FRAMEBUFFER[pos] = backgroundColor;
-		}
-	}
+	SDL_SetRenderDrawColor(Window::GetRenderer(), backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
+	SDL_RenderClear(Window::GetRenderer());
 
 	return 0;
 }
@@ -187,7 +153,7 @@ int Graphics::Draw(lua_State * L)
 	float x = luaL_optnumber(L, start + 0, 0);
 	float y = luaL_optnumber(L, start + 1, 0);
 
-	vector<u8> data = graphic->GetImage();
+	/*vector<u8> data = graphic->GetImage();
 	u16 width = graphic->GetWidth();
 	u16 height = graphic->GetHeight();
 
@@ -211,7 +177,7 @@ int Graphics::Draw(lua_State * L)
 			color = (fy * width + fx) * 4;
 			renderto(FRAMEBUFFER, pos, data[color + 0], data[color + 1], data[color + 2], data[color + 3]);
 		}
-	}
+	}*/
 
 	return 0;
 }
@@ -287,6 +253,25 @@ int Graphics::Print(lua_State * L)
 	return 0;
 }
 
+int Graphics::Rectangle(lua_State * L)
+{
+	string mode = (string)luaL_checkstring(L, 1);
+
+	double x = luaL_optnumber(L, 2, 0);
+	double y = luaL_optnumber(L, 3, 0);
+
+	double width = luaL_checknumber(L, 4);
+	double height = luaL_checknumber(L, 5);
+
+	SDL_Rect rectangle = {x, y, width, height};
+	
+	if (mode == "fill")
+		SDL_RenderFillRect(Window::GetRenderer(), &rectangle);
+	else if (mode == "line")
+		SDL_RenderDrawRect(Window::GetRenderer(), &rectangle);
+
+}
+
 int Graphics::GetRendererInfo(lua_State * L)
 {
 	lua_pushstring(L, "OpenGL");
@@ -326,8 +311,10 @@ int Graphics::Register(lua_State * L)
 		{ "draw",				Draw				},
 		{ "print",				Print				},
 		{ "setFont",			SetFont				},
+		{ "rectangle",			Rectangle			},
 		{ "clear",				Clear				},
 		{ "present",			Present				},
+		{ "setColor",			SetColor			},
 		{ "setBackgroundColor",	SetBackgroundColor	},
 		{ "getBackgroundColor",	GetBackgroundColor	},
 		{ "getWidth",			GetWidth			},

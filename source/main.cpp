@@ -13,7 +13,7 @@ extern "C"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "modules/audio.h"
 #include "common/exception.h"
