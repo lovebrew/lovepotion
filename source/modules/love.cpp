@@ -29,7 +29,7 @@
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-	{ "audio",		Audio::Register,		Audio::Exit			},
+	{ "audio",		Audio::Register,		NULL				},
 	{ "event",		Event::Register,		NULL				},
 	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		NULL				},
@@ -143,69 +143,7 @@ int Love::Run(lua_State * L)
 	return 0;
 }
 
-/*void Love::GamepadPressed(lua_State * L, Gamepad * controller, SDL_Event event)
-{
-	Event::JoystickEvent(&event, controller);
-
-	if (buttonDown != "nil")
-	{
-		love_getfield(L, "gamepadpressed");
-
-		if (!lua_isnil(L, -1))
-		{
-			lua_getglobal(L, "__controllers");
-			lua_pushlightuserdata(L, controller);
-			lua_gettable(L, -2);
-			lua_remove(L, -2);
-
-			lua_pushstring(L, buttonDown.c_str());
-			lua_call(L, 2, 0);
-		}
-	}
-}*/
-
-/*void Love::GamepadReleased(lua_State * L, Gamepad * controller)
-{
-	string buttonUp = controller->ScanButtons(false);
-
-	if (buttonUp != "nil")
-	{
-		love_getfield(L, "gamepadreleased");
-
-		if (!lua_isnil(L, -1))
-		{
-			lua_getglobal(L, "__controllers");
-			lua_pushlightuserdata(L, controller);
-			lua_gettable(L, -2);
-			lua_remove(L, -2);
-
-			lua_pushstring(L, buttonUp.c_str());
-			lua_call(L, 2, 0);
-		}
-	}
-}
-
-void Love::GamepadAxis(lua_State * L, Gamepad * controller, pair<string, float> & data)
-{
-	if (data.second != 0)
-	{
-		love_getfield(L, "gamepadaxis");
-
-		if (!lua_isnil(L, -1))
-		{
-			lua_getglobal(L, "__controllers");
-			lua_pushlightuserdata(L, controller);
-			lua_gettable(L, -2);
-			lua_remove(L, -2);
-
-			lua_pushstring(L, data.first.c_str());
-			lua_pushnumber(L, data.second);
-			lua_call(L, 3, 0);
-		}
-	}
-}*/
-
-void Love::TouchPressed(lua_State * L)
+/*void Love::TouchPressed(lua_State * L)
 {
 	touchPosition touch;
 
@@ -331,12 +269,12 @@ void Love::TouchReleased(lua_State * L)
 					lua_pushinteger(L, 0);
 					lua_pushinteger(L, 1);
 
-					lua_call(L, 6, 0);*/
+					lua_call(L, 6, 0);
 				}
 			}
 		}
 	}
-}
+}*/
 
 int Love::GetVersion(lua_State * L)
 {

@@ -7,16 +7,14 @@ class Font
 		Font(int size = 16);
 		~Font();
 
-		FT_Face GetFace();
-		int GetKerning(int currentChar, int previousChar);
+		SDL_Surface * GetSurface();
 		bool HasGlyph(uint glyph);
-		int GetGlyphData(FT_UInt glyph, FT_Face face, const std::string & field);
-		int GetWidth(uint kerning, Glyph * glyph);
+		int GetWidth(uint glyph);
 		int GetSize();
+		TTF_Font * GetFont();
 
 	private:
-		FT_Face face;
-		float dpiScale;
-		std::map<FT_UInt, Glyph> glyphs;
-		int size;
+		TTF_Font * font;
+		SDL_Surface * surface;
+		float size;
 };

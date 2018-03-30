@@ -10,11 +10,10 @@ class Image
 		u16 GetWidth();
 		u16 GetHeight();
 
-		vector<u8> GetImage();
+		SDL_Texture * GetImage();
 
 	private:
 		u32 width;
 		u32 height;
-
-		vector<u8> sheet;
+		SDL_Texture * texture;
 };

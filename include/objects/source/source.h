@@ -12,42 +12,17 @@ class Source
 		bool IsLooping();
 		bool IsPlaying();
 		void Stop();
-		void Reset();
-		void Update();
+		void Pause();
+		void Resume();
 		bool IsStatic();
 		void SetVolume(float volume);
-
-		int GetAudioChannel();
-		const char * GetPath();
-
 	private:
-		void Decode();
-		void FillBuffer(void * audio);
+		Mix_Chunk * sound;
+		Mix_Music * music;
 
-		const char * path;
-		AudioOutBuffer buffer;
-
-		FILE * fileHandle;
-		OggVorbis_File vorbisFile;
-
-		char * data;
-		int audiochannel;
-
-		u32 rate;
-		u32 channels;
-		u32 encoding;
-		u32 nsamples;
-		u32 size;
-		u32 bitrate;
-		u32 rawSize;
-
-		int currentSection;
-
+		int channel;
 		bool loop;
-		bool reset;
-
 		bool stream;
-		bool playing;
 };
 
 extern std::map<int, Source *> streams;

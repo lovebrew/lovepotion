@@ -10,10 +10,14 @@ namespace Audio
 {
 	void Initialize();
 
+	int GetOpenChannel();
+
 	//Löve2D Functions
 
 	int Play(lua_State * L);
 	int Stop(lua_State * L);
+	int Pause(lua_State * L);
+	int Resume(lua_State * L);
 	
 	int SetVolume(lua_State * L);
 

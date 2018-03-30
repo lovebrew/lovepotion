@@ -22,18 +22,6 @@ namespace Love
 
 	int Run(lua_State * L);
 
-	void GamepadAxis(lua_State * L, Gamepad * controller, std::pair<std::string, float> & data);
-
-	void GamepadPressed(lua_State * L, Gamepad * controller);
-
-	void GamepadReleased(lua_State * L, Gamepad * controller);
-
-	void TouchPressed(lua_State * L);
-
-	void TouchMoved(lua_State * L);
-
-	void TouchReleased(lua_State * L);
-
 	int NoGame(lua_State * L);
 
 	void Exit(lua_State * L);

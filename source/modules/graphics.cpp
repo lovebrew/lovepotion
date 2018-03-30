@@ -19,8 +19,8 @@
 bool isInitialized = false;
 u32 * FRAMEBUFFER;
 
-Color backgroundColor = { 0, 0, 0, 255 };
-Color drawColor = { 0, 0, 0, 255 };
+SDL_Color backgroundColor = { 0, 0, 0, 255 };
+SDL_Color drawColor = { 0, 0, 0, 255 };
 
 FT_Library FREETYPE_LIBRARY;
 Font * currentFont;
@@ -29,8 +29,10 @@ Font * currentFont;
 
 void Graphics::Initialize()
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
+	if (SDL_Init(SDL_INIT_VIDEO) != 0)
 		throw Exception("Failed to load SDL2");
+
+	TTF_Init();
 
 	int error = FT_Init_FreeType(&FREETYPE_LIBRARY);
 	if (error)
@@ -153,31 +155,13 @@ int Graphics::Draw(lua_State * L)
 	float x = luaL_optnumber(L, start + 0, 0);
 	float y = luaL_optnumber(L, start + 1, 0);
 
-	/*vector<u8> data = graphic->GetImage();
-	u16 width = graphic->GetWidth();
-	u16 height = graphic->GetHeight();
+	SDL_Texture * texture = graphic->GetImage();
+	SDL_Rect positionRectangle;
 
-	u32 pos, color;
-	for (u16 fy = 0; fy < height; fy++) //Access the buffer linearly.
-	{
-		if ((fy + y) < 0.0) // above screen, skip draw until on screen
-			continue;
-		if ((fy + y) >= screenheight) // below screen, end draw
-			break;
+	if (quad == nullptr)
+		positionRectangle = {x, y, graphic->GetWidth(), graphic->GetHeight()};
 
-		for (u16 fx = 0; fx < width; fx++)
-		{
-			if ((fx + x) < 0.0) // outside the screen on the left
-				continue;
-			if ((fx + x) >= screenwidth) // outside the screen on the right
-				break;
-
-			pos = (fy + y) * screenwidth + fx + x;
-
-			color = (fy * width + fx) * 4;
-			renderto(FRAMEBUFFER, pos, data[color + 0], data[color + 1], data[color + 2], data[color + 3]);
-		}
-	}*/
+	SDL_RenderCopy(Window::GetRenderer(), texture, NULL, &positionRectangle);
 
 	return 0;
 }
@@ -199,56 +183,13 @@ int Graphics::Print(lua_State * L)
 	
 	float x = luaL_optnumber(L, 2, 0);
 	float y = luaL_optnumber(L, 3, 0);
+	
+	SDL_Rect position;
+	position.x = x;
+	position.y = y;
 
-	int error;
-
-	int pen_x = x;
-	int pen_y = y;
-
-	int advanceX = 0;
-	int advanceY = 0;
-
-	int offsetX = 0;
-	int offsetY = 0;
-
-	for (int i = 0; i < length; i++)
-	{
-		FT_Face face = currentFont->GetFace();
-
-		if (face)
-		{
-			if (text[i] == '\n')
-			{
-				pen_y += currentFont->GetSize();
-				x = pen_x;
-			}
-			else
-			{
-				FT_UInt  glyph_index;
-				
-				/* retrieve glyph index from character code */
-				glyph_index = FT_Get_Char_Index(face, text[i]);
-
-				/* load glyph image into the slot (erase previous one) */
-				error = FT_Load_Glyph(face, glyph_index, FT_LOAD_DEFAULT);
-				if ( error )
-					continue;  /* ignore errors */
-
-				/* convert to an anti-aliased bitmap */
-				error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-				if ( error )
-					continue;
-
-				//offsetX = currentFont->GetGlyphData(glyph_index, face, "cornerX");
-				//offsetY = currentFont->GetGlyphData(glyph_index, face, "cornerY");
-
-				renderText(FRAMEBUFFER, x + face->glyph->bitmap_left, pen_y - face->glyph->bitmap_top, &face->glyph->bitmap);
-				
-				x += face->glyph->advance.x >> 6;
-				pen_y += face->glyph->advance.y >> 6;
-			}
-		}
-	}
+	SDL_Surface * source = TTF_RenderText_Blended(currentFont->GetFont(), text, drawColor);
+	SDL_BlitSurface(source, NULL, Window::GetSurface(), &position);
 
 	return 0;
 }
@@ -298,7 +239,7 @@ void Graphics::Exit()
 {
 	FT_Done_FreeType(FREETYPE_LIBRARY);
 
-	gfxExit();
+	SDL_Quit();
 }
 
 int Graphics::Register(lua_State * L)

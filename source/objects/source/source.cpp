@@ -1,21 +1,49 @@
 #include "common/runtime.h"
 
-#include <vorbis/codec.h>
-#include <vorbis/vorbisfile.h>
-
 #include "objects/source/source.h"
+#include "modules/audio.h"
 
 Source::Source(const char * path, bool stream)
 {
-	printf("%d\n", GetAudioType(string(path)));
+	if (stream)
+		this->music = Mix_LoadMUS(path);
+	else
+		this->sound = Mix_LoadWAV(path);
+
+	this->channel = Audio::GetOpenChannel();
+	this->stream = stream;
 }
 
 bool Source::IsPlaying()
 {
-	//AudioOutState state;
-	//audoutGetAudioOutState(&state);
+	if (!this->stream)
+		return Mix_Playing(this->channel);
+	else
+		return Mix_PlayingMusic();
+}
 
-	return false;
+void Source::Pause()
+{
+	if (!this->stream)
+		Mix_Pause(this->channel);
+	else
+		Mix_PauseMusic();
+}
+
+void Source::Stop()
+{
+	if (!this->stream)
+		Mix_HaltChannel(this->channel);
+	else
+		Mix_HaltMusic();
+}
+
+void Source::Resume()
+{
+	if (!this->stream)
+		Mix_Resume(this->channel);
+	else
+		Mix_ResumeMusic();
 }
 
 bool Source::IsLooping()
@@ -30,11 +58,10 @@ void Source::SetLooping(bool loop)
 
 void Source::Play()
 {
-	this->buffer.next = 0;
-	this->buffer.buffer = this->data;
-	this->buffer.buffer_size = this->rawSize;
-	this->buffer.data_size = this->size;
-	this->buffer.data_offset = 0;
+	int loops = (this->loop) ? -1 : 0;
 
-	audoutAppendAudioOutBuffer(&this->buffer);
+	if (!this->stream)
+		Mix_PlayChannel(this->channel, this->sound, loops);
+	else
+		Mix_PlayMusic(this->music, loops);
 }

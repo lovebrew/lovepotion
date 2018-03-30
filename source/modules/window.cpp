@@ -3,6 +3,7 @@
 
 SDL_Window * WINDOW;
 SDL_Renderer * RENDERER;
+SDL_Surface * WINDOW_SURFACE;
 
 // create a 800x600 window for demonstration.
 // if SDL_WINDOW_FULLSCREEN flag is passed, it will be hardware scaled (stretched) to fit screen,
@@ -19,9 +20,16 @@ void Window::Initialize()
 
 	if (!RENDERER)
 		SDL_Quit();
+
+	WINDOW_SURFACE = SDL_GetWindowSurface(WINDOW);
 }
 
 SDL_Renderer * Window::GetRenderer()
 {
 	return RENDERER;
+}
+
+SDL_Surface * Window::GetSurface()
+{
+	return WINDOW_SURFACE;
 }

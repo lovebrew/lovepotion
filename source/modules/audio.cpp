@@ -1,20 +1,36 @@
 #include "common/runtime.h"
 #include "modules/audio.h"
 
-#include <vorbis/codec.h>
-#include <vorbis/vorbisfile.h>
-
 #include "objects/source/source.h"
 #include "objects/source/wrap_source.h"
 
 bool AUDIO_ENABLED = false;
+vector<bool> audioChannels(8);
 
 void Audio::Initialize()
 {
+	SDL_InitSubSystem(SDL_INIT_AUDIO);
+
 	if(Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 4096) != 0)
 		throw Exception("Failed to load audio!");
 }
 
+int Audio::GetOpenChannel()
+{
+	for (uint i = 0; i < audioChannels.size(); i++)
+	{
+		if (!audioChannels[i])
+		{
+			audioChannels[i] = true;
+			return i;
+		}
+	}
+	return -1;
+}
+
+//Löve2D Functions
+
+//love.audio.play
 int Audio::Play(lua_State * L)
 {
 	Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
@@ -24,24 +40,67 @@ int Audio::Play(lua_State * L)
 	return 0;
 }
 
+//love.audio.stop
 int Audio::Stop(lua_State * L) 
 {
+	if (lua_isnoneornil(L, 1))
+		Mix_HaltChannel(-1);
+	else
+	{
+		Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
+
+		self->Stop();
+	}
+
 	return 0;
 }
 
+int Audio::Pause(lua_State * L)
+{
+	if (lua_isnoneornil(L, 1))
+	{
+		Mix_Pause(-1);
+		Mix_PauseMusic();
+	}
+	else
+	{
+		Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
+
+		self->Pause();
+	}
+
+	return 0;
+}
+
+int Audio::Resume(lua_State * L)
+{
+	if (lua_isnoneornil(L, 1))
+	{
+		Mix_Resume(-1);
+		Mix_ResumeMusic();
+	}
+	else
+	{
+		Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
+
+		self->Resume();
+	}
+
+	return 0;
+}
+
+//love.audio.setVolume
 int Audio::SetVolume(lua_State * L)
 {
+	double volume = clamp(0, luaL_checknumber(L, 1), 1);
+
+	Mix_Volume(-1, MIX_MAX_VOLUME * volume);
+	Mix_VolumeMusic(MIX_MAX_VOLUME * volume);
+
 	return 0;
 }
 
-void Audio::Exit()
-{
-	if (AUDIO_ENABLED)
-	{
-		audoutStopAudioOut();
-		audoutExit();
-	}
-}
+//End Löve2D Functions
 
 int Audio::Register(lua_State * L)
 {
@@ -50,6 +109,8 @@ int Audio::Register(lua_State * L)
 		{ "newSource",	sourceNew	},
 		{ "play",		Play		},
 		{ "stop",		Stop		},
+		{ "pause",		Pause		},
+		{ "resume",		Resume		},
 		{ "setVolume",	SetVolume	},
 		{ 0, 0 },
 	};

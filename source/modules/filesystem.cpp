@@ -22,15 +22,7 @@ bool Filesystem::Initialize()
 	if (!ROMFS_INIT)
 		return false;
 	else
-	{
-		char cwd[256];
-		
-		getcwd(cwd, 256);
-		strcat(cwd, "game/");
-		
-		//chdir("romfs:/");
-		chdir(cwd);
-	}
+		chdir("game");
 
 	mkdir(SAVE_DIR.c_str(), 0777);
 	

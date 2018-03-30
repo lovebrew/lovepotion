@@ -6,5 +6,7 @@ namespace Window
 
 	SDL_Renderer * GetRenderer();
 
+	SDL_Surface * GetSurface();
+
 	void Exit();
 }

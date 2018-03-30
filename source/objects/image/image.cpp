@@ -2,6 +2,7 @@
 
 #include "objects/file/file.h"
 #include "objects/image/image.h"
+#include "modules/window.h"
 
 Image::Image(const char * path)
 {
@@ -12,15 +13,14 @@ Image::Image(const char * path)
 		throw Exception("File does not exit: %s", path);
 	exists.Close();
 
-	unsigned width, height;
-	//u16 error = lodepng::decode(sheet, width, height, path);
+	SDL_Surface * surface = IMG_Load(path);
 
-	//if (error)
-	//	throw Exception("Error %u: %s\nFilename: %s\n", error, lodepng_error_text(error), path);
+	this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), surface);
 
-	this->width = width;
-	this->height = height;
+	this->width = surface->w;
+	this->height = surface->h;
 
+	SDL_FreeSurface(surface);
 }
 
 u16 Image::GetWidth()
@@ -33,9 +33,9 @@ u16 Image::GetHeight()
 	return this->height;
 }
 
-vector<u8> Image::GetImage()
+SDL_Texture * Image::GetImage()
 {
-	return this->sheet;
+	return this->texture;
 }
 
 Image::~Image() {}
