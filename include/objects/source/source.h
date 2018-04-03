@@ -17,6 +17,8 @@ class Source
 		bool IsStatic();
 		void SetVolume(float volume);
 	private:
+		bool IsValid();
+
 		Mix_Chunk * sound;
 		Mix_Music * music;
 

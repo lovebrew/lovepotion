@@ -20,6 +20,7 @@ extern "C"
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
 #include "modules/window.h"
+#include "modules/system.h"
 
 #include "modules/timer.h"
 
@@ -48,6 +49,8 @@ bool LOVE_QUIT = false;
 int main()
 {
 	//Console::Initialize();
+
+	System::Initialize();
 
 	Graphics::Initialize();
 	

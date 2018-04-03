@@ -155,13 +155,28 @@ int Graphics::Draw(lua_State * L)
 	float x = luaL_optnumber(L, start + 0, 0);
 	float y = luaL_optnumber(L, start + 1, 0);
 
+	double rotation = luaL_optnumber(L, start + 2, 0);
+	SDL_Point point = {0, 0};
+
 	SDL_Texture * texture = graphic->GetImage();
+	
 	SDL_Rect positionRectangle;
+	SDL_Rect quadRectangle;
 
 	if (quad == nullptr)
+	{
 		positionRectangle = {x, y, graphic->GetWidth(), graphic->GetHeight()};
+		
+		SDL_RenderCopy(Window::GetRenderer(), texture, NULL, &positionRectangle);
+	}
+	else
+	{
+		quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
+		positionRectangle = {x, y, quad->GetWidth(), quad->GetHeight()};
+	
+		SDL_RenderCopyEx(Window::GetRenderer(), texture, &quadRectangle, &positionRectangle, rotation, &point, SDL_FLIP_NONE);
+	}
 
-	SDL_RenderCopy(Window::GetRenderer(), texture, NULL, &positionRectangle);
 
 	return 0;
 }

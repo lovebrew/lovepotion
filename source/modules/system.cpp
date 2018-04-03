@@ -10,7 +10,7 @@ void System::Initialize()
 	** Region and language
 	*/
 	setInitialize();
-	accountInitialize();
+	//accountInitialize();
 }
 
 //Löve2D Functions
@@ -125,7 +125,7 @@ int System::GetUsername(lua_State * L)
 void System::Exit()
 {
 	setExit();
-	accountExit();
+	//accountExit();
 }
 
 int System::Register(lua_State * L)

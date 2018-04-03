@@ -10,12 +10,16 @@ Source::Source(const char * path, bool stream)
 	else
 		this->sound = Mix_LoadWAV(path);
 
+	this->loop = false;
 	this->channel = Audio::GetOpenChannel();
 	this->stream = stream;
 }
 
 bool Source::IsPlaying()
 {
+	if (!this->IsValid())
+		return false;
+
 	if (!this->stream)
 		return Mix_Playing(this->channel);
 	else
@@ -24,6 +28,9 @@ bool Source::IsPlaying()
 
 void Source::Pause()
 {
+	if (!this->IsValid())
+		return;
+
 	if (!this->stream)
 		Mix_Pause(this->channel);
 	else
@@ -32,6 +39,9 @@ void Source::Pause()
 
 void Source::Stop()
 {
+	if (!this->IsValid())
+		return;
+
 	if (!this->stream)
 		Mix_HaltChannel(this->channel);
 	else
@@ -40,6 +50,9 @@ void Source::Stop()
 
 void Source::Resume()
 {
+	if (!this->IsValid())
+		return;
+
 	if (!this->stream)
 		Mix_Resume(this->channel);
 	else
@@ -58,10 +71,23 @@ void Source::SetLooping(bool loop)
 
 void Source::Play()
 {
+	if (!this->IsValid())
+		return;
+
 	int loops = (this->loop) ? -1 : 0;
 
 	if (!this->stream)
 		Mix_PlayChannel(this->channel, this->sound, loops);
 	else
 		Mix_PlayMusic(this->music, loops);
+}
+
+bool Source::IsValid()
+{
+	if (this->stream && this->music)
+		return true;
+	else if (!this->stream && this->sound)
+		return true;
+	
+	return false;
 }
