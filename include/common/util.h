@@ -19,8 +19,6 @@ void love_getfield(lua_State * L, const char * field);
 
 int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
-AudioType GetAudioType(const std::string & path);
-
 double clamp(double low, double x, double high);
 
 extern FILE * logFile;

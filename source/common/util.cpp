@@ -35,19 +35,6 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name)
 	return 0;
 }
 
-AudioType GetAudioType(const std::string & path)
-{
-	size_t pos = path.find(".");
-	std::string split = path.substr(pos + 1);
-
-	if (split == "wav")
-		return AUDIO_WAV;
-	else if (split == "ogg")
-		return AUDIO_OGG;
-
-	return AUDIO_INVALID;
-}
-
 double clamp(double low, double value, double high)
 {
 	return std::min(high, std::max(low, value));

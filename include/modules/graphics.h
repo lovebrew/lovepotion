@@ -23,6 +23,14 @@ namespace Graphics
 	int GetBackgroundColor(lua_State * L);
 	int SetBackgroundColor(lua_State * L);
 
+	int Push(lua_State * L);
+	int Pop(lua_State * L);
+	int Translate(lua_State * L);
+	int Scale(lua_State * L);
+	int Rotate(lua_State * L);
+	int Shear(lua_State * L);
+	int Origin(lua_State * L);
+
 	int Rectangle(lua_State * L);
 	
 	int SetColor(lua_State * L);

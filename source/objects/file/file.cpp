@@ -5,7 +5,7 @@
 
 File::File(const char * path)
 {
-	this->path = path;
+	this->path = strdup(path);
 	this->open = false;
 }
 

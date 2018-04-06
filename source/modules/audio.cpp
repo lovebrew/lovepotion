@@ -100,6 +100,15 @@ int Audio::SetVolume(lua_State * L)
 	return 0;
 }
 
+void Audio::Exit()
+{
+	printf("Closing audio\n");
+	//Mix_CloseAudio();
+
+	printf("SDL_QuitSubsys: Audio\n");
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
+}
+
 //End Löve2D Functions
 
 int Audio::Register(lua_State * L)

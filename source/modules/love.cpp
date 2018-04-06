@@ -29,7 +29,7 @@
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-	{ "audio",		Audio::Register,		NULL				},
+	{ "audio",		Audio::Register,		Audio::Exit			},
 	{ "event",		Event::Register,		NULL				},
 	{ "filesystem",	Filesystem::Register,	NULL				},
 	{ "graphics",	Graphics::Register,		NULL				},
@@ -95,28 +95,8 @@ bool Love::IsRunning()
 SDL_Event event;
 int Love::Scan(lua_State * L)
 {
-	//joycon/controllers
-	//hidScanInput();
-
 	Event::JoystickEvent(L, event);
 	
-	/*u64 touchDown = hidKeysDown(CONTROLLER_HANDHELD);
-	u64 touchUp = hidKeysUp(CONTROLLER_HANDHELD);
-	u64 touchHeld = hidKeysHeld(CONTROLLER_HANDHELD);
-
-	if (touchDown & KEY_TOUCH)
-		Love::TouchPressed(L);
-
-	if (touchHeld & KEY_TOUCH)
-		Love::TouchMoved(L);
-
-	u32 touchCount = hidTouchCount();
-	if (touchCount != lastTouchCount)
-		lastTouchCount = touchCount;
-
-	if (touchUp & KEY_TOUCH)
-		Love::TouchReleased(L);
-	*/
 	return 0;
 }
 
@@ -130,8 +110,7 @@ int Love::Run(lua_State * L)
 	if (luaL_dostring(L, LOVE_UPDATE))
 		throw Exception(L);
 
-	if (!Console::IsInitialized())
-		luaL_dostring(L, LOVE_CLEAR);
+	luaL_dostring(L, LOVE_CLEAR);
 	
 	if (luaL_dostring(L, LOVE_DRAW))
 		throw Exception(L);
@@ -142,139 +121,6 @@ int Love::Run(lua_State * L)
 
 	return 0;
 }
-
-/*void Love::TouchPressed(lua_State * L)
-{
-	touchPosition touch;
-
-	touchDown = false;
-	touches.clear();
-
-	for (u32 id = 0; id < hidTouchCount(); id++)
-	{
-		hidTouchRead(&touch, id);
-
-		u32 x = touch.px;
-		u32 y = touch.py;
-
-		love_getfield(L, "touchpressed");
-
-		if (!lua_isnil(L, -1))
-		{
-			lua_pushlightuserdata(L, &id);
-			lua_pushinteger(L, x);
-			lua_pushinteger(L, y);
-			lua_pushinteger(L, 0);
-			lua_pushinteger(L, 0);
-			lua_pushinteger(L, 1);
-
-			lua_call(L, 6, 0);
-		}
-
-		touches.push_back({id, x, y});
-		touchDown = true;
-	}
-}
-
-void Love::TouchMoved(lua_State * L)
-{
-
-	if (!touchDown)
-		return;
-
-	touchPosition touch;
-
-	for (u32 i = 0; i < hidTouchCount(); i++)
-	{
-		try
-		{
-			hidTouchRead(&touch, touches[i][0]);
-
-			u32 x = touch.px;
-			u32 y = touch.py;
-			
-			s32 dx = touches[i][1] - x;
-			s32 dy = touches[i][2] - y;
-
-			love_getfield(L, "touchmoved");
-
-			if (!lua_isnil(L, -1))
-			{
-				if (x != touches[i][1] && y != touches[i][2])
-				{
-					lua_pushlightuserdata(L, &touches[i][0]);
-					lua_pushinteger(L, touches[i][1]);
-					lua_pushinteger(L, touches[i][2]);
-					lua_pushinteger(L, dx);
-					lua_pushinteger(L, dy);
-					lua_pushinteger(L, 1);
-
-					lua_call(L, 6, 0);
-				}
-
-				touches[i] = {i, x, y};
-			}
-		}
-		catch (std::exception & e)
-		{
-			printf("\n");
-		}
-	}
-}
-
-void Love::TouchReleased(lua_State * L)
-{
-	if (touches.size() > 0)
-	{
-		love_getfield(L, "touchreleased");
-
-		if (!lua_isnil(L, -1))
-		{
-			if (touches.size() == 1)
-			{
-				u32 id = touches[0][0];
-				u32 x = touches[id][1];
-				u32 y = touches[id][2];
-
-				lua_pushlightuserdata(L, &id);
-				lua_pushinteger(L, x);
-				lua_pushinteger(L, y);
-				lua_pushinteger(L, 0);
-				lua_pushinteger(L, 0);
-				lua_pushinteger(L, 1);
-
-				lua_call(L, 6, 0);
-			}
-			else
-			{
-				touchPosition position;
-
-				for (u32 id = 0; id < touches.size(); id++)
-				{
-					for (u32 touch = 0; touch < hidTouchCount(); touch++)
-					{
-						hidTouchRead(&position, touch);
-
-						printf("%d, %d -> %d, %d", touches[id][1], touches[id][2], position.px, position.py);
-					}
-					/*u32 x = touches[id][1];
-					u32 y = touches[id][2];
-
-					printf("[RELEASE] Touch %d: %d, %d\n", id, x, y);
-
-					lua_pushlightuserdata(L, &id);
-					lua_pushinteger(L, x);
-					lua_pushinteger(L, y);
-					lua_pushinteger(L, 0);
-					lua_pushinteger(L, 0);
-					lua_pushinteger(L, 1);
-
-					lua_call(L, 6, 0);
-				}
-			}
-		}
-	}
-}*/
 
 int Love::GetVersion(lua_State * L)
 {

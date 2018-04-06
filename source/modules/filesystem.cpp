@@ -8,7 +8,7 @@
 #include <dirent.h>
 
 bool ROMFS_INIT = true;
-string SAVE_DIR = "sdmc:/switch/LovePotion";
+string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
 FILE * logFile;
@@ -19,12 +19,18 @@ bool Filesystem::Initialize()
 
 	logFile = fopen("log.txt", "w+");
 
+	//Get base device path
+	//Can change if it's on USB for whatever reason
+	//In that case it'll be {DEVICE}:/LovePotion/
+	//{IDENTITY} is appended for unique ID
+	//getcwd((char *)SAVE_DIR.data(), 256);
+
 	if (!ROMFS_INIT)
 		return false;
 	else
 		chdir("game");
 
-	mkdir(SAVE_DIR.c_str(), 0777);
+//	mkdir(SAVE_DIR.c_str(), 0777);
 	
 	return true;
 }

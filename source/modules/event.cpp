@@ -51,6 +51,24 @@ void Event::JoystickEvent(lua_State * L, SDL_Event event)
 				}
 				break;
 			}
+			/*case SDL_FINGERDOWN:
+			case SDL_FINGERUP:
+			{
+				love_getfield(L, (event.type == SDL_FINGERDOWN) ? "touchpressed" : "touchreleased");
+
+				if (!lua_isnil(L, -1))
+				{
+					lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
+					lua_pushnumber(L, event.tfinger.x * 1280);
+					lua_pushnumber(L, event.tfinger.y * 720);
+					lua_pushnumber(L, 0);
+					lua_pushnumber(L, 0);
+					lua_pushnumber(L, 1);
+
+					lua_call(L, 6, 0);
+				}
+				break;
+			}*/
 			default:
 				break;
 		}

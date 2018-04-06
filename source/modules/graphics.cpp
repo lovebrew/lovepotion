@@ -22,10 +22,37 @@ u32 * FRAMEBUFFER;
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
 SDL_Color drawColor = { 0, 0, 0, 255 };
 
-FT_Library FREETYPE_LIBRARY;
 Font * currentFont;
 
 #define RGBA(r, g, b, a) r | (g >> (u32)8) | (b >> (u32)16) | (a >> (u32)24)
+
+vector<StackMatrix> stack;
+void transformDrawable(double * originalX, double * originalY) // rotate, scale, and translate coords.
+{
+	if (stack.empty())
+		return;
+		
+	StackMatrix & matrix = stack.back();
+
+	double newLeft = *originalX;
+	double newTop = *originalY;
+
+	//Translate
+	*originalX += matrix.ox;
+	*originalY += matrix.oy;
+
+	//Scale
+	*originalX *= matrix.sx;
+	*originalY *= matrix.sy;
+
+	//Rotate
+	*originalX = newLeft * cos(matrix.r) - newTop * sin(matrix.r);
+	*originalY = newLeft * sin(matrix.r) + newTop * cos(matrix.r);
+
+	//Shear
+	*originalX = newLeft + matrix.kx * newTop;
+	*originalY = newTop + matrix.ky * newLeft;
+}
 
 void Graphics::Initialize()
 {
@@ -34,33 +61,12 @@ void Graphics::Initialize()
 
 	TTF_Init();
 
-	int error = FT_Init_FreeType(&FREETYPE_LIBRARY);
-	if (error)
-		throw Exception("Failed to load FreeType library.");
+	//stack.reserve(16);
+	//stack.push_back(StackMatrix());
 
 	isInitialized = true;
 }
 
-void renderText(u32 * target, float x, float y, FT_Bitmap * bitmap) 
-{
-	u32 screenwidth, screenheight;
-	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
-
-	FT_UInt ix, iy;
-	u32 pos;
-	u32 color;
-
-	for (iy = 0; iy < bitmap->rows; iy++)
-	{
-		for (ix = 0; ix < bitmap->width; ix++)
-		{
-			pos = (iy + y) * screenwidth + x + ix;
-			color = bitmap->buffer[iy * bitmap->width + ix];
-	
-			//renderto(FRAMEBUFFER, pos, color, color, color, 255); //it's all just gonna be split to RGBA anyways
-		} 
-	}
-}
 //Löve2D Functions
 
 //love.graphics.getWidth
@@ -79,6 +85,7 @@ int Graphics::GetHeight(lua_State * L)
 	return 1;
 }
 
+//love.graphics.setBackgroundColor
 int Graphics::SetBackgroundColor(lua_State * L)
 {
 	double r = clamp(0, luaL_optnumber(L, 1, 0), 1);
@@ -98,6 +105,7 @@ int Graphics::SetBackgroundColor(lua_State * L)
 	return 0;
 }
 
+//love.graphics.setColor
 int Graphics::SetColor(lua_State * L)
 {
 	double r = clamp(0, luaL_optnumber(L, 1, 0), 1);
@@ -113,6 +121,7 @@ int Graphics::SetColor(lua_State * L)
 	SDL_SetRenderDrawColor(Window::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 }
 
+//love.graphics.getBackgroundColor
 int Graphics::GetBackgroundColor(lua_State * L)
 {
 	lua_pushnumber(L, backgroundColor.r / 255);
@@ -122,6 +131,7 @@ int Graphics::GetBackgroundColor(lua_State * L)
 	return 3;
 }
 
+//love.graphics.clear
 int Graphics::Clear(lua_State * L)
 {
 	SDL_SetRenderDrawColor(Window::GetRenderer(), backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
@@ -130,6 +140,7 @@ int Graphics::Clear(lua_State * L)
 	return 0;
 }
 
+//love.graphics.present
 int Graphics::Present(lua_State * L)
 {
 	SDL_RenderPresent(Window::GetRenderer());
@@ -137,11 +148,9 @@ int Graphics::Present(lua_State * L)
 	return 0;
 }
 
+//love.graphics.draw
 int Graphics::Draw(lua_State * L)
 {
-	u32 screenwidth, screenheight;
-	gfxGetFramebuffer((u32*)&screenwidth, (u32*)&screenheight);
-
 	Image * graphic = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 	Quad * quad = nullptr;
 
@@ -152,10 +161,14 @@ int Graphics::Draw(lua_State * L)
 		start = 3;
 	}
 
-	float x = luaL_optnumber(L, start + 0, 0);
-	float y = luaL_optnumber(L, start + 1, 0);
+	double x = luaL_optnumber(L, start + 0, 0);
+	double y = luaL_optnumber(L, start + 1, 0);
 
 	double rotation = luaL_optnumber(L, start + 2, 0);
+
+	double scalarX = luaL_optnumber(L, start + 3, 1);
+	double scalarY = luaL_optnumber(L, start + 4, 1);
+
 	SDL_Point point = {0, 0};
 
 	SDL_Texture * texture = graphic->GetImage();
@@ -163,24 +176,33 @@ int Graphics::Draw(lua_State * L)
 	SDL_Rect positionRectangle;
 	SDL_Rect quadRectangle;
 
+	SDL_RendererFlip flipHorizontal = SDL_FLIP_NONE;
+	if (scalarX < 0.0)
+		flipHorizontal = SDL_FLIP_HORIZONTAL;
+
+	SDL_RendererFlip flipVertical = SDL_FLIP_NONE;
+	if (scalarY < 0.0)
+		flipVertical = SDL_FLIP_VERTICAL;
+
+	transformDrawable(&x, &y);
+
 	if (quad == nullptr)
 	{
+		quadRectangle = {0, 0, graphic->GetWidth(), graphic->GetHeight()};
 		positionRectangle = {x, y, graphic->GetWidth(), graphic->GetHeight()};
-		
-		SDL_RenderCopy(Window::GetRenderer(), texture, NULL, &positionRectangle);
 	}
 	else
 	{
 		quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
 		positionRectangle = {x, y, quad->GetWidth(), quad->GetHeight()};
-	
-		SDL_RenderCopyEx(Window::GetRenderer(), texture, &quadRectangle, &positionRectangle, rotation, &point, SDL_FLIP_NONE);
 	}
-
+	
+	SDL_RenderCopyEx(Window::GetRenderer(), texture, &quadRectangle, &positionRectangle, rotation, &point, flipHorizontal);
 
 	return 0;
 }
 
+//love.graphics.setFont
 int Graphics::SetFont(lua_State * L)
 {
 	Font * self = (Font *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
@@ -191,14 +213,17 @@ int Graphics::SetFont(lua_State * L)
 	return 0;
 }
 
+//love.graphics.print
 int Graphics::Print(lua_State * L)
 {
 	size_t length;
 	const char * text = luaL_checklstring(L, 1, &length);
 	
-	float x = luaL_optnumber(L, 2, 0);
-	float y = luaL_optnumber(L, 3, 0);
+	double x = luaL_optnumber(L, 2, 0);
+	double y = luaL_optnumber(L, 3, 0);
 	
+	transformDrawable(&x, &y);
+
 	SDL_Rect position;
 	position.x = x;
 	position.y = y;
@@ -209,6 +234,7 @@ int Graphics::Print(lua_State * L)
 	return 0;
 }
 
+//love.graphics.rectangle
 int Graphics::Rectangle(lua_State * L)
 {
 	string mode = (string)luaL_checkstring(L, 1);
@@ -219,6 +245,8 @@ int Graphics::Rectangle(lua_State * L)
 	double width = luaL_checknumber(L, 4);
 	double height = luaL_checknumber(L, 5);
 
+	transformDrawable(&x, &y);
+
 	SDL_Rect rectangle = {x, y, width, height};
 	
 	if (mode == "fill")
@@ -228,6 +256,78 @@ int Graphics::Rectangle(lua_State * L)
 
 }
 
+//love.graphics.push
+int Graphics::Push(lua_State * L)
+{
+	stack.push_back(stack.back());
+
+	return 0;
+}
+
+//love.graphics.translate
+int Graphics::Translate(lua_State * L)
+{
+	double x = luaL_checknumber(L, 1);
+	double y = luaL_checknumber(L, 2);
+
+	stack.back().ox += x;
+	stack.back().oy += y;
+
+	return 0;
+}
+
+//love.graphics.scale
+int Graphics::Scale(lua_State * L)
+{
+	double sx = luaL_checknumber(L, 1);
+	double sy = luaL_checknumber(L, 2);
+
+	stack.back().sx = sx;
+	stack.back().sy = sy;
+
+	return 0;
+}
+
+//love.graphics.rotate
+int Graphics::Rotate(lua_State * L)
+{
+	double r = luaL_checknumber(L, 1);
+
+	stack.back().r = r;
+
+	return 0;
+}
+
+//love.graphics.shear
+int Graphics::Shear(lua_State * L)
+{
+	double kx = luaL_checknumber(L, 1);
+	double ky = luaL_checknumber(L, 2);
+
+	stack.back().kx = kx;
+	stack.back().ky = ky;
+
+	return 0;
+}
+
+//love.graphics.origin
+int Graphics::Origin(lua_State * L)
+{
+	stack.back().ox = 0;
+	stack.back().oy = 0;
+
+	return 0;
+}
+
+//love.graphics.pop
+int Graphics::Pop(lua_State * L)
+{
+	stack.pop_back();
+
+	return 0;
+}
+
+//love.graphics.getRendererInfo
 int Graphics::GetRendererInfo(lua_State * L)
 {
 	lua_pushstring(L, "OpenGL");
@@ -240,11 +340,6 @@ int Graphics::GetRendererInfo(lua_State * L)
 
 //End Löve2D Functions
 
-FT_Library Graphics::GetFreetypeLibrary()
-{
-	return FREETYPE_LIBRARY;
-}
-
 bool Graphics::IsInitialized()
 {
 	return isInitialized;
@@ -252,9 +347,12 @@ bool Graphics::IsInitialized()
 
 void Graphics::Exit()
 {
-	FT_Done_FreeType(FREETYPE_LIBRARY);
+	printf("Qutting TTF\n");
+	TTF_Quit();
 
-	SDL_Quit();
+	printf("Quitting Subsys: Video\n");
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
+	//SDL_Quit();
 }
 
 int Graphics::Register(lua_State * L)
@@ -269,6 +367,12 @@ int Graphics::Register(lua_State * L)
 		{ "setFont",			SetFont				},
 		{ "rectangle",			Rectangle			},
 		{ "clear",				Clear				},
+		{ "push",				Push				},
+		{ "translate",			Translate			},
+		{ "scale",				Scale				},
+		{ "rotate",				Rotate				},
+		{ "origin",				Origin				},
+		{ "shear",				Shear				},
 		{ "present",			Present				},
 		{ "setColor",			SetColor			},
 		{ "setBackgroundColor",	SetBackgroundColor	},

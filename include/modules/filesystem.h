@@ -32,13 +32,9 @@ namespace Filesystem
 
 	int Remove(lua_State * L);
 
-	extern void LogToFile(const std::string & data);
-	
-	extern void CloseLog();
-
 	//End Löve2D Functions
 
-	std::string GetSaveDirectory();
+	extern std::string GetSaveDirectory();
 
 	std::string Redirect(const char * path);
 
