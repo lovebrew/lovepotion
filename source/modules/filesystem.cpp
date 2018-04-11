@@ -11,13 +11,9 @@ bool ROMFS_INIT = true;
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
-FILE * logFile;
-
 bool Filesystem::Initialize()
 {
 	//ROMFS_INIT = romfsInit() ? false : true;
-
-	logFile = fopen("log.txt", "w+");
 
 	//Get base device path
 	//Can change if it's on USB for whatever reason
@@ -37,6 +33,7 @@ bool Filesystem::Initialize()
 
 //Löve2D Functions
 
+//love.filesystem.read
 int Filesystem::Read(lua_State * L)
 {
 	string path = Redirect(luaL_checkstring(L, 1));
@@ -70,6 +67,7 @@ int Filesystem::Read(lua_State * L)
 	return 1;
 }
 
+//love.filesystem.write
 int Filesystem::Write(lua_State * L)
 {
 	string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));
@@ -92,6 +90,13 @@ int Filesystem::Write(lua_State * L)
 	return 0;
 }
 
+
+/*
+** TODO: Depreciate isFile/isDirectory/getSize
+** Implement love.filesystem.getIfno
+*/
+
+//love.filesystem.isFile
 int Filesystem::IsFile(lua_State * L)
 {
 	string path = Redirect(luaL_checkstring(L, 1));
@@ -104,6 +109,7 @@ int Filesystem::IsFile(lua_State * L)
 	return 1;
 }
 
+//love.filesystem.isDirectory
 int Filesystem::IsDirectory(lua_State * L)
 {
 	string path = Redirect(luaL_checkstring(L, 1));
@@ -116,36 +122,7 @@ int Filesystem::IsDirectory(lua_State * L)
 	return 1;
 }
 
-int Filesystem::SetIdentity(lua_State * L)
-{
-	IDENTITY = string(luaL_checkstring(L, 1));
-
-	return 0;
-}
-
-int Filesystem::GetIdentity(lua_State * L)
-{
-	lua_pushstring(L, IDENTITY.c_str());
-
-	return 1;
-}
-
-int Filesystem::CreateDirectory(lua_State * L)
-{
-	string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));
-
-	mkdir(path.c_str(), 0777);
-
-	return 0;
-}
-
-int Filesystem::GetSaveDirectory(lua_State * L)
-{
-	lua_pushstring(L, GetSaveDirectory().c_str());
-
-	return 1;
-}
-
+//love.filesystem.getSize
 int Filesystem::GetSize(lua_State * L)
 {
 	string path = Redirect(luaL_checkstring(L, 1));
@@ -164,6 +141,42 @@ int Filesystem::GetSize(lua_State * L)
 	return 1;
 }
 
+//love.filesystem.setIdentity
+int Filesystem::SetIdentity(lua_State * L)
+{
+	IDENTITY = string(luaL_checkstring(L, 1));
+
+	return 0;
+}
+
+
+//love.filesystem.getIdentity
+int Filesystem::GetIdentity(lua_State * L)
+{
+	lua_pushstring(L, IDENTITY.c_str());
+
+	return 1;
+}
+
+//love.filesystem.createDirectory
+int Filesystem::CreateDirectory(lua_State * L)
+{
+	string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));
+
+	mkdir(path.c_str(), 0777);
+
+	return 0;
+}
+
+//love.filesystem.getSaveDirectory
+int Filesystem::GetSaveDirectory(lua_State * L)
+{
+	lua_pushstring(L, GetSaveDirectory().c_str());
+
+	return 1;
+}
+
+//love.filesystem.getDirectoryItems
 int Filesystem::GetDirectoryItems(lua_State * L)
 {
 	string path = Redirect(luaL_checkstring(L, 1));
@@ -201,6 +214,8 @@ int Filesystem::GetDirectoryItems(lua_State * L)
 	return 0;
 }
 
+
+//love.filesystem.remove
 int Filesystem::Remove(lua_State * L)
 {
 	string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));

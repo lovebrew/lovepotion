@@ -4,6 +4,13 @@
 #include "socket/socket.h"
 #include "socket/objects/udp/wrap_udp.h"
 
+/*
+** Native LuaSocket Implementation
+** See:
+** UDP: http://w3.impa.br/~diego/software/luasocket/udp.html
+** for more details on using LuaSocket
+*/
+
 int Socket::Initialize(lua_State * L)
 {
 	Result ret = socketInitializeDefault();

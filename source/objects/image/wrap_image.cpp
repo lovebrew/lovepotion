@@ -13,11 +13,20 @@ int imageNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	Image * self = new (raw_self) Image(path);
+	bool memory = false;
+
+	lua_getglobal(L, "in_error");
+	if (lua_toboolean(L, 1) == 1)
+		memory = true;
+	
+	lua_setglobal(L, "in_error");
+
+	Image * self = new (raw_self) Image(path, memory);
  
 	return 1;
 }
 
+//Image:getWidth
 int imageGetWidth(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -27,6 +36,7 @@ int imageGetWidth(lua_State * L)
 	return 1;
 }
 
+//Image:getHeight
 int imageGetHeight(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -36,6 +46,7 @@ int imageGetHeight(lua_State * L)
 	return 1;
 }
 
+//Image:getDimensions
 int imageGetDimensions(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);

@@ -18,12 +18,14 @@
 #include "modules/system.h"
 #include "modules/timer.h"
 #include "modules/touch.h"
+#include "modules/window.h"
 
 #include "objects/file/wrap_file.h"
 #include "objects/font/wrap_font.h"
 #include "objects/source/wrap_source.h"
 #include "objects/image/wrap_image.h"
 #include "objects/quad/wrap_quad.h"
+#include "objects/canvas/wrap_canvas.h"
 
 #include "modules/love.h"
 
@@ -51,6 +53,7 @@ int Love::Initialize(lua_State * L)
 		initImageClass,
 		initQuadClass,
 		initFontClass,
+		initCanvasClass,
 		NULL
 	};
 
@@ -62,7 +65,7 @@ int Love::Initialize(lua_State * L)
 
 	luaL_Reg reg[] =
 	{
-		{ "scan",			Scan			},
+		{ "scan",			Event::PollEvent},
 		{ "run",			Run				},
 		{ "getVersion",		GetVersion		},
 		{ "enableConsole",	EnableConsole	},
@@ -92,28 +95,22 @@ bool Love::IsRunning()
 	return (ERROR == false && LOVE_QUIT == false);
 }
 
-SDL_Event event;
-int Love::Scan(lua_State * L)
-{
-	Event::JoystickEvent(L, event);
-	
-	return 0;
-}
 
+//love.run
 int Love::Run(lua_State * L)
 {
-	Love::Scan(L);
+	Event::PollEvent(L);
 
 	if (luaL_dostring(L, LOVE_TIMER_STEP))
-		throw Exception(L);
+		luaL_error(L, "%s", lua_tostring(L, -1));
 
 	if (luaL_dostring(L, LOVE_UPDATE))
-		throw Exception(L);
+		luaL_error(L, "%s", lua_tostring(L, -1));
 
 	luaL_dostring(L, LOVE_CLEAR);
 	
 	if (luaL_dostring(L, LOVE_DRAW))
-		throw Exception(L);
+		luaL_error(L, "%s", lua_tostring(L, -1));
 
 	luaL_dostring(L, LOVE_PRESENT);
 
@@ -122,8 +119,19 @@ int Love::Run(lua_State * L)
 	return 0;
 }
 
+//love.getVersion
 int Love::GetVersion(lua_State * L)
 {
+	if (lua_isboolean(L, 1))
+	{
+		if (lua_toboolean(L, 1))
+		{
+			lua_pushstring(L, LOVE_POTION_VERSION);
+			
+			return 1;
+		}
+	}
+
 	lua_pushnumber(L, Love::VERSION_MAJOR);
 	lua_pushnumber(L, Love::VERSION_MINOR);
 	lua_pushnumber(L, Love::VERSION_REVISION);
@@ -158,5 +166,6 @@ void Love::Exit(lua_State * L)
 
 	lua_close(L);
 
+	Window::Exit();
 	Graphics::Exit();
 }

@@ -1,6 +1,9 @@
 #include "common/runtime.h"
 #include "modules/touch.h"
 
+//Löve2D Functions
+
+//love.touch.getPosition
 int Touch::GetPosition(lua_State * L)
 {
 	if (lua_islightuserdata(L, 1))
@@ -20,6 +23,7 @@ int Touch::GetPosition(lua_State * L)
 	return 0;
 }
 
+//love.touch.getTouches
 int Touch::GetTouches(lua_State * L)
 {
 	lua_newtable(L);
@@ -34,6 +38,8 @@ int Touch::GetTouches(lua_State * L)
 
 	return 1;
 }
+
+//End Löve2D Functions
 
 int Touch::Register(lua_State * L)
 {

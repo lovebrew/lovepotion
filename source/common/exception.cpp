@@ -21,9 +21,6 @@ Exception::Exception(lua_State * L)
 {
 	if (!lua_isnil(L, -1))
 		this->message = (string)lua_tostring(L, -1);
-
-	logToFile(this->message);
-	closeLog();
 }
 
 Exception::~Exception() throw()

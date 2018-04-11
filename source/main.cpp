@@ -85,7 +85,7 @@ int main()
 	while (appletMainLoop())
 	{
 		if (Love::IsRunning())
-			Love::Run(L);
+			luaL_dostring(L, "xpcall(love.run, love.errhand)");
 		else
 			break;
 	}

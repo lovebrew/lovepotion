@@ -55,6 +55,7 @@ int Audio::Stop(lua_State * L)
 	return 0;
 }
 
+//love.audio.pause
 int Audio::Pause(lua_State * L)
 {
 	if (lua_isnoneornil(L, 1))
@@ -72,6 +73,7 @@ int Audio::Pause(lua_State * L)
 	return 0;
 }
 
+//love.audio.resume
 int Audio::Resume(lua_State * L)
 {
 	if (lua_isnoneornil(L, 1))
@@ -103,7 +105,7 @@ int Audio::SetVolume(lua_State * L)
 void Audio::Exit()
 {
 	printf("Closing audio\n");
-	//Mix_CloseAudio();
+	Mix_CloseAudio();
 
 	printf("SDL_QuitSubsys: Audio\n");
 	SDL_QuitSubSystem(SDL_INIT_AUDIO);

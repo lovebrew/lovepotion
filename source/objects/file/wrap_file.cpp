@@ -21,6 +21,7 @@ int fileNew(lua_State * L)
 	return 1;
 }
 
+//File:open
 int fileOpen(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -32,6 +33,7 @@ int fileOpen(lua_State * L)
 	return 0;
 }
 
+//File:write
 int fileWrite(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -44,6 +46,7 @@ int fileWrite(lua_State * L)
 	return 0;
 }
 
+//File:flush
 int fileFlush(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -53,6 +56,7 @@ int fileFlush(lua_State * L)
 	return 0;
 }
 
+//File:read
 int fileRead(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -64,6 +68,7 @@ int fileRead(lua_State * L)
 	return 1;
 }
 
+//File:getSize
 int fileGetSize(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -75,6 +80,7 @@ int fileGetSize(lua_State * L)
 	return 1;
 }
 
+//File:isOpen
 int fileIsOpen(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -84,6 +90,7 @@ int fileIsOpen(lua_State * L)
 	return 1;
 }
 
+//File:getMode
 int fileGetMode(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -93,6 +100,7 @@ int fileGetMode(lua_State * L)
 	return 1;
 }
 
+//File:close
 int fileClose(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);

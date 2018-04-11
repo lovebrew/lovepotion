@@ -18,6 +18,7 @@ int udpNew(lua_State * L)
 	return 1;
 }
 
+//UDP:send
 int udpSend(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -35,6 +36,7 @@ int udpSend(lua_State * L)
 	return 1;
 }
 
+//UDP:setpeername
 int udpSetPeerName(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -49,6 +51,7 @@ int udpSetPeerName(lua_State * L)
 	return 1;
 }
 
+//UDP:setsockname
 int udpSetSockName(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -63,6 +66,7 @@ int udpSetSockName(lua_State * L)
 	return 1;
 }
 
+//UDP:receivefrom
 int udpReceiveFrom(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);

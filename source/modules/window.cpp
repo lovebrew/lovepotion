@@ -33,3 +33,9 @@ SDL_Surface * Window::GetSurface()
 {
 	return WINDOW_SURFACE;
 }
+
+void Window::Exit()
+{
+	SDL_DestroyRenderer(RENDERER);
+	SDL_DestroyWindow(WINDOW);
+}

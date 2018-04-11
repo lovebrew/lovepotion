@@ -8,9 +8,6 @@ void Joystick::Initialize(lua_State * L)
 {
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 	
-	for (uint i = 0; i < 2; i++)
-		SDL_JoystickOpen(i);
-	
 	gamepadNew(L);
 }
 
@@ -22,6 +19,7 @@ Gamepad * Joystick::GetJoystickFromID(int id)
 //Löve2D Functions
 
 //Super hacky workaround for now..
+//love.joystick.getJoysticks
 int Joystick::GetJoysticks(lua_State * L)
 {
 	lua_newtable(L);
@@ -41,11 +39,14 @@ int Joystick::GetJoysticks(lua_State * L)
 	return 1;
 }
 
+
+//love.joystick.getJoystickCount
 int Joystick::GetJoystickCount(lua_State * L)
 {
 	return 0;
 }
 
+//love.joystick.setJoyconMode
 int Joystick::SetJoyconMode(lua_State * L)
 {
 	return 0;

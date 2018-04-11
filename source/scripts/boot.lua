@@ -46,6 +46,7 @@ if love.filesystem.isFile("conf.lua") then
 	end
 end
 
+in_error = false
 love.filesystem.setIdentity(config.identity)
 love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
@@ -177,44 +178,75 @@ function love.errhand(message)
 	message = message:gsub("^(./)", "")
 
 	local err = {}
+	in_error = true
 
-	table.insert(err, "Error\n")
+	local major, minor, rev = love.getVersion()
 
 	table.insert(err, message .. "\n")
-
+	
 	local trace = debug.traceback()
-
+	
 	for l in trace:gmatch("(.-)\n") do
 		if not l:match("boot.lua") then
 			l = l:gsub("stack traceback:", "Traceback\n")
 			table.insert(err, l)
 		end
 	end
-
-	table.insert(err, "\nPress '+' to quit")
-
+	
+	table.insert(err, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
+	table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
+	
 	local realError = table.concat(err, "\n")
-
+	realError = realError:gsub("\t", "")
+	realError = realError:gsub("%[string \"(.-)\"%]", "%1")
+	
 	love.filesystem.write("log.txt", realError)
+	
+	love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
 
-	love.graphics.setBackgroundColor(89 / 255, 157 / 255, 220 / 255)
+	love.graphics.setColor(1, 1, 1, 1)
+	
+	headerFont = love.graphics.newFont(32)
+	buttonFont = love.graphics.newFont(24)
 
-	love.graphics.setFont(defaultFont)
+	local error_img = love.graphics.newImage("error");
+	local plus_img = love.graphics.newImage("plus");
 
 	local function draw()
 		love.graphics.clear()
 
-		love.graphics.print(realError, 16, 58)
+		love.graphics.setColor(0.9, 0.22, 0.21)
+		love.graphics.draw(error_img, 74, 38)
+
+		love.graphics.setColor(1, 1, 1)
+		love.graphics.setFont(headerFont)
+		love.graphics.print("Lua Error", 130, 40)
+		
+		love.graphics.line(30, 88, 1250, 88)
+
+		love.graphics.setFont(buttonFont)
+		love.graphics.print(realError, 48, 120)
+
+		love.graphics.line(30, 648, 1250, 648)
+
+		love.graphics.draw(plus_img, 1020, 678)
+		love.graphics.print("Quit", 1056, 676)
 
 		love.graphics.present()
 	end
 
+	joystick = love.joystick.getJoysticks()[1]
+
 	while true do
 		draw()
-		
-		love.scan()
 
-		love.timer.sleep(0.001)
+		love.scan()
+		print(joystick:getID(), joystick:isDown("plus"));
+		if joystick:isDown("plus") then
+			break
+		end
+
+		love.timer.sleep(0.1)
 	end
 
 	love.event.quit()

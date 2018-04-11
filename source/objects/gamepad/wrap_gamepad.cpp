@@ -1,5 +1,4 @@
 #include "common/runtime.h"
-#include <switch.h>
 
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
@@ -15,7 +14,11 @@ int gamepadNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	Gamepad * self = new (raw_self) Gamepad(controllers.size());
+	SDL_Joystick * handle;
+	for (uint i = 0; i < 2; i++)
+		handle = SDL_JoystickOpen(i);
+
+	Gamepad * self = new (raw_self) Gamepad(controllers.size(), handle);
 
 	lua_getglobal(L, "__controllers"); //get global table
 
@@ -30,6 +33,7 @@ int gamepadNew(lua_State * L)
 	return 0;
 }
 
+//Gamepad:getID
 int gamepadGetID(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -39,6 +43,7 @@ int gamepadGetID(lua_State * L)
 	return 1;
 }
 
+//Gamepad:isVibrationSupported
 int gamepadIsVibrationSupported(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -48,30 +53,21 @@ int gamepadIsVibrationSupported(lua_State * L)
 	return 1;
 }
 
+//Gamepad:getAxis
 int gamepadGetAxis(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	int axis = luaL_checkinteger(L, 2);
-
-	float value;
-	bool valid = self->GetAxis(value, axis);
-
-	if (valid)
-	{
-		lua_pushnumber(L, value);
-
-		return 1;
-	}
-	else
-		return 0;
+	return 0;
 }
 
+//Gamepad:getButtonCount
 int gamepadGetButtonCount(lua_State * L)
 {
 	return 0;
 }
 
+//Gamepad:getName
 int gamepadGetName(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -81,6 +77,7 @@ int gamepadGetName(lua_State * L)
 	return 1;
 }
 
+//Gamepad:isDown
 int gamepadIsDown(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -92,16 +89,10 @@ int gamepadIsDown(lua_State * L)
 	return 1;
 }
 
+//Gamepad:setVibration
 int gamepadSetVibration(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
-
-	float amp_low = luaL_optnumber(L, 2, 0);
-	float freq_low = luaL_optnumber(L, 3, 160.0f);
-	float amp_high = luaL_optnumber(L, 3, 0.0f);
-	float freq_high = luaL_optnumber(L, 3, 320.0f);
-
-	self->SetVibration(amp_low, freq_low, amp_high, freq_high);
 
 	return 0;
 }

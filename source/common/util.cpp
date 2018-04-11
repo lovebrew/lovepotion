@@ -40,18 +40,6 @@ double clamp(double low, double value, double high)
 	return std::min(high, std::max(low, value));
 }
 
-void logToFile(const std::string & data)
-{
-	fwrite((char *)data.data(), 1, data.length(), logFile);
-
-	fflush(logFile);
-}
-
-void closeLog()
-{
-	fclose(logFile);
-}
-
 std::map<int, std::string> LANGUAGES =
 {
 	{SetLanguage_JA,	"Japanese"				},

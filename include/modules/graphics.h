@@ -20,8 +20,10 @@ namespace Graphics
 	int Clear(lua_State * L);
 	int Present(lua_State * L);
 
-	int GetBackgroundColor(lua_State * L);
+	int SetColor(lua_State * L);
+	
 	int SetBackgroundColor(lua_State * L);
+	int GetBackgroundColor(lua_State * L);
 
 	int Push(lua_State * L);
 	int Pop(lua_State * L);
@@ -31,13 +33,16 @@ namespace Graphics
 	int Shear(lua_State * L);
 	int Origin(lua_State * L);
 
+	int SetCanvas(lua_State * L);
+
 	int Rectangle(lua_State * L);
-	
-	int SetColor(lua_State * L);
+	int Line(lua_State * L);
 
 	int GetRendererInfo(lua_State * L);
 
+	int GetFont(lua_State * L);
 	int SetFont(lua_State * L);
+	int SetNewFont(lua_State * L);
 	int Print(lua_State * L);
 
 	//End Löve2D Functions

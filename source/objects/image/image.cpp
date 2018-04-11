@@ -4,23 +4,32 @@
 #include "objects/image/image.h"
 #include "modules/window.h"
 
-Image::Image(const char * path)
+#include "error_png.h"
+#include "plus_png.h"
+
+Image::Image(const char * path, bool memory)
 {
-	File exists(path);
+	if (!memory)
+	{
+		File exists(path);
 
-	exists.Open("rb");
-	if (!exists.IsOpen())
-		throw Exception("File does not exit: %s", path);
-	exists.Close();
+		exists.Open("rb");
+		if (!exists.IsOpen())
+			throw Exception("File does not exit: %s", path);
+		exists.Close();
 
-	SDL_Surface * surface = IMG_Load(path);
+		this->texture = IMG_Load(path);
+	}
+	else
+	{
+		if (strncmp(path, "plus", 4) == 0)
+			this->texture = IMG_Load_RW(SDL_RWFromMem((void *)plus_png, plus_png_size), 1);
+		else if (strncmp(path, "error", 5) == 0)
+			this->texture = IMG_Load_RW(SDL_RWFromMem((void *)error_png, error_png_size), 1);
+	}
 
-	this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), surface);
-
-	this->width = surface->w;
-	this->height = surface->h;
-
-	SDL_FreeSurface(surface);
+	this->width = this->texture->w;
+	this->height = this->texture->h;
 }
 
 u16 Image::GetWidth()
@@ -33,9 +42,12 @@ u16 Image::GetHeight()
 	return this->height;
 }
 
-SDL_Texture * Image::GetImage()
+SDL_Surface * Image::GetImage()
 {
 	return this->texture;
 }
 
-Image::~Image() {}
+Image::~Image() 
+{
+	SDL_FreeSurface(this->texture);
+}

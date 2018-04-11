@@ -12,17 +12,20 @@
 #include "objects/quad/quad.h"
 #include "objects/quad/wrap_quad.h"
 
-#include "objects/font/glyph.h"
 #include "objects/font/font.h"
 #include "objects/font/wrap_font.h"
+
+#include "objects/canvas/canvas.h"
+#include "objects/canvas/wrap_canvas.h"
 
 bool isInitialized = false;
 u32 * FRAMEBUFFER;
 
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
-SDL_Color drawColor = { 0, 0, 0, 255 };
+SDL_Color drawColor = { 255, 255, 255, 255 };
 
 Font * currentFont;
+Canvas * currentCanvas;
 
 #define RGBA(r, g, b, a) r | (g >> (u32)8) | (b >> (u32)16) | (a >> (u32)24)
 
@@ -61,8 +64,8 @@ void Graphics::Initialize()
 
 	TTF_Init();
 
-	//stack.reserve(16);
-	//stack.push_back(StackMatrix());
+	stack.reserve(16);
+	stack.push_back(StackMatrix());
 
 	isInitialized = true;
 }
@@ -88,19 +91,27 @@ int Graphics::GetHeight(lua_State * L)
 //love.graphics.setBackgroundColor
 int Graphics::SetBackgroundColor(lua_State * L)
 {
-	double r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-	double g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-	double b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+	double r = 0, g = 0, b = 0;
 
-	u8 outR, outG, outB;
+	if (lua_isnumber(L, 1))
+	{
+		r = clamp(0, luaL_optnumber(L, 1, 0), 1);
+		g = clamp(0, luaL_optnumber(L, 2, 0), 1);
+		b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+	}
+	else if (lua_istable(L, 1))
+	{
+		for (int i = 1; i <= 4; i++)
+			lua_rawgeti(L, 1, i);
 
-	outR = r * 255;
-	outG = g * 255;
-	outB = b * 255;
+		r = clamp(0, luaL_optnumber(L, -4, 0), 1);
+		g = clamp(0, luaL_optnumber(L, -3, 0), 1);
+		b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+	}
 
-	backgroundColor.r = outR;
-	backgroundColor.g = outG;
-	backgroundColor.b = outG;
+	backgroundColor.r = r * 255;
+	backgroundColor.g = g * 255;
+	backgroundColor.b = b * 255;
 
 	return 0;
 }
@@ -108,10 +119,25 @@ int Graphics::SetBackgroundColor(lua_State * L)
 //love.graphics.setColor
 int Graphics::SetColor(lua_State * L)
 {
-	double r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-	double g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-	double b = clamp(0, luaL_optnumber(L, 3, 0), 1);
-	double a = clamp(0, luaL_optnumber(L, 4, 1), 1);
+	double r = 0, g = 0, b = 0, a = 1;
+
+	if (lua_isnumber(L, 1))
+	{
+		r = clamp(0, luaL_optnumber(L, 1, 0), 1);
+		g = clamp(0, luaL_optnumber(L, 2, 0), 1);
+		b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+		a = clamp(0, luaL_optnumber(L, 4, 1), 1);
+	}
+	else if (lua_istable(L, 1))
+	{
+		for (int i = 1; i <= 4; i++)
+			lua_rawgeti(L, 1, i);
+
+		r = clamp(0, luaL_optnumber(L, -4, 0), 1);
+		g = clamp(0, luaL_optnumber(L, -3, 0), 1);
+		b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+		a = clamp(0, luaL_optnumber(L, -1, 1), 1);
+	}
 
 	drawColor.r = r * 255;
 	drawColor.g = g * 255;
@@ -119,6 +145,8 @@ int Graphics::SetColor(lua_State * L)
 	drawColor.a = a * 255;
 
 	SDL_SetRenderDrawColor(Window::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+
+	return 0;
 }
 
 //love.graphics.getBackgroundColor
@@ -136,6 +164,8 @@ int Graphics::Clear(lua_State * L)
 {
 	SDL_SetRenderDrawColor(Window::GetRenderer(), backgroundColor.r, backgroundColor.g, backgroundColor.b, 255);
 	SDL_RenderClear(Window::GetRenderer());
+
+	SDL_SetRenderDrawColor(Window::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
 	return 0;
 }
@@ -170,8 +200,6 @@ int Graphics::Draw(lua_State * L)
 	double scalarY = luaL_optnumber(L, start + 4, 1);
 
 	SDL_Point point = {0, 0};
-
-	SDL_Texture * texture = graphic->GetImage();
 	
 	SDL_Rect positionRectangle;
 	SDL_Rect quadRectangle;
@@ -186,19 +214,40 @@ int Graphics::Draw(lua_State * L)
 
 	transformDrawable(&x, &y);
 
-	if (quad == nullptr)
+	if (graphic != NULL)
 	{
-		quadRectangle = {0, 0, graphic->GetWidth(), graphic->GetHeight()};
-		positionRectangle = {x, y, graphic->GetWidth(), graphic->GetHeight()};
+		printf("IMAGE\n");
+		if (quad == nullptr)
+		{
+			positionRectangle = {x, y, graphic->GetWidth(), graphic->GetHeight()};
+			quadRectangle = {0, 0, graphic->GetWidth(), graphic->GetHeight()};
+		}
+		else
+		{
+			quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
+			positionRectangle = {x, y, quad->GetWidth(), quad->GetHeight()};
+		}
+		
+		//SDL_RenderCopyEx(Window::GetRenderer(), graphic->GetImage(), &quadRectangle, &positionRectangle, rotation, &point, flipHorizontal);
+		SDL_BlitSurface(graphic->GetImage(), &quadRectangle, Window::GetSurface(), &positionRectangle);
 	}
 	else
 	{
-		quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
-		positionRectangle = {x, y, quad->GetWidth(), quad->GetHeight()};
-	}
-	
-	SDL_RenderCopyEx(Window::GetRenderer(), texture, &quadRectangle, &positionRectangle, rotation, &point, flipHorizontal);
+		printf("CANVAS\n");
+		Canvas * canvas = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
 
+		SDL_Rect positionRectangle = {x, y, canvas->GetWidth(), canvas->GetHeight()};
+		SDL_RenderCopyEx(Window::GetRenderer(), canvas->GetTexture(), NULL, &positionRectangle, rotation, &point, flipHorizontal);
+	}
+	return 0;
+}
+
+//love.graphics.getFont
+int Graphics::GetFont(lua_State * L)
+{
+	/*lua_pushlightuserdata(L, currentFont);
+	lua_pushvalue(L, -1);
+	*/
 	return 0;
 }
 
@@ -211,6 +260,16 @@ int Graphics::SetFont(lua_State * L)
 		currentFont = self;
 
 	return 0;
+}
+
+//love.graphics.setNewFont
+int Graphics::SetNewFont(lua_State * L)
+{
+	int ret = fontNew(L);
+	Font * self = (Font *)luaobj_checkudata(L, -1, LUAOBJ_TYPE_FONT);
+	currentFont = self;
+
+	return ret;
 }
 
 //love.graphics.print
@@ -228,8 +287,28 @@ int Graphics::Print(lua_State * L)
 	position.x = x;
 	position.y = y;
 
-	SDL_Surface * source = TTF_RenderText_Blended(currentFont->GetFont(), text, drawColor);
+	SDL_Surface * source = TTF_RenderText_Blended_Wrapped(currentFont->GetFont(), text, drawColor, 1280);
 	SDL_BlitSurface(source, NULL, Window::GetSurface(), &position);
+
+	return 0;
+}
+
+//love.graphics.setCanvas
+int Graphics::SetCanvas(lua_State * L)
+{
+	Canvas * self = NULL;
+	if (!lua_isnoneornil(L, 1))
+		self = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+
+	printf("%d", self != NULL);
+
+	if (self != NULL)
+	{
+		SDL_SetRenderTarget(Window::GetRenderer(), self->GetTexture());
+		Graphics::Clear(L);
+	}
+	else
+		SDL_SetRenderTarget(Window::GetRenderer(), NULL);
 
 	return 0;
 }
@@ -254,6 +333,59 @@ int Graphics::Rectangle(lua_State * L)
 	else if (mode == "line")
 		SDL_RenderDrawRect(Window::GetRenderer(), &rectangle);
 
+	return 0;
+}
+
+//love.graphics.line
+int Graphics::Line(lua_State * L)
+{
+	int argc = lua_gettop(L);
+	bool isTable = lua_istable(L, 1);
+	int tableLength = 0;
+
+	double startx = 0, starty = 0, endx = 0, endy = 0;
+
+	if (isTable)
+	{
+		tableLength = lua_objlen(L, 1);
+
+		if (tableLength == 0 || (tableLength > 0 && (tableLength % 4) != 0))
+			return luaL_error(L, "%s", "Need at least two verticies to draw a line");
+
+		if ((tableLength % 4) == 0)
+		{
+			for (int i = 1; i < tableLength; i += 4)
+				lua_rawgeti(L, 1, i);
+
+			startx = luaL_checknumber(L, -4);
+			starty = luaL_checknumber(L, -3);
+			
+			endx = luaL_checknumber(L, -2);
+			endy = luaL_checknumber(L, -1);
+
+			lua_pop(L, 4);
+
+			SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
+		}
+	}
+	else
+	{
+		if ((argc % 4) != 0)
+			return luaL_error(L, "%s", "Need at least two verticies to draw a line");
+		
+		for (int i = 0; i < argc; i += 4)
+		{
+			startx = luaL_checknumber(L, i + 1);
+			starty = luaL_checknumber(L, i + 2);
+
+			endx = luaL_checknumber(L, i + 3);
+			endy = luaL_checknumber(L, i + 4);
+
+			SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
+		}
+	}
+
+	return 0;
 }
 
 //love.graphics.push
@@ -333,7 +465,7 @@ int Graphics::GetRendererInfo(lua_State * L)
 	lua_pushstring(L, "OpenGL");
 	lua_pushstring(L, "4.5");
 	lua_pushstring(L, "NVIDIA");
-	lua_pushstring(L, "TEGRA X1");
+	lua_pushstring(L, "Tegra X1");
 
 	return 4;
 }
@@ -347,12 +479,10 @@ bool Graphics::IsInitialized()
 
 void Graphics::Exit()
 {
-	printf("Qutting TTF\n");
 	TTF_Quit();
 
-	printf("Quitting Subsys: Video\n");
 	SDL_QuitSubSystem(SDL_INIT_VIDEO);
-	//SDL_Quit();
+	SDL_Quit();
 }
 
 int Graphics::Register(lua_State * L)
@@ -361,6 +491,7 @@ int Graphics::Register(lua_State * L)
 	{
 		{ "newFont",			fontNew				},
 		{ "newImage",			imageNew			},
+		{ "newCanvas",			canvasNew			},
 		{ "newQuad",			quadNew				},
 		{ "draw",				Draw				},
 		{ "print",				Print				},
@@ -374,6 +505,10 @@ int Graphics::Register(lua_State * L)
 		{ "origin",				Origin				},
 		{ "shear",				Shear				},
 		{ "present",			Present				},
+		{ "setNewFont",			SetNewFont			},
+		{ "setCanvas",			SetCanvas			},
+		{ "getFont",			GetFont				},
+		{ "line",				Line				},
 		{ "setColor",			SetColor			},
 		{ "setBackgroundColor",	SetBackgroundColor	},
 		{ "getBackgroundColor",	GetBackgroundColor	},

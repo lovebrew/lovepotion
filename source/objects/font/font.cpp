@@ -5,7 +5,6 @@
 
 #include "modules/filesystem.h"
 
-#include "objects/font/glyph.h"
 #include "objects/font/font.h"
 #include "modules/graphics.h"
 
@@ -24,7 +23,7 @@ Font::Font(int size)
 	float dpiScale = 1.0f;
 	size = floorf(size * dpiScale + 0.5f);
 
-	//TODO: load vera.ttf from memory
+	this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)vera_ttf, vera_ttf_size), 0, size);
 }
 
 Font::~Font()

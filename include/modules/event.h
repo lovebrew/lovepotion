@@ -7,7 +7,7 @@
 
 namespace Event
 {
-	void JoystickEvent(lua_State * L, SDL_Event event);
+	int PollEvent(lua_State * L);
 
 	//Löve2D Functions
 

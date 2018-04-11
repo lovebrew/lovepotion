@@ -4,16 +4,16 @@ class Image
 {
 	public:
 		Image() {};
-		Image(const char * path);
+		Image(const char * path, bool memory);
 		~Image();
 
 		u16 GetWidth();
 		u16 GetHeight();
 
-		SDL_Texture * GetImage();
+		SDL_Surface * GetImage();
 
 	private:
 		u32 width;
 		u32 height;
-		SDL_Texture * texture;
+		SDL_Surface * texture;
 };

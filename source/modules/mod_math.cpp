@@ -3,6 +3,7 @@
 
 float RANDOM_SEED;
 
+//love.math.setRandomSeed
 int Math::SetRandomSeed(lua_State * L)
 {
 	RANDOM_SEED = luaL_checknumber(L, 1);
@@ -18,6 +19,8 @@ int Math::SetRandomSeed(lua_State * L)
 	return 0;
 }
 
+
+//love.math.random
 int Math::Random(lua_State * L)
 {
 	int args = lua_gettop(L);
@@ -47,6 +50,8 @@ int Math::Random(lua_State * L)
 	return 1;
 }
 
+
+//love.math.getRandomSeed
 int Math::GetRandomSeed(lua_State * L)
 {
 	lua_pushnumber(L, RANDOM_SEED);
