@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 
+#include "common/drawable.h"
 #include "objects/canvas/canvas.h"
 #include "modules/window.h"
 
@@ -11,22 +12,7 @@ Canvas::Canvas(int width, int height)
 	this->height = height;
 }
 
-SDL_Texture * Canvas::GetTexture()
+void Canvas::SetAsTarget()
 {
-	return this->texture;
-}
-
-int Canvas::GetWidth()
-{
-	return this->width;
-}
-
-int Canvas::GetHeight()
-{
-	return this->height;
-}
-
-Canvas::~Canvas()
-{
-	SDL_DestroyTexture(this->texture);
+	SDL_SetRenderTarget(Window::GetRenderer(), this->texture);
 }

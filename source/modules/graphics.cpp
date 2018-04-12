@@ -6,6 +6,7 @@
 #include "modules/graphics.h"
 #include "modules/window.h"
 
+#include "common/drawable.h"
 #include "objects/image/image.h"
 #include "objects/image/wrap_image.h"
 
@@ -181,7 +182,21 @@ int Graphics::Present(lua_State * L)
 //love.graphics.draw
 int Graphics::Draw(lua_State * L)
 {
-	Image * graphic = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	Drawable * drawable = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+	
+	/*
+	** Check if it is NULL or not
+	** If it is, check if it's a canvas
+	** Elsewise, .. crash
+	*/
+	if (drawable == NULL)
+	{
+		drawable = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+
+		if (drawable == NULL)
+			return luaL_error(L, "Drawable expected, got %s", lua_tostring(L, 1));
+	}
+
 	Quad * quad = nullptr;
 
 	int start = 2;
@@ -213,32 +228,15 @@ int Graphics::Draw(lua_State * L)
 		flipVertical = SDL_FLIP_VERTICAL;
 
 	transformDrawable(&x, &y);
-
-	if (graphic != NULL)
+	
+	if (quad != nullptr)
 	{
-		printf("IMAGE\n");
-		if (quad == nullptr)
-		{
-			positionRectangle = {x, y, graphic->GetWidth(), graphic->GetHeight()};
-			quadRectangle = {0, 0, graphic->GetWidth(), graphic->GetHeight()};
-		}
-		else
-		{
-			quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
-			positionRectangle = {x, y, quad->GetWidth(), quad->GetHeight()};
-		}
-		
-		//SDL_RenderCopyEx(Window::GetRenderer(), graphic->GetImage(), &quadRectangle, &positionRectangle, rotation, &point, flipHorizontal);
-		SDL_BlitSurface(graphic->GetImage(), &quadRectangle, Window::GetSurface(), &positionRectangle);
+		quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
+		drawable->Draw(&quadRectangle, x, y, rotation, 1, 1);
 	}
 	else
-	{
-		printf("CANVAS\n");
-		Canvas * canvas = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+		drawable->Draw(NULL, x, y, rotation, 1, 1);
 
-		SDL_Rect positionRectangle = {x, y, canvas->GetWidth(), canvas->GetHeight()};
-		SDL_RenderCopyEx(Window::GetRenderer(), canvas->GetTexture(), NULL, &positionRectangle, rotation, &point, flipHorizontal);
-	}
 	return 0;
 }
 
@@ -300,11 +298,9 @@ int Graphics::SetCanvas(lua_State * L)
 	if (!lua_isnoneornil(L, 1))
 		self = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
 
-	printf("%d", self != NULL);
-
 	if (self != NULL)
 	{
-		SDL_SetRenderTarget(Window::GetRenderer(), self->GetTexture());
+		self->SetAsTarget();
 		Graphics::Clear(L);
 	}
 	else

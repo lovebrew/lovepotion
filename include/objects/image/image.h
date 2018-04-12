@@ -1,19 +1,9 @@
 #pragma once
 
-class Image
+class Image : public Drawable
 {
 	public:
 		Image() {};
 		Image(const char * path, bool memory);
 		~Image();
-
-		u16 GetWidth();
-		u16 GetHeight();
-
-		SDL_Surface * GetImage();
-
-	private:
-		u32 width;
-		u32 height;
-		SDL_Surface * texture;
 };

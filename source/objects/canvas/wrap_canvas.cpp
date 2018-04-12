@@ -1,4 +1,6 @@
 #include "common/runtime.h"
+
+#include "common/drawable.h"
 #include "objects/canvas/canvas.h"
 #include "objects/canvas/wrap_canvas.h"
 
@@ -22,7 +24,7 @@ int canvasGC(lua_State * L)
 {
 	Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	self->~Canvas();
+	self->~Drawable();
 
 	return 0;
 }

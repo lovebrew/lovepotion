@@ -1,6 +1,8 @@
-#include "runtime.h"
-#include "image.h"
-#include "wrap_image.h"
+#include "common/runtime.h"
+
+#include "common/drawable.h"
+#include "objects/image/image.h"
+#include "objects/image/wrap_image.h"
 
 #define CLASS_TYPE  LUAOBJ_TYPE_IMAGE
 #define CLASS_NAME  "Image"
@@ -16,13 +18,13 @@ int imageNew(lua_State * L)
 	bool memory = false;
 
 	lua_getglobal(L, "in_error");
-	if (lua_toboolean(L, 1) == 1)
+	if (lua_toboolean(L, -1) == 1)
 		memory = true;
 	
 	lua_setglobal(L, "in_error");
 
 	Image * self = new (raw_self) Image(path, memory);
- 
+
 	return 1;
 }
 
@@ -61,7 +63,7 @@ int imageGC(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	self->~Image();
+	self->~Drawable();
 
 	return 0;
 }
