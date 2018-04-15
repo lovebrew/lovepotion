@@ -1,12 +1,10 @@
 #include "common/runtime.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include "modules/filesystem.h"
 
 #include "objects/font/font.h"
 #include "modules/graphics.h"
+#include "modules/window.h"
 
 #include "vera_ttf.h"
 
@@ -16,6 +14,8 @@ Font::Font(const char * path, int size)
 	this->size = floorf(size * dpiScale + 0.5f);
 
 	this->font = TTF_OpenFont(path, this->size);
+
+	this->surface = NULL;
 }
 
 Font::Font(int size)
@@ -23,7 +23,19 @@ Font::Font(int size)
 	float dpiScale = 1.0f;
 	size = floorf(size * dpiScale + 0.5f);
 
-	this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)vera_ttf, vera_ttf_size), 0, size);
+	this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)vera_ttf, vera_ttf_size), 1, size);
+
+	this->surface = NULL;
+}
+
+void Font::Print(const char * text, double x, double y, SDL_Color color)
+{
+	this->surface = TTF_RenderText_Blended_Wrapped(this->font, text, color, 1280);
+
+	SDL_Rect position = {x, y, this->surface->w, this->surface->h};
+	SDL_BlitSurface(this->surface, NULL, Window::GetSurface(), &position);
+
+	SDL_FreeSurface(this->surface);
 }
 
 Font::~Font()
@@ -36,18 +48,12 @@ int Font::GetSize()
 	return this->size;
 }
 
-int Font::GetWidth(uint glyph)
+int Font::GetWidth(const char * text)
 {
-	/*int width = 0;
-	std::pair<int, int> size = glyph->GetCorner();
+	int width;
+	TTF_SizeUTF8(this->font, text, &width, NULL);
 
-	if ((glyph->GetXAdvance() + kerning) < (size.first + kerning))
-		width += size.first + kerning;
-	else
-		width += glyph->GetXAdvance() + kerning;
-	*/
-
-	return 0;
+	return width;
 }
 
 TTF_Font * Font::GetFont()

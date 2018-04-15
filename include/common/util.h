@@ -9,10 +9,6 @@
 
 #define LOVE_DRAW		"if love.draw then love.draw() end"
 
-#define LOVE_CLEAR		"love.graphics.clear()"
-
-#define LOVE_PRESENT	"love.graphics.present()"
-
 #include <exception>
 
 void love_getfield(lua_State * L, const char * field);

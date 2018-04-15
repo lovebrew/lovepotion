@@ -38,6 +38,8 @@ namespace Graphics
 	int Rectangle(lua_State * L);
 	int Line(lua_State * L);
 
+	int SetScissor(lua_State * L);
+
 	int GetRendererInfo(lua_State * L);
 
 	int GetFont(lua_State * L);
@@ -46,8 +48,6 @@ namespace Graphics
 	int Print(lua_State * L);
 
 	//End Löve2D Functions
-
-	FT_Library GetFreetypeLibrary();
 
 	int Register(lua_State * L);
 

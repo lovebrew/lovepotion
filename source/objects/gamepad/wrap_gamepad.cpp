@@ -14,7 +14,7 @@ int gamepadNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	SDL_Joystick * handle;
+	SDL_Joystick * handle = NULL;
 	for (uint i = 0; i < 2; i++)
 		handle = SDL_JoystickOpen(i);
 

@@ -85,6 +85,7 @@ int initSourceClass(lua_State *L)
 		{ "play",				sourcePlay		},
 		{ "isPlaying",			sourceIsPlaying	},
 		{ "isLooping",			sourceIsLooping	},
+		{ "setLooping",			sourceSetLooping},
 		{ "__gc",				sourceGC		},
 		{ 0, 0 },
 	};

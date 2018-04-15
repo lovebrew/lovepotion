@@ -1,8 +1,5 @@
 #include "common/runtime.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include "modules/graphics.h"
 #include "modules/window.h"
 
@@ -20,13 +17,10 @@
 #include "objects/canvas/wrap_canvas.h"
 
 bool isInitialized = false;
-u32 * FRAMEBUFFER;
-
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
 SDL_Color drawColor = { 255, 255, 255, 255 };
 
-Font * currentFont;
-Canvas * currentCanvas;
+Font * currentFont = NULL;
 
 #define RGBA(r, g, b, a) r | (g >> (u32)8) | (b >> (u32)16) | (a >> (u32)24)
 
@@ -61,7 +55,7 @@ void transformDrawable(double * originalX, double * originalY) // rotate, scale,
 void Graphics::Initialize()
 {
 	if (SDL_Init(SDL_INIT_VIDEO) != 0)
-		throw Exception("Failed to load SDL2");
+		printf("Failed to load SDL2");
 
 	TTF_Init();
 
@@ -213,29 +207,18 @@ int Graphics::Draw(lua_State * L)
 
 	double scalarX = luaL_optnumber(L, start + 3, 1);
 	double scalarY = luaL_optnumber(L, start + 4, 1);
-
-	SDL_Point point = {0, 0};
 	
-	SDL_Rect positionRectangle;
 	SDL_Rect quadRectangle;
-
-	SDL_RendererFlip flipHorizontal = SDL_FLIP_NONE;
-	if (scalarX < 0.0)
-		flipHorizontal = SDL_FLIP_HORIZONTAL;
-
-	SDL_RendererFlip flipVertical = SDL_FLIP_NONE;
-	if (scalarY < 0.0)
-		flipVertical = SDL_FLIP_VERTICAL;
 
 	transformDrawable(&x, &y);
 	
 	if (quad != nullptr)
 	{
 		quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
-		drawable->Draw(&quadRectangle, x, y, rotation, 1, 1);
+		drawable->Draw(&quadRectangle, x, y, rotation, scalarX, scalarY, drawColor);
 	}
 	else
-		drawable->Draw(NULL, x, y, rotation, 1, 1);
+		drawable->Draw(NULL, x, y, rotation, scalarX, scalarY, drawColor);
 
 	return 0;
 }
@@ -273,20 +256,18 @@ int Graphics::SetNewFont(lua_State * L)
 //love.graphics.print
 int Graphics::Print(lua_State * L)
 {
-	size_t length;
-	const char * text = luaL_checklstring(L, 1, &length);
+	const char * text = luaL_checkstring(L, 1);
 	
 	double x = luaL_optnumber(L, 2, 0);
 	double y = luaL_optnumber(L, 3, 0);
 	
 	transformDrawable(&x, &y);
 
-	SDL_Rect position;
-	position.x = x;
-	position.y = y;
+	if (currentFont == NULL)
+		return 0;
 
-	SDL_Surface * source = TTF_RenderText_Blended_Wrapped(currentFont->GetFont(), text, drawColor, 1280);
-	SDL_BlitSurface(source, NULL, Window::GetSurface(), &position);
+
+	currentFont->Print(text, x, y, drawColor);
 
 	return 0;
 }
@@ -379,6 +360,30 @@ int Graphics::Line(lua_State * L)
 
 			SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
 		}
+	}
+
+	return 0;
+}
+
+//love.graphics.setScissor
+int Graphics::SetScissor(lua_State * L)
+{
+	if (lua_isnoneornil(L, 1))
+		SDL_RenderSetClipRect(Window::GetRenderer(), NULL);
+	else
+	{
+		int x = luaL_checknumber(L, 1);
+		int y = luaL_checknumber(L, 2);
+
+		int width = luaL_checknumber(L, 3);
+		int height = luaL_checknumber(L, 4);
+
+		if (width < 0 || height < 0)
+			return luaL_error(L, "Scissor cannot have a negative width or height");
+		
+		SDL_Rect scissor = {x, y, width, height};
+		
+		SDL_RenderSetClipRect(Window::GetRenderer(), &scissor);
 	}
 
 	return 0;

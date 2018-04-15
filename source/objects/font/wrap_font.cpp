@@ -1,8 +1,5 @@
 #include "common/runtime.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include "objects/font/font.h"
 #include "objects/font/wrap_font.h"
 
@@ -12,7 +9,7 @@
 int fontNew(lua_State * L)
 {
 	const char * path = NULL;
-	int size = 0;
+	int size = 14;
 
 	/*
 	** Either first arg is string
@@ -25,11 +22,9 @@ int fontNew(lua_State * L)
 			path = luaL_checkstring(L, 1);
 			size = luaL_checknumber(L, 2);
 		}
-		else if (lua_isnumber(L, 1))
+		else if (lua_type(L, 1) == LUA_TNUMBER)
 			size = luaL_checknumber(L, 1);
 	}
-	else
-		size = 14;
 
 	void * raw_self = luaobj_newudata(L, sizeof(Font));
 
@@ -43,24 +38,17 @@ int fontNew(lua_State * L)
 	return 1;
 }
 
-
 //Font:getWidth
-/*int fontGetWidth(lua_State * L)
+int fontGetWidth(lua_State * L)
 {
 	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
+	const char * text = luaL_checkstring(L, 2);
 
-	size_t length;
-	const char * text = luaL_checklstring(L, 2, &length);
-	int width = 0;
-
-	for (uint i = 0; i < length; i++)
-		width += self->GetWidth((int)text[i]);
-
-	lua_pushnumber(L, width);
+	lua_pushnumber(L, self->GetWidth(text));
 
 	return 1;
 }
-*/
+
 //Font:getHeight
 int fontGetHeight(lua_State * L)
 {
@@ -85,7 +73,7 @@ int initFontClass(lua_State * L)
 	luaL_Reg reg[] = 
 	{
 		{"new",			fontNew	},
-		//{"getWidth",	fontGetWidth},
+		{"getWidth",	fontGetWidth},
 		{"getHeight",	fontGetHeight},
 		{"__gc",		fontGC	},
 		{ 0, 0 },

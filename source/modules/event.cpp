@@ -51,7 +51,7 @@ int Event::PollEvent(lua_State * L)
 			}
 			break;
 		}
-		case SDL_FINGERDOWN:
+		/*case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		{
 			love_getfield(L, (event.type == SDL_FINGERDOWN) ? "touchpressed" : "touchreleased");
@@ -68,7 +68,7 @@ int Event::PollEvent(lua_State * L)
 				lua_call(L, 6, 0);
 			}
 			break;
-		}
+		}*/
 		default:
 			break;
 	}

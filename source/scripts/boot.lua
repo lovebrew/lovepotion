@@ -50,8 +50,8 @@ in_error = false
 love.filesystem.setIdentity(config.identity)
 love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
-local defaultFont = love.graphics.newFont()
-love.graphics.setFont(defaultFont)
+__defaultFont = love.graphics.newFont()
+love.graphics.setFont(__defaultFont)
 
 --love.enableScreen(config.window.top, config.window.bottom);
 

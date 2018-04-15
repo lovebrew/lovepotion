@@ -1,9 +1,6 @@
 #include "common/runtime.h"
 #include <unistd.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include "common/version.h"
 
 #include "objects/gamepad/gamepad.h"
@@ -107,12 +104,12 @@ int Love::Run(lua_State * L)
 	if (luaL_dostring(L, LOVE_UPDATE))
 		luaL_error(L, "%s", lua_tostring(L, -1));
 
-	luaL_dostring(L, LOVE_CLEAR);
+	Graphics::Clear(L);
 	
 	if (luaL_dostring(L, LOVE_DRAW))
 		luaL_error(L, "%s", lua_tostring(L, -1));
 
-	luaL_dostring(L, LOVE_PRESENT);
+	Graphics::Present(L);
 
 	Timer::Tick();
 

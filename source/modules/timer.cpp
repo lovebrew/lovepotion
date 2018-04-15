@@ -50,7 +50,7 @@ int Timer::Step(lua_State * L)
 
 	dt = currTime - prevTime;
 
-	dt = dt * 0.001f;
+	dt = dt * 0.001;
 
 	if (dt < 0) 
 		dt = 0;

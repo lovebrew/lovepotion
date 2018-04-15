@@ -10,9 +10,6 @@ extern "C"
 
 #include <string>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-
 #include <SDL.h>
 
 #include "modules/audio.h"
@@ -70,11 +67,8 @@ int main()
 
 	Joystick::Initialize(L);
 
-	lua_catchexception(L, [L]() 
-	{
-		if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
-			throw Exception(L);
-	});
+	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
+		luaL_error(L, "%s", lua_tostring(L, -1));
 
 	/*
 	** aptMainLoop important code moved to love.cpp

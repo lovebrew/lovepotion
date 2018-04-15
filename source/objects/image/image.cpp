@@ -9,9 +9,9 @@
 #include "error_png.h"
 #include "plus_png.h"
 
-Image::Image(const char * path, bool memory)
+Image::Image(const char * path, bool memory) : Drawable()
 {
-	SDL_Surface * surface = NULL;
+	//SDL_Surface * surface = NULL;
 
 	if (!memory)
 	{
@@ -22,20 +22,20 @@ Image::Image(const char * path, bool memory)
 			throw Exception("File does not exit: %s", path);
 		exists.Close();
 
-		surface = IMG_Load(path);
+		this->surface = IMG_Load(path);
 	}
 	else
 	{
 		if (strncmp(path, "plus", 4) == 0)
-			surface = IMG_Load_RW(SDL_RWFromMem((void *)plus_png, plus_png_size), 1);
+			this->surface = IMG_Load_RW(SDL_RWFromMem((void *)plus_png, plus_png_size), 1);
 		else if (strncmp(path, "error", 5) == 0)
-			surface = IMG_Load_RW(SDL_RWFromMem((void *)error_png, error_png_size), 1);
+			this->surface = IMG_Load_RW(SDL_RWFromMem((void *)error_png, error_png_size), 1);
 	}
 
-	this->width = surface->w;
-	this->height = surface->h;
+	this->width = this->surface->w;
+	this->height = this->surface->h;
 
-	this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), surface);
+	//this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), surface);
 
-	SDL_FreeSurface(surface);
+	//SDL_FreeSurface(surface);
 }

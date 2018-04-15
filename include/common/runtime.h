@@ -19,6 +19,8 @@ extern "C"
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
 #include <SDL_image.h>
+#include <SDL2_rotozoom.h>
+#include <SDL2_gfxPrimitives.h>
 #include <png.h>
 
 //C++ headers
