@@ -14,6 +14,7 @@ class Drawable
 
 		SDL_Texture * texture;
 		SDL_Surface * surface;
+		SDL_Surface * changedSurface;
 
 		double scalarX;
 };

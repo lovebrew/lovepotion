@@ -78,10 +78,8 @@ bool Gamepad::IsDown(const string & button)
 		if (i < 0 || i >= numbuttons)
 			continue;
 
-		printf("%d %d\n", i, SDL_JoystickGetButton(this->joystickHandle, i));
 		if (KEYS[i] != "" && KEYS[i] == button)
 		{
-			printf("%d %d\n", i, SDL_JoystickGetButton(this->joystickHandle, i));
 			if (SDL_JoystickGetButton(this->joystickHandle, i) == 1)
 				return true;
 		}

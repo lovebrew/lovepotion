@@ -141,6 +141,56 @@ int Filesystem::GetSize(lua_State * L)
 	return 1;
 }
 
+int Filesystem::GetInfo(lua_State * L)
+{
+	string path = Redirect(luaL_checkstring(L, 1));
+	string checkType;
+
+	struct stat pathInfo;
+	int success = stat(path.c_str(), &pathInfo);
+
+	if (lua_istable(L, 2))
+		lua_pushvalue(L, 2);
+	else
+	{
+		checkType = luaL_checkstring(L, 2);
+		lua_newtable(L);
+	}
+
+	string pathType = "other";
+	if (S_ISREG(pathInfo.st_mode))
+		pathType = "file";
+	else if (S_ISREG(pathInfo.st_mode))
+		pathType = "directory";
+
+	lua_pushstring(L, pathType.c_str());
+	lua_setfield(L, -2, "type");
+
+	if (checkType != pathType)
+	{
+		lua_pop(L, 1);
+		return 0;
+	}
+
+	double size = std::min((long long)pathInfo.st_size, 0x20000000000000LL);
+	if (size >= 0)
+		lua_pushnumber(L, size);
+	else
+		lua_pushnil(L);
+
+	lua_setfield(L, -2, "size");
+
+	double time = std::min((long long)pathInfo.st_mtime, 0x20000000000000LL);
+	if (time >= 0)
+		lua_pushnumber(L, time);
+	else
+		lua_pushnil(L);
+
+	lua_setfield(L, -2, "modtime");
+
+	return 1;
+}
+
 //love.filesystem.setIdentity
 int Filesystem::SetIdentity(lua_State * L)
 {
@@ -253,13 +303,14 @@ int Filesystem::Register(lua_State * L)
 		{ "write",					Write			 },
 		{ "isFile",					IsFile			 },
 		{ "isDirectory",			IsDirectory		 },
+		{ "getSize",				GetSize			 },
+		{ "getInfo",				GetInfo			 },
 		{ "createDirectory",		CreateDirectory	 },
 		{ "getSaveDirectory",		GetSaveDirectory },
 		{ "setIdentity",			SetIdentity		 },
 		{ "getIdentity",			GetIdentity		 },
 		{ "getDirectoryItems",		GetDirectoryItems},
 		{ "remove",					Remove			 },
-		{ "getSize",				GetSize			 },
 		{ 0, 0 }
 	};
 

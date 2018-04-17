@@ -6,6 +6,7 @@ Drawable::Drawable()
 {
 	this->texture = NULL;
 	this->surface = NULL;
+	this->changedSurface = NULL;
 
 	this->scalarX = 1.0;
 }
@@ -19,7 +20,6 @@ void Drawable::Draw(SDL_Rect * quad, double x, double y, double rotation, double
 		positionRectangle.h = quad->h;
 	}
 	
-
 	if (this->surface != NULL)
 	{
 		SDL_SetSurfaceColorMod(this->surface, color.r, color.g, color.b);
@@ -27,20 +27,25 @@ void Drawable::Draw(SDL_Rect * quad, double x, double y, double rotation, double
 
 		if (this->scalarX != scalarX)
 		{
-			this->surface = rotozoomSurfaceXY(this->surface, rotation, scalarX, scalarY, 0);
+			this->changedSurface = rotozoomSurfaceXY(this->surface, rotation, scalarX, scalarY, 0);
 
-			if (scalarX < 0 && quad != NULL)
+			if (quad != NULL)
 			{
 				int origin = quad->x;
-				quad->x = (this->surface->w - quad->w - origin);
-				positionRectangle.x -= quad->w;
+				if (scalarX < 0.0)
+				{
+					quad->x = (this->surface->w - quad->w - origin);
+					positionRectangle.x -= quad->w;
+				}
 			}
+			
 			this->scalarX = scalarX;
 		}
 
-		SDL_BlitSurface(this->surface, quad, Window::GetSurface(), &positionRectangle);
-
-		//SDL_FreeSurface(surface);
+		if (this->changedSurface != NULL)
+			SDL_BlitSurface(this->changedSurface, quad, Window::GetSurface(), &positionRectangle);
+		else
+			SDL_BlitSurface(this->surface, quad, Window::GetSurface(), &positionRectangle);
 	}
 	else if (this->texture != NULL)
 	{

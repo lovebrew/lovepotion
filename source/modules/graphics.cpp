@@ -313,6 +313,48 @@ int Graphics::Rectangle(lua_State * L)
 	return 0;
 }
 
+//love.graphics.arc
+int Graphics::Arc(lua_State * L)
+{
+	string mode = (string)luaL_checkstring(L, 1);
+
+	double x = luaL_optnumber(L, 2, 0);
+	double y = luaL_optnumber(L, 3, 0);
+
+	double radius = luaL_checknumber(L, 4);
+
+	double start = luaL_checknumber(L, 5);
+	double end = luaL_checknumber(L, 6);
+
+	start *= 180 / M_PI;
+	end *= 180 / M_PI;
+
+	if (mode == "line")
+		pieRGBA(Window::GetRenderer(), x, y, radius, start, end, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+	else if (mode == "fill")
+		filledPieRGBA(Window::GetRenderer(), x, y, radius, start, end, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+
+	return 0;
+}
+
+//love.graphics.circle
+int Graphics::Circle(lua_State * L)
+{
+	string mode = (string)luaL_checkstring(L, 1);
+
+	double x = luaL_optnumber(L, 2, 0);
+	double y = luaL_optnumber(L, 3, 0);
+
+	double radius = luaL_checknumber(L, 4);
+
+	if (mode == "fill")
+		filledCircleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+	else if (mode == "line")
+		circleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+
+	return 0;
+}
+
 //love.graphics.line
 int Graphics::Line(lua_State * L)
 {
@@ -331,18 +373,21 @@ int Graphics::Line(lua_State * L)
 
 		if ((tableLength % 4) == 0)
 		{
-			for (int i = 1; i < tableLength; i += 4)
-				lua_rawgeti(L, 1, i);
+			for (int j = 0; j < tableLength; j += 4)
+			{
+				for (int i = 1; i <= 4; i++)
+					lua_rawgeti(L, 1, i + j);
 
-			startx = luaL_checknumber(L, -4);
-			starty = luaL_checknumber(L, -3);
-			
-			endx = luaL_checknumber(L, -2);
-			endy = luaL_checknumber(L, -1);
+				startx = luaL_checknumber(L, -4);
+				starty = luaL_checknumber(L, -3);
+				
+				endx = luaL_checknumber(L, -2);
+				endy = luaL_checknumber(L, -1);
 
-			lua_pop(L, 4);
+				lua_pop(L, 4);
 
-			SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
+				SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
+			}
 		}
 	}
 	else
@@ -361,6 +406,73 @@ int Graphics::Line(lua_State * L)
 			SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
 		}
 	}
+
+	return 0;
+}
+
+//love.graphics.points
+int Graphics::Points(lua_State * L)
+{
+	int args = lua_gettop(L);
+	bool tableOfTables = false;
+	
+	if (args == 1 && lua_istable(L, 1))
+	{
+		args = lua_objlen(L, 1);
+
+		lua_rawgeti(L, 1, 1);
+		tableOfTables = lua_istable(L, -1);
+		lua_pop(L, 1);
+	}
+
+	if (args % 2 != 0 && !tableOfTables)
+		return luaL_error(L, "Points must be a multiple of two");
+
+	int pointCount = args / 2;
+	if (tableOfTables)
+		pointCount = args;
+
+	float * coordinates = new float[pointCount * 2];
+	if (lua_istable(L, 1))
+	{
+		if (!tableOfTables)
+		{
+			for (int i = 0; i < args; i++)
+			{
+				lua_rawgeti(L, 1, i + 1);
+
+				coordinates[i] = luaL_checknumber(L, -1);
+			
+				lua_pop(L, 1);
+			}
+		}
+		else
+		{
+			for (int i = 0; i < args; i++)
+			{
+				lua_rawgeti(L, 1, i + 1);
+
+				for (int j = 1; j <= 2; j++)
+					lua_rawgeti(L, -j, j);
+
+				coordinates[i * 2 + 0] = luaL_checknumber(L, -2);
+				coordinates[i * 2 + 1] = luaL_checknumber(L, -1);
+
+				lua_pop(L, 3);
+			}
+		}
+	}
+
+	SDL_Point points[pointCount];
+	for (int i = 0; i < args; i++)
+	{
+		points[i].x = coordinates[i * 2 + 0];
+		points[i].y = coordinates[i * 2 + 1];
+	}
+
+	SDL_RenderDrawPoints(Window::GetRenderer(), points, args);
+
+	delete[] coordinates;
 
 	return 0;
 }
@@ -498,6 +610,9 @@ int Graphics::Register(lua_State * L)
 		{ "print",				Print				},
 		{ "setFont",			SetFont				},
 		{ "rectangle",			Rectangle			},
+		{ "circle",				Circle				},
+		{ "points",				Points				},
+		{ "arc",				Arc					},
 		{ "clear",				Clear				},
 		{ "push",				Push				},
 		{ "translate",			Translate			},

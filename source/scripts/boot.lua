@@ -215,7 +215,6 @@ function love.errhand(message)
 	local function draw()
 		love.graphics.clear()
 
-		love.graphics.setColor(0.9, 0.22, 0.21)
 		love.graphics.draw(error_img, 74, 38)
 
 		love.graphics.setColor(1, 1, 1)
@@ -241,7 +240,7 @@ function love.errhand(message)
 		draw()
 
 		love.scan()
-		print(joystick:getID(), joystick:isDown("plus"));
+		--print(joystick:getID(), joystick:isDown("plus"));
 		if joystick:isDown("plus") then
 			break
 		end

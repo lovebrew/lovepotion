@@ -16,7 +16,9 @@ namespace Filesystem
 	
 	int IsFile(lua_State * L);
 	int IsDirectory(lua_State * L);
-	
+
+	int GetInfo(lua_State * L);
+
 	int SetIdentity(lua_State * L);
 	int GetIdentity(lua_State * L);
 

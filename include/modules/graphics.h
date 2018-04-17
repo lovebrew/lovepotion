@@ -37,6 +37,9 @@ namespace Graphics
 
 	int Rectangle(lua_State * L);
 	int Line(lua_State * L);
+	int Circle(lua_State * L);
+	int Arc(lua_State * L);
+	int Points(lua_State * L);
 
 	int SetScissor(lua_State * L);
 
