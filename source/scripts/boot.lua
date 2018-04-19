@@ -203,6 +203,7 @@ function love.errhand(message)
 	love.filesystem.write("log.txt", realError)
 	
 	love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
+	love.graphics.clear()
 
 	love.graphics.setColor(1, 1, 1, 1)
 	
@@ -239,12 +240,6 @@ function love.errhand(message)
 	while true do
 		draw()
 
-		love.scan()
-		--print(joystick:getID(), joystick:isDown("plus"));
-		if joystick:isDown("plus") then
-			break
-		end
-
 		love.timer.sleep(0.1)
 	end
 
@@ -273,6 +268,8 @@ if love.filesystem.isFile("main.lua") then
 	if not result then
 		return
 	end
+else
+	love._nogame()
 end
 
 if love.timer then

@@ -55,9 +55,10 @@ int main()
 
 	Audio::Initialize();
 
-	Filesystem::Initialize();
-
 	lua_State * L = luaL_newstate();
+
+	if (!Filesystem::Initialize())
+		luaL_error(L, "%s", "Failed to load game data.");
 
 	luaL_openlibs(L);
 

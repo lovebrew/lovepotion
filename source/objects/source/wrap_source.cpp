@@ -38,6 +38,16 @@ int sourcePlay(lua_State * L)
 	return 0;
 }
 
+//Source:stop
+int sourceStop(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	self->Stop();
+
+	return 0;
+}
+
 //Source:setLooping
 int sourceSetLooping(lua_State * L)
 {
@@ -74,6 +84,11 @@ int sourceIsLooping(lua_State * L)
 
 int sourceGC(lua_State * L)
 {
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	if (!self->IsPlaying())
+		self->~Source();
+
 	return 0;
 }
 
@@ -86,6 +101,7 @@ int initSourceClass(lua_State *L)
 		{ "isPlaying",			sourceIsPlaying	},
 		{ "isLooping",			sourceIsLooping	},
 		{ "setLooping",			sourceSetLooping},
+		{ "stop",				sourceStop		},
 		{ "__gc",				sourceGC		},
 		{ 0, 0 },
 	};

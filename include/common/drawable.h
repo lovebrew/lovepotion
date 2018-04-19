@@ -16,5 +16,5 @@ class Drawable
 		SDL_Surface * surface;
 		SDL_Surface * changedSurface;
 
-		double scalarX;
+		double horScale;
 };

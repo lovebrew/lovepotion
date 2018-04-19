@@ -15,6 +15,11 @@ Source::Source(const char * path, bool stream)
 	this->stream = stream;
 }
 
+Source::~Source()
+{
+	this->Stop();
+}
+
 bool Source::IsPlaying()
 {
 	if (!this->IsValid())

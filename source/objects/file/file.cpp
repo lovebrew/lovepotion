@@ -9,6 +9,14 @@ File::File(const char * path)
 	this->open = false;
 }
 
+File::~File()
+{
+	if (this->open)
+		this->Flush();
+
+	this->Close();
+}
+
 long File::GetSize()
 {
 	long size = 0;

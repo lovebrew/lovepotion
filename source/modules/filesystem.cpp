@@ -23,8 +23,9 @@ bool Filesystem::Initialize()
 
 	if (!ROMFS_INIT)
 		return false;
-	else
-		chdir("game");
+	
+	if (chdir("game") != 0)
+		return false;
 
 //	mkdir(SAVE_DIR.c_str(), 0777);
 	

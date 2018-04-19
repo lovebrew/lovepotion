@@ -13,9 +13,10 @@ int canvasNew(lua_State * L)
 	int height = luaL_optnumber(L, 2, 720);
 
 	void * raw_self = (void *)luaobj_newudata(L, sizeof(Canvas));
-	Canvas * self = new (raw_self) Canvas(width, height);
-
+	
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+	Canvas * self = new (raw_self) Canvas(width, height);
 
 	return 1;
 }

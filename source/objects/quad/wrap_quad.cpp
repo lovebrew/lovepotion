@@ -21,7 +21,7 @@ int quadNew(lua_State * L)
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
 	Quad * self = new (raw_self) Quad(x, y, width, height, atlasWidth, atlasHeight);
- 
+
 	return 1;
 }
 

@@ -63,6 +63,7 @@ int Love::Initialize(lua_State * L)
 	luaL_Reg reg[] =
 	{
 		{ "scan",			Event::PollEvent},
+		{ "_nogame",		NoGame			},
 		{ "run",			Run				},
 		{ "getVersion",		GetVersion		},
 		{ "enableConsole",	EnableConsole	},
@@ -98,8 +99,7 @@ int Love::Run(lua_State * L)
 {
 	Event::PollEvent(L);
 
-	if (luaL_dostring(L, LOVE_TIMER_STEP))
-		luaL_error(L, "%s", lua_tostring(L, -1));
+	luaL_dostring(L, LOVE_TIMER_STEP);
 
 	if (luaL_dostring(L, LOVE_UPDATE))
 		luaL_error(L, "%s", lua_tostring(L, -1));
@@ -119,9 +119,9 @@ int Love::Run(lua_State * L)
 //love.getVersion
 int Love::GetVersion(lua_State * L)
 {
-	if (lua_isboolean(L, 1))
+	if (!lua_isnoneornil(L, 1))
 	{
-		if (lua_toboolean(L, 1))
+		if (lua_type(L, 1) == LUA_TBOOLEAN && lua_toboolean(L, 1))
 		{
 			lua_pushstring(L, LOVE_POTION_VERSION);
 			

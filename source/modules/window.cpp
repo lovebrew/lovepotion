@@ -22,6 +22,10 @@ void Window::Initialize()
 		SDL_Quit();
 
 	WINDOW_SURFACE = SDL_GetWindowSurface(WINDOW);
+
+	SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_BLEND);
+
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 }
 
 SDL_Renderer * Window::GetRenderer()

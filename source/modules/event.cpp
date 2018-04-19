@@ -5,9 +5,15 @@
 #include "modules/joystick.h"
 
 SDL_Event event;
+uint lastTouch;
+string lastButton;
+
 int Event::PollEvent(lua_State * L)
 {
-	SDL_PollEvent(&event);
+	int hasEvent = SDL_PollEvent(&event);
+
+	if (hasEvent != 1)
+		return 0;
 
 	switch (event.type)
 	{
@@ -47,11 +53,12 @@ int Event::PollEvent(lua_State * L)
 				lua_remove(L, -2);
 
 				lua_pushstring(L, KEYS[event.jbutton.button].c_str());
+
 				lua_call(L, 2, 0);
 			}
 			break;
 		}
-		/*case SDL_FINGERDOWN:
+		case SDL_FINGERDOWN:
 		case SDL_FINGERUP:
 		{
 			love_getfield(L, (event.type == SDL_FINGERDOWN) ? "touchpressed" : "touchreleased");
@@ -68,7 +75,24 @@ int Event::PollEvent(lua_State * L)
 				lua_call(L, 6, 0);
 			}
 			break;
-		}*/
+		}
+		case SDL_FINGERMOTION:
+		{
+			love_getfield(L, "touchmoved");
+
+			if (!lua_isnil(L, -1))
+			{
+				lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
+				lua_pushnumber(L, event.tfinger.x * 1280);
+				lua_pushnumber(L, event.tfinger.y * 720);
+				lua_pushnumber(L, event.tfinger.dx * 1280);
+				lua_pushnumber(L, event.tfinger.dy * 720);
+				lua_pushnumber(L, 1);
+
+				lua_call(L, 6, 0);
+			}
+			break;
+		}
 		default:
 			break;
 	}

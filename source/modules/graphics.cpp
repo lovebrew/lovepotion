@@ -39,7 +39,7 @@ void transformDrawable(double * originalX, double * originalY) // rotate, scale,
 	*originalX += matrix.ox;
 	*originalY += matrix.oy;
 
-	//Scale
+	/*/Scale
 	*originalX *= matrix.sx;
 	*originalY *= matrix.sy;
 
@@ -49,7 +49,7 @@ void transformDrawable(double * originalX, double * originalY) // rotate, scale,
 
 	//Shear
 	*originalX = newLeft + matrix.kx * newTop;
-	*originalY = newTop + matrix.ky * newLeft;
+	*originalY = newTop + matrix.ky * newLeft;*/
 }
 
 void Graphics::Initialize()
@@ -114,7 +114,7 @@ int Graphics::SetBackgroundColor(lua_State * L)
 //love.graphics.setColor
 int Graphics::SetColor(lua_State * L)
 {
-	double r = 0, g = 0, b = 0, a = 1;
+	float r = 0, g = 0, b = 0, a = 1;
 
 	if (lua_isnumber(L, 1))
 	{
@@ -208,10 +208,15 @@ int Graphics::Draw(lua_State * L)
 	double scalarX = luaL_optnumber(L, start + 3, 1);
 	double scalarY = luaL_optnumber(L, start + 4, 1);
 	
+	double offsetX = luaL_optnumber(L, start + 5, 0);
+	double offsetY = luaL_optnumber(L, start + 6, 0);
+
 	SDL_Rect quadRectangle;
 
 	transformDrawable(&x, &y);
-	
+	x -= offsetX;
+	y -= offsetY;
+
 	if (quad != nullptr)
 	{
 		quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
@@ -620,8 +625,10 @@ int Graphics::Register(lua_State * L)
 		{ "rotate",				Rotate				},
 		{ "origin",				Origin				},
 		{ "shear",				Shear				},
+		{ "pop",				Pop					},
 		{ "present",			Present				},
 		{ "setNewFont",			SetNewFont			},
+		{ "setScissor",			SetScissor			},
 		{ "setCanvas",			SetCanvas			},
 		{ "getFont",			GetFont				},
 		{ "line",				Line				},

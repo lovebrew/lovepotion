@@ -11,8 +11,10 @@ function Cloud:init(i, x, y)
 
 	self.x = x
 	self.y = y
+
+	self.rate = math.random(2, 5)
 end
 
 function Cloud:draw()
-	love.graphics.draw(self.image, self.x, self.y)
+	love.graphics.draw(self.image, self.x, self.y + math.sin(love.timer.getTime() * self.rate) * 2)
 end

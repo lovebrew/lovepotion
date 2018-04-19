@@ -8,44 +8,47 @@ Drawable::Drawable()
 	this->surface = NULL;
 	this->changedSurface = NULL;
 
-	this->scalarX = 1.0;
+	this->horScale = 0.0;
 }
 
 void Drawable::Draw(SDL_Rect * quad, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color)
 {
-	SDL_Rect positionRectangle = {x, y, this->width, this->height};
+
+	double scaledWidth = this->width * scalarX;
+	double scaledHeight = this->height * scalarY;
+
+	SDL_Rect positionRectangle = {x, y, scaledWidth, scaledHeight};
+
 	if (quad != NULL)
 	{
-		positionRectangle.w = quad->w;
-		positionRectangle.h = quad->h;
+		positionRectangle.w = quad->w * scalarX;
+		positionRectangle.h = quad->h * scalarY;
 	}
 	
 	if (this->surface != NULL)
 	{
+		/*if (this->horScale != scalarX)
+		{
+			this->changedSurface = rotozoomSurfaceXY(this->surface, rotation, scalarX, scalarY, 0);
+			SDL_SetSurfaceBlendMode(this->changedSurface, SDL_BLENDMODE_BLEND);
+
+			this->horScale = scalarX;
+		}*/
+
 		SDL_SetSurfaceColorMod(this->surface, color.r, color.g, color.b);
 		SDL_SetSurfaceAlphaMod(this->surface, color.a);
 
-		if (this->scalarX != scalarX)
+		/*if (quad != NULL)
 		{
-			this->changedSurface = rotozoomSurfaceXY(this->surface, rotation, scalarX, scalarY, 0);
-
-			if (quad != NULL)
+			int origin = quad->x;
+			if (scalarX < 0.0)
 			{
-				int origin = quad->x;
-				if (scalarX < 0.0)
-				{
-					quad->x = (this->surface->w - quad->w - origin);
-					positionRectangle.x -= quad->w;
-				}
+				quad->x = ((this->width * scalarX) - quad->w - origin);
+				positionRectangle.x -= quad->w;
 			}
-			
-			this->scalarX = scalarX;
-		}
+		}*/
 
-		if (this->changedSurface != NULL)
-			SDL_BlitSurface(this->changedSurface, quad, Window::GetSurface(), &positionRectangle);
-		else
-			SDL_BlitSurface(this->surface, quad, Window::GetSurface(), &positionRectangle);
+		SDL_BlitScaled(this->surface, quad, Window::GetSurface(), &positionRectangle);
 	}
 	else if (this->texture != NULL)
 	{

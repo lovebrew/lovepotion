@@ -20,6 +20,8 @@ function love.load()
 end
 
 function love.update(dt)
+	dt = math.min(1 / 30, dt)
+	
 	doggo:update(dt)
 end
 

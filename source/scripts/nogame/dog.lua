@@ -31,9 +31,9 @@ end
 
 function Swoof:draw()
 	--EARS
-	local HEADPANT = 0--math.cos(love.timer.getTime() * 12) * 3
-	local TONGUEPANT = 0--math.sin(love.timer.getTime() * 12) * 3
-	local TAILWAG = 0--math.sin(love.timer.getTime() * 24) * 25
+	local HEADPANT = math.cos(love.timer.getTime() * 12) * 3
+	local TONGUEPANT = math.sin(love.timer.getTime() * 12) * 3
+	local TAILWAG = math.sin(love.timer.getTime() * 24) * 25
 
 	love.graphics.draw(self.shadow, self.x + (self.head:getWidth() - self.shadow:getWidth()) / 2, self.y + (self.head:getHeight() + self.body:getHeight() / 2) - self.shadow:getHeight() / 2)
 

@@ -23,6 +23,8 @@ Image::Image(const char * path, bool memory) : Drawable()
 		exists.Close();
 
 		this->surface = IMG_Load(path);
+		if (!this->surface)
+			printf("Failed to load %s", path);
 	}
 	else
 	{
@@ -34,6 +36,8 @@ Image::Image(const char * path, bool memory) : Drawable()
 
 	this->width = this->surface->w;
 	this->height = this->surface->h;
+
+	SDL_SetSurfaceBlendMode(this->surface, SDL_BLENDMODE_BLEND);
 
 	//this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), surface);
 

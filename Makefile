@@ -16,7 +16,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 # DATA is a list of directories containing data files
 # INCLUDES is a list of directories containing header files
 # EXEFS_SRC is the optional input directory containing data copied into exefs, if anything this normally should only contain "main.npdm".
-#
+# ROMFS is the directory containing data to be added to RomFS, relative to the Makefile (Optional)
+
 # NO_ICON: if set to anything, do not use icon.
 # NO_NACP: if set to anything, no .nacp file is generated.
 # APP_TITLE is the name of the app stored in the .nacp file (Optional)
@@ -35,6 +36,7 @@ BUILD		:=	build
 EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
+NOGAMEDIR	:= source/scripts/nogame
 
 SOURCES		:=	source \
 				source/scripts \
@@ -56,7 +58,12 @@ INCLUDES	:=	include \
 				$(EXT_LIBS)
 
 EXEFS_SRC	:=	exefs_src
-ROMFS		:=	game
+#ROMFS		:=	game
+
+# If we don't find the game, use No Game
+#ifeq ($(wildcard $(CURDIR)/game/.*),)
+#	ROMFS = NOGAMEDIR
+#endif
 
 APP_TITLE	:= Löve Potion
 APP_AUTHOR	:= TurtleP
@@ -158,6 +165,10 @@ endif
 ifneq ($(APP_TITLEID),)
 	export NACPFLAGS += --titleid=$(APP_TITLEID)
 endif
+
+#ifneq ($(ROMFS),)
+#	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
+#endif
 
 .PHONY: $(BUILD) clean all
 

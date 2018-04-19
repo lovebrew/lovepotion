@@ -5,6 +5,7 @@ class File
 	public:
 		File(const char * path);
 		File() {};
+		~File();
 
 		char * Read();
 		u8 * ReadBinary();

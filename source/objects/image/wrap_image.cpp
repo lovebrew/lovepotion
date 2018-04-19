@@ -16,14 +16,13 @@ int imageNew(lua_State * L)
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
 	bool memory = false;
-
 	lua_getglobal(L, "in_error");
 	if (lua_toboolean(L, -1) == 1)
 		memory = true;
 	
 	lua_setglobal(L, "in_error");
 
-	Image * self = new (raw_self) Image(path, memory);
+	Image * self = new (raw_self) Image(path, false);
 
 	return 1;
 }
