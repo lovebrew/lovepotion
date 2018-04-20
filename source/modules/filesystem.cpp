@@ -7,28 +7,33 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-bool ROMFS_INIT = true;
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
+FILE * file;
+string debug;
 
 bool Filesystem::Initialize()
 {
-	//ROMFS_INIT = romfsInit() ? false : true;
+	Result ROMFS_INIT = romfsInit();
 
 	//Get base device path
 	//Can change if it's on USB for whatever reason
 	//In that case it'll be {DEVICE}:/LovePotion/
 	//{IDENTITY} is appended for unique ID
-	//getcwd((char *)SAVE_DIR.data(), 256);
+	char cwd[256];
+	getcwd(cwd, 256);
+	SAVE_DIR = cwd;
 
-	if (!ROMFS_INIT)
+	if (ROMFS_INIT != 0)
 		return false;
-	
-	if (chdir("game") != 0)
-		return false;
+	else
+	{
+		if (chdir("game") != 0)
+			chdir("romfs:/"); //load romfs game (or nogame)!
+	}
 
-//	mkdir(SAVE_DIR.c_str(), 0777);
-	
+	mkdir(SAVE_DIR.c_str(), 0777);
+
 	return true;
 }
 
@@ -292,6 +297,11 @@ string Filesystem::Redirect(const char * path)
 		return string(path);
 	else
 		return GetSaveDirectory() + string(path);
+}
+
+void Filesystem::Exit()
+{
+	romfsExit();
 }
 
 //Register Functions

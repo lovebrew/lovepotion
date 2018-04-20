@@ -37,6 +37,7 @@ extern "C"
 
 #include "boot_lua.h"
 
+#include "common/console.h"
 #include "common/types.h"
 #include "common/util.h"
 
@@ -45,8 +46,6 @@ bool LOVE_QUIT = false;
 
 int main()
 {
-	//Console::Initialize();
-
 	System::Initialize();
 
 	Graphics::Initialize();
@@ -55,10 +54,9 @@ int main()
 
 	Audio::Initialize();
 
+	Filesystem::Initialize();
+	
 	lua_State * L = luaL_newstate();
-
-	if (!Filesystem::Initialize())
-		luaL_error(L, "%s", "Failed to load game data.");
 
 	luaL_openlibs(L);
 
@@ -69,7 +67,7 @@ int main()
 	Joystick::Initialize(L);
 
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
-		luaL_error(L, "%s", lua_tostring(L, -1));
+		return luaL_error(L, "%s", lua_tostring(L, -1));
 
 	/*
 	** aptMainLoop important code moved to love.cpp

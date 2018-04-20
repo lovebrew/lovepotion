@@ -15,8 +15,6 @@ function love.load()
 	}
 
 	bowlImage = love.graphics.newImage("graphics/swoof/Bowl.png")
-
-	love.filesystem.write("test", table.concat({love.graphics.getBackgroundColor()}, "\n"))
 end
 
 function love.update(dt)

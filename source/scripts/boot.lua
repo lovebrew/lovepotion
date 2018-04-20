@@ -53,27 +53,6 @@ love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 __defaultFont = love.graphics.newFont()
 love.graphics.setFont(__defaultFont)
 
---love.enableScreen(config.window.top, config.window.bottom);
-
---[[local function wrapText(text, x, y, len)
-	local width = 0
-	local originY = y
-	local ret = ""
-
-	for word in text:gmatch("%S+% ?") do
-		width = width + defaultFont:getWidth(word)
-		if x + width >= len then
-			word = "\n" .. word 
-			originY = originY + 18
-			width = 0
-		end
-
-		ret = ret .. word
-	end
-
-	love.graphics.print(ret, x, y)
-end]]
-
 function love.createhandlers()
 	-- Standard callback handlers.
 	love.handlers = setmetatable({
@@ -250,6 +229,10 @@ local function pseudoRequireMain()
 	return require("main")
 end
 
+local function gameFailure()
+	return error("Failed to load game!")
+end
+
 if love.filesystem.isFile("main.lua") then
 	--Try main
 	local result = xpcall(pseudoRequireMain, love.errhand)
@@ -269,7 +252,10 @@ if love.filesystem.isFile("main.lua") then
 		return
 	end
 else
-	love._nogame()
+	local result = xpcall(gameFailure, love.errhand)
+	if not result then
+		return
+	end
 end
 
 if love.timer then

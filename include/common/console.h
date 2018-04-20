@@ -1,6 +1,6 @@
 /*
 ** console.h
-** @brief	: Handles errors and logging
+** @brief	: Handles logs
 ** @note	: Only displayed if conf.lua sets 't.console = true'
 */
 
@@ -8,7 +8,7 @@
 
 namespace Console
 {
-	void Initialize(lua_State * L, bool error);
+	void Initialize();
 	
 	extern bool IsInitialized();
 }

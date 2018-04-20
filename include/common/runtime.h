@@ -30,6 +30,7 @@ extern "C"
 #include <map>
 
 //C headers
+#include <errno.h>
 #include <malloc.h>
 #include <math.h>
 #include <stdio.h>

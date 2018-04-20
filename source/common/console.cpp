@@ -3,7 +3,7 @@
 
 bool CONSOLE_INITIALIZED = false;
 
-void Console::Initialize(lua_State * L, bool error)
+void Console::Initialize()
 {
 	//gfxInitDefault();
 

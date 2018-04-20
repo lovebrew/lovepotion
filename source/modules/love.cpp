@@ -30,7 +30,7 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 {
 	{ "audio",		Audio::Register,		Audio::Exit			},
 	{ "event",		Event::Register,		NULL				},
-	{ "filesystem",	Filesystem::Register,	NULL				},
+	{ "filesystem",	Filesystem::Register,	Filesystem::Exit	},
 	{ "graphics",	Graphics::Register,		NULL				},
 	{ "joystick",	Joystick::Register,		NULL				},
 	{ "math",		Math::Register,			NULL				},
@@ -90,7 +90,7 @@ bool touchDown = false;
 
 bool Love::IsRunning()
 {
-	return (ERROR == false && LOVE_QUIT == false);
+	return LOVE_QUIT == false;
 }
 
 
@@ -139,7 +139,7 @@ int Love::GetVersion(lua_State * L)
 
 int Love::EnableConsole(lua_State * L)
 {
-	Console::Initialize(L, false);
+	Console::Initialize();
 
 	return 0;
 }
@@ -149,7 +149,7 @@ int Love::NoGame(lua_State * L)
 	chdir("romfs:/");
 
 	if (luaL_dofile(L, "main.lua"))
-		throw Exception(L);
+		return luaL_error(L, "%s", lua_tostring(L, -1));
 
 	return 0;
 }

@@ -58,12 +58,12 @@ INCLUDES	:=	include \
 				$(EXT_LIBS)
 
 EXEFS_SRC	:=	exefs_src
-#ROMFS		:=	game
+ROMFS		:=	game
 
-# If we don't find the game, use No Game
-#ifeq ($(wildcard $(CURDIR)/game/.*),)
-#	ROMFS = NOGAMEDIR
-#endif
+#If we don't find the game, use No Game
+ifeq ($(wildcard $(CURDIR)/game/.*),)
+	ROMFS = $(NOGAMEDIR)
+endif
 
 APP_TITLE	:= Löve Potion
 APP_AUTHOR	:= TurtleP
@@ -166,9 +166,9 @@ ifneq ($(APP_TITLEID),)
 	export NACPFLAGS += --titleid=$(APP_TITLEID)
 endif
 
-#ifneq ($(ROMFS),)
-#	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
-#endif
+ifneq ($(ROMFS),)
+	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
+endif
 
 .PHONY: $(BUILD) clean all
 
