@@ -38,15 +38,15 @@ void Drawable::Draw(SDL_Rect * quad, double x, double y, double rotation, double
 		SDL_SetSurfaceColorMod(this->surface, color.r, color.g, color.b);
 		SDL_SetSurfaceAlphaMod(this->surface, color.a);
 
-		/*if (quad != NULL)
+		if (quad != NULL)
 		{
 			int origin = quad->x;
 			if (scalarX < 0.0)
 			{
-				quad->x = ((this->width * scalarX) - quad->w - origin);
+				quad->x = (this->width - quad->w - origin);
 				positionRectangle.x -= quad->w;
 			}
-		}*/
+		}
 
 		SDL_BlitScaled(this->surface, quad, Window::GetSurface(), &positionRectangle);
 	}

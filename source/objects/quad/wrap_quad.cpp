@@ -25,6 +25,21 @@ int quadNew(lua_State * L)
 	return 1;
 }
 
+int quadSetViewport(lua_State * L)
+{
+	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	int x = luaL_checknumber(L, 2);
+	int y = luaL_checknumber(L, 3);
+
+	int width = luaL_checknumber(L, 4);
+	int height = luaL_checknumber(L, 5);
+
+	self->SetViewport(x, y, width, height);
+
+	return 0;
+}
+
 int quadGC(lua_State * L)
 {
 	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -37,8 +52,9 @@ int quadGC(lua_State * L)
 int initQuadClass(lua_State * L)
 {
 	luaL_Reg reg[] = {
-		{"new",			quadNew		},
-		{"__gc",		quadGC		},
+		{"new",			quadNew			},
+		{"setViewport",	quadSetViewport	},
+		{"__gc",		quadGC			},
 		{ 0, 0 },
 	};
 

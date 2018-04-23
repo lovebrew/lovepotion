@@ -94,6 +94,11 @@ int gamepadSetVibration(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
+	double left = luaL_checknumber(L, 2);
+	double right = luaL_checknumber(L, 3);
+
+	self->SetVibration(left, right);
+
 	return 0;
 }
 

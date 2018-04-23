@@ -25,7 +25,11 @@ bool Filesystem::Initialize()
 	SAVE_DIR = cwd;
 
 	if (ROMFS_INIT != 0)
+	{
+		//emulated
+		chdir("game");
 		return false;
+	}
 	else
 	{
 		if (chdir("game") != 0)

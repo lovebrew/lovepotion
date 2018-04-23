@@ -1,11 +1,20 @@
 #include "common/runtime.h"
 #include "objects/gamepad/gamepad.h"
 
-Gamepad::Gamepad(int id, SDL_Joystick * handle)
+Gamepad::Gamepad(int id, SDL_Joystick * joystick)
 {
 	this->id = id;
 
-	this->joystickHandle = handle;
+	this->joystickHandle = joystick;
+	hidInitializeVibrationDevices(this->vibrationHandles, 2, (HidControllerID)id, TYPE_JOYCON_PAIR);
+
+	memset(this->vibration, 0, sizeof(this->vibration));
+
+	this->vibration[0].freq_low  = 10.0f;
+	this->vibration[0].freq_high = 10.0f;
+
+	this->vibration[1].freq_low  = 10.0f;
+	this->vibration[1].freq_high = 10.0f;
 }
 
 int Gamepad::GetID()
@@ -46,6 +55,19 @@ bool Gamepad::IsVibrationSupported()
 	return true;
 }
 
+void Gamepad::SetVibration(double left, double right)
+{
+	double leftAmplitude = clamp(0, left, 1);
+	this->vibration[0].amp_low   = leftAmplitude;
+	this->vibration[0].amp_high  = leftAmplitude;
+
+	double rightAmplitude = clamp(0, right, 1);
+	this->vibration[1].amp_low   = rightAmplitude;
+	this->vibration[1].amp_high  = rightAmplitude;
+	
+	hidSendVibrationValues(this->vibrationHandles, this->vibration, 2);
+}
+
 string Gamepad::GetName()
 {
 	HidControllerID id = this->GetInternalID();
@@ -71,7 +93,7 @@ string Gamepad::GetName()
 
 bool Gamepad::IsDown(const string & button)
 {
-	int numbuttons = this->GetButtonCount();
+	/*int numbuttons = this->GetButtonCount();
 
 	for (int i = 0; i < KEYS.size(); i++)
 	{
@@ -83,7 +105,7 @@ bool Gamepad::IsDown(const string & button)
 			if (SDL_JoystickGetButton(this->joystickHandle, i) == 1)
 				return true;
 		}
-	}
+	}*/
 
 	return false;
 }

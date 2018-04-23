@@ -9,7 +9,9 @@ class Gamepad
 		int GetButtonCount();
 		std::string GetName();
 
-		void SetVibration(float amp_low, float freq_low, float amp_high, float freq_high);
+		void SetVibration(double left, double right);
+		void SetVibration();
+
 		bool IsVibrationSupported();
 
 		bool IsConnected();
@@ -20,10 +22,11 @@ class Gamepad
 		void ClampAxis(float & x); 
 	private:
 		HidControllerID GetInternalID();
-		float ReadAxis(HidControllerJoystick joystick, bool horizontal);
-		
+
 		int id;
 		SDL_Joystick * joystickHandle;
+		u32 vibrationHandles[2];
+		HidVibrationValue vibration[2];
 };
 
 extern std::vector<Gamepad *> controllers;

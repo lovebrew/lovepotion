@@ -11,6 +11,8 @@ class Quad
 		int GetWidth();
 		int GetHeight();
 
+		void SetViewport(int x, int y, int width, int height);
+
 	private:
 		int NextPow2(unsigned int x);
 

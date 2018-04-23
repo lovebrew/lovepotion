@@ -10,6 +10,15 @@ Quad::Quad(float subTextureX, float subTextureY, float subTextureWidth, float su
 	this->height = subTextureHeight;
 }
 
+void Quad::SetViewport(int x, int y, int width, int height)
+{
+	this->x = x;
+	this->y = y;
+
+	this->width = width;
+	this->height = height;
+}
+
 int Quad::GetX()
 {
 	return this->x;
