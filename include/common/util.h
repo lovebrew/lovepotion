@@ -21,6 +21,7 @@ extern std::vector<std::string> KEYS;
 
 extern std::map<int, std::string> LANGUAGES;
 
+
 /**
  * Converts any exceptions thrown by the passed lambda function into a Lua error.
  * lua_error (and luaL_error) cannot be called from inside the exception handler

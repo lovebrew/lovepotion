@@ -47,3 +47,18 @@ extern "C"
 using std::string;
 using std::vector;
 using std::pair;
+
+extern FILE * logFile;
+
+static inline void writeLog(const string & data)
+{
+	fwrite((char *)data.data(), 1, data.length(), logFile);
+
+	fflush(logFile);
+}
+
+static inline void closeLog()
+{
+	if (logFile != NULL)
+		fclose(logFile);
+}

@@ -45,7 +45,7 @@ int Event::PollEvent(lua_State * L)
 			Gamepad * controller = Joystick::GetJoystickFromID(event.jbutton.which);
 
 			love_getfield(L, (event.type == SDL_JOYBUTTONDOWN) ? "gamepadpressed" : "gamepadreleased");
-			
+
 			if (!lua_isnil(L, -1))
 			{
 				lua_getglobal(L, "__controllers");

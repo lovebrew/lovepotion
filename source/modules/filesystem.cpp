@@ -9,9 +9,8 @@
 
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
-FILE * file;
-string debug;
 
+FILE * logFile;
 bool Filesystem::Initialize()
 {
 	Result ROMFS_INIT = romfsInit();
