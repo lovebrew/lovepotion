@@ -77,6 +77,11 @@ float Timer::GetOSTime()
 	return (float)ticks * 1 / (19200000.0f / 1000.0f);
 }
 
+float Timer::GetDelta()
+{
+	return dt;
+}
+
 void Timer::Tick()
 {
 	frames++;

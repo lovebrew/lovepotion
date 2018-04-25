@@ -17,7 +17,9 @@ namespace Timer
 
 	//End Löve2D Functions
 	float GetOSTime();
-	
+
+	float GetDelta();
+
 	void Tick();
 
 	int Register(lua_State * L);

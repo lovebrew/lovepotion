@@ -14,17 +14,18 @@ int gamepadNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	SDL_Joystick * handle = NULL;
 	for (uint i = 0; i < 2; i++)
-		handle = SDL_JoystickOpen(i);
+		hidSetNpadJoyAssignmentModeDual((HidControllerID)i);
 
-	Gamepad * self = new (raw_self) Gamepad(controllers.size(), handle);
+	SDL_Joystick * handle = SDL_JoystickOpen(0);
+
+	Gamepad *self = new (raw_self) Gamepad(controllers.size(), handle);
 
 	lua_getglobal(L, "__controllers"); //get global table
 
 	lua_pushlightuserdata(L, self); //light userdata key
-	lua_pushvalue(L, 2); //push the userdata value to the key
-	lua_settable(L, -3); //set the taaable (╯°□°）╯︵ ┻━┻
+	lua_pushvalue(L, 2);			//push the userdata value to the key
+	lua_settable(L, -3);			//set the taaable (╯°□°）╯︵ ┻━┻
 
 	lua_setglobal(L, "__controllers");
 
@@ -94,10 +95,18 @@ int gamepadSetVibration(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	double left = luaL_checknumber(L, 2);
-	double right = luaL_checknumber(L, 3);
+	double left = 0;
+	double right = 0;
 
-	self->SetVibration(left, right);
+	if (!lua_isnoneornil(L, 2))
+	{
+		left = luaL_checknumber(L, 2);
+		right = luaL_checknumber(L, 3);
+	}
+
+	double duration = luaL_optnumber(L, 4, -1);
+
+	self->SetVibration(left, right, duration);
 
 	return 0;
 }

@@ -3,14 +3,17 @@
 
 #include "objects/gamepad/gamepad.h"
 #include "modules/joystick.h"
+#include "modules/timer.h"
 
 SDL_Event event;
-uint lastTouch;
-string lastButton;
 
 int Event::PollEvent(lua_State * L)
 {
 	int hasEvent = SDL_PollEvent(&event);
+
+	//update gamepad rumble
+	for (Gamepad * joycon : controllers)
+		joycon->Update(Timer::GetDelta());
 
 	if (hasEvent != 1)
 		return 0;
@@ -48,10 +51,10 @@ int Event::PollEvent(lua_State * L)
 
 			if (!lua_isnil(L, -1))
 			{
-				lua_getglobal(L, "__controllers");
-				lua_pushlightuserdata(L, controller);
-				lua_gettable(L, -2);
-				lua_remove(L, -2);
+				lua_getglobal(L, "__controllers"); //top
+				lua_pushlightuserdata(L, controller); //key index: -1
+				lua_gettable(L, -2); //push value, index: ?
+				lua_remove(L, -2); //remove table, index: -2?
 
 				lua_pushstring(L, KEYS[event.jbutton.button].c_str());
 
@@ -71,7 +74,7 @@ int Event::PollEvent(lua_State * L)
 				lua_pushnumber(L, event.tfinger.y * 720);
 				lua_pushnumber(L, 0);
 				lua_pushnumber(L, 0);
-				lua_pushnumber(L, 1);
+				lua_pushnumber(L, event.tfinger.pressure);
 
 				lua_call(L, 6, 0);
 			}
@@ -88,7 +91,7 @@ int Event::PollEvent(lua_State * L)
 				lua_pushnumber(L, event.tfinger.y * 720);
 				lua_pushnumber(L, event.tfinger.dx * 1280);
 				lua_pushnumber(L, event.tfinger.dy * 720);
-				lua_pushnumber(L, 1);
+				lua_pushnumber(L, event.tfinger.pressure);
 
 				lua_call(L, 6, 0);
 			}

@@ -3,14 +3,15 @@
 class Gamepad
 {
 	public:
-		Gamepad(int id, SDL_Joystick * handle);
+		Gamepad(int id, SDL_Joystick * joystick);
 
 		float GetAxis(int axis);
 		int GetButtonCount();
 		std::string GetName();
 
-		void SetVibration(double left, double right);
-		void SetVibration();
+		void Update(float delta);
+
+		void SetVibration(double left, double right, double duration);
 
 		bool IsVibrationSupported();
 
@@ -21,11 +22,14 @@ class Gamepad
 
 		void ClampAxis(float & x); 
 	private:
+		SDL_Joystick * joystickHandle;
 		HidControllerID GetInternalID();
+		void SetVibrationData(HidVibrationValue & value, double amplitude);
+		
+		double vibrationDuration;
 
 		int id;
-		SDL_Joystick * joystickHandle;
-		u32 vibrationHandles[2];
+		u32 vibrationHandles[2][2];
 		HidVibrationValue vibration[2];
 };
 

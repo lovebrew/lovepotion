@@ -156,7 +156,7 @@ int Filesystem::GetInfo(lua_State * L)
 	string checkType;
 
 	struct stat pathInfo;
-	int success = stat(path.c_str(), &pathInfo);
+	stat(path.c_str(), &pathInfo);
 
 	if (lua_istable(L, 2))
 		lua_pushvalue(L, 2);

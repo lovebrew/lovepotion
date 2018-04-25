@@ -173,6 +173,9 @@ function love.errhand(message)
 	end
 	
 	table.insert(err, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
+	
+	dateTime = os.date("%c")
+	table.insert(err, "\nDate and Time: " .. dateTime)
 	table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
 	
 	local realError = table.concat(err, "\n")
@@ -218,6 +221,10 @@ function love.errhand(message)
 
 	while true do
 		draw()
+
+		if joystick:isDown("plus") then
+			break
+		end
 
 		love.timer.sleep(0.1)
 	end
