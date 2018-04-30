@@ -162,7 +162,7 @@ int Filesystem::GetInfo(lua_State * L)
 		lua_pushvalue(L, 2);
 	else
 	{
-		checkType = luaL_checkstring(L, 2);
+		checkType = luaL_optstring(L, 2, "file");
 		lua_newtable(L);
 	}
 
@@ -273,6 +273,15 @@ int Filesystem::GetDirectoryItems(lua_State * L)
 	return 0;
 }
 
+//love.filesystem.load    
+int Filesystem::Load(lua_State * L)
+{
+	string path = Redirect(luaL_checkstring(L, 1));
+
+	luaL_loadfile(L, path.c_str());
+
+	return 1;
+}
 
 //love.filesystem.remove
 int Filesystem::Remove(lua_State * L)
@@ -319,6 +328,7 @@ int Filesystem::Register(lua_State * L)
 		{ "isDirectory",			IsDirectory		 },
 		{ "getSize",				GetSize			 },
 		{ "getInfo",				GetInfo			 },
+		{ "load",					Load			 },
 		{ "createDirectory",		CreateDirectory	 },
 		{ "getSaveDirectory",		GetSaveDirectory },
 		{ "setIdentity",			SetIdentity		 },

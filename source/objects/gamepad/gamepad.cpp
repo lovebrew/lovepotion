@@ -37,7 +37,7 @@ void Gamepad::Update(float delta)
 
 bool Gamepad::IsConnected()
 {
-	return this->joystickHandle != NULL && SDL_JoystickGetAttached(this->joystickHandle);
+	return this->joystickHandle != NULL;
 }
 
 HidControllerID Gamepad::GetInternalID()
@@ -125,11 +125,12 @@ bool Gamepad::IsDown(const string & button)
 
 	SDL_JoystickUpdate();
 
-	for (int i = 0; i < KEYS.size(); i++)
+	for (int i = 0; i < numbuttons; i++)
 	{
 		if (i < 0 || i >= numbuttons)
 			continue;
 
+		printf("%s %s", KEYS[i].c_str(), button.c_str());
 		if (KEYS[i] != "" && KEYS[i] == button)
 		{
 			if (SDL_JoystickGetButton(this->joystickHandle, i) == 1)
