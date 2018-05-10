@@ -93,6 +93,28 @@ int udpReceiveFrom(lua_State * L)
 	return 3;
 }
 
+//UDP:receivefrom
+int udpReceive(lua_State * L)
+{
+	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * buffer = (char *)calloc(SOCKET_BUFFERSIZE, sizeof(char));
+	int length = self->Receive(buffer);
+
+	if (length == 0)
+	{
+		lua_pushnil(L);
+		free(buffer);
+		return 1;
+	}
+
+	lua_pushstring(L, buffer);
+
+	free(buffer);
+
+	return 1;
+}
+
 int udpGC(lua_State * L)
 {
 	return 0;
@@ -107,6 +129,7 @@ int initUDPClass(lua_State * L)
 		{"setpeername",				udpSetPeerName	},
 		{"setsockname",				udpSetSockName	},
 		{"receivefrom",				udpReceiveFrom	},
+		{"receive",					udpReceive		},
 		{"__gc",					udpGC			},
 		{ 0, 0 },
 	};

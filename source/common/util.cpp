@@ -68,3 +68,17 @@ std::vector<std::string> KEYS =
 	"dpup", "dpright", "dpdown",
 	"", "", "", "", "", "", "", ""
 };
+
+std::vector<HidControllerID> CONTROLLER_IDS =
+{
+	CONTROLLER_PLAYER_1, CONTROLLER_PLAYER_2, 
+	CONTROLLER_PLAYER_3, CONTROLLER_PLAYER_4, 
+	CONTROLLER_PLAYER_5, CONTROLLER_PLAYER_6,
+	CONTROLLER_PLAYER_7, CONTROLLER_PLAYER_8
+};
+
+std::vector<std::string> GAMEPAD_AXES =
+{
+	"leftx", "lefty",
+	"rightx", "righty"
+};

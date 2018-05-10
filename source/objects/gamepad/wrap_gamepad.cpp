@@ -15,11 +15,11 @@ int gamepadNew(lua_State * L)
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
 	for (uint i = 0; i < 2; i++)
-		hidSetNpadJoyAssignmentModeDual((HidControllerID)i);
+		hidSetNpadJoyAssignmentModeDual(CONTROLLER_IDS[i]);
 
 	SDL_Joystick * handle = SDL_JoystickOpen(0);
 
-	Gamepad *self = new (raw_self) Gamepad(controllers.size(), handle);
+	Gamepad * self = new (raw_self) Gamepad(controllers.size(), handle);
 
 	lua_getglobal(L, "__controllers"); //get global table
 

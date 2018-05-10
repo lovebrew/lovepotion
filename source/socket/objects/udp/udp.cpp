@@ -117,6 +117,21 @@ int UDP::SendTo(const string & datagram, size_t length, const string & ip, int p
 	return sent;
 }
 
+int UDP::Receive(char * outBuffer)
+{
+	int length = recv(this->sockfd, outBuffer, 8191, 0);
+
+	if (length <= 0)
+	{
+		free(buffer);
+		return 0;
+	}
+
+	outBuffer[length] = '\0';
+
+	return length;
+}
+
 int UDP::ReceiveFrom(char * outBuffer, char * outAddress, int * outPort)
 {
 	struct sockaddr_in fromAddress = {0};

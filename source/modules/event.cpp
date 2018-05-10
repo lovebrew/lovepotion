@@ -9,96 +9,94 @@ SDL_Event event;
 
 int Event::PollEvent(lua_State * L)
 {
-	int hasEvent = SDL_PollEvent(&event);
-
 	//update gamepad rumble
 	for (Gamepad * joycon : controllers)
 		joycon->Update(Timer::GetDelta());
 
-	if (hasEvent != 1)
-		return 0;
-
-	switch (event.type)
+	while (SDL_PollEvent(&event))
 	{
-		case SDL_JOYAXISMOTION:
+		switch (event.type)
 		{
-			Gamepad * controller = Joystick::GetJoystickFromID(event.jaxis.which);
-
-			love_getfield(L, "gamepadaxis");
-			if (!lua_isnil(L, -1))
+			case SDL_JOYAXISMOTION:
 			{
-				lua_getglobal(L, "__controllers");
-				lua_pushlightuserdata(L, controller);
-				lua_gettable(L, -2);
-				lua_remove(L, -2);
+				Gamepad * controller = Joystick::GetJoystickFromID(event.jaxis.which);
 
-				lua_pushnumber(L, event.jaxis.axis + 1);
+				love_getfield(L, "gamepadaxis");
+				if (!lua_isnil(L, -1))
+				{
+					lua_getglobal(L, "__controllers");
+					lua_pushlightuserdata(L, controller);
+					lua_gettable(L, -2);
+					lua_remove(L, -2);
 
-				float value = (float)event.jaxis.value / JOYSTICK_MAX;
-				controller->ClampAxis(value);
+					lua_pushstring(L, GAMEPAD_AXES[event.jaxis.axis].c_str());
 
-				lua_pushnumber(L, value);
-				lua_call(L, 3, 0);
+					float value = (float)event.jaxis.value / JOYSTICK_MAX;
+					controller->ClampAxis(value);
+
+					lua_pushnumber(L, value);
+					lua_call(L, 3, 0);
+				}
+				break;
+			}	
+			case SDL_JOYBUTTONDOWN:
+			case SDL_JOYBUTTONUP:
+			{	
+				Gamepad * controller = Joystick::GetJoystickFromID(event.jbutton.which);
+
+				love_getfield(L, (event.type == SDL_JOYBUTTONDOWN) ? "gamepadpressed" : "gamepadreleased");
+
+				if (!lua_isnil(L, -1))
+				{
+					lua_getglobal(L, "__controllers"); //top
+					lua_pushlightuserdata(L, controller); //key index: -1
+					lua_gettable(L, -2); //push value, index: ?
+					lua_remove(L, -2); //remove table, index: -2?
+
+					lua_pushstring(L, KEYS[event.jbutton.button].c_str());
+
+					lua_call(L, 2, 0);
+				}
+				break;
 			}
-			break;
-		}	
-		case SDL_JOYBUTTONDOWN:
-		case SDL_JOYBUTTONUP:
-		{	
-			Gamepad * controller = Joystick::GetJoystickFromID(event.jbutton.which);
-
-			love_getfield(L, (event.type == SDL_JOYBUTTONDOWN) ? "gamepadpressed" : "gamepadreleased");
-
-			if (!lua_isnil(L, -1))
+			case SDL_FINGERDOWN:
+			case SDL_FINGERUP:
 			{
-				lua_getglobal(L, "__controllers"); //top
-				lua_pushlightuserdata(L, controller); //key index: -1
-				lua_gettable(L, -2); //push value, index: ?
-				lua_remove(L, -2); //remove table, index: -2?
+				love_getfield(L, (event.type == SDL_FINGERDOWN) ? "touchpressed" : "touchreleased");
 
-				lua_pushstring(L, KEYS[event.jbutton.button].c_str());
+				if (!lua_isnil(L, -1))
+				{
+					lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
+					lua_pushnumber(L, event.tfinger.x * 1280);
+					lua_pushnumber(L, event.tfinger.y * 720);
+					lua_pushnumber(L, 0);
+					lua_pushnumber(L, 0);
+					lua_pushnumber(L, event.tfinger.pressure);
 
-				lua_call(L, 2, 0);
+					lua_call(L, 6, 0);
+				}
+				break;
 			}
-			break;
+			case SDL_FINGERMOTION:
+			{
+				love_getfield(L, "touchmoved");
+
+				if (!lua_isnil(L, -1))
+				{
+					lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
+					lua_pushnumber(L, event.tfinger.x * 1280);
+					lua_pushnumber(L, event.tfinger.y * 720);
+					lua_pushnumber(L, event.tfinger.dx * 1280);
+					lua_pushnumber(L, event.tfinger.dy * 720);
+					lua_pushnumber(L, event.tfinger.pressure);
+
+					lua_call(L, 6, 0);
+				}
+				break;
+			}
+			default:
+				break;
 		}
-		case SDL_FINGERDOWN:
-		case SDL_FINGERUP:
-		{
-			love_getfield(L, (event.type == SDL_FINGERDOWN) ? "touchpressed" : "touchreleased");
-
-			if (!lua_isnil(L, -1))
-			{
-				lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
-				lua_pushnumber(L, event.tfinger.x * 1280);
-				lua_pushnumber(L, event.tfinger.y * 720);
-				lua_pushnumber(L, 0);
-				lua_pushnumber(L, 0);
-				lua_pushnumber(L, event.tfinger.pressure);
-
-				lua_call(L, 6, 0);
-			}
-			break;
-		}
-		case SDL_FINGERMOTION:
-		{
-			love_getfield(L, "touchmoved");
-
-			if (!lua_isnil(L, -1))
-			{
-				lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
-				lua_pushnumber(L, event.tfinger.x * 1280);
-				lua_pushnumber(L, event.tfinger.y * 720);
-				lua_pushnumber(L, event.tfinger.dx * 1280);
-				lua_pushnumber(L, event.tfinger.dy * 720);
-				lua_pushnumber(L, event.tfinger.pressure);
-
-				lua_call(L, 6, 0);
-			}
-			break;
-		}
-		default:
-			break;
 	}
 
 	return 0;

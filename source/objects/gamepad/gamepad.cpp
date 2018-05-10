@@ -17,6 +17,8 @@ Gamepad::Gamepad(int id, SDL_Joystick * joystick)
 	hidInitializeVibrationDevices(this->vibrationHandles[1], 2, CONTROLLER_HANDHELD, type);
 
 	memset(this->vibration, 0, sizeof(this->vibration));
+
+	this->vibrationDuration = -1;
 }
 
 int Gamepad::GetID()
@@ -130,7 +132,6 @@ bool Gamepad::IsDown(const string & button)
 		if (i < 0 || i >= numbuttons)
 			continue;
 
-		printf("%s %s", KEYS[i].c_str(), button.c_str());
 		if (KEYS[i] != "" && KEYS[i] == button)
 		{
 			if (SDL_JoystickGetButton(this->joystickHandle, i) == 1)

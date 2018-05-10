@@ -6,8 +6,6 @@
 #include "modules/graphics.h"
 #include "modules/window.h"
 
-#include "vera_ttf.h"
-
 Font::Font(const char * path, int size)
 {
 	float dpiScale = 1.0f;
@@ -16,21 +14,37 @@ Font::Font(const char * path, int size)
 	this->font = TTF_OpenFont(path, this->size);
 
 	this->surface = NULL;
+
+	if (!this->font)
+		printf("Font error: %s", TTF_GetError());
 }
 
 Font::Font(int size)
 {
+	u64 languageCode = 0;
+    PlFontData fontData;
+    PlFontData fonts[PlSharedFontType_Total];
+	size_t total_fonts = 0;
+
+	setGetSystemLanguage(&languageCode);
+	plGetSharedFont(languageCode, fonts, PlSharedFontType_Total, &total_fonts);
+	plGetSharedFontByType(&fontData, PlSharedFontType_Standard);
+
 	float dpiScale = 1.0f;
 	size = floorf(size * dpiScale + 0.5f);
 
-	this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)vera_ttf, vera_ttf_size), 1, size);
+	this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)fontData.address, fontData.size), 1, size);
 
 	this->surface = NULL;
 }
 
 void Font::Print(const char * text, double x, double y, SDL_Color color)
 {
+	if (strlen(text) == 0)
+		return;
+
 	this->surface = TTF_RenderText_Blended_Wrapped(this->font, text, color, 1280);
+	SDL_SetSurfaceAlphaMod(this->surface, color.a);
 
 	SDL_Rect position = {x, y, this->surface->w, this->surface->h};
 	SDL_BlitSurface(this->surface, NULL, Window::GetSurface(), &position);
@@ -50,8 +64,10 @@ int Font::GetSize()
 
 int Font::GetWidth(const char * text)
 {
-	int width;
-	TTF_SizeUTF8(this->font, text, &width, NULL);
+	int width = 0;
+
+	if (strlen(text) != 0)
+		TTF_SizeUTF8(this->font, text, &width, NULL);
 
 	return width;
 }

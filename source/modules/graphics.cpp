@@ -22,8 +22,6 @@ SDL_Color drawColor = { 255, 255, 255, 255 };
 
 Font * currentFont = NULL;
 
-#define RGBA(r, g, b, a) r | (g >> (u32)8) | (b >> (u32)16) | (a >> (u32)24)
-
 vector<StackMatrix> stack;
 void transformDrawable(double * originalX, double * originalY) // rotate, scale, and translate coords.
 {
@@ -271,7 +269,6 @@ int Graphics::Print(lua_State * L)
 	if (currentFont == NULL)
 		return 0;
 
-
 	currentFont->Print(text, x, y, drawColor);
 
 	return 0;
@@ -307,13 +304,11 @@ int Graphics::Rectangle(lua_State * L)
 	double height = luaL_checknumber(L, 5);
 
 	transformDrawable(&x, &y);
-
-	SDL_Rect rectangle = {x, y, width, height};
 	
 	if (mode == "fill")
-		SDL_RenderFillRect(Window::GetRenderer(), &rectangle);
+		boxRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 	else if (mode == "line")
-		SDL_RenderDrawRect(Window::GetRenderer(), &rectangle);
+		rectangleRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
 	return 0;
 }
@@ -391,7 +386,7 @@ int Graphics::Line(lua_State * L)
 
 				lua_pop(L, 4);
 
-				SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
+				lineRGBA(Window::GetRenderer(), startx, starty, endx, endy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 			}
 		}
 	}
@@ -408,7 +403,7 @@ int Graphics::Line(lua_State * L)
 			endx = luaL_checknumber(L, i + 3);
 			endy = luaL_checknumber(L, i + 4);
 
-			SDL_RenderDrawLine(Window::GetRenderer(), startx, starty, endx, endy);
+			lineRGBA(Window::GetRenderer(), startx, starty, endx, endy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 		}
 	}
 

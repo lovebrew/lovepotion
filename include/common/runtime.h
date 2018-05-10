@@ -37,12 +37,12 @@ extern "C"
 #include <stdlib.h>
 #include <time.h>
 
+#include <switch.h>
+
 #include "common/types.h"
 #include "common/util.h"
 #include "common/console.h"
 #include "common/exception.h"
-
-#include <switch.h>
 
 using std::string;
 using std::vector;

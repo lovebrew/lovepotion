@@ -156,26 +156,33 @@ int Filesystem::GetInfo(lua_State * L)
 	string checkType;
 
 	struct stat pathInfo;
-	stat(path.c_str(), &pathInfo);
+	int success = stat(path.c_str(), &pathInfo);
+
+	printf("%s\n", path.c_str());
+	if (success != 0)
+	{
+		lua_pushnil(L);
+		return 1;
+	}
 
 	if (lua_istable(L, 2))
 		lua_pushvalue(L, 2);
 	else
 	{
-		checkType = luaL_optstring(L, 2, "file");
+		checkType = luaL_optstring(L, 2, "");
 		lua_newtable(L);
 	}
 
 	string pathType = "other";
 	if (S_ISREG(pathInfo.st_mode))
 		pathType = "file";
-	else if (S_ISREG(pathInfo.st_mode))
+	else if (S_ISDIR(pathInfo.st_mode))
 		pathType = "directory";
 
 	lua_pushstring(L, pathType.c_str());
 	lua_setfield(L, -2, "type");
 
-	if (checkType != pathType)
+	if (checkType != "" && checkType != pathType)
 	{
 		lua_pop(L, 1);
 		return 0;

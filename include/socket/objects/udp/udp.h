@@ -8,7 +8,7 @@ class UDP
 		void GetSockName();
 		int SetSockName(const std::string & ip, int port);
 
-		void Receive();
+		int Receive(char * outBuffer);
 		int ReceiveFrom(char * outBuffer, char * outAddress, int * outPort);
 		
 		int Send(const std::string & datagram, size_t length);

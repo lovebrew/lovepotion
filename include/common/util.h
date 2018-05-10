@@ -19,6 +19,10 @@ double clamp(double low, double x, double high);
 
 extern std::vector<std::string> KEYS;
 
+extern std::vector<HidControllerID> CONTROLLER_IDS;
+
+extern std::vector<std::string> GAMEPAD_AXES;
+
 extern std::map<int, std::string> LANGUAGES;
 
 
