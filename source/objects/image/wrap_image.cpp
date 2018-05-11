@@ -9,20 +9,21 @@
 
 int imageNew(lua_State * L)
 {
+	bool memory = false;
+	lua_getglobal(L, "in_error");
+	if (lua_type(L, -1) == LUA_TBOOLEAN && lua_toboolean(L, -1) == 1)
+		memory = true;
+	
+	lua_setglobal(L, "in_error");
+	
+
 	const char * path = luaL_checkstring(L, 1);
 
 	void * raw_self = luaobj_newudata(L, sizeof(Image));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	bool memory = false;
-	lua_getglobal(L, "in_error");
-	if (lua_toboolean(L, -1) == 1)
-		memory = true;
-	
-	lua_setglobal(L, "in_error");
-
-	Image * self = new (raw_self) Image(path, false);
+	Image * self = new (raw_self) Image(path, memory);
 
 	return 1;
 }

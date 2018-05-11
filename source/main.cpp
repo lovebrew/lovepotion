@@ -66,8 +66,7 @@ int main()
 
 	Joystick::Initialize(L);
 
-	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
-		return luaL_error(L, "%s", lua_tostring(L, -1));
+	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
 	/*
 	** aptMainLoop important code moved to love.cpp

@@ -48,7 +48,6 @@ end
 
 in_error = false
 love.filesystem.setIdentity(config.identity)
-love.filesystem.createDirectory("") --defaults to save directory, so .. yep
 
 __defaultFont = love.graphics.newFont()
 love.graphics.setFont(__defaultFont)

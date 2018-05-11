@@ -304,7 +304,7 @@ int Filesystem::Remove(lua_State * L)
 
 string Filesystem::GetSaveDirectory()
 {
-	return SAVE_DIR + "/" + IDENTITY + "/";
+	return SAVE_DIR;
 }
 
 string Filesystem::Redirect(const char * path)
