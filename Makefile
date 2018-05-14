@@ -56,8 +56,8 @@ ROMFS		:=	game
 
 APP_TITLE		:= Löve Potion
 APP_DESCRIPTION := LOVE2D for 3DS
-APP_ICON		:= meta/icon.png
 APP_AUTHOR		:= TurtleP
+ICON			:= meta/icon.png
 
 #If we don't find the game, use No Game
 ifeq ($(wildcard $(CURDIR)/game/.*),)

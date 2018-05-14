@@ -9,11 +9,15 @@ vector<bool> audioChannels(24);
 
 void Audio::Initialize()
 {
-	AUDIO_ENABLED = !ndspInit();
-	if (!AUDIO_ENABLED)
-		printf("Audio output is disabled.\nPlease dump your dspfirm.");
+	if (SDL_Init(SDL_INIT_AUDIO) != 0)
+		Console::ThrowError("Couldn't open audio.");
 
-	for (uint i = 0; i < 24; i++)
+	if(Mix_OpenAudio(44100, AUDIO_S16, 2, 4096) != 0)
+		Console::ThrowError("Couldn't open audio.");
+
+	Mix_AllocateChannels(23);
+
+	for (uint i = 0; i < audioChannels.size(); i++)
 		audioChannels[i] = false;
 }
 
@@ -28,8 +32,8 @@ int Audio::Play(lua_State * L)
 
 int Audio::Stop(lua_State * L) 
 {
-	for (int i = 0; i <= 23; i++)
-		ndspChnWaveBufClear(i);
+	//for (int i = 0; i <= 23; i++)
+	//	ndspChnWaveBufClear(i);
 
 	return 0;
 }
@@ -46,7 +50,7 @@ int Audio::SetVolume(lua_State * L)
 
 int Audio::GetOpenChannel()
 {
-	for (uint i = 0; i < 24; i++)
+	for (uint i = 0; i <= audioChannels.size(); i++)
 	{
 		if (!audioChannels[i])
 		{
@@ -54,13 +58,14 @@ int Audio::GetOpenChannel()
 			return i;
 		}
 	}
-	return -1;
+	return -2;
 }
 
 void Audio::Exit()
 {
-	if (AUDIO_ENABLED) 
-		ndspExit();
+	Mix_Quit();
+	Mix_CloseAudio();
+	SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 int Audio::Register(lua_State * L)
