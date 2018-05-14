@@ -9,6 +9,14 @@ File::File(const char * path)
 	this->open = false;
 }
 
+File::File(const char * path, const char * mode)
+{
+	this->path = strdup(path);
+	this->open = false;
+
+	this->Open(mode);
+}
+
 File::~File()
 {
 	if (this->open)
@@ -48,7 +56,7 @@ bool File::Open(const char * mode)
 		return false;
 	}
 
-	this->mode = mode;
+	this->mode = strdup(mode);
 	this->open = true;
 
 	return true;

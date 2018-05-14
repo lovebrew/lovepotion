@@ -4,6 +4,8 @@ class File
 {
 	public:
 		File(const char * path);
+		File(const char * path, const char * mode);
+
 		File() {};
 		~File();
 

@@ -32,13 +32,17 @@ int Math::Random(lua_State * L)
 	lua_getfield(L, -1, "random");
 	lua_remove(L, -2);
 
+	if (args == 0)
+	{
+		lua_call(L, 0, 1);
+	}
 	if (args == 1)
 	{
 		lua_pushnumber(L, upper);
 
-		lua_call(L, 2, 1);
+		lua_call(L, 1, 1);
 	}
-	else
+	else if (args == 2)
 	{
 		lua_pushnumber(L, lower);
 		lua_pushnumber(L, upper);

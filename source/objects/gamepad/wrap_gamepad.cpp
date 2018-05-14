@@ -14,6 +14,8 @@ int gamepadNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
+	SDL_JoystickOpen(0);
+
 	Gamepad * self = new (raw_self) Gamepad(controllers.size());
 
 	lua_getglobal(L, "__controllers"); //get global table

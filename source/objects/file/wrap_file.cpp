@@ -10,14 +10,22 @@
 int fileNew(lua_State * L)
 {
 	const char * path = luaL_checkstring(L, 1);
+	string mode = "";
+
 	string abspath = Filesystem::GetSaveDirectory() + string(path);
+
+	if (!lua_isnoneornil(L, 2))
+		mode = (string)luaL_checkstring(L, 2);
 
 	void * raw_self = luaobj_newudata(L, sizeof(File));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+	
+	if (mode != "")
+		File * self = new (raw_self) File(abspath.c_str(), mode.c_str());
+	else
+		File * self = new (raw_self) File(abspath.c_str());
 
-	File * self = new (raw_self) File(abspath.c_str());
- 
 	return 1;
 }
 
