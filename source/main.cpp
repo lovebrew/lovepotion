@@ -59,10 +59,6 @@ int main()
 	if (luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot"))
 		Console::ThrowError(L);
 
-	s32 priority = 0;
-	svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
-	Thread musicThread = threadCreate(sourceStream, NULL, 0x1000, priority - 1, -2, false);
-
 	while (aptMainLoop())
 	{
 		if (ERROR || LOVE_QUIT)
@@ -127,11 +123,6 @@ int main()
 		}
 	}
 	
-	updateAudioThread = false;
-
-	threadJoin(musicThread, U64_MAX);
-	threadFree(musicThread);
-
 	Love::Exit(L);
 
 	return 0;

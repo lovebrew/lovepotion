@@ -22,9 +22,6 @@ int sourceNew(lua_State * L)
 
 	Source * self = new (raw_self) Source(path, stream);
 
-	if (stream)
-		streams[self->GetAudioChannel()] = self;
-
 	return 1;
 }
 
@@ -94,35 +91,12 @@ int sourceTell(lua_State * L)
 	return 1;
 }*/
 
-void sourceStream(void * arg)
-{
-	while (updateAudioThread)
-	{
-		for (uint i = 0; i <= 23; i++)
-		{
-			if (streams.find(i) != streams.end())
-				streams[i]->Update();
-		}
-
-		svcSleepThread(1e6);
-	}
-}
-
 int sourceGC(lua_State * L)
 {
 	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
 	
-	if (self->IsStatic())
-	{
-		self->~Source();
-
-		return 0;
-	}
-
 	self->Stop();
 
-	streams.erase(self->GetAudioChannel());
-	
 	self->~Source();
 
 	return 0;

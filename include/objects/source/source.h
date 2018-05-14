@@ -20,36 +20,12 @@ class Source
 		const char * GetPath();
 
 	private:
-		void Decode();
-		void FillBuffer(void * audio);
+		bool IsValid();
 
-		const char * path;
-		ndspWaveBuf waveBuffer[2];
+		Mix_Chunk * sound;
+		Mix_Music * music;
 
-		FILE * fileHandle;
-		OggVorbis_File vorbisFile;
-
-		char * data;
-		int audiochannel;
-
-		u32 rate;
-		u32 channels;
-		u32 encoding;
-		u32 nsamples;
-		u32 size;
-		u32 bitrate;
-
+		int channel;
 		bool loop;
-		bool reset;
-
-		int currentSection;
-
-		float mix[12];
-		ndspInterpType interp;
-		
-		bool stream; //if it should stream
-		bool fillBuffer;
-		bool playing;
+		bool stream;
 };
-
-extern std::map<int, Source *> streams;
