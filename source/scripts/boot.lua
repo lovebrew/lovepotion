@@ -25,13 +25,10 @@
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
-_defaultFont_ = love.graphics.newFont()
-love.graphics.setFont(_defaultFont_)
-
 local config = 
 {
 	console = false,
-	version = "1.0.9",
+	version = "1.10.0",
 	identity = "SuperGame"
 }
 
@@ -48,6 +45,11 @@ if love.filesystem.isFile("conf.lua") then
 end
 
 love.filesystem.setIdentity(config.identity)
+love.filesystem.createDirectory("") --defaults to save directory, so .. yep
+
+local defaultFont = love.graphics.newFont()
+love.graphics.setFont(defaultFont)
+
 --love.enableScreen(config.window.top, config.window.bottom);
 
 local function wrapText(text, x, y, len)
@@ -56,7 +58,7 @@ local function wrapText(text, x, y, len)
 	local ret = ""
 
 	for word in text:gmatch("%S+% ?") do
-		width = width + _defaultFont_:getWidth(word)
+		width = width + defaultFont:getWidth(word)
 		if x + width >= len then
 			word = "\n" .. word 
 			originY = originY + 18
@@ -70,19 +72,33 @@ local function wrapText(text, x, y, len)
 end
 
 function love.errhand(message)
-	message = message:gsub("^(./)", "")
-
 	love.graphics.set3D(false)
 
 	love.audio.stop()
 
-	love.graphics.setBackgroundColor(66, 165, 245)
+	message = message:gsub("^(./)", "")
+
+	local err = {}
+
+	table.insert(err, "Error\n")
+
+	table.insert(err, message)
+
+	table.insert(err, "\nPress 'Start' to quit")
+
+	local realError = table.concat(err, "\n")
+
+	print(realError)
+
+	love.filesystem.write("log.txt", realError)
+
+	love.graphics.setBackgroundColor(89, 157, 220)
 	love.graphics.clear()
 	
 	local function draw()
-		love.graphics.setScreen('top')
+		love.graphics.setScreen("top")
 
-		love.graphics.setFont(_defaultFont_)
+		love.graphics.setFont(defaultFont)
 		love.graphics.setColor(255, 255, 255, 255)
 
 		love.graphics.print("Error:", 16, 30)
@@ -90,17 +106,13 @@ function love.errhand(message)
 
 		love.graphics.print("Press Start to quit", 16, love.graphics.getHeight() - 30)
 
-		if love.keyboard.isDown("start") then
-			love.quit()
-		end
-
 		love.graphics.present()
 	end
 
 	draw()
 
 	while true do
-		love.scan()
+		love.keyboard.scan()
 
 		love.timer.sleep(0.001)
 
@@ -108,7 +120,8 @@ function love.errhand(message)
 			break
 		end
 	end
-	love.quit()
+
+	love.event.quit()
 end
 
 function love.createhandlers()
@@ -211,6 +224,10 @@ love.createhandlers()
 
 if love.filesystem.isFile("main.lua") then
 	require 'main'
+
+	if love.load then
+		love.load()
+	end
 else
 	love.nogame()
 end

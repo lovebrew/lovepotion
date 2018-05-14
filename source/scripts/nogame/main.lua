@@ -21,9 +21,9 @@ freely, subject to the following restrictions:
 -- Edited version of the actual nogame screen.
 
 local last_touch = {time = 0, x = 0, y = 0}
-local pass = {"up", "up", "down", "down", "left", "right", "left", "right", "b", "a"}
+--[[local pass = {"up", "up", "down", "down", "left", "right", "left", "right", "b", "a"}
 local passTimeout = 0
-local passMaxDelay = 0.5
+local passMaxDelay = 0.5]]
 
 class = require '30log'
 require 'toast'
@@ -50,7 +50,7 @@ function love.load()
 
 	passIndex = 1
 
-	loveSound = love.audio.newSource("love.ogg", "stream")
+	--loveSound = love.audio.newSource("love.ogg", "stream")
 end
 
 function love.update(dt)
@@ -60,7 +60,7 @@ function love.update(dt)
 	mosaic:update(dt)
 	topMosaic:update(dt)
 
-	if not loveSound:isPlaying() then
+	--[[if not loveSound:isPlaying() then
 		if passIndex > 1 then
 			passTimeout = passTimeout + dt
 			if passTimeout > passMaxDelay then
@@ -68,7 +68,7 @@ function love.update(dt)
 				passTimeout = 0
 			end
 		end
-	end
+	end]]
 end
 
 function love.draw()
@@ -95,7 +95,7 @@ function love.draw()
 end
 
 function love.keypressed(key)
-	if not loveSound:isPlaying() then
+	--[[if not loveSound:isPlaying() then
 		if key == pass[passIndex] then
 			passIndex = math.min(passIndex + 1, #pass)
 			passTimeout = 0
@@ -108,7 +108,7 @@ function love.keypressed(key)
 		else
 			passIndex = 1
 		end
-	end
+	end]]
 
 	if key == "start" then
 		love.event.quit()

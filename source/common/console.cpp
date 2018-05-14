@@ -1,62 +1,43 @@
-#include <3ds.h>
-#include <stdio.h>
-#include <sys/types.h>
+#include "runtime.h"
+#include "graphics.h"
+#include "version.h"
+
 #include <stdarg.h>
 
-#include "common/runtime.h"
-#include "console.h"
-#include "common/version.h"
+gfxScreen_t CONSOLE_SCREEN;
+bool CONSOLE_INITIALIZED = false;
+char * CONSOLE_ERROR = "";
 
-using love::Console;
-
-Console::Console()
+void Console::Initialize(gfxScreen_t screen)
 {
-	this->enabled = false;
-}
+	if (!Graphics::IsInitialized())
+		gfxInitDefault();
 
-void Console::Enable(gfxScreen_t screen)
-{
-	if (!this->IsEnabled())
-		this->enabled = true;
+	CONSOLE_SCREEN = screen;
 
 	consoleInit(screen, NULL);
-	this->screen = screen;
+
+	printf("\e[1;36mLOVE\e[0m %s for 3DS\n\n", Love::VERSION.c_str());
+
+	CONSOLE_INITIALIZED = true;
 }
 
-gfxScreen_t Console::GetScreen()
+void Console::ThrowError(const string & format, ...)
 {
-	return this->screen;
-}
+	va_list args;
 
-bool Console::IsEnabled()
-{
-	return this->enabled;
+	va_start(args, format);
+
+	vsprintf(CONSOLE_ERROR, format.c_str(), args);
+
+	va_end(args);
+	
+	ERROR = true;
 }
 
 char * Console::GetError()
 {
-	return this->errorMessage;
-}
-
-int Console::ThrowError(const char * format, ...)
-{
-	if (errorMessage == nullptr)
-		return 0;
-
-	va_list args;
-	va_list echo;
-
-	va_start(args, format);
-	va_copy(echo, args);
-	
-	vsprintf(this->errorMessage, format, echo);
-	vprintf(format, args);
-		
-	LUA_ERROR = true;
-
-	va_end(args);
-
-	return 0;
+	return CONSOLE_ERROR;
 }
 
 int Console::ThrowError(lua_State * L)
@@ -65,9 +46,19 @@ int Console::ThrowError(lua_State * L)
 	if (!lua_isnil(L, -1))
 	{
 		errorMessage = lua_tostring(L, -1);
-	
-		this->ThrowError(errorMessage);
+
+		Console::ThrowError("%s", errorMessage);
 	}
 
 	return 0;
+}
+
+gfxScreen_t Console::GetScreen()
+{
+	return CONSOLE_SCREEN;
+}
+
+bool Console::IsInitialized()
+{
+	return CONSOLE_INITIALIZED;
 }
