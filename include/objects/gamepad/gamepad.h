@@ -3,7 +3,7 @@
 class Gamepad
 {
 	public:
-		Gamepad(int id, SDL_Joystick * joystick);
+		Gamepad(int id);
 
 		float GetAxis(int axis);
 		int GetButtonCount();
@@ -17,12 +17,13 @@ class Gamepad
 
 		bool IsConnected();
 
-		bool IsDown(const std::string & button);
+		bool IsGamepadDown(const std::string & button);
+		bool IsDown(int button);
+		
 		int GetID();
 
 		void ClampAxis(float & x); 
 	private:
-		SDL_Joystick * joystickHandle;
 		HidControllerID GetInternalID();
 		void SetVibrationData(HidVibrationValue & value, double amplitude);
 		

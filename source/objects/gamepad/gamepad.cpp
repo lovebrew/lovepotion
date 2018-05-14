@@ -1,11 +1,9 @@
 #include "common/runtime.h"
 #include "objects/gamepad/gamepad.h"
 
-Gamepad::Gamepad(int id, SDL_Joystick * joystick)
+Gamepad::Gamepad(int id)
 {
 	this->id = id;
-
-	this->joystickHandle = joystick;
 
 	HidControllerType type = (HidControllerType)(TYPE_HANDHELD | TYPE_JOYCON_PAIR);
 	
@@ -39,7 +37,7 @@ void Gamepad::Update(float delta)
 
 bool Gamepad::IsConnected()
 {
-	return this->joystickHandle != NULL;
+	return true;
 }
 
 HidControllerID Gamepad::GetInternalID()
@@ -62,7 +60,7 @@ int Gamepad::GetButtonCount()
 	if (!this->IsConnected())
 		return 0;
 
-	SDL_JoystickNumButtons(this->joystickHandle);
+	return KEYS.size() - 8;
 }
 
 bool Gamepad::IsVibrationSupported()
@@ -121,23 +119,37 @@ string Gamepad::GetName()
 	}
 }
 
-bool Gamepad::IsDown(const string & button)
+bool Gamepad::IsDown(int button)
 {
-	int numbuttons = this->GetButtonCount();
+	hidScanInput();
 
-	SDL_JoystickUpdate();
+	u64 heldButton = hidKeysHeld(this->GetInternalID());
+	bool keyDown = false;
 
-	for (int i = 0; i < numbuttons; i++)
+	for (uint i = 0; i < KEYS.size(); i++)
 	{
-		if (i < 0 || i >= numbuttons)
-			continue;
+		if (heldButton & BIT(i) && button == i)
+			keyDown = true;
+	}
 
-		if (KEYS[i] != "" && KEYS[i] == button)
+	return keyDown;
+}
+
+bool Gamepad::IsGamepadDown(const string & button)
+{
+	hidScanInput();
+
+	u64 heldButton = hidKeysHeld(this->GetInternalID());
+	bool keyDown = false;
+
+	for (uint i = 0; i < KEYS.size(); i++)
+	{
+		if (KEYS[i] != "")
 		{
-			if (SDL_JoystickGetButton(this->joystickHandle, i) == 1)
-				return true;
+			if (heldButton & BIT(i) && button == KEYS[i])
+				keyDown = true;
 		}
 	}
 
-	return false;
+	return keyDown;
 }

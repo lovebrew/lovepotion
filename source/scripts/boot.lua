@@ -216,8 +216,14 @@ function love.errhand(message)
 		love.graphics.present()
 	end
 
+	local joycon = love.joystick.getJoysticks()[1]
+
 	while true do
 		draw()
+
+		if joycon:isDown("plus") then
+			break
+		end
 
 		love.timer.sleep(0.1)
 	end

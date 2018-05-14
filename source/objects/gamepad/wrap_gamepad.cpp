@@ -14,12 +14,7 @@ int gamepadNew(lua_State * L)
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	for (uint i = 0; i < 2; i++)
-		hidSetNpadJoyAssignmentModeDual(CONTROLLER_IDS[i]);
-
-	SDL_Joystick * handle = SDL_JoystickOpen(0);
-
-	Gamepad * self = new (raw_self) Gamepad(controllers.size(), handle);
+	Gamepad * self = new (raw_self) Gamepad(controllers.size());
 
 	lua_getglobal(L, "__controllers"); //get global table
 
@@ -65,7 +60,11 @@ int gamepadGetAxis(lua_State * L)
 //Gamepad:getButtonCount
 int gamepadGetButtonCount(lua_State * L)
 {
-	return 0;
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	lua_pushinteger(L, self->GetButtonCount());
+
+	return 1;
 }
 
 //Gamepad:getName
@@ -78,12 +77,24 @@ int gamepadGetName(lua_State * L)
 	return 1;
 }
 
+//Gamepad:isGamepadDown
+int gamepadIsGamepadDown(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	string button = string(luaL_checkstring(L, 2));
+
+	lua_pushboolean(L, self->IsGamepadDown(button));
+
+	return 1;
+}
+
 //Gamepad:isDown
 int gamepadIsDown(lua_State * L)
 {
 	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	string button = string(luaL_checkstring(L, 2));
+	int button = luaL_checkinteger(L, 2);
 
 	lua_pushboolean(L, self->IsDown(button));
 
@@ -126,6 +137,7 @@ int initGamepadClass(lua_State * L)
 		{"getAxis",					gamepadGetAxis				},
 		{"setVibration",			gamepadSetVibration			},
 		{"isVibrationSupported",	gamepadIsVibrationSupported	},
+		{"isGamepadDown",			gamepadIsGamepadDown		},
 		{"isDown",					gamepadIsDown				},
 		{"__gc",					gamepadGC					},
 		{ 0, 0 },
