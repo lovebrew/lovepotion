@@ -44,9 +44,9 @@ int System::GetRegion(lua_State * L)
 	s32 region;
 	setGetRegionCode(&region);
 
-	string value;
+	lua_pushstring(L, REGIONS[region].c_str());
 
-	return 0;
+	return 1;
 }
 
 //love.system.getLanguage

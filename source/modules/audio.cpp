@@ -11,8 +11,8 @@ void Audio::Initialize()
 {
 	SDL_InitSubSystem(SDL_INIT_AUDIO);
 
-	if(Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 4096) != 0)
-		printf("Failed to load audio!\n");
+	if (Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 4096) != 0)
+		Love::RaiseError("Failed to load audio!\n");
 }
 
 int Audio::GetOpenChannel()

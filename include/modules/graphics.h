@@ -44,6 +44,7 @@ namespace Graphics
 	int SetScissor(lua_State * L);
 
 	int GetRendererInfo(lua_State * L);
+	int SetDefaultFilter(lua_State * L);
 
 	int GetFont(lua_State * L);
 	int SetFont(lua_State * L);

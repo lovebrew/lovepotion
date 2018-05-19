@@ -162,6 +162,8 @@ function love.errhand(message)
 
 	table.insert(err, message .. "\n")
 	
+	love.audio.stop()
+
 	local trace = debug.traceback()
 	
 	for l in trace:gmatch("(.-)\n") do
@@ -201,7 +203,7 @@ function love.errhand(message)
 
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.setFont(headerFont)
-		love.graphics.print("Lua Error", 130, 40)
+		love.graphics.print("Lua Error", 130, 42)
 		
 		love.graphics.line(30, 88, 1250, 88)
 
@@ -211,7 +213,7 @@ function love.errhand(message)
 		love.graphics.line(30, 648, 1250, 648)
 
 		love.graphics.draw(plus_img, 1020, 678)
-		love.graphics.print("Quit", 1056, 676)
+		love.graphics.print("Quit", 1056, 675)
 
 		love.graphics.present()
 	end
@@ -221,7 +223,7 @@ function love.errhand(message)
 	while true do
 		draw()
 
-		if joycon:isDown("plus") then
+		if joycon:isGamepadDown("plus") then
 			break
 		end
 

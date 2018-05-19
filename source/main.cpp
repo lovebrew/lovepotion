@@ -13,7 +13,6 @@ extern "C"
 #include <SDL.h>
 
 #include "modules/audio.h"
-#include "common/exception.h"
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
 #include "modules/window.h"

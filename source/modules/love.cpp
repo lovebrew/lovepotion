@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "common/version.h"
 
@@ -24,8 +25,6 @@
 #include "objects/quad/wrap_quad.h"
 #include "objects/canvas/wrap_canvas.h"
 
-#include "modules/love.h"
-
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
 	{ "audio",		Audio::Register,		Audio::Exit			},
@@ -40,6 +39,7 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 	{ 0 }
 };
 
+lua_State * loveState;
 int Love::Initialize(lua_State * L)
 {
 	int (*classes[])(lua_State *L) = 
@@ -81,18 +81,30 @@ int Love::Initialize(lua_State * L)
 	lua_newtable(L);
 	lua_setglobal(L, "__controllers");
 
+	loveState = L;
+
 	return 1;
 }
-
-vector<vector<u32>> touches;
-u32 lastTouchCount = 0;
-bool touchDown = false;
 
 bool Love::IsRunning()
 {
 	return LOVE_QUIT == false;
 }
 
+int Love::RaiseError(const char * format, ...)
+{
+	char buffer[256];
+
+	va_list args;
+
+	va_start(args, format); 
+
+	vsprintf(buffer, format, args);
+
+	va_end(args);
+
+	return luaL_error(loveState, buffer, "");
+}
 
 //love.run
 int Love::Run(lua_State * L)

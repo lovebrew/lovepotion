@@ -4,7 +4,7 @@ class Source
 {
 	public:
 		Source() {};
-		Source(const char * path, bool stream);
+		Source(const char * path, const string & type);
 		~Source();
 
 		void Play();

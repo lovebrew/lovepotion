@@ -15,15 +15,17 @@ int sourceNew(lua_State * L)
 {
 	const char * path = luaL_checkstring(L, 1);
 
+	LOVE_VALIDATE_FILE_EXISTS(path);
+
 	const char * type = luaL_checkstring(L, 2);
 
-	bool stream = (strncmp(type, "stream", 6) == 0) ? true : false;
+	LOVE_VALIDATE_SOURCE_TYPE(type);
 
 	void * raw_self = luaobj_newudata(L, sizeof(Source));
 
 	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	Source * self = new (raw_self) Source(path, stream);
+	Source * self = new (raw_self) Source(path, type);
 
 	return 1;
 }

@@ -15,13 +15,6 @@ Image::Image(const char * path, bool memory) : Drawable()
 
 	if (!memory)
 	{
-		File exists(path);
-
-		exists.Open("rb");
-		if (!exists.IsOpen())
-			throw Exception("File does not exit: %s", path);
-		exists.Close();
-
 		tempSurface = IMG_Load(path);
 		if (!tempSurface)
 			printf("Failed to load %s", path);

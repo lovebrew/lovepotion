@@ -15,7 +15,10 @@ int fileNew(lua_State * L)
 	string abspath = Filesystem::GetSaveDirectory() + string(path);
 
 	if (!lua_isnoneornil(L, 2))
+	{
 		mode = (string)luaL_checkstring(L, 2);
+		LOVE_VALIDATE_FILEMODE(mode.c_str());
+	}
 
 	void * raw_self = luaobj_newudata(L, sizeof(File));
 
@@ -35,6 +38,8 @@ int fileOpen(lua_State * L)
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	const char * mode = luaL_checkstring(L, 2);
+	
+	LOVE_VALIDATE_FILEMODE(mode);
 	
 	self->Open(mode);
 

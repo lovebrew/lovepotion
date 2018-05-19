@@ -25,9 +25,6 @@ extern "C"
 
 //C++ headers
 #include <exception>
-#include <string>
-#include <vector>
-#include <map>
 
 //C headers
 #include <errno.h>
@@ -42,7 +39,8 @@ extern "C"
 #include "common/types.h"
 #include "common/util.h"
 #include "common/console.h"
-#include "common/exception.h"
+#include "modules/love.h"
+#include "common/error.h"
 
 using std::string;
 using std::vector;

@@ -40,6 +40,40 @@ double clamp(double low, double value, double high)
 	return std::min(high, std::max(low, value));
 }
 
+const char * concat(const std::vector<const char *> & expected, const char * delimeter)
+{
+	std::string returnValue;
+	int reservedCapacity = 0;
+
+	// Find the reserve capacity
+	// string + (' * 2) + delimeter size
+	for (const char * value : expected)
+	{
+		std::string strValue = value;
+		reservedCapacity += (strValue.length() + 2 + std::string(delimeter).length());
+	}
+
+	returnValue.reserve(reservedCapacity);
+	for (const char * value : expected)
+	{
+		std::string strValue = value;
+		returnValue += ("'" + strValue + "'" + ((strValue == std::string(expected.back()) ? "" : std::string(delimeter))));
+	}
+
+	return returnValue.c_str();
+}
+
+bool love_validate(const std::vector<const char *> & expected, const char * type)
+{
+	for (const char * value : expected)
+	{
+		if (strncmp(value, type, strlen(value)) == 0)
+			return true;
+	}
+
+	return false;
+}
+
 std::map<int, std::string> LANGUAGES =
 {
 	{SetLanguage_JA,	"Japanese"				},
@@ -57,6 +91,18 @@ std::map<int, std::string> LANGUAGES =
 	{SetLanguage_ENGB,	"British English"		},
 	{SetLanguage_FRCA,	"Canadian French"		},
 	{SetLanguage_ES419, "Latin American Spanish"}
+};
+
+std::vector<std::string> REGIONS =
+{
+	"JPN",
+	"USA",
+	"EUR",
+	"AUS",
+	"CHN",
+	"KOR",
+	"TWN",
+	"UNK" //Unknown
 };
 
 std::vector<std::string> KEYS =

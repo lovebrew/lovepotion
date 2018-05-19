@@ -8,7 +8,7 @@ UDP::UDP()
 	this->sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (this->sockfd < 0)
-		throw Exception("Failed to create UDP socket.");
+		Love::RaiseError("Failed to create UDP socket.");
 
 	memset(&this->address, 0, sizeof(this->address));
 
@@ -18,13 +18,13 @@ UDP::UDP()
 	flags = fcntl(this->sockfd, F_GETFL, 0);
 
 	if (flags < 0)
-		throw Exception("Failed to get flags for socket.");
+		Love::RaiseError("Failed to get flags for socket.");
 
-	blocking = fcntl(this->sockfd, F_SETFL, flags + O_NONBLOCK);
+	blocking = fcntl(this->sockfd, F_SETFL, flags | O_NONBLOCK);
 	if (blocking != 0)
-		throw Exception("Failed to set non-blocking on socket.");
+		Love::RaiseError("Failed to set non-blocking on socket.");
 
-	int bufferSize = SOCKET_BUFFERSIZE;
+	int bufferSize = SOCKET_BUFFERSIZE; //8192
 
 	//Set socket to use our buffer size for send and receive
 	setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &bufferSize, sizeof(bufferSize));
@@ -101,14 +101,9 @@ int UDP::Send(const string & datagram, size_t length)
 
 int UDP::SendTo(const string & datagram, size_t length, const string & ip, int port)
 {
-	struct hostent * hostInfo = gethostbyname(ip.c_str());
-
-	if (hostInfo == NULL)
-		return -2;
-
 	struct sockaddr_in addressTo = {0};
-
-	addressTo.sin_addr = *(struct in_addr *)hostInfo->h_addr;
+ 
+	addressTo.sin_addr.s_addr = inet_addr(ip.c_str());
 	addressTo.sin_port = htons(port);
 	addressTo.sin_family = AF_INET;
 
@@ -119,7 +114,7 @@ int UDP::SendTo(const string & datagram, size_t length, const string & ip, int p
 
 int UDP::Receive(char * outBuffer)
 {
-	int length = recv(this->sockfd, outBuffer, 8191, 0);
+	int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE - 1, 0);
 
 	if (length <= 0)
 	{

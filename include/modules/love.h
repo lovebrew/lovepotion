@@ -18,6 +18,8 @@ namespace Love
 
 	bool IsRunning();
 
+	int RaiseError(const char * format, ...);
+
 	int Run(lua_State * L);
 
 	int NoGame(lua_State * L);

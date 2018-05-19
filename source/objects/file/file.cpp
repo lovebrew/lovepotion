@@ -66,7 +66,7 @@ void File::Write(const char * data, size_t length)
 {
 	if (!this->open || (strncmp(this->mode, "w", 1) != 0))
 	{
-		throw Exception("Cannot write to file %s. File not open for writing.", this->path);
+		Love::RaiseError("Cannot write to file %s. File not open for writing.", this->path);
 		return;
 	}
 
@@ -88,7 +88,7 @@ char * File::Read()
 {
 	if (!this->open || (strncmp(this->mode, "r", 1) != 0))
 	{
-		throw Exception("Cannot read file %s. File not open for reading.", this->path);
+		Love::RaiseError("Cannot read file %s. File not open for reading.", this->path);
 		return NULL;
 	}
 

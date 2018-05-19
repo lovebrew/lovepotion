@@ -3,16 +3,16 @@
 #include "objects/source/source.h"
 #include "modules/audio.h"
 
-Source::Source(const char * path, bool stream)
+Source::Source(const char * path, const string & type)
 {
-	if (stream)
+	if (type == "stream")
 		this->music = Mix_LoadMUS(path);
 	else
 		this->sound = Mix_LoadWAV(path);
 
 	this->loop = false;
 	this->channel = Audio::GetOpenChannel();
-	this->stream = stream;
+	this->stream = (type == "stream");
 }
 
 Source::~Source()

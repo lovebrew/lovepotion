@@ -226,6 +226,11 @@ int Graphics::Draw(lua_State * L)
 	return 0;
 }
 
+int Graphics::SetDefaultFilter(lua_State * L)
+{
+	return 0;
+}
+
 //love.graphics.getFont
 int Graphics::GetFont(lua_State * L)
 {
@@ -630,6 +635,7 @@ int Graphics::Register(lua_State * L)
 		{ "setColor",			SetColor			},
 		{ "setBackgroundColor",	SetBackgroundColor	},
 		{ "getBackgroundColor",	GetBackgroundColor	},
+		{ "setDefaultFilter",	SetDefaultFilter	},
 		{ "getWidth",			GetWidth			},
 		{ "getHeight",			GetHeight			},
 		{ "getRendererInfo",	GetRendererInfo		},
