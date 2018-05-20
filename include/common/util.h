@@ -17,10 +17,6 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
 double clamp(double low, double x, double high);
 
-const char * concat(const std::vector<const char *> & expected, const char * delimeter);
-
-bool love_validate(const std::vector<const char *> & expected, const char * value);
-
 extern std::vector<std::string> KEYS;
 
 extern std::vector<HidControllerID> CONTROLLER_IDS;

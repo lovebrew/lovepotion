@@ -1,6 +1,44 @@
 #include "common/runtime.h"
 #include <sys/stat.h>
 
+const char * concat(const std::vector<const char *> & expected, const char * delimeter)
+{
+	std::string returnValue;
+	int reservedCapacity = 0;
+
+	// Find the reserve capacity
+	// string + (' * 2) + delimeter size
+	for (const char * value : expected)
+	{
+		std::string strValue = value;
+		reservedCapacity += (strValue.length() + 2 + std::string(delimeter).length());
+	}
+
+	returnValue.reserve(reservedCapacity);
+	for (const char * value : expected)
+	{
+		std::string strValue = value;
+		returnValue += ("'" + strValue + "'" + ((strValue == std::string(expected.back()) ? "" : std::string(delimeter))));
+	}
+
+	return returnValue.c_str();
+}
+
+bool LOVE_VALIDATE(const std::vector<const char *> & expected, const char * type)
+{
+	bool isValid = false;
+	for (const char * value : expected)
+	{
+		if (strncmp(value, type, strlen(value)) == 0)
+		{
+			isValid = true;
+			break;
+		}
+	}
+
+	return isValid;
+}
+
 void LOVE_VALIDATE_FILE_EXISTS(const char * path)
 {
 	struct stat pathInfo;
@@ -16,12 +54,12 @@ void LOVE_ERROR_INVALID_TYPE(const char * what,  const char * got, const std::ve
 
 void LOVE_VALIDATE_FILEMODE(const char * mode)
 {
-	if (!love_validate(FILE_MODES, mode))
+	if (!LOVE_VALIDATE(FILE_MODES, mode))
 		LOVE_ERROR_INVALID_TYPE("file open mode", mode, FILE_MODES);
 }
 
 void LOVE_VALIDATE_SOURCE_TYPE(const char * type)
 {
-	if (!love_validate(SOURCE_TYPES, type))
+	if (!LOVE_VALIDATE(SOURCE_TYPES, type))
 		LOVE_ERROR_INVALID_TYPE("source type", type, SOURCE_TYPES);
 }

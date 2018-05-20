@@ -1,3 +1,8 @@
+//CHECK
+const char * concat(const std::vector<const char *> & expected, const char * delimeter);
+
+bool LOVE_VALIDATE(const std::vector<const char *> & expected, const char * value);
+
 // EXISTS
 void LOVE_VALIDATE_FILE_EXISTS(const char * path);
 
