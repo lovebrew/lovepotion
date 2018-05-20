@@ -147,7 +147,10 @@ bool Gamepad::IsGamepadDown(const string & button)
 		if (KEYS[i] != "")
 		{
 			if (heldButton & BIT(i) && button == KEYS[i])
+			{
 				keyDown = true;
+				break;
+			}
 		}
 	}
 

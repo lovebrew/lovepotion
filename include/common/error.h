@@ -1,5 +1,5 @@
 //CHECK
-const char * concat(const std::vector<const char *> & expected, const char * delimeter);
+std::string concat(const std::vector<const char *> & expected, const char * delimeter);
 
 bool LOVE_VALIDATE(const std::vector<const char *> & expected, const char * value);
 

@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include <sys/stat.h>
 
-const char * concat(const std::vector<const char *> & expected, const char * delimeter)
+std::string concat(const std::vector<const char *> & expected, const char * delimeter)
 {
 	std::string returnValue;
 	int reservedCapacity = 0;
@@ -21,7 +21,7 @@ const char * concat(const std::vector<const char *> & expected, const char * del
 		returnValue += ("'" + strValue + "'" + ((strValue == std::string(expected.back()) ? "" : std::string(delimeter))));
 	}
 
-	return returnValue.c_str();
+	return returnValue;
 }
 
 bool LOVE_VALIDATE(const std::vector<const char *> & expected, const char * type)
@@ -48,8 +48,8 @@ void LOVE_VALIDATE_FILE_EXISTS(const char * path)
 
 void LOVE_ERROR_INVALID_TYPE(const char * what,  const char * got, const std::vector<const char *> & expected)
 {
-	const char * options = concat(expected, ", ");
-	Love::RaiseError("Invalid %s '%s', expected one of: %s", what, got, options);
+	std::string options = concat(expected, ", ");
+	Love::RaiseError("Invalid %s '%s', expected one of: %s", what, got, options.c_str());
 }
 
 void LOVE_VALIDATE_FILEMODE(const char * mode)

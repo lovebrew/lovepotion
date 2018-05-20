@@ -213,7 +213,7 @@ function love.errhand(message)
 		love.graphics.line(30, 648, 1250, 648)
 
 		love.graphics.draw(plus_img, 1020, 678)
-		love.graphics.print("Quit", 1056, 675)
+		love.graphics.print("Quit", 1056, 680)
 
 		love.graphics.present()
 	end
