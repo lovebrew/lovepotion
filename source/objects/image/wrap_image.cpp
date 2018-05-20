@@ -18,7 +18,8 @@ int imageNew(lua_State * L)
 	
 	const char * path = luaL_checkstring(L, 1);
 
-	LOVE_VALIDATE_FILE_EXISTS(path);
+	if (!memory)
+		LOVE_VALIDATE_FILE_EXISTS(path);
 
 	void * raw_self = luaobj_newudata(L, sizeof(Image));
 
