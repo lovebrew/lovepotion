@@ -92,33 +92,35 @@ int UDP::SetSockName(const string & ip, int port)
 	return 1;
 }
 
-int UDP::Send(const string & datagram, size_t length)
+int UDP::Send(const char * datagram, size_t length)
 {
-	int sent = this->SendTo(datagram, length, this->ip, this->port);
+	int sent = send(this->sockfd, datagram, length, 0);
 	
 	return sent;
 }
 
-int UDP::SendTo(const string & datagram, size_t length, const string & ip, int port)
+int UDP::SendTo(const char * datagram, size_t len, const char * destination, int port)
 {
-	const char * destination = ip.c_str();
-	struct sockaddr_in addressTo = {0};
- 
-	if (!inet_aton(destination, &addressTo.sin_addr))
-		return -2;
+	struct hostent * hostInfo = gethostbyname(destination);
 
+	if (hostInfo == NULL)
+		return -2;
+	
+	struct sockaddr_in addressTo = {0};
+
+	addressTo.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
 	addressTo.sin_port = htons(port);
 	addressTo.sin_family = AF_INET;
+	addressTo.sin_len = sizeof(addressTo);
 
-	const char * data = datagram.c_str();
-	size_t sent = sendto(this->sockfd, data, length, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
+	size_t sent = sendto(this->sockfd, datagram, len, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
 
 	return sent;
 }
 
 int UDP::Receive(char * outBuffer)
 {
-	int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE - 1, 0);
+	int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE, 0);
 
 	if (length <= 0)
 		return 0;
@@ -133,7 +135,7 @@ int UDP::ReceiveFrom(char * outBuffer, char * outAddress, int * outPort)
 	struct sockaddr_in fromAddress = {0};
 	socklen_t addressLength;
 
-	int length = recvfrom(this->sockfd, outBuffer, SOCKET_BUFFERSIZE - 1, 0, (struct sockaddr *)&fromAddress, &addressLength);
+	int length = recvfrom(this->sockfd, outBuffer, SOCKET_BUFFERSIZE, 0, (struct sockaddr *)&fromAddress, &addressLength);
 
 	if (length <= 0)
 		return 0;

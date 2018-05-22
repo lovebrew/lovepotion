@@ -24,15 +24,29 @@ int udpSend(lua_State * L)
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
 	size_t length;
-	string datagram = (string)luaL_checklstring(L, 2, &length);
+	const char * datagram = luaL_checklstring(L, 2, &length);
 
 	int sent = self->Send(datagram, length);
 
-	string blah = strerror(errno);
-	FILE * test = fopen("sdmc:/meme.txt", "w");
-	fwrite((char *)blah.data(), 1, blah.length(), test);
-	fflush(test);
-	fclose(test);
+	if (sent < 0)
+		lua_pushnil(L);
+	else
+		lua_pushinteger(L, sent);
+
+	return 1;
+}
+
+int udpSendTo(lua_State * L)
+{
+	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	size_t length;
+	const char * datagram = luaL_checklstring(L, 2, &length);
+
+	const char * ip = luaL_checkstring(L, 3);
+	int port = luaL_checknumber(L, 4);
+
+	int sent = self->SendTo(datagram, length, ip, port);
 
 	if (sent < 0)
 		lua_pushnil(L);
@@ -99,7 +113,7 @@ int udpReceiveFrom(lua_State * L)
 	return 3;
 }
 
-//UDP:receivefrom
+//UDP:receive
 int udpReceive(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -145,6 +159,7 @@ int initUDPClass(lua_State * L)
 		{"setsockname",				udpSetSockName	},
 		{"receivefrom",				udpReceiveFrom	},
 		{"receive",					udpReceive		},
+		{"sendto",					udpSendTo		},
 		{"close",					udpClose		},
 		{"__gc",					udpGC			},
 		{ 0, 0 },

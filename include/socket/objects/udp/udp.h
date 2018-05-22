@@ -11,8 +11,8 @@ class UDP
 		int Receive(char * outBuffer);
 		int ReceiveFrom(char * outBuffer, char * outAddress, int * outPort);
 		
-		int Send(const std::string & datagram, size_t length);
-		int SendTo(const std::string & datagram, size_t length, const std::string & ip, int port);
+		int Send(const char * datagram, size_t length);
+		int SendTo(const char * datagram, size_t length, const char * destination, int port);
 		
 		int SetPeerName(const std::string & ip, int port);
 		void GetPeerName();
