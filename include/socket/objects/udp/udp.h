@@ -29,10 +29,7 @@ class UDP
 		int sockfd;
 
 		struct sockaddr_in address;
-		struct hosten * host;
 		
 		std::string ip;
 		int port;
-		
-		char * buffer;
 };

@@ -91,6 +91,18 @@ int gamepadIsGamepadDown(lua_State * L)
 	return 1;
 }
 
+//Gamepad:isetLayout
+int gamepadSetLayout(lua_State * L)
+{
+	Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	string layout = string(luaL_checkstring(L, 2));
+
+	self->SetLayout(layout);
+
+	return 1;
+}
+
 //Gamepad:isDown
 int gamepadIsDown(lua_State * L)
 {
@@ -140,6 +152,7 @@ int initGamepadClass(lua_State * L)
 		{"setVibration",			gamepadSetVibration			},
 		{"isVibrationSupported",	gamepadIsVibrationSupported	},
 		{"isGamepadDown",			gamepadIsGamepadDown		},
+		{"setLayout",				gamepadSetLayout			},
 		{"isDown",					gamepadIsDown				},
 		{"__gc",					gamepadGC					},
 		{ 0, 0 },

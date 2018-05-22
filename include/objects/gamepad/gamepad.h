@@ -10,6 +10,7 @@ class Gamepad
 		std::string GetName();
 
 		void Update(float delta);
+		void SetLayout(const std::string & layout);
 
 		void SetVibration(double left, double right, double duration);
 
@@ -27,9 +28,11 @@ class Gamepad
 		HidControllerID GetInternalID();
 		void SetVibrationData(HidVibrationValue & value, double amplitude);
 		
-		double vibrationDuration;
 
 		int id;
+		std::string layout;
+
+		double vibrationDuration;
 		u32 vibrationHandles[2][2];
 		HidVibrationValue vibration[2];
 };

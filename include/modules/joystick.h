@@ -18,7 +18,7 @@ namespace Joystick
 
 	int GetJoystickCount(lua_State * L);
 
-	int SetJoyconMode(lua_State * L);
+	int SetLayout(lua_State * L);
 
 	//End Löve2D Functions
 

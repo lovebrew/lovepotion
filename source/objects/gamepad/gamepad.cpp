@@ -17,6 +17,8 @@ Gamepad::Gamepad(int id)
 	memset(this->vibration, 0, sizeof(this->vibration));
 
 	this->vibrationDuration = -1;
+
+	this->layout = "dual";
 }
 
 int Gamepad::GetID()
@@ -117,6 +119,26 @@ string Gamepad::GetName()
 		default: //this shouldn't happen
 			return "nil";
 	}
+}
+
+void Gamepad::SetLayout(const string & layout)
+{
+	int pairMax = this->GetID() * 2;
+
+	if (this->layout == "dual" && layout == "single")
+	{
+		for (uint i = pairMax - 2; i < pairMax; i++)
+			hidSetNpadJoyAssignmentModeSingleByDefault(CONTROLLER_IDS[i]);
+	}
+	else if (this->layout == "single" && layout == "dual")
+	{
+		for (uint i = pairMax - 2; i < pairMax; i++)
+			hidSetNpadJoyAssignmentModeDual(CONTROLLER_IDS[i]);
+
+		hidMergeSingleJoyAsDualJoy(CONTROLLER_IDS[pairMax - 2], CONTROLLER_IDS[pairMax - 1]);
+	}
+
+	this->layout = layout;
 }
 
 bool Gamepad::IsDown(int button)

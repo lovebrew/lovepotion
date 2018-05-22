@@ -16,6 +16,8 @@ int gamepadIsVibrationSupported(lua_State * L);
 
 int gamepadIsGamepadDown(lua_State * L);
 
+int gamepadSetLayout(lua_State * L);
+
 int gamepadIsDown(lua_State * L);
 
 int gamepadGC(lua_State * L);

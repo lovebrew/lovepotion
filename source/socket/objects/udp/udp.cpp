@@ -95,19 +95,23 @@ int UDP::SetSockName(const string & ip, int port)
 int UDP::Send(const string & datagram, size_t length)
 {
 	int sent = this->SendTo(datagram, length, this->ip, this->port);
-
+	
 	return sent;
 }
 
 int UDP::SendTo(const string & datagram, size_t length, const string & ip, int port)
 {
+	const char * destination = ip.c_str();
 	struct sockaddr_in addressTo = {0};
  
-	addressTo.sin_addr.s_addr = inet_addr(ip.c_str());
+	if (!inet_aton(destination, &addressTo.sin_addr))
+		return -2;
+
 	addressTo.sin_port = htons(port);
 	addressTo.sin_family = AF_INET;
 
-	size_t sent = sendto(this->sockfd, datagram.c_str(), length, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
+	const char * data = datagram.c_str();
+	size_t sent = sendto(this->sockfd, data, length, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
 
 	return sent;
 }
@@ -117,10 +121,7 @@ int UDP::Receive(char * outBuffer)
 	int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE - 1, 0);
 
 	if (length <= 0)
-	{
-		free(buffer);
 		return 0;
-	}
 
 	outBuffer[length] = '\0';
 
@@ -143,6 +144,21 @@ int UDP::ReceiveFrom(char * outBuffer, char * outAddress, int * outPort)
 	*outPort = ntohs(fromAddress.sin_port);
 
 	return length;
+}
+
+int UDP::SetOption(const string & option, bool enable)
+{
+	int optionValue = 0;
+
+	if (option == "broadcast")
+		optionValue = SO_BROADCAST;
+	else if (option == "dontroute")
+		optionValue = SO_DONTROUTE;
+
+	if (optionValue != 0)
+		setsockopt(this->sockfd, SOL_SOCKET, optionValue, (char *)&enable, sizeof(bool));
+
+	return 0;
 }
 
 int UDP::Close()

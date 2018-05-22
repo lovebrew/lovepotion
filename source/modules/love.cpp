@@ -36,6 +36,7 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 	{ "system",		System::Register,		System::Exit		},
 	{ "timer",		Timer::Register,		NULL				},
 	{ "touch",		Touch::Register,		NULL				},
+	{ "window",		Window::Register,		NULL				},
 	{ 0 }
 };
 

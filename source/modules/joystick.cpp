@@ -47,8 +47,11 @@ int Joystick::GetJoystickCount(lua_State * L)
 }
 
 //love.joystick.setJoyconMode
-int Joystick::SetJoyconMode(lua_State * L)
+int Joystick::SetLayout(lua_State * L)
 {
+	string layout = string(luaL_checkstring(L, 1));
+	Gamepad * self = (Gamepad *)luaobj_checkudata(L, 2, LUAOBJ_TYPE_GAMEPAD);
+
 	return 0;
 }
 
@@ -60,7 +63,7 @@ int Joystick::Register(lua_State * L)
 	{
 		{ "getJoysticks",			GetJoysticks	},
 		{ "getJoystickCount",		GetJoystickCount},
-		{ "setJoyconMode",			SetJoyconMode	},
+		{ "setLayout",				SetLayout	},
 		{ 0, 0 },
 	};
 

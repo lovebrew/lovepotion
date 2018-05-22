@@ -28,6 +28,12 @@ int udpSend(lua_State * L)
 
 	int sent = self->Send(datagram, length);
 
+	string blah = strerror(errno);
+	FILE * test = fopen("sdmc:/meme.txt", "w");
+	fwrite((char *)blah.data(), 1, blah.length(), test);
+	fflush(test);
+	fclose(test);
+
 	if (sent < 0)
 		lua_pushnil(L);
 	else
@@ -115,6 +121,15 @@ int udpReceive(lua_State * L)
 	return 1;
 }
 
+int udpClose(lua_State * L)
+{
+	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	self->Close();
+
+	return 0;
+}
+
 int udpGC(lua_State * L)
 {
 	return 0;
@@ -130,6 +145,7 @@ int initUDPClass(lua_State * L)
 		{"setsockname",				udpSetSockName	},
 		{"receivefrom",				udpReceiveFrom	},
 		{"receive",					udpReceive		},
+		{"close",					udpClose		},
 		{"__gc",					udpGC			},
 		{ 0, 0 },
 	};
