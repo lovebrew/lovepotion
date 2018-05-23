@@ -22,8 +22,8 @@ Font::Font(const char * path, int size)
 Font::Font(int size)
 {
 	u64 languageCode = 0;
-    PlFontData fontData;
-    PlFontData fonts[PlSharedFontType_Total];
+	PlFontData fontData;
+	PlFontData fonts[PlSharedFontType_Total];
 	size_t total_fonts = 0;
 
 	setGetSystemLanguage(&languageCode);

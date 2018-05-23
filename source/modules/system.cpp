@@ -72,6 +72,8 @@ int System::GetWifiStrength(lua_State * L)
 //love.system.hasWifiConnection
 int System::HasWifiConnection(lua_State * L)
 {
+	//setsysGetWirelessLanEnableFlag?
+
 	return 0;
 }
 
@@ -90,20 +92,20 @@ int System::GetUsername(lua_State * L)
 	memset(&userdata, 0, sizeof(userdata));
 	memset(&profilebase, 0, sizeof(profilebase));
 
-	Result successCode = accountGetActiveUser(&userID, &accountSelected);
+	Result resultCode = accountGetActiveUser(&userID, &accountSelected);
 
-	if (R_SUCCEEDED(successCode))
+	if (R_SUCCEEDED(resultCode))
 	{
-		successCode = accountGetProfile(&profile, userID);
+		resultCode = accountGetProfile(&profile, userID);
 
-		if (R_SUCCEEDED(successCode))
+		if (R_SUCCEEDED(resultCode))
 		{
-			successCode = accountProfileGet(&profile, &userdata, &profilebase);
+			resultCode = accountProfileGet(&profile, &userdata, &profilebase);
 
-			if (R_SUCCEEDED(successCode))
+			if (R_SUCCEEDED(resultCode))
 			{
 				memset(username, 0, sizeof(username));
-				strncpy(username, profilebase.username, sizeof(profilebase.username));
+				strncpy(username, profilebase.username, sizeof(username) - 1);
 
 				lua_pushstring(L, username);
 

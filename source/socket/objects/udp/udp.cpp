@@ -8,8 +8,8 @@ UDP::UDP()
 	this->sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 
 	if (this->sockfd < 0)
-		Love::RaiseError("Failed to create UDP socket.");
-
+		Love::RaiseError("Failed to create UDP socket. %s.", strerror(errno));
+	
 	memset(&this->address, 0, sizeof(this->address));
 
 	this->address.sin_family = AF_INET;
@@ -41,11 +41,15 @@ void UDP::SetSocketData(const string & destination, int port, bool isServer)
 		localHost = (destination == "localhost");
 		
 		if (localHost)
+		{
 			this->ip = "127.0.0.1";
+			this->address.sin_addr.s_addr = INADDR_LOOPBACK;
+		}
 		else
+		{
 			this->ip = destination;
-
-		this->address.sin_addr.s_addr = inet_addr(this->ip.c_str());
+			this->address.sin_addr.s_addr = inet_addr(this->ip.c_str());
+		}	
 	}
 	else
 	{
@@ -101,19 +105,32 @@ int UDP::Send(const char * datagram, size_t length)
 
 int UDP::SendTo(const char * datagram, size_t len, const char * destination, int port)
 {
-	struct hostent * hostInfo = gethostbyname(destination);
+	FILE * meme = fopen("sdmc:/sendto.txt", "w");
 
+	fprintf(meme, "gethostbyname..\n");
+	struct hostent * hostInfo = gethostbyname(destination);
+	fprintf(meme, "gethostbyname done!\n");
+
+	fflush(meme);
 	if (hostInfo == NULL)
 		return -2;
-	
+	fprintf(meme, "alright we made it past the NULL check.. good!\n");
+
 	struct sockaddr_in addressTo = {0};
 
+	fprintf(meme, "setting up addressTo sockaddr_in..\n");
 	addressTo.sin_addr = *(struct in_addr *)hostInfo->h_addr_list[0];
 	addressTo.sin_port = htons(port);
 	addressTo.sin_family = AF_INET;
 	addressTo.sin_len = sizeof(addressTo);
 
+	fprintf(meme, "done with addressTo stuff, sendingto..\n");
+	fflush(meme);
 	size_t sent = sendto(this->sockfd, datagram, len, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
+	fprintf(meme, "assuming we even *got* here, let's see: %ldB sent.", sent);
+	fflush(meme);
+
+	fclose(meme);
 
 	return sent;
 }
