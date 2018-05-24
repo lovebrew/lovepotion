@@ -1,0 +1,16 @@
+{
+    "targets": {
+        "Löve Potion": {
+            "buildenv": "docker:devkitpro/devkita64",
+            "buildcmd": "make",
+
+            "environment": {
+                "DEVKITPRO": "/opt/devkitpro"
+            },
+            
+            "artifacts": [
+                "*.nro"
+            ]
+        }
+    }
+}
