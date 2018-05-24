@@ -2,7 +2,7 @@
     "targets": {
         "Löve Potion": {
             "buildenv": "docker:devkitpro/devkita64",
-            "buildcmd": "make -j{PARALLEL}",
+            "buildcmd": "make -j${PARALLEL}",
 
             "environment": {
                 "DEVKITPRO": "/opt/devkitpro"
