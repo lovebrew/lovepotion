@@ -17,6 +17,7 @@
 #include "modules/timer.h"
 #include "modules/touch.h"
 #include "modules/window.h"
+#include "modules/mod_thread.h"
 
 #include "objects/file/wrap_file.h"
 #include "objects/font/wrap_font.h"
@@ -24,6 +25,7 @@
 #include "objects/image/wrap_image.h"
 #include "objects/quad/wrap_quad.h"
 #include "objects/canvas/wrap_canvas.h"
+#include "objects/thread/wrap_thread.h"
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
@@ -36,6 +38,7 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 	{ "system",		System::Register,		System::Exit		},
 	{ "timer",		Timer::Register,		NULL				},
 	{ "touch",		Touch::Register,		NULL				},
+	{ "thread",		LoveThread::Register,	LoveThread::Exit	},
 	{ "window",		Window::Register,		NULL				},
 	{ 0 }
 };
@@ -52,6 +55,7 @@ int Love::Initialize(lua_State * L)
 		initQuadClass,
 		initFontClass,
 		initCanvasClass,
+		initThreadClass,
 		NULL
 	};
 

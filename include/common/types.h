@@ -19,3 +19,5 @@ typedef struct
 extern std::vector<const char *> FILE_MODES;
 
 extern std::vector<const char *> SOURCE_TYPES;
+
+extern std::vector<const char *> DRAW_MODES;

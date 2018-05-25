@@ -300,7 +300,9 @@ int Graphics::SetCanvas(lua_State * L)
 //love.graphics.rectangle
 int Graphics::Rectangle(lua_State * L)
 {
-	string mode = (string)luaL_checkstring(L, 1);
+	string mode = luaL_checkstring(L, 1);
+
+	LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
 	double x = luaL_optnumber(L, 2, 0);
 	double y = luaL_optnumber(L, 3, 0);
@@ -321,7 +323,9 @@ int Graphics::Rectangle(lua_State * L)
 //love.graphics.arc
 int Graphics::Arc(lua_State * L)
 {
-	string mode = (string)luaL_checkstring(L, 1);
+	string mode = luaL_checkstring(L, 1);
+
+	LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
 	double x = luaL_optnumber(L, 2, 0);
 	double y = luaL_optnumber(L, 3, 0);
@@ -345,7 +349,9 @@ int Graphics::Arc(lua_State * L)
 //love.graphics.circle
 int Graphics::Circle(lua_State * L)
 {
-	string mode = (string)luaL_checkstring(L, 1);
+	string mode = luaL_checkstring(L, 1);
+
+	LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
 	double x = luaL_optnumber(L, 2, 0);
 	double y = luaL_optnumber(L, 3, 0);

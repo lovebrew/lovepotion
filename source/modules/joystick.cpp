@@ -50,7 +50,7 @@ int Joystick::GetJoystickCount(lua_State * L)
 int Joystick::SetLayout(lua_State * L)
 {
 	Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_GAMEPAD);
-	string layout = string(luaL_checkstring(L, 2));
+	string layout = luaL_checkstring(L, 2);
 
 	self->SetLayout(layout);
 

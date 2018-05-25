@@ -16,7 +16,7 @@ int fileNew(lua_State * L)
 
 	if (!lua_isnoneornil(L, 2))
 	{
-		mode = (string)luaL_checkstring(L, 2);
+		mode = luaL_checkstring(L, 2);
 		LOVE_VALIDATE_FILEMODE(mode.c_str());
 	}
 

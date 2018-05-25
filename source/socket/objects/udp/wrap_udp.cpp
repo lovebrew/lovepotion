@@ -61,7 +61,7 @@ int udpSetPeerName(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	string ip = (string)luaL_checkstring(L, 2);
+	string ip = luaL_checkstring(L, 2);
 	int port = luaL_checknumber(L, 3);
 
 	int status = self->SetPeerName(ip, port);
@@ -76,7 +76,7 @@ int udpSetSockName(lua_State * L)
 {
 	UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	string ip = (string)luaL_checkstring(L, 2);
+	string ip = luaL_checkstring(L, 2);
 	int port = luaL_checknumber(L, 3);
 
 	int status = self->SetSockName(ip, port);

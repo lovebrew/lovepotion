@@ -80,7 +80,7 @@ int Filesystem::Read(lua_State * L)
 int Filesystem::Write(lua_State * L)
 {
 	string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));
-	string data = string(luaL_checkstring(L, 2));
+	string data = luaL_checkstring(L, 2);
 
 	FILE * fileHandle = fopen(path.c_str(), "w");
 
@@ -210,7 +210,7 @@ int Filesystem::GetInfo(lua_State * L)
 //love.filesystem.setIdentity
 int Filesystem::SetIdentity(lua_State * L)
 {
-	IDENTITY = string(luaL_checkstring(L, 1));
+	IDENTITY = luaL_checkstring(L, 1);
 
 	return 0;
 }
