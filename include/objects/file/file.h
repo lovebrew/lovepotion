@@ -1,6 +1,6 @@
 #pragma once
 
-class File
+class File : public Object
 {
 	public:
 		File(const char * path);

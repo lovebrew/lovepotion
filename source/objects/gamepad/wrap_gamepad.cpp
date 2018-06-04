@@ -18,13 +18,7 @@ int gamepadNew(lua_State * L)
 
 	Gamepad * self = new (raw_self) Gamepad(controllers.size());
 
-	lua_getglobal(L, "__controllers"); //get global table
-
-	lua_pushlightuserdata(L, self); //light userdata key
-	lua_pushvalue(L, 2);			//push the userdata value to the key
-	lua_settable(L, -3);			//set the taaable (╯°□°）╯︵ ┻━┻
-
-	lua_setglobal(L, "__controllers");
+	love_register(L, 2, self);
 
 	controllers.push_back(self);
 
@@ -136,6 +130,19 @@ int gamepadSetVibration(lua_State * L)
 	return 0;
 }
 
+int gamepadToString(lua_State * L)
+{
+	Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int gamepadGC(lua_State * L)
 {
 	return 0;
@@ -155,6 +162,7 @@ int initGamepadClass(lua_State * L)
 		{"setLayout",				gamepadSetLayout			},
 		{"isDown",					gamepadIsDown				},
 		{"__gc",					gamepadGC					},
+		{"__tostring",				gamepadToString				},
 		{ 0, 0 },
 	};
 

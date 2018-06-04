@@ -61,6 +61,19 @@ int imageGetDimensions(lua_State * L)
 	return 2;
 }
 
+int imageToString(lua_State * L)
+{
+	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int imageGC(lua_State * L)
 {
 	Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -79,6 +92,7 @@ int initImageClass(lua_State * L)
 		{"getDimensions",	imageGetDimensions	},
 		//{"setFilter",		imageSetFilter		},
 		{"__gc",			imageGC				},
+		{"__tostring",		imageToString		},
 		{ 0, 0 },
 	};
 

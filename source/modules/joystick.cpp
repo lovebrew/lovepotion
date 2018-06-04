@@ -27,11 +27,7 @@ int Joystick::GetJoysticks(lua_State * L)
 	for (uint i = 0; i < controllers.size(); i++)
 	{
 		lua_pushnumber(L, i + 1);
-		
-		lua_getglobal(L, "__controllers");
-		lua_pushlightuserdata(L, controllers[i]);
-		lua_gettable(L, -2);
-		lua_remove(L, -2);
+		love_push_userdata(L, controllers[i]);
 
 		lua_settable(L, -3);
 	}

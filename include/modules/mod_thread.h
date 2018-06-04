@@ -9,8 +9,6 @@ namespace LoveThread
 {
 	int GetChannel(lua_State * L);
 
-	int NewChannel(lua_State * L);
-
 	void Exit();
 
 	int Register(lua_State * L);

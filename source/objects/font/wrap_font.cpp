@@ -59,6 +59,19 @@ int fontGetHeight(lua_State * L)
 	return 1;
 }
 
+int fontToString(lua_State * L)
+{
+	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int fontGC(lua_State * L)
 {
 	Font * self = (Font *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -72,10 +85,11 @@ int initFontClass(lua_State * L)
 {
 	luaL_Reg reg[] = 
 	{
-		{"new",			fontNew	},
-		{"getWidth",	fontGetWidth},
-		{"getHeight",	fontGetHeight},
-		{"__gc",		fontGC	},
+		{"new",			fontNew			},
+		{"getWidth",	fontGetWidth	},
+		{"getHeight",	fontGetHeight	},
+		{"__gc",		fontGC			},
+		{"__tostring",	fontToString	},
 		{ 0, 0 },
 	};
 

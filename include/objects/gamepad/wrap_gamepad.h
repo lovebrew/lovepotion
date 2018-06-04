@@ -20,6 +20,8 @@ int gamepadSetLayout(lua_State * L);
 
 int gamepadIsDown(lua_State * L);
 
+int gamepadToString(lua_State * L);
+
 int gamepadGC(lua_State * L);
 
 int initGamepadClass(lua_State * L);

@@ -27,6 +27,7 @@ extern "C"
 
 #include <switch.h>
 
+#include "objects/object/object.h"
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
 
@@ -38,12 +39,13 @@ extern "C"
 
 #include "common/console.h"
 #include "common/types.h"
+#include "common/variant.h"
 #include "common/util.h"
 
 bool ERROR = false;
 bool LOVE_QUIT = false;
 
-int main()
+int main(int argc, char * argv[])
 {
 	System::Initialize();
 

@@ -1,4 +1,4 @@
-class Drawable
+class Drawable : public Object
 {
 	public:
 		Drawable();

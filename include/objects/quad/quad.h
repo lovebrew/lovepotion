@@ -1,6 +1,6 @@
 #pragma once
 
-class Quad
+class Quad : public Object
 {
 	public:
 		Quad() {};

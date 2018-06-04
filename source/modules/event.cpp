@@ -24,11 +24,7 @@ int Event::PollEvent(lua_State * L)
 				love_getfield(L, "gamepadaxis");
 				if (!lua_isnil(L, -1))
 				{
-					lua_getglobal(L, "__controllers");
-					lua_pushlightuserdata(L, controller);
-					lua_gettable(L, -2);
-					lua_remove(L, -2);
-
+					love_push_userdata(L, controller);
 					lua_pushstring(L, GAMEPAD_AXES[event.jaxis.axis].c_str());
 
 					float value = (float)event.jaxis.value / JOYSTICK_MAX;
@@ -48,11 +44,7 @@ int Event::PollEvent(lua_State * L)
 
 				if (!lua_isnil(L, -1))
 				{
-					lua_getglobal(L, "__controllers"); //top
-					lua_pushlightuserdata(L, controller); //key index: -1
-					lua_gettable(L, -2); //push value, index: ?
-					lua_remove(L, -2); //remove table, index: -2?
-
+					love_push_userdata(L, controller);
 					lua_pushstring(L, KEYS[event.jbutton.button].c_str());
 
 					lua_call(L, 2, 0);

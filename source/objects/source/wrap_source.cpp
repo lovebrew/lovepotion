@@ -84,6 +84,19 @@ int sourceIsLooping(lua_State * L)
 	return 1;
 }
 
+int sourceToString(lua_State * L)
+{
+	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int sourceGC(lua_State * L)
 {
 	Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -105,6 +118,7 @@ int initSourceClass(lua_State *L)
 		{ "setLooping",			sourceSetLooping},
 		{ "stop",				sourceStop		},
 		{ "__gc",				sourceGC		},
+		{ "__tostring",			sourceToString	},
 		{ 0, 0 },
 	};
 

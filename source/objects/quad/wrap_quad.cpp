@@ -40,6 +40,19 @@ int quadSetViewport(lua_State * L)
 	return 0;
 }
 
+int quadToString(lua_State * L)
+{
+	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int quadGC(lua_State * L)
 {
 	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -55,6 +68,7 @@ int initQuadClass(lua_State * L)
 		{"new",			quadNew			},
 		{"setViewport",	quadSetViewport	},
 		{"__gc",		quadGC			},
+		{"__tostring",	quadToString	},
 		{ 0, 0 },
 	};
 

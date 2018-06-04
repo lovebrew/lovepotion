@@ -13,18 +13,19 @@
 #include "modules/graphics.h"
 #include "modules/joystick.h"
 #include "modules/mod_math.h"
+#include "modules/mod_thread.h"
 #include "modules/system.h"
 #include "modules/timer.h"
 #include "modules/touch.h"
 #include "modules/window.h"
-#include "modules/mod_thread.h"
 
+#include "objects/canvas/wrap_canvas.h"
+#include "objects/channel/wrap_channel.h"
 #include "objects/file/wrap_file.h"
 #include "objects/font/wrap_font.h"
-#include "objects/source/wrap_source.h"
 #include "objects/image/wrap_image.h"
 #include "objects/quad/wrap_quad.h"
-#include "objects/canvas/wrap_canvas.h"
+#include "objects/source/wrap_source.h"
 #include "objects/thread/wrap_thread.h"
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
@@ -48,13 +49,14 @@ int Love::Initialize(lua_State * L)
 {
 	int (*classes[])(lua_State *L) = 
 	{
+		initCanvasClass,
+		initChannelClass,
 		initFileClass,
+		initFontClass,
 		initGamepadClass,
-		initSourceClass,
 		initImageClass,
 		initQuadClass,
-		initFontClass,
-		initCanvasClass,
+		initSourceClass,
 		initThreadClass,
 		NULL
 	};
@@ -83,8 +85,14 @@ int Love::Initialize(lua_State * L)
 		lua_setfield(L, -2, modules[i].name);
 	}
 
-	lua_newtable(L);
-	lua_setglobal(L, "__controllers");
+	love_get_registry(L, OBJECTS);
+	if (!lua_istable(L, -1))
+	{
+		lua_newtable(L);
+ 		lua_replace(L, -2);
+
+		lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+	}
 
 	loveState = L;
 

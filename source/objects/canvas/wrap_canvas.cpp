@@ -21,6 +21,19 @@ int canvasNew(lua_State * L)
 	return 1;
 }
 
+int canvasToString(lua_State * L)
+{
+	Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int canvasGC(lua_State * L)
 {
 	Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);

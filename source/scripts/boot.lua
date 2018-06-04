@@ -55,6 +55,21 @@ love.graphics.setFont(__defaultFont)
 function love.createhandlers()
 	-- Standard callback handlers.
 	love.handlers = setmetatable({
+		load = function()
+			if love.load then
+				return love.load()
+			end
+		end,
+		update = function(dt)
+			if love.update then
+				return love.update(dt)
+			end
+		end,
+		draw = function()
+			if love.draw then
+				return love.draw()
+			end
+		end,
 		keypressed = function (key)
 			if love.keypressed then 
 				return love.keypressed(key) 

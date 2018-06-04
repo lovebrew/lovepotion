@@ -1,6 +1,6 @@
 #pragma once
 
-class Font
+class Font : public Object
 {
 	public:
 		Font(const char * path, int size);

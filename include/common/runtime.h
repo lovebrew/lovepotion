@@ -25,6 +25,8 @@ extern "C"
 
 //C++ headers
 #include <exception>
+#include <map>
+#include <queue>
 
 //C headers
 #include <errno.h>
@@ -37,7 +39,9 @@ extern "C"
 
 #include <switch.h>
 
+#include "objects/object/object.h"
 #include "common/types.h"
+#include "common/variant.h"
 #include "common/util.h"
 #include "common/console.h"
 #include "modules/love.h"
@@ -46,6 +50,9 @@ extern "C"
 using std::string;
 using std::vector;
 using std::pair;
+using std::make_pair;
+using std::map;
+using std::queue;
 
 extern FILE * logFile;
 

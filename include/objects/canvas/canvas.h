@@ -1,3 +1,5 @@
+#pragma once
+
 class Canvas : public Drawable
 {
 	public:

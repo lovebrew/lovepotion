@@ -29,8 +29,10 @@ typedef struct {
 #define LUAOBJ_TYPE_GAMEPAD (1 << 5)
 #define LUAOBJ_TYPE_CANVAS (1 << 6)
 #define LUAOBJ_TYPE_THREAD (1 << 7)
+#define LUAOBJ_TYPE_CHANNEL (1 << 8)
+#define LUAOBJ_TYPE_TEXT (1 << 9)
 
-#define LUAOBJ_TYPE_UDP (1 << 8)
+#define LUAOBJ_TYPE_UDP (1 << 12)
 
 int luaobj_newclass(lua_State *L, const char *name, const char *extends, 
                     int (*constructor)(lua_State*), luaL_Reg* reg);

@@ -18,6 +18,8 @@ int fileGetMode(lua_State * L);
 
 int fileClose(lua_State * L);
 
+int fileToString(lua_State * L);
+
 int fileGC(lua_State * L);
 
 int initFileClass(lua_State *L);

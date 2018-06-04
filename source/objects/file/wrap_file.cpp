@@ -123,6 +123,19 @@ int fileClose(lua_State * L)
 	return 0;
 }
 
+int fileToString(lua_State * L)
+{
+	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+	char * data = self->ToString(CLASS_NAME);
+
+	lua_pushstring(L, data);
+
+	free(data);
+
+	return 1;
+}
+
 int fileGC(lua_State * L)
 {
 	File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -146,7 +159,8 @@ int initFileClass(lua_State *L) {
 		{"isOpen",		fileIsOpen	},
 		{"getMode",		fileGetMode	},
 		{"__gc",		fileGC		},
-		{ 0, 0 },
+		{"__tostring",	fileToString},
+		{ 0, 0 }
 	};
 
 	luaobj_newclass(L, CLASS_NAME, NULL, fileNew, reg);

@@ -15,6 +15,7 @@ extern "C"
 #include <switch.h>
 
 #include "common/types.h"
+#include "common/variant.h"
 #include "common/util.h"
 
 void love_getfield(lua_State * L, const char * field)
@@ -33,6 +34,80 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name)
 	lua_pop(L, 2);
 
 	return 0;
+}
+
+void love_register(lua_State * L, int index, void * object)
+{
+	love_get_registry(L, OBJECTS);
+
+	lua_pushlightuserdata(L, object);	//light userdata key
+	lua_pushvalue(L, index);				//push the userdata value to the key
+	lua_settable(L, -3);				//set the taaable (╯°□°）╯︵ ┻━┻
+
+	lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+}
+
+void love_push_userdata(lua_State * L, void * object)
+{
+	if (!object)
+		return;
+
+	love_get_registry(L, OBJECTS);
+	lua_pushlightuserdata(L, object);
+	lua_gettable(L, -2);
+	lua_remove(L, -2);
+}
+
+int love_get_registry(lua_State * L, REGISTRY registry)
+{
+	switch(registry)
+	{
+		case OBJECTS:
+			lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+			return 1;
+		default:
+			return luaL_error(L, "Attempted to use invalid registry."); 
+	}
+}
+
+Variant love_gettype(lua_State * L, int i, int type)
+{
+	switch(type)
+	{
+		case LUA_TNUMBER:
+			return Variant(lua_tonumber(L, i));
+		case LUA_TSTRING:
+			return Variant(lua_tostring(L, i));
+		case LUA_TNIL:
+			return Variant();
+		default:
+			break;
+	}
+}
+
+int luax_traceback(lua_State *L)
+{
+	if (!lua_isstring(L, 1))  // 'message' not a string?
+		return 1; // keep it intact
+
+	lua_getglobal(L, "debug");
+	if (!lua_istable(L, -1))
+	{
+		lua_pop(L, 1);
+		return 1;
+	}
+
+	lua_getfield(L, -1, "traceback");
+	if (!lua_isfunction(L, -1))
+	{
+		lua_pop(L, 2);
+		return 1;
+	}
+
+	lua_pushvalue(L, 1); // pass error message
+	lua_pushinteger(L, 2); // skip this function and traceback
+	lua_call(L, 2, 1); // call debug.traceback
+	return 1;
 }
 
 double clamp(double low, double value, double high)

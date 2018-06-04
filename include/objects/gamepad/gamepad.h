@@ -1,6 +1,6 @@
 #pragma once
 
-class Gamepad
+class Gamepad : public Object
 {
 	public:
 		Gamepad(int id);

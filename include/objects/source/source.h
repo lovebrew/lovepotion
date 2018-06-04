@@ -1,6 +1,6 @@
 #pragma once
 
-class Source
+class Source : public Object
 {
 	public:
 		Source() {};
