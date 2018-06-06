@@ -4,33 +4,33 @@
 
 typedef struct
 {
-	double ox;
-	double oy;
+    double ox;
+    double oy;
 
-	double r;
+    double r;
 
-	double sx;
-	double sy;
+    double sx;
+    double sy;
 
-	double kx;
-	double ky;
+    double kx;
+    double ky;
 } StackMatrix;
 
 typedef enum
 {
-	BOOLEAN,
-	LUSERDATA,
-	NIL,
-	NUMBER,
-	STRING,
-	TABLE,
-	UNKNOWN,
-	USERDATA
+    BOOLEAN,
+    LUSERDATA,
+    NIL,
+    NUMBER,
+    STRING,
+    TABLE,
+    UNKNOWN,
+    USERDATA
 } VARIANTS;
 
 typedef enum
 {
-	OBJECTS
+    OBJECTS
 } REGISTRY;
 
 extern std::vector<const char *> FILE_MODES;

@@ -2,23 +2,23 @@
 
 class Quad : public Object
 {
-	public:
-		Quad() {};
-		Quad(float subTextureX, float subTextureY, float subTextureWidth, float subTextureHeight, float atlasWidth, float atlasHeight);
+    public:
+        Quad() {};
+        Quad(float subTextureX, float subTextureY, float subTextureWidth, float subTextureHeight, float atlasWidth, float atlasHeight);
 
-		int GetX();
-		int GetY();
-		int GetWidth();
-		int GetHeight();
+        int GetX();
+        int GetY();
+        int GetWidth();
+        int GetHeight();
 
-		void SetViewport(int x, int y, int width, int height);
+        void SetViewport(int x, int y, int width, int height);
 
-	private:
-		int NextPow2(unsigned int x);
+    private:
+        int NextPow2(unsigned int x);
 
-		float x;
-		float y;
+        float x;
+        float y;
 
-		float width;
-		float height;
+        float width;
+        float height;
 };

@@ -7,72 +7,72 @@
 
 int quadNew(lua_State * L)
 {
-	int x = luaL_checknumber(L, 1);
-	int y = luaL_checknumber(L, 2);
+    int x = luaL_checknumber(L, 1);
+    int y = luaL_checknumber(L, 2);
 
-	int width = luaL_checknumber(L, 3);
-	int height = luaL_checknumber(L, 4);
+    int width = luaL_checknumber(L, 3);
+    int height = luaL_checknumber(L, 4);
 
-	int atlasWidth = luaL_checknumber(L, 5);
-	int atlasHeight = luaL_checknumber(L, 6);
+    int atlasWidth = luaL_checknumber(L, 5);
+    int atlasHeight = luaL_checknumber(L, 6);
 
-	void * raw_self = luaobj_newudata(L, sizeof(Quad));
+    void * raw_self = luaobj_newudata(L, sizeof(Quad));
 
-	luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+    luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-	Quad * self = new (raw_self) Quad(x, y, width, height, atlasWidth, atlasHeight);
+    Quad * self = new (raw_self) Quad(x, y, width, height, atlasWidth, atlasHeight);
 
-	return 1;
+    return 1;
 }
 
 int quadSetViewport(lua_State * L)
 {
-	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	int x = luaL_checknumber(L, 2);
-	int y = luaL_checknumber(L, 3);
+    int x = luaL_checknumber(L, 2);
+    int y = luaL_checknumber(L, 3);
 
-	int width = luaL_checknumber(L, 4);
-	int height = luaL_checknumber(L, 5);
+    int width = luaL_checknumber(L, 4);
+    int height = luaL_checknumber(L, 5);
 
-	self->SetViewport(x, y, width, height);
+    self->SetViewport(x, y, width, height);
 
-	return 0;
+    return 0;
 }
 
 int quadToString(lua_State * L)
 {
-	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString(CLASS_NAME);
 
-	lua_pushstring(L, data);
+    lua_pushstring(L, data);
 
-	free(data);
+    free(data);
 
-	return 1;
+    return 1;
 }
 
 int quadGC(lua_State * L)
 {
-	Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	self->~Quad();
+    self->~Quad();
 
-	return 0;
+    return 0;
 }
 
 int initQuadClass(lua_State * L)
 {
-	luaL_Reg reg[] = {
-		{"new",			quadNew			},
-		{"setViewport",	quadSetViewport	},
-		{"__gc",		quadGC			},
-		{"__tostring",	quadToString	},
-		{ 0, 0 },
-	};
+    luaL_Reg reg[] = {
+        {"new",            quadNew            },
+        {"setViewport",    quadSetViewport    },
+        {"__gc",        quadGC            },
+        {"__tostring",    quadToString    },
+        { 0, 0 },
+    };
 
-	luaobj_newclass(L, CLASS_NAME, NULL, quadNew, reg);
+    luaobj_newclass(L, CLASS_NAME, NULL, quadNew, reg);
 
-	return 1;
+    return 1;
 }

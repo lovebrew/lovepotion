@@ -1,6 +1,6 @@
 /*
 ** modules/love.h
-** @brief	: Handles all the modules
+** @brief    : Handles all the modules
 */
 
 #pragma once
@@ -10,21 +10,21 @@ extern bool CLOSE_KEYBOARD;
 
 namespace Love
 {
-	int Initialize(lua_State * L);
+    int Initialize(lua_State * L);
 
-	int GetVersion(lua_State * L);
+    int GetVersion(lua_State * L);
 
-	int EnableConsole(lua_State * L);
+    int EnableConsole(lua_State * L);
 
-	bool IsRunning();
+    bool IsRunning();
 
-	int RaiseError(const char * format, ...);
+    int RaiseError(const char * format, ...);
 
-	int Run(lua_State * L);
+    int Run(lua_State * L);
 
-	int NoGame(lua_State * L);
+    int NoGame(lua_State * L);
 
-	void Exit(lua_State * L);
+    void Exit(lua_State * L);
 }
 
 // Forward declare lua_State.

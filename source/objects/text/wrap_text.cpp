@@ -14,15 +14,15 @@ int textNew(lua_State * L)
 
 int textToString(lua_State * L)
 {
-	Text * self = (Text *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    Text * self = (Text *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-	char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString(CLASS_NAME);
 
-	lua_pushstring(L, data);
+    lua_pushstring(L, data);
 
-	free(data);
+    free(data);
 
-	return 1;
+    return 1;
 }
 
 int initTextClass(lua_State * L)

@@ -6,12 +6,12 @@ extern bool LOVE_QUIT;
 
 extern "C"
 {
-	#include <lua.h>
-	#include <lualib.h>
-	#include <lauxlib.h>
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>
 
-	#include <compat-5.2.h>
-	#include <luaobj.h>
+    #include <compat-5.2.h>
+    #include <luaobj.h>
 }
 
 //Libs
@@ -58,13 +58,13 @@ extern FILE * logFile;
 
 static inline void writeLog(const string & data)
 {
-	fwrite((char *)data.data(), 1, data.length(), logFile);
+    fwrite((char *)data.data(), 1, data.length(), logFile);
 
-	fflush(logFile);
+    fflush(logFile);
 }
 
 static inline void closeLog()
 {
-	if (logFile != NULL)
-		fclose(logFile);
+    if (logFile != NULL)
+        fclose(logFile);
 }

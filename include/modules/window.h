@@ -2,15 +2,15 @@
 
 namespace Window
 {
-	void Initialize();
+    void Initialize();
 
-	SDL_Renderer * GetRenderer();
+    SDL_Renderer * GetRenderer();
 
-	SDL_Surface * GetSurface();
+    SDL_Surface * GetSurface();
 
-	int SetMode(lua_State * L);
+    int SetMode(lua_State * L);
 
-	int Register(lua_State * L);
+    int Register(lua_State * L);
 
-	void Exit();
+    void Exit();
 }

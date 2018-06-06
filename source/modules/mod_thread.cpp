@@ -9,42 +9,42 @@
 
 int LoveThread::GetChannel(lua_State * L)
 {
-	const char * name = luaL_checkstring(L, 1);
+    const char * name = luaL_checkstring(L, 1);
 
-	if (channels.find(name) == channels.end()) //create one
-	{
-		int ret = channelNew(L);
+    if (channels.find(name) == channels.end()) //create one
+    {
+        int ret = channelNew(L);
 
-		return ret;
-	}
-	else
-	{
-		Channel * self = channels[name];
-		love_push_userdata(L, self);
+        return ret;
+    }
+    else
+    {
+        Channel * self = channels[name];
+        love_push_userdata(L, self);
 
-		return 1;
-	}
+        return 1;
+    }
 
-	return 0;
+    return 0;
 }
 
 void LoveThread::Exit()
 {
-	//for (auto thread : threads)
-	//	thread->Collect();
+    //for (auto thread : threads)
+    //    thread->Collect();
 }
 
 int LoveThread::Register(lua_State * L)
 {
-	luaL_Reg reg[] = 
-	{
-		{ "newThread",	threadNew	},
-		{ "newChannel", channelNew	},
-		{ "getChannel", GetChannel	},
-		{ 0, 0 }
-	};
-	
-	luaL_newlib(L, reg);
+    luaL_Reg reg[] = 
+    {
+        { "newThread",    threadNew    },
+        { "newChannel", channelNew    },
+        { "getChannel", GetChannel    },
+        { 0, 0 }
+    };
+    
+    luaL_newlib(L, reg);
 
-	return 1;
+    return 1;
 }

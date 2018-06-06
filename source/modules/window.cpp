@@ -11,56 +11,56 @@ SDL_Surface * WINDOW_SURFACE;
 // maximum window dimension is currently limited to 1280x720
 void Window::Initialize()
 {
-	WINDOW = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_FULLSCREEN);
+    WINDOW = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_FULLSCREEN);
 
-	if (!WINDOW)
-		SDL_Quit();
+    if (!WINDOW)
+        SDL_Quit();
 
-	RENDERER = SDL_CreateRenderer(WINDOW, 0, SDL_RENDERER_SOFTWARE);
+    RENDERER = SDL_CreateRenderer(WINDOW, 0, SDL_RENDERER_SOFTWARE);
 
-	if (!RENDERER)
-		SDL_Quit();
+    if (!RENDERER)
+        SDL_Quit();
 
-	WINDOW_SURFACE = SDL_GetWindowSurface(WINDOW);
+    WINDOW_SURFACE = SDL_GetWindowSurface(WINDOW);
 
-	SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_BLEND);
 
-	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
 }
 
 SDL_Renderer * Window::GetRenderer()
 {
-	return RENDERER;
+    return RENDERER;
 }
 
 SDL_Surface * Window::GetSurface()
 {
-	return WINDOW_SURFACE;
+    return WINDOW_SURFACE;
 }
 
 void Window::Exit()
 {
-	SDL_DestroyRenderer(RENDERER);
-	SDL_DestroyWindow(WINDOW);
+    SDL_DestroyRenderer(RENDERER);
+    SDL_DestroyWindow(WINDOW);
 }
 
 //Löve2D Functions
 int Window::SetMode(lua_State * L)
 {
-	return 0;
+    return 0;
 }
 
 //End Löve2D Functions
 
 int Window::Register(lua_State * L)
 {
-	luaL_Reg reg[] = 
-	{
-		{ "setMode",	SetMode	},
-		{ 0, 0 }
-	};
+    luaL_Reg reg[] = 
+    {
+        { "setMode",    SetMode    },
+        { 0, 0 }
+    };
 
-	luaL_newlib(L, reg);
-	
-	return 1;
+    luaL_newlib(L, reg);
+    
+    return 1;
 }

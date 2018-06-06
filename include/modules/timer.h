@@ -7,20 +7,20 @@
 
 namespace Timer
 {
-	//Löve2D Functions
+    //Löve2D Functions
 
-	int GetFPS(lua_State * L);
-	int GetTime(lua_State * L);
-	int GetDelta(lua_State * L);
-	int Sleep(lua_State * L);
-	int Step(lua_State * L);
+    int GetFPS(lua_State * L);
+    int GetTime(lua_State * L);
+    int GetDelta(lua_State * L);
+    int Sleep(lua_State * L);
+    int Step(lua_State * L);
 
-	//End Löve2D Functions
-	float GetOSTime();
+    //End Löve2D Functions
+    float GetOSTime();
 
-	float GetDelta();
+    float GetDelta();
 
-	void Tick();
+    void Tick();
 
-	int Register(lua_State * L);
+    int Register(lua_State * L);
 }

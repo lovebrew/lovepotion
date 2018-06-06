@@ -3,38 +3,38 @@ require 'cloud'
 doggo = require 'dog'
 
 function love.load()
-	love.graphics.setBackgroundColor(0.27, 0.35, 0.39)
+    love.graphics.setBackgroundColor(0.27, 0.35, 0.39)
 
-	love.math.setRandomSeed(os.time())
+    love.math.setRandomSeed(os.time())
 
-	clouds =
-	{
-		Cloud(1, love.graphics.getWidth() * 0.10, love.graphics.getHeight() * 0.25),
-		Cloud(2, love.graphics.getWidth() * 0.50 - 86, love.graphics.getHeight() * 0.05),
-		Cloud(3, love.graphics.getWidth() * 0.70, love.graphics.getHeight() * 0.30)
-	}
+    clouds =
+    {
+        Cloud(1, love.graphics.getWidth() * 0.10, love.graphics.getHeight() * 0.25),
+        Cloud(2, love.graphics.getWidth() * 0.50 - 86, love.graphics.getHeight() * 0.05),
+        Cloud(3, love.graphics.getWidth() * 0.70, love.graphics.getHeight() * 0.30)
+    }
 
-	bowlImage = love.graphics.newImage("graphics/swoof/Bowl.png")
+    bowlImage = love.graphics.newImage("graphics/swoof/Bowl.png")
 end
 
 function love.update(dt)
-	dt = math.min(1 / 30, dt)
-	
-	doggo:update(dt)
+    dt = math.min(1 / 30, dt)
+    
+    doggo:update(dt)
 end
 
 function love.draw()
-	for _, v in ipairs(clouds) do
-		v:draw()
-	end
+    for _, v in ipairs(clouds) do
+        v:draw()
+    end
 
-	doggo:draw()
+    doggo:draw()
 
-	love.graphics.draw(bowlImage, 532, 540)
+    love.graphics.draw(bowlImage, 532, 540)
 end
 
 function love.keypressed(key)
-	if key == "escape" then
-		love.event.quit()
-	end
+    if key == "escape" then
+        love.event.quit()
+    end
 end

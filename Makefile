@@ -30,62 +30,62 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	LovePotion
-BUILD		:=	build
+TARGET        :=    LovePotion
+BUILD        :=    build
 
-EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
-INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
-SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
-NOGAMEDIR	:= source/scripts/nogame
+EXT_LIBS    := $(sort $(dir $(wildcard libraries/*/)))
+INC_OBJS    := $(sort $(dir $(wildcard include/objects/*/)))
+SRC_OBJS    := $(sort $(dir $(wildcard source/objects/*/)))
+NOGAMEDIR    := source/scripts/nogame
 
-SOURCES		:=	source \
-				source/scripts \
-				source/common \
-				source/modules \
-				source/socket \
-				source/socket/objects/udp \
-				$(SRC_OBJS) \
-				$(EXT_LIBS)
+SOURCES        :=    source \
+                source/scripts \
+                source/common \
+                source/modules \
+                source/socket \
+                source/socket/objects/udp \
+                $(SRC_OBJS) \
+                $(EXT_LIBS)
 
-DATA		:=	source/scripts
+DATA        :=    source/scripts
 
-INCLUDES	:=	include \
-				include/common \
-				include/modules \
-				include/socket \
-				include/socket/objects/udp \
-				$(INC_OBJS) \
-				$(EXT_LIBS)
+INCLUDES    :=    include \
+                include/common \
+                include/modules \
+                include/socket \
+                include/socket/objects/udp \
+                $(INC_OBJS) \
+                $(EXT_LIBS)
 
-EXEFS_SRC	:=	exefs_src
-ROMFS		:=	game
+EXEFS_SRC    :=    exefs_src
+ROMFS        :=    game
 
 #If we don't find the game, use No Game
 ifeq ($(wildcard $(CURDIR)/game/.*),)
-	ROMFS = $(NOGAMEDIR)
+    ROMFS = $(NOGAMEDIR)
 endif
 
-APP_TITLE	:= Löve Potion
-APP_AUTHOR	:= TurtleP
-APP_VERSION	:= 1.0
-APP_TITLEID	:= 1043
+APP_TITLE    := Löve Potion
+APP_AUTHOR    := TurtleP
+APP_VERSION    := 1.0
+APP_TITLEID    := 1043
 
-ICON		:= meta/icon.jpg
+ICON        := meta/icon.jpg
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
-ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
+ARCH    :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections `sdl2-config --cflags` `freetype-config --cflags` \
-			$(ARCH) $(DEFINES)
+CFLAGS    :=    -g -Wall -O2 -ffunction-sections `sdl2-config --cflags` `freetype-config --cflags` \
+            $(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+CFLAGS    +=    $(INCLUDE) -D__SWITCH__
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
+CXXFLAGS    := $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 
-ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
+ASFLAGS    :=    -g $(ARCH)
+LDFLAGS    =    -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS := -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
@@ -93,7 +93,7 @@ LIBS := -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS) $(LIBNX)
+LIBDIRS    := $(PORTLIBS) $(LIBNX)
 
 
 #---------------------------------------------------------------------------------
@@ -103,71 +103,71 @@ LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 #---------------------------------------------------------------------------------
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-export TOPDIR	:=	$(CURDIR)
+export OUTPUT    :=    $(CURDIR)/$(TARGET)
+export TOPDIR    :=    $(CURDIR)
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-			$(foreach dir,$(DATA),$(CURDIR)/$(dir))
+export VPATH    :=    $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+            $(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
+export DEPSDIR    :=    $(CURDIR)/$(BUILD)
 
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+CFILES        :=    $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES    :=    $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+SFILES        :=    $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+BINFILES    :=    $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(CPPFILES)),)
 #---------------------------------------------------------------------------------
-	export LD	:=	$(CC)
+    export LD    :=    $(CC)
 #---------------------------------------------------------------------------------
 else
 #---------------------------------------------------------------------------------
-	export LD	:=	$(CXX)
+    export LD    :=    $(CXX)
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-			$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
+export OFILES    :=    $(addsuffix .o,$(BINFILES)) \
+            $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
-			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+export INCLUDE    :=    $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+            $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+            -I$(CURDIR)/$(BUILD)
 
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+export LIBPATHS    :=    $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export BUILD_EXEFS_SRC := $(TOPDIR)/$(EXEFS_SRC)
 
 ifeq ($(strip $(ICON)),)
-	icons := $(wildcard *.jpg)
-	ifneq (,$(findstring $(TARGET).jpg,$(icons)))
-		export APP_ICON := $(TOPDIR)/$(TARGET).jpg
-	else
-		ifneq (,$(findstring icon.jpg,$(icons)))
-			export APP_ICON := $(TOPDIR)/icon.jpg
-		endif
-	endif
+    icons := $(wildcard *.jpg)
+    ifneq (,$(findstring $(TARGET).jpg,$(icons)))
+        export APP_ICON := $(TOPDIR)/$(TARGET).jpg
+    else
+        ifneq (,$(findstring icon.jpg,$(icons)))
+            export APP_ICON := $(TOPDIR)/icon.jpg
+        endif
+    endif
 else
-	export APP_ICON := $(TOPDIR)/$(ICON)
+    export APP_ICON := $(TOPDIR)/$(ICON)
 endif
 
 ifeq ($(strip $(NO_ICON)),)
-	export NROFLAGS += --icon=$(APP_ICON)
+    export NROFLAGS += --icon=$(APP_ICON)
 endif
 
 ifeq ($(strip $(NO_NACP)),)
-	export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
+    export NROFLAGS += --nacp=$(CURDIR)/$(TARGET).nacp
 endif
 
 ifneq ($(APP_TITLEID),)
-	export NACPFLAGS += --titleid=$(APP_TITLEID)
+    export NACPFLAGS += --titleid=$(APP_TITLEID)
 endif
 
 ifneq ($(ROMFS),)
-	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
+    export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
 .PHONY: $(BUILD) clean all
@@ -176,62 +176,62 @@ endif
 all: $(BUILD)
 
 $(BUILD):
-	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+    @[ -d $@ ] || mkdir -p $@
+    @$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:
-	@echo clean ...
-	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+    @echo clean ...
+    @rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
 
 #---------------------------------------------------------------------------------
 else
-.PHONY:	all
+.PHONY:    all
 
-DEPENDS	:=	$(OFILES:.o=.d)
+DEPENDS    :=    $(OFILES:.o=.d)
 
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-all	:	$(OUTPUT).pfs0 $(OUTPUT).nro
+all    :    $(OUTPUT).pfs0 $(OUTPUT).nro
 
-$(OUTPUT).pfs0	:	$(OUTPUT).nso
+$(OUTPUT).pfs0    :    $(OUTPUT).nso
 
-$(OUTPUT).nso	:	$(OUTPUT).elf
+$(OUTPUT).nso    :    $(OUTPUT).elf
 
 ifeq ($(strip $(NO_NACP)),)
-$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
+$(OUTPUT).nro    :    $(OUTPUT).elf $(OUTPUT).nacp
 else
-$(OUTPUT).nro	:	$(OUTPUT).elf
+$(OUTPUT).nro    :    $(OUTPUT).elf
 endif
 
-$(OUTPUT).elf	:	$(OFILES)
+$(OUTPUT).elf    :    $(OFILES)
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
-%.bin.o	:	%.bin
+%.bin.o    :    %.bin
 #---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+    @echo $(notdir $<)
+    @$(bin2o)
 
 #---------------------------------------------------------------------------------
-%.lua.o	:	%.lua
+%.lua.o    :    %.lua
 #---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+    @echo $(notdir $<)
+    @$(bin2o)
 
 #---------------------------------------------------------------------------------
-%.ttf.o	:	%.ttf
+%.ttf.o    :    %.ttf
 #---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+    @echo $(notdir $<)
+    @$(bin2o)
 
 #---------------------------------------------------------------------------------
-%.png.o	:	%.png
+%.png.o    :    %.png
 #---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+    @echo $(notdir $<)
+    @$(bin2o)
 
 -include $(DEPENDS)
 

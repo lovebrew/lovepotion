@@ -1,11 +1,11 @@
 extern "C" 
 {
-	#include <lua.h>
-	#include <lualib.h>
-	#include <lauxlib.h>
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>
 
-	#include <compat-5.2.h>
-	#include <luaobj.h>
+    #include <compat-5.2.h>
+    #include <luaobj.h>
 }
 
 #include <string>
@@ -47,45 +47,45 @@ bool LOVE_QUIT = false;
 
 int main(int argc, char * argv[])
 {
-	System::Initialize();
+    System::Initialize();
 
-	Graphics::Initialize();
-	
-	Window::Initialize();
+    Graphics::Initialize();
+    
+    Window::Initialize();
 
-	Audio::Initialize();
+    Audio::Initialize();
 
-	Filesystem::Initialize();
-	
-	lua_State * L = luaL_newstate();
+    Filesystem::Initialize();
+    
+    lua_State * L = luaL_newstate();
 
-	luaL_openlibs(L);
+    luaL_openlibs(L);
 
-	love_preload(L, Socket::Initialize, "socket");
+    love_preload(L, Socket::Initialize, "socket");
 
-	luaL_requiref(L, "love", Love::Initialize, 1);
+    luaL_requiref(L, "love", Love::Initialize, 1);
 
-	Joystick::Initialize(L);
+    Joystick::Initialize(L);
 
-	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
+    luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
-	/*
-	** aptMainLoop important code moved to love.cpp
-	** this was to register it as love.run
-	** for error handling purposes
-	*/
-	
-	while (appletMainLoop())
-	{
-		if (Love::IsRunning())
-			luaL_dostring(L, "xpcall(love.run, love.errhand)");
-		else
-			break;
-	}
+    /*
+    ** aptMainLoop important code moved to love.cpp
+    ** this was to register it as love.run
+    ** for error handling purposes
+    */
+    
+    while (appletMainLoop())
+    {
+        if (Love::IsRunning())
+            luaL_dostring(L, "xpcall(love.run, love.errhand)");
+        else
+            break;
+    }
 
-	Socket::Close();
+    Socket::Close();
 
-	Love::Exit(L);
+    Love::Exit(L);
 
-	return 0;
+    return 0;
 }

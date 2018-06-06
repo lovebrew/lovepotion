@@ -2,7 +2,7 @@
 
 class Object
 {
-	public:
-		Object() {};
-		char * ToString(const char * type);
+    public:
+        Object() {};
+        char * ToString(const char * type);
 };

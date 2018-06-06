@@ -2,31 +2,31 @@
 
 class ThreadClass : public Object
 {
-	public:
-		ThreadClass(const std::string & arg);
-		
-		bool IsRunning();
-		void Start(const std::vector<Variant> & args);
-		void Wait();
-		void Close();
+    public:
+        ThreadClass(const std::string & arg);
+        
+        bool IsRunning();
+        void Start(const std::vector<Variant> & args);
+        void Wait();
+        void Close();
 
-		void Collect();
+        void Collect();
 
-		std::string GetCode();
-		std::vector<Variant> GetArgs();
+        std::string GetCode();
+        std::vector<Variant> GetArgs();
 
-		void SetError(const std::string & error);
-		std::string GetError();
-		void OnError();
+        void SetError(const std::string & error);
+        std::string GetError();
+        void OnError();
 
-	private:
+    private:
 
-		std::string code;
-		std::vector<Variant> args;
+        std::string code;
+        std::vector<Variant> args;
 
-		bool started;
-		Thread thread;
-		std::string error;
+        bool started;
+        Thread thread;
+        std::string error;
 };
 
 extern void Run(void * arg);
