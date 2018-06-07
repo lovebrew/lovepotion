@@ -1,14 +1,12 @@
-class TCP
+#pragma once
+
+class TCP : public Socket
 {
     public:
-        TCP();
-        TCP(const std::string & ip, int port);
+        TCP() : Socket(SOCK_STREAM) {};
 
-    private:
-        int sockfd;
+        int Accept();
+        int Listen();
 
-        struct sockaddr_in address;
-
-        std::string ip;
-        int port;
-}
+        virtual int SetOption(const std::string & option, int value);
+};

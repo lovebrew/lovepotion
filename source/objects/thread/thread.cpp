@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "objects/thread/thread.h"
 
-#include "socket/socket.h"
+#include "socket/luasocket.h"
 #include "objects/file/file.h"
 
 ThreadClass::ThreadClass(const string & arg)
@@ -51,7 +51,7 @@ void Run(void * arg)
 
     //Initialize LOVE for the thread
     luaL_openlibs(L);
-    love_preload(L, Socket::Initialize, "socket");
+    //love_preload(L, LuaSocket::Initialize, "socket");
     luaL_requiref(L, "love", Love::Initialize, 1);
 
     //Joystick::Initialize(L);
@@ -68,6 +68,7 @@ void Run(void * arg)
     else
     {
         uint numargs = args.size();
+        printf("We pushed %d args\n", numargs);
 
         //pop args onto the function
         for (uint i = 0; i < numargs; i++)
@@ -81,6 +82,7 @@ void Run(void * arg)
             self->SetError(lua_tostring(L, -1));
     }
 
+    //LuaSocket::Close();
     lua_close(L);
 
     if (!self->GetError().empty())
@@ -97,6 +99,7 @@ void ThreadClass::Start(const vector<Variant> & args)
     this->args = args;
     threadCreate(&this->thread, Run, this, 0x1000, 0x2C, -2);
 
+    printf("Starting thread with %ld args\n", args.size());
     threadStart(&this->thread);
     this->started = true;
 }

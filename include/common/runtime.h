@@ -40,12 +40,17 @@ extern "C"
 #include <switch.h>
 
 #include "objects/object/object.h"
+
 #include "common/types.h"
 #include "common/variant.h"
 #include "common/util.h"
 #include "common/console.h"
 #include "modules/love.h"
 #include "common/error.h"
+
+#include "socket/luasocket.h"
+#include "socket/common.h"
+
 
 using std::string;
 using std::vector;

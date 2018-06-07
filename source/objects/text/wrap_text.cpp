@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 
 #include "common/drawable.h"
+
+#include "objects/font/font.h"
 #include "objects/text/text.h"
 #include "objects/text/wrap_text.h"
 

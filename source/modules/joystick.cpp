@@ -59,9 +59,9 @@ int Joystick::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "getJoysticks",            GetJoysticks    },
-        { "getJoystickCount",        GetJoystickCount},
-        { "setLayout",                SetLayout    },
+        { "getJoystickCount", GetJoystickCount },
+        { "getJoysticks",     GetJoysticks     },
+        { "setLayout",        SetLayout        },
         { 0, 0 },
     };
 

@@ -11,7 +11,7 @@ class Variant
 
         ~Variant();
 
-        static Variant FromLua(lua_State * L, int index, int type);
+        static Variant FromLua(lua_State * L, int index);
         void ToLua(lua_State * L);
 
     private:

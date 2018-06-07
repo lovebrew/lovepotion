@@ -21,8 +21,6 @@ int LoveThread::GetChannel(lua_State * L)
     {
         Channel * self = channels[name];
         love_push_userdata(L, self);
-
-        return 1;
     }
 
     return 0;
@@ -38,9 +36,9 @@ int LoveThread::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "newThread",    threadNew    },
-        { "newChannel", channelNew    },
-        { "getChannel", GetChannel    },
+        { "getChannel", GetChannel },
+        { "newChannel", channelNew },
+        { "newThread",  threadNew  },
         { 0, 0 }
     };
     

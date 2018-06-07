@@ -25,10 +25,18 @@ int threadStart(lua_State * L)
 
     uint argc = lua_gettop(L) - 1;
 
+    printf("We've got %u args to start\n", argc);
+    
     vector<Variant> args;
-    for (uint i = 0; i < argc; i++)
-        args.push_back(Variant::FromLua(L, i + 2, lua_type(L, i + 2)));
+    args.reserve(argc);
 
+    for (uint i = 0; i < argc; ++i)
+    {
+        if (!lua_isnone(L, i + 2))
+            args.push_back(Variant::FromLua(L, i + 2));
+    }
+
+    printf("ALL YOU HAD TO DO WAS START THE THREAD, CJ!\n");
     if (!self->IsRunning())
         self->Start(args);
 
@@ -81,12 +89,12 @@ int initThreadClass(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "new",         threadNew         },
-        { "start",         threadStart     },
-        { "wait",        threadWait         },
-        { "isRunning",     threadIsRunning },
-        { "getError",     threadGetError    },
-        { "__tostring", threadToString    },
+        { "__tostring", threadToString  },
+        { "getError",   threadGetError  },
+        { "isRunning",  threadIsRunning },
+        { "new",        threadNew       },
+        { "start",      threadStart     },
+        { "wait",       threadWait      },
         { 0, 0 }
     };
 

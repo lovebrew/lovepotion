@@ -136,14 +136,14 @@ int System::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "getPowerInfo",        GetPowerInfo         },
-        { "getProcessorCount",    GetProcessorCount    },
-        { "getOS",                GetOS                },
-        { "getLanguage",        GetLanguage            },
-        { "getWifiStrength",    GetWifiStrength        },
-        { "hasWifiConnection",    HasWifiConnection    },
-        { "getRegion",            GetRegion            },
-        { "getUsername",        GetUsername            },
+        { "getPowerInfo",      GetPowerInfo      },
+        { "getProcessorCount", GetProcessorCount },
+        { "getOS",             GetOS             },
+        { "getLanguage",       GetLanguage       },
+        { "getWifiStrength",   GetWifiStrength   },
+        { "hasWifiConnection", HasWifiConnection },
+        { "getRegion",         GetRegion         },
+        { "getUsername",       GetUsername       },
         { 0, 0 },
     };
 

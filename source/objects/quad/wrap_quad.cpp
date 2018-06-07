@@ -65,10 +65,10 @@ int quadGC(lua_State * L)
 int initQuadClass(lua_State * L)
 {
     luaL_Reg reg[] = {
-        {"new",            quadNew            },
-        {"setViewport",    quadSetViewport    },
-        {"__gc",        quadGC            },
-        {"__tostring",    quadToString    },
+        { "__gc",        quadGC          },
+        { "__tostring",  quadToString    },
+        { "new",         quadNew         },
+        { "setViewport", quadSetViewport },
         { 0, 0 },
     };
 

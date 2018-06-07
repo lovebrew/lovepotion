@@ -111,14 +111,14 @@ int initSourceClass(lua_State *L)
 {
     luaL_Reg reg[] = 
     {
-        { "new",                sourceNew        },
-        { "play",                sourcePlay        },
-        { "isPlaying",            sourceIsPlaying    },
-        { "isLooping",            sourceIsLooping    },
-        { "setLooping",            sourceSetLooping},
-        { "stop",                sourceStop        },
-        { "__gc",                sourceGC        },
-        { "__tostring",            sourceToString    },
+        { "__gc",       sourceGC         },
+        { "__tostring", sourceToString   },
+        { "isLooping",  sourceIsLooping  },
+        { "isPlaying",  sourceIsPlaying  },
+        { "new",        sourceNew        },
+        { "play",       sourcePlay       },
+        { "setLooping", sourceSetLooping },
+        { "stop",       sourceStop       },
         { 0, 0 },
     };
 

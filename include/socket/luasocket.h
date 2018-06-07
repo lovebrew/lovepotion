@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Socket
+namespace LuaSocket
 {
     int Preload(lua_State * L);
 

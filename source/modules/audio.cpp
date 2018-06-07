@@ -117,12 +117,12 @@ int Audio::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "newSource",    sourceNew    },
-        { "play",        Play        },
-        { "stop",        Stop        },
-        { "pause",        Pause        },
-        { "resume",        Resume        },
-        { "setVolume",    SetVolume    },
+        { "newSource",  sourceNew },
+        { "pause",      Pause     },
+        { "play",       Play      },
+        { "resume",     Resume    },
+        { "setVolume",  SetVolume },
+        { "stop",       Stop      },
         { 0, 0 },
     };
 

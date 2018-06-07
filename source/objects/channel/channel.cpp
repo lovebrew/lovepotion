@@ -9,7 +9,7 @@ Channel::Channel(const string & name)
     this->name = name;
 }
 
-void Channel::Push(Variant variant)
+void Channel::Push(const Variant & variant)
 {
     this->content.push(variant);
 }

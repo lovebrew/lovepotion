@@ -31,7 +31,8 @@ extern "C"
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
 
-#include "socket/socket.h"
+#include "socket/luasocket.h"
+
 #include "modules/love.h"
 #include "modules/joystick.h"
 
@@ -61,7 +62,7 @@ int main(int argc, char * argv[])
 
     luaL_openlibs(L);
 
-    love_preload(L, Socket::Initialize, "socket");
+    love_preload(L, LuaSocket::Initialize, "socket");
 
     luaL_requiref(L, "love", Love::Initialize, 1);
 
@@ -83,7 +84,7 @@ int main(int argc, char * argv[])
             break;
     }
 
-    Socket::Close();
+    LuaSocket::Close();
 
     Love::Exit(L);
 

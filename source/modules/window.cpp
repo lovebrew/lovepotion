@@ -56,7 +56,7 @@ int Window::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "setMode",    SetMode    },
+        { "setMode", SetMode },
         { 0, 0 }
     };
 

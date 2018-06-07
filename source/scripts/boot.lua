@@ -146,7 +146,9 @@ function love.createhandlers()
             end
         end,
         quit = function ()
-            return
+            if love.quit then
+                return love.quit()
+            end
         end,
         threaderror = function (t, err)
             if love.threaderror then return love.threaderror(t, err) end

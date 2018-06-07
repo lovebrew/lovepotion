@@ -86,13 +86,13 @@ int imageGC(lua_State * L)
 int initImageClass(lua_State * L) 
 {
     luaL_Reg reg[] = {
-        {"new",                imageNew            },
-        {"getWidth",        imageGetWidth        },
-        {"getHeight",        imageGetHeight        },
-        {"getDimensions",    imageGetDimensions    },
-        //{"setFilter",        imageSetFilter        },
-        {"__gc",            imageGC                },
-        {"__tostring",        imageToString        },
+        { "__gc",          imageGC            },
+        { "__tostring",    imageToString      },
+        { "getDimensions", imageGetDimensions },
+        { "getHeight",     imageGetHeight     },
+        { "getWidth",      imageGetWidth      },
+        { "new",           imageNew           },
+        //{ "setFilter",     imageSetFilter     },
         { 0, 0 },
     };
 

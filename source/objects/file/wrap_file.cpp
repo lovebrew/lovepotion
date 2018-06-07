@@ -149,17 +149,17 @@ int initFileClass(lua_State *L) {
 
     luaL_Reg reg[] = 
     {
-        {"new",            fileNew        },
-        {"open",        fileOpen    },
-        {"read",        fileRead    },
-        {"write",        fileWrite    },
-        {"flush",        fileFlush    },
-        {"close",        fileClose    },
-        {"getSize",        fileGetSize    },
-        {"isOpen",        fileIsOpen    },
-        {"getMode",        fileGetMode    },
-        {"__gc",        fileGC        },
-        {"__tostring",    fileToString},
+        { "__gc",       fileGC       },
+        { "__tostring", fileToString },
+        { "close",      fileClose    },
+        { "flush",      fileFlush    },
+        { "getMode",    fileGetMode  },
+        { "getSize",    fileGetSize  },
+        { "isOpen",     fileIsOpen   },
+        { "new",        fileNew      },
+        { "open",       fileOpen     },
+        { "read",       fileRead     },
+        { "write",      fileWrite    },
         { 0, 0 }
     };
 

@@ -152,17 +152,17 @@ int initGamepadClass(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        {"new",                        gamepadNew                    },
-        {"getID",                    gamepadGetID                },
-        {"getName",                    gamepadGetName                },
-        {"getAxis",                    gamepadGetAxis                },
-        {"setVibration",            gamepadSetVibration            },
-        {"isVibrationSupported",    gamepadIsVibrationSupported    },
-        {"isGamepadDown",            gamepadIsGamepadDown        },
-        {"setLayout",                gamepadSetLayout            },
-        {"isDown",                    gamepadIsDown                },
-        {"__gc",                    gamepadGC                    },
-        {"__tostring",                gamepadToString                },
+        { "__gc",                 gamepadGC                   },
+        { "__tostring",           gamepadToString             },
+        { "getAxis",              gamepadGetAxis              },
+        { "getID",                gamepadGetID                },
+        { "getName",              gamepadGetName              },
+        { "isDown",               gamepadIsDown               },
+        { "isGamepadDown",        gamepadIsGamepadDown        },
+        { "isVibrationSupported", gamepadIsVibrationSupported },
+        { "new",                  gamepadNew                  },
+        { "setLayout",            gamepadSetLayout            },
+        { "setVibration",         gamepadSetVibration         },
         { 0, 0 },
     };
 

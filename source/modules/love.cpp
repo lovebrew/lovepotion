@@ -30,17 +30,17 @@
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-    { "audio",        Audio::Register,        Audio::Exit            },
-    { "event",        Event::Register,        NULL                },
-    { "filesystem",    Filesystem::Register,    Filesystem::Exit    },
-    { "graphics",    Graphics::Register,        NULL                },
-    { "joystick",    Joystick::Register,        NULL                },
-    { "math",        Math::Register,            NULL                },
-    { "system",        System::Register,        System::Exit        },
-    { "timer",        Timer::Register,        NULL                },
-    { "touch",        Touch::Register,        NULL                },
-    { "thread",        LoveThread::Register,    LoveThread::Exit    },
-    { "window",        Window::Register,        NULL                },
+    { "audio",      Audio::Register,      Audio::Exit      },
+    { "event",      Event::Register,      NULL             },
+    { "filesystem", Filesystem::Register, Filesystem::Exit },
+    { "graphics",   Graphics::Register,   NULL             },
+    { "joystick",   Joystick::Register,   NULL             },
+    { "math",       Math::Register,       NULL             },
+    { "system",     System::Register,     System::Exit     },
+    { "thread",     LoveThread::Register, LoveThread::Exit },
+    { "timer",      Timer::Register,      NULL             },
+    { "touch",      Touch::Register,      NULL             },
+    { "window",     Window::Register,     NULL             },
     { 0 }
 };
 
@@ -69,11 +69,11 @@ int Love::Initialize(lua_State * L)
 
     luaL_Reg reg[] =
     {
-        { "scan",            Event::PollEvent},
-        { "_nogame",        NoGame            },
-        { "run",            Run                },
-        { "getVersion",        GetVersion        },
-        { "enableConsole",    EnableConsole    },
+        { "_nogame",       NoGame           },
+        { "enableConsole", EnableConsole    },
+        { "getVersion",    GetVersion       },
+        { "run",           Run              },
+        { "scan",          Event::PollEvent },
         { 0, 0 }
     };
 
@@ -89,7 +89,7 @@ int Love::Initialize(lua_State * L)
     if (!lua_istable(L, -1))
     {
         lua_newtable(L);
-         lua_replace(L, -2);
+        lua_replace(L, -2);
 
         lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
     }

@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "socket/common.h"
 
+#include "socket/objects/socket.h"
+
 #include "socket/objects/udp/udp.h"
 #include "socket/objects/udp/wrap_udp.h"
 
@@ -140,22 +142,42 @@ int udpClose(lua_State * L)
 
 int udpGC(lua_State * L)
 {
-    return 0;
+    int ret = udpClose(L);
+
+    return ret;
+}
+
+int udpToString(lua_State * L)
+{
+    UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    char * buff = " {unconnected}";
+    if (self->IsConnected())
+        buff = " {connected}";
+
+    char * data = self->ToString(strcat(CLASS_NAME, buff));
+
+    lua_pushstring(L, data);
+
+    free(data);
+
+    return 1;
 }
 
 int initUDPClass(lua_State * L) 
 {
     luaL_Reg reg[] = 
     {
-        {"new",                        udpNew            },
-        {"send",                    udpSend            },
-        {"setpeername",                udpSetPeerName    },
-        {"setsockname",                udpSetSockName    },
-        {"receivefrom",                udpReceiveFrom    },
-        {"receive",                    udpReceive        },
-        {"sendto",                    udpSendTo        },
-        {"close",                    udpClose        },
-        {"__gc",                    udpGC            },
+        { "__gc",        udpGC          },
+        { "__tostring",  udpToString    },
+        { "close",       udpClose       },
+        { "new",         udpNew         },
+        { "receive",     udpReceive     },
+        { "receivefrom", udpReceiveFrom },
+        { "send",        udpSend        },
+        { "sendto",      udpSendTo      },
+        { "setpeername", udpSetPeerName },
+        { "setsockname", udpSetSockName },
         { 0, 0 },
     };
 

@@ -35,9 +35,7 @@ int channelPush(lua_State * L)
 {
     Channel * self = (Channel *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    int type = lua_type(L, 2);
-
-    self->Push(Variant::FromLua(L, 2, type));
+    self->Push(Variant::FromLua(L, 2));
 
     return 0;
 }
@@ -67,10 +65,10 @@ int channelToString(lua_State * L)
 int initChannelClass(lua_State * L)
 {
     luaL_Reg reg[] = {
-        {"new",                channelNew        },
-        {"push",            channelPush        },
-        {"pop",                channelPop        },
-        {"__tostring",        channelToString    },
+        { "__tostring", channelToString },
+        { "new",        channelNew      },
+        { "pop",        channelPop      },
+        { "push",       channelPush     },
         { 0, 0 },
     };
 

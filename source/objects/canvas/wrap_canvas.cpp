@@ -21,6 +21,15 @@ int canvasNew(lua_State * L)
     return 1;
 }
 
+int canvasGC(lua_State * L)
+{
+    Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    self->~Canvas();
+
+    return 0;
+}
+
 int canvasToString(lua_State * L)
 {
     Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -34,21 +43,13 @@ int canvasToString(lua_State * L)
     return 1;
 }
 
-int canvasGC(lua_State * L)
-{
-    Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
-
-    self->~Canvas();
-
-    return 0;
-}
-
 int initCanvasClass(lua_State * L) 
 {
     luaL_Reg reg[] = 
     {
-        {"new",            canvasNew    },
-        {"__gc",        canvasGC    },
+        { "__gc",       canvasGC       },
+        { "__tostring", canvasToString },
+        { "new",        canvasNew      },
         { 0, 0 },
     };
 

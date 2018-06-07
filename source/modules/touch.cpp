@@ -62,9 +62,9 @@ int Touch::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "getPosition",    GetPosition    },
-        { "getTouches",        GetTouches    },
-        { "getPressure",    GetPressure    },
+        { "getPosition", GetPosition },
+        { "getPressure", GetPressure },
+        { "getTouches",  GetTouches  },
         { 0, 0 }
     };
 

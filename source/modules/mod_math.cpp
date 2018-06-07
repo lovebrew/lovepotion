@@ -67,9 +67,9 @@ int Math::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "setRandomSeed",    SetRandomSeed    },
-        { "random",            Random            },
-        { "getRandomSeed",    GetRandomSeed    },
+        { "getRandomSeed", GetRandomSeed },
+        { "random",        Random        },
+        { "setRandomSeed", SetRandomSeed },
         { 0, 0 }
     };
 

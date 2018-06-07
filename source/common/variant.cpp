@@ -15,6 +15,8 @@ Variant::Variant(double number)
 {
     this->tag = VARIANTS::NUMBER;
     this->data_number = number;
+
+    printf("%.1f\n", number);
 }
 
 Variant::Variant(void * data)
@@ -27,6 +29,8 @@ Variant::Variant(const std::string & sstring)
 {
     this->tag = VARIANTS::STRING;
     this->data_string = strdup(sstring.c_str());
+
+    printf("%s\n", sstring.c_str());
 }
 
 Variant::Variant(bool boolean)
@@ -35,30 +39,39 @@ Variant::Variant(bool boolean)
     this->data_boolean = boolean;
 }
 
-Variant Variant::FromLua(lua_State * L, int index, int type)
+Variant Variant::FromLua(lua_State * L, int index)
 {
-    Variant returnValue;
+    if (index < 0)
+        index += lua_gettop(L) + 1;
 
-    switch(type)
+    int type = lua_type(L, index);
+
+    printf("Type %d at Index %d\n", type, index);
+
+    switch (type)
     {
         case LUA_TNUMBER:
-            returnValue = Variant(lua_tonumber(L, index));
+        {
+            double value = lua_tonumber(L, index);
+            return Variant(value);
+        }
         case LUA_TSTRING:
-            returnValue = Variant(lua_tostring(L, index));
+        {
+            string value = lua_tostring(L, index);
+            return Variant(value);
+        }
         default:
-            break;
+        {
+            return Variant();
+        }
     }
-    return returnValue;
+
+    return Variant();
 }
 
 void Variant::ToLua(lua_State * L)
 {
-    /*
-    ** TODO
-    ** Make Lua actually push this stuff
-    ** Right now it's dumb printf's :p
-    */
-    switch(this->tag)
+    switch (this->tag)
     {
         case VARIANTS::NUMBER:
             lua_pushnumber(L, this->data_number);

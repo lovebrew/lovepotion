@@ -328,20 +328,20 @@ int Filesystem::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "newFile",                fileNew             },
-        { "read",                    Read             },
-        { "write",                    Write             },
-        { "isFile",                    IsFile             },
-        { "isDirectory",            IsDirectory         },
-        { "getSize",                GetSize             },
-        { "getInfo",                GetInfo             },
-        { "load",                    Load             },
-        { "createDirectory",        CreateDirectory     },
-        { "getSaveDirectory",        GetSaveDirectory },
-        { "setIdentity",            SetIdentity         },
-        { "getIdentity",            GetIdentity         },
-        { "getDirectoryItems",        GetDirectoryItems},
-        { "remove",                    Remove             },
+        { "createDirectory",        CreateDirectory   },
+        { "getDirectoryItems",      GetDirectoryItems },
+        { "getIdentity",            GetIdentity       },
+        { "getInfo",                GetInfo           },
+        { "getSaveDirectory",       GetSaveDirectory  },
+        { "getSize",                GetSize           },
+        { "isDirectory",            IsDirectory       },
+        { "isFile",                 IsFile            },
+        { "load",                   Load              },
+        { "newFile",                fileNew           },
+        { "read",                   Read              },
+        { "remove",                 Remove            },
+        { "setIdentity",            SetIdentity       },
+        { "write",                  Write             },
         { 0, 0 }
     };
 

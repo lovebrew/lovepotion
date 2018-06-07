@@ -36,6 +36,8 @@ BUILD		:=    build
 EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
+LUASOCKET	:= $(sort $(dir $(wildcard source/socket/objects/*/*)))
+
 NOGAMEDIR	:= source/scripts/nogame
 
 SOURCES			:=	source \
@@ -43,7 +45,8 @@ SOURCES			:=	source \
 				source/common \
 				source/modules \
 				source/socket \
-				source/socket/objects/udp \
+				source/socket/objects \
+				$(LUASOCKET) \
 				$(SRC_OBJS) \
 				$(EXT_LIBS)
 
@@ -53,7 +56,8 @@ INCLUDES	:=	include \
 				include/common \
 				include/modules \
 				include/socket \
-				include/socket/objects/udp \
+				include/socket/objects \
+				$(LUASOCKET) \
 				$(INC_OBJS) \
 				$(EXT_LIBS)
 

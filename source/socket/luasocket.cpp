@@ -1,7 +1,6 @@
 #include "common/runtime.h"
-#include "socket/common.h"
 
-#include "socket/socket.h"
+#include "socket/objects/socket.h"
 #include "socket/objects/udp/wrap_udp.h"
 
 /*
@@ -11,7 +10,7 @@
 ** for more details on using LuaSocket
 */
 
-int Socket::Initialize(lua_State * L)
+int LuaSocket::Initialize(lua_State * L)
 {
     Result ret = socketInitializeDefault();
 
@@ -32,8 +31,8 @@ int Socket::Initialize(lua_State * L)
 
     luaL_Reg reg[] = 
     {
-        {"udp", udpNew},
-        {0, 0},
+        { "udp", udpNew },
+        { 0, 0 },
     };
 
     luaL_newlib(L, reg);
@@ -41,7 +40,7 @@ int Socket::Initialize(lua_State * L)
     return 1;
 }
 
-void Socket::Close()
+void LuaSocket::Close()
 {
     socketExit();
 }

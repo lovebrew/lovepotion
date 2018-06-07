@@ -27,7 +27,7 @@ void transformDrawable(double * originalX, double * originalY) // rotate, scale,
 {
     if (stack.empty())
         return;
-        
+
     StackMatrix & matrix = stack.back();
 
     double newLeft = *originalX;
@@ -167,7 +167,7 @@ int Graphics::Clear(lua_State * L)
 int Graphics::Present(lua_State * L)
 {
     SDL_RenderPresent(Window::GetRenderer());
-    
+
     return 0;
 }
 
@@ -175,7 +175,7 @@ int Graphics::Present(lua_State * L)
 int Graphics::Draw(lua_State * L)
 {
     Drawable * drawable = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
-    
+
     /*
     ** Check if it is NULL or not
     ** If it is, check if it's a canvas
@@ -184,6 +184,9 @@ int Graphics::Draw(lua_State * L)
     if (drawable == NULL)
     {
         drawable = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
+
+        if (drawable == NULL)
+            drawable = (Text *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_TEXT);
 
         if (drawable == NULL)
             return luaL_error(L, "Drawable expected, got %s", lua_tostring(L, 1));
@@ -205,7 +208,7 @@ int Graphics::Draw(lua_State * L)
 
     double scalarX = luaL_optnumber(L, start + 3, 1);
     double scalarY = luaL_optnumber(L, start + 4, 1);
-    
+
     double offsetX = luaL_optnumber(L, start + 5, 0);
     double offsetY = luaL_optnumber(L, start + 6, 0);
 
@@ -234,10 +237,9 @@ int Graphics::SetDefaultFilter(lua_State * L)
 //love.graphics.getFont
 int Graphics::GetFont(lua_State * L)
 {
-    /*lua_pushlightuserdata(L, currentFont);
-    lua_pushvalue(L, -1);
-    */
-    return 0;
+	love_push_userdata(L, currentFont);
+
+    return 1;
 }
 
 //love.graphics.setFont
@@ -265,10 +267,10 @@ int Graphics::SetNewFont(lua_State * L)
 int Graphics::Print(lua_State * L)
 {
     const char * text = luaL_checkstring(L, 1);
-    
+
     double x = luaL_optnumber(L, 2, 0);
     double y = luaL_optnumber(L, 3, 0);
-    
+
     transformDrawable(&x, &y);
 
     if (currentFont == NULL)
@@ -311,7 +313,7 @@ int Graphics::Rectangle(lua_State * L)
     double height = luaL_checknumber(L, 5);
 
     transformDrawable(&x, &y);
-    
+
     if (mode == "fill")
         boxRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
@@ -391,7 +393,7 @@ int Graphics::Line(lua_State * L)
 
                 startx = luaL_checknumber(L, -4);
                 starty = luaL_checknumber(L, -3);
-                
+
                 endx = luaL_checknumber(L, -2);
                 endy = luaL_checknumber(L, -1);
 
@@ -405,7 +407,7 @@ int Graphics::Line(lua_State * L)
     {
         if ((argc % 4) != 0)
             return luaL_error(L, "%s", "Need at least two verticies to draw a line");
-        
+
         for (int i = 0; i < argc; i += 4)
         {
             startx = luaL_checknumber(L, i + 1);
@@ -426,7 +428,7 @@ int Graphics::Points(lua_State * L)
 {
     int args = lua_gettop(L);
     bool tableOfTables = false;
-    
+
     if (args == 1 && lua_istable(L, 1))
     {
         args = lua_objlen(L, 1);
@@ -453,7 +455,7 @@ int Graphics::Points(lua_State * L)
                 lua_rawgeti(L, 1, i + 1);
 
                 coordinates[i] = luaL_checknumber(L, -1);
-            
+
                 lua_pop(L, 1);
             }
         }
@@ -503,9 +505,9 @@ int Graphics::SetScissor(lua_State * L)
 
         if (width < 0 || height < 0)
             return luaL_error(L, "Scissor cannot have a negative width or height");
-        
+
         SDL_Rect scissor = {x, y, width, height};
-        
+
         SDL_RenderSetClipRect(Window::GetRenderer(), &scissor);
     }
 
@@ -613,38 +615,38 @@ int Graphics::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
-        { "newFont",            fontNew                },
-        { "newImage",            imageNew            },
-        { "newCanvas",            canvasNew            },
-        { "newQuad",            quadNew                },
-        { "draw",                Draw                },
-        { "print",                Print                },
-        { "setFont",            SetFont                },
-        { "rectangle",            Rectangle            },
-        { "circle",                Circle                },
-        { "points",                Points                },
-        { "arc",                Arc                    },
-        { "clear",                Clear                },
-        { "push",                Push                },
-        { "translate",            Translate            },
-        { "scale",                Scale                },
-        { "rotate",                Rotate                },
-        { "origin",                Origin                },
-        { "shear",                Shear                },
-        { "pop",                Pop                    },
-        { "present",            Present                },
-        { "setNewFont",            SetNewFont            },
-        { "setScissor",            SetScissor            },
-        { "setCanvas",            SetCanvas            },
-        { "getFont",            GetFont                },
-        { "line",                Line                },
-        { "setColor",            SetColor            },
-        { "setBackgroundColor",    SetBackgroundColor    },
-        { "getBackgroundColor",    GetBackgroundColor    },
-        { "setDefaultFilter",    SetDefaultFilter    },
-        { "getWidth",            GetWidth            },
-        { "getHeight",            GetHeight            },
-        { "getRendererInfo",    GetRendererInfo        },
+        { "arc",                Arc                },
+        { "circle",             Circle             },
+        { "clear",              Clear              },
+        { "draw",               Draw               },
+        { "getBackgroundColor", GetBackgroundColor },
+        { "getFont",            GetFont            },
+        { "getHeight",          GetHeight          },
+        { "getRendererInfo",    GetRendererInfo    },
+        { "getWidth",           GetWidth           },
+        { "line",               Line               },
+        { "newCanvas",          canvasNew          },
+        { "newFont",            fontNew            },
+        { "newImage",           imageNew           },
+        { "newQuad",            quadNew            },
+        { "origin",             Origin             },
+        { "points",             Points             },
+        { "pop",                Pop                },
+        { "present",            Present            },
+        { "print",              Print              },
+        { "push",               Push               },
+        { "rectangle",          Rectangle          },
+        { "rotate",             Rotate             },
+        { "scale",              Scale              },
+        { "setBackgroundColor", SetBackgroundColor },
+        { "setCanvas",          SetCanvas          },
+        { "setColor",           SetColor           },
+        { "setDefaultFilter",   SetDefaultFilter   },
+        { "setFont",            SetFont            },
+        { "setNewFont",         SetNewFont         },
+        { "setScissor",         SetScissor         },
+        { "shear",              Shear              },
+        { "translate",          Translate          },
         { 0, 0 }
     };
 

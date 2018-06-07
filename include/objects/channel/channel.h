@@ -6,7 +6,7 @@ class Channel : public Object
         Channel() {};
         Channel(const std::string & name);
 
-        void Push(Variant variant);
+        void Push(const Variant & variant);
         void Pop(lua_State * L);
 
     private:

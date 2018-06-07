@@ -111,7 +111,7 @@ int Event::Register(lua_State * L)
     luaL_Reg reg[] = 
     {
         { "quit", Quit },
-        { 0, 0}
+        { 0, 0 }
     };
 
     luaL_newlib(L, reg);

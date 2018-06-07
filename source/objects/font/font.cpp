@@ -26,7 +26,7 @@ Font::Font(int size)
     PlFontData fonts[PlSharedFontType_Total];
     size_t total_fonts = 0;
 
-    setGetSystemLanguage(&languageCode);
+    //setGetSystemLanguage(&languageCode);
     plGetSharedFont(languageCode, fonts, PlSharedFontType_Total, &total_fonts);
     plGetSharedFontByType(&fontData, PlSharedFontType_Standard);
 

@@ -99,11 +99,11 @@ int Timer::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "getFPS",            GetFPS            },
-        { "getDelta",        GetDelta        },
-        { "getTime",        GetTime            },
-        { "sleep",            Sleep            },
-        { "step",            Step            },
+        { "getDelta", GetDelta },
+        { "getFPS",   GetFPS   },
+        { "getTime",  GetTime  },
+        { "sleep",    Sleep    },
+        { "step",     Step     },
         { 0, 0 }
     };
 

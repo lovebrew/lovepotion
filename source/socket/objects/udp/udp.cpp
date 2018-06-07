@@ -1,107 +1,7 @@
 #include "common/runtime.h"
-#include "socket/common.h"
 
+#include "socket/objects/socket.h"
 #include "socket/objects/udp/udp.h"
-
-UDP::UDP()
-{
-    this->sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-
-    if (this->sockfd < 0)
-        Love::RaiseError("Failed to create UDP socket. %s.", strerror(errno));
-    
-    memset(&this->address, 0, sizeof(this->address));
-
-    this->address.sin_family = AF_INET;
-
-    int flags, blocking;
-    flags = fcntl(this->sockfd, F_GETFL, 0);
-
-    if (flags < 0)
-        Love::RaiseError("Failed to get flags for socket.");
-
-    blocking = fcntl(this->sockfd, F_SETFL, flags | O_NONBLOCK);
-    if (blocking != 0)
-        Love::RaiseError("Failed to set non-blocking on socket.");
-
-    int bufferSize = SOCKET_BUFFERSIZE; //8192
-
-    //Set socket to use our buffer size for send and receive
-    setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &bufferSize, sizeof(bufferSize));
-    setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(bufferSize));
-}
-
-void UDP::SetSocketData(const string & destination, int port, bool isServer)
-{
-    bool allInterfaces = false;
-    bool localHost = false;
-
-    if (!isServer)
-    {
-        localHost = (destination == "localhost");
-        
-        if (localHost)
-        {
-            this->ip = "127.0.0.1";
-            this->address.sin_addr.s_addr = INADDR_LOOPBACK;
-        }
-        else
-        {
-            this->ip = destination;
-            this->address.sin_addr.s_addr = inet_addr(this->ip.c_str());
-        }    
-    }
-    else
-    {
-        allInterfaces = (destination == "*");
-        
-        if (allInterfaces) 
-        {
-            this->ip = "0.0.0.0";
-            this->address.sin_addr.s_addr = INADDR_ANY;
-        }
-        else 
-        {
-            this->ip = destination;
-            this->address.sin_addr.s_addr = inet_addr(this->ip.c_str());
-        }
-    }
-
-    this->port = port;
-
-    this->address.sin_port = htons(port);
-}
-
-int UDP::SetPeerName(const string & ip, int port)
-{
-    this->SetSocketData(ip, port, false);
-
-    int status = connect(this->sockfd, (const struct sockaddr *)&this->address, sizeof(this->address));
-
-    if (status < 0)
-        return -1;
-
-    return 1;
-}
-
-int UDP::SetSockName(const string & ip, int port)
-{
-    this->SetSocketData(ip, port, true);
-
-    int status = bind(this->sockfd, (const struct sockaddr *)&this->address, sizeof(this->address));
-
-    if (status < 0)
-        return -1;
-
-    return 1;
-}
-
-int UDP::Send(const char * datagram, size_t length)
-{
-    int sent = send(this->sockfd, datagram, length, 0);
-    
-    return sent;
-}
 
 int UDP::SendTo(const char * datagram, size_t len, const char * destination, int port)
 {
@@ -135,18 +35,6 @@ int UDP::SendTo(const char * datagram, size_t len, const char * destination, int
     return sent;
 }
 
-int UDP::Receive(char * outBuffer)
-{
-    int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE, 0);
-
-    if (length <= 0)
-        return 0;
-
-    outBuffer[length] = '\0';
-
-    return length;
-}
-
 int UDP::ReceiveFrom(char * outBuffer, char * outAddress, int * outPort)
 {
     struct sockaddr_in fromAddress = {0};
@@ -165,7 +53,7 @@ int UDP::ReceiveFrom(char * outBuffer, char * outAddress, int * outPort)
     return length;
 }
 
-int UDP::SetOption(const string & option, bool enable)
+int UDP::SetOption(const string & option, int enable)
 {
     int optionValue = 0;
 
@@ -175,14 +63,7 @@ int UDP::SetOption(const string & option, bool enable)
         optionValue = SO_DONTROUTE;
 
     if (optionValue != 0)
-        setsockopt(this->sockfd, SOL_SOCKET, optionValue, (char *)&enable, sizeof(bool));
+        setsockopt(this->sockfd, SOL_SOCKET, optionValue, (char *)&enable, sizeof(enable));
 
     return 0;
-}
-
-int UDP::Close()
-{
-    int success = shutdown(this->sockfd, SHUT_RDWR);
-
-    return success;
 }
