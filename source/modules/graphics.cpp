@@ -16,6 +16,9 @@
 #include "objects/canvas/canvas.h"
 #include "objects/canvas/wrap_canvas.h"
 
+#include "objects/text/text.h"
+#include "objects/text/wrap_text.h"
+
 bool isInitialized = false;
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
 SDL_Color drawColor = { 255, 255, 255, 255 };
