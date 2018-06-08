@@ -8,7 +8,7 @@ class UDP : public Socket
         int SetPeerName(const std::string & ip, int port) { Socket::Connect(ip, port); };
         int SetSockName(const std::string & ip, int port) { Socket::Bind(ip, port); };
 
-        int ReceiveFrom(char * outBuffer, char * outAddress, int * outPort);
+        int ReceiveFrom(Datagram & datagram);
         
         int SendTo(const char * datagram, size_t length, const char * destination, int port);
 

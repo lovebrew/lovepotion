@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 
+#include "socket/common.h"
+
 typedef struct
 {
     double ox;
@@ -32,6 +34,13 @@ typedef enum
 {
     OBJECTS
 } REGISTRY;
+
+typedef struct
+{
+    char buffer[SOCKET_BUFFERSIZE];
+    char * ip;
+    int * port;
+} Datagram;
 
 extern std::vector<const char *> FILE_MODES;
 

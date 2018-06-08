@@ -93,11 +93,9 @@ int udpReceiveFrom(lua_State * L)
 {
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char buffer[SOCKET_BUFFERSIZE+1];
-    char address[0x41];    
-    int port;
+    Datagram datagram;
 
-    int length = self->ReceiveFrom(buffer, address, &port);
+    int length = self->ReceiveFrom(datagram);
 
     if (length == 0)
     {
@@ -105,9 +103,9 @@ int udpReceiveFrom(lua_State * L)
         return 1;
     }
     
-    lua_pushstring(L, buffer);
-    lua_pushstring(L, address);
-    lua_pushinteger(L, port);
+    lua_pushstring(L, datagram.buffer);
+    lua_pushstring(L, datagram.ip);
+    lua_pushinteger(L, *datagram.port);
 
     return 3;
 }

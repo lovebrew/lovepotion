@@ -3,7 +3,7 @@
 namespace Love
 {
     #define LOVE_VERSION "0.11.0"
-    #define LOVE_POTION_VERSION "1.0.1"
+    #define LOVE_POTION_VERSION "1.1.0"
 
     static const int VERSION_MAJOR = 11;
     static const int VERSION_MINOR = 1;
