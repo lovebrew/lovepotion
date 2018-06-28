@@ -1,4 +1,4 @@
-# Love Potion
+# Löve Potion
 Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo 3DS.
 
 Please view the [wiki](https://github.com/TurtleP/LovePotion/wiki) to get started!
