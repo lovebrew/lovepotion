@@ -34,7 +34,7 @@ int canvasToString(lua_State * L)
 {
     Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

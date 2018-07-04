@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "objects/gamepad/gamepad.h"
 
-Gamepad::Gamepad(int id)
+Gamepad::Gamepad(int id) : Object("Joystick")
 {
     this->id = id;
 

@@ -14,17 +14,34 @@ int channelNew(lua_State * L)
     if (!lua_isnoneornil(L, 1))
         name = luaL_checkstring(L, 1);
 
+    int registryIndex = 1;
     void * raw_self = luaobj_newudata(L, sizeof(Channel));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
     Channel * self;
     if (!name.empty())
+    {
         self = new (raw_self) Channel(name);
+        registryIndex = 2;
+    }
     else
         self = new (raw_self) Channel();
 
-    channels[name] = self;
+    channels.insert(std::make_pair(name, self));
+
+    love_register(L, registryIndex, self);
+
+    return 1;
+}
+
+int channelNew(lua_State * L, Channel * existing)
+{
+    void * raw_self = luaobj_newudata(L, sizeof(Channel));
+
+    luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+    Channel * self = new (raw_self) Channel();
 
     love_register(L, 2, self);
 
@@ -44,7 +61,12 @@ int channelPop(lua_State * L)
 {
     Channel * self = (Channel *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    self->Pop(L);
+    Variant content;
+    
+    if (self->Pop(&content))
+        content.ToLua(L);
+    else
+        lua_pushnil(L);
 
     return 1;
 }
@@ -53,7 +75,7 @@ int channelToString(lua_State * L)
 {
     Channel * self = (Channel *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

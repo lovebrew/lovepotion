@@ -1,12 +1,14 @@
 #include "common/runtime.h"
-
 #include "objects/channel/channel.h"
 
-#include <stdarg.h>
-
-Channel::Channel(const string & name)
+Channel::Channel(const string & name) : Object("Channel")
 {
     this->name = name;
+}
+
+Channel::Channel() : Object("Channel")
+{
+    this->name = "";
 }
 
 void Channel::Push(const Variant & variant)
@@ -14,16 +16,13 @@ void Channel::Push(const Variant & variant)
     this->content.push(variant);
 }
 
-void Channel::Pop(lua_State * L)
+bool Channel::Pop(Variant * variant)
 {
-    //default is nil
-    Variant content;
-
-    if (!this->content.empty())
-        content = this->content.front();
+    if (this->content.empty())
+        return false;
     
-    content.ToLua(L);
+    *variant = this->content.front();
+    this->content.pop();
 
-    if (!this->content.empty())
-        this->content.pop();
+    return true;
 }

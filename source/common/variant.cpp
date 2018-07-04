@@ -16,7 +16,7 @@ Variant::Variant(double number)
     this->tag = VARIANTS::NUMBER;
     this->data_number = number;
 
-    printf("%.1f\n", number);
+    printf("Variant: %.1f\n", number);
 }
 
 Variant::Variant(void * data)
@@ -30,7 +30,7 @@ Variant::Variant(const std::string & sstring)
     this->tag = VARIANTS::STRING;
     this->data_string = strdup(sstring.c_str());
 
-    printf("%s\n", sstring.c_str());
+    printf("Variant: %s\n", sstring.c_str());
 }
 
 Variant::Variant(bool boolean)
@@ -77,6 +77,7 @@ void Variant::ToLua(lua_State * L)
             lua_pushnumber(L, this->data_number);
             break;
         case VARIANTS::STRING:
+            printf("%s\n", this->data_string);
             lua_pushstring(L, this->data_string);
             break;
         case VARIANTS::BOOLEAN:

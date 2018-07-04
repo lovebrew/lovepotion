@@ -134,7 +134,7 @@ int gamepadToString(lua_State * L)
 {
     Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

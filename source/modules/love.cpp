@@ -7,6 +7,8 @@
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
 
+#include "objects/channel/channel.h"
+
 #include "modules/audio.h"
 #include "modules/event.h"
 #include "modules/filesystem.h"
@@ -92,6 +94,8 @@ int Love::Initialize(lua_State * L)
         lua_replace(L, -2);
 
         lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+
+        printf("Created _loveobjects!\n");
     }
 
     loveState = L;

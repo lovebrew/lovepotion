@@ -45,6 +45,9 @@ void love_register(lua_State * L, int index, void * object)
     lua_settable(L, -3);                //set the taaable (╯°□°）╯︵ ┻━┻
 
     lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+
+    //lua_pop(L, 1);
+    printf("Registered %p to _loveobjects!\n", object);
 }
 
 void love_push_userdata(lua_State * L, void * object)
@@ -56,6 +59,58 @@ void love_push_userdata(lua_State * L, void * object)
     lua_pushlightuserdata(L, object);
     lua_gettable(L, -2);
     lua_remove(L, -2);
+}
+
+bool love_is_registered(lua_State * L, void * object)
+{
+    bool valid = true;
+
+    if (!object)
+        return false;
+
+    love_get_registry(L, OBJECTS);
+    lua_pushlightuserdata(L, object);
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+
+    if (lua_isnil(L, 2))
+        valid = false;
+
+    lua_pop(L, 1);
+
+    return valid;
+}
+
+FILE * logFile = fopen("sdmc:/stackdump.txt", "w");
+void stack_dump(lua_State * L) {
+    int i;
+    int top = lua_gettop(L);
+
+    for (i = 1; i <= top; i++) /* repeat for each level */
+    {
+        int t = lua_type(L, i);
+        
+        switch (t)
+        {
+            case LUA_TSTRING:  /* strings */
+                fprintf(logFile, "`%s'", lua_tostring(L, i));
+                break;
+            case LUA_TBOOLEAN:  /* booleans */
+                fprintf(logFile, lua_toboolean(L, i) ? "true" : "false");
+                break;
+            case LUA_TNUMBER:  /* numbers */
+                fprintf(logFile, "%g", lua_tonumber(L, i));
+                break;
+            case LUA_TUSERDATA:
+                fprintf(logFile, "%p", lua_touserdata(L, i));
+                break;
+            default:  /* other values */
+                fprintf(logFile, "%s", lua_typename(L, t));
+                break;
+        }
+        fprintf(logFile, "%s", "  ");  /* put a separator */
+    }
+    fprintf(logFile, "%s", "\n");  /* end the listing */
 }
 
 int love_get_registry(lua_State * L, REGISTRY registry)
@@ -102,21 +157,21 @@ double clamp(double low, double value, double high)
 
 std::map<int, std::string> LANGUAGES =
 {
-    {SetLanguage_JA,    "Japanese"                },
-    {SetLanguage_ENUS,    "American English"        },
-    {SetLanguage_FR,    "French"                },
-    {SetLanguage_DE,    "German"                },
-    {SetLanguage_IT,    "Italian"                },
-    {SetLanguage_ES,    "Spanish"                },
-    {SetLanguage_ZHCN,    "Chinese"                },
-    {SetLanguage_KO,    "Korean"                },
-    {SetLanguage_NL,    "Dutch"                    },
-    {SetLanguage_PT,    "Portuguese"            },
-    {SetLanguage_RU,    "Russian"                },
-    {SetLanguage_ZHTW,    "Taiwanese"                },
-    {SetLanguage_ENGB,    "British English"        },
-    {SetLanguage_FRCA,    "Canadian French"        },
-    {SetLanguage_ES419, "Latin American Spanish"}
+    {SetLanguage_JA,    "Japanese"               },   
+    {SetLanguage_ENUS,  "American English"       }, 
+    {SetLanguage_FR,    "French"                 },     
+    {SetLanguage_DE,    "German"                 },     
+    {SetLanguage_IT,    "Italian"                },    
+    {SetLanguage_ES,    "Spanish"                },    
+    {SetLanguage_ZHCN,  "Chinese"                }, 
+    {SetLanguage_KO,    "Korean"                 },     
+    {SetLanguage_NL,    "Dutch"                  },  
+    {SetLanguage_PT,    "Portuguese"             },     
+    {SetLanguage_RU,    "Russian"                },    
+    {SetLanguage_ZHTW,  "Taiwanese"              },
+    {SetLanguage_ENGB,  "British English"        },  
+    {SetLanguage_FRCA,  "Canadian French"        },  
+    {SetLanguage_ES419, "Latin American Spanish" }      
 };
 
 std::vector<std::string> REGIONS =

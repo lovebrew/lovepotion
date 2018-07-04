@@ -3,6 +3,10 @@
 class Object
 {
     public:
-        Object() {};
-        char * ToString(const char * type);
+        Object() { type = "Object"; };
+        Object(char * name) { type = name; };
+        char * ToString();
+    
+    protected:
+        char * type;
 };

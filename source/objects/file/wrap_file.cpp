@@ -127,7 +127,7 @@ int fileToString(lua_State * L)
 {
     File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

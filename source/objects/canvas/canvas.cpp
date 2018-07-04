@@ -4,7 +4,7 @@
 #include "objects/canvas/canvas.h"
 #include "modules/window.h"
 
-Canvas::Canvas(int width, int height)
+Canvas::Canvas(int width, int height) : Drawable("Canvas")
 {
     this->texture = SDL_CreateTexture(Window::GetRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
 

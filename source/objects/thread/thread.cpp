@@ -4,7 +4,7 @@
 #include "socket/luasocket.h"
 #include "objects/file/file.h"
 
-ThreadClass::ThreadClass(const string & arg)
+ThreadClass::ThreadClass(const string & arg) : Object("Thread")
 {
     const char * pathCheck = arg.c_str();
     this->started = false;
@@ -63,12 +63,11 @@ void Run(void * arg)
     vector<Variant> args = self->GetArgs();
 
     //load our code
-    if (luaL_loadbuffer(L, code.c_str(), code.length(), self->ToString("Thread")) != 0)
+    if (luaL_loadbuffer(L, code.c_str(), code.length(), self->ToString()) != 0)
         self->SetError(lua_tostring(L, -1));
     else
     {
         uint numargs = args.size();
-        printf("We pushed %d args\n", numargs);
 
         //pop args onto the function
         for (uint i = 0; i < numargs; i++)

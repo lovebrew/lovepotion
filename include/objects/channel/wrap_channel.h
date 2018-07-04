@@ -2,6 +2,8 @@
 
 int channelNew(lua_State * L);
 
+int channelNew(lua_State * L, Channel * existing);
+
 int channelPush(lua_State * L);
 
 int channelPop(lua_State * L);

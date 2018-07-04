@@ -149,11 +149,7 @@ int udpToString(lua_State * L)
 {
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * buff = " {unconnected}";
-    if (self->IsConnected())
-        buff = " {connected}";
-
-    char * data = self->ToString(strcat(CLASS_NAME, buff));
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

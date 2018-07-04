@@ -65,7 +65,7 @@ int imageToString(lua_State * L)
 {
     Image * self = (Image *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

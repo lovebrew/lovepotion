@@ -15,6 +15,11 @@ void love_getfield(lua_State * L, const char * field);
 
 int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
+bool love_is_registered(lua_State * L, void * object);
+
+extern FILE * logFile;
+void stack_dump(lua_State * L);
+
 void love_register(lua_State * L, int index, void * object);
 
 void love_push_userdata(lua_State * L, void * object);

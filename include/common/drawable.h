@@ -1,7 +1,8 @@
 class Drawable : public Object
 {
     public:
-        Drawable();
+        Drawable(char * type);
+        Drawable() {};
         void Draw(SDL_Rect * quad, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color);
         ~Drawable();
 

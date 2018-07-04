@@ -9,7 +9,7 @@
 #include "error_png.h"
 #include "plus_png.h"
 
-Image::Image(const char * path, bool memory) : Drawable()
+Image::Image(const char * path, bool memory) : Drawable("Image")
 {
     SDL_Surface * tempSurface = NULL;
 

@@ -18,7 +18,7 @@ int textToString(lua_State * L)
 {
     Text * self = (Text *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * data = self->ToString(CLASS_NAME);
+    char * data = self->ToString();
 
     lua_pushstring(L, data);
 

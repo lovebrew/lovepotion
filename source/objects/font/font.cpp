@@ -6,7 +6,7 @@
 #include "modules/graphics.h"
 #include "modules/window.h"
 
-Font::Font(const char * path, int size)
+Font::Font(const char * path, int size) : Object("Font")
 {
     float dpiScale = 1.0f;
     this->size = floorf(size * dpiScale + 0.5f);

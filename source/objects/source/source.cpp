@@ -3,7 +3,7 @@
 #include "objects/source/source.h"
 #include "modules/audio.h"
 
-Source::Source(const char * path, const string & type)
+Source::Source(const char * path, const string & type) : Object("Source")
 {
     if (type == "stream")
         this->music = Mix_LoadMUS(path);

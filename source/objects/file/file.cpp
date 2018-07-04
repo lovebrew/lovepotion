@@ -3,13 +3,13 @@
 
 #include "objects/file/file.h"
 
-File::File(const char * path)
+File::File(const char * path) : Object("File")
 {
     this->path = strdup(path);
     this->open = false;
 }
 
-File::File(const char * path, const char * mode)
+File::File(const char * path, const char * mode) : Object("File")
 {
     this->path = strdup(path);
     this->open = false;

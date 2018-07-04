@@ -2,7 +2,7 @@
 #include "common/drawable.h"
 #include "modules/window.h"
 
-Drawable::Drawable()
+Drawable::Drawable(char * type) : Object(type)
 {
     this->texture = NULL;
     this->surface = NULL;

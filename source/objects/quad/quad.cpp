@@ -1,7 +1,7 @@
 #include "runtime.h"
 #include "quad.h"
 
-Quad::Quad(float subTextureX, float subTextureY, float subTextureWidth, float subTextureHeight, float atlasWidth, float atlasHeight)
+Quad::Quad(float subTextureX, float subTextureY, float subTextureWidth, float subTextureHeight, float atlasWidth, float atlasHeight) : Object("Quad")
 {
     this->x = subTextureX;
     this->y = subTextureY;

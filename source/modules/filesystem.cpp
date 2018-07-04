@@ -10,7 +10,6 @@
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
-FILE * logFile;
 bool Filesystem::Initialize()
 {
     Result ROMFS_INIT = romfsInit();
