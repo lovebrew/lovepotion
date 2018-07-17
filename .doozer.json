@@ -1,0 +1,17 @@
+{
+    "targets": {
+        "Löve Potion": {
+            "buildenv": "docker:devkitpro/devkitarm",
+            "buildcmd": "make -j${PARALLEL}",
+
+            "environment": {
+                "DEVKITPRO": "/opt/devkitpro"
+            },
+            
+            "artifacts": [
+                "*.3dsx",
+                "*.elf"
+            ]
+        }
+    }
+}
