@@ -1,0 +1,8 @@
+# Homebrew Files #
+##################
+*.3dsx
+*.elf
+
+# Output Directory #
+####################
+build/
