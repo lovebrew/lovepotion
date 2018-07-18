@@ -1,28 +1,40 @@
-/*
-	Hello World example made by Aurelio Mannara for ctrulib
-	This code was modified for the last time on: 12/12/2014 21:00 UTC+1
-*/
+extern "C" 
+{
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>
 
+    #include <compat-5.2.h>
+    #include <luaobj.h>
+}
+
+#include <string>
 #include <3ds.h>
-#include <stdio.h>
+
+#include "common/console.h"
+#include "modules/timer.h"
+#include "modules/love.h"
+#include "common/util.h"
+
+#include "boot_lua.h"
+
+bool ERROR = false;
+bool LOVE_QUIT = false;
 
 int main(int argc, char **argv)
 {
 	gfxInitDefault();
 
-	//Initialize console on top screen. Using NULL as the second argument tells the console library to use the internal console structure as current one
 	consoleInit(GFX_TOP, NULL);
 
-	//Move the cursor to row 15 and column 19 and then prints "Hello World!"
-	//To move the cursor you have to print "\x1b[r;cH", where r and c are respectively
-	//the row and column where you want your cursor to move
-	//The top screen has 30 rows and 50 columns
-	//The bottom screen has 30 rows and 40 columns
-	printf("\x1b[16;20HHello World!");
+    lua_State * L = luaL_newstate();
 
-	printf("\x1b[30;16HPress Start to exit.");
+    luaL_openlibs(L);
 
-	// Main loop
+	luaL_requiref(L, "love", Love::Initialize, 1);
+
+	luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
+
 	while (aptMainLoop())
 	{
 		//Scan all the inputs. This should be done once for each frame
@@ -33,6 +45,13 @@ int main(int argc, char **argv)
 
 		if (kDown & KEY_START) break; // break in order to return to hbmenu
 
+		if (Love::IsRunning())
+            luaL_dostring(L, "xpcall(love.run, love.errhand)");
+        else
+            break;
+
+		printf("FPS: %.1f\nDelta: %.4f\n\n", Timer::GetFPS(), Timer::GetDelta());
+
 		// Flush and swap framebuffers
 		gfxFlushBuffers();
 		gfxSwapBuffers();
@@ -41,6 +60,9 @@ int main(int argc, char **argv)
 		gspWaitForVBlank();
 	}
 
+	Love::Exit(L);
+
 	gfxExit();
+
 	return 0;
 }

@@ -31,10 +31,22 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
+EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
+
 TARGET			:=	LovePotion
 BUILD			:=	build
-INCLUDES		:=	include
-SOURCES			:=	source
+INCLUDES		:=	include \
+					include/common \
+					include/modules \
+					include/socket \
+					$(EXT_LIBS)
+
+SOURCES			:=	source \
+					source/common \
+					source/modules \
+					$(EXT_LIBS)
+
+DATA			:=  source/scripts
 
 APP_TITLE		:= Löve Potion
 APP_DESCRIPTION	:= Löve for 3DS
@@ -42,7 +54,6 @@ APP_AUTHOR		:= TurtleP
 ICON			:= meta/icon.png
 
 #--------------------
-DATA		:=	data
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 #ROMFS		:=	romfs
@@ -215,7 +226,16 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
-
+#---------------------------------------------------------------------------------
+%.png.o	%_png.h :	%.png
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
+#---------------------------------------------------------------------------------
+%.lua.o	%_lua.h :	%.lua
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
 #---------------------------------------------------------------------------------
 .PRECIOUS	:	%.t3x
 #---------------------------------------------------------------------------------
