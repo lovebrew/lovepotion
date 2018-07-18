@@ -34,22 +34,18 @@ local config =
 }
 
 
---[[if love.filesystem.isFile("conf.lua") then
+if love.filesystem.getInfo("conf.lua") then
     success, err = pcall(require, 'conf')
 
     if success and love.conf then
         love.conf(config)
-
-        if config.console then
-            love.enableConsole()
-        end
     end
 end
 
 in_error = false
 love.filesystem.setIdentity(config.identity)
 
-__defaultFont = love.graphics.newFont()
+--[[__defaultFont = love.graphics.newFont()
 love.graphics.setFont(__defaultFont)]]
 
 function love.createhandlers()
@@ -258,7 +254,7 @@ local function gameFailure()
     return error("Failed to load game!")
 end
 
---[[if love.filesystem.isFile("main.lua") then
+if love.filesystem.getInfo("main.lua") then
     --Try main
     local result = xpcall(pseudoRequireMain, love.errhand)
     if not result then
@@ -281,7 +277,7 @@ else
     if not result then
         return
     end
-end]]
+end
 
 if love.timer then
     love.timer.step()

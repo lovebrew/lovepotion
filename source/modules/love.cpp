@@ -6,18 +6,24 @@
 #include "common/types.h"
 #include "common/util.h"
 
+#include "objects/object/object.h"
+#include "objects/file/wrap_file.h"
+
+#include "modules/filesystem.h"
+#include "modules/mod_math.h"
 #include "modules/timer.h"
+#include "modules/system.h"
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
     /*{ "audio",      Audio::Register,      Audio::Exit      },
-    { "event",      Event::Register,      NULL             },
+    { "event",      Event::Register,      NULL             },*/
     { "filesystem", Filesystem::Register, Filesystem::Exit },
-    { "graphics",   Graphics::Register,   NULL             },
-    { "joystick",   Joystick::Register,   NULL             },
+    /*{ "graphics",   Graphics::Register,   NULL             },
+    { "joystick",   Joystick::Register,   NULL             },*/
     { "math",       Math::Register,       NULL             },
     { "system",     System::Register,     System::Exit     },
-    { "thread",     LoveThread::Register, LoveThread::Exit },*/
+    /*{ "thread",     LoveThread::Register, LoveThread::Exit },*/
     { "timer",      Timer::Register,      NULL             },
     /*{ "touch",      Touch::Register,      NULL             },
     { "window",     Window::Register,     NULL             },*/
@@ -27,17 +33,17 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
 lua_State * loveState;
 int Love::Initialize(lua_State * L)
 {
-    /*int (*classes[])(lua_State *L) = 
+    int (*classes[])(lua_State *L) = 
     {
-        initCanvasClass,
-        initChannelClass,
+        /*initCanvasClass,
+        initChannelClass,*/
         initFileClass,
-        initFontClass,
+        /*initFontClass,
         initGamepadClass,
         initImageClass,
         initQuadClass,
         initSourceClass,
-        initThreadClass,
+        initThreadClass,*/
         NULL
     };
 
@@ -45,7 +51,7 @@ int Love::Initialize(lua_State * L)
     {
         classes[i](L);
         lua_pop(L, 1);
-    }*/
+    }
 
     luaL_Reg reg[] =
     {

@@ -34,7 +34,16 @@ extern "C"
 
 #include <3ds.h>
 
+//Object--the only one needed here
+#include "objects/object/object.h"
+
+//Common stuff
 #include "common/console.h"
+#include "common/error.h"
+#include "common/types.h"
+#include "common/util.h"
+
+//Löve module - important!
 #include "modules/love.h"
 
 using std::string;

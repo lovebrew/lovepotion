@@ -32,6 +32,8 @@ include $(DEVKITARM)/3ds_rules
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
 EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
+INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
+SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
 
 TARGET			:=	LovePotion
 BUILD			:=	build
@@ -39,14 +41,17 @@ INCLUDES		:=	include \
 					include/common \
 					include/modules \
 					include/socket \
+					$(INC_OBJS) \
 					$(EXT_LIBS)
 
 SOURCES			:=	source \
 					source/common \
 					source/modules \
+					$(SRC_OBJS) \
 					$(EXT_LIBS)
 
 DATA			:=  source/scripts
+ROMFS			:=	game
 
 APP_TITLE		:= Löve Potion
 APP_DESCRIPTION	:= Löve for 3DS
@@ -56,7 +61,7 @@ ICON			:= meta/icon.png
 #--------------------
 GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
-#ROMFS		:=	romfs
+
 #GFXBUILD	:=	$(ROMFS)/gfx
 #--------------------
 
@@ -76,7 +81,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lpng -lcitro2d -lcitro3d -lctru -lm
+LIBS	:=  -ljansson -lpng -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

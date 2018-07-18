@@ -16,6 +16,9 @@ extern "C"
 #include "modules/love.h"
 #include "common/util.h"
 
+#include "modules/filesystem.h"
+#include "modules/system.h"
+
 #include "boot_lua.h"
 
 bool ERROR = false;
@@ -26,6 +29,10 @@ int main(int argc, char **argv)
 	gfxInitDefault();
 
 	consoleInit(GFX_TOP, NULL);
+
+	System::Initialize();
+
+	Filesystem::Initialize();
 
     lua_State * L = luaL_newstate();
 
@@ -49,8 +56,6 @@ int main(int argc, char **argv)
             luaL_dostring(L, "xpcall(love.run, love.errhand)");
         else
             break;
-
-		printf("FPS: %.1f\nDelta: %.4f\n\n", Timer::GetFPS(), Timer::GetDelta());
 
 		// Flush and swap framebuffers
 		gfxFlushBuffers();
