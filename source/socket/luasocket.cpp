@@ -2,6 +2,7 @@
 
 #include "socket/objects/socket.h"
 #include "socket/objects/udp/wrap_udp.h"
+#include "socket/objects/tcp/wrap_tcp.h"
 
 /*
 ** Native LuaSocket Implementation
@@ -37,7 +38,9 @@ int LuaSocket::Initialize(lua_State * L)
 
     luaL_Reg reg[] = 
     {
-        { "udp", udpNew },
+        { "udp",    udpNew  },
+        { "tcp",    tcpNew  },
+        { "bind",   tcpBind },
         { 0, 0 },
     };
 

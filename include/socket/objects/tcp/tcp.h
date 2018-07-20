@@ -3,7 +3,7 @@
 class TCP : public Socket
 {
     public:
-        TCP() : Socket(SOCK_STREAM) {};
+        TCP();
 
         int Accept();
         int Listen();
