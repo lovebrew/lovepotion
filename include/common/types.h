@@ -39,9 +39,9 @@ typedef enum
 
 typedef struct
 {
-    char buffer[SOCKET_BUFFERSIZE];
+    char * buffer;
     char * ip;
-    int * port;
+    int port;
 } Datagram;
 
 extern std::vector<const char *> FILE_MODES;

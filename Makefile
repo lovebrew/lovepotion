@@ -34,6 +34,7 @@ include $(DEVKITARM)/3ds_rules
 EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
+LUASOCKET	:= $(sort $(dir $(wildcard source/socket/objects/*/*)))
 
 TARGET			:=	LovePotion
 BUILD			:=	build
@@ -41,14 +42,19 @@ INCLUDES		:=	include \
 					include/common \
 					include/modules \
 					include/socket \
+					source/socket/objects \
 					$(INC_OBJS) \
-					$(EXT_LIBS)
+					$(EXT_LIBS) \
+					$(LUASOCKET)
 
 SOURCES			:=	source \
 					source/common \
 					source/modules \
+					source/socket \
+					source/socket/objects \
 					$(SRC_OBJS) \
-					$(EXT_LIBS)
+					$(EXT_LIBS) \
+					$(LUASOCKET)
 
 DATA			:=  source/scripts
 ROMFS			:=	game
@@ -70,7 +76,7 @@ GFXBUILD	:=	$(BUILD)
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -O2 -mword-relocations `sdl-config --cflags` \
 			-fomit-frame-pointer -ffunction-sections \
 			$(ARCH)
 
@@ -79,9 +85,9 @@ CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -ljansson -lpng -lcitro2d -lcitro3d -lctru -lm
+LIBS	:=  -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -ljansson -lpng -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

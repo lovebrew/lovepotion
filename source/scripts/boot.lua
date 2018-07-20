@@ -198,7 +198,7 @@ function love.errhand(message)
     
     love.filesystem.write("log.txt", realError)
     
-    love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
+    --[[love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
     love.graphics.clear()
 
     love.graphics.setColor(1, 1, 1, 1)
@@ -243,7 +243,7 @@ function love.errhand(message)
         love.timer.sleep(0.1)
     end
 
-    love.event.quit()
+    love.event.quit()]]
 end 
 
 local function pseudoRequireMain()

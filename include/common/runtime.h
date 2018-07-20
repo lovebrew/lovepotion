@@ -16,6 +16,8 @@ extern "C"
 
 //Libs
 #include <citro2d.h>
+#include <SDL.h>
+#include <SDL_mixer.h>
 #include <png.h>
 
 //C++ headers
@@ -36,14 +38,17 @@ extern "C"
 
 //Object--the only one needed here
 #include "objects/object/object.h"
+#include "socket/luasocket.h"
 
 //Common stuff
 #include "common/console.h"
 #include "common/error.h"
 #include "common/types.h"
 #include "common/util.h"
+#include "common/variant.h"
 
 //Löve module - important!
 #include "modules/love.h"
 
 using std::string;
+using std::vector;

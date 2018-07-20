@@ -8,7 +8,9 @@
 
 #include "objects/object/object.h"
 #include "objects/file/wrap_file.h"
+#include "objects/source/wrap_source.h"
 
+#include "modules/audio.h"
 #include "modules/filesystem.h"
 #include "modules/mod_math.h"
 #include "modules/timer.h"
@@ -16,8 +18,8 @@
 
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-    /*{ "audio",      Audio::Register,      Audio::Exit      },
-    { "event",      Event::Register,      NULL             },*/
+    { "audio",      Audio::Register,      Audio::Exit      },
+    //{ "event",      Event::Register,      NULL             },
     { "filesystem", Filesystem::Register, Filesystem::Exit },
     /*{ "graphics",   Graphics::Register,   NULL             },
     { "joystick",   Joystick::Register,   NULL             },*/
@@ -41,9 +43,9 @@ int Love::Initialize(lua_State * L)
         /*initFontClass,
         initGamepadClass,
         initImageClass,
-        initQuadClass,
+        initQuadClass,*/
         initSourceClass,
-        initThreadClass,*/
+        //initThreadClass,
         NULL
     };
 

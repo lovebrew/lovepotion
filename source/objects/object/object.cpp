@@ -3,7 +3,7 @@
 char * Object::ToString()
 {
     char buffer[64];
-    snprintf(buffer, 64, "%s: %p", this->type, this);
+    snprintf(buffer, 64, "%s: %p", this->type.c_str(), this);
 
     return strdup(buffer);
 }

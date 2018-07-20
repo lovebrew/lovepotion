@@ -11,11 +11,14 @@ extern "C"
 #include <string>
 #include <3ds.h>
 
+#include "socket/luasocket.h"
+
 #include "common/console.h"
 #include "modules/timer.h"
 #include "modules/love.h"
 #include "common/util.h"
 
+#include "modules/audio.h"
 #include "modules/filesystem.h"
 #include "modules/system.h"
 
@@ -32,11 +35,15 @@ int main(int argc, char **argv)
 
 	System::Initialize();
 
+	Audio::Initialize();
+
 	Filesystem::Initialize();
 
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);
+
+	love_preload(L, LuaSocket::Initialize, "socket");
 
 	luaL_requiref(L, "love", Love::Initialize, 1);
 
