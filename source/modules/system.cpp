@@ -41,7 +41,7 @@ int System::GetPowerInfo(lua_State * L)
 //love.system.getRegion
 int System::GetRegion(lua_State * L)
 {
-    s32 region;
+    SetRegion region;
     setGetRegionCode(&region);
 
     lua_pushstring(L, REGIONS[region].c_str());

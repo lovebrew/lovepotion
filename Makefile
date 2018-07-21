@@ -89,7 +89,7 @@ CFLAGS    +=    $(INCLUDE) -D__SWITCH__
 CXXFLAGS    := $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 
 ASFLAGS    :=    -g $(ARCH)
-LDFLAGS    =    -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS    =     --specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS := -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
