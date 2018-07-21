@@ -4,7 +4,7 @@ function server:init(port)
 	self.socket = require "socket".udp()
 
 	self:debug("initialize server udp")
-	self.status = self.socket:setsockname("0.0.0.0", port)
+	self.status = self.socket:setsockname("*", port)
 
 	self.clients = {}
 

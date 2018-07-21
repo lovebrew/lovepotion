@@ -6,7 +6,7 @@ myServer = require 'server'
 function love.load()
 	print("init")
 	myServer:init(25545)
-	myClient:init("127.0.0.1", 25545)
+	myClient:init("localhost", 25545)
 end
 
 function love.update(dt)

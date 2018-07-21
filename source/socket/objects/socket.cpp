@@ -82,6 +82,19 @@ int Socket::Send(const char * datagram, size_t length)
     return sent;
 }
 
+/*int Socket::GetSockName(string & localIP, int port)
+{
+    u32 ip = gethostid();
+    char buffer[0x40];
+    
+    sprintf(buffer, "%lu.%lu.%lu.%lu", ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, (ip >> 24) & 0xFF);
+
+    localIP = buffer;
+    port = this->port;
+
+    return 1;
+}*/
+
 int Socket::SetOption(const string & option, int value)
 {
     //nothing
@@ -99,10 +112,16 @@ string Socket::GetType(int protocol)
 
 void Socket::SetSocketData(const string & destination, int port)
 {
-    this->ip = destination;
+    if (destination == "*")
+        this->ip = "0.0.0.0";
+    else if (destination == "localhost")
+        this->ip = "127.0.0.1";
+    else
+        this->ip = destination;
+
     this->port = port;
 
-    const char * dest_tmp = destination.c_str();
+    const char * dest_tmp = this->ip.c_str();
 
     this->address.sin_addr.s_addr = inet_addr(dest_tmp);
     this->address.sin_port = htons(port);

@@ -32,12 +32,22 @@ end
 
 int TCP::Accept()
 {
+    struct sockaddr_in fromAddress = {0};
+    socklen_t addressLength;
 
+    int sockfd = accept(this->sockfd,  (struct sockaddr *)&fromAddress, &addressLength);
+
+    return sockfd;
 }
 
 int TCP::Listen()
 {
+    return 0;
+}
 
+void TCP::SetSockfd(int sockfd)
+{
+    this->sockfd = sockfd;
 }
 
 int TCP::SetOption(const string & option, int value)

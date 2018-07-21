@@ -7,6 +7,7 @@ class TCP : public Socket
 
         int Accept();
         int Listen();
+        void SetSockfd(int sockfd);
 
         virtual int SetOption(const std::string & option, int value);
 };

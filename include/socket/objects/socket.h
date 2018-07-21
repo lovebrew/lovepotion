@@ -16,6 +16,7 @@ class Socket : public Object
         int Send(const char * datagram, size_t length);
 
         int SetOption(const std::string & option, int value);
+        int GetSockName(const std::string & option, int value);
         
         void SetTimeout(double timeout);
 
