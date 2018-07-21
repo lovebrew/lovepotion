@@ -332,8 +332,8 @@ int Graphics::Polygon(lua_State * L)
 
     LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
-    float ax = luaL_checknumber(L, 2);
-    float ay = luaL_checknumber(L, 3);
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
 
     float bx = luaL_checknumber(L, 4);
     float by = luaL_checknumber(L, 5);
@@ -344,9 +344,9 @@ int Graphics::Polygon(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        filledTrigonRGBA(Window::GetRenderer(), ax, ay, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledTrigonRGBA(Window::GetRenderer(), x, y, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        trigonRGBA(Window::GetRenderer(), ax, ay, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        trigonRGBA(Window::GetRenderer(), x, y, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
