@@ -26,22 +26,22 @@ SDL_Color drawColor = { 255, 255, 255, 255 };
 Font * currentFont = NULL;
 
 vector<StackMatrix> stack;
-void transformDrawable(double * originalX, double * originalY) // rotate, scale, and translate coords.
+void transformDrawable(float * originalX, float * originalY) // rotate, scale, and translate coords.
 {
     if (stack.empty())
         return;
 
     StackMatrix & matrix = stack.back();
 
-    double newLeft = *originalX;
-    double newTop = *originalY;
+    float newLeft = *originalX;
+    float newTop = *originalY;
 
     //Translate
     *originalX += matrix.ox;
     *originalY += matrix.oy;
 
-    /*/Scale
-    *originalX *= matrix.sx;
+    //Scale
+    /*originalX *= matrix.sx;
     *originalY *= matrix.sy;
 
     //Rotate
@@ -87,7 +87,7 @@ int Graphics::GetHeight(lua_State * L)
 //love.graphics.setBackgroundColor
 int Graphics::SetBackgroundColor(lua_State * L)
 {
-    double r = 0, g = 0, b = 0;
+    float r = 0, g = 0, b = 0;
 
     if (lua_isnumber(L, 1))
     {
@@ -204,16 +204,16 @@ int Graphics::Draw(lua_State * L)
         start = 3;
     }
 
-    double x = luaL_optnumber(L, start + 0, 0);
-    double y = luaL_optnumber(L, start + 1, 0);
+    float x = luaL_optnumber(L, start + 0, 0);
+    float y = luaL_optnumber(L, start + 1, 0);
 
-    double rotation = luaL_optnumber(L, start + 2, 0);
+    float rotation = luaL_optnumber(L, start + 2, 0);
 
-    double scalarX = luaL_optnumber(L, start + 3, 1);
-    double scalarY = luaL_optnumber(L, start + 4, 1);
+    float scalarX = luaL_optnumber(L, start + 3, 1);
+    float scalarY = luaL_optnumber(L, start + 4, 1);
 
-    double offsetX = luaL_optnumber(L, start + 5, 0);
-    double offsetY = luaL_optnumber(L, start + 6, 0);
+    float offsetX = luaL_optnumber(L, start + 5, 0);
+    float offsetY = luaL_optnumber(L, start + 6, 0);
 
     SDL_Rect quadRectangle;
 
@@ -271,8 +271,8 @@ int Graphics::Print(lua_State * L)
 {
     const char * text = luaL_checkstring(L, 1);
 
-    double x = luaL_optnumber(L, 2, 0);
-    double y = luaL_optnumber(L, 3, 0);
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
 
     transformDrawable(&x, &y);
 
@@ -309,11 +309,11 @@ int Graphics::Rectangle(lua_State * L)
 
     LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
-    double x = luaL_optnumber(L, 2, 0);
-    double y = luaL_optnumber(L, 3, 0);
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
 
-    double width = luaL_checknumber(L, 4);
-    double height = luaL_checknumber(L, 5);
+    float width = luaL_checknumber(L, 4);
+    float height = luaL_checknumber(L, 5);
 
     transformDrawable(&x, &y);
 
@@ -325,6 +325,32 @@ int Graphics::Rectangle(lua_State * L)
     return 0;
 }
 
+//love.graphics.polygon
+int Graphics::Polygon(lua_State * L)
+{
+    string mode = luaL_checkstring(L, 1);
+
+    LOVE_VALIDATE_DRAW_MODE(mode.c_str());
+
+    float ax = luaL_checknumber(L, 2);
+    float ay = luaL_checknumber(L, 3);
+
+    float bx = luaL_checknumber(L, 4);
+    float by = luaL_checknumber(L, 5);
+	
+	float cx = luaL_checknumber(L, 6);
+    float cy = luaL_checknumber(L, 7);
+
+    transformDrawable(&x, &y);
+
+    if (mode == "fill")
+        filledTrigonRGBA(Window::GetRenderer(), ax, ay, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+    else if (mode == "line")
+        trigonRGBA(Window::GetRenderer(), ax, ay, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+
+    return 0;
+}
+
 //love.graphics.arc
 int Graphics::Arc(lua_State * L)
 {
@@ -332,13 +358,13 @@ int Graphics::Arc(lua_State * L)
 
     LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
-    double x = luaL_optnumber(L, 2, 0);
-    double y = luaL_optnumber(L, 3, 0);
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
 
-    double radius = luaL_checknumber(L, 4);
+    float radius = luaL_checknumber(L, 4);
 
-    double start = luaL_checknumber(L, 5);
-    double end = luaL_checknumber(L, 6);
+    float start = luaL_checknumber(L, 5);
+    float end = luaL_checknumber(L, 6);
 
     start *= 180 / M_PI;
     end *= 180 / M_PI;
@@ -358,10 +384,10 @@ int Graphics::Circle(lua_State * L)
 
     LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
-    double x = luaL_optnumber(L, 2, 0);
-    double y = luaL_optnumber(L, 3, 0);
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
 
-    double radius = luaL_checknumber(L, 4);
+    float radius = luaL_checknumber(L, 4);
 
     if (mode == "fill")
         filledCircleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
@@ -378,7 +404,7 @@ int Graphics::Line(lua_State * L)
     bool isTable = lua_istable(L, 1);
     int tableLength = 0;
 
-    double startx = 0, starty = 0, endx = 0, endy = 0;
+    float startx = 0, starty = 0, endx = 0, endy = 0;
 
     if (isTable)
     {
@@ -528,8 +554,8 @@ int Graphics::Push(lua_State * L)
 //love.graphics.translate
 int Graphics::Translate(lua_State * L)
 {
-    double x = luaL_checknumber(L, 1);
-    double y = luaL_checknumber(L, 2);
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
 
     stack.back().ox += x;
     stack.back().oy += y;
@@ -540,8 +566,8 @@ int Graphics::Translate(lua_State * L)
 //love.graphics.scale
 int Graphics::Scale(lua_State * L)
 {
-    double sx = luaL_checknumber(L, 1);
-    double sy = luaL_checknumber(L, 2);
+    float sx = luaL_checknumber(L, 1);
+    float sy = luaL_checknumber(L, 2);
 
     stack.back().sx = sx;
     stack.back().sy = sy;
@@ -552,7 +578,7 @@ int Graphics::Scale(lua_State * L)
 //love.graphics.rotate
 int Graphics::Rotate(lua_State * L)
 {
-    double r = luaL_checknumber(L, 1);
+    float r = luaL_checknumber(L, 1);
 
     stack.back().r = r;
 
@@ -562,8 +588,8 @@ int Graphics::Rotate(lua_State * L)
 //love.graphics.shear
 int Graphics::Shear(lua_State * L)
 {
-    double kx = luaL_checknumber(L, 1);
-    double ky = luaL_checknumber(L, 2);
+    float kx = luaL_checknumber(L, 1);
+    float ky = luaL_checknumber(L, 2);
 
     stack.back().kx = kx;
     stack.back().ky = ky;
@@ -639,6 +665,7 @@ int Graphics::Register(lua_State * L)
         { "print",              Print              },
         { "push",               Push               },
         { "rectangle",          Rectangle          },
+        { "polygon",            Polygon            },
         { "rotate",             Rotate             },
         { "scale",              Scale              },
         { "setBackgroundColor", SetBackgroundColor },

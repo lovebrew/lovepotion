@@ -36,6 +36,7 @@ namespace Graphics
     int SetCanvas(lua_State * L);
 
     int Rectangle(lua_State * L);
+    int Polygon(lua_State * L);
     int Line(lua_State * L);
     int Circle(lua_State * L);
     int Arc(lua_State * L);
