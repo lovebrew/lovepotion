@@ -30,12 +30,12 @@ Font * currentFont = NULL;
 
 float Graphics::GetXScale()
 {
-	return scaleX;
+    return scaleX;
 }
 
 float Graphics::GetYScale()
 {
-	return scaleY;
+    return scaleY;
 }
 
 vector<StackMatrix> stack;

@@ -10,8 +10,8 @@ namespace Graphics
     void Initialize();
     bool IsInitialized();
 
-	float GetXScale();
-	float GetYScale();
+    float GetXScale();
+    float GetYScale();
 	
     //Löve2D Functions
 
