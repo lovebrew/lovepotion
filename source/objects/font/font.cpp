@@ -46,8 +46,11 @@ void Font::Print(const char * text, double x, double y, SDL_Color color)
     this->surface = TTF_RenderText_Blended_Wrapped(this->font, text, color, 1280);
     SDL_SetSurfaceAlphaMod(this->surface, color.a);
 
-    SDL_Rect position = {x, y, this->surface->w, this->surface->h};
-    SDL_BlitSurface(this->surface, NULL, Window::GetSurface(), &position);
+	float sx = Graphics::GetXScale();
+	float sy = Graphics::GetYScale();
+	
+    SDL_Rect position = {x * sx, y * sy, (this->surface->w) * sx, (this->surface->h) * sy};
+    SDL_BlitScaled(this->surface, NULL, Window::GetSurface(), &position);
 
     SDL_FreeSurface(this->surface);
 }

@@ -23,7 +23,20 @@ bool isInitialized = false;
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
 SDL_Color drawColor = { 255, 255, 255, 255 };
 
+float scaleX = 1;
+float scaleY = 1;
+
 Font * currentFont = NULL;
+
+float Graphics::GetXScale()
+{
+	return scaleX;
+}
+
+float Graphics::GetYScale()
+{
+	return scaleY;
+}
 
 vector<StackMatrix> stack;
 void transformDrawable(float * originalX, float * originalY) // rotate, scale, and translate coords.
@@ -224,10 +237,10 @@ int Graphics::Draw(lua_State * L)
     if (quad != nullptr)
     {
         quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
-        drawable->Draw(&quadRectangle, x, y, rotation, scalarX, scalarY, drawColor);
+        drawable->Draw(&quadRectangle, x * scaleX, y * scaleY, rotation, scalarX * scaleX, scalarY * scaleY, drawColor);
     }
     else
-        drawable->Draw(NULL, x, y, rotation, scalarX, scalarY, drawColor);
+        drawable->Draw(NULL, x * scaleX, y * scaleY, rotation, scalarX * scaleX, scalarY * scaleY, drawColor);
 
     return 0;
 }
@@ -318,9 +331,9 @@ int Graphics::Rectangle(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        boxRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        boxRGBA(Window::GetRenderer(), x * scaleX, y * scaleY, ((x + width) * scaleX) - 1, ((y + height) * scaleY) - 1, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        rectangleRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        rectangleRGBA(Window::GetRenderer(), x * scaleX, y * scaleY, ((x + width) * scaleX) - 1, ((y + height) * scaleY) - 1, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -344,9 +357,9 @@ int Graphics::Polygon(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        filledTrigonRGBA(Window::GetRenderer(), x, y, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledTrigonRGBA(Window::GetRenderer(), x * scaleX, y * scaleY, bx * scaleX, by * scaleY, cx * scaleX, cy * scaleY, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        trigonRGBA(Window::GetRenderer(), x, y, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        trigonRGBA(Window::GetRenderer(), x * scaleX, y * scaleY, bx * scaleX, by * scaleY, cx * scaleX, cy * scaleY, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -390,9 +403,9 @@ int Graphics::Circle(lua_State * L)
     float radius = luaL_checknumber(L, 4);
 
     if (mode == "fill")
-        filledCircleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledCircleRGBA(Window::GetRenderer(), x * scaleX, y * scaleY, radius * scaleX, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        circleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        circleRGBA(Window::GetRenderer(), x * scaleX, y * scaleY, radius * scaleX, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -428,7 +441,7 @@ int Graphics::Line(lua_State * L)
 
                 lua_pop(L, 4);
 
-                lineRGBA(Window::GetRenderer(), startx, starty, endx, endy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+                lineRGBA(Window::GetRenderer(), startx * scaleX, starty * scaleY, endx * scaleX, endy * scaleY, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
             }
         }
     }
@@ -445,7 +458,7 @@ int Graphics::Line(lua_State * L)
             endx = luaL_checknumber(L, i + 3);
             endy = luaL_checknumber(L, i + 4);
 
-            lineRGBA(Window::GetRenderer(), startx, starty, endx, endy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+            lineRGBA(Window::GetRenderer(), startx * scaleX, starty * scaleY, endx * scaleX, endy * scaleY, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
         }
     }
 
@@ -571,6 +584,9 @@ int Graphics::Scale(lua_State * L)
 
     stack.back().sx = sx;
     stack.back().sy = sy;
+	
+	scaleX = sx;
+	scaleY = sy;
 
     return 0;
 }
