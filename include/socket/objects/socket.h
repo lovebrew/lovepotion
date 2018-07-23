@@ -5,6 +5,9 @@ class Socket : public Object
     public:
         Socket() {};
         Socket(int protocol);
+        Socket(int protocol, int sockfd);
+
+        void Create(int sockfd);
 
         int Connect(const std::string & ip, int port);
         int Bind(const std::string & ip, int port);
@@ -16,7 +19,7 @@ class Socket : public Object
         int Send(const char * datagram, size_t length);
 
         int SetOption(const std::string & option, int value);
-        int GetSockName(const std::string & option, int value);
+        int GetSockName(char * ip);
         
         void SetTimeout(double timeout);
 

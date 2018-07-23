@@ -27,6 +27,7 @@ int LuaSocket::Initialize(lua_State * L)
     int (*classes[])(lua_State *L) = 
     {
         initUDPClass,
+        initTCPClass,
         NULL,
     };
 

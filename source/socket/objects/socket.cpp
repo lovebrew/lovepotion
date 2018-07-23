@@ -5,9 +5,35 @@
 Socket::Socket(int protocol) : Object("Socket")
 {
     this->sockfd = socket(AF_INET, protocol, 0);
+    this->Create(-1);
 
-    if (this->sockfd < 0)
-        Love::RaiseError("Failed to create %s socket. %s.", this->GetType(protocol), strerror(errno));
+    if (protocol == SOCK_DGRAM)
+        this->SetType("udp{unconnected}");
+    else
+    {
+        this->SetType("tcp{master}");
+
+        int yes = 1;
+        setsockopt(this->sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+    }
+}
+
+Socket::Socket(int protocol, int sockfd)
+{
+    this->Create(sockfd);
+}
+
+void Socket::Create(int newSocket)
+{
+    if (newSocket != -1)
+        this->sockfd = newSocket;
+    else if (newSocket < -1)
+        return;
+
+    printf("Creating! Sockfd: %d\n", newSocket);
+
+    //if (this->sockfd < 0)
+    //    Love::RaiseError("Failed to create %s socket. %s.", this->GetType(protocol), strerror(errno));
     
     memset(&this->address, 0, sizeof(this->address));
 
@@ -28,11 +54,6 @@ Socket::Socket(int protocol) : Object("Socket")
     //Set socket to use our buffer size for send and receive
     setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &bufferSize, sizeof(bufferSize));
     setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(bufferSize));
-
-    if (protocol == SOCK_DGRAM)
-        this->SetType("udp{unconnected}");
-    else
-        this->SetType("tcp{master}");
 
     this->connected = false;
 }
@@ -82,18 +103,17 @@ int Socket::Send(const char * datagram, size_t length)
     return sent;
 }
 
-/*int Socket::GetSockName(string & localIP, int port)
+int Socket::GetSockName(char * ip)
 {
-    u32 ip = gethostid();
-    char buffer[0x40];
-    
-    sprintf(buffer, "%lu.%lu.%lu.%lu", ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, (ip >> 24) & 0xFF);
+    struct sockaddr_in address = {0};
+    socklen_t addressLength;
 
-    localIP = buffer;
-    port = this->port;
+    getsockname(this->sockfd, (struct sockaddr *)&address, &addressLength);
+    
+    strncpy(ip, inet_ntoa(address.sin_addr), 0x40);
 
     return 1;
-}*/
+}
 
 int Socket::SetOption(const string & option, int value)
 {
