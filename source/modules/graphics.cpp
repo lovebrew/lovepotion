@@ -585,8 +585,8 @@ int Graphics::Scale(lua_State * L)
     stack.back().sx = sx;
     stack.back().sy = sy;
 	
-	scaleX = sx;
-	scaleY = sy;
+    scaleX = sx;
+    scaleY = sy;
 
     return 0;
 }
