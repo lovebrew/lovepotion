@@ -45,6 +45,8 @@ int tcpAccept(lua_State * L)
             lua_pushstring(L, "timeout");
         else if (newSocket == -1)
             lua_pushstring(L, "error in poll");
+        else
+            lua_pushstring(L, "error on accept");
         
         return 2;
     }
@@ -57,12 +59,13 @@ int tcpAccept(lua_State * L)
 int tcpGetSockName(lua_State * L)
 {
     char ip[0x40];
+    int port;
 
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
-    self->GetSockName(ip);
+    self->GetSockName(ip, port);
 
     lua_pushstring(L, ip);
-    lua_pushnumber(L, self->GetPort());
+    lua_pushnumber(L, port);
 
     return 2;
 }

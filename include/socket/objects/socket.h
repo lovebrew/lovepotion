@@ -19,11 +19,14 @@ class Socket : public Object
         int Send(const char * datagram, size_t length);
 
         int SetOption(const std::string & option, int value);
-        int GetSockName(char * ip);
+        int GetSockName(char * ip, int port);
         
         void SetTimeout(double timeout);
 
         int Close();
+
+        int GetPort();
+        string GetIP();
 
         bool IsConnected();
 

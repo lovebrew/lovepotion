@@ -557,7 +557,6 @@ function lovebird.pushline(line)
   lovebird.recalcbuffer()
 end
 
-
 function lovebird.recalcbuffer()
   local function doline(line)
     local str = line.str
@@ -639,7 +638,7 @@ end
 function lovebird.receive(client, pattern)
   while 1 do
     local data, msg = client:receive(pattern)
-  
+    print(data, msg)
     if not data then
       if msg == "timeout" then
         -- Wait for more data
@@ -680,11 +679,22 @@ function lovebird.onconnect(client)
   req.method, req.url, req.proto = req.request:match(requestptn)
   req.headers = {}
 
-  --print(req.addr, req.port, req.request)
+  print(req.request)
+  print(req.method)
+  print(req.url)
+  print(req.proto)
 
   while 1 do
     local line, msg = lovebird.receive(client, "*l")
-    if not line or #line == 0 then break end
+    print(line)
+    print(msg)
+
+    file:flush()
+    file:close()
+
+    if not line or #line == 0 then 
+      break 
+    end
     local k, v = line:match("(.-):%s*(.*)$")
     req.headers[k] = v
   end
@@ -710,7 +720,6 @@ end
 
 function lovebird.update()
   if not lovebird.inited then
-      print("init")
       lovebird.init()  
   end
 
@@ -722,8 +731,6 @@ function lovebird.update()
 
     if not client then 
       break 
-    else
-      print("Client!")
     end
 
     client:settimeout(0)
@@ -738,7 +745,6 @@ function lovebird.update()
       lovebird.connections[conn] = true
     else
       -- Reject connection not on whitelist
-      print(addr)
       lovebird.trace("got non-whitelisted connection attempt: ", addr)
       client:close()
     end

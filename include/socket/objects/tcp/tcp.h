@@ -9,7 +9,5 @@ class TCP : public Socket
         int Accept();
         void Listen();
 
-        int GetPort();
-
         virtual int SetOption(const std::string & option, int value);
 };

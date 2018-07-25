@@ -16,6 +16,16 @@ Socket::Socket(int protocol) : Object("Socket")
         int yes = 1;
         setsockopt(this->sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
     }
+
+    int flags, blocking;
+    flags = fcntl(this->sockfd, F_GETFL, 0);
+
+    if (flags < 0)
+        Love::RaiseError("Failed to get flags for socket.");
+
+    blocking = fcntl(this->sockfd, F_SETFL, flags | O_NONBLOCK);
+    if (blocking != 0)
+        Love::RaiseError("Failed to set non-blocking on socket.");
 }
 
 Socket::Socket(int protocol, int sockfd) : Object("Socket")
@@ -32,16 +42,6 @@ void Socket::Create()
     memset(&this->address, 0, sizeof(this->address));
 
     this->address.sin_family = AF_INET;
-
-    int flags, blocking;
-    flags = fcntl(this->sockfd, F_GETFL, 0);
-
-    if (flags < 0)
-        Love::RaiseError("Failed to get flags for socket.");
-
-    blocking = fcntl(this->sockfd, F_SETFL, flags + O_NONBLOCK);
-    if (blocking != 0)
-        Love::RaiseError("Failed to set non-blocking on socket.");
 
     int bufferSize = SOCKET_BUFFERSIZE; //8192
 
@@ -103,15 +103,26 @@ int Socket::Send(const char * datagram, size_t length)
     return sent;
 }
 
-int Socket::GetSockName(char * ip)
+int Socket::GetPort()
 {
-    struct sockaddr_in address = {0};
-    socklen_t addressLength;
+    return this->port;
+}
+
+string Socket::GetIP()
+{
+    return this->ip;
+}
+
+int Socket::GetSockName(char * ip, int port)
+{
+    struct sockaddr_in address;
+    u32 addressLength = sizeof(address);
 
     getsockname(this->sockfd, (struct sockaddr *)&address, &addressLength);
     
     strncpy(ip, inet_ntoa(address.sin_addr), 0x40);
-
+    port = ntohs(address.sin_port);
+    
     return 1;
 }
 
