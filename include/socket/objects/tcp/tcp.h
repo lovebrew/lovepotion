@@ -7,8 +7,7 @@ class TCP : public Socket
         TCP(int sockfd);
 
         int Accept();
-        int Listen();
-        void SetSockfd(int sockfd);
+        void Listen();
 
         int GetPort();
 

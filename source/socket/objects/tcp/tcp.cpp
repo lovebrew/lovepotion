@@ -12,20 +12,21 @@ int TCP::Accept()
     struct sockaddr_in fromAddress = {0};
     socklen_t addressLength;
 
+    int event = poll(&this->pollfd, 1, this->timeout);
+
+    if (event <= 0)
+        return event;
+    else
+    {
+        int newSocket = accept(this->sockfd,  (struct sockaddr *)&fromAddress, &addressLength);
+
+        return newSocket;
+    }
+}
+
+void TCP::Listen()
+{
     listen(this->sockfd, 1);
-    int newSocket = accept(this->sockfd,  (struct sockaddr *)&fromAddress, &addressLength);
-
-    return newSocket;
-}
-
-int TCP::Listen()
-{
-    return 0;
-}
-
-void TCP::SetSockfd(int sockfd)
-{
-    this->sockfd = sockfd;
 }
 
 int TCP::GetPort()

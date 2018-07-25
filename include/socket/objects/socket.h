@@ -7,7 +7,7 @@ class Socket : public Object
         Socket(int protocol);
         Socket(int protocol, int sockfd);
 
-        void Create(int sockfd);
+        void Create();
 
         int Connect(const std::string & ip, int port);
         int Bind(const std::string & ip, int port);
@@ -36,8 +36,11 @@ class Socket : public Object
         int sockfd;
 
         struct sockaddr_in address;
+        struct pollfd pollfd;
         
         bool connected;
         std::string ip;
         int port;
+
+        long timeout;
 };

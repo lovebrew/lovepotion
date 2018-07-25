@@ -429,7 +429,7 @@ function lovebird.init()
   -- Init server
   print("assert creation!")
   lovebird.server = assert(socket.bind(lovebird.host, lovebird.port))
-  --lovebird.server:settimeout(0)
+  lovebird.server:settimeout(0)
   print("getsockname")
   lovebird.addr, lovebird.port = lovebird.server:getsockname()
   print(lovebird.addr, lovebird.port)
@@ -680,7 +680,7 @@ function lovebird.onconnect(client)
   req.method, req.url, req.proto = req.request:match(requestptn)
   req.headers = {}
 
-  print(req.addr, req.port, req.request)
+  --print(req.addr, req.port, req.request)
 
   while 1 do
     local line, msg = lovebird.receive(client, "*l")
@@ -718,19 +718,20 @@ function lovebird.update()
   while 1 do
     -- Accept new connections
     local client = lovebird.server:accept()
-    
+    --print(tostring(client))
+
     if not client then 
       break 
     else
       print("Client!")
     end
 
-    --client:settimeout(0)
+    client:settimeout(0)
     local addr = client:getsockname()
-    print(addr)
+    --print(addr)
 
     if lovebird.checkwhitelist(addr) then
-      print("OnConnect!")-- Connection okay -- create and add coroutine to set
+      --print("OnConnect!")-- Connection okay -- create and add coroutine to set
       local conn = coroutine.wrap(function()
         xpcall(function() lovebird.onconnect(client) end, function() end)
       end)

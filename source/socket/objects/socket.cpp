@@ -5,7 +5,7 @@
 Socket::Socket(int protocol) : Object("Socket")
 {
     this->sockfd = socket(AF_INET, protocol, 0);
-    this->Create(-1);
+    this->Create();
 
     if (protocol == SOCK_DGRAM)
         this->SetType("udp{unconnected}");
@@ -18,20 +18,14 @@ Socket::Socket(int protocol) : Object("Socket")
     }
 }
 
-Socket::Socket(int protocol, int sockfd)
+Socket::Socket(int protocol, int sockfd) : Object("Socket")
 {
-    this->Create(sockfd);
+    this->sockfd = sockfd;
+    this->Create();
 }
 
-void Socket::Create(int newSocket)
+void Socket::Create()
 {
-    if (newSocket != -1)
-        this->sockfd = newSocket;
-    else if (newSocket < -1)
-        return;
-
-    printf("Creating! Sockfd: %d\n", newSocket);
-
     //if (this->sockfd < 0)
     //    Love::RaiseError("Failed to create %s socket. %s.", this->GetType(protocol), strerror(errno));
     
@@ -54,6 +48,12 @@ void Socket::Create(int newSocket)
     //Set socket to use our buffer size for send and receive
     setsockopt(this->sockfd, SOL_SOCKET, SO_RCVBUF, &bufferSize, sizeof(bufferSize));
     setsockopt(this->sockfd, SOL_SOCKET, SO_SNDBUF, &bufferSize, sizeof(bufferSize));
+
+    this->pollfd.fd = this->sockfd;
+    this->pollfd.events = POLLIN | POLLPRI;
+    this->pollfd.revents = 0;
+
+    this->timeout = 0;
 
     this->connected = false;
 }

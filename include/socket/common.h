@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <poll.h>
 #include <netdb.h>
 #include <fcntl.h>
 

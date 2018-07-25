@@ -20,7 +20,7 @@ int tcpNew(lua_State * L)
     return 1;
 }
 
-int tcpNew(lua_State * L, int sockfd)
+int tcpOnAccept(lua_State * L, int sockfd)
 {
     void * raw_self = luaobj_newudata(L, sizeof(TCP));
 
@@ -36,11 +36,20 @@ int tcpAccept(lua_State * L)
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     int newSocket = self->Accept();
+    
+    if (newSocket <= 0)
+    {
+        lua_pushnil(L);
+        
+        if (newSocket == 0)
+            lua_pushstring(L, "timeout");
+        else if (newSocket == -1)
+            lua_pushstring(L, "error in poll");
+        
+        return 2;
+    }
 
-    if (newSocket < 0)
-        return 0;
-
-    int succ = tcpNew(L, newSocket);
+    int succ = tcpOnAccept(L, newSocket);
 
     return succ;
 }
@@ -65,6 +74,7 @@ int tcpBind(lua_State * L)
     string ip;
     int port;
 
+    //socket.bind
     if (lua_type(L, 1) != LUA_TUSERDATA)
 	{
         ip = luaL_checkstring(L, 1);
@@ -75,8 +85,8 @@ int tcpBind(lua_State * L)
         TCP * self = (TCP *)luaobj_checkudata(L, -1, CLASS_TYPE);
 
         succ = self->Bind(ip, port);
-
-        printf("Bind: %d\n", succ);
+        if (succ)
+            self->Listen(); //server
 
         return ret;
     }

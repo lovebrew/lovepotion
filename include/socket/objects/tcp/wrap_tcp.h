@@ -2,7 +2,7 @@
 
 int tcpNew(lua_State * L);
 
-int tcpNew(lua_State * L, int sockfd);
+int tcpOnAccept(lua_State * L, int sockfd);
 
 int tcpBind(lua_State * L);
 
