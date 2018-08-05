@@ -84,14 +84,39 @@ int Socket::Bind(const string & ip, int port)
     return 1;
 }
 
-int Socket::Receive(char * outBuffer)
+string Socket::DoLines(const string & buffer)
 {
-    int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE, 0);
+    /*size_t current, previous = 0;
+    current = buffer.find("\n");
 
-    if (length <= 0)
-        return 0;
+    while (current != buffer.npos)
+    {
+        strncpy(outBuffer, buffer.substr(previous, current - previous));
+        previous = current + 1;
+        current = buffer.find("\n", previous);
+    }
+    //words.push_back(splitThis.substr(previous, current - previous));*/
+    return "";
+}
 
-    outBuffer[length] = '\0';
+int Socket::Receive(char * outBuffer, const char * pattern, int bytes)
+{
+    int receiveSize = SOCKET_BUFFERSIZE;
+    if (bytes >= 0)
+        receiveSize = bytes;
+
+    char tempBuffer[receiveSize];
+
+    int length = recv(this->sockfd, tempBuffer, receiveSize, 0);
+    
+    string buffer(tempBuffer, length);
+
+    if (strncmp(pattern, "*a", 2) == 0)
+        printf("grab everything\n");
+    else if (strncmp(pattern, "*l", 2) == 0)
+        this->DoLines(buffer);
+    else if (pattern == NULL)
+        strncpy(outBuffer, buffer.c_str(), buffer.size());
 
     return length;
 }

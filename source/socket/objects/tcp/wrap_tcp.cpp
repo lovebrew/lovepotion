@@ -115,7 +115,11 @@ int tcpReceive(lua_State * L)
     char buffer[SOCKET_BUFFERSIZE];
     
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
-    self->Receive(buffer);
+
+    const char * pattern = luaL_optstring(L, 2, "*l");
+    int receiveBytes = luaL_optnumber(L, 3, -1);
+
+    self->Receive(buffer, pattern, receiveBytes);
 
     lua_pushstring(L, buffer);
     lua_pushnil(L);
@@ -129,6 +133,9 @@ int tcpSend(lua_State * L)
 
     size_t stringLength;
     string datagram = luaL_checklstring(L, 2, &stringLength);
+
+    if (lua_isnumber(L, 3))
+        stringLength = luaL_checkinteger(L, 3);
     
     int sent = self->Send(datagram.c_str(), stringLength);
 

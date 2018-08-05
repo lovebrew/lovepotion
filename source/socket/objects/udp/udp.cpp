@@ -43,7 +43,6 @@ int UDP::SendTo(const char * datagram, size_t len, const char * destination, int
 int UDP::Send(const char * datagram, size_t length)
 {
     int sent = this->SendTo(datagram, length, this->ip.c_str(), this->port);
-    printf("Sent %s (%dB)\n", datagram, sent);
 
     return sent;
 }

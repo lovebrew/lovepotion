@@ -12,6 +12,7 @@
 
 #include "modules/audio.h"
 #include "modules/filesystem.h"
+#include "modules/graphics.h"
 #include "modules/mod_math.h"
 #include "modules/timer.h"
 #include "modules/system.h"
@@ -21,8 +22,8 @@ struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modu
     { "audio",      Audio::Register,      Audio::Exit      },
     //{ "event",      Event::Register,      NULL             },
     { "filesystem", Filesystem::Register, Filesystem::Exit },
-    /*{ "graphics",   Graphics::Register,   NULL             },
-    { "joystick",   Joystick::Register,   NULL             },*/
+    { "graphics",   Graphics::Register,   NULL             },
+    //{ "joystick",   Joystick::Register,   NULL             },*/
     { "math",       Math::Register,       NULL             },
     { "system",     System::Register,     System::Exit     },
     /*{ "thread",     LoveThread::Register, LoveThread::Exit },*/
@@ -115,13 +116,19 @@ int Love::Run(lua_State * L)
 
     if (luaL_dostring(L, LOVE_UPDATE))
         luaL_error(L, "%s", lua_tostring(L, -1));
-
-    //Graphics::Clear(L);
     
-    //if (luaL_dostring(L, LOVE_DRAW))
-    //    luaL_error(L, "%s", lua_tostring(L, -1));
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+    Graphics::Clear(GFX_TOP, GFX_LEFT);
+    
+    if (luaL_dostring(L, LOVE_DRAW))
+        luaL_error(L, "%s", lua_tostring(L, -1));
 
-    //Graphics::Present(L);
+    Graphics::Clear(GFX_BOTTOM, GFX_LEFT);
+    
+    if (luaL_dostring(L, LOVE_DRAW))
+        luaL_error(L, "%s", lua_tostring(L, -1));
+    
+    Graphics::Present(L);
 
     Timer::Tick();
 
@@ -176,5 +183,5 @@ void Love::Exit(lua_State * L)
     lua_close(L);
 
     //Window::Exit();
-    //Graphics::Exit();
+    Graphics::Exit();
 }

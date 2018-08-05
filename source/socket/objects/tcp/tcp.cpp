@@ -20,7 +20,7 @@ int TCP::Accept()
         return event;
     else
     {
-        int newSocket = accept(this->sockfd,  (struct sockaddr *)&fromAddress, &addressLength);
+        int newSocket = accept(this->sockfd,  NULL, NULL);
 
         if (newSocket < 0)
             return -3;

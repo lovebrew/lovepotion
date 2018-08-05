@@ -119,9 +119,11 @@ int udpReceiveFrom(lua_State * L)
 int udpReceive(lua_State * L)
 {
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    size_t bytes = luaL_optnumber(L, 2, -1);
 
     char buffer[SOCKET_BUFFERSIZE];
-    int length = self->Receive(buffer);
+    
+    int length = self->Receive(buffer, NULL, bytes);
 
     if (length == 0)
     {

@@ -21,9 +21,6 @@ int LuaSocket::Initialize(lua_State * L)
 
     SOCKETS_INIT = socInit(SOCKET_BUFFER, 0x100000);
 
-    if (SOCKETS_INIT != 0)
-        Love::RaiseError("Failed to load LuaSocket!");
-
     int (*classes[])(lua_State *L) = 
     {
         initUDPClass,

@@ -15,7 +15,7 @@ class Socket : public Object
         std::string GetSockName();
         std::vector<Variant> GetPeerName();
 
-        int Receive(char * outBuffer);
+        int Receive(char * outBuffer, const char * pattern, int bytes);
         int Send(const char * datagram, size_t length);
 
         int SetOption(const std::string & option, int value);
@@ -29,6 +29,8 @@ class Socket : public Object
         string GetIP();
 
         bool IsConnected();
+
+        std::string DoLines(const std::string & buffer);
 
     private:
         std::string GetType(int protocol);

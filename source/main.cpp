@@ -18,8 +18,11 @@ extern "C"
 #include "modules/love.h"
 #include "common/util.h"
 
+#include <citro2d.h>
+
 #include "modules/audio.h"
 #include "modules/filesystem.h"
+#include "modules/graphics.h"
 #include "modules/system.h"
 
 #include "boot_lua.h"
@@ -29,15 +32,13 @@ bool LOVE_QUIT = false;
 
 int main(int argc, char **argv)
 {
-	gfxInitDefault();
-
-	consoleInit(GFX_TOP, NULL);
-
 	System::Initialize();
 
 	Audio::Initialize();
 
 	Filesystem::Initialize();
+
+	Graphics::Initialize();
 
     lua_State * L = luaL_newstate();
 
@@ -63,18 +64,9 @@ int main(int argc, char **argv)
             luaL_dostring(L, "xpcall(love.run, love.errhand)");
         else
             break;
-
-		// Flush and swap framebuffers
-		gfxFlushBuffers();
-		gfxSwapBuffers();
-
-		//Wait for VBlank
-		gspWaitForVBlank();
 	}
 
 	Love::Exit(L);
-
-	gfxExit();
 
 	return 0;
 }

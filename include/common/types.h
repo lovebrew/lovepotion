@@ -44,6 +44,14 @@ typedef struct
     int port;
 } Datagram;
 
+typedef struct
+{
+    float r;
+    float g;
+    float b;
+    float a;
+} Color;
+
 extern std::vector<const char *> FILE_MODES;
 
 extern std::vector<const char *> SOURCE_TYPES;
