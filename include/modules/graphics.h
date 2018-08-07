@@ -24,6 +24,8 @@ namespace Graphics
 
     int GetRendererInfo(lua_State * L);
 
+    int SetScreen(lua_State * L);
+
     //End Löve2D Functions
     C3D_RenderTarget * GetScreen(gfxScreen_t screen, gfx3dSide_t side);
     void Clear(gfxScreen_t screen, gfx3dSide_t side);

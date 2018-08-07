@@ -87,6 +87,20 @@ int Graphics::Draw(lua_State * L)
     return 0;
 }
 
+//love.graphics.setScreen
+int Graphics::SetScreen(lua_State * L)
+{
+	string screen = luaL_checkstring(L, 1);
+
+	gfxScreen_t switchScreen = GFX_TOP;
+	if (screen == "bottom")
+		switchScreen = GFX_BOTTOM;
+
+	currentScreen = switchScreen;
+
+	return 0;
+}
+
 //love.graphics.getWidth
 int Graphics::GetWidth(lua_State * L)
 {
@@ -262,8 +276,8 @@ int Graphics::Register(lua_State * L)
         { "circle",             Circle             },
         //{ "setDefaultFilter",   SetDefaultFilter   },*/
         { "getRendererInfo",    GetRendererInfo    },
-        /*{ "setFont",          SetFont            },
-        { "setScreen",          SetScreen          },*/
+        /*{ "setFont",          SetFont            },*/
+        { "setScreen",          SetScreen          },
         { "setBackgroundColor", SetBackgroundColor },
         { "setColor",           SetColor           },
         /*{ "push",             Push               },

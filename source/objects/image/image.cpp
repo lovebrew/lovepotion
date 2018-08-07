@@ -162,6 +162,6 @@ void Image::LoadImage(u32 * buffer)
     delete[] buffer;
 
     C3D_TexSetFilter(this->image.tex, GPU_LINEAR, GPU_LINEAR);
-    this->image.tex->border = 0xFFFFFFFF;
+    this->image.tex->border = 0x00FFFFFF;
     C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
