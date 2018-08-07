@@ -24,6 +24,8 @@ void love_push_userdata(lua_State * L, void * object);
 
 int love_get_registry(lua_State * L, REGISTRY registry);
 
+u32 NextPO2(u32 in);
+
 double clamp(double low, double x, double high);
 
 extern std::vector<std::string> KEYS;

@@ -8,7 +8,9 @@
 
 #include "objects/object/object.h"
 #include "objects/file/wrap_file.h"
+#include "objects/image/wrap_image.h"
 #include "objects/source/wrap_source.h"
+#include "objects/quad/wrap_quad.h"
 
 #include "modules/audio.h"
 #include "modules/filesystem.h"
@@ -42,9 +44,9 @@ int Love::Initialize(lua_State * L)
         initChannelClass,*/
         initFileClass,
         /*initFontClass,
-        initGamepadClass,
+        initGamepadClass,*/
         initImageClass,
-        initQuadClass,*/
+        initQuadClass,
         initSourceClass,
         //initThreadClass,
         NULL
@@ -118,6 +120,7 @@ int Love::Run(lua_State * L)
         luaL_error(L, "%s", lua_tostring(L, -1));
     
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
     Graphics::Clear(GFX_TOP, GFX_LEFT);
     
     if (luaL_dostring(L, LOVE_DRAW))

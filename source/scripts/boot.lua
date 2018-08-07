@@ -198,12 +198,12 @@ function love.errhand(message)
     
     love.filesystem.write("log.txt", realError)
     
-    --[[love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
+    love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
     love.graphics.clear()
 
     love.graphics.setColor(1, 1, 1, 1)
     
-    headerFont = love.graphics.newFont(32)
+    --[[headerFont = love.graphics.newFont(32)
     buttonFont = love.graphics.newFont(24)
 
     local error_img = love.graphics.newImage("error");

@@ -79,9 +79,9 @@ int tcpBind(lua_State * L)
 
     //socket.bind
     if (lua_type(L, 1) != LUA_TUSERDATA)
-	{
+    {
         ip = luaL_checkstring(L, 1);
-	    port = luaL_checkinteger(L, 2);
+        port = luaL_checkinteger(L, 2);
 
         int ret = tcpNew(L);
 
@@ -98,7 +98,7 @@ int tcpBind(lua_State * L)
         TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
         
         ip = luaL_checkstring(L, 2);
-	    port = luaL_checkinteger(L, 3);
+        port = luaL_checkinteger(L, 3);
 
         succ = self->Bind(ip, port);
 
@@ -107,7 +107,7 @@ int tcpBind(lua_State * L)
         return succ;
     }
 
-	return 0;
+    return 0;
 }
 
 int tcpReceive(lua_State * L)
@@ -158,14 +158,14 @@ int tcpClose(lua_State * L)
 
 int tcpGC(lua_State * L)
 {
-	int ret = tcpClose(L);
+    int ret = tcpClose(L);
 
     return ret;
 }
 
 int tcpToString(lua_State * L)
 {
-	TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     char * data = self->ToString();
 
@@ -178,7 +178,7 @@ int tcpToString(lua_State * L)
 
 int initTCPClass(lua_State * L)
 {
-	luaL_Reg reg[] = 
+    luaL_Reg reg[] = 
     {
         { "__gc",        tcpGC          },
         { "__tostring",  tcpToString    },
@@ -186,7 +186,7 @@ int initTCPClass(lua_State * L)
         { "bind",        tcpBind        },
         { "close",       tcpClose       },
         { "getsockname", tcpGetSockName },
-        { "new",		 tcpNew         },
+        { "new",         tcpNew         },
         { "receive",     tcpReceive     },
         { "send",        tcpSend        },
         { "settimeout",  tcpSetTimeout  },

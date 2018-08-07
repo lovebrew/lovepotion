@@ -87,7 +87,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -ljansson -lpng -lcitro2d -lcitro3d -lctru -lm
+LIBS	:=  -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -ljansson -lpng -lz -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

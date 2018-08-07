@@ -1,3 +1,3 @@
 function love.conf(t)
-	t.identity = "gfx"
+	t.identity = "NO GAME"
 end

@@ -87,6 +87,18 @@ int love_get_registry(lua_State * L, REGISTRY registry)
     }
 }
 
+u32 NextPO2(u32 in)
+{
+    in--;
+    in |= in >> 1;
+    in |= in >> 2;
+    in |= in >> 4;
+    in |= in >> 8;
+    in |= in >> 16;
+    in++;
+    return in >= 8 ? in : 8;
+}
+
 double clamp(double low, double value, double high)
 {
     return std::min(high, std::max(low, value));
@@ -121,14 +133,14 @@ std::map<int, std::string> LANGUAGES =
 
 std::vector<std::string> KEYS =
 {
-	"a", "b", "select", "start",
-	"right", "left", "up", "down",
-	"r", "l", "x", "y",
-	"", "", "lz", "rz",
-	"", "", "", "",
-	"touch", "", "", "", "cstickright",
-	"cstickleft", "cstickup", "cstickdown",
-	"cpadright", "cpadleft", "cpadup", "cpaddown"
+    "a", "b", "select", "start",
+    "right", "left", "up", "down",
+    "r", "l", "x", "y",
+    "", "", "lz", "rz",
+    "", "", "", "",
+    "touch", "", "", "", "cstickright",
+    "cstickleft", "cstickup", "cstickdown",
+    "cpadright", "cpadleft", "cpadup", "cpaddown"
 };
 
 std::vector<std::string> GAMEPAD_AXES =

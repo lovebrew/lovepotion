@@ -11,9 +11,9 @@ void System::Initialize()
     */
 
     cfguInit();
-	ptmuInit();
-	acInit();
-	mcuHwcInit();
+    ptmuInit();
+    acInit();
+    mcuHwcInit();
 
     osSetSpeedupEnable(true);
 }
@@ -32,12 +32,12 @@ int System::GetOS(lua_State * L)
 //love.system.getProcessorCount
 int System::GetProcessorCount(lua_State * L)
 {
-	u8 model;
-	CFGU_GetSystemModel(&model);
+    u8 model;
+    CFGU_GetSystemModel(&model);
 
-	int processorCount = 2;
-	if (model == 2 || model == 4)
-		processorCount = 4;
+    int processorCount = 2;
+    if (model == 2 || model == 4)
+        processorCount = 4;
 
     lua_pushnumber(L, processorCount);
 
@@ -49,21 +49,21 @@ int System::GetPowerInfo(lua_State * L)
 {   
     u8 batteryPercent = 100;
 
-	MCUHWC_GetBatteryLevel(&batteryPercent);
-	
-	u8 batteryStateBool;
-	PTMU_GetBatteryChargeState(&batteryStateBool);
-	
-	std::string batteryState = "battery";
-	if (batteryStateBool == 1)
-		batteryState = "charging";
-	else if (batteryStateBool == 1 && batteryPercent == 100)
-		batteryState = "charged";
+    MCUHWC_GetBatteryLevel(&batteryPercent);
+    
+    u8 batteryStateBool;
+    PTMU_GetBatteryChargeState(&batteryStateBool);
+    
+    std::string batteryState = "battery";
+    if (batteryStateBool == 1)
+        batteryState = "charging";
+    else if (batteryStateBool == 1 && batteryPercent == 100)
+        batteryState = "charged";
 
-	lua_pushstring(L, batteryState.c_str());
-	lua_pushnumber(L, batteryPercent);
-	lua_pushnil(L);
-	
+    lua_pushstring(L, batteryState.c_str());
+    lua_pushnumber(L, batteryPercent);
+    lua_pushnil(L);
+    
     return 3;
 }
 
@@ -81,7 +81,7 @@ int System::GetRegion(lua_State * L)
 //love.system.getLanguage
 int System::GetLanguage(lua_State * L)
 {
-	u8 language;
+    u8 language;
     CFGU_GetSystemLanguage(&language);
 
     lua_pushstring(L, LANGUAGES[language].c_str());
@@ -115,17 +115,17 @@ int System::GetUsername(lua_State * L)
 {
     u16 utf16_username[0x1C] = {0};
 
-	CFGU_GetConfigInfoBlk2(0x1C, 0x000A0000, (u8 *)utf16_username);
-	
-	ssize_t utf8_len = utf16_to_utf8(NULL, utf16_username, 0);
+    CFGU_GetConfigInfoBlk2(0x1C, 0x000A0000, (u8 *)utf16_username);
+    
+    ssize_t utf8_len = utf16_to_utf8(NULL, utf16_username, 0);
 
-	string username = {'\0', utf8_len};
+    string username = {'\0', utf8_len};
 
-	utf16_to_utf8((uint8_t *)username.data(), utf16_username, utf8_len);
+    utf16_to_utf8((uint8_t *)username.data(), utf16_username, utf8_len);
 
-	username[utf8_len] = '\0';
+    username[utf8_len] = '\0';
 
-	lua_pushstring(L, username.c_str());
+    lua_pushstring(L, username.c_str());
 
     return 1;
 }
@@ -134,9 +134,9 @@ int System::GetUsername(lua_State * L)
 
 void System::Exit()
 {
-	ptmuExit();
-	cfguExit();
-	acExit();
+    ptmuExit();
+    cfguExit();
+    acExit();
     mcuHwcExit();
 }
 
