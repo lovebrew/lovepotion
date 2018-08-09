@@ -2,6 +2,7 @@
 
 #include "socket/objects/socket.h"
 #include "socket/objects/udp/wrap_udp.h"
+#include "socket/objects/tcp/wrap_tcp.h"
 
 /*
 ** Native LuaSocket Implementation
@@ -10,16 +11,19 @@
 ** for more details on using LuaSocket
 */
 
+Result SOCKETS_INIT;
+
 int LuaSocket::Initialize(lua_State * L)
 {
-    Result ret = socketInitializeDefault();
+    SOCKETS_INIT = socketInitializeDefault();
 
-    if (ret != 0)
+    if (SOCKETS_INIT != 0)
         Love::RaiseError("Failed to load LuaSocket!");
 
     int (*classes[])(lua_State *L) = 
     {
         initUDPClass,
+        initTCPClass,
         NULL,
     };
 
@@ -31,7 +35,9 @@ int LuaSocket::Initialize(lua_State * L)
 
     luaL_Reg reg[] = 
     {
-        { "udp", udpNew },
+        { "udp",    udpNew  },
+        { "tcp",    tcpNew  },
+        { "bind",   tcpBind },
         { 0, 0 },
     };
 

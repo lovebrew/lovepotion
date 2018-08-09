@@ -3,10 +3,11 @@
 class TCP : public Socket
 {
     public:
-        TCP() : Socket(SOCK_STREAM) {};
+        TCP();
+        TCP(int sockfd);
 
         int Accept();
-        int Listen();
+        void Listen();
 
         virtual int SetOption(const std::string & option, int value);
 };

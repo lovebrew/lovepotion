@@ -277,7 +277,7 @@ if love.filesystem.isFile("main.lua") then
         return
     end
 else
-    local result = xpcall(gameFailure, love.errhand)
+    local result = xpcall(love._nogame, love.errhand)
     if not result then
         return
     end

@@ -240,7 +240,7 @@ int Graphics::SetDefaultFilter(lua_State * L)
 //love.graphics.getFont
 int Graphics::GetFont(lua_State * L)
 {
-	love_push_userdata(L, currentFont);
+    love_push_userdata(L, currentFont);
 
     return 1;
 }

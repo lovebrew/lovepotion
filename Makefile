@@ -50,7 +50,8 @@ SOURCES			:=	source \
 				$(SRC_OBJS) \
 				$(EXT_LIBS)
 
-DATA        :=    source/scripts
+DATA		:=	source/scripts \
+				source/scripts/nogame
 
 INCLUDES	:=	include \
 				include/common \

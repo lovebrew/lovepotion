@@ -10,13 +10,11 @@
 int imageNew(lua_State * L)
 {
     bool memory = false;
-    lua_getglobal(L, "in_error");
-    if (lua_type(L, -1) == LUA_TBOOLEAN && lua_toboolean(L, -1) == 1)
-        memory = true;
-    
-    lua_setglobal(L, "in_error");
-    
+
     const char * path = luaL_checkstring(L, 1);
+
+    if (strncmp(path, "nogame:", 7) == 0 || strncmp(path, "error:", 6) == 0)
+        memory = true;
 
     if (!memory)
         LOVE_VALIDATE_FILE_EXISTS(path);

@@ -6,4 +6,7 @@ class Image : public Drawable
         Image() {};
         Image(const char * path, bool memory);
         ~Image();
+
+    private:
+        SDL_Surface * GetMemoryImage(const char * path);
 };
