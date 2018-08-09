@@ -273,10 +273,7 @@ if love.filesystem.getInfo("main.lua") then
         return
     end
 else
-    local result = xpcall(gameFailure, love.errhand)
-    if not result then
-        return
-    end
+    xpcall(love._nogame, love.errhand)
 end
 
 if love.timer then

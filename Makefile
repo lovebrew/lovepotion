@@ -56,7 +56,9 @@ SOURCES			:=	source \
 					$(EXT_LIBS) \
 					$(LUASOCKET)
 
-DATA			:=  source/scripts
+DATA			:=  source/scripts \
+					source/scripts/nogame
+
 ROMFS			:=	game
 
 APP_TITLE		:= Löve Potion

@@ -19,6 +19,8 @@
 #include "modules/timer.h"
 #include "modules/system.h"
 
+#include "nogame_lua.h"
+
 struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
     { "audio",      Audio::Register,      Audio::Exit      },
@@ -63,6 +65,7 @@ int Love::Initialize(lua_State * L)
         { "enableConsole", EnableConsole    },
         { "getVersion",    GetVersion       },
         { "run",           Run              },
+        { "_nogame",       NoGame           },
         //{ "scan",          Event::PollEvent },
         { 0, 0 }
     };
@@ -168,10 +171,7 @@ int Love::EnableConsole(lua_State * L)
 
 int Love::NoGame(lua_State * L)
 {
-    chdir("romfs:/");
-
-    if (luaL_dofile(L, "main.lua"))
-        return luaL_error(L, "%s", lua_tostring(L, -1));
+    luaL_dobuffer(L, (char *)nogame_lua, nogame_lua_size, "nogame");
 
     return 0;
 }

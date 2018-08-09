@@ -5,20 +5,66 @@
 #define NO_APLHA (PNG_COLOR_TYPE_RGB | PNG_COLOR_TYPE_GRAY | PNG_COLOR_TYPE_PALETTE)
 #define GRAYSCALE (PNG_COLOR_TYPE_GRAY | PNG_COLOR_TYPE_GRAY_ALPHA)
 
+#include "screen_png.h"
+#include "bottom_png.h"
+#include "eye_png.h"
+#include "nogame_png.h"
+
 Image::Image(const char * path, bool memory)
 {
+    u32 * outBuffer = nullptr;
+
     if (!memory)
     {
-        u32 * outBuffer = this->LoadPNG(path, -1);
+        outBuffer = this->LoadPNG(path, NULL, -1);
+        this->LoadImage(outBuffer);
+    }
+    else
+    {
+        int size;
+        char * buffer = this->GetMemoryImage(path, &size);
+
+        outBuffer = this->LoadPNG(NULL, buffer, size);
         this->LoadImage(outBuffer);
     }
 }
 
-u32 * Image::LoadPNG(const char * path, size_t memorySize)
+char * Image::GetMemoryImage(const char * path, int * size)
+{
+    string name = path;
+    name = name.substr(name.find(":") + 1);
+
+    if (name == "screen")
+    {
+        *size = screen_png_size;
+        return (char *)screen_png;
+    }
+    else if (name == "bottom")
+    {
+        *size = bottom_png_size;
+        return (char *)bottom_png;
+    }
+    else if (name == "eye")
+    {
+        *size = eye_png_size;
+        return (char *)eye_png;
+    }
+    else if (name == "nogame")
+    {
+        *size = nogame_png_size;
+        return (char *)nogame_png;
+    }
+}
+
+u32 * Image::LoadPNG(const char * path, char * buffer, size_t memorySize)
 {
     u32 * out = nullptr;
+    FILE * input;
 
-    FILE * input = fopen(path, "rb");
+    if (memorySize == -1)
+        input = fopen(path, "rb");
+    else
+        input = fmemopen(buffer, memorySize, "rb");
 
     if (!input)
         return nullptr;
