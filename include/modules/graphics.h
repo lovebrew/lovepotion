@@ -10,9 +10,6 @@ namespace Graphics
     void Initialize();
     bool IsInitialized();
 
-    float GetXScale();
-    float GetYScale();
-	
     //Löve2D Functions
 
     int GetWidth(lua_State * L);
