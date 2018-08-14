@@ -79,9 +79,9 @@ int tcpBind(lua_State * L)
 
     //socket.bind
     if (lua_type(L, 1) != LUA_TUSERDATA)
-    {
+	{
         ip = luaL_checkstring(L, 1);
-        port = luaL_checkinteger(L, 2);
+	    port = luaL_checkinteger(L, 2);
 
         int ret = tcpNew(L);
 
@@ -98,7 +98,7 @@ int tcpBind(lua_State * L)
         TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
         
         ip = luaL_checkstring(L, 2);
-        port = luaL_checkinteger(L, 3);
+	    port = luaL_checkinteger(L, 3);
 
         succ = self->Bind(ip, port);
 
@@ -107,7 +107,7 @@ int tcpBind(lua_State * L)
         return succ;
     }
 
-    return 0;
+	return 0;
 }
 
 int tcpReceive(lua_State * L)
@@ -115,11 +115,10 @@ int tcpReceive(lua_State * L)
     char buffer[SOCKET_BUFFERSIZE];
     
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
-
     const char * pattern = luaL_optstring(L, 2, "*l");
-    int receiveBytes = luaL_optnumber(L, 3, -1);
+    size_t bytes = luaL_optnumber(L, 3, SOCKET_BUFFERSIZE);
 
-    self->Receive(buffer, pattern, receiveBytes);
+    self->Receive(buffer, pattern, bytes);
 
     lua_pushstring(L, buffer);
     lua_pushnil(L);
@@ -133,9 +132,6 @@ int tcpSend(lua_State * L)
 
     size_t stringLength;
     string datagram = luaL_checklstring(L, 2, &stringLength);
-
-    if (lua_isnumber(L, 3))
-        stringLength = luaL_checkinteger(L, 3);
     
     int sent = self->Send(datagram.c_str(), stringLength);
 
@@ -144,6 +140,12 @@ int tcpSend(lua_State * L)
 
 int tcpSetTimeout(lua_State * L)
 {
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    double timeout = luaL_optnumber(L, 2, -1);
+
+    self->SetTimeout(timeout);
+
     return 0;
 }
 
@@ -158,14 +160,14 @@ int tcpClose(lua_State * L)
 
 int tcpGC(lua_State * L)
 {
-    int ret = tcpClose(L);
+	int ret = tcpClose(L);
 
     return ret;
 }
 
 int tcpToString(lua_State * L)
 {
-    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+	TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     char * data = self->ToString();
 
@@ -178,7 +180,7 @@ int tcpToString(lua_State * L)
 
 int initTCPClass(lua_State * L)
 {
-    luaL_Reg reg[] = 
+	luaL_Reg reg[] = 
     {
         { "__gc",        tcpGC          },
         { "__tostring",  tcpToString    },
@@ -186,7 +188,7 @@ int initTCPClass(lua_State * L)
         { "bind",        tcpBind        },
         { "close",       tcpClose       },
         { "getsockname", tcpGetSockName },
-        { "new",         tcpNew         },
+        { "new",		 tcpNew         },
         { "receive",     tcpReceive     },
         { "send",        tcpSend        },
         { "settimeout",  tcpSetTimeout  },

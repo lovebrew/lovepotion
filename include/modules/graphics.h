@@ -15,6 +15,7 @@ namespace Graphics
     int Present(lua_State * L);
 
     int Draw(lua_State * L);
+    int Print(lua_State * L);
 
     int SetBackgroundColor(lua_State * L);
     int SetColor(lua_State * L);
@@ -25,6 +26,7 @@ namespace Graphics
     int GetRendererInfo(lua_State * L);
 
     int SetScreen(lua_State * L);
+    int SetFont(lua_State * L);
 
     //End Löve2D Functions
     C3D_RenderTarget * GetScreen(gfxScreen_t screen, gfx3dSide_t side);

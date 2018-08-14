@@ -19,6 +19,7 @@ extern "C"
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <png.h>
+#include <jansson.h>
 
 //C++ headers
 #include <exception>
@@ -52,3 +53,4 @@ extern "C"
 
 using std::string;
 using std::vector;
+using std::map;

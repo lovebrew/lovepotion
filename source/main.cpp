@@ -32,6 +32,8 @@ bool LOVE_QUIT = false;
 
 int main(int argc, char **argv)
 {
+    Console::Initialize();
+
     System::Initialize();
 
     Audio::Initialize();

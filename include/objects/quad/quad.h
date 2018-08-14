@@ -7,6 +7,7 @@ class Quad : public Object
         Quad(float subTextureX, float subTextureY, float subTextureWidth, float subTextureHeight, float atlasWidth, float atlasHeight);
 
         void SetSubTexture(Tex3DS_SubTexture * subTexture);
+        Tex3DS_SubTexture GetSubTexture();
 
     private:
         float width;
@@ -17,4 +18,6 @@ class Quad : public Object
 
         float u1;
         float v1;
+
+        Tex3DS_SubTexture subTexture;
 };

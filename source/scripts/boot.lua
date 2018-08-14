@@ -45,8 +45,8 @@ end
 in_error = false
 love.filesystem.setIdentity(config.identity)
 
---[[__defaultFont = love.graphics.newFont()
-love.graphics.setFont(__defaultFont)]]
+__defaultFont = love.graphics.newFont()
+love.graphics.setFont(__defaultFont)
 
 function love.createhandlers()
     -- Standard callback handlers.

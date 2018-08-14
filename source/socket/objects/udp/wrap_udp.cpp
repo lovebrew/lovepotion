@@ -28,6 +28,9 @@ int udpSend(lua_State * L)
     size_t length = 0;
     const char * datagram = luaL_checklstring(L, 2, &length);
 
+    if (!lua_isnoneornil(L, 3) && lua_type(L, 3) == LUA_TNUMBER)
+        length = luaL_checknumber(L, 3);
+
     int sent = self->Send(datagram, length);
 
     if (sent < 0)
@@ -94,13 +97,11 @@ int udpSetSockName(lua_State * L)
 int udpReceiveFrom(lua_State * L)
 {
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    size_t bytes = luaL_optnumber(L, 2, SOCKET_BUFFERSIZE);
 
     Datagram datagram;
 
-    datagram.buffer = (char *)calloc(SOCKET_BUFFERSIZE, sizeof(char));
-    datagram.ip = (char *)calloc(0x40, sizeof(char));
-
-    int length = self->ReceiveFrom(datagram);
+    int length = self->ReceiveFrom(datagram, bytes);
 
     if (length == 0)
     {
@@ -119,19 +120,15 @@ int udpReceiveFrom(lua_State * L)
 int udpReceive(lua_State * L)
 {
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
-    size_t bytes = luaL_optnumber(L, 2, -1);
+    size_t bytes = luaL_optnumber(L, 2, SOCKET_BUFFERSIZE);
 
     char buffer[SOCKET_BUFFERSIZE];
-    
     int length = self->Receive(buffer, NULL, bytes);
 
     if (length == 0)
-    {
         lua_pushnil(L);
-        return 1;
-    }
-
-    lua_pushstring(L, buffer);
+    else
+        lua_pushstring(L, buffer);
 
     return 1;
 }

@@ -8,6 +8,9 @@
 #include "objects/quad/wrap_quad.h"
 #include "objects/quad/quad.h"
 
+#include "objects/font/wrap_font.h"
+#include "objects/font/font.h"
+
 bool GFX_INIT = false;
 
 //Screen Stuff
@@ -22,6 +25,8 @@ C3D_RenderTarget * bottomTarget = nullptr;
 
 Color backgroundColor = { 0, 0, 0, 1 };
 Color drawColor = { 1, 1, 1, 1 };
+
+Font * currentFont = nullptr;
 
 void Graphics::Initialize()
 {
@@ -87,6 +92,24 @@ int Graphics::Draw(lua_State * L)
     return 0;
 }
 
+//love.graphics.print
+int Graphics::Print(lua_State * L)
+{
+    if (currentFont == nullptr)
+        return 0;
+
+    size_t length;
+    const char * text = luaL_checklstring(L, 1, &length);
+
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
+
+    if (currentScreen == renderScreen)
+        currentFont->Print(text, length, x, y, drawColor);
+
+    return 0;
+}
+
 //love.graphics.setScreen
 int Graphics::SetScreen(lua_State * L)
 {
@@ -99,6 +122,17 @@ int Graphics::SetScreen(lua_State * L)
 	currentScreen = switchScreen;
 
 	return 0;
+}
+
+//love.graphics.setFont
+int Graphics::SetFont(lua_State * L)
+{
+    Font * self = (Font *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_FONT);
+
+    if (self != nullptr)
+        currentFont = self;
+
+    return 0;
 }
 
 //love.graphics.getWidth
@@ -264,19 +298,19 @@ int Graphics::Register(lua_State * L)
     {
         { "newImage",           imageNew           },
         { "newQuad",            quadNew            },
-        /*{ "newFont",            fontNew            },*/
+        { "newFont",            fontNew            },
         { "getWidth",           GetWidth           },
         { "getHeight",          GetHeight          },
         { "draw",               Draw               },
-        /*{ "print",              Print              },
-        { "rectangle",          Rectangle          },
+        { "print",              Print              },
+        /*{ "rectangle",          Rectangle          },
         { "set3D",              Set3D              },
         { "setDepth",           SetDepth           },
         { "setScissor",         SetScissor         },
         { "circle",             Circle             },
         //{ "setDefaultFilter",   SetDefaultFilter   },*/
         { "getRendererInfo",    GetRendererInfo    },
-        /*{ "setFont",          SetFont            },*/
+        { "setFont",            SetFont            },
         { "setScreen",          SetScreen          },
         { "setBackgroundColor", SetBackgroundColor },
         { "setColor",           SetColor           },

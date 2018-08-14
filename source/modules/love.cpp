@@ -8,6 +8,7 @@
 
 #include "objects/object/object.h"
 #include "objects/file/wrap_file.h"
+#include "objects/font/wrap_font.h"
 #include "objects/image/wrap_image.h"
 #include "objects/source/wrap_source.h"
 #include "objects/quad/wrap_quad.h"
@@ -45,8 +46,8 @@ int Love::Initialize(lua_State * L)
         /*initCanvasClass,
         initChannelClass,*/
         initFileClass,
-        /*initFontClass,
-        initGamepadClass,*/
+        initFontClass,
+        //initGamepadClass,
         initImageClass,
         initQuadClass,
         initSourceClass,

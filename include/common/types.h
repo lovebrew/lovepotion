@@ -5,6 +5,7 @@
 #include <map>
 
 #include "socket/common.h"
+#include <citro2d.h>
 
 typedef struct
 {
@@ -51,6 +52,24 @@ typedef struct
     float b;
     float a;
 } Color;
+
+typedef struct
+{
+    int id;
+
+    int xoffset;
+    int yoffset;
+
+    int xadvance;
+
+    Tex3DS_SubTexture subTexture;
+} Glyph;
+
+typedef struct
+{
+    int next;
+    int amount;
+} Kerning;
 
 extern std::vector<const char *> FILE_MODES;
 
