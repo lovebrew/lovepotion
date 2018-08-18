@@ -3,10 +3,7 @@
 #include "socket/objects/socket.h"
 #include "socket/objects/udp/udp.h"
 
-UDP::UDP() : Socket(SOCK_DGRAM)
-{
-
-}
+UDP::UDP() : Socket(SOCK_DGRAM) {}
 
 int UDP::SetSockName(const string & ip, int port)
 {
@@ -22,7 +19,7 @@ int UDP::SetPeerName(const string & ip, int port)
     return success;
 }
 
-int UDP::SendTo(const char * datagram, size_t len, const char * destination, int port)
+int UDP::SendTo(const char * datagram, size_t length, const char * destination, int port)
 {
     struct hostent * hostInfo = gethostbyname(destination);
 
@@ -35,25 +32,19 @@ int UDP::SendTo(const char * datagram, size_t len, const char * destination, int
     addressTo.sin_port = htons(port);
     addressTo.sin_family = AF_INET;
 
-    size_t sent = sendto(this->sockfd, datagram, len, 0, (struct sockaddr *)&addressTo, sizeof(addressTo));
+    socklen_t addressLength = sizeof(addressTo);
 
+    size_t sent = sendto(this->sockfd, datagram, length, 0, (struct sockaddr *)&addressTo, addressLength);
+    
     return sent;
 }
 
-int UDP::Send(const char * datagram, size_t length)
-{
-    int sent = this->SendTo(datagram, length, this->ip.c_str(), this->port);
-    printf("Sent %s (%dB)\n", datagram, sent);
-
-    return sent;
-}
-
-int UDP::ReceiveFrom(Datagram & datagram)
+int UDP::ReceiveFrom(Datagram & datagram, size_t bytes)
 {
     struct sockaddr_in fromAddress = {0};
-    socklen_t addressLength;
+    socklen_t addressLength = sizeof(fromAddress);
 
-    int length = recvfrom(this->sockfd, datagram.buffer, SOCKET_BUFFERSIZE - 1, 0, (struct sockaddr *)&fromAddress, &addressLength);
+    int length = recvfrom(this->sockfd, datagram.buffer, bytes, 0, (struct sockaddr *)&fromAddress, &addressLength);
 
     if (length <= 0)
         return 0;

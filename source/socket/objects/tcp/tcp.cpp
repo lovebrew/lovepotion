@@ -9,10 +9,7 @@ TCP::TCP(int sockfd) : Socket(SOCK_STREAM, sockfd) {}
 
 int TCP::Accept()
 {
-    struct sockaddr_in fromAddress;
-    u32 addressLength = sizeof(fromAddress);
-
-    memset(&fromAddress, 0, sizeof(fromAddress));
+    struct sockaddr_in fromAddress = {0};
 
     int event = poll(&this->pollfd, 1, this->timeout);
 

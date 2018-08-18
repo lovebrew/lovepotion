@@ -19,9 +19,10 @@ void System::Initialize()
 //love.system.getOS
 int System::GetOS(lua_State * L)
 {
-    lua_pushstring(L, "HorizonNX");
+    lua_pushstring(L, "Horizon");
+    lua_pushstring(L, "Switch");
 
-    return 1;
+    return 2;
 }
 
 //love.system.getProcessorCount

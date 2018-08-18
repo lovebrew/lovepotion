@@ -100,6 +100,8 @@ int Love::Initialize(lua_State * L)
         printf("Created _loveobjects!\n");
     }
 
+    socketInitializeDefault();
+
     loveState = L;
 
     return 1;

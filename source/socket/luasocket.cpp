@@ -11,15 +11,8 @@
 ** for more details on using LuaSocket
 */
 
-Result SOCKETS_INIT;
-
 int LuaSocket::Initialize(lua_State * L)
 {
-    SOCKETS_INIT = socketInitializeDefault();
-
-    if (SOCKETS_INIT != 0)
-        Love::RaiseError("Failed to load LuaSocket!");
-
     int (*classes[])(lua_State *L) = 
     {
         initUDPClass,

@@ -210,8 +210,8 @@ function love.errhand(message)
     headerFont = love.graphics.newFont(32)
     buttonFont = love.graphics.newFont(24)
 
-    local error_img = love.graphics.newImage("error");
-    local plus_img = love.graphics.newImage("plus");
+    local error_img = love.graphics.newImage("error:warn");
+    local plus_img = love.graphics.newImage("error:plus");
 
     local function draw()
         love.graphics.clear()

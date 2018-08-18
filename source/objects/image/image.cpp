@@ -6,7 +6,7 @@
 #include "objects/image/image.h"
 #include "modules/window.h"
 
-#include "error_png.h"
+#include "warn_png.h"
 #include "plus_png.h"
 
 #include "dog_png.h"
@@ -44,7 +44,7 @@ SDL_Surface * Image::GetMemoryImage(const char * path)
     string name = path;
     name = name.substr(name.find(":") + 1);
 
-    SDL_Surface * returnSurface;
+    SDL_Surface * returnSurface = NULL;
 
     if (name == "dog")
         returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)dog_png, dog_png_size), 1);
@@ -60,8 +60,8 @@ SDL_Surface * Image::GetMemoryImage(const char * path)
         returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)tongue_png, tongue_png_size), 1);
     else if (name == "cloud")
         returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)cloud_png, cloud_png_size), 1);
-    else if (name == "error")
-        returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)error_png, error_png_size), 1);
+    else if (name == "warn")
+        returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)warn_png, warn_png_size), 1);
     else
         returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)plus_png, plus_png_size), 1);
 

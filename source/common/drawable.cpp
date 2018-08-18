@@ -27,13 +27,13 @@ void Drawable::Draw(SDL_Rect * quad, double x, double y, double rotation, double
     
     if (this->surface != NULL)
     {
-        /*if (this->horScale != scalarX)
+        if (this->horScale != scalarX)
         {
             this->changedSurface = rotozoomSurfaceXY(this->surface, rotation, scalarX, scalarY, 0);
             SDL_SetSurfaceBlendMode(this->changedSurface, SDL_BLENDMODE_BLEND);
 
             this->horScale = scalarX;
-        }*/
+        }
 
         SDL_SetSurfaceColorMod(this->surface, color.r, color.g, color.b);
         SDL_SetSurfaceAlphaMod(this->surface, color.a);

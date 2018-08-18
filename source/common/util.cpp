@@ -81,7 +81,6 @@ bool love_is_registered(lua_State * L, void * object)
     return valid;
 }
 
-FILE * logFile = fopen("sdmc:/stackdump.txt", "w");
 void stack_dump(lua_State * L) {
     int i;
     int top = lua_gettop(L);

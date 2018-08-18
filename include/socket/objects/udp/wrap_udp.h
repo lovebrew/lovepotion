@@ -14,4 +14,6 @@ int udpGC(lua_State * L);
 
 int udpToString(lua_State * L);
 
+int udpSetTimeout(lua_State * L);
+
 int initUDPClass(lua_State * L);

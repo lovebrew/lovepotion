@@ -36,9 +36,6 @@ Socket::Socket(int protocol, int sockfd) : Object("Socket")
 
 void Socket::Create()
 {
-    //if (this->sockfd < 0)
-    //    Love::RaiseError("Failed to create %s socket. %s.", this->GetType(protocol), strerror(errno));
-    
     memset(&this->address, 0, sizeof(this->address));
 
     this->address.sin_family = AF_INET;
@@ -84,9 +81,9 @@ int Socket::Bind(const string & ip, int port)
     return 1;
 }
 
-int Socket::Receive(char * outBuffer)
+int Socket::Receive(char * outBuffer, const char * pattern, int size)
 {
-    int length = recv(this->sockfd, outBuffer, SOCKET_BUFFERSIZE, 0);
+    int length = recv(this->sockfd, outBuffer, size, 0);
 
     if (length <= 0)
         return 0;
@@ -161,6 +158,11 @@ void Socket::SetSocketData(const string & destination, int port)
 bool Socket::IsConnected()
 {
     return this->connected;
+}
+
+void Socket::SetTimeout(double timeout)
+{
+    this->timeout = timeout;
 }
 
 int Socket::Close()

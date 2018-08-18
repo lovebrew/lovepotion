@@ -23,6 +23,8 @@ bool isInitialized = false;
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
 SDL_Color drawColor = { 255, 255, 255, 255 };
 
+float lineWidth = 2.0f;
+
 Font * currentFont = NULL;
 
 vector<StackMatrix> stack;
@@ -218,6 +220,7 @@ int Graphics::Draw(lua_State * L)
     SDL_Rect quadRectangle;
 
     transformDrawable(&x, &y);
+
     x -= offsetX;
     y -= offsetY;
 
@@ -397,6 +400,22 @@ int Graphics::Circle(lua_State * L)
     return 0;
 }
 
+//love.graphics.setLineWidth
+int Graphics::SetLineWidth(lua_State * L)
+{
+    lineWidth = luaL_checknumber(L, 1);
+
+    return 0;
+}
+
+//love.graphics.getLineWidth
+int Graphics::GetLineWidth(lua_State * L)
+{
+    lua_pushnumber(L, lineWidth);
+
+    return 1;
+}
+
 //love.graphics.line
 int Graphics::Line(lua_State * L)
 {
@@ -428,7 +447,7 @@ int Graphics::Line(lua_State * L)
 
                 lua_pop(L, 4);
 
-                lineRGBA(Window::GetRenderer(), startx, starty, endx, endy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+                thickLineRGBA(Window::GetRenderer(), startx, starty, endx, endy, lineWidth, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
             }
         }
     }
@@ -445,7 +464,7 @@ int Graphics::Line(lua_State * L)
             endx = luaL_checknumber(L, i + 3);
             endy = luaL_checknumber(L, i + 4);
 
-            lineRGBA(Window::GetRenderer(), startx, starty, endx, endy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+            thickLineRGBA(Window::GetRenderer(), startx, starty, endx, endy, lineWidth, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
         }
     }
 
@@ -651,6 +670,7 @@ int Graphics::Register(lua_State * L)
         { "getBackgroundColor", GetBackgroundColor },
         { "getFont",            GetFont            },
         { "getHeight",          GetHeight          },
+        { "getLineWidth",       GetLineWidth       },
         { "getRendererInfo",    GetRendererInfo    },
         { "getWidth",           GetWidth           },
         { "line",               Line               },
@@ -673,6 +693,7 @@ int Graphics::Register(lua_State * L)
         { "setColor",           SetColor           },
         { "setDefaultFilter",   SetDefaultFilter   },
         { "setFont",            SetFont            },
+        { "setLineWidth",       SetLineWidth       },
         { "setNewFont",         SetNewFont         },
         { "setScissor",         SetScissor         },
         { "shear",              Shear              },

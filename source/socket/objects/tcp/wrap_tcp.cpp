@@ -115,7 +115,10 @@ int tcpReceive(lua_State * L)
     char buffer[SOCKET_BUFFERSIZE];
     
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
-    self->Receive(buffer);
+    const char * pattern = luaL_optstring(L, 2, "*l");
+    size_t bytes = luaL_optnumber(L, 3, SOCKET_BUFFERSIZE);
+
+    self->Receive(buffer, pattern, bytes);
 
     lua_pushstring(L, buffer);
     lua_pushnil(L);
@@ -137,6 +140,12 @@ int tcpSend(lua_State * L)
 
 int tcpSetTimeout(lua_State * L)
 {
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    double timeout = luaL_optnumber(L, 2, -1);
+
+    self->SetTimeout(timeout);
+
     return 0;
 }
 

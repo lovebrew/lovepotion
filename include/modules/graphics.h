@@ -25,6 +25,9 @@ namespace Graphics
     int SetBackgroundColor(lua_State * L);
     int GetBackgroundColor(lua_State * L);
 
+    int SetLineWidth(lua_State * L);
+    int GetLineWidth(lua_State * L);
+
     int Push(lua_State * L);
     int Pop(lua_State * L);
     int Translate(lua_State * L);

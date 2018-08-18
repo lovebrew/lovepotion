@@ -15,7 +15,7 @@ class Socket : public Object
         std::string GetSockName();
         std::vector<Variant> GetPeerName();
 
-        int Receive(char * outBuffer);
+        int Receive(char * outBuffer, const char * pattern, int size);
         int Send(const char * datagram, size_t length);
 
         int SetOption(const std::string & option, int value);

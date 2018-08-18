@@ -37,8 +37,8 @@ typedef enum
 
 typedef struct
 {
-    char * buffer;
-    char * ip;
+    char buffer[SOCKET_BUFFERSIZE];
+    char ip[0x40];
     int port;
 } Datagram;
 
