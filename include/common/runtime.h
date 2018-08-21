@@ -15,13 +15,14 @@ extern "C"
 }
 
 //Libs
-#include <SDL.h>
+#include <curl/curl.h>
+#include <png.h>
+#include <SDL_image.h>
 #include <SDL_mixer.h>
 #include <SDL_ttf.h>
-#include <SDL_image.h>
-#include <SDL2_rotozoom.h>
+#include <SDL.h>
 #include <SDL2_gfxPrimitives.h>
-#include <png.h>
+#include <SDL2_rotozoom.h>
 
 //C++ headers
 #include <exception>

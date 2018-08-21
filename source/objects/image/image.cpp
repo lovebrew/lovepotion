@@ -36,6 +36,8 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     this->width = this->surface->w;
     this->height = this->surface->h;
 
+    this->viewport = {0, 0, this->width, this->height, this->width, this->height};
+
     SDL_FreeSurface(tempSurface);
 }
 

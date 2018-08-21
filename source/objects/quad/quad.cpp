@@ -1,40 +1,34 @@
-#include "runtime.h"
-#include "quad.h"
+#include "common/runtime.h"
+#include "objects/quad/quad.h"
 
 Quad::Quad(float subTextureX, float subTextureY, float subTextureWidth, float subTextureHeight, float atlasWidth, float atlasHeight) : Object("Quad")
 {
-    this->x = subTextureX;
-    this->y = subTextureY;
+    this->view.x = subTextureX;
+    this->view.y = subTextureY;
 
-    this->width = subTextureWidth;
-    this->height = subTextureHeight;
+    this->view.subWidth = subTextureWidth;
+    this->view.subHeight = subTextureWidth;
+
+    this->view.width = atlasWidth;
+    this->view.height = atlasHeight;
 }
 
 void Quad::SetViewport(int x, int y, int width, int height)
 {
-    this->x = x;
-    this->y = y;
+    this->view.x = x;
+    this->view.y = y;
 
-    this->width = width;
-    this->height = height;
+    this->view.subWidth = width;
+    this->view.subHeight = height;
 }
 
-int Quad::GetX()
+Viewport Quad::GetViewport()
 {
-    return this->x;
+    return this->view;
 }
 
-int Quad::GetY()
+void Quad::GetTextureDimensions(int width, int height)
 {
-    return this->y;
-}
-
-int Quad::GetWidth()
-{
-    return this->width;
-}
-
-int Quad::GetHeight()
-{
-    return this->height;
+    width = this->view.width;
+    height = this->view.height;
 }

@@ -42,6 +42,17 @@ typedef struct
     int port;
 } Datagram;
 
+typedef struct
+{
+    int x;
+    int y;
+    int subWidth;
+    int subHeight;
+
+    int width;
+    int height;
+} Viewport;
+
 extern std::vector<const char *> FILE_MODES;
 
 extern std::vector<const char *> SOURCE_TYPES;

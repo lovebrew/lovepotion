@@ -32,21 +32,32 @@
 
 #include "nogame_lua.h"
 
-struct { const char * name; int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
+struct { const char * name; void (*open)(void); int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
-    { "audio",      Audio::Register,      Audio::Exit      },
-    { "event",      Event::Register,      NULL             },
-    { "filesystem", Filesystem::Register, Filesystem::Exit },
-    { "graphics",   Graphics::Register,   NULL             },
-    { "joystick",   Joystick::Register,   NULL             },
-    { "math",       Math::Register,       NULL             },
-    { "system",     System::Register,     System::Exit     },
-    { "thread",     LoveThread::Register, LoveThread::Exit },
-    { "timer",      Timer::Register,      NULL             },
-    { "touch",      Touch::Register,      NULL             },
-    { "window",     Window::Register,     NULL             },
+    { "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
+    { "event",      NULL,                   Event::Register,      NULL             },
+    { "filesystem", Filesystem::Initialize, Filesystem::Register, Filesystem::Exit },
+    { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
+    { "joystick",   NULL,                   Joystick::Register,   NULL             },
+    { "math",       NULL,                   Math::Register,       NULL             },
+    { "system",     System::Initialize,     System::Register,     System::Exit     },
+    { "thread",     NULL,                   LoveThread::Register, LoveThread::Exit },
+    { "timer",      NULL,                   Timer::Register,      NULL             },
+    { "touch",      NULL,                   Touch::Register,      NULL             },
+    { "window",     Window::Initialize,     Window::Register,     NULL             },
     { 0 }
 };
+
+void Love::InitModules(lua_State * L)
+{
+    for (int i = 0; modules[i].name; i++)
+    {
+        if (modules[i].open)
+            modules[i].open();
+    }
+
+    Joystick::Initialize(L);
+}
 
 lua_State * loveState;
 int Love::Initialize(lua_State * L)
@@ -188,8 +199,11 @@ void Love::Exit(lua_State * L)
 {
     controllers.clear();
 
-    for (int i = 0; modules[i].close; i++)
-        modules[i].close();
+    for (int i = 0; modules[i].name; i++)
+    {
+        if (modules[i].close)
+            modules[i].close();
+    }
 
     lua_close(L);
 

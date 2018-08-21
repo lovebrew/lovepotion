@@ -3,11 +3,16 @@ class Drawable : public Object
     public:
         Drawable(char * type);
         Drawable() {};
-        void Draw(SDL_Rect * quad, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color);
+        void Draw(const Viewport & viewport, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color);
         ~Drawable();
 
         int GetWidth();
         int GetHeight();
+
+        Viewport GetViewport();
+
+    private:
+        SDL_Surface * Flip(SDL_Rect & quad, SDL_Rect & position, double rotation, double x, double y);
 
     protected:
         int width;
@@ -15,7 +20,8 @@ class Drawable : public Object
 
         SDL_Texture * texture;
         SDL_Surface * surface;
-        SDL_Surface * changedSurface;
+
+        Viewport viewport;
 
         double horScale;
 };

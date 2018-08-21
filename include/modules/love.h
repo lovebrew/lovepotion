@@ -12,6 +12,8 @@ namespace Love
 {
     int Initialize(lua_State * L);
 
+    void InitModules(lua_State * L);
+
     int GetVersion(lua_State * L);
 
     int EnableConsole(lua_State * L);

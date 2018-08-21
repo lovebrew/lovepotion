@@ -35,8 +35,8 @@ void transformDrawable(float * originalX, float * originalY) // rotate, scale, a
 
     StackMatrix & matrix = stack.back();
 
-    float newLeft = *originalX;
-    float newTop = *originalY;
+    //float newLeft = *originalX;
+    //float newTop = *originalY;
 
     //Translate
     *originalX += matrix.ox;
@@ -180,6 +180,7 @@ int Graphics::Present(lua_State * L)
 int Graphics::Draw(lua_State * L)
 {
     Drawable * drawable = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+    Quad * quad = nullptr;
 
     /*
     ** Check if it is NULL or not
@@ -196,8 +197,6 @@ int Graphics::Draw(lua_State * L)
         if (drawable == NULL)
             return luaL_error(L, "Drawable expected, got %s", lua_tostring(L, 1));
     }
-
-    Quad * quad = nullptr;
 
     int start = 2;
     if (!lua_isnoneornil(L, 2) && !lua_isnumber(L, 2))
@@ -217,20 +216,15 @@ int Graphics::Draw(lua_State * L)
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
 
-    SDL_Rect quadRectangle;
-
     transformDrawable(&x, &y);
 
     x -= offsetX;
     y -= offsetY;
 
     if (quad != nullptr)
-    {
-        quadRectangle = {quad->GetX(), quad->GetY(), quad->GetWidth(), quad->GetHeight()};
-        drawable->Draw(&quadRectangle, x, y, rotation, scalarX, scalarY, drawColor);
-    }
+        drawable->Draw(quad->GetViewport(), x, y, rotation, scalarX, scalarY, drawColor);
     else
-        drawable->Draw(NULL, x, y, rotation, scalarX, scalarY, drawColor);
+        drawable->Draw(drawable->GetViewport(), x, y, rotation, scalarX, scalarY, drawColor);
 
     return 0;
 }

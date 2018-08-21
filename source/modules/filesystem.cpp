@@ -10,7 +10,7 @@
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
-bool Filesystem::Initialize()
+void Filesystem::Initialize()
 {
     Result ROMFS_INIT = romfsInit();
 
@@ -23,11 +23,7 @@ bool Filesystem::Initialize()
     SAVE_DIR = cwd;
 
     if (ROMFS_INIT != 0)
-    {
-        //emulated
         chdir("game");
-        return false;
-    }
     else
     {
         if (chdir("game") != 0)
@@ -35,8 +31,6 @@ bool Filesystem::Initialize()
     }
 
     mkdir(SAVE_DIR.c_str(), 0777);
-
-    return true;
 }
 
 //Löve2D Functions

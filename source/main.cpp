@@ -48,16 +48,6 @@ bool LOVE_QUIT = false;
 
 int main(int argc, char * argv[])
 {
-    System::Initialize();
-
-    Graphics::Initialize();
-    
-    Window::Initialize();
-
-    Audio::Initialize();
-
-    Filesystem::Initialize();
-    
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);
@@ -66,7 +56,7 @@ int main(int argc, char * argv[])
 
     luaL_requiref(L, "love", Love::Initialize, 1);
 
-    Joystick::Initialize(L);
+    Love::InitModules(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 

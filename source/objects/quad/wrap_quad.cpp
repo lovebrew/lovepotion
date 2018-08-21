@@ -25,6 +25,20 @@ int quadNew(lua_State * L)
     return 1;
 }
 
+int quadGetViewport(lua_State * L)
+{
+    Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    Viewport view = self->GetViewport();
+
+    lua_pushnumber(L, view.x);
+    lua_pushnumber(L, view.y);
+    lua_pushnumber(L, view.subWidth);
+    lua_pushnumber(L, view.subHeight);
+
+    return 4;
+}
+
 int quadSetViewport(lua_State * L)
 {
     Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -38,6 +52,21 @@ int quadSetViewport(lua_State * L)
     self->SetViewport(x, y, width, height);
 
     return 0;
+}
+
+int quadGetTextureDimensions(lua_State * L)
+{
+    Quad * self = (Quad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    int width = 0;
+    int height = 0;
+
+    self->GetTextureDimensions(width, height);
+
+    lua_pushnumber(L, width);
+    lua_pushnumber(L, height);
+
+    return 2;
 }
 
 int quadToString(lua_State * L)
@@ -65,10 +94,12 @@ int quadGC(lua_State * L)
 int initQuadClass(lua_State * L)
 {
     luaL_Reg reg[] = {
-        { "__gc",        quadGC          },
-        { "__tostring",  quadToString    },
-        { "new",         quadNew         },
-        { "setViewport", quadSetViewport },
+        { "__gc",                 quadGC                   },
+        { "__tostring",           quadToString             },
+        { "getTextureDimensions", quadGetTextureDimensions },
+        { "getViewport",          quadGetViewport          },
+        { "new",                  quadNew                  },
+        { "setViewport",          quadSetViewport          },
         { 0, 0 },
     };
 
