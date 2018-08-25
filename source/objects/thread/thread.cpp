@@ -63,7 +63,10 @@ void Run(void * arg)
     vector<Variant> args = self->GetArgs();
 
     //load our code
-    if (luaL_loadbuffer(L, code.c_str(), code.length(), self->ToString()) != 0)
+    const char * codeBuffer = code.c_str();
+    size_t length = args.size();
+
+    if (luaL_loadbuffer(L, codeBuffer, length, self->ToString()) != 0)
         self->SetError(lua_tostring(L, -1));
     else
     {
@@ -98,8 +101,8 @@ void ThreadClass::Start(const vector<Variant> & args)
     this->args = args;
     threadCreate(&this->thread, Run, this, 0x1000, 0x2C, -2);
 
-    printf("Starting thread with %ld args\n", args.size());
     threadStart(&this->thread);
+    
     this->started = true;
 }
 

@@ -648,9 +648,7 @@ bool Graphics::IsInitialized()
 void Graphics::Exit()
 {
     TTF_Quit();
-
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
-    SDL_Quit();
+    SDL_Quit(); //kill remaining stuff
 }
 
 int Graphics::Register(lua_State * L)

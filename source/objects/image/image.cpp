@@ -30,11 +30,13 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     else
         tempSurface = this->GetMemoryImage(path);
 
-    this->surface = SDL_ConvertSurface(tempSurface, Window::GetSurface()->format, NULL);
-    SDL_SetSurfaceBlendMode(this->surface, SDL_BLENDMODE_BLEND);
+    //this->surface = SDL_ConvertSurface(tempSurface, Window::GetSurface()->format, NULL);
+    //SDL_SetSurfaceBlendMode(this->surface, SDL_BLENDMODE_BLEND);
 
-    this->width = this->surface->w;
-    this->height = this->surface->h;
+    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+
+    this->width = tempSurface->w;
+    this->height = tempSurface->h;
 
     this->viewport = {0, 0, this->width, this->height, this->width, this->height};
 

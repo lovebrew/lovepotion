@@ -53,6 +53,14 @@ typedef struct
     int height;
 } Viewport;
 
+typedef struct
+{
+    char * buffer;
+    size_t size;
+    int code;
+    char * header;
+} HTTPChunk;
+
 extern std::vector<const char *> FILE_MODES;
 
 extern std::vector<const char *> SOURCE_TYPES;

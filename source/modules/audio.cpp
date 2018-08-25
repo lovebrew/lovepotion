@@ -104,10 +104,8 @@ int Audio::SetVolume(lua_State * L)
 
 void Audio::Exit()
 {
-    printf("Closing audio\n");
     Mix_CloseAudio();
 
-    printf("SDL_QuitSubsys: Audio\n");
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 

@@ -7,7 +7,7 @@ Quad::Quad(float subTextureX, float subTextureY, float subTextureWidth, float su
     this->view.y = subTextureY;
 
     this->view.subWidth = subTextureWidth;
-    this->view.subHeight = subTextureWidth;
+    this->view.subHeight = subTextureHeight;
 
     this->view.width = atlasWidth;
     this->view.height = atlasHeight;

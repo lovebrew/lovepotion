@@ -13,23 +13,18 @@ Drawable::Drawable(char * type) : Object(type)
 void Drawable::Draw(const Viewport & view, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color)
 {
     SDL_Rect quad = {view.x, view.y, view.subWidth * scalarX, view.subHeight * scalarY};
-    SDL_Rect position;
-    
-    if ((view.subWidth / view.width) == 1 && (view.subHeight / view.height) == 1)
-        position = {x, y, view.width * scalarX, view.height * scalarY};
-    else
-        position = {x, y, quad.w * scalarX, quad.h * scalarY};
+    SDL_Rect position = {x, y, view.subWidth * scalarX, view.subHeight * scalarY};
 
-    SDL_Surface * surface = this->Flip(quad, position, rotation, scalarX, scalarY);
+    //SDL_Surface * surface = this->Flip(quad, position, rotation, scalarX, scalarY);
 
     if (this->surface != NULL)
     {
-        SDL_SetSurfaceColorMod(surface, color.r, color.g, color.b);
-        SDL_SetSurfaceAlphaMod(surface, color.a);
+        SDL_SetSurfaceColorMod(this->surface, color.r, color.g, color.b);
+        SDL_SetSurfaceAlphaMod(this->surface, color.a);
 
-        SDL_BlitScaled(surface, &quad, Window::GetSurface(), &position);
+        SDL_BlitScaled(this->surface, &quad, Window::GetSurface(), &position);
 
-        SDL_FreeSurface(surface);
+        //SDL_FreeSurface(surface);
     }
     else if (this->texture != NULL)
     {

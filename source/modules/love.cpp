@@ -107,8 +107,6 @@ int Love::Initialize(lua_State * L)
         lua_replace(L, -2);
 
         lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
-
-        printf("Created _loveobjects!\n");
     }
 
     socketInitializeDefault();

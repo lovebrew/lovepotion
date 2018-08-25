@@ -52,7 +52,8 @@ int main(int argc, char * argv[])
 
     luaL_openlibs(L);
 
-    love_preload(L, LuaSocket::Initialize, "socket");
+    love_preload(L, LuaSocket::InitSocket, "socket");
+    love_preload(L, LuaSocket::InitHTTP, "socket.http");
 
     luaL_requiref(L, "love", Love::Initialize, 1);
 

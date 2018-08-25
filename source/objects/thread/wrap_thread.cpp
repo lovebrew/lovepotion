@@ -25,8 +25,6 @@ int threadStart(lua_State * L)
 
     uint argc = lua_gettop(L) - 1;
 
-    printf("We've got %u args to start\n", argc);
-    
     vector<Variant> args;
     args.reserve(argc);
 
@@ -36,7 +34,6 @@ int threadStart(lua_State * L)
             args.push_back(Variant::FromLua(L, i + 2));
     }
 
-    printf("ALL YOU HAD TO DO WAS START THE THREAD, CJ!\n");
     if (!self->IsRunning())
         self->Start(args);
 
