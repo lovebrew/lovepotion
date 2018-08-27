@@ -10,33 +10,19 @@
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
-bool Filesystem::Initialize()
+void Filesystem::Initialize()
 {
     Result ROMFS_INIT = romfsInit();
 
-    //Get base device path
-    //Can change if it's on USB for whatever reason
-    //In that case it'll be {DEVICE}:/LovePotion/
-    //{IDENTITY} is appended for unique ID
     char cwd[256];
-    getcwd(cwd, 256);
-    SAVE_DIR = cwd;
+    SAVE_DIR = getcwd(cwd, 256);
 
     if (ROMFS_INIT != 0)
-    {
-        //emulated
         chdir("game");
-        return false;
-    }
     else
-    {
-        if (chdir("game") != 0)
-            chdir("romfs:/"); //load romfs game (or nogame)!
-    }
+        chdir("romfs");
 
     mkdir(SAVE_DIR.c_str(), 0777);
-
-    return true;
 }
 
 //Löve2D Functions

@@ -7,6 +7,9 @@
 #include "eye_png.h"
 #include "nogame_png.h"
 
+#include "warn_png.h"
+#include "plus_png.h"
+
 Image::Image(const char * path, bool memory) : Drawable("Image")
 {
     u32 * outBuffer = nullptr;
@@ -50,5 +53,15 @@ char * Image::GetMemoryImage(const char * path, int * size)
     {
         *size = nogame_png_size;
         return (char *)nogame_png;
+    }
+    else if (name == "warn")
+    {
+        *size = warn_png_size;
+        return (char *)warn_png;
+    }
+    else
+    {
+        *size = plus_png_size;
+        return (char *)plus_png;
     }
 }

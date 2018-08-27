@@ -60,16 +60,11 @@ typedef struct
     int xoffset;
     int yoffset;
 
+    int width;
     int xadvance;
 
     Tex3DS_SubTexture subTexture;
 } Glyph;
-
-typedef struct
-{
-    int next;
-    int amount;
-} Kerning;
 
 extern std::vector<const char *> FILE_MODES;
 

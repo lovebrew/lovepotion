@@ -5,8 +5,6 @@ bool CONSOLE_INITIALIZED = false;
 
 void Console::Initialize()
 {
-    //gfxInitDefault();
-
     if (!CONSOLE_INITIALIZED)
         consoleDebugInit(debugDevice_SVC);
 

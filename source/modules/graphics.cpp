@@ -11,8 +11,6 @@
 #include "objects/font/wrap_font.h"
 #include "objects/font/font.h"
 
-bool GFX_INIT = false;
-
 //Screen Stuff
 gfxScreen_t currentScreen = GFX_TOP;
 gfx3dSide_t currentSide = GFX_LEFT;
@@ -28,6 +26,44 @@ Color drawColor = { 1, 1, 1, 1 };
 
 Font * currentFont = nullptr;
 
+vector<StackMatrix> transformStack(16);
+bool STACK_PUSHED = false;
+
+static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY) // rotate, scale, and translate coords.
+{
+    if (transformStack.empty())
+        return;
+
+    StackMatrix matrix = transformStack.back();
+
+    float newLeft = *originalX;
+    float newTop = *originalY;
+
+    //Translate
+    *originalX += matrix.ox;
+    *originalY += matrix.oy;
+
+    //Scale
+    *originalX *= matrix.sx;
+    *originalY *= matrix.sy;
+
+    *originalScalarX *= matrix.sx;
+    *originalScalarY *= matrix.sy;
+    
+    //Rotate
+    if (*originalRotation != 0)
+    {
+        *originalX = newLeft * cos(matrix.r) - newTop * sin(matrix.r);
+        *originalY = newLeft * sin(matrix.r) + newTop * cos(matrix.r);
+
+        *originalRotation += matrix.r;
+    }
+
+    //Shear
+    //*originalX = newLeft + matrix.kx * newTop;
+    //*originalY = newTop + matrix.ky * newLeft;
+}
+
 void Graphics::Initialize()
 {
     gfxInitDefault();
@@ -40,15 +76,41 @@ void Graphics::Initialize()
     bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     depthTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
 
-    GFX_INIT = true;
-}
+    StackMatrix init = {0, 0, 0, 1, 1, 0, 0};
+    transformStack.emplace_back(init);
 
-bool Graphics::IsInitialized()
-{
-    return GFX_INIT;
+    STACK_PUSHED = false;
 }
 
 //Löve2D Functions
+
+//love.graphics.rectangle
+int Graphics::Rectangle(lua_State * L)
+{
+    string mode = luaL_checkstring(L, 1);
+
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
+    float width = luaL_checknumber(L, 4);
+    float height = luaL_checknumber(L, 5);
+
+    Transform(&x, &y, 0, 0, 0);
+
+    if (currentScreen == renderScreen)
+    {
+        if (mode == "fill")
+            C2D_DrawRectSolid(x, y, 0.5, width, height, ConvertColor(drawColor));
+        else if (mode == "line")
+        {
+            C2D_DrawRectSolid(x, y, 0.5, 1, height, ConvertColor(drawColor)); // tl -> bl
+            C2D_DrawRectSolid(x + 1, y, 0.5, width - 1, 1, ConvertColor(drawColor)); // tl -> tr
+            C2D_DrawRectSolid(x + width, y, 0.5, 1, height, ConvertColor(drawColor)); // tr -> br
+            C2D_DrawRectSolid(x + 1, y + height, 0.5, width - 1, 1, ConvertColor(drawColor)); // bl -> br
+        }
+    }
+    
+    return 0;
+}
 
 //love.graphics.draw
 int Graphics::Draw(lua_State * L)
@@ -82,7 +144,8 @@ int Graphics::Draw(lua_State * L)
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
 
-    //transformDrawable(&x, &y);
+    Transform(&x, &y, &rotation, &scalarX, &scalarY);
+
     x -= offsetX;
     y -= offsetY;
 
@@ -98,14 +161,20 @@ int Graphics::Print(lua_State * L)
     if (currentFont == nullptr)
         return 0;
 
-    size_t length;
-    const char * text = luaL_checklstring(L, 1, &length);
+    const char * text = luaL_checkstring(L, 1);
 
     float x = luaL_optnumber(L, 2, 0);
     float y = luaL_optnumber(L, 3, 0);
 
+    float rotation = luaL_optnumber(L, 4, 0);
+
+    float scalarX = luaL_optnumber(L, 5, 1);
+    float scalarY = luaL_optnumber(L, 6, 1);
+
+    Transform(&x, &y, &rotation, &scalarX, &scalarY);
+
     if (currentScreen == renderScreen)
-        currentFont->Print(text, length, x, y, drawColor);
+        currentFont->Print(text, x, y, rotation, scalarX, scalarY, drawColor);
 
     return 0;
 }
@@ -113,15 +182,15 @@ int Graphics::Print(lua_State * L)
 //love.graphics.setScreen
 int Graphics::SetScreen(lua_State * L)
 {
-	string screen = luaL_checkstring(L, 1);
+    string screen = luaL_checkstring(L, 1);
 
-	gfxScreen_t switchScreen = GFX_TOP;
-	if (screen == "bottom")
-		switchScreen = GFX_BOTTOM;
+    gfxScreen_t switchScreen = GFX_TOP;
+    if (screen == "bottom")
+        switchScreen = GFX_BOTTOM;
 
-	currentScreen = switchScreen;
+    currentScreen = switchScreen;
 
-	return 0;
+    return 0;
 }
 
 //love.graphics.setFont
@@ -228,9 +297,37 @@ int Graphics::SetColor(lua_State * L)
 //love.graphics.clear
 int Graphics::Clear(lua_State * L)
 {
-    C2D_TargetClear(GetScreen(GFX_TOP, GFX_LEFT), ConvertColor(backgroundColor));
-    C2D_TargetClear(GetScreen(GFX_TOP, GFX_RIGHT), ConvertColor(backgroundColor));
-    C2D_TargetClear(GetScreen(GFX_BOTTOM, GFX_LEFT), ConvertColor(backgroundColor));
+    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+    const char * screen = luaL_optstring(L, 1, "top");
+
+    if (strncmp(screen, "top", 3) == 0)
+        Clear(GFX_TOP, GFX_LEFT);
+    else
+        Clear(GFX_BOTTOM, GFX_LEFT);
+
+    return 0;
+}
+
+//love.graphics.setScissor
+int Graphics::SetScissor(lua_State * L)
+{
+    GPU_SCISSORMODE mode = (lua_gettop(L) != 0) ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
+
+    float x      = luaL_optnumber(L, 1, 0);
+    float y      = luaL_optnumber(L, 2, 0);
+    float width  = luaL_optnumber(L, 3, 0);
+    float height = luaL_optnumber(L, 4, 0);
+
+    if (width < 0 || height < 0)
+        luaL_error(L, "Scissor cannot have negative width or height.");
+
+    float screenWidth = 400;
+    if (currentScreen == GFX_BOTTOM)
+        screenWidth = 320;
+
+    if (currentScreen == renderScreen)
+        C3D_SetScissor(mode, 240 - (y + height), screenWidth - (x + width), 240 - y, screenWidth - x);
 
     return 0;
 }
@@ -239,6 +336,83 @@ int Graphics::Clear(lua_State * L)
 int Graphics::Present(lua_State * L)
 {
     C3D_FrameEnd(0);
+
+    return 0;
+}
+
+//love.graphics.push
+int Graphics::Push(lua_State * L)
+{
+    transformStack.push_back(transformStack.back());
+
+    return 0;
+}
+
+//love.graphics.pop
+int Graphics::Pop(lua_State * L)
+{
+    transformStack.pop_back();
+
+    return 0;
+}
+
+//love.graphics.translate
+int Graphics::Translate(lua_State * L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    if (currentScreen == renderScreen)
+    {
+        transformStack.back().ox += x;
+        transformStack.back().oy += y;
+    }
+
+    return 0;
+}
+
+//love.graphics.scale
+int Graphics::Scale(lua_State * L)
+{
+    float scalarX = luaL_checknumber(L, 1);
+    float scalarY = luaL_checknumber(L, 2);
+
+    if (currentScreen == renderScreen)
+    {
+        transformStack.back().sx = scalarX;
+        transformStack.back().sy = scalarY;
+    }
+
+    return 0;
+}
+
+//love.graphics.rotate
+int Graphics::Rotate(lua_State * L)
+{
+    float rotation = luaL_checknumber(L, 1);
+
+    if (currentScreen == renderScreen)
+        transformStack.back().r = rotation;
+
+    return 0;
+}
+
+//love.graphics.origin
+int Graphics::Origin(lua_State * L)
+{
+    if (currentScreen == renderScreen)
+    {
+        transformStack.back().ox = 0;
+        transformStack.back().oy = 0;
+
+        transformStack.back().sx = 1;
+        transformStack.back().sy = 1;
+
+        transformStack.back().r = 0;
+
+        transformStack.back().kx = 0;
+        transformStack.back().ky = 0;
+    }
 
     return 0;
 }
@@ -303,24 +477,24 @@ int Graphics::Register(lua_State * L)
         { "getHeight",          GetHeight          },
         { "draw",               Draw               },
         { "print",              Print              },
-        /*{ "rectangle",          Rectangle          },
-        { "set3D",              Set3D              },
-        { "setDepth",           SetDepth           },
+        { "rectangle",          Rectangle          },
+        //{ "set3D",              Set3D              },
+        //{ "setDepth",           SetDepth           },
         { "setScissor",         SetScissor         },
-        { "circle",             Circle             },
-        //{ "setDefaultFilter",   SetDefaultFilter   },*/
+        //{ "circle",             Circle             }
+        //{ "setDefaultFilter",   SetDefaultFilter   },
         { "getRendererInfo",    GetRendererInfo    },
         { "setFont",            SetFont            },
         { "setScreen",          SetScreen          },
         { "setBackgroundColor", SetBackgroundColor },
         { "setColor",           SetColor           },
-        /*{ "push",             Push               },
+        { "push",             Push               },
         { "pop",                Pop                },
         { "translate",          Translate          },
-        { "shear",              Shear              },
+        //{ "shear",              Shear              },
         { "scale",              Scale              },
         { "rotate",             Rotate             },
-        { "origin",             Origin             },*/
+        { "origin",             Origin             },
         { "clear",              Clear              },
         { "present",            Present            },
         { 0, 0 }

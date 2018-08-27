@@ -7,7 +7,7 @@
 
 namespace Filesystem
 {
-    bool Initialize();
+    void Initialize();
 
     //Löve2D Functions
 

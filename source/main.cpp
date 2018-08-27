@@ -14,16 +14,10 @@ extern "C"
 #include "socket/luasocket.h"
 
 #include "common/console.h"
-#include "modules/timer.h"
+#include "objects/gamepad/wrap_gamepad.h"
 #include "modules/love.h"
+#include "modules/timer.h"
 #include "common/util.h"
-
-#include <citro2d.h>
-
-#include "modules/audio.h"
-#include "modules/filesystem.h"
-#include "modules/graphics.h"
-#include "modules/system.h"
 
 #include "boot_lua.h"
 
@@ -32,15 +26,7 @@ bool LOVE_QUIT = false;
 
 int main(int argc, char **argv)
 {
-    Console::Initialize();
-
-    System::Initialize();
-
-    Audio::Initialize();
-
-    Filesystem::Initialize();
-
-    Graphics::Initialize();
+    //Console::Initialize();
 
     lua_State * L = luaL_newstate();
 
@@ -48,20 +34,16 @@ int main(int argc, char **argv)
 
     love_preload(L, LuaSocket::Initialize, "socket");
 
+    Love::InitModules();
+
     luaL_requiref(L, "love", Love::Initialize, 1);
+    
+    gamepadNew(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
     while (aptMainLoop())
     {
-        //Scan all the inputs. This should be done once for each frame
-        hidScanInput();
-
-        //hidKeysDown returns information about which buttons have been just pressed (and they weren't in the previous frame)
-        u32 kDown = hidKeysDown();
-
-        if (kDown & KEY_START) break; // break in order to return to hbmenu
-
         if (Love::IsRunning())
             luaL_dostring(L, "xpcall(love.run, love.errhand)");
         else

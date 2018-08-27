@@ -134,7 +134,7 @@ std::map<int, std::string> LANGUAGES =
 std::vector<std::string> KEYS =
 {
     "a", "b", "select", "start",
-    "right", "left", "up", "down",
+    "dpright", "dpleft", "dpup", "dpdown",
     "r", "l", "x", "y",
     "", "", "lz", "rz",
     "", "", "", "",

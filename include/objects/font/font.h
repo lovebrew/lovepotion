@@ -11,16 +11,17 @@ class Font : public Drawable
         int GetSize();
         std::map<int, Glyph> GetGlyphs();
 
-        void Print(const char * text, size_t length, double x, double y, Color color);
+        void Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, Color color);
     private:
         void LoadAssets(const string & path);
 
         void LoadJSON(json_t * json);
         void LoadGlyph(json_t * object);
-        void LoadKerning(json_t * json);
+        void LoadKerning(json_t * object);
         int LoadGlyphInfo(json_t * object, const char * key);
 
         std::map<int, Glyph> glyphs;
+        std::map<int, std::map<int, int>> kernings; //kernings[code][next] -> kerning value returned
 
         int size;
 };

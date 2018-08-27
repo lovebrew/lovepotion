@@ -3,13 +3,6 @@
 
 void System::Initialize()
 {
-    /*
-    ** Include things like configuration
-    ** Account name that runs the game
-    ** Battery info (power, state)
-    ** Region and language
-    */
-
     cfguInit();
     ptmuInit();
     acInit();

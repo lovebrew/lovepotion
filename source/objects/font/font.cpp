@@ -50,24 +50,35 @@ void Font::LoadAssets(const string & path)
 void Font::LoadJSON(json_t * json)
 {
     /* array is a JSON array */
-    size_t index;
-    json_t * indexValue;
+    size_t charsIndex;
+    json_t * charsValue;
     
     json_t * chars = json_object_get(json, "chars");
-
-    json_array_foreach(chars, index, indexValue)
-        this->LoadGlyph(indexValue);
+    json_array_foreach(chars, charsIndex, charsValue)
+        this->LoadGlyph(charsValue);
 
     json_t * common = json_object_get(json, "common");
     this->size = this->LoadGlyphInfo(common, "lineHeight");
 
-    json_t * kerningTree = json_object_get(json, "kernings");
-    this->LoadKerning(kerningTree);
+    size_t kerningIndex;
+    json_t * kerningValue;
+
+    /*json_t * kerningTree = json_object_get(json, "kernings");
+    json_array_foreach(kerningTree, kerningIndex, kerningValue)
+        this->LoadKerning(kerningValue);*/
 }
 
-void Font::LoadKerning(json_t * json)
+void Font::LoadKerning(json_t * object)
 {
+    if (!json_is_object(object))
+        return;
 
+    int first = this->LoadGlyphInfo(object, "first");
+    int second = this->LoadGlyphInfo(object, "second");
+    
+    int amount = this->LoadGlyphInfo(object, "amount");
+
+    this->kernings[first][second] = amount; //std::map<int, std::map<int, int>>
 }
 
 void Font::LoadGlyph(json_t * object)
@@ -100,6 +111,8 @@ void Font::LoadGlyph(json_t * object)
     glyph.xoffset = xoffset;
     glyph.yoffset = yoffset;
 
+    //glyph.width = width - xoffset;
+
     glyph.xadvance = xadvance;
     glyph.subTexture = subTexture;
 
@@ -112,33 +125,43 @@ int Font::LoadGlyphInfo(json_t * object, const char * key)
     return (int)json_integer_value(value);
 }
 
-void Font::Print(const char * text, size_t length, double x, double y, Color color)
+void Font::Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, Color color)
 {
-    int add, last = 0;
+    int last = 0;
+    int kerning = 0;
     int startx = x;
+    const uint8_t * utf8 = (const uint8_t *)text;
 
-    for (uint i = 0; i < length; i++)
+    while (*utf8 != 0)
     {
-        int id = text[i];
+        uint32_t code;
 
-        if (id == 10)
+        ssize_t units = decode_utf8(&code, utf8);
+
+        if (units == -1)
+        {
+            code = 0xFFFD;
+            units = 1;
+        }
+        else if (code == '\n')
         {
             x = startx;
             y = y + this->GetSize();
-            add = 0;
             last = -1;
         }
-        else
-        {
-            if (i > 0 && last != -1)
-                add += this->glyphs[last].xadvance;
+        utf8 += units;
+        
+        if (code != '\n' && this->glyphs.find(code) == this->glyphs.end())
+            continue;
 
-            this->SetSubTexture(this->glyphs[id].subTexture);
+        if (code > 0 && last != -1)
+            x += (this->glyphs[last].xadvance);
 
-            this->Draw(x + this->glyphs[id].xoffset + add, y + this->glyphs[id].yoffset, 0, 1, 1, color);
+        this->SetSubTexture(this->glyphs[code].subTexture);
 
-            last = id;
-        }
+        this->Draw(x + this->glyphs[code].xoffset + kerning, y + this->glyphs[code].yoffset, 0, 1, 1, color);
+
+        last = code;
     }
 }
 

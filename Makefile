@@ -59,7 +59,7 @@ SOURCES			:=	source \
 DATA			:=  source/scripts \
 					source/scripts/nogame
 
-ROMFS			:=	game
+#ROMFS			:=	game
 
 APP_TITLE		:= Löve Potion
 APP_DESCRIPTION	:= Löve for 3DS

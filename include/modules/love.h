@@ -6,11 +6,12 @@
 #pragma once
 
 extern bool LUA_ERROR;
-extern bool CLOSE_KEYBOARD;
 
 namespace Love
 {
     int Initialize(lua_State * L);
+
+    void InitModules();
 
     int GetVersion(lua_State * L);
 

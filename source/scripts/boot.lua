@@ -189,7 +189,6 @@ function love.errhand(message)
     table.insert(err, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
     
     dateTime = os.date("%c")
-    table.insert(err, "\nDate and Time: " .. dateTime)
     table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
     
     local realError = table.concat(err, "\n")
@@ -199,51 +198,51 @@ function love.errhand(message)
     love.filesystem.write("log.txt", realError)
     
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
-    love.graphics.clear()
+    --love.graphics.clear()
 
     love.graphics.setColor(1, 1, 1, 1)
     
-    --[[headerFont = love.graphics.newFont(32)
-    buttonFont = love.graphics.newFont(24)
+    love.graphics.setFont(__defaultFont)
 
-    local error_img = love.graphics.newImage("error");
-    local plus_img = love.graphics.newImage("plus");
+    local error_img = love.graphics.newImage("error:warn");
+    local plus_img = love.graphics.newImage("error:plus");
 
     local function draw()
-        love.graphics.clear()
+        love.graphics.clear("top")
 
-        love.graphics.draw(error_img, 74, 38)
+        love.graphics.setScreen("top")
+
+        love.graphics.print(realError, 30, 16)
+
+        love.graphics.draw(plus_img, 324, 220)
+        love.graphics.print("Quit", 340, 220)
+
+        love.graphics.present()
 
         love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(headerFont)
-        love.graphics.print("Lua Error", 130, 42)
         
-        love.graphics.line(30, 88, 1250, 88)
+        love.graphics.clear("bottom")
 
-        love.graphics.setFont(buttonFont)
-        love.graphics.print(realError, 48, 120)
+        love.graphics.setScreen("bottom")
 
-        love.graphics.line(30, 648, 1250, 648)
-
-        love.graphics.draw(plus_img, 1020, 678)
-        love.graphics.print("Quit", 1056, 676.5)
+        love.graphics.draw(error_img, 96, 56)
 
         love.graphics.present()
     end
 
-    local joycon = love.joystick.getJoysticks()[1]
+    --local joycon = love.joystick.getJoysticks()[1]
 
     while true do
         draw()
 
-        if joycon:isGamepadDown("plus") then
+        --[[if joycon:isGamepadDown("plus") then
             break
-        end
+        end]]
 
         love.timer.sleep(0.1)
     end
 
-    love.event.quit()]]
+    --love.event.quit()
 end 
 
 local function pseudoRequireMain()
