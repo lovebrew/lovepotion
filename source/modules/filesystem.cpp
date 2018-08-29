@@ -20,7 +20,7 @@ void Filesystem::Initialize()
     if (ROMFS_INIT != 0)
         chdir("game");
     else
-        chdir("romfs");
+        chdir("romfs:/");
 
     mkdir(SAVE_DIR.c_str(), 0777);
 }
