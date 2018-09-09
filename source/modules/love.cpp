@@ -35,7 +35,7 @@
 struct { const char * name; void (*open)(void); int (*fn)(lua_State *L); void (*close)(void); } modules[] = 
 {
     { "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
-    { "event",      NULL,                   Event::Register,      NULL             },
+    { "event",      NULL,                   LoveEvent::Register,  NULL             },
     { "filesystem", Filesystem::Initialize, Filesystem::Register, Filesystem::Exit },
     { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
     { "joystick",   NULL,                   Joystick::Register,   NULL             },
@@ -84,11 +84,11 @@ int Love::Initialize(lua_State * L)
 
     luaL_Reg reg[] =
     {
-        { "_nogame",       NoGame           },
-        { "enableConsole", EnableConsole    },
-        { "getVersion",    GetVersion       },
-        { "run",           Run              },
-        { "scan",          Event::PollEvent },
+        { "_nogame",       NoGame               },
+        { "enableConsole", EnableConsole        },
+        { "getVersion",    GetVersion           },
+        { "run",           Run                  },
+        { "scan",          LoveEvent::PollEvent },
         { 0, 0 }
     };
 
@@ -139,7 +139,7 @@ int Love::RaiseError(const char * format, ...)
 //love.run
 int Love::Run(lua_State * L)
 {
-    Event::PollEvent(L);
+    LoveEvent::PollEvent(L);
 
     luaL_dostring(L, LOVE_TIMER_STEP);
 

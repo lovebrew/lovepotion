@@ -7,7 +7,7 @@
 
 SDL_Event event;
 
-int Event::PollEvent(lua_State * L)
+int LoveEvent::PollEvent(lua_State * L)
 {
     //update gamepad rumble
     for (Gamepad * joycon : controllers)
@@ -97,7 +97,7 @@ int Event::PollEvent(lua_State * L)
 //Löve2D Functions
 
 //love.event.quit
-int Event::Quit(lua_State * L)
+int LoveEvent::Quit(lua_State * L)
 {
     LOVE_QUIT = true;
 
@@ -106,7 +106,7 @@ int Event::Quit(lua_State * L)
 
 //End Löve2D Functions
 
-int Event::Register(lua_State * L)
+int LoveEvent::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {

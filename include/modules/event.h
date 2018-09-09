@@ -5,7 +5,7 @@
 
 #pragma once
 
-namespace Event
+namespace LoveEvent
 {
     int PollEvent(lua_State * L);
 

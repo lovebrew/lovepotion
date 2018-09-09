@@ -25,10 +25,7 @@ void Filesystem::Initialize()
     if (ROMFS_INIT != 0)
         chdir("game");
     else
-    {
-        if (chdir("game") != 0)
-            chdir("romfs:/"); //load romfs game (or nogame)!
-    }
+        chdir("romfs:/"); //load romfs game (or nogame)!
 
     mkdir(SAVE_DIR.c_str(), 0777);
 }
