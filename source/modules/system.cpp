@@ -139,6 +139,7 @@ void System::Exit()
     setExit();
     accountExit();
     plExit();
+    psmExit();
 }
 
 int System::Register(lua_State * L)
