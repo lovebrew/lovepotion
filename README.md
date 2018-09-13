@@ -1,4 +1,4 @@
-# Love Potion
+# Löve Potion
 
 Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo Switch.
 
