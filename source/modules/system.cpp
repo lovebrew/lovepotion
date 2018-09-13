@@ -12,6 +12,7 @@ void System::Initialize()
     setInitialize();
     accountInitialize();
     plInitialize();
+    psmInitialize();
 }
 
 //Löve2D Functions
@@ -35,8 +36,15 @@ int System::GetProcessorCount(lua_State * L)
 
 //love.system.getPowerInfo
 int System::GetPowerInfo(lua_State * L)
-{    
-    return 0;
+{   
+    u32 batteryPercent = 0;
+    psmGetBatteryChargePercentage(&batteryPercent);
+    
+    lua_pushnil(L);
+    lua_pushnumber(L, batteryPercent);
+    lua_pushnil(L);
+
+    return 3;
 }
 
 //love.system.getRegion
