@@ -40,7 +40,14 @@ int System::GetPowerInfo(lua_State * L)
     u32 batteryPercent = 0;
     psmGetBatteryChargePercentage(&batteryPercent);
     
-    lua_pushnil(L);
+    ChargerType chargerType;
+    psmGetChargerType(&chargerType);
+    
+    string batteryState = (chargerType == ChargerType_None) ? "battery" : "charging";
+    if (batteryPercent == 100 && batteryState == "charging")
+        batteryState = "charged";
+    
+    lua_pushstring(L, batteryState.c_str());
     lua_pushnumber(L, batteryPercent);
     lua_pushnil(L);
 
