@@ -43,6 +43,19 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     SDL_FreeSurface(tempSurface);
 }
 
+Image::Image(const char * buffer)
+{
+    SDL_Surface * tempSurface = NULL;    
+    tmpSurface = IMG_Load_RW(SDL_RWFromMem((void *)dog_png, dog_png_size), 1);
+    
+    this->width = tempSurface->w;
+    this->height = tempSurface->h;
+
+    this->viewport = {0, 0, this->width, this->height, this->width, this->height};
+
+    SDL_FreeSurface(tempSurface);
+}
+
 SDL_Surface * Image::GetMemoryImage(const char * path)
 {
     string name = path;
