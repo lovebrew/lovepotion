@@ -43,10 +43,10 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     SDL_FreeSurface(tempSurface);
 }
 
-Image::Image(const char * buffer)
+Image::Image(const char * buffer, size_t bufferSize)
 {
     SDL_Surface * tempSurface = NULL;    
-    tmpSurface = IMG_Load_RW(SDL_RWFromMem((void *)dog_png, dog_png_size), 1);
+    tmpSurface = IMG_Load_RW(SDL_RWFromMem((void *)buffer, bufferSize), 1);
     
     this->width = tempSurface->w;
     this->height = tempSurface->h;
