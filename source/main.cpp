@@ -42,7 +42,6 @@ extern "C"
 #include "common/types.h"
 #include "common/variant.h"
 #include "common/util.h"
-#include "common/version.h"
 
 bool ERROR = false;
 bool LOVE_QUIT = false;
@@ -59,6 +58,7 @@ int main(int argc, char * argv[])
     luaL_requiref(L, "love", Love::Initialize, 1);
 
     Love::InitModules(L);
+    Love::InitConstants(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
