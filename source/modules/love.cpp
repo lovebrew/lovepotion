@@ -73,7 +73,7 @@ int Love::Initialize(lua_State * L)
     lua_setfield(L, -2, "_os");
 
     // love._version stuff
-    lua_pushstring(L, Love::VERSION);
+    lua_pushstring(L, Love::VERSION.c_str());
     lua_setfield(L, -2, "_version");
     lua_pushnumber(L, Love::VERSION_MAJOR);
     lua_setfield(L, -2, "_version_major");
@@ -81,7 +81,7 @@ int Love::Initialize(lua_State * L)
     lua_setfield(L, -2, "_version_minor");
     lua_pushnumber(L, Love::VERSION_REVISION);
     lua_setfield(L, -2, "_version_revision");
-    lua_pushstring(L, Love::CODENAME);
+    lua_pushstring(L, Love::CODENAME.c_str());
     lua_setfield(L, -2, "_version_codename");
 
     int (*classes[])(lua_State *L) = 
