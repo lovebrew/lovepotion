@@ -62,6 +62,28 @@ void Love::InitModules(lua_State * L)
 lua_State * loveState;
 int Love::Initialize(lua_State * L)
 {
+	// love._constants
+	// love._os = {"Horizon","Switch"}
+    lua_newtable(L);
+    lua_pushnumber(L, 1);
+    lua_pushstring(L,"Horizon");
+    lua_pushnumber(L, 2);
+    lua_pushstring(L,"Switch");
+    lua_rawset(L, -3);
+    lua_setfield(L, -2, "_os");
+
+    // love._version stuff
+    lua_pushstring(L, Love::VERSION);
+    lua_setfield(L, -2, "_version");
+    lua_pushnumber(L, Love::VERSION_MAJOR);
+    lua_setfield(L, -2, "_version_major");
+    lua_pushnumber(L, Love::VERSION_MINOR);
+    lua_setfield(L, -2, "_version_minor");
+    lua_pushnumber(L, Love::VERSION_REVISION);
+    lua_setfield(L, -2, "_version_revision");
+    lua_pushstring(L, Love::CODENAME);
+    lua_setfield(L, -2, "_version_codename");
+
     int (*classes[])(lua_State *L) = 
     {
         initCanvasClass,

@@ -60,27 +60,6 @@ int main(int argc, char * argv[])
 
     Love::InitModules(L);
 
-    lua_getglobal(L, "love");
-
-    lua_newtable(L);
-    lua_pushnumber(L, 1);
-    lua_pushstring(L,"Horizon");
-    lua_pushnumber(L, 2);
-    lua_pushstring(L,"Switch");
-    lua_rawset(L, -3);
-    lua_setfield(L, -2, "_os");
-
-    lua_pushstring(L, Love::VERSION);
-    lua_setfield(L, -2, "_version");
-    lua_pushnumber(L, Love::VERSION_MAJOR);
-    lua_setfield(L, -2, "_version_major");
-    lua_pushnumber(L, Love::VERSION_MINOR);
-    lua_setfield(L, -2, "_version_minor");
-    lua_pushnumber(L, Love::VERSION_REVISION);
-    lua_setfield(L, -2, "_version_revision");
-    lua_pushstring(L, -2, Love::CODENAME);
-    lua_setfield(L, -2, "_version_codename");
-
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
     /*
