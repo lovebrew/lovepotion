@@ -58,6 +58,7 @@ int main(int argc, char * argv[])
     luaL_requiref(L, "love", Love::Initialize, 1);
 
     Love::InitModules(L);
+    Love::InitConstants(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
