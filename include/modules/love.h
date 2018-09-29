@@ -13,6 +13,8 @@ namespace Love
 
     void InitModules();
 
+    void InitConstants(lua_State * L);
+
     int GetVersion(lua_State * L);
 
     int EnableConsole(lua_State * L);

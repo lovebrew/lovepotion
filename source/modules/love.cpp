@@ -54,6 +54,36 @@ void Love::InitModules()
     }
 }
 
+void Love::InitConstants(lua_State * L)
+{
+    lua_getglobal(L, "love");
+
+    // love._constants
+    // love._os = {"Horizon","3DS"}
+    lua_newtable(L);
+    lua_pushnumber(L, 1);
+    lua_pushstring(L,"Horizon");
+    lua_rawset(L, -3);
+    lua_pushnumber(L, 2);
+    lua_pushstring(L,"3DS");
+    lua_rawset(L, -3);
+    lua_setfield(L, -2, "_os");
+
+    // love._version stuff
+    lua_pushstring(L, Love::VERSION.c_str());
+    lua_setfield(L, -2, "_version");
+    lua_pushnumber(L, Love::VERSION_MAJOR);
+    lua_setfield(L, -2, "_version_major");
+    lua_pushnumber(L, Love::VERSION_MINOR);
+    lua_setfield(L, -2, "_version_minor");
+    lua_pushnumber(L, Love::VERSION_REVISION);
+    lua_setfield(L, -2, "_version_revision");
+    lua_pushstring(L, Love::CODENAME.c_str());
+    lua_setfield(L, -2, "_version_codename");
+
+    lua_pop(L, 1);
+}
+
 int Love::Initialize(lua_State * L)
 {
     int (*classes[])(lua_State *L) = 
