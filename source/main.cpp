@@ -35,9 +35,10 @@ int main(int argc, char **argv)
     love_preload(L, LuaSocket::Initialize, "socket");
 
     Love::InitModules();
-    Love::InitConstants(L);
 
     luaL_requiref(L, "love", Love::Initialize, 1);
+    
+    Love::InitConstants(L);
     
     gamepadNew(L);
 
