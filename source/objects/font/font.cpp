@@ -38,13 +38,18 @@ Font::Font(int size)
     this->surface = NULL;
 }
 
-void Font::Print(const char * text, double x, double y, SDL_Color color)
+void Font::Print(const char * text, double x, double y, float limit, const string & align, SDL_Color color)
 {
     if (strlen(text) == 0)
         return;
 
-    this->surface = TTF_RenderText_Blended_Wrapped(this->font, text, color, 1280);
+    this->surface = TTF_RenderText_Blended_Wrapped(this->font, text, color, limit);
     SDL_SetSurfaceAlphaMod(this->surface, color.a);
+
+    if (align == "center")
+        x += (limit / 2);
+    else if (align == "right")
+        x += limit;
 
     SDL_Rect position = {x, y, this->surface->w, this->surface->h};
     SDL_BlitSurface(this->surface, NULL, Window::GetSurface(), &position);

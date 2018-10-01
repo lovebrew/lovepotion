@@ -54,6 +54,7 @@ namespace Graphics
     int SetFont(lua_State * L);
     int SetNewFont(lua_State * L);
     int Print(lua_State * L);
+    int Printf(lua_State * L);
 
     //End Löve2D Functions
 

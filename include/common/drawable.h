@@ -11,9 +11,6 @@ class Drawable : public Object
 
         Viewport GetViewport();
 
-    private:
-        SDL_Surface * Flip(SDL_Rect & quad, SDL_Rect & position, double rotation, double x, double y);
-
     protected:
         int width;
         int height;
@@ -23,5 +20,5 @@ class Drawable : public Object
 
         Viewport viewport;
 
-        double horScale;
+        SDL_RendererFlip flip;
 };

@@ -276,7 +276,29 @@ int Graphics::Print(lua_State * L)
     if (currentFont == NULL)
         return 0;
 
-    currentFont->Print(text, x, y, drawColor);
+    currentFont->Print(text, x, y, 1280, "left", drawColor);
+
+    return 0;
+}
+
+//love.graphics.printf
+int Graphics::Printf(lua_State * L)
+{
+    const char * text = luaL_checkstring(L, 1);
+
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
+
+    float limit = luaL_optnumber(L, 4, 1280);
+
+    string align = luaL_optstring(L, 5, "left");
+
+    transformDrawable(&x, &y);
+
+    if (currentFont == NULL)
+        return 0;
+
+    currentFont->Print(text, x, y, limit, align, drawColor);
 
     return 0;
 }
@@ -675,6 +697,7 @@ int Graphics::Register(lua_State * L)
         { "pop",                Pop                },
         { "present",            Present            },
         { "print",              Print              },
+        { "printf",              Printf            },
         { "push",               Push               },
         { "rectangle",          Rectangle          },
         { "polygon",            Polygon            },
