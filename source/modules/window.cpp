@@ -11,12 +11,12 @@ SDL_Surface * WINDOW_SURFACE;
 // maximum window dimension is currently limited to 1280x720
 void Window::Initialize()
 {
-    WINDOW = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_FULLSCREEN);
+    WINDOW = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_OPENGL);
 
     if (!WINDOW)
         SDL_Quit();
 
-    RENDERER = SDL_CreateRenderer(WINDOW, 0, SDL_RENDERER_SOFTWARE);
+    RENDERER = SDL_CreateRenderer(WINDOW, 0, SDL_RENDERER_HARDWARE);
 
     if (!RENDERER)
         SDL_Quit();
