@@ -310,7 +310,7 @@ local function pseudoRequireConf()
 end
 
 local confSuccess
-if love.filesystem.isFile("conf.lua") then
+if love.filesystem.getInfo("conf.lua") then
     confSuccess = xpcall(pseudoRequireConf, love.errhand)
 
     if not confSuccess then
