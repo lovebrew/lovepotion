@@ -26,30 +26,85 @@
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
+--[[
+    Honestly, 99% of these flags are just for compatability.
+    Everything will always be enabled .. if the platform supports it.
+    The only thing that matters is like the first three flags.
+
+    Seriously: identity, appendidentity, and version.
+
+    Go nuts.
+--]]
 local config = 
 {
-    console = false,
+    identity = "SuperGame",
+    appendidentity = false,
+    
     version = "1.0.0",
-    identity = "SuperGame"
+    console = false,
+    accelerometerjoystick = true,
+    externalstorage = false,
+
+    gammacorrect = true,
+
+    audio =
+    {
+        mixwithsystem = true
+    },
+
+    modules =
+    {
+        audio = true,
+        data = true,
+        event = true,
+        font = true,
+        graphics = true,
+        image = true,
+        joystick = true,
+        keyboard = true,
+        math = true,
+        mouse = true,
+        physics = true,
+        sound = true,
+        system = true,
+        thread = true,
+        timer = true,
+        touch = true,
+        video = true,
+        window = true
+    },
+
+    window =
+    {
+        title = "Untitled",
+        icon = nil,
+        
+        width = 1280,
+        height = 720,
+        
+        borderless = false,
+        resizable = false,
+        
+        minwidth = 1,
+        minheight = 1,
+
+        fullscreen = false,
+        fullscreentype = "desktop",
+
+        vsync = 1,
+        msaa = 0,
+
+        depth = nil,
+        stencil = nil,
+
+        highdpi = false,
+
+        x = nil,
+        y = nil,
+    }
 }
 
-
-if love.filesystem.isFile("conf.lua") then
-    success, err = pcall(require, 'conf')
-
-    if success and love.conf then
-        love.conf(config)
-
-        if config.console then
-            love.enableConsole()
-        end
-    end
-end
-
-in_error = false
-love.filesystem.setIdentity(config.identity)
-
-__defaultFont = love.graphics.newFont()
+local __defaultFont = love.graphics.newFont()
 love.graphics.setFont(__defaultFont)
 
 function love.createhandlers()
@@ -173,7 +228,6 @@ function love.errhand(message)
     message = message:gsub("^(./)", "")
 
     local err = {}
-    in_error = true
 
     local major, minor, rev = love.getVersion()
 
@@ -192,7 +246,7 @@ function love.errhand(message)
     
     table.insert(err, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
     
-    dateTime = os.date("%c")
+    local dateTime = os.date("%c")
     table.insert(err, "\nDate and Time: " .. dateTime)
     table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
     
@@ -207,8 +261,8 @@ function love.errhand(message)
 
     love.graphics.setColor(1, 1, 1, 1)
     
-    headerFont = love.graphics.newFont(32)
-    buttonFont = love.graphics.newFont(24)
+    local headerFont = love.graphics.newFont(32)
+    local buttonFont = love.graphics.newFont(24)
 
     local error_img = love.graphics.newImage("error:warn");
     local plus_img = love.graphics.newImage("error:plus");
@@ -249,6 +303,33 @@ function love.errhand(message)
 
     love.event.quit()
 end 
+
+local function pseudoRequireConf()
+    return require('conf')
+end
+
+local confSuccess
+if love.filesystem.isFile("conf.lua") then
+    confSuccess = xpcall(pseudoRequireConf, love.errhand)
+
+    if not confSuccess then
+        return
+    end
+
+    if love.conf then
+        local function confWrap()
+            love.conf(config)
+        end
+
+        confSuccess = xpcall(confWrap, love.errhand)
+
+        if not confSuccess then
+            return
+        end
+    end
+end
+
+love.filesystem.setIdentity(config.identity)
 
 local function pseudoRequireMain()
     return require("main")
