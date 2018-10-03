@@ -13,7 +13,7 @@ Font::Font(const char * path, int size) : Object("Font")
 
     this->font = TTF_OpenFont(path, this->size);
 
-    this->surface = NULL;
+    this->texture = NULL;
 
     if (!this->font)
         printf("Font error: %s", TTF_GetError());
@@ -35,7 +35,7 @@ Font::Font(int size)
 
     this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)fontData.address, fontData.size), 1, size);
 
-    this->surface = NULL;
+    this->texture = NULL;
 }
 
 void Font::Print(const char * text, double x, double y, float limit, const string & align, SDL_Color color)
@@ -43,18 +43,25 @@ void Font::Print(const char * text, double x, double y, float limit, const strin
     if (strlen(text) == 0)
         return;
 
-    this->surface = TTF_RenderText_Blended_Wrapped(this->font, text, color, limit);
-    SDL_SetSurfaceAlphaMod(this->surface, color.a);
+    SDL_Surface * tempSurface = TTF_RenderText_Blended_Wrapped(this->font, text, color, limit);
+    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    SDL_FreeSurface(tempSurface);
+
+    SDL_SetTextureColorMod(this->texture, color.r, color.g, color.b);
+    SDL_SetTextureAlphaMod(this->texture, color.a);
 
     if (align == "center")
         x += (limit / 2);
     else if (align == "right")
         x += limit;
 
-    SDL_Rect position = {x, y, this->surface->w, this->surface->h};
-    SDL_BlitSurface(this->surface, NULL, Window::GetSurface(), &position);
+    int width, height = 0;
+    SDL_QueryTexture(this->texture, NULL, NULL, &width, &height);
+    SDL_Rect position = {x, y, width, height};
 
-    SDL_FreeSurface(this->surface);
+    SDL_RenderCopyEx(Window::GetRenderer(), this->texture, NULL, &position, 0, NULL, SDL_FLIP_NONE);
+
+    SDL_DestroyTexture(this->texture);
 }
 
 Font::~Font()

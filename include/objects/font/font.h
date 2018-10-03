@@ -7,7 +7,6 @@ class Font : public Object
         Font(int size = 16);
         ~Font();
 
-        SDL_Surface * GetSurface();
         bool HasGlyph(uint glyph);
         int GetWidth(const char * text);
         int GetSize();
@@ -16,6 +15,6 @@ class Font : public Object
 
     private:
         TTF_Font * font;
-        SDL_Surface * surface;
+        SDL_Texture * texture;
         float size;
 };

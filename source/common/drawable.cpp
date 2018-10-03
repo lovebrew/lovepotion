@@ -22,6 +22,16 @@ void Drawable::Draw(const Viewport & view, double x, double y, double rotation, 
             if (this->flip != SDL_FLIP_HORIZONTAL)
                 this->flip = SDL_FLIP_HORIZONTAL;
         }
+        else if (scalarY < 0.0)
+        {
+            if (this->flip != SDL_FLIP_VERTICAL)
+                this->flip = SDL_FLIP_VERTICAL;
+        }
+        else if (scalarX < 0.0 && scalarY < 0.0)
+        {
+            if (this->flip != (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL))
+                this->flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+        }
         else
             this->flip = SDL_FLIP_NONE;
 
