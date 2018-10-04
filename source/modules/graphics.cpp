@@ -692,11 +692,6 @@ int Graphics::GetRendererInfo(lua_State * L)
 
 //End Löve2D Functions
 
-bool Graphics::IsInitialized()
-{
-    return isInitialized;
-}
-
 void Graphics::Exit()
 {
     TTF_Quit();

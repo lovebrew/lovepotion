@@ -8,7 +8,6 @@
 namespace Graphics
 {
     void Initialize();
-    bool IsInitialized();
 
     //Löve2D Functions
 
