@@ -1,6 +1,6 @@
 #pragma once
 
-class Font : public Object
+class Font : public Drawable
 {
     public:
         Font(const char * path, int size);
@@ -11,7 +11,7 @@ class Font : public Object
         int GetWidth(const char * text);
         int GetSize();
         TTF_Font * GetFont();
-        void Print(const char * text, double x, double y, float limit, const std::string & align, SDL_Color color);
+        void Print(const char * text, double x, double y, double rotation, float limit, const std::string & align, double scalarX, double scalarY, SDL_Color color);
 
     private:
         TTF_Font * font;

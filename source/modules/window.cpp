@@ -3,12 +3,7 @@
 
 SDL_Window * WINDOW;
 SDL_Renderer * RENDERER;
-SDL_Surface * WINDOW_SURFACE;
 
-// create a 800x600 window for demonstration.
-// if SDL_WINDOW_FULLSCREEN flag is passed, it will be hardware scaled (stretched) to fit screen,
-// will always be centered and aspect ratio maintained.
-// maximum window dimension is currently limited to 1280x720
 void Window::Initialize()
 {
     Uint32 windowFlags = SDL_WINDOW_FULLSCREEN;
@@ -23,8 +18,6 @@ void Window::Initialize()
     if (!RENDERER)
         SDL_Quit();
 
-    WINDOW_SURFACE = SDL_GetWindowSurface(WINDOW);
-
     SDL_SetRenderDrawBlendMode(RENDERER, SDL_BLENDMODE_BLEND);
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0");
@@ -33,11 +26,6 @@ void Window::Initialize()
 SDL_Renderer * Window::GetRenderer()
 {
     return RENDERER;
-}
-
-SDL_Surface * Window::GetSurface()
-{
-    return WINDOW_SURFACE;
 }
 
 void Window::Exit()
@@ -54,7 +42,21 @@ int Window::SetMode(lua_State * L)
 
 int Window::GetFullscreenModes(lua_State * L)
 {
-    lua_pushnil(L);
+    lua_createtable(L, 1, 0);
+    lua_pushnumber(L, 1);
+
+    lua_createtable(L, 0, 2);
+
+    //Inner table attributes
+    lua_pushnumber(L, 1280);
+    lua_setfield(L, -2, "width");
+    
+    lua_pushnumber(L, 720);
+    lua_setfield(L, -2, "height");
+
+    //End table attributes
+
+    lua_settable(L, -3);
 
     return 1;
 }

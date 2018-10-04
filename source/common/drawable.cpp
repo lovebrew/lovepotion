@@ -5,7 +5,6 @@
 Drawable::Drawable(char * type) : Object(type)
 {
     this->texture = NULL;
-    this->surface = NULL;
 
     this->flip = SDL_FLIP_NONE;
 }
@@ -15,31 +14,49 @@ void Drawable::Draw(const Viewport & view, double x, double y, double rotation, 
     SDL_Rect quad = {view.x, view.y, view.subWidth * abs(scalarX), view.subHeight * abs(scalarY)};
     SDL_Rect position = {x, y, view.subWidth * abs(scalarX), view.subHeight * abs(scalarY)};
 
+    SDL_Point center = {0, 0};
+
     if (this->texture != NULL)
     {
-        if (scalarX < 0.0)
-        {
-            if (this->flip != SDL_FLIP_HORIZONTAL)
-                this->flip = SDL_FLIP_HORIZONTAL;
-        }
-        else if (scalarY < 0.0)
-        {
-            if (this->flip != SDL_FLIP_VERTICAL)
-                this->flip = SDL_FLIP_VERTICAL;
-        }
-        else if (scalarX < 0.0 && scalarY < 0.0)
-        {
-            if (this->flip != (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL))
-                this->flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
-        }
-        else
-            this->flip = SDL_FLIP_NONE;
+        this->Flip(x, y, scalarX, scalarY);
 
         SDL_SetTextureColorMod(this->texture, color.r, color.g, color.b);
         SDL_SetTextureAlphaMod(this->texture, color.a);
 
-        SDL_RenderCopyEx(Window::GetRenderer(), this->texture, &quad, &position, rotation, NULL, this->flip);
+        SDL_RenderCopyEx(Window::GetRenderer(), this->texture, &quad, &position, rotation, &center, this->flip);
     }
+}
+
+void Drawable::Flip(double x, double y, double scalarX, double scalarY)
+{
+    if (scalarX < 0.0)
+    {
+        if (this->flip != SDL_FLIP_HORIZONTAL)
+        {
+            x -= this->width;
+            this->flip = SDL_FLIP_HORIZONTAL;
+        }
+    }
+    else if (scalarY < 0.0)
+    {
+        if (this->flip != SDL_FLIP_VERTICAL)
+        {
+            y -= this->height;
+            this->flip = SDL_FLIP_VERTICAL;
+        }
+    }
+    else if (scalarX < 0.0 && scalarY < 0.0)
+    {
+        if (this->flip != (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL))
+        {
+            x -= this->width;
+            y -= this->height;
+
+            this->flip = (SDL_RendererFlip)(SDL_FLIP_HORIZONTAL | SDL_FLIP_VERTICAL);
+        }
+    }
+    else
+        this->flip = SDL_FLIP_NONE;
 }
 
 Viewport Drawable::GetViewport()

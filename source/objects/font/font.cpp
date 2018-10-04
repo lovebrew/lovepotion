@@ -2,11 +2,12 @@
 
 #include "modules/filesystem.h"
 
+#include "common/drawable.h"
 #include "objects/font/font.h"
 #include "modules/graphics.h"
 #include "modules/window.h"
 
-Font::Font(const char * path, int size) : Object("Font")
+Font::Font(const char * path, int size) : Drawable("Font")
 {
     float dpiScale = 1.0f;
     this->size = floorf(size * dpiScale + 0.5f);
@@ -19,7 +20,7 @@ Font::Font(const char * path, int size) : Object("Font")
         printf("Font error: %s", TTF_GetError());
 }
 
-Font::Font(int size)
+Font::Font(int size) : Drawable("Font")
 {
     u64 languageCode = 0;
     PlFontData fontData;
@@ -38,10 +39,12 @@ Font::Font(int size)
     this->texture = NULL;
 }
 
-void Font::Print(const char * text, double x, double y, float limit, const string & align, SDL_Color color)
+void Font::Print(const char * text, double x, double y, double rotation, float limit, const string & align, double scalarX, double scalarY, SDL_Color color)
 {
     if (strlen(text) == 0)
         return;
+    
+    SDL_Point center = {0, 0};
 
     SDL_Surface * tempSurface = TTF_RenderText_Blended_Wrapped(this->font, text, color, limit);
     this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
@@ -57,9 +60,11 @@ void Font::Print(const char * text, double x, double y, float limit, const strin
 
     int width, height = 0;
     SDL_QueryTexture(this->texture, NULL, NULL, &width, &height);
-    SDL_Rect position = {x, y, width, height};
+    SDL_Rect position = {x, y, width * abs(scalarX), height * abs(scalarY)};
 
-    SDL_RenderCopyEx(Window::GetRenderer(), this->texture, NULL, &position, 0, NULL, SDL_FLIP_NONE);
+    this->Flip(x, y, scalarX, scalarY);
+
+    SDL_RenderCopyEx(Window::GetRenderer(), this->texture, NULL, &position, rotation, &center, this->flip);
 
     SDL_DestroyTexture(this->texture);
 }

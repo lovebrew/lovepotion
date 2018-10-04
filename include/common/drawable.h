@@ -12,11 +12,12 @@ class Drawable : public Object
         Viewport GetViewport();
 
     protected:
+        void Flip(double x, double y, double scalarX, double scalarY);
+
         int width;
         int height;
 
         SDL_Texture * texture;
-        SDL_Surface * surface;
 
         Viewport viewport;
 

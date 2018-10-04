@@ -248,7 +248,7 @@ function love.errhand(message)
     
     local dateTime = os.date("%c")
     table.insert(err, "\nDate and Time: " .. dateTime)
-    table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
+    table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "/log.txt")
     
     local realError = table.concat(err, "\n")
     realError = realError:gsub("\t", "")

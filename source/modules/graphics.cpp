@@ -117,24 +117,27 @@ int Graphics::SetBackgroundColor(lua_State * L)
 //love.graphics.setColor
 int Graphics::SetColor(lua_State * L)
 {
-    float r = 0, g = 0, b = 0, a = 1;
+    float r = drawColor.r;
+    float g = drawColor.g;
+    float b = drawColor.b;
+    float a = drawColor.a;
 
     if (lua_isnumber(L, 1))
     {
-        r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-        g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-        b = clamp(0, luaL_optnumber(L, 3, 0), 1);
-        a = clamp(0, luaL_optnumber(L, 4, 1), 1);
+        r = clamp(0, luaL_checknumber(L, 1), 1);
+        g = clamp(0, luaL_checknumber(L, 2), 1);
+        b = clamp(0, luaL_checknumber(L, 3), 1);
+        a = clamp(0, luaL_optnumber(L, 4, drawColor.a), 1);
     }
     else if (lua_istable(L, 1))
     {
         for (int i = 1; i <= 4; i++)
             lua_rawgeti(L, 1, i);
 
-        r = clamp(0, luaL_optnumber(L, -4, 0), 1);
-        g = clamp(0, luaL_optnumber(L, -3, 0), 1);
-        b = clamp(0, luaL_optnumber(L, -2, 0), 1);
-        a = clamp(0, luaL_optnumber(L, -1, 1), 1);
+        r = clamp(0, luaL_checknumber(L, -4), 1);
+        g = clamp(0, luaL_checknumber(L, -3), 1);
+        b = clamp(0, luaL_checknumber(L, -2), 1);
+        a = clamp(0, luaL_optnumber(L, -1, drawColor.a), 1);
     }
 
     drawColor.r = r * 255;
@@ -221,6 +224,8 @@ int Graphics::Draw(lua_State * L)
     x -= offsetX;
     y -= offsetY;
 
+    rotation *= 180 / M_PI;
+
     if (quad != nullptr)
         drawable->Draw(quad->GetViewport(), x, y, rotation, scalarX, scalarY, drawColor);
     else
@@ -271,12 +276,25 @@ int Graphics::Print(lua_State * L)
     float x = luaL_optnumber(L, 2, 0);
     float y = luaL_optnumber(L, 3, 0);
 
+    float rotation = luaL_optnumber(L, 4, 0);
+    
+    float scalarX = luaL_optnumber(L, 5, 1);
+    float scalarY = luaL_optnumber(L, 6, 1);
+
+    float offsetX = luaL_optnumber(L, 7, 0);
+    float offsetY = luaL_optnumber(L, 8, 0);
+
     transformDrawable(&x, &y);
+
+    rotation *= 180 / M_PI;
+
+    x -= offsetX;
+    y -= offsetY;
 
     if (currentFont == NULL)
         return 0;
 
-    currentFont->Print(text, x, y, 1280, "left", drawColor);
+    currentFont->Print(text, x, y, rotation, 1280, "left", scalarX, scalarY, drawColor);
 
     return 0;
 }
@@ -293,12 +311,25 @@ int Graphics::Printf(lua_State * L)
 
     string align = luaL_optstring(L, 5, "left");
 
+    float rotation = luaL_optnumber(L, 6, 0);
+
+    float scalarX = luaL_optnumber(L, 7, 1);
+    float scalarY = luaL_optnumber(L, 8, 1);
+
+    float offsetX = luaL_optnumber(L, 9, 0);
+    float offsetY = luaL_optnumber(L, 10, 0);
+
     transformDrawable(&x, &y);
+
+    rotation *= 180 / M_PI;
+
+    x -= offsetX;
+    y -= offsetY;
 
     if (currentFont == NULL)
         return 0;
 
-    currentFont->Print(text, x, y, limit, align, drawColor);
+    currentFont->Print(text, x, y, rotation, limit, align, scalarX, scalarY, drawColor);
 
     return 0;
 }
