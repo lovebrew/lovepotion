@@ -19,7 +19,6 @@
 #include "objects/text/text.h"
 #include "objects/text/wrap_text.h"
 
-bool isInitialized = false;
 SDL_Color backgroundColor = { 0, 0, 0, 255 };
 SDL_Color drawColor = { 255, 255, 255, 255 };
 
@@ -64,8 +63,6 @@ void Graphics::Initialize()
 
     stack.reserve(16);
     stack.push_back(StackMatrix());
-
-    isInitialized = true;
 }
 
 //Löve2D Functions
@@ -89,22 +86,24 @@ int Graphics::GetHeight(lua_State * L)
 //love.graphics.setBackgroundColor
 int Graphics::SetBackgroundColor(lua_State * L)
 {
-    float r = 0, g = 0, b = 0;
+    float r = backgroundColor.r;
+    float g = backgroundColor.g;
+    float b = backgroundColor.b;
 
     if (lua_isnumber(L, 1))
     {
-        r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-        g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-        b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+        r = clamp(0, luaL_checknumber(L, 1), 1);
+        g = clamp(0, luaL_checknumber(L, 2), 1);
+        b = clamp(0, luaL_checknumber(L, 3), 1);
     }
     else if (lua_istable(L, 1))
     {
         for (int i = 1; i <= 4; i++)
             lua_rawgeti(L, 1, i);
 
-        r = clamp(0, luaL_optnumber(L, -4, 0), 1);
-        g = clamp(0, luaL_optnumber(L, -3, 0), 1);
-        b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+        r = clamp(0, luaL_checknumber(L, -4), 1);
+        g = clamp(0, luaL_checknumber(L, -3), 1);
+        b = clamp(0, luaL_checknumber(L, -2), 1);
     }
 
     backgroundColor.r = r * 255;

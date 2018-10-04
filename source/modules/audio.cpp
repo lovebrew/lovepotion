@@ -4,7 +4,6 @@
 #include "objects/source/source.h"
 #include "objects/source/wrap_source.h"
 
-bool AUDIO_ENABLED = false;
 vector<bool> audioChannels(8);
 
 void Audio::Initialize()
