@@ -126,7 +126,7 @@ int Graphics::SetColor(lua_State * L)
         r = clamp(0, luaL_checknumber(L, 1), 1);
         g = clamp(0, luaL_checknumber(L, 2), 1);
         b = clamp(0, luaL_checknumber(L, 3), 1);
-        a = clamp(0, luaL_optnumber(L, 4, drawColor.a), 1);
+        a = clamp(0, luaL_optnumber(L, 4, 1), 1);
     }
     else if (lua_istable(L, 1))
     {
@@ -136,7 +136,7 @@ int Graphics::SetColor(lua_State * L)
         r = clamp(0, luaL_checknumber(L, -4), 1);
         g = clamp(0, luaL_checknumber(L, -3), 1);
         b = clamp(0, luaL_checknumber(L, -2), 1);
-        a = clamp(0, luaL_optnumber(L, -1, drawColor.a), 1);
+        a = clamp(0, luaL_optnumber(L, -1, 1), 1);
     }
 
     drawColor.r = r * 255;
