@@ -152,11 +152,22 @@ int Graphics::SetColor(lua_State * L)
 //love.graphics.getBackgroundColor
 int Graphics::GetBackgroundColor(lua_State * L)
 {
-    lua_pushnumber(L, backgroundColor.r / 255);
-    lua_pushnumber(L, backgroundColor.g / 255);
-    lua_pushnumber(L, backgroundColor.b / 255);
+    lua_pushnumber(L, backgroundColor.r / 255.0f);
+    lua_pushnumber(L, backgroundColor.g / 255.0f);
+    lua_pushnumber(L, backgroundColor.b / 255.0f);
 
     return 3;
+}
+
+//love.graphics.getColor
+int Graphics::GetColor(lua_State * L)
+{
+    lua_pushnumber(L, drawColor.r / 255.0f);
+    lua_pushnumber(L, drawColor.g / 255.0f);
+    lua_pushnumber(L, drawColor.b / 255.0f);
+    lua_pushnumber(L, drawColor.a / 255.0f);
+
+    return 4;
 }
 
 //love.graphics.clear
@@ -235,6 +246,15 @@ int Graphics::Draw(lua_State * L)
 
 int Graphics::SetDefaultFilter(lua_State * L)
 {
+    string filter = luaL_checkstring(L, 1);
+    string quality = "1";
+
+    if (filter == "nearest")
+        quality = "0";
+
+    const char * c_quality = quality.c_str();
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, c_quality);
+
     return 0;
 }
 
@@ -707,6 +727,7 @@ int Graphics::Register(lua_State * L)
         { "clear",              Clear              },
         { "draw",               Draw               },
         { "getBackgroundColor", GetBackgroundColor },
+        { "getColor",           GetColor           },
         { "getFont",            GetFont            },
         { "getHeight",          GetHeight          },
         { "getLineWidth",       GetLineWidth       },
@@ -722,7 +743,7 @@ int Graphics::Register(lua_State * L)
         { "pop",                Pop                },
         { "present",            Present            },
         { "print",              Print              },
-        { "printf",              Printf            },
+        { "printf",             Printf             },
         { "push",               Push               },
         { "rectangle",          Rectangle          },
         { "polygon",            Polygon            },

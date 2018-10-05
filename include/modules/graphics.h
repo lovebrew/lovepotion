@@ -20,6 +20,7 @@ namespace Graphics
     int Present(lua_State * L);
 
     int SetColor(lua_State * L);
+    int GetColor(lua_State * L);
     
     int SetBackgroundColor(lua_State * L);
     int GetBackgroundColor(lua_State * L);
