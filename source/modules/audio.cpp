@@ -115,8 +115,10 @@ int Audio::GetVolume(lua_State * L)
 
 void Audio::Exit()
 {
-    Mix_CloseAudio();
+    Mix_HaltChannel(-1);
+    Mix_HaltMusic();
 
+    Mix_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 

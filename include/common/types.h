@@ -66,6 +66,12 @@ typedef struct
     Tex3DS_SubTexture subTexture;
 } Glyph;
 
+typedef struct
+{
+    GPU_TEXTURE_FILTER_PARAM minFilter;
+    GPU_TEXTURE_FILTER_PARAM magFilter;
+} TextureFilter
+
 extern std::vector<const char *> FILE_MODES;
 
 extern std::vector<const char *> SOURCE_TYPES;

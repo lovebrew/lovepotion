@@ -1,14 +1,18 @@
 #include "common/runtime.h"
 #include "common/drawable.h"
-#include "modules/window.h"
+#include "modules/graphics.h"
 
 #define NO_APLHA (PNG_COLOR_TYPE_RGB | PNG_COLOR_TYPE_GRAY | PNG_COLOR_TYPE_PALETTE)
 #define GRAYSCALE (PNG_COLOR_TYPE_GRAY | PNG_COLOR_TYPE_GRAY_ALPHA)
 
-Drawable::Drawable(char * type) : Object(type)
-{
+#define TEXTURE_TRANSFER_FLAGS \
+        (GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(1) | GX_TRANSFER_RAW_COPY(0) | \
+        GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
+        GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-}
+#define FORMAT_SIZE 32 // RGBA8
+
+Drawable::Drawable(char * type) : Object(type) {}
 
 u32 * Drawable::LoadPNG(const char * path, char * buffer, size_t memorySize)
 {
@@ -58,25 +62,27 @@ u32 * Drawable::LoadPNG(const char * path, char * buffer, size_t memorySize)
 
     // Read any color_type into 8bit depth, ABGR format.
     // See http://www.libpng.org/pub/png/libpng-manual.txt
-
-    if (bit_depth == 16)
+    if(bit_depth == 16)
         png_set_strip_16(png);
 
-    if (color_type == PNG_COLOR_TYPE_PALETTE)
+    if(color_type == PNG_COLOR_TYPE_PALETTE)
         png_set_palette_to_rgb(png);
 
     // PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
-    if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
+    if(color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
         png_set_expand_gray_1_2_4_to_8(png);
 
-    if (png_get_valid(png, info, PNG_INFO_tRNS) != 0)
+    if(png_get_valid(png, info, PNG_INFO_tRNS) != 0)
         png_set_tRNS_to_alpha(png);
 
     // These color_type don't have an alpha channel then fill it with 0xff.
-    if (color_type & NO_APLHA)
+    if(color_type == PNG_COLOR_TYPE_RGB ||
+        color_type == PNG_COLOR_TYPE_GRAY ||
+        color_type == PNG_COLOR_TYPE_PALETTE)
         png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
 
-    if (color_type & GRAYSCALE)
+    if(color_type == PNG_COLOR_TYPE_GRAY ||
+        color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
         png_set_gray_to_rgb(png);
 
     //output ABGR
@@ -100,16 +106,19 @@ u32 * Drawable::LoadPNG(const char * path, char * buffer, size_t memorySize)
     fclose(input);
     png_destroy_read_struct(&png, &info, NULL);
 
-    if ((out = new (std::nothrow) u32[this->width * this->height]) == nullptr)
+    //out = (u32 *)linearAlloc(this->width * this->height);
+    out = new (std::nothrow) u32[this->width * this->height];
+
+    if (out == NULL)
     {
-        for (int j = 0; j < height; j++)
+        for (int j = 0; j < this->height; j++)
             free(row_pointers[j]);
 
         delete[] row_pointers;
         return nullptr;
     }
 
-    for(int j = 0; j < height; j++)
+    for(int j = 0; j < this->height; j++)
     {
         png_bytep row = row_pointers[j];
         for(int i = 0; i < this->width; i++)
@@ -147,8 +156,22 @@ void Drawable::LoadImage(u32 * buffer)
     this->image.subtex = &this->subTexture;
 
     C3D_TexInit(this->image.tex, w_pow2, h_pow2, GPU_RGBA8);
+    this->image.tex->border = 0x00FFFFFF;
 
     memset(this->image.tex->data, 0, this->image.tex->size);
+    
+    // // Flush buffer to GPU
+    //GSPGPU_FlushDataCache(buffer, this->width * this->height * 4);
+
+    // // Convert image to 3DS tiled texture format
+    // // Credit for the help on this function: Swiftloke
+    //u32 SRC_COPY_DIM = GX_BUFFER_DIM((this->width * FORMAT_SIZE) >> 4, 0);
+    //u32 DST_COPY_DIM = GX_BUFFER_DIM((this->width * FORMAT_SIZE) >> 4, ((w_pow2 - this->width) * FORMAT_SIZE) >> 4);
+
+    //u32 SRC_COPY_DIM = GX_BUFFER_DIM(this->width, this->height);
+    //u32 DST_COPY_DIM = GX_BUFFER_DIM(w_pow2, h_pow2);
+
+    //C3D_SyncDisplayTransfer(buffer, SRC_COPY_DIM, (u32 *)this->image.tex->data, DST_COPY_DIM, TEXTURE_TRANSFER_FLAGS);
 
     for(int j = 0; j < this->height; j++)
     {
@@ -161,8 +184,8 @@ void Drawable::LoadImage(u32 * buffer)
 
     delete[] buffer;
 
-    C3D_TexSetFilter(this->image.tex, GPU_LINEAR, GPU_LINEAR);
-    this->image.tex->border = 0x00FFFFFF;
+    TextureFilter filter = Graphics::GetFilter();
+    C3D_TexSetFilter(this->image.tex, filter.minFilter, filter.magFilter);
     C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 

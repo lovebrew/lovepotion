@@ -11,6 +11,9 @@
 #include "objects/font/wrap_font.h"
 #include "objects/font/font.h"
 
+#include "objects/spritebatch/wrap_spritebatch.h"
+#include "objects/spritebatch/spritebatch.h"
+
 //Screen Stuff
 gfxScreen_t currentScreen = GFX_TOP;
 gfx3dSide_t currentSide = GFX_LEFT;
@@ -25,6 +28,7 @@ Color backgroundColor = { 0, 0, 0, 1 };
 Color drawColor = { 1, 1, 1, 1 };
 
 Font * currentFont = nullptr;
+TextureFilter defaultFilter;
 
 vector<StackMatrix> transformStack(16);
 bool STACK_PUSHED = false;
@@ -79,6 +83,9 @@ void Graphics::Initialize()
     StackMatrix init = {0, 0, 0, 1, 1, 0, 0};
     transformStack.emplace_back(init);
 
+    defaultFilter.minFilter = GPU_LINEAR;
+    defaultFilter.magFilter = GPU_LINEAR;
+    
     STACK_PUSHED = false;
 }
 
@@ -309,6 +316,23 @@ int Graphics::Clear(lua_State * L)
     return 0;
 }
 
+int Graphics::SetDefaultFilter(lua_State * L)
+{
+    string minFilter = luaL_checkstring(L, 1);
+    string magFilter = luaL_checkstring(L, 2);
+
+    GPU_TEXTURE_FILTER_PARAM min = GPU_LINEAR;
+    if (minFilter == "nearest")
+        min = GPU_NEAREST;
+
+    GPU_TEXTURE_FILTER_PARAM mag = GPU_LINEAR;
+    if (magFilter == "nearest")
+        mag = GPU_NEAREST;
+
+    defaultFilter.minFilter = min;
+    defaultFilter.magFilter = mag;
+}
+
 //love.graphics.setScissor
 int Graphics::SetScissor(lua_State * L)
 {
@@ -443,6 +467,11 @@ C3D_RenderTarget * Graphics::GetScreen(gfxScreen_t screen, gfx3dSide_t side)
     return target;
 }
 
+TextureFilter Graphics::GetFilter()
+{
+    return defaultFilter;
+}
+
 void Graphics::Clear(gfxScreen_t screen, gfx3dSide_t side)
 {
     C2D_TargetClear(GetScreen(screen, side), ConvertColor(backgroundColor));
@@ -472,6 +501,7 @@ int Graphics::Register(lua_State * L)
     {
         { "newImage",           imageNew           },
         { "newQuad",            quadNew            },
+        { "newSpriteBatch",     spriteBatchNew     },
         { "newFont",            fontNew            },
         { "getWidth",           GetWidth           },
         { "getHeight",          GetHeight          },
@@ -482,7 +512,7 @@ int Graphics::Register(lua_State * L)
         //{ "setDepth",           SetDepth           },
         { "setScissor",         SetScissor         },
         //{ "circle",             Circle             }
-        //{ "setDefaultFilter",   SetDefaultFilter   },
+        { "setDefaultFilter",   SetDefaultFilter   },
         { "getRendererInfo",    GetRendererInfo    },
         { "setFont",            SetFont            },
         { "setScreen",          SetScreen          },

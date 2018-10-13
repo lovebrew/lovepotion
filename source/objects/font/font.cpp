@@ -60,8 +60,8 @@ void Font::LoadJSON(json_t * json)
     json_t * common = json_object_get(json, "common");
     this->size = this->LoadGlyphInfo(common, "lineHeight");
 
-    size_t kerningIndex;
-    json_t * kerningValue;
+    //size_t kerningIndex;
+    //json_t * kerningValue;
 
     /*json_t * kerningTree = json_object_get(json, "kernings");
     json_array_foreach(kerningTree, kerningIndex, kerningValue)

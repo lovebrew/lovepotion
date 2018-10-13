@@ -27,7 +27,7 @@ namespace Graphics
 
     int SetScreen(lua_State * L);
     int SetFont(lua_State * L);
-    
+    int SetDefaultFilter(lua_State * L);
     int SetScissor(lua_State * L);
 
     int Push(lua_State * L);
@@ -42,6 +42,7 @@ namespace Graphics
     C3D_RenderTarget * GetScreen(gfxScreen_t screen, gfx3dSide_t side);
     void Clear(gfxScreen_t screen, gfx3dSide_t side);
     void DrawOn(gfxScreen_t screen, gfx3dSide_t side);
+    TextureFilter GetFilter();
 
     u32 ConvertColor(Color & color);
 
