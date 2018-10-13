@@ -70,7 +70,7 @@ typedef struct
 {
     GPU_TEXTURE_FILTER_PARAM minFilter;
     GPU_TEXTURE_FILTER_PARAM magFilter;
-} TextureFilter
+} TextureFilter;
 
 extern std::vector<const char *> FILE_MODES;
 
