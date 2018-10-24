@@ -11,6 +11,9 @@ Drawable::Drawable(char * type) : Object(type)
 
 void Drawable::Draw(const Viewport & view, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color)
 {
+    if( scalarX != 0 && scalarY == 0 )
+        scalarY = scalarX
+    
     SDL_Rect quad = {view.x, view.y, view.subWidth, view.subHeight};
     SDL_Rect position = {x, y, view.subWidth * abs(scalarX), view.subHeight * abs(scalarY)};
 
