@@ -224,7 +224,7 @@ int Graphics::Draw(lua_State * L)
     float rotation = luaL_optnumber(L, start + 2, 0);
 
     float scalarX = luaL_optnumber(L, start + 3, 1);
-    float scalarY = luaL_optnumber(L, start + 4, 1);
+    float scalarY = luaL_optnumber(L, start + 4, scalarX);
 
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
