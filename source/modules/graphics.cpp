@@ -27,6 +27,9 @@ C3D_RenderTarget * bottomTarget = nullptr;
 Color backgroundColor = { 0, 0, 0, 1 };
 Color drawColor = { 1, 1, 1, 1 };
 
+C2D_ImageTint imageTint;
+C2D_ImageTint fontTint;
+
 Font * currentFont = nullptr;
 TextureFilter defaultFilter;
 
@@ -157,7 +160,7 @@ int Graphics::Draw(lua_State * L)
     y -= offsetY;
 
     if (currentScreen == renderScreen)
-        drawable->Draw(x, y, rotation, scalarX, scalarY, drawColor);
+        drawable->Draw(x, y, rotation, scalarX, scalarY, imageTint);
 
     return 0;
 }
@@ -181,7 +184,7 @@ int Graphics::Print(lua_State * L)
     Transform(&x, &y, &rotation, &scalarX, &scalarY);
 
     if (currentScreen == renderScreen)
-        currentFont->Print(text, x, y, rotation, scalarX, scalarY, drawColor);
+        currentFont->Print(text, x, y, rotation, scalarX, scalarY, fontTint);
 
     return 0;
 }
@@ -298,6 +301,9 @@ int Graphics::SetColor(lua_State * L)
     drawColor.b = b;
     drawColor.a = a;
 
+    C2D_PlainImageTint(&fontTint, ConvertColor(drawColor), 1);
+    C2D_AlphaImageTint(&imageTint, drawColor.a);
+
     return 0;
 }
 
@@ -331,6 +337,8 @@ int Graphics::SetDefaultFilter(lua_State * L)
 
     defaultFilter.minFilter = min;
     defaultFilter.magFilter = mag;
+
+    return 0;
 }
 
 //love.graphics.setScissor

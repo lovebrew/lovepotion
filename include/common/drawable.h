@@ -3,7 +3,7 @@ class Drawable : public Object
     public:
         Drawable(char * type);
         Drawable() {};
-        void Draw(float x, float y, float rotation, float scalarX, float scalarY, Color color);
+        void Draw(float x, float y, float rotation, float scalarX, float scalarY, C2D_ImageTint tint);
 
         int GetWidth();
         int GetHeight();

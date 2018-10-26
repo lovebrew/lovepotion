@@ -125,7 +125,7 @@ int Font::LoadGlyphInfo(json_t * object, const char * key)
     return (int)json_integer_value(value);
 }
 
-void Font::Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, Color color)
+void Font::Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, C2D_ImageTint color)
 {
     int last = 0;
     int kerning = 0;

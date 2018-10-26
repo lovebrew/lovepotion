@@ -11,7 +11,7 @@ class Font : public Drawable
         int GetSize();
         std::map<int, Glyph> GetGlyphs();
 
-        void Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, Color color);
+        void Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, C2D_ImageTint color);
     private:
         void LoadAssets(const string & path);
 

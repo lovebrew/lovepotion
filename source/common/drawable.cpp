@@ -189,12 +189,12 @@ void Drawable::LoadImage(u32 * buffer)
     C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 
-void Drawable::Draw(float x, float y, float rotation, float scalarX, float scalarY, Color color)
+void Drawable::Draw(float x, float y, float rotation, float scalarX, float scalarY, C2D_ImageTint tint)
 {
     if (rotation == 0)
-        C2D_DrawImageAt(this->image, x, y, 0.5, nullptr, scalarX, scalarY);
+        C2D_DrawImageAt(this->image, x, y, 0.5, &tint, scalarX, scalarY);
     else
-        C2D_DrawImageAtRotated(this->image, x, y, 0.5f, rotation, nullptr, scalarX, scalarY);
+        C2D_DrawImageAtRotated(this->image, x, y, 0.5f, rotation, &tint, scalarX, scalarY);
 }
 
 int Drawable::GetWidth()
