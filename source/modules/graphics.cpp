@@ -458,6 +458,8 @@ int Graphics::Circle(lua_State * L)
 
     float radius = luaL_checknumber(L, 4);
 
+    transformDrawable(&x, &y);
+
     if (mode == "fill")
         filledCircleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
