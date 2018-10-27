@@ -3,8 +3,7 @@ extern "C"
     #include <lua.h>
     #include <lualib.h>
     #include <lauxlib.h>
-
-    #include <compat-5.2.h>
+    #include <compat-5.3.h>
     #include <luaobj.h>
 }
 
@@ -36,6 +35,7 @@ int main(int argc, char **argv)
 
     Love::InitModules();
 
+    // require "love"
     luaL_requiref(L, "love", Love::Initialize, 1);
     
     Love::InitConstants(L);

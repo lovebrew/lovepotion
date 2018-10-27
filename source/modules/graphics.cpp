@@ -90,6 +90,9 @@ void Graphics::Initialize()
     defaultFilter.magFilter = GPU_LINEAR;
     
     STACK_PUSHED = false;
+
+    C2D_PlainImageTint(&fontTint, ConvertColor(drawColor), 0);
+    C2D_PlainImageTint(&imageTint, ConvertColor(drawColor), 0);
 }
 
 //Löve2D Functions
@@ -149,7 +152,7 @@ int Graphics::Draw(lua_State * L)
     float rotation = luaL_optnumber(L, start + 2, 0);
 
     float scalarX = luaL_optnumber(L, start + 3, 1);
-    float scalarY = luaL_optnumber(L, start + 4, 1);
+    float scalarY = luaL_optnumber(L, start + 4, scalarX);
 
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);

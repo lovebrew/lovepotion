@@ -10,9 +10,9 @@
 
 #include <stdint.h>
 
-#include "../lua/lua.h"
-#include "../lua/lualib.h"
-#include "../lua/lauxlib.h"
+#include "../luajit/include/lua.h"
+#include "../luajit/include/lualib.h"
+#include "../luajit/include/lauxlib.h"
 
 typedef struct {
   uint32_t type;

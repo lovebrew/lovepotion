@@ -269,9 +269,9 @@ function love.errhand(message)
 
     local function draw()
         love.graphics.clear("top")
-
         love.graphics.setScreen("top")
 
+        love.graphics.setColor(1, 1, 1)
         love.graphics.print(realError, 30, 16)
 
         love.graphics.draw(plus_img, 324, 220)
@@ -282,7 +282,6 @@ function love.errhand(message)
         love.graphics.setColor(1, 1, 1)
         
         love.graphics.clear("bottom")
-
         love.graphics.setScreen("bottom")
 
         love.graphics.draw(error_img, 96, 56)
@@ -290,19 +289,19 @@ function love.errhand(message)
         love.graphics.present()
     end
 
-    --local joycon = love.joystick.getJoysticks()[1]
+    local device = love.joystick.getJoysticks()
 
     while true do
         draw()
 
-        --[[if joycon:isGamepadDown("plus") then
+        if device:isGamepadDown("start") then
             break
-        end]]
+        end
 
         love.timer.sleep(0.1)
     end
 
-    --love.event.quit()
+    love.event.quit()
 end
 
 local function pseudoRequireConf()
