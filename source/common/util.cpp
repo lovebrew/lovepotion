@@ -81,37 +81,6 @@ bool love_is_registered(lua_State * L, void * object)
     return valid;
 }
 
-void stack_dump(lua_State * L) {
-    int i;
-    int top = lua_gettop(L);
-
-    for (i = 1; i <= top; i++) /* repeat for each level */
-    {
-        int t = lua_type(L, i);
-        
-        switch (t)
-        {
-            case LUA_TSTRING:  /* strings */
-                fprintf(logFile, "`%s'", lua_tostring(L, i));
-                break;
-            case LUA_TBOOLEAN:  /* booleans */
-                fprintf(logFile, lua_toboolean(L, i) ? "true" : "false");
-                break;
-            case LUA_TNUMBER:  /* numbers */
-                fprintf(logFile, "%g", lua_tonumber(L, i));
-                break;
-            case LUA_TUSERDATA:
-                fprintf(logFile, "%p", lua_touserdata(L, i));
-                break;
-            default:  /* other values */
-                fprintf(logFile, "%s", lua_typename(L, t));
-                break;
-        }
-        fprintf(logFile, "%s", "  ");  /* put a separator */
-    }
-    fprintf(logFile, "%s", "\n");  /* end the listing */
-}
-
 int love_get_registry(lua_State * L, REGISTRY registry)
 {
     switch(registry)
@@ -192,7 +161,8 @@ std::vector<std::string> KEYS =
     "l", "r", "zl", "zr",
     "plus", "minus", "dpleft",
     "dpup", "dpright", "dpdown",
-    "", "", "", "", "", "", "", ""
+    "", "", "", "", "", "", "", "",
+    "sl", "sr"
 };
 
 std::vector<HidControllerID> CONTROLLER_IDS =
