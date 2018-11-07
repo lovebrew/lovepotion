@@ -6,8 +6,5 @@ class Canvas : public Drawable
         Canvas(int width, int height);
         Canvas() {};
 
-        int GetWidth();
-        int GetHeight();
-
         void SetAsTarget();
 };

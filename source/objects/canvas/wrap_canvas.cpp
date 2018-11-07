@@ -21,6 +21,34 @@ int canvasNew(lua_State * L)
     return 1;
 }
 
+int canvasGetWidth(lua_State * L)
+{
+    Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    
+    lua_pushnumber(L, self->GetWidth());
+    
+    return 1;
+}
+
+int canvasGetHeight(lua_State * L)
+{
+    Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    
+    lua_pushnumber(L, self->GetHeight());
+    
+    return 1;
+}
+
+int canvasGetDimensions(lua_State * L)
+{
+    Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    lua_pushnumber(L, self->GetWidth());
+    lua_pushnumber(L, self->GetHeight());
+
+    return 2;
+}
+
 int canvasGC(lua_State * L)
 {
     Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -47,10 +75,13 @@ int initCanvasClass(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "__gc",       canvasGC       },
-        { "__tostring", canvasToString },
-        { "new",        canvasNew      },
-        { 0, 0 },
+        { "__gc",          canvasGC            },
+        { "__tostring",    canvasToString      },
+        { "getDimensions", canvasGetDimensions },
+        { "getWidth",      canvasGetWidth      },
+        { "getHeight",     canvasGetHeight     },
+        { "new",           canvasNew           },
+        { 0, 0 }
     };
 
     luaobj_newclass(L, CLASS_NAME, NULL, canvasNew, reg);
