@@ -15,7 +15,7 @@ int tcpNew(lua_State * L)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    TCP * self = new (raw_self) TCP();
+    new (raw_self) TCP();
 
     return 1;
 }
@@ -26,7 +26,7 @@ int tcpOnAccept(lua_State * L, int sockfd)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    TCP * self = new (raw_self) TCP(sockfd);
+    new (raw_self) TCP(sockfd);
 
     return 1;
 }
