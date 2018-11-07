@@ -10,6 +10,8 @@ Canvas::Canvas(int width, int height) : Drawable("Canvas")
 
     this->width = width;
     this->height = height;
+    
+    this->viewport = {0, 0, this->width, this->height, this->width, this->height};
 }
 
 void Canvas::SetAsTarget()

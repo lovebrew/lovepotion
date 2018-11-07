@@ -14,7 +14,7 @@ int threadNew(lua_State * L)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    ThreadClass * self = new (raw_self) ThreadClass(arg);
+    new (raw_self) ThreadClass(arg);
 
     return 1;
 }

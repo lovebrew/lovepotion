@@ -23,7 +23,7 @@ int imageNew(lua_State * L)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    Image * self = new (raw_self) Image(path, memory);
+    new (raw_self) Image(path, memory);
 
     return 1;
 }
