@@ -64,13 +64,10 @@ bool File::Open(const char * mode)
 
 void File::Write(const char * data, size_t length)
 {
-    if (!this->open || (strncmp(this->mode, "w", 1) != 0))
-    {
+    if (this->open && (strncmp(this->mode, "w", 1) == 0))
+        fwrite(data, 1, length, this->fileHandle);
+    else
         Love::RaiseError("Cannot write to file %s. File not open for writing.", this->path);
-        return;
-    }
-
-    fwrite(data, 1, length, this->fileHandle);
 }
 
 void File::Flush()

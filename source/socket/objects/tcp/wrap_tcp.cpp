@@ -15,7 +15,7 @@ int tcpNew(lua_State * L)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    TCP * self = new (raw_self) TCP();
+    new (raw_self) TCP();
 
     return 1;
 }

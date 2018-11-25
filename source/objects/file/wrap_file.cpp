@@ -25,9 +25,9 @@ int fileNew(lua_State * L)
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
     
     if (mode != "")
-        File * self = new (raw_self) File(abspath.c_str(), mode.c_str());
+        new (raw_self) File(abspath.c_str(), mode.c_str());
     else
-        File * self = new (raw_self) File(abspath.c_str());
+        new (raw_self) File(abspath.c_str());
 
     return 1;
 }

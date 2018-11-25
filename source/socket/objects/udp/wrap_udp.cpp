@@ -15,7 +15,7 @@ int udpNew(lua_State * L)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    UDP * self = new (raw_self) UDP();
+    new (raw_self) UDP();
 
     return 1;
 }

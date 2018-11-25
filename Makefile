@@ -31,10 +31,10 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
 LUASOCKET	:= $(sort $(dir $(wildcard source/socket/objects/*/*)))
+EXT_LIBS    := libraries/lua
 
 TARGET			:=	LovePotion
 BUILD			:=	build
@@ -59,7 +59,7 @@ SOURCES			:=	source \
 DATA			:=  source/scripts \
 					source/scripts/nogame
 
-#ROMFS			:=	game
+ROMFS			:=	game
 
 APP_TITLE		:= Löve Potion
 APP_DESCRIPTION	:= Löve for 3DS
@@ -89,7 +89,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lluajit -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -ljansson -lpng -lz -lcitro2d -lcitro3d -lctru -lm
+LIBS	:=  -llua -lluajit -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -ljansson -lpng -lz -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

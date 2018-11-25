@@ -15,7 +15,8 @@ void Filesystem::Initialize()
     Result ROMFS_INIT = romfsInit();
 
     char cwd[256];
-    SAVE_DIR = getcwd(cwd, 256);
+    getcwd(cwd, 256);
+    SAVE_DIR = cwd;
 
     if (ROMFS_INIT != 0)
         chdir("game");

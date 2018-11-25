@@ -25,8 +25,6 @@ bool LOVE_QUIT = false;
 
 int main(int argc, char **argv)
 {
-    //Console::Initialize();
-
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);
