@@ -3,8 +3,9 @@ class Drawable : public Object
     public:
         Drawable(char * type);
         Drawable() {};
-        void Draw(const Viewport & viewport, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color);
         ~Drawable();
+
+        void Draw(SDL_Texture * texture, Viewport viewport, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color);
 
         int GetWidth();
         int GetHeight();
@@ -12,7 +13,7 @@ class Drawable : public Object
         Viewport GetViewport();
 
     protected:
-        void Flip(double x, double y, double scalarX, double scalarY);
+        void Flip(double scalarX, double scalarY);
 
         int width;
         int height;

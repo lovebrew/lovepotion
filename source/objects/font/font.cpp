@@ -13,7 +13,6 @@ Font::Font(const char * path, int size) : Drawable("Font")
     this->size = floorf(size * dpiScale + 0.5f);
 
     this->font = TTF_OpenFont(path, this->size);
-
     this->texture = NULL;
 
     if (!this->font)
@@ -39,34 +38,23 @@ Font::Font(int size) : Drawable("Font")
     this->texture = NULL;
 }
 
-void Font::Print(const char * text, double x, double y, double rotation, float limit, const string & align, double scalarX, double scalarY, SDL_Color color)
+void Font::Print(const char * text, double x, double y, double rotation, float limit, double scalarX, double scalarY, SDL_Color color)
 {
     if (strlen(text) == 0)
         return;
-    
-    SDL_Point center = {0, 0};
 
     SDL_Surface * tempSurface = TTF_RenderText_Blended_Wrapped(this->font, text, color, limit);
-    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
     SDL_FreeSurface(tempSurface);
-
-    SDL_SetTextureColorMod(this->texture, color.r, color.g, color.b);
-    SDL_SetTextureAlphaMod(this->texture, color.a);
-
-    if (align == "center")
-        x += (limit / 2);
-    else if (align == "right")
-        x += limit;
 
     int width, height = 0;
     SDL_QueryTexture(this->texture, NULL, NULL, &width, &height);
-    SDL_Rect position = {x, y, width * abs(scalarX), height * abs(scalarY)};
 
-    this->Flip(x, y, scalarX, scalarY);
+    Viewport viewport = {0, 0, width, height, width, height};
 
-    SDL_RenderCopyEx(Window::GetRenderer(), this->texture, NULL, &position, rotation, &center, this->flip);
+    Drawable::Draw(texture, viewport, x, y, rotation, scalarX, scalarY, color);
 
-    SDL_DestroyTexture(this->texture);
+    SDL_DestroyTexture(texture);
 }
 
 Font::~Font()

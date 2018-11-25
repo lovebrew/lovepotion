@@ -43,7 +43,10 @@ int Audio::Play(lua_State * L)
 int Audio::Stop(lua_State * L) 
 {
     if (lua_isnoneornil(L, 1))
+    {
         Mix_HaltChannel(-1);
+        Mix_HaltMusic();
+    }
     else
     {
         Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);

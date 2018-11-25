@@ -33,7 +33,6 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=    LovePotion
 BUILD		:=    build
 
-EXT_LIBS	:= $(sort $(dir $(wildcard libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
 LUASOCKET	:= $(sort $(dir $(wildcard source/socket/objects/*/*)))
@@ -48,7 +47,8 @@ SOURCES			:=	source \
 				source/socket/objects \
 				$(LUASOCKET) \
 				$(SRC_OBJS) \
-				$(EXT_LIBS)
+				libraries/lua \
+				libraries/luaobj
 
 DATA		:=	source/scripts \
 				source/scripts/nogame
@@ -60,7 +60,8 @@ INCLUDES	:=	include \
 				include/socket/objects \
 				$(LUASOCKET) \
 				$(INC_OBJS) \
-				$(EXT_LIBS)
+				libraries/lua \
+				libraries/luaobj
 
 EXEFS_SRC    :=    exefs_src
 ROMFS        :=    game
