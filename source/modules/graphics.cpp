@@ -36,39 +36,55 @@ TextureFilter defaultFilter;
 vector<StackMatrix> transformStack(16);
 bool STACK_PUSHED = false;
 
-static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY) // rotate, scale, and translate coords.
+static void Transform(float& x, float& y, float& rot, float& sx, float& sy)
 {
     if (transformStack.empty())
         return;
 
     StackMatrix matrix = transformStack.back();
 
-    float newLeft = *originalX;
-    float newTop = *originalY;
+    // Translate
+    x += matrix.ox;
+    y += matrix.oy;
 
-    //Translate
-    *originalX += matrix.ox;
-    *originalY += matrix.oy;
+    // Scale
+    x *= matrix.sx;
+    y *= matrix.sy;
+    sx *= matrix.sx;
+    sy *= matrix.sy;
 
-    //Scale
-    *originalX *= matrix.sx;
-    *originalY *= matrix.sy;
-
-    *originalScalarX *= matrix.sx;
-    *originalScalarY *= matrix.sy;
+    // Rotate
+    x = x * cos(matrix.r) - y * sin(matrix.r);
+    y = x * sin(matrix.r) + y * cos(matrix.r);
+    rot += matrix.r;
     
-    //Rotate
-    if (*originalRotation != 0)
-    {
-        *originalX = newLeft * cos(matrix.r) - newTop * sin(matrix.r);
-        *originalY = newLeft * sin(matrix.r) + newTop * cos(matrix.r);
+    // Shear
+    // x = left + matrix.kx * top;
+    // y = top + matrix.ky * left;
+}
 
-        *originalRotation += matrix.r;
-    }
+static void Transform(float& x, float& y) // for functions with only coord args
+{
+    if (transformStack.empty())
+        return;
 
-    //Shear
-    //*originalX = newLeft + matrix.kx * newTop;
-    //*originalY = newTop + matrix.ky * newLeft;
+    StackMatrix matrix = transformStack.back();
+
+    // Translate
+    x += matrix.ox;
+    y += matrix.oy;
+
+    // Scale
+    x *= matrix.sx;
+    y *= matrix.sy;
+
+    // Rotate
+    x = x * cos(matrix.r) - y * sin(matrix.r);
+    y = x * sin(matrix.r) + y * cos(matrix.r);
+
+    // Shear
+    // x = left + matrix.kx * top;
+    // y = top + matrix.ky * left;
 }
 
 void Graphics::Initialize()
@@ -102,23 +118,33 @@ int Graphics::Rectangle(lua_State * L)
 {
     string mode = luaL_checkstring(L, 1);
 
-    float x = luaL_optnumber(L, 2, 0);
-    float y = luaL_optnumber(L, 3, 0);
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
     float width = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
-    Transform(&x, &y, 0, 0, 0);
+    float x1 = x;
+    float y1 = y;
+    float x2 = x+width;
+    float y2 = y+height;
+
+    Transform(x1, y1);
+    Transform(x2, y2);
 
     if (currentScreen == renderScreen)
     {
-        if (mode == "fill")
-            C2D_DrawRectSolid(x, y, 0.5, width, height, ConvertColor(drawColor));
-        else if (mode == "line")
+        u32 color = ConvertColor(drawColor);
+        if (mode == "fill") // doesn't properly rotate.
         {
-            C2D_DrawRectSolid(x, y, 0.5, 1, height, ConvertColor(drawColor)); // tl -> bl
-            C2D_DrawRectSolid(x + 1, y, 0.5, width - 1, 1, ConvertColor(drawColor)); // tl -> tr
-            C2D_DrawRectSolid(x + width, y, 0.5, 1, height, ConvertColor(drawColor)); // tr -> br
-            C2D_DrawRectSolid(x + 1, y + height, 0.5, width - 1, 1, ConvertColor(drawColor)); // bl -> br
+            C2D_DrawTriangle(x1,y1,color, x2,y1,color, x2,y2,color, 0.5);
+            C2D_DrawTriangle(x1,y1,color, x2,y2,color, x1,y2,color, 0.5);
+        }
+        else if (mode == "line") // doesn't properly translate, scale, or rotate.
+        {
+            C2D_DrawRectSolid(x, y, 0.5, 1, height, color);                 // tl -> bl
+            C2D_DrawRectSolid(x + 1, y, 0.5, width - 1, 1, color);          // tl -> tr
+            C2D_DrawRectSolid(x + width, y, 0.5, 1, height, color);         // tr -> br
+            C2D_DrawRectSolid(x + 1, y + height, 0.5, width - 1, 1, color); // bl -> br
         }
     }
     
@@ -157,7 +183,7 @@ int Graphics::Draw(lua_State * L)
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
 
-    Transform(&x, &y, &rotation, &scalarX, &scalarY);
+    Transform(x, y, rotation, scalarX, scalarY);
 
     x -= offsetX;
     y -= offsetY;
@@ -184,7 +210,7 @@ int Graphics::Print(lua_State * L)
     float scalarX = luaL_optnumber(L, 5, 1);
     float scalarY = luaL_optnumber(L, 6, 1);
 
-    Transform(&x, &y, &rotation, &scalarX, &scalarY);
+    Transform(x, y, rotation, scalarX, scalarY);
 
     if (currentScreen == renderScreen)
         currentFont->Print(text, x, y, rotation, scalarX, scalarY, fontTint);
@@ -255,18 +281,18 @@ int Graphics::SetBackgroundColor(lua_State * L)
 
     if (lua_isnumber(L, 1))
     {
-        r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-        g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-        b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+        r = clamp(0, luaL_checknumber(L, 1), 1);
+        g = clamp(0, luaL_checknumber(L, 2), 1);
+        b = clamp(0, luaL_checknumber(L, 3), 1);
     }
     else if (lua_istable(L, 1))
     {
         for (int i = 1; i <= 4; i++)
             lua_rawgeti(L, 1, i);
 
-        r = clamp(0, luaL_optnumber(L, -4, 0), 1);
-        g = clamp(0, luaL_optnumber(L, -3, 0), 1);
-        b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+        r = clamp(0, luaL_checknumber(L, -4), 1);
+        g = clamp(0, luaL_checknumber(L, -3), 1);
+        b = clamp(0, luaL_checknumber(L, -2), 1);
     }
 
     backgroundColor.r = r;
@@ -283,9 +309,9 @@ int Graphics::SetColor(lua_State * L)
 
     if (lua_isnumber(L, 1))
     {
-        r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-        g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-        b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+        r = clamp(0, luaL_checknumber(L, 1), 1);
+        g = clamp(0, luaL_checknumber(L, 2), 1);
+        b = clamp(0, luaL_checknumber(L, 3), 1);
         a = clamp(0, luaL_optnumber(L, 4, 1), 1);
     }
     else if (lua_istable(L, 1))
@@ -293,9 +319,9 @@ int Graphics::SetColor(lua_State * L)
         for (int i = 1; i <= 4; i++)
             lua_rawgeti(L, 1, i);
 
-        r = clamp(0, luaL_optnumber(L, -4, 0), 1);
-        g = clamp(0, luaL_optnumber(L, -3, 0), 1);
-        b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+        r = clamp(0, luaL_checknumber(L, -4), 1);
+        g = clamp(0, luaL_checknumber(L, -3), 1);
+        b = clamp(0, luaL_checknumber(L, -2), 1);
         a = clamp(0, luaL_optnumber(L, -1, 1), 1);
     }
 
@@ -427,7 +453,7 @@ int Graphics::Rotate(lua_State * L)
     float rotation = luaL_checknumber(L, 1);
 
     if (currentScreen == renderScreen)
-        transformStack.back().r = rotation;
+        transformStack.back().r += rotation;
 
     return 0;
 }
