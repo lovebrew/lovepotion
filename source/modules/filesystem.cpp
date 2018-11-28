@@ -33,7 +33,6 @@ int Filesystem::Read(lua_State * L)
 {
     string path = Redirect(luaL_checkstring(L, 1));
     size_t size = 0;
-    char * buffer;
 
     FILE * fileHandle = fopen(path.c_str(), "r");
 
@@ -47,15 +46,17 @@ int Filesystem::Read(lua_State * L)
     size = ftell(fileHandle);
     rewind(fileHandle);
 
-    buffer = (char *)malloc(size * sizeof(char));
+    char *buffer = (char *)malloc(size * sizeof(char));
+    if (!buffer) {
+      Love::RaiseError("Out of memory");
+      return NULL;
+    }
 
     fread(buffer, 1, size, fileHandle);
 
     fclose(fileHandle);
 
-    buffer[size] = '\0';
-
-    lua_pushstring(L, buffer);
+    lua_pushlstring(L, buffer, size);
 
     free(buffer);
 
@@ -66,7 +67,9 @@ int Filesystem::Read(lua_State * L)
 int Filesystem::Write(lua_State * L)
 {
     string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));
-    string data = luaL_checkstring(L, 2);
+
+    size_t length;
+    const char *data = luaL_checklstring(L, 2, &length);
 
     FILE * fileHandle = fopen(path.c_str(), "w");
 
@@ -76,10 +79,9 @@ int Filesystem::Write(lua_State * L)
         return 0;
     }
 
-    fwrite((char *)data.data(), 1, data.length(), fileHandle);
+    fwrite(data, 1, length, fileHandle);
 
     fflush(fileHandle);
-
     fclose(fileHandle);
 
     return 0;

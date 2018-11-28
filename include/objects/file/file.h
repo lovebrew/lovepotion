@@ -9,8 +9,8 @@ class File : public Object
         File() {};
         ~File();
 
-        char * Read();
-        u8 * ReadBinary();
+        char * Read(size_t &length);
+        u8 * ReadBinary(size_t &length);
 
         void Write(const char * data, size_t length);
 
