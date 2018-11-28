@@ -81,41 +81,40 @@ void File::Close()
     fclose(this->fileHandle);
 }
 
-char * File::Read()
+char *File::Read(size_t &size)
 {
     if (!this->open || (strncmp(this->mode, "r", 1) != 0))
     {
         Love::RaiseError("Cannot read file %s. File not open for reading.", this->path);
-        return NULL;
+        return 0;
     }
 
-    char * buffer;
+    size = this->GetSize();
 
-    long size = this->GetSize();
-
-    buffer = (char *)malloc(size * sizeof(char));
+    char *buffer = (char *)malloc(size * sizeof(char));
+    if (!buffer) {
+      Love::RaiseError("Out of memory");
+      return 0;
+    }
 
     fread(buffer, 1, size, this->fileHandle);
-
-    buffer[size] = '\0';
-
     return buffer;
 }
 
-u8 * File::ReadBinary()
+u8 * File::ReadBinary(size_t &size)
 {
     if (!this->open || (strncmp(this->mode, "rb", 2) != 0))
-        return NULL;
+        return 0;
 
-    u8 * buffer;
+    size = this->GetSize();
 
-    long size = this->GetSize();
-
-    buffer = (u8 *)malloc(size * sizeof(u8));
+    u8 * buffer = (u8 *)malloc(size * sizeof(u8));
+    if (!buffer) {
+      Love::RaiseError("Out of memory");
+      return 0;
+    }
 
     fread(buffer, 1, size, this->fileHandle);
-
-    buffer[size] = '\0';
 
     return buffer;
 }

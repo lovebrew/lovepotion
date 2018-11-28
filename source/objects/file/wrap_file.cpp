@@ -74,9 +74,12 @@ int fileRead(lua_State * L)
 {
     File * self = (File *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    char * buffer = self->Read();
+    size_t length;
+    char * buffer = self->Read(length);
 
-    lua_pushstring(L, buffer);
+    lua_pushlstring(L, buffer, length);
+
+    free(buffer);
 
     return 1;
 }
