@@ -257,51 +257,43 @@ function love.errhand(message)
     
     love.filesystem.write("log.txt", realError)
     
-    love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
-    --love.graphics.clear()
-
-    love.graphics.setColor(1, 1, 1, 1)
-    
-    love.graphics.setFont(__defaultFont)
-
     local error_img = love.graphics.newImage("error:warn");
     local plus_img = love.graphics.newImage("error:plus");
 
-    local function draw()
-        love.graphics.clear("top")
-        love.graphics.setScreen("top")
-
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.print(realError, 30, 16)
-
-        love.graphics.draw(plus_img, 324, 220)
-        love.graphics.print("Quit", 340, 220)
-
-        love.graphics.present()
-
-        love.graphics.setColor(1, 1, 1)
-        
-        love.graphics.clear("bottom")
-        love.graphics.setScreen("bottom")
-
-        love.graphics.draw(error_img, 96, 56)
-
-        love.graphics.present()
+    function love.gamepadpressed(key)
+        love.event.quit()
     end
 
-    local device = love.joystick.getJoysticks()
+    function love.draw()
+      love.graphics.clear()
+      love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
 
-    while true do
-        draw()
+      love.graphics.setColor(1, 1, 1, 1)
 
-        if device:isGamepadDown("start") then
-            break
-        end
+      love.graphics.setFont(__defaultFont)
 
-        love.timer.sleep(0.1)
+      love.graphics.setScreen("top")
+
+      love.graphics.setColor(1, 1, 1)
+      love.graphics.print(realError, 30, 16)
+
+      love.graphics.draw(plus_img, 324, 220)
+      love.graphics.print("Quit", 340, 220)
+
+      love.graphics.setColor(1, 1, 1)
+
+      love.graphics.setScreen("bottom")
+
+      love.graphics.draw(error_img, 96, 56)
     end
 
-    love.event.quit()
+    -- Unmap all events
+    love.update = nil
+    love.touchpressed = nil
+    love.touchmoved = nil
+    love.touchreleased = nil
+    love.gamepadreleased = nil
+    love.gamepadaxis = nil
 end
 
 local function pseudoRequireConf()
