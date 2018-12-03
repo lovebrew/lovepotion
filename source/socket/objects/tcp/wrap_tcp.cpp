@@ -59,7 +59,7 @@ int tcpAccept(lua_State * L)
 int tcpGetSockName(lua_State * L)
 {
     char ip[0x40];
-    int port;
+    int port = 0;
 
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
     self->GetSockName(ip, port);

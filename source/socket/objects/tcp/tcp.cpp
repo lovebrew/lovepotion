@@ -7,10 +7,12 @@ TCP::TCP() : Socket(SOCK_STREAM) {}
 
 TCP::TCP(int sockfd) : Socket(SOCK_STREAM, sockfd) {}
 
+/* Waits for a remote connection on the server 
+** object and returns a client object representing that connection.
+*/
+
 int TCP::Accept()
 {
-    struct sockaddr_in fromAddress = {0};
-
     int event = poll(&this->pollfd, 1, this->timeout);
 
     if (event <= 0)
@@ -38,15 +40,30 @@ int TCP::Accept()
     }
 }
 
+/* Specifies the socket is willing to receive connections
+** transforming the object into a server object.
+*/
+
 void TCP::Listen()
 {
     if (listen(this->sockfd, 5))
         printf("listen: %d %s\n", errno, strerror(errno));
 }
 
+/*
+** Sets options for the TCP object. 
+** Options are only needed by low-level or time-critical applications. 
+** You should only modify an option if you are sure you need it. 
+**
+** 'keepalive'
+** 'linger'
+** 'reuseaddr'
+** 'tcp-nodelay'
+*/
+
 int TCP::SetOption(const string & option, int value)
 {
-    int optionValue = 0;
+    //int optionValue = 0;
 
     if (option == "keepalive")
         printf("stubbed");

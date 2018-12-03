@@ -7,3 +7,4 @@ build/
 game/
 *.zip
 .vscode/
+*.7z

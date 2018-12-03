@@ -13,7 +13,7 @@ Nightly builds are available at [doozer](https://doozer.io/TurtleP/LovePotion)
     <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square"/>
     <img src="https://img.shields.io/github/stars/TurtleP/LovePotion.svg?style=flat-square"/>
     <img src="https://img.shields.io/github/issues/TurtleP/LovePotion.svg?style=flat-square"/>
-    <img src="https://img.shields.io/badge/version-1.0.3.1-blue.svg?style=flat-square"/>
+    <img src="https://img.shields.io/badge/version-1.0.4-blue.svg?style=flat-square"/>
 </p>
 
 <p align="center">

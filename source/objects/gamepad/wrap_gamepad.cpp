@@ -8,15 +8,13 @@
 
 vector<Gamepad *> controllers;
 
-int gamepadNew(lua_State * L)
+int gamepadNew(lua_State * L, int id)
 {
     void * raw_self = luaobj_newudata(L, sizeof(Gamepad));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    SDL_JoystickOpen(0);
-
-    Gamepad * self = new (raw_self) Gamepad(controllers.size());
+    Gamepad * self = new (raw_self) Gamepad(id);
 
     love_register(L, 2, self);
 
@@ -50,7 +48,26 @@ int gamepadGetAxis(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    return 0;
+    int axis = luaL_checknumber(L, 2);
+
+    float value = self->GetAxis(axis);
+
+    lua_pushnumber(L, value);
+
+    return 1;
+}
+
+int gamepadGetGamepadAxis(lua_State * L)
+{
+    Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    string axis = luaL_checkstring(L, 2);
+
+    float value = self->GetGamepadAxis(axis);
+
+    lua_pushnumber(L, value);
+
+    return 1;
 }
 
 //Gamepad:getButtonCount
@@ -78,21 +95,22 @@ int gamepadIsGamepadDown(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    string button = string(luaL_checkstring(L, 2));
+    string button = luaL_checkstring(L, 2);
 
     lua_pushboolean(L, self->IsGamepadDown(button));
 
     return 1;
 }
 
-//Gamepad:isetLayout
+//Gamepad:setLayout
 int gamepadSetLayout(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    string layout = string(luaL_checkstring(L, 2));
+    string layout = luaL_checkstring(L, 2);
+    string holdType = luaL_optstring(L, 3, "default");
 
-    self->SetLayout(layout);
+    self->SetLayout(layout, holdType);
 
     return 1;
 }
@@ -160,13 +178,12 @@ int initGamepadClass(lua_State * L)
         { "isDown",               gamepadIsDown               },
         { "isGamepadDown",        gamepadIsGamepadDown        },
         { "isVibrationSupported", gamepadIsVibrationSupported },
-        { "new",                  gamepadNew                  },
         { "setLayout",            gamepadSetLayout            },
         { "setVibration",         gamepadSetVibration         },
         { 0, 0 },
     };
 
-    luaobj_newclass(L, CLASS_NAME, NULL, gamepadNew, reg);
+    luaobj_newclass(L, CLASS_NAME, NULL, NULL, reg);
 
     return 1;
 }

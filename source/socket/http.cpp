@@ -14,7 +14,7 @@
 //   [redirect = boolean]
 // }
 
-static size_t HeaderCallback(char * contents, size_t size, size_t nmemb, void * userdata)
+/*static size_t HeaderCallback(char * contents, size_t size, size_t nmemb, void * userdata)
 {
     size_t realsize = size * nmemb;
     HTTPChunk * chunk = (HTTPChunk *)userdata;
@@ -23,7 +23,7 @@ static size_t HeaderCallback(char * contents, size_t size, size_t nmemb, void * 
 
     if (chunk->header == NULL)
     {
-        /* out of memory! */ 
+        //out of memory!
         printf("not enough memory (realloc returned NULL)\n");
         return 0;
     }
@@ -33,7 +33,7 @@ static size_t HeaderCallback(char * contents, size_t size, size_t nmemb, void * 
     chunk->header[chunk->size] = 0;
 
     return realsize;
-}
+}*/
 
 static size_t WriteMemoryCallback(void * contents, size_t size, size_t nmemb, void * userdata)
 {
@@ -62,7 +62,7 @@ int httpRequest(lua_State * L)
 
     CURL * curl;
     CURLcode res;
-    CURLINFO info;
+    //CURLINFO info; TODO: header response or whatever
 
     HTTPChunk chunk;
     

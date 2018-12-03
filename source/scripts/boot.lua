@@ -170,6 +170,16 @@ function love.createhandlers()
                 return love.joystickhat(joystick, hat, value) 
             end
         end,
+        joystickadded = function(joystick)
+            if love.joystickadded then
+                return love.joystickadded(joystick)
+            end
+        end,
+        joystickremoved = function(joystick)
+            if love.joystickremoved then
+                return love.joystickremoved(joystick)
+            end
+        end,
         gamepadpressed = function (joystick, button)
             if love.gamepadpressed then 
                 return love.gamepadpressed(joystick, button)
@@ -248,7 +258,7 @@ function love.errhand(message)
     
     local dateTime = os.date("%c")
     table.insert(err, "\nDate and Time: " .. dateTime)
-    table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "/log.txt")
+    table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
     
     local realError = table.concat(err, "\n")
     realError = realError:gsub("\t", "")

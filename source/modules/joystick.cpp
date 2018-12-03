@@ -8,7 +8,8 @@ void Joystick::Initialize(lua_State * L)
 {
     SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 
-    gamepadNew(L);
+    //for (int i = 0; i < SDL_NumJoysticks() / 2; i++)
+    gamepadNew(L, 0);
 }
 
 Gamepad * Joystick::GetJoystickFromID(int id)
@@ -39,16 +40,20 @@ int Joystick::GetJoysticks(lua_State * L)
 //love.joystick.getJoystickCount
 int Joystick::GetJoystickCount(lua_State * L)
 {
-    return 0;
+    lua_pushnumber(L, controllers.size());
+
+    return 1;
 }
 
 //love.joystick.setJoyconMode
 int Joystick::SetLayout(lua_State * L)
 {
     Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_GAMEPAD);
-    string layout = luaL_checkstring(L, 2);
 
-    self->SetLayout(layout);
+    string layout = luaL_checkstring(L, 2);
+    string holdType = luaL_optstring(L, 3, "default");
+
+    self->SetLayout(layout, holdType);
 
     return 0;
 }

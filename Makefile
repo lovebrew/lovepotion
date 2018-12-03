@@ -45,10 +45,10 @@ SOURCES			:=	source \
 				source/modules \
 				source/socket \
 				source/socket/objects \
-				$(LUASOCKET) \
 				$(SRC_OBJS) \
 				libraries/lua \
-				libraries/luaobj
+				libraries/luaobj \
+				$(LUASOCKET)
 
 DATA		:=	source/scripts \
 				source/scripts/nogame
@@ -58,18 +58,13 @@ INCLUDES	:=	include \
 				include/modules \
 				include/socket \
 				include/socket/objects \
-				$(LUASOCKET) \
 				$(INC_OBJS) \
 				libraries/lua \
-				libraries/luaobj
+				libraries/luaobj \
+				$(LUASOCKET)
 
-EXEFS_SRC    :=    exefs_src
-ROMFS        :=    game
-
-#If we don't find the game, use No Game
-ifeq ($(wildcard $(CURDIR)/game/.*),)
-	ROMFS = $(NOGAMEDIR)
-endif
+EXEFS_SRC    := exefs_src
+ROMFS        := game
 
 APP_TITLE		:= Löve Potion
 APP_AUTHOR		:= TurtleP
@@ -93,7 +88,7 @@ CXXFLAGS    := $(CFLAGS) -fno-rtti -fexceptions -std=gnu++14
 ASFLAGS    :=    -g $(ARCH)
 LDFLAGS    =     --specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lcurl -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
+LIBS := -lcurl -lSDL2_net -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lpng -ljpeg `sdl2-config --libs` `freetype-config --libs`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -183,7 +178,7 @@ all: $(BUILD)
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory --silent -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
 clean:

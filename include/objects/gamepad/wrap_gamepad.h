@@ -1,10 +1,12 @@
 #pragma once
 
-int gamepadNew(lua_State * L);
+int gamepadNew(lua_State * L, int id);
 
 int gamepadGetID(lua_State * L);
 
 int gamepadGetAxis(lua_State * L);
+
+int gamepadGetGamepadAxis(lua_State * L);
 
 int gamepadGetButtonCount(lua_State * L);
 

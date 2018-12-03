@@ -2,7 +2,7 @@
 #include "common/drawable.h"
 #include "modules/window.h"
 
-Drawable::Drawable(char * type) : Object(type)
+Drawable::Drawable(const string & type) : Object(type)
 {
     this->texture = NULL;
 
@@ -14,7 +14,13 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
     if (!texture)
         texture = this->texture;
 
-    SDL_Rect quad = {view.x, view.y, view.subWidth, view.subHeight};
+    SDL_Rect quad = 
+    {
+        view.x, 
+        view.y, 
+        view.subWidth, 
+        view.subHeight
+    };
 
     this->Flip(scalarX, scalarY);
 
@@ -24,11 +30,20 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
         y -= (quad.h * abs(scalarY));
     else if (scalarX < 0 and scalarY < 0)
     {
-        x -= (quad.w * abs(scalarX)); 
-        y -= (quad.h * abs(scalarY));   
+        x -= (quad.w * abs(scalarX));
+        y -= (quad.h * abs(scalarY));
     }
 
-    SDL_Rect position = {x, y, view.subWidth * abs(scalarX), view.subHeight * abs(scalarY)};
+    int scaledWidth = (int)(view.subWidth * abs(scalarX));
+    int scaledHeight = (int)(view.subHeight * abs(scalarY));
+
+    SDL_Rect position =
+    {
+        (int)x,
+        (int)y,
+        scaledWidth,
+        scaledHeight
+    };
 
     SDL_Point center = {0, 0};
 

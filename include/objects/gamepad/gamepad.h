@@ -5,12 +5,14 @@ class Gamepad : public Object
     public:
         Gamepad(int id);
 
-        float GetAxis(int axis);
+        float GetAxis(uint axis);
+        float GetGamepadAxis(const std::string & name);
+
         int GetButtonCount();
         std::string GetName();
 
         void Update(float delta);
-        void SetLayout(const std::string & layout);
+        void SetLayout(const std::string & mode, const std::string & holdType);
 
         void SetVibration(double left, double right, double duration);
 
@@ -19,7 +21,7 @@ class Gamepad : public Object
         bool IsConnected();
 
         bool IsGamepadDown(const std::string & button);
-        bool IsDown(int button);
+        bool IsDown(uint button);
         
         int GetID();
 
@@ -31,6 +33,9 @@ class Gamepad : public Object
 
         int id;
         std::string layout;
+
+        std::array<HidControllerID, 2> joycon;
+        std::pair<SDL_Joystick *, SDL_Joystick *> joysticks;
 
         double vibrationDuration;
         u32 vibrationHandles[2][2];

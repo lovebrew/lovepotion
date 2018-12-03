@@ -1,7 +1,7 @@
 class Drawable : public Object
 {
     public:
-        Drawable(char * type);
+        Drawable(const std::string & type);
         Drawable() {};
         ~Drawable();
 

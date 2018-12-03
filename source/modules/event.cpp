@@ -86,6 +86,12 @@ int LoveEvent::PollEvent(lua_State * L)
                 }
                 break;
             }
+            case SDL_JOYDEVICEADDED:
+            case SDL_CONTROLLERDEVICEADDED:
+                break;
+            case SDL_JOYDEVICEREMOVED:
+            case SDL_CONTROLLERDEVICEREMOVED:
+                break;
             default:
                 break;
         }

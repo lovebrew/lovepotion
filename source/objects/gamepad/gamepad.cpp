@@ -19,6 +19,12 @@ Gamepad::Gamepad(int id) : Object("Joystick")
     this->vibrationDuration = -1;
 
     this->layout = "dual";
+
+    SDL_Joystick * joystick = SDL_JoystickOpen(id);
+    this->joysticks.first = joystick;
+    this->joysticks.second = nullptr;
+
+    this->joycon = {CONTROLLER_IDS[id], CONTROLLER_IDS[id + 1]};
 }
 
 int Gamepad::GetID()
@@ -121,27 +127,43 @@ string Gamepad::GetName()
     }
 }
 
-void Gamepad::SetLayout(const string & layout)
+void Gamepad::SetLayout(const string & mode, const string & holdType)
 {
-    int pairMax = this->GetID() * 2;
+    string name = this->GetName();
+    if (name == "Handheld" || name == "Pro Controller")
+        return;
+
+    if (this->joysticks.first != nullptr)
+        SDL_JoystickClose(this->joysticks.first);
+
+    if (this->joysticks.second != nullptr)
+        SDL_JoystickClose(this->joysticks.second);
+
+    this->joysticks = std::make_pair(nullptr, nullptr);
 
     if (this->layout == "dual" && layout == "single")
     {
-        for (uint i = pairMax - 2; i < pairMax; i++)
-            hidSetNpadJoyAssignmentModeSingleByDefault(CONTROLLER_IDS[i]);
+        for (auto item : this->joycon)
+            hidSetNpadJoyAssignmentModeSingleByDefault(item);
+
+        this->joysticks.first = SDL_JoystickOpen(this->id);
+        this->joysticks.second = SDL_JoystickOpen(this->id + 1);
     }
     else if (this->layout == "single" && layout == "dual")
     {
-        for (uint i = pairMax - 2; i < pairMax; i++)
-            hidSetNpadJoyAssignmentModeDual(CONTROLLER_IDS[i]);
+        for (auto item : this->joycon)
+            hidSetNpadJoyAssignmentModeDual(item);
 
-        hidMergeSingleJoyAsDualJoy(CONTROLLER_IDS[pairMax - 2], CONTROLLER_IDS[pairMax - 1]);
+        hidMergeSingleJoyAsDualJoy(this->joycon[0], this->joycon[1]);
+
+        this->joysticks.first = SDL_JoystickOpen(this->id);
+        this->joysticks.second = nullptr;
     }
 
     this->layout = layout;
 }
 
-bool Gamepad::IsDown(int button)
+bool Gamepad::IsDown(uint button)
 {
     hidScanInput();
 
@@ -174,4 +196,18 @@ bool Gamepad::IsGamepadDown(const string & button)
     }
 
     return keyDown;
+}
+
+float Gamepad::GetAxis(uint axis)
+{
+    float value = 0;
+
+    return value;
+}
+
+float Gamepad::GetGamepadAxis(const string & axis)
+{
+    float value = 0;
+
+    return value;
 }
