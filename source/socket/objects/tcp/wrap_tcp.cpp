@@ -20,13 +20,13 @@ int tcpNew(lua_State * L)
     return 1;
 }
 
-int tcpOnAccept(lua_State * L, int sockfd)
+int tcpOnAccept(lua_State * L, TCPsocket socket)
 {
     void * raw_self = luaobj_newudata(L, sizeof(TCP));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    new (raw_self) TCP(sockfd);
+    new (raw_self) TCP(socket);
 
     return 1;
 }
@@ -35,20 +35,13 @@ int tcpAccept(lua_State * L)
 {
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    int newSocket = self->Accept();
+    TCPsocket newSocket = self->Accept();
     
-    if (newSocket <= 0)
+    if (!newSocket)
     {
         lua_pushnil(L);
         
-        if (newSocket == 0)
-            lua_pushstring(L, "timeout");
-        else if (newSocket == -1)
-            lua_pushstring(L, "error in poll");
-        else
-            lua_pushstring(L, "error on accept");
-        
-        return 2;
+        return 1;
     }
 
     int succ = tcpOnAccept(L, newSocket);
@@ -56,7 +49,7 @@ int tcpAccept(lua_State * L)
     return succ;
 }
 
-int tcpGetSockName(lua_State * L)
+/*int tcpGetSockName(lua_State * L)
 {
     char ip[0x40];
     int port = 0;
@@ -198,4 +191,4 @@ int initTCPClass(lua_State * L)
     luaobj_newclass(L, CLASS_NAME, NULL, tcpNew, reg);
 
     return 1;
-}
+}*/

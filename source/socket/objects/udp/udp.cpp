@@ -3,71 +3,166 @@
 #include "socket/objects/socket.h"
 #include "socket/objects/udp/udp.h"
 
-UDP::UDP() : Socket(SOCK_DGRAM) {}
-
-int UDP::SetSockName(const string & ip, int port)
+UDP::UDP() : Socket("udp{unconnected}", SOCK_DGRAM) 
 {
-    int success = Socket::Bind(ip, port);
-
-    return success;
+    this->ip = "127.0.0.1";
+    this->port = 25545;
 }
 
-int UDP::SetPeerName(const string & ip, int port)
-{
-    int success = Socket::Connect(ip, port);
+/*
+** UDP:setsockname
+** destination, port
+** if port is zero, auto-use a port
+** else user a specified port
 
-    return success;
+** SDL2_net notes:
+** when given '*' for the IP
+** return NULL so it binds to all interfaces
+*/
+
+int UDP::SetSockName(const string & destination, int port)
+{ 
+    this->socket = SDLNet_UDP_Open(port);
+
+    IPaddress address;
+
+    const char * resolved = this->ResolveSpecialIP(destination);
+    SDLNet_ResolveHost(&address, resolved, port);
+
+    int channel = SDLNet_UDP_Bind(this->socket, -1, &address);
+
+    this->ip = destination;
+    this->port = port;
+
+    if (channel != -1)
+        return 0;
+
+    return channel;
 }
+
+/*
+** UDP:setsockname
+** destination, port
+** if port is zero, auto-use a port
+** else user a specified port
+**
+** if connected already
+** and '*' is used for 'destination'
+** disconnect the socket
+*/
+
+int UDP::SetPeerName(const string & destination, int port)
+{
+    if (this->IsConnected() && destination == "*")
+    {
+        SDLNet_UDP_Unbind(this->socket, 0);
+        return 0;
+    }
+
+    this->socket = SDLNet_UDP_Open(0);
+
+    IPaddress address;
+
+    const char * resolved = this->ResolveSpecialIP(destination);
+
+    SDLNet_ResolveHost(&address, resolved, port);
+    
+    int channel = SDLNet_UDP_Bind(this->socket, -1, &address);
+
+    this->ip = destination;
+    this->port = port;
+
+    if (channel != -1)
+        return 0;
+
+    LOG("SDL_Net Error: %s!", SDLNet_GetError());
+
+    return channel;
+}
+
+/*
+** Sent a string to 'destination' on its 'port'
+**
+** SDL2_net notes:
+** Allocate the packet to 0x2000 (LuaSocket size)
+** Set the packet data length
+** Set the packet data string
+** Resolve the destination/port data for the packet
+** Send the packet
+** Free the packet (don't want a memeleak)
+*/
 
 int UDP::SendTo(const char * datagram, size_t length, const char * destination, int port)
 {
-    struct hostent * hostInfo = gethostbyname(destination);
+    int sent = 0;
 
-    if (hostInfo == NULL)
-        return -2;
+    UDPpacket * packet = SDLNet_AllocPacket(SOCKET_BUFFERSIZE);
+    packet->len = length;
+    memcpy(packet->data, datagram, length);
 
-    struct sockaddr_in addressTo = {0};
+    SDLNet_ResolveHost(&packet->address, destination, port); 
 
-    addressTo.sin_addr = *(struct in_addr *)hostInfo->h_addr;
-    addressTo.sin_port = htons(port);
-    addressTo.sin_family = AF_INET;
+    sent = SDLNet_UDP_Send(this->socket, -1, packet);
 
-    socklen_t addressLength = sizeof(addressTo);
+    SDLNet_FreePacket(packet);
 
-    size_t sent = sendto(this->sockfd, datagram, length, 0, (struct sockaddr *)&addressTo, addressLength);
-    
     return sent;
 }
 
-int UDP::ReceiveFrom(Datagram & datagram, size_t bytes)
+/*
+** Get data sent from a socket
+** Sets origin ip and port for UDP:receivefrom
+**/
+
+int UDP::ReceiveFrom(char * buffer, char * origin, int * port, size_t bytes)
 {
-    struct sockaddr_in fromAddress = {0};
-    socklen_t addressLength = sizeof(fromAddress);
+    int got_packet = 0;
+    int recv_size = 0;
 
-    int length = recvfrom(this->sockfd, datagram.buffer, bytes, 0, (struct sockaddr *)&fromAddress, &addressLength);
+    UDPpacket * packet = SDLNet_AllocPacket(bytes);
 
-    if (length <= 0)
-        return 0;
+    got_packet = SDLNet_UDP_Recv(this->socket, packet);
 
-    datagram.buffer[length] = '\0';
-    
-    strncpy(datagram.ip, inet_ntoa(fromAddress.sin_addr), 0x40);
-    datagram.port = ntohs(fromAddress.sin_port);
+    if (got_packet == 1)
+    {
+        memcpy(buffer, packet->data, bytes + 1);
+        recv_size = strlen(buffer);
+        
+        if (origin != NULL && port != NULL)
+        {
+            inet_ntop(AF_INET, &packet->address.host, origin, 0x40);
 
-    return length;
+            *port = SDLNet_Read16(&packet->address.port);
+        }
+    }
+
+    SDLNet_FreePacket(packet);
+
+    return recv_size;
 }
 
-int UDP::SetOption(const string & option, int enable)
+/*
+** UDP:close
+** Close the socket
+** Disconnects the socket as well
+*/
+
+int UDP::Close()
 {
-    int optionValue = 0;
-
-    if (option == "broadcast")
-        optionValue = SO_BROADCAST;
-    else if (option == "dontroute")
-        optionValue = SO_DONTROUTE;
-
-    if (optionValue != 0)
-        setsockopt(this->sockfd, SOL_SOCKET, optionValue, (char *)&enable, sizeof(enable));
+    SDLNet_UDP_Close(this->socket);
+    
+    this->socket = NULL;
+    this->connected = false;
 
     return 0;
+}
+
+string UDP::GetIP()
+{
+    return this->ResolveSpecialIP(this->ip);
+}
+
+int UDP::GetPort()
+{
+    return this->port;
 }

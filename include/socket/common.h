@@ -8,6 +8,8 @@
 #include <netdb.h>
 #include <fcntl.h>
 
+#include <SDL_net.h>
+
 #define SOCKET_BUFFERSIZE 0x2000
 #define SO_BROADCAST	  0x0020
 #define SO_DONTROUTE	  0x0010
