@@ -1,49 +1,24 @@
-#pragma once
-
 class Socket : public Object
 {
     public:
-        Socket() {};
-        Socket(int protocol);
-        Socket(int protocol, int sockfd);
-
-        void Create();
-
-        int Connect(const std::string & ip, int port);
-        int Bind(const std::string & ip, int port);
-
-        std::string GetSockName();
-        std::vector<Variant> GetPeerName();
-
-        int Receive(char * outBuffer, const char * pattern, int size);
-        int Send(const char * datagram, size_t length);
-
-        int SetOption(const std::string & option, int value);
-        int GetSockName(char * ip, int port);
-        
-        void SetTimeout(double timeout);
-
+        Socket(const std::string & type, int sock);
+        void SetTimeout(double duration);
         int Close();
 
-        int GetPort();
-        string GetIP();
-
-        bool IsConnected();
-
     private:
-        std::string GetType(int protocol);
+        int sock;
 
     protected:
-        void SetSocketData(const std::string & destination, int port);
+        const char * ResolveSpecialIP(const std::string & destination);
 
-        int sockfd;
+        void GetPeerName(char * ip, int * port);
+        void GetSockName(char * ip, int * port);
 
-        struct sockaddr_in address;
-        struct pollfd pollfd;
-        
+        bool IsConnected();
         bool connected;
+
+        double timeout;
+
         std::string ip;
         int port;
-
-        long timeout;
 };

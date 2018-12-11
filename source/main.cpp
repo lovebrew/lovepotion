@@ -46,6 +46,8 @@ extern "C"
 bool ERROR = false;
 bool LOVE_QUIT = false;
 
+FILE * logFile = fopen("sdmc:/LovePotion-Log.txt", "wb");
+
 int main(int argc, char * argv[])
 {
     lua_State * L = luaL_newstate();

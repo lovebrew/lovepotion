@@ -29,7 +29,7 @@ int LuaSocket::InitSocket(lua_State * L)
     int (*classes[])(lua_State *L) = 
     {
         initUDPClass,
-        initTCPClass,
+        //initTCPClass,
         NULL,
     };
 
@@ -41,8 +41,8 @@ int LuaSocket::InitSocket(lua_State * L)
 
     luaL_Reg reg[] = 
     {
-        { "bind",   tcpBind },
-        { "tcp",    tcpNew  },
+        //{ "bind",   tcpBind },
+        //{ "tcp",    tcpNew  },
         { "udp",    udpNew  },
         { 0, 0 },
     };

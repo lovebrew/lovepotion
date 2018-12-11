@@ -4,10 +4,15 @@ class TCP : public Socket
 {
     public:
         TCP();
-        TCP(int sockfd);
+        TCP(TCPsocket socket);
 
-        int Accept();
+        int Bind(const std::string & destination, int port);
+        int Connect(const string & destination, int port);
+
+        TCPsocket Accept();
+        
         void Listen();
 
-        virtual int SetOption(const std::string & option, int value);
+    private:
+        TCPsocket socket;
 };

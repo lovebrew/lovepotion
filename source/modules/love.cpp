@@ -141,6 +141,9 @@ int Love::Initialize(lua_State * L)
 
     socketInitializeDefault();
 
+    if(SDLNet_Init() == -1)
+        printf("Oh ok");
+
     loveState = L;
 
     return 1;
