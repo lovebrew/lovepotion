@@ -5,9 +5,9 @@
 
 TCP::TCP() : Socket("tcp{master}", SOCK_STREAM) {}
 
-TCP::TCP(TCPsocket socket) : Socket("tcp{client}", SOCK_STREAM)
+TCP::TCP(int sockfd) : Socket("tcp{client}", SOCK_STREAM)
 {
-    this->socket = socket;
+    this->sockfd = sockfd;
 }
 
 /*
@@ -18,95 +18,147 @@ TCP::TCP(TCPsocket socket) : Socket("tcp{client}", SOCK_STREAM)
 
 int TCP::Bind(const string & destination, int port)
 {
-    IPaddress address;
+    LOG("Begin Bind");
 
-    const char * resolved = this->ResolveSpecialIP(destination);
-    SDLNet_ResolveHost(&address, resolved, port);
+    struct sockaddr_in address;
 
-    this->socket = SDLNet_TCP_Open(&address);
+    this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (!this->socket)
-        return -1;
+    LOG("Sockfd: %d", this->sockfd);
 
-    return 0;
+    if (this->sockfd < 0)
+    {
+        LOG("Error: %s", strerror(errno));
+        return 0;
+    }
+
+    memset(&address, 0, sizeof(address));
+
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = htonl(INADDR_ANY);
+    address.sin_port = htons(port);
+
+    int status = bind(this->sockfd, (struct sockaddr *)&address, sizeof(address));
+
+    LOG("bind: %d", status);
+
+    if (status == SO_ERROR)
+        return 0;
+
+    listen(this->sockfd, 5);
+
+    //fcntl(this->sockfd, F_SETFL, O_NONBLOCK);
+
+    this->SetType("tcp{server}");
+
+    LOG("Bind completed.");
+
+    return 1;
 }
 
 int TCP::Connect(const string & destination, int port)
 {
-    IPaddress address;
+    struct hostent * host;
+    struct sockaddr_in address;
 
-    const char * resolved = destination.c_str();
-    SDLNet_ResolveHost(&address, resolved, port);
+    this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    this->socket = SDLNet_TCP_Open(&address);
+    if (this->sockfd < 0)
+        return 0;
 
-    if (!this->socket)
-        return -1;
+    memset(&address, 0, sizeof(address));
 
-    return 0;
+    address.sin_family = AF_INET;
+    address.sin_port = htons(port);
+
+    const char * name = destination.c_str();
+    host = gethostbyname(name);
+
+    memcpy((void *)&address.sin_addr, host->h_addr_list[0], host->h_length);
+
+    int status = connect(this->sockfd, (struct sockaddr *)&address, sizeof(address));
+
+    if (status == SO_ERROR)
+        return 0;
+    
+    //fcntl(this->sockfd, F_SETFL, O_NONBLOCK);
+
+    LOG("Connect completed.");
+
+    return 1;
 }
-
-TCPsocket TCP::Accept()
-{
-    TCPsocket newSocket = SDLNet_TCP_Accept(this->socket);
-
-    return newSocket;
-}
-
-/*TCP::TCP(int sockfd) : Socket(SOCK_STREAM, sockfd) {}
-
- Waits for a remote connection on the server 
-** object and returns a client object representing that connection.
-
 
 int TCP::Accept()
 {
-    int event = poll(&this->pollfd, 1, this->timeout);
+    if (!this->Ready())
+        return -1;
 
-    if (event <= 0)
-        return event;
-    else
-    {
-        int newSocket = accept(this->sockfd,  NULL, NULL);
+    struct sockaddr_in address;
+    socklen_t length = sizeof(address);
 
-        if (newSocket < 0)
-            return -3;
-        else
-        {
-            int flags, blocking;
+    int newfd = accept(this->sockfd, (struct sockaddr *)&address, &length);
 
-            flags = fcntl(newSocket, F_GETFL, 0);
-            if (flags < 0)
-                Love::RaiseError("Failed to get flags for socket.");
+    if (newfd == EINVAL)
+        return -1;
 
-            blocking = fcntl(newSocket, F_SETFL, flags & ~O_NONBLOCK);
-            if (blocking != 0)
-                Love::RaiseError("Failed to set non-blocking on socket.");
-        }
+    LOG("Accept: %d", newfd);
 
-        return newSocket;
-    }
+    return newfd;
 }
 
-Specifies the socket is willing to receive connections
-** transforming the object into a server object.
-
-void TCP::Listen()
+//Shamelessly stolen from lstlib.c
+ptrdiff_t TCP::StringSubPosition(ptrdiff_t pos, size_t len)
 {
-    if (listen(this->sockfd, 5))
-        printf("listen: %d %s\n", errno, strerror(errno));
+    /* relative string position: negative means back from end */
+    return (pos >= 0) ? pos : (ptrdiff_t)len + pos + 1;
 }
 
-** Sets options for the TCP object. 
-** Options are only needed by low-level or time-critical applications. 
-** You should only modify an option if you are sure you need it. 
-**
-** 'keepalive'
-** 'linger'
-** 'reuseaddr'
-** 'tcp-nodelay'
+int TCP::Send(const char * datagram, size_t length, int i, int j)
+{
+    LOG("Attempting to Send");
 
-int TCP::SetOption(const string & option, int value)
+    ptrdiff_t start = this->StringSubPosition(i, length);
+    ptrdiff_t end   = this->StringSubPosition(j, length);
+
+    int sent = 0;
+    if (start < 1) 
+        start = 1;
+  
+    if (end > (ptrdiff_t)length) 
+        end = (ptrdiff_t)length;
+    
+    const char * tosend = (datagram + start - 1);
+
+    LOG("Sent: %s", tosend);
+
+    if (start <= end)
+        sent = send(this->sockfd, datagram + start - 1, end - start + 1, 0);
+
+    LOG("Sent %dB", sent);
+
+    return sent;
+}
+
+int TCP::ReceiveLines(char * buffer)
+{
+    if (!this->Ready())
+        return -1;
+
+    char backupbuf[SOCKET_BUFFERSIZE];
+
+    recv(this->sockfd, buffer, sizeof(buffer), MSG_PEEK);
+
+    string temp = buffer;
+    int position = temp.find("\r\n");
+
+    //cut off the \r\n
+    buffer[position] = '\0';
+
+    //consume the bytes
+    return recv(this->sockfd, backupbuf, sizeof(buffer), 0);
+}
+
+/*int TCP::SetOption(const string & option, int value)
 {
     //int optionValue = 0;
 

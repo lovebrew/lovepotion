@@ -4,15 +4,19 @@ class TCP : public Socket
 {
     public:
         TCP();
-        TCP(TCPsocket socket);
+        TCP(int sockfd);
 
         int Bind(const std::string & destination, int port);
         int Connect(const string & destination, int port);
 
-        TCPsocket Accept();
+        int Send(const char * datagram, size_t length, int i, int j);
         
-        void Listen();
+        int ReceiveLines(char * buffer);
+        int ReceiveAll(char * buffer);
+        int ReceiveNumber(char * buffer);
+
+        int Accept();
 
     private:
-        TCPsocket socket;
+        ptrdiff_t StringSubPosition(ptrdiff_t start, size_t length);
 };

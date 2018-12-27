@@ -6,7 +6,11 @@ int udpSend(lua_State * L);
 
 int udpSendTo(lua_State * L);
 
+int udpGetPeerName(lua_State * L);
+
 int udpSetPeerName(lua_State * L);
+
+int udpGetSockName(lua_State * L);
 
 int udpSetSockName(lua_State * L);
 

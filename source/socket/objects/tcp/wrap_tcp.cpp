@@ -20,13 +20,57 @@ int tcpNew(lua_State * L)
     return 1;
 }
 
-int tcpOnAccept(lua_State * L, TCPsocket socket)
+int tcpBind(lua_State * L)
+{
+    if (lua_type(L, 1) != LUA_TUSERDATA)
+    {
+        string ip = luaL_checkstring(L, 1);
+        int port = luaL_checknumber(L, 2);
+
+        tcpNew(L);
+
+        TCP * self = (TCP *)luaobj_checkudata(L, -1, CLASS_TYPE);
+
+        int status = self->Bind(ip, port);
+
+        return status;
+    }
+    else
+    {
+        TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+        string ip = luaL_checkstring(L, 2);
+        int port = luaL_checknumber(L, 3);
+
+        int status = self->Bind(ip, port);
+
+        return status;
+    }
+
+    return 0;
+}
+
+int tcpConnect(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    string ip = luaL_checkstring(L, 2);
+    int port = luaL_checknumber(L, 3);
+
+    int status = self->Connect(ip, port);
+
+    lua_pushinteger(L, status);
+
+    return 1;
+}
+
+int tcpOnAccept(lua_State * L, int newfd)
 {
     void * raw_self = luaobj_newudata(L, sizeof(TCP));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    new (raw_self) TCP(socket);
+    new (raw_self) TCP(newfd);
 
     return 1;
 }
@@ -35,18 +79,140 @@ int tcpAccept(lua_State * L)
 {
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    TCPsocket newSocket = self->Accept();
+    int newfd = self->Accept();
     
-    if (!newSocket)
+    if (newfd < 0)
     {
         lua_pushnil(L);
         
         return 1;
     }
 
-    int succ = tcpOnAccept(L, newSocket);
+    int succ = tcpOnAccept(L, newfd);
 
     return succ;
+}
+
+int tcpReceive(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    string pattern = luaL_optstring(L, 2, "*l");
+    string prefix = luaL_optstring(L, 3, "");
+
+    char buffer[SOCKET_BUFFERSIZE];
+
+    if (pattern == "*l")
+        self->ReceiveLines(buffer);
+
+    lua_pushstring(L, buffer);
+
+    return 0;
+}
+
+int tcpSend(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    size_t stringLength = 0;
+
+    const char * datagram = luaL_checklstring(L, 2, &stringLength);
+
+    int start = luaL_checkinteger(L, 2);
+    int end   = luaL_checkinteger(L, 3);
+
+    int sent = self->Send(datagram, stringLength, start, end);
+
+    lua_pushnumber(L, sent);
+
+    return 1;
+}
+
+//TCP:getsockname
+int tcpGetSockName(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    char origin[0x40];
+    int port;
+
+    int error = self->GetSockName(origin, &port);
+
+    if (error < 0)
+    {
+        lua_pushnil(L);
+
+        return 1;
+    }
+
+    lua_pushstring(L, origin);
+    lua_pushinteger(L, port);
+
+    return 2;
+}
+
+int tcpGetPeerName(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    char origin[0x40];
+    int port;
+
+    int error = self->GetPeerName(origin, &port);
+
+    if (error < 0)
+    {
+        lua_pushnil(L);
+
+        return 1;
+    }
+
+    lua_pushstring(L, origin);
+    lua_pushinteger(L, port);
+
+    return 2;
+}
+
+int tcpSetTimeout(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    double timeout = luaL_optnumber(L, 2, -1);
+
+    self->SetTimeout(timeout);
+
+    return 0;
+}
+
+int tcpClose(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    self->Close();
+
+    return 0;
+}
+
+int initTCPClass(lua_State * L)
+{
+	luaL_Reg reg[] = 
+    {
+        //{ "__gc",        tcpGC          },
+        //{ "__tostring",  tcpToString    },
+        { "accept",      tcpAccept      },
+        { "bind",        tcpBind        },
+        { "close",       tcpClose       },
+        { "getpeername", tcpGetPeerName },
+        { "getsockname", tcpGetSockName },
+        { "new",		 tcpNew         },
+        { "receive",     tcpReceive     },
+        { "send",        tcpSend        },
+        { "settimeout",  tcpSetTimeout  },
+        { 0, 0 },
+    };
+
+    luaobj_newclass(L, CLASS_NAME, NULL, tcpNew, reg);
+
+    return 1;
 }
 
 /*int tcpGetSockName(lua_State * L)
@@ -131,25 +297,7 @@ int tcpSend(lua_State * L)
     return sent;
 }
 
-int tcpSetTimeout(lua_State * L)
-{
-    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    double timeout = luaL_optnumber(L, 2, -1);
-
-    self->SetTimeout(timeout);
-
-    return 0;
-}
-
-int tcpClose(lua_State * L)
-{
-    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
-
-    self->Close();
-
-    return 0;
-}
 
 int tcpGC(lua_State * L)
 {
@@ -167,28 +315,6 @@ int tcpToString(lua_State * L)
     lua_pushstring(L, data);
 
     free(data);
-
-    return 1;
-}
-
-int initTCPClass(lua_State * L)
-{
-	luaL_Reg reg[] = 
-    {
-        { "__gc",        tcpGC          },
-        { "__tostring",  tcpToString    },
-        { "accept",      tcpAccept      },
-        { "bind",        tcpBind        },
-        { "close",       tcpClose       },
-        { "getsockname", tcpGetSockName },
-        { "new",		 tcpNew         },
-        { "receive",     tcpReceive     },
-        { "send",        tcpSend        },
-        { "settimeout",  tcpSetTimeout  },
-        { 0, 0 },
-    };
-
-    luaobj_newclass(L, CLASS_NAME, NULL, tcpNew, reg);
 
     return 1;
 }*/

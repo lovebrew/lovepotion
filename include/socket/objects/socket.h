@@ -5,20 +5,24 @@ class Socket : public Object
         void SetTimeout(double duration);
         int Close();
 
+        int GetPeerName(char * ip, int * port);
+        int GetSockName(char * ip, int * port);
+
     private:
         int sock;
 
     protected:
+        //int Bind();
+        //int Connect();
+        
         const char * ResolveSpecialIP(const std::string & destination);
-
-        void GetPeerName(char * ip, int * port);
-        void GetSockName(char * ip, int * port);
+        bool Ready();
 
         bool IsConnected();
         bool connected;
 
-        double timeout;
+        struct timeval timeout;
 
-        std::string ip;
-        int port;
+        int sockfd;
+        IPAddress ip_address;
 };

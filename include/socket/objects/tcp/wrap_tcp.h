@@ -4,6 +4,10 @@ int tcpNew(lua_State * L);
 
 int tcpOnAccept(lua_State * L, int sockfd);
 
+int tcpGetPeerName(lua_State * L);
+
+int tcpGetSockName(lua_State * L);
+
 int tcpBind(lua_State * L);
 
 int tcpAccept(lua_State * L);
