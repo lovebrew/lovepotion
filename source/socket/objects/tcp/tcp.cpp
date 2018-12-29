@@ -45,7 +45,7 @@ int TCP::Bind(const string & destination, int port)
     if (status == SO_ERROR)
         return 0;
 
-    listen(this->sockfd, 5);
+    listen(this->sockfd, 32);
 
     //fcntl(this->sockfd, F_SETFL, O_NONBLOCK);
 
@@ -106,56 +106,94 @@ int TCP::Accept()
     return newfd;
 }
 
-//Shamelessly stolen from lstlib.c
-ptrdiff_t TCP::StringSubPosition(ptrdiff_t pos, size_t len)
-{
-    /* relative string position: negative means back from end */
-    return (pos >= 0) ? pos : (ptrdiff_t)len + pos + 1;
-}
-
-int TCP::Send(const char * datagram, size_t length, int i, int j)
+int TCP::Send(const char * datagram, long length)
 {
     LOG("Attempting to Send");
-
-    ptrdiff_t start = this->StringSubPosition(i, length);
-    ptrdiff_t end   = this->StringSubPosition(j, length);
-
     int sent = 0;
-    if (start < 1) 
-        start = 1;
-  
-    if (end > (ptrdiff_t)length) 
-        end = (ptrdiff_t)length;
-    
-    const char * tosend = (datagram + start - 1);
 
-    LOG("Sent: %s", tosend);
+    LOG("Sending index %ld", length);
 
-    if (start <= end)
-        sent = send(this->sockfd, datagram + start - 1, end - start + 1, 0);
+    sent = send(this->sockfd, datagram, length, 0);
 
-    LOG("Sent %dB", sent);
+    LOG("Sent %s", datagram);
 
     return sent;
 }
 
-int TCP::ReceiveLines(char * buffer)
+int TCP::ReceiveLinesStripCR(char * outbuf, const char * inbuf, int inbuf_size)
 {
-    if (!this->Ready())
+    char * pos;
+    int used_size = 0;
+    int amount_of_cr = 0;
+ 
+    while((pos = strchr(inbuf + used_size, '\r')) != NULL)
+    {
+        ptrdiff_t length_until_cr = pos - (inbuf + used_size);
+        if(length_until_cr)
+        {
+            memcpy(outbuf, (inbuf + used_size), length_until_cr);
+            outbuf += length_until_cr;
+        }
+        amount_of_cr++;
+        used_size += length_until_cr + 1;  // jump over the \r we just saw
+    }
+ 
+    // at worst, inbuf + used_size points to the terminating NUL, so this will end the outbuf string correctly
+    // and if pos was NULL from the start (no CR in inbuf), it can't overflow outbuf anyway because it's just the right size
+    strcpy(outbuf, inbuf + used_size);
+ 
+    return used_size - amount_of_cr;
+}
+
+int TCP::ReceiveLines(char ** outbuf)
+{
+    int ready = this->Ready();
+
+    if (ready == -1)
         return -1;
+    else if (ready)
+    {
+        //0x2000
+        char recvbuf[SOCKET_BUFFERSIZE];
+        char * recvbuf_ptr = recvbuf;
 
-    char backupbuf[SOCKET_BUFFERSIZE];
+        bool done = false;
+        char * pos;
+        int out_size = 0;
+        int read_size_before_newline = 0;
+    
+        do
+        {
+            recv(this->sockfd, recvbuf, sizeof(recvbuf), MSG_PEEK);
+            
+            if((pos = strchr(recvbuf, '\n')) != NULL)
+            {
+                ptrdiff_t length_until_newline = pos - recvbuf_ptr;  // ensure recvbuf gets treated as a pointer
+                recvbuf[length_until_newline] = '\0';  // Replace the LF with a NUL to make stripping the CRs easier
+                // + 1  for the terminating NUL
+                *outbuf = (char *)malloc(length_until_newline + 1);
+                // string size, without CRs
+                out_size = this->ReceiveLinesStripCR(*outbuf, recvbuf, length_until_newline);
+                // + 1  for eliminating the LF when you consume later
+                read_size_before_newline = length_until_newline + 1;
+                done = true;
+            }
 
-    recv(this->sockfd, buffer, sizeof(buffer), MSG_PEEK);
-
-    string temp = buffer;
-    int position = temp.find("\r\n");
-
-    //cut off the \r\n
-    buffer[position] = '\0';
-
-    //consume the bytes
-    return recv(this->sockfd, backupbuf, sizeof(buffer), 0);
+        } while (!done);
+    
+        //consume the bytes
+        int to_consume = read_size_before_newline;
+        do 
+        {
+            int to_receive = to_consume > SOCKET_BUFFERSIZE ? SOCKET_BUFFERSIZE : to_consume;
+            recv(this->sockfd, recvbuf, to_receive, 0);
+            to_consume -= to_receive;
+        } while (to_consume);
+    
+        return out_size;
+    }
+    else
+        return -2;
 }
 
 /*int TCP::SetOption(const string & option, int value)

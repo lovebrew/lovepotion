@@ -100,14 +100,36 @@ int tcpReceive(lua_State * L)
     string pattern = luaL_optstring(L, 2, "*l");
     string prefix = luaL_optstring(L, 3, "");
 
-    char buffer[SOCKET_BUFFERSIZE];
+    char * buffer = nullptr;
+    int recvd = 0;
 
     if (pattern == "*l")
-        self->ReceiveLines(buffer);
+        recvd = self->ReceiveLines(&buffer);
 
-    lua_pushstring(L, buffer);
+    if (recvd < 0)
+    {
+        lua_pushnil(L);
 
-    return 0;
+        if (recvd == -1)
+            lua_pushstring(L, "closed");
+        else if (recvd == -2)
+            lua_pushstring(L, "timeout");
+
+        return 2;
+    }
+    else if (recvd == 0)
+        lua_pushstring(L, "");
+    else
+        lua_pushstring(L, buffer);
+
+    LOG("buffer is %s", buffer);
+
+    if (buffer != nullptr)
+        free(buffer);
+
+    lua_pushnil(L);
+
+    return 2;
 }
 
 int tcpSend(lua_State * L)
@@ -115,16 +137,47 @@ int tcpSend(lua_State * L)
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
     size_t stringLength = 0;
 
+    LOG("get datagram");
     const char * datagram = luaL_checklstring(L, 2, &stringLength);
 
-    int start = luaL_checkinteger(L, 2);
-    int end   = luaL_checkinteger(L, 3);
+    long start = luaL_optnumber(L, 3, 1);
+    long end   = luaL_optnumber(L, 4, -1);
 
-    int sent = self->Send(datagram, stringLength, start, end);
+    if (start < 0)
+        start = (long)(stringLength + start + 1);
 
-    lua_pushnumber(L, sent);
+    if (end < 0)
+        end = (long)(stringLength + end + 1);
 
-    return 1;
+    if (start < 1)
+        start = (long)1;
+
+    if (end < (long)stringLength)
+        end = (long)stringLength;
+
+    LOG("Preparing to send?");
+
+    int sent = 0;
+    if (start <= end)
+        sent = self->Send(datagram + start - 1, end - start + 1);
+    LOG("Sent %d!", sent);
+
+    if (sent < 0)
+    {
+        lua_pushnil(L);
+
+        if (sent == -1)
+            lua_pushstring(L, "closed");
+        else if (sent == -2)
+            lua_pushstring(L, "timeout");
+
+        return 2;
+    }
+
+    lua_pushnumber(L, sent + start + 1);
+    lua_pushnil(L);
+
+    return 2;
 }
 
 //TCP:getsockname

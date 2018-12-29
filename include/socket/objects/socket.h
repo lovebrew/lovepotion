@@ -16,7 +16,7 @@ class Socket : public Object
         //int Connect();
         
         const char * ResolveSpecialIP(const std::string & destination);
-        bool Ready();
+        int Ready();
 
         bool IsConnected();
         bool connected;
@@ -24,5 +24,4 @@ class Socket : public Object
         struct timeval timeout;
 
         int sockfd;
-        IPAddress ip_address;
 };

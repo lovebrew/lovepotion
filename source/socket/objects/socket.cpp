@@ -12,20 +12,17 @@ Socket::Socket(const std::string & type, int sock) : Object(type)
     this->sock = sock;
 }
 
-bool Socket::Ready()
+int Socket::Ready()
 {
     int returnValue = 0;
     fd_set mask;
 
-    do
-    {
-        FD_ZERO(&mask);
-        FD_SET(this->sockfd, &mask);
+    FD_ZERO(&mask);
+    FD_SET(this->sockfd, &mask);
 
-        returnValue = select(this->sockfd + 1, &mask, NULL, NULL, &this->timeout);
-    } while (returnValue == EINTR);
+    returnValue = select(this->sockfd + 1, &mask, NULL, NULL, &this->timeout);
 
-    return returnValue == 1;
+    return returnValue;
 }
 
 int Socket::GetPeerName(char * origin, int * port)
@@ -66,6 +63,13 @@ bool Socket::IsConnected()
 void Socket::SetTimeout(double timeout)
 {
     this->timeout.tv_sec = timeout;
+
+    int flags = fcntl(this->sockfd, F_GETFL, 0);
+
+    if (timeout == 0)
+        fcntl(this->sockfd, F_SETFL, flags | O_NONBLOCK);
+    else
+        fcntl(this->sockfd, F_SETFL, flags | ~O_NONBLOCK);
 }
 
 int Socket::Close()
