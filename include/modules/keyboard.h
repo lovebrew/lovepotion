@@ -7,11 +7,9 @@
 
 namespace Keyboard
 {
-    void Initialize();
-
     //Löve2D Functions
 
-    int SetTextInput(lua_State * L);
+    int ShowTextInput(lua_State * L);
 
     //End Löve2D Functions
 

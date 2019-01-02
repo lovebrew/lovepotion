@@ -14,6 +14,7 @@
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
 #include "modules/joystick.h"
+#include "modules/keyboard.h"
 #include "modules/mod_math.h"
 #include "modules/mod_thread.h"
 #include "modules/system.h"
@@ -39,6 +40,7 @@ struct { const char * name; void (*open)(void); int (*fn)(lua_State *L); void (*
     { "filesystem", Filesystem::Initialize, Filesystem::Register, Filesystem::Exit },
     { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
     { "joystick",   NULL,                   Joystick::Register,   NULL             },
+    { "keyboard",   NULL,                   Keyboard::Register,   NULL             },
     { "math",       NULL,                   Math::Register,       NULL             },
     { "system",     System::Initialize,     System::Register,     System::Exit     },
     { "thread",     NULL,                   LoveThread::Register, LoveThread::Exit },

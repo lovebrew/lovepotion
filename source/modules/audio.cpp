@@ -34,7 +34,8 @@ int Audio::Play(lua_State * L)
 {
     Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
 
-    self->Play();
+    if (!self->IsPlaying())
+        self->Play();
 
     return 0;
 }
