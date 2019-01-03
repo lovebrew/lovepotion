@@ -78,6 +78,8 @@ int UDP::SetPeerName(const string & destination, int port)
     
     if (status == SO_ERROR)
         return -1;
+    
+    this->SetBlocking(false);
 
     return 1;
 }
