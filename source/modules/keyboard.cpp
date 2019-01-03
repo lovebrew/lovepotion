@@ -5,6 +5,7 @@ int Keyboard::ShowTextInput(lua_State * L)
 {
     SwkbdConfig keyboard;
     char text[0x80] = {0};
+    Result status;
 
     if (!lua_istable(L, 1) && !lua_isnoneornil(L, 1))
         luaL_error(L, "table expected, got %s", lua_type(L, 1));
@@ -40,8 +41,11 @@ int Keyboard::ShowTextInput(lua_State * L)
 
     lua_pop(L, 2);
 
-    swkbdCreate(&keyboard, 0);
+    status = swkbdCreate(&keyboard, 0);
     
+    if (!R_SUCCEEDED(status))
+        return 0;
+
     swkbdConfigMakePresetDefault(&keyboard);
     
     if (type == "standard")
@@ -59,13 +63,17 @@ int Keyboard::ShowTextInput(lua_State * L)
 
     swkbdConfigSetGuideText(&keyboard, hint);
 
-    swkbdShow(&keyboard, text, sizeof(text));
-
-    love_getfield(L, "textinput");
-    if (!lua_isnil(L, -1))
+    status = swkbdShow(&keyboard, text, sizeof(text));
+    
+    if (R_SUCCEEDED(status))
     {
-        lua_pushstring(L, text);
-        lua_call(L, 1, 0);
+        love_getfield(L, "textinput");
+        
+        if (!lua_isnil(L, -1))
+        {
+            lua_pushstring(L, text);
+            lua_call(L, 1, 0);
+        }
     }
 
     swkbdClose(&keyboard);
