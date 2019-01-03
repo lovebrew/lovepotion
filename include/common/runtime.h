@@ -45,7 +45,6 @@ extern "C"
 #include "common/types.h"
 #include "common/variant.h"
 #include "common/util.h"
-#include "common/console.h"
 #include "modules/love.h"
 #include "common/error.h"
 

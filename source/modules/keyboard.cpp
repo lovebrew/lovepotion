@@ -4,9 +4,9 @@
 int Keyboard::ShowTextInput(lua_State * L)
 {
     SwkbdConfig keyboard;
-    char text[0x20] = {0};
+    char text[0x80] = {0};
 
-    if (!lua_istable(L, 1) || !lua_isnoneornil(L, 1))
+    if (!lua_istable(L, 1) && !lua_isnoneornil(L, 1))
         luaL_error(L, "table expected, got %s", lua_type(L, 1));
     else if (lua_istable(L, 1))
         lua_settop(L, 1);
@@ -15,7 +15,7 @@ int Keyboard::ShowTextInput(lua_State * L)
 
     /*
     {
-        [“type”] = “QWERTY”,
+        [“type”] = “basic”,
         [“header”] = “Enter Text”,
         [“subheader”] = “”,
         [“hint”] = “Some Text”,
@@ -29,31 +29,28 @@ int Keyboard::ShowTextInput(lua_State * L)
     lua_getfield(L, 1, "hint");
     lua_getfield(L, 1, "isPassword");
 
-    string type = luaL_optstring(L, -5, "QWERTY");
-    
+    string type = luaL_optstring(L, -5, "basic");
+    LOVE_VALIDATE_KEYBOARD_TYPE(type.c_str());
+
     const char * header = luaL_optstring(L, -4, "Enter Text");
     const char * subHeader = luaL_optstring(L, -3, "");
     const char * hint = luaL_optstring(L, -2, "");
 
-    bool isPassword = lua_toboolean(L, -1);
+    int isPassword = lua_toboolean(L, -1);
+
+    lua_pop(L, 2);
 
     swkbdCreate(&keyboard, 0);
-
-    SwkbdArgV0 args = keyboard.arg.arg;
-
-    if (type == "QWERTY")
-        args.type = SwkbdType_QWERTY;
-    else if (type == "NumPad")
-        args.type = SwkbdType_NumPad;
-
-    args.initialCursorPos = 1;
-    args.returnButtonFlag = 1;
     
-    args.blurBackground = 1;
+    swkbdConfigMakePresetDefault(&keyboard);
     
-    args.textDrawType = SwkbdTextDrawType_Line;
+    if (type == "standard")
+        keyboard.arg.arg.type = SwkbdType_Normal;
+    else if (type == "numpad")
+        keyboard.arg.arg.type = SwkbdType_NumPad;
 
-    args.passwordFlag = isPassword;
+    keyboard.arg.arg.dicFlag = 1;
+    keyboard.arg.arg.passwordFlag = isPassword;
 
     swkbdConfigSetOkButtonText(&keyboard, "OK");
 

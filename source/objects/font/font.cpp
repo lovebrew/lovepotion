@@ -43,7 +43,7 @@ void Font::Print(const char * text, double x, double y, double rotation, float l
     if (strlen(text) == 0)
         return;
 
-    SDL_Surface * tempSurface = TTF_RenderText_Blended_Wrapped(this->font, text, color, limit);
+    SDL_Surface * tempSurface = TTF_RenderUTF8_Blended_Wrapped(this->font, text, color, limit);
     texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
     SDL_FreeSurface(tempSurface);
 

@@ -38,7 +38,6 @@ extern "C"
 
 #include "boot_lua.h"
 
-#include "common/console.h"
 #include "common/types.h"
 #include "common/variant.h"
 #include "common/util.h"

@@ -213,8 +213,6 @@ int Love::GetVersion(lua_State * L)
 
 int Love::EnableConsole(lua_State * L)
 {
-    Console::Initialize();
-
     return 0;
 }
 
