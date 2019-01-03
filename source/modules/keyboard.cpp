@@ -43,7 +43,7 @@ int Keyboard::ShowTextInput(lua_State * L)
 
     status = swkbdCreate(&keyboard, 0);
     
-    if (!R_SUCCEEDED(status))
+    if (R_FAILED(status))
         return 0;
 
     swkbdConfigMakePresetDefault(&keyboard);
