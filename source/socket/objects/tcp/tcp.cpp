@@ -18,13 +18,9 @@ TCP::TCP(int sockfd) : Socket("tcp{client}", SOCK_STREAM)
 
 int TCP::Bind(const string & destination, int port)
 {
-    LOG("Begin Bind");
-
     struct sockaddr_in address;
 
     this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    LOG("Sockfd: %d", this->sockfd);
 
     if (this->sockfd < 0)
     {
@@ -47,11 +43,9 @@ int TCP::Bind(const string & destination, int port)
 
     listen(this->sockfd, 32);
 
-    //fcntl(this->sockfd, F_SETFL, O_NONBLOCK);
-
     this->SetType("tcp{server}");
-
-    LOG("Bind completed.");
+    
+    this->SetBlocking(false);
 
     return 1;
 }
@@ -81,9 +75,7 @@ int TCP::Connect(const string & destination, int port)
     if (status == SO_ERROR)
         return 0;
     
-    //fcntl(this->sockfd, F_SETFL, O_NONBLOCK);
-
-    LOG("Connect completed.");
+    this->SetBlocking(false);
 
     return 1;
 }
@@ -101,21 +93,14 @@ int TCP::Accept()
     if (newfd == EINVAL)
         return -1;
 
-    LOG("Accept: %d", newfd);
-
     return newfd;
 }
 
 int TCP::Send(const char * datagram, long length)
 {
-    LOG("Attempting to Send");
     int sent = 0;
-
-    LOG("Sending index %ld", length);
-
+    
     sent = send(this->sockfd, datagram, length, 0);
-
-    LOG("Sent %s", datagram);
 
     return sent;
 }
