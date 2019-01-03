@@ -60,16 +60,19 @@ bool Socket::IsConnected()
     return this->connected;
 }
 
+void Socket::SetBlocking(bool block)
+{
+    int flags = fcntl(this->sockfd, F_GETFL, 0);
+
+    if (!block) //set it to nonblocking
+        fcntl(this->sockfd, F_SETFL, flags | O_NONBLOCK);
+    else //blocking
+        fcntl(this->sockfd, F_SETFL, flags & ~O_NONBLOCK);
+}
+
 void Socket::SetTimeout(double timeout)
 {
     this->timeout.tv_sec = timeout;
-
-    int flags = fcntl(this->sockfd, F_GETFL, 0);
-
-    if (timeout == 0)
-        fcntl(this->sockfd, F_SETFL, flags | O_NONBLOCK);
-    else
-        fcntl(this->sockfd, F_SETFL, flags | ~O_NONBLOCK);
 }
 
 int Socket::Close()

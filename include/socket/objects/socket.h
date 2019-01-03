@@ -19,6 +19,8 @@ class Socket : public Object
         int Ready();
 
         bool IsConnected();
+        void SetBlocking(bool block);
+
         bool connected;
 
         struct timeval timeout;
