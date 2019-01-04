@@ -37,6 +37,7 @@ extern "C"
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <switch.h>
 

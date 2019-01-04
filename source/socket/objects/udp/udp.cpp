@@ -124,8 +124,8 @@ int UDP::SendTo(const char * datagram, size_t length, const char * destination, 
 
 int UDP::ReceiveFrom(char * buffer, char * origin, int * port, size_t bytes)
 {
-    if (!this->Ready())
-        return 0;
+    //if (!this->Ready())
+    //    return 0;
 
     struct sockaddr_in address;
     socklen_t socketSize = sizeof(address);

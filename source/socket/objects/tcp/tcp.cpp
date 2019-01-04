@@ -8,6 +8,7 @@ TCP::TCP() : Socket("tcp{master}", SOCK_STREAM) {}
 TCP::TCP(int sockfd) : Socket("tcp{client}", SOCK_STREAM)
 {
     this->sockfd = sockfd;
+    this->SetBlocking(false);
 }
 
 /*
@@ -35,8 +36,6 @@ int TCP::Bind(const string & destination, int port)
     address.sin_port = htons(port);
 
     int status = bind(this->sockfd, (struct sockaddr *)&address, sizeof(address));
-
-    LOG("bind: %d", status);
 
     if (status == SO_ERROR)
         return 0;
@@ -82,9 +81,6 @@ int TCP::Connect(const string & destination, int port)
 
 int TCP::Accept()
 {
-    if (!this->Ready())
-        return -1;
-
     struct sockaddr_in address;
     socklen_t length = sizeof(address);
 
@@ -132,11 +128,15 @@ int TCP::ReceiveLinesStripCR(char * outbuf, const char * inbuf, int inbuf_size)
 
 int TCP::ReceiveLines(char ** outbuf)
 {
-    int ready = this->Ready();
+    int ready = this->Ready(POLLIN);
 
-    if (ready == -1)
-        return -1;
-    else if (ready)
+    if (ready != 0)
+        return ready;
+    else if (ready == EINTR)
+        return ready;
+    else if (errno != EAGAIN)
+        return errno;
+    else
     {
         //0x2000
         char recvbuf[SOCKET_BUFFERSIZE];
@@ -177,8 +177,26 @@ int TCP::ReceiveLines(char ** outbuf)
     
         return out_size;
     }
+}
+
+int TCP::ReceiveNumber(char ** outbuf, size_t length)
+{
+    int ready = this->Ready(POLLIN);
+    int recvd = 0;
+    
+    if (ready != 0)
+        return ready;
+    else if (ready == EINTR)
+        return ready;
+    else if (errno != EAGAIN)
+        return errno;
     else
-        return -2;
+    {
+        *outbuf = (char *)malloc(length);
+        recvd = recv(this->sockfd, *outbuf, length, 0);
+
+        return recvd;
+    }
 }
 
 /*int TCP::SetOption(const string & option, int value)

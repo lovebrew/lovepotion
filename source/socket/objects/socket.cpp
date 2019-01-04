@@ -5,22 +5,32 @@
 Socket::Socket(const std::string & type, int sock) : Object(type)
 {
     this->connected = false;
-
-    this->timeout.tv_sec = 5;
-    this->timeout.tv_usec = 0;
-
+    this->timeout = 5;
     this->sock = sock;
 }
 
-int Socket::Ready()
+Socket::~Socket()
+{
+    this->Close();
+}
+
+int Socket::Ready(int wait_type)
 {
     int returnValue = 0;
-    fd_set mask;
+    struct pollfd pfd;
 
-    FD_ZERO(&mask);
-    FD_SET(this->sockfd, &mask);
+    pfd.fd = this->sockfd;
+    pfd.events = wait_type;
+    pfd.revents = 0;
 
-    returnValue = select(this->sockfd + 1, &mask, NULL, NULL, &this->timeout);
+    if (this->timeout == 0)
+        return 0;
+
+    do
+    {
+        int time = this->timeout >= 0 ? this->timeout : -1;
+        returnValue = poll(&pfd, 1, time);
+    } while (returnValue == -1 && errno == EINTR);
 
     return returnValue;
 }
@@ -31,8 +41,6 @@ int Socket::GetPeerName(char * origin, int * port)
     socklen_t length = sizeof(address);
 
     int error = getpeername(this->sockfd, (struct sockaddr *)&address, &length);
-
-    LOG("getpeername: %d", error);
 
     inet_ntop(AF_INET, &address.sin_addr.s_addr, origin, 0x40);
     *port = htons(address.sin_port);
@@ -46,8 +54,6 @@ int Socket::GetSockName(char * origin, int * port)
     socklen_t length = sizeof(address);
 
     int error = getsockname(this->sockfd, (struct sockaddr *)&address, &length);
-
-    LOG("getsockname: %d", error);
 
     inet_ntop(AF_INET, &address.sin_addr.s_addr, origin, 0x40);
     *port = htons(address.sin_port);
@@ -70,14 +76,15 @@ void Socket::SetBlocking(bool block)
         fcntl(this->sockfd, F_SETFL, flags & ~O_NONBLOCK);
 }
 
-void Socket::SetTimeout(double timeout)
+void Socket::SetTimeout(int timeout)
 {
-    this->timeout.tv_sec = timeout;
+    this->timeout = timeout;
 }
 
 int Socket::Close()
 {
     shutdown(this->sockfd, SHUT_RDWR);
+    close(this->sockfd);
     
     this->sockfd = -1;
     this->connected = false;

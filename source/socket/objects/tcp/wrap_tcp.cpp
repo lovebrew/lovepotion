@@ -105,6 +105,10 @@ int tcpReceive(lua_State * L)
 
     if (pattern == "*l")
         recvd = self->ReceiveLines(&buffer);
+    else if (pattern == "*a")
+        printf("read all");
+    else if (lua_isnumber(L, 2))
+        recvd = self->ReceiveNumber(&buffer, atoi(pattern.c_str()));
 
     if (recvd < 0)
     {
@@ -122,8 +126,6 @@ int tcpReceive(lua_State * L)
     else
         lua_pushstring(L, buffer);
 
-    LOG("buffer is %s", buffer);
-
     if (buffer != nullptr)
         free(buffer);
 
@@ -137,7 +139,6 @@ int tcpSend(lua_State * L)
     TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
     size_t stringLength = 0;
 
-    LOG("get datagram");
     const char * datagram = luaL_checklstring(L, 2, &stringLength);
 
     long start = luaL_optnumber(L, 3, 1);
@@ -155,12 +156,9 @@ int tcpSend(lua_State * L)
     if (end < (long)stringLength)
         end = (long)stringLength;
 
-    LOG("Preparing to send?");
-
     int sent = 0;
     if (start <= end)
         sent = self->Send(datagram + start - 1, end - start + 1);
-    LOG("Sent %d!", sent);
 
     if (sent < 0)
     {
@@ -245,11 +243,20 @@ int tcpClose(lua_State * L)
     return 0;
 }
 
+int tcpGC(lua_State * L)
+{
+    TCP * self = (TCP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    self->~Socket();
+
+    return 0;
+}
+
 int initTCPClass(lua_State * L)
 {
 	luaL_Reg reg[] = 
     {
-        //{ "__gc",        tcpGC          },
+        { "__gc",        tcpGC          },
         //{ "__tostring",  tcpToString    },
         { "accept",      tcpAccept      },
         { "bind",        tcpBind        },

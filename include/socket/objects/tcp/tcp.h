@@ -15,7 +15,7 @@ class TCP : public Socket
         
         int ReceiveLines(char ** buffer);
         int ReceiveAll(char * buffer);
-        int ReceiveNumber(char * buffer);
+        int ReceiveNumber(char ** buffer, size_t length);
 
         int Accept();
 };

@@ -64,7 +64,7 @@ void Run(void * arg)
 
     //load our code
     const char * codeBuffer = code.c_str();
-    size_t length = args.size();
+    size_t length = code.size();
 
     if (luaL_loadbuffer(L, codeBuffer, length, self->ToString()) != 0)
         self->SetError(lua_tostring(L, -1));
