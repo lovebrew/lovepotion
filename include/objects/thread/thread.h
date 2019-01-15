@@ -9,6 +9,7 @@ class ThreadClass : public Object
         void Start(const std::vector<Variant> & args);
         void Wait();
         void Close();
+        void ThreadFunction();
 
         void Collect();
 
