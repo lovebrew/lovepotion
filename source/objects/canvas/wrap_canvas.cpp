@@ -23,6 +23,13 @@ int canvasNew(lua_State * L)
     return 1;
 }
 
+int canvasSetFilter(lua_State * L)
+{
+    //yay for stubs
+
+    return 0;   
+}
+
 int canvasGetWidth(lua_State * L)
 {
     Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
@@ -108,6 +115,7 @@ int initCanvasClass(lua_State * L)
         { "getHeight",     canvasGetHeight     },
         { "new",           canvasNew           },
         { "renderTo",      canvasRenderTo      },
+        { "setFilter",     canvasSetFilter     },
         { 0, 0 }
     };
 
