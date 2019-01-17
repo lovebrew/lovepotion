@@ -59,6 +59,8 @@ void Love::InitModules(lua_State * L)
     }
 
     Joystick::Initialize(L);
+    
+    socketInitializeDefault();
 }
 
 void Love::InitConstants(lua_State * L)
@@ -140,8 +142,6 @@ int Love::Initialize(lua_State * L)
 
         lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
     }
-
-    socketInitializeDefault();
 
     loveState = L;
 
