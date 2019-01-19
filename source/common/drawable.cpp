@@ -9,6 +9,12 @@ Drawable::Drawable(const string & type) : Object(type)
     this->flip = SDL_FLIP_NONE;
 }
 
+void Drawable::SetFilter()
+{
+    //stubbed, SDL cannot seem to set individual texture filters
+    //Unless I find out it can later™
+}
+
 void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color)
 {
     if (!texture)
