@@ -9,6 +9,8 @@ class Drawable : public Object
 
         int GetWidth();
         int GetHeight();
+        
+        void SetFilter();
 
         Viewport GetViewport();
 
