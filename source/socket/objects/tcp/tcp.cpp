@@ -199,23 +199,22 @@ int TCP::ReceiveNumber(char ** outbuf, size_t length)
     }
 }
 
-/*int TCP::SetOption(const string & option, int value)
+int TCP::SetOption(const string & option, int enable)
 {
-    //int optionValue = 0;
+    int value = 0;
+    int success = 0;
 
     if (option == "keepalive")
-        printf("stubbed");
+        value = SO_KEEPALIVE;
     else if (option == "linger")
-        printf("stubbed");
+        value = SO_LINGER;
     else if (option == "reuseaddr")
-        printf("stubbed");
+        value = SO_REUSEADDR;
     else if (option == "tcp-nodelay")
-        printf("stubbed");
+        value = TCP_NODELAY;
 
-    //if (optionValue != 0)
-        //setsockopt(this->sockfd, SOL_SOCKET, optionValue, (char *)&enable, sizeof(bool));
+    if (value != 0)
+        success = setsockopt(this->sockfd, SOL_SOCKET, value, (char *)&enable, sizeof(enable));
 
-    return 0;
+    return success;
 }
-
-*/

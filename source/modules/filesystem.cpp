@@ -6,26 +6,53 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <libgen.h>
 
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
-void Filesystem::Initialize()
+void Filesystem::Initialize(char * path)
 {
-    Result ROMFS_INIT = romfsInit();
+    /*
+    ** Initialize romfs
+    ** if no path, default (or no game)
+    ** if there's a path, we got a .lpx
+    ** so we mount that (which is a direct path to it)
+    ** and call romfsInitFromFile
+    **
+    ** Get our save directory
+    ** Should be the directory
+    ** containing either the .lpx
+    ** or the .nro
+    */
+    if (path == nullptr)
+    {
+        romfsInit();
 
-    //Get base device path
-    //Can change if it's on USB for whatever reason
-    //In that case it'll be {DEVICE}:/LovePotion/
-    //{IDENTITY} is appended for unique ID
-    char cwd[256];
-    getcwd(cwd, 256);
-    SAVE_DIR = cwd;
-
-    if (ROMFS_INIT != 0)
-        chdir("game");
+        char cwd[256];
+        getcwd(cwd, 256);
+        SAVE_DIR = cwd;
+    }
     else
-        chdir("romfs:/"); //load romfs game (or nogame)!
+    {
+        FsFile file;
+        FsFileSystem * fileSystem = fsdevGetDefaultFileSystem();
+
+        fsFsOpenFile(fileSystem, path + 5, FS_OPEN_READ, &file);
+
+        romfsInitFromFile(file, 0);
+
+        string tmp = path;
+        size_t position = tmp.rfind("/");
+
+        SAVE_DIR = tmp.substr(0, position);
+    }
+
+    /* 
+    ** change directory
+    ** to the .lpx romfs
+    */
+    chdir("romfs:/");
 
     mkdir(SAVE_DIR.c_str(), 0777);
 }

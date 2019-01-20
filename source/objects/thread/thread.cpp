@@ -24,6 +24,8 @@ void ThreadClass::SetError(const string & error)
         this->error.clear();
     else
         this->error = error;
+
+    LOG("%s", error.c_str());
 }
 
 string ThreadClass::GetError()
@@ -51,6 +53,7 @@ void Run(void * arg)
 
     //Initialize LOVE for the thread
     luaL_openlibs(L);
+
     //love_preload(L, LuaSocket::Initialize, "socket");
     luaL_requiref(L, "love", Love::Initialize, 1);
 
@@ -71,8 +74,10 @@ void Run(void * arg)
     else
     {
         uint numargs = args.size();
+        LOG("argc %d", numargs);
 
         //pop args onto the function
+        LOG("popping args onto thread");
         for (uint i = 0; i < numargs; i++)
             args[i].ToLua(L);
 
@@ -80,8 +85,10 @@ void Run(void * arg)
 
         //call the code to execute with the args
         //set an error if it occurs
+        LOG("calling function");
         if (lua_pcall(L, numargs, 0, 0) != 0)
             self->SetError(lua_tostring(L, -1));
+        LOG("done");
     }
 
     //LuaSocket::Close();
@@ -99,7 +106,7 @@ void ThreadClass::OnError()
 void ThreadClass::Start(const vector<Variant> & args)
 {
     this->args = args;
-    threadCreate(&this->thread, Run, this, 0x1000, 0x2C, -2);
+    threadCreate(&this->thread, Run, this, 0x10000, 0x2C, -2);
 
     threadStart(&this->thread);
     

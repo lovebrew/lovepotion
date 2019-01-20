@@ -56,6 +56,9 @@ int main(int argc, char * argv[])
     love_preload(L, LuaSocket::InitSocket, "socket");
     love_preload(L, LuaSocket::InitHTTP, "socket.http");
 
+    char * path = (argc == 2) ? argv[1] : nullptr;
+    Filesystem::Initialize(path);
+
     luaL_requiref(L, "love", Love::Initialize, 1);
 
     Love::InitModules(L);

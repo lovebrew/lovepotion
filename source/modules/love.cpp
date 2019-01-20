@@ -37,7 +37,7 @@ struct { const char * name; void (*open)(void); int (*fn)(lua_State *L); void (*
 {
     { "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
     { "event",      NULL,                   LoveEvent::Register,  NULL             },
-    { "filesystem", Filesystem::Initialize, Filesystem::Register, Filesystem::Exit },
+    { "filesystem", NULL,                   Filesystem::Register, Filesystem::Exit },
     { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
     { "joystick",   NULL,                   Joystick::Register,   NULL             },
     { "keyboard",   NULL,                   Keyboard::Register,   NULL             },

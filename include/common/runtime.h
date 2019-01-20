@@ -61,5 +61,3 @@ using std::map;
 using std::queue;
 
 extern FILE * logFile;
-
-#define LOG(fmt, ...) fprintf(logFile, "%s:%d:\n" fmt "\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__)

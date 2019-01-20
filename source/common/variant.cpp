@@ -46,24 +46,16 @@ Variant Variant::FromLua(lua_State * L, int index)
 
     int type = lua_type(L, index);
 
-    printf("Type %d at Index %d\n", type, index);
+    LOG("Type %d at Index %d\n", type, index);
 
     switch (type)
     {
         case LUA_TNUMBER:
-        {
-            double value = lua_tonumber(L, index);
-            return Variant(value);
-        }
+            return Variant(lua_tonumber(L, index));
         case LUA_TSTRING:
-        {
-            string value = lua_tostring(L, index);
-            return Variant(value);
-        }
+            return Variant(lua_tostring(L, index));
         default:
-        {
             return Variant();
-        }
     }
 
     return Variant();
@@ -77,7 +69,6 @@ void Variant::ToLua(lua_State * L)
             lua_pushnumber(L, this->data_number);
             break;
         case VARIANTS::STRING:
-            printf("%s\n", this->data_string);
             lua_pushstring(L, this->data_string);
             break;
         case VARIANTS::BOOLEAN:

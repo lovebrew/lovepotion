@@ -18,4 +18,6 @@ class TCP : public Socket
         int ReceiveNumber(char ** buffer, size_t length);
 
         int Accept();
+
+        int SetOption(const std::string & option, int enable);
 };

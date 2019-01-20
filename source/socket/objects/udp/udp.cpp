@@ -153,3 +153,19 @@ int UDP::ReceiveFrom(char * buffer, char * origin, int * port, size_t bytes)
 
     return recvd;
 }
+
+int UDP::SetOption(const string & option, int enable)
+{
+    int value = 0;
+    int success = 0;
+    
+    if (option == "broadcast")
+        value = SO_BROADCAST;
+    else if (option == "dontroute")
+        value = SO_DONTROUTE;
+
+    if (value != 0)
+        success = setsockopt(this->sockfd, SOL_SOCKET, value, (char *)&enable, sizeof(enable));
+
+    return success;
+}

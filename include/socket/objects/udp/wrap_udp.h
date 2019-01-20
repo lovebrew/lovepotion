@@ -14,6 +14,8 @@ int udpGetSockName(lua_State * L);
 
 int udpSetSockName(lua_State * L);
 
+int udpSetOption(lua_State * L);
+
 int udpGC(lua_State * L);
 
 int udpToString(lua_State * L);

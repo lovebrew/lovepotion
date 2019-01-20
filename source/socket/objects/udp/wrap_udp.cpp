@@ -197,6 +197,18 @@ int udpSetTimeout(lua_State * L)
     return 0;
 }
 
+int udpSetOption(lua_State * L)
+{
+    UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    string option = luaL_checkstring(L, 2);
+    int enabled = lua_toboolean(L, 3);
+
+    int success = self->SetOption(option, enabled);
+
+    return success;
+}
+
 int udpGC(lua_State * L)
 {
     int ret = udpClose(L);
@@ -231,6 +243,7 @@ int initUDPClass(lua_State * L)
         { "receivefrom", udpReceiveFrom },
         { "send",        udpSend        },
         { "sendto",      udpSendTo      },
+        { "setoption",   udpSetOption   },
         { "setpeername", udpSetPeerName },
         { "setsockname", udpSetSockName },
         { "settimeout",  udpSetTimeout  },

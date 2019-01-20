@@ -11,4 +11,6 @@ class UDP : public Socket
         int ReceiveFrom(char * buffer, char * origin, int * port, size_t bytes);
 
         int SendTo(const char * datagram, size_t length, const char * destination, int port);
+
+        int SetOption(const std::string & option, int enable);
 };

@@ -24,16 +24,21 @@ int threadStart(lua_State * L)
     ThreadClass * self = (ThreadClass *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     uint argc = lua_gettop(L) - 1;
+    LOG("Args Count is %u", argc);
 
     vector<Variant> args;
-    args.reserve(argc);
-
-    for (uint i = 0; i < argc; ++i)
+    
+    if (argc > 0)
     {
-        if (!lua_isnone(L, i + 2))
-            args.push_back(Variant::FromLua(L, i + 2));
+        for (uint i = 0; i < argc; ++i)
+        {
+            LOG("Variants being pushed");
+            if (!lua_isnone(L, i + 2))
+                args.push_back(Variant::FromLua(L, i + 2));
+        }
     }
 
+    LOG("Starting thread");
     if (!self->IsRunning())
         self->Start(args);
 

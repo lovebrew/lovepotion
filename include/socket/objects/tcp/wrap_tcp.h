@@ -16,6 +16,8 @@ int tcpReceive(lua_State * L);
 
 int tcpSetTimeout(lua_State * L);
 
+int tcpSetOption(lua_State * L);
+
 int tcpGC(lua_State  * L);
 
 int tcpToString(lua_State * L);
