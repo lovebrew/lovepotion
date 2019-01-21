@@ -12,26 +12,42 @@ string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
 void Filesystem::Initialize(char * path)
-{
+{    
     /*
-    ** Initialize romfs
-    ** if no path, default (or no game)
-    ** if there's a path, we got a .lpx
-    ** so we mount that (which is a direct path to it)
-    ** and call romfsInitFromFile
-    **
     ** Get our save directory
     ** Should be the directory
     ** containing either the .lpx
     ** or the .nro
     */
-    if (path == nullptr)
-    {
-        romfsInit();
+    
+    string tmp = path;
+    size_t position = tmp.rfind("/");
 
-        char cwd[256];
-        getcwd(cwd, 256);
-        SAVE_DIR = cwd;
+    SAVE_DIR = tmp.substr(0, position);
+    string directory = "romfs:/";
+    
+    /*
+    ** Initialize romfs
+    ** if path doesn't contain ".lpx"
+    ** (Löve Potion Executable), default (or no game)
+    ** else we got a .lpx
+    ** so we mount that (which is a direct path to it)
+    ** and call romfsInitFromFile
+    */
+    
+    if (strstr(path, ".lpx") == NULL)
+    {
+        Result rc = romfsInit();
+        
+        if (R_FAILED(rc))
+        {
+            struct stat pathInfo;
+            
+            stat("game", &pathInfo);
+            
+            if (S_ISDIR(pathInfo.st_mode))
+                directory = "game/";
+        }
     }
     else
     {
@@ -41,20 +57,15 @@ void Filesystem::Initialize(char * path)
         fsFsOpenFile(fileSystem, path + 5, FS_OPEN_READ, &file);
 
         romfsInitFromFile(file, 0);
-
-        string tmp = path;
-        size_t position = tmp.rfind("/");
-
-        SAVE_DIR = tmp.substr(0, position);
     }
 
     /* 
     ** change directory
-    ** to the .lpx romfs
+    ** to the romfs or "game" folder
     */
-    chdir("romfs:/");
 
-    mkdir(SAVE_DIR.c_str(), 0777);
+    const char * changeDir = directory.c_str();
+    chdir(changeDir);
 }
 
 //Löve2D Functions
