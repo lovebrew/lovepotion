@@ -56,7 +56,12 @@ int main(int argc, char * argv[])
     love_preload(L, LuaSocket::InitSocket, "socket");
     love_preload(L, LuaSocket::InitHTTP, "socket.http");
 
-    char * path = (argc == 2) ? argv[1] : nullptr;
+    /*
+    ** If we got a .lpx, use that path
+    ** else load the path to the .nro
+    */
+
+    char * path = (argc == 2) ? argv[1] : argv[0];
     Filesystem::Initialize(path);
 
     luaL_requiref(L, "love", Love::Initialize, 1);
