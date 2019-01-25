@@ -89,7 +89,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:=  -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -ljansson -lpng -lz -lcitro2d -lcitro3d -lctru -lm
+LIBS	:=  -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -lpng -lz -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -194,7 +194,7 @@ endif
 
 #---------------------------------------------------------------------------------
 all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory --silent -C $(BUILD) -f $(CURDIR)/Makefile
 
 $(BUILD):
 	@mkdir -p $@

@@ -13,7 +13,12 @@ namespace Graphics
     int Clear(lua_State * L);
     int Present(lua_State * L);
 
+    int Circle(lua_State * L);
     int Rectangle(lua_State * L);
+
+    int Set3D(lua_State * L);
+    int SetDepth(lua_State * L);
+
     int Draw(lua_State * L);
     int Print(lua_State * L);
 

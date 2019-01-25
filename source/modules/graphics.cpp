@@ -25,6 +25,7 @@ Color backgroundColor = { 0, 0, 0, 1 };
 Color drawColor = { 1, 1, 1, 1 };
 
 Font * currentFont = nullptr;
+float currentDepth = 0;
 
 vector<StackMatrix> transformStack(16);
 bool STACK_PUSHED = false;
@@ -38,6 +39,15 @@ static void Transform(float * originalX, float * originalY, float * originalRota
 
     float newLeft = *originalX;
     float newTop = *originalY;
+
+    float slider = CONFIG_3D_SLIDERSTATE;
+    if (gfxIs3D() && currentScreen == GFX_TOP)
+    {
+        if (currentScreen == GFX_LEFT)
+            *originalX -= (slider * currentDepth);
+        else if (currentSide == GFX_RIGHT)
+            *originalX += (slider * currentDepth);
+    }
 
     //Translate
     *originalX += matrix.ox;
@@ -84,6 +94,26 @@ void Graphics::Initialize()
 
 //Löve2D Functions
 
+//love.graphics.set3D
+int Graphics::Set3D(lua_State * L)
+{
+    bool enable = lua_toboolean(L, 1);
+
+    gfxSet3D(enable);
+
+    lua_pushboolean(L, gfxIs3D());
+
+    return 1;
+}
+
+int Graphics::SetDepth(lua_State * L)
+{
+    float depth = luaL_checknumber(L, 1);
+    currentDepth = depth;
+
+    return 0;
+}
+
 //love.graphics.rectangle
 int Graphics::Rectangle(lua_State * L)
 {
@@ -94,7 +124,11 @@ int Graphics::Rectangle(lua_State * L)
     float width = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
-    Transform(&x, &y, 0, 0, 0);
+    float rotation = 0;
+    float scalarX = 0;
+    float scalarY = 0;
+
+    Transform(&x, &y, &rotation, &scalarX, &scalarY);
 
     if (currentScreen == renderScreen)
     {
@@ -151,6 +185,27 @@ int Graphics::Draw(lua_State * L)
 
     if (currentScreen == renderScreen)
         drawable->Draw(x, y, rotation, scalarX, scalarY, drawColor);
+
+    return 0;
+}
+
+int Graphics::Circle(lua_State * L)
+{
+    string mode = luaL_checkstring(L, 1);
+
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
+
+    float radius = luaL_checknumber(L, 4);
+
+    float rotation = 0;
+    float scalarX = 0;
+    float scalarY = 0;
+
+    Transform(&x, &y, &rotation, &scalarX, &scalarY);
+
+    if (currentScreen == renderScreen)
+        C2D_DrawCircleSolid(x, y, 0.5, radius, ConvertColor(drawColor));
 
     return 0;
 }
@@ -478,17 +533,17 @@ int Graphics::Register(lua_State * L)
         { "draw",               Draw               },
         { "print",              Print              },
         { "rectangle",          Rectangle          },
-        //{ "set3D",              Set3D              },
-        //{ "setDepth",           SetDepth           },
+        { "set3D",              Set3D              },
+        { "setDepth",           SetDepth           },
         { "setScissor",         SetScissor         },
-        //{ "circle",             Circle             }
+        { "circle",             Circle             },
         //{ "setDefaultFilter",   SetDefaultFilter   },
         { "getRendererInfo",    GetRendererInfo    },
         { "setFont",            SetFont            },
         { "setScreen",          SetScreen          },
         { "setBackgroundColor", SetBackgroundColor },
         { "setColor",           SetColor           },
-        { "push",             Push               },
+        { "push",               Push               },
         { "pop",                Pop                },
         { "translate",          Translate          },
         //{ "shear",              Shear              },

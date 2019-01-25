@@ -165,6 +165,7 @@ love.createhandlers()
 
 function love.errhand(message)
     message = tostring(message)
+    love.graphics.set3D(false)
 
     message = message:gsub("^(./)", "")
 

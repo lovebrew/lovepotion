@@ -3,25 +3,18 @@
 class Font : public Drawable
 {
     public:
-        Font(const string & path);
+        Font(float size);
         Font();
+        ~Font();
 
-        bool HasGlyph(uint glyph);
-        int GetWidth(const char * text);
-        int GetSize();
-        std::map<int, Glyph> GetGlyphs();
+        float GetWidth(const char * text);
+        float GetSize();
 
         void Print(const char * text, double x, double y, double rotation, double scalarX, double scalarY, Color color);
     private:
-        void LoadAssets(const string & path);
+        C2D_TextBuf buffer;
+        C2D_Text citroText;
 
-        void LoadJSON(json_t * json);
-        void LoadGlyph(json_t * object);
-        void LoadKerning(json_t * object);
-        int LoadGlyphInfo(json_t * object, const char * key);
-
-        std::map<int, Glyph> glyphs;
-        std::map<int, std::map<int, int>> kernings; //kernings[code][next] -> kerning value returned
-
-        int size;
+        float size;
+        float scale;
 };

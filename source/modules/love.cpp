@@ -145,6 +145,14 @@ int Love::Run(lua_State * L)
     if (luaL_dostring(L, LOVE_DRAW))
         luaL_error(L, "%s", lua_tostring(L, -1));
 
+    if (gfxIs3D())
+    {
+        Graphics::Clear(GFX_TOP, GFX_RIGHT);
+
+        if (luaL_dostring(L, LOVE_DRAW))
+            luaL_error(L, "%s", lua_tostring(L, -1));
+    }
+
     Graphics::Clear(GFX_BOTTOM, GFX_LEFT);
     
     if (luaL_dostring(L, LOVE_DRAW))

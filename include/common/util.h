@@ -9,6 +9,8 @@
 
 #define LOVE_DRAW       "if love.draw then love.draw() end"
 
+#define CONFIG_3D_SLIDERSTATE (*(volatile float *)0x1FF81080)
+
 #include <exception>
 #include "common/types.h"
 

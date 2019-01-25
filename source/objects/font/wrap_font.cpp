@@ -1,7 +1,6 @@
 #include "common/runtime.h"
 
 #include "common/drawable.h"
-#include "objects/quad/quad.h"
 #include "objects/font/font.h"
 #include "objects/font/wrap_font.h"
 
@@ -13,9 +12,10 @@ int fontNew(lua_State * L)
     string path = "";
     int index = 1;
 
-    if (!lua_isnoneornil(L, 1) && lua_type(L, 1) == LUA_TSTRING)
+    float size = 15;
+    if (!lua_isnoneornil(L, 1) && lua_type(L, 1) == LUA_TNUMBER)
     {
-        path = luaL_checkstring(L, 1);
+        size = luaL_checknumber(L, 1);
         index = 2;
     }
 
@@ -26,7 +26,7 @@ int fontNew(lua_State * L)
     Font * self;
     
     if (path != "")
-        self = new (raw_self) Font(path);
+        self = new (raw_self) Font(size);
     else
         self = new (raw_self) Font();
 
