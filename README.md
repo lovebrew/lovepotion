@@ -2,7 +2,7 @@
 
 Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo 3DS.
 
-Please view the [wiki](https://github.com/TurtleP/LovePotion/wiki) to get started!
+Please view the [wiki](https://TurtleP.github.io/LovePotion/wiki) to get started!
 
 Nightly builds are available at [doozer](https://doozer.io/TurtleP/LovePotion)
 
