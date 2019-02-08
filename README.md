@@ -6,7 +6,7 @@ Please view the [wiki](https://TurtleP.github.io/LovePotion/wiki) to get started
 
 Nightly builds are available at [doozer](https://doozer.io/TurtleP/LovePotion)
 
-[Credits](https://github.com/TurtleP/LovePotion/wiki/Credits)
+[Credits](https://turtlep.github.io/LovePotion/wiki/#/credits)
 
 <p align="center">
     <img src="https://doozer.io/badge/TurtleP/LovePotion/buildstatus/master"/>
