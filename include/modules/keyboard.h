@@ -9,9 +9,7 @@ namespace Keyboard
 {
     void Initialize();
 
-    void Update(lua_State * L);
-
-    int SetTextInput(lua_State * L);
+    int ShowTextInput(lua_State * L);
 
     int Register(lua_State * L);
 };

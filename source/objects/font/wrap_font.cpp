@@ -13,10 +13,17 @@ int fontNew(lua_State * L)
     int index = 1;
 
     float size = 15;
-    if (!lua_isnoneornil(L, 1) && lua_type(L, 1) == LUA_TNUMBER)
+
+    if (!lua_isnoneornil(L, 1) && lua_type(L, 1) == LUA_TSTRING)
     {
-        size = luaL_checknumber(L, 1);
-        index = 2;
+        path = luaL_checkstring(L, 1);
+        index += 1;
+    }
+
+    if (!lua_isnoneornil(L, index) && lua_type(L, index) == LUA_TNUMBER)
+    {
+        size = luaL_checknumber(L, index);
+        index += 1;
     }
 
     void * raw_self = luaobj_newudata(L, sizeof(Font));
@@ -26,7 +33,7 @@ int fontNew(lua_State * L)
     Font * self;
     
     if (path != "")
-        self = new (raw_self) Font(size);
+        self = new (raw_self) Font(path, size);
     else
         self = new (raw_self) Font();
 

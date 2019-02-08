@@ -9,9 +9,6 @@ HID_Event event;
 
 int Event::Poll(lua_State * L)
 {
-    Keyboard::Update(L);
-
-    
     hidScanInput();
 
     //love.gamepadpressed
