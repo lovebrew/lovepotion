@@ -2,7 +2,7 @@
     "targets": {
         "3DS": {
             "buildenv": "docker:devkitpro/devkitarm",
-            "buildcmd": "make -j${PARALLEL}",
+            "buildcmd": "make 3ds -j${PARALLEL}",
 
             "artifacts": [
                 "*.elf",
@@ -12,7 +12,7 @@
         
         "Switch": {
             "buildenv": "docker:devkitpro/devkita64",
-            "buildcmd": "make -j${PARALLEL}",
+            "buildcmd": "make nx -j${PARALLEL}",
             
             "artifacts": [
                 "*.elf",
