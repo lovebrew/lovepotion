@@ -1,13 +1,22 @@
 {
     "targets": {
-        "Löve Potion": {
+        "3DS": {
             "buildenv": "docker:devkitpro/devkitarm",
             "buildcmd": "make -j${PARALLEL}",
 
             "artifacts": [
-                "*.3dsx",
-                "*.nro",
-                "*.elf"
+                "*.elf",
+                "*.3dsx"
+            ]
+        },
+        
+        "Switch": {
+            "buildenv": "docker:devkitpro/devkita64",
+            "buildcmd": "make -j${PARALLEL}",
+            
+            "artifacts": [
+                "*.elf",
+                "*.nro"
             ]
         }
     }
