@@ -1,7 +1,7 @@
 class Drawable : public Object
 {
     public:
-        Drawable(char * type);
+        Drawable(const std::string & type);
         Drawable() {};
         void Draw(float x, float y, float rotation, float scalarX, float scalarY, Color color);
 
@@ -13,7 +13,6 @@ class Drawable : public Object
 
     protected:
         u32 * LoadPNG(const char * path, char * buffer, size_t memorySize);
-        u32 NextPO2(u32 in);
 
         void LoadImage(u32 * buffer);
 

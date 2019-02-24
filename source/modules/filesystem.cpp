@@ -13,33 +13,17 @@ string IDENTITY = "SuperGame";
 
 void Filesystem::Initialize(char * path)
 {    
-    /*
-    ** Get our save directory
-    ** Should be the directory
-    ** containing either the .lpx
-    ** or the .nro
-    */
-    
     string tmp = path;
     size_t position = tmp.rfind("/");
 
     SAVE_DIR = tmp.substr(0, position);
     string directory = "romfs:/";
     
-    /*
-    ** Initialize romfs
-    ** if path doesn't contain ".lpx"
-    ** (Löve Potion Executable), default (or no game)
-    ** else we got a .lpx
-    ** so we mount that (which is a direct path to it)
-    ** and call romfsInitFromFile
-    */
-    
     if (strstr(path, ".lpx") == NULL)
     {
         Result rc = romfsInit();
-        
-        if (R_FAILED(rc))
+
+        if (rc != 0)
         {
             struct stat pathInfo;
             
@@ -61,12 +45,8 @@ void Filesystem::Initialize(char * path)
         #endif
     }
 
-    /* 
-    ** change directory
-    ** to the romfs or "game" folder
-    */
-
     const char * changeDir = directory.c_str();
+
     chdir(changeDir);
 }
 

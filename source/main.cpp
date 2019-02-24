@@ -24,11 +24,12 @@ extern "C"
     }
 #elif defined (__SWITCH__) 
     #include <switch.h>
-#else
-    #error "[Laughs in compiler]"
 #endif
 
-//#include "socket/luasocket.h"
+#include "common/types.h"
+#include "common/util.h"
+
+#include "socket/luasocket.h"
 #include "modules/filesystem.h"
 #include "modules/love.h"
 
@@ -37,14 +38,18 @@ extern "C"
 #define luaL_dobuffer(L, b, n, s) \
     (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
+FILE * logFile;
+
 int main(int argc, char * argv[])
 {
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);
 
-    //love_preload(L, LuaSocket::InitSocket, "socket");
-    //love_preload(L, LuaSocket::InitHTTP,   "socket.http");
+    logFile = fopen("LoveDebug.txt", "wb");
+
+    love_preload(L, LuaSocket::InitSocket, "socket");
+    love_preload(L, LuaSocket::InitHTTP,   "socket.http");
 
     char * path = (argc == 2) ? argv[1] : argv[0];
     Filesystem::Initialize(path);
@@ -55,6 +60,7 @@ int main(int argc, char * argv[])
     Love::InitConstants(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
+
     
     while (appletMainLoop())
     {
@@ -62,9 +68,17 @@ int main(int argc, char * argv[])
             luaL_dostring(L, "xpcall(love.run, love.errhand)");
         else
             break;
+
+        hidScanInput();
+
+        if (hidKeysDown() & KEY_START)
+            break;
     }
 
     Love::Exit(L);
+
+    fflush(logFile);
+    fclose(logFile);
 
     return 0;
 }

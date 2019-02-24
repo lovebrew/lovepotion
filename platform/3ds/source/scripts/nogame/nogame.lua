@@ -78,3 +78,9 @@ function love.draw()
     love.graphics.draw(textImage, textQuads["m"], 160, 140 + add)
     love.graphics.draw(textImage, textQuads["e"], 235, 140 - add)
 end
+
+function love.gamepadpressed(joy, button)
+    if button == "start" then
+        love.event.quit()
+    end
+end

@@ -127,6 +127,18 @@ double clamp(double low, double value, double high)
     return std::min(high, std::max(low, value));
 }
 
+u32 NextPO2(u32 in)
+{
+    in--;
+    in |= in >> 1;
+    in |= in >> 2;
+    in |= in >> 4;
+    in |= in >> 8;
+    in |= in >> 16;
+    in++;
+    return in >= 8 ? in : 8;
+}
+
 // std::map<int, std::string> LANGUAGES =
 // {
 //     {SetLanguage_JA,    "Japanese"               },   

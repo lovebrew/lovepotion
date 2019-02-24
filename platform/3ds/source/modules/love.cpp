@@ -1,6 +1,4 @@
 #include "common/runtime.h"
-#include <unistd.h>
-#include <stdarg.h>
 
 #include "common/version.h"
 #include "common/types.h"
@@ -15,7 +13,7 @@
 #include "objects/quad/wrap_quad.h"
 
 // #include "modules/audio.h"
-// #include "modules/event.h"
+#include "modules/event.h"
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
 // #include "modules/joystick.h"
@@ -26,11 +24,12 @@
 
 #include "nogame_lua.h"
 
+#if defined (_3DS)
 struct { const char * name; void (*init)(void); int (*reg)(lua_State *L); void (*close)(void); } modules[] = 
 {
     //{ "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
-    //{ "event",      NULL,                   Event::Register,      NULL             },
-    { "filesystem", Filesystem::Initialize, Filesystem::Register, Filesystem::Exit },
+    { "event",      NULL,                   LoveEvent::Register,      NULL             },
+    { "filesystem", NULL,                   Filesystem::Register, Filesystem::Exit },
     { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
     //{ "keyboard",   Keyboard::Initialize,   Keyboard::Register,   NULL             },
     //{ "joystick",   Joystick::Initialize,   Joystick::Register,   Joystick::Exit   },
@@ -42,10 +41,12 @@ struct { const char * name; void (*init)(void); int (*reg)(lua_State *L); void (
     //{ "window",   Window::Register,       NULL                  NULL             },
     { 0,            NULL,                   NULL,                 NULL             }
 };
+#endif
 
 lua_State * loveState;
+bool LOVE_QUIT = false;
 
-void Love::InitModules()
+void Love::InitModules(lua_State * L)
 {
     for (int i = 0; modules[i].name; i++)
     {
@@ -160,7 +161,7 @@ int Love::RaiseError(const char * format, ...)
 //love.run
 int Love::Run(lua_State * L)
 {
-    //Event::Poll(L);
+    //LoveEvent::PollEvent(L);
 
     luaL_dostring(L, LOVE_TIMER_STEP);
 

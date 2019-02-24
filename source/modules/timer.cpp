@@ -1,6 +1,10 @@
 #include "common/runtime.h"
 #include "modules/timer.h"
 
+#if not defined (CPU_TICKS_PER_MSEC)
+    #define CPU_TICKS_PER_MSEC (19200000.0f / 1000.0f)
+#endif
+
 //Deltatime
 int prevTime = 0;
 int currTime = 0;
@@ -72,7 +76,7 @@ int Timer::Sleep(lua_State * L)
 float Timer::GetOSTime()
 {
     u64 ticks = svcGetSystemTick();
-    return (float)ticks * 1 / (19200000.0f / 1000.0f);
+    return (float)ticks * 1 / CPU_TICKS_PER_MSEC;
 }
 
 float Timer::GetDelta()

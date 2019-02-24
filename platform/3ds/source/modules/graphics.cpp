@@ -27,7 +27,7 @@ Color drawColor = { 1, 1, 1, 1 };
 Font * currentFont = nullptr;
 float currentDepth = 0;
 
-vector<StackMatrix> transformStack(16);
+vector<StackMatrix> transformStack;
 bool STACK_PUSHED = false;
 
 static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY) // rotate, scale, and translate coords.
@@ -43,7 +43,7 @@ static void Transform(float * originalX, float * originalY, float * originalRota
     float slider = CONFIG_3D_SLIDERSTATE;
     if (gfxIs3D() && currentScreen == GFX_TOP)
     {
-        if (currentScreen == GFX_LEFT)
+        if (currentSide == GFX_LEFT)
             *originalX -= (slider * currentDepth);
         else if (currentSide == GFX_RIGHT)
             *originalX += (slider * currentDepth);
@@ -86,8 +86,10 @@ void Graphics::Initialize()
     bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
     depthTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
 
-    StackMatrix init = {0, 0, 0, 1, 1, 0, 0};
-    transformStack.emplace_back(init);
+    transformStack.reserve(16);
+
+    StackMatrix stack = {0, 0, 0, 1, 1, 0, 0};
+    transformStack.emplace_back(stack);
 
     STACK_PUSHED = false;
 }

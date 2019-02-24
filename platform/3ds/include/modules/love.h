@@ -11,7 +11,7 @@ namespace Love
 {
     int Initialize(lua_State * L);
 
-    void InitModules();
+    void InitModules(lua_State * L);
 
     void InitConstants(lua_State * L);
 
@@ -27,6 +27,8 @@ namespace Love
 
     void Exit(lua_State * L);
 }
+
+//extern struct { const char * name; void (*init)(void); int (*reg)(lua_State *L); void (*close)(void); } modules[];
 
 // Forward declare lua_State.
 struct lua_State;

@@ -3,7 +3,6 @@
 //Error/Quit
 extern bool ERROR;
 extern bool LOVE_QUIT;
-extern bool IR_ENABLED;
 
 extern "C"
 {
@@ -25,9 +24,9 @@ extern "C"
 //C++ headers
 #include <exception>
 #include <map>
-#include <queue>
 #include <memory>
 #include <string>
+#include <vector>
 
 //C headers
 #include <errno.h>

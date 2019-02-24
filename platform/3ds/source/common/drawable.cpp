@@ -1,26 +1,14 @@
 #include "common/runtime.h"
 #include "common/drawable.h"
 
-Drawable::Drawable(char * type) : Object(type) {}
-
-u32 Drawable::NextPO2(u32 in)
-{
-    in--;
-    in |= in >> 1;
-    in |= in >> 2;
-    in |= in >> 4;
-    in |= in >> 8;
-    in |= in >> 16;
-    in++;
-    return in >= 8 ? in : 8;
-}
+Drawable::Drawable(const string & type) : Object(type) {}
 
 u32 * Drawable::LoadPNG(const char * path, char * buffer, size_t memorySize)
 {
     u32 * out = nullptr;
     FILE * input;
 
-    if (memorySize == -1)
+    if (memorySize == 0)
         input = fopen(path, "rb");
     else
         input = fmemopen(buffer, memorySize, "rb");

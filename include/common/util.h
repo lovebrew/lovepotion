@@ -5,9 +5,9 @@
 
 #define LOVE_TIMER_STEP "if love.timer then love.timer.step() end"
 
-#define LOVE_UPDATE        "if love.update then love.update(love.timer.getDelta()) end"
+#define LOVE_UPDATE     "if love.update then love.update(love.timer.getDelta()) end"
 
-#define LOVE_DRAW        "if love.draw then love.draw() end"
+#define LOVE_DRAW       "if love.draw then love.draw() end"
 
 #define LOG(fmt, ...) fprintf(logFile, "%s:%d:\n" fmt "\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__)
 
@@ -20,6 +20,7 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name);
 bool love_is_registered(lua_State * L, void * object);
 
 extern FILE * logFile;
+
 void stack_dump(lua_State * L);
 
 void love_register(lua_State * L, int index, void * object);
@@ -33,6 +34,8 @@ int luax_tracevack(lua_State * L);
 double clamp(double low, double x, double high);
 
 extern std::vector<std::string> KEYS;
+
+u32 NextPO2(u32 in);
 
 //extern std::vector<HidControllerID> CONTROLLER_IDS;
 
