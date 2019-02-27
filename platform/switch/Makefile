@@ -47,6 +47,7 @@ SOURCES			:=	source \
 				source/socket/objects \
 				$(SRC_OBJS) \
 				libraries/lua \
+				libraries/lua53 \
 				libraries/luaobj \
 				$(LUASOCKET)
 

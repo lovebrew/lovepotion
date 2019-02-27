@@ -1,17 +1,17 @@
-.PHONY: all 3ds nx clean clean-3ds clean-switch
+.PHONY: all 3ds switch clean clean-3ds clean-switch
 
-all: 3ds nx
+all: 3ds switch
 
 clean: clean-3ds clean-switch
 
 clean-3ds:
 	@$(MAKE) -C platform/3ds clean
 
-clean-nx:
+clean-switch:
 	@$(MAKE) -C platform/switch clean
 
 3ds:
 	@$(MAKE) -C platform/3ds
 
-nx:
+switch:
 	@$(MAKE) -C platform/switch

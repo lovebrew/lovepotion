@@ -7,6 +7,7 @@ extern "C"
     #include <compat-5.3.h>
     #include <luaobj.h>
 }
+#include <lutf8lib.h>
 
 #include <string>
 
@@ -48,6 +49,7 @@ int main(int argc, char * argv[])
 
     logFile = fopen("LoveDebug.txt", "wb");
 
+    love_preload(L, luaopen_luautf8, "utf8");
     love_preload(L, LuaSocket::InitSocket, "socket");
     love_preload(L, LuaSocket::InitHTTP,   "socket.http");
 
