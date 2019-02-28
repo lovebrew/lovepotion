@@ -26,26 +26,85 @@
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
+--[[
+    Honestly, 99% of these flags are just for compatability.
+    Everything will always be enabled .. if the platform supports it.
+    The only thing that matters is like the first three flags.
+
+    Seriously: identity, appendidentity, and version.
+
+    Go nuts.
+--]]
 local config = 
 {
-    console = false,
+    identity = "SuperGame",
+    appendidentity = false,
+    
     version = "1.0.0",
-    identity = "SuperGame"
+    console = false,
+    accelerometerjoystick = true,
+    externalstorage = false,
+
+    gammacorrect = true,
+
+    audio =
+    {
+        mixwithsystem = true
+    },
+
+    modules =
+    {
+        audio = true,
+        data = true,
+        event = true,
+        font = true,
+        graphics = true,
+        image = true,
+        joystick = true,
+        keyboard = true,
+        math = true,
+        mouse = true,
+        physics = true,
+        sound = true,
+        system = true,
+        thread = true,
+        timer = true,
+        touch = true,
+        video = true,
+        window = true
+    },
+
+    window =
+    {
+        title = "Untitled",
+        icon = nil,
+        
+        width = 1280,
+        height = 720,
+        
+        borderless = false,
+        resizable = false,
+        
+        minwidth = 1,
+        minheight = 1,
+
+        fullscreen = false,
+        fullscreentype = "desktop",
+
+        vsync = 1,
+        msaa = 0,
+
+        depth = nil,
+        stencil = nil,
+
+        highdpi = false,
+
+        x = nil,
+        y = nil,
+    }
 }
 
-
-if love.filesystem.getInfo("conf.lua") then
-    success, err = pcall(require, 'conf')
-
-    if success and love.conf then
-        love.conf(config)
-    end
-end
-
-in_error = false
-love.filesystem.setIdentity(config.identity)
-
-__defaultFont = love.graphics.newFont()
+local __defaultFont = love.graphics.newFont()
 love.graphics.setFont(__defaultFont)
 
 function love.createhandlers()
@@ -111,6 +170,16 @@ function love.createhandlers()
                 return love.joystickhat(joystick, hat, value) 
             end
         end,
+        joystickadded = function(joystick)
+            if love.joystickadded then
+                return love.joystickadded(joystick)
+            end
+        end,
+        joystickremoved = function(joystick)
+            if love.joystickremoved then
+                return love.joystickremoved(joystick)
+            end
+        end,
         gamepadpressed = function (joystick, button)
             if love.gamepadpressed then 
                 return love.gamepadpressed(joystick, button)
@@ -165,12 +234,10 @@ love.createhandlers()
 
 function love.errhand(message)
     message = tostring(message)
-    love.graphics.set3D(false)
 
     message = message:gsub("^(./)", "")
 
     local err = {}
-    in_error = true
 
     local major, minor, rev = love.getVersion()
 
@@ -189,7 +256,8 @@ function love.errhand(message)
     
     table.insert(err, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
     
-    dateTime = os.date("%c")
+    local dateTime = os.date("%c")
+    table.insert(err, "\nDate and Time: " .. dateTime)
     table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
     
     local realError = table.concat(err, "\n")
@@ -199,52 +267,79 @@ function love.errhand(message)
     love.filesystem.write("log.txt", realError)
     
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
-    --love.graphics.clear()
+    love.graphics.clear()
 
     love.graphics.setColor(1, 1, 1, 1)
     
-    love.graphics.setFont(__defaultFont)
+    local headerFont = love.graphics.newFont(32)
+    local buttonFont = love.graphics.newFont(24)
 
     local error_img = love.graphics.newImage("error:warn");
     local plus_img = love.graphics.newImage("error:plus");
 
     local function draw()
-        love.graphics.clear("top")
+        love.graphics.clear()
 
-        love.graphics.setScreen("top")
-
-        love.graphics.print(realError, 30, 16)
-
-        love.graphics.draw(plus_img, 324, 220)
-        love.graphics.print("Quit", 340, 220)
-
-        love.graphics.present()
+        love.graphics.draw(error_img, 74, 38)
 
         love.graphics.setColor(1, 1, 1)
+        love.graphics.setFont(headerFont)
+        love.graphics.print("Lua Error", 130, 42)
         
-        love.graphics.clear("bottom")
+        love.graphics.line(30, 88, 1250, 88)
 
-        love.graphics.setScreen("bottom")
+        love.graphics.setFont(buttonFont)
+        love.graphics.print(realError, 48, 120)
 
-        love.graphics.draw(error_img, 96, 56)
+        love.graphics.line(30, 648, 1250, 648)
+
+        love.graphics.draw(plus_img, 1020, 678)
+        love.graphics.print("Quit", 1056, 676.5)
 
         love.graphics.present()
     end
 
-    --local joycon = love.joystick.getJoysticks()[1]
+    local joycon = love.joystick.getJoysticks()[1]
 
     while true do
         draw()
 
-        --[[if joycon:isGamepadDown("plus") then
+        if joycon:isGamepadDown("plus") then
             break
-        end]]
+        end
 
         love.timer.sleep(0.1)
     end
 
-    --love.event.quit()
+    love.event.quit()
 end 
+
+local function pseudoRequireConf()
+    return require('conf')
+end
+
+local confSuccess
+if love.filesystem.isFile("conf.lua") then
+    confSuccess = xpcall(pseudoRequireConf, love.errhand)
+
+    if not confSuccess then
+        return
+    end
+
+    if love.conf then
+        local function confWrap()
+            love.conf(config)
+        end
+
+        confSuccess = xpcall(confWrap, love.errhand)
+
+        if not confSuccess then
+            return
+        end
+    end
+end
+
+love.filesystem.setIdentity(config.identity)
 
 local function pseudoRequireMain()
     return require("main")
@@ -254,7 +349,7 @@ local function gameFailure()
     return error("Failed to load game!")
 end
 
-if love.filesystem.getInfo("main.lua") then
+if love.filesystem.isFile("main.lua") then
     --Try main
     local result = xpcall(pseudoRequireMain, love.errhand)
     if not result then
@@ -273,7 +368,10 @@ if love.filesystem.getInfo("main.lua") then
         return
     end
 else
-    xpcall(love._nogame, love.errhand)
+    local result = xpcall(love._nogame, love.errhand)
+    if not result then
+        return
+    end
 end
 
 if love.timer then

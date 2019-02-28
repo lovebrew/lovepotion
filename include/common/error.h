@@ -19,3 +19,6 @@ void LOVE_VALIDATE_SOURCE_TYPE(const char * type);
 
 //DRAW MODES
 void LOVE_VALIDATE_DRAW_MODE(const char * mode);
+
+//KEYBOARD TYPES
+void LOVE_VALIDATE_KEYBOARD_TYPE(const char * mode);

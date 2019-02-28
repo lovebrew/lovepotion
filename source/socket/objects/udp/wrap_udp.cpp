@@ -15,7 +15,7 @@ int udpNew(lua_State * L)
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    UDP * self = new (raw_self) UDP();
+    new (raw_self) UDP();
 
     return 1;
 }
@@ -28,10 +28,7 @@ int udpSend(lua_State * L)
     size_t length = 0;
     const char * datagram = luaL_checklstring(L, 2, &length);
 
-    if (!lua_isnoneornil(L, 3) && lua_type(L, 3) == LUA_TNUMBER)
-        length = luaL_checknumber(L, 3);
-
-    int sent = self->Send(datagram, length);
+    int sent = self->SendTo(datagram, length, NULL, 0);
 
     if (sent < 0)
         lua_pushnil(L);
@@ -63,6 +60,28 @@ int udpSendTo(lua_State * L)
     return 1;
 }
 
+int udpGetPeerName(lua_State * L)
+{
+    UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    char origin[0x40];
+    int port;
+
+    int error = self->GetPeerName(origin, &port);
+
+    if (error < 0)
+    {
+        lua_pushnil(L);
+
+        return 1;
+    }
+
+    lua_pushstring(L, origin);
+    lua_pushinteger(L, port);
+
+    return 2;
+}
+
 //UDP:setpeername
 int udpSetPeerName(lua_State * L)
 {
@@ -76,6 +95,29 @@ int udpSetPeerName(lua_State * L)
     lua_pushinteger(L, status);
 
     return 1;
+}
+
+//UDP:getsockname
+int udpGetSockName(lua_State * L)
+{
+    UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    char origin[0x40];
+    int port;
+
+    int error = self->GetSockName(origin, &port);
+
+    if (error < 0)
+    {
+        lua_pushnil(L);
+
+        return 1;
+    }
+
+    lua_pushstring(L, origin);
+    lua_pushinteger(L, port);
+
+    return 2;
 }
 
 //UDP:setsockname
@@ -99,9 +141,11 @@ int udpReceiveFrom(lua_State * L)
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
     size_t bytes = luaL_optnumber(L, 2, SOCKET_BUFFERSIZE);
 
-    Datagram datagram;
+    char buffer[bytes + 1];
+    char origin[0x40];
+    int port;
 
-    int length = self->ReceiveFrom(datagram, bytes);
+    int length = self->ReceiveFrom(buffer, origin, &port, bytes);
 
     if (length == 0)
     {
@@ -109,9 +153,9 @@ int udpReceiveFrom(lua_State * L)
         return 1;
     }
     
-    lua_pushstring(L, datagram.buffer);
-    lua_pushstring(L, datagram.ip);
-    lua_pushinteger(L, datagram.port);
+    lua_pushstring(L, buffer);
+    lua_pushstring(L, origin);
+    lua_pushinteger(L, port);
 
     return 3;
 }
@@ -122,8 +166,8 @@ int udpReceive(lua_State * L)
     UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
     size_t bytes = luaL_optnumber(L, 2, SOCKET_BUFFERSIZE);
 
-    char buffer[SOCKET_BUFFERSIZE];
-    int length = self->Receive(buffer, NULL, bytes);
+    char buffer[bytes + 1];
+    int length = self->ReceiveFrom(buffer, NULL, NULL, bytes);
 
     if (length == 0)
         lua_pushnil(L);
@@ -140,6 +184,29 @@ int udpClose(lua_State * L)
     self->Close();
 
     return 0;
+}
+
+int udpSetTimeout(lua_State * L)
+{
+    UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    double timeout = luaL_checknumber(L, 2);
+
+    self->SetTimeout(timeout);
+
+    return 0;
+}
+
+int udpSetOption(lua_State * L)
+{
+    UDP * self = (UDP *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    string option = luaL_checkstring(L, 2);
+    int enabled = lua_toboolean(L, 3);
+
+    int success = self->SetOption(option, enabled);
+
+    return success;
 }
 
 int udpGC(lua_State * L)
@@ -169,13 +236,17 @@ int initUDPClass(lua_State * L)
         { "__gc",        udpGC          },
         { "__tostring",  udpToString    },
         { "close",       udpClose       },
+        { "getpeername", udpGetPeerName },
+        { "getsockname", udpGetSockName },
         { "new",         udpNew         },
         { "receive",     udpReceive     },
         { "receivefrom", udpReceiveFrom },
         { "send",        udpSend        },
         { "sendto",      udpSendTo      },
+        { "setoption",   udpSetOption   },
         { "setpeername", udpSetPeerName },
         { "setsockname", udpSetSockName },
+        { "settimeout",  udpSetTimeout  },
         { 0, 0 },
     };
 

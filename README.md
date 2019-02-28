@@ -1,21 +1,14 @@
 # Löve Potion
+The unofficial port of LÖVE for Nintendo 3DS and Switch!
 
-Unofficial version of [LOVE2D](https://love2d.org/) for Nintendo 3DS.
+Please view the [wiki](https://TurtleP.github.io/LovePotion/wiki) to get started.
 
-Please view the [wiki](https://TurtleP.github.io/LovePotion/wiki) to get started!
-
-Nightly builds are available at [doozer](https://doozer.io/TurtleP/LovePotion)
-
-[Credits](https://turtlep.github.io/LovePotion/wiki/#/credits)
-
-<p align="center">
-    <img src="https://doozer.io/badge/TurtleP/LovePotion/buildstatus/master"/>
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square"/>
-    <img src="https://img.shields.io/github/stars/TurtleP/LovePotion.svg?style=flat-square"/>
-    <img src="https://img.shields.io/github/issues/TurtleP/LovePotion.svg?style=flat-square"/>
-    <img src="https://img.shields.io/badge/version-1.1.0-blue.svg?style=flat-square"/>
-</p>
+Nightly builds are available at [doozer.io](https://doozer.io/TurtleP/LovePotion).
 
 <p align="center">
     <img src="https://i.imgur.com/EcnnNZ5.png"/>
+</p>
+
+<p align="center">
+    <img src="https://i.imgur.com/PTACKcn.png"/>
 </p>

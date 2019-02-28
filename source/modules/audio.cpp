@@ -4,15 +4,13 @@
 #include "objects/source/source.h"
 #include "objects/source/wrap_source.h"
 
-bool AUDIO_ENABLED = false;
-vector<bool> audioChannels(24);
-double VOLUME = 1.0;
+vector<bool> audioChannels(8);
 
 void Audio::Initialize()
 {
     SDL_InitSubSystem(SDL_INIT_AUDIO);
 
-    if (Mix_OpenAudio(44100, AUDIO_S16SYS, 2, 4096) != 0)
+    if (Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 4096) != 0)
         Love::RaiseError("Failed to load audio!\n");
 }
 
@@ -36,7 +34,8 @@ int Audio::Play(lua_State * L)
 {
     Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
 
-    self->Play();
+    if (!self->IsPlaying())
+        self->Play();
 
     return 0;
 }
@@ -45,7 +44,10 @@ int Audio::Play(lua_State * L)
 int Audio::Stop(lua_State * L) 
 {
     if (lua_isnoneornil(L, 1))
+    {
         Mix_HaltChannel(-1);
+        Mix_HaltMusic();
+    }
     else
     {
         Source * self = (Source *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_SOURCE);
@@ -100,17 +102,7 @@ int Audio::SetVolume(lua_State * L)
     Mix_Volume(-1, MIX_MAX_VOLUME * volume);
     Mix_VolumeMusic(MIX_MAX_VOLUME * volume);
 
-    VOLUME = volume;
-
     return 0;
-}
-
-//love.audio.setVolume
-int Audio::GetVolume(lua_State * L)
-{
-    lua_pushnumber(L, VOLUME);
-
-    return 1;
 }
 
 void Audio::Exit()
@@ -126,7 +118,6 @@ int Audio::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-        { "getVolume",  GetVolume },
         { "newSource",  sourceNew },
         { "pause",      Pause     },
         { "play",       Play      },

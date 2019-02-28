@@ -6,23 +6,48 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <libgen.h>
 
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 
-void Filesystem::Initialize()
-{
-    Result ROMFS_INIT = romfsInit();
+void Filesystem::Initialize(char * path)
+{    
+    string tmp = path;
+    size_t position = tmp.rfind("/");
 
-    char cwd[256];
-    SAVE_DIR = getcwd(cwd, 256);
+    SAVE_DIR = tmp.substr(0, position);
+    string directory = "romfs:/";
+    
+    if (strstr(path, ".lpx") == NULL)
+    {
+        Result rc = romfsInit();
 
-    if (ROMFS_INIT != 0)
-        chdir("game");
+        if (rc != 0)
+        {
+            struct stat pathInfo;
+            
+            stat("game", &pathInfo);
+            
+            if (S_ISDIR(pathInfo.st_mode))
+                directory = "game";
+        }
+    }
     else
-        chdir("romfs:/");
+    {
+        #if defined (__SWITCH__)
+            FsFile file;
+            FsFileSystem * fileSystem = fsdevGetDefaultFileSystem();
 
-    mkdir(SAVE_DIR.c_str(), 0777);
+            fsFsOpenFile(fileSystem, path + 5, FS_OPEN_READ, &file);
+
+            romfsInitFromFile(file, 0);
+        #endif
+    }
+
+    const char * changeDir = directory.c_str();
+
+    chdir(changeDir);
 }
 
 //Löve2D Functions
@@ -34,7 +59,7 @@ int Filesystem::Read(lua_State * L)
     size_t size = 0;
     char * buffer;
 
-    FILE * fileHandle = fopen(path.c_str(), "r");
+    FILE * fileHandle = fopen(path.c_str(), "rb");
 
     if (!fileHandle)
     {
@@ -65,9 +90,11 @@ int Filesystem::Read(lua_State * L)
 int Filesystem::Write(lua_State * L)
 {
     string path = GetSaveDirectory() + string(luaL_checkstring(L, 1));
-    string data = luaL_checkstring(L, 2);
 
-    FILE * fileHandle = fopen(path.c_str(), "w");
+    size_t length = 0;
+    const char * data = luaL_checklstring(L, 2, &length);
+
+    FILE * fileHandle = fopen(path.c_str(), "wb");
 
     if (!fileHandle)
     {
@@ -75,7 +102,7 @@ int Filesystem::Write(lua_State * L)
         return 0;
     }
 
-    fwrite((char *)data.data(), 1, data.length(), fileHandle);
+    fwrite(data, 1, length, fileHandle);
 
     fflush(fileHandle);
 
@@ -288,7 +315,7 @@ int Filesystem::Remove(lua_State * L)
 
 string Filesystem::GetSaveDirectory()
 {
-    return SAVE_DIR;
+    return SAVE_DIR + "/";
 }
 
 string Filesystem::Redirect(const char * path)
