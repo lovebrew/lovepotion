@@ -10,7 +10,7 @@ platform/3ds/*.smdh
 platform/switch/*.nro
 platform/switch/*.nacp
 platform/switch/*.nso
-platform/switch/pfs0
+platform/switch/*.pfs0
 
 # Output Directories #
 ######################
