@@ -1,19 +1,26 @@
-extern "C"
+extern "C" 
 {
     #include <lua.h>
     #include <lualib.h>
     #include <lauxlib.h>
 
-    #include <compat-5.2.h>
+    #include <compat-5.3.h>
     #include <luaobj.h>
 }
 
 #include <map>
 #include <vector>
+#include <stdarg.h>
 
-#include <3ds.h>
-#include "common/util.h"
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
 #include "common/types.h"
+//#include "common/variant.h"
+#include "common/util.h"
 
 void love_getfield(lua_State * L, const char * field)
 {
@@ -42,6 +49,9 @@ void love_register(lua_State * L, int index, void * object)
     lua_settable(L, -3);                //set the taaable (╯°□°）╯︵ ┻━┻
 
     lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+
+    //lua_pop(L, 1);
+    printf("Registered %p to _loveobjects!\n", object);
 }
 
 void love_push_userdata(lua_State * L, void * object)
@@ -83,8 +93,38 @@ int love_get_registry(lua_State * L, REGISTRY registry)
             lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
             return 1;
         default:
-            return luaL_error(L, "Attempted to use invalid registry.");
+            return luaL_error(L, "Attempted to use invalid registry."); 
     }
+}
+
+int luax_traceback(lua_State *L)
+{
+    if (!lua_isstring(L, 1))  // 'message' not a string?
+        return 1; // keep it intact
+
+    lua_getglobal(L, "debug");
+    if (!lua_istable(L, -1))
+    {
+        lua_pop(L, 1);
+        return 1;
+    }
+
+    lua_getfield(L, -1, "traceback");
+    if (!lua_isfunction(L, -1))
+    {
+        lua_pop(L, 2);
+        return 1;
+    }
+
+    lua_pushvalue(L, 1); // pass error message
+    lua_pushinteger(L, 2); // skip this function and traceback
+    lua_call(L, 2, 1); // call debug.traceback
+    return 1;
+}
+
+double clamp(double low, double value, double high)
+{
+    return std::min(high, std::max(low, value));
 }
 
 u32 NextPO2(u32 in)
@@ -99,52 +139,58 @@ u32 NextPO2(u32 in)
     return in >= 8 ? in : 8;
 }
 
-double clamp(double low, double value, double high)
-{
-    return std::min(high, std::max(low, value));
-}
+// std::map<int, std::string> LANGUAGES =
+// {
+//     {SetLanguage_JA,    "Japanese"               },   
+//     {SetLanguage_ENUS,  "American English"       }, 
+//     {SetLanguage_FR,    "French"                 },     
+//     {SetLanguage_DE,    "German"                 },     
+//     {SetLanguage_IT,    "Italian"                },    
+//     {SetLanguage_ES,    "Spanish"                },    
+//     {SetLanguage_ZHCN,  "Chinese"                }, 
+//     {SetLanguage_KO,    "Korean"                 },     
+//     {SetLanguage_NL,    "Dutch"                  },  
+//     {SetLanguage_PT,    "Portuguese"             },     
+//     {SetLanguage_RU,    "Russian"                },    
+//     {SetLanguage_ZHTW,  "Taiwanese"              },
+//     {SetLanguage_ENGB,  "British English"        },  
+//     {SetLanguage_FRCA,  "Canadian French"        },  
+//     {SetLanguage_ES419, "Latin American Spanish" }      
+// };
 
-std::map<int, std::string> REGIONS =
-{
-    { CFG_REGION_AUS, "AUS" },
-    { CFG_REGION_CHN, "CHN" },
-    { CFG_REGION_EUR, "EUR" },
-    { CFG_REGION_JPN, "JPN" },
-    { CFG_REGION_KOR, "KOR" },
-    { CFG_REGION_TWN, "TWN" },
-    { CFG_REGION_USA, "USA" }
-};
+// std::vector<std::string> REGIONS =
+// {
+//     "JPN",
+//     "USA",
+//     "EUR",
+//     "AUS",
+//     "CHN",
+//     "KOR",
+//     "TWN",
+//     "UNK" //Unknown
+// };
 
-std::map<int, std::string> LANGUAGES =
-{
-    { CFG_LANGUAGE_DE, "German"              },
-    { CFG_LANGUAGE_EN, "English"             },
-    { CFG_LANGUAGE_ES, "Spanish"             },
-    { CFG_LANGUAGE_FR, "French"              },
-    { CFG_LANGUAGE_IT, "Italian"             },
-    { CFG_LANGUAGE_JP, "Japanese"            },
-    { CFG_LANGUAGE_KO, "Korean"              },
-    { CFG_LANGUAGE_NL, "Dutch"               },
-    { CFG_LANGUAGE_PT, "Portugese"           },
-    { CFG_LANGUAGE_RU, "Russian"             },
-    { CFG_LANGUAGE_TW, "Traditional Chinese" },
-    { CFG_LANGUAGE_ZH, "Simplified Chinese"  },
-};
+// std::vector<std::string> KEYS =
+// {
+//     "a", "b", "x", "y",
+//     "leftstick", "rightstick",
+//     "l", "r", "zl", "zr",
+//     "plus", "minus", "dpleft",
+//     "dpup", "dpright", "dpdown",
+//     "", "", "", "", "", "", "", "",
+//     "sl", "sr", "sl", "sr"
+// };
 
-std::vector<std::string> KEYS =
-{
-    "a", "b", "select", "start",
-    "dpright", "dpleft", "dpup", "dpdown",
-    "r", "l", "x", "y",
-    "", "", "lz", "rz",
-    "", "", "", "",
-    "touch", "", "", "", "cstickright",
-    "cstickleft", "cstickup", "cstickdown",
-    "cpadright", "cpadleft", "cpadup", "cpaddown"
-};
+// std::vector<HidControllerID> CONTROLLER_IDS =
+// {
+//     CONTROLLER_PLAYER_1, CONTROLLER_PLAYER_2, 
+//     CONTROLLER_PLAYER_3, CONTROLLER_PLAYER_4, 
+//     CONTROLLER_PLAYER_5, CONTROLLER_PLAYER_6,
+//     CONTROLLER_PLAYER_7, CONTROLLER_PLAYER_8
+// };
 
-std::vector<std::string> GAMEPAD_AXES =
-{
-    "leftx", "lefty",
-    "rightx", "righty"
-};
+// std::vector<std::string> GAMEPAD_AXES =
+// {
+//     "leftx", "lefty",
+//     "rightx", "righty"
+// };

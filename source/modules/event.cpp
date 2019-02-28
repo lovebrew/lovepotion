@@ -1,133 +1,126 @@
 #include "common/runtime.h"
-#include "modules/keyboard.h"
-#include "objects/gamepad/gamepad.h"
-
 #include "modules/event.h"
 
-int lastTouch[2];
-HID_Event event;
+//#include "objects/gamepad/gamepad.h"
+//#include "modules/joystick.h"
+#include "modules/timer.h"
 
-int Event::Poll(lua_State * L)
+SDL_Event event;
+
+#if not defined(JOYSTICK_MAX)
+    #define JOYSTICK_MAX 32767
+#endif
+
+int LoveEvent::PollEvent(lua_State * L)
 {
-    hidScanInput();
+    //update gamepad rumble
+    // for (Gamepad * joycon : controllers)
+    //     joycon->Update(Timer::GetDelta());
 
-    //love.gamepadpressed
-    u32 buttonDown = hidKeysDown();
-    string downKey = DEVICE_INSTANCE->GetInput(buttonDown);
-
-    touchPosition touch;
-    hidTouchRead(&touch);
-
-    if (downKey != "nil")
+    while (SDL_PollEvent(&event))
     {
-        if (downKey != "touch")
+        switch (event.type)
         {
-            love_getfield(L, "gamepadpressed");
-            if (!lua_isnil(L, -1))
+            case SDL_JOYAXISMOTION:
             {
-                love_push_userdata(L, DEVICE_INSTANCE);
-                lua_pushstring(L, downKey.c_str());
+                LOG("MOTION\nWhich: %d\nValue: %.2f\n", event.jaxis.which, (float)event.jaxis.value / JOYSTICK_MAX);
+                // Gamepad * controller = Joystick::GetJoystickFromID(event.jaxis.which);
 
-                lua_call(L, 2, 0);
-            }
-        }
-        else
-        {
-            love_getfield(L, "touchpressed");
-            if (!lua_isnil(L, -1))
+                // love_getfield(L, "gamepadaxis");
+                // if (!lua_isnil(L, -1))
+                // {
+                //     love_push_userdata(L, controller);
+                //     lua_pushstring(L, GAMEPAD_AXES[event.jaxis.axis].c_str());
+
+                //     float value = (float)event.jaxis.value / JOYSTICK_MAX;
+                //     controller->ClampAxis(value);
+
+                //     lua_pushnumber(L, value);
+                //     lua_call(L, 3, 0);
+                // }
+                break;
+            }    
+            case SDL_JOYBUTTONDOWN:
+            case SDL_JOYBUTTONUP:
             {
-                lua_pushlightuserdata(L, (void *)1);
-                lua_pushnumber(L, touch.px);
-                lua_pushnumber(L, touch.py);
-                lua_pushinteger(L, 0);
-                lua_pushinteger(L, 0);
-                lua_pushinteger(L, 1);
+                LOG("BUTTONS\nWhich: %d\nValue: %d\n", event.jbutton.which, event.jbutton.button);
+                // Gamepad * controller = Joystick::GetJoystickFromID(event.jbutton.which);
 
-                lua_call(L, 6, 0);
+                // love_getfield(L, (event.type == SDL_JOYBUTTONDOWN) ? "gamepadpressed" : "gamepadreleased");
+
+                // if (!lua_isnil(L, -1))
+                // {
+                //     love_push_userdata(L, controller);
+                //     lua_pushstring(L, KEYS[event.jbutton.button].c_str());
+
+                //     lua_call(L, 2, 0);
+                // }
+                break;
             }
-        }
-    }
+            // case SDL_FINGERDOWN:
+            // case SDL_FINGERUP:
+            // {
+            //     LOG("TOUCH\nWhich: %d\nValue: %dx%d\n", event.tfinger.touchId, event.tfinger.x, event.tfinger.y);
+            //     // love_getfield(L, (event.type == SDL_FINGERDOWN) ? "touchpressed" : "touchreleased");
 
-    u32 buttonHeld = hidKeysHeld();
-    string heldKey = DEVICE_INSTANCE->GetInput(buttonHeld);
+            //     // if (!lua_isnil(L, -1))
+            //     // {
+            //     //     lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
+            //     //     lua_pushnumber(L, event.tfinger.x * 1280);
+            //     //     lua_pushnumber(L, event.tfinger.y * 720);
+            //     //     lua_pushnumber(L, 0);
+            //     //     lua_pushnumber(L, 0);
+            //     //     lua_pushnumber(L, event.tfinger.pressure);
 
-    if (heldKey != "nil" && heldKey == "touch")
-    {
-        lastTouch[0] = touch.px;
-        lastTouch[1] = touch.py;
+            //     //     lua_call(L, 6, 0);
+            //     // }
+            //     break;
+            // }
+            // case SDL_FINGERMOTION:
+            // {
+            //     LOG("TOUCH MOVE\nWhich: %d\nValue: %dx%d\n", event.tfinger.touchId, event.tfinger.x, event.tfinger.y);
+            //     // love_getfield(L, "touchmoved");
 
-        love_getfield(L, "touchmoved");
-        if (!lua_isnil(L, -1))
-        {
-            lua_pushlightuserdata(L, (void *)1);
-            lua_pushnumber(L, touch.px);
-            lua_pushnumber(L, touch.py);
-            lua_pushinteger(L, 0);
-            lua_pushinteger(L, 0);
-            lua_pushinteger(L, 1);
+            //     // if (!lua_isnil(L, -1))
+            //     // {
+            //     //     lua_pushlightuserdata(L, (void *)event.tfinger.touchId);
+            //     //     lua_pushnumber(L, event.tfinger.x * 1280);
+            //     //     lua_pushnumber(L, event.tfinger.y * 720);
+            //     //     lua_pushnumber(L, event.tfinger.dx * 1280);
+            //     //     lua_pushnumber(L, event.tfinger.dy * 720);
+            //     //     lua_pushnumber(L, event.tfinger.pressure);
 
-            lua_call(L, 6, 0);
-        }
-    }
-
-    //love.gamepadreleased
-    u32 buttonUp = hidKeysUp();
-    string upKey = DEVICE_INSTANCE->GetInput(buttonUp);
-
-    if (upKey != "nil")
-    {
-        if (upKey != "touch")
-        {
-            love_getfield(L, "gamepadreleased");
-            if (!lua_isnil(L, -1))
-            {
-                love_push_userdata(L, DEVICE_INSTANCE);
-                lua_pushstring(L, upKey.c_str());
-
-                lua_call(L, 2, 0);
-            }
-        }
-        else
-        {
-            love_getfield(L, "touchreleased");
-            if (!lua_isnil(L, -1))
-            {
-                lua_pushlightuserdata(L, (void *)1);
-                lua_pushnumber(L, lastTouch[0]);
-                lua_pushnumber(L, lastTouch[1]);
-                lua_pushinteger(L, 0);
-                lua_pushinteger(L, 0);
-                lua_pushinteger(L, 1);
-
-                lua_call(L, 6, 0);
-            }
-        }
-    }
-
-    for (uint i = 0; i < 11; i++)
-    {
-        love_getfield(L, "gamepadaxis");
-        if (!lua_isnil(L, -1))
-        {
-            love_push_userdata(L, DEVICE_INSTANCE);
-            lua_pushinteger(L, i + 1);
-            lua_pushnumber(L, DEVICE_INSTANCE->GetAxis(i + 1));
-
-            lua_call(L, 3, 0);
+            //     //     lua_call(L, 6, 0);
+            //     // }
+            //     break;
+            // }
+            // case SDL_JOYDEVICEADDED:
+            // case SDL_CONTROLLERDEVICEADDED:
+            //     break;
+            // case SDL_JOYDEVICEREMOVED:
+            // case SDL_CONTROLLERDEVICEREMOVED:
+            //     break;
+            default:
+                break;
         }
     }
 
     return 0;
 }
 
-int Event::Quit(lua_State * L)
+//Löve2D Functions
+
+//love.event.quit
+int LoveEvent::Quit(lua_State * L)
 {
     LOVE_QUIT = true;
 
     return 0;
 }
 
-int Event::Register(lua_State * L)
+//End Löve2D Functions
+
+int LoveEvent::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {

@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+
 #include <sys/stat.h>
 
 std::string concat(const std::vector<const char *> & expected, const char * delimeter)
@@ -76,4 +77,10 @@ void LOVE_VALIDATE_DRAW_MODE(const char * mode)
 {
     if (!LOVE_VALIDATE(DRAW_MODES, mode))
         LOVE_ERROR_INVALID_TYPE("draw mode", mode, SOURCE_TYPES);
+}
+
+void LOVE_VALIDATE_KEYBOARD_TYPE(const char * type)
+{
+    if (!LOVE_VALIDATE(KEYBOARD_TYPES, type))
+        LOVE_ERROR_INVALID_TYPE("keyboard type", type, KEYBOARD_TYPES);
 }

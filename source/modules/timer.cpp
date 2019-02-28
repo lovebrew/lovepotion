@@ -1,7 +1,9 @@
 #include "common/runtime.h"
 #include "modules/timer.h"
 
-#include <time.h>
+#if not defined (CPU_TICKS_PER_MSEC)
+    #define CPU_TICKS_PER_MSEC (19200000.0f / 1000.0f)
+#endif
 
 //Deltatime
 int prevTime = 0;
@@ -80,11 +82,6 @@ float Timer::GetOSTime()
 float Timer::GetDelta()
 {
     return dt;
-}
-
-float Timer::GetFPS()
-{
-    return round(fps);
 }
 
 void Timer::Tick()

@@ -4,53 +4,83 @@ extern "C"
     #include <lualib.h>
     #include <lauxlib.h>
 
-    #include <compat-5.2.h>
+    #include <compat-5.3.h>
     #include <luaobj.h>
 }
+#include <lutf8lib.h>
 
 #include <string>
-#include <3ds.h>
+
+#include "modules/timer.h"
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <map>
+#include <vector>
+
+#if defined (_3DS)
+    #include <3ds.h>
+    bool appletMainLoop() {
+        return aptMainLoop();
+    }
+#elif defined (__SWITCH__) 
+    #include <switch.h>
+#endif
+
+#include "common/types.h"
+#include "common/util.h"
 
 #include "socket/luasocket.h"
-
-#include "common/console.h"
-#include "objects/gamepad/wrap_gamepad.h"
+#include "modules/filesystem.h"
 #include "modules/love.h"
-#include "modules/timer.h"
-#include "common/util.h"
 
 #include "boot_lua.h"
 
-bool ERROR = false;
-bool LOVE_QUIT = false;
+#define luaL_dobuffer(L, b, n, s) \
+    (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
-int main(int argc, char **argv)
+FILE * logFile;
+
+int main(int argc, char * argv[])
 {
-    //Console::Initialize();
-
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);
 
-    love_preload(L, LuaSocket::Initialize, "socket");
+    logFile = fopen("LoveDebug.txt", "wb");
 
-    Love::InitModules();
+    love_preload(L, luaopen_luautf8, "utf8");
+    love_preload(L, LuaSocket::InitSocket, "socket");
+    love_preload(L, LuaSocket::InitHTTP,   "socket.http");
+
+    char * path = (argc == 2) ? argv[1] : argv[0];
+    Filesystem::Initialize(path);
 
     luaL_requiref(L, "love", Love::Initialize, 1);
-    
-    gamepadNew(L);
+
+    Love::InitModules(L);
+    Love::InitConstants(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
 
-    while (aptMainLoop())
+    
+    while (appletMainLoop())
     {
         if (Love::IsRunning())
             luaL_dostring(L, "xpcall(love.run, love.errhand)");
         else
             break;
+
+        hidScanInput();
+
+        if (hidKeysDown() & KEY_START)
+            break;
     }
 
     Love::Exit(L);
+
+    fflush(logFile);
+    fclose(logFile);
 
     return 0;
 }

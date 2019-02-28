@@ -9,10 +9,9 @@
 
 #define LOVE_DRAW       "if love.draw then love.draw() end"
 
-#define CONFIG_3D_SLIDERSTATE (*(volatile float *)0x1FF81080)
+#define LOG(fmt, ...) fprintf(logFile, "%s:%d:\n" fmt "\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__)
 
 #include <exception>
-#include "common/types.h"
 
 void love_getfield(lua_State * L, const char * field);
 
@@ -20,20 +19,28 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
 bool love_is_registered(lua_State * L, void * object);
 
+extern FILE * logFile;
+
+void stack_dump(lua_State * L);
+
 void love_register(lua_State * L, int index, void * object);
 
 void love_push_userdata(lua_State * L, void * object);
 
 int love_get_registry(lua_State * L, REGISTRY registry);
 
-u32 NextPO2(u32 in);
+int luax_tracevack(lua_State * L);
 
 double clamp(double low, double x, double high);
 
 extern std::vector<std::string> KEYS;
 
+u32 NextPO2(u32 in);
+
+//extern std::vector<HidControllerID> CONTROLLER_IDS;
+
 extern std::vector<std::string> GAMEPAD_AXES;
 
 extern std::map<int, std::string> LANGUAGES;
 
-extern std::map<int, std::string> REGIONS;
+extern std::vector<std::string> REGIONS;

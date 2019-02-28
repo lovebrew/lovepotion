@@ -19,7 +19,6 @@ namespace Audio
     int Pause(lua_State * L);
     int Resume(lua_State * L);
     
-    int GetVolume(lua_State * L);
     int SetVolume(lua_State * L);
 
     //End Löve2D Functions

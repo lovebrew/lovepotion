@@ -20,8 +20,6 @@ namespace Timer
 
     float GetDelta();
 
-    float GetFPS();
-
     void Tick();
 
     int Register(lua_State * L);

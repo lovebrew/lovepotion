@@ -4,9 +4,9 @@ class Object
 {
     public:
         Object() { type = "Object"; };
-        Object(const char * name) { type = name; };
+        Object(const std::string & name) { type = name; };
         char * ToString();
-        void SetType(const char * name) { type = name; };
+        void SetType(const std::string & name) { type = name; };
     
     protected:
         std::string type;

@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <compat-5.2.h>
+#include <compat-5.3.h>
 #include "luaobj.h"
 
 int luaobj_newclass(lua_State *L, const char *name, const char *extends, 

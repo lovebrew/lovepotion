@@ -6,8 +6,18 @@ class TCP : public Socket
         TCP();
         TCP(int sockfd);
 
-        int Accept();
-        void Listen();
+        int Bind(const std::string & destination, int port);
+        int Connect(const string & destination, int port);
 
-        virtual int SetOption(const std::string & option, int value);
+        int Send(const char * datagram, long length);
+        
+        int ReceiveLinesStripCR(char * out, const char * in, int size);
+        
+        int ReceiveLines(char ** buffer);
+        int ReceiveAll(char * buffer);
+        int ReceiveNumber(char ** buffer, size_t length);
+
+        int Accept();
+
+        int SetOption(const std::string & option, int enable);
 };
