@@ -12,6 +12,6 @@ Nightly builds are available at [doozer.io](https://doozer.io/TurtleP/LovePotion
     <img src="https://img.shields.io/badge/version-1.1.0-blue.svg?style=flat-square"/>
 </p>
 
-|Nintendo 3DS ![](https://doozer.io/badge/TurtleP/LovePotion/buildstatus/master?target=3DS)|Nintendo Switch</br>![](https://doozer.io/badge/TurtleP/LovePotion/buildstatus/master?target=Switch)|
+|Nintendo 3DS</br>![](https://doozer.io/badge/TurtleP/LovePotion/buildstatus/master?target=3DS)|Nintendo Switch</br>![](https://doozer.io/badge/TurtleP/LovePotion/buildstatus/master?target=Switch)|
 |:------------:|:------------:|
 |![](https://i.imgur.com/EcnnNZ5.png)|![](https://i.imgur.com/PTACKcn.png)|
