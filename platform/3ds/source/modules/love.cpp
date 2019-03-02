@@ -4,41 +4,44 @@
 #include "common/types.h"
 #include "common/util.h"
 
+#include "objects/gamepad/gamepad.h"
+
 #include "objects/object/object.h"
 #include "objects/file/wrap_file.h"
 #include "objects/font/wrap_font.h"
-// #include "objects/gamepad/wrap_gamepad.h"
+#include "objects/gamepad/wrap_gamepad.h"
 #include "objects/image/wrap_image.h"
-// #include "objects/source/wrap_source.h"
+#include "objects/source/wrap_source.h"
 #include "objects/quad/wrap_quad.h"
 
-// #include "modules/audio.h"
+#include "modules/audio.h"
 #include "modules/event.h"
 #include "modules/filesystem.h"
 #include "modules/graphics.h"
-// #include "modules/joystick.h"
-// #include "modules/keyboard.h"
+#include "modules/joystick.h"
+#include "modules/keyboard.h"
 // #include "modules/mod_math.h"
 #include "modules/timer.h"
 // #include "modules/system.h"
+#include "modules/window_common.h"
 
 #include "nogame_lua.h"
 
 #if defined (_3DS)
 struct { const char * name; void (*init)(void); int (*reg)(lua_State *L); void (*close)(void); } modules[] = 
 {
-    //{ "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
-    { "event",      NULL,                   LoveEvent::Register,      NULL             },
+    { "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
+    { "event",      NULL,                   LoveEvent::Register,  NULL             },
     { "filesystem", NULL,                   Filesystem::Register, Filesystem::Exit },
     { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
-    //{ "keyboard",   Keyboard::Initialize,   Keyboard::Register,   NULL             },
-    //{ "joystick",   Joystick::Initialize,   Joystick::Register,   Joystick::Exit   },
+    { "keyboard",   Keyboard::Initialize,   Keyboard::Register,   NULL             },
+    { "joystick",   NULL,                   Joystick::Register,   NULL             },
     //{ "math",       NULL,                   Math::Register,       NULL             },
     //{ "system",     System::Initialize,     System::Register,     System::Exit     },
     //{ "thread",   NULL,                   LoveThread::Register, LoveThread::Exit },
     { "timer",      NULL,                   Timer::Register,      NULL             },
     //{ "touch",    NULL,                   Touch::Register,      NULL             },
-    //{ "window",   Window::Register,       NULL                  NULL             },
+    { "window",     NULL,                   Window::Register,     NULL             },
     { 0,            NULL,                   NULL,                 NULL             }
 };
 #endif
@@ -48,6 +51,8 @@ bool LOVE_QUIT = false;
 
 void Love::InitModules(lua_State * L)
 {
+    Joystick::Initialize(L);
+
     for (int i = 0; modules[i].name; i++)
     {
         if (modules[i].init)
@@ -93,10 +98,10 @@ int Love::Initialize(lua_State * L)
         initChannelClass,*/
         initFileClass,
         initFontClass,
-        // initGamepadClass,
+        initGamepadClass,
         initImageClass,
         initQuadClass,
-        // initSourceClass,
+        initSourceClass,
         //initThreadClass,
         NULL
     };
@@ -161,7 +166,7 @@ int Love::RaiseError(const char * format, ...)
 //love.run
 int Love::Run(lua_State * L)
 {
-    //LoveEvent::PollEvent(L);
+    LoveEvent::PollEvent(L);
 
     luaL_dostring(L, LOVE_TIMER_STEP);
 

@@ -53,7 +53,7 @@ void Font::Print(const char * text, double x, double y, double rotation, double 
 
     C2D_TextOptimize(&this->citroText);
 
-    C2D_DrawText(&this->citroText, C2D_WithColor, x, y, 0.5, this->scale, this->scale, Graphics::ConvertColor(color));
+    C2D_DrawText(&this->citroText, C2D_AtBaseline | C2D_WithColor, x, y, 0.5, this->scale, this->scale, Graphics::ConvertColor(color));
 }
 
 float Font::GetWidth(const char * text)

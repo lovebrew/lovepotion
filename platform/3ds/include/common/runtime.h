@@ -56,3 +56,7 @@ extern "C"
 
 using std::string;
 using std::vector;
+
+extern int lastTouch[2];
+
+extern std::vector<std::string> KEYS;
