@@ -19,8 +19,6 @@ int love_preload(lua_State * L, lua_CFunction function, const char * name);
 
 bool love_is_registered(lua_State * L, void * object);
 
-extern FILE * logFile;
-
 void stack_dump(lua_State * L);
 
 void love_register(lua_State * L, int index, void * object);
@@ -33,14 +31,4 @@ int luax_tracevack(lua_State * L);
 
 double clamp(double low, double x, double high);
 
-extern std::vector<std::string> KEYS;
-
 u32 NextPO2(u32 in);
-
-//extern std::vector<HidControllerID> CONTROLLER_IDS;
-
-extern std::vector<std::string> GAMEPAD_AXES;
-
-extern std::map<int, std::string> LANGUAGES;
-
-extern std::vector<std::string> REGIONS;

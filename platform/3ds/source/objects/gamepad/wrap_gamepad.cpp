@@ -7,18 +7,6 @@
 
 vector<Gamepad *> controllers;
 
-vector<string> KEYS =
-{
-    "a", "b", "select", "start",
-    "dpright", "dpleft", "dpup", "dpdown",
-    "r", "l", "x", "y",
-    "", "", "zl", "zr",
-    "", "", "", "",
-    "touch", "", "", "", "cstickright",
-    "cstickleft", "cstickup", "cstickdown",
-    "cpadright", "cpadleft", "cpadup", "cpaddown"
-};
-
 int gamepadNew(lua_State * L, int id)
 {
     void * raw_self = luaobj_newudata(L, sizeof(Gamepad));

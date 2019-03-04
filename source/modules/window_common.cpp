@@ -4,6 +4,8 @@
 //Löve2D Functions
 int Window::SetMode(lua_State * L)
 {
+    //stubbed because this is useless
+
     return 0;
 }
 
@@ -35,7 +37,7 @@ int Window::Register(lua_State * L)
     luaL_Reg reg[] = 
     {
         { "setMode",            SetMode            },
-        { "showMessageBox",     ShowMessageBox     },
+        //{ "showMessageBox",     ShowMessageBox     },
         { "getFullscreenModes", GetFullscreenModes },
         { 0, 0 }
     };

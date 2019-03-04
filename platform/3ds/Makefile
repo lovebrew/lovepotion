@@ -42,14 +42,16 @@ INCLUDES		:=	$(shell find ../../include -type d) \
 					include/common \
 					include/modules \
 					$(INC_OBJS) \
-					$(EXT_LIBS)
+					$(EXT_LIBS) \
+					include/socket
 
 SOURCES			:=	$(shell find ../../source -type d) \
 					source \
 					source/common \
 					source/modules \
 					$(SRC_OBJS) \
-					$(EXT_LIBS)
+					$(EXT_LIBS) \
+					source/socket
 
 DATA			:=  ../../source/scripts \
 					source/scripts/nogame

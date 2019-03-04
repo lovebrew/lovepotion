@@ -14,7 +14,7 @@ class Gamepad : public Object
         bool IsConnected();
 
         bool IsGamepadDown(const std::string & button);
-        bool IsDown(int button);
+        bool IsDown(uint button);
         
         int GetID();
 

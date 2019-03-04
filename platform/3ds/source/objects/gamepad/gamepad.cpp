@@ -125,7 +125,7 @@ string Gamepad::GetInput(u32 key)
     return "nil";
 }
 
-bool Gamepad::IsDown(int button)
+bool Gamepad::IsDown(uint button)
 {
     u32 heldButton = hidKeysHeld() | hidKeysDown();
     bool keyDown = false;
