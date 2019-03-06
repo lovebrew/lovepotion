@@ -331,7 +331,7 @@ string Filesystem::Redirect(const char * path)
     if (success == 0)
         return saveFile;
     else
-        return path;
+        return string(path);
 }
 
 void Filesystem::Exit()
