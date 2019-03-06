@@ -5,9 +5,6 @@
 
 #pragma once
 
-
-#define CONFIG_3D_SLIDERSTATE (*(volatile float *)0x1FF81080)
-
 namespace Graphics
 {
     void Initialize();
