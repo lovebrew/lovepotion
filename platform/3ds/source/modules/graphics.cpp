@@ -40,7 +40,7 @@ static void Transform(float * originalX, float * originalY, float * originalRota
     float newLeft = *originalX;
     float newTop = *originalY;
 
-    float slider = CONFIG_3D_SLIDERSTATE;
+    float slider = osGet3DSliderState();
     if (gfxIs3D() && currentScreen == GFX_TOP)
     {
         if (currentSide == GFX_LEFT)
