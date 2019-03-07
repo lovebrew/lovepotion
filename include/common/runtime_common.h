@@ -11,6 +11,7 @@ extern "C"
 }
 
 //Libraries
+#include <png.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <curl/curl.h>
@@ -42,7 +43,7 @@ extern "C"
 #include "common/types.h"
 #include "common/util.h"
 #include "common/variables.h"
-// #include "common/variant.h"
+#include "common/variant.h"
 
 //Löve module - important!
 #include "modules/love.h"

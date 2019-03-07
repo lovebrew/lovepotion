@@ -33,35 +33,28 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=    LovePotion
 BUILD		:=    build
 
+EXT_LIBS	:= $(sort $(dir $(wildcard ../../libraries/*/)))
 INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
 SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
-LUASOCKET	:= $(sort $(dir $(wildcard source/socket/objects/*/*)))
 
-NOGAMEDIR	:= source/scripts/nogame
+SOURCES			:=	$(shell find ../../source -type d) \
+					source \
+					source/common \
+					source/modules \
+					$(SRC_OBJS) \
+					$(EXT_LIBS) \
+					source/socket
 
-SOURCES			:=	source \
-				source/scripts \
-				source/common \
-				source/modules \
-				source/socket \
-				source/socket/objects \
-				$(SRC_OBJS) \
-				libraries/lua \
-				libraries/luaobj \
-				$(LUASOCKET)
+DATA			:=  ../../source/scripts \
+					source/scripts/nogame
 
-DATA		:=	source/scripts \
-				source/scripts/nogame
-
-INCLUDES	:=	include \
-				include/common \
-				include/modules \
-				include/socket \
-				include/socket/objects \
-				$(INC_OBJS) \
-				libraries/lua \
-				libraries/luaobj \
-				$(LUASOCKET)
+INCLUDES		:=	$(shell find ../../include -type d) \
+					include \
+					include/common \
+					include/modules \
+					$(INC_OBJS) \
+					$(EXT_LIBS) \
+					include/socket
 
 EXEFS_SRC    := exefs_src
 #ROMFS        := game

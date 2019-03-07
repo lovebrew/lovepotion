@@ -11,6 +11,8 @@ extern std::map<int, std::string> LANGUAGES;
 
 extern std::map<int, std::string> REGIONS;
 
+extern std::vector<std::string> GAMEPAD_AXES;
+
 extern int lastTouch[2];
 
 typedef struct { 
@@ -23,3 +25,7 @@ typedef struct {
 extern love_modules modules[];
 
 extern int (*classes[])(lua_State *L);
+
+#if defined (__SWITCH__)
+extern std::vector<HidControllerID> CONTROLLER_IDS;
+#endif
