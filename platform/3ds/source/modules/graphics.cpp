@@ -369,7 +369,11 @@ int Graphics::Clear(lua_State * L)
 //love.graphics.setScissor
 int Graphics::SetScissor(lua_State * L)
 {
-    GPU_SCISSORMODE mode = (lua_gettop(L) != 0) ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
+    int args = lua_gettop(L);
+    GPU_SCISSORMODE mode = GPU_SCISSOR_DISABLE;
+    
+    if (args > 0)
+        mode = GPU_SCISSOR_NORMAL;
 
     float x      = luaL_optnumber(L, 1, 0);
     float y      = luaL_optnumber(L, 2, 0);

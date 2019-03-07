@@ -16,7 +16,7 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
 
     if (!memory)
     {
-        outBuffer = this->LoadPNG(path, NULL, -1);
+        outBuffer = this->LoadPNG(path, NULL, 0);
         this->LoadImage(outBuffer);
     }
     else

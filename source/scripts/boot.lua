@@ -267,7 +267,6 @@ function love.errhand(message)
     love.filesystem.write("log.txt", realError)
     
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
-    love.graphics.clear()
 
     love.graphics.setColor(1, 1, 1, 1)
     
@@ -286,12 +285,12 @@ function love.errhand(message)
         love.graphics.setFont(headerFont)
         love.graphics.print("Lua Error", 130, 42)
         
-        love.graphics.line(30, 88, 1250, 88)
+        love.graphics.rectangle("fill", 30, 88, love.graphics.getWidth() - 60, 2)
 
         love.graphics.setFont(buttonFont)
         love.graphics.print(realError, 48, 120)
 
-        love.graphics.line(30, 648, 1250, 648)
+        love.graphics.rectangle("fill", 30, love.graphics.getHeight() - 72, love.graphics.getWidth() - 60, 2)
 
         love.graphics.draw(plus_img, 1020, 678)
         love.graphics.print("Quit", 1056, 676.5)
@@ -299,14 +298,14 @@ function love.errhand(message)
         love.graphics.present()
     end
 
-    local joycon = love.joystick.getJoysticks()[1]
+    --local joycon = love.joystick.getJoysticks()[1]
 
     while true do
         draw()
 
-        if joycon:isGamepadDown("plus") then
+        --[[if joycon:isGamepadDown("plus") then
             break
-        end
+        end]]
 
         love.timer.sleep(0.1)
     end
