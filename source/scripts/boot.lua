@@ -300,7 +300,7 @@ function love.errhand(message)
 
     local gamepad = love.joystick.getJoysticks()[1]
     
-    local os = {love._os}
+    local os = love._os
     local quitButton = "start"
     if os[2] == "Switch" then
         quitButton = "plus"
