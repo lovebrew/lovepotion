@@ -12,7 +12,7 @@
         
         "Switch": {
             "buildenv": "docker:devkitpro/devkita64",
-            "buildcmd": "make nx -j${PARALLEL}",
+            "buildcmd": "make switch -j${PARALLEL}",
             
             "artifacts": [
                 "*.elf",
