@@ -5,8 +5,8 @@
             "buildcmd": "make 3ds -j${PARALLEL}",
 
             "artifacts": [
-                "*.elf",
-                "*.3dsx"
+                "platform/3ds/*.elf",
+                "platform/3ds/*.3dsx"
             ]
         },
         
@@ -15,8 +15,8 @@
             "buildcmd": "make switch -j${PARALLEL}",
             
             "artifacts": [
-                "*.elf",
-                "*.nro"
+                "platform/switch/*.elf",
+                "platform/switch/*.nro"
             ]
         }
     }
