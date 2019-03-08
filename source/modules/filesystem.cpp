@@ -321,12 +321,17 @@ string Filesystem::GetSaveDirectory()
 string Filesystem::Redirect(const char * path)
 {
     struct stat pathInfo;
-    int success = stat(path, &pathInfo);
+    
+    //Check save directory first
+    string saveFile = GetSaveDirectory() + string(path);
+    const char * filename = saveFile.c_str();
+    
+    int success = stat(filename, &pathInfo);
 
     if (success == 0)
-        return string(path);
+        return saveFile;
     else
-        return GetSaveDirectory() + string(path);
+        return string(path);
 }
 
 void Filesystem::Exit()
