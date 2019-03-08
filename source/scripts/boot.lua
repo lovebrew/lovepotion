@@ -292,20 +292,26 @@ function love.errhand(message)
 
         love.graphics.rectangle("fill", 30, love.graphics.getHeight() - 72, love.graphics.getWidth() - 60, 2)
 
-        love.graphics.draw(plus_img, 1020, 678)
+        love.graphics.draw(plus_img, love.graphics.getWidth() - 60, love.graphics.getHeight() - 42)
         love.graphics.print("Quit", 1056, 676.5)
 
         love.graphics.present()
     end
 
-    --local joycon = love.joystick.getJoysticks()[1]
-
+    local gamepad = love.joystick.getJoysticks()[1]
+    
+    local os = {love._os}
+    local quitButton = "start"
+    if os[2] == "Switch" then
+        quitButton = "plus"
+    end
+    
     while true do
         draw()
 
-        --[[if joycon:isGamepadDown("plus") then
+        if gamepad:isGamepadDown(quitButton) then
             break
-        end]]
+        end
 
         love.timer.sleep(0.1)
     end
