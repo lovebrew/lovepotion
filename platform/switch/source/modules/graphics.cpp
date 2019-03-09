@@ -229,17 +229,12 @@ int Graphics::Draw(lua_State * L)
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
 
-    transformDrawable(&x, &y);
-
-    x += (offsetX * abs(scalarX));
-    y += (offsetY * abs(scalarY));
-
     rotation *= 180 / M_PI;
 
     if (quad != nullptr)
-        drawable->Draw(NULL, quad->GetViewport(), x, y, rotation, scalarX, scalarY, drawColor);
+        drawable->Draw(NULL, quad->GetViewport(), x, y, rotation, offsetX, offsetY, scalarX, scalarY, drawColor);
     else
-        drawable->Draw(NULL, drawable->GetViewport(), x, y, rotation, scalarX, scalarY, drawColor);
+        drawable->Draw(NULL, drawable->GetViewport(), x, y, rotation, offsetX, offsetY, scalarX, scalarY, drawColor);
 
     return 0;
 }
@@ -392,9 +387,9 @@ int Graphics::Rectangle(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        boxRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        boxRGBA(Window::GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        rectangleRGBA(Window::GetRenderer(), x, y, x + width, y + height, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        rectangleRGBA(Window::GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
