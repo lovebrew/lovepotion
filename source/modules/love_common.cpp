@@ -160,6 +160,6 @@ void Love::Exit(lua_State * L)
 
     lua_close(L);
 
-    Window::Exit();
     Graphics::Exit();
+    Window::Exit();
 }

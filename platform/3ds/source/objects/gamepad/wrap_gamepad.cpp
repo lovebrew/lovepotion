@@ -15,7 +15,7 @@ int gamepadNew(lua_State * L, int id)
 
     Gamepad * self = new (raw_self) Gamepad();
 
-    love_register(L, 1, self);
+    love_register(L, 2, self);
 
     controllers.push_back(self);
 
@@ -81,7 +81,7 @@ int gamepadIsGamepadDown(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    string button = string(luaL_checkstring(L, 2));
+    string button = luaL_checkstring(L, 2);
 
     lua_pushboolean(L, self->IsGamepadDown(button));
 

@@ -12,18 +12,25 @@ int fontNew(lua_State * L)
     string path = "";
     int index = 1;
 
-    float size = 15;
+    float size = 15.0f;
 
-    if (!lua_isnoneornil(L, 1) && lua_type(L, 1) == LUA_TSTRING)
+    if (!lua_isnoneornil(L, 1))
     {
-        path = luaL_checkstring(L, 1);
-        index += 1;
-    }
+        if (lua_type(L, 1) == LUA_TSTRING)
+        {
+            path = luaL_checkstring(L, 1);
 
-    if (!lua_isnoneornil(L, index) && lua_type(L, index) == LUA_TNUMBER)
-    {
-        size = luaL_checknumber(L, index);
-        index += 1;
+            const char * cpath = path.c_str();
+            LOVE_VALIDATE_FILE_EXISTS(cpath);
+
+            size = luaL_checknumber(L, 2);
+            index = 3;
+        }
+        else if (lua_type(L, 1) == LUA_TNUMBER)
+        {
+            size = luaL_checknumber(L, 1);
+            index = 2;
+        }
     }
 
     void * raw_self = luaobj_newudata(L, sizeof(Font));
@@ -35,7 +42,7 @@ int fontNew(lua_State * L)
     if (path != "")
         self = new (raw_self) Font(path, size);
     else
-        self = new (raw_self) Font();
+        self = new (raw_self) Font(size);
 
     love_register(L, index, self);
 

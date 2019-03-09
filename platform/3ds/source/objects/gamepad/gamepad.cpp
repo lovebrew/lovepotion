@@ -127,7 +127,7 @@ string Gamepad::GetInput(u32 key)
 
 bool Gamepad::IsDown(uint button)
 {
-    u32 heldButton = hidKeysHeld() | hidKeysDown();
+    u32 heldButton = hidKeysHeld();
     bool keyDown = false;
 
     for (uint i = 0; i < KEYS.size(); i++)
@@ -147,7 +147,7 @@ bool Gamepad::IsDown(uint button)
 
 bool Gamepad::IsGamepadDown(const string & button)
 {
-    u32 heldButton = hidKeysHeld() | hidKeysDown();
+    u32 heldButton = hidKeysHeld();
     bool keyDown = false;
 
     for (uint i = 0; i < KEYS.size(); i++)

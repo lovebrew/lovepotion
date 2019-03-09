@@ -4,6 +4,15 @@
 #include "common/drawable.h"
 #include "objects/font/font.h"
 
+Font::Font() : Drawable("Font")
+{
+    this->buffer = C2D_TextBufNew(4096);
+    this->size = 15.0f;
+
+    this->scale = 0.5f;
+    this->font = NULL;
+}
+
 Font::Font(const string & name, float size) : Drawable("Font")
 {
     this->buffer = C2D_TextBufNew(4096);
@@ -13,12 +22,12 @@ Font::Font(const string & name, float size) : Drawable("Font")
     this->scale = size / 30.0f;
 }
 
-Font::Font() : Drawable("Font")
+Font::Font(float size) : Drawable("Font")
 {
     this->buffer = C2D_TextBufNew(4096);
-    this->size = 15;
+    this->size = size;
 
-    this->scale = 0.5f;
+    this->scale = size / 30.0f;
     this->font = NULL;
 }
 

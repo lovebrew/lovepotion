@@ -254,63 +254,95 @@ function love.errhand(message)
         end
     end
     
-    table.insert(err, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
-    
-    local dateTime = os.date("%c")
-    table.insert(err, "\nDate and Time: " .. dateTime)
-    table.insert(err, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
-    
     local realError = table.concat(err, "\n")
     realError = realError:gsub("\t", "")
     realError = realError:gsub("%[string \"(.-)\"%]", "%1")
     
-    love.filesystem.write("log.txt", realError)
+    local copy = err
+    table.insert(copy, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
+    
+    local dateTime = os.date("%c")
+    table.insert(copy, "\nDate and Time: " .. dateTime)
+    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
+
+    local fullError = table.concat(err, "\n")
+    love.filesystem.write("log.txt", fullError)
     
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
-
-    love.graphics.setColor(1, 1, 1, 1)
     
-    local headerFont = love.graphics.newFont(32)
-    local buttonFont = love.graphics.newFont(24)
+    local headerSize, buttonSize = 30, 15
+    if love._os[2] == "Switch" then
+        headerFont, buttonSize = 32, 24
+    end
+    
+    local headerFont = love.graphics.newFont(headerSize)
+    local buttonFont = love.graphics.newFont(buttonSize)
 
-    local error_img = love.graphics.newImage("error:warn");
-    local plus_img = love.graphics.newImage("error:plus");
+    local error_img = love.graphics.newImage("error:warn_sm");
+    local start_img = love.graphics.newImage("error:button_sm");
+
+    local width = love.graphics.getWidth()
+    local height = love.graphics.getHeight()
+
+    local button_position = (height * 0.85) + 14
 
     local function draw()
         love.graphics.clear()
 
-        love.graphics.draw(error_img, 74, 38)
+        love.graphics.draw(error_img, 40, (height * 0.15) / 2 - error_img:getHeight() / 2)
 
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.setFont(headerFont)
-        love.graphics.print("Lua Error", 130, 42)
+        love.graphics.setColor(1, 1, 1, 1)
         
-        love.graphics.rectangle("fill", 30, 88, love.graphics.getWidth() - 60, 2)
+        love.graphics.setFont(headerFont)
+        love.graphics.print("Lua Error", 72, (height * 0.15) / 2 - headerFont:getHeight() / 2)
+        
+        love.graphics.rectangle("fill", 30, height * 0.15, width - 60, 2)
 
         love.graphics.setFont(buttonFont)
-        love.graphics.print(realError, 48, 120)
+        love.graphics.print(realError, 40, height * 0.20)
 
-        love.graphics.rectangle("fill", 30, love.graphics.getHeight() - 72, love.graphics.getWidth() - 60, 2)
+        love.graphics.rectangle("fill", 30, height * 0.85, width - 60, 2)
 
-        love.graphics.draw(plus_img, 1020, 678)
-        love.graphics.print("Quit", 1056, 676.5)
+        
+        love.graphics.draw(start_img, width * 0.75, button_position)
+        love.graphics.print("Quit", width * 0.80, button_position)
 
         love.graphics.present()
+
+        if love._os[2] == "3DS" then
+            love.graphics.clear("bottom")
+            love.graphics.present()
+        end
     end
 
-    --local joycon = love.joystick.getJoysticks()[1]
+    local joystick = love.joystick.getJoysticks()[1]
 
-    while true do
-        draw()
-
-        --[[if joycon:isGamepadDown("plus") then
-            break
-        end]]
-
-        love.timer.sleep(0.1)
+    local quit_string = "start"
+    if love._os[2] == "Switch" then
+        quit_string = "plus"
     end
 
-    love.event.quit()
+    if love._os[2] == "3DS" then
+        love.draw = function()
+            draw()
+        end
+
+        love.gamepadpressed = function(joy, button)
+            if button == quit_string then
+                love.event.quit()
+            end
+        end
+    else
+        while true do
+            draw()
+
+            if joystick:isGamepadDown(quit_string) then
+                love.event.quit()
+            end
+
+            love.timer.sleep(0.1)
+        end
+    end
 end 
 
 local function pseudoRequireConf()
@@ -342,10 +374,6 @@ love.filesystem.setIdentity(config.identity)
 
 local function pseudoRequireMain()
     return require("main")
-end
-
-local function gameFailure()
-    return error("Failed to load game!")
 end
 
 if love.filesystem.isFile("main.lua") then

@@ -4,6 +4,7 @@ class Font : public Drawable
 {
     public:
         Font(const std::string & name, float size);
+        Font(float size);
         Font();
         ~Font();
 
@@ -14,7 +15,7 @@ class Font : public Drawable
     private:
         C2D_Font LoadFont(const std::string & name);
 
-	C2D_TextBuf buffer;
+	    C2D_TextBuf buffer;
         C2D_Text citroText;
         C2D_Font font;
 
