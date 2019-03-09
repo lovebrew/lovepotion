@@ -6,9 +6,6 @@
 #include "objects/image/image.h"
 #include "modules/window.h"
 
-#include "warn_png.h"
-#include "plus_png.h"
-
 #include "dog_png.h"
 #include "head_png.h"
 #include "dogshadow_png.h"
@@ -16,6 +13,9 @@
 #include "tail_png.h"
 #include "cloud_png.h"
 #include "tongue_png.h"
+
+#include "warn_png.h"
+#include "button_png.h"
 
 Image::Image(const char * path, bool memory) : Drawable("Image")
 {
@@ -82,7 +82,7 @@ SDL_Surface * Image::GetMemoryImage(const char * path)
     else if (name == "warn")
         returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)warn_png, warn_png_size), 1);
     else
-        returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)plus_png, plus_png_size), 1);
+        returnSurface = IMG_Load_RW(SDL_RWFromMem((void *)button_png, button_png_size), 1);
 
     return returnSurface;
 }

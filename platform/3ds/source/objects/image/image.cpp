@@ -10,9 +10,6 @@
 #include "warn_sm_png.h"
 #include "button_sm_png.h"
 
-#include "warn_png.h"
-#include "button_png.h"
-
 Image::Image(const char * path, bool memory) : Drawable("Image")
 {
     u32 * outBuffer = nullptr;
@@ -62,17 +59,7 @@ char * Image::GetMemoryImage(const char * path, int * size)
         *size = warn_sm_png_size;
         return (char *)warn_sm_png;
     }
-    else if (name == "button_sm")
-    {
-        *size = button_sm_png_size;
-        return (char *)button_sm_png;
-    }
-    else if (name == "warn")
-    {
-        *size = warn_png_size;
-        return (char *)warn_png;
-    }
-
-    *size = button_png_size;
-    return (char *)button_png;
+    
+    *size = button_sm_png_size;
+    return (char *)button_sm_png;
 }
