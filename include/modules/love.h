@@ -17,6 +17,8 @@ namespace Love
 
     int GetVersion(lua_State * L);
 
+    int Quit(lua_State * L);
+
     bool IsRunning();
 
     int RaiseError(const char * format, ...);

@@ -280,6 +280,10 @@ function love.errhand(message)
 
     local error_img = love.graphics.newImage("error:warn_sm");
     local start_img = love.graphics.newImage("error:button_sm");
+    if love._os[2] == "Switch" then
+        error_img = love.graphics.newImage("error:warn")
+        start_img = love.graphics.newImage("error:button")
+    end
 
     local width = love.graphics.getWidth()
     local height = love.graphics.getHeight()

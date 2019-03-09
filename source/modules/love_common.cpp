@@ -70,9 +70,10 @@ int Love::Initialize(lua_State * L)
 
     luaL_Reg reg[] =
     {
-        { "getVersion",    GetVersion       },
-        { "run",           Run              },
-        { "_nogame",       NoGame           },
+        { "_nogame",       NoGame     },
+        { "getVersion",    GetVersion },
+        { "run",           Run        },
+        { "quit",          Quit       }
         { 0, 0 }
     };
 
@@ -103,6 +104,13 @@ int Love::Initialize(lua_State * L)
 bool Love::IsRunning()
 {
     return LOVE_QUIT == false;
+}
+
+int Love::Quit(lua_State * L)
+{
+    LOVE_QUIT = true;
+    
+    return 0;
 }
 
 int Love::RaiseError(const char * format, ...)
@@ -160,6 +168,6 @@ void Love::Exit(lua_State * L)
 
     lua_close(L);
 
-    Graphics::Exit();
     Window::Exit();
+    Graphics::Exit();
 }
