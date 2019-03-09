@@ -216,31 +216,7 @@ float Gamepad::GetAxis(uint axis)
 
 float Gamepad::GetGamepadAxis(const string & axis)
 {
-    hidScanInput();
+    float value = 0;
 
-    JoystickPosition leftJoystick, rightJoystick;
-
-    hidJoystickRead(&leftJoystick, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
-    hidJoystickRead(&rightJoystick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
-
-    if (axis == "leftx")
-    {
-        return (float)(leftJoystick.dx - -32766) / (32766 - -32766) * (2) + -1;
-    }
-    else if (axis == "lefty")
-    {
-        return -((float)(leftJoystick.dy - -32766) / (32766 - -32766) * (2) + -1);
-    }
-    else if (axis == "rightx")
-    {
-        return (float)(rightJoystick.dx - -32766) / (32766 - -32766) * (2) + -1;
-    }
-    else if (axis == "righty")
-    {
-        return -((float)(rightJoystick.dy - -32766) / (32766 - -32766) * (2) + -1);
-    }
-    else
-    {
-        return 0;
-    }
+    return value;
 }
