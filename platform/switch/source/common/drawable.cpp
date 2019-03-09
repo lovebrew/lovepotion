@@ -43,7 +43,14 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
         y -= scaledHeight;
 
     SDL_Rect sourceRectangle = {view.x, view.y, view.subWidth, view.subHeight};
-    SDL_Rect destinationRectangle = {roundf(x - (offsetX * scalarX)), roundf(y - (offsetY * (scalarY))), scaledWidth,  scaledHeight};
+
+    SDL_Rect destinationRectangle = 
+    {
+        roundf(x - (offsetX * scalarX)), 
+        roundf(y - (offsetY * (scalarY))), 
+        scaledWidth,  
+        scaledHeight
+    };
 
     this->Flip(scalarX, scalarY);
 

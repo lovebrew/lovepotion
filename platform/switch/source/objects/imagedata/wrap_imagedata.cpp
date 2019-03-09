@@ -8,8 +8,8 @@
 
 int imageDataNew(lua_State * L)
 {
-    int width = 0;
-    int height = 0;
+    //int width = 0;
+    //int height = 0;
     string format;
 
     
@@ -25,10 +25,10 @@ int imageDataNew(lua_State * L)
     }
     else
     {
-        int width = luaL_checkinteger(L, 1);
-        int height = luaL_checkinteger(L, 2);
+        //int width = luaL_checkinteger(L, 1);
+        //int height = luaL_checkinteger(L, 2);
     
-        format = luaL_optstring(L, 3, "rgba8");
+        //format = luaL_optstring(L, 3, "rgba8");
     }
 
     return 1;

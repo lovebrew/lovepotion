@@ -10,7 +10,7 @@ namespace Joystick
 {
     void Initialize(lua_State * L); //should set up joysticks
 
-    Gamepad * GetJoystickFromID(int id);
+    Gamepad * GetJoystickFromID(uint id);
 
     //Löve2D Functions
 
