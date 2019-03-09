@@ -52,7 +52,7 @@ void Font::Print(const char * text, double x, double y, double rotation, float l
 
     Viewport viewport = {0, 0, width, height, width, height};
 
-    Drawable::Draw(texture, viewport, x, y, rotation, scalarX, scalarY, color);
+    Drawable::Draw(texture, viewport, x, y, rotation, 0, 0, scalarX, scalarY, color);
 
     SDL_DestroyTexture(texture);
 }

@@ -15,51 +15,44 @@ void Drawable::SetFilter()
     //Unless I find out it can later™
 }
 
-void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color)
+void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, double rotation, double offsetX, double offsetY, double scalarX, double scalarY, SDL_Color color)
 {
     if (!texture)
         texture = this->texture;
 
-    SDL_Rect quad = 
-    {
-        view.x, 
-        view.y, 
-        view.subWidth, 
-        view.subHeight
-    };
+    double xScaleFactor = 1;
+    double yScaleFactor = 1;
+
+    int textureWidth, textureHeight;
+    SDL_QueryTexture(texture, NULL, NULL, &textureWidth, &textureHeight);
+
+    xScaleFactor = (double)view.width / (double)textureWidth;
+    view.x *= (float)textureWidth / (float)view.width;
+    view.subWidth *= (float)textureWidth / (float)view.width;
+
+    yScaleFactor = (float)view.height / (float)textureHeight;
+    view.y *= (float)textureHeight / (float)view.height;
+    view.subHeight *= (float)textureHeight / (float)view.height;
+    
+    double scaledWidth = view.subWidth * xScaleFactor * abs(scalarX);
+    double scaledHeight = view.subHeight * yScaleFactor * abs(scalarY);
+
+    if (scalarX < 0)
+        x-= scaledWidth;
+    if (scalarY < 0)
+        y -= scaledHeight;
+
+    SDL_Rect sourceRectangle = {view.x, view.y, view.subWidth, view.subHeight};
+    SDL_Rect destinationRectangle = {roundf(x - (offsetX * scalarX)), roundf(y - (offsetY * (scalarY))), scaledWidth,  scaledHeight};
 
     this->Flip(scalarX, scalarY);
 
-    if (scalarX < 0)
-        x -= (quad.w * abs(scalarX));
-    else if (scalarY < 0)
-        y -= (quad.h * abs(scalarY));
-    else if (scalarX < 0 and scalarY < 0)
-    {
-        x -= (quad.w * abs(scalarX));
-        y -= (quad.h * abs(scalarY));
-    }
+    SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
+    SDL_SetTextureAlphaMod(texture, color.a);
 
-    int scaledWidth = (int)(view.subWidth * abs(scalarX));
-    int scaledHeight = (int)(view.subHeight * abs(scalarY));
+    SDL_Point center = {offsetX * scalarX, offsetY * scalarY};
 
-    SDL_Rect position =
-    {
-        (int)x,
-        (int)y,
-        scaledWidth,
-        scaledHeight
-    };
-
-    SDL_Point center = {0, 0};
-
-    if (texture != NULL)
-    {
-        SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
-        SDL_SetTextureAlphaMod(texture, color.a);
-
-        SDL_RenderCopyEx(Window::GetRenderer(), texture, &quad, &position, rotation, &center, this->flip);
-    }
+    SDL_RenderCopyEx(Window::GetRenderer(), texture, &sourceRectangle, &destinationRectangle, rotation, &center, this->flip);
 }
 
 void Drawable::Flip(double scalarX, double scalarY)

@@ -5,7 +5,7 @@ class Drawable : public Object
         Drawable() {};
         ~Drawable();
 
-        void Draw(SDL_Texture * texture, Viewport viewport, double x, double y, double rotation, double scalarX, double scalarY, SDL_Color color);
+        void Draw(SDL_Texture * texture, Viewport viewport, double x, double y, double rotation, double offsetX, double offsetY, double scalarX, double scalarY, SDL_Color color);
 
         int GetWidth();
         int GetHeight();
