@@ -48,19 +48,6 @@ int gamepadGetAxis(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    int axis = luaL_checknumber(L, 2);
-
-    float value = self->GetAxis(axis);
-
-    lua_pushnumber(L, value);
-
-    return 1;
-}
-
-int gamepadGetGamepadAxis(lua_State * L)
-{
-    Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
-
     string axis = luaL_checkstring(L, 2);
 
     float value = self->GetGamepadAxis(axis);
@@ -178,6 +165,7 @@ int initGamepadClass(lua_State * L)
         { "isDown",               gamepadIsDown               },
         { "isGamepadDown",        gamepadIsGamepadDown        },
         { "isVibrationSupported", gamepadIsVibrationSupported },
+        { "getGamepadAxis",       gamepadGetAxis },
         { "setLayout",            gamepadSetLayout            },
         { "setVibration",         gamepadSetVibration         },
         { 0, 0 },
