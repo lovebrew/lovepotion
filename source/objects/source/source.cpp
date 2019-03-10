@@ -17,7 +17,16 @@ Source::Source(const char * path, const string & type) : Object("Source")
 
 Source::~Source()
 {
-    this->Stop();
+    if (!this->stream)
+    {
+        Mix_FreeChunk(this->sound);
+        this->sound = NULL;
+    }
+    else
+    {
+        Mix_FreeMusic(this->music);
+        this->music = NULL;
+    }
 }
 
 bool Source::IsPlaying()

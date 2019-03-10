@@ -98,8 +98,7 @@ int sourceGC(lua_State * L)
 {
     Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    if (!self->IsPlaying())
-        self->~Source();
+    self->~Source();
 
     return 0;
 }
