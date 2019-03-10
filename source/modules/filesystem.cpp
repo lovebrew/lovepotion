@@ -71,7 +71,7 @@ int Filesystem::Read(lua_State * L)
     size = ftell(fileHandle);
     rewind(fileHandle);
 
-    buffer = (char *)malloc(size * sizeof(char));
+    buffer = (char *)malloc(size + 1);
 
     fread(buffer, 1, size, fileHandle);
 
