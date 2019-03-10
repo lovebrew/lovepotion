@@ -73,7 +73,7 @@ int Love::Initialize(lua_State * L)
         { "_nogame",       NoGame     },
         { "getVersion",    GetVersion },
         { "run",           Run        },
-        { "quit",          Quit       }
+        { "quit",          Quit       },
         { 0, 0 }
     };
 
