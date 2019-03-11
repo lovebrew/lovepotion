@@ -51,10 +51,7 @@ bool File::Open(const char * mode)
     this->fileHandle = fopen(this->path, mode);
 
     if (!this->fileHandle)
-    {
-        fclose(this->fileHandle);
         return false;
-    }
 
     this->mode = strdup(mode);
     this->open = true;

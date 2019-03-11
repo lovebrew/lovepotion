@@ -62,16 +62,19 @@ int Filesystem::Read(lua_State * L)
     FILE * fileHandle = fopen(path.c_str(), "rb");
 
     if (!fileHandle)
-    {
-        fclose(fileHandle);
         return 0;
-    }
 
     fseek(fileHandle, 0, SEEK_END);
     size = ftell(fileHandle);
     rewind(fileHandle);
 
     buffer = (char *)malloc(size + 1);
+
+    if (!buffer)
+    {
+        fclose(fileHandle);
+        return 0;
+    }
 
     fread(buffer, 1, size, fileHandle);
 
