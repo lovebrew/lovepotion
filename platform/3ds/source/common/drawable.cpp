@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include "common/drawable.h"
+#include "modules/graphics.h"
 
 Drawable::Drawable(const string & type) : Object(type) {}
 
@@ -157,17 +158,19 @@ void Drawable::LoadImage(u32 * buffer)
 
     delete[] buffer;
 
-    C3D_TexSetFilter(this->image.tex, GPU_LINEAR, GPU_LINEAR);
+    C3D_TexSetFilter(this->image.tex, magFilter, minFilter);
     this->image.tex->border = 0x00FFFFFF;
     C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 
 void Drawable::Draw(float x, float y, float rotation, float scalarX, float scalarY, Color color)
 {
+    C2D_AlphaImageTint(&imageTint, color.a);
+
     if (rotation == 0)
-        C2D_DrawImageAt(this->image, x, y, 0.5, nullptr, scalarX, scalarY);
+        C2D_DrawImageAt(this->image, x, y, 0.5, &imageTint, scalarX, scalarY);
     else
-        C2D_DrawImageAtRotated(this->image, x, y, 0.5f, rotation, nullptr, scalarX, scalarY);
+        C2D_DrawImageAtRotated(this->image, x, y, 0.5f, rotation, &imageTint, scalarX, scalarY);
 }
 
 int Drawable::GetWidth()

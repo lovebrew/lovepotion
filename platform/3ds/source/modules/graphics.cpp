@@ -30,6 +30,9 @@ float currentDepth = 0;
 vector<StackMatrix> transformStack;
 bool STACK_PUSHED = false;
 
+GPU_TEXTURE_FILTER_PARAM minFilter;
+GPU_TEXTURE_FILTER_PARAM magFilter;
+
 static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY) // rotate, scale, and translate coords.
 {
     if (transformStack.empty())
@@ -92,6 +95,9 @@ void Graphics::Initialize()
     transformStack.emplace_back(stack);
 
     STACK_PUSHED = false;
+
+    minFilter = GPU_LINEAR;
+    magFilter = GPU_LINEAR;
 }
 
 //Löve2D Functions
@@ -241,11 +247,10 @@ int Graphics::SetScreen(lua_State * L)
 {
     string screen = luaL_checkstring(L, 1);
 
-    gfxScreen_t switchScreen = GFX_TOP;
-    if (screen == "bottom")
-        switchScreen = GFX_BOTTOM;
-
-    currentScreen = switchScreen;
+    if (screen == "top")
+        currentScreen = GFX_TOP;
+    else if (screen == "bottom")
+        currentScreen = GFX_BOTTOM;
 
     return 0;
 }
@@ -292,6 +297,24 @@ int Graphics::GetRendererInfo(lua_State * L)
     return 4;
 }
 
+int Graphics::SetDefaultFilter(lua_State * L)
+{
+    string min = luaL_checkstring(L, 1);
+    string mag = luaL_checkstring(L, 2);
+
+    if (min == "linear")
+        minFilter = GPU_LINEAR;
+    else if (min == "nearest")
+        minFilter =  GPU_NEAREST;
+
+    if (mag == "linear")
+        magFilter = GPU_LINEAR;
+    else if (mag == "nearest")
+        magFilter =  GPU_NEAREST;
+
+    return 0;
+}
+
 //love.graphics.setBackgroundColor
 int Graphics::SetBackgroundColor(lua_State * L)
 {
@@ -299,18 +322,18 @@ int Graphics::SetBackgroundColor(lua_State * L)
 
     if (lua_isnumber(L, 1))
     {
-        r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-        g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-        b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+        r = clamp(0, luaL_checknumber(L, 1), 1);
+        g = clamp(0, luaL_checknumber(L, 2), 1);
+        b = clamp(0, luaL_checknumber(L, 3), 1);
     }
     else if (lua_istable(L, 1))
     {
-        for (int i = 1; i <= 4; i++)
+        for (int i = 1; i <= 3; i++)
             lua_rawgeti(L, 1, i);
 
-        r = clamp(0, luaL_optnumber(L, -4, 0), 1);
-        g = clamp(0, luaL_optnumber(L, -3, 0), 1);
-        b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+        r = clamp(0, luaL_checknumber(L, -3), 1);
+        g = clamp(0, luaL_checknumber(L, -2), 1);
+        b = clamp(0, luaL_checknumber(L, -1), 1);
     }
 
     backgroundColor.r = r;
@@ -327,9 +350,9 @@ int Graphics::SetColor(lua_State * L)
 
     if (lua_isnumber(L, 1))
     {
-        r = clamp(0, luaL_optnumber(L, 1, 0), 1);
-        g = clamp(0, luaL_optnumber(L, 2, 0), 1);
-        b = clamp(0, luaL_optnumber(L, 3, 0), 1);
+        r = clamp(0, luaL_checknumber(L, 1), 1);
+        g = clamp(0, luaL_checknumber(L, 2), 1);
+        b = clamp(0, luaL_checknumber(L, 3), 1);
         a = clamp(0, luaL_optnumber(L, 4, 1), 1);
     }
     else if (lua_istable(L, 1))
@@ -337,9 +360,9 @@ int Graphics::SetColor(lua_State * L)
         for (int i = 1; i <= 4; i++)
             lua_rawgeti(L, 1, i);
 
-        r = clamp(0, luaL_optnumber(L, -4, 0), 1);
-        g = clamp(0, luaL_optnumber(L, -3, 0), 1);
-        b = clamp(0, luaL_optnumber(L, -2, 0), 1);
+        r = clamp(0, luaL_checknumber(L, -4), 1);
+        g = clamp(0, luaL_checknumber(L, -3), 1);
+        b = clamp(0, luaL_checknumber(L, -2), 1);
         a = clamp(0, luaL_optnumber(L, -1, 1), 1);
     }
 
@@ -370,25 +393,28 @@ int Graphics::Clear(lua_State * L)
 int Graphics::SetScissor(lua_State * L)
 {
     int args = lua_gettop(L);
-    GPU_SCISSORMODE mode = GPU_SCISSOR_DISABLE;
-    
-    if (args > 0)
-        mode = GPU_SCISSOR_NORMAL;
 
     float x      = luaL_optnumber(L, 1, 0);
     float y      = luaL_optnumber(L, 2, 0);
     float width  = luaL_optnumber(L, 3, 0);
     float height = luaL_optnumber(L, 4, 0);
 
-    if (width < 0 || height < 0)
-        luaL_error(L, "Scissor cannot have negative width or height.");
-
-    float screenWidth = 400;
-    if (currentScreen == GFX_BOTTOM)
-        screenWidth = 320;
-
     if (currentScreen == renderScreen)
+    {
+        if (width < 0 || height < 0)
+            luaL_error(L, "Scissor cannot have negative width or height.");
+
+        GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
+        if (args == 0) 
+            mode = GPU_SCISSOR_DISABLE;
+
+        float screenWidth = 400.0f;
+        if (currentScreen == GFX_BOTTOM)
+            screenWidth = 320.0f;
+
+        C2D_Flush();
         C3D_SetScissor(mode, 240 - (y + height), screenWidth - (x + width), 240 - y, screenWidth - x);
+    }
 
     return 0;
 }
@@ -543,7 +569,7 @@ int Graphics::Register(lua_State * L)
         { "setDepth",           SetDepth           },
         { "setScissor",         SetScissor         },
         { "circle",             Circle             },
-        //{ "setDefaultFilter",   SetDefaultFilter   },
+        { "setDefaultFilter",   SetDefaultFilter   },
         { "getRendererInfo",    GetRendererInfo    },
         { "setFont",            SetFont            },
         { "setScreen",          SetScreen          },

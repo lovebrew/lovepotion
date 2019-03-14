@@ -21,4 +21,5 @@ class Drawable : public Object
 
         C2D_Image image;
         Tex3DS_SubTexture subTexture;
+        C2D_ImageTint imageTint;
 };

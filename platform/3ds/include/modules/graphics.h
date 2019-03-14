@@ -24,6 +24,7 @@ namespace Graphics
 
     int SetBackgroundColor(lua_State * L);
     int SetColor(lua_State * L);
+    int SetDefaultFilter(lua_State * L);
 
     int GetWidth(lua_State * L);
     int GetHeight(lua_State * L);
@@ -54,3 +55,6 @@ namespace Graphics
 
     void Exit();
 }
+
+extern GPU_TEXTURE_FILTER_PARAM minFilter;
+extern GPU_TEXTURE_FILTER_PARAM magFilter;
