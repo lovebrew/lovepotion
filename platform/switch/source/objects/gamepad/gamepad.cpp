@@ -25,7 +25,7 @@ Gamepad::Gamepad() : Object("Joystick")
 
     this->vibrationDuration = -1;
 
-    this->layout = "dual";
+    this->split = false;
 
     SDL_Joystick * joystick = SDL_JoystickOpen(this->id);
     this->joysticks.first = joystick;
@@ -39,11 +39,11 @@ Gamepad::Gamepad() : Object("Joystick")
 
 Gamepad::~Gamepad()
 {
-    /*string name = this->GetName();
+    string name = this->GetName();
 
     hidStopSixAxisSensor(this->sixAxisHandles[0]);
     if (name == "Joy-Con Pair")
-        hidStopSixAxisSensor(this->sixAxisHandles[1]);*/
+        hidStopSixAxisSensor(this->sixAxisHandles[1]);
 }
 
 void Gamepad::InitializeVibration()
@@ -101,7 +101,7 @@ bool Gamepad::IsConnected()
 HidControllerID Gamepad::GetInternalID()
 {
     if (this->id == 0)
-        return CONTROLLER_IDS[9];
+        return CONTROLLER_IDS[8];
 
     return CONTROLLER_IDS[this->id];
 }
@@ -162,8 +162,6 @@ string Gamepad::GetName()
     {
         case TYPE_PROCONTROLLER:
             return "Pro Controller";
-        case TYPE_HANDHELD:
-            return "Handheld";
         case TYPE_JOYCON_PAIR:
             return "Joy-Con";
         case TYPE_JOYCON_LEFT:
@@ -171,7 +169,7 @@ string Gamepad::GetName()
         case TYPE_JOYCON_RIGHT:
             return "Right Joy-Con";
         default: //this shouldn't happen
-            return "nil";
+            return "Handheld";
     }
 }
 
@@ -189,7 +187,7 @@ void Gamepad::SetLayout(const string & mode, const string & holdType)
 
     this->joysticks = std::make_pair(nullptr, nullptr);
 
-    if (this->layout == "dual" && mode == "single")
+    if (!this->split && mode == "single")
     {
         for (auto item : this->joycon)
             hidSetNpadJoyAssignmentModeSingleByDefault(item);
@@ -199,7 +197,7 @@ void Gamepad::SetLayout(const string & mode, const string & holdType)
 
         //hidSetNpadJoyHoldType(HidJoyHoldType_Horizontal);
     }
-    else if (this->layout == "single" && mode == "dual")
+    else if (this->split && mode == "dual")
     {
         for (auto item : this->joycon)
             hidSetNpadJoyAssignmentModeDual(item);
@@ -209,15 +207,10 @@ void Gamepad::SetLayout(const string & mode, const string & holdType)
         this->joysticks.first = SDL_JoystickOpen(this->id);
         this->joysticks.second = nullptr;
 
-        hidSetNpadJoyHoldType(HidJoyHoldType_Default);
+        //hidSetNpadJoyHoldType(HidJoyHoldType_Default);
     }
 
-    this->layout = mode;
-}
-
-string Gamepad::GetLayout()
-{
-    return this->layout;
+    this->split = (mode == "single");
 }
 
 bool Gamepad::IsDown(uint button)
@@ -231,10 +224,13 @@ bool Gamepad::IsGamepadDown(const string & button)
 
     for (uint buttonIndex = 0; buttonIndex < KEYS.size(); buttonIndex++)
     {
-        padDown = SDL_JoystickGetButton(this->joysticks.first, buttonIndex);
+        if (KEYS[buttonIndex] != "")
+        {
+            padDown = SDL_JoystickGetButton(this->joysticks.first, buttonIndex);
 
-        if (KEYS[buttonIndex] == button)
-            break;
+            if (KEYS[buttonIndex] == button)
+                break;
+        }
     }
 
     return padDown;

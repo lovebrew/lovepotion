@@ -38,7 +38,7 @@ class Gamepad : public Object
         void InitializeVibration();
 
         int id;
-        std::string layout;
+        bool split;
 
         std::array<HidControllerID, 2> joycon;
         std::pair<SDL_Joystick *, SDL_Joystick *> joysticks;
