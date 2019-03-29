@@ -227,6 +227,8 @@ bool Gamepad::IsGamepadDown(const string & button)
         if (KEYS[buttonIndex] != "")
         {
             padDown = SDL_JoystickGetButton(this->joysticks.first, buttonIndex);
+            if (this->split && !padDown)
+                padDown = SDL_JoystickGetButton(this->joysticks.second, buttonIndex);
 
             if (KEYS[buttonIndex] == button)
                 break;

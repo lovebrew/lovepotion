@@ -38,7 +38,7 @@ Font::Font(int size) : Drawable("Font")
     this->texture = NULL;
 }
 
-void Font::Print(const char * text, double x, double y, double rotation, float limit, double scalarX, double scalarY, SDL_Color color)
+void Font::Print(const char * text, float x, float y, float rotation, float limit, float offsetX, float offsetY, float scalarX, float scalarY, SDL_Color color)
 {
     if (strlen(text) == 0)
         return;
