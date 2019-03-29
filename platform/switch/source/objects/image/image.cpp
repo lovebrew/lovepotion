@@ -34,6 +34,7 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     //SDL_SetSurfaceBlendMode(this->surface, SDL_BLENDMODE_BLEND);
 
     this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
 
     this->width = tempSurface->w;
     this->height = tempSurface->h;

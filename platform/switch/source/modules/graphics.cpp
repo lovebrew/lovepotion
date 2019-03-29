@@ -302,13 +302,10 @@ int Graphics::Print(lua_State * L)
 
     rotation *= 180 / M_PI;
 
-    x -= offsetX;
-    y -= offsetY;
-
     if (currentFont == NULL)
         return 0;
 
-    currentFont->Print(text, x, y, rotation, 1280, scalarX, scalarY, drawColor);
+    currentFont->Print(text, x, y, rotation, 1280, offsetX, offsetY, scalarX, scalarY, drawColor);
 
     return 0;
 }
@@ -348,7 +345,7 @@ int Graphics::Printf(lua_State * L)
     else if (align == "right")
         x += limit;
 
-    currentFont->Print(text, x, y, rotation, limit, scalarX, scalarY, drawColor);
+    currentFont->Print(text, x, y, rotation, limit, offsetX, offsetY, scalarX, scalarY, drawColor);
 
     return 0;
 }

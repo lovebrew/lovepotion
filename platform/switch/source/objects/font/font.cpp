@@ -44,7 +44,10 @@ void Font::Print(const char * text, double x, double y, double rotation, float l
         return;
 
     SDL_Surface * tempSurface = TTF_RenderUTF8_Blended_Wrapped(this->font, text, color, limit);
-    texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    
+    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
+
     SDL_FreeSurface(tempSurface);
 
     int width, height = 0;
@@ -52,7 +55,7 @@ void Font::Print(const char * text, double x, double y, double rotation, float l
 
     Viewport viewport = {0, 0, width, height, width, height};
 
-    Drawable::Draw(texture, viewport, x, y, rotation, 0, 0, scalarX, scalarY, color);
+    Drawable::Draw(texture, viewport, x, y, rotation, offsetX, offsetY, scalarX, scalarY, color);
 
     SDL_DestroyTexture(texture);
 }
