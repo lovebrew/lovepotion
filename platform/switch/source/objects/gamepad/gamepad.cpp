@@ -192,8 +192,7 @@ void Gamepad::SetLayout(const string & mode, const string & holdType)
         for (auto item : this->joycon)
             hidSetNpadJoyAssignmentModeSingleByDefault(item);
 
-        this->joysticks.first = SDL_JoystickOpen(this->id);
-        this->joysticks.second = SDL_JoystickOpen(this->id + 1);
+        this->joysticks = std::make_pair(SDL_JoystickOpen(this->id), SDL_JoystickOpen(this->id + 1));
 
         //hidSetNpadJoyHoldType(HidJoyHoldType_Horizontal);
     }
@@ -204,8 +203,7 @@ void Gamepad::SetLayout(const string & mode, const string & holdType)
 
         hidMergeSingleJoyAsDualJoy(this->joycon[0], this->joycon[1]);
 
-        this->joysticks.first = SDL_JoystickOpen(this->id);
-        this->joysticks.second = nullptr;
+        this->joysticks = std::make_pair(SDL_JoystickOpen(this->id), nullptr);
 
         //hidSetNpadJoyHoldType(HidJoyHoldType_Default);
     }
@@ -221,14 +219,21 @@ bool Gamepad::IsDown(uint button)
 bool Gamepad::IsGamepadDown(const string & button)
 {
     bool padDown = false;
-
+    LOG("%s: %s\n", "isGamepadDown", button.c_str());
+    
     for (uint buttonIndex = 0; buttonIndex < KEYS.size(); buttonIndex++)
     {
         if (KEYS[buttonIndex] != "")
         {
             padDown = SDL_JoystickGetButton(this->joysticks.first, buttonIndex);
+            LOG("Button %s Down %u\n", KEYS[buttonIndex].c_str(), padDown);
+            
             if (this->split && !padDown)
+            {
                 padDown = SDL_JoystickGetButton(this->joysticks.second, buttonIndex);
+            
+                LOG("Checking Second Controller -- Button %s Down %u\n", KEYS[buttonIndex].c_str(), padDown);
+            }
 
             if (KEYS[buttonIndex] == button)
                 break;
