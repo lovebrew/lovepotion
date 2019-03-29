@@ -16,6 +16,11 @@ std::vector<string> KEYS =
     "cpadright", "cpadleft", "cpadup", "cpaddown"
 };
 
+std::vector<std::string> GAMEPAD_AXES = 
+{
+    "leftx", "lefty", "rightx", "righty"
+};
+
 std::map<int, std::string> REGIONS =
 {
     { CFG_REGION_AUS, "AUS" },

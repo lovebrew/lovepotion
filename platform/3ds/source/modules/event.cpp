@@ -103,9 +103,22 @@ int LoveEvent::PollEvent(lua_State * L)
         }
     }
 
-    for (uint i = 0; i < 11; i++)
+    for (uint i = 0; i < 4; i++)
     {
         love_getfield(L, "gamepadaxis");
+        if (!lua_isnil(L, -1))
+        {
+            love_push_userdata(L, controllers[0]);
+            lua_pushstring(L, GAMEPAD_AXES[i].c_str());
+            lua_pushnumber(L, controllers[0]->GetAxis(i + 1));
+
+            lua_call(L, 3, 0);
+        }
+    }
+
+    for (uint i = 4; i < 11; i++)
+    {
+        love_getfield(L, "joystickaxis");
         if (!lua_isnil(L, -1))
         {
             love_push_userdata(L, controllers[0]);

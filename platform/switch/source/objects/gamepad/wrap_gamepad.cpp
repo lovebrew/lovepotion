@@ -8,19 +8,19 @@
 
 vector<Gamepad *> controllers;
 
-int gamepadNew(lua_State * L, int id)
+int gamepadNew(lua_State * L)
 {
     void * raw_self = luaobj_newudata(L, sizeof(Gamepad));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    Gamepad * self = new (raw_self) Gamepad(id);
+    Gamepad * self = new (raw_self) Gamepad();
 
     love_register(L, 2, self);
 
     controllers.push_back(self);
 
-    return 0;
+    return 1;
 }
 
 //Gamepad:getID
@@ -48,6 +48,21 @@ int gamepadGetAxis(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
+    uint axis = luaL_checkinteger(L, 2);
+    axis = clamp(0, axis - 1, 12);
+
+    float value = self->GetAxis(axis);
+
+    lua_pushnumber(L, value);
+
+    return 1;
+}
+
+//Gamepad:getGamepadAxis
+int gamepadGetGamepadAxis(lua_State * L)
+{
+    Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
     string axis = luaL_checkstring(L, 2);
 
     float value = self->GetGamepadAxis(axis);
@@ -56,6 +71,7 @@ int gamepadGetAxis(lua_State * L)
 
     return 1;
 }
+
 
 //Gamepad:getButtonCount
 int gamepadGetButtonCount(lua_State * L)
@@ -73,6 +89,18 @@ int gamepadGetName(lua_State * L)
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     lua_pushstring(L, self->GetName().c_str());
+
+    return 1;
+}
+
+//Gamepad:isDown
+int gamepadIsDown(lua_State * L)
+{
+    Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    int button = luaL_checkinteger(L, 2);
+
+    lua_pushboolean(L, self->IsDown(button));
 
     return 1;
 }
@@ -100,18 +128,6 @@ int gamepadSetLayout(lua_State * L)
     self->SetLayout(layout, holdType);
 
     return 0;
-}
-
-//Gamepad:isDown
-int gamepadIsDown(lua_State * L)
-{
-    Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
-
-    int button = luaL_checkinteger(L, 2);
-
-    lua_pushboolean(L, self->IsDown(button));
-
-    return 1;
 }
 
 //Gamepad:setVibration
@@ -150,6 +166,10 @@ int gamepadToString(lua_State * L)
 
 int gamepadGC(lua_State * L)
 {
+    Gamepad * self = (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    self->~Gamepad();
+
     return 0;
 }
 
@@ -160,18 +180,19 @@ int initGamepadClass(lua_State * L)
         { "__gc",                 gamepadGC                   },
         { "__tostring",           gamepadToString             },
         { "getAxis",              gamepadGetAxis              },
+        { "getGamepadAxis",       gamepadGetGamepadAxis       },
         { "getID",                gamepadGetID                },
         { "getName",              gamepadGetName              },
         { "isDown",               gamepadIsDown               },
         { "isGamepadDown",        gamepadIsGamepadDown        },
         { "isVibrationSupported", gamepadIsVibrationSupported },
-        { "getGamepadAxis",       gamepadGetAxis },
         { "setLayout",            gamepadSetLayout            },
         { "setVibration",         gamepadSetVibration         },
-        { 0, 0 },
+        { "new",                  gamepadNew                  },
+        { 0, 0 }
     };
 
-    luaobj_newclass(L, CLASS_NAME, NULL, NULL, reg);
+    luaobj_newclass(L, CLASS_NAME, NULL, gamepadNew, reg);
 
     return 1;
 }

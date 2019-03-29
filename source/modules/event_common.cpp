@@ -17,6 +17,8 @@ int LoveEvent::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
+        { "poll", Poll },
+        { "pump", Pump },
         { "quit", Quit },
         { 0, 0 }
     };

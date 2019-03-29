@@ -5,9 +5,11 @@
 
 #pragma once
 
+extern std::queue<std::map<std::string, std::vector<Variant>>> poll_queue;
+
 namespace LoveEvent
 {
-    int PollEvent(lua_State * L);
+    int Pump(lua_State * L);
 
     //Löve2D Functions
 

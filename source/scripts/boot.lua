@@ -35,11 +35,11 @@ package.cpath = './?.lua;./?/init.lua'
 
     Go nuts.
 --]]
-local config = 
+local config =
 {
     identity = "SuperGame",
     appendidentity = false,
-    
+
     version = "1.0.0",
     console = false,
     accelerometerjoystick = true,
@@ -78,13 +78,13 @@ local config =
     {
         title = "Untitled",
         icon = nil,
-        
+
         width = 1280,
         height = 720,
-        
+
         borderless = false,
         resizable = false,
-        
+
         minwidth = 1,
         minheight = 1,
 
@@ -126,48 +126,48 @@ function love.createhandlers()
             end
         end,
         keypressed = function (key)
-            if love.keypressed then 
-                return love.keypressed(key) 
+            if love.keypressed then
+                return love.keypressed(key)
             end
         end,
         keyreleased = function (key)
-            if love.keyreleased then 
-                return love.keyreleased(key) 
+            if love.keyreleased then
+                return love.keyreleased(key)
             end
         end,
         mousemoved = function (x,y,dx,dy,t)
-            if love.mousemoved then 
-                return love.mousemoved(x,y,dx,dy,t) 
+            if love.mousemoved then
+                return love.mousemoved(x,y,dx,dy,t)
             end
         end,
         mousepressed = function (x, y, button)
-            if love.mousepressed then 
-                return love.mousepressed(x, y, button) 
+            if love.mousepressed then
+                return love.mousepressed(x, y, button)
             end
         end,
         mousereleased = function (x, y, button)
-            if love.mousereleased then 
+            if love.mousereleased then
                 return love.mousereleased(x, y, button)
             end
         end,
         joystickpressed = function (joystick, button)
-            if love.joystickpressed then 
+            if love.joystickpressed then
                 return love.joystickpressed(joystick, button)
             end
         end,
         joystickreleased = function (joystick, button)
-            if love.joystickreleased then 
+            if love.joystickreleased then
                 return love.joystickreleased(joystick, button)
             end
         end,
         joystickaxis = function (joystick, axis, value)
-            if love.joystickaxis then 
+            if love.joystickaxis then
                 return love.joystickaxis(joystick, axis, value)
             end
         end,
         joystickhat = function (joystick, hat, value)
-            if love.joystickhat then 
-                return love.joystickhat(joystick, hat, value) 
+            if love.joystickhat then
+                return love.joystickhat(joystick, hat, value)
             end
         end,
         joystickadded = function(joystick)
@@ -181,33 +181,33 @@ function love.createhandlers()
             end
         end,
         gamepadpressed = function (joystick, button)
-            if love.gamepadpressed then 
+            if love.gamepadpressed then
                 return love.gamepadpressed(joystick, button)
             end
         end,
         gamepadreleased = function (joystick, button)
-            if love.gamepadreleased then 
+            if love.gamepadreleased then
                 return love.gamepadreleased(joystick, button)
             end
         end,
         gamepadaxis = function (joystick, axis, value)
-            if love.gamepadaxis then 
+            if love.gamepadaxis then
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
         textinput = function(text)
-            if love.textinput then 
-                return love.textinput(text) 
+            if love.textinput then
+                return love.textinput(text)
             end
         end,
         focus = function (focus)
-            if love.focus then 
-                return love.focus(focus) 
+            if love.focus then
+                return love.focus(focus)
             end
         end,
         visible = function (visible)
-            if love.visible then 
-                return love.visible(visible) 
+            if love.visible then
+                return love.visible(visible)
             end
         end,
         quit = function ()
@@ -242,39 +242,39 @@ function love.errhand(message)
     local major, minor, rev = love.getVersion()
 
     table.insert(err, message .. "\n")
-    
+
     love.audio.stop()
 
     local trace = debug.traceback()
-    
+
     for l in trace:gmatch("(.-)\n") do
         if not l:match("boot.lua") then
             l = l:gsub("stack traceback:", "Traceback\n")
             table.insert(err, l)
         end
     end
-    
+
     local realError = table.concat(err, "\n")
     realError = realError:gsub("\t", "")
     realError = realError:gsub("%[string \"(.-)\"%]", "%1")
-    
+
     local copy = err
     table.insert(copy, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
-    
+
     local dateTime = os.date("%c")
     table.insert(copy, "\nDate and Time: " .. dateTime)
     table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
 
     local fullError = table.concat(err, "\n")
     love.filesystem.write("log.txt", fullError)
-    
+
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
-    
+
     local headerSize, buttonSize = 30, 15
     if love._os[2] == "Switch" then
-        headerFont, buttonSize = 32, 24
+        headerFont, buttonSize = 96, 24
     end
-    
+
     local headerFont = love.graphics.newFont(headerSize)
     local buttonFont = love.graphics.newFont(buttonSize)
 
@@ -288,7 +288,7 @@ function love.errhand(message)
     local width = love.graphics.getWidth()
     local height = love.graphics.getHeight()
 
-    local button_position = (height * 0.85) + 14
+    --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2) 
 
     local function draw()
         love.graphics.clear()
@@ -296,20 +296,19 @@ function love.errhand(message)
         love.graphics.draw(error_img, 40, (height * 0.15) / 2 - error_img:getHeight() / 2)
 
         love.graphics.setColor(1, 1, 1, 1)
-        
+
         love.graphics.setFont(headerFont)
-        love.graphics.print("Lua Error", 72, (height * 0.15) / 2 - headerFont:getHeight() / 2)
-        
+        love.graphics.print("Lua Error", 40 + error_img:getWidth() + 16, ((height * 0.15) / 2 - headerFont:getHeight() / 2))
+
         love.graphics.rectangle("fill", 30, height * 0.15, width - 60, 2)
 
         love.graphics.setFont(buttonFont)
         love.graphics.print(realError, 40, height * 0.20)
 
-        love.graphics.rectangle("fill", 30, height * 0.85, width - 60, 2)
+        love.graphics.rectangle("fill", 30, height * 0.90, width - 60, 2)
 
-        
-        love.graphics.draw(start_img, width * 0.75, button_position)
-        love.graphics.print("Quit", width * 0.80, button_position)
+        love.graphics.draw(start_img, width * 0.87, (height * 0.95) - start_img:getHeight() / 2)
+        love.graphics.print("Quit", (width * 0.87) + start_img:getWidth() + 12, (height * 0.95) - buttonFont:getHeight() / 2)
 
         love.graphics.present()
 
@@ -326,28 +325,16 @@ function love.errhand(message)
         quit_string = "plus"
     end
 
-    if love._os[2] == "3DS" then
-        love.draw = function()
-            draw()
-        end
+    love.draw = function()
+        draw()
+    end
 
-        love.gamepadpressed = function(joy, button)
-            if button == quit_string then
-                love.event.quit()
-            end
-        end
-    else
-        while true do
-            draw()
-
-            if joystick:isGamepadDown(quit_string) then
-                love.event.quit()
-            end
-
-            love.timer.sleep(0.1)
+    love.gamepadpressed = function(joy, button)
+        if button == quit_string then
+            love.event.quit()
         end
     end
-end 
+end
 
 local function pseudoRequireConf()
     return require('conf')

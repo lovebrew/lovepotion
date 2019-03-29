@@ -10,7 +10,7 @@ void Joystick::Initialize(lua_State * L)
         SDL_InitSubSystem(SDL_INIT_JOYSTICK);
     #endif
 
-    gamepadNew(L, 0);
+    gamepadNew(L);
 }
 
 Gamepad * Joystick::GetJoystickFromID(uint id)

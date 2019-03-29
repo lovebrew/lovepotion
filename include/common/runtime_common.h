@@ -51,3 +51,6 @@ extern "C"
 using std::string;
 using std::vector;
 using std::map;
+using std::queue;
+using std::max;
+using std::min;

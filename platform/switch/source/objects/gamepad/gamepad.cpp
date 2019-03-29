@@ -1,35 +1,84 @@
 #include "common/runtime.h"
 #include "objects/gamepad/gamepad.h"
 
-Gamepad::Gamepad(int id) : Object("Joystick")
+map<string, map<string, int>> HANDLE_COUNT = 
 {
-    this->id = id;
+    { "Joy-Con Pair", { 
+        { "Vibration", 2 },
+        { "SixAxis",   2 }
+    }},
 
-    HidControllerType type = (HidControllerType)(TYPE_HANDHELD | TYPE_JOYCON_PAIR);
-    
-    //joycon pairing
-    hidInitializeVibrationDevices(this->vibrationHandles[0], 2, (HidControllerID)id, type);
+    { "Pro Controller", {
+        { "Vibration", 1 },
+        { "SixAxis",   1 }
+    }},
 
-    //handheld mode
-    //using hidGetHandheldMode as the index makes it easier to code this
-    hidInitializeVibrationDevices(this->vibrationHandles[1], 2, CONTROLLER_HANDHELD, type);
+    { "Handheld", {
+        { "Vibration", 2 },
+        { "SixAxis",   1 }
+    }}
+};
 
-    memset(this->vibration, 0, sizeof(this->vibration));
+Gamepad::Gamepad() : Object("Joystick")
+{
+    this->id = 0;
 
     this->vibrationDuration = -1;
 
     this->layout = "dual";
 
-    SDL_Joystick * joystick = SDL_JoystickOpen(id);
+    SDL_Joystick * joystick = SDL_JoystickOpen(this->id);
     this->joysticks.first = joystick;
     this->joysticks.second = nullptr;
 
-    this->joycon = {CONTROLLER_IDS[id], CONTROLLER_IDS[id + 1]};
+    this->joycon = {CONTROLLER_IDS[this->id], CONTROLLER_IDS[this->id + 1]};
+
+    this->InitializeVibration();
+    this->InitializeSixAxis();
+}
+
+Gamepad::~Gamepad()
+{
+    /*string name = this->GetName();
+
+    hidStopSixAxisSensor(this->sixAxisHandles[0]);
+    if (name == "Joy-Con Pair")
+        hidStopSixAxisSensor(this->sixAxisHandles[1]);*/
+}
+
+void Gamepad::InitializeVibration()
+{
+    string name = this->GetName();
+    
+    if (name == "Joy-Con Pair")
+        hidInitializeVibrationDevices(this->vibrationHandles[0], 2, CONTROLLER_IDS[this->id], TYPE_JOYCON_PAIR);
+    else if (name == "Pro Controller")
+        hidInitializeVibrationDevices(this->vibrationHandles[0], 1, CONTROLLER_IDS[this->id], TYPE_PROCONTROLLER);
+    else if (name == "Handheld")
+        hidInitializeVibrationDevices(this->vibrationHandles[0], 2, CONTROLLER_HANDHELD, TYPE_HANDHELD);
+
+    memset(this->vibration, 0, sizeof(this->vibration));
+}
+
+void Gamepad::InitializeSixAxis()
+{
+    string name = this->GetName();
+    
+    if (name == "Joy-Con Pair")
+        hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 2, CONTROLLER_IDS[this->id], TYPE_JOYCON_PAIR);
+    else if (name == "Pro Controller")
+        hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, CONTROLLER_IDS[this->id], TYPE_PROCONTROLLER);
+    else if (name == "Handheld")
+        hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, CONTROLLER_HANDHELD, TYPE_HANDHELD);
+
+    hidStartSixAxisSensor(this->sixAxisHandles[0]);
+    if (name == "Joy-Con Pair")
+        hidStartSixAxisSensor(this->sixAxisHandles[1]);
 }
 
 int Gamepad::GetID()
 {
-    return this->id + 1;
+    return this->id;
 }
 
 void Gamepad::Update(float delta)
@@ -48,13 +97,13 @@ bool Gamepad::IsConnected()
     return true;
 }
 
+//Useful only for certain things--
 HidControllerID Gamepad::GetInternalID()
 {
-    int indentity = this->id;
     if (this->id == 0)
-        indentity = 10; //CONTROLLER_P1_AUTO
-    
-    return (HidControllerID)indentity;
+        return CONTROLLER_IDS[9];
+
+    return CONTROLLER_IDS[this->id];
 }
 
 void Gamepad::ClampAxis(float & x)
@@ -101,27 +150,26 @@ void Gamepad::SetVibration(double left, double right, double duration)
     this->SetVibrationData(rightValue, rightAmplitude);
     memcpy(&this->vibration[1], &rightValue, sizeof(HidVibrationValue));
 
-    hidSendVibrationValues(this->vibrationHandles[hidGetHandheldMode()], this->vibration, 2);
+    string name = this->GetName();
+    hidSendVibrationValues(this->vibrationHandles[0], this->vibration, HANDLE_COUNT[name]["Vibration"]);
 }
 
 string Gamepad::GetName()
 {
-    HidControllerID id = this->GetInternalID();
-
-    HidControllerLayoutType type = hidGetControllerLayout(id);
+    HidControllerType type = hidGetControllerType(CONTROLLER_IDS[this->id]);
 
     switch(type)
     {
-        case LAYOUT_PROCONTROLLER:
+        case TYPE_PROCONTROLLER:
             return "Pro Controller";
-        case LAYOUT_HANDHELD:
+        case TYPE_HANDHELD:
             return "Handheld";
-        case LAYOUT_SINGLE:
-            return "Joycon";
-        case LAYOUT_LEFT:
-            return "Left Joycon";
-        case LAYOUT_RIGHT:
-            return "Right Joycon";
+        case TYPE_JOYCON_PAIR:
+            return "Joy-Con";
+        case TYPE_JOYCON_LEFT:
+            return "Left Joy-Con";
+        case TYPE_JOYCON_RIGHT:
+            return "Right Joy-Con";
         default: //this shouldn't happen
             return "nil";
     }
@@ -174,73 +222,78 @@ string Gamepad::GetLayout()
 
 bool Gamepad::IsDown(uint button)
 {
-    hidScanInput();
-
-    u64 heldButton = hidKeysHeld(this->GetInternalID());
-    bool keyDown = false;
-
-    for (uint i = 0; i < KEYS.size(); i++)
-    {
-        if (heldButton & BIT(i) && button == i)
-            keyDown = true;
-    }
-
-    return keyDown;
+    return SDL_JoystickGetButton(this->joysticks.first, button - 1);
 }
 
 bool Gamepad::IsGamepadDown(const string & button)
 {
-    hidScanInput();
+    bool padDown = false;
 
-    u64 heldButton = hidKeysHeld(this->GetInternalID());
-    bool keyDown = false;
-
-    for (uint i = 0; i < KEYS.size(); i++)
+    for (uint buttonIndex = 0; buttonIndex < KEYS.size(); buttonIndex++)
     {
-        if (KEYS[i] != "")
-        {
-            if (heldButton & BIT(i) && button == KEYS[i])
-                keyDown = true;
-        }
+        padDown = SDL_JoystickGetButton(this->joysticks.first, buttonIndex);
+
+        if (KEYS[buttonIndex] == button)
+            break;
     }
 
-    return keyDown;
+    return padDown;
 }
 
 float Gamepad::GetAxis(uint axis)
 {
-    float value = 0;
+    SixAxisSensorValues axisValues;
+    string name = this->GetName();
 
-    return value;
+    hidSixAxisSensorValuesRead(&axisValues, this->GetInternalID(), 1);
+
+    if (axis >= 4 && axis < 7)
+    {
+        if (axis == 4)
+            return axisValues.accelerometer.x;
+        else if (axis == 5)
+            return axisValues.accelerometer.y;
+        
+        return axisValues.accelerometer.z;
+    }
+    
+    if (axis >= 7 && axis < 10)
+    {
+        if (axis == 7)
+            return axisValues.gyroscope.x;
+        else if (axis == 8)
+            return axisValues.gyroscope.y;
+
+        return axisValues.gyroscope.z;
+    }
+
+    if (axis >= 10 && axis < 13)
+    {
+        if (axis == 10)
+            return axisValues.unk.x;
+        else if (axis == 11)
+            return axisValues.unk.y;
+
+        return axisValues.unk.z;
+    }
+
+    float value = SDL_JoystickGetAxis(this->joysticks.first, axis);
+
+    return value / JOYSTICK_MAX;
 }
 
 float Gamepad::GetGamepadAxis(const string & axis)
 {
-    hidScanInput();
-
-    JoystickPosition leftJoystick, rightJoystick;
-
-    hidJoystickRead(&leftJoystick, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
-    hidJoystickRead(&rightJoystick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
-
+    float value = 0;
+  
     if (axis == "leftx")
-    {
-        return (float)(leftJoystick.dx - -32766) / (32766 - -32766) * (2) + -1;
-    }
+        value = SDL_JoystickGetAxis(this->joysticks.first, 0);
     else if (axis == "lefty")
-    {
-        return -((float)(leftJoystick.dy - -32766) / (32766 - -32766) * (2) + -1);
-    }
+        value = SDL_JoystickGetAxis(this->joysticks.first, 1);
     else if (axis == "rightx")
-    {
-        return (float)(rightJoystick.dx - -32766) / (32766 - -32766) * (2) + -1;
-    }
+        value = SDL_JoystickGetAxis(this->joysticks.first, 2);
     else if (axis == "righty")
-    {
-        return -((float)(rightJoystick.dy - -32766) / (32766 - -32766) * (2) + -1);
-    }
-    else
-    {
-        return 0;
-    }
+        value = SDL_JoystickGetAxis(this->joysticks.first, 3);
+  
+    return value / JOYSTICK_MAX;
 }

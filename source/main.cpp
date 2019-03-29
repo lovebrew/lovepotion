@@ -42,6 +42,8 @@ FILE * logFile;
 
 int main(int argc, char * argv[])
 {
+    logFile = fopen("LoveDebug.txt", "w");
+
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);

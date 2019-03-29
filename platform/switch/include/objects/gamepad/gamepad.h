@@ -3,7 +3,8 @@
 class Gamepad : public Object
 {
     public:
-        Gamepad(int id);
+        Gamepad();
+        ~Gamepad();
 
         float GetAxis(uint axis);
         float GetGamepadAxis(const std::string & name);
@@ -28,10 +29,13 @@ class Gamepad : public Object
         int GetID();
 
         void ClampAxis(float & x); 
+
     private:
         HidControllerID GetInternalID();
         void SetVibrationData(HidVibrationValue & value, double amplitude);
         
+        void InitializeSixAxis();
+        void InitializeVibration();
 
         int id;
         std::string layout;
@@ -42,6 +46,9 @@ class Gamepad : public Object
         double vibrationDuration;
         u32 vibrationHandles[2][2];
         HidVibrationValue vibration[2];
+
+        u32 sixAxisHandles[2];
+
 };
 
 extern std::vector<Gamepad *> controllers;

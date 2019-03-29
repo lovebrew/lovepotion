@@ -1,6 +1,6 @@
 #pragma once
 
-int gamepadNew(lua_State * L, int id);
+int gamepadNew(lua_State * L);
 
 int gamepadGetID(lua_State * L);
 
@@ -16,11 +16,11 @@ int gamepadSetVibration(lua_State * L);
 
 int gamepadIsVibrationSupported(lua_State * L);
 
+int gamepadIsDown(lua_State * L);
+
 int gamepadIsGamepadDown(lua_State * L);
 
 int gamepadSetLayout(lua_State * L);
-
-int gamepadIsDown(lua_State * L);
 
 int gamepadToString(lua_State * L);
 

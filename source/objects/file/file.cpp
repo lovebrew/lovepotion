@@ -61,7 +61,7 @@ bool File::Open(const char * mode)
 
 void File::Write(const char * data, size_t length)
 {
-    if (!this->open || (strncmp(this->mode, "w", 1) != 0))
+    if (!this->open || (this->mode[0] != 'w'))
     {
         Love::RaiseError("Cannot write to file %s. File not open for writing.", this->path);
         return;

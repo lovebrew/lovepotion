@@ -47,7 +47,7 @@ float Gamepad::GetAxis(int axis)
         }
     }
 
-    if (axis >= 5 && axis <= 6)
+    if (axis >= 5 && axis < 8)
     {
         angularRate gyroscope;
         hidGyroRead(&gyroscope);

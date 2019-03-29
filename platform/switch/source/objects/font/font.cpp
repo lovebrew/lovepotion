@@ -64,7 +64,7 @@ Font::~Font()
 
 int Font::GetSize()
 {
-    return this->size;
+    return TTF_FontHeight(this->font);
 }
 
 int Font::GetWidth(const char * text)

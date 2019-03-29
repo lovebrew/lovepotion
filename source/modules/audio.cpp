@@ -6,11 +6,17 @@
 
 vector<bool> audioChannels(8);
 
+#if defined (_3DS)
+    #define AUDIO_RATE 44100
+#elif defined (__SWITCH__)
+    #define AUDIO_RATE 48000
+#endif
+
 void Audio::Initialize()
 {
     SDL_InitSubSystem(SDL_INIT_AUDIO);
 
-    if (Mix_OpenAudio(48000, AUDIO_S16SYS, 2, 4096) != 0)
+    if (Mix_OpenAudio(AUDIO_RATE, AUDIO_S16SYS, 2, 4096) != 0)
         Love::RaiseError("Failed to load audio!\n");
 }
 
