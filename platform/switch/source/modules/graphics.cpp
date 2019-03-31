@@ -67,6 +67,15 @@ void Graphics::Initialize()
 
 //Löve2D Functions
 
+//love.graphics.getDimensions
+int Graphics::GetDimensions(lua_State * L)
+{
+    lua_pushnumber(L, 1280);
+    lua_pushnumber(L, 720);
+
+    return 2;
+}
+
 //love.graphics.getWidth
 int Graphics::GetWidth(lua_State * L)
 {
@@ -192,24 +201,17 @@ int Graphics::Present(lua_State * L)
 //love.graphics.draw
 int Graphics::Draw(lua_State * L)
 {
-    Drawable * drawable = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+    Drawable * drawable = nullptr;
     Quad * quad = nullptr;
 
-    /*
-    ** Check if it is NULL or not
-    ** If it is, check if it's a canvas
-    ** Elsewise, .. crash
-    */
-    if (drawable == NULL)
-    {
+    if (luaobj_type(L, 1, LUAOBJ_TYPE_IMAGE))
+        drawable = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
+    else if (luaobj_type(L, 1, LUAOBJ_TYPE_CANVAS))
         drawable = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
-
-        if (drawable == NULL)
-            drawable = (Text *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_TEXT);
-
-        if (drawable == NULL)
-            return luaL_error(L, "Drawable expected, got %s", lua_tostring(L, 1));
-    }
+    else if (luaobj_type(L, 1, LUAOBJ_TYPE_TEXT))
+        drawable = (Text *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_TEXT);
+    else
+        return luaL_error(L, "bad argument #%d, %s expected, got %s.", 1, "Drawable", luax_stype(L, 1, NULL));
 
     int start = 2;
     if (!lua_isnoneornil(L, 2) && !lua_isnumber(L, 2))
@@ -758,6 +760,7 @@ int Graphics::Register(lua_State * L)
         { "draw",               Draw               },
         { "getBackgroundColor", GetBackgroundColor },
         { "getColor",           GetColor           },
+        { "getDimensions",      GetDimensions      },
         { "getFont",            GetFont            },
         { "getHeight",          GetHeight          },
         { "getLineWidth",       GetLineWidth       },
@@ -768,6 +771,7 @@ int Graphics::Register(lua_State * L)
         { "newFont",            fontNew            },
         { "newImage",           imageNew           },
         { "newQuad",            quadNew            },
+        { "newText",            textNew            },
         { "origin",             Origin             },
         { "points",             Points             },
         { "pop",                Pop                },

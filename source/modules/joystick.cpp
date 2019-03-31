@@ -15,9 +15,6 @@ void Joystick::Initialize(lua_State * L)
 
 Gamepad * Joystick::GetJoystickFromID(uint id)
 {
-    if (id >= controllers.size())
-        return controllers[id - 1];
-
     return controllers[id];
 }
 

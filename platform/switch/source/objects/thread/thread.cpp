@@ -24,8 +24,6 @@ void ThreadClass::SetError(const string & error)
         this->error.clear();
     else
         this->error = error;
-
-    LOG("%s", error.c_str());
 }
 
 string ThreadClass::GetError()
@@ -74,10 +72,8 @@ void Run(void * arg)
     else
     {
         uint numargs = args.size();
-        LOG("argc %d", numargs);
 
         //pop args onto the function
-        LOG("popping args onto thread");
         for (uint i = 0; i < numargs; i++)
             args[i].ToLua(L);
 
@@ -85,10 +81,8 @@ void Run(void * arg)
 
         //call the code to execute with the args
         //set an error if it occurs
-        LOG("calling function");
         if (lua_pcall(L, numargs, 0, 0) != 0)
             self->SetError(lua_tostring(L, -1));
-        LOG("done");
     }
 
     //LuaSocket::Close();

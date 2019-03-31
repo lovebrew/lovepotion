@@ -19,7 +19,7 @@ extern "C"
 #endif
 
 #include "common/types.h"
-//#include "common/variant.h"
+#include "objects/object/object.h"
 #include "common/util.h"
 
 void love_getfield(lua_State * L, const char * field)
@@ -45,13 +45,21 @@ void love_register(lua_State * L, int index, void * object)
     love_get_registry(L, OBJECTS);
 
     lua_pushlightuserdata(L, object);    //light userdata key
-    lua_pushvalue(L, index);                //push the userdata value to the key
+    lua_pushvalue(L, index);             //push the userdata value to the key
     lua_settable(L, -3);                //set the taaable (╯°□°）╯︵ ┻━┻
 
     lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+}
 
-    //lua_pop(L, 1);
-    printf("Registered %p to _loveobjects!\n", object);
+void love_unregister(lua_State * L, void * object)
+{
+    love_get_registry(L, OBJECTS);
+
+    lua_pushlightuserdata(L, object); // light userdata key
+    lua_pushnil(L);                // push nil to the value
+    lua_settable(L, -3);           // set the table back to normal
+
+    lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
 }
 
 void love_push_userdata(lua_State * L, void * object)

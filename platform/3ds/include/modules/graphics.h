@@ -26,6 +26,7 @@ namespace Graphics
     int SetColor(lua_State * L);
     int SetDefaultFilter(lua_State * L);
 
+    int GetDimensions(lua_State * L);
     int GetWidth(lua_State * L);
     int GetHeight(lua_State * L);
 

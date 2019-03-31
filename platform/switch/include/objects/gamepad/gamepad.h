@@ -13,7 +13,10 @@ class Gamepad : public Object
         std::string GetName();
 
         void Update(float delta);
-        void SetLayout(const std::string & mode, const std::string & holdType);
+
+        void SetSplit(bool split);
+        bool Split(const std::string & holdType);
+        bool Merge(Gamepad * other);
 
         void SetVibration(double left, double right, double duration);
 
@@ -23,8 +26,6 @@ class Gamepad : public Object
 
         bool IsGamepadDown(const std::string & button);
         bool IsDown(uint button);
-
-        std::string GetLayout();
         
         int GetID();
 
@@ -37,11 +38,11 @@ class Gamepad : public Object
         void InitializeSixAxis();
         void InitializeVibration();
 
-        int id;
-        bool split;
+        int id = 0;
+        bool split = false;
 
         std::array<HidControllerID, 2> joycon;
-        std::pair<SDL_Joystick *, SDL_Joystick *> joysticks;
+        SDL_Joystick * joystick;
 
         double vibrationDuration;
         u32 vibrationHandles[2][2];

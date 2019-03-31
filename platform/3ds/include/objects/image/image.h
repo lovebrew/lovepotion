@@ -6,7 +6,7 @@ class Image : public Drawable
         Image(const char * path, bool memory);
         ~Image();
 
-        char * GetMemoryImage(const char * path, int * size);
+        char * GetMemoryImage(const char * path, size_t * size);
 
         C2D_Image GetImage();
 };

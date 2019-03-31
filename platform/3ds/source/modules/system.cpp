@@ -80,24 +80,17 @@ int System::GetLanguage(lua_State * L)
     return 1;
 }
 
-//love.system.getWifiStrength
-int System::GetWifiStrength(lua_State * L)
+//love.system.getInternetStatus
+int System::GetInternetStatus(lua_State * L)
 {
     u8 wifiStrength = osGetWifiStrength();
+    u32 status = 0;
 
-    lua_pushnumber(L, wifiStrength);
-
-    return 1;
-}
-
-//love.system.hasWifiConnection
-int System::HasWifiConnection(lua_State * L)
-{
-    u32 status;
     ACU_GetWifiStatus(&status);
-
-    lua_pushboolean(L, status != 0);
     
+    lua_pushnumber(L, wifiStrength);
+    lua_pushboolean(L, status != 0);
+
     return 1;
 }
 
@@ -129,24 +122,4 @@ void System::Exit()
     cfguExit();
     acExit();
     mcuHwcExit();
-}
-
-int System::Register(lua_State * L)
-{
-    luaL_Reg reg[] = 
-    {
-        { "getPowerInfo",      GetPowerInfo      },
-        { "getProcessorCount", GetProcessorCount },
-        { "getOS",             GetOS             },
-        { "getLanguage",       GetLanguage       },
-        { "getWifiStrength",   GetWifiStrength   },
-        { "hasWifiConnection", HasWifiConnection },
-        { "getRegion",         GetRegion         },
-        { "getUsername",       GetUsername       },
-        { 0, 0 },
-    };
-
-    luaL_newlib(L, reg);
-
-    return 1;
 }

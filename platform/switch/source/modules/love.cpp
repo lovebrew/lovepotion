@@ -27,10 +27,11 @@
 #include "objects/channel/wrap_channel.h"
 #include "objects/file/wrap_file.h"
 #include "objects/font/wrap_font.h"
-#include "objects/imagedata/wrap_imagedata.h"
 #include "objects/image/wrap_image.h"
+#include "objects/imagedata/wrap_imagedata.h"
 #include "objects/quad/wrap_quad.h"
 #include "objects/source/wrap_source.h"
+#include "objects/text/wrap_text.h"
 #include "objects/thread/wrap_thread.h"
 
 #include "nogame_lua.h"
@@ -65,6 +66,7 @@ int (*classes[])(lua_State *L) =
     initQuadClass,
     initSourceClass,
     initThreadClass,
+    initTextClass,
     NULL
 };
 

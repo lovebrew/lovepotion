@@ -13,6 +13,7 @@ void System::Initialize()
     accountInitialize();
     plInitialize();
     psmInitialize();
+    nifmInitialize();
 }
 
 //Löve2D Functions
@@ -79,18 +80,31 @@ int System::GetLanguage(lua_State * L)
     return 1;
 }
 
-//love.system.getWifiStrength
-int System::GetWifiStrength(lua_State * L)
+//love.system.getInternetStatus
+int System::GetInternetStatus(lua_State * L)
 {
-    return 0;
-}
+    u32 strength = 0;
+    NifmInternetConnectionStatus status;
+    NifmInternetConnectionType connectionType = NifmInternetConnectionType_WiFi;
 
-//love.system.hasWifiConnection
-int System::HasWifiConnection(lua_State * L)
-{
-    //setsysGetWirelessLanEnableFlag?
+    string type = luaL_optstring(L, 1, "wireless");
 
-    return 0;
+    if (type == "ethernet")
+        connectionType = NifmInternetConnectionType_Ethernet;
+
+    Result rc = nifmGetInternetConnectionStatus(&connectionType, &strength, &status);
+
+    if (R_SUCCEEDED(rc))
+    {
+        lua_pushnumber(L, strength);
+        lua_pushboolean(L, status == 4);
+        
+        return 2;
+    }
+
+    lua_pushnil(L);
+
+    return 1;
 }
 
 //love.system.getUsername
@@ -147,24 +161,5 @@ void System::Exit()
     accountExit();
     plExit();
     psmExit();
-}
-
-int System::Register(lua_State * L)
-{
-    luaL_Reg reg[] = 
-    {
-        { "getPowerInfo",      GetPowerInfo      },
-        { "getProcessorCount", GetProcessorCount },
-        { "getOS",             GetOS             },
-        { "getLanguage",       GetLanguage       },
-        { "getWifiStrength",   GetWifiStrength   },
-        { "hasWifiConnection", HasWifiConnection },
-        { "getRegion",         GetRegion         },
-        { "getUsername",       GetUsername       },
-        { 0, 0 },
-    };
-
-    luaL_newlib(L, reg);
-
-    return 1;
+    nifmExit();
 }

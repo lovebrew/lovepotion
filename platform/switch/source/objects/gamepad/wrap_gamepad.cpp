@@ -28,7 +28,7 @@ int gamepadGetID(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    lua_pushinteger(L, self->GetID());
+    lua_pushinteger(L, self->GetID() + 1);
 
     return 1;
 }
@@ -99,6 +99,7 @@ int gamepadIsDown(lua_State * L)
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     int button = luaL_checkinteger(L, 2);
+    button = clamp(0, button - 1, self->GetButtonCount());
 
     lua_pushboolean(L, self->IsDown(button));
 
@@ -117,15 +118,43 @@ int gamepadIsGamepadDown(lua_State * L)
     return 1;
 }
 
-//Gamepad:setLayout
-int gamepadSetLayout(lua_State * L)
+//Gamepad:split
+int gamepadSplit(lua_State * L)
 {
     Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    string layout = luaL_checkstring(L, 2);
-    string holdType = luaL_optstring(L, 3, "default");
+    string layout = luaL_optstring(L, 2, "horizontal");
 
-    self->SetLayout(layout, holdType);
+    bool canSplit = self->Split(layout);
+    int ret = 0;
+
+    if (canSplit)
+    {
+        gamepadNew(L);
+        Gamepad * split = (Gamepad *)luaobj_checkudata(L, -1, CLASS_TYPE);
+        split->SetSplit(true);
+
+        lua_pushinteger(L, split->GetID() + 1);
+
+        ret++;
+    }
+
+    return ret;
+}
+
+//Gamepad:merge
+int gamepadMerge(lua_State * L)
+{
+    Gamepad * self =  (Gamepad *)luaobj_checkudata(L, 1, CLASS_TYPE);
+
+    Gamepad * other = (Gamepad *)luaobj_checkudata(L, 2, CLASS_TYPE);
+
+    bool canMerge = self->Merge(other);
+
+    if (canMerge)
+        controllers.erase(controllers.begin() + other->GetID());
+
+    love_unregister(L, other);
 
     return 0;
 }
@@ -181,13 +210,15 @@ int initGamepadClass(lua_State * L)
         { "__tostring",           gamepadToString             },
         { "getAxis",              gamepadGetAxis              },
         { "getGamepadAxis",       gamepadGetGamepadAxis       },
+        { "getButtonCount",       gamepadGetButtonCount       },
         { "getID",                gamepadGetID                },
         { "getName",              gamepadGetName              },
         { "isDown",               gamepadIsDown               },
         { "isGamepadDown",        gamepadIsGamepadDown        },
         { "isVibrationSupported", gamepadIsVibrationSupported },
-        { "setLayout",            gamepadSetLayout            },
+        { "merge",                gamepadMerge                },
         { "setVibration",         gamepadSetVibration         },
+        { "split",                gamepadSplit                },
         { "new",                  gamepadNew                  },
         { 0, 0 }
     };

@@ -26,7 +26,7 @@ int LoveThread::GetChannel(lua_State * L)
             returnValue = 1;
         }
     }
-    printf("getChannel returned: %d\n", returnValue);
+
     return returnValue;
 }
 

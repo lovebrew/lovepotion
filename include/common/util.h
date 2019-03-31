@@ -23,6 +23,8 @@ void stack_dump(lua_State * L);
 
 void love_register(lua_State * L, int index, void * object);
 
+void love_unregister(lua_State * L, void * object);
+
 void love_push_userdata(lua_State * L, void * object);
 
 int love_get_registry(lua_State * L, REGISTRY registry);

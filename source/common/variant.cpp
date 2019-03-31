@@ -29,8 +29,6 @@ Variant::Variant(const std::string & sstring)
 {
     this->tag = VARIANTS::STRING;
     this->data_string = strdup(sstring.c_str());
-
-    printf("Variant: %s\n", sstring.c_str());
 }
 
 Variant::Variant(bool boolean)
@@ -45,8 +43,6 @@ Variant Variant::FromLua(lua_State * L, int index)
         index += lua_gettop(L) + 1;
 
     int type = lua_type(L, index);
-
-    LOG("Type %d at Index %d\n", type, index);
 
     switch (type)
     {

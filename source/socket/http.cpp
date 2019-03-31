@@ -2,6 +2,7 @@
 #include "socket/luasocket.h"
 
 #include "socket/http.h"
+#include "common/version.h"
 
 // http.request{
 //   url = string,
@@ -82,7 +83,8 @@ int httpRequest(lua_State * L)
     /* we pass our 'chunk' struct to the callback function */ 
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
 
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "LovePotion-agent/1.0");
+    string useragent = "LovePotion/" + string(LOVE_POTION_VERSION);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, useragent.c_str());
 
     //curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, HeaderCallback); 
 

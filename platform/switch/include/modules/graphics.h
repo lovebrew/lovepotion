@@ -11,6 +11,7 @@ namespace Graphics
 
     //Löve2D Functions
 
+    int GetDimensions(lua_State * L);
     int GetWidth(lua_State * L);
     int GetHeight(lua_State * L);
 

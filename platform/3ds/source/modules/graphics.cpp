@@ -266,6 +266,19 @@ int Graphics::SetFont(lua_State * L)
     return 0;
 }
 
+//love.graphics.getDimensions
+int Graphics::GetDimensions(lua_State * L)
+{
+    int width = 400;
+    if (currentScreen == GFX_BOTTOM)
+        width = 320;
+
+    lua_pushnumber(L, width);
+    lua_pushnumber(L, 320);
+
+    return 2;
+}
+
 //love.graphics.getWidth
 int Graphics::GetWidth(lua_State * L)
 {
@@ -557,33 +570,34 @@ int Graphics::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
+        { "circle",             Circle             },
+        { "clear",              Clear              },
+        { "draw",               Draw               },
+        { "getDimensions",      GetDimensions      },
+        { "getHeight",          GetHeight          },
+        { "getRendererInfo",    GetRendererInfo    },
+        { "getWidth",           GetWidth           },
+        { "newFont",            fontNew            },
         { "newImage",           imageNew           },
         { "newQuad",            quadNew            },
-        { "newFont",            fontNew            },
-        { "getWidth",           GetWidth           },
-        { "getHeight",          GetHeight          },
-        { "draw",               Draw               },
+        { "origin",             Origin             },
+        { "pop",                Pop                },
+        { "present",            Present            },
         { "print",              Print              },
+        { "push",               Push               },
         { "rectangle",          Rectangle          },
+        { "rotate",             Rotate             },
+        { "scale",              Scale              },
         { "set3D",              Set3D              },
-        { "setDepth",           SetDepth           },
-        { "setScissor",         SetScissor         },
-        { "circle",             Circle             },
-        { "setDefaultFilter",   SetDefaultFilter   },
-        { "getRendererInfo",    GetRendererInfo    },
-        { "setFont",            SetFont            },
-        { "setScreen",          SetScreen          },
         { "setBackgroundColor", SetBackgroundColor },
         { "setColor",           SetColor           },
-        { "push",               Push               },
-        { "pop",                Pop                },
+        { "setDefaultFilter",   SetDefaultFilter   },
+        { "setDepth",           SetDepth           },
+        { "setFont",            SetFont            },
+        { "setScissor",         SetScissor         },
+        { "setScreen",          SetScreen          },
         { "translate",          Translate          },
         //{ "shear",              Shear              },
-        { "scale",              Scale              },
-        { "rotate",             Rotate             },
-        { "origin",             Origin             },
-        { "clear",              Clear              },
-        { "present",            Present            },
         { 0, 0 }
     };
 

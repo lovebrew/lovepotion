@@ -12,24 +12,24 @@
 
 Image::Image(const char * path, bool memory) : Drawable("Image")
 {
-    u32 * outBuffer = nullptr;
+    C2D_SpriteSheet sheet = NULL;
 
     if (!memory)
     {
-        outBuffer = this->LoadPNG(path, NULL, 0);
-        this->LoadImage(outBuffer);
+        sheet = C2D_SpriteSheetLoad(path);
+        this->image = C2D_SpriteSheetGetImage(sheet, 0);
     }
     else
     {
-        int size;
+        size_t size;
         char * buffer = this->GetMemoryImage(path, &size);
 
-        outBuffer = this->LoadPNG(NULL, buffer, size);
-        this->LoadImage(outBuffer);
+        sheet = C2D_SpriteSheetLoadFromMem(buffer, size);
+        this->image = C2D_SpriteSheetGetImage(sheet, 0);
     }
 }
 
-char * Image::GetMemoryImage(const char * path, int * size)
+char * Image::GetMemoryImage(const char * path, size_t * size)
 {
     string name = path;
     name = name.substr(name.find(":") + 1);
