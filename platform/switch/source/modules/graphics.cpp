@@ -230,7 +230,9 @@ int Graphics::Draw(lua_State * L)
 
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
-
+	
+    transformDrawable(&x, &y);
+	
     rotation *= 180 / M_PI;
 
     if (quad != nullptr)
