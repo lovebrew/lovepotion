@@ -7,6 +7,9 @@ class Drawable : public Object
 
         int GetWidth();
         int GetHeight();
+        
+        u32 * LoadPNG(const char * path, char * buffer, size_t memorySize);
+        void LoadImage(u32 * buffer);
 
         Tex3DS_SubTexture GetSubTexture();
         void SetSubTexture(const Tex3DS_SubTexture & subTexture);

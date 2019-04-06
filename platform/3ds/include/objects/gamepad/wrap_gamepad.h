@@ -1,6 +1,6 @@
 #pragma once
 
-int gamepadNew(lua_State * L, int id);
+int gamepadNew(lua_State * L);
 
 int gamepadGetID(lua_State * L);
 
