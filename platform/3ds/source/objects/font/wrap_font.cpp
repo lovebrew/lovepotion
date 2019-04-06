@@ -19,16 +19,14 @@ int fontNew(lua_State * L)
         if (lua_type(L, 1) == LUA_TSTRING)
         {
             path = luaL_checkstring(L, 1);
-
-            const char * cpath = path.c_str();
-            LOVE_VALIDATE_FILE_EXISTS(cpath);
-
             size = luaL_checknumber(L, 2);
+
             index = 3;
         }
         else if (lua_type(L, 1) == LUA_TNUMBER)
         {
             size = luaL_checknumber(L, 1);
+
             index = 2;
         }
     }

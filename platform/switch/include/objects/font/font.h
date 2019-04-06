@@ -3,9 +3,10 @@
 class Font : public Drawable
 {
     public:
-        Font(const char * path, int size);
+        Font(const std::string & path, float size);
         Font(int size = 16);
         ~Font();
+        TTF_Font * LoadFont(const std::string & name, float size);
 
         bool HasGlyph(uint glyph);
         int GetWidth(const char * text);

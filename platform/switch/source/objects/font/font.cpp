@@ -7,55 +7,49 @@
 #include "modules/graphics.h"
 #include "modules/window.h"
 
-Font::Font(const char * path, int size) : Drawable("Font")
+Font::Font(const string & path, float size) : Drawable("Font")
 {
     float dpiScale = 1.0f;
     this->size = floorf(size * dpiScale + 0.5f);
 
-    this->font = TTF_OpenFont(path, this->size);
+    if (path.substr(path.size() - 4, 4) == ".ttf")
+        this->font = TTF_OpenFont(path.c_str(), this->size);
+    else
+        this->font = this->LoadFont(path, this->size);
+
     this->texture = NULL;
 
     if (!this->font)
         printf("Font error: %s", TTF_GetError());
 }
 
+TTF_Font * Font::LoadFont(const string & name, float size)
+{
+    PlFontData fontData;
+    PlSharedFontType type = PlSharedFontType_Standard;
+    
+    if (name == "chinese simplified")
+        type = PlSharedFontType_ChineseSimplified;
+    else if (name == "extended chinese simplified")
+        type = PlSharedFontType_ExtChineseSimplified;
+    else if (name == "chinese traditional")
+        type = PlSharedFontType_ChineseTraditional;
+    else if (name == "korean")
+        type = PlSharedFontType_KO;
+    else if (name == "nintendo extended")
+        type = PlSharedFontType_NintendoExt;
+
+    plGetSharedFontByType(&fontData, type);
+
+    return TTF_OpenFontRW(SDL_RWFromMem(fontData.address, fontData.size), 1, size);
+}
+
 Font::Font(int size) : Drawable("Font")
 {
-    vector<PlSharedFontType> type = {PlSharedFontType_Standard, PlSharedFontType_NintendoExt};
-    
-    uint8_t * concatFontData = (uint8_t *)malloc(1);
-    uint8_t * tempConcatData = (uint8_t *)malloc(1);
-
-    u32 totalSize = 0;
-    u32 progress = 0;
-
-    for (uint i = 0; i < type.size(); i++)
-    {
-        PlFontData font;
-        plGetSharedFontByType(&font, type[i]);
-
-        u32 plFontSize = font.size;
-        totalSize += plFontSize;
-
-        tempConcatData = (uint8_t *)realloc(concatFontData, totalSize);
-
-        if (tempConcatData != NULL)
-        {
-            memcpy(&tempConcatData[progress], font.address, plFontSize);
-    
-            progress += plFontSize;
-            
-            concatFontData = tempConcatData;
-        }
-        else
-            free(concatFontData);
-    }
-    
     float dpiScale = 1.0f;
-    size = floorf(size * dpiScale + 0.5f);
+    this->size = floorf(size * dpiScale + 0.5f);
 
-    this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)concatFontData, totalSize), 1, size);
-
+    this->font = this->LoadFont("standard", this->size);
     this->texture = NULL;
 }
 

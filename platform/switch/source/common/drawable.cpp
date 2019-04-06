@@ -46,10 +46,10 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
 
     SDL_Rect destinationRectangle = 
     {
-        round(x - (offsetX * scalarX)), 
-        round(y - (offsetY * scalarY)), 
-        ceil(scaledWidth),  
-        ceil(scaledHeight)
+        (int)round(x - (offsetX * scalarX)), 
+        (int)round(y - (offsetY * scalarY)), 
+        (int)ceil(scaledWidth),  
+        (int)ceil(scaledHeight)
     };
 
     this->Flip(scalarX, scalarY);
@@ -57,7 +57,7 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
     SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
     SDL_SetTextureAlphaMod(texture, color.a);
 
-    SDL_Point center = {offsetX * scalarX, offsetY * scalarY};
+    SDL_Point center = {(int)(offsetX * scalarX), (int)(offsetY * scalarY)};
 
     SDL_RenderCopyEx(Window::GetRenderer(), texture, &sourceRectangle, &destinationRectangle, rotation, &center, this->flip);
 }

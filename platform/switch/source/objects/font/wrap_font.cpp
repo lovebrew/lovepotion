@@ -9,7 +9,7 @@
 
 int fontNew(lua_State * L)
 {
-    const char * path = NULL;
+    string path = "";
     int size = 14;
     int index = 1;
 
@@ -23,6 +23,7 @@ int fontNew(lua_State * L)
         {
             path = luaL_checkstring(L, 1);
             size = luaL_checknumber(L, 2);
+
             index = 3;
         }
         else if (lua_type(L, 1) == LUA_TNUMBER)
@@ -38,7 +39,7 @@ int fontNew(lua_State * L)
 
     Font * self;
     
-    if (path != NULL)
+    if (path != "")
         self = new (raw_self) Font(path, size);
     else
         self = new (raw_self) Font(size);
