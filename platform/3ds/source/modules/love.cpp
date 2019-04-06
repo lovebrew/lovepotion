@@ -51,7 +51,7 @@ int (*classes[])(lua_State *L) =
 //love.run
 int Love::Run(lua_State * L)
 {
-    LoveEvent::PollEvent(L);
+    LoveEvent::Pump(L);
 
     luaL_dostring(L, LOVE_TIMER_STEP);
 

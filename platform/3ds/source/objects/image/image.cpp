@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+#include "modules/graphics.h"
 #include "common/drawable.h"
 #include "objects/image/image.h"
 
@@ -27,6 +28,12 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
         sheet = C2D_SpriteSheetLoadFromMem(buffer, size);
         this->image = C2D_SpriteSheetGetImage(sheet, 0);
     }
+
+    C3D_TexSetFilter(this->image.tex, magFilter, minFilter);
+    
+    this->image.tex->border = 0x00FFFFFF;
+    
+    C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 
 char * Image::GetMemoryImage(const char * path, size_t * size)

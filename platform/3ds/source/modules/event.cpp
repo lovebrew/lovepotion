@@ -6,7 +6,7 @@
 
 int lastTouch[2];
 
-int LoveEvent::PollEvent(lua_State * L)
+int LoveEvent::Pump(lua_State * L)
 {
     hidScanInput();
 
@@ -129,5 +129,10 @@ int LoveEvent::PollEvent(lua_State * L)
         }
     }
 
+    return 0;
+}
+
+int LoveEvent::Poll(lua_State * L)
+{
     return 0;
 }

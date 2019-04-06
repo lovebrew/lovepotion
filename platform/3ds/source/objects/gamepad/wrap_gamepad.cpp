@@ -7,7 +7,7 @@
 
 vector<Gamepad *> controllers;
 
-int gamepadNew(lua_State * L, int id)
+int gamepadNew(lua_State * L)
 {
     void * raw_self = luaobj_newudata(L, sizeof(Gamepad));
 
