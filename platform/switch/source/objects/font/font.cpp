@@ -21,19 +21,40 @@ Font::Font(const char * path, int size) : Drawable("Font")
 
 Font::Font(int size) : Drawable("Font")
 {
-    u64 languageCode = 0;
-    PlFontData fontData;
-    PlFontData fonts[PlSharedFontType_Total];
-    size_t total_fonts = 0;
+    vector<PlSharedFontType> type = {PlSharedFontType_Standard, PlSharedFontType_NintendoExt};
+    
+    uint8_t * concatFontData = (uint8_t *)malloc(1);
+    uint8_t * tempConcatData = (uint8_t *)malloc(1);
 
-    //setGetSystemLanguage(&languageCode);
-    plGetSharedFont(languageCode, fonts, PlSharedFontType_Total, &total_fonts);
-    plGetSharedFontByType(&fontData, PlSharedFontType_Standard);
+    u32 totalSize = 0;
+    u32 progress = 0;
 
+    for (uint i = 0; i < type.size(); i++)
+    {
+        PlFontData font;
+        plGetSharedFontByType(&font, type[i]);
+
+        u32 plFontSize = font.size;
+        totalSize += plFontSize;
+
+        tempConcatData = (uint8_t *)realloc(concatFontData, totalSize);
+
+        if (tempConcatData != NULL)
+        {
+            memcpy(&tempConcatData[progress], font.address, plFontSize);
+    
+            progress += plFontSize;
+            
+            concatFontData = tempConcatData;
+        }
+        else
+            free(concatFontData);
+    }
+    
     float dpiScale = 1.0f;
     size = floorf(size * dpiScale + 0.5f);
 
-    this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)fontData.address, fontData.size), 1, size);
+    this->font = TTF_OpenFontRW(SDL_RWFromMem((void *)concatFontData, totalSize), 1, size);
 
     this->texture = NULL;
 }
