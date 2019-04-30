@@ -52,7 +52,6 @@ C2D_Font Font::LoadFont(const string & name)
         return C2D_FontLoadSystem(CFG_REGION_CHN);
     
     const char * filename = name.c_str();
-    LOVE_VALIDATE_FILE_EXISTS(filename);
 
     return C2D_FontLoad(filename);
 }

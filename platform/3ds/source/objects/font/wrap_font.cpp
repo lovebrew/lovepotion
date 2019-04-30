@@ -37,6 +37,17 @@ int fontNew(lua_State * L)
 
     Font * self;
     
+    if (path.find(".ttf") != std::string::npos) // file
+    {
+        string compat = path;
+        compat.replace(strlen(path) - 4, 6, ".bcfnt");
+
+        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()));
+            return luaL_error("Could not open font %s. Does not exist.", path);
+        else
+            path = compat;
+    }
+
     if (path != "")
         self = new (raw_self) Font(path, size);
     else

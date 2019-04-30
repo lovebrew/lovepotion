@@ -362,10 +362,7 @@ int Graphics::SetCanvas(lua_State * L)
         self = (Canvas *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_CANVAS);
 
     if (self != NULL)
-    {
         self->SetAsTarget();
-        Graphics::Clear(L);
-    }
     else
         SDL_SetRenderTarget(Window::GetRenderer(), NULL);
 
@@ -385,12 +382,14 @@ int Graphics::Rectangle(lua_State * L)
     float width = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
+    float cornerRadius = luaL_optnumber(L, 6, 0);
+
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        boxRGBA(Window::GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        roundedBoxRGBA(Window::GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), cornerRadius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        rectangleRGBA(Window::GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        roundedRectangleRGBA(Window::GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, cornerRadius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }

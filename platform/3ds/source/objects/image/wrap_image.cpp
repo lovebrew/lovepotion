@@ -17,7 +17,15 @@ int imageNew(lua_State * L)
         memory = true;
 
     if (!memory)
-        LOVE_VALIDATE_FILE_EXISTS(path);
+    {
+        string compat = path;
+        compat.replace(strlen(path) - 4, 4, ".t3x");
+
+        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()));
+            return luaL_error("Could not open image %s. Does not exist.", path);
+        else
+            path = compat.c_str();
+    }
 
     void * raw_self = luaobj_newudata(L, sizeof(Image));
 

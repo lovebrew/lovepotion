@@ -27,7 +27,7 @@ int System::GetProcessorCount(lua_State * L)
     CFGU_GetSystemModel(&model);
 
     int processorCount = 2;
-    if (model == 2 || model == 4)
+    if (model == 2 || model >= 4)
         processorCount = 4;
 
     lua_pushnumber(L, processorCount);

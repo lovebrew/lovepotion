@@ -19,3 +19,5 @@ platform/*/build/
 # Game Directories #
 ####################
 platform/*/game/
+
+.vscode/

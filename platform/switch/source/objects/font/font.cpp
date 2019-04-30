@@ -12,15 +12,9 @@ Font::Font(const string & path, float size) : Drawable("Font")
     float dpiScale = 1.0f;
     this->size = floorf(size * dpiScale + 0.5f);
 
-    if (path.substr(path.size() - 4, 4) == ".ttf")
-        this->font = TTF_OpenFont(path.c_str(), this->size);
-    else
-        this->font = this->LoadFont(path, this->size);
+    this->font = this->LoadFont(path, this->size);
 
     this->texture = NULL;
-
-    if (!this->font)
-        printf("Font error: %s", TTF_GetError());
 }
 
 TTF_Font * Font::LoadFont(const string & name, float size)
@@ -38,7 +32,20 @@ TTF_Font * Font::LoadFont(const string & name, float size)
         type = PlSharedFontType_KO;
     else if (name == "nintendo extended")
         type = PlSharedFontType_NintendoExt;
+    else
+    {
+        TTF_Font * newFont = TTF_OpenFont(name.c_str(), size);
 
+        if (newFont)
+            return newFont;
+        else
+        {
+            Love::RaiseError("%s", TTF_GetError());
+
+            return nullptr;
+        }
+    }
+    
     plGetSharedFontByType(&fontData, type);
 
     return TTF_OpenFontRW(SDL_RWFromMem(fontData.address, fontData.size), 1, size);
