@@ -25,13 +25,16 @@ int Keyboard::ShowTextInput(lua_State * L)
     */
 
     lua_getfield(L, 1, "type");
+    lua_getfield(L, 1, "inputLength");
     lua_getfield(L, 1, "header");
     lua_getfield(L, 1, "subheader");
     lua_getfield(L, 1, "hint");
     lua_getfield(L, 1, "isPassword");
 
-    string type = luaL_optstring(L, -5, "basic");
+    string type = luaL_optstring(L, -6, "basic");
     LOVE_VALIDATE_KEYBOARD_TYPE(type.c_str());
+
+    u32 maxLength = clamp(0x1, luaL_optnumber(L, -5, 0x14), 0x80);
 
     const char * header = luaL_optstring(L, -4, "Enter Text");
     const char * subHeader = luaL_optstring(L, -3, "");
@@ -49,12 +52,12 @@ int Keyboard::ShowTextInput(lua_State * L)
     swkbdConfigMakePresetDefault(&keyboard);
     
     if (type == "standard")
-        keyboard.arg.arg.type = SwkbdType_Normal;
+        swkbdConfigSetType(&keyboard, SwkbdType_Normal);
     else if (type == "numpad")
-        keyboard.arg.arg.type = SwkbdType_NumPad;
+        swkbdConfigSetType(&keyboard, SwkbdType_NumPad);
 
-    keyboard.arg.arg.dicFlag = 1;
-    keyboard.arg.arg.passwordFlag = isPassword;
+    swkbdConfigSetDicFlag(&keyboard, 1);
+    swkbdConfigSetPasswordFlag(&keyboard, isPassword);
 
     swkbdConfigSetOkButtonText(&keyboard, "OK");
 
@@ -63,7 +66,7 @@ int Keyboard::ShowTextInput(lua_State * L)
 
     swkbdConfigSetGuideText(&keyboard, hint);
 
-    status = swkbdShow(&keyboard, text, sizeof(text));
+    status = swkbdShow(&keyboard, text, maxLength);
     
     if (R_SUCCEEDED(status))
     {

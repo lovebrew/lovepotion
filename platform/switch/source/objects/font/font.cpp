@@ -20,7 +20,7 @@ Font::Font(const string & path, float size) : Drawable("Font")
 TTF_Font * Font::LoadFont(const string & name, float size)
 {
     PlFontData fontData;
-    PlSharedFontType type = PlSharedFontType_Standard;
+    PlSharedFontType type;
     
     if (name == "chinese simplified")
         type = PlSharedFontType_ChineseSimplified;
@@ -32,6 +32,8 @@ TTF_Font * Font::LoadFont(const string & name, float size)
         type = PlSharedFontType_KO;
     else if (name == "nintendo extended")
         type = PlSharedFontType_NintendoExt;
+    else if (name == "standard")
+        type = PlSharedFontType_Standard;
     else
     {
         TTF_Font * newFont = TTF_OpenFont(name.c_str(), size);

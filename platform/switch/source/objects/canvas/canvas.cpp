@@ -16,9 +16,18 @@ Canvas::Canvas(int width, int height) : Drawable("Canvas")
     SDL_SetTextureAlphaMod(this->texture, 0);
 
     this->viewport = {0, 0, this->width, this->height, this->width, this->height};
+
+    this->cleared = false;
 }
 
 void Canvas::SetAsTarget()
 {
     SDL_SetRenderTarget(Window::GetRenderer(), this->texture);
+
+    if (this->cleared)
+        return;
+    
+    SDL_RenderClear(Window::GetRenderer());
+
+    this->cleared = true;
 }

@@ -7,4 +7,7 @@ class Canvas : public Drawable
         Canvas() {};
 
         void SetAsTarget();
+
+    private:
+        bool cleared;
 };
