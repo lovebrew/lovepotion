@@ -27,5 +27,5 @@ extern love_modules modules[];
 extern int (*classes[])(lua_State *L);
 
 #if defined (__SWITCH__)
-extern std::vector<HidControllerID> CONTROLLER_IDS;
+    extern std::vector<HidControllerID> CONTROLLER_IDS;
 #endif

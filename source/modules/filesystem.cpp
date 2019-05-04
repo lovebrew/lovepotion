@@ -10,20 +10,16 @@
 
 string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
+bool isRomfsInitialized = false;
 
 void Filesystem::Initialize(char * path)
 {    
-    string tmp = path;
-    size_t position = tmp.rfind("/");
+    const char * directory = "romfs:/";
+    assetLocation = Filesystem::GetAssetLocation(path);
 
-    SAVE_DIR = tmp.substr(0, position);
-    string directory = "romfs:/";
-    
-    if (strstr(path, ".lpx") == NULL)
+    switch(location)
     {
-        Result rc = romfsInit();
-
-        if (rc != 0)
+        case AssetLocation::DIRECTORY:
         {
             struct stat pathInfo;
             
@@ -31,23 +27,21 @@ void Filesystem::Initialize(char * path)
             
             if (S_ISDIR(pathInfo.st_mode))
                 directory = "game";
+            
+            break;
         }
-    }
-    else
-    {
-        #if defined (__SWITCH__)
-            FsFile file;
-            FsFileSystem * fileSystem = fsdevGetDefaultFileSystem();
+        case FsInitType::FILE_ASSOC:
+            #if defined (__SWITCH__)
+                if (romfsMountFromFsdev(path, 0, "romfs") == 0)
+                    isRomfsInitialized = true;
+            #endif
 
-            fsFsOpenFile(fileSystem, path + 5, FS_OPEN_READ, &file);
-
-            romfsInitFromFile(file, 0);
-        #endif
+            break;
+        default:
+            break;
     }
 
-    const char * changeDir = directory.c_str();
-
-    chdir(changeDir);
+    chdir(directory);
 }
 
 //Löve2D Functions
@@ -337,9 +331,32 @@ string Filesystem::Redirect(const char * path)
         return string(path);
 }
 
-void Filesystem::Exit()
+AssetLocation Filesystem::GetAssetLocation(char * path)
 {
-    romfsExit();
+    string tmp = path;
+    size_t position = tmp.rfind("/");
+
+    SAVE_DIR = tmp.substr(0, position);
+    const char * ext = strrchr(path, '.');
+
+    if (strncmp(ext, ".lpx", 4) != 0)
+    {
+        Result rc = romfsInit();
+
+        if (rc != 0)
+            return AssetLocation::DIRECTORY;
+        
+        isRomfsInitialized = true;
+        return AssetLocation::ROMFS_DEV;
+    }
+    else
+        return AssetLocation::FILE_ASSOC;
+}
+
+void Filesystem::Exit()
+{   
+    if (isRomfsInitialized)
+        romfsExit();
 }
 
 //Register Functions

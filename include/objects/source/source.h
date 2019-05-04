@@ -16,6 +16,7 @@ class Source : public Object
         void Resume();
         bool IsStatic();
         void SetVolume(float volume);
+
     private:
         bool IsValid();
 

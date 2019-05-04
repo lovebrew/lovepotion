@@ -5,8 +5,16 @@
 
 #pragma once
 
+typedef enum
+{
+    ROMFS_DEV,
+    DIRECTORY,
+    FILE_ASSOC
+} AssetLocation;
+
 namespace Filesystem
 {
+    AssetLocation GetAssetLocation(char * path);
     void Initialize(char * path);
 
     //Löve2D Functions

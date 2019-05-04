@@ -96,6 +96,19 @@ void Source::Play()
         Mix_PlayMusic(this->music, loops);
 }
 
+void Source::SetVolume(float volume)
+{
+    volume = clamp(0, volume, 1);
+
+    if (!this->IsValid())
+        return;
+
+    if (!this->stream)
+        Mix_VolumeChunk(this->sound, MIX_MAX_VOLUME * volume);
+    else
+        Mix_VolumeMusic(MIX_MAX_VOLUME * volume);
+}
+
 bool Source::IsValid()
 {
     if (this->stream && this->music)

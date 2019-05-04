@@ -47,6 +47,16 @@ int sourceStop(lua_State * L)
     return 0;
 }
 
+int sourceSetVolume(lua_State * L)
+{
+    Source * self = (Source *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    float volume = luaL_checknumber(L, 2);
+
+    self->SetVolume(volume);
+
+    return 0;
+}
+
 //Source:setLooping
 int sourceSetLooping(lua_State * L)
 {
@@ -114,6 +124,7 @@ int initSourceClass(lua_State *L)
         { "new",        sourceNew        },
         { "play",       sourcePlay       },
         { "setLooping", sourceSetLooping },
+        { "setVolume",  sourceSetVolume  },
         { "stop",       sourceStop       },
         { 0, 0 },
     };
