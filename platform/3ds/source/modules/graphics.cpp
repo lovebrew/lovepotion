@@ -266,6 +266,16 @@ int Graphics::SetFont(lua_State * L)
     return 0;
 }
 
+//love.graphics.setNewFont
+int Graphics::SetNewFont(lua_State *L)
+{
+    int ret = fontNew(L);
+    Font *self = (Font *)luaobj_checkudata(L, -1, LUAOBJ_TYPE_FONT);
+    currentFont = self;
+
+    return ret;
+}
+
 //love.graphics.getDimensions
 int Graphics::GetDimensions(lua_State * L)
 {
@@ -594,6 +604,7 @@ int Graphics::Register(lua_State * L)
         { "setDefaultFilter",   SetDefaultFilter   },
         { "setDepth",           SetDepth           },
         { "setFont",            SetFont            },
+        { "setNewFont",         SetNewFont         },
         { "setScissor",         SetScissor         },
         { "setScreen",          SetScreen          },
         { "translate",          Translate          },
