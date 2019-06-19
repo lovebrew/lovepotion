@@ -40,10 +40,10 @@ int fontNew(lua_State * L)
     if (path.find(".ttf") != std::string::npos) // file
     {
         string compat = path;
-        compat.replace(strlen(path) - 4, 6, ".bcfnt");
+        compat.replace(path.length() - 4, 6, ".bcfnt");
 
-        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()));
-            return luaL_error("Could not open font %s. Does not exist.", path);
+        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()))
+            return luaL_error(L, "Could not open font %s. Does not exist.", path.c_str());
         else
             path = compat;
     }

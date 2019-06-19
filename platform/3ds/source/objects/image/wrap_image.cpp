@@ -21,8 +21,8 @@ int imageNew(lua_State * L)
         string compat = path;
         compat.replace(strlen(path) - 4, 4, ".t3x");
 
-        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()));
-            return luaL_error("Could not open image %s. Does not exist.", path);
+        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()))
+            return luaL_error(L, "Could not open image %s. Does not exist.", path);
         else
             path = compat.c_str();
     }

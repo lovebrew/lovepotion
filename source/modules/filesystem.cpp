@@ -15,7 +15,7 @@ bool isRomfsInitialized = false;
 void Filesystem::Initialize(char * path)
 {    
     const char * directory = "romfs:/";
-    assetLocation = Filesystem::GetAssetLocation(path);
+    AssetLocation location = Filesystem::GetAssetLocation(path);
 
     switch(location)
     {
@@ -30,7 +30,7 @@ void Filesystem::Initialize(char * path)
             
             break;
         }
-        case FsInitType::FILE_ASSOC:
+        case AssetLocation::FILE_ASSOC:
             #if defined (__SWITCH__)
                 if (romfsMountFromFsdev(path, 0, "romfs") == 0)
                     isRomfsInitialized = true;
