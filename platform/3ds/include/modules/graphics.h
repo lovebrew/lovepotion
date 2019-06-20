@@ -34,7 +34,8 @@ namespace Graphics
 
     int SetScreen(lua_State * L);
     int SetFont(lua_State * L);
-    
+    int SetNewFont(lua_State * L);
+
     int SetScissor(lua_State * L);
 
     int Push(lua_State * L);
