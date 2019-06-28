@@ -74,5 +74,7 @@ int main(int argc, char * argv[])
 
     Love::Exit(L);
 
+    fclose(logFile);
+
     return 0;
 }
