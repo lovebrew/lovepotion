@@ -3,13 +3,13 @@
 #include "common/drawable.h"
 #include "objects/image/image.h"
 
-#include "screen_png.h"
-#include "bottom_png.h"
-#include "eye_png.h"
-#include "nogame_png.h"
+#include "screen_t3x.h"
+#include "bottom_t3x.h"
+#include "eye_t3x.h"
+#include "nogame_t3x.h"
 
-#include "warn_sm_png.h"
-#include "button_sm_png.h"
+#include "warn_sm_t3x.h"
+#include "button_sm_t3x.h"
 
 Image::Image(const char * path, bool memory) : Drawable("Image")
 {
@@ -43,30 +43,30 @@ char * Image::GetMemoryImage(const char * path, size_t * size)
 
     if (name == "screen")
     {
-        *size = screen_png_size;
-        return (char *)screen_png;
+        *size = screen_t3x_size;
+        return (char *)screen_t3x;
     }
     else if (name == "bottom")
     {
-        *size = bottom_png_size;
-        return (char *)bottom_png;
+        *size = bottom_t3x_size;
+        return (char *)bottom_t3x;
     }
     else if (name == "eye")
     {
-        *size = eye_png_size;
-        return (char *)eye_png;
+        *size = eye_t3x_size;
+        return (char *)eye_t3x;
     }
     else if (name == "nogame")
     {
-        *size = nogame_png_size;
-        return (char *)nogame_png;
+        *size = nogame_t3x_size;
+        return (char *)nogame_t3x;
     }
     else if (name == "warn_sm")
     {
-        *size = warn_sm_png_size;
-        return (char *)warn_sm_png;
+        *size = warn_sm_t3x_size;
+        return (char *)warn_sm_t3x;
     }
     
-    *size = button_sm_png_size;
-    return (char *)button_sm_png;
+    *size = button_sm_t3x_size;
+    return (char *)button_sm_t3x;
 }
