@@ -307,8 +307,8 @@ function love.errhand(message)
 
         love.graphics.rectangle("fill", 30, height * 0.90, width - 60, 2)
 
-        love.graphics.draw(start_img, width * 0.87, (height * 0.95) - start_img:getHeight() / 2)
-        love.graphics.print("Quit", (width * 0.87) + start_img:getWidth() + 12, (height * 0.95) - buttonFont:getHeight() / 2)
+        love.graphics.draw(start_img, width * 0.75, (height * 0.95) - start_img:getHeight() / 2)
+        love.graphics.print("Quit", (width * 0.75) + start_img:getWidth() + 12, (height * 0.95) - buttonFont:getHeight() / 2)
 
         love.graphics.present()
 

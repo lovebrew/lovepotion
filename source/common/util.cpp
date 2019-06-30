@@ -136,7 +136,7 @@ double clamp(double low, double value, double high)
     return std::min(high, std::max(low, value));
 }
 
-u32 NextPO2(u32 in)
+int NextPO2(unsigned int in)
 {
     in--;
     in |= in >> 1;
@@ -146,5 +146,5 @@ u32 NextPO2(u32 in)
     in |= in >> 16;
     in++;
 
-    return in >= 8 ? in : 8;
+    return std::min(std::max(in, 8U), 1024U); // clamp size to keep gpu from locking
 }

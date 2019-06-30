@@ -29,8 +29,8 @@ void love_push_userdata(lua_State * L, void * object);
 
 int love_get_registry(lua_State * L, REGISTRY registry);
 
-int luax_tracevack(lua_State * L);
+int luax_traceback(lua_State * L);
 
 double clamp(double low, double x, double high);
 
-u32 NextPO2(u32 in);
+int NextPO2(unsigned int in);

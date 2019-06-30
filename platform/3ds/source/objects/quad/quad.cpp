@@ -14,22 +14,22 @@ Quad::Quad(float subTextureX, float subTextureY, float subTextureWidth, float su
 
     this->width = subTextureWidth;
     this->height = subTextureHeight;
+
+    this->FillSubTextureData(&this->subTexture);
 }
 
-void Quad::SetSubTexture(Tex3DS_SubTexture * subTexture)
+void Quad::FillSubTextureData(Tex3DS_SubTexture * subTex)
 {
-    subTexture->top     = 1.0f - this->v0;
-    subTexture->left    = this->u0;
-    subTexture->right   = this->u1;
-    subTexture->bottom  = 1.0f - this->v1;
+    subTex->top     = 1.0f - this->v0;
+    subTex->left    = this->u0;
+    subTex->right   = this->u1;
+    subTex->bottom  = 1.0f - this->v1;
 
-    subTexture->width   = this->width;
-    subTexture->height  = this->height;
-
-    this->subTexture = *subTexture;
+    subTex->width   = this->width;
+    subTex->height  = this->height;
 }
 
-Tex3DS_SubTexture Quad::GetSubTexture()
+Tex3DS_SubTexture * Quad::GetSubTexture()
 {
-    return this->subTexture;
+    return &this->subTexture;
 }

@@ -9,7 +9,7 @@ class Drawable : public Object
         int GetHeight();
 
         Tex3DS_SubTexture GetSubTexture();
-        void SetSubTexture(const Tex3DS_SubTexture & subTexture);
+        void SetSubTexture(const Tex3DS_SubTexture * subTexture);
 
     protected:
         int width;
