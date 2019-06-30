@@ -63,11 +63,93 @@ int Math::GetRandomSeed(lua_State * L)
     return 1;
 }
 
+int convertGammaToLinear(float c)
+{
+	if (c <= 0.04045f)
+		return c / 12.92f;
+	else
+		return powf((c + 0.055f) / 1.055f, 2.4f);
+}
+
+int convertLinearToGamma(float c)
+{
+	if (c <= 0.0031308f)
+		return c * 12.92f;
+	else
+		return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
+}
+
+int getGammaArgs(lua_State * L, float color[4])
+{
+	int numcomponents = 0;
+
+	if (lua_istable(L, 1))
+	{
+		int n = (int) lua_objlen(L, 1);
+		for (int i = 1; i <= n && i <= 4; i++)
+		{
+			lua_rawgeti(L, 1, i);
+			color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, -1), 0.0), 1.0);
+			numcomponents++;
+		}
+
+		lua_pop(L, numcomponents);
+	}
+	else
+	{
+		int n = lua_gettop(L);
+		for (int i = 1; i <= n && i <= 4; i++)
+		{
+			color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, i), 0.0), 1.0);
+			numcomponents++;
+		}
+	}
+
+	if (numcomponents == 0)
+		luaL_checknumber(L, 1);
+
+	return numcomponents;
+}
+
+//love.math.gammaToLinear
+int Math::GammaToLinear(lua_State * L)
+{
+	float color[4];
+	int numcomponents = getGammaArgs(L, color);
+
+	for (int i = 0; i < numcomponents; i++)
+	{
+		if (i < 3) // Alpha is always linear.
+			color[i] = convertGammaToLinear(color[i]);
+		lua_pushnumber(L, color[i]);
+	}
+
+	return numcomponents;
+}
+
+//love.math.linearToGamma
+int Math::LinearToGamma(lua_State * L)
+{
+	float color[4];
+	int numcomponents = getGammaArgs(L, color);
+
+	for (int i = 0; i < numcomponents; i++)
+	{
+		if (i < 3) // Alpha is always linear.
+			color[i] = convertLinearToGamma(color[i]);
+		lua_pushnumber(L, color[i]);
+	}
+
+	return numcomponents;
+}
+
 int Math::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
+    	{ "gammaToLinear", GammaToLinear },
         { "getRandomSeed", GetRandomSeed },
+        { "linearToGamma", LinearToGamma },
         { "random",        Random        },
         { "setRandomSeed", SetRandomSeed },
         { 0, 0 }
