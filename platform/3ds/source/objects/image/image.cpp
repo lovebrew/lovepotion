@@ -23,7 +23,7 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     else
     {
         size_t size;
-        char * buffer = this->GetMemoryImage(path, &size);
+        const void * buffer = this->GetMemoryImage(path, &size);
 
         sheet = C2D_SpriteSheetLoadFromMem(buffer, size);
         this->image = C2D_SpriteSheetGetImage(sheet, 0);
@@ -36,7 +36,7 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
 
-char * Image::GetMemoryImage(const char * path, size_t * size)
+const void * Image::GetMemoryImage(const char * path, size_t * size)
 {
     string name = path;
     name = name.substr(name.find(":") + 1);
@@ -44,29 +44,29 @@ char * Image::GetMemoryImage(const char * path, size_t * size)
     if (name == "screen")
     {
         *size = screen_t3x_size;
-        return (char *)screen_t3x;
+        return screen_t3x;
     }
     else if (name == "bottom")
     {
         *size = bottom_t3x_size;
-        return (char *)bottom_t3x;
+        return bottom_t3x;
     }
     else if (name == "eye")
     {
         *size = eye_t3x_size;
-        return (char *)eye_t3x;
+        return eye_t3x;
     }
     else if (name == "nogame")
     {
         *size = nogame_t3x_size;
-        return (char *)nogame_t3x;
+        return nogame_t3x;
     }
     else if (name == "warn_sm")
     {
         *size = warn_sm_t3x_size;
-        return (char *)warn_sm_t3x;
+        return warn_sm_t3x;
     }
     
     *size = button_sm_t3x_size;
-    return (char *)button_sm_t3x;
+    return button_sm_t3x;
 }
