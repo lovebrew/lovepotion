@@ -160,17 +160,12 @@ int Graphics::Draw(lua_State * L)
     Drawable * drawable = (Image *)luaobj_checkudata(L, 1, LUAOBJ_TYPE_IMAGE);
 
     Quad * quad = nullptr;
-    Tex3DS_SubTexture subTexture;
 
     int start = 2;
     if (!lua_isnoneornil(L, 2) && !lua_isnumber(L, 2))
     {
         quad = (Quad *)luaobj_checkudata(L, 2, LUAOBJ_TYPE_QUAD);
-        
-        subTexture = drawable->GetSubTexture();
-        
-        quad->SetSubTexture(&subTexture);
-        drawable->SetSubTexture(subTexture);
+        drawable->SetSubTexture(quad->GetSubTexture());
 
         start = 3;
     }

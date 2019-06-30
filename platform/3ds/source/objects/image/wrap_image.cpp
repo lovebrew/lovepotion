@@ -11,27 +11,25 @@ int imageNew(lua_State * L)
 {
     bool memory = false;
 
-    const char * path = luaL_checkstring(L, 1);
+    string path = luaL_checkstring(L, 1);
 
-    if (strncmp(path, "nogame:", 7) == 0 || strncmp(path, "error:", 6) == 0)
+    if (path.find("nogame:", 0, 7) != string::npos || path.find("error:", 0, 6) != string::npos)
         memory = true;
 
-    if (!memory)
-    {
-        string compat = path;
-        compat.replace(strlen(path) - 4, 4, ".t3x");
+    // if (!memory)
+    // {
+    //     size_t length = path.length();
+    //     path = path.replace(length - 4, 4, ".t3x");
 
-        if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(compat.c_str()))
-            return luaL_error(L, "Could not open image %s. Does not exist.", path);
-        else
-            path = compat.c_str();
-    }
+    //     if (!LOVE_VALIDATE_FILE_EXISTS_CLEAN(path.c_str()))
+    //         return luaL_error(L, "Could not open image %s. Does not exist.", path.c_str());
+    // }
 
     void * raw_self = luaobj_newudata(L, sizeof(Image));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    new (raw_self) Image(path, memory);
+    new (raw_self) Image(path.c_str(), memory);
 
     return 1;
 }

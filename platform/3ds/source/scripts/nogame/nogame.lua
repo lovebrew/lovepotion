@@ -1,4 +1,4 @@
-local N3DS = love.graphics.newImage("nogame:screen")
+local top = love.graphics.newImage("nogame:screen")
 local bottom = love.graphics.newImage("nogame:bottom")
 
 local eyeImage = love.graphics.newImage("nogame:eye")
@@ -60,7 +60,7 @@ end
 function love.draw()
     love.graphics.setScreen("top")
 
-    love.graphics.draw(N3DS, (love.graphics.getWidth() - N3DS:getWidth()) / 2, (love.graphics.getHeight() - N3DS:getHeight()) / 2)
+    love.graphics.draw(top)
 
     leftEye:draw()
     rightEye:draw()
