@@ -11,7 +11,6 @@ extern "C"
 }
 
 //Libraries
-#include <png.h>
 #include <SDL.h>
 #include <SDL_mixer.h>
 #include <curl/curl.h>
