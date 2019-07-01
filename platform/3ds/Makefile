@@ -54,6 +54,7 @@ SOURCES			:=	$(shell find ../../source -type d) \
 					source/socket
 
 DATA			:=  ../../source/scripts \
+					source/scripts \
 					source/scripts/nogame
 
 #ROMFS			:=	game
