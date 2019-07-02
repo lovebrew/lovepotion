@@ -2,6 +2,7 @@
 
 #include <switch.h>
 
+#include <png.h>
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include <SDL2_gfxPrimitives.h>

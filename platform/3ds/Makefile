@@ -54,6 +54,7 @@ SOURCES			:=	$(shell find ../../source -type d) \
 					source/socket
 
 DATA			:=  ../../source/scripts \
+					source/scripts \
 					source/scripts/nogame
 
 #ROMFS			:=	game
@@ -64,7 +65,6 @@ APP_AUTHOR		:= TurtleP
 ICON			:= icon.png
 
 #--------------------
-GRAPHICS	:=	gfx
 GFXBUILD	:=	$(BUILD)
 
 #GFXBUILD	:=	$(ROMFS)/gfx
@@ -86,7 +86,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fno-exceptions -std=gnu++14
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -lpng -lz -lcitro2d -lcitro3d -lctru -lm
+LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -lz -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
