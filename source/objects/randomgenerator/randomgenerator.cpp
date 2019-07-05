@@ -63,12 +63,12 @@ double RandomGenerator::random()
 
 double RandomGenerator::random(double max)
 {
-    return random() * max;
+    return floor(random() * max) + 1;
 }
 
 double RandomGenerator::random(double min, double max)
 {
-    return random() * (max - min) + min;
+    return floor(random() * (max - min + 1)) + min;
 }
 
 // Box–Muller transform
