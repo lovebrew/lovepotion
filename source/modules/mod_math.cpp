@@ -1,6 +1,9 @@
 #include "common/runtime.h"
 #include "modules/mod_math.h"
 
+#include "objects/randomgenerator/randomgenerator.h"
+#include "objects/randomgenerator/wrap_randomgenerator.h"
+
 float RANDOM_SEED;
 
 //love.math.setRandomSeed
@@ -147,11 +150,12 @@ int Math::Register(lua_State * L)
 {
     luaL_Reg reg[] = 
     {
-    	{ "gammaToLinear", GammaToLinear },
-        { "getRandomSeed", GetRandomSeed },
-        { "linearToGamma", LinearToGamma },
-        { "random",        Random        },
-        { "setRandomSeed", SetRandomSeed },
+    	{ "gammaToLinear",      GammaToLinear      },
+        { "getRandomSeed",      GetRandomSeed      },
+        { "linearToGamma",      LinearToGamma      },
+        { "random",             Random             },
+        { "setRandomSeed",      SetRandomSeed      },
+		{ "newRandomGenerator", randomgeneratorNew },
         { 0, 0 }
     };
 
