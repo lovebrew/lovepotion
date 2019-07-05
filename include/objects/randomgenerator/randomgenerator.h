@@ -18,7 +18,7 @@ class RandomGenerator : public Object
 
         RandomGenerator();
         RandomGenerator(Seed s);
-        ~RandomGenerator();
+        ~RandomGenerator() {};
 
         u64 rand();
 

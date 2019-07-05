@@ -112,8 +112,8 @@ int randomgeneratorRandomNormal(lua_State * L)
 {
     RandomGenerator * self = (RandomGenerator *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    double stddev = luaL_checknumber(L, 2);
-    double mean = luaL_checknumber(L, 3);
+    double stddev = luaL_optnumber(L, 2, 1.0);
+    double mean = luaL_optnumber(L, 3, 0.0);
 
     double r = self->randomNormal(stddev);
 
