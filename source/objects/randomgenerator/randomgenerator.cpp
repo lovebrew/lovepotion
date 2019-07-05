@@ -5,8 +5,6 @@
 
 #include "objects/randomgenerator/randomgenerator.h"
 
-#include <sstream>
-#include <iomanip>
 #include <limits>
 
 // Thomas Wang's 64-bit integer hashing function:
@@ -134,8 +132,15 @@ std::string RandomGenerator::getState() const
 {
     // For this implementation we'll return a hex string representing the 64-bit
     // state integer xorshift uses.
-    std::stringstream ss;
-    ss << "0x" << std::setfill('0') << std::setw(16) << std::hex << rng_state.b64;
 
-    return ss.str();
+    char state[19]; // "0x" + 16 zero padded hex of rng_state.b64 + "\0"
+
+    // For some reason on Switch, u64 is an unsigned long int, but on 3DS its an unsigned long long int
+#if defined(__SWITCH__)
+    sprintf(state, "0x%016lx", rng_state.b64);
+#elif defined(_3DS)
+    sprintf(state, "0x%0.16llx", rng_state.b64);
+#endif
+
+    return std::string(state);
 }
