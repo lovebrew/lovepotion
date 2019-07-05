@@ -263,10 +263,10 @@ function love.errhand(message)
 
     local dateTime = os.date("%c")
     table.insert(copy, "\nDate and Time: " .. dateTime)
-    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "log.txt")
+    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "LoveCrash.txt")
 
     local fullError = table.concat(err, "\n")
-    love.filesystem.write("log.txt", fullError)
+    love.filesystem.write("LoveCrash.txt", fullError)
 
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
 
@@ -278,9 +278,12 @@ function love.errhand(message)
     local headerFont = love.graphics.newFont(headerSize)
     local buttonFont = love.graphics.newFont(buttonSize)
 
-    local error_img = love.graphics.newImage("error:warn_sm");
-    local start_img = love.graphics.newImage("error:button_sm");
-    if love._os[2] == "Switch" then
+    local error_img, start_img
+    
+    if love._os[2] == "3DS" then
+        error_img = love.graphics.newImage("error:warn_sm")
+        start_img = love.graphics.newImage("error:button_sm")
+    elseif love._os[2] == "Switch" then
         error_img = love.graphics.newImage("error:warn")
         start_img = love.graphics.newImage("error:button")
     end

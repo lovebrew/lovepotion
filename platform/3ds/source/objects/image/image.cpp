@@ -14,14 +14,11 @@
 Image::Image(const char * path, bool memory) : Drawable("Image")
 {
     C2D_SpriteSheet sheet = NULL;
-    LOG("== %s ==", path);
 
     if (!memory)
     {
         sheet = C2D_SpriteSheetLoad(path);
         this->image = C2D_SpriteSheetGetImage(sheet, 0);
-
-        LOG("Sheet: %d - Subtex :%d", sheet != NULL, this->image.subtex != NULL);
     }
     else
     {
@@ -30,8 +27,6 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
 
         sheet = C2D_SpriteSheetLoadFromMem(buffer, size);
         this->image = C2D_SpriteSheetGetImage(sheet, 0);
-
-        LOG("Sheet: %d - Subtex :%d", sheet != NULL, this->image.subtex != NULL);
     }
 
     C3D_TexSetFilter(this->image.tex, magFilter, minFilter);
@@ -40,8 +35,6 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     
     this->width = this->image.subtex->width;
     this->height = this->image.subtex->height;
-
-    LOG("Width %d - Height %d\n", this->width, this->height);
 
     C3D_TexSetWrap(this->image.tex, GPU_CLAMP_TO_BORDER, GPU_CLAMP_TO_BORDER);
 }
