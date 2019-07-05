@@ -33,6 +33,7 @@
 #include "objects/source/wrap_source.h"
 #include "objects/text/wrap_text.h"
 #include "objects/thread/wrap_thread.h"
+#include "objects/randomgenerator/wrap_randomgenerator.h"
 
 #include "nogame_lua.h"
 
@@ -67,6 +68,7 @@ int (*classes[])(lua_State *L) =
     initSourceClass,
     initThreadClass,
     initTextClass,
+    initRandomGeneratorClass,
     NULL
 };
 

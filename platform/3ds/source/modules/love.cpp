@@ -9,6 +9,7 @@
 #include "objects/image/wrap_image.h"
 #include "objects/source/wrap_source.h"
 #include "objects/quad/wrap_quad.h"
+#include "objects/randomgenerator/wrap_randomgenerator.h"
 
 #include "modules/audio.h"
 #include "modules/event.h"
@@ -45,6 +46,7 @@ int (*classes[])(lua_State *L) =
     initImageClass,
     initQuadClass,
     initSourceClass,
+    initRandomGeneratorClass,
     NULL
 };
 
