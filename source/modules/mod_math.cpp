@@ -194,6 +194,50 @@ int Math::LinearToGamma(lua_State * L)
     return numcomponents;
 }
 
+//love.math.isConvex
+int Math::IsConvex(lua_State * L)
+{
+    lua_pushboolean(L, false);
+
+    return 1;
+}
+
+//love.math.noise
+int Math::IsConvex(lua_State * L)
+{
+    int nargs = std::min(std::max(lua_gettop(L), 1), 4);
+    float args[4];
+
+    for (int i = 0; i < nargs; i++)
+        args[i] = (float)luaL_checknumber(L, i + 1);
+
+    float val = 0.0f;
+
+    switch (nargs) // dimensions of noise vector
+    {
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        case 4:
+            break;
+    }
+
+    lua_pushnumber(L, val);
+
+    return 1;
+}
+
+//love.math.triangulate
+int Math::Triangulate(lua_State * L)
+{
+    //luaL_pushtriangles(L);
+
+    return 1;
+}
+
 int Math::Register(lua_State * L)
 {
     // The module's random generator is always seeded with 
@@ -204,16 +248,19 @@ int Math::Register(lua_State * L)
     luaL_Reg reg[] = 
     {
         { "gammaToLinear",      GammaToLinear      },
-        { "linearToGamma",      LinearToGamma      },
-
-        { "newRandomGenerator", randomgeneratorNew },
-
         { "getRandomSeed",      GetRandomSeed      },
         { "getRandomState",     GetRandomState     },
+        { "isConvex",           IsConvex           },
+        { "linearToGamma",      LinearToGamma      },
+        // { "newBezierCurve",     beziercurveNew     },
+        { "newRandomGenerator", randomgeneratorNew },
+        // { "newTransform",       transformNew       },
+        { "noise",              Noise              },
         { "random",             Random             },
         { "randomNormal",       RandomNormal       },
         { "setRandomSeed",      SetRandomSeed      },
         { "setRandomState",     SetRandomState     },
+        { "triangulate",        Triangulate        },
         { 0, 0 }
     };
 

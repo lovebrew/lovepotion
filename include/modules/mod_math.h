@@ -10,7 +10,11 @@ namespace Math
 
     int GetRandomState(lua_State * L);
 
+    int IsConvex(lua_State * L);
+
     int LinearToGamma(lua_State * L);
+
+    int Noise(lua_State * L);
 
     int Random(lua_State * L);
 
@@ -19,6 +23,8 @@ namespace Math
     int SetRandomSeed(lua_State * L);
 
     int SetRandomState(lua_State * L);
+
+    int Triangulate(lua_State * L);
 
     //End Löve2D Functions
 
