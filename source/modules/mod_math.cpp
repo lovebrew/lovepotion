@@ -4,6 +4,9 @@
 #include "objects/randomgenerator/randomgenerator.h"
 #include "objects/randomgenerator/wrap_randomgenerator.h"
 
+#include <noise1234.h>
+#include <simplexnoise1234.h>
+
 #include <time.h>
 #include <limits>
 
@@ -203,7 +206,7 @@ int Math::IsConvex(lua_State * L)
 }
 
 //love.math.noise
-int Math::IsConvex(lua_State * L)
+int Math::Noise(lua_State * L)
 {
     int nargs = std::min(std::max(lua_gettop(L), 1), 4);
     float args[4];
@@ -216,12 +219,19 @@ int Math::IsConvex(lua_State * L)
     switch (nargs) // dimensions of noise vector
     {
         case 1:
+            val = SimplexNoise1234::noise(args[0]) * 0.5f + 0.5f;
             break;
         case 2:
+            val = SimplexNoise1234::noise(args[0], args[1]) * 0.5f + 0.5f;
             break;
+
+        // Perlin noise is used instead of Simplex noise in the 3D and 4D cases to avoid patent issues.
+
         case 3:
+            val = Noise1234::noise(args[0], args[1], args[2]) * 0.5f + 0.5f;
             break;
         case 4:
+            val = Noise1234::noise(args[0], args[1], args[2], args[3]) * 0.5f + 0.5f;
             break;
     }
 
