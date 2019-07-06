@@ -197,10 +197,94 @@ int Math::LinearToGamma(lua_State * L)
     return numcomponents;
 }
 
+// from https://bitbucket.org/rude/love/src/default/src/common/Vector.h
+struct Vector2
+{
+    float x, y;
+
+    Vector2() : x(0.0f), y(0.0f) {}
+
+    Vector2(float x, float y)
+        : x(x), y(y)
+    {}
+
+    Vector2(const Vector2 &v)
+        : x(v.x), y(v.y)
+    {}
+
+    inline Vector2 operator - (const Vector2 &v) const
+    {
+        return Vector2(x - v.x, y - v.y);
+    }
+    
+    static inline float cross(const Vector2 &a, const Vector2 &b)
+    {
+        return a.x * b.y - a.y * b.x;
+    }
+};
+
 //love.math.isConvex
 int Math::IsConvex(lua_State * L)
 {
-    lua_pushboolean(L, false);
+    std::vector<Vector2> vertices;
+    if (lua_istable(L, 1))
+    {
+        int top = lua_objlen(L, 1);
+        vertices.reserve(top / 2);
+        for (int i = 1; i <= top; i += 2)
+        {
+            lua_rawgeti(L, 1, i);
+            lua_rawgeti(L, 1, i+1);
+
+            Vector2 v;
+            v.x = (float) luaL_checknumber(L, -2);
+            v.y = (float) luaL_checknumber(L, -1);
+            vertices.push_back(v);
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        int top = lua_gettop(L);
+        vertices.reserve(top / 2);
+        for (int i = 1; i <= top; i += 2)
+        {
+            Vector2 v;
+            v.x = (float) luaL_checknumber(L, i);
+            v.y = (float) luaL_checknumber(L, i+1);
+            vertices.push_back(v);
+        }
+    }
+
+    if (vertices.size() < 3)
+    {
+        lua_pushboolean(L, false);
+        return 1;
+    }
+
+    // a polygon is convex if all corners turn in the same direction
+    // turning direction can be determined using the cross-product of
+    // the forward difference vectors
+    size_t i = vertices.size() - 2, j = vertices.size() - 1, k = 0;
+    Vector2 p(vertices[j] - vertices[i]);
+    Vector2 q(vertices[k] - vertices[j]);
+    float winding = Vector2::cross(p, q);
+
+    while (k+1 < vertices.size())
+    {
+        i = j; j = k; k++;
+        p = vertices[j] - vertices[i];
+        q = vertices[k] - vertices[j];
+
+        if (Vector2::cross(p, q) * winding < 0)
+        {
+            lua_pushboolean(L, false);
+            return 1;
+        }
+    }
+
+    lua_pushboolean(L, true);
 
     return 1;
 }
