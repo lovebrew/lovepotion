@@ -139,8 +139,8 @@ std::string RandomGenerator::getState() const
 #if defined(__SWITCH__)
     sprintf(state, "0x%016lx", rng_state.b64);
 #elif defined(_3DS)
-    sprintf(state, "0x%0.16llx", rng_state.b64);
+    sprintf(state, "0x%016llx", rng_state.b64);
 #endif
 
-    return std::string(state);
+    return state;
 }

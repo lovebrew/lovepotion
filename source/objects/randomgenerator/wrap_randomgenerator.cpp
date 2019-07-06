@@ -70,7 +70,9 @@ int randomgeneratorGetState(lua_State * L)
 {
     RandomGenerator * self = (RandomGenerator *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
-    lua_pushliteral(L, self->getState().c_str());
+    std::string s = self->getState();
+
+    lua_pushlstring(L, s.c_str(), s.length());
     
     return 1;
 }

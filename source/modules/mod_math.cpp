@@ -104,7 +104,9 @@ int Math::GetRandomSeed(lua_State * L)
 
 int Math::GetRandomState(lua_State * L)
 {
-    lua_pushstring(L, rng.getState().c_str());
+    std::string s = rng.getState();
+
+    lua_pushlstring(L, s.c_str(), s.length());
 
     return 1;
 }
