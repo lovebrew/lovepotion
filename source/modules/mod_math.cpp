@@ -1,6 +1,9 @@
 #include "common/runtime.h"
 #include "modules/mod_math.h"
 
+#include "common/vector2.h"
+#include "common/triangle.h"
+
 #include "objects/randomgenerator/randomgenerator.h"
 #include "objects/randomgenerator/wrap_randomgenerator.h"
 
@@ -95,7 +98,7 @@ int Math::GetRandomSeed(lua_State * L)
 //love.math.getRandomState
 int Math::GetRandomState(lua_State * L)
 {
-    std::string s = rng.getState();
+    string s = rng.getState();
 
     lua_pushlstring(L, s.c_str(), s.length());
 
@@ -137,7 +140,7 @@ int Math::LinearToGamma(lua_State * L)
 //love.math.isConvex
 int Math::IsConvex(lua_State * L)
 {
-    std::vector<Vector2> vertices;
+    vector<Vector2> vertices;
     if (lua_istable(L, 1))
     {
         int top = lua_objlen(L, 1);
@@ -203,7 +206,7 @@ int Math::IsConvex(lua_State * L)
 //love.math.noise
 int Math::Noise(lua_State * L)
 {
-    int nargs = std::min(std::max(lua_gettop(L), 1), 4);
+    int nargs = min(max(lua_gettop(L), 1), 4);
     float args[4];
 
     for (int i = 0; i < nargs; i++)
@@ -238,7 +241,144 @@ int Math::Noise(lua_State * L)
 //love.math.triangulate
 int Math::Triangulate(lua_State * L)
 {
-    //luaL_pushtriangles(L);
+    vector<Vector2> vertices;
+    if (lua_istable(L, 1))
+    {
+        int top = (int) lua_objlen(L, 1);
+        vertices.reserve(top / 2);
+        for (int i = 1; i <= top; i += 2)
+        {
+            lua_rawgeti(L, 1, i);
+            lua_rawgeti(L, 1, i+1);
+
+            Vector2 v;
+            v.x = (float) luaL_checknumber(L, -2);
+            v.y = (float) luaL_checknumber(L, -1);
+            vertices.push_back(v);
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        int top = lua_gettop(L);
+        vertices.reserve(top / 2);
+        for (int i = 1; i <= top; i += 2)
+        {
+            Vector2 v;
+            v.x = (float) luaL_checknumber(L, i);
+            v.y = (float) luaL_checknumber(L, i+1);
+            vertices.push_back(v);
+        }
+    }
+
+    if (vertices.size() < 3)
+        return luaL_error(L, "Need at least 3 vertices to triangulate");
+    else if (vertices.size() == 3)
+    {
+        // push the single triangle
+        // make the table to store the table that stores the points
+        lua_createtable(L, 6, 0);
+
+        // store the points in the sub-table
+        lua_createtable(L, 6, 0);
+        lua_pushnumber(L, vertices[0].x);
+        lua_rawseti(L, -2, 1);
+        lua_pushnumber(L, vertices[0].y);
+        lua_rawseti(L, -2, 2);
+        lua_pushnumber(L, vertices[1].x);
+        lua_rawseti(L, -2, 3);
+        lua_pushnumber(L, vertices[1].y);
+        lua_rawseti(L, -2, 4);
+        lua_pushnumber(L, vertices[2].x);
+        lua_rawseti(L, -2, 5);
+        lua_pushnumber(L, vertices[2].y);
+        lua_rawseti(L, -2, 6);
+
+        // put the table into the table to be pushed
+        lua_rawseti(L, -2, 1);
+
+        return 1;
+    }
+    else
+    {
+        // collect list of connections and record leftmost item to check if the polygon
+        // has the expected winding
+        vector<size_t> next_idx(vertices.size()), prev_idx(vertices.size());
+        size_t idx_lm = 0;
+        for (size_t i = 0; i < vertices.size(); ++i)
+        {
+            const Vector2 &lm = vertices[idx_lm], &p = vertices[i];
+            if (p.x < lm.x || (p.x == lm.x && p.y < lm.y))
+                idx_lm = i;
+            next_idx[i] = i+1;
+            prev_idx[i] = i-1;
+        }
+        next_idx[next_idx.size()-1] = 0;
+        prev_idx[0] = prev_idx.size()-1;
+
+        // check if the polygon has the expected winding and reverse polygon if needed
+        if (!isOrientedCCW(vertices[prev_idx[idx_lm]], vertices[idx_lm], vertices[next_idx[idx_lm]]))
+            next_idx.swap(prev_idx);
+
+        // collect list of concave polygons
+        list<const Vector2 *> concave_vertices;
+        for (size_t i = 0; i < vertices.size(); ++i)
+        {
+            if (!isOrientedCCW(vertices[prev_idx[i]], vertices[i], vertices[next_idx[i]]))
+                concave_vertices.push_back(&vertices[i]);
+        }
+
+        // triangulation according to kong
+        vector<Triangle> triangles;
+        size_t n_vertices = vertices.size();
+        size_t current = 1, skipped = 0, next, prev;
+        while (n_vertices > 3)
+        {
+            next = next_idx[current];
+            prev = prev_idx[current];
+            const Vector2 &a = vertices[prev], &b = vertices[current], &c = vertices[next];
+            if (isEar(a,b,c, concave_vertices))
+            {
+                triangles.push_back(Triangle(a,b,c));
+                next_idx[prev] = next;
+                prev_idx[next] = prev;
+                concave_vertices.remove(&b);
+                --n_vertices;
+                skipped = 0;
+            }
+            else if (++skipped > n_vertices)
+                luaL_error(L, "Cannot triangulate polygon.");
+            
+            current = next;
+        }
+        next = next_idx[current];
+        prev = prev_idx[current];
+        triangles.push_back(Triangle(vertices[prev], vertices[current], vertices[next]));
+
+        // Make triangles into a single table to return
+        lua_createtable(L, (int) triangles.size(), 0);
+        for (int i = 0; i < (int) triangles.size(); ++i)
+        {
+            const Triangle &tri = triangles[i];
+
+            lua_createtable(L, 6, 0);
+            lua_pushnumber(L, tri.a.x);
+            lua_rawseti(L, -2, 1);
+            lua_pushnumber(L, tri.a.y);
+            lua_rawseti(L, -2, 2);
+            lua_pushnumber(L, tri.b.x);
+            lua_rawseti(L, -2, 3);
+            lua_pushnumber(L, tri.b.y);
+            lua_rawseti(L, -2, 4);
+            lua_pushnumber(L, tri.c.x);
+            lua_rawseti(L, -2, 5);
+            lua_pushnumber(L, tri.c.y);
+            lua_rawseti(L, -2, 6);
+
+            lua_rawseti(L, -2, i+1);
+        }
+    }
 
     return 1;
 }
@@ -271,7 +411,7 @@ int Math::getGammaArgs(lua_State * L, float color[4])
         for (int i = 1; i <= n && i <= 4; i++)
         {
             lua_rawgeti(L, 1, i);
-            color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, -1), 0.0), 1.0);
+            color[i - 1] = (float) min(max(luaL_checknumber(L, -1), 0.0), 1.0);
             numcomponents++;
         }
 
@@ -282,7 +422,7 @@ int Math::getGammaArgs(lua_State * L, float color[4])
         int n = lua_gettop(L);
         for (int i = 1; i <= n && i <= 4; i++)
         {
-            color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, i), 0.0), 1.0);
+            color[i - 1] = (float) min(max(luaL_checknumber(L, i), 0.0), 1.0);
             numcomponents++;
         }
     }
@@ -291,6 +431,44 @@ int Math::getGammaArgs(lua_State * L, float color[4])
         luaL_checknumber(L, 1);
 
     return numcomponents;
+}
+
+// check if an angle is oriented counter clockwise
+bool Math::isOrientedCCW(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+{
+    return ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) >= 0;
+}
+
+// check if a and b are on the same side of the line c->d
+bool Math::onSameSide(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d)
+{
+    float px = d.x - c.x, py = d.y - c.y;
+    float l = px * (a.y - c.y) - py * (a.x - c.x);
+    float m = px * (b.y - c.y) - py * (b.x - c.x);
+    return l * m >= 0;
+}
+
+// checks is p is contained in the triangle abc
+bool Math::pointInTriangle(const Vector2 &p, const Vector2 &a, const Vector2 &b, const Vector2 &c)
+{
+    return onSameSide(p,a, b,c) && onSameSide(p,b, a,c) && onSameSide(p,c, a,b);
+}
+
+// checks if any vertex in `vertices' is in the triangle abc.
+bool Math::anyPointInTriangle(const list<const Vector2 *> &vertices, const Vector2 &a, const Vector2 &b, const Vector2 &c)
+{
+    for (const Vector2 *p : vertices)
+    {
+        if ((p != &a) && (p != &b) && (p != &c) && pointInTriangle(*p, a,b,c))
+            return true;
+    }
+
+    return false;
+}
+
+bool Math::isEar(const Vector2 &a, const Vector2 &b, const Vector2 &c, const list<const Vector2 *> &vertices)
+{
+    return isOrientedCCW(a,b,c) && !anyPointInTriangle(vertices, a,b,c);
 }
 
 

@@ -22,6 +22,7 @@ extern "C"
 #include <string>
 #include <vector>
 #include <queue>
+#include <list>
 
 //C headers
 #include <errno.h>
@@ -44,7 +45,6 @@ extern "C"
 #include "common/util.h"
 #include "common/variables.h"
 #include "common/variant.h"
-#include "common/vector2.h"
 
 //Löve module - important!
 #include "modules/love.h"
@@ -53,5 +53,6 @@ using std::string;
 using std::vector;
 using std::map;
 using std::queue;
+using std::list;
 using std::max;
 using std::min;
