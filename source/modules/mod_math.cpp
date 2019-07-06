@@ -4,6 +4,7 @@
 #include "objects/randomgenerator/randomgenerator.h"
 #include "objects/randomgenerator/wrap_randomgenerator.h"
 
+#include <time.h>
 #include <limits>
 
 // Our own personal RNG!
@@ -99,9 +100,10 @@ int Math::GetRandomSeed(lua_State * L)
     lua_pushnumber(L, s.b32.low);
     lua_pushnumber(L, s.b32.high);
 
-    return 1;
+    return 2;
 }
 
+//love.math.getRandomState
 int Math::GetRandomState(lua_State * L)
 {
     std::string s = rng.getState();
@@ -194,6 +196,11 @@ int Math::LinearToGamma(lua_State * L)
 
 int Math::Register(lua_State * L)
 {
+    // The module's random generator is always seeded with 
+    RandomGenerator::Seed s;
+    s.b64 = (u64) time(nullptr);
+    rng.setSeed(s);
+
     luaL_Reg reg[] = 
     {
         { "gammaToLinear",      GammaToLinear      },
