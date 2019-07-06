@@ -28,5 +28,15 @@ namespace Math
 
     //End Löve2D Functions
 
+    //Helper functions
+
+    float convertGammaToLinear(float c);
+
+    float convertLinearToGamma(float c);
+
+    int getGammaArgs(lua_State * L, float color[4]);
+
+    //End Helper functions
+
     int Register(lua_State * L);
 }

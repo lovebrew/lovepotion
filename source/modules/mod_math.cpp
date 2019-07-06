@@ -8,23 +8,9 @@
 #include <simplexnoise1234.h>
 
 #include <time.h>
-#include <limits>
 
 // Our own personal RNG!
 RandomGenerator rng;
-
-template <typename T>
-static T checkrandomseed_part(lua_State *L, int idx)
-{
-    double num = luaL_checknumber(L, idx);
-    double inf = std::numeric_limits<double>::infinity();
-
-    // Disallow conversions from infinity and NaN.
-    if (num == inf || num == -inf || num != num)
-        luaL_argerror(L, idx, "invalid random seed");
-
-    return (T) num;
-}
 
 //love.math.setRandomSeed
 int Math::SetRandomSeed(lua_State * L)
@@ -116,55 +102,6 @@ int Math::GetRandomState(lua_State * L)
     return 1;
 }
 
-
-int convertGammaToLinear(float c)
-{
-    if (c <= 0.04045f)
-        return c / 12.92f;
-    else
-        return powf((c + 0.055f) / 1.055f, 2.4f);
-}
-
-int convertLinearToGamma(float c)
-{
-    if (c <= 0.0031308f)
-        return c * 12.92f;
-    else
-        return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
-}
-
-int getGammaArgs(lua_State * L, float color[4])
-{
-    int numcomponents = 0;
-
-    if (lua_istable(L, 1))
-    {
-        int n = (int) lua_objlen(L, 1);
-        for (int i = 1; i <= n && i <= 4; i++)
-        {
-            lua_rawgeti(L, 1, i);
-            color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, -1), 0.0), 1.0);
-            numcomponents++;
-        }
-
-        lua_pop(L, numcomponents);
-    }
-    else
-    {
-        int n = lua_gettop(L);
-        for (int i = 1; i <= n && i <= 4; i++)
-        {
-            color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, i), 0.0), 1.0);
-            numcomponents++;
-        }
-    }
-
-    if (numcomponents == 0)
-        luaL_checknumber(L, 1);
-
-    return numcomponents;
-}
-
 //love.math.gammaToLinear
 int Math::GammaToLinear(lua_State * L)
 {
@@ -196,32 +133,6 @@ int Math::LinearToGamma(lua_State * L)
 
     return numcomponents;
 }
-
-// from https://bitbucket.org/rude/love/src/default/src/common/Vector.h
-struct Vector2
-{
-    float x, y;
-
-    Vector2() : x(0.0f), y(0.0f) {}
-
-    Vector2(float x, float y)
-        : x(x), y(y)
-    {}
-
-    Vector2(const Vector2 &v)
-        : x(v.x), y(v.y)
-    {}
-
-    inline Vector2 operator - (const Vector2 &v) const
-    {
-        return Vector2(x - v.x, y - v.y);
-    }
-    
-    static inline float cross(const Vector2 &a, const Vector2 &b)
-    {
-        return a.x * b.y - a.y * b.x;
-    }
-};
 
 //love.math.isConvex
 int Math::IsConvex(lua_State * L)
@@ -331,6 +242,57 @@ int Math::Triangulate(lua_State * L)
 
     return 1;
 }
+
+
+//Helper functions
+float Math::convertGammaToLinear(float c)
+{
+    if (c <= 0.04045f)
+        return c / 12.92f;
+    else
+        return powf((c + 0.055f) / 1.055f, 2.4f);
+}
+
+float Math::convertLinearToGamma(float c)
+{
+    if (c <= 0.0031308f)
+        return c * 12.92f;
+    else
+        return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
+}
+
+int Math::getGammaArgs(lua_State * L, float color[4])
+{
+    int numcomponents = 0;
+
+    if (lua_istable(L, 1))
+    {
+        int n = (int) lua_objlen(L, 1);
+        for (int i = 1; i <= n && i <= 4; i++)
+        {
+            lua_rawgeti(L, 1, i);
+            color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, -1), 0.0), 1.0);
+            numcomponents++;
+        }
+
+        lua_pop(L, numcomponents);
+    }
+    else
+    {
+        int n = lua_gettop(L);
+        for (int i = 1; i <= n && i <= 4; i++)
+        {
+            color[i - 1] = (float) std::min(std::max(luaL_checknumber(L, i), 0.0), 1.0);
+            numcomponents++;
+        }
+    }
+
+    if (numcomponents == 0)
+        luaL_checknumber(L, 1);
+
+    return numcomponents;
+}
+
 
 int Math::Register(lua_State * L)
 {

@@ -44,6 +44,7 @@ extern "C"
 #include "common/util.h"
 #include "common/variables.h"
 #include "common/variant.h"
+#include "common/vector2.h"
 
 //Löve module - important!
 #include "modules/love.h"
