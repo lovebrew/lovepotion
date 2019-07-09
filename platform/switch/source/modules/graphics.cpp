@@ -721,6 +721,14 @@ int Graphics::Origin(lua_State * L)
     stack.back().ox = 0;
     stack.back().oy = 0;
 
+    stack.back().sx = 1;
+    stack.back().sy = 1;
+
+    stack.back().r = 0;
+    
+    stack.back().kx = 0;
+    stack.back().ky = 0;
+
     return 0;
 }
 
