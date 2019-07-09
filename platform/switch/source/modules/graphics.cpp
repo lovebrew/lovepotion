@@ -401,6 +401,7 @@ int Graphics::Polygon(lua_State * L)
     int args = lua_gettop(L) - 1; // vertices count (or a table)
 
     string mode = luaL_checkstring(L, 1);
+
     LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
     // check if the user provided a table instead of giant list
@@ -425,8 +426,9 @@ int Graphics::Polygon(lua_State * L)
 
     if (isTable)
     {
-        s16 x = 0;
-        s16 y = 0;
+        // temporary storage of the coordinates for transforming
+        s16 x = 0, y = 0;
+
         for (int i = 0; i < numvertices; i++)
         {
             lua_rawgeti(L, 2, (i * 2) + 1);
@@ -445,8 +447,9 @@ int Graphics::Polygon(lua_State * L)
     }
     else
     {
-        s16 x = 0;
-        s16 y = 0;
+        // same here
+        s16 x = 0, y = 0;
+
         for (int i = 0; i < numvertices; i++)
         {
             x = luaL_checkinteger(L, (i * 2) + 2);

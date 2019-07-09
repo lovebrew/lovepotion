@@ -53,11 +53,13 @@ int Math::Random(lua_State * L)
         {
             double low = luaL_checknumber(L, 1);
             double high = luaL_checknumber(L, 2);
+
             n = rng.random(low, high);
         }
         else
         {
             double high = luaL_checknumber(L, 1);
+            
             n = rng.random(high);
         }
     }
@@ -174,6 +176,7 @@ int Math::IsConvex(lua_State * L)
     if (vertices.size() < 3)
     {
         lua_pushboolean(L, false);
+
         return 1;
     }
 
@@ -194,6 +197,7 @@ int Math::IsConvex(lua_State * L)
         if (Vector2::cross(p, q) * winding < 0)
         {
             lua_pushboolean(L, false);
+
             return 1;
         }
     }
@@ -246,6 +250,7 @@ int Math::Triangulate(lua_State * L)
     {
         int top = (int) lua_objlen(L, 1);
         vertices.reserve(top / 2);
+
         for (int i = 1; i <= top; i += 2)
         {
             lua_rawgeti(L, 1, i);
@@ -263,6 +268,7 @@ int Math::Triangulate(lua_State * L)
     {
         int top = lua_gettop(L);
         vertices.reserve(top / 2);
+
         for (int i = 1; i <= top; i += 2)
         {
             Vector2 v;
@@ -282,16 +288,22 @@ int Math::Triangulate(lua_State * L)
 
         // store the points in the sub-table
         lua_createtable(L, 6, 0);
+
         lua_pushnumber(L, vertices[0].x);
         lua_rawseti(L, -2, 1);
+
         lua_pushnumber(L, vertices[0].y);
         lua_rawseti(L, -2, 2);
+
         lua_pushnumber(L, vertices[1].x);
         lua_rawseti(L, -2, 3);
+
         lua_pushnumber(L, vertices[1].y);
         lua_rawseti(L, -2, 4);
+
         lua_pushnumber(L, vertices[2].x);
         lua_rawseti(L, -2, 5);
+
         lua_pushnumber(L, vertices[2].y);
         lua_rawseti(L, -2, 6);
 
@@ -305,15 +317,20 @@ int Math::Triangulate(lua_State * L)
         // collect list of connections and record leftmost item to check if the polygon
         // has the expected winding
         vector<size_t> next_idx(vertices.size()), prev_idx(vertices.size());
+
         size_t idx_lm = 0;
+
         for (size_t i = 0; i < vertices.size(); ++i)
         {
             const Vector2 &lm = vertices[idx_lm], &p = vertices[i];
+
             if (p.x < lm.x || (p.x == lm.x && p.y < lm.y))
                 idx_lm = i;
+
             next_idx[i] = i+1;
             prev_idx[i] = i-1;
         }
+
         next_idx[next_idx.size()-1] = 0;
         prev_idx[0] = prev_idx.size()-1;
 
@@ -333,10 +350,12 @@ int Math::Triangulate(lua_State * L)
         vector<Triangle> triangles;
         size_t n_vertices = vertices.size();
         size_t current = 1, skipped = 0, next, prev;
+
         while (n_vertices > 3)
         {
             next = next_idx[current];
             prev = prev_idx[current];
+
             const Vector2 &a = vertices[prev], &b = vertices[current], &c = vertices[next];
             if (isEar(a,b,c, concave_vertices))
             {
@@ -352,8 +371,10 @@ int Math::Triangulate(lua_State * L)
             
             current = next;
         }
+
         next = next_idx[current];
         prev = prev_idx[current];
+
         triangles.push_back(Triangle(vertices[prev], vertices[current], vertices[next]));
 
         // Make triangles into a single table to return
@@ -363,16 +384,22 @@ int Math::Triangulate(lua_State * L)
             const Triangle &tri = triangles[i];
 
             lua_createtable(L, 6, 0);
+
             lua_pushnumber(L, tri.a.x);
             lua_rawseti(L, -2, 1);
+
             lua_pushnumber(L, tri.a.y);
             lua_rawseti(L, -2, 2);
+
             lua_pushnumber(L, tri.b.x);
             lua_rawseti(L, -2, 3);
+
             lua_pushnumber(L, tri.b.y);
             lua_rawseti(L, -2, 4);
+
             lua_pushnumber(L, tri.c.x);
             lua_rawseti(L, -2, 5);
+
             lua_pushnumber(L, tri.c.y);
             lua_rawseti(L, -2, 6);
 
@@ -445,6 +472,7 @@ bool Math::onSameSide(const Vector2 &a, const Vector2 &b, const Vector2 &c, cons
     float px = d.x - c.x, py = d.y - c.y;
     float l = px * (a.y - c.y) - py * (a.x - c.x);
     float m = px * (b.y - c.y) - py * (b.x - c.x);
+
     return l * m >= 0;
 }
 
