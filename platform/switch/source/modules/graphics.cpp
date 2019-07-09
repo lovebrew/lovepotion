@@ -27,7 +27,8 @@ float lineWidth = 2.0f;
 Font * currentFont = NULL;
 
 vector<StackMatrix> stack;
-void transformDrawable(float * originalX, float * originalY) // rotate, scale, and translate coords.
+template <typename T>
+void transformDrawable(T * originalX, T * originalY) // rotate, scale, and translate coords.
 {
     if (stack.empty())
         return;
@@ -38,8 +39,8 @@ void transformDrawable(float * originalX, float * originalY) // rotate, scale, a
     //float newTop = *originalY;
 
     //Translate
-    *originalX += matrix.ox;
-    *originalY += matrix.oy;
+    *originalX += (T) matrix.ox;
+    *originalY += (T) matrix.oy;
 
     //Scale
     /*originalX *= matrix.sx;
@@ -397,25 +398,78 @@ int Graphics::Rectangle(lua_State * L)
 //love.graphics.polygon
 int Graphics::Polygon(lua_State * L)
 {
-    string mode = luaL_checkstring(L, 1);
+    int args = lua_gettop(L) - 1; // vertices count (or a table)
 
+    string mode = luaL_checkstring(L, 1);
     LOVE_VALIDATE_DRAW_MODE(mode.c_str());
 
-    float x = luaL_checknumber(L, 2);
-    float y = luaL_checknumber(L, 3);
+    // check if the user provided a table instead of giant list
+    bool isTable = false;
+    if (args == 1 && lua_istable(L, 2))
+    {
+        args = (int) lua_objlen(L, 2);
+        isTable = true;
+    }
 
-    float bx = luaL_checknumber(L, 4);
-    float by = luaL_checknumber(L, 5);
-	
-	float cx = luaL_checknumber(L, 6);
-    float cy = luaL_checknumber(L, 7);
+    // throw errors if theres a problem
+    if (args % 2 != 0)
+        return luaL_error(L, "Number of vertex components must be a multiple of two");
+    else if (args < 6)
+        return luaL_error(L, "Need at least three vertices to draw a polygon");
 
-    transformDrawable(&x, &y);
+    // gather all the vertices
+    int numvertices = args / 2;
+    
+    s16 xCoords[numvertices + 1];
+    s16 yCoords[numvertices + 1];
 
+    if (isTable)
+    {
+        s16 x = 0;
+        s16 y = 0;
+        for (int i = 0; i < numvertices; i++)
+        {
+            lua_rawgeti(L, 2, (i * 2) + 1);
+            lua_rawgeti(L, 2, (i * 2) + 2);
+
+            x = luaL_checkinteger(L, -2);
+            y = luaL_checkinteger(L, -1);
+
+            transformDrawable(&x, &y);
+
+            xCoords[i] = x;
+            yCoords[i] = y;
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        s16 x = 0;
+        s16 y = 0;
+        for (int i = 0; i < numvertices; i++)
+        {
+            x = luaL_checkinteger(L, (i * 2) + 2);
+            y = luaL_checkinteger(L, (i * 2) + 3);
+            
+            transformDrawable(&x, &y);
+
+            xCoords[i] = x;
+            yCoords[i] = y;
+
+            lua_pop(L, 2);
+        }
+    }
+
+    // close the loop
+    xCoords[numvertices] = xCoords[0];
+    yCoords[numvertices] = yCoords[0];
+
+    // finally draw
     if (mode == "fill")
-        filledTrigonRGBA(Window::GetRenderer(), x, y, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledPolygonRGBA(Window::GetRenderer(), xCoords, yCoords, numvertices, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        trigonRGBA(Window::GetRenderer(), x, y, bx, by, cx, cy, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        polygonRGBA(Window::GetRenderer(), xCoords, yCoords, numvertices, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
