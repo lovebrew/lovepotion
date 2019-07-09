@@ -294,6 +294,7 @@ function love.errhand(message)
     --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2) 
 
     local function draw()
+        love.graphics.origin()
         love.graphics.clear()
 
         love.graphics.draw(error_img, 40, (height * 0.15) / 2 - error_img:getHeight() / 2)

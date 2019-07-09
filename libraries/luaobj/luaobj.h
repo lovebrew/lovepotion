@@ -33,9 +33,10 @@ typedef struct {
 #define LUAOBJ_TYPE_TEXT (1 << 9)
 #define LUAOBJ_TYPE_SPRITEBATCH (1 << 10)
 #define LUAOBJ_TYPE_IMAGEDATA (1 << 11)
+#define LUAOBJ_TYPE_RANDOMGENERATOR (1 << 12)
 
-#define LUAOBJ_TYPE_UDP (1 << 12)
-#define LUAOBJ_TYPE_TCP (1 << 13)
+#define LUAOBJ_TYPE_UDP (1 << 13)
+#define LUAOBJ_TYPE_TCP (1 << 14)
 
 typedef struct {
   uint32_t type;

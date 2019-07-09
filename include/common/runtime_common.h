@@ -22,10 +22,12 @@ extern "C"
 #include <string>
 #include <vector>
 #include <queue>
+#include <list>
 
 //C headers
 #include <errno.h>
 #include <malloc.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,5 +53,6 @@ using std::string;
 using std::vector;
 using std::map;
 using std::queue;
+using std::list;
 using std::max;
 using std::min;
