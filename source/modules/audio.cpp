@@ -17,7 +17,17 @@ void Audio::Initialize()
     SDL_InitSubSystem(SDL_INIT_AUDIO);
 
     if (Mix_OpenAudio(AUDIO_RATE, AUDIO_S16SYS, 2, 4096) != 0)
+    {
+        #if defined (_3DS)
+            struct stat buffer;
+            if (stat("sdmc:/3ds/dspfirm.cdc", &buffer) != 0)
+            {
+                Love::RaiseError("Your DSP dump was not found! Please dump your DSP firm.\n");
+            }
+        #endif
+        
         Love::RaiseError("Failed to load audio!\n");
+    }
 }
 
 int Audio::GetOpenChannel()
