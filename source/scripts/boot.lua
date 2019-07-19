@@ -345,7 +345,7 @@ local function pseudoRequireConf()
 end
 
 local confSuccess
-if love.filesystem.isFile("conf.lua") then
+if love.filesystem.getInfo("conf.lua", "file") then
     confSuccess = xpcall(pseudoRequireConf, love.errhand)
 
     if not confSuccess then
@@ -371,7 +371,7 @@ local function pseudoRequireMain()
     return require("main")
 end
 
-if love.filesystem.isFile("main.lua") then
+if love.filesystem.getInfo("main.lua", "file") then
     --Try main
     local result = xpcall(pseudoRequireMain, love.errhand)
     if not result then
