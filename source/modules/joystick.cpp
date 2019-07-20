@@ -6,11 +6,7 @@
 
 void Joystick::Initialize(lua_State * L)
 {
-    #if defined (__SWITCH__)
-        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-    #endif
 
-    gamepadNew(L);
 }
 
 Gamepad * Joystick::GetJoystickFromID(uint id)
@@ -50,6 +46,12 @@ int Joystick::GetJoystickCount(lua_State * L)
 
 int Joystick::Register(lua_State * L)
 {
+    #if defined (__SWITCH__)
+        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+    #endif
+
+    gamepadNew(L);
+    
     luaL_Reg reg[] = 
     {
         { "getJoystickCount", GetJoystickCount },

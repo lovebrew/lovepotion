@@ -9,7 +9,10 @@
 
 #define LOVE_DRAW       "if love.draw then love.draw() end"
 
-#define LOG(fmt, ...) fprintf(logFile, "%s:%d:\n" fmt "\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__)
+#define LOG(fmt, ...) { \
+    fprintf(logFile, "%s:%d:\n" fmt "\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__); \
+    fflush(logFile); \
+}
 
 #include <exception>
 

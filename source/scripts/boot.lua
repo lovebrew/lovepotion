@@ -1,57 +1,44 @@
 -- This code is licensed under the MIT Open Source License.
+--[[
+    Copyright (c) 2019 Jeremy S. Postelnek - jeremy.postelnek@gmail.com
+    Copyright (c) 2019 Logan Hickok-Dickson - notquiteapex@gmail.com
+    Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
--- Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
 
--- Permission is hereby granted, free of charge, to any person obtaining a copy
--- of this software and associated documentation files (the "Software"), to deal
--- in the Software without restriction, including without limitation the rights
--- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
--- copies of the Software, and to permit persons to whom the Software is
--- furnished to do so, subject to the following conditions:
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
 
--- The above copyright notice and this permission notice shall be included in
--- all copies or substantial portions of the Software.
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
+--]]
 
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
--- THE SOFTWARE.
+-- Load the LOVE filesystem module, its absolutely needed
+love.filesystem = require("love.filesystem")
 
--- This is a bit messy
--- But it means we can move stuff out of main.c
-
+-- 3DS and Switch can't load external C libraries,
+-- so we need to prevent require from searching for them
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
---[[
-    Honestly, 99% of these flags are just for compatability.
-    Everything will always be enabled .. if the platform supports it.
-    The only thing that matters is like the first three flags.
-
-    Seriously: identity, appendidentity, and version.
-
-    Go nuts.
---]]
+-- 
 local config =
 {
     identity = "SuperGame",
     appendidentity = false,
-
-    version = "1.0.0",
+    version = "1.1.0",
     console = false,
-    accelerometerjoystick = true,
-    externalstorage = false,
-
-    gammacorrect = true,
-
-    audio =
-    {
-        mixwithsystem = true
-    },
-
+    
     modules =
     {
         audio = true,
@@ -72,6 +59,18 @@ local config =
         touch = true,
         video = true,
         window = true
+    },
+
+    -- Anything from here after is only included so that LovePotion doesn't crash
+
+    accelerometerjoystick = true,
+    externalstorage = false,
+
+    gammacorrect = true,
+
+    audio =
+    {
+        mixwithsystem = true
     },
 
     window =
@@ -104,27 +103,9 @@ local config =
     }
 }
 
-local __defaultFont = love.graphics.newFont()
-love.graphics.setFont(__defaultFont)
-
 function love.createhandlers()
-    -- Standard callback handlers.
+    -- Standard event callback handlers.
     love.handlers = setmetatable({
-        load = function()
-            if love.load then
-                return love.load()
-            end
-        end,
-        update = function(dt)
-            if love.update then
-                return love.update(dt)
-            end
-        end,
-        draw = function()
-            if love.draw then
-                return love.draw()
-            end
-        end,
         keypressed = function (key)
             if love.keypressed then
                 return love.keypressed(key)
@@ -227,10 +208,7 @@ function love.createhandlers()
             error('Unknown event: ' .. name)
         end,
     })
-
 end
-
-love.createhandlers()
 
 function love.errhand(message)
     message = tostring(message)
@@ -243,7 +221,9 @@ function love.errhand(message)
 
     table.insert(err, message .. "\n")
 
-    love.audio.stop()
+    if love.audio then
+        love.audio.stop()
+    end
 
     local trace = debug.traceback()
 
@@ -293,7 +273,7 @@ function love.errhand(message)
 
     --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2) 
 
-    local function draw()
+    love.draw = function()
         love.graphics.origin()
         love.graphics.clear()
 
@@ -322,15 +302,9 @@ function love.errhand(message)
         end
     end
 
-    local joystick = love.joystick.getJoysticks()[1]
-
     local quit_string = "start"
     if love._os[2] == "Switch" then
         quit_string = "plus"
-    end
-
-    love.draw = function()
-        draw()
     end
 
     love.gamepadpressed = function(joy, button)
@@ -340,62 +314,95 @@ function love.errhand(message)
     end
 end
 
-local function pseudoRequireConf()
-    return require('conf')
+function love.threaderror(t, err)
+	error("Thread error ("..tostring(t)..")\n\n"..err, 0)
 end
 
-local confSuccess
-if love.filesystem.getInfo("conf.lua", "file") then
-    confSuccess = xpcall(pseudoRequireConf, love.errhand)
+--################--
+-- BOOT THE GAME! --
+--################--
 
-    if not confSuccess then
-        return
-    end
+function love.boot()
+    -- We can't throw any errors just yet because we want to see if we can
+    -- load and use conf.lua in case the user doesn't want to use certain
+    -- modules, but we also can't error because graphics haven't been loaded.
+    local confok, conferr
 
-    if love.conf then
-        local function confWrap()
-            love.conf(config)
-        end
+    if love.filesystem.getInfo("conf.lua", "file") then
+        confok, conferr = pcall(require, "conf")
 
-        confSuccess = xpcall(confWrap, love.errhand)
-
-        if not confSuccess then
-            return
+        if confok and love.conf then
+            confok, conferr = pcall(love.conf, config)
         end
     end
-end
 
-love.filesystem.setIdentity(config.identity)
+    love.filesystem.setIdentity(config.identity)
 
-local function pseudoRequireMain()
-    return require("main")
-end
-
-if love.filesystem.getInfo("main.lua", "file") then
-    --Try main
-    local result = xpcall(pseudoRequireMain, love.errhand)
-    if not result then
-        return
+    -- Load the modules
+    local modules = {
+        -- Try to load love.graphics first in case we need to jump to errhand after it
+        "graphics",
+        "event",
+        "audio",
+        "joystick",
+        "keyboard",
+        "math",
+        "system",
+        "sound",
+        "timer",
+        "window",
+    }
+    for i, v in ipairs(modules) do
+        if config.modules[v] == true then
+            love[v] = require("love." .. v)
+        end
     end
 
-    --See if loading works
-    result = xpcall(love.load, love.errhand)
-    if not result then
-        return
+    -- Load Switch exclusive modules
+    if love._os[2] == "Switch" then
+        local modulesNX = {
+            "image",
+            "thread",
+            "touch",
+        }
+        for i, v in ipairs(modulesNX) do
+            if config.modules[v] == true then
+                love[v] = require("love." .. v)
+            end
+        end
     end
 
-    --Run the thing dammit
-    result = xpcall(love.run, love.errhand)
-    if not result then
-        return
+    if love.event then
+        love.createhandlers()
     end
-else
-    local result = xpcall(love._nogame, love.errhand)
-    if not result then
-        return
+
+    -- Now we can throw any errors from conf.lua
+    if not confok and conferr then
+        error(conferr)
+    end
+
+    if love.filesystem.getInfo("main.lua", "file") then
+        -- Try to load main
+        require("main")
+
+        -- See if loading exists and works
+        if love.load then
+            love.load()
+        end
+    else
+        -- If there's no game to load then we'll just load up something on the
+        -- screen to tell the user that there's NO GAME!
+        love._nogame()
+    end
+
+    -- Take our first step
+    if love.timer then
+        love.timer.step()
     end
 end
 
-if love.timer then
-    love.timer.step()
-end
+-- Boot up the game!
+xpcall(love.boot, love.errhand)
+-- Even if something went wrong, the errhand redefines functions.
+
+-- love.run is handled in main.cpp

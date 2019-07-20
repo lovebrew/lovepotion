@@ -57,9 +57,10 @@ int main(int argc, char * argv[])
     char * path = (argc == 2) ? argv[1] : argv[0];
     Filesystem::Initialize(path);
 
-    luaL_requiref(L, "love", Love::Initialize, 1);
+    luaL_requiref(L, "love", Love::Initialize, true);
+    lua_pop(L, -1); // don't leave the love module on the stack
 
-    Love::InitModules(L);
+    // Love::InitModules(L);
     Love::InitConstants(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");

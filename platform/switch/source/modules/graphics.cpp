@@ -57,13 +57,7 @@ void transformDrawable(T * originalX, T * originalY) // rotate, scale, and trans
 
 void Graphics::Initialize()
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-        printf("Failed to load SDL2");
 
-    TTF_Init();
-
-    stack.reserve(16);
-    stack.push_back(StackMatrix());
 }
 
 //Löve2D Functions
@@ -818,6 +812,14 @@ void Graphics::Exit()
 
 int Graphics::Register(lua_State * L)
 {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+        luaL_error(L, "Failed to initialize SDL2!");
+
+    TTF_Init();
+
+    stack.reserve(16);
+    stack.push_back(StackMatrix());
+
     luaL_Reg reg[] =
     {
         { "arc",                Arc                },

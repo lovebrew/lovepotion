@@ -64,6 +64,8 @@ int Keyboard::ShowTextInput(lua_State * L)
 
 int Keyboard::Register(lua_State * L)
 {
+    Keyboard::Initialize();
+
     luaL_Reg reg[] = 
     {
         { "showTextInput", ShowTextInput },

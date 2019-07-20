@@ -3,6 +3,8 @@
 
 int System::Register(lua_State * L)
 {
+    System::Initialize();
+
     luaL_Reg reg[] = 
     {
         { "getPowerInfo",      GetPowerInfo      },

@@ -573,6 +573,8 @@ void Graphics::Exit()
 //Register Functions
 int Graphics::Register(lua_State * L)
 {
+    Graphics::Initialize();
+
     luaL_Reg reg[] = 
     {
         { "circle",             Circle             },
