@@ -1,26 +1,12 @@
 #include "common/runtime.h"
 #include "modules/timer.h"
 
-#if not defined (CPU_TICKS_PER_MSEC)
-    #define CPU_TICKS_PER_MSEC (19200000.0f / 1000.0f)
-#endif
-
-//Deltatime
-int prevTime = 0;
-int currTime = 0;
-float dt = 0;
-
-//Frames per second
-float frames = 0;
-float fps = 0;
-u64 lastCountTime = 0;
-
 //Löve2D Functions
 
 //love.timer.getFPS
 int Timer::GetFPS(lua_State * L)
 {
-    lua_pushnumber(L, round(fps));
+    lua_pushnumber(L, round(totalFrames));
 
     return 1;
 }
@@ -28,9 +14,8 @@ int Timer::GetFPS(lua_State * L)
 //love.timer.getTime
 int Timer::GetTime(lua_State * L)
 {
-    int osTime = GetOSTime();
-
-    lua_pushnumber(L, osTime * 0.001f);
+    u32 time = SDL_GetTicks();
+    lua_pushnumber(L, time);
 
     return 1;
 }
@@ -38,7 +23,7 @@ int Timer::GetTime(lua_State * L)
 //love.timer.getDelta
 int Timer::GetDelta(lua_State * L)
 {
-    lua_pushnumber(L, dt);
+    lua_pushnumber(L, deltatime);
     
     return 1;
 }
@@ -46,16 +31,14 @@ int Timer::GetDelta(lua_State * L)
 //love.timer.step
 int Timer::Step(lua_State * L)
 {
-    prevTime = currTime;
+    lastTime = currentTime;
 
-    currTime = GetOSTime();
+    currentTime = SDL_GetTicks();
 
-    dt = currTime - prevTime;
+    deltatime = currentTime - lastTime;
 
-    dt = dt * 0.001;
-
-    if (dt < 0) 
-        dt = 0;
+    if ((deltatime * 0.001) < 0) 
+        deltatime = 0;
 
     return 0;
 }
@@ -73,27 +56,21 @@ int Timer::Sleep(lua_State * L)
 
 //End Löve2D Functions
 
-float Timer::GetOSTime()
-{
-    u64 ticks = svcGetSystemTick();
-    return (float)ticks * 1 / CPU_TICKS_PER_MSEC;
-}
-
 float Timer::GetDelta()
 {
-    return dt;
+    return deltatime;
 }
 
 void Timer::Tick()
 {
     frames++;
-    float delta = GetOSTime() - lastCountTime;
+    float delta = SDL_GetTicks() - lastCountTime;
 
     if (delta >= 1000.0f)
     {
-        fps = (frames / delta) * 1000.0f;
+        totalFrames = (frames / delta) * 1000.0f;
         frames = 0;
-        lastCountTime = GetOSTime();
+        lastCountTime = SDL_GetTicks();
     }
 }
 

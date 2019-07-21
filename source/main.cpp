@@ -10,15 +10,6 @@ extern "C"
     #include <lutf8lib.h>
 }
 
-#include <string>
-
-#include "modules/timer.h"
-
-#include <stdio.h>
-#include <stdarg.h>
-#include <map>
-#include <vector>
-
 #if defined (_3DS)
     #include <3ds.h>
     bool appletMainLoop() {
@@ -27,6 +18,15 @@ extern "C"
 #elif defined (__SWITCH__) 
     #include <switch.h>
 #endif
+
+#include <string>
+
+#include "modules/timer.h"
+
+#include <stdio.h>
+#include <stdarg.h>
+#include <map>
+#include <vector>
 
 #include "common/types.h"
 #include "common/util.h"

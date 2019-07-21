@@ -1,29 +1,34 @@
 /*
 ** audio.h
-** @brief    : Audio component control
+** @brief   : Audio component control
 ** @warn    : Must be initialized for output
 */
 
 #pragma once
 
-namespace Audio
+class Audio
 {
-    void Initialize();
+    public:
+        static void Initialize();
 
-    int GetOpenChannel();
+        static int GetOpenChannel();
 
-    //Löve2D Functions
+        static void Exit();
 
-    int Play(lua_State * L);
-    int Stop(lua_State * L);
-    int Pause(lua_State * L);
-    int Resume(lua_State * L);
-    
-    int SetVolume(lua_State * L);
+        static int Register(lua_State * L);
 
-    //End Löve2D Functions
+    private:
+        //Löve2D Functions
 
-    void Exit();
-    
-    int Register(lua_State * L);
-}
+        static int Play(lua_State * L);
+
+        static int Stop(lua_State * L);
+        
+        static int Pause(lua_State * L);
+        
+        static int Resume(lua_State * L);
+        
+        static int SetVolume(lua_State * L);
+
+        //End Löve2D Functions
+};
