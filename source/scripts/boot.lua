@@ -229,7 +229,7 @@ function love.errorhandler(message)
 
     for l in trace:gmatch("(.-)\n") do
         if not l:match("boot.lua") then
-            l = l:gsub("stack traceback:", "Traceback\n")
+            l = l:gsub("stack traceback:", "Traceback:\n")
             table.insert(err, l)
         end
     end
@@ -349,8 +349,8 @@ function love.boot()
         -- jump to errhand after it.
         "graphics",
         "event",
-        "audio",
         "joystick",
+        "audio",
         "keyboard",
         "math",
         "system",
@@ -401,16 +401,16 @@ function love.boot()
         -- screen to tell the user that there's NO GAME!
         love._nogame()
     end
-
-    -- Take our first step.
-    if love.timer then
-        love.timer.step()
-    end
 end
 
 -- Boot up the game!
 xpcall(love.boot, love.errhand)
 -- If something went wrong, the errhand redefines the love.update and love.draw
 -- functions which are managed by the love.run function.
+
+-- Take our first step.
+if love.timer then
+    love.timer.step()
+end
 
 -- love.run is handled in `main.cpp`.

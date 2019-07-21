@@ -119,16 +119,15 @@ void Audio::Exit()
 
 int Audio::Register(lua_State * L)
 {
-    #if defined (_3DS)
-        struct stat buffer;
-        if (stat("sdmc:/3ds/dspfirm.cdc", &buffer) != 0)
-            luaL_error(L, "Your DSP dump (`dspfirm.cdc`) is missing!");
-    #endif
-
-    SDL_InitSubSystem(SDL_INIT_AUDIO);
+    if (SDL_InitSubSystem(SDL_INIT_AUDIO) != 0)
+        luaL_error(L, "Failed to load audio! (SDL_INIT_AUDIO)");
 
     if (Mix_OpenAudio(AUDIO_RATE, AUDIO_S16SYS, 2, 4096) != 0)
-        luaL_error(L, "Failed to load audio!");
+        #if defined(_3DS)
+            luaL_error(L, "Failed to load audio! (Mix_OpenAudio)\nIs your DSP dump (`dspfirm.cdc`) missing?");
+        #elif defined(__SWITCH__)
+            luaL_error(L, "Failed to load audio! (Mix_OpenAudio)");
+        #endif
 
     luaL_Reg reg[] = 
     {
