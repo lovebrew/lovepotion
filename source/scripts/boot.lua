@@ -42,22 +42,22 @@ local config =
     modules =
     {
         audio = true,
-        -- data = true,
+        data = true,
         event = true,
-        -- font = true,
+        font = true,
         graphics = true,
         image = true,
         joystick = true,
         keyboard = true,
         math = true,
-        -- mouse = true,
-        -- physics = true,
-        -- sound = true,
+        mouse = true,
+        physics = true,
+        sound = true,
         system = true,
         thread = true,
         timer = true,
         touch = true,
-        -- video = true,
+        video = true,
         window = true
     },
 
@@ -271,8 +271,6 @@ function love.errorhandler(message)
     local width = love.graphics.getWidth()
     local height = love.graphics.getHeight()
 
-    --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2) 
-
     love.draw = function()
         love.graphics.origin()
         love.graphics.clear()
@@ -349,13 +347,13 @@ function love.boot()
         -- jump to errhand after it.
         "graphics",
         "event",
+        "timer",
         "joystick",
         "audio",
         "keyboard",
         "math",
         "system",
         "sound",
-        "timer",
         "window",
     }
     for i, v in ipairs(modules) do

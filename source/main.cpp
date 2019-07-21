@@ -67,7 +67,7 @@ int main(int argc, char * argv[])
     while (appletMainLoop())
     {
         if (Love::IsRunning())
-            luaL_dostring(L, "xpcall(love.run, love.errhand)");
+            luaL_dostring(L, "xpcall(love.run, love.errorhandler)");
         else
             break;
     }
