@@ -31,7 +31,7 @@ love.filesystem = require("love.filesystem")
 package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
--- 
+-- Base game configuration
 local config =
 {
     identity = "SuperGame",
@@ -42,26 +42,26 @@ local config =
     modules =
     {
         audio = true,
-        data = true,
+        -- data = true,
         event = true,
-        font = true,
+        -- font = true,
         graphics = true,
         image = true,
         joystick = true,
         keyboard = true,
         math = true,
-        mouse = true,
-        physics = true,
-        sound = true,
+        -- mouse = true,
+        -- physics = true,
+        -- sound = true,
         system = true,
         thread = true,
         timer = true,
         touch = true,
-        video = true,
+        -- video = true,
         window = true
     },
 
-    -- Anything from here after is only included so that LovePotion doesn't crash
+    -- Anything from here after in the config is only included for legacy purposes
 
     accelerometerjoystick = true,
     externalstorage = false,
@@ -103,8 +103,8 @@ local config =
     }
 }
 
+-- Standard event callback handlers.
 function love.createhandlers()
-    -- Standard event callback handlers.
     love.handlers = setmetatable({
         keypressed = function (key)
             if love.keypressed then
@@ -210,7 +210,7 @@ function love.createhandlers()
     })
 end
 
-function love.errhand(message)
+function love.errorhandler(message)
     message = tostring(message)
 
     message = message:gsub("^(./)", "")
@@ -314,6 +314,9 @@ function love.errhand(message)
     end
 end
 
+-- love.errhand was deprecated in LOVE 11.0, replaced by love.errorhandler.
+love.errhand = love.errorhandler
+
 function love.threaderror(t, err)
 	error("Thread error ("..tostring(t)..")\n\n"..err, 0)
 end
@@ -336,11 +339,14 @@ function love.boot()
         end
     end
 
+    -- Set the game identity for saving.
     love.filesystem.setIdentity(config.identity)
 
-    -- Load the modules
-    local modules = {
-        -- Try to load love.graphics first in case we need to jump to errhand after it
+    -- Load the modules.
+    local modules =
+    {
+        -- Try to load love.graphics and love.event first in case we need to
+        -- jump to errhand after it.
         "graphics",
         "event",
         "audio",
@@ -353,20 +359,21 @@ function love.boot()
         "window",
     }
     for i, v in ipairs(modules) do
-        if config.modules[v] == true then
+        if config.modules[v] then
             love[v] = require("love." .. v)
         end
     end
 
-    -- Load Switch exclusive modules
+    -- Load any Switch exclusive modules.
     if love._os[2] == "Switch" then
-        local modulesNX = {
+        local modulesNX =
+        {
             "image",
             "thread",
             "touch",
         }
         for i, v in ipairs(modulesNX) do
-            if config.modules[v] == true then
+            if config.modules[v] then
                 love[v] = require("love." .. v)
             end
         end
@@ -376,16 +383,16 @@ function love.boot()
         love.createhandlers()
     end
 
-    -- Now we can throw any errors from conf.lua
+    -- Now we can throw any errors from `conf.lua`.
     if not confok and conferr then
         error(conferr)
     end
 
     if love.filesystem.getInfo("main.lua", "file") then
-        -- Try to load main
+        -- Try to load `main.lua`.
         require("main")
 
-        -- See if loading exists and works
+        -- See if loading exists and works.
         if love.load then
             love.load()
         end
@@ -395,7 +402,7 @@ function love.boot()
         love._nogame()
     end
 
-    -- Take our first step
+    -- Take our first step.
     if love.timer then
         love.timer.step()
     end
@@ -403,6 +410,7 @@ end
 
 -- Boot up the game!
 xpcall(love.boot, love.errhand)
--- Even if something went wrong, the errhand redefines functions.
+-- If something went wrong, the errhand redefines the love.update and love.draw
+-- functions which are managed by the love.run function.
 
--- love.run is handled in main.cpp
+-- love.run is handled in `main.cpp`.

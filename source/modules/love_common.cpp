@@ -19,17 +19,6 @@
 lua_State * loveState;
 bool LOVE_QUIT = false;
 
-void Love::InitModules(lua_State * L)
-{
-    Joystick::Initialize(L);
-
-    for (int i = 0; modules[i].name; i++)
-    {
-        if (modules[i].init)
-            modules[i].init();
-    }
-}
-
 void Love::InitConstants(lua_State * L)
 {
     lua_getglobal(L, "love");
