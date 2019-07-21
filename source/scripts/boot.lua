@@ -343,9 +343,10 @@ function love.boot()
     -- Load the modules.
     local modules =
     {
-        -- Try to load love.graphics and love.event first in case we need to
-        -- jump to errhand after it.
+        -- Try to load love.graphics, window, and event first in case we need
+        -- to jump to errhand after it. (window is only required on Switch.)
         "graphics",
+        "window",
         "event",
         "timer",
         "joystick",
@@ -353,8 +354,6 @@ function love.boot()
         "keyboard",
         "math",
         "system",
-        "sound",
-        "window",
     }
     for i, v in ipairs(modules) do
         if config.modules[v] then
@@ -379,6 +378,11 @@ function love.boot()
 
     if love.event then
         love.createhandlers()
+    end
+    
+    -- Take our first step.
+    if love.timer then
+        love.timer.step()
     end
 
     -- Now we can throw any errors from `conf.lua`.
@@ -405,10 +409,5 @@ end
 xpcall(love.boot, love.errhand)
 -- If something went wrong, the errhand redefines the love.update and love.draw
 -- functions which are managed by the love.run function.
-
--- Take our first step.
-if love.timer then
-    love.timer.step()
-end
 
 -- love.run is handled in `main.cpp`.
