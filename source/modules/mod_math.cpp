@@ -12,9 +12,6 @@
 
 #include <time.h>
 
-// Our own personal RNG!
-RandomGenerator rng;
-
 //love.math.setRandomSeed
 int Math::SetRandomSeed(lua_State * L)
 {
