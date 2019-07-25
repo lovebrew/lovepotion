@@ -5,32 +5,32 @@
 
 #pragma once
 
-extern bool LUA_ERROR;
-
-namespace Love
+class Love
 {
-    int Initialize(lua_State * L);
+    public:
+        static int Initialize(lua_State * L);
 
-    void InitModules(lua_State * L);
+        static void InitModules(lua_State * L);
 
-    void InitConstants(lua_State * L);
+        static void InitConstants(lua_State * L);
 
-    int GetVersion(lua_State * L);
+        static bool IsRunning();
 
-    int Quit(lua_State * L);
+        static int RaiseError(const char * format, ...);
 
-    bool IsRunning();
+        static int Quit(lua_State * L);
 
-    int RaiseError(const char * format, ...);
+        static void Exit(lua_State * L);
 
-    int Run(lua_State * L);
+    private:
+        static inline bool quit = false;
+        static inline bool error = false;
 
-    int NoGame(lua_State * L);
+        static inline lua_State * state = nullptr;
 
-    void Exit(lua_State * L);
-}
+        static int GetVersion(lua_State * L);
 
-//extern struct { const char * name; void (*init)(void); int (*reg)(lua_State *L); void (*close)(void); } modules[];
+        static int Run(lua_State * L);
 
-// Forward declare lua_State.
-struct lua_State;
+        static int NoGame(lua_State * L);
+};

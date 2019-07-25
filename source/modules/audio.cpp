@@ -4,25 +4,17 @@
 #include "objects/source/source.h"
 #include "objects/source/wrap_source.h"
 
-vector<bool> audioChannels(8);
-
-#if defined (_3DS)
-    #define AUDIO_RATE 44100
-#elif defined (__SWITCH__)
-    #define AUDIO_RATE 48000
-#endif
-
 void Audio::Initialize()
 {
     SDL_InitSubSystem(SDL_INIT_AUDIO);
 
     if (Mix_OpenAudio(AUDIO_RATE, AUDIO_S16SYS, 2, 4096) != 0)
-        Love::RaiseError("Failed to load audio!\n");
+        return;//luaL_error(L, "Failed to load audio!\n");
 }
 
 int Audio::GetOpenChannel()
 {
-    for (uint i = 0; i < audioChannels.size(); i++)
+    for (size_t i = 0; i < audioChannels.size(); i++)
     {
         if (!audioChannels[i])
         {
@@ -47,7 +39,7 @@ int Audio::Play(lua_State * L)
 }
 
 //love.audio.stop
-int Audio::Stop(lua_State * L) 
+int Audio::Stop(lua_State * L)
 {
     if (lua_isnoneornil(L, 1))
     {
@@ -122,7 +114,7 @@ void Audio::Exit()
 
 int Audio::Register(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "newSource",  sourceNew },
         { "pause",      Pause     },
@@ -134,6 +126,6 @@ int Audio::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }

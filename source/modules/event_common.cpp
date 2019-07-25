@@ -6,7 +6,7 @@
 //love.event.quit
 int LoveEvent::Quit(lua_State * L)
 {
-    LOVE_QUIT = true;
+    Love::Quit(L);
 
     return 0;
 }
@@ -15,7 +15,7 @@ int LoveEvent::Quit(lua_State * L)
 
 int LoveEvent::Register(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "poll", Poll },
         { "pump", Pump },

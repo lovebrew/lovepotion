@@ -81,7 +81,7 @@ CFLAGS	:=	-g -Wall -O2 -mword-relocations `sdl-config --cflags` \
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
-CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fno-exceptions -std=gnu++14
+CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fno-exceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)

@@ -4,8 +4,6 @@
 #include "objects/canvas/canvas.h"
 #include "objects/canvas/wrap_canvas.h"
 
-#include "modules/window.h"
-
 #define CLASS_TYPE LUAOBJ_TYPE_CANVAS
 #define CLASS_NAME "Canvas"
 
@@ -15,7 +13,7 @@ int canvasNew(lua_State * L)
     int height = luaL_optnumber(L, 2, 720);
 
     void * raw_self = (void *)luaobj_newudata(L, sizeof(Canvas));
-    
+
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
     new (raw_self) Canvas(width, height);
@@ -27,24 +25,24 @@ int canvasSetFilter(lua_State * L)
 {
     //yay for stubs
 
-    return 0;   
+    return 0;
 }
 
 int canvasGetWidth(lua_State * L)
 {
     Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
-    
+
     lua_pushnumber(L, self->GetWidth());
-    
+
     return 1;
 }
 
 int canvasGetHeight(lua_State * L)
 {
     Canvas * self = (Canvas *)luaobj_checkudata(L, 1, CLASS_TYPE);
-    
+
     lua_pushnumber(L, self->GetHeight());
-    
+
     return 1;
 }
 
@@ -64,7 +62,7 @@ int canvasRenderTo(lua_State * L)
 
     if (lua_isfunction(L, 2))
     {
-    
+
         self->SetAsTarget();
 
         int function_index = luaL_ref(L, 2);
@@ -74,7 +72,7 @@ int canvasRenderTo(lua_State * L)
 
         luaL_unref(L, 2, function_index);
 
-        SDL_SetRenderTarget(Window::GetRenderer(), NULL);
+        //SDL_SetRenderTarget(Display::GetRenderer(), NULL);
     }
     else
         return luaL_error(L, "Function expected, got %s", lua_tostring(L, 2));
@@ -104,9 +102,9 @@ int canvasToString(lua_State * L)
     return 1;
 }
 
-int initCanvasClass(lua_State * L) 
+int initCanvasClass(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "__gc",          canvasGC            },
         { "__tostring",    canvasToString      },

@@ -12,8 +12,10 @@
 class Math
 {
     public:
+        Math() = delete;
+
         static int Register(lua_State * L);
-    
+
     private:
         // Our own personal RNG!
         static inline RandomGenerator rng;
@@ -41,23 +43,33 @@ class Math
         static int SetRandomState(lua_State * L);
 
         static int Triangulate(lua_State * L);
-        
+
         //End Löve2D Functions
 
         //Helper functions
-        
+
         //Gamma
+
         static float convertGammaToLinear(float c);
+
         static float convertLinearToGamma(float c);
+
         static int getGammaArgs(lua_State * L, float color[4]);
+
         //End Gamma
 
         //Triangle
-        static bool onSameSide(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d);
-        static bool pointInTriangle(const Vector2 &p, const Vector2 &a, const Vector2 &b, const Vector2 &c);
-        static bool isOrientedCCW(const Vector2 &a, const Vector2 &b, const Vector2 &c);
-        static bool isEar(const Vector2 &a, const Vector2 &b, const Vector2 &c, const std::list<const Vector2 *> &vertices);
-        static bool anyPointInTriangle(const std::list<const Vector2 *> &vertices, const Vector2 &a, const Vector2 &b, const Vector2 &c);
+
+        static bool onSameSide(const Vector2 & a, const Vector2 & b, const Vector2 & c, const Vector2 & d);
+
+        static bool pointInTriangle(const Vector2 & p, const Vector2 & a, const Vector2 & b, const Vector2 & c);
+
+        static bool isOrientedCCW(const Vector2 & a, const Vector2 & b, const Vector2 & c);
+
+        static bool isEar(const Vector2 & a, const Vector2 & b, const Vector2 & c, const std::list<const Vector2 *> & vertices);
+
+        static bool anyPointInTriangle(const std::list<const Vector2 *> & vertices, const Vector2 & a, const Vector2 & b, const Vector2 & c);
+
         //End Triangle
 
         //End Helper functions

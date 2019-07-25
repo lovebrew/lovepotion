@@ -15,7 +15,7 @@ int Timer::GetFPS(lua_State * L)
 int Timer::GetTime(lua_State * L)
 {
     u32 time = SDL_GetTicks();
-    lua_pushnumber(L, time);
+    lua_pushnumber(L, time * 0.001f);
 
     return 1;
 }
@@ -24,7 +24,7 @@ int Timer::GetTime(lua_State * L)
 int Timer::GetDelta(lua_State * L)
 {
     lua_pushnumber(L, deltatime);
-    
+
     return 1;
 }
 
@@ -35,9 +35,9 @@ int Timer::Step(lua_State * L)
 
     currentTime = SDL_GetTicks();
 
-    deltatime = currentTime - lastTime;
+    deltatime = (currentTime - lastTime) * 0.001f;
 
-    if ((deltatime * 0.001) < 0) 
+    if (deltatime < 0)
         deltatime = 0;
 
     return 0;
@@ -76,7 +76,7 @@ void Timer::Tick()
 
 int Timer::Register(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "getDelta", GetDelta },
         { "getFPS",   GetFPS   },

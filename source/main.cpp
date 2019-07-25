@@ -1,4 +1,4 @@
-extern "C" 
+extern "C"
 {
     #include <lua.h>
     #include <lualib.h>
@@ -15,12 +15,13 @@ extern "C"
     bool appletMainLoop() {
         return aptMainLoop();
     }
-#elif defined (__SWITCH__) 
+#elif defined (__SWITCH__)
     #include <switch.h>
 #endif
 
 #include <string>
 
+#include "common/logger.h"
 #include "modules/timer.h"
 
 #include <stdio.h>
@@ -40,12 +41,8 @@ extern "C"
 #define luaL_dobuffer(L, b, n, s) \
     (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
 
-FILE * logFile;
-
 int main(int argc, char * argv[])
 {
-    logFile = fopen("LoveDebug.txt", "w");
-
     lua_State * L = luaL_newstate();
 
     luaL_openlibs(L);
@@ -53,6 +50,8 @@ int main(int argc, char * argv[])
     love_preload(L, luaopen_luautf8, "utf8");
     love_preload(L, LuaSocket::InitSocket, "socket");
     love_preload(L, LuaSocket::InitHTTP,   "socket.http");
+
+    Logger::Initialize();
 
     char * path = (argc == 2) ? argv[1] : argv[0];
     Filesystem::Initialize(path);
@@ -74,7 +73,7 @@ int main(int argc, char * argv[])
 
     Love::Exit(L);
 
-    fclose(logFile);
+    Logger::Exit();
 
     return 0;
 }

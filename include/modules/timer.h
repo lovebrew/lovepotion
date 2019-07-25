@@ -8,6 +8,8 @@
 class Timer
 {
     public:
+        Timer() = delete;
+
         static float GetDelta();
     
         static void Tick();

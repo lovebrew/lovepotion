@@ -1,5 +1,7 @@
 -- This code is licensed under the MIT Open Source License.
 
+-- Copyright (c) 2019 Jeremy S. Postelnek - jpostelnek@outlook.com
+-- Copyright (c) 2019 Logan Hickok-Dickson - notquiteapex@gmail.com
 -- Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +25,7 @@
 -- This is a bit messy
 -- But it means we can move stuff out of main.c
 
-package.path = './?.lua;./?/init.lua'
+package.path  = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
 --[[
@@ -279,7 +281,7 @@ function love.errhand(message)
     local buttonFont = love.graphics.newFont(buttonSize)
 
     local error_img, start_img
-    
+
     if love._os[2] == "3DS" then
         error_img = love.graphics.newImage("error:warn_sm")
         start_img = love.graphics.newImage("error:button_sm")
@@ -291,7 +293,7 @@ function love.errhand(message)
     local width = love.graphics.getWidth()
     local height = love.graphics.getHeight()
 
-    --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2) 
+    --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2)
 
     local function draw()
         love.graphics.origin()

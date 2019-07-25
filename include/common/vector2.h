@@ -7,20 +7,16 @@ struct Vector2
 
     Vector2() : x(0.0f), y(0.0f) {}
 
-    Vector2(float x, float y)
-        : x(x), y(y)
-    {}
+    Vector2(float x, float y) : x(x), y(y) {}
 
-    Vector2(const Vector2 &v)
-        : x(v.x), y(v.y)
-    {}
+    Vector2(const Vector2 &v) : x(v.x), y(v.y) {}
 
-    inline Vector2 operator - (const Vector2 &v) const
+    const inline Vector2 operator - (const Vector2 & v)
     {
         return Vector2(x - v.x, y - v.y);
     }
-    
-    static inline float cross(const Vector2 &a, const Vector2 &b)
+
+    static inline float cross(const Vector2 & a, const Vector2 & b)
     {
         return a.x * b.y - a.y * b.x;
     }

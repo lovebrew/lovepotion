@@ -5,50 +5,50 @@
 
 #pragma once
 
-typedef enum
+enum AssetLocation
 {
     ROMFS_DEV,
     DIRECTORY,
     FILE_ASSOC
-} AssetLocation;
+};
 
-namespace Filesystem
+class Filesystem
 {
-    AssetLocation GetAssetLocation(char * path);
-    void Initialize(char * path);
+    public:
+        Filesystem() = delete;
 
-    //Löve2D Functions
+        static void Initialize(char * path);
 
-    int Read(lua_State * L);
-    int Write(lua_State * L);
-    
-    int IsFile(lua_State * L);
-    int IsDirectory(lua_State * L);
+        static std::string GetSaveDirectory();
 
-    int GetInfo(lua_State * L);
+        static int Register(lua_State * L);
 
-    int SetIdentity(lua_State * L);
-    int GetIdentity(lua_State * L);
+        static void Exit();
 
-    int GetSaveDirectory(lua_State * L);
+    private:
+        static AssetLocation GetAssetLocation(char * path);
 
-    int CreateDirectory(lua_State * L);
+        // Löve2D Functions
 
-    int GetSize(lua_State * L);
+        static int Read(lua_State * L);
+        static int Write(lua_State * L);
 
-    int GetDirectoryItems(lua_State * L);
+        static int GetInfo(lua_State * L);
 
-    int Load(lua_State * L);
+        static int SetIdentity(lua_State * L);
+        static int GetIdentity(lua_State * L);
 
-    int Remove(lua_State * L);
+        static int GetSaveDirectory(lua_State * L);
 
-    //End Löve2D Functions
+        static int CreateDirectory(lua_State * L);
 
-    extern std::string GetSaveDirectory();
+        static int GetDirectoryItems(lua_State * L);
 
-    std::string Redirect(const char * path);
+        static int Load(lua_State * L);
 
-    int Register(lua_State * L);
+        static int Remove(lua_State * L);
 
-    void Exit();
-}
+        // End Löve2D Functions
+
+        static std::string Redirect(const char * path);
+};
