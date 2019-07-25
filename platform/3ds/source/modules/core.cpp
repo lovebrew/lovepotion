@@ -35,7 +35,7 @@ love_modules modules[12] =
     { "system",     System::Initialize,     System::Register,     System::Exit     },
     { "timer",      NULL,                   Timer::Register,      NULL             },
     //{ "touch",    NULL,                   Touch::Register,      NULL             },
-    { "window",     Display::Initialize,    Window::Register,     Display::Exit    },
+    { "window",     Display::Initialize,    Window::Register,     NULL             },
     { 0,            NULL,                   NULL,                 NULL             }
 };
 

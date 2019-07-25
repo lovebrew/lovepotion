@@ -30,9 +30,3 @@ C3D_RenderTarget * Display::GetRenderer(uint i)
     rendering = (gfxScreen_t)i;
     return renderTargets[i];
 }
-
-void Display::Exit()
-{
-    for (auto target : renderTargets)
-        C3D_RenderTargetDelete(target);
-}

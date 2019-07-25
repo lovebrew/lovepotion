@@ -19,8 +19,6 @@ class Display
 
         static C3D_RenderTarget * GetRenderer(uint i);
 
-        static void Exit();
-
     private:
         static inline std::array<C3D_RenderTarget *, 3> renderTargets = { nullptr };
 
