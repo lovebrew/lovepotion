@@ -1,8 +1,10 @@
 #include "common/runtime.h"
 
+#define DEBUG 1
+
 void Logger::Initialize()
 {
-    if (!DEBUG)
+    if (!IsEnabled())
         return;
 
     file = freopen("love.log", "w", stderr);
@@ -10,7 +12,7 @@ void Logger::Initialize()
 
 bool Logger::IsEnabled()
 {
-    return DEBUG == 1;
+    return DEBUG;
 }
 
 FILE * Logger::GetFile()
@@ -20,7 +22,7 @@ FILE * Logger::GetFile()
 
 void Logger::Exit()
 {
-    if (!DEBUG)
+    if (!IsEnabled())
         return;
 
     fclose(file);

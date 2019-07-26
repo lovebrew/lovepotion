@@ -70,7 +70,7 @@ APP_TITLEID		:= 1043
 ARCH      :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
 CFLAGS    :=    -g -Wall -O2 -ffunction-sections `sdl2-config --cflags` `freetype-config --cflags` \
-				$(ARCH) $(DEFINES) -DLOVEPOTION_OS="\"Switch\""
+				$(ARCH) $(DEFINES) -DLOVE_POTION_CONSOLE="\"Switch\""
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__
 

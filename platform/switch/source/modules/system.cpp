@@ -18,15 +18,6 @@ void System::Initialize()
 
 //Löve2D Functions
 
-//love.system.getOS
-int System::GetOS(lua_State * L)
-{
-    lua_pushstring(L, "Horizon");
-    lua_pushstring(L, "Switch");
-
-    return 2;
-}
-
 //love.system.getProcessorCount
 int System::GetProcessorCount(lua_State * L)
 {

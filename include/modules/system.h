@@ -3,24 +3,31 @@
 ** @brief : Used to get system information
 */
 
-namespace System
+class System
 {
-    void Initialize();
-    void Exit();
+    public:
+        static void Initialize();
 
-    //Löve2D Functions
+        static void Exit();
 
-    int GetOS(lua_State * L);
-    int GetProcessorCount(lua_State * L);
-    int GetPowerInfo(lua_State * L);
+        static int Register(lua_State * L);
 
-    int GetRegion(lua_State * L);
-    int GetUsername(lua_State * L);
-    int GetLanguage(lua_State * L);
+    private:
+        //Löve2D Functions
 
-    int GetInternetStatus(lua_State * L);
+        static int GetOS(lua_State * L);
 
-    //End Löve2D Functions
+        static int GetProcessorCount(lua_State * L);
+        
+        static int GetPowerInfo(lua_State * L);
 
-    int Register(lua_State * L);
-}
+        static int GetRegion(lua_State * L);
+        
+        static int GetUsername(lua_State * L);
+        
+        static int GetLanguage(lua_State * L);
+
+        static int GetInternetStatus(lua_State * L);
+
+        //End Löve2D Functions
+};

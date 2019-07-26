@@ -38,14 +38,17 @@ void Love::InitConstants(lua_State * L)
     lua_pushnumber(L, 1);
     lua_pushstring(L, "Horizon");
     lua_rawset(L, -3);
-    lua_pushnumber(L, 2);
-    lua_pushstring(L, LOVEPOTION_OS);
-    lua_rawset(L, -3);
     lua_setfield(L, -2, "_os");
+
+    //love._consolename
+    lua_pushstring(L, LOVE_POTION_CONSOLE);
+    lua_setfield(L, -2, "_console_name");
 
     // love._version stuff
     lua_pushstring(L, Version::VERSION.c_str());
     lua_setfield(L, -2, "_version");
+
+    // major
     lua_pushnumber(L, Version::VERSION_MAJOR);
     lua_setfield(L, -2, "_version_major");
     lua_pushnumber(L, Version::VERSION_MINOR);

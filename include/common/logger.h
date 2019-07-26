@@ -15,8 +15,6 @@ class Logger
         static FILE * GetFile();
 
     private:
-        const static inline int DEBUG = 1;
-
         static inline FILE * file = nullptr;
 };
 
