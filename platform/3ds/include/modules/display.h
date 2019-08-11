@@ -15,6 +15,8 @@ class Display
 
         static bool IsRenderingScreen(gfxScreen_t screen);
         
+        static bool IsRenderingSide(gfx3dSide_t side);
+
         static void Clear(uint i);
 
         static C3D_RenderTarget * GetRenderer(uint i);
@@ -25,4 +27,6 @@ class Display
         static inline std::array<C3D_RenderTarget *, 3> renderTargets = { nullptr };
 
         static inline gfxScreen_t rendering = GFX_TOP;
+
+        static inline gfx3dSide_t renderSide = GFX_RIGHT;
 };

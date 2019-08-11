@@ -5,61 +5,65 @@
 
 #pragma once
 
-namespace Graphics
+class Graphics
 {
-    void Initialize();
+    public:
+        Graphics() = delete;
 
-    //Löve2D Functions
+        static void Initialize();
 
-    int GetDimensions(lua_State * L);
-    int GetWidth(lua_State * L);
-    int GetHeight(lua_State * L);
+        static int Register(lua_State * L);
 
-    int Draw(lua_State * L);
-
-    int Clear(lua_State * L);
-    int Present(lua_State * L);
-
-    int SetColor(lua_State * L);
-    int GetColor(lua_State * L);
+        static void Exit();
     
-    int SetBackgroundColor(lua_State * L);
-    int GetBackgroundColor(lua_State * L);
+    private:
+        //Löve2D Functions
 
-    int SetLineWidth(lua_State * L);
-    int GetLineWidth(lua_State * L);
+        static int GetDimensions(lua_State * L);
+        static int GetWidth(lua_State * L);
+        static int GetHeight(lua_State * L);
 
-    int Push(lua_State * L);
-    int Pop(lua_State * L);
-    int Translate(lua_State * L);
-    int Scale(lua_State * L);
-    int Rotate(lua_State * L);
-    int Shear(lua_State * L);
-    int Origin(lua_State * L);
+        static int Draw(lua_State * L);
 
-    int SetCanvas(lua_State * L);
+        static int Clear(lua_State * L);
+        static int Present(lua_State * L);
 
-    int Rectangle(lua_State * L);
-    int Polygon(lua_State * L);
-    int Line(lua_State * L);
-    int Circle(lua_State * L);
-    int Arc(lua_State * L);
-    int Points(lua_State * L);
+        static int SetColor(lua_State * L);
+        static int GetColor(lua_State * L);
+        
+        static int SetBackgroundColor(lua_State * L);
+        static int GetBackgroundColor(lua_State * L);
 
-    int SetScissor(lua_State * L);
+        static int SetLineWidth(lua_State * L);
+        static int GetLineWidth(lua_State * L);
 
-    int GetRendererInfo(lua_State * L);
-    int SetDefaultFilter(lua_State * L);
+        static int Push(lua_State * L);
+        static int Pop(lua_State * L);
+        static int Translate(lua_State * L);
+        static int Scale(lua_State * L);
+        static int Rotate(lua_State * L);
+        static int Shear(lua_State * L);
+        static int Origin(lua_State * L);
 
-    int GetFont(lua_State * L);
-    int SetFont(lua_State * L);
-    int SetNewFont(lua_State * L);
-    int Print(lua_State * L);
-    int Printf(lua_State * L);
+        static int SetCanvas(lua_State * L);
 
-    //End Löve2D Functions
+        static int Rectangle(lua_State * L);
+        static int Polygon(lua_State * L);
+        static int Line(lua_State * L);
+        static int Circle(lua_State * L);
+        static int Arc(lua_State * L);
+        static int Postatic ints(lua_State * L);
 
-    int Register(lua_State * L);
+        static int SetScissor(lua_State * L);
 
-    void Exit();
+        static int GetRendererInfo(lua_State * L);
+        static int SetDefaultFilter(lua_State * L);
+
+        static int GetFont(lua_State * L);
+        static int SetFont(lua_State * L);
+        static int SetNewFont(lua_State * L);
+        static int Prstatic int(lua_State * L);
+        static int Prstatic intf(lua_State * L);
+
+        //End Löve2D Functions
 }

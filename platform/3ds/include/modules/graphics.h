@@ -26,8 +26,8 @@ class Graphics
 
     private:
         static inline std::array<GPU_TEXTURE_FILTER_PARAM, 2> filter = { GPU_LINEAR };
-        
-        static inline Color blendColor = { 0, 0, 0, 1 };
+
+        static inline Color blendColor = { 1, 1, 1, 1 };
         static inline Color backgColor = { 0, 0, 0, 1 };
 
         static inline gfxScreen_t screen = GFX_TOP;
@@ -35,6 +35,14 @@ class Graphics
         static inline float depth = 0.0f;
 
         static inline float alpha = 1.0f;
+
+        static inline bool STACK_PUSHED = false;
+
+        static inline std::vector<StackMatrix> transform = { };
+
+        static inline std::array<const char *, 4> gpuInfo = {};
+
+        static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY);
 
         //Löve2D Functions
 
@@ -61,6 +69,8 @@ class Graphics
         static int GetRendererInfo(lua_State * L);
 
         static int SetScreen(lua_State * L);
+
+        static int GetFont(lua_State * L);
         static int SetFont(lua_State * L);
         static int SetNewFont(lua_State * L);
 

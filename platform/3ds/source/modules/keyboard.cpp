@@ -1,22 +1,11 @@
 #include "common/runtime.h"
 #include "modules/keyboard.h"
 
-char buffer[255];
-SwkbdState keyboard;
-
-void Keyboard::Initialize()
-{
-    swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, -1);
-
-    swkbdSetInitialText(&keyboard, buffer);
-    swkbdSetValidation(&keyboard, SWKBD_NOTBLANK, 0, 0);
-
-    swkbdSetButton(&keyboard, SWKBD_BUTTON_LEFT, "Cancel", false);
-    swkbdSetButton(&keyboard, SWKBD_BUTTON_RIGHT, "Submit", true);
-}
-
 int Keyboard::ShowTextInput(lua_State * L)
 {
+    SwkbdState keyboard;
+    char buffer[255];
+
     if (!lua_istable(L, 1) && !lua_isnoneornil(L, 1))
         luaL_error(L, "table expected, got %s", lua_type(L, 1));
     else if (lua_istable(L, 1))
@@ -40,6 +29,14 @@ int Keyboard::ShowTextInput(lua_State * L)
     const char * hint = luaL_optstring(L, -2, "Enter Text");
     int isPassword = lua_toboolean(L, -1);
 
+    swkbdInit(&keyboard, SWKBD_TYPE_NORMAL, 2, -1);
+
+    swkbdSetInitialText(&keyboard, "");
+    swkbdSetValidation(&keyboard, SWKBD_NOTBLANK, 0, 0);
+
+    swkbdSetButton(&keyboard, SWKBD_BUTTON_LEFT, "Cancel", false);
+    swkbdSetButton(&keyboard, SWKBD_BUTTON_RIGHT, "Submit", true);
+
     if (type == "basic")
         swkbdSetFeatures(&keyboard, SWKBD_DEFAULT_QWERTY);
     else if (type == "numpad")
@@ -60,17 +57,4 @@ int Keyboard::ShowTextInput(lua_State * L)
     lua_call(L, 1, 0);
 
     return 0;
-}
-
-int Keyboard::Register(lua_State * L)
-{
-    luaL_Reg reg[] = 
-    {
-        { "showTextInput", ShowTextInput },
-        { 0, 0 }
-    };
-
-    luaL_newlib(L, reg);
-
-    return 1;
 }

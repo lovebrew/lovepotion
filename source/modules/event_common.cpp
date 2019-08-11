@@ -13,6 +13,11 @@ int LoveEvent::Quit(lua_State * L)
 
 //End Löve2D Functions
 
+bool LoveEvent::IsTouchDown()
+{
+    return touchDown;
+}
+
 int LoveEvent::Register(lua_State * L)
 {
     luaL_Reg reg[] =

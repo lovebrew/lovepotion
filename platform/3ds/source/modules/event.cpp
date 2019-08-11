@@ -36,14 +36,16 @@ int LoveEvent::Pump(lua_State * L)
             if (!lua_isnil(L, -1))
             {
                 lua_pushlightuserdata(L, (void *)1);
-                lua_pushnumber(L, touch.px);
-                lua_pushnumber(L, touch.py);
+                lua_pushnumber(L, touch.px + 1);
+                lua_pushnumber(L, touch.py + 1);
                 lua_pushinteger(L, 0);
                 lua_pushinteger(L, 0);
                 lua_pushinteger(L, 1);
 
                 lua_call(L, 6, 0);
+
             }
+            touchDown = true;
         }
     }
 
@@ -52,15 +54,15 @@ int LoveEvent::Pump(lua_State * L)
 
     if (heldKey != "nil" && heldKey == "touch")
     {
-        lastTouch[0] = touch.px;
-        lastTouch[1] = touch.py;
+        lastTouch[0] = touch.px + 1;
+        lastTouch[1] = touch.py + 1;
 
         love_getfield(L, "touchmoved");
         if (!lua_isnil(L, -1))
         {
             lua_pushlightuserdata(L, (void *)1);
-            lua_pushnumber(L, touch.px);
-            lua_pushnumber(L, touch.py);
+            lua_pushnumber(L, lastTouch[0] + 1);
+            lua_pushnumber(L, lastTouch[1] + 1);
             lua_pushinteger(L, 0);
             lua_pushinteger(L, 0);
             lua_pushinteger(L, 1);
@@ -100,6 +102,7 @@ int LoveEvent::Pump(lua_State * L)
 
                 lua_call(L, 6, 0);
             }
+            touchDown = false;
         }
     }
 

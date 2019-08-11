@@ -19,6 +19,7 @@
 #include "modules/keyboard.h"
 #include "modules/mod_math.h"
 #include "modules/timer.h"
+#include "modules/touch.h"
 #include "modules/system.h"
 #include "modules/window.h"
 #include "modules/display.h"
@@ -29,17 +30,17 @@ love_modules modules[12] =
     { "event",      NULL,                   LoveEvent::Register,  NULL             },
     { "filesystem", NULL,                   Filesystem::Register, Filesystem::Exit },
     { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
-    { "keyboard",   Keyboard::Initialize,   Keyboard::Register,   NULL             },
+    { "keyboard",   NULL,                   Keyboard::Register,   NULL             },
     { "joystick",   NULL,                   Joystick::Register,   NULL             },
     { "math",       NULL,                   Math::Register,       NULL             },
     { "system",     System::Initialize,     System::Register,     System::Exit     },
     { "timer",      NULL,                   Timer::Register,      NULL             },
-    //{ "touch",    NULL,                   Touch::Register,      NULL             },
+    { "touch",      NULL,                   Touch::Register,      NULL             },
     { "window",     Display::Initialize,    Window::Register,     NULL             },
     { 0,            NULL,                   NULL,                 NULL             }
 };
 
-int (*classes[])(lua_State *L) = 
+int (*classes[])(lua_State *L) =
 {
     initFileClass,
     initFontClass,
@@ -60,7 +61,7 @@ int Love::Run(lua_State * L)
 
     if (luaL_dostring(L, LOVE_UPDATE))
         luaL_error(L, "%s", lua_tostring(L, -1));
-    
+
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
     Display::Clear(0);
@@ -71,7 +72,7 @@ int Love::Run(lua_State * L)
     if (gfxIs3D())
     {
         Display::Clear(2);
-    
+
         if (luaL_dostring(L, LOVE_DRAW))
             luaL_error(L, "%s", lua_tostring(L, -1));
     }
