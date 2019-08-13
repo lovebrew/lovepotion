@@ -12,10 +12,13 @@ class Graphics
 
         static void Initialize();
 
+        static int Clear(lua_State * L);
+        static int Present(lua_State * L);
+
         static int Register(lua_State * L);
 
         static void Exit();
-    
+
     private:
         //Löve2D Functions
 
@@ -25,12 +28,9 @@ class Graphics
 
         static int Draw(lua_State * L);
 
-        static int Clear(lua_State * L);
-        static int Present(lua_State * L);
-
         static int SetColor(lua_State * L);
         static int GetColor(lua_State * L);
-        
+
         static int SetBackgroundColor(lua_State * L);
         static int GetBackgroundColor(lua_State * L);
 
@@ -52,7 +52,7 @@ class Graphics
         static int Line(lua_State * L);
         static int Circle(lua_State * L);
         static int Arc(lua_State * L);
-        static int Postatic ints(lua_State * L);
+        static int Points(lua_State * L);
 
         static int SetScissor(lua_State * L);
 
@@ -62,8 +62,9 @@ class Graphics
         static int GetFont(lua_State * L);
         static int SetFont(lua_State * L);
         static int SetNewFont(lua_State * L);
-        static int Prstatic int(lua_State * L);
-        static int Prstatic intf(lua_State * L);
+
+        static int Printf(lua_State * L);
+        static int Print(lua_State * L);
 
         //End Löve2D Functions
-}
+};

@@ -28,17 +28,17 @@ int System::GetProcessorCount(lua_State * L)
 
 //love.system.getPowerInfo
 int System::GetPowerInfo(lua_State * L)
-{   
+{
     u32 batteryPercent = 0;
     psmGetBatteryChargePercentage(&batteryPercent);
-    
+
     ChargerType chargerType;
     psmGetChargerType(&chargerType);
-    
+
     string batteryState = (chargerType == ChargerType_None) ? "battery" : "charging";
     if (batteryPercent == 100 && batteryState == "charging")
         batteryState = "charged";
-    
+
     lua_pushstring(L, batteryState.c_str());
     lua_pushnumber(L, batteryPercent);
     lua_pushnil(L);
@@ -89,7 +89,7 @@ int System::GetInternetStatus(lua_State * L)
     {
         lua_pushnumber(L, strength);
         lua_pushboolean(L, status == 4);
-        
+
         return 2;
     }
 
@@ -101,8 +101,6 @@ int System::GetInternetStatus(lua_State * L)
 //love.system.getUsername
 int System::GetUsername(lua_State * L)
 {
-    bool accountSelected = 0;
-    
     u128 userID = 0;
     AccountProfile profile;
     AccountUserData userdata;
@@ -113,7 +111,7 @@ int System::GetUsername(lua_State * L)
     memset(&userdata, 0, sizeof(userdata));
     memset(&profilebase, 0, sizeof(profilebase));
 
-    Result resultCode = accountGetActiveUser(&userID, &accountSelected);
+    Result resultCode = accountGetPreselectedUser(&userID);
 
     if (R_SUCCEEDED(resultCode))
     {
