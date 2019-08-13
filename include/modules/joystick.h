@@ -6,23 +6,23 @@
 
 #pragma once
 
-namespace Joystick
+class Joystick
 {
-    void Initialize(lua_State * L); //should set up joysticks
+    public:
+        static void Initialize(lua_State * L); //should set up joysticks
 
-    Gamepad * GetJoystickFromID(uint id);
+        static Gamepad * GetJoystickFromID(uint id);
 
-    //Löve2D Functions
+        static int Register(lua_State * L);
 
-    int GetJoysticks(lua_State * L);
+    private:
+        static inline std::vector<Gamepad *> controllers;
 
-    int GetJoystickCount(lua_State * L);
+        //Löve2D Functions
 
-    int SetLayout(lua_State * L);
+        static int GetJoysticks(lua_State * L);
 
-    //End Löve2D Functions
+        static int GetJoystickCount(lua_State * L);
 
-    int Register(lua_State * L);
-}
-
-extern std::vector<Gamepad *> controllers;
+        //End Löve2D Functions
+};

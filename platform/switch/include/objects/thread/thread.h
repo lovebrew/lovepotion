@@ -1,10 +1,10 @@
 #pragma once
 
-class ThreadClass : public Object
+class LuaThread : public Object
 {
     public:
-        ThreadClass(const std::string & arg);
-        
+        LuaThread(const std::string & arg);
+
         bool IsRunning();
         void Start(const std::vector<Variant> & args);
         void Wait();
@@ -20,7 +20,6 @@ class ThreadClass : public Object
         void OnError();
 
     private:
-
         std::string code;
         std::vector<Variant> args;
 

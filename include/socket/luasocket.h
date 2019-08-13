@@ -1,12 +1,18 @@
 #pragma once
 
-namespace LuaSocket
+class LuaSocket
 {
-    void Initialize();
+    public:
+        static void Initialize();
 
-    int InitSocket(lua_State * L);
-    
-    int InitHTTP(lua_State * L);
+        static int InitSocket(lua_State * L);
 
-    void Exit();
-}
+        static int InitHTTP(lua_State * L);
+
+        static void Exit();
+
+    private:
+        static inline u32 * SOCKET_BUFFER = 0;
+
+        static inline Result INITIALIZED = 0;
+};

@@ -12,7 +12,8 @@ int LoveEvent::Pump(lua_State * L)
 
     //love.gamepadpressed
     u32 buttonDown = hidKeysDown();
-    string downKey = controllers[0]->GetInput(buttonDown);
+    Gamepad * controller = Joystick::GetJoystickFromID(0);
+    string downKey = controller->GetInput(buttonDown);
 
     touchPosition touch;
     hidTouchRead(&touch);
@@ -24,7 +25,7 @@ int LoveEvent::Pump(lua_State * L)
             love_getfield(L, "gamepadpressed");
             if (!lua_isnil(L, -1))
             {
-                love_push_userdata(L, controllers[0]);
+                love_push_userdata(L, controller);
                 lua_pushstring(L, downKey.c_str());
 
                 lua_call(L, 2, 0);
@@ -50,7 +51,7 @@ int LoveEvent::Pump(lua_State * L)
     }
 
     u32 buttonHeld = hidKeysHeld();
-    string heldKey = controllers[0]->GetInput(buttonHeld);
+    string heldKey = controller->GetInput(buttonHeld);
 
     if (heldKey != "nil" && heldKey == "touch")
     {
@@ -73,7 +74,7 @@ int LoveEvent::Pump(lua_State * L)
 
     //love.gamepadreleased
     u32 buttonUp = hidKeysUp();
-    string upKey = controllers[0]->GetInput(buttonUp);
+    string upKey = controller->GetInput(buttonUp);
 
     if (upKey != "nil")
     {
@@ -82,7 +83,7 @@ int LoveEvent::Pump(lua_State * L)
             love_getfield(L, "gamepadreleased");
             if (!lua_isnil(L, -1))
             {
-                love_push_userdata(L, controllers[0]);
+                love_push_userdata(L, controller);
                 lua_pushstring(L, upKey.c_str());
 
                 lua_call(L, 2, 0);
@@ -111,9 +112,9 @@ int LoveEvent::Pump(lua_State * L)
         love_getfield(L, "gamepadaxis");
         if (!lua_isnil(L, -1))
         {
-            love_push_userdata(L, controllers[0]);
+            love_push_userdata(L, controller);
             lua_pushstring(L, GAMEPAD_AXES[i].c_str());
-            lua_pushnumber(L, controllers[0]->GetAxis(i + 1));
+            lua_pushnumber(L, controller->GetAxis(i + 1));
 
             lua_call(L, 3, 0);
         }
@@ -124,9 +125,9 @@ int LoveEvent::Pump(lua_State * L)
         love_getfield(L, "joystickaxis");
         if (!lua_isnil(L, -1))
         {
-            love_push_userdata(L, controllers[0]);
+            love_push_userdata(L, controller);
             lua_pushinteger(L, i + 1);
-            lua_pushnumber(L, controllers[0]->GetAxis(i + 1));
+            lua_pushnumber(L, controller->GetAxis(i + 1));
 
             lua_call(L, 3, 0);
         }
