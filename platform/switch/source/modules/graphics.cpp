@@ -21,11 +21,6 @@
 #include "objects/text/text.h"
 #include "objects/text/wrap_text.h"
 
-SDL_Color backgroundColor = { 0, 0, 0, 255 };
-SDL_Color drawColor = { 255, 255, 255, 255 };
-
-float lineWidth = 2.0f;
-
 Font * currentFont = NULL;
 
 vector<StackMatrix> stack;

@@ -20,6 +20,11 @@ class Graphics
         static void Exit();
 
     private:
+        static inline SDL_Color backgroundColor = { 0, 0, 0, 255 };
+        static inline SDL_Color drawColor = { 255, 255, 255, 255 };
+
+        static inline float lineWidth = 2.0;
+
         //Löve2D Functions
 
         static int GetDimensions(lua_State * L);
