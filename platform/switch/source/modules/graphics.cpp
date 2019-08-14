@@ -1,7 +1,9 @@
 #include "common/runtime.h"
 
 #include "modules/graphics.h"
+
 #include "modules/window.h"
+#include "modules/display.h"
 
 #include "common/drawable.h"
 #include "objects/image/image.h"
@@ -18,11 +20,6 @@
 
 #include "objects/text/text.h"
 #include "objects/text/wrap_text.h"
-
-SDL_Color backgroundColor = { 0, 0, 0, 255 };
-SDL_Color drawColor = { 255, 255, 255, 255 };
-
-float lineWidth = 2.0f;
 
 Font * currentFont = NULL;
 
@@ -154,7 +151,7 @@ int Graphics::SetColor(lua_State * L)
     drawColor.b = b * 255;
     drawColor.a = a * 255;
 
-    SDL_SetRenderDrawColor(Window::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+    SDL_SetRenderDrawColor(Display::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -183,10 +180,10 @@ int Graphics::GetColor(lua_State * L)
 //love.graphics.clear
 int Graphics::Clear(lua_State * L)
 {
-    SDL_SetRenderDrawColor(Window::GetRenderer(), backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
-    SDL_RenderClear(Window::GetRenderer());
+    SDL_SetRenderDrawColor(Display::GetRenderer(), backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
+    SDL_RenderClear(Display::GetRenderer());
 
-    SDL_SetRenderDrawColor(Window::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+    SDL_SetRenderDrawColor(Display::GetRenderer(), drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -194,7 +191,7 @@ int Graphics::Clear(lua_State * L)
 //love.graphics.present
 int Graphics::Present(lua_State * L)
 {
-    SDL_RenderPresent(Window::GetRenderer());
+    SDL_RenderPresent(Display::GetRenderer());
 
     return 0;
 }
@@ -231,9 +228,9 @@ int Graphics::Draw(lua_State * L)
 
     float offsetX = luaL_optnumber(L, start + 5, 0);
     float offsetY = luaL_optnumber(L, start + 6, 0);
-	
+
     transformDrawable(&x, &y);
-	
+
     rotation *= 180 / M_PI;
 
     if (quad != nullptr)
@@ -296,7 +293,7 @@ int Graphics::Print(lua_State * L)
     float y = luaL_optnumber(L, 3, 0);
 
     float rotation = luaL_optnumber(L, 4, 0);
-    
+
     float scalarX = luaL_optnumber(L, 5, 1);
     float scalarY = luaL_optnumber(L, 6, 1);
 
@@ -365,7 +362,7 @@ int Graphics::SetCanvas(lua_State * L)
     if (self != NULL)
         self->SetAsTarget();
     else
-        SDL_SetRenderTarget(Window::GetRenderer(), NULL);
+        SDL_SetRenderTarget(Display::GetRenderer(), NULL);
 
     return 0;
 }
@@ -388,9 +385,9 @@ int Graphics::Rectangle(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        roundedBoxRGBA(Window::GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), cornerRadius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        roundedBoxRGBA(Display::GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), cornerRadius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        roundedRectangleRGBA(Window::GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, cornerRadius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        roundedRectangleRGBA(Display::GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, cornerRadius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -420,7 +417,7 @@ int Graphics::Polygon(lua_State * L)
 
     // gather all the vertices
     int numvertices = args / 2;
-    
+
     s16 xCoords[numvertices + 1];
     s16 yCoords[numvertices + 1];
 
@@ -454,7 +451,7 @@ int Graphics::Polygon(lua_State * L)
         {
             x = luaL_checkinteger(L, (i * 2) + 2);
             y = luaL_checkinteger(L, (i * 2) + 3);
-            
+
             transformDrawable(&x, &y);
 
             xCoords[i] = x;
@@ -470,9 +467,9 @@ int Graphics::Polygon(lua_State * L)
 
     // finally draw
     if (mode == "fill")
-        filledPolygonRGBA(Window::GetRenderer(), xCoords, yCoords, numvertices, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledPolygonRGBA(Display::GetRenderer(), xCoords, yCoords, numvertices, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        polygonRGBA(Window::GetRenderer(), xCoords, yCoords, numvertices, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        polygonRGBA(Display::GetRenderer(), xCoords, yCoords, numvertices, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -498,9 +495,9 @@ int Graphics::Arc(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "line")
-        pieRGBA(Window::GetRenderer(), x, y, radius, start, end, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        pieRGBA(Display::GetRenderer(), x, y, radius, start, end, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "fill")
-        filledPieRGBA(Window::GetRenderer(), x, y, radius, start, end, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledPieRGBA(Display::GetRenderer(), x, y, radius, start, end, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -520,9 +517,9 @@ int Graphics::Circle(lua_State * L)
     transformDrawable(&x, &y);
 
     if (mode == "fill")
-        filledCircleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        filledCircleRGBA(Display::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
     else if (mode == "line")
-        circleRGBA(Window::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+        circleRGBA(Display::GetRenderer(), x, y, radius, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
 
     return 0;
 }
@@ -577,7 +574,7 @@ int Graphics::Line(lua_State * L)
                 transformDrawable(&startx, &starty);
                 transformDrawable(&endx, &endy);
 
-                thickLineRGBA(Window::GetRenderer(), startx, starty, endx, endy, lineWidth, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+                thickLineRGBA(Display::GetRenderer(), startx, starty, endx, endy, lineWidth, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
             }
         }
     }
@@ -597,7 +594,7 @@ int Graphics::Line(lua_State * L)
             transformDrawable(&startx, &starty);
             transformDrawable(&endx, &endy);
 
-            thickLineRGBA(Window::GetRenderer(), startx, starty, endx, endy, lineWidth, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+            thickLineRGBA(Display::GetRenderer(), startx, starty, endx, endy, lineWidth, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
         }
     }
 
@@ -689,7 +686,7 @@ int Graphics::Points(lua_State * L)
         }
     }
 
-    SDL_RenderDrawPoints(Window::GetRenderer(), points, args);
+    SDL_RenderDrawPoints(Display::GetRenderer(), points, args);
 
     return 0;
 }
@@ -698,7 +695,7 @@ int Graphics::Points(lua_State * L)
 int Graphics::SetScissor(lua_State * L)
 {
     if (lua_isnoneornil(L, 1))
-        SDL_RenderSetClipRect(Window::GetRenderer(), NULL);
+        SDL_RenderSetClipRect(Display::GetRenderer(), NULL);
     else
     {
         int x = luaL_checknumber(L, 1);
@@ -712,7 +709,7 @@ int Graphics::SetScissor(lua_State * L)
 
         SDL_Rect scissor = {x, y, width, height};
 
-        SDL_RenderSetClipRect(Window::GetRenderer(), &scissor);
+        SDL_RenderSetClipRect(Display::GetRenderer(), &scissor);
     }
 
     return 0;
@@ -782,7 +779,7 @@ int Graphics::Origin(lua_State * L)
     stack.back().sy = 1;
 
     stack.back().r = 0;
-    
+
     stack.back().kx = 0;
     stack.back().ky = 0;
 

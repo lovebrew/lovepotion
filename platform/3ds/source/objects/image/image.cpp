@@ -29,7 +29,8 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
         this->image = C2D_SpriteSheetGetImage(sheet, 0);
     }
 
-    C3D_TexSetFilter(this->image.tex, magFilter, minFilter);
+    std::array<GPU_TEXTURE_FILTER_PARAM, 2> filters = Graphics::GetFilters();
+    C3D_TexSetFilter(this->image.tex, filters[1], filters[0]);
     
     this->image.tex->border = 0x00FFFFFF;
     

@@ -5,22 +5,37 @@
 
 #pragma once
 
-namespace Timer
+class Timer
 {
-    //Löve2D Functions
+    public:
+        Timer() = delete;
 
-    int GetFPS(lua_State * L);
-    int GetTime(lua_State * L);
-    int GetDelta(lua_State * L);
-    int Sleep(lua_State * L);
-    int Step(lua_State * L);
+        static float GetDelta();
+    
+        static void Tick();
 
-    //End Löve2D Functions
-    float GetOSTime();
+        static int Register(lua_State * L);
 
-    float GetDelta();
+    private:
+        static inline u32 lastTime = 0;
+        static inline u32 currentTime = 0;
+        static inline float deltatime = 0.0;
+        
+        static inline u32 lastCountTime = 0;
+        static inline int totalFrames = 0;
+        static inline int frames = 0;
 
-    void Tick();
-
-    int Register(lua_State * L);
-}
+        //Löve2D Functions
+        
+        static int GetFPS(lua_State * L);
+        
+        static int GetTime(lua_State * L);
+    
+        static int GetDelta(lua_State * L);
+    
+        static int Sleep(lua_State * L);
+    
+        static int Step(lua_State * L);
+        
+        //End Löve2D Functions
+};

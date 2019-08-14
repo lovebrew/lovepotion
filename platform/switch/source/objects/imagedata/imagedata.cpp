@@ -2,6 +2,7 @@
 
 #include "common/drawable.h"
 #include "modules/window.h"
+#include "modules/display.h"
 #include "objects/imagedata/imagedata.h"
 
 ImageData::ImageData(int width, int height) : Object("ImageData")
@@ -37,7 +38,7 @@ u32 * ImageData::LoadFilename(const char * filename)
     u8 sig[sigLength] = {0};
 
     size_t size = fread(sig, sizeof(u8), sigLength, input);
-    
+
     fseek(input, 0, SEEK_SET);
 
     if (size < sigLength || png_sig_cmp(sig, 0, sigLength))
@@ -148,7 +149,7 @@ int ImageData::GetSize()
 SDL_Color ImageData::GetPixel(int x, int y)
 {
     SDL_Color color = {0, 0, 0, 0};
-    
+
     u32 pixel = this->buffer[y * this->width + x];
 
     color.r = pixel & 0x000000FF;

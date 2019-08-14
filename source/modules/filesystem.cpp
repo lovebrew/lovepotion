@@ -13,21 +13,21 @@ string IDENTITY = "SuperGame";
 bool isRomfsInitialized = false;
 
 void Filesystem::Initialize(char * path)
-{    
+{
     const char * directory = "romfs:/";
-    AssetLocation location = Filesystem::GetAssetLocation(path);
+    AssetLocation location = GetAssetLocation(path);
 
     switch(location)
     {
         case AssetLocation::DIRECTORY:
         {
             struct stat pathInfo;
-            
+
             stat("game", &pathInfo);
-            
+
             if (S_ISDIR(pathInfo.st_mode))
                 directory = "game";
-            
+
             break;
         }
         case AssetLocation::FILE_ASSOC:
@@ -108,57 +108,7 @@ int Filesystem::Write(lua_State * L)
     return 0;
 }
 
-
-/*
-** TODO: Depreciate isFile/isDirectory/getSize
-** Implement love.filesystem.getIfno
-*/
-
-//love.filesystem.isFile
-int Filesystem::IsFile(lua_State * L)
-{
-    string path = Redirect(luaL_checkstring(L, 1));
-
-    struct stat pathInfo;
-    stat(path.c_str(), &pathInfo);
-
-    lua_pushboolean(L, S_ISREG(pathInfo.st_mode));
-
-    return 1;
-}
-
-//love.filesystem.isDirectory
-int Filesystem::IsDirectory(lua_State * L)
-{
-    string path = Redirect(luaL_checkstring(L, 1));
-
-    struct stat pathInfo;
-    stat(path.c_str(), &pathInfo);
-
-    lua_pushboolean(L, S_ISDIR(pathInfo.st_mode));
-
-    return 1;
-}
-
-//love.filesystem.getSize
-int Filesystem::GetSize(lua_State * L)
-{
-    string path = Redirect(luaL_checkstring(L, 1));
-
-    struct stat pathInfo;
-    int success = stat(path.c_str(), &pathInfo);
-
-    if (success != 0)
-    {
-        lua_pushnil(L);
-        return 1;
-    }
-
-    lua_pushnumber(L, pathInfo.st_size);
-
-    return 1;
-}
-
+//love.filesystem.getInfo
 int Filesystem::GetInfo(lua_State * L)
 {
     string path = Redirect(luaL_checkstring(L, 1));
@@ -261,13 +211,13 @@ int Filesystem::GetDirectoryItems(lua_State * L)
 
     int tablepos = 0;
 
-    if (dp != NULL) 
+    if (dp != NULL)
     {
         lua_newtable(L);
 
         struct dirent * ep;
-        
-        while ((ep = readdir(dp)) != NULL) 
+
+        while ((ep = readdir(dp)) != NULL)
         {
             if (ep->d_name[0] == '.')
                 continue; //skip .
@@ -288,7 +238,7 @@ int Filesystem::GetDirectoryItems(lua_State * L)
     return 0;
 }
 
-//love.filesystem.load    
+//love.filesystem.load
 int Filesystem::Load(lua_State * L)
 {
     string path = Redirect(luaL_checkstring(L, 1));
@@ -318,11 +268,11 @@ string Filesystem::GetSaveDirectory()
 string Filesystem::Redirect(const char * path)
 {
     struct stat pathInfo;
-    
+
     //Check save directory first
     string saveFile = GetSaveDirectory() + string(path);
     const char * filename = saveFile.c_str();
-    
+
     int success = stat(filename, &pathInfo);
 
     if (success == 0)
@@ -345,7 +295,7 @@ AssetLocation Filesystem::GetAssetLocation(char * path)
 
         if (rc != 0)
             return AssetLocation::DIRECTORY;
-        
+
         isRomfsInitialized = true;
         return AssetLocation::ROMFS_DEV;
     }
@@ -354,7 +304,7 @@ AssetLocation Filesystem::GetAssetLocation(char * path)
 }
 
 void Filesystem::Exit()
-{   
+{
     if (isRomfsInitialized)
         romfsExit();
 }
@@ -362,16 +312,13 @@ void Filesystem::Exit()
 //Register Functions
 int Filesystem::Register(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "createDirectory",        CreateDirectory   },
         { "getDirectoryItems",      GetDirectoryItems },
         { "getIdentity",            GetIdentity       },
         { "getInfo",                GetInfo           },
         { "getSaveDirectory",       GetSaveDirectory  },
-        { "getSize",                GetSize           },
-        { "isDirectory",            IsDirectory       },
-        { "isFile",                 IsFile            },
         { "load",                   Load              },
         { "newFile",                fileNew           },
         { "read",                   Read              },
@@ -382,6 +329,6 @@ int Filesystem::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }

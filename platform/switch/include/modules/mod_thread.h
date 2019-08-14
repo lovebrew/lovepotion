@@ -5,13 +5,15 @@
 ** @brief    : Handles threading
 */
 
-namespace LoveThread
+class Thread
 {
-    int GetChannel(lua_State * L);
+    public:
+        static void Exit();
 
-    void Exit();
+        static int Register(lua_State * L);
 
-    int Register(lua_State * L);
-}
+    private:
+        std::vector<LuaThread *> threads;
 
-//extern std::vector<ThreadClass *> threads;
+        int GetChannel(lua_State * L);
+};

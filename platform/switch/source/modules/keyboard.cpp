@@ -4,7 +4,7 @@
 int Keyboard::ShowTextInput(lua_State * L)
 {
     SwkbdConfig keyboard;
-    char text[0x80] = {0};
+    char text[0x80] = { 0 };
     Result status;
 
     if (!lua_istable(L, 1) && !lua_isnoneornil(L, 1))
@@ -82,17 +82,4 @@ int Keyboard::ShowTextInput(lua_State * L)
     swkbdClose(&keyboard);
 
     return 0;
-}
-
-int Keyboard::Register(lua_State * L)
-{
-    luaL_Reg reg[] = 
-    {
-        { "showTextInput", ShowTextInput },
-        { 0, 0 },
-    };
-
-    luaL_newlib(L, reg);
-    
-    return 1;
 }

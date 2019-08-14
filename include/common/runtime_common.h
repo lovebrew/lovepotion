@@ -40,11 +40,13 @@ extern "C"
 #include "socket/luasocket.h"
 
 //Common stuff
+#include "common/logger.h"
 #include "common/error.h"
 #include "common/types.h"
 #include "common/util.h"
 #include "common/variables.h"
 #include "common/variant.h"
+#include "common/version.h"
 
 //Löve module - important!
 #include "modules/love.h"

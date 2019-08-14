@@ -5,7 +5,7 @@
 #include "common/drawable.h"
 #include "objects/font/font.h"
 #include "modules/graphics.h"
-#include "modules/window.h"
+#include "modules/display.h"
 
 Font::Font(const string & path, float size) : Drawable("Font")
 {
@@ -21,7 +21,7 @@ TTF_Font * Font::LoadFont(const string & name, float size)
 {
     PlFontData fontData;
     PlSharedFontType type;
-    
+
     if (name == "chinese simplified")
         type = PlSharedFontType_ChineseSimplified;
     else if (name == "extended chinese simplified")
@@ -42,12 +42,11 @@ TTF_Font * Font::LoadFont(const string & name, float size)
             return newFont;
         else
         {
-            Love::RaiseError("%s", TTF_GetError());
-
+            Love::RaiseError("Could not open file %s. Does not exist.", name.c_str());
             return nullptr;
         }
     }
-    
+
     plGetSharedFontByType(&fontData, type);
 
     return TTF_OpenFontRW(SDL_RWFromMem(fontData.address, fontData.size), 1, size);
@@ -68,8 +67,8 @@ void Font::Print(const char * text, float x, float y, float rotation, float limi
         return;
 
     SDL_Surface * tempSurface = TTF_RenderUTF8_Blended_Wrapped(this->font, text, color, limit);
-    
-    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+
+    this->texture = SDL_CreateTextureFromSurface(Display::GetRenderer(), tempSurface);
     SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
 
     SDL_FreeSurface(tempSurface);

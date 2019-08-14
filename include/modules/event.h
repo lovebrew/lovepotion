@@ -5,19 +5,27 @@
 
 #pragma once
 
-extern std::queue<std::map<std::string, std::vector<Variant>>> poll_queue;
-
-namespace LoveEvent
+class LoveEvent
 {
-    int Pump(lua_State * L);
+    public:
+        LoveEvent() = delete;
 
-    //Löve2D Functions
+        static int Pump(lua_State * L);
 
-    int Quit(lua_State * L);
+        static bool IsTouchDown();
 
-    int Poll(lua_State * L);
+        static int Register(lua_State * L);
 
-    //End Löve2D Functions
+    private:
+        std::queue<std::map<std::string, std::vector<Variant>>> poll;
 
-    int Register(lua_State * L);
-}
+        static inline bool touchDown = false;
+
+        //Löve2D Functions
+
+        static int Quit(lua_State * L);
+
+        static int Poll(lua_State * L);
+
+        //End Löve2D Functions
+};

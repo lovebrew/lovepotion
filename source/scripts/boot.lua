@@ -1,5 +1,7 @@
 -- This code is licensed under the MIT Open Source License.
 
+-- Copyright (c) 2019 Jeremy S. Postelnek - jpostelnek@outlook.com
+-- Copyright (c) 2019 Logan Hickok-Dickson - notquiteapex@gmail.com
 -- Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,7 +25,7 @@
 -- This is a bit messy
 -- But it means we can move stuff out of main.c
 
-package.path = './?.lua;./?/init.lua'
+package.path  = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
 --[[
@@ -249,7 +251,7 @@ function love.errhand(message)
 
     for l in trace:gmatch("(.-)\n") do
         if not l:match("boot.lua") then
-            l = l:gsub("stack traceback:", "Traceback\n")
+            l = l:gsub("stack traceback:", "\nTraceback\n")
             table.insert(err, l)
         end
     end
@@ -258,6 +260,8 @@ function love.errhand(message)
     realError = realError:gsub("\t", "")
     realError = realError:gsub("%[string \"(.-)\"%]", "%1")
 
+    -- MAKE A COPY FOR THE CRASH LOG --
+
     local copy = err
     table.insert(copy, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
 
@@ -265,13 +269,17 @@ function love.errhand(message)
     table.insert(copy, "\nDate and Time: " .. dateTime)
     table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "LoveCrash.txt")
 
+    -----------------------------------
+
     local fullError = table.concat(err, "\n")
-    love.filesystem.write("LoveCrash.txt", fullError)
+    love.filesystem.write("crash.txt", fullError)
 
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
 
+    -- GET FORMATS FOR EACH SYSTEM --
+
     local headerSize, buttonSize = 30, 15
-    if love._os[2] == "Switch" then
+    if love._console_name == "Switch" then
         headerFont, buttonSize = 96, 24
     end
 
@@ -279,11 +287,11 @@ function love.errhand(message)
     local buttonFont = love.graphics.newFont(buttonSize)
 
     local error_img, start_img
-    
-    if love._os[2] == "3DS" then
+
+    if love._console_name == "3DS" then
         error_img = love.graphics.newImage("error:warn_sm")
         start_img = love.graphics.newImage("error:button_sm")
-    elseif love._os[2] == "Switch" then
+    elseif love._console_name == "Switch" then
         error_img = love.graphics.newImage("error:warn")
         start_img = love.graphics.newImage("error:button")
     end
@@ -291,7 +299,31 @@ function love.errhand(message)
     local width = love.graphics.getWidth()
     local height = love.graphics.getHeight()
 
-    --local button_position = (height * 0.85) + ((height * 0.15) - start_img:getHeight() / 2) 
+    function wordWrap(text, max)
+        local length, out, format = 0, {}, ""
+        local font = love.graphics.getFont()
+
+        local function insertClear()
+            length = 0
+            table.insert(out, format)
+            format = ""
+        end
+
+        for word in text:gmatch("%w+ ?%p? ?\n?") do
+            length = length + font:getWidth(word)
+            if length >= max then
+                insertClear()
+            else
+                format = format .. word
+            end
+        end
+
+        return out
+    end
+
+    wrappedError = wordWrap(realError, love.graphics.getWidth() - 80)
+
+    ---------------------------------
 
     local function draw()
         love.graphics.origin()
@@ -307,7 +339,10 @@ function love.errhand(message)
         love.graphics.rectangle("fill", 30, height * 0.15, width - 60, 2)
 
         love.graphics.setFont(buttonFont)
-        love.graphics.print(realError, 40, height * 0.20)
+
+        for i = 1, #wrappedError do
+            love.graphics.print(wrappedError[i], 40, (height * 0.20) + (i - 1) * buttonFont:getHeight())
+        end
 
         love.graphics.rectangle("fill", 30, height * 0.90, width - 60, 2)
 
@@ -316,7 +351,7 @@ function love.errhand(message)
 
         love.graphics.present()
 
-        if love._os[2] == "3DS" then
+        if love._console_name == "3DS" then
             love.graphics.clear("bottom")
             love.graphics.present()
         end
@@ -325,7 +360,7 @@ function love.errhand(message)
     local joystick = love.joystick.getJoysticks()[1]
 
     local quit_string = "start"
-    if love._os[2] == "Switch" then
+    if love._console_name == "Switch" then
         quit_string = "plus"
     end
 

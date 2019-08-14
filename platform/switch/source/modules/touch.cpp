@@ -38,13 +38,14 @@ int Touch::GetTouches(lua_State * L)
     return 1;
 }
 
+//love.touch.getPressure
 int Touch::GetPressure(lua_State * L)
 {
     if (lua_islightuserdata(L, 1))
     {
         int *id = (int *)lua_topointer(L, 1);
 
-        SDL_Finger *touch = SDL_GetTouchFinger(0, *id);
+        SDL_Finger * touch = SDL_GetTouchFinger(0, *id);
 
         lua_pushinteger(L, touch->pressure);
 
@@ -60,7 +61,7 @@ int Touch::GetPressure(lua_State * L)
 
 int Touch::Register(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "getPosition", GetPosition },
         { "getPressure", GetPressure },
@@ -69,6 +70,6 @@ int Touch::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }
