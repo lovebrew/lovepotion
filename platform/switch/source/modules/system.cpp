@@ -76,26 +76,27 @@ int System::GetInternetStatus(lua_State * L)
 {
     u32 strength = 0;
     NifmInternetConnectionStatus status;
-    NifmInternetConnectionType connectionType = NifmInternetConnectionType_WiFi;
+    NifmInternetConnectionType connectionType;
 
-    string type = luaL_optstring(L, 1, "wireless");
-
-    if (type == "ethernet")
-        connectionType = NifmInternetConnectionType_Ethernet;
+    string type = "wireless"
 
     Result rc = nifmGetInternetConnectionStatus(&connectionType, &strength, &status);
 
     if (R_SUCCEEDED(rc))
     {
-        lua_pushnumber(L, strength);
-        lua_pushboolean(L, status == 4);
-
-        return 2;
+        if (connectionType == NifmInternetConnectionType_Ethernet)
+            type = "ethernet";
     }
+    else if (R_FAILED(rc))
+        type = "airplane";
 
-    lua_pushnil(L);
+    lua_pushstring(L, type.c_str());
+    lua_pushnumber(L, strength);
+    
+    bool connected = (status == NifmInternetConnectionStatus_Connected);
+    lua_pushboolean(L, connected);
 
-    return 1;
+    return 3;
 }
 
 //love.system.getUsername
