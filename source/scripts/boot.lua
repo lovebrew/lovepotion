@@ -1,27 +1,27 @@
+-- The main boot script.
 -- This code is licensed under the MIT Open Source License.
---[[
-    Copyright (c) 2019 Jeremy S. Postelnek - jeremy.postelnek@gmail.com
-    Copyright (c) 2019 Logan Hickok-Dickson - notquiteapex@gmail.com
-    Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
+-- Copyright (c) 2019 Jeremy S. Postelnek - jeremy.postelnek@gmail.com
+-- Copyright (c) 2019 Logan Hickok-Dickson - notquiteapex@gmail.com
+-- Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
+-- Permission is hereby granted, free of charge, to any person obtaining a copy
+-- of this software and associated documentation files (the "Software"), to deal
+-- in the Software without restriction, including without limitation the rights
+-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- copies of the Software, and to permit persons to whom the Software is
+-- furnished to do so, subject to the following conditions:
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
---]]
+-- The above copyright notice and this permission notice shall be included in
+-- all copies or substantial portions of the Software.
+
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+-- THE SOFTWARE.
 
 -- Load the LOVE filesystem module, its absolutely needed
 love.filesystem = require("love.filesystem")
@@ -238,6 +238,8 @@ function love.errorhandler(message)
     realError = realError:gsub("\t", "")
     realError = realError:gsub("%[string \"(.-)\"%]", "%1")
 
+    -- MAKE A COPY FOR THE CRASH LOG --
+
     local copy = err
     table.insert(copy, "\nLove Potion " .. love.getVersion(true) .. " (API " .. major .. "." .. minor .. "." .. rev .. ")")
 
@@ -245,13 +247,17 @@ function love.errorhandler(message)
     table.insert(copy, "\nDate and Time: " .. dateTime)
     table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "LoveCrash.txt")
 
+    -----------------------------------
+
     local fullError = table.concat(err, "\n")
-    love.filesystem.write("LoveCrash.txt", fullError)
+    love.filesystem.write("crash.txt", fullError)
 
     love.graphics.setBackgroundColor(0.35, 0.62, 0.86)
 
+    -- GET FORMATS FOR EACH SYSTEM --
+
     local headerSize, buttonSize = 30, 15
-    if love._os[2] == "Switch" then
+    if love._console_name == "Switch" then
         headerFont, buttonSize = 96, 24
     end
 
@@ -259,17 +265,43 @@ function love.errorhandler(message)
     local buttonFont = love.graphics.newFont(buttonSize)
 
     local error_img, start_img
-    
-    if love._os[2] == "3DS" then
+
+    if love._console_name == "3DS" then
         error_img = love.graphics.newImage("error:warn_sm")
         start_img = love.graphics.newImage("error:button_sm")
-    elseif love._os[2] == "Switch" then
+    elseif love._console_name == "Switch" then
         error_img = love.graphics.newImage("error:warn")
         start_img = love.graphics.newImage("error:button")
     end
 
     local width = love.graphics.getWidth()
     local height = love.graphics.getHeight()
+
+    function wordWrap(text, max)
+        local length, out, format = 0, {}, ""
+        local font = love.graphics.getFont()
+
+        local function insertClear()
+            length = 0
+            table.insert(out, format)
+            format = ""
+        end
+
+        for word in text:gmatch("%w+ ?%p? ?\n?") do
+            length = length + font:getWidth(word)
+            if length >= max then
+                insertClear()
+            else
+                format = format .. word
+            end
+        end
+
+        return out
+    end
+
+    wrappedError = wordWrap(realError, love.graphics.getWidth() - 80)
+
+    ---------------------------------
 
     love.draw = function()
         love.graphics.origin()
@@ -285,7 +317,10 @@ function love.errorhandler(message)
         love.graphics.rectangle("fill", 30, height * 0.15, width - 60, 2)
 
         love.graphics.setFont(buttonFont)
-        love.graphics.print(realError, 40, height * 0.20)
+
+        for i = 1, #wrappedError do
+            love.graphics.print(wrappedError[i], 40, (height * 0.20) + (i - 1) * buttonFont:getHeight())
+        end
 
         love.graphics.rectangle("fill", 30, height * 0.90, width - 60, 2)
 
@@ -294,14 +329,14 @@ function love.errorhandler(message)
 
         love.graphics.present()
 
-        if love._os[2] == "3DS" then
+        if love._console_name == "3DS" then
             love.graphics.clear("bottom")
             love.graphics.present()
         end
     end
 
     local quit_string = "start"
-    if love._os[2] == "Switch" then
+    if love._console_name == "Switch" then
         quit_string = "plus"
     end
 

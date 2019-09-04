@@ -12,9 +12,6 @@
 
 #include <time.h>
 
-// Our own personal RNG!
-RandomGenerator rng;
-
 //love.math.setRandomSeed
 int Math::SetRandomSeed(lua_State * L)
 {
@@ -59,15 +56,13 @@ int Math::Random(lua_State * L)
         else
         {
             double high = luaL_checknumber(L, 1);
-            
+
             n = rng.random(high);
         }
     }
     else // No args, just a regular 0 to 1 RNG
-    {
         n = rng.random();
-    }
-    
+
     lua_pushnumber(L, n);
 
     return 1;
@@ -117,6 +112,7 @@ int Math::GammaToLinear(lua_State * L)
     {
         if (i < 3) // Alpha is always linear.
             color[i] = convertGammaToLinear(color[i]);
+
         lua_pushnumber(L, color[i]);
     }
 
@@ -133,6 +129,7 @@ int Math::LinearToGamma(lua_State * L)
     {
         if (i < 3) // Alpha is always linear.
             color[i] = convertLinearToGamma(color[i]);
+
         lua_pushnumber(L, color[i]);
     }
 
@@ -147,6 +144,7 @@ int Math::IsConvex(lua_State * L)
     {
         int top = lua_objlen(L, 1);
         vertices.reserve(top / 2);
+
         for (int i = 1; i <= top; i += 2)
         {
             lua_rawgeti(L, 1, i);
@@ -155,6 +153,7 @@ int Math::IsConvex(lua_State * L)
             Vector2 v;
             v.x = (float) luaL_checknumber(L, -2);
             v.y = (float) luaL_checknumber(L, -1);
+
             vertices.push_back(v);
 
             lua_pop(L, 2);
@@ -164,11 +163,13 @@ int Math::IsConvex(lua_State * L)
     {
         int top = lua_gettop(L);
         vertices.reserve(top / 2);
+
         for (int i = 1; i <= top; i += 2)
         {
             Vector2 v;
             v.x = (float) luaL_checknumber(L, i);
             v.y = (float) luaL_checknumber(L, i+1);
+
             vertices.push_back(v);
         }
     }
@@ -184,8 +185,10 @@ int Math::IsConvex(lua_State * L)
     // turning direction can be determined using the cross-product of
     // the forward difference vectors
     size_t i = vertices.size() - 2, j = vertices.size() - 1, k = 0;
+
     Vector2 p(vertices[j] - vertices[i]);
     Vector2 q(vertices[k] - vertices[j]);
+
     float winding = Vector2::cross(p, q);
 
     while (k+1 < vertices.size())
@@ -246,6 +249,7 @@ int Math::Noise(lua_State * L)
 int Math::Triangulate(lua_State * L)
 {
     vector<Vector2> vertices;
+
     if (lua_istable(L, 1))
     {
         int top = (int) lua_objlen(L, 1);
@@ -259,6 +263,7 @@ int Math::Triangulate(lua_State * L)
             Vector2 v;
             v.x = (float) luaL_checknumber(L, -2);
             v.y = (float) luaL_checknumber(L, -1);
+
             vertices.push_back(v);
 
             lua_pop(L, 2);
@@ -274,6 +279,7 @@ int Math::Triangulate(lua_State * L)
             Vector2 v;
             v.x = (float) luaL_checknumber(L, i);
             v.y = (float) luaL_checknumber(L, i+1);
+
             vertices.push_back(v);
         }
     }
@@ -357,6 +363,7 @@ int Math::Triangulate(lua_State * L)
             prev = prev_idx[current];
 
             const Vector2 &a = vertices[prev], &b = vertices[current], &c = vertices[next];
+
             if (isEar(a,b,c, concave_vertices))
             {
                 triangles.push_back(Triangle(a,b,c));
@@ -368,7 +375,7 @@ int Math::Triangulate(lua_State * L)
             }
             else if (++skipped > n_vertices)
                 luaL_error(L, "Cannot triangulate polygon.");
-            
+
             current = next;
         }
 
@@ -435,6 +442,7 @@ int Math::getGammaArgs(lua_State * L, float color[4])
     if (lua_istable(L, 1))
     {
         int n = (int) lua_objlen(L, 1);
+
         for (int i = 1; i <= n && i <= 4; i++)
         {
             lua_rawgeti(L, 1, i);
@@ -447,6 +455,7 @@ int Math::getGammaArgs(lua_State * L, float color[4])
     else
     {
         int n = lua_gettop(L);
+
         for (int i = 1; i <= n && i <= 4; i++)
         {
             color[i - 1] = (float) min(max(luaL_checknumber(L, i), 0.0), 1.0);
@@ -461,13 +470,13 @@ int Math::getGammaArgs(lua_State * L, float color[4])
 }
 
 // check if an angle is oriented counter clockwise
-bool Math::isOrientedCCW(const Vector2 &a, const Vector2 &b, const Vector2 &c)
+bool Math::isOrientedCCW(const Vector2 & a, const Vector2 & b, const Vector2 & c)
 {
     return ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) >= 0;
 }
 
 // check if a and b are on the same side of the line c->d
-bool Math::onSameSide(const Vector2 &a, const Vector2 &b, const Vector2 &c, const Vector2 &d)
+bool Math::onSameSide(const Vector2 & a, const Vector2 & b, const Vector2 & c, const Vector2 & d)
 {
     float px = d.x - c.x, py = d.y - c.y;
     float l = px * (a.y - c.y) - py * (a.x - c.x);
@@ -477,37 +486,37 @@ bool Math::onSameSide(const Vector2 &a, const Vector2 &b, const Vector2 &c, cons
 }
 
 // checks is p is contained in the triangle abc
-bool Math::pointInTriangle(const Vector2 &p, const Vector2 &a, const Vector2 &b, const Vector2 &c)
+bool Math::pointInTriangle(const Vector2 & p, const Vector2 & a, const Vector2 & b, const Vector2 & c)
 {
     return onSameSide(p,a, b,c) && onSameSide(p,b, a,c) && onSameSide(p,c, a,b);
 }
 
 // checks if any vertex in `vertices' is in the triangle abc.
-bool Math::anyPointInTriangle(const list<const Vector2 *> &vertices, const Vector2 &a, const Vector2 &b, const Vector2 &c)
+bool Math::anyPointInTriangle(const list<const Vector2 *> & vertices, const Vector2 & a, const Vector2 & b, const Vector2 & c)
 {
-    for (const Vector2 *p : vertices)
+    for (const Vector2 * p : vertices)
     {
-        if ((p != &a) && (p != &b) && (p != &c) && pointInTriangle(*p, a,b,c))
+        if ((p != &a) && (p != &b) && (p != &c) && pointInTriangle(*p, a, b, c))
             return true;
     }
 
     return false;
 }
 
-bool Math::isEar(const Vector2 &a, const Vector2 &b, const Vector2 &c, const list<const Vector2 *> &vertices)
+bool Math::isEar(const Vector2 & a, const Vector2 & b, const Vector2 & c, const list<const Vector2 *> & vertices)
 {
-    return isOrientedCCW(a,b,c) && !anyPointInTriangle(vertices, a,b,c);
+    return isOrientedCCW(a, b, c) && !anyPointInTriangle(vertices, a, b, c);
 }
 
 
 int Math::Register(lua_State * L)
 {
-    // The module's random generator is always seeded with 
+    // The module's random generator is always seeded with
     RandomGenerator::Seed s;
     s.b64 = (u64) time(nullptr);
     rng.setSeed(s);
 
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "gammaToLinear",      GammaToLinear      },
         { "getRandomSeed",      GetRandomSeed      },
@@ -527,6 +536,6 @@ int Math::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }

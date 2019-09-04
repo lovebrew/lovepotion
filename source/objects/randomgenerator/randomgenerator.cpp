@@ -1,5 +1,5 @@
 // This implementation was taken from https://bitbucket.org/rude/love/
-// and was modified to work with Löve Potion. 
+// and was modified to work with Löve Potion.
 
 #include "common/runtime.h"
 
@@ -45,6 +45,7 @@ u64 RandomGenerator::rand()
     this->rng_state.b64 ^= (this->rng_state.b64 >> 12);
     this->rng_state.b64 ^= (this->rng_state.b64 << 25);
     this->rng_state.b64 ^= (this->rng_state.b64 >> 27);
+
     return this->rng_state.b64 * 2685821657736338717ULL;
 }
 
@@ -77,6 +78,7 @@ double RandomGenerator::randomNormal(double stddev)
     {
         double r = last_randomnormal;
         last_randomnormal = std::numeric_limits<double>::infinity();
+
         return r * stddev;
     }
 
@@ -84,6 +86,7 @@ double RandomGenerator::randomNormal(double stddev)
     double phi = 2.0 * M_PI * (1. - random());
 
     last_randomnormal = r * cos(phi);
+
     return r * sin(phi) * stddev;
 }
 

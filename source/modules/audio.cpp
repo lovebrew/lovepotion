@@ -4,14 +4,6 @@
 #include "objects/source/source.h"
 #include "objects/source/wrap_source.h"
 
-vector<bool> audioChannels(8);
-
-#if defined (_3DS)
-    #define AUDIO_RATE 44100
-#elif defined (__SWITCH__)
-    #define AUDIO_RATE 48000
-#endif
-
 void Audio::Initialize()
 {
 
@@ -19,7 +11,7 @@ void Audio::Initialize()
 
 int Audio::GetOpenChannel()
 {
-    for (uint i = 0; i < audioChannels.size(); i++)
+    for (size_t i = 0; i < audioChannels.size(); i++)
     {
         if (!audioChannels[i])
         {
@@ -44,7 +36,7 @@ int Audio::Play(lua_State * L)
 }
 
 //love.audio.stop
-int Audio::Stop(lua_State * L) 
+int Audio::Stop(lua_State * L)
 {
     if (lua_isnoneornil(L, 1))
     {
@@ -141,6 +133,6 @@ int Audio::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }

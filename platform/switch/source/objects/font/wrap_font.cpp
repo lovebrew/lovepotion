@@ -38,7 +38,7 @@ int fontNew(lua_State * L)
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
     Font * self;
-    
+
     if (path != "")
         self = new (raw_self) Font(path, size);
     else
@@ -92,9 +92,9 @@ int fontGC(lua_State * L)
     return 0;
 }
 
-int initFontClass(lua_State * L) 
+int initFontClass(lua_State * L)
 {
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "__gc",       fontGC        },
         { "__tostring", fontToString  },

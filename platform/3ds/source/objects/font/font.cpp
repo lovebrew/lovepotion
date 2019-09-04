@@ -50,7 +50,7 @@ C2D_Font Font::LoadFont(const string & name)
         return C2D_FontLoadSystem(CFG_REGION_TWN);
     else if (name == "chinese")
         return C2D_FontLoadSystem(CFG_REGION_CHN);
-    
+
     const char * filename = name.c_str();
 
     return C2D_FontLoad(filename);

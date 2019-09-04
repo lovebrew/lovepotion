@@ -5,14 +5,15 @@
 
 #pragma once
 
-namespace Keyboard
+class Keyboard
 {
-    //Löve2D Functions
-    void Initialize();
+    public:
+        static int Register(lua_State * L);
+    
+    private:
+        //Löve2D Functions
+        
+        static int ShowTextInput(lua_State * L);
 
-    int ShowTextInput(lua_State * L);
-
-    //End Löve2D Functions
-
-    int Register(lua_State * L);
-}
+        //End Löve2D Functions
+};

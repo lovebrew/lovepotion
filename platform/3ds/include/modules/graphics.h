@@ -5,58 +5,84 @@
 
 #pragma once
 
-namespace Graphics
+class Graphics
 {
-    void Initialize();
+    public:
+        Graphics() = delete;
 
-    //Löve2D Functions
-    int Clear(lua_State * L);
-    int Present(lua_State * L);
+        static void Initialize();
 
-    int Circle(lua_State * L);
-    int Rectangle(lua_State * L);
+        static gfxScreen_t GetScreen();
 
-    int Set3D(lua_State * L);
-    int SetDepth(lua_State * L);
+        static Color GetBackgroundColor();
 
-    int Draw(lua_State * L);
-    int Print(lua_State * L);
+        static u32 ConvertColor(Color & color);
 
-    int SetBackgroundColor(lua_State * L);
-    int SetColor(lua_State * L);
-    int SetDefaultFilter(lua_State * L);
+        static std::array<GPU_TEXTURE_FILTER_PARAM, 2> GetFilters();
 
-    int GetDimensions(lua_State * L);
-    int GetWidth(lua_State * L);
-    int GetHeight(lua_State * L);
+        static int Register(lua_State * L);
 
-    int GetRendererInfo(lua_State * L);
+        static void Exit();
 
-    int SetScreen(lua_State * L);
-    int SetFont(lua_State * L);
-    int SetNewFont(lua_State * L);
+    private:
+        static inline std::array<GPU_TEXTURE_FILTER_PARAM, 2> filter = { GPU_LINEAR };
 
-    int SetScissor(lua_State * L);
+        static inline Color blendColor = { 1, 1, 1, 1 };
+        static inline Color backgColor = { 0, 0, 0, 1 };
 
-    int Push(lua_State * L);
-    int Pop(lua_State * L);
+        static inline gfxScreen_t screen = GFX_TOP;
 
-    int Translate(lua_State * L);
-    int Scale(lua_State * L);
-    int Rotate(lua_State * L);
-    int Origin(lua_State * L);
+        static inline float depth = 0.0f;
 
-    //End Löve2D Functions
-    C3D_RenderTarget * GetScreen(gfxScreen_t screen, gfx3dSide_t side);
-    void Clear(gfxScreen_t screen, gfx3dSide_t side);
-    void DrawOn(gfxScreen_t screen, gfx3dSide_t side);
+        static inline float alpha = 1.0f;
 
-    u32 ConvertColor(Color & color);
+        static inline bool STACK_PUSHED = false;
 
-    int Register(lua_State * L);
+        static inline std::vector<StackMatrix> transform = { };
 
-    void Exit();
-}
+        static inline std::array<const char *, 4> gpuInfo = {};
 
-extern GPU_TEXTURE_FILTER_PARAM minFilter;
-extern GPU_TEXTURE_FILTER_PARAM magFilter;
+        static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY);
+
+        //Löve2D Functions
+
+        static int Clear(lua_State * L);
+        static int Present(lua_State * L);
+
+        static int Circle(lua_State * L);
+        static int Rectangle(lua_State * L);
+
+        static int Set3D(lua_State * L);
+        static int SetDepth(lua_State * L);
+
+        static int Draw(lua_State * L);
+        static int Print(lua_State * L);
+
+        static int SetBackgroundColor(lua_State * L);
+        static int SetColor(lua_State * L);
+        static int SetDefaultFilter(lua_State * L);
+
+        static int GetDimensions(lua_State * L);
+        static int GetWidth(lua_State * L);
+        static int GetHeight(lua_State * L);
+
+        static int GetRendererInfo(lua_State * L);
+
+        static int SetScreen(lua_State * L);
+
+        static int GetFont(lua_State * L);
+        static int SetFont(lua_State * L);
+        static int SetNewFont(lua_State * L);
+
+        static int SetScissor(lua_State * L);
+
+        static int Push(lua_State * L);
+        static int Pop(lua_State * L);
+
+        static int Translate(lua_State * L);
+        static int Scale(lua_State * L);
+        static int Rotate(lua_State * L);
+        static int Origin(lua_State * L);
+
+        //End Löve2D Functions
+};

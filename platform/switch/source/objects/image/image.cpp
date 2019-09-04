@@ -4,7 +4,7 @@
 
 #include "common/drawable.h"
 #include "objects/image/image.h"
-#include "modules/window.h"
+#include "modules/display.h"
 
 #include "dog_png.h"
 #include "head_png.h"
@@ -30,10 +30,10 @@ Image::Image(const char * path, bool memory) : Drawable("Image")
     else
         tempSurface = this->GetMemoryImage(path);
 
-    //this->surface = SDL_ConvertSurface(tempSurface, Window::GetSurface()->format, NULL);
+    //this->surface = SDL_ConvertSurface(tempSurface, Display::GetSurface()->format, NULL);
     //SDL_SetSurfaceBlendMode(this->surface, SDL_BLENDMODE_BLEND);
 
-    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    this->texture = SDL_CreateTextureFromSurface(Display::GetRenderer(), tempSurface);
     SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
 
     this->width = tempSurface->w;
@@ -48,13 +48,13 @@ Image::Image(u32 * buffer, size_t bufferSize)
 {
     SDL_Surface * tempSurface = NULL;
     tempSurface = IMG_Load_RW(SDL_RWFromMem((void *)buffer, bufferSize), 1);
-    
+
     this->width = tempSurface->w;
     this->height = tempSurface->h;
 
     this->viewport = {0, 0, this->width, this->height, this->width, this->height};
 
-    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    this->texture = SDL_CreateTextureFromSurface(Display::GetRenderer(), tempSurface);
 
     SDL_FreeSurface(tempSurface);
 }

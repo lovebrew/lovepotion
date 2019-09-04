@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "common/drawable.h"
+
 #include "modules/window.h"
+#include "modules/display.h"
 
 Drawable::Drawable(const string & type) : Object(type)
 {
@@ -33,7 +35,7 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
     yScaleFactor = (float)view.height / (float)textureHeight;
     view.y *= (float)textureHeight / (float)view.height;
     view.subHeight *= (float)textureHeight / (float)view.height;
-    
+
     double scaledWidth = view.subWidth * xScaleFactor * abs(scalarX);
     double scaledHeight = view.subHeight * yScaleFactor * abs(scalarY);
 
@@ -44,11 +46,11 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
 
     SDL_Rect sourceRectangle = {view.x, view.y, view.subWidth, view.subHeight};
 
-    SDL_Rect destinationRectangle = 
+    SDL_Rect destinationRectangle =
     {
-        (int)round(x - (offsetX * scalarX)), 
-        (int)round(y - (offsetY * scalarY)), 
-        (int)ceil(scaledWidth),  
+        (int)round(x - (offsetX * scalarX)),
+        (int)round(y - (offsetY * scalarY)),
+        (int)ceil(scaledWidth),
         (int)ceil(scaledHeight)
     };
 
@@ -59,7 +61,7 @@ void Drawable::Draw(SDL_Texture * texture, Viewport view, double x, double y, do
 
     SDL_Point center = {(int)(offsetX * scalarX), (int)(offsetY * scalarY)};
 
-    SDL_RenderCopyEx(Window::GetRenderer(), texture, &sourceRectangle, &destinationRectangle, rotation, &center, this->flip);
+    SDL_RenderCopyEx(Display::GetRenderer(), texture, &sourceRectangle, &destinationRectangle, rotation, &center, this->flip);
 }
 
 void Drawable::Flip(double scalarX, double scalarY)

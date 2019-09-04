@@ -60,6 +60,6 @@ int Joystick::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }

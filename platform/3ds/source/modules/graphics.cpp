@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include "modules/graphics.h"
+#include "modules/display.h"
 
 #include "common/drawable.h"
 #include "objects/image/wrap_image.h"
@@ -11,71 +12,7 @@
 #include "objects/font/wrap_font.h"
 #include "objects/font/font.h"
 
-//Screen Stuff
-gfxScreen_t currentScreen = GFX_TOP;
-gfx3dSide_t currentSide = GFX_LEFT;
-gfxScreen_t renderScreen;
-
-//Rendertargets
-C3D_RenderTarget * topTarget = nullptr;
-C3D_RenderTarget * depthTarget = nullptr;
-C3D_RenderTarget * bottomTarget = nullptr;
-
-Color backgroundColor = { 0, 0, 0, 1 };
-Color drawColor = { 1, 1, 1, 1 };
-
 Font * currentFont = nullptr;
-float currentDepth = 0;
-
-vector<StackMatrix> transformStack;
-bool STACK_PUSHED = false;
-
-GPU_TEXTURE_FILTER_PARAM minFilter;
-GPU_TEXTURE_FILTER_PARAM magFilter;
-
-static void Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY) // rotate, scale, and translate coords.
-{
-    if (transformStack.empty())
-        return;
-
-    StackMatrix matrix = transformStack.back();
-
-    float newLeft = *originalX;
-    float newTop = *originalY;
-
-    float slider = osGet3DSliderState();
-    if (gfxIs3D() && currentScreen == GFX_TOP)
-    {
-        if (currentSide == GFX_LEFT)
-            *originalX -= (slider * currentDepth);
-        else if (currentSide == GFX_RIGHT)
-            *originalX += (slider * currentDepth);
-    }
-
-    //Translate
-    *originalX += matrix.ox;
-    *originalY += matrix.oy;
-
-    //Scale
-    *originalX *= matrix.sx;
-    *originalY *= matrix.sy;
-
-    *originalScalarX *= matrix.sx;
-    *originalScalarY *= matrix.sy;
-    
-    //Rotate
-    if (*originalRotation != 0)
-    {
-        *originalX = newLeft * cos(matrix.r) - newTop * sin(matrix.r);
-        *originalY = newLeft * sin(matrix.r) + newTop * cos(matrix.r);
-
-        *originalRotation += matrix.r;
-    }
-
-    //Shear
-    //*originalX = newLeft + matrix.kx * newTop;
-    //*originalY = newTop + matrix.ky * newLeft;
-}
 
 void Graphics::Initialize()
 {
@@ -84,20 +21,13 @@ void Graphics::Initialize()
     C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
     C2D_Init(C2D_DEFAULT_MAX_OBJECTS);
     C2D_Prepare();
-    
-    topTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
-    bottomTarget = C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT);
-    depthTarget = C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT);
 
-    transformStack.reserve(16);
+    transform.reserve(16);
 
     StackMatrix stack = {0, 0, 0, 1, 1, 0, 0};
-    transformStack.emplace_back(stack);
+    transform.emplace_back(stack);
 
     STACK_PUSHED = false;
-
-    minFilter = GPU_LINEAR;
-    magFilter = GPU_LINEAR;
 }
 
 //Löve2D Functions
@@ -116,8 +46,7 @@ int Graphics::Set3D(lua_State * L)
 
 int Graphics::SetDepth(lua_State * L)
 {
-    float depth = luaL_checknumber(L, 1);
-    currentDepth = depth;
+    depth = luaL_checknumber(L, 1);
 
     return 0;
 }
@@ -138,19 +67,19 @@ int Graphics::Rectangle(lua_State * L)
 
     Transform(&x, &y, &rotation, &scalarX, &scalarY);
 
-    if (currentScreen == renderScreen)
+    if (Display::IsRenderingScreen(screen))
     {
         if (mode == "fill")
-            C2D_DrawRectSolid(x, y, 0.5, width, height, ConvertColor(drawColor));
+            C2D_DrawRectSolid(x, y, 0.5, width, height, ConvertColor(blendColor));
         else if (mode == "line")
         {
-            C2D_DrawRectSolid(x, y, 0.5, 1, height, ConvertColor(drawColor)); // tl -> bl
-            C2D_DrawRectSolid(x + 1, y, 0.5, width - 1, 1, ConvertColor(drawColor)); // tl -> tr
-            C2D_DrawRectSolid(x + width, y, 0.5, 1, height, ConvertColor(drawColor)); // tr -> br
-            C2D_DrawRectSolid(x + 1, y + height, 0.5, width - 1, 1, ConvertColor(drawColor)); // bl -> br
+            C2D_DrawRectSolid(x, y, 0.5, 1, height, ConvertColor(blendColor)); // tl -> bl
+            C2D_DrawRectSolid(x + 1, y, 0.5, width - 1, 1, ConvertColor(blendColor)); // tl -> tr
+            C2D_DrawRectSolid(x + width, y, 0.5, 1, height, ConvertColor(blendColor)); // tr -> br
+            C2D_DrawRectSolid(x + 1, y + height, 0.5, width - 1, 1, ConvertColor(blendColor)); // bl -> br
         }
     }
-    
+
     return 0;
 }
 
@@ -186,8 +115,8 @@ int Graphics::Draw(lua_State * L)
     x -= offsetX;
     y -= offsetY;
 
-    if (currentScreen == renderScreen)
-        drawable->Draw(x, y, rotation, scalarX, scalarY, drawColor);
+    if (Display::IsRenderingScreen(screen))
+        drawable->Draw(x, y, rotation, scalarX, scalarY, blendColor);
 
     return 0;
 }
@@ -207,8 +136,8 @@ int Graphics::Circle(lua_State * L)
 
     Transform(&x, &y, &rotation, &scalarX, &scalarY);
 
-    if (currentScreen == renderScreen)
-        C2D_DrawCircleSolid(x, y, 0.5, radius, ConvertColor(drawColor));
+    if (Display::IsRenderingScreen(screen))
+        C2D_DrawCircleSolid(x, y, 0.5, radius, ConvertColor(blendColor));
 
     return 0;
 }
@@ -231,8 +160,8 @@ int Graphics::Print(lua_State * L)
 
     Transform(&x, &y, &rotation, &scalarX, &scalarY);
 
-    if (currentScreen == renderScreen)
-        currentFont->Print(text, x, y, rotation, scalarX, scalarY, drawColor);
+    if (Display::IsRenderingScreen(screen))
+        currentFont->Print(text, x, y, rotation, scalarX, scalarY, blendColor);
 
     return 0;
 }
@@ -240,14 +169,22 @@ int Graphics::Print(lua_State * L)
 //love.graphics.setScreen
 int Graphics::SetScreen(lua_State * L)
 {
-    string screen = luaL_checkstring(L, 1);
+    string newScreen = luaL_checkstring(L, 1);
 
-    if (screen == "top")
-        currentScreen = GFX_TOP;
-    else if (screen == "bottom")
-        currentScreen = GFX_BOTTOM;
+    if (newScreen == "top")
+        screen = GFX_TOP;
+    else if (newScreen == "bottom")
+        screen = GFX_BOTTOM;
 
     return 0;
+}
+
+//love.graphics.getFont
+int Graphics::GetFont(lua_State * L)
+{
+    love_push_userdata(L, currentFont);
+
+    return 1;
 }
 
 //love.graphics.setFont
@@ -265,7 +202,7 @@ int Graphics::SetFont(lua_State * L)
 int Graphics::SetNewFont(lua_State *L)
 {
     int ret = fontNew(L);
-    Font *self = (Font *)luaobj_checkudata(L, -1, LUAOBJ_TYPE_FONT);
+    Font * self = (Font *)luaobj_checkudata(L, -1, LUAOBJ_TYPE_FONT);
     currentFont = self;
 
     return ret;
@@ -275,7 +212,7 @@ int Graphics::SetNewFont(lua_State *L)
 int Graphics::GetDimensions(lua_State * L)
 {
     int width = 400;
-    if (currentScreen == GFX_BOTTOM)
+    if (screen == GFX_BOTTOM)
         width = 320;
 
     lua_pushnumber(L, width);
@@ -288,9 +225,9 @@ int Graphics::GetDimensions(lua_State * L)
 int Graphics::GetWidth(lua_State * L)
 {
     int width = 400;
-    if (currentScreen == GFX_BOTTOM)
+    if (screen == GFX_BOTTOM)
         width = 320;
-    
+
     lua_pushnumber(L, width);
 
     return 1;
@@ -311,7 +248,7 @@ int Graphics::GetRendererInfo(lua_State * L)
     lua_pushstring(L, "1.1");
     lua_pushstring(L, "Digital Media Professionals Inc.");
     lua_pushstring(L, "DMP PICA200");
- 
+
     return 4;
 }
 
@@ -321,14 +258,14 @@ int Graphics::SetDefaultFilter(lua_State * L)
     string mag = luaL_checkstring(L, 2);
 
     if (min == "linear")
-        minFilter = GPU_LINEAR;
+        filter[0] = GPU_LINEAR;
     else if (min == "nearest")
-        minFilter =  GPU_NEAREST;
+        filter[0] =  GPU_NEAREST;
 
     if (mag == "linear")
-        magFilter = GPU_LINEAR;
+        filter[1] = GPU_LINEAR;
     else if (mag == "nearest")
-        magFilter =  GPU_NEAREST;
+        filter[1] =  GPU_NEAREST;
 
     return 0;
 }
@@ -354,9 +291,9 @@ int Graphics::SetBackgroundColor(lua_State * L)
         b = clamp(0, luaL_checknumber(L, -1), 1);
     }
 
-    backgroundColor.r = r;
-    backgroundColor.g = g;
-    backgroundColor.b = b;
+    backgColor.r = r;
+    backgColor.g = g;
+    backgColor.b = b;
 
     return 0;
 }
@@ -384,10 +321,10 @@ int Graphics::SetColor(lua_State * L)
         a = clamp(0, luaL_optnumber(L, -1, 1), 1);
     }
 
-    drawColor.r = r;
-    drawColor.g = g;
-    drawColor.b = b;
-    drawColor.a = a;
+    blendColor.r = r;
+    blendColor.g = g;
+    blendColor.b = b;
+    alpha = a;
 
     return 0;
 }
@@ -397,12 +334,12 @@ int Graphics::Clear(lua_State * L)
 {
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
-    const char * screen = luaL_optstring(L, 1, "top");
+    string screen = luaL_optstring(L, 1, "top");
 
-    if (strncmp(screen, "top", 3) == 0)
-        Clear(GFX_TOP, GFX_LEFT);
+    if (screen == "top")
+        Display::Clear(0);
     else
-        Clear(GFX_BOTTOM, GFX_LEFT);
+        Display::Clear(1);
 
     return 0;
 }
@@ -417,17 +354,17 @@ int Graphics::SetScissor(lua_State * L)
     float width  = luaL_optnumber(L, 3, 0);
     float height = luaL_optnumber(L, 4, 0);
 
-    if (currentScreen == renderScreen)
+    if (Display::IsRenderingScreen(screen))
     {
         if (width < 0 || height < 0)
             luaL_error(L, "Scissor cannot have negative width or height.");
 
         GPU_SCISSORMODE mode = GPU_SCISSOR_NORMAL;
-        if (args == 0) 
+        if (args == 0)
             mode = GPU_SCISSOR_DISABLE;
 
         float screenWidth = 400.0f;
-        if (currentScreen == GFX_BOTTOM)
+        if (screen == GFX_BOTTOM)
             screenWidth = 320.0f;
 
         C2D_Flush();
@@ -448,7 +385,7 @@ int Graphics::Present(lua_State * L)
 //love.graphics.push
 int Graphics::Push(lua_State * L)
 {
-    transformStack.push_back(transformStack.back());
+    transform.push_back(transform.back());
 
     return 0;
 }
@@ -456,7 +393,7 @@ int Graphics::Push(lua_State * L)
 //love.graphics.pop
 int Graphics::Pop(lua_State * L)
 {
-    transformStack.pop_back();
+    transform.pop_back();
 
     return 0;
 }
@@ -467,10 +404,10 @@ int Graphics::Translate(lua_State * L)
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
 
-    if (currentScreen == renderScreen)
+    if (Display::IsRenderingScreen(screen))
     {
-        transformStack.back().ox += x;
-        transformStack.back().oy += y;
+        transform.back().ox += x;
+        transform.back().oy += y;
     }
 
     return 0;
@@ -482,10 +419,10 @@ int Graphics::Scale(lua_State * L)
     float scalarX = luaL_checknumber(L, 1);
     float scalarY = luaL_checknumber(L, 2);
 
-    if (currentScreen == renderScreen)
+    if (Display::IsRenderingScreen(screen))
     {
-        transformStack.back().sx = scalarX;
-        transformStack.back().sy = scalarY;
+        transform.back().sx = scalarX;
+        transform.back().sy = scalarY;
     }
 
     return 0;
@@ -496,8 +433,8 @@ int Graphics::Rotate(lua_State * L)
 {
     float rotation = luaL_checknumber(L, 1);
 
-    if (currentScreen == renderScreen)
-        transformStack.back().r = rotation;
+    if (Display::IsRenderingScreen(screen))
+        transform.back().r = rotation;
 
     return 0;
 }
@@ -505,62 +442,85 @@ int Graphics::Rotate(lua_State * L)
 //love.graphics.origin
 int Graphics::Origin(lua_State * L)
 {
-    if (currentScreen == renderScreen)
+    if (Display::IsRenderingScreen(screen))
     {
-        transformStack.back().ox = 0;
-        transformStack.back().oy = 0;
+        transform.back().ox = 0;
+        transform.back().oy = 0;
 
-        transformStack.back().sx = 1;
-        transformStack.back().sy = 1;
+        transform.back().sx = 1;
+        transform.back().sy = 1;
 
-        transformStack.back().r = 0;
+        transform.back().r = 0;
 
-        transformStack.back().kx = 0;
-        transformStack.back().ky = 0;
+        transform.back().kx = 0;
+        transform.back().ky = 0;
     }
 
     return 0;
 }
 
 //End Löve2D Functions
+
+// Helper functions
+
+std::array<GPU_TEXTURE_FILTER_PARAM, 2> Graphics::GetFilters()
+{
+    return filter;
+}
+
+Color Graphics::GetBackgroundColor()
+{
+    return backgColor;
+}
+
 u32 Graphics::ConvertColor(Color & color)
 {
     return C2D_Color32f(color.r, color.g, color.b, color.a);
 }
 
-C3D_RenderTarget * Graphics::GetScreen(gfxScreen_t screen, gfx3dSide_t side)
+void Graphics::Transform(float * originalX, float * originalY, float * originalRotation, float * originalScalarX, float * originalScalarY) // rotate, scale, and translate coords.
 {
-    C3D_RenderTarget * target = nullptr;
+    if (transform.empty())
+        return;
 
-    switch(screen)
+    StackMatrix matrix = transform.back();
+
+    float newLeft = *originalX;
+    float newTop = *originalY;
+
+    float slider = osGet3DSliderState();
+
+    if (gfxIs3D() && screen == GFX_TOP)
     {
-        case GFX_TOP:
-            if (side == GFX_LEFT)
-                target = topTarget;
-            else
-                target = depthTarget;
-            break;
-        case GFX_BOTTOM:
-            target = bottomTarget;
-            break;
+        if (Display::IsRenderingSide(GFX_LEFT))
+            *originalX -= (slider * depth);
+        else if (Display::IsRenderingSide(GFX_RIGHT))
+            *originalX += (slider * depth);
     }
 
-    return target;
-}
+    //Translate
+    *originalX += matrix.ox;
+    *originalY += matrix.oy;
 
-void Graphics::Clear(gfxScreen_t screen, gfx3dSide_t side)
-{
-    C2D_TargetClear(GetScreen(screen, side), ConvertColor(backgroundColor));
-    DrawOn(screen, side);
-}
+    //Scale
+    *originalX *= matrix.sx;
+    *originalY *= matrix.sy;
 
+    *originalScalarX *= matrix.sx;
+    *originalScalarY *= matrix.sy;
 
-void Graphics::DrawOn(gfxScreen_t screen, gfx3dSide_t side)
-{
-    renderScreen = screen;
-    currentSide = side;
+    //Rotate
+    if (*originalRotation != 0)
+    {
+        *originalX = newLeft * cos(matrix.r) - newTop * sin(matrix.r);
+        *originalY = newLeft * sin(matrix.r) + newTop * cos(matrix.r);
 
-    C2D_SceneBegin(GetScreen(screen, side));
+        *originalRotation += matrix.r;
+    }
+
+    //Shear
+    //*originalX = newLeft + matrix.kx * newTop;
+    //*originalY = newTop + matrix.ky * newLeft;
 }
 
 void Graphics::Exit()
@@ -581,6 +541,7 @@ int Graphics::Register(lua_State * L)
         { "clear",              Clear              },
         { "draw",               Draw               },
         { "getDimensions",      GetDimensions      },
+        { "getFont",            GetFont            },
         { "getHeight",          GetHeight          },
         { "getRendererInfo",    GetRendererInfo    },
         { "getWidth",           GetWidth           },
@@ -610,6 +571,6 @@ int Graphics::Register(lua_State * L)
     };
 
     luaL_newlib(L, reg);
-    
+
     return 1;
 }

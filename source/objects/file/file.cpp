@@ -28,7 +28,7 @@ File::~File()
 long File::GetSize()
 {
     long size = 0;
-    
+
     fseek(this->fileHandle, 0, SEEK_END);
     size = ftell(this->fileHandle);
     rewind(this->fileHandle);
@@ -77,7 +77,7 @@ void File::Flush()
 
 void File::Close()
 {
-    
+
     fclose(this->fileHandle);
 }
 

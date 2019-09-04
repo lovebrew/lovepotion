@@ -1,6 +1,7 @@
 #include "common/runtime.h"
 
 #include "modules/window.h"
+#include "modules/display.h"
 #include "common/drawable.h"
 
 #include "objects/font/font.h"
@@ -35,7 +36,7 @@ void Text::Set(const char * text, int limit, const string & align)
 
     SDL_Surface * tempSurface = TTF_RenderUTF8_Blended_Wrapped(this->font->GetFont(), text, SDL_Color{255, 255, 255, 255}, limit);
 
-    this->texture = SDL_CreateTextureFromSurface(Window::GetRenderer(), tempSurface);
+    this->texture = SDL_CreateTextureFromSurface(Display::GetRenderer(), tempSurface);
     SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
 
     SDL_FreeSurface(tempSurface);
