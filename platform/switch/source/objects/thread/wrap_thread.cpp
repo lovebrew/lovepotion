@@ -10,18 +10,18 @@ int threadNew(lua_State * L)
 {
     const char * arg = luaL_checkstring(L, 1);
 
-    void * raw_self = luaobj_newudata(L, sizeof(ThreadClass));
+    void * raw_self = luaobj_newudata(L, sizeof(LuaThread));
 
     luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    new (raw_self) ThreadClass(arg);
+    new (raw_self) LuaThread(arg);
 
     return 1;
 }
 
 int threadStart(lua_State * L)
 {
-    ThreadClass * self = (ThreadClass *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    LuaThread * self = (LuaThread *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     uint argc = lua_gettop(L) - 1;
 
@@ -44,7 +44,7 @@ int threadStart(lua_State * L)
 
 int threadWait(lua_State * L)
 {
-    ThreadClass * self = (ThreadClass *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    LuaThread * self = (LuaThread *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     if (self->IsRunning())
         self->Wait();
@@ -54,7 +54,7 @@ int threadWait(lua_State * L)
 
 int threadGetError(lua_State * L)
 {
-    ThreadClass * self = (ThreadClass *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    LuaThread * self = (LuaThread *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     string error = self->GetError();
     lua_pushstring(L, error.c_str());
@@ -64,7 +64,7 @@ int threadGetError(lua_State * L)
 
 int threadIsRunning(lua_State * L)
 {
-    ThreadClass * self = (ThreadClass *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    LuaThread * self = (LuaThread *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     lua_pushboolean(L, self->IsRunning());
 
@@ -73,7 +73,7 @@ int threadIsRunning(lua_State * L)
 
 int threadToString(lua_State * L)
 {
-    ThreadClass * self = (ThreadClass *)luaobj_checkudata(L, 1, CLASS_TYPE);
+    LuaThread * self = (LuaThread *)luaobj_checkudata(L, 1, CLASS_TYPE);
 
     char * data = self->ToString();
 
@@ -84,7 +84,7 @@ int threadToString(lua_State * L)
     return 1;
 }
 
-int initThreadClass(lua_State * L)
+int initLuaThread(lua_State * L)
 {
     luaL_Reg reg[] = 
     {

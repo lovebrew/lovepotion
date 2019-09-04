@@ -5,7 +5,13 @@
 ** @brief    : Handles threading
 */
 
-class Thread
+#include "objects/thread/thread.h"
+#include "objects/thread/wrap_thread.h"
+
+#include "objects/channel/channel.h"
+#include "objects/channel/wrap_channel.h"
+
+class LoveThread
 {
     public:
         static void Exit();
@@ -15,5 +21,5 @@ class Thread
     private:
         std::vector<LuaThread *> threads;
 
-        int GetChannel(lua_State * L);
+        static int GetChannel(lua_State * L);
 };

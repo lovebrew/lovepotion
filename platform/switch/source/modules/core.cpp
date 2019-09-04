@@ -68,7 +68,7 @@ int (*classes[])(lua_State *L) =
     initImageClass,
     initQuadClass,
     initSourceClass,
-    initThreadClass,
+    initLuaThread,
     initTextClass,
     initRandomGeneratorClass,
     NULL

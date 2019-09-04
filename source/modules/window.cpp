@@ -34,8 +34,6 @@ int Window::GetFullscreenModes(lua_State * L)
 
 int Window::Register(lua_State * L)
 {
-    Window::Initialize();
-    
     luaL_Reg reg[] =
     {
         { "setMode",            SetMode            },

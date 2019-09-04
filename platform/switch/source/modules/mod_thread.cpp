@@ -1,12 +1,6 @@
 #include "common/runtime.h"
 #include "modules/mod_thread.h"
 
-#include "objects/thread/thread.h"
-#include "objects/thread/wrap_thread.h"
-
-#include "objects/channel/channel.h"
-#include "objects/channel/wrap_channel.h"
-
 int LoveThread::GetChannel(lua_State * L)
 {
     const char * name = luaL_checkstring(L, 1);

@@ -33,6 +33,13 @@ extern "C"
 #include <stdlib.h>
 #include <time.h>
 
+//System Specific libraries
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
 //Object--the only one needed here
 #include "objects/object/object.h"
 

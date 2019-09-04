@@ -78,7 +78,7 @@ int System::GetInternetStatus(lua_State * L)
     NifmInternetConnectionStatus status;
     NifmInternetConnectionType connectionType;
 
-    string type = "wireless"
+    string type = "wireless";
 
     Result rc = nifmGetInternetConnectionStatus(&connectionType, &strength, &status);
 

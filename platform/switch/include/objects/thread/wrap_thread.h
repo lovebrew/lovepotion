@@ -12,6 +12,4 @@ int threadGetError(lua_State * L);
 
 int threadToString(lua_State * L);
 
-int initThreadClass(lua_State * L);
-
-//extern std::vector<ThreadClass *> threads;
+int initLuaThread(lua_State * L);
