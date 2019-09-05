@@ -17,3 +17,18 @@ jobs:
 
       - name: Build
         run: make 3ds
+  
+  second:
+    name: Switch
+    runs-on: ubuntu-latest
+    
+    container: 
+      image: docker://devkitpro/devkita64
+      options: --cpus 2
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Build
+        run: make switch
