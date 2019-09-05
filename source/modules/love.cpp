@@ -33,7 +33,7 @@ void Love::InitConstants(lua_State * L)
     lua_getglobal(L, "love");
 
     // love._constants
-    // love._os = {"Horizon","Switch"}
+    // love._os = "Horizon"
     lua_newtable(L);
     lua_pushnumber(L, 1);
     lua_pushstring(L, "Horizon");

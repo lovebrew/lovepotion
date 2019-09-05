@@ -389,25 +389,19 @@ function love.boot()
         "keyboard",
         "math",
         "system",
+        "touch",
     }
+
+    -- Add any Switch exclusive modules.
+    if love._console_name == "Switch" then
+        table.insert(modules, "image")
+        table.insert(modules, "thread")
+    end
+
+    -- Load them all!
     for i, v in ipairs(modules) do
         if config.modules[v] then
             love[v] = require("love." .. v)
-        end
-    end
-
-    -- Load any Switch exclusive modules.
-    if love._os[2] == "Switch" then
-        local modulesNX =
-        {
-            "image",
-            "thread",
-            "touch",
-        }
-        for i, v in ipairs(modulesNX) do
-            if config.modules[v] then
-                love[v] = require("love." .. v)
-            end
         end
     end
 
