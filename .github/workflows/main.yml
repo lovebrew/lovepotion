@@ -5,6 +5,8 @@ on: [push]
 jobs:
   first:
     name: 3DS
+    runs-on: ubuntu-latest
+
     container: 
       image: docker://devkitpro/devkitarm
       options: --cpus 2
