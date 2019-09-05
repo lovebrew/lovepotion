@@ -3,20 +3,16 @@ name: Löve Potion
 on: [push]
 
 jobs:
-    3DS:
-    runs-on: docker://devkitpro/devkitarm/latest
+  first:
+    name: 3DS
+    runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v1
+      - name: Docker Image
+      - uses: docker://devkitpro/devkitarm/latest
+    
+      - name: Checkout
+      - uses: actions/checkout@v1
 
-    - name: Build for 3DS
+      - name: Build
         run: make 3ds
-    
-    Switch:
-    runs-on: docker://devkitpro/devkita64/latest
-    
-    steps:
-    - uses: actions/checkout@v1
-    
-    - name: Build for Switch
-        run: make switch
