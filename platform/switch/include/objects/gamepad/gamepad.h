@@ -51,5 +51,3 @@ class Gamepad : public Object
         u32 sixAxisHandles[2];
 
 };
-
-extern std::vector<Gamepad *> controllers;

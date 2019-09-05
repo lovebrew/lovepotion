@@ -11,6 +11,7 @@ queue<map<string, vector<Variant>>> poll_queue;
 int LoveEvent::Pump(lua_State * L)
 {
     //update gamepad rumble
+    std::vector<Gamepad *> controllers = Joystick::GetJoysticks();
     for (Gamepad * joycon : controllers)
         joycon->Update(Timer::GetDelta());
 

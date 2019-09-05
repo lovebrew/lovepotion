@@ -44,6 +44,21 @@ int Joystick::GetJoystickCount(lua_State * L)
 
 //End Löve2D Functions
 
+void Joystick::AddJoystick(Gamepad * gamepad)
+{
+    controllers.push_back(gamepad);
+}
+
+void Joystick::RemoveJoystick(uint id)
+{
+    controllers.erase(controllers.begin() + id);
+}
+
+std::vector<Gamepad *> Joystick::GetJoysticks()
+{
+    return controllers;
+}
+
 int Joystick::Register(lua_State * L)
 {
     #if defined (__SWITCH__)

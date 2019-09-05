@@ -2,10 +2,10 @@
 #include "objects/gamepad/gamepad.h"
 #include "objects/gamepad/wrap_gamepad.h"
 
+#include "modules/joystick.h"
+
 #define CLASS_NAME "Gamepad"
 #define CLASS_TYPE LUAOBJ_TYPE_GAMEPAD
-
-vector<Gamepad *> controllers;
 
 int gamepadNew(lua_State * L)
 {
@@ -17,7 +17,7 @@ int gamepadNew(lua_State * L)
 
     love_register(L, 2, self);
 
-    controllers.push_back(self);
+    Joystick::AddJoystick(self);
 
     return 0;
 }

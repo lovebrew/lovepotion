@@ -14,6 +14,12 @@ class Joystick
         static Gamepad * GetJoystickFromID(uint id);
 
         static int Register(lua_State * L);
+        
+        static void AddJoystick(Gamepad * gamepad);
+        
+        static void RemoveJoystick(uint id);
+
+        static std::vector<Gamepad *> GetJoysticks();
 
     private:
         static inline std::vector<Gamepad *> controllers;

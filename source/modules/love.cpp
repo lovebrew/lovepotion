@@ -19,8 +19,6 @@
 
 void Love::InitModules(lua_State * L)
 {
-    Joystick::Initialize(L);
-
     for (int i = 0; modules[i].name; i++)
     {
         if (modules[i].init)
@@ -88,6 +86,8 @@ int Love::Initialize(lua_State * L)
         strcat(modname, modules[i].name);
         love_preload(L, modules[i].reg, modname);
     }
+
+    Display::Initialize();
 
     LuaSocket::Initialize();
 
