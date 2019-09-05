@@ -5,12 +5,9 @@ on: [push]
 jobs:
   first:
     name: 3DS
-    runs-on: ubuntu-latest
+    container: docker://devkitpro/devkitarm
     
     steps:
-      - name: Docker Image
-        uses: docker://devkitpro/devkitarm
-    
       - name: Checkout
         uses: actions/checkout@v1
 
