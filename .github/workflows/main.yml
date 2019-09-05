@@ -9,10 +9,10 @@ jobs:
     
     steps:
       - name: Docker Image
-      - uses: docker://devkitpro/devkitarm/latest
+        uses: docker://devkitpro/devkitarm/latest
     
       - name: Checkout
-      - uses: actions/checkout@v1
+        uses: actions/checkout@v1
 
       - name: Build
         run: make 3ds
