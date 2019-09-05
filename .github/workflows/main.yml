@@ -9,7 +9,7 @@ jobs:
     
     steps:
       - name: Docker Image
-        uses: docker://devkitpro/devkitarm/latest
+        uses: docker://devkitpro/devkitarm
     
       - name: Checkout
         uses: actions/checkout@v1
