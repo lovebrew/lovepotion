@@ -15,7 +15,6 @@ extern int lastTouch[2];
 
 typedef struct {
     const char * name;
-    void (* init)(void);
     int (* reg)(lua_State * L);
     void (* close)(void);
 } love_modules;

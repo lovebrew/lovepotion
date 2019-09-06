@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+
 #include "modules/graphics.h"
 #include "modules/display.h"
 
@@ -525,6 +526,8 @@ void Graphics::Transform(float * originalX, float * originalY, float * originalR
 
 void Graphics::Exit()
 {
+    Display::Exit();
+
     C2D_Fini();
     C3D_Fini();
     gfxExit();
@@ -535,7 +538,7 @@ int Graphics::Register(lua_State * L)
 {
     Graphics::Initialize();
 
-    luaL_Reg reg[] = 
+    luaL_Reg reg[] =
     {
         { "circle",             Circle             },
         { "clear",              Clear              },

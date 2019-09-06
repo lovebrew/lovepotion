@@ -38,7 +38,7 @@ local config =
     appendidentity = false,
     version = "1.1.0",
     console = false,
-    
+
     modules =
     {
         audio = true,
@@ -245,7 +245,7 @@ function love.errorhandler(message)
 
     local dateTime = os.date("%c")
     table.insert(copy, "\nDate and Time: " .. dateTime)
-    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "LoveCrash.txt")
+    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "crash.txt")
 
     -----------------------------------
 
@@ -382,20 +382,20 @@ function love.boot()
         -- to jump to errhand after it. (window is only required on Switch.)
         "graphics",
         "window",
+        "joystick",
         "event",
         "timer",
-        "joystick",
         "audio",
         "keyboard",
         "math",
         "system",
         "touch",
+        "thread"
     }
 
     -- Add any Switch exclusive modules.
     if love._console_name == "Switch" then
         table.insert(modules, "image")
-        table.insert(modules, "thread")
     end
 
     -- Load them all!
@@ -408,7 +408,7 @@ function love.boot()
     if love.event then
         love.createhandlers()
     end
-    
+
     -- Take our first step.
     if love.timer then
         love.timer.step()
@@ -418,6 +418,9 @@ function love.boot()
     if not confok and conferr then
         error(conferr)
     end
+
+    local __defaultFont = love.graphics.newFont()
+    love.graphics.setFont(__defaultFont)
 
     if love.filesystem.getInfo("main.lua", "file") then
         -- Try to load `main.lua`.

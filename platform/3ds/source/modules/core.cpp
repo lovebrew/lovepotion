@@ -18,26 +18,28 @@
 #include "modules/joystick.h"
 #include "modules/keyboard.h"
 #include "modules/mod_math.h"
+#include "modules/mod_thread.h"
 #include "modules/timer.h"
 #include "modules/touch.h"
 #include "modules/system.h"
 #include "modules/window.h"
 #include "modules/display.h"
 
-love_modules modules[12] =
+love_modules modules[13] =
 {
-    { "audio",      Audio::Initialize,      Audio::Register,      Audio::Exit      },
-    { "event",      NULL,                   LoveEvent::Register,  NULL             },
-    { "filesystem", NULL,                   Filesystem::Register, Filesystem::Exit },
-    { "graphics",   Graphics::Initialize,   Graphics::Register,   NULL             },
-    { "keyboard",   NULL,                   Keyboard::Register,   NULL             },
-    { "joystick",   NULL,                   Joystick::Register,   NULL             },
-    { "math",       NULL,                   Math::Register,       NULL             },
-    { "system",     System::Initialize,     System::Register,     System::Exit     },
-    { "timer",      NULL,                   Timer::Register,      NULL             },
-    { "touch",      NULL,                   Touch::Register,      NULL             },
-    { "window",     Display::Initialize,    Window::Register,     NULL             },
-    { 0,            NULL,                   NULL,                 NULL             }
+    { "audio",      Audio::Register,       Audio::Exit      },
+    { "event",      LoveEvent::Register,   NULL             },
+    { "filesystem", Filesystem::Register,  Filesystem::Exit },
+    { "graphics",   Graphics::Register,    NULL             },
+    { "joystick",   Joystick::Register,    NULL             },
+    { "keyboard",   Keyboard::Register,    NULL             },
+    { "math",       Math::Register,        NULL             },
+    { "system",     System::Register,      System::Exit     },
+    { "thread",     LoveThread::Register,  LoveThread::Exit },
+    { "timer",      Timer::Register,       NULL             },
+    { "touch",      Touch::Register,       NULL             },
+    { "window",     Window::Register,      NULL             },
+    { 0 }
 };
 
 int (*classes[])(lua_State *L) =
