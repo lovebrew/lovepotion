@@ -1,5 +1,7 @@
 #include "common/runtime.h"
+
 #include "modules/window.h"
+#include "modules/display.h"
 
 //Löve2D Functions
 int Window::SetMode(lua_State * L)
@@ -34,6 +36,8 @@ int Window::GetFullscreenModes(lua_State * L)
 
 int Window::Register(lua_State * L)
 {
+    Display::Initialize();
+
     luaL_Reg reg[] =
     {
         { "setMode",            SetMode            },

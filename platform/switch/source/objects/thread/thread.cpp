@@ -4,7 +4,7 @@
 #include "socket/luasocket.h"
 #include "objects/file/file.h"
 
-ThreadClass::ThreadClass(const string & arg) : Object("Thread")
+LuaThread::LuaThread(const string & arg) : Object("Thread")
 {
     const char * pathCheck = arg.c_str();
     this->started = false;
@@ -18,7 +18,7 @@ ThreadClass::ThreadClass(const string & arg) : Object("Thread")
         this->code = arg;
 }
 
-void ThreadClass::SetError(const string & error)
+void LuaThread::SetError(const string & error)
 {
     if (error == "")
         this->error.clear();
@@ -26,17 +26,17 @@ void ThreadClass::SetError(const string & error)
         this->error = error;
 }
 
-string ThreadClass::GetError()
+string LuaThread::GetError()
 {
     return this->error;
 }
 
-string ThreadClass::GetCode()
+string LuaThread::GetCode()
 {
     return this->code;
 }
 
-vector<Variant> ThreadClass::GetArgs()
+vector<Variant> LuaThread::GetArgs()
 {
     return this->args;
 }
@@ -44,7 +44,7 @@ vector<Variant> ThreadClass::GetArgs()
 void Run(void * arg)
 {
     lua_State * L = luaL_newstate();
-    ThreadClass * self = (ThreadClass *)arg;
+    LuaThread * self = (LuaThread *)arg;
 
     //Clear the error string
     self->SetError("");
@@ -92,12 +92,12 @@ void Run(void * arg)
         self->OnError();
 }
 
-void ThreadClass::OnError()
+void LuaThread::OnError()
 {
 
 }
 
-void ThreadClass::Start(const vector<Variant> & args)
+void LuaThread::Start(const vector<Variant> & args)
 {
     this->args = args;
     threadCreate(&this->thread, Run, this, 0x10000, 0x2C, -2);
@@ -107,18 +107,18 @@ void ThreadClass::Start(const vector<Variant> & args)
     this->started = true;
 }
 
-void ThreadClass::Close()
+void LuaThread::Close()
 {
     threadClose(&this->thread);
     this->started = false;
 }
 
-void ThreadClass::Wait()
+void LuaThread::Wait()
 {
     threadWaitForExit(&this->thread);
 }
 
-bool ThreadClass::IsRunning()
+bool LuaThread::IsRunning()
 {
     return this->started;
 }

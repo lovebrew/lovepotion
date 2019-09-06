@@ -6,13 +6,7 @@
 
 void Joystick::Initialize(lua_State * L)
 {
-    #if defined (__SWITCH__)
-        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
-    #endif
 
-    controllers.reserve(8);
-
-    gamepadNew(L);
 }
 
 Gamepad * Joystick::GetJoystickFromID(uint id)
@@ -50,9 +44,30 @@ int Joystick::GetJoystickCount(lua_State * L)
 
 //End Löve2D Functions
 
+void Joystick::AddJoystick(Gamepad * gamepad)
+{
+    controllers.push_back(gamepad);
+}
+
+void Joystick::RemoveJoystick(uint id)
+{
+    controllers.erase(controllers.begin() + id);
+}
+
+std::vector<Gamepad *> Joystick::GetJoysticks()
+{
+    return controllers;
+}
+
 int Joystick::Register(lua_State * L)
 {
-    luaL_Reg reg[] =
+    #if defined (__SWITCH__)
+        SDL_InitSubSystem(SDL_INIT_JOYSTICK);
+    #endif
+
+    gamepadNew(L);
+    
+    luaL_Reg reg[] = 
     {
         { "getJoystickCount", GetJoystickCount },
         { "getJoysticks",     GetJoysticks     },

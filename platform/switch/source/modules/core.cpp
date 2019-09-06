@@ -41,19 +41,19 @@
 
 love_modules modules[14] =
 {
-    { "audio",      Audio::Initialize,      Audio::Register,       Audio::Exit      },
-    { "event",      NULL,                   LoveEvent::Register,   NULL             },
-    { "filesystem", NULL,                   Filesystem::Register,  Filesystem::Exit },
-    { "graphics",   Graphics::Initialize,   Graphics::Register,    NULL             },
-    { "image",      NULL,                   ImageModule::Register, NULL             },
-    { "joystick",   NULL,                   Joystick::Register,    NULL             },
-    { "keyboard",   NULL,                   Keyboard::Register,    NULL             },
-    { "math",       NULL,                   Math::Register,        NULL             },
-    { "system",     System::Initialize,     System::Register,      System::Exit     },
-    { "thread",     NULL,                   LoveThread::Register,  LoveThread::Exit },
-    { "timer",      NULL,                   Timer::Register,       NULL             },
-    { "touch",      NULL,                   Touch::Register,       NULL             },
-    { "window",     Display::Initialize,    Window::Register,      NULL             },
+    { "audio",      Audio::Register,       Audio::Exit      },
+    { "event",      LoveEvent::Register,   NULL             },
+    { "filesystem", Filesystem::Register,  Filesystem::Exit },
+    { "graphics",   Graphics::Register,    NULL             },
+    { "image",      ImageModule::Register, NULL             },
+    { "joystick",   Joystick::Register,    NULL             },
+    { "keyboard",   Keyboard::Register,    NULL             },
+    { "math",       Math::Register,        NULL             },
+    { "system",     System::Register,      System::Exit     },
+    { "thread",     LoveThread::Register,  LoveThread::Exit },
+    { "timer",      Timer::Register,       NULL             },
+    { "touch",      Touch::Register,       NULL             },
+    { "window",     Window::Register,      NULL             },
     { 0 }
 };
 
@@ -68,7 +68,7 @@ int (*classes[])(lua_State *L) =
     initImageClass,
     initQuadClass,
     initSourceClass,
-    initThreadClass,
+    initLuaThread,
     initTextClass,
     initRandomGeneratorClass,
     NULL

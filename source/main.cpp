@@ -51,14 +51,14 @@ int main(int argc, char * argv[])
     love_preload(L, LuaSocket::InitSocket, "socket");
     love_preload(L, LuaSocket::InitHTTP,   "socket.http");
 
-    Logger::Initialize();
+    //Logger::Initialize();
 
     char * path = (argc == 2) ? argv[1] : argv[0];
     Filesystem::Initialize(path);
 
-    luaL_requiref(L, "love", Love::Initialize, 1);
+    luaL_requiref(L, "love", Love::Initialize, true);
+    lua_pop(L, -1); // don't leave the love module on the stack
 
-    Love::InitModules(L);
     Love::InitConstants(L);
 
     luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
@@ -66,14 +66,14 @@ int main(int argc, char * argv[])
     while (appletMainLoop())
     {
         if (Love::IsRunning())
-            luaL_dostring(L, "xpcall(love.run, love.errhand)");
+            luaL_dostring(L, "xpcall(love.run, love.errorhandler)");
         else
             break;
     }
 
     Love::Exit(L);
 
-    Logger::Exit();
+    //Logger::Exit();
 
     return 0;
 }

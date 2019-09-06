@@ -91,7 +91,7 @@ int Filesystem::Write(lua_State * L)
     size_t length = 0;
     const char * data = luaL_checklstring(L, 2, &length);
 
-    FILE * fileHandle = fopen(path.c_str(), "wb");
+    FILE * fileHandle = fopen(path.c_str(), "w");
 
     if (!fileHandle)
     {

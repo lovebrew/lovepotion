@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "objects/gamepad/gamepad.h"
 
+#include "modules/joystick.h"
+
 map<string, map<string, int>> HANDLE_COUNT = 
 {
     { "Joy-Con Pair", { 
@@ -31,7 +33,7 @@ map<string, map<string, int>> HANDLE_COUNT =
 
 Gamepad::Gamepad() : Object("Joystick")
 {
-    this->id = controllers.size();
+    this->id = Joystick::GetJoysticks().size();
 
     this->vibrationDuration = -1;
 

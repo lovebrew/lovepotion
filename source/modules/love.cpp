@@ -11,29 +11,17 @@
 #include "modules/joystick.h"
 #include "modules/timer.h"
 #include "modules/window.h"
-#include "modules/display.h"
 
 #include "socket/luasocket.h"
 
 #include "nogame_lua.h"
-
-void Love::InitModules(lua_State * L)
-{
-    Joystick::Initialize(L);
-
-    for (int i = 0; modules[i].name; i++)
-    {
-        if (modules[i].init)
-            modules[i].init();
-    }
-}
 
 void Love::InitConstants(lua_State * L)
 {
     lua_getglobal(L, "love");
 
     // love._constants
-    // love._os = {"Horizon","Switch"}
+    // love._os = "Horizon"
     lua_newtable(L);
     lua_pushnumber(L, 1);
     lua_pushstring(L, "Horizon");
@@ -80,10 +68,13 @@ int Love::Initialize(lua_State * L)
 
     luaL_newlib(L, reg);
 
+    // preload all the modules
+    char modname[30];
     for (int i = 0; modules[i].name; i++)
     {
-        modules[i].reg(L);
-        lua_setfield(L, -2, modules[i].name);
+        strcpy(modname, "love.");
+        strcat(modname, modules[i].name);
+        love_preload(L, modules[i].reg, modname);
     }
 
     LuaSocket::Initialize();
@@ -169,6 +160,5 @@ void Love::Exit(lua_State * L)
 
     lua_close(L);
 
-    Display::Exit();
     Graphics::Exit();
 }

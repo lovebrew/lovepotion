@@ -1,6 +1,7 @@
+-- The main boot script.
 -- This code is licensed under the MIT Open Source License.
 
--- Copyright (c) 2019 Jeremy S. Postelnek - jpostelnek@outlook.com
+-- Copyright (c) 2019 Jeremy S. Postelnek - jeremy.postelnek@gmail.com
 -- Copyright (c) 2019 Logan Hickok-Dickson - notquiteapex@gmail.com
 -- Copyright (c) 2016 Ruairidh Carmichael - ruairidhcarmichael@live.co.uk
 
@@ -22,37 +23,21 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 
--- This is a bit messy
--- But it means we can move stuff out of main.c
+-- Load the LOVE filesystem module, its absolutely needed
+love.filesystem = require("love.filesystem")
 
-package.path  = './?.lua;./?/init.lua'
+-- 3DS and Switch can't load external C libraries,
+-- so we need to prevent require from searching for them
+package.path = './?.lua;./?/init.lua'
 package.cpath = './?.lua;./?/init.lua'
 
---[[
-    Honestly, 99% of these flags are just for compatability.
-    Everything will always be enabled .. if the platform supports it.
-    The only thing that matters is like the first three flags.
-
-    Seriously: identity, appendidentity, and version.
-
-    Go nuts.
---]]
+-- Base game configuration
 local config =
 {
     identity = "SuperGame",
     appendidentity = false,
-
-    version = "1.0.0",
+    version = "1.1.0",
     console = false,
-    accelerometerjoystick = true,
-    externalstorage = false,
-
-    gammacorrect = true,
-
-    audio =
-    {
-        mixwithsystem = true
-    },
 
     modules =
     {
@@ -74,6 +59,18 @@ local config =
         touch = true,
         video = true,
         window = true
+    },
+
+    -- Anything from here after in the config is only included for legacy purposes
+
+    accelerometerjoystick = true,
+    externalstorage = false,
+
+    gammacorrect = true,
+
+    audio =
+    {
+        mixwithsystem = true
     },
 
     window =
@@ -106,27 +103,9 @@ local config =
     }
 }
 
-local __defaultFont = love.graphics.newFont()
-love.graphics.setFont(__defaultFont)
-
+-- Standard event callback handlers.
 function love.createhandlers()
-    -- Standard callback handlers.
     love.handlers = setmetatable({
-        load = function()
-            if love.load then
-                return love.load()
-            end
-        end,
-        update = function(dt)
-            if love.update then
-                return love.update(dt)
-            end
-        end,
-        draw = function()
-            if love.draw then
-                return love.draw()
-            end
-        end,
         keypressed = function (key)
             if love.keypressed then
                 return love.keypressed(key)
@@ -229,12 +208,9 @@ function love.createhandlers()
             error('Unknown event: ' .. name)
         end,
     })
-
 end
 
-love.createhandlers()
-
-function love.errhand(message)
+function love.errorhandler(message)
     message = tostring(message)
 
     message = message:gsub("^(./)", "")
@@ -245,13 +221,15 @@ function love.errhand(message)
 
     table.insert(err, message .. "\n")
 
-    love.audio.stop()
+    if love.audio then
+        love.audio.stop()
+    end
 
     local trace = debug.traceback()
 
     for l in trace:gmatch("(.-)\n") do
         if not l:match("boot.lua") then
-            l = l:gsub("stack traceback:", "\nTraceback\n")
+            l = l:gsub("stack traceback:", "Traceback:\n")
             table.insert(err, l)
         end
     end
@@ -267,7 +245,7 @@ function love.errhand(message)
 
     local dateTime = os.date("%c")
     table.insert(copy, "\nDate and Time: " .. dateTime)
-    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "LoveCrash.txt")
+    table.insert(copy, "\nA log has been saved to " .. love.filesystem.getSaveDirectory() .. "crash.txt")
 
     -----------------------------------
 
@@ -325,7 +303,7 @@ function love.errhand(message)
 
     ---------------------------------
 
-    local function draw()
+    love.draw = function()
         love.graphics.origin()
         love.graphics.clear()
 
@@ -357,15 +335,9 @@ function love.errhand(message)
         end
     end
 
-    local joystick = love.joystick.getJoysticks()[1]
-
     local quit_string = "start"
     if love._console_name == "Switch" then
         quit_string = "plus"
-    end
-
-    love.draw = function()
-        draw()
     end
 
     love.gamepadpressed = function(joy, button)
@@ -375,62 +347,99 @@ function love.errhand(message)
     end
 end
 
-local function pseudoRequireConf()
-    return require('conf')
+-- love.errhand was deprecated in LOVE 11.0, replaced by love.errorhandler.
+love.errhand = love.errorhandler
+
+function love.threaderror(t, err)
+	error("Thread error ("..tostring(t)..")\n\n"..err, 0)
 end
 
-local confSuccess
-if love.filesystem.getInfo("conf.lua") then
-    confSuccess = xpcall(pseudoRequireConf, love.errhand)
+--################--
+-- BOOT THE GAME! --
+--################--
 
-    if not confSuccess then
-        return
-    end
+function love.boot()
+    -- We can't throw any errors just yet because we want to see if we can
+    -- load and use conf.lua in case the user doesn't want to use certain
+    -- modules, but we also can't error because graphics haven't been loaded.
+    local confok, conferr
 
-    if love.conf then
-        local function confWrap()
-            love.conf(config)
+    if love.filesystem.getInfo("conf.lua", "file") then
+        confok, conferr = pcall(require, "conf")
+
+        if confok and love.conf then
+            confok, conferr = pcall(love.conf, config)
         end
+    end
 
-        confSuccess = xpcall(confWrap, love.errhand)
+    -- Set the game identity for saving.
+    love.filesystem.setIdentity(config.identity)
 
-        if not confSuccess then
-            return
+    -- Load the modules.
+    local modules =
+    {
+        -- Try to load love.graphics, window, and event first in case we need
+        -- to jump to errhand after it. (window is only required on Switch.)
+        "graphics",
+        "window",
+        "joystick",
+        "event",
+        "timer",
+        "audio",
+        "keyboard",
+        "math",
+        "system",
+        "touch",
+        "thread"
+    }
+
+    -- Add any Switch exclusive modules.
+    if love._console_name == "Switch" then
+        table.insert(modules, "image")
+    end
+
+    -- Load them all!
+    for i, v in ipairs(modules) do
+        if config.modules[v] then
+            love[v] = require("love." .. v)
         end
     end
-end
 
-love.filesystem.setIdentity(config.identity)
-
-local function pseudoRequireMain()
-    return require("main")
-end
-
-if love.filesystem.getInfo("main.lua") then
-    --Try main
-    local result = xpcall(pseudoRequireMain, love.errhand)
-    if not result then
-        return
+    if love.event then
+        love.createhandlers()
     end
 
-    --See if loading works
-    result = xpcall(love.load, love.errhand)
-    if not result then
-        return
+    -- Take our first step.
+    if love.timer then
+        love.timer.step()
     end
 
-    --Run the thing dammit
-    result = xpcall(love.run, love.errhand)
-    if not result then
-        return
+    -- Now we can throw any errors from `conf.lua`.
+    if not confok and conferr then
+        error(conferr)
     end
-else
-    local result = xpcall(love._nogame, love.errhand)
-    if not result then
-        return
+
+    local __defaultFont = love.graphics.newFont()
+    love.graphics.setFont(__defaultFont)
+
+    if love.filesystem.getInfo("main.lua", "file") then
+        -- Try to load `main.lua`.
+        require("main")
+
+        -- See if loading exists and works.
+        if love.load then
+            love.load()
+        end
+    else
+        -- If there's no game to load then we'll just load up something on the
+        -- screen to tell the user that there's NO GAME!
+        love._nogame()
     end
 end
 
-if love.timer then
-    love.timer.step()
-end
+-- Boot up the game!
+xpcall(love.boot, love.errhand)
+-- If something went wrong, the errhand redefines the love.update and love.draw
+-- functions which are managed by the love.run function.
+
+-- love.run is handled in `main.cpp`.

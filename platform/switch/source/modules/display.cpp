@@ -3,6 +3,9 @@
 
 void Display::Initialize()
 {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+        Love::RaiseError("Failed to initialize SDL2!");
+
     u32 FULLSCREEN = SDL_WINDOW_FULLSCREEN;
     u32 CENTERED = SDL_WINDOWPOS_CENTERED;
 
@@ -32,7 +35,7 @@ void Display::Exit()
 {
     if (RENDERER)
         SDL_DestroyRenderer(RENDERER);
-    
+
     if (WINDOW)
         SDL_DestroyWindow(WINDOW);
 }
