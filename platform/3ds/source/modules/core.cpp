@@ -8,6 +8,7 @@
 #include "objects/gamepad/wrap_gamepad.h"
 #include "objects/image/wrap_image.h"
 #include "objects/source/wrap_source.h"
+#include "objects/thread/wrap_thread.h"
 #include "objects/quad/wrap_quad.h"
 #include "objects/randomgenerator/wrap_randomgenerator.h"
 
@@ -48,6 +49,7 @@ int (*classes[])(lua_State *L) =
     initFontClass,
     initGamepadClass,
     initImageClass,
+    initLuaThread,
     initQuadClass,
     initSourceClass,
     initRandomGeneratorClass,

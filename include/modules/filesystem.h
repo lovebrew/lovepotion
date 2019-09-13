@@ -5,19 +5,10 @@
 
 #pragma once
 
-enum AssetLocation
-{
-    ROMFS_DEV,
-    DIRECTORY,
-    FILE_ASSOC
-};
-
 class Filesystem
 {
     public:
         Filesystem() = delete;
-
-        static void Initialize(char * path);
 
         static std::string GetSaveDirectory();
 
@@ -26,8 +17,6 @@ class Filesystem
         static void Exit();
 
     private:
-        static AssetLocation GetAssetLocation(char * path);
-
         // Löve2D Functions
 
         static int Read(lua_State * L);

@@ -41,34 +41,33 @@ vector<Variant> LuaThread::GetArgs()
     return this->args;
 }
 
-void Run(void * arg)
+void LuaThread::Run()
 {
     lua_State * L = luaL_newstate();
-    LuaThread * self = (LuaThread *)arg;
 
     //Clear the error string
-    self->SetError("");
+    this->SetError("");
 
     //Initialize LOVE for the thread
     luaL_openlibs(L);
 
     //love_preload(L, LuaSocket::Initialize, "socket");
-    luaL_requiref(L, "love", Love::Initialize, 1);
+    //luaL_requiref(L, "love", Love::Initialize, 1);
 
     //Joystick::Initialize(L);
 
     //Get the code to run
-    string code = self->GetCode();
+    string code = this->GetCode();
     
     //get our arguments
-    vector<Variant> args = self->GetArgs();
+    vector<Variant> args = this->GetArgs();
 
     //load our code
     const char * codeBuffer = code.c_str();
     size_t length = code.size();
 
-    if (luaL_loadbuffer(L, codeBuffer, length, self->ToString()) != 0)
-        self->SetError(lua_tostring(L, -1));
+    if (luaL_loadbuffer(L, codeBuffer, length, this->ToString()) != 0)
+        this->SetError(lua_tostring(L, -1));
     else
     {
         uint numargs = args.size();
@@ -82,40 +81,19 @@ void Run(void * arg)
         //call the code to execute with the args
         //set an error if it occurs
         if (lua_pcall(L, numargs, 0, 0) != 0)
-            self->SetError(lua_tostring(L, -1));
+            this->SetError(lua_tostring(L, -1));
     }
 
     //LuaSocket::Close();
     lua_close(L);
 
-    if (!self->GetError().empty())
-        self->OnError();
+    if (!this->GetError().empty())
+        this->OnError();
 }
 
 void LuaThread::OnError()
 {
 
-}
-
-void LuaThread::Start(const vector<Variant> & args)
-{
-    this->args = args;
-    threadCreate(&this->thread, Run, this, 0x10000, 0x2C, -2);
-
-    threadStart(&this->thread);
-    
-    this->started = true;
-}
-
-void LuaThread::Close()
-{
-    threadClose(&this->thread);
-    this->started = false;
-}
-
-void LuaThread::Wait()
-{
-    threadWaitForExit(&this->thread);
 }
 
 bool LuaThread::IsRunning()

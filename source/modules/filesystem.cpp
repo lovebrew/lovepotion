@@ -12,38 +12,6 @@ string SAVE_DIR = "";
 string IDENTITY = "SuperGame";
 bool isRomfsInitialized = false;
 
-void Filesystem::Initialize(char * path)
-{
-    const char * directory = "romfs:/";
-    AssetLocation location = GetAssetLocation(path);
-
-    switch(location)
-    {
-        case AssetLocation::DIRECTORY:
-        {
-            struct stat pathInfo;
-
-            stat("game", &pathInfo);
-
-            if (S_ISDIR(pathInfo.st_mode))
-                directory = "game";
-
-            break;
-        }
-        case AssetLocation::FILE_ASSOC:
-            #if defined (__SWITCH__)
-                if (romfsMountFromFsdev(path, 0, "romfs") == 0)
-                    isRomfsInitialized = true;
-            #endif
-
-            break;
-        default:
-            break;
-    }
-
-    chdir(directory);
-}
-
 //Löve2D Functions
 
 //love.filesystem.read
@@ -279,28 +247,6 @@ string Filesystem::Redirect(const char * path)
         return saveFile;
     else
         return string(path);
-}
-
-AssetLocation Filesystem::GetAssetLocation(char * path)
-{
-    string tmp = path;
-    size_t position = tmp.rfind("/");
-
-    SAVE_DIR = tmp.substr(0, position);
-    const char * ext = strrchr(path, '.');
-
-    if (strncmp(ext, ".lpx", 4) != 0)
-    {
-        Result rc = romfsInit();
-
-        if (rc != 0)
-            return AssetLocation::DIRECTORY;
-
-        isRomfsInitialized = true;
-        return AssetLocation::ROMFS_DEV;
-    }
-    else
-        return AssetLocation::FILE_ASSOC;
 }
 
 void Filesystem::Exit()

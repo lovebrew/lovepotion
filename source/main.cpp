@@ -33,7 +33,7 @@ extern "C"
 #include "common/util.h"
 
 #include "socket/luasocket.h"
-#include "modules/filesystem.h"
+#include "common/assets.h"
 #include "modules/love.h"
 
 #include "boot_lua.h"
@@ -54,7 +54,7 @@ int main(int argc, char * argv[])
     //Logger::Initialize();
 
     char * path = (argc == 2) ? argv[1] : argv[0];
-    Filesystem::Initialize(path);
+    Assets::Initialize(path);
 
     luaL_requiref(L, "love", Love::Initialize, true);
     lua_pop(L, -1); // don't leave the love module on the stack
