@@ -20,8 +20,7 @@ void Assets::Initialize(char * path)
         }
         case 1:
             #if defined (__SWITCH__)
-                if (romfsMountFromFsdev(path, 0, "romfs") == 0)
-                    isRomfsInitialized = true;
+                romfsMountFromFsdev(path, 0, "romfs");
             #endif
 
             break;
