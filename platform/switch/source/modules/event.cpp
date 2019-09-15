@@ -18,10 +18,10 @@ int LoveEvent::Pump(lua_State * L)
     while (SDL_PollEvent(&event))
     {
         map<string, vector<Variant>> args;
-        
+
         switch (event.type)
         {
-    
+
             case SDL_JOYAXISMOTION:
             {
                 Gamepad * controller = Joystick::GetJoystickFromID(event.jaxis.which);
@@ -37,12 +37,9 @@ int LoveEvent::Pump(lua_State * L)
 
                     lua_pushnumber(L, value);
                     lua_call(L, 3, 0);
-
-                    args["gamepadaxis"] = {Variant(GAMEPAD_AXES[event.jaxis.axis]), Variant(value)};
-                    poll_queue.push(args);
                 }
                 break;
-            }    
+            }
             case SDL_JOYBUTTONDOWN:
             case SDL_JOYBUTTONUP:
             {
@@ -110,7 +107,7 @@ int LoveEvent::Pump(lua_State * L)
 
 int LoveEvent::Poll(lua_State * L)
 {
-    if (poll_queue.empty())
+    /*if (poll_queue.empty())
     {
         lua_pushnil(L);
 
@@ -127,7 +124,7 @@ int LoveEvent::Poll(lua_State * L)
             size = it->second.size();
 
             lua_pushstring(L, event.c_str());
-            
+
             for (uint index = 0; index < it->second.size(); index++)
             {
                 Variant value = it->second[index];
@@ -138,7 +135,7 @@ int LoveEvent::Poll(lua_State * L)
         //poll_queue.pop();
 
         return size + 1; //add event name
-    }
+    }*/
 
     return 0;
 }
