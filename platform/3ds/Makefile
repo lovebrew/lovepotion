@@ -77,7 +77,7 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS	:=	-g -Wall -O2 -mword-relocations `sdl-config --cflags` \
 			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
-			$(ARCH)
+			$(ARCH) `arm-none-eabi-pkg-config --cflags luajit`
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
@@ -86,7 +86,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fno-exceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -lz -lcitro2d -lcitro3d -lctru -lm
+LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -lz -lcitro2d -lcitro3d -lctru -lm `arm-none-eabi-pkg-config --static --libs luajit`
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

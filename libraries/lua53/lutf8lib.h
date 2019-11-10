@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-#include "lua.h"
+#include <lua.h>
 
 LUALIB_API int luaopen_luautf8(lua_State *L);
 
