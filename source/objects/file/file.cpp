@@ -3,119 +3,307 @@
 
 #include "objects/file/file.h"
 
-File::File(const char * path) : Object("File")
-{
-    this->path = strdup(path);
-    this->open = false;
-}
+using namespace love;
 
-File::File(const char * path, const char * mode) : Object("File")
-{
-    this->path = strdup(path);
-    this->open = false;
+love::Type File::type("File", &Object::type);
 
-    this->Open(mode);
-}
+File::File(const std::string & filename) : filename(filename),
+                                           file(nullptr),
+                                           mode(MODE_CLOSED),
+                                           bufferMode(BUFFER_NONE),
+                                           bufferSize(0)
+{}
 
 File::~File()
 {
-    if (this->open)
-        this->Flush();
-
-    this->Close();
+    if (this->mode != MODE_CLOSED)
+        this->Close();
 }
 
-long File::GetSize()
+bool File::Close()
 {
-    long size = 0;
-
-    fseek(this->fileHandle, 0, SEEK_END);
-    size = ftell(this->fileHandle);
-    rewind(this->fileHandle);
-
-    return size;
-}
-
-const char * File::GetMode()
-{
-    return this->mode;
-}
-
-bool File::IsOpen()
-{
-    return this->open;
-}
-
-bool File::Open(const char * mode)
-{
-    this->fileHandle = fopen(this->path, mode);
-
-    if (!this->fileHandle)
+    if (this->mode == MODE_WRITE && !this->Flush())
         return false;
 
-    this->mode = strdup(mode);
-    this->open = true;
+    if (this->file == nullptr || (fclose(this->file) != 0))
+        return false;
+
+    this->mode = MODE_CLOSED;
+    this->file = nullptr;
 
     return true;
 }
 
-void File::Write(const char * data, size_t length)
+bool File::Flush()
 {
-    if (!this->open || (this->mode[0] != 'w'))
+    if (!this->file || (this->mode != MODE_WRITE && mode != MODE_APPEND))
+        throw love::Exception("File is not opened for writing.");
+
+    return (fflush(this->file) == 0);
+}
+
+File::BufferMode File::GetBuffer(int64_t & size) const
+{
+    size = this->bufferSize;
+
+    return bufferMode;
+}
+
+const std::string & File::GetFilename() const
+{
+    return this->filename;
+}
+
+File::Mode File::GetMode()
+{
+    return this->mode;
+}
+
+int64_t File::GetSize()
+{
+    if (this->file == nullptr)
+        this->Open(MODE_READ);
+
+    return std::filesystem::file_size(this->GetFilename());
+}
+
+bool File::IsEOF()
+{
+    return (this->file == nullptr || feof(this->file));
+}
+
+bool File::IsOpen()
+{
+    return (this->mode != MODE_CLOSED && this->file != nullptr);
+}
+
+bool File::Open(File::Mode mode)
+{
+    if (mode == MODE_CLOSED)
+        return true;
+
+    if ((mode == MODE_READ) && !std::filesystem::exists(this->GetFilename()))
+        throw love::Exception("Could not open file %s. Does not exist.", this->filename.c_str());
+
+    if (this->file != nullptr)
+        return false;
+
+    FILE * handle = nullptr;
+
+    switch (mode)
     {
-        Love::RaiseError("Cannot write to file %s. File not open for writing.", this->path);
-        return;
+        case MODE_APPEND:
+            handle = fopen(this->GetFilename().c_str(), "a");
+            break;
+        case MODE_READ:
+            handle = fopen(this->GetFilename().c_str(), "r");
+            break;
+        case MODE_WRITE:
+            handle = fopen(this->GetFilename().c_str(), "w");
+            break;
+        default:
+            break;
     }
 
-    fwrite(data, 1, length, this->fileHandle);
-}
+    if (handle == nullptr)
+        throw love::Exception("Could not open file %s.", this->GetFilename().c_str());
 
-void File::Flush()
-{
-    fflush(this->fileHandle);
-}
+    this->file = handle;
+    this->mode = mode;
 
-void File::Close()
-{
-
-    fclose(this->fileHandle);
-}
-
-char * File::Read()
-{
-    if (!this->open || (strncmp(this->mode, "r", 1) != 0))
+    if (this->file != nullptr && !this->SetBuffer(this->bufferMode, this->bufferSize))
     {
-        Love::RaiseError("Cannot read file %s. File not open for reading.", this->path);
-        return NULL;
+        this->bufferMode = BUFFER_NONE;
+        this->bufferSize = 0;
     }
 
-    char * buffer;
-
-    long size = this->GetSize();
-
-    buffer = (char *)malloc(size * sizeof(char));
-
-    fread(buffer, 1, size, this->fileHandle);
-
-    buffer[size] = '\0';
-
-    return buffer;
+    return (this->file != nullptr);
 }
 
-u8 * File::ReadBinary()
+int64_t File::BufferedRead(void * destination, size_t size)
 {
-    if (!this->open || (strncmp(this->mode, "rb", 2) != 0))
-        return NULL;
-
-    u8 * buffer;
-
-    long size = this->GetSize();
-
-    buffer = (u8 *)malloc(size * sizeof(u8));
-
-    fread(buffer, 1, size, this->fileHandle);
-
-    buffer[size] = '\0';
-
-    return buffer;
+    // TO DO
+    return 0;
 }
+
+int64_t File::Read(void * destination, int64_t size)
+{
+    if (!this->file || this->mode != MODE_READ)
+        throw love::Exception("File is not opened for reading.");
+
+    long selfSize = this->GetSize();
+
+    size = (size == ALL) ? selfSize : size;
+    size = (size > selfSize) ? selfSize : size;
+
+    if (size < 0)
+        throw love::Exception("Invalid read size.");
+
+    int64_t read = 0;
+    if (this->bufferMode == BUFFER_NONE)
+        read = fread(destination, 1, size, this->file);
+    else
+        read = this->BufferedRead(destination, size);
+
+    return read;
+}
+
+FileData * File::Read(int64_t size)
+{
+    if (!this->IsOpen() && !this->Open(MODE_READ))
+        throw love::Exception("Could not read file %s.", this->GetFilename().c_str());
+
+    int64_t max = this->GetSize();
+    int64_t current = this->Tell();
+
+    size = (size == ALL) ? max : size;
+
+    if (size < 0)
+        throw love::Exception("Invalid read size.");
+
+    if (current < 0)
+        current = 0;
+    else if (current > max)
+        current = max;
+
+    if (current + size > max)
+        size = max - current;
+
+    FileData * fileData = new FileData(size, this->GetFilename());
+
+    int64_t bytesRead = this->Read(fileData->GetData(), size);
+
+    if (bytesRead < 0 || (bytesRead == 0 && bytesRead != size))
+    {
+        delete fileData;
+        throw love::Exception("Could not read from file.");
+    }
+    LOG("Read: %lld Size: %lld", bytesRead, size)
+    if (bytesRead < size)
+    {
+        FileData * tmp = new FileData(bytesRead, this->GetFilename());
+        memcpy(tmp->GetData(), fileData->GetData(), (size_t)bytesRead);
+
+        fileData->Release();
+        fileData = tmp;
+    }
+
+    if (!this->IsOpen())
+        this->Close();
+
+    return fileData;
+}
+
+bool File::Seek(u_int64_t position)
+{
+    return (this->file != nullptr && fseek(this->file, position, SEEK_SET));
+}
+
+bool File::SetBuffer(BufferMode mode, int64_t size)
+{
+    if (size < 0)
+        return false;
+
+    if (!this->IsOpen())
+    {
+        this->bufferMode = mode;
+        this->bufferSize = size;
+
+        return true;
+    }
+
+    // int ret = 1;
+    // switch (mode)
+    // {
+    //     case BUFFER_NONE:
+    //         ret =
+    // }
+    return true;
+}
+
+int64_t File::Tell()
+{
+    if (!this->file)
+        return -1;
+
+    return ftell(this->file);
+}
+
+bool File::Write(Data * data, int64_t size)
+{
+    return this->Write(data->GetData(), (size == ALL) ? data->GetSize() : size);
+}
+
+bool File::Write(const void * data, int64_t size)
+{
+    if (!this->file || (this->mode != MODE_WRITE && this->mode != MODE_APPEND))
+        throw love::Exception("File is not opened for writing.");
+
+    if (size < 0)
+        throw love::Exception("Invalid write size.");
+
+    int64_t written = fwrite(data, 1, size, this->file);
+
+    if (written != size)
+        return false;
+
+    // manually flush buffer
+    if (this->bufferMode == BUFFER_LINE && this->bufferSize > size)
+    {
+        if (memchr(data, '\n', (size_t)size) != nullptr)
+            this->Flush();
+    }
+
+    return true;
+}
+
+/* OPEN MODES */
+
+bool File::GetConstant(const char * in, Mode & out)
+{
+    return modes.Find(in, out);
+}
+
+bool File::GetConstant(Mode in, const char *& out)
+{
+    return modes.Find(in, out);
+}
+
+std::vector<std::string> File::GetConstants(Mode mode)
+{
+    return modes.GetNames();
+}
+
+StringMap<File::Mode, File::MODE_MAX_ENUM>::Entry File::modeEntries[] = {
+    { "c", MODE_CLOSED },
+    { "r", MODE_READ   },
+    { "w", MODE_WRITE  },
+    { "a", MODE_APPEND }
+};
+
+StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(File::modeEntries, sizeof(File::modeEntries));
+
+/* BUFFER MODES */
+
+bool File::GetConstant(const char * in, BufferMode & out)
+{
+    return bufferModes.Find(in, out);
+}
+
+bool File::GetConstant(BufferMode in, const char *& out)
+{
+    return bufferModes.Find(in, out);
+}
+
+std::vector<std::string> File::GetConstants(BufferMode mode)
+{
+    return bufferModes.GetNames();
+}
+
+StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry File::bufferModeEntries[] = {
+    { "none", BUFFER_NONE },
+    { "line", BUFFER_LINE },
+    { "full", BUFFER_FULL }
+};
+
+StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(File::bufferModeEntries, sizeof(File::bufferModeEntries));

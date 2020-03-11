@@ -1,49 +1,58 @@
 #include "common/runtime.h"
 #include "common/assets.h"
 
-void Assets::Initialize(char * path)
+#include <unistd.h>
+
+#define GAME_FOLDER "game"
+
+void Assets::Initialize(const std::string & path)
 {
-    uint gameAssets = Assets::GetLocation(path);
+    char current[PATH_MAX];
+    writePath = getcwd(current, PATH_MAX);
 
-    switch(gameAssets)
+    Location location = Assets::GetLocation(path);
+
+    switch(location)
     {
-        case 0:
-        {
-            struct stat pathInfo;
-
-            stat("game", &pathInfo);
-
-            if (S_ISDIR(pathInfo.st_mode))
-                location = "game";
-
+        case LOCATION_SDMC:
+            directory = GAME_FOLDER;
             break;
-        }
-        case 1:
-            #if defined (__SWITCH__)
-                romfsMountFromFsdev(path, 0, "romfs");
-            #endif
-
+        case LOCATION_EXTERNAL:
+            romfsMountFromFsdev(path.c_str(), 0, "romfs");
             break;
         default:
+        case LOCATION_ROMFS:
             break;
     }
 
-    chdir(location.c_str());
+    chdir(directory.c_str());
 }
 
-uint Assets::GetLocation(char * path)
+std::string Assets::GetWritePath()
 {
-    const char * ext = strrchr(path, '.');
+    return writePath;
+}
 
-    if (strncmp(ext, ".lpx", 4) != 0)
+Location Assets::GetLocation(const std::string & path)
+{
+    size_t extPosition = path.find_last_of(".");
+    bool isROMFSGame = false;
+
+    if (extPosition != std::string::npos)
+        isROMFSGame = (path.substr(extPosition) == ".lpx");
+
+    if (!isROMFSGame)
     {
-        Result rc = romfsInit();
-
-        if (rc != 0)
-            return 0;
-
-        return 1;
+        if (std::filesystem::is_directory(GAME_FOLDER))
+            return LOCATION_SDMC;
     }
 
-    return 3;
+    Result rc = romfsInit();
+
+    // load our external ROMFS game
+    if (rc == 0 && isROMFSGame)
+        return LOCATION_EXTERNAL;
+
+    // load no game / fused
+    return LOCATION_ROMFS;
 }

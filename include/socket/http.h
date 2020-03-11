@@ -1,1 +1,0 @@
-int httpRequest(lua_State * L);

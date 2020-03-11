@@ -1,164 +1,216 @@
 #include "common/runtime.h"
 
 #include "common/version.h"
-#include "common/types.h"
-#include "common/util.h"
+#include "modules/love.h"
 
-#include "objects/gamepad/gamepad.h"
+#include "common/backend/display.h"
+#include "common/backend/input.h"
 
-#include "modules/event.h"
-#include "modules/graphics.h"
-#include "modules/joystick.h"
-#include "modules/timer.h"
-#include "modules/window.h"
+#include "modules/audio/wrap_audio.h"
+#include "modules/data/wrap_datamodule.h"
+#include "modules/event/wrap_event.h"
+#include "modules/filesystem/wrap_filesystem.h"
+#include "modules/graphics/wrap_graphics.h"
+#include "modules/joystick/wrap_joystick.h"
+#include "modules/math/wrap_mathmodule.h"
+#include "modules/sound/wrap_sound.h"
+#include "modules/timer/wrap_timer.h"
+#include "modules/window/wrap_window.h"
 
-#include "socket/luasocket.h"
+#include "boot_lua.h"
 
-#include "nogame_lua.h"
-
-void Love::InitConstants(lua_State * L)
+/*
+** @func Initialize
+** Initializes the framework
+*/
+int Love::Initialize(lua_State * L)
 {
-    lua_getglobal(L, "love");
+    Luax::InsistPinnedThread(L);
 
-    // love._constants
+    Luax::InsistGlobal(L, "love");
+
+    //--------------CONSTANTS----------------//
+
     // love._os = "Horizon"
-    lua_newtable(L);
-    lua_pushnumber(L, 1);
     lua_pushstring(L, "Horizon");
-    lua_rawset(L, -3);
     lua_setfield(L, -2, "_os");
 
-    //love._consolename
+    //love._console_name
     lua_pushstring(L, LOVE_POTION_CONSOLE);
     lua_setfield(L, -2, "_console_name");
 
-    // love._version stuff
-    lua_pushstring(L, Version::VERSION.c_str());
+    //love._potion_version
+    lua_pushstring(L, Version::LOVE_POTION);
+    lua_setfield(L, -2, "_potion_version");
+
+    // love._version
+    lua_pushstring(L, Version::LOVE);
     lua_setfield(L, -2, "_version");
 
-    // major
-    lua_pushnumber(L, Version::VERSION_MAJOR);
+    // love._(major, minor, revision, codename)
+    lua_pushnumber(L, Version::MAJOR);
     lua_setfield(L, -2, "_version_major");
-    lua_pushnumber(L, Version::VERSION_MINOR);
+
+    lua_pushnumber(L, Version::MINOR);
     lua_setfield(L, -2, "_version_minor");
-    lua_pushnumber(L, Version::VERSION_REVISION);
+
+    lua_pushnumber(L, Version::REVISION);
     lua_setfield(L, -2, "_version_revision");
-    lua_pushstring(L, Version::CODENAME.c_str());
+
+    lua_pushstring(L, Version::CODENAME);
     lua_setfield(L, -2, "_version_codename");
 
-    lua_pop(L, 1);
-}
+    // End Constants -- namespace functions //
 
-int Love::Initialize(lua_State * L)
-{
-    for (int i = 0; classes[i]; i++)
-    {
-        classes[i](L);
-        lua_pop(L, 1);
-    }
+    lua_pushcfunction(L, GetVersion);
+    lua_setfield(L, -2, "getVersion");
 
-    luaL_Reg reg[] =
-    {
-        { "_nogame",       NoGame     },
-        { "getVersion",    GetVersion },
-        { "run",           Run        },
-        { "quit",          Quit       },
-        { 0, 0 }
-    };
+    lua_pushcfunction(L, EnsureApplicationType);
+    lua_setfield(L, -2, "_ensureApplicationType");
 
-    luaL_newlib(L, reg);
+    //---------------------------------------//
+
+    Love::modules =
+    {{
+        { "love.audio",       Wrap_Audio::Register       },
+        { "love.data",        Wrap_Data::Register,       },
+        { "love.event",       Wrap_Event::Register,      },
+        { "love.graphics",    Wrap_Graphics::Register,   },
+        { "love.filesystem",  Wrap_Filesystem::Register, },
+        { "love.joystick",    Wrap_Joystick::Register,   },
+        { "love.math",        Wrap_Math::Register        },
+        { "love.sound",       Wrap_Sound::Register       },
+        { "love.timer",       Wrap_Timer::Register,      },
+        { "love.window",      Wrap_Window::Register,     },
+        { "love.boot",        Boot                       },
+        { 0 }
+    }};
 
     // preload all the modules
-    char modname[30];
-    for (int i = 0; modules[i].name; i++)
-    {
-        strcpy(modname, "love.");
-        strcat(modname, modules[i].name);
-        love_preload(L, modules[i].reg, modname);
-    }
+    for (int i = 0; Love::modules[i].name  != nullptr; i++)
+        Love::Preload(L, Love::modules[i].reg, Love::modules[i].name);
 
-    LuaSocket::Initialize();
+    Luax::Require(L, "love.data");
+    lua_pop(L, 1);
 
-    love_get_registry(L, OBJECTS);
-    if (!lua_istable(L, -1))
-    {
-        lua_newtable(L);
-        lua_replace(L, -2);
-
-        lua_setfield(L, LUA_REGISTRYINDEX, "_loveobjects");
-    }
-
-    state = L;
+    Love::Preload(L, luaopen_luautf8, "utf8");
+    // love_preload(L, LuaSocket::InitSocket, "socket");
+    // love_preload(L, LuaSocket::InitHTTP,   "socket.http");
 
     return 1;
 }
 
-int Love::RaiseError(const char * format, ...)
+/*
+** @func Boot
+** Boots LOVE
+*/
+int Love::Boot(lua_State * L)
 {
-    char buffer[256];
+    if (Luax::DoBuffer(L, (const char *)boot_lua, boot_lua_size, "boot.lua"))
+        LOG("boot.lua error: %s", lua_tostring(L, -1));
 
-    va_list args;
-
-    va_start(args, format);
-
-    vsprintf(buffer, format, args);
-
-    va_end(args);
-
-    return luaL_error(state, buffer, "");
+    return 1;
 }
 
-bool Love::IsRunning()
-{
-    return quit == false;
-}
-
-int Love::Quit(lua_State * L)
-{
-    quit = true;
-
-    return 0;
-}
-
-//love.getVersion
+/*
+** @func GetVersion
+** Return the version for the framework.
+*/
 int Love::GetVersion(lua_State * L)
 {
-    if (!lua_isnoneornil(L, 1))
-    {
-        if (lua_type(L, 1) == LUA_TBOOLEAN && lua_toboolean(L, 1))
-        {
-            lua_pushstring(L, LOVE_POTION_VERSION);
-
-            return 1;
-        }
-    }
-
-    lua_pushnumber(L, Version::VERSION_MAJOR);
-    lua_pushnumber(L, Version::VERSION_MINOR);
-    lua_pushnumber(L, Version::VERSION_REVISION);
-    lua_pushstring(L, Version::CODENAME.c_str());
+    lua_pushnumber(L, Version::MAJOR);
+    lua_pushnumber(L, Version::MINOR);
+    lua_pushnumber(L, Version::REVISION);
+    lua_pushstring(L, Version::CODENAME);
 
     return 4;
 }
 
-int Love::NoGame(lua_State * L)
+//------------------------------//
+
+/*
+** @func CheckForTitleTakeover
+** Checks for Title Takeover on atmosphère
+** Does absolutely nothing on 3DS. Ran at boot once.
+*/
+int Love::EnsureApplicationType(lua_State * L)
 {
-    luaL_dobuffer(L, (char *)nogame_lua, nogame_lua_size, "nogame");
+    #if defined(__SWITCH__)
+        AppletType type = appletGetAppletType();
+
+        bool isApplicationType = (type != AppletType_Application ||
+                                  type != AppletType_SystemApplication);
+
+        if (isApplicationType)
+            return 0;
+
+        return luaL_error(L, TITLE_TAKEOVER_ERROR);
+    #endif
 
     return 0;
 }
 
-void Love::Exit(lua_State * L)
+/*
+** @func GetField
+** Gets a field from the love module.
+** May return nil if it does not exist on the Lua stack.
+*/
+void Love::GetField(lua_State * L, const char * field)
 {
-    for (int i = 0; modules[i].name; i++)
+    lua_getfield(L, LUA_GLOBALSINDEX, "love");
+    lua_getfield(L, -1, field);
+    lua_remove(L, -2);
+}
+
+/*
+** @func Preload
+** Preloads a Lua C function <func> into package.preload
+** with <name>. See the Lua 5.1 manual for more details:
+** https://www.lua.org/manual/5.1/manual.html#pdf-package.preload
+*/
+int Love::Preload(lua_State * L, lua_CFunction func, const char * name)
+{
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "preload");
+    lua_pushcfunction(L, func);
+    lua_setfield(L, -2, name);
+    lua_pop(L, 2);
+
+    return 0;
+}
+
+/*
+** @func InsistRegistry
+** Creates the @registry if necessary, pushing it to the stack
+*/
+int Love::InsistRegistry(lua_State * L, Registry registry)
+{
+    switch (registry)
     {
-        if (modules[i].close)
-            modules[i].close();
+        case Registry::MODULES:
+            return Luax::InsistLove(L, "_modules");
+        case Registry::UNKNOWN:
+        default:
+            return luaL_error(L, "Attempted to use invalid registry");
     }
+}
 
-    LuaSocket::Exit();
-
-    lua_close(L);
-
-    Graphics::Exit();
+/*
+** @func GetRegistry
+** Gets the field for the Lua registry index <registry>.
+** This is necessary to store userdata and push it later.
+*/
+int Love::GetRegistry(lua_State * L, Registry registry)
+{
+    switch (registry)
+    {
+        case Registry::OBJECTS:
+            lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+            return 1;
+        case Registry::MODULES:
+            Luax::GetLove(L, "_modules");
+        case Registry::UNKNOWN:
+        default:
+            return luaL_error(L, "Attempted to use invalid registry");
+    }
 }

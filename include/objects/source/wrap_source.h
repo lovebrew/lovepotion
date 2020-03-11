@@ -1,27 +1,10 @@
 #pragma once
 
-int sourceNew(lua_State * L);
+#include "objects/source/source.h"
 
-int sourcePlay(lua_State * L);
+namespace Wrap_Source
+{
+    love::Source * CheckSource(lua_State * L, int index);
 
-int sourceStop(lua_State * L);
-
-int sourceSetLooping(lua_State * L);
-
-int sourceIsLooping(lua_State * L);
-
-int sourceSetVolume(lua_State * L);
-
-int sourceIsPlaying(lua_State * L);
-
-int sourceGetDuration(lua_State * L);
-
-int sourceTell(lua_State * L);
-
-int sourceToString(lua_State * L);
-
-int sourceGC(lua_State * L);
-
-int initSourceClass(lua_State * L);
-
-extern volatile bool updateAudioThread;
+    int Register(lua_State * L);
+}

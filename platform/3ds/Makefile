@@ -31,62 +31,47 @@ include $(DEVKITARM)/3ds_rules
 #     - icon.png
 #     - <libctru folder>/default_icon.png
 #---------------------------------------------------------------------------------
-EXT_LIBS	:= $(sort $(dir $(wildcard ../../libraries/*/)))
-INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
-SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
+TARGET		:=	LovePotion
+BUILD		:=	build
 
-TARGET			:=	LovePotion
-BUILD			:=	build
-INCLUDES		:=	$(shell find ../../include -type d) \
-					include \
-					include/common \
-					include/modules \
-					$(INC_OBJS) \
-					$(EXT_LIBS) \
-					include/socket
+SOURCES		?=	${LOVE_SOURCES} \
+				${LOVE_LIBRARIES} \
+				source
 
-SOURCES			:=	$(shell find ../../source -type d) \
-					source \
-					source/common \
-					source/modules \
-					$(SRC_OBJS) \
-					$(EXT_LIBS) \
-					source/socket
+DATA		:=	../../source/scripts \
+				source/scripts \
 
-DATA			:=  ../../source/scripts \
-					source/scripts \
-					source/scripts/nogame
+INCLUDES	?=	${LOVE_INCLUDES} \
+				${LOVE_LIBRARIES} \
+				include
 
-#ROMFS			:=	game
+#GRAPHICS	:=	gfx
+#GFXBUILD	:=	$(BUILD)
+ROMFS		:=	romfs
+#GFXBUILD	:=	$(ROMFS)/gfx
 
 APP_TITLE		:= Löve Potion
-APP_DESCRIPTION	:= Löve for 3DS
-APP_AUTHOR		:= TurtleP
+APP_DESCRIPTION	:= LÖVE for 3DS
+APP_AUTHOR		:= TurtleP & NotQuiteApex
 ICON			:= icon.png
-
-#--------------------
-GFXBUILD	:=	$(BUILD)
-
-#GFXBUILD	:=	$(ROMFS)/gfx
-#--------------------
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations `sdl-config --cflags` \
+CFLAGS	:=	-g -Wall -Og -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
-CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fno-exceptions -std=gnu++17
+CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lcurl -lmbedtls -lmbedx509 -lmbedcrypto -lSDL_mixer -lmikmod -lmad -lvorbisidec -logg `sdl-config --libs` -lz -lcitro2d -lcitro3d -lctru -lm
+LIBS	:= `curl-config --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -246,7 +231,6 @@ $(OUTPUT).elf	:	$(OFILES)
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
-#---------------------------------------------------------------------------------
 .PRECIOUS	:	%.t3x
 #---------------------------------------------------------------------------------
 %.t3x.o	%_t3x.h :	%.t3x

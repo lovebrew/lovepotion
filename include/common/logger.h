@@ -1,12 +1,14 @@
 /*
 ** logger.h
-** @brief   : Logs shit when DEBUG is set to 1
+** @brief   : Logs shit when enabled
 */
+
+#pragma once
 
 class Logger
 {
     public:
-        static void Initialize();
+        static void Initialize(bool active = 0);
 
         static void Exit();
 
@@ -15,7 +17,8 @@ class Logger
         static FILE * GetFile();
 
     private:
-        static inline FILE * file = nullptr;
+        static inline FILE * m_file = nullptr;
+        static inline bool m_enabled = false;
 };
 
 /*
@@ -27,4 +30,5 @@ class Logger
 
 #define LOG(format, ...) \
     if (Logger::IsEnabled()) \
-        fprintf(Logger::GetFile(), "%s:%d:\n" format "\n\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__)
+        fprintf(Logger::GetFile(), "%s:%d:\n" format "\n\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__); \
+        fflush(Logger::GetFile());

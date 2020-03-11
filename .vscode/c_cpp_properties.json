@@ -1,0 +1,42 @@
+{
+    "configurations": [
+        {
+            "name": "3DS",
+            "includePath": [
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/libraries/**",
+                "${workspaceFolder}/platform/3ds/include",
+                "/opt/devkitpro/portlibs/3ds/include/**",
+                "/opt/devkitpro/libctru/include/**",
+                "/opt/devkitpro/devkitARM/include/**"
+            ],
+            "defines": [
+                "_3DS",
+                "LOVE_POTION_CONSOLE=\"3DS\""
+            ],
+            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        },
+        {
+            "name": "Switch",
+            "includePath": [
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/libraries/**",
+                "${workspaceFolder}/platform/switch/include",
+                "/opt/devkitpro/portlibs/switch/include/**",
+                "/opt/devkitpro/libnx/include/**"
+            ],
+            "defines": [
+                "__SWITCH__",
+                "LOVE_POTION_CONSOLE=\"Switch\""
+            ],
+            "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

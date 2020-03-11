@@ -1,120 +1,193 @@
 #include "common/runtime.h"
-
 #include "objects/source/source.h"
-#include "modules/audio.h"
 
-Source::Source(const char * path, const string & type) : Object("Source")
+using namespace love;
+
+love::Type Source::type("Source", &Object::type);
+
+StaticDataBuffer::StaticDataBuffer(void * data, size_t size) : size(size)
 {
-    if (type == "stream")
-        this->music = Mix_LoadMUS(path);
-    else
-        this->sound = Mix_LoadWAV(path);
-
-    this->loop = false;
-    this->channel = Audio::GetOpenChannel();
-    this->stream = (type == "stream");
+    this->buffer = (s16 *)linearAlloc(size);
+    memcpy(this->buffer, data, size);
 }
+
+StaticDataBuffer::~StaticDataBuffer()
+{
+    linearFree(this->buffer);
+}
+
+Source::Source(SoundData * sound) : sourceType(Source::TYPE_STATIC),
+                                    sampleRate(sound->GetSampleRate()),
+                                    channels(sound->GetChannelCount()),
+                                    bitDepth(sound->GetBitDepth())
+{
+
+    ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+    ndspChnSetRate(0, this->sampleRate);
+    ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE);
+
+    this->source = ndspWaveBuf();
+    this->source.nsamples = sound->GetSampleCount();
+
+    this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()));
+}
+
+Source::Source(Decoder * decoder) : sourceType(Source::TYPE_STREAM),
+                                    sampleRate(decoder->GetSampleRate()),
+                                    channels(decoder->GetChannelCount()),
+                                    bitDepth(decoder->GetBitDepth()),
+                                    decoder(decoder),
+                                    buffers(DEFAULT_BUFFERS)
+{}
+
+Source::Source(const Source & other)
+{}
 
 Source::~Source()
 {
-    if (!this->stream)
+    this->Stop();
+}
+
+void Source::Reset()
+{}
+
+void Source::PrepareAtomic()
+{
+    this->Reset();
+
+    switch (this->sourceType)
     {
-        Mix_FreeChunk(this->sound);
-        this->sound = NULL;
-    }
-    else
-    {
-        Mix_FreeMusic(this->music);
-        this->music = NULL;
+        case TYPE_STATIC:
+            this->source.data_pcm16 = (s16 *)this->staticBuffer.Get()->GetBuffer();
+            break;
+        case TYPE_STREAM:
+            break;
+        case TYPE_QUEUE:
+        default:
+            break;
     }
 }
 
-bool Source::IsPlaying()
+int Source::StreamAtomic(void * buffer, Decoder * decoder)
 {
-    if (!this->IsValid())
+    // int decoded = std::max(decoder->Decode(), 0);
+
+    // if (decoded > 0)
+    // {
+    //     buffer = linearAlloc(decoded);
+    //     memcpy(buffer, decoder->GetBuffer(), decoded);
+
+    //     DSP_FlushDataCache(buffer, decoded);
+    // }
+
+    // return decoded;
+    return 0;
+}
+
+bool Source::PlayAtomic()
+{
+    //this->source = source;
+    this->PrepareAtomic();
+
+    bool success = false;
+
+    Result res = DSP_FlushDataCache(this->source.data_pcm16, this->staticBuffer->GetSize());
+
+    if (R_SUCCEEDED(res))
+    {
+        ndspChnWaveBufAdd(0, &this->source);
+        success = true;
+    }
+
+    if (this->sourceType == TYPE_STREAM)
+    {
+        this->valid = true;
+        if (!this->IsPlaying())
+            success = false;
+    }
+
+    if (!success)
+    {
+        this->valid = true;
+        this->Stop();
+    }
+
+    if (this->sourceType != TYPE_STREAM)
+        this->offsetSamples = 0;
+
+    return success;
+}
+
+void Source::ResumeAtomic()
+{
+    if (this->valid && !this->IsPlaying())
+        ndspChnSetPaused(0, false);
+}
+
+bool Source::Play()
+{
+    if (!ndspChnIsPaused(0))
+        return this->valid = this->PlayAtomic();
+
+    this->ResumeAtomic();
+
+    return this->valid = true;
+}
+
+bool Source::IsPlaying() const
+{
+    if (!this->valid)
         return false;
 
-    if (!this->stream)
-        return Mix_Playing(this->channel);
-    else
-        return Mix_PlayingMusic();
-}
-
-void Source::Pause()
-{
-    if (!this->IsValid())
-        return;
-
-    if (!this->stream)
-        Mix_Pause(this->channel);
-    else
-        Mix_PauseMusic();
+    return ndspChnIsPlaying(0);
 }
 
 void Source::Stop()
 {
-    if (!this->IsValid())
+    if (!this->valid)
         return;
 
-    if (!this->stream)
-        Mix_HaltChannel(this->channel);
-    else
-        Mix_HaltMusic();
+    ndspChnWaveBufClear(0);
 }
 
-void Source::Resume()
+bool Source::IsFinished() const
 {
-    if (!this->IsValid())
-        return;
+    if (!this->valid)
+        return false;
 
-    if (!this->stream)
-        Mix_Resume(this->channel);
-    else
-        Mix_ResumeMusic();
+    if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
+        return false;
+
+    return (ndspChnIsPlaying(0) == false);
 }
 
-bool Source::IsLooping()
+Source * Source::Clone()
 {
-    return this->loop;
+    return new Source(*this);
 }
 
-void Source::SetLooping(bool loop)
+/* CONSTANTS */
+
+bool Source::GetConstant(const char * in, Type & out)
 {
-    this->loop = loop;
+    return types.Find(in, out);
 }
 
-void Source::Play()
+bool Source::GetConstant(Type in, const char  *& out)
 {
-    if (!this->IsValid())
-        return;
-
-    int loops = (this->loop) ? -1 : 0;
-
-    if (!this->stream)
-        Mix_PlayChannel(this->channel, this->sound, loops);
-    else
-        Mix_PlayMusic(this->music, loops);
+    return types.Find(in, out);
 }
 
-void Source::SetVolume(float volume)
+std::vector<std::string> Source::GetConstants(Type)
 {
-    volume = clamp(0, volume, 1);
-
-    if (!this->IsValid())
-        return;
-
-    if (!this->stream)
-        Mix_VolumeChunk(this->sound, MIX_MAX_VOLUME * volume);
-    else
-        Mix_VolumeMusic(MIX_MAX_VOLUME * volume);
+    return types.GetNames();
 }
 
-bool Source::IsValid()
+StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry Source::typeEntries[] =
 {
-    if (this->stream && this->music)
-        return true;
-    else if (!this->stream && this->sound)
-        return true;
-    
-    return false;
-}
+    { "static", Source::TYPE_STATIC },
+    { "stream", Source::TYPE_STREAM },
+    { "queue",  Source::TYPE_QUEUE  },
+};
+
+StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(Source::typeEntries, sizeof(Source::typeEntries));

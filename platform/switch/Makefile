@@ -33,35 +33,23 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=    LovePotion
 BUILD		:=    build
 
-EXT_LIBS	:= $(sort $(dir $(wildcard ../../libraries/*/)))
-INC_OBJS	:= $(sort $(dir $(wildcard include/objects/*/)))
-SRC_OBJS	:= $(sort $(dir $(wildcard source/objects/*/)))
+SOURCES		?=	${LOVE_SOURCES} \
+				${LOVE_LIBRARIES} \
+				source
 
-SOURCES			:=	$(shell find ../../source -type d) \
-					source \
-					source/common \
-					source/modules \
-					$(SRC_OBJS) \
-					$(EXT_LIBS) \
-					source/socket
+DATA		:=	../../source/scripts \
+				source/scripts \
 
-DATA			:=  ../../source/scripts \
-					source/scripts/nogame
-
-INCLUDES		:=	$(shell find ../../include -type d) \
-					include \
-					include/common \
-					include/modules \
-					$(INC_OBJS) \
-					$(EXT_LIBS) \
-					include/socket
+INCLUDES	?=	${LOVE_INCLUDES} \
+				${LOVE_LIBRARIES} \
+				include
 
 EXEFS_SRC    := exefs_src
-#ROMFS        := game
+ROMFS        := romfs
 
 APP_TITLE		:= Löve Potion
-APP_AUTHOR		:= TurtleP
-APP_VERSION		:= 1.0
+APP_AUTHOR		:= TurtleP & NotQuiteApex
+APP_VERSION		:= 2.0
 APP_TITLEID		:= 1043
 
 #---------------------------------------------------------------------------------
@@ -79,7 +67,7 @@ CXXFLAGS  :=	$(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS   :=    -g $(ARCH)
 LDFLAGS   =     --specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lcurl -lmbedx509 -lmbedtls -lmbedcrypto -lSDL2_mixer -lmodplug -lmpg123 -lvorbisidec -logg -lopusfile -lopus -lSDL2_ttf -lSDL2_gfx -lSDL2_image -lpng -ljpeg -lwebp `sdl2-config --libs` `freetype-config --libs`
+LIBS := `curl-config --libs` `aarch64-none-elf-pkg-config SDL2_mixer SDL2_ttf SDL2_image SDL2_gfx --libs` -lSDL2 -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

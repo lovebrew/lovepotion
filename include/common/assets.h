@@ -3,14 +3,27 @@
 ** @brief   : Loads game content
 */
 
-class Assets
+#pragma once
+
+enum Location
 {
-    public:
-        Assets() = delete;
-        static void Initialize(char * path);
+    LOCATION_SDMC = 0,
+    LOCATION_ROMFS,
+    LOCATION_EXTERNAL
+};
 
-    private:
-        static inline std::string location = "romfs:/";
+namespace Assets
+{
+    /* Variables */
 
-        static uint GetLocation(char * path);
+    inline std::string directory = "romfs:";
+    inline std::string writePath = "";
+
+    /* Functions */
+
+    void Initialize(const std::string & path);
+
+    Location GetLocation(const std::string & path);
+
+    std::string GetWritePath();
 };

@@ -1,79 +1,79 @@
-extern "C"
-{
-    #include <lua.h>
-    #include <lualib.h>
-    #include <lauxlib.h>
-
-    #include <compat-5.3.h>
-    #include <luaobj.h>
-
-    #include <lutf8lib.h>
-}
-
-#if defined (_3DS)
-    #include <3ds.h>
-    bool appletMainLoop() {
-        return aptMainLoop();
-    }
-#elif defined (__SWITCH__)
-    #include <switch.h>
-#endif
-
-#include <string>
-
-#include "common/logger.h"
-#include "modules/timer.h"
-
-#include <stdio.h>
-#include <stdarg.h>
-#include <map>
-#include <vector>
-
-#include "common/types.h"
-#include "common/util.h"
-
-#include "socket/luasocket.h"
+#include "common/runtime.h"
 #include "common/assets.h"
+
 #include "modules/love.h"
+#include "common/backend/display.h"
 
-#include "boot_lua.h"
+DoneAction Run_Love_Potion(int & retval)
+{
+    // Make a new Lua state
+    lua_State * L = luaL_newstate();
+    luaL_openlibs(L);
 
-#define luaL_dobuffer(L, b, n, s) \
-    (luaL_loadbuffer(L, b, n, s) || lua_pcall(L, 0, LUA_MULTRET, 0))
+    // preload love
+    Love::Preload(L, Love::Initialize, "love");
+
+    // require "love"
+    lua_getglobal(L, "require");
+    lua_pushstring(L, "love");
+    lua_call(L, 1, 1);
+    lua_pop(L, 1);
+
+    // boot!
+    lua_getglobal(L, "require");
+    lua_pushstring(L, "love.boot");
+    lua_call(L, 1, 1);
+
+    // put this on a new lua thread
+    lua_newthread(L);
+    lua_pushvalue(L, -2);
+
+    /*
+    ** get what's on the stack
+    ** this will keep running until "quit"
+    */
+    int stackpos = lua_gettop(L);
+    while (lua_resume(L, nullptr, 0) == LUA_YIELD)
+            lua_pop(L, lua_gettop(L) - stackpos);
+
+    retval = 0;
+    DoneAction done = DONE_QUIT;
+
+    // if we wish to "restart", start up again after closing
+    if (lua_type(L, -1) == LUA_TSTRING && strcmp(lua_tostring(L, -1), "restart") == 0)
+        done = DONE_RESTART;
+
+    // custom quit value
+    if (lua_isnumber(L, -1))
+        retval = (int)lua_tonumber(L, -1);
+
+    lua_close(L);
+
+    // actually return quit
+    return done;
+}
 
 int main(int argc, char * argv[])
 {
-    lua_State * L = luaL_newstate();
+    Logger::Initialize(1);
 
-    luaL_openlibs(L);
+    std::string path;
+    if (argc > 0)
+        path = (argc == 2) ? argv[1] : argv[0];
 
-    love_preload(L, luaopen_luautf8, "utf8");
-    love_preload(L, LuaSocket::InitSocket, "socket");
-    love_preload(L, LuaSocket::InitHTTP,   "socket.http");
-
-    //Logger::Initialize();
-
-    char * path = (argc == 2) ? argv[1] : argv[0];
     Assets::Initialize(path);
 
-    luaL_requiref(L, "love", Love::Initialize, true);
-    lua_pop(L, -1); // don't leave the love module on the stack
-
-    Love::InitConstants(L);
-
-    luaL_dobuffer(L, (char *)boot_lua, boot_lua_size, "boot");
+    DoneAction done = DONE_QUIT;
+    int retval = 0;
 
     while (appletMainLoop())
     {
-        if (Love::IsRunning())
-            luaL_dostring(L, "xpcall(love.run, love.errorhandler)");
-        else
+        done = Run_Love_Potion(retval);
+        if (done == DoneAction::DONE_QUIT)
             break;
     }
 
-    Love::Exit(L);
+    Logger::Exit();
 
-    //Logger::Exit();
-
-    return 0;
+    return retval;
 }

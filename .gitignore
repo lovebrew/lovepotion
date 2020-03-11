@@ -1,23 +1,9 @@
-# Homebrew Files #
-##################
-platform/*/*.elf
+build
+*.3dsx
+*.elf
+*.smdh
 
-# Nintendo 3DS #
-platform/3ds/*.3dsx
-platform/3ds/*.smdh
-
-# Nintendo Switch #
-platform/switch/*.nro
-platform/switch/*.nacp
-platform/switch/*.nso
-platform/switch/*.pfs0
-
-# Output Directories #
-######################
-platform/*/build/
-
-# Game Directories #
-####################
-platform/*/game/
-
-.vscode/
+*.nro
+*.nso
+*.nacp
+*.pfs0

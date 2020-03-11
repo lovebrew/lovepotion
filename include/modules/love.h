@@ -1,36 +1,30 @@
-/*
-** modules/love.h
-** @brief    : Handles all the modules
-*/
-
 #pragma once
 
-class Love
+#define TITLE_TAKEOVER_ERROR "Please run Löve Potion under Atmosphère title takeover."
+
+namespace Love
 {
-    public:
-        static int Initialize(lua_State * L);
+    int Initialize(lua_State * L);
+    int Boot(lua_State * L);
 
-        static void InitModules(lua_State * L);
+    int GetVersion(lua_State * L);
 
-        static void InitConstants(lua_State * L);
+    // Various Utility Functions
 
-        static bool IsRunning();
+    int EnsureApplicationType(lua_State * L);
 
-        static int RaiseError(const char * format, ...);
+    void GetField(lua_State * L, const char * field);
+    int Preload(lua_State * L, lua_CFunction func, const char * name);
 
-        static int Quit(lua_State * L);
+    int InsistRegistry(lua_State * L, Registry registry);
+    int GetRegistry(lua_State * L, Registry registry);
 
-        static void Exit(lua_State * L);
+    // End Various Utility Functions
 
-    private:
-        static inline bool quit = false;
-        static inline bool error = false;
+    typedef struct {
+        const char * name;
+        int (* reg)(lua_State * L);
+    } Module;
 
-        static inline lua_State * state = nullptr;
-
-        static int GetVersion(lua_State * L);
-
-        static int Run(lua_State * L);
-
-        static int NoGame(lua_State * L);
+    inline std::array<Love::Module, 15> modules = { nullptr };
 };

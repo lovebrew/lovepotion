@@ -1,32 +1,95 @@
 #pragma once
 
-class File : public Object
+#include "objects/filedata/filedata.h"
+#include "common/stringmap.h"
+#include "common/exception.h"
+
+namespace love
 {
-    public:
-        File(const char * path);
-        File(const char * path, const char * mode);
+    class File : public Object
+    {
+        public:
+            static love::Type type;
 
-        File() {};
-        ~File();
+            enum Mode
+            {
+                MODE_CLOSED,
+                MODE_READ,
+                MODE_WRITE,
+                MODE_APPEND,
+                MODE_MAX_ENUM
+            };
 
-        char * Read();
-        u8 * ReadBinary();
+            enum BufferMode
+            {
+                BUFFER_NONE,
+                BUFFER_LINE,
+                BUFFER_FULL,
+                BUFFER_MAX_ENUM
+            };
 
-        void Write(const char * data, size_t length);
+            static const int64_t ALL = -1;
 
-        const char * GetMode();
+            File(const std::string & filename);
+            ~File();
 
-        bool Open(const char * mode);
-        bool IsOpen();
-        void Flush();
-        void Close();
+            bool Close();
 
-        long GetSize();
-    
-    private:
-        const char * path;
-        const char * mode;
+            bool Flush();
 
-        FILE * fileHandle;
-        bool open;
-};
+            BufferMode GetBuffer(int64_t & size) const;
+
+            const std::string & GetFilename() const;
+
+            Mode GetMode();
+
+            int64_t GetSize();
+
+            bool IsEOF();
+
+            bool IsOpen();
+
+            bool Open(File::Mode mode);
+
+            int64_t Read(void * destination, int64_t size);
+            FileData * Read(int64_t size = ALL);
+
+            bool Seek(uint64_t position);
+
+            bool SetBuffer(BufferMode mode, int64_t size);
+
+            int64_t Tell();
+
+            bool Write(const void * data, int64_t size);
+            bool Write(Data * data, int64_t size);
+
+            /* OPEN MODES */
+
+            static bool GetConstant(const char * in, Mode & out);
+            static bool GetConstant(Mode in, const char *& out);
+
+            static std::vector<std::string> GetConstants(Mode mode);
+
+            /* BUFFER MODES */
+
+            static bool GetConstant(const char * in, BufferMode & out);
+            static bool GetConstant(BufferMode in, const char *& out);
+
+            static std::vector<std::string> GetConstants(BufferMode mode);
+
+        private:
+            std::string filename;
+            FILE * file;
+            Mode mode;
+            BufferMode bufferMode;
+            int64_t bufferSize;
+
+            int64_t BufferedRead(void * buffer, size_t length);
+
+            static StringMap<Mode, Mode::MODE_MAX_ENUM>::Entry modeEntries[];
+            static StringMap<Mode, Mode::MODE_MAX_ENUM> modes;
+
+            static StringMap<BufferMode, BufferMode::BUFFER_MAX_ENUM>::Entry bufferModeEntries[];
+            static StringMap<BufferMode, BufferMode::BUFFER_MAX_ENUM> bufferModes;
+    };
+}

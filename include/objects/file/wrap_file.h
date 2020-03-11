@@ -1,25 +1,43 @@
 #pragma once
 
-int fileNew(lua_State * L);
+#include "objects/file/file.h"
+#include "data/wrap_datamodule.h"
 
-int fileOpen(lua_State * L);
+namespace Wrap_File
+{
+    int Close(lua_State * L);
 
-int fileWrite(lua_State * L);
+    int Flush(lua_State * L);
 
-int fileFlush(lua_State * L);
+    int GetBuffer(lua_State * L);
 
-int fileRead(lua_State * L);
+    int GetFilename(lua_State * L);
 
-int fileGetSize(lua_State * L);
+    int GetMode(lua_State * L);
 
-int fileIsOpen(lua_State * L);
+    int GetSize(lua_State * L);
 
-int fileGetMode(lua_State * L);
+    int IsEOF(lua_State * L);
 
-int fileClose(lua_State * L);
+    int IsOpen(lua_State * L);
 
-int fileToString(lua_State * L);
+    int Lines_I(lua_State * L);
 
-int fileGC(lua_State * L);
+    int Lines(lua_State * L);
 
-int initFileClass(lua_State *L);
+    int Open(lua_State * L);
+
+    int Read(lua_State * L);
+
+    int Seek(lua_State * L);
+
+    int SetBuffer(lua_State * L);
+
+    int Tell(lua_State * L);
+
+    int Write(lua_State * L);
+
+    love::File * CheckFile(lua_State * L, int index);
+
+    int Register(lua_State * L);
+}

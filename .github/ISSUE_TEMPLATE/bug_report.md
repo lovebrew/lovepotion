@@ -4,7 +4,6 @@ about: Tell us about unexpected behavior from Löve Potion.
 title: "[BUG] Short Issue Title"
 labels: bug
 assignees: ''
-
 ---
 
 ### **Describe the bug**
@@ -26,4 +25,10 @@ assignees: ''
  - Method of execution: [e.g. launched from album applet on homemenu, title takeover, dedicated HBL app]
  - Löve Potion version: [e.g. commit hash or release version]
 
-[Please read this in full: We will only fix bugs that are related to Löve Potion functions, if your game is not functioning because of your programming error, this is NOT where you come to ask for help. We only officially support Luma3DS and Atmosphère CFWs on their latest release versions. Please remove all unnecessary text inside any brackets including the brackets themselves, failure to do so may result in your issue being closed without further notice. If you would like assistance you can visit the LÖVE or Löve Potion Discord servers.]
+**Please read this in full:**
+
+We will **only** fix bugs that are related to Löve Potion functions, if your game is not functioning because of your programming error, this is _not_ where you come to ask for help.
+
+We **only officially support Luma3DS and Atmosphère CFWs on their latest release versions**. Please remove all unnecessary text inside any brackets including the brackets themselves, failure to do so may result in your issue being closed without further notice.
+
+If you would like assistance you can visit the LÖVE or Löve Potion Discord servers.
