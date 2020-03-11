@@ -9,9 +9,29 @@
 
 using love::Rect;
 
-#define AUDIO_RATE 48000
-
 #define MAX_GAMEPADS 4
+
+#define SetMasterVolume
+
+static inline Result AudioInit()
+{
+    const AudioRendererConfig arConfig =
+    {
+        .output_rate     = AudioRendererOutputRate_48kHz,
+        .num_voices      = 24,
+        .num_effects     = 0,
+        .num_sinks       = 1,
+        .num_mix_objs    = 1,
+        .num_mix_buffers = 2,
+    };
+
+    return audrenInitialize(&arConfig);
+}
+
+static inline Result AudioExit()
+{
+    audrenExit();
+}
 
 typedef SDL_Renderer Renderer;
 

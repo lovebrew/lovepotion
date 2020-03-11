@@ -21,15 +21,10 @@ Source::Source(SoundData * sound) : sourceType(Source::TYPE_STATIC),
                                     channels(sound->GetChannelCount()),
                                     bitDepth(sound->GetBitDepth())
 {
-
-    ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
-    ndspChnSetRate(0, this->sampleRate);
-    ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE);
-
     this->source = ndspWaveBuf();
     this->source.nsamples = sound->GetSampleCount();
 
-    this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()));
+    this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()), Acquire::NORETAIN);
 }
 
 Source::Source(Decoder * decoder) : sourceType(Source::TYPE_STREAM),
@@ -49,16 +44,24 @@ Source::~Source()
 }
 
 void Source::Reset()
-{}
+{
+    ndspChnReset(0);
+
+    ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
+    ndspChnSetRate(0, this->sampleRate);
+    ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE);
+}
 
 void Source::PrepareAtomic()
 {
+    LOG("Reset")
     this->Reset();
-
     switch (this->sourceType)
     {
         case TYPE_STATIC:
+            LOG("Assigning data_pcm16 to buffer")
             this->source.data_pcm16 = (s16 *)this->staticBuffer.Get()->GetBuffer();
+            LOG("Done")
             break;
         case TYPE_STREAM:
             break;
@@ -91,11 +94,14 @@ bool Source::PlayAtomic()
 
     bool success = false;
 
+    LOG("Flushing Cache")
     Result res = DSP_FlushDataCache(this->source.data_pcm16, this->staticBuffer->GetSize());
 
     if (R_SUCCEEDED(res))
     {
+        LOG("Playing source")
         ndspChnWaveBufAdd(0, &this->source);
+        LOG("Success!")
         success = true;
     }
 
@@ -139,7 +145,7 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    return ndspChnIsPlaying(0);
+    return (ndspChnIsPlaying(0) == true);
 }
 
 void Source::Stop()

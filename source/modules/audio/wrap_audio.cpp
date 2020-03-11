@@ -5,6 +5,13 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Audio>(Module::M_AUDIO))
 
+int Wrap_Audio::GetVolume(lua_State * L)
+{
+    lua_pushnumber(L, instance()->GetVolume());
+
+    return 1;
+}
+
 int Wrap_Audio::NewSource(lua_State * L)
 {
     Source::Type type = Source::TYPE_STREAM;
@@ -24,7 +31,7 @@ int Wrap_Audio::NewSource(lua_State * L)
         Luax::ConvertObject(L, 1, "sound", "newDecoder");
 
     if (type == Source::TYPE_STATIC && Luax::IsType(L, 1, Decoder::type))
-		Luax::ConvertObject(L, 1, "sound", "newSoundData");
+        Luax::ConvertObject(L, 1, "sound", "newSoundData");
 
     Source * source = nullptr;
 
@@ -32,7 +39,7 @@ int Wrap_Audio::NewSource(lua_State * L)
         if (Luax::IsType(L, 1, SoundData::type))
             source = instance()->NewSource(Luax::ToType<SoundData>(L, 1));
         else if (Luax::IsType(L, 1, Decoder::type))
-			source = instance()->NewSource(Luax::ToType<Decoder>(L, 1));
+            source = instance()->NewSource(Luax::ToType<Decoder>(L, 1));
     });
 
     if (source != nullptr)
@@ -46,6 +53,17 @@ int Wrap_Audio::NewSource(lua_State * L)
         return Luax::TypeErrror(L, 1, "Decoder or SoundData");
 }
 
+int Wrap_Audio::Pause(lua_State * L)
+{
+    if (lua_isnone(L, 1))
+        LOG("Pause all Sources")
+    else
+    {
+        Source * source = Wrap_Source::CheckSource(L, 1);
+        source->Pause();
+    }
+}
+
 int Wrap_Audio::Play(lua_State * L)
 {
     Source * source = Wrap_Source::CheckSource(L, 1);
@@ -55,14 +73,22 @@ int Wrap_Audio::Play(lua_State * L)
     return 1;
 }
 
+int Wrap_Audio::SetVolume(lua_State * L)
+{
+    float volume = (float)luaL_checknumber(L, 1);
+    instance()->SetVolume(volume);
+
+    return 0;
+}
+
 int Wrap_Audio::Stop(lua_State * L)
 {
     if (lua_isnone(L, 1))
         instance()->Stop();
     else
     {
-        // Source * source = Wrap_Source::CheckSource(L, 1);
-        // source->Stop()
+        Source * source = Wrap_Source::CheckSource(L, 1);
+        source->Stop()
     }
 
     return 0;
@@ -70,8 +96,6 @@ int Wrap_Audio::Stop(lua_State * L)
 
 int Wrap_Audio::Register(lua_State * L)
 {
-    ndspInit();
-
     luaL_Reg reg[] =
     {
         { "newSource", NewSource },

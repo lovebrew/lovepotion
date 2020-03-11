@@ -27,6 +27,8 @@ Variant::~Variant()
         if (selfProxy.object != nullptr)
             selfProxy.object->Release();
     }
+    else if (self == Type::STRING)
+        this->GetValue<Type::STRING>()->Release();
 }
 
 Variant::Variant(love::Type * loveType, Object * object)
@@ -42,6 +44,26 @@ Variant::Variant(love::Type * loveType, Object * object)
     this->variant = proxy;
 }
 
+Variant::Variant(const char * string, size_t length)
+{
+    if (length <= MAX_SMALL_STRING_LENGTH)
+    {
+        SmallString str = SmallString();
+        memcpy(str.string, string, length);
+        str.length = length;
+
+        this->variant = str;
+    }
+    else
+    {
+        SharedString * str = new SharedString(string, length);
+        this->variant = str;
+    }
+}
+
+Variant::Variant(const std::string & string) : Variant(string.c_str(), string.length())
+{}
+
 Variant & Variant::operator=(const Variant & v)
 {
     Type other = v.GetType();
@@ -50,8 +72,12 @@ Variant & Variant::operator=(const Variant & v)
     if (other == Type::LOVE_OBJECT)
     {
         otherProxy = v.GetValue<Type::LOVE_OBJECT>();
-        otherProxy.object->Retain();
+
+        if (otherProxy.object != nullptr)
+            otherProxy.object->Retain();
     }
+    else if (other == Type::STRING)
+        v.GetValue<Type::STRING>()->Retain();
 
     Type self = this->GetType();
     Proxy selfProxy;
@@ -59,13 +85,28 @@ Variant & Variant::operator=(const Variant & v)
     if (self == Type::LOVE_OBJECT)
     {
         selfProxy = GetValue<Type::LOVE_OBJECT>();
-        selfProxy.object->Release();
+
+        if (selfProxy.object != nullptr)
+            selfProxy.object->Release();
     }
+    else if (self == Type::STRING)
+        this->GetValue<Type::STRING>()->Release();
 
     variant = v.variant;
 
     return *this;
 }
+
+Variant::Variant(const Variant & other) : variant(other.variant)
+{
+    if (this->GetType() == Type::STRING)
+        this->GetValue<Type::STRING>()->Retain();
+    else if (this->GetType() == Type::LOVE_OBJECT && this->GetValue<Type::LOVE_OBJECT>().object != nullptr)
+        this->GetValue<Type::LOVE_OBJECT>().object->Retain();
+}
+
+Variant::Variant(Variant && other) : variant(std::move(other.variant))
+{}
 
 std::string Variant::GetTypeString() const
 {
@@ -96,13 +137,9 @@ Variant::Type Variant::GetType() const
 
 Variant Variant::FromLua(lua_State * L, int n)
 {
-    std::string string;
-    bool boolean;
-    float number;
     Proxy * proxy = nullptr;
-
-    // Defaults to std::monostate, aka Type::UNKNOWN
-    Variant retval;
+    const char * string;
+    size_t length;
 
     if (n < 0)
         n += lua_gettop(L) + 1;
@@ -110,20 +147,16 @@ Variant Variant::FromLua(lua_State * L, int n)
     switch (lua_type(L, n))
     {
         case LUA_TSTRING:
-            string = lua_tostring(L, n);
-            retval = Variant(string);
-            return retval;
+            string = lua_tolstring(L, n, &length);
+            return Variant(string, length);
         case LUA_TNIL:
-            retval = Variant(Nil());
-            return retval;
+            return Variant(Nil());
         case LUA_TBOOLEAN:
-            boolean = lua_toboolean(L, n);
-            retval = Variant(boolean);
-            return retval;
+            return Variant((bool)lua_toboolean(L, n));
         case LUA_TNUMBER:
-            number = lua_tonumber(L, n);
-            retval = Variant(number);
-            return retval;
+            return Variant((float)lua_tonumber(L, n));
+        case LUA_TLIGHTUSERDATA:
+            return Variant(lua_touserdata(L, n));
         case LUA_TUSERDATA:
             proxy = TryExtractProxy(L, n);
             if (proxy != nullptr)
@@ -142,7 +175,8 @@ Variant Variant::FromLua(lua_State * L, int n)
 
 void Variant::ToLua(lua_State * L) const
 {
-    std::string string;
+    SharedString * str;
+    SmallString smallStr;
     Proxy proxy;
     bool boolean;
     float number;
@@ -150,9 +184,13 @@ void Variant::ToLua(lua_State * L) const
 
     switch (this->GetType())
     {
+        case Type::SMALLSTRING:
+            smallStr = GetValue<Type::SMALLSTRING>();
+            lua_pushlstring(L, smallStr.string, smallStr.length);
+            break;
         case Type::STRING:
-            string = GetValue<Type::STRING>();
-            lua_pushlstring(L, string.data(), string.size());
+            str = GetValue<Type::STRING>();
+            lua_pushlstring(L, str->string, str->length);
             break;
         case Type::LOVE_OBJECT:
             proxy = GetValue<Type::LOVE_OBJECT>();

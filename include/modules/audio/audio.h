@@ -36,6 +36,6 @@ namespace love
 
 
         private:
-            std::vector<Source *> pool;
+            float volume = 1.0f;
     };
 }

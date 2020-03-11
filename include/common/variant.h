@@ -6,19 +6,48 @@ namespace love
 {
     class Variant
     {
+        static const int MAX_SMALL_STRING_LENGTH = 15;
+
+        class SharedString : public Object
+        {
+            public:
+                SharedString(const char * string, size_t length) : length(length)
+                {
+                    this->string = new char[length + 1];
+                    this->string[length] = '\0';
+                    memcpy(this->string, string, length);
+                }
+
+                virtual ~SharedString() {
+                    delete [] this->string;
+                }
+
+                char * string;
+                size_t length;
+        };
+
+        struct SmallString
+        {
+            char string[MAX_SMALL_STRING_LENGTH];
+            uint8_t length;
+        };
+
         private:
-            std::variant<std::monostate, bool, Proxy, void*, Nil, float, std::string> variant;
+            std::variant<std::monostate, bool, float, Variant::SharedString *, Variant::SmallString, void *, Proxy, Nil> variant;
 
         public:
+
             enum Type
             {
                 UNKNOWN = 0,
                 BOOLEAN,
-                LOVE_OBJECT,
-                LUSERDATA,
-                NIL,
                 NUMBER,
-                STRING
+                STRING,
+                SMALLSTRING,
+                LUSERDATA,
+                LOVE_OBJECT,
+                NIL,
+                TABLE
             };
 
             Variant() : variant(std::monostate{}) {}
@@ -28,18 +57,14 @@ namespace love
             Variant(void * v) : variant(v) {}
             Variant(Nil v) : variant(v) {}
             Variant(float v) : variant(v) {}
-            Variant(const std::string & v) : variant(v) {}
-            Variant(const char * v) : variant(std::string{v}) {}
+            Variant(const std::string & v);
+            Variant(const char * v, size_t length);
 
-            Variant & operator= (std::monostate v) { variant = v; return *this; }
-            Variant & operator= (bool v) { variant = v; return *this; }
-            Variant & operator= (const Proxy & v) { variant = v; return *this; };
-            Variant & operator= (void* v) { variant = v; return *this; }
-            Variant & operator= (Nil v) { variant = v; return *this; }
-            Variant & operator= (float v) { variant = v; return *this; }
-            Variant & operator= (const std::string & v) { variant = v; return *this; }
-            Variant & operator= (const char * v) { variant = std::string{v}; return *this; }
+            Variant(const Variant & v);
+
             Variant & operator= (const Variant & v);
+
+            Variant(Variant && other);
 
             ~Variant();
 
@@ -63,5 +88,6 @@ namespace love
 
             static Variant FromLua(lua_State * L, int n);
             void ToLua(lua_State * L) const;
+
     };
 }

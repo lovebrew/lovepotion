@@ -8,9 +8,15 @@
 
 namespace Wrap_Audio
 {
+    int GetVolume(lua_State * L);
+
     int NewSource(lua_State * L);
 
+    int Pause(lua_State * L);
+
     int Play(lua_State * L);
+
+    int SetVolume(lua_State * L);
 
     int Stop(lua_State * L);
 
