@@ -34,8 +34,17 @@ namespace love
 
             float GetVolume() const;
 
+            AudioDriver & GetAudioDriver();
+
+            inline void UpdateAudioDriver() {
+                if (this->driverInit)
+                    audrvUpdate(&this->driver);
+            }
 
         private:
             float volume = 1.0f;
+
+            bool driverInit = false;
+            AudioDriver driver;
     };
 }

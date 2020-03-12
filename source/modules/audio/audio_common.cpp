@@ -3,16 +3,6 @@
 
 using namespace love;
 
-Audio::Audio()
-{
-    AudioInit();
-}
-
-Audio::~Audio()
-{
-    AudioExit();
-}
-
 float Audio::GetVolume() const
 {
     return this->volume;
@@ -31,12 +21,6 @@ Source * Audio::NewSource(SoundData * sound)
 bool Audio::Play(Source * source)
 {
     return source->Play();
-}
-
-void Audio::SetVolume(float volume)
-{
-    SetMasterVolume(volume);
-    this->volume = volume;
 }
 
 void Audio::Stop(Source * source)

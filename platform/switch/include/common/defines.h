@@ -11,27 +11,9 @@ using love::Rect;
 
 #define MAX_GAMEPADS 4
 
-#define SetMasterVolume
+#define FlushAudioCache armDCacheFlush
 
-static inline Result AudioInit()
-{
-    const AudioRendererConfig arConfig =
-    {
-        .output_rate     = AudioRendererOutputRate_48kHz,
-        .num_voices      = 24,
-        .num_effects     = 0,
-        .num_sinks       = 1,
-        .num_mix_objs    = 1,
-        .num_mix_buffers = 2,
-    };
-
-    return audrenInitialize(&arConfig);
-}
-
-static inline Result AudioExit()
-{
-    audrenExit();
-}
+typedef AudioDriverWaveBuf waveBuffer;
 
 typedef SDL_Renderer Renderer;
 
@@ -41,7 +23,7 @@ typedef JoystickPosition StickPosition;
 
 typedef HidVibrationValue VibrationValue;
 
-typedef SDL_Texture * Texture;
+typedef SDL_Texture * TextureHandle;
 
 typedef TTF_Font * FontHandle;
 

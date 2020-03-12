@@ -20,17 +20,17 @@ namespace love
 
             enum WrapMode
             {
-                WRAP_CLAMP           = GPU_CLAMP_TO_EDGE,
-                WRAP_CLAMP_ZERO      = GPU_CLAMP_TO_BORDER,
-                WRAP_REPEAT          = GPU_REPEAT,
-                WRAP_MIRRORED_REPEAT = GPU_MIRRORED_REPEAT,
+                WRAP_CLAMP,
+                WRAP_CLAMP_ZERO,
+                WRAP_REPEAT,
+                WRAP_MIRRORED_REPEAT,
                 WRAP_MAX_ENUM
             };
 
             enum FilterMode
             {
-                FILTER_NEAREST       = GPU_NEAREST,
-                FILTER_LINEAR        = GPU_LINEAR,
+                FILTER_NEAREST,
+                FILTER_LINEAR,
                 FILTER_NONE,
                 FILTER_MAX_ENUM
             };

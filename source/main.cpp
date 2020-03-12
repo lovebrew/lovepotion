@@ -2,7 +2,6 @@
 #include "common/assets.h"
 
 #include "modules/love.h"
-#include "common/backend/display.h"
 
 DoneAction Run_Love_Potion(int & retval)
 {

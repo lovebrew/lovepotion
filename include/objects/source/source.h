@@ -14,17 +14,16 @@ namespace love
 
             inline s16 * GetBuffer() const
             {
-                return this->buffer;
+                return this->buffer.first;
             }
 
             inline size_t GetSize() const
             {
-                return this->size;
+                return this->buffer.second;
             }
 
         private:
-            s16 * buffer;
-            size_t size;
+            std::pair<s16 *, size_t> buffer;
     };
 
     class Source : public Object
@@ -80,6 +79,8 @@ namespace love
 
         private:
             void Reset();
+            waveBuffer CreateWaveBuffer(size_t size, size_t nsamples);
+            void AddWaveBuffer();
 
             void PrepareAtomic();
             int StreamAtomic(void * buffer, Decoder * decoder);
@@ -110,7 +111,7 @@ namespace love
             std::stack<s16 *> unusedBuffers;
             std::queue<s16 *> streamBuffers;
 
-            ndspWaveBuf source;
+            waveBuffer source;
 
             static StringMap<Type, TYPE_MAX_ENUM>::Entry typeEntries[];
             static StringMap<Type, TYPE_MAX_ENUM> types;

@@ -11,9 +11,9 @@
 
 #define JOYSTICK_MAX 150.0f
 
-#define SetMasterVolume ndspSetMasterVol
-
 #define GetMasterVolume
+
+#define FlushAudioCache DSP_FlushDataCache
 
 static inline Result AudioInit()
 {
@@ -24,6 +24,10 @@ static inline void AudioExit()
 {
     ndspExit();
 }
+
+typedef struct AudioDriver {};
+
+typedef ndspWaveBuf waveBuffer;
 
 typedef struct _vibe {
     float amp_low;

@@ -5,8 +5,6 @@
 
 void love::Event::Clear()
 {
-    //Lock lock(this->mutex);
-
     while (!this->queue.empty())
     {
         this->queue.front()->Release();
@@ -90,8 +88,6 @@ void love::Event::Pump()
 
 bool love::Event::Poll(Message *& message)
 {
-    //Lock lock(this->mutex);
-
     if (this->queue.empty())
         return false;
 
@@ -103,8 +99,6 @@ bool love::Event::Poll(Message *& message)
 
 void love::Event::Push(Message * message)
 {
-    //Lock lock(this->mutex);
-
     message->Retain();
     this->queue.push(message);
 }

@@ -178,7 +178,7 @@ FileData * File::Read(int64_t size)
         delete fileData;
         throw love::Exception("Could not read from file.");
     }
-    LOG("Read: %lld Size: %lld", bytesRead, size)
+
     if (bytesRead < size)
     {
         FileData * tmp = new FileData(bytesRead, this->GetFilename());

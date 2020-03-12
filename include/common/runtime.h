@@ -32,6 +32,7 @@ enum DoneAction
 #include <filesystem>
 #include <limits>
 #include <stack>
+#include <malloc.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -44,9 +45,9 @@ using namespace std::string_literals;
 #include <vector>
 #include <variant>
 
+#include "common/defines.h"
 #include "common/strongref.h"
 #include "common/type.h"
-#include "common/defines.h"
 #include "common/proxy.h"
 #include "common/module.h"
 

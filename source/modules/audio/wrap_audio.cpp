@@ -56,12 +56,14 @@ int Wrap_Audio::NewSource(lua_State * L)
 int Wrap_Audio::Pause(lua_State * L)
 {
     if (lua_isnone(L, 1))
-        LOG("Pause all Sources")
+        printf("Pause all Sources");
     else
     {
         Source * source = Wrap_Source::CheckSource(L, 1);
         source->Pause();
     }
+
+    return 0;
 }
 
 int Wrap_Audio::Play(lua_State * L)
@@ -88,7 +90,7 @@ int Wrap_Audio::Stop(lua_State * L)
     else
     {
         Source * source = Wrap_Source::CheckSource(L, 1);
-        source->Stop()
+        source->Stop();
     }
 
     return 0;
@@ -98,8 +100,11 @@ int Wrap_Audio::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
+        { "getVolume", GetVolume },
         { "newSource", NewSource },
+        { "pause",     Pause     },
         { "play",      Play      },
+        { "setVolume", SetVolume },
         { "stop",      Stop      },
         { 0,           0         }
     };

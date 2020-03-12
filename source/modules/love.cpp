@@ -3,7 +3,6 @@
 #include "common/version.h"
 #include "modules/love.h"
 
-#include "common/backend/display.h"
 #include "common/backend/input.h"
 
 #include "modules/audio/wrap_audio.h"
