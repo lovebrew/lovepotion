@@ -43,13 +43,7 @@ void Source::AddWaveBuffer()
 }
 
 void Source::Reset()
-{
-    // ndspChnReset(0);
-
-    // ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
-    // ndspChnSetRate(0, this->sampleRate);
-    // ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE);
-}
+{}
 
 void Source::ResumeAtomic()
 {

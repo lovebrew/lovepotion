@@ -5,6 +5,13 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Audio>(Module::M_AUDIO))
 
+int Wrap_Audio::_UpdateAudio(lua_State * L)
+{
+    instance()->UpdateAudioDriver();
+
+    return 0;
+}
+
 int Wrap_Audio::GetVolume(lua_State * L)
 {
     lua_pushnumber(L, instance()->GetVolume());
@@ -100,13 +107,14 @@ int Wrap_Audio::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
-        { "getVolume", GetVolume },
-        { "newSource", NewSource },
-        { "pause",     Pause     },
-        { "play",      Play      },
-        { "setVolume", SetVolume },
-        { "stop",      Stop      },
-        { 0,           0         }
+        { "_update",       _UpdateAudio },
+        { "getVolume",     GetVolume    },
+        { "newSource",     NewSource    },
+        { "pause",         Pause        },
+        { "play",          Play         },
+        { "setVolume",     SetVolume    },
+        { "stop",          Stop         },
+        { 0,               0            }
     };
 
     lua_CFunction types[] =
