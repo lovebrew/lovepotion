@@ -46,6 +46,12 @@ AudioDriver & Audio::GetAudioDriver()
     return this->driver;
 }
 
+void Audio::UpdateAudioDriver()
+{
+    if (this->driverInit)
+        audrvUpdate(&this->driver);
+}
+
 Audio::~Audio()
 {
     audrvClose(&this->driver);

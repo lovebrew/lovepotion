@@ -15,17 +15,7 @@
 
 #define FlushAudioCache DSP_FlushDataCache
 
-static inline Result AudioInit()
-{
-    return ndspInit();
-}
-
-static inline void AudioExit()
-{
-    ndspExit();
-}
-
-typedef struct AudioDriver {};
+struct AudioDriver {};
 
 typedef ndspWaveBuf waveBuffer;
 

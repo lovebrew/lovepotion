@@ -22,15 +22,11 @@ StaticDataBuffer::~StaticDataBuffer()
     AudioPool::MemoryFree(this->buffer);
 }
 
-waveBuffer Source::CreateWaveBuffer(size_t size, size_t nsamples)
+void Source::CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples)
 {
-    waveBuffer buffer = waveBuffer();
-
-    buffer.size = size;
-    buffer.start_sample_offset = this->offsetSamples;
-    buffer.end_sample_offset = nsamples;
-
-    return buffer;
+    buffer->size = size;
+    buffer->start_sample_offset = this->offsetSamples;
+    buffer->end_sample_offset = nsamples;
 }
 
 void Source::AddWaveBuffer()

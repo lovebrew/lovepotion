@@ -5,6 +5,8 @@
 #include "objects/filedata/filedata.h"
 
 #include "vorbisdecoder.h"
+#include "mpegdecoder.h"
+#include "wavedecoder.h"
 
 namespace love
 {

@@ -71,7 +71,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `curl-config --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru -lm
+LIBS	:= `curl-config --libs` -lflac `arm-none-eabi-pkg-config libmpg123 --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

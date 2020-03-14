@@ -18,10 +18,9 @@ StaticDataBuffer::~StaticDataBuffer()
     linearFree(this->buffer.first);
 }
 
-waveBuffer Source::CreateWaveBuffer(size_t size, size_t nsamples)
+void Source::CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples)
 {
-    waveBuffer buffer = waveBuffer();
-    buffer.nsamples = nsamples;
+    buffer->nsamples = nsamples;
 }
 
 void Source::AddWaveBuffer()
@@ -52,6 +51,11 @@ bool Source::Play()
     this->ResumeAtomic();
 
     return this->valid = true;
+}
+
+void Source::Pause()
+{
+    ndspChnSetPaused(0, true);
 }
 
 bool Source::IsPlaying() const

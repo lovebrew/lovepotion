@@ -38,7 +38,7 @@ namespace love
 
             virtual int GetBitDepth() const = 0;
 
-            virtual int GetSampleRate() const = 0;
+            virtual int GetSampleRate() const;
 
             virtual double GetDuration() = 0;
 

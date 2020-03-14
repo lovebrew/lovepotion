@@ -79,7 +79,7 @@ namespace love
 
         private:
             void Reset();
-            waveBuffer CreateWaveBuffer(size_t size, size_t nsamples);
+            void CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples);
             void AddWaveBuffer();
 
             void PrepareAtomic();

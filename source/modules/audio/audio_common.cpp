@@ -28,6 +28,14 @@ void Audio::Stop(Source * source)
     source->Stop();
 }
 
+void Audio::Pause(Source * source)
+{
+    source->Pause();
+}
+
+void Audio::Pause()
+{}
+
 void Audio::Stop()
 {
 

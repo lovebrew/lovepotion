@@ -30,16 +30,17 @@ namespace love
 
             void Pause (const std::vector<Source *> & sources);
 
+            // std::vector<Source *> Pause();
+
+            void Pause();
+
             void SetVolume(float volume);
 
             float GetVolume() const;
 
             AudioDriver & GetAudioDriver();
 
-            inline void UpdateAudioDriver() {
-                if (this->driverInit)
-                    audrvUpdate(&this->driver);
-            }
+            void UpdateAudioDriver();
 
         private:
             float volume = 1.0f;

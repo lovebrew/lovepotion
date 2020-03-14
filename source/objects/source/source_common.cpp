@@ -12,7 +12,8 @@ Source::Source(SoundData * sound) : sourceType(Source::TYPE_STATIC),
                                     channels(sound->GetChannelCount()),
                                     bitDepth(sound->GetBitDepth())
 {
-    this->source = this->CreateWaveBuffer(sound->GetSize(), sound->GetSampleCount());
+    this->source = waveBuffer();
+    this->CreateWaveBuffer(&this->source, sound->GetSize(), sound->GetSampleCount());
     this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()), Acquire::NORETAIN);
 }
 

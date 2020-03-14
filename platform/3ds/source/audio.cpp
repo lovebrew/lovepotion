@@ -3,6 +3,9 @@
 
 using namespace love;
 
+void Audio::UpdateAudioDriver()
+{}
+
 Audio::Audio()
 {
     ndspInit();
