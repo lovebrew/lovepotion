@@ -31,6 +31,8 @@ namespace love
 
             int Decode();
 
+            int Decode(s16 * buffer);
+
             bool Seek(double position);
 
             bool Rewind();

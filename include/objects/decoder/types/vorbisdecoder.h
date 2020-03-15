@@ -26,6 +26,8 @@ namespace love
 
             Decoder * Clone();
 
+            int Decode(s16 * buffer);
+
             int Decode();
 
             bool Seek(double s);

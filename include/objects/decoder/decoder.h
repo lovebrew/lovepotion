@@ -12,7 +12,7 @@ namespace love
             Decoder(Data * data, int bufferSize);
             virtual ~Decoder();
 
-            static const int DEFAULT_BUFFER_SIZE = 0x1000;
+            static const int DEFAULT_BUFFER_SIZE = 0x4000;
             static const int DEFAULT_SAMPLE_RATE = 44100;
 
             static const int DEFAULT_CHANNELS = 2;
@@ -21,6 +21,8 @@ namespace love
             virtual Decoder * Clone() = 0;
 
             virtual int Decode() = 0;
+
+            virtual int Decode(s16 * buffer) = 0;
 
             virtual int GetSize() const;
 

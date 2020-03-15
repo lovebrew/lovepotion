@@ -164,13 +164,18 @@ Decoder * MPEGDecoder::Clone()
 
 int MPEGDecoder::Decode()
 {
+    return this->Decode((s16 *)this->buffer);
+}
+
+int MPEGDecoder::Decode(s16 * buffer)
+{
     int size = 0;
 
     while (size < bufferSize && !this->eof)
     {
         size_t bytes = 0;
 
-        int result = mpg123_read(this->handle, (unsigned char *)this->buffer + size, this->bufferSize - size, &bytes);
+        int result = mpg123_read(this->handle, (unsigned char *)buffer + size, this->bufferSize - size, &bytes);
 
         switch (result)
         {

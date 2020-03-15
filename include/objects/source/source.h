@@ -74,6 +74,8 @@ namespace love
             static bool GetConstant(Type in, const char  *& out);
             static std::vector<std::string> GetConstants(Type);
 
+            bool Update();
+
         protected:
             Type sourceType;
 
@@ -83,14 +85,14 @@ namespace love
             void AddWaveBuffer();
 
             void PrepareAtomic();
-            int StreamAtomic(void * buffer, Decoder * decoder);
+            int StreamAtomic(s16 * buffer, Decoder * decoder);
             bool PlayAtomic();
             void ResumeAtomic();
 
             bool valid = false;
 
-            const static int DEFAULT_BUFFERS = 8;
-            const static int MAX_BUFFERS = 64;
+            const static int DEFAULT_BUFFERS = 2;
+            const static int MAX_BUFFERS = 2;
 
             float volume = 1.0f;
             bool looping = false;
@@ -108,10 +110,10 @@ namespace love
 
             int buffers = 0;
 
-            std::stack<s16 *> unusedBuffers;
-            std::queue<s16 *> streamBuffers;
+            s16 * audioBuffers[DEFAULT_BUFFERS];
+            waveBuffer sources[DEFAULT_BUFFERS];
 
-            waveBuffer source;
+            bool index = false;
 
             static StringMap<Type, TYPE_MAX_ENUM>::Entry typeEntries[];
             static StringMap<Type, TYPE_MAX_ENUM> types;

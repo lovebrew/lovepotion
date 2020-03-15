@@ -99,6 +99,11 @@ Decoder * WaveDecoder::Clone()
 
 int WaveDecoder::Decode()
 {
+    return this->Decode((s16 *)this->buffer);
+}
+
+int WaveDecoder::Decode(s16 * buffer)
+{
     size_t size = 0;
 
     while (size < (size_t)this->bufferSize)

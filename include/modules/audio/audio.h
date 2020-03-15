@@ -42,10 +42,15 @@ namespace love
 
             void UpdateAudioDriver();
 
+            void AddSourceToPool(Source * source);
+
+            std::vector<Source *> pool;
+
         private:
             float volume = 1.0f;
 
             bool driverInit = false;
             AudioDriver driver;
+
     };
 }

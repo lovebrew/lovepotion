@@ -136,12 +136,17 @@ Decoder * VorbisDecoder::Clone()
 
 int VorbisDecoder::Decode()
 {
+    return this->Decode((s16 *)this->buffer);
+}
+
+int VorbisDecoder::Decode(s16 * buffer)
+{
     int size = 0;
+    int bitstream = 0;
 
     while (size < this->bufferSize)
     {
-        int bitstream = 0;
-        long result = ov_read(&this->handle, (char *)this->buffer + size, this->bufferSize - size, &bitstream);
+        long result = ov_read(&this->handle, (char *)buffer + size, this->bufferSize - size, &bitstream);
 
         if (result == OV_HOLE)
             continue;

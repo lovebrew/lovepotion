@@ -25,7 +25,7 @@ void Source::CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples)
 
 void Source::AddWaveBuffer()
 {
-    ndspChnWaveBufAdd(0, &this->source);
+    ndspChnWaveBufAdd(0, &this->sources[this->index]);
 }
 
 void Source::Reset()
@@ -63,7 +63,7 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    return (ndspChnIsPlaying(0) == true);
+    return ndspChnIsPlaying(0) == true;
 }
 
 void Source::Stop()
@@ -82,5 +82,5 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    return (ndspChnIsPlaying(0) == false);
+    return ndspChnIsPlaying(0) == false;
 }

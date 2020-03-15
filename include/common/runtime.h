@@ -33,6 +33,7 @@ enum DoneAction
 #include <limits>
 #include <stack>
 #include <malloc.h>
+#include <unistd.h>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
