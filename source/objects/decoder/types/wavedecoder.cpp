@@ -110,7 +110,7 @@ int WaveDecoder::Decode(s16 * buffer)
     {
         size_t bytes = this->bufferSize - size;
 
-        int status = wuff_read(this->handle, (wuff_uint8 *)this->buffer + size, &bytes);
+        int status = wuff_read(this->handle, (wuff_uint8 *)buffer + size, &bytes);
 
         if (status < 0)
             return 0;

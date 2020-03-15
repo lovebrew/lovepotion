@@ -69,13 +69,13 @@ bool MPEGDecoder::inited = false;
 
 MPEGDecoder::MPEGDecoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
                                                         file(data),
-                                                        handle(nullptr),
+                                                        handle(0),
                                                         channels(MPG123_STEREO),
                                                         duration(-2.0)
 {
     int ret = 0;
 
-    if (inited)
+    if (!inited)
     {
         ret = mpg123_init();
 
