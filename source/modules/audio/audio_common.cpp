@@ -3,6 +3,25 @@
 
 using namespace love;
 
+std::array<bool, 24> Audio::channels;
+
+int Audio::GetOpenChannel()
+{
+    for (size_t i = 0; i < Audio::channels.size(); i++)
+    {
+        if (!Audio::channels[i])
+            return i;
+    }
+
+    return -1;
+}
+
+void Audio::FreeChannel(size_t channel)
+{
+    if (Audio::channels[channel])
+        Audio::channels[channel] = false;
+}
+
 float Audio::GetVolume() const
 {
     return this->volume;

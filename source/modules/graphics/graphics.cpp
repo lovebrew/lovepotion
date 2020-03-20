@@ -125,6 +125,16 @@ void Graphics::Rectangle(const std::string & mode, float x, float y, float width
     Primitives::Rectangle(mode, x, y, width, height, 0, 0, this->GetLineWidth(), this->GetColor());
 }
 
+void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> points)
+{
+    Primitives::Polygon(mode, points, this->GetLineWidth(), this->GetColor());
+}
+
+void Graphics::Line(float startx, float starty, float endx, float endy)
+{
+    Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->GetColor());
+}
+
 void Graphics::Reset()
 {
     DisplayState blankState;

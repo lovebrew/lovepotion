@@ -64,15 +64,44 @@ namespace love
 
             bool IsFinished() const;
 
-            void SetVolume(float volume);
+
+            Type GetType() const;
+
+            int GetChannelCount() const;
+
+            double GetDuration(Unit unit);
+
+            int GetFreeBufferCount() const;
+
+            float GetMinVolume() const;
+
+            float GetMaxVolume() const;
 
             float GetVolume() const;
 
-            Type GetType() const;
+            void SetVolume(float volume);
+
+            void Seek(double offset, Unit unit);
+
+            void SetLooping(bool loop);
+
+            void SetVolumeLimits(float min, float max);
+
+            void SetMinVolume(float volume);
+
+            void SetMaxVolume(float volume);
+
+            bool IsLooping() const;
+
+            double Tell();
 
             static bool GetConstant(const char * in, Type & out);
             static bool GetConstant(Type in, const char  *& out);
             static std::vector<std::string> GetConstants(Type);
+
+            static bool GetConstant(const char * in, Unit & out);
+            static bool GetConstant(Unit in, const char  *& out);
+            static std::vector<std::string> GetConstants(Unit);
 
             bool Update();
 
@@ -81,12 +110,20 @@ namespace love
 
         private:
             void Reset();
-            void CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples);
+
+            void CreateWaveBuffer(SoundData * sound);
+            void CreateWaveBuffer(Decoder * decoder);
+
+            void FreeBuffer();
+            bool _Update();
+            void _PrepareSamples(int samples);
+
             void AddWaveBuffer();
 
             void PrepareAtomic();
             int StreamAtomic(s16 * buffer, Decoder * decoder);
             bool PlayAtomic();
+            void TeardownAtomic();
             void ResumeAtomic();
 
             bool valid = false;
@@ -114,8 +151,12 @@ namespace love
             waveBuffer sources[DEFAULT_BUFFERS];
 
             bool index = false;
+            int channel = 0;
 
             static StringMap<Type, TYPE_MAX_ENUM>::Entry typeEntries[];
             static StringMap<Type, TYPE_MAX_ENUM> types;
+
+            static StringMap<Unit, UNIT_MAX_ENUM>::Entry unitEntries[];
+            static StringMap<Unit, UNIT_MAX_ENUM> units;
     };
 }

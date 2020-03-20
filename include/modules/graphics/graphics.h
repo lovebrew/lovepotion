@@ -104,9 +104,15 @@ namespace love
             void Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args);
             void Print(const  std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args);
 
-            /* End Objects */
+            /* Graphics Primitives */
 
             void Rectangle(const std::string & mode, float x, float y, float width, float height);
+
+            void Polygon(const std::string & mode, std::vector<Graphics::Point> points);
+
+            void Line(float startx, float starty, float endx, float endy);
+
+            /* States or Something */
 
             void Reset();
 

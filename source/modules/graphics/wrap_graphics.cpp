@@ -78,7 +78,9 @@ int Wrap_Graphics::Line(lua_State * L)
 
                     lua_pop(L, 4);
 
-                    Primitives::Line(start.x, start.y, end.x, end.y, instance()->GetLineWidth(), instance()->GetColor());
+                    Luax::CatchException(L, [&](){
+                        instance()->Line(start.x, start.y, end.x, end.y);
+                    });
                 }
             }
         }
@@ -96,7 +98,9 @@ int Wrap_Graphics::Line(lua_State * L)
             end.x = luaL_checknumber(L, index + 3);
             end.y = luaL_checknumber(L, index + 4);
 
-            Primitives::Line(start.x, start.y, end.x, end.y, instance()->GetLineWidth(), instance()->GetColor());
+            Luax::CatchException(L, [&](){
+                instance()->Line(start.x, start.y, end.x, end.y);
+            });
         }
     }
 
@@ -162,7 +166,9 @@ int Wrap_Graphics::Polygon(lua_State * L)
         }
     }
 
-    Primitives::Polygon(mode, points, instance()->GetLineWidth(), instance()->GetColor());
+    Luax::CatchException(L, [&]() {
+        instance()->Polygon(mode, points);
+    });
 
     return 0;
 }
@@ -380,7 +386,7 @@ int Wrap_Graphics::Draw(lua_State * L)
     args.x += args.offsetX;
     args.y += args.offsetY;
 
-    args.depth = instance()->CURRENT_DEPTH;
+    args.depth = instance()->CURRENT_DEPTH + instance()->MIN_DEPTH;
 
     Luax::CatchException(L, [&]() {
         if (texture && quad)

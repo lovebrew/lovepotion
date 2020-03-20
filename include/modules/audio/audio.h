@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/source/source.h"
+#include "objects/source/pool/pool.h"
 
 namespace love
 {
@@ -44,7 +45,13 @@ namespace love
 
             void AddSourceToPool(Source * source);
 
-            std::vector<Source *> pool;
+            static std::array<bool, 24> channels;
+
+            static int GetOpenChannel();
+
+            static void FreeChannel(size_t channel);
+
+            static void ReleaseSource(Source * source, bool stop = true);
 
         private:
             float volume = 1.0f;
@@ -52,5 +59,8 @@ namespace love
             bool driverInit = false;
             AudioDriver driver;
 
+            Thread poolThread;
+
+            std::vector<Source *> pool;
     };
 }

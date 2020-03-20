@@ -18,34 +18,130 @@ StaticDataBuffer::~StaticDataBuffer()
     linearFree(this->buffer.first);
 }
 
-void Source::CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples)
+bool Source::_Update()
 {
-    buffer->nsamples = nsamples;
+    int index = 0;
+    if (this->sources[index].status != NDSP_WBUF_DONE)
+    {
+        if (this->sources[index + 1].status == NDSP_WBUF_DONE)
+            index = 1;
+    }
+
+    if (this->sources[index].status == NDSP_WBUF_DONE)
+    {
+        int decoded = this->StreamAtomic(this->sources[index].data_pcm16, this->decoder.Get());
+
+        if (decoded == 0)
+            return false;
+
+        int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
+
+        this->sources[index].nsamples = samples;
+        ndspChnWaveBufAdd(this->channel, &this->sources[index]);
+    }
+
+    return true;
+}
+
+void Source::_PrepareSamples(int samples)
+{
+    this->sources[this->index].nsamples = samples;
+}
+
+void Source::FreeBuffer()
+{
+    if (this->sourceType != TYPE_STATIC)
+    {
+        for (int i = 0; i < this->buffers; i++)
+            linearFree(this->sources[i].data_pcm16);
+    }
+}
+
+void Source::CreateWaveBuffer(SoundData * sound)
+{
+    this->sources[0] = waveBuffer();
+    this->sources[0].nsamples = sound->GetSampleCount();
+}
+
+void Source::CreateWaveBuffer(Decoder * decoder)
+{
+    for (int i = 0; i < 2; i++)
+    {
+        this->sources[i] = waveBuffer();
+        this->sources[i].nsamples = 0;
+        this->sources[i].data_pcm16 = (s16 *)linearAlloc(decoder->GetSize());
+    }
+    this->sources[1].status = NDSP_WBUF_DONE;
+}
+
+void Source::SetLooping(bool shouldLoop)
+{
+    this->looping = shouldLoop;
+
+    for (int i = 0; i < this->buffers; i ++)
+        this->sources[i].looping = shouldLoop;
 }
 
 void Source::AddWaveBuffer()
 {
-    ndspChnWaveBufAdd(0, &this->sources[this->index]);
+    ndspChnWaveBufAdd(this->channel, &this->sources[this->index]);
+}
+
+void Source::SetVolume(float volume)
+{
+    this->volume = volume;
+
+    float mix[12];
+    memset(mix, 0, sizeof(mix));
+
+    mix[0] = mix[1] = volume;
+
+    ndspChnSetMix(this->channel, mix);
 }
 
 void Source::Reset()
 {
-    ndspChnReset(0);
+    ndspChnReset(this->channel);
 
-    ndspChnSetFormat(0, NDSP_FORMAT_STEREO_PCM16);
-    ndspChnSetRate(0, this->sampleRate);
-    ndspChnSetInterp(0, NDSP_INTERP_POLYPHASE);
+    u16 format = NDSP_FORMAT_STEREO_PCM16;
+
+    switch (this->channels)
+    {
+        case 1:
+            if (this->bitDepth == 8)
+                format = NDSP_FORMAT_MONO_PCM8;
+            else
+                format = NDSP_FORMAT_MONO_PCM16;
+
+            break;
+        case 2:
+            if (this->bitDepth == 8)
+                format = NDSP_FORMAT_STEREO_PCM8;
+            else
+                format = NDSP_FORMAT_STEREO_PCM16;
+
+            break;
+        default:
+            break;
+    }
+
+    ndspInterpType interpType = (this->channels == 2) ?
+                                    NDSP_INTERP_POLYPHASE : NDSP_INTERP_LINEAR;
+
+    ndspChnSetFormat(this->channel, format);
+    ndspChnSetRate(this->channel, this->sampleRate);
+    ndspChnSetInterp(this->channel, interpType);
 }
 
 void Source::ResumeAtomic()
 {
     if (this->valid && !this->IsPlaying())
-        ndspChnSetPaused(0, false);
+        ndspChnSetPaused(this->channel, false);
 }
 
 bool Source::Play()
 {
-    if (!ndspChnIsPaused(0))
+    if (!ndspChnIsPaused(this->channel))
         return this->valid = this->PlayAtomic();
 
     this->ResumeAtomic();
@@ -55,7 +151,7 @@ bool Source::Play()
 
 void Source::Pause()
 {
-    ndspChnSetPaused(0, true);
+    ndspChnSetPaused(this->channel, true);
 }
 
 bool Source::IsPlaying() const
@@ -63,7 +159,7 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    return ndspChnIsPlaying(0) == true;
+    return this->sources[this->index].status == NDSP_WBUF_PLAYING;
 }
 
 void Source::Stop()
@@ -71,7 +167,8 @@ void Source::Stop()
     if (!this->valid)
         return;
 
-    ndspChnWaveBufClear(0);
+    ndspChnWaveBufClear(this->channel);
+    this->TeardownAtomic();
 }
 
 bool Source::IsFinished() const
@@ -82,5 +179,5 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    return ndspChnIsPlaying(0) == false;
+    return ndspChnIsPlaying(this->channel) == false;
 }
