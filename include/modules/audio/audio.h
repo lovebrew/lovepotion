@@ -1,7 +1,6 @@
 #pragma once
 
 #include "objects/source/source.h"
-#include "objects/source/pool/pool.h"
 
 namespace love
 {
