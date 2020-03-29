@@ -8,11 +8,6 @@ using namespace love;
 void Audio::UpdateAudioDriver()
 {}
 
-void Audio::AddSourceToPool(Source * s)
-{
-    this->pool.push_back(s);
-}
-
 std::atomic<bool> THREAD_RUN;
 
 void Threadfunction(void * arg)
@@ -55,9 +50,10 @@ Audio::~Audio()
 {
     THREAD_RUN = false;
 
-    ndspExit();
     threadJoin(this->poolThread, U64_MAX);
     threadFree(this->poolThread);
+
+    ndspExit();
 }
 
 void Audio::SetVolume(float volume)

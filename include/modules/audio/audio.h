@@ -56,6 +56,8 @@ namespace love
             float volume = 1.0f;
 
             bool driverInit = false;
+            bool audioInit = false;
+
             AudioDriver driver;
 
             Thread poolThread;

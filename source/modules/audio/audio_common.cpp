@@ -22,6 +22,11 @@ void Audio::FreeChannel(size_t channel)
         Audio::channels[channel] = false;
 }
 
+void Audio::AddSourceToPool(Source * s)
+{
+    this->pool.push_back(s);
+}
+
 float Audio::GetVolume() const
 {
     return this->volume;

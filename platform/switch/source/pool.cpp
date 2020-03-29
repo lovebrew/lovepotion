@@ -7,8 +7,6 @@ AudioPool::MemoryPool AudioPool::audioPool;
 
 bool AudioPool::Initialize()
 {
-    AUDIO_POOL_BASE = memalign(AUDREN_MEMPOOL_ALIGNMENT, AUDIO_POOL_SIZE);
-
     auto block = MemoryBlock::Create((u8 *)AUDIO_POOL_BASE, AUDIO_POOL_SIZE);
 
     if (block)

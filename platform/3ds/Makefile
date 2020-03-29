@@ -47,7 +47,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
-ROMFS		:=	romfs
+#ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 
 APP_TITLE		:= Löve Potion

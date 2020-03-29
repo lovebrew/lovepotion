@@ -462,9 +462,6 @@ function love.run()
             love.update(delta)
         end
 
-        -- TO DO: handle internally
-        love.audio._update()
-
         if love.graphics then
             love.graphics.clear(love.graphics.getBackgroundColor())
 

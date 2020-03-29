@@ -8,7 +8,7 @@
 
 namespace Wrap_Audio
 {
-    int _UpdateAudio(lua_State * L);
+    int _UpdateAudio();
 
     int GetVolume(lua_State * L);
 

@@ -2,8 +2,23 @@
 #include "modules/audio/audio.h"
 
 #include "common/pool.h"
+#include "wrap_audio.h"
 
 using namespace love;
+
+std::atomic<bool> THREAD_RUN;
+
+void Threadfunction(void * arg)
+{
+    auto pool = (std::vector<Source *> *)arg;
+
+    while (THREAD_RUN)
+    {
+        Wrap_Audio::_UpdateAudio();
+
+        svcSleepThread(5000000);
+    }
+}
 
 Audio::Audio()
 {
@@ -20,10 +35,15 @@ Audio::Audio()
     Result ret = audrenInitialize(&config);
 
     if (R_SUCCEEDED(ret))
+    {
+        this->audioInit = true;
         ret = audrvCreate(&this->driver, &config, 2);
+    }
 
     if (R_SUCCEEDED(ret))
         this->driverInit = true;
+
+    AudioPool::AUDIO_POOL_BASE = memalign(AUDREN_MEMPOOL_ALIGNMENT, AudioPool::AUDIO_POOL_SIZE);
 
     int mpid = audrvMemPoolAdd(&this->driver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
     audrvMemPoolAttach(&this->driver, mpid);
@@ -39,6 +59,9 @@ Audio::Audio()
 
     audrvVoiceSetMixFactor(&this->driver, 0, 1.0f, 0, 0);
     audrvVoiceSetMixFactor(&this->driver, 0, 1.0f, 0, 1);
+
+    THREAD_RUN = true;
+    threadCreate(&this->poolThread, Threadfunction, (void *)&this->pool, NULL, 0x8000, 0x2C, -2);
 }
 
 AudioDriver & Audio::GetAudioDriver()
@@ -54,8 +77,16 @@ void Audio::UpdateAudioDriver()
 
 Audio::~Audio()
 {
-    audrvClose(&this->driver);
-    audrenExit();
+    THREAD_RUN = false;
+
+    threadWaitForExit(&this->poolThread);
+    threadClose(&this->poolThread);
+
+    if (this->driverInit)
+        audrvClose(&this->driver);
+
+    if (this->audioInit)
+        audrenExit();
 }
 
 void Audio::SetVolume(float volume)

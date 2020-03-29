@@ -45,7 +45,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include
 
 EXEFS_SRC    := exefs_src
-ROMFS        := romfs
+#ROMFS        := romfs
 
 APP_TITLE		:= Löve Potion
 APP_AUTHOR		:= TurtleP & NotQuiteApex

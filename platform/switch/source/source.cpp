@@ -22,20 +22,37 @@ StaticDataBuffer::~StaticDataBuffer()
     AudioPool::MemoryFree(this->buffer);
 }
 
-void Source::CreateWaveBuffer(waveBuffer * buffer, size_t size, size_t nsamples)
+void Source::CreateWaveBuffer(SoundData * sound)
 {
-    buffer->size = size;
-    buffer->start_sample_offset = this->offsetSamples;
-    buffer->end_sample_offset = nsamples;
+    this->sources[0] = waveBuffer();
+    this->sources[0].start_sample_offset = 0;
+    this->sources[0].size = sound->GetSize();
+    this->sources[0].end_sample_offset = sound->GetSampleCount();
+}
+
+void Source::_PrepareSamples(int samples)
+{
+    this->sources[this->index].end_sample_offset = samples;
+}
+
+void Source::CreateWaveBuffer(Decoder * decoder)
+{
+    // for (int i = 0; i < 2; i++)
+    // {
+    //     this->sources[i] = waveBuffer();
+    //     this->sources[i].start_sample_offset = 0;
+    //     this->sources[i].data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize());
+    // }
+    // this->sources[1].status = NDSP_WBUF_DONE;
 }
 
 void Source::AddWaveBuffer()
 {
-    armDCacheFlush(this->source.data_pcm16, this->staticBuffer->GetSize());
+    armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
-    audrvVoiceStop(&AUDIO_DRIVER, 0);
-    audrvVoiceAddWaveBuf(&AUDIO_DRIVER, 0, &this->source);
-    audrvVoiceStart(&AUDIO_DRIVER, 0);
+    audrvVoiceStop(&AUDIO_DRIVER, this->channel);
+    audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[0]);
+    audrvVoiceStart(&AUDIO_DRIVER, this->channel);
 }
 
 void Source::Reset()
@@ -44,12 +61,12 @@ void Source::Reset()
 void Source::ResumeAtomic()
 {
     if (this->valid && !this->IsPlaying())
-        audrvVoiceSetPaused(&AUDIO_DRIVER, 0, false);
+        audrvVoiceSetPaused(&AUDIO_DRIVER, this->channel, false);
 }
 
 bool Source::Play()
 {
-    if (AUDIO_DRIVER.in_voices[0].state != AudioRendererVoicePlayState_Paused)
+    if (AUDIO_DRIVER.in_voices[this->channel].state != AudioRendererVoicePlayState_Paused)
         return this->valid = this->PlayAtomic();
 
     this->ResumeAtomic();
@@ -62,7 +79,7 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    return (audrvVoiceIsPlaying(&AUDIO_DRIVER, 0) == true);
+    return (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == true);
 }
 
 void Source::Stop()
@@ -70,7 +87,7 @@ void Source::Stop()
     if (!this->valid)
         return;
 
-    audrvVoiceStop(&AUDIO_DRIVER, 0);
+    audrvVoiceStop(&AUDIO_DRIVER, this->channel);
 }
 
 bool Source::IsFinished() const
@@ -81,8 +98,22 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    return (audrvVoiceIsPlaying(&AUDIO_DRIVER, 0) == false);
+    return (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == false);
 }
 
 void Source::Pause()
+{}
+
+void Source::SetLooping(bool shouldLoop)
+{
+    this->looping = shouldLoop;
+
+    for (int i = 0; i < this->buffers; i ++)
+        this->sources[i].is_looping = shouldLoop;
+}
+
+void Source::SetVolume(float volume)
+{}
+
+void Source::FreeBuffer()
 {}

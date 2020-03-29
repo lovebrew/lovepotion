@@ -5,7 +5,7 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Audio>(Module::M_AUDIO))
 
-int Wrap_Audio::_UpdateAudio(lua_State * L)
+int Wrap_Audio::_UpdateAudio()
 {
     instance()->UpdateAudioDriver();
 
@@ -107,7 +107,6 @@ int Wrap_Audio::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
-        { "_update",       _UpdateAudio },
         { "getVolume",     GetVolume    },
         { "newSource",     NewSource    },
         { "pause",         Pause        },
