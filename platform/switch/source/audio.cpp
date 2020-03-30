@@ -2,21 +2,25 @@
 #include "modules/audio/audio.h"
 
 #include "common/pool.h"
-#include "wrap_audio.h"
 
 using namespace love;
 
 std::atomic<bool> THREAD_RUN;
 
-void Threadfunction(void * arg)
+Mutex g_audrvMutex;
+AudioDriver g_AudioDriver;
+
+void AudioThreadUpdate(void * arg)
 {
     auto pool = (std::vector<Source *> *)arg;
 
     while (THREAD_RUN)
     {
-        Wrap_Audio::_UpdateAudio();
+        mutexLock(&g_audrvMutex);
 
-        svcSleepThread(5000000);
+        audrvUpdate(&g_AudioDriver);
+
+        mutexUnlock(&g_audrvMutex);
     }
 }
 
@@ -33,46 +37,33 @@ Audio::Audio()
     };
 
     Result ret = audrenInitialize(&config);
-
-    if (R_SUCCEEDED(ret))
-    {
-        this->audioInit = true;
-        ret = audrvCreate(&this->driver, &config, 2);
-    }
+    this->audioInit = R_SUCCEEDED(ret);
+    ret = audrvCreate(&g_AudioDriver, &config, 2);
 
     if (R_SUCCEEDED(ret))
         this->driverInit = true;
 
     AudioPool::AUDIO_POOL_BASE = memalign(AUDREN_MEMPOOL_ALIGNMENT, AudioPool::AUDIO_POOL_SIZE);
 
-    int mpid = audrvMemPoolAdd(&this->driver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
-    audrvMemPoolAttach(&this->driver, mpid);
+    int mpid = audrvMemPoolAdd(&g_AudioDriver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
+    audrvMemPoolAttach(&g_AudioDriver, mpid);
 
     static const u8 sink_channels[] = { 0, 1 };
-    audrvDeviceSinkAdd(&this->driver, AUDREN_DEFAULT_DEVICE_NAME, 2, sink_channels);
+    audrvDeviceSinkAdd(&g_AudioDriver, AUDREN_DEFAULT_DEVICE_NAME, 2, sink_channels);
 
-    audrvUpdate(&this->driver);
+    audrvUpdate(&g_AudioDriver);
     audrenStartAudioRenderer();
 
-    audrvVoiceInit(&this->driver, 0, 1, PcmFormat_Int16, 48000);
-    audrvVoiceSetDestinationMix(&this->driver, 0, AUDREN_FINAL_MIX_ID);
-
-    audrvVoiceSetMixFactor(&this->driver, 0, 1.0f, 0, 0);
-    audrvVoiceSetMixFactor(&this->driver, 0, 1.0f, 0, 1);
+    mutexInit(&g_audrvMutex);
 
     THREAD_RUN = true;
-    threadCreate(&this->poolThread, Threadfunction, (void *)&this->pool, NULL, 0x8000, 0x2C, -2);
-}
 
-AudioDriver & Audio::GetAudioDriver()
-{
-    return this->driver;
-}
+    u32 priority = 0;
+    svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
+    ret = threadCreate(&this->poolThread, AudioThreadUpdate, (void *)&this->pool, NULL, 0x8000, priority - 1, 0);
 
-void Audio::UpdateAudioDriver()
-{
-    if (this->driverInit)
-        audrvUpdate(&this->driver);
+    if (R_SUCCEEDED(ret))
+        ret = threadStart(&this->poolThread);
 }
 
 Audio::~Audio()
@@ -83,7 +74,7 @@ Audio::~Audio()
     threadClose(&this->poolThread);
 
     if (this->driverInit)
-        audrvClose(&this->driver);
+        audrvClose(&g_AudioDriver);
 
     if (this->audioInit)
         audrenExit();
@@ -91,6 +82,10 @@ Audio::~Audio()
 
 void Audio::SetVolume(float volume)
 {
+    mutexLock(&g_audrvMutex);
+
     for (int i = 0; i < 2; i++)
-        audrvMixSetVolume(&this->driver, i, volume);
+        audrvMixSetVolume(&g_AudioDriver, i, volume);
+
+    mutexUnlock(&g_audrvMutex);
 }

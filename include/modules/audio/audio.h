@@ -38,10 +38,6 @@ namespace love
 
             float GetVolume() const;
 
-            AudioDriver & GetAudioDriver();
-
-            void UpdateAudioDriver();
-
             void AddSourceToPool(Source * source);
 
             static std::array<bool, 24> channels;
@@ -58,10 +54,11 @@ namespace love
             bool driverInit = false;
             bool audioInit = false;
 
-            AudioDriver driver;
-
             Thread poolThread;
 
             std::vector<Source *> pool;
     };
 }
+
+extern AudioDriver g_AudioDriver;
+extern Mutex g_audrvMutex;

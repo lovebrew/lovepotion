@@ -2,6 +2,7 @@
 
 namespace AudioPool
 {
+    // Initialize BASE during audio module load?
     extern void * AUDIO_POOL_BASE;
     inline u64 AUDIO_POOL_SIZE = 0x1000000;
 
@@ -19,7 +20,7 @@ namespace AudioPool
         u8 * base;
         u64 size;
 
-        static MemoryBlock * Create(u8 * base, u64 size)
+        static MemoryBlock * Create(u8 * base, size_t size)
         {
             MemoryBlock * block = (MemoryBlock *)malloc(sizeof(MemoryBlock));
 
@@ -100,8 +101,8 @@ namespace AudioPool
 
         void CoalesceRight(MemoryBlock * block);
 
-        bool Allocate(MemoryChunk & chunk, u64 size);
-        void DeAllocate(u8 * address, u64 size);
+        bool Allocate(MemoryChunk & chunk, size_t size);
+        void DeAllocate(u8 * address, size_t size);
 
         void Destroy()
         {

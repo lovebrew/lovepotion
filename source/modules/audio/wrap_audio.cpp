@@ -5,13 +5,6 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Audio>(Module::M_AUDIO))
 
-int Wrap_Audio::_UpdateAudio()
-{
-    instance()->UpdateAudioDriver();
-
-    return 0;
-}
-
 int Wrap_Audio::GetVolume(lua_State * L)
 {
     lua_pushnumber(L, instance()->GetVolume());

@@ -56,13 +56,13 @@ void AudioPool::MemoryPool::CoalesceRight(MemoryBlock * block)
     }
 }
 
-bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, u64 size)
+bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
 {
-    u64 alignMask = (AUDREN_BUFFER_ALIGNMENT - 1);
+    size_t alignMask = (AUDREN_BUFFER_ALIGNMENT - 1);
 
     if (size && alignMask)
     {
-        if (size > std::numeric_limits<uint32_t>::max())
+        if (size > UINTPTR_MAX - alignMask)
             return false;
 
         size = (size + alignMask) &~ alignMask;
@@ -72,7 +72,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, u64 size)
     {
         auto address = block->base;
 
-        u64 waste = (u64)address & alignMask;
+        size_t waste = (size_t)address & alignMask;
 
         if (waste > 0)
             waste = alignMask + 1 - waste;
@@ -82,7 +82,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, u64 size)
 
         address += waste;
 
-        u64 blockSize = block->size - waste;
+        size_t blockSize = block->size - waste;
 
         if (blockSize < size)
             continue;
@@ -122,7 +122,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, u64 size)
     return false;
 }
 
-void AudioPool::MemoryPool::DeAllocate(u8 * chunkAddress, u64 chunkSize)
+void AudioPool::MemoryPool::DeAllocate(u8 * chunkAddress, size_t chunkSize)
 {
     bool done = false;
 

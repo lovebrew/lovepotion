@@ -27,7 +27,7 @@ function NX:draw()
     love.graphics.polygon("fill", self.background[2])
 
     love.graphics.setColor(COLORS.WHITE)
-    love.graphics.draw(TEXTURES.logo, (width - TEXTURES.logo:getWidth()) / 2, (height - TEXTURES.logo:getHeight()) / 2)
+    love.graphics.draw(TEXTURES.logo, (width - TEXTURES.logo:getWidth()) / 2 - 35, (height - TEXTURES.logo:getHeight()) / 2)
 
     local rotation = math.rad(-26)
     local ox, oy = 70, 64

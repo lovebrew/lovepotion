@@ -7,13 +7,17 @@
 using namespace love;
 
 #define AudioModule() (Module::GetInstance<Audio>(Module::M_AUDIO))
-#define AUDIO_DRIVER  AudioModule()->GetAudioDriver()
+
+#define AUDIO_DRIVER  g_AudioDriver
+#define AUDIO_MUTEX   g_audrvMutex
 
 StaticDataBuffer::StaticDataBuffer(void * data, size_t size)
 {
+    LOG("make a static buffer")
     std::pair<void *, size_t> buff = AudioPool::MemoryAlign(size);
+    LOG("done, copy that")
     memcpy(buff.first, data, size);
-
+    LOG("store into static buffer")
     this->buffer = {(s16 *)buff.first, buff.second};
 }
 
@@ -48,25 +52,43 @@ void Source::CreateWaveBuffer(Decoder * decoder)
 
 void Source::AddWaveBuffer()
 {
-    armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
+    mutexLock(&AUDIO_MUTEX);
 
     audrvVoiceStop(&AUDIO_DRIVER, this->channel);
-    audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[0]);
+    audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[this->index]);
     audrvVoiceStart(&AUDIO_DRIVER, this->channel);
+
+    mutexUnlock(&AUDIO_MUTEX);
 }
 
 void Source::Reset()
-{}
+{
+    mutexLock(&AUDIO_MUTEX);
+
+    audrvVoiceInit(&g_AudioDriver, this->channel, 1, PcmFormat_Int16, this->sampleRate);
+    audrvVoiceSetDestinationMix(&g_AudioDriver, this->channel, AUDREN_FINAL_MIX_ID);
+
+    audrvVoiceSetMixFactor(&g_AudioDriver, this->channel, 1.0f, 0, 0);
+    audrvVoiceSetMixFactor(&g_AudioDriver, this->channel, 1.0f, 0, 1);
+
+    mutexUnlock(&AUDIO_MUTEX);
+}
 
 void Source::ResumeAtomic()
 {
     if (this->valid && !this->IsPlaying())
+    {
+        mutexLock(&AUDIO_MUTEX);
+
         audrvVoiceSetPaused(&AUDIO_DRIVER, this->channel, false);
+
+        mutexUnlock(&AUDIO_MUTEX);
+    }
 }
 
 bool Source::Play()
 {
-    if (AUDIO_DRIVER.in_voices[this->channel].state != AudioRendererVoicePlayState_Paused)
+    if (!this->IsPlaying())
         return this->valid = this->PlayAtomic();
 
     this->ResumeAtomic();
@@ -79,7 +101,13 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    return (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == true);
+    mutexLock(&AUDIO_MUTEX);
+
+    bool playing = (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == true);
+
+    mutexUnlock(&AUDIO_MUTEX);
+
+    return playing;
 }
 
 void Source::Stop()
@@ -87,7 +115,11 @@ void Source::Stop()
     if (!this->valid)
         return;
 
+    mutexLock(&AUDIO_MUTEX);
+
     audrvVoiceStop(&AUDIO_DRIVER, this->channel);
+
+    mutexUnlock(&AUDIO_MUTEX);
 }
 
 bool Source::IsFinished() const
@@ -98,7 +130,13 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    return (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == false);
+    mutexLock(&AUDIO_MUTEX);
+
+    bool finished = (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == false);
+
+    mutexUnlock(&AUDIO_MUTEX);
+
+    return finished;
 }
 
 void Source::Pause()

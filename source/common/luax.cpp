@@ -588,7 +588,6 @@ void Luax::PushType(lua_State * L, love::Type & type, Object * object)
         return Luax::RawNewType(L, type, object);
     }
 
-    LOG("Attempting to push Object %s!", type.GetName());
     lua_Number key = Luax::ComputerObjectKey(L, object);
 
     // push using that key
