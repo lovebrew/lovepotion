@@ -118,7 +118,7 @@ namespace love
 
             void Present();
 
-            void AdjustColor(const Color & in, Color * out);
+            Color AdjustColor(const Color & in);
 
             void AdjustColor(Color * in);
 

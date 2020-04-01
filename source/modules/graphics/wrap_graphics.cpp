@@ -193,16 +193,15 @@ int Wrap_Graphics::GetLineWidth(lua_State * L)
 int Wrap_Graphics::Clear(lua_State * L)
 {
     Color clearColor = { 0, 0, 0, 0 };
-    Color inputColor = clearColor;
 
-    inputColor.r = luaL_checknumber(L, 1);
-    inputColor.g = luaL_checknumber(L, 2);
-    inputColor.b = luaL_checknumber(L, 3);
+    clearColor.r = luaL_checknumber(L, 1);
+    clearColor.g = luaL_checknumber(L, 2);
+    clearColor.b = luaL_checknumber(L, 3);
+    clearColor.a = luaL_optnumber(L, 4, 1.0f);
 
-    instance()->AdjustColor(inputColor, &clearColor);
     instance()->CURRENT_DEPTH = 0.0f;
 
-
+    instance()->AdjustColor(&clearColor);
     WINDOW_MODULE()->Clear(&clearColor);
 
     return 0;
@@ -479,22 +478,24 @@ int Wrap_Graphics::GetBackgroundColor(lua_State * L)
 
 int Wrap_Graphics::SetBackgroundColor(lua_State * L)
 {
-    Color background = instance()->GetBackgroundColor();
+    Color background = {0.0f, 0.0f, 0.0f, 0.0f};
 
     if (lua_istable(L, 1))
     {
-        for (int i = 1; i <= 3; i++)
+        for (int i = 1; i <= 4; i++)
             lua_rawgeti(L, 1, i);
 
-        background.r = luaL_checknumber(L, -3);
-        background.g = luaL_checknumber(L, -2);
-        background.b = luaL_checknumber(L, -1);
+        background.r = luaL_checknumber(L, -4);
+        background.g = luaL_checknumber(L, -3);
+        background.b = luaL_checknumber(L, -2);
+        background.a = luaL_optnumber(L, -1, 1.0f);
     }
     else if (lua_isnumber(L, 1))
     {
         background.r = luaL_checknumber(L, 1);
         background.g = luaL_checknumber(L, 2);
         background.b = luaL_checknumber(L, 3);
+        background.a = luaL_optnumber(L, 4, 1.0f);
     }
 
     instance()->SetBackgroundColor(background);
@@ -516,7 +517,7 @@ int Wrap_Graphics::GetColor(lua_State * L)
 
 int Wrap_Graphics::SetColor(lua_State * L)
 {
-    Color foreground = instance()->GetColor();
+    Color foreground = {0.0f, 0.0f, 0.0f, 0.0f};
 
     if (lua_istable(L, 1))
     {
