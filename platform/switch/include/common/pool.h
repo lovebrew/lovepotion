@@ -9,7 +9,7 @@ namespace AudioPool
     struct MemoryChunk
     {
         u8 * address;
-        u64 size;
+        size_t size;
     };
 
     struct MemoryBlock
@@ -18,11 +18,11 @@ namespace AudioPool
         MemoryBlock * next;
 
         u8 * base;
-        u64 size;
+        size_t size;
 
         static MemoryBlock * Create(u8 * base, size_t size)
         {
-            MemoryBlock * block = (MemoryBlock *)malloc(sizeof(MemoryBlock));
+            auto block = (MemoryBlock *)malloc(sizeof(MemoryBlock));
 
             if (!block)
                 return nullptr;
@@ -63,9 +63,9 @@ namespace AudioPool
         void DeleteBlock(MemoryBlock * block)
         {
             auto prev = block->prev;
-            auto next = block->next;
-
             auto &pNext = (prev) ? prev->next : first;
+
+            auto next = block->next;
             auto &nPrev = (next) ? next->prev : last;
 
             pNext = next;
@@ -74,29 +74,30 @@ namespace AudioPool
             free(block);
         }
 
-        void InsertBefore(MemoryBlock * a, MemoryBlock * b)
+        void InsertBefore(MemoryBlock * b, MemoryBlock * p)
         {
-            auto prev = a->prev;
-            auto &pNext = prev ? prev->next : first;
+            auto prev = b->prev;
+            auto &pNext = (prev) ? prev->next : first;
 
-            a->prev = b;
-            b->next = a;
-            b->prev = prev;
+            b->prev = p;
+            p->next = b;
 
-            pNext = b;
+            p->prev = prev;
+
+            pNext = p;
         }
 
-        void InsertAfter(MemoryBlock * a, MemoryBlock * b)
+        void InsertAfter(MemoryBlock * b, MemoryBlock * n)
         {
-            auto next = a->next;
-            auto &nPrev = next ? next->prev : last;
+            auto next = b->next;
+            auto &nPrev = (next) ? next->prev : last;
 
-            a->next = b;
-            b->prev = a;
+            b->next = n;
+            n->prev = b;
 
-            b->next = next;
+            n->next = next;
 
-            nPrev = b;
+            nPrev = n;
         }
 
         void CoalesceRight(MemoryBlock * block);

@@ -120,6 +120,8 @@ namespace love
 
             void AdjustColor(const Color & in, Color * out);
 
+            void AdjustColor(Color * in);
+
             std::vector<DisplayState> states;
 
             static inline bool GetConstant(const std::string & in, DrawMode & out) {

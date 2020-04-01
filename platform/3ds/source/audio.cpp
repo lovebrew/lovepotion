@@ -5,9 +5,6 @@
 
 using namespace love;
 
-void Audio::UpdateAudioDriver()
-{}
-
 std::atomic<bool> THREAD_RUN;
 
 void Threadfunction(void * arg)

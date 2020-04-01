@@ -4,6 +4,7 @@
 using namespace love;
 
 #define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
+#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 int Wrap_Graphics::Rectangle(lua_State * L)
 {
@@ -201,16 +202,15 @@ int Wrap_Graphics::Clear(lua_State * L)
     instance()->AdjustColor(inputColor, &clearColor);
     instance()->CURRENT_DEPTH = 0.0f;
 
-    auto windowModule = Module::GetInstance<Window>(Module::M_WINDOW);
-    windowModule->Clear(&clearColor);
+
+    WINDOW_MODULE()->Clear(&clearColor);
 
     return 0;
 }
 
 int Wrap_Graphics::Present(lua_State * L)
 {
-    auto windowModule = Module::GetInstance<Window>(Module::M_WINDOW);
-    windowModule->Present();
+    WINDOW_MODULE()->Present();
 
     instance()->GetFont()->ClearBuffer();
 
@@ -526,14 +526,14 @@ int Wrap_Graphics::SetColor(lua_State * L)
         foreground.r = luaL_checknumber(L, -4);
         foreground.g = luaL_checknumber(L, -3);
         foreground.b = luaL_checknumber(L, -2);
-        foreground.a = luaL_optnumber(L, -1, 1);
+        foreground.a = luaL_optnumber(L, -1, 1.0f);
     }
     else if (lua_isnumber(L, 1))
     {
         foreground.r = luaL_checknumber(L, 1);
         foreground.g = luaL_checknumber(L, 2);
         foreground.b = luaL_checknumber(L, 3);
-        foreground.a = luaL_optnumber(L, 4, 1);
+        foreground.a = luaL_optnumber(L, 4, 1.0f);
     }
 
     instance()->SetColor(foreground);

@@ -16,6 +16,7 @@ static uint64_t wangHash64(uint64_t key)
     key = (key + (key << 2)) + (key << 4); // key * 21
     key = key ^ (key >> 28);
     key = key + (key << 31);
+
     return key;
 }
 

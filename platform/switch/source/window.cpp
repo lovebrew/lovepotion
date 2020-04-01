@@ -17,12 +17,14 @@ Window::Window() : window(nullptr),
     {
         {1280, 720}
     };
+
+    this->targets.reserve(1);
 }
 
 Window::~Window()
 {
-    if (this->targets[0])
-        SDL_DestroyRenderer(this->targets[0]);
+    if (this->targets.back())
+        SDL_DestroyRenderer(this->targets.back());
 
     if (this->window)
         SDL_DestroyWindow(this->window);
@@ -34,7 +36,7 @@ Window::~Window()
 
 Renderer * Window::GetRenderer()
 {
-    return this->targets[0];
+    return this->targets.back();
 }
 
 void Window::SetScreen(size_t screen)
@@ -49,14 +51,12 @@ bool Window::SetMode()
 
     u32 HW_ACCEL = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
 
-    this->targets = {
-        SDL_CreateRenderer(this->window, 0, HW_ACCEL)
-    };
+    this->targets.push_back(SDL_CreateRenderer(this->window, 0, HW_ACCEL));
 
-    if (!this->targets[0])
+    if (!this->targets.back())
         return false;
 
-    SDL_SetRenderDrawBlendMode(this->targets[0], SDL_BLENDMODE_BLEND);
+    SDL_SetRenderDrawBlendMode(this->targets.back(), SDL_BLENDMODE_BLEND);
 
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
 
@@ -68,17 +68,22 @@ bool Window::SetMode()
 void Window::Clear(Color * color)
 {
     // clear the background to the specified color
-    SDL_SetRenderDrawColor(this->GetRenderer(), color->r, color->g, color->b, color->a);
-    SDL_RenderClear(this->GetRenderer());
+    SDL_SetRenderDrawColor(this->targets.back(), color->r, color->g, color->b, SDL_ALPHA_OPAQUE);
+    SDL_RenderClear(this->targets.back());
 
-    // set the blending color for textures n stuff
     auto foreground = this->graphics.Get()->GetColor();
+    LOG("Foreground Color: {%.1f, %.1f, %.1f, %.1f}", foreground.r, foreground.g, foreground.b, foreground.a);
     SDL_SetRenderDrawColor(this->GetRenderer(), foreground.r, foreground.g, foreground.b, foreground.a);
+}
+
+void Window::SetGraphics(Graphics * g)
+{
+    this->graphics.Set(g);
 }
 
 void Window::Present()
 {
-    SDL_RenderPresent(this->GetRenderer());
+    SDL_RenderPresent(this->targets.back());
 }
 
 std::vector<std::pair<int, int>> & Window::GetFullscreenModes()

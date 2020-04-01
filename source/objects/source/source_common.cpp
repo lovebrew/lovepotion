@@ -153,12 +153,12 @@ bool Source::PlayAtomic()
     this->PrepareAtomic();
 
     bool success = false;
-    LOG("Flush data_pcm16")
+
     if (this->sourceType != TYPE_STREAM)
         FlushAudioCache(this->sources[this->index].data_pcm16, this->staticBuffer->GetSize());
-    LOG("Add WaveBuffer")
+
     this->AddWaveBuffer();
-    LOG("Done")
+
     success = true;
 
     if (this->sourceType == TYPE_STREAM)

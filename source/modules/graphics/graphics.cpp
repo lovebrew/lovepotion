@@ -24,6 +24,7 @@ Graphics::~Graphics()
 
 Color Graphics::GetColor()
 {
+    this->AdjustColor(&this->states.back().foreground);
     return this->states.back().foreground;
 }
 
@@ -34,6 +35,7 @@ void Graphics::SetColor(const Color & color)
 
 Color Graphics::GetBackgroundColor()
 {
+    this->AdjustColor(&this->states.back().background);
     return this->states.back().background;
 }
 
@@ -122,17 +124,17 @@ void Graphics::Print(const std::vector<Font::ColoredString> & strings, Font * fo
 
 void Graphics::Rectangle(const std::string & mode, float x, float y, float width, float height)
 {
-    Primitives::Rectangle(mode, x, y, width, height, 0, 0, this->GetLineWidth(), this->GetColor());
+    Primitives::Rectangle(mode, x, y, width, height, 0, 0, this->GetLineWidth(), this->states.back().foreground);
 }
 
 void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> points)
 {
-    Primitives::Polygon(mode, points, this->GetLineWidth(), this->GetColor());
+    Primitives::Polygon(mode, points, this->GetLineWidth(), this->states.back().foreground);
 }
 
 void Graphics::Line(float startx, float starty, float endx, float endy)
 {
-    Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->GetColor());
+    Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->states.back().foreground);
 }
 
 void Graphics::Reset()
@@ -179,6 +181,20 @@ Font * Graphics::GetFont()
 }
 
 /* End Font */
+
+void Graphics::AdjustColor(Color * in)
+{
+    float mul = 255.0f;
+
+    #if defined(_3DS)
+        mul = 1.0f;
+    #endif
+
+    in->r = std::clamp(in->r, 0.0f, 1.0f) * mul;
+    in->g = std::clamp(in->g, 0.0f, 1.0f) * mul;
+    in->b = std::clamp(in->b, 0.0f, 1.0f) * mul;
+    in->a = std::clamp(in->a, 0.0f, 1.0f) * mul;
+}
 
 void Graphics::AdjustColor(const Color & in, Color * out)
 {

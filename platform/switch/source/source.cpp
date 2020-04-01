@@ -13,17 +13,52 @@ using namespace love;
 
 StaticDataBuffer::StaticDataBuffer(void * data, size_t size)
 {
-    LOG("make a static buffer")
     std::pair<void *, size_t> buff = AudioPool::MemoryAlign(size);
-    LOG("done, copy that")
-    memcpy(buff.first, data, size);
-    LOG("store into static buffer")
-    this->buffer = {(s16 *)buff.first, buff.second};
+
+    if (buff.first)
+    {
+        memcpy(buff.first, data, size);
+
+        this->buffer = {(s16 *)buff.first, buff.second};
+    }
 }
 
 StaticDataBuffer::~StaticDataBuffer()
 {
     AudioPool::MemoryFree(this->buffer);
+}
+
+bool Source::_Update()
+{
+    int index = 0;
+    if (this->sources[index].state != AudioDriverWaveBufState_Done)
+    {
+        if (this->sources[index + 1].state == AudioDriverWaveBufState_Done)
+            index = 1;
+    }
+
+    if (this->sources[index].state == AudioDriverWaveBufState_Done)
+    {
+        int decoded = this->StreamAtomic(this->sources[index].data_pcm16, this->decoder.Get());
+
+        if (decoded == 0)
+            return false;
+
+        int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
+
+        this->sources[index].end_sample_offset = samples;
+        this->sources[index].size = decoded;
+
+        mutexLock(&AUDIO_MUTEX);
+
+        audrvVoiceStop(&AUDIO_DRIVER, this->channel);
+        audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[this->index]);
+        audrvVoiceStart(&AUDIO_DRIVER, this->channel);
+
+        mutexUnlock(&AUDIO_MUTEX);
+    }
+
+    return true;
 }
 
 void Source::CreateWaveBuffer(SoundData * sound)
@@ -41,13 +76,13 @@ void Source::_PrepareSamples(int samples)
 
 void Source::CreateWaveBuffer(Decoder * decoder)
 {
-    // for (int i = 0; i < 2; i++)
-    // {
-    //     this->sources[i] = waveBuffer();
-    //     this->sources[i].start_sample_offset = 0;
-    //     this->sources[i].data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize());
-    // }
-    // this->sources[1].status = NDSP_WBUF_DONE;
+    for (int i = 0; i < 2; i++)
+    {
+        this->sources[i] = waveBuffer();
+        this->sources[i].start_sample_offset = 0;
+        this->sources[i].data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize()).first;
+    }
+    this->sources[1].state = AudioDriverWaveBufState_Done;
 }
 
 void Source::AddWaveBuffer()
@@ -65,11 +100,13 @@ void Source::Reset()
 {
     mutexLock(&AUDIO_MUTEX);
 
-    audrvVoiceInit(&g_AudioDriver, this->channel, 1, PcmFormat_Int16, this->sampleRate);
-    audrvVoiceSetDestinationMix(&g_AudioDriver, this->channel, AUDREN_FINAL_MIX_ID);
+    audrvVoiceInit(&AUDIO_DRIVER, this->channel, 1, PcmFormat_Int16, this->sampleRate);
+    audrvVoiceSetDestinationMix(&AUDIO_DRIVER, this->channel, AUDREN_FINAL_MIX_ID);
 
-    audrvVoiceSetMixFactor(&g_AudioDriver, this->channel, 1.0f, 0, 0);
-    audrvVoiceSetMixFactor(&g_AudioDriver, this->channel, 1.0f, 0, 1);
+    audrvVoiceSetMixFactor(&AUDIO_DRIVER, this->channel, 1.0f, 0, 0);
+    audrvVoiceSetMixFactor(&AUDIO_DRIVER, this->channel, 1.0f, 0, 1);
+
+    audrvVoiceStart(&AUDIO_DRIVER, this->channel);
 
     mutexUnlock(&AUDIO_MUTEX);
 }

@@ -33,9 +33,7 @@ namespace love
 
             void Present();
 
-            void SetGraphics(Graphics * g) {
-                this->graphics.Set(g);
-            }
+            void SetGraphics(Graphics * g);
 
             // End Löve2D Functions
 

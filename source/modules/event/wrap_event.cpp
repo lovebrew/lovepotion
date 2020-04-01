@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "modules/event/wrap_event.h"
 
-#include "wrap_Event_lua.h"
+#include "wrap_event_lua.h"
 
 using namespace love;
 

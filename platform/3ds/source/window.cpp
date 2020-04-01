@@ -35,6 +35,11 @@ Window::~Window()
     this->open = false;
 }
 
+void Window::SetGraphics(Graphics * g)
+{
+    this->graphics.Set(g);
+}
+
 bool Window::SetMode()
 {
     this->targets =

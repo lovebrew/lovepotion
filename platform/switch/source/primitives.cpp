@@ -5,22 +5,22 @@ using namespace love;
 
 #include <SDL2_gfxPrimitives.h>
 
-auto window = Module::GetInstance<Window>(Module::M_WINDOW);
+#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Color & color)
 {
     if (mode == "fill")
-        boxRGBA(window->GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), color.r, color.g, color.b, color.a);
+        boxRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), color.r, color.g, color.b, color.a);
     else
-        rectangleRGBA(window->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, color.r, color.g, color.b, color.a);
+        rectangleRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, color.r, color.g, color.b, color.a);
 }
 
 void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Color & color)
 {
     if (mode == "fill")
-        filledCircleRGBA(window->GetRenderer(), x, y, radius, color.r, color.g, color.b, color.a);
+        filledCircleRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, color.r, color.g, color.b, color.a);
     else if (mode == "line")
-        circleRGBA(window->GetRenderer(), x, y, radius, color.r, color.g, color.b, color.a);
+        circleRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, color.r, color.g, color.b, color.a);
 }
 
 void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> points, float lineWidth, const Color & color)
@@ -38,14 +38,14 @@ void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> 
     yCoords[points.size()] = points[0].y;
 
     if (mode == "fill")
-        filledPolygonRGBA(window->GetRenderer(), xCoords, yCoords, points.size(), color.r, color.g, color.b, color.a);
+        filledPolygonRGBA(WINDOW_MODULE()->GetRenderer(), xCoords, yCoords, points.size(), color.r, color.g, color.b, color.a);
     else if (mode == "line")
-        polygonRGBA(window->GetRenderer(), xCoords, yCoords, points.size(), color.r, color.g, color.b, color.a);
+        polygonRGBA(WINDOW_MODULE()->GetRenderer(), xCoords, yCoords, points.size(), color.r, color.g, color.b, color.a);
 }
 
 void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Color & color)
 {
-    thickLineRGBA(window->GetRenderer(), x1, y1, x2, y2, lineWidth, color.r, color.g, color.b, color.a);
+    thickLineRGBA(WINDOW_MODULE()->GetRenderer(), x1, y1, x2, y2, lineWidth, color.r, color.g, color.b, color.a);
 }
 
 void Primitives::Scissor(bool enabled, float x, float y, float width, float height)
@@ -53,7 +53,7 @@ void Primitives::Scissor(bool enabled, float x, float y, float width, float heig
     SDL_Rect clip({x, y, width, height});
 
     if (!enabled)
-        SDL_RenderSetClipRect(window->GetRenderer(), NULL);
+        SDL_RenderSetClipRect(WINDOW_MODULE()->GetRenderer(), NULL);
     else
-        SDL_RenderSetClipRect(window->GetRenderer(), &clip);
+        SDL_RenderSetClipRect(WINDOW_MODULE()->GetRenderer(), &clip);
 }

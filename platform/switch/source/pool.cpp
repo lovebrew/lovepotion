@@ -12,6 +12,7 @@ bool AudioPool::Initialize()
     if (block)
     {
         audioPool.AddBlock(block);
+
         return true;
     }
 
@@ -42,17 +43,17 @@ void AudioPool::MemoryPool::CoalesceRight(MemoryBlock * block)
     auto current = block->base + block->size;
     auto next = block->next;
 
-    for (auto nxt = next; nxt; nxt = next)
+    for (auto n = next; n; n = next)
     {
-        next = nxt->next;
+        next = n->next;
 
-        if (nxt->base != current)
+        if (n->base != current)
             break;
 
-        block->size += nxt->size;
-        current += nxt->size;
+        block->size += n->size;
+        current += n->size;
 
-        AudioPool::MemoryPool::DeleteBlock(nxt);
+        AudioPool::MemoryPool::DeleteBlock(n);
     }
 }
 
@@ -87,6 +88,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
         if (blockSize < size)
             continue;
 
+        // found space
         chunk.address = address;
         chunk.size = size;
 
