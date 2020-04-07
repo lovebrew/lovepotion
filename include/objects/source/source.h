@@ -4,6 +4,8 @@
 #include "objects/sounddata/sounddata.h"
 #include "common/stringmap.h"
 
+#include "modules/audio/pool/pool.h"
+
 namespace love
 {
     class StaticDataBuffer : public Object
@@ -46,8 +48,9 @@ namespace love
                 UNIT_MAX_ENUM
             };
 
-            Source(SoundData * sound);
-            Source(Decoder * decoder);
+            Source(Pool * pool, SoundData * sound);
+            Source(Pool * pool, Decoder * decoder);
+
             Source(const Source & other);
 
             ~Source();
@@ -63,7 +66,6 @@ namespace love
             bool IsPlaying() const;
 
             bool IsFinished() const;
-
 
             Type GetType() const;
 
@@ -105,6 +107,10 @@ namespace love
 
             bool Update();
 
+            void AddWaveBuffer(size_t index);
+            void StopAtomic();
+
+
         protected:
             Type sourceType;
 
@@ -116,15 +122,16 @@ namespace love
 
             void FreeBuffer();
             bool _Update();
-            void _PrepareSamples(int samples);
-
-            void AddWaveBuffer();
+            void _Prepare(size_t which, size_t decoded);
 
             void PrepareAtomic();
             int StreamAtomic(s16 * buffer, Decoder * decoder);
             bool PlayAtomic();
             void TeardownAtomic();
             void ResumeAtomic();
+            void PauseAtomic();
+
+            Pool * pool = nullptr;
 
             bool valid = false;
 
@@ -151,7 +158,7 @@ namespace love
             waveBuffer sources[DEFAULT_BUFFERS];
 
             bool index = false;
-            int channel = 0;
+            size_t channel = 0;
 
             static StringMap<Type, TYPE_MAX_ENUM>::Entry typeEntries[];
             static StringMap<Type, TYPE_MAX_ENUM> types;

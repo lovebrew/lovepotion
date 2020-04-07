@@ -46,15 +46,11 @@ bool Source::_Update()
 
         int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
 
-        this->sources[index].end_sample_offset = samples;
         this->sources[index].size = decoded;
+        this->sources[index].end_sample_offset = samples;
 
         mutexLock(&AUDIO_MUTEX);
-
-        audrvVoiceStop(&AUDIO_DRIVER, this->channel);
-        audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[this->index]);
-        audrvVoiceStart(&AUDIO_DRIVER, this->channel);
-
+        audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[index]);
         mutexUnlock(&AUDIO_MUTEX);
     }
 
@@ -69,8 +65,9 @@ void Source::CreateWaveBuffer(SoundData * sound)
     this->sources[0].end_sample_offset = sound->GetSampleCount();
 }
 
-void Source::_PrepareSamples(int samples)
+void Source::_Prepare(size_t decoded, int samples)
 {
+    this->sources[this->index].size = decoded;
     this->sources[this->index].end_sample_offset = samples;
 }
 
@@ -80,6 +77,7 @@ void Source::CreateWaveBuffer(Decoder * decoder)
     {
         this->sources[i] = waveBuffer();
         this->sources[i].start_sample_offset = 0;
+        this->sources[i].size = 0;
         this->sources[i].data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize()).first;
     }
     this->sources[1].state = AudioDriverWaveBufState_Done;
@@ -89,7 +87,6 @@ void Source::AddWaveBuffer()
 {
     mutexLock(&AUDIO_MUTEX);
 
-    audrvVoiceStop(&AUDIO_DRIVER, this->channel);
     audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[this->index]);
     audrvVoiceStart(&AUDIO_DRIVER, this->channel);
 
@@ -105,8 +102,6 @@ void Source::Reset()
 
     audrvVoiceSetMixFactor(&AUDIO_DRIVER, this->channel, 1.0f, 0, 0);
     audrvVoiceSetMixFactor(&AUDIO_DRIVER, this->channel, 1.0f, 0, 1);
-
-    audrvVoiceStart(&AUDIO_DRIVER, this->channel);
 
     mutexUnlock(&AUDIO_MUTEX);
 }

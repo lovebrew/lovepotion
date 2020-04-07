@@ -1,8 +1,6 @@
 #include "common/runtime.h"
 #include "objects/source/source.h"
 
-#include "modules/audio/audio.h"
-
 using namespace love;
 
 StaticDataBuffer::StaticDataBuffer(void * data, size_t size)
@@ -20,32 +18,31 @@ StaticDataBuffer::~StaticDataBuffer()
 
 bool Source::_Update()
 {
-    int index = 0;
-    if (this->sources[index].status != NDSP_WBUF_DONE)
+    int which = 0;
+    if (this->sources[0].status != NDSP_WBUF_DONE)
     {
-        if (this->sources[index + 1].status == NDSP_WBUF_DONE)
-            index = 1;
+        if (this->sources[1].status == NDSP_WBUF_DONE)
+            which = 1;
     }
 
-    if (this->sources[index].status == NDSP_WBUF_DONE)
+    if (this->sources[which].status == NDSP_WBUF_DONE)
     {
-        int decoded = this->StreamAtomic(this->sources[index].data_pcm16, this->decoder.Get());
+        int decoded = this->StreamAtomic(this->sources[which].data_pcm16, this->decoder.Get());
 
         if (decoded == 0)
             return false;
 
-        int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
-
-        this->sources[index].nsamples = samples;
-        ndspChnWaveBufAdd(this->channel, &this->sources[index]);
+        this->_Prepare(which, decoded);
+        ndspChnWaveBufAdd(this->channel, &this->sources[which]);
     }
 
     return true;
 }
 
-void Source::_PrepareSamples(int samples)
+void Source::_Prepare(size_t which, size_t decoded)
 {
-    this->sources[this->index].nsamples = samples;
+    if (which >= 0)
+        this->sources[which].nsamples = (int)((decoded / this->channels) / (this->bitDepth / 8));
 }
 
 void Source::FreeBuffer()
@@ -82,9 +79,10 @@ void Source::SetLooping(bool shouldLoop)
         this->sources[i].looping = shouldLoop;
 }
 
-void Source::AddWaveBuffer()
+void Source::AddWaveBuffer(size_t which)
 {
-    ndspChnWaveBufAdd(this->channel, &this->sources[this->index]);
+    if (which >= 0)
+        ndspChnWaveBufAdd(this->channel, &this->sources[which]);
 }
 
 void Source::SetVolume(float volume)
@@ -139,9 +137,17 @@ void Source::ResumeAtomic()
         ndspChnSetPaused(this->channel, false);
 }
 
+void Source::PauseAtomic()
+{
+    if (this->valid)
+        ndspChnSetPaused(this->channel, true);
+}
+
 bool Source::Play()
 {
-    if (!ndspChnIsPaused(this->channel))
+    bool wasPlaying;
+
+    if (!this->IsPlaying())
         return this->valid = this->PlayAtomic();
 
     this->ResumeAtomic();
@@ -151,7 +157,19 @@ bool Source::Play()
 
 void Source::Pause()
 {
-    ndspChnSetPaused(this->channel, true);
+    thread::Lock lock = pool->Lock();
+
+    if (pool->IsPlaying(this))
+        this->PauseAtomic();
+}
+
+void Source::StopAtomic()
+{
+    if (!this->valid)
+        return;
+
+    this->TeardownAtomic();
+    ndspChnWaveBufClear(this->channel);
 }
 
 bool Source::IsPlaying() const
@@ -159,7 +177,7 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    return this->sources[this->index].status == NDSP_WBUF_PLAYING;
+    return ndspChnIsPlaying(this->channel) == true;
 }
 
 void Source::Stop()
@@ -167,8 +185,8 @@ void Source::Stop()
     if (!this->valid)
         return;
 
-    ndspChnWaveBufClear(this->channel);
-    this->TeardownAtomic();
+    thread::Lock lock = pool->Lock();
+    this->pool->ReleaseSource(this);
 }
 
 bool Source::IsFinished() const

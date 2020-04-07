@@ -55,10 +55,9 @@ namespace love
             bool audioInit = false;
 
             Thread poolThread;
-
-            std::vector<Source *> pool;
+            Pool * pool;
     };
 }
 
 extern AudioDriver g_AudioDriver;
-extern Mutex g_audrvMutex;
+// extern Mutex g_audrvMutex;

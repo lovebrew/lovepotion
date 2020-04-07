@@ -1,5 +1,6 @@
 #include "common/runtime.h"
 #include "modules/audio/audio.h"
+#include "modules/audio/pool/pool.h"
 
 using namespace love;
 
@@ -22,11 +23,6 @@ void Audio::FreeChannel(size_t channel)
         Audio::channels[channel] = false;
 }
 
-void Audio::AddSourceToPool(Source * s)
-{
-    this->pool.push_back(s);
-}
-
 float Audio::GetVolume() const
 {
     return this->volume;
@@ -34,12 +30,12 @@ float Audio::GetVolume() const
 
 Source * Audio::NewSource(Decoder * decoder)
 {
-    return new Source(decoder);
+    return new Source(this->pool, decoder);
 }
 
 Source * Audio::NewSource(SoundData * sound)
 {
-    return new Source(sound);
+    return new Source(this->pool, sound);
 }
 
 bool Audio::Play(Source * source)

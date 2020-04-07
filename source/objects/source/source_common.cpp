@@ -1,36 +1,35 @@
 #include "common/runtime.h"
-#include "objects/source/source.h"
 
-#include "modules/audio/audio.h"
+#include "objects/source/source.h"
+#include "modules/audio/pool/pool.h"
 
 using namespace love;
 
 love::Type Source::type("Source", &Object::type);
 
-#define AudioModule() (Module::GetInstance<Audio>(Module::M_AUDIO))
-
-Source::Source(SoundData * sound) : sourceType(Source::TYPE_STATIC),
-                                    sampleRate(sound->GetSampleRate()),
-                                    channels(sound->GetChannelCount()),
-                                    bitDepth(sound->GetBitDepth())
+Source::Source(Pool * pool, SoundData * sound) : sourceType(Source::TYPE_STATIC),
+                                                 pool(pool),
+                                                 sampleRate(sound->GetSampleRate()),
+                                                 channels(sound->GetChannelCount()),
+                                                 bitDepth(sound->GetBitDepth())
 {
     this->CreateWaveBuffer(sound);
     this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()), Acquire::NORETAIN);
-    this->channel = AudioModule()->GetOpenChannel();
 }
 
-Source::Source(Decoder * decoder) : sourceType(Source::TYPE_STREAM),
-                                    sampleRate(decoder->GetSampleRate()),
-                                    channels(decoder->GetChannelCount()),
-                                    bitDepth(decoder->GetBitDepth()),
-                                    decoder(decoder),
-                                    buffers(DEFAULT_BUFFERS)
+Source::Source(Pool * pool, Decoder * decoder) : sourceType(Source::TYPE_STREAM),
+                                                 pool(pool),
+                                                 sampleRate(decoder->GetSampleRate()),
+                                                 channels(decoder->GetChannelCount()),
+                                                 bitDepth(decoder->GetBitDepth()),
+                                                 decoder(decoder),
+                                                 buffers(DEFAULT_BUFFERS)
 {
     this->CreateWaveBuffer(decoder);
-    this->channel = AudioModule()->GetOpenChannel();
 }
 
 Source::Source(const Source & other) : sourceType(other.sourceType),
+                                       pool(other.pool),
                                        valid(false),
                                        volume(other.volume),
                                        looping(other.looping),
@@ -52,19 +51,12 @@ Source::Source(const Source & other) : sourceType(other.sourceType),
             this->CreateWaveBuffer(this->decoder);
         }
     }
-    else
-        AudioModule()->AddSourceToPool(this);
-
-    this->channel = AudioModule()->GetOpenChannel();
 }
 
 Source::~Source()
 {
     this->Stop();
-
     this->FreeBuffer();
-
-    AudioModule()->FreeChannel(this->channel);
 }
 
 bool Source::Update()
@@ -99,6 +91,7 @@ void Source::TeardownAtomic()
             break;
         case TYPE_STREAM:
             this->decoder->Rewind();
+            break;
         case TYPE_QUEUE:
         default:
             break;
@@ -121,8 +114,7 @@ void Source::PrepareAtomic()
             if (decoded == 0)
                 break;
 
-            int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
-            this->_PrepareSamples(samples);
+            this->_Prepare(0, decoded);
 
             if (this->decoder->IsFinished())
                 break;
@@ -155,9 +147,9 @@ bool Source::PlayAtomic()
     bool success = false;
 
     if (this->sourceType != TYPE_STREAM)
-        FlushAudioCache(this->sources[this->index].data_pcm16, this->staticBuffer->GetSize());
+        FlushAudioCache(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
-    this->AddWaveBuffer();
+    this->AddWaveBuffer(0);
 
     success = true;
 
@@ -169,7 +161,13 @@ bool Source::PlayAtomic()
         if (!this->IsPlaying())
             success = false;
         else
-            AudioModule()->AddSourceToPool(this);
+        {
+            bool wasPlaying;
+            thread::Lock lock = this->pool->Lock();
+
+            if (!this->pool->AssignSource(this, this->channel, wasPlaying))
+                return valid = false;
+        }
     }
 
     if (!success)

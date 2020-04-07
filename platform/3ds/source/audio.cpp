@@ -2,31 +2,18 @@
 #include "modules/audio/audio.h"
 
 #include "common/exception.h"
+#include "modules/audio/pool/pool.h"
 
 using namespace love;
 
-std::atomic<bool> THREAD_RUN;
-
-void Threadfunction(void * arg)
+std::atomic<bool> THREAD_RUN = false;
+void AudioThreadRunner(void * arg)
 {
-    auto pool = (std::vector<Source *> *)arg;
+    Pool * pool = (Pool *)arg;
 
     while (THREAD_RUN)
     {
-        auto iterator = pool->begin();
-
-        while (iterator != pool->end())
-        {
-            if (!(*iterator)->Update())
-            {
-                (*iterator)->Release();
-                iterator = pool->erase(iterator);
-            }
-            else
-                iterator++;
-        }
-
-        /* Sleep for 5ms */
+        pool->Update();
         svcSleepThread(5000000);
     }
 }
@@ -36,11 +23,20 @@ Audio::Audio()
     if (!R_SUCCEEDED(ndspInit()))
         throw love::Exception("Failed to load ndsp. Please make sure your dspfirm.cdc has been dumped properly.");
 
-    s32 priority = 0;
-    svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
+    try
+    {
+        this->pool = new Pool();
+    }
+    catch (love::Exception &)
+    {
+        throw;
+    }
 
     THREAD_RUN = true;
-    this->poolThread = threadCreate(Threadfunction, (void *)&this->pool, 0x8000, priority - 1, 0, false);
+
+    s32 priority = 0;
+    svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
+    this->poolThread = threadCreate(AudioThreadRunner, this->pool, 0x8000, priority - 1, 0, false);
 }
 
 Audio::~Audio()

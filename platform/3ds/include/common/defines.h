@@ -15,8 +15,6 @@
 
 #define FlushAudioCache DSP_FlushDataCache
 
-typedef size_t Mutex;
-
 struct AudioDriver {};
 
 typedef ndspWaveBuf waveBuffer;
