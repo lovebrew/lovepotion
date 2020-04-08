@@ -11,10 +11,6 @@ using love::Rect;
 
 #define MAX_GAMEPADS 4
 
-#define FlushAudioCache armDCacheFlush
-
-typedef AudioDriverWaveBuf waveBuffer;
-
 typedef SDL_Renderer Renderer;
 
 typedef SDL_Window Frame;

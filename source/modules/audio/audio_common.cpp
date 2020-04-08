@@ -2,25 +2,35 @@
 #include "modules/audio/audio.h"
 #include "modules/audio/pool/pool.h"
 
+#include "audiodriver.h"
+
 using namespace love;
 
-std::array<bool, 24> Audio::channels;
+std::atomic<bool> Audio::THREAD_RUN = false;
 
-int Audio::GetOpenChannel()
+Audio::Audio()
 {
-    for (size_t i = 0; i < Audio::channels.size(); i++)
+    try
     {
-        if (!Audio::channels[i])
-            return i;
+        this->pool = new Pool();
+    }
+    catch (love::Exception &)
+    {
+        throw;
     }
 
-    return -1;
+    AudrenDriver::Initialize();
+
+    THREAD_RUN = true;
+    this->_Initialize();
 }
 
-void Audio::FreeChannel(size_t channel)
+Audio::~Audio()
 {
-    if (Audio::channels[channel])
-        Audio::channels[channel] = false;
+    THREAD_RUN = false;
+    this->_Exit();
+
+    AudrenDriver::Exit();
 }
 
 float Audio::GetVolume() const

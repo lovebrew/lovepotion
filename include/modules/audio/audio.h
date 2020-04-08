@@ -13,6 +13,9 @@ namespace love
             Audio();
             ~Audio();
 
+            void _Initialize();
+            void _Exit();
+
             Source * NewSource(SoundData * data);
             Source * NewSource(Decoder * decoder);
 
@@ -38,26 +41,24 @@ namespace love
 
             float GetVolume() const;
 
-            void AddSourceToPool(Source * source);
-
-            static std::array<bool, 24> channels;
-
-            static int GetOpenChannel();
-
-            static void FreeChannel(size_t channel);
-
-            static void ReleaseSource(Source * source, bool stop = true);
+            static std::atomic<bool> THREAD_RUN;
 
         private:
             float volume = 1.0f;
 
-            bool driverInit = false;
-            bool audioInit = false;
-
             Thread poolThread;
             Pool * pool;
+
+            static void AudioThreadRunner(void * arg)
+            {
+                Pool * pool = (Pool *)arg;
+
+                while (THREAD_RUN)
+                {
+                    pool->Update();
+
+                    pool->Sleep();
+                }
+            }
     };
 }
-
-extern AudioDriver g_AudioDriver;
-// extern Mutex g_audrvMutex;

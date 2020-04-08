@@ -1,14 +1,12 @@
 #include "common/runtime.h"
 #include "modules/audio/pool/pool.h"
-#include "modules/audio/audio.h"
+
+#include "audiodriver.h"
 
 using namespace love;
 
-Pool::_Update()
+void Pool::Sleep()
 {
-    mutexLock(&g_audrvMutex);
-    audrvUpdate(&g_AudioDriver);
-    mutexUnlock(&g_audrvMutex);
-
+    AudrenDriver::Update();
     audrenWaitFrame();
 }

@@ -1,8 +1,10 @@
 #include "common/runtime.h"
 #include "objects/source/source.h"
 
-#include "common/pool.h"
+#include "common/audiopool.h"
 #include "modules/audio/audio.h"
+
+#include "audiodriver.h"
 
 using namespace love;
 
@@ -30,28 +32,24 @@ StaticDataBuffer::~StaticDataBuffer()
 
 bool Source::_Update()
 {
-    int index = 0;
-    if (this->sources[index].state != AudioDriverWaveBufState_Done)
+    for (int which = 0; which < this->buffers; which++)
     {
-        if (this->sources[index + 1].state == AudioDriverWaveBufState_Done)
-            index = 1;
-    }
+        if (this->sources[which].state == AudioDriverWaveBufState_Done)
+        {
+            int decoded = this->StreamAtomic(this->sources[which].data_pcm16, this->decoder.Get());
 
-    if (this->sources[index].state == AudioDriverWaveBufState_Done)
-    {
-        int decoded = this->StreamAtomic(this->sources[index].data_pcm16, this->decoder.Get());
+            if (decoded == 0)
+                return false;
 
-        if (decoded == 0)
-            return false;
+            int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
 
-        int samples = (int)((decoded / this->channels) / (this->bitDepth / 8));
+            this->sources[which].size = decoded;
+            this->sources[which].end_sample_offset = samples;
 
-        this->sources[index].size = decoded;
-        this->sources[index].end_sample_offset = samples;
-
-        mutexLock(&AUDIO_MUTEX);
-        audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[index]);
-        mutexUnlock(&AUDIO_MUTEX);
+            AudrenDriver::LockFunction([this, which](AudioDriver * driver) {
+                audrvVoiceAddWaveBuf(driver, this->channel, &this->sources[which]);
+            });
+        }
     }
 
     return true;
@@ -59,23 +57,32 @@ bool Source::_Update()
 
 void Source::CreateWaveBuffer(SoundData * sound)
 {
-    this->sources[0] = waveBuffer();
+    this->sources[0] = _waveBuf();
     this->sources[0].start_sample_offset = 0;
     this->sources[0].size = sound->GetSize();
     this->sources[0].end_sample_offset = sound->GetSampleCount();
 }
 
-void Source::_Prepare(size_t decoded, int samples)
+void Source::_Prepare(size_t which, size_t decoded)
 {
     this->sources[this->index].size = decoded;
-    this->sources[this->index].end_sample_offset = samples;
+    this->sources[this->index].end_sample_offset = (int)((decoded / this->channels) / (this->bitDepth / 8));
+}
+
+void Source::FreeBuffer()
+{
+    if (this->sourceType != TYPE_STATIC)
+    {
+        for (int i = 0; i < this->buffers; i++)
+            AudioPool::MemoryFree(std::make_pair(this->sources[i].data_pcm16, this->sources[i].size));
+    }
 }
 
 void Source::CreateWaveBuffer(Decoder * decoder)
 {
     for (int i = 0; i < 2; i++)
     {
-        this->sources[i] = waveBuffer();
+        this->sources[i] = _waveBuf();
         this->sources[i].start_sample_offset = 0;
         this->sources[i].size = 0;
         this->sources[i].data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize()).first;
@@ -83,49 +90,33 @@ void Source::CreateWaveBuffer(Decoder * decoder)
     this->sources[1].state = AudioDriverWaveBufState_Done;
 }
 
-void Source::AddWaveBuffer()
+void Source::AddWaveBuffer(size_t which)
 {
-    mutexLock(&AUDIO_MUTEX);
-
-    audrvVoiceAddWaveBuf(&AUDIO_DRIVER, this->channel, &this->sources[this->index]);
-    audrvVoiceStart(&AUDIO_DRIVER, this->channel);
-
-    mutexUnlock(&AUDIO_MUTEX);
+    AudrenDriver::LockFunction([this, which](AudioDriver * driver) {
+        audrvVoiceAddWaveBuf(driver, this->channel, &this->sources[which]);
+        audrvVoiceStart(driver, this->channel);
+    });
 }
 
 void Source::Reset()
 {
-    mutexLock(&AUDIO_MUTEX);
+    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+        audrvVoiceInit(driver, this->channel, 1, PcmFormat_Int16, this->sampleRate);
+        audrvVoiceSetDestinationMix(driver, this->channel, AUDREN_FINAL_MIX_ID);
 
-    audrvVoiceInit(&AUDIO_DRIVER, this->channel, 1, PcmFormat_Int16, this->sampleRate);
-    audrvVoiceSetDestinationMix(&AUDIO_DRIVER, this->channel, AUDREN_FINAL_MIX_ID);
-
-    audrvVoiceSetMixFactor(&AUDIO_DRIVER, this->channel, 1.0f, 0, 0);
-    audrvVoiceSetMixFactor(&AUDIO_DRIVER, this->channel, 1.0f, 0, 1);
-
-    mutexUnlock(&AUDIO_MUTEX);
+        audrvVoiceSetMixFactor(driver, this->channel, 1.0f, 0, 0);
+        audrvVoiceSetMixFactor(driver, this->channel, 1.0f, 0, 1);
+    });
 }
 
 void Source::ResumeAtomic()
 {
     if (this->valid && !this->IsPlaying())
     {
-        mutexLock(&AUDIO_MUTEX);
-
-        audrvVoiceSetPaused(&AUDIO_DRIVER, this->channel, false);
-
-        mutexUnlock(&AUDIO_MUTEX);
+        AudrenDriver::LockFunction([this](AudioDriver * driver) {
+            audrvVoiceSetPaused(driver, this->channel, false);
+        });
     }
-}
-
-bool Source::Play()
-{
-    if (!this->IsPlaying())
-        return this->valid = this->PlayAtomic();
-
-    this->ResumeAtomic();
-
-    return this->valid = true;
 }
 
 bool Source::IsPlaying() const
@@ -133,25 +124,13 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    mutexLock(&AUDIO_MUTEX);
+    bool playing;
 
-    bool playing = (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == true);
-
-    mutexUnlock(&AUDIO_MUTEX);
+    AudrenDriver::LockFunction([this, &playing](AudioDriver * driver) {
+        playing = (audrvVoiceIsPlaying(driver, this->channel) == true);
+    });
 
     return playing;
-}
-
-void Source::Stop()
-{
-    if (!this->valid)
-        return;
-
-    mutexLock(&AUDIO_MUTEX);
-
-    audrvVoiceStop(&AUDIO_DRIVER, this->channel);
-
-    mutexUnlock(&AUDIO_MUTEX);
 }
 
 bool Source::IsFinished() const
@@ -162,28 +141,39 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    mutexLock(&AUDIO_MUTEX);
+    bool finished;
 
-    bool finished = (audrvVoiceIsPlaying(&AUDIO_DRIVER, this->channel) == false);
-
-    mutexUnlock(&AUDIO_MUTEX);
+    AudrenDriver::LockFunction([this, &finished](AudioDriver * driver) {
+        finished = (audrvVoiceIsPlaying(driver, this->channel) == false);
+    });
 
     return finished;
 }
 
-void Source::Pause()
-{}
-
-void Source::SetLooping(bool shouldLoop)
+void Source::StopAtomic()
 {
-    this->looping = shouldLoop;
+    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+        if (!this->valid)
+            return;
 
-    for (int i = 0; i < this->buffers; i ++)
-        this->sources[i].is_looping = shouldLoop;
+        this->TeardownAtomic();
+        audrvVoiceStop(driver, this->channel);
+    });
+}
+
+void Source::PauseAtomic()
+{
+    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+        if (this->valid)
+            audrvVoiceSetPaused(driver, this->channel, true);
+    });
 }
 
 void Source::SetVolume(float volume)
-{}
+{
+    AudrenDriver::LockFunction([this, volume](AudioDriver * driver) {
+        audrvVoiceSetVolume(driver, this->channel, volume);
+    });
 
-void Source::FreeBuffer()
-{}
+    this->volume = volume;
+}

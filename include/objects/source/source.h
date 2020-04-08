@@ -6,6 +6,16 @@
 
 #include "modules/audio/pool/pool.h"
 
+#if defined(_3DS)
+    typedef ndspWaveBuf _waveBuf;
+    #define LOVE_SetBufferLooping(waveBuf, loop) ((waveBuf).looping = (loop))
+    #define FlushAudioCache DSP_FlushDataCache
+#elif defined (__SWITCH__)
+    typedef AudioDriverWaveBuf _waveBuf;
+    #define LOVE_SetBufferLooping(waveBuf, loop) ((waveBuf).is_looping = (loop))
+    #define FlushAudioCache armDCacheFlush
+#endif
+
 namespace love
 {
     class StaticDataBuffer : public Object
@@ -121,8 +131,10 @@ namespace love
             void CreateWaveBuffer(Decoder * decoder);
 
             void FreeBuffer();
+
             bool _Update();
             void _Prepare(size_t which, size_t decoded);
+            void _SetLooping(bool shouldLoop);
 
             void PrepareAtomic();
             int StreamAtomic(s16 * buffer, Decoder * decoder);
@@ -130,6 +142,8 @@ namespace love
             void TeardownAtomic();
             void ResumeAtomic();
             void PauseAtomic();
+
+            int GetLastIndex();
 
             Pool * pool = nullptr;
 
@@ -154,8 +168,7 @@ namespace love
 
             int buffers = 0;
 
-            s16 * audioBuffers[DEFAULT_BUFFERS];
-            waveBuffer sources[DEFAULT_BUFFERS];
+            _waveBuf sources[DEFAULT_BUFFERS];
 
             bool index = false;
             size_t channel = 0;

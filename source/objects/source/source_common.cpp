@@ -91,6 +91,7 @@ void Source::TeardownAtomic()
             break;
         case TYPE_STREAM:
             this->decoder->Rewind();
+            this->CreateWaveBuffer(this->decoder);
             break;
         case TYPE_QUEUE:
         default:
@@ -109,7 +110,7 @@ void Source::PrepareAtomic()
             break;
         case TYPE_STREAM:
         {
-            int decoded = this->StreamAtomic(this->sources[this->index].data_pcm16, this->decoder.Get());
+            int decoded = this->StreamAtomic(this->sources[0].data_pcm16, this->decoder.Get());
 
             if (decoded == 0)
                 break;
@@ -140,6 +141,22 @@ int Source::StreamAtomic(s16 * buffer, Decoder * decoder)
     return decoded;
 }
 
+bool Source::Play()
+{
+    thread::Lock lock = this->pool->Lock();
+
+    bool wasPlaying;
+    if (!this->pool->AssignSource(this, this->channel, wasPlaying))
+        return valid = false;
+
+    if (!this->IsPlaying())
+        return this->valid = this->PlayAtomic();
+
+    this->ResumeAtomic();
+
+    return this->valid = true;
+}
+
 bool Source::PlayAtomic()
 {
     this->PrepareAtomic();
@@ -160,14 +177,6 @@ bool Source::PlayAtomic()
 
         if (!this->IsPlaying())
             success = false;
-        else
-        {
-            bool wasPlaying;
-            thread::Lock lock = this->pool->Lock();
-
-            if (!this->pool->AssignSource(this, this->channel, wasPlaying))
-                return valid = false;
-        }
     }
 
     if (!success)
@@ -180,6 +189,31 @@ bool Source::PlayAtomic()
         this->offsetSamples = 0;
 
     return success;
+}
+
+void Source::Stop()
+{
+    if (!this->valid)
+        return;
+
+    thread::Lock lock = pool->Lock();
+    this->pool->ReleaseSource(this);
+}
+
+void Source::Pause()
+{
+    thread::Lock lock = pool->Lock();
+
+    if (pool->IsPlaying(this))
+        this->PauseAtomic();
+}
+
+void Source::SetLooping(bool shouldLoop)
+{
+    this->looping = shouldLoop;
+
+    if (this->sourceType == TYPE_STATIC)
+        LOVE_SetBufferLooping(this->sources[0], shouldLoop);
 }
 
 Source * Source::Clone()

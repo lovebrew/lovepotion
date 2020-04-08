@@ -3,20 +3,20 @@
 
 using namespace love::thread;
 
-Mutex::Mutex()
+love::thread::Mutex::Mutex()
 {
     LOVE_mutexInit(&this->mutex);
 }
 
-Mutex::~Mutex()
+love::thread::Mutex::~Mutex()
 {}
 
-void Mutex::Lock()
+void love::thread::Mutex::Lock()
 {
     LOVE_mutexLock(&this->mutex);
 }
 
-void Mutex::Unlock()
+void love::thread::Mutex::Unlock()
 {
     LOVE_mutexUnlock(&this->mutex);
 }

@@ -16,7 +16,7 @@ MutexRef::operator Mutex * () const
     return this->mutex;
 }
 
-Mutex * MutexRef::operator-> () const
+love::thread::Mutex * MutexRef::operator-> () const
 {
     return this->mutex;
 }

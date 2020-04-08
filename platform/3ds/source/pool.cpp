@@ -3,10 +3,12 @@
 #include "objects/source/source.h"
 #include "modules/audio/pool/pool.h"
 
+#include <unistd.h>
+
 using namespace love;
 
 void Pool::Sleep()
 {
     // all we have to do
-    svcSleepThread(5000000);
+    svcSleepThread(SLEEP_TIME);
 }

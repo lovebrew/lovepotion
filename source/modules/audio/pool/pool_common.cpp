@@ -44,8 +44,8 @@ bool Pool::AssignSource(Source * source, size_t & channel, bool & wasPlaying)
 
     if (this->available.empty())
         return false;
-
     channel = this->available.front();
+
     this->available.pop();
 
     this->playing.insert(std::make_pair(source, channel));

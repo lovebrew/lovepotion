@@ -13,12 +13,6 @@
 
 #define GetMasterVolume
 
-#define FlushAudioCache DSP_FlushDataCache
-
-struct AudioDriver {};
-
-typedef ndspWaveBuf waveBuffer;
-
 typedef struct _vibe {
     float amp_low;
     float amp_high;

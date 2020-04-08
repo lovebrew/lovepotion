@@ -3,9 +3,9 @@
 #include "common/threads/lock.h"
 
 #if defined (_3DS)
-    typedef ndspCallback POOL_CALLBACK;
+    #define SLEEP_TIME 5000000
 #elif defined (__SWITCH__)
-    typedef ThreadFunc POOL_CALLBACK;
+    #define SLEEP_TIME 0
 #endif
 
 namespace love
