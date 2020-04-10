@@ -2,6 +2,8 @@
 
 #include "objects/source/source.h"
 
+#define AUDIO_THREAD_STACK_SIZE 0x8000
+
 namespace love
 {
     class Audio : public Module

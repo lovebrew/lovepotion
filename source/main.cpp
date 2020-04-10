@@ -54,7 +54,9 @@ DoneAction Run_Love_Potion(int & retval)
 
 int main(int argc, char * argv[])
 {
-    Logger::Initialize(1);
+    #ifdef DEBUG
+        Logger::Initialize();
+    #endif
 
     std::string path;
     if (argc > 0)

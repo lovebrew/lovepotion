@@ -5,6 +5,8 @@
 
 using namespace love;
 
+#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
+
 Font::Font(const std::string & path, float size) : size(size),
                                                    texture(nullptr)
 {
@@ -42,44 +44,38 @@ FontHandle Font::LoadFromPath(const std::string & path)
 
     if (type == PlSharedFontType_Total)
         return TTF_OpenFont(path.c_str(), this->size);
-    else
-    {
-        plGetSharedFontByType(&data, type);
-        return TTF_OpenFontRW(SDL_RWFromMem(data.address, data.size), 1, this->size);
-    }
+
+    plGetSharedFontByType(&data, type);
+
+    SDL_RWops * ops = SDL_RWFromMem(data.address, data.size);
+    return TTF_OpenFontRW(ops, 1, this->size);
 }
 
-void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float * limit, const Color & color)
+std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & color)
 {
-    // if (strlen(strings[0].string) == 0)
-    //     return;
+    const char * str = line.c_str();
 
-    // SDL_Surface * temp = nullptr;
+    int width;
+    int height;
 
-    // if (limit != nullptr)
-    //     temp = TTF_RenderUTF8_Blended_Wrapped(this->font, string, {color.r, color.g, color.b, color.a}, *limit);
-    // else
-    //     temp = TTF_RenderUTF8_Blended(this->font, string, {color.r, color.g, color.b, color.a});
+    SDL_Surface * temp = TTF_RenderUTF8_Blended(this->font, str, {color.r, color.g, color.b, color.a});
+    SDL_Texture * lTexture = SDL_CreateTextureFromSurface(WINDOW_MODULE()->GetRenderer(), temp);
 
-    // auto window = Module::GetInstance<Window>(Module::M_WINDOW);
-    // this->texture = SDL_CreateTextureFromSurface(window->GetRenderer(), temp);
+    SDL_FreeSurface(temp);
 
-    // SDL_FreeSurface(temp);
+    SDL_QueryTexture(lTexture, NULL, NULL, &width, &height);
 
-    // int width, height = 0;
-    // SDL_QueryTexture(this->texture, nullptr, nullptr, &width, &height);
+    SDL_Rect source({0, 0, width, height});
+    SDL_Rect destin({(int)round(args.x + offset.first), (int)round(args.y + offset.second), (int)ceil(width), (int)ceil(height)});
 
-    // SDL_Rect source({0, 0, width, height});
-    // SDL_Rect destin({(int)round(args.x), (int)round(args.y), (int)ceil(width), (int)ceil(height)});
+    SDL_SetTextureBlendMode(lTexture, SDL_BLENDMODE_BLEND);
 
-    // SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
+    SDL_SetTextureColorMod(lTexture, color.r, color.g, color.b);
+    SDL_SetTextureAlphaMod(lTexture, color.a);
 
-    // SDL_SetTextureColorMod(texture, color.r, color.g, color.b);
-    // SDL_SetTextureAlphaMod(texture, color.a);
+    SDL_RenderCopyEx(WINDOW_MODULE()->GetRenderer(), lTexture, &source, &destin, args.r, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
 
-    // SDL_RenderCopyEx(window->GetRenderer(), this->texture, &source, &destin, args.r, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
-
-    // SDL_DestroyTexture(this->texture);
+    return std::pair(width, height);
 }
 
 float Font::GetSize()

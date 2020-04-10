@@ -3,6 +3,12 @@
 #include "common/exception.h"
 #include "common/mmath.h"
 
+#if defined (_3DS)
+    #define FONT_DEFAULT_SIZE 22.5f;
+#elif defined (__SWITCH__)
+    #define FONT_DEFAULT_SIZE 14.0f;
+#endif
+
 namespace love
 {
     class Font : public Object
@@ -16,7 +22,7 @@ namespace love
 
             static love::Type type;
 
-            static constexpr float DEFAULT_SIZE = 22.5f;
+            static constexpr float DEFAULT_SIZE = FONT_DEFAULT_SIZE;
 
             Font(const std::string & path, float size = DEFAULT_SIZE);
             Font(float size = DEFAULT_SIZE);

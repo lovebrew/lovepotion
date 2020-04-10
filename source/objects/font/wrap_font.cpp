@@ -1,9 +1,12 @@
 #include "common/runtime.h"
 #include "objects/font/wrap_font.h"
+#include "modules/graphics/graphics.h"
 
 using namespace love;
 
 love::Type love::Font::type("Font", &Object::type);
+
+#define GRAPHICS_MODULE() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 
 int Wrap_Font::GetWidth(lua_State * L)
 {
@@ -34,7 +37,9 @@ Font * Wrap_Font::CheckFont(lua_State * L, int index)
 void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::ColoredString> & strings)
 {
     Font::ColoredString coloredString;
-    coloredString.color = {1, 1, 1, 1};
+
+    // Adjust the color by returning it as a ref from the default
+    coloredString.color = GRAPHICS_MODULE()->AdjustColor({1, 1, 1, 1});
 
     if (lua_istable(L, index))
     {
@@ -54,6 +59,9 @@ void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::C
                 coloredString.color.b = luaL_checknumber(L, -2);
                 coloredString.color.a = luaL_optnumber(L, -1, 1);
 
+                // Adjust the color we set here by using its ptr value
+                GRAPHICS_MODULE()->AdjustColor(&coloredString.color);
+
                 lua_pop(L, 4);
             }
             else
@@ -70,7 +78,6 @@ void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::C
         coloredString.string = luaL_checkstring(L, index);
         strings.push_back(coloredString);
     }
-
 }
 
 int Wrap_Font::Register(lua_State * L)

@@ -5,30 +5,20 @@
 
 #pragma once
 
-class Logger
+#include "common/threads/lock.h"
+
+namespace Logger
 {
-    public:
-        static void Initialize(bool active = 0);
+    void Initialize();
 
-        static void Exit();
+    void Exit();
 
-        static bool IsEnabled();
+    void LogOutput(const char * func, size_t line, const char * format, ...);
 
-        static FILE * GetFile();
-
-    private:
-        static inline FILE * m_file = nullptr;
-        static inline bool m_enabled = false;
-};
-
-/*
-** {Function Name}:{Line}
-** {Resolved printf stuff}
-** {Newline}
-** {Newline}
-*/
+    inline FILE * m_file = nullptr;
+    inline bool m_enabled = false;
+    static love::thread::MutexRef m_mutex;
+}
 
 #define LOG(format, ...) \
-    if (Logger::IsEnabled()) \
-        fprintf(Logger::GetFile(), "%s:%d:\n" format "\n\n", __PRETTY_FUNCTION__, __LINE__, ## __VA_ARGS__); \
-        fflush(Logger::GetFile());
+    Logger::LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)

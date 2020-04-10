@@ -52,6 +52,7 @@ using namespace std::string_literals;
 #include "common/proxy.h"
 #include "common/module.h"
 
+#define DEBUG 1
 #include "common/logger.h"
 #include "common/luax.h"
 

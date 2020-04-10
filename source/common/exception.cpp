@@ -32,7 +32,6 @@ Exception::Exception(const char * format, ...)
         delete[] buffer;
     }
 
-    LOG("%s", buffer)
     this->message = std::string(buffer);
     delete[] buffer;
 }

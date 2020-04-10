@@ -1,31 +1,39 @@
 #include "common/runtime.h"
 
-void Logger::Initialize(bool active)
+using namespace love;
+
+void Logger::Initialize()
 {
-    if (!active)
-        return;
-
-    m_file = freopen("love.log", "w", stderr);
-
-    if (!m_file)
-        return;
-
-    m_enabled = active;
+    Logger::m_file = freopen("love.log", "w", stderr);
+    Logger::m_enabled = true;
 }
 
-bool Logger::IsEnabled()
+/*
+** {Function Name}:{Line}
+** {Resolved printf stuff}
+** {Newline}
+** {Start of next Output}
+*/
+void Logger::LogOutput(const char * func, size_t line, const char * format, ...)
 {
-    return m_enabled;
-}
+    if (!m_enabled || !m_file)
+        return;
 
-FILE * Logger::GetFile()
-{
-    return m_file;
+    thread::Lock lock(m_mutex);
+
+    va_list args;
+    va_start(args, format);
+
+    fprintf(m_file, "%s:%zu:\n", func, line);
+    vfprintf(m_file, format, args);
+    fprintf(m_file, "\n\n");
+
+    fflush(m_file);
 }
 
 void Logger::Exit()
 {
-    if (!IsEnabled())
+    if (!m_enabled || !m_file)
         return;
 
     fclose(m_file);

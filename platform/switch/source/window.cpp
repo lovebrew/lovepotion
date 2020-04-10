@@ -71,8 +71,7 @@ void Window::Clear(Color * color)
     SDL_SetRenderDrawColor(this->targets.back(), color->r, color->g, color->b, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(this->targets.back());
 
-    auto foreground = this->graphics.Get()->GetColor();
-    LOG("Foreground Color: {%.1f, %.1f, %.1f, %.1f}", foreground.r, foreground.g, foreground.b, foreground.a);
+    auto foreground = this->graphics->AdjustColor(this->graphics.Get()->GetColor());
     SDL_SetRenderDrawColor(this->GetRenderer(), foreground.r, foreground.g, foreground.b, foreground.a);
 }
 

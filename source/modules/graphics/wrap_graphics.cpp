@@ -295,14 +295,18 @@ int Wrap_Graphics::NewFont(lua_State * L)
     {
         float size = luaL_checknumber(L, 1);
 
-        font = instance()->NewFont(size);
+        Luax::CatchException(L, [&]() {
+            font = instance()->NewFont(size);
+        });
     }
     else
     {
         std::string path = luaL_checkstring(L, 1);
         float size = luaL_optnumber(L, 2, Font::DEFAULT_SIZE);
 
-        font = instance()->NewFont(path, size);
+        Luax::CatchException(L, [&]() {
+            font = instance()->NewFont(path, size);
+        });
     }
 
     Luax::PushType(L, font);

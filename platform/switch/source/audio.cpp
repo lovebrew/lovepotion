@@ -9,7 +9,7 @@ void Audio::_Initialize()
 {
     s32 priority = 0;
     svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
-    Result ret = threadCreate(&this->poolThread, AudioThreadRunner, (void *)&this->pool, NULL, 0x10000, priority - 1, 0);
+    Result ret = threadCreate(&this->poolThread, AudioThreadRunner, this->pool, NULL, AUDIO_THREAD_STACK_SIZE, priority - 1, 0);
 
     if (R_SUCCEEDED(ret))
         threadStart(&this->poolThread);
