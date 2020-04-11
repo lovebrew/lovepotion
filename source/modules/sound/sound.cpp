@@ -30,14 +30,17 @@ DecoderImpl DecoderImplFor()
 }
 
 Sound::~Sound()
-{}
+{
+    MPEGDecoder::Quit();
+}
 
 Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
 {
     std::string ext = data->GetExtension();
     std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
 
-    std::vector<DecoderImpl> possibilities = {
+    std::vector<DecoderImpl> possibilities =
+    {
         DecoderImplFor<VorbisDecoder>(),
         DecoderImplFor<MPEGDecoder>(),
         DecoderImplFor<WaveDecoder>()
@@ -48,6 +51,8 @@ Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
         if (item.Accepts(ext))
             return item.Create(data, bufferSize);
     }
+
+    throw love::Exception("Failed to determine file type.");
 
     return nullptr;
 }
