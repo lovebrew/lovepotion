@@ -5,6 +5,8 @@
 
 using namespace love;
 
+#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
+
 Graphics::Graphics()
 {
     this->states.reserve(10);
@@ -71,6 +73,20 @@ void Graphics::SetDefaultFilter(const Texture::Filter & filter)
 const Texture::Filter & Graphics::GetDefaultFilter() const
 {
     return Texture::defaultFilter;
+}
+
+void Graphics::GetDimensions(int * width, int * height)
+{
+    auto window_sizes = WINDOW_MODULE()->GetFullscreenModes();
+    int currentDisplay = WINDOW_MODULE()->GetDisplay();
+
+    std::pair<int, int> size = window_sizes[currentDisplay];
+
+    if (width)
+        *width = size.first;
+
+    if (height)
+        *height = size.second;
 }
 
 /* Objects */

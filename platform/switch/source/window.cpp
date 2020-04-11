@@ -40,7 +40,10 @@ Renderer * Window::GetRenderer()
 }
 
 void Window::SetScreen(size_t screen)
-{}
+{
+    // this never goes above 1 but.. not risking it
+    this->currentDisplay = std::max(screen - 1, (size_t)0);
+}
 
 bool Window::SetMode()
 {

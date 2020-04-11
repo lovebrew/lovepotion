@@ -68,6 +68,12 @@ namespace Wrap_Graphics
 
     int GetScissor(lua_State * L);
 
+    int GetWidth(lua_State * L);
+
+    int GetHeight(lua_State * L);
+
+    int GetDimensions(lua_State * L);
+
     int SetBackgroundColor(lua_State * L);
 
     int SetColor(lua_State * L);

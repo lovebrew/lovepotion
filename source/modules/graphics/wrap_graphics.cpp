@@ -207,6 +207,47 @@ int Wrap_Graphics::Clear(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::GetWidth(lua_State * L)
+{
+    int width = 0;
+
+    Luax::CatchException(L, [&]() {
+        instance()->GetDimensions(&width, nullptr);
+    });
+
+    lua_pushnumber(L, width);
+
+    return 1;
+}
+
+int Wrap_Graphics::GetHeight(lua_State * L)
+{
+    int height = 0;
+
+    Luax::CatchException(L, [&]() {
+        instance()->GetDimensions(nullptr, &height);
+    });
+
+    lua_pushnumber(L, height);
+
+    return 1;
+}
+
+int Wrap_Graphics::GetDimensions(lua_State * L)
+{
+    int width = 0;
+    int height = 0;
+
+    Luax::CatchException(L, [&]() {
+        instance()->GetDimensions(&width, &height);
+    });
+
+    lua_pushnumber(L, width);
+    lua_pushnumber(L, height);
+
+    return 2;
+}
+
 int Wrap_Graphics::Present(lua_State * L)
 {
     WINDOW_MODULE()->Present();
@@ -556,8 +597,11 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getBackgroundColor", GetBackgroundColor },
         { "getColor",           GetColor           },
         { "getDefaultFilter",   GetDefaultFilter   },
+        { "getDimensions",      GetDimensions      },
         { "getFont",            GetFont            },
+        { "getHeight",          GetHeight          },
         { "getLineWidth",       GetLineWidth       },
+        { "getWidth",           GetWidth           },
         { "line",               Line               },
         { "newFont",            NewFont            },
         { "newImage",           NewImage           },

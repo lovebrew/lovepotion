@@ -76,6 +76,8 @@ namespace love
 
             void SetLineWidth(float width);
 
+            void GetDimensions(int * width, int * height);
+
             void SetScissor(int x, int y, int width, int height);
 
             void SetDefaultFilter(const Texture::Filter & filter);
