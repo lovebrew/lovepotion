@@ -75,6 +75,8 @@ std::pair<float, float> Font::GenerateVertices(const std::string & line, const s
 
     SDL_RenderCopyEx(WINDOW_MODULE()->GetRenderer(), lTexture, &source, &destin, args.r, nullptr, SDL_RendererFlip::SDL_FLIP_NONE);
 
+    SDL_DestroyTexture(lTexture);
+
     return std::pair(width, height);
 }
 
