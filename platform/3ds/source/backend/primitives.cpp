@@ -43,16 +43,8 @@ void Primitives::Circle(const std::string & mode, float x, float y, float radius
 
 void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Color & color)
 {
-    float angle = atan2f(x2 - x1, y2 - y1);
-    angle = C3D_Angle(.25) + angle;
-
-    float dy = lineWidth / 2 * sinf(angle);
-    float dx = lineWidth / 2 * cosf(angle);
-
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
-
-    C2D_DrawTriangle(x1 - dx, y1 - dy, foreground, x1 + dx, y1 + dy, foreground, x2 - dx, y2 - dy, foreground, CUR_DEPTH);
-    C2D_DrawTriangle(x2 - dx, y2 - dy, foreground, x2 + dx, y2 + dy, foreground, x1 + dx, y1 + dy, foreground, CUR_DEPTH);
+    C2D_DrawLine(x1, y1, foreground, x2, y2, foreground, lineWidth, CUR_DEPTH);
 }
 
 void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> points, float lineWidth, const Color & color)
