@@ -36,14 +36,15 @@ BUILD		:=	build
 
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
-				source
+				source \
+				source/backend
 
 DATA		:=	../../source/scripts \
 				source/scripts \
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				include
+				include \
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)

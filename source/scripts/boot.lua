@@ -379,7 +379,9 @@ function love.init()
         "window",
         "graphics",
         "math",
-        "sound"
+        "sound",
+        "system",
+        "touch"
     }
 
     -- Load them all!

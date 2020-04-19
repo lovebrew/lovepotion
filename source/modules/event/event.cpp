@@ -1,6 +1,6 @@
 #include "common/runtime.h"
 #include "common/backend/input.h"
-
+#include "modules/touch/touch.h"
 #include "modules/event/event.h"
 
 void love::Event::Clear()
@@ -25,6 +25,10 @@ void love::Event::Pump()
         vargs.reserve(4);
 
         auto joystickModule = Module::GetInstance<Joystick>(Module::M_JOYSTICK);
+
+        love::Touch * touchModule = nullptr;
+        Touch::TouchInfo touchinfo;
+        const char * text;
 
         switch (event.type)
         {
@@ -53,7 +57,11 @@ void love::Event::Pump()
 
                 vargs.emplace_back(joystickType, gamepad);
                 vargs.emplace_back(event.axis.axis);
-                vargs.emplace_back((float)gamepad->GetGamepadAxis(event.axis.axis));
+
+                if (event.axis.value != -1.0f)
+                    vargs.emplace_back((float)gamepad->GetGamepadAxis(event.axis.axis));
+                else
+                    vargs.emplace_back((float)event.axis.value);
 
                 message = new Message("gamepadaxis", vargs);
 
@@ -61,16 +69,35 @@ void love::Event::Pump()
             }
             case LOVE_TOUCHPRESS:
             case LOVE_TOUCHRELEASE:
+            case LOVE_TOUCHMOVED:
             {
-                vargs.emplace_back((void *)(intptr_t)event.touch.id);
-                vargs.emplace_back((float)event.touch.x);
-                vargs.emplace_back((float)event.touch.y);
-                vargs.emplace_back((float)0.0f);
-                vargs.emplace_back((float)0.0f);
-                vargs.emplace_back((float)1.0f);
+                touchinfo.id = (int64_t)event.touch.id;
+                touchinfo.x = event.touch.x;
+                touchinfo.y = event.touch.y;
+                touchinfo.dx = event.touch.dx;
+                touchinfo.dy = event.touch.dy;
+                touchinfo.pressure = event.touch.pressure;
 
-                message = new Message((event.type == LOVE_TOUCHPRESS) ?
-                         "touchpressed" : "touchreleased", vargs);
+                touchModule = (love::Touch *)Module::GetInstance<love::Touch>(M_TOUCH);
+
+                if (touchModule)
+                    touchModule->OnEvent(event.type, touchinfo);
+
+                vargs.emplace_back((void *)(intptr_t)touchinfo.id);
+                vargs.emplace_back((float)touchinfo.x);
+                vargs.emplace_back((float)touchinfo.y);
+                vargs.emplace_back((float)touchinfo.dx);
+                vargs.emplace_back((float)touchinfo.dy);
+                vargs.emplace_back((float)touchinfo.pressure);
+
+                if (event.type == LOVE_TOUCHPRESS)
+                    text = "touchpressed";
+                else if (event.type == LOVE_TOUCHRELEASE)
+                    text = "touchreleased";
+                else
+                    text = "touchmoved";
+
+                message = new Message(text, vargs);
 
                 break;
             }

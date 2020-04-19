@@ -13,6 +13,9 @@
 
 #define GetMasterVolume
 
+void userAppInit();
+void userAppExit();
+
 typedef struct _vibe {
     float amp_low;
     float amp_high;

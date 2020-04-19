@@ -19,11 +19,14 @@ struct GamePadAxis
     int which;
 };
 
-struct Touch
+struct Finger
 {
-    int id;
-    int x;
-    int y;
+    int64_t id;
+    double x;
+    double y;
+    double dx;
+    double dy;
+    double pressure;
 };
 
 struct LOVE_Event
@@ -33,7 +36,7 @@ struct LOVE_Event
 
     GamePadButton button;
     GamePadAxis axis;
-    Touch touch;
+    Finger touch;
 };
 
 enum LOVE_EventType
@@ -60,6 +63,8 @@ namespace Input
         inline std::array<int, 2> lastTouch =  { 0, 0 };
 
         extern std::unordered_map<std::string, int> buttons;
+
+        inline bool touchHeld = false;
 
         /* Functions */
 

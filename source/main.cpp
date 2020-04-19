@@ -54,11 +54,12 @@ DoneAction Run_Love_Potion(int & retval)
 
 int main(int argc, char * argv[])
 {
-    #ifdef DEBUG
-        Logger::Initialize();
+    #if defined (_3DS)
+        userAppInit();
     #endif
 
     std::string path;
+
     if (argc > 0)
         path = (argc == 2) ? argv[1] : argv[0];
 
@@ -74,7 +75,9 @@ int main(int argc, char * argv[])
             break;
     }
 
-    Logger::Exit();
+    #if defined (_3DS)
+        userAppExit();
+    #endif
 
     return retval;
 }

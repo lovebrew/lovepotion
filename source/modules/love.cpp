@@ -13,7 +13,9 @@
 #include "modules/joystick/wrap_joystick.h"
 #include "modules/math/wrap_mathmodule.h"
 #include "modules/sound/wrap_sound.h"
+#include "modules/system/wrap_system.h"
 #include "modules/timer/wrap_timer.h"
+#include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
 
 #include "boot_lua.h"
@@ -79,7 +81,9 @@ int Love::Initialize(lua_State * L)
         { "love.joystick",    Wrap_Joystick::Register,   },
         { "love.math",        Wrap_Math::Register        },
         { "love.sound",       Wrap_Sound::Register       },
+        { "love.system",      Wrap_System::Register      },
         { "love.timer",       Wrap_Timer::Register,      },
+        { "love.touch",       Wrap_Touch::Register       },
         { "love.window",      Wrap_Window::Register,     },
         { "love.boot",        Boot                       },
         { 0 }
