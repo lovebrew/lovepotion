@@ -31,11 +31,6 @@ extern "C"
         if (R_FAILED(res))
             fatalThrow(res);
 
-        res = nifmInitialize();
-
-        if (R_FAILED(res))
-            fatalThrow(res);
-
         // Initialize everything else
         TTF_Init();
     }
@@ -44,7 +39,6 @@ extern "C"
     {
         // Deinitialize libnx stuff
 
-        nifmExit();
         psmExit();
         setExit();
         accountExit();

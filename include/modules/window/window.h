@@ -48,6 +48,6 @@ namespace love
             bool open;
             StrongReference<Graphics> graphics;
 
-            int currentDisplay;
+            int currentDisplay = 0;
     };
 }
