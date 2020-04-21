@@ -3,7 +3,7 @@
 
 using namespace love;
 
-void Font::Print(const std::vector<ColoredString> & strings, const DrawArgs & args, float * limit, const Color & color)
+void Font::Print(const std::vector<ColoredString> & strings, const DrawArgs & args, float * limit, const Color & blend)
 {
     std::pair<float, float> offset = {0.0f, 0.0f};
     std::string line = "";
@@ -18,7 +18,7 @@ void Font::Print(const std::vector<ColoredString> & strings, const DrawArgs & ar
         {
             if (*currentChar == '\n')
             {
-                std::pair<float, float> size = this->GenerateVertices(line, offset, args, clr);
+                std::pair<float, float> size = this->GenerateVertices(line, offset, args, blend, clr);
 
                 offset.first = 0.0f;
                 offset.second += size.second;
@@ -33,7 +33,7 @@ void Font::Print(const std::vector<ColoredString> & strings, const DrawArgs & ar
 
         if (!line.empty())
         {
-            std::pair<float, float> size = this->GenerateVertices(line, offset, args, clr);
+            std::pair<float, float> size = this->GenerateVertices(line, offset, args, blend, clr);
             offset.first += size.first;
 
             line = "";

@@ -44,7 +44,7 @@ FontHandle Font::LoadFromPath(const std::string & path)
     return NULL;
 }
 
-std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & color)
+std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color)
 {
     C2D_Text text;
     const char * str = line.c_str();

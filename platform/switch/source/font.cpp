@@ -51,14 +51,14 @@ FontHandle Font::LoadFromPath(const std::string & path)
     return TTF_OpenFontRW(ops, 1, this->size);
 }
 
-std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & color)
+std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color)
 {
     const char * str = line.c_str();
 
     int width;
     int height;
 
-    SDL_Surface * temp = TTF_RenderUTF8_Blended(this->font, str, {color.r, color.g, color.b, color.a});
+    SDL_Surface * temp = TTF_RenderUTF8_Blended(this->font, str, {blend.r, blend.g, blend.b, blend.a});
     SDL_Texture * lTexture = SDL_CreateTextureFromSurface(WINDOW_MODULE()->GetRenderer(), temp);
 
     SDL_FreeSurface(temp);

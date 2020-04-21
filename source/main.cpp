@@ -58,6 +58,8 @@ int main(int argc, char * argv[])
         userAppInit();
     #endif
 
+    Logger::Initialize();
+
     std::string path;
 
     if (argc > 0)
@@ -78,6 +80,8 @@ int main(int argc, char * argv[])
     #if defined (_3DS)
         userAppExit();
     #endif
+
+    Logger::Exit();
 
     return retval;
 }

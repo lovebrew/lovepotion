@@ -9,12 +9,13 @@ std::unordered_map<std::string, int> Input::buttons =
     { "leftshoulder", KEY_L }, { "back", KEY_SELECT }, { "start", KEY_START}
 };
 
+std::array<touchPosition, MAX_TOUCH> Input::touches;
+
 bool Input::PollEvent(LOVE_Event * event)
 {
     hidScanInput();
 
-    touchPosition touch;
-    hidTouchRead(&touch);
+    hidTouchRead(&touches[0]);
 
     Input::down = hidKeysDown();
     Input::up = hidKeysUp();
@@ -39,19 +40,21 @@ bool Input::PollEvent(LOVE_Event * event)
 
         event->touch.id = 0;
 
-        event->touch.x = touch.px;
-        event->touch.y = touch.py;
+        event->touch.x = touches[0].px;
+        event->touch.y = touches[0].py;
         event->touch.dx = 0.0f;
         event->touch.dy = 0.0f;
         event->touch.pressure = 1.0f;
 
-        lastTouch[0] = touch.px;
-        lastTouch[1] = touch.py;
+        lastTouch = { touches[0].px, touches[0].py };
 
         return true;
     }
 
-    if (std::abs(lastTouch[0] - touch.px) > 0 || std::abs(lastTouch[1] - touch.py) > 0)
+    u16 dx = std::abs(lastTouch.px - touches[0].px);
+    u16 dy = std::abs(lastTouch.py - touches[0].py);
+
+    if ( dx > 0 || dy > 0)
     {
         if (Input::GetKeyHeld<u32>() & KEY_TOUCH)
         {
@@ -59,13 +62,12 @@ bool Input::PollEvent(LOVE_Event * event)
 
             event->touch.id = 0;
 
-            lastTouch[0] = touch.px;
-            lastTouch[1] = touch.py;
+            lastTouch = { touches[0].px, touches[0].py };
 
-            event->touch.x = touch.px;
-            event->touch.y = touch.py;
-            event->touch.dx = lastTouch[0] - touch.px;
-            event->touch.dy = lastTouch[1] - touch.py;
+            event->touch.x = touches[0].px;
+            event->touch.y = touches[0].py;
+            event->touch.dx = lastTouch.px - touches[0].px;
+            event->touch.dy = lastTouch.py - touches[0].py;
             event->touch.pressure = 1.0f;
 
             touchHeld = true;
@@ -92,8 +94,8 @@ bool Input::PollEvent(LOVE_Event * event)
         event->type = LOVE_TOUCHRELEASE;
 
         event->touch.id = 0;
-        event->touch.x = lastTouch[0];
-        event->touch.y = lastTouch[1];
+        event->touch.x = touches[0].px;
+        event->touch.y = touches[0].py;
         event->touch.dx = 0.0f;
         event->touch.dy = 0.0f;
         event->touch.pressure = 1.0f;

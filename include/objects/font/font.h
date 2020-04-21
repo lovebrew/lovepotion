@@ -45,7 +45,7 @@ namespace love
 
             TextureHandle texture;
 
-            std::pair<float, float> GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & color);
+            std::pair<float, float> GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color);
 
             FontHandle LoadFromPath(const std::string & path);
             float GetScale() { return this->size / 30.0f; }

@@ -49,37 +49,53 @@ enum LOVE_EventType
     LOVE_TOUCHMOVED
 };
 
+#if defined (_3DS)
+    #define MAX_TOUCH 1
+#elif defined (__SWITCH__)
+    #define MAX_TOUCH 16
+#endif
+
 namespace Input
 {
-        bool PollEvent(LOVE_Event * event);
+    bool PollEvent(LOVE_Event * event);
 
-        /* Variables */
+    /* Variables */
 
-        inline std::variant<u32, u64> down = (u32)0;
-        inline std::variant<u32, u64> up   = (u32)0;
-        inline std::variant<u32, u64> held = (u32)0;
+    inline std::variant<u32, u64> down = (u32)0;
+    inline std::variant<u32, u64> up   = (u32)0;
+    inline std::variant<u32, u64> held = (u32)0;
 
-        inline StickPosition lastPosition[2] = { { 0, 0 } };
-        inline std::array<int, 2> lastTouch =  { 0, 0 };
+    inline StickPosition lastPosition[2] = { { 0, 0 } };
 
-        extern std::unordered_map<std::string, int> buttons;
+    inline std::array<touchPosition, MAX_TOUCH> touches;
 
-        inline bool touchHeld = false;
+    typedef struct
+    {
+        int px;
+        int py;
+    } OldTouch;
 
-        /* Functions */
+    inline OldTouch lastTouch = { 0, 0 };
 
-        template <typename T>
-        inline T GetKeyDown() {
-            return std::get<T>(down);
-        }
+    extern std::unordered_map<std::string, int> buttons;
 
-        template <typename T>
-        inline T GetKeyUp() {
-            return std::get<T>(up);
-        }
+    inline bool touchHeld = false;
+    inline u32 prevTouchCount = 0;
 
-        template <typename T>
-        inline T GetKeyHeld() {
-            return std::get<T>(held);
-        }
+    /* Functions */
+
+    template <typename T>
+    inline T GetKeyDown() {
+        return std::get<T>(down);
+    }
+
+    template <typename T>
+    inline T GetKeyUp() {
+        return std::get<T>(up);
+    }
+
+    template <typename T>
+    inline T GetKeyHeld() {
+        return std::get<T>(held);
+    }
 };
