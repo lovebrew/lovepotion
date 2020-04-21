@@ -88,5 +88,60 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
+    JoystickPosition lStick;
+    JoystickPosition rStick;
+
+    if (lStick.dx != lastPosition[0].dx)
+    {
+        event->type = LOVE_GAMEPADAXIS;
+
+        event->axis.axis = "leftx";
+        event->axis.which = 0;
+        event->axis.value = -1.0f;
+
+        lastPosition[0].dx = lStick.dx;
+
+        return true;
+    }
+
+    if (lStick.dy != lastPosition[0].dy)
+    {
+        event->type = LOVE_GAMEPADAXIS;
+
+        event->axis.axis = "lefty";
+        event->axis.which = 0;
+        event->axis.value = -1.0f;
+
+        lastPosition[0].dy = lStick.dy;
+
+        return true;
+    }
+
+    if (rStick.dx != lastPosition[1].dx)
+    {
+        event->type = LOVE_GAMEPADAXIS;
+
+        event->axis.axis = "rightx";
+        event->axis.which = 0;
+        event->axis.value = -1.0f;
+
+        lastPosition[1].dx = rStick.dx;
+
+        return true;
+    }
+
+    if (rStick.dy != lastPosition[1].dy)
+    {
+        event->type = LOVE_GAMEPADAXIS;
+
+        event->axis.axis = "right";
+        event->axis.which = 0;
+        event->axis.value = -1.0f;
+
+        lastPosition[1].dy = rStick.dy;
+
+        return true;
+    }
+
     return false;
 }

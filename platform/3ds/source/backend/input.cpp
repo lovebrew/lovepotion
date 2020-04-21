@@ -54,7 +54,7 @@ bool Input::PollEvent(LOVE_Event * event)
     u16 dx = std::abs(lastTouch.px - touches[0].px);
     u16 dy = std::abs(lastTouch.py - touches[0].py);
 
-    if ( dx > 0 || dy > 0)
+    if (dx > 0 || dy > 0)
     {
         if (Input::GetKeyHeld<u32>() & KEY_TOUCH)
         {
