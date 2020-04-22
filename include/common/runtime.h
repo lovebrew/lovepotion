@@ -34,6 +34,7 @@ enum DoneAction
 #include <stack>
 #include <malloc.h>
 #include <unistd.h>
+#include <list>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -51,6 +52,7 @@ using namespace std::string_literals;
 #include "common/type.h"
 #include "common/proxy.h"
 #include "common/module.h"
+#include "common/colors.h"
 
 #define DEBUG 1
 #include "common/logger.h"

@@ -44,7 +44,8 @@ FontHandle Font::LoadFromPath(const std::string & path)
     return NULL;
 }
 
-std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color)
+std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset,
+                                               const DrawArgs & args, const Color & blend, const Color & color)
 {
     C2D_Text text;
     const char * str = line.c_str();
@@ -57,7 +58,9 @@ std::pair<float, float> Font::GenerateVertices(const std::string & line, const s
 
     C2D_TextGetDimensions(&text, this->GetScale(), this->GetScale(), &width, &height);
 
-    u32 currentColor = C2D_Color32f(color.r, color.g, color.b, color.a);
+    Color res = Colors::ALPHA_BLEND_COLOR(blend, color);
+    u32 currentColor = C2D_Color32f(res.r, res.g, res.b, res.a);
+
     C2D_DrawText(&text, C2D_WithColor, args.x + offset.first, args.y + offset.second, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, currentColor);
 
     return std::pair(width, height);

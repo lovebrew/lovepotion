@@ -9,10 +9,22 @@ std::unordered_map<std::string, int> Input::buttons =
     { "leftshoulder", KEY_L }, { "back", KEY_SELECT }, { "start", KEY_START}
 };
 
-std::array<touchPosition, MAX_TOUCH> Input::touches;
-
 bool Input::PollEvent(LOVE_Event * event)
 {
+    if (!s_inputEvents.empty())
+    {
+        *event = s_inputEvents.front();
+        s_inputEvents.pop_front();
+
+        return true;
+    }
+
+    if (s_hysteresis)
+    {
+        s_hysteresis = false;
+        return false;
+    }
+
     hidScanInput();
 
     hidTouchRead(&touches[0]);
@@ -25,84 +37,92 @@ bool Input::PollEvent(LOVE_Event * event)
     {
         if (Input::GetKeyDown<u32>() & it->second)
         {
-            event->type = LOVE_GAMEPADDOWN;
+            s_inputEvents.emplace_back();
+            auto & e = s_inputEvents.back();
 
-            event->button.name = it->first;
-            event->button.which = 0;
+            e.type = LOVE_GAMEPADDOWN;
 
-            return true;
+            e.button.name = it->first;
+            e.button.which = 0;
         }
     }
 
     if (!touchHeld && (Input::GetKeyDown<u32>() & KEY_TOUCH))
     {
-        event->type = LOVE_TOUCHPRESS;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        event->touch.id = 0;
+        e.type = LOVE_TOUCHPRESS;
 
-        event->touch.x = touches[0].px;
-        event->touch.y = touches[0].py;
-        event->touch.dx = 0.0f;
-        event->touch.dy = 0.0f;
-        event->touch.pressure = 1.0f;
+        e.touch.id = 0;
 
-        lastTouch = { touches[0].px, touches[0].py };
+        e.touch.x = touches[0].px;
+        e.touch.y = touches[0].py;
+        e.touch.dx = 0.0f;
+        e.touch.dy = 0.0f;
+        e.touch.pressure = 1.0f;
 
-        return true;
+        Input::prevTouches[0] = Input::touches[0];
     }
 
-    u16 dx = std::abs(lastTouch.px - touches[0].px);
-    u16 dy = std::abs(lastTouch.py - touches[0].py);
-
-    if (dx > 0 || dy > 0)
+    if (Input::GetKeyHeld<u32>() & KEY_TOUCH)
     {
-        if (Input::GetKeyHeld<u32>() & KEY_TOUCH)
+        float dx = Input::prevTouches[0].px - touches[0].px;
+        float dy = Input::prevTouches[0].py - touches[0].py;
+
+        if (dx != 0 || dy != 0)
         {
-            event->type = LOVE_TOUCHMOVED;
+            s_inputEvents.emplace_back();
+            auto & e = s_inputEvents.back();
 
-            event->touch.id = 0;
+            e.type = LOVE_TOUCHMOVED;
 
-            lastTouch = { touches[0].px, touches[0].py };
+            e.touch.id = 0;
 
-            event->touch.x = touches[0].px;
-            event->touch.y = touches[0].py;
-            event->touch.dx = lastTouch.px - touches[0].px;
-            event->touch.dy = lastTouch.py - touches[0].py;
-            event->touch.pressure = 1.0f;
+            e.touch.x = touches[0].px;
+            e.touch.y = touches[0].py;
+
+            e.touch.dx = dx;
+            e.touch.dy = dy;
+
+            e.touch.pressure = 1.0f;
 
             touchHeld = true;
-
-            return true;
         }
+    }
+
+    if (Input::GetKeyUp<u32>() & KEY_TOUCH)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_TOUCHRELEASE;
+
+        e.touch.id = 0;
+
+        e.touch.x = prevTouches[0].px;
+        e.touch.y = prevTouches[0].py;
+
+        e.touch.dx = 0.0f;
+        e.touch.dy = 0.0f;
+
+        e.touch.pressure = 0.0f;
+
+        touchHeld = false;
     }
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
         if (Input::GetKeyUp<u32>() & it->second)
         {
-            event->type = LOVE_GAMEPADUP;
+            s_inputEvents.emplace_back();
+            auto & e = s_inputEvents.back();
 
-            event->button.name = it->first;
-            event->button.which = 0;
+            e.type = LOVE_GAMEPADUP;
 
-            return true;
+            e.button.name = it->first;
+            e.button.which = 0;
         }
-    }
-
-    if (Input::GetKeyUp<u32>() & KEY_TOUCH)
-    {
-        event->type = LOVE_TOUCHRELEASE;
-
-        event->touch.id = 0;
-        event->touch.x = touches[0].px;
-        event->touch.y = touches[0].py;
-        event->touch.dx = 0.0f;
-        event->touch.dy = 0.0f;
-        event->touch.pressure = 1.0f;
-
-        touchHeld = false;
-
-        return true;
     }
 
     /* Gamepad Callbacks */
@@ -117,75 +137,88 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyDown<u32>() & KEY_ZL)
     {
-        event->type = LOVE_GAMEPADAXIS;
-        event->axis.axis = "triggerleft";
-        event->axis.which = 0;
-        event->axis.value = 1.0f;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        return true;
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerleft";
+        e.axis.which = 0;
+        e.axis.value = 1.0f;
     }
 
     if (Input::GetKeyUp<u32>() & KEY_ZL)
     {
-        event->type = LOVE_GAMEPADAXIS;
-        event->axis.axis = "triggerleft";
-        event->axis.which = 0;
-        event->axis.value = 0.0f;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        return true;
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerleft";
+        e.axis.which = 0;
+        e.axis.value = 0.0f;
     }
 
     /*  ZR / Right Trigger */
 
     if (Input::GetKeyDown<u32>() & KEY_ZR)
     {
-        event->type = LOVE_GAMEPADAXIS;
-        event->axis.axis = "triggerright";
-        event->axis.which = 0;
-        event->axis.value = 1.0f;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        return true;
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerright";
+        e.axis.which = 0;
+        e.axis.value = 1.0f;
     }
 
     if (Input::GetKeyUp<u32>() & KEY_ZR)
     {
-        event->type = LOVE_GAMEPADAXIS;
-        event->axis.axis = "triggerright";
-        event->axis.which = 0;
-        event->axis.value = 0.0f;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        return true;
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerright";
+        e.axis.which = 0;
+        e.axis.value = 0.0f;
     }
 
     /* Left Stick */
 
     if (lStick.dx != lastPosition[0].dx)
     {
-        event->type = LOVE_GAMEPADAXIS;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        event->axis.axis = "leftx";
-        event->axis.which = 0;
-        event->axis.value = -1.0f;
+        e.type = LOVE_GAMEPADAXIS;
+
+        e.axis.axis = "leftx";
+        e.axis.which = 0;
+        e.axis.value = -1.0f;
 
         lastPosition[0].dx = lStick.dx;
-
-        return true;
     }
 
     if (lStick.dy != lastPosition[0].dy)
     {
-        event->type = LOVE_GAMEPADAXIS;
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
 
-        event->axis.axis = "lefty";
-        event->axis.which = 0;
-        event->axis.value = -1.0f;
+        e.type = LOVE_GAMEPADAXIS;
+
+        e.axis.axis = "lefty";
+        e.axis.which = 0;
+        e.axis.value = -1.0f;
 
         lastPosition[0].dy = lStick.dy;
-
-        return true;
     }
 
     /* Right Stick */
 
-    return false;
+    if (s_inputEvents.empty())
+        return false;
+
+    *event = s_inputEvents.front();
+    s_inputEvents.pop_front();
+    s_hysteresis = true;
+
+    return true;
 }

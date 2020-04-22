@@ -68,6 +68,7 @@ namespace Input
     inline StickPosition lastPosition[2] = { { 0, 0 } };
 
     inline std::array<touchPosition, MAX_TOUCH> touches;
+    inline std::array<touchPosition, MAX_TOUCH> prevTouches;
 
     typedef struct
     {
@@ -76,6 +77,9 @@ namespace Input
     } OldTouch;
 
     inline OldTouch lastTouch = { 0, 0 };
+
+    inline bool s_hysteresis = false;
+    inline std::list<LOVE_Event> s_inputEvents;
 
     extern std::unordered_map<std::string, int> buttons;
 

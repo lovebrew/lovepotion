@@ -3,7 +3,7 @@
 
 using namespace love;
 
-void Font::Print(const std::vector<ColoredString> & strings, const DrawArgs & args, float * limit, const Color & blend)
+void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float * limit, const Color & blend)
 {
     std::pair<float, float> offset = {0.0f, 0.0f};
     std::string line = "";
@@ -13,6 +13,8 @@ void Font::Print(const std::vector<ColoredString> & strings, const DrawArgs & ar
         const std::string & str = strings[i].string;
         auto currentChar = str.begin();
         const Color & clr = strings[i].color;
+
+        Colors::DEBUG_COLOR(clr);
 
         while (currentChar != str.end())
         {
