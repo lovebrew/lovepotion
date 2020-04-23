@@ -14,8 +14,6 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
         auto currentChar = str.begin();
         const Color & clr = strings[i].color;
 
-        Colors::DEBUG_COLOR(clr);
-
         while (currentChar != str.end())
         {
             if (*currentChar == '\n')

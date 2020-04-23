@@ -58,7 +58,7 @@ std::pair<float, float> Font::GenerateVertices(const std::string & line, const s
 
     C2D_TextGetDimensions(&text, this->GetScale(), this->GetScale(), &width, &height);
 
-    Color res = Colors::ALPHA_BLEND_COLOR(blend, color);
+    Color res = Colors::ALPHA_BLEND_COLOR(color, blend);
     u32 currentColor = C2D_Color32f(res.r, res.g, res.b, res.a);
 
     C2D_DrawText(&text, C2D_WithColor, args.x + offset.first, args.y + offset.second, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, currentColor);

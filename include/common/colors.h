@@ -13,7 +13,7 @@ struct Color
 
 namespace Colors
 {
-    inline Color ALPHA_BLEND_COLOR(Color src, Color dst)
+    inline Color ALPHA_BLEND_COLOR(const Color & src, const Color & dst)
     {
         Color res = Color({1, 1, 1, 1});
 
@@ -25,8 +25,8 @@ namespace Colors
         return res;
     }
 
-    inline void DEBUG_COLOR(const Color  & color)
+    inline void DEBUG_COLOR(const char * name, const Color  & color)
     {
-        LOG("{%.2f, %.2f, %.2f, %.2f}", color.r, color.g, color.b, color.a);
+        LOG("%s -> {%.2f, %.2f, %.2f, %.2f}", name, color.r, color.g, color.b, color.a);
     }
 }
