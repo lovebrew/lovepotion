@@ -376,6 +376,7 @@ function love.init()
         "timer",
         "event",
         "joystick",
+        "keyboard",
         "window",
         "graphics",
         "math",

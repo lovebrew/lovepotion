@@ -31,11 +31,3 @@ typedef struct _TextBuffer {
 
 typedef struct _TextHandle {
 } TextHandle;
-
-typedef struct
-{
-    float r;
-    float g;
-    float b;
-    float a;
-} Color;
