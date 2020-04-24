@@ -18,11 +18,25 @@
 
 #include "common/mmath.h"
 
+#if defined (_3DS)
+    #define RENDERER_NAME "OpenGL ES"
+    #define RENDERER_VERSION "1.1"
+    #define RENDERER_VENDOR "Digital Media Professionals Inc."
+    #define RENDERER_DEVICE "DMP PICA200"
+#elif defined (__SWITCH__)
+    #define RENDERER_NAME "OpenGL"
+    #define RENDERER_VERSION "4.5"
+    #define RENDERER_VENDOR "NVIDIA"
+    #define RENDERER_DEVICE "Tegra X1"
+#endif
+
 namespace love
 {
     class Graphics : public Module
     {
         public:
+            static const size_t MAX_USER_STACK_DEPTH = 128;
+
             enum DrawMode
             {
                 DRAW_LINE,
@@ -51,6 +65,28 @@ namespace love
                 float x;
                 float y;
             };
+
+            struct RendererInfo
+            {
+                std::string name    = RENDERER_NAME;
+                std::string version = RENDERER_VERSION;
+                std::string vendor  = RENDERER_VENDOR;
+                std::string device  = RENDERER_DEVICE;
+            };
+
+            struct TransformState
+            {
+                float offsetX = 0.0f;
+                float offsetY = 0.0f;
+
+                float rotation = 0.0f;
+
+                float scalarX = 1.0f;
+                float scalarY = 1.0f;
+            };
+
+            std::vector<TransformState> transformStack;
+            void Transform(DrawArgs & args);
 
             static constexpr float MIN_DEPTH = 1.0f/16384.0f;
             static inline float CURRENT_DEPTH = 0;
@@ -85,6 +121,18 @@ namespace love
             const Texture::Filter & GetDefaultFilter() const;
 
             Rect GetScissor();
+
+            void Push();
+
+            void Translate(float offsetX, float offsetY);
+
+            void Rotate(float rotation);
+
+            void Scale(float scalarX, float ScalarY);
+
+            void Pop();
+
+            RendererInfo GetRendererInfo();
 
             /* Objects */
 
@@ -143,11 +191,14 @@ namespace love
             void SetMode();
 
             StrongReference<Font> defaultFont;
+            RendererInfo rendererInfo;
 
             static inline std::map<std::string, Graphics::DrawMode> m_modes =
             {
                 { "line", DrawMode::DRAW_LINE },
                 { "fill", DrawMode::DRAW_FILL }
             };
+
+            bool isPushed = false;
     };
 }

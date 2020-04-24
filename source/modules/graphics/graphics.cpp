@@ -12,6 +12,9 @@ Graphics::Graphics()
     this->states.reserve(10);
     this->states.push_back(DisplayState());
 
+    this->transformStack.reserve(16);
+    this->transformStack.push_back(TransformState());
+
     auto window = Module::GetInstance<Window>(M_WINDOW);
 
     if (window != nullptr)
@@ -87,6 +90,48 @@ void Graphics::GetDimensions(int * width, int * height)
 
     if (height)
         *height = size.second;
+}
+
+void Graphics::Push()
+{
+    if (this->transformStack.size() == MAX_USER_STACK_DEPTH)
+        throw Exception("Maximum stack depth reached (more pushes than pops?)");
+
+    this->transformStack.push_back(transformStack.back());
+}
+
+void Graphics::Translate(float offsetX, float offsetY)
+{
+    auto & transform = this->transformStack.back();
+
+    transform.offsetX = offsetX;
+    transform.offsetY = offsetY;
+}
+
+void Graphics::Rotate(float rotation)
+{
+    this->transformStack.back().rotation = rotation;
+}
+
+void Graphics::Scale(float scalarX, float scalarY)
+{
+    auto & transform = this->transformStack.back();
+
+    transform.scalarX = scalarX;
+    transform.scalarY = scalarY;
+}
+
+void Graphics::Pop()
+{
+    if (this->transformStack.size() < 1)
+        throw Exception("Minimum stack depth reached (more pops than pushes?)");
+
+    this->transformStack.pop_back();
+}
+
+Graphics::RendererInfo Graphics::GetRendererInfo()
+{
+    return this->rendererInfo;
 }
 
 /* Objects */
@@ -195,6 +240,34 @@ Font * Graphics::GetFont()
 }
 
 /* End Font */
+
+void Graphics::Transform(DrawArgs & args)
+{
+    if (this->transformStack.empty())
+        return;
+
+    auto & transform = this->transformStack.back();
+
+    /* Translate */
+    args.x += transform.offsetX;
+    args.y += transform.offsetY;
+
+    /* Scale */
+    args.x *= transform.scalarX;
+    args.y *= transform.scalarY;
+
+    args.scalarX += transform.scalarX;
+    args.scalarY += transform.scalarY;
+
+    /* Rotate */
+    if (transform.rotation != 0)
+    {
+        args.x = args.x * cos(transform.rotation) - args.y * sin(transform.rotation);
+        args.y = args.x * sin(transform.rotation) + args.y * cos(transform.rotation);
+
+        args.r += transform.rotation;
+    }
+}
 
 void Graphics::AdjustColor(Color * in)
 {
