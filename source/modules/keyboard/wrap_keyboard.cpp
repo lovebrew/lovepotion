@@ -6,7 +6,7 @@
 using namespace love;
 
 #define instance() (Module::GetInstance<Keyboard>(Module::M_KEYBOARD))
-#define LOVE_EVENT() (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
 
 int Wrap_Keyboard::SetTextInput(lua_State * L)
 {
@@ -15,7 +15,7 @@ int Wrap_Keyboard::SetTextInput(lua_State * L)
     if (!lua_istable(L, 1) && !lua_isnoneornil(L, 1))
         luaL_argerror(L, 1, "table or nil expected");
     else if (lua_istable(L, 1))
-        lua_settop(L, 1);
+        lua_pushvalue(L, 1);
     else if (lua_isnoneornil(L, 1))
         lua_newtable(L);
 
@@ -33,10 +33,13 @@ int Wrap_Keyboard::SetTextInput(lua_State * L)
 
     std::string text = instance()->SetTextInput(options);
 
-    Luax::GetLove(L, "textinput");
-    lua_pushstring(L, text.c_str());
+    Luax::CatchException(L, [&]() {
+        std::vector<Variant> args = {text};
 
-    lua_call(L, 1, 0);
+        StrongReference<Message> message(new Message("textinput", args), Acquire::NORETAIN);
+
+        EVENT_MODULE()->Push(message);
+    });
 
     return 0;
 }

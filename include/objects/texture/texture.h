@@ -88,6 +88,7 @@ namespace love
 
         protected:
             TextureType texType;
+            TextureHandle texture;
 
             int width;
             int height;
