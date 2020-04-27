@@ -12,31 +12,78 @@ float Gamepad::GetAxis(size_t axis)
 {
     float value = 0.0f;
 
-    if (axis == 1 || axis == 2)
+    if (axis < 5)
     {
-        hidCircleRead(&stick);
+        if (axis == 1 || axis == 2)
+        {
+            hidCircleRead(&stick);
 
-        if (axis == 1)
-            value = stick.dx;
-        else if (axis == 2)
-            value = stick.dy;
+            if (axis == 1)
+                value = stick.dx;
+            else if (axis == 2)
+                value = stick.dy;
+        }
+        else if (axis == 3 || axis == 4)
+        {
+            irrstCstickRead(&stick);
+
+            if (axis == 3)
+                value = stick.dx;
+            else if (axis == 3)
+                value = stick.dy;
+        }
+
+        value = value / JOYSTICK_MAX;
+
+        return std::clamp(value, -1.0f, 1.0f);
     }
-    else if (axis == 3 || axis == 4)
+    else if (axis == 5)
     {
-        irrstCstickRead(&stick);
-
-        if (axis == 3)
-            value = stick.dx;
-        else if (axis == 3)
-            value = stick.dy;
+        if (Input::GetKeyHeld<u32>() & KEY_ZL)
+            return 1.0f;
+        else if (Input::GetKeyUp<u32>() & KEY_ZL)
+            return 0.0f;
     }
+    else if (axis == 6)
+    {
+        if (Input::GetKeyHeld<u32>() & KEY_ZR)
+            return 1.0f;
+        else if (Input::GetKeyUp<u32>() & KEY_ZR)
+            return 0.0f;
+    }
+    else
+    {
+        /* Handle accel/gyro */
+        if (!g_accelJoystick)
+            return 0.0f;
 
-    value = value / JOYSTICK_MAX;
+        if (axis >= 7 && axis < 10)
+        {
+            angularRate gyroscope;
+            hidGyroRead(&gyroscope);
 
-    return std::clamp(value, -1.0f, 1.0f);
+            if (axis == 7)
+                return gyroscope.x;
+            else if (axis == 8)
+                return gyroscope.y;
+
+            return gyroscope.z;
+        }
+        else if (axis >= 10 && axis < 13)
+        {
+            accelVector accelerometer;
+            hidAccelRead(&accelerometer);
+
+            if (axis == 10)
+                return accelerometer.x;
+            else if (axis == 11)
+                return accelerometer.y;
+
+            return accelerometer.z;
+        }
+    }
 }
 
-// TODO: expose accelerometer, etc as joystick stuff
 size_t Gamepad::GetAxisCount()
 {
     bool isN3DS = false;

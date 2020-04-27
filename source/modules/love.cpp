@@ -21,6 +21,8 @@
 
 #include "boot_lua.h"
 
+bool g_accelJoystick;
+
 /*
 ** @func Initialize
 ** Initializes the framework

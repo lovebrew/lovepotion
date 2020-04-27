@@ -28,8 +28,5 @@ namespace Love
         int (* reg)(lua_State * L);
     } Module;
 
-
-    inline bool g_accelJoystick = false;
-
     inline std::array<Love::Module, 15> modules = { nullptr };
 };

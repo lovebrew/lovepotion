@@ -20,6 +20,8 @@ enum DoneAction
     DONE_RESTART
 };
 
+extern bool g_accelJoystick;
+
 // std stuff
 #include <algorithm>
 #include <array>
