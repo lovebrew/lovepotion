@@ -70,6 +70,9 @@ int Love::Initialize(lua_State * L)
     lua_pushcfunction(L, EnsureApplicationType);
     lua_setfield(L, -2, "_ensureApplicationType");
 
+    lua_pushcfunction(L, EnableAccelerometerAsJoystick);
+	lua_setfield(L, -2, "_setAccelerometerAsJoystick");
+
     //---------------------------------------//
 
     Love::modules =
@@ -103,6 +106,13 @@ int Love::Initialize(lua_State * L)
     // love_preload(L, LuaSocket::InitHTTP,   "socket.http");
 
     return 1;
+}
+
+int Love::EnableAccelerometerAsJoystick(lua_State * L)
+{
+    g_accelJoystick = lua_toboolean(L, 1);
+
+    return 0;
 }
 
 /*

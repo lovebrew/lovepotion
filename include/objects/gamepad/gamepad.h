@@ -1,7 +1,15 @@
 #pragma once
 
+#if defined (_3DS)
+    #define JOYSTICK_MAX 150.0f
+    typedef circlePosition StickPosition;
+#elif defined (__SWITCH__)
+    typedef JoystickPosition StickPosition;
+#endif
+
 #include "objects/object.h"
 #include "common/backend/input.h"
+#include "objects/gamepad/handles/handles.h"
 
 namespace love
 {
@@ -44,10 +52,7 @@ namespace love
             size_t id;
             StickPosition stick;
 
-            std::pair<float, float> vibrations;
-            float vibrationDuration;
-
-            u32 vibrationHandles[2][2];
-            VibrationValue vibrationValues[2];
+            std::unique_ptr<love::gamepad::Handles> handles;
+            LOVE_Vibration vibration;
     };
 }

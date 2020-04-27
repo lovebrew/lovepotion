@@ -9,21 +9,10 @@
 
 #define MAX_GAMEPADS 1
 
-#define JOYSTICK_MAX 150.0f
-
 #define GetMasterVolume
 
 void userAppInit();
 void userAppExit();
-
-typedef struct _vibe {
-    float amp_low;
-    float amp_high;
-    float freq_low;
-    float freq_high;
-} VibrationValue;
-
-typedef circlePosition StickPosition;
 
 typedef C3D_RenderTarget Renderer;
 

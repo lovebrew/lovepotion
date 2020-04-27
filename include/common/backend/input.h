@@ -55,6 +55,8 @@ enum LOVE_EventType
     #define MAX_TOUCH 16
 #endif
 
+#include "objects/gamepad/gamepad.h"
+
 namespace Input
 {
     bool PollEvent(LOVE_Event * event);
@@ -69,14 +71,6 @@ namespace Input
 
     inline std::array<touchPosition, MAX_TOUCH> touches;
     inline std::array<touchPosition, MAX_TOUCH> prevTouches;
-
-    typedef struct
-    {
-        int px;
-        int py;
-    } OldTouch;
-
-    inline OldTouch lastTouch = { 0, 0 };
 
     inline bool s_hysteresis = false;
     inline std::list<LOVE_Event> s_inputEvents;

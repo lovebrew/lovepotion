@@ -9,15 +9,11 @@
 
 using love::Rect;
 
-#define MAX_GAMEPADS 4
+#define MAX_GAMEPADS 1
 
 typedef SDL_Renderer Renderer;
 
 typedef SDL_Window Frame;
-
-typedef JoystickPosition StickPosition;
-
-typedef HidVibrationValue VibrationValue;
 
 typedef SDL_Texture * TextureHandle;
 

@@ -368,6 +368,10 @@ function love.init()
         end
     end
 
+    if love._setAccelerometerAsJoystick then
+        love._setAccelerometerAsJoystick(config.accelerometerjoystick)
+    end
+
     -- Modules to load
     local modules =
     {

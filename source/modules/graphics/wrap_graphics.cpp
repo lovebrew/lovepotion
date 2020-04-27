@@ -616,6 +616,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "setDefaultFilter",   SetDefaultFilter   },
         { "setLineWidth",       SetLineWidth       },
         { "setNewFont",         SetNewFont         },
+        { "setFont",            SetFont            },
         { "setScissor",         SetScissor         },
         { 0,                    0                  }
     };

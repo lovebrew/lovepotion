@@ -6,6 +6,7 @@ using namespace love;
 Gamepad::Gamepad(size_t id)
 {
     this->id = id;
+    this->handles = std::make_unique<love::gamepad::Handles>(id);
 }
 
 float Gamepad::GetAxis(size_t axis)
@@ -112,7 +113,7 @@ std::string Gamepad::GetName()
 
 std::pair<float, float> Gamepad::GetVibration()
 {
-    return this->vibrations;
+    return std::make_pair(this->vibration.left, this->vibration.right);
 }
 
 bool Gamepad::IsConnected()
@@ -166,8 +167,9 @@ bool Gamepad::IsVibrationSupported()
 
 bool Gamepad::SetVibration(float left, float right, float duration)
 {
-    /*
-    ** TODO: implement
-    */
-   return false;
+    this->vibration.left = left;
+    this->vibration.right = right;
+    this->vibration.duration = duration;
+
+    return this->handles->SendVibration(this->vibration);
 }

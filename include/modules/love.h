@@ -9,6 +9,8 @@ namespace Love
 
     int GetVersion(lua_State * L);
 
+    int EnableAccelerometerAsJoystick(lua_State * L);
+
     // Various Utility Functions
 
     int EnsureApplicationType(lua_State * L);
@@ -25,6 +27,9 @@ namespace Love
         const char * name;
         int (* reg)(lua_State * L);
     } Module;
+
+
+    inline bool g_accelJoystick = false;
 
     inline std::array<Love::Module, 15> modules = { nullptr };
 };
