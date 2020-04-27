@@ -239,7 +239,7 @@ function love.errorhandler(message)
 
                 if display == 1 then
                     -- render our error message
-                    love.graphics.print(pretty, 10, 10)
+                    love.graphics.printf(pretty, 10, 10, love.graphics.getWidth() * 0.80)
                 end
             end
 

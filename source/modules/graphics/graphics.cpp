@@ -176,7 +176,20 @@ void Graphics::Print(const std::vector<Font::ColoredString> & strings, const Dra
 
 void Graphics::Print(const std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args)
 {
-    font->Print(strings, args, nullptr, this->AdjustColor(this->states.back().foreground));
+    font->Print(strings, args, nullptr, this->AdjustColor(this->states.back().foreground), Font::ALIGN_LEFT);
+}
+
+void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float wrap, Font::AlignMode align)
+{
+    this->CheckSetDefaultFont();
+
+    if (this->states.back().font.Get() != nullptr)
+        this->PrintF(strings, this->states.back().font.Get(), args, wrap, align);
+}
+
+void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args, float wrap, Font::AlignMode align)
+{
+    font->Print(strings, args, &wrap, this->AdjustColor(this->states.back().foreground), align);
 }
 
 /* End Objects */

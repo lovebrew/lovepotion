@@ -154,6 +154,9 @@ namespace love
             void Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args);
             void Print(const  std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args);
 
+            void PrintF(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float wrap, Font::AlignMode align);
+            void PrintF(const  std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args, float wrap, Font::AlignMode align);
+
             /* Graphics Primitives */
 
             void Rectangle(const std::string & mode, float x, float y, float width, float height);

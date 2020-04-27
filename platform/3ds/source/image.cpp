@@ -3,6 +3,8 @@
 
 using namespace love;
 
+#define IMAGE_NOT_FOUND_STRING "Could not find image %s (not converted to t3x?)"
+
 Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
 {
     size_t pos = path.find_last_of(".") + 1;
@@ -27,6 +29,9 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
             this->height = this->texture.subtex->height;
         }
     }
+    else
+        throw love::Exception(IMAGE_NOT_FOUND_STRING, path.c_str());
+
 
     this->InitQuad();
 

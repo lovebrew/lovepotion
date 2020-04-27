@@ -319,7 +319,11 @@ int Wrap_Graphics::NewImage(lua_State * L)
 {
     std::string path = luaL_checkstring(L, 1);
 
-    Image * image = instance()->NewImage(path);
+    Image * image = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        image = instance()->NewImage(path);
+    });
 
     Luax::PushType(L, image);
 
@@ -472,6 +476,42 @@ int Wrap_Graphics::Print(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::PrintF(lua_State * L)
+{
+    std::vector<Font::ColoredString> string;
+    Wrap_Font::CheckColoredString(L, 1, string);
+
+    DrawArgs args;
+
+    args.x = luaL_optnumber(L, 2, 0);
+    args.y = luaL_optnumber(L, 3, 0);
+
+    args.depth = Graphics::CURRENT_DEPTH;
+
+    int start = 2;
+
+    Font * font = nullptr;
+    if (Luax::IsType(L, 2, Font::type))
+    {
+        font = Wrap_Font::CheckFont(L, 2);
+        start++;
+    }
+
+    float wrap = luaL_checknumber(L, start + 2);
+
+    Font::AlignMode mode = Font::ALIGN_LEFT;
+    const char * alignment = lua_isnoneornil(L, start + 3) ? nullptr : luaL_checkstring(L, start + 3);
+
+    if (alignment != nullptr && !Font::GetConstant(alignment, mode))
+        return Luax::EnumError(L, "alignment", Font::GetConstants(mode), alignment);
+
+    Luax::CatchException(L, [&]() {
+        instance()->PrintF(string, args, wrap, mode);
+    });
+
+    return 0;
+}
+
 int Wrap_Graphics::SetNewFont(lua_State * L)
 {
     int ret = Wrap_Graphics::NewFont(L);
@@ -609,6 +649,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "polygon",            Polygon            },
         { "present",            Present            },
         { "print",              Print              },
+        { "printf",             PrintF             },
         { "rectangle",          Rectangle          },
         { "reset",              Reset              },
         { "setBackgroundColor", SetBackgroundColor },

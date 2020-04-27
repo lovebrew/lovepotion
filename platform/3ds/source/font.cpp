@@ -3,6 +3,8 @@
 
 using namespace love;
 
+#define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to fnt?)"
+
 Font::Font(const std::string & path, float size) : buffer(C2D_TextBufNew(4096)),
                                                    size(size)
 {
@@ -40,6 +42,8 @@ FontHandle Font::LoadFromPath(const std::string & path)
 
     if (std::filesystem::exists(translation))
         return C2D_FontLoad(translation.c_str());
+    else
+        throw love::Exception(FONT_NOT_FOUND_STRING, path.c_str());
 
     return NULL;
 }
@@ -87,7 +91,40 @@ float Font::GetWidth(const char * text)
     return width;
 }
 
+float Font::_GetGlyphWidth(u16 glyph)
+{
+    fontGlyphPos_s out;
+    C2D_FontCalcGlyphPos(this->font, &out, C2D_FontGlyphIndexFromCodePoint(this->font, glyph), 0, this->GetScale(), this->GetScale());
+
+    return out.xAdvance;
+}
+
 float Font::GetHeight()
 {
     return 30 * this->GetScale();
 }
+
+bool Font::GetConstant(const char * in, AlignMode & out)
+{
+    return alignModes.Find(in, out);
+}
+
+bool Font::GetConstant(AlignMode in, const char  *& out)
+{
+    return alignModes.Find(in, out);
+}
+
+std::vector<std::string> Font::GetConstants(AlignMode)
+{
+    return alignModes.GetNames();
+}
+
+StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM>::Entry Font::alignModeEntries[] =
+{
+    { "left",    ALIGN_LEFT    },
+    { "right",   ALIGN_RIGHT   },
+    { "center",  ALIGN_CENTER  },
+    { "justify", ALIGN_JUSTIFY },
+};
+
+StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(Font::alignModeEntries, sizeof(Font::alignModeEntries));
