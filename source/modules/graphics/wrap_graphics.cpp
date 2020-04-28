@@ -456,7 +456,7 @@ int Wrap_Graphics::Print(lua_State * L)
     args.x = luaL_optnumber(L, 2, 0);
     args.y = luaL_optnumber(L, 3, 0);
 
-    args.depth = Graphics::CURRENT_DEPTH;
+    args.depth = Graphics::CURRENT_DEPTH + instance()->MIN_DEPTH;
 
     if (Luax::IsType(L, 2, Font::type))
     {
@@ -486,7 +486,7 @@ int Wrap_Graphics::PrintF(lua_State * L)
     args.x = luaL_optnumber(L, 2, 0);
     args.y = luaL_optnumber(L, 3, 0);
 
-    args.depth = Graphics::CURRENT_DEPTH;
+    args.depth = Graphics::CURRENT_DEPTH + instance()->MIN_DEPTH;
 
     int start = 2;
 
