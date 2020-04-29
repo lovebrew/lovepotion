@@ -3,7 +3,7 @@
 
 using namespace love;
 
-#define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to fnt?)"
+#define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to bcfnt?)"
 
 Font::Font(const std::string & path, float size) : buffer(C2D_TextBufNew(4096)),
                                                    size(size)
@@ -38,7 +38,7 @@ FontHandle Font::LoadFromPath(const std::string & path)
     std::string translation;
 
     if (pos != std::string::npos)
-        translation = (path.substr(0, pos) + "fnt");
+        translation = (path.substr(0, pos) + "bcfnt");
 
     if (std::filesystem::exists(translation))
         return C2D_FontLoad(translation.c_str());
