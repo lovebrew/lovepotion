@@ -32,7 +32,7 @@ DoneAction Run_Love_Potion(int & retval)
     ** this will keep running until "quit"
     */
     int stackpos = lua_gettop(L);
-    while (lua_resume(L, nullptr, 0) == LUA_YIELD)
+    while (appletMainLoop() && lua_resume(L, nullptr, 0) == LUA_YIELD)
             lua_pop(L, lua_gettop(L) - stackpos);
 
     retval = 0;
@@ -70,12 +70,10 @@ int main(int argc, char * argv[])
     DoneAction done = DONE_QUIT;
     int retval = 0;
 
-    while (appletMainLoop())
+    do
     {
         done = Run_Love_Potion(retval);
-        if (done == DoneAction::DONE_QUIT)
-            break;
-    }
+    } while (done != DoneAction::DONE_QUIT);
 
     #if defined (_3DS)
         userAppExit();

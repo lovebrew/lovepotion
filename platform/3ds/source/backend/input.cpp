@@ -211,9 +211,9 @@ bool Input::PollEvent(LOVE_Event * event)
         lastPosition[0].dy = lStick.dy;
     }
 
-    /* Right Stick */
+    // /* Right Stick */
 
-        if (rStick.dx != lastPosition[1].dx)
+    if (rStick.dx != lastPosition[1].dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
