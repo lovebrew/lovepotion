@@ -8,14 +8,14 @@
 void Assets::Initialize(const std::string & path)
 {
     char current[PATH_MAX];
-    writePath = getcwd(current, PATH_MAX);
+    Assets::writePath = getcwd(current, PATH_MAX);
 
     Location location = Assets::GetLocation(path);
 
     switch(location)
     {
         case LOCATION_SDMC:
-            directory = GAME_FOLDER;
+            Assets::directory = GAME_FOLDER;
             break;
         case LOCATION_EXTERNAL:
             romfsMountFromFsdev(path.c_str(), 0, "romfs");
@@ -25,12 +25,17 @@ void Assets::Initialize(const std::string & path)
             break;
     }
 
-    chdir(directory.c_str());
+    chdir(Assets::directory.c_str());
+}
+
+bool Assets::IsFused()
+{
+    return Assets::fused;
 }
 
 std::string Assets::GetWritePath()
 {
-    return writePath;
+    return Assets::writePath;
 }
 
 Location Assets::GetLocation(const std::string & path)
@@ -50,7 +55,7 @@ Location Assets::GetLocation(const std::string & path)
     Result rc = romfsInit();
 
     // load our external ROMFS game
-    if (rc == 0 && isROMFSGame)
+    if (R_SUCCEEDED(rc) && isROMFSGame)
         return LOCATION_EXTERNAL;
 
     // load no game / fused

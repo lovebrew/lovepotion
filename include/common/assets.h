@@ -16,14 +16,17 @@ namespace Assets
 {
     /* Variables */
 
-    inline std::string directory = "romfs:";
+    inline std::string directory = "romfs:/";
     inline std::string writePath = "";
+    inline bool fused = false;
 
     /* Functions */
 
     void Initialize(const std::string & path);
 
     Location GetLocation(const std::string & path);
+
+    bool IsFused();
 
     std::string GetWritePath();
 };

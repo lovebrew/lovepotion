@@ -424,7 +424,8 @@ function love.init()
         end
     end
 
-    local nogame = "No code to run.\nYour  game might be packaged incorrectly.\nMake sure main.lua is at the top level of the ROMFS."
+    local nogame = "No code to run.\nYour game might be packaged incorrectly."
+    nogame = nogame .. "\nMake sure main.lua is at the top level of the ROMFS."
 
     if no_game_code then
         error(nogame)

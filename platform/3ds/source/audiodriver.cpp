@@ -5,10 +5,12 @@
 
 using namespace love;
 
+#define NDSP_LOAD_ERROR "Failed to load ndsp (Missing dspfirm.cdc?)."
+
 void AudrenDriver::Initialize()
 {
     if (!R_SUCCEEDED(ndspInit()))
-        throw love::Exception("Failed to load ndsp. Please make sure your dspfirm.cdc has been dumped properly.");
+        throw love::Exception(NDSP_LOAD_ERROR);
     else
         audioInit = true;
 }

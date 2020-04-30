@@ -2,7 +2,11 @@
 
 #include "objects/source/source.h"
 
-#define AUDIO_THREAD_STACK_SIZE 0x8000
+#if defined (_3DS)
+    #define AUDIO_THREAD_STACK_SIZE 0x1000
+#elif defined (__SWITCH__)
+    #define AUDIO_THREAD_STACK_SIZE 0x8000
+#endif
 
 namespace love
 {

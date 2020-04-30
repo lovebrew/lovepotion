@@ -434,7 +434,7 @@ int Wrap_Graphics::Draw(lua_State * L)
     args.x += args.offsetX;
     args.y += args.offsetY;
 
-    args.depth = instance()->CURRENT_DEPTH + instance()->MIN_DEPTH;
+    args.depth = instance()->CURRENT_DEPTH;
 
     Luax::CatchException(L, [&]() {
         if (texture && quad)
@@ -456,7 +456,7 @@ int Wrap_Graphics::Print(lua_State * L)
     args.x = luaL_optnumber(L, 2, 0);
     args.y = luaL_optnumber(L, 3, 0);
 
-    args.depth = Graphics::CURRENT_DEPTH + instance()->MIN_DEPTH;
+    args.depth = Graphics::CURRENT_DEPTH;
 
     if (Luax::IsType(L, 2, Font::type))
     {
@@ -486,7 +486,7 @@ int Wrap_Graphics::PrintF(lua_State * L)
     args.x = luaL_optnumber(L, 2, 0);
     args.y = luaL_optnumber(L, 3, 0);
 
-    args.depth = Graphics::CURRENT_DEPTH + instance()->MIN_DEPTH;
+    args.depth = Graphics::CURRENT_DEPTH;
 
     int start = 2;
 

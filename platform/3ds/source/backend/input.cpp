@@ -213,6 +213,34 @@ bool Input::PollEvent(LOVE_Event * event)
 
     /* Right Stick */
 
+        if (rStick.dx != lastPosition[1].dx)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_GAMEPADAXIS;
+
+        e.axis.axis = "rightx";
+        e.axis.which = 0;
+        e.axis.value = -1.0f;
+
+        lastPosition[1].dx = rStick.dx;
+    }
+
+    if (rStick.dy != lastPosition[1].dy)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_GAMEPADAXIS;
+
+        e.axis.axis = "right";
+        e.axis.which = 0;
+        e.axis.value = -1.0f;
+
+        lastPosition[1].dy = rStick.dy;
+    }
+
     if (s_inputEvents.empty())
         return false;
 

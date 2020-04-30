@@ -93,6 +93,13 @@ float Font::GetHeight()
     return height;
 }
 
+float Font::_GetGlyphWidth(u16 glyph)
+{
+    // encode_utf8()
+    // return this->GetWidth(glyph);
+    return 0;
+}
+
 float Font::GetWidth(const char * text)
 {
     int width = 0;

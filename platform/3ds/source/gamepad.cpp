@@ -82,6 +82,8 @@ float Gamepad::GetAxis(size_t axis)
             return accelerometer.z;
         }
     }
+
+    return value;
 }
 
 size_t Gamepad::GetAxisCount()
