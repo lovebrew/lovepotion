@@ -51,7 +51,8 @@ FontHandle Font::LoadFromPath(const std::string & path)
     return TTF_OpenFontRW(ops, 1, this->size);
 }
 
-std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color)
+std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset,
+                                               const DrawArgs & args, const Color & blend, const Color & color)
 {
     const char * str = line.c_str();
 
@@ -66,7 +67,10 @@ std::pair<float, float> Font::GenerateVertices(const std::string & line, const s
     SDL_QueryTexture(lTexture, NULL, NULL, &width, &height);
 
     SDL_Rect source({0, 0, width, height});
-    SDL_Rect destin({(int)round(args.x + offset.first), (int)round(args.y + offset.second), (int)ceil(width), (int)ceil(height)});
+    SDL_Rect destin({(int)round(args.x + offset.first),
+                    (int)round(args.y + offset.second),
+                    (int)ceil(width),
+                    (int)ceil(height)});
 
     SDL_SetTextureBlendMode(lTexture, SDL_BLENDMODE_BLEND);
 
@@ -95,9 +99,11 @@ float Font::GetHeight()
 
 float Font::_GetGlyphWidth(u16 glyph)
 {
-    // encode_utf8()
-    // return this->GetWidth(glyph);
-    return 0;
+    int xAdvance = 0;
+
+    TTF_GlyphMetrics(this->font, glyph, nullptr, nullptr, nullptr, nullptr, &xAdvance);
+
+    return xAdvance;
 }
 
 float Font::GetWidth(const char * text)
