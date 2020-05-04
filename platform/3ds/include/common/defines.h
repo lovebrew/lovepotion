@@ -16,8 +16,6 @@ void userAppExit();
 
 typedef C3D_RenderTarget Renderer;
 
-typedef C2D_Image TextureHandle;
-
 typedef struct _Frame Frame;
 
 typedef C2D_Font FontHandle;

@@ -26,6 +26,7 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
             {
                 std::pair<float, float> size = this->GenerateVertices(line, offset, args, blend, clr);
 
+                currentSize = 0.0f;
                 offset.first = 0.0f;
                 offset.second += size.second;
             }
@@ -35,10 +36,7 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
             else
             {
                 if (limit != nullptr && currentSize >= *limit)
-                {
-                    currentSize = 0.0f;
                     line.clear();
-                }
 
                 line.append(currentChar, bytes);
             }

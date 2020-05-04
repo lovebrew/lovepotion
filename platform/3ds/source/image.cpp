@@ -15,8 +15,12 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
 
     if (std::filesystem::exists(translation))
     {
-        C2D_SpriteSheet sheet = C2D_SpriteSheetLoad(translation.c_str());
-        this->texture = C2D_SpriteSheetGetImage(sheet, 0);
+        this->sheet = C2D_SpriteSheetLoad(translation.c_str());
+
+        if (!this->sheet)
+            throw love::Exception("Could not load image %s", path.c_str());
+
+        this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
 
         if (!this->texture.subtex)
         {
@@ -40,7 +44,10 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
 }
 
 Image::~Image()
-{}
+{
+    if (this->sheet != NULL)
+        C2D_SpriteSheetFree(this->sheet);
+}
 
 void Image::Draw(const DrawArgs & args, const Color & color)
 {

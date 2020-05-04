@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+#include "common/assets.h"
 
 extern "C"
 {
@@ -31,6 +32,11 @@ extern "C"
         if (R_FAILED(res))
             fatalThrow(res);
 
+        res = socketInitializeDefault();
+
+        if (R_FAILED(res))
+            fatalThrow(res);
+
         // Initialize everything else
         TTF_Init();
     }
@@ -38,7 +44,10 @@ extern "C"
     void userAppExit()
     {
         // Deinitialize libnx stuff
+        if (Assets::IsFused())
+            romfsExit();
 
+        socketExit();
         psmExit();
         setExit();
         accountExit();

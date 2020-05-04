@@ -22,12 +22,12 @@ void Filesystem::Append(const char * filename, const void * data, int64_t size)
 
 void Filesystem::CreateDirectory(const char * name)
 {
-    std::filesystem::create_directory(name);
+    std::filesystem::create_directory(this->GetSaveDirectory() + name);
 }
 
 void Filesystem::GetDirectoryItems(const char * directory, std::vector<std::string> & items)
 {
-    auto iterator = std::filesystem::directory_iterator(directory);
+    auto iterator = std::filesystem::directory_iterator(this->Redirect(directory));
 
     for (auto & entry : iterator)
         items.emplace_back(entry.path().filename());
@@ -101,7 +101,7 @@ void Filesystem::SetIdentity(const char * name)
 
 void Filesystem::Write(const char * filename, const void * data, int64_t size)
 {
-    File file(this->GetSaveDirectory() + filename);
+    File file(filename);
 
     file.Open(File::MODE_WRITE);
 

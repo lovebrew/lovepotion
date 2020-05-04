@@ -19,6 +19,8 @@
 #include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
 
+#include "socket/luasocket.h"
+
 #include "boot_lua.h"
 
 bool g_accelJoystick;
@@ -104,8 +106,7 @@ int Love::Initialize(lua_State * L)
     lua_pop(L, 1);
 
     Love::Preload(L, luaopen_luautf8, "utf8");
-    // love_preload(L, LuaSocket::InitSocket, "socket");
-    // love_preload(L, LuaSocket::InitHTTP,   "socket.http");
+    Love::Preload(L, LuaSocket::OpenHTTP, "socket.http");
 
     return 1;
 }

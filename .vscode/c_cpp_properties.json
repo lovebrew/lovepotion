@@ -24,13 +24,15 @@
             "includePath": [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/libraries/**",
-                "${workspaceFolder}/platform/switch/include",
+                "${workspaceFolder}/platform/switch/include/**",
                 "/opt/devkitpro/portlibs/switch/include/**",
-                "/opt/devkitpro/libnx/include/**"
+                "/opt/devkitpro/libnx/include/**",
+                "/opt/devkitpro/devkitA64/include/**"
             ],
             "defines": [
                 "__SWITCH__",
-                "LOVE_POTION_CONSOLE=\"Switch\""
+                "LOVE_POTION_CONSOLE=\"Switch\"",
+                "__BSD_VISIBLE"
             ],
             "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
             "cStandard": "c11",
