@@ -1,10 +1,6 @@
 #include "common/runtime.h"
 #include "socket/objects/udp/udp.h"
 
-using namespace love;
-
-love::Type UDP::type("UDP", &Socket::type);
-
 UDP::UDP() : Socket()
 {
     this->sockfd = SOCKET_INVALID;

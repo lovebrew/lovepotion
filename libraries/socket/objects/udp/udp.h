@@ -5,8 +5,6 @@
 class UDP : public Socket
 {
     public:
-        static love::Type type;
-
         UDP();
 
         int SetPeerName(const Socket::Address & host);

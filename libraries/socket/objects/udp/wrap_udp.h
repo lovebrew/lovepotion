@@ -1,5 +1,6 @@
 #pragma once
 
+#include "objects/socket/socket.h"
 #include "objects/udp/udp.h"
 
 namespace Wrap_UDP

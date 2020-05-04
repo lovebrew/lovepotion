@@ -25,13 +25,13 @@ int Wrap_Socket::Close(lua_State * L)
     // return 0;
 }
 
-luaL_Reg Wrap_Socket::functions[5] =
-{
-    { "getpeername", GetPeerName         },
-    { "__tostring",  LuaSocket::ToString },
-    { "close",       Close               },
-    { 0,             0                   }
-};
+// luaL_Reg Wrap_Socket::functions[5] =
+// {
+//     { "getpeername", GetPeerName         },
+//     { "__tostring",  LuaSocket::ToString },
+//     { "close",       Close               },
+//     { 0,             0                   }
+// };
 
 int Wrap_Socket::Register(lua_State * L)
 {

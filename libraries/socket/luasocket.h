@@ -15,19 +15,11 @@
 
 #define SO_MAX_BUFSIZE 0x100000
 
-enum IO
-{
-    IO_DONE = 0,
-    IO_TIMEOUT = -1,
-    IO_CLOSED = -2,
-    IO_UNKNOWN = -3
-};
-
 namespace LuaSocket
 {
     int Open(lua_State * L);
 
-    void NewClass(lua_State * L, const char * classname, luaL_Reg * func);
+    void NewClass(lua_State * L, const char * classname, ...);
 
     int ToString(lua_State * L);
 

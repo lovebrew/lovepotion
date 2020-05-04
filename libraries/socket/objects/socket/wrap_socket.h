@@ -4,7 +4,7 @@
 
 namespace Wrap_Socket
 {
-    luaL_Reg functions[5];
+    extern luaL_Reg functions[5];
 
     int SetTimeout(lua_State * L);
 

@@ -15,8 +15,8 @@ int Register(lua_State * L)
         { 0, 0 }
     };
 
-    LuaSocket::NewClass(L, "udp{connected}", funcs);
-    LuaSocket::NewClass(L, "udp{unconnected}", funcs);
+    // LuaSocket::NewClass(L, "udp{connected}", funcs);
+    // LuaSocket::NewClass(L, "udp{unconnected}", funcs);
 
     return 0;
 }

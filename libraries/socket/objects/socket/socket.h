@@ -13,8 +13,15 @@
 #define SO_SOCKNAME_ALL "*"
 #define SOCKET_INVALID -1
 
-#include "luasocket.h"
 #include "common/exception.h"
+
+enum IO
+{
+    IO_DONE = 0,
+    IO_TIMEOUT = -1,
+    IO_CLOSED = -2,
+    IO_UNKNOWN = -3
+};
 
 class Socket
 {
