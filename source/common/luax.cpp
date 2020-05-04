@@ -263,7 +263,7 @@ int Luax::GarbageCollect(lua_State * L)
 {
     Proxy * proxy = (Proxy *)lua_touserdata(L, 1);
 
-    if (proxy != nullptr)
+    if (proxy->object != nullptr)
     {
         proxy->object->Release();
         proxy->object = nullptr;
@@ -427,6 +427,9 @@ int Luax::RegisterType(lua_State * L, love::Type * type, ...)
 
     lua_pushcfunction(L, GarbageCollect);
     lua_setfield(L, -2, "__gc");
+
+    lua_pushcfunction(L, Equal);
+    lua_setfield(L, -2, "__eq");
 
     lua_pushstring(L, type->GetName());
     lua_pushcclosure(L, ToString, 1);

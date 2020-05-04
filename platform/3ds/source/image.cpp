@@ -18,7 +18,7 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
         this->sheet = C2D_SpriteSheetLoad(translation.c_str());
 
         if (!this->sheet)
-            throw love::Exception("Could not load image %s", path.c_str());
+            throw love::Exception("Could not load image %s (%s)", path.c_str(), strerror(errno));
 
         this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
 

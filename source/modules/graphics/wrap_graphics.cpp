@@ -318,16 +318,13 @@ int Wrap_Graphics::GetDefaultFilter(lua_State * L)
 int Wrap_Graphics::NewImage(lua_State * L)
 {
     std::string path = luaL_checkstring(L, 1);
-
-    Image * image = nullptr;
+    StrongReference<Image> image;
 
     Luax::CatchException(L, [&]() {
-        image = instance()->NewImage(path);
+        image.Set(instance()->NewImage(path), Acquire::NORETAIN);
     });
 
     Luax::PushType(L, image);
-
-    image->Release();
 
     return 1;
 }
