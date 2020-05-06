@@ -84,10 +84,7 @@ class Socket
                     return std::max(result, 0.0);
                 }
                 else if (this->total < 0.0)
-                {
-                    result = this->block - this->GetTime() + this->start;
-                    return std::max(result, 0.0);
-                }
+                    return this->block;
                 else
                 {
                     result = this->total - this->GetTime() + this->start;
@@ -124,15 +121,14 @@ class Socket
 
         bool IsConnected();
 
-    private:
-        int _Bind(sockaddr * addr, socklen_t length);
-
-        int _Connect(sockaddr * addr, socklen_t length);
-
     protected:
         int sockfd;
         bool isConnected;
         Timeout timeout;
 
         SocketType sockType;
+
+        int _Bind(sockaddr * addr, socklen_t length);
+
+        int _Connect(sockaddr * addr, socklen_t length);
 };

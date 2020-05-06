@@ -76,7 +76,7 @@ int UDP::TryDisconnect()
     disconnect.sin_family = AF_UNSPEC;
     disconnect.sin_addr.s_addr = INADDR_ANY;
 
-    int status = connect(this->sockfd, (sockaddr *)&disconnect, sizeof(disconnect));
+    int status = this->_Connect((sockaddr *)&disconnect, sizeof(disconnect));
 
     return this->isConnected = !(status == 0);
 }

@@ -153,14 +153,15 @@ int Socket::TryBind(const Socket::Address & host)
 
             if (error)
                 continue;
-
-            this->SetBlocking(false);
         }
 
         error = this->_Bind(item->ai_addr, item->ai_addrlen);
 
         if (error == 0)
+        {
+            this->SetBlocking(false);
             break;
+        }
     }
 
     freeaddrinfo(resolved);
@@ -187,13 +188,17 @@ int Socket::_Connect(sockaddr * addr, socklen_t length)
     if (this->timeout.block == 0.0)
         return IO_TIMEOUT;
 
+    error = this->Wait(WAITFD_C);
+
     if (error == IO_CLOSED)
     {
         if (recv(this->sockfd, (char *)&error, 0, 0) == 0)
             return IO_DONE;
+        else
+            return errno;
     }
-
-    return error;
+    else
+        return error;
 }
 
 int Socket::TryConnect(const Socket::Address & peer)
