@@ -107,6 +107,7 @@ int Love::Initialize(lua_State * L)
 
     Love::Preload(L, luaopen_luautf8, "utf8");
     Love::Preload(L, LuaSocket::OpenHTTP, "socket.http");
+    Love::Preload(L, LuaSocket::Open, "socket");
 
     return 1;
 }

@@ -8,6 +8,8 @@ extern "C"
 
     #include <compat-5.3.h>
     #include <lutf8lib.h>
+
+    #include "luaobj/luaobj.h"
 }
 
 // custom things

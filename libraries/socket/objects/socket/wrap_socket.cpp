@@ -3,37 +3,101 @@
 
 using namespace love;
 
+#define CLASS_NAME "Socket"
+#define CLASS_TYPE LUAOBJ_TYPE_SOC
+
+int Wrap_Socket::New(lua_State * L)
+{
+    void * raw_self = luaobj_newudata(L, sizeof(Socket));
+
+    luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+    new (raw_self) Socket();
+
+    return 1;
+}
+
 int Wrap_Socket::GetPeerName(lua_State * L)
 {
-    // Socket * self = Wrap_Socket::CheckSocket(L, 1);
+    Socket * self = Wrap_Socket::CheckSocket(L, 1);
 
-    // Socket::Address address;
-    // self->GetPeerName(address);
+    Socket::Address address;
+    int error = self->GetPeerName(address);
 
-    // lua_pushlstring(L, address.ip.data(), address.ip.size());
-    // lua_pushlstring(L, address.port.data(), address.port.size());
+    if (error != 0)
+    {
+        lua_pushnil(L);
 
-    // return 2;
+        if (error == -1)
+            lua_pushstring(L, Socket::GetError(errno));
+        else
+            lua_pushstring(L, gai_strerror(error));
+
+        return 2;
+    }
+
+    lua_pushlstring(L, address.ip.data(), address.ip.size());
+    lua_pushlstring(L, address.port.data(), address.port.size());
+
+    return 2;
+}
+
+int Wrap_Socket::GetSockName(lua_State * L)
+{
+    Socket * self = Wrap_Socket::CheckSocket(L, 1);
+
+    Socket::Address address;
+    int error = self->GetSockName(address);
+
+    if (error != 0)
+    {
+        lua_pushnil(L);
+
+        if (error == -1)
+            lua_pushstring(L, Socket::GetError(errno));
+        else
+            lua_pushstring(L, gai_strerror(error));
+
+        return 2;
+    }
+
+    lua_pushlstring(L, address.ip.data(), address.ip.size());
+    lua_pushlstring(L, address.port.data(), address.port.size());
+
+    return 2;
 }
 
 int Wrap_Socket::Close(lua_State * L)
 {
-    // Socket * self = Wrap_Socket::CheckSocket(L, 1);
+    Socket * self = Wrap_Socket::CheckSocket(L, 1);
 
-    // self->Close();
+    self->Destroy();
 
-    // return 0;
+    return 0;
 }
 
-// luaL_Reg Wrap_Socket::functions[5] =
-// {
-//     { "getpeername", GetPeerName         },
-//     { "__tostring",  LuaSocket::ToString },
-//     { "close",       Close               },
-//     { 0,             0                   }
-// };
+int Wrap_Socket::GarbageCollect(lua_State * L)
+{
+    int ret = Wrap_Socket::Close(L);
+
+    return ret;
+}
+
+Socket * Wrap_Socket::CheckSocket(lua_State * L, int index)
+{
+    return (Socket *)luaobj_checkudata(L, index, CLASS_TYPE);
+}
 
 int Wrap_Socket::Register(lua_State * L)
 {
-    // LuaSocket::
+    luaL_Reg reg[] =
+    {
+        { "__gc",        GarbageCollect },
+        { "getpeername", GetPeerName    },
+        { "getsockname", GetSockName    },
+        { "close",       Close          },
+        { 0,             0              }
+    };
+
+    return luaobj_newclass(L, CLASS_NAME, NULL, Wrap_Socket::New, reg);
 }

@@ -1,17 +1,30 @@
 #include "common/runtime.h"
 #include "socket/objects/udp/udp.h"
 
-UDP::UDP() : Socket()
+#define CLASS_CONN "udp{connected}"
+#define CLASS_DISC "udp{unconnected}"
+
+UDP::UDP(int & success) : Socket()
 {
     this->sockfd = SOCKET_INVALID;
     this->timeout = {-1, -1, 0};
 
-    int success = this->Create(SOCK_DGRAM, AF_INET, 0);
+    success = this->Create(AF_UNSPEC, SOCK_DGRAM, 0);
 
-    if (success != 0)
-        printf("Failed to create socket");
+    if (success != IO_DONE)
+        return;
 
     this->SetBlocking(true);
+}
+
+std::string UDP::GetString()
+{
+    const char * res = (this->isConnected) ? CLASS_CONN : CLASS_DISC;
+    char buffer[34 + strlen(res)];
+
+    sprintf(buffer, "%s: %p", res, this);
+
+    return buffer;
 }
 
 /*
@@ -41,10 +54,13 @@ int UDP::SetPeerName(const Socket::Address & peer)
     if (this->isConnected && peer.ip == SO_SOCKNAME_ALL)
         return this->TryDisconnect();
 
-    if (!this->isConnected)
-        throw love::Exception("expected a connected UDP object.");
-
     return this->TryConnect(peer);
+}
+
+int UDP::Send(const char * data, size_t length, size_t * sent)
+{
+    this->timeout.MarkStart();
+    return this->SendData(data, length, sent);
 }
 
 /*
