@@ -44,7 +44,7 @@ int Wrap_UDP::SetPeerName(lua_State * L)
 
     peer.ip = luaL_checkstring(L, 2);
 
-    bool connecting = (peer.ip == "*");
+    bool connecting = (peer.ip != "*");
     peer.port = connecting ? luaL_checkstring(L, 3) : "0";
 
     int error = self->SetPeerName(peer);
