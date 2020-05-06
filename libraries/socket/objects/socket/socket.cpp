@@ -145,7 +145,7 @@ int Socket::TryBind(const Socket::Address & host)
 
     for (auto item = resolved; item; item = item->ai_next)
     {
-        if (this->sockfd == SOCKET_INVALID)
+        if (this->family != item->ai_family || this->sockfd == SOCKET_INVALID)
         {
             this->Destroy();
 
@@ -153,6 +153,8 @@ int Socket::TryBind(const Socket::Address & host)
 
             if (error)
                 continue;
+
+            this->family = item->ai_family;
         }
 
         error = this->_Bind(item->ai_addr, item->ai_addrlen);
@@ -231,7 +233,7 @@ int Socket::TryConnect(const Socket::Address & peer)
     {
         this->timeout.MarkStart();
 
-        if (this->sockfd == SOCKET_INVALID)
+        if (this->family != item->ai_family || this->sockfd == SOCKET_INVALID)
         {
             this->Destroy();
 
@@ -240,6 +242,7 @@ int Socket::TryConnect(const Socket::Address & peer)
             if (error)
                 continue;
 
+            this->family = item->ai_family;
             this->SetBlocking(false);
         }
 
@@ -269,6 +272,7 @@ int Socket::SendData(const char * data, size_t length, size_t * sent)
 
     for (;;)
     {
+        LOG("sockfd: %d", this->sockfd);
         long put = (long)send(this->sockfd, data, length, 0);
         LOG("Sending %s / %d length / %ld sent", data, length, put);
 
@@ -297,6 +301,17 @@ int Socket::SendData(const char * data, size_t length, size_t * sent)
 
 int Socket::Create(int domain, int type, int protocol)
 {
+    this->sockfd = SOCKET_INVALID;
+
+    this->timeout =
+    {
+        .block = -1.0,
+        .total = -1.0,
+        .start = 0.0
+    };
+
+    this->family = domain;
+
     if (domain != AF_UNSPEC)
     {
         this->sockfd = socket(domain, type, protocol);

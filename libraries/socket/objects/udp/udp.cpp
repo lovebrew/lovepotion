@@ -6,9 +6,6 @@
 
 UDP::UDP(int & success) : Socket()
 {
-    this->sockfd = SOCKET_INVALID;
-    this->timeout = {-1, -1, 0};
-
     success = this->Create(AF_UNSPEC, SOCK_DGRAM, 0);
 
     if (success != IO_DONE)

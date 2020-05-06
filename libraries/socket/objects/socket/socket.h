@@ -91,6 +91,21 @@ class Socket
                     return std::min(this->block, std::max(result, 0.0));
                 }
             }
+
+            void SetTimeout(const char * mode, double time)
+            {
+                switch (*mode)
+                {
+                    case 'b':
+                        this->block = time;
+                        break;
+                    case 'r':
+                    case 't':
+                        this->total = time;
+                    default:
+                        break;
+                }
+            }
         };
 
         int Wait(int waitType);
@@ -127,6 +142,7 @@ class Socket
         Timeout timeout;
 
         SocketType sockType;
+        int family;
 
         int _Bind(sockaddr * addr, socklen_t length);
 
