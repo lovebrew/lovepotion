@@ -24,7 +24,7 @@
 #define WAITFD_W POLLOUT
 #define WAITFD_C (POLLIN | POLLOUT)
 
-#define STR_ADDR_ANY "0.0.0.0"
+#define UDP_DATAGRAMSIZE 0x2000
 
 #include "common/exception.h"
 #include "socket/errors.h"
