@@ -16,5 +16,7 @@ namespace LuaSocket
 
     int ToString(lua_State * L);
 
+    int Sleep(lua_State * L);
+
     int OpenHTTP(lua_State * L);
 }
