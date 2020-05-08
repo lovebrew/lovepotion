@@ -38,12 +38,56 @@ int Wrap_TCP::Bind(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "master", 1))
         return luaL_argerror(L, 1, "tcp{master} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    Socket::Address host;
+
+    host.ip = luaL_checkstring(L, 2);
+    host.port = luaL_checkstring(L, 3);
+
+    const char * error = self->TryBind(SOCK_STREAM, host);
+
+    if (error)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, error);
+
+        return 2;
+    }
+
+    lua_pushnumber(L, 1);
+
+    return 1;
 }
 
 int Wrap_TCP::Connect(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "master", 1))
         return luaL_argerror(L, 1, "tcp{master} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    Socket::Address peer;
+
+    peer.ip = luaL_checkstring(L, 2);
+    peer.port = luaL_checkstring(L, 3);
+
+    const char * error = self->TryConnect(SOCK_STREAM, peer);
+
+    if (error)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, error);
+
+        return 2;
+    }
+
+    self->SetState(TCP::STATE_CLIENT);
+
+    lua_pushnumber(L, 1);
+
+    return 1;
 }
 
 int Wrap_TCP::GetPeerName(lua_State * L)
@@ -80,6 +124,25 @@ int Wrap_TCP::SetOption(lua_State * L)
 {
     if (Wrap_TCP::CheckTCPSocketType(L, "master", 1))
         return luaL_argerror(L, 1, "tcp{client} or tcp{server} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    std::string option = luaL_checkstring(L, 2);
+    int value = luaL_checkinteger(L, 3);
+
+    std::string error = self->SetOption(option, value);
+
+    if (!error.empty())
+    {
+        lua_pushnil(L);
+        lua_pushlstring(L, error.data(), error.size());
+
+        return 2;
+    }
+
+    lua_pushnumber(L, 1);
+
+    return 1;
 }
 
 int Wrap_TCP::ToString(lua_State * L)
@@ -118,6 +181,9 @@ int Wrap_TCP::Register(lua_State * L)
     luaL_Reg reg[] =
     {
         { "__tostring",  ToString    },
+        { "bind",        Bind        },
+        { "connect",     Connect     },
+        { "setoption",   SetOption   },
         { 0, 0 },
     };
 

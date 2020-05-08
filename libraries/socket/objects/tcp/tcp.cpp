@@ -19,6 +19,11 @@ TCP::TCP(int & success)
     success = IO::IO_DONE;
 }
 
+void TCP::SetState(State state)
+{
+    this->state = state;
+}
+
 std::string TCP::GetString()
 {
     char buffer[56];
@@ -37,4 +42,28 @@ std::string TCP::GetString()
     }
 
     return buffer;
+}
+
+std::string TCP::SetOption(const std::string & name, int value)
+{
+    std::array<std::pair<std::string, int>, 4> options =
+    {{
+        {"keepalive",   SO_KEEPALIVE},
+        {"linger",      SO_LINGER   },
+        {"reuseaddr",   SO_REUSEADDR},
+        {"tcp-nodelay", TCP_NODELAY }
+    }};
+
+    for (auto option : options)
+    {
+        if (option.first == name)
+        {
+            if (setsockopt(this->sockfd, SOL_TCP, option.second, (char *)value, sizeof(value)) < 0)
+                return "setsockopt failed";
+        }
+        else
+            return "unsupported option " + name;
+    }
+
+    return "";
 }

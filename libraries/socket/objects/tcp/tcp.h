@@ -14,6 +14,14 @@ class TCP : public Socket
 
         TCP(int & success);
 
+        int Accept();
+
+        void SetState(State state);
+
+        int Listen(int backlog);
+
+        std::string SetOption(const std::string & name, int value);
+
         std::string GetString();
 
     private:

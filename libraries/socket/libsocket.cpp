@@ -1,28 +1,8 @@
-#include "socket/luasocket.h"
+#include "socket/libsocket.h"
+#include "socket_lua.h"
 
 #define LUASOCKET_TIME   1000000000
 #define OH_GOD_BIG_VALUE 999999999
-
-int LuaSocket::Bind(lua_State * L)
-{
-    // Socket::Address address;
-
-    // address.ip = luaL_checkstring(L, 1);
-    // address.port = luaL_checkstring(L, 2);
-
-    // int ret = Wrap_TCP::New(L);
-
-    // if (ret != 1)
-    //     return ret;
-
-    // TCP * self = Wrap_TCP::CheckTCPSocket(L, -1);
-
-    // self->TryBind(SOCK_STREAM, address);
-    // self->Listen();
-
-    // return ret;
-    return 0;
-}
 
 int LuaSocket::Sleep(lua_State * L)
 {
@@ -50,7 +30,25 @@ int LuaSocket::Sleep(lua_State * L)
     return 0;
 }
 
+int LuaSocket::OpenSocket(lua_State * L)
+{
+    if (Luax::DoBuffer(L, (const char *)socket_lua, socket_lua_size, "socket.lua"))
+        LOG("socket.lua error: %s", lua_tostring(L, -1));
+
+    return 1;
+}
+
 int LuaSocket::Open(lua_State * L)
+{
+    Luax::Preload(L, LuaSocket::OpenCore, "socket.core");
+
+    Luax::Preload(L, LuaSocket::OpenSocket, "socket");
+    Luax::Preload(L, LuaSocket::OpenHTTP, "socket.http");
+
+    return 0;
+}
+
+int LuaSocket::OpenCore(lua_State * L)
 {
     int (*classes[])(lua_State *L) =
     {
@@ -70,7 +68,6 @@ int LuaSocket::Open(lua_State * L)
     {
         { "udp",   Wrap_UDP::New },
         { "tcp",   Wrap_TCP::New },
-        { "bind",  Bind          },
         { "sleep", Sleep         },
         { 0, 0 },
     };

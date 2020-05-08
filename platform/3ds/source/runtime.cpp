@@ -1,5 +1,5 @@
 #include "common/runtime.h"
-#include "luasocket.h"
+#include "socket/libsocket.h"
 #include "common/assets.h"
 
 u32 * SOCKET_BUFFER;

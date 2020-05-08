@@ -10,7 +10,7 @@ DoneAction Run_Love_Potion(int & retval)
     luaL_openlibs(L);
 
     // preload love
-    Love::Preload(L, Love::Initialize, "love");
+    Luax::Preload(L, Love::Initialize, "love");
 
     // require "love"
     lua_getglobal(L, "require");

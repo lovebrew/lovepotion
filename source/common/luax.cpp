@@ -6,6 +6,23 @@
 using namespace love;
 
 /*
+** @func Preload
+** Preloads a Lua C function <func> into package.preload
+** with <name>. See the Lua 5.1 manual for more details:
+** https://www.lua.org/manual/5.1/manual.html#pdf-package.preload
+*/
+int Luax::Preload(lua_State * L, lua_CFunction func, const char * name)
+{
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "preload");
+    lua_pushcfunction(L, func);
+    lua_setfield(L, -2, name);
+    lua_pop(L, 2);
+
+    return 0;
+}
+
+/*
 ** @func DoBuffer
 ** Runs a specified Lua Buffer
 */

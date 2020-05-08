@@ -19,7 +19,7 @@
 #include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
 
-#include "socket/luasocket.h"
+#include "socket/libsocket.h"
 
 #include "boot_lua.h"
 
@@ -100,14 +100,16 @@ int Love::Initialize(lua_State * L)
 
     // preload all the modules
     for (int i = 0; Love::modules[i].name  != nullptr; i++)
-        Love::Preload(L, Love::modules[i].reg, Love::modules[i].name);
+        Luax::Preload(L, Love::modules[i].reg, Love::modules[i].name);
 
     Luax::Require(L, "love.data");
     lua_pop(L, 1);
 
-    Love::Preload(L, luaopen_luautf8, "utf8");
-    Love::Preload(L, LuaSocket::OpenHTTP, "socket.http");
-    Love::Preload(L, LuaSocket::Open, "socket");
+    // lua 5.3 stuff
+    Luax::Preload(L, luaopen_luautf8, "utf8");
+
+    // LuaSocket
+    LuaSocket::Open(L);
 
     return 1;
 }
@@ -179,23 +181,6 @@ void Love::GetField(lua_State * L, const char * field)
     lua_getfield(L, LUA_GLOBALSINDEX, "love");
     lua_getfield(L, -1, field);
     lua_remove(L, -2);
-}
-
-/*
-** @func Preload
-** Preloads a Lua C function <func> into package.preload
-** with <name>. See the Lua 5.1 manual for more details:
-** https://www.lua.org/manual/5.1/manual.html#pdf-package.preload
-*/
-int Love::Preload(lua_State * L, lua_CFunction func, const char * name)
-{
-    lua_getglobal(L, "package");
-    lua_getfield(L, -1, "preload");
-    lua_pushcfunction(L, func);
-    lua_setfield(L, -2, name);
-    lua_pop(L, 2);
-
-    return 0;
 }
 
 /*
