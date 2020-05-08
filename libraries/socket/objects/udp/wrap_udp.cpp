@@ -50,7 +50,7 @@ int Wrap_UDP::SetPeerName(lua_State * L)
     if (connecting && self->IsConnected())
         self->TryDisconnect();
 
-    const char * error = self->TryConnect(peer);
+    const char * error = self->TryConnect(SOCK_DGRAM, peer);
 
     if (error)
     {
@@ -77,7 +77,7 @@ int Wrap_UDP::SetSockName(lua_State * L)
     host.ip = luaL_checkstring(L, 2);
     host.port = luaL_optstring(L, 3, "0");
 
-    const char * error = self->TryBind(host);
+    const char * error = self->TryBind(SOCK_DGRAM, host);
 
     if (error)
     {

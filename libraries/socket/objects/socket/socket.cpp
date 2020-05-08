@@ -121,12 +121,12 @@ int Socket::_Bind(sockaddr * addr, socklen_t length)
     return error;
 }
 
-const char * Socket::TryBind(const Socket::Address & host)
+const char * Socket::TryBind(int type, const Socket::Address & host)
 {
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
 
-    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_socktype = type;
     hints.ai_family = AF_INET;
     hints.ai_flags = AI_PASSIVE;
 
@@ -209,12 +209,12 @@ int Socket::_Connect(sockaddr * addr, socklen_t length)
         return error;
 }
 
-const char * Socket::TryConnect(const Socket::Address & peer)
+const char * Socket::TryConnect(int type, const Socket::Address & peer)
 {
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
 
-    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_socktype = type;
     hints.ai_family = AF_INET;
 
     addrinfo * resolved =  NULL;

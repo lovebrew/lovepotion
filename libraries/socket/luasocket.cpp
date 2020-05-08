@@ -3,6 +3,27 @@
 #define LUASOCKET_TIME   1000000000
 #define OH_GOD_BIG_VALUE 999999999
 
+int LuaSocket::Bind(lua_State * L)
+{
+    // Socket::Address address;
+
+    // address.ip = luaL_checkstring(L, 1);
+    // address.port = luaL_checkstring(L, 2);
+
+    // int ret = Wrap_TCP::New(L);
+
+    // if (ret != 1)
+    //     return ret;
+
+    // TCP * self = Wrap_TCP::CheckTCPSocket(L, -1);
+
+    // self->TryBind(SOCK_STREAM, address);
+    // self->Listen();
+
+    // return ret;
+    return 0;
+}
+
 int LuaSocket::Sleep(lua_State * L)
 {
     double value = luaL_checknumber(L, 1);
@@ -35,6 +56,7 @@ int LuaSocket::Open(lua_State * L)
     {
         Wrap_Socket::Register,
         Wrap_UDP::Register,
+        Wrap_TCP::Register,
         NULL,
     };
 
@@ -47,6 +69,8 @@ int LuaSocket::Open(lua_State * L)
     luaL_Reg reg[] =
     {
         { "udp",   Wrap_UDP::New },
+        { "tcp",   Wrap_TCP::New },
+        { "bind",  Bind          },
         { "sleep", Sleep         },
         { 0, 0 },
     };

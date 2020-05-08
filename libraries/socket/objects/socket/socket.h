@@ -120,9 +120,9 @@ class Socket
 
         /* Lua Methods */
 
-        const char * TryBind(const Address & host);
+        const char * TryBind(int type, const Address & host);
 
-        const char * TryConnect(const Address & peer);
+        const char * TryConnect(int type, const Address & peer);
 
         int Send(const char * data, size_t length, size_t * sent);
 
