@@ -7,13 +7,13 @@ class UDP : public Socket
     public:
         UDP(int & success);
 
-        int SetPeerName(const Socket::Address & host);
-
-        int SetSockName(const Socket::Address & peer);
-
-        int Send(const char * data, size_t length, size_t * sent);
-
         int TryDisconnect();
+
+        int ReceiveFrom(std::vector<char> & buffer, Address & address);
+
+        int SendTo(const char * data, size_t length, size_t * sent, Address & address);
+
+        std::string SetOption(const std::string & name, int value);
 
         std::string GetString();
 };

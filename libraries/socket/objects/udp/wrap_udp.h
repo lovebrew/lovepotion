@@ -22,6 +22,8 @@ namespace Wrap_UDP
 
     int ReceiveFrom(lua_State * L);
 
+    int SetOption(lua_State * L);
+
     int ToString(lua_State * L);
 
     UDP * CheckUDPSocket(lua_State * L, int index);

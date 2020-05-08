@@ -8,8 +8,6 @@ static size_t WriteMemoryCallback(void * contents, size_t size, size_t nmemb, vo
     std::vector<char> * recv = (std::vector<char> *)userdata;
     recv->insert(recv->end(), (char *)contents, (char *)contents + size * nmemb);
 
-    LOG("Contents: %s", (char *)contents);
-
     return size * nmemb;
 }
 

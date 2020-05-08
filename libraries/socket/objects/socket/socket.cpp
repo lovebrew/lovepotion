@@ -12,7 +12,7 @@ int Socket::Wait(int type)
     int result;
 
     if (this->timeout.block == 0.0)
-        return IO_TIMEOUT;
+        return IO::IO_TIMEOUT;
 
     do
     {
@@ -23,11 +23,16 @@ int Socket::Wait(int type)
     if (result == -1)
         return errno;
     else if (result == 0)
-        return IO_TIMEOUT;
+        return IO::IO_TIMEOUT;
     else if (type == WAITFD_C && (pfd.revents & (POLLIN | POLLERR)))
-        return IO_CLOSED;
+        return IO::IO_CLOSED;
 
-    return IO_DONE;
+    return IO::IO_DONE;
+}
+
+bool Socket::SetTimeout(const char * mode, double duration)
+{
+    return this->timeout.SetTimeout(mode, duration);
 }
 
 /*
@@ -97,14 +102,14 @@ void Socket::SetBlocking(bool shouldBlock)
 {
     int flags = fcntl(this->sockfd, F_GETFL, 0);
 
-    flags = (shouldBlock) ? flags | O_NONBLOCK : flags & ~O_NONBLOCK;
+    flags = (shouldBlock) ? flags & ~O_NONBLOCK : flags | O_NONBLOCK;
 
     fcntl(this->sockfd, F_SETFL, flags);
 }
 
 int Socket::_Bind(sockaddr * addr, socklen_t length)
 {
-    int error = IO_DONE;
+    int error = IO::IO_DONE;
 
     this->SetBlocking(true);
 
@@ -116,7 +121,7 @@ int Socket::_Bind(sockaddr * addr, socklen_t length)
     return error;
 }
 
-int Socket::TryBind(const Socket::Address & host)
+const char * Socket::TryBind(const Socket::Address & host)
 {
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -125,7 +130,8 @@ int Socket::TryBind(const Socket::Address & host)
     hints.ai_family = AF_INET;
     hints.ai_flags = AI_PASSIVE;
 
-    addrinfo * resolved;
+    addrinfo * resolved = NULL;
+    const char * error = NULL;
 
     const char * hostname = "0.0.0.0";
     const char * port = host.port.c_str();
@@ -133,9 +139,9 @@ int Socket::TryBind(const Socket::Address & host)
     if (host.ip != "*")
         hostname = host.ip.c_str();
 
-    int error = getaddrinfo(hostname, port, &hints, &resolved);
+    error = this->GAIError(getaddrinfo(hostname, port, &hints, &resolved));
 
-    if (error != 0)
+    if (error)
     {
         if (resolved)
             freeaddrinfo(resolved);
@@ -157,9 +163,9 @@ int Socket::TryBind(const Socket::Address & host)
             this->family = item->ai_family;
         }
 
-        error = this->_Bind(item->ai_addr, item->ai_addrlen);
+        error = this->GetError(this->_Bind(item->ai_addr, item->ai_addrlen));
 
-        if (error == 0)
+        if (error == NULL)
         {
             this->SetBlocking(false);
             break;
@@ -168,7 +174,7 @@ int Socket::TryBind(const Socket::Address & host)
 
     freeaddrinfo(resolved);
 
-    return 0;
+    return error;
 }
 
 int Socket::_Connect(sockaddr * addr, socklen_t length)
@@ -176,26 +182,26 @@ int Socket::_Connect(sockaddr * addr, socklen_t length)
     int error;
 
     if (this->sockfd == SOCKET_INVALID)
-        return IO_CLOSED;
+        return IO::IO_CLOSED;
 
     do
     {
         if (connect(this->sockfd, addr, length) == 0)
-            return IO_DONE;
+            return IO::IO_DONE;
     } while ((error = errno) == EINTR);
 
     if (error != EINPROGRESS && error != EAGAIN)
         return error;
 
     if (this->timeout.block == 0.0)
-        return IO_TIMEOUT;
+        return IO::IO_TIMEOUT;
 
     error = this->Wait(WAITFD_C);
 
-    if (error == IO_CLOSED)
+    if (error == IO::IO_CLOSED)
     {
         if (recv(this->sockfd, (char *)&error, 0, 0) == 0)
-            return IO_DONE;
+            return IO::IO_DONE;
         else
             return errno;
     }
@@ -203,7 +209,7 @@ int Socket::_Connect(sockaddr * addr, socklen_t length)
         return error;
 }
 
-int Socket::TryConnect(const Socket::Address & peer)
+const char * Socket::TryConnect(const Socket::Address & peer)
 {
     addrinfo hints;
     memset(&hints, 0, sizeof(hints));
@@ -212,14 +218,16 @@ int Socket::TryConnect(const Socket::Address & peer)
     hints.ai_family = AF_INET;
 
     addrinfo * resolved =  NULL;
+    const char * error = NULL;
 
     const char * peername = "127.0.0.1";
-    const char * port = peer.port.c_str();
 
     if (peer.ip != "localhost")
         peername = peer.ip.c_str();
 
-    int error = getaddrinfo(peername, port, &hints, &resolved);
+    const char * port = peer.port.c_str();
+
+    error = this->GAIError(getaddrinfo(peername, port, &hints, &resolved));
 
     if (error)
     {
@@ -246,60 +254,94 @@ int Socket::TryConnect(const Socket::Address & peer)
             this->SetBlocking(false);
         }
 
-        error = this->_Connect(item->ai_addr, item->ai_addrlen);
+        error = this->GetError(this->_Connect(item->ai_addr, item->ai_addrlen));
 
-        if (error == 0 || this->timeout.block == 0.0)
+        if (error == NULL || this->timeout.IsZero())
             break;
     }
 
     freeaddrinfo(resolved);
 
-    if (error < 0)
-        return -1;
-
     this->isConnected = 1;
 
-    return 0;
+    return error;
 }
 
-int Socket::SendData(const char * data, size_t length, size_t * sent)
+int Socket::Receive(std::vector<char> & buffer, size_t * received)
+{
+    int error = 0;
+    *received = 0;
+
+    this->timeout.MarkStart();
+
+    if (this->sockfd == SOCKET_INVALID)
+        return IO::IO_CLOSED;
+
+    for (;;)
+    {
+        long taken = (long)recv(this->sockfd, buffer.data(), buffer.size(), 0);
+
+        if (taken > 0)
+        {
+            *received = taken;
+            buffer.resize(taken);
+
+            return IO::IO_DONE;
+        }
+
+        error = errno;
+
+        if (taken == 0)
+            return IO::IO_CLOSED;
+        else if (error == EINTR)
+            continue;
+        else if (error != EAGAIN)
+            return error;
+        else if ((error = this->Wait(WAITFD_R)) != IO::IO_DONE)
+            return error;
+    }
+
+    return IO::IO_UNKNOWN;
+}
+
+int Socket::Send(const char * data, size_t length, size_t * sent)
 {
     int error;
     *sent = 0;
 
+    this->timeout.MarkStart();
+
     if (this->sockfd == SOCKET_INVALID)
-        return IO_CLOSED;
+        return IO::IO_CLOSED;
 
     for (;;)
     {
-        LOG("sockfd: %d", this->sockfd);
         long put = (long)send(this->sockfd, data, length, 0);
-        LOG("Sending %s / %d length / %ld sent", data, length, put);
 
         if (put >= 0)
         {
             *sent = put;
-            return IO_DONE;
+            return IO::IO_DONE;
         }
 
         error = errno;
 
         if (error == EPIPE)
-            return IO_CLOSED;
+            return IO::IO_CLOSED;
         else if (error == EPROTOTYPE)
             continue;
         else if (error == EINTR)
             continue;
         else if (error != EAGAIN)
             return error;
-        else if ((error = this->Wait(WAITFD_W)) != IO_DONE)
+        else if ((error = this->Wait(WAITFD_W)) != IO::IO_DONE)
             return error;
     }
 
-    return IO_UNKNOWN;
+    return IO::IO_UNKNOWN;
 }
 
-int Socket::Create(int domain, int type, int protocol)
+const char * Socket::Create(int domain, int type, int protocol)
 {
     this->sockfd = SOCKET_INVALID;
 
@@ -317,16 +359,19 @@ int Socket::Create(int domain, int type, int protocol)
         this->sockfd = socket(domain, type, protocol);
 
         if (this->sockfd != SOCKET_INVALID)
-            return IO_DONE;
+            return NULL;
 
-        return errno;
+        return this->GetError(errno);
     }
 
-    return 0;
+    return NULL;
 }
 
 const char * Socket::GetError(int error)
 {
+    if (error <= 0)
+        return IO::GetError(error);
+
     switch (error)
     {
         case EADDRINUSE:

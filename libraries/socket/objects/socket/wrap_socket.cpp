@@ -67,6 +67,23 @@ int Wrap_Socket::GetSockName(lua_State * L)
     return 2;
 }
 
+int Wrap_Socket::SetTimeout(lua_State * L)
+{
+    Socket * self = Wrap_Socket::CheckSocket(L, 1);
+
+    double duration = luaL_optnumber(L, 2, -1);
+    const char * mode = luaL_optstring(L, 3, "b");
+
+    bool success = self->SetTimeout(mode, duration);
+
+    if (!success)
+        luaL_argcheck(L, 0, 3, "invalid timeout mode");
+
+    lua_pushnumber(L, 1);
+
+    return 1;
+}
+
 int Wrap_Socket::Close(lua_State * L)
 {
     Socket * self = Wrap_Socket::CheckSocket(L, 1);
@@ -96,6 +113,7 @@ int Wrap_Socket::Register(lua_State * L)
         { "getpeername", GetPeerName    },
         { "getsockname", GetSockName    },
         { "close",       Close          },
+        { "settimeout",  SetTimeout     },
         { 0,             0              }
     };
 

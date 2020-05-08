@@ -29,13 +29,7 @@
 #include "common/exception.h"
 #include "socket/errors.h"
 
-enum IO
-{
-    IO_DONE = 0,
-    IO_TIMEOUT = -1,
-    IO_CLOSED = -2,
-    IO_UNKNOWN = -3
-};
+#include "socket/io.h"
 
 class Socket
 {
@@ -67,6 +61,11 @@ class Socket
                 return value.tv_sec + value.tv_usec / 1.0e6;
             }
 
+            bool IsZero()
+            {
+                return this->block == 0.0;
+            }
+
             void MarkStart()
             {
                 this->start = this->GetTime();
@@ -92,8 +91,10 @@ class Socket
                 }
             }
 
-            void SetTimeout(const char * mode, double time)
+            bool SetTimeout(const char * mode, double time)
             {
+                bool result = true;
+
                 switch (*mode)
                 {
                     case 'b':
@@ -103,8 +104,11 @@ class Socket
                     case 't':
                         this->total = time;
                     default:
+                        result = false;
                         break;
                 }
+
+                return result;
             }
         };
 
@@ -112,23 +116,29 @@ class Socket
 
         void SetBlocking(bool shouldBlock);
 
-        void SetTimeout(int duration);
+        bool SetTimeout(const char * mode, double duration);
 
-        int TryBind(const Address & host);
+        /* Lua Methods */
 
-        int TryConnect(const Address & peer);
+        const char * TryBind(const Address & host);
 
-        int Create(int type, int domain, int protocol);
+        const char * TryConnect(const Address & peer);
 
-        int SendData(const char * data, size_t length, size_t * sent);
+        int Send(const char * data, size_t length, size_t * sent);
 
-        void Destroy();
-
-        void Close();
+        int Receive(std::vector<char> & buffer, size_t * received);
 
         int GetPeerName(Address & address);
 
         int GetSockName(Address & address);
+
+        /* End */
+
+        void Destroy();
+
+        const char * Create(int type, int domain, int protocol);
+
+        void Close();
 
         static const char * GetError(int error);
 
