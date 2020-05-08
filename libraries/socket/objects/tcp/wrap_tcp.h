@@ -1,6 +1,7 @@
 #pragma once
 
 #include "socket/objects/tcp/tcp.h"
+#include "objects/socket/wrap_socket.h"
 
 namespace Wrap_TCP
 {

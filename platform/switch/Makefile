@@ -38,8 +38,7 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source \
 				source/backend
 
-DATA		:=	../../source/scripts \
-				source/scripts \
+DATA		:=	${LOVE_SCRIPTS}
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \

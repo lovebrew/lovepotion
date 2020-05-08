@@ -40,7 +40,7 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source/backend
 
 DATA		:=	../../source/scripts \
-				source/scripts \
+				../../source/scripts/libsocket
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \

@@ -1,5 +1,17 @@
 #pragma once
 
+/*
+** libsocket
+** A LuaSocket C++ Implementation
+**
+** DISCLAIMER:
+** This code is based on LuaSocket and (LÖVE's own modifications).
+** It is somewhat an altered source variant of the original code,
+** but as it is based on LuaSocket, please aknowledge the work done
+** by the original authors of both LuaSocket and LöVE.
+**
+*/
+
 #include "common/runtime.h"
 
 #include "socket/objects/http/wrap_http.h"

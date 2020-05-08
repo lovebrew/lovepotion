@@ -19,6 +19,61 @@ TCP::TCP(int & success)
     success = IO::IO_DONE;
 }
 
+int TCP::_Accept(int * clientfd, sockaddr * addr, socklen_t length)
+{
+    if (this->sockfd == SOCKET_INVALID)
+        return IO::IO_CLOSED;
+
+    for (;;)
+    {
+        int error;
+
+        if ((*clientfd = accept(this->sockfd, addr, length)) != SOCKET_INVALID)
+            return IO::IO_DONE;
+
+        error = errno;
+
+        if (error == EINTR)
+            continue;
+        else if (error != EAGAIN && error != ECONNABORTED)
+            return error;
+        else if ((error = this->Wait(WAITFD_R)) != IO::IO_DONE)
+            return error;
+    }
+
+    return IO::IO_UNKNOWN;
+}
+
+const char * TCP::TryAccept(int * clientfd)
+{
+    sockaddr_storage address;
+    socklen_t length = sizeof(sockaddr_in);
+
+    return this->GetError(this->Accept(clientfd, address, length))
+}
+
+int TCP::Listen(int backlog)
+{
+    int error = IO::IO_DONE;
+
+    if (listen(this->sockfd, backlog))
+        error = errno;
+
+    return error;
+}
+
+void TCP::Shutdown(const std::string & how)
+{
+    for (auto item : TCP::shutDownHow)
+    {
+        if (item.first == how)
+        {
+            shutdown(this->sockfd, item.second);
+            return;
+        }
+    }
+}
+
 void TCP::SetState(State state)
 {
     this->state = state;
@@ -67,3 +122,11 @@ std::string TCP::SetOption(const std::string & name, int value)
 
     return "";
 }
+
+// Static Variable init
+std::array<std::pair<std::string, int>>, 3> TCP::shutDownHow =
+{{
+    { "receive", SHUT_RD   },
+    { "send",    SHUT_WR   },
+    { "both",    SHUT_RDWR }
+}};

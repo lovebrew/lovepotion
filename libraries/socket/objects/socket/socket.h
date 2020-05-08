@@ -145,6 +145,8 @@ class Socket
 
         static const char * GAIError(int error);
 
+        void SetSock(int sockfd);
+
         bool IsConnected();
 
     protected:

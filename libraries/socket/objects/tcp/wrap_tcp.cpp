@@ -32,6 +32,31 @@ int Wrap_TCP::Accept(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "server", 1))
         return luaL_argerror(L, 1, "tcp{server} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+    int clientfd;
+
+    const char * error = self->TryAccept(&clientfd);
+
+    if (error)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, error);
+
+        return 2;
+    }
+
+    int result = Wrap_TCP::New(L);
+
+    if (result == 1)
+    {
+        TCP * client = Wrap_TCP::CheckTCPSocket(L, -1);
+
+        client->SetBlocking(false);
+        client->SetSock(clientfd);
+
+        return 1;
+    }
 }
 
 int Wrap_TCP::Bind(lua_State * L)
@@ -94,12 +119,34 @@ int Wrap_TCP::GetPeerName(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "client", 1))
         return luaL_argerror(L, 1, "tcp{client} expected");
+
+    return Wrap_Socket::GetPeerName(L);
 }
 
 int Wrap_TCP::Listen(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "master", 1))
         return luaL_argerror(L, 1, "tcp{master} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    int backlog = luaL_optnumber(L, 2, TCP::DEFAULT_BACKLOG);
+
+    int error = self->Listen(backlog);
+
+    if (error != IO::IO_DONE)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, Socket::GetError(error));
+
+        return 2;
+    }
+
+    self->SetState(TCP::STATE_SERVER);
+
+    lua_pushnumber(L, 1);
+
+    return 1;
 }
 
 int Wrap_TCP::Receive(lua_State * L)
@@ -118,6 +165,16 @@ int Wrap_TCP::Shutdown(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "client", 1))
         return luaL_argerror(L, 1, "tcp{client} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    std::string how = luaL_optstring(L, 2, "both");
+
+    self->Shutdown(how);
+
+    lua_pushnumber(L, 1);
+
+    return 1;
 }
 
 int Wrap_TCP::SetOption(lua_State * L)

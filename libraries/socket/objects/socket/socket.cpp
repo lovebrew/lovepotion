@@ -30,6 +30,11 @@ int Socket::Wait(int type)
     return IO::IO_DONE;
 }
 
+void Socket::SetSock(int sockfd)
+{
+    this->sockfd = sockfd;
+}
+
 bool Socket::SetTimeout(const char * mode, double duration)
 {
     return this->timeout.SetTimeout(mode, duration);
