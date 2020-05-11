@@ -95,7 +95,7 @@ int Wrap_UDP::SetSockName(lua_State * L)
 int Wrap_UDP::Receive(lua_State * L)
 {
     UDP * self = Wrap_UDP::CheckUDPSocket(L, 1);
-    size_t max = luaL_optnumber(L, 2, UDP_DATAGRAMSIZE);
+    size_t max = luaL_optnumber(L, 2, UDP_DATASIZE);
 
     size_t received = 0;
 
@@ -103,7 +103,7 @@ int Wrap_UDP::Receive(lua_State * L)
     {
         std::vector<char> buffer(max);
 
-        int error = self->Receive(buffer, &received);
+        int error = self->Receive(buffer, &received, &self->GetTimeout());
 
         if (error != IO::IO_DONE && error != IO::IO_CLOSED)
         {
@@ -132,7 +132,7 @@ int Wrap_UDP::ReceiveFrom(lua_State * L)
         return luaL_argerror(L, 1, "udp{unconnected} expected");
 
     UDP * self = Wrap_UDP::CheckUDPSocket(L, 1);
-    size_t max = luaL_optnumber(L, 2, UDP_DATAGRAMSIZE);
+    size_t max = luaL_optnumber(L, 2, UDP_DATASIZE);
 
     try
     {
@@ -184,7 +184,7 @@ int Wrap_UDP::Send(lua_State * L)
 
     const char * data = luaL_checklstring(L, 2, &length);
 
-    int error = self->Send(data, length, &sent);
+    int error = self->Send(data, length, &sent, &self->GetTimeout());
 
     if (error != IO::IO_DONE)
     {
@@ -252,7 +252,7 @@ int Wrap_UDP::SetOption(lua_State * L)
     UDP * self = Wrap_UDP::CheckUDPSocket(L, 1);
 
     std::string option = luaL_checkstring(L, 2);
-    int value = luaL_checkinteger(L, 3);
+    int value = lua_toboolean(L, 3);
 
     std::string error = self->SetOption(option, value);
 
@@ -288,13 +288,13 @@ bool Wrap_UDP::CheckUDPSocketType(lua_State * L, const std::string & type, int i
 {
     UDP * ret = Wrap_UDP::CheckUDPSocket(L, index);
 
-    static const std::string types[] = {"{unconnected}", "{connected}", ""};
+    static const std::string types[] = {"{unconnected}", "{connected}"};
     std::string selfType = ret->GetString();
 
-    for (size_t i = 0; !(types[i].empty()); i++)
+    for (auto item : types)
     {
-        if (types[i].compare(type) == 0)
-            return selfType.find(types[i]) != std::string::npos;
+        if (item == "{" + type + "}")
+            return selfType.find(item) != std::string::npos;
     }
 
     return false;

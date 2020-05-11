@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "socket/objects/socket/socket.h"
 
-int Socket::Wait(int type)
+int Socket::Wait(int type, Timeout * timeout)
 {
     pollfd pfd;
 
@@ -11,12 +11,12 @@ int Socket::Wait(int type)
 
     int result;
 
-    if (this->timeout.block == 0.0)
+    if (timeout->block == 0.0)
         return IO::IO_TIMEOUT;
 
     do
     {
-        int t = (int)(this->timeout.GetRetry() * 1e3);
+        int t = (int)(timeout->GetRetry() * 1e3);
         result = poll(&pfd, 1, t >= 0 ? t : -1);
     } while (result == -1 && errno == EINTR);
 
@@ -30,7 +30,7 @@ int Socket::Wait(int type)
     return IO::IO_DONE;
 }
 
-void Socket::SetSock(int sockfd)
+void Socket::SetSock(int & sockfd)
 {
     this->sockfd = sockfd;
 }
@@ -201,7 +201,7 @@ int Socket::_Connect(sockaddr * addr, socklen_t length)
     if (this->timeout.block == 0.0)
         return IO::IO_TIMEOUT;
 
-    error = this->Wait(WAITFD_C);
+    error = this->Wait(WAITFD_C, &this->timeout);
 
     if (error == IO::IO_CLOSED)
     {
@@ -272,12 +272,12 @@ const char * Socket::TryConnect(int type, const Socket::Address & peer)
     return error;
 }
 
-int Socket::Receive(std::vector<char> & buffer, size_t * received)
+int Socket::Receive(std::vector<char> & buffer, size_t * received, Timeout * timeout)
 {
     int error = 0;
     *received = 0;
 
-    this->timeout.MarkStart();
+    timeout->MarkStart();
 
     if (this->sockfd == SOCKET_INVALID)
         return IO::IO_CLOSED;
@@ -302,19 +302,19 @@ int Socket::Receive(std::vector<char> & buffer, size_t * received)
             continue;
         else if (error != EAGAIN)
             return error;
-        else if ((error = this->Wait(WAITFD_R)) != IO::IO_DONE)
+        else if ((error = this->Wait(WAITFD_R, timeout)) != IO::IO_DONE)
             return error;
     }
 
     return IO::IO_UNKNOWN;
 }
 
-int Socket::Send(const char * data, size_t length, size_t * sent)
+int Socket::Send(const char * data, size_t length, size_t * sent, Timeout * timeout)
 {
     int error;
     *sent = 0;
 
-    this->timeout.MarkStart();
+    timeout->MarkStart();
 
     if (this->sockfd == SOCKET_INVALID)
         return IO::IO_CLOSED;
@@ -339,7 +339,7 @@ int Socket::Send(const char * data, size_t length, size_t * sent)
             continue;
         else if (error != EAGAIN)
             return error;
-        else if ((error = this->Wait(WAITFD_W)) != IO::IO_DONE)
+        else if ((error = this->Wait(WAITFD_W, timeout)) != IO::IO_DONE)
             return error;
     }
 
@@ -365,6 +365,8 @@ const char * Socket::Create(int domain, int type, int protocol)
 
         if (this->sockfd != SOCKET_INVALID)
             return NULL;
+
+        this->SetBlocking(false);
 
         return this->GetError(errno);
     }

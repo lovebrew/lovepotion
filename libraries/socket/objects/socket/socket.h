@@ -11,26 +11,11 @@
 
 #include <unistd.h>
 
-#define SO_SOCKNAME_ALL "*"
-#define SOCKET_INVALID -1
-
-#if defined (_3DS)
-    #define SO_KEEPALIVE 0x0008
-    #define SO_DONTROUTE 0x0010
-#elif defined (__SWITCH__)
-
-#endif
-
-#define WAITFD_R POLLIN
-#define WAITFD_W POLLOUT
-#define WAITFD_C (POLLIN | POLLOUT)
-
-#define UDP_DATAGRAMSIZE 0x2000
-
 #include "common/exception.h"
 #include "socket/errors.h"
 
 #include "socket/io.h"
+#include "socket/defines.h"
 
 class Socket
 {
@@ -113,7 +98,11 @@ class Socket
             }
         };
 
-        int Wait(int waitType);
+        Timeout & GetTimeout() {
+            return this->timeout;
+        }
+
+        int Wait(int waitType, Timeout * tm);
 
         void SetBlocking(bool shouldBlock);
 
@@ -125,9 +114,9 @@ class Socket
 
         const char * TryConnect(int type, const Address & peer);
 
-        int Send(const char * data, size_t length, size_t * sent);
+        int Send(const char * data, size_t length, size_t * sent, Timeout * tm);
 
-        int Receive(std::vector<char> & buffer, size_t * received);
+        int Receive(std::vector<char> & buffer, size_t * received, Timeout * tm);
 
         int GetPeerName(Address & address);
 
@@ -145,7 +134,7 @@ class Socket
 
         static const char * GAIError(int error);
 
-        void SetSock(int sockfd);
+        void SetSock(int & sockfd);
 
         bool IsConnected();
 

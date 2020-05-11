@@ -48,15 +48,16 @@ int Wrap_TCP::Accept(lua_State * L)
 
     int result = Wrap_TCP::New(L);
 
-    if (result == 1)
-    {
-        TCP * client = Wrap_TCP::CheckTCPSocket(L, -1);
+    if (result == 2)
+        return result;
 
-        client->SetBlocking(false);
-        client->SetSock(clientfd);
+    TCP * client = Wrap_TCP::CheckTCPSocket(L, -1);
 
-        return 1;
-    }
+    client->SetState(TCP::STATE_CLIENT);
+    client->SetSock(clientfd);
+    client->SetBlocking(false);
+
+    return result;
 }
 
 int Wrap_TCP::Bind(lua_State * L)
@@ -153,12 +154,104 @@ int Wrap_TCP::Receive(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "client", 1))
         return luaL_argerror(L, 1, "tcp{client} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    int top = lua_gettop(L);
+    int error = IO::IO_DONE;
+
+    size_t size = 0;
+    luaL_Buffer buff;
+
+    const char * part = luaL_optlstring(L, 3, "", &size);
+
+    luaL_buffinit(L, &buff);
+    luaL_addlstring(&buff, part, size);
+
+    if (!lua_isnumber(L, 2))
+    {
+        std::string mode = luaL_optstring(L, 2, "*l");
+
+        if (mode == "*l")
+            error = self->ReceiveLine(&buff);
+        else if (mode == "*a")
+            error = self->ReceiveAll(&buff);
+        else
+            luaL_argcheck(L, 0, 2, "invalid receive pattern");
+    }
+    else
+    {
+        double max = lua_tonumber(L, 2);
+        size_t wanted = (size_t)max;
+
+        luaL_argcheck(L, max >= 0, 2, "invalid receive pattern");
+
+        if (size == 0 || wanted > size)
+            error = self->ReceiveRaw(wanted - size, &buff);
+    }
+
+    if (error != IO::IO_DONE)
+    {
+        luaL_pushresult(&buff);
+        lua_pushstring(L, Socket::GetError(error));
+        lua_pushvalue(L, -2);
+        lua_pushnil(L);
+        lua_replace(L, -4);
+    }
+    else
+    {
+        luaL_pushresult(&buff);
+        lua_pushnil(L);
+        lua_pushnil(L);
+    }
+
+    return lua_gettop(L) - top;
 }
 
 int Wrap_TCP::Send(lua_State * L)
 {
     if (!Wrap_TCP::CheckTCPSocketType(L, "client", 1))
         return luaL_argerror(L, 1, "tcp{client} expected");
+
+    TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    int error = IO::IO_DONE;
+    size_t size = 0;
+    size_t sent = 0;
+
+    const char * data = luaL_checklstring(L, 2, &size);
+    long start = luaL_optnumber(L, 3, 1);
+    long end   = luaL_optnumber(L, 4, -1);
+
+    if (start < 0)
+        start = (long)(size + start + 1);
+
+    if (end < 0)
+        end   = (long)(size + end + 1);
+
+    if (start < 1)
+        start = 1;
+
+    if (end > (long)size)
+        end = (long)size;
+
+    if (start <= end)
+        error = self->SendRaw(data + start - 1, end - start + 1, &sent);
+
+    if (error != IO::IO_DONE)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, Socket::GetError(error));
+        lua_pushnumber(L, (sent + start - 1));
+
+        return 3;
+    }
+
+    lua_pushnumber(L, (sent + start - 1));
+    lua_pushnil(L);
+    lua_pushnil(L);
+
+    return 3;
 }
 
 int Wrap_TCP::Shutdown(lua_State * L)
@@ -179,13 +272,10 @@ int Wrap_TCP::Shutdown(lua_State * L)
 
 int Wrap_TCP::SetOption(lua_State * L)
 {
-    if (Wrap_TCP::CheckTCPSocketType(L, "master", 1))
-        return luaL_argerror(L, 1, "tcp{client} or tcp{server} expected");
-
     TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
 
     std::string option = luaL_checkstring(L, 2);
-    int value = luaL_checkinteger(L, 3);
+    int value = lua_toboolean(L, 3);
 
     std::string error = self->SetOption(option, value);
 
@@ -221,16 +311,20 @@ bool Wrap_TCP::CheckTCPSocketType(lua_State * L, const std::string & type, int i
 {
     TCP * ret = Wrap_TCP::CheckTCPSocket(L, index);
 
-    static const std::string types[] = {"{master}", "{client}", "server"};
+    static const std::string types[] = {"{master}", "{client}", "{server}"};
     std::string selfType = ret->GetString();
+    bool success = false;
 
-    for (auto check : types)
+    for (auto item : types)
     {
-        if (check == type)
-            return selfType.find(check) != std::string::npos;
+        if (item == "{" + type + "}" && selfType.find(item) != std::string::npos)
+        {
+            success = true;
+            break;
+        }
     }
 
-    return false;
+    return success;
 }
 
 int Wrap_TCP::Register(lua_State * L)
@@ -241,6 +335,12 @@ int Wrap_TCP::Register(lua_State * L)
         { "bind",        Bind        },
         { "connect",     Connect     },
         { "setoption",   SetOption   },
+        { "send",        Send        },
+        { "receive",     Receive     },
+        { "accept",      Accept      },
+        { "listen",      Listen      },
+        { "shutdown",    Shutdown    },
+        { "getpeername", GetPeerName },
         { 0, 0 },
     };
 

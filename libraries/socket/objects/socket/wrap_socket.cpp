@@ -37,7 +37,7 @@ int Wrap_Socket::GetPeerName(lua_State * L)
     }
 
     lua_pushlstring(L, address.ip.data(), address.ip.size());
-    lua_pushlstring(L, address.port.data(), address.port.size());
+    lua_pushnumber(L, std::stol(address.port));
 
     return 2;
 }
@@ -62,7 +62,7 @@ int Wrap_Socket::GetSockName(lua_State * L)
     }
 
     lua_pushlstring(L, address.ip.data(), address.ip.size());
-    lua_pushlstring(L, address.port.data(), address.port.size());
+    lua_pushnumber(L, std::stol(address.port));
 
     return 2;
 }
@@ -90,7 +90,9 @@ int Wrap_Socket::Close(lua_State * L)
 
     self->Destroy();
 
-    return 0;
+    lua_pushnumber(L, 1);
+
+    return 1;
 }
 
 int Wrap_Socket::GarbageCollect(lua_State * L)

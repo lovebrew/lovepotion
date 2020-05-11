@@ -14,7 +14,6 @@ function _M.bind(host, port, backlog)
     end
 
     sock:setoption("reuseaddr", true)
-
     result, error = sock:bind(host, port)
 
     if not result then

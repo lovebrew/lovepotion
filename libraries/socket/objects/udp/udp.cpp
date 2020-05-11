@@ -14,7 +14,6 @@ UDP::UDP(int & success) : Socket()
         return;
     }
 
-    this->SetBlocking(true);
     success = IO::IO_DONE;
 }
 
@@ -70,7 +69,7 @@ int UDP::ReceiveFrom(std::vector<char> & buffer, Socket::Address & remote)
             continue;
         else if (error != EAGAIN)
             return error;
-        else if ((error = this->Wait(WAITFD_R)) != IO::IO_DONE)
+        else if ((error = this->Wait(WAITFD_R, &this->timeout)) != IO::IO_DONE)
             return error;
     }
 
@@ -119,7 +118,7 @@ int UDP::SendTo(const char * data, size_t length, size_t * sent, Address & addre
             continue;
         else if (error == EINTR)
             continue;
-        else if ((error == this->Wait(WAITFD_W)) != IO::IO_DONE)
+        else if ((error == this->Wait(WAITFD_W, &this->timeout)) != IO::IO_DONE)
             return error;
     }
 
@@ -138,7 +137,7 @@ std::string UDP::SetOption(const std::string & name, int value)
     {
         if (option.first == name)
         {
-            if (setsockopt(this->sockfd, SOL_SOCKET, option.second, (char *)value, sizeof(value)) < 0)
+            if (setsockopt(this->sockfd, SOL_SOCKET, option.second, (char *)&value, sizeof(value)) < 0)
                 return "setsockopt failed";
         }
         else
