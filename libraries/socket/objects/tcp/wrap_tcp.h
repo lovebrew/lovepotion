@@ -7,6 +7,8 @@ namespace Wrap_TCP
 {
     int New(lua_State * L);
 
+    int New4(lua_State * L);
+
     int Accept(lua_State * L);
 
     int Bind(lua_State * L);

@@ -95,33 +95,38 @@ int Wrap_UDP::SetSockName(lua_State * L)
 int Wrap_UDP::Receive(lua_State * L)
 {
     UDP * self = Wrap_UDP::CheckUDPSocket(L, 1);
-    size_t max = luaL_optnumber(L, 2, UDP_DATASIZE);
 
-    size_t received = 0;
+    char buffer[UDP_DATASIZE];
+    size_t got, wanted = luaL_optnumber(L, 2, sizeof(buffer));
 
-    try
-    {
-        std::vector<char> buffer(max);
+    char * data = wanted > sizeof(buffer) ? (char *)malloc(wanted) : buffer;
+    self->SetTimeoutStart();
 
-        int error = self->Receive(buffer, &received, &self->GetTimeout());
-
-        if (error != IO::IO_DONE && error != IO::IO_CLOSED)
-        {
-            lua_pushnil(L);
-            lua_pushstring(L, Socket::GetError(error));
-
-            return 2;
-        }
-
-        lua_pushlstring(L, buffer.data(), buffer.size());
-    }
-    catch (std::bad_alloc &)
+    if (!data)
     {
         lua_pushnil(L);
-        lua_pushstring(L, "out of memory");
+        lua_pushliteral(L, "out of memory");
 
         return 2;
     }
+
+    int error = self->Receive(data, wanted, &got, &self->GetTimeout());
+
+    if (error != IO::IO_DONE && error != IO::IO_CLOSED)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, Socket::GetError(error));
+
+        if (wanted > sizeof(buffer))
+            free(data);
+
+        return 2;
+    }
+
+    lua_pushlstring(L, data, got);
+
+    if (wanted > sizeof(buffer))
+        free(data);
 
     return 1;
 }
@@ -132,42 +137,50 @@ int Wrap_UDP::ReceiveFrom(lua_State * L)
         return luaL_argerror(L, 1, "udp{unconnected} expected");
 
     UDP * self = Wrap_UDP::CheckUDPSocket(L, 1);
-    size_t max = luaL_optnumber(L, 2, UDP_DATASIZE);
 
-    try
-    {
-        std::vector<char> buffer(max);
-        Socket::Address address;
+    char buffer[UDP_DATASIZE];
+    size_t got, wanted = luaL_optnumber(L, 2, sizeof(buffer));
 
-        int error = self->ReceiveFrom(buffer, address);
+    char * data = wanted > sizeof(buffer) ? (char *)malloc(wanted) : buffer;
+    self->SetTimeoutStart();
 
-        if (error)
-        {
-            lua_pushnil(L);
-            lua_pushstring(L, Socket::GAIError(error));
-
-            return 2;
-        }
-
-        if (error != IO::IO_DONE && error != IO::IO_CLOSED)
-        {
-            lua_pushnil(L);
-            lua_pushstring(L, Socket::GetError(error));
-
-            return 2;
-        }
-
-        lua_pushlstring(L, buffer.data(), buffer.size());
-        lua_pushlstring(L, address.ip.data(), address.ip.size());
-        lua_pushinteger(L, std::stol(address.port));
-    }
-    catch (std::bad_alloc &)
+    if (!data)
     {
         lua_pushnil(L);
         lua_pushstring(L, "out of memory");
 
         return 2;
     }
+
+    Socket::Address address;
+
+    int error = self->ReceiveFrom(buffer, wanted, &got, address);
+
+    if (error)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, Socket::GAIError(error));
+
+        if (wanted > sizeof(buffer))
+            free(data);
+
+        return 2;
+    }
+
+    if (error != IO::IO_DONE && error != IO::IO_CLOSED)
+    {
+        lua_pushnil(L);
+        lua_pushstring(L, Socket::GetError(error));
+
+        return 2;
+    }
+
+    lua_pushlstring(L, data, got);
+    lua_pushlstring(L, address.ip.data(), address.ip.size());
+    lua_pushinteger(L, std::stol(address.port));
+
+    if (wanted > sizeof(buffer))
+        free(data);
 
     return 3;
 }
@@ -183,6 +196,8 @@ int Wrap_UDP::Send(lua_State * L)
     size_t length = 0;
 
     const char * data = luaL_checklstring(L, 2, &length);
+
+    self->SetTimeoutStart();
 
     int error = self->Send(data, length, &sent, &self->GetTimeout());
 
@@ -218,6 +233,8 @@ int Wrap_UDP::SendTo(lua_State * L)
     const char * data = luaL_checklstring(L, 2, &length);
     address.ip = luaL_checkstring(L, 3);
     address.port = luaL_checkstring(L, 4);
+
+    self->SetTimeoutStart();
 
     int error = self->SendTo(data, length, &sent, address);
 

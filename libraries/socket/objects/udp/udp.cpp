@@ -27,7 +27,7 @@ std::string UDP::GetString()
     return buffer;
 }
 
-int UDP::ReceiveFrom(std::vector<char> & buffer, Socket::Address & remote)
+int UDP::ReceiveFrom(char * buffer, size_t length, size_t * got, Socket::Address & remote)
 {
     sockaddr_storage address;
     socklen_t addressSize = sizeof(address);
@@ -44,12 +44,11 @@ int UDP::ReceiveFrom(std::vector<char> & buffer, Socket::Address & remote)
 
     for (;;)
     {
-        long taken = (long)recvfrom(this->sockfd, buffer.data(), buffer.size(), 0, (sockaddr *)&address, &addressSize);
+        long taken = (long)recvfrom(this->sockfd, buffer, length, 0, (sockaddr *)&address, &addressSize);
 
         if (taken > 0)
         {
-            buffer.resize(taken);
-
+            *got = taken;
             error = getnameinfo((sockaddr *)&address, addressSize, name, INET_ADDRSTRLEN, port, 6, NI_NUMERICHOST | NI_NUMERICSERV);
 
             if (error)

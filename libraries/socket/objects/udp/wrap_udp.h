@@ -7,6 +7,8 @@ namespace Wrap_UDP
 {
     int New(lua_State * L);
 
+    int New4(lua_State * L);
+
     int GetPeerName(lua_State * L);
 
     int SetPeerName(lua_State * L);

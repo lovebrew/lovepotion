@@ -7,7 +7,7 @@ function _M.bind(host, port, backlog)
         host = INADDR_ANY
     end
 
-    local sock, result = socket.tcp()
+    local sock, result = socket.tcp4()
 
     if not sock then
         return nil, result

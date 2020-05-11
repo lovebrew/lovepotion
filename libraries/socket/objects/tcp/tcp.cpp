@@ -5,9 +5,9 @@
 #define CLASS_CLIENT "tcp{client}"
 #define CLASS_SERVER "tcp{server}"
 
-TCP::TCP(int & success)
+TCP::TCP(int & success, int domain)
 {
-    const char * error = this->Create(AF_UNSPEC, SOCK_STREAM, 0);
+    const char * error = this->Create(domain, SOCK_STREAM, 0);
 
     if (error != NULL)
     {
@@ -15,10 +15,36 @@ TCP::TCP(int & success)
         return;
     }
 
-    this->buffer.data.resize(BUF_DATASIZE);
+    this->buffer = Buffer();
+
     this->buffer.creation = this->timeout.GetTime();
+    this->buffer.timeout = &this->timeout;
 
     success = IO::IO_DONE;
+}
+
+TCP::TCP(int sockfd)
+{
+    this->sockfd = sockfd;
+
+    this->timeout =
+    {
+        .block = -1.0,
+        .total = -1.0,
+        .start = 0.0
+    };
+
+    this->buffer = Buffer();
+
+    this->buffer.creation = this->timeout.GetTime();
+    this->buffer.timeout = &this->timeout;
+    this->state = STATE_CLIENT;
+}
+
+bool TCP::SetTimeout(const char * mode, double duration)
+{
+    bool succ = this->timeout.SetTimeout(mode, duration);
+    return succ && this->buffer.timeout->SetTimeout(mode, duration);
 }
 
 TCP::Stats TCP::GetStats()
@@ -52,7 +78,7 @@ int TCP::SendRaw(const char * data, size_t count, size_t * sent)
         size_t done = 0;
         size_t step = (count - total <= BUF_DATASIZE) ? count - total : BUF_DATASIZE;
 
-        error = this->Send(data + total, step, &done, &this->buffer.timeout);
+        error = this->Send(data + total, step, &done, this->buffer.timeout);
         total += done;
     }
 
@@ -78,7 +104,7 @@ int TCP::ReceiveRaw(size_t wanted, luaL_Buffer * buff)
         if (this->buffer.IsEmpty())
         {
             size_t got;
-            error = this->Receive(this->buffer.data, &got, &this->buffer.timeout);
+            error = this->Receive(this->buffer.data, BUF_DATASIZE, &got, this->buffer.timeout);
 
             this->buffer.first = 0;
             this->buffer.last = got;
@@ -115,7 +141,7 @@ int TCP::ReceiveAll(luaL_Buffer * buff)
         if (this->buffer.IsEmpty())
         {
             size_t got;
-            error = this->Receive(this->buffer.data, &got, &this->buffer.timeout);
+            error = this->Receive(this->buffer.data, BUF_DATASIZE, &got, this->buffer.timeout);
 
             this->buffer.first = 0;
             this->buffer.last = got;
@@ -146,7 +172,6 @@ int TCP::ReceiveAll(luaL_Buffer * buff)
 int TCP::ReceiveLine(luaL_Buffer * buff)
 {
     int error = IO::IO_DONE;
-    this->timeout.MarkStart();
 
     while (error == IO::IO_DONE)
     {
@@ -157,7 +182,7 @@ int TCP::ReceiveLine(luaL_Buffer * buff)
         if (this->buffer.IsEmpty())
         {
             size_t got;
-            error = this->Receive(this->buffer.data, &got, &this->buffer.timeout);
+            error = this->Receive(this->buffer.data, BUF_DATASIZE, &got, this->buffer.timeout);
 
             this->buffer.first = 0;
             this->buffer.last = got;
@@ -215,6 +240,8 @@ const char * TCP::TryAccept(int * clientfd)
 {
     sockaddr_storage address;
     socklen_t length = sizeof(sockaddr_in);
+
+    this->timeout.MarkStart();
 
     return this->GetError(this->_Accept(clientfd, (sockaddr *)&address, length));
 }
@@ -282,13 +309,13 @@ std::string TCP::SetOption(const std::string & name, int value)
         {
             int level = (option.second == TCP_NODELAY) ? SOL_TCP : SOL_SOCKET;
             if (setsockopt(this->sockfd, level, option.second, (char *)&value, sizeof(value)) < 0)
-                return "setsockopt failed";
+                return std::string("setsockopt failed: ") + strerror(errno);
+            else
+                return "";
         }
-        else
-            return "unsupported option " + name;
     }
 
-    return "";
+    return "unsupported option " + name;
 }
 
 // Static Variable init

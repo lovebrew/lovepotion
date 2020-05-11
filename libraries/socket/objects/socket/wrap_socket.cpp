@@ -89,17 +89,11 @@ int Wrap_Socket::Close(lua_State * L)
     Socket * self = Wrap_Socket::CheckSocket(L, 1);
 
     self->Destroy();
+    self->~Socket();
 
     lua_pushnumber(L, 1);
 
     return 1;
-}
-
-int Wrap_Socket::GarbageCollect(lua_State * L)
-{
-    int ret = Wrap_Socket::Close(L);
-
-    return ret;
 }
 
 Socket * Wrap_Socket::CheckSocket(lua_State * L, int index)
@@ -111,7 +105,7 @@ int Wrap_Socket::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
-        { "__gc",        GarbageCollect },
+        { "__gc",        Close          },
         { "getpeername", GetPeerName    },
         { "getsockname", GetSockName    },
         { "close",       Close          },

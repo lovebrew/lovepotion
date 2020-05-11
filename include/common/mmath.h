@@ -41,6 +41,7 @@ namespace love
         in |= in >> 16;
         in++;
 
-        return std::min(std::max(in, 8U), 1024U); // clamp size to keep gpu from locking
+        // clamp size to keep gpu from locking
+        return std::clamp(in, 8U, 1024U);
     }
 }

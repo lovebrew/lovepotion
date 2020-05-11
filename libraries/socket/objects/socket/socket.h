@@ -104,9 +104,15 @@ class Socket
 
         int Wait(int waitType, Timeout * tm);
 
-        void SetBlocking(bool shouldBlock);
+        void SetBlocking();
+
+        void SetNonBlocking();
 
         bool SetTimeout(const char * mode, double duration);
+
+        void SetFamily(int family) {
+            this->family = family;
+        }
 
         /* Lua Methods */
 
@@ -116,7 +122,7 @@ class Socket
 
         int Send(const char * data, size_t length, size_t * sent, Timeout * tm);
 
-        int Receive(std::vector<char> & buffer, size_t * received, Timeout * tm);
+        int Receive(char * buffer, size_t count, size_t * received, Timeout * tm);
 
         int GetPeerName(Address & address);
 
@@ -137,6 +143,10 @@ class Socket
         void SetSock(int & sockfd);
 
         bool IsConnected();
+
+        void SetTimeoutStart() {
+            this->timeout.MarkStart();
+        }
 
     protected:
         int sockfd;

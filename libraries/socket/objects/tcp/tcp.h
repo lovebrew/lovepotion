@@ -21,7 +21,9 @@ class TCP : public Socket
 
         static constexpr int DEFAULT_BACKLOG = 32;
 
-        TCP(int & success);
+        TCP(int & success, int domain);
+
+        TCP(int sockfd);
 
         int SendRaw(const char * data, size_t count, size_t * sent);
 
@@ -47,10 +49,16 @@ class TCP : public Socket
 
         std::string GetString();
 
+        bool SetTimeout(const char * mode, double duration);
+
+        void SetBufferTimeoutStart() {
+            this->buffer.timeout->MarkStart();
+        }
+
     private:
         struct Buffer
         {
-            std::vector<char> data;
+            char data[BUF_DATASIZE];
             size_t received = 0;
             size_t sent = 0;
 
@@ -58,7 +66,12 @@ class TCP : public Socket
             size_t last = 0;
 
             double creation;
-            Timeout timeout;
+            Timeout * timeout;
+
+            Buffer()
+            {
+                memset(data, 0, sizeof(data));
+            }
 
             bool IsEmpty()
             {
@@ -68,7 +81,7 @@ class TCP : public Socket
             void Get(const char ** ctx, size_t * count)
             {
                 *count = this->last - this->first;
-                *ctx = this->data.data() + this->first;
+                *ctx = this->data + this->first;
             }
 
             void Skip(size_t count)

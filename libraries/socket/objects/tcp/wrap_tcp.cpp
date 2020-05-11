@@ -12,7 +12,31 @@ int Wrap_TCP::New(lua_State * L)
 
     int success;
 
-    TCP * self = new (raw_self) TCP(success);
+    TCP * self = new (raw_self) TCP(success, AF_UNSPEC);
+
+    if (success != IO::IO_DONE)
+    {
+        self->~TCP();
+        free(raw_self);
+
+        lua_pushnil(L);
+        lua_pushstring(L, Socket::GetError(success));
+
+        return 2;
+    }
+
+    return 1;
+}
+
+int Wrap_TCP::New4(lua_State * L)
+{
+    void * raw_self = luaobj_newudata(L, sizeof(TCP));
+
+    luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
+
+    int success;
+
+    TCP * self = new (raw_self) TCP(success, AF_INET);
 
     if (success != IO::IO_DONE)
     {
@@ -45,19 +69,17 @@ int Wrap_TCP::Accept(lua_State * L)
 
         return 2;
     }
+    else
+    {
+        void * raw_self = luaobj_newudata(L, sizeof(TCP));
 
-    int result = Wrap_TCP::New(L);
+        luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-    if (result == 2)
-        return result;
+        TCP * client = new (raw_self) TCP(clientfd);
+        client->SetNonBlocking();
 
-    TCP * client = Wrap_TCP::CheckTCPSocket(L, -1);
-
-    client->SetState(TCP::STATE_CLIENT);
-    client->SetSock(clientfd);
-    client->SetBlocking(false);
-
-    return result;
+        return 1;
+    }
 }
 
 int Wrap_TCP::Bind(lua_State * L)
@@ -93,6 +115,8 @@ int Wrap_TCP::Connect(lua_State * L)
         return luaL_argerror(L, 1, "tcp{master} expected");
 
     TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+
+    self->SetTimeoutStart();
 
     Socket::Address peer;
 
@@ -164,6 +188,7 @@ int Wrap_TCP::Receive(lua_State * L)
     luaL_Buffer buff;
 
     const char * part = luaL_optlstring(L, 3, "", &size);
+    self->SetBufferTimeoutStart();
 
     luaL_buffinit(L, &buff);
     luaL_addlstring(&buff, part, size);
@@ -214,6 +239,7 @@ int Wrap_TCP::Send(lua_State * L)
         return luaL_argerror(L, 1, "tcp{client} expected");
 
     TCP * self = Wrap_TCP::CheckTCPSocket(L, 1);
+    int top = lua_gettop(L);
 
     int error = IO::IO_DONE;
     size_t size = 0;
@@ -222,6 +248,8 @@ int Wrap_TCP::Send(lua_State * L)
     const char * data = luaL_checklstring(L, 2, &size);
     long start = luaL_optnumber(L, 3, 1);
     long end   = luaL_optnumber(L, 4, -1);
+
+    self->SetBufferTimeoutStart();
 
     if (start < 0)
         start = (long)(size + start + 1);
@@ -243,15 +271,15 @@ int Wrap_TCP::Send(lua_State * L)
         lua_pushnil(L);
         lua_pushstring(L, Socket::GetError(error));
         lua_pushnumber(L, (sent + start - 1));
-
-        return 3;
+    }
+    else
+    {
+        lua_pushnumber(L, (sent + start - 1));
+        lua_pushnil(L);
+        lua_pushnil(L);
     }
 
-    lua_pushnumber(L, (sent + start - 1));
-    lua_pushnil(L);
-    lua_pushnil(L);
-
-    return 3;
+    return lua_gettop(L) - top;
 }
 
 int Wrap_TCP::Shutdown(lua_State * L)

@@ -9,7 +9,7 @@ class UDP : public Socket
 
         int TryDisconnect();
 
-        int ReceiveFrom(std::vector<char> & buffer, Address & address);
+        int ReceiveFrom(char * buffer, size_t length, size_t * got, Address & address);
 
         int SendTo(const char * data, size_t length, size_t * sent, Address & address);
 

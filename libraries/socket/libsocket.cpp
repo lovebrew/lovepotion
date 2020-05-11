@@ -66,9 +66,10 @@ int LuaSocket::OpenCore(lua_State * L)
 
     luaL_Reg reg[] =
     {
-        { "udp",   Wrap_UDP::New },
-        { "tcp",   Wrap_TCP::New },
-        { "sleep", Sleep         },
+        { "udp",   Wrap_UDP::New  },
+        { "tcp",   Wrap_TCP::New  },
+        { "tcp4",  Wrap_TCP::New4 },
+        { "sleep", Sleep          },
         { 0, 0 },
     };
 

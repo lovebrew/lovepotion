@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "socket/objects/socket/socket.h"
 
-int Socket::Wait(int type, Timeout * timeout)
+int Socket::Wait(int type, Timeout * tm)
 {
     pollfd pfd;
 
@@ -11,12 +11,12 @@ int Socket::Wait(int type, Timeout * timeout)
 
     int result;
 
-    if (timeout->block == 0.0)
+    if (tm->block == 0.0)
         return IO::IO_TIMEOUT;
 
     do
     {
-        int t = (int)(timeout->GetRetry() * 1e3);
+        int t = (int)(tm->GetRetry() * 1e3);
         result = poll(&pfd, 1, t >= 0 ? t : -1);
     } while (result == -1 && errno == EINTR);
 
@@ -24,7 +24,8 @@ int Socket::Wait(int type, Timeout * timeout)
         return errno;
     else if (result == 0)
         return IO::IO_TIMEOUT;
-    else if (type == WAITFD_C && (pfd.revents & (POLLIN | POLLERR)))
+
+    if (type == WAITFD_C && (pfd.revents & (POLLIN | POLLERR)))
         return IO::IO_CLOSED;
 
     return IO::IO_DONE;
@@ -103,11 +104,20 @@ int Socket::GetSockName(Socket::Address & out)
     return 0;
 }
 
-void Socket::SetBlocking(bool shouldBlock)
+void Socket::SetBlocking()
 {
     int flags = fcntl(this->sockfd, F_GETFL, 0);
 
-    flags = (shouldBlock) ? flags & ~O_NONBLOCK : flags | O_NONBLOCK;
+    flags &= (~(O_NONBLOCK));
+
+    fcntl(this->sockfd, F_SETFL, flags);
+}
+
+void Socket::SetNonBlocking()
+{
+    int flags = fcntl(this->sockfd, F_GETFL, 0);
+
+    flags |= O_NONBLOCK;
 
     fcntl(this->sockfd, F_SETFL, flags);
 }
@@ -116,12 +126,12 @@ int Socket::_Bind(sockaddr * addr, socklen_t length)
 {
     int error = IO::IO_DONE;
 
-    this->SetBlocking(true);
+    this->SetBlocking();
 
     if (bind(this->sockfd, addr, length) < 0)
         error = errno;
 
-    this->SetBlocking(false);
+    this->SetNonBlocking();
 
     return error;
 }
@@ -172,7 +182,7 @@ const char * Socket::TryBind(int type, const Socket::Address & host)
 
         if (error == NULL)
         {
-            this->SetBlocking(false);
+            this->SetNonBlocking();
             break;
         }
     }
@@ -256,7 +266,7 @@ const char * Socket::TryConnect(int type, const Socket::Address & peer)
                 continue;
 
             this->family = item->ai_family;
-            this->SetBlocking(false);
+            this->SetNonBlocking();
         }
 
         error = this->GetError(this->_Connect(item->ai_addr, item->ai_addrlen));
@@ -272,25 +282,21 @@ const char * Socket::TryConnect(int type, const Socket::Address & peer)
     return error;
 }
 
-int Socket::Receive(std::vector<char> & buffer, size_t * received, Timeout * timeout)
+int Socket::Receive(char * buffer, size_t count, size_t * received, Timeout * timeout)
 {
-    int error = 0;
+    int error;
     *received = 0;
-
-    timeout->MarkStart();
 
     if (this->sockfd == SOCKET_INVALID)
         return IO::IO_CLOSED;
 
     for (;;)
     {
-        long taken = (long)recv(this->sockfd, buffer.data(), buffer.size(), 0);
+        long taken = (long)recv(this->sockfd, buffer, count, 0);
 
         if (taken > 0)
         {
             *received = taken;
-            buffer.resize(taken);
-
             return IO::IO_DONE;
         }
 
@@ -298,7 +304,8 @@ int Socket::Receive(std::vector<char> & buffer, size_t * received, Timeout * tim
 
         if (taken == 0)
             return IO::IO_CLOSED;
-        else if (error == EINTR)
+
+        if (error == EINTR)
             continue;
         else if (error != EAGAIN)
             return error;
@@ -313,8 +320,6 @@ int Socket::Send(const char * data, size_t length, size_t * sent, Timeout * time
 {
     int error;
     *sent = 0;
-
-    timeout->MarkStart();
 
     if (this->sockfd == SOCKET_INVALID)
         return IO::IO_CLOSED;
@@ -363,10 +368,10 @@ const char * Socket::Create(int domain, int type, int protocol)
     {
         this->sockfd = socket(domain, type, protocol);
 
+        this->SetNonBlocking();
+
         if (this->sockfd != SOCKET_INVALID)
             return NULL;
-
-        this->SetBlocking(false);
 
         return this->GetError(errno);
     }
