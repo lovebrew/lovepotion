@@ -23,7 +23,7 @@ class TCP : public Socket
 
         TCP(int & success, int domain);
 
-        TCP(int sockfd);
+        TCP(int * sockfd);
 
         int SendRaw(const char * data, size_t count, size_t * sent);
 
@@ -49,29 +49,33 @@ class TCP : public Socket
 
         std::string GetString();
 
-        bool SetTimeout(const char * mode, double duration);
-
         void SetBufferTimeoutStart() {
-            this->buffer.timeout->MarkStart();
+            this->buffer->timeout->MarkStart();
         }
 
     private:
         struct Buffer
         {
             char data[BUF_DATASIZE];
-            size_t received = 0;
-            size_t sent = 0;
 
-            size_t first = 0;
-            size_t last = 0;
+            size_t first;
+            size_t last;
+
+            size_t sent;
+            size_t received;
 
             double creation;
-            Timeout * timeout;
 
             Buffer()
             {
-                memset(data, 0, sizeof(data));
+                this->received = 0;
+                this->sent = 0;
+
+                this->first = 0;
+                this->last = 0;
             }
+
+            Timeout * timeout;
 
             bool IsEmpty()
             {
@@ -99,5 +103,5 @@ class TCP : public Socket
 
         int _Accept(int * clientfd, sockaddr * addr, socklen_t length);
 
-        Buffer buffer;
+        std::unique_ptr<Buffer> buffer;
 };

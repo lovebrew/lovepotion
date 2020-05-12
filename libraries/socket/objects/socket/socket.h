@@ -20,13 +20,6 @@
 class Socket
 {
     public:
-        enum SocketType
-        {
-            SOCKET_TCP = SOCK_STREAM,
-            SOCKET_UDP = SOCK_DGRAM,
-            SOCKET_MAX_ENUM
-        };
-
         struct Address
         {
             std::string ip;
@@ -57,7 +50,7 @@ class Socket
                 this->start = this->GetTime();
             }
 
-            double GetRetry()
+            double Get()
             {
                 double result = -1.0;
 
@@ -74,6 +67,27 @@ class Socket
                 {
                     result = this->total - this->GetTime() + this->start;
                     return std::min(this->block, std::max(result, 0.0));
+                }
+            }
+
+            double GetRetry()
+            {
+                if (this->block < 0.0 && this->total < 0.0)
+                    return -1;
+                else if (this->block < 0.0)
+                {
+                    double t = this->total - this->GetTime() + this->start;
+                    return std::max(t, 0.0);
+                }
+                else if (this->total < 0.0)
+                {
+                    double t = this->block - this->GetTime() + this->start;
+                    return std::max(t, 0.0);
+                }
+                else
+                {
+                    double t = this->total - this->GetTime() + this->start;
+                    return std::min(this->block, std::max(t, 0.0));
                 }
             }
 
@@ -98,10 +112,6 @@ class Socket
             }
         };
 
-        Timeout & GetTimeout() {
-            return this->timeout;
-        }
-
         int Wait(int waitType, Timeout * tm);
 
         void SetBlocking();
@@ -109,10 +119,6 @@ class Socket
         void SetNonBlocking();
 
         bool SetTimeout(const char * mode, double duration);
-
-        void SetFamily(int family) {
-            this->family = family;
-        }
 
         /* Lua Methods */
 
@@ -127,6 +133,10 @@ class Socket
         int GetPeerName(Address & address);
 
         int GetSockName(Address & address);
+
+        Timeout & GetTimeout() {
+            return this->timeout;
+        }
 
         /* End */
 
@@ -153,7 +163,6 @@ class Socket
         bool isConnected;
         Timeout timeout;
 
-        SocketType sockType;
         int family;
 
         int _Bind(sockaddr * addr, socklen_t length);

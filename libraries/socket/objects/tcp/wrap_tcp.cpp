@@ -75,8 +75,7 @@ int Wrap_TCP::Accept(lua_State * L)
 
         luaobj_setclass(L, CLASS_TYPE, CLASS_NAME);
 
-        TCP * client = new (raw_self) TCP(clientfd);
-        client->SetNonBlocking();
+        TCP * client = new (raw_self) TCP(&clientfd);
 
         return 1;
     }
@@ -255,10 +254,10 @@ int Wrap_TCP::Send(lua_State * L)
         start = (long)(size + start + 1);
 
     if (end < 0)
-        end   = (long)(size + end + 1);
+        end = (long)(size + end + 1);
 
-    if (start < 1)
-        start = 1;
+    if (start < 1l)
+        start = 1l;
 
     if (end > (long)size)
         end = (long)size;
@@ -268,6 +267,7 @@ int Wrap_TCP::Send(lua_State * L)
 
     if (error != IO::IO_DONE)
     {
+        LOG("Error: %s", Socket::GetError(error));
         lua_pushnil(L);
         lua_pushstring(L, Socket::GetError(error));
         lua_pushnumber(L, (sent + start - 1));

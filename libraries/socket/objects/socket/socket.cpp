@@ -11,7 +11,7 @@ int Socket::Wait(int type, Timeout * tm)
 
     int result;
 
-    if (tm->block == 0.0)
+    if (tm->IsZero())
         return IO::IO_TIMEOUT;
 
     do
@@ -22,7 +22,8 @@ int Socket::Wait(int type, Timeout * tm)
 
     if (result == -1)
         return errno;
-    else if (result == 0)
+
+    if (result == 0)
         return IO::IO_TIMEOUT;
 
     if (type == WAITFD_C && (pfd.revents & (POLLIN | POLLERR)))
@@ -108,7 +109,7 @@ void Socket::SetBlocking()
 {
     int flags = fcntl(this->sockfd, F_GETFL, 0);
 
-    flags &= (~(O_NONBLOCK));
+    flags &= ~O_NONBLOCK;
 
     fcntl(this->sockfd, F_SETFL, flags);
 }
@@ -282,7 +283,7 @@ const char * Socket::TryConnect(int type, const Socket::Address & peer)
     return error;
 }
 
-int Socket::Receive(char * buffer, size_t count, size_t * received, Timeout * timeout)
+int Socket::Receive(char * buffer, size_t count, size_t * received, Timeout * tm)
 {
     int error;
     *received = 0;
@@ -307,16 +308,18 @@ int Socket::Receive(char * buffer, size_t count, size_t * received, Timeout * ti
 
         if (error == EINTR)
             continue;
-        else if (error != EAGAIN)
+
+        if (error != EAGAIN)
             return error;
-        else if ((error = this->Wait(WAITFD_R, timeout)) != IO::IO_DONE)
+
+        if ((error = this->Wait(WAITFD_R, tm)) != IO::IO_DONE)
             return error;
     }
 
     return IO::IO_UNKNOWN;
 }
 
-int Socket::Send(const char * data, size_t length, size_t * sent, Timeout * timeout)
+int Socket::Send(const char * data, size_t length, size_t * sent, Timeout * tm)
 {
     int error;
     *sent = 0;
@@ -338,13 +341,17 @@ int Socket::Send(const char * data, size_t length, size_t * sent, Timeout * time
 
         if (error == EPIPE)
             return IO::IO_CLOSED;
-        else if (error == EPROTOTYPE)
+
+        if (error == EPROTOTYPE)
             continue;
-        else if (error == EINTR)
+
+        if (error == EINTR)
             continue;
-        else if (error != EAGAIN)
+
+        if (error != EAGAIN)
             return error;
-        else if ((error = this->Wait(WAITFD_W, timeout)) != IO::IO_DONE)
+
+        if ((error = this->Wait(WAITFD_W, tm)) != IO::IO_DONE)
             return error;
     }
 
@@ -445,9 +452,9 @@ const char * Socket::GAIError(int error)
 
 void Socket::Destroy()
 {
-    if (this->sockfd == SOCKET_INVALID)
-        return;
-
-    close(this->sockfd);
-    this->sockfd = SOCKET_INVALID;
+    if (this->sockfd != SOCKET_INVALID)
+    {
+        close(this->sockfd);
+        this->sockfd = SOCKET_INVALID;
+    }
 }

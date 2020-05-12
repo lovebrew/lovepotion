@@ -15,17 +15,18 @@ TCP::TCP(int & success, int domain)
         return;
     }
 
-    this->buffer = Buffer();
+    this->buffer = std::make_unique<Buffer>();
 
-    this->buffer.creation = this->timeout.GetTime();
-    this->buffer.timeout = &this->timeout;
+    this->buffer->creation = this->timeout.GetTime();
+    this->buffer->timeout = &this->timeout;
 
     success = IO::IO_DONE;
 }
 
-TCP::TCP(int sockfd)
+TCP::TCP(int * sockfd)
 {
-    this->sockfd = sockfd;
+    this->sockfd = *sockfd;
+    this->family = AF_INET;
 
     this->timeout =
     {
@@ -34,40 +35,37 @@ TCP::TCP(int sockfd)
         .start = 0.0
     };
 
-    this->buffer = Buffer();
+    this->buffer = std::make_unique<Buffer>();
 
-    this->buffer.creation = this->timeout.GetTime();
-    this->buffer.timeout = &this->timeout;
+    this->buffer->creation = this->timeout.GetTime();
+    this->buffer->timeout = &this->timeout;
+
     this->state = STATE_CLIENT;
-}
 
-bool TCP::SetTimeout(const char * mode, double duration)
-{
-    bool succ = this->timeout.SetTimeout(mode, duration);
-    return succ && this->buffer.timeout->SetTimeout(mode, duration);
+    this->SetNonBlocking();
 }
 
 TCP::Stats TCP::GetStats()
 {
     Stats stats;
 
-    stats.received = this->buffer.received;
-    stats.sent = this->buffer.sent;
-    stats.creation = this->timeout.GetTime() - this->buffer.creation;
+    stats.received = this->buffer->received;
+    stats.sent = this->buffer->sent;
+    stats.creation = this->timeout.GetTime() - this->buffer->creation;
 
     return stats;
 }
 
 void TCP::SetStats(const TCP::Stats & stats)
 {
-    this->buffer.received = stats.received;
-    this->buffer.sent = stats.sent;
-    this->buffer.creation = stats.creation;
+    this->buffer->received = stats.received;
+    this->buffer->sent = stats.sent;
+    this->buffer->creation = stats.creation;
 }
 
-/*-------------------------------------------------------------------------*\
-* Sends a block of data (unbuffered)
-\*-------------------------------------------------------------------------*/
+/*
+**Sends a block of data (unbuffered)
+*/
 int TCP::SendRaw(const char * data, size_t count, size_t * sent)
 {
     int error = IO::IO_DONE;
@@ -78,19 +76,19 @@ int TCP::SendRaw(const char * data, size_t count, size_t * sent)
         size_t done = 0;
         size_t step = (count - total <= BUF_DATASIZE) ? count - total : BUF_DATASIZE;
 
-        error = this->Send(data + total, step, &done, this->buffer.timeout);
+        error = this->Send(data + total, step, &done, this->buffer->timeout);
         total += done;
     }
 
     *sent = total;
-    this->buffer.sent += total;
+    this->buffer->sent += total;
 
     return error;
 }
 
-/*-------------------------------------------------------------------------*\
-* Reads a fixed number of bytes (buffered)
-\*-------------------------------------------------------------------------*/
+/*
+** Reads a fixed number of bytes (buffered)
+*/
 int TCP::ReceiveRaw(size_t wanted, luaL_Buffer * buff)
 {
     int error = IO::IO_DONE;
@@ -101,20 +99,20 @@ int TCP::ReceiveRaw(size_t wanted, luaL_Buffer * buff)
         size_t count = 0;
         const char * data;
 
-        if (this->buffer.IsEmpty())
+        if (this->buffer->IsEmpty())
         {
-            size_t got;
-            error = this->Receive(this->buffer.data, BUF_DATASIZE, &got, this->buffer.timeout);
+            size_t got = 0;
+            error = this->Receive(this->buffer->data, BUF_DATASIZE, &got, this->buffer->timeout);
 
-            this->buffer.first = 0;
-            this->buffer.last = got;
+            this->buffer->first = 0;
+            this->buffer->last = got;
         }
 
-        this->buffer.Get(&data, &count);
+        this->buffer->Get(&data, &count);
         count = std::min(count, wanted - total);
 
         luaL_addlstring(buff, data, count);
-        this->buffer.Skip(count);
+        this->buffer->Skip(count);
 
         total += count;
 
@@ -125,9 +123,9 @@ int TCP::ReceiveRaw(size_t wanted, luaL_Buffer * buff)
     return error;
 }
 
-/*-------------------------------------------------------------------------*\
-* Reads everything until the connection is closed (buffered)
-\*-------------------------------------------------------------------------*/
+/*
+** Reads everything until the connection is closed (buffered)
+*/
 int TCP::ReceiveAll(luaL_Buffer * buff)
 {
     int error = IO::IO_DONE;
@@ -138,20 +136,20 @@ int TCP::ReceiveAll(luaL_Buffer * buff)
         size_t count = 0;
         const char * data;
 
-        if (this->buffer.IsEmpty())
+        if (this->buffer->IsEmpty())
         {
-            size_t got;
-            error = this->Receive(this->buffer.data, BUF_DATASIZE, &got, this->buffer.timeout);
+            size_t got = 0;
+            error = this->Receive(this->buffer->data, BUF_DATASIZE, &got, this->buffer->timeout);
 
-            this->buffer.first = 0;
-            this->buffer.last = got;
+            this->buffer->first = 0;
+            this->buffer->last = got;
         }
 
-        this->buffer.Get(&data, &count);
+        this->buffer->Get(&data, &count);
         total += count;
 
         luaL_addlstring(buff, data, count);
-        this->buffer.Skip(count);
+        this->buffer->Skip(count);
     }
 
     if (error == IO::IO_CLOSED)
@@ -179,16 +177,16 @@ int TCP::ReceiveLine(luaL_Buffer * buff)
         size_t count = 0;
         size_t position = 0;
 
-        if (this->buffer.IsEmpty())
+        if (this->buffer->IsEmpty())
         {
-            size_t got;
-            error = this->Receive(this->buffer.data, BUF_DATASIZE, &got, this->buffer.timeout);
+            size_t got = 0;
+            error = this->Receive(this->buffer->data, BUF_DATASIZE, &got, this->buffer->timeout);
 
-            this->buffer.first = 0;
-            this->buffer.last = got;
+            this->buffer->first = 0;
+            this->buffer->last = got;
         }
 
-        this->buffer.Get(&data, &count);
+        this->buffer->Get(&data, &count);
 
         while (position < count && data[position] != '\n')
         {
@@ -201,11 +199,11 @@ int TCP::ReceiveLine(luaL_Buffer * buff)
 
         if (position < count)
         {
-            this->buffer.Skip(position + 1);
+            this->buffer->Skip(position + 1);
             break;
         }
         else
-            this->buffer.Skip(position);
+            this->buffer->Skip(position);
     }
 
     return error;
@@ -227,9 +225,11 @@ int TCP::_Accept(int * clientfd, sockaddr * addr, socklen_t length)
 
         if (error == EINTR)
             continue;
-        else if (error != EAGAIN && error != ECONNABORTED)
+
+        if (error != EAGAIN && error != ECONNABORTED)
             return error;
-        else if ((error = this->Wait(WAITFD_R, &this->timeout)) != IO::IO_DONE)
+
+        if ((error = this->Wait(WAITFD_R, &this->timeout)) != IO::IO_DONE)
             return error;
     }
 
@@ -308,6 +308,7 @@ std::string TCP::SetOption(const std::string & name, int value)
         if (option.first == name)
         {
             int level = (option.second == TCP_NODELAY) ? SOL_TCP : SOL_SOCKET;
+
             if (setsockopt(this->sockfd, level, option.second, (char *)&value, sizeof(value)) < 0)
                 return std::string("setsockopt failed: ") + strerror(errno);
             else
