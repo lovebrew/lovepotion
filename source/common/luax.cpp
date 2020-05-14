@@ -22,6 +22,15 @@ int Luax::Preload(lua_State * L, lua_CFunction func, const char * name)
     return 0;
 }
 
+int Luax::Resume(lua_State * L, int nargs)
+{
+    #if LUA_VERSION_NUM >= 502 || defined(COMPAT53_API)
+        return lua_resume(L, nullptr, nargs);
+    #else
+        return lua_resume(L, nargs);
+    #endif
+}
+
 /*
 ** @func DoBuffer
 ** Runs a specified Lua Buffer

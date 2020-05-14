@@ -21,6 +21,8 @@ namespace Luax
 {
     int Preload(lua_State * L, lua_CFunction func, const char * name);
 
+    int Resume(lua_State * L, int nargs);
+
     int DoBuffer(lua_State * L, const char * buffer, size_t size, const char * name);
 
     int InsistGlobal(lua_State * L, const char * field);

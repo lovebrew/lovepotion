@@ -19,7 +19,7 @@
 #include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
 
-#include "socket/libsocket.h"
+#include "luasocket/luasocket.h"
 
 #include "boot_lua.h"
 
@@ -109,7 +109,7 @@ int Love::Initialize(lua_State * L)
     Luax::Preload(L, luaopen_luautf8, "utf8");
 
     // LuaSocket
-    LuaSocket::Open(L);
+    love::luasocket::__open(L);
 
     return 1;
 }

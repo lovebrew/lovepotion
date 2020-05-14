@@ -39,8 +39,7 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source \
 				source/backend
 
-DATA		:=	../../source/scripts \
-				../../source/scripts/libsocket
+DATA		:=	../../source/scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
@@ -72,8 +71,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `curl-config --libs` `arm-none-eabi-pkg-config libmpg123 --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru -lm
-
+LIBS	:= `curl-config --libs` `arm-none-eabi-pkg-config libmpg123 --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib

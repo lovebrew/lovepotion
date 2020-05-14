@@ -8,8 +8,6 @@ extern "C"
 
     #include <compat-5.3.h>
     #include <lutf8lib.h>
-
-    #include "luaobj/luaobj.h"
 }
 
 // custom things
@@ -39,14 +37,12 @@ extern bool g_accelJoystick;
 #include <malloc.h>
 #include <unistd.h>
 #include <list>
-#include <functional>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <math.h>
 
 #include <string>
-using namespace std::string_literals;
 
 #include <utility>
 #include <vector>

@@ -1,9 +1,11 @@
 #include "common/runtime.h"
-#include "socket/libsocket.h"
 #include "common/assets.h"
 
 u32 * SOCKET_BUFFER;
 Result SOCKET_INITED;
+
+#define SO_MAX_BUFSIZE 0x100000
+#define SO_BUF_ALIGN 0x1000
 
 void userAppInit()
 {
@@ -27,7 +29,7 @@ void userAppInit()
     if (R_FAILED(res))
         svcBreak(USERBREAK_PANIC);
 
-    SOCKET_BUFFER = (u32 *)memalign(0x1000, SO_MAX_BUFSIZE);
+    SOCKET_BUFFER = (u32 *)memalign(SO_BUF_ALIGN, SO_MAX_BUFSIZE);
     SOCKET_INITED = socInit(SOCKET_BUFFER, SO_MAX_BUFSIZE);
 }
 
