@@ -1,7 +1,6 @@
 #pragma once
 
-extern "C"
-{
+extern "C" {
     #include <lua.h>
     #include <lualib.h>
     #include <lauxlib.h>
@@ -33,7 +32,6 @@ extern bool g_accelJoystick;
 #include <sys/time.h>
 #include <filesystem>
 #include <limits>
-#include <stack>
 #include <malloc.h>
 #include <unistd.h>
 #include <list>

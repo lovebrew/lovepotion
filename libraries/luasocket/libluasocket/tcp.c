@@ -87,7 +87,7 @@ static t_opt optset[] = {
     {"reuseaddr",   opt_set_reuseaddr},
     {"reuseport",   opt_set_reuseport},
     {"tcp-nodelay", opt_set_tcp_nodelay},
-    {"ipv6-v6only", opt_set_ip6_v6only},
+    // {"ipv6-v6only", opt_set_ip6_v6only},
     {"linger",      opt_set_linger},
     {NULL,          NULL}
 };
@@ -96,7 +96,7 @@ static t_opt optset[] = {
 static luaL_Reg func[] = {
     {"tcp", global_create},
     {"tcp4", global_create4},
-    {"tcp6", global_create6},
+    // {"tcp6", global_create6},
     {"connect", global_connect},
     {NULL, NULL}
 };
@@ -398,9 +398,9 @@ static int global_create4(lua_State *L) {
     return tcp_create(L, AF_INET);
 }
 
-static int global_create6(lua_State *L) {
-    return tcp_create(L, AF_INET6);
-}
+// static int global_create6(lua_State *L) {
+//     return tcp_create(L, AF_INET6);
+// }
 
 static int global_connect(lua_State *L) {
     const char *remoteaddr = luaL_checkstring(L, 1);

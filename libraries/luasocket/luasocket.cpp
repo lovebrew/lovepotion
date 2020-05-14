@@ -23,7 +23,7 @@
 // LuaSocket
 extern "C"
 {
-    #include "luasocket/libluasocket/luasocket.h"
+    #include "luasocket/libluasocket/libluasocket.h"
     #include "luasocket/libluasocket/mime.h"
 }
 

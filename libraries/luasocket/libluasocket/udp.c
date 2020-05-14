@@ -111,7 +111,7 @@ static t_opt optget[] = {
 static luaL_Reg func[] = {
     {"udp", global_create},
     {"udp4", global_create4},
-    {"udp6", global_create6},
+    // {"udp6", global_create6},
     {NULL, NULL}
 };
 
@@ -457,6 +457,6 @@ static int global_create4(lua_State *L) {
     return udp_create(L, AF_INET);
 }
 
-static int global_create6(lua_State *L) {
-    return udp_create(L, AF_INET6);
-}
+// static int global_create6(lua_State *L) {
+//     return udp_create(L, AF_INET6);
+// }

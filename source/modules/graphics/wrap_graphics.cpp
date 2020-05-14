@@ -428,9 +428,6 @@ int Wrap_Graphics::Draw(lua_State * L)
     args.offsetX = luaL_optnumber(L, start + 5, 0);
     args.offsetY = luaL_optnumber(L, start + 6, 0);
 
-    args.x += args.offsetX;
-    args.y += args.offsetY;
-
     args.depth = instance()->CURRENT_DEPTH;
 
     Luax::CatchException(L, [&]() {

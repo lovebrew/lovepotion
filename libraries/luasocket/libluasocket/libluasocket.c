@@ -15,14 +15,14 @@
 /*=========================================================================*\
 * Standard include files
 \*=========================================================================*/
-#include "lua.h"
-#include "lauxlib.h"
+#include <lua.h>
+#include <lauxlib.h>
 #include "compat.h"
 
 /*=========================================================================*\
 * LuaSocket includes
 \*=========================================================================*/
-#include "luasocket.h"
+#include "libluasocket.h"
 #include "auxiliar.h"
 #include "except.h"
 #include "timeout.h"

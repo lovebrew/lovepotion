@@ -18,10 +18,22 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
-#pragma once
+#ifndef LOVE_LUASOCKET_LUASOCKET_H
+#define LOVE_LUASOCKET_LUASOCKET_H
 
 // LOVE
-#include "common/runtime.h"
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
+extern "C"
+{
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>
+}
 
 namespace love
 {
@@ -46,3 +58,5 @@ namespace love
 
     } // luasocket
 } // love
+
+#endif // LOVE_LUASOCKET_LUASOCKET_H
