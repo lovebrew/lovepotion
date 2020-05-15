@@ -61,7 +61,7 @@ ICON			:= icon.png
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS	:=	-g -Wall -O2 -mword-relocations \
-			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
+			-fomit-frame-pointer -ffunction-sections -DCOMPT53_PREFIX -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS

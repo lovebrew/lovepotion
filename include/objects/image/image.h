@@ -6,7 +6,7 @@
 #if defined (_3DS)
     typedef C2D_SpriteSheet TextureSheet;
 #elif defined (__SWITCH__)
-    typedef struct _SpriteSheet TextureSheet;
+    typedef struct _SpriteSheet {} TextureSheet;
 #endif
 
 namespace love

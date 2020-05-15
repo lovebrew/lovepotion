@@ -7,7 +7,7 @@ extern "C"
     {
         // Initialize libnx stuff
 
-        Result res = plInitialize();
+        Result res = plInitialize(PlServiceType_User);
 
         if (R_FAILED(res))
             fatalThrow(res);
