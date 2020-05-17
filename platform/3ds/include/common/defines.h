@@ -15,7 +15,7 @@ void userAppInit();
 void userAppExit();
 
 typedef C3D_RenderTarget Renderer;
-typedef C2D_Image TextureHandle;
+typedef C2D_Sprite TextureHandle;
 
 typedef struct _Frame Frame;
 

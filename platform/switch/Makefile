@@ -45,7 +45,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include
 
 EXEFS_SRC    := exefs_src
-ROMFS        := romfs
+# ROMFS        := romfs
 
 APP_TITLE		:= Löve Potion
 APP_AUTHOR		:= TurtleP & NotQuiteApex
@@ -62,7 +62,7 @@ CFLAGS    :=    -g -Wall -O2 -ffunction-sections `sdl2-config --cflags` `freetyp
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__
 
-CXXFLAGS  :=	$(CFLAGS) -fno-rtti -fexceptions -std=gnu++17
+CXXFLAGS  :=	$(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 
 ASFLAGS   :=    -g $(ARCH)
 LDFLAGS   =     --specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

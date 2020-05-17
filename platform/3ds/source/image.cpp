@@ -20,18 +20,10 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
         if (!this->sheet)
             throw love::Exception("Could not load image %s (%s)", path.c_str(), strerror(errno));
 
-        this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
+        C2D_SpriteFromSheet(&this->texture, this->sheet, 0);
 
-        if (!this->texture.subtex)
-        {
-            this->width = this->texture.tex->width;
-            this->height = this->texture.tex->height;
-        }
-        else
-        {
-            this->width  = this->texture.subtex->width;
-            this->height = this->texture.subtex->height;
-        }
+        this->width  = this->texture.image.subtex->width;
+        this->height = this->texture.image.subtex->height;
     }
     else
         throw love::Exception(IMAGE_NOT_FOUND_STRING, path.c_str());
@@ -39,8 +31,8 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
 
     this->InitQuad();
 
-    C3D_TexSetFilter(this->texture.tex, (GPU_TEXTURE_FILTER_PARAM)this->filter.mag, (GPU_TEXTURE_FILTER_PARAM)this->filter.min);
-    C3D_TexSetWrap(this->texture.tex, (GPU_TEXTURE_WRAP_PARAM)this->wrap.s, (GPU_TEXTURE_WRAP_PARAM)this->wrap.t);
+    C3D_TexSetFilter(this->texture.image.tex, (GPU_TEXTURE_FILTER_PARAM)this->filter.mag, (GPU_TEXTURE_FILTER_PARAM)this->filter.min);
+    C3D_TexSetWrap(this->texture.image.tex, (GPU_TEXTURE_WRAP_PARAM)this->wrap.s, (GPU_TEXTURE_WRAP_PARAM)this->wrap.t);
 }
 
 Image::~Image()
@@ -56,39 +48,54 @@ void Image::Draw(const DrawArgs & args, const Color & color)
 
 void Image::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
 {
-    C2D_DrawParams params;
     Quad::Viewport v = quad->GetViewport();
-    Tex3DS_SubTexture sub;
+    Tex3DS_SubTexture source;
 
-    params.depth = args.depth;
-    params.pos =
-    {
-        args.x, args.y,
-        args.scalarX * (float)v.w,
-        args.scalarY * (float)v.h
-    };
-    params.angle = args.r;
-
-    C2D_ImageTint tint;
-    C2D_AlphaImageTint(&tint, color.a);
-
-    /* Set up our Quad to render */
+    /* Set up the Quad */
 
     int w =  quad->GetTextureWidth(true);
     int h =  quad->GetTextureHeight(true);
 
-    sub.top    = 1.0f - (v.y / h);
-    sub.left   = (v.x / w);
+    v.x += 1;
+    v.y += 1;
 
-    sub.right  = (v.x + v.w) / w;
-    sub.bottom = 1.0f - ((v.y + v.h) / h);
+    v.w -= 2;
+    v.h -= 2;
 
-    sub.width  = v.w;
-    sub.height = v.h;
+    source.top    = 1.0f - (v.y / h);
+    source.left   = (v.x / w);
 
-    this->texture.subtex = &sub;
+    source.right  = (v.x + v.w) / w;
+    source.bottom = 1.0f - ((v.y + v.h) / h);
+
+    source.width  = v.w;
+    source.height = v.h;
+
+    this->texture.image.subtex = &source;
+
+    /*
+    ** Note that the offsets are applied before rotation, scaling, or shearing;
+    ** Scaling and shearing are applied before rotation.
+    **
+    ** Offset X and Y (aka centering values) always push the texture left and up
+    ** as if they were negative
+    */
+
+   this->texture.params.pos.w = v.w;
+   this->texture.params.pos.h = v.h;
+
+    C2D_SpriteSetPos(&this->texture, args.x, args.y);
+    C2D_SpriteSetDepth(&this->texture, args.depth);
+
+    C2D_SpriteSetCenterRaw(&this->texture, args.offsetX, args.offsetY);
+    C2D_SpriteSetScale(&this->texture, args.scalarX, args.scalarY);
+
+    C2D_SpriteSetRotation(&this->texture, args.r);
+
+    C2D_ImageTint tint;
+    C2D_AlphaImageTint(&tint, color.a);
 
     /* Render the texture */
 
-    C2D_DrawImage(this->texture, &params, &tint);
+    C2D_DrawSpriteTinted(&this->texture, &tint);
 }

@@ -32,11 +32,8 @@ DoneAction Run_Love_Potion(int & retval)
     ** this will keep running until "quit"
     */
     int stackpos = lua_gettop(L);
-    while (Luax::Resume(L, 0) == LUA_YIELD)
-    {
-        appletMainLoop();
+    while (appletMainLoop() && Luax::Resume(L, 0) == LUA_YIELD)
         lua_pop(L, lua_gettop(L) - stackpos);
-    }
 
     retval = 0;
     DoneAction done = DONE_QUIT;
