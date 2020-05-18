@@ -36,7 +36,7 @@ int Wrap_Graphics::SetDepth(lua_State * L)
 
     Luax::CatchException(L, [&]() {
         instance()->SetDepth(depth);
-    })
+    });
 
     return 0;
 }

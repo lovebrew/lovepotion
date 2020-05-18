@@ -285,9 +285,9 @@ void Graphics::Transform(DrawArgs & args)
         if (gfxIs3D() && displayNum < 2)
         {
             if (displayNum == 0)
-                *args.x -= (slider * this->stereoDepth);
+                args.x -= (slider * this->stereoDepth);
             else if (displayNum == 1)
-                *args.x += (slider * this->stereoDepth);
+                args.x += (slider * this->stereoDepth);
         }
     #endif
 
