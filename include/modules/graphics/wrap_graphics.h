@@ -28,6 +28,16 @@ namespace Wrap_Graphics
 
     int Present(lua_State * L);
 
+    int Push(lua_State * L);
+
+    int Translate(lua_State * L);
+
+    int Scale(lua_State * L);
+
+    int Rotate(lua_State * L);
+
+    int Pop(lua_State * L);
+
     int Print(lua_State * L);
 
     int PrintF(lua_State * L);
@@ -77,6 +87,8 @@ namespace Wrap_Graphics
     int SetBackgroundColor(lua_State * L);
 
     int SetColor(lua_State * L);
+
+    int SetDepth(lua_State * L);
 
     int Register(lua_State * L);
 }

@@ -27,6 +27,15 @@ Graphics::~Graphics()
     this->defaultFont.Set(nullptr);
 }
 
+void Graphics::SetDepth(float depth)
+{
+    #if defined (__SWITCH__)
+        throw love::Exception("setDepth not supported on this console");
+    #endif
+
+    this->stereoDepth = depth;
+}
+
 Color Graphics::GetColor()
 {
     return this->states.back().foreground;
@@ -261,6 +270,22 @@ void Graphics::Transform(DrawArgs & args)
 
     auto & transform = this->transformStack.back();
 
+    float ox = args.x;
+    float oy = args.y;
+
+    #if defined (_3DS)
+        float slider = osGet3DSliderState();
+        int displayNum = WINDOW_MODULE()->GetDisplay();
+
+        if (gfxIs3D() && displayNum < 2)
+        {
+            if (displayNum == 0)
+                *args.x -= (slider * this->stereoDepth);
+            else if (displayNum == 1)
+                *args.y += (slider * this->stereoDepth);
+        }
+    #endif
+
     /* Translate */
     args.x += transform.offsetX;
     args.y += transform.offsetY;
@@ -275,8 +300,8 @@ void Graphics::Transform(DrawArgs & args)
     /* Rotate */
     if (transform.rotation != 0)
     {
-        args.x = args.x * cos(transform.rotation) - args.y * sin(transform.rotation);
-        args.y = args.x * sin(transform.rotation) + args.y * cos(transform.rotation);
+        args.x = ox * cos(transform.rotation) - oy * sin(transform.rotation);
+        args.y = ox * sin(transform.rotation) + oy * cos(transform.rotation);
 
         args.r += transform.rotation;
     }

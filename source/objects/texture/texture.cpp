@@ -42,6 +42,8 @@ namespace love
     void Texture::SetFilter(const Filter & filter)
     {
         this->filter = filter;
+
+        LOVE_SetFilter(this->texture, filter.mag, filter.min);
     }
 
     const Texture::Filter & Texture::GetFilter() const
@@ -57,6 +59,8 @@ namespace love
     bool Texture::SetWrap(const Texture::Wrap & wrap)
     {
         this->wrap = wrap;
+
+        LOVE_SetWrapMode(this->texture, wrap.s, wrap.t);
 
         return true;
     }

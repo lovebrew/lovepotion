@@ -61,8 +61,6 @@ bool Window::SetMode()
 
     SDL_SetRenderDrawBlendMode(this->targets.back(), SDL_BLENDMODE_BLEND);
 
-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
-
     this->open = true;
 
     return true;

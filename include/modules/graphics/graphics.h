@@ -126,6 +126,8 @@ namespace love
 
             void Translate(float offsetX, float offsetY);
 
+            void SetDepth(float depth);
+
             void Rotate(float rotation);
 
             void Scale(float scalarX, float ScalarY);
@@ -202,6 +204,7 @@ namespace love
                 { "fill", DrawMode::DRAW_FILL }
             };
 
+            float stereoDepth = 0.0f;
             bool isPushed = false;
     };
 }

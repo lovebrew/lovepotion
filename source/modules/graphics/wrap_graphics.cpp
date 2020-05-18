@@ -30,6 +30,17 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::SetDepth(lua_State * L)
+{
+    float depth = luaL_checknumber(L, 1);
+
+    Luax::CatchException(L, [&]() {
+        instance()->SetDepth(depth);
+    })
+
+    return 0;
+}
+
 int Wrap_Graphics::Circle(lua_State * L)
 {
     const char * mode = luaL_checkstring(L, 1);
@@ -188,6 +199,53 @@ int Wrap_Graphics::GetLineWidth(lua_State * L)
     lua_pushnumber(L, instance()->GetLineWidth());
 
     return 1;
+}
+
+int Wrap_Graphics::Push(lua_State * L)
+{
+    Luax::CatchException(L, [&]() {
+        instance()->Push();
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::Translate(lua_State * L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    instance()->Translate(x, y);
+
+    return 0;
+}
+
+int Wrap_Graphics::Rotate(lua_State * L)
+{
+    float angle = luaL_checknumber(L, 1);
+
+    instance()->Rotate(angle);
+
+    return 0;
+}
+
+int Wrap_Graphics::Scale(lua_State * L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    instance()->Scale(x, y);
+
+    return 0;
+}
+
+int Wrap_Graphics::Pop(lua_State * L)
+{
+    Luax::CatchException(L, [&]() {
+        instance()->Pop();
+    });
+
+    return 0;
 }
 
 int Wrap_Graphics::Clear(lua_State * L)
@@ -641,11 +699,15 @@ int Wrap_Graphics::Register(lua_State * L)
         { "newImage",           NewImage           },
         { "newQuad",            NewQuad            },
         { "polygon",            Polygon            },
+        { "pop",                Pop                },
         { "present",            Present            },
         { "print",              Print              },
         { "printf",             PrintF             },
+        { "push",               Push               },
         { "rectangle",          Rectangle          },
         { "reset",              Reset              },
+        { "rotate",             Rotate             },
+        { "scale",              Scale              },
         { "setBackgroundColor", SetBackgroundColor },
         { "setColor",           SetColor           },
         { "setDefaultFilter",   SetDefaultFilter   },
@@ -653,6 +715,8 @@ int Wrap_Graphics::Register(lua_State * L)
         { "setNewFont",         SetNewFont         },
         { "setFont",            SetFont            },
         { "setScissor",         SetScissor         },
+        { "translate",          Translate          },
+        { "setDepth",           SetDepth           },
         { 0,                    0                  }
     };
 

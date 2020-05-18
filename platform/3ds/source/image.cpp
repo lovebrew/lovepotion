@@ -30,9 +30,6 @@ Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
 
 
     this->InitQuad();
-
-    C3D_TexSetFilter(this->texture.image.tex, (GPU_TEXTURE_FILTER_PARAM)this->filter.mag, (GPU_TEXTURE_FILTER_PARAM)this->filter.min);
-    C3D_TexSetWrap(this->texture.image.tex, (GPU_TEXTURE_WRAP_PARAM)this->wrap.s, (GPU_TEXTURE_WRAP_PARAM)this->wrap.t);
 }
 
 Image::~Image()

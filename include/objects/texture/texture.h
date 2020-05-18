@@ -7,6 +7,18 @@
 #include "common/mmath.h"
 #include "objects/drawable/drawable.h"
 
+#if defined (_3DS)
+    #define LOVE_SetFilter(texture, mag, min) \
+        C3D_TexSetFilter((texture.image.tex), (GPU_TEXTURE_FILTER_PARAM)(mag), (GPU_TEXTURE_FILTER_PARAM)(min))
+    #define LOVE_SetWrapMode(texture, s, t) \
+        C3D_TexSetWrap((texture.image.tex), (GPU_TEXTURE_WRAP_PARAM)(s), (GPU_TEXTURE_WRAP_PARAM)(t))
+#elif defined (__SWITCH__)
+    #define LOVE_SetFilter(texture, mag, min) \
+        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, (char *)&(mag));
+
+    #define LOVE_SetWrapMode(texture, s, t)
+#endif
+
 namespace love
 {
     class Texture : public Drawable
