@@ -161,6 +161,8 @@ namespace love
 
             /* Graphics Primitives */
 
+            void Circle(float x, float y, float radius);
+
             void Rectangle(const std::string & mode, float x, float y, float width, float height);
 
             void Polygon(const std::string & mode, std::vector<Graphics::Point> points);

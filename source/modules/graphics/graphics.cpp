@@ -218,6 +218,11 @@ void Graphics::Line(float startx, float starty, float endx, float endy)
     Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
 }
 
+void Graphics::Circle(float x, float y, float radius)
+{
+    Primitives::Circle("fill", x, y, radius, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
+}
+
 void Graphics::Reset()
 {
     DisplayState blankState;
@@ -282,7 +287,7 @@ void Graphics::Transform(DrawArgs & args)
             if (displayNum == 0)
                 *args.x -= (slider * this->stereoDepth);
             else if (displayNum == 1)
-                *args.y += (slider * this->stereoDepth);
+                *args.x += (slider * this->stereoDepth);
         }
     #endif
 

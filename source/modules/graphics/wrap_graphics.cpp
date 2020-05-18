@@ -54,7 +54,9 @@ int Wrap_Graphics::Circle(lua_State * L)
 
     float radius = luaL_optnumber(L, 4, 1);
 
-    Primitives::Circle(mode, x, y, radius, instance()->GetLineWidth(), instance()->GetColor());
+    Luax::CatchException(L, [&]() {
+        instance()->Circle(x, y, radius);
+    });
 
     return 0;
 }
@@ -90,7 +92,7 @@ int Wrap_Graphics::Line(lua_State * L)
 
                     lua_pop(L, 4);
 
-                    Luax::CatchException(L, [&](){
+                    Luax::CatchException(L, [&]() {
                         instance()->Line(start.x, start.y, end.x, end.y);
                     });
                 }
@@ -110,7 +112,7 @@ int Wrap_Graphics::Line(lua_State * L)
             end.x = luaL_checknumber(L, index + 3);
             end.y = luaL_checknumber(L, index + 4);
 
-            Luax::CatchException(L, [&](){
+            Luax::CatchException(L, [&]() {
                 instance()->Line(start.x, start.y, end.x, end.y);
             });
         }
