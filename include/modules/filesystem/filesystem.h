@@ -10,6 +10,11 @@
 
 #define MAX_STAMP 0x20000000000000LL
 
+#define LOVE_APPDATA_FOLDER "love"
+#define LOVE_APPDATA_PREFIX "."
+#define LOVE_PATH_SEPARATOR "/"
+#define LOVE_MAX_PATH PATH_MAX
+
 namespace love
 {
     class Filesystem : public Module
@@ -17,11 +22,11 @@ namespace love
         public:
             enum FileType
             {
-                FILE,
-                DIRECTORY,
-                SYMLINK,
-                OTHER,
-                MAX_ENUM
+                FILETYPE_FILE,
+                FILETYPE_DIRECTORY,
+                FILETYPE_SYMLINK,
+                FILETYPE_OTHER,
+                FILETYPE_MAX_ENUM
             };
 
             struct Info
@@ -32,6 +37,7 @@ namespace love
             };
 
             Filesystem();
+            ~Filesystem();
 
             static love::Type type;
 
@@ -43,13 +49,15 @@ namespace love
 
             /* Löve2D Functions */
 
+            void Init(const char * arg0);
+
             void Append(const char * filename, const void * data, int64_t size);
 
             void CreateDirectory(const char * name);
 
             void GetDirectoryItems(const char * directory, std::vector<std::string> & items);
 
-            std::string GetIdentity();
+            const char * GetIdentity();
 
             bool GetInfo(const char * filename, Info & info) const;
 
@@ -63,47 +71,56 @@ namespace love
 
             bool Remove(const char * filename);
 
-            void SetIdentity(const char * identity);
+            bool SetIdentity(const char * identity, bool appendToPath);
 
             void Write(const char * filename, const void * data, int64_t size);
 
+            void AllowMountingForPath(const std::string & path);
+
+            bool Mount(const char * archive, const char * mountpoint, bool appendToPath = false);
+
+            bool Mount(Data * data, const char * archive, const char * mountpoint, bool appendToPath = false);
+
+            bool UnMount(const char * archive);
+
+            bool UnMount(Data * data);
+
+            bool SetSource(const char * source);
+
+            std::string GetExecutablePath() const;
+
+            std::string getSourceBaseDirectory() const;
+
+            bool SetupWriteDirectory();
+
             /* Helper Functions */
 
-            static inline bool GetConstant(const char * find, FileType & type) {
-                if (types.find(find) != types.end())
-                {
-                    type = types[find];
-                    return true;
-                }
+            static bool GetConstant(const char * in, FileType & out);
 
-                return false;
-            }
+            static bool GetConstant(FileType in, const char *& out);
 
-            static inline bool GetConstant(FileType find, const char *& out) {
-                for (auto it = types.begin(); it != types.end(); it++)
-                {
-                    if (it->second == find)
-                    {
-                        out = it->first;
-                        return true;
-                    }
-                }
-
-                return false;
-            }
+            static std::vector<std::string> GetConstants(FileType);
 
         private:
             std::string identity;
+            std::string relativeSavePath;
+            std::string fullSavePath;
+            std::string appdata;
+            std::string gameSource;
 
-            static inline std::map<const char *, FileType> types = {
-                { "file",      FileType::FILE },
-                { "directory", FileType::DIRECTORY },
-                { "symlink",   FileType::SYMLINK },
-                { "other",     FileType::OTHER }
-            };
+            std::vector<std::string> allowedMountPaths;
 
-            // Löve2D Functions
+            std::vector<std::string> requirePath;
+            std::vector<std::string> cRequirePath;
 
-            std::string Redirect(const char * path);
+            std::map<std::string, StrongReference<Data>> mountedData;
+
+            bool fused;
+            bool fusedSet;
+
+            std::string GetAppDataDirectory();
+
+            static StringMap<FileType, FILETYPE_MAX_ENUM>::Entry fileTypeEntries[];
+            static StringMap<FileType, FILETYPE_MAX_ENUM> fileTypes;
     };
 }

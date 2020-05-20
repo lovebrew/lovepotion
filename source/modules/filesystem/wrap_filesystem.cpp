@@ -5,6 +5,37 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Filesystem>(Module::M_FILESYSTEM))
 
+bool Wrap_Filesystem::SetupWriteDirectory()
+{
+    if (instance() != 0)
+        return instance()->SetupWriteDirectory();
+
+    return false;
+}
+
+/*
+** Check save directory first
+** If the file doesn't exist, return source directory
+*/
+// std::string Wrap_Filesystem::Redirect(const char * path)
+// {
+//     if (std::filesystem::exists(GetSaveDirectory() + path))
+//         return GetSaveDirectory() + path;
+//     else
+//         return path;
+// }
+
+int Wrap_Filesystem::Init(lua_State * L)
+{
+    const char * arg0 = luaL_checkstring(L, 1);
+
+    Luax::CatchException(L, [&](){
+        instance()->Init(arg0);
+    });
+
+    return 0;
+}
+
 int Wrap_Filesystem::Append(lua_State * L)
 {
     return Wrap_Filesystem::WriteOrAppend(L, File::MODE_APPEND);
@@ -39,9 +70,7 @@ int Wrap_Filesystem::GetDirectoryItems(lua_State * L)
 
 int Wrap_Filesystem::GetIdentity(lua_State * L)
 {
-    std::string identity = instance()->GetIdentity();
-
-    lua_pushlstring(L, identity.data(), identity.size());
+    lua_pushstring(L, instance()->GetIdentity());
 
     return 1;
 }
@@ -58,7 +87,7 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
     {
         const char * type = luaL_checkstring(L, start);
         if (!Filesystem::GetConstant(type, filter))
-            return 0; // TO DO enumerror
+            return Luax::EnumError(L, "file type", Filesystem::getConstants(filter), type);
 
         start++;
     }
@@ -104,9 +133,9 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
 
 int Wrap_Filesystem::GetSaveDirectory(lua_State * L)
 {
-    std::string saveDirectory = instance()->GetSaveDirectory();
+    std::string dir = instance()->GetSaveDirectory();
 
-    lua_pushlstring(L, saveDirectory.data(), saveDirectory.size());
+    lua_pushlstring(L, dir.data(), dir.size());
 
     return 1;
 }
@@ -272,8 +301,10 @@ int Wrap_Filesystem::Remove(lua_State * L)
 int Wrap_Filesystem::SetIdentity(lua_State * L)
 {
     const char * name = luaL_checkstring(L, 1);
+    bool append = lua_toboolean(L, 2);
 
-    instance()->SetIdentity(name);
+    if (!instance()->SetIdentity(name, append))
+        return luaL_error(L,  "Could not set write directory.");
 
     return 0;
 }
@@ -373,6 +404,7 @@ int Wrap_Filesystem::Register(lua_State * L)
 {
     luaL_reg reg[] =
     {
+        { "init",                   Init              },
         { "createDirectory",        CreateDirectory   },
         { "getDirectoryItems",      GetDirectoryItems },
         { "getIdentity",            GetIdentity       },

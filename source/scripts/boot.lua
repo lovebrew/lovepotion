@@ -44,9 +44,9 @@ function love.createhandlers()
                 return love.keyreleased(key)
             end
         end,
-        mousemoved = function (x,y,dx,dy,t)
+        mousemoved = function (x, y, dx, dy, t)
             if love.mousemoved then
-                return love.mousemoved(x,y,dx,dy,t)
+                return love.mousemoved(x, y, dx, dy, t)
             end
         end,
         mousepressed = function (x, y, button)
@@ -141,8 +141,9 @@ function love.createhandlers()
             if love.threaderror then return love.threaderror(t, err) end
         end,
         lowmemory = function ()
+            if love.lowmemory then love.lowmemory() end
             collectgarbage()
-            if love.lowmemory then return love.lowmemory() end
+            collectgarbage()
         end
     }, {
         __index = function(self, name)
@@ -275,10 +276,26 @@ local no_game_code = false
 function love.boot()
     -- Load the LOVE filesystem module, its absolutely needed
     require("love.filesystem")
-    no_game_code = false
 
-    if not (love.filesystem.getInfo("main.lua") or love.filesystem.getInfo("conf.lua")) then
-        no_game_code = true -- likely useless
+    love.filesystem.init()
+
+    local arg0 = nil
+    local exepath = love.filesystem.getExecutablePath()
+
+    if #exepath == 0 then
+        -- This shouldn't happen, but just in case we'll fall back to arg0.
+        exepath = arg0
+    end
+
+    no_game_code = false
+    invalid_game_path = nil
+
+    local can_has_game = pcall(love.filesystem.setSource, exepath)
+
+    local is_fused_game = can_has_game
+
+    if can_has_game and not (love.filesystem.getInfo("main.lua") or love.filesystem.getInfo("conf.lua")) then
+        no_game_code = true
     end
 end
 
@@ -416,16 +433,14 @@ function love.init()
         love.timer.step()
     end
 
-    if love.filesystem then
-        love.filesystem.setIdentity(config.identity)
+    pcall(love.filesystem.setIdentity, config.identity, true)
 
-        if love.filesystem.getInfo("main.lua") then
-            require("main")
-        end
+    if love.filesystem.getInfo("main.lua") then
+        require("main")
     end
 
-    local nogame = "No code to run.\nYour game might be packaged incorrectly."
-    nogame = nogame .. "\nMake sure main.lua is at the top level of the ROMFS."
+    local nogame = "No code to run. Your game might be packaged incorrectly."
+    nogame = nogame .. "Make sure main.lua is at the top level of the ROMFS."
 
     if no_game_code then
         error(nogame)

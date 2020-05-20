@@ -2,14 +2,12 @@
 #include "common/assets.h"
 
 #include <unistd.h>
+#include <sys/stat.h>
 
 #define GAME_FOLDER "game"
 
 void Assets::Initialize(const std::string & path)
 {
-    char current[PATH_MAX];
-    Assets::cwd = getcwd(current, PATH_MAX);
-
     Location location = Assets::GetLocation(path);
 
     switch(location)
@@ -28,32 +26,9 @@ void Assets::Initialize(const std::string & path)
     chdir(Assets::directory.c_str());
 }
 
-void Assets::SetIdentity(const std::string & identity)
-{
-    Assets::identity = identity;
-}
-
 bool Assets::IsFused()
 {
     return Assets::fused;
-}
-
-std::string Assets::GetWritePath()
-{
-    std::vector<char> buffer(PATH_MAX);
-
-    switch (Assets::IsFused())
-    {
-        case true:
-            sprintf(buffer.data(), "%s/%s/", Assets::cwd.c_str(), Assets::identity.c_str());
-            break;
-        case false:
-            sprintf(buffer.data(), "%s/", Assets::cwd.c_str());
-            break;
-    }
-
-    buffer.shrink_to_fit();
-    return buffer.data();
 }
 
 Location Assets::GetLocation(const std::string & path)

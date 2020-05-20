@@ -7,6 +7,10 @@
 
 namespace Wrap_Filesystem
 {
+    bool SetupWriteDirectory();
+
+    int Init(lua_State * L);
+
     int Append(lua_State * L);
 
     int CreateDirectory(lua_State * L);
@@ -42,4 +46,6 @@ namespace Wrap_Filesystem
     love::FileData * GetFileData(lua_State * L, int index);
 
     int Write(lua_State * L);
+
+    std::string Redirect(const char * path);
 }

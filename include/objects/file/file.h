@@ -79,7 +79,7 @@ namespace love
 
         private:
             std::string filename;
-            FILE * file;
+            PHYSFS_file * file;
             Mode mode;
             BufferMode bufferMode;
             int64_t bufferSize;
