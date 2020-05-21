@@ -50,6 +50,37 @@ int Wrap_Filesystem::CreateDirectory(lua_State * L)
     return 0;
 }
 
+int Wrap_Filesystem::SetFused(lua_State * L)
+{
+    instance()->SetFused(lua_toboolean(L, 1));
+
+    return 0;
+}
+
+int Wrap_Filesystem::IsFused(lua_State * L)
+{
+    lua_pushboolean(L, instance()->IsFused());
+
+    return 1;
+}
+
+int Wrap_Filesystem::SetSource(lua_State * L)
+{
+    const char * arg = luaL_checkstring(L, 1);
+
+    if (!instance()->SetSource())
+        return luaL_error(L, "Could not set source.");
+
+    return 0;
+}
+
+int Wrap_Filesystem::GetSource(lua_State * L)
+{
+    lua_pushstring(L, instance()->GetSource());
+
+    return 1;
+}
+
 int Wrap_Filesystem::GetDirectoryItems(lua_State * L)
 {
     const char * directory = luaL_checkstring(L, 1);
@@ -298,6 +329,24 @@ int Wrap_Filesystem::Remove(lua_State * L)
     return 1;
 }
 
+int Wrap_Filesystem::GetSourceBaseDirectory(lua_State * L)
+{
+    std::string baseDirectory = instance()->GetSourceBaseDirectory();
+
+    lua_pushlstring(L, baseDirectory.data(), baseDirectory.size());
+
+    return 1;
+}
+
+int Wrap_Filesystem::GetWorkingDirectory(lua_State * L)
+{
+    std::string workingDirectory = instance()->GetWorkingDirectory();
+
+    lua_pushlstring(L, workingDirectory.data(), workingDirectory.size());
+
+    return 1;
+}
+
 int Wrap_Filesystem::SetIdentity(lua_State * L)
 {
     const char * name = luaL_checkstring(L, 1);
@@ -404,20 +453,26 @@ int Wrap_Filesystem::Register(lua_State * L)
 {
     luaL_reg reg[] =
     {
-        { "init",                   Init              },
-        { "createDirectory",        CreateDirectory   },
-        { "getDirectoryItems",      GetDirectoryItems },
-        { "getIdentity",            GetIdentity       },
-        { "getInfo",                GetInfo           },
-        { "getSaveDirectory",       GetSaveDirectory  },
-        { "load",                   Load              },
-        { "newFile",                NewFile           },
-        { "newFileData",            NewFileData       },
-        { "read",                   Read              },
-        { "remove",                 Remove            },
-        { "setIdentity",            SetIdentity       },
-        { "write",                  Write             },
-        { 0,                        0                 }
+        { "init",                   Init                   },
+        { "createDirectory",        CreateDirectory        },
+        { "getDirectoryItems",      GetDirectoryItems      },
+        { "getIdentity",            GetIdentity            },
+        { "getInfo",                GetInfo                },
+        { "getSaveDirectory",       GetSaveDirectory       },
+        { "getSourceBaseDirectory", GetSourceBaseDirectory },
+        { "getSource",              GetSource              },
+        { "getWorkingDirectory",    GetWorkingDirectory    },
+        { "isFused",                IsFused                },
+        { "load",                   Load                   },
+        { "newFile",                NewFile                },
+        { "newFileData",            NewFileData            },
+        { "read",                   Read                   },
+        { "remove",                 Remove                 },
+        { "setIdentity",            SetIdentity            },
+        { "setFused",               SetFused               },
+        { "setSource",              SetSource              },
+        { "write",                  Write                  },
+        { 0,                        0                      }
     };
 
     lua_CFunction types[] =

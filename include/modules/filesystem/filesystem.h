@@ -87,6 +87,14 @@ namespace love
 
             bool SetSource(const char * source);
 
+            void SetFused(bool fused);
+
+            bool IsFused() const;
+
+            const char * GetSource() const;
+
+            const char * GetWorkingDirectory();
+
             std::string GetExecutablePath() const;
 
             std::string getSourceBaseDirectory() const;
@@ -107,6 +115,7 @@ namespace love
             std::string fullSavePath;
             std::string appdata;
             std::string gameSource;
+            std::string cwd;
 
             std::vector<std::string> allowedMountPaths;
 

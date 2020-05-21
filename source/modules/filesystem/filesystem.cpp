@@ -146,6 +146,43 @@ std::string Filesystem::GetExecutablePath() const
     return getcwd(buffer, LOVE_MAX_PATH);
 }
 
+void Filesystem::SetFused(bool fused)
+{
+    if (this->fusedSet)
+        return;
+
+    this->fused = fused;
+    this->fusedSet = true;
+}
+
+const char * Filesystem::GetWorkingDirectory()
+{
+    if (this->cwd.empty())
+    {
+        char * cwd_char = new char[LOVE_MAX_PATH];
+
+        if (getcwd(cwd_char, LOVE_MAX_PATH))
+            this->cwd = cwd_char;
+
+        delete[] cwd_char;
+    }
+
+    return this->cwd.c_str();
+}
+
+bool Filesystem::IsFused() const
+{
+    if (!this->fusedSet)
+        return false;
+
+    return this->fused;
+}
+
+const char * Filesystem::GetSource() const
+{
+    return this->gameSource.c_str();
+}
+
 bool Filesystem::SetSource(const char * source)
 {
     if (!PHYSFS_isInit())

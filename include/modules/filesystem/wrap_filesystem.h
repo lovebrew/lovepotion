@@ -29,6 +29,22 @@ namespace Wrap_Filesystem
 
     int NewFileData(lua_State * L);
 
+    int SetFused(lua_State * L);
+
+    int IsFused(lua_State * L);
+
+    int SetSource(lua_State * L);
+
+    int GetSource(lua_State * L);
+
+    int GetSourceBaseDirectory(lua_State * L);
+
+    int GetWorkingDirectory(lua_State * L);
+
+    int Mount(lua_State * L);
+
+    int UnMount(lua_State * L);
+
     int Read(lua_State * L);
 
     int Register(lua_State * L);
