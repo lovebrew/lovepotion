@@ -32,7 +32,6 @@ int Wrap_Filesystem::Load(lua_State * L)
     }
     catch(love::Exception & e)
     {
-        LOG("Exception %s", e.what());
         return Luax::IOError(L, "%s", e.what());
     }
 
@@ -64,17 +63,17 @@ int Wrap_Filesystem::Loader(lua_State * L)
     for (std::string element : inst->GetRequirePath())
     {
         replaceAll(element, "?", modulename);
-        LOG("Looking at %s/%s", modulename.c_str(), element.c_str());
 
         Filesystem::Info info = {};
-        if (inst->GetInfo(element.c_str(), info) && info.type != Filesystem::FILETYPE_DIRECTORY)
+        if (inst->GetInfo(element.c_str(), info))
         {
-            LOG("Found file %s!", element.c_str());
+            if (info.type != Filesystem::FILETYPE_DIRECTORY)
+            {
+                lua_pop(L, 1);
+                lua_pushstring(L, element.c_str());
 
-            lua_pop(L, 1);
-            lua_pushstring(L, element.c_str());
-
-            return Wrap_Filesystem::Load(L);
+                return Wrap_Filesystem::Load(L);
+            }
         }
     }
 
@@ -166,7 +165,7 @@ int Wrap_Filesystem::IsFused(lua_State * L)
 int Wrap_Filesystem::SetSource(lua_State * L)
 {
     const char * arg = luaL_checkstring(L, 1);
-    LOG("Setting Source to %s", arg);
+
     if (!instance()->SetSource(arg))
         return luaL_error(L, "Could not set source.");
 
@@ -463,7 +462,6 @@ int Wrap_Filesystem::SetIdentity(lua_State * L)
 {
     const char * name = luaL_checkstring(L, 1);
     bool append = Luax::OptBoolean(L, 2, false);
-    LOG("append? %d", append);
 
     if (!instance()->SetIdentity(name, append))
         return luaL_error(L,  "Could not set write directory.");

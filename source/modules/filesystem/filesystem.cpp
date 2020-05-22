@@ -153,9 +153,10 @@ bool Filesystem::GetInfo(const char * filepath, Filesystem::Info & info) const
         return false;
 
     PHYSFS_Stat stat = {};
+    LOG("Checking for %s", filepath);
     if (!PHYSFS_stat(filepath, &stat))
         return false;
-
+    LOG("Found %s!", filepath);
     info.modtime = std::min<int64_t>(stat.modtime, MAX_STAMP);
     info.size    = std::min<int64_t>(stat.filesize,  MAX_STAMP);
 
@@ -276,7 +277,6 @@ bool Filesystem::SetSource(const char * source)
         return false;
 
     this->gameSource = searchPath;
-    LOG("Source is %s", searchPath.c_str());
 
     return true;
 }
@@ -373,7 +373,6 @@ bool Filesystem::SetIdentity(const char * name, bool appendToPath)
         PHYSFS_unmount(oldSavePath.c_str());
 
     PHYSFS_mount(this->fullSavePath.c_str(), nullptr, appendToPath);
-    LOG("Identity %s / Full Path %s", name, this->fullSavePath.c_str());
 
     PHYSFS_setWriteDir(nullptr);
 

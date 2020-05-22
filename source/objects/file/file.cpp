@@ -60,13 +60,14 @@ File::Mode File::GetMode()
 int64_t File::GetSize()
 {
     if (this->file == nullptr)
+    {
         this->Open(MODE_READ);
+        int64_t size = (int64_t)PHYSFS_fileLength(file);
+        this->Close();
+        return size;
+    }
 
-    int64_t size = (int64_t)PHYSFS_fileLength(file);
-
-    this->Close();
-
-    return size;
+    return (int64_t)PHYSFS_fileLength(file);
 }
 
 bool File::IsEOF()
@@ -127,9 +128,6 @@ bool File::Open(File::Mode openMode)
     this->file = handle;
     this->mode = openMode;
 
-    LOG("Temp handle is nullptr: %d", handle == nullptr);
-    LOG("File is nullptr: %d, Opened in %zu", this->file == nullptr, (size_t)this->mode);
-
     if (this->file != nullptr && !this->SetBuffer(this->bufferMode, this->bufferSize))
     {
         this->bufferMode = BUFFER_NONE;
@@ -141,8 +139,6 @@ bool File::Open(File::Mode openMode)
 
 int64_t File::Read(void * destination, int64_t size)
 {
-    LOG("File Handle is nullptr 3 amazing tree: %d", this->file == nullptr);
-    LOG("Open mode is read: %d", this->mode == MODE_READ);
     if (!this->file || this->mode != MODE_READ)
         throw love::Exception("File is not opened for reading.");
 
@@ -159,10 +155,8 @@ int64_t File::Read(void * destination, int64_t size)
 
 FileData * File::Read(int64_t size)
 {
-    LOG("File Handle is nullptr: %d", this->file == nullptr);
     if (!this->IsOpen() && !this->Open(MODE_READ))
         throw love::Exception("Could not read file %s.", this->GetFilename().c_str());
-    LOG("File Handle is nullptr 2 electric boogaloo: %d", this->file == nullptr);
 
     int64_t max = this->GetSize();
     int64_t current = this->Tell();

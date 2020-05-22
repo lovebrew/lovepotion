@@ -560,15 +560,10 @@ function love.init()
         end
     end
 
-    local err_string
     if no_game_code then
-        err_string = "No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the ROMFS."
+        error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the ROMFS.")
     elseif invalid_game_path then
-        err_string = "Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path."
-    end
-
-    if err_string then
-        error(err_string)
+        error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
     end
 end
 
