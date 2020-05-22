@@ -1,7 +1,6 @@
 #include "common/runtime.h"
 #include "modules/filesystem/filesystem.h"
 
-#include "common/assets.h"
 #include <sys/stat.h>
 
 #include <physfs.h>
@@ -10,20 +9,51 @@ using namespace love;
 
 love::Type Filesystem::type("Filesystem", &Module::type);
 
-Filesystem::Filesystem() : identity("SuperGame"),
-                           fused(false)
-{}
+namespace
+{
+    std::string normalize(const std::string &input)
+    {
+        std::string out;
+        bool seenSep = false, isSep = false;
+
+        for (size_t i = 0; i < input.size(); ++i)
+        {
+            isSep = (input[i] == LOVE_PATH_SEPARATOR[0]);
+
+            if (!isSep || !seenSep)
+                out += input[i];
+
+            seenSep = isSep;
+        }
+
+        return out;
+    }
+}
+
+Filesystem::Filesystem() : fused(false),
+                           fusedSet(false)
+{
+    requirePath  = {"?.lua", "?/init.lua"};
+    cRequirePath = {"??"};
+}
 
 void Filesystem::Init(const char * arg0)
 {
     if (!PHYSFS_init(arg0))
         throw love::Exception("Failed to initialize filesystem: %s", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+
+    this->exePath = arg0;
+
+    romfsInit();
+    this->SetSymLinksEnabled(true);
 }
 
 Filesystem::~Filesystem()
 {
     if (PHYSFS_isInit())
         PHYSFS_deinit();
+
+    romfsExit();
 }
 
 void Filesystem::Append(const char * filename, const void * data, int64_t size)
@@ -35,9 +65,32 @@ void Filesystem::Append(const char * filename, const void * data, int64_t size)
         throw love::Exception("Data could not be written.");
 }
 
-void Filesystem::CreateDirectory(const char * name)
+
+std::string Filesystem::GetRealDirectory(const char * filename) const
 {
-    std::filesystem::create_directory(this->GetSaveDirectory() + name);
+    if (!PHYSFS_isInit())
+        throw love::Exception("PhysFS is not initialized.");
+
+    const char * dir = PHYSFS_getRealDir(filename);
+
+    if (dir == nullptr)
+        throw love::Exception("File does not exist on disk.");
+
+    return std::string(dir);
+}
+
+bool Filesystem::CreateDirectory(const char * name)
+{
+    if (!PHYSFS_isInit())
+        return false;
+
+    if (PHYSFS_getWriteDir() == 0 && !SetupWriteDirectory())
+        return false;
+
+    if (!PHYSFS_mkdir(name))
+        return false;
+
+    return true;
 }
 
 void Filesystem::GetDirectoryItems(const char * directory, std::vector<std::string> & items)
@@ -58,40 +111,62 @@ void Filesystem::GetDirectoryItems(const char * directory, std::vector<std::stri
 
 bool Filesystem::SetupWriteDirectory()
 {
+    if (!PHYSFS_isInit())
+        return false;
+
     if (this->identity.empty() || this->fullSavePath.empty() || this->relativeSavePath.empty())
         return false;
 
-    if (!std::filesystem::create_directory(this->fullSavePath))
+    std::string tmpWriteDirectory = this->fullSavePath;
+    std::string tmpCreateDirectory = this->fullSavePath;
+
+    if (!PHYSFS_setWriteDir(tmpWriteDirectory.c_str()))
         return false;
+
+    if (!this->CreateDirectory(tmpCreateDirectory.c_str()))
+    {
+        PHYSFS_setWriteDir(nullptr);
+        return false;
+    }
+
+    if (!PHYSFS_setWriteDir(this->fullSavePath.c_str()))
+        return false;
+
+    if (!PHYSFS_mount(this->fullSavePath.c_str(), nullptr, 0))
+    {
+        // Clear the write directory in case of error.
+        PHYSFS_setWriteDir(nullptr);
+        return false;
+    }
 
     return true;
 }
 
-const char * Filesystem::GetIdentity()
+const char *Filesystem::GetIdentity()
 {
     return this->identity.c_str();
 }
 
-bool Filesystem::GetInfo(const char * filename, Filesystem::Info & info) const
+bool Filesystem::GetInfo(const char * filepath, Filesystem::Info & info) const
 {
-    struct stat fileInfo;
-
-    if (stat(filename, &fileInfo) != 0)
+    if (!PHYSFS_isInit())
         return false;
 
-    auto statType = fileInfo.st_mode;
+    PHYSFS_Stat stat = {};
+    if (!PHYSFS_stat(filepath, &stat))
+        return false;
 
-    if (S_ISREG(statType))
+    info.modtime = std::min<int64_t>(stat.modtime, MAX_STAMP);
+    info.size    = std::min<int64_t>(stat.filesize,  MAX_STAMP);
+
+    if (stat.filetype == PHYSFS_FILETYPE_REGULAR)
         info.type = FILETYPE_FILE;
-    else if (S_ISDIR(statType))
+    else if (stat.filetype == PHYSFS_FILETYPE_DIRECTORY)
         info.type = FILETYPE_DIRECTORY;
-    else if (S_ISLNK(statType))
+    else if (stat.filetype == PHYSFS_FILETYPE_SYMLINK)
         info.type = FILETYPE_SYMLINK;
     else
         info.type = FILETYPE_OTHER;
-
-    info.modtime = std::min<int64_t>(fileInfo.st_mtime, MAX_STAMP);
-    info.size = std::min<int64_t>(fileInfo.st_size, MAX_STAMP);
 
     return true;
 }
@@ -139,11 +214,7 @@ bool Filesystem::Remove(const char * filename)
 
 std::string Filesystem::GetExecutablePath() const
 {
-    // This is likely to be wrong: FIX
-
-    char buffer[LOVE_MAX_PATH];
-
-    return getcwd(buffer, LOVE_MAX_PATH);
+    return this->exePath;
 }
 
 void Filesystem::SetFused(bool fused)
@@ -159,7 +230,7 @@ const char * Filesystem::GetWorkingDirectory()
 {
     if (this->cwd.empty())
     {
-        char * cwd_char = new char[LOVE_MAX_PATH];
+        char *cwd_char = new char[LOVE_MAX_PATH];
 
         if (getcwd(cwd_char, LOVE_MAX_PATH))
             this->cwd = cwd_char;
@@ -168,6 +239,14 @@ const char * Filesystem::GetWorkingDirectory()
     }
 
     return this->cwd.c_str();
+}
+
+void Filesystem::SetSymLinksEnabled(bool enable)
+{
+    if (!PHYSFS_isInit())
+        return;
+
+    PHYSFS_permitSymbolicLinks(enable);
 }
 
 bool Filesystem::IsFused() const
@@ -197,11 +276,12 @@ bool Filesystem::SetSource(const char * source)
         return false;
 
     this->gameSource = searchPath;
+    LOG("Source is %s", searchPath.c_str());
 
     return true;
 }
 
-std::string Filesystem::getSourceBaseDirectory() const
+std::string Filesystem::GetSourceBaseDirectory() const
 {
     size_t length = this->gameSource.length();
 
@@ -219,7 +299,7 @@ std::string Filesystem::getSourceBaseDirectory() const
     return this->gameSource.substr(0, end);
 }
 
-bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appendToPath = false)
+bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appendToPath)
 {
     if (!PHYSFS_isInit() || !archive)
         return false;
@@ -241,7 +321,7 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
     }
     else
     {
-        if (strlen(archive) == 0 || strstr(archive, "..") || strncmp(acrhive, "/", 1) == 0)
+        if (strlen(archive) == 0 || strstr(archive, "..") || strncmp(archive, "/", 1) == 0)
             return false;
 
         const char * realDirectory = PHYSFS_getRealDir(archive);
@@ -264,6 +344,11 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
     return PHYSFS_mount(realPath.c_str(), mountpoint, appendToPath) != 0;
 }
 
+std::vector<std::string> & Filesystem::GetRequirePath()
+{
+    return this->requirePath;
+}
+
 bool Filesystem::SetIdentity(const char * name, bool appendToPath)
 {
     if (!PHYSFS_isInit())
@@ -282,12 +367,13 @@ bool Filesystem::SetIdentity(const char * name, bool appendToPath)
     else
         this->fullSavePath += this->relativeSavePath;
 
-    // this->searchPaths.push_back(this->fullSavePath);
+    this->fullSavePath = normalize(this->fullSavePath);
 
     if (!oldSavePath.empty())
         PHYSFS_unmount(oldSavePath.c_str());
 
     PHYSFS_mount(this->fullSavePath.c_str(), nullptr, appendToPath);
+    LOG("Identity %s / Full Path %s", name, this->fullSavePath.c_str());
 
     PHYSFS_setWriteDir(nullptr);
 
@@ -296,10 +382,7 @@ bool Filesystem::SetIdentity(const char * name, bool appendToPath)
 
 std::string Filesystem::GetAppDataDirectory()
 {
-    if (this->appdata.empty())
-        this->appdata = getcwd(NULL, LOVE_MAX_PATH);
-
-    return this->appdata;
+    return this->GetWorkingDirectory();
 }
 
 void Filesystem::Write(const char * filename, const void * data, int64_t size)
@@ -311,33 +394,33 @@ void Filesystem::Write(const char * filename, const void * data, int64_t size)
         throw love::Exception("Data could not be written.");
 }
 
-void Filesystem::AllowMountingForPath(const std::string & path)
+void Filesystem::AllowMountingForPath(const std::string &path)
 {
     if (std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), path) == this->allowedMountPaths.end())
         this->allowedMountPaths.push_back(path);
 }
 
-bool Filesystem::GetConstant(const char * in, FileType & out)
+bool Filesystem::GetConstant(const char *in, FileType &out)
 {
     return fileTypes.Find(in, out);
 }
 
-bool Filesystem::GetConstant(FileType in, const char *& out)
+bool Filesystem::GetConstant(FileType in, const char *&out)
 {
     return fileTypes.Find(in, out);
 }
 
-std::vector<std::string> Filesystem::getConstants(FileType)
+std::vector<std::string> Filesystem::GetConstants(FileType)
 {
     return fileTypes.GetNames();
 }
 
 StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry Filesystem::fileTypeEntries[] =
-{
-    { "file",      FILETYPE_FILE      },
-    { "directory", FILETYPE_DIRECTORY },
-    { "symlink",   FILETYPE_SYMLINK   },
-    { "other",     FILETYPE_OTHER     },
+    {
+        {"file", FILETYPE_FILE},
+        {"directory", FILETYPE_DIRECTORY},
+        {"symlink", FILETYPE_SYMLINK},
+        {"other", FILETYPE_OTHER},
 };
 
 StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(Filesystem::fileTypeEntries, sizeof(Filesystem::fileTypeEntries));

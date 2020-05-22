@@ -24,13 +24,97 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
 
--- 3DS and Switch can't load external C libraries,
--- so we need to prevent require from searching for them
-package.path = "./?.lua;./?/init.lua"
-package.cpath = "./?.lua;./?/init.lua"
-
 -- make sure love exists
 local love = require("love")
+
+love.path = {}
+love.arg = {}
+
+-- Replace any \ with /.
+function love.path.normalslashes(p)
+    return p:gsub("\\", "/")
+end
+
+-- Makes sure there is a slash at the end
+-- of a path.
+function love.path.endslash(p)
+    if p:sub(-1) ~= "/" then
+        return p .. "/"
+    else
+        return p
+    end
+end
+
+-- Checks whether a path is absolute or not.
+function love.path.abs(p)
+
+    local tmp = love.path.normalslashes(p)
+
+    -- Path is absolute if it starts with a "/".
+    if tmp:find("/") == 1 then
+        return true
+    end
+
+    -- Path is absolute if it starts with a
+    -- letter followed by a colon.
+    if tmp:find("%a:") == 1 then
+        return true
+    end
+
+    -- Relative.
+    return false
+
+end
+
+-- Returns the leaf of a full path.
+function love.path.leaf(p)
+    p = love.path.normalslashes(p)
+
+    local a = 1
+    local last = p
+
+    while a do
+        a = p:find("/", a + 1)
+
+        if a then
+            last = p:sub(a + 1)
+        end
+    end
+
+    return last
+end
+
+-- Converts any path into a full path.
+function love.path.getFull(p)
+
+    if love.path.abs(p) then
+        return love.path.normalslashes(p)
+    end
+
+    local cwd = love.filesystem.getWorkingDirectory()
+    cwd = love.path.normalslashes(cwd)
+    cwd = love.path.endslash(cwd)
+
+    -- Construct a full path.
+    local full = cwd .. love.path.normalslashes(p)
+
+    -- Remove trailing /., if applicable
+    return full:match("(.-)/%.$") or full
+end
+
+-- Finds the key in the table with the lowest integral index. The lowest
+-- will typically the executable, for instance "lua5.1.exe".
+function love.arg.getLow(a)
+    local m = math.huge
+
+    for key, value in pairs(a) do
+        if key < m then
+            m = key
+        end
+    end
+
+    return a[m], m
+end
 
 function love.createhandlers()
     love.handlers = setmetatable({
@@ -172,13 +256,12 @@ function love.errorhandler(message)
         return
     end
 
-    --[[
-        LOVE creates a window if necessary.
-        We don't have to because it's .. needed?
-
-        Also they deal with the mouse module here.
-        We don't have a mouse module because reasons.
-    --]]
+    if not love.window.isOpen() then
+        local success, status = pcall(love.window.setMode)
+        if not success or not status then
+            return
+        end
+    end
 
     if love.joystick then
         for i, v in ipairs(love.joystick.getJoysticks()) do
@@ -272,30 +355,67 @@ end
 love.errhand = love.errorhandler
 
 local no_game_code = false
+local invalid_game_path = nil
 
 function love.boot()
     -- Load the LOVE filesystem module, its absolutely needed
     require("love.filesystem")
 
-    love.filesystem.init()
+    local arg0 = love.arg.getLow(arg)
 
-    local arg0 = nil
+    love.filesystem.init(arg0)
+
     local exepath = love.filesystem.getExecutablePath()
 
+    -- This shouldn't happen, but
+    -- just in case we'll fall back to arg0.
     if #exepath == 0 then
-        -- This shouldn't happen, but just in case we'll fall back to arg0.
         exepath = arg0
     end
-
-    no_game_code = false
-    invalid_game_path = nil
 
     local can_has_game = pcall(love.filesystem.setSource, exepath)
 
     local is_fused_game = can_has_game
 
+    love.filesystem.setFused(is_fused_game)
+
+    local identity = ""
+    if not can_has_game then
+        local directory = "game"
+
+        local fullSauce = love.path.getFull(directory)
+
+        can_has_game = pcall(love.filesystem.setSource, fullSauce)
+
+        if not can_has_game then
+            invalid_game_path = fullSauce
+        end
+
+        identity = love.path.leaf(fullSauce)
+    else
+        identity = love.path.leaf(exepath)
+    end
+
+    -- Try to use the archive containing main.lua as the identity name. It
+    -- might not be available, in which case the fallbacks above are used.
+    local realdir = love.filesystem.getRealDirectory("main.lua")
+    if realdir then
+        identity = love.path.leaf(realdir)
+    end
+
+    identity = identity:gsub("^([%.]+)", "") -- strip leading "."'s
+    identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
+    identity = identity:gsub("%.", "_") -- replace remaining "."'s with "_"
+    identity = #identity > 0 and identity or "lovegame"
+
+    pcall(love.filesystem.setIdentity, identity, true)
+
     if can_has_game and not (love.filesystem.getInfo("main.lua") or love.filesystem.getInfo("conf.lua")) then
         no_game_code = true
+    end
+
+    if not can_has_game then
+        pcall(love.filesystem.setSource, "romfs:/")
     end
 end
 
@@ -376,13 +496,12 @@ function love.init()
     -- load and use conf.lua in case the user doesn't want to use certain
     -- modules, but we also can't error because graphics haven't been loaded.
     local confok, conferr
-
-    if love.filesystem.getInfo("conf.lua") then
+    if (not love.conf) and love.filesystem and love.filesystem.getInfo("conf.lua") then
         confok, conferr = pcall(require, "conf")
+    end
 
-        if confok and love.conf then
-            confok, conferr = pcall(love.conf, config)
-        end
+    if love.conf then
+        confok, conferr = pcall(love.conf, config)
     end
 
     if love._setAccelerometerAsJoystick then
@@ -433,17 +552,23 @@ function love.init()
         love.timer.step()
     end
 
-    pcall(love.filesystem.setIdentity, config.identity, true)
+    if love.filesystem then
+        love.filesystem.setIdentity(config.identity or love.filesystem.getIdentity(), config.appendidentity)
 
-    if love.filesystem.getInfo("main.lua") then
-        require("main")
+        if love.filesystem.getInfo("main.lua") then
+            require("main")
+        end
     end
 
-    local nogame = "No code to run. Your game might be packaged incorrectly."
-    nogame = nogame .. "Make sure main.lua is at the top level of the ROMFS."
-
+    local err_string
     if no_game_code then
-        error(nogame)
+        err_string = "No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the ROMFS."
+    elseif invalid_game_path then
+        err_string = "Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path."
+    end
+
+    if err_string then
+        error(err_string)
     end
 end
 
@@ -454,7 +579,7 @@ local screens = {
 
 function love.run()
     if love.load then
-        love.load()
+        love.load(arg)
     end
 
     if love.timer then

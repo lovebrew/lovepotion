@@ -10,8 +10,8 @@
 
 #define MAX_STAMP 0x20000000000000LL
 
-#define LOVE_APPDATA_FOLDER "love"
-#define LOVE_APPDATA_PREFIX "."
+#define LOVE_APPDATA_FOLDER ""
+#define LOVE_APPDATA_PREFIX ""
 #define LOVE_PATH_SEPARATOR "/"
 #define LOVE_MAX_PATH PATH_MAX
 
@@ -53,7 +53,7 @@ namespace love
 
             void Append(const char * filename, const void * data, int64_t size);
 
-            void CreateDirectory(const char * name);
+            bool CreateDirectory(const char * name);
 
             void GetDirectoryItems(const char * directory, std::vector<std::string> & items);
 
@@ -97,9 +97,17 @@ namespace love
 
             std::string GetExecutablePath() const;
 
-            std::string getSourceBaseDirectory() const;
+            std::string GetSourceBaseDirectory() const;
 
             bool SetupWriteDirectory();
+
+            std::vector<std::string> & GetRequirePath();
+
+            void SetSymLinksEnabled(bool enable);
+
+            std::string GetRealDirectory(const char * filename) const;
+
+            // std::vector<std::string> & GetCRequirePath() override;
 
             /* Helper Functions */
 
@@ -113,9 +121,11 @@ namespace love
             std::string identity;
             std::string relativeSavePath;
             std::string fullSavePath;
+
             std::string appdata;
             std::string gameSource;
             std::string cwd;
+            std::string exePath;
 
             std::vector<std::string> allowedMountPaths;
 

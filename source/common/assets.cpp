@@ -8,6 +8,9 @@
 
 void Assets::Initialize(const std::string & path)
 {
+    char current[PATH_MAX];
+    Assets::CWD = getcwd(current, PATH_MAX);
+
     Location location = Assets::GetLocation(path);
 
     switch(location)
@@ -26,9 +29,9 @@ void Assets::Initialize(const std::string & path)
     chdir(Assets::directory.c_str());
 }
 
-bool Assets::IsFused()
+std::string Assets::GetCWD()
 {
-    return Assets::fused;
+    return Assets::CWD;
 }
 
 Location Assets::GetLocation(const std::string & path)

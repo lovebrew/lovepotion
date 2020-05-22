@@ -21,6 +21,17 @@ namespace Luax
 {
     int Preload(lua_State * L, lua_CFunction func, const char * name);
 
+    int TableInsert(lua_State * L, int index, int vindex, int position);
+
+    inline bool OptBoolean(lua_State * L, int index, bool boolean) {
+        if (lua_isboolean(L, index) == 1)
+            return (lua_toboolean(L, index) == 1) ? true : false;
+
+        return boolean;
+    }
+
+    int RegisterSearcher(lua_State * L, lua_CFunction function, int position);
+
     int Resume(lua_State * L, int nargs);
 
     int DoBuffer(lua_State * L, const char * buffer, size_t size, const char * name);

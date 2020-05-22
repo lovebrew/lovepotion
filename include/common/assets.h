@@ -18,7 +18,7 @@ namespace Assets
 
     inline std::string directory = "romfs:/";
 
-    inline bool fused = false;
+    inline std::string CWD = "";
 
     /* Functions */
 
@@ -26,5 +26,5 @@ namespace Assets
 
     Location GetLocation(const std::string & path);
 
-    bool IsFused();
+    std::string GetCWD();
 };
