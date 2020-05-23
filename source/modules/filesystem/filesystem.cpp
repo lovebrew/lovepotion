@@ -142,7 +142,7 @@ bool Filesystem::SetupWriteDirectory()
     return true;
 }
 
-const char *Filesystem::GetIdentity()
+const char * Filesystem::GetIdentity()
 {
     return this->identity.c_str();
 }

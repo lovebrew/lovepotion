@@ -406,7 +406,7 @@ function love.boot()
     identity = identity:gsub("^([%.]+)", "") -- strip leading "."'s
     identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
     identity = identity:gsub("%.", "_") -- replace remaining "."'s with "_"
-    identity = #identity > 0 and identity or "lovegame"
+    identity = #identity > 0 and identity or "game"
 
     pcall(love.filesystem.setIdentity, identity, true)
 
