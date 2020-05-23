@@ -448,7 +448,7 @@ function love.boot()
 
     local identity = ""
     if not can_has_game and o.game.set and o.game.arg[1] then
-        local directory = "game"
+        local directory = o.game.arg[1]
 
         local fullSauce = love.path.getFull(directory)
 
