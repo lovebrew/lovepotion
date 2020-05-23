@@ -49,6 +49,13 @@ int Wrap_Filesystem::Load(lua_State * L)
     }
 }
 
+int Wrap_Filesystem::GetUserDirectory(lua_State * L)
+{
+    Luax::PushString(L, instance()->GetUserDirectory());
+
+    return 1;
+}
+
 int Wrap_Filesystem::Loader(lua_State * L)
 {
     std::string modulename = luaL_checkstring(L, 1);
@@ -65,15 +72,15 @@ int Wrap_Filesystem::Loader(lua_State * L)
         replaceAll(element, "?", modulename);
 
         Filesystem::Info info = {};
-        if (inst->GetInfo(element.c_str(), info))
+        LOG("Checking for %s/%s", modulename.c_str(), element.c_str());
+        if (inst->GetInfo(element.c_str(), info) && info.type != Filesystem::FILETYPE_DIRECTORY)
         {
-            if (info.type != Filesystem::FILETYPE_DIRECTORY)
-            {
-                lua_pop(L, 1);
-                lua_pushstring(L, element.c_str());
+            LOG("Found element %s", element.c_str());
 
-                return Wrap_Filesystem::Load(L);
-            }
+            lua_pop(L, 1);
+            lua_pushstring(L, element.c_str());
+
+            return Wrap_Filesystem::Load(L);
         }
     }
 
@@ -149,8 +156,7 @@ int Wrap_Filesystem::SetFused(lua_State * L)
 
 int Wrap_Filesystem::GetExecutablePath(lua_State * L)
 {
-    std::string path = instance()->GetExecutablePath();
-    lua_pushlstring(L, path.data(), path.size());
+    Luax::PushString(L, instance()->GetExecutablePath());
 
     return 1;
 }
@@ -262,9 +268,7 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
 
 int Wrap_Filesystem::GetSaveDirectory(lua_State * L)
 {
-    std::string dir = instance()->GetSaveDirectory();
-
-    lua_pushlstring(L, dir.data(), dir.size());
+    Luax::PushString(L, instance()->GetSaveDirectory());
 
     return 1;
 }
@@ -307,19 +311,19 @@ int Wrap_Filesystem::NewFile(lua_State * L)
 
 int Wrap_Filesystem::GetRealDirectory(lua_State * L)
 {
-    const char *filename = luaL_checkstring(L, 1);
-    std::string dir;
+    const char * filename = luaL_checkstring(L, 1);
+    std::string directory;
 
     try
     {
-        dir = instance()->GetRealDirectory(filename);
+        directory = instance()->GetRealDirectory(filename);
     }
     catch (love::Exception &e)
     {
         return Luax::IOError(L, "%s", e.what());
     }
 
-    lua_pushstring(L, dir.c_str());
+    Luax::PushString(L, directory);
 
     return 1;
 }
@@ -420,18 +424,14 @@ int Wrap_Filesystem::Remove(lua_State * L)
 
 int Wrap_Filesystem::GetSourceBaseDirectory(lua_State * L)
 {
-    std::string baseDirectory = instance()->GetSourceBaseDirectory();
-
-    lua_pushlstring(L, baseDirectory.data(), baseDirectory.size());
+    Luax::PushString(L, instance()->GetSourceBaseDirectory());
 
     return 1;
 }
 
 int Wrap_Filesystem::GetWorkingDirectory(lua_State * L)
 {
-    std::string workingDirectory = instance()->GetWorkingDirectory();
-
-    lua_pushlstring(L, workingDirectory.data(), workingDirectory.size());
+    lua_pushstring(L, instance()->GetWorkingDirectory());
 
     return 1;
 }
@@ -607,6 +607,7 @@ int Wrap_Filesystem::Register(lua_State * L)
         { "getSaveDirectory",       GetSaveDirectory       },
         { "getSourceBaseDirectory", GetSourceBaseDirectory },
         { "getSource",              GetSource              },
+        { "getUserDirectory",       GetUserDirectory       },
         { "getWorkingDirectory",    GetWorkingDirectory    },
         { "isFused",                IsFused                },
         { "load",                   Load                   },

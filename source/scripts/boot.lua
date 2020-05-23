@@ -116,6 +116,64 @@ function love.arg.getLow(a)
     return a[m], m
 end
 
+
+love.arg.options =
+{
+    console = { a = 0 },
+    fused   = { a = 0 },
+    game    = { a = 1 }
+}
+
+love.arg.optionIndices = {}
+
+function love.arg.parseOption(m, i)
+    m.set = true
+
+    if m.a > 0 then
+        m.arg = {}
+        for j = i, i + m.a - 1 do
+            love.arg.optionIndices[j] = true
+            table.insert(m.arg, arg[j])
+        end
+    end
+
+    return m.a
+end
+
+function love.arg.parseOptions()
+    local game
+    local argc = #arg
+
+    local i = 1
+    while i <= argc do
+        -- Look for options.
+        local m = arg[i]:match("^%-%-(.*)")
+
+        if m and m ~= "" and love.arg.options[m] and not love.arg.options[m].set then
+            love.arg.optionIndices[i] = true
+            i = i + love.arg.parseOption(love.arg.options[m], i + 1)
+        elseif m == "" then -- handle '--' as an option
+            love.arg.optionIndices[i] = true
+            if not game then -- handle '--' followed by game name
+                game = i + 1
+            end
+            break
+        elseif not game then
+            game = i
+        end
+        i = i + 1
+    end
+
+    if not love.arg.options.game.set then
+        if love.filesystem and love.filesystem.getInfo("game") then
+            love.arg.options.game.arg = {"./game"}
+            love.arg.options.game.set = true
+        else
+            love.arg.parseOption(love.arg.options.game, game or 0)
+        end
+    end
+end
+
 function love.createhandlers()
     love.handlers = setmetatable({
         keypressed = function (key)
@@ -375,12 +433,21 @@ function love.boot()
 
     local can_has_game = pcall(love.filesystem.setSource, exepath)
 
-    local is_fused_game = can_has_game
+    -- It's a fused game, don't parse --game argument
+    if can_has_game then
+        love.arg.options.game.set = true
+    end
+
+    -- Parse options now that we know which options we're looking for.
+    love.arg.parseOptions()
+    local o = love.arg.options
+
+    local is_fused_game = can_has_game or love.arg.options.fused.set
 
     love.filesystem.setFused(is_fused_game)
 
     local identity = ""
-    if not can_has_game then
+    if not can_has_game and o.game.set and o.game.arg[1] then
         local directory = "game"
 
         local fullSauce = love.path.getFull(directory)
@@ -399,6 +466,7 @@ function love.boot()
     -- Try to use the archive containing main.lua as the identity name. It
     -- might not be available, in which case the fallbacks above are used.
     local realdir = love.filesystem.getRealDirectory("main.lua")
+
     if realdir then
         identity = love.path.leaf(realdir)
     end
@@ -422,7 +490,7 @@ end
 function love.init()
     local config =
     {
-        identity = "SuperGame",
+        identity = false,
         appendidentity = false,
         version = love._version,
         console = false,

@@ -120,6 +120,17 @@ bool Filesystem::SetupWriteDirectory()
     std::string tmpWriteDirectory = this->fullSavePath;
     std::string tmpCreateDirectory = this->fullSavePath;
 
+    if (this->fullSavePath.find(this->GetUserDirectory()) == 0)
+    {
+        tmpWriteDirectory = this->GetUserDirectory();
+        tmpCreateDirectory = this->fullSavePath.substr(this->GetUserDirectory().length());
+
+        // Strip leading '/' characters from the path we want to create.
+        size_t startPosition = tmpCreateDirectory.find_first_not_of('/');
+        if (startPosition != std::string::npos)
+            tmpCreateDirectory = tmpCreateDirectory.substr(startPosition);
+    }
+
     if (!PHYSFS_setWriteDir(tmpWriteDirectory.c_str()))
         return false;
 
@@ -273,9 +284,10 @@ bool Filesystem::SetSource(const char * source)
 
     std::string searchPath = source;
 
+    LOG("Attempting to mount %s", source);
     if (!PHYSFS_mount(searchPath.c_str(), nullptr, 1))
         return false;
-
+    LOG("Successfully mounted %s", source);
     this->gameSource = searchPath;
 
     return true;
@@ -349,6 +361,13 @@ std::vector<std::string> & Filesystem::GetRequirePath()
     return this->requirePath;
 }
 
+std::string Filesystem::GetUserDirectory()
+{
+    static std::string userDirectory = normalize(PHYSFS_getUserDir());
+
+    return userDirectory;
+}
+
 bool Filesystem::SetIdentity(const char * name, bool appendToPath)
 {
     if (!PHYSFS_isInit())
@@ -356,16 +375,19 @@ bool Filesystem::SetIdentity(const char * name, bool appendToPath)
 
     std::string oldSavePath = this->fullSavePath;
 
+    // Save directory
     this->identity = name;
 
+    // /{game}
     this->relativeSavePath = std::string(LOVE_APPDATA_PREFIX LOVE_APPDATA_FOLDER LOVE_PATH_SEPARATOR) + this->identity;
 
+    // sdmc:/switch/LovePotion
     this->fullSavePath = this->GetAppDataDirectory() + LOVE_PATH_SEPARATOR;
 
-    if (this->fused)
+    if (this->fused) // sdmc:/switch/{game}/{game}
         this->fullSavePath += std::string(LOVE_APPDATA_PREFIX) + this->identity;
-    else
-        this->fullSavePath += this->relativeSavePath;
+    else // sdmc:/switch/LovePotion/save/{game}
+        this->fullSavePath += std::string("save" LOVE_PATH_SEPARATOR) + this->relativeSavePath;
 
     this->fullSavePath = normalize(this->fullSavePath);
 
@@ -381,7 +403,7 @@ bool Filesystem::SetIdentity(const char * name, bool appendToPath)
 
 std::string Filesystem::GetAppDataDirectory()
 {
-    return this->GetWorkingDirectory();
+    return this->GetUserDirectory();
 }
 
 void Filesystem::Write(const char * filename, const void * data, int64_t size)

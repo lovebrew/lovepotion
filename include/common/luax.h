@@ -30,6 +30,10 @@ namespace Luax
         return boolean;
     }
 
+    inline void PushString(lua_State * L, const std::string & str) {
+        lua_pushlstring(L, str.data(), str.size());
+    }
+
     int RegisterSearcher(lua_State * L, lua_CFunction function, int position);
 
     int Resume(lua_State * L, int nargs);

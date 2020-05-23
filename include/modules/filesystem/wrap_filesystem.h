@@ -26,6 +26,8 @@ namespace Wrap_Filesystem
 
     int SetRequirePath(lua_State * L);
 
+    int GetUserDirectory(lua_State * L);
+
     int Load(lua_State * L);
 
     int GetInfo(lua_State * L);

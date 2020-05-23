@@ -105,6 +105,8 @@ namespace love
 
             void SetSymLinksEnabled(bool enable);
 
+            std::string GetUserDirectory();
+
             std::string GetRealDirectory(const char * filename) const;
 
             // std::vector<std::string> & GetCRequirePath() override;
