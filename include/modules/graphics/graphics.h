@@ -138,9 +138,11 @@ namespace love
 
             /* Objects */
 
-            Image * NewImage(const std::string & path);
+            Image * NewImage(Data * data);
 
             Font * NewFont(const std::string & path, float size = Font::DEFAULT_SIZE);
+
+            Font * NewFont(Data * data, float size = Font::DEFAULT_SIZE);
 
             Font * NewFont(float size = Font::DEFAULT_SIZE);
 

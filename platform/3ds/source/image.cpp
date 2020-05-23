@@ -5,28 +5,14 @@ using namespace love;
 
 #define IMAGE_NOT_FOUND_STRING "Could not find image %s (not converted to t3x?)"
 
-Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
+Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
 {
-    size_t pos = path.find_last_of(".") + 1;
-    std::string translation;
+    this->sheet = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
 
-    if (pos != std::string::npos)
-        translation = (path.substr(0, pos) + "t3x");
+    C2D_SpriteFromSheet(&this->texture, this->sheet, 0);
 
-    if (std::filesystem::exists(translation))
-    {
-        this->sheet = C2D_SpriteSheetLoad(translation.c_str());
-
-        if (!this->sheet)
-            throw love::Exception("Could not load image %s (%s)", path.c_str(), strerror(errno));
-
-        C2D_SpriteFromSheet(&this->texture, this->sheet, 0);
-
-        this->width  = this->texture.image.subtex->width;
-        this->height = this->texture.image.subtex->height;
-    }
-    else
-        throw love::Exception(IMAGE_NOT_FOUND_STRING, path.c_str());
+    this->width  = this->texture.image.subtex->width;
+    this->height = this->texture.image.subtex->height;
 
 
     this->InitQuad();

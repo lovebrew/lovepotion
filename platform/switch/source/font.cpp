@@ -7,6 +7,12 @@ using namespace love;
 
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
+Font::Font(Data * data, float size) : size(size),
+                                      texture(nullptr)
+{
+    this->font = TTF_OpenFontRW(SDL_RWFromMem(data->GetData(), data->GetSize()), 1, size);
+}
+
 Font::Font(const std::string & path, float size) : size(size),
                                                    texture(nullptr)
 {
@@ -43,7 +49,7 @@ FontHandle Font::LoadFromPath(const std::string & path)
         type = PlSharedFontType_Standard;
 
     if (type == PlSharedFontType_Total)
-        return TTF_OpenFont(path.c_str(), this->size);
+        throw love::Exception("Invalid font type %s", path.c_str());
 
     plGetSharedFontByType(&data, type);
 

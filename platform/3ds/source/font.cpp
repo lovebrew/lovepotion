@@ -11,6 +11,12 @@ Font::Font(const std::string & path, float size) : buffer(C2D_TextBufNew(4096)),
     this->font = this->LoadFromPath(path);
 }
 
+Font::Font(Data * data, float size) : buffer(C2D_TextBufNew(4096)),
+                                                   size(size)
+{
+    this->font = C2D_FontLoadFromMem(data->GetData(), data->GetSize());
+}
+
 Font::Font(float size) : buffer(C2D_TextBufNew(4096)),
                          size(size)
 {

@@ -35,6 +35,7 @@ namespace love
             static constexpr float DEFAULT_SIZE = FONT_DEFAULT_SIZE;
 
             Font(const std::string & path, float size = DEFAULT_SIZE);
+            Font(Data * data, float size = DEFAULT_SIZE);
             Font(float size = DEFAULT_SIZE);
             ~Font();
 

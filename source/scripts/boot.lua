@@ -165,11 +165,11 @@ function love.arg.parseOptions()
     end
 
     if not love.arg.options.game.set then
-        if love.filesystem and love.filesystem.getInfo("game") then
+        if game then
+            love.arg.parseOption(love.arg.options.game, game or 0)
+        else
             love.arg.options.game.arg = {"./game"}
             love.arg.options.game.set = true
-        else
-            love.arg.parseOption(love.arg.options.game, game or 0)
         end
     end
 end

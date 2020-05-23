@@ -286,7 +286,10 @@ bool Filesystem::SetSource(const char * source)
 
     LOG("Attempting to mount %s", source);
     if (!PHYSFS_mount(searchPath.c_str(), nullptr, 1))
+    {
+        LOG("Failed to mount %s as source: %s", source, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
         return false;
+    }
     LOG("Successfully mounted %s", source);
     this->gameSource = searchPath;
 
@@ -354,6 +357,88 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
         return false;
 
     return PHYSFS_mount(realPath.c_str(), mountpoint, appendToPath) != 0;
+}
+
+bool Filesystem::Mount(Data * data, const char * archive, const char * mountpoint, bool appendToPath)
+{
+    if (!PHYSFS_isInit())
+        return false;
+
+    if (PHYSFS_mountMemory(data->GetData(), data->GetSize(), nullptr, archive, mountpoint, appendToPath))
+    {
+        this->mountedData[archive] = data;
+        return true;
+    }
+
+    return false;
+}
+
+bool Filesystem::UnMount(const char * archive)
+{
+    if (!PHYSFS_isInit() || !archive)
+        return false;
+
+    auto dataIterator = this->mountedData.find(archive);
+
+    if (dataIterator != this->mountedData.end() && PHYSFS_unmount(archive) != 0)
+    {
+        this->mountedData.erase(dataIterator);
+        return true;
+    }
+
+    std::string realPath;
+    std::string sourceBase = this->GetSourceBaseDirectory();
+
+    // Check whether the given archive path is in the list of allowed full paths.
+    auto iterator = std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), archive);
+
+    // Special case: if the game is fused and the archive is the source's
+    // base directory, unmount it even though it's outside of the save dir.
+
+    if (iterator != this->allowedMountPaths.end())
+        realPath = *iterator;
+    else if (this->IsFused() && sourceBase.compare(archive) == 0)
+        realPath = sourceBase;
+    else
+    {
+        // Don't allow these, not safe
+        if (strlen(archive) == 0 || strstr(archive, "..") || strcmp(archive, "/") == 0)
+            return false;
+
+        const char * realDirectory = PHYSFS_getRealDir(archive);
+
+        if (!realDirectory)
+            return false;
+
+        realPath = realDirectory;
+
+        if (realPath.find(this->gameSource) == 0)
+            return false;
+
+        realPath += LOVE_PATH_SEPARATOR;
+        realPath += archive;
+    }
+
+    const char * mountPoint = PHYSFS_getMountPoint(realPath.c_str());
+
+    if (!mountPoint)
+        return false;
+
+    return PHYSFS_unmount(realPath.c_str()) != 0;
+}
+
+bool Filesystem::UnMount(Data * data)
+{
+    for (const auto & dataPair : this->mountedData)
+    {
+        if (dataPair.second.Get() == data)
+        {
+            std::string archive = dataPair.first;
+            return this->UnMount(archive.c_str());
+        }
+    }
+
+    return false;
 }
 
 std::vector<std::string> & Filesystem::GetRequirePath()

@@ -2,6 +2,7 @@
 
 #include "common/mmath.h"
 #include "objects/texture/texture.h"
+#include "modules/filesystem/wrap_filesystem.h"
 
 #if defined (_3DS)
     typedef C2D_SpriteSheet TextureSheet;
@@ -16,7 +17,7 @@ namespace love
         public:
             static love::Type type;
 
-            Image(const std::string & path);
+            Image(Data * data);
             ~Image();
 
             void Draw(const DrawArgs & args, const Color & color);

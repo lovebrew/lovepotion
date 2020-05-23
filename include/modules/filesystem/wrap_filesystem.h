@@ -78,6 +78,8 @@ namespace Wrap_Filesystem
 
     love::FileData * GetFileData(lua_State * L, int index);
 
+    bool CanGetData(lua_State * L, int index);
+
     int Write(lua_State * L);
 
     std::string Redirect(const char * path);
