@@ -283,14 +283,9 @@ bool Filesystem::SetSource(const char * source)
         return false;
 
     std::string searchPath = source;
-
-    LOG("Attempting to mount %s", source);
     if (!PHYSFS_mount(searchPath.c_str(), nullptr, 1))
-    {
-        LOG("Failed to mount %s as source: %s", source, PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
         return false;
-    }
-    LOG("Successfully mounted %s", source);
+
     this->gameSource = searchPath;
 
     return true;
