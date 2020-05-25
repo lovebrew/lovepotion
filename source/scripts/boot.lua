@@ -164,10 +164,11 @@ function love.arg.parseOptions()
         i = i + 1
     end
 
+    -- checks argv that was parsed
     if not love.arg.options.game.set then
-        if game then
+        if game then -- then we have argv[1] -- file association game
             love.arg.parseOption(love.arg.options.game, game or 0)
-        else
+        else -- enforce the game folder to be checked
             love.arg.options.game.arg = {"./game"}
             love.arg.options.game.set = true
         end
@@ -333,7 +334,12 @@ function love.errorhandler(message)
 
     love.graphics.reset()
 
-    local font = love.graphics.setNewFont(16.5)
+    local fontSize = 12
+    if love._console_name == "Switch" then
+        fontSize = 24
+    end
+
+    local font = love.graphics.setNewFont(fontSize)
 
     love.graphics.setColor(1, 1, 1, 1)
 
@@ -365,7 +371,7 @@ function love.errorhandler(message)
     end
 
     local pretty = table.concat(error, "\n")
-    pretty = pretty:gsub("\t", "")
+    pretty = pretty:gsub("\t\n", "")
     pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
 
     if not love.window.isOpen() then
@@ -381,7 +387,7 @@ function love.errorhandler(message)
 
                 if display == 1 then
                     -- render our error message
-                    love.graphics.printf(pretty, 10, 10, 320)
+                    love.graphics.printf(pretty, 10, 10, love.graphics.getWidth() * 0.75)
                 end
             end
 
@@ -450,7 +456,14 @@ function love.boot()
     if not can_has_game and o.game.set and o.game.arg[1] then
         local directory = o.game.arg[1]
 
-        local fullSauce = love.path.getFull(directory)
+        local fullSauce
+
+        -- argv[1] has the full path to the .love
+        if not directory:find("(%w.love)") then
+            fullSauce = love.path.getFull(directory)
+        else -- raw game directory
+            fullSauce = directory
+        end
 
         can_has_game = pcall(love.filesystem.setSource, fullSauce)
 

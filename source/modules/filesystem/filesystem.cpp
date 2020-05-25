@@ -164,10 +164,10 @@ bool Filesystem::GetInfo(const char * filepath, Filesystem::Info & info) const
         return false;
 
     PHYSFS_Stat stat = {};
-    LOG("Checking for %s", filepath);
+
     if (!PHYSFS_stat(filepath, &stat))
         return false;
-    LOG("Found %s!", filepath);
+
     info.modtime = std::min<int64_t>(stat.modtime, MAX_STAMP);
     info.size    = std::min<int64_t>(stat.filesize,  MAX_STAMP);
 
