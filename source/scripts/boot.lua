@@ -420,6 +420,7 @@ love.errhand = love.errorhandler
 
 local no_game_code = false
 local invalid_game_path = nil
+local can_no_game = false
 
 function love.boot()
     -- Load the LOVE filesystem module, its absolutely needed
@@ -496,7 +497,7 @@ function love.boot()
     end
 
     if not can_has_game then
-        pcall(love.filesystem.setSource, "romfs:/")
+        can_no_game = pcall(love.filesystem.setSource, "romfs:/")
     end
 end
 
@@ -639,6 +640,10 @@ function love.init()
         if love.filesystem.getInfo("main.lua") then
             require("main")
         end
+    end
+
+    if can_no_game then
+        return
     end
 
     if no_game_code then

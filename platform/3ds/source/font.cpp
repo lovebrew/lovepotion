@@ -5,10 +5,10 @@ using namespace love;
 
 #define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to bcfnt?)"
 
-Font::Font(const std::string & path, float size) : buffer(C2D_TextBufNew(4096)),
+Font::Font(Font::SystemFontType type, float size) : buffer(C2D_TextBufNew(4096)),
                                                    size(size)
 {
-    this->font = this->LoadFromPath(path);
+    this->font = C2D_FontLoadSystem((CFG_Region)type);
 }
 
 Font::Font(Data * data, float size) : buffer(C2D_TextBufNew(4096)),
@@ -20,38 +20,13 @@ Font::Font(Data * data, float size) : buffer(C2D_TextBufNew(4096)),
 Font::Font(float size) : buffer(C2D_TextBufNew(4096)),
                          size(size)
 {
-    this->font = this->LoadFromPath("standard");
+    this->font = C2D_FontLoadSystem((CFG_Region)SystemFontType::TYPE_STANDARD);
 }
 
 Font::~Font()
 {
     C2D_TextBufDelete(this->buffer);
     C2D_FontFree(this->font);
-}
-
-FontHandle Font::LoadFromPath(const std::string & path)
-{
-    if (path == "standard")
-        return C2D_FontLoadSystem(CFG_REGION_USA);
-    else if (path == "korean")
-        return C2D_FontLoadSystem(CFG_REGION_KOR);
-    else if (path == "taiwanese")
-        return C2D_FontLoadSystem(CFG_REGION_TWN);
-    else if (path == "chinese")
-        return C2D_FontLoadSystem(CFG_REGION_CHN);
-
-    size_t pos = path.find_last_of(".") + 1;
-    std::string translation;
-
-    if (pos != std::string::npos)
-        translation = (path.substr(0, pos) + "bcfnt");
-
-    if (std::filesystem::exists(translation))
-        return C2D_FontLoad(translation.c_str());
-    else
-        throw love::Exception(FONT_NOT_FOUND_STRING, path.c_str());
-
-    return NULL;
 }
 
 std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset,
@@ -109,3 +84,13 @@ float Font::GetHeight()
 {
     return 30 * this->GetScale();
 }
+
+StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM>::Entry Font::sharedFontEntries[] =
+{
+    { "standard",  TYPE_STANDARD  },
+    { "chinese",   TYPE_CHINESE   },
+    { "taiwanese", TYPE_TAIWANESE },
+    { "korean",    TYPE_KOREAN    },
+};
+
+StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM> Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));

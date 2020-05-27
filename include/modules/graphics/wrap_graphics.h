@@ -46,6 +46,8 @@ namespace Wrap_Graphics
 
     int SetScissor(lua_State * L);
 
+    int GetScissor(lua_State * L);
+
     int NewImage(lua_State * L);
 
     int NewFont(lua_State * L);

@@ -140,7 +140,7 @@ namespace love
 
             Image * NewImage(Data * data);
 
-            Font * NewFont(const std::string & path, float size = Font::DEFAULT_SIZE);
+            Font * NewFont(Font::SystemFontType type, float size = Font::DEFAULT_SIZE);
 
             Font * NewFont(Data * data, float size = Font::DEFAULT_SIZE);
 

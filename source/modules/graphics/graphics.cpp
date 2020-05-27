@@ -155,9 +155,9 @@ Font * Graphics::NewFont(float size)
     return new Font(size);
 }
 
-Font * Graphics::NewFont(const std::string & path, float size)
+Font * Graphics::NewFont(Font::SystemFontType type, float size)
 {
-    return new Font(path, size);
+    return new Font(type, size);
 }
 
 Font * Graphics::NewFont(Data * data, float size)
