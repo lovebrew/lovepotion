@@ -19,7 +19,7 @@ static int opt_setmembership(lua_State *L, p_socket ps, int level, int name);
 static int opt_setboolean(lua_State *L, p_socket ps, int level, int name);
 static int opt_getboolean(lua_State *L, p_socket ps, int level, int name);
 static int opt_setint(lua_State *L, p_socket ps, int level, int name);
-static int opt_getint(lua_State *L, p_socket ps, int level, int name);
+// static int opt_getint(lua_State *L, p_socket ps, int level, int name);
 static int opt_set(lua_State *L, p_socket ps, int level, int name,
         void *val, int len);
 static int opt_get(lua_State *L, p_socket ps, int level, int name,
@@ -34,26 +34,32 @@ static int opt_get(lua_State *L, p_socket ps, int level, int name,
 int opt_meth_setoption(lua_State *L, p_opt opt, p_socket ps)
 {
     const char *name = luaL_checkstring(L, 2);      /* obj, name, ... */
+
     while (opt->name && strcmp(name, opt->name))
         opt++;
+
     if (!opt->func) {
-        char msg[45];
-        sprintf(msg, "unsupported option %.35s'", name);
+        char msg[19 + strlen(name)];
+        sprintf(msg, "unsupported option '%s'", name);
         luaL_argerror(L, 2, msg);
     }
+
     return opt->func(L, ps);
 }
 
 int opt_meth_getoption(lua_State *L, p_opt opt, p_socket ps)
 {
     const char *name = luaL_checkstring(L, 2);      /* obj, name, ... */
+
     while (opt->name && strcmp(name, opt->name))
         opt++;
+
     if (!opt->func) {
-        char msg[45];
-        sprintf(msg, "unsupported option `%.35s'", name);
+        char msg[19 + strlen(name)];
+        sprintf(msg, "unsupported option '%s'", name);
         luaL_argerror(L, 2, msg);
     }
+
     return opt->func(L, ps);
 }
 
@@ -356,16 +362,16 @@ static int opt_setboolean(lua_State *L, p_socket ps, int level, int name)
     return opt_set(L, ps, level, name, (char *) &val, sizeof(val));
 }
 
-static int opt_getint(lua_State *L, p_socket ps, int level, int name)
-{
-    int val = 0;
-    int len = sizeof(val);
-    int err = opt_get(L, ps, level, name, (char *) &val, &len);
-    if (err)
-        return err;
-    lua_pushnumber(L, val);
-    return 1;
-}
+// static int opt_getint(lua_State *L, p_socket ps, int level, int name)
+// {
+//     int val = 0;
+//     int len = sizeof(val);
+//     int err = opt_get(L, ps, level, name, (char *) &val, &len);
+//     if (err)
+//         return err;
+//     lua_pushnumber(L, val);
+//     return 1;
+// }
 
 static int opt_setint(lua_State *L, p_socket ps, int level, int name)
 {

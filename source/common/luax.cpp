@@ -5,6 +5,63 @@
 
 using namespace love;
 
+int Luax::TableInsert(lua_State *L, int tindex, int vindex, int pos)
+{
+    if (tindex < 0)
+        tindex = lua_gettop(L) + 1 + tindex;
+
+    if (vindex < 0)
+        vindex = lua_gettop(L) + 1 + vindex;
+
+    if (pos == -1)
+    {
+        lua_pushvalue(L, vindex);
+        lua_rawseti(L, tindex, (int)lua_objlen(L, tindex) + 1);
+
+        return 0;
+    }
+    else if (pos < 0)
+        pos = (int)lua_objlen(L, tindex) + 1 + pos;
+
+    for (int i = (int)lua_objlen(L, tindex) + 1; i > pos; i--)
+    {
+        lua_rawgeti(L, tindex, i - 1);
+        lua_rawseti(L, tindex, i);
+    }
+
+    lua_pushvalue(L, vindex);
+    lua_rawseti(L, tindex, pos);
+
+    return 0;
+}
+
+int Luax::RegisterSearcher(lua_State * L, lua_CFunction function, int position)
+{
+    // Add the package loader to the package.loaders table.
+    lua_getglobal(L, "package");
+
+    if (lua_isnil(L, -1))
+        return luaL_error(L, "Can't register searcher: package table does not exist.");
+
+    lua_getfield(L, -1, "loaders");
+
+    // Lua 5.2 renamed package.loaders to package.searchers.
+    if (lua_isnil(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_getfield(L, -1, "searchers");
+    }
+
+    if (lua_isnil(L, -1))
+        return luaL_error(L, "Can't register searcher: package.loaders table does not exist.");
+
+    lua_pushcfunction(L, function);
+    Luax::TableInsert(L, -2, -1, position);
+    lua_pop(L, 3);
+
+    return 0;
+}
+
 /*
 ** @func Preload
 ** Preloads a Lua C function <func> into package.preload

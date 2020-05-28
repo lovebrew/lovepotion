@@ -8,9 +8,9 @@
 
 using namespace love;
 
-Image::Image(const std::string & path) : Texture(Texture::TEXTURE_2D)
+Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
 {
-    SDL_Surface * temp = IMG_Load(path.c_str());
+    SDL_Surface * temp = IMG_Load_RW(SDL_RWFromMem(data->GetData(), data->GetSize()), 1);
 
     this->texture = SDL_CreateTextureFromSurface(WINDOW_MODULE()->GetRenderer(), temp);
 

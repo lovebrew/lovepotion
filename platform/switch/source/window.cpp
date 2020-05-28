@@ -23,13 +23,26 @@ Window::Window() : window(nullptr),
 
 Window::~Window()
 {
-    if (this->targets.back())
-        SDL_DestroyRenderer(this->targets.back());
+    if (this->open)
+    {
+        if (this->targets.back())
+        {
+            SDL_DestroyRenderer(this->targets.back());
 
-    if (this->window)
-        SDL_DestroyWindow(this->window);
+            this->targets.back() = nullptr;
+        }
 
-    SDL_QuitSubSystem(SDL_INIT_VIDEO);
+        if (this->window)
+        {
+            SDL_DestroyWindow(this->window);
+
+            this->window = nullptr;
+        }
+
+        this->graphics.Set(nullptr);
+
+        SDL_QuitSubSystem(SDL_INIT_VIDEO);
+    }
 
     this->open = false;
 }

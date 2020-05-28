@@ -1,5 +1,5 @@
-#include "common/runtime.h"
-#include "common/assets.h"
+#include <3ds.h>
+#include <malloc.h>
 
 u32 * SOCKET_BUFFER;
 Result SOCKET_INITED;
@@ -35,9 +35,6 @@ void userAppInit()
 
 void userAppExit()
 {
-    if (Assets::IsFused())
-        romfsExit();
-
     if (R_SUCCEEDED(SOCKET_INITED))
     {
         socExit();

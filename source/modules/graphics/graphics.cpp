@@ -145,9 +145,9 @@ Graphics::RendererInfo Graphics::GetRendererInfo()
 
 /* Objects */
 
-Image * Graphics::NewImage(const std::string & path)
+Image * Graphics::NewImage(Data * data)
 {
-    return new Image(path);
+    return new Image(data);
 }
 
 Font * Graphics::NewFont(float size)
@@ -155,9 +155,14 @@ Font * Graphics::NewFont(float size)
     return new Font(size);
 }
 
-Font * Graphics::NewFont(const std::string & path, float size)
+Font * Graphics::NewFont(Font::SystemFontType type, float size)
 {
-    return new Font(path, size);
+    return new Font(type, size);
+}
+
+Font * Graphics::NewFont(Data * data, float size)
+{
+    return new Font(data, size);
 }
 
 Quad * Graphics::NewQuad(Quad::Viewport viewport, double sw, double sh)

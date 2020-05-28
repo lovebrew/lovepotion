@@ -338,6 +338,18 @@ int Wrap_Graphics::SetScissor(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::GetScissor(lua_State * L)
+{
+    Rect scissor = instance()->GetScissor();
+
+    lua_pushnumber(L, scissor.x);
+    lua_pushnumber(L, scissor.y);
+    lua_pushnumber(L, scissor.w);
+    lua_pushnumber(L, scissor.h);
+
+    return 4;
+}
+
 int Wrap_Graphics::SetDefaultFilter(lua_State * L)
 {
     Texture::Filter filter;
@@ -380,13 +392,18 @@ int Wrap_Graphics::NewImage(lua_State * L)
     std::string path = luaL_checkstring(L, 1);
     StrongReference<Image> image;
 
-    Luax::CatchException(L, [&]() {
-        image.Set(instance()->NewImage(path), Acquire::NORETAIN);
-    });
+    if (Wrap_Filesystem::CanGetData(L, 1))
+    {
+        Luax::CatchException(L, [&]() {
+            Data * data = Wrap_Filesystem::GetData(L, 1);
 
-    Luax::PushType(L, image);
+            image.Set(instance()->NewImage(data), Acquire::NORETAIN);
+        });
 
-    return 1;
+        Luax::PushType(L, image);
+
+        return 1;
+    }
 }
 
 int Wrap_Graphics::NewFont(lua_State * L)
@@ -403,12 +420,25 @@ int Wrap_Graphics::NewFont(lua_State * L)
     }
     else
     {
-        std::string path = luaL_checkstring(L, 1);
-        float size = luaL_optnumber(L, 2, Font::DEFAULT_SIZE);
+        if (Wrap_Filesystem::CanGetData(L, 1))
+        {
+            float size = luaL_optnumber(L, 2, Font::DEFAULT_SIZE);
 
-        Luax::CatchException(L, [&]() {
-            font = instance()->NewFont(path, size);
-        });
+            Luax::CatchException(L, [&]() {
+                if (lua_isstring(L, 1))
+                {
+                    const char * string = luaL_checkstring(L, 1);
+                    Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
+
+                    if (!Font::GetConstant(string, type))
+                        return Luax::EnumError(L, "font type", Font::GetConstants(type), string);
+
+                    font = instance()->NewFont(type, size);
+                }
+                else
+                    font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
+            });
+        }
     }
 
     Luax::PushType(L, font);
@@ -695,6 +725,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getFont",            GetFont            },
         { "getHeight",          GetHeight          },
         { "getLineWidth",       GetLineWidth       },
+        { "getScissor",         GetScissor         },
         { "getWidth",           GetWidth           },
         { "line",               Line               },
         { "newFont",            NewFont            },

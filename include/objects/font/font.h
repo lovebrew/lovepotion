@@ -30,11 +30,34 @@ namespace love
                 ALIGN_MAX_ENUM
             };
 
+            #if defined (_3DS)
+                enum SystemFontType
+                {
+                    TYPE_STANDARD  = CFG_REGION_USA,
+                    TYPE_CHINESE   = CFG_REGION_CHN,
+                    TYPE_TAIWANESE = CFG_REGION_TWN,
+                    TYPE_KOREAN    = CFG_REGION_KOR,
+                    TYPE_MAX_ENUM
+                };
+            #elif defined (__SWITCH__)
+                enum SystemFontType
+                {
+                    TYPE_STANDARD               = PlSharedFontType_Standard,
+                    TYPE_CHINESE_SIMPLIFIED     = PlSharedFontType_ChineseSimplified,
+                    TYPE_CHINESE_TRADITIONAL    = PlSharedFontType_ChineseTraditional,
+                    TYPE_CHINESE_SIMPLIFIED_EXT = PlSharedFontType_ExtChineseSimplified,
+                    TYPE_KOREAN                 = PlSharedFontType_KO,
+                    TYPE_NINTENDO_EXTENDED      = PlSharedFontType_NintendoExt,
+                    TYPE_MAX_ENUM
+                };
+            #endif
+
             static love::Type type;
 
             static constexpr float DEFAULT_SIZE = FONT_DEFAULT_SIZE;
 
-            Font(const std::string & path, float size = DEFAULT_SIZE);
+            Font(SystemFontType type, float size = DEFAULT_SIZE);
+            Font(Data * data, float size = DEFAULT_SIZE);
             Font(float size = DEFAULT_SIZE);
             ~Font();
 
@@ -53,6 +76,10 @@ namespace love
             static bool GetConstant(AlignMode in, const char *& out);
             static std::vector<std::string> GetConstants(AlignMode);
 
+            static bool GetConstant(const char * in, SystemFontType & out);
+            static bool GetConstant(SystemFontType in, const char *& out);
+            static std::vector<std::string> GetConstants(SystemFontType);
+
         private:
             FontHandle font;
             TextBuffer buffer;
@@ -63,10 +90,12 @@ namespace love
 
             std::pair<float, float> GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color);
 
-            FontHandle LoadFromPath(const std::string & path);
             float GetScale() { return this->size / 30.0f; }
 
             static StringMap<AlignMode, ALIGN_MAX_ENUM>::Entry alignModeEntries[];
             static StringMap<AlignMode, ALIGN_MAX_ENUM> alignModes;
+
+            static StringMap<SystemFontType, SystemFontType::TYPE_MAX_ENUM>::Entry sharedFontEntries[];
+            static StringMap<SystemFontType, SystemFontType::TYPE_MAX_ENUM> sharedFonts;
     };
 }

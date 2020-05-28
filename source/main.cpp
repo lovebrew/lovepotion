@@ -1,9 +1,7 @@
 #include "common/runtime.h"
-#include "common/assets.h"
-
 #include "modules/love.h"
 
-DoneAction Run_Love_Potion(int & retval)
+DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 {
     // Make a new Lua state
     lua_State * L = luaL_newstate();
@@ -11,6 +9,27 @@ DoneAction Run_Love_Potion(int & retval)
 
     // preload love
     Luax::Preload(L, Love::Initialize, "love");
+
+    {
+        lua_newtable(L);
+
+        if (argc > 0)
+        {
+            lua_pushstring(L, argv[0]);
+            lua_rawseti(L, -2, -2);
+        }
+
+        lua_pushstring(L, "embedded boot.lua");
+        lua_rawseti(L, -2, -1);
+
+        for (int i = 1; i < argc; i++)
+        {
+            lua_pushstring(L, argv[i]);
+            lua_rawseti(L, -2, i);
+        }
+
+        lua_setglobal(L, "arg");
+    }
 
     // require "love"
     lua_getglobal(L, "require");
@@ -62,17 +81,12 @@ int main(int argc, char * argv[])
 
     std::string path;
 
-    if (argc > 0)
-        path = (argc == 2) ? argv[1] : argv[0];
-
-    Assets::Initialize(path);
-
     DoneAction done = DONE_QUIT;
     int retval = 0;
 
     do
     {
-        done = Run_Love_Potion(retval);
+        done = Run_Love_Potion(argc, argv, retval);
     } while (done != DoneAction::DONE_QUIT);
 
     #if defined (_3DS)

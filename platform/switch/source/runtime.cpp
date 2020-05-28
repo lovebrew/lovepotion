@@ -1,12 +1,9 @@
 #include "common/runtime.h"
-#include "common/assets.h"
 
 extern "C"
 {
     void userAppInit()
     {
-        // Initialize libnx stuff
-
         Result res = plInitialize(PlServiceType_User);
 
         if (R_FAILED(res))
@@ -37,16 +34,11 @@ extern "C"
         if (R_FAILED(res))
             fatalThrow(res);
 
-        // Initialize everything else
         TTF_Init();
     }
 
     void userAppExit()
     {
-        // Deinitialize libnx stuff
-        if (Assets::IsFused())
-            romfsExit();
-
         socketExit();
         psmExit();
         setExit();

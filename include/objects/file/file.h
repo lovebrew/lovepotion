@@ -3,6 +3,7 @@
 #include "objects/filedata/filedata.h"
 #include "common/stringmap.h"
 #include "common/exception.h"
+#include <physfs.h>
 
 namespace love
 {
@@ -79,12 +80,12 @@ namespace love
 
         private:
             std::string filename;
-            FILE * file;
+
+            PHYSFS_file * file;
             Mode mode;
+
             BufferMode bufferMode;
             int64_t bufferSize;
-
-            int64_t BufferedRead(void * buffer, size_t length);
 
             static StringMap<Mode, Mode::MODE_MAX_ENUM>::Entry modeEntries[];
             static StringMap<Mode, Mode::MODE_MAX_ENUM> modes;
