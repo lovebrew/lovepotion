@@ -21,40 +21,35 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
         str.replace(locations[i], sublen, replacement);
 }
 
-static bool translatePath(std::filesystem::path & filepath)
-{
-    static constexpr std::array<const char *, 3> textures    = {".png", ".jpg", ".jpeg"};
-    static constexpr std::array<const char *, 2> fonts       = {".ttf", ".otf"};
-    static constexpr std::array<const char *, 4> systemFonts = {"korean", "standard", "chinese", "taiwanese"};
-
-    bool pass = false;
-
-    for (auto extension : textures)
+#if defined(_3DS)
+    static bool translatePath(std::filesystem::path & filepath)
     {
-        if (extension == filepath.extension())
+        static constexpr std::array<const char *, 3> textures    = {".png", ".jpg", ".jpeg"};
+        static constexpr std::array<const char *, 2> fonts       = {".ttf", ".otf"};
+
+        bool pass = false;
+
+        for (auto extension : textures)
         {
-            filepath.replace_extension(".t3x");
-            return pass = true;
+            if (extension == filepath.extension())
+            {
+                filepath.replace_extension(".t3x");
+                return pass = true;
+            }
         }
-    }
 
-    for (auto extension : fonts)
-    {
-        if (extension == filepath.extension())
+        for (auto extension : fonts)
         {
-            filepath.replace_extension(".bcfnt");
-            return pass = true;
+            if (extension == filepath.extension())
+            {
+                filepath.replace_extension(".bcfnt");
+                return pass = true;
+            }
         }
-    }
 
-    for (auto which : systemFonts)
-    {
-        if (which == filepath)
-            return pass = true;
+        return pass;
     }
-
-    return pass;
-}
+#endif
 
 int Wrap_Filesystem::Load(lua_State * L)
 {
