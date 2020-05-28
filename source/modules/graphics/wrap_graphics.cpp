@@ -6,6 +6,17 @@ using namespace love;
 #define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
+int Wrap_Graphics::SetDepth(lua_State * L)
+{
+    float depth = luaL_checknumber(L, 1);
+
+    Luax::CatchException(L, [&]() {
+        instance()->SetDepth(depth);
+    });
+
+    return 0;
+}
+
 int Wrap_Graphics::Rectangle(lua_State * L)
 {
     const char * mode = luaL_checkstring(L, 1);
@@ -20,22 +31,14 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float width = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
-    float rx = luaL_optnumber(L, 6, 1);
-    float ry = luaL_optnumber(L, 7, 1);
+    // float rx = luaL_optnumber(L, 6, 1);
+    // float ry = luaL_optnumber(L, 7, 1);
+
+    instance()->Transform(&x, &y);
+    instance()->TransformScale(&width, &height);
 
     Luax::CatchException(L, [&]() {
         instance()->Rectangle(mode, x, y, width, height);
-    });
-
-    return 0;
-}
-
-int Wrap_Graphics::SetDepth(lua_State * L)
-{
-    float depth = luaL_checknumber(L, 1);
-
-    Luax::CatchException(L, [&]() {
-        instance()->SetDepth(depth);
     });
 
     return 0;
@@ -53,6 +56,9 @@ int Wrap_Graphics::Circle(lua_State * L)
     float y = luaL_optnumber(L, 3, 0);
 
     float radius = luaL_optnumber(L, 4, 1);
+
+    instance()->Transform(&x, &y);
+    instance()->TransformScale(&radius, nullptr);
 
     Luax::CatchException(L, [&]() {
         instance()->Circle(x, y, radius);
@@ -92,6 +98,9 @@ int Wrap_Graphics::Line(lua_State * L)
 
                     lua_pop(L, 4);
 
+                    instance()->Transform(&start.x, &start.y);
+                    instance()->Transform(&end.x, &end.y);
+
                     Luax::CatchException(L, [&]() {
                         instance()->Line(start.x, start.y, end.x, end.y);
                     });
@@ -111,6 +120,9 @@ int Wrap_Graphics::Line(lua_State * L)
 
             end.x = luaL_checknumber(L, index + 3);
             end.y = luaL_checknumber(L, index + 4);
+
+            instance()->Transform(&start.x, &start.y);
+            instance()->Transform(&end.x, &end.y);
 
             Luax::CatchException(L, [&]() {
                 instance()->Line(start.x, start.y, end.x, end.y);
@@ -159,6 +171,8 @@ int Wrap_Graphics::Polygon(lua_State * L)
             x = luaL_checkinteger(L, -2);
             y = luaL_checkinteger(L, -1);
 
+            instance()->Transform(&x, &y);
+
             points[i] = {x, y};
 
             lua_pop(L, 2);
@@ -173,6 +187,8 @@ int Wrap_Graphics::Polygon(lua_State * L)
         {
             x = luaL_checkinteger(L, (i * 2) + 2);
             y = luaL_checkinteger(L, (i * 2) + 3);
+
+            instance()->Transform(&x, &y);
 
             points[i] = {x, y};
 
@@ -464,7 +480,6 @@ int Wrap_Graphics::NewQuad(lua_State * L)
     double sw = 0.0;
     double sh = 0.0;
 
-    // TOO DO: use a Texture superclass
     if (Luax::IsType(L, 5, Texture::type))
     {
         Texture * texture = Wrap_Texture::CheckTexture(L, 5);
@@ -524,6 +539,8 @@ int Wrap_Graphics::Draw(lua_State * L)
 
     args.depth = instance()->CURRENT_DEPTH;
 
+    instance()->Transform(&args);
+
     Luax::CatchException(L, [&]() {
         if (texture && quad)
             instance()->Draw(texture, quad, args);
@@ -545,6 +562,8 @@ int Wrap_Graphics::Print(lua_State * L)
     args.y = luaL_optnumber(L, 3, 0);
 
     args.depth = Graphics::CURRENT_DEPTH;
+
+    instance()->Transform(&args);
 
     if (Luax::IsType(L, 2, Font::type))
     {
@@ -575,6 +594,8 @@ int Wrap_Graphics::PrintF(lua_State * L)
     args.y = luaL_optnumber(L, 3, 0);
 
     args.depth = Graphics::CURRENT_DEPTH;
+
+    instance()->Transform(&args);
 
     int start = 2;
 

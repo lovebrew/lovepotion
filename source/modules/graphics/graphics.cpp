@@ -273,15 +273,47 @@ Font * Graphics::GetFont()
 
 /* End Font */
 
-void Graphics::Transform(DrawArgs & args)
+void Graphics::Transform(float * x, float * y)
+{
+    DrawArgs args;
+
+    args.x = *x;
+    args.y = *y;
+
+    args.r = 0.0f;
+
+    args.scalarX = 1.0f;
+    args.scalarY = 1.0f;
+
+    this->Transform(&args);
+
+    *x = args.x;
+    *y = args.y;
+}
+
+void Graphics::TransformScale(float * x, float * y)
 {
     if (this->transformStack.empty())
         return;
 
     auto & transform = this->transformStack.back();
 
-    float ox = args.x;
-    float oy = args.y;
+    if (x != nullptr)
+        *x *= transform.scalarX;
+
+    if (y != nullptr)
+        *y *= transform.scalarY;
+}
+
+void Graphics::Transform(DrawArgs * args)
+{
+    if (this->transformStack.empty())
+        return;
+
+    auto & transform = this->transformStack.back();
+
+    float ox = args->x;
+    float oy = args->y;
 
     #if defined (_3DS)
         float slider = osGet3DSliderState();
@@ -290,30 +322,30 @@ void Graphics::Transform(DrawArgs & args)
         if (gfxIs3D() && displayNum < 2)
         {
             if (displayNum == 0)
-                args.x -= (slider * this->stereoDepth);
+                args->x -= (slider * this->stereoDepth);
             else if (displayNum == 1)
-                args.x += (slider * this->stereoDepth);
+                args->x += (slider * this->stereoDepth);
         }
     #endif
 
     /* Translate */
-    args.x += transform.offsetX;
-    args.y += transform.offsetY;
+    args->x += transform.offsetX;
+    args->y += transform.offsetY;
 
     /* Scale */
-    args.x *= transform.scalarX;
-    args.y *= transform.scalarY;
+    args->x *= transform.scalarX;
+    args->y *= transform.scalarY;
 
-    args.scalarX += transform.scalarX;
-    args.scalarY += transform.scalarY;
+    args->scalarX += transform.scalarX;
+    args->scalarY += transform.scalarY;
 
     /* Rotate */
     if (transform.rotation != 0)
     {
-        args.x = ox * cos(transform.rotation) - oy * sin(transform.rotation);
-        args.y = ox * sin(transform.rotation) + oy * cos(transform.rotation);
+        args->x = ox * cos(transform.rotation) - oy * sin(transform.rotation);
+        args->y = ox * sin(transform.rotation) + oy * cos(transform.rotation);
 
-        args.r += transform.rotation;
+        args->r += transform.rotation;
     }
 }
 
