@@ -28,7 +28,7 @@
 \*=========================================================================*/
 static int global_create(lua_State *L);
 static int global_create4(lua_State *L);
-static int global_create6(lua_State *L);
+// static int global_create6(lua_State *L);
 static int meth_send(lua_State *L);
 static int meth_sendto(lua_State *L);
 static int meth_receive(lua_State *L);
