@@ -23,8 +23,9 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
 
 static bool translatePath(std::filesystem::path & filepath)
 {
-    static constexpr std::array<const char *, 3> textures = {".png", ".jpg", ".jpeg"};
-    static constexpr std::array<const char *, 2> fonts    = {".ttf", ".otf"};
+    static constexpr std::array<const char *, 3> textures    = {".png", ".jpg", ".jpeg"};
+    static constexpr std::array<const char *, 2> fonts       = {".ttf", ".otf"};
+    static constexpr std::array<const char *, 4> systemFonts = {"korean", "standard", "chinese", "taiwanese"};
 
     bool pass = false;
 
@@ -44,6 +45,12 @@ static bool translatePath(std::filesystem::path & filepath)
             filepath.replace_extension(".bcfnt");
             return pass = true;
         }
+    }
+
+    for (auto which : systemFonts)
+    {
+        if (which == filepath)
+            return pass = true;
     }
 
     return pass;

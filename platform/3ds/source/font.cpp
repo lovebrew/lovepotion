@@ -6,13 +6,13 @@ using namespace love;
 #define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to bcfnt?)"
 
 Font::Font(Font::SystemFontType type, float size) : buffer(C2D_TextBufNew(4096)),
-                                                   size(size)
+                                                    size(size)
 {
     this->font = C2D_FontLoadSystem((CFG_Region)type);
 }
 
 Font::Font(Data * data, float size) : buffer(C2D_TextBufNew(4096)),
-                                                   size(size)
+                                      size(size)
 {
     this->font = C2D_FontLoadFromMem(data->GetData(), data->GetSize());
 }

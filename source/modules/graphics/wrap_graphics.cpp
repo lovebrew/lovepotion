@@ -399,11 +399,11 @@ int Wrap_Graphics::NewImage(lua_State * L)
 
             image.Set(instance()->NewImage(data), Acquire::NORETAIN);
         });
-
-        Luax::PushType(L, image);
-
-        return 1;
     }
+
+    Luax::PushType(L, image);
+
+    return 1;
 }
 
 int Wrap_Graphics::NewFont(lua_State * L)
@@ -424,20 +424,24 @@ int Wrap_Graphics::NewFont(lua_State * L)
         {
             float size = luaL_optnumber(L, 2, Font::DEFAULT_SIZE);
 
-            Luax::CatchException(L, [&]() {
-                if (lua_isstring(L, 1))
-                {
-                    const char * string = luaL_checkstring(L, 1);
-                    Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
+            if (lua_isstring(L, 1))
+            {
+                const char * string = luaL_checkstring(L, 1);
+                Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
 
-                    if (!Font::GetConstant(string, type))
-                        return Luax::EnumError(L, "font type", Font::GetConstants(type), string);
+                if (!Font::GetConstant(string, type))
+                    return Luax::EnumError(L, "font type", Font::GetConstants(type), string);
 
+                Luax::CatchException(L, [&]() {
                     font = instance()->NewFont(type, size);
-                }
-                else
-                    font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
-            });
+                });
+            }
+            else
+            {
+                Luax::CatchException(L, [&]() {
+                        font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
+                });
+            }
         }
     }
 
