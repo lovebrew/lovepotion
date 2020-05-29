@@ -438,11 +438,14 @@ int Wrap_Graphics::NewFont(lua_State * L)
     {
         if (Wrap_Filesystem::CanGetData(L, 1))
         {
+            const char * string = luaL_checkstring(L, 1);
             float size = luaL_optnumber(L, 2, Font::DEFAULT_SIZE);
 
-            if (lua_isstring(L, 1))
+            std::filesystem::path filepath(string);
+
+            // Check for enum value
+            if (filepath.extension() == "")
             {
-                const char * string = luaL_checkstring(L, 1);
                 Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
 
                 if (!Font::GetConstant(string, type))
@@ -452,7 +455,7 @@ int Wrap_Graphics::NewFont(lua_State * L)
                     font = instance()->NewFont(type, size);
                 });
             }
-            else
+            else //check for custom font
             {
                 Luax::CatchException(L, [&]() {
                         font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
