@@ -458,7 +458,7 @@ int Wrap_Graphics::NewFont(lua_State * L)
             else //check for custom font
             {
                 Luax::CatchException(L, [&]() {
-                        font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
+                    font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
                 });
             }
         }
