@@ -23,22 +23,21 @@ void Primitives::Rectangle(const std::string & mode, float x, float y, float wid
     }
 }
 
+void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Color & color)
+{
+    // NOP
+}
+
+void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Color & color)
+{
+    if (mode == "fill")
+        C2D_DrawEllipseSolid(x, y, CUR_DEPTH, radiusX, radiusY, C2D_Color32f(color.r, color.g, color.b, color.a));
+}
+
 void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Color & color)
 {
-    auto gModule = love::Module::GetInstance<love::Graphics>(Module::M_GRAPHICS);
-    Color background = gModule->GetBackgroundColor();
-
     if (mode == "fill")
         C2D_DrawCircleSolid(x, y, CUR_DEPTH, radius, C2D_Color32f(color.r, color.g, color.b, color.a));
-    else if (mode == "line")
-    {
-        if (radius >= 1.3)
-            C2D_DrawCircleSolid(x, y, CUR_DEPTH + MIN_DEPTH, radius - ((gModule->GetLineWidth() * 2 / radius) * radius), C2D_Color32f(background.r, background.g, background.b, background.a));
-
-        C2D_DrawCircleSolid(x, y, CUR_DEPTH, radius, C2D_Color32f(color.r, color.g, color.b, color.a));
-
-        CUR_DEPTH += MIN_DEPTH;
-    }
 }
 
 void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Color & color)

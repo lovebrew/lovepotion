@@ -17,6 +17,56 @@ int Wrap_Graphics::SetDepth(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::Arc(lua_State * L)
+{
+    const char * mode = luaL_checkstring(L, 1);
+    Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
+
+    if (!Graphics::GetConstant(mode, drawMode))
+        return luaL_error(L, "Invalid draw mode %s", mode);
+
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
+
+    float radius = luaL_checknumber(L, 4);
+    
+    float startAngle = luaL_checknumber(L, 5);
+    float endAngle = luaL_checknumber(L, 6);
+
+    instance()->Transform(&x, &y);
+    instance()->TransformScale(&radius, nullptr);
+
+    Luax::CatchException(L, [&]() {
+        instance()->Arc(mode, x, y, radius, startAngle, endAngle);
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::Ellipse(lua_State * L)
+{
+    const char * mode = luaL_checkstring(L, 1);
+    Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
+
+    if (!Graphics::GetConstant(mode, drawMode))
+        return luaL_error(L, "Invalid draw mode %s", mode);
+
+    float x = luaL_optnumber(L, 2, 0);
+    float y = luaL_optnumber(L, 3, 0);
+
+    float radiusX = luaL_checknumber(L, 4);
+    float radiusY = luaL_checknumber(L, 5);
+
+    instance()->Transform(&x, &y);
+    instance()->TransformScale(&radiusX, &radiusY);
+
+    Luax::CatchException(L, [&]() {
+        instance()->Ellipse(mode, x, y, radiusX, radiusY);
+    });
+
+    return 0;
+}
+
 int Wrap_Graphics::Rectangle(lua_State * L)
 {
     const char * mode = luaL_checkstring(L, 1);
@@ -31,14 +81,14 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float width = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
-    // float rx = luaL_optnumber(L, 6, 1);
-    // float ry = luaL_optnumber(L, 7, 1);
+    float rx = luaL_optnumber(L, 6, 1);
+    float ry = luaL_optnumber(L, 7, 1);
 
     instance()->Transform(&x, &y);
     instance()->TransformScale(&width, &height);
 
     Luax::CatchException(L, [&]() {
-        instance()->Rectangle(mode, x, y, width, height);
+        instance()->Rectangle(mode, x, y, width, height, rx, ry);
     });
 
     return 0;

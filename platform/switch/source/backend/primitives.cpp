@@ -10,9 +10,25 @@ using namespace love;
 void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Color & color)
 {
     if (mode == "fill")
-        boxRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), color.r, color.g, color.b, color.a);
+        roundedBoxRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), rx, ry, color.r, color.g, color.b, color.a);
     else
-        rectangleRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, color.r, color.g, color.b, color.a);
+        roundedRectangleRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, rx, ry, color.r, color.g, color.b, color.a);
+}
+
+void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Color & color)
+{
+    if (mode == "fill")
+        pieRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, startAngle, endAngle, color.r, color.g, color.b, color.a);
+    else
+        filledPieRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, startAngle, endAngle, color.r, color.g, color.b, color.a);
+}
+
+void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Color & color)
+{
+    if (mode == "fill")
+        ellipseRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radiusX, radiusY, color.r, color.g, color.b, color.a);
+    else
+        filledEllipseRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radiusX, radiusY, color.r, color.g, color.b, color.a);
 }
 
 void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Color & color)

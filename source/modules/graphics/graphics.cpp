@@ -218,6 +218,16 @@ void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> po
     Primitives::Polygon(mode, points, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
 }
 
+void Graphics::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle)
+{
+    Primitives::Arc(mode, x, y, radius, startAngle, endAngle, this->AdjustColor(this->states.back().foreground));
+}
+
+void Graphics::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY)
+{
+    Primitives::Ellipse(mode, x, y, radiusX, radiusY, this->AdjustColor(this->states.back().foreground));
+}
+
 void Graphics::Line(float startx, float starty, float endx, float endy)
 {
     Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));

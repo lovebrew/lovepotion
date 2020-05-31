@@ -168,11 +168,15 @@ namespace love
 
             void Circle(float x, float y, float radius);
 
-            void Rectangle(const std::string & mode, float x, float y, float width, float height);
+            void Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry);
 
             void Polygon(const std::string & mode, std::vector<Graphics::Point> points);
 
             void Line(float startx, float starty, float endx, float endy);
+
+            void Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle);
+
+            void Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY);
 
             /* States or Something */
 

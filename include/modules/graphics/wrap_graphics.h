@@ -20,6 +20,8 @@ namespace Wrap_Graphics
 
     int Draw(lua_State * L);
 
+    int Ellipse(lua_State * L);
+
     int Line(lua_State * L);
 
     int Points(lua_State * L);

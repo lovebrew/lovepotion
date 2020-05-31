@@ -55,7 +55,10 @@
         "ctime": "cpp",
         "ratio": "cpp",
         "iomanip": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ranges": "cpp"
     },
     "C_Cpp.intelliSenseEngineFallback": "Disabled"
 }
