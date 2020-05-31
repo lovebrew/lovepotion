@@ -336,8 +336,8 @@ void Graphics::Transform(DrawArgs * args)
     args->x *= transform.scalarX;
     args->y *= transform.scalarY;
 
-    args->scalarX += transform.scalarX;
-    args->scalarY += transform.scalarY;
+    args->scalarX *= transform.scalarX;
+    args->scalarY *= transform.scalarY;
 
     /* Rotate */
     if (transform.rotation != 0)
