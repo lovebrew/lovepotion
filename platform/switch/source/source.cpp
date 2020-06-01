@@ -101,7 +101,7 @@ void Source::AddWaveBuffer(size_t which)
 void Source::Reset()
 {
     AudrenDriver::LockFunction([this](AudioDriver * driver) {
-        audrvVoiceInit(driver, this->channel, 1, PcmFormat_Int16, this->sampleRate);
+        audrvVoiceInit(driver, this->channel, this->channels, PcmFormat_Int16, this->sampleRate);
         audrvVoiceSetDestinationMix(driver, this->channel, AUDREN_FINAL_MIX_ID);
 
         audrvVoiceSetMixFactor(driver, this->channel, 1.0f, 0, 0);
@@ -141,7 +141,7 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    bool finished;
+    bool finished = false;
 
     AudrenDriver::LockFunction([this, &finished](AudioDriver * driver) {
         finished = (audrvVoiceIsPlaying(driver, this->channel) == false);

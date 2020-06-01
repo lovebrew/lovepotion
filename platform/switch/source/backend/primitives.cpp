@@ -3,24 +3,36 @@
 
 using namespace love;
 
+#define RAD_TO_DEG(r) ((r) * 180 / M_PI)
+
 #include <SDL2_gfxPrimitives.h>
 
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Color & color)
 {
-    if (mode == "fill")
-        roundedBoxRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), rx, ry, color.r, color.g, color.b, color.a);
+    if (rx == 0 and ry == 0)
+    {
+        if (mode == "fill")
+            boxRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), roundf(x + width - 1), roundf(y + height - 1), color.r, color.g, color.b, color.a);
+        else
+            rectangleRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, color.r, color.g, color.b, color.a);
+    }
     else
-        roundedRectangleRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, rx, ry, color.r, color.g, color.b, color.a);
+    {
+        if (mode == "fill")
+            roundedBoxRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, rx, color.r, color.g, color.b, color.a);
+        else
+            roundedRectangleRGBA(WINDOW_MODULE()->GetRenderer(), roundf(x), roundf(y), x + width - 1, y + height - 1, rx, color.r, color.g, color.b, color.a);
+    }
 }
 
 void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Color & color)
 {
     if (mode == "fill")
-        pieRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, startAngle, endAngle, color.r, color.g, color.b, color.a);
+        pieRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, RAD_TO_DEG(startAngle), RAD_TO_DEG(endAngle), color.r, color.g, color.b, color.a);
     else
-        filledPieRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, startAngle, endAngle, color.r, color.g, color.b, color.a);
+        filledPieRGBA(WINDOW_MODULE()->GetRenderer(), x, y, radius, RAD_TO_DEG(startAngle), RAD_TO_DEG(endAngle), color.r, color.g, color.b, color.a);
 }
 
 void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Color & color)

@@ -331,7 +331,7 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
     }
     else
     {
-        if (strlen(archive) == 0 || strstr(archive, "..") || strncmp(archive, "/", 1) == 0)
+        if (strlen(archive) == 0 || strstr(archive, "..") || strcmp(archive, "/") == 0)
             return false;
 
         const char * realDirectory = PHYSFS_getRealDir(archive);
@@ -359,7 +359,7 @@ bool Filesystem::Mount(Data * data, const char * archive, const char * mountpoin
     if (!PHYSFS_isInit())
         return false;
 
-    if (PHYSFS_mountMemory(data->GetData(), data->GetSize(), nullptr, archive, mountpoint, appendToPath))
+    if (PHYSFS_mountMemory(data->GetData(), data->GetSize(), nullptr, archive, mountpoint, appendToPath) != 0)
     {
         this->mountedData[archive] = data;
         return true;

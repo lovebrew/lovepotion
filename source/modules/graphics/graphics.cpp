@@ -208,9 +208,9 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * f
 
 /* End Objects */
 
-void Graphics::Rectangle(const std::string & mode, float x, float y, float width, float height)
+void Graphics::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry)
 {
-    Primitives::Rectangle(mode, x, y, width, height, 0, 0, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
+    Primitives::Rectangle(mode, x, y, width, height, rx, ry, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
 }
 
 void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> points)

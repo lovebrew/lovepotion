@@ -12,6 +12,8 @@
 #include "socket.h"
 #include "pierror.h"
 
+static int SOCKET_BUFFSIZE = 0x2000;
+
 /*-------------------------------------------------------------------------*\
 * Wait for readable/writable/connected socket with timeout
 \*-------------------------------------------------------------------------*/
@@ -77,7 +79,7 @@ int socket_waitfd(p_socket ps, int sw, p_timeout tm) {
 \*-------------------------------------------------------------------------*/
 int socket_open(void) {
     /* instals a handler to ignore sigpipe or it will crash us */
-    signal(SIGPIPE, SIG_IGN);
+    // signal(SIGPIPE, SIG_IGN);
     return 1;
 }
 
@@ -120,8 +122,15 @@ int socket_select(t_socket n, fd_set *rfds, fd_set *wfds, fd_set *efds,
 \*-------------------------------------------------------------------------*/
 int socket_create(p_socket ps, int domain, int type, int protocol) {
     *ps = socket(domain, type, protocol);
-    if (*ps != SOCKET_INVALID) return IO_DONE;
-    else return errno;
+    if (*ps != SOCKET_INVALID)
+    {
+        setsockopt(*ps, SOL_SOCKET, SO_RCVBUF, &SOCKET_BUFFSIZE, sizeof(SOCKET_BUFFSIZE));
+        setsockopt(*ps, SOL_SOCKET, SO_SNDBUF, &SOCKET_BUFFSIZE, sizeof(SOCKET_BUFFSIZE));
+
+        return IO_DONE;
+    }
+    else
+        return errno;
 }
 
 /*-------------------------------------------------------------------------*\
