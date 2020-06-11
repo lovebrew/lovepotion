@@ -81,8 +81,6 @@ int Luax::Preload(lua_State * L, lua_CFunction func, const char * name)
 
 int Luax::Resume(lua_State * L, int nargs)
 {
-    appletMainLoop();
-
     #if LUA_VERSION_NUM >= 502 || defined(COMPAT53_API)
         return lua_resume(L, nullptr, nargs);
     #else

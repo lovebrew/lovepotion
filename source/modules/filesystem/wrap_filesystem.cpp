@@ -309,7 +309,13 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
         start++;
     }
 
-    if (instance()->GetInfo(filepath, info))
+    std::filesystem::path path = filepath;
+
+    #if defined (_3DS)
+        translatePath(path);
+    #endif
+
+    if (instance()->GetInfo(path.c_str(), info))
     {
         if (filter != Filesystem::FileType::FILETYPE_MAX_ENUM && info.type != filter)
         {
@@ -690,6 +696,7 @@ int Wrap_Filesystem::Register(lua_State * L)
     luaL_reg reg[] =
     {
         { "init",                   Init                   },
+        { "append",                 Append                 },
         { "createDirectory",        CreateDirectory        },
         { "getDirectoryItems",      GetDirectoryItems      },
         { "getExecutablePath",      GetExecutablePath      },
