@@ -19,6 +19,7 @@ namespace love
                 M_MATH,
                 M_SYSTEM,
                 M_SOUND,
+                M_THREAD,
                 M_TIMER,
                 M_TOUCH,
                 M_WINDOW,

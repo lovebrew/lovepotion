@@ -604,6 +604,7 @@ function love.init()
         "math",
         "sound",
         "system",
+        "thread",
         "touch"
     }
 

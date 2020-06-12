@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/threads/mutex.h"
+#include "modules/thread/types/mutex.h"
 
 namespace love::thread
 {

@@ -47,8 +47,8 @@ int Timer::GetFPS()
 double Timer::GetTime()
 {
     #if defined (_3DS)
-        this->counter.elapsed = svcGetSystemTick() - this->counter.reference;
-        return  osTickCounterRead(&this->counter) / 1000.0;
+        counter.elapsed = svcGetSystemTick() - counter.reference;
+        return  osTickCounterRead(&counter) / 1000.0;
     #elif defined (__SWITCH__)
         return armTicksToNs(armGetSystemTick() - reference) / 1000000000.0;
     #endif

@@ -24,7 +24,7 @@ namespace love
 
             int GetFPS();
 
-            double GetTime();
+            static double GetTime();
 
             void Sleep(float seconds);
 
@@ -46,6 +46,6 @@ namespace love
             double dt;
             u64 reference;
 
-            TickCounter counter;
+            static TickCounter counter;
     };
 }
