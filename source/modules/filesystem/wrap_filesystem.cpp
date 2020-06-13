@@ -600,7 +600,9 @@ File * Wrap_Filesystem::GetFile(lua_State * L, int index)
     {
         std::filesystem::path filename = luaL_checkstring(L, index);
 
-        translatePath(filename);
+        #if defined (_3DS)
+            translatePath(filename);
+        #endif
 
         file = instance()->NewFile(filename.c_str());
     }
