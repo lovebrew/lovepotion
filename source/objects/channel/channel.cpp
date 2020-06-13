@@ -3,9 +3,9 @@
 
 #include "modules/timer/timer.h"
 
-love::Type Channel::type("Channel", &Object::type);
-
 using namespace love;
+
+love::Type Channel::type("Channel", &Object::type);
 
 Channel::Channel() : sent(0),
                      received(0)

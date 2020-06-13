@@ -22,7 +22,7 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
 }
 
 #if defined(_3DS)
-    static bool translatePath(std::filesystem::path & filepath)
+    static void translatePath(std::filesystem::path & filepath)
     {
         static constexpr std::array<const char *, 3> textures    = {".png", ".jpg", ".jpeg"};
         static constexpr std::array<const char *, 2> fonts       = {".ttf", ".otf"};
@@ -32,22 +32,14 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
         for (auto extension : textures)
         {
             if (extension == filepath.extension())
-            {
                 filepath.replace_extension(".t3x");
-                return pass = true;
-            }
         }
 
         for (auto extension : fonts)
         {
             if (extension == filepath.extension())
-            {
                 filepath.replace_extension(".bcfnt");
-                return pass = true;
-            }
         }
-
-        return pass;
     }
 #endif
 
@@ -609,8 +601,7 @@ File * Wrap_Filesystem::GetFile(lua_State * L, int index)
         std::filesystem::path filename = luaL_checkstring(L, index);
 
         #if defined (_3DS)
-            if (!translatePath(filename))
-                throw love::Exception("Could not find file %s", filename.c_str());
+            translatePath(filename);
         #endif
 
         file = instance()->NewFile(filename.c_str());

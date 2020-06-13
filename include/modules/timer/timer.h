@@ -33,6 +33,9 @@ namespace love
             //End Löve2D Functions
 
         private:
+            static TickCounter counter;
+            static u64 reference;
+
             double currentTime;
             double lastTime;
             double prevFPSUpdate;
@@ -44,8 +47,5 @@ namespace love
             int frames;
 
             double dt;
-            u64 reference;
-
-            static TickCounter counter;
     };
 }

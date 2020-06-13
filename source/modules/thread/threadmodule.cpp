@@ -8,7 +8,7 @@ LuaThread * ThreadModule::NewThread(const std::string & name, Data * data)
     return new LuaThread(name, data);
 }
 
-/*
+
 Channel * ThreadModule::NewChannel()
 {
     return new Channel();
@@ -27,4 +27,3 @@ Channel * ThreadModule::GetChannel(const std::string & name)
 
     return channel;
 }
-*/

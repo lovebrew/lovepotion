@@ -53,25 +53,25 @@ int Wrap_ThreadModule::NewThread(lua_State * L)
     return 1;
 }
 
-// int Wrap_ThreadModule::NewChannel(lua_State * L)
-// {
-//     Channel * channel = instance()->NewChannel();
-//     Luax::PushType(L, channel);
+int Wrap_ThreadModule::NewChannel(lua_State * L)
+{
+    Channel * channel = instance()->NewChannel();
+    Luax::PushType(L, channel);
 
-//     channel->Release();
+    channel->Release();
 
-//     return 1;
-// }
+    return 1;
+}
 
-// int Wrap_ThreadModule::GetChannel(lua_State * L)
-// {
-//     std::string name = luaL_checkstring(L, 1);
+int Wrap_ThreadModule::GetChannel(lua_State * L)
+{
+    std::string name = luaL_checkstring(L, 1);
 
-//     Channel * channel = instance()->GetChannel(name);
-//     Luax::PushType(L, channel);
+    Channel * channel = instance()->GetChannel(name);
+    Luax::PushType(L, channel);
 
-//     return 1;
-// }
+    return 1;
+}
 
 int Wrap_ThreadModule::Register(lua_State * L)
 {
@@ -84,6 +84,7 @@ int Wrap_ThreadModule::Register(lua_State * L)
     lua_CFunction types[] =
     {
         Wrap_LuaThread::Register,
+        Wrap_Channel::Register,
         0
     };
 

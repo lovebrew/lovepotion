@@ -20,6 +20,8 @@
 
 namespace love::thread
 {
+    class Conditional;
+
     class Mutex
     {
         public:
@@ -32,6 +34,8 @@ namespace love::thread
         private:
             LOVE_Mutex mutex;
             Mutex(const Mutex &) {}
+
+            friend class Conditional;
     };
 
     class MutexRef

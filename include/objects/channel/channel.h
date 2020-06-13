@@ -8,7 +8,7 @@ namespace love
     class Channel: public Object
     {
         // for the Wrapper
-        friend int PerformAtomic(lua_State * L);
+        friend int Wrap_Channel_PerformAtomic(lua_State *);
 
         public:
             static love::Type type;
