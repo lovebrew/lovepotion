@@ -31,6 +31,8 @@ void userAppInit()
 
     SOCKET_BUFFER = (u32 *)memalign(SO_BUF_ALIGN, SO_MAX_BUFSIZE);
     SOCKET_INITED = socInit(SOCKET_BUFFER, SO_MAX_BUFSIZE);
+
+    APT_SetAppCpuTimeLimit(30);
 }
 
 void userAppExit()

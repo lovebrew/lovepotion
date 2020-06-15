@@ -1,0 +1,66 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks":
+    [
+        {
+            "label": "Build 3DS",
+            "type": "shell",
+            "command": "make 3ds -j",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": "build"
+        },
+
+        {
+            "label": "Build Switch",
+            "type": "shell",
+            "command": "make switch -j",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": "build"
+        },
+
+        {
+            "label": "Build All",
+            "type": "shell",
+            "command": "make -j",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "group": "build"
+        },
+
+        {
+            "label": "Install 3DS",
+            "dependsOn": ["Build 3DS"],
+            "type": "shell",
+            "command": "3dslink ./platform/3ds/LovePotion.3dsx"
+        },
+
+        {
+            "label": "Install Switch",
+            "dependsOn": ["Build Switch"],
+            "type": "shell",
+            "command": "nxlink ./platform/switch/LovePotion.nro"
+        }
+    ]
+}
