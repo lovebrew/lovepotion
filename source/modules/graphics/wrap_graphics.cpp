@@ -29,7 +29,7 @@ int Wrap_Graphics::Arc(lua_State * L)
     float y = luaL_optnumber(L, 3, 0);
 
     float radius = luaL_checknumber(L, 4);
-    
+
     float startAngle = luaL_checknumber(L, 5);
     float endAngle = luaL_checknumber(L, 6);
 
@@ -274,6 +274,13 @@ int Wrap_Graphics::Push(lua_State * L)
     Luax::CatchException(L, [&]() {
         instance()->Push();
     });
+
+    return 0;
+}
+
+int Wrap_Graphics::Origin(lua_State  *L)
+{
+    instance()->Origin();
 
     return 0;
 }
@@ -809,6 +816,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "newFont",            NewFont            },
         { "newImage",           NewImage           },
         { "newQuad",            NewQuad            },
+        { "origin",             Origin             },
         { "polygon",            Polygon            },
         { "pop",                Pop                },
         { "present",            Present            },
