@@ -5,27 +5,91 @@
 #if defined (_3DS)
     #include <3ds.h>
 
-    typedef struct LOVE_CondVar {};
+    struct LOVE_CondVar
+    {
+        LightSemaphore wait;
+        LightSemaphore signal;
+        LightLock mutex;
 
-    #define LOVE_CreateCond(CondVar)
+        LightEvent event;
 
-    #define LOVE_CondSignal(CondVar)
-    #define LOVE_CondBroadcast(CondVar)
+        s32 waiters;
+    };
 
-    #define LOVE_CondWait(CondVar, mutex) 0
-    #define LOVE_CondWaitTimeout(CondVar, mutex, timeout) 0
+    inline void LOVE_CreateCond(LOVE_CondVar * cond)
+    {
+        LightSemaphore_Init(&cond->wait, 0, INT16_MAX);
+        LightSemaphore_Init(&cond->signal, 0, INT16_MAX);
+
+        LightLock_Init(&cond->mutex);
+
+        cond->waiters = 0;
+    }
+
+    inline void LOVE_CondSignal(LOVE_CondVar * cond)
+    {
+        LightLock_Lock(&cond->mutex);
+
+        if (cond->waiters > 0)
+        {
+            LightSemaphore_Release(&cond->wait, 1);
+            LightSemaphore_Acquire(&cond->signal, 1);
+
+            --cond->waiters;
+        }
+
+        LightLock_Unlock(&cond->mutex);
+    }
+
+    inline void LOVE_CondBroadcast(LOVE_CondVar * cond)
+    {
+        LightLock_Lock(&cond->mutex);
+
+        if (cond->waiters > 0)
+        {
+            LightSemaphore_Release(&cond->wait, cond->waiters);
+            LightSemaphore_Acquire(&cond->signal, cond->waiters);
+
+            cond->waiters = 0;
+        }
+
+        LightLock_Unlock(&cond->mutex);
+    }
+
+    inline Result LOVE_CondWait(LOVE_CondVar * cond, LOVE_Mutex * mutex, s64 timeout)
+    {
+        LightLock_Lock(&cond->mutex);
+
+        ++cond->waiters;
+
+        LightLock_Unlock(&cond->mutex);
+
+        LOVE_mutexUnlock(mutex);
+
+        LightSemaphore_Acquire(&cond->wait, 1);
+        LightSemaphore_Release(&cond->signal, 1);
+
+        LOVE_mutexLock(mutex);
+
+        return 0;
+    }
+
+    inline Result LOVE_CondWaitTimeout(LOVE_CondVar * cond, LOVE_Mutex * mutex, s64 timeout)
+    {
+        return LOVE_CondWait(cond, mutex, timeout);
+    }
 #elif defined (__SWITCH__)
     #include <switch.h>
 
     typedef CondVar LOVE_CondVar;
 
-    #define LOVE_CreateCond(CondVar) condvarInit(&(CondVar))
+    #define LOVE_CreateCond(CondVar) condvarInit((CondVar))
 
-    #define LOVE_CondSignal(CondVar) condvarWakeOne(&(CondVar))
-    #define LOVE_CondBroadcast(CondVar) condvarWakeAll(&(CondVar))
+    #define LOVE_CondSignal(CondVar) condvarWakeOne((CondVar))
+    #define LOVE_CondBroadcast(CondVar) condvarWakeAll((CondVar))
 
-    #define LOVE_CondWait(CondVar, mutex) condvarWait(&(CondVar), &(mutex))
-    #define LOVE_CondWaitTimeout(CondVar, mutex, timeout) condvarWaitTimeout(&(CondVar), &(mutex), (timeout))
+    #define LOVE_CondWait(CondVar, mutex) condvarWait((CondVar), (mutex))
+    #define LOVE_CondWaitTimeout(CondVar, mutex, timeout) condvarWaitTimeout((CondVar), (mutex), (timeout))
 #endif
 
 namespace love::thread
@@ -38,7 +102,7 @@ namespace love::thread
 
             void Signal();
             void Broadcast();
-            bool Wait(Mutex * mutex, int timeout = -1);
+            bool Wait(Mutex * mutex, s64 timeout = -1);
 
         private:
             LOVE_CondVar condVar;

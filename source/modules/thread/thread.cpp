@@ -69,7 +69,6 @@ bool LOVE_Thread::Start()
 
     #if defined (_3DS)
         this->thread = threadCreate(Runner, this, 0x1000, priority - 1, 1, false);
-        LOG("Thread Created: %d", this->thread != NULL);
         this->hasThread = (this->thread != NULL);
     #elif defined (__SWITCH__)
         Result created = threadCreate(&this->thread, Runner, this, NULL, 0x1000, priority - 1, 0);

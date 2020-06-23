@@ -339,6 +339,8 @@ function love.errorhandler(message)
         fontSize = 24
     end
 
+    love.graphics.origin()
+
     local font = love.graphics.setNewFont(fontSize)
 
     love.graphics.setColor(1, 1, 1, 1)
@@ -697,6 +699,7 @@ function love.run()
 
             for display = 1, love.window.getDisplayCount() do
                 love.window.setScreen(display)
+                love.graphics.origin()
 
                 if love.draw then
                     local screen = screens[love._console_name][display]

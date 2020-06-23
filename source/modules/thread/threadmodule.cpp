@@ -19,6 +19,7 @@ Channel * ThreadModule::GetChannel(const std::string & name)
     thread::Lock lock(this->namedChannelMutex);
 
     auto it = this->namedChannels.find(name);
+
     if (it != this->namedChannels.end())
         return it->second;
 

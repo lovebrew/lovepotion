@@ -77,8 +77,10 @@ int Wrap_ThreadModule::Register(lua_State * L)
 {
     luaL_reg reg[] =
     {
-        { "newThread", NewThread },
-        { 0,           0         }
+        { "newThread",  NewThread  },
+        { "newChannel", NewChannel },
+        { "getChannel", GetChannel },
+        { 0,            0          }
     };
 
     lua_CFunction types[] =
