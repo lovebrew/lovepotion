@@ -2,6 +2,7 @@
 
 #include "modules/thread/types/mutex.h"
 #include "modules/timer/timer.h"
+#include <atomic>
 
 #if defined (_3DS)
     #include <3ds.h>
@@ -10,11 +11,10 @@
     {
         LightSemaphore wait;
         LightSemaphore signal;
-        LightLock mutex;
 
         LightEvent event;
 
-        s32 waiters;
+        std::atomic<s32> waiters;
     };
 
     inline void LOVE_CreateCond(LOVE_CondVar * cond)
@@ -22,15 +22,11 @@
         LightSemaphore_Init(&cond->wait, 0, INT16_MAX);
         LightSemaphore_Init(&cond->signal, 0, INT16_MAX);
 
-        LightLock_Init(&cond->mutex);
-
         cond->waiters = 0;
     }
 
     inline void LOVE_CondSignal(LOVE_CondVar * cond)
     {
-        LightLock_Lock(&cond->mutex);
-
         if (cond->waiters > 0)
         {
             LightSemaphore_Release(&cond->wait, 1);
@@ -38,14 +34,10 @@
 
             --cond->waiters;
         }
-
-        LightLock_Unlock(&cond->mutex);
     }
 
     inline void LOVE_CondBroadcast(LOVE_CondVar * cond)
     {
-        LightLock_Lock(&cond->mutex);
-
         if (cond->waiters > 0)
         {
             LightSemaphore_Release(&cond->wait, cond->waiters);
@@ -53,17 +45,11 @@
 
             cond->waiters = 0;
         }
-
-        LightLock_Unlock(&cond->mutex);
     }
 
     inline Result LOVE_CondWait(LOVE_CondVar * cond, LOVE_Mutex * mutex)
     {
-        LightLock_Lock(&cond->mutex);
-
         ++cond->waiters;
-
-        LightLock_Unlock(&cond->mutex);
 
         LOVE_mutexUnlock(mutex);
 
@@ -76,27 +62,39 @@
         return 0;
     }
 
-    inline Result LOVE_CondWaitTimeout(LOVE_CondVar * cond, LOVE_Mutex * mutex, int timeout)
+    inline int LightSemaphore_TryAcquire(LightSemaphore* semaphore, s32 count)
     {
-        LightLock_Lock(&cond->mutex);
+        s32 old_count;
+        do
+        {
+            old_count = __ldrex(&semaphore->current_count);
+            if (old_count < count)
+            {
+                __clrex();
+                return 1; // failure
+            }
+        } while (__strex(&semaphore->current_count, old_count - count));
+        
+        return 0; // success
+    }
 
+    inline Result LOVE_CondWaitTimeout(LOVE_CondVar * cond, LOVE_Mutex * mutex, s64 timeout)
+    {
         ++cond->waiters;
-
-        LightLock_Unlock(&cond->mutex);
 
         LOVE_mutexUnlock(mutex);
 
-        // bool finished;
-        // do
-        // {
-        //     double start = love::Timer::GetTime();
-        //     finished = !LightSemaphore_TryAcquire(&cond->wait, 1);
-        //     double stop  = love::Timer::GetTime();
-        //     timeout -= (stop - start);
-        // } while (timeout > 0 && !finished);
+        bool finished;
+        do
+        {
+            double start = love::Timer::GetTime() * 1000;
+            finished = !LightSemaphore_TryAcquire(&cond->wait, 1);
+            double stop  = love::Timer::GetTime() * 1000;
+            timeout -= (stop - start);
+        } while (timeout > 0 && !finished);
 
-        // if (!finished)
-        //     return -1;
+        if (!finished)
+            return -1;
 
         LightSemaphore_Release(&cond->signal, 1);
 
