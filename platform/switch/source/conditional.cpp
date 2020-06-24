@@ -5,7 +5,7 @@ using namespace love::thread;
 
 Conditional::Conditional()
 {
-    LOVE_CreateCond(&this->condVar);
+    condvarInit(&this->condVar);
 }
 
 Conditional::~Conditional()
@@ -15,20 +15,20 @@ Conditional::~Conditional()
 
 void Conditional::Signal()
 {
-    LOVE_CondSignal(&this->condVar);
+    condvarWakeOne(&this->condVar);
 }
 
 void Conditional::Broadcast()
 {
-    LOVE_CondBroadcast(&this->condVar);
+    condvarWakeAll(&this->condVar);
 }
 
 bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
 {
-    Mutex * mutex = (Mutex *)_mutex;
-
     if (timeout < 0)
-        return R_SUCCEEDED(LOVE_CondWait(&this->condVar, &mutex->mutex));
+        condvarWait(&this->condVar, &_mutex->mutex);
     else
-        return R_SUCCEEDED(LOVE_CondWaitTimeout(&this->condVar, &mutex->mutex, timeout));
+        condvarWaitTimeout(&this->condVar, &_mutex->mutex, timeout);
+
+    return true;
 }
