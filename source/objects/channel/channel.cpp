@@ -46,7 +46,7 @@ bool Channel::Supply(const Variant & variant, double timeout)
             return true;
 
         double start = love::Timer::GetTime();
-        this->condition->Wait(this->mutex, timeout * 1000);
+        this->condition->Wait(this->mutex, timeout);
         double stop  = love::Timer::GetTime();
 
         timeout -= (stop - start);

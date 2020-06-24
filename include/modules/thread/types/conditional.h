@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/thread/types/mutex.h"
+#include "modules/timer/timer.h"
 
 #if defined (_3DS)
     #include <3ds.h>
@@ -56,7 +57,7 @@
         LightLock_Unlock(&cond->mutex);
     }
 
-    inline Result LOVE_CondWait(LOVE_CondVar * cond, LOVE_Mutex * mutex, s64 timeout)
+    inline Result LOVE_CondWait(LOVE_CondVar * cond, LOVE_Mutex * mutex)
     {
         LightLock_Lock(&cond->mutex);
 
@@ -67,6 +68,7 @@
         LOVE_mutexUnlock(mutex);
 
         LightSemaphore_Acquire(&cond->wait, 1);
+
         LightSemaphore_Release(&cond->signal, 1);
 
         LOVE_mutexLock(mutex);
@@ -74,9 +76,33 @@
         return 0;
     }
 
-    inline Result LOVE_CondWaitTimeout(LOVE_CondVar * cond, LOVE_Mutex * mutex, s64 timeout)
+    inline Result LOVE_CondWaitTimeout(LOVE_CondVar * cond, LOVE_Mutex * mutex, int timeout)
     {
-        return LOVE_CondWait(cond, mutex, timeout);
+        LightLock_Lock(&cond->mutex);
+
+        ++cond->waiters;
+
+        LightLock_Unlock(&cond->mutex);
+
+        LOVE_mutexUnlock(mutex);
+
+        // bool finished;
+        // do
+        // {
+        //     double start = love::Timer::GetTime();
+        //     finished = !LightSemaphore_TryAcquire(&cond->wait, 1);
+        //     double stop  = love::Timer::GetTime();
+        //     timeout -= (stop - start);
+        // } while (timeout > 0 && !finished);
+
+        // if (!finished)
+        //     return -1;
+
+        LightSemaphore_Release(&cond->signal, 1);
+
+        LOVE_mutexLock(mutex);
+
+        return 0;
     }
 #elif defined (__SWITCH__)
     #include <switch.h>

@@ -27,8 +27,6 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
         static constexpr std::array<const char *, 3> textures    = {".png", ".jpg", ".jpeg"};
         static constexpr std::array<const char *, 2> fonts       = {".ttf", ".otf"};
 
-        bool pass = false;
-
         for (auto extension : textures)
         {
             if (extension == filepath.extension())
