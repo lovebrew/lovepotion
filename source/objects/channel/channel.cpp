@@ -14,23 +14,30 @@ Channel::Channel() : sent(0),
 Channel::~Channel()
 {}
 
-uint64_t Channel::Push(const Variant & variant)
+uint64_t Channel::_Push(const Variant & variant)
 {
-    thread::Lock lock(this->mutex);
-
     this->queue.push(variant);
     condition->Broadcast();
 
     return ++sent;
 }
 
+uint64_t Channel::Push(const Variant & variant)
+{    
+    thread::Lock lock(this->mutex);
+
+    return this->_Push(variant);
+}
+
 bool Channel::Supply(const Variant & variant)
 {
     thread::Lock lock(this->mutex);
-    uint64_t id = this->Push(variant);
+    uint64_t id = this->_Push(variant);
 
     while (this->received < id)
+    {
         this->condition->Wait(this->mutex);
+    }
 
     return true;
 }
@@ -38,7 +45,7 @@ bool Channel::Supply(const Variant & variant)
 bool Channel::Supply(const Variant & variant, double timeout)
 {
     thread::Lock lock(this->mutex);
-    uint64_t id = this->Push(variant);
+    uint64_t id = this->_Push(variant);
 
     while (timeout >= 0)
     {
@@ -59,6 +66,11 @@ bool Channel::Pop(Variant * variant)
 {
     thread::Lock lock(this->mutex);
 
+    return this->_Pop(variant);
+}
+
+bool Channel::_Pop(Variant * variant)
+{
     if (this->queue.empty())
         return false;
 
@@ -75,7 +87,7 @@ bool Channel::Demand(Variant * variant)
 {
     thread::Lock lock(this->mutex);
 
-    while (!this->Pop(variant))
+    while (!this->_Pop(variant))
         this->condition->Wait(this->mutex);
 
     return true;
@@ -87,7 +99,7 @@ bool Channel::Demand(Variant * variant, double timeout)
 
     while (timeout >= 0)
     {
-        if (this->Pop(variant))
+        if (this->_Pop(variant))
             return true;
 
         double start = love::Timer::GetTime();

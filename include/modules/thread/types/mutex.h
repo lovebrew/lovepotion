@@ -3,11 +3,11 @@
 #if defined (_3DS)
     #include <3ds.h>
 
-    typedef RecursiveLock LOVE_Mutex;
+    typedef LightLock LOVE_Mutex;
 
-    #define LOVE_mutexInit RecursiveLock_Init
-    #define LOVE_mutexLock RecursiveLock_Lock
-    #define LOVE_mutexUnlock RecursiveLock_Unlock
+    #define LOVE_mutexInit LightLock_Init
+    #define LOVE_mutexLock LightLock_Lock
+    #define LOVE_mutexUnlock LightLock_Unlock
 #elif defined (__SWITCH__)
     #include <switch.h>
 
