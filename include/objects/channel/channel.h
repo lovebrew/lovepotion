@@ -41,6 +41,8 @@ namespace love
         private:
             void LockMutex();
             void UnlockMutex();
+            bool _Pop(Variant * variant);
+            uint64_t _Push(const Variant& variant);
 
             thread::MutexRef mutex;
             thread::ConditionalRef condition;
