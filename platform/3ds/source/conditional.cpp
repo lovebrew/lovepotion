@@ -5,56 +5,52 @@ using namespace love::thread;
 
 Conditional::Conditional()
 {
-    LightSemaphore_Init(&this->cond.wait, 0, INT16_MAX);
-    LightSemaphore_Init(&this->cond.signal, 0, INT16_MAX);
+    LightSemaphore_Init(&this->condVar.wait, 0, INT16_MAX);
+    LightSemaphore_Init(&this->condVar.signal, 0, INT16_MAX);
 
-    this->cond->waiters = 0;
+    this->condVar.waiters = 0;
 }
 
 Conditional::~Conditional()
-{
-
-}
+{}
 
 void Conditional::Signal()
 {
-    if (this->cond.waiters > 0)
+    if (this->condVar.waiters > 0)
     {
-        LightSemaphore_Release(&this->cond.wait, 1);
-        LightSemaphore_Acquire(&this->cond.signal, 1);
+        LightSemaphore_Release(&this->condVar.wait, 1);
+        LightSemaphore_Acquire(&this->condVar.signal, 1);
 
-        --this->cond.waiters;
+        --this->condVar.waiters;
     }
 }
 
 void Conditional::Broadcast()
 {
-    if (this->cond.waiters > 0)
+    if (this->condVar.waiters > 0)
     {
-        LightSemaphore_Release(&this->cond.wait, this->cond.waiters);
-        LightSemaphore_Acquire(&this->cond.signal, this->cond.waiters);
+        LightSemaphore_Release(&this->condVar.wait, this->condVar.waiters);
+        LightSemaphore_Acquire(&this->condVar.signal, this->condVar.waiters);
 
-        this->cond.waiters = 0;
+        this->condVar.waiters = 0;
     }
 }
 
 bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
 {
-    thread::Mutex * mutex = (thread::Mutex *)_mutex;
+    ++this->condVar.waiters;
 
-    ++this->cond.waiters;
+    LOVE_mutexUnlock(&_mutex->mutex);
 
-    LOVE_mutexUnlock(mutex);
-
-    if (timeout <= 0)
-        LightSemaphore_Acquire(&this->cond.wait, 1);
+    if (timeout < 0)
+        LightSemaphore_Acquire(&this->condVar.wait, 1);
     else
     {
         bool finished;
         do
         {
             double start = love::Timer::GetTime() * 1000;
-            finished = !LightSemaphore_TryAcquire(&cond->wait, 1);
+            finished = !LightSemaphore_TryAcquire(&this->condVar.wait, 1);
             double stop  = love::Timer::GetTime() * 1000;
             timeout -= (stop - start);
         } while (timeout > 0 && !finished);
@@ -63,9 +59,9 @@ bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
             return -1;
     }
 
-    LightSemaphore_Release(&this->cond.signal, 1);
+    LightSemaphore_Release(&this->condVar.signal, 1);
 
-    LOVE_mutexLock(mutex);
+    LOVE_mutexLock(&_mutex->mutex);
 
     return true;
 }

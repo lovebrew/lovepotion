@@ -23,7 +23,7 @@ uint64_t Channel::_Push(const Variant & variant)
 }
 
 uint64_t Channel::Push(const Variant & variant)
-{    
+{
     thread::Lock lock(this->mutex);
 
     return this->_Push(variant);

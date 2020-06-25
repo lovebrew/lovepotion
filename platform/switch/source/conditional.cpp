@@ -9,9 +9,7 @@ Conditional::Conditional()
 }
 
 Conditional::~Conditional()
-{
-
-}
+{}
 
 void Conditional::Signal()
 {
