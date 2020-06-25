@@ -56,7 +56,7 @@ bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
         } while (timeout > 0 && !finished);
 
         if (!finished)
-            return -1;
+            return false;
     }
 
     LightSemaphore_Release(&this->condVar.signal, 1);
