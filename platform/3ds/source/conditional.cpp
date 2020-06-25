@@ -38,7 +38,7 @@ void Conditional::Broadcast()
 
 bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
 {
-    bool success;
+    bool success = true;
     ++this->condVar.waiters;
 
     LOVE_mutexUnlock(&_mutex->mutex);
