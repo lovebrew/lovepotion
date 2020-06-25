@@ -103,11 +103,7 @@ bool Channel::Demand(Variant * variant, double timeout)
             return true;
 
         double start = love::Timer::GetTime();
-        if (!this->condition->Wait(this->mutex, timeout * 1000))
-        {
-            // 3DS doesn't like LightLock_Unlock on an unlocked LightLock. Make sure that it's locked before thread::Lock::~Lock
-            this->mutex->Lock();
-        }
+        this->condition->Wait(this->mutex, timeout * 1000);
         double stop  = love::Timer::GetTime();
 
         timeout -= (stop - start);

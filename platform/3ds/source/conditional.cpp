@@ -38,6 +38,7 @@ void Conditional::Broadcast()
 
 bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
 {
+    bool success;
     ++this->condVar.waiters;
 
     LOVE_mutexUnlock(&_mutex->mutex);
@@ -46,22 +47,18 @@ bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
         LightSemaphore_Acquire(&this->condVar.wait, 1);
     else
     {
-        bool finished;
         do
         {
             double start = love::Timer::GetTime() * 1000;
-            finished = !LightSemaphore_TryAcquire(&this->condVar.wait, 1);
+            success = !LightSemaphore_TryAcquire(&this->condVar.wait, 1);
             double stop  = love::Timer::GetTime() * 1000;
             timeout -= (stop - start);
-        } while (timeout > 0 && !finished);
-
-        if (!finished)
-            return false;
+        } while (timeout > 0 && !success);
     }
 
     LightSemaphore_Release(&this->condVar.signal, 1);
 
     LOVE_mutexLock(&_mutex->mutex);
 
-    return true;
+    return success;
 }
