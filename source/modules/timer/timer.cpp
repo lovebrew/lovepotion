@@ -7,6 +7,12 @@ using namespace love;
 
 #define SLEEP_ULL 1000000ULL
 
+#if defined (_3DS)
+    TickCounter Timer::counter;
+#elif defined (__SWITCH__)
+    u64 Timer::reference;
+#endif
+
 Timer::Timer() : currentTime(0),
                  prevFPSUpdate(0),
                  fps(0),
@@ -16,9 +22,9 @@ Timer::Timer() : currentTime(0),
                  dt(0)
 {
     #if defined (_3DS)
-        osTickCounterStart(&this->counter);
+        osTickCounterStart(&Timer::counter);
     #elif defined (__SWITCH__)
-        this->reference = armGetSystemTick();
+        Timer::reference = armGetSystemTick();
     #endif
 
     this->prevFPSUpdate = currentTime = this->GetTime();
@@ -47,10 +53,10 @@ int Timer::GetFPS()
 double Timer::GetTime()
 {
     #if defined (_3DS)
-        this->counter.elapsed = svcGetSystemTick() - this->counter.reference;
-        return  osTickCounterRead(&this->counter) / 1000.0;
+        Timer::counter.elapsed = svcGetSystemTick() - Timer::counter.reference;
+        return  osTickCounterRead(&Timer::counter) / 1000.0;
     #elif defined (__SWITCH__)
-        return armTicksToNs(armGetSystemTick() - reference) / 1000000000.0;
+        return armTicksToNs(armGetSystemTick() - Timer::reference) / 1000000000.0;
     #endif
 }
 
@@ -71,7 +77,7 @@ double Timer::Step()
     this->frames++;
 
     this->lastTime = this->currentTime;
-    this->currentTime = this->GetTime();
+    this->currentTime = Timer::GetTime();
 
     this->dt = this->currentTime - this->lastTime;
 

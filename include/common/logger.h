@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "common/threads/lock.h"
+#include "modules/thread/types/lock.h"
 
 namespace Logger
 {

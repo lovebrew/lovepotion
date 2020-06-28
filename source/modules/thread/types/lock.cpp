@@ -1,5 +1,5 @@
 #include "common/runtime.h"
-#include "common/threads/lock.h"
+#include "modules/thread/types/lock.h"
 
 using namespace love::thread;
 

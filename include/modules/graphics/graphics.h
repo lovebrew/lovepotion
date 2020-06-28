@@ -127,6 +127,8 @@ namespace love
 
             void Push();
 
+            void Origin();
+
             void Translate(float offsetX, float offsetY);
 
             void SetDepth(float depth);

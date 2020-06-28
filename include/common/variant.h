@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/object.h"
+#include "common/exception.h"
 
 namespace love
 {
@@ -32,8 +33,21 @@ namespace love
             uint8_t length;
         };
 
+        class SharedTable : public Object
+        {
+            public:
+                SharedTable(std::vector<std::pair<Variant, Variant>> * table) : table(table)
+                {}
+
+                virtual ~SharedTable() {
+                    delete this->table;
+                }
+
+                std::vector<std::pair<Variant, Variant>> * table;
+        };
+
         private:
-            std::variant<std::monostate, bool, float, Variant::SharedString *, Variant::SmallString, void *, Proxy, Nil> variant;
+            std::variant<std::monostate, bool, float, Variant::SharedString *, Variant::SmallString, Variant::SharedTable *, void *, Proxy, Nil> variant;
 
         public:
 
@@ -44,10 +58,10 @@ namespace love
                 NUMBER,
                 STRING,
                 SMALLSTRING,
+                TABLE,
                 LUSERDATA,
                 LOVE_OBJECT,
-                NIL,
-                TABLE
+                NIL
             };
 
             Variant() : variant(std::monostate{}) {}
@@ -59,6 +73,7 @@ namespace love
             Variant(float v) : variant(v) {}
             Variant(const std::string & v);
             Variant(const char * v, size_t length);
+            Variant(std::vector<std::pair<Variant, Variant>> * table);
 
             Variant(const Variant & v);
 
@@ -86,7 +101,7 @@ namespace love
 
             std::string GetTypeString() const;
 
-            static Variant FromLua(lua_State * L, int n);
+            static Variant FromLua(lua_State * L, int n, std::set<const void *> * tableSet = nullptr);
             void ToLua(lua_State * L) const;
 
     };

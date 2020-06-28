@@ -33,7 +33,7 @@ void Graphics::SetDepth(float depth)
         throw love::Exception("setDepth not supported on this console");
     #endif
 
-    this->stereoDepth = depth;
+    this->stereoDepth = std::clamp(depth, -4.0f, 4.0f);
 }
 
 Color Graphics::GetColor()
@@ -99,6 +99,19 @@ void Graphics::GetDimensions(int * width, int * height)
 
     if (height)
         *height = size.second;
+}
+
+void Graphics::Origin()
+{
+    auto & transform = this->transformStack.back();
+
+    transform.offsetX = 0.0f;
+    transform.offsetY = 0.0f;
+
+    transform.rotation = 0.0f;
+
+    transform.scalarX = 1.0f;
+    transform.scalarY = 1.0f;
 }
 
 void Graphics::Push()
@@ -285,7 +298,13 @@ Font * Graphics::GetFont()
 
 void Graphics::Transform(float * x, float * y)
 {
+    if (x == nullptr || y == nullptr)
+        return;
+
     DrawArgs args;
+
+    args.offsetX = 0.0f;
+    args.offsetY = 0.0f;
 
     args.x = *x;
     args.y = *y;
@@ -342,21 +361,27 @@ void Graphics::Transform(DrawArgs * args)
     args->x += transform.offsetX;
     args->y += transform.offsetY;
 
+    /* Rotate */
+    if (transform.rotation != 0)
+    {
+        args->x -= transform.offsetX;
+        args->y -= transform.offsetY;
+
+        float nx = ox * cos(transform.rotation) - oy * sin(transform.rotation);
+        float ny = ox * sin(transform.rotation) + oy * cos(transform.rotation);
+
+        args->x = nx += transform.offsetX;
+        args->y = ny += transform.offsetY;
+
+        args->r += transform.rotation;
+    }
+
     /* Scale */
     args->x *= transform.scalarX;
     args->y *= transform.scalarY;
 
     args->scalarX *= transform.scalarX;
     args->scalarY *= transform.scalarY;
-
-    /* Rotate */
-    if (transform.rotation != 0)
-    {
-        args->x = ox * cos(transform.rotation) - oy * sin(transform.rotation);
-        args->y = ox * sin(transform.rotation) + oy * cos(transform.rotation);
-
-        args->r += transform.rotation;
-    }
 }
 
 void Graphics::AdjustColor(Color * in)

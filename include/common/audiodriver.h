@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/threads/lock.h"
+#include "modules/thread/types/lock.h"
 
 #if defined (_3DS)
     typedef struct _AudioDriver {} AudioDriver;

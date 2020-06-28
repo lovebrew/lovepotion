@@ -1,5 +1,5 @@
 #include "common/runtime.h"
-#include "common/threads/mutex.h"
+#include "modules/thread/types/mutex.h"
 
 using namespace love::thread;
 

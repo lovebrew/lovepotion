@@ -28,5 +28,5 @@ namespace Love
         int (* reg)(lua_State * L);
     } Module;
 
-    inline std::array<Love::Module, 15> modules = { nullptr };
+    inline std::array<Love::Module, 16> modules = { nullptr };
 };

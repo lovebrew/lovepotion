@@ -332,7 +332,28 @@ int Wrap_File::Seek(lua_State * L)
 
 int Wrap_File::SetBuffer(lua_State * L)
 {
-    /* TO DO */
+    File * self = Wrap_File::CheckFile(L, 1);
+    const char * str = luaL_checkstring(L, 2);
+    int64_t size = (int64_t)luaL_optnumber(L, 3, 0.0);
+
+    File::BufferMode bufferMode;
+    if (!File::GetConstant(str, bufferMode))
+        return Luax::EnumError(L, "file buffer mode", File::GetConstants(bufferMode), str);
+
+    bool success = false;
+
+    try
+    {
+        success = self->SetBuffer(bufferMode, size);
+    }
+    catch(love::Exception & e)
+    {
+        return Luax::IOError(L, "%s", e.what());
+    }
+
+    lua_pushboolean(L, success);
+
+    return 1;
 
     return 1;
 }
@@ -418,7 +439,7 @@ int Wrap_File::Register(lua_State * L)
         { "open",        Open        },
         { "read",        Read        },
         { "seek",        Seek        },
-        // { "setBuffer",   SetBuffer   },
+        { "setBuffer",   SetBuffer   },
         { "tell",        Tell        },
         { "write",       Write       },
         { 0,             0           }

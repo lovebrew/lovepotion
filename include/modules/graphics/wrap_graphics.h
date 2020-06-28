@@ -32,6 +32,8 @@ namespace Wrap_Graphics
 
     int Push(lua_State * L);
 
+    int Origin(lua_State * L);
+
     int Translate(lua_State * L);
 
     int Scale(lua_State * L);
