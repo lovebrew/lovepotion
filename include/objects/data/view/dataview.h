@@ -23,5 +23,5 @@ namespace love
 
             size_t offset;
             size_t size;
-    }
+    };
 }

@@ -184,7 +184,7 @@ int Wrap_DataModule::NewDataView(lua_State * L)
     if (offset < 0 || size < 0)
         return luaL_error(L, "DataView offset and size must not be negative.");
 
-    DataView * view;
+    DataView * view = nullptr;
 
     Luax::CatchException(L, [&]() {
         view = instance()->NewDataView(data, (size_t)offset, (size_t)size);
@@ -193,7 +193,7 @@ int Wrap_DataModule::NewDataView(lua_State * L)
     Luax::PushType(L, view);
     view->Release();
 
-    return;
+    return 1;
 }
 
 int Wrap_DataModule::Decode(lua_State * L)
