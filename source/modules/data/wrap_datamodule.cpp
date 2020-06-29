@@ -72,7 +72,7 @@ int Wrap_DataModule::NewByteData(lua_State * L)
     return 1;
 }
 
-int Compress(lua_State * L)
+int Wrap_DataModule::Compress(lua_State * L)
 {
     love::data::ContainerType type = Wrap_DataModule::CheckContainerType(L, 1);
 
@@ -112,7 +112,7 @@ int Compress(lua_State * L)
     return 1;
 }
 
-int Decompress(lua_State * L)
+int Wrap_DataModule::Decompress(lua_State * L)
 {
     love::data::ContainerType type = Wrap_DataModule::CheckContainerType(L, 1);
 
@@ -192,6 +192,39 @@ int Wrap_DataModule::NewDataView(lua_State * L)
 
     Luax::PushType(L, view);
     view->Release();
+
+    return 1;
+}
+
+int Wrap_DataModule::Hash(lua_State * L)
+{
+    const char * formatStr = luaL_checkstring(L, 1);
+
+    HashFunction::Function func;
+    if (!HashFunction::GetConstant(formatStr, func))
+        return Luax::EnumError(L, "hash function", HashFunction::GetConstants(func), formatStr);
+
+    HashFunction::Value value;
+
+    if (lua_isstring(L, 2))
+    {
+        size_t rawSize = 0;
+        const char * rawBytes = luaL_checklstring(L, 2, &rawSize);
+
+        Luax::CatchException(L, [&]() {
+            data::_Hash(func, rawBytes, rawSize, value);
+        });
+    }
+    else
+    {
+        Data * rawData = Luax::CheckType<Data>(L, 2);
+
+        Luax::CatchException(L, [&]() {
+            data::_Hash(func, rawData, value);
+        });
+    }
+
+    lua_pushlstring(L, value.data, value.size);
 
     return 1;
 }
@@ -366,6 +399,7 @@ int Wrap_DataModule::Register(lua_State * L)
         { "decompress",    Decompress         },
         { "decode",        Decode             },
         { "encode",        Encode             },
+        { "hash",          Hash               },
         { "newDataView",   NewDataView        },
 
         { "pack",          Pack               },

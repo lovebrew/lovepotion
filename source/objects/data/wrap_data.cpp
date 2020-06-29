@@ -37,9 +37,9 @@ Data * Wrap_Data::CheckData(lua_State * L, int index)
 
 luaL_Reg Wrap_Data::functions[4] =
 {
-    { "clone",        GetPointer   },
-    { "getFilename",  GetSize      },
-    { "getExtension", GetString    },
+    { "getPointer",   GetPointer   },
+    { "getSize",      GetSize      },
+    { "getString",    GetString    },
     { 0,              0            }
 };
 

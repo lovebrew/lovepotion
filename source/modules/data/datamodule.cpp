@@ -5,14 +5,14 @@ namespace
 {
     static const char hexchars[] = "0123456789abcdef";
 
-    char *bytesToHex(const uint8_t * src, size_t srclen, size_t & dstlen)
+    char * bytesToHex(const uint8_t * src, size_t srclen, size_t & dstlen)
     {
         dstlen = srclen * 2;
 
         if (dstlen == 0)
             return nullptr;
 
-        char *dst = nullptr;
+        char * dst = nullptr;
 
         try
         {
@@ -87,6 +87,34 @@ namespace
 
 namespace love::data
 {
+    std::string _Hash(HashFunction::Function func, Data * input)
+    {
+        return _Hash(func, (const char *)input->GetData(), input->GetSize());
+    }
+
+    std::string _Hash(HashFunction::Function func, const char * input, uint64_t size)
+    {
+        HashFunction::Value output;
+        _Hash(func, input, size, output);
+
+        return std::string(output.data, output.size);
+    }
+
+    void _Hash(HashFunction::Function func, Data * input, HashFunction::Value & output)
+    {
+        _Hash(func, (const char *)input->GetData(), input->GetSize(), output);
+    }
+
+    void _Hash(HashFunction::Function func, const char * input, uint64_t size, HashFunction::Value & output)
+    {
+        HashFunction * function = HashFunction::GetHashFunction(func);
+
+        if (function == nullptr)
+            throw love::Exception("Invalid hash function.");
+
+        function->Hash(func, input, size, output);
+    }
+
     CompressedData * _Compress(Compressor::Format format, const char * rawBytes, size_t rawSize, int level)
     {
         Compressor * compressor = Compressor::GetCompressor(format);

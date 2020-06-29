@@ -8,6 +8,8 @@
 
 #include "common/base64.h"
 
+#include "modules/data/hashfunction/hashfunction.h"
+
 namespace love
 {
     namespace data
@@ -25,6 +27,14 @@ namespace love
             CONTAINER_STRING,
             CONTAINER_MAX_ENUM
         };
+
+        std::string _Hash(HashFunction::Function func, Data * input);
+
+        std::string _Hash(HashFunction::Function func, const char * input, uint64_t size);
+
+        void _Hash(HashFunction::Function func, Data * input, HashFunction::Value & output);
+
+        void _Hash(HashFunction::Function func, const char * input, uint64_t size, HashFunction::Value & output);
 
         char * _Encode(EncodeFormat format, const char * src, size_t srcLength, size_t & dstLength, size_t lineLength = 0);
 

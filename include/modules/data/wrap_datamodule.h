@@ -21,6 +21,8 @@ namespace Wrap_DataModule
 
     int NewDataView(lua_State * L);
 
+    int Hash(lua_State * L);
+
     int Compress(lua_State * L);
 
     int Decompress(lua_State * L);

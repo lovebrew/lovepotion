@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "common/base64.h"
 
+using namespace love;
+
 // Translation table as described in RFC1113
 static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -16,7 +18,7 @@ static void b64_encode_block(char in[3], char out[4], int len)
     out[3] = (char)(len > 2 ? cb64[(int)(in[2] & 0x3f)] : '=');
 }
 
-char * b64_encode(const char * src, size_t srclen, size_t linelen, size_t & dstlen)
+char * love::b64_encode(const char * src, size_t srclen, size_t linelen, size_t & dstlen)
 {
     if (linelen == 0)
         linelen = std::numeric_limits<size_t>::max();
@@ -91,7 +93,7 @@ static void b64_decode_block(char in[4], char out[3])
     out[2] = (char)(((in[2] << 6) & 0xc0) | in[3]);
 }
 
-char * b64_decode(const char * src, size_t srclen, size_t & size)
+char * love::b64_decode(const char * src, size_t srclen, size_t & size)
 {
     size_t paddedsize = (srclen / 4) * 3;
 

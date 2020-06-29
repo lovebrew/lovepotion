@@ -3,10 +3,10 @@
 #include "common/exception.h"
 #include "common/stringmap.h"
 
-#include <zlib.h>
-
 #include "lz4/lz4.h"
 #include "lz4/lz4hc.h"
+
+#include <zlib.h>
 
 namespace love
 {
