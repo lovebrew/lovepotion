@@ -39,7 +39,7 @@ FileData::FileData(const FileData & content) : data(nullptr),
     {
         this->data = new char[(size_t)size];
     }
-    catch(std::bad_alloc &)
+    catch (std::bad_alloc &)
     {
         throw love::Exception("Out of memory.");
     }
