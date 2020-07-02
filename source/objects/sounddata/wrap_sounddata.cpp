@@ -63,6 +63,52 @@ int Wrap_SoundData::GetSampleRate(lua_State * L)
     return 1;
 }
 
+int Wrap_SoundData::SetSample(lua_State * L)
+{
+    SoundData * self = Wrap_SoundData::CheckSoundData(L, 1);
+
+    int i = (int)luaL_checkinteger(L, 2);
+
+    if (lua_gettop(L) > 3)
+    {
+        int channel = luaL_checkinteger(L, 3);
+        float sample = (float)luaL_checknumber(L, 4);
+
+        Luax::CatchException(L, [&]() {
+            self->SetSample(i, channel, sample);
+        });
+    }
+    else
+    {
+        float sample = (float)luaL_checknumber(L, 3);
+
+        Luax::CatchException(L, [&]() {
+            self->SetSample(i, sample);
+        });
+    }
+
+    return 0;
+}
+
+int Wrap_SoundData::GetSample(lua_State * L)
+{
+    SoundData * self = Wrap_SoundData::CheckSoundData(L, 1);
+    int i = (int)luaL_checkinteger(L, 2);
+
+    if (lua_gettop(L) > 2)
+    {
+        int channel = luaL_checkinteger(L, 3);
+
+        Luax::CatchException(L, [&]() {
+            lua_pushnumber(L, self->GetSample(i, channel));
+        });
+    }
+    else
+        Luax::CatchException(L, [&]() { self->GetSample(i); });
+
+    return 1;
+}
+
 SoundData * Wrap_SoundData::CheckSoundData(lua_State * L, int index)
 {
     return Luax::CheckType<SoundData>(L, index);
@@ -78,6 +124,8 @@ int Wrap_SoundData::Register(lua_State * L)
         { "getDuration",     GetDuration     },
         { "getSampleCount",  GetSampleCount  },
         { "getSampleRate",   GetSampleRate   },
+        { "setSample",       SetSample       },
+        { "getSample",       GetSample       },
         { 0, 0 }
     };
 

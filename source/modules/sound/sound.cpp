@@ -61,3 +61,13 @@ SoundData * Sound::NewSoundData(Decoder * decoder)
 {
     return new SoundData(decoder);
 }
+
+SoundData * Sound::NewSoundData(int samples, int sampleRate, int bitDepth, int channels)
+{
+    return new SoundData(samples, sampleRate, bitDepth, channels);
+}
+
+SoundData * Sound::NewSoundData(void * data, int samples, int sampleRate, int bitDepth, int channels)
+{
+
+}

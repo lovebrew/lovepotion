@@ -16,6 +16,10 @@ namespace Wrap_SoundData
 
     int GetSampleRate(lua_State * L);
 
+    int GetSample(lua_State * L);
+
+    int SetSample(lua_State * L);
+
     love::SoundData * CheckSoundData(lua_State * L, int index);
 
     int Register(lua_State * L);

@@ -59,6 +59,24 @@ SoundData::SoundData(const SoundData & other) : data(0),
     this->Load(other.GetSampleCount(), other.GetSampleRate(), other.GetBitDepth(), other.GetChannelCount(), other.GetData());
 }
 
+SoundData::SoundData(int samples, int sampleRate, int bitDepth, int channels) : data(0),
+                                                                                size(0),
+                                                                                sampleRate(0),
+                                                                                bitDepth(0),
+                                                                                channels(0)
+{
+    this->Load(samples, sampleRate, bitDepth, channels);
+}
+
+SoundData::SoundData(void * data, int samples, int sampleRate, int bitDepth, int channels) : data(0),
+                                                                                             size(0),
+                                                                                             sampleRate(0),
+                                                                                             bitDepth(0),
+                                                                                             channels(0)
+{
+    this->Load(samples, sampleRate, bitDepth, channels, data);
+}
+
 SoundData::~SoundData()
 {
     if (this->data != 0)
@@ -145,4 +163,53 @@ int SoundData::GetSampleCount() const
 float SoundData::GetDuration() const
 {
     return float(this->size) / (this->channels * this->sampleRate * this->bitDepth / 8);
+}
+
+void SoundData::SetSample(int i, float sample)
+{
+    if (i < 0 || (size_t)i >= this->size / (this->bitDepth / 8))
+        throw love::Exception("Attempt to set out-of-range sample!");
+
+    /*
+    ** 16-bit sample values are signed
+    ** 8-bit sample values are unsigned internally.
+    */
+
+    if (bitDepth == 16)
+    {
+        int16_t * ptrSample = (int16_t *)this->data;
+        ptrSample[i] = (int16_t)(sample * (float)std::numeric_limits<int16_t>::max());
+    }
+    else
+        this->data[i] = (uint8_t)((sample * 127.0f) + 128.0f);
+}
+
+void SoundData::SetSample(int i, int channel, float sample)
+{
+    if (channel < 1 || channel > this->channels)
+        throw love::Exception("Attempt to set sample from out-of-range channel!");
+
+    return this->SetSample(i * this->channels + (channel - 1), sample);
+}
+
+float SoundData::GetSample(int i) const
+{
+    if (i < 0 || (size_t)i >= this->size / (this->bitDepth / 8))
+        throw love::Exception("Attempt to get out-of-range sample!");
+
+    if (this->bitDepth == 16)
+    {
+        int16_t * ptrSample = (int16_t * )this->data;
+        return (float)ptrSample[i] / (float)std::numeric_limits<int16_t>::max();
+    }
+    else
+        return ((float)this->data[i] - 128.0f) / 127.0f;
+}
+
+float SoundData::GetSample(int i, int channel) const
+{
+    if (channel < 1 || channel > this->channels)
+        throw love::Exception("Attempt to get sample from out-of-range channel!");
+
+    return this->GetSample(i * this->channels + (channel - 1));
 }
