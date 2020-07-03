@@ -83,7 +83,7 @@ int Love::Initialize(lua_State * L)
     Love::modules =
     {{
         { "love.audio",       Wrap_Audio::Register        },
-        { "love.data",        Wrap_Data::Register,        },
+        { "love.data",        Wrap_DataModule::Register   },
         { "love.event",       Wrap_Event::Register,       },
         { "love.graphics",    Wrap_Graphics::Register,    },
         { "love.filesystem",  Wrap_Filesystem::Register,  },

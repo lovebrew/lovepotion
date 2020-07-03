@@ -24,5 +24,9 @@ namespace love
             Decoder * NewDecoder(love::FileData * data, int bufferSize);
 
             SoundData * NewSoundData(Decoder * decoder);
+
+            SoundData * NewSoundData(int samples, int sampleRate, int bitDepth, int channels);
+
+            SoundData * NewSoundData(void * data, int samples, int sampleRate, int bitDepth, int channels);
     };
 }

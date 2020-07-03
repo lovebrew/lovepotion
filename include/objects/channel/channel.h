@@ -51,4 +51,6 @@ namespace love
             uint64_t sent;
             uint64_t received;
     };
+
+    int Wrap_Channel_PerformAtomic(lua_State *);
 }

@@ -10,6 +10,9 @@ namespace love
             static love::Type type;
 
             SoundData(Decoder * decoder);
+            SoundData(int samples, int sampleRate, int bitDepth, int channels);
+            SoundData(void * data, int samples, int sampleRate, int bitDepth, int channels);
+
             SoundData(const SoundData & other);
 
             ~SoundData();
@@ -30,6 +33,14 @@ namespace love
 
             float GetDuration() const;
 
+            void SetSample(int i, float sample);
+
+            void SetSample(int i, int channel, float sample);
+
+            float GetSample(int i) const;
+
+            float GetSample(int i, int channel) const;
+
         private:
             uint8_t * data;
             size_t size;
@@ -38,6 +49,6 @@ namespace love
             int bitDepth;
             int channels;
 
-            void Load(int samples, int sampleRate, int bitDepth, int channels, void * newData);
+            void Load(int samples, int sampleRate, int bitDepth, int channels, void * newData = 0);
     };
 }

@@ -3,6 +3,7 @@
 3ds-mpg123
 3ds-physfs
 3ds-pkg-config
+3ds-zlib
 3dslink
 3dstools
 citro2d
@@ -13,7 +14,6 @@ devkitA64
 devkitARM
 devkitarm-crtls
 devkitarm-rules
-devkitpro-keyring
 devkitpro-pkgbuild-helpers
 general-tools
 libctru
@@ -29,5 +29,6 @@ switch-sdl2_gfx
 switch-sdl2_image
 switch-sdl2_ttf
 switch-tools
+switch-zlib
 tex3ds
 uam

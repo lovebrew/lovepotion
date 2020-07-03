@@ -32,14 +32,14 @@ int Wrap_Sound::NewSoundData(lua_State * L)
 
     if (lua_isnumber(L, 1))
     {
-        // int samples = (int)luaL_checkinteger(L, 1);
-        // int sampleRate = (int)luaL_checkinteger(L, 2);
-        // int bitDepth = (int)luaL_checkinteger(L, 3);
-        // int channels = (int)luaL_checkinteger(L, 4);
+        int samples = (int)luaL_checkinteger(L, 1);
+        int sampleRate = (int)luaL_checkinteger(L, 2);
+        int bitDepth = (int)luaL_checkinteger(L, 3);
+        int channels = (int)luaL_checkinteger(L, 4);
 
-        // Luax::CatchException(L, [&]() {
-        //     data = instance()->NewSoundData(samples, sampleRate, bitDepth, channels);
-        // });
+        Luax::CatchException(L, [&]() {
+            data = instance()->NewSoundData(samples, sampleRate, bitDepth, channels);
+        });
     }
     else
     {
