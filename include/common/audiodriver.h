@@ -20,6 +20,12 @@ namespace love::AudrenDriver
 
     void Exit();
 
+    #if defined (_3DS)
+        extern LightEvent ndspEvent;
+
+        void Callback(void * data);
+    #endif
+
     template <typename T>
     void LockFunction(const T & func)
     {

@@ -57,14 +57,14 @@ WaveDecoder::WaveDecoder(Data * data, int bufferSize) : Decoder(data, bufferSize
             throw love::Exception("Could not retrieve WAVE stream info.");
 
         if (this->info.channels > 2)
-            throw love::Exception("Multichannel WAVE audio not supported");
+            throw love::Exception("Multichannel WAVE audio not supported.");
 
         if (info.format != WUFF_FORMAT_PCM_U8 && info.format != WUFF_FORMAT_PCM_S16)
         {
             status = wuff_format(this->handle, WUFF_FORMAT_PCM_S16);
 
             if (status < 0)
-                throw love::Exception("Could not set WAVE output format");
+                throw love::Exception("Could not set WAVE output format.");
         }
     }
     catch(love::Exception & e)

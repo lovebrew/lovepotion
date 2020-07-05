@@ -149,7 +149,7 @@ bool Source::Play()
     if (!this->pool->AssignSource(this, this->channel, wasPlaying))
         return valid = false;
 
-    if (!this->IsPlaying())
+    if (!wasPlaying)
         return this->valid = this->PlayAtomic();
 
     this->ResumeAtomic();
@@ -170,15 +170,16 @@ bool Source::PlayAtomic()
 
     success = true;
 
+    //isPlaying() needs source to be valid
     if (this->sourceType == TYPE_STREAM)
     {
         this->valid = true;
-        svcSleepThread(5000000);
 
         if (!this->IsPlaying())
             success = false;
     }
 
+    //stop() needs source to be valid
     if (!success)
     {
         this->valid = true;
