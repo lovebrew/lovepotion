@@ -165,7 +165,7 @@ bool Source::IsFinished() const
     if (!this->valid)
         return false;
 
-    if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
+    if (this->sourceType == TYPE_STREAM && (this->IsLooping() || !this->decoder->IsFinished()))
         return false;
 
     return ndspChnIsPlaying(this->channel) == false;
