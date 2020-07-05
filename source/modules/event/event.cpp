@@ -3,17 +3,10 @@
 #include "modules/touch/touch.h"
 #include "modules/event/event.h"
 
-void love::Event::Clear()
-{
-    while (!this->queue.empty())
-    {
-        this->queue.front()->Release();
-        this->queue.pop();
-    }
-}
-
 void love::Event::Pump()
 {
+    LOVE_Event event;
+
     while (Input::PollEvent(&event))
     {
         Message * message = nullptr;
@@ -113,8 +106,21 @@ void love::Event::Pump()
     }
 }
 
+void love::Event::Clear()
+{
+    thread::Lock lock(this->mutex);
+
+    while (!this->queue.empty())
+    {
+        this->queue.front()->Release();
+        this->queue.pop();
+    }
+}
+
 bool love::Event::Poll(Message *& message)
 {
+    thread::Lock lock(this->mutex);
+
     if (this->queue.empty())
         return false;
 
@@ -126,6 +132,8 @@ bool love::Event::Poll(Message *& message)
 
 void love::Event::Push(Message * message)
 {
+    thread::Lock lock(this->mutex);
+
     message->Retain();
     this->queue.push(message);
 }

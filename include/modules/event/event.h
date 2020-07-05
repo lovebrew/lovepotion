@@ -27,7 +27,7 @@ namespace love
             bool Quit();
 
         private:
-            LOVE_Event event;
+            love::thread::MutexRef mutex;
             std::queue<Message *> queue;
     };
 }

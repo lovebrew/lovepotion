@@ -16,7 +16,7 @@ void AudrenDriver::Initialize()
     else
         audioInit = true;
 
-    LightEvent_Init(&AudrenDriver::ndspEvent, ResetType::RESET_STICKY);
+    LightEvent_Init(&AudrenDriver::ndspEvent, ResetType::RESET_ONESHOT);
 
     ndspSetCallback(AudrenDriver::Callback, nullptr);
 }
