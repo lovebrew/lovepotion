@@ -1,5 +1,8 @@
 #include "common/runtime.h"
+#include "common/backend/input.h"
+
 #include "modules/love.h"
+
 
 DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 {

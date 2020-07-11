@@ -33,7 +33,7 @@ struct Resize
 {
     int width;
     int height;
-}
+};
 
 struct LOVE_Event
 {
