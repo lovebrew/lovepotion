@@ -29,6 +29,12 @@ struct Finger
     double pressure;
 };
 
+struct Resize
+{
+    int width;
+    int height;
+}
+
 struct LOVE_Event
 {
     int type;
@@ -37,6 +43,7 @@ struct LOVE_Event
     GamePadButton button;
     GamePadAxis axis;
     Finger touch;
+    Resize size;
 };
 
 enum LOVE_EventType
@@ -47,7 +54,11 @@ enum LOVE_EventType
     LOVE_TOUCHPRESS,
     LOVE_TOUCHRELEASE,
     LOVE_TOUCHMOVED,
-    LOVE_LOWMEMORY
+    LOVE_LOWMEMORY,
+    LOVE_FOCUS_GAINED,
+    LOVE_FOCUS_LOST,
+    LOVE_RESIZE,
+    LOVE_QUIT
 };
 
 #if defined (_3DS)
@@ -81,6 +92,9 @@ namespace Input
     inline bool touchHeld = false;
     inline u32 prevTouchCount = 0;
 
+    inline bool hasFocus  = true;
+    inline bool prevFocus = false;
+
     /* Functions */
 
     template <typename T>
@@ -97,4 +111,40 @@ namespace Input
     inline T GetKeyHeld() {
         return std::get<T>(held);
     }
+
+    inline void SendFocus(bool focus) {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = focus ? LOVE_FOCUS_GAINED : LOVE_FOCUS_LOST;
+    }
+
+    inline void SendQuit() {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_QUIT;
+    }
+
+    inline void SendLowMemory() {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_LOWMEMORY;
+    }
+
+    inline void SendResize(int width, int height) {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_RESIZE;
+        e.size.width = width;
+        e.size.height = height;
+    }
+
+    #if defined (_3DS)
+        void CheckFocus(APT_HookType type, void * param);
+    #elif defined (__SWITCH__)
+        void CheckFocus();
+    #endif
 };

@@ -9,6 +9,23 @@ std::unordered_map<std::string, int> Input::buttons =
     { "leftshoulder", KEY_L }, { "back", KEY_SELECT }, { "start", KEY_START}
 };
 
+void Input::CheckFocus(APT_HookType type, void * param)
+{
+    switch (type)
+    {
+        case APTHOOK_ONRESTORE:
+        case APTHOOK_ONWAKEUP:
+            Input::SendFocus(true);
+            break;
+        case APTHOOK_ONSUSPEND:
+        case APTHOOK_ONSLEEP:
+            Input::SendFocus(false);
+            break;
+        default:
+            break;
+    }
+}
+
 bool Input::PollEvent(LOVE_Event * event)
 {
     if (!s_inputEvents.empty())

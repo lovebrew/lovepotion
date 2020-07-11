@@ -3,10 +3,6 @@
 #include <citro2d.h>
 #include <3ds.h>
 
-#define appletMainLoop aptMainLoop
-
-#define romfsMountFromFsdev(path, offset, name)
-
 #define MAX_GAMEPADS 1
 
 #define GetMasterVolume

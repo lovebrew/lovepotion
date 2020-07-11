@@ -10,6 +10,61 @@ std::unordered_map<std::string, int> Input::buttons =
     { "start", KEY_PLUS }
 };
 
+void Input::CheckFocus()
+{
+    bool focused = (appletGetFocusState() == AppletFocusState_Focused);
+
+    u32 message = 0;
+    Result res = appletGetMessage(&message);
+
+    if (R_SUCCEEDED(res))
+    {
+        bool shouldClose = !appletProcessMessage(message);
+
+        if (shouldClose)
+        {
+            Input::SendQuit();
+            return;
+        }
+
+        switch (message)
+        {
+            case AppletMessage_FocusStateChanged:
+            {
+                bool oldFocus = focused;
+                AppletFocusState state = appletGetFocusState();
+                focused = (state == AppletFocusState_Focused);
+
+                Input::SendFocus(focused);
+
+                // don't want focus to be the same
+                if (focused == oldFocus)
+                    break;
+
+                if (focused)
+                    appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
+                else
+                    appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleepNotify);
+
+                break;
+            }
+            case AppletMessage_OperationModeChanged:
+            {
+                AppletOperationMode mode = appletGetOperationMode();
+
+                if (mode == AppletOperationMode_Handheld)
+                    Input::SendResize(1280, 720);
+                else if (mode == AppletOperationMode_Docked)
+                    Input::SendResize(1920, 1080)
+
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
 bool Input::PollEvent(LOVE_Event * event)
 {
     if (!s_inputEvents.empty())
@@ -123,6 +178,11 @@ bool Input::PollEvent(LOVE_Event * event)
             e.button.which = 0;
         }
     }
+
+    /* Applet Focus Handling */
+    Input::CheckFocus();
+
+    /* Joystick Values */
 
     JoystickPosition lStick;
     JoystickPosition rStick;

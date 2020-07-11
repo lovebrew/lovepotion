@@ -3,6 +3,31 @@
 #include "modules/touch/touch.h"
 #include "modules/event/event.h"
 
+#if defined (_3DS)
+    aptHookCookie s_aptHookCookie;
+#endif
+
+
+love::Event::Event()
+{
+    #if defined (_3DS)
+        aptHook(&s_aptHookCookie, Input::CheckFocus, nullptr);
+    #elif defined (__SWITCH__)
+        appletLockExit();
+        appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
+    #endif
+}
+
+love::Event::~Event()
+{
+    #if defined (_3DS)
+        aptUnhook(&s_aptHookCookie);
+    #elif defined (__SWITCH__)
+        appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleep);
+        appletUnlockExit();
+    #endif
+}
+
 void love::Event::Pump()
 {
     LOVE_Event event;
@@ -94,6 +119,14 @@ void love::Event::Pump()
 
                 break;
             }
+            case LOVE_FOCUS_GAINED:
+            case LOVE_FOCUS_LOST:
+                vargs.emplace_back(event.type == LOVE_FOCUS_GAINED);
+                message = new Message("focus", vargs);
+                break;
+            case LOVE_QUIT:
+                message = new Message("quit");
+                break;
             default:
                 break;
         }
