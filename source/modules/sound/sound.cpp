@@ -69,5 +69,5 @@ SoundData * Sound::NewSoundData(int samples, int sampleRate, int bitDepth, int c
 
 SoundData * Sound::NewSoundData(void * data, int samples, int sampleRate, int bitDepth, int channels)
 {
-
+    return new SoundData(data, samples, sampleRate, bitDepth, channels);
 }

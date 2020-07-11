@@ -55,7 +55,7 @@ void Input::CheckFocus()
                 if (mode == AppletOperationMode_Handheld)
                     Input::SendResize(1280, 720);
                 else if (mode == AppletOperationMode_Docked)
-                    Input::SendResize(1920, 1080)
+                    Input::SendResize(1920, 1080);
 
                 break;
             }
