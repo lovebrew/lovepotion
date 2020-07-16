@@ -38,7 +38,7 @@ std::string Horizon::GetUsername()
 
     u16 utf16_username[USERNAME_LENGTH] = {0};
 
-    CFGU_GetConfigInfoBlk2(USERNAME_LENGTH, 0x000A0000, (u8 *)utf16_username);
+    CFGU_GetConfigInfoBlk2(USERNAME_LENGTH, 0x000A0000, utf16_username);
 
     ssize_t utf8_len = utf16_to_utf8(NULL, utf16_username, 0);
 
