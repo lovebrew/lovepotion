@@ -76,13 +76,7 @@ DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 
 int main(int argc, char * argv[])
 {
-    #if defined (_3DS)
-        userAppInit();
-    #endif
-
     Logger::Initialize();
-
-    std::string path;
 
     DoneAction done = DONE_QUIT;
     int retval = 0;
@@ -91,11 +85,6 @@ int main(int argc, char * argv[])
     {
         done = Run_Love_Potion(argc, argv, retval);
     } while (done != DoneAction::DONE_QUIT);
-
-    #if defined (_3DS)
-        Input::SendQuit();
-        userAppExit();
-    #endif
 
     Logger::Exit();
 
