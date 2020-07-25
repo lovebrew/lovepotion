@@ -2,6 +2,8 @@
 
 using namespace love;
 
+#define FROM_LUA_ERROR "Argument %d can't be stored safely\nExpected boolean, number, string or userdata."
+
 Message::Message(const std::string & name, const std::vector<Variant> & args) : name(name), args(args)
 {}
 
@@ -30,7 +32,8 @@ Message * Message::FromLua(lua_State * L, int index)
         if (vargs.back().GetType() == Variant::UNKNOWN)
         {
             vargs.clear();
-            luaL_error(L, "Argument %d can't be stored safely\nExpected boolean, number, string or userdata.", index + i);
+            luaL_error(L, FROM_LUA_ERROR, index + i);
+
             return nullptr;
         }
     }
