@@ -25,7 +25,7 @@ bool Conditional::Wait(thread::Mutex * _mutex, s64 timeout)
 {
     if (timeout < 0)
         CondVar_Wait(&this->condVar, &_mutex->mutex);
-    else if (!CondVar_WaitTimeout(&this->condVar, &_mutex->mutex, timeout))
+    else if (CondVar_WaitTimeout(&this->condVar, &_mutex->mutex, timeout))
         return false;
 
     return true;

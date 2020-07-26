@@ -1,8 +1,6 @@
 #pragma once
 
 #include "modules/thread/types/mutex.h"
-#include "modules/timer/timer.h"
-#include <atomic>
 
 namespace love::thread
 {
