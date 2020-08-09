@@ -392,21 +392,27 @@ int Wrap_Graphics::Present(lua_State * L)
 
 int Wrap_Graphics::SetScissor(lua_State * L)
 {
-    bool enabled = lua_gettop(L) == 0;
+    int argCount = lua_gettop(L);
 
-    if (enabled)
+    if (argCount == 0 || (argCount == 4 && lua_isnil(L, 1) && lua_isnil(L, 2)
+                                        && lua_isnil(L, 3) && lua_isnil(L, 4)))
     {
-        float x = luaL_checknumber(L, 1);
-        float y = luaL_checknumber(L, 2);
+        instance()->SetScissor();
 
-        float width = luaL_checknumber(L, 3);
-        float height = luaL_checknumber(L, 4);
-
-        instance()->SetScissor(x, y, width, height);
+        return 0;
     }
 
-    Rect scissor = instance()->GetScissor();
-    Primitives::Scissor(enabled, scissor.x, scissor.y, scissor.w, scissor.h);
+    Rect rect;
+
+    rect.x = luaL_checkinteger(L, 1);
+    rect.y = luaL_checkinteger(L, 2);
+    rect.w = luaL_checkinteger(L, 3);
+    rect.h = luaL_checkinteger(L, 4);
+
+    if (rect.w < 0 || rect.h < 0)
+        return luaL_error(L, "Can't set scissor with negative width and/or height.");
+
+    instance()->SetScissor(rect);
 
     return 0;
 }

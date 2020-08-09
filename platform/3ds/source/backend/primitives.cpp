@@ -118,7 +118,7 @@ void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> 
     }
 }
 
-void Primitives::Scissor(bool enable, float x, float y, float width, float height)
+void Primitives::Scissor(bool enable, int x, int y, int width, int height)
 {
     GPU_SCISSORMODE mode = (enable) ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
 

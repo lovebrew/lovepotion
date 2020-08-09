@@ -75,11 +75,7 @@ void love::Event::Pump()
 
                 vargs.emplace_back(joystickType, gamepad);
                 vargs.emplace_back(event.axis.axis);
-
-                if (event.axis.value != -1.0f)
-                    vargs.emplace_back((float)gamepad->GetGamepadAxis(event.axis.axis));
-                else
-                    vargs.emplace_back((float)event.axis.value);
+                vargs.emplace_back((float)event.axis.value);
 
                 message = new Message("gamepadaxis", vargs);
 

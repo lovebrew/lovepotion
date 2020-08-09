@@ -76,9 +76,9 @@ void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, c
     thickLineRGBA(WINDOW_MODULE()->GetRenderer(), x1, y1, x2, y2, lineWidth, color.r, color.g, color.b, color.a);
 }
 
-void Primitives::Scissor(bool enabled, float x, float y, float width, float height)
+void Primitives::Scissor(bool enabled, int x, int y, int width, int height)
 {
-    SDL_Rect clip({x, y, width, height});
+    SDL_Rect clip = {x, y, width, height};
 
     if (!enabled)
         SDL_RenderSetClipRect(WINDOW_MODULE()->GetRenderer(), NULL);

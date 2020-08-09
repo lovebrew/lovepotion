@@ -79,7 +79,11 @@ namespace Input
     inline std::variant<u32, u64> up   = (u32)0;
     inline std::variant<u32, u64> held = (u32)0;
 
-    inline StickPosition lastPosition[2] = { { 0, 0 } };
+    struct JoystickState
+    {
+        StickPosition left;
+        StickPosition right;
+    };
 
     inline std::array<touchPosition, MAX_TOUCH> touches;
     inline std::array<touchPosition, MAX_TOUCH> prevTouches;

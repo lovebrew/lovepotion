@@ -15,7 +15,7 @@ namespace Primitives
     void Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Color & color);
 
     void Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Color & color);
- 
+
     void Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Color & color);
 
     void Polygon(const std::string & mode, std::vector<love::Graphics::Point> points, float lineWidth, const Color & color);
@@ -26,8 +26,7 @@ namespace Primitives
 
     void Points(std::vector<float> points, const Color & color);
 
-
-    void Scissor(bool enabled, float x, float y, float width, float height);
+    void Scissor(bool enabled, int x, int y, int width, int height);
 
     void Stencil();
 }

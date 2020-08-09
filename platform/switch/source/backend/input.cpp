@@ -183,14 +183,16 @@ bool Input::PollEvent(LOVE_Event * event)
     Input::CheckFocus();
 
     /* Joystick Values */
+    static JoystickState oldjoyStates[MAX_GAMEPADS];
 
     JoystickPosition lStick;
-    JoystickPosition rStick;
-
     hidJoystickRead(&lStick, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
+
+    JoystickPosition rStick;
     hidJoystickRead(&rStick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
 
-    if (lStick.dx != lastPosition[0].dx)
+    // LEFT X AXIS
+    if (oldjoyStates[0].left.dx != lStick.dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -199,12 +201,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = lStick.dx / JOYSTICK_MAX;
 
-        lastPosition[0].dx = lStick.dx;
+        oldjoyStates[0].left.dx = lStick.dx;
     }
 
-    if (lStick.dy != lastPosition[0].dy)
+    // LEFT Y AXIS
+    if (oldjoyStates[0].left.dy != lStick.dy)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -213,12 +216,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = -(lStick.dy / JOYSTICK_MAX);
 
-        lastPosition[0].dy = lStick.dy;
+        oldjoyStates[0].left.dy = lStick.dy;
     }
 
-    if (rStick.dx != lastPosition[1].dx)
+    // RIGHT X AXIS
+    if (oldjoyStates[0].right.dx != rStick.dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -227,23 +231,24 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = rStick.dx / JOYSTICK_MAX;
 
-        lastPosition[1].dx = rStick.dx;
+        oldjoyStates[0].right.dx = rStick.dx;
     }
 
-    if (rStick.dy != lastPosition[1].dy)
+    // RIGHT Y AXIS
+    if (oldjoyStates[0].right.dy != rStick.dy)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
 
         e.type = LOVE_GAMEPADAXIS;
 
-        e.axis.axis = "right";
+        e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = -(rStick.dy / JOYSTICK_MAX);
 
-        lastPosition[1].dy = rStick.dy;
+        oldjoyStates[0].right.dy = rStick.dy;
     }
 
     if (s_inputEvents.empty())

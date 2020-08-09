@@ -117,7 +117,9 @@ namespace love
 
             void GetDimensions(int * width, int * height);
 
-            void SetScissor(int x, int y, int width, int height);
+            void SetScissor(const Rect & rect);
+
+            void SetScissor();
 
             void SetDefaultFilter(const Texture::Filter & filter);
 

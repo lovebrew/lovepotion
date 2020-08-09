@@ -71,9 +71,29 @@ Rect Graphics::GetScissor()
     return this->states.back().scissorRect;
 }
 
-void Graphics::SetScissor(int x, int y, int width, int height)
+void Graphics::SetScissor()
 {
-    this->states.back().scissorRect = {x, y, width, height};
+    #if defined(_3DS)
+        if (this->states.back().scissor)
+            C2D_Flush();
+    #endif
+
+    this->states.back().scissor = false;
+    Rect rect = this->states.back().scissorRect;
+
+    Primitives::Scissor(false, rect.x, rect.y, rect.w, rect.h);
+}
+
+void Graphics::SetScissor(const Rect & rect)
+{
+    #if defined(_3DS)
+        C2D_Flush();
+    #endif
+
+    this->states.back().scissor = true;
+    this->states.back().scissorRect = rect;
+
+    Primitives::Scissor(true, rect.x, rect.y, rect.w, rect.h);
 }
 
 void Graphics::SetDefaultFilter(const Texture::Filter & filter)
@@ -265,6 +285,11 @@ void Graphics::RestoreState(const DisplayState & state)
     this->SetColor(state.foreground);
     this->SetBackgroundColor(state.background);
     this->SetFont(state.font);
+
+    if (state.scissor)
+        this->SetScissor(state.scissorRect);
+    else
+        this->SetScissor();
 }
 
 /* Font */
