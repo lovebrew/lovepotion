@@ -500,6 +500,7 @@ function love.boot()
 
     if not can_has_game then
         can_no_game = pcall(love.filesystem.setSource, "romfs:/")
+        love.filesystem.setFused(true)
     end
 end
 

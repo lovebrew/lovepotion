@@ -36,7 +36,7 @@ float Gamepad::GetAxis(size_t axis)
 
         value = value / (float)JOYSTICK_MAX;
 
-        return value
+        return value;
     }
     else if (axis == 5)
     {
