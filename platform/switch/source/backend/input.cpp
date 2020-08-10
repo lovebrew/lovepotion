@@ -10,6 +10,8 @@ std::unordered_map<std::string, int> Input::buttons =
     { "start", KEY_PLUS }
 };
 
+static Input::JoystickState joystick[MAX_GAMEPADS];
+
 void Input::CheckFocus()
 {
     bool focused = (appletGetFocusState() == AppletFocusState_Focused);
@@ -180,7 +182,56 @@ bool Input::PollEvent(LOVE_Event * event)
     }
 
     /* Applet Focus Handling */
+
     Input::CheckFocus();
+
+    /* ZL / Left Trigger */
+
+    if (Input::GetKeyDown<u64>() & KEY_ZL)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerleft";
+        e.axis.which = 0;
+        e.axis.value = 1.0f;
+    }
+
+    if (Input::GetKeyUp<u64>() & KEY_ZL)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerleft";
+        e.axis.which = 0;
+        e.axis.value = 0.0f;
+    }
+
+    /*  ZR / Right Trigger */
+
+    if (Input::GetKeyDown<u64>() & KEY_ZR)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerright";
+        e.axis.which = 0;
+        e.axis.value = 1.0f;
+    }
+
+    if (Input::GetKeyUp<u64>() & KEY_ZR)
+    {
+        s_inputEvents.emplace_back();
+        auto & e = s_inputEvents.back();
+
+        e.type = LOVE_GAMEPADAXIS;
+        e.axis.axis = "triggerright";
+        e.axis.which = 0;
+        e.axis.value = 0.0f;
+    }
 
     /* Joystick Values */
     static JoystickState oldjoyStates[MAX_GAMEPADS];
@@ -191,8 +242,8 @@ bool Input::PollEvent(LOVE_Event * event)
     JoystickPosition rStick;
     hidJoystickRead(&rStick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
 
-    // LEFT X AXIS
-    if (oldjoyStates[0].left.dx != lStick.dx)
+        // LEFT X AXIS
+    if (oldjoyStates[0].left.dx != joystick[0].left.dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -201,13 +252,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = lStick.dx / JOYSTICK_MAX;
+        e.axis.value = joystick[0].left.dx / JOYSTICK_MAX;
 
-        oldjoyStates[0].left.dx = lStick.dx;
+        oldjoyStates[0].left.dx = joystick[0].left.dx;
     }
 
     // LEFT Y AXIS
-    if (oldjoyStates[0].left.dy != lStick.dy)
+    if (oldjoyStates[0].left.dy != joystick[0].left.dy)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -216,13 +267,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -(lStick.dy / JOYSTICK_MAX);
+        e.axis.value = -(joystick[0].left.dy / JOYSTICK_MAX);
 
-        oldjoyStates[0].left.dy = lStick.dy;
+        oldjoyStates[0].left.dy = joystick[0].left.dy;
     }
 
     // RIGHT X AXIS
-    if (oldjoyStates[0].right.dx != rStick.dx)
+    if (oldjoyStates[0].right.dx != joystick[0].right.dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -231,13 +282,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = rStick.dx / JOYSTICK_MAX;
+        e.axis.value = joystick[0].right.dx / JOYSTICK_MAX;
 
-        oldjoyStates[0].right.dx = rStick.dx;
+        oldjoyStates[0].right.dx = joystick[0].right.dx;
     }
 
     // RIGHT Y AXIS
-    if (oldjoyStates[0].right.dy != rStick.dy)
+    if (oldjoyStates[0].right.dy != joystick[0].right.dy)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -246,9 +297,9 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -(rStick.dy / JOYSTICK_MAX);
+        e.axis.value = -(joystick[0].right.dy / JOYSTICK_MAX);
 
-        oldjoyStates[0].right.dy = rStick.dy;
+        oldjoyStates[0].right.dy = joystick[0].right.dy;
     }
 
     if (s_inputEvents.empty())

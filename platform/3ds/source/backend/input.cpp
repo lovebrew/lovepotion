@@ -9,6 +9,8 @@ std::unordered_map<std::string, int> Input::buttons =
     { "leftshoulder", KEY_L }, { "back", KEY_SELECT }, { "start", KEY_START}
 };
 
+static Input::JoystickState joystick[MAX_GAMEPADS];
+
 void Input::CheckFocus(APT_HookType type, void * param)
 {
     switch (type)
@@ -144,12 +146,6 @@ bool Input::PollEvent(LOVE_Event * event)
 
     /* Gamepad Callbacks */
 
-    circlePosition lStick;
-    circlePosition rStick;
-
-    hidCircleRead(&lStick);
-    irrstCstickRead(&rStick);
-
     /* ZL / Left Trigger */
 
     if (Input::GetKeyDown<u32>() & KEY_ZL)
@@ -198,9 +194,13 @@ bool Input::PollEvent(LOVE_Event * event)
         e.axis.value = 0.0f;
     }
 
-    /* Left Stick */
+    static JoystickState oldjoyStates[MAX_GAMEPADS];
 
-    if (lStick.dx != lastPosition[0].dx)
+    hidCircleRead(&joystick[0].left);
+    irrstCstickRead(&joystick[0].right);
+
+    // LEFT X AXIS
+    if (oldjoyStates[0].left.dx != joystick[0].left.dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -209,12 +209,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = joystick[0].left.dx / JOYSTICK_MAX;
 
-        lastPosition[0].dx = lStick.dx;
+        oldjoyStates[0].left.dx = joystick[0].left.dx;
     }
 
-    if (lStick.dy != lastPosition[0].dy)
+    // LEFT Y AXIS
+    if (oldjoyStates[0].left.dy != joystick[0].left.dy)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -223,14 +224,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = -(joystick[0].left.dy / JOYSTICK_MAX);
 
-        lastPosition[0].dy = lStick.dy;
+        oldjoyStates[0].left.dy = joystick[0].left.dy;
     }
 
-    // /* Right Stick */
-
-    if (rStick.dx != lastPosition[1].dx)
+    // RIGHT X AXIS
+    if (oldjoyStates[0].right.dx != joystick[0].right.dx)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -239,23 +239,24 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = joystick[0].right.dx / JOYSTICK_MAX;
 
-        lastPosition[1].dx = rStick.dx;
+        oldjoyStates[0].right.dx = joystick[0].right.dx;
     }
 
-    if (rStick.dy != lastPosition[1].dy)
+    // RIGHT Y AXIS
+    if (oldjoyStates[0].right.dy != joystick[0].right.dy)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
 
         e.type = LOVE_GAMEPADAXIS;
 
-        e.axis.axis = "right";
+        e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -1.0f;
+        e.axis.value = -(joystick[0].right.dy / JOYSTICK_MAX);
 
-        lastPosition[1].dy = rStick.dy;
+        oldjoyStates[0].right.dy = joystick[0].right.dy;
     }
 
     if (s_inputEvents.empty())
