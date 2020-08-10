@@ -236,13 +236,10 @@ bool Input::PollEvent(LOVE_Event * event)
     /* Joystick Values */
     static JoystickState oldjoyStates[MAX_GAMEPADS];
 
-    JoystickPosition lStick;
-    hidJoystickRead(&lStick, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
+    hidJoystickRead(&joystick[0].left, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
+    hidJoystickRead(&joystick[0].right, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
 
-    JoystickPosition rStick;
-    hidJoystickRead(&rStick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
-
-        // LEFT X AXIS
+    // LEFT X AXIS
     if (oldjoyStates[0].left.dx != joystick[0].left.dx)
     {
         s_inputEvents.emplace_back();
@@ -252,7 +249,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].left.dx / JOYSTICK_MAX;
+        e.axis.value = joystick[0].left.dx / (float)JOYSTICK_MAX;
 
         oldjoyStates[0].left.dx = joystick[0].left.dx;
     }
@@ -267,7 +264,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].left.dy / JOYSTICK_MAX);
+        e.axis.value = -(joystick[0].left.dy / (float)JOYSTICK_MAX);
 
         oldjoyStates[0].left.dy = joystick[0].left.dy;
     }
@@ -282,7 +279,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].right.dx / JOYSTICK_MAX;
+        e.axis.value = joystick[0].right.dx / (float)JOYSTICK_MAX;
 
         oldjoyStates[0].right.dx = joystick[0].right.dx;
     }
@@ -297,7 +294,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].right.dy / JOYSTICK_MAX);
+        e.axis.value = -(joystick[0].right.dy / (float)JOYSTICK_MAX);
 
         oldjoyStates[0].right.dy = joystick[0].right.dy;
     }
