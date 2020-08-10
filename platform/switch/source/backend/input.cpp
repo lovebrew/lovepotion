@@ -7,7 +7,7 @@ std::unordered_map<std::string, int> Input::buttons =
     { "dpright", KEY_DRIGHT }, { "dpleft", KEY_DLEFT }, { "dpup", KEY_DUP },
     { "dpdown", KEY_DDOWN }, { "rightshoulder", KEY_R }, { "leftshoulder", KEY_L },
     { "leftstick", KEY_LSTICK }, { "rightstick", KEY_RSTICK }, { "back", KEY_MINUS },
-    { "start", KEY_PLUS }
+    { "start", KEY_PLUS}, { "sideleft", KEY_SL }, { "sideright", KEY_SR }
 };
 
 static Input::JoystickState joystick[MAX_GAMEPADS];

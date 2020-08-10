@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined (_3DS)
-    #define JOYSTICK_MAX 150.0f
+    inline constexpr float JOYSTICK_MAX = 150.0f;
     typedef circlePosition StickPosition;
 #elif defined (__SWITCH__)
     typedef JoystickPosition StickPosition;
