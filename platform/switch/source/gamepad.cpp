@@ -34,9 +34,9 @@ float Gamepad::GetAxis(size_t axis)
                 value = stick.dy;
         }
 
-        value = value / JOYSTICK_MAX;
+        value = value / (float)JOYSTICK_MAX;
 
-        return std::clamp(value, -1.0f, 1.0f);
+        return value
     }
     else if (axis == 5)
     {
