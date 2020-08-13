@@ -124,7 +124,7 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    bool playing;
+    bool playing = false;
 
     AudrenDriver::LockFunction([this, &playing](AudioDriver * driver) {
         playing = (audrvVoiceIsPlaying(driver, this->channel) == true);
