@@ -451,10 +451,6 @@ function love.boot()
     love.arg.parseOptions()
     local o = love.arg.options
 
-    local is_fused_game = can_has_game or love.arg.options.fused.set
-
-    love.filesystem.setFused(is_fused_game)
-
     local identity = ""
     if not can_has_game and o.game.set and o.game.arg[1] then
         local directory = o.game.arg[1]

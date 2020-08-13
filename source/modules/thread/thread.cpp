@@ -71,7 +71,7 @@ bool LOVE_Thread::Start()
         this->thread = threadCreate(Runner, this, 0x1000, priority - 1, 1, false);
         this->hasThread = (this->thread != NULL);
     #elif defined (__SWITCH__)
-        Result created = threadCreate(&this->thread, Runner, this, NULL, 0x1000, priority - 1, 0);
+        Result created = threadCreate(&this->thread, Runner, this, NULL, 0x1000, 0x3B, 0);
 
         if (R_SUCCEEDED(created))
         {
