@@ -5,11 +5,6 @@ using namespace love::gamepad;
 
 Handles::Handles(size_t id)
 {
-    if (!this->inited)
-        hidScanInput();
-
-    this->inited = true;
-
     HidControllerID identity = hidGetHandheldMode() ? CONTROLLER_HANDHELD : (HidControllerID)id;
     HidControllerType type = hidGetControllerType(identity);
 
@@ -41,9 +36,7 @@ Handles::Handles(size_t id)
 }
 
 Handles::~Handles()
-{
-
-}
+{}
 
 void Handles::_SetVibrationData(HidVibrationValue * vibration, float value)
 {

@@ -6,9 +6,39 @@
 
 using namespace love;
 
-std::atomic<bool> Audio::THREAD_RUN = false;
+/* POOL THREAD */
 
-Audio::Audio()
+Audio::PoolThread::PoolThread(Pool * pool) : pool(pool),
+                                             finish(false)
+{
+    this->threadName = "AudioPool";
+}
+
+Audio::PoolThread::~PoolThread()
+{}
+
+
+void Audio::PoolThread::ThreadFunction()
+{
+    while (true)
+    {
+        if (this->finish)
+            return;
+
+        this->pool->Update();
+        this->pool->Sleep();
+    }
+}
+
+void Audio::PoolThread::SetFinish()
+{
+    this->finish = true;
+}
+
+/* POOL THREAD */
+
+Audio::Audio() : pool(nullptr),
+                 poolThread(nullptr)
 {
     try
     {
@@ -21,14 +51,17 @@ Audio::Audio()
 
     AudrenDriver::Initialize();
 
-    THREAD_RUN = true;
-    this->_Initialize();
+    this->poolThread = new PoolThread(pool);
+	this->poolThread->Start();
 }
 
 Audio::~Audio()
 {
-    THREAD_RUN = false;
-    this->_Exit();
+    this->poolThread->SetFinish();
+	this->poolThread->Wait();
+
+	delete this->poolThread;
+	delete this->pool;
 
     AudrenDriver::Exit();
 }

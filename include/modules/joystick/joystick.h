@@ -21,6 +21,14 @@ namespace love
 
             Gamepad * AddGamepad(size_t index);
 
+            void RemoveGamepad(Gamepad * gamepad);
+
+            bool Split(Gamepad * gamepad);
+
+            bool Merge(std::pair<Gamepad *, Gamepad *> gamepads);
+
+            static bool IsConnected(u32 id);
+
         private:
             std::vector<Gamepad *> gamepads;
     };

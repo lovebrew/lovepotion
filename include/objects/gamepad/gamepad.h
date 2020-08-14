@@ -32,7 +32,7 @@ namespace love
 
             std::string GetName();
 
-            std::pair<float, float> GetVibration();
+            LOVE_Vibration GetVibration();
 
             bool IsConnected();
 
@@ -44,7 +44,11 @@ namespace love
 
             bool IsVibrationSupported();
 
-            bool SetVibration(float left, float right, float duration = 0.0f);
+            void SetVibrationValues(const LOVE_Vibration & vibration);
+
+            float GetVibrationDuration() const;
+
+            bool SyncVibration(float duration);
 
             virtual ~Gamepad() {}
 
@@ -52,7 +56,9 @@ namespace love
             size_t id;
             StickPosition stick;
 
-            std::unique_ptr<love::gamepad::Handles> handles;
+            float duration;
+
             LOVE_Vibration vibration;
+            std::unique_ptr<gamepad::Handles> handles;
     };
 }

@@ -14,7 +14,6 @@ struct LOVE_Vibration
 {
     float left;
     float right;
-    float duration;
 };
 
 struct LOVE_VibrationHandle
@@ -48,8 +47,6 @@ namespace love::gamepad
 
         private:
             void _SetVibrationData(HidVibrationValue * vibration, float value);
-
-            bool inited = false;
 
             LOVE_VibrationHandle vibration;
             LOVE_GyroscopeHandle gyro;

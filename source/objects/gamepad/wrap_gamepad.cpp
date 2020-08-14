@@ -96,10 +96,10 @@ int Wrap_Gamepad::GetVibration(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    std::pair<float, float> vibrations = self->GetVibration();
+    LOVE_Vibration vibration = self->GetVibration();
 
-    lua_pushnumber(L, vibrations.first);
-    lua_pushnumber(L, vibrations.second);
+    lua_pushnumber(L, vibration.left);
+    lua_pushnumber(L, vibration.right);
 
     return 2;
 }
@@ -187,14 +187,26 @@ int Wrap_Gamepad::SetVibration(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
+    if (!self->IsVibrationSupported())
+    {
+        lua_pushboolean(L, false);
+
+        return 1;
+    }
+
     float left = luaL_optnumber(L, 2, 0.0f);
     float right = luaL_optnumber(L, 3, 0.0f);
 
-    float duration = luaL_optnumber(L, 4, 0.0f);
+    float duration = luaL_optnumber(L, 4, -1.0f);
 
-    bool success = self->SetVibration(left, right, duration);
+    LOVE_Vibration vibration;
 
-    lua_pushboolean(L, success);
+    vibration.left = left;
+    vibration.right = right;
+
+    self->SetVibrationValues(vibration);
+
+    lua_pushboolean(L, self->SyncVibration(duration));
 
     return 1;
 }

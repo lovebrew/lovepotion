@@ -11,6 +11,7 @@ void Type::Init()
 
     m_types[this->name] = this;
     this->id = nextID++;
+
     m_bits[this->id] = true;
     initialized = true;
 

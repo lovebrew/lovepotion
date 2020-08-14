@@ -147,6 +147,11 @@ std::pair<float, float> Gamepad::GetVibration()
     return std::make_pair(0.0f, 0.0f);
 }
 
+LOVE_Vibration Gamepad::GetVibration()
+{
+    return this->vibration;
+}
+
 bool Gamepad::IsConnected()
 {
     return true;
@@ -191,13 +196,22 @@ bool Gamepad::IsGamepadDown(const std::string & button)
     return false;
 }
 
+float Gamepad::GetVibrationDuration() const
+{
+    return this->duration;
+}
+
 bool Gamepad::IsVibrationSupported()
 {
     return false;
 }
 
-bool Gamepad::SetVibration(float left, float right, float duration)
+void Gamepad::SetVibrationValues(const LOVE_Vibration & vibration)
 {
-    // do nothing and return false
+    // do nothing
+}
+
+bool Gamepad::SyncVibration(float duration)
+{
     return false;
 }

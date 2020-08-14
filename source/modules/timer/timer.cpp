@@ -66,10 +66,13 @@ double Timer::GetTime()
 */
 void Timer::Sleep(float seconds)
 {
-    u32 milliseconds = seconds * 1000.0f;
-    u64 nanoSeconds = milliseconds * SLEEP_ULL;
+    if (seconds >= 0)
+    {
+        u32 milliseconds = seconds * 1000.0f;
+        u64 nanoSeconds = milliseconds * SLEEP_ULL;
 
-    svcSleepThread(nanoSeconds);
+        svcSleepThread(nanoSeconds);
+    }
 }
 
 double Timer::Step()

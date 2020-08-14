@@ -65,9 +65,7 @@ bool Window::SetMode()
     if (!this->window)
         return false;
 
-    u32 HW_ACCEL = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
-
-    this->targets.push_back(SDL_CreateRenderer(this->window, 0, HW_ACCEL));
+    this->targets.push_back(SDL_CreateRenderer(this->window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
 
     if (!this->targets.back())
         return false;

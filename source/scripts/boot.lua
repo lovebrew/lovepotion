@@ -296,6 +296,7 @@ function love.createhandlers()
 end
 
 local utf8 = require("utf8")
+local debug, print, error = debug, print, error
 
 local function error_printer(msg, layer)
     trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
@@ -304,6 +305,10 @@ local function error_printer(msg, layer)
     file = io.open("crash.txt", "w")
     file:write(trace)
     file:close()
+end
+
+function love.threaderror(t, err)
+	error("Thread error (".. tostring(t) ..")\n\n".. err, 0)
 end
 
 function love.errorhandler(message)

@@ -2,6 +2,9 @@
 
 #include "objects/source/source.h"
 
+#include "modules/thread/types/threadable.h"
+#include "modules/audio/pool/pool.h"
+
 #if defined (_3DS)
     #define AUDIO_THREAD_STACK_SIZE 0x1000
 #elif defined (__SWITCH__)
@@ -17,12 +20,11 @@ namespace love
             const char * GetName() const override { return "love.audio"; }
 
             Audio();
+
             ~Audio();
 
-            void _Initialize();
-            void _Exit();
-
             Source * NewSource(SoundData * data);
+
             Source * NewSource(Decoder * decoder);
 
             bool Play(Source * source);
@@ -47,24 +49,27 @@ namespace love
 
             float GetVolume() const;
 
-            static std::atomic<bool> THREAD_RUN;
-
         private:
-            float volume = 1.0f;
-
-            Thread poolThread;
             Pool * pool;
 
-            static void AudioThreadRunner(void * arg)
+            class PoolThread : public Threadable
             {
-                Pool * pool = (Pool *)arg;
+                public:
+                    PoolThread(Pool * pool);
 
-                while (THREAD_RUN)
-                {
-                    pool->Update();
+                    virtual ~PoolThread();
 
-                    pool->Sleep();
-                }
-            }
+                    void SetFinish();
+
+                    void ThreadFunction();
+
+                protected:
+                    Pool * pool;
+                    std::atomic<bool> finish;
+            };
+
+            float volume = 1.0f;
+
+            PoolThread * poolThread;
     };
 }

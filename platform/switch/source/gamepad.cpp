@@ -3,10 +3,9 @@
 
 using namespace love;
 
-Gamepad::Gamepad(size_t id)
+Gamepad::Gamepad(size_t id) : duration(0)
 {
     this->id = id;
-    this->handles = std::make_unique<love::gamepad::Handles>(id);
 }
 
 float Gamepad::GetAxis(size_t axis)
@@ -56,6 +55,9 @@ float Gamepad::GetAxis(size_t axis)
     {
         if (!g_accelJoystick)
             return 0.0f;
+
+        if (this->handles == nullptr)
+            this->handles = std::make_unique<gamepad::Handles>(this->id);
 
         SixAxisSensorValues values;
         this->handles->ReadSixAxis(values);
@@ -118,9 +120,7 @@ float Gamepad::GetGamepadAxis(const std::string & axis)
             value = stick.dy;
     }
 
-    value = value / JOYSTICK_MAX;
-
-    return std::clamp(value, -1.0f, 1.0f);
+    return value / (float)JOYSTICK_MAX;
 }
 
 size_t Gamepad::GetID()
@@ -156,14 +156,17 @@ std::string Gamepad::GetName()
     return ret;
 }
 
-std::pair<float, float> Gamepad::GetVibration()
+LOVE_Vibration Gamepad::GetVibration()
 {
-    return std::make_pair(this->vibration.left, this->vibration.right);
+    return this->vibration;
 }
 
 bool Gamepad::IsConnected()
 {
-    return true;
+    if (this->id == 0)
+        return hidIsControllerConnected(CONTROLLER_P1_AUTO);
+
+    return hidIsControllerConnected(static_cast<HidControllerID>(this->id));
 }
 
 bool Gamepad::IsDown(size_t button)
@@ -172,7 +175,7 @@ bool Gamepad::IsDown(size_t button)
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
-        if (it->second & Input::GetKeyHeld<u32>())
+        if (it->second & Input::GetKeyHeld<u64>())
         {
             size_t index = std::distance(it, buttons.begin()) - 1;
 
@@ -205,16 +208,33 @@ bool Gamepad::IsGamepadDown(const std::string & button)
     return false;
 }
 
+float Gamepad::GetVibrationDuration() const
+{
+    return this->duration;
+}
+
 bool Gamepad::IsVibrationSupported()
 {
     return true;
 }
 
-bool Gamepad::SetVibration(float left, float right, float duration)
+void Gamepad::SetVibrationValues(const LOVE_Vibration & vibration)
 {
-    this->vibration.left = left;
-    this->vibration.right = right;
-    this->vibration.duration = duration;
+    this->vibration = vibration;
+}
+
+bool Gamepad::SyncVibration(float duration)
+{
+    if (this->handles == nullptr)
+        this->handles = std::make_unique<gamepad::Handles>(this->id);
+
+    this->duration = duration;
+
+    if (duration == 0)
+    {
+        this->vibration.left = 0.0f;
+        this->vibration.right = 0.0f;
+    }
 
     return this->handles->SendVibration(this->vibration);
 }

@@ -53,14 +53,60 @@
             "label": "Install 3DS",
             "dependsOn": ["Build 3DS"],
             "type": "shell",
-            "command": "3dslink ./platform/3ds/LovePotion.3dsx"
+            "command": "3dslink ./platform/3ds/LovePotion.3dsx",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            }
         },
 
         {
             "label": "Install Switch",
             "dependsOn": ["Build Switch"],
             "type": "shell",
-            "command": "nxlink ./platform/switch/LovePotion.nro"
+            "command": "nxlink ./platform/switch/LovePotion.nro",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+
+        {
+            "label": "Update 3DS",
+            "dependsOn": ["Build 3DS"],
+            "type": "shell",
+            "command": "cp ./platform/3ds/LovePotion.elf ~/.lovepotion/3ds.elf",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+
+        {
+            "label": "Update Switch",
+            "dependsOn": ["Build Switch"],
+            "type": "shell",
+            "command": "cp ./platform/switch/LovePotion.elf ~/.lovepotion/switch.elf",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new",
+                "showReuseMessage": false,
+                "clear": true
+            }
         }
     ]
 }
