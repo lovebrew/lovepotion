@@ -47,29 +47,31 @@ Gamepad * Joystick::GetJoystickFromID(size_t index)
     return nullptr;
 }
 
-bool Joystick::Split(Gamepad * gamepad)
-{
-    size_t id = gamepad->GetID();
+#if defined (__SWITCH__)
+    bool Joystick::Split(Gamepad * gamepad)
+    {
+        size_t id = gamepad->GetID();
 
-    if (id < 0 || id > MAX_GAMEPADS)
-        return false;
+        if (id < 0 || id > MAX_GAMEPADS)
+            return false;
 
-    Result success = 0;
+        Result success = 0;
 
-    success = hidSetNpadJoyAssignmentModeSingleByDefault(static_cast<HidControllerID>(id));
+        success = hidSetNpadJoyAssignmentModeSingleByDefault(static_cast<HidControllerID>(id));
 
-    if (R_SUCCEEDED(success))
-        hidSetControllerLayout(static_cast<HidControllerID>(id), HidControllerLayoutType::LAYOUT_DEFAULT);
+        if (R_SUCCEEDED(success))
+            hidSetControllerLayout(static_cast<HidControllerID>(id), HidControllerLayoutType::LAYOUT_DEFAULT);
 
-    return R_SUCCEEDED(success);
-}
+        return R_SUCCEEDED(success);
+    }
 
-bool Joystick::Merge(std::pair<Gamepad *, Gamepad *> gamepads)
-{
-    Result success = 0;
+    bool Joystick::Merge(std::pair<Gamepad *, Gamepad *> gamepads)
+    {
+        Result success = 0;
 
-    return R_SUCCEEDED(success);
-}
+        return R_SUCCEEDED(success);
+    }
+#endif
 
 Gamepad * Joystick::AddGamepad(size_t index)
 {

@@ -142,11 +142,6 @@ std::string Gamepad::GetName()
     return "Nintendo 3DS";
 }
 
-std::pair<float, float> Gamepad::GetVibration()
-{
-    return std::make_pair(0.0f, 0.0f);
-}
-
 LOVE_Vibration Gamepad::GetVibration()
 {
     return this->vibration;
