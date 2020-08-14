@@ -29,6 +29,5 @@ namespace love
             std::bitset<MAX_TYPES> m_bits;
 
             static inline std::unordered_map<std::string, love::Type *> m_types = {};
-
     };
 }

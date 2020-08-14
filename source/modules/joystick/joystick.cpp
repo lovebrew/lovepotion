@@ -5,6 +5,8 @@ using namespace love;
 
 Joystick::Joystick()
 {
+    hidScanInput();
+
     for (u32 index = 0; index < MAX_GAMEPADS; index++)
     {
         if (Joystick::IsConnected(index))
@@ -52,18 +54,21 @@ bool Joystick::Split(Gamepad * gamepad)
     if (id < 0 || id > MAX_GAMEPADS)
         return false;
 
-    static constexpr std::array<size_t, 2> ids = {id, id + 1};
+    Result success = 0;
 
-    for (auto index : ids)
-    {
-        hidSetNpadJoyAssignmentModeSingleByDefault(static_cast<HidControllerID>(index));
-        hidSetControllerLayout(static_cast<HidControllerID>(index), HidControllerLayoutType::LAYOUT_DEFAULT);
-    }
+    success = hidSetNpadJoyAssignmentModeSingleByDefault(static_cast<HidControllerID>(id));
+
+    if (R_SUCCEEDED(success))
+        hidSetControllerLayout(static_cast<HidControllerID>(id), HidControllerLayoutType::LAYOUT_DEFAULT);
+
+    return R_SUCCEEDED(success);
 }
 
 bool Joystick::Merge(std::pair<Gamepad *, Gamepad *> gamepads)
 {
+    Result success = 0;
 
+    return R_SUCCEEDED(success);
 }
 
 Gamepad * Joystick::AddGamepad(size_t index)
