@@ -94,6 +94,8 @@ namespace Wrap_Graphics
 
     int SetColor(lua_State * L);
 
+    int SetCanvas(lua_State * L);
+
     int SetDepth(lua_State * L);
 
     int Register(lua_State * L);

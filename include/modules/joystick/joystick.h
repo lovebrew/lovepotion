@@ -17,19 +17,23 @@ namespace love
 
             Gamepad * GetJoystickFromID(size_t index);
 
-            size_t GetJoystickCount();
+            size_t GetJoystickCount() const;
 
             Gamepad * AddGamepad(size_t index);
 
             void RemoveGamepad(Gamepad * gamepad);
 
-            bool Split(Gamepad * gamepad);
+            bool Split(size_t id, const std::string & holdType = "default");
 
-            bool Merge(std::pair<Gamepad *, Gamepad *> gamepads);
+            bool Merge(const std::array<size_t, 2> & gamepads);
 
             static bool IsConnected(u32 id);
 
         private:
             std::vector<Gamepad *> gamepads;
+
+            void ClearGamepads();
+
+            std::string GetDeviceGUID(u32 index) const;
     };
 }

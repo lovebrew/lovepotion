@@ -394,8 +394,7 @@ int Wrap_Graphics::SetScissor(lua_State * L)
 {
     int argCount = lua_gettop(L);
 
-    if (argCount == 0 || (argCount == 4 && lua_isnil(L, 1) && lua_isnil(L, 2)
-                                        && lua_isnil(L, 3) && lua_isnil(L, 4)))
+    if (argCount == 0 || (argCount == 4 && Luax::ArgcIsNil<4>(L)))
     {
         instance()->SetScissor();
 

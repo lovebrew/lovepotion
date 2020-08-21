@@ -31,7 +31,7 @@ bool Joystick::IsConnected(u32 id)
     return true;
 }
 
-size_t Joystick::GetJoystickCount()
+size_t Joystick::GetJoystickCount() const
 {
     return this->gamepads.size();
 }
@@ -46,32 +46,6 @@ Gamepad * Joystick::GetJoystickFromID(size_t index)
 
     return nullptr;
 }
-
-#if defined (__SWITCH__)
-    bool Joystick::Split(Gamepad * gamepad)
-    {
-        size_t id = gamepad->GetID();
-
-        if (id < 0 || id > MAX_GAMEPADS)
-            return false;
-
-        Result success = 0;
-
-        success = hidSetNpadJoyAssignmentModeSingleByDefault(static_cast<HidControllerID>(id));
-
-        if (R_SUCCEEDED(success))
-            hidSetControllerLayout(static_cast<HidControllerID>(id), HidControllerLayoutType::LAYOUT_DEFAULT);
-
-        return R_SUCCEEDED(success);
-    }
-
-    bool Joystick::Merge(std::pair<Gamepad *, Gamepad *> gamepads)
-    {
-        Result success = 0;
-
-        return R_SUCCEEDED(success);
-    }
-#endif
 
 Gamepad * Joystick::AddGamepad(size_t index)
 {
@@ -92,5 +66,9 @@ void Joystick::RemoveGamepad(Gamepad * gamepad)
     auto iterator = std::find(this->gamepads.begin(), this->gamepads.end(), gamepad);
 
     if (iterator != this->gamepads.end())
+    {
+        (*iterator)->Release();
+        delete *iterator;
         this->gamepads.erase(iterator);
+    }
 }

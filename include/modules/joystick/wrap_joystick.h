@@ -9,5 +9,11 @@ namespace Wrap_Joystick
 
     int GetJoysticks(lua_State * L);
 
+    int Split(lua_State * L);
+
+    int Merge(lua_State * L);
+
+    love::Gamepad * CheckGamepad(lua_State * L, int index);
+
     int Register(lua_State * L);
 }

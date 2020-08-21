@@ -12,11 +12,15 @@ float Gamepad::GetAxis(size_t axis)
 {
     float value = 0.0f;
 
+    HidControllerID hidID = CONTROLLER_P1_AUTO;
+    if (this->id != 0)
+        hidID = static_cast<HidControllerID>(this->id);
+
     if (axis < 5)
     {
         if (axis == 1 || axis == 2)
         {
-            hidJoystickRead(&stick, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
+            hidJoystickRead(&stick, hidID, JOYSTICK_LEFT);
 
             if (axis == 1)
                 value = stick.dx;
@@ -25,7 +29,7 @@ float Gamepad::GetAxis(size_t axis)
         }
         else if (axis == 3 || axis == 4)
         {
-            hidJoystickRead(&stick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
+            hidJoystickRead(&stick, hidID, JOYSTICK_RIGHT);
 
             if (axis == 3)
                 value = stick.dx;
@@ -101,9 +105,13 @@ float Gamepad::GetGamepadAxis(const std::string & axis)
 {
     float value = 0.0f;
 
+    HidControllerID hidID = CONTROLLER_P1_AUTO;
+    if (this->id != 0)
+        hidID = static_cast<HidControllerID>(this->id);
+
     if (axis.substr(0, 4) == "left")
     {
-        hidJoystickRead(&stick, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
+        hidJoystickRead(&stick, hidID, JOYSTICK_LEFT);
 
         if (axis == "leftx")
              value = stick.dx;
@@ -112,7 +120,7 @@ float Gamepad::GetGamepadAxis(const std::string & axis)
     }
     else if (axis.substr(0, 5) == "right")
     {
-        hidJoystickRead(&stick, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
+        hidJoystickRead(&stick, hidID, JOYSTICK_RIGHT);
 
         if (axis == "rightx")
             value = stick.dx;
@@ -133,7 +141,11 @@ std::string Gamepad::GetName()
     std::string ret = "Joycon";
     HidControllerType type;
 
-    type = hidGetControllerType(CONTROLLER_P1_AUTO);
+    HidControllerID hidID = CONTROLLER_P1_AUTO;
+    if (this->id != 0)
+        hidID = static_cast<HidControllerID>(this->id);
+
+    type = hidGetControllerType(hidID);
 
     switch (type)
     {
@@ -163,19 +175,26 @@ LOVE_Vibration Gamepad::GetVibration()
 
 bool Gamepad::IsConnected()
 {
-    if (this->id == 0)
-        return hidIsControllerConnected(CONTROLLER_P1_AUTO);
+    HidControllerID hidID = CONTROLLER_P1_AUTO;
+    if (this->id != 0)
+        hidID = static_cast<HidControllerID>(this->id);
 
-    return hidIsControllerConnected(static_cast<HidControllerID>(this->id));
+    return hidIsControllerConnected(hidID);
 }
 
 bool Gamepad::IsDown(size_t button)
 {
     auto buttons = Input::buttons;
 
+    HidControllerID hidID = CONTROLLER_P1_AUTO;
+    if (this->id != 0)
+        hidID = static_cast<HidControllerID>(this->id);
+
+    u64 keyHeld = hidKeysHeld(hidID);
+
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
-        if (it->second & Input::GetKeyHeld<u64>())
+        if (it->second & keyHeld)
         {
             size_t index = std::distance(it, buttons.begin()) - 1;
 
@@ -196,9 +215,15 @@ bool Gamepad::IsGamepadDown(const std::string & button)
 {
     auto buttons = Input::buttons;
 
+    HidControllerID hidID = CONTROLLER_P1_AUTO;
+    if (this->id != 0)
+        hidID = static_cast<HidControllerID>(this->id);
+
+    u64 keyHeld = hidKeysHeld(hidID);
+
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
-        if (it->second & Input::GetKeyHeld<u64>())
+        if (it->second & keyHeld)
         {
             if (button == it->first)
                 return true;

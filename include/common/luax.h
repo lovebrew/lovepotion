@@ -171,6 +171,18 @@ namespace Luax
         return (T *)proxy->object;
     }
 
+    template <size_t Count>
+    bool ArgcIsNil(lua_State * L)
+    {
+        for (size_t i = 1; i <= Count; i++)
+        {
+            if (!lua_isnil(L, i))
+                return false;
+        }
+
+        return true;
+    }
+
     template <typename T>
     T * CheckType(lua_State * L, int index)
     {
