@@ -5,8 +5,6 @@
 
 using namespace love;
 
-love::Type Canvas::type("Canvas", &Texture::type);
-
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE_2D)
@@ -23,17 +21,15 @@ Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE
     SDL_SetTextureColorMod(this->texture, 0, 0, 0);
     SDL_SetTextureAlphaMod(this->texture, 0);
 
-    canvasCount++;
-
     this->cleared = false;
 
     this->InitQuad();
 }
 
-// void Canvas::Draw(const DrawArgs & args, const Color & color)
-// {
-//     this->Draw(args, this->quad, color);
-// }
+void Canvas::Draw(const DrawArgs & args, const Color & color)
+{
+    this->Draw(args, this->quad, color);
+}
 
 void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
 {
@@ -88,5 +84,5 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
 
 Canvas::~Canvas()
 {
-    canvasCount--;
+
 }

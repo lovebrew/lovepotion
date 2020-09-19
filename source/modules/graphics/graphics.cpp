@@ -96,6 +96,18 @@ void Graphics::SetScissor(const Rect & rect)
     Primitives::Scissor(true, rect.x, rect.y, rect.w, rect.h);
 }
 
+void Graphics::SetCanvas(Canvas * canvas)
+{
+    if (canvas != nullptr)
+        canvas->SetAsTarget();
+    else
+    {
+        #if defined(__SWITCH__)
+            SDL_SetRenderTarget(WINDOW_MODULE()->GetRenderer(), NULL);
+        #endif
+    }
+}
+
 void Graphics::SetDefaultFilter(const Texture::Filter & filter)
 {
     Texture::defaultFilter = filter;

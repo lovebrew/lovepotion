@@ -173,6 +173,8 @@ namespace love
             void PrintF(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float wrap, Font::AlignMode align);
             void PrintF(const  std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args, float wrap, Font::AlignMode align);
 
+            void SetCanvas(Canvas * canvas);
+
             /* Graphics Primitives */
 
             void Circle(float x, float y, float radius);

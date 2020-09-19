@@ -488,7 +488,9 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
 {
     Canvas::Settings settings;
 
-    int width, height = 0, 0;
+    int width = 0;
+    int height = 0;
+
     instance()->GetDimensions(&width, &height);
 
     settings.width  = luaL_optinteger(L, 1, width);
@@ -498,7 +500,7 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
 
     Luax::CatchException(L, [&]() {
         canvas = instance()->NewCanvas(settings);
-    })
+    });
 
     Luax::PushType(L, canvas);
     canvas->Release();
@@ -727,6 +729,18 @@ int Wrap_Graphics::SetFont(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::SetCanvas(lua_State * L)
+{
+    Canvas * canvas = nullptr;
+
+    if (!lua_isnoneornil(L, 1))
+        canvas = Luax::CheckType<Canvas>(L, 1);
+
+    instance()->SetCanvas(canvas);
+
+    return 0;
+}
+
 int Wrap_Graphics::GetFont(lua_State * L)
 {
     Font * font = nullptr;
@@ -874,6 +888,7 @@ int Wrap_Graphics::Register(lua_State * L)
         Wrap_Font::Register,
         Wrap_Image::Register,
         Wrap_Quad::Register,
+        Wrap_Canvas::Register,
         0
     };
 

@@ -18,8 +18,6 @@ namespace love
             Canvas(const Settings & settings);
             ~Canvas();
 
-            static int canvasCount;
-
             void Draw(const DrawArgs & args, const Color & color);
             void Draw(const DrawArgs & args, love::Quad * quad, const Color & color);
 

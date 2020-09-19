@@ -20,11 +20,14 @@ Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE
     C2D_Image img = {&tex, &subtex};
     C2D_SpriteFromImage(&this->texture, img);
 
-    canvasCount++;
-
     this->cleared = false;
 
     this->InitQuad();
+}
+
+Canvas::~Canvas()
+{
+
 }
 
 void Canvas::Draw(const DrawArgs & args, const Color & color)
