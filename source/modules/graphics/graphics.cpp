@@ -203,6 +203,13 @@ Quad * Graphics::NewQuad(Quad::Viewport viewport, double sw, double sh)
     return new Quad(viewport, sw, sh);
 }
 
+Canvas * Graphics::NewCanvas(const Canvas::Settings & settings)
+{
+    return new Canvas(settings);
+}
+
+/* ------ */
+
 void Graphics::Draw(Drawable * drawable, const DrawArgs & args)
 {
     drawable->Draw(args, this->AdjustColor(this->states.back().foreground));

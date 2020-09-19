@@ -16,6 +16,9 @@
 #include "objects/quad/wrap_quad.h"
 #include "objects/quad/quad.h"
 
+#include "objects/canvas/wrap_canvas.h"
+#include "objects/canvas/canvas.h"
+
 #include "common/mmath.h"
 
 #if defined (_3DS)
@@ -158,6 +161,8 @@ namespace love
             void SetFont(Font * font);
 
             Font * GetFont();
+
+            Canvas * NewCanvas(const Canvas::Settings & settings);
 
             void Draw(Drawable * drawable, const DrawArgs & args);
             void Draw(Texture * texture, Quad * quad, const DrawArgs & args);

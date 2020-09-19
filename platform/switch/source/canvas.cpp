@@ -25,6 +25,8 @@ Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE
 
     canvasCount++;
 
+    this->cleared = false;
+
     this->InitQuad();
 }
 

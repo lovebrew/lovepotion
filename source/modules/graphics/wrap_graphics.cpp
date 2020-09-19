@@ -484,6 +484,28 @@ int Wrap_Graphics::NewImage(lua_State * L)
     return 1;
 }
 
+int Wrap_Graphics::NewCanvas(lua_State * L)
+{
+    Canvas::Settings settings;
+
+    int width, height = 0, 0;
+    instance()->GetDimensions(&width, &height);
+
+    settings.width  = luaL_optinteger(L, 1, width);
+    settings.height = luaL_optinteger(L, 2, height);
+
+    Canvas * canvas = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        canvas = instance()->NewCanvas(settings);
+    })
+
+    Luax::PushType(L, canvas);
+    canvas->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::NewFont(lua_State * L)
 {
     Font * font = nullptr;
@@ -818,6 +840,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getScissor",         GetScissor         },
         { "getWidth",           GetWidth           },
         { "line",               Line               },
+        { "newCanvas",          NewCanvas          },
         { "newFont",            NewFont            },
         { "newImage",           NewImage           },
         { "newQuad",            NewQuad            },

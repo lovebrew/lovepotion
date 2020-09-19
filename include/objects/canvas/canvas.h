@@ -20,7 +20,13 @@ namespace love
 
             static int canvasCount;
 
+            void Draw(const DrawArgs & args, const Color & color);
             void Draw(const DrawArgs & args, love::Quad * quad, const Color & color);
 
+            void SetAsTarget();
+
+        private:
+            bool cleared;
+            Renderer * renderer;
     };
 }
