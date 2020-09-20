@@ -870,6 +870,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "rotate",             Rotate             },
         { "scale",              Scale              },
         { "setBackgroundColor", SetBackgroundColor },
+        { "setCanvas",          SetCanvas          },
         { "setColor",           SetColor           },
         { "setDefaultFilter",   SetDefaultFilter   },
         { "setLineWidth",       SetLineWidth       },

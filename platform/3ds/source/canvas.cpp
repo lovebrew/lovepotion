@@ -1,19 +1,24 @@
 #include "common/runtime.h"
 #include "objects/canvas/canvas.h"
 
+#include "modules/window/window.h"
+
 using namespace love;
+
+#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE_2D)
 {
-    this->width = NextPO2(settings.width);
-    this->height = NextPO2(settings.height);
+    this->width = settings.width;
+    this->height = settings.height;
 
     C3D_Tex tex;
-    C3D_TexInitVRAM(&tex, this->width, this->height, GPU_RGBA8);
+    C3D_TexInitVRAM(&tex, NextPO2(this->width), NextPO2(this->height), GPU_RGBA8);
+
     this->renderer = C3D_RenderTargetCreateFromTex(&tex, GPU_TEXFACE_2D, 0, -1);
 
     const Tex3DS_SubTexture subtex = {
-        this->width, this->height,
+        tex.width, tex.height,
         0.0f, 1.0f, 1.0f, 0.0f
     };
 
@@ -85,20 +90,17 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
     C2D_AlphaImageTint(&tint, color.a);
 
     /* Render the texture */
-
+    LOG("Rendering our Texture");
     C2D_DrawSpriteTinted(&this->texture, &tint);
 }
 
 void Canvas::SetAsTarget()
 {
-    // Start rendering to the renderer
-    C2D_SceneBegin(this->renderer);
+    if (!this->cleared)
+    {
+        C2D_TargetClear(this->renderer, C2D_Color32f(0, 0, 0, 0));
+        this->cleared = true;
+    }
 
-    if (this->cleared)
-        return;
-
-    // Clear to full transparency
-    C2D_TargetClear(this->renderer, C2D_Color32(0, 0, 0, 0));
-
-    this->cleared = true;
+    WINDOW_MODULE()->SetRenderer(this->renderer);
 }

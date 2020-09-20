@@ -14,20 +14,24 @@ extern "C"
         if (R_FAILED(res))
             fatalThrow(res);
 
-        res = accountInitialize(AccountServiceType_Application);
+        #if !defined(EMULATION)
+            res = accountInitialize(AccountServiceType_Application);
 
-        if (R_FAILED(res))
-            fatalThrow(res);
+            if (R_FAILED(res))
+                fatalThrow(res);
+        #endif
 
         res = setInitialize();
 
         if (R_FAILED(res))
             fatalThrow(res);
 
-        res = psmInitialize();
+        #if !defined(EMULATION)
+            res = psmInitialize();
 
-        if (R_FAILED(res))
-            fatalThrow(res);
+            if (R_FAILED(res))
+                fatalThrow(res);
+        #endif
 
         res = socketInitializeDefault();
 

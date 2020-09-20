@@ -81,8 +81,13 @@ Horizon::PowerInfo Horizon::GetPowerInfo()
     u32 batteryPercent;
     ChargerType chargerType;
 
-    psmGetBatteryChargePercentage(&batteryPercent);
-    psmGetChargerType(&chargerType);
+    #if !defined(EMULATION)
+        psmGetBatteryChargePercentage(&batteryPercent);
+        psmGetChargerType(&chargerType);
+    #else
+        batteryPercent = 100;
+        chargerType = ChargerType_None;
+    #endif
 
     PowerInfo info;
     info.percentage = batteryPercent;

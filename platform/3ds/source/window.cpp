@@ -58,8 +58,28 @@ void Window::Clear(Color * color)
 {
     C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
-    for (size_t index = 0; index < targets.size(); index++)
-        C2D_TargetClear(targets[index], C2D_Color32f(color->r, color->g, color->b, color->a));
+    if (!this->hasCanvas)
+    {
+        for (size_t index = 0; index < targets.size(); index++)
+            C2D_TargetClear(targets[index], C2D_Color32f(color->r, color->g, color->b, color->a));
+    }
+}
+
+void Window::SetRenderer(Renderer * renderer)
+{
+    if (renderer == nullptr)
+    {
+        this->hasCanvas = false;
+        C3D_FrameEnd(0);
+        return;
+    }
+    else
+    {
+
+        this->hasCanvas = true;
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+        C2D_SceneBegin(this->canvas);
+    }
 }
 
 void Window::Present()
@@ -90,6 +110,9 @@ bool Window::IsOpen()
 void Window::SetScreen(size_t screen)
 {
     this->currentDisplay = std::clamp((int)screen - 1, 0, 2);
+
+    if (this->hasCanvas)
+        return;
 
     C2D_SceneBegin(this->targets[this->currentDisplay]);
 }

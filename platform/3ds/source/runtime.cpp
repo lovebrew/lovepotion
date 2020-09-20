@@ -16,10 +16,12 @@ extern "C"
         if (R_FAILED(res))
             svcBreak(USERBREAK_PANIC);
 
-        res = mcuHwcInit();
+        #if !defined(EMULATION)
+            res = mcuHwcInit();
 
-        if (R_FAILED(res))
-            svcBreak(USERBREAK_PANIC);
+            if (R_FAILED(res))
+                svcBreak(USERBREAK_PANIC);
+        #endif
 
         res = ptmuInit();
 

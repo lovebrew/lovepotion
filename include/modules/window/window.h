@@ -29,13 +29,18 @@ namespace love
             void SetScreen(size_t screen);
 
             void Clear(Color * color);
+
             // void Clear(const Graphics::DisplayState & state);
 
             void Present();
 
-            void SetGraphics(Graphics * g);
-
             // End Löve2D Functions
+
+            void SetRenderer(Renderer * renderer);
+
+            void SetRenderer(TextureHandle handle);
+
+            void SetGraphics(Graphics * g);
 
             int GetDisplay() {
                 return this->currentDisplay;
@@ -44,6 +49,10 @@ namespace love
         private:
             std::vector<std::pair<int, int>> displaySizes;
             std::vector<Renderer *> targets;
+
+            Renderer * canvas;
+            bool hasCanvas;
+
             Frame * window;
             bool open;
             StrongReference<Graphics> graphics;

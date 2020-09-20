@@ -52,6 +52,11 @@ Renderer * Window::GetRenderer()
     return this->targets.back();
 }
 
+void Window::SetRenderer(TextureHandle handle)
+{
+    SDL_SetRenderTarget(this->targets.back(), handle);
+}
+
 void Window::SetScreen(size_t screen)
 {
     // this never goes above 1 but.. not risking it

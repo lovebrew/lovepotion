@@ -86,3 +86,15 @@ Canvas::~Canvas()
 {
 
 }
+
+void Canvas::SetAsTarget()
+{
+    SDL_SetRenderTarget(WINDOW_MODULE()->GetRenderer(), this->texture);
+
+    if (this->cleared)
+        return;
+
+    SDL_RenderClear(WINDOW_MODULE()->GetRenderer());
+
+    this->cleared = true;
+}
