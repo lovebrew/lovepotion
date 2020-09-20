@@ -37,6 +37,7 @@ extern bool g_accelJoystick;
 #include <unistd.h>
 #include <list>
 #include <set>
+#include <numeric>
 
 #define _USE_MATH_DEFINES
 #include <cmath>

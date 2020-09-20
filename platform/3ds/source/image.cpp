@@ -14,7 +14,6 @@ Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
     this->width  = this->texture.image.subtex->width;
     this->height = this->texture.image.subtex->height;
 
-
     this->InitQuad();
 }
 

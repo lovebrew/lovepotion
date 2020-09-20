@@ -71,11 +71,9 @@ void Window::SetRenderer(Renderer * renderer)
     {
         this->hasCanvas = false;
         C3D_FrameEnd(0);
-        return;
     }
     else
     {
-
         this->hasCanvas = true;
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
         C2D_SceneBegin(this->canvas);

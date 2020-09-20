@@ -9,21 +9,25 @@ using namespace love;
 
 Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE_2D)
 {
-    this->width = settings.width;
+    this->width  = settings.width;
     this->height = settings.height;
 
-    C3D_Tex tex;
-    C3D_TexInitVRAM(&tex, NextPO2(this->width), NextPO2(this->height), GPU_RGBA8);
+    C3D_TexInitVRAM(&this->citroTex, NextPO2(this->width), NextPO2(this->height), GPU_RGBA8);
 
-    this->renderer = C3D_RenderTargetCreateFromTex(&tex, GPU_TEXFACE_2D, 0, -1);
+    this->renderer = C3D_RenderTargetCreateFromTex(&this->citroTex, GPU_TEXFACE_2D, 0, -1);
 
     const Tex3DS_SubTexture subtex = {
-        tex.width, tex.height,
+        this->citroTex.width, this->citroTex.height,
         0.0f, 1.0f, 1.0f, 0.0f
     };
 
-    C2D_Image img = {&tex, &subtex};
-    C2D_SpriteFromImage(&this->texture, img);
+    // C2D_Image
+    this->subHandle = {&this->citroTex, &subtex};
+
+    // Create Sprite (Texture) from Image
+    C2D_SpriteFromImage(&this->texture, this->subHandle);
+
+    LOG("%dx%d\n", this->width, this->height);
 
     this->cleared = false;
 
@@ -32,7 +36,8 @@ Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE
 
 Canvas::~Canvas()
 {
-
+    C3D_TexDelete(&this->citroTex);
+    C3D_RenderTargetDelete(this->renderer);
 }
 
 void Canvas::Draw(const DrawArgs & args, const Color & color)
@@ -75,8 +80,8 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
     ** as if they were negative
     */
 
-   this->texture.params.pos.w = v.w;
-   this->texture.params.pos.h = v.h;
+    this->texture.params.pos.w = v.w;
+    this->texture.params.pos.h = v.h;
 
     C2D_SpriteSetPos(&this->texture, args.x, args.y);
     C2D_SpriteSetDepth(&this->texture, args.depth);
@@ -90,7 +95,6 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
     C2D_AlphaImageTint(&tint, color.a);
 
     /* Render the texture */
-    LOG("Rendering our Texture");
     C2D_DrawSpriteTinted(&this->texture, &tint);
 }
 

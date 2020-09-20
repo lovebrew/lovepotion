@@ -26,5 +26,11 @@ namespace love
         private:
             bool cleared;
             Renderer * renderer;
+
+            ImageHandle subHandle;
+
+            #if defined(_3DS)
+                C3D_Tex citroTex;
+            #endif
     };
 }

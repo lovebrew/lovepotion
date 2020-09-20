@@ -29,26 +29,30 @@ Font::~Font()
     C2D_FontFree(this->font);
 }
 
-std::pair<float, float> Font::GenerateVertices(const std::string & line, const std::pair<float, float> & offset,
-                                               const DrawArgs & args, const Color & blend, const Color & color)
+void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args,
+                 float * limit, const Color & blend, Font::AlignMode align)
 {
     C2D_Text text;
-    const char * str = line.c_str();
+    u32 alignMode = C2D_AlignLeft;
 
-    C2D_TextFontParse(&text, this->font, this->buffer, str);
+    switch (align)
+    {
+        case Font::ALIGN_CENTER:
+            alignMode = C2D_AlignCenter;
+        case Font::ALIGN_RIGHT:
+            alignMode = C2D_AlignRight;
+        case Font::ALIGN_JUSTIFY:
+            alignMode = C2D_AlignJustified | C2D_WordWrap;
+        default:
+            break;
+    }
+
+    std::string result = std::accumulate(strings.begin(), strings.end(), std::string{}, [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
+
+    C2D_TextFontParse(&text, this->font, this->buffer, result.c_str());
     C2D_TextOptimize(&text);
 
-    float width;
-    float height;
-
-    C2D_TextGetDimensions(&text, this->GetScale(), this->GetScale(), &width, &height);
-
-    Color res = Colors::ALPHA_BLEND_COLOR(color, blend);
-    u32 currentColor = C2D_Color32f(res.r, res.g, res.b, res.a);
-
-    C2D_DrawText(&text, C2D_WithColor, args.x + offset.first, args.y + offset.second, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, currentColor);
-
-    return std::pair(width, height);
+    C2D_DrawText(&text, C2D_WithColor | alignMode, args.x, args.y, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, C2D_Color32f(blend.r, blend.g, blend.b, blend.a), (limit != nullptr) ? *limit : 0.0f);
 }
 
 void Font::ClearBuffer()
