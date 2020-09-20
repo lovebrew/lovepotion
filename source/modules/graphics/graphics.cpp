@@ -98,11 +98,7 @@ void Graphics::SetScissor(const Rect & rect)
 
 void Graphics::SetCanvas(Canvas * canvas)
 {
-    LOG("Canvas? %d", canvas != nullptr);
-    if (canvas != nullptr)
-        canvas->SetAsTarget();
-    else
-        WINDOW_MODULE()->SetRenderer(nullptr);
+    WINDOW_MODULE()->SetRenderer(canvas);
 }
 
 void Graphics::SetDefaultFilter(const Texture::Filter & filter)

@@ -36,7 +36,7 @@ namespace love
 
             // End Löve2D Functions
 
-            void SetRenderer(Renderer * renderer);
+            void SetRenderer(Canvas * renderer);
 
             void SetRenderer(TextureHandle handle);
 
@@ -50,7 +50,7 @@ namespace love
             std::vector<std::pair<int, int>> displaySizes;
             std::vector<Renderer *> targets;
 
-            Renderer * canvas;
+            StrongReference<Canvas> canvas;
             bool hasCanvas;
 
             Frame * window;

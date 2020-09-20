@@ -27,8 +27,6 @@ Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE
     // Create Sprite (Texture) from Image
     C2D_SpriteFromImage(&this->texture, this->subHandle);
 
-    LOG("%dx%d\n", this->width, this->height);
-
     this->cleared = false;
 
     this->InitQuad();
@@ -98,13 +96,12 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
     C2D_DrawSpriteTinted(&this->texture, &tint);
 }
 
-void Canvas::SetAsTarget()
+void Canvas::Clear(const Color & color)
 {
-    if (!this->cleared)
-    {
-        C2D_TargetClear(this->renderer, C2D_Color32f(0, 0, 0, 0));
-        this->cleared = true;
-    }
+    if (this->cleared)
+        return;
 
-    WINDOW_MODULE()->SetRenderer(this->renderer);
+    C2D_TargetClear(this->renderer, C2D_Color32f(color.r, color.g, color.b, color.a));
+
+    this->cleared = true;
 }

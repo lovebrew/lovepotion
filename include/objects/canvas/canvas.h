@@ -22,6 +22,11 @@ namespace love
             void Draw(const DrawArgs & args, love::Quad * quad, const Color & color);
 
             void SetAsTarget();
+            void Clear(const Color & color);
+
+            Renderer * GetRenderer() {
+                return this->renderer;
+            }
 
         private:
             bool cleared;

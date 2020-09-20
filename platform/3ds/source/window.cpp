@@ -56,18 +56,20 @@ bool Window::SetMode()
 
 void Window::Clear(Color * color)
 {
-    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
     if (!this->hasCanvas)
     {
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
         for (size_t index = 0; index < targets.size(); index++)
             C2D_TargetClear(targets[index], C2D_Color32f(color->r, color->g, color->b, color->a));
     }
+    else
+        this->canvas->Clear(*color);
 }
 
-void Window::SetRenderer(Renderer * renderer)
+void Window::SetRenderer(Canvas * canvas)
 {
-    if (renderer == nullptr)
+    if (canvas == nullptr)
     {
         this->hasCanvas = false;
         C3D_FrameEnd(0);
@@ -76,13 +78,17 @@ void Window::SetRenderer(Renderer * renderer)
     {
         this->hasCanvas = true;
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-        C2D_SceneBegin(this->canvas);
+        this->canvas.Set(canvas);
+
+        this->canvas->Clear({0, 0, 0, 0});
+        C2D_SceneBegin(this->canvas->GetRenderer());
     }
 }
 
 void Window::Present()
 {
-    C3D_FrameEnd(0);
+    if (!this->hasCanvas)
+        C3D_FrameEnd(0);
 }
 
 Renderer * Window::GetRenderer()

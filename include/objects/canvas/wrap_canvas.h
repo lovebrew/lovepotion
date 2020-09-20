@@ -5,6 +5,8 @@
 
 namespace Wrap_Canvas
 {
+    int RenderTo(lua_State * L);
+
     love::Canvas * CheckCanvas(lua_State * L, int index);
 
     int Register(lua_State * L);
