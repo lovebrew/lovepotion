@@ -50,8 +50,10 @@ namespace love
             std::vector<std::pair<int, int>> displaySizes;
             std::vector<Renderer *> targets;
 
+            void EnsureInFrame();
+
             StrongReference<Canvas> canvas;
-            bool hasCanvas;
+            bool inFrame;
 
             Frame * window;
             bool open;

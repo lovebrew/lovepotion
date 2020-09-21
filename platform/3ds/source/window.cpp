@@ -58,7 +58,7 @@ void Window::Clear(Color * color)
 {
     if (!this->canvas)
     {
-        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+        this->EnsureInFrame();
 
         for (size_t index = 0; index < targets.size(); index++)
             C2D_TargetClear(targets[index], C2D_Color32f(color->r, color->g, color->b, color->a));
@@ -67,14 +67,22 @@ void Window::Clear(Color * color)
         this->canvas->Clear(*color);
 }
 
+void Window::EnsureInFrame()
+{
+    if (!this->inFrame)
+    {
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+        this->inFrame = true;
+    }
+}
+
 void Window::SetRenderer(Canvas * canvas)
 {
     this->canvas.Set(canvas);
 
     if (this->canvas)
     {
-        this->hasCanvas = true;
-        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+        this->EnsureInFrame();
 
         if (!canvas->HasFirstClear())
             this->canvas->Clear({0, 0, 0, 0});
@@ -85,7 +93,11 @@ void Window::SetRenderer(Canvas * canvas)
 
 void Window::Present()
 {
-    C3D_FrameEnd(0);
+    if (this->inFrame)
+    {
+        C3D_FrameEnd(0);
+        this->inFrame = false;
+    }
 }
 
 Renderer * Window::GetRenderer()

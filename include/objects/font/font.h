@@ -80,6 +80,8 @@ namespace love
             static bool GetConstant(SystemFontType in, const char *& out);
             static std::vector<std::string> GetConstants(SystemFontType);
 
+            void GetWrap(const std::vector<Font::ColoredString> & strings, float * limit, std::vector<std::string> & lines, std::vector<int> * widths);
+
         private:
             FontHandle font;
             TextBuffer buffer;
