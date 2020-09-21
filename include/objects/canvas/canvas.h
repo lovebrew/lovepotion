@@ -28,6 +28,10 @@ namespace love
                 return this->renderer;
             }
 
+            bool HasFirstClear() {
+                return this->cleared;
+            }
+
         private:
             bool cleared;
             Renderer * renderer;

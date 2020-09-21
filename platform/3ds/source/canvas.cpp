@@ -98,10 +98,8 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
 
 void Canvas::Clear(const Color & color)
 {
-    if (this->cleared)
-        return;
-
     C2D_TargetClear(this->renderer, C2D_Color32f(color.r, color.g, color.b, color.a));
 
-    this->cleared = true;
+    if (!this->cleared)
+        this->cleared = true;
 }

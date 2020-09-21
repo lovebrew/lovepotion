@@ -84,7 +84,13 @@ void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
 
 Canvas::~Canvas()
 {
+    SDL_DestroyTexture(this->texture);
+}
 
+void Canvas::Clear(const Color & color)
+{
+    SDL_SetTextureColorMod(this->texture, color.r, color.g, color.b);
+    SDL_SetTextureAlphaMod(this->texture, color.a);
 }
 
 void Canvas::SetAsTarget()

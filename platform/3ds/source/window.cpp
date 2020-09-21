@@ -56,7 +56,7 @@ bool Window::SetMode()
 
 void Window::Clear(Color * color)
 {
-    if (!this->hasCanvas)
+    if (!this->canvas)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 
@@ -69,26 +69,23 @@ void Window::Clear(Color * color)
 
 void Window::SetRenderer(Canvas * canvas)
 {
-    if (canvas == nullptr)
-    {
-        this->hasCanvas = false;
-        C3D_FrameEnd(0);
-    }
-    else
+    this->canvas.Set(canvas);
+
+    if (this->canvas)
     {
         this->hasCanvas = true;
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-        this->canvas.Set(canvas);
 
-        this->canvas->Clear({0, 0, 0, 0});
+        if (!canvas->HasFirstClear())
+            this->canvas->Clear({0, 0, 0, 0});
+
         C2D_SceneBegin(this->canvas->GetRenderer());
     }
 }
 
 void Window::Present()
 {
-    if (!this->hasCanvas)
-        C3D_FrameEnd(0);
+    C3D_FrameEnd(0);
 }
 
 Renderer * Window::GetRenderer()
