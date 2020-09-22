@@ -330,7 +330,7 @@ int Wrap_Graphics::Clear(lua_State * L)
     clearColor.r = luaL_checknumber(L, 1);
     clearColor.g = luaL_checknumber(L, 2);
     clearColor.b = luaL_checknumber(L, 3);
-    clearColor.a = luaL_optnumber(L, 4, 1.0f);
+    clearColor.a = luaL_optnumber(L, 4, 0.0f);
 
     instance()->CURRENT_DEPTH = 0.0f;
 

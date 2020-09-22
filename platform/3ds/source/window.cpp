@@ -84,9 +84,6 @@ void Window::SetRenderer(Canvas * canvas)
     {
         this->EnsureInFrame();
 
-        if (!canvas->HasFirstClear())
-            this->canvas->Clear({0, 0, 0, 0});
-
         C2D_SceneBegin(this->canvas->GetRenderer());
     }
 }

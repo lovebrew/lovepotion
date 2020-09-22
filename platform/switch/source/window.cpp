@@ -80,7 +80,7 @@ bool Window::SetMode()
 void Window::Clear(Color * color)
 {
     // clear the background to the specified color
-    SDL_SetRenderDrawColor(this->targets.back(), color->r, color->g, color->b, SDL_ALPHA_OPAQUE);
+    SDL_SetRenderDrawColor(this->targets.back(), color->r, color->g, color->b, color->a);
     SDL_RenderClear(this->targets.back());
 
     auto foreground = this->graphics->AdjustColor(this->graphics.Get()->GetColor());
@@ -92,13 +92,7 @@ void Window::SetRenderer(Canvas * canvas)
     this->canvas.Set(canvas);
 
     if (this->canvas)
-    {
-        LOG("Canvas: %d", canvas->GetTextureHandle() != NULL);
         SDL_SetRenderTarget(this->targets.back(), canvas->GetTextureHandle());
-
-        if (!canvas->HasFirstClear())
-            this->canvas->Clear({0, 0, 0, 0});
-    }
     else
         SDL_SetRenderTarget(this->targets.back(), NULL);
 }
