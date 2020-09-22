@@ -36,22 +36,54 @@ Font::~Font()
     TTF_CloseFont(this->font);
 }
 
+void Font::RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend, bool isNewLine)
+{
+    const char * str = line.c_str();
+    int width, height;
+
+    SDL_Surface * tempSurf = TTF_RenderUTF8_Blended(this->font, str, {(uint8_t)blend.r, (uint8_t)blend.g, (uint8_t)blend.b, (uint8_t)blend.a});
+    SDL_Texture * lTexture = SDL_CreateTextureFromSurface(WINDOW_MODULE()->GetRenderer(), tempSurf);
+
+    SDL_FreeSurface(tempSurf);
+
+    SDL_QueryTexture(lTexture, NULL, NULL, &width, &height);
+
+    SDL_RendererFlip flipHorizonal = (args.scalarX < 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+    SDL_RendererFlip flipVertical  = (args.scalarY < 0) ? SDL_FLIP_VERTICAL   : SDL_FLIP_NONE;
+
+    SDL_Rect source({0, 0, width, height});
+    SDL_Rect destin({(int)round(args.x + offset.x),
+                    (int)round(args.y  + offset.y),
+                    (int)ceil(width * args.scalarX),
+                    (int)ceil(height * args.scalarY)});
+
+    SDL_SetTextureBlendMode(lTexture, SDL_BLENDMODE_BLEND);
+
+    // SDL_SetTextureColorMod(lTexture, color.r, color.g, color.b);
+    // SDL_SetTextureAlphaMod(lTexture, color.a);
+
+    SDL_Point center = {(int)(args.offsetX * args.scalarX), (int)(args.offsetY * args.scalarY)};
+    double rotation = (args.r * 180 / M_PI);
+
+    SDL_RenderCopyEx(WINDOW_MODULE()->GetRenderer(), lTexture, &source, &destin, rotation, &center, (SDL_RendererFlip)(flipVertical | flipHorizonal));
+
+    SDL_DestroyTexture(lTexture);
+
+    if (isNewLine)
+    {
+        offset.x = 0.0;
+        offset.y += height;
+    }
+    else
+        offset.x += width;
+}
+
 void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args,
                  float * limit, const Color & blend, Font::AlignMode align)
 {
-    float dx = args.x;
-    std::vector<int> widths;
-    std::vector<std::string> lines;
-
-    this->GetWrap(strings, limit, lines, &widths);
-    // switch (align)
-    // {
-    //     case Font::ALIGN_CENTER:
-    //         dx += (*limit / 2);
-    //         break;
-    //     default:
-    //         break;
-    // }
+    love::Vector2 offset(0, 0);
+    float size = 0.0f;
+    std::string line;
 
     for (size_t i = 0; i < strings.size(); i++)
     {
@@ -64,6 +96,30 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
         {
             uint32_t codepoint;
             const auto bytes = decode_utf8(&codepoint, (uint8_t *)currentChar);
+
+            if (codepoint == '\n' || (limit != nullptr && size >= *limit))
+                this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr), true);
+
+            if (codepoint == '\n')
+                line.clear();
+            else
+            {
+                if (limit != nullptr && size >= *limit)
+                {
+                    size = 0.0f;
+                    line.clear();
+                }
+
+                line.append(currentChar, bytes);
+            }
+
+            currentChar += bytes;
+        }
+
+        if (!line.empty())
+        {
+            this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr));
+            line.clear();
         }
     }
 }

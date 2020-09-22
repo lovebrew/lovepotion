@@ -28,6 +28,10 @@ namespace love
                 return this->renderer;
             }
 
+            TextureHandle GetTextureHandle() {
+                return this->texture;
+            }
+
             bool HasFirstClear() {
                 return this->cleared;
             }

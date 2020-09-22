@@ -52,8 +52,13 @@ Renderer * Window::GetRenderer()
     return this->targets.back();
 }
 
-void Window::SetRenderer(TextureHandle handle)
+void Window::SetRenderer(Canvas * canvas)
 {
+    TextureHandle handle = NULL;
+
+    if (canvas)
+        handle = canvas->GetTextureHandle();
+
     SDL_SetRenderTarget(this->targets.back(), handle);
 }
 
