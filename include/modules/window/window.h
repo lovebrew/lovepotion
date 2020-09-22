@@ -38,8 +38,6 @@ namespace love
 
             void SetRenderer(Canvas * renderer);
 
-            void SetRenderer(TextureHandle handle);
-
             void SetGraphics(Graphics * g);
 
             int GetDisplay() {

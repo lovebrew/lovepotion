@@ -89,18 +89,9 @@ Canvas::~Canvas()
 
 void Canvas::Clear(const Color & color)
 {
-    SDL_SetTextureColorMod(this->texture, color.r, color.g, color.b);
-    SDL_SetTextureAlphaMod(this->texture, color.a);
-}
-
-void Canvas::SetAsTarget()
-{
-    SDL_SetRenderTarget(WINDOW_MODULE()->GetRenderer(), this->texture);
-
-    if (this->cleared)
-        return;
-
+    SDL_SetRenderDrawColor(WINDOW_MODULE()->GetRenderer(), color.r, color.g, color.b, color.a);
     SDL_RenderClear(WINDOW_MODULE()->GetRenderer());
 
-    this->cleared = true;
+    if (!this->cleared)
+        this->cleared = true;
 }

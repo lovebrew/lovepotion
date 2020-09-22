@@ -120,10 +120,16 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
         while (currentChar != end)
         {
             uint32_t codepoint;
-            const auto bytes = decode_utf8(&codepoint, (uint8_t *)currentChar);
+            auto bytes = decode_utf8(&codepoint, (uint8_t *)currentChar);
+
+            if (bytes < 0)
+            {
+                bytes = 1; // skip the invalid sequence
+                codepoint = 0xFFFD;
+            }
 
             if (codepoint == '\n' || (limit > 0 && size >= limit))
-                this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr), limit, align, true);
+                this->RenderLine(line, offset, args, blend, limit, align, true);
 
             if (codepoint == '\n')
                 line.clear();
@@ -138,12 +144,13 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
                 line.append(currentChar, bytes);
             }
 
+            size += this->_GetGlyphWidth(codepoint);
             currentChar += bytes;
         }
 
         if (!line.empty())
         {
-            this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr), limit, align);
+            this->RenderLine(line, offset, args, blend, limit, align);
             line.clear();
         }
     }
