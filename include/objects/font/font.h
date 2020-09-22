@@ -63,7 +63,7 @@ namespace love
             Font(float size = DEFAULT_SIZE);
             ~Font();
 
-            void Print(const std::vector<ColoredString> & text, const DrawArgs & args, float * limit, const Color & color, AlignMode align);
+            void Print(const std::vector<ColoredString> & text, const DrawArgs & args, float limit, const Color & color, AlignMode align);
             void ClearBuffer();
 
 
@@ -89,7 +89,8 @@ namespace love
             float size;
             TextHandle text;
 
-            void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend, bool isNewLine = false);
+            void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend,
+                            float wrap, Font::AlignMode align, bool isNewLine = false);
 
             TextureHandle texture;
 

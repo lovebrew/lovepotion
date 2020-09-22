@@ -36,10 +36,13 @@ Font::~Font()
     TTF_CloseFont(this->font);
 }
 
-void Font::RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend, bool isNewLine)
+void Font::RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args,
+                      const Color & blend, float wrap, Font::AlignMode align, bool isNewLine)
 {
     const char * str = line.c_str();
-    int width, height;
+    int width = 0;
+    int height = 0;
+    float extraSpacing = 0.0f;
 
     SDL_Surface * tempSurf = TTF_RenderUTF8_Blended(this->font, str, {(uint8_t)blend.r, (uint8_t)blend.g, (uint8_t)blend.b, (uint8_t)blend.a});
     SDL_Texture * lTexture = SDL_CreateTextureFromSurface(WINDOW_MODULE()->GetRenderer(), tempSurf);
@@ -47,6 +50,28 @@ void Font::RenderLine(const std::string & line, love::Vector2 & offset, const Dr
     SDL_FreeSurface(tempSurf);
 
     SDL_QueryTexture(lTexture, NULL, NULL, &width, &height);
+
+    switch (align)
+    {
+        case ALIGN_RIGHT:
+            offset.x = floorf(wrap - width);
+            break;
+        case ALIGN_CENTER:
+            offset.x = floorf((wrap - width) / 2.0f);
+            break;
+        case ALIGN_JUSTIFY:
+        {
+            float numspaces = (float)std::count(line.begin(), line.end(), ' ');
+            if (width < wrap && numspaces >= 1)
+                extraSpacing = (wrap - width) / numspaces;
+            else
+                extraSpacing = 0.0f;
+            break;
+        }
+        case ALIGN_LEFT:
+        default:
+            break;
+    }
 
     SDL_RendererFlip flipHorizonal = (args.scalarX < 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
     SDL_RendererFlip flipVertical  = (args.scalarY < 0) ? SDL_FLIP_VERTICAL   : SDL_FLIP_NONE;
@@ -75,11 +100,11 @@ void Font::RenderLine(const std::string & line, love::Vector2 & offset, const Dr
         offset.y += height;
     }
     else
-        offset.x += width;
+        offset.x += width + extraSpacing;
 }
 
 void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args,
-                 float * limit, const Color & blend, Font::AlignMode align)
+                 float limit, const Color & blend, Font::AlignMode align)
 {
     love::Vector2 offset(0, 0);
     float size = 0.0f;
@@ -97,14 +122,14 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
             uint32_t codepoint;
             const auto bytes = decode_utf8(&codepoint, (uint8_t *)currentChar);
 
-            if (codepoint == '\n' || (limit != nullptr && size >= *limit))
-                this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr), true);
+            if (codepoint == '\n' || (limit > 0 && size >= limit))
+                this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr), limit, align, true);
 
             if (codepoint == '\n')
                 line.clear();
             else
             {
-                if (limit != nullptr && size >= *limit)
+                if (limit > 0 && size >= limit)
                 {
                     size = 0.0f;
                     line.clear();
@@ -118,7 +143,7 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
 
         if (!line.empty())
         {
-            this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr));
+            this->RenderLine(line, offset, args, Colors::ALPHA_BLEND_COLOR(blend, clr), limit, align);
             line.clear();
         }
     }

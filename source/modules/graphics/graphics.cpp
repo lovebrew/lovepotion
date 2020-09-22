@@ -235,7 +235,7 @@ void Graphics::Print(const std::vector<Font::ColoredString> & strings, const Dra
 
 void Graphics::Print(const std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args)
 {
-    font->Print(strings, args, nullptr, this->AdjustColor(this->states.back().foreground), Font::ALIGN_LEFT);
+    font->Print(strings, args, 0, this->AdjustColor(this->states.back().foreground), Font::ALIGN_LEFT);
 }
 
 void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float wrap, Font::AlignMode align)
@@ -248,7 +248,7 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, const Dr
 
 void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args, float wrap, Font::AlignMode align)
 {
-    font->Print(strings, args, &wrap, this->AdjustColor(this->states.back().foreground), align);
+    font->Print(strings, args, wrap, this->AdjustColor(this->states.back().foreground), align);
 }
 
 /* End Objects */
