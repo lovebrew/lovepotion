@@ -18,8 +18,8 @@ Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE
 
     SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
 
-    SDL_SetTextureColorMod(this->texture, 0, 0, 0);
-    SDL_SetTextureAlphaMod(this->texture, 0);
+    SDL_SetTextureColorMod(this->texture, 1, 1, 1);
+    SDL_SetTextureAlphaMod(this->texture, 1);
 
     this->cleared = false;
 

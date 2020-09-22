@@ -81,19 +81,10 @@ void Window::Clear(Color * color)
 {
     // clear the background to the specified color
     SDL_SetRenderDrawColor(this->targets.back(), color->r, color->g, color->b, SDL_ALPHA_OPAQUE);
-    this->EnsureInFrame();
+    SDL_RenderClear(this->targets.back());
 
     auto foreground = this->graphics->AdjustColor(this->graphics.Get()->GetColor());
-    SDL_SetRenderDrawColor(this->GetRenderer(), foreground.r, foreground.g, foreground.b, foreground.a);
-}
-
-void Window::EnsureInFrame()
-{
-    if (!this->inFrame)
-    {
-        SDL_RenderClear(this->targets.back());
-        this->inFrame = true;
-    }
+    SDL_SetRenderDrawColor(this->targets.back(), foreground.r, foreground.g, foreground.b, foreground.a);
 }
 
 void Window::SetRenderer(Canvas * canvas)
@@ -102,6 +93,7 @@ void Window::SetRenderer(Canvas * canvas)
 
     if (this->canvas)
     {
+        LOG("Canvas: %d", canvas->GetTextureHandle() != NULL);
         SDL_SetRenderTarget(this->targets.back(), canvas->GetTextureHandle());
 
         if (!canvas->HasFirstClear())

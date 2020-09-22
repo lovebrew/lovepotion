@@ -30,7 +30,7 @@ Font::~Font()
 }
 
 void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args,
-                 float * limit, const Color & blend, Font::AlignMode align)
+                 float limit, const Color & blend, Font::AlignMode align)
 {
     C2D_Text text;
     u32 alignMode = C2D_AlignLeft;
@@ -52,7 +52,7 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
     C2D_TextFontParse(&text, this->font, this->buffer, result.c_str());
     C2D_TextOptimize(&text);
 
-    C2D_DrawText(&text, C2D_WithColor | alignMode, args.x, args.y, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, C2D_Color32f(blend.r, blend.g, blend.b, blend.a), (limit != nullptr) ? *limit : 0.0f);
+    C2D_DrawText(&text, C2D_WithColor | alignMode, args.x, args.y, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, C2D_Color32f(blend.r, blend.g, blend.b, blend.a), limit);
 }
 
 void Font::ClearBuffer()

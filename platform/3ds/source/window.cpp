@@ -124,7 +124,7 @@ void Window::SetScreen(size_t screen)
 {
     this->currentDisplay = std::clamp((int)screen - 1, 0, 2);
 
-    if (this->hasCanvas)
+    if (this->canvas)
         return;
 
     C2D_SceneBegin(this->targets[this->currentDisplay]);
