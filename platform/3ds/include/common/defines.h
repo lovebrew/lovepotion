@@ -7,11 +7,9 @@
 
 #define GetMasterVolume
 
-void userAppInit();
-void userAppExit();
-
 typedef C3D_RenderTarget Renderer;
 typedef C2D_Sprite TextureHandle;
+typedef C2D_Image ImageHandle;
 
 typedef struct _Frame Frame;
 

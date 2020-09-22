@@ -7,7 +7,7 @@
         {
             "label": "Build 3DS",
             "type": "shell",
-            "command": "make 3ds -j",
+            "command": "make ctr -j",
             "presentation": {
                 "echo": true,
                 "reveal": "always",
@@ -22,7 +22,7 @@
         {
             "label": "Build Switch",
             "type": "shell",
-            "command": "make switch -j",
+            "command": "make hac -j",
             "presentation": {
                 "echo": true,
                 "reveal": "always",

@@ -19,6 +19,8 @@ typedef SDL_Texture * TextureHandle;
 
 typedef TTF_Font * FontHandle;
 
+typedef SDL_Texture * ImageHandle;
+
 typedef struct _TickCounter {
 } TickCounter;
 

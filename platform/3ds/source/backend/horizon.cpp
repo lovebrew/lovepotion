@@ -66,8 +66,14 @@ Horizon::PowerInfo Horizon::GetPowerInfo()
 {
     u8 batteryPercent, batteryState;
 
-    MCUHWC_GetBatteryLevel(&batteryPercent);
-    PTMU_GetBatteryChargeState(&batteryState);
+    #if !defined(EMULATION)
+        MCUHWC_GetBatteryLevel(&batteryPercent);
+        PTMU_GetBatteryChargeState(&batteryState);
+    #else
+        batteryPercent = 100;
+        batteryState = 0;
+    #endif
+
 
     PowerInfo info;
     info.percentage = batteryPercent;

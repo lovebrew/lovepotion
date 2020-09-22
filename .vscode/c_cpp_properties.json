@@ -33,8 +33,7 @@
             "defines": [
                 "__SWITCH__",
                 "LOVE_POTION_CONSOLE=\"Switch\"",
-                "__BSD_VISIBLE",
-                "COMPT53_PREFIX"
+                "__BSD_VISIBLE"
             ],
             "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
             "cStandard": "c11",

@@ -1,34 +1,49 @@
 #include "common/runtime.h"
-#include "objects/image/image.h"
+#include "objects/canvas/canvas.h"
+
+#include "modules/window/window.h"
 
 using namespace love;
 
-#define IMAGE_NOT_FOUND_STRING "Could not find image %s (not converted to t3x?)"
+#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
-Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
+Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE_2D)
 {
-    this->sheet = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
+    this->width  = settings.width;
+    this->height = settings.height;
 
-    C2D_SpriteFromSheet(&this->texture, this->sheet, 0);
+    C3D_TexInitVRAM(&this->citroTex, NextPO2(this->width), NextPO2(this->height), GPU_RGBA8);
 
-    this->width  = this->texture.image.subtex->width;
-    this->height = this->texture.image.subtex->height;
+    this->renderer = C3D_RenderTargetCreateFromTex(&this->citroTex, GPU_TEXFACE_2D, 0, -1);
+
+    const Tex3DS_SubTexture subtex = {
+        this->citroTex.width, this->citroTex.height,
+        0.0f, 1.0f, 1.0f, 0.0f
+    };
+
+    // C2D_Image
+    this->subHandle = {&this->citroTex, &subtex};
+
+    // Create Sprite (Texture) from Image
+    C2D_SpriteFromImage(&this->texture, this->subHandle);
+
+    this->cleared = false;
 
     this->InitQuad();
 }
 
-Image::~Image()
+Canvas::~Canvas()
 {
-    if (this->sheet != NULL)
-        C2D_SpriteSheetFree(this->sheet);
+    C3D_TexDelete(&this->citroTex);
+    C3D_RenderTargetDelete(this->renderer);
 }
 
-void Image::Draw(const DrawArgs & args, const Color & color)
+void Canvas::Draw(const DrawArgs & args, const Color & color)
 {
     this->Draw(args, this->quad, color);
 }
 
-void Image::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
+void Canvas::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
 {
     Quad::Viewport v = quad->GetViewport();
     Tex3DS_SubTexture source;
@@ -63,8 +78,8 @@ void Image::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
     ** as if they were negative
     */
 
-   this->texture.params.pos.w = v.w;
-   this->texture.params.pos.h = v.h;
+    this->texture.params.pos.w = v.w;
+    this->texture.params.pos.h = v.h;
 
     C2D_SpriteSetPos(&this->texture, args.x, args.y);
     C2D_SpriteSetDepth(&this->texture, args.depth);
@@ -78,6 +93,13 @@ void Image::Draw(const DrawArgs & args, love::Quad * quad, const Color & color)
     C2D_AlphaImageTint(&tint, color.a);
 
     /* Render the texture */
-
     C2D_DrawSpriteTinted(&this->texture, &tint);
+}
+
+void Canvas::Clear(const Color & color)
+{
+    C2D_TargetClear(this->renderer, C2D_Color32f(color.r, color.g, color.b, color.a));
+
+    if (!this->cleared)
+        this->cleared = true;
 }

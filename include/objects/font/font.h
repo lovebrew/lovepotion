@@ -4,6 +4,8 @@
 #include "common/mmath.h"
 #include "common/stringmap.h"
 
+#include "common/vector.h"
+
 #if defined (_3DS)
     #define FONT_DEFAULT_SIZE 22.5f;
 #elif defined (__SWITCH__)
@@ -61,7 +63,7 @@ namespace love
             Font(float size = DEFAULT_SIZE);
             ~Font();
 
-            void Print(const std::vector<ColoredString> & text, const DrawArgs & args, float * limit, const Color & color, AlignMode align);
+            void Print(const std::vector<ColoredString> & text, const DrawArgs & args, float limit, const Color & color, AlignMode align);
             void ClearBuffer();
 
 
@@ -80,15 +82,17 @@ namespace love
             static bool GetConstant(SystemFontType in, const char *& out);
             static std::vector<std::string> GetConstants(SystemFontType);
 
+
         private:
             FontHandle font;
             TextBuffer buffer;
             float size;
             TextHandle text;
 
-            TextureHandle texture;
+            void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend,
+                            float wrap, Font::AlignMode align, bool isNewLine = false);
 
-            std::pair<float, float> GenerateVertices(const std::string & line, const std::pair<float, float> & offset, const DrawArgs & args, const Color & blend, const Color & color);
+            TextureHandle texture;
 
             float GetScale() { return this->size / 30.0f; }
 

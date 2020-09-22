@@ -13,10 +13,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Build
-        run: make 3ds
+        run: make ctr
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo 3DS
+          path: |
+            platform/3ds/*.elf
+            platform/3ds/*.3dsx
 
   second:
     name: Switch
@@ -28,7 +35,14 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
+        uses: actions/checkout@v2
 
       - name: Build
-        run: make switch
+        run: make hac
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Switch
+          path: |
+            platform/switch/*.elf
+            platform/switch/*.nro

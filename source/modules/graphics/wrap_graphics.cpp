@@ -330,7 +330,7 @@ int Wrap_Graphics::Clear(lua_State * L)
     clearColor.r = luaL_checknumber(L, 1);
     clearColor.g = luaL_checknumber(L, 2);
     clearColor.b = luaL_checknumber(L, 3);
-    clearColor.a = luaL_optnumber(L, 4, 1.0f);
+    clearColor.a = luaL_optnumber(L, 4, 0.0f);
 
     instance()->CURRENT_DEPTH = 0.0f;
 
@@ -480,6 +480,30 @@ int Wrap_Graphics::NewImage(lua_State * L)
     }
 
     Luax::PushType(L, image);
+
+    return 1;
+}
+
+int Wrap_Graphics::NewCanvas(lua_State * L)
+{
+    Canvas::Settings settings;
+
+    int width = 0;
+    int height = 0;
+
+    instance()->GetDimensions(&width, &height);
+
+    settings.width  = luaL_optinteger(L, 1, width);
+    settings.height = luaL_optinteger(L, 2, height);
+
+    Canvas * canvas = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        canvas = instance()->NewCanvas(settings);
+    });
+
+    Luax::PushType(L, canvas);
+    canvas->Release();
 
     return 1;
 }
@@ -705,6 +729,18 @@ int Wrap_Graphics::SetFont(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::SetCanvas(lua_State * L)
+{
+    Canvas * canvas = nullptr;
+
+    if (!lua_isnoneornil(L, 1))
+        canvas = Luax::CheckType<Canvas>(L, 1);
+
+    instance()->SetCanvas(canvas);
+
+    return 0;
+}
+
 int Wrap_Graphics::GetFont(lua_State * L)
 {
     Font * font = nullptr;
@@ -818,6 +854,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getScissor",         GetScissor         },
         { "getWidth",           GetWidth           },
         { "line",               Line               },
+        { "newCanvas",          NewCanvas          },
         { "newFont",            NewFont            },
         { "newImage",           NewImage           },
         { "newQuad",            NewQuad            },
@@ -833,6 +870,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "rotate",             Rotate             },
         { "scale",              Scale              },
         { "setBackgroundColor", SetBackgroundColor },
+        { "setCanvas",          SetCanvas          },
         { "setColor",           SetColor           },
         { "setDefaultFilter",   SetDefaultFilter   },
         { "setLineWidth",       SetLineWidth       },
@@ -851,6 +889,7 @@ int Wrap_Graphics::Register(lua_State * L)
         Wrap_Font::Register,
         Wrap_Image::Register,
         Wrap_Quad::Register,
+        Wrap_Canvas::Register,
         0
     };
 
