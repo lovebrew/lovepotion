@@ -84,15 +84,19 @@ void Font::RenderLine(const std::string & line, love::Vector2 & offset, const Dr
 
     SDL_SetTextureBlendMode(lTexture, SDL_BLENDMODE_BLEND);
 
-    // SDL_SetTextureColorMod(lTexture, color.r, color.g, color.b);
-    // SDL_SetTextureAlphaMod(lTexture, color.a);
-
     SDL_Point center = {(int)(args.offsetX * args.scalarX), (int)(args.offsetY * args.scalarY)};
     double rotation = (args.r * 180 / M_PI);
 
-    SDL_RenderCopyEx(WINDOW_MODULE()->GetRenderer(), lTexture, &source, &destin, rotation, &center, (SDL_RendererFlip)(flipVertical | flipHorizonal));
+    TextData data;
+    data.src = source;
+    data.dst = destin;
+    data.ctr = center;
+    data.rotation = rotation;
+    data.flip = (SDL_RendererFlip)(flipHorizonal | flipVertical);
 
-    SDL_DestroyTexture(lTexture);
+    data.text = lTexture;
+
+    this->textures.push_back(data);
 
     if (isNewLine)
     {
@@ -154,6 +158,14 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
             line.clear();
         }
     }
+
+    for (auto item : this->textures)
+    {
+        SDL_RenderCopyEx(WINDOW_MODULE()->GetRenderer(), item.text, &item.src, &item.dst, item.rotation, &item.ctr, item.flip);
+        SDL_DestroyTexture(item.text);
+    }
+
+    this->textures.clear();
 }
 
 float Font::GetSize()
