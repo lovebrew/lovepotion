@@ -371,7 +371,7 @@ void Graphics::TransformScale(float * x, float * y)
         *y *= transform.scalarY;
 }
 
-void Graphics::Transform(DrawArgs * args)
+void Graphics::Transform(DrawArgs * args, bool isTexture)
 {
     if (this->transformStack.empty())
         return;
@@ -401,14 +401,11 @@ void Graphics::Transform(DrawArgs * args)
     /* Rotate */
     if (transform.rotation != 0)
     {
-        args->x -= transform.offsetX;
-        args->y -= transform.offsetY;
-
-        float nx = ox * cos(transform.rotation) - oy * sin(transform.rotation);
-        float ny = ox * sin(transform.rotation) + oy * cos(transform.rotation);
-
-        args->x = nx += transform.offsetX;
-        args->y = ny += transform.offsetY;
+        if (!isTexture)
+        {
+            args->x += ox * cos(transform.rotation) - oy * sin(transform.rotation);
+            args->y += ox * sin(transform.rotation) + oy * cos(transform.rotation);
+        }
 
         args->r += transform.rotation;
     }

@@ -13,7 +13,15 @@ using namespace love;
 void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Color & color)
 {
     if (mode == "fill")
-        C2D_DrawRectSolid(x, y, CUR_DEPTH, width, height, C2D_Color32f(color.r, color.g, color.b, color.a));
+    {
+        C2D_DrawTriangle(x, y, C2D_Color32f(color.r, color.g, color.b, color.a),
+                         x + width, y, C2D_Color32f(color.r, color.g, color.b, color.a),
+                         x + width, y + height, C2D_Color32f(color.r, color.g, color.b, color.a), CUR_DEPTH);
+
+        C2D_DrawTriangle(x, y, C2D_Color32f(color.r, color.g, color.b, color.a),
+                         x + width, y + height, C2D_Color32f(color.r, color.g, color.b, color.a),
+                         x, y + height, C2D_Color32f(color.r, color.g, color.b, color.a), CUR_DEPTH);
+    }
     else if (mode == "line")
     {
         C2D_DrawRectSolid(x + lineWidth, y + lineWidth, CUR_DEPTH + MIN_DEPTH, width - (lineWidth * 2), height - (lineWidth * 2), TRANSPARENCY);

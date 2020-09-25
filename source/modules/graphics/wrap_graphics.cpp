@@ -85,6 +85,7 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float ry = luaL_optnumber(L, 7, 1);
 
     instance()->Transform(&x, &y);
+    instance()->Transform(&width, &height);
     instance()->TransformScale(&width, &height);
 
     Luax::CatchException(L, [&]() {

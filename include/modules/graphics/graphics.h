@@ -90,7 +90,7 @@ namespace love
 
             std::vector<TransformState> transformStack;
 
-            void Transform(DrawArgs * args);
+            void Transform(DrawArgs * args, bool isTexture = false);
             void Transform(float * x, float * y);
             void TransformScale(float * x, float * y);
 
