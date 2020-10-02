@@ -36,7 +36,8 @@ BUILD		:=    build
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				source \
-				source/backend
+				source/backend \
+				source/common
 
 DATA		:=	../../source/scripts
 

@@ -37,7 +37,8 @@ BUILD		:=	build
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				source \
-				source/backend
+				source/backend \
+				source/common
 
 DATA		:=	../../source/scripts
 
@@ -71,7 +72,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lphysfs -lz `arm-none-eabi-pkg-config libmpg123 --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru
+LIBS	:= -lphysfs -lz `arm-none-eabi-pkg-config libmpg123 --libs` -lvorbisidec -logg -lcitro2dd -lcitro3dd -lctru
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib

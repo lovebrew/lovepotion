@@ -5,6 +5,9 @@
 #include "common/stringmap.h"
 
 #include "common/vector.h"
+#include "common/matrix.h"
+
+#include "objects/texture/texture.h"
 
 #if defined (_3DS)
     #define FONT_DEFAULT_SIZE 22.5f;
@@ -63,7 +66,7 @@ namespace love
             Font(float size = DEFAULT_SIZE);
             ~Font();
 
-            void Print(const std::vector<ColoredString> & text, const DrawArgs & args, float limit, const Color & color, AlignMode align);
+            void Print(Graphics * gfx, const std::vector<ColoredString> & text, float limit, const Color & color, AlignMode align, const Matrix4 & localTransform);
             void ClearBuffer();
 
 

@@ -18,9 +18,6 @@ namespace love
             Canvas(const Settings & settings);
             ~Canvas();
 
-            void Draw(const DrawArgs & args, const Color & color);
-            void Draw(const DrawArgs & args, love::Quad * quad, const Color & color);
-
             void SetAsTarget();
             void Clear(const Color & color);
 
@@ -39,8 +36,6 @@ namespace love
         private:
             bool cleared;
             Renderer * renderer;
-
-            ImageHandle subHandle;
 
             #if defined(_3DS)
                 C3D_Tex citroTex;

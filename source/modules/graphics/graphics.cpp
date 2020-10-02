@@ -13,7 +13,7 @@ Graphics::Graphics()
     this->states.push_back(DisplayState());
 
     this->transformStack.reserve(16);
-    this->transformStack.push_back(TransformState());
+    this->transformStack.push_back(Matrix4());
 
     auto window = Module::GetInstance<Window>(M_WINDOW);
 
@@ -129,14 +129,7 @@ void Graphics::GetDimensions(int * width, int * height)
 void Graphics::Origin()
 {
     auto & transform = this->transformStack.back();
-
-    transform.offsetX = 0.0f;
-    transform.offsetY = 0.0f;
-
-    transform.rotation = 0.0f;
-
-    transform.scalarX = 1.0f;
-    transform.scalarY = 1.0f;
+    transform.SetIdentity();
 }
 
 void Graphics::Push()
@@ -150,22 +143,25 @@ void Graphics::Push()
 void Graphics::Translate(float offsetX, float offsetY)
 {
     auto & transform = this->transformStack.back();
-
-    transform.offsetX = offsetX;
-    transform.offsetY = offsetY;
+    transform.Translate(offsetX, offsetY);
 }
 
 void Graphics::Rotate(float rotation)
 {
-    this->transformStack.back().rotation = rotation;
+    auto & transform = this->transformStack.back();
+    transform.Rotate(rotation);
 }
 
 void Graphics::Scale(float scalarX, float scalarY)
 {
     auto & transform = this->transformStack.back();
+    transform.Scale(scalarX, scalarY);
+}
 
-    transform.scalarX = scalarX;
-    transform.scalarY = scalarY;
+void Graphics::Shear(float kx, float ky)
+{
+    auto & transform = this->transformStack.back();
+    transform.Shear(kx, ky);
 }
 
 void Graphics::Pop()
@@ -215,71 +211,71 @@ Canvas * Graphics::NewCanvas(const Canvas::Settings & settings)
 
 /* ------ */
 
-void Graphics::Draw(Drawable * drawable, const DrawArgs & args)
+void Graphics::Draw(Drawable * drawable, const Matrix4 & matrix)
 {
-    drawable->Draw(args, this->AdjustColor(this->states.back().foreground));
+    drawable->Draw(this, matrix);
 }
 
-void Graphics::Draw(Texture * texture, Quad * quad, const DrawArgs & args)
+void Graphics::Draw(Texture * texture, Quad * quad, const Matrix4 & matrix)
 {
-    texture->Draw(args, quad, this->AdjustColor(this->states.back().foreground));
+    texture->Draw(this, quad, matrix);
 }
 
-void Graphics::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args)
+void Graphics::Print(const std::vector<Font::ColoredString> & strings, const Matrix4 & localTransform)
 {
     this->CheckSetDefaultFont();
 
     if (this->states.back().font.Get() != nullptr)
-        this->Print(strings, this->states.back().font.Get(), args);
+        this->Print(strings, this->states.back().font.Get(), localTransform);
 }
 
-void Graphics::Print(const std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args)
+void Graphics::Print(const  std::vector<Font::ColoredString> & strings, Font * font, const Matrix4 & localTransform)
 {
-    font->Print(strings, args, 0, this->AdjustColor(this->states.back().foreground), Font::ALIGN_LEFT);
+    font->Print(this, strings, 0, this->AdjustColor(this->states.back().foreground), Font::ALIGN_LEFT, localTransform);
 }
 
-void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, const DrawArgs & args, float wrap, Font::AlignMode align)
+void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
 {
     this->CheckSetDefaultFont();
 
     if (this->states.back().font.Get() != nullptr)
-        this->PrintF(strings, this->states.back().font.Get(), args, wrap, align);
+        this->PrintF(strings, this->states.back().font.Get(), wrap, align, localTransform);
 }
 
-void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * font, const DrawArgs & args, float wrap, Font::AlignMode align)
+void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * font, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
 {
-    font->Print(strings, args, wrap, this->AdjustColor(this->states.back().foreground), align);
+    font->Print(this, strings, wrap, this->AdjustColor(this->states.back().foreground), align, localTransform);
 }
 
 /* End Objects */
 
-void Graphics::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry)
-{
-    Primitives::Rectangle(mode, x, y, width, height, rx, ry, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
-}
-
 void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> points)
 {
+    SetViewMatrix(this->transformStack.back());
     Primitives::Polygon(mode, points, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
 }
 
 void Graphics::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle)
 {
+    SetViewMatrix(this->transformStack.back());
     Primitives::Arc(mode, x, y, radius, startAngle, endAngle, this->AdjustColor(this->states.back().foreground));
 }
 
 void Graphics::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY)
 {
+    SetViewMatrix(this->transformStack.back());
     Primitives::Ellipse(mode, x, y, radiusX, radiusY, this->AdjustColor(this->states.back().foreground));
 }
 
 void Graphics::Line(float startx, float starty, float endx, float endy)
 {
+    SetViewMatrix(this->transformStack.back());
     Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
 }
 
 void Graphics::Circle(float x, float y, float radius)
 {
+    SetViewMatrix(this->transformStack.back());
     Primitives::Circle("fill", x, y, radius, this->GetLineWidth(), this->AdjustColor(this->states.back().foreground));
 }
 
@@ -287,7 +283,16 @@ void Graphics::Reset()
 {
     DisplayState blankState;
     this->RestoreState(blankState);
-    // Origin
+    this->Origin();
+}
+
+void Graphics::SetViewMatrix(const Matrix4 & matrix)
+{
+    #if defined (_3DS)
+        C2D_ViewRestore(&matrix.GetElements());
+    #elif defined (__SWITCH__)
+
+    #endif
 }
 
 /* Private */
@@ -332,91 +337,6 @@ Font * Graphics::GetFont()
 }
 
 /* End Font */
-
-void Graphics::Transform(float * x, float * y)
-{
-    if (x == nullptr || y == nullptr)
-        return;
-
-    DrawArgs args;
-
-    args.offsetX = 0.0f;
-    args.offsetY = 0.0f;
-
-    args.x = *x;
-    args.y = *y;
-
-    args.r = 0.0f;
-
-    args.scalarX = 1.0f;
-    args.scalarY = 1.0f;
-
-    this->Transform(&args);
-
-    *x = args.x;
-    *y = args.y;
-}
-
-void Graphics::TransformScale(float * x, float * y)
-{
-    if (this->transformStack.empty())
-        return;
-
-    auto & transform = this->transformStack.back();
-
-    if (x != nullptr)
-        *x *= transform.scalarX;
-
-    if (y != nullptr)
-        *y *= transform.scalarY;
-}
-
-void Graphics::Transform(DrawArgs * args, bool isTexture)
-{
-    if (this->transformStack.empty())
-        return;
-
-    auto & transform = this->transformStack.back();
-
-    float ox = args->x;
-    float oy = args->y;
-
-    #if defined (_3DS)
-        float slider = osGet3DSliderState();
-        int displayNum = WINDOW_MODULE()->GetDisplay();
-
-        if (gfxIs3D() && displayNum < 2)
-        {
-            if (displayNum == 0)
-                args->x -= (slider * this->stereoDepth);
-            else if (displayNum == 1)
-                args->x += (slider * this->stereoDepth);
-        }
-    #endif
-
-    /* Translate */
-    args->x += transform.offsetX;
-    args->y += transform.offsetY;
-
-    /* Rotate */
-    if (transform.rotation != 0)
-    {
-        if (!isTexture)
-        {
-            args->x += ox * cos(transform.rotation) - oy * sin(transform.rotation);
-            args->y += ox * sin(transform.rotation) + oy * cos(transform.rotation);
-        }
-
-        args->r += transform.rotation;
-    }
-
-    /* Scale */
-    args->x *= transform.scalarX;
-    args->y *= transform.scalarY;
-
-    args->scalarX *= transform.scalarX;
-    args->scalarY *= transform.scalarY;
-}
 
 void Graphics::AdjustColor(Color * in)
 {

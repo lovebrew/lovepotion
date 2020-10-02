@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "objects/font/font.h"
 
+#include "modules/graphics/graphics.h"
+
 using namespace love;
 
 #define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to bcfnt?)"
@@ -29,8 +31,9 @@ Font::~Font()
     C2D_FontFree(this->font);
 }
 
-void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArgs & args,
-                 float limit, const Color & blend, Font::AlignMode align)
+void Font::Print(Graphics * gfx, const std::vector<Font::ColoredString> & strings,
+                 float limit, const Color & blend, Font::AlignMode align,
+                 const Matrix4 & localTransform)
 {
     C2D_Text text;
     u32 alignMode = C2D_AlignLeft;
@@ -52,7 +55,13 @@ void Font::Print(const std::vector<Font::ColoredString> & strings, const DrawArg
     C2D_TextFontParse(&text, this->font, this->buffer, result.c_str());
     C2D_TextOptimize(&text);
 
-    C2D_DrawText(&text, C2D_WithColor | alignMode, args.x, args.y, args.depth, this->GetScale() * args.scalarX, this->GetScale() * args.scalarY, C2D_Color32f(blend.r, blend.g, blend.b, blend.a), limit);
+    // Multiply the current and local transforms
+    Matrix4 t(gfx->GetTransform(), localTransform);
+
+    // Appy the new Matrix4 C3D_Mtx
+    C2D_ViewRestore(&t.GetElements());
+
+    C2D_DrawText(&text, C2D_WithColor | alignMode, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), C2D_Color32f(blend.r, blend.g, blend.b, blend.a), limit);
 }
 
 void Font::ClearBuffer()

@@ -40,6 +40,8 @@ namespace Wrap_Graphics
 
     int Rotate(lua_State * L);
 
+    int Shear(lua_State * L);
+
     int Pop(lua_State * L);
 
     int Print(lua_State * L);

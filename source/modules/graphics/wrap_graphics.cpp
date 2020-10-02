@@ -33,9 +33,6 @@ int Wrap_Graphics::Arc(lua_State * L)
     float startAngle = luaL_checknumber(L, 5);
     float endAngle = luaL_checknumber(L, 6);
 
-    instance()->Transform(&x, &y);
-    instance()->TransformScale(&radius, nullptr);
-
     Luax::CatchException(L, [&]() {
         instance()->Arc(mode, x, y, radius, startAngle, endAngle);
     });
@@ -56,9 +53,6 @@ int Wrap_Graphics::Ellipse(lua_State * L)
 
     float radiusX = luaL_checknumber(L, 4);
     float radiusY = luaL_checknumber(L, 5);
-
-    instance()->Transform(&x, &y);
-    instance()->TransformScale(&radiusX, &radiusY);
 
     Luax::CatchException(L, [&]() {
         instance()->Ellipse(mode, x, y, radiusX, radiusY);
@@ -84,12 +78,16 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float rx = luaL_optnumber(L, 6, 1);
     float ry = luaL_optnumber(L, 7, 1);
 
-    instance()->Transform(&x, &y);
-    instance()->Transform(&width, &height);
-    instance()->TransformScale(&width, &height);
+    std::vector<Graphics::Point> pts =
+    {
+        {x, y},
+        {x + width, y},
+        {x + width, y + height},
+        {x, y + height}
+    };
 
     Luax::CatchException(L, [&]() {
-        instance()->Rectangle(mode, x, y, width, height, rx, ry);
+        instance()->Polygon(mode, pts);
     });
 
     return 0;
@@ -107,9 +105,6 @@ int Wrap_Graphics::Circle(lua_State * L)
     float y = luaL_optnumber(L, 3, 0);
 
     float radius = luaL_optnumber(L, 4, 1);
-
-    instance()->Transform(&x, &y);
-    instance()->TransformScale(&radius, nullptr);
 
     Luax::CatchException(L, [&]() {
         instance()->Circle(x, y, radius);
@@ -149,9 +144,6 @@ int Wrap_Graphics::Line(lua_State * L)
 
                     lua_pop(L, 4);
 
-                    instance()->Transform(&start.x, &start.y);
-                    instance()->Transform(&end.x, &end.y);
-
                     Luax::CatchException(L, [&]() {
                         instance()->Line(start.x, start.y, end.x, end.y);
                     });
@@ -171,9 +163,6 @@ int Wrap_Graphics::Line(lua_State * L)
 
             end.x = luaL_checknumber(L, index + 3);
             end.y = luaL_checknumber(L, index + 4);
-
-            instance()->Transform(&start.x, &start.y);
-            instance()->Transform(&end.x, &end.y);
 
             Luax::CatchException(L, [&]() {
                 instance()->Line(start.x, start.y, end.x, end.y);
@@ -222,8 +211,6 @@ int Wrap_Graphics::Polygon(lua_State * L)
             x = luaL_checkinteger(L, -2);
             y = luaL_checkinteger(L, -1);
 
-            instance()->Transform(&x, &y);
-
             points[i] = {x, y};
 
             lua_pop(L, 2);
@@ -238,8 +225,6 @@ int Wrap_Graphics::Polygon(lua_State * L)
         {
             x = luaL_checkinteger(L, (i * 2) + 2);
             y = luaL_checkinteger(L, (i * 2) + 3);
-
-            instance()->Transform(&x, &y);
 
             points[i] = {x, y};
 
@@ -308,9 +293,19 @@ int Wrap_Graphics::Rotate(lua_State * L)
 int Wrap_Graphics::Scale(lua_State * L)
 {
     float x = luaL_checknumber(L, 1);
-    float y = luaL_checknumber(L, 2);
+    float y = luaL_optnumber(L, 2, x);
 
     instance()->Scale(x, y);
+
+    return 0;
+}
+
+int Wrap_Graphics::Shear(lua_State * L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    instance()->Shear(x, y);
 
     return 0;
 }
@@ -614,28 +609,13 @@ int Wrap_Graphics::Draw(lua_State * L)
         start = 2;
     }
 
-    DrawArgs args;
-
-    args.x = luaL_optnumber(L, start, 0);
-    args.y = luaL_optnumber(L, start + 1, 0);
-
-    args.r = luaL_optnumber(L, start + 2, 0);
-
-    args.scalarX = luaL_optnumber(L, start + 3, 1);
-    args.scalarY = luaL_optnumber(L, start + 4, 1);
-
-    args.offsetX = luaL_optnumber(L, start + 5, 0);
-    args.offsetY = luaL_optnumber(L, start + 6, 0);
-
-    args.depth = instance()->CURRENT_DEPTH;
-
-    instance()->Transform(&args);
-
-    Luax::CatchException(L, [&]() {
-        if (texture && quad)
-            instance()->Draw(texture, quad, args);
-        else
-            instance()->Draw(drawable, args);
+    Graphics::CheckStandardTransform(L, start, [&](const Matrix4 & m) {
+        Luax::CatchException(L, [&]() {
+            if (texture && quad)
+                instance()->Draw(texture, quad, m);
+            else
+                instance()->Draw(drawable, m);
+        });
     });
 
     return 0;
@@ -646,27 +626,22 @@ int Wrap_Graphics::Print(lua_State * L)
     std::vector<Font::ColoredString> string;
     Wrap_Font::CheckColoredString(L, 1, string);
 
-    DrawArgs args;
-
-    args.x = luaL_optnumber(L, 2, 0);
-    args.y = luaL_optnumber(L, 3, 0);
-
-    args.depth = Graphics::CURRENT_DEPTH;
-
-    instance()->Transform(&args);
-
     if (Luax::IsType(L, 2, Font::type))
     {
         Font * font = Wrap_Font::CheckFont(L, 2);
 
-        Luax::CatchException(L, [&]() {
-            instance()->Print(string, font, args);
+        Graphics::CheckStandardTransform(L, 3, [&](const Matrix4 & m) {
+            Luax::CatchException(L, [&]() {
+                instance()->Print(string, font, m);
+            });
         });
     }
     else
     {
-        Luax::CatchException(L, [&]() {
-            instance()->Print(string, args);
+        Graphics::CheckStandardTransform(L, 2, [&](const Matrix4 & m) {
+            Luax::CatchException(L, [&]() {
+                instance()->Print(string, m);
+            });
         });
     }
 
@@ -678,21 +653,12 @@ int Wrap_Graphics::PrintF(lua_State * L)
     std::vector<Font::ColoredString> string;
     Wrap_Font::CheckColoredString(L, 1, string);
 
-    DrawArgs args;
-
-    args.x = luaL_optnumber(L, 2, 0);
-    args.y = luaL_optnumber(L, 3, 0);
-
-    args.depth = Graphics::CURRENT_DEPTH;
-
-    instance()->Transform(&args);
-
     int start = 2;
 
     Font * font = nullptr;
     if (Luax::IsType(L, 2, Font::type))
     {
-        font = Wrap_Font::CheckFont(L, 2);
+        font = Wrap_Font::CheckFont(L, start);
         start++;
     }
 
@@ -704,8 +670,10 @@ int Wrap_Graphics::PrintF(lua_State * L)
     if (alignment != nullptr && !Font::GetConstant(alignment, mode))
         return Luax::EnumError(L, "alignment", Font::GetConstants(mode), alignment);
 
-    Luax::CatchException(L, [&]() {
-        instance()->PrintF(string, args, wrap, mode);
+    Graphics::CheckStandardTransform(L, 2, [&](const Matrix4 & m) {
+        Luax::CatchException(L, [&]() {
+            instance()->PrintF(string, wrap, mode, m);
+        });
     });
 
     return 0;
@@ -870,6 +838,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "reset",              Reset              },
         { "rotate",             Rotate             },
         { "scale",              Scale              },
+        { "shear",              Shear              },
         { "setBackgroundColor", SetBackgroundColor },
         { "setCanvas",          SetCanvas          },
         { "setColor",           SetColor           },

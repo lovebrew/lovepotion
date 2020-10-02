@@ -20,12 +20,8 @@ namespace love
             Image(Data * data);
             ~Image();
 
-            void Draw(const DrawArgs & args, const Color & color);
-            void Draw(const DrawArgs & args, Quad * quad, const Color & color);
-
         private:
             TextureType textureType;
-            TextureHandle texture;
             TextureSheet sheet;
     };
 }
