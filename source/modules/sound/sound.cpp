@@ -30,9 +30,7 @@ DecoderImpl DecoderImplFor()
 }
 
 Sound::~Sound()
-{
-    MPEGDecoder::Quit();
-}
+{}
 
 Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
 {
@@ -43,7 +41,8 @@ Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
     {
         DecoderImplFor<VorbisDecoder>(),
         DecoderImplFor<MPEGDecoder>(),
-        DecoderImplFor<WaveDecoder>()
+        DecoderImplFor<WaveDecoder>(),
+        DecoderImplFor<FLACDecoder>()
     };
 
     for (DecoderImpl & item : possibilities)

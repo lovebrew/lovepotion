@@ -1,15 +1,15 @@
 #pragma once
 
 #include "objects/decoder/decoder.h"
-#include "dr/dr_mp3.h"
+#include "dr/dr_flac.h"
 
 namespace love
 {
-    class MPEGDecoder : public Decoder
+    class FLACDecoder : public Decoder
     {
         public:
-            MPEGDecoder(Data * data, int bufferSize);
-            ~MPEGDecoder();
+            FLACDecoder(Data * data, int bufferSize);
+            ~FLACDecoder();
 
             static bool Accepts(const std::string & ext);
 
@@ -29,12 +29,11 @@ namespace love
 
             int GetBitDepth() const;
 
+            int GetSampleRate() const;
+
             double GetDuration();
 
         private:
-            drmp3 mp3;
-            std::vector<drmp3_seek_point> seekTable;
-
-            double duration;
+            drflac * flac;
     };
 }

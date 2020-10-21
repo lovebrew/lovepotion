@@ -7,6 +7,7 @@
 #include "vorbisdecoder.h"
 #include "mpegdecoder.h"
 #include "wavedecoder.h"
+#include "flacdecoder.h"
 
 namespace love
 {
