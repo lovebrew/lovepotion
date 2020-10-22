@@ -92,24 +92,6 @@ namespace love
             float size;
             TextHandle text;
 
-            // Switch
-            #if defined (__SWITCH__)
-                struct TextData
-                {
-                    SDL_Rect src;
-                    SDL_Rect dst;
-
-                    SDL_Point ctr;
-                    double rotation;
-
-                    TextureHandle text;
-
-                    SDL_RendererFlip flip;
-                };
-
-                std::vector<TextData> textures;
-            #endif
-
             void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend,
                             float wrap, Font::AlignMode align, bool isNewLine = false);
 

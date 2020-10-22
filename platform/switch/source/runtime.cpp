@@ -38,7 +38,7 @@ extern "C"
         if (R_FAILED(res))
             fatalThrow(res);
 
-        TTF_Init();
+        // TTF_Init();
     }
 
     void userAppExit()
@@ -51,6 +51,6 @@ extern "C"
         plExit();
 
         // Deinitialize everything else
-        TTF_Quit();
+        // TTF_Quit();
     }
 }

@@ -19,6 +19,8 @@ namespace love
 
             Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx, float ky);
 
+            Matrix4(float t00, float t10, float t01, float t11, float x, float y);
+
             const Elements & GetElements() const;
 
             void SetIdentity();

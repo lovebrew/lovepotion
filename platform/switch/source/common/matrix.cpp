@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "common/matrix.h"
 
+#include "arm_neon.h"
+
 using namespace love;
 
 void Matrix4::Multiply(const Matrix4 & a, const Matrix4 & b, Elements & t)
@@ -172,7 +174,7 @@ void Matrix4::SetTransformation(float x, float y, float angle,
                                 float sx, float sy, float ox,
                                 float oy, float kx, float ky)
 {
-    memset(e, 0, sizeof(float) * 16); // zero out matrix
+    memset(this->matrix, 0, sizeof(float) * 16); // zero out matrix
     float c = cosf(angle), s = sinf(angle);
 
     this->matrix[10] = this->matrix[15] = 1.0f;

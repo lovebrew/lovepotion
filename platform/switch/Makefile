@@ -37,15 +37,15 @@ SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				source \
 				source/backend \
-				source/common
+				source/common \
 				source/deko3d
 
-DATA		:=	../../source/scripts
-				scripts
+DATA		:=	../../source/scripts \
+				#scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				include
+				include \
 				include/deko3d
 
 EXEFS_SRC    := exefs_src
@@ -61,7 +61,7 @@ APP_TITLEID		:= 1043
 #---------------------------------------------------------------------------------
 ARCH      :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS    :=    -g -Wall -O2 -ffunction-sections `sdl2-config --cflags` `freetype-config --cflags` \
+CFLAGS    :=    -g -Wall -O2 -ffunction-sections `freetype-config --cflags` \
 				$(ARCH) $(DEFINES) -DLOVE_POTION_CONSOLE="\"Switch\""
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION)
@@ -198,7 +198,11 @@ $(OUTPUT).elf    :    $(OFILES)
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
-
+#---------------------------------------------------------------------------------
+%.lua.o    :    %.lua
+#---------------------------------------------------------------------------------
+	@echo $(notdir $<)
+	@$(bin2o)
 -include $(DEPENDS)
 
 #---------------------------------------------------------------------------------------

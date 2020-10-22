@@ -3,15 +3,14 @@
 
 using namespace love;
 
-#include <SDL.h>
+#include "deko3d/init.h"
 #include "common/exception.h"
 
 Window::Window() : window(nullptr),
                    open(false)
 
 {
-    if (SDL_Init(SDL_INIT_VIDEO) != 0)
-        throw love::Exception("Could not initialize SDL video subsystem (%s)", SDL_GetError());
+    deko3d::Initialize();
 
     this->displaySizes =
     {
@@ -23,26 +22,9 @@ Window::Window() : window(nullptr),
 
 Window::~Window()
 {
-    if (this->open)
-    {
-        if (this->targets.back())
-        {
-            SDL_DestroyRenderer(this->targets.back());
+    deko3d::DeInitialize();
 
-            this->targets.back() = nullptr;
-        }
-
-        if (this->window)
-        {
-            SDL_DestroyWindow(this->window);
-
-            this->window = nullptr;
-        }
-
-        this->graphics.Set(nullptr);
-
-        SDL_QuitSubSystem(SDL_INIT_VIDEO);
-    }
+    this->graphics.Set(nullptr);
 
     this->open = false;
 }
@@ -60,42 +42,14 @@ void Window::SetScreen(size_t screen)
 
 bool Window::SetMode()
 {
-    this->window = SDL_CreateWindow(NULL, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 1280, 720, SDL_WINDOW_FULLSCREEN);
-
-    if (!this->window)
-        return false;
-
-    this->targets.push_back(SDL_CreateRenderer(this->window, 0, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
-
-    if (!this->targets.back())
-        return false;
-
-    SDL_SetRenderDrawBlendMode(this->targets.back(), SDL_BLENDMODE_BLEND);
-
-    this->open = true;
-
-    return true;
+    return this->open = true;
 }
 
 void Window::Clear(Color * color)
-{
-    // clear the background to the specified color
-    SDL_SetRenderDrawColor(this->targets.back(), color->r, color->g, color->b, color->a);
-    SDL_RenderClear(this->targets.back());
-
-    auto foreground = this->graphics->AdjustColor(this->graphics.Get()->GetColor());
-    SDL_SetRenderDrawColor(this->targets.back(), foreground.r, foreground.g, foreground.b, foreground.a);
-}
+{}
 
 void Window::SetRenderer(Canvas * canvas)
-{
-    this->canvas.Set(canvas);
-
-    if (this->canvas)
-        SDL_SetRenderTarget(this->targets.back(), canvas->GetTextureHandle());
-    else
-        SDL_SetRenderTarget(this->targets.back(), NULL);
-}
+{}
 
 void Window::SetGraphics(Graphics * g)
 {
@@ -104,7 +58,17 @@ void Window::SetGraphics(Graphics * g)
 
 void Window::Present()
 {
-    SDL_RenderPresent(this->targets.back());
+    // Acquire a framebuffer from the swapchain (and wait for it to be available)
+    int slot = deko3d::queue.acquireImage(deko3d::swapchain);
+
+    // Run the command list that attaches said framebuffer to the queue
+    deko3d::queue.submitCommands(deko3d::framebuffer_cmdlists[slot]);
+
+    // Run the main rendering command list
+    deko3d::queue.submitCommands(deko3d::render_cmdlist);
+
+    // Now that we are done rendering, present it to the screen
+    deko3d::queue.presentImage(deko3d::swapchain, slot);
 }
 
 std::vector<std::pair<int, int>> & Window::GetFullscreenModes()

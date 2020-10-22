@@ -1,8 +1,5 @@
 #pragma once
 
-#include <SDL.h>
-#include <SDL_ttf.h>
-
 #include <switch.h>
 
 #include "common/mmath.h"
@@ -11,15 +8,21 @@ using love::Rect;
 
 #define MAX_GAMEPADS 1
 
-typedef SDL_Renderer Renderer;
+typedef struct _Renderer {
+} Renderer;
 
-typedef SDL_Window Frame;
+typedef struct _Frame {
+} Frame;
 
-typedef SDL_Texture * TextureHandle;
+struct _TextureHandle {
+};
+typedef _TextureHandle* TextureHandle;
 
-typedef TTF_Font * FontHandle;
+typedef struct _FontHandle {
+} FontHandle;
 
-typedef SDL_Texture * ImageHandle;
+typedef struct _ImageHandle {
+} ImageHandle;
 
 typedef struct _TickCounter {
 } TickCounter;

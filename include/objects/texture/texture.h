@@ -14,9 +14,7 @@
     #define LOVE_SetWrapMode(texture, s, t) \
         C3D_TexSetWrap((texture.tex), (GPU_TEXTURE_WRAP_PARAM)(s), (GPU_TEXTURE_WRAP_PARAM)(t))
 #elif defined (__SWITCH__)
-    #define LOVE_SetFilter(texture, mag, min) \
-        SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, (char *)&(mag));
-
+    #define LOVE_SetFilter(texture, mag, min)
     #define LOVE_SetWrapMode(texture, s, t)
 #endif
 
