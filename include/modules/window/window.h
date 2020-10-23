@@ -28,7 +28,7 @@ namespace love
 
             void SetScreen(size_t screen);
 
-            void Clear(Color * color);
+            void Clear(Colorf * color);
 
             // void Clear(const Graphics::DisplayState & state);
 

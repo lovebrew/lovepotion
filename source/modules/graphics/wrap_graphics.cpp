@@ -3,7 +3,7 @@
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
+#define instance()      (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 int Wrap_Graphics::SetDepth(lua_State * L)
@@ -321,17 +321,39 @@ int Wrap_Graphics::Pop(lua_State * L)
 
 int Wrap_Graphics::Clear(lua_State * L)
 {
-    Color clearColor = { 0, 0, 0, 0 };
+    std::optional<Colorf> color(Colorf(0, 0, 0, 0));
 
-    clearColor.r = luaL_checknumber(L, 1);
-    clearColor.g = luaL_checknumber(L, 2);
-    clearColor.b = luaL_checknumber(L, 3);
-    clearColor.a = luaL_optnumber(L, 4, 0.0f);
+    std::optional<int>    stencil(0);
+    std::optional<double> depth(1.0);
+
+    int argtype = lua_type(L, 1);
+    int startidx = -1;
 
     instance()->CURRENT_DEPTH = 0.0f;
 
-    instance()->AdjustColor(&clearColor);
-    WINDOW_MODULE()->Clear(&clearColor);
+	if (argtype != LUA_TNONE && argtype != LUA_TNIL)
+	{
+		color.value().r = (float) luaL_checknumber(L, 1);
+		color.value().g = (float) luaL_checknumber(L, 2);
+		color.value().b = (float) luaL_checknumber(L, 3);
+		color.value().a = (float) luaL_optnumber(L, 4, 1.0);
+		startidx = 5;
+	}
+
+	if (startidx >= 0)
+	{
+		argtype = lua_type(L, startidx);
+		if (argtype == LUA_TNUMBER)
+			stencil.value() = (int)luaL_checkinteger(L, startidx);
+
+		argtype = lua_type(L, startidx + 1);
+		if (argtype == LUA_TNUMBER)
+			depth.value() = luaL_checknumber(L, startidx + 1);
+
+        Luax::CatchException(L, [&]() {
+            instance()->Clear(color, stencil, depth);
+        });
+	}
 
     return 0;
 }
@@ -731,7 +753,7 @@ int Wrap_Graphics::Reset(lua_State * L)
 
 int Wrap_Graphics::GetBackgroundColor(lua_State * L)
 {
-    Color background = instance()->GetBackgroundColor();
+    Colorf background = instance()->GetBackgroundColor();
 
     lua_pushnumber(L, background.r);
     lua_pushnumber(L, background.g);
@@ -742,7 +764,7 @@ int Wrap_Graphics::GetBackgroundColor(lua_State * L)
 
 int Wrap_Graphics::SetBackgroundColor(lua_State * L)
 {
-    Color background = {0.0f, 0.0f, 0.0f, 0.0f};
+    Colorf background = {0.0f, 0.0f, 0.0f, 0.0f};
 
     if (lua_istable(L, 1))
     {
@@ -769,7 +791,7 @@ int Wrap_Graphics::SetBackgroundColor(lua_State * L)
 
 int Wrap_Graphics::GetColor(lua_State * L)
 {
-    Color foreground = instance()->GetColor();
+    Colorf foreground = instance()->GetColor();
 
     lua_pushnumber(L, foreground.r);
     lua_pushnumber(L, foreground.g);
@@ -781,7 +803,7 @@ int Wrap_Graphics::GetColor(lua_State * L)
 
 int Wrap_Graphics::SetColor(lua_State * L)
 {
-    Color foreground = {0.0f, 0.0f, 0.0f, 0.0f};
+    Colorf foreground = {0.0f, 0.0f, 0.0f, 0.0f};
 
     if (lua_istable(L, 1))
     {
@@ -866,7 +888,11 @@ int Wrap_Graphics::Register(lua_State * L)
     Graphics * instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new Graphics(); });
+        #if defined (_3DS)
+            Luax::CatchException(L, [&]() { instance = new Graphics(); });
+        #elif defined (__SWITCH__)
+            Luax::CatchException(L, [&]() { instance = new love::deko3d::Graphics(); });
+        #endif
     else
         instance->Retain();
 

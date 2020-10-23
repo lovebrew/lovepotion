@@ -19,7 +19,7 @@ namespace love
             ~Canvas();
 
             void SetAsTarget();
-            void Clear(const Color & color);
+            void Clear(const Colorf & color);
 
             Renderer * GetRenderer() {
                 return this->renderer;

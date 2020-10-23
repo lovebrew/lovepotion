@@ -36,7 +36,7 @@ Canvas::~Canvas()
     C3D_RenderTargetDelete(this->renderer);
 }
 
-void Canvas::Clear(const Color & color)
+void Canvas::Clear(const Colorf & color)
 {
     C2D_TargetClear(this->renderer, C2D_Color32f(color.r, color.g, color.b, color.a));
 

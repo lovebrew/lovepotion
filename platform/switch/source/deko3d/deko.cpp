@@ -72,6 +72,39 @@ void deko3d::CreateResources()
     swapchain = dk::SwapchainMaker{device, nwindowGetDefault(), framebufferArray}.create();
 }
 
+void deko3d::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
+{
+    if (color.has_value() || stencil.has_value() || depth.has_value())
+    {} // flush stream draws
+
+    if (color.has_value())
+    {
+        // love::Graphics::GammaCorrectColor(color.value());
+        this->cmdbuf.clearColor(0, DkColorMask_RGBA, color.value().r, color.value().g, color.value().b, color.value().a);
+    }
+
+    /*
+    ** The remaining bit is probably (likely) wrong
+    ** Is there a way to clear Stencil and Depth independently?
+    */
+
+    if (stencil.has_value())
+        this->ClearDepth(stencil.value());
+
+    bool hasDepthWrites = false;
+
+    if (depth.has_value())
+    {
+        if (!hasDepthWrites)
+        {} // enable them
+
+        this->ClearDepth(depth.value());
+    }
+
+    if (depth.has_value() && !hasDepthWrites)
+    {} // enable them
+}
+
 void deko3d::SetFilter(const love::Texture::Filter & filter)
 {
     // Set the global filter mode for textures
@@ -81,10 +114,15 @@ void deko3d::SetFilter(const love::Texture::Filter & filter)
 }
 
 void deko3d::ClearDepth(double depth)
-{}
+{
+    // this->cmdbuf.clearDepthStencil
+}
 
 void deko3d::SetScissor(const love::Rect & scissor, bool canvasActive)
-{}
+{
+    this->scissor = scissor;
+    this->cmdbuf.setScissors(0, { {scissor.x, scissor.y, scissor.w, scissor.h} });
+}
 
 void deko3d::SetViewport(const love::Rect & view)
 {

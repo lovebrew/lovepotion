@@ -37,11 +37,11 @@ Font::~Font()
 }
 
 void Font::RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args,
-                      const Color & blend, float wrap, Font::AlignMode align, bool isNewLine)
+                      const Colorf & blend, float wrap, Font::AlignMode align, bool isNewLine)
 {}
 
 void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
-                 float limit, const Color & color, AlignMode align,
+                 float limit, const Colorf & color, AlignMode align,
                  const Matrix4 & localTransform)
 {}
 

@@ -54,7 +54,7 @@ bool Window::SetMode()
     return true;
 }
 
-void Window::Clear(Color * color)
+void Window::Clear(Colorf * color)
 {
     if (!this->canvas)
     {

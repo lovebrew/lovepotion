@@ -10,7 +10,7 @@ using namespace love;
 #define MIN_DEPTH Graphics::MIN_DEPTH
 #define TRANSPARENCY C2D_Color32f(0, 0, 0, 0)
 
-void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Color & color)
+void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Colorf & color)
 {
     if (mode == "fill")
     {
@@ -31,30 +31,30 @@ void Primitives::Rectangle(const std::string & mode, float x, float y, float wid
     }
 }
 
-void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Color & color)
+void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Colorf & color)
 {
     // NOP
 }
 
-void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Color & color)
+void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Colorf & color)
 {
     if (mode == "fill")
         C2D_DrawEllipseSolid(x, y, CUR_DEPTH, radiusX, radiusY, C2D_Color32f(color.r, color.g, color.b, color.a));
 }
 
-void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Color & color)
+void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Colorf & color)
 {
     if (mode == "fill")
         C2D_DrawCircleSolid(x, y, CUR_DEPTH, radius, C2D_Color32f(color.r, color.g, color.b, color.a));
 }
 
-void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Color & color)
+void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Colorf & color)
 {
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
     C2D_DrawLine(x1, y1, foreground, x2, y2, foreground, lineWidth, CUR_DEPTH);
 }
 
-void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> points, float lineWidth, const Color & color)
+void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> points, float lineWidth, const Colorf & color)
 {
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 

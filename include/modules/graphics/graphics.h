@@ -20,6 +20,7 @@
 #include "objects/canvas/canvas.h"
 
 #include "common/mmath.h"
+#include "common/colors.h"
 
 #if defined (_3DS)
     #define RENDERER_NAME "OpenGL ES"
@@ -48,8 +49,8 @@ namespace love
 
             struct DisplayState
             {
-                Color foreground = { 1, 1, 1, 1 };
-                Color background = { 0, 0, 0, 1 };
+                Colorf foreground = { 1, 1, 1, 1 };
+                Colorf background = { 0, 0, 0, 1 };
 
                 float lineWidth = 1.0f;
                 float pointSize = 1.0f;
@@ -93,6 +94,8 @@ namespace love
 
             const char * GetName() const override { return "love.graphics"; }
 
+            virtual void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) = 0;
+
             void Clear(float r, float g, float b);
 
             template <typename T>
@@ -115,13 +118,13 @@ namespace love
                 return this->transformStack.back();
             }
 
-            Color GetColor();
+            Colorf GetColor();
 
-            void SetColor(const Color & color);
+            void SetColor(const Colorf & color);
 
-            Color GetBackgroundColor();
+            Colorf GetBackgroundColor();
 
-            void SetBackgroundColor(const Color & color);
+            void SetBackgroundColor(const Colorf & color);
 
             float GetLineWidth();
 
@@ -207,10 +210,6 @@ namespace love
             void Reset();
 
             void Present();
-
-            Color AdjustColor(const Color & in);
-
-            void AdjustColor(Color * in);
 
             std::vector<DisplayState> states;
 

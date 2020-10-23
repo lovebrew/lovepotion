@@ -51,7 +51,7 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
     C2D_ViewRestore(&t.GetElements());
 
     C2D_ImageTint tint;
-    Color color = gfx->GetColor();
+    Colorf color = gfx->GetColor();
 
     C2D_AlphaImageTint(&tint, color.a);
 

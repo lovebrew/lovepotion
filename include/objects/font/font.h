@@ -23,7 +23,7 @@ namespace love
             struct ColoredString
             {
                 std::string string;
-                Color color;
+                Colorf color;
             };
 
             enum AlignMode
@@ -66,7 +66,7 @@ namespace love
             Font(float size = DEFAULT_SIZE);
             ~Font();
 
-            void Print(Graphics * gfx, const std::vector<ColoredString> & text, float limit, const Color & color, AlignMode align, const Matrix4 & localTransform);
+            void Print(Graphics * gfx, const std::vector<ColoredString> & text, float limit, const Colorf & color, AlignMode align, const Matrix4 & localTransform);
             void ClearBuffer();
 
 
@@ -92,7 +92,7 @@ namespace love
             float size;
             TextHandle text;
 
-            void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Color & blend,
+            void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Colorf & blend,
                             float wrap, Font::AlignMode align, bool isNewLine = false);
 
             TextureHandle texture;

@@ -32,7 +32,7 @@ Font::~Font()
 }
 
 void Font::Print(Graphics * gfx, const std::vector<Font::ColoredString> & strings,
-                 float limit, const Color & blend, Font::AlignMode align,
+                 float limit, const Colorf & blend, Font::AlignMode align,
                  const Matrix4 & localTransform)
 {
     C2D_Text text;

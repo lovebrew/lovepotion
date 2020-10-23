@@ -1,6 +1,8 @@
 #pragma once
 
 #include "modules/graphics/graphics.h"
+#include "deko3d/graphics.h"
+
 #include "modules/window/window.h"
 
 #include "objects/font/font.h"

@@ -9,22 +9,22 @@ using namespace love;
 
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
-void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Color & color)
+void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Colorf & color)
 {}
 
-void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Color & color)
+void Primitives::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle, const Colorf & color)
 {}
 
-void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Color & color)
+void Primitives::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY, const Colorf & color)
 {}
 
-void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Color & color)
+void Primitives::Circle(const std::string & mode, float x, float y, float radius, float lineWidth, const Colorf & color)
 {}
 
-void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> points, float lineWidth, const Color & color)
+void Primitives::Polygon(const std::string & mode, std::vector<Graphics::Point> points, float lineWidth, const Colorf & color)
 {}
 
-void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Color & color)
+void Primitives::Line(float x1, float y1, float x2, float y2, float lineWidth, const Colorf & color)
 {}
 
 void Primitives::Scissor(bool enabled, int x, int y, int width, int height)

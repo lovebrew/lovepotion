@@ -22,6 +22,8 @@ class deko3d
 
         void SetFilter(const love::Texture::Filter & filter);
 
+        void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth);
+
         void ClearDepth(double depth);
 
         void SetViewport(const love::Rect & view);
@@ -29,6 +31,12 @@ class deko3d
         love::Rect GetViewport();
 
         void SetScissor(const love::Rect & scissor, bool canvasActive);
+
+        template <typename T>
+        void CommandBuffer(const T & func)
+        {
+            func(cmdbuf);
+        }
 
     private:
         struct
@@ -64,4 +72,4 @@ class deko3d
         void CreateResources();
 };
 
-extern deko3d dk3d;
+extern ::deko3d dk3d;

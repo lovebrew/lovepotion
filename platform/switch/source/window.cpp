@@ -41,7 +41,7 @@ bool Window::SetMode()
     return this->open = true;
 }
 
-void Window::Clear(Color *)
+void Window::Clear(Colorf *)
 {}
 
 void Window::SetRenderer(Canvas * canvas)

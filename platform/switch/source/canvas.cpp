@@ -28,7 +28,7 @@ Canvas::~Canvas()
     // SDL_DestroyTexture(this->texture);
 }
 
-void Canvas::Clear(const Color & color)
+void Canvas::Clear(const Colorf & color)
 {
     // SDL_SetRenderDrawColor(WINDOW_MODULE()->GetRenderer(), color.r, color.g, color.b, color.a);
     // SDL_RenderClear(WINDOW_MODULE()->GetRenderer());
