@@ -327,33 +327,34 @@ int Wrap_Graphics::Clear(lua_State * L)
     std::optional<double> depth(1.0);
 
     int argtype = lua_type(L, 1);
-    int startidx = -1;
+    int start = -1;
 
     instance()->CURRENT_DEPTH = 0.0f;
 
-	if (argtype != LUA_TNONE && argtype != LUA_TNIL)
-	{
-		color.value().r = (float) luaL_checknumber(L, 1);
-		color.value().g = (float) luaL_checknumber(L, 2);
-		color.value().b = (float) luaL_checknumber(L, 3);
-		color.value().a = (float) luaL_optnumber(L, 4, 1.0);
-		startidx = 5;
-	}
+    if (argtype != LUA_TNONE && argtype != LUA_TNIL)
+    {
+        color.value().r = luaL_checknumber(L, 1);
+        color.value().g = luaL_checknumber(L, 2);
+        color.value().b = luaL_checknumber(L, 3);
+        color.value().a = luaL_optnumber(L, 4, 1.0);
 
-	if (startidx >= 0)
-	{
-		argtype = lua_type(L, startidx);
-		if (argtype == LUA_TNUMBER)
-			stencil.value() = (int)luaL_checkinteger(L, startidx);
+        start = 5;
+    }
 
-		argtype = lua_type(L, startidx + 1);
-		if (argtype == LUA_TNUMBER)
-			depth.value() = luaL_checknumber(L, startidx + 1);
+    if (start >= 0)
+    {
+        argtype = lua_type(L, start);
+        if (argtype == LUA_TNUMBER)
+            stencil.value() = (int)luaL_checkinteger(L, start);
+
+        argtype = lua_type(L, start + 1);
+        if (argtype == LUA_TNUMBER)
+            depth.value() = luaL_checknumber(L, start + 1);
 
         Luax::CatchException(L, [&]() {
             instance()->Clear(color, stencil, depth);
         });
-	}
+    }
 
     return 0;
 }
@@ -401,7 +402,9 @@ int Wrap_Graphics::GetDimensions(lua_State * L)
 
 int Wrap_Graphics::Present(lua_State * L)
 {
-    WINDOW_MODULE()->Present();
+    Luax::CatchException(L, [&]() {
+        instance()->Present();
+    });
 
     instance()->GetFont()->ClearBuffer();
 
@@ -758,13 +761,14 @@ int Wrap_Graphics::GetBackgroundColor(lua_State * L)
     lua_pushnumber(L, background.r);
     lua_pushnumber(L, background.g);
     lua_pushnumber(L, background.b);
+    lua_pushnumber(L, background.a);
 
-    return 3;
+    return 4;
 }
 
 int Wrap_Graphics::SetBackgroundColor(lua_State * L)
 {
-    Colorf background = {0.0f, 0.0f, 0.0f, 0.0f};
+    Colorf background;
 
     if (lua_istable(L, 1))
     {

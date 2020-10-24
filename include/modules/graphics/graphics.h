@@ -209,7 +209,7 @@ namespace love
 
             void Reset();
 
-            void Present();
+            virtual void Present() = 0;
 
             std::vector<DisplayState> states;
 

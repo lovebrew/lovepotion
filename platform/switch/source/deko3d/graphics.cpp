@@ -11,3 +11,8 @@ void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<in
     if (color.has_value())
         dk3d.Clear(color, stencil, depth);
 }
+
+void love::deko3d::Graphics::Present()
+{
+    dk3d.Present();
+}
