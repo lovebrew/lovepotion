@@ -3,9 +3,63 @@
 #include "common/backend/primitives.h"
 #include "modules/window/window.h"
 
+#include "modules/math/mathmodule.h"
+
 using namespace love;
 
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
+
+/* Gamma Correction */
+
+bool Graphics::gammaCorrectColor = false;
+
+void Graphics::SetGammaCorrect(bool enable)
+{
+    Graphics::gammaCorrectColor = enable;
+}
+
+bool Graphics::IsGammaCorrect()
+{
+    return Graphics::gammaCorrectColor;
+}
+
+void Graphics::GammaCorrectColor(Colorf & c)
+{
+    if (Graphics::IsGammaCorrect())
+    {
+        c.r = Math::GammaToLinear(c.r);
+        c.g = Math::GammaToLinear(c.g);
+        c.b = Math::GammaToLinear(c.b);
+    }
+}
+
+Colorf Graphics::GammaCorrectColor(const Colorf & c)
+{
+    Colorf r = c;
+    Graphics::GammaCorrectColor(r);
+
+    return r;
+}
+
+void Graphics::UnGammaCorrectColor(Colorf & c)
+{
+    if (Graphics::IsGammaCorrect())
+    {
+        c.r = Math::LinearToGamma(c.r);
+        c.g = Math::LinearToGamma(c.g);
+        c.b = Math::LinearToGamma(c.b);
+    }
+}
+
+Colorf Graphics::UnGammaCorrectColor(const Colorf & c)
+{
+    Colorf r = c;
+    Graphics::UnGammaCorrectColor(r);
+
+    return r;
+}
+
+/* End */
 
 Graphics::Graphics()
 {
@@ -66,35 +120,58 @@ void Graphics::SetLineWidth(float width)
     this->states.back().lineWidth = width;
 }
 
-Rect Graphics::GetScissor()
+Shader * Graphics::GetShader() const
 {
-    return this->states.back().scissorRect;
+    return states.back().shader.Get();
 }
 
-void Graphics::SetScissor()
+void Graphics::SetShader(Shader * shader)
 {
-    #if defined(_3DS)
-        if (this->states.back().scissor)
-            C2D_Flush();
-    #endif
+    if (shader == nullptr)
+        return this->SetShader();
 
-    this->states.back().scissor = false;
-    Rect rect = this->states.back().scissorRect;
-
-    Primitives::Scissor(false, rect.x, rect.y, rect.w, rect.h);
+    shader->Attach();
+    states.back().shader.Set(shader);
 }
 
-void Graphics::SetScissor(const Rect & rect)
+void Graphics::SetShader()
 {
-    #if defined(_3DS)
-        C2D_Flush();
-    #endif
-
-    this->states.back().scissor = true;
-    this->states.back().scissorRect = rect;
-
-    Primitives::Scissor(true, rect.x, rect.y, rect.w, rect.h);
+    Shader::AttachDefault(Shader::STANDARD_DEFAULT);
+    states.back().shader.Set(nullptr);
 }
+
+bool Graphics::GetScissor(Rect & scissor) const
+{
+    const DisplayState & state = states.back();
+    scissor = state.scissorRect;
+
+    return state.scissor;
+}
+
+// void Graphics::SetScissor()
+// {
+//     #if defined(_3DS)
+//         if (this->states.back().scissor)
+//             C2D_Flush();
+//     #endif
+
+//     this->states.back().scissor = false;
+//     Rect rect = this->states.back().scissorRect;
+
+//     Primitives::Scissor(false, rect.x, rect.y, rect.w, rect.h);
+// }
+
+// void Graphics::SetScissor(const Rect & rect)
+// {
+//     #if defined(_3DS)
+//         C2D_Flush();
+//     #endif
+
+//     this->states.back().scissor = true;
+//     this->states.back().scissorRect = rect;
+
+//     Primitives::Scissor(true, rect.x, rect.y, rect.w, rect.h);
+// }
 
 void Graphics::SetCanvas(Canvas * canvas)
 {
@@ -248,6 +325,10 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * f
 }
 
 /* End Objects */
+// void Graphics::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry)
+// {
+//     Primitives::Rectangle(mode, x, y, width, height, rx, ry, this->states.back().lineWidth, this->states.back().foreground);
+// }
 
 void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> points)
 {
@@ -301,12 +382,26 @@ void Graphics::RestoreState(const DisplayState & state)
 {
     this->SetColor(state.foreground);
     this->SetBackgroundColor(state.background);
-    this->SetFont(state.font);
+
+    this->SetBlendMode(state.blendMode, state.blendAlphaMode);
+
+    // setLineWidth(s.lineWidth);
+    // setLineStyle(s.lineStyle);
+    // setLineJoin(s.lineJoin);
+
+    // setPointSize(s.pointSize);
 
     if (state.scissor)
         this->SetScissor(state.scissorRect);
     else
         this->SetScissor();
+
+    this->SetFont(state.font.Get());
+    this->SetShader(state.shader.Get());
+
+    this->SetColorMask(state.colorMask);
+
+    this->SetDefaultFilter(state.defaultFilter);
 }
 
 /* Font */
@@ -335,3 +430,82 @@ Font * Graphics::GetFont()
     this->CheckSetDefaultFont();
     return this->states.back().font.Get();
 }
+
+/* Constants */
+
+bool Graphics::GetConstant(const char * in, DrawMode & out)
+{
+	return drawModes.Find(in, out);
+}
+
+bool Graphics::GetConstant(DrawMode in, const char *& out)
+{
+	return drawModes.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(DrawMode)
+{
+	return drawModes.GetNames();
+}
+
+bool Graphics::GetConstant(const char *in, BlendMode & out)
+{
+	return blendModes.Find(in, out);
+}
+
+bool Graphics::GetConstant(BlendMode in, const char *& out)
+{
+	return blendModes.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(BlendMode)
+{
+	return blendModes.GetNames();
+}
+
+bool Graphics::GetConstant(const char * in, BlendAlpha & out)
+{
+	return blendAlphaModes.Find(in, out);
+}
+
+bool Graphics::GetConstant(BlendAlpha in, const char *& out)
+{
+	return blendAlphaModes.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(BlendAlpha)
+{
+	return blendAlphaModes.GetNames();
+}
+
+
+StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] =
+{
+    { "alpha",    BLEND_ALPHA    },
+    { "add",      BLEND_ADD      },
+    { "subtract", BLEND_SUBTRACT },
+    { "multiply", BLEND_MULTIPLY },
+    { "lighten",  BLEND_LIGHTEN  },
+    { "darken",   BLEND_DARKEN   },
+    { "screen",   BLEND_SCREEN   },
+    { "replace",  BLEND_REPLACE  },
+    { "none",     BLEND_NONE     },
+};
+
+StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(Graphics::blendModeEntries, sizeof(Graphics::blendModeEntries));
+
+StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry Graphics::drawModeEntries[] =
+{
+    { "line", DRAW_LINE },
+    { "fill", DRAW_FILL },
+};
+
+StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(Graphics::drawModeEntries, sizeof(Graphics::drawModeEntries));
+
+StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry Graphics::blendAlphaEntries[] =
+{
+    { "alphamultiply", BLENDALPHA_MULTIPLY      },
+    { "premultiplied", BLENDALPHA_PREMULTIPLIED },
+};
+
+StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(Graphics::blendAlphaEntries, sizeof(Graphics::blendAlphaEntries));

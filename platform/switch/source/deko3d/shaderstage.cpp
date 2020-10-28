@@ -10,6 +10,12 @@ ShaderStage::ShaderStage(deko3d::Graphics * gfx, StageType stage,
     this->dekoShader.load(*dk3d.GetCode(), this->path.c_str());
 }
 
+ShaderStage::ShaderStage(deko3d::Graphics * gfx, StageType stage,
+                         void * data, size_t size) : stageType(stage)
+{
+    this->dekoShader.loadMemory(*dk3d.GetCode(), data, size);
+}
+
 ShaderStage::~ShaderStage()
 {}
 

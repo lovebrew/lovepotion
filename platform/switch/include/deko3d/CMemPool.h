@@ -59,59 +59,61 @@ class CMemPool
 
     void _destroy(Slice* slice);
 
-public:
-    static constexpr uint32_t DefaultBlockSize = 0x800000;
-    class Handle
-    {
-        Slice* m_slice;
     public:
-        constexpr Handle(Slice* slice = nullptr) : m_slice{slice} { }
-        constexpr operator bool() const { return m_slice != nullptr; }
-        constexpr operator Slice*() const { return m_slice; }
-        constexpr bool operator!() const { return !m_slice; }
-        constexpr bool operator==(Handle const& rhs) const { return m_slice == rhs.m_slice; }
-        constexpr bool operator!=(Handle const& rhs) const { return m_slice != rhs.m_slice; }
+        static constexpr uint32_t DefaultBlockSize = 0x800000;
 
-        void destroy()
+        class Handle
         {
-            if (m_slice)
-            {
-                m_slice->m_pool->_destroy(m_slice);
-                m_slice = nullptr;
-            }
-        }
+            Slice* m_slice;
 
-        constexpr dk::MemBlock getMemBlock() const
-        {
-            return m_slice->m_block->m_obj;
-        }
+            public:
+                constexpr Handle(Slice* slice = nullptr) : m_slice{slice} { }
+                constexpr operator bool() const { return m_slice != nullptr; }
+                constexpr operator Slice*() const { return m_slice; }
+                constexpr bool operator!() const { return !m_slice; }
+                constexpr bool operator==(Handle const& rhs) const { return m_slice == rhs.m_slice; }
+                constexpr bool operator!=(Handle const& rhs) const { return m_slice != rhs.m_slice; }
 
-        constexpr uint32_t getOffset() const
-        {
-            return m_slice->m_start;
-        }
+                void destroy()
+                {
+                    if (m_slice)
+                    {
+                        m_slice->m_pool->_destroy(m_slice);
+                        m_slice = nullptr;
+                    }
+                }
 
-        constexpr uint32_t getSize() const
-        {
-            return m_slice->getSize();
-        }
+                constexpr dk::MemBlock getMemBlock() const
+                {
+                    return m_slice->m_block->m_obj;
+                }
 
-        constexpr void* getCpuAddr() const
-        {
-            return m_slice->m_block->cpuOffset(m_slice->m_start);
-        }
+                constexpr uint32_t getOffset() const
+                {
+                    return m_slice->m_start;
+                }
 
-        constexpr DkGpuAddr getGpuAddr() const
-        {
-            return m_slice->m_block->gpuOffset(m_slice->m_start);
-        }
-    };
+                constexpr uint32_t getSize() const
+                {
+                    return m_slice->getSize();
+                }
 
-    CMemPool(dk::Device dev, uint32_t flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached, uint32_t blockSize = DefaultBlockSize) :
-        m_dev{dev}, m_flags{flags}, m_blockSize{blockSize}, m_blocks{}, m_memMap{}, m_sliceHeap{}, m_freeList{} { }
-    ~CMemPool();
+                constexpr void* getCpuAddr() const
+                {
+                    return m_slice->m_block->cpuOffset(m_slice->m_start);
+                }
 
-    Handle allocate(uint32_t size, uint32_t alignment = DK_CMDMEM_ALIGNMENT);
+                constexpr DkGpuAddr getGpuAddr() const
+                {
+                    return m_slice->m_block->gpuOffset(m_slice->m_start);
+                }
+        };
+
+        CMemPool(dk::Device dev, uint32_t flags = DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached, uint32_t blockSize = DefaultBlockSize) :
+            m_dev{dev}, m_flags{flags}, m_blockSize{blockSize}, m_blocks{}, m_memMap{}, m_sliceHeap{}, m_freeList{} { }
+        ~CMemPool();
+
+        Handle allocate(uint32_t size, uint32_t alignment = DK_CMDMEM_ALIGNMENT);
 };
 
 constexpr bool operator<(uint32_t lhs, CMemPool::Slice const& rhs)

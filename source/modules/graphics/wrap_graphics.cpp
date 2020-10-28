@@ -78,16 +78,8 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float rx = luaL_optnumber(L, 6, 1);
     float ry = luaL_optnumber(L, 7, 1);
 
-    std::vector<Graphics::Point> pts =
-    {
-        {x, y},
-        {x + width, y},
-        {x + width, y + height},
-        {x, y + height}
-    };
-
     Luax::CatchException(L, [&]() {
-        instance()->Polygon(mode, pts);
+        instance()->Rectangle(mode, x, y, width, height, rx, ry);
     });
 
     return 0;
@@ -439,7 +431,10 @@ int Wrap_Graphics::SetScissor(lua_State * L)
 
 int Wrap_Graphics::GetScissor(lua_State * L)
 {
-    Rect scissor = instance()->GetScissor();
+    Rect scissor;
+
+    if (!instance()->GetScissor(scissor))
+        return 0;
 
     lua_pushnumber(L, scissor.x);
     lua_pushnumber(L, scissor.y);

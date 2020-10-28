@@ -11,8 +11,20 @@ love::Shader * love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = 
 
 love::Shader::Shader(ShaderStage * vertex, ShaderStage * pixel) : stages()
 {
+    std::string error;
+    if (!this->Validate(vertex, pixel, error))
+        throw love::Exception("%s", error.c_str());
+
     this->stages[ShaderStage::STAGE_VERTEX] = vertex;
     this->stages[ShaderStage::STAGE_PIXEL] = pixel;
+
+    if (current == this)
+    {
+        // make sure glUseProgram gets called.
+        current = nullptr;
+        this->Attach();
+        // updateBuiltinUniforms();
+    }
 }
 
 love::Shader::~Shader()
@@ -27,6 +39,22 @@ love::Shader::~Shader()
         Shader::AttachDefault(STANDARD_DEFAULT);
 }
 
+bool love::Shader::Validate(ShaderStage * vertex, ShaderStage * pixel, std::string & error)
+{
+    if (vertex != nullptr && !vertex->GetShader().isValid())
+    {
+        error = "Invalid vertex shader.";
+        return false;
+    }
+
+    if (pixel != nullptr && !pixel->GetShader().isValid())
+    {
+        error = "Invalid fragment shader.";
+        return false;
+    }
+
+    return true;
+}
 
 void love::Shader::AttachDefault(StandardShader defaultType)
 {
@@ -58,7 +86,9 @@ void love::Shader::Attach()
     if (current != this)
     {
         // Graphics::FlushStreamDrawsGlobal();
-        dk3d.UseProgram({this->vertexShader, this->fragmentShader});
+        dk3d.UseProgram({this->stages[ShaderStage::STAGE_VERTEX]->GetShader(),
+                         this->stages[ShaderStage::STAGE_PIXEL]->GetShader()});
+
         current = this;
     }
 }

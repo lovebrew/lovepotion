@@ -16,56 +16,57 @@ class CDescriptorSet
 	static constexpr size_t DescriptorAlign = DK_IMAGE_DESCRIPTOR_ALIGNMENT;
 
 	CMemPool::Handle m_mem;
-public:
-	CDescriptorSet() : m_mem{} { }
-	~CDescriptorSet()
-	{
-		m_mem.destroy();
-	}
 
-	bool allocate(CMemPool& pool)
-	{
-		m_mem = pool.allocate(NumDescriptors*DescriptorSize, DescriptorAlign);
-		return m_mem;
-	}
+	public:
+		CDescriptorSet() : m_mem{} { }
+		~CDescriptorSet()
+		{
+			m_mem.destroy();
+		}
 
-	void bindForImages(dk::CmdBuf cmdbuf)
-	{
-		cmdbuf.bindImageDescriptorSet(m_mem.getGpuAddr(), NumDescriptors);
-	}
+		bool allocate(CMemPool& pool)
+		{
+			m_mem = pool.allocate(NumDescriptors*DescriptorSize, DescriptorAlign);
+			return m_mem;
+		}
 
-	void bindForSamplers(dk::CmdBuf cmdbuf)
-	{
-		cmdbuf.bindSamplerDescriptorSet(m_mem.getGpuAddr(), NumDescriptors);
-	}
+		void bindForImages(dk::CmdBuf cmdbuf)
+		{
+			cmdbuf.bindImageDescriptorSet(m_mem.getGpuAddr(), NumDescriptors);
+		}
 
-	template <typename T>
-	void update(dk::CmdBuf cmdbuf, uint32_t id, T const& descriptor)
-	{
-		static_assert(sizeof(T) == DescriptorSize);
-		cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, &descriptor, DescriptorSize);
-	}
+		void bindForSamplers(dk::CmdBuf cmdbuf)
+		{
+			cmdbuf.bindSamplerDescriptorSet(m_mem.getGpuAddr(), NumDescriptors);
+		}
 
-	template <typename T, size_t N>
-	void update(dk::CmdBuf cmdbuf, uint32_t id, std::array<T, N> const& descriptors)
-	{
-		static_assert(sizeof(T) == DescriptorSize);
-		cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, descriptors.data(), descriptors.size()*DescriptorSize);
-	}
+		template <typename T>
+		void update(dk::CmdBuf cmdbuf, uint32_t id, T const& descriptor)
+		{
+			static_assert(sizeof(T) == DescriptorSize);
+			cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, &descriptor, DescriptorSize);
+		}
 
-#ifdef DK_HPP_SUPPORT_VECTOR
-	template <typename T, typename Allocator = std::allocator<T>>
-	void update(dk::CmdBuf cmdbuf, uint32_t id, std::vector<T,Allocator> const& descriptors)
-	{
-		static_assert(sizeof(T) == DescriptorSize);
-		cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, descriptors.data(), descriptors.size()*DescriptorSize);
-	}
-#endif
+		template <typename T, size_t N>
+		void update(dk::CmdBuf cmdbuf, uint32_t id, std::array<T, N> const& descriptors)
+		{
+			static_assert(sizeof(T) == DescriptorSize);
+			cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, descriptors.data(), descriptors.size()*DescriptorSize);
+		}
 
-	template <typename T>
-	void update(dk::CmdBuf cmdbuf, uint32_t id, std::initializer_list<T const> const& descriptors)
-	{
-		static_assert(sizeof(T) == DescriptorSize);
-		cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, descriptors.data(), descriptors.size()*DescriptorSize);
-	}
+	#ifdef DK_HPP_SUPPORT_VECTOR
+		template <typename T, typename Allocator = std::allocator<T>>
+		void update(dk::CmdBuf cmdbuf, uint32_t id, std::vector<T,Allocator> const& descriptors)
+		{
+			static_assert(sizeof(T) == DescriptorSize);
+			cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, descriptors.data(), descriptors.size()*DescriptorSize);
+		}
+	#endif
+
+		template <typename T>
+		void update(dk::CmdBuf cmdbuf, uint32_t id, std::initializer_list<T const> const& descriptors)
+		{
+			static_assert(sizeof(T) == DescriptorSize);
+			cmdbuf.pushData(m_mem.getGpuAddr() + id*DescriptorSize, descriptors.data(), descriptors.size()*DescriptorSize);
+		}
 };

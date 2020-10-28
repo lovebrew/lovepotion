@@ -23,9 +23,15 @@ namespace love
             };
 
             ShaderStage(deko3d::Graphics * gfx, StageType stage, const std::string & path);
+            ShaderStage(deko3d::Graphics * gfx, StageType stage, void * data, size_t size);
+
             ~ShaderStage();
 
             StageType GetStageType() const { return stageType; }
+
+            CShader & GetShader() {
+                return this->dekoShader;
+            }
 
             static bool GetConstant(const char * in, StageType & out);
             static bool GetConstant(StageType in, const char *& out);

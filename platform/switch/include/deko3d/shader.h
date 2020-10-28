@@ -29,6 +29,8 @@ namespace love
 
             void Attach();
 
+            bool Validate(ShaderStage * vertex, ShaderStage * pixel, std::string & err);
+
             static void AttachDefault(StandardShader defaultType);
 
             static bool IsDefaultActive();
@@ -37,7 +39,12 @@ namespace love
             StrongReference<ShaderStage> stages[ShaderStage::STAGE_MAX_ENUM];
 
         private:
-            CShader vertexShader;
-            CShader fragmentShader;
+            bool canvasWasActive;
+            Rect lastViewport;
+
+            float lastPointSize;
+
+            Matrix4 lastTransformMatrix;
+            Matrix4 lastProjectionMatrix;
     };
 }

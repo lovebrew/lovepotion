@@ -22,6 +22,8 @@
 #include "common/mmath.h"
 #include "common/colors.h"
 
+#include "deko3d/shader.h"
+
 #if defined (_3DS)
     #define RENDERER_NAME "OpenGL ES"
     #define RENDERER_VERSION "1.1"
@@ -44,24 +46,29 @@ namespace love
             enum DrawMode
             {
                 DRAW_LINE,
-                DRAW_FILL
+                DRAW_FILL,
+                DRAW_MAX_ENUM
             };
 
-            struct DisplayState
+            enum BlendMode
             {
-                Colorf foreground = { 1, 1, 1, 1 };
-                Colorf background = { 0, 0, 0, 1 };
+                BLEND_ALPHA,
+                BLEND_ADD,
+                BLEND_SUBTRACT,
+                BLEND_MULTIPLY,
+                BLEND_LIGHTEN,
+                BLEND_DARKEN,
+                BLEND_SCREEN,
+                BLEND_REPLACE,
+                BLEND_NONE,
+                BLEND_MAX_ENUM
+            };
 
-                float lineWidth = 1.0f;
-                float pointSize = 1.0f;
-
-                StrongReference<Font> font;
-
-                Rect scissorRect;
-                bool scissor = false;
-
-                Texture::Filter defaultFilter = Texture::Filter();
-                Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
+            enum BlendAlpha
+            {
+                BLENDALPHA_MULTIPLY,
+                BLENDALPHA_PREMULTIPLIED,
+                BLENDALPHA_MAX_ENUM
             };
 
             struct Point
@@ -78,7 +85,49 @@ namespace love
                 std::string device  = RENDERER_DEVICE;
             };
 
+            struct ColorMask
+            {
+                bool r, g, b, a;
+
+                ColorMask()
+                    : r(true), g(true), b(true), a(true)
+                {}
+
+                ColorMask(bool _r, bool _g, bool _b, bool _a)
+                    : r(_r), g(_g), b(_b), a(_a)
+                {}
+
+                bool operator == (const ColorMask &m) const
+                {
+                    return r == m.r && g == m.g && b == m.b && a == m.a;
+                }
+
+                bool operator != (const ColorMask &m) const
+                {
+                    return !(operator == (m));
+                }
+            };
+
             std::vector<Matrix4> transformStack;
+
+            /* Gamma Correction */
+
+            static bool gammaCorrectColor;
+
+            static void SetGammaCorrect(bool enable);
+
+            static bool IsGammaCorrect();
+
+            static void GammaCorrectColor(Colorf & c);
+
+            static void UnGammaCorrectColor(Colorf & c);
+
+            static Colorf GammaCorrectColor(const Colorf & c);
+
+            static Colorf UnGammaCorrectColor(const Colorf & c);
+
+            /* End */
+
 
             void Transform(DrawArgs * args, bool isTexture = false);
             void Transform(float * x, float * y);
@@ -93,10 +142,6 @@ namespace love
             ModuleType GetModuleType() const { return M_GRAPHICS; }
 
             const char * GetName() const override { return "love.graphics"; }
-
-            virtual void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) = 0;
-
-            void Clear(float r, float g, float b);
 
             template <typename T>
             static void CheckStandardTransform(lua_State * L, int idx, const T & func)
@@ -132,15 +177,11 @@ namespace love
 
             void GetDimensions(int * width, int * height);
 
-            void SetScissor(const Rect & rect);
-
-            void SetScissor();
+            bool GetScissor(Rect & scissor) const;
 
             void SetDefaultFilter(const Texture::Filter & filter);
 
             const Texture::Filter & GetDefaultFilter() const;
-
-            Rect GetScissor();
 
             void Push();
 
@@ -189,11 +230,25 @@ namespace love
 
             void SetCanvas(Canvas * canvas);
 
+            /* virtual void stuff  -- subclass implements */
+
+            virtual void SetScissor(const Rect & rect) = 0;
+
+            virtual void SetScissor() = 0;
+
+            virtual void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) = 0;
+
+            virtual void SetBlendMode(BlendMode mode, BlendAlpha alpha) = 0;
+
+            virtual void SetColorMask(ColorMask mask) = 0;
+
             /* Graphics Primitives */
+
+            ColorMask getColorMask() const;
 
             void Circle(float x, float y, float radius);
 
-            void Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry);
+            virtual void Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry) = 0;
 
             void Polygon(const std::string & mode, std::vector<Graphics::Point> points);
 
@@ -205,26 +260,60 @@ namespace love
 
             static void SetViewMatrix(const Matrix4 & matrix);
 
+            void SetShader();
+
+            void SetShader(Shader * shader);
+
+            Shader * GetShader() const;
+
             /* States or Something */
 
             void Reset();
 
             virtual void Present() = 0;
 
+            static bool GetConstant(const char * in, DrawMode & out);
+            static bool GetConstant(DrawMode in, const char *& out);
+            static std::vector<std::string> GetConstants(DrawMode);
+
+            static bool GetConstant(const char * in, BlendMode & out);
+            static bool GetConstant(BlendMode in, const char *& out);
+            static std::vector<std::string> GetConstants(BlendMode);
+
+            static bool GetConstant(const char * in, BlendAlpha & out);
+            static bool GetConstant(BlendAlpha in, const char *& out);
+            static std::vector<std::string> GetConstants(BlendAlpha);
+
+        protected:
+            struct DisplayState
+            {
+                Colorf foreground = { 1, 1, 1, 1 };
+                Colorf background = { 0, 0, 0, 1 };
+
+                float lineWidth = 1.0f;
+                float pointSize = 1.0f;
+
+                StrongReference<Font> font;
+                StrongReference<Shader> shader;
+
+                Rect scissorRect = Rect();
+                bool scissor = false;
+
+                Texture::Filter defaultFilter = Texture::Filter();
+                Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
+                float defaultMipmapSharpness = 0.0f;
+
+                BlendMode blendMode = BLEND_ALPHA;
+                BlendAlpha blendAlphaMode = BLENDALPHA_MULTIPLY;
+
+                ColorMask colorMask = ColorMask(true, true, true, true);
+            };
+
             std::vector<DisplayState> states;
 
-            static inline bool GetConstant(const std::string & in, DrawMode & out) {
-                if (m_modes.find(in) != m_modes.end())
-                {
-                    out = m_modes[in];
-                    return true;
-                }
-
-                return false;
-            }
+            void RestoreState(const DisplayState & state);
 
         private:
-            void RestoreState(const DisplayState & state);
             void CheckSetDefaultFont();
 
             void SetMode();
@@ -232,11 +321,14 @@ namespace love
             StrongReference<Font> defaultFont;
             RendererInfo rendererInfo;
 
-            static inline std::map<std::string, Graphics::DrawMode> m_modes =
-            {
-                { "line", DrawMode::DRAW_LINE },
-                { "fill", DrawMode::DRAW_FILL }
-            };
+            static StringMap<DrawMode, DRAW_MAX_ENUM>::Entry drawModeEntries[];
+            static StringMap<DrawMode, DRAW_MAX_ENUM> drawModes;
+
+            static StringMap<BlendMode, BLEND_MAX_ENUM>::Entry blendModeEntries[];
+            static StringMap<BlendMode, BLEND_MAX_ENUM> blendModes;
+
+            static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM>::Entry blendAlphaEntries[];
+            static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM> blendAlphaModes;
 
             float stereoDepth = 0.0f;
             bool isPushed = false;

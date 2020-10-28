@@ -47,9 +47,9 @@ namespace love
 
             /* LÖVE Functions */
 
-            float GammaToLinear(float color);
+            static float GammaToLinear(float color);
 
-            float LinearToGamma(float color);
+            static float LinearToGamma(float color);
 
             std::vector<Triangle> Triangulate(const std::vector<Vector2> & polygon);
 

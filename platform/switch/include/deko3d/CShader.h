@@ -28,5 +28,17 @@ class CShader
             return &m_shader;
         }
 
-        bool load(CMemPool& pool, const char* path);
+        DkStage getStage()
+        {
+            return m_shader.getStage();
+        }
+
+        bool isValid() const
+        {
+            return m_shader.isValid();
+        }
+
+        bool load(CMemPool & pool, const char * path);
+
+        bool loadMemory(CMemPool & pool, void * buffer, size_t size);
 };

@@ -1,13 +1,10 @@
 #include "common/runtime.h"
 #include "common/backend/primitives.h"
 
+#include "deko3d/vertex.h"
+
 using namespace love;
-
-#define RAD_TO_DEG(r) ((r) * 180 / M_PI)
-
-// #include <SDL2_gfxPrimitives.h>
-
-#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
+using namespace vertex;
 
 void Primitives::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry, float lineWidth, const Colorf & color)
 {}

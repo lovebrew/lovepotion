@@ -5,7 +5,8 @@
 #include "deko3d/CExternalImage.h"
 #include "deko3d/FileLoader.h"
 
-bool CExternalImage::load(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device, dk::Queue transferQueue, const char* path, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+bool CExternalImage::load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                          const char* path, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
     CMemPool::Handle tempimgmem = LoadFile(scratchPool, path, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
     if (!tempimgmem)
@@ -35,3 +36,7 @@ bool CExternalImage::load(CMemPool& imagePool, CMemPool& scratchPool, dk::Device
     tempimgmem.destroy();
     return true;
 }
+
+bool CExternalImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                                void * date, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+{}

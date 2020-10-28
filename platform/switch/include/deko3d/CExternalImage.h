@@ -11,27 +11,32 @@ class CExternalImage
     dk::Image m_image;
     dk::ImageDescriptor m_descriptor;
     CMemPool::Handle m_mem;
-public:
-    CExternalImage() : m_image{}, m_descriptor{}, m_mem{} { }
-    ~CExternalImage()
-    {
-        m_mem.destroy();
-    }
 
-    constexpr operator bool() const
-    {
-        return m_mem;
-    }
+    public:
+        CExternalImage() : m_image{}, m_descriptor{}, m_mem{} { }
+        ~CExternalImage()
+        {
+            m_mem.destroy();
+        }
 
-    constexpr dk::Image& get()
-    {
-        return m_image;
-    }
+        constexpr operator bool() const
+        {
+            return m_mem;
+        }
 
-    constexpr dk::ImageDescriptor const& getDescriptor() const
-    {
-        return m_descriptor;
-    }
+        constexpr dk::Image& get()
+        {
+            return m_image;
+        }
 
-    bool load(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device, dk::Queue transferQueue, const char* path, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+        constexpr dk::ImageDescriptor const& getDescriptor() const
+        {
+            return m_descriptor;
+        }
+
+        bool load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                  const char* path, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+
+        bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                        void * date, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
 };

@@ -4,10 +4,21 @@
 
 #include "deko3d/CMemPool.h"
 #include "deko3d/CCmdMemRing.h"
+#include "deko3d/CCmdVtxRing.h"
 #include "deko3d/CShader.h"
 
 #include "objects/texture/texture.h"
 #include "common/mmath.h"
+
+#include "deko3d/shaderstage.h"
+#include "deko3d/vertex.h"
+
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES // Enforces GLSL std140/std430 alignment rules for glm types
+#define GLM_FORCE_INTRINSICS               // Enables usage of SIMD CPU instructions (requiring the above as well)
+#include <glm/vec3.hpp>
+#include <glm/vec4.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 class deko3d
 {
@@ -18,6 +29,8 @@ class deko3d
         static constexpr uint32_t FRAMEBUFFER_HEIGHT = 720;
 
         static constexpr unsigned COMMAND_SIZE = 0x10000;
+        static constexpr size_t VERTEX_COMMAND_SIZE = 0x10000;
+        static constexpr size_t MAX_VERTICES = 0x10000;
 
         deko3d();
 
@@ -27,13 +40,22 @@ class deko3d
 
         void SetFilter(const love::Texture::Filter & filter);
 
-        void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth);
+        void ClearColor(const Colorf & color);
+
+        void ClearStencil(int stencil);
 
         void ClearDepth(double depth);
 
         void SetViewport(const love::Rect & view);
 
-        void UseProgram(std::pair<CShader, CShader> program);
+        void SetDepthWrites(bool enable);
+
+        void SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,
+                          DkBlendFactor dstColor, DkBlendFactor dstAlpha);
+
+        void UseProgram(const std::pair<CShader, CShader> & program);
+
+        void SetColorMask(bool r, bool g, bool b, bool a);
 
         love::Rect GetViewport();
 
@@ -41,11 +63,24 @@ class deko3d
 
         void Present();
 
+        void SetBlendColor(const Colorf & color);
+
         dk::UniqueDevice & GetDevice();
 
         std::optional<CMemPool> & GetCode();
 
+        bool RenderRectangle(const std::string & mode, const vertex::Vertex points[4]);
+
     private:
+        vertex::Vertex * vertexData;
+        uint32_t firstVertex = 0;
+
+        struct Transformation
+        {
+            glm::mat4 mdlvMtx;
+            glm::mat4 projMtx;
+        };
+
         struct
         {
             std::optional<CMemPool> images;
@@ -53,11 +88,21 @@ class deko3d
             std::optional<CMemPool> code;
         } pool;
 
+        struct
+        {
+            dk::RasterizerState rasterizer;
+            dk::ColorState color;
+            dk::ColorWriteState colorWrite;
+            dk::BlendState blendState;
+            dk::DepthStencilState depthStencil;
+        } state;
+
         dk::UniqueDevice device;
         dk::UniqueQueue queue;
         dk::UniqueCmdBuf cmdBuf;
 
-        CCmdMemRing<2> cmdRing;
+        CCmdMemRing<MAX_FRAMEBUFFERS> cmdRing;
+        CCmdVtxRing<MAX_FRAMEBUFFERS> vtxRing;
 
         love::Rect viewport;
         love::Rect scissor;
@@ -71,7 +116,6 @@ class deko3d
         struct
         {
             dk::Image        images[MAX_FRAMEBUFFERS];
-            DkCmdList        cmdlists[MAX_FRAMEBUFFERS];
             CMemPool::Handle memory[MAX_FRAMEBUFFERS];
 
             bool inFrame     = false;
@@ -79,6 +123,16 @@ class deko3d
 
             int  slot        = -1;
         } framebuffers;
+
+        struct
+        {
+            dk::ImageLayout layout;
+            dk::Image image;
+            CMemPool::Handle memory;
+        } depthBuffer;
+
+        Transformation transformState;
+        CMemPool::Handle transformUniformBuffer;
 
         dk::ImageLayout layoutFramebuffer;
         std::array<DkImage const *, MAX_FRAMEBUFFERS> framebufferArray;
