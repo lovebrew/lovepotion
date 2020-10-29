@@ -365,7 +365,7 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     float phi = angle1;
 
     int num_coords = 0;
-    vertex::Vertex * coords;
+    vertex::Vertex * coords = nullptr;
 
     Colorf color = this->GetColor();
 
