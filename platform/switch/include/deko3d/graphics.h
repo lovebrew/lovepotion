@@ -42,6 +42,10 @@ namespace love::deko3d
 
             void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) override;
 
+            void Points(const vertex::Vertex * points, size_t count) override;
+
+            void SetPointSize(float size) override;
+
             /* End Primitives */
 
             void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;

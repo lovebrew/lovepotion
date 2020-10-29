@@ -27,14 +27,14 @@
 #include "deko3d/vertex.h"
 
 #if defined (_3DS)
-    #define RENDERER_NAME "OpenGL ES"
-    #define RENDERER_VERSION "1.1"
-    #define RENDERER_VENDOR "Digital Media Professionals Inc."
+    #define RENDERER_NAME "citro3d"
+    #define RENDERER_VERSION "1.3.1"
+    #define RENDERER_VENDOR "devkitPro"
     #define RENDERER_DEVICE "DMP PICA200"
 #elif defined (__SWITCH__)
-    #define RENDERER_NAME "OpenGL"
-    #define RENDERER_VERSION "4.5"
-    #define RENDERER_VENDOR "NVIDIA"
+    #define RENDERER_NAME "deko3d"
+    #define RENDERER_VERSION "0.2.0"
+    #define RENDERER_VENDOR "devkitPro"
     #define RENDERER_DEVICE "Tegra X1"
 #endif
 
@@ -225,6 +225,8 @@ namespace love
 
             Font * GetFont();
 
+            float GetPointSize() const;
+
             vertex::CullMode GetMeshCullMode() const;
 
             vertex::Winding getFrontFaceWinding() const;
@@ -282,16 +284,15 @@ namespace love
 
             virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) = 0;
 
+            virtual void Points(const vertex::Vertex * points, size_t count) = 0;
+
+            virtual void SetPointSize(float size) = 0;
+
             /* Primitives */
 
             ColorMask getColorMask() const;
 
-            void Circle(float x, float y, float radius);
-
-
             void Line(float startx, float starty, float endx, float endy);
-
-            void Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle);
 
             static void SetViewMatrix(const Matrix4 & matrix);
 

@@ -355,7 +355,7 @@ void Graphics::RestoreState(const DisplayState & state)
     // setLineStyle(s.lineStyle);
     // setLineJoin(s.lineJoin);
 
-    // setPointSize(s.pointSize);
+    this->SetPointSize(state.pointSize);
 
     if (state.scissor)
         this->SetScissor(state.scissorRect);
@@ -397,6 +397,11 @@ Font * Graphics::GetFont()
 {
     this->CheckSetDefaultFont();
     return this->states.back().font.Get();
+}
+
+float Graphics::GetPointSize() const
+{
+    return this->states.back().pointSize;
 }
 
 /* Constants */

@@ -289,6 +289,15 @@ bool deko3d::RenderPolygon(bool fill, const vertex::Vertex * points,
     return true;
 }
 
+bool deko3d::RenderPoints(const vertex::Vertex * points, size_t count)
+{
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(*points));
+
+    this->cmdBuf.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+}
+
 bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t count)
 {
     // int drawReq = vertex::GetIndexCount(DkPrimitive_TriangleFan, vertexCount);

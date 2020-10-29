@@ -412,6 +412,17 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     delete [] coords;
 }
 
+void love::deko3d::Graphics::Points(const vertex::Vertex * points, size_t count)
+{
+    dk3d.RenderPoints(points, count);
+}
+
+void love::deko3d::Graphics::SetPointSize(float size)
+{
+    dk3d.SetPointSize(size);
+    this->states.back().pointSize = size;
+}
+
 void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2)
 {
     float points = (float)this->CalculateEllipsePoints(radius, radius);

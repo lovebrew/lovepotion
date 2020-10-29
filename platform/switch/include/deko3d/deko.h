@@ -95,6 +95,8 @@ class deko3d
 
         bool RenderPolyline(const vertex::Vertex * points, size_t count);
 
+        bool RenderPoints(const vertex::Vertex * points, size_t count);
+
     private:
         vertex::Vertex * vertexData;
         uint32_t firstVertex = 0;

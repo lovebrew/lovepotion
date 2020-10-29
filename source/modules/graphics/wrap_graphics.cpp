@@ -154,62 +154,167 @@ int Wrap_Graphics::Circle(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Line(lua_State * L)
+int Wrap_Graphics::GetPointSize(lua_State * L)
 {
-    int argc = lua_gettop(L);
-    bool isTable = lua_istable(L, 1);
-    int tableLength = 0;
+    float size = instance()->GetPointSize();
+    lua_pushnumber(L, size);
 
-    Graphics::Point start, end = Graphics::Point();
+    return 1;
+}
+
+int Wrap_Graphics::SetPointSize(lua_State * L)
+{
+    float size = luaL_checknumber(L, 1);
+    instance()->SetPointSize(size);
+
+    return 0;
+}
+
+int Wrap_Graphics::Points(lua_State * L)
+{
+    int args = lua_gettop(L);
+    bool isTable = false;
+    bool isTableOfTables = false;
+
+    if (args == 1 && lua_istable(L, 1))
+    {
+        isTable = true;
+        args = (int)lua_objlen(L, 1);
+
+        lua_rawgeti(L, 1, 1);
+        isTableOfTables = lua_istable(L, -1);
+        lua_pop(L, 1);
+    }
+
+    if (args % 2 != 0 && !isTableOfTables)
+        return luaL_error(L, "Number of vertex components must be a multiple of two");
+
+    int points = args / 2;
+    if (isTableOfTables)
+        points = args;
+
+    vertex::Vertex * positions = new vertex::Vertex[points];
+    Colorf foreground = instance()->GetColor();
 
     if (isTable)
     {
-        tableLength= lua_objlen(L, 1);
-
-        if (tableLength == 0 || (tableLength > 0 && tableLength % 4) != 0)
-            return luaL_error(L, "Need at least two verticies to draw a line");
-
-        if ((tableLength % 4) == 0)
+        if (isTableOfTables)
         {
-            for (int outer = 0; outer < tableLength; outer += 4)
+            // points({{x1, y1 [, r, g, b, a]}, {x2, y2 [, r, g, b, a]}, ...})
+            for (int i = 0; i < args; i++)
             {
-                for (int inner = 1; inner <= 4; inner++)
-                {
-                    lua_rawgeti(L, 1, inner + outer);
+                lua_rawgeti(L, 1, i + 1);
+                for (int j = 1; j <= 6; j++)
+                    lua_rawgeti(L, -j, j);
 
-                    start.x = luaL_checknumber(L, -4);
-                    start.y = luaL_checknumber(L, -3);
+                positions[i].position[0] = luaL_checknumber(L, -6);
+                positions[i].position[1] = luaL_checknumber(L, -5);
+                positions[i].position[2] = 0.0f;
 
-                    end.x = luaL_checknumber(L, -2);
-                    end.y = luaL_checknumber(L, -1);
+                float r = Luax::OptNumberClamped01(L, -4, 1.0);
+                float g = Luax::OptNumberClamped01(L, -3, 1.0);
+                float b = Luax::OptNumberClamped01(L, -2, 1.0);
+                float a = Luax::OptNumberClamped01(L, -1, 1.0);
 
-                    lua_pop(L, 4);
+                Colorf color(r, g, b, a);
+                color.CopyTo(positions[i].color);
 
-                    Luax::CatchException(L, [&]() {
-                        // instance()->Line(start.x, start.y, end.x, end.y);
-                    });
-                }
+                lua_pop(L, 7);
+            }
+        }
+        else
+        {
+            // points({x1, y1, x2, y2, ...})
+            for (int i = 0; i < points; i++)
+            {
+                lua_rawgeti(L, 1, i * 2 + 1);
+                lua_rawgeti(L, 1, i * 2 + 2);
+
+                positions[i].position[0] = luaL_checknumber(L, -2);
+                positions[i].position[1] = luaL_checknumber(L, -1);
+                positions[i].position[2] = 0.0f;
+
+                foreground.CopyTo(positions[i].color);
+
+                lua_pop(L, 2);
             }
         }
     }
     else
     {
-        if ((argc % 4) != 0)
-            return luaL_error(L, "Need at least two verticies to draw a line");
-
-        for (int index = 0; index < argc; index += 4)
+        for (int i = 0; i < points; i++)
         {
-            start.x = luaL_checknumber(L, index + 1);
-            start.y = luaL_checknumber(L, index + 2);
+            positions[i].position[0] = luaL_checknumber(L, i * 2 + 1);
+            positions[i].position[1] = luaL_checknumber(L, i * 2 + 2);
+            positions[i].position[2] = 0.0f;
 
-            end.x = luaL_checknumber(L, index + 3);
-            end.y = luaL_checknumber(L, index + 4);
-
-            Luax::CatchException(L, [&]() {
-                // instance()->Line(start.x, start.y, end.x, end.y);
-            });
+            foreground.CopyTo(positions[i].color);
         }
     }
+
+    Luax::CatchException(L, [&]() {
+        instance()->Points(positions, points);
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::Line(lua_State * L)
+{
+    // int argc = lua_gettop(L);
+    // bool isTable = lua_istable(L, 1);
+    // int tableLength = 0;
+
+    // Graphics::Point start, end = Graphics::Point();
+
+    // if (isTable)
+    // {
+    //     tableLength= lua_objlen(L, 1);
+
+    //     if (tableLength == 0 || (tableLength > 0 && tableLength % 4) != 0)
+    //         return luaL_error(L, "Need at least two verticies to draw a line");
+
+    //     if ((tableLength % 4) == 0)
+    //     {
+    //         for (int outer = 0; outer < tableLength; outer += 4)
+    //         {
+    //             for (int inner = 1; inner <= 4; inner++)
+    //             {
+    //                 lua_rawgeti(L, 1, inner + outer);
+
+    //                 start.x = luaL_checknumber(L, -4);
+    //                 start.y = luaL_checknumber(L, -3);
+
+    //                 end.x = luaL_checknumber(L, -2);
+    //                 end.y = luaL_checknumber(L, -1);
+
+    //                 lua_pop(L, 4);
+
+    //                 Luax::CatchException(L, [&]() {
+    //                     // instance()->Line(start.x, start.y, end.x, end.y);
+    //                 });
+    //             }
+    //         }
+    //     }
+    // }
+    // else
+    // {
+    //     if ((argc % 4) != 0)
+    //         return luaL_error(L, "Need at least two verticies to draw a line");
+
+    //     for (int index = 0; index < argc; index += 4)
+    //     {
+    //         start.x = luaL_checknumber(L, index + 1);
+    //         start.y = luaL_checknumber(L, index + 2);
+
+    //         end.x = luaL_checknumber(L, index + 3);
+    //         end.y = luaL_checknumber(L, index + 4);
+
+    //         Luax::CatchException(L, [&]() {
+    //             // instance()->Line(start.x, start.y, end.x, end.y);
+    //         });
+    //     }
+    // }
 
     return 0;
 }
@@ -896,6 +1001,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getFont",            GetFont            },
         { "getHeight",          GetHeight          },
         { "getLineWidth",       GetLineWidth       },
+        { "getPointSize",       GetPointSize       },
         { "getScissor",         GetScissor         },
         { "getWidth",           GetWidth           },
         { "line",               Line               },
@@ -906,6 +1012,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "origin",             Origin             },
         { "polygon",            Polygon            },
         { "pop",                Pop                },
+        { "points",             Points             },
         { "present",            Present            },
         { "print",              Print              },
         { "printf",             PrintF             },
@@ -921,6 +1028,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "setDefaultFilter",   SetDefaultFilter   },
         { "setLineWidth",       SetLineWidth       },
         { "setNewFont",         SetNewFont         },
+        { "setPointSize",       SetPointSize       },
         { "setFont",            SetFont            },
         { "setScissor",         SetScissor         },
         { "translate",          Translate          },
