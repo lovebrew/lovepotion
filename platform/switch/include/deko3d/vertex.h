@@ -2,6 +2,8 @@
 
 #include "deko3d/CMemPool.h"
 #include "deko3d/common.h"
+
+#include "common/vector.h"
 #include "common/colors.h"
 
 #include <array>
@@ -29,6 +31,8 @@ namespace vertex
         WINDING_CCW,
         WINDING_MAX_ENUM
     };
+
+    std::vector<Vertex> GenerateFromVectors(const love::Vector2 * points, size_t count, const Colorf * colors, size_t colorCount);
 
     bool GetConstant(const char * in, CullMode & out);
     bool GetConstant(CullMode in, const char *& out);

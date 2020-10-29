@@ -3,8 +3,8 @@
 **   CShader.h: Utility class for loading shaders from the filesystem
 */
 #pragma once
-#include "common.h"
-#include "CMemPool.h"
+#include "deko3d/common.h"
+#include "deko3d/CMemPool.h"
 
 class CShader
 {

@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "deko3d/graphics.h"
 
+#include "deko3d/polyline.h"
+
 using namespace love;
 
 #include "s_fsh_dksh.h"
@@ -168,22 +170,49 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 
 /* Primitives */
 
-void love::deko3d::Graphics::Polygon(DrawMode mode, const vertex::Vertex * points, size_t count, bool skipLastFilledVertex)
+void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex)
 {
-    dk3d.RenderPolygon(mode == DRAW_FILL, points, count, skipLastFilledVertex);
+    Colorf color[1] = { this->GetColor() };
+    std::vector<vertex::Vertex> verts = vertex::GenerateFromVectors(points, count, color, 1);
+
+    if (mode == DRAW_FILL)
+        dk3d.RenderPolygon(verts.data(), count * sizeof(*verts.data()), count, skipLastFilledVertex);
+    else
+    {
+        LineJoin lineJoin = this->GetLineJoin();
+        // if (lineJoin == JOIN_)
+
+        dk3d.RenderPolyline(DkPrimitive_LineStrip, verts.data(), count * sizeof(*verts.data()), count);
+    }
+}
+
+void love::deko3d::Graphics::SetLineWidth(float width)
+{
+    dk3d.SetLineWidth(width);
+}
+
+void love::deko3d::Graphics::Line(float startx, float starty, float endx, float endy)
+{
+    Vector2 points[4] =
+    {
+        { startx, starty },
+        { endx,   endy   },
+        { startx, endy   },
+        { endx,   starty }
+    };
+
+    this->Polygon(DRAW_LINE, points, 4);
 }
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
 {
-    const Colorf & color = this->GetColor();
-
-    vertex::Vertex points[5] =
+    Vector2 points[5] =
     {
-        { {x, y,                  0}, {color.r, color.g, color.b, color.a} },
-        { {x, y + height,         0}, {color.r, color.g, color.b, color.a} },
-        { {x + width, y + height, 0}, {color.r, color.g, color.b, color.a} },
-        { {x + width, y,          0}, {color.r, color.g, color.b, color.a} },
-        { {x, y,                  0}, {color.r, color.g, color.b, color.a} }
+        { x, y,                 },
+        { x, y + height,        },
+        { x + width, y + height },
+        { x + width, y,         },
+        { x, y,                 }
     };
 
     this->Polygon(mode, points, 5);
@@ -196,8 +225,6 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
         this->Rectangle(mode, x, y, width, height);
         return;
     }
-
-    Colorf color = this->GetColor();
 
     // Radius values that are more than half the rectangle's size aren't handled
     // correctly (for now)...
@@ -214,49 +241,37 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
 
     int num_coords = (points + 2) * 4;
 
-    vertex::Vertex coords[num_coords + 1] = {};
+    Vector2 coords[num_coords + 1] = {};
     float phi = .0f;
 
     for (int i = 0; i <= points + 2; ++i, phi += angle_shift)
     {
-        coords[i].position[0] = x + rx * (1 - cosf(phi));
-        coords[i].position[1] = y + ry * (1 - sinf(phi));
-        coords[i].position[2] = 0.0f;
-
-        color.CopyTo(coords[i].color);
+        coords[i].x = x + rx * (1 - cosf(phi));
+        coords[i].y = y + ry * (1 - sinf(phi));
     }
 
     phi = half_pi;
 
     for (int i = points + 2; i <= 2 * (points + 2); ++i, phi += angle_shift)
     {
-        coords[i].position[0] = x + width - rx * (1 + cosf(phi));
-        coords[i].position[1] = y +         ry * (1 - sinf(phi));
-        coords[i].position[2] = 0.0f;
-
-        color.CopyTo(coords[i].color);
+        coords[i].x = x + width - rx * (1 + cosf(phi));
+        coords[i].y = y +         ry * (1 - sinf(phi));
     }
 
     phi = 2 * half_pi;
 
     for (int i = 2 * (points + 2); i <= 3 * (points + 2); ++i, phi += angle_shift)
     {
-        coords[i].position[0] = x + width  - rx * (1 + cosf(phi));
-        coords[i].position[1] = y + height - ry * (1 + sinf(phi));
-        coords[i].position[2] = 0.0f;
-
-        color.CopyTo(coords[i].color);
+        coords[i].x = x + width  - rx * (1 + cosf(phi));
+        coords[i].y = y + height - ry * (1 + sinf(phi));
     }
 
     phi = 3 * half_pi;
 
     for (int i = 3 * (points + 2); i <= 4 * (points + 2); ++i, phi += angle_shift)
     {
-        coords[i].position[0] = x +          rx * (1 - cosf(phi));
-        coords[i].position[1] = y + height - ry * (1 + sinf(phi));
-        coords[i].position[2] = 0.0f;
-
-        color.CopyTo(coords[i].color);
+        coords[i].x = x +          rx * (1 - cosf(phi));
+        coords[i].y = y + height - ry * (1 + sinf(phi));
     }
 
     coords[num_coords] = coords[0];
@@ -278,36 +293,28 @@ void love::deko3d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, f
     float angle_shift = (two_pi / points);
     float phi = .0f;
 
-    Colorf color = this->GetColor();
-
     // 1 extra point at the end for a closed loop, and 1 extra point at the
     // start in filled mode for the vertex in the center of the ellipse.
     int extrapoints = 1 + (mode == DRAW_FILL ? 1 : 0);
 
-    vertex::Vertex coords[points + extrapoints] = {};
+    Vector2 coords[points + extrapoints] = {};
 
     if (mode == DRAW_FILL)
     {
-        coords[0].position[0] = x;
-        coords[0].position[1] = y;
-        coords[0].position[2] = 0.0f;
-
-        color.CopyTo(coords[0].color);
+        coords[0].x = x;
+        coords[0].y = y;
     }
 
     for (int i = 0; i < points; ++i, phi += angle_shift)
     {
-        coords[i].position[0] = x + a * cosf(phi);
-        coords[i].position[1] = y + b * sinf(phi);
-        coords[i].position[2] = 0.0f;
-
-        color.CopyTo(coords[i].color);
+        coords[i].x = x + a * cosf(phi);
+        coords[i].y = y + b * sinf(phi);
     }
 
     coords[points] = coords[0];
 
     // Last argument to polygon(): don't skip the last vertex in fill mode.
-    dk3d.RenderPolygon(mode == DRAW_FILL, coords, points + extrapoints, false);
+    this->Polygon(mode, coords, points + extrapoints, false);
 }
 
 void love::deko3d::Graphics::Circle(DrawMode mode, float x, float y, float radius)
@@ -365,42 +372,37 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     float phi = angle1;
 
     int num_coords = 0;
-    vertex::Vertex * coords = nullptr;
+    Vector2 * coords = nullptr;
 
-    Colorf color = this->GetColor();
-
-    const auto createPoints = [&](vertex::Vertex * coordinates)
+    const auto createPoints = [&](Vector2 * coordinates)
     {
         for (int i = 0; i <= points; ++i, phi += angle_shift)
         {
-            coordinates[i].position[0] = x + radius * cosf(phi);
-            coordinates[i].position[1] = y + radius * sinf(phi);
-            coordinates[i].position[2] = 0.0f;
-
-            color.CopyTo(coordinates[i].color);
+            coordinates[i].x = x + radius * cosf(phi);
+            coordinates[i].y = y + radius * sinf(phi);
         }
     };
 
     if (arcmode == ARC_PIE)
     {
         num_coords = points + 3;
-        coords = new vertex::Vertex[num_coords];
+        coords = new Vector2[num_coords];
 
-        coords[0] = coords[num_coords - 1] = vertex::Vertex{{x, y, 0.0f}, {color.r, color.g, color.b, color.a}};
+        coords[0] = coords[num_coords - 1] = Vector2(x, y);
 
         createPoints(coords + 1);
     }
     else if (arcmode == ARC_OPEN)
     {
         num_coords = points + 1;
-        coords = new vertex::Vertex[num_coords];
+        coords = new Vector2[num_coords];
 
         createPoints(coords);
     }
     else // ARC_CLOSED
     {
         num_coords = points + 2;
-        coords = new vertex::Vertex[num_coords];
+        coords = new Vector2[num_coords];
 
         createPoints(coords);
 
@@ -412,9 +414,11 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     delete [] coords;
 }
 
-void love::deko3d::Graphics::Points(const vertex::Vertex * points, size_t count)
+void love::deko3d::Graphics::Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount)
 {
-    dk3d.RenderPoints(points, count);
+    std::vector<vertex::Vertex> verts = vertex::GenerateFromVectors(points, count, colors, colorCount);
+
+    dk3d.RenderPoints(verts.data(), count * sizeof(*verts.data()), count);
 }
 
 void love::deko3d::Graphics::SetPointSize(float size)

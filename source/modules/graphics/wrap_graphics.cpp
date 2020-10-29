@@ -172,6 +172,11 @@ int Wrap_Graphics::SetPointSize(lua_State * L)
 
 int Wrap_Graphics::Points(lua_State * L)
 {
+    // love.graphics.points has 3 variants:
+    // - points(x1, y1, x2, y2, ...)
+    // - points({x1, y1, x2, y2, ...})
+    // - points({{x1, y1 [, r, g, b, a]}, {x2, y2 [, r, g, b, a]}, ...})
+
     int args = lua_gettop(L);
     bool isTable = false;
     bool isTableOfTables = false;
@@ -193,13 +198,23 @@ int Wrap_Graphics::Points(lua_State * L)
     if (isTableOfTables)
         points = args;
 
-    vertex::Vertex * positions = new vertex::Vertex[points];
-    Colorf foreground = instance()->GetColor();
+    Vector2 * positions = nullptr;
+    Colorf * colors = nullptr;
+
+    if (isTableOfTables)
+    {
+        positions = new Vector2[points * (sizeof(Colorf) + sizeof(Vector2))];
+        colors = new Colorf[sizeof(Vector2) * points];
+    }
+    else
+        positions = new Vector2[points];
 
     if (isTable)
     {
         if (isTableOfTables)
         {
+
+
             // points({{x1, y1 [, r, g, b, a]}, {x2, y2 [, r, g, b, a]}, ...})
             for (int i = 0; i < args; i++)
             {
@@ -207,17 +222,13 @@ int Wrap_Graphics::Points(lua_State * L)
                 for (int j = 1; j <= 6; j++)
                     lua_rawgeti(L, -j, j);
 
-                positions[i].position[0] = luaL_checknumber(L, -6);
-                positions[i].position[1] = luaL_checknumber(L, -5);
-                positions[i].position[2] = 0.0f;
+                positions[i].x = luaL_checknumber(L, -6);
+                positions[i].y = luaL_checknumber(L, -5);
 
-                float r = Luax::OptNumberClamped01(L, -4, 1.0);
-                float g = Luax::OptNumberClamped01(L, -3, 1.0);
-                float b = Luax::OptNumberClamped01(L, -2, 1.0);
-                float a = Luax::OptNumberClamped01(L, -1, 1.0);
-
-                Colorf color(r, g, b, a);
-                color.CopyTo(positions[i].color);
+                colors[i].r = Luax::OptNumberClamped01(L, -4, 1.0);
+                colors[i].g = Luax::OptNumberClamped01(L, -3, 1.0);
+                colors[i].b = Luax::OptNumberClamped01(L, -2, 1.0);
+                colors[i].a = Luax::OptNumberClamped01(L, -1, 1.0);
 
                 lua_pop(L, 7);
             }
@@ -230,11 +241,8 @@ int Wrap_Graphics::Points(lua_State * L)
                 lua_rawgeti(L, 1, i * 2 + 1);
                 lua_rawgeti(L, 1, i * 2 + 2);
 
-                positions[i].position[0] = luaL_checknumber(L, -2);
-                positions[i].position[1] = luaL_checknumber(L, -1);
-                positions[i].position[2] = 0.0f;
-
-                foreground.CopyTo(positions[i].color);
+                positions[i].x = luaL_checknumber(L, -2);
+                positions[i].y = luaL_checknumber(L, -1);
 
                 lua_pop(L, 2);
             }
@@ -244,16 +252,13 @@ int Wrap_Graphics::Points(lua_State * L)
     {
         for (int i = 0; i < points; i++)
         {
-            positions[i].position[0] = luaL_checknumber(L, i * 2 + 1);
-            positions[i].position[1] = luaL_checknumber(L, i * 2 + 2);
-            positions[i].position[2] = 0.0f;
-
-            foreground.CopyTo(positions[i].color);
+            positions[i].x = luaL_checknumber(L, i * 2 + 1);
+            positions[i].y = luaL_checknumber(L, i * 2 + 2);
         }
     }
 
     Luax::CatchException(L, [&]() {
-        instance()->Points(positions, points);
+        instance()->Points(positions, points, colors, points);
     });
 
     return 0;
@@ -261,60 +266,54 @@ int Wrap_Graphics::Points(lua_State * L)
 
 int Wrap_Graphics::Line(lua_State * L)
 {
-    // int argc = lua_gettop(L);
-    // bool isTable = lua_istable(L, 1);
-    // int tableLength = 0;
+    int args = lua_gettop(L);
+    int argType = lua_type(L, 1);
 
-    // Graphics::Point start, end = Graphics::Point();
+    bool is_table = false;
 
-    // if (isTable)
-    // {
-    //     tableLength= lua_objlen(L, 1);
+    if (args == 1 && argType == LUA_TTABLE)
+    {
+        args = (int)lua_objlen(L, 1);
+        is_table = true;
+    }
 
-    //     if (tableLength == 0 || (tableLength > 0 && tableLength % 4) != 0)
-    //         return luaL_error(L, "Need at least two verticies to draw a line");
+    if (argType != LUA_TTABLE && argType != LUA_TNUMBER)
+        return Luax::TypeErrror(L, 1, "table or number");
+    else if (args % 2 != 0)
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+    else if (args < 4)
+        return luaL_error(L, "Need at least two vertices to draw a line.");
 
-    //     if ((tableLength % 4) == 0)
-    //     {
-    //         for (int outer = 0; outer < tableLength; outer += 4)
-    //         {
-    //             for (int inner = 1; inner <= 4; inner++)
-    //             {
-    //                 lua_rawgeti(L, 1, inner + outer);
+    int numvertices = args / 2;
 
-    //                 start.x = luaL_checknumber(L, -4);
-    //                 start.y = luaL_checknumber(L, -3);
+    Vector2 * coords = new Vector2[numvertices];
 
-    //                 end.x = luaL_checknumber(L, -2);
-    //                 end.y = luaL_checknumber(L, -1);
+    if (is_table)
+    {
+        for (int i = 0; i < numvertices; ++i)
+        {
+            lua_rawgeti(L, 1, (i * 2) + 1);
+            lua_rawgeti(L, 1, (i * 2) + 2);
+            coords[i].x = luaL_checknumber(L, -2);
+            coords[i].y = luaL_checknumber(L, -1);
 
-    //                 lua_pop(L, 4);
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < numvertices; ++i)
+        {
+            coords[i].x = luaL_checknumber(L, (i * 2) + 1);
+            coords[i].y = luaL_checknumber(L, (i * 2) + 2);
+        }
+    }
 
-    //                 Luax::CatchException(L, [&]() {
-    //                     // instance()->Line(start.x, start.y, end.x, end.y);
-    //                 });
-    //             }
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     if ((argc % 4) != 0)
-    //         return luaL_error(L, "Need at least two verticies to draw a line");
+    Luax::CatchException(L, [&]() {
+        instance()->Polygon(Graphics::DRAW_LINE, coords, numvertices);
+    });
 
-    //     for (int index = 0; index < argc; index += 4)
-    //     {
-    //         start.x = luaL_checknumber(L, index + 1);
-    //         start.y = luaL_checknumber(L, index + 2);
-
-    //         end.x = luaL_checknumber(L, index + 3);
-    //         end.y = luaL_checknumber(L, index + 4);
-
-    //         Luax::CatchException(L, [&]() {
-    //             // instance()->Line(start.x, start.y, end.x, end.y);
-    //         });
-    //     }
-    // }
+    delete[] coords;
 
     return 0;
 }
@@ -342,7 +341,7 @@ int Wrap_Graphics::Polygon(lua_State * L)
 
     const int numverticies = argc / 2;
 
-    vertex::Vertex points[numverticies];
+    Vector2 points[numverticies + 1];
 
     if (isTable)
     {
@@ -357,9 +356,8 @@ int Wrap_Graphics::Polygon(lua_State * L)
             x = luaL_checkinteger(L, -2);
             y = luaL_checkinteger(L, -1);
 
-            points[i].position[0] = x;
-            points[i].position[1] = y;
-            points[i].position[2] = 0.0f;
+            points[i].x = x;
+            points[i].y = y;
 
             lua_pop(L, 2);
         }
@@ -374,9 +372,8 @@ int Wrap_Graphics::Polygon(lua_State * L)
             x = luaL_checkinteger(L, (i * 2) + 2);
             y = luaL_checkinteger(L, (i * 2) + 3);
 
-            points[i].position[0] = x;
-            points[i].position[1] = y;
-            points[i].position[2] = 0.0f;
+            points[i].x = x;
+            points[i].y = y;
 
             lua_pop(L, 2);
         }

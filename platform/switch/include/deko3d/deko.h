@@ -66,6 +66,10 @@ class deko3d
 
         void SetPointSize(float size);
 
+        void SetLineWidth(float width);
+
+        void SetLineStyle(bool smooth);
+
         void SetFrontFaceWinding(DkFrontFace face);
 
         void SetCullMode(DkFace face);
@@ -84,18 +88,11 @@ class deko3d
 
         /* Primitives Rendering */
 
-        enum DrawMode
-        {
-            DRAW_FILL,
-            DRAW_LINE,
-            DRAW_MAX_ENUM
-        };
+        bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count, bool skipLastFilledVertex = true);
 
-        bool RenderPolygon(bool fill, const vertex::Vertex * points, size_t count, bool skipLastFilledVertex = true);
+        bool RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points, size_t size, size_t count);
 
-        bool RenderPolyline(const vertex::Vertex * points, size_t count);
-
-        bool RenderPoints(const vertex::Vertex * points, size_t count);
+        bool RenderPoints(const vertex::Vertex * points, size_t size, size_t count);
 
     private:
         vertex::Vertex * vertexData;

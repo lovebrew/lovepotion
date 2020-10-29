@@ -110,7 +110,7 @@ void Graphics::SetBackgroundColor(const Colorf & color)
     this->states.back().background = color;
 }
 
-float Graphics::GetLineWidth()
+float Graphics::GetLineWidth() const
 {
     return this->states.back().lineWidth;
 }
@@ -351,9 +351,9 @@ void Graphics::RestoreState(const DisplayState & state)
 
     this->SetBlendMode(state.blendMode, state.blendAlphaMode);
 
-    // setLineWidth(s.lineWidth);
-    // setLineStyle(s.lineStyle);
-    // setLineJoin(s.lineJoin);
+    this->SetLineWidth(state.lineWidth);
+    this->SetLineStyle(state.lineStyle);
+    this->SetLineJoin(state.lineJoin);
 
     this->SetPointSize(state.pointSize);
 
@@ -399,9 +399,29 @@ Font * Graphics::GetFont()
     return this->states.back().font.Get();
 }
 
+void Graphics::SetLineJoin(LineJoin join)
+{
+    this->states.back().lineJoin = join;
+}
+
+void Graphics::SetLineStyle(LineStyle style)
+{
+    this->states.back().lineStyle = style;
+}
+
 float Graphics::GetPointSize() const
 {
     return this->states.back().pointSize;
+}
+
+Graphics::LineStyle Graphics::GetLineStyle() const
+{
+    return this->states.back().lineStyle;
+}
+
+Graphics::LineJoin Graphics::GetLineJoin() const
+{
+    return this->states.back().lineJoin;
 }
 
 /* Constants */

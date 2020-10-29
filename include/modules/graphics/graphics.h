@@ -81,6 +81,21 @@ namespace love
                 BLENDALPHA_MAX_ENUM
             };
 
+            enum LineStyle
+            {
+                LINE_ROUGH,
+                LINE_SMOOTH,
+                LINE_MAX_ENUM
+            };
+
+            enum LineJoin
+            {
+                LINE_JOIN_NONE,
+                LINE_JOIN_MITER,
+                LINE_JOIN_BEVEL,
+                LINE_JOIN_MAX_ENUM
+            };
+
             struct Point
             {
                 float x;
@@ -179,10 +194,6 @@ namespace love
 
             void SetBackgroundColor(const Colorf & color);
 
-            float GetLineWidth();
-
-            void SetLineWidth(float width);
-
             void GetDimensions(int * width, int * height);
 
             bool GetScissor(Rect & scissor) const;
@@ -227,9 +238,19 @@ namespace love
 
             float GetPointSize() const;
 
+            LineStyle GetLineStyle() const;
+
+            LineJoin GetLineJoin() const;
+
+            float GetLineWidth() const;
+
             vertex::CullMode GetMeshCullMode() const;
 
-            vertex::Winding getFrontFaceWinding() const;
+            vertex::Winding GetFrontFaceWinding() const;
+
+            void SetLineJoin(LineJoin join);
+
+            void SetLineStyle(LineStyle style);
 
             Canvas * NewCanvas(const Canvas::Settings & settings);
 
@@ -278,21 +299,24 @@ namespace love
 
             virtual void Circle(DrawMode mode, float x, float y, float radius, int points) = 0;
 
-            virtual void Polygon(DrawMode mode, const vertex::Vertex * points, size_t count, bool skipLastFilledVertex = true) = 0;
+            virtual void Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex = true) = 0;
 
             virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2) = 0;
 
             virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) = 0;
 
-            virtual void Points(const vertex::Vertex * points, size_t count) = 0;
+            virtual void Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount) = 0;
 
             virtual void SetPointSize(float size) = 0;
+
+            virtual void Line(float startx, float starty, float endx, float endy) = 0;
+
+            virtual void SetLineWidth(float width) = 0;
 
             /* Primitives */
 
             ColorMask getColorMask() const;
 
-            void Line(float startx, float starty, float endx, float endy);
 
             static void SetViewMatrix(const Matrix4 & matrix);
 
@@ -342,6 +366,9 @@ namespace love
                 Texture::Filter defaultFilter = Texture::Filter();
                 Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
                 float defaultMipmapSharpness = 0.0f;
+
+                LineStyle lineStyle = LINE_SMOOTH;
+                LineJoin lineJoin = LINE_JOIN_MITER;
 
                 vertex::CullMode meshCullMode = vertex::CULL_NONE;
                 vertex::Winding winding = vertex::WINDING_CCW;

@@ -260,53 +260,16 @@ void deko3d::Present()
     this->framebuffers.slot = -1;
 }
 
-/* Various Rendering Operations */
-
-bool deko3d::RenderPolygon(bool fill, const vertex::Vertex * points,
-                           size_t count, bool skipLastFilledVertex)
+bool deko3d::RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points, size_t size, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
-    if (!fill)
-        this->RenderPolyline(points, count);
-    else
-    {
-        int vertexCount = (int)count - (skipLastFilledVertex ? 1 : 0);
-
-        // int drawReq = vertex::GetIndexCount(DkPrimitive_TriangleFan, vertexCount);
-
-        // Copy the vertex info
-        memcpy(this->vertexData + this->firstVertex, points, count * sizeof(*points));
-
-        // Draw with Triangles
-        this->cmdBuf.draw(DkPrimitive_TriangleFan, vertexCount, 1, this->firstVertex, 0);
-
-        // Offset the first vertex data
-        this->firstVertex += vertexCount;
-    }
-
-    return true;
-}
-
-bool deko3d::RenderPoints(const vertex::Vertex * points, size_t count)
-{
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(*points));
-
-    this->cmdBuf.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-}
-
-bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t count)
-{
-    // int drawReq = vertex::GetIndexCount(DkPrimitive_TriangleFan, vertexCount);
-
     // Copy the vertex info
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(*points));
+    memcpy(this->vertexData + this->firstVertex, points, size);
 
     // Draw with Triangles
-    this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
+    this->cmdBuf.draw(primitive, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
     this->firstVertex += count;
@@ -314,10 +277,55 @@ bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t count)
     return true;
 }
 
+bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
+                           size_t count, bool skipLastFilledVertex)
+{
+    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    int vertexCount = (int)count - (skipLastFilledVertex ? 1 : 0);
+
+    // Copy the vertex info
+    memcpy(this->vertexData + this->firstVertex, points, size);
+
+    // Draw with Triangles
+    this->cmdBuf.draw(DkPrimitive_TriangleFan, vertexCount, 1, this->firstVertex, 0);
+
+    // Offset the first vertex data
+    this->firstVertex += vertexCount;
+
+    return true;
+}
+
+bool deko3d::RenderPoints(const vertex::Vertex * points, size_t size, size_t count)
+{
+    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    memcpy(this->vertexData + this->firstVertex, points, size);
+
+    this->cmdBuf.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
 void deko3d::SetPointSize(float size)
 {
+    this->EnsureInFrame();
     this->cmdBuf.setPointSize(size);
-    this->state.pointSize = size;
+}
+
+void deko3d::SetLineWidth(float width)
+{
+    this->EnsureInFrame();
+    this->cmdBuf.setLineWidth(width);
+}
+
+void deko3d::SetLineStyle(bool smooth)
+{
+    this->state.rasterizer.setPolygonSmoothEnable(smooth);
 }
 
 float deko3d::GetPointSize()

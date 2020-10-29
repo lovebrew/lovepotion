@@ -36,15 +36,19 @@ namespace love::deko3d
 
             void Circle(DrawMode mode, float x, float y, float radius, int points) override;
 
-            void Polygon(DrawMode mode, const vertex::Vertex * points, size_t size, bool skipLastFilledVertex = true) override;
+            void Polygon(DrawMode mode, const Vector2 * points, size_t size, bool skipLastFilledVertex = true) override;
 
             void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2) override;
 
             void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) override;
 
-            void Points(const vertex::Vertex * points, size_t count) override;
+            void Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount) override;
 
             void SetPointSize(float size) override;
+
+            void Line(float startx, float starty, float endx, float endy) override;
+
+            void SetLineWidth(float width) override;
 
             /* End Primitives */
 
