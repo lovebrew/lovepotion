@@ -26,6 +26,7 @@
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/switch/include/**",
+                "${workspaceFolder}/platform/switch/scripts/**",
                 "/opt/devkitpro/portlibs/switch/include/**",
                 "/opt/devkitpro/libnx/include/**",
                 "/opt/devkitpro/devkitA64/include/**"

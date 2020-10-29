@@ -19,23 +19,43 @@ int Wrap_Graphics::SetDepth(lua_State * L)
 
 int Wrap_Graphics::Arc(lua_State * L)
 {
+    Graphics::DrawMode drawMode;
     const char * mode = luaL_checkstring(L, 1);
-    Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
-
     if (!Graphics::GetConstant(mode, drawMode))
-        return luaL_error(L, "Invalid draw mode %s", mode);
+        return Luax::EnumError(L, "draw mode", Graphics::GetConstants(drawMode), mode);
 
-    float x = luaL_optnumber(L, 2, 0);
-    float y = luaL_optnumber(L, 3, 0);
+    int startidx = 2;
 
-    float radius = luaL_checknumber(L, 4);
+    Graphics::ArcMode arcmode = Graphics::ARC_PIE;
 
-    float startAngle = luaL_checknumber(L, 5);
-    float endAngle = luaL_checknumber(L, 6);
+    if (lua_type(L, 2) == LUA_TSTRING)
+    {
+        const char *arcstr = luaL_checkstring(L, 2);
+        if (!Graphics::GetConstant(arcstr, arcmode))
+            return Luax::EnumError(L, "arc mode", Graphics::GetConstants(arcmode), arcstr);
 
-    Luax::CatchException(L, [&]() {
-        instance()->Arc(mode, x, y, radius, startAngle, endAngle);
-    });
+        startidx = 3;
+    }
+
+    float x = luaL_checknumber(L, startidx + 0);
+    float y = luaL_checknumber(L, startidx + 1);
+    float radius = luaL_checknumber(L, startidx + 2);
+    float angle1 = luaL_checknumber(L, startidx + 3);
+    float angle2 = luaL_checknumber(L, startidx + 4);
+
+    if (lua_isnoneornil(L, startidx + 5))
+    {
+        Luax::CatchException(L, [&]() {
+            instance()->Arc(drawMode, arcmode, x, y, radius, angle1, angle2);
+        });
+    }
+    else
+    {
+        int points = (int) luaL_checkinteger(L, startidx + 5);
+        Luax::CatchException(L, [&]() {
+            instance()->Arc(drawMode, arcmode, x, y, radius, angle1, angle2, points);
+        });
+    }
 
     return 0;
 }
@@ -48,15 +68,23 @@ int Wrap_Graphics::Ellipse(lua_State * L)
     if (!Graphics::GetConstant(mode, drawMode))
         return luaL_error(L, "Invalid draw mode %s", mode);
 
-    float x = luaL_optnumber(L, 2, 0);
-    float y = luaL_optnumber(L, 3, 0);
+    float x = (float)luaL_checknumber(L, 2);
+    float y = (float)luaL_checknumber(L, 3);
+    float a = (float)luaL_checknumber(L, 4);
+    float b = (float)luaL_optnumber(L, 5, a);
 
-    float radiusX = luaL_checknumber(L, 4);
-    float radiusY = luaL_checknumber(L, 5);
+    if (lua_isnoneornil(L, 6))
+        Luax::CatchException(L, [&]() {
+            instance()->Ellipse(drawMode, x, y, a, b);
+        });
+    else
+    {
+        int points = (int)luaL_checkinteger(L, 6);
+        Luax::CatchException(L, [&]() {
+            instance()->Ellipse(drawMode, x, y, a, b, points);
+        });
+    }
 
-    Luax::CatchException(L, [&]() {
-        instance()->Ellipse(mode, x, y, radiusX, radiusY);
-    });
 
     return 0;
 }
@@ -75,12 +103,26 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float width = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
-    float rx = luaL_optnumber(L, 6, 1);
-    float ry = luaL_optnumber(L, 7, 1);
+    if (lua_isnoneornil(L, 6))
+    {
+        instance()->Rectangle(drawMode, x, y, width, height);
+        return 0;
+    }
 
-    Luax::CatchException(L, [&]() {
-        instance()->Rectangle(mode, x, y, width, height, rx, ry);
-    });
+    float rx = (float)luaL_optnumber(L, 6, 0.0);
+    float ry = (float)luaL_optnumber(L, 7, rx);
+
+    if (lua_isnoneornil(L, 8))
+        Luax::CatchException(L, [&]() {
+            instance()->Rectangle(drawMode, x, y, width, height, rx, ry);
+        });
+    else
+    {
+        int points = (int) luaL_checkinteger(L, 8);
+        Luax::CatchException(L, [&]() {
+            instance()->Rectangle(drawMode, x, y, width, height, rx, ry, points);
+        });
+    }
 
     return 0;
 }
@@ -93,14 +135,21 @@ int Wrap_Graphics::Circle(lua_State * L)
     if (!Graphics::GetConstant(mode, drawMode))
         return luaL_error(L, "Invalid draw mode %s", mode);
 
-    float x = luaL_optnumber(L, 2, 0);
-    float y = luaL_optnumber(L, 3, 0);
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
+    float radius = luaL_checknumber(L, 4);
 
-    float radius = luaL_optnumber(L, 4, 1);
-
-    Luax::CatchException(L, [&]() {
-        instance()->Circle(x, y, radius);
-    });
+    if (lua_isnoneornil(L, 5))
+        Luax::CatchException(L, [&]() {
+            instance()->Circle(drawMode, x, y, radius);
+        });
+    else
+    {
+        int points = (int) luaL_checkinteger(L, 5);
+        Luax::CatchException(L, [&]() {
+            instance()->Circle(drawMode, x, y, radius, points);
+        });
+    }
 
     return 0;
 }
@@ -137,7 +186,7 @@ int Wrap_Graphics::Line(lua_State * L)
                     lua_pop(L, 4);
 
                     Luax::CatchException(L, [&]() {
-                        instance()->Line(start.x, start.y, end.x, end.y);
+                        // instance()->Line(start.x, start.y, end.x, end.y);
                     });
                 }
             }
@@ -157,7 +206,7 @@ int Wrap_Graphics::Line(lua_State * L)
             end.y = luaL_checknumber(L, index + 4);
 
             Luax::CatchException(L, [&]() {
-                instance()->Line(start.x, start.y, end.x, end.y);
+                // instance()->Line(start.x, start.y, end.x, end.y);
             });
         }
     }
@@ -188,7 +237,7 @@ int Wrap_Graphics::Polygon(lua_State * L)
 
     const int numverticies = argc / 2;
 
-    std::vector<Graphics::Point> points(numverticies);
+    vertex::Vertex points[numverticies];
 
     if (isTable)
     {
@@ -203,7 +252,9 @@ int Wrap_Graphics::Polygon(lua_State * L)
             x = luaL_checkinteger(L, -2);
             y = luaL_checkinteger(L, -1);
 
-            points[i] = {x, y};
+            points[i].position[0] = x;
+            points[i].position[1] = y;
+            points[i].position[2] = 0.0f;
 
             lua_pop(L, 2);
         }
@@ -218,14 +269,16 @@ int Wrap_Graphics::Polygon(lua_State * L)
             x = luaL_checkinteger(L, (i * 2) + 2);
             y = luaL_checkinteger(L, (i * 2) + 3);
 
-            points[i] = {x, y};
+            points[i].position[0] = x;
+            points[i].position[1] = y;
+            points[i].position[2] = 0.0f;
 
             lua_pop(L, 2);
         }
     }
 
     Luax::CatchException(L, [&]() {
-        instance()->Polygon(mode, points);
+        instance()->Polygon(drawMode, points, numverticies);
     });
 
     return 0;
@@ -831,9 +884,11 @@ int Wrap_Graphics::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
+        { "arc",                Arc                },
         { "circle",             Circle             },
         { "clear",              Clear              },
         { "draw",               Draw               },
+        { "ellipse",            Ellipse            },
         { "getBackgroundColor", GetBackgroundColor },
         { "getColor",           GetColor           },
         { "getDefaultFilter",   GetDefaultFilter   },

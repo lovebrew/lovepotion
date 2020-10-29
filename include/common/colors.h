@@ -22,6 +22,14 @@ struct ColorT
         a = a_;
     }
 
+    void CopyTo(T color[4])
+    {
+        color[0] = r;
+        color[1] = g;
+        color[2] = b;
+        color[3] = a;
+    }
+
     bool operator == (const ColorT<T> & other) const;
     bool operator != (const ColorT<T> & other) const;
 

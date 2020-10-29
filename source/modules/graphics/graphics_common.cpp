@@ -95,7 +95,7 @@ Colorf Graphics::GetColor()
     return this->states.back().foreground;
 }
 
-void Graphics::SetColor(const Colorf & color)
+void Graphics::SetColor(Colorf color)
 {
     this->states.back().foreground = color;
 }
@@ -325,40 +325,6 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * f
 }
 
 /* End Objects */
-// void Graphics::Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry)
-// {
-//     Primitives::Rectangle(mode, x, y, width, height, rx, ry, this->states.back().lineWidth, this->states.back().foreground);
-// }
-
-void Graphics::Polygon(const std::string & mode, std::vector<Graphics::Point> points)
-{
-    SetViewMatrix(this->transformStack.back());
-    Primitives::Polygon(mode, points, this->GetLineWidth(), this->states.back().foreground);
-}
-
-void Graphics::Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle)
-{
-    SetViewMatrix(this->transformStack.back());
-    Primitives::Arc(mode, x, y, radius, startAngle, endAngle, this->states.back().foreground);
-}
-
-void Graphics::Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY)
-{
-    SetViewMatrix(this->transformStack.back());
-    Primitives::Ellipse(mode, x, y, radiusX, radiusY, this->states.back().foreground);
-}
-
-void Graphics::Line(float startx, float starty, float endx, float endy)
-{
-    SetViewMatrix(this->transformStack.back());
-    Primitives::Line(startx, starty, endx, endy, this->GetLineWidth(), this->states.back().foreground);
-}
-
-void Graphics::Circle(float x, float y, float radius)
-{
-    SetViewMatrix(this->transformStack.back());
-    Primitives::Circle("fill", x, y, radius, this->GetLineWidth(), this->states.back().foreground);
-}
 
 void Graphics::Reset()
 {
@@ -396,11 +362,13 @@ void Graphics::RestoreState(const DisplayState & state)
     else
         this->SetScissor();
 
+    this->SetMeshCullMode(state.meshCullMode);
+    this->SetFrontFaceWinding(state.winding);
+
     this->SetFont(state.font.Get());
     this->SetShader(state.shader.Get());
 
     this->SetColorMask(state.colorMask);
-
     this->SetDefaultFilter(state.defaultFilter);
 }
 
@@ -435,47 +403,62 @@ Font * Graphics::GetFont()
 
 bool Graphics::GetConstant(const char * in, DrawMode & out)
 {
-	return drawModes.Find(in, out);
+    return drawModes.Find(in, out);
 }
 
 bool Graphics::GetConstant(DrawMode in, const char *& out)
 {
-	return drawModes.Find(in, out);
+    return drawModes.Find(in, out);
 }
 
 std::vector<std::string> Graphics::GetConstants(DrawMode)
 {
-	return drawModes.GetNames();
+    return drawModes.GetNames();
+}
+
+bool Graphics::GetConstant(const char * in, ArcMode & out)
+{
+    return arcModes.Find(in, out);
+}
+
+bool Graphics::GetConstant(ArcMode in, const char *&out)
+{
+    return arcModes.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(ArcMode)
+{
+    return arcModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char *in, BlendMode & out)
 {
-	return blendModes.Find(in, out);
+    return blendModes.Find(in, out);
 }
 
 bool Graphics::GetConstant(BlendMode in, const char *& out)
 {
-	return blendModes.Find(in, out);
+    return blendModes.Find(in, out);
 }
 
 std::vector<std::string> Graphics::GetConstants(BlendMode)
 {
-	return blendModes.GetNames();
+    return blendModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char * in, BlendAlpha & out)
 {
-	return blendAlphaModes.Find(in, out);
+    return blendAlphaModes.Find(in, out);
 }
 
 bool Graphics::GetConstant(BlendAlpha in, const char *& out)
 {
-	return blendAlphaModes.Find(in, out);
+    return blendAlphaModes.Find(in, out);
 }
 
 std::vector<std::string> Graphics::GetConstants(BlendAlpha)
 {
-	return blendAlphaModes.GetNames();
+    return blendAlphaModes.GetNames();
 }
 
 
@@ -501,6 +484,15 @@ StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry Graphics::drawMode
 };
 
 StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(Graphics::drawModeEntries, sizeof(Graphics::drawModeEntries));
+
+StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry Graphics::arcModeEntries[] =
+{
+    { "open",   ARC_OPEN   },
+    { "closed", ARC_CLOSED },
+    { "pie",    ARC_PIE    },
+};
+
+StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(Graphics::arcModeEntries, sizeof(Graphics::arcModeEntries));
 
 StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry Graphics::blendAlphaEntries[] =
 {

@@ -20,6 +20,11 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+namespace love
+{
+    class Graphics;
+}
+
 class deko3d
 {
     public:
@@ -57,6 +62,14 @@ class deko3d
 
         void SetColorMask(bool r, bool g, bool b, bool a);
 
+        float GetPointSize();
+
+        void SetPointSize(float size);
+
+        void SetFrontFaceWinding(DkFrontFace face);
+
+        void SetCullMode(DkFace face);
+
         love::Rect GetViewport();
 
         void SetScissor(const love::Rect & scissor, bool canvasActive);
@@ -69,7 +82,18 @@ class deko3d
 
         std::optional<CMemPool> & GetCode();
 
-        bool RenderRectangle(const std::string & mode, const vertex::Vertex points[4]);
+        /* Primitives Rendering */
+
+        enum DrawMode
+        {
+            DRAW_FILL,
+            DRAW_LINE,
+            DRAW_MAX_ENUM
+        };
+
+        bool RenderPolygon(bool fill, const vertex::Vertex * points, size_t count, bool skipLastFilledVertex = true);
+
+        bool RenderPolyline(const vertex::Vertex * points, size_t count);
 
     private:
         vertex::Vertex * vertexData;
@@ -95,6 +119,8 @@ class deko3d
             dk::ColorWriteState colorWrite;
             dk::BlendState blendState;
             dk::DepthStencilState depthStencil;
+
+            float pointSize;
         } state;
 
         dk::UniqueDevice device;

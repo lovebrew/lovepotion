@@ -45,7 +45,9 @@ deko3d::deko3d()
 
     // Initialize the projection matrix
     this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
-    // this->transformState.projMtx = glm::ortho(0.0f, 1280.0f, 720.0f, 0.0f, -1.0f, 1.0f);
+
+    this->transformState.projMtx = glm::ortho(0.0f, 1280.0f, 720.0f, 0.0f, -10.0f, 10.0f);
+    this->transformState.mdlvMtx = glm::mat4(1.0f);
 }
 
 deko3d::~deko3d()
@@ -104,7 +106,7 @@ void deko3d::CreateResources()
                                          nwindowGetDefault(),
                                          this->framebufferArray}.create();
 
-    // this->transformUniformBuffer = this->pool.data->allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
+    this->transformUniformBuffer = this->pool.data->allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
 }
 
 // Ensure we have begun our frame
@@ -124,7 +126,8 @@ void deko3d::EnsureInFrame()
 */
 void deko3d::EnsureHasSlot()
 {
-    this->framebuffers.slot = this->queue.acquireImage(this->swapchain);
+    if (this->framebuffers.slot < 0)
+        this->framebuffers.slot = this->queue.acquireImage(this->swapchain);
 }
 
 /*
@@ -134,23 +137,16 @@ void deko3d::EnsureHasSlot()
 */
 namespace
 {
-    constexpr std::array VertexAttribState =
-    {
-        DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
-        DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
-    };
-
     // Describe the buffer state for the Vertex struct
     constexpr std::array VertexBufferState =
     {
         DkVtxBufferState{ sizeof(vertex::Vertex), 0 },
     };
 
-    constexpr std::array TriangleVertexData =
+    constexpr std::array Primitives =
     {
-        vertex::Vertex{ {  0.0f, +1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-        vertex::Vertex{ { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-        vertex::Vertex{ { +1.0f, -1.0f, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } },
+        DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+        DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
     };
 }
 
@@ -163,9 +159,8 @@ void deko3d::ClearColor(const Colorf & color)
     this->EnsureInFrame();
 
     this->firstVertex = 0;
-    this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
 
-    this->BindFramebuffer();
+    this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
 
     std::pair<void *, DkGpuAddr> data = this->vtxRing.begin();
 
@@ -179,7 +174,7 @@ void deko3d::ClearColor(const Colorf & color)
     // Bind the current slice's GPU address to the buffer
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 
-    this->cmdBuf.bindVtxAttribState(VertexAttribState);
+    this->cmdBuf.bindVtxAttribState(Primitives);
     this->cmdBuf.bindVtxBufferState(VertexBufferState);
 }
 
@@ -228,6 +223,8 @@ std::optional<CMemPool> & deko3d::GetCode()
 void deko3d::BindFramebuffer()
 {
     // Generate a command list that binds it
+    this->EnsureInFrame();
+
     this->EnsureHasSlot();
 
     dk::ImageView colorTarget {
@@ -244,47 +241,79 @@ void deko3d::BindFramebuffer()
 */
 void deko3d::Present()
 {
+    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
+                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
+                               &this->transformState);
+
     // Now that we are done rendering, present it to the screen
     if (this->framebuffers.inFrame)
     {
         // Run the main rendering command list
+        this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
 
         this->queue.presentImage(this->swapchain, this->framebuffers.slot);
-        this->vtxRing.end();
 
         this->framebuffers.inFrame = false;
     }
+
+    this->framebuffers.slot = -1;
 }
 
 /* Various Rendering Operations */
 
-/*
-** Draw a rectangle with the assigned vertices { {x, y, z}, {r, g, b, a} }
-** Currently a test--draw a freakin' RGBA triangle (with lasers attached)
-**
-** REMINDER: this simply copies the data of our vertex data to the CPU address
-** of the CCmdVtxRing--then it will bind the current slice to the GPU address
-** then it will bind whatever the attribute and buffer states are for the vertices
-** lastly, it draws using whatever primitive rendering style we choose
-** -- THIS IS NOT IMMEDIATE IT WAITS FOR THE FENCE AT THE END OF A FRAME --
-** the above happens during deko3d::Present() to display our framebuffer
-*/
-bool deko3d::RenderRectangle(const std::string & mode, const vertex::Vertex points[4])
+bool deko3d::RenderPolygon(bool fill, const vertex::Vertex * points,
+                           size_t count, bool skipLastFilledVertex)
 {
-    if (3 > (this->vtxRing.getSize() - this->firstVertex))
+    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
-    // Copy the vertex info
-    memcpy(this->vertexData, TriangleVertexData.data(), sizeof(TriangleVertexData));
+    if (!fill)
+        this->RenderPolyline(points, count);
+    else
+    {
+        int vertexCount = (int)count - (skipLastFilledVertex ? 1 : 0);
 
-    // Draw with Triangles
-    this->cmdBuf.draw(DkPrimitive_Triangles, TriangleVertexData.size(), 1, 0, 0);
+        // int drawReq = vertex::GetIndexCount(DkPrimitive_TriangleFan, vertexCount);
 
-    // Offset the first vertex data
-    // this->firstVertex += TriangleVertexData.size();
+        // Copy the vertex info
+        memcpy(this->vertexData + this->firstVertex, points, count * sizeof(*points));
+
+        // Draw with Triangles
+        this->cmdBuf.draw(DkPrimitive_TriangleFan, vertexCount, 1, this->firstVertex, 0);
+
+        // Offset the first vertex data
+        this->firstVertex += vertexCount;
+    }
 
     return true;
+}
+
+bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t count)
+{
+    // int drawReq = vertex::GetIndexCount(DkPrimitive_TriangleFan, vertexCount);
+
+    // Copy the vertex info
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(*points));
+
+    // Draw with Triangles
+    this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
+
+    // Offset the first vertex data
+    this->firstVertex += count;
+
+    return true;
+}
+
+void deko3d::SetPointSize(float size)
+{
+    this->cmdBuf.setPointSize(size);
+    this->state.pointSize = size;
+}
+
+float deko3d::GetPointSize()
+{
+    return this->state.pointSize;
 }
 
 void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
@@ -319,6 +348,16 @@ void deko3d::SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor 
     this->state.blendState.setDstAlphaBlendFactor(dstAlpha);
 }
 
+void deko3d::SetFrontFaceWinding(DkFrontFace face)
+{
+    this->state.rasterizer.setFrontFace(face);
+}
+
+void deko3d::SetCullMode(DkFace face)
+{
+    this->state.rasterizer.setCullMode(face);
+}
+
 /* Encapsulation and Abstraction - fincs */
 
 /*
@@ -332,7 +371,7 @@ void deko3d::UseProgram(const std::pair<CShader, CShader> & program)
     this->EnsureInFrame();
 
     this->cmdBuf.bindShaders(DkStageFlag_GraphicsMask, {program.first, program.second});
-    // this->cmdBuf.bindUniformBuffer(DkStage_Vertex, 0, this->transformUniformBuffer.getGpuAddr(), this->transformUniformBuffer.getSize());
+    this->cmdBuf.bindUniformBuffer(DkStage_Vertex, 0, this->transformUniformBuffer.getGpuAddr(), this->transformUniformBuffer.getSize());
 }
 
 void deko3d::SetDepthWrites(bool enable)
@@ -362,7 +401,8 @@ void deko3d::SetScissor(const love::Rect & scissor, bool canvasActive)
     this->EnsureInFrame();
 
     this->scissor = scissor;
-    this->cmdBuf.setScissors(0, { {scissor.x, scissor.y, scissor.w, scissor.h} });
+    this->cmdBuf.setScissors(0, { {(uint32_t)scissor.x, (uint32_t)scissor.y,
+                                   (uint32_t)scissor.w, (uint32_t)scissor.h} });
 }
 
 /*
@@ -374,7 +414,9 @@ void deko3d::SetViewport(const love::Rect & view)
     this->EnsureInFrame();
 
     this->viewport = view;
-    this->cmdBuf.setViewports(0, { {view.x, view.y, view.w, view.h, 0.0f, 1.0f} });
+    this->cmdBuf.setViewports(0, { {(float)view.x, (float)view.y,
+                                    (float)view.w, (float)view.h,
+                                    -10.0f, 10.0f} });
 }
 
 Rect deko3d::GetViewport()

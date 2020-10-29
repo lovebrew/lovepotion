@@ -24,6 +24,8 @@
 
 #include "deko3d/shader.h"
 
+#include "deko3d/vertex.h"
+
 #if defined (_3DS)
     #define RENDERER_NAME "OpenGL ES"
     #define RENDERER_VERSION "1.1"
@@ -48,6 +50,14 @@ namespace love
                 DRAW_LINE,
                 DRAW_FILL,
                 DRAW_MAX_ENUM
+            };
+
+            enum ArcMode
+            {
+                ARC_OPEN,
+                ARC_CLOSED,
+                ARC_PIE,
+                ARC_MAX_ENUM
             };
 
             enum BlendMode
@@ -165,8 +175,6 @@ namespace love
 
             Colorf GetColor();
 
-            void SetColor(const Colorf & color);
-
             Colorf GetBackgroundColor();
 
             void SetBackgroundColor(const Colorf & color);
@@ -217,6 +225,10 @@ namespace love
 
             Font * GetFont();
 
+            vertex::CullMode GetMeshCullMode() const;
+
+            vertex::Winding getFrontFaceWinding() const;
+
             Canvas * NewCanvas(const Canvas::Settings & settings);
 
             void Draw(Drawable * drawable, const Matrix4 & matrix);
@@ -242,21 +254,44 @@ namespace love
 
             virtual void SetColorMask(ColorMask mask) = 0;
 
-            /* Graphics Primitives */
+            virtual void SetColor(Colorf color);
+
+            virtual void SetMeshCullMode(vertex::CullMode cull) = 0;
+
+            virtual void SetFrontFaceWinding(vertex::Winding winding) = 0;
+
+            /* Primitives */
+
+            virtual void Rectangle(DrawMode mode, float x, float y, float width, float height) = 0;
+
+            virtual void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry) = 0;
+
+            virtual void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry, int points) = 0;
+
+            virtual void Ellipse(DrawMode mode, float x, float y, float a, float b) = 0;
+
+            virtual void Ellipse(DrawMode mode, float x, float y, float a, float b, int points) = 0;
+
+            virtual void Circle(DrawMode mode, float x, float y, float radius) = 0;
+
+            virtual void Circle(DrawMode mode, float x, float y, float radius, int points) = 0;
+
+            virtual void Polygon(DrawMode mode, const vertex::Vertex * points, size_t count, bool skipLastFilledVertex = true) = 0;
+
+            virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2) = 0;
+
+            virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) = 0;
+
+            /* Primitives */
 
             ColorMask getColorMask() const;
 
             void Circle(float x, float y, float radius);
 
-            virtual void Rectangle(const std::string & mode, float x, float y, float width, float height, float rx, float ry) = 0;
-
-            void Polygon(const std::string & mode, std::vector<Graphics::Point> points);
 
             void Line(float startx, float starty, float endx, float endy);
 
             void Arc(const std::string & mode, float x, float y, float radius, float startAngle, float endAngle);
-
-            void Ellipse(const std::string & mode, float x, float y, float radiusX, float radiusY);
 
             static void SetViewMatrix(const Matrix4 & matrix);
 
@@ -284,6 +319,10 @@ namespace love
             static bool GetConstant(BlendAlpha in, const char *& out);
             static std::vector<std::string> GetConstants(BlendAlpha);
 
+            static bool GetConstant(const char * in, ArcMode & out);
+            static bool GetConstant(ArcMode in, const char *& out);
+            static std::vector<std::string> GetConstants(ArcMode);
+
         protected:
             struct DisplayState
             {
@@ -302,6 +341,9 @@ namespace love
                 Texture::Filter defaultFilter = Texture::Filter();
                 Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
                 float defaultMipmapSharpness = 0.0f;
+
+                vertex::CullMode meshCullMode = vertex::CULL_NONE;
+                vertex::Winding winding = vertex::WINDING_CCW;
 
                 BlendMode blendMode = BLEND_ALPHA;
                 BlendAlpha blendAlphaMode = BLENDALPHA_MULTIPLY;
@@ -329,6 +371,9 @@ namespace love
 
             static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM>::Entry blendAlphaEntries[];
             static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM> blendAlphaModes;
+
+            static StringMap<ArcMode, ARC_MAX_ENUM>::Entry arcModeEntries[];
+            static StringMap<ArcMode, ARC_MAX_ENUM> arcModes;
 
             float stereoDepth = 0.0f;
             bool isPushed = false;
