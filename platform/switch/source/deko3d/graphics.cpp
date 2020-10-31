@@ -177,17 +177,25 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex)
 {
     Colorf color[1] = { this->GetColor() };
-    std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(points, count, color, 1);
+    std::vector<vertex::Vertex> verts;
+
+    const Matrix4 & t = this->GetTransform();
+	bool is2D = t.IsAffine2DTransform();
+
+    int vtxCount = (int)count - (skipLastFilledVertex ? 1 : 0);
+
+    if (is2D)
+    {
+        Vector2 transformed[4];
+        t.TransformXY(transformed, points, vtxCount);
+
+        points = vertex::GeneratePrimitiveFromVectors(transformed, count, color, 1);
+    }
 
     if (mode == DRAW_FILL)
         dk3d.RenderPolygon(verts.data(), count * sizeof(*verts.data()), count, skipLastFilledVertex);
     else
-    {
-        LineJoin lineJoin = this->GetLineJoin();
-        // if (lineJoin == JOIN_)
-
         dk3d.RenderPolyline(DkPrimitive_LineStrip, verts.data(), count * sizeof(*verts.data()), count);
-    }
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)
