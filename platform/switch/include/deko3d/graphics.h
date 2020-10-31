@@ -50,6 +50,8 @@ namespace love::deko3d
 
             void SetLineWidth(float width) override;
 
+            void SetDefaultFilter(const Texture::Filter & filter);
+
             /* End Primitives */
 
             void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
@@ -62,8 +64,6 @@ namespace love::deko3d
 
             // Internal?
             Shader * NewShader(void * vertex, size_t vertex_sz, void * pixel, size_t pixel_sz);
-
-            ShaderStage * NewShaderStage(ShaderStage::StageType stage, void * data, size_t size);
 
         private:
             int CalculateEllipsePoints(float rx, float ry) const;

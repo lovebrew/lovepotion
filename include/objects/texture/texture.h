@@ -16,6 +16,8 @@
 #elif defined (__SWITCH__)
     #define LOVE_SetFilter(texture, mag, min)
     #define LOVE_SetWrapMode(texture, s, t)
+
+    #include "deko3d/common.h"
 #endif
 
 namespace love
@@ -80,10 +82,20 @@ namespace love
             virtual bool SetWrap(const Wrap & w);
             virtual const Wrap & GetWrap() const;
 
+            #if defined (__SWITCH__)
+                void SetHandle(DkResHandle handle) {
+                    this->handle = handle;
+                };
+            #endif
+
             void Draw(Graphics * gfx, const Matrix4 & localTransform) override;
             virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform);
 
             Quad * GetQuad() const;
+
+            TextureHandle GetTexture() {
+                return this->texture;
+            };
 
             static bool GetConstant(const char * in, TextureType & out);
             static bool GetConstant(TextureType in, const char *& out);
@@ -100,6 +112,10 @@ namespace love
         protected:
             TextureType texType;
             TextureHandle texture;
+
+            #if defined (__SWITCH__)
+                DkResHandle handle;
+            #endif
 
             int width;
             int height;

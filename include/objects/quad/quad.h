@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/mmath.h"
+#include "common/vector.h"
 
 namespace love
 {
@@ -32,9 +33,14 @@ namespace love
 
             void Refresh(const Viewport & viewport, double sw, double sh);
 
+            const Vector2 * GetVertexPositions() const { return vertexPositions; }
+            const Vector2 * GetVertexTexCoords() const { return vertexTexCoords; }
 
         private:
             Viewport viewport;
+
+            Vector2 vertexPositions[4];
+            Vector2 vertexTexCoords[4];
 
             double sw;
             double sh;

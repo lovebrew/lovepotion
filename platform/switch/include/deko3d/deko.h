@@ -6,12 +6,14 @@
 #include "deko3d/CCmdMemRing.h"
 #include "deko3d/CCmdVtxRing.h"
 #include "deko3d/CShader.h"
+#include "deko3d/shader.h"
+#include "deko3d/CImage.h"
 
 #include "objects/texture/texture.h"
 #include "common/mmath.h"
-
-#include "deko3d/shaderstage.h"
 #include "deko3d/vertex.h"
+
+#include "deko3d/CDescriptorSet.h"
 
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES // Enforces GLSL std140/std430 alignment rules for glm types
 #define GLM_FORCE_INTRINSICS               // Enables usage of SIMD CPU instructions (requiring the above as well)
@@ -37,6 +39,8 @@ class deko3d
         static constexpr size_t VERTEX_COMMAND_SIZE = 0x10000;
         static constexpr size_t MAX_VERTICES = 0x10000;
 
+        static constexpr size_t MAX_OBJECTS = 0x1000;
+
         deko3d();
 
         ~deko3d();
@@ -58,7 +62,7 @@ class deko3d
         void SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,
                           DkBlendFactor dstColor, DkBlendFactor dstAlpha);
 
-        void UseProgram(const std::pair<CShader, CShader> & program);
+        void UseProgram(const love::Shader::Program & program);
 
         void SetColorMask(bool r, bool g, bool b, bool a);
 
@@ -86,6 +90,12 @@ class deko3d
 
         std::optional<CMemPool> & GetCode();
 
+        void LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format);
+
+        void UnRegisterResHandle(love::Texture * texture);
+
+        bool RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count);
+
         /* Primitives Rendering */
 
         bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count, bool skipLastFilledVertex = true);
@@ -96,7 +106,29 @@ class deko3d
 
     private:
         vertex::Vertex * vertexData;
+
         uint32_t firstVertex = 0;
+        uint32_t firstTexture = 0;
+        uint32_t textureIDs = 0;
+
+        enum State
+        {
+            STATE_PRIMITIVE,
+            STATE_TEXTURE,
+            STATE_MAX_ENUM
+        };
+
+        State renderState = State::STATE_MAX_ENUM;
+
+        void EnsureInState(State state);
+
+        std::unordered_map<love::Texture *, int> ids;
+
+        struct
+        {
+            CDescriptorSet<MAX_OBJECTS> image;
+            CDescriptorSet<MAX_OBJECTS> sampler;
+        } descriptors;
 
         struct Transformation
         {
@@ -125,6 +157,8 @@ class deko3d
         dk::UniqueDevice device;
         dk::UniqueQueue queue;
         dk::UniqueCmdBuf cmdBuf;
+
+        dk::UniqueQueue textureQueue;
 
         CCmdMemRing<MAX_FRAMEBUFFERS> cmdRing;
         CCmdVtxRing<MAX_FRAMEBUFFERS> vtxRing;

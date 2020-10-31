@@ -21,8 +21,24 @@ void Quad::Refresh(const Viewport & viewport, double sw, double sh)
     this->sw = sw;
     this->sh = sh;
 
-    this->scaledWidth  = NextPO2(sw);
-    this->scaledHeight = NextPO2(sh);
+    #if defined (_3DS)
+        this->scaledWidth  = NextPO2(sw);
+        this->scaledHeight = NextPO2(sh);
+    #elif defined (__SWITCH__)
+        // Vertices are ordered for use with triangle strips:
+        // 0---2
+        // | / |
+        // 1---3
+        this->vertexPositions[0] = Vector2(0.0f, 0.0f);
+        this->vertexPositions[1] = Vector2(0.0f, (float)viewport.h);
+        this->vertexPositions[2] = Vector2((float)viewport.w, 0.0f);
+        this->vertexPositions[3] = Vector2((float)viewport.w, (float)viewport.h);
+
+        this->vertexTexCoords[0] = Vector2((float)(viewport.x / sw), (float)(viewport.y / sh));
+        this->vertexTexCoords[1] = Vector2((float)(viewport.x / sw), (float)((viewport.y + viewport.h) / sh));
+        this->vertexTexCoords[2] = Vector2((float)((viewport.x + viewport.w) / sw), (float)(viewport.y / sh));
+        this->vertexTexCoords[3] = Vector2((float)((viewport.x + viewport.w) / sw), (float)((viewport.y + viewport.h) / sh));
+    #endif
 }
 
 double Quad::GetTextureWidth(bool scaled) const

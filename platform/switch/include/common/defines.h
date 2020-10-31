@@ -3,6 +3,7 @@
 #include <switch.h>
 
 #include "common/mmath.h"
+#include "deko3d/CImage.h"
 
 using love::Rect;
 
@@ -14,9 +15,7 @@ typedef struct _Renderer {
 typedef struct _Frame {
 } Frame;
 
-struct _TextureHandle {
-};
-typedef _TextureHandle* TextureHandle;
+typedef CImage TextureHandle;
 
 typedef struct _FontHandle {
 } FontHandle;

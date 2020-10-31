@@ -35,6 +35,8 @@ namespace love
 
             void Shear(float kx, float ky);
 
+            bool IsAffine2DTransform() const;
+
             Matrix4 Inverse() const;
 
             void SetRawTransformation(float t00, float t10, float t01, float t11, float x, float y);
@@ -63,10 +65,53 @@ namespace love
 
             void TransformXY();
 
+            /**
+             * Transforms an array of 2-component vertices by this Matrix. The source
+             * and destination arrays may be the same.
+             **/
+            template <typename Vdst, typename Vsrc>
+            void TransformXY(Vdst * dst, const Vsrc * src, int size) const;
+
+            /**
+             * Transforms an array of 2-component vertices by this Matrix, and stores
+             * them in an array of 3-component vertices.
+             **/
+            template <typename Vdst, typename Vsrc>
+            void TransformXY0(Vdst * dst, const Vsrc * src, int size) const;
+
             Elements matrix;
 
         private:
             static void Multiply(const Matrix4 & a, const Matrix4 & b, Elements & c);
-
     };
+
+    template <typename Vdst, typename Vsrc>
+    void Matrix4::TransformXY(Vdst * dst, const Vsrc * src, int size) const
+    {
+        for (int i = 0; i < size; i++)
+        {
+            // Store in temp variables in case src = dst
+            float x = (this->matrix[0]*src[i].x) + (this->matrix[4]*src[i].y) + (0) + (this->matrix[12]);
+            float y = (this->matrix[1]*src[i].x) + (this->matrix[5]*src[i].y) + (0) + (this->matrix[13]);
+
+            dst[i].x = x;
+            dst[i].y = y;
+        }
+    }
+
+    template <typename Vdst, typename Vsrc>
+    void Matrix4::TransformXY0(Vdst * dst, const Vsrc * src, int size) const
+    {
+        for (int i = 0; i < size; i++)
+        {
+            // Store in temp variables in case src = dst
+            float x = (this->matrix[0]*src[i].x) + (this->matrix[4]*src[i].y) + (0) + (this->matrix[12]);
+            float y = (this->matrix[1]*src[i].x) + (this->matrix[5]*src[i].y) + (0) + (this->matrix[13]);
+            float z = (this->matrix[2]*src[i].x) + (this->matrix[6]*src[i].y) + (0) + (this->matrix[14]);
+
+            dst[i].x = x;
+            dst[i].y = y;
+            dst[i].z = z;
+        }
+    }
 }

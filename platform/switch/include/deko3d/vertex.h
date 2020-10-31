@@ -15,6 +15,7 @@ namespace vertex
     {
         float position[3];
         float color[4];
+        float texcoord[2];
     };
 
     enum CullMode
@@ -32,7 +33,39 @@ namespace vertex
         WINDING_MAX_ENUM
     };
 
-    std::vector<Vertex> GenerateFromVectors(const love::Vector2 * points, size_t count, const Colorf * colors, size_t colorCount);
+    namespace attributes
+    {
+        /* Primitives */
+
+        constexpr std::array<DkVtxBufferState, 1> PrimitiveBufferState =
+        {
+            DkVtxBufferState{ sizeof(vertex::Vertex), 0 },
+        };
+
+        constexpr std::array<DkVtxAttribState, 2> PrimitiveAttribState =
+        {
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
+        };
+
+        /*  Textures */
+
+        constexpr std::array<DkVtxBufferState, 1> TextureBufferState =
+        {
+            DkVtxBufferState{ sizeof(vertex::Vertex), 0 },
+        };
+
+        constexpr std::array<DkVtxAttribState, 3> TextureAttribState =
+        {
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, texcoord), DkVtxAttribSize_2x32, DkVtxAttribType_Float, 0 }
+        };
+    }
+
+    std::vector<Vertex> GeneratePrimitiveFromVectors(const love::Vector2 * points, size_t count, const Colorf * colors, size_t colorCount);
+
+    std::vector<Vertex> GenerateTextureFromVectors(const love::Vector2 * points, const love::Vector2 * texcoord, size_t count, Colorf color);
 
     bool GetConstant(const char * in, CullMode & out);
     bool GetConstant(CullMode in, const char *& out);

@@ -1,27 +1,22 @@
 #include "common/runtime.h"
 #include "objects/image/image.h"
 
-#include "modules/window/window.h"
-
-#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
+#include "deko3d/deko.h"
 
 using namespace love;
 
 Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
 {
-    // SDL_Surface * temp = IMG_Load_RW(SDL_RWFromMem(data->GetData(), data->GetSize()), 1);
+    // CImage can load PNG and JPG files with the proper libraries
+    u32 * buffer = this->texture.loadPNG(data->GetData(), data->GetSize(), this->width, this->height);
 
-    // this->texture = SDL_CreateTextureFromSurface(WINDOW_MODULE()->GetRenderer(), temp);
+    // Have the deko3d class load our new buffer and register it to the CDescriptorSets
+    dk3d.LoadTextureBuffer(this->texture, buffer, this->width * this->height * 4, this, DkImageFormat_RGBA8_Unorm);
 
-    // SDL_QueryTexture(this->texture, nullptr, nullptr, &this->width, &this->height);
-    // SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
-
-    // SDL_FreeSurface(temp);
-
-    // this->InitQuad();
+    this->InitQuad();
 }
 
 Image::~Image()
 {
-    // SDL_DestroyTexture(this->texture);
+    dk3d.UnRegisterResHandle(this);
 }

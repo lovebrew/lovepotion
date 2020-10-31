@@ -21,6 +21,10 @@ deko3d::deko3d()
                         .setFlags(DkQueueFlags_Graphics)
                         .create();
 
+    this->textureQueue = dk::QueueMaker{this->device}
+                            .setFlags(DkQueueFlags_Graphics)
+                            .create();
+
     // Create GPU & CPU Memory Pools
     auto gpuFlags = (DkMemBlockFlags_GpuCached   | DkMemBlockFlags_Image    );
     auto cpuFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
@@ -48,6 +52,11 @@ deko3d::deko3d()
 
     this->transformState.projMtx = glm::ortho(0.0f, 1280.0f, 720.0f, 0.0f, -10.0f, 10.0f);
     this->transformState.mdlvMtx = glm::mat4(1.0f);
+
+    this->EnsureInFrame();
+
+    this->descriptors.image.bindForImages(this->cmdBuf);
+    this->descriptors.sampler.bindForSamplers(this->cmdBuf);
 }
 
 deko3d::~deko3d()
@@ -58,6 +67,8 @@ deko3d::~deko3d()
 
     // Make sure the queue is idle before destroying anything
     this->queue.waitIdle();
+
+    this->textureQueue.waitIdle();
 
     // Clear the static cmdbuf, destroying the static cmdlists in the process
     this->cmdBuf.clear();
@@ -107,6 +118,9 @@ void deko3d::CreateResources()
                                          this->framebufferArray}.create();
 
     this->transformUniformBuffer = this->pool.data->allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
+
+    this->descriptors.image.allocate(*this->pool.data);
+    this->descriptors.sampler.allocate(*this->pool.data);
 }
 
 // Ensure we have begun our frame
@@ -116,6 +130,27 @@ void deko3d::EnsureInFrame()
     {
         this->cmdRing.begin(this->cmdBuf);
         this->framebuffers.inFrame = true;
+    }
+}
+
+void deko3d::EnsureInState(State state)
+{
+    if (this->renderState != state)
+        this->renderState = state;
+
+    if (state == STATE_PRIMITIVE)
+    {
+        love::Shader::standardShaders[love::Shader::STANDARD_DEFAULT]->Attach();
+
+        this->cmdBuf.bindVtxAttribState(vertex::attributes::PrimitiveAttribState);
+        this->cmdBuf.bindVtxBufferState(vertex::attributes::PrimitiveBufferState);
+    }
+    else if (state == STATE_TEXTURE)
+    {
+        love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
+
+        this->cmdBuf.bindVtxAttribState(vertex::attributes::TextureAttribState);
+        this->cmdBuf.bindVtxBufferState(vertex::attributes::TextureBufferState);
     }
 }
 
@@ -131,26 +166,6 @@ void deko3d::EnsureHasSlot()
 }
 
 /*
-** Describe our Vertex struct
-** { in, out, structPos, attributeSize, attributeType }
-** {  x,   y,         l,             s,             t }
-*/
-namespace
-{
-    // Describe the buffer state for the Vertex struct
-    constexpr std::array VertexBufferState =
-    {
-        DkVtxBufferState{ sizeof(vertex::Vertex), 0 },
-    };
-
-    constexpr std::array Primitives =
-    {
-        DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
-        DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
-    };
-}
-
-/*
 ** First thing that happens to start the frame
 ** Clear the screen to a specified color
 */
@@ -158,7 +173,7 @@ void deko3d::ClearColor(const Colorf & color)
 {
     this->EnsureInFrame();
 
-    this->firstVertex = 0;
+    this->firstVertex = this->firstTexture = 0;
 
     this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
 
@@ -173,9 +188,6 @@ void deko3d::ClearColor(const Colorf & color)
 
     // Bind the current slice's GPU address to the buffer
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
-
-    this->cmdBuf.bindVtxAttribState(Primitives);
-    this->cmdBuf.bindVtxBufferState(VertexBufferState);
 }
 
 void deko3d::SetBlendColor(const Colorf & color)
@@ -260,10 +272,55 @@ void deko3d::Present()
     this->framebuffers.slot = -1;
 }
 
+bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)
+{
+    if (4 > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->EnsureInState(STATE_TEXTURE);
+
+    this->cmdBuf.bindTextures(DkStage_Fragment, this->firstTexture, handle);
+
+    // Copy the vertex info
+    memcpy(this->vertexData + this->firstVertex, points, size);
+
+    // Draw with Triangles
+    this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
+
+    // Offset the first vertex data
+    this->firstVertex += 4;
+    this->firstTexture += 1;
+
+    return true;
+}
+
+void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format)
+{
+    bool success = image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
+                                    buffer, size, texture->GetWidth(), texture->GetHeight(), format);
+
+    // Register the texture's identifier with the image descriptor
+    this->ids[texture] = this->textureIDs;
+
+    this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
+    this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
+
+    texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
+
+    this->textureIDs++;
+}
+
+void deko3d::UnRegisterResHandle(love::Texture * texture)
+{
+    this->ids.erase(texture);
+}
+
 bool deko3d::RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points, size_t size, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
+
+    this->EnsureInState(STATE_PRIMITIVE);
 
     // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);
@@ -282,6 +339,8 @@ bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
+
+    this->EnsureInState(STATE_PRIMITIVE);
 
     int vertexCount = (int)count - (skipLastFilledVertex ? 1 : 0);
 
@@ -383,11 +442,11 @@ void deko3d::SetCullMode(DkFace face)
 ** LÖVE attaches a default Shader on Graphics creation, which is not in a frame
 ** although OpenGL *hides* this from the user, so we have to deal with it in deko3d
 */
-void deko3d::UseProgram(const std::pair<CShader, CShader> & program)
+void deko3d::UseProgram(const love::Shader::Program & program)
 {
     this->EnsureInFrame();
 
-    this->cmdBuf.bindShaders(DkStageFlag_GraphicsMask, {program.first, program.second});
+    this->cmdBuf.bindShaders(DkStageFlag_GraphicsMask, {program.vertex, program.fragment});
     this->cmdBuf.bindUniformBuffer(DkStage_Vertex, 0, this->transformUniformBuffer.getGpuAddr(), this->transformUniformBuffer.getSize());
 }
 
@@ -406,6 +465,8 @@ void deko3d::SetFilter(const love::Texture::Filter & filter)
     {} // Deal with MipMap
 
     this->filter.sampler.setFilter(min, mag);
+    this->filter.sampler.setWrapMode(DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge);
+
     this->filter.descriptor.initialize(this->filter.sampler);
 }
 

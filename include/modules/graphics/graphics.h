@@ -198,8 +198,6 @@ namespace love
 
             bool GetScissor(Rect & scissor) const;
 
-            void SetDefaultFilter(const Texture::Filter & filter);
-
             const Texture::Filter & GetDefaultFilter() const;
 
             void Push();
@@ -264,6 +262,8 @@ namespace love
             void PrintF(const  std::vector<Font::ColoredString> & strings, Font * font, float wrap, Font::AlignMode align, const Matrix4 & localTransform);
 
             void SetCanvas(Canvas * canvas);
+
+            virtual void SetDefaultFilter(const Texture::Filter & filter);
 
             /* virtual void stuff  -- subclass implements */
 

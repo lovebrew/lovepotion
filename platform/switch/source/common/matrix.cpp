@@ -53,6 +53,11 @@ Matrix4::Matrix4(const Elements & elements)
     memcpy(this->matrix, elements, sizeof(float) * 16);
 }
 
+Matrix4::Matrix4(const Matrix4 & a, const Matrix4 & b)
+{
+    Matrix4::Multiply(a, b, this->matrix);
+}
+
 Matrix4::Matrix4(float t00, float t10, float t01, float t11, float x, float y)
 {
     this->SetRawTransformation(t00, t10, t01, t11, x, y);
@@ -63,6 +68,13 @@ Matrix4::Matrix4(float x, float y, float angle,
                  float oy, float kx, float ky)
 {
     this->SetTransformation(x, y, angle, sx, sy, ox, oy, kx, ky);
+}
+
+bool Matrix4::IsAffine2DTransform() const
+{
+    return fabsf(this->matrix[2] + this->matrix[3] + this->matrix[6] + this->matrix[7] +
+                 this->matrix[8] + this->matrix[9] + this->matrix[11] + this->matrix[14]) < 0.00001f &&
+           fabsf(this->matrix[10] + this->matrix[15] - 2.0f) < 0.00001f;
 }
 
 Matrix4 Matrix4::operator * (const Matrix4 & m) const

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "deko3d/shaderstage.h"
-#include "deko3d/deko.h"
+#include "deko3d/CShader.h"
 
 namespace love
 {
@@ -10,15 +9,22 @@ namespace love
         public:
             static love::Type type;
 
-            Shader(ShaderStage * vertex, ShaderStage * pixel);
+            Shader(CShader && vertex, CShader && pixel);
             ~Shader();
 
             enum StandardShader
             {
                 STANDARD_DEFAULT,
+                STANDARD_TEXTURE,
                 STANDARD_VIDEO,
                 STANDARD_ARRAY,
                 STANDARD_MAX_ENUM
+            };
+
+            struct Program
+            {
+                CShader vertex;
+                CShader fragment;
             };
 
             // Pointer to currently active Shader.
@@ -29,22 +35,18 @@ namespace love
 
             void Attach();
 
-            bool Validate(ShaderStage * vertex, ShaderStage * pixel, std::string & err);
+            bool Validate(const CShader & vertex, const CShader & pixel, std::string & error);
 
             static void AttachDefault(StandardShader defaultType);
 
             static bool IsDefaultActive();
 
-        protected:
-            StrongReference<ShaderStage> stages[ShaderStage::STAGE_MAX_ENUM];
-
         private:
+            Program program;
+
             bool canvasWasActive;
             Rect lastViewport;
 
             float lastPointSize;
-
-            Matrix4 lastTransformMatrix;
-            Matrix4 lastProjectionMatrix;
     };
 }

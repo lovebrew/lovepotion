@@ -7,14 +7,12 @@ using namespace love;
 
 #define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
-Font::Font(Data * data, float size) : size(size),
-                                      texture(nullptr)
+Font::Font(Data * data, float size) : size(size)
 {
     // this->font = TTF_OpenFontRW(SDL_RWFromMem(data->GetData(), data->GetSize()), 1, size);
 }
 
-Font::Font(Font::SystemFontType type, float size) : size(size),
-                                                   texture(nullptr)
+Font::Font(Font::SystemFontType type, float size) : size(size)
 {
     PlFontData data;
     plGetSharedFontByType(&data, (PlSharedFontType)type);
@@ -22,8 +20,7 @@ Font::Font(Font::SystemFontType type, float size) : size(size),
     // this->font = TTF_OpenFontRW(SDL_RWFromMem(data.address, data.size), 1, size);
 }
 
-Font::Font(float size) : size(size),
-                         texture(nullptr)
+Font::Font(float size) : size(size)
 {
     PlFontData data;
     plGetSharedFontByType(&data, (PlSharedFontType)SystemFontType::TYPE_STANDARD);

@@ -1,12 +1,11 @@
 #include "common/runtime.h"
 #include "deko3d/graphics.h"
 
-#include "deko3d/polyline.h"
-
 using namespace love;
 
 #include "s_fsh_dksh.h"
 #include "s_vsh_dksh.h"
+#include "t_fsh_dksh.h"
 
 love::deko3d::Graphics::Graphics()
 {
@@ -16,18 +15,17 @@ love::deko3d::Graphics::Graphics()
     */
     this->RestoreState(this->states.back());
 
-    // We always need a default shader.
-    for (int i = 0; i < Shader::STANDARD_MAX_ENUM; i++)
+    try
     {
-        try
-        {
-            if (!Shader::standardShaders[i])
-                Shader::standardShaders[i] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size, (void *)s_fsh_dksh, s_fsh_dksh_size);
-        }
-        catch (love::Exception &)
-        {
-            throw;
-        }
+        if (!Shader::standardShaders[Shader::STANDARD_DEFAULT])
+            Shader::standardShaders[Shader::STANDARD_DEFAULT] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size, (void *)s_fsh_dksh, s_fsh_dksh_size);
+
+        if (!Shader::standardShaders[Shader::STANDARD_TEXTURE])
+            Shader::standardShaders[Shader::STANDARD_TEXTURE] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size, (void *)t_fsh_dksh, t_fsh_dksh_size);
+    }
+    catch (love::Exception &)
+    {
+        throw;
     }
 
     // A shader should always be active, but the default shader shouldn't be
@@ -81,6 +79,12 @@ void love::deko3d::Graphics::SetFrontFaceWinding(vertex::Winding winding)
     }
 
     dk3d.SetFrontFaceWinding(face);
+}
+
+void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter & filter)
+{
+    love::Graphics::SetDefaultFilter(filter);
+    dk3d.SetFilter(filter);
 }
 
 void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
@@ -173,7 +177,7 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex)
 {
     Colorf color[1] = { this->GetColor() };
-    std::vector<vertex::Vertex> verts = vertex::GenerateFromVectors(points, count, color, 1);
+    std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(points, count, color, 1);
 
     if (mode == DRAW_FILL)
         dk3d.RenderPolygon(verts.data(), count * sizeof(*verts.data()), count, skipLastFilledVertex);
@@ -416,7 +420,7 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
 
 void love::deko3d::Graphics::Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount)
 {
-    std::vector<vertex::Vertex> verts = vertex::GenerateFromVectors(points, count, colors, colorCount);
+    std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(points, count, colors, colorCount);
 
     dk3d.RenderPoints(verts.data(), count * sizeof(*verts.data()), count);
 }
@@ -502,21 +506,11 @@ Shader * love::deko3d::Graphics::NewShader(void * vertex, size_t vertex_sz, void
     if (vertex == NULL && pixel == NULL)
         throw love::Exception("Error creating shader: no source code!");
 
-    StrongReference<ShaderStage> vertexstage(this->NewShaderStage(ShaderStage::STAGE_VERTEX, vertex, vertex_sz), Acquire::NORETAIN);
-    StrongReference<ShaderStage> pixelstage(this->NewShaderStage(ShaderStage::STAGE_PIXEL, pixel, pixel_sz), Acquire::NORETAIN);
+    CShader vertexStage;
+    vertexStage.loadMemory(*dk3d.GetCode(), vertex, vertex_sz);
 
-    return new Shader(vertexstage, pixelstage);
-}
+    CShader pixelStage;
+    pixelStage.loadMemory(*dk3d.GetCode(), pixel, pixel_sz);
 
-ShaderStage * love::deko3d::Graphics::NewShaderStage(ShaderStage::StageType stage, void * data, size_t size)
-{
-    if (stage == ShaderStage::STAGE_MAX_ENUM)
-        throw love::Exception("Invalid shader stage.");
-
-    ShaderStage * s = nullptr;
-
-    if (s == nullptr)
-        return new ShaderStage(this, stage, data, size);
-
-    return new ShaderStage(this, stage, data, size);
+    return new Shader(std::move(vertexStage), std::move(pixelStage));
 }
