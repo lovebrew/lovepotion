@@ -351,8 +351,8 @@ namespace love
         protected:
             struct DisplayState
             {
-                Colorf foreground = { 1, 1, 1, 1 };
-                Colorf background = { 0, 0, 0, 1 };
+                Colorf foreground = Colorf(1, 1, 1, 1);
+                Colorf background = Colorf(0, 0, 0, 1);
 
                 float lineWidth = 1.0f;
                 float pointSize = 1.0f;

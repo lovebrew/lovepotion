@@ -1,6 +1,4 @@
 #include "common/runtime.h"
-
-#include "modules/window/window.h"
 #include "objects/font/font.h"
 
 using namespace love;
@@ -17,7 +15,7 @@ Font::Font(Font::SystemFontType type, float size) : size(size)
     PlFontData data;
     plGetSharedFontByType(&data, (PlSharedFontType)type);
 
-    // this->font = TTF_OpenFontRW(SDL_RWFromMem(data.address, data.size), 1, size);
+    this->font = CFont(data.address, data.size, size);
 }
 
 Font::Font(float size) : size(size)
@@ -25,17 +23,13 @@ Font::Font(float size) : size(size)
     PlFontData data;
     plGetSharedFontByType(&data, (PlSharedFontType)SystemFontType::TYPE_STANDARD);
 
-    // this->font = TTF_OpenFontRW(SDL_RWFromMem(data.address, data.size), 1, size);
+    this->font = CFont(data.address, data.size, size);
 }
 
 Font::~Font()
 {
     // TTF_CloseFont(this->font);
 }
-
-void Font::RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args,
-                      const Colorf & blend, float wrap, Font::AlignMode align, bool isNewLine)
-{}
 
 void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
                  float limit, const Colorf & color, AlignMode align,

@@ -8,6 +8,7 @@
 #include "common/matrix.h"
 
 #include "objects/texture/texture.h"
+#include "deko3d/CFont.h"
 
 #if defined (_3DS)
     #define FONT_DEFAULT_SIZE 22.5f;
@@ -91,7 +92,7 @@ namespace love
             static std::vector<std::string> GetConstants(SystemFontType);
 
         private:
-            FontHandle font;
+            CFont font;
             TextBuffer buffer;
             float size;
             TextHandle text;

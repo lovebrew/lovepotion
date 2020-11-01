@@ -7,6 +7,8 @@ using namespace love;
 #include "s_vsh_dksh.h"
 #include "t_fsh_dksh.h"
 
+FT_Library love::deko3d::Graphics::g_ftLibrary;
+
 love::deko3d::Graphics::Graphics()
 {
     /*
@@ -33,12 +35,12 @@ love::deko3d::Graphics::Graphics()
     if (!Shader::current)
         Shader::standardShaders[Shader::STANDARD_DEFAULT]->Attach();
 
-    FT_Init_FreeType(&Graphics::g_ftLibrary);
+    FT_Init_FreeType(&deko3d::Graphics::g_ftLibrary);
 }
 
-void love::deko3d::Graphics::~Graphics()
+love::deko3d::Graphics::~Graphics()
 {
-    FT_Done_FreeType(&Graphics::g_ftLibrary);
+    FT_Done_FreeType(deko3d::Graphics::g_ftLibrary);
 }
 
 void love::deko3d::Graphics::SetColor(Colorf color)
