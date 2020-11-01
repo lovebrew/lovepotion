@@ -32,6 +32,13 @@ love::deko3d::Graphics::Graphics()
     // returned by getShader(), so we don't do setShader(defaultShader).
     if (!Shader::current)
         Shader::standardShaders[Shader::STANDARD_DEFAULT]->Attach();
+
+    FT_Init_FreeType(&Graphics::g_ftLibrary);
+}
+
+void love::deko3d::Graphics::~Graphics()
+{
+    FT_Done_FreeType(&Graphics::g_ftLibrary);
 }
 
 void love::deko3d::Graphics::SetColor(Colorf color)
@@ -182,14 +189,12 @@ void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points, size
     const Matrix4 & t = this->GetTransform();
 	bool is2D = t.IsAffine2DTransform();
 
-    int vtxCount = (int)count - (skipLastFilledVertex ? 1 : 0);
-
     if (is2D)
     {
-        Vector2 transformed[4];
-        t.TransformXY(transformed, points, vtxCount);
+        Vector2 transformed[count];
+        t.TransformXY(transformed, points, count);
 
-        points = vertex::GeneratePrimitiveFromVectors(transformed, count, color, 1);
+        verts = vertex::GeneratePrimitiveFromVectors(transformed, count, color, 1);
     }
 
     if (mode == DRAW_FILL)

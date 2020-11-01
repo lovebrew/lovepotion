@@ -119,41 +119,49 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
     return output;
 }
 
-void CImage::loadJPG(void * buffer, size_t size)
-{}
-
-bool CImage::load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                  const char * path, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+/*
+** Due to the way libjpg-turbo is, this works as-expected, but images must
+** have their "progressive" flag turned off, usually dealt with in GIMP or
+** similar programs
+*/
+u8 * CImage::loadJPG(void * buffer, size_t size, int & width, int & height)
 {
-    CMemPool::Handle tempImageMemory = LoadFile(scratchPool, path, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    u8 * output = nullptr;
 
-    if (!tempImageMemory)
-        return false;
+    tjhandle _jpegDecompressor = tjInitDecompress();
 
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
-    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
-    tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+    if (_jpegDecompressor == NULL)
+        return nullptr;
 
-    dk::ImageLayout layout;
-    dk::ImageLayoutMaker{device}
-        .setFlags(flags)
-        .setFormat(format)
-        .setDimensions(width, height)
-        .initialize(layout);
+    int samp;
+    if (tjDecompressHeader2(_jpegDecompressor, (u8 *)buffer, size, &width, &height, &samp) == -1)
+    {
+        tjDestroy(_jpegDecompressor);
+        return nullptr;
+    }
 
-    m_mem = imagePool.allocate(layout.getSize(), layout.getAlignment());
-    m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
-    m_descriptor.initialize(m_image);
+    if (tjDecompress2(_jpegDecompressor, (u8 *)buffer, size, output, width, 0, height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
+    {
+        tjDestroy(_jpegDecompressor);
+        return nullptr;
+    }
 
-    dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 });
-    transferQueue.submitCommands(tempCmdBuff.finishList());
-    transferQueue.waitIdle();
+    tjDestroy(_jpegDecompressor);
 
-    tempCmdMem.destroy();
-    tempImageMemory.destroy();
+    return output;
+}
 
-    return true;
+void * CImage::load(void * buffer, size_t size, int & width, int & height)
+{
+    if (size <= 0 || !buffer)
+        return nullptr;
+
+    void * result = nullptr;
+
+    if (!(result = this->loadPNG(buffer, size, width, height)))
+        result = this->loadJPG(buffer, size, width, height);
+
+    return result;
 }
 
 bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,

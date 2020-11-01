@@ -65,19 +65,21 @@ namespace love
 
             void TransformXY();
 
-            /**
-             * Transforms an array of 2-component vertices by this Matrix. The source
-             * and destination arrays may be the same.
-             **/
-            template <typename Vdst, typename Vsrc>
-            void TransformXY(Vdst * dst, const Vsrc * src, int size) const;
+            #if defined (__SWITCH__)
+                /**
+                 * Transforms an array of 2-component vertices by this Matrix. The source
+                 * and destination arrays may be the same.
+                 **/
+                template <typename Vdst, typename Vsrc>
+                void TransformXY(Vdst * dst, const Vsrc * src, int size) const;
 
-            /**
-             * Transforms an array of 2-component vertices by this Matrix, and stores
-             * them in an array of 3-component vertices.
-             **/
-            template <typename Vdst, typename Vsrc>
-            void TransformXY0(Vdst * dst, const Vsrc * src, int size) const;
+                /**
+                 * Transforms an array of 2-component vertices by this Matrix, and stores
+                 * them in an array of 3-component vertices.
+                 **/
+                template <typename Vdst, typename Vsrc>
+                void TransformXY0(Vdst * dst, const Vsrc * src, int size) const;
+            #endif
 
             Elements matrix;
 
@@ -85,33 +87,35 @@ namespace love
             static void Multiply(const Matrix4 & a, const Matrix4 & b, Elements & c);
     };
 
-    template <typename Vdst, typename Vsrc>
-    void Matrix4::TransformXY(Vdst * dst, const Vsrc * src, int size) const
-    {
-        for (int i = 0; i < size; i++)
+    #if defined (__SWITCH__)
+        template <typename Vdst, typename Vsrc>
+        void Matrix4::TransformXY(Vdst * dst, const Vsrc * src, int size) const
         {
-            // Store in temp variables in case src = dst
-            float x = (this->matrix[0]*src[i].x) + (this->matrix[4]*src[i].y) + (0) + (this->matrix[12]);
-            float y = (this->matrix[1]*src[i].x) + (this->matrix[5]*src[i].y) + (0) + (this->matrix[13]);
+            for (int i = 0; i < size; i++)
+            {
+                // Store in temp variables in case src = dst
+                float x = (this->matrix[0]*src[i].x) + (this->matrix[4]*src[i].y) + (0) + (this->matrix[12]);
+                float y = (this->matrix[1]*src[i].x) + (this->matrix[5]*src[i].y) + (0) + (this->matrix[13]);
 
-            dst[i].x = x;
-            dst[i].y = y;
+                dst[i].x = x;
+                dst[i].y = y;
+            }
         }
-    }
 
-    template <typename Vdst, typename Vsrc>
-    void Matrix4::TransformXY0(Vdst * dst, const Vsrc * src, int size) const
-    {
-        for (int i = 0; i < size; i++)
+        template <typename Vdst, typename Vsrc>
+        void Matrix4::TransformXY0(Vdst * dst, const Vsrc * src, int size) const
         {
-            // Store in temp variables in case src = dst
-            float x = (this->matrix[0]*src[i].x) + (this->matrix[4]*src[i].y) + (0) + (this->matrix[12]);
-            float y = (this->matrix[1]*src[i].x) + (this->matrix[5]*src[i].y) + (0) + (this->matrix[13]);
-            float z = (this->matrix[2]*src[i].x) + (this->matrix[6]*src[i].y) + (0) + (this->matrix[14]);
+            for (int i = 0; i < size; i++)
+            {
+                // Store in temp variables in case src = dst
+                float x = (this->matrix[0]*src[i].x) + (this->matrix[4]*src[i].y) + (0) + (this->matrix[12]);
+                float y = (this->matrix[1]*src[i].x) + (this->matrix[5]*src[i].y) + (0) + (this->matrix[13]);
+                float z = (this->matrix[2]*src[i].x) + (this->matrix[6]*src[i].y) + (0) + (this->matrix[14]);
 
-            dst[i].x = x;
-            dst[i].y = y;
-            dst[i].z = z;
+                dst[i].x = x;
+                dst[i].y = y;
+                dst[i].z = z;
+            }
         }
-    }
+    #endif
 }

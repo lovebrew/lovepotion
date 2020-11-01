@@ -7,7 +7,8 @@
 #include "deko3d/common.h"
 #include "deko3d/CMemPool.h"
 
-#include "libpng16/png.h"
+#include <libpng16/png.h>
+#include <turbojpeg.h>
 
 class CImage
 {
@@ -41,13 +42,13 @@ class CImage
             return m_descriptor;
         }
 
-        u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
-
-        void loadJPG(void * buffer, size_t size);
-
-        bool load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                  const char* path, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+        void * load(void * buffer, size_t size, int & width, int & height);
 
         bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                         void * data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+
+        private:
+            u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
+
+            u8 * loadJPG(void * buffer, size_t size, int & width, int & height);
 };

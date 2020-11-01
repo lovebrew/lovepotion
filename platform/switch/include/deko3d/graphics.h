@@ -3,12 +3,20 @@
 #include "modules/graphics/graphics.h"
 #include "deko3d/deko.h"
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+
 namespace love::deko3d
 {
     class Graphics : public love::Graphics
     {
         public:
             Graphics();
+
+            ~Graphics();
+
+            static FT_Library g_ftLibrary;
 
             void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) override;
 

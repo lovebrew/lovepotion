@@ -62,15 +62,20 @@ namespace love
             static constexpr float DEFAULT_SIZE = FONT_DEFAULT_SIZE;
 
             Font(SystemFontType type, float size = DEFAULT_SIZE);
+
             Font(Data * data, float size = DEFAULT_SIZE);
+
             Font(float size = DEFAULT_SIZE);
+
             ~Font();
 
             void Print(Graphics * gfx, const std::vector<ColoredString> & text, float limit, const Colorf & color, AlignMode align, const Matrix4 & localTransform);
+
             void ClearBuffer();
 
 
             float GetWidth(const char * text);
+
             float GetHeight();
 
             float _GetGlyphWidth(u16 glyph);
@@ -85,15 +90,11 @@ namespace love
             static bool GetConstant(SystemFontType in, const char *& out);
             static std::vector<std::string> GetConstants(SystemFontType);
 
-
         private:
             FontHandle font;
             TextBuffer buffer;
             float size;
             TextHandle text;
-
-            void RenderLine(const std::string & line, love::Vector2 & offset, const DrawArgs & args, const Colorf & blend,
-                            float wrap, Font::AlignMode align, bool isNewLine = false);
 
             TextureHandle texture;
 

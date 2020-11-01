@@ -37,8 +37,6 @@ extern "C"
 
         if (R_FAILED(res))
             fatalThrow(res);
-
-        // TTF_Init();
     }
 
     void userAppExit()
@@ -49,8 +47,5 @@ extern "C"
         accountExit();
         nifmExit();
         plExit();
-
-        // Deinitialize everything else
-        // TTF_Quit();
     }
 }
