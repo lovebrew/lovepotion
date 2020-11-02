@@ -90,7 +90,7 @@ void Graphics::SetDepth(float depth)
     this->stereoDepth = std::clamp(depth, -4.0f, 4.0f);
 }
 
-Colorf Graphics::GetColor()
+Colorf Graphics::GetColor() const
 {
     return this->states.back().foreground;
 }
@@ -100,7 +100,7 @@ void Graphics::SetColor(Colorf color)
     this->states.back().foreground = color;
 }
 
-Colorf Graphics::GetBackgroundColor()
+Colorf Graphics::GetBackgroundColor() const
 {
     return this->states.back().background;
 }
@@ -147,31 +147,6 @@ bool Graphics::GetScissor(Rect & scissor) const
 
     return state.scissor;
 }
-
-// void Graphics::SetScissor()
-// {
-//     #if defined(_3DS)
-//         if (this->states.back().scissor)
-//             C2D_Flush();
-//     #endif
-
-//     this->states.back().scissor = false;
-//     Rect rect = this->states.back().scissorRect;
-
-//     Primitives::Scissor(false, rect.x, rect.y, rect.w, rect.h);
-// }
-
-// void Graphics::SetScissor(const Rect & rect)
-// {
-//     #if defined(_3DS)
-//         C2D_Flush();
-//     #endif
-
-//     this->states.back().scissor = true;
-//     this->states.back().scissorRect = rect;
-
-//     Primitives::Scissor(true, rect.x, rect.y, rect.w, rect.h);
-// }
 
 void Graphics::SetCanvas(Canvas * canvas)
 {

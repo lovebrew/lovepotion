@@ -17,10 +17,6 @@ void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
 
 void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)
 {
-    Quad::Viewport v = quad->GetViewport();
-
-    const Vector2 * texcoords = quad->GetVertexTexCoords();
-
     const Matrix4 & tm = gfx->GetTransform();
     bool is2D = tm.IsAffine2DTransform();
 
@@ -31,7 +27,7 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
     if (is2D)
     {
         Vector2 transformed[4];
-        points = vertex::GenerateTextureFromVectors(transformed, texcoords, 4, gfx->GetColor());
+        points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(), 4, gfx->GetColor());
 
         t.TransformXY(transformed, quad->GetVertexPositions(), 4);
     }

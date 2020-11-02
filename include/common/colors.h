@@ -12,7 +12,11 @@ struct ColorT
     T a;
 
     ColorT() : r(0), g(0), b(0), a(0) {}
-    ColorT(T r_, T g_, T b_, T a_) : r(r_), g(g_), b(b_), a(a_) {}
+    ColorT(T r_, T g_, T b_, T a_) : r(r_),
+                                     g(g_),
+                                     b(b_),
+                                     a(a_)
+    {}
 
     void Set(T r_, T g_, T b_, T a_)
     {
@@ -145,4 +149,9 @@ inline Color32 toColor32(Colorf cf)
 inline Colorf toColorf(Color32 c)
 {
     return Colorf(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
+}
+
+inline void debugColor(Colorf color)
+{
+    LOG("{%.1f, %.1f, %.1f, %.1f}", color.r, color.g, color.b, color.a);
 }

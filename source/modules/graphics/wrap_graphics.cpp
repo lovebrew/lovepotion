@@ -207,7 +207,10 @@ int Wrap_Graphics::Points(lua_State * L)
         colors = new Colorf[sizeof(Vector2) * points];
     }
     else
+    {
         positions = new Vector2[points];
+        colors = new Colorf[1] { instance()->GetColor() };
+    }
 
     if (isTable)
     {

@@ -188,9 +188,9 @@ namespace love
                 return this->transformStack.back();
             }
 
-            Colorf GetColor();
+            Colorf GetColor() const;
 
-            Colorf GetBackgroundColor();
+            Colorf GetBackgroundColor() const;
 
             void SetBackgroundColor(const Colorf & color);
 

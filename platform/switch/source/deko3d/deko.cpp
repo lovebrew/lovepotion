@@ -138,14 +138,14 @@ void deko3d::EnsureInState(State state)
     if (this->renderState != state)
         this->renderState = state;
 
-    if (state == STATE_PRIMITIVE)
+    if (this->renderState == STATE_PRIMITIVE)
     {
         love::Shader::standardShaders[love::Shader::STANDARD_DEFAULT]->Attach();
 
         this->cmdBuf.bindVtxAttribState(vertex::attributes::PrimitiveAttribState);
         this->cmdBuf.bindVtxBufferState(vertex::attributes::PrimitiveBufferState);
     }
-    else if (state == STATE_TEXTURE)
+    else if (this->renderState == STATE_TEXTURE)
     {
         love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
 
@@ -272,6 +272,27 @@ void deko3d::Present()
     this->framebuffers.slot = -1;
 }
 
+void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format)
+{
+    image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
+                     buffer, size, texture->GetWidth(), texture->GetHeight(), format);
+
+    // Register the texture's identifier with the image descriptor
+    this->ids[texture] = this->textureIDs;
+
+    this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
+    this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
+
+    texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
+
+    this->textureIDs++;
+}
+
+void deko3d::UnRegisterResHandle(love::Texture * texture)
+{
+    this->ids.erase(texture);
+}
+
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)
 {
     if (4 > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
@@ -294,28 +315,8 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * poin
     return true;
 }
 
-void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format)
-{
-    bool success = image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
-                                    buffer, size, texture->GetWidth(), texture->GetHeight(), format);
-
-    // Register the texture's identifier with the image descriptor
-    this->ids[texture] = this->textureIDs;
-
-    this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
-    this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
-
-    texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
-
-    this->textureIDs++;
-}
-
-void deko3d::UnRegisterResHandle(love::Texture * texture)
-{
-    this->ids.erase(texture);
-}
-
-bool deko3d::RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points, size_t size, size_t count)
+bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t size,
+                            size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
@@ -326,7 +327,7 @@ bool deko3d::RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points
     memcpy(this->vertexData + this->firstVertex, points, size);
 
     // Draw with Triangles
-    this->cmdBuf.draw(primitive, count, 1, this->firstVertex, 0);
+    this->cmdBuf.draw(DkPrimitive_LineStrip, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
     this->firstVertex += count;
@@ -335,14 +336,14 @@ bool deko3d::RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points
 }
 
 bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
-                           size_t count, bool skipLastFilledVertex)
+                           size_t count, bool skipLastVertex)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    int vertexCount = (int)count - (skipLastFilledVertex ? 1 : 0);
+    int vertexCount = (int)count - (skipLastVertex ? 1 : 0);
 
     // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);

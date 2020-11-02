@@ -98,9 +98,9 @@ class deko3d
 
         /* Primitives Rendering */
 
-        bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count, bool skipLastFilledVertex = true);
+        bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count, bool skipLastVertex = true);
 
-        bool RenderPolyline(DkPrimitive primitive, const vertex::Vertex * points, size_t size, size_t count);
+        bool RenderPolyline(const vertex::Vertex * points, size_t size, size_t count);
 
         bool RenderPoints(const vertex::Vertex * points, size_t size, size_t count);
 
@@ -118,7 +118,7 @@ class deko3d
             STATE_MAX_ENUM
         };
 
-        State renderState = State::STATE_MAX_ENUM;
+        State renderState = State::STATE_PRIMITIVE;
 
         void EnsureInState(State state);
 

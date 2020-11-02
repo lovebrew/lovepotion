@@ -20,10 +20,12 @@ love::deko3d::Graphics::Graphics()
     try
     {
         if (!Shader::standardShaders[Shader::STANDARD_DEFAULT])
-            Shader::standardShaders[Shader::STANDARD_DEFAULT] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size, (void *)s_fsh_dksh, s_fsh_dksh_size);
+            Shader::standardShaders[Shader::STANDARD_DEFAULT] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size,
+                                                                                (void *)s_fsh_dksh, s_fsh_dksh_size);
 
         if (!Shader::standardShaders[Shader::STANDARD_TEXTURE])
-            Shader::standardShaders[Shader::STANDARD_TEXTURE] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size, (void *)t_fsh_dksh, t_fsh_dksh_size);
+            Shader::standardShaders[Shader::STANDARD_TEXTURE] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size,
+                                                                                (void *)t_fsh_dksh, t_fsh_dksh_size);
     }
     catch (love::Exception &)
     {
@@ -183,26 +185,25 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 
 /* Primitives */
 
-void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex)
+void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points,
+                                     size_t count, bool skipLastVertex)
 {
     Colorf color[1] = { this->GetColor() };
-    std::vector<vertex::Vertex> verts;
 
     const Matrix4 & t = this->GetTransform();
-	bool is2D = t.IsAffine2DTransform();
+    bool is2D = t.IsAffine2DTransform();
+
+    Vector2 transformed[count];
 
     if (is2D)
-    {
-        Vector2 transformed[count];
         t.TransformXY(transformed, points, count);
 
-        verts = vertex::GeneratePrimitiveFromVectors(transformed, count, color, 1);
-    }
+    std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(transformed, count, color, 1);
 
     if (mode == DRAW_FILL)
-        dk3d.RenderPolygon(verts.data(), count * sizeof(*verts.data()), count, skipLastFilledVertex);
+        dk3d.RenderPolygon(verts.data(),  count * sizeof(*verts.data()), count, skipLastVertex);
     else
-        dk3d.RenderPolyline(DkPrimitive_LineStrip, verts.data(), count * sizeof(*verts.data()), count);
+        dk3d.RenderPolyline(verts.data(), count * sizeof(*verts.data()), count);
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)

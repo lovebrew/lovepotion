@@ -96,7 +96,7 @@ const Elements & Matrix4::GetElements() const
 
 void Matrix4::SetIdentity()
 {
-    memset(this->matrix, 0, sizeof(float) * 16);
+    memset(this->matrix, 0, sizeof(Elements));
     this->matrix[15] = this->matrix[10] = this->matrix[5] = this->matrix[0] = 1.0f;
 }
 

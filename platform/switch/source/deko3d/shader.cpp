@@ -81,11 +81,10 @@ bool love::Shader::IsDefaultActive()
 
 void love::Shader::Attach()
 {
-    if (current != this)
+    if (Shader::current != this)
     {
-        // Graphics::FlushStreamDrawsGlobal();
         dk3d.UseProgram(this->program);
 
-        current = this;
+        Shader::current = this;
     }
 }
