@@ -71,7 +71,7 @@ namespace love::deko3d
             void SetFrontFaceWinding(vertex::Winding winding) override;
 
             // Internal?
-            Shader * NewShader(void * vertex, size_t vertex_sz, void * pixel, size_t pixel_sz);
+            Shader * NewShader(Shader::StandardShader type);
 
         private:
             int CalculateEllipsePoints(float rx, float ry) const;

@@ -9,7 +9,7 @@ namespace love
         public:
             static love::Type type;
 
-            Shader(CShader && vertex, CShader && pixel);
+            Shader();
             ~Shader();
 
             enum StandardShader
@@ -36,6 +36,8 @@ namespace love
             void Attach();
 
             bool Validate(const CShader & vertex, const CShader & pixel, std::string & error);
+
+            void LoadDefaults(StandardShader defaultType);
 
             static void AttachDefault(StandardShader defaultType);
 

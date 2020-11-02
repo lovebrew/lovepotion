@@ -3,10 +3,6 @@
 
 using namespace love;
 
-#include "s_vsh_dksh.h" // Vertex Shader
-#include "s_fsh_dksh.h" // Default Fragment Shader
-#include "t_fsh_dksh.h" // Texture Fragment Shader
-
 FT_Library love::deko3d::Graphics::g_ftLibrary;
 
 love::deko3d::Graphics::Graphics()
@@ -15,13 +11,11 @@ love::deko3d::Graphics::Graphics()
 
     try
     {
-        if (!Shader::standardShaders[Shader::STANDARD_DEFAULT])
-            Shader::standardShaders[Shader::STANDARD_DEFAULT] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size,
-                                                                                (void *)s_fsh_dksh, s_fsh_dksh_size);
-
-        if (!Shader::standardShaders[Shader::STANDARD_TEXTURE])
-            Shader::standardShaders[Shader::STANDARD_TEXTURE] = this->NewShader((void *)s_vsh_dksh, s_vsh_dksh_size,
-                                                                                (void *)t_fsh_dksh, t_fsh_dksh_size);
+        for (int i = 0; i < 2; i++)
+        {
+            if (!Shader::standardShaders[i])
+                Shader::standardShaders[i] = this->NewShader(Shader::StandardShader(i));
+        }
     }
     catch (love::Exception &)
     {
@@ -527,16 +521,9 @@ void love::deko3d::Graphics::SetScissor()
     states.back().scissor = false;
 }
 
-Shader * love::deko3d::Graphics::NewShader(void * vertex, size_t vertex_sz, void * pixel, size_t pixel_sz)
+Shader * love::deko3d::Graphics::NewShader(Shader::StandardShader type)
 {
-    if (vertex == NULL && pixel == NULL)
-        throw love::Exception("Error creating shader: no source code!");
-
-    CShader vertexStage;
-    vertexStage.loadMemory(*dk3d.GetCode(), vertex, vertex_sz);
-
-    CShader pixelStage;
-    pixelStage.loadMemory(*dk3d.GetCode(), pixel, pixel_sz);
-
-    return new Shader(std::move(vertexStage), std::move(pixelStage));
+    Shader * s = new Shader();
+    s->LoadDefaults(type);
+    return s;
 }

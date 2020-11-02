@@ -3,6 +3,10 @@
 
 #include "deko3d/deko.h"
 
+#include "s_vsh_dksh.h" // Vertex Shader
+#include "s_fsh_dksh.h" // Default Fragment Shader
+#include "t_fsh_dksh.h" // Texture Fragment Shader
+
 using namespace love;
 
 love::Type love::Shader::type("Shader", &love::Object::type);
@@ -10,18 +14,8 @@ love::Type love::Shader::type("Shader", &love::Object::type);
 love::Shader * love::Shader::current = nullptr;
 love::Shader * love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = {nullptr};
 
-love::Shader::Shader(CShader && vertex, CShader && pixel)
-{
-    std::string error;
-    if (!this->Validate(vertex, pixel, error))
-        throw love::Exception("%s", error.c_str());
-
-    this->program =
-    {
-        .vertex   = std::move(vertex),
-        .fragment = std::move(pixel)
-    };
-}
+love::Shader::Shader() : program()
+{}
 
 love::Shader::~Shader()
 {
@@ -33,6 +27,22 @@ love::Shader::~Shader()
 
     if (current == this)
         Shader::AttachDefault(STANDARD_DEFAULT);
+}
+
+void love::Shader::LoadDefaults(StandardShader type)
+{
+    switch (type)
+    {
+        case STANDARD_DEFAULT:
+            this->program.vertex.loadMemory(*dk3d.GetCode(), (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
+            break;
+        case STANDARD_TEXTURE:
+        default:
+            this->program.vertex.loadMemory(*dk3d.GetCode(), (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
+            break;
+    }
 }
 
 bool love::Shader::Validate(const CShader & vertex, const CShader & pixel, std::string & error)
