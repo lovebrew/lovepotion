@@ -43,10 +43,5 @@ namespace love
 
         private:
             Program program;
-
-            bool canvasWasActive;
-            Rect lastViewport;
-
-            float lastPointSize;
     };
 }

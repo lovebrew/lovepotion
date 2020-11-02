@@ -1051,9 +1051,13 @@ int Wrap_Graphics::Register(lua_State * L)
 
     if (instance == nullptr)
         #if defined (_3DS)
-            Luax::CatchException(L, [&]() { instance = new Graphics(); });
+            Luax::CatchException(L, [&]() {
+                instance = new Graphics();
+            });
         #elif defined (__SWITCH__)
-            Luax::CatchException(L, [&]() { instance = new love::deko3d::Graphics(); });
+            Luax::CatchException(L, [&]() {
+                instance = new love::deko3d::Graphics();
+            });
         #endif
     else
         instance->Retain();

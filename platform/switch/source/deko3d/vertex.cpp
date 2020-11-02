@@ -17,7 +17,8 @@ std::vector<vertex::Vertex> vertex::GeneratePrimitiveFromVectors(const Vector2 *
         vertex::Vertex vert =
         {
             .position = {point.x, point.y, 0.0f},
-            .color = {1, 1, 1, 1}
+            .color = {1, 1, 1, 1},
+            .texcoord = {0, 0}
         };
 
         currentColor.CopyTo(vert.color);

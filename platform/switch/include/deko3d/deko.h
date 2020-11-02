@@ -37,9 +37,8 @@ class deko3d
 
         static constexpr unsigned COMMAND_SIZE = 0x10000;
         static constexpr size_t VERTEX_COMMAND_SIZE = 0x10000;
-        static constexpr size_t MAX_VERTICES = 0x10000;
 
-        static constexpr size_t MAX_OBJECTS = 0x1000;
+        static constexpr size_t MAX_OBJECTS = 0x250;
 
         deko3d();
 
@@ -98,7 +97,7 @@ class deko3d
 
         /* Primitives Rendering */
 
-        bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count, bool skipLastVertex = true);
+        bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count);
 
         bool RenderPolyline(const vertex::Vertex * points, size_t size, size_t count);
 

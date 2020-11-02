@@ -16,13 +16,11 @@ love::Shader::Shader(CShader && vertex, CShader && pixel)
     if (!this->Validate(vertex, pixel, error))
         throw love::Exception("%s", error.c_str());
 
-    this->program = {std::move(vertex), std::move(pixel)};
-
-    if (current == this)
+    this->program =
     {
-        current = nullptr;
-        this->Attach();
-    }
+        .vertex   = std::move(vertex),
+        .fragment = std::move(pixel)
+    };
 }
 
 love::Shader::~Shader()

@@ -3,18 +3,14 @@
 
 using namespace love;
 
-#include "s_fsh_dksh.h"
-#include "s_vsh_dksh.h"
-#include "t_fsh_dksh.h"
+#include "s_vsh_dksh.h" // Vertex Shader
+#include "s_fsh_dksh.h" // Default Fragment Shader
+#include "t_fsh_dksh.h" // Texture Fragment Shader
 
 FT_Library love::deko3d::Graphics::g_ftLibrary;
 
 love::deko3d::Graphics::Graphics()
 {
-    /*
-    ** This actually happens during love.graphics.setMode
-    ** but that's useless on the console, so here
-    */
     this->RestoreState(this->states.back());
 
     try
@@ -43,6 +39,15 @@ love::deko3d::Graphics::Graphics()
 love::deko3d::Graphics::~Graphics()
 {
     FT_Done_FreeType(deko3d::Graphics::g_ftLibrary);
+
+    // for (int i = 0; i < Shader::STANDARD_MAX_ENUM; i++)
+    // {
+    //     if (Shader::standardShaders[i])
+    //     {
+    //         Shader::standardShaders[i]->Release();
+    //         Shader::standardShaders[i] = nullptr;
+    //     }
+    // }
 }
 
 void love::deko3d::Graphics::SetColor(Colorf color)
@@ -132,7 +137,7 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
     {
         case love::Graphics::BLEND_ALPHA:
             srcColor = srcAlpha = DkBlendFactor_One;
-            dstColor = dstAlpha = DkBlendFactor_Src1Alpha;
+            dstColor = dstAlpha = DkBlendFactor_InvSrcAlpha;
 
             break;
         case love::Graphics::BLEND_MULTIPLY:
@@ -161,7 +166,7 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
             break;
         case love::Graphics::BLEND_SCREEN:
             srcColor = srcAlpha = DkBlendFactor_One;
-            dstColor = dstAlpha = DkBlendFactor_Src1Alpha;
+            dstColor = dstAlpha = DkBlendFactor_InvSrcColor;
 
             break;
         case love::Graphics::BLEND_REPLACE:
@@ -193,17 +198,22 @@ void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points,
     const Matrix4 & t = this->GetTransform();
     bool is2D = t.IsAffine2DTransform();
 
-    Vector2 transformed[count];
+    int vertexCount = (int)count - (mode == DRAW_FILL && skipLastVertex ? 1 : 0);
+
+    std::vector<vertex::Vertex> verts;
 
     if (is2D)
-        t.TransformXY(transformed, points, count);
+    {
+        Vector2 transformed[vertexCount];
+        t.TransformXY(transformed, points, vertexCount);
 
-    std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(transformed, count, color, 1);
+        verts = vertex::GeneratePrimitiveFromVectors(transformed, vertexCount, color, 1);
+    }
 
     if (mode == DRAW_FILL)
-        dk3d.RenderPolygon(verts.data(),  count * sizeof(*verts.data()), count, skipLastVertex);
+        dk3d.RenderPolygon(verts.data(),  vertexCount * sizeof(*verts.data()), vertexCount);
     else
-        dk3d.RenderPolyline(verts.data(), count * sizeof(*verts.data()), count);
+        dk3d.RenderPolyline(verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)

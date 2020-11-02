@@ -57,6 +57,10 @@ deko3d::deko3d()
 
     this->descriptors.image.bindForImages(this->cmdBuf);
     this->descriptors.sampler.bindForSamplers(this->cmdBuf);
+
+    this->state.depthStencil.setDepthTestEnable(true);
+    this->state.depthStencil.setDepthWriteEnable(true);
+    this->state.depthStencil.setDepthCompareOp(DkCompareOp_Greater);
 }
 
 deko3d::~deko3d()
@@ -70,7 +74,7 @@ deko3d::~deko3d()
 
     this->textureQueue.waitIdle();
 
-    // Clear the static cmdbuf, destroying the static cmdlists in the process
+    // Clear the cmdbuf
     this->cmdBuf.clear();
 
     // Destroy the swapchain
@@ -186,13 +190,17 @@ void deko3d::ClearColor(const Colorf & color)
     this->cmdBuf.bindColorWriteState(this->state.colorWrite);
     this->cmdBuf.bindBlendStates(0, this->state.blendState);
 
+    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
+                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
+                               &this->transformState);
+
     // Bind the current slice's GPU address to the buffer
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 }
 
 void deko3d::SetBlendColor(const Colorf & color)
 {
-    this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
+    // this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
 }
 
 /*
@@ -253,10 +261,6 @@ void deko3d::BindFramebuffer()
 */
 void deko3d::Present()
 {
-    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
-                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
-                               &this->transformState);
-
     // Now that we are done rendering, present it to the screen
     if (this->framebuffers.inFrame)
     {
@@ -336,31 +340,32 @@ bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t size,
 }
 
 bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
-                           size_t count, bool skipLastVertex)
+                           size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    int vertexCount = (int)count - (skipLastVertex ? 1 : 0);
-
     // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);
 
     // Draw with Triangles
-    this->cmdBuf.draw(DkPrimitive_TriangleFan, vertexCount, 1, this->firstVertex, 0);
+    this->cmdBuf.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
-    this->firstVertex += vertexCount;
+    this->firstVertex += count;
 
     return true;
 }
 
-bool deko3d::RenderPoints(const vertex::Vertex * points, size_t size, size_t count)
+bool deko3d::RenderPoints(const vertex::Vertex * points, size_t size,
+                          size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
+
+    this->EnsureInState(STATE_PRIMITIVE);
 
     memcpy(this->vertexData + this->firstVertex, points, size);
 
@@ -409,17 +414,18 @@ void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
     if (a)
         masks |= DkColorMask_A;
 
-    this->state.colorWrite.setMask(0, masks);
+    this->state.colorWrite.setMask(0, DkColorMask_RGBA);
 }
 
 void deko3d::SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,
                           DkBlendFactor dstColor, DkBlendFactor dstAlpha)
 {
     this->state.blendState.setColorBlendOp(func);
+    this->state.blendState.setAlphaBlendOp(func);
 
     // Blend factors
     this->state.blendState.setSrcColorBlendFactor(srcColor);
-    this->state.blendState.setSrcAlphaBlendFactor(dstAlpha);
+    this->state.blendState.setSrcAlphaBlendFactor(srcAlpha);
 
     this->state.blendState.setDstColorBlendFactor(dstColor);
     this->state.blendState.setDstAlphaBlendFactor(dstAlpha);

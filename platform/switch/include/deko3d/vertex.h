@@ -45,7 +45,7 @@ namespace vertex
         constexpr std::array<DkVtxAttribState, 2> PrimitiveAttribState =
         {
             DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
-            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 }
         };
 
         /*  Textures */
@@ -63,9 +63,11 @@ namespace vertex
         };
     }
 
-    std::vector<Vertex> GeneratePrimitiveFromVectors(const love::Vector2 * points, size_t count, const Colorf * colors, size_t colorCount);
+    std::vector<Vertex> GeneratePrimitiveFromVectors(const love::Vector2 * points, size_t count,
+                                                     const Colorf * colors, size_t colorCount);
 
-    std::vector<Vertex> GenerateTextureFromVectors(const love::Vector2 * points, const love::Vector2 * texcoord, size_t count, Colorf color);
+    std::vector<Vertex> GenerateTextureFromVectors(const love::Vector2 * points, const love::Vector2 * texcoord,
+                                                   size_t count, Colorf color);
 
     bool GetConstant(const char * in, CullMode & out);
     bool GetConstant(CullMode in, const char *& out);
