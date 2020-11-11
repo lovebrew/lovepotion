@@ -35,7 +35,7 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vecto
 
     for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
     {
-        const Vector2 point = points[currentVertex];
+        const Vector2 point    = points[currentVertex];
         const Vector2 texCoord = texcoord[currentVertex];
 
         vertex::Vertex vert =

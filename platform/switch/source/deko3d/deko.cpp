@@ -2,6 +2,7 @@
 #include "deko3d/deko.h"
 
 #include "deko3d/vertex.h"
+#include "deko3d/CFont.h"
 
 deko3d::deko3d()
 {
@@ -90,7 +91,16 @@ deko3d::~deko3d()
 
 void deko3d::CreateResources()
 {
-    // TODO: depth buffer
+    dk::ImageLayout layout_depthbuffer;
+    dk::ImageLayoutMaker{device}
+        .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
+        .setFormat(DkImageFormat_Z24S8)
+        .setDimensions(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT)
+        .initialize(layout_depthbuffer);
+
+    // Create the depth buffer
+    this->depthBuffer.memory = this->pool.images->allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
+    this->depthBuffer.image.initialize(layout_depthbuffer, this->depthBuffer.memory.getMemBlock(), this->depthBuffer.memory.getOffset());
 
     // Create a layout for the framebuffers
     auto layoutFlags = (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
@@ -169,6 +179,11 @@ void deko3d::EnsureHasSlot()
         this->framebuffers.slot = this->queue.acquireImage(this->swapchain);
 }
 
+void deko3d::SetBlendColor(const Colorf & color)
+{
+    // this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
+}
+
 /*
 ** First thing that happens to start the frame
 ** Clear the screen to a specified color
@@ -180,7 +195,15 @@ void deko3d::ClearColor(const Colorf & color)
     this->firstVertex = this->firstTexture = 0;
 
     this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
+}
 
+void deko3d::ClearDepthStencil(double depth, int stencil)
+{
+    // this->cmdBuf.clearDepthStencil(true, depth, 0xFF, stencil);
+}
+
+void deko3d::BeginFrame()
+{
     std::pair<void *, DkGpuAddr> data = this->vtxRing.begin();
 
     this->vertexData = (vertex::Vertex *)data.first;
@@ -189,6 +212,7 @@ void deko3d::ClearColor(const Colorf & color)
     this->cmdBuf.bindColorState(this->state.color);
     this->cmdBuf.bindColorWriteState(this->state.colorWrite);
     this->cmdBuf.bindBlendStates(0, this->state.blendState);
+    // this->cmdBuf.bindDepthStencilState(this->state.depthStencil);
 
     this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
                                this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
@@ -198,29 +222,9 @@ void deko3d::ClearColor(const Colorf & color)
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 }
 
-void deko3d::SetBlendColor(const Colorf & color)
+dk::Queue & deko3d::GetTextureQueue()
 {
-    // this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
-}
-
-/*
-** ClearStencil happens *afer* ClearColor
-** So this shouldn't have any issues
-** Only useful if we have a Stencil buffer
-*/
-void deko3d::ClearStencil(int stencil)
-{
-    // this->cmdBuf.clearDepthStencil(false, 1.0f, DkStencilOp_Replace, stencil);
-}
-
-/*
-** ClearDepth happens *afer* ClearColor -> ClearStencil
-** So this shouldn't have any issues
-** Only useful if we have a Depth buffer
-*/
-void deko3d::ClearDepth(double depth)
-{
-    // this->cmdBuf.clearDepthStencil(true, depth, DkStencilOp_Replace, 1);
+    return this->textureQueue;
 }
 
 dk::UniqueDevice & deko3d::GetDevice()
@@ -233,6 +237,15 @@ std::optional<CMemPool> & deko3d::GetCode()
     return this->pool.code;
 }
 
+std::optional<CMemPool> & deko3d::GetImages()
+{
+    return this->pool.images;
+}
+
+std::optional<CMemPool> & deko3d::GetData()
+{
+    return this->pool.data;
+}
 
 /*
 ** Binds a Framebuffer we have allocated
@@ -247,9 +260,8 @@ void deko3d::BindFramebuffer()
 
     this->EnsureHasSlot();
 
-    dk::ImageView colorTarget {
-        this->framebuffers.images[this->framebuffers.slot]
-    };
+    dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
+    dk::ImageView depthTarget { this->depthBuffer.image };
 
     this->cmdBuf.bindRenderTargets(&colorTarget);
 }
@@ -264,6 +276,9 @@ void deko3d::Present()
     // Now that we are done rendering, present it to the screen
     if (this->framebuffers.inFrame)
     {
+        // this->cmdBuf.barrier(DkBarrier_Fragments, 0);
+        // this->cmdBuf.discardDepthStencil();
+
         // Run the main rendering command list
         this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
@@ -276,13 +291,38 @@ void deko3d::Present()
     this->framebuffers.slot = -1;
 }
 
+void deko3d::SetStencil(DkStencilOp op, DkCompareOp compare, int value)
+{
+    bool enabled = (compare == DkCompareOp_Always) ? false : true;
+
+    this->state.depthStencil.setStencilTestEnable(enabled);
+
+    // Front
+
+    this->state.depthStencil.setStencilFrontCompareOp(compare);
+
+    this->state.depthStencil.setStencilFrontDepthFailOp(DkStencilOp_Keep);
+    this->state.depthStencil.setStencilFrontFailOp(DkStencilOp_Keep);
+    this->state.depthStencil.setStencilFrontPassOp(DkStencilOp_Keep);
+
+    // Back
+
+    this->state.depthStencil.setStencilBackCompareOp(compare);
+
+    this->state.depthStencil.setStencilBackDepthFailOp(DkStencilOp_Keep);
+    this->state.depthStencil.setStencilBackFailOp(DkStencilOp_Keep);
+    this->state.depthStencil.setStencilBackPassOp(DkStencilOp_Keep);
+
+    this->cmdBuf.setStencil(DkFace_FrontAndBack, 0xFF, value, 0xFF);
+}
+
 void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format)
 {
     image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
                      buffer, size, texture->GetWidth(), texture->GetHeight(), format);
 
     // Register the texture's identifier with the image descriptor
-    this->ids[texture] = this->textureIDs;
+    this->textureResIDs[texture] = this->textureIDs;
 
     this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
     this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
@@ -292,9 +332,14 @@ void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love:
     this->textureIDs++;
 }
 
-void deko3d::UnRegisterResHandle(love::Texture * texture)
+void deko3d::UnRegisterResHandle(love::Object * object)
 {
-    this->ids.erase(texture);
+    this->textureResIDs.erase(object);
+}
+
+void deko3d::RegisterResHandle(love::Object * object)
+{
+    this->textureResIDs[object] = this->textureIDs;
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)

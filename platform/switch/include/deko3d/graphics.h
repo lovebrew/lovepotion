@@ -7,6 +7,11 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+#define RENDERER_NAME    "deko3d"
+#define RENDERER_VERSION "0.2.0"
+#define RENDERER_VENDOR  "devkitPro"
+#define RENDERER_DEVICE  "Tegra X1"
+
 namespace love::deko3d
 {
     class Graphics : public love::Graphics
@@ -62,6 +67,8 @@ namespace love::deko3d
 
             /* End Primitives */
 
+            Image * NewImage(Texture::TextureType type, int width, int height);
+
             void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
 
             void SetColorMask(ColorMask mask) override;
@@ -69,6 +76,8 @@ namespace love::deko3d
             void SetMeshCullMode(vertex::CullMode cull) override;
 
             void SetFrontFaceWinding(vertex::Winding winding) override;
+
+            RendererInfo GetRendererInfo() const override;
 
             // Internal?
             Shader * NewShader(Shader::StandardShader type);

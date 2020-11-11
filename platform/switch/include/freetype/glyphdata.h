@@ -4,7 +4,7 @@
 
 namespace love
 {
-    class GlyphData : Data
+    class GlyphData : public Data
     {
         public:
             static love::Type type;
@@ -18,9 +18,11 @@ namespace love
                 int bearingY;
             };
 
-            GlyphData(uint32_t glyph, GlyphMetrics glyphMetrics);
+            GlyphData(uint32_t glyph, GlyphMetrics metrics);
 
             GlyphData(const GlyphData & c);
+
+            virtual ~GlyphData();
 
             GlyphData * Clone() const;
 

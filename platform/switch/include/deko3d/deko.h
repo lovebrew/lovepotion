@@ -10,6 +10,8 @@
 #include "deko3d/CImage.h"
 
 #include "objects/texture/texture.h"
+#include "objects/font/font.h"
+
 #include "common/mmath.h"
 #include "deko3d/vertex.h"
 
@@ -26,6 +28,8 @@ namespace love
 {
     class Graphics;
 }
+
+class CFont;
 
 class deko3d
 {
@@ -50,9 +54,9 @@ class deko3d
 
         void ClearColor(const Colorf & color);
 
-        void ClearStencil(int stencil);
+        void ClearDepthStencil(double depth, int stencil);
 
-        void ClearDepth(double depth);
+        void BeginFrame();
 
         void SetViewport(const love::Rect & view);
 
@@ -81,17 +85,31 @@ class deko3d
 
         void SetScissor(const love::Rect & scissor, bool canvasActive);
 
+        void SetScissor();
+
         void Present();
 
         void SetBlendColor(const Colorf & color);
 
+        void RegisterFont(CFont & font);
+
+        void SetStencil(DkStencilOp op, DkCompareOp compare, int value);
+
         dk::UniqueDevice & GetDevice();
+
+        dk::Queue & GetTextureQueue();
+
+        std::optional<CMemPool> & GetImages();
 
         std::optional<CMemPool> & GetCode();
 
-        void LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format);
+        std::optional<CMemPool> & GetData();
 
-        void UnRegisterResHandle(love::Texture * texture);
+        void RegisterResHandle(love::Object * object);
+
+        void UnRegisterResHandle(love::Object * object);
+
+        void LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format);
 
         bool RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count);
 
@@ -121,7 +139,7 @@ class deko3d
 
         void EnsureInState(State state);
 
-        std::unordered_map<love::Texture *, int> ids;
+        std::unordered_map<love::Object *, int> textureResIDs;
 
         struct
         {
@@ -177,8 +195,6 @@ class deko3d
             CMemPool::Handle memory[MAX_FRAMEBUFFERS];
 
             bool inFrame     = false;
-            bool hasSlot     = false;
-
             int  slot        = -1;
         } framebuffers;
 

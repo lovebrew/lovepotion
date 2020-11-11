@@ -1,7 +1,24 @@
 #include "common/runtime.h"
 #include "deko3d/CFont.h"
 
+#include "deko3d/deko.h"
+
 #include "deko3d/graphics.h"
+#include "objects/font/font.h"
+
+#include "modules/font/fontmodule.h"
+#include "freetype/glyphdata.h"
+
+#include "common/module.h"
+#include "modules/graphics/graphics.h"
+
+#define FONT_TEXTURE_SIZE 0x200
+
+CFont::CFont() : textureWidth(128),
+                 textureHeight(128),
+                 useSpacesAsTab(false),
+                 textureCacheID(0)
+{}
 
 /*
 ** We first need to load the Face (font) via FreeType 2 memory loading.
@@ -9,12 +26,15 @@
 ** glyph data from whatever string we want into the texture itself to be
 ** rendered
 */
-CFont::CFont(void * data, size_t size, int height) : textureWidth(128),
-                                                     textureHeight(128)
+void CFont::Load(love::Rasterizer * rasterizer, const love::Texture::Filter & filter)
 {
+    this->rasterizers = {rasterizer};
+
+    this->glyphs.clear();
+
     while (true)
     {
-        if ((height * 0.8) * height * 30 <= textureWidth * textureHeight)
+        if ((rasterizer->GetHeight() * 0.8) * rasterizer->GetHeight() * 30 <= textureWidth * textureHeight)
             break;
 
         TextureSize nextsize = this->GetNextTextureSize();
@@ -26,47 +46,254 @@ CFont::CFont(void * data, size_t size, int height) : textureWidth(128),
         textureHeight = nextsize.height;
     }
 
-    this->loadFace(data, size, height);
+    if (!rasterizer->HasGlyph(9)) // No tab character in the Rasterizer.
+        this->useSpacesAsTab = true;
+
+    this->rowHeight = this->textureX = this->textureY = this->TEXTURE_PADDING;
 }
 
-int CFont::loadFace(void * data, size_t size, int ptSize)
+CFont::~CFont()
 {
-    // Don't allow 0 sized data or nullptr data
-    if (size <= 0 || !data)
-        return -1;
+    this->glyphs.clear();
+    m_scratch.destroy();
+}
 
-    /*
-    ** load a face from the buffer and given size
-    ** faces describe a font
-    */
-    int error = FT_New_Memory_Face(love::deko3d::Graphics::g_ftLibrary,
-                                   (FT_Byte *)data, (FT_Long)size,
-                                   0, &m_face);
+static inline uint16_t normToUint16(double n)
+{
+    return (uint16_t)(n * std::numeric_limits<uint16_t>::max());
+}
 
-    if (error == FT_Err_Unknown_File_Format)
-        throw love::Exception("Unknown file format");
+void CFont::CreateTexture()
+{
+    TextureSize size = {this->textureWidth, this->textureHeight};
+    TextureSize nextsize = this->GetNextTextureSize();
+    bool recreatetexture = false;
 
-    error = FT_Set_Pixel_Sizes(m_face, 0, ptSize);
+    // If we have an existing texture already, we'll try replacing it with a
+    // larger-sized one rather than creating a second one. Having a single
+    // texture reduces texture switches and draw calls when rendering.
+    if ((nextsize.width > size.width || nextsize.height > size.height) && !images.empty())
+    {
+        recreatetexture = true;
+        size = nextsize;
+        images.pop_back();
+    }
 
-    return error;
+    // Create the image scratch pool for use
+    m_scratch = dk3d.GetData()->allocate(size.width * size.height * 4, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+
+    dk::ImageLayout layout;
+    dk::ImageLayoutMaker{dk3d.GetDevice()}
+        .setFlags(0)
+        .setFormat(DkImageFormat_RGBA8_Unorm)
+        .setDimensions(size.width, size.height)
+        .initialize(layout);
+
+    // allocate the memory for the layout, keep it around
+    m_mem = dk3d.GetImages()->allocate(layout.getSize(), layout.getAlignment());
+    m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
+
+    {
+        size_t pixelcount = size.width * size.height;
+
+        // Initialize the texture with transparent white for Luminance-Alpha
+        // formats (since we keep luminance constant and vary alpha in those
+        // glyphs), and transparent black otherwise.
+        std::vector<uint8_t> emptydata(pixelcount * 4, 0);
+
+        Rect rect = {0, 0, size.width, size.height};
+
+        // Replace data
+        dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{dk3d.GetDevice()}.create();
+        CMemPool::Handle tempCmdMem = dk3d.GetData()->allocate(DK_MEMBLOCK_ALIGNMENT);
+        tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+
+        dk::ImageView imageView {m_image};
+
+        // Copy the empty data to the Glyph image
+        memcpy(m_scratch.getCpuAddr(), emptydata.data(), emptydata.size());
+        tempCmdBuff.copyBufferToImage({ m_scratch.getGpuAddr() }, imageView, { 0, 0, size.width, size.height, 1 }, DkBlitFlag_FlipY);
+
+        dk3d.GetTextureQueue().submitCommands(tempCmdBuff.finishList());
+        dk3d.GetTextureQueue().waitIdle();
+
+        tempCmdMem.destroy();
+    }
+
+    if (recreatetexture)
+    {
+        textureCacheID++;
+
+        std::vector<uint32_t> glyphsToAdd;
+
+        for (const auto & glyphPair : glyphs)
+            glyphsToAdd.push_back(glyphPair.first);
+
+        glyphs.clear();
+
+        for (uint32_t glyph : glyphsToAdd)
+            this->AddGlyph(glyph);
+    }
+}
+
+const CFont::Glyph & CFont::AddGlyph(uint32_t glyph)
+{
+    love::StrongReference<love::GlyphData> gd(this->GetRasterizerGlyphData(glyph), Acquire::NORETAIN);
+
+    int width  = gd->GetWidth();
+    int height = gd->GetHeight();
+
+    if (width + this->TEXTURE_PADDING * 2 < this->textureWidth && height + this->TEXTURE_PADDING * 2 < this->textureHeight)
+    {
+        if (this->textureX + width + this->TEXTURE_PADDING > this->textureWidth)
+        {
+            // Out of space - new row!
+            this->textureX = this->TEXTURE_PADDING;
+            this->textureY += this->rowHeight;
+            this->rowHeight = this->TEXTURE_PADDING;
+        }
+
+        if (this->textureY + height + this->TEXTURE_PADDING > this->textureHeight)
+        {
+            // Totally out of space - new texture!
+            this->CreateTexture();
+
+            // Makes sure the above code for checking if the glyph can fit at
+            // the current position in the texture is run again for this glyph.
+            return this->AddGlyph(glyph);
+        }
+    }
+
+    Glyph g;
+
+    g.spacing = floorf(gd->GetAdvance() / 1.0f + 0.5f);
+    memset(g.vertices, 0, sizeof(vertex::Vertex) * 4);
+
+    // Don't waste space on empty glyphs
+    if (width > 0 && height > 0)
+    {
+        // Create a temporary command buffer and memory for copy use
+        dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{dk3d.GetDevice()}.create();
+        CMemPool::Handle tempCmdMem = dk3d.GetData()->allocate(DK_MEMBLOCK_ALIGNMENT);
+        tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+
+        // Destination rectangle for the glyph
+        Rect rect = {this->textureX, this->textureY, width, height};
+        dk::ImageView imageView{m_image};
+
+        // Copy the glyph data to the font's dk::Image
+        memcpy(m_scratch.getCpuAddr(), gd->GetData(), gd->GetSize());
+        tempCmdBuff.copyBufferToImage({ m_scratch.getGpuAddr() }, imageView, { rect.x, rect.y, 0, width, height, 1 }, DkBlitFlag_FlipY);
+
+        dk3d.GetTextureQueue().submitCommands(tempCmdBuff.finishList());
+        dk3d.GetTextureQueue().waitIdle();
+
+        tempCmdMem.destroy();
+    }
+
+    this->glyphs.emplace(glyph, g);
+
+    return this->glyphs[glyph];
+}
+
+love::GlyphData * CFont::GetRasterizerGlyphData(uint32_t glyph)
+{
+    // Use spaces for the tab 'glyph'.
+    if (glyph == 9 && useSpacesAsTab)
+    {
+        love::GlyphData * spacegd = rasterizers[0]->GetGlyphData(32);
+
+        love::GlyphData::GlyphMetrics gm = {};
+
+        gm.advance  = spacegd->GetAdvance() * SPACES_PER_TAB;
+        gm.bearingX = spacegd->GetBearingX();
+        gm.bearingY = spacegd->GetBearingY();
+
+        spacegd->Release();
+
+        return new love::GlyphData(glyph, gm);
+    }
+
+    for (const love::StrongReference<love::Rasterizer> & r : rasterizers)
+    {
+        if (r->HasGlyph(glyph))
+            return r->GetGlyphData(glyph);
+    }
+
+    return rasterizers[0]->GetGlyphData(glyph);
+}
+
+float CFont::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
+{
+    uint64_t packed = ((uint64_t)leftGlyph << 32) | (uint64_t)rightGlyph;
+    const auto iterator = this->kerning.find(packed);
+
+    if (iterator != this->kerning.end())
+        return iterator->second;
+
+    float kern = rasterizers[0]->GetKerning(leftGlyph, rightGlyph);
+
+    for (const auto & rasterizer : rasterizers)
+    {
+        if (rasterizer->HasGlyph(leftGlyph) && rasterizer->HasGlyph(rightGlyph))
+        {
+            kern = floorf(rasterizer->GetKerning(leftGlyph, rightGlyph) / 1.0f + 0.5f);
+            break;
+        }
+    }
+
+    this->kerning[packed] = kern;
+    return kern;
+}
+
+
+float CFont::GetAscent() const
+{
+    return floorf(this->rasterizers[0]->GetAscent() / 1.0f + 0.5f);
+}
+
+float CFont::GetDescent() const
+{
+    return floorf(this->rasterizers[0]->GetDescent() / 1.0f + 0.5f);
+}
+
+float CFont::GetHeight() const
+{
+    return floorf(this->height / 1.0f + 0.5f);
+}
+
+float CFont::GetBaseline() const
+{
+    float ascent = this->GetAscent();
+
+    if (ascent != 0.0f)
+        return ascent;
+    else if (this->rasterizers[0]->GetDataType() == love::Rasterizer::DATA_TRUETYPE)
+        return floorf(this->GetHeight() / 1.25f + 0.5f);
+    else
+        return 0.0f;
+}
+
+const CFont::Glyph & CFont::FindGlyph(uint32_t glyph)
+{
+    const auto it = this->glyphs.find(glyph);
+
+    if (it != this->glyphs.end())
+        return it->second;
+    LOG("Returning the returned glyph");
+    return this->AddGlyph(glyph);
 }
 
 CFont::TextureSize CFont::GetNextTextureSize() const
 {
     TextureSize size = {this->textureWidth, this->textureHeight};
 
-    int maxsize = 2048;
-    // auto gfx = Module::getInstance<Graphics>(Module::M_GRAPHICS);
-    // if (gfx != nullptr)
-    // {
-    // 	const auto &caps = gfx->getCapabilities();
-    // 	maxsize = (int) caps.limits[Graphics::LIMIT_TEXTURE_SIZE];
-    // }
+    int maxSize = 2048;
 
-    int maxwidth  = std::min(8192, maxsize);
-    int maxheight = std::min(4096, maxsize);
+    int maxWidth  = std::min(8192, maxSize);
+    int maxHeight = std::min(4096, maxSize);
 
-    if (size.width * 2 <= maxwidth || size.height * 2 <= maxheight)
+    if (size.width * 2 <= maxWidth || size.height * 2 <= maxHeight)
     {
         // {128, 128} -> {256, 128} -> {256, 256} -> {512, 256} -> etc.
         if (size.width == size.height)
@@ -76,15 +303,4 @@ CFont::TextureSize CFont::GetNextTextureSize() const
     }
 
     return size;
-}
-
-
-bool CFont::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                       void * data, size_t size, uint32_t & width, uint32_t & height, DkImageFormat format, uint32_t flags)
-{
-    // Don't allow 0 sized data or nullptr data
-    if (size <= 0 || !data)
-        return false;
-
-    return true;
 }

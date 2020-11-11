@@ -10,6 +10,9 @@ namespace love
             static love::Type type;
 
             Shader();
+
+            Shader(love::Data * vertex, love::Data * pixel);
+
             ~Shader();
 
             enum StandardShader

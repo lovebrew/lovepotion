@@ -44,6 +44,18 @@ love::deko3d::Graphics::~Graphics()
     // }
 }
 
+Graphics::RendererInfo love::deko3d::Graphics::GetRendererInfo() const
+{
+    RendererInfo info {};
+
+    info.name    = RENDERER_NAME;
+    info.device  = RENDERER_DEVICE;
+    info.vendor  = RENDERER_VENDOR;
+    info.version = RENDERER_VERSION;
+
+    return info;
+}
+
 void love::deko3d::Graphics::SetColor(Colorf color)
 {
     love::Graphics::SetColor(color);
@@ -303,6 +315,11 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
     this->Polygon(mode, coords, num_coords + 1);
 }
 
+Image * love::deko3d::Graphics::NewImage(Texture::TextureType type, int width, int height)
+{
+    return new Image(type, width, height);
+}
+
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry)
 {
     this->Rectangle(mode, x, y, width, height, rx, ry, this->CalculateEllipsePoints(rx, ry));
@@ -475,9 +492,6 @@ void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<in
 {
     dk3d.BindFramebuffer();
 
-    if (color.has_value() || stencil.has_value() || depth.has_value())
-    {} // flush stream draws
-
     if (color.has_value())
     {
         Graphics::GammaCorrectColor(color.value());
@@ -485,7 +499,9 @@ void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<in
     }
 
     if (stencil.has_value())
-        dk3d.ClearStencil(stencil.value());
+        dk3d.ClearDepthStencil(depth.value(), stencil.value());
+
+    dk3d.BeginFrame();
 }
 
 void love::deko3d::Graphics::Present()
@@ -495,8 +511,6 @@ void love::deko3d::Graphics::Present()
 
 void love::deko3d::Graphics::SetScissor(const Rect & scissor)
 {
-    // Flush Stream Draws
-
     DisplayState & state = this->states.back();
 
     dk3d.SetScissor(scissor, false);
@@ -515,9 +529,10 @@ void love::deko3d::Graphics::SetColorMask(ColorMask mask)
 
 void love::deko3d::Graphics::SetScissor()
 {
-    if (states.back().scissor)
-    {} // Flush Stream Draws
+    int width, height = 0;
+    this->GetDimensions(&width, &height);
 
+    dk3d.SetScissor({0, 0, width, height}, false);
     states.back().scissor = false;
 }
 

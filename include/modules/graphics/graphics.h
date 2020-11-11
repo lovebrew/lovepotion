@@ -22,20 +22,9 @@
 #include "common/mmath.h"
 #include "common/colors.h"
 
-#include "deko3d/shader.h"
-
-#include "deko3d/vertex.h"
-
-#if defined (_3DS)
-    #define RENDERER_NAME "citro3d"
-    #define RENDERER_VERSION "1.3.1"
-    #define RENDERER_VENDOR "devkitPro"
-    #define RENDERER_DEVICE "DMP PICA200"
-#elif defined (__SWITCH__)
-    #define RENDERER_NAME "deko3d"
-    #define RENDERER_VERSION "0.2.0"
-    #define RENDERER_VENDOR "devkitPro"
-    #define RENDERER_DEVICE "Tegra X1"
+#if defined(__SWITCH__)
+    #include "deko3d/shader.h"
+    #include "deko3d/vertex.h"
 #endif
 
 namespace love
@@ -96,18 +85,12 @@ namespace love
                 LINE_JOIN_MAX_ENUM
             };
 
-            struct Point
-            {
-                float x;
-                float y;
-            };
-
             struct RendererInfo
             {
-                std::string name    = RENDERER_NAME;
-                std::string version = RENDERER_VERSION;
-                std::string vendor  = RENDERER_VENDOR;
-                std::string device  = RENDERER_DEVICE;
+                std::string name;
+                std::string version;
+                std::string vendor;
+                std::string device;
             };
 
             struct ColorMask
@@ -122,12 +105,12 @@ namespace love
                     : r(_r), g(_g), b(_b), a(_a)
                 {}
 
-                bool operator == (const ColorMask &m) const
+                bool operator == (const ColorMask & m) const
                 {
                     return r == m.r && g == m.g && b == m.b && a == m.a;
                 }
 
-                bool operator != (const ColorMask &m) const
+                bool operator != (const ColorMask & m) const
                 {
                     return !(operator == (m));
                 }
@@ -152,7 +135,6 @@ namespace love
             static Colorf UnGammaCorrectColor(const Colorf & c);
 
             /* End */
-
 
             void Transform(DrawArgs * args, bool isTexture = false);
             void Transform(float * x, float * y);
@@ -216,8 +198,6 @@ namespace love
 
             void Pop();
 
-            RendererInfo GetRendererInfo();
-
             /* Objects */
 
             Image * NewImage(Data * data);
@@ -241,10 +221,6 @@ namespace love
             LineJoin GetLineJoin() const;
 
             float GetLineWidth() const;
-
-            vertex::CullMode GetMeshCullMode() const;
-
-            vertex::Winding GetFrontFaceWinding() const;
 
             void SetLineJoin(LineJoin join);
 
@@ -279,9 +255,11 @@ namespace love
 
             virtual void SetColor(Colorf color);
 
-            virtual void SetMeshCullMode(vertex::CullMode cull) = 0;
+            #if defined (__SWITCH__)
+                virtual void SetMeshCullMode(vertex::CullMode cull) = 0;
 
-            virtual void SetFrontFaceWinding(vertex::Winding winding) = 0;
+                virtual void SetFrontFaceWinding(vertex::Winding winding) = 0;
+            #endif
 
             /* Primitives */
 
@@ -299,7 +277,11 @@ namespace love
 
             virtual void Circle(DrawMode mode, float x, float y, float radius, int points) = 0;
 
-            virtual void Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex = true) = 0;
+            #if defined(__SWITCH__)
+                virtual void Polygon(DrawMode mode, const Vector2 * points, size_t count, bool skipLastFilledVertex = true) = 0;
+            #else
+                virtual void Polygon(DrawMode mode, const Vector2 * points, size_t count) = 0;
+            #endif
 
             virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2) = 0;
 
@@ -313,6 +295,8 @@ namespace love
 
             virtual void SetLineWidth(float width) = 0;
 
+            virtual RendererInfo GetRendererInfo() const = 0;
+
             /* Primitives */
 
             ColorMask getColorMask() const;
@@ -320,11 +304,17 @@ namespace love
 
             static void SetViewMatrix(const Matrix4 & matrix);
 
-            void SetShader();
+            #if defined(__SWITCH__)
+                vertex::CullMode GetMeshCullMode() const;
 
-            void SetShader(Shader * shader);
+                vertex::Winding GetFrontFaceWinding() const;
 
-            Shader * GetShader() const;
+                void SetShader();
+
+                void SetShader(Shader * shader);
+
+                Shader * GetShader() const;
+            #endif
 
             /* States or Something */
 
@@ -358,7 +348,10 @@ namespace love
                 float pointSize = 1.0f;
 
                 StrongReference<Font> font;
-                StrongReference<Shader> shader;
+
+                #if defined(__SWITCH__)
+                    StrongReference<Shader> shader;
+                #endif
 
                 Rect scissorRect = Rect();
                 bool scissor = false;
@@ -370,8 +363,10 @@ namespace love
                 LineStyle lineStyle = LINE_SMOOTH;
                 LineJoin lineJoin = LINE_JOIN_MITER;
 
-                vertex::CullMode meshCullMode = vertex::CULL_NONE;
-                vertex::Winding winding = vertex::WINDING_CCW;
+                #if defined(__SWITCH__)
+                    vertex::CullMode meshCullMode = vertex::CULL_NONE;
+                    vertex::Winding winding = vertex::WINDING_CCW;
+                #endif
 
                 BlendMode blendMode = BLEND_ALPHA;
                 BlendAlpha blendAlphaMode = BLENDALPHA_MULTIPLY;

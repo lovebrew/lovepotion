@@ -18,6 +18,11 @@ namespace love
             static love::Type type;
 
             Image(Data * data);
+
+            Image(TextureType type, int width, int height);
+
+            void Init(int width, int height);
+
             ~Image();
 
         private:

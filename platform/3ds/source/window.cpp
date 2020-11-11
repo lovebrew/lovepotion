@@ -16,6 +16,8 @@ Window::Window() : open(false)
 
     C2D_Prepare();
 
+    C3D_AlphaTest(true, GPU_GREATER, 0);
+
     this->displaySizes =
     {
         { 400, 240 },

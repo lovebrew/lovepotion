@@ -834,25 +834,48 @@ int Wrap_Graphics::PrintF(lua_State * L)
     int start = 2;
 
     Font * font = nullptr;
-    if (Luax::IsType(L, 2, Font::type))
+    if (Luax::IsType(L, start, Font::type))
     {
         font = Wrap_Font::CheckFont(L, start);
         start++;
     }
 
-    float wrap = luaL_checknumber(L, start + 2);
-
     Font::AlignMode mode = Font::ALIGN_LEFT;
-    const char * alignment = lua_isnoneornil(L, start + 3) ? nullptr : luaL_checkstring(L, start + 3);
+    Matrix4 m;
+
+    int formatidx = start + 2;
+
+    float wrap = luaL_checknumber(L, formatidx);
+    const char * alignment = lua_isnoneornil(L, formatidx + 1) ? nullptr : luaL_checkstring(L, formatidx + 1);
 
     if (alignment != nullptr && !Font::GetConstant(alignment, mode))
         return Luax::EnumError(L, "alignment", Font::GetConstants(mode), alignment);
 
-    Graphics::CheckStandardTransform(L, 2, [&](const Matrix4 & m) {
+    float x = luaL_checknumber(L, start + 0);
+    float y = luaL_checknumber(L, start + 1);
+
+    float r  = luaL_optnumber(L, start + 4, 0.0f);
+    float sx = luaL_optnumber(L, start + 5, 1.0f);
+    float sy = luaL_optnumber(L, start + 6, sx);
+    float ox = luaL_optnumber(L, start + 7, 0.0f);
+    float oy = luaL_optnumber(L, start + 8, 0.0f);
+    float kx = luaL_optnumber(L, start + 9, 0.0f);
+    float ky = luaL_optnumber(L, start + 10, 0.0f);
+
+    m = Matrix4(x, y, r, sx, sy, ox, oy, kx, ky);
+
+    if (font != nullptr)
+    {
+        Luax::CatchException(L, [&]() {
+            instance()->PrintF(string, font, wrap, mode, m);
+        });
+    }
+    else
+    {
         Luax::CatchException(L, [&]() {
             instance()->PrintF(string, wrap, mode, m);
         });
-    });
+    }
 
     return 0;
 }
@@ -1052,7 +1075,7 @@ int Wrap_Graphics::Register(lua_State * L)
     if (instance == nullptr)
         #if defined (_3DS)
             Luax::CatchException(L, [&]() {
-                instance = new Graphics();
+                instance = new love::citro2d::Graphics();
             });
         #elif defined (__SWITCH__)
             Luax::CatchException(L, [&]() {

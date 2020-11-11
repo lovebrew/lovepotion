@@ -24,10 +24,6 @@ switch-libvorbisidec
 switch-mpg123
 switch-physfs
 switch-pkg-config
-switch-sdl2
-switch-sdl2_gfx
-switch-sdl2_image
-switch-sdl2_ttf
 switch-tools
 switch-zlib
 tex3ds

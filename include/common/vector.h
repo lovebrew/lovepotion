@@ -44,6 +44,11 @@ struct Vector2
         : x(v.x), y(v.y)
     {}
 
+    static const char * toString()
+    {
+        return "Vector2(%f, %f)";
+    }
+
     float getLength() const;
     float getLengthSquare() const;
 

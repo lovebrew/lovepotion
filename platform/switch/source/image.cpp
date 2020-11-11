@@ -20,6 +20,11 @@ Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
     this->InitQuad();
 }
 
+Image::Image(TextureType type, int width, int height) : Texture(type)
+{
+    this->Init(width, height);
+}
+
 Image::~Image()
 {
     dk3d.UnRegisterResHandle(this);

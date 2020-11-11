@@ -3,7 +3,12 @@
 #include "deko3d/common.h"
 #include "deko3d/CMemPool.h"
 
-#include "deko3d/deko.h"
+#include "objects/texture/texture.h"
+
+#include "truetyperasterizer.h"
+#include "common/strongref.h"
+
+#include "deko3d/vertex.h"
 
 // FreeType2
 #include <ft2build.h>
@@ -13,36 +18,103 @@
 class CFont
 {
     public:
-        CFont() {}
+        CFont();
 
-        CFont(void * data, size_t size, int height);
+        ~CFont();
 
-        ~CFont() {}
+        void Load(love::Rasterizer * rasterizer, const love::Texture::Filter & filter);
 
-        constexpr FT_Face & getFace()
+        struct Glyph
         {
-            return m_face;
+            dk::Image texture;
+            CMemPool::Handle memory;
+
+            int spacing;
+
+            int x;
+            int y;
+
+            vertex::Vertex vertices[4];
+        };
+
+        constexpr dk::ImageDescriptor & getDescriptor()
+        {
+            return m_descriptor;
         }
 
-        int loadFace(void * data, size_t size, int ptSize);
+        constexpr dk::Image & getImage()
+        {
+            return m_image;
+        }
 
-        bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                        void * data, size_t size, uint32_t & width, uint32_t & height, DkImageFormat format, uint32_t flags = 0);
+        void SetHandle(const DkResHandle & handle)
+        {
+            this->handle = handle;
+        }
+
+        std::vector<love::StrongReference<love::Rasterizer>> GetRasterizers()
+        {
+            return this->rasterizers;
+        }
+
+        float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph);
+
+        const Glyph & FindGlyph(uint32_t glyph);
+
+        float GetBaseline() const;
+
+        float GetAscent() const;
+
+        float GetDescent() const;
+
+        float GetHeight() const;
 
     private:
+        void CreateTexture();
+
         struct TextureSize
         {
             int width;
             int height;
         };
 
+        DkResHandle handle;
+
         TextureSize GetNextTextureSize() const;
 
-        CImage m_image;
-        FT_Face m_face;
+        const Glyph & AddGlyph(uint32_t glyph);
+
+        love::GlyphData * GetRasterizerGlyphData(uint32_t glyph);
+
+        dk::Image m_image;
+
+        CMemPool::Handle m_scratch;
+        CMemPool::Handle m_mem;
+
+        dk::ImageDescriptor m_descriptor;
+
+        static const int SPACES_PER_TAB = 4;
+
+        int textureX;
+        int textureY;
+        int rowHeight;
+        int textureCacheID;
+
+        static const int TEXTURE_PADDING = 2;
 
         float pointSize;
+        float height;
 
         int textureWidth;
         int textureHeight;
+
+        std::vector<love::StrongReference<love::Rasterizer>> rasterizers;
+
+        bool useSpacesAsTab;
+
+        std::vector<dk::Image> images;
+
+        std::unordered_map<uint32_t, Glyph> glyphs;
+
+        std::unordered_map<uint64_t, float> kerning;
 };

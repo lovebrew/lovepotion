@@ -601,6 +601,7 @@ function love.init()
         "thread",
         "timer",
         "event",
+        "font",
         "keyboard",
         "joystick",
         "touch",
@@ -615,7 +616,7 @@ function love.init()
     -- Load them all!
     for i, v in ipairs(modules) do
         if config.modules[v] then
-            require("love." .. v)
+            pcall(function() require("love." .. v) end)
         end
     end
 

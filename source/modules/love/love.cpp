@@ -20,6 +20,10 @@
 #include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
 
+#if defined (__SWITCH__)
+    #include "modules/font/wrap_fontmodule.h"
+#endif
+
 #include "luasocket/luasocket.h"
 
 #include "boot_lua.h"
@@ -87,6 +91,9 @@ int Love::Initialize(lua_State * L)
         { "love.event",       Wrap_Event::Register,       },
         { "love.graphics",    Wrap_Graphics::Register,    },
         { "love.filesystem",  Wrap_Filesystem::Register,  },
+        #if defined(__SWITCH__)
+         { "love.font",       Wrap_FontModule::Register  },
+        #endif
         { "love.joystick",    Wrap_Joystick::Register,    },
         { "love.keyboard",    Wrap_Keyboard::Register     },
         { "love.math",        Wrap_Math::Register         },

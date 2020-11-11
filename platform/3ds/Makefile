@@ -38,13 +38,15 @@ SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				source \
 				source/backend \
-				source/common
+				source/common \
+				source/citro2d
 
 DATA		:=	../../source/scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
 				include \
+				include/citro2d
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
@@ -228,8 +230,7 @@ $(OUTPUT).elf	:	$(OFILES)
 	@echo $(notdir $<)
 	@$(bin2o)
 #---------------------------------------------------------------------------------
-%.lua.o    :    %.lua
-#---------------------------------------------------------------------------------
+%.lua.o: %.lua
 	@echo $(notdir $<)
 	@$(bin2o)
 

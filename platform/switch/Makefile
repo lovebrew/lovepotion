@@ -38,7 +38,10 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source \
 				source/backend \
 				source/common \
-				source/deko3d
+				source/deko3d \
+				source/freetype \
+				source/freetype/types \
+				source/modules/font
 
 DATA		:=	../../source/scripts \
 				scripts
@@ -46,7 +49,10 @@ DATA		:=	../../source/scripts \
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
 				include \
-				include/deko3d
+				include/deko3d \
+				include/freetype \
+				include/freetype/types \
+				include/modules/font
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs
@@ -61,7 +67,7 @@ APP_TITLEID		:= 1043
 #---------------------------------------------------------------------------------
 ARCH      :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS    :=    -g -Wall -O2 -ffunction-sections `freetype-config --cflags` \
+CFLAGS    :=    -g -Wall -Og -ffunction-sections `freetype-config --cflags` \
 				$(ARCH) $(DEFINES) -DLOVE_POTION_CONSOLE="\"Switch\""
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION)

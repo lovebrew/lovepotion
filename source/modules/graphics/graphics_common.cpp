@@ -1,6 +1,5 @@
 #include "common/runtime.h"
 #include "modules/graphics/graphics.h"
-#include "common/backend/primitives.h"
 #include "modules/window/window.h"
 
 #include "modules/math/mathmodule.h"
@@ -120,25 +119,28 @@ void Graphics::SetLineWidth(float width)
     this->states.back().lineWidth = width;
 }
 
-Shader * Graphics::GetShader() const
-{
-    return states.back().shader.Get();
-}
 
-void Graphics::SetShader(Shader * shader)
-{
-    if (shader == nullptr)
-        return this->SetShader();
+#if defined(__SWITCH__)
+    Shader * Graphics::GetShader() const
+    {
+        return states.back().shader.Get();
+    }
 
-    shader->Attach();
-    states.back().shader.Set(shader);
-}
+    void Graphics::SetShader(Shader * shader)
+    {
+        if (shader == nullptr)
+            return this->SetShader();
 
-void Graphics::SetShader()
-{
-    Shader::AttachDefault(Shader::STANDARD_DEFAULT);
-    states.back().shader.Set(nullptr);
-}
+        shader->Attach();
+        states.back().shader.Set(shader);
+    }
+
+    void Graphics::SetShader()
+    {
+        Shader::AttachDefault(Shader::STANDARD_DEFAULT);
+        states.back().shader.Set(nullptr);
+    }
+#endif
 
 bool Graphics::GetScissor(Rect & scissor) const
 {
@@ -182,6 +184,10 @@ void Graphics::Origin()
 {
     auto & transform = this->transformStack.back();
     transform.SetIdentity();
+
+    #if defined(_3DS)
+        C2D_ViewRestore(&transform.GetElements());
+    #endif
 }
 
 void Graphics::Push()
@@ -222,11 +228,6 @@ void Graphics::Pop()
         throw Exception("Minimum stack depth reached (more pops than pushes?)");
 
     this->transformStack.pop_back();
-}
-
-Graphics::RendererInfo Graphics::GetRendererInfo()
-{
-    return this->rendererInfo;
 }
 
 /* Objects */
@@ -337,11 +338,14 @@ void Graphics::RestoreState(const DisplayState & state)
     else
         this->SetScissor();
 
-    this->SetMeshCullMode(state.meshCullMode);
-    this->SetFrontFaceWinding(state.winding);
+    #if defined(__SWITCH__)
+        this->SetMeshCullMode(state.meshCullMode);
+        this->SetFrontFaceWinding(state.winding);
+
+        this->SetShader(state.shader.Get());
+    #endif
 
     this->SetFont(state.font.Get());
-    this->SetShader(state.shader.Get());
 
     this->SetColorMask(state.colorMask);
     this->SetDefaultFilter(state.defaultFilter);

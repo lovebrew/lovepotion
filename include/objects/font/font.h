@@ -8,12 +8,14 @@
 #include "common/matrix.h"
 
 #include "objects/texture/texture.h"
-#include "deko3d/CFont.h"
 
 #if defined (_3DS)
     #define FONT_DEFAULT_SIZE 22.5f;
 #elif defined (__SWITCH__)
     #define FONT_DEFAULT_SIZE 14.0f;
+
+    #include "deko3d/CFont.h"
+    #include "freetype/rasterizer.h"
 #endif
 
 namespace love
@@ -21,6 +23,8 @@ namespace love
     class Font : public Object
     {
         public:
+            typedef std::vector<uint32_t> Codepoints;
+
             struct ColoredString
             {
                 std::string string;
@@ -34,6 +38,24 @@ namespace love
                 ALIGN_RIGHT,
                 ALIGN_JUSTIFY,
                 ALIGN_MAX_ENUM
+            };
+
+            struct IndexedColor
+            {
+                Colorf color;
+                int index;
+            };
+
+            struct ColoredCodepoints
+            {
+                std::vector<uint32_t> codes;
+                std::vector<IndexedColor> colors;
+            };
+
+            struct TextInfo
+            {
+                int width;
+                int height;
             };
 
             #if defined (_3DS)
@@ -56,7 +78,24 @@ namespace love
                     TYPE_NINTENDO_EXTENDED      = PlSharedFontType_NintendoExt,
                     TYPE_MAX_ENUM
                 };
+
+                static void GetCodepointsFromString(const std::string & string, Codepoints & points);
+                static void GetCodepointsFromString(const std::vector<ColoredString> & strings, ColoredCodepoints & codepoints);
+
+                void GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantcolor, std::vector<vertex::Vertex> & glyphVertices,
+                                      float extra_spacing = 0.0f, Vector2 offset = {}, TextInfo * info = nullptr);
+
+                void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<vertex::Vertex> & vertices);
             #endif
+
+            enum Hinting
+            {
+                HINTING_NORMAL,
+                HINTING_LIGHT,
+                HINTING_MONO,
+                HINTING_NONE,
+                HINTING_MAX_ENUM
+            };
 
             static love::Type type;
 
@@ -92,12 +131,20 @@ namespace love
             static std::vector<std::string> GetConstants(SystemFontType);
 
         private:
-            CFont font;
+            #if defined(__SWITCH__)
+                CFont font;
+                std::vector<vertex::Vertex> glyphVertices;
+            #elif defined(_3DS)
+                C2D_Font font;
+            #endif
+
             TextBuffer buffer;
             float size;
             TextHandle text;
 
             TextureHandle texture;
+
+            float GetLineHeight() { return 1.0f; }
 
             float GetScale() { return this->size / 30.0f; }
 

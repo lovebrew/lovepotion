@@ -13,6 +13,7 @@ namespace love
                 M_DATA,
                 M_EVENT,
                 M_FILESYSTEM,
+                M_FONT,
                 M_GRAPHICS,
                 M_JOYSTICK,
                 M_KEYBOARD,

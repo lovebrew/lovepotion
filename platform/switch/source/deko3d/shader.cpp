@@ -17,6 +17,17 @@ love::Shader * love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = 
 love::Shader::Shader() : program()
 {}
 
+love::Shader::Shader(Data * vertex, Data * pixel) : program()
+{
+    std::string error;
+
+    this->program.vertex.loadMemory(*dk3d.GetCode(), vertex->GetData(), vertex->GetSize());
+    this->program.fragment.loadMemory(*dk3d.GetCode(), pixel->GetData(), pixel->GetSize());
+
+    if (!this->Validate(this->program.vertex, this->program.fragment, error))
+        throw love::Exception(error.c_str());
+}
+
 love::Shader::~Shader()
 {
     for (int i = 0; i < STANDARD_MAX_ENUM; i++)

@@ -11,10 +11,20 @@ Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
 
     this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
 
-    this->width  = this->texture.subtex->width;
-    this->height = this->texture.subtex->height;
+    this->Init(this->texture.subtex->width, this->texture.subtex->height);
 
     this->InitQuad();
+}
+
+Image::Image(TextureType type, int width, int height) : Texture(type)
+{
+    this->Init(width, height);
+}
+
+void Image::Init(int width, int height)
+{
+    this->width = width;
+    this->height = height;
 }
 
 Image::~Image()

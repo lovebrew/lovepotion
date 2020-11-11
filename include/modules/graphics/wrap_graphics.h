@@ -1,14 +1,17 @@
 #pragma once
 
 #include "modules/graphics/graphics.h"
-#include "deko3d/graphics.h"
+
+#if defined (__SWITCH__)
+    #include "deko3d/graphics.h"
+#elif defined (_3DS)
+    #include "citro2d/graphics.h"
+#endif
 
 #include "modules/window/window.h"
 
 #include "objects/font/font.h"
 #include "objects/drawable/wrap_drawable.h"
-
-#include "common/backend/primitives.h"
 
 namespace Wrap_Graphics
 {
