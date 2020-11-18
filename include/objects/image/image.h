@@ -21,6 +21,8 @@ namespace love
 
             Image(TextureType type, int width, int height);
 
+            void LoadBuffer(void * buffer, size_t size);
+
             void Init(int width, int height);
 
             ~Image();

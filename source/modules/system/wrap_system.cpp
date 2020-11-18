@@ -100,7 +100,11 @@ int Wrap_System::Register(lua_State * L)
     System * instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new System(); });
+        #if defined (_3DS)
+            Luax::CatchException(L, [&]() { instance = new ctr::System(); });
+        #else
+            Luax::CatchException(L, [&]() { instance = new hac::System(); });
+        #endif
     else
         instance->Retain();
 

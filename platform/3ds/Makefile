@@ -39,14 +39,16 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source \
 				source/backend \
 				source/common \
-				source/citro2d
+				source/citro2d \
+				source/modules
 
 DATA		:=	../../source/scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
 				include \
-				include/citro2d
+				include/citro2d \
+				include/modules
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)

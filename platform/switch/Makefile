@@ -41,6 +41,7 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source/deko3d \
 				source/freetype \
 				source/freetype/types \
+				source/modules \
 				source/modules/font
 
 DATA		:=	../../source/scripts \
@@ -52,6 +53,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/deko3d \
 				include/freetype \
 				include/freetype/types \
+				include/modules \
 				include/modules/font
 
 EXEFS_SRC    := exefs_src

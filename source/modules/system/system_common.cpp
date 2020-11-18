@@ -3,21 +3,19 @@
 
 using namespace love;
 
+System::System() : sysInfo()
+{ /* initialize sysInfo defaults */ }
+
 std::string System::GetOS() const
 {
     return OS_NAME;
-}
-
-int System::GetProcessorCount() const
-{
-    return Horizon::GetCPUCount();
 }
 
 System::PowerState System::GetPowerInfo(int & percent) const
 {
     PowerState state = POWER_UNKNOWN;
 
-    Horizon::PowerInfo info = Horizon::GetPowerInfo();
+    PowerInfo info = this->GetPowerInfo();
 
     this->GetConstant(info.state.c_str(), state);
     percent = info.percentage;
@@ -29,22 +27,12 @@ System::NetworkState System::GetNetworkInfo(int & signal) const
 {
     NetworkState state = NETWORK_UNKNOWN;
 
-    Horizon::NetworkInfo info = Horizon::GetNetworkInfo();
+    NetworkInfo info = this->GetNetworkInfo();
 
     this->GetConstant(info.status.c_str(), state);
     signal = info.signal;
 
     return state;
-}
-
-std::string System::GetUsername() const
-{
-    return Horizon::GetUsername();
-}
-
-std::string System::GetLanguage() const
-{
-    return Horizon::GetSystemLanguage();
 }
 
 bool System::GetConstant(const char * in, System::PowerState & out)

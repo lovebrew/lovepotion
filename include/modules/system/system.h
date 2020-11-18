@@ -1,9 +1,14 @@
 #pragma once
 
 #include "common/stringmap.h"
-#include "common/backend/horizon.h"
 
 #define OS_NAME "Horizon"
+
+#if defined (_3DS)
+    #define LANGUAGE_COUNT 12
+#elif defined (__SWITCH__)
+    #define LANGUAGE_COUNT 17
+#endif
 
 namespace love
 {
@@ -27,6 +32,20 @@ namespace love
                 NETWORK_MAX_ENUM
             };
 
+            struct PowerInfo
+            {
+                std::string state;
+                int percentage;
+            };
+
+            struct NetworkInfo
+            {
+                std::string status;
+                int signal;
+            };
+
+            System();
+
             ModuleType GetModuleType() const { return M_SYSTEM; }
 
             const char * GetName() const override { return "love.system"; }
@@ -35,13 +54,21 @@ namespace love
 
             std::string GetOS() const;
 
-            int GetProcessorCount() const;
+            /* pure virtual subclass stuff */
+
+            virtual int GetProcessorCount() = 0;
+
+            virtual PowerInfo GetPowerInfo() const = 0;
+
+            virtual const std::string & GetUsername() = 0;
+
+            virtual NetworkInfo GetNetworkInfo() const = 0;
+
+            virtual const std::string & GetLanguage() = 0;
+
+            /* end pure virtual methods */
 
             PowerState GetPowerInfo(int & percent) const;
-
-            std::string GetUsername() const;
-
-            std::string GetLanguage() const;
 
             NetworkState GetNetworkInfo(int & signal) const;
 
@@ -51,7 +78,18 @@ namespace love
             static bool GetConstant(const char * in, NetworkState & out);
             static bool GetConstant(NetworkState in, const char *& out);
 
+        protected:
+            struct
+            {
+                int processors;
+                std::string username;
+                std::string language;
+            } sysInfo;
+
+            static std::array<std::string, LANGUAGE_COUNT> LANGUAGES;
+
         private:
+
             static StringMap<PowerState, POWER_MAX_ENUM>::Entry powerEntries[];
             static StringMap<PowerState, POWER_MAX_ENUM> powerStates;
 

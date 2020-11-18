@@ -29,3 +29,16 @@ Image::~Image()
 {
     dk3d.UnRegisterResHandle(this);
 }
+
+void Image::Init(int width, int height)
+{
+    this->width = width;
+    this->height = height;
+
+    this->InitQuad();
+}
+
+void Image::LoadBuffer(void * data, size_t size)
+{
+    dk3d.LoadTextureBuffer(this->texture, data, size * 4, this, DkImageFormat_RGBA8_Unorm);
+}

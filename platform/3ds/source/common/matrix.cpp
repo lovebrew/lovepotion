@@ -136,18 +136,18 @@ void Matrix4::TransformXY(const Elements & elements)
 
 Matrix4 Matrix4::Inverse() const
 {
-    C3D_Mtx inv;
-    Mtx_Copy(&inv, &this->matrix);
+    Matrix4 inv;
+    Mtx_Copy(&inv.matrix, &this->matrix);
 
-    Mtx_Inverse(&inv);
+    Mtx_Inverse(&inv.matrix);
 
     return inv;
 }
 
 Matrix4 Matrix4::Ortho(float left, float right, float bottom, float top, float near, float far)
 {
-    C3D_Mtx mtx;
-    Mtx_Ortho(&mtx, left, right, bottom, top, near, far, true);
+    Matrix4 ortho;
+    Mtx_Ortho(&ortho.matrix, left, right, bottom, top, near, far, true);
 
-    return mtx;
+    return ortho;
 }

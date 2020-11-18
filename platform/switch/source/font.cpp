@@ -156,6 +156,7 @@ void Font::GenerateVertices(const ColoredCodepoints & codepoints, const Colorf &
         const CFont::Glyph & glyphData = this->font.FindGlyph(glyph);
 
         // Add kerning to the current horizontal offset.
+        LOG("Getting Kerning for Glyph!");
         dx += this->font.GetKerning(prevGlyph, glyph);
 
         // Copy the vertices and set their colors and relative positions.
