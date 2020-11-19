@@ -105,7 +105,7 @@ class deko3d
 
         std::optional<CMemPool> & GetData();
 
-        void RegisterResHandle(love::Object * object);
+        void RegisterResHandle(CImage & image, love::Texture * texture);
 
         void UnRegisterResHandle(love::Object * object);
 

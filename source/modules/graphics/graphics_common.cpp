@@ -361,7 +361,13 @@ void Graphics::CheckSetDefaultFont()
 
     // Create a new default font if we don't have one yet.
     if (!this->defaultFont.Get())
-        this->defaultFont.Set(this->NewFont(), Acquire::NORETAIN);
+    {
+        #if defined(__SWITCH__)
+            this->defaultFont.Set(this->NewDefaultFont(12, TrueTypeRasterizer::HINTING_NORMAL), Acquire::NORETAIN);
+        #else
+            this->defaultFont.Set(this->NewFont(), Acquire::NORETAIN);
+        #endif
+    }
 
     this->states.back().font.Set(this->defaultFont.Get());
 }

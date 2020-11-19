@@ -208,6 +208,10 @@ namespace love
 
             Font * NewFont(float size = Font::DEFAULT_SIZE);
 
+            #if defined (__SWITCH__)
+                virtual Font * NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter = Texture::defaultFilter) = 0;
+            #endif
+
             Quad * NewQuad(Quad::Viewport v, double sw, double sh);
 
             void SetFont(Font * font);

@@ -10,6 +10,8 @@
 #include <libpng16/png.h>
 #include <turbojpeg.h>
 
+#include "common/mmath.h"
+
 class CImage
 {
     dk::Image m_image;
@@ -43,6 +45,12 @@ class CImage
         }
 
         void * load(void * buffer, size_t size, int & width, int & height);
+
+        bool loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue queue,
+                             size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+
+        bool replacePixels(CMemPool & scratchPool, dk::Device device, void * data,
+                           size_t size, dk::Queue transferQueue, const love::Rect & rect);
 
         bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                         void * data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);

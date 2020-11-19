@@ -321,13 +321,7 @@ void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love:
     image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
                      buffer, size, texture->GetWidth(), texture->GetHeight(), format);
 
-    // Register the texture's identifier with the image descriptor
-    this->textureResIDs[texture] = this->textureIDs;
-
-    this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
-    this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
-
-    texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
+    this->RegisterResHandle(image, texture);
 
     this->textureIDs++;
 }
@@ -337,13 +331,19 @@ void deko3d::UnRegisterResHandle(love::Object * object)
     this->textureResIDs.erase(object);
 }
 
-void deko3d::RegisterResHandle(love::Object * object)
+void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
 {
-    this->textureResIDs[object] = this->textureIDs;
+    this->textureResIDs[texture] = this->textureIDs;
+
+    this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
+    this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
+
+    texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)
 {
+    LOG("Rendering Texture (verts size: %zu, verts count: %zu)", size, count);
     if (4 > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 

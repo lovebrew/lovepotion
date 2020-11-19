@@ -5,11 +5,9 @@
 
 using namespace love;
 
-TrueTypeRasterizer::TrueTypeRasterizer(love::Data * data, int size, Hinting hinting) : data(data),
-                                                                                       hinting(hinting)
-{}
-
-TrueTypeRasterizer::TrueTypeRasterizer(void * data, size_t dataSize, int size, Hinting hinting)
+TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data * data,
+                                       int size, Hinting hinting) : data(data),
+                                                                    hinting(hinting)
 {
     size = floorf(size * this->dpiScale + 0.5f);
 
@@ -17,9 +15,9 @@ TrueTypeRasterizer::TrueTypeRasterizer(void * data, size_t dataSize, int size, H
         throw love::Exception("Invalid TrueType font size: %d", size);
 
     FT_Error err = FT_Err_Ok;
-    err = FT_New_Memory_Face(deko3d::Graphics::g_ftLibrary,
-                             (const FT_Byte *)data,
-                             dataSize,
+    err = FT_New_Memory_Face(library,
+                             (const FT_Byte *)data->GetData(),
+                             data->GetSize(),
                              0,
                              &this->face);
 
@@ -129,8 +127,9 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     }
 
     // Having copied the data over, we can destroy the glyph.
+    LOG("done with glyph!");
     FT_Done_Glyph(ftGlyph);
-
+    LOG("returning glyphData");
     return glyphData;
 }
 
@@ -141,6 +140,7 @@ int TrueTypeRasterizer::GetGlyphCount() const
 
 bool TrueTypeRasterizer::HasGlyph(uint32_t glyph) const
 {
+    LOG("checking for glyph %zu", glyph);
     return FT_Get_Char_Index(this->face, glyph) != 0;
 }
 
@@ -165,13 +165,13 @@ Rasterizer::DataType TrueTypeRasterizer::GetDataType() const
     return DATA_TRUETYPE;
 }
 
-bool TrueTypeRasterizer::Accepts(love::Data * data)
+bool TrueTypeRasterizer::Accepts(FT_Library library, love::Data * data)
 {
     const FT_Byte * fbase = (const FT_Byte *)data->GetData();
     FT_Long fsize = (FT_Long)data->GetSize();
 
     // Pasing in -1 for the face index lets us test if the data is valid.
-    return FT_New_Memory_Face(deko3d::Graphics::g_ftLibrary, fbase, fsize, -1, nullptr) == 0;
+    return FT_New_Memory_Face(library, fbase, fsize, -1, nullptr) == 0;
 }
 
 FT_UInt TrueTypeRasterizer::HintingToLoadOption(Hinting hint)

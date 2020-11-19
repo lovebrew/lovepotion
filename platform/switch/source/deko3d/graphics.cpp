@@ -1,9 +1,9 @@
 #include "common/runtime.h"
 #include "deko3d/graphics.h"
 
-using namespace love;
+#include "modules/font/fontmodule.h"
 
-FT_Library love::deko3d::Graphics::g_ftLibrary;
+using namespace love;
 
 love::deko3d::Graphics::Graphics()
 {
@@ -26,14 +26,10 @@ love::deko3d::Graphics::Graphics()
     // returned by getShader(), so we don't do setShader(defaultShader).
     if (!Shader::current)
         Shader::standardShaders[Shader::STANDARD_DEFAULT]->Attach();
-
-    FT_Init_FreeType(&deko3d::Graphics::g_ftLibrary);
 }
 
 love::deko3d::Graphics::~Graphics()
 {
-    FT_Done_FreeType(deko3d::Graphics::g_ftLibrary);
-
     // for (int i = 0; i < Shader::STANDARD_MAX_ENUM; i++)
     // {
     //     if (Shader::standardShaders[i])
@@ -541,4 +537,18 @@ Shader * love::deko3d::Graphics::NewShader(Shader::StandardShader type)
     Shader * s = new Shader();
     s->LoadDefaults(type);
     return s;
+}
+
+Font * love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter)
+{
+    auto fontModule = Module::GetInstance<FontModule>(M_FONT);
+    if (!fontModule)
+        throw love::Exception("Font module has not been loaded.");
+
+    PlFontData data;
+    plGetSharedFontByType(&data, PlSharedFontType_Standard);
+
+    StrongReference<Rasterizer> r(fontModule->NewTrueTypeRasterizer(size, TrueTypeRasterizer::HINTING_NORMAL), Acquire::NORETAIN);
+
+    return new Font(r.Get(), filter);
 }

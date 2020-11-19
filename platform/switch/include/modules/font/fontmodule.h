@@ -10,7 +10,9 @@ namespace love
     class FontModule : public Module
     {
         public:
-            FontModule() {}
+            FontModule();
+
+            ~FontModule();
 
             Rasterizer * NewRasterizer(love::FileData * data);
 
@@ -18,8 +20,13 @@ namespace love
 
             Rasterizer * NewTrueTypeRasterizer(love::Data * data, int size, TrueTypeRasterizer::Hinting hinting);
 
+            Rasterizer * NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting);
+
             ModuleType GetModuleType() const { return M_FONT; }
 
             const char * GetName() const override { return "love.font"; }
+
+        private:
+            FT_Library library;
     };
 }

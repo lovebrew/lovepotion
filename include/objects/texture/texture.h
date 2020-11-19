@@ -86,6 +86,10 @@ namespace love
                 void SetHandle(DkResHandle handle) {
                     this->handle = handle;
                 };
+
+                DkResHandle GetHandle() {
+                    return this->handle;
+                }
             #endif
 
             void Draw(Graphics * gfx, const Matrix4 & localTransform) override;

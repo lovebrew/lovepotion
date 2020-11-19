@@ -26,9 +26,7 @@ namespace love
                 HINTING_MAX_ENUM
             };
 
-            TrueTypeRasterizer(love::Data * data, int size, Hinting hinting);
-
-            TrueTypeRasterizer(void * data, size_t dataSize, int size, Hinting hinting);
+            TrueTypeRasterizer(FT_Library library, love::Data * data, int size, Hinting hinting);
 
             virtual ~TrueTypeRasterizer();
 
@@ -45,7 +43,7 @@ namespace love
 
             DataType GetDataType() const override;
 
-            static bool Accepts(love::Data * data);
+            static bool Accepts(FT_Library library, love::Data * data);
 
             static bool GetConstant(const char * in, Hinting & out);
             static bool GetConstant(Hinting in, const char *& out);
@@ -54,7 +52,6 @@ namespace love
         private:
             FT_Face face;
 
-            // Font data
             StrongReference<love::Data> data;
 
             Hinting hinting;

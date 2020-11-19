@@ -26,6 +26,8 @@ namespace love
 
             GlyphData * Clone() const;
 
+            size_t GetPixelSize() const;
+
             void * GetData() const;
 
             size_t GetSize() const;

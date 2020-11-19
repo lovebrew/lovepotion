@@ -7,15 +7,16 @@
 #include "common/vector.h"
 #include "common/matrix.h"
 
-#include "objects/texture/texture.h"
+#include "objects/image/image.h"
 
 #if defined (_3DS)
     #define FONT_DEFAULT_SIZE 22.5f;
 #elif defined (__SWITCH__)
     #define FONT_DEFAULT_SIZE 14.0f;
 
-    #include "deko3d/CFont.h"
+    #include "deko3d/vertex.h"
     #include "freetype/rasterizer.h"
+    #include "freetype/types/truetyperasterizer.h"
 #endif
 
 namespace love
@@ -79,13 +80,22 @@ namespace love
                     TYPE_MAX_ENUM
                 };
 
+                struct DrawCommand
+                {
+                    int startVertex;
+                    int vertexCount;
+
+                    love::Texture * texture;
+                };
+
                 static void GetCodepointsFromString(const std::string & string, Codepoints & points);
                 static void GetCodepointsFromString(const std::vector<ColoredString> & strings, ColoredCodepoints & codepoints);
 
-                void GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantcolor, std::vector<vertex::Vertex> & glyphVertices,
-                                      float extra_spacing = 0.0f, Vector2 offset = {}, TextInfo * info = nullptr);
+                std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantcolor,
+                                                          std::vector<vertex::Vertex> & glyphVertices, float extra_spacing = 0.0f,
+                                                          Vector2 offset = {}, TextInfo * info = nullptr);
 
-                void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<vertex::Vertex> & vertices);
+                void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::Vertex> & vertices);
             #endif
 
             enum Hinting
@@ -105,6 +115,38 @@ namespace love
 
             Font(Data * data, float size = DEFAULT_SIZE);
 
+            #if defined (__SWITCH__)
+                struct Glyph
+                {
+                    love::Image * texture;
+
+                    int spacing;
+
+                    int x;
+                    int y;
+
+                    vertex::Vertex vertices[4];
+                };
+
+                Font(Rasterizer * r, const Texture::Filter & filter);
+
+                const Font::Glyph & FindGlyph(uint32_t glyph);
+
+                const Font::Glyph & AddGlyph(uint32_t glyph);
+
+                love::GlyphData * GetRasterizerGlyphData(uint32_t glyph);
+
+                float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph);
+
+                float GetAscent() const;
+
+                float GetBaseline() const;
+
+                float GetDescent() const;
+
+                static const int SPACES_PER_TAB = 4;
+            #endif
+
             Font(float size = DEFAULT_SIZE);
 
             ~Font();
@@ -116,7 +158,7 @@ namespace love
 
             float GetWidth(const char * text);
 
-            float GetHeight();
+            float GetHeight() const;
 
             float _GetGlyphWidth(u16 glyph);
 
@@ -132,8 +174,41 @@ namespace love
 
         private:
             #if defined(__SWITCH__)
-                CFont font;
+                struct TextureSize
+                {
+                    int width;
+                    int height;
+                };
+
+                TextureSize GetNextTextureSize() const;
+
                 std::vector<vertex::Vertex> glyphVertices;
+
+                std::vector<love::StrongReference<love::Rasterizer>> rasterizers;
+
+                int height;
+                int lineHeight;
+
+                int textureWidth;
+                int textureHeight;
+
+                bool useSpacesAsTab;
+
+                int textureCacheID;
+
+                int textureX;
+                int textureY;
+                int rowHeight;
+
+                static const int TEXTURE_PADDING = 2;
+
+                std::unordered_map<uint32_t, Font::Glyph> glyphs;
+
+                std::vector<love::StrongReference<love::Image>> images;
+
+                std::unordered_map<uint64_t, float> kerning;
+
+                void CreateTexture();
             #elif defined(_3DS)
                 C2D_Font font;
             #endif
@@ -144,7 +219,7 @@ namespace love
 
             TextureHandle texture;
 
-            float GetLineHeight() { return 1.0f; }
+            float GetLineHeight() { return this->lineHeight; }
 
             float GetScale() { return this->size / 30.0f; }
 

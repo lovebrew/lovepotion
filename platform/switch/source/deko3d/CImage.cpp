@@ -5,6 +5,8 @@
 #include "deko3d/CImage.h"
 #include "deko3d/FileLoader.h"
 
+#include "common/mmath.h"
+
 u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
 {
     if (buffer == nullptr || size <= 0)
@@ -162,6 +164,89 @@ void * CImage::load(void * buffer, size_t size, int & width, int & height)
         result = this->loadJPG(buffer, size, width, height);
 
     return result;
+}
+
+/* replace the pixels at a location */
+bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * data, size_t size,
+                           dk::Queue transferQueue, const love::Rect & rect)
+{
+    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    /*
+    ** We need to have a command buffer and some more memory for it
+    ** so allocate both and add the memory to the temporary command buffer
+    */
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
+    CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+
+    dk::ImageView imageView{m_image};
+
+    memcpy(tempImageMemory.getCpuAddr(), data, size);
+                                                                                /*    x,      y  z       w       h  d*/
+    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { rect.x, rect.y, 0, rect.w, rect.h, 1 }, DkBlitFlag_FlipY);
+
+    // Submit the commands to the transfer queue
+    transferQueue.submitCommands(tempCmdBuff.finishList());
+    transferQueue.waitIdle();
+
+    // Destroy the memory we don't need
+    tempCmdMem.destroy();
+
+    return true;
+}
+
+/* load a CImage with transparent black pixels */
+bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                             size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+{
+    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+
+    if (!tempImageMemory)
+        return false;
+
+    /*
+    ** We need to have a command buffer and some more memory for it
+    ** so allocate both and add the memory to the temporary command buffer
+    */
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
+    CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+
+    // Set the image layout for the image
+    dk::ImageLayout layout;
+    dk::ImageLayoutMaker{device}
+        .setFlags(flags)
+        .setFormat(format)
+        .setDimensions(width, height)
+        .initialize(layout);
+
+    // Create the image
+    m_mem = imagePool.allocate(layout.getSize(), layout.getAlignment());
+    m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
+    m_descriptor.initialize(m_image);
+
+    /*
+    ** Create the image's view and copy the data
+    ** to the temporary image memory
+    */
+    dk::ImageView imageView{m_image};
+
+    size_t pixelcount = width * height;
+    std::vector<uint8_t> emptydata(pixelcount * 4, 0);
+
+    memcpy(tempImageMemory.getCpuAddr(), emptydata.data(), emptydata.size());
+
+    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, DkBlitFlag_FlipY);
+
+    // Submit the commands to the transfer queue
+    transferQueue.submitCommands(tempCmdBuff.finishList());
+    transferQueue.waitIdle();
+
+    // Destroy the memory we don't need
+    tempCmdMem.destroy();
+    tempImageMemory.destroy();
+
+    return true;
 }
 
 bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,

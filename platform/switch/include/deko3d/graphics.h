@@ -21,8 +21,6 @@ namespace love::deko3d
 
             ~Graphics();
 
-            static FT_Library g_ftLibrary;
-
             void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) override;
 
             void Present() override;
@@ -76,6 +74,8 @@ namespace love::deko3d
             void SetMeshCullMode(vertex::CullMode cull) override;
 
             void SetFrontFaceWinding(vertex::Winding winding) override;
+
+            Font * NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter = Texture::defaultFilter) override;
 
             RendererInfo GetRendererInfo() const override;
 
