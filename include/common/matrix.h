@@ -79,6 +79,13 @@ namespace love
                  **/
                 template <typename Vdst, typename Vsrc>
                 void TransformXY0(Vdst * dst, const Vsrc * src, int size) const;
+
+                /**
+                 * Transforms an array of 2-component vertices by this Matrix. The source
+                 * and destination arrays may be the same.
+                 **/
+                template <typename Vdst, typename Vsrc>
+                void TransformXYVerts(Vdst * dst, const Vsrc * src, int size) const;
             #endif
 
             Elements matrix;
@@ -99,6 +106,20 @@ namespace love
 
                 dst[i].x = x;
                 dst[i].y = y;
+            }
+        }
+
+        template <typename Vdst, typename Vsrc>
+        void Matrix4::TransformXYVerts(Vdst * dst, const Vsrc * src, int size) const
+        {
+            for (int i = 0; i < size; i++)
+            {
+                // Store in temp variables in case src = dst
+                float x = (this->matrix[0] * src[i].position[0]) + (this->matrix[4] * src[i].position[1]) + (0) + (this->matrix[12]);
+                float y = (this->matrix[1] * src[i].position[0]) + (this->matrix[5] * src[i].position[1]) + (0) + (this->matrix[13]);
+                LOG("rendering to %.2f,%.2f", x, y);
+                dst[i].position[0] = x;
+                dst[i].position[1] = y;
             }
         }
 

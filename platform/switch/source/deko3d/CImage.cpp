@@ -171,6 +171,16 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
                            dk::Queue transferQueue, const love::Rect & rect)
 {
     CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+
+    if (!tempImageMemory)
+        return false;
+
+    if (!memcpy(tempImageMemory.getCpuAddr(), data, size))
+    {
+        tempImageMemory.destroy();
+        return false;
+    }
+
     /*
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
@@ -180,8 +190,6 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     dk::ImageView imageView{m_image};
-
-    memcpy(tempImageMemory.getCpuAddr(), data, size);
                                                                                 /*    x,      y  z       w       h  d*/
     tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { rect.x, rect.y, 0, rect.w, rect.h, 1 }, DkBlitFlag_FlipY);
 
@@ -191,6 +199,7 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
 
     // Destroy the memory we don't need
     tempCmdMem.destroy();
+    tempImageMemory.destroy();
 
     return true;
 }
@@ -234,7 +243,14 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     size_t pixelcount = width * height;
     std::vector<uint8_t> emptydata(pixelcount * 4, 0);
 
-    memcpy(tempImageMemory.getCpuAddr(), emptydata.data(), emptydata.size());
+    for (size_t i = 0; i < pixelcount; i++)
+        emptydata[i * 2 + 0] = 255;
+
+    if (!memcpy(tempImageMemory.getCpuAddr(), emptydata.data(), emptydata.size()))
+    {
+        tempImageMemory.destroy();
+        return false;
+    }
 
     tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, DkBlitFlag_FlipY);
 

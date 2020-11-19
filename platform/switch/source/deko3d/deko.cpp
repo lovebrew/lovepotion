@@ -2,7 +2,6 @@
 #include "deko3d/deko.h"
 
 #include "deko3d/vertex.h"
-#include "deko3d/CFont.h"
 
 deko3d::deko3d()
 {
@@ -322,8 +321,6 @@ void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love:
                      buffer, size, texture->GetWidth(), texture->GetHeight(), format);
 
     this->RegisterResHandle(image, texture);
-
-    this->textureIDs++;
 }
 
 void deko3d::UnRegisterResHandle(love::Object * object)
@@ -339,11 +336,12 @@ void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
     this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
 
     texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
+
+    this->textureIDs++;
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)
 {
-    LOG("Rendering Texture (verts size: %zu, verts count: %zu)", size, count);
     if (4 > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
@@ -358,7 +356,7 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * poin
     this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
-    this->firstVertex += 4;
+    this->firstVertex += count;
     this->firstTexture += 1;
 
     return true;

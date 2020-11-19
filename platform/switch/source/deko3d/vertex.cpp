@@ -52,3 +52,12 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vecto
 
     return verts;
 }
+
+void vertex::DebugVertex(const vertex::Vertex & vertex)
+{
+    char buffer[255];
+    snprintf(buffer, sizeof(buffer), "x: %.2f y: %.2f z: %.2f / color: {%.2f, %.2f, %.2f, %.2f} / texCoord {%.2f, %.2f}",
+                                      vertex.position[0], vertex.position[1], vertex.position[2], vertex.color[0], vertex.color[1],
+                                      vertex.color[2], vertex.color[3], vertex.texcoord[0], vertex.texcoord[1]);
+    LOG("%s", buffer);
+}

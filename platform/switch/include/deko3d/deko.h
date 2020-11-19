@@ -29,8 +29,6 @@ namespace love
     class Graphics;
 }
 
-class CFont;
-
 class deko3d
 {
     public:
@@ -90,8 +88,6 @@ class deko3d
         void Present();
 
         void SetBlendColor(const Colorf & color);
-
-        void RegisterFont(CFont & font);
 
         void SetStencil(DkStencilOp op, DkCompareOp compare, int value);
 

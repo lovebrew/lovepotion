@@ -69,6 +69,8 @@ namespace vertex
     std::vector<Vertex> GenerateTextureFromVectors(const love::Vector2 * points, const love::Vector2 * texcoord,
                                                    size_t count, Colorf color);
 
+    void DebugVertex(const vertex::Vertex & vertex);
+
     bool GetConstant(const char * in, CullMode & out);
     bool GetConstant(CullMode in, const char *& out);
     std::vector<std::string> GetConstants(CullMode);

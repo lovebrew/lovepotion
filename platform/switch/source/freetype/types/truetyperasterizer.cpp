@@ -66,7 +66,7 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
         throw love::Exception("TrueType Font glyph error: FT_Get_Glyph failed (0x%x)", error);
 
     FT_Render_Mode rendermode = FT_RENDER_MODE_NORMAL;
-    if (this->hinting == love::Font::HINTING_MONO)
+    if (this->hinting == HINTING_MONO)
         rendermode = FT_RENDER_MODE_MONO;
 
     error = FT_Glyph_To_Bitmap(&ftGlyph, rendermode, 0, 1);
@@ -127,9 +127,8 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     }
 
     // Having copied the data over, we can destroy the glyph.
-    LOG("done with glyph!");
     FT_Done_Glyph(ftGlyph);
-    LOG("returning glyphData");
+
     return glyphData;
 }
 
@@ -140,7 +139,6 @@ int TrueTypeRasterizer::GetGlyphCount() const
 
 bool TrueTypeRasterizer::HasGlyph(uint32_t glyph) const
 {
-    LOG("checking for glyph %zu", glyph);
     return FT_Get_Char_Index(this->face, glyph) != 0;
 }
 

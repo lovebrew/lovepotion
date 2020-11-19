@@ -182,8 +182,6 @@ namespace love
 
                 TextureSize GetNextTextureSize() const;
 
-                std::vector<vertex::Vertex> glyphVertices;
-
                 std::vector<love::StrongReference<love::Rasterizer>> rasterizers;
 
                 int height;
@@ -194,7 +192,7 @@ namespace love
 
                 bool useSpacesAsTab;
 
-                int textureCacheID;
+                uint32_t textureCacheID;
 
                 int textureX;
                 int textureY;

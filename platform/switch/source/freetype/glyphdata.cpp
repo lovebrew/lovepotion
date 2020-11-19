@@ -19,7 +19,7 @@ GlyphData::GlyphData(const GlyphData & glyphData) : glyph(glyphData.glyph),
 {
     if (this->metrics.width > 0 && this->metrics.height > 0)
     {
-        data = new uint8_t[metrics.width * metrics.height];
+        data = new uint8_t[metrics.width * metrics.height * this->GetPixelSize()];
         memcpy(data, glyphData.data, glyphData.GetSize());
     }
 }
@@ -46,13 +46,13 @@ void * GlyphData::GetData() const
 
 void * GlyphData::GetData(int x, int y) const
 {
-    size_t offset = (y * this->GetWidth() + x);
+    size_t offset = (y * this->GetWidth() + x) * this->GetPixelSize();
     return this->data + offset;
 }
 
 size_t GlyphData::GetSize() const
 {
-    return size_t(this->GetWidth() * this->GetHeight());
+    return size_t(this->GetWidth() * this->GetHeight()) * this->GetPixelSize();
 }
 
 int GlyphData::GetHeight() const

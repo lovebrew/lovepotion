@@ -24,15 +24,16 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 {
     this->Init(width, height);
 
-    this->texture->loadEmptyPixels(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(), dk3d.GetTextureQueue(),
+    bool success = this->texture->loadEmptyPixels(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(), dk3d.GetTextureQueue(),
                                   width * height * 4,  width, height, DkImageFormat_RGBA8_Unorm);
-
+    LOG("loaded empty pixels: %d", success);
     dk3d.RegisterResHandle(*this->texture, this);
 }
 
 void Image::ReplacePixels(void * data, size_t size, const Rect & rect)
 {
-    this->texture->replacePixels(*dk3d.GetData(), dk3d.GetDevice(), data, size * 4, dk3d.GetTextureQueue(), rect);
+    bool success = this->texture->replacePixels(*dk3d.GetData(), dk3d.GetDevice(), data, size * 4, dk3d.GetTextureQueue(), rect);
+    LOG("replaced pixels: %d", success);
 }
 
 void Image::SetTextureHandle(CImage & image)
