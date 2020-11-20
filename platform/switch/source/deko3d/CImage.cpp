@@ -170,6 +170,7 @@ void * CImage::load(void * buffer, size_t size, int & width, int & height)
 bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * data, size_t size,
                            dk::Queue transferQueue, const love::Rect & rect)
 {
+    LOG("replacing %d,%d %dx%d", rect.x, rect.y, rect.w, rect.h);
     CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
@@ -190,7 +191,7 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     dk::ImageView imageView{m_image};
-                                                                                /*    x,      y  z       w       h  d*/
+
     tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { rect.x, rect.y, 0, rect.w, rect.h, 1 }, DkBlitFlag_FlipY);
 
     // Submit the commands to the transfer queue
@@ -244,7 +245,7 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
 
     m_descriptor.initialize(m_image);
 
-    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, DkBlitFlag_FlipY);
+    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, 0);
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());

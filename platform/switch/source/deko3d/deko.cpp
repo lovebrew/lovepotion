@@ -351,20 +351,17 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * poin
 
     this->EnsureInState(STATE_TEXTURE);
 
-    LOG("Binding DkResHandle %u", handle);
     this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
 
     // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);
 
     // Draw with Triangles
-    LOG("DkPrimitive_TriangleStrip verts on the handle");
     this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
     this->firstVertex += count;
-    this->firstTexture++;
-    LOG("Done");
+
     return true;
 }
 

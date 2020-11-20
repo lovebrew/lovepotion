@@ -55,7 +55,8 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     FT_Error error = FT_Err_Ok;
     FT_UInt loadOption = HintingToLoadOption(this->hinting);
 
-    error = FT_Load_Glyph(this->face, FT_Get_Char_Index(this->face, glyph), FT_LOAD_DEFAULT | loadOption);
+    FT_UInt charIndex = FT_Get_Char_Index(this->face, glyph);
+    error = FT_Load_Glyph(this->face, charIndex, FT_LOAD_DEFAULT | FT_LOAD_RENDER | loadOption);
 
     if (error != FT_Err_Ok)
         throw love::Exception("TrueType Font glyph error: FT_Load_Glyph failed (0x%x)", error);
@@ -94,7 +95,6 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     ** We treat the luminance of the FreeType bitmap
     ** as alpha in the GlyphData.
     */
-   LOG("Pixel Mode for Glyph Bitmap: %d", bitmap.pixel_mode);
     if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
     {
         for (int y = 0; y < (int)bitmap.rows; y++)

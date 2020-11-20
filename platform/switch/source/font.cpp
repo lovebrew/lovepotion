@@ -213,10 +213,10 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         // 1---3
         const GlyphVertex verts[4] =
         {
-            { float(-o),   float(-o),    (tX - o)         / tWidth, (tY - o)          / tHeight },
-            { float(-o),   (height + o), (tX - o)         / tWidth, (tY + height + o) / tHeight },
-            { (width + o), float(-o),    (tX + width + o) / tWidth, (tY - o)          / tHeight },
-            { (width + o), (height + o), (tX + width + o) / tWidth, (tY + height + o) / tHeight }
+            { float(-o),   float(-o),    (tX - o)         / tWidth, (tY - o)          / tHeight, c },
+            { float(-o),   (height + o), (tX - o)         / tWidth, (tY + height + o) / tHeight, c },
+            { (width + o), float(-o),    (tX + width + o) / tWidth, (tY - o)          / tHeight, c },
+            { (width + o), (height + o), (tX + width + o) / tWidth, (tY + height + o) / tHeight, c }
         };
 
         // Copy vertex data to the glyph and set proper bearing.
@@ -499,9 +499,7 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
         GlyphVertex vertexData[vertexCount];
         m.TransformXY(vertexData, &vertices[cmd.startVertex], vertexCount);
 
-        Colorf colors[1] = {Colorf(1.0f, 1.0f, 1.0f, 1.0f)};
-
-        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, vertexCount, colors, 1);
+        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, vertexCount);
         dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
     }
 }

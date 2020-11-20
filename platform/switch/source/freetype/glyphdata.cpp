@@ -24,6 +24,7 @@ GlyphData::GlyphData(const GlyphData & glyphData) : glyph(glyphData.glyph),
     }
 }
 
+/* always LA8 pixel format -- so 2 */
 size_t GlyphData::GetPixelSize() const
 {
     return 2;
