@@ -1,4 +1,5 @@
 #include "deko3d/vertex.h"
+#include "objects/font/font.h"
 
 using namespace love;
 
@@ -46,6 +47,33 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vecto
         };
 
         color.CopyTo(vert.color);
+
+        verts[currentVertex] = vert;
+    }
+
+    return verts;
+}
+
+std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex * gVerts, size_t count, const Colorf * colors, size_t colorCount)
+{
+    std::vector<vertex::Vertex> verts(count);
+    Colorf currentColor = colors[0];
+
+    for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
+    {
+        const GlyphVertex vertex = gVerts[currentVertex];
+
+        if (currentVertex < colorCount)
+            currentColor = colors[currentVertex];
+
+        vertex::Vertex vert =
+        {
+            .position = {vertex.x, vertex.y, 0.0f},
+            .color = {1, 1, 1, 1},
+            .texcoord = {vertex.s, vertex.t}
+        };
+
+        currentColor.CopyTo(vert.color);
 
         verts[currentVertex] = vert;
     }

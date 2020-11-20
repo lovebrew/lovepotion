@@ -103,7 +103,7 @@ class deko3d
 
         void RegisterResHandle(CImage & image, love::Texture * texture);
 
-        void UnRegisterResHandle(love::Object * object);
+        void UnRegisterResHandle(love::Texture * texture);
 
         void LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format);
 
@@ -135,7 +135,7 @@ class deko3d
 
         void EnsureInState(State state);
 
-        std::unordered_map<love::Object *, int> textureResIDs;
+        std::unordered_map<love::Texture *, uint32_t> textureResIDs;
 
         struct
         {

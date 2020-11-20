@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib> // for rand() and RAND_MAX
+#include "common/logger.h"
 
 #define LOVE_M_TORAD	(float)(M_PI / 180.0f)
 #define LOVE_M_TODEG    (float)(180.0f / M_PI)
@@ -16,25 +17,14 @@ namespace love
 
         bool operator == (const Rect & rhs) const
         {
-            return x == rhs.x && y == rhs.y && w == rhs.w && h == rhs.h;
+            return x == rhs.x && y == rhs.y &&
+                   w == rhs.w && h == rhs.h;
+        }
+
+        void debug() {
+            LOG("{%d, %d, %d, %d}", x, y, w, h);
         }
     } Rect;
-
-    struct DrawArgs
-    {
-        float x = 0;
-        float y = 0;
-
-        float r = 0;
-
-        float scalarX = 1;
-        float scalarY = 1;
-
-        float offsetX = 0;
-        float offsetY = 0;
-
-        float depth = 0;
-    };
 
     constexpr size_t LOVE_MIN_TEX = 8U;
     constexpr size_t LOVE_MAX_TEX = 1024U;

@@ -323,13 +323,15 @@ void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love:
     this->RegisterResHandle(image, texture);
 }
 
-void deko3d::UnRegisterResHandle(love::Object * object)
+void deko3d::UnRegisterResHandle(love::Texture * texture)
 {
-    this->textureResIDs.erase(object);
+    this->textureResIDs.erase(texture);
 }
 
 void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
 {
+    LOG("Currently %u", this->textureIDs);
+
     this->textureResIDs[texture] = this->textureIDs;
 
     this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
@@ -338,27 +340,31 @@ void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
     texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
 
     this->textureIDs++;
+
+    LOG("Now %u", this->textureIDs);
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)
 {
-    if (4 > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
+    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_TEXTURE);
 
-    this->cmdBuf.bindTextures(DkStage_Fragment, this->firstTexture, handle);
+    LOG("Binding DkResHandle %u", handle);
+    this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
 
     // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);
 
     // Draw with Triangles
+    LOG("DkPrimitive_TriangleStrip verts on the handle");
     this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
     this->firstVertex += count;
-    this->firstTexture += 1;
-
+    this->firstTexture++;
+    LOG("Done");
     return true;
 }
 

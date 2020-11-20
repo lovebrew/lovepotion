@@ -26,8 +26,6 @@ namespace love
             void Init(int width, int height);
 
             #if defined(__SWITCH__)
-                void SetTextureHandle(CImage & image);
-
                 void ReplacePixels(void * data, size_t size, const Rect & rect);
             #endif
 

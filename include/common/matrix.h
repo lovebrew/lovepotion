@@ -117,7 +117,7 @@ namespace love
                 // Store in temp variables in case src = dst
                 float x = (this->matrix[0] * src[i].position[0]) + (this->matrix[4] * src[i].position[1]) + (0) + (this->matrix[12]);
                 float y = (this->matrix[1] * src[i].position[0]) + (this->matrix[5] * src[i].position[1]) + (0) + (this->matrix[13]);
-                LOG("rendering to %.2f,%.2f", x, y);
+
                 dst[i].position[0] = x;
                 dst[i].position[1] = y;
             }

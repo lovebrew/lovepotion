@@ -44,6 +44,8 @@ class CImage
             return m_descriptor;
         }
 
+        void dumpPixels(CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue, size_t width, size_t height);
+
         void * load(void * buffer, size_t size, int & width, int & height);
 
         bool loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue queue,

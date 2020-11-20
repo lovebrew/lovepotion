@@ -204,6 +204,9 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
     return true;
 }
 
+void CImage::dumpPixels(CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue, size_t width, size_t height)
+{}
+
 /* load a CImage with transparent black pixels */
 bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                              size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
@@ -212,6 +215,9 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
 
     if (!tempImageMemory)
         return false;
+
+    /* memset for transparent black pixels */
+    memset(tempImageMemory.getCpuAddr(), 0, size);
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -232,25 +238,11 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     // Create the image
     m_mem = imagePool.allocate(layout.getSize(), layout.getAlignment());
     m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
-    m_descriptor.initialize(m_image);
 
-    /*
-    ** Create the image's view and copy the data
-    ** to the temporary image memory
-    */
     dk::ImageView imageView{m_image};
+    imageView.setSwizzle(DkImageSwizzle_Red, DkImageSwizzle_Red, DkImageSwizzle_Red, DkImageSwizzle_Green);
 
-    size_t pixelcount = width * height;
-    std::vector<uint8_t> emptydata(pixelcount * 4, 0);
-
-    for (size_t i = 0; i < pixelcount; i++)
-        emptydata[i * 2 + 0] = 255;
-
-    if (!memcpy(tempImageMemory.getCpuAddr(), emptydata.data(), emptydata.size()))
-    {
-        tempImageMemory.destroy();
-        return false;
-    }
+    m_descriptor.initialize(m_image);
 
     tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, DkBlitFlag_FlipY);
 

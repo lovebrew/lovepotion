@@ -92,10 +92,10 @@ namespace love
                 static void GetCodepointsFromString(const std::vector<ColoredString> & strings, ColoredCodepoints & codepoints);
 
                 std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantcolor,
-                                                          std::vector<vertex::Vertex> & glyphVertices, float extra_spacing = 0.0f,
+                                                          std::vector<vertex::GlyphVertex> & glyphVertices, float extra_spacing = 0.0f,
                                                           Vector2 offset = {}, TextInfo * info = nullptr);
 
-                void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::Vertex> & vertices);
+                void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::GlyphVertex> & vertices);
             #endif
 
             enum Hinting
@@ -118,14 +118,9 @@ namespace love
             #if defined (__SWITCH__)
                 struct Glyph
                 {
-                    love::Image * texture;
-
+                    love::Texture * texture;
                     int spacing;
-
-                    int x;
-                    int y;
-
-                    vertex::Vertex vertices[4];
+                    vertex::GlyphVertex vertices[4];
                 };
 
                 Font(Rasterizer * r, const Texture::Filter & filter);
@@ -145,6 +140,8 @@ namespace love
                 float GetDescent() const;
 
                 static const int SPACES_PER_TAB = 4;
+
+                int GetWidth(char character);
             #endif
 
             Font(float size = DEFAULT_SIZE);

@@ -8,6 +8,7 @@
 #include "deko3d/deko.h"
 
 using namespace love;
+using namespace vertex;
 
 #define FONT_MODULE() (Module::GetInstance<FontModule>(Module::M_FONT))
 
@@ -29,6 +30,7 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
                                                              textureCacheID(0)
 {
     this->glyphs.clear();
+    this->images.clear();
 
     while (true)
     {
@@ -49,6 +51,7 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
 
     this->rowHeight = this->textureX = this->textureY = this->TEXTURE_PADDING;
 
+    this->textureCacheID++;
     this->CreateTexture();
 }
 
@@ -93,6 +96,8 @@ void Font::CreateTexture()
 
     texture = new love::Image(love::Texture::TEXTURE_2D, size.width, size.height);
 
+    this->images.emplace_back(texture, Acquire::NORETAIN);
+
     this->textureWidth  = size.width;
     this->textureHeight = size.height;
 
@@ -112,8 +117,6 @@ void Font::CreateTexture()
         for (uint32_t glyph : glyphsToAdd)
             this->AddGlyph(glyph);
     }
-
-    this->images.emplace_back(texture, Acquire::NORETAIN);
 }
 
 love::GlyphData * Font::GetRasterizerGlyphData(uint32_t glyph)
@@ -183,9 +186,8 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
 
     Glyph g;
 
-    g.texture = nullptr;
+    g.texture = 0;
     g.spacing = floorf(gd->GetAdvance() / 1.0f + 0.5f);
-    memset(g.vertices, 0, sizeof(vertex::Vertex) * 4);
 
     // Don't waste space on empty glyphs
     if (width > 0 && height > 0)
@@ -194,7 +196,7 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         g.texture = image;
 
         Rect rect = {textureX, textureY, gd->GetWidth(), gd->GetHeight()};
-        image->ReplacePixels(gd->GetData(), gd->GetSize() * 2, rect);
+        image->ReplacePixels(gd->GetData(), gd->GetSize(), rect);
 
         double tX     = (double) textureX,     tY      = (double) textureY;
         double tWidth = (double) textureWidth, tHeight = (double) textureHeight;
@@ -209,12 +211,12 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         // 0---2
         // | / |
         // 1---3
-        const vertex::Vertex verts[4] =
+        const GlyphVertex verts[4] =
         {
-            { {float(-o),   float(-o),    0 }, { c.r, c.g, c.b, c.a }, { (tX - o)         / tWidth, (tY - o)          / tHeight } },
-            { {float(-o),   (height + o), 0 }, { c.r, c.g, c.b, c.a }, { (tX - o)         / tWidth, (tY + height + o) / tHeight } },
-            { {(width + o), float(-o),    0 }, { c.r, c.g, c.b, c.a }, { (tX + width + o) / tWidth, (tY - o)          / tHeight } },
-            { {(width + o), (height + o), 0 }, { c.r, c.g, c.b, c.a }, { (tX + width + o) / tWidth, (tY + height + o) / tHeight } }
+            { float(-o),   float(-o),    (tX - o)         / tWidth, (tY - o)          / tHeight },
+            { float(-o),   (height + o), (tX - o)         / tWidth, (tY + height + o) / tHeight },
+            { (width + o), float(-o),    (tX + width + o) / tWidth, (tY - o)          / tHeight },
+            { (width + o), (height + o), (tX + width + o) / tWidth, (tY + height + o) / tHeight }
         };
 
         // Copy vertex data to the glyph and set proper bearing.
@@ -222,8 +224,8 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         {
             g.vertices[i] = verts[i];
 
-            g.vertices[i].position[0] += gd->GetBearingX();
-            g.vertices[i].position[1] -= gd->GetBearingY();
+            g.vertices[i].x += gd->GetBearingX();
+            g.vertices[i].y -= gd->GetBearingY();
         }
 
         this->textureX  += width + this->TEXTURE_PADDING;
@@ -287,7 +289,7 @@ Font::~Font()
 }
 
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantColor,
-                                                      std::vector<vertex::Vertex> & glyphVertices, float extra_spacing,
+                                                      std::vector<GlyphVertex> & glyphVertices, float extra_spacing,
                                                       Vector2 offset, TextInfo * info)
 {
     /*
@@ -338,7 +340,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
         if (glyph == '\n')
         {
             if (dx > maxwidth)
-                maxwidth = (int) dx;
+                maxwidth = (int)dx;
 
             // Wrap newline, but do not print it.
             dy += floorf(this->GetHeight() * this->GetLineHeight() + 0.5f);
@@ -362,11 +364,15 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
         {
             i = -1; // The next iteration will increment this to 0.
             maxwidth = 0;
+
             dx = offset.x;
             dy = offset.y;
+
             commands.clear();
+
             glyphVertices.resize(vertstartsize);
             prevGlyph = 0;
+
             currentColorIndex = -1;
             currentColor = constantColor;
 
@@ -382,18 +388,19 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
             for (int j = 0; j < 4; j++)
             {
                 glyphVertices.emplace_back(glyphData.vertices[j]);
-                glyphVertices.back().position[0] += dx;
-                glyphVertices.back().position[1] += dy + heightoffset;
+                glyphVertices.back().x += dx;
+                glyphVertices.back().y += dy + heightoffset;
 
-                currentColor.CopyTo(glyphVertices.back().color);
-
-                LOG("Glyph %zu is at %.2f,%.2f", glyph, glyphVertices.back().position[0], glyphVertices.back().position[2]);
+                glyphVertices.back().color = currentColor;
             }
 
             // Check if glyph texture has changed since the last iteration.
             if (commands.empty() || commands.back().texture != glyphData.texture)
             {
-                // Add a new draw command if the texture has changed.
+                /*
+                ** Add a new draw command
+                ** if the texture has changed.
+                */
                 DrawCommand cmd;
                 cmd.startVertex = (int)glyphVertices.size() - 4;
                 cmd.vertexCount = 0;
@@ -416,7 +423,10 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
 
     const auto drawsort = [](const DrawCommand & a, const DrawCommand & b) -> bool
     {
-        // Texture binds are expensive, so we should sort by that first.
+        /*
+        ** Texture binds are expensive
+        ** so we should sort by that first.
+        */
         if (a.texture != b.texture)
             return a.texture < b.texture;
         else
@@ -431,7 +441,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
     if (info != nullptr)
     {
         info->width = maxwidth - offset.x;
-        info->height = (int) dy + (dx > 0.0f ? floorf(this->GetHeight() * this->GetLineHeight() + 0.5f) : 0) - offset.y;
+        info->height = (int)dy + (dx > 0.0f ? floorf(this->GetHeight() * this->GetLineHeight() + 0.5f) : 0) - offset.y;
     }
 
     return commands;
@@ -447,7 +457,7 @@ float Font::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
 
     float kern = rasterizers[0]->GetKerning(leftGlyph, rightGlyph);
 
-    for (const auto & rasterizer : rasterizers)
+    for (const auto & rasterizer : this->rasterizers)
     {
         if (rasterizer->HasGlyph(leftGlyph) && rasterizer->HasGlyph(rightGlyph))
         {
@@ -468,31 +478,31 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
     ColoredCodepoints codepoints;
     GetCodepointsFromString(text, codepoints);
 
-    std::vector<vertex::Vertex> vertices;
-    std::vector<DrawCommand> drawcommands = this->GenerateVertices(codepoints, color, vertices);
+    std::vector<GlyphVertex> vertices;
+    std::vector<DrawCommand> drawCommands = this->GenerateVertices(codepoints, color, vertices);
 
-    this->PrintV(gfx, localTransform, drawcommands, vertices);
+    this->PrintV(gfx, localTransform, drawCommands, vertices);
 }
 
-void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::Vertex> & vertices)
+void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawCommands,
+                  const std::vector<GlyphVertex> & vertices)
 {
-    if (vertices.empty() || drawcommands.empty())
+    if (vertices.empty() || drawCommands.empty())
         return;
 
     Matrix4 m(gfx->GetTransform(), t);
 
-    for (const DrawCommand & cmd : drawcommands)
+    for (const DrawCommand & cmd : drawCommands)
     {
-        vertex::Vertex vertexData[cmd.vertexCount];
-        m.TransformXYVerts(vertexData, vertices.data(), cmd.vertexCount);
+        size_t vertexCount = cmd.vertexCount;
 
-        /* -- "Hello World" example --
-        bool deko3d::RenderTexture(DkResHandle, const vertex::Vertex*, size_t, size_t):346:
-        Rendering Texture (verts size: 1584, verts count: 44) */
+        GlyphVertex vertexData[vertexCount];
+        m.TransformXY(vertexData, &vertices[cmd.startVertex], vertexCount);
 
-        // GetTexture is only ONE texture, not .. a ton of them
-        dk3d.RenderTexture(cmd.texture->GetHandle(), vertexData,
-                           sizeof(vertex::Vertex) * cmd.vertexCount, cmd.vertexCount);
+        Colorf colors[1] = {Colorf(1.0f, 1.0f, 1.0f, 1.0f)};
+
+        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, vertexCount, colors, 1);
+        dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
     }
 }
 
@@ -531,7 +541,13 @@ float Font::GetSize()
 float Font::_GetGlyphWidth(u16 glyph)
 {}
 
-float Font::GetWidth(const char * text)
+int Font::GetWidth(char character)
+{
+    const Glyph & g = this->FindGlyph(character);
+    return g.spacing;
+}
+
+float Font::GetWidth(const char *)
 {}
 
 void Font::ClearBuffer()

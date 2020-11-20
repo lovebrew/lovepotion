@@ -136,10 +136,6 @@ namespace love
 
             /* End */
 
-            void Transform(DrawArgs * args, bool isTexture = false);
-            void Transform(float * x, float * y);
-            void TransformScale(float * x, float * y);
-
             static constexpr float MIN_DEPTH = 1.0f/16384.0f;
             static inline float CURRENT_DEPTH = 0;
 
