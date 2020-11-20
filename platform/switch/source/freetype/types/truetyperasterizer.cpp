@@ -27,10 +27,13 @@ TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data * data,
     err = FT_Set_Pixel_Sizes(this->face, size, size);
 
     if (err != FT_Err_Ok)
+    {
+        FT_Done_Face(this->face);
         throw love::Exception("TrueType Font loading error: FT_Set_Pixel_Sizes failed: 0x%x (invalid size?)", err);
+    }
 
     // Set global metrics
-    FT_Size_Metrics s = this->face->size->metrics;
+    FT_Size_Metrics & s = this->face->size->metrics;
     this->metrics.advance = (int)(s.max_advance >> 6);
     this->metrics.ascent  = (int)(s.ascender    >> 6);
     this->metrics.descent = (int)(s.descender   >> 6);
@@ -56,7 +59,7 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     FT_UInt loadOption = HintingToLoadOption(this->hinting);
 
     FT_UInt charIndex = FT_Get_Char_Index(this->face, glyph);
-    error = FT_Load_Glyph(this->face, charIndex, FT_LOAD_DEFAULT | FT_LOAD_RENDER | loadOption);
+    error = FT_Load_Glyph(this->face, charIndex, FT_LOAD_DEFAULT | loadOption);
 
     if (error != FT_Err_Ok)
         throw love::Exception("TrueType Font glyph error: FT_Load_Glyph failed (0x%x)", error);
@@ -103,8 +106,10 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
             {
                 // Extract the 1-bit value and convert it to uint8.
                 uint8_t v = ((pixels[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
-                dest[2 * (y * bitmap.width + x) + 0] = 255;
-                dest[2 * (y * bitmap.width + x) + 1] = v;
+                dest[4 * (y * bitmap.width + x) + 0] = v;
+                dest[4 * (y * bitmap.width + x) + 1] = v;
+                dest[4 * (y * bitmap.width + x) + 2] = v;
+                dest[4 * (y * bitmap.width + x) + 3] = v ? 255 : 0;
             }
 
             pixels += bitmap.pitch;
@@ -116,8 +121,10 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
         {
             for (int x = 0; x < (int)bitmap.width; x++)
             {
-                dest[2 * (y * bitmap.width + x) + 0] = 255;
-                dest[2 * (y * bitmap.width + x) + 1] = pixels[x];
+                dest[4 * (y * bitmap.width + x) + 0] = 255;
+                dest[4 * (y * bitmap.width + x) + 1] = 255;
+                dest[4 * (y * bitmap.width + x) + 2] = 255;
+                dest[4 * (y * bitmap.width + x) + 3] = pixels[x];
             }
 
             pixels += bitmap.pitch;

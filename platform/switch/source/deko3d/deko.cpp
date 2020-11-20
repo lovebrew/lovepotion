@@ -330,8 +330,6 @@ void deko3d::UnRegisterResHandle(love::Texture * texture)
 
 void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
 {
-    LOG("Currently %u", this->textureIDs);
-
     this->textureResIDs[texture] = this->textureIDs;
 
     this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
@@ -340,8 +338,6 @@ void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
     texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
 
     this->textureIDs++;
-
-    LOG("Now %u", this->textureIDs);
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)

@@ -61,6 +61,7 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex 
     for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
     {
         const GlyphVertex vertex = gVerts[currentVertex];
+        Colorf color = vertex.color;
 
         vertex::Vertex vert =
         {
@@ -68,6 +69,8 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex 
             .color = {1, 1, 1, 1},
             .texcoord = {vertex.s, vertex.t}
         };
+
+        color.CopyTo(vert.color);
 
         verts[currentVertex] = vert;
     }

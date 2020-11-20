@@ -188,6 +188,7 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
 
     g.texture = 0;
     g.spacing = floorf(gd->GetAdvance() / 1.0f + 0.5f);
+    memset(g.vertices, 0, sizeof(GlyphVertex) * 4);
 
     // Don't waste space on empty glyphs
     if (width > 0 && height > 0)
@@ -497,7 +498,10 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
         size_t vertexCount = cmd.vertexCount;
 
         GlyphVertex vertexData[vertexCount];
+
+        std::copy(vertices.data() + cmd.startVertex, vertices.data() + cmd.startVertex + vertexCount, vertexData);
         m.TransformXY(vertexData, &vertices[cmd.startVertex], vertexCount);
+
 
         std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, vertexCount);
         dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
