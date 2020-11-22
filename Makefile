@@ -9,9 +9,11 @@ export LOVE_INCLUDES  = $(foreach dir, $(ROOT_INCLUDES),  ../../$(wildcard $(dir
 export LOVE_LIBRARIES = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir)))
 export ROMFS          = ../../romfs
 
-# .PHONY: all ctr hac clean clean-3ds clean-switch
+# do all
 
 all: ctr hac
+
+# clean
 
 clean: clean-ctr clean-hac
 
@@ -21,11 +23,23 @@ clean-ctr:
 clean-hac:
 	@$(MAKE) -C platform/switch clean
 
+# release
+
 ctr:
 	@$(MAKE) -C platform/3ds
 
 hac:
 	@$(MAKE) -C platform/switch
+
+# debug
+
+ctr-debug:
+	@$(MAKE) -C platform/3ds DEBUG=1
+
+hac-debug:
+	@$(MAKE) -C platform/switch DEBUG=1
+
+# emulation
 
 ctr-emu:
 	@$(MAKE) -C platform/3ds EMULATION=1

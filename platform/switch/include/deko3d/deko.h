@@ -121,7 +121,6 @@ class deko3d
         vertex::Vertex * vertexData;
 
         uint32_t firstVertex = 0;
-        uint32_t firstTexture = 0;
         uint32_t textureIDs = 0;
 
         enum State

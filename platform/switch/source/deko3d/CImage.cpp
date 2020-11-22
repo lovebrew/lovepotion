@@ -7,13 +7,14 @@
 
 #include "common/mmath.h"
 
-u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
+u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
 {
     if (buffer == nullptr || size <= 0)
         return nullptr;
 
-    u32 * output = nullptr;
-    FILE * input = fmemopen(buffer, size, "rb");;
+    u32 *output = nullptr;
+    FILE *input = fmemopen(buffer, size, "rb");
+    ;
 
     constexpr size_t sigLength = 8;
     u8 sig[sigLength] = {0};
@@ -40,11 +41,11 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
     png_init_io(png, input);
     png_read_info(png, info);
 
-    width  = png_get_image_width(png, info);
+    width = png_get_image_width(png, info);
     height = png_get_image_height(png, info);
 
     png_byte colorType = png_get_color_type(png, info);
-    png_byte bitDepth  = png_get_bit_depth(png, info);
+    png_byte bitDepth = png_get_bit_depth(png, info);
 
     // Read any color_type into 8bit depth, ABGR format.
     // See http://www.libpng.org/pub/png/libpng-manual.txt
@@ -62,7 +63,7 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
         png_set_tRNS_to_alpha(png);
 
     // These color_type don't have an alpha channel then fill it with 0xff.
-    if (colorType == PNG_COLOR_TYPE_RGB  ||
+    if (colorType == PNG_COLOR_TYPE_RGB ||
         colorType == PNG_COLOR_TYPE_GRAY ||
         colorType == PNG_COLOR_TYPE_PALETTE)
         png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
@@ -73,7 +74,7 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
 
     png_read_update_info(png, info);
 
-    png_bytep * rowPointers = new (std::nothrow) png_bytep[height];
+    png_bytep *rowPointers = new (std::nothrow) png_bytep[height];
     if (rowPointers == nullptr)
     {
         png_destroy_read_struct(&png, &info, NULL);
@@ -99,11 +100,11 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
         return nullptr;
     }
 
-    for(int j = height - 1; j >= 0; j--)
+    for (int j = height - 1; j >= 0; j--)
     {
         png_bytep row = rowPointers[j];
 
-        for(int i = 0; i < width; i++)
+        for (int i = 0; i < width; i++)
         {
             png_bytep px = &(row[i * 4]);
             memcpy(&output[(((height - 1) - j) * width) + i], px, sizeof(u32));
@@ -126,9 +127,9 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
 ** have their "progressive" flag turned off, usually dealt with in GIMP or
 ** similar programs
 */
-u8 * CImage::loadJPG(void * buffer, size_t size, int & width, int & height)
+u8 *CImage::loadJPG(void *buffer, size_t size, int &width, int &height)
 {
-    u8 * output = nullptr;
+    u8 *output = nullptr;
 
     tjhandle _jpegDecompressor = tjInitDecompress();
 
@@ -153,17 +154,75 @@ u8 * CImage::loadJPG(void * buffer, size_t size, int & width, int & height)
     return output;
 }
 
-void * CImage::load(void * buffer, size_t size, int & width, int & height)
+void * CImage::load(void *buffer, size_t size, int &width, int &height)
 {
     if (size <= 0 || !buffer)
         return nullptr;
 
-    void * result = nullptr;
+    void *result = nullptr;
 
     if (!(result = this->loadPNG(buffer, size, width, height)))
         result = this->loadJPG(buffer, size, width, height);
 
     return result;
+}
+
+bool CImage::fillShadowBuffer(void * data, const love::Rect & rect)
+{
+    LOG("Filling buffer");
+    auto const src = static_cast<uint8_t *>(data);
+
+    for (unsigned y = 0; y < rect.h; ++y)
+    {
+        if (y + rect.y < 0 || y + rect.y >= height)
+            continue;
+
+        for (unsigned x = 0; x < rect.w; ++x)
+        {
+            if (x + rect.x < 0 || x + rect.x >= width)
+                continue;
+
+            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 0] = src[(y * rect.w + x) * 4 + 0]; //r
+            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 1] = src[(y * rect.w + x) * 4 + 1]; //g
+            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 2] = src[(y * rect.w + x) * 4 + 2]; //b
+            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 3] = src[(y * rect.w + x) * 4 + 3]; //a
+        }
+    }
+    LOG("Done");
+    return true;
+}
+
+static FILE *fp = fopen("atlas.pam", "wb");
+
+bool CImage::dumpShadowBuffer()
+{
+    fputs("P7\n", fp);
+    fprintf(fp, "WIDTH %u\n", this->width);
+    fprintf(fp, "HEIGHT %u\n", this->height);
+    fputs("DEPTH 4\n", fp);
+    fputs("MAXVAL 255\n", fp);
+    fputs("TUPLTYPE RGB_ALPHA\n", fp);
+    fputs("ENDHDR\n", fp);
+
+    auto p = shadowBuffer;
+    auto const end = p + (width * height * 4);
+
+    while (p < end)
+    {
+        auto const rc = fwrite(p, 1, end - p, fp);
+        if (rc == 0)
+        {
+            fclose(fp);
+            return false;
+        }
+
+        p += rc;
+    }
+
+    if (fclose(fp) != 0)
+        return false;
+
+    return true;
 }
 
 /* replace the pixels at a location */
@@ -191,7 +250,7 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
 
     dk::ImageView imageView{m_image};
 
-    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { rect.x, rect.y, 0, rect.w, rect.h, 1 });
+    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {rect.x, rect.y, 0, rect.w, rect.h, 1});
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());
@@ -204,11 +263,8 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
     return true;
 }
 
-void CImage::dumpPixels(CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue, size_t width, size_t height)
-{}
-
 /* load a CImage with transparent black pixels */
-bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Device device, dk::Queue transferQueue,
                              size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
     CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
@@ -218,6 +274,12 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
 
     /* memset for transparent black pixels */
     memset(tempImageMemory.getCpuAddr(), 0, size);
+
+    this->width = width;
+    this->height = height;
+    LOG("%u %u", this->width, this->height);
+    this->shadowBuffer = new uint8_t[size];
+    memset(this->shadowBuffer, 0, size);
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -240,11 +302,9 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
 
     dk::ImageView imageView{m_image};
-    // imageView.setSwizzle(DkImageSwizzle_Red, DkImageSwizzle_Red, DkImageSwizzle_Red, DkImageSwizzle_Green);
-
     m_descriptor.initialize(m_image);
 
-    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, 0);
+    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1});
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());
@@ -257,8 +317,8 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     return true;
 }
 
-bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                        void * data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+bool CImage::loadMemory(CMemPool &imagePool, CMemPool &scratchPool, dk::Device device, dk::Queue transferQueue,
+                        void *data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
     // Don't allow 0 sized data or nullptr data
     if (size <= 0 || !data)
@@ -306,7 +366,7 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
     ** to the temporary image memory
     */
     dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView, { 0, 0, 0, width, height, 1 }, DkBlitFlag_FlipY);
+    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1}, DkBlitFlag_FlipY);
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());

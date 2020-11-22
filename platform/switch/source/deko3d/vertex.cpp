@@ -78,6 +78,15 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex 
     return verts;
 }
 
+void vertex::DebugVertex(const vertex::GlyphVertex & vertex)
+{
+    char buffer[255];
+    snprintf(buffer, sizeof(buffer), "x: %.2f y: %.2f / color: {%.2f, %.2f, %.2f, %.2f} / texCoord {%.2f, %.2f}",
+                                      vertex.x, vertex.y, vertex.color.r, vertex.color.g, vertex.color.b, vertex.color.a,
+                                      vertex.s, vertex.t);
+    LOG("%s", buffer);
+}
+
 void vertex::DebugVertex(const vertex::Vertex & vertex)
 {
     char buffer[255];

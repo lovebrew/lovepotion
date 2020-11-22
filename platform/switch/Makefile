@@ -43,6 +43,7 @@ SOURCES		?=	${LOVE_SOURCES} \
 				source/freetype/types \
 				source/modules \
 				source/modules/font
+				# source/objects
 
 DATA		:=	../../source/scripts \
 				scripts
@@ -55,6 +56,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/freetype/types \
 				include/modules \
 				include/modules/font
+				# include/objects
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs
@@ -69,10 +71,17 @@ APP_TITLEID		:= 1043
 #---------------------------------------------------------------------------------
 ARCH      :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS    :=    -g -Wall -O2 -ffunction-sections `freetype-config --cflags` \
+CFLAGS    :=    -g -Wall -ffunction-sections `freetype-config --cflags` \
 				$(ARCH) $(DEFINES) -DLOVE_POTION_CONSOLE="\"Switch\""
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION)
+
+ifeq ($(strip $(DEBUG)),)
+	CFLAGS += -O2
+else
+	CFLAGS += -Og
+	ICON := icon-dev.jpg
+endif
 
 CXXFLAGS  :=	$(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 

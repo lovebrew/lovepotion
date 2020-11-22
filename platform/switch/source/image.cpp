@@ -24,6 +24,7 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 {
     this->Init(width, height);
 
+    /* std::optional<CImage> texture */
     this->texture->loadEmptyPixels(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(), dk3d.GetTextureQueue(),
                                    width * height * 4,  width, height, DkImageFormat_RGBA8_Unorm);
 

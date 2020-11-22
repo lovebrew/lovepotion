@@ -81,6 +81,8 @@ namespace Wrap_Graphics
 
     int Stencil(lua_State * L);
 
+    int GetRendererInfo(lua_State * L);
+
     int GetBackgroundColor(lua_State * L);
 
     int GetCanvas(lua_State * L);

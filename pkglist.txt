@@ -1,6 +1,5 @@
 3ds-examples
 3ds-libvorbisidec
-3ds-mpg123
 3ds-physfs
 3ds-pkg-config
 3ds-zlib
@@ -21,9 +20,13 @@ libnx
 picasso
 switch-examples
 switch-libvorbisidec
-switch-mpg123
 switch-physfs
 switch-pkg-config
+switch-libjpeg-turbo
+switch-bzip2
+switch-libpng
+switch-glm
+switch-freetype
 switch-tools
 switch-zlib
 tex3ds

@@ -9,22 +9,24 @@ GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) : glyph(glyph),
                                                              metrics(metrics),
                                                              data(nullptr)
 {
+    size_t pixelSize = this->GetPixelSize();
     if (this->metrics.width > 0 && this->metrics.height > 0)
-        this->data = new uint8_t[metrics.width * metrics.height * this->GetPixelSize()];
+        this->data = new uint8_t[(metrics.width * metrics.height) * pixelSize];
 }
 
 GlyphData::GlyphData(const GlyphData & glyphData) : glyph(glyphData.glyph),
                                                     metrics(glyphData.metrics),
                                                     data(nullptr)
 {
+    size_t pixelSize = this->GetPixelSize();
     if (this->metrics.width > 0 && this->metrics.height > 0)
     {
-        data = new uint8_t[metrics.width * metrics.height * this->GetPixelSize()];
+        data = new uint8_t[(metrics.width * metrics.height) * pixelSize];
         memcpy(data, glyphData.data, glyphData.GetSize());
     }
 }
 
-/* always LA8 pixel format -- so 2 */
+/* always RGBA8 pixel format -- so 4 */
 size_t GlyphData::GetPixelSize() const
 {
     return 4;

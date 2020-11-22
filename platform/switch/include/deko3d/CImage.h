@@ -21,12 +21,16 @@ class CImage
     public:
         CImage() : m_image{},
                    m_descriptor{},
-                   m_mem{}
+                   m_mem{},
+                   shadowBuffer(nullptr)
         {}
 
         ~CImage()
         {
             m_mem.destroy();
+
+            if (this->shadowBuffer != nullptr)
+                delete [] this->shadowBuffer;
         }
 
         constexpr operator bool() const
@@ -44,8 +48,6 @@ class CImage
             return m_descriptor;
         }
 
-        void dumpPixels(CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue, size_t width, size_t height);
-
         void * load(void * buffer, size_t size, int & width, int & height);
 
         bool loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue queue,
@@ -57,8 +59,19 @@ class CImage
         bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                         void * data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
 
+        bool dumpShadowBuffer();
+
+        bool fillShadowBuffer(void * data, const love::Rect & rect);
+
         private:
+
             u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
 
             u8 * loadJPG(void * buffer, size_t size, int & width, int & height);
+
+            size_t width;
+            size_t height;
+
+            uint8_t * shadowBuffer;
+            bool dumpedBuffer = false;
 };

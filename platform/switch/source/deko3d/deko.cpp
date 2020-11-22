@@ -191,7 +191,7 @@ void deko3d::ClearColor(const Colorf & color)
 {
     this->EnsureInFrame();
 
-    this->firstVertex = this->firstTexture = 0;
+    this->firstVertex = 0;
 
     this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
 }

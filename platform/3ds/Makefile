@@ -65,9 +65,16 @@ ICON			:= icon.png
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
+CFLAGS	:=	-g -Wall -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections -DCOMPT53_PREFIX -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
+
+ifeq ($(strip $(DEBUG)),)
+	CFLAGS += -O2
+else
+	CFLAGS += -Og
+	# ICON := icon-dev.jpg
+endif
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION)
 

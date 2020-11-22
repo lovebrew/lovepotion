@@ -38,6 +38,8 @@ love::System::PowerInfo System::GetPowerInfo() const
     return info;
 }
 
+static std::string empty;
+
 const std::string & System::GetUsername()
 {
     if (!this->sysInfo.username.empty())
@@ -54,17 +56,17 @@ const std::string & System::GetUsername()
     res = accountGetPreselectedUser(&userID);
 
     if (R_FAILED(res))
-        return "";
+        return empty;
 
     res = accountGetProfile(&profile, userID);
 
     if (R_FAILED(res))
-        return "";
+        return empty;
 
     res = accountProfileGet(&profile, NULL, &base);
 
     if (R_FAILED(res))
-        return "";
+        return empty;
 
     this->sysInfo.username = base.nickname;
 
@@ -99,12 +101,12 @@ const std::string & System::GetLanguage()
     Result res = setGetSystemLanguage(&languageCode);
 
     if (R_FAILED(res))
-        return "";
+        return empty;
 
     res = setMakeLanguage(languageCode, &language);
 
     if (R_FAILED(res))
-        return "";
+        return empty;
 
     this->sysInfo.language = LANGUAGES[language];
 

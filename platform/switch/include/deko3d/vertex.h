@@ -81,6 +81,8 @@ namespace vertex
 
     void DebugVertex(const vertex::Vertex & vertex);
 
+    void DebugVertex(const vertex::GlyphVertex & vertex);
+
     bool GetConstant(const char * in, CullMode & out);
     bool GetConstant(CullMode in, const char *& out);
     std::vector<std::string> GetConstants(CullMode);

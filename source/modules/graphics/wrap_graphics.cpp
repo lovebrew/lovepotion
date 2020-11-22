@@ -4,7 +4,6 @@
 using namespace love;
 
 #define instance()      (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
-#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
 
 int Wrap_Graphics::SetDepth(lua_State * L)
 {
@@ -1008,6 +1007,18 @@ int Wrap_Graphics::SetColor(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::GetRendererInfo(lua_State * L)
+{
+    Graphics::RendererInfo info = instance()->GetRendererInfo();
+
+    Luax::PushString(L, info.name);
+    Luax::PushString(L, info.version);
+    Luax::PushString(L, info.vendor);
+    Luax::PushString(L, info.device);
+
+    return 4;
+}
+
 int Wrap_Graphics::Register(lua_State * L)
 {
     luaL_Reg reg[] =
@@ -1025,6 +1036,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getHeight",          GetHeight          },
         { "getLineWidth",       GetLineWidth       },
         { "getPointSize",       GetPointSize       },
+        { "getRendererInfo",    GetRendererInfo    },
         { "getScissor",         GetScissor         },
         { "getWidth",           GetWidth           },
         { "line",               Line               },

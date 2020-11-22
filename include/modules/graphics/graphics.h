@@ -10,8 +10,8 @@
 #include "objects/image/wrap_image.h"
 #include "objects/image/image.h"
 
-#include "objects/font/wrap_font.h"
 #include "objects/font/font.h"
+#include "objects/font/wrap_font.h"
 
 #include "objects/quad/wrap_quad.h"
 #include "objects/quad/quad.h"
@@ -23,6 +23,9 @@
 #include "common/colors.h"
 
 #if defined(__SWITCH__)
+    // #include "objects/font.h"
+    // using gFont = love::deko3d::Font;
+
     #include "deko3d/shader.h"
     #include "deko3d/vertex.h"
 #endif

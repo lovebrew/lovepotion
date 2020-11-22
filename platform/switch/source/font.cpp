@@ -7,19 +7,11 @@
 
 #include "deko3d/deko.h"
 
-using namespace love;
 using namespace vertex;
 
+using namespace love;
+
 #define FONT_MODULE() (Module::GetInstance<FontModule>(Module::M_FONT))
-
-Font::Font(Data * data, float size) : size(size)
-{}
-
-Font::Font(Font::SystemFontType type, float size) : size(size)
-{}
-
-Font::Font(float size) : size(size)
-{}
 
 Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
                                                              height(r->GetHeight()),
@@ -29,9 +21,6 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
                                                              useSpacesAsTab(false),
                                                              textureCacheID(0)
 {
-    this->glyphs.clear();
-    this->images.clear();
-
     while (true)
     {
         if ((r->GetHeight() * 0.8) * r->GetHeight() * 30 <= textureWidth * textureHeight)
@@ -49,11 +38,28 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
     if (!r->HasGlyph(9)) // No tab character in the Rasterizer.
         this->useSpacesAsTab = true;
 
-    this->rowHeight = this->textureX = this->textureY = this->TEXTURE_PADDING;
-
     this->textureCacheID++;
+
+    this->glyphs.clear();
+    this->images.clear();
+
     this->CreateTexture();
 }
+
+Font::Font(SystemFontType, float)
+{}
+
+Font::Font(float)
+{}
+
+Font::Font(Data * data, float)
+{}
+
+void Font::ClearBuffer()
+{}
+
+float Font::GetWidth(const char *)
+{ return 0.0f; }
 
 Font::TextureSize Font::GetNextTextureSize() const
 {
@@ -188,7 +194,7 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
 
     g.texture = 0;
     g.spacing = floorf(gd->GetAdvance() / 1.0f + 0.5f);
-    memset(g.vertices, 0, sizeof(GlyphVertex) * 4);
+    std::fill_n(g.vertices, 4, GlyphVertex{});
 
     // Don't waste space on empty glyphs
     if (width > 0 && height > 0)
@@ -196,41 +202,45 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         Image * image = images.back();
         g.texture = image;
 
-        Rect rect = {textureX, textureY, gd->GetWidth(), gd->GetHeight()};
+        Rect rect = {this->textureX, this->textureY, gd->GetWidth(), gd->GetHeight()};
         image->ReplacePixels(gd->GetData(), gd->GetSize(), rect);
 
-        double tX     = (double) textureX,     tY      = (double) textureY;
-        double tWidth = (double) textureWidth, tHeight = (double) textureHeight;
+        image->GetTexture()->fillShadowBuffer(gd->GetData(), rect);
+
+        float tX     = (float)this->textureX,     tY      = (float)this->textureY;
+        float tWidth = (float)this->textureWidth, tHeight = (float)this->textureHeight;
 
         Colorf c(1.0f, 1.0f, 1.0f, 1.0f);
 
         // Extrude the quad borders by 1 pixel. We have an extra pixel of
         // transparent padding in the texture atlas, so the quad extrusion will
         // add some antialiasing at the edges of the quad.
-        int o = 1;
+        float o = 1.0f;
 
         // 0---2
         // | / |
         // 1---3
         const GlyphVertex verts[4] =
         {
-            { float(-o),   float(-o),    (tX - o)         / tWidth, (tY - o)          / tHeight, c },
-            { float(-o),   (height + o), (tX - o)         / tWidth, (tY + height + o) / tHeight, c },
-            { (width + o), float(-o),    (tX + width + o) / tWidth, (tY - o)          / tHeight, c },
-            { (width + o), (height + o), (tX + width + o) / tWidth, (tY + height + o) / tHeight, c }
+            { .x = float(-o),   .y = float(-o),    .s = (tX - o)          / tWidth, .t = (tY - o)          / tHeight, .color = c },
+            { .x = float(-o),   .y = (height + o), .s = (tX - o)          / tWidth, .t = (tY + height + o) / tHeight, .color = c },
+            { .x = (width + o), .y = float(-o),    .s = (tX + width + o)  / tWidth, .t = (tY - o)          / tHeight, .color = c },
+            { .x = (width + o), .y = (height + o), .s = (tX + width + o)  / tWidth, .t = (tY + height + o) / tHeight, .color = c }
         };
 
-        // Copy vertex data to the glyph and set proper bearing.
+        // Copy vertex data to the glyph
+        // and set proper bearing.
         for (int i = 0; i < 4; i++)
         {
             g.vertices[i] = verts[i];
+            // vertex::DebugVertex(g.vertices[i]);
 
             g.vertices[i].x += gd->GetBearingX();
             g.vertices[i].y -= gd->GetBearingY();
         }
 
         this->textureX  += width + this->TEXTURE_PADDING;
-        this->rowHeight =  std::max(rowHeight, height + TEXTURE_PADDING);
+        this->rowHeight =  std::max(this->rowHeight, height + this->TEXTURE_PADDING);
     }
 
     this->glyphs.emplace(glyph, g);
@@ -288,7 +298,7 @@ Font::~Font()
     this->glyphs.clear();
     this->images.clear();
 }
-
+static bool dumpedFile = false;
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantColor,
                                                       std::vector<GlyphVertex> & glyphVertices, float extra_spacing,
                                                       Vector2 offset, TextInfo * info)
@@ -445,6 +455,10 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
         info->height = (int)dy + (dx > 0.0f ? floorf(this->GetHeight() * this->GetLineHeight() + 0.5f) : 0) - offset.y;
     }
 
+    if (!dumpedFile)
+        commands.back().texture->GetTexture()->dumpShadowBuffer();
+    dumpedFile = true;
+
     return commands;
 }
 
@@ -535,27 +549,13 @@ float Font::GetBaseline() const
         return 0.0f;
 }
 
-float Font::GetSize()
-{
-    return this->size;
-}
-
-float Font::_GetGlyphWidth(u16 glyph)
-{}
-
 int Font::GetWidth(char character)
 {
     const Glyph & g = this->FindGlyph(character);
     return g.spacing;
 }
 
-float Font::GetWidth(const char *)
-{}
-
-void Font::ClearBuffer()
-{}
-
-StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM>::Entry Font::sharedFontEntries[] =
+StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM>::Entry love::Font::sharedFontEntries[] =
 {
     { "standard",                    TYPE_STANDARD               },
     { "chinese simplified",          TYPE_CHINESE_SIMPLIFIED     },
@@ -565,4 +565,4 @@ StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM>::Entry Font
     { "nintendo extended",           TYPE_NINTENDO_EXTENDED      }
 };
 
-StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM> Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));
+StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM> love::Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));
