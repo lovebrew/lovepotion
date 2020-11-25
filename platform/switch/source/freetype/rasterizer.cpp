@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "freetype/rasterizer.h"
 
+#include "utf8/utf8.h"
+
 using namespace love;
 
 love::Type Rasterizer::type("Rasterizer", &Object::type);
@@ -32,16 +34,13 @@ GlyphData * Rasterizer::GetGlyphData(const std::string & text) const
 {
     uint32_t codepoint = 0;
 
-
-    for (size_t i = 0; i < text.length(); i++)
+    try
     {
-        auto bytes = decode_utf8(&codepoint, (uint8_t *)&text[i]);
-
-        if (bytes < 0)
-        {
-            bytes = 1;
-            codepoint = 0xFFFD;
-        }
+        codepoint = utf8::peek_next(text.begin(), text.end());
+    }
+    catch (utf8::exception &e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
 
     return GetGlyphData(codepoint);

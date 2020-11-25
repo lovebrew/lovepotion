@@ -30,6 +30,9 @@ std::vector<vertex::Vertex> vertex::GeneratePrimitiveFromVectors(const Vector2 *
     return verts;
 }
 
+static inline uint16_t normto16t(float in)
+{ return uint16_t(in * 0xFFFF); }
+
 std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vector2 * points, const love::Vector2 * texcoord, size_t count, Colorf color)
 {
     std::vector<vertex::Vertex> verts(count);
@@ -43,7 +46,7 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vecto
         {
             .position = {point.x, point.y, 0.0f},
             .color = {1, 1, 1, 1},
-            .texcoord = {texCoord.x, texCoord.y}
+            .texcoord = {normto16t(texCoord.x), normto16t(texCoord.y)}
         };
 
         color.CopyTo(vert.color);
@@ -78,20 +81,12 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex 
     return verts;
 }
 
-void vertex::DebugVertex(const vertex::GlyphVertex & vertex)
-{
-    char buffer[255];
-    snprintf(buffer, sizeof(buffer), "x: %.2f y: %.2f / color: {%.2f, %.2f, %.2f, %.2f} / texCoord {%.2f, %.2f}",
-                                      vertex.x, vertex.y, vertex.color.r, vertex.color.g, vertex.color.b, vertex.color.a,
-                                      vertex.s, vertex.t);
-    LOG("%s", buffer);
-}
-
 void vertex::DebugVertex(const vertex::Vertex & vertex)
 {
-    char buffer[255];
-    snprintf(buffer, sizeof(buffer), "x: %.2f y: %.2f z: %.2f / color: {%.2f, %.2f, %.2f, %.2f} / texCoord {%.2f, %.2f}",
-                                      vertex.position[0], vertex.position[1], vertex.position[2], vertex.color[0], vertex.color[1],
-                                      vertex.color[2], vertex.color[3], vertex.texcoord[0], vertex.texcoord[1]);
+    std::string format = "x: %.2f y: %.2f z: %.2f / color: {%.2f, %.2f, %.2f, %.2f} / texCoord {%u, %u}";
+    char buffer[256];
+    snprintf(buffer, sizeof(buffer), format.c_str(), vertex.position[0], vertex.position[1], vertex.position[2],
+                                                     vertex.color[0], vertex.color[1], vertex.color[2], vertex.color[3],
+                                                     (unsigned)vertex.texcoord[0], (unsigned)vertex.texcoord[1]);
     LOG("%s", buffer);
 }

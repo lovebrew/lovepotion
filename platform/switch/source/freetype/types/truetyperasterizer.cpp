@@ -9,6 +9,7 @@ TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data * data,
                                        int size, Hinting hinting) : data(data),
                                                                     hinting(hinting)
 {
+    /* dpiScale is 1.0f */
     size = floorf(size * this->dpiScale + 0.5f);
 
     if (size <= 0)
@@ -47,7 +48,7 @@ TrueTypeRasterizer::~TrueTypeRasterizer()
 
 int TrueTypeRasterizer::GetLineHeight() const
 {
-    return (int)this->GetHeight() * 1.25;
+    return (int)(this->GetHeight() * 1.25);
 }
 
 GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
@@ -162,7 +163,7 @@ float TrueTypeRasterizer::GetKerning(uint32_t leftglyph, uint32_t rightglyph) co
     FT_UInt leftChar  = FT_Get_Char_Index(face, leftglyph);
     FT_UInt rightChar = FT_Get_Char_Index(face, rightglyph);
 
-    FT_Get_Kerning(face,
+    FT_Get_Kerning(this->face,
                    leftChar,
                    rightChar,
                    FT_KERNING_DEFAULT,

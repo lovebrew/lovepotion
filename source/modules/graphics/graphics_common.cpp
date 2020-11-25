@@ -284,7 +284,7 @@ void Graphics::Print(const std::vector<Font::ColoredString> & strings, const Mat
 
 void Graphics::Print(const  std::vector<Font::ColoredString> & strings, Font * font, const Matrix4 & localTransform)
 {
-    font->Print(this, strings, 0, this->states.back().foreground, Font::ALIGN_LEFT, localTransform);
+    font->Print(this, strings, localTransform, this->states.back().foreground);
 }
 
 void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
@@ -297,7 +297,7 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, float wr
 
 void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * font, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
 {
-    font->Print(this, strings, wrap, this->states.back().foreground, align, localTransform);
+    font->Printf(this, strings, wrap, align, localTransform, this->states.back().foreground);
 }
 
 /* End Objects */

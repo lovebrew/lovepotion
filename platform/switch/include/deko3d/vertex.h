@@ -15,13 +15,13 @@ namespace vertex
     {
         float position[3];
         float color[4];
-        float texcoord[2];
+        uint16_t texcoord[2];
     };
 
     struct GlyphVertex
     {
-        float x, y;
-        float s, t;
+        float    x, y;
+        uint16_t s, t;
 
         Colorf color;
     };
@@ -67,7 +67,7 @@ namespace vertex
         {
             DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
             DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
-            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, texcoord), DkVtxAttribSize_2x32, DkVtxAttribType_Float, 0 }
+            DkVtxAttribState{ 0, 0, offsetof(vertex::Vertex, texcoord), DkVtxAttribSize_2x16, DkVtxAttribType_Unorm, 0 }
         };
     }
 

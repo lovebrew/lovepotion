@@ -16,7 +16,7 @@ typedef struct _Renderer {
 typedef struct _Frame {
 } Frame;
 
-typedef std::optional<CImage> TextureHandle;
+using TextureHandle = CImage;
 
 typedef struct _ImageHandle {
 } ImageHandle;

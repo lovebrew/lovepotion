@@ -48,3 +48,17 @@ love::Rasterizer * FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterize
     love::StrongReference<DefaultFontData> data(new DefaultFontData, Acquire::NORETAIN);
     return NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
+
+GlyphData * FontModule::NewGlyphData(Rasterizer * rasterizer, const std::string & text)
+{
+    uint32_t codepoint = 0;
+    auto bytes = decode_utf8(&codepoint, (uint8_t *)&text[0]);
+
+    if (bytes < 0)
+    {
+        bytes = 1; // skip the invalid sequence
+        codepoint = 0xFFFD;
+    }
+
+    return rasterizer->GetGlyphData(codepoint);
+}

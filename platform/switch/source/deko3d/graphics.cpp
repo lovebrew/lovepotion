@@ -58,6 +58,11 @@ void love::deko3d::Graphics::SetColor(Colorf color)
     dk3d.SetBlendColor(color);
 }
 
+love::Image * love::deko3d::Graphics::NewImage(Texture::TextureType t, int width, int height)
+{
+    return new Image(t, width, height);
+}
+
 void love::deko3d::Graphics::SetMeshCullMode(vertex::CullMode mode)
 {
     DkFace face = DkFace_None;
@@ -102,7 +107,6 @@ void love::deko3d::Graphics::SetFrontFaceWinding(vertex::Winding winding)
 void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter & filter)
 {
     love::Graphics::SetDefaultFilter(filter);
-    dk3d.SetFilter(filter);
 }
 
 void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
@@ -309,11 +313,6 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
     coords[num_coords] = coords[0];
 
     this->Polygon(mode, coords, num_coords + 1);
-}
-
-Image * love::deko3d::Graphics::NewImage(Texture::TextureType type, int width, int height)
-{
-    return new Image(type, width, height);
 }
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry)
@@ -544,9 +543,6 @@ Font * love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hint
     auto fontModule = Module::GetInstance<FontModule>(M_FONT);
     if (!fontModule)
         throw love::Exception("Font module has not been loaded.");
-
-    PlFontData data;
-    plGetSharedFontByType(&data, PlSharedFontType_Standard);
 
     StrongReference<Rasterizer> r(fontModule->NewTrueTypeRasterizer(size, TrueTypeRasterizer::HINTING_NORMAL), Acquire::NORETAIN);
 

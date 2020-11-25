@@ -16,7 +16,10 @@ namespace love
     class TrueTypeRasterizer : public Rasterizer
     {
         public:
-            // Types of hinting for TrueType font glyphs.
+            /*
+            ** Types of hinting
+            ** for TrueType font glyphs.
+            */
             enum Hinting
             {
                 HINTING_NORMAL,

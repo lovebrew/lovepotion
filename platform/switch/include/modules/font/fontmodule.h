@@ -24,6 +24,8 @@ namespace love
 
             ModuleType GetModuleType() const { return M_FONT; }
 
+            GlyphData * NewGlyphData(Rasterizer * rasterizer, const std::string & text);
+
             const char * GetName() const override { return "love.font"; }
 
         private:

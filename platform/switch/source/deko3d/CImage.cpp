@@ -78,6 +78,7 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
     if (rowPointers == nullptr)
     {
         png_destroy_read_struct(&png, &info, NULL);
+        fclose(input);
         return nullptr;
     }
 
@@ -167,17 +168,19 @@ void * CImage::load(void *buffer, size_t size, int &width, int &height)
     return result;
 }
 
-bool CImage::fillShadowBuffer(void * data, const love::Rect & rect)
+void CImage::fillShadowBuffer(void * data, const love::Rect & rect)
 {
-    LOG("Filling buffer");
+    if (!this->shadowBuffer)
+        return;
+
     auto const src = static_cast<uint8_t *>(data);
 
-    for (unsigned y = 0; y < rect.h; ++y)
+    for (int y = 0; y < rect.h; ++y)
     {
         if (y + rect.y < 0 || y + rect.y >= height)
             continue;
 
-        for (unsigned x = 0; x < rect.w; ++x)
+        for (int x = 0; x < rect.w; ++x)
         {
             if (x + rect.x < 0 || x + rect.x >= width)
                 continue;
@@ -188,14 +191,17 @@ bool CImage::fillShadowBuffer(void * data, const love::Rect & rect)
             shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 3] = src[(y * rect.w + x) * 4 + 3]; //a
         }
     }
-    LOG("Done");
-    return true;
-}
 
-static FILE *fp = fopen("atlas.pam", "wb");
+    this->dirty = true;
+}
 
 bool CImage::dumpShadowBuffer()
 {
+    if (!this->shadowBuffer || !this->dirty)
+        return false;
+
+    FILE * fp = fopen("atlas.pam", "wb");
+
     fputs("P7\n", fp);
     fprintf(fp, "WIDTH %u\n", this->width);
     fprintf(fp, "HEIGHT %u\n", this->height);
@@ -221,6 +227,8 @@ bool CImage::dumpShadowBuffer()
 
     if (fclose(fp) != 0)
         return false;
+
+    this->dirty = false;
 
     return true;
 }
@@ -277,7 +285,10 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
 
     this->width = width;
     this->height = height;
-    LOG("%u %u", this->width, this->height);
+
+    if (this->shadowBuffer)
+       delete [] this->shadowBuffer;
+
     this->shadowBuffer = new uint8_t[size];
     memset(this->shadowBuffer, 0, size);
 
@@ -313,6 +324,8 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
     // Destroy the memory we don't need
     tempCmdMem.destroy();
     tempImageMemory.destroy();
+
+    this->dirty = true;
 
     return true;
 }

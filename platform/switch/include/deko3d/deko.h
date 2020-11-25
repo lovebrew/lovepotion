@@ -24,6 +24,8 @@
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#define MAX_ANISOTROPY 16
+
 namespace love
 {
     class Graphics;
@@ -48,7 +50,9 @@ class deko3d
 
         void BindFramebuffer();
 
-        void SetFilter(const love::Texture::Filter & filter);
+        void SetTextureFilter(love::Texture::Filter & filter);
+
+        void SetTextureWrap(love::Texture::Wrap & wrap);
 
         void ClearColor(const Colorf & color);
 
@@ -116,6 +120,8 @@ class deko3d
         bool RenderPolyline(const vertex::Vertex * points, size_t size, size_t count);
 
         bool RenderPoints(const vertex::Vertex * points, size_t size, size_t count);
+
+        static DkWrapMode GetDekoWrapMode(love::Texture::WrapMode wrap);
 
     private:
         vertex::Vertex * vertexData;

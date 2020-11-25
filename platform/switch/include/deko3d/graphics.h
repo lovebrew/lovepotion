@@ -10,7 +10,7 @@
 #define RENDERER_NAME    "deko3d"
 #define RENDERER_VERSION "0.2.0"
 #define RENDERER_VENDOR  "devkitPro"
-#define RENDERER_DEVICE  "Tegra X1"
+#define RENDERER_DEVICE  "NVIDIA Tegra X1"
 
 namespace love::deko3d
 {
@@ -32,6 +32,8 @@ namespace love::deko3d
             void SetColor(Colorf color) override;
 
             /* Primitives */
+
+            love::Image * NewImage(Texture::TextureType t, int width, int height);
 
             void Rectangle(DrawMode mode, float x, float y, float width, float height) override;
 
@@ -64,8 +66,6 @@ namespace love::deko3d
             void SetDefaultFilter(const Texture::Filter & filter);
 
             /* End Primitives */
-
-            Image * NewImage(Texture::TextureType type, int width, int height);
 
             void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
 

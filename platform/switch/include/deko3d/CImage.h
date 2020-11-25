@@ -21,15 +21,14 @@ class CImage
     public:
         CImage() : m_image{},
                    m_descriptor{},
-                   m_mem{},
-                   shadowBuffer(nullptr)
+                   m_mem{}
         {}
 
         ~CImage()
         {
             m_mem.destroy();
 
-            if (this->shadowBuffer != nullptr)
+            if (this->shadowBuffer)
                 delete [] this->shadowBuffer;
         }
 
@@ -61,10 +60,9 @@ class CImage
 
         bool dumpShadowBuffer();
 
-        bool fillShadowBuffer(void * data, const love::Rect & rect);
+        void fillShadowBuffer(void * data, const love::Rect & rect);
 
         private:
-
             u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
 
             u8 * loadJPG(void * buffer, size_t size, int & width, int & height);
@@ -72,6 +70,6 @@ class CImage
             size_t width;
             size_t height;
 
-            uint8_t * shadowBuffer;
-            bool dumpedBuffer = false;
+            uint8_t * shadowBuffer = nullptr;
+            bool dirty = false;
 };

@@ -54,6 +54,7 @@ namespace love
                 FilterMode mag = FILTER_LINEAR;
 
                 FilterMode mipmap = FILTER_NONE;
+                float anisotropy  = 1.0f;
             };
 
             struct Wrap
@@ -97,7 +98,7 @@ namespace love
 
             Quad * GetQuad() const;
 
-            TextureHandle GetTexture() {
+            TextureHandle & GetTexture() {
                 return this->texture;
             };
 

@@ -61,6 +61,14 @@ deko3d::deko3d()
     this->state.depthStencil.setDepthTestEnable(true);
     this->state.depthStencil.setDepthWriteEnable(true);
     this->state.depthStencil.setDepthCompareOp(DkCompareOp_Greater);
+
+    love::Texture::Filter filter;
+    filter.min = filter.mag = love::Texture::FILTER_NEAREST;
+    this->SetTextureFilter(filter);
+
+    love::Texture::Wrap wrap;
+    wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
+    this->SetTextureWrap(wrap);
 }
 
 deko3d::~deko3d()
@@ -340,7 +348,8 @@ void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
     this->textureIDs++;
 }
 
-bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count)
+bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size,
+                           size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
@@ -505,18 +514,58 @@ void deko3d::SetDepthWrites(bool enable)
 }
 
 // Set the global filter mode for textures
-void deko3d::SetFilter(const love::Texture::Filter & filter)
+void deko3d::SetTextureFilter(love::Texture::Filter & filter)
 {
     DkFilter min = (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
     DkFilter mag = (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
 
+    DkMipFilter mipFilter;
     if (filter.mipmap != love::Texture::FILTER_NONE)
-    {} // Deal with MipMap
+    {
+        if (filter.min == love::Texture::FILTER_NEAREST && filter.mipmap == love::Texture::FILTER_NEAREST)
+            mipFilter = DkMipFilter_Nearest;
+        else if (filter.min == love::Texture::FILTER_NEAREST && filter.mipmap == love::Texture::FILTER_LINEAR)
+            mipFilter = DkMipFilter_Linear;
+        else if (filter.min == love::Texture::FILTER_LINEAR && filter.mipmap == love::Texture::FILTER_NEAREST)
+            mipFilter = DkMipFilter_Nearest;
+        else if (filter.min == love::Texture::FILTER_LINEAR && filter.mipmap == love::Texture::FILTER_LINEAR)
+            mipFilter = DkMipFilter_Linear;
+        else
+            mipFilter = DkMipFilter_Linear;
+    } // Deal with MipMap
 
-    this->filter.sampler.setFilter(min, mag);
-    this->filter.sampler.setWrapMode(DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge, DkWrapMode_ClampToEdge);
+    this->filter.sampler.setFilter(min, mag, mipFilter);
+
+    filter.anisotropy = std::clamp(filter.anisotropy, 1.0f, (float)MAX_ANISOTROPY);
+    this->filter.sampler.setMaxAnisotropy(filter.anisotropy);
 
     this->filter.descriptor.initialize(this->filter.sampler);
+}
+
+void deko3d::SetTextureWrap(love::Texture::Wrap & wrap)
+{
+    DkWrapMode u = deko3d::GetDekoWrapMode(wrap.s);
+    DkWrapMode v = deko3d::GetDekoWrapMode(wrap.t);
+
+    this->filter.sampler.setWrapMode(u, v);
+
+    this->filter.descriptor.initialize(this->filter.sampler);
+}
+
+DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
+{
+    switch (wrap)
+    {
+        case love::Texture::WRAP_CLAMP:
+        default:
+            return DkWrapMode_ClampToEdge;
+        case love::Texture::WRAP_CLAMP_ZERO:
+            return DkWrapMode_ClampToBorder;
+        case love::Texture::WRAP_REPEAT:
+            return DkWrapMode_Repeat;
+        case love::Texture::WRAP_MIRRORED_REPEAT:
+            return DkWrapMode_MirroredRepeat;
+    }
 }
 
 /*

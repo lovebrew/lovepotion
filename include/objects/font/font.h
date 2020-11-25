@@ -95,6 +95,9 @@ namespace love
                                                           std::vector<vertex::GlyphVertex> & glyphVertices, float extra_spacing = 0.0f,
                                                           Vector2 offset = {}, TextInfo * info = nullptr);
 
+                std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints & text, const Colorf & constantColor, float wrap,
+                                                                   AlignMode align, std::vector<vertex::GlyphVertex> & vertices, TextInfo * info = nullptr);
+
                 void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::GlyphVertex> & vertices);
             #endif
 
@@ -148,7 +151,8 @@ namespace love
 
             ~Font();
 
-            void Print(Graphics * gfx, const std::vector<ColoredString> & text, float limit, const Colorf & color, AlignMode align, const Matrix4 & localTransform);
+            void Print(Graphics * gfx, const std::vector<ColoredString> & text, const Matrix4 & localTransform, const Colorf & color);
+            void Printf(Graphics * gfx, const std::vector<ColoredString> & text, float wrap, AlignMode align, const Matrix4 & localTransform, const Colorf & color);
 
             void ClearBuffer();
 
@@ -191,11 +195,13 @@ namespace love
 
                 uint32_t textureCacheID;
 
+                float dpiScale;
+
                 int textureX;
                 int textureY;
                 int rowHeight;
 
-                static const int TEXTURE_PADDING = 2;
+                static const int TEXTURE_PADDING = 4;
 
                 std::unordered_map<uint32_t, Font::Glyph> glyphs;
 
@@ -214,7 +220,7 @@ namespace love
 
             TextureHandle texture;
 
-            float GetLineHeight() { return this->lineHeight; }
+            float GetLineHeight() const;
 
             float GetScale() { return this->size / 30.0f; }
 
