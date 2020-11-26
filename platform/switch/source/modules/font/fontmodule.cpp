@@ -19,6 +19,24 @@ class DefaultFontData : public love::Data
         PlFontData fontData;
 };
 
+class SystemFontData : public love::Data
+{
+    public:
+        SystemFontData(Font::SystemFontType type)
+        {
+            this->type = type;
+            plGetSharedFontByType(&this->fontData, (PlSharedFontType)type);
+        }
+
+        Data * Clone()   const override { return new SystemFontData(this->type);   }
+        void * GetData() const override { return this->fontData.address; }
+        size_t GetSize() const override { return this->fontData.size; }
+
+    private:
+        PlFontData fontData;
+        Font::SystemFontType type;
+};
+
 FontModule::FontModule()
 {
     if (FT_Init_FreeType(&this->library))
@@ -30,6 +48,11 @@ FontModule::~FontModule()
     FT_Done_FreeType(this->library);
 }
 
+Data * FontModule::GetSystemFont(Font::SystemFontType type)
+{
+    return new SystemFontData(type);
+}
+
 love::Rasterizer * FontModule::NewRasterizer(love::FileData * data)
 {
     if (love::TrueTypeRasterizer::Accepts(this->library, data))
@@ -37,6 +60,12 @@ love::Rasterizer * FontModule::NewRasterizer(love::FileData * data)
 
     throw love::Exception("Invalid font file: %s", data->GetFilename().c_str());
 }
+
+Rasterizer * FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale, TrueTypeRasterizer::Hinting hinting)
+{}
+
+Rasterizer * FontModule::NewTrueTypeRasterizer(void * data, size_t dataSize, int size, TrueTypeRasterizer::Hinting hinting)
+{}
 
 love::Rasterizer * FontModule::NewTrueTypeRasterizer(love::Data * data, int size, love::TrueTypeRasterizer::Hinting hinting)
 {

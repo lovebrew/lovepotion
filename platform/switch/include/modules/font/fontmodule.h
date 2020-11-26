@@ -4,6 +4,7 @@
 #include "truetyperasterizer.h"
 
 #include "objects/filedata/filedata.h"
+#include "objects/font/font.h"
 
 namespace love
 {
@@ -16,6 +17,8 @@ namespace love
 
             Rasterizer * NewRasterizer(love::FileData * data);
 
+            Rasterizer * NewTrueTypeRasterizer(size_t size, float dpiScale, TrueTypeRasterizer::Hinting hinting);
+
             Rasterizer * NewTrueTypeRasterizer(void * data, size_t dataSize, int size, love::TrueTypeRasterizer::Hinting hinting);
 
             Rasterizer * NewTrueTypeRasterizer(love::Data * data, int size, TrueTypeRasterizer::Hinting hinting);
@@ -25,6 +28,8 @@ namespace love
             ModuleType GetModuleType() const { return M_FONT; }
 
             GlyphData * NewGlyphData(Rasterizer * rasterizer, const std::string & text);
+
+            Data * GetSystemFont(Font::SystemFontType type);
 
             const char * GetName() const override { return "love.font"; }
 

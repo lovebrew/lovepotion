@@ -201,15 +201,11 @@ namespace love
 
             Image * NewImage(Data * data);
 
-            Font * NewFont(Font::SystemFontType type, float size = Font::DEFAULT_SIZE);
-
-            Font * NewFont(Data * data, float size = Font::DEFAULT_SIZE);
-
-            Font * NewFont(float size = Font::DEFAULT_SIZE);
-
             #if defined (__SWITCH__)
                 virtual Font * NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter = Texture::defaultFilter) = 0;
             #endif
+
+            virtual Font * NewFont(Rasterizer * rasterizer, const Texture::Filter & filter = Texture::defaultFilter) = 0;
 
             Quad * NewQuad(Quad::Viewport v, double sw, double sh);
 

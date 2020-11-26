@@ -685,43 +685,21 @@ int Wrap_Graphics::NewFont(lua_State * L)
 {
     Font * font = nullptr;
 
-    if (lua_isnumber(L, 1))
+    // Convert to Rasterizer, if necessary.
+    if (!Luax::IsType(L, 1, Rasterizer::type))
     {
-        float size = luaL_checknumber(L, 1);
+        std::vector<int> idxs;
+        for (int i = 0; i < lua_gettop(L); i++)
+            idxs.push_back(i + 1);
 
-        Luax::CatchException(L, [&]() {
-            font = instance()->NewFont(size);
-        });
+        Luax::ConvertObject(L, idxs, "font", "newRasterizer");
     }
-    else
-    {
-        if (Wrap_Filesystem::CanGetData(L, 1))
-        {
-            const char * string = luaL_checkstring(L, 1);
-            float size = luaL_optnumber(L, 2, Font::DEFAULT_SIZE);
 
-            std::filesystem::path filepath(string);
+    Rasterizer * rasterizer = Luax::CheckType<Rasterizer>(L, 1);
 
-            // Check for enum value
-            if (filepath.extension() == "")
-            {
-                Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
-
-                if (!Font::GetConstant(string, type))
-                    return Luax::EnumError(L, "font type", Font::GetConstants(type), string);
-
-                Luax::CatchException(L, [&]() {
-                    font = instance()->NewFont(type, size);
-                });
-            }
-            else //check for custom font
-            {
-                Luax::CatchException(L, [&]() {
-                    font = instance()->NewFont(Wrap_Filesystem::GetData(L, 1), size);
-                });
-            }
-        }
-    }
+    Luax::CatchException(L, [&]() {
+        font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter()); }
+    );
 
     Luax::PushType(L, font);
     font->Release();

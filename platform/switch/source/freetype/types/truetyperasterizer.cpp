@@ -201,3 +201,28 @@ FT_UInt TrueTypeRasterizer::HintingToLoadOption(Hinting hint)
             return FT_LOAD_NO_HINTING;
     }
 }
+
+bool TrueTypeRasterizer::GetConstant(const char * in, Hinting & out)
+{
+    return hintings.Find(in, out);
+}
+
+bool TrueTypeRasterizer::GetConstant(Hinting in, const char *& out)
+{
+    return hintings.Find(in, out);
+}
+
+std::vector<std::string> TrueTypeRasterizer::GetConstants(Hinting)
+{
+    return hintings.GetNames();
+}
+
+StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM>::Entry TrueTypeRasterizer::hintingEntries[] =
+{
+    {"normal", HINTING_NORMAL},
+    {"light",  HINTING_LIGHT},
+    {"mono",   HINTING_MONO},
+    {"none",   HINTING_NONE},
+};
+
+StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::hintings(TrueTypeRasterizer::hintingEntries, sizeof(TrueTypeRasterizer::hintingEntries));

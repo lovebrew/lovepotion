@@ -1,6 +1,8 @@
 #pragma once
 
 #include "modules/graphics/graphics.h"
+#include "modules/font/fontmodule.h"
+
 #include "deko3d/deko.h"
 
 #include <ft2build.h>
@@ -76,6 +78,8 @@ namespace love::deko3d
             void SetFrontFaceWinding(vertex::Winding winding) override;
 
             Font * NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter = Texture::defaultFilter) override;
+
+            Font * NewFont(Rasterizer * rasterizer, const Texture::Filter & filter) override;
 
             RendererInfo GetRendererInfo() const override;
 

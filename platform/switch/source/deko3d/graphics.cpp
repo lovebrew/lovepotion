@@ -194,6 +194,11 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
     this->states.back().blendAlphaMode = alphamode;
 }
 
+Font * love::deko3d::Graphics::NewFont(Rasterizer * data, const Texture::Filter & filter)
+{
+    return new Font(data, filter);
+}
+
 /* Primitives */
 
 void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points,
