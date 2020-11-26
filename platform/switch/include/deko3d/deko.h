@@ -39,8 +39,8 @@ class deko3d
         static constexpr uint32_t FRAMEBUFFER_WIDTH  = 1280;
         static constexpr uint32_t FRAMEBUFFER_HEIGHT = 720;
 
-        static constexpr unsigned COMMAND_SIZE = 0x10000;
-        static constexpr size_t VERTEX_COMMAND_SIZE = 0x10000;
+        static constexpr unsigned COMMAND_SIZE      = 0x100000;
+        static constexpr size_t VERTEX_COMMAND_SIZE = 0x100000;
 
         static constexpr size_t MAX_OBJECTS = 0x250;
 

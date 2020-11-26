@@ -362,7 +362,7 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * poin
     memcpy(this->vertexData + this->firstVertex, points, size);
 
     // Draw with Triangles
-    this->cmdBuf.draw(DkPrimitive_TriangleStrip, count, 1, this->firstVertex, 0);
+    this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
 
     // Offset the first vertex data
     this->firstVertex += count;

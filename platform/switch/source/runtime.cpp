@@ -1,5 +1,10 @@
 #include "common/runtime.h"
 
+namespace
+{
+    int s_nxFd = -1;
+}
+
 extern "C"
 {
     void userAppInit()
@@ -37,10 +42,14 @@ extern "C"
 
         if (R_FAILED(res))
             fatalThrow(res);
+
+        s_nxFd = nxlinkStdioForDebug();
     }
 
     void userAppExit()
     {
+        close(s_nxFd);
+
         socketExit();
         psmExit();
         setExit();

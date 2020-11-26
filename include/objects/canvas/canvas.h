@@ -25,7 +25,7 @@ namespace love
                 return this->renderer;
             }
 
-            TextureHandle GetTextureHandle() {
+            TextureHandle & GetTextureHandle() {
                 return this->texture;
             }
 

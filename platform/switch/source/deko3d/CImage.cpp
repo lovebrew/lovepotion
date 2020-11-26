@@ -7,6 +7,8 @@
 
 #include "common/mmath.h"
 
+#include <cstdio>
+
 u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
 {
     if (buffer == nullptr || size <= 0)
@@ -14,7 +16,6 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
 
     u32 *output = nullptr;
     FILE *input = fmemopen(buffer, size, "rb");
-    ;
 
     constexpr size_t sigLength = 8;
     u8 sig[sigLength] = {0};
@@ -200,7 +201,11 @@ bool CImage::dumpShadowBuffer()
     if (!this->shadowBuffer || !this->dirty)
         return false;
 
-    FILE * fp = fopen("atlas.pam", "wb");
+	static char path[32];
+	static unsigned index = 0;
+	std::sprintf (path, "/atlas_%05u.pam", index++);
+	LOG ("Dumping to %s", path);
+    FILE * fp = fopen(path, "wb");
 
     fputs("P7\n", fp);
     fprintf(fp, "WIDTH %u\n", this->width);

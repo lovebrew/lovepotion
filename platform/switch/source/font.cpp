@@ -7,6 +7,7 @@
 #include "common/matrix.h"
 
 #include "deko3d/deko.h"
+#include "utf8/utf8.h"
 
 using namespace vertex;
 
@@ -225,15 +226,15 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         // add some antialiasing at the edges of the quad.
         int o = 1;
 
-        // 0---2
-        // | / |
-        // 1---3
+        // 0---3
+        // |   |
+        // 1---2
         const GlyphVertex verts[4] =
         {
             { float(-o),                    float(-o),                     norm16((tX - o)/ tWidth),          norm16((tY - o) / tHeight),          c },
             { float(-o),                    (height + o) / this->dpiScale, norm16((tX - o) / tWidth),         norm16((tY + height + o) / tHeight), c },
+            { (width + o) / this->dpiScale, (height + o) / this->dpiScale, norm16((tX + width + o) / tWidth), norm16((tY + height + o) / tHeight), c },
             { (width + o) / this->dpiScale, float(-o),                     norm16((tX + width + o) / tWidth), norm16((tY - o)          / tHeight), c },
-            { (width + o) / this->dpiScale, (height + o) / this->dpiScale, norm16((tX + width + o) / tWidth), norm16((tY + height + o) / tHeight), c }
         };
 
         // Copy vertex data to the glyph
@@ -254,22 +255,24 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
     return this->glyphs[glyph];
 }
 
-void Font::GetCodepointsFromString(const std::string & string, Codepoints & codepoints)
+void Font::GetCodepointsFromString(const std::string & text, Codepoints & codepoints)
 {
-    codepoints.reserve(string.size());
+    codepoints.reserve(text.size());
 
-    for (size_t i = 0; i < string.size(); i++)
+    try
     {
-        uint32_t codepoint;
-        auto bytes = decode_utf8(&codepoint, (uint8_t *)&string[i]);
+        utf8::iterator<std::string::const_iterator> i(text.begin(), text.begin(), text.end());
+        utf8::iterator<std::string::const_iterator> end(text.end(), text.begin(), text.end());
 
-        if (bytes < 0)
+        while (i != end)
         {
-            bytes = 1; // skip the invalid sequence
-            codepoint = 0xFFFD;
+            uint32_t g = *i++;
+            codepoints.push_back(g);
         }
-
-        codepoints.push_back(codepoint);
+    }
+    catch (utf8::exception &e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
 }
 
@@ -532,13 +535,12 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
     {
         size_t vertexCount = cmd.vertexCount;
 
-        GlyphVertex vertexData[vertexCount];
+        std::vector<GlyphVertex> vertexData (vertexCount);
 
-        memcpy(vertexData, &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
-        m.TransformXY(vertexData, &vertices[cmd.startVertex], vertexCount);
+        memcpy(vertexData.data (), &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
+        m.TransformXY(vertexData.data (), &vertices[cmd.startVertex], vertexCount);
 
-
-        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, vertexCount);
+        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData.data(), vertexCount);
         dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
     }
 }
