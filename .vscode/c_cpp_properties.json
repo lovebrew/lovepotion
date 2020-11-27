@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/libraries/**",
-                "${workspaceFolder}/platform/3ds/include",
+                "${workspaceFolder}/platform/3ds/include/**",
                 "/opt/devkitpro/portlibs/3ds/include/**",
                 "/opt/devkitpro/libctru/include/**",
                 "/opt/devkitpro/devkitARM/include/**"

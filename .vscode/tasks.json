@@ -77,6 +77,24 @@
         },
 
         {
+            "label": "Build 3DS {Debug}",
+            "type": "shell",
+            "command": "make ctr-debug -j6",
+
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+
+            "group": "build",
+            "problemMatcher": []
+        },
+
+        {
             "label": "Build All",
             "type": "shell",
             "command": "make -j6",

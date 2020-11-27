@@ -99,6 +99,10 @@ namespace love
                                                                    AlignMode align, std::vector<vertex::GlyphVertex> & vertices, TextInfo * info = nullptr);
 
                 void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::GlyphVertex> & vertices);
+
+                void GetWrap(const std::vector<ColoredString> & text, float wraplimit, std::vector<std::string> & lines, std::vector<int> * lineWidths = nullptr);
+
+                void GetWrap(const ColoredCodepoints & codepoints, float wraplimit, std::vector<ColoredCodepoints> & lines, std::vector<int> * lineWidths = nullptr);
             #endif
 
             enum Hinting

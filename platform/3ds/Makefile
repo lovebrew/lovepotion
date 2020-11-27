@@ -73,7 +73,7 @@ ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2
 else
 	CFLAGS += -Og
-	# ICON := icon-dev.jpg
+	ICON := icon-dev.jpg
 endif
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION)

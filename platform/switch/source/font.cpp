@@ -481,7 +481,94 @@ float Font::GetLineHeight() const
 
 std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(const ColoredCodepoints & text, const Colorf & constantColor, float wrap,
                                                                AlignMode align, std::vector<vertex::GlyphVertex> & vertices, TextInfo * info)
-{}
+{
+    wrap = std::max(wrap, 0.0f);
+
+    uint32_t cacheid = this->textureCacheID;
+
+    std::vector<DrawCommand> drawcommands;
+    vertices.reserve(text.codes.size() * 4);
+
+    std::vector<int> widths;
+    std::vector<ColoredCodepoints> lines;
+
+    this->GetWrap(text, wrap, lines, &widths);
+
+    float y = 0.0f;
+    float maxwidth = 0.0f;
+
+    for (int i = 0; i < (int) lines.size(); i++)
+    {
+        const auto &line = lines[i];
+
+        float width = (float) widths[i];
+        love::Vector2 offset(0.0f, floorf(y));
+        float extraspacing = 0.0f;
+
+        maxwidth = std::max(width, maxwidth);
+
+        switch (align)
+        {
+            case ALIGN_RIGHT:
+                offset.x = floorf(wrap - width);
+                break;
+            case ALIGN_CENTER:
+                offset.x = floorf((wrap - width) / 2.0f);
+                break;
+            case ALIGN_JUSTIFY:
+            {
+                float numspaces = (float) std::count(line.codes.begin(), line.codes.end(), ' ');
+                if (width < wrap && numspaces >= 1)
+                    extraspacing = (wrap - width) / numspaces;
+                else
+                    extraspacing = 0.0f;
+                break;
+            }
+            case ALIGN_LEFT:
+            default:
+                break;
+        }
+
+        std::vector<DrawCommand> newcommands = this->GenerateVertices(line, constantColor, vertices, extraspacing, offset);
+
+        if (!newcommands.empty())
+        {
+            auto firstcmd = newcommands.begin();
+
+            // If the first draw command in the new list has the same texture
+            // as the last one in the existing list we're building and its
+            // vertices are in-order, we can combine them (saving a draw call.)
+            if (!drawcommands.empty())
+            {
+                auto prevcmd = drawcommands.back();
+                if (prevcmd.texture == firstcmd->texture && (prevcmd.startVertex + prevcmd.vertexCount) == firstcmd->startVertex)
+                {
+                    drawcommands.back().vertexCount += firstcmd->vertexCount;
+                    ++firstcmd;
+                }
+            }
+
+            // Append the new draw commands to the list we're building.
+            drawcommands.insert(drawcommands.end(), firstcmd, newcommands.end());
+        }
+
+        y += this->GetHeight() * this->GetLineHeight();
+    }
+
+    if (info != nullptr)
+    {
+        info->width = (int) maxwidth;
+        info->height = (int) y;
+    }
+
+    if (cacheid != textureCacheID)
+    {
+        vertices.clear();
+        drawcommands = this->GenerateVerticesFormatted(text, constantColor, wrap, align, vertices);
+    }
+
+    return drawcommands;
+}
 
 float Font::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
 {
@@ -511,7 +598,7 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
                  const Matrix4 & localTransform, const Colorf & color)
 {
     ColoredCodepoints codepoints;
-    GetCodepointsFromString(text, codepoints);
+    Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<GlyphVertex> vertices;
     std::vector<DrawCommand> drawCommands = this->GenerateVertices(codepoints, color, vertices);
@@ -521,7 +608,15 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
 
 void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float wrap,
                   AlignMode align, const Matrix4 & localTransform, const Colorf & color)
-{}
+{
+    ColoredCodepoints codepoints;
+    Font::GetCodepointsFromString(text, codepoints);
+
+    std::vector<GlyphVertex> vertices;
+    std::vector<DrawCommand> drawCommands = this->GenerateVerticesFormatted(codepoints, color, wrap, align, vertices);
+
+    this->PrintV(gfx, localTransform, drawCommands, vertices);
+}
 
 void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawCommands,
                   const std::vector<GlyphVertex> & vertices)
@@ -535,13 +630,200 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
     {
         size_t vertexCount = cmd.vertexCount;
 
-        std::vector<GlyphVertex> vertexData (vertexCount);
+        std::vector<GlyphVertex> vertexData(vertexCount);
 
-        memcpy(vertexData.data (), &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
-        m.TransformXY(vertexData.data (), &vertices[cmd.startVertex], vertexCount);
+        memcpy(vertexData.data(), &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
+        m.TransformXY(vertexData.data(), &vertices[cmd.startVertex], vertexCount);
 
         std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData.data(), vertexCount);
         dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
+    }
+}
+
+void Font::GetWrap(const std::vector<ColoredString> & text, float wraplimit, std::vector<std::string> & lines, std::vector<int> * linewidths)
+{
+    ColoredCodepoints cps;
+    Font::GetCodepointsFromString(text, cps);
+
+    std::vector<ColoredCodepoints> codepointlines;
+    this->GetWrap(cps, wraplimit, codepointlines, linewidths);
+
+    std::string line;
+
+    for (const ColoredCodepoints &codepoints : codepointlines)
+    {
+        line.clear();
+        line.reserve(codepoints.codes.size());
+
+        for (uint32_t codepoint : codepoints.codes)
+        {
+            char character[5] = {'\0'};
+            char *end = utf8::unchecked::append(codepoint, character);
+
+            line.append(character, end - character);
+        }
+
+        lines.push_back(line);
+    }
+}
+
+void Font::GetWrap(const ColoredCodepoints & codepoints, float wraplimit, std::vector<ColoredCodepoints> & lines, std::vector<int> * linewidths)
+{
+    // Per-line info.
+    float width = 0.0f;
+
+    float widthbeforelastspace = 0.0f;
+    float widthoftrailingspace = 0.0f;
+
+    uint32_t prevglyph = 0;
+
+    int lastspaceindex = -1;
+
+    // Keeping the indexed colors "in sync" is a bit tricky, since we split
+    // things up and we might skip some glyphs but we don't want to skip any
+    // color which starts at those indices.
+    Colorf curcolor(1.0f, 1.0f, 1.0f, 1.0f);
+    bool addcurcolor = false;
+    int curcolori = -1;
+    int endcolori = (int)codepoints.colors.size() - 1;
+
+    // A wrapped line of text.
+    ColoredCodepoints wline;
+
+    int i = 0;
+    while (i < (int) codepoints.codes.size())
+    {
+        uint32_t c = codepoints.codes[i];
+
+        // Determine the current color before doing anything else, to make sure
+        // it's still applied to future glyphs even if this one is skipped.
+        if (curcolori < endcolori && codepoints.colors[curcolori + 1].index == i)
+        {
+            curcolor = codepoints.colors[curcolori + 1].color;
+            curcolori++;
+            addcurcolor = true;
+        }
+
+        // Split text at newlines.
+        if (c == '\n')
+        {
+            lines.push_back(wline);
+
+            // Ignore the width of any trailing spaces, for individual lines.
+            if (linewidths)
+                linewidths->push_back(width - widthoftrailingspace);
+
+            // Make sure the new line keeps any color that was set previously.
+            addcurcolor = true;
+
+            width = widthbeforelastspace = widthoftrailingspace = 0.0f;
+            prevglyph = 0; // Reset kerning information.
+            lastspaceindex = -1;
+            wline.codes.clear();
+            wline.colors.clear();
+            i++;
+
+            continue;
+        }
+
+        // Ignore carriage returns
+        if (c == '\r')
+        {
+            i++;
+            continue;
+        }
+
+        const Glyph &g = this->FindGlyph(c);
+        float charwidth = g.spacing + this->GetKerning(prevglyph, c);
+        float newwidth = width + charwidth;
+
+        // Wrap the line if it exceeds the wrap limit. Don't wrap yet if we're
+        // processing a newline character, though.
+        if (c != ' ' && newwidth > wraplimit)
+        {
+            // If this is the first character in the line and it exceeds the
+            // limit, skip it completely.
+            if (wline.codes.empty())
+                i++;
+            else if (lastspaceindex != -1)
+            {
+                // 'Rewind' to the last seen space, if the line has one.
+                // FIXME: This could be more efficient...
+                while (!wline.codes.empty() && wline.codes.back() != ' ')
+                    wline.codes.pop_back();
+
+                while (!wline.colors.empty() && wline.colors.back().index >= (int)wline.codes.size())
+                    wline.colors.pop_back();
+
+                // Also 'rewind' to the color that the last character is using.
+                for (int colori = curcolori; colori >= 0; colori--)
+                {
+                    if (codepoints.colors[colori].index <= lastspaceindex)
+                    {
+                        curcolor = codepoints.colors[colori].color;
+                        curcolori = colori;
+                        break;
+                    }
+                }
+
+                // Ignore the width of trailing spaces in wrapped lines.
+                width = widthbeforelastspace;
+
+                i = lastspaceindex;
+                i++; // Start the next line after the space.
+            }
+
+            lines.push_back(wline);
+
+            if (linewidths)
+                linewidths->push_back(width);
+
+            addcurcolor = true;
+
+            prevglyph = 0;
+            width = widthbeforelastspace = widthoftrailingspace = 0.0f;
+            wline.codes.clear();
+            wline.colors.clear();
+            lastspaceindex = -1;
+
+            continue;
+        }
+
+        if (prevglyph != ' ' && c == ' ')
+            widthbeforelastspace = width;
+
+        width = newwidth;
+        prevglyph = c;
+
+        if (addcurcolor)
+        {
+            wline.colors.push_back({curcolor, (int) wline.codes.size()});
+            addcurcolor = false;
+        }
+
+        wline.codes.push_back(c);
+
+        // Keep track of the last seen space, so we can "rewind" to it when
+        // wrapping.
+        if (c == ' ')
+        {
+            lastspaceindex = i;
+            widthoftrailingspace += charwidth;
+        }
+        else if (c != '\n')
+            widthoftrailingspace = 0.0f;
+
+        i++;
+    }
+
+    // Push the last line.
+    if (!wline.codes.empty())
+    {
+        lines.push_back(wline);
+
+        // Ignore the width of any trailing spaces, for individual lines.
+        if (linewidths)
+            linewidths->push_back(width - widthoftrailingspace);
     }
 }
 
