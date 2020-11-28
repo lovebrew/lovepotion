@@ -23,6 +23,16 @@ Matrix4::Matrix4(const C3D_Mtx & a)
     Mtx_Copy(&this->matrix, &a);
 }
 
+bool Matrix4::IsAffine2DTransform() const
+{
+    /*
+        return fabsf(this->matrix[2] + this->matrix[3] + this->matrix[6] + this->matrix[7] +
+                 this->matrix[8] + this->matrix[9] + this->matrix[11] + this->matrix[14]) < 0.00001f &&
+           fabsf(this->matrix[10] + this->matrix[15] - 2.0f) < 0.00001f;
+    */
+    return true; //?
+}
+
 Matrix4::Matrix4(const Matrix4 & a, const Matrix4 & b)
 {
     Matrix4::Multiply(a, b, this->matrix);
@@ -38,6 +48,11 @@ Matrix4::Matrix4(float x, float y, float angle,
 void Matrix4::operator *= (const Matrix4 &m)
 {
     Matrix4::Multiply(*this, m, this->matrix);
+}
+
+Matrix4 Matrix4::operator * (const Matrix4 & m) const
+{
+    return Matrix4(*this, m);
 }
 
 void Matrix4::SetIdentity()

@@ -132,9 +132,10 @@ int Wrap_Transform::SetTransformation(lua_State *L)
 
 int Wrap_Transform::SetMatrix(lua_State * L)
 {
-    Transform * self = Wrap_Transform::CheckTransform(L, 1);
 
     #if defined (__SWITCH__)
+        Transform * self = Wrap_Transform::CheckTransform(L, 1);
+
         bool columnmajor = false;
 
         int idx = 2;

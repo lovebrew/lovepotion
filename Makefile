@@ -4,10 +4,12 @@ ROOT_SOURCES	?= source    $(foreach d, $(wildcard source/*),    $(if $(wildcard 
 ROOT_INCLUDES	?= include   $(foreach d, $(wildcard include/*),   $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
 ROOT_LIBRARIES	?= libraries $(foreach d, $(wildcard libraries/*), $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
 
-export LOVE_SOURCES   = $(foreach dir, $(ROOT_SOURCES),   ../../$(wildcard $(dir)))
-export LOVE_INCLUDES  = $(foreach dir, $(ROOT_INCLUDES),  ../../$(wildcard $(dir)))
-export LOVE_LIBRARIES = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir)))
-export ROMFS          = ../../romfs
+export LOVE_SOURCES    = $(foreach dir, $(ROOT_SOURCES),   ../../$(wildcard $(dir)))
+export LOVE_INCLUDES   = $(foreach dir, $(ROOT_INCLUDES),  ../../$(wildcard $(dir)))
+export LOVE_LIBRARIES  = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir)))
+
+export LOVE_DATA_FILES = $(CURDIR)/source/scripts
+export ROMFS = ../../romfs
 
 # do all
 

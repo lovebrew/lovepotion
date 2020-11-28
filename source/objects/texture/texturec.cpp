@@ -7,6 +7,7 @@ namespace love
 
     Texture::Filter Texture::defaultFilter;
     Texture::FilterMode Texture::defaultMipmapFilter = Texture::FILTER_LINEAR;
+    float Texture::defaultMipmapSharpness = 0.0f;
 
     Texture::Texture(TextureType texType) : texType(texType),
                                             width(0),

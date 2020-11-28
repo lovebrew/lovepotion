@@ -19,9 +19,9 @@ namespace love
 
             Rasterizer * NewTrueTypeRasterizer(size_t size, float dpiScale, TrueTypeRasterizer::Hinting hinting);
 
-            Rasterizer * NewTrueTypeRasterizer(void * data, size_t dataSize, int size, love::TrueTypeRasterizer::Hinting hinting);
-
             Rasterizer * NewTrueTypeRasterizer(love::Data * data, int size, TrueTypeRasterizer::Hinting hinting);
+
+            Rasterizer * NewTrueTypeRasterizer(love::Data * data, int size, float dpiScale, TrueTypeRasterizer::Hinting hinting);
 
             Rasterizer * NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting);
 

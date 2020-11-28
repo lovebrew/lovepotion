@@ -17,13 +17,14 @@ using namespace love;
 
 Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
                                                              height(r->GetHeight()),
-                                                             lineHeight(1),
                                                              textureWidth(128),
                                                              textureHeight(128),
                                                              useSpacesAsTab(false),
                                                              textureCacheID(0),
                                                              dpiScale(r->GetDPIScale())
 {
+    this->lineHeight = 1.0f;
+
     while (true)
     {
         if ((r->GetHeight() * 0.8) * r->GetHeight() * 30 <= textureWidth * textureHeight)

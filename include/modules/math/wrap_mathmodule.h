@@ -3,6 +3,9 @@
 #include "objects/random/randomgenerator.h"
 #include "objects/random/wrap_randomgenerator.h"
 
+#include "objects/transform/transform.h"
+#include "objects/transform/wrap_transform.h"
+
 #include "modules/math/mathmodule.h"
 
 namespace Wrap_Math

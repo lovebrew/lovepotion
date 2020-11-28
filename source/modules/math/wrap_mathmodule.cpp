@@ -7,6 +7,28 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Math>(Module::M_MATH))
 
+/**
+ * http://en.wikipedia.org/wiki/SRGB#The_reverse_transformation
+ **/
+float love::GammaToLinear(float c)
+{
+    if (c <= 0.04045f)
+        return c / 12.92f;
+    else
+        return powf((c + 0.055f) / 1.055f, 2.4f);
+}
+
+/**
+ * http://en.wikipedia.org/wiki/SRGB#The_forward_transformation_.28CIE_xyY_or_CIE_XYZ_to_sRGB.29
+ **/
+float love::LinearToGamma(float c)
+{
+    if (c <= 0.0031308f)
+        return c * 12.92f;
+    else
+        return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
+}
+
 int Wrap_Math::GetRandomGenerator(lua_State * L)
 {
     RandomGenerator * randomGenerator = instance()->GetRandomGenerator();
@@ -34,11 +56,11 @@ int Wrap_Math::NewTransform(lua_State * L)
         float kx = (float) luaL_optnumber(L, 8, 0.0);
         float ky = (float) luaL_optnumber(L, 9, 0.0);
 
-        t = instance()->NewTransform(x, y, a, sx, sy, ox, oy, kx, ky);
+        transform = instance()->NewTransform(x, y, a, sx, sy, ox, oy, kx, ky);
     }
 
-    luax_pushtype(L, transform);
-    transform->release();
+    Luax::PushType(L, transform);
+    transform->Release();
 
     return 1;
 }
@@ -84,7 +106,7 @@ int Wrap_Math::GammaToLinear(lua_State *L)
     {
         // Alpha should always be linear.
         if (i < 3)
-            color[i] = GammaToLinear(color[i]);
+            color[i] = love::GammaToLinear(color[i]);
 
         lua_pushnumber(L, color[i]);
     }
@@ -101,7 +123,7 @@ int Wrap_Math::LinearToGamma(lua_State *L)
     {
         // Alpha should always be linear.
         if (i < 3)
-            color[i] = LinearToGamma(color[i]);
+            color[i] = love::LinearToGamma(color[i]);
 
         lua_pushnumber(L, color[i]);
     }
@@ -315,6 +337,7 @@ int Wrap_Math::Register(lua_State * L)
     lua_CFunction types[] =
     {
         Wrap_RandomGenerator::Register,
+        Wrap_Transform::Register,
         0
     };
 

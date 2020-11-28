@@ -61,21 +61,27 @@ love::Rasterizer * FontModule::NewRasterizer(love::FileData * data)
     throw love::Exception("Invalid font file: %s", data->GetFilename().c_str());
 }
 
+love::Rasterizer * FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
+{
+    love::StrongReference<DefaultFontData> data(new DefaultFontData, Acquire::NORETAIN);
+    return NewTrueTypeRasterizer(data.Get(), size, hinting);
+}
+
 Rasterizer * FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale, TrueTypeRasterizer::Hinting hinting)
 {
     StrongReference<DefaultFontData> data(new DefaultFontData(), Acquire::NORETAIN);
     return NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
 }
 
+
 love::Rasterizer * FontModule::NewTrueTypeRasterizer(love::Data * data, int size, love::TrueTypeRasterizer::Hinting hinting)
 {
     return new love::TrueTypeRasterizer(this->library, data, size, hinting);
 }
 
-love::Rasterizer * FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
+love::Rasterizer * FontModule::NewTrueTypeRasterizer(love::Data * data, int size, float dpiScale, love::TrueTypeRasterizer::Hinting hinting)
 {
-    love::StrongReference<DefaultFontData> data(new DefaultFontData, Acquire::NORETAIN);
-    return NewTrueTypeRasterizer(data.Get(), size, hinting);
+    return new love::TrueTypeRasterizer(this->library, data, size, hinting);
 }
 
 GlyphData * FontModule::NewGlyphData(Rasterizer * rasterizer, const std::string & text)

@@ -101,7 +101,7 @@ namespace love
             enum StackType
             {
                 STACK_ALL,
-                STACK_TRANSORM,
+                STACK_TRANSFORM,
                 STACK_MAX_ENUM
             };
 
@@ -192,7 +192,7 @@ namespace love
 
             const Texture::Filter & GetDefaultFilter() const;
 
-            void Push(StackType type = STACK_TRANSORM);
+            void Push(StackType type = STACK_TRANSFORM);
 
             void ApplyTransform(Transform * transform);
 

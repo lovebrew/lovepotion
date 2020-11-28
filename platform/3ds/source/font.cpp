@@ -11,6 +11,8 @@ Font::Font(const Rasterizer & rasterizer, const Texture::Filter & filter) : rast
         this->rasterizer.font = C2D_FontLoadFromMem(rasterizer.data->GetData(), rasterizer.data->GetSize());
 
     this->rasterizer.buffer = C2D_TextBufNew(Font::FONT_BUFFER_SIZE);
+
+    this->lineHeight = 1.0f;
 }
 
 Font::~Font()

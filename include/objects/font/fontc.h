@@ -7,7 +7,12 @@
 #include "common/vector.h"
 #include "common/matrix.h"
 
-#include "objects/image/image.h"
+#include "objects/texture/texture.h"
+
+namespace love
+{
+    class Graphics;
+}
 
 namespace love::common
 {

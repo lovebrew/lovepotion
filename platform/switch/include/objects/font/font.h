@@ -3,6 +3,12 @@
 #include "objects/font/fontc.h"
 #include "deko3d/vertex.h"
 
+#include "objects/image/image.h"
+#include "objects/texture/texture.h"
+
+#include "freetype/types/truetyperasterizer.h"
+#include "freetype/glyphdata.h"
+
 enum class love::common::Font::SystemFontType : uint8_t
 {
     TYPE_STANDARD               = PlSharedFontType_Standard,
@@ -73,6 +79,8 @@ namespace love
 
             int GetWidth(uint32_t prevGlyph, uint32_t codepoint) override;
 
+            using common::Font::GetWidth;
+
             float GetHeight() const override;
 
             struct Glyph
@@ -83,6 +91,8 @@ namespace love
             };
 
             Font(Rasterizer * r, const Texture::Filter & filter);
+
+            ~Font();
 
             const Font::Glyph & FindGlyph(uint32_t glyph);
 

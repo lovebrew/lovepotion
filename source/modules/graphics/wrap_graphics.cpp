@@ -555,7 +555,9 @@ int Wrap_Graphics::Present(lua_State * L)
         instance()->Present();
     });
 
-    instance()->GetFont()->ClearBuffer();
+    #if defined (_3DS)
+        instance()->GetFont()->ClearBuffer();
+    #endif
 
     return 0;
 }

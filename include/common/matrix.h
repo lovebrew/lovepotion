@@ -65,28 +65,19 @@ namespace love
 
             void TransformXY();
 
-            #if defined (__SWITCH__)
-                /**
-                 * Transforms an array of 2-component vertices by this Matrix. The source
-                 * and destination arrays may be the same.
-                 **/
-                template <typename Vdst, typename Vsrc>
-                void TransformXY(Vdst * dst, const Vsrc * src, int size) const;
+            /**
+             * Transforms an array of 2-component vertices by this Matrix. The source
+             * and destination arrays may be the same.
+             **/
+            template <typename Vdst, typename Vsrc>
+            void TransformXY(Vdst * dst, const Vsrc * src, int size) const;
 
-                /**
-                 * Transforms an array of 2-component vertices by this Matrix, and stores
-                 * them in an array of 3-component vertices.
-                 **/
-                template <typename Vdst, typename Vsrc>
-                void TransformXY0(Vdst * dst, const Vsrc * src, int size) const;
-
-                /**
-                 * Transforms an array of 2-component vertices by this Matrix. The source
-                 * and destination arrays may be the same.
-                 **/
-                template <typename Vdst, typename Vsrc>
-                void TransformXYVerts(Vdst * dst, const Vsrc * src, int size) const;
-            #endif
+            /**
+             * Transforms an array of 2-component vertices by this Matrix, and stores
+             * them in an array of 3-component vertices.
+             **/
+            template <typename Vdst, typename Vsrc>
+            void TransformXY0(Vdst * dst, const Vsrc * src, int size) const;
 
             Elements matrix;
 
@@ -110,20 +101,6 @@ namespace love
         }
 
         template <typename Vdst, typename Vsrc>
-        void Matrix4::TransformXYVerts(Vdst * dst, const Vsrc * src, int size) const
-        {
-            for (int i = 0; i < size; i++)
-            {
-                // Store in temp variables in case src = dst
-                float x = (this->matrix[0] * src[i].position[0]) + (this->matrix[4] * src[i].position[1]) + (0) + (this->matrix[12]);
-                float y = (this->matrix[1] * src[i].position[0]) + (this->matrix[5] * src[i].position[1]) + (0) + (this->matrix[13]);
-
-                dst[i].position[0] = x;
-                dst[i].position[1] = y;
-            }
-        }
-
-        template <typename Vdst, typename Vsrc>
         void Matrix4::TransformXY0(Vdst * dst, const Vsrc * src, int size) const
         {
             for (int i = 0; i < size; i++)
@@ -137,6 +114,36 @@ namespace love
                 dst[i].y = y;
                 dst[i].z = z;
             }
+        }
+    #elif defined (_3DS)
+        template <typename Vdst, typename Vsrc>
+        void Matrix4::TransformXY(Vdst * dst, const Vsrc * src, int size) const
+        {
+            // for (int i = 0; i < size; i++)
+            // {
+            //     // Store in temp variables in case src = dst
+            //     float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) + (0) + (this->matrix[12]);
+            //     float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) + (0) + (this->matrix[13]);
+
+            //     dst[i].x = x;
+            //     dst[i].y = y;
+            // }
+        }
+
+                template <typename Vdst, typename Vsrc>
+        void Matrix4::TransformXY0(Vdst * dst, const Vsrc * src, int size) const
+        {
+            // for (int i = 0; i < size; i++)
+            // {
+            //     // Store in temp variables in case src = dst
+            //     float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) + (0) + (this->matrix[12]);
+            //     float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) + (0) + (this->matrix[13]);
+            //     float z = (this->matrix[2] * src[i].x) + (this->matrix[6] * src[i].y) + (0) + (this->matrix[14]);
+
+            //     dst[i].x = x;
+            //     dst[i].y = y;
+            //     dst[i].z = z;
+            // }
         }
     #endif
 }

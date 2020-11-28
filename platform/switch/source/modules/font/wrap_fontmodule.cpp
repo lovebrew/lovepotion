@@ -23,6 +23,8 @@ int Wrap_FontModule::NewRasterizer(lua_State * L)
         Luax::PushType(L, self);
         self->Release();
     }
+
+    return 1;
 }
 
 int Wrap_FontModule::NewFontRasterizer(lua_State * L)
