@@ -406,6 +406,28 @@ void Graphics::SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpnes
     this->states.back().defaultMipmapSharpness = sharpness;
 }
 
+void Graphics::IntersectScissor(const Rect & rect)
+{
+    Rect currect = states.back().scissorRect;
+
+    if (!states.back().scissor)
+    {
+        currect.x = 0;
+        currect.y = 0;
+        currect.w = std::numeric_limits<int>::max();
+        currect.h = std::numeric_limits<int>::max();
+    }
+
+    int x1 = std::max(currect.x, rect.x);
+    int y1 = std::max(currect.y, rect.y);
+
+    int x2 = std::min(currect.x + currect.w, rect.x + rect.w);
+    int y2 = std::min(currect.y + currect.h, rect.y + rect.h);
+
+    Rect newrect = {x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1)};
+    this->SetScissor(newrect);
+}
+
 /* Font */
 
 void Graphics::CheckSetDefaultFont()

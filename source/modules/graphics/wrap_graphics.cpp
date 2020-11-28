@@ -586,6 +586,23 @@ int Wrap_Graphics::SetScissor(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::IntersectScissor(lua_State * L)
+{
+    Rect rect;
+
+    rect.x = luaL_checkinteger(L, 1);
+    rect.y = luaL_checkinteger(L, 2);
+    rect.w = luaL_checkinteger(L, 3);
+    rect.h = luaL_checkinteger(L, 4);
+
+    if (rect.w < 0 || rect.h < 0)
+        return luaL_error(L, "Can't set scissor with negative width and/or height.");
+
+    instance()->IntersectScissor(rect);
+
+    return 0;
+}
+
 int Wrap_Graphics::GetScissor(lua_State * L)
 {
     Rect scissor;
@@ -1061,6 +1078,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getRendererInfo",    GetRendererInfo    },
         { "getScissor",         GetScissor         },
         { "getWidth",           GetWidth           },
+        { "instersectScissor",  IntersectScissor   },
         { "line",               Line               },
         { "newCanvas",          NewCanvas          },
         { "newFont",            NewFont            },

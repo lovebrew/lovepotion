@@ -188,6 +188,8 @@ namespace love
 
             bool GetScissor(Rect & scissor) const;
 
+            void IntersectScissor(const Rect & scissor);
+
             const Texture::Filter & GetDefaultFilter() const;
 
             void Push(StackType type = STACK_TRANSORM);
