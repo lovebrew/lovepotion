@@ -19,6 +19,8 @@
 #include "objects/canvas/wrap_canvas.h"
 #include "objects/canvas/canvas.h"
 
+#include "objects/transform/transform.h"
+
 #include "common/mmath.h"
 #include "common/colors.h"
 
@@ -94,6 +96,13 @@ namespace love
                 std::string version;
                 std::string vendor;
                 std::string device;
+            };
+
+            enum StackType
+            {
+                STACK_ALL,
+                STACK_TRANSORM,
+                STACK_MAX_ENUM
             };
 
             struct ColorMask
@@ -181,7 +190,11 @@ namespace love
 
             const Texture::Filter & GetDefaultFilter() const;
 
-            void Push();
+            void Push(StackType type = STACK_TRANSORM);
+
+            void ApplyTransform(Transform * transform);
+
+            void ReplaceTransform(Transform * transform);
 
             void Origin();
 
@@ -259,6 +272,8 @@ namespace love
 
             virtual void SetColor(Colorf color);
 
+            void SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness);
+
             #if defined (__SWITCH__)
                 virtual void SetMeshCullMode(vertex::CullMode cull) = 0;
 
@@ -320,6 +335,10 @@ namespace love
                 Shader * GetShader() const;
             #endif
 
+            size_t GetStackDepth() const {
+                return this->stackTypeStack.size();
+            }
+
             /* States or Something */
 
             void Reset();
@@ -341,6 +360,10 @@ namespace love
             static bool GetConstant(const char * in, ArcMode & out);
             static bool GetConstant(ArcMode in, const char *& out);
             static std::vector<std::string> GetConstants(ArcMode);
+
+            static bool GetConstant(const char *in, StackType & out);
+            static bool GetConstant(StackType in, const char *& out);
+            static std::vector<std::string> GetConstants(StackType);
 
         protected:
             struct DisplayState
@@ -379,8 +402,11 @@ namespace love
             };
 
             std::vector<DisplayState> states;
+            std::vector<StackType> stackTypeStack;
 
             void RestoreState(const DisplayState & state);
+
+            void RestoreStateChecked(const DisplayState & state);
 
         private:
             void CheckSetDefaultFont();
@@ -401,6 +427,9 @@ namespace love
 
             static StringMap<ArcMode, ARC_MAX_ENUM>::Entry arcModeEntries[];
             static StringMap<ArcMode, ARC_MAX_ENUM> arcModes;
+
+            static StringMap<StackType, STACK_MAX_ENUM>::Entry stackTypeEntries[];
+            static StringMap<StackType, STACK_MAX_ENUM> stackTypes;
 
             float stereoDepth = 0.0f;
             bool isPushed = false;

@@ -68,6 +68,7 @@ namespace love
 
             static Filter defaultFilter;
             static FilterMode defaultMipmapFilter;
+            static float defaultMipmapSharpness;
 
             Texture(TextureType texType);
             virtual ~Texture();

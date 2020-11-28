@@ -190,12 +190,17 @@ void Graphics::Origin()
     #endif
 }
 
-void Graphics::Push()
+void Graphics::Push(StackType type)
 {
     if (this->transformStack.size() == MAX_USER_STACK_DEPTH)
         throw Exception("Maximum stack depth reached (more pushes than pops?)");
 
     this->transformStack.push_back(transformStack.back());
+
+    if (type == STACK_ALL)
+        states.push_back(states.back());
+
+    this->stackTypeStack.push_back(type);
 }
 
 void Graphics::Translate(float offsetX, float offsetY)
@@ -228,6 +233,18 @@ void Graphics::Pop()
         throw Exception("Minimum stack depth reached (more pops than pushes?)");
 
     this->transformStack.pop_back();
+
+    if (this->stackTypeStack.back() == STACK_ALL)
+    {
+        DisplayState & newstate = states[states.size() - 2];
+
+        this->RestoreStateChecked(newstate);
+
+        // The last two states in the stack should be equal now.
+        states.pop_back();
+    }
+
+    this->stackTypeStack.pop_back();
 }
 
 /* Objects */
@@ -334,6 +351,59 @@ void Graphics::RestoreState(const DisplayState & state)
 
     this->SetColorMask(state.colorMask);
     this->SetDefaultFilter(state.defaultFilter);
+}
+
+void Graphics::RestoreStateChecked(const DisplayState & state)
+{
+    const DisplayState & current = states.back();
+
+    if (state.foreground != current.foreground)
+        this->SetColor(state.foreground);
+
+    this->SetBackgroundColor(state.background);
+
+    if (state.blendMode != current.blendMode || state.blendAlphaMode != current.blendAlphaMode)
+        this->SetBlendMode(state.blendMode, state.blendAlphaMode);
+
+    // These are just simple assignments.
+    this->SetLineWidth(state.lineWidth);
+    this->SetLineStyle(state.lineStyle);
+    this->SetLineJoin(state.lineJoin);
+
+    if (state.pointSize != current.pointSize)
+        this->SetPointSize(state.pointSize);
+
+    if (state.scissor != current.scissor || (state.scissor && !(state.scissorRect == current.scissorRect)))
+    {
+        if (state.scissor)
+            this->SetScissor(state.scissorRect);
+        else
+            this->SetScissor();
+    }
+
+    #if defined(__SWITCH__)
+        this->SetMeshCullMode(state.meshCullMode);
+
+        if (state.winding != current.winding)
+            this->SetFrontFaceWinding(state.winding);
+
+        this->SetShader(state.shader.Get());
+    #endif
+
+    if (state.colorMask != current.colorMask)
+        this->SetColorMask(state.colorMask);
+
+    this->SetDefaultFilter(state.defaultFilter);
+    this->SetDefaultMipmapFilter(state.defaultMipmapFilter, state.defaultMipmapSharpness);
+}
+
+void Graphics::SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness)
+{
+    Texture::defaultMipmapFilter = filter;
+    Texture::defaultMipmapSharpness = sharpness;
+
+    this->states.back().defaultMipmapFilter = filter;
+    this->states.back().defaultMipmapSharpness = sharpness;
 }
 
 /* Font */
@@ -496,3 +566,12 @@ StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry Graphics::
 };
 
 StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(Graphics::blendAlphaEntries, sizeof(Graphics::blendAlphaEntries));
+
+
+StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry Graphics::stackTypeEntries[] =
+{
+    { "all",       STACK_ALL       },
+    { "transform", STACK_TRANSFORM },
+};
+
+StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(Graphics::stackTypeEntries, sizeof(Graphics::stackTypeEntries));
