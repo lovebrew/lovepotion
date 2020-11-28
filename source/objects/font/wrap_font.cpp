@@ -1,17 +1,14 @@
 #include "common/runtime.h"
+
 #include "objects/font/wrap_font.h"
 #include "modules/graphics/graphics.h"
 
 using namespace love;
 
-love::Type love::Font::type("Font", &Object::type);
-
-#define GRAPHICS_MODULE() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
-
 int Wrap_Font::GetWidth(lua_State * L)
 {
     love::Font * self = Wrap_Font::CheckFont(L, 1);
-    const char * text = luaL_checkstring(L, 2);
+    std::string text = luaL_checkstring(L, 2);
 
     lua_pushnumber(L, self->GetWidth(text));
 

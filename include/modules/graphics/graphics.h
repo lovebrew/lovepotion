@@ -203,9 +203,14 @@ namespace love
 
             #if defined (__SWITCH__)
                 virtual Font * NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter = Texture::defaultFilter) = 0;
+
+                virtual Font * NewFont(Rasterizer * rasterizer, const Texture::Filter & filter = Texture::defaultFilter) = 0;
+            #elif defined (_3DS)
+                virtual Font * NewDefaultFont(int size, const Texture::Filter & filter = Texture::defaultFilter) = 0;
+
+                virtual Font * NewFont(const Rasterizer & rasterizer, const Texture::Filter & filter = Texture::defaultFilter) = 0;
             #endif
 
-            virtual Font * NewFont(Rasterizer * rasterizer, const Texture::Filter & filter = Texture::defaultFilter) = 0;
 
             Quad * NewQuad(Quad::Viewport v, double sw, double sh);
 

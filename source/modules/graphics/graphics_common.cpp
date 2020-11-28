@@ -237,21 +237,6 @@ Image * Graphics::NewImage(Data * data)
     return new Image(data);
 }
 
-// Font * Graphics::NewFont(float size)
-// {
-//     return new Font(size);
-// }
-
-// Font * Graphics::NewFont(Font::SystemFontType type, float size)
-// {
-//     return new Font(type, size);
-// }
-
-// Font * Graphics::NewFont(Data * data, float size)
-// {
-//     return new Font(data, size);
-// }
-
 Quad * Graphics::NewQuad(Quad::Viewport viewport, double sw, double sh)
 {
     return new Quad(viewport, sw, sh);
@@ -365,7 +350,7 @@ void Graphics::CheckSetDefaultFont()
         #if defined(__SWITCH__)
             this->defaultFont.Set(this->NewDefaultFont(12, TrueTypeRasterizer::HINTING_NORMAL), Acquire::NORETAIN);
         #else
-            this->defaultFont.Set(this->NewFont(), Acquire::NORETAIN);
+            this->defaultFont.Set(this->NewDefaultFont(24), Acquire::NORETAIN);
         #endif
     }
 

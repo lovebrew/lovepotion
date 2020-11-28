@@ -5,37 +5,56 @@
 
 using namespace love;
 
-#define FONT_NOT_FOUND_STRING "Could not find font %s (not converted to bcfnt?)"
-
-Font::Font(Font::SystemFontType type, float size) : buffer(C2D_TextBufNew(4096)),
-                                                    size(size)
+Font::Font(const Rasterizer & rasterizer, const Texture::Filter & filter) : rasterizer(rasterizer)
 {
-    this->font = C2D_FontLoadSystem((CFG_Region)type);
-}
+    if (rasterizer.data != nullptr)
+        this->rasterizer.font = C2D_FontLoadFromMem(rasterizer.data->GetData(), rasterizer.data->GetSize());
 
-Font::Font(Data * data, float size) : buffer(C2D_TextBufNew(4096)),
-                                      size(size)
-{
-    this->font = C2D_FontLoadFromMem(data->GetData(), data->GetSize());
-}
-
-Font::Font(float size) : buffer(C2D_TextBufNew(4096)),
-                         size(size)
-{
-    this->font = C2D_FontLoadSystem((CFG_Region)SystemFontType::TYPE_STANDARD);
+    this->rasterizer.buffer = C2D_TextBufNew(Font::FONT_BUFFER_SIZE);
 }
 
 Font::~Font()
 {
-    C2D_TextBufDelete(this->buffer);
-    C2D_FontFree(this->font);
+    C2D_TextBufDelete(this->rasterizer.buffer);
+    C2D_FontFree(this->rasterizer.font);
 }
 
-void Font::Print(Graphics * gfx, const std::vector<Font::ColoredString> & strings,
-                 float limit, const Colorf & blend, Font::AlignMode align,
-                 const Matrix4 & localTransform)
+common::Font * common::Font::GetSystemFontByType(int size, Font::SystemFontType type, const Texture::Filter & filter)
 {
-    C2D_Text text;
+    const Rasterizer rasterizer =
+    {
+        .size = size,
+        .data = nullptr,
+
+        .font = C2D_FontLoadSystem((CFG_Region)type),
+        .buffer = nullptr,
+    };
+
+    return new love::Font(rasterizer, filter);
+}
+
+void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
+                 const Matrix4 & localTransform, const Colorf & color)
+{
+    C2D_Text citroText;
+
+    std::string result = std::accumulate(text.begin(), text.end(), std::string{},
+                         [](const std::string & s1, const ColoredString & piece) { return s1 + piece.string; });
+
+    C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
+    C2D_TextOptimize(&citroText);
+
+    Matrix4 t(gfx->GetTransform(), localTransform);
+    C2D_ViewRestore(&t.GetElements());
+
+    u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
+    C2D_DrawText(&citroText, C2D_WithColor, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), renderColorf);
+}
+
+void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float wrap, AlignMode align,
+                  const Matrix4 & localTransform, const Colorf & color)
+{
+    C2D_Text citroText;
     u32 alignMode = C2D_AlignLeft;
 
     switch (align)
@@ -50,60 +69,54 @@ void Font::Print(Graphics * gfx, const std::vector<Font::ColoredString> & string
             break;
     }
 
-    std::string result = std::accumulate(strings.begin(), strings.end(), std::string{}, [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
+    std::string result = std::accumulate(text.begin(), text.end(), std::string{},
+                         [](const std::string & s1, const ColoredString & piece) { return s1 + piece.string; });
 
-    C2D_TextFontParse(&text, this->font, this->buffer, result.c_str());
-    C2D_TextOptimize(&text);
+    C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
+    C2D_TextOptimize(&citroText);
 
-    // Multiply the current and local transforms
     Matrix4 t(gfx->GetTransform(), localTransform);
-
-    // Appy the new Matrix4 C3D_Mtx
     C2D_ViewRestore(&t.GetElements());
 
-    C2D_DrawText(&text, C2D_WithColor | alignMode, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), C2D_Color32f(blend.r, blend.g, blend.b, blend.a), limit);
+    u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
+    C2D_DrawText(&citroText, C2D_WithColor | alignMode, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), renderColorf, wrap);
 }
 
 void Font::ClearBuffer()
 {
-    C2D_TextBufClear(this->buffer);
+    C2D_TextBufClear(this->rasterizer.buffer);
 }
 
-float Font::GetWidth(const char * text)
+int Font::GetWidth(uint32_t /* prevGlyph */, uint32_t current)
 {
-    float width = 0;
-    C2D_Text measureText;
-    C2D_TextBuf measureBuffer = C2D_TextBufNew(strlen(text));
+    auto found = this->glyphWidths.find(current);
+    if (found != this->glyphWidths.end())
+        return found->second;
 
-    C2D_TextFontParse(&measureText, this->font, measureBuffer, text);
-
-    if (strlen(text) != 0)
-        C2D_TextGetDimensions(&measureText, this->GetScale(), this->GetScale(), &width, NULL);
-
-    C2D_TextBufDelete(measureBuffer);
-
-    return width;
-}
-
-float Font::_GetGlyphWidth(u16 glyph)
-{
     fontGlyphPos_s out;
-    C2D_FontCalcGlyphPos(this->font, &out, C2D_FontGlyphIndexFromCodePoint(this->font, glyph), 0, this->GetScale(), this->GetScale());
+    int glyphIndex = C2D_FontGlyphIndexFromCodePoint(this->rasterizer.font, current);
+    C2D_FontCalcGlyphPos(this->rasterizer.font, &out, glyphIndex, 0, this->GetScale(), this->GetScale());
 
+    this->glyphWidths.emplace(current, out.xAdvance);
     return out.xAdvance;
 }
 
-float Font::GetHeight()
+float Font::GetScale() const
+{
+    return (this->rasterizer.size / 30.0f);
+}
+
+float Font::GetHeight() const
 {
     return 30 * this->GetScale();
 }
 
-StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM>::Entry Font::sharedFontEntries[] =
+StringMap<Font::SystemFontType, Font::MAX_SYSFONTS>::Entry common::Font::sharedFontEntries[] =
 {
-    { "standard",  TYPE_STANDARD  },
-    { "chinese",   TYPE_CHINESE   },
-    { "taiwanese", TYPE_TAIWANESE },
-    { "korean",    TYPE_KOREAN    },
+    { "standard",  SystemFontType::TYPE_STANDARD  },
+    { "chinese",   SystemFontType::TYPE_CHINESE   },
+    { "taiwanese", SystemFontType::TYPE_TAIWANESE },
+    { "korean",    SystemFontType::TYPE_KOREAN    },
 };
 
-StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM> Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));
+StringMap<Font::SystemFontType, Font::MAX_SYSFONTS> common::Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));

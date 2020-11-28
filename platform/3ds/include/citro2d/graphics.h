@@ -20,6 +20,10 @@ namespace love::citro2d
 
         void SetColor(Colorf color) override;
 
+        Font * NewDefaultFont(int size, const Texture::Filter & filter) override;
+
+        Font * NewFont(const Rasterizer & rasterizer, const Texture::Filter & filter = Texture::defaultFilter) override;
+
         /* Primitives */
 
         void Polygon(DrawMode mode, const Vector2 * points, size_t count) override;

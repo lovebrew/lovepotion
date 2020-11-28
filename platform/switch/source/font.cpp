@@ -50,21 +50,6 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
     this->CreateTexture();
 }
 
-Font::Font(SystemFontType, float)
-{}
-
-Font::Font(float)
-{}
-
-Font::Font(Data * data, float)
-{}
-
-void Font::ClearBuffer()
-{}
-
-float Font::GetWidth(const char *)
-{ return 0.0f; }
-
 Font::TextureSize Font::GetNextTextureSize() const
 {
     TextureSize size = {this->textureWidth, this->textureHeight};
@@ -474,11 +459,6 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
     return commands;
 }
 
-float Font::GetLineHeight() const
-{
-    return this->lineHeight;
-}
-
 std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(const ColoredCodepoints & text, const Colorf & constantColor, float wrap,
                                                                AlignMode align, std::vector<vertex::GlyphVertex> & vertices, TextInfo * info)
 {
@@ -594,7 +574,7 @@ float Font::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
     return kern;
 }
 
-void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
+void Font::Print(Graphics * gfx, const std::vector<Font::ColoredString> & text,
                  const Matrix4 & localTransform, const Colorf & color)
 {
     ColoredCodepoints codepoints;
@@ -606,8 +586,8 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
     this->PrintV(gfx, localTransform, drawCommands, vertices);
 }
 
-void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float wrap,
-                  AlignMode align, const Matrix4 & localTransform, const Colorf & color)
+void Font::Printf(Graphics * gfx, const std::vector<Font::ColoredString> & text, float wrap,
+                  Font::AlignMode align, const Matrix4 & localTransform, const Colorf & color)
 {
     ColoredCodepoints codepoints;
     Font::GetCodepointsFromString(text, codepoints);
@@ -854,20 +834,20 @@ float Font::GetBaseline() const
         return 0.0f;
 }
 
-int Font::GetWidth(char character)
+int Font::GetWidth(uint32_t prevGlyph, uint32_t current)
 {
-    const Glyph & g = this->FindGlyph(character);
-    return g.spacing;
+    const Glyph & g = this->FindGlyph(current);
+    return g.spacing + this->GetKerning(prevGlyph, current);;
 }
 
-StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM>::Entry love::Font::sharedFontEntries[] =
+StringMap<love::Font::SystemFontType, love::Font::MAX_SYSFONTS>::Entry love::common::Font::sharedFontEntries[] =
 {
-    { "standard",                    TYPE_STANDARD               },
-    { "chinese simplified",          TYPE_CHINESE_SIMPLIFIED     },
-    { "chinese traditional",         TYPE_CHINESE_TRADITIONAL    },
-    { "extended chinese simplified", TYPE_CHINESE_SIMPLIFIED_EXT },
-    { "korean",                      TYPE_KOREAN                 },
-    { "nintendo extended",           TYPE_NINTENDO_EXTENDED      }
+    { "standard",                    SystemFontType::TYPE_STANDARD               },
+    { "chinese simplified",          SystemFontType::TYPE_CHINESE_SIMPLIFIED     },
+    { "chinese traditional",         SystemFontType::TYPE_CHINESE_TRADITIONAL    },
+    { "extended chinese simplified", SystemFontType::TYPE_CHINESE_SIMPLIFIED_EXT },
+    { "korean",                      SystemFontType::TYPE_KOREAN                 },
+    { "nintendo extended",           SystemFontType::TYPE_NINTENDO_EXTENDED      }
 };
 
-StringMap<Font::SystemFontType, Font::SystemFontType::TYPE_MAX_ENUM> love::Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));
+StringMap<Font::SystemFontType, love::Font::MAX_SYSFONTS> love::common::Font::sharedFonts(Font::sharedFontEntries, sizeof(Font::sharedFontEntries));

@@ -23,6 +23,24 @@ void love::citro2d::Graphics::SetColor(Colorf color)
     this->states.back().foreground = color;
 }
 
+Font * love::citro2d::Graphics::NewDefaultFont(int size, const Texture::Filter & filter)
+{
+    const Rasterizer rasterizer =
+    {
+        .size = size,
+        .data = nullptr,
+        .font = C2D_FontLoadSystem(CFG_REGION_USA),
+        .buffer = nullptr
+    };
+
+    return new Font(rasterizer, filter);
+}
+
+Font * love::citro2d::Graphics::NewFont(const Rasterizer & rasterizer, const Texture::Filter & filter)
+{
+    return new Font(rasterizer, filter);
+}
+
 /* Primitives */
 
 inline const auto normalizeAngle = [](float angle)

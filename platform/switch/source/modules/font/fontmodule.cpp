@@ -62,10 +62,10 @@ love::Rasterizer * FontModule::NewRasterizer(love::FileData * data)
 }
 
 Rasterizer * FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale, TrueTypeRasterizer::Hinting hinting)
-{}
-
-Rasterizer * FontModule::NewTrueTypeRasterizer(void * data, size_t dataSize, int size, TrueTypeRasterizer::Hinting hinting)
-{}
+{
+    StrongReference<DefaultFontData> data(new DefaultFontData(), Acquire::NORETAIN);
+    return NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
+}
 
 love::Rasterizer * FontModule::NewTrueTypeRasterizer(love::Data * data, int size, love::TrueTypeRasterizer::Hinting hinting)
 {
