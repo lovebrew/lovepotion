@@ -9,13 +9,15 @@ namespace Wrap_Math
 {
     int GetRandomGenerator(lua_State * L);
 
-    // int GammaToLinear(lua_State * L);
+    int GammaToLinear(lua_State * L);
 
     int IsConvex(lua_State * L);
 
-    // int LinearToGamma(lua_State * L);
+    int LinearToGamma(lua_State * L);
 
     int NewRandomGenerator(lua_State * L);
+
+    int NewTransform(lua_State * L);
 
     int Noise(lua_State * L);
 

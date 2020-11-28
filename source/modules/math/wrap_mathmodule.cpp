@@ -16,6 +16,99 @@ int Wrap_Math::GetRandomGenerator(lua_State * L)
     return 1;
 }
 
+int Wrap_Math::NewTransform(lua_State * L)
+{
+    Transform * transform = nullptr;
+
+    if (lua_isnoneornil(L, 1))
+        transform = instance()->NewTransform();
+    else
+    {
+        float x =  (float) luaL_checknumber(L, 1);
+        float y =  (float) luaL_checknumber(L, 2);
+        float a =  (float) luaL_optnumber(L, 3, 0.0);
+        float sx = (float) luaL_optnumber(L, 4, 1.0);
+        float sy = (float) luaL_optnumber(L, 5, sx);
+        float ox = (float) luaL_optnumber(L, 6, 0.0);
+        float oy = (float) luaL_optnumber(L, 7, 0.0);
+        float kx = (float) luaL_optnumber(L, 8, 0.0);
+        float ky = (float) luaL_optnumber(L, 9, 0.0);
+
+        t = instance()->NewTransform(x, y, a, sx, sy, ox, oy, kx, ky);
+    }
+
+    luax_pushtype(L, transform);
+    transform->release();
+
+    return 1;
+}
+
+static int GetGammaArgs(lua_State * L, float color[4])
+{
+    int numcomponents = 0;
+
+    if (lua_istable(L, 1))
+    {
+        int n = lua_objlen(L, 1);
+        for (int i = 1; i <= n && i <= 4; i++)
+        {
+            lua_rawgeti(L, 1, i);
+            color[i - 1] = Luax::CheckNumberClamped01(L, -1);
+            numcomponents++;
+        }
+
+        lua_pop(L, numcomponents);
+    }
+    else
+    {
+        int n = lua_gettop(L);
+        for (int i = 1; i <= n && i <= 4; i++)
+        {
+            color[i - 1] = Luax::CheckNumberClamped01(L, i);
+            numcomponents++;
+        }
+    }
+
+    if (numcomponents == 0)
+        luaL_checknumber(L, 1);
+
+    return numcomponents;
+}
+
+int Wrap_Math::GammaToLinear(lua_State *L)
+{
+    float color[4];
+    int numcomponents = GetGammaArgs(L, color);
+
+    for (int i = 0; i < numcomponents; i++)
+    {
+        // Alpha should always be linear.
+        if (i < 3)
+            color[i] = GammaToLinear(color[i]);
+
+        lua_pushnumber(L, color[i]);
+    }
+
+    return numcomponents;
+}
+
+int Wrap_Math::LinearToGamma(lua_State *L)
+{
+    float color[4];
+    int numcomponents = GetGammaArgs(L, color);
+
+    for (int i = 0; i < numcomponents; i++)
+    {
+        // Alpha should always be linear.
+        if (i < 3)
+            color[i] = LinearToGamma(color[i]);
+
+        lua_pushnumber(L, color[i]);
+    }
+
+    return numcomponents;
+}
+
 int Wrap_Math::IsConvex(lua_State * L)
 {
     std::vector<love::Vector2> vertices;
@@ -212,6 +305,9 @@ int Wrap_Math::Register(lua_State * L)
         { "_getRandomGenerator", GetRandomGenerator },
         { "isConvex",            IsConvex           },
         { "newRandomGenerator",  NewRandomGenerator },
+        { "newTransform",        NewTransform       },
+        { "gammaToLinear",       GammaToLinear      },
+        { "linearToGamma",       LinearToGamma      },
         { "triangulate",         Triangulate        },
         { 0,                     0                  }
     };

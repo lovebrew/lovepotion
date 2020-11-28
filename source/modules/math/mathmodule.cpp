@@ -3,6 +3,28 @@
 
 using namespace love;
 
+/**
+ * http://en.wikipedia.org/wiki/SRGB#The_reverse_transformation
+ **/
+float GammaToLinear(float c)
+{
+    if (c <= 0.04045f)
+        return c / 12.92f;
+    else
+        return powf((c + 0.055f) / 1.055f, 2.4f);
+}
+
+/**
+ * http://en.wikipedia.org/wiki/SRGB#The_forward_transformation_.28CIE_xyY_or_CIE_XYZ_to_sRGB.29
+ **/
+float LinearToGamma(float c)
+{
+    if (c <= 0.0031308f)
+        return c * 12.92f;
+    else
+        return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
+}
+
 Math::Math() : rng()
 {
     RandomGenerator::Seed seed;
@@ -14,6 +36,16 @@ Math::Math() : rng()
 RandomGenerator * Math::NewRandomGenerator()
 {
     return new RandomGenerator();
+}
+
+Transform * Math::NewTransform()
+{
+    return new Transform();
+}
+
+Transform * Math::NewTransform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx, float ky)
+{
+    return new Transform(x, y, a, sx, sy, ox, oy, kx, ky);
 }
 
 std::vector<Math::Triangle> Math::Triangulate(const std::vector<Vector2> & polygon)
