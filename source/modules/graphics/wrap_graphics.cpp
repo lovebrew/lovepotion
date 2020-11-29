@@ -406,8 +406,43 @@ int Wrap_Graphics::GetLineWidth(lua_State * L)
 
 int Wrap_Graphics::Push(lua_State * L)
 {
+    Graphics::StackType stype = Graphics::STACK_TRANSFORM;
+    const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+    if (sname && !Graphics::GetConstant(sname, stype))
+        return Luax::EnumError(L, "graphics stack type", Graphics::GetConstants(stype), sname);
+
+    Luax::CatchException(L, [&](){
+        instance()->Push(stype);
+    });
+
+    if (Luax::IsType(L, 2, Transform::type))
+    {
+        Transform * t = Luax::ToType<Transform>(L, 2);
+        Luax::CatchException(L, [&]() {
+            instance()->ApplyTransform(t);
+        });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::ApplyTransform(lua_State * L)
+{
+    Transform * t = Wrap_Transform::CheckTransform(L, 1);
+
     Luax::CatchException(L, [&]() {
-        instance()->Push();
+        instance()->ApplyTransform(t);
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::ReplaceTransform(lua_State * L)
+{
+    Transform * t = Wrap_Transform::CheckTransform(L, 1);
+
+    Luax::CatchException(L, [&]() {
+        instance()->ReplaceTransform(t);
     });
 
     return 0;
@@ -700,6 +735,34 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
     return 1;
 }
 
+int Wrap_Graphics::TransformPoint(lua_State *L)
+{
+    Vector2 point;
+    point.x = (float) luaL_checknumber(L, 1);
+    point.y = (float) luaL_checknumber(L, 2);
+
+    point = instance()->TransformPoint(point);
+
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+
+    return 2;
+}
+
+int Wrap_Graphics::InverseTransformPoint(lua_State *L)
+{
+    Vector2 point;
+    point.x = (float) luaL_checknumber(L, 1);
+    point.y = (float) luaL_checknumber(L, 2);
+
+    point = instance()->InverseTransformPoint(point);
+
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+
+    return 2;
+}
+
 int Wrap_Graphics::NewFont(lua_State * L)
 {
     Font * font = nullptr;
@@ -709,6 +772,7 @@ int Wrap_Graphics::NewFont(lua_State * L)
         if (!Luax::IsType(L, 1, Rasterizer::type))
         {
             std::vector<int> idxs;
+
             for (int i = 0; i < lua_gettop(L); i++)
                 idxs.push_back(i + 1);
 
@@ -1064,53 +1128,57 @@ int Wrap_Graphics::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
-        { "arc",                Arc                },
-        { "circle",             Circle             },
-        { "clear",              Clear              },
-        { "draw",               Draw               },
-        { "ellipse",            Ellipse            },
-        { "getBackgroundColor", GetBackgroundColor },
-        { "getColor",           GetColor           },
-        { "getDefaultFilter",   GetDefaultFilter   },
-        { "getDimensions",      GetDimensions      },
-        { "getFont",            GetFont            },
-        { "getHeight",          GetHeight          },
-        { "getLineWidth",       GetLineWidth       },
-        { "getPointSize",       GetPointSize       },
-        { "getRendererInfo",    GetRendererInfo    },
-        { "getScissor",         GetScissor         },
-        { "getWidth",           GetWidth           },
-        { "instersectScissor",  IntersectScissor   },
-        { "line",               Line               },
-        { "newCanvas",          NewCanvas          },
-        { "newFont",            NewFont            },
-        { "newImage",           NewImage           },
-        { "newQuad",            NewQuad            },
-        { "origin",             Origin             },
-        { "polygon",            Polygon            },
-        { "pop",                Pop                },
-        { "points",             Points             },
-        { "present",            Present            },
-        { "print",              Print              },
-        { "printf",             PrintF             },
-        { "push",               Push               },
-        { "rectangle",          Rectangle          },
-        { "reset",              Reset              },
-        { "rotate",             Rotate             },
-        { "scale",              Scale              },
-        { "shear",              Shear              },
-        { "setBackgroundColor", SetBackgroundColor },
-        { "setCanvas",          SetCanvas          },
-        { "setColor",           SetColor           },
-        { "setDefaultFilter",   SetDefaultFilter   },
-        { "setLineWidth",       SetLineWidth       },
-        { "setNewFont",         SetNewFont         },
-        { "setPointSize",       SetPointSize       },
-        { "setFont",            SetFont            },
-        { "setScissor",         SetScissor         },
-        { "translate",          Translate          },
-        { "setDepth",           SetDepth           },
-        { 0,                    0                  }
+        { "arc",                   Arc                   },
+        { "applyTransform",        ApplyTransform        },
+        { "circle",                Circle                },
+        { "clear",                 Clear                 },
+        { "draw",                  Draw                  },
+        { "ellipse",               Ellipse               },
+        { "getBackgroundColor",    GetBackgroundColor    },
+        { "getColor",              GetColor              },
+        { "getDefaultFilter",      GetDefaultFilter      },
+        { "getDimensions",         GetDimensions         },
+        { "getFont",               GetFont               },
+        { "getHeight",             GetHeight             },
+        { "getLineWidth",          GetLineWidth          },
+        { "getPointSize",          GetPointSize          },
+        { "getRendererInfo",       GetRendererInfo       },
+        { "getScissor",            GetScissor            },
+        { "getWidth",              GetWidth              },
+        { "instersectScissor",     IntersectScissor      },
+        { "inverseTransformPoint", InverseTransformPoint },
+        { "line",                  Line                  },
+        { "newCanvas",             NewCanvas             },
+        { "newFont",               NewFont               },
+        { "newImage",              NewImage              },
+        { "newQuad",               NewQuad               },
+        { "origin",                Origin                },
+        { "polygon",               Polygon               },
+        { "pop",                   Pop                   },
+        { "points",                Points                },
+        { "present",               Present               },
+        { "print",                 Print                 },
+        { "printf",                PrintF                },
+        { "push",                  Push                  },
+        { "rectangle",             Rectangle             },
+        { "replaceTransform",      ReplaceTransform      },
+        { "reset",                 Reset                 },
+        { "rotate",                Rotate                },
+        { "scale",                 Scale                 },
+        { "shear",                 Shear                 },
+        { "setBackgroundColor",    SetBackgroundColor    },
+        { "setCanvas",             SetCanvas             },
+        { "setColor",              SetColor              },
+        { "setDefaultFilter",      SetDefaultFilter      },
+        { "setLineWidth",          SetLineWidth          },
+        { "setNewFont",            SetNewFont            },
+        { "setPointSize",          SetPointSize          },
+        { "setFont",               SetFont               },
+        { "setScissor",            SetScissor            },
+        { "transformPoint",        TransformPoint        },
+        { "translate",             Translate             },
+        { "setDepth",              SetDepth              },
+        { 0,                       0                     }
     };
 
     lua_CFunction types[] =

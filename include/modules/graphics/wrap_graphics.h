@@ -63,6 +63,14 @@ namespace Wrap_Graphics
 
     int IntersectScissor(lua_State * L);
 
+    int ApplyTransform(lua_State * L);
+
+    int ReplaceTransform(lua_State * L);
+
+    int TransformPoint(lua_State * L);
+
+    int InverseTransformPoint(lua_State * L);
+
     int GetScissor(lua_State * L);
 
     int NewImage(lua_State * L);

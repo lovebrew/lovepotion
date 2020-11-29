@@ -19,6 +19,7 @@
 #include "objects/canvas/wrap_canvas.h"
 #include "objects/canvas/canvas.h"
 
+#include "objects/transform/wrap_transform.h"
 #include "objects/transform/transform.h"
 
 #include "common/mmath.h"
@@ -318,6 +319,10 @@ namespace love
 
             virtual RendererInfo GetRendererInfo() const = 0;
 
+            Vector2 TransformPoint(Vector2 point);
+
+            Vector2 InverseTransformPoint(Vector2 point);
+
             /* Primitives */
 
             ColorMask getColorMask() const;
@@ -405,6 +410,7 @@ namespace love
 
             std::vector<DisplayState> states;
             std::vector<StackType> stackTypeStack;
+            std::vector<double> pixelScaleStack;
 
             void RestoreState(const DisplayState & state);
 

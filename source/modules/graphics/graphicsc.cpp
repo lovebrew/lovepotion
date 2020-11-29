@@ -68,6 +68,9 @@ Graphics::Graphics()
     this->transformStack.reserve(16);
     this->transformStack.push_back(Matrix4());
 
+    this->pixelScaleStack.reserve(16);
+    this->pixelScaleStack.push_back(1);
+
     auto window = Module::GetInstance<Window>(M_WINDOW);
 
     if (window != nullptr)
@@ -184,6 +187,7 @@ void Graphics::Origin()
 {
     auto & transform = this->transformStack.back();
     transform.SetIdentity();
+    this->pixelScaleStack.back() = 1;
 
     #if defined(_3DS)
         C2D_ViewRestore(&transform.GetElements());
@@ -196,6 +200,7 @@ void Graphics::Push(StackType type)
         throw Exception("Maximum stack depth reached (more pushes than pops?)");
 
     this->transformStack.push_back(transformStack.back());
+    this->pixelScaleStack.push_back(pixelScaleStack.back());
 
     if (type == STACK_ALL)
         states.push_back(states.back());
@@ -215,10 +220,12 @@ void Graphics::Rotate(float rotation)
     transform.Rotate(rotation);
 }
 
-void Graphics::Scale(float scalarX, float scalarY)
+void Graphics::Scale(float x, float y)
 {
     auto & transform = this->transformStack.back();
-    transform.Scale(scalarX, scalarY);
+    transform.Scale(x, y);
+
+    pixelScaleStack.back() *= (fabs(x) + fabs(y)) / 2.0;
 }
 
 void Graphics::Shear(float kx, float ky)
@@ -233,6 +240,7 @@ void Graphics::Pop()
         throw Exception("Minimum stack depth reached (more pops than pushes?)");
 
     this->transformStack.pop_back();
+    this->pixelScaleStack.pop_back();
 
     if (this->stackTypeStack.back() == STACK_ALL)
     {
@@ -245,6 +253,24 @@ void Graphics::Pop()
     }
 
     this->stackTypeStack.pop_back();
+}
+
+Vector2 Graphics::TransformPoint(Vector2 point)
+{
+    Vector2 p;
+    this->transformStack.back().TransformXY(&p, &point, 1);
+
+    return p;
+}
+
+Vector2 Graphics::InverseTransformPoint(Vector2 point)
+{
+    Vector2 p;
+    // TODO: We should probably cache the inverse transform so we don't have to
+    // re-calculate it every time this is called.
+    transformStack.back().Inverse().TransformXY(&p, &point, 1);
+
+    return p;
 }
 
 /* Objects */
@@ -461,6 +487,26 @@ Font * Graphics::GetFont()
     return this->states.back().font.Get();
 }
 
+void Graphics::ApplyTransform(Transform * transform)
+{
+    Matrix4 & m = transformStack.back();
+    m *= transform->GetMatrix();
+
+    float sx, sy;
+    m.GetApproximateScale(sx, sy);
+    pixelScaleStack.back() = (sx + sy) / 2.0;
+}
+
+void Graphics::ReplaceTransform(Transform * transform)
+{
+    const Matrix4 & m = transform->GetMatrix();
+    transformStack.back() = m;
+
+    float sx, sy;
+    m.GetApproximateScale(sx, sy);
+    pixelScaleStack.back() = (sx + sy) / 2.0;
+}
+
 void Graphics::SetLineJoin(LineJoin join)
 {
     this->states.back().lineJoin = join;
@@ -548,6 +594,20 @@ std::vector<std::string> Graphics::GetConstants(BlendAlpha)
     return blendAlphaModes.GetNames();
 }
 
+bool Graphics::GetConstant(const char * in, StackType & out)
+{
+    return stackTypes.Find(in, out);
+}
+
+bool Graphics::GetConstant(StackType in, const char *& out)
+{
+    return stackTypes.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(StackType)
+{
+    return stackTypes.GetNames();
+}
 
 StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] =
 {

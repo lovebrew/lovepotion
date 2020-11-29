@@ -482,7 +482,7 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
 
 int love::deko3d::Graphics::CalculateEllipsePoints(float rx, float ry) const
 {
-    int points = (int) sqrtf(((rx + ry) / 2.0f) * 20.0f);
+    int points = (int) sqrtf(((rx + ry) / 2.0f) * 20.0f * (float)this->pixelScaleStack.back());
     return std::max(points, 8);
 }
 
