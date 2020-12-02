@@ -149,9 +149,6 @@ namespace love
 
             /* End */
 
-            static constexpr float MIN_DEPTH = 1.0f/16384.0f;
-            static inline float CURRENT_DEPTH = 0;
-
             Graphics();
             ~Graphics();
 
@@ -342,6 +339,8 @@ namespace love
                 Shader * GetShader() const;
             #endif
 
+            void ApplyStereoscopicDepth();
+
             size_t GetStackDepth() const {
                 return this->stackTypeStack.size();
             }
@@ -416,6 +415,10 @@ namespace love
 
             void RestoreStateChecked(const DisplayState & state);
 
+            float stereoDepth = 0.0f;
+            static constexpr float MIN_DEPTH = 1.0f/16384.0f;
+            static inline float CURRENT_DEPTH = 0;
+
         private:
             void CheckSetDefaultFont();
 
@@ -438,8 +441,5 @@ namespace love
 
             static StringMap<StackType, STACK_MAX_ENUM>::Entry stackTypeEntries[];
             static StringMap<StackType, STACK_MAX_ENUM> stackTypes;
-
-            float stereoDepth = 0.0f;
-            bool isPushed = false;
     };
 }

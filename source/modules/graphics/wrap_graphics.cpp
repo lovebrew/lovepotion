@@ -16,6 +16,15 @@ int Wrap_Graphics::SetDepth(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::_ApplyStereoscopicDepth(lua_State * L)
+{
+    Luax::CatchException(L, [&]() {
+        instance()->ApplyStereoscopicDepth();
+    });
+
+    return 0;
+}
+
 int Wrap_Graphics::Arc(lua_State * L)
 {
     Graphics::DrawMode drawMode;
@@ -1128,57 +1137,58 @@ int Wrap_Graphics::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
-        { "arc",                   Arc                   },
-        { "applyTransform",        ApplyTransform        },
-        { "circle",                Circle                },
-        { "clear",                 Clear                 },
-        { "draw",                  Draw                  },
-        { "ellipse",               Ellipse               },
-        { "getBackgroundColor",    GetBackgroundColor    },
-        { "getColor",              GetColor              },
-        { "getDefaultFilter",      GetDefaultFilter      },
-        { "getDimensions",         GetDimensions         },
-        { "getFont",               GetFont               },
-        { "getHeight",             GetHeight             },
-        { "getLineWidth",          GetLineWidth          },
-        { "getPointSize",          GetPointSize          },
-        { "getRendererInfo",       GetRendererInfo       },
-        { "getScissor",            GetScissor            },
-        { "getWidth",              GetWidth              },
-        { "instersectScissor",     IntersectScissor      },
-        { "inverseTransformPoint", InverseTransformPoint },
-        { "line",                  Line                  },
-        { "newCanvas",             NewCanvas             },
-        { "newFont",               NewFont               },
-        { "newImage",              NewImage              },
-        { "newQuad",               NewQuad               },
-        { "origin",                Origin                },
-        { "polygon",               Polygon               },
-        { "pop",                   Pop                   },
-        { "points",                Points                },
-        { "present",               Present               },
-        { "print",                 Print                 },
-        { "printf",                PrintF                },
-        { "push",                  Push                  },
-        { "rectangle",             Rectangle             },
-        { "replaceTransform",      ReplaceTransform      },
-        { "reset",                 Reset                 },
-        { "rotate",                Rotate                },
-        { "scale",                 Scale                 },
-        { "shear",                 Shear                 },
-        { "setBackgroundColor",    SetBackgroundColor    },
-        { "setCanvas",             SetCanvas             },
-        { "setColor",              SetColor              },
-        { "setDefaultFilter",      SetDefaultFilter      },
-        { "setLineWidth",          SetLineWidth          },
-        { "setNewFont",            SetNewFont            },
-        { "setPointSize",          SetPointSize          },
-        { "setFont",               SetFont               },
-        { "setScissor",            SetScissor            },
-        { "transformPoint",        TransformPoint        },
-        { "translate",             Translate             },
-        { "setDepth",              SetDepth              },
-        { 0,                       0                     }
+        { "arc",                     Arc                     },
+        { "applyTransform",          ApplyTransform          },
+        { "circle",                  Circle                  },
+        { "clear",                   Clear                   },
+        { "draw",                    Draw                    },
+        { "ellipse",                 Ellipse                 },
+        { "getBackgroundColor",      GetBackgroundColor      },
+        { "getColor",                GetColor                },
+        { "getDefaultFilter",        GetDefaultFilter        },
+        { "getDimensions",           GetDimensions           },
+        { "getFont",                 GetFont                 },
+        { "getHeight",               GetHeight               },
+        { "getLineWidth",            GetLineWidth            },
+        { "getPointSize",            GetPointSize            },
+        { "getRendererInfo",         GetRendererInfo         },
+        { "getScissor",              GetScissor              },
+        { "getWidth",                GetWidth                },
+        { "instersectScissor",       IntersectScissor        },
+        { "inverseTransformPoint",   InverseTransformPoint   },
+        { "line",                    Line                    },
+        { "newCanvas",               NewCanvas               },
+        { "newFont",                 NewFont                 },
+        { "newImage",                NewImage                },
+        { "newQuad",                 NewQuad                 },
+        { "origin",                  Origin                  },
+        { "polygon",                 Polygon                 },
+        { "pop",                     Pop                     },
+        { "points",                  Points                  },
+        { "present",                 Present                 },
+        { "print",                   Print                   },
+        { "printf",                  PrintF                  },
+        { "push",                    Push                    },
+        { "rectangle",               Rectangle               },
+        { "replaceTransform",        ReplaceTransform        },
+        { "reset",                   Reset                   },
+        { "rotate",                  Rotate                  },
+        { "scale",                   Scale                   },
+        { "shear",                   Shear                   },
+        { "setBackgroundColor",      SetBackgroundColor      },
+        { "setCanvas",               SetCanvas               },
+        { "setColor",                SetColor                },
+        { "setDefaultFilter",        SetDefaultFilter        },
+        { "setLineWidth",            SetLineWidth            },
+        { "setNewFont",              SetNewFont              },
+        { "setPointSize",            SetPointSize            },
+        { "setFont",                 SetFont                 },
+        { "setScissor",              SetScissor              },
+        { "transformPoint",          TransformPoint          },
+        { "translate",               Translate               },
+        { "setStereoscopicDepth",    SetDepth                },
+        { "_applyStereoscopicDepth", _ApplyStereoscopicDepth },
+        { 0,                         0                       }
     };
 
     lua_CFunction types[] =

@@ -86,10 +86,29 @@ Graphics::~Graphics()
 void Graphics::SetDepth(float depth)
 {
     #if defined (__SWITCH__)
-        throw love::Exception("setDepth not supported on this console");
+        throw love::Exception("setStereoscopicDepth not supported on this console.");
     #endif
 
     this->stereoDepth = std::clamp(depth, -4.0f, 4.0f);
+}
+
+void love::Graphics::ApplyStereoscopicDepth()
+{
+    #if defined (__SWITCH__)
+        throw love::Exception("_applyStereoscopicDepth not supported on this console.");
+    #else
+        float slider = osGet3DSliderState();
+        int displayNum = WINDOW_MODULE()->GetDisplay();
+        float iod = (slider / 3.0f) * this->stereoDepth;
+
+        if (iod > 0 && displayNum < 2)
+        {
+            if (displayNum == 0)
+                this->transformStack.back().Translate(-iod, 0);
+            else if (displayNum == 1)
+                this->transformStack.back().Translate(iod, 0);
+        }
+    #endif
 }
 
 Colorf Graphics::GetColor() const
