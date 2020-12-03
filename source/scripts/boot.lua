@@ -660,8 +660,8 @@ function love.init()
 end
 
 local screens = {
-    ["Switch"] = {{nil, false}},
-    ["3DS"] = { {"top", true}, {"top", true}, {"bottom", false} }
+    ["Switch"] = { nil },
+    ["3DS"]    = { "top", "top", "bottom" }
 }
 
 function love.run()
@@ -704,12 +704,8 @@ function love.run()
                 love.window.setScreen(display)
                 love.graphics.origin()
 
-                if screens[love._console_name][display][2] then
-                    love.graphics._applyStereoscopicDepth()
-                end
-
                 if love.draw then
-                    local screen = screens[love._console_name][display][1]
+                    local screen = screens[love._console_name][display]
                     love.draw(screen)
                 end
             end

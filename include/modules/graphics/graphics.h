@@ -200,8 +200,6 @@ namespace love
 
             void Translate(float offsetX, float offsetY);
 
-            void SetDepth(float depth);
-
             void Rotate(float rotation);
 
             void Scale(float scalarX, float ScalarY);
@@ -339,8 +337,6 @@ namespace love
                 Shader * GetShader() const;
             #endif
 
-            void ApplyStereoscopicDepth();
-
             size_t GetStackDepth() const {
                 return this->stackTypeStack.size();
             }
@@ -415,7 +411,6 @@ namespace love
 
             void RestoreStateChecked(const DisplayState & state);
 
-            float stereoDepth = 0.0f;
             static constexpr float MIN_DEPTH = 1.0f/16384.0f;
             static inline float CURRENT_DEPTH = 0;
 

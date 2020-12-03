@@ -121,9 +121,7 @@ namespace Wrap_Graphics
 
     int SetCanvas(lua_State * L);
 
-    int SetDepth(lua_State * L);
-
-    int _ApplyStereoscopicDepth(lua_State * L);
+    int GetStereoscopicDepth(lua_State * L);
 
     int Register(lua_State * L);
 }

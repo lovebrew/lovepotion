@@ -5,24 +5,15 @@ using namespace love;
 
 #define instance()      (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 
-int Wrap_Graphics::SetDepth(lua_State * L)
+int Wrap_Graphics::GetStereoscopicDepth(lua_State * L)
 {
-    float depth = luaL_checknumber(L, 1);
+    #if defined (_3DS)
+        lua_pushnumber(L, osGet3DSliderState());
+    #elif defined (__SWITCH__)
+        return luaL_error(L, "%s", "getStereoscopicDepth not supported on this console.");
+    #endif
 
-    Luax::CatchException(L, [&]() {
-        instance()->SetDepth(depth);
-    });
-
-    return 0;
-}
-
-int Wrap_Graphics::_ApplyStereoscopicDepth(lua_State * L)
-{
-    Luax::CatchException(L, [&]() {
-        instance()->ApplyStereoscopicDepth();
-    });
-
-    return 0;
+    return 1;
 }
 
 int Wrap_Graphics::Arc(lua_State * L)
@@ -1151,6 +1142,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getHeight",               GetHeight               },
         { "getLineWidth",            GetLineWidth            },
         { "getPointSize",            GetPointSize            },
+        { "getStereoscopicDepth",    GetStereoscopicDepth    },
         { "getRendererInfo",         GetRendererInfo         },
         { "getScissor",              GetScissor              },
         { "getWidth",                GetWidth                },
@@ -1186,8 +1178,6 @@ int Wrap_Graphics::Register(lua_State * L)
         { "setScissor",              SetScissor              },
         { "transformPoint",          TransformPoint          },
         { "translate",               Translate               },
-        { "setStereoscopicDepth",    SetDepth                },
-        { "_applyStereoscopicDepth", _ApplyStereoscopicDepth },
         { 0,                         0                       }
     };
 
