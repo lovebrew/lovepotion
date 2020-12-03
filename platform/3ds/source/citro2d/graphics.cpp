@@ -18,6 +18,12 @@ void love::citro2d::Graphics::Present()
     WINDOW_MODULE()->Present();
 }
 
+/* Keep out from common */
+void Graphics::SetCanvas(Canvas * canvas)
+{
+    WINDOW_MODULE()->SetRenderer(canvas);
+}
+
 void love::citro2d::Graphics::SetColor(Colorf color)
 {
     this->states.back().foreground = color;

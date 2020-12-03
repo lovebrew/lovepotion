@@ -260,9 +260,14 @@ std::optional<CMemPool> & deko3d::GetData()
 ** This is used to access the current Framebuffer image
 ** TODO: Add depth/stencil images
 */
-void deko3d::BindFramebuffer()
+void deko3d::BindFramebuffer(love::Canvas * canvas)
 {
-    // Generate a command list that binds it
+    if (canvas != nullptr)
+    {
+        dk::ImageView target { canvas->GetImage() };
+        return this->cmdBuf.bindRenderTargets(&target);
+    }
+
     this->EnsureInFrame();
 
     this->EnsureHasSlot();
@@ -328,7 +333,7 @@ void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love:
     image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
                      buffer, size, texture->GetWidth(), texture->GetHeight(), format);
 
-    this->RegisterResHandle(image, texture);
+    this->RegisterResHandle(image.getDescriptor(), texture);
 }
 
 void deko3d::UnRegisterResHandle(love::Texture * texture)
@@ -336,11 +341,11 @@ void deko3d::UnRegisterResHandle(love::Texture * texture)
     this->textureResIDs.erase(texture);
 }
 
-void deko3d::RegisterResHandle(CImage & image, love::Texture * texture)
+void deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Texture * texture)
 {
     this->textureResIDs[texture] = this->textureIDs;
 
-    this->descriptors.image.update(this->cmdBuf, this->textureIDs, image.getDescriptor());
+    this->descriptors.image.update(this->cmdBuf, this->textureIDs, descriptor);
     this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
 
     texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));

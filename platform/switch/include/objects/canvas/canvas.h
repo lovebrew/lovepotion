@@ -15,12 +15,12 @@ namespace love
 
             void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) override;
 
-            constexpr dk::Image & get()
+            constexpr dk::Image & GetImage()
             {
                 return this->colorBuffer;
             }
 
-            constexpr dk::ImageDescriptor const & getDescriptor() const
+            constexpr dk::ImageDescriptor const & GetDescriptor() const
             {
                 return this->descriptor;
             }

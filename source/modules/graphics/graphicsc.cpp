@@ -144,11 +144,6 @@ bool Graphics::GetScissor(Rect & scissor) const
     return state.scissor;
 }
 
-void Graphics::SetCanvas(Canvas * canvas)
-{
-    WINDOW_MODULE()->SetRenderer(canvas);
-}
-
 void Graphics::SetDefaultFilter(const Texture::Filter & filter)
 {
     Texture::defaultFilter = filter;

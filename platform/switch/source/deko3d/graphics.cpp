@@ -40,6 +40,11 @@ love::deko3d::Graphics::~Graphics()
     // }
 }
 
+void Graphics::SetCanvas(Canvas * canvas)
+{
+    dk3d.BindFramebuffer(canvas);
+}
+
 Graphics::RendererInfo love::deko3d::Graphics::GetRendererInfo() const
 {
     RendererInfo info {};

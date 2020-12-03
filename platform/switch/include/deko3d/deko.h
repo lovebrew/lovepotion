@@ -11,6 +11,7 @@
 
 #include "objects/texture/texture.h"
 #include "objects/font/font.h"
+#include "objects/canvas/canvas.h"
 
 #include "common/mmath.h"
 #include "deko3d/vertex.h"
@@ -48,7 +49,7 @@ class deko3d
 
         ~deko3d();
 
-        void BindFramebuffer();
+        void BindFramebuffer(love::Canvas * canvas = nullptr);
 
         void SetTextureFilter(love::Texture::Filter & filter);
 
@@ -105,7 +106,7 @@ class deko3d
 
         std::optional<CMemPool> & GetData();
 
-        void RegisterResHandle(CImage & image, love::Texture * texture);
+        void RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Texture * texture);
 
         void UnRegisterResHandle(love::Texture * texture);
 
@@ -140,7 +141,7 @@ class deko3d
 
         void EnsureInState(State state);
 
-        std::unordered_map<love::Texture *, uint32_t> textureResIDs;
+        std::unordered_map<love::Drawable *, uint32_t> textureResIDs;
 
         struct
         {

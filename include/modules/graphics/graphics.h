@@ -252,8 +252,6 @@ namespace love
             void PrintF(const std::vector<Font::ColoredString> & strings, float wrap, Font::AlignMode align, const Matrix4 & localTransform);
             void PrintF(const  std::vector<Font::ColoredString> & strings, Font * font, float wrap, Font::AlignMode align, const Matrix4 & localTransform);
 
-            void SetCanvas(Canvas * canvas);
-
             virtual void SetDefaultFilter(const Texture::Filter & filter);
 
             /* virtual void stuff  -- subclass implements */
@@ -341,8 +339,115 @@ namespace love
                 return this->stackTypeStack.size();
             }
 
-            /* States or Something */
+            /* RenderTarget Stuff */
 
+            enum TemporaryRenderTargetFlags
+            {
+                TEMPORARY_RT_DEPTH   = (1 << 0),
+                TEMPORARY_RT_STENCIL = (1 << 1),
+            };
+
+            struct RenderTargetStrongRef;
+
+            struct RenderTarget
+            {
+                Canvas * canvas;
+                int mipmap;
+
+                RenderTarget(Canvas * canvas, int mipmap = 0) : canvas(canvas),
+                                                                mipmap(mipmap)
+                {}
+
+                RenderTarget() : canvas(nullptr),
+                                 mipmap(0)
+                {}
+
+                bool operator != (const RenderTarget &other) const
+                {
+                    return canvas != other.canvas || mipmap != other.mipmap;
+                }
+
+                bool operator != (const RenderTargetStrongRef &other) const
+                {
+                    return canvas != other.canvas.get() || mipmap != other.mipmap;
+                }
+            };
+
+            struct RenderTargetStrongRef
+            {
+                StrongReference<Canvas> canvas;
+                int mipmap = 0;
+
+                RenderTargetStrongRef(Canvas * canvas, int mipmap = 0) : canvas(canvas),
+                                                                        mipmap(mipmap)
+                {}
+
+                bool operator != (const RenderTargetStrongRef & other) const
+                {
+                    return canvas.get() != other.canvas.get() || mipmap != other.mipmap;
+                }
+
+                bool operator != (const RenderTarget &other) const
+                {
+                    return canvas.get() != other.canvas || mipmap != other.mipmap;
+                }
+            };
+
+            struct RenderTargets
+            {
+                std::vector<RenderTarget> colors;
+                RenderTarget depthStencil;
+
+                uint32_t temporaryRTFlags;
+
+                RenderTargets() : depthStencil(nullptr),
+                                  temporaryRTFlags(0)
+                {}
+
+                const RenderTarget & GetFirstTarget() const
+                {
+                    return colors.empty() ? depthStencil : colors[0];
+                }
+
+                bool operator == (const RenderTargets & other) const
+                {
+                    size_t ncolors = colors.size();
+                    if (ncolors != other.colors.size())
+                        return false;
+
+                    for (size_t i = 0; i < ncolors; i++)
+                    {
+                        if (colors[i] != other.colors[i])
+                            return false;
+                    }
+
+                    if (depthStencil != other.depthStencil || temporaryRTFlags != other.temporaryRTFlags)
+                        return false;
+
+                    return true;
+                }
+            };
+
+            struct RenderTargetsStrongRef
+            {
+                std::vector<RenderTargetStrongRef> colors;
+                RenderTargetStrongRef depthStencil;
+
+                uint32_t temporaryRTFlags;
+
+                RenderTargetsStrongRef() : depthStencil(nullptr),
+                                           temporaryRTFlags(0)
+                {}
+
+                const RenderTargetStrongRef & GetFirstTarget() const
+                {
+                    return colors.empty() ? depthStencil : colors[0];
+                }
+            };
+
+            void SetCanvas(Canvas * canvas);
+
+            /* States or Something */
             void Reset();
 
             virtual void Present() = 0;
