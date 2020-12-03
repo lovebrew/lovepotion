@@ -5,8 +5,6 @@
 
 using namespace love;
 
-love::Type Canvas::type("Canvas", &Texture::type);
-
 int Wrap_Canvas::RenderTo(lua_State * L)
 {
     Canvas * self = Wrap_Canvas::CheckCanvas(L, 1);

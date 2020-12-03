@@ -1,38 +1,39 @@
 #include "common/runtime.h"
 #include "objects/canvas/canvas.h"
 
-#include "modules/window/window.h"
+#include "deko3d/deko.h"
 
 using namespace love;
 
-#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
-
-Canvas::Canvas(const Canvas::Settings & settings) : Texture(TextureType::TEXTURE_2D)
+Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings)
 {
-    this->width = settings.width;
-    this->height = settings.height;
+    // Create layout for the (multisampled) color buffer
+    dk::ImageLayout layoutColorBuffer;
+    dk::ImageLayoutMaker{dk3d.GetDevice()}
+        .setFlags(DkImageFlags_UsageRender | DkImageFlags_Usage2DEngine | DkImageFlags_HwCompression)
+        .setFormat(DkImageFormat_RGBA8_Unorm)
+        .setDimensions(this->width, this->height)
+        .initialize(layoutColorBuffer);
 
-    // this->texture = SDL_CreateTexture(WINDOW_MODULE()->GetRenderer(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
+    // Create the color buffer
+    colorMemory = dk3d.GetImages()->allocate(layoutColorBuffer.getSize(), layoutColorBuffer.getAlignment());
+    colorBuffer.initialize(layoutColorBuffer, colorMemory.getMemBlock(), colorMemory.getOffset());
 
-    // /* Set blend mode and clear to transparent black */
-
-    // SDL_SetTextureBlendMode(this->texture, SDL_BLENDMODE_BLEND);
-
-    // this->cleared = false;
-
-    this->InitQuad();
+    // LOVE sets up a Canvas to be transparent black
 }
 
 Canvas::~Canvas()
 {
-    // SDL_DestroyTexture(this->texture);
+    colorMemory.destroy();
+}
+
+void Canvas::Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform)
+{
+    // if (gfx->IsCanvasActive(this))
+    //     throw love::Exception("Cannot render a Canvas to itself!");
+
+    Texture::Draw(gfx, quad, localTransform);
 }
 
 void Canvas::Clear(const Colorf & color)
-{
-    // SDL_SetRenderDrawColor(WINDOW_MODULE()->GetRenderer(), color.r, color.g, color.b, color.a);
-    // SDL_RenderClear(WINDOW_MODULE()->GetRenderer());
-
-    // if (!this->cleared)
-    //     this->cleared = true;
-}
+{}
