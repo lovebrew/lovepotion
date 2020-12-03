@@ -9,11 +9,11 @@ int Wrap_Graphics::GetStereoscopicDepth(lua_State * L)
 {
     #if defined (_3DS)
         lua_pushnumber(L, osGet3DSliderState());
+
+        return 1;
     #elif defined (__SWITCH__)
         return luaL_error(L, "%s", "getStereoscopicDepth not supported on this console.");
     #endif
-
-    return 1;
 }
 
 int Wrap_Graphics::Arc(lua_State * L)
