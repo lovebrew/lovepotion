@@ -42,6 +42,7 @@ love::deko3d::Graphics::~Graphics()
 
 void Graphics::SetCanvas(Canvas * canvas)
 {
+    dk3d.SetDekoBarrier(DkBarrier_Fragments, 0);
     dk3d.BindFramebuffer(canvas);
 }
 

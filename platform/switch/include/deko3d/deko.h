@@ -124,6 +124,8 @@ class deko3d
 
         static DkWrapMode GetDekoWrapMode(love::Texture::WrapMode wrap);
 
+        void SetDekoBarrier(DkBarrier barrier, uint32_t flags);
+
     private:
         vertex::Vertex * vertexData;
 

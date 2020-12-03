@@ -254,6 +254,11 @@ std::optional<CMemPool> & deko3d::GetData()
     return this->pool.data;
 }
 
+void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)
+{
+    this->cmdBuf.barrier(barrier, flags);
+}
+
 /*
 ** Binds a Framebuffer we have allocated
 ** It ensures that there's a "slot" from @EnsureHasSlot
