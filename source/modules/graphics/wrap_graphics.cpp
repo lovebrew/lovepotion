@@ -513,7 +513,7 @@ int Wrap_Graphics::Clear(lua_State * L)
     int argtype = lua_type(L, 1);
     int start = -1;
 
-    instance()->CURRENT_DEPTH = 0.0f;
+    Graphics::CURRENT_DEPTH = 0.0f;
 
     if (argtype != LUA_TNONE && argtype != LUA_TNIL)
     {
@@ -534,11 +534,11 @@ int Wrap_Graphics::Clear(lua_State * L)
         argtype = lua_type(L, start + 1);
         if (argtype == LUA_TNUMBER)
             depth.value() = luaL_checknumber(L, start + 1);
-
-        Luax::CatchException(L, [&]() {
-            instance()->Clear(color, stencil, depth);
-        });
     }
+
+    Luax::CatchException(L, [&]() {
+        instance()->Clear(color, stencil, depth);
+    });
 
     return 0;
 }

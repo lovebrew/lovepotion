@@ -20,7 +20,6 @@ namespace love
                 };
 
                 Canvas(const Settings & settings);
-                ~Canvas();
 
                 virtual void SetAsTarget() = 0;
 

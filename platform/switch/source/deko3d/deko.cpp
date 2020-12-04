@@ -47,10 +47,7 @@ deko3d::deko3d()
 
     this->CreateResources();
 
-    // Initialize the projection matrix
-    this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
-
-    this->transformState.projMtx = glm::ortho(0.0f, 1280.0f, 720.0f, 0.0f, -10.0f, 10.0f);
+    this->transformState.projMtx = glm::ortho(0.0f, (float)FRAMEBUFFER_WIDTH, (float)FRAMEBUFFER_HEIGHT, 0.0f, -10.0f, 10.0f);
     this->transformState.mdlvMtx = glm::mat4(1.0f);
 
     this->EnsureInFrame();
@@ -156,7 +153,7 @@ void deko3d::EnsureInFrame()
 
 void deko3d::EnsureInState(State state)
 {
-    if (this->renderState != state)
+    if (this->renderState != state && state != State::STATE_MAX_ENUM)
         this->renderState = state;
 
     if (this->renderState == STATE_PRIMITIVE)
@@ -267,13 +264,17 @@ void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)
 */
 void deko3d::BindFramebuffer(love::Canvas * canvas)
 {
+    this->EnsureInFrame();
+
     if (canvas != nullptr)
     {
         dk::ImageView target { canvas->GetImage() };
+        this->SetViewport({0, 0, canvas->GetWidth(), canvas->GetHeight()});
+
         return this->cmdBuf.bindRenderTargets(&target);
     }
-
-    this->EnsureInFrame();
+    else
+        this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
 
     this->EnsureHasSlot();
 
@@ -598,6 +599,9 @@ void deko3d::SetScissor(const love::Rect & scissor, bool canvasActive)
 void deko3d::SetViewport(const love::Rect & view)
 {
     this->EnsureInFrame();
+
+    if (this->viewport == view)
+        return;
 
     this->viewport = view;
     this->cmdBuf.setViewports(0, { {(float)view.x, (float)view.y,

@@ -30,6 +30,9 @@ Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings)
     this->InitQuad();
 }
 
+void Canvas::SetAsTarget()
+{}
+
 Canvas::~Canvas()
 {
     C3D_TexDelete(&this->citroTex);

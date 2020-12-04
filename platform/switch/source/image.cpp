@@ -28,7 +28,7 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
     this->texture.loadEmptyPixels(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(), dk3d.GetTextureQueue(),
                                    width * height * 4,  width, height, DkImageFormat_RGBA8_Unorm);
 
-    dk3d.RegisterResHandle(this->texture, this);
+    dk3d.RegisterResHandle(this->texture.getDescriptor(), this);
 }
 
 void Image::ReplacePixels(void * data, size_t size, const Rect & rect)

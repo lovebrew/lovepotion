@@ -29,19 +29,12 @@ love::deko3d::Graphics::Graphics()
 }
 
 love::deko3d::Graphics::~Graphics()
-{
-    // for (int i = 0; i < Shader::STANDARD_MAX_ENUM; i++)
-    // {
-    //     if (Shader::standardShaders[i])
-    //     {
-    //         Shader::standardShaders[i]->Release();
-    //         Shader::standardShaders[i] = nullptr;
-    //     }
-    // }
-}
+{}
 
 void Graphics::SetCanvas(Canvas * canvas)
 {
+    this->states.back().canvas = canvas;
+
     dk3d.SetDekoBarrier(DkBarrier_Fragments, 0);
     dk3d.BindFramebuffer(canvas);
 }
@@ -496,7 +489,8 @@ int love::deko3d::Graphics::CalculateEllipsePoints(float rx, float ry) const
 
 void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {
-    dk3d.BindFramebuffer();
+    if (!this->IsCanvasActive())
+        dk3d.BindFramebuffer();
 
     if (color.has_value())
     {
@@ -538,7 +532,7 @@ void love::deko3d::Graphics::SetScissor()
     int width, height = 0;
     this->GetDimensions(&width, &height);
 
-    dk3d.SetScissor({0, 0, width, height}, false);
+    dk3d.SetScissor({0, 0, width, height}, this->IsCanvasActive());
     states.back().scissor = false;
 }
 

@@ -8,6 +8,7 @@ namespace love
     {
         public:
             Canvas(const Settings & settings);
+            ~Canvas();
 
             void SetAsTarget() override;
 
@@ -29,6 +30,6 @@ namespace love
             dk::Image colorBuffer;
             CMemPool::Handle colorMemory;
 
-            dk::ImageDescriptor descriptor
+            dk::ImageDescriptor descriptor;
     };
 }

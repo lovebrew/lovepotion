@@ -136,6 +136,18 @@ void Graphics::SetLineWidth(float width)
     }
 #endif
 
+bool Graphics::IsCanvasActive(Canvas * canvas) const
+{
+    const auto target = this->states.back().canvas;
+
+    return target.Get() == canvas;
+}
+
+bool Graphics::IsCanvasActive() const
+{
+    return this->states.back().canvas != nullptr;
+}
+
 bool Graphics::GetScissor(Rect & scissor) const
 {
     const DisplayState & state = states.back();
@@ -362,6 +374,7 @@ void Graphics::RestoreState(const DisplayState & state)
     this->SetFont(state.font.Get());
 
     this->SetColorMask(state.colorMask);
+    this->SetCanvas(state.canvas);
     this->SetDefaultFilter(state.defaultFilter);
 }
 
@@ -404,6 +417,9 @@ void Graphics::RestoreStateChecked(const DisplayState & state)
 
     if (state.colorMask != current.colorMask)
         this->SetColorMask(state.colorMask);
+
+    if (state.canvas != current.canvas)
+        this->SetCanvas(state.canvas);
 
     this->SetDefaultFilter(state.defaultFilter);
     this->SetDefaultMipmapFilter(state.defaultMipmapFilter, state.defaultMipmapSharpness);

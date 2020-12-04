@@ -8,6 +8,7 @@ namespace love
     {
         public:
             Canvas(const Settings & settings);
+            ~Canvas();
 
             void SetAsTarget() override;
 

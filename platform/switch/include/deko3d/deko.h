@@ -139,11 +139,11 @@ class deko3d
             STATE_MAX_ENUM
         };
 
-        State renderState = State::STATE_PRIMITIVE;
+        State renderState = State::STATE_MAX_ENUM;
 
         void EnsureInState(State state);
 
-        std::unordered_map<love::Drawable *, uint32_t> textureResIDs;
+        std::unordered_map<love::Texture *, uint32_t> textureResIDs;
 
         struct
         {

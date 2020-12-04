@@ -369,7 +369,7 @@ namespace love
 
                 bool operator != (const RenderTargetStrongRef &other) const
                 {
-                    return canvas != other.canvas.get() || mipmap != other.mipmap;
+                    return canvas != other.canvas.Get() || mipmap != other.mipmap;
                 }
             };
 
@@ -384,12 +384,12 @@ namespace love
 
                 bool operator != (const RenderTargetStrongRef & other) const
                 {
-                    return canvas.get() != other.canvas.get() || mipmap != other.mipmap;
+                    return canvas.Get() != other.canvas.Get() || mipmap != other.mipmap;
                 }
 
                 bool operator != (const RenderTarget &other) const
                 {
-                    return canvas.get() != other.canvas || mipmap != other.mipmap;
+                    return canvas.Get() != other.canvas || mipmap != other.mipmap;
                 }
             };
 
@@ -447,10 +447,17 @@ namespace love
 
             void SetCanvas(Canvas * canvas);
 
+            bool IsCanvasActive(Canvas * canvas) const;
+
+            bool IsCanvasActive() const;
+
             /* States or Something */
             void Reset();
 
             virtual void Present() = 0;
+
+            static constexpr float MIN_DEPTH = 1.0f/16384.0f;
+            static inline float CURRENT_DEPTH = 0;
 
             static bool GetConstant(const char * in, DrawMode & out);
             static bool GetConstant(DrawMode in, const char *& out);
@@ -482,6 +489,7 @@ namespace love
                 float pointSize = 1.0f;
 
                 StrongReference<Font> font;
+                StrongReference<Canvas> canvas;
 
                 #if defined(__SWITCH__)
                     StrongReference<Shader> shader;
@@ -515,9 +523,6 @@ namespace love
             void RestoreState(const DisplayState & state);
 
             void RestoreStateChecked(const DisplayState & state);
-
-            static constexpr float MIN_DEPTH = 1.0f/16384.0f;
-            static inline float CURRENT_DEPTH = 0;
 
         private:
             void CheckSetDefaultFont();
