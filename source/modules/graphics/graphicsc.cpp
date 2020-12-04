@@ -496,7 +496,7 @@ void Graphics::ApplyTransform(Transform * transform)
 
     float sx, sy;
     m.GetApproximateScale(sx, sy);
-    pixelScaleStack.back() = (sx + sy) / 2.0;
+    this->pixelScaleStack.back() = (sx + sy) / 2.0;
 }
 
 void Graphics::ReplaceTransform(Transform * transform)
@@ -506,7 +506,7 @@ void Graphics::ReplaceTransform(Transform * transform)
 
     float sx, sy;
     m.GetApproximateScale(sx, sy);
-    pixelScaleStack.back() = (sx + sy) / 2.0;
+    this->pixelScaleStack.back() = (sx + sy) / 2.0;
 }
 
 void Graphics::SetLineJoin(LineJoin join)

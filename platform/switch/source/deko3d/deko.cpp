@@ -184,7 +184,7 @@ void deko3d::EnsureHasSlot()
 
 void deko3d::SetBlendColor(const Colorf & color)
 {
-    // this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
+    this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
 }
 
 /*
@@ -283,6 +283,8 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
     this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
                                this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
                                &this->transformState);
+
+    this->BeginFrame();
 }
 
 /*
@@ -334,14 +336,6 @@ void deko3d::SetStencil(DkStencilOp op, DkCompareOp compare, int value)
     this->state.depthStencil.setStencilBackPassOp(DkStencilOp_Keep);
 
     this->cmdBuf.setStencil(DkFace_FrontAndBack, 0xFF, value, 0xFF);
-}
-
-void deko3d::LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format)
-{
-    image.loadMemory(*this->pool.images, *this->pool.data, this->device, this->textureQueue,
-                     buffer, size, texture->GetWidth(), texture->GetHeight(), format);
-
-    this->RegisterResHandle(image.getDescriptor(), texture);
 }
 
 void deko3d::UnRegisterResHandle(love::Texture * texture)

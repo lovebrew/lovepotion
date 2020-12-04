@@ -75,8 +75,8 @@ namespace love
 
             TextureType GetTextureType() const;
 
-            int GetWidth() const;
-            int GetHeight() const;
+            int GetWidth(int mip = 0) const;
+            int GetHeight(int mip = 0) const;
 
             virtual void SetFilter(const Filter & f);
             virtual const Filter & GetFilter() const;

@@ -110,8 +110,6 @@ class deko3d
 
         void UnRegisterResHandle(love::Texture * texture);
 
-        void LoadTextureBuffer(CImage & image, void * buffer, size_t size, love::Texture * texture, DkImageFormat format);
-
         bool RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count);
 
         /* Primitives Rendering */

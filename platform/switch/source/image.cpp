@@ -14,8 +14,10 @@ Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
     if (buffer == nullptr)
         throw love::Exception("Failed to load imagedata.");
 
-    // Have the deko3d class load our new buffer and register it to the CDescriptorSets
-    dk3d.LoadTextureBuffer(this->texture, buffer, this->width * this->height * 4, this, DkImageFormat_RGBA8_Unorm);
+    this->texture.loadMemory(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(), dk3d.GetTextureQueue(),
+                             buffer, this->width * this->height * 4, this->width, this->height, DkImageFormat_RGBA8_Unorm);
+
+    dk3d.RegisterResHandle(this->texture.getDescriptor(), this);
 
     this->InitQuad();
 }
@@ -24,7 +26,6 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 {
     this->Init(width, height);
 
-    /* std::optional<CImage> texture */
     this->texture.loadEmptyPixels(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(), dk3d.GetTextureQueue(),
                                    width * height * 4,  width, height, DkImageFormat_RGBA8_Unorm);
 
@@ -47,9 +48,4 @@ void Image::Init(int width, int height)
     this->height = height;
 
     this->InitQuad();
-}
-
-void Image::LoadBuffer(void * data, size_t size)
-{
-    dk3d.LoadTextureBuffer(this->texture, data, size * 4, this, DkImageFormat_RGBA8_Unorm);
 }

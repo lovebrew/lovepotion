@@ -25,10 +25,6 @@ void Quad::Refresh(const Viewport & viewport, double sw, double sh)
         this->scaledWidth  = NextPO2(sw);
         this->scaledHeight = NextPO2(sh);
     #elif defined (__SWITCH__)
-        // Vertices are ordered for use with triangle strips:
-        // 0---2
-        // | / |
-        // 1---3
         this->vertexPositions[0] = Vector2(0.0f, 0.0f);
         this->vertexPositions[1] = Vector2(0.0f, (float)viewport.h);
         this->vertexPositions[2] = Vector2((float)viewport.w, (float)viewport.h);

@@ -10,10 +10,6 @@ namespace love
             Canvas(const Settings & settings);
             ~Canvas();
 
-            void SetAsTarget() override;
-
-            void Clear(const Colorf & color) override;
-
             void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) override;
 
             constexpr dk::Image & GetImage()

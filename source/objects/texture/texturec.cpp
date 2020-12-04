@@ -30,14 +30,14 @@ namespace love
         return this->texType;
     }
 
-    int Texture::GetWidth() const
+    int Texture::GetWidth(int mip) const
     {
-        return this->width;
+        return std::max(this->width >> mip, 1);
     }
 
-    int Texture::GetHeight() const
+    int Texture::GetHeight(int mip) const
     {
-        return this->height;
+        return std::max(this->height >> mip, 1);
     }
 
     void Texture::SetFilter(const Filter & filter)

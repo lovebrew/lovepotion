@@ -36,7 +36,11 @@ void Graphics::SetCanvas(Canvas * canvas)
     this->states.back().canvas = canvas;
 
     dk3d.SetDekoBarrier(DkBarrier_Fragments, 0);
+
     dk3d.BindFramebuffer(canvas);
+
+    if (this->states.back().scissor)
+        this->SetScissor(this->states.back().scissorRect);
 }
 
 Graphics::RendererInfo love::deko3d::Graphics::GetRendererInfo() const
@@ -500,8 +504,6 @@ void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<in
 
     if (stencil.has_value())
         dk3d.ClearDepthStencil(depth.value(), stencil.value());
-
-    dk3d.BeginFrame();
 }
 
 void love::deko3d::Graphics::Present()
