@@ -47,7 +47,6 @@ deko3d::deko3d()
 
     this->CreateResources();
 
-    this->transformState.projMtx = glm::ortho(0.0f, (float)FRAMEBUFFER_WIDTH, (float)FRAMEBUFFER_HEIGHT, 0.0f, -10.0f, 10.0f);
     this->transformState.mdlvMtx = glm::mat4(1.0f);
 
     this->EnsureInFrame();
@@ -218,10 +217,6 @@ void deko3d::BeginFrame()
     this->cmdBuf.bindBlendStates(0, this->state.blendState);
     // this->cmdBuf.bindDepthStencilState(this->state.depthStencil);
 
-    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
-                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
-                               &this->transformState);
-
     // Bind the current slice's GPU address to the buffer
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 }
@@ -271,17 +266,23 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
         dk::ImageView target { canvas->GetImage() };
         this->SetViewport({0, 0, canvas->GetWidth(), canvas->GetHeight()});
 
-        return this->cmdBuf.bindRenderTargets(&target);
+        this->cmdBuf.bindRenderTargets(&target);
     }
     else
+    {
+
+        this->EnsureHasSlot();
+
+        dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
+        dk::ImageView depthTarget { this->depthBuffer.image };
         this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
 
-    this->EnsureHasSlot();
+        this->cmdBuf.bindRenderTargets(&colorTarget);
+    }
 
-    dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
-    dk::ImageView depthTarget { this->depthBuffer.image };
-
-    this->cmdBuf.bindRenderTargets(&colorTarget);
+    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
+                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
+                               &this->transformState);
 }
 
 /*
@@ -301,7 +302,8 @@ void deko3d::Present()
         this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
 
-        this->queue.presentImage(this->swapchain, this->framebuffers.slot);
+        if (this->framebuffers.slot >= 0)
+            this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
         this->framebuffers.inFrame = false;
     }
@@ -462,21 +464,15 @@ float deko3d::GetPointSize()
 
 void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
 {
-    uint32_t masks = 0;
+    uint32_t mask = 0;
+    const std::array<std::pair<bool, uint32_t>, 4> masks = {{
+        {r, DkColorMask_R}, {g, DkColorMask_G}, {b, DkColorMask_B}, {a, DkColorMask_A}
+    }};
 
-    if (r)
-        masks |= DkColorMask_R;
+    for (const std::pair<bool, uint32_t> pair : masks)
+        mask |= pair.first ? pair.second : 0;
 
-    if (g)
-        masks |= DkColorMask_G;
-
-    if (b)
-        masks |= DkColorMask_B;
-
-    if (a)
-        masks |= DkColorMask_A;
-
-    this->state.colorWrite.setMask(0, DkColorMask_RGBA);
+    this->state.colorWrite.setMask(0, mask);
 }
 
 void deko3d::SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,
@@ -530,7 +526,7 @@ void deko3d::SetTextureFilter(love::Texture::Filter & filter)
     DkFilter min = (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
     DkFilter mag = (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
 
-    DkMipFilter mipFilter;
+    DkMipFilter mipFilter = DkMipFilter_Linear;
     if (filter.mipmap != love::Texture::FILTER_NONE)
     {
         if (filter.min == love::Texture::FILTER_NEAREST && filter.mipmap == love::Texture::FILTER_NEAREST)
@@ -600,13 +596,12 @@ void deko3d::SetViewport(const love::Rect & view)
 {
     this->EnsureInFrame();
 
-    if (this->viewport == view)
-        return;
-
     this->viewport = view;
     this->cmdBuf.setViewports(0, { {(float)view.x, (float)view.y,
                                     (float)view.w, (float)view.h,
-                                    -10.0f, 10.0f} });
+                                    Z_NEAR, Z_FAR} });
+
+    this->transformState.projMtx = glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
 }
 
 Rect deko3d::GetViewport()

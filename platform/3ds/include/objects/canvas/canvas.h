@@ -10,9 +10,7 @@ namespace love
             Canvas(const Settings & settings);
             ~Canvas();
 
-            void SetAsTarget() override;
-
-            void Clear(const Colorf & color) override;
+            void Clear(const Colorf & color);
 
         private:
             C3D_Tex citroTex;

@@ -506,6 +506,9 @@ void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<in
 
 void love::deko3d::Graphics::Present()
 {
+    if (this->IsCanvasActive())
+        throw love::Exception("present cannot be called while a Canvas is active.");
+
     dk3d.Present();
 }
 
@@ -513,7 +516,7 @@ void love::deko3d::Graphics::SetScissor(const Rect & scissor)
 {
     DisplayState & state = this->states.back();
 
-    dk3d.SetScissor(scissor, false);
+    dk3d.SetScissor(scissor, this->IsCanvasActive());
 
     state.scissor = true;
     state.scissorRect = scissor;

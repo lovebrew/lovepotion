@@ -21,10 +21,6 @@ namespace love
 
                 Canvas(const Settings & settings);
 
-                virtual void SetAsTarget() = 0;
-
-                virtual void Clear(const Colorf & color) = 0;
-
                 virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) = 0;
 
                 Renderer * GetRenderer() {

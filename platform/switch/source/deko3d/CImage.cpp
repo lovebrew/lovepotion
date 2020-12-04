@@ -3,7 +3,6 @@
 **   CExternalImage.cpp: Utility class for loading images from the filesystem
 */
 #include "deko3d/CImage.h"
-#include "deko3d/FileLoader.h"
 
 #include "common/mmath.h"
 

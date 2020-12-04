@@ -139,6 +139,9 @@ class deko3d
             STATE_MAX_ENUM
         };
 
+        static constexpr float Z_NEAR = -10.0f;
+        static constexpr float Z_FAR  = 10.0f;
+
         State renderState = State::STATE_MAX_ENUM;
 
         void EnsureInState(State state);
