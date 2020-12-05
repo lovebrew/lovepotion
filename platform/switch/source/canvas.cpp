@@ -18,8 +18,6 @@ Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings),
         .setDimensions(this->width, this->height)
         .initialize(layoutColorBuffer);
 
-    LOG("%zu %zu", this->width, this->height);
-
     // Create the color buffer
     this->colorMemory = dk3d.GetImages()->allocate(layoutColorBuffer.getSize(), layoutColorBuffer.getAlignment());
     this->colorBuffer.initialize(layoutColorBuffer, this->colorMemory.getMemBlock(), this->colorMemory.getOffset());

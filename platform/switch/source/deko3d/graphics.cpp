@@ -33,14 +33,39 @@ love::deko3d::Graphics::~Graphics()
 
 void Graphics::SetCanvas(Canvas * canvas)
 {
-    this->states.back().canvas = canvas;
+    DisplayState & state = this->states.back();
+    state.canvas.Set(canvas);
 
-    dk3d.SetDekoBarrier(DkBarrier_Fragments, 0);
+    if (canvas == nullptr)
+        return;
 
     dk3d.BindFramebuffer(canvas);
 
     if (this->states.back().scissor)
         this->SetScissor(this->states.back().scissorRect);
+}
+
+void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
+{
+    if (!this->IsCanvasActive())
+        dk3d.BindFramebuffer();
+
+    if (color.has_value())
+    {
+        Graphics::GammaCorrectColor(color.value());
+        dk3d.ClearColor(color.value());
+    }
+
+    if (stencil.has_value())
+        dk3d.ClearDepthStencil(depth.value(), stencil.value());
+}
+
+void love::deko3d::Graphics::Present()
+{
+    if (this->IsCanvasActive())
+        throw love::Exception("present cannot be called while a Canvas is active.");
+
+    dk3d.Present();
 }
 
 Graphics::RendererInfo love::deko3d::Graphics::GetRendererInfo() const
@@ -490,29 +515,6 @@ int love::deko3d::Graphics::CalculateEllipsePoints(float rx, float ry) const
 }
 
 /* Primitives */
-
-void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
-{
-    if (!this->IsCanvasActive())
-        dk3d.BindFramebuffer();
-
-    if (color.has_value())
-    {
-        Graphics::GammaCorrectColor(color.value());
-        dk3d.ClearColor(color.value());
-    }
-
-    if (stencil.has_value())
-        dk3d.ClearDepthStencil(depth.value(), stencil.value());
-}
-
-void love::deko3d::Graphics::Present()
-{
-    if (this->IsCanvasActive())
-        throw love::Exception("present cannot be called while a Canvas is active.");
-
-    dk3d.Present();
-}
 
 void love::deko3d::Graphics::SetScissor(const Rect & scissor)
 {

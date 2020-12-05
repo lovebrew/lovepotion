@@ -51,6 +51,10 @@ deko3d::deko3d()
 
     this->EnsureInFrame();
 
+    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
+                               this->transformUniformBuffer.getSize(), offsetof(Transformation, mdlvMtx),
+                               sizeof(transformState.mdlvMtx), &transformState.mdlvMtx);
+
     this->descriptors.image.bindForImages(this->cmdBuf);
     this->descriptors.sampler.bindForSamplers(this->cmdBuf);
 
@@ -145,6 +149,7 @@ void deko3d::EnsureInFrame()
 {
     if (!this->framebuffers.inFrame)
     {
+        this->firstVertex = 0;
         this->cmdRing.begin(this->cmdBuf);
         this->framebuffers.inFrame = true;
     }
@@ -194,8 +199,6 @@ void deko3d::SetBlendColor(const Colorf & color)
 void deko3d::ClearColor(const Colorf & color)
 {
     this->EnsureInFrame();
-
-    this->firstVertex = 0;
 
     this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
 }
@@ -248,6 +251,7 @@ std::optional<CMemPool> & deko3d::GetData()
 
 void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)
 {
+    this->EnsureInFrame();
     this->cmdBuf.barrier(barrier, flags);
 }
 
@@ -261,6 +265,8 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
 {
     this->EnsureInFrame();
 
+    this->SetDekoBarrier(DkBarrier_Fragments, 0);
+
     if (canvas != nullptr)
     {
         dk::ImageView target { canvas->GetImage() };
@@ -270,7 +276,6 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
     }
     else
     {
-
         this->EnsureHasSlot();
 
         dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
@@ -281,8 +286,8 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
     }
 
     this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
-                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
-                               &this->transformState);
+                               this->transformUniformBuffer.getSize(), offsetof(Transformation, projMtx),
+                               sizeof(transformState.projMtx), &transformState.projMtx);
 
     this->BeginFrame();
 }
@@ -589,6 +594,9 @@ void deko3d::SetScissor(const love::Rect & scissor, bool canvasActive)
 void deko3d::SetViewport(const love::Rect & view)
 {
     this->EnsureInFrame();
+
+    if (this->viewport == view)
+        return;
 
     this->viewport = view;
     this->cmdBuf.setViewports(0, { {(float)view.x, (float)view.y,
