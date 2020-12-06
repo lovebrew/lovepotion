@@ -79,6 +79,8 @@ namespace Wrap_Graphics
 
     int NewQuad(lua_State * L);
 
+    int NewText(lua_State * L);
+
     int NewCanvas(lua_State * L);
 
     int SetDefaultFilter(lua_State * L);

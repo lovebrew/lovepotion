@@ -711,6 +711,29 @@ int Wrap_Graphics::NewImage(lua_State * L)
     return 1;
 }
 
+int Wrap_Graphics::NewText(lua_State * L)
+{
+    Font * font = Wrap_Font::CheckFont(L, 1);
+    Text * text = nullptr;
+
+    if (lua_isnoneornil(L, 2))
+        Luax::CatchException(L, [&]() { text = instance()->NewText(font); });
+    else
+    {
+        std::vector<Font::ColoredString> strings;
+        Wrap_Font::CheckColoredString(L, 2, strings);
+
+        Luax::CatchException(L, [&]() {
+            text = instance()->NewText(font, strings);
+        });
+    }
+
+    Luax::PushType(L, text);
+    text->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::NewCanvas(lua_State * L)
 {
     Canvas::Settings settings;
@@ -1152,6 +1175,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "newCanvas",               NewCanvas               },
         { "newFont",                 NewFont                 },
         { "newImage",                NewImage                },
+        { "newText",                 NewText                 },
         { "newQuad",                 NewQuad                 },
         { "origin",                  Origin                  },
         { "polygon",                 Polygon                 },
