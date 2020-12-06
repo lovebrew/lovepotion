@@ -55,8 +55,10 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/freetype \
 				include/freetype/types \
 				include/modules \
-				include/modules/font
-				# include/objects
+				include/modules/font \
+				include/objects/font \
+				include/objects/canvas \
+				include/objects/text
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs

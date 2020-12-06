@@ -1213,6 +1213,7 @@ int Wrap_Graphics::Register(lua_State * L)
         Wrap_Image::Register,
         Wrap_Quad::Register,
         Wrap_Canvas::Register,
+        Wrap_Text::Register,
         0
     };
 

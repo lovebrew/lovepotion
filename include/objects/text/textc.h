@@ -18,8 +18,6 @@ namespace love
 
                 Text(love::Font * font, const std::vector<Font::ColoredString> & text = {});
 
-                ~Text() = default;
-
                 virtual void Set(const std::vector<Font::ColoredString> & text) = 0;
 
                 virtual void Set(const std::vector<Font::ColoredString> & text, float wrap, Font::AlignMode align) = 0;

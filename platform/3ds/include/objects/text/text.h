@@ -7,11 +7,11 @@ namespace love
     class Text : public common::Text
     {
         public:
-            Text(Font * font, const std::vector<Font::ColoredString> & text = {});
+            Text(love::Font * font, const std::vector<Font::ColoredString> & text = {});
 
             ~Text();
 
-            void SetFont(Font * font);
+            void SetFont(love::Font * font);
 
             void Set(const std::vector<Font::ColoredString> & text) override;
 

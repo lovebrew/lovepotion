@@ -49,7 +49,9 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include \
 				include/citro2d \
 				include/modules \
-				include/objects/font
+				include/objects/font \
+				include/objects/text \
+				include/objects/canvas
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)

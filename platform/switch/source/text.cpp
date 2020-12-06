@@ -2,13 +2,16 @@
 #include "objects/text/text.h"
 
 #include "modules/graphics/graphics.h"
+#include "deko3d/deko.h"
 
 using namespace love;
 
 Text::Text(Font * font, const std::vector<Font::ColoredString> & text) : common::Text(font, text),
                                                                          vertexOffset(0),
                                                                          textureCacheId(-1)
-{}
+{
+    this->Set(text);
+}
 
 Text::~Text()
 {}
@@ -30,7 +33,10 @@ void Text::RegenerateVertices()
 void Text::UploadVertices(const std::vector<vertex::GlyphVertex> & vertices, size_t vertoffset)
 {
     size_t offset = vertoffset * sizeof(vertex::GlyphVertex);
-    std::copy(vertices.begin(), vertices.begin() + offset, this->vertexBuffer);
+    size_t dataSize = vertices.size() * sizeof(vertex::GlyphVertex);
+
+    if (dataSize > 0)
+        memcpy(this->vertexBuffer.data() + offset, &vertices[0], dataSize);
 }
 
 void Text::AddTextData(const TextData & text)
@@ -53,8 +59,8 @@ void Text::AddTextData(const TextData & text)
     {
         offset = 0;
         this->vertexOffset = 0;
-        commands.clear();
-        textData.clear();
+        this->drawCommands.clear();
+        this->textData.clear();
     }
 
     if (vertices.empty())
@@ -70,25 +76,25 @@ void Text::AddTextData(const TextData & text)
         for (Font::DrawCommand & command : commands)
             command.startVertex += offset;
 
-        auto first = commands.begin();
+        auto firstCmd = commands.begin();
 
         if (!commands.empty())
         {
-            auto last = commands.back();
+            auto lastCmd = commands.back();
 
-            if (last.texture == first->texture && (last.startVertex + last.vertexCount) == first->startVertex)
+            if (lastCmd.texture == firstCmd->texture && (lastCmd.startVertex + lastCmd.vertexCount) == firstCmd->startVertex)
             {
-                commands.back().vertexCount += first->vertexCount;
-                ++first;
+                commands.back().vertexCount += firstCmd->vertexCount;
+                ++firstCmd;
             }
         }
 
-        this->drawCommands.insert(this->drawCommands.end(), first, commands.end());
+        this->drawCommands.insert(this->drawCommands.end(), firstCmd, commands.end());
     }
 
     this->vertexOffset = offset + vertices.size();
 
-    this->textData.push_back(textData);
+    this->textData.push_back(text);
     this->textData.back().textInfo = info;
 
     if (this->font->GetTextureCacheID() != this->textureCacheId)
@@ -102,7 +108,7 @@ void Text::Set(const std::vector<Font::ColoredString> & text)
 
 void Text::Set(const std::vector<Font::ColoredString> & text, float wrap, Font::AlignMode align)
 {
-    if (text.empty() || text.size() == 1 && text[0].string.empty())
+    if (text.empty() || (text.size() == 1 && text[0].string.empty()))
         return this->Clear();
 
     Font::ColoredCodepoints codepoints;
@@ -181,7 +187,7 @@ void Text::Draw(Graphics * gfx, const Matrix4 & localTransform)
     {
         size_t vertexCount = command.vertexCount;
 
-        std::vector<vertex::Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData.data(), vertexCount);
+        std::vector<vertex::Vertex> verts = vertex::GenerateTextureFromGlyphs(this->vertexBuffer.data(), vertexCount);
         dk3d.RenderTexture(command.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
     }
 }

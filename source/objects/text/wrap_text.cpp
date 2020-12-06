@@ -34,6 +34,8 @@ int Wrap_Text::Setf(lua_State * L)
     Luax::CatchException(L, [&]() {
         self->Set(newText, wrapLimit, align);
     });
+
+    return 0;
 }
 
 int Wrap_Text::Add(lua_State * L)

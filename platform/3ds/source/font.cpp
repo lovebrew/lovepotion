@@ -46,7 +46,7 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
     C2D_Text citroText;
 
     std::string result = std::accumulate(text.begin(), text.end(), std::string{},
-                         [](std::string & s1, const ColoredString & piece) { return s1 + piece.string; });
+                         [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
 
     C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
     C2D_TextOptimize(&citroText);
@@ -77,7 +77,7 @@ void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float
     }
 
     std::string result = std::accumulate(text.begin(), text.end(), std::string{},
-                         [](std::string & s1, const ColoredString & piece) { return s1 + piece.string; });
+                         [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
 
     C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
     C2D_TextOptimize(&citroText);

@@ -5,9 +5,10 @@
 
 using namespace love;
 
-Text::Text(Font * font, const std::vector<Font::ColoredString> & text) : common::Text(font, text)
+Text::Text(love::Font * font, const std::vector<Font::ColoredString> & text) : common::Text(font, text)
 {
     this->buffer = C2D_TextBufNew(Font::FONT_BUFFER_SIZE);
+    this->Set(text);
 }
 
 Text::~Text()
@@ -15,7 +16,7 @@ Text::~Text()
     C2D_TextBufDelete(this->buffer);
 }
 
-void Text::SetFont(Font * font)
+void Text::SetFont(love::Font * font)
 {
     this->font.Set(font);
 }
@@ -23,7 +24,7 @@ void Text::SetFont(Font * font)
 std::string Text::GetString(const std::vector<Font::ColoredString> & text)
 {
     std::string result = std::accumulate(text.begin(), text.end(), std::string{},
-                         [](std::string & s1, const Font::ColoredString & piece) { return s1 + piece.string; });
+                         [](const std::string& s1, const Font::ColoredString & piece) { return s1 + piece.string; });
 
     return result;
 }
@@ -41,7 +42,7 @@ int Text::GetWidth(int index) const
 
 /*
 ** Text objects on 3DS can't have
-** a lot of .. text? Like using add(f)
+** a lot of .. text? Like using add(f)\
 ** So just return the entire string height
 */
 int Text::GetHeight(int index) const
@@ -56,7 +57,7 @@ void Text::Set(const std::vector<Font::ColoredString> & text)
 
 void Text::Set(const std::vector<Font::ColoredString> & text, float wrap, Font::AlignMode align)
 {
-    if (text.empty() || text.size() == 1 && text[0].string.empty())
+    if (text.empty() || (text.size() == 1 && text[0].string.empty()))
         return this->Clear();
 
     this->textCache = this->GetString(text);
@@ -77,13 +78,15 @@ int Text::Add(const std::vector<Font::ColoredString> & text, const Matrix4 & loc
 */
 int Text::Addf(const std::vector<Font::ColoredString> & text, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
 {
-    if (!wrapData.empty() && (wrap != wrapData.back().first || (align != wrapData.back().second && align != Font::ALIGN_MAX_ENUM)))
+    if (!this->wrapData.empty() && (wrap != this->wrapData.back().first || (align != this->wrapData.back().second && align != Font::ALIGN_MAX_ENUM)))
         throw love::Exception("addf cannot handle multiple wraps and aligns on this console.");
 
     this->textCache += this->GetString(text);
 
     this->wrap = wrap;
     this->align = align;
+
+    this->wrapData.push_back(std::make_pair(wrap, align));
 
     return 0;
 }
@@ -103,4 +106,5 @@ void Text::Clear()
 {
     C2D_TextBufClear(this->buffer);
     this->textCache.clear();
+    this->wrapData.clear();
 }
