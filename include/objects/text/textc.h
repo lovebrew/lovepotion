@@ -3,6 +3,8 @@
 #include "objects/drawable/drawable.h"
 #include "objects/font/font.h"
 
+#include "common/exception.h"
+
 namespace love
 {
     class Graphics;
@@ -14,7 +16,7 @@ namespace love
             public:
                 static love::Type type;
 
-                Text(Font * font, const std::vector<Font::ColoredString> & text = {});
+                Text(love::Font * font, const std::vector<Font::ColoredString> & text = {});
 
                 ~Text() = default;
 
@@ -28,18 +30,18 @@ namespace love
 
                 virtual void Clear() = 0;
 
-                virtual void SetFont(Font * font) = 0;
+                virtual void SetFont(love::Font * font) = 0;
 
-                Font * GetFont() const;
+                love::Font * GetFont() const;
 
                 virtual int GetWidth(int index = 0) const = 0;
 
                 virtual int GetHeight(int index = 0) const = 0;
 
-                void Draw(Graphics * gfx, const Matrix4 & m) override;
+                virtual void Draw(Graphics * gfx, const Matrix4 & m) = 0;
 
             protected:
-                StrongReference<Font> font;
+                StrongReference<love::Font> font;
         };
     }
 }

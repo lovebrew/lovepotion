@@ -1,9 +1,5 @@
 #include "common/runtime.h"
-
-namespace
-{
-    int s_nxFd = -1;
-}
+#include "modules/love.h"
 
 extern "C"
 {
@@ -42,13 +38,11 @@ extern "C"
 
         if (R_FAILED(res))
             fatalThrow(res);
-
-        s_nxFd = nxlinkStdioForDebug();
     }
 
     void userAppExit()
     {
-        close(s_nxFd);
+        close(Love::debugSockfd);
 
         socketExit();
         psmExit();

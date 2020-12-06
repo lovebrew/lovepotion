@@ -25,6 +25,8 @@ namespace love
     class Font : public love::common::Font
     {
         public:
+            static constexpr int FONT_BUFFER_SIZE = 0x1000;
+
             Font(const Rasterizer & r, const Texture::Filter & filter);
 
             ~Font();
@@ -41,14 +43,14 @@ namespace love
 
             float GetHeight() const override;
 
+            const C2D_Font GetFont();
+
             void ClearBuffer();
+
+            float GetScale() const;
 
         private:
             Rasterizer rasterizer;
-
-            static constexpr int FONT_BUFFER_SIZE = 0x1000;
-
-            float GetScale() const;
 
             std::unordered_map<uint32_t, float> glyphWidths;
     };

@@ -22,6 +22,7 @@ void love::citro2d::Graphics::Present()
 void Graphics::SetCanvas(Canvas * canvas)
 {
     WINDOW_MODULE()->SetRenderer(canvas);
+    this->states.back().canvas.Set(canvas);
 }
 
 void love::citro2d::Graphics::SetColor(Colorf color)

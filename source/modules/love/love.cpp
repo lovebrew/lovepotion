@@ -76,11 +76,14 @@ int Love::Initialize(lua_State * L)
     lua_pushcfunction(L, GetVersion);
     lua_setfield(L, -2, "getVersion");
 
-    lua_pushcfunction(L, EnsureApplicationType);
+    lua_pushcfunction(L, _EnsureApplicationType);
     lua_setfield(L, -2, "_ensureApplicationType");
 
+    lua_pushcfunction(L, _OpenConsole);
+    lua_setfield(L, -2, "_openConsole");
+
     lua_pushcfunction(L, EnableAccelerometerAsJoystick);
-	lua_setfield(L, -2, "_setAccelerometerAsJoystick");
+    lua_setfield(L, -2, "_setAccelerometerAsJoystick");
 
     //---------------------------------------//
 
@@ -163,7 +166,7 @@ int Love::GetVersion(lua_State * L)
 ** Checks for Title Takeover on atmosphère
 ** Does absolutely nothing on 3DS. Ran at boot once.
 */
-int Love::EnsureApplicationType(lua_State * L)
+int Love::_EnsureApplicationType(lua_State * L)
 {
     #if defined(__SWITCH__)
         AppletType type = appletGetAppletType();
@@ -175,6 +178,23 @@ int Love::EnsureApplicationType(lua_State * L)
             return 0;
 
         return luaL_error(L, TITLE_TAKEOVER_ERROR);
+    #endif
+
+    return 0;
+}
+
+/*
+** Initialize the 'console'. Console for your console.
+** On Switch, redirects printf to nxlink
+** On 3DS, redirects to gdb
+*/
+int Love::_OpenConsole(lua_State * L)
+{
+    #if defined (__SWITCH__)
+        Love::debugSockfd = nxlinkStdioForDebug();
+    #else
+        gdbHioDevInit();
+        gdbHioDevRedirectStdStreams(false, true, true);
     #endif
 
     return 0;

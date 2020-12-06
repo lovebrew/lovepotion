@@ -21,6 +21,11 @@ Font::~Font()
     C2D_FontFree(this->rasterizer.font);
 }
 
+const C2D_Font Font::GetFont()
+{
+    return this->rasterizer.font;
+}
+
 common::Font * common::Font::GetSystemFontByType(int size, Font::SystemFontType type, const Texture::Filter & filter)
 {
     const Rasterizer rasterizer =

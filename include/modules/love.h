@@ -19,13 +19,16 @@ namespace Love
 
     // Various Utility Functions
 
-    int EnsureApplicationType(lua_State * L);
+    int _EnsureApplicationType(lua_State * L);
 
     void GetField(lua_State * L, const char * field);
     int Preload(lua_State * L, lua_CFunction func, const char * name);
 
     int InsistRegistry(lua_State * L, Registry registry);
     int GetRegistry(lua_State * L, Registry registry);
+
+    /* init nxlink or something */
+    int _OpenConsole(lua_State * L);
 
     // End Various Utility Functions
 
@@ -35,4 +38,6 @@ namespace Love
     } Module;
 
     inline std::array<Love::Module, MAX_MODULES> modules = { nullptr };
+
+    inline int debugSockfd = -1;
 };

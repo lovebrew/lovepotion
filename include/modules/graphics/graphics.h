@@ -22,6 +22,9 @@
 #include "objects/transform/wrap_transform.h"
 #include "objects/transform/transform.h"
 
+#include "objects/text/wrap_text.h"
+#include "objects/text/text.h"
+
 #include "common/mmath.h"
 #include "common/colors.h"
 
@@ -224,6 +227,8 @@ namespace love
 
 
             Quad * NewQuad(Quad::Viewport v, double sw, double sh);
+
+            Text * NewText(Font * font, const std::vector<Font::ColoredString> &text = {});
 
             void SetFont(Font * font);
 
@@ -444,6 +449,40 @@ namespace love
                     return colors.empty() ? depthStencil : colors[0];
                 }
             };
+
+            class TempTransform
+            {
+                public:
+
+                    TempTransform(Graphics *gfx)
+                        : gfx(gfx)
+                    {
+                        gfx->PushTransform();
+                    }
+
+                    TempTransform(Graphics *gfx, const Matrix4 &t)
+                        : gfx(gfx)
+                    {
+                        gfx->PushTransform();
+                        gfx->transformStack.back() *= t;
+                    }
+
+                    ~TempTransform()
+                    {
+                        gfx->PopTransform();
+                    }
+
+                private:
+                    Graphics *gfx;
+            };
+
+            void PushTransform() {
+                this->transformStack.push_back(transformStack.back());
+            }
+
+            void PopTransform() {
+                this->transformStack.pop_back();
+            }
 
             void SetCanvas(Canvas * canvas);
 

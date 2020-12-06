@@ -283,6 +283,11 @@ Quad * Graphics::NewQuad(Quad::Viewport viewport, double sw, double sh)
     return new Quad(viewport, sw, sh);
 }
 
+Text * Graphics::NewText(Font * font, const std::vector<Font::ColoredString> & text)
+{
+    return new Text(font, text);
+}
+
 Canvas * Graphics::NewCanvas(const Canvas::Settings & settings)
 {
     return new Canvas(settings);

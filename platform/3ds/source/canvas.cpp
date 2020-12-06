@@ -30,13 +30,18 @@ Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings)
     this->InitQuad();
 }
 
-void Canvas::SetAsTarget()
-{}
-
 Canvas::~Canvas()
 {
     C3D_TexDelete(&this->citroTex);
     C3D_RenderTargetDelete(this->renderer);
+}
+
+void Canvas::Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform)
+{
+    if (gfx->IsCanvasActive(this))
+        throw love::Exception("Cannot render a Canvas to itself!");
+
+    Texture::Draw(gfx, quad, localTransform);
 }
 
 void Canvas::Clear(const Colorf & color)

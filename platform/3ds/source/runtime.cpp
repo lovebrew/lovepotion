@@ -51,5 +51,7 @@ extern "C"
         ptmuExit();
         mcuHwcExit();
         cfguExit();
+
+        gdbHioDevExit();
     }
 }

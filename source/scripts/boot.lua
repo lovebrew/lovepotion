@@ -308,7 +308,7 @@ local function error_printer(msg, layer)
 end
 
 function love.threaderror(t, err)
-	error("Thread error (".. tostring(t) ..")\n\n".. err, 0)
+    error("Thread error (".. tostring(t) ..")\n\n".. err, 0)
 end
 
 function love.errorhandler(message)
@@ -590,6 +590,11 @@ function love.init()
         confok, conferr = pcall(love.conf, config)
     end
 
+    local openedConsole = false
+    if config.console and love._openConsole and not openedConsole then
+        love._openConsole()
+    end
+
     if love._setAccelerometerAsJoystick then
         love._setAccelerometerAsJoystick(config.accelerometerjoystick)
     end
@@ -661,7 +666,7 @@ end
 
 local screens = {
     ["Switch"] = { nil },
-    ["3DS"]    = { "top", "top", "bottom" }
+    ["3DS"]    = { "left", "right", "bottom" }
 }
 
 function love.run()

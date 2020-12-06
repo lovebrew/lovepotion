@@ -10,6 +10,8 @@ namespace love
             Canvas(const Settings & settings);
             ~Canvas();
 
+            void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) override;
+
             void Clear(const Colorf & color);
 
         private:
