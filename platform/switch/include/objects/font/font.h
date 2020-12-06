@@ -90,6 +90,10 @@ namespace love
                 vertex::GlyphVertex vertices[4];
             };
 
+            uint32_t GetTextureCacheID() {
+                return this->textureCacheID;
+            }
+
             Font(Rasterizer * r, const Texture::Filter & filter);
 
             ~Font();
