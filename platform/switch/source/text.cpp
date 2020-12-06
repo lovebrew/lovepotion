@@ -23,23 +23,33 @@ void Text::RegenerateVertices()
         std::vector<TextData> data = this->textData;
         this->Clear();
 
-        for (const TextData & text : this->textData)
+        for (const TextData & text : data)
             this->AddTextData(text);
 
         this->textureCacheId = this->font->GetTextureCacheID();
     }
 }
 
-void Text::UploadVertices(const std::vector<vertex::GlyphVertex> & vertices, size_t vertoffset)
+void Text::CopyVertices(const std::vector<vertex::GlyphVertex> & vertices, size_t vertoffset)
 {
     size_t offset = vertoffset * sizeof(vertex::GlyphVertex);
     size_t dataSize = vertices.size() * sizeof(vertex::GlyphVertex);
 
-    if (dataSize > 0)
-        memcpy(this->vertexBuffer.data() + offset, &vertices[0], dataSize);
+    if (dataSize > 0 && (this->vertexBuffer.empty() || (offset + dataSize) > this->vertexBuffer.size()))
+    {
+        size_t newSize = size_t((offset + dataSize) * 1.5);
+
+        if (!this->vertexBuffer.empty())
+            newSize = std::max(size_t(this->vertexBuffer.size() * 1.5), newSize);
+
+        this->vertexBuffer.resize(newSize);
+    }
+
+    if (!this->vertexBuffer.empty() || dataSize > 0)
+        memcpy(this->vertexBuffer.data() + vertoffset, &vertices[0], dataSize);
 }
 
-void Text::AddTextData(const TextData & text)
+void Text::AddTextData(const Text::TextData & text)
 {
     std::vector<vertex::GlyphVertex> vertices;
     std::vector<Font::DrawCommand> commands;
@@ -69,7 +79,7 @@ void Text::AddTextData(const TextData & text)
     if (text.useMatrix)
         text.matrix.TransformXY(&vertices[0], &vertices[0], vertices.size());
 
-    this->UploadVertices(vertices, offset);
+    this->CopyVertices(vertices, offset);
 
     if (!commands.empty())
     {
@@ -78,13 +88,13 @@ void Text::AddTextData(const TextData & text)
 
         auto firstCmd = commands.begin();
 
-        if (!commands.empty())
+        if (!this->drawCommands.empty())
         {
-            auto lastCmd = commands.back();
+            auto lastCmd = this->drawCommands.back();
 
             if (lastCmd.texture == firstCmd->texture && (lastCmd.startVertex + lastCmd.vertexCount) == firstCmd->startVertex)
             {
-                commands.back().vertexCount += firstCmd->vertexCount;
+                this->drawCommands.back().vertexCount += firstCmd->vertexCount;
                 ++firstCmd;
             }
         }
@@ -171,7 +181,7 @@ int Text::GetHeight(int index) const
 
 void Text::Draw(Graphics * gfx, const Matrix4 & localTransform)
 {
-    if (this->drawCommands.empty())
+    if (this->drawCommands.empty() || this->vertexBuffer.empty())
         return;
 
     if (this->font->GetTextureCacheID() != this->textureCacheId)

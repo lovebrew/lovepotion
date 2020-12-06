@@ -333,6 +333,16 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * f
 
 /* End Objects */
 
+void Graphics::PushTransform()
+{
+    this->transformStack.push_back(this->transformStack.back());
+}
+
+void Graphics::PopTransform()
+{
+    this->transformStack.pop_back();
+}
+
 void Graphics::Reset()
 {
     DisplayState blankState;

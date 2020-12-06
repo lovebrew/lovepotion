@@ -454,14 +454,12 @@ namespace love
             {
                 public:
 
-                    TempTransform(Graphics *gfx)
-                        : gfx(gfx)
+                    TempTransform(Graphics * gfx) : gfx(gfx)
                     {
                         gfx->PushTransform();
                     }
 
-                    TempTransform(Graphics *gfx, const Matrix4 &t)
-                        : gfx(gfx)
+                    TempTransform(Graphics * gfx, const Matrix4 & t) : gfx(gfx)
                     {
                         gfx->PushTransform();
                         gfx->transformStack.back() *= t;
@@ -473,16 +471,12 @@ namespace love
                     }
 
                 private:
-                    Graphics *gfx;
+                    Graphics * gfx;
             };
 
-            void PushTransform() {
-                this->transformStack.push_back(transformStack.back());
-            }
+            void PushTransform();
 
-            void PopTransform() {
-                this->transformStack.pop_back();
-            }
+            void PopTransform();
 
             void SetCanvas(Canvas * canvas);
 

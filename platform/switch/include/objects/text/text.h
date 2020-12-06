@@ -52,7 +52,7 @@ namespace love
 
             uint32_t textureCacheId;
 
-            void UploadVertices(const std::vector<vertex::GlyphVertex> & vertices, size_t vertoffset);
+            void CopyVertices(const std::vector<vertex::GlyphVertex> & vertices, size_t vertoffset);
 
             void RegenerateVertices();
 

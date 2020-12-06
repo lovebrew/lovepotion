@@ -117,6 +117,11 @@ void Font::CreateTexture()
     }
 }
 
+uint32_t Font::GetTextureCacheID()
+{
+    return this->textureCacheID;
+}
+
 love::GlyphData * Font::GetRasterizerGlyphData(uint32_t glyph)
 {
     // Use spaces for the tab 'glyph'.
