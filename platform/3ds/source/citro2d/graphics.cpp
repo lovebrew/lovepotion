@@ -10,19 +10,37 @@ using namespace love;
 
 void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {
-    WINDOW_MODULE()->Clear(&color.value());
+    if (!this->IsCanvasActive())
+        c2d.BindFramebuffer();
+
+    if (color.has_value())
+    {
+        Graphics::GammaCorrectColor(color.value());
+        c2d.ClearColor(color.value());
+    }
 }
 
 void love::citro2d::Graphics::Present()
 {
-    WINDOW_MODULE()->Present();
+    if (this->IsCanvasActive())
+        throw love::Exception("present cannot be called while a Canvas is active.");
+
+    c2d.Present();
 }
 
 /* Keep out from common */
 void Graphics::SetCanvas(Canvas * canvas)
 {
-    WINDOW_MODULE()->SetRenderer(canvas);
-    this->states.back().canvas.Set(canvas);
+    DisplayState & state = this->states.back();
+    state.canvas.Set(canvas);
+
+    if (canvas == nullptr)
+        return;
+
+    c2d.BindFramebuffer(canvas);
+
+    if (this->states.back().scissor)
+        this->SetScissor(this->states.back().scissorRect);
 }
 
 void love::citro2d::Graphics::SetColor(Colorf color)

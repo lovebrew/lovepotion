@@ -169,10 +169,10 @@ const Texture::Filter & Graphics::GetDefaultFilter() const
 
 void Graphics::GetDimensions(int * width, int * height)
 {
-    auto window_sizes = WINDOW_MODULE()->GetFullscreenModes();
-    int currentDisplay = WINDOW_MODULE()->GetDisplay();
+    auto windowSizes = WINDOW_MODULE()->GetFullscreenModes();
+    int currentDisplay = Window::CURRENT_DISPLAY;
 
-    std::pair<int, int> size = window_sizes[currentDisplay];
+    std::pair<int, int> size = windowSizes[currentDisplay];
 
     if (width)
         *width = size.first;

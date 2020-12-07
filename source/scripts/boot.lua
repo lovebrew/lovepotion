@@ -679,6 +679,7 @@ function love.run()
     end
 
     local delta = 0
+    local consoleScreens = screens[love._console_name]
 
     return function()
         if love.event and love.event.pump then
@@ -703,15 +704,14 @@ function love.run()
         end
 
         if love.graphics then
-            love.graphics.clear(love.graphics.getBackgroundColor())
-
             for display = 1, love.window.getDisplayCount() do
                 love.window.setScreen(display)
+
+                love.graphics.clear(love.graphics.getBackgroundColor())
                 love.graphics.origin()
 
                 if love.draw then
-                    local screen = screens[love._console_name][display]
-                    love.draw(screen)
+                    love.draw(consoleScreens[display])
                 end
             end
 
