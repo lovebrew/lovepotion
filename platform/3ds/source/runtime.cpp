@@ -11,6 +11,8 @@ extern "C"
 {
     void userAppInit()
     {
+        osSetSpeedupEnable(true);
+
         Result res = cfguInit();
 
         if (R_FAILED(res))
