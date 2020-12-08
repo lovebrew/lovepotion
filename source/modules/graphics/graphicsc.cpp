@@ -18,12 +18,12 @@ void Graphics::GetDimensions(Screen screen, int * width, int * height)
     auto displays = WINDOW_MODULE()->GetFullScreenModes()
 
     #if defined(__SWITCH__)
-        if (screen != love::Graphics::SCREEN_DEFAULT)
+        if (screen != SCREEN_DEFAULT)
             throw love::Exception("invalid screen, expected 'default'.");
 
         size = displays[0]
     #elif defined(_3DS)
-        if (screen != love::Graphics::SCREEN_DEFAULT)
+        if (screen != SCREEN_DEFAULT)
             throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
         
         switch (screen) {
@@ -49,17 +49,17 @@ void Graphics::GetDimensions(Screen screen, int * width, int * height)
 void Graphics::SetActiveScreen(Screen screen, int * width, int * height)
 {
     #if defined(__SWITCH__)
-        if (screen != love::Graphics::SCREEN_DEFAULT)
+        if (screen != SCREEN_DEFAULT)
             throw love::Exception("invalid screen, expected 'default'.");
     #elif defined(_3DS)
         switch (screen) {
-            case love::Graphics::SCREEN_LEFT:
+            case SCREEN_LEFT:
                 Graphics::ACTIVE_SCREEN = 0;
                 return;
-            case love::Graphics::SCREEN_RIGHT:
+            case SCREEN_RIGHT:
                 Graphics::ACTIVE_SCREEN = 1;
                 return;
-            case love::Graphics::SCREEN_BOTTOM:
+            case SCREEN_BOTTOM:
                 Graphics::ACTIVE_SCREEN = 2;
                 return;
 
@@ -72,15 +72,15 @@ void Graphics::SetActiveScreen(Screen screen, int * width, int * height)
 Screen Graphics::GetActiveScreen()
 {
     #if defined(__SWITCH__)
-        return love::Graphics::SCREEN_DEFAULT
+        return SCREEN_DEFAULT
     #elif defined(_3DS)
         switch (Graphics::activeScreen) {
             case 0:
-                return love::Graphics::SCREEN_LEFT;
+                return SCREEN_LEFT;
             case 1:
-                return love::Graphics::SCREEN_RIGHT;
+                return SCREEN_RIGHT;
             case 2:
-                return love::Graphics::SCREEN_BOTTOM;
+                return SCREEN_BOTTOM;
         }
     #endif
 }
@@ -619,6 +619,21 @@ Graphics::LineJoin Graphics::GetLineJoin() const
 
 /* Constants */
 
+bool Graphics::GetConstant(const char * in, Screen & out)
+{
+    return screen.Find(in, out);
+}
+
+bool Graphics::GetConstant(Screen in, const char *& out)
+{
+    return screens.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(Screen)
+{
+    return screens.GetNames();
+}
+
 bool Graphics::GetConstant(const char * in, DrawMode & out)
 {
     return drawModes.Find(in, out);
@@ -693,6 +708,17 @@ std::vector<std::string> Graphics::GetConstants(StackType)
 {
     return stackTypes.GetNames();
 }
+
+StringMap<Graphics::Screen, Graphics::SCREEN_MAX_ENUM>::Entry Graphics::screenEntries[] =
+{
+    { "default", SCREEN_DEFAULT },
+    { "top",     SCREEN_TOP     },
+    { "bottom",  SCREEN_BOTTOM  },
+    { "right",   SCREEN_RIGHT   },
+    { "left",    SCREEN_LEFT    },
+};
+
+StringMap<Graphics::Screen, Graphics::SCREEN_MAX_ENUM> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));
 
 StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] =
 {
