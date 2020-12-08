@@ -8,7 +8,6 @@ Window::Window() : open(false)
     this->displaySizes =
     {
         { 400, 240 },
-        { 400, 240 },
         { 320, 240 }
     };
 }
@@ -31,7 +30,7 @@ bool Window::SetMode()
 
 int Window::GetDisplayCount()
 {
-    return 3;
+    return 2;
 }
 
 std::vector<std::pair<int, int>> & Window::GetFullscreenModes()
@@ -42,9 +41,4 @@ std::vector<std::pair<int, int>> & Window::GetFullscreenModes()
 bool Window::IsOpen()
 {
     return this->open;
-}
-
-void Window::SetScreen(size_t screen)
-{
-    Window::CURRENT_DISPLAY = std::clamp((int)screen - 1, 0, 2);
 }

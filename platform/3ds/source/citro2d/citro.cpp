@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "citro2d/citro.h"
 
-#include "modules/window/window.h"
+#include "modules/graphics/graphics.h"
 
 citro2d::citro2d()
 {
@@ -49,12 +49,12 @@ void citro2d::BindFramebuffer(love::Canvas * canvas)
     if (canvas != nullptr)
         C2D_SceneBegin(canvas->GetRenderer());
     else
-        C2D_SceneBegin(this->targets[love::Window::CURRENT_DISPLAY]);
+        C2D_SceneBegin(this->targets[love::Graphics::ACTIVE_SCREEN]);
 }
 
 void citro2d::ClearColor(const Colorf & color)
 {
-    C2D_TargetClear(this->targets[love::Window::CURRENT_DISPLAY], C2D_Color32f(color.r, color.g, color.b, color.a));
+    C2D_TargetClear(this->targets[love::Graphics::ACTIVE_SCREEN], C2D_Color32f(color.r, color.g, color.b, color.a));
 }
 
 void citro2d::Present()

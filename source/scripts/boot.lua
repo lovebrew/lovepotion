@@ -385,14 +385,16 @@ function love.errorhandler(message)
         return
     end
 
+    local screens = love.graphics.getScreens()
+
     local function draw()
         if love.graphics then
             love.graphics.clear(0.35, 0.62, 0.86)
 
-            for display = 1, love.window.getDisplayCount() do
-                love.window.setScreen(display) --just to clear it
+            for _, screen in ipairs(screens) do
+                love.graphics.setActiveScreen(screen) --just to clear it
 
-                if display == 1 then
+                if screen ~= "bottom" then
                     -- render our error message
                     love.graphics.printf(pretty, 10, 10, love.graphics.getWidth() * 0.75)
                 end
@@ -664,11 +666,6 @@ function love.init()
     end
 end
 
-local screens = {
-    ["Switch"] = { nil },
-    ["3DS"]    = { "left", "right", "bottom" }
-}
-
 function love.run()
     if love.load then
         love.load(arg)
@@ -679,7 +676,7 @@ function love.run()
     end
 
     local delta = 0
-    local consoleScreens = screens[love._console_name]
+    local screens = love.graphics.getScreens()
 
     return function()
         if love.event and love.event.pump then
@@ -704,14 +701,14 @@ function love.run()
         end
 
         if love.graphics then
-            for display = 1, love.window.getDisplayCount() do
-                love.window.setScreen(display)
+            for _, screen in ipairs(screens) do
+                love.graphics.setActiveScreen(screen)
 
                 love.graphics.clear(love.graphics.getBackgroundColor())
                 love.graphics.origin()
 
                 if love.draw then
-                    love.draw(consoleScreens[display])
+                    love.draw(screen)
                 end
             end
 

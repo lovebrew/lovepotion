@@ -43,6 +43,16 @@ namespace love
         public:
             static const size_t MAX_USER_STACK_DEPTH = 128;
 
+            enum Screen
+            {
+                SCREEN_DEFAULT,
+                SCREEN_TOP,
+                SCREEN_BOTTOM,
+                SCREEN_LEFT,
+                SCREEN_RIGHT,
+                SCREEN_MAX_ENUM
+            };
+
             enum DrawMode
             {
                 DRAW_LINE,
@@ -184,8 +194,12 @@ namespace love
             Colorf GetBackgroundColor() const;
 
             void SetBackgroundColor(const Colorf & color);
+          
+            void GetDimensions(Screen screen, int * width, int * height);
 
-            void GetDimensions(int * width, int * height);
+            Screen GetActiveScreen () const;
+
+            void SetActiveScreen(Screen screen);
 
             bool GetScissor(Rect & scissor) const;
 
@@ -497,6 +511,11 @@ namespace love
 
             static constexpr float MIN_DEPTH = 1.0f/16384.0f;
             static inline float CURRENT_DEPTH = 0;
+            static inline int ACTIVE_SCREEN = 0;
+
+            static bool GetConstant(const char * in, Screen & out);
+            static bool GetConstant(Screen in, const char *& out);
+            static std::vector<std::string> GetConstants(Screen);
 
             static bool GetConstant(const char * in, DrawMode & out);
             static bool GetConstant(DrawMode in, const char *& out);
@@ -570,6 +589,9 @@ namespace love
 
             StrongReference<Font> defaultFont;
             RendererInfo rendererInfo;
+
+            static StringMap<Screen, SCREEN_MAX_ENUM>::Entry screenEntries[];
+            static StringMap<Screen, SCREEN_MAX_ENUM> screens;
 
             static StringMap<DrawMode, DRAW_MAX_ENUM>::Entry drawModeEntries[];
             static StringMap<DrawMode, DRAW_MAX_ENUM> drawModes;

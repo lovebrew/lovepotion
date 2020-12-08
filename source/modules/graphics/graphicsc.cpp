@@ -12,6 +12,88 @@ using namespace love;
 
 bool Graphics::gammaCorrectColor = false;
 
+void Graphics::GetDimensions(Screen screen, int * width, int * height)
+{
+    std::pair<int, int> size;
+    auto displays = WINDOW_MODULE()->GetFullScreenModes()
+
+    #if defined(__SWITCH__)
+        if (screen != love::Graphics::SCREEN_DEFAULT)
+            throw love::Exception("invalid screen, expected 'default'.");
+
+        size = displays[0]
+    #elif defined(_3DS)
+        if (screen != love::Graphics::SCREEN_DEFAULT)
+            throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
+        
+        switch (screen) {
+            case SCREEN_TOP:
+            case SCREEN_RIGHT:
+            case SCREEN_LEFT:
+                size = displays[0]
+                break;
+            
+            case SCREEN_BOTTOM:
+                size = displays[1]
+                break;
+        }
+    #endif
+
+    if (width)
+        *width = size.first;
+
+    if (height)
+        *height = size.second;
+}
+
+void Graphics::SetActiveScreen(Screen screen, int * width, int * height)
+{
+    #if defined(__SWITCH__)
+        if (screen != love::Graphics::SCREEN_DEFAULT)
+            throw love::Exception("invalid screen, expected 'default'.");
+    #elif defined(_3DS)
+        switch (screen) {
+            case love::Graphics::SCREEN_LEFT:
+                Graphics::ACTIVE_SCREEN = 0;
+                return;
+            case love::Graphics::SCREEN_RIGHT:
+                Graphics::ACTIVE_SCREEN = 1;
+                return;
+            case love::Graphics::SCREEN_BOTTOM:
+                Graphics::ACTIVE_SCREEN = 2;
+                return;
+
+            default:
+                throw Love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
+        }
+    #endif
+}
+
+Screen Graphics::GetActiveScreen()
+{
+    #if defined(__SWITCH__)
+        return love::Graphics::SCREEN_DEFAULT
+    #elif defined(_3DS)
+        switch (Graphics::activeScreen) {
+            case 0:
+                return love::Graphics::SCREEN_LEFT;
+            case 1:
+                return love::Graphics::SCREEN_RIGHT;
+            case 2:
+                return love::Graphics::SCREEN_BOTTOM;
+        }
+    #endif
+}
+
+std::vector<std::string> Graphics::GetScreens()
+{
+    #if defined(__SWITCH__)
+        return {"default"}
+    #elif defined(_3DS)
+        return {"right", "left", "bottom"}
+    #endif
+}
+
 void Graphics::SetGammaCorrect(bool enable)
 {
     Graphics::gammaCorrectColor = enable;
@@ -165,20 +247,6 @@ void Graphics::SetDefaultFilter(const Texture::Filter & filter)
 const Texture::Filter & Graphics::GetDefaultFilter() const
 {
     return Texture::defaultFilter;
-}
-
-void Graphics::GetDimensions(int * width, int * height)
-{
-    auto windowSizes = WINDOW_MODULE()->GetFullscreenModes();
-    int currentDisplay = Window::CURRENT_DISPLAY;
-
-    std::pair<int, int> size = windowSizes[currentDisplay];
-
-    if (width)
-        *width = size.first;
-
-    if (height)
-        *height = size.second;
 }
 
 void Graphics::Origin()

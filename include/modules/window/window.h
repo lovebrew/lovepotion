@@ -24,13 +24,9 @@ namespace love
 
             bool SetMode();
 
-            void SetScreen(size_t screen);
-
             // End Löve2D Functions
 
             void SetGraphics(Graphics * g);
-
-            static inline int CURRENT_DISPLAY = 0;
 
         private:
             std::vector<std::pair<int, int>> displaySizes;
