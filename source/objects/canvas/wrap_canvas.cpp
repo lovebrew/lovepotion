@@ -16,10 +16,14 @@ int Wrap_Canvas::RenderTo(lua_State * L)
 
     if (graphics)
     {
+        Luax::CatchException(L, [&]() {
+            graphics->SetCanvas(self);
+        });
+
         lua_settop(L, 2); // make sure the function is on top of the stack
         int status = lua_pcall(L, 0, 0, 0);
 
-        graphics->SetCanvas(self);
+        graphics->SetCanvas(nullptr);
 
         if (status != 0)
             return lua_error(L);
