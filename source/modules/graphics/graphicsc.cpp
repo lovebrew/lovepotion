@@ -97,7 +97,7 @@ std::vector<std::string> Graphics::GetScreens() const
     #if defined(__SWITCH__)
         return {"default"};
     #elif defined(_3DS)
-        return {"right", "left", "bottom"};
+        return {"left", "right", "bottom"};
     #endif
 }
 

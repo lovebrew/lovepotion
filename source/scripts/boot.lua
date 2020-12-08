@@ -389,10 +389,9 @@ function love.errorhandler(message)
 
     local function draw()
         if love.graphics then
-            love.graphics.clear(0.35, 0.62, 0.86)
-
             for _, screen in ipairs(screens) do
                 love.graphics.setActiveScreen(screen) --just to clear it
+                love.graphics.clear(0.35, 0.62, 0.86)
 
                 if screen ~= "bottom" then
                     -- render our error message
