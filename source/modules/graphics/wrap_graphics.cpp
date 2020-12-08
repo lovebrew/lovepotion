@@ -7,24 +7,24 @@ using namespace love;
 
 int Wrap_Graphics::GetScreens(lua_State * L)
 {
-    auto screens = screens;
+    auto screens = instance()->GetScreens();
 
     lua_createtable(L, screens.size(), 0);
 
     size_t i = 0;
     for (auto screen : screens)
     {
-        lua_pushstring(L, screen);
+        lua_pushstring(L, screen.c_str());
         lua_rawseti(L, -2, ++i);
     }
 
-    return 1
+    return 1;
 }
 
 int Wrap_Graphics::GetActiveScreen(lua_State * L)
 {
     const Graphics::Screen screen = instance()->GetActiveScreen();
-    char * name;
+    const char * name;
 
     if (!Graphics::GetConstant(screen, name))
         return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
@@ -821,7 +821,7 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
     int width = 0;
     int height = 0;
 
-    instance()->GetDimensions(&width, &height);
+    instance()->GetDimensions(instance()->GetActiveScreen(), &width, &height);
 
     settings.width  = luaL_optinteger(L, 1, width);
     settings.height = luaL_optinteger(L, 2, height);
@@ -1249,7 +1249,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getStereoscopicDepth",    GetStereoscopicDepth    },
         { "getRendererInfo",         GetRendererInfo         },
         { "getScissor",              GetScissor              },
-        { "getSCreens",              GetScreens              },
+        { "getScreens",              GetScreens              },
         { "getWidth",                GetWidth                },
         { "instersectScissor",       IntersectScissor        },
         { "inverseTransformPoint",   InverseTransformPoint   },

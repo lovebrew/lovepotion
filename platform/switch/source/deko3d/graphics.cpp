@@ -537,7 +537,7 @@ void love::deko3d::Graphics::SetColorMask(ColorMask mask)
 void love::deko3d::Graphics::SetScissor()
 {
     int width, height = 0;
-    this->GetDimensions(&width, &height);
+    this->GetDimensions(this->GetActiveScreen(), &width, &height);
 
     dk3d.SetScissor({0, 0, width, height}, this->IsCanvasActive());
     states.back().scissor = false;

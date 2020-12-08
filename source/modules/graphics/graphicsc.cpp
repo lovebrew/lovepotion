@@ -15,27 +15,29 @@ bool Graphics::gammaCorrectColor = false;
 void Graphics::GetDimensions(Screen screen, int * width, int * height)
 {
     std::pair<int, int> size;
-    auto displays = WINDOW_MODULE()->GetFullScreenModes()
+    auto displays = WINDOW_MODULE()->GetFullscreenModes();
 
     #if defined(__SWITCH__)
         if (screen != SCREEN_DEFAULT)
             throw love::Exception("invalid screen, expected 'default'.");
 
-        size = displays[0]
+        size = displays[0];
     #elif defined(_3DS)
-        if (screen != SCREEN_DEFAULT)
-            throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
-        
         switch (screen) {
             case SCREEN_TOP:
             case SCREEN_RIGHT:
             case SCREEN_LEFT:
-                size = displays[0]
+                size = displays[0];
                 break;
             
             case SCREEN_BOTTOM:
-                size = displays[1]
+                size = displays[1];
                 break;
+            
+            case SCREEN_DEFAULT:
+            case SCREEN_MAX_ENUM:
+            default:
+                throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
         }
     #endif
 
@@ -46,7 +48,7 @@ void Graphics::GetDimensions(Screen screen, int * width, int * height)
         *height = size.second;
 }
 
-void Graphics::SetActiveScreen(Screen screen, int * width, int * height)
+void Graphics::SetActiveScreen(Screen screen)
 {
     #if defined(__SWITCH__)
         if (screen != SCREEN_DEFAULT)
@@ -63,34 +65,39 @@ void Graphics::SetActiveScreen(Screen screen, int * width, int * height)
                 Graphics::ACTIVE_SCREEN = 2;
                 return;
 
+            case SCREEN_MAX_ENUM:
+            case SCREEN_DEFAULT:
             default:
-                throw Love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
+                throw love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
         }
     #endif
 }
 
-Screen Graphics::GetActiveScreen()
+Graphics::Screen Graphics::GetActiveScreen() const
 {
     #if defined(__SWITCH__)
         return SCREEN_DEFAULT
     #elif defined(_3DS)
-        switch (Graphics::activeScreen) {
+        switch (Graphics::ACTIVE_SCREEN) {
             case 0:
                 return SCREEN_LEFT;
             case 1:
                 return SCREEN_RIGHT;
             case 2:
                 return SCREEN_BOTTOM;
+
+            default:
+                throw love::Exception("invalid active screen.");
         }
     #endif
 }
 
-std::vector<std::string> Graphics::GetScreens()
+std::vector<std::string> Graphics::GetScreens() const
 {
     #if defined(__SWITCH__)
-        return {"default"}
+        return {"default"};
     #elif defined(_3DS)
-        return {"right", "left", "bottom"}
+        return {"right", "left", "bottom"};
     #endif
 }
 
@@ -621,7 +628,7 @@ Graphics::LineJoin Graphics::GetLineJoin() const
 
 bool Graphics::GetConstant(const char * in, Screen & out)
 {
-    return screen.Find(in, out);
+    return screens.Find(in, out);
 }
 
 bool Graphics::GetConstant(Screen in, const char *& out)

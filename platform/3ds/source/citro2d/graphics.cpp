@@ -259,7 +259,7 @@ void love::citro2d::Graphics::SetScissor(const Rect & scissor)
         C2D_Flush();
 
     int screenWidth = 0;
-    this->GetDimensions(&screenWidth, nullptr);
+    this->GetDimensions(this->GetActiveScreen(), &screenWidth, nullptr);
 
     c2d.SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
 
@@ -273,7 +273,7 @@ void love::citro2d::Graphics::SetScissor()
         C2D_Flush();
 
     int screenWidth = 0;
-    this->GetDimensions(&screenWidth, nullptr);
+    this->GetDimensions(this->GetActiveScreen(), &screenWidth, nullptr);
 
     c2d.SetScissor(GPU_SCISSOR_DISABLE, {0, 0, screenWidth, 240}, screenWidth, false);
 

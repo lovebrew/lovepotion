@@ -197,7 +197,9 @@ namespace love
           
             void GetDimensions(Screen screen, int * width, int * height);
 
-            Screen GetActiveScreen () const;
+            Screen GetActiveScreen() const;
+
+            std::vector<std::string> GetScreens() const;
 
             void SetActiveScreen(Screen screen);
 
