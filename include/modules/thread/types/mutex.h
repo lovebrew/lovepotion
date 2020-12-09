@@ -28,12 +28,16 @@ namespace love::thread
             Mutex();
             ~Mutex();
 
+            Mutex(const Mutex &) = delete;
+            Mutex(Mutex &&) = delete;
+            Mutex & operator = (const Mutex &) = delete;
+            Mutex & operator = (Mutex &&) = delete;
+
             void Lock();
             void Unlock();
 
         private:
             LOVE_Mutex mutex;
-            Mutex(const Mutex &) {}
 
             friend class Conditional;
     };
