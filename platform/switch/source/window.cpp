@@ -23,12 +23,6 @@ Window::~Window()
     this->open = false;
 }
 
-void Window::SetScreen(size_t screen)
-{
-    // this never goes above 1 but.. not risking it
-    Window::CURRENT_DISPLAY = std::max(screen - 1, (size_t)0);
-}
-
 bool Window::SetMode()
 {
     return this->open = true;

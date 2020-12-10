@@ -167,20 +167,6 @@ const Texture::Filter & Graphics::GetDefaultFilter() const
     return Texture::defaultFilter;
 }
 
-void Graphics::GetDimensions(int * width, int * height)
-{
-    auto windowSizes = WINDOW_MODULE()->GetFullscreenModes();
-    int currentDisplay = Window::CURRENT_DISPLAY;
-
-    std::pair<int, int> size = windowSizes[currentDisplay];
-
-    if (width)
-        *width = size.first;
-
-    if (height)
-        *height = size.second;
-}
-
 void Graphics::Origin()
 {
     auto & transform = this->transformStack.back();
@@ -550,6 +536,21 @@ Graphics::LineJoin Graphics::GetLineJoin() const
 }
 
 /* Constants */
+
+bool Graphics::GetConstant(const char * in, Screen & out)
+{
+    return screens.Find(in, out);
+}
+
+bool Graphics::GetConstant(Screen in, const char *& out)
+{
+    return screens.Find(in, out);
+}
+
+std::vector<std::string> Graphics::GetConstants(Screen)
+{
+    return screens.GetNames();
+}
 
 bool Graphics::GetConstant(const char * in, DrawMode & out)
 {

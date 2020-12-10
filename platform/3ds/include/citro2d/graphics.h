@@ -8,10 +8,27 @@
 #define RENDERER_VENDOR  "devkitPro"
 #define RENDERER_DEVICE  "DMP PICA200"
 
+enum class love::Graphics::Screen: uint8_t
+{
+    SCREEN_LEFT,
+    SCREEN_RIGHT,
+    SCREEN_BOTTOM,
+    SCREEN_TOP,
+    SCREEN_MAX_ENUM
+};
+
 namespace love::citro2d
 {
     class Graphics : public love::Graphics
     {
+        void GetDimensions(Screen screen, int * width, int * height) override;
+
+        Screen GetActiveScreen() const override;
+
+        std::vector<std::string> GetScreens() const override;
+
+        void SetActiveScreen(Screen screen) override;
+    
         RendererInfo GetRendererInfo() const override;
 
         void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) override;

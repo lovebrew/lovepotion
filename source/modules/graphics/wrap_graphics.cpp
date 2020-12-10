@@ -5,6 +5,138 @@ using namespace love;
 
 #define instance()      (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 
+int Wrap_Graphics::GetScreens(lua_State * L)
+{
+    auto screens = instance()->GetScreens();
+
+    lua_createtable(L, screens.size(), 0);
+
+    size_t i = 0;
+    for (auto screen : screens)
+    {
+        Luax::PushString(L, screen);
+        lua_rawseti(L, -2, ++i);
+    }
+
+    return 1;
+}
+
+int Wrap_Graphics::GetActiveScreen(lua_State * L)
+{
+
+    Graphics::Screen screen;
+    const char * name;
+
+    Luax::CatchException(L, [&]() {
+        screen = instance()->GetActiveScreen();
+    });
+
+    if (!Graphics::GetConstant(screen, name))
+        return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+
+    lua_pushstring(L, name);
+
+    return 1;
+}
+
+int Wrap_Graphics::SetActiveScreen(lua_State * L)
+{
+    Graphics::Screen screen;
+    const char * name = luaL_checkstring(L, 1);
+
+    if (!Graphics::GetConstant(name, screen))
+        return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+
+    Luax::CatchException(L, [&]() {
+        instance()->SetActiveScreen(screen);
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::GetDimensions(lua_State * L)
+{
+    Graphics::Screen screen;
+
+    if (lua_isnoneornil(L, 1))
+        Luax::CatchException(L, [&]() {
+            screen = instance()->GetActiveScreen();
+        });
+    else 
+    {
+        const char * name = luaL_checkstring(L, 1);
+
+        if (!Graphics::GetConstant(name, screen))
+            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+    }
+
+    int width = 0;
+    int height = 0;
+
+    Luax::CatchException(L, [&]() {
+        instance()->GetDimensions(screen, &width, &height);
+    });
+
+    lua_pushnumber(L, width);
+    lua_pushnumber(L, height);
+
+    return 2;
+}
+
+int Wrap_Graphics::GetWidth(lua_State * L)
+{
+    Graphics::Screen screen;
+
+    if (lua_isnoneornil(L, 1))
+        Luax::CatchException(L, [&]() {
+            screen = instance()->GetActiveScreen();
+        });
+    else 
+    {
+        const char * name = luaL_checkstring(L, 1);
+
+        if (!Graphics::GetConstant(name, screen))
+            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+    }
+
+    int width = 0;
+
+    Luax::CatchException(L, [&]() {
+        instance()->GetDimensions(screen, &width, nullptr);
+    });
+
+    lua_pushnumber(L, width);
+
+    return 1;
+}
+
+int Wrap_Graphics::GetHeight(lua_State * L)
+{
+    Graphics::Screen screen;
+
+    if (lua_isnoneornil(L, 1))
+        Luax::CatchException(L, [&]() {
+            screen = instance()->GetActiveScreen();
+        });
+    else 
+    {
+        const char * name = luaL_checkstring(L, 1);
+
+        if (!Graphics::GetConstant(name, screen))
+            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+    }
+
+    int height = 0;
+
+    Luax::CatchException(L, [&]() {
+        instance()->GetDimensions(screen, nullptr, &height);
+    });
+
+    lua_pushnumber(L, height);
+
+    return 1;
+}
+
 int Wrap_Graphics::GetStereoscopicDepth(lua_State * L)
 {
     #if defined (_3DS)
@@ -543,47 +675,6 @@ int Wrap_Graphics::Clear(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetWidth(lua_State * L)
-{
-    int width = 0;
-
-    Luax::CatchException(L, [&]() {
-        instance()->GetDimensions(&width, nullptr);
-    });
-
-    lua_pushnumber(L, width);
-
-    return 1;
-}
-
-int Wrap_Graphics::GetHeight(lua_State * L)
-{
-    int height = 0;
-
-    Luax::CatchException(L, [&]() {
-        instance()->GetDimensions(nullptr, &height);
-    });
-
-    lua_pushnumber(L, height);
-
-    return 1;
-}
-
-int Wrap_Graphics::GetDimensions(lua_State * L)
-{
-    int width = 0;
-    int height = 0;
-
-    Luax::CatchException(L, [&]() {
-        instance()->GetDimensions(&width, &height);
-    });
-
-    lua_pushnumber(L, width);
-    lua_pushnumber(L, height);
-
-    return 2;
-}
-
 int Wrap_Graphics::Present(lua_State * L)
 {
     Luax::CatchException(L, [&]() {
@@ -741,7 +832,7 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
     int width = 0;
     int height = 0;
 
-    instance()->GetDimensions(&width, &height);
+    instance()->GetDimensions(instance()->GetActiveScreen(), &width, &height);
 
     settings.width  = luaL_optinteger(L, 1, width);
     settings.height = luaL_optinteger(L, 2, height);
@@ -1157,6 +1248,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "clear",                   Clear                   },
         { "draw",                    Draw                    },
         { "ellipse",                 Ellipse                 },
+        { "getActiveScreen",         GetActiveScreen         },
         { "getBackgroundColor",      GetBackgroundColor      },
         { "getColor",                GetColor                },
         { "getDefaultFilter",        GetDefaultFilter        },
@@ -1168,6 +1260,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getStereoscopicDepth",    GetStereoscopicDepth    },
         { "getRendererInfo",         GetRendererInfo         },
         { "getScissor",              GetScissor              },
+        { "getScreens",              GetScreens              },
         { "getWidth",                GetWidth                },
         { "instersectScissor",       IntersectScissor        },
         { "inverseTransformPoint",   InverseTransformPoint   },
@@ -1191,6 +1284,7 @@ int Wrap_Graphics::Register(lua_State * L)
         { "rotate",                  Rotate                  },
         { "scale",                   Scale                   },
         { "shear",                   Shear                   },
+        { "setActiveScreen",         SetActiveScreen         },
         { "setBackgroundColor",      SetBackgroundColor      },
         { "setCanvas",               SetCanvas               },
         { "setColor",                SetColor                },

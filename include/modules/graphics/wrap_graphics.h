@@ -115,6 +115,12 @@ namespace Wrap_Graphics
 
     int GetHeight(lua_State * L);
 
+    int SetActiveScreen(lua_State * L);
+
+    int GetActiveScreen(lua_State * L);
+    
+    int GetScreens(lua_State * L);
+
     int GetDimensions(lua_State * L);
 
     int SetBackgroundColor(lua_State * L);
