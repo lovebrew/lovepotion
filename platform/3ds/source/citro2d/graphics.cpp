@@ -4,9 +4,81 @@
 #include "modules/window/window.h"
 
 using namespace love;
+using Screen = love::Graphics::Screen;
 
 #define WINDOW_MODULE() (Module::GetInstance<Window>(M_WINDOW))
 #define TRANSPARENCY C2D_Color32(0, 0, 0, 1)
+
+void love::citro2d::Graphics::GetDimensions(Screen screen, int * width, int * height)
+{
+    std::pair<int, int> size;
+    auto displays = WINDOW_MODULE()->GetFullscreenModes();
+
+    switch (screen)
+    {
+        case Screen::SCREEN_TOP:
+        case Screen::SCREEN_RIGHT:
+        case Screen::SCREEN_LEFT:
+            size = displays[0];
+            break;
+        
+        case Screen::SCREEN_BOTTOM:
+            size = displays[1];
+            break;
+        
+        case Screen::SCREEN_MAX_ENUM:
+        default:
+            throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
+    }
+
+    if (width)
+        *width = size.first;
+
+    if (height)
+        *height = size.second;
+}
+
+void love::citro2d::Graphics::SetActiveScreen(Screen screen)
+{
+    switch (screen) {
+        case Screen::SCREEN_LEFT:
+            Graphics::ACTIVE_SCREEN = 0;
+            return;
+        case Screen::SCREEN_RIGHT:
+            Graphics::ACTIVE_SCREEN = 1;
+            return;
+        case Screen::SCREEN_BOTTOM:
+            Graphics::ACTIVE_SCREEN = 2;
+            return;
+
+        case Screen::SCREEN_MAX_ENUM:
+        default:
+            throw love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
+    }
+    
+}
+
+Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
+{
+    switch (Graphics::ACTIVE_SCREEN)
+    {
+        case 0:
+            return Screen::SCREEN_LEFT;
+        case 1:
+            return Screen::SCREEN_RIGHT;
+        case 2:
+            return Screen::SCREEN_BOTTOM;
+
+        default:
+            throw love::Exception("invalid active screen.");
+    }
+}
+
+std::vector<std::string> love::citro2d::Graphics::GetScreens() const
+{
+    return {"left", "right", "bottom"};
+}
+
 
 void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {
@@ -291,3 +363,13 @@ Graphics::RendererInfo love::citro2d::Graphics::GetRendererInfo() const
 
     return info;
 }
+
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] =
+{
+    { "left",   Screen::SCREEN_LEFT   },
+    { "right",  Screen::SCREEN_RIGHT  },
+    { "bottom", Screen::SCREEN_BOTTOM },
+    { "top",    Screen::SCREEN_TOP    },
+};
+
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));

@@ -24,7 +24,7 @@ int Wrap_Graphics::GetScreens(lua_State * L)
 int Wrap_Graphics::GetActiveScreen(lua_State * L)
 {
 
-    const Graphics::Screen screen;
+    Graphics::Screen screen;
     const char * name;
 
     Luax::CatchException(L, [&]() {

@@ -12,95 +12,6 @@ using namespace love;
 
 bool Graphics::gammaCorrectColor = false;
 
-void Graphics::GetDimensions(Screen screen, int * width, int * height)
-{
-    std::pair<int, int> size;
-    auto displays = WINDOW_MODULE()->GetFullscreenModes();
-
-    #if defined(__SWITCH__)
-        if (screen != SCREEN_DEFAULT)
-            throw love::Exception("invalid screen, expected 'default'.");
-
-        size = displays[0];
-    #elif defined(_3DS)
-        switch (screen) {
-            case SCREEN_TOP:
-            case SCREEN_RIGHT:
-            case SCREEN_LEFT:
-                size = displays[0];
-                break;
-            
-            case SCREEN_BOTTOM:
-                size = displays[1];
-                break;
-            
-            case SCREEN_DEFAULT:
-            case SCREEN_MAX_ENUM:
-            default:
-                throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
-        }
-    #endif
-
-    if (width)
-        *width = size.first;
-
-    if (height)
-        *height = size.second;
-}
-
-void Graphics::SetActiveScreen(Screen screen)
-{
-    #if defined(__SWITCH__)
-        if (screen != SCREEN_DEFAULT)
-            throw love::Exception("invalid screen, expected 'default'.");
-    #elif defined(_3DS)
-        switch (screen) {
-            case SCREEN_LEFT:
-                Graphics::ACTIVE_SCREEN = 0;
-                return;
-            case SCREEN_RIGHT:
-                Graphics::ACTIVE_SCREEN = 1;
-                return;
-            case SCREEN_BOTTOM:
-                Graphics::ACTIVE_SCREEN = 2;
-                return;
-
-            case SCREEN_MAX_ENUM:
-            case SCREEN_DEFAULT:
-            default:
-                throw love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
-        }
-    #endif
-}
-
-Graphics::Screen Graphics::GetActiveScreen() const
-{
-    #if defined(__SWITCH__)
-        return SCREEN_DEFAULT
-    #elif defined(_3DS)
-        switch (Graphics::ACTIVE_SCREEN) {
-            case 0:
-                return SCREEN_LEFT;
-            case 1:
-                return SCREEN_RIGHT;
-            case 2:
-                return SCREEN_BOTTOM;
-
-            default:
-                throw love::Exception("invalid active screen.");
-        }
-    #endif
-}
-
-std::vector<std::string> Graphics::GetScreens() const
-{
-    #if defined(__SWITCH__)
-        return {"default"};
-    #elif defined(_3DS)
-        return {"left", "right", "bottom"};
-    #endif
-}
-
 void Graphics::SetGammaCorrect(bool enable)
 {
     Graphics::gammaCorrectColor = enable;
@@ -715,17 +626,6 @@ std::vector<std::string> Graphics::GetConstants(StackType)
 {
     return stackTypes.GetNames();
 }
-
-StringMap<Graphics::Screen, Graphics::SCREEN_MAX_ENUM>::Entry Graphics::screenEntries[] =
-{
-    { "default", SCREEN_DEFAULT },
-    { "top",     SCREEN_TOP     },
-    { "bottom",  SCREEN_BOTTOM  },
-    { "right",   SCREEN_RIGHT   },
-    { "left",    SCREEN_LEFT    },
-};
-
-StringMap<Graphics::Screen, Graphics::SCREEN_MAX_ENUM> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));
 
 StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] =
 {

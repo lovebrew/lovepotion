@@ -43,15 +43,13 @@ namespace love
         public:
             static const size_t MAX_USER_STACK_DEPTH = 128;
 
-            enum Screen
-            {
-                SCREEN_DEFAULT,
-                SCREEN_TOP,
-                SCREEN_BOTTOM,
-                SCREEN_LEFT,
-                SCREEN_RIGHT,
-                SCREEN_MAX_ENUM
-            };
+            enum class Screen: uint8_t;
+
+            #if defined(__SWITCH__)
+                static constexpr int MAX_SCREENS = 1;
+            #elif defined(_3DS)
+                static constexpr int MAX_SCREENS = 4;
+            #endif
 
             enum DrawMode
             {
@@ -195,13 +193,13 @@ namespace love
 
             void SetBackgroundColor(const Colorf & color);
           
-            void GetDimensions(Screen screen, int * width, int * height);
+            virtual void GetDimensions(Screen screen, int * width, int * height) = 0;
 
-            Screen GetActiveScreen() const;
+            virtual Screen GetActiveScreen() const = 0;
 
-            std::vector<std::string> GetScreens() const;
+            virtual std::vector<std::string> GetScreens() const = 0;
 
-            void SetActiveScreen(Screen screen);
+            virtual void SetActiveScreen(Screen screen) = 0;
 
             bool GetScissor(Rect & scissor) const;
 
@@ -592,8 +590,8 @@ namespace love
             StrongReference<Font> defaultFont;
             RendererInfo rendererInfo;
 
-            static StringMap<Screen, SCREEN_MAX_ENUM>::Entry screenEntries[];
-            static StringMap<Screen, SCREEN_MAX_ENUM> screens;
+            static StringMap<Screen, MAX_SCREENS>::Entry screenEntries[];
+            static StringMap<Screen, MAX_SCREENS> screens;
 
             static StringMap<DrawMode, DRAW_MAX_ENUM>::Entry drawModeEntries[];
             static StringMap<DrawMode, DRAW_MAX_ENUM> drawModes;

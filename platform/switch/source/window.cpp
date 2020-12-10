@@ -23,7 +23,6 @@ Window::~Window()
     this->open = false;
 }
 
-
 bool Window::SetMode()
 {
     return this->open = true;

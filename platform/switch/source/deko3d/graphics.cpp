@@ -1,9 +1,13 @@
 #include "common/runtime.h"
 #include "deko3d/graphics.h"
 
+#include "modules/window/window.h"
 #include "modules/font/fontmodule.h"
 
 using namespace love;
+using Screen = love::Graphics::Screen;
+
+#define WINDOW_MODULE() (Module::GetInstance<Window>(M_WINDOW))
 
 love::deko3d::Graphics::Graphics()
 {
@@ -30,6 +34,36 @@ love::deko3d::Graphics::Graphics()
 
 love::deko3d::Graphics::~Graphics()
 {}
+
+void love::deko3d::Graphics::GetDimensions(Screen screen, int * width, int * height)
+{
+    if (screen == Screen::SCREEN_MAX_ENUM)
+        throw love::Exception("invalid screen, expected 'default'.");
+
+    auto size = WINDOW_MODULE()->GetFullscreenModes()[0];
+
+    if (width)
+        *width = size.first;
+
+    if (height)
+        *height = size.second;
+}
+
+void love::deko3d::Graphics::SetActiveScreen(Screen screen)
+{
+    if (screen == Screen::SCREEN_MAX_ENUM)
+        throw love::Exception("invalid screen, expected 'default'.");
+}
+
+Graphics::Screen love::deko3d::Graphics::GetActiveScreen() const
+{
+    return Screen::SCREEN_DEFAULT;
+}
+
+std::vector<std::string> love::deko3d::Graphics::GetScreens() const
+{
+    return {"default"};
+}
 
 void Graphics::SetCanvas(Canvas * canvas)
 {
@@ -560,3 +594,10 @@ Font * love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hint
 
     return new Font(r.Get(), filter);
 }
+
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] =
+{
+    { "default", Screen::SCREEN_DEFAULT },
+};
+
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));
