@@ -14,8 +14,6 @@ Window::Window() : window(nullptr),
     {
         {1280, 720}
     };
-
-    this->targets.reserve(1);
 }
 
 Window::~Window()
@@ -25,15 +23,10 @@ Window::~Window()
     this->open = false;
 }
 
-Renderer * Window::GetRenderer()
-{
-    return this->targets.back();
-}
-
 void Window::SetScreen(size_t screen)
 {
     // this never goes above 1 but.. not risking it
-    this->currentDisplay = std::max(screen - 1, (size_t)0);
+    Window::CURRENT_DISPLAY = std::max(screen - 1, (size_t)0);
 }
 
 bool Window::SetMode()
@@ -41,19 +34,10 @@ bool Window::SetMode()
     return this->open = true;
 }
 
-void Window::Clear(Colorf *)
-{}
-
-void Window::SetRenderer(Canvas * canvas)
-{}
-
 void Window::SetGraphics(Graphics * g)
 {
     this->graphics.Set(g);
 }
-
-void Window::Present()
-{}
 
 std::vector<std::pair<int, int>> & Window::GetFullscreenModes()
 {
