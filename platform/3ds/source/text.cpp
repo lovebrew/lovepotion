@@ -62,6 +62,10 @@ void Text::Set(const std::vector<Font::ColoredString> & text, float wrap, Font::
 
     this->textCache = this->GetString(text);
 
+    this->wrap = wrap;
+    this->align = align;
+
+    C2D_TextBufClear(this->buffer);
     C2D_TextFontParse(&this->text, this->font->GetFont(), this->buffer, this->textCache.c_str());
     C2D_TextOptimize(&this->text);
 }
@@ -88,6 +92,10 @@ int Text::Addf(const std::vector<Font::ColoredString> & text, float wrap, Font::
 
     this->wrapData.push_back(std::make_pair(wrap, align));
 
+    C2D_TextBufClear(this->buffer);
+    C2D_TextFontParse(&this->text, this->font->GetFont(), this->buffer, this->textCache.c_str());
+    C2D_TextOptimize(&this->text);
+
     return 0;
 }
 
@@ -99,7 +107,35 @@ void Text::Draw(Graphics * gfx, const Matrix4 & localTransform)
     Colorf color = gfx->GetColor();
 
     u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
-    C2D_DrawText(&this->text, C2D_WithColor, 0, 0, Graphics::CURRENT_DEPTH, this->font->GetScale(), this->font->GetScale(), renderColorf);
+    u32 flags = C2D_WithColor;
+
+    u32 alignMode = C2D_WordWrap;
+    float offset = 0.0f;
+
+    switch (this->align)
+    {
+        case Font::ALIGN_LEFT:
+            alignMode |= C2D_AlignLeft;
+            break;
+        case Font::ALIGN_CENTER:
+            alignMode |= C2D_AlignCenter;
+            offset += wrap / 2;
+            break;
+        case Font::ALIGN_RIGHT:
+            alignMode |= C2D_AlignRight;
+            break;
+        case Font::ALIGN_JUSTIFY:
+            alignMode |= C2D_AlignJustified;
+            break;
+        default:
+            break;
+    }
+
+    if (this->align != Font::ALIGN_MAX_ENUM)
+        flags |= alignMode;
+
+    /* wrap will be discarded if there's no align mode specified */
+    C2D_DrawText(&this->text, flags, offset, 0, Graphics::CURRENT_DEPTH, this->font->GetScale(), this->font->GetScale(), renderColorf, this->wrap);
 }
 
 void Text::Clear()

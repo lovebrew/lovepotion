@@ -89,3 +89,15 @@ const std::string & System::GetLanguage()
 
     return this->sysInfo.language;
 }
+
+const std::string & System::GetVersion()
+{
+    if (!this->sysInfo.version.empty())
+        return this->sysInfo.version;
+
+    char out[256] = { 0 };
+    Result res = osGetSystemVersionDataString(NULL, NULL, out, 256);
+
+    this->sysInfo.version = out;
+    return this->sysInfo.version;
+}

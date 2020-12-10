@@ -112,3 +112,15 @@ const std::string & System::GetLanguage()
 
     return this->sysInfo.language;
 }
+
+const std::string & System::GetVersion()
+{
+    if (!this->sysInfo.version.empty())
+        return this->sysInfo.version;
+
+    SetSysFirmwareVersion firmwareVersion;
+    Result res = setsysGetFirmwareVersion(&firmwareVersion);
+
+    this->sysInfo.version = firmwareVersion.display_version;
+    return this->sysInfo.version;
+}

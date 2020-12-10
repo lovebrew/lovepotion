@@ -9,7 +9,7 @@ int Wrap_System::GetOS(lua_State * L)
 {
     std::string os = instance()->GetOS();
 
-    lua_pushlstring(L, os.data(), os.size());
+    Luax::PushString(L, os);
 
     return 1;
 }
@@ -70,7 +70,7 @@ int Wrap_System::GetLanguage(lua_State * L)
 {
     std::string language = instance()->GetLanguage();
 
-    lua_pushlstring(L, language.data(), language.size());
+    Luax::PushString(L, language);
 
     return 1;
 }
@@ -79,7 +79,16 @@ int Wrap_System::GetUsername(lua_State * L)
 {
     std::string username = instance()->GetUsername();
 
-    lua_pushlstring(L, username.data(), username.size());
+    Luax::PushString(L, username);
+
+    return 1;
+}
+
+int Wrap_System::GetVersion(lua_State * L)
+{
+    std::string version = instance()->GetVersion();
+
+    Luax::PushString(L, version);
 
     return 1;
 }
@@ -94,6 +103,7 @@ int Wrap_System::Register(lua_State * L)
         { "getNetworkInfo",    GetNetworkInfo    },
         { "getLanguage",       GetLanguage       },
         { "getUsername",       GetUsername       },
+        { "getVersion",        GetVersion        },
         { 0, 0 }
     };
 

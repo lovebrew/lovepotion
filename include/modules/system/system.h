@@ -66,6 +66,8 @@ namespace love
 
             virtual const std::string & GetLanguage() = 0;
 
+            virtual const std::string & GetVersion() = 0;
+
             /* end pure virtual methods */
 
             PowerState GetPowerInfo(int & percent) const;
@@ -84,6 +86,7 @@ namespace love
                 int processors;
                 std::string username;
                 std::string language;
+                std::string version;
             } sysInfo;
 
             static std::array<std::string, LANGUAGE_COUNT> LANGUAGES;

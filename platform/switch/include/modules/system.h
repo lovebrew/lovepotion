@@ -19,5 +19,7 @@ namespace love::hac
             NetworkInfo GetNetworkInfo() const override;
 
             const std::string & GetLanguage() override;
+
+            const std::string & GetVersion() override;
     };
 }

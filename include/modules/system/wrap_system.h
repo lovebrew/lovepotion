@@ -19,5 +19,7 @@ namespace Wrap_System
 
     int GetUsername(lua_State * L);
 
+    int GetVersion(lua_State * L);
+
     int Register(lua_State * L);
 }

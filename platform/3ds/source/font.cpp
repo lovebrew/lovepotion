@@ -62,17 +62,24 @@ void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float
                   const Matrix4 & localTransform, const Colorf & color)
 {
     C2D_Text citroText;
-    u32 alignMode = C2D_AlignLeft;
+    u32 alignMode = C2D_WordWrap;
+    float offset = 0.0f;
 
     switch (align)
     {
-        case Font::ALIGN_CENTER:
-            alignMode = C2D_AlignCenter;
-        case Font::ALIGN_RIGHT:
-            alignMode = C2D_AlignRight;
-        case Font::ALIGN_JUSTIFY:
-            alignMode = C2D_AlignJustified | C2D_WordWrap;
+        case Font::ALIGN_LEFT:
         default:
+            alignMode |= C2D_AlignLeft;
+            break;
+        case Font::ALIGN_CENTER:
+            alignMode |= C2D_AlignCenter;
+            offset += wrap / 2;
+            break;
+        case Font::ALIGN_RIGHT:
+            alignMode |= C2D_AlignRight;
+            break;
+        case Font::ALIGN_JUSTIFY:
+            alignMode |= C2D_AlignJustified;
             break;
     }
 
@@ -86,7 +93,7 @@ void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float
     C2D_ViewRestore(&t.GetElements());
 
     u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
-    C2D_DrawText(&citroText, C2D_WithColor | alignMode, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), renderColorf, wrap);
+    C2D_DrawText(&citroText, C2D_WithColor | alignMode, offset, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), renderColorf, wrap);
 }
 
 void Font::ClearBuffer()
