@@ -121,6 +121,9 @@ const std::string & System::GetVersion()
     SetSysFirmwareVersion firmwareVersion;
     Result res = setsysGetFirmwareVersion(&firmwareVersion);
 
+    if (R_FAILED(res))
+        return empty;
+
     this->sysInfo.version = firmwareVersion.display_version;
     return this->sysInfo.version;
 }

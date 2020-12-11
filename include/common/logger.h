@@ -29,4 +29,7 @@ class Logger
         static constexpr const char * LOG_FORMAT = "%s:%zu:\n%s\n\n";
 };
 
-#define LOG(format, ...) Logger::Instance().LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
+#if defined (__DEBUG__)
+    #define LOG(format, ...) \
+        Logger::Instance().LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
+#endif

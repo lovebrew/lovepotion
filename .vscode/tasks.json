@@ -5,11 +5,12 @@
     "tasks":
     [
         {
-            "label": "Build 3DS",
+            "label": "Build Console",
             "type": "shell",
-            "command": "make ctr -j6",
+            "command": "make ${input:args} -j6",
 
-            "presentation": {
+            "presentation":
+            {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
@@ -38,114 +39,16 @@
 
             "group": "build",
             "problemMatcher": []
-        },
+        }
+    ],
 
+    "inputs":
+    [
         {
-            "label": "Build Switch",
-            "type": "shell",
-            "command": "make hac -j6",
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "dedicated",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Build Switch {Debug}",
-            "type": "shell",
-            "command": "make hac-debug -j6",
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "dedicated",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Build 3DS {Debug}",
-            "type": "shell",
-            "command": "make ctr-debug -j6",
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "dedicated",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Build All",
-            "type": "shell",
-            "command": "make -j6",
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Install 3DS",
-            "dependsOn": [
-                "Build 3DS"
-            ],
-            "type": "shell",
-            "command": "3dslink ./platform/3ds/LovePotion.3dsx",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            },
-            "group": "none"
-        },
-
-        {
-            "label": "Install Switch",
-            "dependsOn": [
-                "Build Switch"
-            ],
-            "type": "shell",
-            "command": "nxlink ./platform/switch/LovePotion.nro",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            },
-            "group": "none"
+            "id": "args",
+            "type": "command",
+            "command": "cpptools.activeConfigCustomVariable",
+            "args": "args"
         }
     ]
 }

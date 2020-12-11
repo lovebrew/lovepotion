@@ -34,33 +34,25 @@ include $(DEVKITARM)/3ds_rules
 TARGET		:=	LovePotion
 BUILD		:=	build
 
+CONSOLE_SOURCES ?= source  $(foreach d, $(wildcard source/*),  $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+CONSOLE_INCLUDE ?= include $(foreach d, $(wildcard include/*), $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
-				source \
-				source/backend \
-				source/common \
-				source/citro2d \
-				source/modules
+				${CONSOLE_SOURCES}
 
 DATA		:=	${LOVE_DATA_FILES}
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				include \
-				include/citro2d \
-				include/modules \
-				include/objects/font \
-				include/objects/text \
-				include/objects/canvas
+				${CONSOLE_INCLUDE}
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
 # ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 
-APP_TITLE		:= Löve Potion
 APP_DESCRIPTION	:= LÖVE for 3DS
-APP_AUTHOR		:= TurtleP & NotQuiteApex
 ICON			:= icon.png
 
 #---------------------------------------------------------------------------------
@@ -72,7 +64,7 @@ CFLAGS	:=	-g -Wall -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
 
-ifeq ($(strip $(DEBUG)),)
+ifeq ($(strip $(__DEBUG__)),)
 	CFLAGS += -O2
 else
 	CFLAGS += -Og

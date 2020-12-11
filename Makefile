@@ -1,4 +1,4 @@
-DIR_WILDCARD = $(foreach d, $(wildcard $(1:=/*)), $(if $(wildcard $d/.), $(call DIR_WILDCARD,$d) $d,))
+export DIR_WILDCARD = $(foreach d, $(wildcard $(1:=/*)), $(if $(wildcard $d/.), $(call DIR_WILDCARD,$d) $d,))
 
 ROOT_SOURCES	?= source    $(foreach d, $(wildcard source/*),    $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
 ROOT_INCLUDES	?= include   $(foreach d, $(wildcard include/*),   $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
@@ -11,12 +11,15 @@ export LOVE_LIBRARIES  = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(di
 export LOVE_DATA_FILES = $(CURDIR)/source/scripts
 export ROMFS = ../../romfs
 
-# do all
+export APP_TITLE   := LÖVE Potion
+export APP_AUTHOR  := TurtleP
+export APP_VERSION := 2.0.0
+export APP_TITLEID := 1043
 
+# do all
 all: ctr hac
 
 # clean
-
 clean: clean-ctr clean-hac
 
 clean-ctr:
@@ -26,7 +29,6 @@ clean-hac:
 	@$(MAKE) -C platform/switch clean
 
 # release
-
 ctr:
 	@$(MAKE) -C platform/3ds
 
@@ -34,15 +36,13 @@ hac:
 	@$(MAKE) -C platform/switch
 
 # debug
-
 ctr-debug:
-	@$(MAKE) -C platform/3ds DEBUG=1
+	@$(MAKE) -C platform/3ds __DEBUG__=1
 
 hac-debug:
-	@$(MAKE) -C platform/switch DEBUG=1
+	@$(MAKE) -C platform/switch __DEBUG__=1
 
 # emulation
-
 ctr-emu:
 	@$(MAKE) -C platform/3ds EMULATION=1
 

@@ -33,39 +33,23 @@ include $(DEVKITPRO)/libnx/switch_rules
 TARGET		:=    LovePotion
 BUILD		:=    build
 
+CONSOLE_SOURCES ?= source  $(foreach d, $(wildcard source/*),  $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+CONSOLE_INCLUDE ?= include $(foreach d, $(wildcard include/*), $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
-				source \
-				source/backend \
-				source/common \
-				source/deko3d \
-				source/freetype \
-				source/freetype/types \
-				source/modules \
-				source/modules/font
-				# source/objects
+				${CONSOLE_SOURCES}
 
 DATA		:=	../../source/scripts \
 				scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				include \
-				include/deko3d \
-				include/freetype \
-				include/freetype/types \
-				include/modules \
-				include/modules/font \
-				include/objects/font \
-				include/objects/canvas \
-				include/objects/text
+				${CONSOLE_INCLUDE}
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs
 
-APP_TITLE		:= Löve Potion
-APP_AUTHOR		:= TurtleP & NotQuiteApex
-APP_VERSION		:= 2.0
 APP_TITLEID		:= 1043
 
 #---------------------------------------------------------------------------------
@@ -78,7 +62,7 @@ CFLAGS    :=    -g -Wall -ffunction-sections `freetype-config --cflags` \
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION)
 
-ifeq ($(strip $(DEBUG)),)
+ifeq ($(strip $(__DEBUG__)),)
 	CFLAGS += -O2
 else
 	CFLAGS += -Og

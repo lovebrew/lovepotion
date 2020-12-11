@@ -1,8 +1,5 @@
 #pragma once
 
-#include "common/runtime.h"
-#include "common/logger.h"
-
 template <typename T>
 struct ColorT
 {
@@ -149,14 +146,4 @@ inline Color32 toColor32(Colorf cf)
 inline Colorf toColorf(Color32 c)
 {
     return Colorf(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
-}
-
-inline void debugColor(float color[4])
-{
-    LOG("{%.1f, %.1f, %.1f, %.1f}", color[0], color[1], color[2], color[3]);
-}
-
-inline void debugColor(Colorf color)
-{
-    LOG("{%.1f, %.1f, %.1f, %.1f}", color.r, color.g, color.b, color.a);
 }

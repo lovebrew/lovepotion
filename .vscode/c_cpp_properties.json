@@ -29,6 +29,10 @@
                     "${workspaceFolder}"
                 ],
                 "limitSymbolsToIncludedHeaders": true
+            },
+            "customConfigurationVariables": {
+                "args": "ctr",
+                "name": "3DS"
             }
         },
         {
@@ -63,6 +67,85 @@
                     "${workspaceFolder}"
                 ],
                 "limitSymbolsToIncludedHeaders": true
+            },
+            "customConfigurationVariables": {
+                "args": "hac",
+                "name": "Switch"
+            }
+        },
+        {
+            "name": "3DS {Debug}",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/platform/3ds/include/**",
+                "/opt/devkitpro/portlibs/3ds/include/**",
+                "/opt/devkitpro/libctru/include/**",
+                "/opt/devkitpro/devkitARM/include"
+            ],
+            "defines": [
+                "_3DS",
+                "LOVE_POTION_CONSOLE=\"3DS\"",
+                "__DEBUG__"
+            ],
+            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-arm",
+            "compilerArgs": [],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/include/**",
+                    "${workspaceFolder}/libraries/**",
+                    "${workspaceFolder}/platform/3ds/include/**",
+                    "/opt/devkitpro/portlibs/3ds/include/**",
+                    "/opt/devkitpro/libctru/include/**",
+                    "/opt/devkitpro/devkitARM/include/**",
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "customConfigurationVariables": {
+                "args": "ctr-debug",
+                "name": "3DS {Debug}"
+            }
+        },
+        {
+            "name": "Switch {Debug}",
+            "includePath": [
+                "${workspaceFolder}/include/**",
+                "${workspaceFolder}/libraries/**",
+                "${workspaceFolder}/platform/switch/include/**",
+                "${workspaceFolder}/platform/switch/scripts/**",
+                "/opt/devkitpro/portlibs/switch/include/**",
+                "/opt/devkitpro/libnx/include/**",
+                "/opt/devkitpro/devkitA64/include/**"
+            ],
+            "defines": [
+                "__SWITCH__",
+                "LOVE_POTION_CONSOLE=\"Switch\"",
+                "__BSD_VISIBLE",
+                "__DEBUG__"
+            ],
+            "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
+            "cStandard": "c11",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "gcc-arm64",
+            "compilerArgs": [],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/include/**",
+                    "${workspaceFolder}/libraries/**",
+                    "${workspaceFolder}/platform/switch/include/**",
+                    "/opt/devkitpro/portlibs/switch/include/**",
+                    "/opt/devkitpro/libnx/include/**",
+                    "/opt/devkitpro/devkitA64/include/**",
+                    "${workspaceFolder}"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            },
+            "customConfigurationVariables": {
+                "args": "hac-debug",
+                "name": "Switch {Debug}"
             }
         }
     ],
