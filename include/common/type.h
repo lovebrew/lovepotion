@@ -1,5 +1,7 @@
 #pragma once
 
+#include <bitset>
+#include <unordered_map>
 namespace love
 {
     class Type

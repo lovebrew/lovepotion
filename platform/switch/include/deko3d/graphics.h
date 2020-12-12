@@ -29,11 +29,13 @@ namespace love::deko3d
 
             ~Graphics();
 
-            void GetDimensions(Screen screen, int * width, int * height) override;
-
             Screen GetActiveScreen() const override;
 
             std::vector<std::string> GetScreens() const override;
+
+            const int GetWidth(Screen screen) const override;
+
+            const int GetHeight() const override;
 
             void SetActiveScreen(Screen screen) override;
 
@@ -100,7 +102,12 @@ namespace love::deko3d
             // Internal?
             Shader * NewShader(Shader::StandardShader type);
 
+            static void Resize(int width, int height);
+
         private:
             int CalculateEllipsePoints(float rx, float ry) const;
+
+            int width;
+            int height;
     };
 }

@@ -548,6 +548,14 @@ void deko3d::SetTextureFilter(love::Texture::Filter & filter)
     this->filter.descriptor.initialize(this->filter.sampler);
 }
 
+void deko3d::SetTextureFilter(love::Texture * texture, love::Texture::Filter & filter)
+{
+    this->SetTextureFilter(filter);
+
+    uint32_t handleID = this->textureResIDs[texture];
+    this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
+}
+
 void deko3d::SetTextureWrap(love::Texture::Wrap & wrap)
 {
     DkWrapMode u = deko3d::GetDekoWrapMode(wrap.s);
@@ -556,6 +564,14 @@ void deko3d::SetTextureWrap(love::Texture::Wrap & wrap)
     this->filter.sampler.setWrapMode(u, v);
 
     this->filter.descriptor.initialize(this->filter.sampler);
+}
+
+void deko3d::SetTextureWrap(love::Texture * texture, love::Texture::Wrap & wrap)
+{
+    this->SetTextureWrap(wrap);
+
+    uint32_t handleID = this->textureResIDs[texture];
+    this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
 }
 
 DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
@@ -606,7 +622,7 @@ void deko3d::SetViewport(const love::Rect & view)
     this->transformState.projMtx = glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
 }
 
-Rect deko3d::GetViewport()
+love::Rect deko3d::GetViewport()
 {
     return this->viewport;
 }

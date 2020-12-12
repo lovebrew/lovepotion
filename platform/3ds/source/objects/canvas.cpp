@@ -36,6 +36,11 @@ Canvas::~Canvas()
     C3D_RenderTargetDelete(this->renderer);
 }
 
+C3D_RenderTarget * Canvas::GetRenderer()
+{
+    return this->renderer;
+}
+
 void Canvas::Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform)
 {
     if (gfx->IsCanvasActive(this))

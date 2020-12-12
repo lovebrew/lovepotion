@@ -14,7 +14,10 @@ namespace love
 
             void Clear(const Colorf & color);
 
+            C3D_RenderTarget * GetRenderer();
+
         private:
             C3D_Tex citroTex;
+            C3D_RenderTarget * renderer;
     };
 }

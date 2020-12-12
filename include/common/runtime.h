@@ -56,7 +56,6 @@ extern bool g_accelJoystick;
 #include "common/module.h"
 #include "common/colors.h"
 
-#define DEBUG 1
 #include "common/logger.h"
 #include "common/luax.h"
 

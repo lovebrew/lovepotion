@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdlib> // for rand() and RAND_MAX
-#include "common/logger.h"
+#include <algorithm>
 
 #define LOVE_M_TORAD	(float)(M_PI / 180.0f)
 #define LOVE_M_TODEG    (float)(180.0f / M_PI)
@@ -19,10 +19,6 @@ namespace love
         {
             return x == rhs.x && y == rhs.y &&
                    w == rhs.w && h == rhs.h;
-        }
-
-        void debug() {
-            LOG("{%d, %d, %d, %d}", x, y, w, h);
         }
     } Rect;
 

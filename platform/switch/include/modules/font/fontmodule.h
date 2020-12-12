@@ -1,7 +1,7 @@
 #pragma once
 
 #include "freetype/rasterizer.h"
-#include "truetyperasterizer.h"
+#include "freetype/types/truetyperasterizer.h"
 
 #include "objects/filedata/filedata.h"
 #include "objects/font/font.h"

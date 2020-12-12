@@ -5,9 +5,23 @@
 
 using namespace love;
 
+Texture::Texture(TextureType type) : common::Texture(TEXTURE_2D)
+{}
+
 void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
 {
     this->Draw(gfx, this->quad, localTransform);
+}
+
+bool Texture::SetWrap(const Wrap & wrap)
+{
+    C3D_TexSetWrap(this->texture.tex, (GPU_TEXTURE_WRAP_PARAM)wrap.s, (GPU_TEXTURE_WRAP_PARAM)wrap.t);
+    return true;
+}
+
+void Texture::SetFilter(const Filter & filter)
+{
+    C3D_TexSetFilter(this->texture.tex, (GPU_TEXTURE_FILTER_PARAM)filter.mag, (GPU_TEXTURE_FILTER_PARAM)filter.min);
 }
 
 void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)

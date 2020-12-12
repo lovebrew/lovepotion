@@ -30,22 +30,36 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=    LovePotion
-BUILD		:=    build
-
-CONSOLE_SOURCES ?= source  $(foreach d, $(wildcard source/*),  $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
-CONSOLE_INCLUDE ?= include $(foreach d, $(wildcard include/*), $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+TARGET		:= LovePotion
+BUILD		:= build
 
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
-				${CONSOLE_SOURCES}
+				source \
+				source/backend \
+				source/common \
+				source/deko3d \
+				source/freetype \
+				source/freetype/types \
+				source/modules \
+				source/modules/font \
+				source/objects
+
 
 DATA		:=	../../source/scripts \
 				scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				${CONSOLE_INCLUDE}
+				include \
+				include/deko3d \
+				include/freetype \
+				include/freetype/types \
+				include/modules \
+				include/modules/font \
+				include/objects/font \
+				include/objects/canvas \
+				include/objects/text
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs
@@ -60,9 +74,9 @@ ARCH      :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS    :=    -g -Wall -ffunction-sections `freetype-config --cflags` \
 				$(ARCH) $(DEFINES) -DLOVE_POTION_CONSOLE="\"Switch\""
 
-CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION)
+CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION) -D__DEBUG__=$(DEBUG)
 
-ifeq ($(strip $(__DEBUG__)),)
+ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2
 else
 	CFLAGS += -Og

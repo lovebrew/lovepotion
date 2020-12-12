@@ -1,6 +1,6 @@
 #include "common/runtime.h"
-#include "objects/texture/texture.h"
 
+#include "objects/texture/texture.h"
 #include "modules/graphics/graphics.h"
 
 #include "common/vector.h"
@@ -9,6 +9,33 @@
 #include "deko3d/deko.h"
 
 using namespace love;
+
+Texture::Texture(TextureType type) : common::Texture(type)
+{}
+
+void Texture::SetHandle(DkResHandle handle)
+{
+    this->handle = handle;
+}
+
+DkResHandle Texture::GetHandle()
+{
+    return this->handle;
+}
+
+CImage & Texture::GetTexture()
+{
+    return this->texture;
+}
+
+bool Texture::SetWrap(const Wrap & wrap)
+{
+    dk3d.SetTextureFilter(this, filter);
+    return true;
+}
+
+void Texture::SetFilter(const Filter & filter)
+{}
 
 void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
 {

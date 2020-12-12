@@ -9,6 +9,9 @@
 #include "modules/data/wrap_datamodule.h"
 #include "modules/event/wrap_event.h"
 #include "modules/filesystem/wrap_filesystem.h"
+#if defined (__SWITCH__)
+    #include "modules/font/wrap_fontmodule.h"
+#endif
 #include "modules/graphics/wrap_graphics.h"
 #include "modules/joystick/wrap_joystick.h"
 #include "modules/keyboard/wrap_keyboard.h"
@@ -19,10 +22,6 @@
 #include "modules/timer/wrap_timer.h"
 #include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
-
-#if defined (__SWITCH__)
-    #include "modules/font/wrap_fontmodule.h"
-#endif
 
 #include "luasocket/luasocket.h"
 

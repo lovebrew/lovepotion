@@ -168,75 +168,6 @@ void * CImage::load(void *buffer, size_t size, int &width, int &height)
     return result;
 }
 
-void CImage::fillShadowBuffer(void * data, const love::Rect & rect)
-{
-    if (!this->shadowBuffer)
-        return;
-
-    auto const src = static_cast<uint8_t *>(data);
-
-    for (int y = 0; y < rect.h; ++y)
-    {
-        if (y + rect.y < 0 || y + rect.y >= height)
-            continue;
-
-        for (int x = 0; x < rect.w; ++x)
-        {
-            if (x + rect.x < 0 || x + rect.x >= width)
-                continue;
-
-            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 0] = src[(y * rect.w + x) * 4 + 0]; //r
-            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 1] = src[(y * rect.w + x) * 4 + 1]; //g
-            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 2] = src[(y * rect.w + x) * 4 + 2]; //b
-            shadowBuffer[((y + rect.y) * width + (x + rect.x)) * 4 + 3] = src[(y * rect.w + x) * 4 + 3]; //a
-        }
-    }
-
-    this->dirty = true;
-}
-
-bool CImage::dumpShadowBuffer()
-{
-    if (!this->shadowBuffer || !this->dirty)
-        return false;
-
-	static char path[32];
-	static unsigned index = 0;
-	std::sprintf (path, "/atlas_%05u.pam", index++);
-	LOG ("Dumping to %s", path);
-    FILE * fp = fopen(path, "wb");
-
-    fputs("P7\n", fp);
-    fprintf(fp, "WIDTH %u\n", this->width);
-    fprintf(fp, "HEIGHT %u\n", this->height);
-    fputs("DEPTH 4\n", fp);
-    fputs("MAXVAL 255\n", fp);
-    fputs("TUPLTYPE RGB_ALPHA\n", fp);
-    fputs("ENDHDR\n", fp);
-
-    auto p = shadowBuffer;
-    auto const end = p + (width * height * 4);
-
-    while (p < end)
-    {
-        auto const rc = fwrite(p, 1, end - p, fp);
-        if (rc == 0)
-        {
-            fclose(fp);
-            return false;
-        }
-
-        p += rc;
-    }
-
-    if (fclose(fp) != 0)
-        return false;
-
-    this->dirty = false;
-
-    return true;
-}
-
 /* replace the pixels at a location */
 bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * data, size_t size,
                            dk::Queue transferQueue, const love::Rect & rect)
@@ -290,12 +221,6 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
     this->width = width;
     this->height = height;
 
-    if (this->shadowBuffer)
-       delete [] this->shadowBuffer;
-
-    this->shadowBuffer = new uint8_t[size];
-    memset(this->shadowBuffer, 0, size);
-
     /*
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
@@ -328,8 +253,6 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
     // Destroy the memory we don't need
     tempCmdMem.destroy();
     tempImageMemory.destroy();
-
-    this->dirty = true;
 
     return true;
 }

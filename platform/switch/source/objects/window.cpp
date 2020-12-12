@@ -6,8 +6,7 @@ using namespace love;
 #include "deko3d/deko.h"
 #include "common/exception.h"
 
-Window::Window() : window(nullptr),
-                   open(false)
+Window::Window() : open(false)
 
 {
     this->displaySizes =

@@ -53,7 +53,11 @@ class deko3d
 
         void SetTextureFilter(love::Texture::Filter & filter);
 
+        void SetTextureFilter(love::Texture * texture, love::Texture::Filter & filter);
+
         void SetTextureWrap(love::Texture::Wrap & wrap);
+
+        void SetTextureWrap(love::Texture * texture, love::Texture::Wrap & filter);
 
         void ClearColor(const Colorf & color);
 

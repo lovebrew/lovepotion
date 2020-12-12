@@ -1,0 +1,92 @@
+make[1]: Entering directory '/home/jpost/LovePotion/platform/switch'
+deko.cpp
+text.cpp
+window.cpp
+lutf8lib.c
+l53strlib.c
+lz4.c
+lz4hc.c
+ltable.c
+liolib.c
+lopcodes.c
+lmem.c
+loslib.c
+ldebug.c
+ltm.c
+loadlib.c
+bit.c
+lmathlib.c
+lstate.c
+lstrlib.c
+lobject.c
+lbaselib.c
+ldblib.c
+llex.c
+ltablib.c
+linit.c
+/home/jpost/LovePotion/platform/switch/../../libraries/lua/ltablib.c: In function 'addfield':
+/home/jpost/LovePotion/platform/switch/../../libraries/lua/ltablib.c:137:3: warning: this 'if' clause does not guard... [-Wmisleading-indentation]
+  137 |   if (!lua_isstring(L, -1))
+      |   ^~
+/home/jpost/LovePotion/platform/switch/../../libraries/lua/ltablib.c:140:5: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'if'
+  140 |     luaL_addvalue(b);
+      |     ^~~~~~~~~~~~~
+lstring.c
+lauxlib.c
+lparser.c
+/home/jpost/LovePotion/platform/switch/../../libraries/lua/lauxlib.c: In function 'luaL_loadfile':
+/home/jpost/LovePotion/platform/switch/../../libraries/lua/lauxlib.c:577:4: warning: this 'while' clause does not guard... [-Wmisleading-indentation]
+  577 |    while ((c = getc(lf.f)) != EOF && c != LUA_SIGNATURE[0]) ;
+      |    ^~~~~
+/home/jpost/LovePotion/platform/switch/../../libraries/lua/lauxlib.c:578:5: note: ...this statement, but the latter is misleadingly indented as if it were guarded by the 'while'
+  578 |     lf.extraline = 0;
+      |     ^~
+lvm.c
+lcode.c
+print.c
+lundump.c
+ldo.c
+lapi.c
+lgc.c
+lzio.c
+lfunc.c
+ldump.c
+wuff.c
+wuff_convert.c
+wuff_memory.c
+wuff_internal.c
+timeout.c
+buffer.c
+mime.c
+inet.c
+auxiliar.c
+except.c
+tcp.c
+io.c
+options.c
+compat.c
+usocket.c
+libluasocket.c
+select.c
+udp.c
+built ... LovePotion.nacp
+linking LovePotion.elf
+Visiting directories...
+Calculating metadata...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/conf.lua to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/config.lua to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/bottlefill.png to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/bottlefill.t3x to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/bottleline.png to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/bottleline.t3x to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/cloudcircle.png to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/cloudcircle.t3x to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/heart.png to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/heart.t3x to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/nogame.png to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/graphics/nogame.t3x to RomFS image...
+Writing /home/jpost/LovePotion/platform/switch/../../romfs/main.lua to RomFS image...
+built ... LovePotion.nro
+built ... LovePotion.nso
+built ... LovePotion.pfs0
+make[1]: Leaving directory '/home/jpost/LovePotion/platform/switch'

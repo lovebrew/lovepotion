@@ -27,9 +27,6 @@ class CImage
         ~CImage()
         {
             m_mem.destroy();
-
-            if (this->shadowBuffer)
-                delete [] this->shadowBuffer;
         }
 
         constexpr operator bool() const
@@ -58,10 +55,6 @@ class CImage
         bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                         void * data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
 
-        bool dumpShadowBuffer();
-
-        void fillShadowBuffer(void * data, const love::Rect & rect);
-
         private:
             u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
 
@@ -69,7 +62,4 @@ class CImage
 
             size_t width;
             size_t height;
-
-            uint8_t * shadowBuffer = nullptr;
-            bool dirty = false;
 };

@@ -1,15 +1,13 @@
 #include "common/runtime.h"
 #include "deko3d/graphics.h"
 
-#include "modules/window/window.h"
 #include "modules/font/fontmodule.h"
 
 using namespace love;
 using Screen = love::Graphics::Screen;
 
-#define WINDOW_MODULE() (Module::GetInstance<Window>(M_WINDOW))
-
-love::deko3d::Graphics::Graphics()
+love::deko3d::Graphics::Graphics() : width(1280),
+                                     height(720)
 {
     this->RestoreState(this->states.back());
 
@@ -35,18 +33,25 @@ love::deko3d::Graphics::Graphics()
 love::deko3d::Graphics::~Graphics()
 {}
 
-void love::deko3d::Graphics::GetDimensions(Screen screen, int * width, int * height)
+void love::deko3d::Graphics::Resize(int width, int height)
 {
-    if (screen == Screen::SCREEN_MAX_ENUM)
-        throw love::Exception("invalid screen, expected 'default'.");
+//     this->width = width;
+//     this->height = height;
+}
 
-    auto size = WINDOW_MODULE()->GetFullscreenModes()[0];
+const int love::deko3d::Graphics::GetWidth(Screen screen) const
+{
+    switch (screen)
+    {
+        case Screen::SCREEN_DEFAULT:
+        default:
+            return this->width;
+    }
+}
 
-    if (width)
-        *width = size.first;
-
-    if (height)
-        *height = size.second;
+const int love::deko3d::Graphics::GetHeight() const
+{
+    return this->height;
 }
 
 void love::deko3d::Graphics::SetActiveScreen(Screen screen)
@@ -570,8 +575,8 @@ void love::deko3d::Graphics::SetColorMask(ColorMask mask)
 
 void love::deko3d::Graphics::SetScissor()
 {
-    int width, height = 0;
-    this->GetDimensions(this->GetActiveScreen(), &width, &height);
+    int width = this->GetWidth(this->GetActiveScreen());
+    int height = this->GetHeight();
 
     dk3d.SetScissor({0, 0, width, height}, this->IsCanvasActive());
     states.back().scissor = false;

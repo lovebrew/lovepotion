@@ -32,8 +32,6 @@ namespace love
             std::vector<std::pair<int, int>> displaySizes;
             StrongReference<Graphics> graphics;
 
-            bool inFrame;
-            Frame * window;
             bool open;
     };
 }

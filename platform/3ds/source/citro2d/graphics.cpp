@@ -1,42 +1,10 @@
 #include "common/runtime.h"
 #include "citro2d/graphics.h"
 
-#include "modules/window/window.h"
-
 using namespace love;
 using Screen = love::Graphics::Screen;
 
-#define WINDOW_MODULE() (Module::GetInstance<Window>(M_WINDOW))
 #define TRANSPARENCY C2D_Color32(0, 0, 0, 1)
-
-void love::citro2d::Graphics::GetDimensions(Screen screen, int * width, int * height)
-{
-    std::pair<int, int> size;
-    auto displays = WINDOW_MODULE()->GetFullscreenModes();
-
-    switch (screen)
-    {
-        case Screen::SCREEN_TOP:
-        case Screen::SCREEN_RIGHT:
-        case Screen::SCREEN_LEFT:
-            size = displays[0];
-            break;
-        
-        case Screen::SCREEN_BOTTOM:
-            size = displays[1];
-            break;
-        
-        case Screen::SCREEN_MAX_ENUM:
-        default:
-            throw love::Exception("invalid screen, expected 'top', 'bottom', 'left' or 'right'.");
-    }
-
-    if (width)
-        *width = size.first;
-
-    if (height)
-        *height = size.second;
-}
 
 void love::citro2d::Graphics::SetActiveScreen(Screen screen)
 {
@@ -55,7 +23,26 @@ void love::citro2d::Graphics::SetActiveScreen(Screen screen)
         default:
             throw love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
     }
-    
+
+}
+
+const int love::citro2d::Graphics::GetWidth(Screen screen) const
+{
+    switch (screen)
+    {
+        case Screen::SCREEN_LEFT:
+        case Screen::SCREEN_RIGHT:
+        case Screen::SCREEN_TOP:
+        default:
+            return SCREEN_TOP_WIDTH;
+        case Screen::SCREEN_BOTTOM:
+            return SCREEN_BOT_WIDTH;
+    }
+}
+
+const int love::citro2d::Graphics::GetHeight() const
+{
+    return SCREEN_HEIGHT;
 }
 
 Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
@@ -330,9 +317,7 @@ void love::citro2d::Graphics::SetScissor(const Rect & scissor)
     if (state.scissor)
         C2D_Flush();
 
-    int screenWidth = 0;
-    this->GetDimensions(this->GetActiveScreen(), &screenWidth, nullptr);
-
+    int screenWidth = this->GetWidth(this->GetActiveScreen());
     c2d.SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
 
     state.scissor = true;
@@ -344,9 +329,7 @@ void love::citro2d::Graphics::SetScissor()
     if (states.back().scissor)
         C2D_Flush();
 
-    int screenWidth = 0;
-    this->GetDimensions(this->GetActiveScreen(), &screenWidth, nullptr);
-
+    int screenWidth = this->GetWidth(this->GetActiveScreen());
     c2d.SetScissor(GPU_SCISSOR_DISABLE, {0, 0, screenWidth, 240}, screenWidth, false);
 
     states.back().scissor = false;

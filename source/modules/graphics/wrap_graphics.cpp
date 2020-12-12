@@ -62,7 +62,7 @@ int Wrap_Graphics::GetDimensions(lua_State * L)
         Luax::CatchException(L, [&]() {
             screen = instance()->GetActiveScreen();
         });
-    else 
+    else
     {
         const char * name = luaL_checkstring(L, 1);
 
@@ -70,15 +70,8 @@ int Wrap_Graphics::GetDimensions(lua_State * L)
             return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
     }
 
-    int width = 0;
-    int height = 0;
-
-    Luax::CatchException(L, [&]() {
-        instance()->GetDimensions(screen, &width, &height);
-    });
-
-    lua_pushnumber(L, width);
-    lua_pushnumber(L, height);
+    lua_pushnumber(L, instance()->GetWidth(screen));
+    lua_pushnumber(L, instance()->GetHeight());
 
     return 2;
 }
@@ -91,7 +84,7 @@ int Wrap_Graphics::GetWidth(lua_State * L)
         Luax::CatchException(L, [&]() {
             screen = instance()->GetActiveScreen();
         });
-    else 
+    else
     {
         const char * name = luaL_checkstring(L, 1);
 
@@ -99,13 +92,7 @@ int Wrap_Graphics::GetWidth(lua_State * L)
             return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
     }
 
-    int width = 0;
-
-    Luax::CatchException(L, [&]() {
-        instance()->GetDimensions(screen, &width, nullptr);
-    });
-
-    lua_pushnumber(L, width);
+    lua_pushnumber(L, instance()->GetWidth(screen));
 
     return 1;
 }
@@ -118,7 +105,7 @@ int Wrap_Graphics::GetHeight(lua_State * L)
         Luax::CatchException(L, [&]() {
             screen = instance()->GetActiveScreen();
         });
-    else 
+    else
     {
         const char * name = luaL_checkstring(L, 1);
 
@@ -126,13 +113,7 @@ int Wrap_Graphics::GetHeight(lua_State * L)
             return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
     }
 
-    int height = 0;
-
-    Luax::CatchException(L, [&]() {
-        instance()->GetDimensions(screen, nullptr, &height);
-    });
-
-    lua_pushnumber(L, height);
+    lua_pushnumber(L, instance()->GetHeight());
 
     return 1;
 }
@@ -829,10 +810,8 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
 {
     Canvas::Settings settings;
 
-    int width = 0;
-    int height = 0;
-
-    instance()->GetDimensions(instance()->GetActiveScreen(), &width, &height);
+    int width = instance()->GetWidth(instance()->GetActiveScreen());
+    int height = instance()->GetHeight();
 
     settings.width  = luaL_optinteger(L, 1, width);
     settings.height = luaL_optinteger(L, 2, height);

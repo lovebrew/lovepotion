@@ -192,10 +192,12 @@ namespace love
             Colorf GetBackgroundColor() const;
 
             void SetBackgroundColor(const Colorf & color);
-          
-            virtual void GetDimensions(Screen screen, int * width, int * height) = 0;
 
             virtual Screen GetActiveScreen() const = 0;
+
+            virtual const int GetWidth(Screen screen) const = 0;
+
+            virtual const int GetHeight() const = 0;
 
             virtual std::vector<std::string> GetScreens() const = 0;
 

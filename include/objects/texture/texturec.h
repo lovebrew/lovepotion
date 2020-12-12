@@ -8,19 +8,14 @@
 
 #include "objects/drawable/drawable.h"
 
-#if defined (_3DS)
-    #define LOVE_SetFilter(texture, mag, min) \
-        C3D_TexSetFilter((texture.tex), (GPU_TEXTURE_FILTER_PARAM)(mag), (GPU_TEXTURE_FILTER_PARAM)(min))
-    #define LOVE_SetWrapMode(texture, s, t) \
-        C3D_TexSetWrap((texture.tex), (GPU_TEXTURE_WRAP_PARAM)(s), (GPU_TEXTURE_WRAP_PARAM)(t))
-#elif defined (__SWITCH__)
+#if defined (__SWITCH__)
     #define LOVE_SetFilter(texture, mag, min)
     #define LOVE_SetWrapMode(texture, s, t)
 
     #include "deko3d/common.h"
 #endif
 
-namespace love
+namespace love::common
 {
     class Texture : public Drawable
     {
@@ -78,30 +73,16 @@ namespace love
             int GetWidth(int mip = 0) const;
             int GetHeight(int mip = 0) const;
 
-            virtual void SetFilter(const Filter & f);
+            virtual void SetFilter(const Filter & f) = 0;
             virtual const Filter & GetFilter() const;
 
-            virtual bool SetWrap(const Wrap & w);
+            virtual bool SetWrap(const Wrap & w) = 0;
             virtual const Wrap & GetWrap() const;
 
-            #if defined (__SWITCH__)
-                void SetHandle(DkResHandle handle) {
-                    this->handle = handle;
-                };
-
-                DkResHandle GetHandle() {
-                    return this->handle;
-                }
-            #endif
-
-            void Draw(Graphics * gfx, const Matrix4 & localTransform) override;
-            virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform);
+            virtual void Draw(Graphics * gfx, const Matrix4 & localTransform) = 0;
+            virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) = 0;
 
             Quad * GetQuad() const;
-
-            TextureHandle & GetTexture() {
-                return this->texture;
-            };
 
             static bool GetConstant(const char * in, TextureType & out);
             static bool GetConstant(TextureType in, const char *& out);
@@ -117,11 +98,6 @@ namespace love
 
         protected:
             TextureType texType;
-            TextureHandle texture;
-
-            #if defined (__SWITCH__)
-                DkResHandle handle;
-            #endif
 
             int width;
             int height;

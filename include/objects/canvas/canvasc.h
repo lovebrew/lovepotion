@@ -8,7 +8,7 @@ namespace love
 
     namespace common
     {
-        class Canvas : public Texture
+        class Canvas : public love::Texture
         {
             public:
                 static love::Type type;
@@ -23,21 +23,12 @@ namespace love
 
                 virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) = 0;
 
-                Renderer * GetRenderer() {
-                    return this->renderer;
-                }
-
-                TextureHandle & GetTextureHandle() {
-                    return this->texture;
-                }
-
                 bool HasFirstClear() {
                     return this->cleared;
                 }
 
             protected:
                 Settings settings;
-                Renderer * renderer;
                 bool cleared;
         };
     }

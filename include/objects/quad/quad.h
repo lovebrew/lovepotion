@@ -3,6 +3,7 @@
 #include "common/mmath.h"
 #include "common/vector.h"
 
+#include "objects/object.h"
 namespace love
 {
     class Quad : public Object

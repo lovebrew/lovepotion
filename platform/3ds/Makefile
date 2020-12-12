@@ -34,18 +34,27 @@ include $(DEVKITARM)/3ds_rules
 TARGET		:=	LovePotion
 BUILD		:=	build
 
-CONSOLE_SOURCES ?= source  $(foreach d, $(wildcard source/*),  $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
-CONSOLE_INCLUDE ?= include $(foreach d, $(wildcard include/*), $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
-
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
-				${CONSOLE_SOURCES}
+				source \
+				source/backend \
+				source/common \
+				source/citro2d \
+				source/modules \
+				source/objects
 
 DATA		:=	${LOVE_DATA_FILES}
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				${CONSOLE_INCLUDE}
+				${LOVE_LIBRARIES} \
+				include \
+				include/citro2d \
+				include/modules \
+				include/objects/font \
+				include/objects/text \
+				include/objects/canvas \
+				include/objects/texture
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
@@ -64,14 +73,14 @@ CFLAGS	:=	-g -Wall -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
 
-ifeq ($(strip $(__DEBUG__)),)
+ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2
 else
 	CFLAGS += -Og
 	ICON := icon-dev.png
 endif
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION)
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION) -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 
