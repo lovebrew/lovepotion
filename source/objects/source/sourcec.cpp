@@ -8,24 +8,23 @@ using namespace love::common;
 love::Type Source::type("Source", &Object::type);
 
 Source::Source(Pool * pool, SoundData * sound) : sourceType(Source::TYPE_STATIC),
-                                                 pool(pool),
                                                  sampleRate(sound->GetSampleRate()),
                                                  channels(sound->GetChannelCount()),
-                                                 bitDepth(sound->GetBitDepth())
+                                                 bitDepth(sound->GetBitDepth()),
+                                                 pool(pool)
 {
     this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()), Acquire::NORETAIN);
 }
 
 Source::Source(Pool * pool, Decoder * decoder) : sourceType(Source::TYPE_STREAM),
-                                                 pool(pool),
                                                  sampleRate(decoder->GetSampleRate()),
                                                  channels(decoder->GetChannelCount()),
                                                  bitDepth(decoder->GetBitDepth()),
+                                                 pool(pool),
                                                  decoder(decoder)
 {}
 
 Source::Source(const Source & other) : sourceType(other.sourceType),
-                                       pool(other.pool),
                                        valid(false),
                                        volume(other.volume),
                                        looping(other.looping),
@@ -35,6 +34,7 @@ Source::Source(const Source & other) : sourceType(other.sourceType),
                                        sampleRate(other.sampleRate),
                                        channels(other.channels),
                                        bitDepth(other.bitDepth),
+                                       pool(other.pool),
                                        decoder(nullptr),
                                        staticBuffer(other.staticBuffer)
 {

@@ -201,7 +201,7 @@ bool Source::IsPlaying() const
     size_t bufferCount = (this->sourceType == TYPE_STREAM) ? MAX_BUFFERS : 1;
     /* check if any of our sources are queued or playing */
     for (size_t index = 0; index < bufferCount; index++)
-        sourcePlaying |= (this->sources[index].status == NDSP_WBUF_QUEUED || this->sources[index].status == NDSP_WBUF_PLAYING) ;
+        sourcePlaying |= (this->sources[index].status == NDSP_WBUF_QUEUED || this->sources[index].status == NDSP_WBUF_PLAYING);
 
     return sourcePlaying;
 }

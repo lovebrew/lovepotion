@@ -8,11 +8,6 @@ Quad::Quad(const Viewport & viewport, double sw, double sh) : common::Quad(sw, s
     this->Refresh(viewport, sw, sh);
 }
 
-const Quad::Viewport & Quad::GetViewport() const
-{
-    return this->viewport;
-}
-
 void Quad::Refresh(const Viewport & viewport, double sw, double sh)
 {
     common::Quad::Refresh(viewport, sw, sh);
