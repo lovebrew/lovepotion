@@ -302,9 +302,7 @@ local function error_printer(msg, layer)
     trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
     trace = trace:gsub("\n[^\n]+$", "")
 
-    file = io.open("crash.txt", "w")
-    file:write(trace)
-    file:close()
+    print(trace)
 end
 
 function love.threaderror(t, err)
@@ -360,25 +358,27 @@ function love.errorhandler(message)
     end
     sanitized = table.concat(sanitized)
 
-    local error = {}
-    table.insert(error, "Error\n")
-    table.insert(error, sanitized)
+    local err = {}
 
-    if (#sanitized ~= #message) then
-        table.insert(error, "Invalid UTF-8 string in error message")
+    table.insert(err, "Error\n")
+    table.insert(err, sanitized)
+
+    if #sanitized ~= #message then
+        table.insert(err, "Invalid UTF-8 string in error message.")
     end
 
-    table.insert(error, "\n")
+    table.insert(err, "\n")
 
     for l in trace:gmatch("(.-)\n") do
         if not l:match("boot.lua") then
-            l = l:gsub("stack traceback:", "Traceback:\n")
-            table.insert(error, l)
+            l = l:gsub("stack traceback:", "Traceback\n")
+            table.insert(err, l)
         end
     end
 
-    local pretty = table.concat(error, "\n")
-    pretty = pretty:gsub("\t\n", "")
+    local pretty = table.concat(err, "\n")
+
+    pretty = pretty:gsub("\t", "")
     pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
 
     if not love.window.isOpen() then
@@ -390,11 +390,10 @@ function love.errorhandler(message)
     local function draw()
         if love.graphics then
             for _, screen in ipairs(screens) do
-                love.graphics.setActiveScreen(screen) --just to clear it
+                love.graphics.setActiveScreen(screen)
                 love.graphics.clear(0.35, 0.62, 0.86)
 
                 if screen ~= "bottom" then
-                    -- render our error message
                     love.graphics.printf(pretty, 10, 10, love.graphics.getWidth() * 0.75)
                 end
             end
@@ -593,7 +592,7 @@ function love.init()
 
     local openedConsole = false
     if config.console and love._openConsole and not openedConsole then
-        love._openConsole()
+        openedConsole = love._openConsole()
     end
 
     if love._setAccelerometerAsJoystick then
@@ -676,6 +675,7 @@ function love.run()
 
     local delta = 0
     local screens = love.graphics.getScreens()
+    print(unpack(screens))
 
     return function()
         if love.event and love.event.pump then
@@ -700,11 +700,12 @@ function love.run()
         end
 
         if love.graphics then
+            love.graphics.origin()
+
             for _, screen in ipairs(screens) do
                 love.graphics.setActiveScreen(screen)
 
                 love.graphics.clear(love.graphics.getBackgroundColor())
-                love.graphics.origin()
 
                 if love.draw then
                     love.draw(screen)

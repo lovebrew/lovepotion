@@ -62,6 +62,7 @@ void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float
                   const Matrix4 & localTransform, const Colorf & color)
 {
     C2D_Text citroText;
+
     u32 alignMode = C2D_WordWrap;
     float offset = 0.0f;
 
@@ -83,8 +84,9 @@ void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float
             break;
     }
 
-    std::string result = std::accumulate(text.begin(), text.end(), std::string{},
-                         [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
+    std::string result = std::accumulate(text.begin(), text.end(), std::string {},
+                         [](const std::string & s1, const ColoredString & piece)
+                         { return s1 + piece.string; });
 
     C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
     C2D_TextOptimize(&citroText);

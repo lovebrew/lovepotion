@@ -5,7 +5,7 @@
 #include "objects/filedata/filedata.h"
 
 #include "vorbisdecoder.h"
-#include "mpegdecoder.h"
+#include "mp3decoder.h"
 #include "wavedecoder.h"
 #include "flacdecoder.h"
 

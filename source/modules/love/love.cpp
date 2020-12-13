@@ -191,12 +191,14 @@ int Love::_OpenConsole(lua_State * L)
 {
     #if defined (__SWITCH__)
         Love::debugSockfd = nxlinkStdioForDebug();
+        lua_pushboolean(L, Love::debugSockfd != -1);
     #else
         gdbHioDevInit();
-        gdbHioDevRedirectStdStreams(false, true, true);
+        int success = gdbHioDevRedirectStdStreams(false, true, true);
+        lua_pushboolean(L, success == 0);
     #endif
 
-    return 0;
+    return 1;
 }
 
 /*

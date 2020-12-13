@@ -11,11 +11,10 @@ int Wrap_Graphics::GetScreens(lua_State * L)
 
     lua_createtable(L, screens.size(), 0);
 
-    size_t i = 0;
-    for (auto screen : screens)
+    for (size_t index = 0; index < screens.size(); index++)
     {
-        Luax::PushString(L, screen);
-        lua_rawseti(L, -2, ++i);
+        Luax::PushString(L, screens[index]);
+        lua_rawseti(L, -2, (index + 1));
     }
 
     return 1;
@@ -24,7 +23,7 @@ int Wrap_Graphics::GetScreens(lua_State * L)
 int Wrap_Graphics::GetActiveScreen(lua_State * L)
 {
 
-    Graphics::Screen screen;
+    Graphics::Screen screen = static_cast<Graphics::Screen>(0);
     const char * name;
 
     Luax::CatchException(L, [&]() {
@@ -41,7 +40,7 @@ int Wrap_Graphics::GetActiveScreen(lua_State * L)
 
 int Wrap_Graphics::SetActiveScreen(lua_State * L)
 {
-    Graphics::Screen screen;
+    Graphics::Screen screen = static_cast<Graphics::Screen>(0);
     const char * name = luaL_checkstring(L, 1);
 
     if (!Graphics::GetConstant(name, screen))
@@ -56,18 +55,16 @@ int Wrap_Graphics::SetActiveScreen(lua_State * L)
 
 int Wrap_Graphics::GetDimensions(lua_State * L)
 {
-    Graphics::Screen screen;
+    Graphics::Screen screen = static_cast<Graphics::Screen>(0);
 
-    if (lua_isnoneornil(L, 1))
-        Luax::CatchException(L, [&]() {
-            screen = instance()->GetActiveScreen();
-        });
+    const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+
+    if (sname == nullptr)
+        screen = instance()->GetActiveScreen();
     else
     {
-        const char * name = luaL_checkstring(L, 1);
-
-        if (!Graphics::GetConstant(name, screen))
-            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+        if (!Graphics::GetConstant(sname, screen))
+            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), sname);
     }
 
     lua_pushnumber(L, instance()->GetWidth(screen));
@@ -78,18 +75,16 @@ int Wrap_Graphics::GetDimensions(lua_State * L)
 
 int Wrap_Graphics::GetWidth(lua_State * L)
 {
-    Graphics::Screen screen;
+    Graphics::Screen screen = static_cast<Graphics::Screen>(0);
 
-    if (lua_isnoneornil(L, 1))
-        Luax::CatchException(L, [&]() {
-            screen = instance()->GetActiveScreen();
-        });
+    const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+
+    if (sname == nullptr)
+        screen = instance()->GetActiveScreen();
     else
     {
-        const char * name = luaL_checkstring(L, 1);
-
-        if (!Graphics::GetConstant(name, screen))
-            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+        if (!Graphics::GetConstant(sname, screen))
+            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), sname);
     }
 
     lua_pushnumber(L, instance()->GetWidth(screen));
@@ -99,20 +94,6 @@ int Wrap_Graphics::GetWidth(lua_State * L)
 
 int Wrap_Graphics::GetHeight(lua_State * L)
 {
-    Graphics::Screen screen;
-
-    if (lua_isnoneornil(L, 1))
-        Luax::CatchException(L, [&]() {
-            screen = instance()->GetActiveScreen();
-        });
-    else
-    {
-        const char * name = luaL_checkstring(L, 1);
-
-        if (!Graphics::GetConstant(name, screen))
-            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
-    }
-
     lua_pushnumber(L, instance()->GetHeight());
 
     return 1;

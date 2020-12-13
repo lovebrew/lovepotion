@@ -67,7 +67,7 @@ Graphics::Screen love::deko3d::Graphics::GetActiveScreen() const
 
 std::vector<std::string> love::deko3d::Graphics::GetScreens() const
 {
-    return {"default"};
+    return Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
 }
 
 void Graphics::SetCanvas(Canvas * canvas)

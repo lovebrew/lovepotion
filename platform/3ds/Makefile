@@ -87,7 +87,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lphysfs -lz -lvorbisidec -logg -lcitro2dd -lcitro3dd -lctru
+LIBS	:= -lphysfs -lz -lvorbisidec `arm-none-eabi-pkg-config libmpg123 --libs` -logg -lcitro2dd -lcitro3dd -lctru
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib

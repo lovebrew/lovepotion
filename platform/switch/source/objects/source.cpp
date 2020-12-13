@@ -30,6 +30,7 @@ StaticDataBuffer::~StaticDataBuffer()
     AudioPool::MemoryFree(this->buffer);
 }
 
+/* SOURCE IMPLEMENTATION */
 bool Source::_Update()
 {
     for (int which = 0; which < this->buffers; which++)
@@ -63,31 +64,31 @@ void Source::CreateWaveBuffer(SoundData * sound)
     this->sources[0].end_sample_offset = sound->GetSampleCount();
 }
 
-void Source::_Prepare(size_t which, size_t decoded)
+void Source::StreamAtomic(size_t which)
 {
-    this->sources[this->index].size = decoded;
-    this->sources[this->index].end_sample_offset = (int)((decoded / this->channels) / (this->bitDepth / 8));
+    this->sources[which].size = decoded;
+    this->sources[which].end_sample_offset = (int)((decoded / this->channels) / (this->bitDepth / 8));
 }
 
 void Source::FreeBuffer()
 {
     if (this->sourceType != TYPE_STATIC)
     {
-        for (int i = 0; i < this->buffers; i++)
+        for (int i = 0; i < Source::MAX_BUFFERS; i++)
             AudioPool::MemoryFree(std::make_pair(this->sources[i].data_pcm16, this->sources[i].size));
     }
 }
 
-void Source::CreateWaveBuffer(Decoder * decoder)
+void Source::InitializeStreamBuffers(Decoder * decoder)
 {
-    for (int i = 0; i < 2; i++)
+    for (auto & source : this->sources)
     {
-        this->sources[i] = _waveBuf();
-        this->sources[i].start_sample_offset = 0;
-        this->sources[i].size = 0;
-        this->sources[i].data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize()).first;
+        source = AudioDriverWaveBuf();
+        source.start_sample_offset = 0;
+        source.size = 0;
+        source.data_pcm16 = (s16 *)AudioPool::MemoryAlign(decoder->GetSize()).first;
+        source.state = AudioDriverWaveBufState_Done
     }
-    this->sources[1].state = AudioDriverWaveBufState_Done;
 }
 
 void Source::AddWaveBuffer(size_t which)

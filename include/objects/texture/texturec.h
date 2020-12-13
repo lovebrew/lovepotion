@@ -80,9 +80,9 @@ namespace love::common
             virtual const Wrap & GetWrap() const;
 
             virtual void Draw(Graphics * gfx, const Matrix4 & localTransform) = 0;
-            virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) = 0;
+            virtual void Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform) = 0;
 
-            Quad * GetQuad() const;
+            love::Quad * GetQuad() const;
 
             static bool GetConstant(const char * in, TextureType & out);
             static bool GetConstant(TextureType in, const char *& out);
@@ -105,7 +105,7 @@ namespace love::common
             Filter filter;
             Wrap wrap;
 
-            StrongReference<Quad> quad;
+            StrongReference<love::Quad> quad;
 
             void InitQuad();
 

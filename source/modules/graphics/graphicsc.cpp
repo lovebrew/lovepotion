@@ -172,10 +172,6 @@ void Graphics::Origin()
     auto & transform = this->transformStack.back();
     transform.SetIdentity();
     this->pixelScaleStack.back() = 1;
-
-    #if defined(_3DS)
-        C2D_ViewRestore(&transform.GetElements());
-    #endif
 }
 
 void Graphics::Push(StackType type)

@@ -22,6 +22,7 @@ class citro2d
 
     private:
         std::vector<C3D_RenderTarget *> targets;
+        C3D_RenderTarget * current;
 
         bool inFrame = false;
 

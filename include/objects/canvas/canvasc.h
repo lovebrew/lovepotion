@@ -21,7 +21,7 @@ namespace love
 
                 Canvas(const Settings & settings);
 
-                virtual void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) = 0;
+                virtual void Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform) = 0;
 
                 bool HasFirstClear() {
                     return this->cleared;

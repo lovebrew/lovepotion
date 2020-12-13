@@ -8,7 +8,8 @@ using Screen = love::Graphics::Screen;
 
 void love::citro2d::Graphics::SetActiveScreen(Screen screen)
 {
-    switch (screen) {
+    switch (screen)
+    {
         case Screen::SCREEN_LEFT:
             Graphics::ACTIVE_SCREEN = 0;
             return;
@@ -18,12 +19,11 @@ void love::citro2d::Graphics::SetActiveScreen(Screen screen)
         case Screen::SCREEN_BOTTOM:
             Graphics::ACTIVE_SCREEN = 2;
             return;
-
         case Screen::SCREEN_MAX_ENUM:
         default:
-            throw love::Exception("invalid screen, expected 'right', 'left' or 'bottom'.");
+            Graphics::ACTIVE_SCREEN = 0;
+            break;
     }
-
 }
 
 const int love::citro2d::Graphics::GetWidth(Screen screen) const
@@ -55,7 +55,6 @@ Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
             return Screen::SCREEN_RIGHT;
         case 2:
             return Screen::SCREEN_BOTTOM;
-
         default:
             throw love::Exception("invalid active screen.");
     }
@@ -63,7 +62,7 @@ Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
 
 std::vector<std::string> love::citro2d::Graphics::GetScreens() const
 {
-    return {"left", "right", "bottom"};
+    return Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
 }
 
 
@@ -176,6 +175,9 @@ void love::citro2d::Graphics::Polygon(DrawMode mode, const Vector2 * points, siz
 {
     Colorf color = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+    const Matrix4 & t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
 
     if (mode == DRAW_LINE)
         this->Polyline(points, count);

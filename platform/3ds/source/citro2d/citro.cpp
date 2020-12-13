@@ -18,6 +18,8 @@ citro2d::citro2d()
 
     C3D_AlphaTest(true, GPU_GREATER, 0);
 
+    this->targets.reserve(4);
+
     this->targets =
     {
         C2D_CreateScreenTarget(GFX_TOP,    GFX_LEFT),
@@ -47,14 +49,16 @@ void citro2d::BindFramebuffer(love::Canvas * canvas)
     this->EnsureInFrame();
 
     if (canvas != nullptr)
-        C2D_SceneBegin(canvas->GetRenderer());
+        this->current = canvas->GetRenderer();
     else
-        C2D_SceneBegin(this->targets[love::Graphics::ACTIVE_SCREEN]);
+        this->current = this->targets[love::Graphics::ACTIVE_SCREEN];
+
+    C2D_SceneBegin(this->current);
 }
 
 void citro2d::ClearColor(const Colorf & color)
 {
-    C2D_TargetClear(this->targets[love::Graphics::ACTIVE_SCREEN], C2D_Color32f(color.r, color.g, color.b, color.a));
+    C2D_TargetClear(this->current, C2D_Color32f(color.r, color.g, color.b, color.a));
 }
 
 void citro2d::Present()

@@ -11,5 +11,6 @@ using namespace love;
 
 void Pool::Sleep()
 {
+    this->Lock();
     LightEvent_Wait(&AudrenDriver::ndspEvent);
 }

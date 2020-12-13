@@ -21,7 +21,7 @@ void Pool::Finish()
     this->running = false;
 }
 
-bool Pool::IsPlaying(Source * source)
+bool Pool::IsPlaying(common::Source * source)
 {
     bool isPlaying = false;
 
@@ -33,7 +33,7 @@ bool Pool::IsPlaying(Source * source)
     return isPlaying;
 }
 
-bool Pool::AssignSource(Source * source, size_t & channel, bool & wasPlaying)
+bool Pool::AssignSource(common::Source * source, size_t & channel, bool & wasPlaying)
 {
     channel = 0;
 
@@ -44,6 +44,7 @@ bool Pool::AssignSource(Source * source, size_t & channel, bool & wasPlaying)
 
     if (this->available.empty())
         return false;
+
     channel = this->available.front();
 
     this->available.pop();
@@ -54,7 +55,7 @@ bool Pool::AssignSource(Source * source, size_t & channel, bool & wasPlaying)
     return true;
 }
 
-bool Pool::FindSource(Source * source, size_t & channel)
+bool Pool::FindSource(common::Source * source, size_t & channel)
 {
     auto iterator = this->playing.find(source);
 
@@ -66,7 +67,7 @@ bool Pool::FindSource(Source * source, size_t & channel)
     return true;
 }
 
-bool Pool::ReleaseSource(Source * source, bool stop)
+bool Pool::ReleaseSource(common::Source * source, bool stop)
 {
     size_t channel;
 
@@ -90,7 +91,7 @@ void Pool::Update()
 {
     thread::Lock lock(this->mutex);
 
-    std::vector<Source *> release;
+    std::vector<common::Source *> release;
 
     for (const auto & item : this->playing)
     {
@@ -98,7 +99,7 @@ void Pool::Update()
             release.push_back(item.first);
     }
 
-    for (Source * source : release)
+    for (common::Source * source : release)
         this->ReleaseSource(source);
 }
 

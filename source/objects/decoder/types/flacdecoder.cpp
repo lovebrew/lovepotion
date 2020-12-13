@@ -6,17 +6,38 @@
 
 using namespace love;
 
+static void metadata_callback(const FLAC__StreamDecoder * decoder, const FLAC__StreamMetadata * metadata, void * data)
+{
+
+}
+
+static FLAC__StreamDecoderReadCallback read_callback(const FLAC__StreamDecoder * decoder, FLAC__byte * buffer, size_t * bytes, void * data)
+{
+
+}
+
+static FLAC__StreamDecoderSeekCallback seek_callback()
+{
+
+}
+
+static void tell_callback()
+{}
+
 FLACDecoder::FLACDecoder(Data * data, int bufferSize) : Decoder(data, bufferSize)
 {
-    this->flac = drflac_open_memory(data->GetData(), data->GetSize(), nullptr);
+    // this->decoder = FLAC__stream_decoder_new();
+    // if (!this->decoder)
+    //     throw love::Exception("Failed to create FLAC decoder!");
 
-    if (this->flac == nullptr)
-        throw love::Exception("Could not load FLAC file.");
+    // FLAC__stream_decoder_set_md5_checking(this->decoder, true);
+
+    // this->status = FLAC__stream_decoder_init_stream(this->decoder, read_callback, seek_callback, tell_callback, NULL, NULL, NULL, metadata_callback, NULL, &this->file);
 }
 
 FLACDecoder::~FLACDecoder()
 {
-    drflac_close(this->flac);
+
 }
 
 bool FLACDecoder::Accepts(const std::string & ext)
@@ -52,25 +73,12 @@ int FLACDecoder::Decode()
 int FLACDecoder::Decode(s16 * buffer)
 {
     // `bufferSize` is in bytes, so divide by 2.
-    drflac_uint64 read = drflac_read_pcm_frames_s16(this->flac, this->bufferSize / 2 / this->flac->channels, (drflac_int16 *)buffer);
-    read *= 2 * this->flac->channels;
-
-    if ((int)read < this->bufferSize)
-        eof = true;
-
-    return (int)read;
+    return 0;
 }
 
 bool FLACDecoder::Seek(double position)
 {
-    drflac_uint64 seekPosition = (drflac_uint64)(position * flac->sampleRate);
-
-    drflac_bool32 result = drflac_seek_to_pcm_frame(flac, seekPosition);
-
-    if (result)
-        this->eof = false;
-
-    return result;
+    return false;
 }
 
 bool FLACDecoder::Rewind()
@@ -85,7 +93,7 @@ bool FLACDecoder::IsSeekable()
 
 int FLACDecoder::GetChannelCount() const
 {
-    return this->flac->channels;
+    return this->file.channels;
 }
 
 int FLACDecoder::GetBitDepth() const
@@ -95,10 +103,10 @@ int FLACDecoder::GetBitDepth() const
 
 int FLACDecoder::GetSampleRate() const
 {
-    return this->flac->sampleRate;
+    return this->file.sampleRate;
 }
 
 double FLACDecoder::GetDuration()
 {
-    return ((double)this->flac->totalPCMFrameCount) / ((double)this->flac->sampleRate);
+    return ((double)this->file.PCMCount) / ((double)this->file.sampleRate);
 }

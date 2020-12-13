@@ -22,7 +22,7 @@ Texture::~Texture()
 void Texture::InitQuad()
 {
     Quad::Viewport v = {0, 0, (double)this->width, (double)this->height};
-    this->quad.Set(new Quad(v, this->width, this->height), Acquire::NORETAIN);
+    this->quad.Set(new love::Quad(v, this->width, this->height), Acquire::NORETAIN);
 }
 
 Texture::TextureType Texture::GetTextureType() const

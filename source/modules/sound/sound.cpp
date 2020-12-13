@@ -40,7 +40,7 @@ Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
     std::vector<DecoderImpl> possibilities =
     {
         DecoderImplFor<VorbisDecoder>(),
-        DecoderImplFor<MPEGDecoder>(),
+        DecoderImplFor<MP3Decoder>(),
         DecoderImplFor<WaveDecoder>(),
         DecoderImplFor<FLACDecoder>()
     };

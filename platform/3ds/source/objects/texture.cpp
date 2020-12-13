@@ -26,30 +26,10 @@ void Texture::SetFilter(const Filter & filter)
 
 void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)
 {
+    Tex3DS_SubTexture tv = quad->GetTex3DSViewport();
+    this->texture.subtex = &tv;
+
     Quad::Viewport v = quad->GetViewport();
-    Tex3DS_SubTexture source;
-
-    /* Set up the Quad */
-
-    int w =  quad->GetTextureWidth(true);
-    int h =  quad->GetTextureHeight(true);
-
-    v.x += 1;
-    v.y += 1;
-
-    v.w -= 2;
-    v.h -= 2;
-
-    source.top    = 1.0f - (v.y / h);
-    source.left   = (v.x / w);
-
-    source.right  = (v.x + v.w) / w;
-    source.bottom = 1.0f - ((v.y + v.h) / h);
-
-    source.width  = v.w;
-    source.height = v.h;
-
-    this->texture.subtex = &source;
 
     // Multiply the current and local transforms
     Matrix4 t(gfx->GetTransform(), localTransform);

@@ -1,9 +1,9 @@
 #include "common/runtime.h"
 
-#include "objects/source/source.h"
+#include "objects/source/sourcec.h"
 #include "modules/audio/pool/pool.h"
 
-using namespace love;
+using namespace love::common;
 
 love::Type Source::type("Source", &Object::type);
 
@@ -13,7 +13,6 @@ Source::Source(Pool * pool, SoundData * sound) : sourceType(Source::TYPE_STATIC)
                                                  channels(sound->GetChannelCount()),
                                                  bitDepth(sound->GetBitDepth())
 {
-    this->CreateWaveBuffer(sound);
     this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()), Acquire::NORETAIN);
 }
 
@@ -22,11 +21,8 @@ Source::Source(Pool * pool, Decoder * decoder) : sourceType(Source::TYPE_STREAM)
                                                  sampleRate(decoder->GetSampleRate()),
                                                  channels(decoder->GetChannelCount()),
                                                  bitDepth(decoder->GetBitDepth()),
-                                                 decoder(decoder),
-                                                 buffers(DEFAULT_BUFFERS)
-{
-    this->CreateWaveBuffer(decoder);
-}
+                                                 decoder(decoder)
+{}
 
 Source::Source(const Source & other) : sourceType(other.sourceType),
                                        pool(other.pool),
@@ -40,47 +36,10 @@ Source::Source(const Source & other) : sourceType(other.sourceType),
                                        channels(other.channels),
                                        bitDepth(other.bitDepth),
                                        decoder(nullptr),
-                                       staticBuffer(other.staticBuffer),
-                                       buffers(other.buffers)
+                                       staticBuffer(other.staticBuffer)
 {
-    if (this->sourceType == TYPE_STREAM)
-    {
-        if (other.decoder.Get())
-        {
-            this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
-            this->CreateWaveBuffer(this->decoder);
-        }
-    }
-}
-
-Source::~Source()
-{
-    this->Stop();
-    this->FreeBuffer();
-}
-
-bool Source::Update()
-{
-    if (!this->valid)
-        return false;
-
-    switch(this->sourceType)
-    {
-        case TYPE_STATIC:
-            return !this->IsFinished();
-        case TYPE_STREAM:
-        {
-            if (!this->IsFinished())
-                return this->_Update();
-
-            return false;
-        }
-        case TYPE_QUEUE:
-        default:
-            break;
-    }
-
-    return false;
+    if (this->sourceType == TYPE_STREAM && other.decoder.Get())
+        this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
 }
 
 void Source::TeardownAtomic()
@@ -91,54 +50,12 @@ void Source::TeardownAtomic()
             break;
         case TYPE_STREAM:
             this->decoder->Rewind();
-            this->CreateWaveBuffer(this->decoder);
+            this->InitializeStreamBuffers(this->decoder);
             break;
         case TYPE_QUEUE:
         default:
             break;
     }
-}
-
-void Source::PrepareAtomic()
-{
-    this->Reset();
-
-    switch (this->sourceType)
-    {
-        case TYPE_STATIC:
-            this->sources[0].data_pcm16 = (s16 *)this->staticBuffer.Get()->GetBuffer();
-            break;
-        case TYPE_STREAM:
-        {
-            int decoded = this->StreamAtomic(this->sources[0].data_pcm16, this->decoder.Get());
-
-            if (decoded == 0)
-                break;
-
-            this->_Prepare(0, decoded);
-
-            if (this->decoder->IsFinished())
-                break;
-
-            break;
-        }
-        case TYPE_QUEUE:
-        default:
-            break;
-    }
-}
-
-int Source::StreamAtomic(s16 * buffer, Decoder * decoder)
-{
-    int decoded = std::max(decoder->Decode(buffer), 0);
-
-    if (decoded > 0)
-        FlushAudioCache(buffer, decoded);
-
-    if (this->decoder->IsFinished() && this->IsLooping())
-        this->decoder->Rewind();
-
-    return decoded;
 }
 
 bool Source::Play()
@@ -157,41 +74,6 @@ bool Source::Play()
     return this->valid = true;
 }
 
-bool Source::PlayAtomic()
-{
-    this->PrepareAtomic();
-
-    bool success = false;
-
-    if (this->sourceType != TYPE_STREAM)
-        FlushAudioCache(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
-
-    this->AddWaveBuffer(0);
-
-    success = true;
-
-    //isPlaying() needs source to be valid
-    if (this->sourceType == TYPE_STREAM)
-    {
-        this->valid = true;
-
-        if (!this->IsPlaying())
-            success = false;
-    }
-
-    //stop() needs source to be valid
-    if (!success)
-    {
-        this->valid = true;
-        this->Stop();
-    }
-
-    if (this->sourceType != TYPE_STREAM)
-        this->offsetSamples = 0;
-
-    return success;
-}
-
 void Source::Stop()
 {
     if (!this->valid)
@@ -207,19 +89,6 @@ void Source::Pause()
 
     if (pool->IsPlaying(this))
         this->PauseAtomic();
-}
-
-void Source::SetLooping(bool shouldLoop)
-{
-    this->looping = shouldLoop;
-
-    if (this->sourceType == TYPE_STATIC)
-        LOVE_SetBufferLooping(this->sources[0], shouldLoop);
-}
-
-Source * Source::Clone()
-{
-    return new Source(*this);
 }
 
 Source::Type Source::GetType() const

@@ -17,7 +17,6 @@ Audio::PoolThread::PoolThread(Pool * pool) : pool(pool),
 Audio::PoolThread::~PoolThread()
 {}
 
-
 void Audio::PoolThread::ThreadFunction()
 {
     while (true)
@@ -52,16 +51,16 @@ Audio::Audio() : pool(nullptr),
     AudrenDriver::Initialize();
 
     this->poolThread = new PoolThread(pool);
-	this->poolThread->Start();
+    this->poolThread->Start();
 }
 
 Audio::~Audio()
 {
     this->poolThread->SetFinish();
-	this->poolThread->Wait();
+    this->poolThread->Wait();
 
-	delete this->poolThread;
-	delete this->pool;
+    delete this->poolThread;
+    delete this->pool;
 
     AudrenDriver::Exit();
 }
