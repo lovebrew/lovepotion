@@ -1,5 +1,6 @@
 #pragma once
 
+#include <citro3d.h>
 #include <citro2d.h>
 #include <3ds.h>
 
@@ -8,8 +9,8 @@
 #define GetMasterVolume
 
 typedef C3D_RenderTarget Renderer;
-typedef C2D_Sprite TextureHandle;
-typedef C2D_Image ImageHandle;
+// typedef C2D_Sprite TextureHandle;
+typedef C2D_Image TextureHandle;
 
 typedef struct _Frame Frame;
 

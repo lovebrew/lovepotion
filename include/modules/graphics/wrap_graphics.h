@@ -1,12 +1,17 @@
 #pragma once
 
 #include "modules/graphics/graphics.h"
+
+#if defined (__SWITCH__)
+    #include "deko3d/graphics.h"
+#elif defined (_3DS)
+    #include "citro2d/graphics.h"
+#endif
+
 #include "modules/window/window.h"
 
 #include "objects/font/font.h"
 #include "objects/drawable/wrap_drawable.h"
-
-#include "common/backend/primitives.h"
 
 namespace Wrap_Graphics
 {
@@ -24,6 +29,10 @@ namespace Wrap_Graphics
 
     int Line(lua_State * L);
 
+    int GetPointSize(lua_State * L);
+
+    int SetPointSize(lua_State * L);
+
     int Points(lua_State * L);
 
     int Polygon(lua_State * L);
@@ -40,6 +49,8 @@ namespace Wrap_Graphics
 
     int Rotate(lua_State * L);
 
+    int Shear(lua_State * L);
+
     int Pop(lua_State * L);
 
     int Print(lua_State * L);
@@ -50,6 +61,16 @@ namespace Wrap_Graphics
 
     int SetScissor(lua_State * L);
 
+    int IntersectScissor(lua_State * L);
+
+    int ApplyTransform(lua_State * L);
+
+    int ReplaceTransform(lua_State * L);
+
+    int TransformPoint(lua_State * L);
+
+    int InverseTransformPoint(lua_State * L);
+
     int GetScissor(lua_State * L);
 
     int NewImage(lua_State * L);
@@ -57,6 +78,8 @@ namespace Wrap_Graphics
     int NewFont(lua_State * L);
 
     int NewQuad(lua_State * L);
+
+    int NewText(lua_State * L);
 
     int NewCanvas(lua_State * L);
 
@@ -69,6 +92,8 @@ namespace Wrap_Graphics
     int SetFont(lua_State * L);
 
     int Stencil(lua_State * L);
+
+    int GetRendererInfo(lua_State * L);
 
     int GetBackgroundColor(lua_State * L);
 
@@ -90,6 +115,12 @@ namespace Wrap_Graphics
 
     int GetHeight(lua_State * L);
 
+    int SetActiveScreen(lua_State * L);
+
+    int GetActiveScreen(lua_State * L);
+    
+    int GetScreens(lua_State * L);
+
     int GetDimensions(lua_State * L);
 
     int SetBackgroundColor(lua_State * L);
@@ -98,7 +129,7 @@ namespace Wrap_Graphics
 
     int SetCanvas(lua_State * L);
 
-    int SetDepth(lua_State * L);
+    int GetStereoscopicDepth(lua_State * L);
 
     int Register(lua_State * L);
 }

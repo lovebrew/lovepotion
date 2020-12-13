@@ -10,6 +10,8 @@
 
 #include "modules/data/hashfunction/hashfunction.h"
 
+#include "common/module.h"
+
 namespace love
 {
     namespace data
@@ -47,7 +49,7 @@ namespace love
         char * _Decompress(CompressedData * data, size_t & decompressedSize);
     }
 
-    class DataModule : public Module
+    class DataModule : public love::Module
     {
         public:
             ByteData * NewByteData(size_t size);

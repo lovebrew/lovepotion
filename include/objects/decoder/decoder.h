@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/exception.h"
-
+#include "common/data.h"
 namespace love
 {
     class Decoder : public Object

@@ -7,18 +7,29 @@
 
 #include "modules/thread/types/lock.h"
 
-namespace Logger
+class Logger
 {
-    void Initialize();
+    public:
+        static Logger & Instance() {
+            static Logger instance;
+            return instance;
+        }
 
-    void Exit();
+        void LogOutput(const char * func, size_t line, const char * format, ...) const;
 
-    void LogOutput(const char * func, size_t line, const char * format, ...);
+        ~Logger();
 
-    inline FILE * m_file = nullptr;
-    inline bool m_enabled = false;
-    static love::thread::MutexRef m_mutex;
-}
+    private:
+        Logger();
 
-#define LOG(format, ...) \
-    Logger::LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
+        love::thread::MutexRef mutex;
+
+        FILE * file;
+
+        static constexpr const char * LOG_FORMAT = "%s:%zu:\n%s\n\n";
+};
+
+#if defined (__DEBUG__)
+    #define LOG(format, ...) \
+        Logger::Instance().LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ## __VA_ARGS__)
+#endif

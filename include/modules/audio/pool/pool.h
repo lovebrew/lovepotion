@@ -10,7 +10,11 @@
 
 namespace love
 {
-    class Source;
+    namespace common
+    {
+        class Source;
+    }
+
 
     class Pool
     {
@@ -19,13 +23,16 @@ namespace love
 
             bool IsRunning();
 
-            bool IsPlaying(Source * source);
+            bool IsPlaying(common::Source * source);
 
-            bool AssignSource(Source * source, size_t & channel, bool & wasPlaying);
-            bool FindSource(Source * source, size_t & channel);
-            bool ReleaseSource(Source * source, bool stop = true);
+            bool AssignSource(common::Source * source, size_t & channel, bool & wasPlaying);
+
+            bool FindSource(common::Source * source, size_t & channel);
+
+            bool ReleaseSource(common::Source * source, bool stop = true);
 
             void Finish();
+
             void Update();
 
             void Sleep();
@@ -33,10 +40,10 @@ namespace love
             thread::Lock Lock();
 
         private:
-            friend class Source;
+            friend class common::Source;
 
             std::atomic<bool> running = true;
-            std::map<Source *, size_t> playing;
+            std::map<common::Source *, size_t> playing;
             thread::MutexRef mutex;
 
             std::queue<size_t> available;

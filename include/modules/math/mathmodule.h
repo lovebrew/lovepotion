@@ -9,6 +9,7 @@
 #include "common/mmath.h"
 
 #include "objects/random/randomgenerator.h"
+#include "objects/transform/transform.h"
 
 #include <list>
 #include <vector>
@@ -17,6 +18,16 @@
 
 namespace love
 {
+        /**
+     * Converts a value from the sRGB (gamma) colorspace to linear RGB.
+     **/
+    float GammaToLinear(float c);
+
+    /**
+     * Converts a value from linear RGB to the sRGB (gamma) colorspace.
+     **/
+    float LinearToGamma(float c);
+
     class Math : public Module
     {
         public:
@@ -45,11 +56,15 @@ namespace love
 
             RandomGenerator * NewRandomGenerator();
 
+            Transform * NewTransform();
+
+            Transform * NewTransform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx, float ky);
+
             /* LÖVE Functions */
 
-            float GammaToLinear(float color);
+            static float GammaToLinear(float color);
 
-            float LinearToGamma(float color);
+            static float LinearToGamma(float color);
 
             std::vector<Triangle> Triangulate(const std::vector<Vector2> & polygon);
 

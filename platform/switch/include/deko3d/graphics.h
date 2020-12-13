@@ -1,0 +1,113 @@
+#pragma once
+
+#include "modules/graphics/graphics.h"
+#include "modules/font/fontmodule.h"
+
+#include "deko3d/deko.h"
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
+#include FT_GLYPH_H
+
+#define RENDERER_NAME    "deko3d"
+#define RENDERER_VERSION "0.2.0"
+#define RENDERER_VENDOR  "devkitPro"
+#define RENDERER_DEVICE  "NVIDIA Tegra X1"
+
+enum class love::Graphics::Screen: uint8_t
+{
+    SCREEN_DEFAULT,
+    SCREEN_MAX_ENUM
+};
+
+namespace love::deko3d
+{
+    class Graphics : public love::Graphics
+    {
+        public:
+            Graphics();
+
+            ~Graphics();
+
+            Screen GetActiveScreen() const override;
+
+            std::vector<std::string> GetScreens() const override;
+
+            const int GetWidth(Screen screen) const override;
+
+            const int GetHeight() const override;
+
+            void SetActiveScreen(Screen screen) override;
+
+            void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) override;
+
+            void Present() override;
+
+            void SetScissor(const Rect & scissor) override;
+
+            void SetScissor() override;
+
+            void SetColor(Colorf color) override;
+
+            /* Primitives */
+
+            love::Image * NewImage(Texture::TextureType t, int width, int height);
+
+            void Rectangle(DrawMode mode, float x, float y, float width, float height) override;
+
+            void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry) override;
+
+            void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry, int points) override;
+
+            void Ellipse(DrawMode mode, float x, float y, float a, float b) override;
+
+            void Ellipse(DrawMode mode, float x, float y, float a, float b, int points) override;
+
+            void Circle(DrawMode mode, float x, float y, float radius) override;
+
+            void Circle(DrawMode mode, float x, float y, float radius, int points) override;
+
+            void Polygon(DrawMode mode, const Vector2 * points, size_t size, bool skipLastFilledVertex = true) override;
+
+            void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2) override;
+
+            void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) override;
+
+            void Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount) override;
+
+            void SetPointSize(float size) override;
+
+            void Line(float startx, float starty, float endx, float endy) override;
+
+            void SetLineWidth(float width) override;
+
+            void SetDefaultFilter(const Texture::Filter & filter);
+
+            /* End Primitives */
+
+            void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
+
+            void SetColorMask(ColorMask mask) override;
+
+            void SetMeshCullMode(vertex::CullMode cull) override;
+
+            void SetFrontFaceWinding(vertex::Winding winding) override;
+
+            Font * NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter = Texture::defaultFilter) override;
+
+            Font * NewFont(Rasterizer * rasterizer, const Texture::Filter & filter) override;
+
+            RendererInfo GetRendererInfo() const override;
+
+            // Internal?
+            Shader * NewShader(Shader::StandardShader type);
+
+            static void Resize(int width, int height);
+
+        private:
+            int CalculateEllipsePoints(float rx, float ry) const;
+
+            int width;
+            int height;
+    };
+}

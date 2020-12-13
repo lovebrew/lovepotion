@@ -1,5 +1,8 @@
 #pragma once
 
+#include "common/type.h"
+#include <atomic>
+
 namespace love
 {
     class Object

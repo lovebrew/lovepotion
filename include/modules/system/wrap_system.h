@@ -2,6 +2,9 @@
 
 #include "modules/system/system.h"
 
+/* subclass */
+#include "modules/system.h"
+
 namespace Wrap_System
 {
     int GetOS(lua_State * L);
@@ -15,6 +18,8 @@ namespace Wrap_System
     int GetLanguage(lua_State * L);
 
     int GetUsername(lua_State * L);
+
+    int GetVersion(lua_State * L);
 
     int Register(lua_State * L);
 }

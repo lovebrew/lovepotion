@@ -6,9 +6,12 @@
 */
 
 #include "common/mmath.h"
+#include "common/matrix.h"
 
 namespace love
 {
+    class Graphics;
+
     class Drawable : public Object
     {
         public:
@@ -16,6 +19,6 @@ namespace love
 
             virtual ~Drawable() {};
 
-            virtual void Draw(const DrawArgs & args, const Color & color) = 0;
+            virtual void Draw(Graphics * gfx, const Matrix4 & localTransform) = 0;
     };
 }

@@ -17,6 +17,18 @@ enum Registry
 #include "objects/object.h"
 #include "common/type.h"
 
+namespace love
+{
+    struct WrappedModule
+    {
+        const char * name;
+        love::Type * type;
+        const luaL_reg * functions;
+        const lua_CFunction * types;
+        love::Module * instance;
+    };
+}
+
 namespace Luax
 {
     int Preload(lua_State * L, lua_CFunction func, const char * name);

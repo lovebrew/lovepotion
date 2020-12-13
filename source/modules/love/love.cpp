@@ -9,6 +9,9 @@
 #include "modules/data/wrap_datamodule.h"
 #include "modules/event/wrap_event.h"
 #include "modules/filesystem/wrap_filesystem.h"
+#if defined (__SWITCH__)
+    #include "modules/font/wrap_fontmodule.h"
+#endif
 #include "modules/graphics/wrap_graphics.h"
 #include "modules/joystick/wrap_joystick.h"
 #include "modules/keyboard/wrap_keyboard.h"
@@ -72,11 +75,14 @@ int Love::Initialize(lua_State * L)
     lua_pushcfunction(L, GetVersion);
     lua_setfield(L, -2, "getVersion");
 
-    lua_pushcfunction(L, EnsureApplicationType);
+    lua_pushcfunction(L, _EnsureApplicationType);
     lua_setfield(L, -2, "_ensureApplicationType");
 
+    lua_pushcfunction(L, _OpenConsole);
+    lua_setfield(L, -2, "_openConsole");
+
     lua_pushcfunction(L, EnableAccelerometerAsJoystick);
-	lua_setfield(L, -2, "_setAccelerometerAsJoystick");
+    lua_setfield(L, -2, "_setAccelerometerAsJoystick");
 
     //---------------------------------------//
 
@@ -87,6 +93,9 @@ int Love::Initialize(lua_State * L)
         { "love.event",       Wrap_Event::Register,       },
         { "love.graphics",    Wrap_Graphics::Register,    },
         { "love.filesystem",  Wrap_Filesystem::Register,  },
+        #if defined(__SWITCH__)
+         { "love.font",       Wrap_FontModule::Register  },
+        #endif
         { "love.joystick",    Wrap_Joystick::Register,    },
         { "love.keyboard",    Wrap_Keyboard::Register     },
         { "love.math",        Wrap_Math::Register         },
@@ -156,7 +165,7 @@ int Love::GetVersion(lua_State * L)
 ** Checks for Title Takeover on atmosphère
 ** Does absolutely nothing on 3DS. Ran at boot once.
 */
-int Love::EnsureApplicationType(lua_State * L)
+int Love::_EnsureApplicationType(lua_State * L)
 {
     #if defined(__SWITCH__)
         AppletType type = appletGetAppletType();
@@ -171,6 +180,25 @@ int Love::EnsureApplicationType(lua_State * L)
     #endif
 
     return 0;
+}
+
+/*
+** Initialize the 'console'. Console for your console.
+** On Switch, redirects printf to nxlink
+** On 3DS, redirects to gdb
+*/
+int Love::_OpenConsole(lua_State * L)
+{
+    #if defined (__SWITCH__)
+        Love::debugSockfd = nxlinkStdioForDebug();
+        lua_pushboolean(L, Love::debugSockfd != -1);
+    #else
+        gdbHioDevInit();
+        int success = gdbHioDevRedirectStdStreams(false, true, true);
+        lua_pushboolean(L, success == 0);
+    #endif
+
+    return 1;
 }
 
 /*

@@ -37,22 +37,31 @@ BUILD		:=	build
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				source \
-				source/backend
+				source/backend \
+				source/common \
+				source/citro2d \
+				source/modules \
+				source/objects
 
-DATA		:=	../../source/scripts
+DATA		:=	${LOVE_DATA_FILES}
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
+				${LOVE_LIBRARIES} \
 				include \
+				include/citro2d \
+				include/modules \
+				include/objects/font \
+				include/objects/text \
+				include/objects/canvas \
+				include/objects/texture
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
 # ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 
-APP_TITLE		:= Löve Potion
 APP_DESCRIPTION	:= LÖVE for 3DS
-APP_AUTHOR		:= TurtleP & NotQuiteApex
 ICON			:= icon.png
 
 #---------------------------------------------------------------------------------
@@ -60,18 +69,25 @@ ICON			:= icon.png
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
-CFLAGS	:=	-g -Wall -O2 -mword-relocations \
-			-fomit-frame-pointer -ffunction-sections -DCOMPT53_PREFIX -DLOVE_POTION_CONSOLE="\"3DS\"" \
+CFLAGS	:=	-g -Wall -mword-relocations \
+			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION)
+ifeq ($(strip $(DEBUG)),)
+	CFLAGS += -O2
+else
+	CFLAGS += -Og
+	ICON := icon-dev.png
+endif
+
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION) -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lphysfs -lz `arm-none-eabi-pkg-config libmpg123 --libs` -lvorbisidec -logg -lcitro2d -lcitro3d -lctru
+LIBS	:= -lphysfs -lz -lvorbisidec `arm-none-eabi-pkg-config libmpg123 --libs` -logg -lcitro2dd -lcitro3dd -lctru
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
@@ -222,11 +238,6 @@ $(OUTPUT).elf	:	$(OFILES)
 	@$(bin2o)
 #---------------------------------------------------------------------------------
 %.lua.o	%_lua.h :	%.lua
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
-#---------------------------------------------------------------------------------
-%.png.o	%_png.h :	%.png
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)

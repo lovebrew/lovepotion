@@ -11,6 +11,8 @@ extern "C"
 {
     void userAppInit()
     {
+        osSetSpeedupEnable(true);
+
         Result res = cfguInit();
 
         if (R_FAILED(res))
@@ -51,5 +53,7 @@ extern "C"
         ptmuExit();
         mcuHwcExit();
         cfguExit();
+
+        gdbHioDevExit();
     }
 }

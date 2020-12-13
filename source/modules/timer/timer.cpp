@@ -70,12 +70,8 @@ void Timer::Sleep(float seconds)
     {
         u32 milliseconds = seconds * 1000.0f;
 
-        #if defined(_3DS)
-            u64 nanoSeconds = milliseconds * SLEEP_ULL;
-            svcSleepThread(nanoSeconds);
-        #elif defined(__SWITCH__)
-            SDL_Delay(milliseconds);
-        #endif
+        u64 nanoSeconds = milliseconds * SLEEP_ULL;
+        svcSleepThread(nanoSeconds);
     }
 }
 

@@ -1,4 +1,5 @@
 #include "common/runtime.h"
+#include "modules/love.h"
 
 extern "C"
 {
@@ -37,20 +38,17 @@ extern "C"
 
         if (R_FAILED(res))
             fatalThrow(res);
-
-        TTF_Init();
     }
 
     void userAppExit()
     {
+        close(Love::debugSockfd);
+
         socketExit();
         psmExit();
         setExit();
         accountExit();
         nifmExit();
         plExit();
-
-        // Deinitialize everything else
-        TTF_Quit();
     }
 }

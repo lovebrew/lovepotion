@@ -16,6 +16,16 @@ RandomGenerator * Math::NewRandomGenerator()
     return new RandomGenerator();
 }
 
+Transform * Math::NewTransform()
+{
+    return new Transform();
+}
+
+Transform * Math::NewTransform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx, float ky)
+{
+    return new Transform(x, y, a, sx, sy, ox, oy, kx, ky);
+}
+
 std::vector<Math::Triangle> Math::Triangulate(const std::vector<Vector2> & polygon)
 {
     if (polygon.size() < 3)

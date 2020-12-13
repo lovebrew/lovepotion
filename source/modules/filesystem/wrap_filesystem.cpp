@@ -613,6 +613,35 @@ File * Wrap_Filesystem::GetFile(lua_State * L, int index)
     return file;
 }
 
+int Wrap_Filesystem::Lines(lua_State * L)
+{
+    if (lua_isstring(L, 1))
+    {
+        File *file = instance()->NewFile(lua_tostring(L, 1));
+        bool success = false;
+
+        Luax::CatchException(L, [&]() {
+            success = file->Open(File::MODE_READ);
+        });
+
+        if (!success)
+        {
+            file->Release();
+            return luaL_error(L, "Could not open file.");
+        }
+
+        Luax::PushType(L, file);
+        file->Release();
+    }
+    else
+        return luaL_argerror(L, 1, "expected filename.");
+
+    lua_pushstring(L, ""); // buffer
+    lua_pushstring(L, 0); // buffer offset
+    lua_pushcclosure(L, Wrap_File::Lines_I, 3);
+
+    return 1;
+}
 FileData * Wrap_Filesystem::GetFileData(lua_State * L, int index)
 {
     FileData * data = nullptr;
@@ -699,6 +728,7 @@ int Wrap_Filesystem::Register(lua_State * L)
         { "getUserDirectory",       GetUserDirectory       },
         { "getWorkingDirectory",    GetWorkingDirectory    },
         { "isFused",                IsFused                },
+        { "lines",                  Lines                  },
         { "load",                   Load                   },
         { "mount",                  Mount                  },
         { "newFile",                NewFile                },

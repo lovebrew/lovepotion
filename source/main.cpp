@@ -81,8 +81,6 @@ DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 
 int main(int argc, char * argv[])
 {
-    Logger::Initialize();
-
     DoneAction done = DONE_QUIT;
     int retval = 0;
 
@@ -90,8 +88,6 @@ int main(int argc, char * argv[])
     {
         done = Run_Love_Potion(argc, argv, retval);
     } while (done != DoneAction::DONE_QUIT);
-
-    Logger::Exit();
 
     return retval;
 }

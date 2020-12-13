@@ -2,39 +2,29 @@
 
 using namespace love;
 
-void Logger::Initialize()
+Logger::Logger()
 {
-    Logger::m_file = freopen("love.log", "w", stderr);
-    Logger::m_enabled = true;
+    this->file = freopen("love.log", "w", stderr);
 }
 
-/*
-** {Function Name}:{Line}
-** {Resolved printf stuff}
-** {Newline}
-** {Start of next Output}
-*/
-void Logger::LogOutput(const char * func, size_t line, const char * format, ...)
+Logger::~Logger()
 {
-    if (!m_enabled || !m_file)
+    fclose(this->file);
+}
+
+void Logger::LogOutput(const char * func, size_t line, const char * format, ...) const
+{
+    if (!this->file)
         return;
 
-    thread::Lock lock(m_mutex);
+    thread::Lock lock(this->mutex);
 
     va_list args;
     va_start(args, format);
+    char buffer[255];
 
-    fprintf(m_file, "%s:%zu:\n", func, line);
-    vfprintf(m_file, format, args);
-    fprintf(m_file, "\n\n");
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    fprintf(this->file, LOG_FORMAT, func, line, buffer);
 
-    fflush(m_file);
-}
-
-void Logger::Exit()
-{
-    if (!m_enabled || !m_file)
-        return;
-
-    fclose(m_file);
+    fflush(this->file);
 }

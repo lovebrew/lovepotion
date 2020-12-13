@@ -1,5 +1,8 @@
 #pragma once
 
+#include "common/exception.h"
+#include "objects/object.h"
+
 namespace love
 {
     class Module : public Object
@@ -13,6 +16,7 @@ namespace love
                 M_DATA,
                 M_EVENT,
                 M_FILESYSTEM,
+                M_FONT,
                 M_GRAPHICS,
                 M_JOYSTICK,
                 M_KEYBOARD,
@@ -42,14 +46,5 @@ namespace love
 
         private:
             static Module * instances[M_MAX_ENUM];
-    };
-
-    struct WrappedModule
-    {
-        const char * name;
-        love::Type * type;
-        const luaL_reg * functions;
-        const lua_CFunction * types;
-        Module * instance;
     };
 }

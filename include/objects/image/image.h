@@ -18,14 +18,19 @@ namespace love
             static love::Type type;
 
             Image(Data * data);
-            ~Image();
 
-            void Draw(const DrawArgs & args, const Color & color);
-            void Draw(const DrawArgs & args, Quad * quad, const Color & color);
+            Image(TextureType type, int width, int height);
+
+            void Init(int width, int height);
+
+            #if defined(__SWITCH__)
+                void ReplacePixels(void * data, size_t size, const Rect & rect);
+            #endif
+
+            ~Image();
 
         private:
             TextureType textureType;
-            TextureHandle texture;
             TextureSheet sheet;
     };
 }

@@ -28,6 +28,8 @@ namespace Wrap_Filesystem
 
     int GetUserDirectory(lua_State * L);
 
+    int Lines(lua_State * L);
+
     int Load(lua_State * L);
 
     int GetInfo(lua_State * L);

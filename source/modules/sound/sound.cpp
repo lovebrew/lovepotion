@@ -30,9 +30,7 @@ DecoderImpl DecoderImplFor()
 }
 
 Sound::~Sound()
-{
-    MPEGDecoder::Quit();
-}
+{}
 
 Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
 {
@@ -42,8 +40,9 @@ Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
     std::vector<DecoderImpl> possibilities =
     {
         DecoderImplFor<VorbisDecoder>(),
-        DecoderImplFor<MPEGDecoder>(),
-        DecoderImplFor<WaveDecoder>()
+        DecoderImplFor<MP3Decoder>(),
+        DecoderImplFor<WaveDecoder>(),
+        DecoderImplFor<FLACDecoder>()
     };
 
     for (DecoderImpl & item : possibilities)

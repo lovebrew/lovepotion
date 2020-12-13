@@ -1,6 +1,12 @@
 #pragma once
 
 #include <cstdlib> // for rand() and RAND_MAX
+#include <algorithm>
+
+#define LOVE_M_TORAD	(float)(M_PI / 180.0f)
+#define LOVE_M_TODEG    (float)(180.0f / M_PI)
+#define LOVE_TORAD(x)	(float)(x * LOVE_M_TORAD)
+#define LOVE_TODEG(x)	(float)(x * LOVE_M_TODEG)
 
 namespace love
 {
@@ -11,27 +17,20 @@ namespace love
 
         bool operator == (const Rect & rhs) const
         {
-            return x == rhs.x && y == rhs.y && w == rhs.w && h == rhs.h;
+            return x == rhs.x && y == rhs.y &&
+                   w == rhs.w && h == rhs.h;
         }
     } Rect;
 
-    struct DrawArgs
-    {
-        float x = 0;
-        float y = 0;
+    constexpr size_t LOVE_MIN_TEX = 8U;
+    constexpr size_t LOVE_MAX_TEX = 1024U;
 
-        float r = 0;
-
-        float scalarX = 1;
-        float scalarY = 1;
-
-        float offsetX = 0;
-        float offsetY = 0;
-
-        float depth = 0;
-    };
-
-    inline int NextPO2(unsigned int in)
+    /*
+    ** Clamps 3DS textures between min
+    ** and max texture size to prevent
+    ** the GPU from locking up
+    */
+    inline int NextPO2(size_t in)
     {
         in--;
         in |= in >> 1;
@@ -41,7 +40,6 @@ namespace love
         in |= in >> 16;
         in++;
 
-        // clamp size to keep gpu from locking
-        return std::clamp(in, 8U, 1024U);
+        return std::clamp(in, LOVE_MIN_TEX, LOVE_MAX_TEX);
     }
 }

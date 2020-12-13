@@ -29,7 +29,7 @@ return
             scale = 0.5,
             shouldRender =
             function (s)
-                return s == "top"
+                return s ~= "bottom"
             end
         },
         box = function (screen)

@@ -30,26 +30,40 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=    LovePotion
-BUILD		:=    build
+TARGET		:= LovePotion
+BUILD		:= build
 
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				source \
-				source/backend
+				source/backend \
+				source/common \
+				source/deko3d \
+				source/freetype \
+				source/freetype/types \
+				source/modules \
+				source/modules/font \
+				source/objects
 
-DATA		:=	../../source/scripts
+
+DATA		:=	../../source/scripts \
+				scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
-				include
+				include \
+				include/deko3d \
+				include/freetype \
+				include/freetype/types \
+				include/modules \
+				include/modules/font \
+				include/objects/font \
+				include/objects/canvas \
+				include/objects/text
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs
 
-APP_TITLE		:= Löve Potion
-APP_AUTHOR		:= TurtleP & NotQuiteApex
-APP_VERSION		:= 2.0
 APP_TITLEID		:= 1043
 
 #---------------------------------------------------------------------------------
@@ -57,17 +71,24 @@ APP_TITLEID		:= 1043
 #---------------------------------------------------------------------------------
 ARCH      :=    -march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS    :=    -g -Wall -O2 -ffunction-sections `sdl2-config --cflags` `freetype-config --cflags` \
+CFLAGS    :=    -g -Wall -ffunction-sections `freetype-config --cflags` \
 				$(ARCH) $(DEFINES) -DLOVE_POTION_CONSOLE="\"Switch\""
 
-CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION)
+CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -DEMULATION=$(EMULATION) -D__DEBUG__=$(DEBUG)
+
+ifeq ($(strip $(DEBUG)),)
+	CFLAGS += -O2
+else
+	CFLAGS += -Og
+	ICON := icon-dev.jpg
+endif
 
 CXXFLAGS  :=	$(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 
 ASFLAGS   :=    -g $(ARCH)
 LDFLAGS   =     --specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lphysfs -lz `aarch64-none-elf-pkg-config libmpg123 --libs` -lvorbisidec -logg `aarch64-none-elf-pkg-config SDL2_ttf SDL2_image SDL2_gfx --libs` -lSDL2 -lnx
+LIBS := -lphysfs -lz -lvorbisidec  `aarch64-none-elf-pkg-config libmpg123 --libs` -lturbojpeg -lpng `freetype-config --libs` -logg -ldeko3dd -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -190,26 +211,15 @@ $(OUTPUT).elf    :    $(OFILES)
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
-%.bin.o    :    %.bin
-#---------------------------------------------------------------------------------
+%.bin.o: %.bin
 	@echo $(notdir $<)
 	@$(bin2o)
-
 #---------------------------------------------------------------------------------
-%.lua.o    :    %.lua
-#---------------------------------------------------------------------------------
+%.lua.o: %.lua
 	@echo $(notdir $<)
 	@$(bin2o)
-
 #---------------------------------------------------------------------------------
-%.ttf.o    :    %.ttf
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
-
-#---------------------------------------------------------------------------------
-%.png.o    :    %.png
-#---------------------------------------------------------------------------------
+%.dksh.o: %.dksh
 	@echo $(notdir $<)
 	@$(bin2o)
 

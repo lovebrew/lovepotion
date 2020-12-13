@@ -5,10 +5,12 @@
     "tasks":
     [
         {
-            "label": "Build 3DS",
+            "label": "Build Console",
             "type": "shell",
-            "command": "make ctr -j",
-            "presentation": {
+            "command": "make ${input:args} -j6",
+
+            "presentation":
+            {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
@@ -16,97 +18,37 @@
                 "showReuseMessage": false,
                 "clear": true
             },
-            "group": "build"
+
+            "group": "build",
+            "problemMatcher": []
         },
 
         {
-            "label": "Build Switch",
+            "label": "Clean All",
             "type": "shell",
-            "command": "make hac -j",
+            "command": "make clean",
+
             "presentation": {
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
-                "panel": "new",
+                "panel": "dedicated",
                 "showReuseMessage": false,
                 "clear": true
             },
-            "group": "build"
-        },
 
-        {
-            "label": "Build All",
-            "type": "shell",
-            "command": "make -j",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            },
-            "group": "build"
-        },
+            "group": "build",
+            "problemMatcher": []
+        }
+    ],
 
+    "inputs":
+    [
         {
-            "label": "Install 3DS",
-            "dependsOn": ["Build 3DS"],
-            "type": "shell",
-            "command": "3dslink ./platform/3ds/LovePotion.3dsx",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            }
-        },
-
-        {
-            "label": "Install Switch",
-            "dependsOn": ["Build Switch"],
-            "type": "shell",
-            "command": "nxlink ./platform/switch/LovePotion.nro",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            }
-        },
-
-        {
-            "label": "Update 3DS",
-            "dependsOn": ["Build 3DS"],
-            "type": "shell",
-            "command": "cp ./platform/3ds/LovePotion.elf ~/.lovepotion/3ds.elf",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            }
-        },
-
-        {
-            "label": "Update Switch",
-            "dependsOn": ["Build Switch"],
-            "type": "shell",
-            "command": "cp ./platform/switch/LovePotion.elf ~/.lovepotion/switch.elf",
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "new",
-                "showReuseMessage": false,
-                "clear": true
-            }
+            "id": "args",
+            "type": "command",
+            "command": "cpptools.activeConfigCustomVariable",
+            "args": "args"
         }
     ]
 }
