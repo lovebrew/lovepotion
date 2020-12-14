@@ -5,35 +5,37 @@ extern "C"
 {
     void userAppInit()
     {
+        /* system fonts */
         Result res = plInitialize(PlServiceType_User);
 
         if (R_FAILED(res))
             fatalThrow(res);
 
+        /* network interface manager */
         res = nifmInitialize(NifmServiceType_User);
 
         if (R_FAILED(res))
             fatalThrow(res);
 
-        #if !defined(EMULATION)
-            res = accountInitialize(AccountServiceType_Application);
+        /* accounts */
+        res = accountInitialize(AccountServiceType_Application);
 
-            if (R_FAILED(res))
-                fatalThrow(res);
-        #endif
+        if (R_FAILED(res))
+            fatalThrow(res);
 
+        /* settings */
         res = setInitialize();
 
         if (R_FAILED(res))
             fatalThrow(res);
 
-        #if !defined(EMULATION)
-            res = psmInitialize();
+        /* battery */
+        res = psmInitialize();
 
-            if (R_FAILED(res))
-                fatalThrow(res);
-        #endif
+        if (R_FAILED(res))
+            fatalThrow(res);
 
+        /* wireless comms */
         res = socketInitializeDefault();
 
         if (R_FAILED(res))

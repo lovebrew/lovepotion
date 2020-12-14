@@ -31,13 +31,11 @@ int System::GetProcessorCount()
 
 love::System::PowerInfo System::GetPowerInfo() const
 {
-    u8 batteryPercent = 100, batteryState = 0;
+    u8 batteryPercent = 100;
+    u8 batteryState = 0;
 
-    #if !defined(EMULATION)
-        MCUHWC_GetBatteryLevel(&batteryPercent);
-        PTMU_GetBatteryChargeState(&batteryState);
-    #endif
-
+    MCUHWC_GetBatteryLevel(&batteryPercent);
+    PTMU_GetBatteryChargeState(&batteryState);
 
     PowerInfo info;
     info.percentage = batteryPercent;

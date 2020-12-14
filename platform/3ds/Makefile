@@ -80,7 +80,7 @@ else
 	ICON := icon-dev.png
 endif
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DEMULATION=$(EMULATION) -D__DEBUG__=$(DEBUG)
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 

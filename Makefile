@@ -41,10 +41,3 @@ ctr-debug:
 
 hac-debug:
 	@$(MAKE) -C platform/switch DEBUG=1
-
-# emulation
-ctr-emu:
-	@$(MAKE) -C platform/3ds EMULATION=1
-
-hac-emu:
-	@$(MAKE) -C platform/switch EMULATION=1

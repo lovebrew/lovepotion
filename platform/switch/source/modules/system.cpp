@@ -25,10 +25,8 @@ love::System::PowerInfo System::GetPowerInfo() const
     u32 batteryPercent = 100;
     ChargerType chargerType = ChargerType_None;
 
-    #if !defined(EMULATION)
-        psmGetBatteryChargePercentage(&batteryPercent);
-        psmGetChargerType(&chargerType);
-    #endif
+    psmGetBatteryChargePercentage(&batteryPercent);
+    psmGetChargerType(&chargerType);
 
     PowerInfo info;
     info.percentage = batteryPercent;
