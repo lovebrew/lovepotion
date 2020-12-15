@@ -747,7 +747,6 @@ int Wrap_Graphics::GetDefaultFilter(lua_State * L)
 
 int Wrap_Graphics::NewImage(lua_State * L)
 {
-    std::string path = luaL_checkstring(L, 1);
     StrongReference<Image> image;
 
     if (Wrap_Filesystem::CanGetData(L, 1))

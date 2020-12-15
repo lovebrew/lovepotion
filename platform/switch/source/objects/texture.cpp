@@ -10,8 +10,14 @@
 
 using namespace love;
 
-Texture::Texture(TextureType type) : common::Texture(type)
+Texture::Texture(TextureType type) : common::Texture(type),
+                                     texture()
 {}
+
+Texture::~Texture()
+{
+    dk3d.UnRegisterResHandle(this->handle);
+}
 
 void Texture::SetHandle(DkResHandle handle)
 {
@@ -30,12 +36,14 @@ CImage & Texture::GetTexture()
 
 bool Texture::SetWrap(const Wrap & wrap)
 {
-    dk3d.SetTextureFilter(this, filter);
+    dk3d.SetTextureWrap(this, wrap);
     return true;
 }
 
 void Texture::SetFilter(const Filter & filter)
-{}
+{
+    dk3d.SetTextureFilter(this, filter);
+}
 
 void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
 {

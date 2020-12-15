@@ -34,6 +34,8 @@ namespace love::common
 
             /* END LOVE FUNCTIONS */
 
+            void RefreshViewport(const Viewport & viewport, double sw, double sh);
+
             virtual void Refresh(const Viewport & viewport, double sw, double sh) = 0;
 
         protected:

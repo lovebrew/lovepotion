@@ -11,8 +11,8 @@ namespace love
 
             void Refresh(const Viewport & viewport, double sw, double sh) override;
 
-            const Vector2 * GetVertexPositions() const { return vertexPositions; }
-            const Vector2 * GetVertexTexCoords() const { return vertexTexCoords; }
+            const Vector2 * GetVertexPositions() const;
+            const Vector2 * GetVertexTexCoords() const;
 
         private:
             Vector2 vertexPositions[4];

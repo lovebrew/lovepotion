@@ -8,6 +8,7 @@
 #include "deko3d/CShader.h"
 #include "deko3d/shader.h"
 #include "deko3d/CImage.h"
+#include "deko3d/texturealloc.h"
 
 #include "objects/texture/texture.h"
 #include "objects/font/font.h"
@@ -51,13 +52,13 @@ class deko3d
 
         void BindFramebuffer(love::Canvas * canvas = nullptr);
 
-        void SetTextureFilter(love::Texture::Filter & filter);
+        void SetTextureFilter(const love::Texture::Filter & filter);
 
-        void SetTextureFilter(love::Texture * texture, love::Texture::Filter & filter);
+        void SetTextureFilter(love::Texture * texture, const love::Texture::Filter & filter);
 
-        void SetTextureWrap(love::Texture::Wrap & wrap);
+        void SetTextureWrap(const love::Texture::Wrap & wrap);
 
-        void SetTextureWrap(love::Texture * texture, love::Texture::Wrap & filter);
+        void SetTextureWrap(love::Texture * texture, const love::Texture::Wrap & filter);
 
         void ClearColor(const Colorf & color);
 
@@ -112,7 +113,7 @@ class deko3d
 
         void RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Texture * texture);
 
-        void UnRegisterResHandle(love::Texture * texture);
+        void UnRegisterResHandle(DkResHandle handle);
 
         bool RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count);
 
@@ -132,7 +133,7 @@ class deko3d
         vertex::Vertex * vertexData;
 
         uint32_t firstVertex = 0;
-        uint32_t textureIDs = 0;
+        TextureAlloc<MAX_OBJECTS> allocator;
 
         enum State
         {
@@ -147,8 +148,6 @@ class deko3d
         State renderState = State::STATE_MAX_ENUM;
 
         void EnsureInState(State state);
-
-        std::unordered_map<love::Texture *, uint32_t> textureResIDs;
 
         struct
         {

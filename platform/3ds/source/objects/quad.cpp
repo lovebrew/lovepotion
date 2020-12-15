@@ -15,7 +15,7 @@ const Tex3DS_SubTexture & Quad::GetTex3DSViewport() const
 
 void Quad::Refresh(const Viewport & viewport, double sw, double sh)
 {
-    common::Quad::Refresh(viewport, sw, sh);
+    this->RefreshViewport(viewport, sw, sh);
 
     int w =  NextPO2(sw);
     int h =  NextPO2(sh);

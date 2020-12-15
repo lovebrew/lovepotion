@@ -8,13 +8,27 @@
 
 #include <cstdio>
 
-u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
+namespace
+{
+    void freeRowPointers(png_bytep * rowPointers, unsigned height)
+    {
+        if (!rowPointers)
+            return;
+
+        for (unsigned i = 0; i < height; ++i)
+            free(rowPointers[i]);
+
+        delete [] rowPointers;
+    }
+}
+
+u32 * CImage::loadPNG(void *buffer, size_t size, int & width, int & height)
 {
     if (buffer == nullptr || size <= 0)
         return nullptr;
 
-    u32 *output = nullptr;
-    FILE *input = fmemopen(buffer, size, "rb");
+    u32 * output = nullptr;
+    FILE * input = fmemopen(buffer, size, "rb");
 
     constexpr size_t sigLength = 8;
     u8 sig[sigLength] = {0};
@@ -31,10 +45,13 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     png_infop info = png_create_info_struct(png);
 
+    png_bytep * rowPointers = nullptr;
+
     if (setjmp(png_jmpbuf(png)))
     {
         png_destroy_read_struct(&png, &info, NULL);
         fclose(input);
+        freeRowPointers(rowPointers, height);
         return nullptr;
     }
 
@@ -74,7 +91,8 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
 
     png_read_update_info(png, info);
 
-    png_bytep *rowPointers = new (std::nothrow) png_bytep[height];
+    rowPointers = new (std::nothrow) png_bytep[height];
+
     if (rowPointers == nullptr)
     {
         png_destroy_read_struct(&png, &info, NULL);
@@ -82,8 +100,10 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
         return nullptr;
     }
 
+    auto const rowBytes = png_get_rowbytes(png, info);
+
     for (int y = 0; y < height; y++)
-        rowPointers[y] = (png_byte *)malloc(png_get_rowbytes(png, info));
+        rowPointers[y] = (png_byte *)malloc(rowBytes);
 
     png_read_image(png, rowPointers);
 
@@ -94,10 +114,7 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
 
     if (output == NULL)
     {
-        for (int j = 0; j < height; j++)
-            free(rowPointers[j]);
-
-        delete[] rowPointers;
+        freeRowPointers(rowPointers, height);
         return nullptr;
     }
 
@@ -110,15 +127,9 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
             png_bytep px = &(row[i * 4]);
             memcpy(&output[(((height - 1) - j) * width) + i], px, sizeof(u32));
         }
-
-        /*
-        ** free the completed row, to avoid having to
-        ** iterate over the whole thing again
-        */
-        free(rowPointers[j]);
     }
 
-    delete[] rowPointers;
+    freeRowPointers(rowPointers, height);
 
     return output;
 }
@@ -128,7 +139,7 @@ u32 *CImage::loadPNG(void *buffer, size_t size, int &width, int &height)
 ** have their "progressive" flag turned off, usually dealt with in GIMP or
 ** similar programs
 */
-u8 *CImage::loadJPG(void *buffer, size_t size, int &width, int &height)
+u8 * CImage::loadJPG(void * buffer, size_t size, int &width, int &height)
 {
     u8 *output = nullptr;
 
@@ -160,7 +171,7 @@ void * CImage::load(void *buffer, size_t size, int &width, int &height)
     if (size <= 0 || !buffer)
         return nullptr;
 
-    void *result = nullptr;
+    void * result = nullptr;
 
     if (!(result = this->loadPNG(buffer, size, width, height)))
         result = this->loadJPG(buffer, size, width, height);
@@ -168,20 +179,34 @@ void * CImage::load(void *buffer, size_t size, int &width, int &height)
     return result;
 }
 
+size_t CImage::getFormatSize(DkImageFormat format)
+{
+    switch (format)
+    {
+        case DkImageFormat_RGBA8_Unorm:
+            return 4;
+        default:
+            break;
+    }
+
+    /* shouldn't happen */
+
+    return 0;
+}
+
 /* replace the pixels at a location */
-bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * data, size_t size,
+bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void * data, size_t size,
                            dk::Queue transferQueue, const love::Rect & rect)
 {
+    if (data == nullptr)
+        return false;
+
     CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;
 
-    if (!memcpy(tempImageMemory.getCpuAddr(), data, size))
-    {
-        tempImageMemory.destroy();
-        return false;
-    }
+    memcpy(tempImageMemory.getCpuAddr(), data, size);
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -192,7 +217,6 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     dk::ImageView imageView{m_image};
-
     tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {rect.x, rect.y, 0, rect.w, rect.h, 1});
 
     // Submit the commands to the transfer queue
@@ -208,18 +232,16 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, void * dat
 
 /* load a CImage with transparent black pixels */
 bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Device device, dk::Queue transferQueue,
-                             size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+                             uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    size_t size = this->getFormatSize(format);
+    CMemPool::Handle tempImageMemory = scratchPool.allocate(width * height * size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;
 
     /* memset for transparent black pixels */
     memset(tempImageMemory.getCpuAddr(), 0, size);
-
-    this->width = width;
-    this->height = height;
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -240,10 +262,9 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
     // Create the image
     m_mem = imagePool.allocate(layout.getSize(), layout.getAlignment());
     m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
-
-    dk::ImageView imageView{m_image};
     m_descriptor.initialize(m_image);
 
+    dk::ImageView imageView{m_image};
     tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1});
 
     // Submit the commands to the transfer queue
@@ -257,28 +278,21 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
     return true;
 }
 
-bool CImage::loadMemory(CMemPool &imagePool, CMemPool &scratchPool, dk::Device device, dk::Queue transferQueue,
-                        void *data, size_t size, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                        const void * data, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
     // Don't allow 0 sized data or nullptr data
-    if (size <= 0 || !data)
+    if (data == nullptr)
         return false;
 
     // Allocate temporary memory for the image
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    size_t size = this->getFormatSize(format);
+    CMemPool::Handle tempImageMemory = scratchPool.allocate(width * height * size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;
 
-    /*
-    ** If we fail to copy to the CPU address, bail out and
-    ** destroy the temporary buffer
-    */
-    if (!memcpy(tempImageMemory.getCpuAddr(), data, size))
-    {
-        tempImageMemory.destroy();
-        return false;
-    }
+    memcpy(tempImageMemory.getCpuAddr(), data, size);
 
     /*
     ** We need to have a command buffer and some more memory for it

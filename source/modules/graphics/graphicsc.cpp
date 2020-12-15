@@ -6,8 +6,6 @@
 
 using namespace love;
 
-#define WINDOW_MODULE() (Module::GetInstance<Window>(Module::M_WINDOW))
-
 /* Gamma Correction */
 
 bool Graphics::gammaCorrectColor = false;

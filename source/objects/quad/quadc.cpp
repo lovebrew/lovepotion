@@ -27,7 +27,7 @@ double Quad::GetTextureHeight() const
     return this->sh;
 }
 
-void Quad::Refresh(const Viewport & viewport, double sw, double sh)
+void Quad::RefreshViewport(const Viewport & viewport, double sw, double sh)
 {
     this->viewport = viewport;
 

@@ -55,9 +55,6 @@ deko3d::deko3d()
                                this->transformUniformBuffer.getSize(), offsetof(Transformation, mdlvMtx),
                                sizeof(transformState.mdlvMtx), &transformState.mdlvMtx);
 
-    this->descriptors.image.bindForImages(this->cmdBuf);
-    this->descriptors.sampler.bindForSamplers(this->cmdBuf);
-
     this->state.depthStencil.setDepthTestEnable(true);
     this->state.depthStencil.setDepthWriteEnable(true);
     this->state.depthStencil.setDepthCompareOp(DkCompareOp_Greater);
@@ -69,6 +66,9 @@ deko3d::deko3d()
     love::Texture::Wrap wrap;
     wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
     this->SetTextureWrap(wrap);
+
+    this->descriptors.image.bindForImages(this->cmdBuf);
+    this->descriptors.sampler.bindForSamplers(this->cmdBuf);
 }
 
 deko3d::~deko3d()
@@ -309,8 +309,7 @@ void deko3d::Present()
         this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
 
-        if (this->framebuffers.slot >= 0)
-            this->queue.presentImage(this->swapchain, this->framebuffers.slot);
+        this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
         this->framebuffers.inFrame = false;
     }
@@ -343,21 +342,20 @@ void deko3d::SetStencil(DkStencilOp op, DkCompareOp compare, int value)
     this->cmdBuf.setStencil(DkFace_FrontAndBack, 0xFF, value, 0xFF);
 }
 
-void deko3d::UnRegisterResHandle(love::Texture * texture)
+void deko3d::UnRegisterResHandle(DkResHandle handle)
 {
-    this->textureResIDs.erase(texture);
+    LOG("Deallocating %lu", handle);
+    this->allocator.DeAllocate(handle);
 }
 
 void deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Texture * texture)
 {
-    this->textureResIDs[texture] = this->textureIDs;
+    uint32_t index = allocator.Allocate();
 
-    this->descriptors.image.update(this->cmdBuf, this->textureIDs, descriptor);
-    this->descriptors.sampler.update(this->cmdBuf, this->textureIDs, this->filter.descriptor);
+    this->descriptors.image.update(this->cmdBuf, index, descriptor);
+    this->descriptors.sampler.update(this->cmdBuf, index, this->filter.descriptor);
 
-    texture->SetHandle(dkMakeTextureHandle(this->textureIDs, this->textureIDs));
-
-    this->textureIDs++;
+    texture->SetHandle(dkMakeTextureHandle(index, index));
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size,
@@ -520,7 +518,7 @@ void deko3d::SetDepthWrites(bool enable)
 }
 
 // Set the global filter mode for textures
-void deko3d::SetTextureFilter(love::Texture::Filter & filter)
+void deko3d::SetTextureFilter(const love::Texture::Filter & filter)
 {
     DkFilter min = (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
     DkFilter mag = (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
@@ -542,21 +540,21 @@ void deko3d::SetTextureFilter(love::Texture::Filter & filter)
 
     this->filter.sampler.setFilter(min, mag, mipFilter);
 
-    filter.anisotropy = std::clamp(filter.anisotropy, 1.0f, (float)MAX_ANISOTROPY);
-    this->filter.sampler.setMaxAnisotropy(filter.anisotropy);
+    float anisotropy = std::clamp(filter.anisotropy, 1.0f, (float)MAX_ANISOTROPY);
+    this->filter.sampler.setMaxAnisotropy(anisotropy);
 
     this->filter.descriptor.initialize(this->filter.sampler);
 }
 
-void deko3d::SetTextureFilter(love::Texture * texture, love::Texture::Filter & filter)
+void deko3d::SetTextureFilter(love::Texture * texture, const love::Texture::Filter & filter)
 {
     this->SetTextureFilter(filter);
 
-    uint32_t handleID = this->textureResIDs[texture];
+    uint32_t handleID = this->allocator.Find(texture->GetHandle());
     this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
 }
 
-void deko3d::SetTextureWrap(love::Texture::Wrap & wrap)
+void deko3d::SetTextureWrap(const love::Texture::Wrap & wrap)
 {
     DkWrapMode u = deko3d::GetDekoWrapMode(wrap.s);
     DkWrapMode v = deko3d::GetDekoWrapMode(wrap.t);
@@ -566,11 +564,11 @@ void deko3d::SetTextureWrap(love::Texture::Wrap & wrap)
     this->filter.descriptor.initialize(this->filter.sampler);
 }
 
-void deko3d::SetTextureWrap(love::Texture * texture, love::Texture::Wrap & wrap)
+void deko3d::SetTextureWrap(love::Texture * texture, const love::Texture::Wrap & wrap)
 {
     this->SetTextureWrap(wrap);
 
-    uint32_t handleID = this->textureResIDs[texture];
+    uint32_t handleID = this->allocator.Find(texture->GetHandle());
     this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
 }
 

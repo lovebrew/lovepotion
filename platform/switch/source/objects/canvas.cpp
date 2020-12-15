@@ -37,7 +37,6 @@ Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings),
 Canvas::~Canvas()
 {
     this->colorMemory.destroy();
-    dk3d.UnRegisterResHandle(this);
 }
 
 void Canvas::Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform)

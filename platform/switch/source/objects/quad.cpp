@@ -10,7 +10,8 @@ Quad::Quad(const Viewport & viewport, double sw, double sh) : common::Quad(sw, s
 
 void Quad::Refresh(const Viewport & viewport, double sw, double sh)
 {
-    common::Quad::Refresh(viewport, sw, sh);
+    this->RefreshViewport(viewport, sw, sh);
+    LOG("%f %f %f %f / %f %f", viewport.x, viewport.y, viewport.w, viewport.h, sw, sh);
 
     this->vertexPositions[0] = Vector2(0.0f, 0.0f);
     this->vertexPositions[1] = Vector2(0.0f, (float)viewport.h);
@@ -21,4 +22,14 @@ void Quad::Refresh(const Viewport & viewport, double sw, double sh)
     this->vertexTexCoords[1] = Vector2((float)(viewport.x / sw), (float)((viewport.y + viewport.h) / sh));
     this->vertexTexCoords[2] = Vector2((float)((viewport.x + viewport.w) / sw), (float)((viewport.y + viewport.h) / sh));
     this->vertexTexCoords[3] = Vector2((float)((viewport.x + viewport.w) / sw), (float)(viewport.y / sh));
+}
+
+const Vector2 * Quad::GetVertexPositions() const
+{
+    return this->vertexPositions;
+}
+
+const Vector2 * Quad::GetVertexTexCoords() const
+{
+    return this->vertexTexCoords;
 }
