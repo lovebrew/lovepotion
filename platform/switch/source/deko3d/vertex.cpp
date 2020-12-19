@@ -57,8 +57,9 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vecto
     return verts;
 }
 
-std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex * gVerts, size_t count)
+std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const std::vector<GlyphVertex> & gVerts)
 {
+    size_t count = gVerts.size();
     std::vector<vertex::Vertex> verts(count);
 
     for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
@@ -79,14 +80,4 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const GlyphVertex 
     }
 
     return verts;
-}
-
-void vertex::DebugVertex(const vertex::Vertex & vertex)
-{
-    std::string format = "x: %.2f y: %.2f z: %.2f / color: {%.2f, %.2f, %.2f, %.2f} / texCoord {%u, %u}";
-    char buffer[256];
-    snprintf(buffer, sizeof(buffer), format.c_str(), vertex.position[0], vertex.position[1], vertex.position[2],
-                                                     vertex.color[0], vertex.color[1], vertex.color[2], vertex.color[3],
-                                                     (unsigned)vertex.texcoord[0], (unsigned)vertex.texcoord[1]);
-    LOG("%s", buffer);
 }

@@ -44,7 +44,8 @@ class CImage
             return m_descriptor;
         }
 
-        void * load(void * buffer, size_t size, int & width, int & height);
+        bool load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
+                  void * buffer, size_t size, int & width, int & height);
 
         bool loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue queue,
                              uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
@@ -61,7 +62,4 @@ class CImage
             u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
 
             u8 * loadJPG(void * buffer, size_t size, int & width, int & height);
-
-            size_t width;
-            size_t height;
 };

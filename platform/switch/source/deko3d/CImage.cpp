@@ -22,7 +22,7 @@ namespace
     }
 }
 
-u32 * CImage::loadPNG(void *buffer, size_t size, int & width, int & height)
+u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
 {
     if (buffer == nullptr || size <= 0)
         return nullptr;
@@ -139,9 +139,9 @@ u32 * CImage::loadPNG(void *buffer, size_t size, int & width, int & height)
 ** have their "progressive" flag turned off, usually dealt with in GIMP or
 ** similar programs
 */
-u8 * CImage::loadJPG(void * buffer, size_t size, int &width, int &height)
+u8 * CImage::loadJPG(void * buffer, size_t size, int & width, int & height)
 {
-    u8 *output = nullptr;
+    u8 * output = nullptr;
 
     tjhandle _jpegDecompressor = tjInitDecompress();
 
@@ -166,17 +166,28 @@ u8 * CImage::loadJPG(void * buffer, size_t size, int &width, int &height)
     return output;
 }
 
-void * CImage::load(void *buffer, size_t size, int &width, int &height)
+bool CImage::load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device,
+                  dk::Queue transferQueue, void * buffer, size_t size, int & width,
+                  int & height)
 {
     if (size <= 0 || !buffer)
-        return nullptr;
+        return false;
 
     void * result = nullptr;
 
     if (!(result = this->loadPNG(buffer, size, width, height)))
         result = this->loadJPG(buffer, size, width, height);
 
-    return result;
+    if (result == nullptr)
+        return false;
+
+    bool success = this->loadMemory(imagePool, scratchPool, device, transferQueue,
+                                    result, width, height, DkImageFormat_RGBA8_Unorm);
+
+    if (result != nullptr)
+        free(result);
+
+    return success;
 }
 
 size_t CImage::getFormatSize(DkImageFormat format)
@@ -217,7 +228,7 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {rect.x, rect.y, 0, rect.w, rect.h, 1});
+    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {uint32_t(rect.x), uint32_t(rect.y), 0, uint32_t(rect.w), uint32_t(rect.h), 1});
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());
@@ -231,7 +242,7 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void
 }
 
 /* load a CImage with transparent black pixels */
-bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Device device, dk::Queue transferQueue,
+bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                              uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
     size_t size = this->getFormatSize(format);
@@ -241,7 +252,8 @@ bool CImage::loadEmptyPixels(CMemPool &imagePool, CMemPool &scratchPool, dk::Dev
         return false;
 
     /* memset for transparent black pixels */
-    memset(tempImageMemory.getCpuAddr(), 0, size);
+    std::vector<uint8_t> empty(width * height * size, 0);
+    memcpy(tempImageMemory.getCpuAddr(), empty.data(), empty.size());
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -286,8 +298,12 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
         return false;
 
     // Allocate temporary memory for the image
-    size_t size = this->getFormatSize(format);
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(width * height * size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    size_t size = width * height * this->getFormatSize(format);
+
+    if (size <= 0)
+        return false;
+
+    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;

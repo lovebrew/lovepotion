@@ -57,14 +57,13 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
 
     Matrix4 t(tm, localTransform);
 
-    std::vector<vertex::Vertex> points;
+    std::vector<vertex::Vertex> points(TEXTURE_QUAD_POINT_COUNT);
 
     if (is2D)
     {
         Vector2 transformed[4];
         t.TransformXY(transformed, quad->GetVertexPositions(), 4);
-
-        points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(), 4, gfx->GetColor());
+        points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(), points.size(), gfx->GetColor());
     }
 
     dk3d.RenderTexture(this->handle, points.data(), 4 * sizeof(*points.data()), 4);

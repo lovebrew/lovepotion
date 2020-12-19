@@ -103,7 +103,7 @@ class deko3d
 
         dk::UniqueDevice & GetDevice();
 
-        dk::Queue & GetTextureQueue();
+        dk::UniqueQueue & GetTextureQueue();
 
         std::optional<CMemPool> & GetImages();
 

@@ -51,24 +51,22 @@ bool Rasterizer::HasGlyphs(const std::string & text) const
     if (text.size() == 0)
         return false;
 
-    auto start = text.begin();
-    const auto end = text.end();
-
-    while (start != end)
+    try
     {
-        uint32_t codepoint = 0;
+        utf8::iterator<std::string::const_iterator> i(text.begin(), text.begin(), text.end());
+        utf8::iterator<std::string::const_iterator> end(text.end(), text.begin(), text.end());
 
-        auto bytes = decode_utf8(&codepoint, (uint8_t *)&*start);
-        if (bytes < 0)
+        while (i != end)
         {
-            bytes = 1;
-            codepoint = 0xFFFD;
+            uint32_t codepoint = *i++;
+
+            if (!this->HasGlyph(codepoint))
+                return false;
         }
-
-        if (!this->HasGlyph(codepoint))
-            return false;
-
-        start += bytes;
+    }
+    catch (utf8::exception & e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
 
     return true;

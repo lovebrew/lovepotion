@@ -99,7 +99,6 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     ** We treat the luminance of the FreeType bitmap
     ** as alpha in the GlyphData.
     */
-
     if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
     {
         for (int y = 0; y < (int)bitmap.rows; y++)

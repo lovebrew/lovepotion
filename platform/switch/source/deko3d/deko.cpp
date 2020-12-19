@@ -224,7 +224,7 @@ void deko3d::BeginFrame()
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 }
 
-dk::Queue & deko3d::GetTextureQueue()
+dk::UniqueQueue & deko3d::GetTextureQueue()
 {
     return this->textureQueue;
 }
@@ -361,6 +361,7 @@ void deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Tex
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size,
                            size_t count)
 {
+    LOG("rendering %lu", handle);
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 

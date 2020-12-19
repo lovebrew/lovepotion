@@ -205,6 +205,10 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         g.texture = image;
 
         Rect rect = {this->textureX, this->textureY, gd->GetWidth(), gd->GetHeight()};
+
+        if (this->textureX > this->textureWidth || this->textureY > this->textureHeight)
+            throw love::Exception("Writing out of bounds!");
+
         image->ReplacePixels(gd->GetData(), gd->GetSize(), rect);
 
         double tX     = (double) textureX,     tY      = (double) textureY;
@@ -621,7 +625,7 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
         memcpy(vertexData.data(), &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
         m.TransformXY(vertexData.data(), &vertices[cmd.startVertex], vertexCount);
 
-        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData.data(), vertexCount);
+        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData);
         dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
     }
 }

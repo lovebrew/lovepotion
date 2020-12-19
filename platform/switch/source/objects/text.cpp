@@ -202,7 +202,7 @@ void Text::Draw(Graphics * gfx, const Matrix4 & localTransform)
         memcpy(vertexData.data(), this->vertexBuffer.data(), sizeof(vertex::GlyphVertex) * vertexCount);
         transform.TransformXY(vertexData.data(), this->vertexBuffer.data(), vertexCount);
 
-        std::vector<vertex::Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData.data(), vertexCount);
+        std::vector<vertex::Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData);
         dk3d.RenderTexture(command.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
     }
 }

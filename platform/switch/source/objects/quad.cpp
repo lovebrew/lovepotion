@@ -11,7 +11,6 @@ Quad::Quad(const Viewport & viewport, double sw, double sh) : common::Quad(sw, s
 void Quad::Refresh(const Viewport & viewport, double sw, double sh)
 {
     this->RefreshViewport(viewport, sw, sh);
-    LOG("%f %f %f %f / %f %f", viewport.x, viewport.y, viewport.w, viewport.h, sw, sh);
 
     this->vertexPositions[0] = Vector2(0.0f, 0.0f);
     this->vertexPositions[1] = Vector2(0.0f, (float)viewport.h);
