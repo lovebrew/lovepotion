@@ -5,32 +5,32 @@ using namespace love::gamepad;
 
 Handles::Handles(size_t id)
 {
-    HidControllerID identity = hidGetHandheldMode() ? CONTROLLER_HANDHELD : (HidControllerID)id;
-    HidControllerType type = hidGetControllerType(identity);
+    // HidControllerID identity = hidGetHandheldMode() ? CONTROLLER_HANDHELD : (HidControllerID)id;
+    // HidControllerType type = hidGetControllerType(identity);
 
-    this->handleCount = HandleCounts();
+    // this->handleCount = HandleCounts();
 
-    if (type & (TYPE_JOYCON_LEFT | TYPE_JOYCON_RIGHT | TYPE_PROCONTROLLER))
-    {
-        this->handleCount.vibration = 1;
-        this->handleCount.gyro = 1;
-    }
-    else if (type & TYPE_JOYCON_PAIR)
-    {
-        this->handleCount.vibration = 2;
-        this->handleCount.gyro = 2;
-    }
-    else if (type & TYPE_HANDHELD)
-    {
-        this->handleCount.vibration = 2;
-        this->handleCount.gyro = 1;
-    }
+    // if (type & (TYPE_JOYCON_LEFT | TYPE_JOYCON_RIGHT | TYPE_PROCONTROLLER))
+    // {
+    //     this->handleCount.vibration = 1;
+    //     this->handleCount.gyro = 1;
+    // }
+    // else if (type & TYPE_JOYCON_PAIR)
+    // {
+    //     this->handleCount.vibration = 2;
+    //     this->handleCount.gyro = 2;
+    // }
+    // else if (type & TYPE_HANDHELD)
+    // {
+    //     this->handleCount.vibration = 2;
+    //     this->handleCount.gyro = 1;
+    // }
 
-    memset(this->vibration.handles, 0, sizeof(this->vibration.handles));
-    memset(this->vibration.values, 0, sizeof(this->vibration.values));
+    // memset(this->vibration.handles, 0, sizeof(this->vibration.handles));
+    // memset(this->vibration.values, 0, sizeof(this->vibration.values));
 
-    hidInitializeVibrationDevices(this->vibration.handles, this->handleCount.vibration, identity, type);
-    hidGetSixAxisSensorHandles(&this->gyro.handles[0], this->handleCount.gyro, identity, type);
+    // hidInitializeVibrationDevices(this->vibration.handles, this->handleCount.vibration, identity, type);
+    // hidGetSixAxisSensorHandles(&this->gyro.handles[0], this->handleCount.gyro, identity, type);
 
     this->id = id;
 }
@@ -49,28 +49,28 @@ void Handles::_SetVibrationData(HidVibrationValue * vibration, float value)
 
 bool Handles::SendVibration(const LOVE_Vibration & vibration)
 {
-    HidVibrationValue leftValue;
-    this->_SetVibrationData(&leftValue, vibration.left);
+    // HidVibrationValue leftValue;
+    // this->_SetVibrationData(&leftValue, vibration.left);
 
-    memcpy(&this->vibration.values[0], &leftValue, sizeof(HidVibrationValue));
+    // memcpy(&this->vibration.values[0], &leftValue, sizeof(HidVibrationValue));
 
-    HidVibrationValue rightValue;
-    this->_SetVibrationData(&rightValue, vibration.right);
+    // HidVibrationValue rightValue;
+    // this->_SetVibrationData(&rightValue, vibration.right);
 
-    memcpy(&this->vibration.values[1], &rightValue, sizeof(HidVibrationValue));
+    // memcpy(&this->vibration.values[1], &rightValue, sizeof(HidVibrationValue));
 
-    Result res = hidSendVibrationValues(this->vibration.handles, this->vibration.values, this->handleCount.vibration);
+    // Result res = hidSendVibrationValues(this->vibration.handles, this->vibration.values, this->handleCount.vibration);
 
-    return R_SUCCEEDED(res);
+    return R_SUCCEEDED(0);
 }
 
 void Handles::ReadSixAxis(SixAxisSensorValues & values)
 {
-    hidStartSixAxisSensor(this->gyro.handles[0]);
+    // hidStartSixAxisSensor(this->gyro.handles[0]);
 
-    HidControllerID identity = hidGetHandheldMode() ? CONTROLLER_HANDHELD : (HidControllerID)this->id;
+    // HidControllerID identity = hidGetHandheldMode() ? CONTROLLER_HANDHELD : (HidControllerID)this->id;
 
-    hidSixAxisSensorValuesRead(&values, identity, this->handleCount.gyro);
+    // hidSixAxisSensorValuesRead(&values, identity, this->handleCount.gyro);
 
-    hidStopSixAxisSensor(this->gyro.handles[0]);
+    // hidStopSixAxisSensor(this->gyro.handles[0]);
 }

@@ -10,9 +10,10 @@
 
 using namespace love;
 
-Texture::Texture(TextureType type) : common::Texture(type),
-                                     texture()
-{}
+Texture::Texture(TextureType type) : common::Texture(type)
+{
+    this->texture = CImage();
+}
 
 Texture::~Texture()
 {
@@ -27,11 +28,6 @@ void Texture::SetHandle(DkResHandle handle)
 DkResHandle Texture::GetHandle()
 {
     return this->handle;
-}
-
-CImage & Texture::GetTexture()
-{
-    return this->texture;
 }
 
 bool Texture::SetWrap(const Wrap & wrap)

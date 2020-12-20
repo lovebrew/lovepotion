@@ -675,7 +675,6 @@ function love.run()
 
     local delta = 0
     local screens = love.graphics.getScreens()
-    print(unpack(screens))
 
     return function()
         if love.event and love.event.pump then

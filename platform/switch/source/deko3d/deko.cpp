@@ -93,6 +93,12 @@ deko3d::~deko3d()
     // Destroy the framebuffers
     for (unsigned i = 0; i < MAX_FRAMEBUFFERS; i ++)
         this->framebuffers.memory[i].destroy();
+
+    this->depthBuffer.memory.destroy();
+
+    this->pool.code.reset();
+    this->pool.data.reset();
+    this->pool.images.reset();
 }
 
 
@@ -280,6 +286,7 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
 
         dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
         dk::ImageView depthTarget { this->depthBuffer.image };
+
         this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
 
         this->cmdBuf.bindRenderTargets(&colorTarget);
@@ -309,7 +316,8 @@ void deko3d::Present()
         this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
 
-        this->queue.presentImage(this->swapchain, this->framebuffers.slot);
+        if (this->framebuffers.slot != -1)
+            this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
         this->framebuffers.inFrame = false;
     }
@@ -344,7 +352,6 @@ void deko3d::SetStencil(DkStencilOp op, DkCompareOp compare, int value)
 
 void deko3d::UnRegisterResHandle(DkResHandle handle)
 {
-    LOG("Deallocating %lu", handle);
     this->allocator.DeAllocate(handle);
 }
 
@@ -361,7 +368,6 @@ void deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Tex
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size,
                            size_t count)
 {
-    LOG("rendering %lu", handle);
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 

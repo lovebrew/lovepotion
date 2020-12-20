@@ -14,7 +14,7 @@ static Input::JoystickState joystick[MAX_GAMEPADS];
 
 void Input::CheckFocus()
 {
-    bool focused = (appletGetFocusState() == AppletFocusState_Focused);
+    bool focused = (appletGetFocusState() == AppletFocusState_InFocus);
 
     u32 message = 0;
     Result res = appletGetMessage(&message);
@@ -35,7 +35,7 @@ void Input::CheckFocus()
             {
                 bool oldFocus = focused;
                 AppletFocusState state = appletGetFocusState();
-                focused = (state == AppletFocusState_Focused);
+                focused = (state == AppletFocusState_InFocus);
 
                 Input::SendFocus(focused);
 
@@ -56,7 +56,7 @@ void Input::CheckFocus()
 
                 if (mode == AppletOperationMode_Handheld)
                     Input::SendResize(1280, 720);
-                else if (mode == AppletOperationMode_Docked)
+                else if (mode == AppletOperationMode_Console)
                     Input::SendResize(1920, 1080);
 
                 break;

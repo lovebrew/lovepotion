@@ -16,8 +16,6 @@ namespace love
 
             DkResHandle GetHandle();
 
-            CImage & GetTexture();
-
             static constexpr int TEXTURE_QUAD_POINT_COUNT = 4;
 
             void Draw(Graphics * gfx, const Matrix4 & localTransform) override;
@@ -30,6 +28,6 @@ namespace love
 
         protected:
             DkResHandle handle;
-            CImage texture;
+            std::optional<CImage> texture;
     };
 }

@@ -19,6 +19,8 @@ namespace love
 
             Image(Data * data);
 
+            ~Image();
+
             Image(TextureType type, int width, int height);
 
             void Init(int width, int height);

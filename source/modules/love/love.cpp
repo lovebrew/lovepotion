@@ -190,8 +190,8 @@ int Love::_EnsureApplicationType(lua_State * L)
 int Love::_OpenConsole(lua_State * L)
 {
     #if defined (__SWITCH__)
-        Love::debugSockfd = nxlinkStdioForDebug();
-        lua_pushboolean(L, Love::debugSockfd != -1);
+        nxlinkStdioForDebug();
+        lua_pushboolean(L, true);
     #else
         gdbHioDevInit();
         int success = gdbHioDevRedirectStdStreams(false, true, true);

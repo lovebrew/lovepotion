@@ -265,7 +265,7 @@ void Font::GetCodepointsFromString(const std::string & text, Codepoints & codepo
             codepoints.push_back(g);
         }
     }
-    catch (utf8::exception &e)
+    catch (utf8::exception & e)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }

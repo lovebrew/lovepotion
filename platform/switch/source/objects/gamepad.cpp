@@ -139,31 +139,31 @@ size_t Gamepad::GetID()
 std::string Gamepad::GetName()
 {
     std::string ret = "Joycon";
-    HidControllerType type;
+    // HidControllerType type;
 
-    HidControllerID hidID = CONTROLLER_P1_AUTO;
-    if (this->id != 0)
-        hidID = static_cast<HidControllerID>(this->id);
+    // HidControllerID hidID = CONTROLLER_P1_AUTO;
+    // if (this->id != 0)
+    //     hidID = static_cast<HidControllerID>(this->id);
 
-    type = hidGetControllerType(hidID);
+    // type = hidGetControllerType(hidID);
 
-    switch (type)
-    {
-        case TYPE_PROCONTROLLER:
-            ret = "Pro Controller";
-            break;
-        case TYPE_HANDHELD:
-            ret = "Handheld";
-            break;
-        case TYPE_JOYCON_LEFT:
-            ret = "Joycon Left";
-            break;
-        case TYPE_JOYCON_RIGHT:
-            ret = "Joycon Right";
-            break;
-        default:
-            break;
-    }
+    // switch (type)
+    // {
+    //     case TYPE_PROCONTROLLER:
+    //         ret = "Pro Controller";
+    //         break;
+    //     case TYPE_HANDHELD:
+    //         ret = "Handheld";
+    //         break;
+    //     case TYPE_JOYCON_LEFT:
+    //         ret = "Joycon Left";
+    //         break;
+    //     case TYPE_JOYCON_RIGHT:
+    //         ret = "Joycon Right";
+    //         break;
+    //     default:
+    //         break;
+    // }
 
     return ret;
 }
