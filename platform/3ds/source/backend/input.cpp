@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "common/backend/input.h"
 
+#include "objects/gamepad/gamepad.h"
+
 std::unordered_map<std::string, int> Input::buttons =
 {
     { "a", KEY_A}, { "b", KEY_B }, { "x", KEY_X }, { "y", KEY_Y },
@@ -10,6 +12,8 @@ std::unordered_map<std::string, int> Input::buttons =
 };
 
 static Input::JoystickState joystick[MAX_GAMEPADS];
+
+using namespace love;
 
 void Input::CheckFocus(APT_HookType type, void * param)
 {
@@ -209,7 +213,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].left.dx / JOYSTICK_MAX;
+        e.axis.value = joystick[0].left.dx / Gamepad::JOYSTICK_MAX;
 
         oldjoyStates[0].left.dx = joystick[0].left.dx;
     }
@@ -224,7 +228,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].left.dy / JOYSTICK_MAX);
+        e.axis.value = -(joystick[0].left.dy / Gamepad::JOYSTICK_MAX);
 
         oldjoyStates[0].left.dy = joystick[0].left.dy;
     }
@@ -239,7 +243,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].right.dx / JOYSTICK_MAX;
+        e.axis.value = joystick[0].right.dx / Gamepad::JOYSTICK_MAX;
 
         oldjoyStates[0].right.dx = joystick[0].right.dx;
     }
@@ -254,7 +258,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].right.dy / JOYSTICK_MAX);
+        e.axis.value = -(joystick[0].right.dy / Gamepad::JOYSTICK_MAX);
 
         oldjoyStates[0].right.dy = joystick[0].right.dy;
     }

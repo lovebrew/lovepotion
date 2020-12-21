@@ -63,11 +63,10 @@ enum LOVE_EventType
 
 #if defined (_3DS)
     #define MAX_TOUCH 1
+    typedef circlePosition StickPosition;
 #elif defined (__SWITCH__)
     #define MAX_TOUCH 16
 #endif
-
-#include "objects/gamepad/gamepad.h"
 
 namespace Input
 {

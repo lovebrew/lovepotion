@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "modules/joystick/joystick.h"
+#include "modules/joystick/joystickc.h"
 
 namespace love
 {

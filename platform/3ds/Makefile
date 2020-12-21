@@ -54,7 +54,8 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/objects/font \
 				include/objects/text \
 				include/objects/canvas \
-				include/objects/texture
+				include/objects/texture \
+				include/objects/gamepad
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
