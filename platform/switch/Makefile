@@ -59,7 +59,8 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/modules/font \
 				include/objects/font \
 				include/objects/canvas \
-				include/objects/text
+				include/objects/text \
+				include/objects/gamepad
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs

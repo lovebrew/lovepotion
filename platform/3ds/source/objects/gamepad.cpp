@@ -78,7 +78,7 @@ float Gamepad::GetAxis(size_t axis) const
         if (axis == 1)
             value = leftStick.dx;
         else
-            value = leftStick.dy;
+            value = -leftStick.dy;
 
         return Gamepad::ClampValue(value / JOYSTICK_MAX);
     }
@@ -90,7 +90,7 @@ float Gamepad::GetAxis(size_t axis) const
         if (axis == 3)
             value = rightStick.dx;
         else
-            value = rightStick.dy;
+            value = -rightStick.dy;
 
         return Gamepad::ClampValue(value / JOYSTICK_MAX);
     }

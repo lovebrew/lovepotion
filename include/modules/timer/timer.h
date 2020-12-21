@@ -33,7 +33,10 @@ namespace love
             //End Löve2D Functions
 
         private:
-            static TickCounter counter;
+            #if defined (_3DS)
+                static TickCounter counter;
+            #endif
+
             static u64 reference;
 
             double currentTime;

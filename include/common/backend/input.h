@@ -66,6 +66,7 @@ enum LOVE_EventType
     typedef circlePosition StickPosition;
 #elif defined (__SWITCH__)
     #define MAX_TOUCH 16
+    typedef JoystickPosition StickPosition;
 #endif
 
 namespace Input

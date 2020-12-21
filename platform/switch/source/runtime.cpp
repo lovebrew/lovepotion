@@ -40,6 +40,9 @@ extern "C"
 
         if (R_FAILED(res))
             fatalThrow(res);
+
+        padConfigureInput(4, HidNpadStyleSet_NpadStandard);
+        hidInitializeTouchScreen();
     }
 
     void userAppExit()
