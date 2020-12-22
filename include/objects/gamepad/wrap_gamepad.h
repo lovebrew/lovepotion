@@ -1,8 +1,6 @@
 #pragma once
 
 #include "objects/gamepad/gamepad.h"
-#include "modules/joystick/joystickc.h"
-
 namespace Wrap_Gamepad
 {
     int GetAxes(lua_State * L);

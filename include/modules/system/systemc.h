@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/stringmap.h"
+#include "common/module.h"
 
 #define OS_NAME "Horizon"
 
@@ -10,7 +11,7 @@
     #define LANGUAGE_COUNT 17
 #endif
 
-namespace love
+namespace love::common
 {
     class System : public Module
     {

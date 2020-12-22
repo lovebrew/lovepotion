@@ -50,12 +50,13 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
 				include \
 				include/citro2d \
-				include/modules \
+				include/modules/system \
+				include/modules/joystick \
 				include/objects/font \
 				include/objects/text \
 				include/objects/canvas \
 				include/objects/texture \
-				include/objects/gamepad
+				include/objects/gamepad \
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)

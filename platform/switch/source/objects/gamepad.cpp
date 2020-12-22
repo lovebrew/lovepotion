@@ -2,8 +2,13 @@
 #include "objects/gamepad/gamepad.h"
 
 #include "common/backend/input.h"
+#include "modules/timer/timer.h"
+
+#include "modules/joystick/joystick.h"
 
 using namespace love;
+
+#define JOYSTICK_MODULE() (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
 
 Gamepad::Gamepad(size_t id) : common::Gamepad(id),
                               sixAxisHandles(nullptr),
@@ -65,26 +70,26 @@ bool Gamepad::Open(size_t index)
         case HidNpadStyleTag_NpadFullKey:
             this->name = "Pro Controller";
 
-            this->sixAxisHandles = new HidSixAxisSensorHandle[1];
+            this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(1);
             hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadFullKey);
 
-            this->vibrationHandles = new HidVibrationDeviceHandle[1];
+            this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(1);
             break;
         case HidNpadStyleTag_NpadHandheld:
             this->name = "Nintendo Switch";
 
-            this->sixAxisHandles = new HidSixAxisSensorHandle[1];
+            this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(1);
             hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, HidNpadIdType_Handheld, HidNpadStyleTag_NpadHandheld);
 
-            this->vibrationHandles = new HidVibrationDeviceHandle[2];
+            this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
             break;
         case HidNpadStyleTag_NpadJoyDual:
             this->name = "Dual Joy-Con";
 
-            this->sixAxisHandles = new HidSixAxisSensorHandle[2];
+            this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(2);
             hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 2, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadJoyDual);
 
-            this->vibrationHandles = new HidVibrationDeviceHandle[2];
+            this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
         default:
             break;
     }
@@ -92,7 +97,7 @@ bool Gamepad::Open(size_t index)
     memset(this->vibrationValues, 0, sizeof(this->vibrationValues));
 
     size_t handleCount = (styleTag == HidNpadStyleTag_NpadFullKey) ? 1 : 2;
-    hidInitializeVibrationDevices(this->vibrationHandles, handleCount, this->GetNpadIdType(), styleTag);
+    hidInitializeVibrationDevices(this->vibrationHandles.get(), handleCount, this->GetNpadIdType(), styleTag);
 
     hidStartSixAxisSensor(this->sixAxisHandles[0]);
 
@@ -106,6 +111,11 @@ bool Gamepad::Open(size_t index)
 void Gamepad::Close()
 {
     this->instanceID = -1;
+
+    /* stop vibration, just in case */
+    if (this->vibrationHandles != nullptr)
+        this->SetVibration(0, 0);
+
     this->vibration = Vibration();
 
     if (this->sixAxisHandles != nullptr)
@@ -117,8 +127,8 @@ void Gamepad::Close()
             hidStopSixAxisSensor(this->sixAxisHandles[1]);
     }
 
-    delete [] this->sixAxisHandles;
-    delete [] this->vibrationHandles;
+    this->sixAxisHandles = nullptr;
+    this->vibrationHandles = nullptr;
 }
 
 bool Gamepad::IsConnected() const
@@ -332,6 +342,13 @@ bool Gamepad::IsVibrationSupported()
 
 bool Gamepad::SetVibration(float left, float right, float duration)
 {
+    left = std::clamp(left, 0.0f, 1.0f);
+    right = std::clamp(right, 0.0f, 1.0f);
+
+    uint32_t length = Vibration::max;
+    if (duration >= 0)
+        length = (uint32_t)std::min(duration, Vibration::max / 1000.0f);
+
     for (auto & vibrationValue : this->vibrationValues)
     {
         vibrationValue.freq_low  = 160.0f;
@@ -344,15 +361,36 @@ bool Gamepad::SetVibration(float left, float right, float duration)
     this->vibrationValues[1].amp_low  = left;
     this->vibrationValues[1].amp_high = right;
 
-    this->vibration = { left, right };
+    Result res = hidSendVibrationValues(this->vibrationHandles.get(), this->vibrationValues, 2);
+    bool success = R_SUCCEEDED(res);
 
-    Result success = hidSendVibrationValues(this->vibrationHandles, this->vibrationValues, 2);
+    if (success)
+    {
+        this->vibration.left = left;
+        this->vibration.right = right;
+
+        if (left != 0 && right != 0)
+            this->vibration.id = this->id;
+
+        if (length == Vibration::max)
+            this->vibration.endTime = Vibration::max;
+        else
+            this->vibration.endTime = love::Timer::GetTime() + length;
+
+        JOYSTICK_MODULE()->AddVibration(this, this->id);
+    }
+    else
+    {
+        this->vibration.left = this->vibration.right = 0.0f;
+        this->vibration.endTime = Vibration::max;
+    }
 
     return R_SUCCEEDED(success);
 }
 
 bool Gamepad::SetVibration()
 {
+    this->vibration.id = -1;
     return this->SetVibration(0, 0);
 }
 
@@ -360,6 +398,11 @@ void Gamepad::GetVibration(float & left, float & right)
 {
     left = this->vibration.left;
     right = this->vibration.right;
+}
+
+const Gamepad::Vibration & Gamepad::GetVibration() const
+{
+    return this->vibration;
 }
 
 bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton & out)

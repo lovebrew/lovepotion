@@ -1,14 +1,19 @@
 #pragma once
 
-#include "modules/system/system.h"
+#include "modules/system/systemc.h"
 
-#define USERNAME_LENGTH 0x1C
+#define USERNAME_LENGTH 0x21
+#define TEGRA_CPU_COUNT 0x4
 
-namespace love::ctr
+namespace love
 {
-    class System : public love::System
+    class System : public common::System
     {
         public:
+            using common::System::GetPowerInfo;
+
+            using common::System::GetNetworkInfo;
+
             int GetProcessorCount() override;
 
             PowerInfo GetPowerInfo() const override;

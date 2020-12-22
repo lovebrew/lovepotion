@@ -1,7 +1,7 @@
 #include "common/runtime.h"
-#include "modules/system/system.h"
+#include "modules/system/systemc.h"
 
-using namespace love;
+using namespace love::common;
 
 System::System() : sysInfo()
 { /* initialize sysInfo defaults */ }

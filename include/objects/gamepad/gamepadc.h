@@ -70,6 +70,18 @@ namespace love::common
                 };
             };
 
+            struct Vibration
+            {
+                float left  = 0.0f;
+                float right = 0.0f;
+
+                float endTime = 0.0f;
+
+                int id = -1;
+
+                static constexpr uint32_t max = std::numeric_limits<uint32_t>::max();
+            };
+
             static love::Type type;
 
             Gamepad(size_t id);
@@ -129,16 +141,10 @@ namespace love::common
             size_t id;
             int8_t instanceID;
 
+            Vibration vibration;
+
             std::string name;
             std::string guid;
-
-            struct Vibration
-            {
-                float left  = 0.0f;
-                float right = 0.0f;
-
-                uint32_t max = std::numeric_limits<uint32_t>::max();
-            } vibration;
 
         private:
             Gamepad() {}

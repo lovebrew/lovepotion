@@ -8,7 +8,7 @@
 #include "deko3d/CShader.h"
 #include "deko3d/shader.h"
 #include "deko3d/CImage.h"
-#include "deko3d/texturealloc.h"
+#include "common/bitalloc.h"
 
 #include "objects/texture/texture.h"
 #include "objects/font/font.h"
@@ -133,7 +133,7 @@ class deko3d
         vertex::Vertex * vertexData;
 
         uint32_t firstVertex = 0;
-        TextureAlloc<MAX_OBJECTS> allocator;
+        BitwiseAlloc<MAX_OBJECTS> allocator;
 
         enum State
         {

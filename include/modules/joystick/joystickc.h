@@ -5,7 +5,7 @@
 
 #include <list>
 
-namespace love
+namespace love::common
 {
     class Joystick : public Module
     {
@@ -18,19 +18,19 @@ namespace love
 
             const char * GetName() const override { return "love.joystick"; }
 
-            Gamepad * GetJoystickFromID(size_t index);
+            love::Gamepad * GetJoystickFromID(size_t index);
 
             size_t GetJoystickCount() const;
 
-            Gamepad * AddGamepad(size_t index);
+            love::Gamepad * AddGamepad(size_t index);
 
-            void RemoveGamepad(Gamepad * gamepad);
+            void RemoveGamepad(love::Gamepad * gamepad);
 
-            int GetIndex(const Gamepad * gamepad);
+            int GetIndex(const love::Gamepad * gamepad);
 
         private:
-            std::vector<Gamepad *> active;
+            std::vector<love::Gamepad *> active;
 
-            std::list<Gamepad *> gamepads;
+            std::list<love::Gamepad *> gamepads;
     };
 }

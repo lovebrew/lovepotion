@@ -3,6 +3,8 @@
 #include "objects/gamepad/gamepadc.h"
 #include "common/enummap.h"
 
+#include "common/bitalloc.h"
+
 namespace love
 {
     class Gamepad : public common::Gamepad
@@ -50,6 +52,8 @@ namespace love
 
             void GetVibration(float & left, float & right) override;
 
+            const Vibration & GetVibration() const;
+
             PadState & GetPadState();
 
             static bool GetConstant(int32_t in, GamepadButton & out);
@@ -59,9 +63,9 @@ namespace love
             PadState pad;
             u32 style;
 
-            HidSixAxisSensorHandle * sixAxisHandles;
+            std::unique_ptr<HidSixAxisSensorHandle[]> sixAxisHandles;
 
-            HidVibrationDeviceHandle * vibrationHandles;
+            std::unique_ptr<HidVibrationDeviceHandle[]> vibrationHandles;
             HidVibrationValue vibrationValues[2];
 
             const HidNpadStyleTag GetStyleTag() const;

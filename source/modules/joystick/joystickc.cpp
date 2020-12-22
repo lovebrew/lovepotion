@@ -1,7 +1,7 @@
 #include "common/runtime.h"
 #include "modules/joystick/joystickc.h"
 
-using namespace love;
+using namespace love::common;
 
 Joystick::Joystick()
 {
@@ -18,7 +18,7 @@ Joystick::~Joystick()
     }
 }
 
-Gamepad * Joystick::GetJoystickFromID(size_t index)
+love::Gamepad * Joystick::GetJoystickFromID(size_t index)
 {
     for (auto stick : this->active)
     {
@@ -34,12 +34,12 @@ size_t Joystick::GetJoystickCount() const
     return this->active.size();
 }
 
-Gamepad * Joystick::AddGamepad(size_t index)
+love::Gamepad * Joystick::AddGamepad(size_t index)
 {
     if (index < 0 || index > MAX_GAMEPADS)
         return nullptr;
 
-    Gamepad * joystick = nullptr;
+    love::Gamepad * joystick = nullptr;
     bool reused = false;
 
     for (auto stick : this->gamepads)
@@ -54,7 +54,7 @@ Gamepad * Joystick::AddGamepad(size_t index)
 
     if (!joystick)
     {
-        joystick = new Gamepad(gamepads.size());
+        joystick = new love::Gamepad(gamepads.size());
         this->gamepads.push_back(joystick);
     }
 
@@ -84,7 +84,7 @@ Gamepad * Joystick::AddGamepad(size_t index)
     return joystick;
 }
 
-void Joystick::RemoveGamepad(Gamepad * gamepad)
+void Joystick::RemoveGamepad(love::Gamepad * gamepad)
 {
     if (!gamepad)
         return;
@@ -98,7 +98,7 @@ void Joystick::RemoveGamepad(Gamepad * gamepad)
     }
 }
 
-int Joystick::GetIndex(const Gamepad *joystick)
+int Joystick::GetIndex(const love::Gamepad *joystick)
 {
     for (int i = 0; i < (int)this->active.size(); i++)
     {

@@ -65,7 +65,7 @@ void Input::CheckFocus()
     }
 }
 
-#include "modules/joystick/joystickc.h"
+#include "modules/joystick/joystick.h"
 
 namespace
 {
@@ -73,7 +73,6 @@ namespace
     static HidAnalogStickState oldSticks[2];
 
     static HidTouchScreenState touchState    = { 0 };
-    static HidTouchScreenState oldTouchState = { 0 };
 
     static std::array<HidTouchState, MAX_TOUCH> stateTouches;
     static std::array<HidTouchState, MAX_TOUCH> oldStateTouches;

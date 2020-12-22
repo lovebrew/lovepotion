@@ -1,6 +1,8 @@
 #include "common/runtime.h"
 #include "modules/system/wrap_system.h"
 
+#include "modules/system/system.h"
+
 using namespace love;
 
 #define instance() (Module::GetInstance<System>(Module::M_SYSTEM))
@@ -110,11 +112,7 @@ int Wrap_System::Register(lua_State * L)
     System * instance = instance();
 
     if (instance == nullptr)
-        #if defined (_3DS)
-            Luax::CatchException(L, [&]() { instance = new ctr::System(); });
-        #else
-            Luax::CatchException(L, [&]() { instance = new hac::System(); });
-        #endif
+        Luax::CatchException(L, [&]() { instance = new System(); });
     else
         instance->Retain();
 

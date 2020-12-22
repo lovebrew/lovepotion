@@ -1,7 +1,7 @@
 #pragma once
 
 #include "objects/gamepad/gamepad.h"
-#include "modules/joystick/joystickc.h"
+#include "modules/joystick/joystick.h"
 
 namespace Wrap_Joystick
 {

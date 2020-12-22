@@ -55,7 +55,8 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/deko3d \
 				include/freetype \
 				include/freetype/types \
-				include/modules \
+				include/modules/system \
+				include/modules/joystick \
 				include/modules/font \
 				include/objects/font \
 				include/objects/canvas \
