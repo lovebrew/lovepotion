@@ -1,9 +1,9 @@
 #include "common/runtime.h"
-#include "modules/system.h"
+#include "modules/system/system.h"
 
-using namespace love::hac;
+using namespace love;
 
-std::array<std::string, LANGUAGE_COUNT> love::System::LANGUAGES =
+std::array<std::string, LANGUAGE_COUNT> love::common::System::LANGUAGES =
 {
     "Japanese",  "American English", "French",
     "German",    "Italian",          "Spanish",

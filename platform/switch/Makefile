@@ -55,11 +55,13 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/deko3d \
 				include/freetype \
 				include/freetype/types \
-				include/modules \
+				include/modules/system \
+				include/modules/joystick \
 				include/modules/font \
 				include/objects/font \
 				include/objects/canvas \
-				include/objects/text
+				include/objects/text \
+				include/objects/gamepad
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs

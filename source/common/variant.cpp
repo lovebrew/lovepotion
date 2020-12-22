@@ -186,7 +186,7 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
             std::vector<std::pair<Variant, Variant>> * table = new std::vector<std::pair<Variant, Variant>>();
 
             // We can use a pointer to a stack-allocated variable because it's
-			// never used after the stack-allocated variable is destroyed.
+            // never used after the stack-allocated variable is destroyed.
             if (tableSet == nullptr)
                 tableSet = &topTableSet;
 

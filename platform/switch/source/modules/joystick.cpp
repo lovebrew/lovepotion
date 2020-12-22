@@ -1,68 +1,61 @@
 #include "common/runtime.h"
 #include "modules/joystick/joystick.h"
 
+#include "modules/timer/timer.h"
+
 using namespace love;
 
-std::string Joystick::GetDeviceGUID(u32 index) const
+Joystick::PoolThread::PoolThread(JoystickPool * pool) : pool(pool),
+                                                        finish(false)
 {
-    // if (index < 0 || index > MAX_GAMEPADS)
-    //     return "";
-
-    // std::string val = "Joycon";
-    //     HidControllerType type;
-
-    // HidControllerID hidID = CONTROLLER_P1_AUTO;
-    // if (index != 0)
-    //     hidID = static_cast<HidControllerID>(index);
-
-    // type = hidGetControllerType(hidID);
-    // std::string ret = "";
-
-    // switch (type)
-    // {
-    //     case TYPE_PROCONTROLLER:
-    //         ret = "Pro Controller";
-    //         break;
-    //     case TYPE_HANDHELD:
-    //         ret = "Handheld";
-    //         break;
-    //     case TYPE_JOYCON_LEFT:
-    //         ret = "Joycon Left";
-    //         break;
-    //     case TYPE_JOYCON_RIGHT:
-    //         ret = "Joycon Right";
-    //         break;
-    //     default:
-    //         break;
-    // }
-
-    // return ret += " (Player #" + std::to_string(index) + ")";
-    return std::string("");
+    this->threadName = "VibrationPool";
 }
 
-bool Joystick::Split(size_t id, const std::string & holdType)
+Joystick::PoolThread::~PoolThread()
+{}
+
+void Joystick::PoolThread::ThreadFunction()
 {
-    if (id < 0 || id > MAX_GAMEPADS)
-        return false;
+    while (true)
+    {
+        if (this->finish)
+            return;
 
-    Result success = 0;
-
-    // success = hidSetNpadJoyAssignmentModeSingleByDefault(static_cast<HidControllerID>(id));
-
-    /* TO-DO: holdType horizontal */
-
-    return R_SUCCEEDED(success);
+        this->pool->Update();
+        svcSleepThread(5000000);
+    }
 }
 
-bool Joystick::Merge(const std::array<size_t, 2> & gamepads)
+void Joystick::PoolThread::SetFinish()
 {
-    Result success = 0;
+    this->finish = true;
+}
 
-    // for (auto id : gamepads)
-    //     success = hidSetNpadJoyAssignmentModeDual(static_cast<HidControllerID>(id));
+Joystick::Joystick()
+{
+    try
+    {
+        this->pool = new JoystickPool();
+    }
+    catch (love::Exception &)
+    {
+        throw;
+    }
 
-    // if (R_SUCCEEDED(success))
-    //     hidMergeSingleJoyAsDualJoy(static_cast<HidControllerID>(gamepads[0]), static_cast<HidControllerID>(gamepads[1]));
+    this->poolThread = new PoolThread(pool);
+    this->poolThread->Start();
+}
 
-    return R_SUCCEEDED(success);
+Joystick::~Joystick()
+{
+    this->poolThread->SetFinish();
+    this->poolThread->Wait();
+
+    delete this->poolThread;
+    delete this->pool;
+}
+
+bool Joystick::AddVibration(Gamepad * gamepad, size_t id)
+{
+    return this->pool->AssignGamepad(gamepad, id);
 }

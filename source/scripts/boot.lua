@@ -254,17 +254,17 @@ function love.createhandlers()
         end,
         touchpressed = function(id, x, y, dx, dy, pressure)
             if love.touchpressed then
-                return love.touchpressed(id, x, y, pressure)
+                return love.touchpressed(id, x, y, dx, dy, pressure)
             end
         end,
         touchreleased = function(id, x, y, dx, dy, pressure)
             if love.touchreleased then
-                return love.touchreleased(id, x, y, pressure)
+                return love.touchreleased(id, x, y, dx, dy, pressure)
             end
         end,
         touchmoved = function(id, x, y, dx, dy, pressure)
             if love.touchmoved then
-                return love.touchmoved(id, x, y, pressure)
+                return love.touchmoved(id, x, y, dx, dy, pressure)
             end
         end,
         focus = function (focus)

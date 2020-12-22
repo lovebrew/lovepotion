@@ -55,7 +55,11 @@ int Wrap_Gamepad::GetGamepadAxis(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    std::string axis = luaL_checkstring(L, 2);
+    const char * str = luaL_checkstring(L, 2);
+    Gamepad::GamepadAxis axis;
+
+    if (!common::Gamepad::GetConstant(str, axis))
+        return Luax::EnumError(L, "gamepad axis", str);
 
     lua_pushnumber(L, self->GetGamepadAxis(axis));
 
@@ -83,7 +87,7 @@ int Wrap_Gamepad::GetName(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    lua_pushstring(L, self->GetName().c_str());
+    lua_pushstring(L, self->GetName());
 
     return 1;
 }
@@ -96,10 +100,11 @@ int Wrap_Gamepad::GetVibration(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    LOVE_Vibration vibration = self->GetVibration();
+    float left, right = 0.0f;
+    self->GetVibration(left, right);
 
-    lua_pushnumber(L, vibration.left);
-    lua_pushnumber(L, vibration.right);
+    lua_pushnumber(L, left);
+    lua_pushnumber(L, right);
 
     return 2;
 }
@@ -125,13 +130,31 @@ int Wrap_Gamepad::IsDown(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    size_t buttonCount = Input::buttons.size();
+    bool istable = lua_istable(L, 2);
+    int num = istable ? (int)lua_objlen(L, 2) : (lua_gettop(L) - 1);
 
-    size_t index = luaL_checkinteger(L, 2);
+    if (num == 0)
+        luaL_checkinteger(L, 2);
 
-    size_t button = std::clamp(index, (size_t)1, buttonCount);
+    std::vector<size_t> buttons;
+    buttons.reserve(num);
 
-    lua_pushboolean(L, self->IsDown(button));
+    if (istable)
+    {
+        for (int i = 0; i < num; i++)
+        {
+            lua_rawgeti(L, 2, i + 1);
+            buttons.push_back(luaL_checkinteger(L, -1) - 1);
+            lua_pop(L, 1);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < num; i++)
+            buttons.push_back(luaL_checkinteger(L, i + 2) - 1);
+    }
+
+    lua_pushboolean(L, self->IsDown(buttons));
 
     return 1;
 }
@@ -157,9 +180,46 @@ int Wrap_Gamepad::IsGamepadDown(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    std::string button = luaL_checkstring(L, 2);
+    bool istable = lua_istable(L, 2);
+    int num = istable ? (int)lua_objlen(L, 2) : (lua_gettop(L) - 1);
 
-    lua_pushboolean(L, self->IsGamepadDown(button));
+    if (num == 0)
+        luaL_checkstring(L, 2);
+
+    std::vector<Gamepad::GamepadButton> buttons;
+    buttons.reserve(num);
+
+    Gamepad::GamepadButton button;
+
+    if (istable)
+    {
+        for (int i = 0; i < num; i++)
+        {
+            lua_rawgeti(L, 2, i + 1);
+            const char * str = luaL_checkstring(L, -1);
+
+            if (!common::Gamepad::GetConstant(str, button))
+                return Luax::EnumError(L, "gamepad button", str);
+
+            buttons.push_back(button);
+
+            lua_pop(L, 1);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < num; i++)
+        {
+            const char *str = luaL_checkstring(L, i + 2);
+
+            if (!common::Gamepad::GetConstant(str, button))
+                return Luax::EnumError(L, "gamepad button", str);
+
+            buttons.push_back(button);
+        }
+    }
+
+    lua_pushboolean(L, self->IsGamepadDown(buttons));
 
     return 1;
 }
@@ -187,26 +247,23 @@ int Wrap_Gamepad::SetVibration(lua_State * L)
 {
     Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    if (!self->IsVibrationSupported())
-    {
-        lua_pushboolean(L, false);
+    bool success = false;
 
-        return 1;
+    if (lua_isnoneornil(L, 2))
+    {
+        // Disable joystick vibration if no argument is given.
+        success = self->SetVibration();
+    }
+    else
+    {
+        float left     = luaL_checknumber(L, 2);
+        float right    = luaL_optnumber(L, 3, left);
+        float duration = luaL_optnumber(L, 4, -1.0); // -1 is infinite.
+
+        success = self->SetVibration(left, right, duration);
     }
 
-    float left = luaL_optnumber(L, 2, 0.0f);
-    float right = luaL_optnumber(L, 3, 0.0f);
-
-    float duration = luaL_optnumber(L, 4, -1.0f);
-
-    LOVE_Vibration vibration;
-
-    vibration.left = left;
-    vibration.right = right;
-
-    self->SetVibrationValues(vibration);
-
-    lua_pushboolean(L, self->SyncVibration(duration));
+    lua_pushboolean(L, success);
 
     return 1;
 }

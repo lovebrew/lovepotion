@@ -41,12 +41,16 @@ extern "C"
         SOCKET_BUFFER = (u32 *)memalign(SO_BUF_ALIGN, SO_MAX_BUFSIZE);
         SOCKET_INITED = socInit(SOCKET_BUFFER, SO_MAX_BUFSIZE);
 
+        HIDUSER_EnableAccelerometer();
+
         /* so we can have preemptive threads */
         APT_SetAppCpuTimeLimit(30);
     }
 
     void userAppExit()
     {
+        HIDUSER_DisableAccelerometer();
+
         if (R_SUCCEEDED(SOCKET_INITED))
         {
             socExit();

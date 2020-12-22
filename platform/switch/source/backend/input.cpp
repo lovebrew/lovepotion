@@ -3,14 +3,12 @@
 
 std::unordered_map<std::string, int> Input::buttons =
 {
-    { "a", KEY_A }, { "b", KEY_B }, { "x", KEY_X }, { "y", KEY_Y },
-    { "dpright", KEY_DRIGHT }, { "dpleft", KEY_DLEFT }, { "dpup", KEY_DUP },
-    { "dpdown", KEY_DDOWN }, { "rightshoulder", KEY_R }, { "leftshoulder", KEY_L },
-    { "leftstick", KEY_LSTICK }, { "rightstick", KEY_RSTICK }, { "back", KEY_MINUS },
-    { "start", KEY_PLUS}, { "leftshoulder", KEY_SL }, { "rightshoulder", KEY_SR }
+    { "a",         HidNpadButton_A      }, { "b",             HidNpadButton_B      },  { "x",             HidNpadButton_X      }, { "y", HidNpadButton_Y },
+    { "dpright",   HidNpadButton_Right  }, { "dpleft",        HidNpadButton_Left   },  { "dpup",          HidNpadButton_Up     },
+    { "dpdown",    HidNpadButton_Down   }, { "rightshoulder", HidNpadButton_R      },  { "leftshoulder",  HidNpadButton_L      },
+    { "leftstick", HidNpadButton_StickL }, { "rightstick",    HidNpadButton_StickR },  { "back",          HidNpadButton_Minus  },
+    { "start",     HidNpadButton_Plus   }, { "leftshoulder",  HidNpadButton_AnySL  },  { "rightshoulder", HidNpadButton_AnySR  }
 };
-
-static Input::JoystickState joystick[MAX_GAMEPADS];
 
 void Input::CheckFocus()
 {
@@ -67,6 +65,21 @@ void Input::CheckFocus()
     }
 }
 
+#include "modules/joystick/joystick.h"
+
+namespace
+{
+    static HidAnalogStickState sticks[2];
+    static HidAnalogStickState oldSticks[2];
+
+    static HidTouchScreenState touchState    = { 0 };
+
+    static std::array<HidTouchState, MAX_TOUCH> stateTouches;
+    static std::array<HidTouchState, MAX_TOUCH> oldStateTouches;
+}
+
+#define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
+
 bool Input::PollEvent(LOVE_Event * event)
 {
     if (!s_inputEvents.empty())
@@ -83,18 +96,22 @@ bool Input::PollEvent(LOVE_Event * event)
         return false;
     }
 
-    hidScanInput();
+    if (!MODULE())
+        return false;
 
-    Input::down = hidKeysDown(CONTROLLER_P1_AUTO);
-    Input::up = hidKeysUp(CONTROLLER_P1_AUTO);
-    Input::held = hidKeysHeld(CONTROLLER_P1_AUTO);
+    PadState & pad = MODULE()->GetJoystickFromID(0)->GetPadState();
+
+    padUpdate(&pad);
+
+    Input::down = padGetButtonsDown(&pad);
+    Input::up = padGetButtonsUp(&pad);
+    Input::held = padGetButtons(&pad);
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
         if (Input::GetKeyDown<u64>() & it->second)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_GAMEPADDOWN;
             e.button.name = it->first;
@@ -102,40 +119,43 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
-    u32 touches = hidTouchCount();
+    hidGetTouchScreenStates(&touchState, 1);
+    int touchCount = touchState.count;
 
-    if (touches > 0)
+    if (touchCount > 0)
     {
-        for (u32 id = 0; id < touches; id++)
+        for (int id = 0; id < touchCount; id++)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
-            if (touches > prevTouchCount && id >= prevTouchCount)
+            if (touchCount > prevTouchCount && id >= prevTouchCount)
             {
-                hidTouchRead(&Input::touches[id], id);
-                Input::prevTouches[id] = Input::touches[id];
+                stateTouches[id] = touchState.touches[id]; //< read the touches
+                oldStateTouches[id] = stateTouches[id]; //< set old touches to newly read ones
 
                 e.type = LOVE_TOUCHPRESS;
             }
             else
             {
-                Input::prevTouches[id] = Input::touches[id];
-                hidTouchRead(&Input::touches[id], id);
+                oldStateTouches[id] = stateTouches[id]; //< set old touches to currently read ones
+                stateTouches[id] = touchState.touches[id]; //< read the touches
 
                 e.type = LOVE_TOUCHMOVED;
             }
 
             e.touch.id = id;
 
-            e.touch.x = Input::touches[id].px;
-            e.touch.y = Input::touches[id].py;
+            e.touch.x = stateTouches[id].x;
+            e.touch.y = stateTouches[id].y;
 
-            float dx = Input::touches[id].px - Input::prevTouches[id].px;
-            float dy = Input::touches[id].py - Input::prevTouches[id].py;
+            u32 currentX = (stateTouches[id].x > oldStateTouches[id].x) ? stateTouches[id].x : oldStateTouches[id].x;
+            u32 currentY = (stateTouches[id].y > oldStateTouches[id].y) ? stateTouches[id].y : oldStateTouches[id].y;
 
-            e.touch.dx = dx;
-            e.touch.dy = dy;
+            u32 prevX = (currentX == stateTouches[id].x) ? oldStateTouches[id].x : stateTouches[id].x;
+            u32 prevY = (currentY == stateTouches[id].y) ? oldStateTouches[id].y : stateTouches[id].y;
+
+            e.touch.dx = currentX - prevX;
+            e.touch.dy = currentY - prevY;
 
             e.touch.pressure = 1.0f;
 
@@ -147,32 +167,30 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
-    if (touches < prevTouchCount)
+    if (touchCount < prevTouchCount)
     {
-        for (u32 id = 0; id < prevTouchCount; ++id)
+        for (int id = 0; id < prevTouchCount; ++id)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_TOUCHRELEASE;
 
             e.touch.id = id;
-            e.touch.x = Input::touches[id].px;
-            e.touch.y = Input::touches[id].py;
+            e.touch.x = stateTouches[id].x;
+            e.touch.y = stateTouches[id].y;
             e.touch.dx = 0.0f;
             e.touch.dy = 0.0f;
             e.touch.pressure = 0.0f;
         }
     }
 
-    prevTouchCount = touches;
+    prevTouchCount = touchCount;
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
         if (Input::GetKeyUp<u64>() & it->second)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_GAMEPADUP;
 
@@ -182,15 +200,12 @@ bool Input::PollEvent(LOVE_Event * event)
     }
 
     /* Applet Focus Handling */
-
     Input::CheckFocus();
 
     /* ZL / Left Trigger */
-
     if (Input::GetKeyDown<u64>() & KEY_ZL)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerleft";
@@ -200,8 +215,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyUp<u64>() & KEY_ZL)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerleft";
@@ -213,8 +227,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyDown<u64>() & KEY_ZR)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerright";
@@ -224,8 +237,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyUp<u64>() & KEY_ZR)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerright";
@@ -234,69 +246,63 @@ bool Input::PollEvent(LOVE_Event * event)
     }
 
     /* Joystick Values */
-    static JoystickState oldjoyStates[MAX_GAMEPADS];
-
-    hidJoystickRead(&joystick[0].left, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
-    hidJoystickRead(&joystick[0].right, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
+    sticks[0] = padGetStickPos(&pad, 0);
+    sticks[1] = padGetStickPos(&pad, 1);
 
     // LEFT X AXIS
-    if (oldjoyStates[0].left.dx != joystick[0].left.dx)
+    if (oldSticks[0].x != sticks[0].x)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].left.dx / (float)JOYSTICK_MAX;
+        e.axis.value = sticks[0].x / (float)JOYSTICK_MAX;
 
-        oldjoyStates[0].left.dx = joystick[0].left.dx;
+        oldSticks[0].x = sticks[0].x;
     }
 
     // LEFT Y AXIS
-    if (oldjoyStates[0].left.dy != joystick[0].left.dy)
+    if (oldSticks[0].y != sticks[0].y)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].left.dy / (float)JOYSTICK_MAX);
+        e.axis.value = -(sticks[0].y / (float)JOYSTICK_MAX);
 
-        oldjoyStates[0].left.dy = joystick[0].left.dy;
+        oldSticks[0].y = sticks[0].y;
     }
 
     // RIGHT X AXIS
-    if (oldjoyStates[0].right.dx != joystick[0].right.dx)
+    if (oldSticks[1].x != sticks[1].x)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].right.dx / (float)JOYSTICK_MAX;
+        e.axis.value = sticks[1].x / (float)JOYSTICK_MAX;
 
-        oldjoyStates[0].right.dx = joystick[0].right.dx;
+        oldSticks[1].x = sticks[1].x;
     }
 
     // RIGHT Y AXIS
-    if (oldjoyStates[0].right.dy != joystick[0].right.dy)
+    if (oldSticks[1].y != sticks[1].y)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
         e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].right.dy / (float)JOYSTICK_MAX);
+        e.axis.value = -(sticks[1].y / (float)JOYSTICK_MAX);
 
-        oldjoyStates[0].right.dy = joystick[0].right.dy;
+        oldSticks[1].y = sticks[1].y;
     }
 
     if (s_inputEvents.empty())

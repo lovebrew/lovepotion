@@ -63,11 +63,11 @@ enum LOVE_EventType
 
 #if defined (_3DS)
     #define MAX_TOUCH 1
+    typedef circlePosition StickPosition;
 #elif defined (__SWITCH__)
     #define MAX_TOUCH 16
+    typedef JoystickPosition StickPosition;
 #endif
-
-#include "objects/gamepad/gamepad.h"
 
 namespace Input
 {
@@ -94,7 +94,7 @@ namespace Input
     extern std::unordered_map<std::string, int> buttons;
 
     inline bool touchHeld = false;
-    inline u32 prevTouchCount = 0;
+    inline int prevTouchCount = 0;
 
     inline bool hasFocus  = true;
     inline bool prevFocus = false;

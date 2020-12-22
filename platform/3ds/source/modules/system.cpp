@@ -1,11 +1,11 @@
 #include "common/runtime.h"
-#include "modules/system.h"
+#include "modules/system/system.h"
 
-using namespace love::ctr;
+using namespace love;
 
 static std::string empty;
 
-std::array<std::string, LANGUAGE_COUNT> love::System::LANGUAGES =
+std::array<std::string, LANGUAGE_COUNT> love::common::System::LANGUAGES =
 {
     "Japanese", "English", "French",
     "German",   "Italian", "Spanish",

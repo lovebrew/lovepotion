@@ -1,10 +1,5 @@
 #pragma once
 
-#include "modules/system/system.h"
-
-/* subclass */
-#include "modules/system.h"
-
 namespace Wrap_System
 {
     int GetOS(lua_State * L);

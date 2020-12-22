@@ -5,7 +5,7 @@
 #include "common/exception.h"
 
 template<size_t N>
-class TextureAlloc : std::bitset<N>
+class BitwiseAlloc : std::bitset<N>
 {
     public:
         size_t Allocate()
@@ -28,6 +28,16 @@ class TextureAlloc : std::bitset<N>
             #endif
 
             return index;
+        }
+
+        void DeAllocate(size_t index)
+        {
+            #if defined (__DEBUG__)
+                if (!this->test(index))
+                    throw love::Exception("Texture allocator bit not set!");
+            #endif
+
+            this->reset(index);
         }
 
         void DeAllocate(DkResHandle handle)

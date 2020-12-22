@@ -4,6 +4,8 @@
 #include "common/exception.h"
 #include "modules/event/event.h"
 
+#include "common/backend/input.h"
+
 using namespace love;
 
 const std::vector<Touch::TouchInfo> & Touch::GetTouches() const

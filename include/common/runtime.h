@@ -22,6 +22,16 @@ enum DoneAction
 
 extern bool g_accelJoystick;
 
+#if defined(_3DS)
+    #include <3ds.h>
+    #include <citro2d.h>
+
+    #define MAX_GAMEPADS 1
+#else
+    #include <switch.h>
+    #define MAX_GAMEPADS 4
+#endif
+
 // std stuff
 #include <algorithm>
 #include <array>
@@ -49,7 +59,6 @@ extern bool g_accelJoystick;
 #include <vector>
 #include <variant>
 
-#include "common/defines.h"
 #include "common/strongref.h"
 #include "common/type.h"
 #include "common/proxy.h"

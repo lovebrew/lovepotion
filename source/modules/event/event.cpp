@@ -46,7 +46,7 @@ void love::Event::Pump()
 
         love::Touch * touchModule = nullptr;
         Touch::TouchInfo touchinfo;
-        const char * text;
+        const char * text = nullptr;
 
         switch (event.type)
         {
