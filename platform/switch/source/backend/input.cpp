@@ -67,10 +67,11 @@ void Input::CheckFocus()
 
 #include "modules/joystick/joystickc.h"
 
-static HidTouchScreenState oldTouchState = { 0 };
-
 static HidAnalogStickState sticks[2];
 static HidAnalogStickState oldSticks[2];
+
+static HidTouchScreenState touchState = { 0 };
+static HidTouchScreenState oldTouchState = { 0 };
 
 #define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
 
@@ -114,8 +115,7 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
-    HidTouchScreenState touchState { 0 };
-    hidGetTouchScreenStates(&touchState, MAX_TOUCH);
+    hidGetTouchScreenStates(&touchState, 1);
 
     if (touchState.count > 0)
     {
@@ -125,9 +125,15 @@ bool Input::PollEvent(LOVE_Event * event)
             auto & e = s_inputEvents.back();
 
             if (touchState.count > prevTouchCount && id >= prevTouchCount)
+            {
+                oldTouchState = touchState;
                 e.type = LOVE_TOUCHPRESS;
+            }
             else
+            {
+                oldTouchState = touchState;
                 e.type = LOVE_TOUCHMOVED;
+            }
 
             e.touch.id = id;
 
@@ -141,8 +147,6 @@ bool Input::PollEvent(LOVE_Event * event)
             e.touch.dy = dy;
 
             e.touch.pressure = 1.0f;
-
-            oldTouchState = touchState;
 
             if (e.type == LOVE_TOUCHMOVED && !e.touch.dx && !e.touch.dy)
             {
@@ -187,11 +191,9 @@ bool Input::PollEvent(LOVE_Event * event)
     }
 
     /* Applet Focus Handling */
-
     Input::CheckFocus();
 
     /* ZL / Left Trigger */
-
     if (Input::GetKeyDown<u64>() & KEY_ZL)
     {
         s_inputEvents.emplace_back();

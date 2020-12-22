@@ -43,7 +43,7 @@ Message * Message::FromLua(lua_State * L, int index)
 
 int Message::ToLua(lua_State * L)
 {
-    lua_pushlstring(L, this->name.data(), this->name.size());
+    Luax::PushString(L, this->name);
 
     for (const Variant & v : this->args)
         v.ToLua(L);
