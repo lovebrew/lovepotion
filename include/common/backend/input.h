@@ -94,7 +94,7 @@ namespace Input
     extern std::unordered_map<std::string, int> buttons;
 
     inline bool touchHeld = false;
-    inline u32 prevTouchCount = 0;
+    inline int prevTouchCount = 0;
 
     inline bool hasFocus  = true;
     inline bool prevFocus = false;

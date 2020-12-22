@@ -30,6 +30,8 @@ bool Gamepad::Open(size_t index)
     padInitializeDefault(&this->pad);
     padUpdate(&this->pad);
 
+    LOG("%d", this->IsConnected());
+
     return this->IsConnected();
 }
 

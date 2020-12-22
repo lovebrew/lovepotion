@@ -10,8 +10,6 @@ std::unordered_map<std::string, int> Input::buttons =
     { "start", KEY_PLUS}, { "leftshoulder", KEY_SL }, { "rightshoulder", KEY_SR }
 };
 
-static Input::JoystickState joystick[MAX_GAMEPADS];
-
 void Input::CheckFocus()
 {
     bool focused = (appletGetFocusState() == AppletFocusState_InFocus);
@@ -67,6 +65,15 @@ void Input::CheckFocus()
     }
 }
 
+#include "modules/joystick/joystickc.h"
+
+static HidTouchScreenState oldTouchState = { 0 };
+
+static HidAnalogStickState sticks[2];
+static HidAnalogStickState oldSticks[2];
+
+#define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
+
 bool Input::PollEvent(LOVE_Event * event)
 {
     if (!s_inputEvents.empty())
@@ -83,11 +90,16 @@ bool Input::PollEvent(LOVE_Event * event)
         return false;
     }
 
-    hidScanInput();
+    if (!MODULE())
+        return false;
 
-    Input::down = hidKeysDown(CONTROLLER_P1_AUTO);
-    Input::up = hidKeysUp(CONTROLLER_P1_AUTO);
-    Input::held = hidKeysHeld(CONTROLLER_P1_AUTO);
+    PadState & pad = MODULE()->GetJoystickFromID(0)->GetPadState();
+
+    padUpdate(&pad);
+
+    Input::down = padGetButtonsDown(&pad);
+    Input::up = padGetButtonsUp(&pad);
+    Input::held = padGetButtons(&pad);
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
@@ -102,42 +114,35 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
-    u32 touches = hidTouchCount();
+    HidTouchScreenState touchState { 0 };
+    hidGetTouchScreenStates(&touchState, MAX_TOUCH);
 
-    if (touches > 0)
+    if (touchState.count > 0)
     {
-        for (u32 id = 0; id < touches; id++)
+        for (int id = 0; id < touchState.count; id++)
         {
             s_inputEvents.emplace_back();
             auto & e = s_inputEvents.back();
 
-            if (touches > prevTouchCount && id >= prevTouchCount)
-            {
-                hidTouchRead(&Input::touches[id], id);
-                Input::prevTouches[id] = Input::touches[id];
-
+            if (touchState.count > prevTouchCount && id >= prevTouchCount)
                 e.type = LOVE_TOUCHPRESS;
-            }
             else
-            {
-                Input::prevTouches[id] = Input::touches[id];
-                hidTouchRead(&Input::touches[id], id);
-
                 e.type = LOVE_TOUCHMOVED;
-            }
 
             e.touch.id = id;
 
-            e.touch.x = Input::touches[id].px;
-            e.touch.y = Input::touches[id].py;
+            e.touch.x = touchState.touches[id].x;
+            e.touch.y = touchState.touches[id].y;
 
-            float dx = Input::touches[id].px - Input::prevTouches[id].px;
-            float dy = Input::touches[id].py - Input::prevTouches[id].py;
+            float dx = touchState.touches[id].x - oldTouchState.touches[id].x;
+            float dy = touchState.touches[id].y - oldTouchState.touches[id].y;
 
             e.touch.dx = dx;
             e.touch.dy = dy;
 
             e.touch.pressure = 1.0f;
+
+            oldTouchState = touchState;
 
             if (e.type == LOVE_TOUCHMOVED && !e.touch.dx && !e.touch.dy)
             {
@@ -147,9 +152,9 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
-    if (touches < prevTouchCount)
+    if (oldTouchState.count < prevTouchCount)
     {
-        for (u32 id = 0; id < prevTouchCount; ++id)
+        for (int id = 0; id < prevTouchCount; ++id)
         {
             s_inputEvents.emplace_back();
             auto & e = s_inputEvents.back();
@@ -157,15 +162,15 @@ bool Input::PollEvent(LOVE_Event * event)
             e.type = LOVE_TOUCHRELEASE;
 
             e.touch.id = id;
-            e.touch.x = Input::touches[id].px;
-            e.touch.y = Input::touches[id].py;
+            e.touch.x = oldTouchState.touches[id].x;
+            e.touch.y = oldTouchState.touches[id].y;
             e.touch.dx = 0.0f;
             e.touch.dy = 0.0f;
             e.touch.pressure = 0.0f;
         }
     }
 
-    prevTouchCount = touches;
+    prevTouchCount = oldTouchState.count;
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
@@ -234,13 +239,11 @@ bool Input::PollEvent(LOVE_Event * event)
     }
 
     /* Joystick Values */
-    static JoystickState oldjoyStates[MAX_GAMEPADS];
-
-    hidJoystickRead(&joystick[0].left, CONTROLLER_P1_AUTO, JOYSTICK_LEFT);
-    hidJoystickRead(&joystick[0].right, CONTROLLER_P1_AUTO, JOYSTICK_RIGHT);
+    sticks[0] = padGetStickPos(&pad, 0);
+    sticks[1] = padGetStickPos(&pad, 1);
 
     // LEFT X AXIS
-    if (oldjoyStates[0].left.dx != joystick[0].left.dx)
+    if (oldSticks[0].x != sticks[0].x)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -249,13 +252,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "leftx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].left.dx / (float)JOYSTICK_MAX;
+        e.axis.value = sticks[0].x / (float)JOYSTICK_MAX;
 
-        oldjoyStates[0].left.dx = joystick[0].left.dx;
+        oldSticks[0].x = sticks[0].x;
     }
 
     // LEFT Y AXIS
-    if (oldjoyStates[0].left.dy != joystick[0].left.dy)
+    if (oldSticks[0].y != sticks[0].y)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -264,13 +267,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "lefty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].left.dy / (float)JOYSTICK_MAX);
+        e.axis.value = -(sticks[0].y / (float)JOYSTICK_MAX);
 
-        oldjoyStates[0].left.dy = joystick[0].left.dy;
+        oldSticks[0].y = sticks[0].y;
     }
 
     // RIGHT X AXIS
-    if (oldjoyStates[0].right.dx != joystick[0].right.dx)
+    if (oldSticks[1].x != sticks[1].x)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -279,13 +282,13 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "rightx";
         e.axis.which = 0;
-        e.axis.value = joystick[0].right.dx / (float)JOYSTICK_MAX;
+        e.axis.value = sticks[1].x / (float)JOYSTICK_MAX;
 
-        oldjoyStates[0].right.dx = joystick[0].right.dx;
+        oldSticks[1].x = sticks[1].x;
     }
 
     // RIGHT Y AXIS
-    if (oldjoyStates[0].right.dy != joystick[0].right.dy)
+    if (oldSticks[1].y != sticks[1].y)
     {
         s_inputEvents.emplace_back();
         auto & e = s_inputEvents.back();
@@ -294,9 +297,9 @@ bool Input::PollEvent(LOVE_Event * event)
 
         e.axis.axis = "righty";
         e.axis.which = 0;
-        e.axis.value = -(joystick[0].right.dy / (float)JOYSTICK_MAX);
+        e.axis.value = -(sticks[1].y / (float)JOYSTICK_MAX);
 
-        oldjoyStates[0].right.dy = joystick[0].right.dy;
+        oldSticks[1].y = sticks[1].y;
     }
 
     if (s_inputEvents.empty())
