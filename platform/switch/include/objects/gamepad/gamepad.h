@@ -57,6 +57,9 @@ namespace love
 
         private:
             PadState pad;
+            u32 style;
+
+            HidSixAxisSensorHandle * handles;
 
             static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM>::Entry buttonEntries[];
             static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM> buttons;

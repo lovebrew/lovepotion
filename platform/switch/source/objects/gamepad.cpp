@@ -5,10 +5,12 @@
 
 using namespace love;
 
-Gamepad::Gamepad(size_t id) : common::Gamepad(id)
+Gamepad::Gamepad(size_t id) : common::Gamepad(id),
+                              handles(nullptr)
 {}
 
-Gamepad::Gamepad(size_t id, size_t index) : common::Gamepad(id)
+Gamepad::Gamepad(size_t id, size_t index) : common::Gamepad(id),
+                                            handles(nullptr)
 {
     this->Open(index);
 }
@@ -30,7 +32,35 @@ bool Gamepad::Open(size_t index)
     padInitializeDefault(&this->pad);
     padUpdate(&this->pad);
 
-    LOG("%d", this->IsConnected());
+    this->style = padGetStyleSet(&this->pad);
+
+    if (style & HidNpadStyleTag_NpadFullKey)
+    {
+        this->name = "Pro Controller";
+
+        this->handles = new HidSixAxisSensorHandle[1];
+        hidGetSixAxisSensorHandles(&this->handles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadFullKey);
+    }
+    else if (style & HidNpadStyleTag_NpadHandheld)
+    {
+        this->name = "Nintendo Switch";
+
+        this->handles = new HidSixAxisSensorHandle[1];
+        hidGetSixAxisSensorHandles(&this->handles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadHandheld);
+    }
+    else if (style & HidNpadStyleTag_NpadJoyDual)
+    {
+        this->name = "Dual Joy-Con";
+
+        this->handles = new HidSixAxisSensorHandle[2];
+        hidGetSixAxisSensorHandles(&this->handles[0], 2, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadJoyDual);
+    }
+
+    hidStartSixAxisSensor(this->handles[0]);
+
+    u32 attributes = padGetAttributes(&this->pad);
+    if (this->style & HidNpadStyleTag_NpadJoyDual && attributes & HidNpadAttribute_IsRightConnected)
+        hidStartSixAxisSensor(this->handles[1]);
 
     return this->IsConnected();
 }
@@ -39,6 +69,17 @@ void Gamepad::Close()
 {
     this->instanceID = -1;
     this->vibration = Vibration();
+
+    if (handles != nullptr)
+    {
+        hidStopSixAxisSensor(this->handles[0]);
+
+        u32 attributes = padGetAttributes(&this->pad);
+        if (this->style & HidNpadStyleTag_NpadJoyDual && attributes & HidNpadAttribute_IsRightConnected)
+            hidStopSixAxisSensor(this->handles[1]);
+    }
+
+    delete [] this->handles;
 }
 
 bool Gamepad::IsConnected() const
@@ -108,6 +149,45 @@ float Gamepad::GetAxis(size_t axis) const
     {
         if (!g_accelJoystick)
             return 0.0f;
+
+        HidSixAxisSensorState sixAxisState;
+
+        if (this->style & HidNpadStyleTag_NpadFullKey)
+            hidGetSixAxisSensorStates(this->handles[0], &sixAxisState, 1);
+        else if (this->style & HidNpadStyleTag_NpadHandheld)
+            hidGetSixAxisSensorStates(this->handles[0], &sixAxisState, 1);
+        else if (this->style & HidNpadStyleTag_NpadJoyDual)
+        {
+            /*
+            ** For JoyDual, read from either the Left or Right Joy-Con
+            ** depending on which is/are connected
+            */
+
+            u32 attributes = padGetAttributes(&pad);
+            if (attributes & HidNpadAttribute_IsLeftConnected)
+                hidGetSixAxisSensorStates(handles[0], &sixAxisState, 1);
+            else if (attributes & HidNpadAttribute_IsRightConnected)
+                hidGetSixAxisSensorStates(handles[1], &sixAxisState, 1);
+        }
+
+        if (axis >= 7 and axis < 10)
+        {
+            if (axis == 7)
+                return sixAxisState.angular_velocity.x;
+            else if (axis == 8)
+                return sixAxisState.angular_velocity.y;
+
+            return sixAxisState.angular_velocity.z;
+        }
+        else if (axis >= 10 and axis < 13)
+        {
+            if (axis == 7)
+                return sixAxisState.acceleration.x;
+            else if (axis == 8)
+                return sixAxisState.acceleration.y;
+
+            return sixAxisState.acceleration.z;
+        }
     }
 
     return 0.0f;

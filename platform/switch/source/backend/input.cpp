@@ -3,11 +3,11 @@
 
 std::unordered_map<std::string, int> Input::buttons =
 {
-    { "a", KEY_A }, { "b", KEY_B }, { "x", KEY_X }, { "y", KEY_Y },
-    { "dpright", KEY_DRIGHT }, { "dpleft", KEY_DLEFT }, { "dpup", KEY_DUP },
-    { "dpdown", KEY_DDOWN }, { "rightshoulder", KEY_R }, { "leftshoulder", KEY_L },
-    { "leftstick", KEY_LSTICK }, { "rightstick", KEY_RSTICK }, { "back", KEY_MINUS },
-    { "start", KEY_PLUS}, { "leftshoulder", KEY_SL }, { "rightshoulder", KEY_SR }
+    { "a",         HidNpadButton_A      }, { "b",             HidNpadButton_B      },  { "x",             HidNpadButton_X      }, { "y", HidNpadButton_Y },
+    { "dpright",   HidNpadButton_Right  }, { "dpleft",        HidNpadButton_Left   },  { "dpup",          HidNpadButton_Up     },
+    { "dpdown",    HidNpadButton_Down   }, { "rightshoulder", HidNpadButton_R      },  { "leftshoulder",  HidNpadButton_L      },
+    { "leftstick", HidNpadButton_StickL }, { "rightstick",    HidNpadButton_StickR },  { "back",          HidNpadButton_Minus  },
+    { "start",     HidNpadButton_Plus   }, { "leftshoulder",  HidNpadButton_AnySL  },  { "rightshoulder", HidNpadButton_AnySR  }
 };
 
 void Input::CheckFocus()
@@ -67,11 +67,17 @@ void Input::CheckFocus()
 
 #include "modules/joystick/joystickc.h"
 
-static HidAnalogStickState sticks[2];
-static HidAnalogStickState oldSticks[2];
+namespace
+{
+    static HidAnalogStickState sticks[2];
+    static HidAnalogStickState oldSticks[2];
 
-static HidTouchScreenState touchState = { 0 };
-static HidTouchScreenState oldTouchState = { 0 };
+    static HidTouchScreenState touchState    = { 0 };
+    static HidTouchScreenState oldTouchState = { 0 };
+
+    static std::array<HidTouchState, MAX_TOUCH> stateTouches;
+    static std::array<HidTouchState, MAX_TOUCH> oldStateTouches;
+}
 
 #define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
 
@@ -106,8 +112,7 @@ bool Input::PollEvent(LOVE_Event * event)
     {
         if (Input::GetKeyDown<u64>() & it->second)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_GAMEPADDOWN;
             e.button.name = it->first;
@@ -116,35 +121,42 @@ bool Input::PollEvent(LOVE_Event * event)
     }
 
     hidGetTouchScreenStates(&touchState, 1);
+    int touchCount = touchState.count;
 
-    if (touchState.count > 0)
+    if (touchCount > 0)
     {
-        for (int id = 0; id < touchState.count; id++)
+        for (int id = 0; id < touchCount; id++)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
-            if (touchState.count > prevTouchCount && id >= prevTouchCount)
+            if (touchCount > prevTouchCount && id >= prevTouchCount)
             {
-                oldTouchState = touchState;
+                stateTouches[id] = touchState.touches[id]; //< read the touches
+                oldStateTouches[id] = stateTouches[id]; //< set old touches to newly read ones
+
                 e.type = LOVE_TOUCHPRESS;
             }
             else
             {
-                oldTouchState = touchState;
+                oldStateTouches[id] = stateTouches[id]; //< set old touches to currently read ones
+                stateTouches[id] = touchState.touches[id]; //< read the touches
+
                 e.type = LOVE_TOUCHMOVED;
             }
 
             e.touch.id = id;
 
-            e.touch.x = touchState.touches[id].x;
-            e.touch.y = touchState.touches[id].y;
+            e.touch.x = stateTouches[id].x;
+            e.touch.y = stateTouches[id].y;
 
-            float dx = touchState.touches[id].x - oldTouchState.touches[id].x;
-            float dy = touchState.touches[id].y - oldTouchState.touches[id].y;
+            u32 currentX = (stateTouches[id].x > oldStateTouches[id].x) ? stateTouches[id].x : oldStateTouches[id].x;
+            u32 currentY = (stateTouches[id].y > oldStateTouches[id].y) ? stateTouches[id].y : oldStateTouches[id].y;
 
-            e.touch.dx = dx;
-            e.touch.dy = dy;
+            u32 prevX = (currentX == stateTouches[id].x) ? oldStateTouches[id].x : stateTouches[id].x;
+            u32 prevY = (currentY == stateTouches[id].y) ? oldStateTouches[id].y : stateTouches[id].y;
+
+            e.touch.dx = currentX - prevX;
+            e.touch.dy = currentY - prevY;
 
             e.touch.pressure = 1.0f;
 
@@ -156,32 +168,30 @@ bool Input::PollEvent(LOVE_Event * event)
         }
     }
 
-    if (oldTouchState.count < prevTouchCount)
+    if (touchCount < prevTouchCount)
     {
         for (int id = 0; id < prevTouchCount; ++id)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_TOUCHRELEASE;
 
             e.touch.id = id;
-            e.touch.x = oldTouchState.touches[id].x;
-            e.touch.y = oldTouchState.touches[id].y;
+            e.touch.x = stateTouches[id].x;
+            e.touch.y = stateTouches[id].y;
             e.touch.dx = 0.0f;
             e.touch.dy = 0.0f;
             e.touch.pressure = 0.0f;
         }
     }
 
-    prevTouchCount = oldTouchState.count;
+    prevTouchCount = touchCount;
 
     for (auto it = buttons.begin(); it != buttons.end(); it++)
     {
         if (Input::GetKeyUp<u64>() & it->second)
         {
-            s_inputEvents.emplace_back();
-            auto & e = s_inputEvents.back();
+            auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_GAMEPADUP;
 
@@ -196,8 +206,7 @@ bool Input::PollEvent(LOVE_Event * event)
     /* ZL / Left Trigger */
     if (Input::GetKeyDown<u64>() & KEY_ZL)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerleft";
@@ -207,8 +216,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyUp<u64>() & KEY_ZL)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerleft";
@@ -220,8 +228,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyDown<u64>() & KEY_ZR)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerright";
@@ -231,8 +238,7 @@ bool Input::PollEvent(LOVE_Event * event)
 
     if (Input::GetKeyUp<u64>() & KEY_ZR)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
         e.axis.axis = "triggerright";
@@ -247,8 +253,7 @@ bool Input::PollEvent(LOVE_Event * event)
     // LEFT X AXIS
     if (oldSticks[0].x != sticks[0].x)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
@@ -262,8 +267,7 @@ bool Input::PollEvent(LOVE_Event * event)
     // LEFT Y AXIS
     if (oldSticks[0].y != sticks[0].y)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
@@ -277,8 +281,7 @@ bool Input::PollEvent(LOVE_Event * event)
     // RIGHT X AXIS
     if (oldSticks[1].x != sticks[1].x)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
@@ -292,8 +295,7 @@ bool Input::PollEvent(LOVE_Event * event)
     // RIGHT Y AXIS
     if (oldSticks[1].y != sticks[1].y)
     {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
 
