@@ -58,7 +58,13 @@ bool Gamepad::Open(size_t index)
 {
     this->Close();
 
-    padInitializeDefault(&this->pad);
+    HidNpadIdType idType = this->GetNpadIdType();
+
+    if (index == 0)
+        padInitializeDefault(&this->pad);
+    else
+        padInitialize(&this->pad, static_cast<HidNpadIdType>(HidNpadIdType_No1 + index));
+
     padUpdate(&this->pad);
 
     HidNpadStyleTag styleTag = this->GetStyleTag();
