@@ -90,7 +90,9 @@ bool Gamepad::Open(size_t index)
     }
 
     memset(this->vibrationValues, 0, sizeof(this->vibrationValues));
-    hidInitializeVibrationDevices(this->vibrationHandles, 2, this->GetNpadIdType(), styleTag);
+
+    size_t handleCount = (styleTag == HidNpadStyleTag_NpadFullKey) ? 1 : 2;
+    hidInitializeVibrationDevices(this->vibrationHandles, handleCount, this->GetNpadIdType(), styleTag);
 
     hidStartSixAxisSensor(this->sixAxisHandles[0]);
 
