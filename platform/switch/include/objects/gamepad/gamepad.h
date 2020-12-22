@@ -59,7 +59,14 @@ namespace love
             PadState pad;
             u32 style;
 
-            HidSixAxisSensorHandle * handles;
+            HidSixAxisSensorHandle * sixAxisHandles;
+
+            HidVibrationDeviceHandle * vibrationHandles;
+            HidVibrationValue vibrationValues[2];
+
+            const HidNpadStyleTag GetStyleTag() const;
+
+            const HidNpadIdType GetNpadIdType() const;
 
             static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM>::Entry buttonEntries[];
             static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM> buttons;

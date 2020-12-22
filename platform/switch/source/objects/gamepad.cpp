@@ -6,11 +6,13 @@
 using namespace love;
 
 Gamepad::Gamepad(size_t id) : common::Gamepad(id),
-                              handles(nullptr)
+                              sixAxisHandles(nullptr),
+                              vibrationHandles(nullptr)
 {}
 
 Gamepad::Gamepad(size_t id, size_t index) : common::Gamepad(id),
-                                            handles(nullptr)
+                                            sixAxisHandles(nullptr),
+                                            vibrationHandles(nullptr)
 {
     this->Open(index);
 }
@@ -25,6 +27,28 @@ PadState & Gamepad::GetPadState()
     return this->pad;
 }
 
+const HidNpadStyleTag Gamepad::GetStyleTag() const
+{
+    u32 tagStyle = padGetStyleSet(&this->pad);
+
+    if (tagStyle & HidNpadStyleTag_NpadFullKey)
+        return HidNpadStyleTag_NpadFullKey;
+    else if (tagStyle & HidNpadStyleTag_NpadHandheld)
+        return HidNpadStyleTag_NpadHandheld;
+    else if (tagStyle & HidNpadStyleTag_NpadJoyDual)
+        return HidNpadStyleTag_NpadJoyDual;
+
+    return HidNpadStyleTag::HidNpadStyleTag_NpadSystem;
+}
+
+const HidNpadIdType Gamepad::GetNpadIdType() const
+{
+    if (padIsHandheld(&this->pad))
+        return HidNpadIdType_Handheld;
+
+    return static_cast<HidNpadIdType>(this->id);
+}
+
 bool Gamepad::Open(size_t index)
 {
     this->Close();
@@ -32,35 +56,47 @@ bool Gamepad::Open(size_t index)
     padInitializeDefault(&this->pad);
     padUpdate(&this->pad);
 
+    HidNpadStyleTag styleTag = this->GetStyleTag();
+
     this->style = padGetStyleSet(&this->pad);
 
-    if (style & HidNpadStyleTag_NpadFullKey)
+    switch (styleTag)
     {
-        this->name = "Pro Controller";
+        case HidNpadStyleTag_NpadFullKey:
+            this->name = "Pro Controller";
 
-        this->handles = new HidSixAxisSensorHandle[1];
-        hidGetSixAxisSensorHandles(&this->handles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadFullKey);
+            this->sixAxisHandles = new HidSixAxisSensorHandle[1];
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadFullKey);
+
+            this->vibrationHandles = new HidVibrationDeviceHandle[1];
+            break;
+        case HidNpadStyleTag_NpadHandheld:
+            this->name = "Nintendo Switch";
+
+            this->sixAxisHandles = new HidSixAxisSensorHandle[1];
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, HidNpadIdType_Handheld, HidNpadStyleTag_NpadHandheld);
+
+            this->vibrationHandles = new HidVibrationDeviceHandle[2];
+            break;
+        case HidNpadStyleTag_NpadJoyDual:
+            this->name = "Dual Joy-Con";
+
+            this->sixAxisHandles = new HidSixAxisSensorHandle[2];
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 2, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadJoyDual);
+
+            this->vibrationHandles = new HidVibrationDeviceHandle[2];
+        default:
+            break;
     }
-    else if (style & HidNpadStyleTag_NpadHandheld)
-    {
-        this->name = "Nintendo Switch";
 
-        this->handles = new HidSixAxisSensorHandle[1];
-        hidGetSixAxisSensorHandles(&this->handles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadHandheld);
-    }
-    else if (style & HidNpadStyleTag_NpadJoyDual)
-    {
-        this->name = "Dual Joy-Con";
+    memset(this->vibrationValues, 0, sizeof(this->vibrationValues));
+    hidInitializeVibrationDevices(this->vibrationHandles, 2, this->GetNpadIdType(), styleTag);
 
-        this->handles = new HidSixAxisSensorHandle[2];
-        hidGetSixAxisSensorHandles(&this->handles[0], 2, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadJoyDual);
-    }
-
-    hidStartSixAxisSensor(this->handles[0]);
+    hidStartSixAxisSensor(this->sixAxisHandles[0]);
 
     u32 attributes = padGetAttributes(&this->pad);
-    if (this->style & HidNpadStyleTag_NpadJoyDual && attributes & HidNpadAttribute_IsRightConnected)
-        hidStartSixAxisSensor(this->handles[1]);
+    if ((this->style & HidNpadStyleTag_NpadJoyDual) && (attributes & HidNpadAttribute_IsRightConnected))
+        hidStartSixAxisSensor(this->sixAxisHandles[1]);
 
     return this->IsConnected();
 }
@@ -70,16 +106,17 @@ void Gamepad::Close()
     this->instanceID = -1;
     this->vibration = Vibration();
 
-    if (handles != nullptr)
+    if (this->sixAxisHandles != nullptr)
     {
-        hidStopSixAxisSensor(this->handles[0]);
+        hidStopSixAxisSensor(this->sixAxisHandles[0]);
 
         u32 attributes = padGetAttributes(&this->pad);
-        if (this->style & HidNpadStyleTag_NpadJoyDual && attributes & HidNpadAttribute_IsRightConnected)
-            hidStopSixAxisSensor(this->handles[1]);
+        if ((this->style & HidNpadStyleTag_NpadJoyDual) && (attributes & HidNpadAttribute_IsRightConnected))
+            hidStopSixAxisSensor(this->sixAxisHandles[1]);
     }
 
-    delete [] this->handles;
+    delete [] this->sixAxisHandles;
+    delete [] this->vibrationHandles;
 }
 
 bool Gamepad::IsConnected() const
@@ -150,12 +187,12 @@ float Gamepad::GetAxis(size_t axis) const
         if (!g_accelJoystick)
             return 0.0f;
 
-        HidSixAxisSensorState sixAxisState;
+        HidSixAxisSensorState sixAxisState = { 0 };
 
         if (this->style & HidNpadStyleTag_NpadFullKey)
-            hidGetSixAxisSensorStates(this->handles[0], &sixAxisState, 1);
+            hidGetSixAxisSensorStates(this->sixAxisHandles[0], &sixAxisState, 1);
         else if (this->style & HidNpadStyleTag_NpadHandheld)
-            hidGetSixAxisSensorStates(this->handles[0], &sixAxisState, 1);
+            hidGetSixAxisSensorStates(this->sixAxisHandles[0], &sixAxisState, 1);
         else if (this->style & HidNpadStyleTag_NpadJoyDual)
         {
             /*
@@ -165,9 +202,9 @@ float Gamepad::GetAxis(size_t axis) const
 
             u32 attributes = padGetAttributes(&pad);
             if (attributes & HidNpadAttribute_IsLeftConnected)
-                hidGetSixAxisSensorStates(handles[0], &sixAxisState, 1);
+                hidGetSixAxisSensorStates(sixAxisHandles[0], &sixAxisState, 1);
             else if (attributes & HidNpadAttribute_IsRightConnected)
-                hidGetSixAxisSensorStates(handles[1], &sixAxisState, 1);
+                hidGetSixAxisSensorStates(sixAxisHandles[1], &sixAxisState, 1);
         }
 
         if (axis >= 7 and axis < 10)
@@ -293,18 +330,34 @@ bool Gamepad::IsVibrationSupported()
 
 bool Gamepad::SetVibration(float left, float right, float duration)
 {
-    return false;
+    for (auto & vibrationValue : this->vibrationValues)
+    {
+        vibrationValue.freq_low  = 160.0f;
+        vibrationValue.freq_high = 320.0f;
+    }
+
+    this->vibrationValues[0].amp_low  = left;
+    this->vibrationValues[0].amp_high = right;
+
+    this->vibrationValues[1].amp_low  = left;
+    this->vibrationValues[1].amp_high = right;
+
+    this->vibration = { left, right };
+
+    Result success = hidSendVibrationValues(this->vibrationHandles, this->vibrationValues, 2);
+
+    return R_SUCCEEDED(success);
 }
 
 bool Gamepad::SetVibration()
 {
-    return false;
+    return this->SetVibration(0, 0);
 }
 
 void Gamepad::GetVibration(float & left, float & right)
 {
-    left = 0.0f;
-    right = 0.0f;
+    left = this->vibration.left;
+    right = this->vibration.right;
 }
 
 bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton & out)
