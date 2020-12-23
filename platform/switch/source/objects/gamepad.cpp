@@ -51,23 +51,24 @@ const HidNpadIdType Gamepad::GetNpadIdType() const
     if (padIsHandheld(&this->pad))
         return HidNpadIdType_Handheld;
 
-    return static_cast<HidNpadIdType>(this->id);
+    return static_cast<HidNpadIdType>(HidNpadIdType_No1 + this->id);
 }
 
 bool Gamepad::Open(size_t index)
 {
     this->Close();
 
-    HidNpadIdType idType = this->GetNpadIdType();
-
     if (index == 0)
         padInitializeDefault(&this->pad);
     else
-        padInitialize(&this->pad, static_cast<HidNpadIdType>(HidNpadIdType_No1 + index));
+        padInitialize(&this->pad, this->GetNpadIdType());
 
     padUpdate(&this->pad);
 
     HidNpadStyleTag styleTag = this->GetStyleTag();
+
+    if (styleTag == HidNpadStyleTag_NpadSystem)
+        return false;
 
     this->style = padGetStyleSet(&this->pad);
 
@@ -97,6 +98,7 @@ bool Gamepad::Open(size_t index)
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
         default:
+            /* shouldn't happen */
             break;
     }
 
