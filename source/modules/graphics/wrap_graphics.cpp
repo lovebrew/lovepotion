@@ -470,8 +470,6 @@ int Wrap_Graphics::Polygon(lua_State * L)
 
             points[i].x = x;
             points[i].y = y;
-
-            lua_pop(L, 2);
         }
     }
 
