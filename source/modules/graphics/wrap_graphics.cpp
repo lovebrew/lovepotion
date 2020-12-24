@@ -472,9 +472,12 @@ int Wrap_Graphics::Polygon(lua_State * L)
             points[i].y = y;
         }
     }
+    
+	// make a closed loop
+	coords[numvertices] = coords[0];
 
     Luax::CatchException(L, [&]() {
-        instance()->Polygon(drawMode, points, numverticies);
+        instance()->Polygon(drawMode, points, numverticies + 1);
     });
 
     return 0;
