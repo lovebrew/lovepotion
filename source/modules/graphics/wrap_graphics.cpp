@@ -437,16 +437,16 @@ int Wrap_Graphics::Polygon(lua_State * L)
     else if (argc < 6)
         return luaL_error(L, "Need at least three vertices to draw a polygon");
 
-    const int numverticies = argc / 2;
+    const int numvertices = argc / 2;
 
-    Vector2 points[numverticies + 1];
+    Vector2 points[numvertices + 1];
 
     if (isTable)
     {
         float x = 0;
         float y = 0;
 
-        for (int i = 0; i < numverticies; ++i)
+        for (int i = 0; i < numvertices; ++i)
         {
             lua_rawgeti(L, 2, (i * 2) + 1);
             lua_rawgeti(L, 2, (i * 2) + 2);
@@ -465,20 +465,21 @@ int Wrap_Graphics::Polygon(lua_State * L)
         float x = 0;
         float y = 0;
 
-        for (int i = 0; i < numverticies; ++i)
+        for (int i = 0; i < numvertices; ++i)
         {
             x = luaL_checkinteger(L, (i * 2) + 2);
             y = luaL_checkinteger(L, (i * 2) + 3);
 
             points[i].x = x;
             points[i].y = y;
-
-            lua_pop(L, 2);
         }
     }
+    
+    // make a closed loop
+    points[numvertices] = points[0];
 
     Luax::CatchException(L, [&]() {
-        instance()->Polygon(drawMode, points, numverticies);
+        instance()->Polygon(drawMode, points, numvertices + 1);
     });
 
     return 0;
