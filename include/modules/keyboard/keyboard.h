@@ -1,5 +1,11 @@
 #pragma once
 
+#if defined (_3DS)
+    #include <3ds.h>
+#else
+    #include <switch.h>
+#endif
+
 #if defined(_3DS)
     typedef SwkbdState LOVE_Swkbd;
     #define KEYBOARD_STRING_MAX_LEN 0x100
@@ -9,6 +15,9 @@
 #endif
 
 #define KEYBOARD_STRING_DEFAULT_LEN 0x14
+
+#include "common/module.h"
+#include <string>
 
 namespace love
 {

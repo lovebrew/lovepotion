@@ -1,13 +1,18 @@
-#include "common/runtime.h"
 #include "common/backend/input.h"
 
-std::unordered_map<std::string, int> Input::buttons =
+std::unordered_map<const char *, int> Input::buttons =
 {
-    { "a",         HidNpadButton_A      }, { "b",             HidNpadButton_B      },  { "x",             HidNpadButton_X      }, { "y", HidNpadButton_Y },
-    { "dpright",   HidNpadButton_Right  }, { "dpleft",        HidNpadButton_Left   },  { "dpup",          HidNpadButton_Up     },
-    { "dpdown",    HidNpadButton_Down   }, { "rightshoulder", HidNpadButton_R      },  { "leftshoulder",  HidNpadButton_L      },
-    { "leftstick", HidNpadButton_StickL }, { "rightstick",    HidNpadButton_StickR },  { "back",          HidNpadButton_Minus  },
-    { "start",     HidNpadButton_Plus   }, { "leftshoulder",  HidNpadButton_AnySL  },  { "rightshoulder", HidNpadButton_AnySR  }
+    { "a",             HidNpadButton_A      }, { "b",             HidNpadButton_B      },
+    { "dpright",       HidNpadButton_Right  }, { "dpleft",        HidNpadButton_Left   },
+    { "dpdown",        HidNpadButton_Down   }, { "rightshoulder", HidNpadButton_R      },
+    { "leftstick",     HidNpadButton_StickL }, { "rightstick",    HidNpadButton_StickR },
+    { "start",         HidNpadButton_Plus   }, { "leftshoulder",  HidNpadButton_AnySL  },
+
+    { "x",              HidNpadButton_X     }, { "y",             HidNpadButton_Y      },
+    { "dpup",           HidNpadButton_Up    },
+    { "leftshoulder",   HidNpadButton_L     },
+    { "back",           HidNpadButton_Minus },
+    { "rightshoulder",  HidNpadButton_AnySR }
 };
 
 void Input::CheckFocus()
@@ -114,8 +119,9 @@ bool Input::PollEvent(LOVE_Event * event)
             auto & e = s_inputEvents.emplace_back();
 
             e.type = LOVE_GAMEPADDOWN;
+
             e.button.name = it->first;
-            e.button.which = 0;
+            e.button.which  = 0;
         }
     }
 
@@ -208,6 +214,7 @@ bool Input::PollEvent(LOVE_Event * event)
         auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
+
         e.axis.axis = "triggerleft";
         e.axis.which = 0;
         e.axis.value = 1.0f;
@@ -218,6 +225,7 @@ bool Input::PollEvent(LOVE_Event * event)
         auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
+
         e.axis.axis = "triggerleft";
         e.axis.which = 0;
         e.axis.value = 0.0f;
@@ -230,6 +238,7 @@ bool Input::PollEvent(LOVE_Event * event)
         auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
+
         e.axis.axis = "triggerright";
         e.axis.which = 0;
         e.axis.value = 1.0f;
@@ -240,6 +249,7 @@ bool Input::PollEvent(LOVE_Event * event)
         auto & e = s_inputEvents.emplace_back();
 
         e.type = LOVE_GAMEPADAXIS;
+
         e.axis.axis = "triggerright";
         e.axis.which = 0;
         e.axis.value = 0.0f;

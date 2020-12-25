@@ -1,10 +1,16 @@
-#include "common/runtime.h"
+#include "common/type.h"
 
 using namespace love;
 
+Type::Type(const char * name, Type * parent) : name(name),
+                                               parent(parent),
+                                               id(0),
+                                               initialized(false)
+{}
+
 void Type::Init()
 {
-    static u32 nextID = 1;
+    static uint32_t nextID = 1;
 
     if (initialized)
         return;
@@ -49,12 +55,6 @@ Type * Type::ByName(const char * name)
 
     return position->second;
 }
-
-Type::Type(const char * name, Type * parent) : name(name),
-                                               parent(parent),
-                                               id(0),
-                                               initialized(false)
-{}
 
 const char * love::Type::GetName() const
 {

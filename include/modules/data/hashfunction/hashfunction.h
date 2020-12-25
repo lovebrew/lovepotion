@@ -1,6 +1,8 @@
 #pragma once
 
+#include "common/data.h"
 #include "common/stringmap.h"
+#include "common/exception.h"
 
 namespace love
 {

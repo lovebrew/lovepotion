@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/event/wrap_event.h"
 
 #include "wrap_event_lua.h"
@@ -60,7 +60,19 @@ int Wrap_Event::Push(lua_State * L)
 
 int Wrap_Event::Wait(lua_State * L)
 {
-    /* TO DO */
+    Message * message = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        message = instance()->Wait();
+    });
+
+    if (message)
+    {
+        int args = message->ToLua(L);
+        message->Release();
+
+        return args;
+    }
 
     return 0;
 }
@@ -89,6 +101,7 @@ int Wrap_Event::Register(lua_State * L)
         { "pump",   Pump   },
         { "push",   Push   },
         { "quit",   Quit   },
+        { "wait",   Wait   },
         { 0,        0      }
     };
 
@@ -99,15 +112,15 @@ int Wrap_Event::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "event";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = 0;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "event";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = nullptr;
 
-    int ret = Luax::RegisterModule(L, module);
+    int ret = Luax::RegisterModule(L, wrappedModule);
 
     if (luaL_loadbuffer(L, (const char *)wrap_event_lua, wrap_event_lua_size, "wrap_event.lua") == 0)
         lua_call(L, 0, 0);

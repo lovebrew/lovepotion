@@ -2,6 +2,9 @@
 
 #include "common/exception.h"
 #include "common/data.h"
+
+#include "common/strongref.h"
+
 namespace love
 {
     class Decoder : public Object

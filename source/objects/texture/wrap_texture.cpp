@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/texture/wrap_texture.h"
 
 using namespace love;

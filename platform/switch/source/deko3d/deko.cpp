@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "deko3d/deko.h"
 
 #include "deko3d/vertex.h"

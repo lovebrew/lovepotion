@@ -378,7 +378,7 @@ function love.errorhandler(message)
 
     local pretty = table.concat(err, "\n")
 
-    pretty = pretty:gsub("\t", "")
+    pretty = pretty:gsub("\t", "    ")
     pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
 
     if not love.window.isOpen() then
@@ -744,13 +744,6 @@ return function()
 
         -- If love.init or love.run fails, don't return a value,
         -- as we want the error handler to take over
-        if not result then
-            return
-        end
-
-        result = xpcall(love._ensureApplicationType, deferErrhand)
-
-        -- let errhand take over
         if not result then
             return
         end

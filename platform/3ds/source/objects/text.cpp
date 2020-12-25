@@ -1,7 +1,7 @@
-#include "common/runtime.h"
 #include "objects/text/text.h"
-
 #include "modules/graphics/graphics.h"
+
+#include <numeric>
 
 using namespace love;
 

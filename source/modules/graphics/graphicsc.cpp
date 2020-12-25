@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/graphics/graphics.h"
 #include "modules/window/window.h"
 
@@ -58,7 +57,8 @@ Colorf Graphics::UnGammaCorrectColor(const Colorf & c)
 
 /* End */
 
-Graphics::Graphics()
+Graphics::Graphics() : width(0),
+                       height(0)
 {
     this->states.reserve(10);
     this->states.push_back(DisplayState());
@@ -328,15 +328,6 @@ void Graphics::Reset()
     DisplayState blankState;
     this->RestoreState(blankState);
     this->Origin();
-}
-
-void Graphics::SetViewMatrix(const Matrix4 & matrix)
-{
-    #if defined (_3DS)
-        C2D_ViewRestore(&matrix.GetElements());
-    #elif defined (__SWITCH__)
-
-    #endif
 }
 
 /* Private */

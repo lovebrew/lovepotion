@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/filedata/filedata.h"
 
 using namespace love;

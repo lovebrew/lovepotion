@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/font/fontc.h"
 
 #include "utf8/utf8.h"

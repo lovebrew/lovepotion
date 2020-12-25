@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/audio/wrap_audio.h"
 
 using namespace love;
@@ -122,13 +122,13 @@ int Wrap_Audio::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "audio";
-    module.type = &Module::type;
-    module.functions = reg;
-    module.types = types;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "audio";
+    wrappedModule.type = &Module::type;
+    wrappedModule.functions = reg;
+    wrappedModule.types = types;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

@@ -1,6 +1,10 @@
 #pragma once
 
 #include "objects/font/fontc.h"
+#include "common/data.h"
+
+#include <c2d/font.h>
+#include <c2d/text.h>
 
 enum class love::common::Font::SystemFontType : uint8_t
 {

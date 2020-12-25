@@ -2,6 +2,10 @@
 
 #include "deko3d/CShader.h"
 
+#include "common/data.h"
+
+#include "objects/object.h"
+
 namespace love
 {
     class Shader : public Object
@@ -19,8 +23,6 @@ namespace love
             {
                 STANDARD_DEFAULT,
                 STANDARD_TEXTURE,
-                STANDARD_VIDEO,
-                STANDARD_ARRAY,
                 STANDARD_MAX_ENUM
             };
 

@@ -2,6 +2,11 @@
 
 #include "modules/thread/types/threadable.h"
 
+#include "common/data.h"
+#include <common/variant.h>
+
+#include <vector>
+
 namespace love
 {
     class LuaThread : public Threadable

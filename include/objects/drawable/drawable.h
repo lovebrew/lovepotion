@@ -5,7 +5,7 @@
 ** Superclass for Textures
 */
 
-#include "common/mmath.h"
+#include "objects/object.h"
 #include "common/matrix.h"
 
 namespace love

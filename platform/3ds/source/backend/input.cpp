@@ -1,17 +1,15 @@
-#include "common/runtime.h"
 #include "common/backend/input.h"
-
 #include "objects/gamepad/gamepad.h"
 
-std::unordered_map<std::string, int> Input::buttons =
+std::unordered_map<const char *, int> Input::buttons =
 {
-    { "a", KEY_A}, { "b", KEY_B }, { "x", KEY_X }, { "y", KEY_Y },
-    { "dpright", KEY_DRIGHT}, { "dpleft", KEY_DLEFT },
-    { "dpup", KEY_DUP }, { "dpdown", KEY_DDOWN }, { "rightshoulder", KEY_R },
-    { "leftshoulder", KEY_L }, { "back", KEY_SELECT }, { "start", KEY_START}
+    { "a", KEY_A }, { "b", KEY_B }, { "x", KEY_X }, { "y", KEY_Y },
+    { "dpright", KEY_DRIGHT }, { "dpleft", KEY_DLEFT  }, { "dpup",  KEY_DUP },
+    { "dpdown", KEY_DDOWN }, { "rightshoulder", KEY_R }, { "leftshoulder", KEY_L },
+    { "back",   KEY_SELECT }, { "start", KEY_START }
 };
 
-static Input::JoystickState joystick[MAX_GAMEPADS];
+static Input::JoystickState joystick[1];
 
 using namespace love;
 
@@ -198,7 +196,7 @@ bool Input::PollEvent(LOVE_Event * event)
         e.axis.value = 0.0f;
     }
 
-    static JoystickState oldjoyStates[MAX_GAMEPADS];
+    static JoystickState oldjoyStates[1];
 
     hidCircleRead(&joystick[0].left);
     irrstCstickRead(&joystick[0].right);

@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "deko3d/graphics.h"
 
 #include "modules/font/fontmodule.h"
@@ -6,14 +5,13 @@
 using namespace love;
 using Screen = love::Graphics::Screen;
 
-love::deko3d::Graphics::Graphics() : width(1280),
-                                     height(720)
+love::deko3d::Graphics::Graphics()
 {
     this->RestoreState(this->states.back());
 
     try
     {
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < Shader::STANDARD_MAX_ENUM; i++)
         {
             if (!Shader::standardShaders[i])
                 Shader::standardShaders[i] = this->NewShader(Shader::StandardShader(i));
@@ -28,16 +26,13 @@ love::deko3d::Graphics::Graphics() : width(1280),
     // returned by getShader(), so we don't do setShader(defaultShader).
     if (!Shader::current)
         Shader::standardShaders[Shader::STANDARD_DEFAULT]->Attach();
+
+    this->width = 1280;
+    this->height = 720;
 }
 
 love::deko3d::Graphics::~Graphics()
 {}
-
-void love::deko3d::Graphics::Resize(int width, int height)
-{
-//     this->width = width;
-//     this->height = height;
-}
 
 const int love::deko3d::Graphics::GetWidth(Screen screen) const
 {
@@ -586,6 +581,7 @@ Shader * love::deko3d::Graphics::NewShader(Shader::StandardShader type)
 {
     Shader * s = new Shader();
     s->LoadDefaults(type);
+
     return s;
 }
 

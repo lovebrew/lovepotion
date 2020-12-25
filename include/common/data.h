@@ -1,5 +1,9 @@
 #pragma once
 
+#include "objects/object.h"
+
+#include <stddef.h>
+
 namespace love
 {
     class Data : public Object

@@ -1,8 +1,11 @@
 #pragma once
 
+#include "objects/object.h"
+
 #include "objects/filedata/filedata.h"
 #include "common/stringmap.h"
 #include "common/exception.h"
+
 #include <physfs.h>
 
 namespace love

@@ -1,4 +1,9 @@
-#include "common/runtime.h"
+#if defined (_3DS)
+    #include <3ds/types.h>
+#elif defined (__SWITCH__)
+    #include <switch/types.h>
+#endif
+
 #include "wavedecoder.h"
 
 using namespace love;

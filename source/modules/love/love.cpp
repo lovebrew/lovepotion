@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 
 #include "common/version.h"
 #include "modules/love.h"
@@ -26,8 +26,6 @@
 #include "luasocket/luasocket.h"
 
 #include "boot_lua.h"
-
-bool g_accelJoystick;
 
 /*
 ** @func Initialize
@@ -75,9 +73,6 @@ int Love::Initialize(lua_State * L)
     lua_pushcfunction(L, GetVersion);
     lua_setfield(L, -2, "getVersion");
 
-    lua_pushcfunction(L, _EnsureApplicationType);
-    lua_setfield(L, -2, "_ensureApplicationType");
-
     lua_pushcfunction(L, _OpenConsole);
     lua_setfield(L, -2, "_openConsole");
 
@@ -86,8 +81,8 @@ int Love::Initialize(lua_State * L)
 
     //---------------------------------------//
 
-    Love::modules =
-    {{
+    const luaL_Reg modules[] =
+    {
         { "love.audio",       Wrap_Audio::Register        },
         { "love.data",        Wrap_DataModule::Register   },
         { "love.event",       Wrap_Event::Register,       },
@@ -106,29 +101,27 @@ int Love::Initialize(lua_State * L)
         { "love.touch",       Wrap_Touch::Register        },
         { "love.window",      Wrap_Window::Register,      },
         { "love.boot",        Boot                        },
-        { 0 }
-    }};
+        { 0,                  0 }
+    };
 
     // preload all the modules
-    for (int i = 0; Love::modules[i].name  != nullptr; i++)
-        Luax::Preload(L, Love::modules[i].reg, Love::modules[i].name);
+    for (size_t i = 0; modules[i].name  != nullptr; i++)
+        Luax::Preload(L, modules[i].func, modules[i].name);
 
     Luax::Require(L, "love.data");
     lua_pop(L, 1);
 
-    // lua 5.3 stuff
-    Luax::Preload(L, luaopen_luautf8, "utf8");
-
     // LuaSocket
     love::luasocket::__open(L);
+
+    // lua 5.3 stuff
+    Luax::Preload(L, luaopen_luautf8, "utf8");
 
     return 1;
 }
 
 int Love::EnableAccelerometerAsJoystick(lua_State * L)
 {
-    g_accelJoystick = lua_toboolean(L, 1);
-
     return 0;
 }
 
@@ -138,8 +131,8 @@ int Love::EnableAccelerometerAsJoystick(lua_State * L)
 */
 int Love::Boot(lua_State * L)
 {
-    if (Luax::DoBuffer(L, (const char *)boot_lua, boot_lua_size, "boot.lua"))
-        LOG("boot.lua error: %s", lua_tostring(L, -1));
+    if (luaL_loadbuffer(L, (const char *)boot_lua, boot_lua_size, "boot.lua") == 0)
+        lua_call(L, 0, 1);
 
     return 1;
 }
@@ -158,30 +151,6 @@ int Love::GetVersion(lua_State * L)
     return 4;
 }
 
-//------------------------------//
-
-/*
-** @func CheckForTitleTakeover
-** Checks for Title Takeover on atmosphère
-** Does absolutely nothing on 3DS. Ran at boot once.
-*/
-int Love::_EnsureApplicationType(lua_State * L)
-{
-    #if defined(__SWITCH__)
-        AppletType type = appletGetAppletType();
-
-        bool isApplicationType = (type != AppletType_Application ||
-                                  type != AppletType_SystemApplication);
-
-        if (isApplicationType)
-            return 0;
-
-        return luaL_error(L, TITLE_TAKEOVER_ERROR);
-    #endif
-
-    return 0;
-}
-
 /*
 ** Initialize the 'console'. Console for your console.
 ** On Switch, redirects printf to nxlink
@@ -191,60 +160,14 @@ int Love::_OpenConsole(lua_State * L)
 {
     #if defined (__SWITCH__)
         nxlinkStdioForDebug();
+
         lua_pushboolean(L, true);
     #else
         gdbHioDevInit();
         int success = gdbHioDevRedirectStdStreams(false, true, true);
+
         lua_pushboolean(L, success == 0);
     #endif
 
     return 1;
-}
-
-/*
-** @func GetField
-** Gets a field from the love module.
-** May return nil if it does not exist on the Lua stack.
-*/
-void Love::GetField(lua_State * L, const char * field)
-{
-    lua_getfield(L, LUA_GLOBALSINDEX, "love");
-    lua_getfield(L, -1, field);
-    lua_remove(L, -2);
-}
-
-/*
-** @func InsistRegistry
-** Creates the @registry if necessary, pushing it to the stack
-*/
-int Love::InsistRegistry(lua_State * L, Registry registry)
-{
-    switch (registry)
-    {
-        case Registry::MODULES:
-            return Luax::InsistLove(L, "_modules");
-        case Registry::UNKNOWN:
-        default:
-            return luaL_error(L, "Attempted to use invalid registry");
-    }
-}
-
-/*
-** @func GetRegistry
-** Gets the field for the Lua registry index <registry>.
-** This is necessary to store userdata and push it later.
-*/
-int Love::GetRegistry(lua_State * L, Registry registry)
-{
-    switch (registry)
-    {
-        case Registry::OBJECTS:
-            lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
-            return 1;
-        case Registry::MODULES:
-            Luax::GetLove(L, "_modules");
-        case Registry::UNKNOWN:
-        default:
-            return luaL_error(L, "Attempted to use invalid registry");
-    }
 }

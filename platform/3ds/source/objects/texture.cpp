@@ -1,6 +1,6 @@
-#include "common/runtime.h"
-#include "objects/texture/texture.h"
+#include <citro2d.h>
 
+#include "objects/texture/texture.h"
 #include "modules/graphics/graphics.h"
 
 using namespace love;
@@ -36,7 +36,7 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
 
     C2D_DrawParams params;
 
-    params.pos = {0.0f, 0.0f, v.w, v.h};
+    params.pos = {0.0f, 0.0f, (float)v.w, (float)v.h};
     params.depth = Graphics::CURRENT_DEPTH;
     params.angle = 0.0f;
     params.center = {0.0f, 0.0f};

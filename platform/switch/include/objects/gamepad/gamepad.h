@@ -5,6 +5,9 @@
 
 #include "common/bitalloc.h"
 
+#include <switch.h>
+#include <memory>
+
 namespace love
 {
     class Gamepad : public common::Gamepad

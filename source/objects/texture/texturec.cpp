@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/texture/texture.h"
 
 using namespace love::common;

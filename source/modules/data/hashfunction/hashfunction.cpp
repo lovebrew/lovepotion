@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/data/hashfunction/hashfunction.h"
 
 using namespace love;

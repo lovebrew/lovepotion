@@ -1,9 +1,11 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/graphics/wrap_graphics.h"
+
+#include <filesystem>
 
 using namespace love;
 
-#define instance()      (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
+#define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 
 int Wrap_Graphics::GetScreens(lua_State * L)
 {
@@ -855,8 +857,8 @@ int Wrap_Graphics::NewFont(lua_State * L)
         Rasterizer * rasterizer = Luax::CheckType<Rasterizer>(L, 1);
 
         Luax::CatchException(L, [&]() {
-            font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter()); }
-        );
+            font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter());
+        });
     #elif defined (_3DS)
         int size;
         if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
@@ -1285,13 +1287,13 @@ int Wrap_Graphics::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "graphics";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = types;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "graphics";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = types;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

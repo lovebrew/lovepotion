@@ -1,5 +1,13 @@
 #pragma once
 
+#include <switch.h>
+#include <stdlib.h>
+#include <string.h>
+#include <malloc.h>
+
+#include <utility>
+
+
 namespace AudioPool
 {
     // Initialize BASE during audio module load?

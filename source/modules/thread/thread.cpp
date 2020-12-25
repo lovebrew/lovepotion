@@ -1,7 +1,7 @@
-#include "common/runtime.h"
-
 #include "modules/thread/types/threadable.h"
 #include "modules/thread/thread.h"
+
+#include "modules/thread/types/lock.h"
 
 using namespace love;
 

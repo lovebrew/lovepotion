@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/drawable/drawable.h"
 
 using namespace love;

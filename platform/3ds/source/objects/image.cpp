@@ -1,5 +1,3 @@
-#include "common/runtime.h"
-
 #include "objects/image/image.h"
 #include "modules/graphics/graphics.h"
 

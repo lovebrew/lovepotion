@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/window/window.h"
 
 using namespace love;
@@ -30,6 +29,15 @@ bool Window::SetMode()
 void Window::SetGraphics(Graphics * g)
 {
     this->graphics.Set(g);
+}
+
+void Window::OnSizeChanged(int width, int height)
+{
+    if (this->graphics.Get())
+        this->graphics->Resize(width, height);
+
+    const Rect newViewport = {0, 0, width, height};
+    dk3d.SetViewport(newViewport);
 }
 
 std::vector<std::pair<int, int>> & Window::GetFullscreenModes()

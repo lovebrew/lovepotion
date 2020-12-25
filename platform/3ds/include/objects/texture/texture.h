@@ -1,7 +1,8 @@
 #pragma once
 
 #include "objects/texture/texturec.h"
-#include "c2d/base.h"
+
+#include <citro2d.h>
 
 namespace love
 {
@@ -20,5 +21,6 @@ namespace love
 
         protected:
             C2D_Image texture;
+            C2D_SpriteSheet sheet;
     };
 }

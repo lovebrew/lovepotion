@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/drawable/wrap_drawable.h"
 
 using namespace love;

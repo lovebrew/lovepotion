@@ -1,5 +1,7 @@
-#include "common/runtime.h"
 #include "objects/random/randomgenerator.h"
+
+#include <sstream>
+#include <iomanip>
 
 using namespace love;
 

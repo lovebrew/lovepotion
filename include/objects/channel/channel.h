@@ -1,7 +1,13 @@
 #pragma once
 
+#include "common/variant.h"
+#include "objects/object.h"
+
 #include "modules/thread/types/mutex.h"
 #include "modules/thread/types/conditional.h"
+#include "modules/thread/types/lock.h"
+
+#include <queue>
 
 namespace love
 {

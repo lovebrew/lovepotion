@@ -1,7 +1,12 @@
-#include "common/runtime.h"
 #include "modules/joystick/joystickc.h"
 
 using namespace love::common;
+
+#if defined (_3DS)
+    static const size_t MAX_GAMEPADS = 1;
+#elif defined(__SWITCH__)
+    static const size_t MAX_GAMEPADS = 4;
+#endif
 
 Joystick::Joystick()
 {

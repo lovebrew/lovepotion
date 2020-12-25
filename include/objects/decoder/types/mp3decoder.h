@@ -25,6 +25,7 @@ namespace love
             ~MP3Decoder();
 
             static bool Accepts(const std::string & ext);
+
             static void Quit();
 
             Decoder * Clone();

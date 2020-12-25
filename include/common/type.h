@@ -2,6 +2,13 @@
 
 #include <bitset>
 #include <unordered_map>
+
+#if defined (_3DS)
+    #include <3ds/types.h>
+#elif defined (__SWITCH__)
+    #include <switch/types.h>
+#endif
+
 namespace love
 {
     class Type
@@ -9,14 +16,16 @@ namespace love
         public:
             static const uint32_t MAX_TYPES = 128;
 
-            void Init();
-
             Type(const char * name, Type * parent);
+
             Type(const Type &) = delete;
+
+            void Init();
 
             const char * GetName() const;
 
             bool IsA(const love::Type & other);
+
             bool IsA(const uint32_t & other);
 
             static Type * ByName(const char * name);

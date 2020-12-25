@@ -1,14 +1,8 @@
 #pragma once
 
-#include "common/mmath.h"
+#include "common/lmath.h"
 #include "objects/texture/texture.h"
 #include "modules/filesystem/wrap_filesystem.h"
-
-#if defined (_3DS)
-    typedef C2D_SpriteSheet TextureSheet;
-#elif defined (__SWITCH__)
-    typedef struct _SpriteSheet {} TextureSheet;
-#endif
 
 namespace love
 {
@@ -31,6 +25,5 @@ namespace love
 
         private:
             TextureType textureType;
-            TextureSheet sheet;
     };
 }

@@ -5,23 +5,37 @@
 
 #pragma once
 
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
+#include <variant>
+#include <list>
+#include <array>
+#include <unordered_map>
+
 struct GamePadButton
 {
-    std::string name;
-    size_t which;
-    int id;
+    size_t which; //< Gamepad ID
+
+    const char * name; //< Button Name
+    int button; //< Button ID (0-index)
 };
 
 struct GamePadAxis
 {
-    std::string axis;
-    float value;
-    int which;
+    size_t which; //< Gamepad ID
+
+    const char * axis; //< Axis name
+    float value; //< Axis value (0-1)
 };
 
 struct Finger
 {
-    int64_t id;
+    int64_t id; //< Touch ID
+
     double x;
     double y;
     double dx;
@@ -37,8 +51,8 @@ struct Resize
 
 struct LOVE_Event
 {
-    int type;
-    int which;
+    uint8_t type;
+    uint8_t subType;
 
     GamePadButton button;
     GamePadAxis axis;
@@ -51,13 +65,23 @@ enum LOVE_EventType
     LOVE_GAMEPADAXIS,
     LOVE_GAMEPADDOWN,
     LOVE_GAMEPADUP,
+
+    LOVE_GAMEPADADDED,
+    LOVE_GAMEPADREMOVED,
+
     LOVE_TOUCHPRESS,
     LOVE_TOUCHRELEASE,
     LOVE_TOUCHMOVED,
+
     LOVE_LOWMEMORY,
+
+    LOVE_WINDOWEVENT,
+
     LOVE_FOCUS_GAINED,
     LOVE_FOCUS_LOST,
+
     LOVE_RESIZE,
+
     LOVE_QUIT
 };
 
@@ -75,9 +99,9 @@ namespace Input
 
     /* Variables */
 
-    inline std::variant<u32, u64> down = (u32)0;
-    inline std::variant<u32, u64> up   = (u32)0;
-    inline std::variant<u32, u64> held = (u32)0;
+    inline std::variant<uint32_t, uint64_t> down = (uint32_t)0;
+    inline std::variant<uint32_t, uint64_t> up   = (uint32_t)0;
+    inline std::variant<uint32_t, uint64_t> held = (uint32_t)0;
 
     struct JoystickState
     {
@@ -91,7 +115,7 @@ namespace Input
     inline bool s_hysteresis = false;
     inline std::list<LOVE_Event> s_inputEvents;
 
-    extern std::unordered_map<std::string, int> buttons;
+    extern std::unordered_map<const char *, int> buttons;
 
     inline bool touchHeld = false;
     inline int prevTouchCount = 0;
@@ -117,31 +141,28 @@ namespace Input
     }
 
     inline void SendFocus(bool focus) {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
-        e.type = focus ? LOVE_FOCUS_GAINED : LOVE_FOCUS_LOST;
+        e.type = LOVE_WINDOWEVENT;
+        e.subType = focus ? LOVE_FOCUS_GAINED : LOVE_FOCUS_LOST;
     }
 
     inline void SendQuit() {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
-
+        auto & e = s_inputEvents.emplace_back();
         e.type = LOVE_QUIT;
     }
 
     inline void SendLowMemory() {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
-
+        auto & e = s_inputEvents.emplace_back();
         e.type = LOVE_LOWMEMORY;
     }
 
     inline void SendResize(int width, int height) {
-        s_inputEvents.emplace_back();
-        auto & e = s_inputEvents.back();
+        auto & e = s_inputEvents.emplace_back();
 
-        e.type = LOVE_RESIZE;
+        e.type = LOVE_WINDOWEVENT;
+        e.subType = LOVE_RESIZE;
+
         e.size.width = width;
         e.size.height = height;
     }

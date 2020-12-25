@@ -1,5 +1,10 @@
-#include "common/runtime.h"
 #include "modules/math/mathmodule.h"
+
+#include "common/vector.h"
+#include "objects/transform/transform.h"
+
+#include <cmath>
+#include <list>
 
 using namespace love;
 

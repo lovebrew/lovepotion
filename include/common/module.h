@@ -3,6 +3,8 @@
 #include "common/exception.h"
 #include "objects/object.h"
 
+#include <map>
+
 namespace love
 {
     class Module : public Object

@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "freetype/rasterizer.h"
 
 #include "utf8/utf8.h"

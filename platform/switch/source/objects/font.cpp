@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/font/font.h"
 
 #include "modules/font/fontmodule.h"

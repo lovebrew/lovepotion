@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/channel/channel.h"
 
 #include "modules/timer/timer.h"

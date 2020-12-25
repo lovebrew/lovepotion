@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/message.h"
 
 using namespace love;
 

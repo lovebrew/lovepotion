@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/timer/wrap_timer.h"
 
 using namespace love;
@@ -79,13 +79,13 @@ int Wrap_Timer::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "timer";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = 0;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "timer";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = nullptr;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

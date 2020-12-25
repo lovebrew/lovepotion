@@ -1,10 +1,13 @@
 #pragma once
 
 #if defined (_3DS)
+    #include <citro2d.h>
     typedef C3D_Mtx Elements;
 #elif defined (__SWITCH__)
     typedef float Elements[16];
 #endif
+
+#include "common/lmath.h"
 
 namespace love
 {

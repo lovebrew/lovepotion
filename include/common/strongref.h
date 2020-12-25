@@ -12,7 +12,8 @@ namespace love
     class StrongReference
     {
         public:
-            StrongReference() : object(nullptr) {}
+            StrongReference() : object(nullptr)
+            {}
 
             StrongReference(T * object, Acquire acquire = Acquire::RETAIN) : object(object)
             {

@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/random/wrap_randomgenerator.h"
 
 #include "wrap_randomgenerator_lua.h"

@@ -1,13 +1,22 @@
 #pragma once
 
+#include "common/luax.h"
+
 #include "objects/object.h"
 #include "common/exception.h"
+
+#include <variant>
+#include <vector>
+#include <set>
 
 namespace love
 {
     class Variant
     {
         static const int MAX_SMALL_STRING_LENGTH = 15;
+
+        struct Nil
+        {};
 
         class SharedString : public Object
         {
@@ -65,15 +74,24 @@ namespace love
             };
 
             Variant() : variant(std::monostate{}) {}
+
             Variant(std::monostate v) : variant(v) {}
+
             Variant(bool v) : variant(v) {}
-            Variant(love::Type * type, Object * object);
-            Variant(void * v) : variant(v) {}
-            Variant(Nil v) : variant(v) {}
+
             Variant(float v) : variant(v) {}
+
             Variant(const std::string & v);
+
             Variant(const char * v, size_t length);
+
             Variant(std::vector<std::pair<Variant, Variant>> * table);
+
+            Variant(void * v) : variant(v) {}
+
+            Variant(love::Type * type, Object * object);
+
+            Variant(const Nil & v) : variant(v) {}
 
             Variant(const Variant & v);
 
@@ -102,7 +120,7 @@ namespace love
             std::string GetTypeString() const;
 
             static Variant FromLua(lua_State * L, int n, std::set<const void *> * tableSet = nullptr);
-            void ToLua(lua_State * L) const;
 
+            void ToLua(lua_State * L) const;
     };
 }

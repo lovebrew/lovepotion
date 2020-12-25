@@ -1,5 +1,7 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/filesystem/wrap_filesystem.h"
+
+#include <filesystem>
 
 using namespace love;
 
@@ -40,6 +42,14 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
         }
     }
 #endif
+
+bool SetupWriteDirectory()
+{
+    if (instance() != 0)
+        return instance()->SetupWriteDirectory();
+
+    return false;
+}
 
 int Wrap_Filesystem::Load(lua_State * L)
 {
@@ -760,13 +770,13 @@ int Wrap_Filesystem::Register(lua_State * L)
 
     Luax::RegisterSearcher(L, Loader, 2);
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "filesystem";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = types;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "filesystem";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = types;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

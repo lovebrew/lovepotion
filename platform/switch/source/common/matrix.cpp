@@ -1,7 +1,7 @@
-#include "common/runtime.h"
 #include "common/matrix.h"
 
-#include "arm_neon.h"
+#include <arm_neon.h>
+#include <string.h>
 
 using namespace love;
 

@@ -10,7 +10,7 @@
 #include <libpng16/png.h>
 #include <turbojpeg.h>
 
-#include "common/mmath.h"
+#include "common/lmath.h"
 
 class CImage
 {

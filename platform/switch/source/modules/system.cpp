@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include <switch.h>
 #include "modules/system/system.h"
 
 using namespace love;

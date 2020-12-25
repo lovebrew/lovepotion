@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/data/compressor/compressor.h"
 
 #include "modules/data/compressor/types/lz4compressor.h"

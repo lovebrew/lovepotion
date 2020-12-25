@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/data/view/wrap_dataview.h"
 
 using namespace love;

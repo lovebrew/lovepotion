@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/touch/touch.h"
 
 #include "common/exception.h"

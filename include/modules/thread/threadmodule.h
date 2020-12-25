@@ -5,7 +5,7 @@
 #include "objects/channel/channel.h"
 
 #include "common/data.h"
-
+#include "common/module.h"
 namespace love
 {
     class ThreadModule : public Module

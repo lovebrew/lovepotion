@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/thread/wrap_threadmodule.h"
 
 #include "objects/file/file.h"
@@ -97,12 +97,13 @@ int Wrap_ThreadModule::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
-    module.instance = instance;
-    module.name = "thread";
-    module.type = &Module::type;
-    module.functions = reg;
-    module.types = types;
+    WrappedModule wrappedModule;
 
-    return Luax::RegisterModule(L, module);
+    wrappedModule.instance = instance;
+    wrappedModule.name = "thread";
+    wrappedModule.type = &Module::type;
+    wrappedModule.functions = reg;
+    wrappedModule.types = types;
+
+    return Luax::RegisterModule(L, wrappedModule);
 }

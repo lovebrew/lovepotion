@@ -1,5 +1,8 @@
 #pragma once
 
+#include "objects/object.h"
+#include <string>
+
 namespace love
 {
     class LOVE_Thread;

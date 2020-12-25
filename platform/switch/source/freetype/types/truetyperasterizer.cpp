@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "freetype/types/truetyperasterizer.h"
 
 #include "deko3d/graphics.h"

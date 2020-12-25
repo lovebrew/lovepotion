@@ -1,10 +1,9 @@
-#include "common/runtime.h"
 #include <sys/stat.h>
-
 #include "objects/file/file.h"
-#include "modules/filesystem/wrap_filesystem.h"
 
 using namespace love;
+
+extern bool SetupWriteDirectory();
 
 love::Type File::type("File", &Object::type);
 
@@ -91,7 +90,7 @@ bool File::Open(File::Mode openMode)
     if ((openMode == MODE_READ) && !PHYSFS_exists(this->filename.c_str()))
         throw love::Exception("Could not open file %s. Does not exist.", this->filename.c_str());
 
-    if ((openMode == MODE_APPEND || openMode == MODE_WRITE) && (PHYSFS_getWriteDir() == nullptr) && !Wrap_Filesystem::SetupWriteDirectory())
+    if ((openMode == MODE_APPEND || openMode == MODE_WRITE) && (PHYSFS_getWriteDir() == nullptr) && !SetupWriteDirectory())
         throw love::Exception("Could not set write directory.");
 
     if (this->file != nullptr)

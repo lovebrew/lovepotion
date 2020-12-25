@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/image/image.h"
 
 #include "deko3d/deko.h"

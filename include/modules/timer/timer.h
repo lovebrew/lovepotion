@@ -5,6 +5,14 @@
 
 #pragma once
 
+#include "common/module.h"
+
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
 namespace love
 {
     class Timer : public Module

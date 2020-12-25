@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include <3ds.h>
 #include "modules/system/system.h"
 
 using namespace love;

@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/data/compressed/wrap_compresseddata.h"
 
 using namespace love;

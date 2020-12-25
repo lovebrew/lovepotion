@@ -1,4 +1,6 @@
 build
+*.log
+
 *.3dsx
 *.elf
 *.smdh

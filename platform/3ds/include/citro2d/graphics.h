@@ -4,13 +4,13 @@
 #include "citro2d/citro.h"
 
 #define RENDERER_NAME    "citro3d"
-#define RENDERER_VERSION "1.3.1"
+#define RENDERER_VERSION "1.6.2"
 #define RENDERER_VENDOR  "devkitPro"
 #define RENDERER_DEVICE  "DMP PICA200"
 
 #define SCREEN_TOP_WIDTH 400
 #define SCREEN_BOT_WIDTH 320
-#define SCREEN_HEIGHT 240
+#define SCREEN_HEIGHT    240
 
 enum class love::Graphics::Screen: uint8_t
 {
@@ -26,6 +26,8 @@ namespace love::citro2d
     class Graphics : public love::Graphics
     {
         public:
+            Graphics();
+
             Screen GetActiveScreen() const override;
 
             std::vector<std::string> GetScreens() const override;

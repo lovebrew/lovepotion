@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/timer/timer.h"
 
 using namespace love;
@@ -8,8 +7,10 @@ using namespace love;
 #define SLEEP_ULL 1000000ULL
 
 #if defined (_3DS)
+    #include <3ds.h>
     TickCounter Timer::counter;
 #elif defined (__SWITCH__)
+    #include <switch.h>
     u64 Timer::reference;
 #endif
 

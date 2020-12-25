@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/thread/types/mutex.h"
 
 using namespace love::thread;

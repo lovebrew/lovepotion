@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/logger.h"
 
 using namespace love;
 

@@ -1,5 +1,6 @@
-#include "common/runtime.h"
 #include "modules/sound/sound.h"
+
+#include <vector>
 
 using namespace love;
 
@@ -30,7 +31,9 @@ DecoderImpl DecoderImplFor()
 }
 
 Sound::~Sound()
-{}
+{
+    MP3Decoder::Quit();
+}
 
 Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
 {
@@ -51,7 +54,7 @@ Decoder * Sound::NewDecoder(FileData * data, int bufferSize)
             return item.Create(data, bufferSize);
     }
 
-    throw love::Exception("Failed to determine file type.");
+    throw love::Exception("Failed to determine file type for %s.", data->GetFilename().c_str());
 
     return nullptr;
 }

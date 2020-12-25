@@ -1,8 +1,9 @@
 #pragma once
 
 #include "objects/decoder/decoder.h"
-
 #include <FLAC/stream_decoder.h>
+
+#include "common/logger.h"
 
 namespace love
 {
@@ -17,6 +18,17 @@ namespace love
                 int sampleRate;
                 int channels;
                 int PCMCount;
+                int bitsPerSample;
+                int totalSamples;
+
+                const char * data;
+                size_t size;
+                size_t read;
+
+                size_t usedSamples;
+
+                int32_t * buffer;
+                int32_t * writePointer = nullptr;
             };
 
             static bool Accepts(const std::string & ext);
@@ -42,6 +54,8 @@ namespace love
             double GetDuration();
 
         private:
+            static bool inited;
+
             FLACFile file;
 
             FLAC__StreamDecoder * decoder;

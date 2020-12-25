@@ -8,6 +8,7 @@ namespace love
     {
         public:
             Window();
+
             ~Window();
 
             ModuleType GetModuleType() const { return M_WINDOW; }
@@ -27,6 +28,8 @@ namespace love
             // End Löve2D Functions
 
             void SetGraphics(Graphics * g);
+
+            void OnSizeChanged(int width, int height);
 
         private:
             std::vector<std::pair<int, int>> displaySizes;

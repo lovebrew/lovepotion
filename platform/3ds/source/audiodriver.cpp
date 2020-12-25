@@ -1,7 +1,7 @@
-#include "common/runtime.h"
-#include "audiodriver.h"
-
+#include "common/audiodriver.h"
 #include "common/exception.h"
+
+#include <3ds/synchronization.h>
 
 using namespace love;
 

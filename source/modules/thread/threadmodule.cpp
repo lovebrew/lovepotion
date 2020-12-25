@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/thread/threadmodule.h"
 
 using namespace love;

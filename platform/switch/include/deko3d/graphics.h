@@ -10,7 +10,7 @@
 #include FT_GLYPH_H
 
 #define RENDERER_NAME    "deko3d"
-#define RENDERER_VERSION "0.2.0"
+#define RENDERER_VERSION "0.3.0"
 #define RENDERER_VENDOR  "devkitPro"
 #define RENDERER_DEVICE  "NVIDIA Tegra X1"
 
@@ -102,12 +102,7 @@ namespace love::deko3d
             // Internal?
             Shader * NewShader(Shader::StandardShader type);
 
-            static void Resize(int width, int height);
-
         private:
             int CalculateEllipsePoints(float rx, float ry) const;
-
-            int width;
-            int height;
     };
 }

@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/math/wrap_mathmodule.h"
 
 #include "wrap_math_lua.h"
@@ -348,15 +348,15 @@ int Wrap_Math::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "math";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = types;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "math";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = types;
 
-    int ret = Luax::RegisterModule(L, module);
+    int ret = Luax::RegisterModule(L, wrappedModule);
 
     luaL_loadbuffer(L, (const char *)wrap_math_lua, wrap_math_lua_size, "wrap_math.lua");
     lua_pushvalue(L, -2);

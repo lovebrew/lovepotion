@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/audio/audio.h"
 #include "modules/audio/pool/pool.h"
 

@@ -1,6 +1,4 @@
-#include "common/runtime.h"
 #include "objects/gamepad/gamepad.h"
-
 #include "common/backend/input.h"
 
 using namespace love;
@@ -110,9 +108,6 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else
     {
-        if (!g_accelJoystick)
-            return 0.0f;
-
         if (axis >= 7 && axis < 10)
         {
             angularRate gyroscope;

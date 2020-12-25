@@ -1,8 +1,46 @@
-#include "common/runtime.h"
-#include "common/backend/input.h"
-
+#include "common/luax.h"
 #include "modules/love.h"
 
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
+enum DoneAction
+{
+    DONE_QUIT,
+    DONE_RESTART
+};
+
+static bool IsApplicationType()
+{
+    #if defined (__SWITCH__)
+        /* check for applet type */
+
+        AppletType type = appletGetAppletType();
+
+        AppletType appletTypeCondition = (AppletType)(AppletType_Application |
+                                        AppletType_SystemApplication);
+
+        bool isApplication = (type == appletTypeCondition);
+
+        if (isApplication)
+            return true;
+
+        const char * TITLE_TAKEOVER_ERROR = "Please run LÖVE Potion under "
+                                            "Atmosphère title takeover.";
+
+        ErrorApplicationConfig config;
+
+        errorApplicationCreate(&config, TITLE_TAKEOVER_ERROR, NULL);
+        errorApplicationShow(&config);
+
+        return false;
+    #endif
+
+    return true;
+}
 
 DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 {
@@ -81,6 +119,9 @@ DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 
 int main(int argc, char * argv[])
 {
+    if (!IsApplicationType())
+        return 0;
+
     DoneAction done = DONE_QUIT;
     int retval = 0;
 

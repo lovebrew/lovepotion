@@ -1,5 +1,6 @@
-#include "common/runtime.h"
 #include "objects/data/byte/bytedata.h"
+
+#include <cstring>
 
 using namespace love;
 

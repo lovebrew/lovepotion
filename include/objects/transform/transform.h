@@ -4,6 +4,8 @@
 #include "common/vector.h"
 #include "common/stringmap.h"
 
+#include "objects/object.h"
+
 namespace love
 {
     class Transform : public Object

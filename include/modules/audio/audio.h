@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/module.h"
 #include "objects/source/source.h"
 
 #include "modules/thread/types/threadable.h"

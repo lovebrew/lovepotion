@@ -1,5 +1,7 @@
 #pragma once
 
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <cstdlib> // for rand() and RAND_MAX
 #include <algorithm>
 
@@ -10,7 +12,7 @@
 
 namespace love
 {
-    typedef struct Rect
+    struct Rect
     {
         int x, y;
         int w, h;
@@ -20,7 +22,7 @@ namespace love
             return x == rhs.x && y == rhs.y &&
                    w == rhs.w && h == rhs.h;
         }
-    } Rect;
+    };
 
     constexpr size_t LOVE_MIN_TEX = 8U;
     constexpr size_t LOVE_MAX_TEX = 1024U;

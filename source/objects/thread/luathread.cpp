@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/thread/luathread.h"
 
 #include "modules/love.h"

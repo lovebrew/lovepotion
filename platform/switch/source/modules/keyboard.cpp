@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include <switch.h>
 #include "modules/keyboard/keyboard.h"
 
 using namespace love;

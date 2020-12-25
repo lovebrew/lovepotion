@@ -2,6 +2,10 @@
 
 #include "modules/thread/types/lock.h"
 
+#include <atomic>
+#include <queue>
+#include <map>
+
 #if defined (_3DS)
     #define SLEEP_TIME 5000000
 #elif defined (__SWITCH__)

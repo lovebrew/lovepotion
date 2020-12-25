@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/window/window.h"
 
 using namespace love;
@@ -32,6 +31,9 @@ int Window::GetDisplayCount()
 {
     return 2;
 }
+
+void Window::OnSizeChanged(int width, int height)
+{}
 
 std::vector<std::pair<int, int>> & Window::GetFullscreenModes()
 {

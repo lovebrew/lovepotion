@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/thread/types/lock.h"
+#include <exception>
 
 #if defined (_3DS)
     typedef struct _AudioDriver {} AudioDriver;
@@ -36,7 +37,7 @@ namespace love::AudrenDriver
         }
         catch(const std::exception & e)
         {
-            LOG("%s", e.what());
+            throw;
         }
     }
 }

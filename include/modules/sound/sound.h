@@ -9,6 +9,8 @@
 #include "wavedecoder.h"
 #include "flacdecoder.h"
 
+#include "common/module.h"
+
 namespace love
 {
     class Sound : public Module

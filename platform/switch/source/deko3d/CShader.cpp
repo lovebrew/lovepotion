@@ -86,8 +86,7 @@ bool CShader::loadMemory(CMemPool & pool, void * buffer, size_t size)
     ** Make sure to add hdr.control_sz to the buffer for the *correct* offset
     ** As though the buffer were being dealt with like an fread
     */
-    if (!memcpy(m_codemem.getCpuAddr(), (char *)buffer + hdr.control_sz, hdr.code_sz))
-        goto _fail2;
+    memcpy(m_codemem.getCpuAddr(), (char *)buffer + hdr.control_sz, hdr.code_sz);
 
     /*
     ** Create a shader based on m_codemem's memory block and offset

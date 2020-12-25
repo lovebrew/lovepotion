@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/gamepad/gamepadc.h"
 
 using namespace love::common;

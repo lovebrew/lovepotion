@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/text/text.h"
 
 #include "modules/graphics/graphics.h"

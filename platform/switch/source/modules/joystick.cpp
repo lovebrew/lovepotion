@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/joystick/joystick.h"
 
 #include "modules/timer/timer.h"

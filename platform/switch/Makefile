@@ -58,10 +58,12 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/modules/system \
 				include/modules/joystick \
 				include/modules/font \
+				include/objects/rasterizer \
+				include/objects/glyphdata \
 				include/objects/font \
 				include/objects/canvas \
 				include/objects/text \
-				include/objects/gamepad
+				include/objects/gamepad \
 
 EXEFS_SRC    := exefs_src
 # ROMFS        := romfs
@@ -78,19 +80,22 @@ CFLAGS    :=    -g -Wall -ffunction-sections `freetype-config --cflags` \
 
 CFLAGS    +=    $(INCLUDE) -D__SWITCH__ -D__DEBUG__=$(DEBUG)
 
-ifeq ($(strip $(DEBUG)),)
-	CFLAGS += -O2
-else
-	CFLAGS += -Og
-	ICON := icon-dev.jpg
-endif
-
 CXXFLAGS  :=	$(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 
 ASFLAGS   :=    -g $(ARCH)
 LDFLAGS   =     --specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lphysfs -lz -lvorbisidec  `aarch64-none-elf-pkg-config libmpg123 --libs` -lturbojpeg -lpng `freetype-config --libs` -logg -ldeko3dd -lnx
+LIBS := -lphysfs -lz -lvorbisidec  `aarch64-none-elf-pkg-config libmpg123 --libs` -lFLAC -lturbojpeg -lpng `freetype-config --libs` -logg
+
+ifeq ($(strip $(DEBUG)),)
+	CFLAGS += -O2
+	ICON   := icon.jpg
+	LIBS   += -ldeko3d -lnx
+else
+	CFLAGS += -Og
+	ICON   := icon-dev.jpg
+	LIBS   += -ldeko3dd -lnxd
+endif
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include <3ds.h>
 #include "modules/keyboard/keyboard.h"
 
 using namespace love;

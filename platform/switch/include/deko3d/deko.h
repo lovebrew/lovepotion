@@ -14,7 +14,7 @@
 #include "objects/font/font.h"
 #include "objects/canvas/canvas.h"
 
-#include "common/mmath.h"
+#include "common/lmath.h"
 #include "deko3d/vertex.h"
 
 #include "deko3d/CDescriptorSet.h"

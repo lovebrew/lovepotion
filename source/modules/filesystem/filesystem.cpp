@@ -1,9 +1,24 @@
-#include "common/runtime.h"
 #include "modules/filesystem/filesystem.h"
 
-#include <sys/stat.h>
-
 #include <physfs.h>
+
+#include <sys/stat.h>
+#include <limits.h>
+
+#include <unistd.h>
+
+#if defined (_3DS)
+    #include <3ds.h>
+#elif defined (__SWITCH__)
+    #include <switch.h>
+#endif
+
+#include <filesystem>
+
+#define LOVE_APPDATA_FOLDER ""
+#define LOVE_APPDATA_PREFIX ""
+#define LOVE_PATH_SEPARATOR "/"
+#define LOVE_MAX_PATH PATH_MAX
 
 using namespace love;
 

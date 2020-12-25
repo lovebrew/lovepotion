@@ -2,6 +2,7 @@
 
 #include "objects/decoder/decoder.h"
 #include "objects/sounddata/sounddata.h"
+
 #include "common/stringmap.h"
 
 #include "modules/audio/pool/pool.h"

@@ -1,32 +1,23 @@
 #pragma once
 
+#include "objects/random/randomgenerator.h"
+
+#include "common/module.h"
+#include "common/lmath.h"
 #include "common/vector.h"
 
-// Noise
 #include "noise1234/noise1234.h"
 #include "noise1234/simplexnoise1234.h"
 
-#include "common/mmath.h"
-
-#include "objects/random/randomgenerator.h"
-#include "objects/transform/transform.h"
-
 #include <list>
-#include <vector>
-
-#include "common/exception.h"
 
 namespace love
 {
-        /**
-     * Converts a value from the sRGB (gamma) colorspace to linear RGB.
-     **/
     float GammaToLinear(float c);
 
-    /**
-     * Converts a value from linear RGB to the sRGB (gamma) colorspace.
-     **/
     float LinearToGamma(float c);
+
+    class Transform;
 
     class Math : public Module
     {

@@ -1,5 +1,8 @@
-#include "common/runtime.h"
 #include "common/base64.h"
+#include "common/exception.h"
+
+#include <limits>
+#include <stdio.h>
 
 using namespace love;
 

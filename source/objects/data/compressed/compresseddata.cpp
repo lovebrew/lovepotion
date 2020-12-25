@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/data/compressed/compresseddata.h"
 
 using namespace love;

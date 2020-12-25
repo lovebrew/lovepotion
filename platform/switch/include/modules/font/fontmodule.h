@@ -29,6 +29,8 @@ namespace love
 
             GlyphData * NewGlyphData(Rasterizer * rasterizer, const std::string & text);
 
+            GlyphData * NewGlyphData(Rasterizer * rasterizer, uint32_t glyph);
+
             Data * GetSystemFont(Font::SystemFontType type);
 
             const char * GetName() const override { return "love.font"; }

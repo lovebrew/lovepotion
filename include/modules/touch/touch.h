@@ -1,5 +1,9 @@
 #pragma once
 
+#include "common/module.h"
+
+#include <vector>
+
 namespace love
 {
     class Touch : public Module

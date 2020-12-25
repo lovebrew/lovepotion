@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/keyboard/wrap_keyboard.h"
 
 #include "modules/event/event.h"
@@ -58,13 +58,13 @@ int Wrap_Keyboard::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "keyboard";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = nullptr;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "keyboard";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = nullptr;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

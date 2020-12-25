@@ -1,10 +1,14 @@
-#include "common/runtime.h"
+#include <citro2d.h>
+
 #include "citro2d/graphics.h"
 
 using namespace love;
 using Screen = love::Graphics::Screen;
 
 #define TRANSPARENCY C2D_Color32(0, 0, 0, 1)
+
+love::citro2d::Graphics::Graphics()
+{}
 
 void love::citro2d::Graphics::SetActiveScreen(Screen screen)
 {

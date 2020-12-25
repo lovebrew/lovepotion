@@ -1,7 +1,8 @@
-#include "common/runtime.h"
 #include "modules/font/fontmodule.h"
 
 #include "common/data.h"
+
+#include "utf8/utf8.h"
 
 using namespace love;
 
@@ -28,9 +29,9 @@ class SystemFontData : public love::Data
             plGetSharedFontByType(&this->fontData, (PlSharedFontType)type);
         }
 
-        Data * Clone()   const override { return new SystemFontData(this->type);   }
-        void * GetData() const override { return this->fontData.address; }
-        size_t GetSize() const override { return this->fontData.size; }
+        Data * Clone()   const override { return new SystemFontData(this->type); }
+        void * GetData() const override { return this->fontData.address;         }
+        size_t GetSize() const override { return this->fontData.size;            }
 
     private:
         PlFontData fontData;
@@ -63,7 +64,7 @@ love::Rasterizer * FontModule::NewRasterizer(love::FileData * data)
 
 love::Rasterizer * FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
 {
-    love::StrongReference<DefaultFontData> data(new DefaultFontData, Acquire::NORETAIN);
+    love::StrongReference<DefaultFontData> data(new DefaultFontData(), Acquire::NORETAIN);
     return NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
@@ -87,13 +88,20 @@ love::Rasterizer * FontModule::NewTrueTypeRasterizer(love::Data * data, int size
 GlyphData * FontModule::NewGlyphData(Rasterizer * rasterizer, const std::string & text)
 {
     uint32_t codepoint = 0;
-    auto bytes = decode_utf8(&codepoint, (uint8_t *)&text[0]);
 
-    if (bytes < 0)
+    try
     {
-        bytes = 1; // skip the invalid sequence
-        codepoint = 0xFFFD;
+        codepoint = utf8::peek_next(text.begin(), text.end());
+    }
+    catch (utf8::exception & e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
 
     return rasterizer->GetGlyphData(codepoint);
+}
+
+GlyphData * FontModule::NewGlyphData(Rasterizer * rasterizer, uint32_t glyph)
+{
+    return rasterizer->GetGlyphData(glyph);
 }

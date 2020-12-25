@@ -1,5 +1,6 @@
-#include "common/runtime.h"
 #include "objects/data/view/dataview.h"
+
+#include "common/exception.h"
 
 using namespace love;
 

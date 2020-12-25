@@ -1,7 +1,7 @@
 #pragma once
 
 #include "objects/texture/texture.h"
-
+#include "common/luax.h"
 namespace Wrap_Texture
 {
     int GetTextureType(lua_State * L);

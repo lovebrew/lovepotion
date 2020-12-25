@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/system/wrap_system.h"
 
 #include "modules/system/system.h"
@@ -116,12 +116,13 @@ int Wrap_System::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
-    module.instance = instance;
-    module.name = "system";
-    module.type = &Module::type;
-    module.functions = reg;
-    module.types = nullptr;
+    WrappedModule wrappedModule;
 
-    return Luax::RegisterModule(L, module);
+    wrappedModule.instance = instance;
+    wrappedModule.name = "system";
+    wrappedModule.type = &Module::type;
+    wrappedModule.functions = reg;
+    wrappedModule.types = nullptr;
+
+    return Luax::RegisterModule(L, wrappedModule);
 }

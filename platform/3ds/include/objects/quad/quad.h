@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/quad/quadc.h"
+#include <c2d/base.h>
 
 namespace love
 {

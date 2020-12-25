@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/sounddata/sounddata.h"
 
 using namespace love;

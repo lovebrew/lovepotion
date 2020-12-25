@@ -1,8 +1,10 @@
 #pragma once
 
-#include "objects/gamepad/gamepad.h"
-#include "objects/gamepad/wrap_gamepad.h"
+#include "common/module.h"
 
+#include "objects/gamepad/gamepad.h"
+
+#include <vector>
 #include <list>
 
 namespace love::common

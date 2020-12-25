@@ -1,6 +1,4 @@
-#include "common/runtime.h"
 #include "audiodriver.h"
-
 #include "common/audiopool.h"
 
 using namespace love;

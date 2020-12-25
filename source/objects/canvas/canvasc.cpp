@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/canvas/canvasc.h"
 
 using namespace love::common;

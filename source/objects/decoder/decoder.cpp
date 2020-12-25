@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/decoder/decoder.h"
 
 using namespace love;

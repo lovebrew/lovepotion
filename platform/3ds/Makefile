@@ -56,7 +56,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 				include/objects/text \
 				include/objects/canvas \
 				include/objects/texture \
-				include/objects/gamepad \
+				include/objects/gamepad
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)
@@ -64,7 +64,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 #GFXBUILD	:=	$(ROMFS)/gfx
 
 APP_DESCRIPTION	:= LÖVE for 3DS
-ICON			:= icon.png
+
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -75,13 +75,6 @@ CFLAGS	:=	-g -Wall -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
 			$(ARCH)
 
-ifeq ($(strip $(DEBUG)),)
-	CFLAGS += -O2
-else
-	CFLAGS += -Og
-	ICON := icon-dev.png
-endif
-
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
@@ -89,7 +82,18 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lphysfs -lz -lvorbisidec `arm-none-eabi-pkg-config libmpg123 --libs` -logg -lcitro2dd -lcitro3dd -lctru
+LIBS	:= -lphysfs -lz -lvorbisidec -lFLAC `arm-none-eabi-pkg-config libmpg123 --libs` -logg
+
+ifeq ($(strip $(DEBUG)),)
+	CFLAGS	+= -O2
+	LIBS	+= -lcitro2d -lcitro3d -lctru
+	ICON	:= icon.png
+else
+	CFLAGS	+= -Og
+	LIBS	+= -lcitro2dd -lcitro3dd -lctrud
+	ICON	:= icon-dev.png
+endif
+
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib

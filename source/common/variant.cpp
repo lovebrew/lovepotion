@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/variant.h"
 
 using namespace love;
 
@@ -176,7 +176,7 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
             else
             {
                 Luax::TypeErrror(L, n, "love type");
-                return Variant(Nil());
+                return Variant();
             }
         case LUA_TTABLE:
         {

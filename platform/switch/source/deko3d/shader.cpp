@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "deko3d/shader.h"
 
 #include "deko3d/deko.h"
@@ -49,9 +48,9 @@ void love::Shader::LoadDefaults(StandardShader type)
             this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
             break;
         case STANDARD_TEXTURE:
-        default:
             this->program.vertex.loadMemory(*dk3d.GetCode(), (void *)s_vsh_dksh, s_vsh_dksh_size);
             this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
+        default:
             break;
     }
 }

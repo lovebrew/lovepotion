@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/data.h"
-
+#include "common/exception.h"
 namespace love
 {
     class ByteData : public Data

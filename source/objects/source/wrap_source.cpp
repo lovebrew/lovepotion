@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/source/wrap_source.h"
 
 using namespace love;

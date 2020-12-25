@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/data/wrap_datamodule.h"
 
 using namespace love;
@@ -424,13 +424,13 @@ int Wrap_DataModule::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "data";
-    module.type = &Module::type;
-    module.functions = reg;
-    module.types = types;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "data";
+    wrappedModule.type = &Module::type;
+    wrappedModule.functions = reg;
+    wrappedModule.types = types;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

@@ -1,5 +1,7 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/font/wrap_fontmodule.h"
+
+#include <filesystem>
 
 using namespace love;
 
@@ -9,7 +11,7 @@ int Wrap_FontModule::NewRasterizer(lua_State * L)
 {
     /* First or second arg is a number */
     if (lua_type(L, 1) == LUA_TNUMBER || lua_type(L, 2) == LUA_TNUMBER || lua_isnone(L, 1))
-        return Wrap_FontModule::NewFontRasterizer(L);
+        return Wrap_FontModule::NewTrueTypeRasterizer(L);
     else if (lua_isnoneornil(L, 2))
     {
         Rasterizer * self = nullptr;
@@ -27,7 +29,7 @@ int Wrap_FontModule::NewRasterizer(lua_State * L)
     return 1;
 }
 
-int Wrap_FontModule::NewFontRasterizer(lua_State * L)
+int Wrap_FontModule::NewTrueTypeRasterizer(lua_State * L)
 {
     Rasterizer * self = nullptr;
 
@@ -104,11 +106,42 @@ int Wrap_FontModule::NewFontRasterizer(lua_State * L)
     return 1;
 }
 
+int Wrap_FontModule::NewGlyphData(lua_State * L)
+{
+    Rasterizer * rasterizer = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    GlyphData * glyphData = nullptr;
+
+    // newGlyphData accepts a unicode character or a codepoint number.
+    if (lua_type(L, 2) == LUA_TSTRING)
+    {
+        std::string glyph = Luax::CheckString(L, 2);
+        Luax::CatchException(L, [&](){ glyphData = instance()->NewGlyphData(rasterizer, glyph); });
+    }
+    else
+    {
+        uint32_t glyph = (uint32_t)luaL_checknumber(L, 2);
+        glyphData = instance()->NewGlyphData(rasterizer, glyph);
+    }
+
+    Luax::PushType(L, glyphData);
+    glyphData->Release();
+
+    return 1;
+}
+
 int Wrap_FontModule::Register(lua_State * L)
 {
-    luaL_reg reg[] = {
-        { "newRasterizer",  Wrap_FontModule::NewRasterizer },
+    const luaL_reg reg[] = {
+        { "newRasterizer",         NewRasterizer         },
+        { "newTrueTypeRasterizer", NewTrueTypeRasterizer },
+        { "newGlyphData",          NewGlyphData          },
         { 0, 0 }
+    };
+
+    const lua_CFunction types[] = {
+        Wrap_GlyphData::Register,
+        Wrap_Rasterizer::Register,
+        0
     };
 
     FontModule * instance = instance();
@@ -118,13 +151,13 @@ int Wrap_FontModule::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "font";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = nullptr;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "font";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = types;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

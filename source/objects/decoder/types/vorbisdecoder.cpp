@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "vorbisdecoder.h"
 
 using namespace love;
@@ -14,11 +13,10 @@ static int vorbisClose(void * data)
 
 static size_t vorbisRead(void * data, size_t byteSize, size_t readSize, void * source)
 {
-    size_t spaceUntilEOF;
-    size_t actualSizeRead;
-    VorbisDecoder::OggFile * vorbisData;
+    size_t spaceUntilEOF = 0;
+    size_t actualSizeRead = 0;
 
-    vorbisData = (VorbisDecoder::OggFile *)source;
+    VorbisDecoder::OggFile * vorbisData = (VorbisDecoder::OggFile *)source;
     spaceUntilEOF = vorbisData->size - vorbisData->read;
 
     if ((readSize * byteSize) < spaceUntilEOF)

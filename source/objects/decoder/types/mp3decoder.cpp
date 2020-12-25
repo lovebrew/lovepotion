@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "mp3decoder.h"
 
 using namespace love;
@@ -68,10 +67,10 @@ static off_t seek_callback(void * source, off_t offset, int whence)
 bool MP3Decoder::inited = false;
 
 MP3Decoder::MP3Decoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
-                                                        file(data),
-                                                        handle(0),
-                                                        channels(MPG123_STEREO),
-                                                        duration(-2.0)
+                                                      file(data),
+                                                      handle(0),
+                                                      channels(MPG123_STEREO),
+                                                      duration(-2.0)
 {
     int ret = 0;
 

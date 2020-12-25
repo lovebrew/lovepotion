@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/canvas/canvasc.h"
+#include "common/colors.h"
 
 namespace love
 {

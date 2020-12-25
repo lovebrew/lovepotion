@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/quad/quadc.h"
 
 using namespace love::common;

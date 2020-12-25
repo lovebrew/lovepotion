@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/text/textc.h"
 
 love::Type love::common::Text::type("Text", &Drawable::type);

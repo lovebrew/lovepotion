@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/system/systemc.h"
 
 using namespace love::common;

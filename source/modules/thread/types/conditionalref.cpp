@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "modules/thread/types/conditional.h"
 
 using namespace love::thread;

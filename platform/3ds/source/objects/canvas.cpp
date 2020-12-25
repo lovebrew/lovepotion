@@ -1,4 +1,3 @@
-#include "common/runtime.h"
 #include "objects/canvas/canvas.h"
 
 #include "modules/window/window.h"

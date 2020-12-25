@@ -1,5 +1,6 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/joystick/wrap_joystick.h"
+#include "objects/gamepad/wrap_gamepad.h"
 
 using namespace love;
 
@@ -57,13 +58,13 @@ int Wrap_Joystick::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "joystick";
-    module.functions = reg;
-    module.type = &Module::type;
-    module.types = types;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "joystick";
+    wrappedModule.functions = reg;
+    wrappedModule.type = &Module::type;
+    wrappedModule.types = types;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

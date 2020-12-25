@@ -3,8 +3,6 @@
 #include "objects/text/text.h"
 #include "objects/font/wrap_font.h"
 
-#include "objects/transform/transform.h"
-
 namespace Wrap_Text
 {
     int Set(lua_State * L);

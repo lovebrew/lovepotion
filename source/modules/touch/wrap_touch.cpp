@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/touch/wrap_touch.h"
 
 using namespace love;
@@ -74,12 +74,13 @@ int Wrap_Touch::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
-    module.instance = instance;
-    module.name = "touch";
-    module.type = &Module::type;
-    module.functions = reg;
-    module.types = nullptr;
+    WrappedModule wrappedModule;
 
-    return Luax::RegisterModule(L, module);
+    wrappedModule.instance = instance;
+    wrappedModule.name = "touch";
+    wrappedModule.type = &Module::type;
+    wrappedModule.functions = reg;
+    wrappedModule.types = nullptr;
+
+    return Luax::RegisterModule(L, wrappedModule);
 }

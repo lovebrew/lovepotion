@@ -1,4 +1,9 @@
-#include "common/runtime.h"
+#include <3ds.h>
+#include <citro2d.h>
+
+#include "common/colors.h"
+#include "common/luax.h"
+
 #include "citro2d/citro.h"
 
 #include "modules/graphics/graphics.h"

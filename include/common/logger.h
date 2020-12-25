@@ -7,6 +7,9 @@
 
 #include "modules/thread/types/lock.h"
 
+#include <stdio.h>
+#include <stdarg.h>
+
 class Logger
 {
     public:

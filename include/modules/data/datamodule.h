@@ -1,14 +1,9 @@
 #pragma once
 
-#include "common/stringmap.h"
-
-#include "objects/data/byte/bytedata.h"
 #include "objects/data/compressed/compresseddata.h"
-#include "objects/data/view/dataview.h"
-
-#include "common/base64.h"
-
 #include "modules/data/hashfunction/hashfunction.h"
+#include "objects/data/view/dataview.h"
+#include "objects/data/byte/bytedata.h"
 
 #include "common/module.h"
 

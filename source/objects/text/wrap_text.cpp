@@ -1,5 +1,7 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "objects/text/wrap_text.h"
+
+#include "objects/transform/wrap_transform.h"
 
 using namespace love;
 

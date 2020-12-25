@@ -1,5 +1,6 @@
-#include "common/runtime.h"
 #include "freetype/glyphdata.h"
+
+#include "utf8/utf8.h"
 
 using namespace love;
 
@@ -75,13 +76,24 @@ uint32_t GlyphData::GetGlyph() const
 
 std::string GlyphData::GetGlyphString() const
 {
-    uint8_t out[5] = {0, 0, 0, 0, 0};
-    auto bytes = encode_utf8(out, this->glyph);
+    char u[5] = {0, 0, 0, 0, 0};
+    ptrdiff_t length = 0;
 
-    if (bytes < 0)
-        bytes = encode_utf8(out, 0xFFFD);
+    try
+    {
+        char * end = utf8::append(glyph, u);
+        length = end - u;
+    }
+    catch (utf8::exception & e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
 
-    return std::string((char *)out, bytes);
+    // Just in case...
+    if (length < 0)
+        return "";
+
+    return std::string(u, length);
 }
 
 int GlyphData::GetAdvance() const

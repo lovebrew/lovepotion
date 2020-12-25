@@ -5,15 +5,13 @@
 
 #pragma once
 
-#include "objects/file/file.h"
+#include "common/module.h"
+#include "common/stringmap.h"
+
 #include "objects/filedata/filedata.h"
+#include "objects/file/file.h"
 
 #define MAX_STAMP 0x20000000000000LL
-
-#define LOVE_APPDATA_FOLDER ""
-#define LOVE_APPDATA_PREFIX ""
-#define LOVE_PATH_SEPARATOR "/"
-#define LOVE_MAX_PATH PATH_MAX
 
 namespace love
 {

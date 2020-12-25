@@ -5,26 +5,52 @@
 
 #pragma once
 
-enum Registry
-{
-    OBJECTS = 0,
-    MODULES,
-    UNKNOWN
-};
-
 #define MAX_LUAOBJ_KEY 0x20000000000000ULL
 
-#include "objects/object.h"
 #include "common/type.h"
+
+extern "C" {
+    #include <lua.h>
+    #include <lualib.h>
+    #include <lauxlib.h>
+
+    #include <lutf8lib.h>
+
+    #include <l53strlib.h>
+}
+
+#include <exception>
+#include <algorithm>
+#include <string.h>
 
 namespace love
 {
+    class Object;
+    class Module;
+
+    template <typename T>
+    class StrongReference;
+
+    enum Registry
+    {
+        REGISTRY_OBJECTS,
+        REGISTRY_MODULES
+    };
+
+    struct Proxy
+    {
+        love::Type * type; //< Holds type information (see types.h).
+        Object * object; //<   Pointer to the actual object.
+    };
+
     struct WrappedModule
     {
         const char * name;
         love::Type * type;
+
         const luaL_reg * functions;
         const lua_CFunction * types;
+
         love::Module * instance;
     };
 }
@@ -42,8 +68,29 @@ namespace Luax
         return boolean;
     }
 
+    inline std::string ToString(lua_State * L, int index) {
+        size_t length;
+        const char * string = lua_tolstring(L, index, &length);
+
+        return std::string(string, length);
+    }
+
+    inline std::string CheckString(lua_State * L, int index) {
+        size_t length;
+        const char * string = luaL_checklstring(L, index, &length);
+
+        return std::string(string, length);
+    }
+
     inline void PushString(lua_State * L, const std::string & str) {
         lua_pushlstring(L, str.data(), str.size());
+    }
+
+    inline void PushPointerString(lua_State * L, const void * pointer) {
+        char string[sizeof(void *)];
+        memcpy(string, &pointer, sizeof(void *));
+
+        lua_pushlstring(L, string, sizeof(void *));
     }
 
     int RegisterSearcher(lua_State * L, lua_CFunction function, int position);
@@ -62,21 +109,27 @@ namespace Luax
 
     lua_State * InsistPinnedThread(lua_State * L);
 
+    /* REGISTRY */
+
+    int GetRegistry(lua_State * L, love::Registry registry);
+
+    int InsistRegistry(lua_State * L, love::Registry registry);
+
     int Require(lua_State * L, const char * name);
 
-    int ConvertObject(lua_State *L, int idx, const char  *mod, const char * fn);
+    int ConvertObject(lua_State * L, int idx, const char  * mod, const char * fn);
 
-    int ConvertObject(lua_State *L, const int idxs[], int n, const char *mod, const char *fn);
+    int ConvertObject(lua_State * L, const int idxs[], int n, const char * mod, const char * fn);
 
-    int ConvertObject(lua_State *L, const std::vector<int>& idxs, const char *module, const char *function);
+    int ConvertObject(lua_State * L, const std::vector<int>& idxs, const char * moduleName, const char * function);
 
     int AssertNilError(lua_State *L, int idx);
 
-    int GetLOVEFunction(lua_State *L, const char * mod, const char * fn);
+    int GetLOVEFunction(lua_State * L, const char * mod, const char * fn);
 
     void SetFunctions(lua_State * L, const luaL_reg * l);
 
-    int RegisterModule(lua_State * L, const love::WrappedModule & module);
+    int RegisterModule(lua_State * L, const love::WrappedModule & moduleName);
 
     int RegisterType(lua_State * L, love::Type * object, ...);
 
@@ -153,11 +206,6 @@ namespace Luax
         return ToType<T>(L, index, T::type);
     }
 
-    /*
-    ** @func CheckType<T>
-    ** Checks if the value on the Lua stack @index is of @type
-    ** See: https://github.com/love2d/love/blob/master/src/common/runtime.h#L528
-    */
     template <typename T>
     T * CheckType(lua_State * L, int index, const love::Type & type)
     {
@@ -183,10 +231,10 @@ namespace Luax
         return (T *)proxy->object;
     }
 
-    template <size_t Count>
+    template <size_t count>
     bool ArgcIsNil(lua_State * L)
     {
-        for (size_t i = 1; i <= Count; i++)
+        for (size_t i = 1; i <= count; i++)
         {
             if (!lua_isnil(L, i))
                 return false;

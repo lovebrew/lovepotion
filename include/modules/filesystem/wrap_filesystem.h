@@ -6,6 +6,7 @@
 #include "modules/data/wrap_datamodule.h"
 #include "modules/filesystem/filesystem.h"
 
+bool SetupWriteDirectory();
 namespace Wrap_Filesystem
 {
     love::Data * GetData(lua_State * L, int index);

@@ -1,4 +1,4 @@
-#include "common/runtime.h"
+#include "common/luax.h"
 #include "modules/window/wrap_window.h"
 
 using namespace love;
@@ -81,13 +81,13 @@ int Wrap_Window::Register(lua_State * L)
     else
         instance->Retain();
 
-    WrappedModule module;
+    WrappedModule wrappedModule;
 
-    module.instance = instance;
-    module.name = "window";
-    module.type = &Module::type;
-    module.functions = functions;
-    module.types = 0;
+    wrappedModule.instance = instance;
+    wrappedModule.name = "window";
+    wrappedModule.type = &Module::type;
+    wrappedModule.functions = functions;
+    wrappedModule.types = nullptr;
 
-    return Luax::RegisterModule(L, module);
+    return Luax::RegisterModule(L, wrappedModule);
 }

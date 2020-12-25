@@ -5,6 +5,13 @@
 
 #pragma once
 
+#include "common/module.h"
+#include "common/stringmap.h"
+#include "common/vector.h"
+#include "common/colors.h"
+
+/* OBJECTS */
+
 #include "objects/texture/texture.h"
 
 #include "objects/image/wrap_image.h"
@@ -24,9 +31,6 @@
 
 #include "objects/text/wrap_text.h"
 #include "objects/text/text.h"
-
-#include "common/mmath.h"
-#include "common/colors.h"
 
 #if defined(__SWITCH__)
     // #include "objects/font.h"
@@ -341,9 +345,6 @@ namespace love
 
             ColorMask getColorMask() const;
 
-
-            static void SetViewMatrix(const Matrix4 & matrix);
-
             #if defined(__SWITCH__)
                 vertex::CullMode GetMeshCullMode() const;
 
@@ -511,6 +512,11 @@ namespace love
 
             virtual void Present() = 0;
 
+            void Resize(int width, int height) {
+                this->width = width;
+                this->height = height;
+            }
+
             static constexpr float MIN_DEPTH = 1.0f/16384.0f;
             static inline float CURRENT_DEPTH = 0;
             static inline int ACTIVE_SCREEN = 0;
@@ -583,6 +589,9 @@ namespace love
             void RestoreState(const DisplayState & state);
 
             void RestoreStateChecked(const DisplayState & state);
+
+            int width;
+            int height;
 
         private:
             void CheckSetDefaultFont();
