@@ -3,21 +3,17 @@
 
 using namespace love;
 
-Keyboard::Keyboard()
+Keyboard::Keyboard() : common::Keyboard((MAX_INPUT_LENGTH * 3) + 1)
 {}
 
 std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt & options)
 {
-    char text[options.maxLength] = {0};
+    uint32_t maxLength = this->CalculateEncodingMaxLength(options.maxLength);
+    memset(this->text, 0, maxLength);
 
-    SwkbdType type = SWKBD_TYPE_QWERTY;
+    SwkbdType type = static_cast<SwkbdType>(options.type);
 
-    if (options.type == "normal")
-        type = SWKBD_TYPE_NORMAL;
-    else if (options.type == "numpad")
-        type = SWKBD_TYPE_NUMPAD;
-
-    swkbdInit(&this->keyboard, type, 2, (int)options.maxLength);
+    swkbdInit(&this->keyboard, type, 2, maxLength);
     swkbdSetInitialText(&this->keyboard, text);
 
     swkbdSetHintText(&this->keyboard, options.hint.c_str());
@@ -25,7 +21,34 @@ std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt & options)
     if (options.isPassword)
         swkbdSetPasswordMode(&this->keyboard, SWKBD_PASSWORD_HIDE_DELAY);
 
-    swkbdInputText(&this->keyboard, text, options.maxLength);
+    SwkbdButton button = swkbdInputText(&this->keyboard, text, maxLength);
+
+    if (button == SWKBD_BUTTON_NONE || button == SWKBD_BUTTON_LEFT)
+        return std::string();
 
     return text;
 }
+
+bool Keyboard::GetConstant(const char * in, KeyboardType & out)
+{
+    return keyboardTypes.Find(in, out);
+}
+
+bool Keyboard::GetConstant(KeyboardType in, const char *& out)
+{
+    return keyboardTypes.Find(in, out);
+}
+
+std::vector<std::string> Keyboard::GetConstants(KeyboardType)
+{
+    return keyboardTypes.GetNames();
+}
+
+StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)>::Entry Keyboard::keyboardTypeEntries[] =
+{
+    { "normal", KeyboardType::TYPE_NORMAL },
+    { "qwerty", KeyboardType::TYPE_QWERTY },
+    { "numpad", KeyboardType::TYPE_NUMPAD }
+};
+
+StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)> Keyboard::keyboardTypes(Keyboard::keyboardTypeEntries, sizeof(Keyboard::keyboardTypeEntries));

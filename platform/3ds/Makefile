@@ -34,29 +34,19 @@ include $(DEVKITARM)/3ds_rules
 TARGET		:=	LovePotion
 BUILD		:=	build
 
+CONSOLE_INCLUDE := include   $(foreach d, $(wildcard include/*),   $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+CONSOLE_SOURCES	:= source    $(foreach d, $(wildcard source/*),    $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
-				source \
-				source/backend \
-				source/common \
-				source/citro2d \
-				source/modules \
-				source/objects
+				${CONSOLE_SOURCES}
 
 DATA		:=	${LOVE_DATA_FILES}
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
 				${LOVE_LIBRARIES} \
-				include \
-				include/citro2d \
-				include/modules/system \
-				include/modules/joystick \
-				include/objects/font \
-				include/objects/text \
-				include/objects/canvas \
-				include/objects/texture \
-				include/objects/gamepad
+				${CONSOLE_INCLUDE}
 
 #GRAPHICS	:=	gfx
 #GFXBUILD	:=	$(BUILD)

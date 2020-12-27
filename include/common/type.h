@@ -4,9 +4,9 @@
 #include <unordered_map>
 
 #if defined (_3DS)
-    #include <3ds/types.h>
+    #include <3ds.h>
 #elif defined (__SWITCH__)
-    #include <switch/types.h>
+    #include <switch.h>
 #endif
 
 namespace love

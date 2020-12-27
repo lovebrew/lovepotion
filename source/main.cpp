@@ -42,6 +42,17 @@ static bool IsApplicationType()
     return true;
 }
 
+static int love_preload(lua_State *L, lua_CFunction f, const char *name)
+{
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "preload");
+    lua_pushcfunction(L, f);
+    lua_setfield(L, -2, name);
+    lua_pop(L, 2);
+
+    return 0;
+}
+
 DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
 {
     // Make a new Lua state
@@ -49,7 +60,7 @@ DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
     luaL_openlibs(L);
 
     // preload love
-    Luax::Preload(L, Love::Initialize, "love");
+    love_preload(L, Love::Initialize, "love");
 
     {
         lua_newtable(L);

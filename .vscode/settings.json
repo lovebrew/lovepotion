@@ -60,5 +60,6 @@
         "concepts": "cpp",
         "ranges": "cpp"
     },
-    "C_Cpp.intelliSenseEngineFallback": "Disabled"
+    "C_Cpp.intelliSenseEngineFallback": "Disabled",
+    "python.linting.enabled": true
 }

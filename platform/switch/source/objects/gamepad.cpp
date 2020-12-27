@@ -1,6 +1,6 @@
 #include "objects/gamepad/gamepad.h"
 
-#include "common/backend/input.h"
+#include "driver/input.h"
 #include "modules/timer/timer.h"
 
 #include "modules/joystick/joystick.h"

@@ -1,7 +1,5 @@
 #include "deko3d/graphics.h"
 
-#include "modules/font/fontmodule.h"
-
 using namespace love;
 using Screen = love::Graphics::Screen;
 

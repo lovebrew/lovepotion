@@ -43,14 +43,6 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
     }
 #endif
 
-bool SetupWriteDirectory()
-{
-    if (instance() != 0)
-        return instance()->SetupWriteDirectory();
-
-    return false;
-}
-
 int Wrap_Filesystem::Load(lua_State * L)
 {
     std::string filename = luaL_checkstring(L, 1);
@@ -184,7 +176,7 @@ int Wrap_Filesystem::Loader(lua_State * L)
     return 1;
 }
 
-bool Wrap_Filesystem::SetupWriteDirectory()
+bool SetupWriteDirectory()
 {
     if (instance() != 0)
         return instance()->SetupWriteDirectory();

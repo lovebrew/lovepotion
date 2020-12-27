@@ -9,10 +9,9 @@ export LOVE_INCLUDES   = $(foreach dir, $(ROOT_INCLUDES),  ../../$(wildcard $(di
 export LOVE_LIBRARIES  = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir)))
 
 export LOVE_DATA_FILES = $(CURDIR)/source/scripts
-export ROMFS = ../../romfs
 
 export APP_TITLE   := LÖVE Potion
-export APP_AUTHOR  := TurtleP
+export APP_AUTHOR  := TurtleP & NotQuiteApex
 export APP_VERSION := 2.0.0
 export APP_TITLEID := 1043
 

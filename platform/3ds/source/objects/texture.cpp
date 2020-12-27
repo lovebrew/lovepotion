@@ -47,7 +47,7 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
     C2D_ImageTint tint;
     Colorf color = gfx->GetColor();
 
-    C2D_AlphaImageTint(&tint, color.a);
+    C2D_PlainImageTint(&tint, C2D_Color32f(color.r, color.g, color.b, color.a), 1.0f);
 
     C2D_DrawImage(this->texture, &params, &tint);
 }

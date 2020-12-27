@@ -1,5 +1,5 @@
 #include "objects/gamepad/gamepad.h"
-#include "common/backend/input.h"
+#include "driver/input.h"
 
 using namespace love;
 

@@ -6,11 +6,7 @@
 #include "modules/thread/types/threadable.h"
 #include "modules/audio/pool/pool.h"
 
-#if defined (_3DS)
-    #define AUDIO_THREAD_STACK_SIZE 0x1000
-#elif defined (__SWITCH__)
-    #define AUDIO_THREAD_STACK_SIZE 0x8000
-#endif
+#include "driver/audrv.h"
 
 namespace love
 {
@@ -18,6 +14,7 @@ namespace love
     {
         public:
             ModuleType GetModuleType() const { return M_AUDIO; }
+
             const char * GetName() const override { return "love.audio"; }
 
             Audio();

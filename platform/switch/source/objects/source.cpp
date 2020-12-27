@@ -1,9 +1,7 @@
 #include "objects/source/source.h"
-
-#include "common/audiopool.h"
 #include "modules/audio/audio.h"
 
-#include "audiodriver.h"
+#include "driver/audrv.h"
 
 using namespace love;
 
@@ -78,7 +76,7 @@ void Source::FreeBuffer()
 
 void Source::SetVolume(float volume)
 {
-    AudrenDriver::LockFunction([this, volume](AudioDriver * driver) {
+    audrv.LockFunction([this, volume](AudioDriver * driver) {
         audrvVoiceSetVolume(driver, this->channel, volume);
     });
 
@@ -87,7 +85,7 @@ void Source::SetVolume(float volume)
 
 void Source::Reset()
 {
-    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+    audrv.LockFunction([this](AudioDriver * driver) {
         audrvVoiceInit(driver, this->channel, this->channels, PcmFormat_Int16, this->sampleRate);
         audrvVoiceSetDestinationMix(driver, this->channel, AUDREN_FINAL_MIX_ID);
 
@@ -119,7 +117,7 @@ bool Source::Update()
                     if (decoded == 0)
                         return false;
 
-                    AudrenDriver::LockFunction([this, which](AudioDriver * driver) {
+                    audrv.LockFunction([this, which](AudioDriver * driver) {
                         audrvVoiceAddWaveBuf(driver, this->channel, &this->sources[which]);
                         audrvVoiceStart(driver, this->channel);
                     });
@@ -206,7 +204,7 @@ bool Source::IsFinished() const
 
     bool finished = false;
 
-    AudrenDriver::LockFunction([this, &finished](AudioDriver * driver) {
+    audrv.LockFunction([this, &finished](AudioDriver * driver) {
         finished = (audrvVoiceIsPlaying(driver, this->channel) == false);
     });
 
@@ -225,7 +223,7 @@ bool Source::PlayAtomic()
         armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
     /* add the initial wavebuffer */
-    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+    audrv.LockFunction([this](AudioDriver * driver) {
         audrvVoiceAddWaveBuf(driver, this->channel, &this->sources[0]);
         audrvVoiceStart(driver, this->channel);
     });
@@ -256,7 +254,7 @@ bool Source::PlayAtomic()
 
 void Source::PauseAtomic()
 {
-    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+    audrv.LockFunction([this](AudioDriver * driver) {
         if (this->valid)
             audrvVoiceSetPaused(driver, this->channel, true);
     });
@@ -266,7 +264,7 @@ void Source::ResumeAtomic()
 {
     if (this->valid && !this->IsPlaying())
     {
-        AudrenDriver::LockFunction([this](AudioDriver * driver) {
+        audrv.LockFunction([this](AudioDriver * driver) {
             audrvVoiceSetPaused(driver, this->channel, false);
         });
     }
@@ -274,7 +272,7 @@ void Source::ResumeAtomic()
 
 void Source::StopAtomic()
 {
-    AudrenDriver::LockFunction([this](AudioDriver * driver) {
+    audrv.LockFunction([this](AudioDriver * driver) {
         if (!this->valid)
             return;
 

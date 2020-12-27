@@ -3,39 +3,47 @@
 
 using namespace love;
 
-Keyboard::Keyboard()
-{
-
-}
+Keyboard::Keyboard() : common::Keyboard((MAX_INPUT_LENGTH * 4) + 1)
+{}
 
 std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt & options)
 {
     Result res = swkbdCreate(&this->keyboard, 0);
 
     if (R_FAILED(res))
-        return NULL;
+        return std::string();
 
-    char text[options.maxLength] = {0};
+    uint32_t maxLength = this->CalculateEncodingMaxLength(options.maxLength);
+    memset(this->text, 0, maxLength);
 
-    if (options.type == "basic")
-        swkbdConfigSetType(&this->keyboard, SwkbdType_Normal);
-    else if (options.type == "standard")
-        swkbdConfigSetType(&this->keyboard, SwkbdType_All);
-    else if (options.type == "numpad")
-        swkbdConfigSetType(&this->keyboard, SwkbdType_NumPad);
+    /* set the software keyboard type */
+
+    swkbdConfigSetType(&this->keyboard, static_cast<SwkbdType>(options.type));
+
+    /* generic config things */
 
     swkbdConfigSetInitialCursorPos(&this->keyboard, 1);
     swkbdConfigSetBlurBackground(&this->keyboard, 1);
 
-    if (options.isPassword)
-        swkbdConfigSetPasswordFlag(&this->keyboard, 1);
+    /* password flag */
+
+    swkbdConfigSetPasswordFlag(&this->keyboard, options.isPassword);
+
+    /* allow the dictionary to be used */
 
     swkbdConfigSetDicFlag(&this->keyboard, 1);
-    swkbdConfigSetStringLenMax(&this->keyboard, options.maxLength);
+
+    /* set max input length */
+
+    swkbdConfigSetStringLenMax(&this->keyboard, maxLength);
+
+    /* set the hint text */
 
     swkbdConfigSetGuideText(&this->keyboard, options.hint.c_str());
 
-    res = swkbdShow(&this->keyboard, text, sizeof(text));
+    /* show the software keyboard with the text */
+
+    res = swkbdShow(&this->keyboard, text, maxLength);
 
     if (R_SUCCEEDED(res))
         swkbdClose(&this->keyboard);

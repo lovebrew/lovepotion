@@ -1,4 +1,5 @@
 #include <switch.h>
+#include "common/debugger.h"
 
 extern "C"
 {
@@ -46,6 +47,8 @@ extern "C"
 
     void userAppExit()
     {
+        close(love::Debugger::Instance().GetSockfd());
+
         socketExit();
         psmExit();
         setExit();

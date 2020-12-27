@@ -12,6 +12,7 @@ template <typename T, unsigned int SIZE>
 class StringMap
 {
     public:
+
         struct Entry
         {
             const char * key;

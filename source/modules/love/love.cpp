@@ -3,15 +3,15 @@
 #include "common/version.h"
 #include "modules/love.h"
 
-#include "common/backend/input.h"
-
 #include "modules/audio/wrap_audio.h"
 #include "modules/data/wrap_datamodule.h"
 #include "modules/event/wrap_event.h"
 #include "modules/filesystem/wrap_filesystem.h"
+
 #if defined (__SWITCH__)
-    #include "modules/font/wrap_fontmodule.h"
+    #include "modules/modfont/wrap_fntmodule.h"
 #endif
+
 #include "modules/graphics/wrap_graphics.h"
 #include "modules/joystick/wrap_joystick.h"
 #include "modules/keyboard/wrap_keyboard.h"
@@ -25,12 +25,35 @@
 
 #include "luasocket/luasocket.h"
 
-#include "boot_lua.h"
+#include "common/debugger.h"
 
-/*
-** @func Initialize
-** Initializes the framework
-*/
+#include "boot_lua.h"
+#include "nogame_lua.h"
+
+static const luaL_Reg modules[] =
+{
+    { "love.audio",       Wrap_Audio::Register        },
+    { "love.data",        Wrap_DataModule::Register   },
+    { "love.event",       Wrap_Event::Register,       },
+    { "love.graphics",    Wrap_Graphics::Register,    },
+    { "love.filesystem",  Wrap_Filesystem::Register,  },
+    #if defined (__SWITCH__)
+     { "love.font",       Wrap_FontModule::Register  },
+    #endif
+    { "love.joystick",    Wrap_Joystick::Register,    },
+    { "love.keyboard",    Wrap_Keyboard::Register     },
+    { "love.math",        Wrap_Math::Register         },
+    { "love.sound",       Wrap_Sound::Register        },
+    { "love.system",      Wrap_System::Register       },
+    { "love.thread",      Wrap_ThreadModule::Register },
+    { "love.timer",       Wrap_Timer::Register,       },
+    { "love.touch",       Wrap_Touch::Register        },
+    { "love.window",      Wrap_Window::Register,      },
+    { "love.nogame",      Love::NoGame                },
+    { "love.boot",        Love::Boot                  },
+    { 0,                  0                           }
+};
+
 int Love::Initialize(lua_State * L)
 {
     Luax::InsistPinnedThread(L);
@@ -81,29 +104,6 @@ int Love::Initialize(lua_State * L)
 
     //---------------------------------------//
 
-    const luaL_Reg modules[] =
-    {
-        { "love.audio",       Wrap_Audio::Register        },
-        { "love.data",        Wrap_DataModule::Register   },
-        { "love.event",       Wrap_Event::Register,       },
-        { "love.graphics",    Wrap_Graphics::Register,    },
-        { "love.filesystem",  Wrap_Filesystem::Register,  },
-        #if defined(__SWITCH__)
-         { "love.font",       Wrap_FontModule::Register  },
-        #endif
-        { "love.joystick",    Wrap_Joystick::Register,    },
-        { "love.keyboard",    Wrap_Keyboard::Register     },
-        { "love.math",        Wrap_Math::Register         },
-        { "love.sound",       Wrap_Sound::Register        },
-        { "love.system",      Wrap_System::Register       },
-        { "love.thread",      Wrap_ThreadModule::Register },
-        { "love.timer",       Wrap_Timer::Register,       },
-        { "love.touch",       Wrap_Touch::Register        },
-        { "love.window",      Wrap_Window::Register,      },
-        { "love.boot",        Boot                        },
-        { 0,                  0 }
-    };
-
     // preload all the modules
     for (size_t i = 0; modules[i].name  != nullptr; i++)
         Luax::Preload(L, modules[i].func, modules[i].name);
@@ -125,22 +125,26 @@ int Love::EnableAccelerometerAsJoystick(lua_State * L)
     return 0;
 }
 
-/*
-** @func Boot
-** Boots LOVE
-*/
 int Love::Boot(lua_State * L)
 {
-    if (luaL_loadbuffer(L, (const char *)boot_lua, boot_lua_size, "boot.lua") == 0)
+    if (!luaL_loadbuffer(L, (const char *)boot_lua, boot_lua_size, "boot.lua"))
         lua_call(L, 0, 1);
+    else
+        LOG("boot.lua error: %s", lua_tostring(L, -1));
 
     return 1;
 }
 
-/*
-** @func GetVersion
-** Return the version for the framework.
-*/
+int Love::NoGame(lua_State * L)
+{
+    if (!luaL_loadbuffer(L, (const char *)nogame_lua, nogame_lua_size, "nogame.lua"))
+        lua_call(L, 0, 1);
+    else
+        LOG("nogame.lua error: %s", lua_tostring(L, -1));
+
+    return 1;
+}
+
 int Love::GetVersion(lua_State * L)
 {
     lua_pushnumber(L, Version::MAJOR);
@@ -158,16 +162,10 @@ int Love::GetVersion(lua_State * L)
 */
 int Love::_OpenConsole(lua_State * L)
 {
-    #if defined (__SWITCH__)
-        nxlinkStdioForDebug();
+    auto instance = love::Debugger::Instance();
+    bool init = instance.IsInited();
 
-        lua_pushboolean(L, true);
-    #else
-        gdbHioDevInit();
-        int success = gdbHioDevRedirectStdStreams(false, true, true);
-
-        lua_pushboolean(L, success == 0);
-    #endif
+    lua_pushboolean(L, init);
 
     return 1;
 }

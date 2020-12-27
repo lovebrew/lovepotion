@@ -1,16 +1,11 @@
 #pragma once
 
 #include "modules/thread/types/lock.h"
+#include "driver/audrv.h"
 
 #include <atomic>
 #include <queue>
 #include <map>
-
-#if defined (_3DS)
-    #define SLEEP_TIME 5000000
-#elif defined (__SWITCH__)
-    #define SLEEP_TIME 0
-#endif
 
 namespace love
 {
@@ -19,6 +14,7 @@ namespace love
         class Source;
     }
 
+    inline driver::Audrv audrv;
 
     class Pool
     {

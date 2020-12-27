@@ -90,11 +90,64 @@ int Luax::Preload(lua_State * L, lua_CFunction func, const char * name)
 
 int Luax::Resume(lua_State * L, int nargs)
 {
-    #if LUA_VERSION_NUM >= 502 || defined(COMPAT53_API)
+    #if LUA_VERSION_NUM >= 502
         return lua_resume(L, nullptr, nargs);
     #else
         return lua_resume(L, nargs);
     #endif
+}
+
+bool Luax::BoolFlag(lua_State * L, int table_index, const char * key, bool defaultValue)
+{
+    lua_getfield(L, table_index, key);
+
+    bool retval;
+    if (lua_isnoneornil(L, -1))
+        retval = defaultValue;
+    else
+        retval = lua_toboolean(L, -1) != 0;
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+int Luax::IntFlag(lua_State * L, int table_index, const char * key, int defaultValue)
+{
+    lua_getfield(L, table_index, key);
+
+    int retval;
+    if (!lua_isnumber(L, -1))
+        retval = defaultValue;
+    else
+        retval = (int) lua_tointeger(L, -1);
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+double Luax::NumberFlag(lua_State * L, int table_index, const char * key, double defaultValue)
+{
+    lua_getfield(L, table_index, key);
+
+    double retval;
+    if (!lua_isnumber(L, -1))
+        retval = defaultValue;
+    else
+        retval = lua_tonumber(L, -1);
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+bool Luax::ToBoolean(lua_State * L, int index)
+{
+    return (lua_toboolean(L, index) != 0);
+}
+
+bool Luax::CheckBoolean(lua_State * L, int index)
+{
+    luaL_checktype(L, index, LUA_TBOOLEAN);
+    return Luax::ToBoolean(L, index);
 }
 
 /*
@@ -166,6 +219,8 @@ int Luax::InsistRegistry(lua_State * L, Registry registry)
     {
         case Registry::REGISTRY_MODULES:
             return Luax::InsistLove(L, "_modules");
+        case Registry::REGISTRY_OBJECTS:
+            return Luax::Insist(L, LUA_REGISTRYINDEX, "_loveobjects");
         default:
             return luaL_error(L, "Attempted to use invalid registry");
     }
@@ -184,7 +239,7 @@ int Luax::GetRegistry(lua_State * L, Registry registry)
             lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
             return 1;
         case Registry::REGISTRY_MODULES:
-            Luax::GetLove(L, "_modules");
+            return Luax::GetLove(L, "_modules");
         default:
             return luaL_error(L, "Attempted to use invalid registry");
     }

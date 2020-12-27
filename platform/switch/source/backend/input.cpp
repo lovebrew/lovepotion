@@ -1,4 +1,4 @@
-#include "common/backend/input.h"
+#include "driver/input.h"
 
 std::unordered_map<const char *, int> Input::buttons =
 {

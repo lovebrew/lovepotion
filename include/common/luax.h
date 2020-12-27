@@ -23,6 +23,8 @@ extern "C" {
 #include <algorithm>
 #include <string.h>
 
+#include "common/logger.h"
+
 namespace love
 {
     class Object;
@@ -175,6 +177,20 @@ namespace Luax
 
     void PushType(lua_State * L, love::Type & type, love::Object * object);
 
+    /* flags for tables */
+
+    bool BoolFlag(lua_State * L, int table_index, const char * key, bool defaultValue);
+
+    int IntFlag(lua_State * L, int table_index, const char * key, int defaultValue);
+
+    double NumberFlag(lua_State * L, int table_index, const char * key, double defaultValue);
+
+    /* end flags for tables */
+
+    bool ToBoolean(lua_State * L, int index);
+
+    bool CheckBoolean(lua_State * L, int index);
+
     template <typename T>
     void PushType(lua_State * L, T * object)
     {
@@ -270,6 +286,31 @@ namespace Luax
             return luaL_error(L, "%s", lua_tostring(L, -1));
 
         return 0;
+    }
+
+    template <typename T>
+    void CheckTableFields(lua_State * L, int idx, const char * enumName, bool (*getConstant)(const char *, T &))
+    {
+        luaL_checktype(L, idx, LUA_TTABLE);
+
+        /*
+        ** We want to error for invalid / misspelled
+        ** fields in the table.
+        */
+        lua_pushnil(L);
+        while (lua_next(L, idx))
+        {
+            if (lua_type(L, -2) != LUA_TSTRING)
+                Luax::TypeErrror(L, -2, "string");
+
+            const char *key = luaL_checkstring(L, -2);
+            T constantvalue;
+
+            if (!getConstant(key, constantvalue))
+                Luax::EnumError(L, enumName, key);
+
+            lua_pop(L, 1);
+        }
     }
 
     template <typename T, typename F>

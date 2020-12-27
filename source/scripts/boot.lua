@@ -281,10 +281,14 @@ function love.createhandlers()
             return
         end,
         threaderror = function (t, err)
-            if love.threaderror then return love.threaderror(t, err) end
+            if love.threaderror then
+                return love.threaderror(t, err)
+            end
         end,
         lowmemory = function ()
-            if love.lowmemory then love.lowmemory() end
+            if love.lowmemory then
+                love.lowmemory()
+            end
             collectgarbage()
             collectgarbage()
         end
@@ -381,6 +385,9 @@ function love.errorhandler(message)
     pretty = pretty:gsub("\t", "    ")
     pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
 
+    -- tell the user about how to quit the error handler
+    pretty = pretty .. "\n\nPress A to save this error or Start to quit."
+
     if not love.window.isOpen() then
         return
     end
@@ -402,6 +409,24 @@ function love.errorhandler(message)
         end
     end
 
+    local fullErrorText = pretty
+
+    local function saveError()
+        if not love.filesystem then
+            return
+        end
+
+        love.filesystem.createDirectory("errors")
+
+        local date = os.date("%H%M%S_%m%d%y")
+        local filename = string.format("errors/love_error_%s.txt", date)
+
+        love.filesystem.write(filename, fullErrorText)
+        pretty = pretty .. "\nSaved to " .. filename .. "!"
+
+        draw()
+    end
+
     return function()
         if love.event then
             love.event.pump()
@@ -409,8 +434,12 @@ function love.errorhandler(message)
             for name, a, b, c, d, e, f in love.event.poll() do
                 if name == "quit" then
                     return 1
-                elseif name == "gamepadpressed" and b == "start" then
-                    return 1
+                elseif name == "gamepadpressed" then
+                    if b == "start" then
+                        return 1
+                    elseif b == "a" then
+                        saveError()
+                    end
                 end
             end
         end
@@ -460,7 +489,7 @@ function love.boot()
     if not can_has_game and o.game.set and o.game.arg[1] then
         local directory = o.game.arg[1]
 
-        local fullSauce
+        local fullSauce = ""
 
         -- argv[1] has the full path to the .love
         if not directory:find("(%w.love)") then
@@ -500,8 +529,12 @@ function love.boot()
     end
 
     if not can_has_game then
-        can_no_game = pcall(love.filesystem.setSource, "romfs:/")
-        love.filesystem.setFused(true)
+        local nogame = require("love.nogame")
+        local status, result = pcall(nogame)
+
+        if status then
+            can_no_game = true
+        end
     end
 end
 

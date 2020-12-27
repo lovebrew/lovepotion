@@ -6,6 +6,8 @@ namespace Love
 
     int Boot(lua_State * L);
 
+    int NoGame(lua_State * L);
+
     int GetVersion(lua_State * L);
 
     int EnableAccelerometerAsJoystick(lua_State * L);

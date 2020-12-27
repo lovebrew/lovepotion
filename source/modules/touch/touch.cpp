@@ -3,7 +3,7 @@
 #include "common/exception.h"
 #include "modules/event/event.h"
 
-#include "common/backend/input.h"
+#include "driver/input.h"
 
 using namespace love;
 

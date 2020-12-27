@@ -11,8 +11,6 @@ namespace Wrap_Filesystem
 {
     love::Data * GetData(lua_State * L, int index);
 
-    bool SetupWriteDirectory();
-
     int Init(lua_State * L);
 
     int Append(lua_State * L);

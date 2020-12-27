@@ -1,4 +1,4 @@
-#include "common/backend/input.h"
+#include "driver/input.h"
 
 #include "modules/touch/touch.h"
 #include "modules/window/window.h"
@@ -13,7 +13,7 @@
 love::Event::Event()
 {
     #if defined (_3DS)
-        aptHook(&s_aptHookCookie, Input::CheckFocus, nullptr);
+        // aptHook(&s_aptHookCookie, Input::CheckFocus, nullptr);
     #elif defined (__SWITCH__)
         appletLockExit();
         appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
@@ -23,7 +23,7 @@ love::Event::Event()
 love::Event::~Event()
 {
     #if defined (_3DS)
-        aptUnhook(&s_aptHookCookie);
+        // aptUnhook(&s_aptHookCookie);
     #elif defined (__SWITCH__)
         appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleep);
         appletUnlockExit();
