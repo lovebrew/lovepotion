@@ -7,9 +7,9 @@ namespace love
 {
     enum class common::Keyboard::KeyboardType : uint8_t
     {
-        TYPE_NORMAL = SWKBD_TYPE_NORMAL,
-        TYPE_QWERTY = SWKBD_TYPE_QWERTY,
-        TYPE_NUMPAD = SWKBD_TYPE_NUMPAD,
+        TYPE_NORMAL = SwkbdType_Normal,
+        TYPE_QWERTY = SwkbdType_QWERTY,
+        TYPE_NUMPAD = SwkbdType_NumPad,
         TYPE_MAX_ENUM
     };
 
@@ -26,7 +26,14 @@ namespace love
 
             std::string SetTextInput(const SwkbdOpt & options) override;
 
+            static bool GetConstant(const char * in, KeyboardType & out);
+            static bool GetConstant(KeyboardType in, const char *& out);
+            static std::vector<std::string> GetConstants(KeyboardType);
+
         private:
             SwkbdConfig keyboard;
+
+            static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)>::Entry keyboardTypeEntries[];
+            static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)> keyboardTypes;
     };
 }

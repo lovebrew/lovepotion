@@ -302,4 +302,12 @@ bool Hidrv::Poll(LOVE_Event * event)
     /* applet focus handling */
 
     this->CheckFocus();
+
+    if (this->events.empty())
+        return false;
+
+    *event = this->events.front();
+    this->events.pop_back();
+
+    return this->hysteresis = true;
 }
