@@ -52,6 +52,7 @@ Filesystem::Filesystem() : fused(false),
     cRequirePath = {"??"};
 }
 
+#include "common/logger.h"
 void Filesystem::Init(const char * arg0)
 {
     if (!PHYSFS_init(arg0))
@@ -60,6 +61,7 @@ void Filesystem::Init(const char * arg0)
     this->exePath = arg0;
 
     romfsInit();
+
     this->SetSymLinksEnabled(true);
 }
 

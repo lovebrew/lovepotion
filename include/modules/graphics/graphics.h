@@ -165,6 +165,7 @@ namespace love
             /* End */
 
             Graphics();
+
             ~Graphics();
 
             ModuleType GetModuleType() const { return M_GRAPHICS; }
@@ -507,6 +508,10 @@ namespace love
 
             bool IsCanvasActive() const;
 
+            void SetBlendFactor(const float blendFactor);
+
+            const float GetBlendFactor() const;
+
             /* States or Something */
             void Reset();
 
@@ -553,6 +558,8 @@ namespace love
 
                 float lineWidth = 1.0f;
                 float pointSize = 1.0f;
+
+                float blendFactor = 0.0f;
 
                 StrongReference<Font> font;
                 StrongReference<Canvas> canvas;

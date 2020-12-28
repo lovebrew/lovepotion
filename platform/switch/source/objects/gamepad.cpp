@@ -1,6 +1,6 @@
 #include "objects/gamepad/gamepad.h"
 
-#include "driver/input.h"
+#include "driver/hidrv.h"
 #include "modules/timer/timer.h"
 
 #include "modules/joystick/joystick.h"
@@ -155,7 +155,7 @@ size_t Gamepad::GetAxisCount() const
 
 size_t Gamepad::GetButtonCount() const
 {
-    return this->IsConnected() ? GAMEPAD_BUTTON_MAX_ENUM - 1 : 0;
+    return this->IsConnected() ? GAMEPAD_BUTTON_MAX_ENUM - 6 : 0;
 }
 
 float Gamepad::GetAxis(size_t axis) const
@@ -189,16 +189,20 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 5)
     {
-        if (Input::GetKeyHeld<u64>() & KEY_ZL)
+        uint64_t button = driver::hidrv.GetButtonPressed();
+
+        if (button & HidNpadButton_ZL)
             return 1.0f;
-        else if (Input::GetKeyUp<u64>() & KEY_ZL)
+        else if (button & HidNpadButton_ZL)
             return 0.0f;
     }
     else if (axis == 6)
     {
-        if (Input::GetKeyHeld<u64>() & KEY_ZR)
+        uint64_t button = driver::hidrv.GetButtonPressed();
+
+        if (button & HidNpadButton_ZR)
             return 1.0f;
-        else if (Input::GetKeyUp<u64>() & KEY_ZR)
+        else if (button & HidNpadButton_ZR)
             return 0.0f;
     }
     else
@@ -265,21 +269,13 @@ std::vector<float> Gamepad::GetAxes() const
 bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
 {
     size_t buttonCount = this->GetButtonCount();
-    const auto consoleButtons = Input::buttons;
 
     for (size_t button : buttons)
     {
         if (button < 0 || button >= buttonCount)
             continue;
 
-        for (auto it = consoleButtons.begin(); it != consoleButtons.end(); it++)
-        {
-            if (it->second & Input::GetKeyHeld<u32>())
-            {
-                size_t index = std::distance(it, consoleButtons.begin()) - 1;
-                return button == index;
-            }
-        }
+        return driver::hidrv.IsDown(button);
     }
 
     return false;
@@ -311,13 +307,14 @@ float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
 bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
 {
     int32_t consoleButton = -1;
+
     for (GamepadButton button : buttons)
     {
         /* make sure our out button isn't invalid too */
         if (!GetConstant(button, consoleButton) || consoleButton < 0)
             continue;
 
-        if (consoleButton & Input::GetKeyHeld<u32>())
+        if (consoleButton & driver::hidrv.GetButtonHeld())
             return true;
     }
 

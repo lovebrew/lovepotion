@@ -474,7 +474,7 @@ int Wrap_Graphics::Polygon(lua_State * L)
             points[i].y = y;
         }
     }
-    
+
     // make a closed loop
     points[numvertices] = points[0];
 
@@ -1188,6 +1188,24 @@ int Wrap_Graphics::SetColor(lua_State * L)
     return 0;
 }
 
+int Wrap_Graphics::SetBlendFactor(lua_State * L)
+{
+    float blendFactor = luaL_optnumber(L, 1, 0.0f);
+
+    instance()->SetBlendFactor(blendFactor);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetBlendFactor(lua_State * L)
+{
+    float blendFactor = instance()->GetBlendFactor();
+
+    lua_pushnumber(L, blendFactor);
+
+    return 1;
+}
+
 int Wrap_Graphics::GetRendererInfo(lua_State * L)
 {
     Graphics::RendererInfo info = instance()->GetRendererInfo();
@@ -1202,7 +1220,7 @@ int Wrap_Graphics::GetRendererInfo(lua_State * L)
 
 int Wrap_Graphics::Register(lua_State * L)
 {
-    luaL_Reg reg[] =
+    luaL_Reg funcs[] =
     {
         { "arc",                     Arc                     },
         { "applyTransform",          ApplyTransform          },
@@ -1219,7 +1237,6 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getHeight",               GetHeight               },
         { "getLineWidth",            GetLineWidth            },
         { "getPointSize",            GetPointSize            },
-        { "getStereoscopicDepth",    GetStereoscopicDepth    },
         { "getRendererInfo",         GetRendererInfo         },
         { "getScissor",              GetScissor              },
         { "getScreens",              GetScreens              },
@@ -1261,6 +1278,15 @@ int Wrap_Graphics::Register(lua_State * L)
         { 0,                         0                       }
     };
 
+    luaL_Reg ext[] =
+    {
+        { "getBlendFactor",       GetBlendFactor       },
+        { "getStereoscopicDepth", GetStereoscopicDepth },
+        { "setBlendFactor",       SetBlendFactor       }
+    };
+
+    std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, ext);
+
     lua_CFunction types[] =
     {
         Wrap_Drawable::Register,
@@ -1292,7 +1318,7 @@ int Wrap_Graphics::Register(lua_State * L)
 
     wrappedModule.instance = instance;
     wrappedModule.name = "graphics";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = reg.get();
     wrappedModule.type = &Module::type;
     wrappedModule.types = types;
 

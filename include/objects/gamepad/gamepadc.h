@@ -23,21 +23,28 @@ namespace love::common
             enum GamepadButton
             {
                 GAMEPAD_BUTTON_INVALID,
+
                 GAMEPAD_BUTTON_A,
                 GAMEPAD_BUTTON_B,
                 GAMEPAD_BUTTON_X,
                 GAMEPAD_BUTTON_Y,
+
                 GAMEPAD_BUTTON_BACK, //< select/minus
                 GAMEPAD_BUTTON_GUIDE, //< home
                 GAMEPAD_BUTTON_START, //< start/plus
+
                 GAMEPAD_BUTTON_LEFTSTICK,
                 GAMEPAD_BUTTON_RIGHTSTICK,
+
                 GAMEPAD_BUTTON_LEFTSHOULDER, //< l button
                 GAMEPAD_BUTTON_RIGHTSHOULDER, //< r button
+
                 GAMEPAD_BUTTON_DPAD_UP,
                 GAMEPAD_BUTTON_DPAD_DOWN,
                 GAMEPAD_BUTTON_DPAD_LEFT,
                 GAMEPAD_BUTTON_DPAD_RIGHT,
+
+
                 GAMEPAD_BUTTON_MAX_ENUM
             };
 

@@ -129,8 +129,6 @@ int Love::Boot(lua_State * L)
 {
     if (!luaL_loadbuffer(L, (const char *)boot_lua, boot_lua_size, "boot.lua"))
         lua_call(L, 0, 1);
-    else
-        LOG("boot.lua error: %s", lua_tostring(L, -1));
 
     return 1;
 }
@@ -139,8 +137,6 @@ int Love::NoGame(lua_State * L)
 {
     if (!luaL_loadbuffer(L, (const char *)nogame_lua, nogame_lua_size, "nogame.lua"))
         lua_call(L, 0, 1);
-    else
-        LOG("nogame.lua error: %s", lua_tostring(L, -1));
 
     return 1;
 }

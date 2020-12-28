@@ -306,6 +306,10 @@ local function error_printer(msg, layer)
     trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
     trace = trace:gsub("\n[^\n]+$", "")
 
+    local file = io.open("crash.txt", "w")
+    file:write(trace)
+    file:close()
+
     print(trace)
 end
 
@@ -456,7 +460,8 @@ love.errhand = love.errorhandler
 
 local no_game_code = false
 local invalid_game_path = nil
-local can_no_game = false
+local can_go_romfs = false
+local entryType = nil
 
 function love.boot()
     -- Load the LOVE filesystem module, its absolutely needed
@@ -493,9 +498,9 @@ function love.boot()
 
         -- argv[1] has the full path to the .love
         if not directory:find("(%w.love)") then
-            fullSauce = love.path.getFull(directory)
+            fullSauce, entryType = love.path.getFull(directory), "zip file"
         else -- raw game directory
-            fullSauce = directory
+            fullSauce, entryType = directory, "directory"
         end
 
         can_has_game = pcall(love.filesystem.setSource, fullSauce)
@@ -529,11 +534,14 @@ function love.boot()
     end
 
     if not can_has_game then
-        local nogame = require("love.nogame")
-        local status, result = pcall(nogame)
+        can_go_romfs, result = pcall(love.filesystem.setSource, "romfs:/")
 
-        if status then
-            can_no_game = true
+        if not can_go_romfs then
+            local nogame = require("love.nogame")
+            nogame()
+        else
+            love.filesystem.setFused(true)
+            entryType = "RomFS"
         end
     end
 end
@@ -686,14 +694,14 @@ function love.init()
         end
     end
 
-    if can_no_game then
-        return
-    end
+    -- if we can enter a game, error at this point
 
-    if no_game_code then
-        error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the ROMFS.")
-    elseif invalid_game_path then
-        error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
+    if can_go_romfs then
+        if no_game_code then
+            error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the " .. entryType .. ".")
+        elseif invalid_game_path then
+            error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
+        end
     end
 end
 

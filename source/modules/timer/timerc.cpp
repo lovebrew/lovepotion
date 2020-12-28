@@ -19,9 +19,7 @@ Timer::Timer() : currentTime(0),
                  fpsUpdateFrequency(1),
                  frames(0),
                  dt(0)
-{
-    this->prevFPSUpdate = currentTime = this->GetTime();
-}
+{}
 
 double Timer::GetAverageDelta()
 {

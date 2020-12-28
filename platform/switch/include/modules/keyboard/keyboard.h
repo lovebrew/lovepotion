@@ -1,17 +1,18 @@
 #pragma once
 
 #include "modules/keyboard/keyboardc.h"
-
-enum class common::Keyboard::KeyboardType : uint8_t
-{
-    TYPE_NORMAL = SWKBD_TYPE_NORMAL,
-    TYPE_QWERTY = SWKBD_TYPE_QWERTY,
-    TYPE_NUMPAD = SWKBD_TYPE_NUMPAD,
-    TYPE_MAX_ENUM
-};
+#include <switch.h>
 
 namespace love
 {
+    enum class common::Keyboard::KeyboardType : uint8_t
+    {
+        TYPE_NORMAL = SWKBD_TYPE_NORMAL,
+        TYPE_QWERTY = SWKBD_TYPE_QWERTY,
+        TYPE_NUMPAD = SWKBD_TYPE_NUMPAD,
+        TYPE_MAX_ENUM
+    };
+
     class Keyboard : public common::Keyboard
     {
         public:

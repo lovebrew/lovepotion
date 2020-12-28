@@ -6,7 +6,7 @@
 #include "objects/image/image.h"
 #include "objects/texture/texture.h"
 
-#include "freetype/types/truetyperasterizer.h"
+#include "freetype/truetyperasterizer.h"
 #include "freetype/glyphdata.h"
 
 enum class love::common::Font::SystemFontType : uint8_t

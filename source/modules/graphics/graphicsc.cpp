@@ -91,6 +91,16 @@ void Graphics::SetColor(Colorf color)
     this->states.back().foreground = color;
 }
 
+void Graphics::SetBlendFactor(const float blend)
+{
+    this->states.back().blendFactor = blend;
+}
+
+const float Graphics::GetBlendFactor() const
+{
+    return this->states.back().blendFactor;
+}
+
 Colorf Graphics::GetBackgroundColor() const
 {
     return this->states.back().background;

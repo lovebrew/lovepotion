@@ -35,8 +35,6 @@ namespace love::common
             //End Löve2D Functions
 
         protected:
-            static u64 reference;
-
             double currentTime;
             double lastTime;
             double prevFPSUpdate;

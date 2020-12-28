@@ -14,20 +14,23 @@
 #include "modules/thread/types/mutex.h"
 #include "modules/thread/types/lock.h"
 
+#include "driver/hidrv.h"
+
 #include <queue>
 #include <vector>
 
 struct LOVE_Event;
 
-namespace love
+namespace love::driver
+{
+    class Hidrv;
+}
+
+namespace love::common
 {
     class Event : public Module
     {
         public:
-            Event();
-
-            ~Event();
-
             ModuleType GetModuleType() const { return M_EVENT; }
 
             const char * GetName() const override { return "love.event"; }
@@ -46,15 +49,16 @@ namespace love
 
             void ExceptionIfInRenderPass(const char * name);
 
+        protected:
+            love::thread::MutexRef mutex;
 
         private:
-            love::thread::MutexRef mutex;
             std::queue<Message *> queue;
 
-            Message * Convert(const LOVE_Event & event);
+            Message * Convert(const driver::Hidrv::LOVE_Event & event);
 
-            Message * ConvertJoystickEvent(const LOVE_Event & event) const;
+            Message * ConvertJoystickEvent(const driver::Hidrv::LOVE_Event & event) const;
 
-            Message * ConvertWindowEvent(const LOVE_Event & event);
+            Message * ConvertWindowEvent(const driver::Hidrv::LOVE_Event & event);
     };
 }

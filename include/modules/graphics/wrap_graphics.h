@@ -118,7 +118,7 @@ namespace Wrap_Graphics
     int SetActiveScreen(lua_State * L);
 
     int GetActiveScreen(lua_State * L);
-    
+
     int GetScreens(lua_State * L);
 
     int GetDimensions(lua_State * L);
@@ -130,6 +130,10 @@ namespace Wrap_Graphics
     int SetCanvas(lua_State * L);
 
     int GetStereoscopicDepth(lua_State * L);
+
+    int SetBlendFactor(lua_State * L);
+
+    int GetBlendFactor(lua_State * L);
 
     int Register(lua_State * L);
 }

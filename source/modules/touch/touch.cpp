@@ -3,9 +3,10 @@
 #include "common/exception.h"
 #include "modules/event/event.h"
 
-#include "driver/input.h"
+#include "driver/hidrv.h"
 
 using namespace love;
+using namespace love::driver;
 
 const std::vector<Touch::TouchInfo> & Touch::GetTouches() const
 {
@@ -32,13 +33,13 @@ void Touch::OnEvent(int type, const Touch::TouchInfo & info)
 
     switch (type)
     {
-        case LOVE_TOUCHPRESS:
+        case Hidrv::TYPE_TOUCHPRESS:
         {
             this->touches.erase(std::remove_if(this->touches.begin(), this->touches.end(), compare), this->touches.end());
             this->touches.push_back(info);
             break;
         }
-        case LOVE_TOUCHMOVED:
+        case Hidrv::TYPE_TOUCHMOVED:
         {
             for (TouchInfo & touch : this->touches)
             {
@@ -47,7 +48,7 @@ void Touch::OnEvent(int type, const Touch::TouchInfo & info)
             }
             break;
         }
-        case LOVE_TOUCHRELEASE:
+        case Hidrv::TYPE_TOUCHRELEASE:
         {
             this->touches.erase(std::remove_if(this->touches.begin(), this->touches.end(), compare), this->touches.end());
             break;

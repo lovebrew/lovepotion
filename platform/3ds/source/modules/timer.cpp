@@ -2,11 +2,12 @@
 
 using namespace love;
 
-static TickCounter counter = { 0 };
+static TickCounter counter;
 
 Timer::Timer()
 {
     osTickCounterStart(&counter);
+    this->prevFPSUpdate = currentTime = this->GetTime();
 }
 
 double common::Timer::GetTime()

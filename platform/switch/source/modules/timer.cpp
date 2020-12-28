@@ -10,6 +10,7 @@ static u64 reference = (u64)0;
 Timer::Timer()
 {
     reference = armGetSystemTick();
+    this->prevFPSUpdate = currentTime = this->GetTime();
 }
 
 double common::Timer::GetTime()

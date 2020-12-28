@@ -1,40 +1,15 @@
-#include "driver/input.h"
-
 #include "modules/touch/touch.h"
 #include "modules/window/window.h"
 
-#include "modules/event/event.h"
+#include "modules/event/eventc.h"
 
-#if defined (_3DS)
-    aptHookCookie s_aptHookCookie;
-#endif
+using namespace love::driver;
 
-
-love::Event::Event()
+void love::common::Event::Pump()
 {
-    #if defined (_3DS)
-        // aptHook(&s_aptHookCookie, Input::CheckFocus, nullptr);
-    #elif defined (__SWITCH__)
-        appletLockExit();
-        appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
-    #endif
-}
+    Hidrv::LOVE_Event event;
 
-love::Event::~Event()
-{
-    #if defined (_3DS)
-        // aptUnhook(&s_aptHookCookie);
-    #elif defined (__SWITCH__)
-        appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleep);
-        appletUnlockExit();
-    #endif
-}
-
-void love::Event::Pump()
-{
-    LOVE_Event event;
-
-    while (Input::PollEvent(&event))
+    while (hidrv.Poll(&event))
     {
         Message * message = this->Convert(event);
 
@@ -46,7 +21,7 @@ void love::Event::Pump()
     }
 }
 
-love::Message * love::Event::Convert(const LOVE_Event & event)
+love::Message * love::common::Event::Convert(const Hidrv::LOVE_Event & event)
 {
     Message * message = nullptr;
 
@@ -60,9 +35,9 @@ love::Message * love::Event::Convert(const LOVE_Event & event)
 
     switch (event.type)
     {
-        case LOVE_TOUCHPRESS:
-        case LOVE_TOUCHRELEASE:
-        case LOVE_TOUCHMOVED:
+        case Hidrv::TYPE_TOUCHPRESS:
+        case Hidrv::TYPE_TOUCHRELEASE:
+        case Hidrv::TYPE_TOUCHMOVED:
         {
             touchinfo.id = (int64_t)event.touch.id;
             touchinfo.x = event.touch.x;
@@ -83,9 +58,9 @@ love::Message * love::Event::Convert(const LOVE_Event & event)
             vargs.emplace_back((float)touchinfo.dy);
             vargs.emplace_back((float)touchinfo.pressure);
 
-            if (event.type == LOVE_TOUCHPRESS)
+            if (event.type == Hidrv::TYPE_TOUCHPRESS)
                 text = "touchpressed";
-            else if (event.type == LOVE_TOUCHRELEASE)
+            else if (event.type == Hidrv::TYPE_TOUCHRELEASE)
                 text = "touchreleased";
             else
                 text = "touchmoved";
@@ -94,18 +69,18 @@ love::Message * love::Event::Convert(const LOVE_Event & event)
 
             break;
         }
-        case LOVE_GAMEPADUP:
-        case LOVE_GAMEPADDOWN:
-        case LOVE_GAMEPADAXIS:
+        case Hidrv::TYPE_GAMEPADUP:
+        case Hidrv::TYPE_GAMEPADDOWN:
+        case Hidrv::TYPE_GAMEPADAXIS:
             message = this->ConvertJoystickEvent(event);
             break;
-        case LOVE_WINDOWEVENT:
+        case Hidrv::TYPE_WINDOWEVENT:
             message = this->ConvertWindowEvent(event);
             break;
-        case LOVE_QUIT:
+        case Hidrv::TYPE_QUIT:
             message = new Message("quit");
             break;
-        case LOVE_LOWMEMORY:
+        case Hidrv::TYPE_LOWMEMORY:
             message = new Message("lowmemory");
             break;
         default:
@@ -115,7 +90,7 @@ love::Message * love::Event::Convert(const LOVE_Event & event)
     return message;
 }
 
-love::Message * love::Event::ConvertJoystickEvent(const LOVE_Event & event) const
+love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Event & event) const
 {
     auto joyModule = Module::GetInstance<Joystick>(M_JOYSTICK);
 
@@ -138,8 +113,8 @@ love::Message * love::Event::ConvertJoystickEvent(const LOVE_Event & event) cons
 
     switch (event.type)
     {
-        case LOVE_GAMEPADUP:
-        case LOVE_GAMEPADDOWN:
+        case Hidrv::TYPE_GAMEPADUP:
+        case Hidrv::TYPE_GAMEPADDOWN:
         {
             if (!common::Gamepad::GetConstant(event.button.name, padButton))
                 break;
@@ -155,11 +130,11 @@ love::Message * love::Event::ConvertJoystickEvent(const LOVE_Event & event) cons
             vargs.emplace_back(joystickType, stick);
             vargs.emplace_back(text, strlen(text));
 
-            message = new Message((event.type == LOVE_GAMEPADDOWN) ? "gamepadpressed" : "gamepadreleased", vargs);
+            message = new Message((event.type == Hidrv::TYPE_GAMEPADDOWN) ? "gamepadpressed" : "gamepadreleased", vargs);
 
             break;
         }
-        case LOVE_GAMEPADAXIS:
+        case Hidrv::TYPE_GAMEPADAXIS:
         {
             if (!common::Gamepad::GetConstant(event.axis.axis, padAxis))
                 break;
@@ -187,7 +162,7 @@ love::Message * love::Event::ConvertJoystickEvent(const LOVE_Event & event) cons
     return message;
 }
 
-love::Message * love::Event::ConvertWindowEvent(const LOVE_Event & event)
+love::Message * love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event & event)
 {
     Message * message = nullptr;
 
@@ -196,21 +171,21 @@ love::Message * love::Event::ConvertWindowEvent(const LOVE_Event & event)
 
     Window * windowModule = nullptr;
 
-    if (event.type != LOVE_WINDOWEVENT)
+    if (event.type != Hidrv::TYPE_WINDOWEVENT)
         return nullptr;
 
     switch (event.subType)
     {
-        case LOVE_FOCUS_LOST:
-        case LOVE_FOCUS_GAINED:
+        case Hidrv::TYPE_FOCUS_LOST:
+        case Hidrv::TYPE_FOCUS_GAINED:
         {
-            vargs.emplace_back(event.type == LOVE_FOCUS_GAINED);
+            vargs.emplace_back(event.type == Hidrv::TYPE_FOCUS_GAINED);
 
             message = new Message("focus", vargs);
 
             break;
         }
-        case LOVE_RESIZE:
+        case Hidrv::TYPE_RESIZE:
         {
             windowModule = Module::GetInstance<Window>(M_WINDOW);
 
@@ -234,14 +209,14 @@ love::Message * love::Event::ConvertWindowEvent(const LOVE_Event & event)
     return message;
 }
 
-void love::Event::ExceptionIfInRenderPass(const char * name)
+void love::common::Event::ExceptionIfInRenderPass(const char * name)
 {} /* potentially useless */
 
-void love::Event::InternalClear()
+void love::common::Event::InternalClear()
 {
-    LOVE_Event event;
+    Hidrv::LOVE_Event event;
 
-    while (Input::PollEvent(&event))
+    while (hidrv.Poll(&event))
     {
         /* do nothing */
     }
@@ -249,7 +224,7 @@ void love::Event::InternalClear()
     this->Clear();
 }
 
-void love::Event::Clear()
+void love::common::Event::Clear()
 {
     thread::Lock lock(this->mutex);
 
@@ -260,7 +235,7 @@ void love::Event::Clear()
     }
 }
 
-bool love::Event::Poll(Message *& message)
+bool love::common::Event::Poll(Message *& message)
 {
     thread::Lock lock(this->mutex);
 
@@ -273,7 +248,7 @@ bool love::Event::Poll(Message *& message)
     return true;
 };
 
-void love::Event::Push(Message * message)
+void love::common::Event::Push(Message * message)
 {
     thread::Lock lock(this->mutex);
 
@@ -281,11 +256,11 @@ void love::Event::Push(Message * message)
     this->queue.push(message);
 }
 
-love::Message * love::Event::Wait()
+love::Message * love::common::Event::Wait()
 {
-    LOVE_Event event;
+    Hidrv::LOVE_Event event;
 
-    if (Input::PollEvent(&event) == false)
+    if (hidrv.Poll(&event) == false)
         return nullptr;
 
     return this->Convert(event);

@@ -4,14 +4,17 @@ local love = require("love")
 function love.nogame()
     local resources = {}
 
-    local function decodeImage(buffer)
+    local function decodeBuffer(buffer)
         return love.data.decode("data", "base64", buffer)
     end
 
-    if love._console_name == "3DS" then
+    local console = love._console_name
+    local is3DS   = (console == "3DS")
+
+    if console == "3DS" then
         resources.ctr = {}
 
-        resources.ctr.bottleFill = decodeImage("\
+        resources.ctr.bottleFill = decodeBuffer("\
         AQAsAABsAJQAAAAABGADsAERAAACQgAQKaAAOczMzDOvGK0gB1ggC4BgDwAzwxcgK11AYAN3YCsA\
         MAMHc/9WoM97NgCgr/DHcONw33UBoDsCsP97E2FfAXU/cYvwD4AG4AMC8L+3EA2w/zMEJC8D8v9V\
         AeNXBvj/NaNtFgAljzXbdgGkvzXrNwAmD7YANfdYCCX/AHqHOGbzNut4u+U/GQkgvxBeMJ83l1Ou\
@@ -40,7 +43,7 @@ function love.nogame()
         L/9wlzsQRy6PrxA29X8TAaqDQOq/8A8I+kvwv35Rb/8Buz+wL/APCPtLP/9x2AKhvwrx/zMQjyzv\
         HM6wAAAAAA==")
 
-        resources.ctr.bottleLine = decodeImage("\
+        resources.ctr.bottleLine = decodeBuffer("\
         AQAsAABsAJQAAAAABGADsAERAAACQQAQHaAAPP///xAgA02BIAfd/1AABnL/ICCLVV6gfwwgm2pg\
         jzIgp1LPIKv9IK/u/wDQAIS6INPVoCMwMwFwAvcBoP+bqiE70iE/CyFDMyFH+6oBYT9gIXOHoMOq\
         IYPJWv8CEADBYOtxDk0hyxmtASDr7CHzwKHnMMd5AGH3VQKiDxsiKy4iL+YA4VOqdT9AIltVok9f\
@@ -120,7 +123,7 @@ function love.nogame()
         f5SvZ39/AXD/8C/wPwjw/7rw75RhEwFx/zHrYq+nUe9iEwgx/78z4WMTMusy8wD9P22YY/N9O0Jk\
         Ewj9C+Ivx3ynr8c1CzUTDDXrHVAwAAAA")
 
-        resources.ctr.cloudCircle = decodeImage("\
+        resources.ctr.cloudCircle = decodeBuffer("\
         AQAkAABCAEIAAAAABBAC8AERAAABQgAQDaAAAv///zHvNK0gB3wgC/tgDwUyAwUge1VSYH8PIIey\
         IIv4oH9VBCCbaiCfDCCjdSCnJOn/UADQ/wDQAOT/1QLQAACy/wchL1MhM5egg2rRYTfwPywhW02h\
         T2TrYMcI8AJz/30iG32iDzGDfmQBoT8w+zEDsTs0W/G+++1hQwfw/wB1B5diA3KGD2NDd/hiwwF1\
@@ -138,7 +141,7 @@ function love.nogame()
         mGID+jK7MsMyu/O/cwPqYzsM9WL7MwMC8/9/D/tu+zSgf3fWbsM+v/6vAwDvFzP7An87qhC0cDMI\
         AayPLS//Ta1fZK4v/3UJrM99bc9+HzC7ZPgBrY8w+zEDAjE7F6cwAAAA")
 
-        resources.ctr.heart = decodeImage("\
+        resources.ctr.heart = decodeBuffer("\
         AQAbAAA5ADIAAAAABJAD4AARAEAAQQAOIABT////ZyADavsgBwVw/xcgc06gb3yqIIOPYH8DII8q\
         IJPAqSCXUiCbviCf/v9QACbw/wDQAPz/AtAAAXH/kKohM32hL1khQyEBoT8BrQBha/8C4L/RYJdx\
         Jhth01r1IeOVA6D/BPMnGQBii+mqIqtlogMGYrOuIsMZ1QHiv3A7NiL/cCMD9AWi/1UVI3NpY28J\
@@ -155,7 +158,7 @@ function love.nogame()
         L/9rzKAXAX//UC//qGBXMGdWSC//AgTv/8hv/z37y6ov/zgv/4Qv/wgAIj/8qmCf7y//ei//I25H\
         QaoA7dcKAu337i//Vy//JsAQLObnEOBwAAAA")
 
-        resources.ctr.noGame = decodeImage("\
+        resources.ctr.noGame = decodeBuffer("\
         AQAeAAAhAS0AAAAABEICMAERAAACQQAFoAAo////ECADTXggB+P/UAACMH8IYDdpVCBPMAvbIFeA\
         /wBQADXr/wDQAADw/7Qgs6SgW2pQYLMwvqsBoL8MAGDr/6oA4J/TITPzITcwITtEqwAg46+gj2wA\
         IU//YD9xHl0YYXOgAmF7EABwMzFXmKLPVbRhr6ti59uin/sBon+3APOfiGNHMxPfAGLfcrOyb1a/\
@@ -245,7 +248,7 @@ function love.nogame()
     else
         resources.hac = {}
 
-        resources.hac.bottleFill = decodeImage("\
+        resources.hac.bottleFill = decodeBuffer("\
         iVBORw0KGgoAAAANSUhEUgAAANcAAAEoCAYAAADLzmTNAAAJl3pUWHRSYXcgcHJvZmlsZSB0eXBl\
         IGV4aWYAAHjarZhpkuM6DoT/8xRzBJEgAfI4XCPmBu/480F2117dXRPP7rJkSeaCBDITHfY//z3h\
         P7xSrTnkYlWb6sUrt9xS56Rej9fjGK98f96vZc978f31kOrzNHEUjvK4ofv5fOd6ef2B5ef18f56\
@@ -409,7 +412,7 @@ function love.nogame()
         JC6xiUlcYhOSuGganZDEJT7xiIs1UYpEXNCC/ycyiAvEBYgLxAXp/AXjuiZ5GU6sTAAAAABJRU5E\
         rkJggg==")
 
-        resources.hac.bottleLine = decodeImage("\
+        resources.hac.bottleLine = decodeBuffer("\
         iVBORw0KGgoAAAANSUhEUgAAANcAAAEoCAYAAADLzmTNAAAC4HpUWHRSYXcgcHJvZmlsZSB0eXBl\
         IGV4aWYAAHja7ZZJkt0gDIb3nCJHQBJCcBzGqtwgx88Ppt+UTqoyLLJ40DZYliWhT/DajW9fp/uC\
         RtGiC2op5hg9Wsghc8Ek+atdI/mw77t1O+/oWe44nSljFIxyvYjj6BfI9f6BhSOvz3Jn7Zpsg3J/\
@@ -619,7 +622,7 @@ function love.nogame()
         etSCSyO1cPUm+k8lpBLcVKe4BiJrCO1TQ4Spx5+pbDx+NQTFVDCKyzlrB7xvyDb3mhLL1q/prtXC\
         QSPAQCtEcQVvCU0dGKSlobgICZcLNgEhw/B/80aCPNLgRCsAAAAASUVORK5CYII=")
 
-        resources.hac.cloudCircle = decodeImage("\
+        resources.hac.cloudCircle = decodeBuffer("\
         iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA\
         B3RJTUUH5AULBgwjVL+5iQAAABZ0RVh0RmlsZSBOYW1lAHBzY2lyY2xlLnBuZ2utCN4AADucaVRY\
         dFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENl\
@@ -927,7 +930,7 @@ function love.nogame()
         eu+EAbrLRVkhORuzst8vkI5JmYpJUge0N2TP/1f2vfyU1En7GF7EIelwpQNZAXeobIEqqwGCBvkf\
         7pPwLBpu1mUAAAAASUVORK5CYII=")
 
-        resources.hac.heart = decodeImage("\
+        resources.hac.heart = decodeBuffer("\
         iVBORw0KGgoAAAANSUhEUgAAAG0AAABeCAYAAAApFppVAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA\
         B3RJTUUH5AUOChgzWWJ37gAAABN0RVh0RmlsZSBOYW1lAGhlYXJ0LnBuZ+bGlqYAADnkaVRYdFhN\
         TDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlI\
@@ -1213,7 +1216,7 @@ function love.nogame()
         3yLbOBpzNoRLnmayKN+rlY3EhYG7DC0PmWtkrxHrA499KBwjtGKWed9hvstDoZNbIsYCrS28FNkD\
         6Ds4fDd9bNDq4G1dhzV2aEV4IbL7XclYBjV2aKOU9OV3UP8AtCBKk6XkDkcAAAAASUVORK5CYII=")
 
-        resources.hac.noGame = decodeImage("\
+        resources.hac.noGame = decodeBuffer("\
         iVBORw0KGgoAAAANSUhEUgAAAkAAAABaCAYAAABQSOniAAAACXBIWXMAAAsTAAALEwEAmpwYAAAA\
         B3RJTUUH5AUOChoo4THcgAAAABR0RVh0RmlsZSBOYW1lAG5vZ2FtZS5wbmfRvNmZAAA55GlUWHRY\
         TUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhp\
@@ -1665,7 +1668,7 @@ function love.nogame()
 
     local class = require_30log()
 
-    local consoleKey = love._console_name == "3DS" and "ctr" or "hac"
+    local consoleKey = is3DS and "ctr" or "hac"
 
     -- Cloud Class --
 
@@ -1697,8 +1700,13 @@ function love.nogame()
         self.ySquash = math.abs(math.sin(self.id + (timer / 2))) / 5
     end
 
-    function Cloud:draw()
+    function Cloud:draw(screen, iod)
+        if screen and screen == "bottom" then
+            return
+        end
+
         love.graphics.setColor(0.933, 0.933, 0.933)
+        love.graphics.setBlendFactor(1)
 
         local scale = (self.radius * 2) / res.cloudCircle:getWidth()
 
@@ -1707,7 +1715,7 @@ function love.nogame()
 
         local offsetX, offsetY = res.cloudCircle:getWidth() / 2, res.cloudCircle:getHeight() / 2
 
-        love.graphics.draw(res.cloudCircle, x, y, 0, renderScale, renderScale, offsetX, offsetY)
+        love.graphics.draw(res.cloudCircle, x + (iod * (10 + 10 * 0.5)), y, 0, renderScale, renderScale, offsetX, offsetY)
     end
 
     -- Heart Class --
@@ -1731,7 +1739,7 @@ function love.nogame()
         Heart.id = Heart.id + 1
     end
 
-    function Heart:draw(offset, screen)
+    function Heart:draw(offset, screen, iod)
         if screen and screen == "bottom" then
             return
         end
@@ -1744,11 +1752,13 @@ function love.nogame()
         end
 
         love.graphics.setColor(1, 1, 1, 1)
+        love.graphics.setBlendFactor(0)
 
         local drawRotation = self.rotation - (rotation / self.rotationDivisor)
         local drawScale = math.abs((self.thetaOffset + theta / self.thetaDivisor))
 
-        love.graphics.draw(res.heart, self.x, offset, drawRotation, drawScale, drawScale, res.heart:getWidth() / 2, res.heart:getHeight())
+        local x = self.x - (iod * 6.0)
+        love.graphics.draw(res.heart, x, offset, drawRotation, drawScale, drawScale, res.heart:getWidth() / 2, res.heart:getHeight())
     end
 
     -- Bottle Class --
@@ -1769,22 +1779,33 @@ function love.nogame()
         self.heartOffsets = {160 * scale, 140 * scale, 200 * scale}
     end
 
-    function Bottle:draw(screen)
+    function Bottle:draw(screen, iod)
         if screen and screen == "bottom" then
             love.graphics.setColor(1, 1, 1, 1)
             return love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
         end
 
+        -- draw the cloud height rectangle
+        love.graphics.setColor(0.933, 0.933, 0.933)
+        love.graphics.setBlendFactor(1)
+
+        love.graphics.rectangle("fill", 0, cloudVerticalPosition, love.graphics.getWidth(), love.graphics.getHeight() - cloudVerticalPosition)
+
+        -- draw the bottle over that
+
         local y = self.y + math.cos(timer * 5) * 15
+        local x = self.x - (iod * 6.0)
+
+        love.graphics.setBlendFactor(0)
 
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(res.bottleFill, self.x, y, 0, 1, 1, res.bottleFill:getWidth() / 2, res.bottleFill:getHeight() / 2)
+        love.graphics.draw(res.bottleFill, x, y, 0, 1, 1, res.bottleFill:getWidth() / 2, res.bottleFill:getHeight() / 2)
 
         love.graphics.setColor(1, 1, 1, 1)
-        love.graphics.draw(res.bottleLine, self.x, y, 0, 1, 1, res.bottleLine:getWidth() / 2, res.bottleLine:getHeight() / 2)
+        love.graphics.draw(res.bottleLine, x, y, 0, 1, 1, res.bottleLine:getWidth() / 2, res.bottleLine:getHeight() / 2)
 
         for index = 1, #self.hearts do
-            self.hearts[index]:draw(y - self.heartOffsets[index], screen)
+            self.hearts[index]:draw(y - self.heartOffsets[index], screen, iod)
         end
     end
 
@@ -1802,9 +1823,19 @@ function love.nogame()
             return
         end
 
+        -- draw the "background"
+        love.graphics.setColor(0.933, 0.933, 0.933)
+        love.graphics.setBlendFactor(1)
+
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+
+        -- draw the text
+
         local scale = (1 + math.abs(math.cos(1 - (timer * 2.5))) / 20)
 
         love.graphics.setColor(0.941, 0.384, 0.573)
+        love.graphics.setBlendFactor(1)
+
         love.graphics.draw(res.noGame, self.x, self.y, 0, scale, 1, res.noGame:getWidth() / 2, res.noGame:getHeight() / 2)
     end
 
@@ -1826,6 +1857,15 @@ function love.nogame()
     local bottleInstance = nil
     local noGameInstance = nil
 
+    local joystick = nil
+
+    -- debugging info --
+
+    local DEBUG = false
+    local rendererInfo = nil
+
+    -- end debugging info --
+
     function love.load()
         love.graphics.setBackgroundColor(0.392, 0.710, 0.965)
 
@@ -1844,10 +1884,19 @@ function love.nogame()
         bottleInstance = Bottle(love.graphics.getWidth() / 2, love.graphics.getHeight() * 0.45, 0.5)
 
         local y = love.graphics.getHeight() * 0.85
-        if love._console_name == "3DS" then
+        if is3DS then
             y = centerY
         end
         noGameInstance = NoGame(centerX, y)
+
+        -- debug info
+
+        rendererInfo = table.concat({love.graphics.getRendererInfo()}, "\n")
+
+        love.graphics.setNewFont(14)
+
+        --
+        joystick = love.joystick.getJoysticks()[1]
     end
 
     function love.update(dt)
@@ -1859,20 +1908,35 @@ function love.nogame()
     end
 
     function love.draw(screen)
-        love.graphics.setColor(0.933, 0.933, 0.933)
-        love.graphics.rectangle("fill", 0, cloudVerticalPosition, love.graphics.getWidth(), love.graphics.getHeight() - cloudVerticalPosition)
-
-        for _, v in ipairs(clouds) do
-            v:draw(screen)
+        if screen ~= "bottom" then
+            if DEBUG then
+                love.graphics.setColor(0, 0, 0, 0.5)
+                local debugString = string.format("FPS: %d\n%s", love.timer.getFPS(), rendererInfo)
+                love.graphics.print(debugString)
+            end
         end
 
-        bottleInstance:draw(screen)
+        local iod = (is3DS and love.graphics.getStereoscopicDepth() or 0) / 3
+
+        if screen == "right" then
+            iod = -iod
+        end
+
+        for _, v in ipairs(clouds) do
+            v:draw(screen, -iod)
+        end
+
+        bottleInstance:draw(screen, -iod)
         noGameInstance:draw(screen)
     end
 
-    function love.gamepadpressed(joy, button)
+    function love.gamepadpressed(joystick, button)
         if button == "start" then
             love.event.quit()
+        else
+            if joystick:isGamepadDown("leftshoulder", "rightshoulder") then
+                DEBUG = not DEBUG
+            end
         end
     end
 

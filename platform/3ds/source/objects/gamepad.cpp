@@ -1,5 +1,5 @@
 #include "objects/gamepad/gamepad.h"
-#include "driver/input.h"
+#include "driver/hidrv.h"
 
 using namespace love;
 
@@ -94,17 +94,17 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 5)
     {
-       if (Input::GetKeyHeld<u32>() & KEY_ZL)
-            return 1.0f;
-        else if (Input::GetKeyUp<u32>() & KEY_ZL)
-            return 0.0f;
+    //    if (Input::GetKeyHeld<u32>() & KEY_ZL)
+    //         return 1.0f;
+    //     else if (Input::GetKeyUp<u32>() & KEY_ZL)
+    //         return 0.0f;
     }
     else if (axis == 6)
     {
-        if (Input::GetKeyHeld<u32>() & KEY_ZR)
-            return 1.0f;
-        else if (Input::GetKeyUp<u32>() & KEY_ZR)
-            return 0.0f;
+        // if (Input::GetKeyHeld<u32>() & KEY_ZR)
+        //     return 1.0f;
+        // else if (Input::GetKeyUp<u32>() & KEY_ZR)
+        //     return 0.0f;
     }
     else
     {
@@ -156,21 +156,13 @@ std::vector<float> Gamepad::GetAxes() const
 bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
 {
     size_t buttonCount = this->GetButtonCount();
-    const auto consoleButtons = Input::buttons;
 
     for (size_t button : buttons)
     {
         if (button < 0 || button >= buttonCount)
             continue;
 
-        for (auto it = consoleButtons.begin(); it != consoleButtons.end(); it++)
-        {
-            if (it->second & Input::GetKeyHeld<u32>())
-            {
-                size_t index = std::distance(it, consoleButtons.begin()) - 1;
-                return button == index;
-            }
-        }
+        return driver::hidrv.IsDown(button);
     }
 
     return false;
@@ -208,7 +200,7 @@ bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
         if (!GetConstant(button, consoleButton) || consoleButton < 0)
             continue;
 
-        if (consoleButton & Input::GetKeyHeld<u32>())
+        if (consoleButton & driver::hidrv.GetButtonPressed())
             return true;
     }
 
