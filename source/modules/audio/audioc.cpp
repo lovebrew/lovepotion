@@ -73,6 +73,16 @@ float Audio::GetVolume() const
     return this->volume;
 }
 
+int Audio::GetActiveSourceCount() const
+{
+    return this->pool->GetActiveSourceCount();
+}
+
+int Audio::GetMaxSources() const
+{
+    return this->pool->GetMaxSources();
+}
+
 Source * Audio::NewSource(Decoder * decoder)
 {
     return new Source(this->pool, decoder);

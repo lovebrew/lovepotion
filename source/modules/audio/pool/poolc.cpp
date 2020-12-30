@@ -9,6 +9,32 @@ Pool::Pool()
         this->available.push(channel);
 }
 
+Pool::~Pool()
+{
+    Source::Stop(this);
+}
+
+int Pool::GetActiveSourceCount() const
+{
+    return (int)this->playing.size();
+}
+
+int Pool::GetMaxSources() const
+{
+    return 24;
+}
+
+std::vector<common::Source *> Pool::GetPlayingSources()
+{
+    std::vector<common::Source *> sources;
+    sources.reserve(this->playing.size());
+
+    for (auto & item : this->playing)
+        sources.push_back(item.first);
+
+    return sources;
+}
+
 bool Pool::IsRunning()
 {
     return this->running;

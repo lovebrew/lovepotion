@@ -109,6 +109,16 @@ namespace love
 
                 double Tell();
 
+                // static bool Play(const std::vector<Source *> & sources);
+
+                static void Stop(const std::vector<Source *> & sources);
+
+                static void Pause(const std::vector<Source *> & sources);
+
+                static std::vector<Source *> Pause(Pool * pool);
+
+                static void Stop(Pool * pool)
+
                 static bool GetConstant(const char * in, Type & out);
                 static bool GetConstant(Type in, const char  *& out);
                 static std::vector<std::string> GetConstants(Type);

@@ -19,7 +19,11 @@ namespace love
         public:
             Pool();
 
-            ~Pool() {}
+            ~Pool();
+
+            int GetActiveSourceCount() const;
+
+            int GetMaxSources() const;
 
             bool IsRunning();
 
@@ -41,6 +45,8 @@ namespace love
 
         private:
             friend class common::Source;
+
+            std::vector<common::Source *> GetPlayingSources();
 
             std::atomic<bool> running = true;
             std::map<common::Source *, size_t> playing;

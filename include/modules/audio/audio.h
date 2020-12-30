@@ -20,7 +20,11 @@ namespace love
 
             Audio();
 
-            ~Audio();
+            virtual ~Audio();
+
+            int GetActiveSourceCount() const;
+
+            int GetMaxSources() const;
 
             Source * NewSource(SoundData * data);
 
@@ -40,7 +44,7 @@ namespace love
 
             void Pause (const std::vector<Source *> & sources);
 
-            // std::vector<Source *> Pause();
+            std::vector<Source *> Pause();
 
             void Pause();
 

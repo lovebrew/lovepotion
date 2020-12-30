@@ -1,6 +1,8 @@
 #include "objects/source/sourcec.h"
 #include "modules/audio/pool/pool.h"
 
+#include "objects/source/source.h"
+
 using namespace love::common;
 
 love::Type Source::type("Source", &Object::type);
@@ -238,6 +240,61 @@ void Source::SetMaxVolume(float volume)
 bool Source::IsLooping() const
 {
     return this->looping;
+}
+
+void Source::Stop(const std::vector<Source *> & sources)
+{
+    if (sources.size() == 0)
+        return;
+
+    Pool * pool = ((Source *)sources[0])->pool;
+    thread::Lock lock = pool->Lock();
+
+    for (auto & _source : sources)
+    {
+        Source * source = (Source *)_source;
+        if (source->valid)
+            source->StopAtomic();
+
+        pool->ReleaseSource(source, false);
+    }
+}
+
+void Source::Pause(const std::vector<Source *> & sources)
+{
+    if (sources.size() == 0)
+        return;
+
+    thread::Lock lock = ((Source *)sources[0])->pool->Lock();
+
+    for (auto & _source : sources)
+    {
+        Source * source = (Source *)_source;
+        if (source->valid)
+            source->PauseAtomic();
+    }
+}
+
+std::vector<Source *> Source::Pause(Pool * pool)
+{
+    thread::Lock lock = pool->Lock();
+    std::vector<Source *> sources = pool->GetPlayingSources();
+
+    auto newEnd = std::remove_if(sources.begin(), sources.end(), [](Source * source) {
+        return !source->IsPlaying();
+    });
+
+    sources.erase(newEnd, sources.end());
+
+    Source::Pause(sources);
+
+    return sources;
+}
+
+void Source::Stop(Pool * pool)
+{
+    thread::Lock lock = pool->Lock();
+    Source::Stop(pool->GetPlayingSources());
 }
 
 /* CONSTANTS */
