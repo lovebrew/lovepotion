@@ -2,7 +2,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 
-namespace love
+namespace love::common
 {
     class Debugger
     {
@@ -12,20 +12,11 @@ namespace love
                 return instance;
             }
 
-            const bool IsInited() {
-                return initialized;
-            }
+            bool IsInited();
 
-            const int GetSockfd() {
-                return this->sockfd;
-            }
-
-            ~Debugger();
-
-        private:
-            int sockfd;
-
+        protected:
             bool initialized;
+            size_t count;
 
             Debugger();
     };

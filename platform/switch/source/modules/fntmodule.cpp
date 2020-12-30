@@ -6,26 +6,11 @@
 
 using namespace love;
 
-class DefaultFontData : public love::Data
-{
-    public:
-        DefaultFontData()
-        { plGetSharedFontByType(&this->fontData, PlSharedFontType_Standard); }
-
-        Data * Clone()   const override { return new DefaultFontData();  }
-        void * GetData() const override { return this->fontData.address; }
-        size_t GetSize() const override { return this->fontData.size;    }
-
-    private:
-        PlFontData fontData;
-};
-
 class SystemFontData : public love::Data
 {
     public:
-        SystemFontData(Font::SystemFontType type)
+        SystemFontData(Font::SystemFontType type) : type(type)
         {
-            this->type = type;
             plGetSharedFontByType(&this->fontData, (PlSharedFontType)type);
         }
 
@@ -64,13 +49,13 @@ Rasterizer * FontModule::NewRasterizer(love::FileData * data)
 
 Rasterizer * FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
 {
-    love::StrongReference<DefaultFontData> data(new DefaultFontData(), Acquire::NORETAIN);
+    love::StrongReference<SystemFontData> data(new SystemFontData(Font::SystemFontType::TYPE_STANDARD), Acquire::NORETAIN);
     return NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
 Rasterizer * FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale, TrueTypeRasterizer::Hinting hinting)
 {
-    StrongReference<DefaultFontData> data(new DefaultFontData(), Acquire::NORETAIN);
+    StrongReference<SystemFontData> data(new SystemFontData(Font::SystemFontType::TYPE_STANDARD), Acquire::NORETAIN);
     return NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
 }
 

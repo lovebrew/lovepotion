@@ -10,7 +10,7 @@ namespace love
         public:
             Texture(TextureType type);
 
-            ~Texture();
+            virtual ~Texture();
 
             void SetHandle(DkResHandle handle);
 

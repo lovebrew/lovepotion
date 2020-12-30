@@ -40,10 +40,14 @@
 - Copyright © 2017-2018 fincs
 
 # libnx
-
 - Website: https://github.com/switchbrew/libnx
 - License: ISC
 - Copyright 2017-2018 libnx Authors
+
+## deko3d
+- Website: https://github.com/devkitPro/deko3d
+- License: zlib
+- Copyright (C) 2018-2020 fincs
 
 # **License Text**
 

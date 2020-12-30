@@ -2,7 +2,7 @@
 
 #include "deko3d/vertex.h"
 
-deko3d::deko3d()
+deko3d::deko3d() : firstVertex(0)
 {
     /*
     ** Create GPU device
@@ -229,12 +229,12 @@ void deko3d::BeginFrame()
     this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 }
 
-dk::UniqueQueue & deko3d::GetTextureQueue()
+dk::Queue deko3d::GetTextureQueue()
 {
     return this->textureQueue;
 }
 
-dk::UniqueDevice & deko3d::GetDevice()
+dk::Device deko3d::GetDevice()
 {
     return this->device;
 }
@@ -284,7 +284,7 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
         this->EnsureHasSlot();
 
         dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
-        dk::ImageView depthTarget { this->depthBuffer.image };
+        // dk::ImageView depthTarget { this->depthBuffer.image };
 
         this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
 
@@ -315,8 +315,7 @@ void deko3d::Present()
         this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
 
-        if (this->framebuffers.slot != -1)
-            this->queue.presentImage(this->swapchain, this->framebuffers.slot);
+        this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
         this->framebuffers.inFrame = false;
     }
@@ -614,9 +613,6 @@ void deko3d::SetScissor(const love::Rect & scissor, bool canvasActive)
 void deko3d::SetViewport(const love::Rect & view)
 {
     this->EnsureInFrame();
-
-    if (this->viewport == view)
-        return;
 
     this->viewport = view;
     this->cmdBuf.setViewports(0, { {(float)view.x, (float)view.y,

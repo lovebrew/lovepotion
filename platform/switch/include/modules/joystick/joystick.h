@@ -12,7 +12,7 @@ namespace love
         public:
             Joystick();
 
-            ~Joystick();
+            virtual ~Joystick();
 
             bool AddVibration(Gamepad * gamepad, size_t id);
 
@@ -38,7 +38,7 @@ namespace love
 
             std::vector<Gamepad *> vibrations;
 
-            PoolThread * poolThread;
             JoystickPool * pool;
+            PoolThread * poolThread;
     };
 }

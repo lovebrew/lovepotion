@@ -5,7 +5,7 @@ using namespace love;
 
 Debugger::Debugger()
 {
-    if (Debugger::IsInited())
+    if (this->IsInited())
         return;
 
     gdbHioDevInit();
@@ -17,6 +17,6 @@ Debugger::Debugger()
 
 Debugger::~Debugger()
 {
-    if (Debugger::IsInited())
+    if (this->IsInited())
         gdbHioDevExit();
 }

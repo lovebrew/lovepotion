@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/thread/types/lock.h"
-#include "driver/audrv.h"
+#include "driver/audiodrv.h"
 
 #include <atomic>
 #include <queue>
@@ -14,12 +14,12 @@ namespace love
         class Source;
     }
 
-    inline driver::Audrv audrv;
-
     class Pool
     {
         public:
             Pool();
+
+            ~Pool() {}
 
             bool IsRunning();
 

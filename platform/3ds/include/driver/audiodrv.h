@@ -1,6 +1,6 @@
 #pragma once
 
-#include "driver/audrvc.h"
+#include "driver/audiodrvc.h"
 #include <3ds.h>
 
 namespace love::driver

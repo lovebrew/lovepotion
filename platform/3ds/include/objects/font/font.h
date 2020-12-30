@@ -33,7 +33,7 @@ namespace love
 
             Font(const Rasterizer & r, const Texture::Filter & filter);
 
-            ~Font();
+            virtual ~Font();
 
             void Print(Graphics * gfx, const std::vector<ColoredString> & text,
                        const Matrix4 & localTransform, const Colorf & color) override;

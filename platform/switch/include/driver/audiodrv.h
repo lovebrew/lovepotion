@@ -1,8 +1,7 @@
 #pragma once
 
-#include "common/driver/audrvc.h"
+#include "common/driver/audiodrvc.h"
 #include "modules/thread/types/mutex.h"
-#include "pools/audiopool.h"
 
 #include <switch.h>
 
@@ -24,8 +23,8 @@ namespace love::driver
             {
                 try
                 {
-                    thread::Lock lock(mutex);
-                    func(&driver);
+                    thread::Lock lock(this->mutex);
+                    func(&this->driver);
                 }
                 catch(const std::exception & e)
                 {
@@ -34,9 +33,9 @@ namespace love::driver
             }
 
         private:
-            thread::MutexRef mutex;
-            AudioDriver driver;
+            thread::Mutex mutex;
 
             bool audioInitialized;
+            AudioDriver driver;
     };
 }

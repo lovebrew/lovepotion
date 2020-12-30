@@ -646,10 +646,6 @@ int Wrap_Graphics::Present(lua_State * L)
         instance()->Present();
     });
 
-    #if defined (_3DS)
-        instance()->GetFont()->ClearBuffer();
-    #endif
-
     return 0;
 }
 
@@ -1278,16 +1274,18 @@ int Wrap_Graphics::Register(lua_State * L)
         { 0,                         0                       }
     };
 
-    luaL_Reg ext[] =
+    luaL_Reg modExt[] =
     {
         { "getBlendFactor",       GetBlendFactor       },
         { "getStereoscopicDepth", GetStereoscopicDepth },
         { "setBlendFactor",       SetBlendFactor       }
     };
 
-    std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, ext);
+    std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, modExt);
 
-    lua_CFunction types[] =
+    /* objects */
+
+    lua_CFunction objs[] =
     {
         Wrap_Drawable::Register,
         Wrap_Texture::Register,
@@ -1296,6 +1294,9 @@ int Wrap_Graphics::Register(lua_State * L)
         Wrap_Quad::Register,
         Wrap_Canvas::Register,
         Wrap_Text::Register,
+        #if defined (__SWITCH__)
+            Wrap_Shader::Register,
+        #endif
         0
     };
 
@@ -1320,7 +1321,7 @@ int Wrap_Graphics::Register(lua_State * L)
     wrappedModule.name = "graphics";
     wrappedModule.functions = reg.get();
     wrappedModule.type = &Module::type;
-    wrappedModule.types = types;
+    wrappedModule.types = objs;
 
     return Luax::RegisterModule(L, wrappedModule);
 }

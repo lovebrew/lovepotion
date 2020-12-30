@@ -17,7 +17,7 @@ namespace love
         public:
             FontModule();
 
-            ~FontModule();
+            virtual ~FontModule();
 
             Rasterizer * NewRasterizer(love::FileData * data);
 

@@ -8,7 +8,7 @@ export LOVE_SOURCES    = $(foreach dir, $(ROOT_SOURCES),   ../../$(wildcard $(di
 export LOVE_INCLUDES   = $(foreach dir, $(ROOT_INCLUDES),  ../../$(wildcard $(dir)))
 export LOVE_LIBRARIES  = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir)))
 
-export LOVE_DATA_FILES = $(CURDIR)/source/scripts
+export LOVE_DATA_FILES = ../../source/scripts
 
 export APP_TITLE   := LÖVE Potion
 export APP_AUTHOR  := TurtleP & NotQuiteApex

@@ -3,8 +3,6 @@
 #include "objects/decoder/decoder.h"
 #include <FLAC/stream_decoder.h>
 
-#include "common/logger.h"
-
 namespace love
 {
     class FLACDecoder : public Decoder

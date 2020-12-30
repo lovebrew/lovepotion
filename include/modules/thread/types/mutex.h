@@ -26,6 +26,7 @@ namespace love::thread
     {
         public:
             Mutex();
+
             ~Mutex();
 
             Mutex(const Mutex &) = delete;
@@ -34,6 +35,7 @@ namespace love::thread
             Mutex & operator = (Mutex &&) = delete;
 
             void Lock();
+
             void Unlock();
 
         private:
@@ -46,6 +48,7 @@ namespace love::thread
     {
         public:
             MutexRef();
+
             ~MutexRef();
 
             operator Mutex * () const;

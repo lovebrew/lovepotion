@@ -9,6 +9,6 @@ namespace love
         public:
             Event();
 
-            ~Event();
+            virtual ~Event();
     };
 }

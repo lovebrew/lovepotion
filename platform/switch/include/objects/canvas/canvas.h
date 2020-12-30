@@ -9,7 +9,7 @@ namespace love
         public:
             Canvas(const Settings & settings);
 
-            ~Canvas();
+            virtual ~Canvas();
 
             void Draw(Graphics * gfx, Quad * quad, const Matrix4 & localTransform) override;
 

@@ -18,6 +18,7 @@
 
 #include <queue>
 #include <vector>
+#include <memory>
 
 struct LOVE_Event;
 
@@ -31,6 +32,8 @@ namespace love::common
     class Event : public Module
     {
         public:
+            Event();
+
             ModuleType GetModuleType() const { return M_EVENT; }
 
             const char * GetName() const override { return "love.event"; }
@@ -49,10 +52,14 @@ namespace love::common
 
             void ExceptionIfInRenderPass(const char * name);
 
+            std::unique_ptr<love::driver::Hidrv> & GetDriver();
+
         protected:
             love::thread::MutexRef mutex;
 
         private:
+            std::unique_ptr<love::driver::Hidrv> driver;
+
             std::queue<Message *> queue;
 
             Message * Convert(const driver::Hidrv::LOVE_Event & event);

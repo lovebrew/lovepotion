@@ -35,7 +35,8 @@ namespace love
             static const int64_t ALL = -1;
 
             File(const std::string & filename);
-            ~File();
+
+            virtual ~File();
 
             bool Close();
 

@@ -24,8 +24,6 @@ extern "C" {
 #include <string.h>
 #include <memory>
 
-#include "common/logger.h"
-
 namespace love
 {
     class Object;
@@ -98,31 +96,32 @@ namespace Luax
 
     int RegisterSearcher(lua_State * L, lua_CFunction function, int position);
 
-    template <size_t funcCount, size_t extCount>
-    [[ nodiscard ]] std::unique_ptr<luaL_Reg[]> ExtendIf(const std::string_view & console, luaL_Reg (&funcs)[funcCount], const luaL_Reg (&ext)[extCount])
+    template <typename T, size_t funcCount, size_t extCount>
+    [[ nodiscard ]] std::unique_ptr<T[]> ExtendIf(const std::string_view & console, T (&funcs)[funcCount], const T (&ext)[extCount])
     {
         /* not the proper console *or* ext doesn't have anything */
         if (console != LOVE_POTION_CONSOLE)
         {
-            auto registry = std::make_unique<luaL_Reg[]>(funcCount);
+            auto registry = std::make_unique<T[]>(funcCount);
             std::copy(funcs, funcs + funcCount, registry.get());
+
             return registry;
         }
         /* funcCount includes the null terminator */
         const size_t maxSize = funcCount + extCount;
         const size_t copyOffset = funcCount - 1;
 
-        std::unique_ptr<luaL_Reg[]> newRegistry = std::make_unique<luaL_Reg[]>(maxSize);
+        std::unique_ptr<T[]> newList = std::make_unique<T[]>(maxSize);
 
         /* don't append the null terminated registry value */
-        std::copy(funcs, funcs + copyOffset, newRegistry.get());
+        std::copy(funcs, funcs + copyOffset, newList.get());
 
         /* copy over the extended values */
-        std::copy(ext, ext + extCount, newRegistry.get() + copyOffset);
+        std::copy(ext, ext + extCount, newList.get() + copyOffset);
 
-        newRegistry[maxSize - 1] = { 0, 0 };
+        newList[maxSize - 1] = { 0, 0 };
 
-        return newRegistry;
+        return newList;
     }
 
     int Resume(lua_State * L, int nargs);

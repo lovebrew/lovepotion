@@ -20,10 +20,8 @@ static bool IsApplicationType()
 
         AppletType type = appletGetAppletType();
 
-        AppletType appletTypeCondition = (AppletType)(AppletType_Application |
-                                        AppletType_SystemApplication);
-
-        bool isApplication = (type == appletTypeCondition);
+        bool isApplication = (type == AppletType_Application ||
+                              type == AppletType_SystemApplication);
 
         if (isApplication)
             return true;

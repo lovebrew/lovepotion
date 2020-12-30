@@ -38,6 +38,8 @@
 
     #include "deko3d/shader.h"
     #include "deko3d/vertex.h"
+
+    #include "objects/shader/wrap_shader.h"
 #endif
 
 namespace love

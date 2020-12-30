@@ -1,8 +1,10 @@
-#include "driver/audrv.h"
+#include "driver/audiodrv.h"
+#include "pools/audiopool.h"
 
 using namespace love::driver;
 
-Audrv::Audrv() : audioInitialized(false)
+Audrv::Audrv() : audioInitialized(false),
+                 driver{}
 {
     static const AudioRendererConfig config =
     {
@@ -28,9 +30,9 @@ Audrv::Audrv() : audioInitialized(false)
     if (R_SUCCEEDED(res))
         this->initialized = true;
 
-    int mpid = audrvMemPoolAdd(&this->driver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
+    int mempoolID = audrvMemPoolAdd(&this->driver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
 
-    audrvMemPoolAttach(&this->driver, mpid);
+    audrvMemPoolAttach(&this->driver, mempoolID);
 
     static const u8 sink_channels[] = { 0, 1 };
 
@@ -53,5 +55,9 @@ Audrv::~Audrv()
 void Audrv::Update()
 {
     thread::Lock lock(this->mutex);
+
+    if (!this->initialized)
+        return;
+
     audrvUpdate(&this->driver);
 }

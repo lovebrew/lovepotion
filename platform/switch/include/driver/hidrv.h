@@ -31,6 +31,4 @@ namespace love::driver
 
             int prevTouchCount;
     };
-
-    inline driver::Hidrv hidrv;
 }

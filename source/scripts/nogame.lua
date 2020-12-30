@@ -1857,8 +1857,6 @@ function love.nogame()
     local bottleInstance = nil
     local noGameInstance = nil
 
-    local joystick = nil
-
     -- debugging info --
 
     local DEBUG = false
@@ -1867,21 +1865,30 @@ function love.nogame()
     -- end debugging info --
 
     function love.load()
+        -- nop this function on Switch
+        love.graphics.setBlendFactor = (is3DS == false) and function(_)
+        end
+
         love.graphics.setBackgroundColor(0.392, 0.710, 0.965)
 
         for key, value in pairs(resources[consoleKey]) do
             res[key] = love.graphics.newImage(value)
         end
 
-        centerX = love.graphics.getWidth("top") / 2
+        local screen = is3DS and "top" or nil
+
+        centerX = love.graphics.getWidth(screen) / 2
         centerY = love.graphics.getHeight() / 2
 
         local cloudSize = res.cloudCircle:getWidth()
         generateClouds(cloudSize)
 
-        centerX = love.graphics.getWidth("bottom") / 2
+        screen = is3DS and "bottom" or nil
 
-        bottleInstance = Bottle(love.graphics.getWidth() / 2, love.graphics.getHeight() * 0.45, 0.5)
+        centerX = love.graphics.getWidth(screen) / 2
+
+        local scale = is3DS and 0.5 or 1.0
+        bottleInstance = Bottle(love.graphics.getWidth() / 2, love.graphics.getHeight() * 0.50, scale)
 
         local y = love.graphics.getHeight() * 0.85
         if is3DS then
@@ -1894,9 +1901,6 @@ function love.nogame()
         rendererInfo = table.concat({love.graphics.getRendererInfo()}, "\n")
 
         love.graphics.setNewFont(14)
-
-        --
-        joystick = love.joystick.getJoysticks()[1]
     end
 
     function love.update(dt)
@@ -1938,10 +1942,6 @@ function love.nogame()
                 DEBUG = not DEBUG
             end
         end
-    end
-
-    function love.conf(t)
-        t.console = true
     end
 end
 

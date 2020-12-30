@@ -5,11 +5,21 @@
 
 using namespace love::driver;
 
+love::common::Event::Event()
+{
+    this->driver = std::make_unique<love::driver::Hidrv>();
+}
+
+std::unique_ptr<love::driver::Hidrv> & love::common::Event::GetDriver()
+{
+    return this->driver;
+}
+
 void love::common::Event::Pump()
 {
     Hidrv::LOVE_Event event;
 
-    while (hidrv.Poll(&event))
+    while (this->driver->Poll(&event))
     {
         Message * message = this->Convert(event);
 
@@ -72,6 +82,8 @@ love::Message * love::common::Event::Convert(const Hidrv::LOVE_Event & event)
         case Hidrv::TYPE_GAMEPADUP:
         case Hidrv::TYPE_GAMEPADDOWN:
         case Hidrv::TYPE_GAMEPADAXIS:
+        case Hidrv::TYPE_GAMEPADADDED:
+        case Hidrv::TYPE_GAMEPADREMOVED:
             message = this->ConvertJoystickEvent(event);
             break;
         case Hidrv::TYPE_WINDOWEVENT:
@@ -155,6 +167,20 @@ love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Even
 
             break;
         }
+        case Hidrv::TYPE_GAMEPADADDED:
+        case Hidrv::TYPE_GAMEPADREMOVED:
+        {
+            stick = joyModule->GetJoystickFromID(event.button.which);
+
+            if (!stick)
+                break;
+
+            vargs.emplace_back(joystickType, stick);
+
+            message = new Message((event.type == Hidrv::TYPE_GAMEPADADDED) ? "joystickadded" : "joystickremoved", vargs);
+
+            break;
+        }
         default:
             break;
     }
@@ -216,7 +242,7 @@ void love::common::Event::InternalClear()
 {
     Hidrv::LOVE_Event event;
 
-    while (hidrv.Poll(&event))
+    while (this->driver->Poll(&event))
     {
         /* do nothing */
     }
@@ -260,7 +286,7 @@ love::Message * love::common::Event::Wait()
 {
     Hidrv::LOVE_Event event;
 
-    if (hidrv.Poll(&event) == false)
+    if (this->driver->Poll(&event) == false)
         return nullptr;
 
     return this->Convert(event);

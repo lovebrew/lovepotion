@@ -30,7 +30,8 @@ void Joystick::PoolThread::SetFinish()
     this->finish = true;
 }
 
-Joystick::Joystick()
+Joystick::Joystick() : pool(nullptr),
+                       poolThread(nullptr)
 {
     try
     {

@@ -25,8 +25,6 @@
 
 #include "luasocket/luasocket.h"
 
-#include "common/debugger.h"
-
 #include "boot_lua.h"
 #include "nogame_lua.h"
 
@@ -156,6 +154,9 @@ int Love::GetVersion(lua_State * L)
 ** On Switch, redirects printf to nxlink
 ** On 3DS, redirects to gdb
 */
+
+#include "common/debugger.h"
+
 int Love::_OpenConsole(lua_State * L)
 {
     auto instance = love::Debugger::Instance();

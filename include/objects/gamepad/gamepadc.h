@@ -95,6 +95,8 @@ namespace love::common
 
             Gamepad(size_t id, size_t index);
 
+            virtual ~Gamepad() {}
+
             virtual bool Open(size_t index) = 0;
 
             virtual void Close() = 0;

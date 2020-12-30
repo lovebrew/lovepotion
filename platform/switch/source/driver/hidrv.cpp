@@ -61,8 +61,11 @@ void Hidrv::CheckFocus()
     {
         bool shouldClose = !appletProcessMessage(message);
 
-        if (!shouldClose)
-            return this->SendQuit();
+        if (shouldClose)
+        {
+            this->SendQuit();
+            return;
+        }
 
         switch (message)
         {
@@ -75,6 +78,8 @@ void Hidrv::CheckFocus()
 
                 if (focused == oldFocus)
                     break;
+
+                this->SendFocus(focused);
 
                 if (focused)
                     appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
@@ -102,8 +107,6 @@ void Hidrv::CheckFocus()
 
 bool Hidrv::Poll(LOVE_Event * event)
 {
-    thread::Lock lock(this->mutex);
-
     if (!this->events.empty())
     {
         *event = this->events.front();
@@ -114,6 +117,9 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     if (this->hysteresis)
         return this->hysteresis = false;
+
+    if (!MODULE())
+        return false;
 
     Gamepad * gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
     bool connected = false;
@@ -138,6 +144,8 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.padStatus.connected = connected;
         }
     }
+    else
+        return false;
 
     /* handle button inputs */
 
@@ -217,16 +225,16 @@ bool Hidrv::Poll(LOVE_Event * event)
     {
         for (int id = 0; id < prevTouchCount; ++id)
         {
-            auto & e = this->events.emplace_back();
+            auto & newEvent = this->events.emplace_back();
 
-            e.type = TYPE_TOUCHRELEASE;
+            newEvent.type = TYPE_TOUCHRELEASE;
 
-            e.touch.id = id;
-            e.touch.x = this->stateTouches[id].x;
-            e.touch.y = this->stateTouches[id].y;
-            e.touch.dx = 0.0f;
-            e.touch.dy = 0.0f;
-            e.touch.pressure = 0.0f;
+            newEvent.touch.id = id;
+            newEvent.touch.x = this->stateTouches[id].x;
+            newEvent.touch.y = this->stateTouches[id].y;
+            newEvent.touch.dx = 0.0f;
+            newEvent.touch.dy = 0.0f;
+            newEvent.touch.pressure = 0.0f;
         }
     }
 

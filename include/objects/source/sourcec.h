@@ -20,7 +20,8 @@ namespace love
     {
         public:
             StaticDataBuffer(void * data, size_t size);
-            ~StaticDataBuffer();
+
+            virtual ~StaticDataBuffer();
 
             inline s16 * GetBuffer() const
             {
@@ -64,7 +65,7 @@ namespace love
 
                 Source(const Source & other);
 
-                ~Source() {};
+                virtual ~Source() {};
 
                 virtual Source * Clone() = 0;
 

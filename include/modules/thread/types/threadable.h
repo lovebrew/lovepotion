@@ -13,7 +13,7 @@ namespace love
             static love::Type type;
 
             Threadable();
-            ~Threadable();
+            virtual ~Threadable();
 
             virtual void ThreadFunction() = 0;
 

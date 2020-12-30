@@ -23,7 +23,8 @@ namespace love
             };
 
             RandomGenerator();
-            ~RandomGenerator() {};
+
+            virtual ~RandomGenerator() {};
 
             u64 UniformRandom();
 

@@ -17,7 +17,7 @@ namespace love
 
             Gamepad(size_t id, size_t index);
 
-            ~Gamepad();
+            virtual ~Gamepad();
 
             bool Open(size_t id) override;
 

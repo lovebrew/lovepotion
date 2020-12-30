@@ -9,7 +9,7 @@ namespace love
         public:
             Text(love::Font * font, const std::vector<Font::ColoredString> & text = {});
 
-            ~Text();
+            virtual ~Text();
 
             void SetFont(love::Font * font);
 

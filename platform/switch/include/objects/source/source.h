@@ -11,7 +11,7 @@ namespace love
 
             Source(Pool * pool, Decoder * decoder);
 
-            ~Source();
+            virtual ~Source();
 
             Source * Clone();
 

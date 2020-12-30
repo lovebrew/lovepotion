@@ -45,7 +45,7 @@ namespace love::common
 
             static love::Type type;
 
-            ~Font() = default;
+            virtual ~Font() {};
 
             virtual void Print(Graphics * gfx, const std::vector<ColoredString> & text,
                                const Matrix4 & localTransform, const Colorf & color) = 0;

@@ -33,7 +33,8 @@ namespace love
             };
 
             Math();
-            ~Math() {};
+
+            virtual ~Math() {};
 
             ModuleType GetModuleType() const { return M_MATH; }
 

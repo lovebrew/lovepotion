@@ -11,7 +11,7 @@ namespace love
         public:
             Message(const std::string & name, const std::vector<Variant> & args = {});
 
-            ~Message();
+            virtual ~Message();
 
             static Message * FromLua(lua_State * L, int index);
 

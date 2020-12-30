@@ -303,12 +303,8 @@ local utf8 = require("utf8")
 local debug, print, error = debug, print, error
 
 local function error_printer(msg, layer)
-    trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
+    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
     trace = trace:gsub("\n[^\n]+$", "")
-
-    local file = io.open("crash.txt", "w")
-    file:write(trace)
-    file:close()
 
     print(trace)
 end
@@ -334,7 +330,7 @@ function love.errorhandler(message)
     end
 
     if love.joystick then
-        for i, v in ipairs(love.joystick.getJoysticks()) do
+        for _, v in ipairs(love.joystick.getJoysticks()) do
             v:setVibration()
         end
     end
@@ -352,7 +348,7 @@ function love.errorhandler(message)
 
     love.graphics.origin()
 
-    local font = love.graphics.setNewFont(fontSize)
+    love.graphics.setNewFont(fontSize)
 
     love.graphics.setColor(1, 1, 1, 1)
 
@@ -534,11 +530,15 @@ function love.boot()
     end
 
     if not can_has_game then
-        can_go_romfs, result = pcall(love.filesystem.setSource, "romfs:/")
+        can_go_romfs, _ = pcall(love.filesystem.setSource, "romfs:/")
 
         if not can_go_romfs then
             local nogame = require("love.nogame")
-            nogame()
+            local status, result = pcall(nogame)
+
+            if not status then
+                error(result)
+            end
         else
             love.filesystem.setFused(true)
             entryType = "RomFS"
@@ -660,7 +660,7 @@ function love.init()
     }
 
     -- Load them all!
-    for i, v in ipairs(modules) do
+    for _, v in ipairs(modules) do
         if config.modules[v] then
             pcall(function() require("love." .. v) end)
         end

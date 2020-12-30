@@ -11,6 +11,8 @@ namespace love
         public:
             Texture(TextureType type);
 
+            virtual ~Texture() {}
+
             void Draw(Graphics * gfx, const Matrix4 & localTransform) override;
 
             void Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform) override;

@@ -13,6 +13,7 @@ namespace love
             static love::Type type;
 
             Decoder(Data * data, int bufferSize);
+
             virtual ~Decoder();
 
             static const int DEFAULT_BUFFER_SIZE = 0x4000;

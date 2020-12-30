@@ -20,7 +20,8 @@ namespace love
             static love::Type type;
 
             Channel();
-            ~Channel();
+
+            virtual ~Channel();
 
             uint64_t Push(const Variant & variant);
 

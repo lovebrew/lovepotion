@@ -17,6 +17,8 @@ Font::Font(const Rasterizer & rasterizer, const Texture::Filter & filter) : rast
 
 Font::~Font()
 {
+    C2D_TextBufClear(this->rasterizer.buffer);
+
     C2D_TextBufDelete(this->rasterizer.buffer);
     C2D_FontFree(this->rasterizer.font);
 }
@@ -46,7 +48,8 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
     C2D_Text citroText;
 
     std::string result = std::accumulate(text.begin(), text.end(), std::string{},
-                         [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
+                         [](const std::string& s1, const ColoredString& piece)
+                         { return s1 + piece.string; });
 
     C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
     C2D_TextOptimize(&citroText);
@@ -56,6 +59,8 @@ void Font::Print(Graphics * gfx, const std::vector<ColoredString> & text,
 
     u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
     C2D_DrawText(&citroText, C2D_WithColor, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), renderColorf);
+
+    C2D_TextBufClear(this->rasterizer.buffer);
 }
 
 void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float wrap, AlignMode align,
@@ -96,24 +101,24 @@ void Font::Printf(Graphics * gfx, const std::vector<ColoredString> & text, float
 
     u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
     C2D_DrawText(&citroText, C2D_WithColor | alignMode, offset, 0, Graphics::CURRENT_DEPTH, this->GetScale(), this->GetScale(), renderColorf, wrap);
-}
 
-void Font::ClearBuffer()
-{
     C2D_TextBufClear(this->rasterizer.buffer);
 }
 
 int Font::GetWidth(uint32_t /* prevGlyph */, uint32_t current)
 {
     auto found = this->glyphWidths.find(current);
+
     if (found != this->glyphWidths.end())
         return found->second;
 
     fontGlyphPos_s out;
+
     int glyphIndex = C2D_FontGlyphIndexFromCodePoint(this->rasterizer.font, current);
     C2D_FontCalcGlyphPos(this->rasterizer.font, &out, glyphIndex, 0, this->GetScale(), this->GetScale());
 
     this->glyphWidths.emplace(current, out.xAdvance);
+
     return out.xAdvance;
 }
 

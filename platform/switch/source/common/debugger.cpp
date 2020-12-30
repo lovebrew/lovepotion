@@ -3,9 +3,9 @@
 
 using namespace love;
 
-Debugger::Debugger()
+Debugger::Debugger() : sockfd(-1)
 {
-    if (Debugger::IsInited())
+    if (this->IsInited())
         return;
 
     this->sockfd = nxlinkStdioForDebug();
@@ -14,4 +14,7 @@ Debugger::Debugger()
 }
 
 Debugger::~Debugger()
-{}
+{
+    if (this->sockfd != -1)
+        close(this->sockfd);
+}

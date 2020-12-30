@@ -101,9 +101,9 @@ class deko3d
 
         void SetStencil(DkStencilOp op, DkCompareOp compare, int value);
 
-        dk::UniqueDevice & GetDevice();
+        dk::Device GetDevice();
 
-        dk::UniqueQueue & GetTextureQueue();
+        dk::Queue GetTextureQueue();
 
         std::optional<CMemPool> & GetImages();
 

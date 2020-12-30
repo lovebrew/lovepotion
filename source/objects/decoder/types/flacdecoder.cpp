@@ -24,12 +24,12 @@ static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *
 
 static void error_callback(const FLAC__StreamDecoder * decoder, FLAC__StreamDecoderErrorStatus status, void * client_data)
 {
-    #if defined (__DEBUG__)
-        const char * str = nullptr;
-        LOG("FLAC: decoder error callback was called: %d\n", status);
-        if ((str = FLAC__StreamDecoderErrorStatusString[status]))
-            LOG("FLAC: status of %d: %s\n", status, str);
-    #endif
+    // #if defined (__DEBUG__)
+    //     const char * str = nullptr;
+    //     LOG("FLAC: decoder error callback was called: %d\n", status);
+    //     if ((str = FLAC__StreamDecoderErrorStatusString[status]))
+    //         LOG("FLAC: status of %d: %s\n", status, str);
+    // #endif
 }
 
 static void metadata_callback(const FLAC__StreamDecoder * decoder, const FLAC__StreamMetadata * metadata, void * client_data)

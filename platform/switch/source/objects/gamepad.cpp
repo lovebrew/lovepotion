@@ -4,10 +4,12 @@
 #include "modules/timer/timer.h"
 
 #include "modules/joystick/joystick.h"
+#include "modules/event/event.h"
 
 using namespace love;
 
 #define JOYSTICK_MODULE() (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
+#define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
 
 Gamepad::Gamepad(size_t id) : common::Gamepad(id),
                               sixAxisHandles(nullptr),
@@ -189,7 +191,7 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 5)
     {
-        uint64_t button = driver::hidrv.GetButtonPressed();
+        uint64_t button = EVENT_MODULE()->GetDriver()->GetButtonPressed();
 
         if (button & HidNpadButton_ZL)
             return 1.0f;
@@ -198,7 +200,7 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 6)
     {
-        uint64_t button = driver::hidrv.GetButtonPressed();
+        uint64_t button = EVENT_MODULE()->GetDriver()->GetButtonPressed();
 
         if (button & HidNpadButton_ZR)
             return 1.0f;
@@ -275,7 +277,7 @@ bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
         if (button < 0 || button >= buttonCount)
             continue;
 
-        return driver::hidrv.IsDown(button);
+        return EVENT_MODULE()->GetDriver()->IsDown(button);
     }
 
     return false;
@@ -314,7 +316,7 @@ bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
         if (!GetConstant(button, consoleButton) || consoleButton < 0)
             continue;
 
-        if (consoleButton & driver::hidrv.GetButtonHeld())
+        if (consoleButton & EVENT_MODULE()->GetDriver()->GetButtonHeld())
             return true;
     }
 

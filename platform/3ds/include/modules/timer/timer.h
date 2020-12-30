@@ -9,5 +9,7 @@ namespace love
     {
         public:
             Timer();
+
+            virtual ~Timer() {}
     };
 }

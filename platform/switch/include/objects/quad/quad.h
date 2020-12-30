@@ -9,6 +9,8 @@ namespace love
         public:
             Quad(const Viewport & viewport, double sw, double sh);
 
+            virtual ~Quad() {}
+
             void Refresh(const Viewport & viewport, double sw, double sh) override;
 
             const Vector2 * GetVertexPositions() const;

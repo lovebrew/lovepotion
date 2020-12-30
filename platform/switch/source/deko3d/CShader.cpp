@@ -70,8 +70,7 @@ bool CShader::loadMemory(CMemPool & pool, void * buffer, size_t size)
     m_codemem.destroy();
 
     // Copy the dksh buffer to the struct
-    if (!memcpy(&hdr, buffer, sizeof(hdr)))
-        goto _fail0;
+    memcpy(&hdr, buffer, sizeof(hdr));
 
     /*
     ** Allocate the code memory from the pool based on `code_sz`
@@ -102,6 +101,5 @@ bool CShader::loadMemory(CMemPool & pool, void * buffer, size_t size)
 
 _fail2:
     m_codemem.destroy();
-_fail0:
     return false;
 }

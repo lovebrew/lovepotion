@@ -32,16 +32,13 @@ struct Vector2
 {
     float x, y;
 
-    Vector2()
-        : x(0.0f), y(0.0f)
+    Vector2() : x(0.0f), y(0.0f)
     {}
 
-    Vector2(float x, float y)
-        : x(x), y(y)
+    Vector2(float x, float y) : x(x), y(y)
     {}
 
-    Vector2(const Vector2 &v)
-        : x(v.x), y(v.y)
+    Vector2(const Vector2 & v) : x(v.x), y(v.y)
     {}
 
     static const char * toString()

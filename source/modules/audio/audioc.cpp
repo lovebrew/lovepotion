@@ -36,7 +36,9 @@ void Audio::PoolThread::SetFinish()
 Audio::Audio() : pool(nullptr),
                  poolThread(nullptr)
 {
-    if (!audrv.IsInitialized())
+    this->driver = std::make_unique<driver::Audrv>();
+
+    if (!this->driver->IsInitialized())
         throw love::Exception("Failed to open device.");
 
     try
@@ -59,6 +61,11 @@ Audio::~Audio()
 
     delete this->poolThread;
     delete this->pool;
+}
+
+std::unique_ptr<driver::Audrv> & Audio::GetDriver()
+{
+    return this->driver;
 }
 
 float Audio::GetVolume() const

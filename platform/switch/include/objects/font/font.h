@@ -94,7 +94,7 @@ namespace love
 
             Font(Rasterizer * r, const Texture::Filter & filter);
 
-            ~Font();
+            virtual ~Font();
 
             const Font::Glyph & FindGlyph(uint32_t glyph);
 

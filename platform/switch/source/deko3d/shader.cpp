@@ -44,15 +44,19 @@ void love::Shader::LoadDefaults(StandardShader type)
     switch (type)
     {
         case STANDARD_DEFAULT:
-            this->program.vertex.loadMemory(*dk3d.GetCode(), (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.vertex.loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
             this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
             break;
         case STANDARD_TEXTURE:
-            this->program.vertex.loadMemory(*dk3d.GetCode(), (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.vertex.loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
             this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
         default:
             break;
     }
+
+    std::string error;
+    if (!this->Validate(this->program.vertex, this->program.fragment, error))
+        throw love::Exception(error.c_str());
 }
 
 bool love::Shader::Validate(const CShader & vertex, const CShader & pixel, std::string & error)

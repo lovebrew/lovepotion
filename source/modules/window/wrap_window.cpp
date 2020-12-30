@@ -25,8 +25,6 @@ int Wrap_Window::GetFullscreenModes(lua_State * L)
         return 1;
     }
 
-    // We want to C index this. Max displays is 1
-    // because the 3DS has two displays
     display = std::clamp((int)display - 1, 0, (int)displaySizes.size() - 1);
 
     lua_createtable(L, 1, 0);

@@ -10,7 +10,8 @@ Window::Window() : open(false)
 {
     this->displaySizes =
     {
-        {1280, 720}
+        { 1920, 1080 },
+        { 1280, 720  }
     };
 }
 

@@ -20,7 +20,7 @@ namespace love::common
 
             Quad(double sw, double sh);
 
-            ~Quad();
+            virtual ~Quad();
 
             /* LOVE FUNCTIONS */
 

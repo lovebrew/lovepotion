@@ -62,10 +62,12 @@ APP_DESCRIPTION	:= LÖVE for 3DS
 ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS	:=	-g -Wall -mword-relocations \
-			-fomit-frame-pointer -ffunction-sections -DLOVE_POTION_CONSOLE="\"3DS\"" \
-			$(ARCH)
+			-fomit-frame-pointer -ffunction-sections $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -D__DEBUG__=$(DEBUG)
+
+# custom defines
+CFLAGS	+= -DLOVE_POTION_CONSOLE="\"3DS\""
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 

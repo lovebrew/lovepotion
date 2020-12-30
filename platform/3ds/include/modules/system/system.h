@@ -9,6 +9,8 @@ namespace love
     class System : public common::System
     {
         public:
+            virtual ~System() {}
+
             using common::System::GetPowerInfo;
 
             using common::System::GetNetworkInfo;

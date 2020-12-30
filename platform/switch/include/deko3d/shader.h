@@ -17,7 +17,7 @@ namespace love
 
             Shader(love::Data * vertex, love::Data * pixel);
 
-            ~Shader();
+            virtual ~Shader();
 
             enum StandardShader
             {

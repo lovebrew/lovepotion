@@ -23,6 +23,8 @@ namespace love
 
             Keyboard();
 
+            virtual ~Keyboard() {}
+
             std::string SetTextInput(const SwkbdOpt & options) override;
 
             static bool GetConstant(const char * in, KeyboardType & out);

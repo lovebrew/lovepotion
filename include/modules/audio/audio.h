@@ -6,7 +6,8 @@
 #include "modules/thread/types/threadable.h"
 #include "modules/audio/pool/pool.h"
 
-#include "driver/audrv.h"
+#include "driver/audiodrv.h"
+#include <memory>
 
 namespace love
 {
@@ -47,7 +48,11 @@ namespace love
 
             float GetVolume() const;
 
+            std::unique_ptr<driver::Audrv> & GetDriver();
+
         private:
+            std::unique_ptr<driver::Audrv> driver;
+
             Pool * pool;
 
             class PoolThread : public Threadable

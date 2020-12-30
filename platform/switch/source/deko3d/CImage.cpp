@@ -5,7 +5,6 @@
 #include "deko3d/CImage.h"
 
 #include "common/lmath.h"
-#include "common/logger.h"
 
 #include <cstdio>
 

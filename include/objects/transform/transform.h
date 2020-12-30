@@ -26,7 +26,7 @@ namespace love
 
             Transform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx, float ky);
 
-            ~Transform() = default;
+            virtual ~Transform() {};
 
             Transform * Clone();
 

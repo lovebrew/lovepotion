@@ -10,6 +10,8 @@ namespace love
         public:
             Quad(const Viewport & viewport, double sw, double sh);
 
+            virtual ~Quad() {}
+
             void Refresh(const Viewport & viewport, double sw, double sh) override;
 
             const Tex3DS_SubTexture & GetTex3DSViewport() const;

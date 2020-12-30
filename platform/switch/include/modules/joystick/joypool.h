@@ -12,6 +12,8 @@ namespace love
     class JoystickPool
     {
         public:
+            ~JoystickPool() {}
+
             bool IsRunning();
 
             bool FindGamepad(Gamepad * gamepad);
