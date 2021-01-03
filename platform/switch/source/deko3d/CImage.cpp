@@ -20,12 +20,13 @@
     memset(&image, 0, sizeof(image));
 
     image.version = PNG_IMAGE_VERSION;
+    image.format = PNG_FORMAT_RGBA;
+
     png_image_begin_read_from_memory(&image, buffer, size);
 
     if (PNG_IMAGE_FAILED(image))
         return nullptr;
 
-    image.format = PNG_FORMAT_RGBA;
 
     width  = image.width;
     height = image.height;
@@ -185,11 +186,10 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
 
     return true;
 }
-
+#include "common/debug/logger.h"
 bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                         const void * data, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
-    // Don't allow 0 sized data or nullptr data
     if (data == nullptr)
         return false;
 
@@ -204,7 +204,7 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
     if (!tempImageMemory)
         return false;
 
-    memcpy(tempImageMemory.getCpuAddr(), data, width * height * size);
+    memcpy(tempImageMemory.getCpuAddr(), data, size);
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -232,7 +232,7 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
     ** to the temporary image memory
     */
     dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1}, DkBlitFlag_FlipY);
+    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1}, 0);
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());

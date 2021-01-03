@@ -169,7 +169,7 @@ function love.arg.parseOptions()
         if game then -- then we have argv[1] -- file association game
             love.arg.parseOption(love.arg.options.game, game or 0)
         else -- enforce the game folder to be checked
-            love.arg.options.game.arg = {"./game"}
+            love.arg.options.game.arg = {"game"}
             love.arg.options.game.set = true
         end
     end
@@ -302,9 +302,17 @@ end
 local utf8 = require("utf8")
 local debug, print, error = debug, print, error
 
+local file = io.open("debug.txt", "w")
+local function debugging(str)
+    file:write(string.format("%s\n", str))
+    file:flush()
+end
+
 local function error_printer(msg, layer)
     local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
     trace = trace:gsub("\n[^\n]+$", "")
+
+    debugging(trace)
 
     print(trace)
 end
@@ -455,8 +463,10 @@ end
 love.errhand = love.errorhandler
 
 local no_game_code = false
-local invalid_game_path = nil
 local can_go_romfs = false
+local can_has_game = false
+
+local invalid_game_path = nil
 local entryType = nil
 
 function love.boot()
@@ -475,7 +485,7 @@ function love.boot()
         exepath = arg0
     end
 
-    local can_has_game = pcall(love.filesystem.setSource, exepath)
+    can_has_game = pcall(love.filesystem.setSource, exepath)
 
     -- It's a fused game, don't parse --game argument
     if can_has_game then
@@ -695,17 +705,13 @@ function love.init()
     end
 
     -- if we can enter a game, error at this point
-    if no_game_code then
-        error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the " .. entryType .. ".")
-    elseif invalid_game_path then
-        error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
+    if can_go_romfs or can_has_game then
+        if no_game_code then
+            error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the " .. entryType .. ".")
+        elseif invalid_game_path then
+            error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
+        end
     end
-end
-
-local file = io.open("debug.txt", "w")
-local function debugging(str)
-    file:write(string.format("%s\n", str))
-    file:flush()
 end
 
 function love.run()

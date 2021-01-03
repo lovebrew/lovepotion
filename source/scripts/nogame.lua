@@ -1701,7 +1701,7 @@ function love.nogame()
     end
 
     function Cloud:draw(screen, iod)
-        if screen and screen == "bottom" then
+        if is3DS and screen == "bottom" then
             return
         end
 
@@ -1740,7 +1740,7 @@ function love.nogame()
     end
 
     function Heart:draw(offset, screen, iod)
-        if screen and screen == "bottom" then
+        if is3DS and screen == "bottom" then
             return
         end
 
@@ -1780,7 +1780,7 @@ function love.nogame()
     end
 
     function Bottle:draw(screen, iod)
-        if screen and screen == "bottom" then
+        if is3DS and screen == "bottom" then
             love.graphics.setColor(1, 1, 1, 1)
             return love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
         end
@@ -1819,15 +1819,17 @@ function love.nogame()
     end
 
     function NoGame:draw(screen)
-        if screen and screen ~= "bottom" then
-            return
+        if is3DS then
+            if screen ~= "bottom" then
+                return
+            else
+                -- draw the "background"
+                love.graphics.setColor(0.933, 0.933, 0.933)
+                love.graphics.setBlendFactor(1)
+
+                love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+            end
         end
-
-        -- draw the "background"
-        love.graphics.setColor(0.933, 0.933, 0.933)
-        love.graphics.setBlendFactor(1)
-
-        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
         -- draw the text
 
@@ -1870,7 +1872,7 @@ function love.nogame()
         end
 
         love.graphics.setBackgroundColor(0.392, 0.710, 0.965)
-        local file = io.open("test.txt", "w")
+
         for key, value in pairs(resources[consoleKey]) do
             res[key] = love.graphics.newImage(value)
         end
@@ -1937,10 +1939,8 @@ function love.nogame()
     function love.gamepadpressed(joystick, button)
         if button == "start" then
             love.event.quit()
-        else
-            if joystick:isGamepadDown("leftshoulder", "rightshoulder") then
-                DEBUG = not DEBUG
-            end
+        elseif button == "back" then
+            DEBUG = not DEBUG
         end
     end
 end

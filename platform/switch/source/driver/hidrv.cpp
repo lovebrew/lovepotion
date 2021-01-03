@@ -128,7 +128,7 @@ bool Hidrv::Poll(LOVE_Event * event)
     if (!MODULE())
         return false;
 
-    if (this->currentPadIndex > 4)
+    if (this->currentPadIndex > 3)
         this->currentPadIndex = 0;
 
     Gamepad * gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
@@ -236,7 +236,11 @@ bool Hidrv::Poll(LOVE_Event * event)
                 newEvent.button.which  = gamepad->GetID();
                 newEvent.button.button = mapping.index;
             }
-            else if (this->buttonReleased & mapping.key)
+        }
+
+        for (auto & mapping : mappings)
+        {
+            if (this->buttonReleased & mapping.key)
             {
                 auto & newEvent = this->events.emplace_back();
 
@@ -320,7 +324,7 @@ bool Hidrv::Poll(LOVE_Event * event)
     *event = this->events.front();
     this->events.pop_front();
 
-    this->currentPadIndex++;
+    // this->currentPadIndex++;
 
     return this->hysteresis = true;
 }
