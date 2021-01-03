@@ -50,7 +50,7 @@ Hidrv::Hidrv() : sticks{},
 bool Hidrv::IsDown(size_t button)
 {
     size_t index = std::clamp((int)button - 1, 0, 9);
-    return this->buttonHeld & mappings[index].key;
+    return this->buttonStates.held & mappings[index].key;
 }
 
 void Hidrv::CheckFocus()
@@ -220,13 +220,14 @@ bool Hidrv::Poll(LOVE_Event * event)
     /* handle button inputs */
     if (gamepad && gamepad->IsConnected())
     {
-        this->buttonPressed  = padGetButtonsDown(&this->currentPad);
-        this->buttonReleased = padGetButtonsUp(&this->currentPad);
-        this->buttonHeld     = padGetButtons(&this->currentPad);
+        this->buttonStates.pressed  = padGetButtonsDown(&this->currentPad);
+        this->buttonStates.released = padGetButtonsUp(&this->currentPad);
+        this->buttonStates.held     = padGetButtons(&this->currentPad);
 
         for (auto & mapping : mappings)
         {
-            if (this->buttonPressed & mapping.key)
+            if (this->buttonStates.pressed != this->buttonStates.oldPressed &&
+               (this->buttonStates.pressed & mapping.key))
             {
                 auto & newEvent = this->events.emplace_back();
 
@@ -240,7 +241,8 @@ bool Hidrv::Poll(LOVE_Event * event)
 
         for (auto & mapping : mappings)
         {
-            if (this->buttonReleased & mapping.key)
+            if (this->buttonStates.released != this->buttonStates.oldReleased &&
+               (this->buttonStates.released & mapping.key))
             {
                 auto & newEvent = this->events.emplace_back();
 
@@ -253,7 +255,8 @@ bool Hidrv::Poll(LOVE_Event * event)
         }
 
         /* axes */
-        if ((this->buttonPressed & HidNpadButton_ZL) || (this->buttonReleased & HidNpadButton_ZL))
+        if ((this->buttonStates.pressed != this->buttonStates.oldPressed && (this->buttonStates.pressed & HidNpadButton_ZL)) ||
+            (this->buttonStates.released != this->buttonStates.oldReleased && (this->buttonStates.released & HidNpadButton_ZL)))
         {
             auto & newEvent = this->events.emplace_back();
 
@@ -263,11 +266,12 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.axis.axis  = "triggerleft";
             newEvent.axis.number = 3;
 
-            float value = (this->buttonPressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
+            float value = (this->buttonStates.pressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         }
 
-        if ((this->buttonPressed & HidNpadButton_ZR) || (this->buttonReleased & HidNpadButton_ZR))
+        if ((this->buttonStates.pressed != this->buttonStates.oldPressed && (this->buttonStates.pressed & HidNpadButton_ZR)) ||
+            (this->buttonStates.released != this->buttonStates.oldReleased && (this->buttonStates.released & HidNpadButton_ZR)))
         {
             auto & newEvent = this->events.emplace_back();
 
@@ -277,9 +281,12 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.axis.axis  = "triggerright";
             newEvent.axis.number = 6;
 
-            float value = (this->buttonPressed & KEY_ZR) ? 1.0f : 0.0f;
+            float value = (this->buttonStates.pressed & KEY_ZR) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         }
+
+        this->buttonStates.oldPressed  = this->buttonStates.pressed;
+        this->buttonStates.oldReleased = this->buttonStates.released;
 
         /* handle stick inputs */
         for (size_t index = 0; index < 2; index++)

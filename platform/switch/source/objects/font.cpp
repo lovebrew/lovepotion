@@ -619,7 +619,6 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
     for (const DrawCommand & cmd : drawCommands)
     {
         size_t vertexCount = cmd.vertexCount;
-
         std::vector<GlyphVertex> vertexData(vertexCount);
 
         memcpy(vertexData.data(), &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);

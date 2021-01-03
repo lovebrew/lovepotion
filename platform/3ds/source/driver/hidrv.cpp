@@ -67,13 +67,13 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     /* handle button inputs */
 
-    this->buttonPressed  = hidKeysDown();
-    this->buttonReleased = hidKeysUp();
-    this->buttonHeld     = hidKeysHeld();
+    this->buttonStates.pressed  = hidKeysDown();
+    this->buttonStates.released = hidKeysUp();
+    this->buttonStates.held     = hidKeysHeld();
 
     for (auto & mapping : mappings)
     {
-        if (this->buttonPressed & mapping.key)
+        if (this->buttonStates.pressed & mapping.key)
         {
             this->LockFunction([&]() {
                 auto & newEvent = this->events.emplace_back();
@@ -85,7 +85,7 @@ bool Hidrv::Poll(LOVE_Event * event)
                 newEvent.button.button = mapping.index;
             });
         }
-        else if (this->buttonReleased & mapping.key)
+        else if (this->buttonStates.released & mapping.key)
         {
             this->LockFunction([&]() {
                 auto & newEvent = this->events.emplace_back();
@@ -103,7 +103,7 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     hidTouchRead(&this->touchState);
 
-    if (!this->touchHeld && (this->buttonPressed & KEY_TOUCH))
+    if (!this->touchHeld && (this->buttonStates.pressed & KEY_TOUCH))
     {
         this->LockFunction([&]() {
             auto & newEvent = this->events.emplace_back();
@@ -121,7 +121,7 @@ bool Hidrv::Poll(LOVE_Event * event)
         this->oldTouchState = this->touchState;
     }
 
-    if (this->buttonHeld & KEY_TOUCH)
+    if (this->buttonStates.held & KEY_TOUCH)
     {
         float dx = this->oldTouchState.px - this->touchState.px;
         float dy = this->oldTouchState.py - this->touchState.py;
@@ -145,7 +145,7 @@ bool Hidrv::Poll(LOVE_Event * event)
         }
     }
 
-    if (this->buttonReleased & KEY_TOUCH)
+    if (this->buttonStates.released & KEY_TOUCH)
     {
         this->LockFunction([&]() {
             auto & newEvent = this->events.emplace_back();
@@ -165,7 +165,7 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     /* axes */
 
-    if ((this->buttonPressed & KEY_ZL) || (this->buttonReleased & KEY_ZL))
+    if ((this->buttonStates.pressed & KEY_ZL) || (this->buttonStates.released & KEY_ZL))
     {
         this->LockFunction([&]() {
             auto & newEvent = this->events.emplace_back();
@@ -176,12 +176,12 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.axis.axis  = "triggerleft";
             newEvent.axis.number = 3;
 
-            float value = (this->buttonPressed & KEY_ZL) ? 1.0f : 0.0f;
+            float value = (this->buttonStates.pressed & KEY_ZL) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         });
     }
 
-    if ((this->buttonPressed & KEY_ZR) || (this->buttonReleased & KEY_ZR))
+    if ((this->buttonStates.pressed & KEY_ZR) || (this->buttonStates.released & KEY_ZR))
     {
         this->LockFunction([&]() {
             auto & newEvent = this->events.emplace_back();
@@ -192,7 +192,7 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.axis.axis  = "triggerright";
             newEvent.axis.number = 6;
 
-            float value = (this->buttonPressed & KEY_ZR) ? 1.0f : 0.0f;
+            float value = (this->buttonStates.pressed & KEY_ZR) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         });
     }

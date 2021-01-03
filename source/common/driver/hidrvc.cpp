@@ -4,24 +4,22 @@ using namespace love::common::driver;
 
 Hidrv::Hidrv() : hysteresis(false),
                  events(),
-                 buttonPressed(0),
-                 buttonReleased(0),
-                 buttonHeld(0)
+                 buttonStates()
 {}
 
 uint64_t Hidrv::GetButtonPressed()
 {
-    return this->buttonPressed;
+    return this->buttonStates.pressed;
 }
 
 uint64_t Hidrv::GetButtonReleased()
 {
-    return this->buttonReleased;
+    return this->buttonStates.released;
 }
 
 uint64_t Hidrv::GetButtonHeld()
 {
-    return this->buttonHeld;
+    return this->buttonStates.held;
 }
 
 void Hidrv::SendFocus(bool focus)

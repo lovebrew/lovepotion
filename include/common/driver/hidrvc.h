@@ -127,9 +127,17 @@ namespace love::common::driver
             bool hysteresis;
             std::list<LOVE_Event> events;
 
-            uint64_t buttonPressed;
-            uint64_t buttonReleased;
-            uint64_t buttonHeld;
+            struct ButtonState
+            {
+                uint64_t oldPressed;
+                uint64_t pressed;
+
+                uint64_t oldReleased;
+                uint64_t released;
+
+                uint64_t oldHeld;
+                uint64_t held;
+            } buttonStates;
 
             virtual void Lock() {};
 

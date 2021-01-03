@@ -15,6 +15,7 @@ deko3d::deko3d() : firstVertex(0),
     ** Unique -- destroys automatically
     */
     this->device = dk::DeviceMaker{}
+                        .setFlags(DkDeviceFlags_DepthMinusOneToOne)
                         .create();
 
     /*
