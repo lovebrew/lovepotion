@@ -2,7 +2,12 @@
 
 #include "deko3d/vertex.h"
 
-deko3d::deko3d() : firstVertex(0)
+deko3d::deko3d() : firstVertex(0),
+                   renderState(STATE_MAX_ENUM),
+                   pool(),
+                   state(),
+                   framebuffers(),
+                   depthBuffer()
 {
     /*
     ** Create GPU device
@@ -24,16 +29,22 @@ deko3d::deko3d() : firstVertex(0)
                             .setFlags(DkQueueFlags_Graphics)
                             .create();
 
-    // Create GPU & CPU Memory Pools
+    /* Create GPU & CPU Memory Pools */
     auto gpuFlags = (DkMemBlockFlags_GpuCached   | DkMemBlockFlags_Image    );
     auto cpuFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
 
     this->pool.images.emplace(this->device, gpuFlags, 64 * 1024 * 1024);
     this->pool.data.emplace(this->device,   cpuFlags, 1  * 1024 * 1024);
 
-    // Used for Shader code
+    /* Used for Shader code */
     auto shaderFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code);
     this->pool.code.emplace(this->device, shaderFlags, 128 * 1024);
+
+    this->transformUniformBuffer = this->pool.data->allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
+    this->transformState.mdlvMtx = glm::mat4(1.0f);
+
+    this->descriptors.image.allocate(*this->pool.data);
+    this->descriptors.sampler.allocate(*this->pool.data);
 
     // Create the dynamic command buffer
     this->cmdBuf = dk::CmdBufMaker{this->device}
@@ -42,21 +53,11 @@ deko3d::deko3d() : firstVertex(0)
     this->cmdRing.allocate(*this->pool.data, COMMAND_SIZE);
     this->vtxRing.allocate(*this->pool.data, VERTEX_COMMAND_SIZE / 2);
 
-    this->state.color.setBlendEnable(0, true);
-
-    this->CreateResources();
-
-    this->transformState.mdlvMtx = glm::mat4(1.0f);
-
-    this->EnsureInFrame();
-
-    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
-                               this->transformUniformBuffer.getSize(), offsetof(Transformation, mdlvMtx),
-                               sizeof(transformState.mdlvMtx), &transformState.mdlvMtx);
-
     this->state.depthStencil.setDepthTestEnable(true);
     this->state.depthStencil.setDepthWriteEnable(true);
     this->state.depthStencil.setDepthCompareOp(DkCompareOp_Greater);
+
+    this->state.color.setBlendEnable(0, true);
 
     love::Texture::Filter filter;
     filter.min = filter.mag = love::Texture::FILTER_NEAREST;
@@ -66,11 +67,63 @@ deko3d::deko3d() : firstVertex(0)
     wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
     this->SetTextureWrap(wrap);
 
+    this->EnsureInFrame();
+
     this->descriptors.image.bindForImages(this->cmdBuf);
     this->descriptors.sampler.bindForSamplers(this->cmdBuf);
+
+    this->CreateResources();
 }
 
 deko3d::~deko3d()
+{
+    this->DestroyResources();
+}
+
+
+void deko3d::CreateResources()
+{
+    /* initialize depth buffer */
+
+    dk::ImageLayout layout_depthbuffer;
+    dk::ImageLayoutMaker{device}
+        .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
+        .setFormat(DkImageFormat_Z24S8)
+        .setDimensions(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT)
+        .initialize(layout_depthbuffer);
+
+    this->depthBuffer.memory = this->pool.images->allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
+    this->depthBuffer.image.initialize(layout_depthbuffer, this->depthBuffer.memory.getMemBlock(), this->depthBuffer.memory.getOffset());
+
+    /* Create a layout for the normal framebuffers */
+    auto layoutFlags = (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
+
+    dk::ImageLayoutMaker {this->device}
+        .setFlags(layoutFlags)
+        .setFormat(DkImageFormat_RGBA8_Unorm)
+        .setDimensions(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT)
+        .initialize(this->layoutFramebuffer);
+
+    uint64_t framebufferSize  = this->layoutFramebuffer.getSize();
+    uint32_t framebufferAlign = this->layoutFramebuffer.getAlignment();
+
+    for (unsigned i = 0; i < MAX_FRAMEBUFFERS; i++)
+    {
+        // Allocate a framebuffer
+        this->framebuffers.memory[i] = this->pool.images->allocate(framebufferSize, framebufferAlign);
+        this->framebuffers.images[i].initialize(this->layoutFramebuffer,
+                                                this->framebuffers.memory[i].getMemBlock(),
+                                                this->framebuffers.memory[i].getOffset());
+
+        // Fill in the array for use later by the swapchain creation code
+        this->framebufferArray[i] = &this->framebuffers.images[i];
+    }
+
+    // Create the swapchain using the framebuffers
+    this->swapchain = dk::SwapchainMaker{this->device, nwindowGetDefault(), this->framebufferArray}.create();
+}
+
+void deko3d::DestroyResources()
 {
     // Return early if we have nothing to destroy
     if (!this->swapchain)
@@ -98,55 +151,6 @@ deko3d::~deko3d()
     this->pool.code.reset();
     this->pool.data.reset();
     this->pool.images.reset();
-}
-
-
-void deko3d::CreateResources()
-{
-    dk::ImageLayout layout_depthbuffer;
-    dk::ImageLayoutMaker{device}
-        .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
-        .setFormat(DkImageFormat_Z24S8)
-        .setDimensions(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT)
-        .initialize(layout_depthbuffer);
-
-    // Create the depth buffer
-    this->depthBuffer.memory = this->pool.images->allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
-    this->depthBuffer.image.initialize(layout_depthbuffer, this->depthBuffer.memory.getMemBlock(), this->depthBuffer.memory.getOffset());
-
-    // Create a layout for the framebuffers
-    auto layoutFlags = (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
-
-    dk::ImageLayoutMaker {this->device}
-        .setFlags(layoutFlags)
-        .setFormat(DkImageFormat_RGBA8_Unorm)
-        .setDimensions(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT)
-        .initialize(this->layoutFramebuffer);
-
-    uint64_t framebufferSize  = this->layoutFramebuffer.getSize();
-    uint32_t framebufferAlign = this->layoutFramebuffer.getAlignment();
-
-    for (unsigned i = 0; i < MAX_FRAMEBUFFERS; i++)
-    {
-        // Allocate a framebuffer
-        this->framebuffers.memory[i] = this->pool.images->allocate(framebufferSize, framebufferAlign);
-        this->framebuffers.images[i].initialize(this->layoutFramebuffer,
-                                                this->framebuffers.memory[i].getMemBlock(),
-                                                this->framebuffers.memory[i].getOffset());
-
-        // Fill in the array for use later by the swapchain creation code
-        this->framebufferArray[i] = &this->framebuffers.images[i];
-    }
-
-    // Create the swapchain using the framebuffers
-    this->swapchain = dk::SwapchainMaker{this->device,
-                                         nwindowGetDefault(),
-                                         this->framebufferArray}.create();
-
-    this->transformUniformBuffer = this->pool.data->allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
-
-    this->descriptors.image.allocate(*this->pool.data);
-    this->descriptors.sampler.allocate(*this->pool.data);
 }
 
 // Ensure we have begun our frame
@@ -213,22 +217,6 @@ void deko3d::ClearDepthStencil(double depth, int stencil)
     // this->cmdBuf.clearDepthStencil(true, depth, 0xFF, stencil);
 }
 
-void deko3d::BeginFrame()
-{
-    std::pair<void *, DkGpuAddr> data = this->vtxRing.begin();
-
-    this->vertexData = (vertex::Vertex *)data.first;
-
-    this->cmdBuf.bindRasterizerState(this->state.rasterizer);
-    this->cmdBuf.bindColorState(this->state.color);
-    this->cmdBuf.bindColorWriteState(this->state.colorWrite);
-    this->cmdBuf.bindBlendStates(0, this->state.blendState);
-    // this->cmdBuf.bindDepthStencilState(this->state.depthStencil);
-
-    // Bind the current slice's GPU address to the buffer
-    this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
-}
-
 dk::Queue deko3d::GetTextureQueue()
 {
     return this->textureQueue;
@@ -270,7 +258,8 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
 {
     this->EnsureInFrame();
 
-    this->SetDekoBarrier(DkBarrier_Fragments, 0);
+    if (this->framebuffers.dirty)
+        this->SetDekoBarrier(DkBarrier_Fragments, 0);
 
     if (canvas != nullptr)
     {
@@ -278,9 +267,12 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
         this->SetViewport({0, 0, canvas->GetWidth(), canvas->GetHeight()});
 
         this->cmdBuf.bindRenderTargets(&target);
+        this->framebuffers.dirty = true;
     }
     else
     {
+        this->framebuffers.dirty = false;
+
         this->EnsureHasSlot();
 
         dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
@@ -292,10 +284,26 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
     }
 
     this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
-                               this->transformUniformBuffer.getSize(), offsetof(Transformation, projMtx),
-                               sizeof(transformState.projMtx), &transformState.projMtx);
+                               this->transformUniformBuffer.getSize(), 0,
+                               sizeof(transformState), &transformState);
 
     this->BeginFrame();
+}
+
+void deko3d::BeginFrame()
+{
+    std::pair<void *, DkGpuAddr> data = this->vtxRing.begin();
+
+    this->vertexData = (vertex::Vertex *)data.first;
+
+    this->cmdBuf.bindRasterizerState(this->state.rasterizer);
+    this->cmdBuf.bindColorState(this->state.color);
+    this->cmdBuf.bindColorWriteState(this->state.colorWrite);
+    this->cmdBuf.bindBlendStates(0, this->state.blendState);
+    // this->cmdBuf.bindDepthStencilState(this->state.depthStencil);
+
+    // Bind the current slice's GPU address to the buffer
+    this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
 }
 
 /*
@@ -305,13 +313,8 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
 */
 void deko3d::Present()
 {
-    // Now that we are done rendering, present it to the screen
     if (this->framebuffers.inFrame)
     {
-        // this->cmdBuf.barrier(DkBarrier_Fragments, 0);
-        // this->cmdBuf.discardDepthStencil();
-
-        // Run the main rendering command list
         this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
 
@@ -513,7 +516,7 @@ void deko3d::UseProgram(const love::Shader::Program & program)
 {
     this->EnsureInFrame();
 
-    this->cmdBuf.bindShaders(DkStageFlag_GraphicsMask, {program.vertex, program.fragment});
+    this->cmdBuf.bindShaders(DkStageFlag_GraphicsMask, {*program.vertex, *program.fragment});
     this->cmdBuf.bindUniformBuffer(DkStage_Vertex, 0, this->transformUniformBuffer.getGpuAddr(), this->transformUniformBuffer.getSize());
 }
 

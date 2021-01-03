@@ -7,14 +7,14 @@ using namespace love;
 
 #define instance() (Module::GetInstance<love::Event>(Module::M_EVENT))
 
-int Wrap_Event::Poll_I(lua_State * L)
+static int Poll_I(lua_State * L)
 {
     Message * message = nullptr;
 
     if (instance()->Poll(message))
     {
         int args = message->ToLua(L);
-        delete message;
+        message->Release();
 
         return args;
     }
@@ -50,7 +50,7 @@ int Wrap_Event::Push(lua_State * L)
 
     lua_pushboolean(L, message.Get() != nullptr);
 
-    if (message.Get() != nullptr)
+    if (message.Get() == nullptr)
         return 1;
 
     instance()->Push(message);

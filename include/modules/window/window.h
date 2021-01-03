@@ -7,9 +7,15 @@ namespace love
     class Window : public Module
     {
         public:
+            struct DisplaySize
+            {
+                int width;
+                int height;
+            };
+
             Window();
 
-            ~Window();
+            virtual ~Window();
 
             ModuleType GetModuleType() const { return M_WINDOW; }
 
@@ -19,7 +25,7 @@ namespace love
 
             int GetDisplayCount();
 
-            std::vector<std::pair<int, int>> & GetFullscreenModes();
+            const std::array<DisplaySize, 2> & GetFullscreenModes();
 
             bool IsOpen();
 
@@ -32,7 +38,6 @@ namespace love
             void OnSizeChanged(int width, int height);
 
         private:
-            std::vector<std::pair<int, int>> displaySizes;
             StrongReference<Graphics> graphics;
 
             bool open;

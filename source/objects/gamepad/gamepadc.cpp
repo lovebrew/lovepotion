@@ -20,6 +20,21 @@ float Gamepad::ClampValue(float x)
     return x;
 }
 
+std::string Gamepad::GetGUID() const
+{
+    return this->guid;
+}
+
+size_t Gamepad::GetInstanceID() const
+{
+    return this->instanceID;
+}
+
+size_t Gamepad::GetID() const
+{
+    return this->id;
+}
+
 bool Gamepad::IsGamepad() const
 {
     return true;

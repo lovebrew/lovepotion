@@ -4,13 +4,15 @@ using namespace love::common;
 
 //Löve2D Functions
 
-#define SLEEP_ULL 1000000ULL
+static constexpr auto SLEEP_DURATION = 1000000ULL;
 
 #if defined (_3DS)
     #include <3ds.h>
 #elif defined (__SWITCH__)
     #include <switch.h>
 #endif
+
+uint64_t Timer::reference = 0;
 
 Timer::Timer() : currentTime(0),
                  prevFPSUpdate(0),
@@ -45,8 +47,8 @@ void Timer::Sleep(float seconds)
     if (seconds >= 0)
     {
         u32 milliseconds = seconds * 1000.0f;
+        u64 nanoSeconds = milliseconds * SLEEP_DURATION;
 
-        u64 nanoSeconds = milliseconds * SLEEP_ULL;
         svcSleepThread(nanoSeconds);
     }
 }

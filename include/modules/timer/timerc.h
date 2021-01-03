@@ -46,5 +46,7 @@ namespace love::common
             int frames;
 
             double dt;
+
+            static uint64_t reference;
     };
 }

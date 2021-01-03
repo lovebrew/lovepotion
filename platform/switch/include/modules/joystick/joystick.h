@@ -3,7 +3,7 @@
 #include "modules/joystick/joystickc.h"
 #include "modules/thread/types/threadable.h"
 
-#include "modules/joystick/joypool.h"
+#include "pools/vibration.h"
 
 namespace love
 {
@@ -16,29 +16,26 @@ namespace love
 
             bool AddVibration(Gamepad * gamepad, size_t id);
 
-            static std::atomic<bool> threadFinished;
-            static thread::Mutex mutex;
-
         private:
-            class PoolThread : public Threadable
+            class VibrationThread : public Threadable
             {
                 public:
-                    PoolThread(JoystickPool * pool);
+                    VibrationThread(VibrationPool * pool);
 
-                    virtual ~PoolThread();
+                    virtual ~VibrationThread();
 
                     void SetFinish();
 
                     void ThreadFunction();
 
                 protected:
-                    JoystickPool * pool;
+                    VibrationPool * pool;
                     std::atomic<bool> finish;
             };
 
             std::vector<Gamepad *> vibrations;
 
-            JoystickPool * pool;
-            PoolThread * poolThread;
+            VibrationPool * pool;
+            VibrationThread * poolThread;
     };
 }

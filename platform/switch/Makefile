@@ -48,15 +48,17 @@ SOURCES		:=	${LOVE_SOURCES} \
 				${CONSOLE_SOURCES}
 
 DATA		:=	${LOVE_DATA_FILES} \
-				scripts
+				shaders
 
 INCLUDES	:=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
 				${CONSOLE_INCLUDE}
 
-
 APP_TITLEID		:= 1043
-#ROMFS	:=	romfs
+
+SHADERS			:= $(wildcard shaders/*.glsl)
+OUT_SHADERS		:= $(patsubst %.glsl,%.dksh,$(SHADERS))
+export SHADER_DEPS := $(foreach file,$(OUT_SHADERS),$(CURDIR)/$(file))
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -182,10 +184,22 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(OUT_SHADERS) $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(OUT_SHADERS) $(BUILD)
+
+#---------------------------------------------------------------------------------
+# shaders
+#---------------------------------------------------------------------------------
+shaders/%_vsh.dksh : %_vsh.glsl
+	@echo {vert} $(notdir $<)
+	@uam -s vert -o $@ $<
+#---------------------------------------------------------------------------------
+shaders/%_fsh.dksh : %_fsh.glsl
+	@echo {frag} $(notdir $<)
+	@uam -s frag -o $@ $<
+#---------------------------------------------------------------------------------
 
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
@@ -197,7 +211,7 @@ clean:
 ifeq ($(strip $(APP_JSON)),)
 	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 else
-	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf
+	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf shaders/*.dksh
 endif
 
 
@@ -237,15 +251,16 @@ $(OFILES_SRC)	: $(HFILES_BIN)
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
 #---------------------------------------------------------------------------------
-%.bin.o: %.bin
+%.bin.o	%_bin.h :	%.bin
+#---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
 #---------------------------------------------------------------------------------
-%.lua.o: %.lua
+%.lua.o %_lua.h : %.lua
 	@echo $(notdir $<)
 	@$(bin2o)
 #---------------------------------------------------------------------------------
-%.dksh.o: %.dksh
+%.dksh.o %_dksh.h : %.dksh
 	@echo $(notdir $<)
 	@$(bin2o)
 

@@ -5,15 +5,16 @@ using namespace love;
 #include "deko3d/deko.h"
 #include "common/exception.h"
 
-Window::Window() : open(false)
-
+static constexpr std::array<Window::DisplaySize, 2> displaySizes =
 {
-    this->displaySizes =
     {
         { 1920, 1080 },
         { 1280, 720  }
-    };
-}
+    }
+};
+
+Window::Window() : open(false)
+{}
 
 Window::~Window()
 {
@@ -41,9 +42,9 @@ void Window::OnSizeChanged(int width, int height)
     dk3d.SetViewport(newViewport);
 }
 
-std::vector<std::pair<int, int>> & Window::GetFullscreenModes()
+const std::array<Window::DisplaySize, 2> & Window::GetFullscreenModes()
 {
-    return this->displaySizes;
+    return displaySizes;
 }
 
 int Window::GetDisplayCount()

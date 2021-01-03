@@ -168,7 +168,7 @@ namespace love
 
             Graphics();
 
-            ~Graphics();
+            virtual ~Graphics();
 
             ModuleType GetModuleType() const { return M_GRAPHICS; }
 

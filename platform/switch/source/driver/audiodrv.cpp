@@ -3,8 +3,7 @@
 
 using namespace love::driver;
 
-Audrv::Audrv() : audioInitialized(false),
-                 driver{}
+Audrv::Audrv() : audioInitialized(false)
 {
     static const AudioRendererConfig config =
     {
@@ -55,9 +54,5 @@ Audrv::~Audrv()
 void Audrv::Update()
 {
     thread::Lock lock(this->mutex);
-
-    if (!this->initialized)
-        return;
-
     audrvUpdate(&this->driver);
 }

@@ -33,10 +33,10 @@ int Wrap_Window::GetFullscreenModes(lua_State * L)
     lua_createtable(L, 0, 2);
 
     //Inner table attributes
-    lua_pushnumber(L, displaySizes[display].first);
+    lua_pushnumber(L, displaySizes[display].width);
     lua_setfield(L, -2, "width");
 
-    lua_pushnumber(L, displaySizes[display].second);
+    lua_pushnumber(L, displaySizes[display].height);
     lua_setfield(L, -2, "height");
     //End table attributes
 

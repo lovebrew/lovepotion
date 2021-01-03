@@ -1,20 +1,20 @@
-#include "modules/joystick/joypool.h"
+#include "pools/vibration.h"
 
 #include "modules/timer/timer.h"
 
 using namespace love;
 
-bool JoystickPool::IsRunning()
+bool VibrationPool::IsRunning()
 {
     return this->running;
 }
 
-void JoystickPool::Finish()
+void VibrationPool::Finish()
 {
     this->running = false;
 }
 
-bool JoystickPool::FindGamepad(Gamepad * gamepad)
+bool VibrationPool::FindGamepad(Gamepad * gamepad)
 {
     auto iterator = this->vibrating.find(gamepad);
 
@@ -24,7 +24,7 @@ bool JoystickPool::FindGamepad(Gamepad * gamepad)
     return true;
 }
 
-bool JoystickPool::ReleaseGamepad(Gamepad * gamepad, bool stop)
+bool VibrationPool::ReleaseGamepad(Gamepad * gamepad, bool stop)
 {
     if (this->FindGamepad(gamepad))
     {
@@ -40,7 +40,7 @@ bool JoystickPool::ReleaseGamepad(Gamepad * gamepad, bool stop)
     return false;
 }
 
-bool JoystickPool::AssignGamepad(Gamepad * gamepad, size_t id)
+bool VibrationPool::AssignGamepad(Gamepad * gamepad, size_t id)
 {
     this->vibrating.insert(std::make_pair(gamepad, id));
     gamepad->Retain();
@@ -48,7 +48,7 @@ bool JoystickPool::AssignGamepad(Gamepad * gamepad, size_t id)
     return true;
 }
 
-void JoystickPool::Update()
+void VibrationPool::Update()
 {
     thread::Lock lock(this->mutex);
 
@@ -64,7 +64,7 @@ void JoystickPool::Update()
         this->ReleaseGamepad(gamepad);
 }
 
-thread::Lock JoystickPool::Lock()
+thread::Lock VibrationPool::Lock()
 {
     return thread::Lock(this->mutex);
 }

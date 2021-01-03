@@ -103,6 +103,8 @@ namespace love::common::driver
                 TYPE_QUIT
             };
 
+            Hidrv();
+
             uint64_t GetButtonPressed();
 
             uint64_t GetButtonReleased();
@@ -113,22 +115,34 @@ namespace love::common::driver
 
             virtual bool IsDown(size_t button) = 0;
 
-            void SendFocus(const bool focus);
+            void SendFocus(bool focus);
 
             void SendQuit();
 
             void SendLowMemory();
 
-            void SendResize(const int width, const int height);
+            void SendResize(int width, int height);
 
         protected:
             bool hysteresis;
             std::list<LOVE_Event> events;
 
-            love::thread::MutexRef mutex;
-
             uint64_t buttonPressed;
             uint64_t buttonReleased;
             uint64_t buttonHeld;
+
+            virtual void Lock() {};
+
+            virtual void Unlock() {};
+
+        private:
+            template <typename T>
+            void LockFunction(const T & func)
+            {
+                this->Lock();
+                func();
+                this->Unlock();
+            }
+
     };
 }

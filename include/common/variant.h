@@ -73,7 +73,7 @@ namespace love
                 NIL
             };
 
-            Variant() : variant(std::monostate{}) {}
+            Variant() : variant(Nil()) {}
 
             Variant(std::monostate v) : variant(v) {}
 
@@ -91,7 +91,7 @@ namespace love
 
             Variant(love::Type * type, Object * object);
 
-            Variant(const Nil & v) : variant(v) {}
+            Variant(Variant::Nil v) : variant(v) {}
 
             Variant(const Variant & v);
 

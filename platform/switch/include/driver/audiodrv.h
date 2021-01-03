@@ -33,7 +33,7 @@ namespace love::driver
             }
 
         private:
-            thread::Mutex mutex;
+            thread::MutexRef mutex;
 
             bool audioInitialized;
             AudioDriver driver;

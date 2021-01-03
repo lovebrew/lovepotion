@@ -2,6 +2,9 @@
 
 #include "common/driver/hidrvc.h"
 
+/*
+** HID backend class for Nintendo 3DS
+*/
 namespace love::driver
 {
     class Hidrv : public common::driver::Hidrv
@@ -13,7 +16,14 @@ namespace love::driver
 
             bool IsDown(size_t button) override;
 
+        protected:
+            void Lock() override;
+
+            void Unlock() override;
+
         private:
+            love::thread::Mutex mutex;
+
             circlePosition sticks[2];
             circlePosition oldSticks[2];
 

@@ -121,11 +121,11 @@ namespace love::common
 
             virtual bool IsGamepadDown(const std::vector<GamepadButton> & buttons) const = 0;
 
-            virtual std::string GetGUID() const = 0;
+            std::string GetGUID() const;
 
-            virtual size_t GetInstanceID() const = 0;
+            size_t GetInstanceID() const;
 
-            virtual size_t GetID() const = 0;
+            size_t GetID() const;
 
             virtual bool IsVibrationSupported() = 0;
 

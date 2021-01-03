@@ -75,7 +75,7 @@ int Wrap_ThreadModule::GetChannel(lua_State * L)
 
 int Wrap_ThreadModule::Register(lua_State * L)
 {
-    luaL_reg reg[] =
+    luaL_Reg reg[] =
     {
         { "newThread",  NewThread  },
         { "newChannel", NewChannel },

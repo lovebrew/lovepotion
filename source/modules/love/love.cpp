@@ -120,6 +120,8 @@ int Love::Initialize(lua_State * L)
 
 int Love::EnableAccelerometerAsJoystick(lua_State * L)
 {
+    bool enable = lua_toboolean(L, 1);
+
     return 0;
 }
 

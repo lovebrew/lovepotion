@@ -2,32 +2,32 @@
 
 #include "deko3d/deko.h"
 
-#include "s_vsh_dksh.h" // Vertex Shader
-#include "s_fsh_dksh.h" // Default Fragment Shader
-#include "t_fsh_dksh.h" // Texture Fragment Shader
+#include "s_vsh_dksh.h" //< Vertex Shader
+#include "s_fsh_dksh.h" //< Default Fragment Shader
+#include "t_fsh_dksh.h" //< Texture Fragment Shader
 
 using namespace love;
 
-love::Type love::Shader::type("Shader", &love::Object::type);
+Type love::Shader::type("Shader", &love::Object::type);
 
-love::Shader * love::Shader::current = nullptr;
-love::Shader * love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = {nullptr};
+Shader * love::Shader::current = nullptr;
+Shader * love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = {nullptr};
 
-love::Shader::Shader() : program()
+Shader::Shader() : program()
 {}
 
-love::Shader::Shader(Data * vertex, Data * pixel) : program()
+Shader::Shader(Data * vertex, Data * pixel) : program()
 {
     std::string error;
 
-    this->program.vertex.loadMemory(*dk3d.GetCode(), vertex->GetData(), vertex->GetSize());
-    this->program.fragment.loadMemory(*dk3d.GetCode(), pixel->GetData(), pixel->GetSize());
+    this->program.vertex->loadMemory(*dk3d.GetCode(), vertex->GetData(), vertex->GetSize());
+    this->program.fragment->loadMemory(*dk3d.GetCode(), pixel->GetData(), pixel->GetSize());
 
-    if (!this->Validate(this->program.vertex, this->program.fragment, error))
+    if (!this->Validate(*this->program.vertex, *this->program.fragment, error))
         throw love::Exception(error.c_str());
 }
 
-love::Shader::~Shader()
+Shader::~Shader()
 {
     for (int i = 0; i < STANDARD_MAX_ENUM; i++)
     {
@@ -39,27 +39,43 @@ love::Shader::~Shader()
         Shader::AttachDefault(STANDARD_DEFAULT);
 }
 
-void love::Shader::LoadDefaults(StandardShader type)
+void Shader::LoadDefaults(StandardShader type)
 {
     switch (type)
     {
         case STANDARD_DEFAULT:
-            this->program.vertex.loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
-            this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
+            this->program.vertex->loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.fragment->loadMemory(*dk3d.GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
             break;
         case STANDARD_TEXTURE:
-            this->program.vertex.loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
-            this->program.fragment.loadMemory(*dk3d.GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
+            this->program.vertex->loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.fragment->loadMemory(*dk3d.GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
+            break;
         default:
             break;
     }
 
     std::string error;
-    if (!this->Validate(this->program.vertex, this->program.fragment, error))
+    if (!this->Validate(*this->program.vertex, *this->program.fragment, error))
         throw love::Exception(error.c_str());
 }
 
-bool love::Shader::Validate(const CShader & vertex, const CShader & pixel, std::string & error)
+const char * Shader::GetStageName(CShader & shader)
+{
+    switch (shader.getStage())
+    {
+        case DkStage::DkStage_Vertex:
+            return "Vertex";
+        case DkStage::DkStage_Fragment:
+            return "Fragment";
+        default:
+            break;
+    }
+
+    return NULL;
+}
+
+bool Shader::Validate(const CShader & vertex, const CShader & pixel, std::string & error)
 {
     if (!vertex.isValid())
     {
@@ -76,7 +92,7 @@ bool love::Shader::Validate(const CShader & vertex, const CShader & pixel, std::
     return true;
 }
 
-void love::Shader::AttachDefault(StandardShader defaultType)
+void Shader::AttachDefault(StandardShader defaultType)
 {
     Shader * defaultshader = standardShaders[defaultType];
 
@@ -90,7 +106,7 @@ void love::Shader::AttachDefault(StandardShader defaultType)
         defaultshader->Attach();
 }
 
-bool love::Shader::IsDefaultActive()
+bool Shader::IsDefaultActive()
 {
     for (int i = 0; i < STANDARD_MAX_ENUM; i++)
     {
@@ -101,7 +117,7 @@ bool love::Shader::IsDefaultActive()
     return false;
 }
 
-void love::Shader::Attach()
+void Shader::Attach()
 {
     if (Shader::current != this)
     {
@@ -110,3 +126,21 @@ void love::Shader::Attach()
         Shader::current = this;
     }
 }
+
+bool Shader::GetConstant(const char * in, StandardShader & out)
+{
+    return shaderNames.Find(in, out);
+}
+
+bool Shader::GetConstant(StandardShader in, const char *& out)
+{
+    return shaderNames.Find(in, out);
+}
+
+StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry Shader::shaderEntries[] =
+{
+    { "default", STANDARD_DEFAULT },
+    { "texture", STANDARD_TEXTURE }
+};
+
+StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(Shader::shaderEntries, sizeof(Shader::shaderEntries));

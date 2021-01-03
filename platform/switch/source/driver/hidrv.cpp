@@ -36,10 +36,13 @@ static constexpr std::array<Hidrv::ButtonMapping, 16> mappings =
     }
 };
 
+#include "common/debug/logger.h"
+
 Hidrv::Hidrv() : sticks{},
                  oldSticks{},
                  touchState{},
                  oldStateTouches{},
+                 currentPad{},
                  currentPadIndex(0),
                  prevTouchCount(0)
 {}
@@ -71,15 +74,16 @@ void Hidrv::CheckFocus()
         {
             case AppletMessage_FocusStateChanged:
             {
+
                 bool oldFocus = focused;
                 AppletFocusState state = appletGetFocusState();
 
                 focused = (state == AppletFocusState_InFocus);
 
+                this->SendFocus(focused);
+
                 if (focused == oldFocus)
                     break;
-
-                this->SendFocus(focused);
 
                 if (focused)
                     appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
@@ -118,8 +122,14 @@ bool Hidrv::Poll(LOVE_Event * event)
     if (this->hysteresis)
         return this->hysteresis = false;
 
+    /* applet focus handling */
+    this->CheckFocus();
+
     if (!MODULE())
         return false;
+
+    if (this->currentPadIndex > 4)
+        this->currentPadIndex = 0;
 
     Gamepad * gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
     bool connected = false;
@@ -144,41 +154,8 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.padStatus.connected = connected;
         }
     }
-    else
-        return false;
-
-    /* handle button inputs */
-
-    this->buttonPressed  = padGetButtonsDown(&this->currentPad);
-    this->buttonReleased = padGetButtonsUp(&this->currentPad);
-    this->buttonHeld     = padGetButtons(&this->currentPad);
-
-    for (auto & mapping : mappings)
-    {
-        if (this->buttonPressed & mapping.key)
-        {
-            auto & newEvent = this->events.emplace_back();
-
-            newEvent.type = TYPE_GAMEPADDOWN;
-
-            newEvent.button.name   = mapping.name;
-            newEvent.button.which  = 0;
-            newEvent.button.button = mapping.index;
-        }
-        else if (this->buttonReleased & mapping.key)
-        {
-            auto & newEvent = this->events.emplace_back();
-
-            newEvent.type = TYPE_GAMEPADUP;
-
-            newEvent.button.name   = mapping.name;
-            newEvent.button.which  = 0;
-            newEvent.button.button = mapping.index;
-        }
-    }
 
     /* touch screen */
-
     hidGetTouchScreenStates(&touchState, 1);
     int touchCount = touchState.count;
 
@@ -240,82 +217,110 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     this->prevTouchCount = touchCount;
 
-    /* axes */
-
-    if ((this->buttonPressed & HidNpadButton_ZL) || (this->buttonReleased & HidNpadButton_ZL))
+    /* handle button inputs */
+    if (gamepad && gamepad->IsConnected())
     {
-        auto & newEvent = this->events.emplace_back();
+        this->buttonPressed  = padGetButtonsDown(&this->currentPad);
+        this->buttonReleased = padGetButtonsUp(&this->currentPad);
+        this->buttonHeld     = padGetButtons(&this->currentPad);
 
-        newEvent.type = TYPE_GAMEPADAXIS;
+        for (auto & mapping : mappings)
+        {
+            if (this->buttonPressed & mapping.key)
+            {
+                auto & newEvent = this->events.emplace_back();
 
-        newEvent.axis.which = 0;
-        newEvent.axis.axis  = "triggerleft";
-        newEvent.axis.number = 3;
+                newEvent.type = TYPE_GAMEPADDOWN;
 
-        float value = (this->buttonPressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
-        newEvent.axis.value = value;
-    }
+                newEvent.button.name   = mapping.name;
+                newEvent.button.which  = gamepad->GetID();
+                newEvent.button.button = mapping.index;
+            }
+            else if (this->buttonReleased & mapping.key)
+            {
+                auto & newEvent = this->events.emplace_back();
 
-    if ((this->buttonPressed & HidNpadButton_ZR) || (this->buttonReleased & HidNpadButton_ZR))
-    {
-        auto & newEvent = this->events.emplace_back();
+                newEvent.type = TYPE_GAMEPADUP;
 
-        newEvent.type = TYPE_GAMEPADAXIS;
+                newEvent.button.name   = mapping.name;
+                newEvent.button.which  = gamepad->GetID();
+                newEvent.button.button = mapping.index;
+            }
+        }
 
-        newEvent.axis.which = 0;
-        newEvent.axis.axis  = "triggerright";
-        newEvent.axis.number = 6;
-
-        float value = (this->buttonPressed & KEY_ZR) ? 1.0f : 0.0f;
-        newEvent.axis.value = value;
-    }
-
-    /* handle stick inputs */
-
-    for (size_t index = 0; index < 2; index++)
-    {
-        this->sticks[index] = padGetStickPos(&this->currentPad, index);
-
-        if (this->oldSticks[index].x != this->sticks[index].x)
+        /* axes */
+        if ((this->buttonPressed & HidNpadButton_ZL) || (this->buttonReleased & HidNpadButton_ZL))
         {
             auto & newEvent = this->events.emplace_back();
 
             newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which = 0;
+            newEvent.axis.which = gamepad->GetID();
+            newEvent.axis.axis  = "triggerleft";
+            newEvent.axis.number = 3;
 
-            newEvent.axis.number = (index == 1) ? 5 : 2;
-            newEvent.axis.axis = (index == 1) ? "rightx" : "leftx";
-            newEvent.axis.value = this->sticks[index].x / JOYSTICK_MAX;
-
-            oldSticks[index].x = sticks[index].x;
+            float value = (this->buttonPressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
+            newEvent.axis.value = value;
         }
 
-        if (this->oldSticks[index].y != this->sticks[index].y)
+        if ((this->buttonPressed & HidNpadButton_ZR) || (this->buttonReleased & HidNpadButton_ZR))
         {
             auto & newEvent = this->events.emplace_back();
 
             newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which = 0;
+            newEvent.axis.which = gamepad->GetID();
+            newEvent.axis.axis  = "triggerright";
+            newEvent.axis.number = 6;
 
-            newEvent.axis.number = (index == 1) ? 4 : 1;
-            newEvent.axis.axis = (index == 1) ? "righty" : "lefty";
-            newEvent.axis.value = -(this->sticks[index].y / JOYSTICK_MAX);
+            float value = (this->buttonPressed & KEY_ZR) ? 1.0f : 0.0f;
+            newEvent.axis.value = value;
+        }
 
-            oldSticks[index].y = sticks[index].y;
+        /* handle stick inputs */
+        for (size_t index = 0; index < 2; index++)
+        {
+            this->sticks[index] = padGetStickPos(&this->currentPad, index);
+
+            if (this->oldSticks[index].x != this->sticks[index].x)
+            {
+                auto & newEvent = this->events.emplace_back();
+
+                newEvent.type = TYPE_GAMEPADAXIS;
+
+                newEvent.axis.which = gamepad->GetID();
+
+                newEvent.axis.number = (index == 1) ? 5 : 2;
+                newEvent.axis.axis = (index == 1) ? "rightx" : "leftx";
+                newEvent.axis.value = this->sticks[index].x / JOYSTICK_MAX;
+
+                oldSticks[index].x = sticks[index].x;
+            }
+
+            if (this->oldSticks[index].y != this->sticks[index].y)
+            {
+                auto & newEvent = this->events.emplace_back();
+
+                newEvent.type = TYPE_GAMEPADAXIS;
+
+                newEvent.axis.which = gamepad->GetID();
+
+                newEvent.axis.number = (index == 1) ? 4 : 1;
+                newEvent.axis.axis = (index == 1) ? "righty" : "lefty";
+                newEvent.axis.value = -(this->sticks[index].y / JOYSTICK_MAX);
+
+                oldSticks[index].y = sticks[index].y;
+            }
         }
     }
-
-    /* applet focus handling */
-
-    this->CheckFocus();
 
     if (this->events.empty())
         return false;
 
     *event = this->events.front();
-    this->events.pop_back();
+    this->events.pop_front();
+
+    this->currentPadIndex++;
 
     return this->hysteresis = true;
 }

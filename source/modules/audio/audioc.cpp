@@ -16,11 +16,8 @@ Audio::PoolThread::~PoolThread()
 
 void Audio::PoolThread::ThreadFunction()
 {
-    while (true)
+    while (!this->finish)
     {
-        if (this->finish)
-            return;
-
         this->pool->Update();
         this->pool->Sleep();
     }
@@ -108,10 +105,5 @@ void Audio::Pause(Source * source)
     source->Pause();
 }
 
-void Audio::Pause()
-{}
-
 void Audio::Stop()
-{
-
-}
+{}

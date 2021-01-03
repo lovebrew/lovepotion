@@ -400,7 +400,7 @@ int Luax::RegisterModule(lua_State * L, const WrappedModule & wrappedModule)
     return 1;
 }
 
-void Luax::SetFunctions(lua_State * L, const luaL_reg * reg)
+void Luax::SetFunctions(lua_State * L, const luaL_Reg * reg)
 {
     if (reg == nullptr)
         return;

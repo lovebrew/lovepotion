@@ -50,6 +50,10 @@ class deko3d
 
         ~deko3d();
 
+        void CreateResources();
+
+        void DestroyResources();
+
         void BindFramebuffer(love::Canvas * canvas = nullptr);
 
         void SetTextureFilter(const love::Texture::Filter & filter);
@@ -145,7 +149,7 @@ class deko3d
         static constexpr float Z_NEAR = -10.0f;
         static constexpr float Z_FAR  = 10.0f;
 
-        State renderState = State::STATE_MAX_ENUM;
+        State renderState;
 
         void EnsureInState(State state);
 
@@ -180,7 +184,7 @@ class deko3d
         } state;
 
         dk::UniqueDevice device;
-        dk::UniqueQueue queue;
+        dk::UniqueQueue  queue;
         dk::UniqueCmdBuf cmdBuf;
 
         dk::UniqueQueue textureQueue;
@@ -204,6 +208,7 @@ class deko3d
 
             bool inFrame     = false;
             int  slot        = -1;
+            bool dirty       = false;
         } framebuffers;
 
         struct
@@ -220,10 +225,6 @@ class deko3d
         std::array<DkImage const *, MAX_FRAMEBUFFERS> framebufferArray;
 
         dk::UniqueSwapchain swapchain;
-
-        DkCmdList render_cmdlist;
-
-        void CreateResources();
 
         void EnsureInFrame();
 

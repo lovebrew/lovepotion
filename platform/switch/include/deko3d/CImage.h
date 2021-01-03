@@ -7,10 +7,8 @@
 #include "deko3d/common.h"
 #include "deko3d/CMemPool.h"
 
-#include <libpng16/png.h>
-#include <turbojpeg.h>
-
 #include "common/lmath.h"
+#include <memory>
 
 class CImage
 {
@@ -59,7 +57,7 @@ class CImage
         size_t getFormatSize(DkImageFormat format);
 
         private:
-            u32 * loadPNG(void * buffer, size_t size, int & width, int & height);
+            std::unique_ptr<u32[]> loadPNG(const void * buffer, const size_t size, int & width, int & height);
 
-            u8 * loadJPG(void * buffer, size_t size, int & width, int & height);
+            std::unique_ptr<u8[]> loadJPG(const void * buffer, const size_t size, int & width, int & height);
 };

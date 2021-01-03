@@ -46,7 +46,7 @@ namespace love
 
             std::vector<Source *> Pause();
 
-            void Pause();
+            // void Pause();
 
             void SetVolume(float volume);
 

@@ -2,6 +2,13 @@
 
 using namespace love::common::driver;
 
+Hidrv::Hidrv() : hysteresis(false),
+                 events(),
+                 buttonPressed(0),
+                 buttonReleased(0),
+                 buttonHeld(0)
+{}
+
 uint64_t Hidrv::GetButtonPressed()
 {
     return this->buttonPressed;
@@ -17,43 +24,43 @@ uint64_t Hidrv::GetButtonHeld()
     return this->buttonHeld;
 }
 
-void Hidrv::SendFocus(const bool focus)
+void Hidrv::SendFocus(bool focus)
 {
-    love::thread::Lock lock(this->mutex);
+    this->LockFunction([&]() {
+        auto & event = this->events.emplace_back();
 
-    auto & event = this->events.emplace_back();
-
-    event.type = TYPE_WINDOWEVENT;
-    event.subType = focus ? TYPE_FOCUS_GAINED : TYPE_FOCUS_LOST;
+        event.type = TYPE_WINDOWEVENT;
+        event.subType = focus ? TYPE_FOCUS_GAINED : TYPE_FOCUS_LOST;
+    });
 }
 
 void Hidrv::SendLowMemory()
 {
-    love::thread::Lock lock(this->mutex);
+    this->LockFunction([&]() {
+        auto & event = this->events.emplace_back();
 
-    auto & event = this->events.emplace_back();
-
-    event.type = TYPE_LOWMEMORY;
+        event.type = TYPE_LOWMEMORY;
+    });
 }
 
 void Hidrv::SendQuit()
 {
-    love::thread::Lock lock(this->mutex);
+    this->LockFunction([&]() {
+        auto & event = this->events.emplace_back();
 
-    auto & event = this->events.emplace_back();
-
-    event.type = TYPE_QUIT;
+        event.type = TYPE_QUIT;
+    });
 }
 
-void Hidrv::SendResize(const int width, const int height)
+void Hidrv::SendResize(int width, int height)
 {
-    love::thread::Lock lock(this->mutex);
+    this->LockFunction([&]() {
+        auto & event = this->events.emplace_back();
 
-    auto & event = this->events.emplace_back();
+        event.type = TYPE_WINDOWEVENT;
+        event.subType = TYPE_RESIZE;
 
-    event.type = TYPE_WINDOWEVENT;
-    event.subType = TYPE_RESIZE;
-
-    event.size.width  = width;
-    event.size.height = height;
+        event.size.width  = width;
+        event.size.height = height;
+    });
 }

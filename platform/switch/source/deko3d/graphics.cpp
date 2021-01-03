@@ -5,6 +5,11 @@ using Screen = love::Graphics::Screen;
 
 love::deko3d::Graphics::Graphics()
 {
+    /* quick hax */
+
+    this->width  = 1280;
+    this->height = 720;
+
     this->RestoreState(this->states.back());
 
     try
@@ -24,9 +29,6 @@ love::deko3d::Graphics::Graphics()
     // returned by getShader(), so we don't do setShader(defaultShader).
     if (!Shader::current)
         Shader::standardShaders[Shader::STANDARD_DEFAULT]->Attach();
-
-    this->width = 1280;
-    this->height = 720;
 }
 
 love::deko3d::Graphics::~Graphics()
@@ -40,6 +42,8 @@ const int love::deko3d::Graphics::GetWidth(Screen screen) const
         default:
             return this->width;
     }
+
+    return 0;
 }
 
 const int love::deko3d::Graphics::GetHeight() const
@@ -66,7 +70,7 @@ std::vector<std::string> love::deko3d::Graphics::GetScreens() const
 void Graphics::SetCanvas(Canvas * canvas)
 {
     DisplayState & state = this->states.back();
-    state.canvas.Set(canvas);
+    state.canvas.Set(canvas, Acquire::NORETAIN);
 
     if (canvas == nullptr)
         return;
@@ -79,7 +83,7 @@ void Graphics::SetCanvas(Canvas * canvas)
 
 void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {
-    if (!this->IsCanvasActive())
+    if (this->IsCanvasActive() == false)
         dk3d.BindFramebuffer();
 
     if (color.has_value())
@@ -568,9 +572,9 @@ void love::deko3d::Graphics::SetColorMask(ColorMask mask)
 
 void love::deko3d::Graphics::SetScissor()
 {
-    int width = this->GetWidth(this->GetActiveScreen());
+    int width  = this->GetWidth(this->GetActiveScreen());
     int height = this->GetHeight();
-
+    LOG("%d %d", width, height);
     dk3d.SetScissor({0, 0, width, height}, this->IsCanvasActive());
     states.back().scissor = false;
 }

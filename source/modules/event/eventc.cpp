@@ -116,10 +116,10 @@ love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Even
 
     love::Type * joystickType = &Gamepad::type;
 
-    Gamepad * stick = nullptr;
+    love::Gamepad * stick = nullptr;
 
-    Gamepad::GamepadButton padButton;
-    Gamepad::GamepadAxis padAxis;
+    love::Gamepad::GamepadButton padButton;
+    love::Gamepad::GamepadAxis padAxis;
 
     const char * text = nullptr;
 
@@ -168,16 +168,29 @@ love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Even
             break;
         }
         case Hidrv::TYPE_GAMEPADADDED:
-        case Hidrv::TYPE_GAMEPADREMOVED:
         {
-            stick = joyModule->GetJoystickFromID(event.button.which);
+            stick = joyModule->AddGamepad(event.padStatus.which);
 
             if (!stick)
                 break;
 
             vargs.emplace_back(joystickType, stick);
 
-            message = new Message((event.type == Hidrv::TYPE_GAMEPADADDED) ? "joystickadded" : "joystickremoved", vargs);
+            message = new Message("joystickadded", vargs);
+
+            break;
+        }
+        case Hidrv::TYPE_GAMEPADREMOVED:
+        {
+            stick = joyModule->GetJoystickFromID(event.padStatus.which);
+
+            if (!stick)
+                break;
+
+            joyModule->RemoveGamepad(stick);
+            vargs.emplace_back(joystickType, stick);
+
+            message = new Message("joystickremoved", vargs);
 
             break;
         }
@@ -196,9 +209,6 @@ love::Message * love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event 
     vargs.reserve(4);
 
     Window * windowModule = nullptr;
-
-    if (event.type != Hidrv::TYPE_WINDOWEVENT)
-        return nullptr;
 
     switch (event.subType)
     {
@@ -235,8 +245,13 @@ love::Message * love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event 
     return message;
 }
 
+/* potentially useless? */
 void love::common::Event::ExceptionIfInRenderPass(const char * name)
-{} /* potentially useless */
+{
+    auto gfx = Module::GetInstance<Graphics>(M_GRAPHICS);
+    if (gfx != nullptr && gfx->IsCanvasActive())
+        throw love::Exception("%s cannot be called while a Canvas is active in love.graphics.", name);
+}
 
 void love::common::Event::InternalClear()
 {

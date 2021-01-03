@@ -4,28 +4,25 @@
 
 using namespace love;
 
-Joystick::PoolThread::PoolThread(JoystickPool * pool) : pool(pool),
-                                                        finish(false)
+Joystick::VibrationThread::VibrationThread(VibrationPool * pool) : pool(pool),
+                                                                   finish(false)
 {
     this->threadName = "VibrationPool";
 }
 
-Joystick::PoolThread::~PoolThread()
+Joystick::VibrationThread::~VibrationThread()
 {}
 
-void Joystick::PoolThread::ThreadFunction()
+void Joystick::VibrationThread::ThreadFunction()
 {
-    while (true)
+    while (!this->finish)
     {
-        if (this->finish)
-            return;
-
         this->pool->Update();
         svcSleepThread(5000000);
     }
 }
 
-void Joystick::PoolThread::SetFinish()
+void Joystick::VibrationThread::SetFinish()
 {
     this->finish = true;
 }
@@ -33,16 +30,10 @@ void Joystick::PoolThread::SetFinish()
 Joystick::Joystick() : pool(nullptr),
                        poolThread(nullptr)
 {
-    try
-    {
-        this->pool = new JoystickPool();
-    }
-    catch (love::Exception &)
-    {
-        throw;
-    }
 
-    this->poolThread = new PoolThread(pool);
+    this->pool = new VibrationPool();
+
+    this->poolThread = new VibrationThread(pool);
     this->poolThread->Start();
 }
 

@@ -3,7 +3,7 @@
 #include "modules/system/systemc.h"
 
 #define USERNAME_LENGTH 0x21
-#define TEGRA_CPU_COUNT 0x4
+#define TEGRA_CPU_COUNT 0x04
 
 namespace love
 {

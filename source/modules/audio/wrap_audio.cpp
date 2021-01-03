@@ -63,7 +63,7 @@ static std::vector<Source *> ReadSourceList(lua_State * L, int index)
 
     for (size_t i = 0; i < numItems; i++)
     {
-        lua_rawget(L, argc, i + 1);
+        lua_rawgeti(L, index, i + 1);
         sources[i] = Wrap_Source::CheckSource(L, -1);
         lua_pop(L, 1);
     }
@@ -79,9 +79,9 @@ static std::vector<Source *> ReadSourceVaArg(lua_State * L, int index)
         index += top + 1;
 
     size_t numItems = top - 1 + 1;
-    std::vector<Source *> source(numItems);
+    std::vector<Source *> sources(numItems);
 
-    for (size_t position = 0; position <= top; index++, position++)
+    for (int position = 0; position <= top; index++, position++)
         sources[position] = Wrap_Source::CheckSource(L, index);
 
     return sources;

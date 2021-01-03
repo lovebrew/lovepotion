@@ -2,6 +2,10 @@
 
 #include "common/driver/hidrvc.h"
 
+/*
+** HID backend class for Nintendo Switch
+*/
+
 namespace love::driver
 {
     class Hidrv : public common::driver::Hidrv

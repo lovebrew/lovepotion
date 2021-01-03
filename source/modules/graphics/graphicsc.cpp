@@ -153,7 +153,7 @@ bool Graphics::IsCanvasActive(Canvas * canvas) const
 
 bool Graphics::IsCanvasActive() const
 {
-    return this->states.back().canvas.Get() != nullptr;
+    return this->states.back().canvas != nullptr;
 }
 
 bool Graphics::GetScissor(Rect & scissor) const

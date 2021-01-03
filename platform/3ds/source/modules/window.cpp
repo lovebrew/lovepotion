@@ -2,14 +2,16 @@
 
 using namespace love;
 
-Window::Window() : open(false)
+static constexpr std::array<Window::DisplaySize, 2> displaySizes =
 {
-    this->displaySizes =
     {
         { 400, 240 },
         { 320, 240 }
-    };
-}
+    }
+};
+
+Window::Window() : open(false)
+{}
 
 Window::~Window()
 {
@@ -35,9 +37,9 @@ int Window::GetDisplayCount()
 void Window::OnSizeChanged(int width, int height)
 {}
 
-std::vector<std::pair<int, int>> & Window::GetFullscreenModes()
+const std::array<Window::DisplaySize, 2> & Window::GetFullscreenModes()
 {
-    return this->displaySizes;
+    return displaySizes;
 }
 
 bool Window::IsOpen()

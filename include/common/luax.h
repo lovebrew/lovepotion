@@ -49,7 +49,7 @@ namespace love
         const char * name;
         love::Type * type;
 
-        const luaL_reg * functions;
+        const luaL_Reg * functions;
         const lua_CFunction * types;
 
         love::Module * instance;
@@ -111,17 +111,17 @@ namespace Luax
         const size_t maxSize = funcCount + extCount;
         const size_t copyOffset = funcCount - 1;
 
-        std::unique_ptr<T[]> newList = std::make_unique<T[]>(maxSize);
+        auto registry = std::make_unique<T[]>(maxSize);
 
         /* don't append the null terminated registry value */
-        std::copy(funcs, funcs + copyOffset, newList.get());
+        std::copy(funcs, funcs + copyOffset, registry.get());
 
         /* copy over the extended values */
-        std::copy(ext, ext + extCount, newList.get() + copyOffset);
+        std::copy(ext, ext + extCount, registry.get() + copyOffset);
 
-        newList[maxSize - 1] = { 0, 0 };
+        registry[maxSize - 1] = { 0, 0 };
 
-        return newList;
+        return registry;
     }
 
     int Resume(lua_State * L, int nargs);
@@ -156,7 +156,7 @@ namespace Luax
 
     int GetLOVEFunction(lua_State * L, const char * mod, const char * fn);
 
-    void SetFunctions(lua_State * L, const luaL_reg * l);
+    void SetFunctions(lua_State * L, const luaL_Reg * l);
 
     int RegisterModule(lua_State * L, const love::WrappedModule & moduleName);
 

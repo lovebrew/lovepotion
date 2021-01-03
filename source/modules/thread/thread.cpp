@@ -2,6 +2,7 @@
 #include "modules/thread/thread.h"
 
 #include "modules/thread/types/lock.h"
+#include "common/exception.h"
 
 using namespace love;
 
@@ -78,6 +79,8 @@ bool LOVE_Thread::Start()
             threadStart(&this->thread);
             this->hasThread = true;
         }
+        else
+            throw love::Exception("Failed to spawn thread");
     #endif
 
     this->running = this->hasThread;

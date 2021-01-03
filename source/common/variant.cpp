@@ -176,7 +176,7 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
             else
             {
                 Luax::TypeErrror(L, n, "love type");
-                return Variant();
+                return Variant(Nil());
             }
         case LUA_TTABLE:
         {

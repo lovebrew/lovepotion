@@ -5,10 +5,6 @@
 
 #include "deko3d/deko.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_GLYPH_H
-
 #define RENDERER_NAME    "deko3d"
 #define RENDERER_VERSION "0.3.0"
 #define RENDERER_VENDOR  "devkitPro"
@@ -27,7 +23,7 @@ namespace love::deko3d
         public:
             Graphics();
 
-            ~Graphics();
+            virtual ~Graphics();
 
             Screen GetActiveScreen() const override;
 

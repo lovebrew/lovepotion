@@ -8,130 +8,37 @@
 
 #include <cstdio>
 
-namespace
+#include <libpng16/png.h>
+#include <turbojpeg.h>
+
+/*
+** Load the specified @buffer with @size into an std::unique_ptr
+*/
+[[ nodiscard ]] std::unique_ptr<u32[]> CImage::loadPNG(const void * buffer, const size_t size, int & width, int & height)
 {
-    void freeRowPointers(png_bytep * rowPointers, unsigned height)
-    {
-        if (!rowPointers)
-            return;
+    png_image image;
+    memset(&image, 0, sizeof(image));
 
-        for (unsigned i = 0; i < height; ++i)
-            free(rowPointers[i]);
+    image.version = PNG_IMAGE_VERSION;
+    png_image_begin_read_from_memory(&image, buffer, size);
 
-        delete [] rowPointers;
-    }
-}
-
-u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
-{
-    if (buffer == nullptr || size <= 0)
+    if (PNG_IMAGE_FAILED(image))
         return nullptr;
 
-    u32 * output = nullptr;
-    FILE * input = fmemopen(buffer, size, "rb");
+    image.format = PNG_FORMAT_RGBA;
 
-    constexpr size_t sigLength = 8;
-    u8 sig[sigLength] = {0};
+    width  = image.width;
+    height = image.height;
 
-    size_t sigSize = fread(sig, sizeof(u8), sigLength, input);
-    fseek(input, 0, SEEK_SET);
+    std::unique_ptr<u32[]> outBuffer = std::make_unique<u32[]>(width * height);
 
-    if (sigSize < sigLength || png_sig_cmp(sig, 0, sigLength))
-    {
-        fclose(input);
+    png_image_finish_read(&image, NULL, outBuffer.get(), PNG_IMAGE_ROW_STRIDE(image), NULL);
+    png_image_free(&image);
+
+    if (PNG_IMAGE_FAILED(image))
         return nullptr;
-    }
 
-    png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    png_infop info = png_create_info_struct(png);
-
-    png_bytep * rowPointers = nullptr;
-
-    if (setjmp(png_jmpbuf(png)))
-    {
-        png_destroy_read_struct(&png, &info, NULL);
-        fclose(input);
-        freeRowPointers(rowPointers, height);
-        return nullptr;
-    }
-
-    png_init_io(png, input);
-    png_read_info(png, info);
-
-    width = png_get_image_width(png, info);
-    height = png_get_image_height(png, info);
-
-    png_byte colorType = png_get_color_type(png, info);
-    png_byte bitDepth = png_get_bit_depth(png, info);
-
-    // Read any color_type into 8bit depth, ABGR format.
-    // See http://www.libpng.org/pub/png/libpng-manual.txt
-    if (bitDepth == 16)
-        png_set_strip_16(png);
-
-    if (colorType == PNG_COLOR_TYPE_PALETTE)
-        png_set_palette_to_rgb(png);
-
-    // PNG_COLOR_TYPE_GRAY_ALPHA is always 8 or 16bit depth.
-    if (colorType == PNG_COLOR_TYPE_GRAY && bitDepth < 8)
-        png_set_expand_gray_1_2_4_to_8(png);
-
-    if (png_get_valid(png, info, PNG_INFO_tRNS) != 0)
-        png_set_tRNS_to_alpha(png);
-
-    // These color_type don't have an alpha channel then fill it with 0xff.
-    if (colorType == PNG_COLOR_TYPE_RGB ||
-        colorType == PNG_COLOR_TYPE_GRAY ||
-        colorType == PNG_COLOR_TYPE_PALETTE)
-        png_set_filler(png, 0xFF, PNG_FILLER_AFTER);
-
-    if (colorType == PNG_COLOR_TYPE_GRAY ||
-        colorType == PNG_COLOR_TYPE_GRAY_ALPHA)
-        png_set_gray_to_rgb(png);
-
-    png_read_update_info(png, info);
-
-    rowPointers = new (std::nothrow) png_bytep[height];
-
-    if (rowPointers == nullptr)
-    {
-        png_destroy_read_struct(&png, &info, NULL);
-        fclose(input);
-        return nullptr;
-    }
-
-    auto const rowBytes = png_get_rowbytes(png, info);
-
-    for (int y = 0; y < height; y++)
-        rowPointers[y] = (png_byte *)malloc(rowBytes);
-
-    png_read_image(png, rowPointers);
-
-    fclose(input);
-    png_destroy_read_struct(&png, &info, NULL);
-
-    output = new (std::nothrow) u32[width * height];
-
-    if (output == NULL)
-    {
-        freeRowPointers(rowPointers, height);
-        return nullptr;
-    }
-
-    for (int j = height - 1; j >= 0; j--)
-    {
-        png_bytep row = rowPointers[j];
-
-        for (int i = 0; i < width; i++)
-        {
-            png_bytep px = &(row[i * 4]);
-            memcpy(&output[(((height - 1) - j) * width) + i], px, sizeof(u32));
-        }
-    }
-
-    freeRowPointers(rowPointers, height);
-
-    return output;
+    return outBuffer;
 }
 
 /*
@@ -139,55 +46,44 @@ u32 * CImage::loadPNG(void * buffer, size_t size, int & width, int & height)
 ** have their "progressive" flag turned off, usually dealt with in GIMP or
 ** similar programs
 */
-u8 * CImage::loadJPG(void * buffer, size_t size, int & width, int & height)
+[[ nodiscard ]] std::unique_ptr<u8[]> CImage::loadJPG(const void * buffer, size_t size, int & width, int & height)
 {
-    u8 * output = nullptr;
 
     tjhandle _jpegDecompressor = tjInitDecompress();
+    std::unique_ptr<u8[]> outBuffer = std::make_unique<u8[]>(width * height);
 
     if (_jpegDecompressor == NULL)
         return nullptr;
 
-    int samp;
-    if (tjDecompressHeader2(_jpegDecompressor, (u8 *)buffer, size, &width, &height, &samp) == -1)
-    {
-        tjDestroy(_jpegDecompressor);
-        return nullptr;
-    }
+    int samples;
+    if (tjDecompressHeader2(_jpegDecompressor, (u8 *)buffer, size, &width, &height, &samples) == -1)
+        goto fail0;
 
-    if (tjDecompress2(_jpegDecompressor, (u8 *)buffer, size, output, width, 0, height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
-    {
-        tjDestroy(_jpegDecompressor);
-        return nullptr;
-    }
+    /* we always want RGBA, hopefully outputs as RGBA8 */
+    if (tjDecompress2(_jpegDecompressor, (u8 *)buffer, size, outBuffer.get(), width, 0, height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
+        goto fail0;
 
     tjDestroy(_jpegDecompressor);
 
-    return output;
+    return outBuffer;
+
+    fail0:
+        tjDestroy(_jpegDecompressor);
+        return nullptr;
 }
 
 bool CImage::load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device,
                   dk::Queue transferQueue, void * buffer, size_t size, int & width,
                   int & height)
 {
-    if (size <= 0 || !buffer)
-        return false;
+    DkImageFormat imageFormat = DkImageFormat_RGBA8_Unorm;
 
-    void * result = nullptr;
+    if (auto uniqueBuffer = this->loadPNG(buffer, size, width, height); uniqueBuffer)
+        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(), width, height, imageFormat);
+    else if (auto uniqueBuffer = this->loadJPG(buffer, size, width, height); uniqueBuffer)
+        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(), width, height, imageFormat);
 
-    if (!(result = this->loadPNG(buffer, size, width, height)))
-        result = this->loadJPG(buffer, size, width, height);
-
-    if (result == nullptr)
-        return false;
-
-    bool success = this->loadMemory(imagePool, scratchPool, device, transferQueue,
-                                    result, width, height, DkImageFormat_RGBA8_Unorm);
-
-    if (result != nullptr)
-        free(result);
-
-    return success;
+    return false;
 }
 
 size_t CImage::getFormatSize(DkImageFormat format)
@@ -308,7 +204,7 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
     if (!tempImageMemory)
         return false;
 
-    memcpy(tempImageMemory.getCpuAddr(), data, size);
+    memcpy(tempImageMemory.getCpuAddr(), data, width * height * size);
 
     /*
     ** We need to have a command buffer and some more memory for it

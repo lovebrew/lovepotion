@@ -1870,7 +1870,7 @@ function love.nogame()
         end
 
         love.graphics.setBackgroundColor(0.392, 0.710, 0.965)
-
+        local file = io.open("test.txt", "w")
         for key, value in pairs(resources[consoleKey]) do
             res[key] = love.graphics.newImage(value)
         end

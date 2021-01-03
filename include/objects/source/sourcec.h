@@ -117,7 +117,7 @@ namespace love
 
                 static std::vector<Source *> Pause(Pool * pool);
 
-                static void Stop(Pool * pool)
+                static void Stop(Pool * pool);
 
                 static bool GetConstant(const char * in, Type & out);
                 static bool GetConstant(Type in, const char  *& out);

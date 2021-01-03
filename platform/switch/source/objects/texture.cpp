@@ -16,6 +16,7 @@ Texture::Texture(TextureType type) : common::Texture(type)
 Texture::~Texture()
 {
     dk3d.UnRegisterResHandle(this->handle);
+    this->texture.reset();
 }
 
 void Texture::SetHandle(DkResHandle handle)

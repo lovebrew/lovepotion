@@ -1,4 +1,5 @@
 #include "modules/keyboard/keyboardc.h"
+#include "common/debug/logger.h"
 
 using namespace love::common;
 
@@ -8,7 +9,7 @@ Keyboard::Keyboard(uint32_t swkbdMaxLength) : text(nullptr)
     {
         this->text = new char[swkbdMaxLength];
     }
-    catch(const std::bad_alloc &)
+    catch (const std::bad_alloc &)
     {
         throw love::Exception("Out of memory.");
     }

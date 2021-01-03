@@ -323,21 +323,6 @@ bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
     return false;
 }
 
-std::string Gamepad::GetGUID() const
-{
-    return this->guid;
-}
-
-size_t Gamepad::GetInstanceID() const
-{
-    return this->instanceID;
-}
-
-size_t Gamepad::GetID() const
-{
-    return this->id;
-}
-
 bool Gamepad::IsVibrationSupported()
 {
     return true;
@@ -367,13 +352,10 @@ bool Gamepad::SetVibration(float left, float right, float duration)
     Result res = hidSendVibrationValues(this->vibrationHandles.get(), this->vibrationValues, 2);
     bool success = R_SUCCEEDED(res);
 
-    if (success)
+    if (success && (left != 0.0f && right != 0.0f))
     {
         this->vibration.left = left;
         this->vibration.right = right;
-
-        if (left != 0 && right != 0)
-            this->vibration.id = this->id;
 
         if (length == Vibration::max)
             this->vibration.endTime = Vibration::max;

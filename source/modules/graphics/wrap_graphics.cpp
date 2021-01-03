@@ -26,7 +26,7 @@ int Wrap_Graphics::GetActiveScreen(lua_State * L)
 {
 
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
-    const char * name;
+    const char * name = nullptr;
 
     Luax::CatchException(L, [&]() {
         screen = instance()->GetActiveScreen();
@@ -107,9 +107,8 @@ int Wrap_Graphics::GetStereoscopicDepth(lua_State * L)
         lua_pushnumber(L, osGet3DSliderState());
 
         return 1;
-    #elif defined (__SWITCH__)
-        return luaL_error(L, "%s", "getStereoscopicDepth not supported on this console.");
     #endif
+    return 0;
 }
 
 int Wrap_Graphics::Arc(lua_State * L)
@@ -505,6 +504,7 @@ int Wrap_Graphics::Push(lua_State * L)
 {
     Graphics::StackType stype = Graphics::STACK_TRANSFORM;
     const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+
     if (sname && !Graphics::GetConstant(sname, stype))
         return Luax::EnumError(L, "graphics stack type", Graphics::GetConstants(stype), sname);
 
@@ -1218,61 +1218,63 @@ int Wrap_Graphics::Register(lua_State * L)
 {
     luaL_Reg funcs[] =
     {
-        { "arc",                     Arc                     },
-        { "applyTransform",          ApplyTransform          },
-        { "circle",                  Circle                  },
-        { "clear",                   Clear                   },
-        { "draw",                    Draw                    },
-        { "ellipse",                 Ellipse                 },
-        { "getActiveScreen",         GetActiveScreen         },
-        { "getBackgroundColor",      GetBackgroundColor      },
-        { "getColor",                GetColor                },
-        { "getDefaultFilter",        GetDefaultFilter        },
-        { "getDimensions",           GetDimensions           },
-        { "getFont",                 GetFont                 },
-        { "getHeight",               GetHeight               },
-        { "getLineWidth",            GetLineWidth            },
-        { "getPointSize",            GetPointSize            },
-        { "getRendererInfo",         GetRendererInfo         },
-        { "getScissor",              GetScissor              },
-        { "getScreens",              GetScreens              },
-        { "getWidth",                GetWidth                },
-        { "instersectScissor",       IntersectScissor        },
-        { "inverseTransformPoint",   InverseTransformPoint   },
-        { "line",                    Line                    },
-        { "newCanvas",               NewCanvas               },
-        { "newFont",                 NewFont                 },
-        { "newImage",                NewImage                },
-        { "newText",                 NewText                 },
-        { "newQuad",                 NewQuad                 },
-        { "origin",                  Origin                  },
-        { "polygon",                 Polygon                 },
-        { "pop",                     Pop                     },
-        { "points",                  Points                  },
-        { "present",                 Present                 },
-        { "print",                   Print                   },
-        { "printf",                  PrintF                  },
-        { "push",                    Push                    },
-        { "rectangle",               Rectangle               },
-        { "replaceTransform",        ReplaceTransform        },
-        { "reset",                   Reset                   },
-        { "rotate",                  Rotate                  },
-        { "scale",                   Scale                   },
-        { "shear",                   Shear                   },
-        { "setActiveScreen",         SetActiveScreen         },
-        { "setBackgroundColor",      SetBackgroundColor      },
-        { "setCanvas",               SetCanvas               },
-        { "setColor",                SetColor                },
-        { "setDefaultFilter",        SetDefaultFilter        },
-        { "setLineWidth",            SetLineWidth            },
-        { "setNewFont",              SetNewFont              },
-        { "setPointSize",            SetPointSize            },
-        { "setFont",                 SetFont                 },
-        { "setScissor",              SetScissor              },
-        { "transformPoint",          TransformPoint          },
-        { "translate",               Translate               },
-        { 0,                         0                       }
+        { "arc",                     Arc                   },
+        { "applyTransform",          ApplyTransform        },
+        { "circle",                  Circle                },
+        { "clear",                   Clear                 },
+        { "draw",                    Draw                  },
+        { "ellipse",                 Ellipse               },
+        { "getActiveScreen",         GetActiveScreen       },
+        { "getBackgroundColor",      GetBackgroundColor    },
+        { "getColor",                GetColor              },
+        { "getDefaultFilter",        GetDefaultFilter      },
+        { "getDimensions",           GetDimensions         },
+        { "getFont",                 GetFont               },
+        { "getHeight",               GetHeight             },
+        { "getLineWidth",            GetLineWidth          },
+        { "getPointSize",            GetPointSize          },
+        { "getRendererInfo",         GetRendererInfo       },
+        { "getScissor",              GetScissor            },
+        { "getScreens",              GetScreens            },
+        { "getWidth",                GetWidth              },
+        { "instersectScissor",       IntersectScissor      },
+        { "inverseTransformPoint",   InverseTransformPoint },
+        { "line",                    Line                  },
+        { "newCanvas",               NewCanvas             },
+        { "newFont",                 NewFont               },
+        { "newImage",                NewImage              },
+        { "newText",                 NewText               },
+        { "newQuad",                 NewQuad               },
+        { "origin",                  Origin                },
+        { "polygon",                 Polygon               },
+        { "pop",                     Pop                   },
+        { "points",                  Points                },
+        { "present",                 Present               },
+        { "print",                   Print                 },
+        { "printf",                  PrintF                },
+        { "push",                    Push                  },
+        { "rectangle",               Rectangle             },
+        { "replaceTransform",        ReplaceTransform      },
+        { "reset",                   Reset                 },
+        { "rotate",                  Rotate                },
+        { "scale",                   Scale                 },
+        { "shear",                   Shear                 },
+        { "setActiveScreen",         SetActiveScreen       },
+        { "setBackgroundColor",      SetBackgroundColor    },
+        { "setCanvas",               SetCanvas             },
+        { "setColor",                SetColor              },
+        { "setDefaultFilter",        SetDefaultFilter      },
+        { "setLineWidth",            SetLineWidth          },
+        { "setNewFont",              SetNewFont            },
+        { "setPointSize",            SetPointSize          },
+        { "setFont",                 SetFont               },
+        { "setScissor",              SetScissor            },
+        { "transformPoint",          TransformPoint        },
+        { "translate",               Translate             },
+        { 0,                         0                     }
     };
+
+    /* 3DS extensions */
 
     luaL_Reg modExt[] =
     {
@@ -1280,6 +1282,8 @@ int Wrap_Graphics::Register(lua_State * L)
         { "getStereoscopicDepth", GetStereoscopicDepth },
         { "setBlendFactor",       SetBlendFactor       }
     };
+
+    /* if it doesn't match the console, it just copies input to be the output */
 
     std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, modExt);
 
@@ -1323,5 +1327,7 @@ int Wrap_Graphics::Register(lua_State * L)
     wrappedModule.type = &Module::type;
     wrappedModule.types = objs;
 
-    return Luax::RegisterModule(L, wrappedModule);
+    int result = Luax::RegisterModule(L, wrappedModule);
+
+    return result;
 }

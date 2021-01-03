@@ -26,10 +26,21 @@ static constexpr std::array<Hidrv::ButtonMapping, 12> mappings =
     }
 };
 
-Hidrv::Hidrv() : oldSticks{},
+Hidrv::Hidrv() : mutex(),
+                 oldSticks{},
                  oldTouchState{},
                  touchHeld(false)
 {}
+
+void Hidrv::Lock()
+{
+    this->mutex.Lock();
+}
+
+void Hidrv::Unlock()
+{
+    this->mutex.Unlock();
+}
 
 bool Hidrv::IsDown(size_t button)
 {
@@ -39,15 +50,15 @@ bool Hidrv::IsDown(size_t button)
 
 bool Hidrv::Poll(LOVE_Event * event)
 {
-    thread::Lock lock(this->mutex);
+    this->LockFunction([&]() {
+        if (!this->events.empty())
+        {
+            *event = this->events.front();
+            this->events.pop_front();
 
-    if (!this->events.empty())
-    {
-        *event = this->events.front();
-        this->events.pop_front();
-
-        return true;
-    }
+            return true;
+        }
+    });
 
     if (this->hysteresis)
         return this->hysteresis = false;
@@ -64,23 +75,27 @@ bool Hidrv::Poll(LOVE_Event * event)
     {
         if (this->buttonPressed & mapping.key)
         {
-            auto & newEvent = this->events.emplace_back();
+            this->LockFunction([&]() {
+                auto & newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADDOWN;
+                newEvent.type = TYPE_GAMEPADDOWN;
 
-            newEvent.button.name   = mapping.name;
-            newEvent.button.which  = 0;
-            newEvent.button.button = mapping.index;
+                newEvent.button.name   = mapping.name;
+                newEvent.button.which  = 0;
+                newEvent.button.button = mapping.index;
+            });
         }
         else if (this->buttonReleased & mapping.key)
         {
-            auto & newEvent = this->events.emplace_back();
+            this->LockFunction([&]() {
+                auto & newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADUP;
+                newEvent.type = TYPE_GAMEPADUP;
 
-            newEvent.button.name   = mapping.name;
-            newEvent.button.which  = 0;
-            newEvent.button.button = mapping.index;
+                newEvent.button.name   = mapping.name;
+                newEvent.button.which  = 0;
+                newEvent.button.button = mapping.index;
+            });
         }
     }
 
@@ -90,16 +105,18 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     if (!this->touchHeld && (this->buttonPressed & KEY_TOUCH))
     {
-        auto & newEvent = this->events.emplace_back();
+        this->LockFunction([&]() {
+            auto & newEvent = this->events.emplace_back();
 
-        newEvent.type = TYPE_TOUCHPRESS;
+            newEvent.type = TYPE_TOUCHPRESS;
 
-        newEvent.touch.id = 0;
-        newEvent.touch.x  = this->touchState.px;
-        newEvent.touch.y  = this->touchState.py;
-        newEvent.touch.dx = 0.0f;
-        newEvent.touch.dy = 0.0f;
-        newEvent.touch.pressure = 1.0f;
+            newEvent.touch.id = 0;
+            newEvent.touch.x  = this->touchState.px;
+            newEvent.touch.y  = this->touchState.py;
+            newEvent.touch.dx = 0.0f;
+            newEvent.touch.dy = 0.0f;
+            newEvent.touch.pressure = 1.0f;
+        });
 
         this->oldTouchState = this->touchState;
     }
@@ -111,16 +128,18 @@ bool Hidrv::Poll(LOVE_Event * event)
 
         if (dx != 0.0f || dy != 0.0f)
         {
-            auto & newEvent = this->events.emplace_back();
+            this->LockFunction([&]() {
+                auto & newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_TOUCHMOVED;
+                newEvent.type = TYPE_TOUCHMOVED;
 
-            newEvent.touch.id = 0;
-            newEvent.touch.x  = this->touchState.px;
-            newEvent.touch.y  = this->touchState.py;
-            newEvent.touch.dx = dx;
-            newEvent.touch.dy = dy;
-            newEvent.touch.pressure = 1.0f;
+                newEvent.touch.id = 0;
+                newEvent.touch.x  = this->touchState.px;
+                newEvent.touch.y  = this->touchState.py;
+                newEvent.touch.dx = dx;
+                newEvent.touch.dy = dy;
+                newEvent.touch.pressure = 1.0f;
+            });
 
             this->touchHeld = true;
         }
@@ -128,16 +147,18 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     if (this->buttonReleased & KEY_TOUCH)
     {
-        auto & newEvent = this->events.emplace_back();
+        this->LockFunction([&]() {
+            auto & newEvent = this->events.emplace_back();
 
-        newEvent.type = TYPE_TOUCHRELEASE;
+            newEvent.type = TYPE_TOUCHRELEASE;
 
-        newEvent.touch.id = 0;
-        newEvent.touch.x = this->oldTouchState.px;
-        newEvent.touch.y = this->oldTouchState.py;
-        newEvent.touch.dx = 0.0f;
-        newEvent.touch.dy = 0.0f;
-        newEvent.touch.pressure = 0.0f;
+            newEvent.touch.id = 0;
+            newEvent.touch.x = this->oldTouchState.px;
+            newEvent.touch.y = this->oldTouchState.py;
+            newEvent.touch.dx = 0.0f;
+            newEvent.touch.dy = 0.0f;
+            newEvent.touch.pressure = 0.0f;
+        });
 
         this->oldTouchState = this->touchState;
     }
@@ -146,30 +167,34 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     if ((this->buttonPressed & KEY_ZL) || (this->buttonReleased & KEY_ZL))
     {
-        auto & newEvent = this->events.emplace_back();
+        this->LockFunction([&]() {
+            auto & newEvent = this->events.emplace_back();
 
-        newEvent.type = TYPE_GAMEPADAXIS;
+            newEvent.type = TYPE_GAMEPADAXIS;
 
-        newEvent.axis.which = 0;
-        newEvent.axis.axis  = "triggerleft";
-        newEvent.axis.number = 3;
+            newEvent.axis.which = 0;
+            newEvent.axis.axis  = "triggerleft";
+            newEvent.axis.number = 3;
 
-        float value = (this->buttonPressed & KEY_ZL) ? 1.0f : 0.0f;
-        newEvent.axis.value = value;
+            float value = (this->buttonPressed & KEY_ZL) ? 1.0f : 0.0f;
+            newEvent.axis.value = value;
+        });
     }
 
     if ((this->buttonPressed & KEY_ZR) || (this->buttonReleased & KEY_ZR))
     {
-        auto & newEvent = this->events.emplace_back();
+        this->LockFunction([&]() {
+            auto & newEvent = this->events.emplace_back();
 
-        newEvent.type = TYPE_GAMEPADAXIS;
+            newEvent.type = TYPE_GAMEPADAXIS;
 
-        newEvent.axis.which = 0;
-        newEvent.axis.axis  = "triggerright";
-        newEvent.axis.number = 6;
+            newEvent.axis.which = 0;
+            newEvent.axis.axis  = "triggerright";
+            newEvent.axis.number = 6;
 
-        float value = (this->buttonPressed & KEY_ZR) ? 1.0f : 0.0f;
-        newEvent.axis.value = value;
+            float value = (this->buttonPressed & KEY_ZR) ? 1.0f : 0.0f;
+            newEvent.axis.value = value;
+        });
     }
 
     /* handle stick inputs */
@@ -181,40 +206,46 @@ bool Hidrv::Poll(LOVE_Event * event)
     {
         if (this->oldSticks[index].dx != this->sticks[index].dx)
         {
-            auto & newEvent = this->events.emplace_back();
+            this->LockFunction([&]() {
+                auto & newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADAXIS;
+                newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which = 0;
+                newEvent.axis.which = 0;
 
-            newEvent.axis.number = (index == 1) ? 5 : 2;
-            newEvent.axis.axis = (index == 1) ? "rightx" : "leftx";
-            newEvent.axis.value = this->sticks[index].dx / Gamepad::JOYSTICK_MAX;
+                newEvent.axis.number = (index == 1) ? 5 : 2;
+                newEvent.axis.axis = (index == 1) ? "rightx" : "leftx";
+                newEvent.axis.value = this->sticks[index].dx / Gamepad::JOYSTICK_MAX;
+            });
 
             oldSticks[index].dx = sticks[index].dx;
         }
 
         if (this->oldSticks[index].dy != this->sticks[index].dy)
         {
-            auto & newEvent = this->events.emplace_back();
+            this->LockFunction([&]() {
+                auto & newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADAXIS;
+                newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which = 0;
+                newEvent.axis.which = 0;
 
-            newEvent.axis.number = (index == 1) ? 4 : 1;
-            newEvent.axis.axis = (index == 1) ? "righty" : "lefty";
-            newEvent.axis.value = -(this->sticks[index].dy / Gamepad::JOYSTICK_MAX);
+                newEvent.axis.number = (index == 1) ? 4 : 1;
+                newEvent.axis.axis = (index == 1) ? "righty" : "lefty";
+                newEvent.axis.value = -(this->sticks[index].dy / Gamepad::JOYSTICK_MAX);
+            });
 
             oldSticks[index].dy = sticks[index].dy;
         }
     }
 
-    if (this->events.empty())
-        return false;
+    this->LockFunction([&]() {
+        if (this->events.empty())
+            return false;
 
-    *event = this->events.front();
-    this->events.pop_back();
+        *event = this->events.front();
+        this->events.pop_front();
+    });
 
     return this->hysteresis = true;
 }

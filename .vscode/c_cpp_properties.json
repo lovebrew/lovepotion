@@ -115,7 +115,7 @@
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/switch/include/**",
-                "${workspaceFolder}/platform/switch/scripts/**",
+                "${workspaceFolder}/platform/switch/build",
                 "/opt/devkitpro/portlibs/switch/include/**",
                 "/opt/devkitpro/libnx/include/**",
                 "/opt/devkitpro/devkitA64/include/**"

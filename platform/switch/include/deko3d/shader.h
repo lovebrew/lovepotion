@@ -5,6 +5,7 @@
 #include "common/data.h"
 
 #include "objects/object.h"
+#include "common/stringmap.h"
 
 namespace love
 {
@@ -28,8 +29,8 @@ namespace love
 
             struct Program
             {
-                CShader vertex;
-                CShader fragment;
+                std::optional<CShader> vertex;
+                std::optional<CShader> fragment;
             };
 
             // Pointer to currently active Shader.
@@ -46,9 +47,17 @@ namespace love
 
             static void AttachDefault(StandardShader defaultType);
 
+            static const char * GetStageName(CShader & shader);
+
+            static bool GetConstant(const char * in, StandardShader & out);
+            static bool GetConstant(StandardShader in, const char *& out);
+
             static bool IsDefaultActive();
 
         private:
             Program program;
+
+            static StringMap<StandardShader, STANDARD_MAX_ENUM>::Entry shaderEntries[];
+            static StringMap<StandardShader, STANDARD_MAX_ENUM> shaderNames;
     };
 }

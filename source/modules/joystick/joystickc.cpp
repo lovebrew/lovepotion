@@ -63,6 +63,10 @@ love::Gamepad * Joystick::AddGamepad(size_t index)
         this->gamepads.push_back(joystick);
     }
 
+    /*
+    ** Make sure the Joystick object
+    ** isn't in the active list already.
+    */
     this->RemoveGamepad(joystick);
 
     if (!joystick->Open(index))

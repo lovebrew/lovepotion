@@ -9,10 +9,10 @@
 
 namespace love
 {
-    class JoystickPool
+    class VibrationPool
     {
         public:
-            ~JoystickPool() {}
+            ~VibrationPool() {}
 
             bool IsRunning();
 

@@ -34,7 +34,7 @@ end
 -- COLOR TO / FROM BYTES --
 
 local function clamp01(x)
-    return math.min(math.max(x, 0), 1)
+    return min(max(x, 0), 1)
 end
 
 function love_math.colorToBytes(r, g, b, a)

@@ -4,7 +4,8 @@ using namespace love;
 
 #define FROM_LUA_ERROR "Argument %d can't be stored safely\nExpected boolean, number, string or userdata."
 
-Message::Message(const std::string & name, const std::vector<Variant> & args) : name(name), args(args)
+Message::Message(const std::string & name, const std::vector<Variant> & args) : name(name),
+                                                                                args(args)
 {}
 
 Message::~Message()

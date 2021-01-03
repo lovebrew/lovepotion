@@ -41,12 +41,6 @@ namespace love
 
             bool IsGamepadDown(const std::vector<GamepadButton> & buttons) const override;
 
-            std::string GetGUID() const override;
-
-            size_t GetInstanceID() const override;
-
-            size_t GetID() const override;
-
             bool IsVibrationSupported() override;
 
             bool SetVibration(float left, float right, float duration = -1.0f) override;

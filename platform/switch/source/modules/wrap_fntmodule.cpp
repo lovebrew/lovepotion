@@ -131,7 +131,7 @@ int Wrap_FontModule::NewGlyphData(lua_State * L)
 
 int Wrap_FontModule::Register(lua_State * L)
 {
-    const luaL_reg reg[] = {
+    const luaL_Reg reg[] = {
         { "newRasterizer",         NewRasterizer         },
         { "newTrueTypeRasterizer", NewTrueTypeRasterizer },
         { "newGlyphData",          NewGlyphData          },

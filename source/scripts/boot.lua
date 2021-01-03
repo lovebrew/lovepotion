@@ -659,7 +659,7 @@ function love.init()
         "math"
     }
 
-    -- Load them all!
+    -- load modules if they are configured to load
     for _, v in ipairs(modules) do
         if config.modules[v] then
             pcall(function() require("love." .. v) end)
@@ -695,14 +695,17 @@ function love.init()
     end
 
     -- if we can enter a game, error at this point
-
-    if can_go_romfs then
-        if no_game_code then
-            error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the " .. entryType .. ".")
-        elseif invalid_game_path then
-            error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
-        end
+    if no_game_code then
+        error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the " .. entryType .. ".")
+    elseif invalid_game_path then
+        error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
     end
+end
+
+local file = io.open("debug.txt", "w")
+local function debugging(str)
+    file:write(string.format("%s\n", str))
+    file:flush()
 end
 
 function love.run()
@@ -718,7 +721,9 @@ function love.run()
     local screens = love.graphics.getScreens()
 
     return function()
+
         if love.event and love.event.pump then
+
             love.event.pump()
 
             for name, a, b, c, d, e, f in love.event.poll() do
@@ -727,24 +732,28 @@ function love.run()
                         return a or 0
                     end
                 end
+
                 love.handlers[name](a, b, c, d, e, f)
             end
         end
 
         if love.timer then
+
             delta = love.timer.step()
         end
 
         if love.update then
+
             love.update(delta)
         end
 
         if love.graphics then
+
             love.graphics.origin()
 
             for _, screen in ipairs(screens) do
-                love.graphics.setActiveScreen(screen)
 
+                love.graphics.setActiveScreen(screen)
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
                 if love.draw then
