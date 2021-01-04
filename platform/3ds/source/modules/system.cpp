@@ -39,7 +39,7 @@ const std::string & System::GetModel()
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<CFG_SystemModel>(model), name))
-        throw love::Exception("Unknown model %u", model);
+        name = "Unknown";
 
     this->sysInfo.model = name;
 
@@ -94,7 +94,7 @@ const std::string & System::GetRegion()
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<CFG_Region>(region), name))
-        throw love::Exception("Unknown region %u", region);
+        name = "Unknown";
 
     this->sysInfo.region = name;
 
@@ -125,7 +125,7 @@ const std::string & System::GetLanguage()
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<CFG_Language>(language), name))
-        throw love::Exception("Unknown language %u", language);
+        name = "Unknown";
 
     this->sysInfo.language = name;
 

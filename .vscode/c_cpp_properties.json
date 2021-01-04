@@ -5,6 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/platform/3ds/include/**",
+                "${workspaceFolder}/platform/switch/build",
                 "/opt/devkitpro/portlibs/3ds/include/**",
                 "/opt/devkitpro/libctru/include/**",
                 "/opt/devkitpro/devkitARM/include"
@@ -42,6 +43,7 @@
                 "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/switch/include/**",
                 "${workspaceFolder}/platform/switch/scripts/**",
+                "${workspaceFolder}/platform/switch/build",
                 "/opt/devkitpro/portlibs/switch/include/**",
                 "/opt/devkitpro/libnx/include/**",
                 "/opt/devkitpro/devkitA64/include/**"
@@ -78,6 +80,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/platform/3ds/include/**",
+                "${workspaceFolder}/platform/switch/build",
                 "/opt/devkitpro/portlibs/3ds/include/**",
                 "/opt/devkitpro/libctru/include/**",
                 "/opt/devkitpro/devkitARM/include"

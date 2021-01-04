@@ -97,7 +97,7 @@ const std::string & System::GetLanguage()
 
     const char * name = nullptr;
     if (!System::GetConstant(language, name))
-        throw love::Exception("Unknown language code %lu.", languageCode);
+        name = "Unknown";
 
     this->sysInfo.language = name;
 
@@ -117,7 +117,7 @@ const std::string & System::GetModel()
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<ProductModel>(model), name))
-        throw love::Exception("Unknown product model %i", model);
+        name = "Unknown";
 
     this->sysInfo.model = name;
 
@@ -137,7 +137,7 @@ const std::string & System::GetRegion()
 
     const char * name = nullptr;
     if (!System::GetConstant(region, name))
-        throw love::Exception("Unknown region %d", static_cast<int>(region));
+        name = "Unknown";
 
     this->sysInfo.region = name;
 

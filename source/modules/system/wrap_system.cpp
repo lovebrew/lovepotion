@@ -64,11 +64,7 @@ int Wrap_System::GetNetworkInfo(lua_State * L)
 
 int Wrap_System::GetLanguage(lua_State * L)
 {
-    std::string language;
-
-    Luax::CatchException(L, [&]() {
-        language = instance()->GetLanguage();
-    });
+    std::string language = instance()->GetLanguage();
 
     Luax::PushString(L, language);
 
@@ -77,11 +73,7 @@ int Wrap_System::GetLanguage(lua_State * L)
 
 int Wrap_System::GetModel(lua_State * L)
 {
-    std::string model;
-
-    Luax::CatchException(L, [&]() {
-        model = instance()->GetModel();
-    });
+    std::string model = instance()->GetModel();
 
     Luax::PushString(L, model);
 
@@ -90,11 +82,7 @@ int Wrap_System::GetModel(lua_State * L)
 
 int Wrap_System::GetRegion(lua_State * L)
 {
-    std::string region;
-
-    Luax::CatchException(L, [&]() {
-        region = instance()->GetRegion();
-    });
+    std::string region = instance()->GetRegion();
 
     Luax::PushString(L, region);
 
