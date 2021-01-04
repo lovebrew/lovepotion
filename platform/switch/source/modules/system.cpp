@@ -3,17 +3,6 @@
 
 using namespace love;
 
-std::array<std::string, LANGUAGE_COUNT> love::common::System::LANGUAGES =
-{
-    "Japanese",  "American English", "French",
-    "German",    "Italian",          "Spanish",
-    "Chinese",   "Korean",           "Dutch",
-    "Portugese", "Russian",          "Taiwanese",
-    "British English",               "Canadian French",
-    "Latin American Spanish",        "Chinese Simplified",
-    "Chinese Traditional"
-};
-
 /* https://tinyurl.com/yyh7tnml */
 int System::GetProcessorCount()
 {
@@ -93,7 +82,7 @@ const std::string & System::GetLanguage()
     if (!this->sysInfo.language.empty())
         return this->sysInfo.language;
 
-    u64 languageCode;
+    uint64_t languageCode;
     SetLanguage language;
 
     Result res = setGetSystemLanguage(&languageCode);
@@ -106,9 +95,53 @@ const std::string & System::GetLanguage()
     if (R_FAILED(res))
         return empty;
 
-    this->sysInfo.language = LANGUAGES[language];
+    const char * name = nullptr;
+    if (!System::GetConstant(language, name))
+        throw love::Exception("Unknown language code %lu.", languageCode);
+
+    this->sysInfo.language = name;
 
     return this->sysInfo.language;
+}
+
+const std::string & System::GetModel()
+{
+    if (!this->sysInfo.model.empty())
+        return this->sysInfo.model;
+
+    int32_t model = 0;
+    Result res = setsysGetProductModel(&model);
+
+    if (R_FAILED(res))
+        return empty;
+
+    const char * name = nullptr;
+    if (!System::GetConstant(static_cast<ProductModel>(model), name))
+        throw love::Exception("Unknown product model %i", model);
+
+    this->sysInfo.model = name;
+
+    return this->sysInfo.model;
+}
+
+const std::string & System::GetRegion()
+{
+    if (!this->sysInfo.region.empty())
+        return this->sysInfo.region;
+
+    SetRegion region;
+    Result res = setGetRegionCode(&region);
+
+    if (R_FAILED(res))
+        return empty;
+
+    const char * name = nullptr;
+    if (!System::GetConstant(region, name))
+        throw love::Exception("Unknown region %d", static_cast<int>(region));
+
+    this->sysInfo.region = name;
+
+    return this->sysInfo.region;
 }
 
 const std::string & System::GetVersion()
@@ -125,3 +158,101 @@ const std::string & System::GetVersion()
     this->sysInfo.version = firmwareVersion.display_version;
     return this->sysInfo.version;
 }
+
+/* LANGUAGE CONSTANTS */
+
+bool System::GetConstant(const char * in, SetLanguage & out)
+{
+    return System::languages.Find(in, out);
+}
+
+bool System::GetConstant(SetLanguage in, const char *& out)
+{
+    return System::languages.Find(in, out);
+}
+
+std::vector<std::string> System::GetConstants(SetLanguage)
+{
+    return System::languages.GetNames();
+}
+
+StringMap<SetLanguage, SetLanguage_Total>::Entry System::languageEntries[] =
+{
+    { "Japanese",               SetLanguage_JA     },
+    { "US English",             SetLanguage_ENUS   },
+    { "French",                 SetLanguage_FR     },
+    { "German",                 SetLanguage_DE     },
+    { "Italian",                SetLanguage_IT     },
+    { "Spanish",                SetLanguage_ES     },
+    { "Chinese",                SetLanguage_ZHCN   },
+    { "Korean",                 SetLanguage_KO     },
+    { "Dutch",                  SetLanguage_NL     },
+    { "Portuguese",             SetLanguage_PT     },
+    { "Russian",                SetLanguage_RU     },
+    { "Taiwanese",              SetLanguage_ZHTW   },
+    { "British English",        SetLanguage_ENGB   },
+    { "Canadian French",        SetLanguage_FRCA   },
+    { "Latin American Spanish", SetLanguage_ES419  },
+    { "Chinese Simplified",     SetLanguage_ZHHANS },
+    { "Chinese Traditional",    SetLanguage_ZHHANT }
+};
+
+StringMap<SetLanguage, SetLanguage_Total> System::languages(System::languageEntries, sizeof(System::languageEntries));
+
+/* MODEL CONSTANTS */
+
+bool System::GetConstant(const char * in, ProductModel & out)
+{
+    return System::models.Find(in, out);
+}
+
+bool System::GetConstant(ProductModel in, const char *& out)
+{
+    return System::models.Find(in, out);
+}
+
+std::vector<std::string> System::GetConstants(ProductModel)
+{
+    return System::models.GetNames();
+}
+
+StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>::Entry System::modelEntries[] =
+{
+    { "Erista",            MODEL_NX     },
+    { "Erista Simulation", MODEL_COPPER },
+    { "Mariko",            MODEL_IOWA   },
+    { "Mariko Lite",       MODEL_HOAG   },
+    { "Mariko Simulation", MODEL_CALCIO },
+    { "Mariko Pro",        MODEL_AULA   }
+};
+
+StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(System::modelEntries, sizeof(System::modelEntries));
+
+/* REGION CONSTANTS */
+
+bool System::GetConstant(const char * in, SetRegion & out)
+{
+    return System::regions.Find(in, out);
+}
+
+bool System::GetConstant(SetRegion in, const char *& out)
+{
+    return System::regions.Find(in, out);
+}
+
+std::vector<std::string> System::GetConstants(SetRegion)
+{
+    return System::regions.GetNames();
+}
+
+StringMap<SetRegion, System::MAX_REGIONS>::Entry System::regionEntries[] =
+{
+    { "Japan",                  SetRegion_JPN },
+    { "United States",          SetRegion_USA },
+    { "Europe",                 SetRegion_EUR },
+    { "Australia/New Zealand",  SetRegion_AUS },
+    { "Hong Kong/Taiwan/Korea", SetRegion_HTK },
+    { "China",                  SetRegion_CHN }
+};
+
+StringMap<SetRegion, System::MAX_REGIONS> System::regions(System::regionEntries, sizeof(System::regionEntries));

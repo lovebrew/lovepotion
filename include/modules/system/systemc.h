@@ -69,6 +69,10 @@ namespace love::common
 
             virtual const std::string & GetVersion() = 0;
 
+            virtual const std::string & GetRegion() = 0;
+
+            virtual const std::string & GetModel() = 0;
+
             /* end pure virtual methods */
 
             PowerState GetPowerInfo(int & percent) const;
@@ -88,12 +92,11 @@ namespace love::common
                 std::string username;
                 std::string language;
                 std::string version;
+                std::string region;
+                std::string model;
             } sysInfo;
 
-            static std::array<std::string, LANGUAGE_COUNT> LANGUAGES;
-
         private:
-
             static StringMap<PowerState, POWER_MAX_ENUM>::Entry powerEntries[];
             static StringMap<PowerState, POWER_MAX_ENUM> powerStates;
 

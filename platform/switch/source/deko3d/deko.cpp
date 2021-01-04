@@ -471,7 +471,8 @@ float deko3d::GetPointSize()
 void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
 {
     uint32_t mask = 0;
-    const std::array<std::pair<bool, uint32_t>, 4> masks = {{
+    const std::array<std::pair<bool, uint32_t>, 4> masks =
+    {{
         {r, DkColorMask_R}, {g, DkColorMask_G}, {b, DkColorMask_B}, {a, DkColorMask_A}
     }};
 

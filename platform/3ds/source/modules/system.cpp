@@ -5,31 +5,48 @@ using namespace love;
 
 static std::string empty;
 
-std::array<std::string, LANGUAGE_COUNT> love::common::System::LANGUAGES =
-{
-    "Japanese", "English", "French",
-    "German",   "Italian", "Spanish",
-    "Simplified Chinese",  "Korean",
-    "Dutch",    "Portugese",
-    "Russian",  "Traditional Chinese"
-};
-
 int System::GetProcessorCount()
 {
     if (this->sysInfo.processors != 0)
         return this->sysInfo.processors;
 
-    u8 model;
+    uint8_t model = 0;
     CFGU_GetSystemModel(&model);
 
     int processorCount = 2;
-    if (model == 2 || model >= 4)
-        processorCount = 4;
+
+    switch (model)
+    {
+        case CFG_MODEL_N3DS:
+        case CFG_MODEL_N3DSXL:
+        case CFG_MODEL_N2DSXL:
+            processorCount = 4;
+            break;
+    }
 
     return this->sysInfo.processors = processorCount;
 }
 
-love::System::PowerInfo System::GetPowerInfo() const
+const std::string & System::GetModel()
+{
+    if (!this->sysInfo.model.empty())
+        return this->sysInfo.model;
+
+    uint8_t model = 0;
+    CFGU_GetSystemModel(&model);
+
+    /* ideally this shouldn't happen */
+
+    const char * name = nullptr;
+    if (!System::GetConstant(static_cast<CFG_SystemModel>(model), name))
+        throw love::Exception("Unknown model %u", model);
+
+    this->sysInfo.model = name;
+
+    return this->sysInfo.model;
+}
+
+System::PowerInfo System::GetPowerInfo() const
 {
     u8 batteryPercent = 100;
     u8 batteryState = 0;
@@ -65,7 +82,26 @@ const std::string & System::GetUsername()
     return this->sysInfo.username;
 }
 
-love::System::NetworkInfo System::GetNetworkInfo() const
+const std::string & System::GetRegion()
+{
+    if (!this->sysInfo.region.empty())
+        return this->sysInfo.region;
+
+    uint8_t region = 0;
+    CFGU_SecureInfoGetRegion(&region);
+
+    /* ideally this shouldn't happen */
+
+    const char * name = nullptr;
+    if (!System::GetConstant(static_cast<CFG_Region>(region), name))
+        throw love::Exception("Unknown region %u", region);
+
+    this->sysInfo.region = name;
+
+    return this->sysInfo.region;
+}
+
+System::NetworkInfo System::GetNetworkInfo() const
 {
     u32 status = 0;
     ACU_GetWifiStatus(&status);
@@ -82,10 +118,16 @@ const std::string & System::GetLanguage()
     if (!this->sysInfo.language.empty())
         return this->sysInfo.language;
 
-    u8 language;
+    uint8_t language;
     CFGU_GetSystemLanguage(&language);
 
-    this->sysInfo.language = love::System::LANGUAGES[language];
+    /* ideally this shouldn't happen */
+
+    const char * name = nullptr;
+    if (!System::GetConstant(static_cast<CFG_Language>(language), name))
+        throw love::Exception("Unknown language %u", language);
+
+    this->sysInfo.language = name;
 
     return this->sysInfo.language;
 }
@@ -104,3 +146,97 @@ const std::string & System::GetVersion()
     this->sysInfo.version = out;
     return this->sysInfo.version;
 }
+
+/* LANGUAGE CONSTANTS */
+
+bool System::GetConstant(const char * in, CFG_Language & out)
+{
+    return System::languages.Find(in, out);
+}
+
+bool System::GetConstant(CFG_Language in, const char *& out)
+{
+    return System::languages.Find(in, out);
+}
+
+std::vector<std::string> System::GetConstants(CFG_Language)
+{
+    return System::languages.GetNames();
+}
+
+StringMap<CFG_Language, System::MAX_LANGUAGES>::Entry System::languageEntries[] =
+{
+    { "Japanese",            CFG_LANGUAGE_JP },
+    { "English",             CFG_LANGUAGE_EN },
+    { "French",              CFG_LANGUAGE_FR },
+    { "German",              CFG_LANGUAGE_DE },
+    { "Italian",             CFG_LANGUAGE_IT },
+    { "Spanish",             CFG_LANGUAGE_ES },
+    { "Simplified Chinese",  CFG_LANGUAGE_ZH },
+    { "Korean",              CFG_LANGUAGE_KO },
+    { "Dutch",               CFG_LANGUAGE_NL },
+    { "Portugese",           CFG_LANGUAGE_PT },
+    { "Russian",             CFG_LANGUAGE_RU },
+    { "Traditional Chinese", CFG_LANGUAGE_TW }
+};
+
+StringMap<CFG_Language, System::MAX_LANGUAGES> System::languages(System::languageEntries, sizeof(System::languageEntries));
+
+/* MODEL CONSTANTS */
+
+bool System::GetConstant(const char * in, CFG_SystemModel & out)
+{
+    return System::models.Find(in, out);
+}
+
+bool System::GetConstant(CFG_SystemModel in, const char *& out)
+{
+    return System::models.Find(in, out);
+}
+
+std::vector<std::string> System::GetConstants(CFG_SystemModel)
+{
+    return System::models.GetNames();
+}
+
+StringMap<CFG_SystemModel, System::MAX_MODELS>::Entry System::modelEntries[] =
+{
+    { "3DS",       CFG_MODEL_3DS    },
+    { "3DSXL",     CFG_MODEL_3DSXL  },
+    { "New 3DS",   CFG_MODEL_N3DS   },
+    { "2DS",       CFG_MODEL_2DS    },
+    { "New 3DSXL", CFG_MODEL_N3DSXL },
+    { "New 2DSXL", CFG_MODEL_N2DSXL },
+};
+
+StringMap<CFG_SystemModel, System::MAX_MODELS> System::models(System::modelEntries, sizeof(System::modelEntries));
+
+/* REGION CONSTANTS */
+
+bool System::GetConstant(const char * in, CFG_Region & out)
+{
+    return System::regions.Find(in, out);
+}
+
+bool System::GetConstant(CFG_Region in, const char *& out)
+{
+    return System::regions.Find(in, out);
+}
+
+std::vector<std::string> System::GetConstants(CFG_Region)
+{
+    return System::regions.GetNames();
+}
+
+StringMap<CFG_Region, System::MAX_REGIONS>::Entry System::regionEntries[] =
+{
+    { "Japan",         CFG_REGION_JPN },
+    { "United States", CFG_REGION_USA },
+    { "Europe",        CFG_REGION_EUR },
+    { "Australia",     CFG_REGION_AUS },
+    { "China",         CFG_REGION_CHN },
+    { "Korea",         CFG_REGION_KOR },
+    { "Taiwan",        CFG_REGION_TWN },
+};
+
+StringMap<CFG_Region, System::MAX_REGIONS> System::regions(System::regionEntries, sizeof(System::regionEntries));

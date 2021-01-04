@@ -87,13 +87,6 @@ namespace Luax
         lua_pushlstring(L, str.data(), str.size());
     }
 
-    inline void PushPointerString(lua_State * L, const void * pointer) {
-        char string[sizeof(void *)];
-        memcpy(string, &pointer, sizeof(void *));
-
-        lua_pushlstring(L, string, sizeof(void *));
-    }
-
     int RegisterSearcher(lua_State * L, lua_CFunction function, int position);
 
     template <typename T, size_t funcCount, size_t extCount>

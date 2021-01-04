@@ -12,6 +12,10 @@ namespace Wrap_System
 
     int GetLanguage(lua_State * L);
 
+    int GetRegion(lua_State * L);
+
+    int GetModel(lua_State * L);
+
     int GetUsername(lua_State * L);
 
     int GetVersion(lua_State * L);
