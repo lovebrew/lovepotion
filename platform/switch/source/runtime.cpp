@@ -28,6 +28,12 @@ extern "C"
         if (R_FAILED(res))
             diagAbortWithResult(res);
 
+        /* system settings */
+        res = setsysInitialize();
+
+        if (R_FAILED(res))
+            diagAbortWithResult(res);
+
         /* battery */
         res = psmInitialize();
 
@@ -48,6 +54,7 @@ extern "C"
     {
         socketExit();
         psmExit();
+        setsysExit();
         setExit();
         accountExit();
         nifmExit();

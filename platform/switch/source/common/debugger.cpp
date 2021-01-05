@@ -3,18 +3,21 @@
 
 using namespace love;
 
-Debugger::Debugger() : sockfd(-1)
+extern "C"
 {
-    if (this->IsInited())
-        return;
+    Debugger::Debugger() : sockfd(-1)
+    {
+        if (this->IsInited())
+            return;
 
-    this->sockfd = nxlinkStdioForDebug();
+        this->sockfd = nxlinkStdioForDebug();
 
-    this->initialized = (this->sockfd != -1);
-}
+        this->initialized = (this->sockfd != -1);
+    }
 
-Debugger::~Debugger()
-{
-    if (this->sockfd != -1)
-        close(this->sockfd);
+    Debugger::~Debugger()
+    {
+        if (this->sockfd != -1)
+            close(this->sockfd);
+    }
 }

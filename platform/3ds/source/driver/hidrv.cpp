@@ -45,7 +45,7 @@ void Hidrv::Unlock()
 bool Hidrv::IsDown(size_t button)
 {
     size_t index = std::clamp((int)button - 1, 0, 7);
-    return this->buttonHeld & mappings[index].key;
+    return this->buttonStates.held & mappings[index].key;
 }
 
 bool Hidrv::Poll(LOVE_Event * event)

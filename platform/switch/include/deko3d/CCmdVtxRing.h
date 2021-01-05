@@ -49,7 +49,8 @@ class CCmdVtxRing
         */
         std::pair<void *, DkGpuAddr> begin()
         {
-            return std::make_pair((void *)((char *)m_mem.getCpuAddr() + (m_curSlice * m_sliceSize)), m_mem.getGpuAddr());
+            const auto offset = m_curSlice * m_sliceSize;
+            return std::make_pair((void *)((char *)m_mem.getCpuAddr() + offset), m_mem.getGpuAddr() + offset);
         }
 
         /*

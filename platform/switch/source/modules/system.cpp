@@ -218,12 +218,13 @@ std::vector<std::string> System::GetConstants(ProductModel)
 
 StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>::Entry System::modelEntries[] =
 {
-    { "Erista",            MODEL_NX     },
-    { "Erista Simulation", MODEL_COPPER },
-    { "Mariko",            MODEL_IOWA   },
-    { "Mariko Lite",       MODEL_HOAG   },
-    { "Mariko Simulation", MODEL_CALCIO },
-    { "Mariko Pro",        MODEL_AULA   }
+    { "Invalid",           MODEL_INVALID },
+    { "Erista",            MODEL_NX      },
+    { "Erista Simulation", MODEL_COPPER  },
+    { "Mariko",            MODEL_IOWA    },
+    { "Mariko Lite",       MODEL_HOAG    },
+    { "Mariko Simulation", MODEL_CALCIO  },
+    { "Mariko Pro",        MODEL_AULA    }
 };
 
 StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(System::modelEntries, sizeof(System::modelEntries));

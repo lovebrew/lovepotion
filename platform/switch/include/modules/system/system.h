@@ -12,6 +12,7 @@ namespace love
         public:
             enum ProductModel
             {
+                MODEL_INVALID,
                 MODEL_NX,
                 MODEL_COPPER,
                 MODEL_IOWA,

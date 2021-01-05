@@ -300,7 +300,7 @@ void deko3d::BeginFrame()
     // this->cmdBuf.bindDepthStencilState(this->state.depthStencil);
 
     // Bind the current slice's GPU address to the buffer
-    this->cmdBuf.bindVtxBuffer(this->vtxRing.getCurSlice(), data.second, this->vtxRing.getSize());
+    this->cmdBuf.bindVtxBuffer(0, data.second, this->vtxRing.getSize());
 }
 
 /*
@@ -312,7 +312,8 @@ void deko3d::Present()
 {
     if (this->framebuffers.inFrame)
     {
-        this->cmdBuf.barrier(DkBarrier_Fragments, 0);
+        this->queue.waitIdle();
+
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
         this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
