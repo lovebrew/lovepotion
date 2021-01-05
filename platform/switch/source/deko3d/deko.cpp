@@ -312,12 +312,11 @@ void deko3d::Present()
 {
     if (this->framebuffers.inFrame)
     {
-        this->queue.waitIdle();
 
+        this->vtxRing.end();
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
         this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
-        this->vtxRing.end();
         this->framebuffers.inFrame = false;
     }
 
