@@ -11,6 +11,8 @@
 #include <libpng16/png.h>
 #include <turbojpeg.h>
 
+#include "common/debug/logger.h"
+
 /*
 ** Load the specified @buffer with @size into an std::unique_ptr
 */
@@ -20,13 +22,19 @@
     memset(&image, 0, sizeof(image));
 
     image.version = PNG_IMAGE_VERSION;
-    image.format = PNG_FORMAT_RGBA;
 
     png_image_begin_read_from_memory(&image, buffer, size);
 
     if (PNG_IMAGE_FAILED(image))
+    {
+        #if defined (__DEBUG__)
+            LOG("%s", image.message);
+        #endif
+        png_image_free(&image);
         return nullptr;
+    }
 
+    image.format = PNG_FORMAT_RGBA;
 
     width  = image.width;
     height = image.height;
@@ -37,7 +45,12 @@
     png_image_free(&image);
 
     if (PNG_IMAGE_FAILED(image))
+    {
+        #if defined (__DEBUG__)
+            LOG("%s", image.message);
+        #endif
         return nullptr;
+    }
 
     return outBuffer;
 }
@@ -51,14 +64,15 @@
 {
 
     tjhandle _jpegDecompressor = tjInitDecompress();
-    std::unique_ptr<u8[]> outBuffer = std::make_unique<u8[]>(width * height);
 
     if (_jpegDecompressor == NULL)
         return nullptr;
 
     int samples;
     if (tjDecompressHeader2(_jpegDecompressor, (u8 *)buffer, size, &width, &height, &samples) == -1)
-        goto fail0;
+        return nullptr;
+
+    std::unique_ptr<u8[]> outBuffer = std::make_unique<u8[]>(width * height * 4);
 
     /* we always want RGBA, hopefully outputs as RGBA8 */
     if (tjDecompress2(_jpegDecompressor, (u8 *)buffer, size, outBuffer.get(), width, 0, height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
@@ -186,7 +200,7 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
 
     return true;
 }
-#include "common/debug/logger.h"
+
 bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                         const void * data, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {

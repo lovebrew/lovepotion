@@ -10,6 +10,7 @@ template <unsigned NumSlices>
 class CCmdMemRing
 {
     static_assert(NumSlices > 0, "Need a non-zero number of slices...");
+
     CMemPool::Handle m_mem;
     unsigned m_curSlice;
     dk::Fence m_fences[NumSlices];

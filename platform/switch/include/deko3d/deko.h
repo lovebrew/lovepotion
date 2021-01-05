@@ -119,7 +119,7 @@ class deko3d
 
         void UnRegisterResHandle(DkResHandle handle);
 
-        bool RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size, size_t count);
+        bool RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t count);
 
         /* Primitives Rendering */
 

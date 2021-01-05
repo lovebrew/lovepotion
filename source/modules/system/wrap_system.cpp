@@ -9,9 +9,7 @@ using namespace love;
 
 int Wrap_System::GetOS(lua_State * L)
 {
-    std::string os = instance()->GetOS();
-
-    Luax::PushString(L, os);
+    Luax::PushString(L, instance()->GetOS());
 
     return 1;
 }

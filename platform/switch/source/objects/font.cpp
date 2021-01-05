@@ -409,7 +409,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
             */
             for (int j = 0; j < 4; j++)
             {
-                glyphVertices.emplace_back(glyphData.vertices[j]);
+                glyphVertices.push_back(glyphData.vertices[j]);
                 glyphVertices.back().x += dx;
                 glyphVertices.back().y += dy + heightoffset;
 
@@ -618,14 +618,11 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
 
     for (const DrawCommand & cmd : drawCommands)
     {
-        size_t vertexCount = cmd.vertexCount;
-        std::vector<GlyphVertex> vertexData(vertexCount);
-
-        memcpy(vertexData.data(), &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
-        m.TransformXY(vertexData.data(), &vertices[cmd.startVertex], vertexCount);
+        std::vector<GlyphVertex> vertexData(vertices.data(), vertices.data() + cmd.vertexCount);
+        m.TransformXY(vertexData.data(), vertexData.data(), vertexData.size());
 
         std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData);
-        dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
+        dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), cmd.vertexCount);
     }
 }
 

@@ -258,31 +258,27 @@ void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)
 void deko3d::BindFramebuffer(love::Canvas * canvas)
 {
     this->EnsureInFrame();
+    this->EnsureHasSlot();
 
     if (this->framebuffers.dirty)
         this->SetDekoBarrier(DkBarrier_Fragments, 0);
 
+    dk::ImageView target { this->framebuffers.images[this->framebuffers.slot] };
+
     if (canvas != nullptr)
     {
-        dk::ImageView target { canvas->GetImage() };
+        target = { canvas->GetImage() };
         this->SetViewport({0, 0, canvas->GetWidth(), canvas->GetHeight()});
 
-        this->cmdBuf.bindRenderTargets(&target);
         this->framebuffers.dirty = true;
     }
     else
     {
         this->framebuffers.dirty = false;
-
-        this->EnsureHasSlot();
-
-        dk::ImageView colorTarget { this->framebuffers.images[this->framebuffers.slot] };
-        // dk::ImageView depthTarget { this->depthBuffer.image };
-
         this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
-
-        this->cmdBuf.bindRenderTargets(&colorTarget);
     }
+
+    this->cmdBuf.bindRenderTargets(&target);
 
     this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
                                this->transformUniformBuffer.getSize(), 0,
@@ -309,18 +305,18 @@ void deko3d::BeginFrame()
 
 /*
 ** Presents the current Framebuffer to the screen
-** It will call @BindFramebuffer first and submit
-** all our commands from the buffer to the queue
+** and submits all our commands from the buffer
+** to the queue
 */
 void deko3d::Present()
 {
     if (this->framebuffers.inFrame)
     {
-        this->vtxRing.end();
+        this->cmdBuf.barrier(DkBarrier_Fragments, 0);
         this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
-
         this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
+        this->vtxRing.end();
         this->framebuffers.inFrame = false;
     }
 
@@ -367,8 +363,7 @@ void deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Tex
     texture->SetHandle(dkMakeTextureHandle(index, index));
 }
 
-bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t size,
-                           size_t count)
+bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
@@ -377,13 +372,10 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * poin
 
     this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
 
-    // Copy the vertex info
-    memcpy(this->vertexData + this->firstVertex, points, size);
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
 
-    // Draw with Triangles
     this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
 
-    // Offset the first vertex data
     this->firstVertex += count;
 
     return true;
@@ -397,13 +389,10 @@ bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t size,
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);
 
-    // Draw with Triangles
     this->cmdBuf.draw(DkPrimitive_LineStrip, count, 1, this->firstVertex, 0);
 
-    // Offset the first vertex data
     this->firstVertex += count;
 
     return true;
@@ -417,13 +406,10 @@ bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    // Copy the vertex info
     memcpy(this->vertexData + this->firstVertex, points, size);
 
-    // Draw with Triangles
     this->cmdBuf.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
 
-    // Offset the first vertex data
     this->firstVertex += count;
 
     return true;

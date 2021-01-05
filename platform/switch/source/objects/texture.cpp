@@ -58,5 +58,5 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
         points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(), points.size(), gfx->GetColor());
     }
 
-    dk3d.RenderTexture(this->handle, points.data(), 4 * sizeof(*points.data()), 4);
+    dk3d.RenderTexture(this->handle, points.data(), 4);
 }

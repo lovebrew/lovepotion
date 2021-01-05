@@ -17,7 +17,9 @@ class CCmdVtxRing
     uint32_t m_sliceSize;
 
     public:
-        CCmdVtxRing() : m_mem{}, m_curSlice{} { }
+        CCmdVtxRing() : m_mem{},
+                        m_curSlice{}
+        {}
 
         ~CCmdVtxRing()
         {
@@ -34,7 +36,7 @@ class CCmdVtxRing
 
         const uint32_t getSize()
         {
-            return m_mem.getSize();
+            return m_mem.getSize() / NumSlices;
         }
 
         const unsigned getCurSlice()
@@ -42,14 +44,20 @@ class CCmdVtxRing
             return m_curSlice;
         }
 
+        /*
+        ** Return the current slice data
+        */
         std::pair<void *, DkGpuAddr> begin()
         {
             return std::make_pair((void *)((char *)m_mem.getCpuAddr() + (m_curSlice * m_sliceSize)), m_mem.getGpuAddr());
         }
 
+        /*
+        ** Advance the current slice counter
+        ** Wrap around when we reach the end
+        */
         void end()
         {
-            // Advance the current slice counter; wrapping around when we reach the end
             m_curSlice = (m_curSlice + 1) % NumSlices;
         }
 };
