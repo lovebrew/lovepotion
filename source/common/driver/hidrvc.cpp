@@ -4,6 +4,7 @@ using namespace love::common::driver;
 
 Hidrv::Hidrv() : hysteresis(false),
                  events(),
+                 mutex(),
                  buttonStates()
 {}
 
@@ -24,35 +25,35 @@ uint64_t Hidrv::GetButtonHeld()
 
 void Hidrv::SendFocus(bool focus)
 {
-    this->LockFunction([&]() {
+    this->Lock();
         auto & event = this->events.emplace_back();
 
         event.type = TYPE_WINDOWEVENT;
         event.subType = focus ? TYPE_FOCUS_GAINED : TYPE_FOCUS_LOST;
-    });
+    this->Unlock();
 }
 
 void Hidrv::SendLowMemory()
 {
-    this->LockFunction([&]() {
+    this->Lock();
         auto & event = this->events.emplace_back();
 
         event.type = TYPE_LOWMEMORY;
-    });
+    this->Unlock();
 }
 
 void Hidrv::SendQuit()
 {
-    this->LockFunction([&]() {
+    this->Lock();
         auto & event = this->events.emplace_back();
 
         event.type = TYPE_QUIT;
-    });
+    this->Unlock();
 }
 
 void Hidrv::SendResize(int width, int height)
 {
-    this->LockFunction([&]() {
+    this->Lock();
         auto & event = this->events.emplace_back();
 
         event.type = TYPE_WINDOWEVENT;
@@ -60,5 +61,5 @@ void Hidrv::SendResize(int width, int height)
 
         event.size.width  = width;
         event.size.height = height;
-    });
+    this->Unlock();
 }

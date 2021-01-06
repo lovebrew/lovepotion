@@ -57,9 +57,9 @@ namespace love::common
         protected:
             love::thread::MutexRef mutex;
 
-        private:
             std::unique_ptr<love::driver::Hidrv> driver;
 
+        private:
             std::queue<Message *> queue;
 
             Message * Convert(const driver::Hidrv::LOVE_Event & event);

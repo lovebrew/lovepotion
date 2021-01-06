@@ -127,6 +127,8 @@ namespace love::common::driver
             bool hysteresis;
             std::list<LOVE_Event> events;
 
+            love::thread::Mutex mutex;
+
             struct ButtonState
             {
                 uint64_t oldPressed;
@@ -143,7 +145,6 @@ namespace love::common::driver
 
             virtual void Unlock() {};
 
-        private:
             template <typename T>
             void LockFunction(const T & func)
             {

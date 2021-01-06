@@ -3,6 +3,10 @@
 
 using namespace love;
 
+#include "modules/event/event.h"
+
+#define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
+
 Gamepad::Gamepad(size_t id) : common::Gamepad(id)
 {}
 
@@ -162,7 +166,7 @@ bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
         if (button < 0 || button >= buttonCount)
             continue;
 
-        return driver::hidrv.IsDown(button);
+        return EVENT_MODULE()->GetDriver()->IsDown(button);
     }
 
     return false;
@@ -200,26 +204,11 @@ bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
         if (!GetConstant(button, consoleButton) || consoleButton < 0)
             continue;
 
-        if (consoleButton & driver::hidrv.GetButtonPressed())
+        if (consoleButton & EVENT_MODULE()->GetDriver()->GetButtonPressed())
             return true;
     }
 
     return false;
-}
-
-std::string Gamepad::GetGUID() const
-{
-    return this->guid;
-}
-
-size_t Gamepad::GetInstanceID() const
-{
-    return this->instanceID;
-}
-
-size_t Gamepad::GetID() const
-{
-    return this->id;
 }
 
 bool Gamepad::IsVibrationSupported()

@@ -36,10 +36,14 @@ namespace love::thread
 
             void Lock();
 
+            bool IsLocked();
+
             void Unlock();
 
         private:
             LOVE_Mutex mutex;
+
+            bool locked;
 
             friend class Conditional;
     };

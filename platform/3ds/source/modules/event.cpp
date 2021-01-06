@@ -5,17 +5,19 @@
 
 static aptHookCookie s_aptHookCookie;
 
+#define Instance() (love::Module::GetInstance<love::Event>(love::Module::M_EVENT))
+
 static void aptEventHook(const APT_HookType type, void * param)
 {
     switch (type)
     {
         case APTHOOK_ONRESTORE:
         case APTHOOK_ONWAKEUP:
-            love::driver::hidrv.SendFocus(true);
+            Instance()->GetDriver()->SendFocus(true);
             break;
         case APTHOOK_ONSUSPEND:
         case APTHOOK_ONSLEEP:
-            love::driver::hidrv.SendFocus(false);
+            Instance()->GetDriver()->SendFocus(false);
             break;
         default:
             break;

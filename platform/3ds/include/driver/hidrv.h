@@ -22,8 +22,6 @@ namespace love::driver
             void Unlock() override;
 
         private:
-            love::thread::Mutex mutex;
-
             circlePosition sticks[2];
             circlePosition oldSticks[2];
 
@@ -32,6 +30,4 @@ namespace love::driver
 
             bool touchHeld;
     };
-
-    inline driver::Hidrv hidrv;
 }
