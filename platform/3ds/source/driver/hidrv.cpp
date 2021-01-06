@@ -60,7 +60,8 @@ bool Hidrv::Poll(LOVE_Event * event)
 
     for (auto & mapping : mappings)
     {
-        if (this->buttonStates.pressed & mapping.key)
+        if (this->buttonStates.pressed != this->buttonStates.oldPressed &&
+            (this->buttonStates.pressed & mapping.key))
         {
             auto & newEvent = this->events.emplace_back();
 
@@ -70,7 +71,12 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.button.which  = 0;
             newEvent.button.button = mapping.index;
         }
-        else if (this->buttonStates.released & mapping.key)
+    }
+
+    for (auto & mapping : mappings)
+    {
+        if (this->buttonStates.released != this->buttonStates.oldReleased &&
+            (this->buttonStates.released & mapping.key))
         {
             auto & newEvent = this->events.emplace_back();
 
@@ -81,6 +87,9 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.button.button = mapping.index;
         }
     }
+
+    this->buttonStates.oldPressed  = this->buttonStates.pressed;
+    this->buttonStates.oldReleased = this->buttonStates.released;
 
     /* touch screen */
 
