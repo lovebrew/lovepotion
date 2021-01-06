@@ -27,9 +27,6 @@
 
     if (PNG_IMAGE_FAILED(image))
     {
-        #if defined (__DEBUG__)
-            LOG("%s", image.message);
-        #endif
         png_image_free(&image);
         return nullptr;
     }
@@ -45,12 +42,7 @@
     png_image_free(&image);
 
     if (PNG_IMAGE_FAILED(image))
-    {
-        #if defined (__DEBUG__)
-            LOG("%s", image.message);
-        #endif
         return nullptr;
-    }
 
     return outBuffer;
 }

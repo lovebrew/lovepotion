@@ -6,6 +6,7 @@ deko3d::deko3d() : firstVertex(0),
                    renderState(STATE_MAX_ENUM),
                    pool(),
                    state(),
+                   viewport{0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT},
                    framebuffers(),
                    depthBuffer()
 {
@@ -275,7 +276,7 @@ void deko3d::BindFramebuffer(love::Canvas * canvas)
     else
     {
         this->framebuffers.dirty = false;
-        this->SetViewport({0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT});
+        this->SetViewport({0, 0, this->viewport.w, this->viewport.h});
     }
 
     this->cmdBuf.bindRenderTargets(&target);

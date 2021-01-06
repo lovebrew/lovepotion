@@ -5,9 +5,7 @@ using namespace love::common;
 
 Debugger::Debugger() : initialized(false),
                        count(0)
-{
-    LOG("We are initializing!!");
-}
+{}
 
 bool Debugger::IsInited()
 {

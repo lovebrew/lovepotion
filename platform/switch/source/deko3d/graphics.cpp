@@ -574,7 +574,7 @@ void love::deko3d::Graphics::SetScissor()
 {
     int width  = this->GetWidth(this->GetActiveScreen());
     int height = this->GetHeight();
-    LOG("%d %d", width, height);
+
     dk3d.SetScissor({0, 0, width, height}, this->IsCanvasActive());
     states.back().scissor = false;
 }

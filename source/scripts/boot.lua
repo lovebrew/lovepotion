@@ -302,17 +302,9 @@ end
 local utf8 = require("utf8")
 local debug, print, error = debug, print, error
 
-local file = io.open("debug.txt", "w")
-local function debugging(str)
-    file:write(string.format("%s\n", str))
-    file:flush()
-end
-
 local function error_printer(msg, layer)
     local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
     trace = trace:gsub("\n[^\n]+$", "")
-
-    debugging(trace)
 
     print(trace)
 end
