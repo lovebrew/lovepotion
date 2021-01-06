@@ -1705,7 +1705,7 @@ function love.nogame()
             return
         end
 
-        love.graphics.setColor(0.933, 0.933, 0.933)
+        love.graphics.setColor(0.878, 0.878, 0.878)
         love.graphics.setBlendFactor(1)
 
         local scale = (self.radius * 2) / res.cloudCircle:getWidth()
@@ -1786,14 +1786,14 @@ function love.nogame()
         end
 
         -- draw the cloud height rectangle
-        love.graphics.setColor(0.933, 0.933, 0.933)
+        love.graphics.setColor(0.878, 0.878, 0.878)
         love.graphics.setBlendFactor(1)
 
         love.graphics.rectangle("fill", 0, cloudVerticalPosition, love.graphics.getWidth(), love.graphics.getHeight() - cloudVerticalPosition)
 
         -- draw the bottle over that
 
-        local y = self.y + math.cos(timer * 5) * 15
+        local y = self.y + math.cos(timer * 5) * 12
         local x = self.x - (iod * 6.0)
 
         love.graphics.setBlendFactor(0)
@@ -1824,7 +1824,7 @@ function love.nogame()
                 return
             else
                 -- draw the "background"
-                love.graphics.setColor(0.933, 0.933, 0.933)
+                love.graphics.setColor(0.878, 0.878, 0.878)
                 love.graphics.setBlendFactor(1)
 
                 love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
@@ -1868,7 +1868,9 @@ function love.nogame()
 
     function love.load()
         -- nop this function on Switch
-        love.graphics.setBlendFactor = (is3DS == false) and function(_)
+        if not is3DS then
+            love.graphics.setBlendFactor = function(_)
+            end
         end
 
         love.graphics.setBackgroundColor(0.392, 0.710, 0.965)
@@ -1890,9 +1892,14 @@ function love.nogame()
         centerX = love.graphics.getWidth(screen) / 2
 
         local scale = is3DS and 0.5 or 1.0
-        bottleInstance = Bottle(love.graphics.getWidth() / 2, love.graphics.getHeight() * 0.50, scale)
 
-        local y = love.graphics.getHeight() * 0.85
+        local y = love.graphics.getHeight() * 0.50
+        if is3DS then
+            y = love.graphics.getHeight() * 0.55
+        end
+        bottleInstance = Bottle(love.graphics.getWidth() / 2, y, scale)
+
+        y = love.graphics.getHeight() * 0.85
         if is3DS then
             y = centerY
         end
