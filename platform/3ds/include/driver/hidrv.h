@@ -16,11 +16,6 @@ namespace love::driver
 
             bool IsDown(size_t button) override;
 
-        protected:
-            void Lock() override;
-
-            void Unlock() override;
-
         private:
             circlePosition sticks[2];
             circlePosition oldSticks[2];

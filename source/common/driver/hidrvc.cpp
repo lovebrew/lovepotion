@@ -4,7 +4,6 @@ using namespace love::common::driver;
 
 Hidrv::Hidrv() : hysteresis(false),
                  events(),
-                 mutex(),
                  buttonStates()
 {}
 
@@ -25,41 +24,34 @@ uint64_t Hidrv::GetButtonHeld()
 
 void Hidrv::SendFocus(bool focus)
 {
-    this->Lock();
-        auto & event = this->events.emplace_back();
+    auto & event = this->events.emplace_back();
 
-        event.type = TYPE_WINDOWEVENT;
-        event.subType = focus ? TYPE_FOCUS_GAINED : TYPE_FOCUS_LOST;
-    this->Unlock();
+    event.type = TYPE_WINDOWEVENT;
+    event.subType = focus ? TYPE_FOCUS_GAINED : TYPE_FOCUS_LOST;
 }
 
 void Hidrv::SendLowMemory()
 {
-    this->Lock();
-        auto & event = this->events.emplace_back();
+    auto & event = this->events.emplace_back();
 
-        event.type = TYPE_LOWMEMORY;
-    this->Unlock();
+    event.type = TYPE_LOWMEMORY;
 }
 
 void Hidrv::SendQuit()
 {
-    this->Lock();
-        auto & event = this->events.emplace_back();
+    auto & event = this->events.emplace_back();
 
-        event.type = TYPE_QUIT;
-    this->Unlock();
+    event.type = TYPE_QUIT;
 }
 
+/* onlu fires on Switch */
 void Hidrv::SendResize(int width, int height)
 {
-    this->Lock();
-        auto & event = this->events.emplace_back();
+    auto & event = this->events.emplace_back();
 
-        event.type = TYPE_WINDOWEVENT;
-        event.subType = TYPE_RESIZE;
+    event.type = TYPE_WINDOWEVENT;
+    event.subType = TYPE_RESIZE;
 
-        event.size.width  = width;
-        event.size.height = height;
-    this->Unlock();
+    event.size.width  = width;
+    event.size.height = height;
 }
