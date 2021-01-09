@@ -77,7 +77,7 @@ namespace vertex
     std::vector<Vertex> GenerateTextureFromVectors(const love::Vector2 * points, const love::Vector2 * texcoord,
                                                    size_t count, Colorf color);
 
-    std::vector<vertex::Vertex> GenerateTextureFromGlyphs(const std::vector<GlyphVertex> & gVerts);
+    std::vector<vertex::Vertex> GenerateTextureFromGlyphs(const vertex::GlyphVertex * verts, size_t count);
 
     bool GetConstant(const char * in, CullMode & out);
     bool GetConstant(CullMode in, const char *& out);

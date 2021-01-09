@@ -57,14 +57,13 @@ std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vecto
     return verts;
 }
 
-std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const std::vector<GlyphVertex> & gVerts)
+std::vector<vertex::Vertex> vertex::GenerateTextureFromGlyphs(const vertex::GlyphVertex * data, size_t count)
 {
-    size_t count = gVerts.size();
     std::vector<vertex::Vertex> verts(count);
 
     for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
     {
-        const GlyphVertex vertex = gVerts[currentVertex];
+        const GlyphVertex vertex = data[currentVertex];
         Colorf color = vertex.color;
 
         vertex::Vertex vert =

@@ -27,7 +27,7 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
 
     while (true)
     {
-        if ((r->GetHeight() * 0.8) * r->GetHeight() * 30 <= textureWidth * textureHeight)
+        if ((this->height * 0.8) * this->height * 30 <= textureWidth * textureHeight)
             break;
 
         TextureSize nextsize = this->GetNextTextureSize();
@@ -35,8 +35,8 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
         if (nextsize.width <= textureWidth && nextsize.height <= textureHeight)
             break;
 
-        textureWidth = nextsize.width;
-        textureHeight = nextsize.height;
+        this->textureWidth = nextsize.width;
+        this->textureHeight = nextsize.height;
     }
 
     /* No tab character in the Rasterizer. */
@@ -74,18 +74,18 @@ Font::TextureSize Font::GetNextTextureSize() const
 
 void Font::CreateTexture()
 {
-    TextureSize size = {this->textureWidth, this->textureHeight};
-    TextureSize nextSize = this->GetNextTextureSize();
-    bool recreatetexture = false;
-
     auto gfx = Module::GetInstance<deko3d::Graphics>(Module::M_GRAPHICS);
 
+    TextureSize size = {this->textureWidth, this->textureHeight};
+    TextureSize nextSize = this->GetNextTextureSize();
+
     love::Image * texture = nullptr;
+    bool recreatetexture = false;
 
     // If we have an existing texture already, we'll try replacing it with a
     // larger-sized one rather than creating a second one. Having a single
     // texture reduces texture switches and draw calls when rendering.
-    if ((nextSize.width > size.width || nextSize.height > size.height) && !images.empty())
+    if ((nextSize.width > size.width || nextSize.height > size.height) && !this->images.empty())
     {
         recreatetexture = true;
         size = nextSize;
@@ -103,7 +103,7 @@ void Font::CreateTexture()
 
     if (recreatetexture)
     {
-        textureCacheID++;
+        this->textureCacheID++;
 
         std::vector<uint32_t> glyphsToAdd;
 
@@ -205,9 +205,6 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         g.texture = image;
 
         Rect rect = {this->textureX, this->textureY, gd->GetWidth(), gd->GetHeight()};
-
-        if (this->textureX > this->textureWidth || this->textureY > this->textureHeight)
-            throw love::Exception("Writing out of bounds!");
 
         image->ReplacePixels(gd->GetData(), gd->GetSize(), rect);
 
@@ -341,7 +338,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
 
         if (currentColorIndex + 1 < numColors && codepoints.colors[currentColorIndex + 1].index == i)
         {
-            Colorf c = codepoints.colors[++numColors].color;
+            Colorf c = codepoints.colors[++currentColorIndex].color;
 
             c.r = std::min(std::max(c.r, 0.0f), 1.0f);
             c.g = std::min(std::max(c.g, 0.0f), 1.0f);
@@ -371,7 +368,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints & 
         if (glyph == '\r')
             continue;
 
-        uint32_t cacheID = textureCacheID;
+        uint32_t cacheID = this->textureCacheID;
 
         const Glyph & glyphData = this->FindGlyph(glyph);
 
@@ -618,11 +615,14 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
 
     for (const DrawCommand & cmd : drawCommands)
     {
-        std::vector<GlyphVertex> vertexData(vertices.data(), vertices.data() + cmd.vertexCount);
-        m.TransformXY(vertexData.data(), vertexData.data(), vertexData.size());
+        size_t vertexCount = cmd.vertexCount;
+        vertex::GlyphVertex vertexData[cmd.vertexCount];
 
-        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData);
-        dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), cmd.vertexCount);
+        memcpy(vertexData, &vertices[cmd.startVertex], sizeof(GlyphVertex) * vertexCount);
+        m.TransformXY(vertexData, &vertices[cmd.startVertex], vertexCount);
+
+        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, vertexCount);
+        dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), vertexCount);
     }
 }
 

@@ -111,8 +111,6 @@ namespace love
             float GetDescent() const;
 
         private:
-            static const int SPACES_PER_TAB = 4;
-
             struct TextureSize
             {
                 int width;
@@ -138,7 +136,9 @@ namespace love
             int textureY;
             int rowHeight;
 
-            static const int TEXTURE_PADDING = 4;
+            static const int TEXTURE_PADDING = 2;
+
+            static const int SPACES_PER_TAB = 4;
 
             std::unordered_map<uint32_t, Font::Glyph> glyphs;
 

@@ -195,13 +195,12 @@ void Text::Draw(Graphics * gfx, const Matrix4 & localTransform)
     for (const Font::DrawCommand & command : this->drawCommands)
     {
         size_t vertexCount = command.vertexCount;
+        vertex::GlyphVertex vertexData[command.vertexCount];
 
-        std::vector<vertex::GlyphVertex> vertexData(vertexCount);
+        memcpy(vertexData, this->vertexBuffer.data(), sizeof(vertex::GlyphVertex) * vertexCount);
+        transform.TransformXY(vertexData, this->vertexBuffer.data(), vertexCount);
 
-        memcpy(vertexData.data(), this->vertexBuffer.data(), sizeof(vertex::GlyphVertex) * vertexCount);
-        transform.TransformXY(vertexData.data(), this->vertexBuffer.data(), vertexCount);
-
-        std::vector<vertex::Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData);
+        std::vector<vertex::Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, command.vertexCount);
         dk3d.RenderTexture(command.texture->GetHandle(), verts.data(), vertexCount);
     }
 }
