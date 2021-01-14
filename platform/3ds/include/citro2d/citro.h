@@ -20,9 +20,33 @@ class citro2d
 
         void Present();
 
+        void SetTextureFilter(const love::Texture::Filter & filter);
+
+        void SetTextureFilter(love::Texture * texture, const love::Texture::Filter & filter);
+
+        void SetTextureWrap(const love::Texture::Wrap & wrap);
+
+        void SetTextureWrap(love::Texture * texture, const love::Texture::Wrap & filter);
+
+        static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
+
     private:
         std::vector<C3D_RenderTarget *> targets;
         C3D_RenderTarget * current;
+
+        struct
+        {
+            GPU_TEXTURE_FILTER_PARAM min;
+            GPU_TEXTURE_FILTER_PARAM mag;
+
+            GPU_PROCTEX_FILTER mipMap;
+        } filter;
+
+        struct
+        {
+            GPU_TEXTURE_WRAP_PARAM s;
+            GPU_TEXTURE_WRAP_PARAM t;
+        } wrap;
 
         bool inFrame = false;
 

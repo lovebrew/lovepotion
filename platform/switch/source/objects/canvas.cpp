@@ -30,7 +30,7 @@ Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings),
     this->descriptor.initialize(view);
 
     // Register the texture handle for the descriptor
-    dk3d.RegisterResHandle(this->descriptor, this);
+    this->handle = dk3d.RegisterResHandle(this->texture.getDescriptor());
 }
 
 Canvas::~Canvas()

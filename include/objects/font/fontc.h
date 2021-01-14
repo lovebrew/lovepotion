@@ -45,7 +45,9 @@ namespace love::common
 
             static love::Type type;
 
-            virtual ~Font() {};
+            Font();
+
+            virtual ~Font();
 
             virtual void Print(Graphics * gfx, const std::vector<ColoredString> & text,
                                const Matrix4 & localTransform, const Colorf & color) = 0;
@@ -70,6 +72,8 @@ namespace love::common
             static bool GetConstant(const char * in, SystemFontType & out);
             static bool GetConstant(SystemFontType in, const char *& out);
             static std::vector<std::string> GetConstants(SystemFontType);
+
+            static int fontCount;
 
         protected:
             float lineHeight;

@@ -115,7 +115,7 @@ class deko3d
 
         std::optional<CMemPool> & GetData();
 
-        void RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Texture * texture);
+        DkResHandle RegisterResHandle(const dk::ImageDescriptor & descriptor);
 
         void UnRegisterResHandle(DkResHandle handle);
 
@@ -123,11 +123,11 @@ class deko3d
 
         /* Primitives Rendering */
 
-        bool RenderPolygon(const vertex::Vertex * points, size_t size, size_t count);
+        bool RenderPolygon(const vertex::Vertex * points, size_t count);
 
-        bool RenderPolyline(const vertex::Vertex * points, size_t size, size_t count);
+        bool RenderPolyline(const vertex::Vertex * points, size_t count);
 
-        bool RenderPoints(const vertex::Vertex * points, size_t size, size_t count);
+        bool RenderPoints(const vertex::Vertex * points, size_t count);
 
         static DkWrapMode GetDekoWrapMode(love::Texture::WrapMode wrap);
 

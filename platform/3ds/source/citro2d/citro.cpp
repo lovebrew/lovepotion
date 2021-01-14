@@ -31,6 +31,14 @@ citro2d::citro2d()
         C2D_CreateScreenTarget(GFX_TOP,    GFX_RIGHT),
         C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT)
     };
+
+    love::Texture::Filter filter;
+    filter.min = filter.mag = love::Texture::FILTER_NEAREST;
+    this->SetTextureFilter(filter);
+
+    love::Texture::Wrap wrap;
+    wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
+    this->SetTextureWrap(wrap);
 }
 
 citro2d::~citro2d()
@@ -86,6 +94,75 @@ void citro2d::SetStencil(GPU_TESTFUNC compare, int value)
 
     C3D_StencilTest(enabled, compare, value, 0xFFFFFFFF, 0xFFFFFFFF);
     C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
+}
+
+// Set the global filter mode for textures
+void citro2d::SetTextureFilter(const love::Texture::Filter & filter)
+{
+    GPU_TEXTURE_FILTER_PARAM min = (filter.min == love::Texture::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
+    GPU_TEXTURE_FILTER_PARAM mag = (filter.min == love::Texture::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
+
+    GPU_PROCTEX_FILTER mipFilter = GPU_PT_LINEAR;
+
+    if (filter.mipmap != love::Texture::FILTER_NONE)
+    {
+        if (filter.min == love::Texture::FILTER_NEAREST && filter.mipmap == love::Texture::FILTER_NEAREST)
+            mipFilter = GPU_PT_NEAREST;
+        else if (filter.min == love::Texture::FILTER_NEAREST && filter.mipmap == love::Texture::FILTER_LINEAR)
+            mipFilter = GPU_PT_LINEAR;
+        else if (filter.min == love::Texture::FILTER_LINEAR && filter.mipmap == love::Texture::FILTER_NEAREST)
+            mipFilter = GPU_PT_NEAREST;
+        else if (filter.min == love::Texture::FILTER_LINEAR && filter.mipmap == love::Texture::FILTER_LINEAR)
+            mipFilter = GPU_PT_LINEAR;
+        else
+            mipFilter = GPU_PT_LINEAR;
+    }
+
+    this->filter.min = min;
+    this->filter.mag = mag;
+
+    this->filter.mip = mipFilter;
+}
+
+void citro2d::SetTextureFilter(love::Texture * texture, const love::Texture::Filter & filter)
+{
+    this->SetTextureFilter(filter);
+
+    const C2D_Image & image = texture->GetHandle();
+    C3D_TexSetFilter(image.tex, this->filter.mag, this->filter.min);
+}
+
+void citro2d::SetTextureWrap(const love::Texture::Wrap & wrap)
+{
+    GPU_TEXTURE_WRAP_PARAM u = citro2d::GetCitroWrapMode(wrap.s);
+    GPU_TEXTURE_WRAP_PARAM v = citro2d::GetCitroWrapMode(wrap.t);
+
+    this->wrap.s = u;
+    this->wrap.t = v;
+}
+
+void citro2d::SetTextureWrap(love::Texture * texture, const love::Texture::Wrap & wrap)
+{
+    this->SetTextureWrap(wrap);
+
+    const C2D_Image & image = texture->GetHandle();
+    C3D_TexSetWrap(image.tex, this->wrap.s, this->wrap.t);
+}
+
+GPU_TEXTURE_WRAP_PARAM citro2d::GetCitroWrapMode(love::Texture::WrapMode wrap)
+{
+    switch (wrap)
+    {
+        case love::Texture::WRAP_CLAMP:
+        default:
+            return GPU_CLAMP_TO_EDGE;
+        case love::Texture::WRAP_CLAMP_ZERO:
+            return GPU_CLAMP_TO_BORDER;
+        case love::Texture::WRAP_REPEAT:
+            return GPU_REPEAT;
+        case love::Texture::WRAP_MIRRORED_REPEAT:
+            return GPU_MIRRORED_REPEAT;
+    }
 }
 
 ::citro2d c2d;

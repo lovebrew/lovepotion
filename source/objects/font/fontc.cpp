@@ -6,6 +6,18 @@ using namespace love::common;
 
 love::Type Font::type("Font", &Object::type);
 
+int Font::fontCount = 0;
+
+Font::Font()
+{
+    fontCount++;
+}
+
+Font::~Font()
+{
+    --fontCount;
+}
+
 float Font::GetLineHeight() const
 {
     return this->lineHeight;

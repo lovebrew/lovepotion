@@ -37,12 +37,12 @@ GlyphData * Rasterizer::GetGlyphData(const std::string & text) const
     {
         codepoint = utf8::peek_next(text.begin(), text.end());
     }
-    catch (utf8::exception &e)
+    catch (utf8::exception & e)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
 
-    return GetGlyphData(codepoint);
+    return this->GetGlyphData(codepoint);
 }
 
 bool Rasterizer::HasGlyphs(const std::string & text) const

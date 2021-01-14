@@ -148,15 +148,19 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void
 bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
                              uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
 {
-    size_t size = this->getFormatSize(format);
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(width * height * size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    size_t size = width * height * this->getFormatSize(format);
+
+    if (size <= 0)
+        return false;
+
+    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;
 
-    /* memset for transparent black pixels */
-    std::vector<uint8_t> empty(width * height * size, 0);
-    memcpy(tempImageMemory.getCpuAddr(), empty.data(), empty.size());
+    /* memcpy for transparent black pixels */
+    std::vector<uint8_t> empty(size, 0);
+    memcpy(tempImageMemory.getCpuAddr(), empty.data(), sizeof(uint8_t) * empty.size());
 
     /*
     ** We need to have a command buffer and some more memory for it
@@ -165,6 +169,8 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
     CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
+
+    LOG("%ux%u", width, height);
 
     // Set the image layout for the image
     dk::ImageLayout layout;

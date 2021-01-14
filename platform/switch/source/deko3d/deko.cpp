@@ -354,14 +354,14 @@ void deko3d::UnRegisterResHandle(DkResHandle handle)
     this->allocator.DeAllocate(handle);
 }
 
-void deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor, love::Texture * texture)
+DkResHandle deko3d::RegisterResHandle(const dk::ImageDescriptor & descriptor)
 {
-    uint32_t index = allocator.Allocate();
+    uint32_t index = this->allocator.Allocate();
 
     this->descriptors.image.update(this->cmdBuf, index, descriptor);
     this->descriptors.sampler.update(this->cmdBuf, index, this->filter.descriptor);
 
-    texture->SetHandle(dkMakeTextureHandle(index, index));
+    return dkMakeTextureHandle(index, index);
 }
 
 bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * points, size_t count)
@@ -382,15 +382,14 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex * poin
     return true;
 }
 
-bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t size,
-                            size_t count)
+bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    memcpy(this->vertexData + this->firstVertex, points, size);
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
 
     this->cmdBuf.draw(DkPrimitive_LineStrip, count, 1, this->firstVertex, 0);
 
@@ -399,15 +398,14 @@ bool deko3d::RenderPolyline(const vertex::Vertex * points, size_t size,
     return true;
 }
 
-bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
-                           size_t count)
+bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    memcpy(this->vertexData + this->firstVertex, points, size);
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
 
     this->cmdBuf.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
 
@@ -416,15 +414,14 @@ bool deko3d::RenderPolygon(const vertex::Vertex * points, size_t size,
     return true;
 }
 
-bool deko3d::RenderPoints(const vertex::Vertex * points, size_t size,
-                          size_t count)
+bool deko3d::RenderPoints(const vertex::Vertex * points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    memcpy(this->vertexData + this->firstVertex, points, size);
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
 
     this->cmdBuf.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
 
@@ -533,7 +530,7 @@ void deko3d::SetTextureFilter(const love::Texture::Filter & filter)
             mipFilter = DkMipFilter_Linear;
         else
             mipFilter = DkMipFilter_Linear;
-    } // Deal with MipMap
+    }
 
     this->filter.sampler.setFilter(min, mag, mipFilter);
 

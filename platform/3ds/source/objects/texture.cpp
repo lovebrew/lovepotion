@@ -1,4 +1,4 @@
-#include <citro2d.h>
+#include "citro2d/citro.h"
 
 #include "objects/texture/texture.h"
 #include "modules/graphics/graphics.h"
@@ -13,15 +13,20 @@ void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
     this->Draw(gfx, this->quad, localTransform);
 }
 
+const C2D_Image & Texture::GetHandle()
+{
+    return this->texture;
+}
+
 bool Texture::SetWrap(const Wrap & wrap)
 {
-    C3D_TexSetWrap(this->texture.tex, (GPU_TEXTURE_WRAP_PARAM)wrap.s, (GPU_TEXTURE_WRAP_PARAM)wrap.t);
+    c2d.SetTextureWrap(wrap);
     return true;
 }
 
 void Texture::SetFilter(const Filter & filter)
 {
-    C3D_TexSetFilter(this->texture.tex, (GPU_TEXTURE_FILTER_PARAM)filter.mag, (GPU_TEXTURE_FILTER_PARAM)filter.min);
+    c2d.SetTextureFilter(filter);
 }
 
 void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)
@@ -41,7 +46,6 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
     params.angle = 0.0f;
     params.center = {0.0f, 0.0f};
 
-    // Appy the new Matrix4 C3D_Mtx
     C2D_ViewRestore(&t.GetElements());
 
     C2D_ImageTint tint;

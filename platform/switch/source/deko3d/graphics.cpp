@@ -286,9 +286,9 @@ void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points,
     }
 
     if (mode == DRAW_FILL)
-        dk3d.RenderPolygon(verts.data(),  vertexCount * sizeof(*verts.data()), vertexCount);
+        dk3d.RenderPolygon(verts.data(), vertexCount);
     else
-        dk3d.RenderPolyline(verts.data(), vertexCount * sizeof(*verts.data()), vertexCount);
+        dk3d.RenderPolyline(verts.data(), vertexCount);
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)
@@ -523,7 +523,7 @@ void love::deko3d::Graphics::Points(const Vector2 * points, size_t count, const 
 {
     std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(points, count, colors, colorCount);
 
-    dk3d.RenderPoints(verts.data(), count * sizeof(*verts.data()), count);
+    dk3d.RenderPoints(verts.data(), count);
 }
 
 void love::deko3d::Graphics::SetPointSize(float size)

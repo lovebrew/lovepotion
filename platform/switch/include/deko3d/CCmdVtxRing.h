@@ -18,7 +18,8 @@ class CCmdVtxRing
 
     public:
         CCmdVtxRing() : m_mem{},
-                        m_curSlice{}
+                        m_curSlice{},
+                        m_sliceSize{}
         {}
 
         ~CCmdVtxRing()
@@ -34,19 +35,13 @@ class CCmdVtxRing
             return m_mem;
         }
 
+        /* Return current buffer's size */
         const uint32_t getSize()
         {
             return m_mem.getSize() / NumSlices;
         }
 
-        const unsigned getCurSlice()
-        {
-            return m_curSlice;
-        }
-
-        /*
-        ** Return the current slice data
-        */
+        /* Return the current slice data */
         std::pair<void *, DkGpuAddr> begin()
         {
             const auto offset = m_curSlice * m_sliceSize;

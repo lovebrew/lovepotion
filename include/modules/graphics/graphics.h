@@ -500,6 +500,16 @@ namespace love
                     Graphics * gfx;
             };
 
+            struct Stats
+            {
+                int drawCalls;
+                int canvasSwitches;
+                int shaderSwitches;
+                int canvases;
+                int images;
+                int fonts;
+            };
+
             void PushTransform();
 
             void PopTransform();

@@ -24,31 +24,15 @@ class BitwiseAlloc : std::bitset<N>
 
             #if defined (__DEBUG__)
                 if (!this->test(index))
-                    throw love::Exception("Texture allocator bit not set!");
+                    throw love::Exception("Texture allocator bit %zu not set!", index);
             #endif
 
             return index;
         }
 
-        void DeAllocate(size_t index)
-        {
-            #if defined (__DEBUG__)
-                if (!this->test(index))
-                    throw love::Exception("Texture allocator bit not set!");
-            #endif
-
-            this->reset(index);
-        }
-
         void DeAllocate(DkResHandle handle)
         {
             size_t index = this->Find(handle);
-
-            #if defined (__DEBUG__)
-                if (!this->test(index))
-                    throw love::Exception("Texture allocator bit not set!");
-            #endif
-
             this->reset(index);
         }
 };

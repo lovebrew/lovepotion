@@ -33,9 +33,7 @@ Font * Wrap_Font::CheckFont(lua_State * L, int index)
 void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::ColoredString> & strings)
 {
     Font::ColoredString coloredString;
-
-    // Adjust the color by returning it as a ref from the default
-    coloredString.color = Colorf(1, 1, 1, 1);
+    coloredString.color = Colorf(1.0f, 1.0f, 1.0f, 1.0f);
 
     if (lua_istable(L, index))
     {
@@ -53,7 +51,7 @@ void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::C
                 coloredString.color.r = luaL_checknumber(L, -4);
                 coloredString.color.g = luaL_checknumber(L, -3);
                 coloredString.color.b = luaL_checknumber(L, -2);
-                coloredString.color.a = luaL_optnumber(L, -1, 1);
+                coloredString.color.a = luaL_optnumber(L, -1, 1.0f);
 
                 lua_pop(L, 4);
             }

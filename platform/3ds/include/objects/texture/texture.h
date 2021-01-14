@@ -13,6 +13,8 @@ namespace love
 
             virtual ~Texture() {}
 
+            const C2D_Image & GetHandle();
+
             void Draw(Graphics * gfx, const Matrix4 & localTransform) override;
 
             void Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform) override;
