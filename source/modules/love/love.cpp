@@ -161,10 +161,9 @@ int Love::GetVersion(lua_State * L)
 */
 int Love::_OpenConsole(lua_State * L)
 {
-    auto instance = love::Debugger::Instance();
-    bool init = instance.IsInited();
+    auto & instance = love::Debugger::Instance();
 
-    lua_pushboolean(L, init);
+    lua_pushboolean(L, instance.IsInited());
 
     return 1;
 }

@@ -8,7 +8,7 @@ Debugger::Debugger() : sockfd(-1)
     if (this->IsInited())
         return;
 
-    this->sockfd = nxlinkStdioForDebug();
+    this->sockfd = nxlinkStdio();
     this->initialized = (this->sockfd != -1);
 }
 
