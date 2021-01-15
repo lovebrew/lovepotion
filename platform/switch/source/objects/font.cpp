@@ -190,7 +190,6 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         if (this->textureY + height + this->TEXTURE_PADDING > this->textureHeight)
         {
             /* Totally out of space - new texture! */
-            LOG("Totally out of space - new texture!");
             this->CreateTexture();
 
             /* Ensure last glyph is re-added */

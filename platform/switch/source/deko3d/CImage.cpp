@@ -170,8 +170,6 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
-    LOG("%ux%u", width, height);
-
     // Set the image layout for the image
     dk::ImageLayout layout;
     dk::ImageLayoutMaker{device}

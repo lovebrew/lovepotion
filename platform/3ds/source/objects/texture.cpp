@@ -1,3 +1,4 @@
+#include <citro2d.h>
 #include "citro2d/citro.h"
 
 #include "objects/texture/texture.h"

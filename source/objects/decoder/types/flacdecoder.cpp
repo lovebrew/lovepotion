@@ -24,7 +24,7 @@ static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *
 
 static void error_callback(const FLAC__StreamDecoder * decoder, FLAC__StreamDecoderErrorStatus status, void * client_data)
 {
-    // #if defined (__DEBUG__)
+    // #if (__DEBUG__)
     //     const char * str = nullptr;
     //     LOG("FLAC: decoder error callback was called: %d\n", status);
     //     if ((str = FLAC__StreamDecoderErrorStatusString[status]))

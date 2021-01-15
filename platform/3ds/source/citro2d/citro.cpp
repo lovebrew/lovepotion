@@ -121,7 +121,7 @@ void citro2d::SetTextureFilter(const love::Texture::Filter & filter)
     this->filter.min = min;
     this->filter.mag = mag;
 
-    this->filter.mip = mipFilter;
+    this->filter.mipMap = mipFilter;
 }
 
 void citro2d::SetTextureFilter(love::Texture * texture, const love::Texture::Filter & filter)

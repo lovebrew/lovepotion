@@ -64,10 +64,10 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS	:=	-g -Wall -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections $(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -D__DEBUG__=$(DEBUG)
+CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
 # custom defines
-CFLAGS	+= -DLOVE_POTION_CONSOLE="\"3DS\""
+CFLAGS	+= -DLOVE_POTION_CONSOLE="\"3DS\"" -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 
