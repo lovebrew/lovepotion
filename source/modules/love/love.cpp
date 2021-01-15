@@ -151,14 +151,14 @@ int Love::GetVersion(lua_State * L)
     return 4;
 }
 
-/*
-** Initialize the 'console'. Console for your console.
-** On Switch, redirects printf to nxlink
-** On 3DS, redirects to gdb
-*/
-
 #include "common/debugger.h"
 
+/*
+** Initialize the 'console'
+** Redirects Lua print calls:
+** Switch - to nxlink
+** 3DS - to gdb
+*/
 int Love::_OpenConsole(lua_State * L)
 {
     auto instance = love::Debugger::Instance();

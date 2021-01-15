@@ -1,10 +1,8 @@
 #include "common/debug/debuggerc.h"
-#include "common/debug/logger.h"
 
 using namespace love::common;
 
-Debugger::Debugger() : initialized(false),
-                       count(0)
+Debugger::Debugger() : initialized(false)
 {}
 
 bool Debugger::IsInited()
