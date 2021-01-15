@@ -77,6 +77,7 @@ namespace love::common
 
         protected:
             float lineHeight;
+            Texture::Filter filter;
 
             static StringMap<AlignMode, ALIGN_MAX_ENUM>::Entry alignModeEntries[];
             static StringMap<AlignMode, ALIGN_MAX_ENUM> alignModes;

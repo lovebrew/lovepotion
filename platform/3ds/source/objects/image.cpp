@@ -12,11 +12,17 @@ Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
     this->Init(this->texture.subtex->width, this->texture.subtex->height);
 
     this->InitQuad();
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
 }
 
 Image::Image(TextureType type, int width, int height) : Texture(type)
 {
     this->Init(width, height);
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
 }
 
 void Image::Init(int width, int height)

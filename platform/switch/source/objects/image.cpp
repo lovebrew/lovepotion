@@ -17,6 +17,9 @@ Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
     this->handle = dk3d.RegisterResHandle(this->texture.getDescriptor());
 
     this->InitQuad();
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
 }
 
 Image::~Image()
@@ -34,6 +37,9 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
         throw love::Exception("Failed to create Image data");
 
     this->handle = dk3d.RegisterResHandle(this->texture.getDescriptor());
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
 }
 
 void Image::ReplacePixels(const void * data, size_t size, const Rect & rect)

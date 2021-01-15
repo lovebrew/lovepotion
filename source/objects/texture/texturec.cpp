@@ -13,10 +13,7 @@ Texture::Texture(TextureType texType) : texType(texType),
                                         height(0),
                                         filter(defaultFilter),
                                         wrap()
-{
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
-}
+{}
 
 Texture::~Texture()
 {}

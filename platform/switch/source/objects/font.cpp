@@ -25,9 +25,12 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
 {
     this->lineHeight = 1.0f;
 
+    this->filter = filter;
+    this->filter.mipmap = Texture::FILTER_NONE;
+
     while (true)
     {
-        if ((this->height * 0.8) * this->height * 30 <= textureWidth * textureHeight)
+        if ((this->height * 0.8) * this->height * 30 <= this->textureWidth * this->textureHeight)
             break;
 
         TextureSize nextsize = this->GetNextTextureSize();
@@ -48,15 +51,12 @@ Font::Font(Rasterizer * r, const Texture::Filter & filter) : rasterizers({r}),
     this->glyphs.clear();
     this->images.clear();
 
-    LOG("Creating Texture");
     this->CreateTexture();
 }
 
 Font::TextureSize Font::GetNextTextureSize() const
 {
     TextureSize size = {this->textureWidth, this->textureHeight};
-
-    LOG("Current Size: %dx%d", size.width, size.height);
 
     int maxSize = 2048;
 
@@ -71,8 +71,6 @@ Font::TextureSize Font::GetNextTextureSize() const
         else
             size.height *= 2;
     }
-
-    LOG("Next Size: %dx%d", size.width, size.height);
 
     return size;
 }
@@ -100,6 +98,7 @@ void Font::CreateTexture()
     }
 
     texture = gfx->NewImage(love::Texture::TEXTURE_2D, size.width, size.height);
+    texture->SetFilter(this->filter);
 
     this->images.emplace_back(texture, Acquire::NORETAIN);
 
@@ -131,7 +130,7 @@ uint32_t Font::GetTextureCacheID()
 
 love::GlyphData * Font::GetRasterizerGlyphData(uint32_t glyph)
 {
-    // Use spaces for the tab 'glyph'.
+    /* Use spaces for the tab 'glyph' */
     if (glyph == 9 && useSpacesAsTab)
     {
         love::GlyphData * spacegd = this->rasterizers[0]->GetGlyphData(32);
@@ -190,12 +189,11 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
 
         if (this->textureY + height + this->TEXTURE_PADDING > this->textureHeight)
         {
-            // Totally out of space - new texture!
+            /* Totally out of space - new texture! */
             LOG("Totally out of space - new texture!");
             this->CreateTexture();
 
-            // Makes sure the above code for checking if the glyph can fit at
-            // the current position in the texture is run again for this glyph.
+            /* Ensure last glyph is re-added */
             return this->AddGlyph(glyph);
         }
     }
@@ -204,20 +202,21 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
 
     g.texture = 0;
     g.spacing = floorf(gd->GetAdvance() / this->dpiScale + 0.5f);
+
     std::fill_n(g.vertices, 4, GlyphVertex{});
 
-    // Don't waste space on empty glyphs
+    /* Don't waste space on empty glyphs */
     if (width > 0 && height > 0)
     {
         Image * image = images.back();
         g.texture = image;
-        LOG("Char %c: %dx%d %dx%d", glyph, this->textureX, this->textureY, gd->GetWidth(), gd->GetHeight());
+
         Rect rect = {this->textureX, this->textureY, gd->GetWidth(), gd->GetHeight()};
 
         image->ReplacePixels(gd->GetData(), gd->GetSize(), rect);
 
-        double tX     = (double) textureX,     tY      = (double) textureY;
-        double tWidth = (double) textureWidth, tHeight = (double) textureHeight;
+        double tX     = (double)this->textureX,     tY      = (double)this->textureY;
+        double tWidth = (double)this->textureWidth, tHeight = (double)this->textureHeight;
 
         Colorf c(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -231,10 +230,10 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
         // 1---2
         const GlyphVertex verts[4] =
         {
-            { float(-o),                    float(-o),                     norm16((tX - o) / tWidth),         norm16((tY - o)          / tHeight), c },
+            { float(-o),                    float(-o),                     norm16((tX - o) / tWidth),         norm16((tY - o) / tHeight),          c },
             { float(-o),                    (height + o) / this->dpiScale, norm16((tX - o) / tWidth),         norm16((tY + height + o) / tHeight), c },
             { (width + o) / this->dpiScale, (height + o) / this->dpiScale, norm16((tX + width + o) / tWidth), norm16((tY + height + o) / tHeight), c },
-            { (width + o) / this->dpiScale, float(-o),                     norm16((tX + width + o) / tWidth), norm16((tY - o)          / tHeight), c },
+            { (width + o) / this->dpiScale, float(-o),                     norm16((tX + width + o) / tWidth), norm16((tY - o) / tHeight),          c },
         };
 
         // Copy vertex data to the glyph
@@ -247,8 +246,8 @@ const Font::Glyph & Font::AddGlyph(uint32_t glyph)
             g.vertices[i].y -= gd->GetBearingY() / this->dpiScale;
         }
 
-        this->textureX  += width + this->TEXTURE_PADDING;
-        this->rowHeight =  std::max(this->rowHeight, height + this->TEXTURE_PADDING);
+        this->textureX += width + this->TEXTURE_PADDING;
+        this->rowHeight = std::max(this->rowHeight, height + this->TEXTURE_PADDING);
     }
 
     this->glyphs[glyph] = g;
@@ -631,9 +630,6 @@ void Font::PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawComma
 
         dk3d.RenderTexture(cmd.texture->GetHandle(), verts.data(), cmd.vertexCount);
     }
-
-    for (const DrawCommand & cmd : drawCommands)
-        cmd.texture->Draw(gfx, t);
 }
 
 void Font::GetWrap(const std::vector<ColoredString> & text, float wraplimit, std::vector<std::string> & lines, std::vector<int> * linewidths)
@@ -853,7 +849,7 @@ float Font::GetBaseline() const
 int Font::GetWidth(uint32_t prevGlyph, uint32_t current)
 {
     const Glyph & g = this->FindGlyph(current);
-    return g.spacing + this->GetKerning(prevGlyph, current);;
+    return g.spacing + this->GetKerning(prevGlyph, current);
 }
 
 StringMap<love::Font::SystemFontType, love::Font::MAX_SYSFONTS>::Entry love::common::Font::sharedFontEntries[] =
