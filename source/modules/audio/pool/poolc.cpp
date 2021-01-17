@@ -11,7 +11,7 @@ Pool::Pool()
 
 Pool::~Pool()
 {
-    Source::Stop(this);
+    // Source::Stop(this);
 }
 
 int Pool::GetActiveSourceCount() const
