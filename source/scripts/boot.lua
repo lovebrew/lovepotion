@@ -556,6 +556,8 @@ function love.init()
         version = love._version,
         console = false,
 
+        stereoScopic3D = true,
+
         modules =
         {
             audio = true,

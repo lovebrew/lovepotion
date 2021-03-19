@@ -204,7 +204,7 @@ bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
         if (!GetConstant(button, consoleButton) || consoleButton < 0)
             continue;
 
-        if (consoleButton & EVENT_MODULE()->GetDriver()->GetButtonPressed())
+        if (consoleButton & EVENT_MODULE()->GetDriver()->GetButtonHeld())
             return true;
     }
 
