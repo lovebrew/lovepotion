@@ -96,9 +96,6 @@ void Graphics::SetCanvas(Canvas * canvas)
     DisplayState & state = this->states.back();
     state.canvas.Set(canvas);
 
-    if (canvas == nullptr)
-        return;
-
     c2d.BindFramebuffer(canvas);
 
     if (this->states.back().scissor)

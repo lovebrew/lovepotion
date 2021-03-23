@@ -455,11 +455,7 @@ end
 love.errhand = love.errorhandler
 
 local no_game_code = false
-local can_go_romfs = false
 local can_has_game = false
-
-local invalid_game_path = nil
-local entryType = nil
 
 function love.boot()
     -- Load the LOVE filesystem module, its absolutely needed
@@ -486,28 +482,23 @@ function love.boot()
 
     -- Parse options now that we know which options we're looking for.
     love.arg.parseOptions()
-    local o = love.arg.options
+    local options = love.arg.options
+
+    local isFusedGame = can_has_game or love.arg.options.fused.set
+    love.filesystem.setFused(isFusedGame)
+
+    if isFusedGame then
+        options.game.arg[1] = nil
+    end
 
     local identity = ""
-    if not can_has_game and o.game.set and o.game.arg[1] then
-        local directory = o.game.arg[1]
+    if not can_has_game and options.game.set and options.game.arg[1] then
+        local directory = options.game.arg[1]
 
-        local fullSauce = ""
+        local fullSource = love.path.getFull(directory)
+        can_has_game = pcall(love.filesystem.setSource, fullSource)
 
-        -- argv[1] has the full path to the .love
-        if not directory:find("(%w.love)") then
-            fullSauce, entryType = love.path.getFull(directory), "zip file"
-        else -- raw game directory
-            fullSauce, entryType = directory, "directory"
-        end
-
-        can_has_game = pcall(love.filesystem.setSource, fullSauce)
-
-        if not can_has_game then
-            invalid_game_path = fullSauce
-        end
-
-        identity = love.path.leaf(fullSauce)
+        identity = love.path.leaf(fullSource)
     else
         identity = love.path.leaf(exepath)
     end
@@ -532,19 +523,8 @@ function love.boot()
     end
 
     if not can_has_game then
-        can_go_romfs, _ = pcall(love.filesystem.setSource, "romfs:/")
-
-        if not can_go_romfs then
-            local nogame = require("love.nogame")
-            local status, result = pcall(nogame)
-
-            if not status then
-                error(result)
-            end
-        else
-            love.filesystem.setFused(true)
-            entryType = "RomFS"
-        end
+        local nogame = require("love.nogame")
+        nogame()
     end
 end
 
@@ -698,13 +678,8 @@ function love.init()
         end
     end
 
-    -- if we can enter a game, error at this point
-    if can_go_romfs or can_has_game then
-        if no_game_code then
-            error("No code to run. Your game might be packaged incorrectly. Make sure main.lua is at the top level of the " .. entryType .. ".")
-        elseif invalid_game_path then
-            error("Cannot load game at path '" .. invalid_game_path .. "'. Make sure a folder exists at the specified path.")
-        end
+    if no_game_code then
+        error("No code to run\nYour game might be packaged incorrectly.\nMake sure main.lua is at the top level of the zip.")
     end
 end
 

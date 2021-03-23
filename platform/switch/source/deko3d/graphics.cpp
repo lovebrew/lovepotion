@@ -72,9 +72,6 @@ void Graphics::SetCanvas(Canvas * canvas)
     DisplayState & state = this->states.back();
     state.canvas.Set(canvas, Acquire::NORETAIN);
 
-    if (canvas == nullptr)
-        return;
-
     dk3d.BindFramebuffer(canvas);
 
     if (this->states.back().scissor)

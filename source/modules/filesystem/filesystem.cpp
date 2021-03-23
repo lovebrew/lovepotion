@@ -59,8 +59,10 @@ void Filesystem::Init(const char * arg0)
 
     this->exePath = arg0;
 
-    romfsInit();
-
+    /*
+    ** NOTE:
+    ** Symlinks don't exist on 3DS/Switch
+    */
     this->SetSymLinksEnabled(true);
 }
 
@@ -68,8 +70,6 @@ Filesystem::~Filesystem()
 {
     if (PHYSFS_isInit())
         PHYSFS_deinit();
-
-    romfsExit();
 }
 
 void Filesystem::Append(const char * filename, const void * data, int64_t size)
