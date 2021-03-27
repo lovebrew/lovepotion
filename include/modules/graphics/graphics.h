@@ -568,7 +568,7 @@ namespace love
                 Colorf foreground = Colorf(1, 1, 1, 1);
                 Colorf background = Colorf(0, 0, 0, 1);
 
-                float lineWidth = 1.0f;
+                float lineWidth = 2.0f;
                 float pointSize = 1.0f;
 
                 float blendFactor = 0.0f;

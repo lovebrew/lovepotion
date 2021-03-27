@@ -169,7 +169,7 @@ int Wrap_Filesystem::Loader(lua_State * L)
         }
     }
 
-    std::string errstr = "\n\tno '%s' in LOVE game directories.";
+    std::string errstr = "\n    no '%s' in LOVE game directories.";
 
     lua_pushfstring(L, errstr.c_str(), modulename.c_str());
 

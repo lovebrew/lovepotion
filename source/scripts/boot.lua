@@ -313,6 +313,27 @@ function love.threaderror(t, err)
     error("Thread error (".. tostring(t) ..")\n\n".. err, 0)
 end
 
+local function hackForMissingFilename(error)
+    -- assume that all missing filenames which are required
+    -- use this in their error message
+    if not error:find("module") then
+        return error
+    end
+
+    local split = {}
+
+    -- split by newlines
+    for line in error:gmatch("(.-)\n") do
+        local value = line:gsub("'", "")
+        if value:sub(-3) ~= ".so" and not value:find("/usr/") then
+            table.insert(split, line)
+        end
+    end
+
+    -- return our new string
+    return table.concat(split, "\n")
+end
+
 function love.errorhandler(message)
     message = tostring(message)
 
@@ -387,6 +408,8 @@ function love.errorhandler(message)
 
     -- tell the user about how to quit the error handler
     pretty = pretty .. "\n\nPress A to save this error or Start to quit."
+
+    pretty = hackForMissingFilename(pretty)
 
     if not love.window.isOpen() then
         return
@@ -698,7 +721,6 @@ function love.run()
     return function()
 
         if love.event and love.event.pump then
-
             love.event.pump()
 
             for name, a, b, c, d, e, f in love.event.poll() do
@@ -713,12 +735,10 @@ function love.run()
         end
 
         if love.timer then
-
             delta = love.timer.step()
         end
 
         if love.update then
-
             love.update(delta)
         end
 
@@ -750,7 +770,7 @@ return function()
     local inerror = false
 
     local function deferErrhand(...)
-        local errhand = love.errhandler or love.errhand
+        local errhand = love.errorhandler or love.errhand
         local handler = (not inerror and errhand) or error_printer
 
         inerror = true

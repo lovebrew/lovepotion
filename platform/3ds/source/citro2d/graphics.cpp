@@ -219,6 +219,9 @@ void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, 
     float radiusx = a / 2;
     float radiusy = b / 2;
 
+    const Matrix4 & t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
+
     if (mode == DRAW_FILL)
         C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH, radiusx, radiusy, foreground);
     else
@@ -237,6 +240,9 @@ void love::citro2d::Graphics::Circle(DrawMode mode, float x, float y, float radi
 {
     Colorf color = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+    const Matrix4 & t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
 
     if (mode == DRAW_FILL)
         C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
@@ -297,6 +303,9 @@ void love::citro2d::Graphics::Line(float startx, float starty, float endx, float
 {
     Colorf color = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+    const Matrix4 & t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
 
     C2D_DrawLine(startx, starty, foreground, endx, endy, foreground, this->states.back().lineWidth, Graphics::CURRENT_DEPTH);
 }

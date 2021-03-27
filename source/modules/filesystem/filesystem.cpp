@@ -63,7 +63,7 @@ void Filesystem::Init(const char * arg0)
     ** NOTE:
     ** Symlinks don't exist on 3DS/Switch
     */
-    this->SetSymLinksEnabled(true);
+    this->SetSymLinksEnabled(false);
 }
 
 Filesystem::~Filesystem()
