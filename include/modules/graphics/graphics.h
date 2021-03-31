@@ -334,7 +334,7 @@ namespace love
 
             virtual void SetPointSize(float size) = 0;
 
-            virtual void Line(float startx, float starty, float endx, float endy) = 0;
+            virtual void Line(const Vector2 * points, int count) = 0;
 
             virtual void SetLineWidth(float width) = 0;
 

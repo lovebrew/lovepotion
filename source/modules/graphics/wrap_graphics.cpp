@@ -407,7 +407,7 @@ int Wrap_Graphics::Line(lua_State * L)
     }
 
     Luax::CatchException(L, [&]() {
-        instance()->Polygon(Graphics::DRAW_LINE, coords, numvertices);
+        instance()->Line(coords, numvertices);
     });
 
     delete[] coords;

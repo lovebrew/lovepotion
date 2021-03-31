@@ -317,7 +317,7 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
     Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
 }
 
-void love::citro2d::Graphics::Line(float startx, float starty, float endx, float endy)
+void love::citro2d::Graphics::Line(const Vector2 * points, int count)
 {
     Colorf color = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
@@ -325,7 +325,8 @@ void love::citro2d::Graphics::Line(float startx, float starty, float endx, float
     const Matrix4 & t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
-    C2D_DrawLine(startx, starty, foreground, endx, endy, foreground, this->states.back().lineWidth, Graphics::CURRENT_DEPTH);
+    for (size_t index = 1; index < count; index += 2)
+        C2D_DrawLine(points[index - 1].x, points[index - 1].y, foreground, points[index].x, points[index].y, foreground, this->states.back().lineWidth, Graphics::CURRENT_DEPTH);
 }
 
 void love::citro2d::Graphics::SetLineWidth(float width)

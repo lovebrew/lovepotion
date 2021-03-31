@@ -293,17 +293,9 @@ void love::deko3d::Graphics::SetLineWidth(float width)
     dk3d.SetLineWidth(width);
 }
 
-void love::deko3d::Graphics::Line(float startx, float starty, float endx, float endy)
+void love::deko3d::Graphics::Line(const Vector2 * points, int count)
 {
-    Vector2 points[4] =
-    {
-        { startx, starty },
-        { endx,   endy   },
-        { startx, endy   },
-        { endx,   starty }
-    };
-
-    this->Polygon(DRAW_LINE, points, 4);
+    this->Polygon(DRAW_LINE, points, count);
 }
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)

@@ -73,7 +73,7 @@ namespace love::deko3d
 
             void SetPointSize(float size) override;
 
-            void Line(float startx, float starty, float endx, float endy) override;
+            void Line(const Vector2 * points, int count) override;
 
             void SetLineWidth(float width) override;
 
