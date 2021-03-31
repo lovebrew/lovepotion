@@ -744,9 +744,9 @@ function love.run()
 
         if love.graphics then
 
-            love.graphics.origin()
 
             for _, screen in ipairs(screens) do
+                love.graphics.origin()
 
                 love.graphics.setActiveScreen(screen)
                 love.graphics.clear(love.graphics.getBackgroundColor())

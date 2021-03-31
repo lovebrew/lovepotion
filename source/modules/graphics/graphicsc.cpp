@@ -179,6 +179,7 @@ void Graphics::Origin()
 {
     auto & transform = this->transformStack.back();
     transform.SetIdentity();
+
     this->pixelScaleStack.back() = 1;
 }
 

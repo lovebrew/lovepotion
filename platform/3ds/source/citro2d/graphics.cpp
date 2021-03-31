@@ -265,7 +265,7 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
         {
             Vector2(x, y),
             Vector2(x + radius * cosf(angle), y + radius * sinf(angle)),
-            Vector2(x + radius * sqrtf(2) * cosf(angle + 90), y + radius * sqrtf(2) * sinf(angle + 90))
+            Vector2(x + radius * sqrtf(2) * cosf(angle + M_PI_4), y + radius * sqrtf(2) * sinf(angle + M_PI_4))
         };
     };
 
@@ -275,6 +275,9 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
     // Only go around counterclockwise rather than having a conditional
     if (angle2 > angle1)
         angle2 -= M_TAU;
+
+    const Matrix4 & t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
 
     while (angle2 + M_PI_4 < angle1)
     {
@@ -294,7 +297,22 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
     C2D_DrawTriangle(finalTriangle[0].x, finalTriangle[0].y, TRANSPARENCY, finalTriangle[1].x, finalTriangle[1].y, TRANSPARENCY,
                      finalTriangle[2].x, finalTriangle[2].y, TRANSPARENCY, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
 
-    this->Circle(mode, x, y, radius);
+    /* Sort of code duplication, but uh.. fix the arcs! */
+
+    Colorf color = this->GetColor();
+    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+    if (mode == DRAW_FILL)
+        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+    else
+    {
+        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                            radius - this->states.back().lineWidth, TRANSPARENCY);
+
+        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+
+        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+    }
 
     Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
 }
