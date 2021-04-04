@@ -216,21 +216,20 @@ void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, 
     Colorf color = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-    float radiusx = a / 2;
-    float radiusy = b / 2;
-
     const Matrix4 & t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
     if (mode == DRAW_FILL)
-        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH, radiusx, radiusy, foreground);
+        C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2, foreground);
     else
     {
-        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                             radiusx - this->states.back().lineWidth, radiusy - this->states.back().lineWidth,
+        float lineWidth = this->states.back().lineWidth;
+
+        C2D_DrawEllipseSolid((x - a) + lineWidth, (y - b) + lineWidth, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                             (a - lineWidth) * 2, (b - lineWidth) * 2,
                              TRANSPARENCY);
 
-        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH, radiusx, radiusy, foreground);
+        C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2, foreground);
 
         Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
     }

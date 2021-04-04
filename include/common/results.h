@@ -13,7 +13,7 @@
 static std::string LOVE_STRING_EMPTY;
 
 /*
-** Evaluates an expression that returns a result, and
+** Evaluates an expression that returns a result and
 ** returns the result if it would fail.
 */
 #define R_TRY(res_expr) \
@@ -25,7 +25,7 @@ static std::string LOVE_STRING_EMPTY;
 })
 
 /*
-** Evaluates an expression that returns a result, and
+** Evaluates an expression that returns a result and
 ** returns the throw_result if it would fail.
 */
 #define R_UNLESS(res_expr, throw_result) \
@@ -37,8 +37,9 @@ static std::string LOVE_STRING_EMPTY;
 })
 
 /*
-** Evaluates an expression that returns a result, and
-** calls the apropriate abort method
+** Evaluates an expression that returns a result and
+** calls the apropriate abort method if it fails
+** Only used during userAppInit()
 */
 #define R_ABORT_UNLESS(res_expr) \
 ({ \
