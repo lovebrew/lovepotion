@@ -1,63 +1,53 @@
 #include <switch.h>
 
+#include "common/results.h"
+
 extern "C"
 {
     void userAppInit()
     {
         /* system fonts */
-        Result res = plInitialize(PlServiceType_User);
-
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
+        R_ABORT_UNLESS(plInitialize(PlServiceType_User));
 
         /* network interface manager */
-        res = nifmInitialize(NifmServiceType_User);
-
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
+        R_ABORT_UNLESS(nifmInitialize(NifmServiceType_User));
 
         /* accounts */
-        res = accountInitialize(AccountServiceType_Application);
-
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
+        R_ABORT_UNLESS(accountInitialize(AccountServiceType_Application));
 
         /* settings */
-        res = setInitialize();
-
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
+        R_ABORT_UNLESS(setInitialize());
 
         /* system settings */
-        res = setsysInitialize();
-
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
+        R_ABORT_UNLESS(setsysInitialize());
 
         /* battery */
-        res = psmInitialize();
-
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
+        R_ABORT_UNLESS(psmInitialize());
 
         /* wireless comms */
-        res = socketInitializeDefault();
+        R_ABORT_UNLESS(socketInitializeDefault());
 
-        if (R_FAILED(res))
-            diagAbortWithResult(res);
-
+        /* initialize controllers -- 4 players max */
         padConfigureInput(4, HidNpadStyleSet_NpadStandard);
+
+        /* initialize touch screen */
         hidInitializeTouchScreen();
     }
 
     void userAppExit()
     {
         socketExit();
+
         psmExit();
+
         setsysExit();
+
         setExit();
+
         accountExit();
+
         nifmExit();
+
         plExit();
     }
 }

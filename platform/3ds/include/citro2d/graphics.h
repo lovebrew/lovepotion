@@ -12,7 +12,7 @@
 #define SCREEN_BOT_WIDTH 320
 #define SCREEN_HEIGHT    240
 
-enum class love::Graphics::Screen: uint8_t
+enum class love::Graphics::Screen : uint8_t
 {
     SCREEN_LEFT,
     SCREEN_RIGHT,

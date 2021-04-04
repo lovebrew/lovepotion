@@ -31,6 +31,8 @@ namespace love
 
             const std::string & GetRegion() override;
 
+            const std::string & GetFriendCode() override;
+
             /* constants */
 
             static constexpr uint8_t MAX_MODELS = 6;

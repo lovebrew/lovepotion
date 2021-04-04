@@ -1,6 +1,8 @@
 #include <switch.h>
 #include "modules/system/system.h"
 
+#include "common/results.h"
+
 using namespace love;
 
 /* https://tinyurl.com/yyh7tnml */
@@ -25,12 +27,10 @@ love::System::PowerInfo System::GetPowerInfo() const
     return info;
 }
 
-static std::string empty;
-
 const std::string & System::GetUsername()
 {
-    if (!this->sysInfo.username.empty())
-        return this->sysInfo.username;
+    if (!this->systemInfo.username.empty())
+        return this->systemInfo.username;
 
     Result res = 0;
     AccountUid userID = { 0 };
@@ -40,26 +40,20 @@ const std::string & System::GetUsername()
 
     memset(&base, 0, sizeof(base));
 
-    res = accountGetPreselectedUser(&userID);
+    /* Check we get a Pre-Selected User */
+    R_UNLESS(accountGetPreselectedUser(&userID), LOVE_STRING_EMPTY);
 
-    if (R_FAILED(res))
-        return empty;
+    /* Get the profile */
+    R_UNLESS(accountGetProfile(&profile, userID), LOVE_STRING_EMPTY);
 
-    res = accountGetProfile(&profile, userID);
+    /* Get the base profile */
+    R_UNLESS(accountProfileGet(&profile, NULL, &base), LOVE_STRING_EMPTY);
 
-    if (R_FAILED(res))
-        return empty;
-
-    res = accountProfileGet(&profile, NULL, &base);
-
-    if (R_FAILED(res))
-        return empty;
-
-    this->sysInfo.username = base.nickname;
+    this->systemInfo.username = base.nickname;
 
     accountProfileClose(&profile);
 
-    return this->sysInfo.username;
+    return this->systemInfo.username;
 }
 
 love::System::NetworkInfo System::GetNetworkInfo() const
@@ -79,84 +73,85 @@ love::System::NetworkInfo System::GetNetworkInfo() const
 
 const std::string & System::GetLanguage()
 {
-    if (!this->sysInfo.language.empty())
-        return this->sysInfo.language;
+    if (!this->systemInfo.language.empty())
+        return this->systemInfo.language;
 
     uint64_t languageCode;
     SetLanguage language;
 
-    Result res = setGetSystemLanguage(&languageCode);
+    /* Get the System Language Code */
+    R_UNLESS(setGetSystemLanguage(&languageCode), LOVE_STRING_EMPTY);
 
-    if (R_FAILED(res))
-        return empty;
-
-    res = setMakeLanguage(languageCode, &language);
-
-    if (R_FAILED(res))
-        return empty;
+    /* Convert the Language Code to SetLanguage */
+    R_UNLESS(setMakeLanguage(languageCode, &language), LOVE_STRING_EMPTY);
 
     const char * name = nullptr;
     if (!System::GetConstant(language, name))
         name = "Unknown";
 
-    this->sysInfo.language = name;
+    this->systemInfo.language = name;
 
-    return this->sysInfo.language;
+    return this->systemInfo.language;
 }
 
 const std::string & System::GetModel()
 {
-    if (!this->sysInfo.model.empty())
-        return this->sysInfo.model;
+    if (!this->systemInfo.model.empty())
+        return this->systemInfo.model;
 
     int32_t model = 0;
-    Result res = setsysGetProductModel(&model);
 
-    if (R_FAILED(res))
-        return empty;
+    /* Get the Product Model */
+    R_UNLESS(setsysGetProductModel(&model), LOVE_STRING_EMPTY);
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<ProductModel>(model), name))
         name = "Unknown";
 
-    this->sysInfo.model = name;
+    this->systemInfo.model = name;
 
-    return this->sysInfo.model;
+    return this->systemInfo.model;
 }
 
 const std::string & System::GetRegion()
 {
-    if (!this->sysInfo.region.empty())
-        return this->sysInfo.region;
+    if (!this->systemInfo.region.empty())
+        return this->systemInfo.region;
 
     SetRegion region;
-    Result res = setGetRegionCode(&region);
 
-    if (R_FAILED(res))
-        return empty;
+    /* Get the System Region */
+    R_UNLESS(setGetRegionCode(&region), LOVE_STRING_EMPTY);
 
     const char * name = nullptr;
     if (!System::GetConstant(region, name))
         name = "Unknown";
 
-    this->sysInfo.region = name;
+    this->systemInfo.region = name;
 
-    return this->sysInfo.region;
+    return this->systemInfo.region;
 }
 
 const std::string & System::GetVersion()
 {
-    if (!this->sysInfo.version.empty())
-        return this->sysInfo.version;
+    if (!this->systemInfo.version.empty())
+        return this->systemInfo.version;
 
     SetSysFirmwareVersion firmwareVersion;
-    Result res = setsysGetFirmwareVersion(&firmwareVersion);
 
-    if (R_FAILED(res))
-        return empty;
+    /* Get the System Firmware Version */
+    R_UNLESS(setsysGetFirmwareVersion(&firmwareVersion), LOVE_STRING_EMPTY);
 
-    this->sysInfo.version = firmwareVersion.display_version;
-    return this->sysInfo.version;
+    this->systemInfo.version = firmwareVersion.display_version;
+    return this->systemInfo.version;
+}
+
+const std::string & System::GetFriendCode()
+{
+    if (!this->systemInfo.friendCode.empty())
+        return this->systemInfo.friendCode;
+
+    return LOVE_STRING_EMPTY;
 }
 
 /* LANGUAGE CONSTANTS */
@@ -194,7 +189,8 @@ StringMap<SetLanguage, SetLanguage_Total>::Entry System::languageEntries[] =
     { "Canadian French",        SetLanguage_FRCA   },
     { "Latin American Spanish", SetLanguage_ES419  },
     { "Chinese Simplified",     SetLanguage_ZHHANS },
-    { "Chinese Traditional",    SetLanguage_ZHHANT }
+    { "Chinese Traditional",    SetLanguage_ZHHANT },
+    { "Brazilian Protuguese",   SetLanguage_PTBR   }
 };
 
 StringMap<SetLanguage, SetLanguage_Total> System::languages(System::languageEntries, sizeof(System::languageEntries));

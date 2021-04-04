@@ -44,6 +44,8 @@ namespace love
 
             const std::string & GetVersion() override;
 
+            const std::string & GetFriendCode() override;
+
             static constexpr uint8_t MAX_REGIONS = 6;
 
             static bool GetConstant(const char * in, SetLanguage & out);

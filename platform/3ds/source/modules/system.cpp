@@ -1,14 +1,14 @@
 #include <3ds.h>
 #include "modules/system/system.h"
 
-using namespace love;
+#include "common/results.h"
 
-static std::string empty;
+using namespace love;
 
 int System::GetProcessorCount()
 {
-    if (this->sysInfo.processors != 0)
-        return this->sysInfo.processors;
+    if (this->systemInfo.processors != 0)
+        return this->systemInfo.processors;
 
     uint8_t model = 0;
     CFGU_GetSystemModel(&model);
@@ -24,26 +24,27 @@ int System::GetProcessorCount()
             break;
     }
 
-    return this->sysInfo.processors = processorCount;
+    this->systemInfo.processors = processorCount;
+
+    return this->systemInfo.processors;
 }
 
 const std::string & System::GetModel()
 {
-    if (!this->sysInfo.model.empty())
-        return this->sysInfo.model;
+    if (!this->systemInfo.model.empty())
+        return this->systemInfo.model;
 
     uint8_t model = 0;
-    CFGU_GetSystemModel(&model);
 
-    /* ideally this shouldn't happen */
+    R_UNLESS(CFGU_GetSystemModel(&model), LOVE_STRING_EMPTY);
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<CFG_SystemModel>(model), name))
         name = "Unknown";
 
-    this->sysInfo.model = name;
+    this->systemInfo.model = name;
 
-    return this->sysInfo.model;
+    return this->systemInfo.model;
 }
 
 System::PowerInfo System::GetPowerInfo() const
@@ -55,6 +56,7 @@ System::PowerInfo System::GetPowerInfo() const
     PTMU_GetBatteryChargeState(&batteryState);
 
     PowerInfo info;
+
     info.percentage = batteryPercent;
     info.state = (batteryState == 1 && batteryPercent == 100) ? "charged" :
                  (batteryState == 1) ? "charging" : "battery";
@@ -64,41 +66,34 @@ System::PowerInfo System::GetPowerInfo() const
 
 const std::string & System::GetUsername()
 {
-    if (!this->sysInfo.username.empty())
-        return this->sysInfo.username;
+    if (!this->systemInfo.username.empty())
+        return this->systemInfo.username;
 
-    u16 utf16_username[USERNAME_LENGTH] = {0};
+    char username[USERNAME_LENGTH] = {0};
 
-    CFGU_GetConfigInfoBlk2(USERNAME_LENGTH, 0x000A0000, utf16_username);
+    R_UNLESS(FRD_GetMyScreenName(username, USERNAME_LENGTH), LOVE_STRING_EMPTY);
 
-    ssize_t utf8_len = utf16_to_utf8(NULL, utf16_username, 0);
+    this->systemInfo.username = username;
 
-    this->sysInfo.username = std::string(utf8_len, '\0');
-
-    utf16_to_utf8((uint8_t *)this->sysInfo.username.data(), utf16_username, utf8_len);
-
-    this->sysInfo.username[utf8_len] = '\0';
-
-    return this->sysInfo.username;
+    return this->systemInfo.username;
 }
 
 const std::string & System::GetRegion()
 {
-    if (!this->sysInfo.region.empty())
-        return this->sysInfo.region;
+    if (!this->systemInfo.region.empty())
+        return this->systemInfo.region;
 
     uint8_t region = 0;
-    CFGU_SecureInfoGetRegion(&region);
 
-    /* ideally this shouldn't happen */
+    R_UNLESS(CFGU_SecureInfoGetRegion(&region), LOVE_STRING_EMPTY);
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<CFG_Region>(region), name))
         name = "Unknown";
 
-    this->sysInfo.region = name;
+    this->systemInfo.region = name;
 
-    return this->sysInfo.region;
+    return this->systemInfo.region;
 }
 
 System::NetworkInfo System::GetNetworkInfo() const
@@ -107,6 +102,7 @@ System::NetworkInfo System::GetNetworkInfo() const
     ACU_GetWifiStatus(&status);
 
     NetworkInfo info;
+
     info.signal = osGetWifiStrength();
     info.status = (status > 0) ? "connected" : "disconnected";
 
@@ -115,36 +111,66 @@ System::NetworkInfo System::GetNetworkInfo() const
 
 const std::string & System::GetLanguage()
 {
-    if (!this->sysInfo.language.empty())
-        return this->sysInfo.language;
+    if (!this->systemInfo.language.empty())
+        return this->systemInfo.language;
 
     uint8_t language;
-    CFGU_GetSystemLanguage(&language);
 
-    /* ideally this shouldn't happen */
+    R_UNLESS(CFGU_GetSystemLanguage(&language), LOVE_STRING_EMPTY);
 
     const char * name = nullptr;
     if (!System::GetConstant(static_cast<CFG_Language>(language), name))
         name = "Unknown";
 
-    this->sysInfo.language = name;
+    this->systemInfo.language = name;
 
-    return this->sysInfo.language;
+    return this->systemInfo.language;
 }
 
 const std::string & System::GetVersion()
 {
-    if (!this->sysInfo.version.empty())
-        return this->sysInfo.version;
+    if (!this->systemInfo.version.empty())
+        return this->systemInfo.version;
 
     char out[256] = { 0 };
-    Result res = osGetSystemVersionDataString(NULL, NULL, out, 256);
 
-    if (R_FAILED(res))
-        return empty;
+    R_UNLESS(osGetSystemVersionDataString(NULL, NULL, out, 256), LOVE_STRING_EMPTY);
 
-    this->sysInfo.version = out;
-    return this->sysInfo.version;
+    this->systemInfo.version = out;
+    return this->systemInfo.version;
+}
+
+/* Friend Code stuff */
+
+static inline std::string MAKE_FRIEND_CODE(uint64_t friendCode)
+{
+    std::string out = "####-####-####";
+
+    sprintf(out.data(), "%04i-%04i-%04i",
+            (int)(friendCode / 100000000) % 10000,
+            (int)(friendCode / 10000) % 10000,
+            (int)(friendCode % 10000));
+
+    return out;
+}
+
+const std::string & System::GetFriendCode()
+{
+    if (!this->systemInfo.friendCode.empty())
+        return this->systemInfo.friendCode;
+
+    FriendKey key;
+    uint64_t friendCode;
+
+    /* Get the Friend Key for the user */
+    R_UNLESS(FRD_GetMyFriendKey(&key), LOVE_STRING_EMPTY);
+
+    /* Convert the principalId to friendCode */
+    R_UNLESS(FRD_PrincipalIdToFriendCode(key.principalId, &friendCode), LOVE_STRING_EMPTY);
+
+    this->systemInfo.friendCode = MAKE_FRIEND_CODE(friendCode);
+
+    return this->systemInfo.friendCode;
 }
 
 /* LANGUAGE CONSTANTS */

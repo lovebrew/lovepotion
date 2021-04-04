@@ -2,7 +2,7 @@
 
 using namespace love::common;
 
-System::System() : sysInfo()
+System::System() : systemInfo()
 { /* initialize sysInfo defaults */ }
 
 std::string System::GetOS() const

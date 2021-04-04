@@ -105,10 +105,20 @@ int Wrap_System::GetVersion(lua_State * L)
     return 1;
 }
 
+int Wrap_System::GetFriendCode(lua_State * L)
+{
+    std::string friendCode = instance()->GetFriendCode();
+
+    Luax::PushString(L, friendCode);
+
+    return 1;
+}
+
 int Wrap_System::Register(lua_State * L)
 {
     luaL_Reg reg[] =
     {
+        { "getFriendCode",     GetFriendCode     },
         { "getOS",             GetOS             },
         { "getProcessorCount", GetProcessorCount },
         { "getPowerInfo",      GetPowerInfo      },

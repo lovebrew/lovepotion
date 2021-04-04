@@ -1,6 +1,8 @@
 #include <3ds.h>
 #include <malloc.h>
 
+#include "common/results.h"
+
 u32 * SOCKET_BUFFER;
 Result SOCKET_INITED;
 
@@ -13,29 +15,17 @@ extern "C"
     {
         osSetSpeedupEnable(true);
 
-        /* config info */
-        Result res = cfguInit();
-
-        if (R_FAILED(res))
-            svcBreak(USERBREAK_PANIC);
-
         /* mcu:hwc for raw battery info */
-        res = mcuHwcInit();
-
-        if (R_FAILED(res))
-            svcBreak(USERBREAK_PANIC);
+        R_ABORT_UNLESS(mcuHwcInit());
 
         /* battery state */
-        res = ptmuInit();
-
-        if (R_FAILED(res))
-            svcBreak(USERBREAK_PANIC);
+        R_ABORT_UNLESS(ptmuInit());
 
         /* wifi state */
-        res = acInit();
+        R_ABORT_UNLESS(acInit());
 
-        if (R_FAILED(res))
-            svcBreak(USERBREAK_PANIC);
+        /* friends */
+        R_ABORT_UNLESS(frdInit());
 
         /* wireless */
         SOCKET_BUFFER = (u32 *)memalign(SO_BUF_ALIGN, SO_MAX_BUFSIZE);
@@ -51,15 +41,16 @@ extern "C"
     {
         HIDUSER_DisableAccelerometer();
 
-        if (R_SUCCEEDED(SOCKET_INITED))
-        {
-            socExit();
-            free(SOCKET_BUFFER);
-        }
+        socExit();
+
+        free(SOCKET_BUFFER);
+
+        frdExit();
 
         acExit();
+
         ptmuExit();
+
         mcuHwcExit();
-        cfguExit();
     }
 }

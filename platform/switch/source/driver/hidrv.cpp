@@ -281,7 +281,7 @@ bool Hidrv::Poll(LOVE_Event * event)
             newEvent.axis.axis  = "triggerright";
             newEvent.axis.number = 6;
 
-            float value = (this->buttonStates.pressed & KEY_ZR) ? 1.0f : 0.0f;
+            float value = (this->buttonStates.pressed & HidNpadButton_ZR) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         }
 

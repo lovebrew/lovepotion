@@ -20,5 +20,7 @@ namespace Wrap_System
 
     int GetVersion(lua_State * L);
 
+    int GetFriendCode(lua_State * L);
+
     int Register(lua_State * L);
 }

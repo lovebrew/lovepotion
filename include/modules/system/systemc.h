@@ -73,6 +73,8 @@ namespace love::common
 
             virtual const std::string & GetModel() = 0;
 
+            virtual const std::string & GetFriendCode() = 0;
+
             /* end pure virtual methods */
 
             PowerState GetPowerInfo(int & percent) const;
@@ -89,12 +91,13 @@ namespace love::common
             struct
             {
                 int processors;
+                std::string model;
+                std::string region;
+                std::string version;
                 std::string username;
                 std::string language;
-                std::string version;
-                std::string region;
-                std::string model;
-            } sysInfo;
+                std::string friendCode;
+            } systemInfo;
 
         private:
             static StringMap<PowerState, POWER_MAX_ENUM>::Entry powerEntries[];
