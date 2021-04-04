@@ -32,7 +32,6 @@ const std::string & System::GetUsername()
     if (!this->systemInfo.username.empty())
         return this->systemInfo.username;
 
-    Result res = 0;
     AccountUid userID = { 0 };
 
     AccountProfile profile;
@@ -61,7 +60,7 @@ love::System::NetworkInfo System::GetNetworkInfo() const
     bool enabled;
     nifmIsWirelessCommunicationEnabled(&enabled);
 
-    u32 wifiStrength;
+    u32 wifiStrength = 0;
     Result res = nifmGetInternetConnectionStatus(NULL, &wifiStrength, NULL);
 
     NetworkInfo info;
@@ -76,7 +75,7 @@ const std::string & System::GetLanguage()
     if (!this->systemInfo.language.empty())
         return this->systemInfo.language;
 
-    uint64_t languageCode;
+    uint64_t languageCode = 0;
     SetLanguage language;
 
     /* Get the System Language Code */

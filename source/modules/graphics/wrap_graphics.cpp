@@ -114,16 +114,6 @@ int Wrap_Graphics::GetHeight(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::Get3DDepth(lua_State * L)
-{
-    #if defined (_3DS)
-        lua_pushnumber(L, osGet3DSliderState());
-
-        return 1;
-    #endif
-    return 0;
-}
-
 int Wrap_Graphics::Arc(lua_State * L)
 {
     Graphics::DrawMode drawMode;
@@ -1219,20 +1209,36 @@ int Wrap_Graphics::GetBlendFactor(lua_State * L)
 
 int Wrap_Graphics::Get3D(lua_State * L)
 {
-    bool enabled = gfxIs3D();
+    #if defined (_3DS)
+        bool enabled = gfxIs3D();
 
-    lua_pushboolean(L, enabled);
+        lua_pushboolean(L, enabled);
 
-    return 1;
+        return 1;
+    #endif
+    return 0;
 }
 
 int Wrap_Graphics::Set3D(lua_State * L)
 {
-    bool enabled = Luax::ToBoolean(L, 1);
+    #if defined (_3DS)
+        bool enabled = Luax::ToBoolean(L, 1);
 
-    auto instance = (love::citro2d::Graphics *)instance();
-    instance->Set3D(enabled);
+        auto instance = (love::citro2d::Graphics *)instance();
+        instance->Set3D(enabled);
+    #endif
+    return 0;
+}
 
+int Wrap_Graphics::Get3DDepth(lua_State * L)
+{
+    #if defined (_3DS)
+        float sliderValue = (gfxIs3D()) ? osGet3DSliderState() : 0;
+
+        lua_pushnumber(L, sliderValue);
+
+        return 1;
+    #endif
     return 0;
 }
 
