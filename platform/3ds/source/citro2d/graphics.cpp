@@ -24,8 +24,8 @@ void love::citro2d::Graphics::SetActiveScreen(Screen screen)
             Graphics::ACTIVE_SCREEN = 2;
             return;
         case Screen::SCREEN_MAX_ENUM:
-        default:
-            Graphics::ACTIVE_SCREEN = 0;
+        default: //< if it defaults from something like "top"
+            throw love::Exception("Invalid screen type!"); //< shouldn't happen
             break;
     }
 }
@@ -36,12 +36,16 @@ const int love::citro2d::Graphics::GetWidth(Screen screen) const
     {
         case Screen::SCREEN_LEFT:
         case Screen::SCREEN_RIGHT:
-        case Screen::SCREEN_TOP:
         default:
             return SCREEN_TOP_WIDTH;
         case Screen::SCREEN_BOTTOM:
             return SCREEN_BOT_WIDTH;
     }
+}
+
+void love::citro2d::Graphics::Set3D(bool enabled)
+{
+    gfxSet3D(enabled);
 }
 
 const int love::citro2d::Graphics::GetHeight() const
@@ -60,13 +64,13 @@ Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
         case 2:
             return Screen::SCREEN_BOTTOM;
         default:
-            throw love::Exception("invalid active screen.");
+            return Screen::SCREEN_LEFT;
     }
 }
 
 std::vector<std::string> love::citro2d::Graphics::GetScreens() const
 {
-    return Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
+    return (gfxIs3D()) ? love::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM) : love::citro2d::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
 }
 
 
@@ -377,12 +381,38 @@ Graphics::RendererInfo love::citro2d::Graphics::GetRendererInfo() const
     return info;
 }
 
+bool love::citro2d::Graphics::GetConstant(const char * in, Screen & out)
+{
+    return plainScreens.Find(in, out);
+}
+
+bool love::citro2d::Graphics::GetConstant(Screen in, const char *& out)
+{
+    return plainScreens.Find(in, out);
+}
+
+std::vector<std::string> love::citro2d::Graphics::GetConstants(Screen)
+{
+    return plainScreens.GetNames();
+}
+
+/* 2D Screens */
+
+StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::Entry love::citro2d::Graphics::plainScreenEntries[] =
+{
+    { "top",    Screen::SCREEN_LEFT   },
+    { "bottom", Screen::SCREEN_BOTTOM }
+};
+
+StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::plainScreens(love::citro2d::Graphics::plainScreenEntries, sizeof(love::citro2d::Graphics::plainScreenEntries));
+
+/* "3D" Screens */
+
 StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] =
 {
     { "left",   Screen::SCREEN_LEFT   },
     { "right",  Screen::SCREEN_RIGHT  },
-    { "bottom", Screen::SCREEN_BOTTOM },
-    { "top",    Screen::SCREEN_TOP    },
+    { "bottom", Screen::SCREEN_BOTTOM }
 };
 
 StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));

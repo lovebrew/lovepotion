@@ -17,7 +17,6 @@ enum class love::Graphics::Screen : uint8_t
     SCREEN_LEFT,
     SCREEN_RIGHT,
     SCREEN_BOTTOM,
-    SCREEN_TOP,
     SCREEN_MAX_ENUM
 };
 
@@ -92,11 +91,25 @@ namespace love::citro2d
 
             void SetScissor() override;
 
+            /* Nintendo 3DS */
+
+            void Set3D(bool enable);
+
+            /* End Nintendo 3DS */
+
             /* Useless */
 
             void SetBlendMode(BlendMode mode, BlendAlpha alpha) override {};
 
             void SetColorMask(ColorMask mask) override {};
 
+            static constexpr int MAX_2D_SCREENS = 2;
+
+            static StringMap<Screen, MAX_2D_SCREENS>::Entry plainScreenEntries[];
+            static StringMap<Screen, MAX_2D_SCREENS> plainScreens;
+
+            static bool GetConstant(const char * in, Screen & out);
+            static bool GetConstant(Screen in, const char *& out);
+            static std::vector<std::string> GetConstants(Screen);
     };
 }

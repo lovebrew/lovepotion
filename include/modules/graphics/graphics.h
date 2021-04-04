@@ -54,7 +54,7 @@ namespace love
             #if defined(__SWITCH__)
                 static constexpr int MAX_SCREENS = 1;
             #elif defined(_3DS)
-                static constexpr int MAX_SCREENS = 4;
+                static constexpr int MAX_SCREENS = 3;
             #endif
 
             enum DrawMode

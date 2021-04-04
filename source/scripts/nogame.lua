@@ -1929,7 +1929,7 @@ function love.nogame()
             end
         end
 
-        local iod = (is3DS and love.graphics.getStereoscopicDepth() or 0) / 3
+        local iod = (is3DS and love.graphics.get3DDepth() or 0) / 3
 
         if screen == "right" then
             iod = -iod

@@ -45,8 +45,21 @@ int Wrap_Graphics::SetActiveScreen(lua_State * L)
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
     const char * name = luaL_checkstring(L, 1);
 
-    if (!Graphics::GetConstant(name, screen))
-        return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+    #if defined(_3DS)
+        if (gfxIs3D())
+        {
+            if (!Graphics::GetConstant(name, screen))
+                return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+        }
+        else
+        {
+            if (!love::citro2d::Graphics::GetConstant(name, screen))
+                return Luax::EnumError(L, "screen", love::citro2d::Graphics::GetConstants(screen), name);
+        }
+    #elif defined(__SWITCH__)
+            if (!Graphics::GetConstant(name, screen))
+                return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+    #endif
 
     Luax::CatchException(L, [&]() {
         instance()->SetActiveScreen(screen);
@@ -101,7 +114,7 @@ int Wrap_Graphics::GetHeight(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::GetStereoscopicDepth(lua_State * L)
+int Wrap_Graphics::Get3DDepth(lua_State * L)
 {
     #if defined (_3DS)
         lua_pushnumber(L, osGet3DSliderState());
@@ -1184,6 +1197,8 @@ int Wrap_Graphics::SetColor(lua_State * L)
     return 0;
 }
 
+/* Nintendo 3DS */
+
 int Wrap_Graphics::SetBlendFactor(lua_State * L)
 {
     float blendFactor = luaL_optnumber(L, 1, 0.0f);
@@ -1201,6 +1216,27 @@ int Wrap_Graphics::GetBlendFactor(lua_State * L)
 
     return 1;
 }
+
+int Wrap_Graphics::Get3D(lua_State * L)
+{
+    bool enabled = gfxIs3D();
+
+    lua_pushboolean(L, enabled);
+
+    return 1;
+}
+
+int Wrap_Graphics::Set3D(lua_State * L)
+{
+    bool enabled = Luax::ToBoolean(L, 1);
+
+    auto instance = (love::citro2d::Graphics *)instance();
+    instance->Set3D(enabled);
+
+    return 0;
+}
+
+/* End Nintendo 3DS */
 
 int Wrap_Graphics::GetRendererInfo(lua_State * L)
 {
@@ -1278,9 +1314,11 @@ int Wrap_Graphics::Register(lua_State * L)
 
     luaL_Reg modExt[] =
     {
-        { "getBlendFactor",       GetBlendFactor       },
-        { "getStereoscopicDepth", GetStereoscopicDepth },
-        { "setBlendFactor",       SetBlendFactor       }
+        { "getBlendFactor", GetBlendFactor },
+        { "get3D",          Get3D          },
+        { "get3DDepth",     Get3DDepth     },
+        { "setBlendFactor", SetBlendFactor },
+        { "set3D",          Set3D          }
     };
 
     /* if it doesn't match the console, it just copies input to be the output */

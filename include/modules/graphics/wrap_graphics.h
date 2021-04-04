@@ -129,11 +129,19 @@ namespace Wrap_Graphics
 
     int SetCanvas(lua_State * L);
 
-    int GetStereoscopicDepth(lua_State * L);
+    /* Nintendo 3DS */
+
+    int Get3DDepth(lua_State * L);
 
     int SetBlendFactor(lua_State * L);
 
     int GetBlendFactor(lua_State * L);
+
+    int Get3D(lua_State * L);
+
+    int Set3D(lua_State * L);
+
+    /* End Nintendo 3DS */
 
     int Register(lua_State * L);
 }

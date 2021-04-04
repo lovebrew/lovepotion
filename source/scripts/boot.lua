@@ -415,10 +415,13 @@ function love.errorhandler(message)
         return
     end
 
-    local screens = love.graphics.getScreens()
+    local stereoScopicScreens = love.graphics.getScreens()
+    local normalScreens = {"top", "bottom"}
 
     local function draw()
         if love.graphics then
+            local screens = love.graphics.get3D() and stereoScopicScreens or normalScreens
+
             for _, screen in ipairs(screens) do
                 love.graphics.setActiveScreen(screen)
                 love.graphics.clear(0.35, 0.62, 0.86)
@@ -716,10 +719,15 @@ function love.run()
     end
 
     local delta = 0
-    local screens = love.graphics.getScreens()
+
+    -- it will return the proper screens first
+    -- plus we will do this to optimize the rendering calls
+    -- if we don't then we create a new table every frame(!)
+    -- that's not a good thing, it's baaaaaaaad™
+    local stereoScopicScreens = love.graphics.getScreens()
+    local normalScreens = {"top", "bottom"}
 
     return function()
-
         if love.event and love.event.pump then
             love.event.pump()
 
@@ -743,7 +751,7 @@ function love.run()
         end
 
         if love.graphics then
-
+            local screens = love.graphics.get3D() and stereoScopicScreens or normalScreens
 
             for _, screen in ipairs(screens) do
                 love.graphics.origin()
