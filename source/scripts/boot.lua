@@ -334,6 +334,13 @@ local function hackForMissingFilename(error)
     return table.concat(split, "\n")
 end
 
+local function is3DHack()
+    if love._console_name == "3DS" then
+        return love.graphics.get3D()
+    end
+    return true
+end
+
 function love.errorhandler(message)
     message = tostring(message)
 
@@ -415,14 +422,19 @@ function love.errorhandler(message)
         return
     end
 
-    local stereoScopicScreens = love.graphics.getScreens()
-    local normalScreens = {"top", "bottom"}
+    local normalScreens = love.graphics.getScreens()
+    local plainScreens
+    if love._console_name == "3DS" then
+        plainScreens = {"top", "bottom"}
+    end
 
     local function draw()
         if love.graphics then
-            local screens = love.graphics.get3D() and stereoScopicScreens or normalScreens
+            local screens = is3DHack() and normalScreens or plainScreens
 
             for _, screen in ipairs(screens) do
+                love.graphics.origin()
+
                 love.graphics.setActiveScreen(screen)
                 love.graphics.clear(0.35, 0.62, 0.86)
 
@@ -724,8 +736,11 @@ function love.run()
     -- plus we will do this to optimize the rendering calls
     -- if we don't then we create a new table every frame(!)
     -- that's not a good thing, it's baaaaaaaad™
-    local stereoScopicScreens = love.graphics.getScreens()
-    local normalScreens = {"top", "bottom"}
+    local normalScreens = love.graphics.getScreens()
+    local plainScreens
+    if love._console_name == "3DS" then
+        plainScreens = {"top", "bottom"}
+    end
 
     return function()
         if love.event and love.event.pump then
@@ -751,7 +766,7 @@ function love.run()
         end
 
         if love.graphics then
-            local screens = love.graphics.get3D() and stereoScopicScreens or normalScreens
+            local screens = is3DHack() and normalScreens or plainScreens
 
             for _, screen in ipairs(screens) do
                 love.graphics.origin()

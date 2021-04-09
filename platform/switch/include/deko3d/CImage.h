@@ -22,6 +22,10 @@ class CImage
                    m_mem{}
         {}
 
+        CImage(CImage const &) = delete;
+
+        CImage(CImage &&) = delete;
+
         ~CImage()
         {
             m_mem.destroy();
