@@ -76,7 +76,7 @@ int Source::GetSampleOffset()
 {
     int offset = 0;
 
-    AudioModule()->GetDriver()->LockFunction([this, offset](AudioDriver * driver) {
+    AudioModule()->GetDriver()->LockFunction([this, &offset](AudioDriver * driver) {
         offset = audrvVoiceGetPlayedSampleCount(driver, this->channel);
     });
 

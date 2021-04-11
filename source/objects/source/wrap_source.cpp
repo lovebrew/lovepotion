@@ -27,21 +27,6 @@ int Wrap_Source::GetChannelCount(lua_State * L)
     return 1;
 }
 
-int Wrap_Source::GetDuration(lua_State * L)
-{
-    Source * self = Wrap_Source::CheckSource(L, 1);
-
-    Source::Unit unit = Source::UNIT_SECONDS;
-    const char * unitString = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
-
-    if (unitString && !self->GetConstant(unitString, unit))
-        return Luax::EnumError(L, "time unit", Source::GetConstants(unit), unitString);
-
-    lua_pushnumber(L, self->GetDuration(unit));
-
-    return 1;
-}
-
 int Wrap_Source::GetFreeBufferCount(lua_State * L)
 {
     Source * self = Wrap_Source::CheckSource(L, 1);
