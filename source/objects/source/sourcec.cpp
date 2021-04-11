@@ -260,6 +260,18 @@ void Source::Stop(const std::vector<Source *> & sources)
     }
 }
 
+double Source::Tell(Source::Unit unit)
+{
+    thread::Lock lock = this->pool->Lock();
+
+    int offset = this->GetSampleOffset();
+
+    if (unit == UNIT_SECONDS)
+        return offset / (double)this->sampleRate;
+    else
+        return offset;
+}
+
 void Source::Pause(const std::vector<Source *> & sources)
 {
     if (sources.size() == 0)

@@ -148,6 +148,11 @@ bool Source::Update()
     return false;
 }
 
+int Source::GetSampleOffset()
+{
+    return ndspChnGetSamplePos(this->channel);
+}
+
 void Source::PrepareAtomic()
 {
     this->Reset();

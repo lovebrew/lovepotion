@@ -185,6 +185,36 @@ int Wrap_Source::Stop(lua_State * L)
     return 0;
 }
 
+int Wrap_Source::GetDuration(lua_State * L)
+{
+    Source * self = Wrap_Source::CheckSource(L, 1);
+
+    Source::Unit units = Source::UNIT_SECONDS;
+    const char * unit = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
+
+    if (unit && !self->GetConstant(unit, units))
+        return Luax::EnumError(L, "time unit", Source::GetConstants(units), unit);
+
+    lua_pushnumber(L, self->GetDuration(units));
+
+    return 1;
+}
+
+int Wrap_Source::Tell(lua_State * L)
+{
+    Source * self = Wrap_Source::CheckSource(L, 1);
+
+    Source::Unit units = Source::UNIT_SECONDS;
+    const char * unit = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
+
+    if (unit && !self->GetConstant(unit, units))
+        return Luax::EnumError(L, "time unit", Source::GetConstants(units), unit);
+
+    lua_pushnumber(L, self->Tell(units));
+
+    return 1;
+}
+
 Source * Wrap_Source::CheckSource(lua_State * L, int index)
 {
     return Luax::CheckType<Source>(L, index);
@@ -196,6 +226,7 @@ int Wrap_Source::Register(lua_State * L)
     {
         { "clone",              Clone              },
         { "getChannelCount",    GetChannelCount    },
+        { "getDuration",        GetDuration        },
         { "getFreeBufferCount", GetFreeBufferCount },
         { "getType",            GetType            },
         { "getVolume",          GetVolume          },
@@ -209,6 +240,7 @@ int Wrap_Source::Register(lua_State * L)
         { "setVolume",          SetVolume          },
         { "setVolumeLimits",    SetVolumeLimits    },
         { "stop",               Stop               },
+        { "tell",               Tell               },
         { 0, 0 }
     };
 

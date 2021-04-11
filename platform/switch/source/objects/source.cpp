@@ -72,6 +72,17 @@ void Source::FreeBuffer()
     }
 }
 
+int Source::GetSampleOffset()
+{
+    int offset = 0;
+
+    AudioModule()->GetDriver()->LockFunction([this, offset](AudioDriver * driver) {
+        offset = audrvVoiceGetPlayedSampleCount(driver, this->channel);
+    });
+
+    return offset;
+}
+
 void Source::SetVolume(float volume)
 {
     AudioModule()->GetDriver()->LockFunction([this, volume](AudioDriver * driver) {

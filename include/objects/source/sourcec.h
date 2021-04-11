@@ -107,7 +107,7 @@ namespace love
 
                 bool IsLooping() const;
 
-                double Tell();
+                double Tell(Source::Unit unit);
 
                 // static bool Play(const std::vector<Source *> & sources);
 
@@ -174,6 +174,8 @@ namespace love
                 virtual void PauseAtomic() = 0;
 
                 virtual void ResumeAtomic() = 0;
+
+                virtual int GetSampleOffset() = 0;
 
                 void TeardownAtomic();
 

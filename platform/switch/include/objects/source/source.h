@@ -27,6 +27,9 @@ namespace love
 
             void StopAtomic() override;
 
+        protected:
+            int GetSampleOffset() override;
+
         private:
             AudioDriverWaveBuf sources[Source::MAX_BUFFERS];
 
