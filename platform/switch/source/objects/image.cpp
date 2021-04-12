@@ -7,14 +7,14 @@ using namespace love;
 Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
 {
     // CImage can load PNG and JPG files with the proper libraries
-    bool success = this->texture.load(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(),
-                                      dk3d.GetTextureQueue(), data->GetData(), data->GetSize(),
-                                      this->width, this->height);
+    bool success = this->texture.load(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
+                                      ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(),
+                                      data->GetData(), data->GetSize(), this->width, this->height);
 
     if (!success)
         throw love::Exception("Failed to upload Image data.");
 
-    this->handle = dk3d.RegisterResHandle(this->texture.getDescriptor());
+    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
 
     this->InitQuad();
 
@@ -29,14 +29,14 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 {
     this->Init(width, height);
 
-    bool success = this->texture.loadEmptyPixels(*dk3d.GetImages(), *dk3d.GetData(), dk3d.GetDevice(),
-                                                 dk3d.GetTextureQueue(), width, height,
-                                                 DkImageFormat_RGBA8_Unorm);
+    bool success = this->texture.loadEmptyPixels(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
+                                                 ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(), 
+                                                 width, height, DkImageFormat_RGBA8_Unorm);
 
     if (!success)
         throw love::Exception("Failed to create Image data");
 
-    this->handle = dk3d.RegisterResHandle(this->texture.getDescriptor());
+    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
 
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
@@ -44,8 +44,8 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 
 void Image::ReplacePixels(const void * data, size_t size, const Rect & rect)
 {
-    this->texture.replacePixels(*dk3d.GetData(), dk3d.GetDevice(), data,
-                                size, dk3d.GetTextureQueue(), rect);
+    this->texture.replacePixels(::deko3d::Instance().GetData(), ::deko3d::Instance().GetDevice(),
+                                data, size, ::deko3d::Instance().GetTextureQueue(), rect);
 }
 
 void Image::Init(int width, int height)

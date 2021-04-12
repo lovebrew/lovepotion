@@ -2,58 +2,56 @@
 
 #include "deko3d/vertex.h"
 
+namespace {
+    constexpr auto gpuFlags = (DkMemBlockFlags_GpuCached   | DkMemBlockFlags_Image    );
+    constexpr auto cpuFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
+    constexpr auto shaderFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code);
+}
+
 deko3d::deko3d() : firstVertex(0),
                    renderState(STATE_MAX_ENUM),
-                   pool(),
+                   /*
+                   ** Create GPU device
+                   ** default origin is top left
+                   ** Unique -- destroys automatically
+                   */
+                   device(dk::DeviceMaker{}
+                        .setFlags(DkDeviceFlags_DepthMinusOneToOne)
+                        .create()),
+                   /*
+                   ** Render Queue
+                   ** Unique -- destroys automatically
+                   */
+                   queue(dk::QueueMaker{this->device}
+                        .setFlags(DkQueueFlags_Graphics)
+                        .create()),
+                   pool{
+                        /* GPU & CPU Memory Pools */
+                        .images = CMemPool(this->device, gpuFlags, 64 * 1024 * 1024), 
+                        .data   = CMemPool(this->device, cpuFlags, 1 * 1024 * 1024),
+                        /* Used for Shader code */
+                        .code   = CMemPool(this->device, shaderFlags, 128 * 1024)
+                   },
                    state(),
+                   textureQueue(dk::QueueMaker{this->device}
+                            .setFlags(DkQueueFlags_Graphics)
+                            .create()),
                    viewport{0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT},
                    framebuffers(),
                    depthBuffer()
 {
-    /*
-    ** Create GPU device
-    ** default origin is top left
-    ** Unique -- destroys automatically
-    */
-    this->device = dk::DeviceMaker{}
-                        .setFlags(DkDeviceFlags_DepthMinusOneToOne)
-                        .create();
-
-    /*
-    ** Render Queue
-    ** Unique -- destroys automatically
-    */
-    this->queue = dk::QueueMaker{this->device}
-                        .setFlags(DkQueueFlags_Graphics)
-                        .create();
-
-    this->textureQueue = dk::QueueMaker{this->device}
-                            .setFlags(DkQueueFlags_Graphics)
-                            .create();
-
-    /* Create GPU & CPU Memory Pools */
-    auto gpuFlags = (DkMemBlockFlags_GpuCached   | DkMemBlockFlags_Image    );
-    auto cpuFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
-
-    this->pool.images.emplace(this->device, gpuFlags, 64 * 1024 * 1024);
-    this->pool.data.emplace(this->device,   cpuFlags, 1  * 1024 * 1024);
-
-    /* Used for Shader code */
-    auto shaderFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code);
-    this->pool.code.emplace(this->device, shaderFlags, 128 * 1024);
-
-    this->transformUniformBuffer = this->pool.data->allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
+    this->transformUniformBuffer = this->pool.data.allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
     this->transformState.mdlvMtx = glm::mat4(1.0f);
 
-    this->descriptors.image.allocate(*this->pool.data);
-    this->descriptors.sampler.allocate(*this->pool.data);
+    this->descriptors.image.allocate(this->pool.data);
+    this->descriptors.sampler.allocate(this->pool.data);
 
     // Create the dynamic command buffer
     this->cmdBuf = dk::CmdBufMaker{this->device}
                         .create();
 
-    this->cmdRing.allocate(*this->pool.data, COMMAND_SIZE);
-    this->vtxRing.allocate(*this->pool.data, VERTEX_COMMAND_SIZE / 2);
+    this->cmdRing.allocate(this->pool.data, COMMAND_SIZE);
+    this->vtxRing.allocate(this->pool.data, VERTEX_COMMAND_SIZE / 2);
 
     this->state.depthStencil.setDepthTestEnable(true);
     this->state.depthStencil.setDepthWriteEnable(true);
@@ -82,6 +80,11 @@ deko3d::~deko3d()
     this->DestroyResources();
 }
 
+deko3d& deko3d::Instance()
+{
+    static deko3d instance;
+    return instance;
+}
 
 void deko3d::CreateResources()
 {
@@ -94,7 +97,7 @@ void deko3d::CreateResources()
         .setDimensions(FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT)
         .initialize(layout_depthbuffer);
 
-    this->depthBuffer.memory = this->pool.images->allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
+    this->depthBuffer.memory = this->pool.images.allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
     this->depthBuffer.image.initialize(layout_depthbuffer, this->depthBuffer.memory.getMemBlock(), this->depthBuffer.memory.getOffset());
 
     /* Create a layout for the normal framebuffers */
@@ -112,7 +115,7 @@ void deko3d::CreateResources()
     for (unsigned i = 0; i < MAX_FRAMEBUFFERS; i++)
     {
         // Allocate a framebuffer
-        this->framebuffers.memory[i] = this->pool.images->allocate(framebufferSize, framebufferAlign);
+        this->framebuffers.memory[i] = this->pool.images.allocate(framebufferSize, framebufferAlign);
         this->framebuffers.images[i].initialize(this->layoutFramebuffer,
                                                 this->framebuffers.memory[i].getMemBlock(),
                                                 this->framebuffers.memory[i].getOffset());
@@ -150,9 +153,9 @@ void deko3d::DestroyResources()
 
     this->depthBuffer.memory.destroy();
 
-    this->pool.code.reset();
-    this->pool.data.reset();
-    this->pool.images.reset();
+    // this->pool.code.reset();
+    // this->pool.data.reset();
+    // this->pool.images.reset();
 }
 
 // Ensure we have begun our frame
@@ -229,17 +232,17 @@ dk::Device deko3d::GetDevice()
     return this->device;
 }
 
-std::optional<CMemPool> & deko3d::GetCode()
+CMemPool & deko3d::GetCode()
 {
     return this->pool.code;
 }
 
-std::optional<CMemPool> & deko3d::GetImages()
+CMemPool & deko3d::GetImages()
 {
     return this->pool.images;
 }
 
-std::optional<CMemPool> & deko3d::GetData()
+CMemPool & deko3d::GetData()
 {
     return this->pool.data;
 }
@@ -614,6 +617,3 @@ love::Rect deko3d::GetViewport()
 {
     return this->viewport;
 }
-
-// Singleton
-deko3d dk3d;

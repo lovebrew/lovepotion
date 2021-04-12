@@ -35,6 +35,9 @@ namespace love
 
 class deko3d
 {
+    private:
+        deko3d();
+
     public:
         static constexpr unsigned MAX_FRAMEBUFFERS = 2;
 
@@ -46,7 +49,7 @@ class deko3d
 
         static constexpr size_t MAX_OBJECTS = 0x250;
 
-        deko3d();
+        static deko3d & Instance();
 
         ~deko3d();
 
@@ -109,11 +112,11 @@ class deko3d
 
         dk::Queue GetTextureQueue();
 
-        std::optional<CMemPool> & GetImages();
+        CMemPool & GetImages();
 
-        std::optional<CMemPool> & GetCode();
+        CMemPool & GetCode();
 
-        std::optional<CMemPool> & GetData();
+        CMemPool & GetData();
 
         DkResHandle RegisterResHandle(const dk::ImageDescriptor & descriptor);
 
@@ -165,11 +168,15 @@ class deko3d
             glm::mat4 projMtx;
         };
 
+        dk::UniqueDevice device;
+        dk::UniqueQueue  queue;
+        dk::UniqueCmdBuf cmdBuf;
+
         struct
         {
-            std::optional<CMemPool> images;
-            std::optional<CMemPool> data;
-            std::optional<CMemPool> code;
+            CMemPool images;
+            CMemPool data;
+            CMemPool code;
         } pool;
 
         struct
@@ -182,10 +189,6 @@ class deko3d
 
             float pointSize;
         } state;
-
-        dk::UniqueDevice device;
-        dk::UniqueQueue  queue;
-        dk::UniqueCmdBuf cmdBuf;
 
         dk::UniqueQueue textureQueue;
 
@@ -230,5 +233,3 @@ class deko3d
 
         void EnsureHasSlot();
 };
-
-extern ::deko3d dk3d;

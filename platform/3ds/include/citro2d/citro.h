@@ -5,8 +5,11 @@
 
 class citro2d
 {
-    public:
+    private:
         citro2d();
+
+    public:
+        static citro2d & Instance();
 
         ~citro2d();
 
@@ -52,5 +55,3 @@ class citro2d
 
         void EnsureInFrame();
 };
-
-extern ::citro2d c2d;

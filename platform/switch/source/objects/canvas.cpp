@@ -11,26 +11,26 @@ Canvas::Canvas(const Canvas::Settings & settings) : common::Canvas(settings),
 {
     // Create layout for the (multisampled) color buffer
     dk::ImageLayout layoutColorBuffer;
-    dk::ImageLayoutMaker{dk3d.GetDevice()}
+    dk::ImageLayoutMaker{::deko3d::Instance().GetDevice()}
         .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
         .setFormat(DkImageFormat_RGBA8_Unorm)
         .setDimensions(this->width, this->height)
         .initialize(layoutColorBuffer);
 
     // Create the color buffer
-    this->colorMemory = dk3d.GetImages()->allocate(layoutColorBuffer.getSize(), layoutColorBuffer.getAlignment());
+    this->colorMemory = ::deko3d::Instance().GetImages().allocate(layoutColorBuffer.getSize(), layoutColorBuffer.getAlignment());
     this->colorBuffer.initialize(layoutColorBuffer, this->colorMemory.getMemBlock(), this->colorMemory.getOffset());
 
     // Clear to transparent black
-    dk3d.BindFramebuffer(this);
-    dk3d.ClearColor({0, 0, 0, 0});
-    dk3d.BindFramebuffer();
+    ::deko3d::Instance().BindFramebuffer(this);
+    ::deko3d::Instance().ClearColor({0, 0, 0, 0});
+    ::deko3d::Instance().BindFramebuffer();
 
     dk::ImageView view { this->colorBuffer };
     this->descriptor.initialize(view);
 
     // Register the texture handle for the descriptor
-    this->handle = dk3d.RegisterResHandle(this->texture.getDescriptor());
+    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
 }
 
 Canvas::~Canvas()
