@@ -2,7 +2,7 @@
 - Website: https://github.com/TurtleP/LovePotion
 - License: MIT
 - Copyright ©:
-  - 2018 - 2020 Jeremy S. Postelnek & Logan Hickok-Dickson
+  - 2018 - 2021 Jeremy S. Postelnek & Logan Hickok-Dickson
   - 2015 (Original Software) Ruairidh Carmichael
     - https://github.com/videah/LovePotion
 
@@ -17,7 +17,7 @@
 # LÖVE
 - Website: https://love2d.org/
 - License: zlib
-- Copyright © 2006-2020 LOVE Development Team
+- Copyright © 2006-2021 LOVE Development Team
 
 ## Kepler Project's lua-compat-5.3
 - Website: https://github.com/keplerproject/lua-compat-5.3
@@ -35,7 +35,7 @@
 - Copyright © 2014-2020 libctru Authors
 
 ## citro2d
-- Website: https://github.com/fincs/citro2d
+- Website: https://github.com/devkitPro/citro2d
 - License: zlib
 - Copyright © 2017-2018 fincs
 
