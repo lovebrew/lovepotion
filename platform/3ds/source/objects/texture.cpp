@@ -21,13 +21,13 @@ const C2D_Image & Texture::GetHandle()
 
 bool Texture::SetWrap(const Wrap & wrap)
 {
-    ::citro2d::instance().SetTextureWrap(wrap);
+    ::citro2d::Instance().SetTextureWrap(wrap);
     return true;
 }
 
 void Texture::SetFilter(const Filter & filter)
 {
-    ::citro2d::instance().SetTextureFilter(filter);
+    ::citro2d::Instance().SetTextureFilter(filter);
 }
 
 void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)

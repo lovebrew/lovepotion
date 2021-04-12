@@ -13,7 +13,7 @@ Texture::Texture(TextureType type) : common::Texture(type)
 
 Texture::~Texture()
 {
-    ::deko3d::instance().UnRegisterResHandle(this->handle);
+    ::deko3d::Instance().UnRegisterResHandle(this->handle);
 }
 
 void Texture::SetHandle(DkResHandle handle)
@@ -28,13 +28,13 @@ DkResHandle Texture::GetHandle()
 
 bool Texture::SetWrap(const Wrap & wrap)
 {
-    ::deko3d::instance().SetTextureWrap(this, wrap);
+    ::deko3d::Instance().SetTextureWrap(this, wrap);
     return true;
 }
 
 void Texture::SetFilter(const Filter & filter)
 {
-    ::deko3d::instance().SetTextureFilter(this, filter);
+    ::deko3d::Instance().SetTextureFilter(this, filter);
 }
 
 void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
@@ -58,5 +58,5 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
         points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(), points.size(), gfx->GetColor());
     }
 
-    ::deko3d::instance().RenderTexture(this->handle, points.data(), 4);
+    ::deko3d::Instance().RenderTexture(this->handle, points.data(), 4);
 }

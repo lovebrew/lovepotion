@@ -48,7 +48,7 @@ citro2d::~citro2d()
     gfxExit();
 }
 
-citro2d& citro2d::instance()
+citro2d& citro2d::Instance()
 {
     static citro2d c2d;
     return c2d;

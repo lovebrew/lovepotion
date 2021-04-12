@@ -72,7 +72,7 @@ void Graphics::SetCanvas(Canvas * canvas)
     DisplayState & state = this->states.back();
     state.canvas.Set(canvas, Acquire::NORETAIN);
 
-    ::deko3d::instance().BindFramebuffer(canvas);
+    ::deko3d::Instance().BindFramebuffer(canvas);
 
     if (this->states.back().scissor)
         this->SetScissor(this->states.back().scissorRect);
@@ -81,16 +81,16 @@ void Graphics::SetCanvas(Canvas * canvas)
 void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {
     if (this->IsCanvasActive() == false)
-        ::deko3d::instance().BindFramebuffer();
+        ::deko3d::Instance().BindFramebuffer();
 
     if (color.has_value())
     {
         Graphics::GammaCorrectColor(color.value());
-        ::deko3d::instance().ClearColor(color.value());
+        ::deko3d::Instance().ClearColor(color.value());
     }
 
     if (stencil.has_value())
-        ::deko3d::instance().ClearDepthStencil(depth.value(), stencil.value());
+        ::deko3d::Instance().ClearDepthStencil(depth.value(), stencil.value());
 }
 
 void love::deko3d::Graphics::Present()
@@ -98,7 +98,7 @@ void love::deko3d::Graphics::Present()
     if (this->IsCanvasActive())
         throw love::Exception("present cannot be called while a Canvas is active.");
 
-    ::deko3d::instance().Present();
+    ::deko3d::Instance().Present();
 }
 
 Graphics::RendererInfo love::deko3d::Graphics::GetRendererInfo() const
@@ -116,7 +116,7 @@ Graphics::RendererInfo love::deko3d::Graphics::GetRendererInfo() const
 void love::deko3d::Graphics::SetColor(Colorf color)
 {
     love::Graphics::SetColor(color);
-    ::deko3d::instance().SetBlendColor(color);
+    ::deko3d::Instance().SetBlendColor(color);
 }
 
 love::Image * love::deko3d::Graphics::NewImage(Texture::TextureType t, int width, int height)
@@ -143,7 +143,7 @@ void love::deko3d::Graphics::SetMeshCullMode(vertex::CullMode mode)
             break;
     }
 
-    ::deko3d::instance().SetCullMode(face);
+    ::deko3d::Instance().SetCullMode(face);
 }
 
 void love::deko3d::Graphics::SetFrontFaceWinding(vertex::Winding winding)
@@ -162,7 +162,7 @@ void love::deko3d::Graphics::SetFrontFaceWinding(vertex::Winding winding)
             break;
     }
 
-    ::deko3d::instance().SetFrontFaceWinding(face);
+    ::deko3d::Instance().SetFrontFaceWinding(face);
 }
 
 void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter & filter)
@@ -249,7 +249,7 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
     if (srcColor == DkBlendFactor_One && alphamode == BLENDALPHA_MULTIPLY && mode != BLEND_NONE)
         srcColor = DkBlendFactor_SrcAlpha;
 
-    ::deko3d::instance().SetBlendMode(func, srcColor, srcAlpha, dstColor, dstAlpha);
+    ::deko3d::Instance().SetBlendMode(func, srcColor, srcAlpha, dstColor, dstAlpha);
 
     this->states.back().blendMode = mode;
     this->states.back().blendAlphaMode = alphamode;
@@ -283,14 +283,14 @@ void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points,
     }
 
     if (mode == DRAW_FILL)
-        ::deko3d::instance().RenderPolygon(verts.data(), vertexCount);
+        ::deko3d::Instance().RenderPolygon(verts.data(), vertexCount);
     else
-        ::deko3d::instance().RenderPolyline(verts.data(), vertexCount);
+        ::deko3d::Instance().RenderPolyline(verts.data(), vertexCount);
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)
 {
-    ::deko3d::instance().SetLineWidth(width);
+    ::deko3d::Instance().SetLineWidth(width);
 }
 
 void love::deko3d::Graphics::Line(const Vector2 * points, int count)
@@ -512,12 +512,12 @@ void love::deko3d::Graphics::Points(const Vector2 * points, size_t count, const 
 {
     std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(points, count, colors, colorCount);
 
-    ::deko3d::instance().RenderPoints(verts.data(), count);
+    ::deko3d::Instance().RenderPoints(verts.data(), count);
 }
 
 void love::deko3d::Graphics::SetPointSize(float size)
 {
-    ::deko3d::instance().SetPointSize(size);
+    ::deko3d::Instance().SetPointSize(size);
     this->states.back().pointSize = size;
 }
 
@@ -545,7 +545,7 @@ void love::deko3d::Graphics::SetScissor(const Rect & scissor)
 {
     DisplayState & state = this->states.back();
 
-    ::deko3d::instance().SetScissor(scissor, this->IsCanvasActive());
+    ::deko3d::Instance().SetScissor(scissor, this->IsCanvasActive());
 
     state.scissor = true;
     state.scissorRect = scissor;
@@ -555,7 +555,7 @@ void love::deko3d::Graphics::SetColorMask(ColorMask mask)
 {
     // flushStreamDraws();
 
-    ::deko3d::instance().SetColorMask(mask.r, mask.g, mask.b, mask.a);
+    ::deko3d::Instance().SetColorMask(mask.r, mask.g, mask.b, mask.a);
     states.back().colorMask = mask;
 }
 
@@ -564,7 +564,7 @@ void love::deko3d::Graphics::SetScissor()
     int width  = this->GetWidth(this->GetActiveScreen());
     int height = this->GetHeight();
 
-    ::deko3d::instance().SetScissor({0, 0, width, height}, this->IsCanvasActive());
+    ::deko3d::Instance().SetScissor({0, 0, width, height}, this->IsCanvasActive());
     states.back().scissor = false;
 }
 

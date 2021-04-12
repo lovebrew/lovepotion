@@ -80,7 +80,7 @@ deko3d::~deko3d()
     this->DestroyResources();
 }
 
-deko3d& deko3d::instance()
+deko3d& deko3d::Instance()
 {
     static deko3d instance;
     return instance;

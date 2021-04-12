@@ -39,7 +39,7 @@ void Window::OnSizeChanged(int width, int height)
         this->graphics->Resize(width, height);
 
     const Rect newViewport = {0, 0, width, height};
-    ::deko3d::instance().SetViewport(newViewport);
+    ::deko3d::Instance().SetViewport(newViewport);
 }
 
 const std::array<Window::DisplaySize, 2> & Window::GetFullscreenModes()

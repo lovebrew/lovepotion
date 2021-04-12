@@ -9,7 +9,7 @@ class citro2d
         citro2d();
 
     public:
-        static citro2d& instance();
+        static citro2d & Instance();
 
         ~citro2d();
 

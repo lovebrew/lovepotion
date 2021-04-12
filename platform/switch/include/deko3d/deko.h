@@ -49,7 +49,7 @@ class deko3d
 
         static constexpr size_t MAX_OBJECTS = 0x250;
 
-        static deko3d& instance();
+        static deko3d & Instance();
 
         ~deko3d();
 
