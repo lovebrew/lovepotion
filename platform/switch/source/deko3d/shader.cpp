@@ -20,8 +20,8 @@ Shader::Shader(Data * vertex, Data * pixel) : program()
 {
     std::string error;
 
-    this->program.vertex->loadMemory(*dk3d.GetCode(), vertex->GetData(), vertex->GetSize());
-    this->program.fragment->loadMemory(*dk3d.GetCode(), pixel->GetData(), pixel->GetSize());
+    this->program.vertex->loadMemory(::deko3d::instance().GetCode(), vertex->GetData(), vertex->GetSize());
+    this->program.fragment->loadMemory(::deko3d::instance().GetCode(), pixel->GetData(), pixel->GetSize());
 
     if (!this->Validate(*this->program.vertex, *this->program.fragment, error))
         throw love::Exception(error.c_str());
@@ -44,12 +44,12 @@ void Shader::LoadDefaults(StandardShader type)
     switch (type)
     {
         case STANDARD_DEFAULT:
-            this->program.vertex->loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
-            this->program.fragment->loadMemory(*dk3d.GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
+            this->program.vertex->loadMemory(::deko3d::instance().GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.fragment->loadMemory(::deko3d::instance().GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
             break;
         case STANDARD_TEXTURE:
-            this->program.vertex->loadMemory(*dk3d.GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
-            this->program.fragment->loadMemory(*dk3d.GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
+            this->program.vertex->loadMemory(::deko3d::instance().GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
+            this->program.fragment->loadMemory(::deko3d::instance().GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
             break;
         default:
             break;
@@ -121,7 +121,7 @@ void Shader::Attach()
 {
     if (Shader::current != this)
     {
-        dk3d.UseProgram(this->program);
+        ::deko3d::instance().UseProgram(this->program);
 
         Shader::current = this;
     }
