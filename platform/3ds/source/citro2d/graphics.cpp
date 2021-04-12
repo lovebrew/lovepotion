@@ -77,12 +77,12 @@ std::vector<std::string> love::citro2d::Graphics::GetScreens() const
 void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {
     if (!this->IsCanvasActive())
-        c2d.BindFramebuffer();
+        ::citro2d::instance().BindFramebuffer();
 
     if (color.has_value())
     {
         Graphics::GammaCorrectColor(color.value());
-        c2d.ClearColor(color.value());
+        ::citro2d::instance().ClearColor(color.value());
     }
 }
 
@@ -91,7 +91,7 @@ void love::citro2d::Graphics::Present()
     if (this->IsCanvasActive())
         throw love::Exception("present cannot be called while a Canvas is active.");
 
-    c2d.Present();
+    ::citro2d::instance().Present();
 }
 
 /* Keep out from common */
@@ -100,7 +100,7 @@ void Graphics::SetCanvas(Canvas * canvas)
     DisplayState & state = this->states.back();
     state.canvas.Set(canvas);
 
-    c2d.BindFramebuffer(canvas);
+    ::citro2d::instance().BindFramebuffer(canvas);
 
     if (this->states.back().scissor)
         this->SetScissor(this->states.back().scissorRect);
@@ -352,7 +352,7 @@ void love::citro2d::Graphics::SetScissor(const Rect & scissor)
         C2D_Flush();
 
     int screenWidth = this->GetWidth(this->GetActiveScreen());
-    c2d.SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
+    ::citro2d::instance().SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
 
     state.scissor = true;
     state.scissorRect = scissor;
@@ -364,7 +364,7 @@ void love::citro2d::Graphics::SetScissor()
         C2D_Flush();
 
     int screenWidth = this->GetWidth(this->GetActiveScreen());
-    c2d.SetScissor(GPU_SCISSOR_DISABLE, {0, 0, screenWidth, 240}, screenWidth, false);
+    ::citro2d::instance().SetScissor(GPU_SCISSOR_DISABLE, {0, 0, screenWidth, 240}, screenWidth, false);
 
     states.back().scissor = false;
 }

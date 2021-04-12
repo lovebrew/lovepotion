@@ -48,6 +48,12 @@ citro2d::~citro2d()
     gfxExit();
 }
 
+citro2d& citro2d::instance()
+{
+    static citro2d c2d;
+    return c2d;
+}
+
 void citro2d::EnsureInFrame()
 {
     if (!this->inFrame)
@@ -164,5 +170,3 @@ GPU_TEXTURE_WRAP_PARAM citro2d::GetCitroWrapMode(love::Texture::WrapMode wrap)
             return GPU_MIRRORED_REPEAT;
     }
 }
-
-::citro2d c2d;
