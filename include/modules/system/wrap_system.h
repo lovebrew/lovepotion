@@ -23,5 +23,9 @@ namespace Wrap_System
 
     int GetFriendCode(lua_State* L);
 
+    int GetPlayCoins(lua_State* L);
+
+    int SetPlayCoins(lua_State* L);
+
     int Register(lua_State* L);
 } // namespace Wrap_System

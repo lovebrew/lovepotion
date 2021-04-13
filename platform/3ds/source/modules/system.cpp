@@ -58,9 +58,9 @@ System::PowerInfo System::GetPowerInfo() const
     PowerInfo info;
 
     info.percentage = batteryPercent;
-    info.state      = (batteryState == 1 && batteryPercent == 100)
-                     ? "charged"
-                     : (batteryState == 1) ? "charging" : "battery";
+    info.state      = (batteryState == 1 && batteryPercent == 100) ? "charged"
+                      : (batteryState == 1)                        ? "charging"
+                                                                   : "battery";
 
     return info;
 }
@@ -170,6 +170,62 @@ const std::string& System::GetFriendCode()
     this->systemInfo.friendCode = MAKE_FRIEND_CODE(friendCode);
 
     return this->systemInfo.friendCode;
+}
+
+Handle System::OpenPlayCoinsFile()
+{
+    Handle playCoinsFile;
+    const u32 path[3] = { MEDIATYPE_NAND, 0xF000000B, 0x00048000 };
+
+    const FS_Path archivePath = { PATH_BINARY, 0xC, path };
+    const FS_Path filePath    = fsMakePath(PATH_UTF16, u"/gamecoin.dat");
+
+    Result res = FSUSER_OpenFileDirectly(&playCoinsFile, ARCHIVE_SHARED_EXTDATA, archivePath,
+                                         filePath, FS_OPEN_READ | FS_OPEN_WRITE, 0);
+
+    if (R_FAILED(res))
+        throw love::Exception("Failed to open gamecoin.dat!");
+
+    return playCoinsFile;
+}
+
+int System::GetPlayCoins() const
+{
+    Handle playCoinsFile = System::OpenPlayCoinsFile();
+
+    u8 buffer[2] = { 0 };
+
+    Result res = FSFILE_Read(playCoinsFile, nullptr, 4, buffer, 2);
+
+    if (R_FAILED(res))
+    {
+        FSFILE_Close(playCoinsFile);
+        throw love::Exception("Failed to read gamecoin.dat!");
+    }
+
+    FSFILE_Close(playCoinsFile);
+
+    return ((int)buffer[1] << 8) | buffer[0];
+}
+
+void System::SetPlayCoins(int amount)
+{
+    if (amount < 0 || amount > 300)
+        throw love::Exception("Cannot set Play Coin count to %d! Must be within [0, 300].", amount);
+
+    Handle playCoinsFile = System::OpenPlayCoinsFile();
+
+    const u8 buffer[2] = { (u8)amount, (u8)(amount >> 8) };
+
+    Result res = FSFILE_Write(playCoinsFile, nullptr, 4, buffer, 2, 0);
+
+    if (R_FAILED(res))
+    {
+        FSFILE_Close(playCoinsFile);
+        throw love::Exception("Failed to write to gamecoin.dat!");
+    }
+
+    FSFILE_Close(playCoinsFile);
 }
 
 /* LANGUAGE CONSTANTS */

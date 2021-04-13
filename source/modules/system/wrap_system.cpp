@@ -112,19 +112,49 @@ int Wrap_System::GetFriendCode(lua_State* L)
     return 1;
 }
 
+int Wrap_System::SetPlayCoins(lua_State* L)
+{
+#if defined(_3DS)
+    int amount = luaL_checknumber(L, 1);
+
+    Luax::CatchException(L, [&]() { instance()->SetPlayCoins(amount); });
+#endif
+    return 0;
+}
+
+int Wrap_System::GetPlayCoins(lua_State* L)
+{
+#if defined(_3DS)
+    int amount = 0;
+
+    Luax::CatchException(L, [&]() { amount = instance()->GetPlayCoins(); });
+
+    lua_pushnumber(L, amount);
+
+    return 1;
+#endif
+    return 0;
+}
+
 int Wrap_System::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getFriendCode", GetFriendCode },
-                       { "getOS", GetOS },
-                       { "getProcessorCount", GetProcessorCount },
-                       { "getPowerInfo", GetPowerInfo },
-                       { "getNetworkInfo", GetNetworkInfo },
-                       { "getLanguage", GetLanguage },
-                       { "getModel", GetModel },
-                       { "getRegion", GetRegion },
-                       { "getUsername", GetUsername },
-                       { "getVersion", GetVersion },
-                       { 0, 0 } };
+    luaL_Reg funcs[] = { { "getFriendCode", GetFriendCode },
+                         { "getOS", GetOS },
+                         { "getProcessorCount", GetProcessorCount },
+                         { "getPowerInfo", GetPowerInfo },
+                         { "getNetworkInfo", GetNetworkInfo },
+                         { "getLanguage", GetLanguage },
+                         { "getModel", GetModel },
+                         { "getRegion", GetRegion },
+                         { "getUsername", GetUsername },
+                         { "getVersion", GetVersion },
+                         { 0, 0 } };
+
+    /* 3DS extensions */
+
+    luaL_Reg modExt[] = { { "getPlayCoins", GetPlayCoins }, { "setPlayCoins", SetPlayCoins } };
+
+    std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, modExt);
 
     System* instance = instance();
 
@@ -138,7 +168,7 @@ int Wrap_System::Register(lua_State* L)
     wrappedModule.instance  = instance;
     wrappedModule.name      = "system";
     wrappedModule.type      = &Module::type;
-    wrappedModule.functions = reg;
+    wrappedModule.functions = reg.get();
     wrappedModule.types     = nullptr;
 
     return Luax::RegisterModule(L, wrappedModule);

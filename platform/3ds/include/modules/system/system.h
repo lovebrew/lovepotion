@@ -34,6 +34,10 @@ namespace love
 
         const std::string& GetFriendCode() override;
 
+        int GetPlayCoins() const;
+
+        void SetPlayCoins(int);
+
         /* constants */
 
         static constexpr uint8_t MAX_MODELS    = 6;
@@ -53,6 +57,8 @@ namespace love
         static std::vector<std::string> GetConstants(CFG_Region);
 
       private:
+        static Handle OpenPlayCoinsFile();
+
         static StringMap<CFG_SystemModel, MAX_MODELS>::Entry modelEntries[];
         static StringMap<CFG_SystemModel, MAX_MODELS> models;
 
