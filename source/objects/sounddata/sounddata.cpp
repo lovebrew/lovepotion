@@ -4,17 +4,18 @@ using namespace love;
 
 love::Type SoundData::type("SoundData", &Object::type);
 
-SoundData::SoundData(Decoder * decoder) : data(0),
-                                          size(0),
-                                          sampleRate(Decoder::DEFAULT_SAMPLE_RATE),
-                                          bitDepth(0),
-                                          channels(0)
+SoundData::SoundData(Decoder* decoder) :
+    data(0),
+    size(0),
+    sampleRate(Decoder::DEFAULT_SAMPLE_RATE),
+    bitDepth(0),
+    channels(0)
 {
     if (decoder->GetBitDepth() != 8 && decoder->GetBitDepth() != 16)
         throw love::Exception("Invalid bit depth: %d.", decoder->GetBitDepth());
 
     size_t bufferSize = 524288;
-    int decoded = decoder->Decode();
+    int decoded       = decoder->Decode();
 
     while (decoded > 0)
     {
@@ -23,7 +24,7 @@ SoundData::SoundData(Decoder * decoder) : data(0),
             while (bufferSize < this->size + decoded)
                 bufferSize <<= 1;
 
-            data = (uint8_t *)realloc(data, bufferSize);
+            data = (uint8_t*)realloc(data, bufferSize);
         }
 
         if (!data)
@@ -42,36 +43,40 @@ SoundData::SoundData(Decoder * decoder) : data(0),
     }
 
     if (data && bufferSize > size)
-        data = (uint8_t *)realloc(data, size);
+        data = (uint8_t*)realloc(data, size);
 
-    this->channels = decoder->GetChannelCount();
-    this->bitDepth = decoder->GetBitDepth();
+    this->channels   = decoder->GetChannelCount();
+    this->bitDepth   = decoder->GetBitDepth();
     this->sampleRate = decoder->GetSampleRate();
 }
 
-SoundData::SoundData(const SoundData & other) : data(0),
-                                                size(0),
-                                                sampleRate(0),
-                                                bitDepth(0),
-                                                channels(0)
+SoundData::SoundData(const SoundData& other) :
+    data(0),
+    size(0),
+    sampleRate(0),
+    bitDepth(0),
+    channels(0)
 {
-    this->Load(other.GetSampleCount(), other.GetSampleRate(), other.GetBitDepth(), other.GetChannelCount(), other.GetData());
+    this->Load(other.GetSampleCount(), other.GetSampleRate(), other.GetBitDepth(),
+               other.GetChannelCount(), other.GetData());
 }
 
-SoundData::SoundData(int samples, int sampleRate, int bitDepth, int channels) : data(0),
-                                                                                size(0),
-                                                                                sampleRate(0),
-                                                                                bitDepth(0),
-                                                                                channels(0)
+SoundData::SoundData(int samples, int sampleRate, int bitDepth, int channels) :
+    data(0),
+    size(0),
+    sampleRate(0),
+    bitDepth(0),
+    channels(0)
 {
     this->Load(samples, sampleRate, bitDepth, channels);
 }
 
-SoundData::SoundData(void * data, int samples, int sampleRate, int bitDepth, int channels) : data(0),
-                                                                                             size(0),
-                                                                                             sampleRate(0),
-                                                                                             bitDepth(0),
-                                                                                             channels(0)
+SoundData::SoundData(void* data, int samples, int sampleRate, int bitDepth, int channels) :
+    data(0),
+    size(0),
+    sampleRate(0),
+    bitDepth(0),
+    channels(0)
 {
     this->Load(samples, sampleRate, bitDepth, channels, data);
 }
@@ -82,7 +87,7 @@ SoundData::~SoundData()
         free(this->data);
 }
 
-void SoundData::Load(int samples, int sampleRate, int bitDepth, int channels, void * newData)
+void SoundData::Load(int samples, int sampleRate, int bitDepth, int channels, void* newData)
 {
     if (samples <= 0)
         throw love::Exception("Invalid sample count: %d.", samples);
@@ -102,10 +107,10 @@ void SoundData::Load(int samples, int sampleRate, int bitDepth, int channels, vo
         this->data = 0;
     }
 
-    this->size = samples * (bitDepth * 8) * channels;
+    this->size       = samples * (bitDepth * 8) * channels;
     this->sampleRate = sampleRate;
-    this->bitDepth = bitDepth;
-    this->channels = channels;
+    this->bitDepth   = bitDepth;
+    this->channels   = channels;
 
     double realSize = samples;
     realSize *= (bitDepth / 8) * channels;
@@ -113,7 +118,7 @@ void SoundData::Load(int samples, int sampleRate, int bitDepth, int channels, vo
     if (realSize > std::numeric_limits<size_t>::max())
         throw love::Exception("Data is too big!");
 
-    this->data = (uint8_t *)malloc(size);
+    this->data = (uint8_t*)malloc(size);
 
     if (!this->data)
         throw love::Exception("Not enough memory.");
@@ -124,12 +129,12 @@ void SoundData::Load(int samples, int sampleRate, int bitDepth, int channels, vo
         memset(this->data, (bitDepth == 8) ? 128 : 0, size);
 }
 
-SoundData * SoundData::Clone() const
+SoundData* SoundData::Clone() const
 {
     return new SoundData(*this);
 }
 
-void * SoundData::GetData() const
+void* SoundData::GetData() const
 {
     return this->data;
 }
@@ -176,8 +181,8 @@ void SoundData::SetSample(int i, float sample)
 
     if (bitDepth == 16)
     {
-        int16_t * ptrSample = (int16_t *)this->data;
-        ptrSample[i] = (int16_t)(sample * (float)std::numeric_limits<int16_t>::max());
+        int16_t* ptrSample = (int16_t*)this->data;
+        ptrSample[i]       = (int16_t)(sample * (float)std::numeric_limits<int16_t>::max());
     }
     else
         this->data[i] = (uint8_t)((sample * 127.0f) + 128.0f);
@@ -198,7 +203,7 @@ float SoundData::GetSample(int i) const
 
     if (this->bitDepth == 16)
     {
-        int16_t * ptrSample = (int16_t * )this->data;
+        int16_t* ptrSample = (int16_t*)this->data;
         return (float)ptrSample[i] / (float)std::numeric_limits<int16_t>::max();
     }
     else

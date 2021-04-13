@@ -1,7 +1,7 @@
 #pragma once
 
-#include "modules/graphics/graphics.h"
 #include "citro2d/citro.h"
+#include "modules/graphics/graphics.h"
 
 #define RENDERER_NAME    "citro3d"
 #define RENDERER_VERSION "1.6.2"
@@ -24,94 +24,101 @@ namespace love::citro2d
 {
     class Graphics : public love::Graphics
     {
-        public:
-            Graphics();
+      public:
+        Graphics();
 
-            Screen GetActiveScreen() const override;
+        Screen GetActiveScreen() const override;
 
-            std::vector<std::string> GetScreens() const override;
+        std::vector<std::string> GetScreens() const override;
 
-            const int GetWidth(Screen screen) const override;
+        const int GetWidth(Screen screen) const override;
 
-            const int GetHeight() const override;
+        const int GetHeight() const override;
 
-            void SetActiveScreen(Screen screen) override;
+        void SetActiveScreen(Screen screen) override;
 
-            RendererInfo GetRendererInfo() const override;
+        RendererInfo GetRendererInfo() const override;
 
-            void Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth) override;
+        void Clear(std::optional<Colorf> color, std::optional<int> stencil,
+                   std::optional<double> depth) override;
 
-            void Present() override;
+        void Present() override;
 
-            void SetColor(Colorf color) override;
+        void SetColor(Colorf color) override;
 
-            Font * NewDefaultFont(int size, const Texture::Filter & filter) override;
+        Font* NewDefaultFont(int size, const Texture::Filter& filter) override;
 
-            Font * NewFont(const Rasterizer & rasterizer, const Texture::Filter & filter = Texture::defaultFilter) override;
+        Font* NewFont(const Rasterizer& rasterizer,
+                      const Texture::Filter& filter = Texture::defaultFilter) override;
 
-            /* Primitives */
+        /* Primitives */
 
-            void Polygon(DrawMode mode, const Vector2 * points, size_t count) override;
+        void Polygon(DrawMode mode, const Vector2* points, size_t count) override;
 
-            void Polyfill(const Vector2 * points, size_t count, u32 color, float depth);
+        void Polyfill(const Vector2* points, size_t count, u32 color, float depth);
 
-            void Polyline(const Vector2 * points, size_t count);
+        void Polyline(const Vector2* points, size_t count);
 
-            void Rectangle(DrawMode mode, float x, float y, float width, float height) override;
+        void Rectangle(DrawMode mode, float x, float y, float width, float height) override;
 
-            void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry) override {};
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry) override {};
 
-            void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry, int points) override {};
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry, int points) override {};
 
-            void Ellipse(DrawMode mode, float x, float y, float a, float b) override;
+        void Ellipse(DrawMode mode, float x, float y, float a, float b) override;
 
-            void Ellipse(DrawMode mode, float x, float y, float a, float b, int points) override {};
+        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points) override {};
 
-            void Circle(DrawMode mode, float x, float y, float radius) override;
+        void Circle(DrawMode mode, float x, float y, float radius) override;
 
-            void Circle(DrawMode mode, float x, float y, float radius, int points) override {};
+        void Circle(DrawMode mode, float x, float y, float radius, int points) override {};
 
-            void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2);
+        void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
+                 float angle2);
 
-            void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points) {};
+        void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
+                 float angle2, int points) {};
 
-            void Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount) override {};
+        void Points(const Vector2* points, size_t count, const Colorf* colors,
+                    size_t colorCount) override {};
 
-            void SetPointSize(float size) override {};
+        void SetPointSize(float size) override {};
 
-            void Line(const Vector2 * points, int count) override;
+        void Line(const Vector2* points, int count) override;
 
-            /* End Primitives */
+        /* End Primitives */
 
-            void SetLineWidth(float width) override;
+        void SetLineWidth(float width) override;
 
-            void SetDefaultFilter(const Texture::Filter & filter);
+        void SetDefaultFilter(const Texture::Filter& filter);
 
-            void SetScissor(const Rect & scissor) override;
+        void SetScissor(const Rect& scissor) override;
 
-            void SetScissor() override;
+        void SetScissor() override;
 
-            /* Nintendo 3DS */
+        /* Nintendo 3DS */
 
-            void Set3D(bool enable);
+        void Set3D(bool enable);
 
-            bool Get3D() const;
+        bool Get3D() const;
 
-            /* End Nintendo 3DS */
+        /* End Nintendo 3DS */
 
-            /* Useless */
+        /* Useless */
 
-            void SetBlendMode(BlendMode mode, BlendAlpha alpha) override {};
+        void SetBlendMode(BlendMode mode, BlendAlpha alpha) override {};
 
-            void SetColorMask(ColorMask mask) override {};
+        void SetColorMask(ColorMask mask) override {};
 
-            static constexpr int MAX_2D_SCREENS = 2;
+        static constexpr int MAX_2D_SCREENS = 2;
 
-            static StringMap<Screen, MAX_2D_SCREENS>::Entry plainScreenEntries[];
-            static StringMap<Screen, MAX_2D_SCREENS> plainScreens;
+        static StringMap<Screen, MAX_2D_SCREENS>::Entry plainScreenEntries[];
+        static StringMap<Screen, MAX_2D_SCREENS> plainScreens;
 
-            static bool GetConstant(const char * in, Screen & out);
-            static bool GetConstant(Screen in, const char *& out);
-            static std::vector<std::string> GetConstants(Screen);
+        static bool GetConstant(const char* in, Screen& out);
+        static bool GetConstant(Screen in, const char*& out);
+        static std::vector<std::string> GetConstants(Screen);
     };
-}
+} // namespace love::citro2d

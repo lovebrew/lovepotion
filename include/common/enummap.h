@@ -4,72 +4,71 @@
 
 namespace love
 {
-    template <typename T, typename U, size_t PEAK>
-    class EnumMap
+    template<typename T, typename U, size_t PEAK> class EnumMap
     {
-        public:
-            struct Entry
-            {
-                T t;
-                U u;
-            };
+      public:
+        struct Entry
+        {
+            T t;
+            U u;
+        };
 
-            EnumMap(const Entry * entries, size_t size)
-            {
-                size_t n = size / sizeof(Entry);
+        EnumMap(const Entry* entries, size_t size)
+        {
+            size_t n = size / sizeof(Entry);
 
-                for (size_t i = 0; i < n; ++i)
+            for (size_t i = 0; i < n; ++i)
+            {
+                size_t e_t = (size_t)entries[i].t;
+                size_t e_u = (size_t)entries[i].u;
+
+                if (e_t < PEAK)
                 {
-                    size_t e_t = (size_t)entries[i].t;
-                    size_t e_u = (size_t)entries[i].u;
-
-                    if (e_t < PEAK)
-                    {
-                        values_u[e_t].v = e_u;
-                        values_u[e_t].set = true;
-                    }
-
-                    if (e_u < PEAK)
-                    {
-                        values_t[e_u].v = e_t;
-                        values_t[e_u].set = true;
-                    }
-                }
-            }
-
-            bool Find(T t, U & u)
-            {
-                if ((size_t) t < PEAK && values_u[(size_t)t].set)
-                {
-                    u = (U)values_u[(size_t) t].v;
-                    return true;
+                    values_u[e_t].v   = e_u;
+                    values_u[e_t].set = true;
                 }
 
-                return false;
-            }
-
-            bool Find(U u, T & t)
-            {
-                if ((size_t)u < PEAK && values_t[(size_t)u].set)
+                if (e_u < PEAK)
                 {
-                    t = (T)values_t[(size_t) u].v;
-                    return true;
+                    values_t[e_u].v   = e_t;
+                    values_t[e_u].set = true;
                 }
+            }
+        }
 
-                return false;
+        bool Find(T t, U& u)
+        {
+            if ((size_t)t < PEAK && values_u[(size_t)t].set)
+            {
+                u = (U)values_u[(size_t)t].v;
+                return true;
             }
 
-        private:
-            struct Value
+            return false;
+        }
+
+        bool Find(U u, T& t)
+        {
+            if ((size_t)u < PEAK && values_t[(size_t)u].set)
             {
-                unsigned v;
-                bool set;
+                t = (T)values_t[(size_t)u].v;
+                return true;
+            }
 
-                Value() : set(false)
-                {}
-            };
+            return false;
+        }
 
-            Value values_t[PEAK];
-            Value values_u[PEAK];
+      private:
+        struct Value
+        {
+            unsigned v;
+            bool set;
+
+            Value() : set(false)
+            {}
+        };
+
+        Value values_t[PEAK];
+        Value values_u[PEAK];
     };
-}
+} // namespace love

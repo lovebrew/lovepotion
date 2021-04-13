@@ -4,9 +4,10 @@
 
 using namespace love;
 
-TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data * data,
-                                       int size, Hinting hinting) : data(data),
-                                                                    hinting(hinting)
+TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data* data, int size,
+                                       Hinting hinting) :
+    data(data),
+    hinting(hinting)
 {
     /* dpiScale is 1.0f */
     size = floorf(size * this->dpiScale + 0.5f);
@@ -15,29 +16,28 @@ TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data * data,
         throw love::Exception("Invalid TrueType font size: %d", size);
 
     FT_Error err = FT_Err_Ok;
-    err = FT_New_Memory_Face(library,
-                             (const FT_Byte *)data->GetData(),
-                             data->GetSize(),
-                             0,
+    err          = FT_New_Memory_Face(library, (const FT_Byte*)data->GetData(), data->GetSize(), 0,
                              &this->face);
 
     if (err != FT_Err_Ok)
-        throw love::Exception("TrueType Font loading error: FT_New_Face failed: 0x%x (problem with font file?)", err);
+        throw love::Exception(
+            "TrueType Font loading error: FT_New_Face failed: 0x%x (problem with font file?)", err);
 
     err = FT_Set_Pixel_Sizes(this->face, size, size);
 
     if (err != FT_Err_Ok)
     {
         FT_Done_Face(this->face);
-        throw love::Exception("TrueType Font loading error: FT_Set_Pixel_Sizes failed: 0x%x (invalid size?)", err);
+        throw love::Exception(
+            "TrueType Font loading error: FT_Set_Pixel_Sizes failed: 0x%x (invalid size?)", err);
     }
 
     // Set global metrics
-    FT_Size_Metrics & s = this->face->size->metrics;
+    FT_Size_Metrics& s    = this->face->size->metrics;
     this->metrics.advance = (int)(s.max_advance >> 6);
-    this->metrics.ascent  = (int)(s.ascender    >> 6);
-    this->metrics.descent = (int)(s.descender   >> 6);
-    this->metrics.height  = (int)(s.height      >> 6);
+    this->metrics.ascent  = (int)(s.ascender >> 6);
+    this->metrics.descent = (int)(s.descender >> 6);
+    this->metrics.height  = (int)(s.height >> 6);
 }
 
 TrueTypeRasterizer::~TrueTypeRasterizer()
@@ -50,16 +50,16 @@ int TrueTypeRasterizer::GetLineHeight() const
     return (int)(this->GetHeight() * 1.25);
 }
 
-GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
+GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
 {
     love::GlyphData::GlyphMetrics glyphMetrics = {};
     FT_Glyph ftGlyph;
 
-    FT_Error error = FT_Err_Ok;
+    FT_Error error     = FT_Err_Ok;
     FT_UInt loadOption = HintingToLoadOption(this->hinting);
 
     FT_UInt charIndex = FT_Get_Char_Index(this->face, glyph);
-    error = FT_Load_Glyph(this->face, charIndex, FT_LOAD_DEFAULT | loadOption);
+    error             = FT_Load_Glyph(this->face, charIndex, FT_LOAD_DEFAULT | loadOption);
 
     if (error != FT_Err_Ok)
         throw love::Exception("TrueType Font glyph error: FT_Load_Glyph failed (0x%x)", error);
@@ -79,7 +79,7 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
         throw love::Exception("TrueType Font glyph error: FT_Glyph_To_Bitmap failed (0x%x)", error);
 
     FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)ftGlyph;
-    FT_Bitmap & bitmap = bitmap_glyph->bitmap; //just to make things easier
+    FT_Bitmap& bitmap           = bitmap_glyph->bitmap; // just to make things easier
 
     // Get metrics
     glyphMetrics.bearingX = bitmap_glyph->left;
@@ -89,10 +89,10 @@ GlyphData * TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     glyphMetrics.advance  = (int)(ftGlyph->advance.x >> 16);
 
     // LOVE says it's LA8 pixel format
-    love::GlyphData * glyphData = new love::GlyphData(glyph, glyphMetrics);
+    love::GlyphData* glyphData = new love::GlyphData(glyph, glyphMetrics);
 
-    const uint8_t * pixels = bitmap.buffer;
-    uint8_t * dest = (uint8_t *)glyphData->GetData();
+    const uint8_t* pixels = bitmap.buffer;
+    uint8_t* dest         = (uint8_t*)glyphData->GetData();
 
     /*
     ** We treat the luminance of the FreeType bitmap
@@ -161,11 +161,7 @@ float TrueTypeRasterizer::GetKerning(uint32_t leftglyph, uint32_t rightglyph) co
     FT_UInt leftChar  = FT_Get_Char_Index(face, leftglyph);
     FT_UInt rightChar = FT_Get_Char_Index(face, rightglyph);
 
-    FT_Get_Kerning(this->face,
-                   leftChar,
-                   rightChar,
-                   FT_KERNING_DEFAULT,
-                   &kerning);
+    FT_Get_Kerning(this->face, leftChar, rightChar, FT_KERNING_DEFAULT, &kerning);
 
     return float(kerning.x >> 6);
 }
@@ -175,10 +171,10 @@ Rasterizer::DataType TrueTypeRasterizer::GetDataType() const
     return DATA_TRUETYPE;
 }
 
-bool TrueTypeRasterizer::Accepts(FT_Library library, love::Data * data)
+bool TrueTypeRasterizer::Accepts(FT_Library library, love::Data* data)
 {
-    const FT_Byte * fbase = (const FT_Byte *)data->GetData();
-    FT_Long fsize = (FT_Long)data->GetSize();
+    const FT_Byte* fbase = (const FT_Byte*)data->GetData();
+    FT_Long fsize        = (FT_Long)data->GetSize();
 
     // Pasing in -1 for the face index lets us test if the data is valid.
     return FT_New_Memory_Face(library, fbase, fsize, -1, nullptr) == 0;
@@ -200,12 +196,12 @@ FT_UInt TrueTypeRasterizer::HintingToLoadOption(Hinting hint)
     }
 }
 
-bool TrueTypeRasterizer::GetConstant(const char * in, Hinting & out)
+bool TrueTypeRasterizer::GetConstant(const char* in, Hinting& out)
 {
     return hintings.Find(in, out);
 }
 
-bool TrueTypeRasterizer::GetConstant(Hinting in, const char *& out)
+bool TrueTypeRasterizer::GetConstant(Hinting in, const char*& out)
 {
     return hintings.Find(in, out);
 }
@@ -215,12 +211,13 @@ std::vector<std::string> TrueTypeRasterizer::GetConstants(Hinting)
     return hintings.GetNames();
 }
 
-StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM>::Entry TrueTypeRasterizer::hintingEntries[] =
-{
-    {"normal", HINTING_NORMAL},
-    {"light",  HINTING_LIGHT},
-    {"mono",   HINTING_MONO},
-    {"none",   HINTING_NONE},
-};
+StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM>::Entry
+    TrueTypeRasterizer::hintingEntries[] = {
+        { "normal", HINTING_NORMAL },
+        { "light", HINTING_LIGHT },
+        { "mono", HINTING_MONO },
+        { "none", HINTING_NONE },
+    };
 
-StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::hintings(TrueTypeRasterizer::hintingEntries, sizeof(TrueTypeRasterizer::hintingEntries));
+StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::
+    hintings(TrueTypeRasterizer::hintingEntries, sizeof(TrueTypeRasterizer::hintingEntries));

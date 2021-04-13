@@ -9,27 +9,27 @@ namespace love
 
     class Threadable : public love::Object
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            Threadable();
-            virtual ~Threadable();
+        Threadable();
+        virtual ~Threadable();
 
-            virtual void ThreadFunction() = 0;
+        virtual void ThreadFunction() = 0;
 
-            bool Start();
+        bool Start();
 
-            void Wait();
+        void Wait();
 
-            bool IsRunning() const;
+        bool IsRunning() const;
 
-            const char * GetThreadName() const;
+        const char* GetThreadName() const;
 
-        private:
-            friend class LOVE_Thread;
+      private:
+        friend class LOVE_Thread;
 
-        protected:
-            LOVE_Thread * owner;
-            std::string threadName;
+      protected:
+        LOVE_Thread* owner;
+        std::string threadName;
     };
-}
+} // namespace love

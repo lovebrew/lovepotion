@@ -6,12 +6,12 @@ namespace love::common::driver
 {
     class Audrv
     {
-        public:
-            Audrv();
+      public:
+        Audrv();
 
-            const bool IsInitialized();
+        const bool IsInitialized();
 
-        protected:
-            bool initialized;
+      protected:
+        bool initialized;
     };
-}
+} // namespace love::common::driver

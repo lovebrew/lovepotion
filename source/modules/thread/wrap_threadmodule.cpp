@@ -15,22 +15,22 @@
 
 using namespace love;
 
-int Wrap_ThreadModule::NewThread(lua_State * L)
+int Wrap_ThreadModule::NewThread(lua_State* L)
 {
     std::string name = "Thread Code";
-    love::Data * data = nullptr;
+    love::Data* data = nullptr;
 
     if (lua_isstring(L, 1))
     {
-        size_t length = 0;
-        const char * str = lua_tolstring(L, 1, &length);
+        size_t length   = 0;
+        const char* str = lua_tolstring(L, 1, &length);
 
         if (length >= 1024 || memchr(str, '\n', length))
         {
             lua_pushvalue(L, 1);
             lua_pushstring(L, "string");
 
-            int indexes[] = {lua_gettop(L) - 1, lua_gettop(L)};
+            int indexes[] = { lua_gettop(L) - 1, lua_gettop(L) };
             Luax::ConvertObject(L, indexes, 2, "filesystem", "newFileData");
 
             lua_pop(L, 1);
@@ -44,7 +44,7 @@ int Wrap_ThreadModule::NewThread(lua_State * L)
 
     if (Luax::IsType(L, 1, FileData::type))
     {
-        FileData * fileData = Luax::CheckType<FileData>(L, 1);
+        FileData* fileData = Luax::CheckType<FileData>(L, 1);
 
         name = std::string("@") + fileData->GetName();
         data = fileData;
@@ -52,7 +52,7 @@ int Wrap_ThreadModule::NewThread(lua_State * L)
     else
         data = Luax::CheckType<Data>(L, 1);
 
-    LuaThread * thread = instance()->NewThread(name, data);
+    LuaThread* thread = instance()->NewThread(name, data);
     Luax::PushType(L, thread);
 
     thread->Release();
@@ -60,9 +60,9 @@ int Wrap_ThreadModule::NewThread(lua_State * L)
     return 1;
 }
 
-int Wrap_ThreadModule::NewChannel(lua_State * L)
+int Wrap_ThreadModule::NewChannel(lua_State* L)
 {
-    Channel * channel = instance()->NewChannel();
+    Channel* channel = instance()->NewChannel();
     Luax::PushType(L, channel);
 
     channel->Release();
@@ -70,47 +70,39 @@ int Wrap_ThreadModule::NewChannel(lua_State * L)
     return 1;
 }
 
-int Wrap_ThreadModule::GetChannel(lua_State * L)
+int Wrap_ThreadModule::GetChannel(lua_State* L)
 {
     std::string name = luaL_checkstring(L, 1);
 
-    Channel * channel = instance()->GetChannel(name);
+    Channel* channel = instance()->GetChannel(name);
     Luax::PushType(L, channel);
 
     return 1;
 }
 
-int Wrap_ThreadModule::Register(lua_State * L)
+int Wrap_ThreadModule::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "newThread",  NewThread  },
-        { "newChannel", NewChannel },
-        { "getChannel", GetChannel },
-        { 0,            0          }
-    };
+    luaL_Reg reg[] = { { "newThread", NewThread },
+                       { "newChannel", NewChannel },
+                       { "getChannel", GetChannel },
+                       { 0, 0 } };
 
-    lua_CFunction types[] =
-    {
-        Wrap_LuaThread::Register,
-        Wrap_Channel::Register,
-        0
-    };
+    lua_CFunction types[] = { Wrap_LuaThread::Register, Wrap_Channel::Register, 0 };
 
-    ThreadModule * instance = instance();
+    ThreadModule* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() {instance = new ThreadModule();});
+        Luax::CatchException(L, [&]() { instance = new ThreadModule(); });
     else
         instance->Retain();
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "thread";
-    wrappedModule.type = &Module::type;
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "thread";
+    wrappedModule.type      = &Module::type;
     wrappedModule.functions = reg;
-    wrappedModule.types = types;
+    wrappedModule.types     = types;
 
     return Luax::RegisterModule(L, wrappedModule);
 }

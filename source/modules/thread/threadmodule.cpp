@@ -2,18 +2,17 @@
 
 using namespace love;
 
-LuaThread * ThreadModule::NewThread(const std::string & name, Data * data)
+LuaThread* ThreadModule::NewThread(const std::string& name, Data* data)
 {
     return new LuaThread(name, data);
 }
 
-
-Channel * ThreadModule::NewChannel()
+Channel* ThreadModule::NewChannel()
 {
     return new Channel();
 }
 
-Channel * ThreadModule::GetChannel(const std::string & name)
+Channel* ThreadModule::GetChannel(const std::string& name)
 {
     thread::Lock lock(this->namedChannelMutex);
 
@@ -22,7 +21,7 @@ Channel * ThreadModule::GetChannel(const std::string & name)
     if (it != this->namedChannels.end())
         return it->second;
 
-    Channel * channel = new Channel();
+    Channel* channel = new Channel();
     namedChannels[name].Set(channel, Acquire::NORETAIN);
 
     return channel;

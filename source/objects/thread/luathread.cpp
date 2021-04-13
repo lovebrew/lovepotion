@@ -1,14 +1,13 @@
 #include "objects/thread/luathread.h"
 
-#include "modules/love.h"
 #include "modules/event/event.h"
+#include "modules/love.h"
 
 using namespace love;
 
 love::Type LuaThread::type("Thread", &Threadable::type);
 
-LuaThread::LuaThread(const std::string & name, love::Data * code) : code(code),
-                                                                    name(name)
+LuaThread::LuaThread(const std::string& name, love::Data* code) : code(code), name(name)
 {
     this->threadName = name;
 }
@@ -20,7 +19,7 @@ void LuaThread::ThreadFunction()
 {
     this->error.clear();
 
-    lua_State * L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     Luax::Preload(L, Love::Initialize, "love");
@@ -42,7 +41,8 @@ void LuaThread::ThreadFunction()
     lua_pushcfunction(L, Luax::Traceback);
     int tracebackIndex = lua_gettop(L);
 
-    if (luaL_loadbuffer(L, (const char *)this->code->GetData(), this->code->GetSize(), this->name.c_str()) != 0)
+    if (luaL_loadbuffer(L, (const char*)this->code->GetData(), this->code->GetSize(),
+                        this->name.c_str()) != 0)
         this->error = lua_tostring(L, -1);
     else
     {
@@ -63,14 +63,14 @@ void LuaThread::ThreadFunction()
         this->OnError();
 }
 
-bool LuaThread::Start(const std::vector<Variant> & args)
+bool LuaThread::Start(const std::vector<Variant>& args)
 {
     this->args = args;
 
     return Threadable::Start();
 }
 
-const std::string & LuaThread::GetError() const
+const std::string& LuaThread::GetError() const
 {
     return this->error;
 }
@@ -85,10 +85,8 @@ void LuaThread::OnError()
     if (!eventModule)
         return;
 
-    std::vector<Variant> vargs = {
-        Variant(&LuaThread::type, this),
-        Variant(this->error.c_str(), this->error.length())
-    };
+    std::vector<Variant> vargs = { Variant(&LuaThread::type, this),
+                                   Variant(this->error.c_str(), this->error.length()) };
 
     StrongReference<Message> message(new Message("threaderror", vargs), Acquire::NORETAIN);
     eventModule->Push(message);

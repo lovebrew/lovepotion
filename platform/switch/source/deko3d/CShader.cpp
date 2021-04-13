@@ -6,7 +6,7 @@
 
 struct DkshHeader
 {
-    uint32_t magic; // DKSH_MAGIC
+    uint32_t magic;     // DKSH_MAGIC
     uint32_t header_sz; // sizeof(DkshHeader)
     uint32_t control_sz;
     uint32_t code_sz;
@@ -14,7 +14,7 @@ struct DkshHeader
     uint32_t num_programs;
 };
 
-bool CShader::loadMemory(CMemPool & pool, const void * buffer, const size_t size)
+bool CShader::loadMemory(CMemPool& pool, const void* buffer, const size_t size)
 {
     if (buffer == nullptr || size <= 0)
         return false;
@@ -39,14 +39,14 @@ bool CShader::loadMemory(CMemPool & pool, const void * buffer, const size_t size
     ** Make sure to add hdr.control_sz to the buffer for the *correct* offset
     ** As though the buffer were being dealt with like an fread
     */
-    memcpy(m_codemem.getCpuAddr(), (char *)buffer + hdr.control_sz, hdr.code_sz);
+    memcpy(m_codemem.getCpuAddr(), (char*)buffer + hdr.control_sz, hdr.code_sz);
 
     /*
     ** Create a shader based on m_codemem's memory block and offset
     ** Set its control to control memory from the dksh and programId
     ** to zero, as that is the entry point of the program
     */
-    dk::ShaderMaker{m_codemem.getMemBlock(), m_codemem.getOffset()}
+    dk::ShaderMaker { m_codemem.getMemBlock(), m_codemem.getOffset() }
         .setControl(buffer)
         .setProgramId(0)
         .initialize(m_shader);

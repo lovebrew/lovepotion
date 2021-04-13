@@ -8,17 +8,17 @@ namespace love
 {
     class Message : public Object
     {
-        public:
-            Message(const std::string & name, const std::vector<Variant> & args = {});
+      public:
+        Message(const std::string& name, const std::vector<Variant>& args = {});
 
-            virtual ~Message();
+        virtual ~Message();
 
-            static Message * FromLua(lua_State * L, int index);
+        static Message* FromLua(lua_State* L, int index);
 
-            int ToLua(lua_State * L);
+        int ToLua(lua_State* L);
 
-        private:
-            const std::string name;
-            const std::vector<Variant> args;
+      private:
+        const std::string name;
+        const std::vector<Variant> args;
     };
-}
+} // namespace love

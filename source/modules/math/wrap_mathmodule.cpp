@@ -28,32 +28,32 @@ float love::LinearToGamma(float c)
         return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
-int Wrap_Math::GetRandomGenerator(lua_State * L)
+int Wrap_Math::GetRandomGenerator(lua_State* L)
 {
-    RandomGenerator * randomGenerator = instance()->GetRandomGenerator();
+    RandomGenerator* randomGenerator = instance()->GetRandomGenerator();
 
     Luax::PushType(L, randomGenerator);
 
     return 1;
 }
 
-int Wrap_Math::NewTransform(lua_State * L)
+int Wrap_Math::NewTransform(lua_State* L)
 {
-    Transform * transform = nullptr;
+    Transform* transform = nullptr;
 
     if (lua_isnoneornil(L, 1))
         transform = instance()->NewTransform();
     else
     {
-        float x =  (float) luaL_checknumber(L, 1);
-        float y =  (float) luaL_checknumber(L, 2);
-        float a =  (float) luaL_optnumber(L, 3, 0.0);
-        float sx = (float) luaL_optnumber(L, 4, 1.0);
-        float sy = (float) luaL_optnumber(L, 5, sx);
-        float ox = (float) luaL_optnumber(L, 6, 0.0);
-        float oy = (float) luaL_optnumber(L, 7, 0.0);
-        float kx = (float) luaL_optnumber(L, 8, 0.0);
-        float ky = (float) luaL_optnumber(L, 9, 0.0);
+        float x  = (float)luaL_checknumber(L, 1);
+        float y  = (float)luaL_checknumber(L, 2);
+        float a  = (float)luaL_optnumber(L, 3, 0.0);
+        float sx = (float)luaL_optnumber(L, 4, 1.0);
+        float sy = (float)luaL_optnumber(L, 5, sx);
+        float ox = (float)luaL_optnumber(L, 6, 0.0);
+        float oy = (float)luaL_optnumber(L, 7, 0.0);
+        float kx = (float)luaL_optnumber(L, 8, 0.0);
+        float ky = (float)luaL_optnumber(L, 9, 0.0);
 
         transform = instance()->NewTransform(x, y, a, sx, sy, ox, oy, kx, ky);
     }
@@ -64,7 +64,7 @@ int Wrap_Math::NewTransform(lua_State * L)
     return 1;
 }
 
-static int GetGammaArgs(lua_State * L, float color[4])
+static int GetGammaArgs(lua_State* L, float color[4])
 {
     int numcomponents = 0;
 
@@ -96,7 +96,7 @@ static int GetGammaArgs(lua_State * L, float color[4])
     return numcomponents;
 }
 
-int Wrap_Math::GammaToLinear(lua_State *L)
+int Wrap_Math::GammaToLinear(lua_State* L)
 {
     float color[4];
     int numcomponents = GetGammaArgs(L, color);
@@ -113,7 +113,7 @@ int Wrap_Math::GammaToLinear(lua_State *L)
     return numcomponents;
 }
 
-int Wrap_Math::LinearToGamma(lua_State *L)
+int Wrap_Math::LinearToGamma(lua_State* L)
 {
     float color[4];
     int numcomponents = GetGammaArgs(L, color);
@@ -130,7 +130,7 @@ int Wrap_Math::LinearToGamma(lua_State *L)
     return numcomponents;
 }
 
-int Wrap_Math::IsConvex(lua_State * L)
+int Wrap_Math::IsConvex(lua_State* L)
 {
     std::vector<love::Vector2> vertices;
 
@@ -142,7 +142,7 @@ int Wrap_Math::IsConvex(lua_State * L)
         for (int i = 1; i <= top; i += 2)
         {
             lua_rawgeti(L, 1, i);
-            lua_rawgeti(L, 1, i+1);
+            lua_rawgeti(L, 1, i + 1);
 
             love::Vector2 v;
             v.x = (float)luaL_checknumber(L, -2);
@@ -162,7 +162,7 @@ int Wrap_Math::IsConvex(lua_State * L)
         {
             love::Vector2 v;
             v.x = (float)luaL_checknumber(L, i);
-            v.y = (float)luaL_checknumber(L, i+1);
+            v.y = (float)luaL_checknumber(L, i + 1);
 
             vertices.push_back(v);
         }
@@ -173,14 +173,14 @@ int Wrap_Math::IsConvex(lua_State * L)
     return 1;
 }
 
-int Wrap_Math::NewRandomGenerator(lua_State * L)
+int Wrap_Math::NewRandomGenerator(lua_State* L)
 {
     RandomGenerator::Seed seed;
 
     if (lua_gettop(L) > 0)
         seed = Wrap_RandomGenerator::CheckRandomSeed(L, 1);
 
-    RandomGenerator * rng = instance()->NewRandomGenerator();
+    RandomGenerator* rng = instance()->NewRandomGenerator();
 
     if (lua_gettop(L) > 0)
     {
@@ -190,7 +190,7 @@ int Wrap_Math::NewRandomGenerator(lua_State * L)
         {
             rng->SetSeed(seed);
         }
-        catch (love::Exception & e)
+        catch (love::Exception& e)
         {
             rng->Release();
             shouldError = true;
@@ -207,7 +207,7 @@ int Wrap_Math::NewRandomGenerator(lua_State * L)
     return 1;
 }
 
-int Wrap_Math::Noise(lua_State * L)
+int Wrap_Math::Noise(lua_State* L)
 {
     int argc = std::min(std::max(lua_gettop(L), 1), 4);
     float args[4];
@@ -238,7 +238,7 @@ int Wrap_Math::Noise(lua_State * L)
     return 1;
 }
 
-int Wrap_Math::Triangulate(lua_State * L)
+int Wrap_Math::Triangulate(lua_State* L)
 {
     std::vector<love::Vector2> vertices;
 
@@ -253,8 +253,8 @@ int Wrap_Math::Triangulate(lua_State * L)
             lua_rawgeti(L, 1, i + 1);
 
             Vector2 v;
-            v.x = (float) luaL_checknumber(L, -2);
-            v.y = (float) luaL_checknumber(L, -1);
+            v.x = (float)luaL_checknumber(L, -2);
+            v.y = (float)luaL_checknumber(L, -1);
 
             vertices.push_back(v);
 
@@ -263,14 +263,14 @@ int Wrap_Math::Triangulate(lua_State * L)
     }
     else
     {
-        int top = (int) lua_gettop(L);
+        int top = (int)lua_gettop(L);
         vertices.reserve(top / 2);
 
         for (int i = 1; i <= top; i += 2)
         {
             Vector2 v;
-            v.x = (float) luaL_checknumber(L, i);
-            v.y = (float) luaL_checknumber(L, i + 1);
+            v.x = (float)luaL_checknumber(L, i);
+            v.y = (float)luaL_checknumber(L, i + 1);
 
             vertices.push_back(v);
         }
@@ -292,7 +292,7 @@ int Wrap_Math::Triangulate(lua_State * L)
 
     for (int i = 0; i < (int)triangles.size(); ++i)
     {
-        const Math::Triangle &tri = triangles[i];
+        const Math::Triangle& tri = triangles[i];
 
         lua_createtable(L, 6, 0);
         lua_pushnumber(L, tri.a.x);
@@ -319,28 +319,20 @@ int Wrap_Math::Triangulate(lua_State * L)
     return 1;
 }
 
-int Wrap_Math::Register(lua_State * L)
+int Wrap_Math::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "_getRandomGenerator", GetRandomGenerator },
-        { "isConvex",            IsConvex           },
-        { "newRandomGenerator",  NewRandomGenerator },
-        { "newTransform",        NewTransform       },
-        { "gammaToLinear",       GammaToLinear      },
-        { "linearToGamma",       LinearToGamma      },
-        { "triangulate",         Triangulate        },
-        { 0,                     0                  }
-    };
+    luaL_Reg reg[] = { { "_getRandomGenerator", GetRandomGenerator },
+                       { "isConvex", IsConvex },
+                       { "newRandomGenerator", NewRandomGenerator },
+                       { "newTransform", NewTransform },
+                       { "gammaToLinear", GammaToLinear },
+                       { "linearToGamma", LinearToGamma },
+                       { "triangulate", Triangulate },
+                       { 0, 0 } };
 
-    lua_CFunction types[] =
-    {
-        Wrap_RandomGenerator::Register,
-        Wrap_Transform::Register,
-        0
-    };
+    lua_CFunction types[] = { Wrap_RandomGenerator::Register, Wrap_Transform::Register, 0 };
 
-    Math * instance = instance();
+    Math* instance = instance();
 
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Math(); });
@@ -349,15 +341,15 @@ int Wrap_Math::Register(lua_State * L)
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "math";
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "math";
     wrappedModule.functions = reg;
-    wrappedModule.type = &Module::type;
-    wrappedModule.types = types;
+    wrappedModule.type      = &Module::type;
+    wrappedModule.types     = types;
 
     int ret = Luax::RegisterModule(L, wrappedModule);
 
-    luaL_loadbuffer(L, (const char *)wrap_math_lua, wrap_math_lua_size, "wrap_math.lua");
+    luaL_loadbuffer(L, (const char*)wrap_math_lua, wrap_math_lua_size, "wrap_math.lua");
     lua_pushvalue(L, -2);
     lua_call(L, 1, 0);
 

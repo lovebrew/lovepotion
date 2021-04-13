@@ -3,15 +3,15 @@
 using namespace love;
 
 /* Handled by Decoder */
-static void cleanup_callback(void *)
+static void cleanup_callback(void*)
 {}
 
-static ssize_t read_callback(void * source, void * buffer, size_t count)
+static ssize_t read_callback(void* source, void* buffer, size_t count)
 {
-    MP3Decoder::MP3File * file = (MP3Decoder::MP3File *)source;
+    MP3Decoder::MP3File* file = (MP3Decoder::MP3File*)source;
 
     size_t spaceRemaining = file->size - file->offset;
-    size_t amountToWrite = spaceRemaining < count ? spaceRemaining : count;
+    size_t amountToWrite  = spaceRemaining < count ? spaceRemaining : count;
 
     if (amountToWrite > 0)
     {
@@ -22,43 +22,43 @@ static ssize_t read_callback(void * source, void * buffer, size_t count)
     return amountToWrite;
 }
 
-static off_t seek_callback(void * source, off_t offset, int whence)
+static off_t seek_callback(void* source, off_t offset, int whence)
 {
-    MP3Decoder::MP3File * file = (MP3Decoder::MP3File *)source;
+    MP3Decoder::MP3File* file = (MP3Decoder::MP3File*)source;
 
     switch (whence)
     {
-    case SEEK_SET:
-        if (offset < 0)
-            return -1;
+        case SEEK_SET:
+            if (offset < 0)
+                return -1;
 
-        if (file->size > (size_t)offset)
-            file->offset = offset;
-        else
-            file->offset = file->size;
-
-        break;
-    // Offset is set to EOF. Offset calculation is just like SEEK_CUR.
-    case SEEK_END:
-        file->offset = file->size;
-    case SEEK_CUR:
-        if (offset > 0)
-        {
-            if (file->size > file->offset + (size_t)offset)
-                file->offset = file->offset + offset;
+            if (file->size > (size_t)offset)
+                file->offset = offset;
             else
                 file->offset = file->size;
-        }
-        else if (offset < 0)
-        {
-            if (file->offset >= (size_t)(-offset))
-                file->offset = file->offset - (size_t)(-offset);
-            else
-                file->offset = 0;
-        }
-        break;
-    default:
-        return -1;
+
+            break;
+        // Offset is set to EOF. Offset calculation is just like SEEK_CUR.
+        case SEEK_END:
+            file->offset = file->size;
+        case SEEK_CUR:
+            if (offset > 0)
+            {
+                if (file->size > file->offset + (size_t)offset)
+                    file->offset = file->offset + offset;
+                else
+                    file->offset = file->size;
+            }
+            else if (offset < 0)
+            {
+                if (file->offset >= (size_t)(-offset))
+                    file->offset = file->offset - (size_t)(-offset);
+                else
+                    file->offset = 0;
+            }
+            break;
+        default:
+            return -1;
     }
 
     return file->offset;
@@ -66,11 +66,12 @@ static off_t seek_callback(void * source, off_t offset, int whence)
 
 bool MP3Decoder::inited = false;
 
-MP3Decoder::MP3Decoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
-                                                      file(data),
-                                                      handle(0),
-                                                      channels(MPG123_STEREO),
-                                                      duration(-2.0)
+MP3Decoder::MP3Decoder(Data* data, int bufferSize) :
+    Decoder(data, bufferSize),
+    file(data),
+    handle(0),
+    channels(MPG123_STEREO),
+    duration(-2.0)
 {
     int ret = 0;
 
@@ -92,7 +93,8 @@ MP3Decoder::MP3Decoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
 
     try
     {
-        ret = mpg123_replace_reader_handle(this->handle, &read_callback, &seek_callback, &cleanup_callback);
+        ret = mpg123_replace_reader_handle(this->handle, &read_callback, &seek_callback,
+                                           &cleanup_callback);
 
         if (ret != MPG123_OK)
             throw love::Exception("Could not set mpg123 decoder callbacks.");
@@ -103,7 +105,7 @@ MP3Decoder::MP3Decoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
             throw love::Exception("Could not open mpg123 decoder.");
 
         long rate = 0;
-        ret = mpg123_getformat(this->handle, &rate, &this->channels, nullptr);
+        ret       = mpg123_getformat(this->handle, &rate, &this->channels, nullptr);
 
         if (ret == MPG123_ERR)
             throw love::Exception("Could not get mpg123 stream information.");
@@ -112,7 +114,8 @@ MP3Decoder::MP3Decoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
         if (this->channels == 0)
             this->channels = 2;
 
-        mpg123_param(this->handle, MPG123_FLAGS, (this->channels == 2) ? MPG123_FORCE_STEREO : MPG123_MONO_MIX, 0);
+        mpg123_param(this->handle, MPG123_FLAGS,
+                     (this->channels == 2) ? MPG123_FORCE_STEREO : MPG123_MONO_MIX, 0);
         mpg123_format_none(this->handle);
         mpg123_format(this->handle, rate, this->channels, MPG123_ENC_SIGNED_16);
 
@@ -124,12 +127,11 @@ MP3Decoder::MP3Decoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
         if (ret != MPG123_OK)
             throw love::Exception("Could not read mp3 data.");
     }
-    catch (love::Exception & e)
+    catch (love::Exception& e)
     {
         mpg123_delete(this->handle);
         throw;
     }
-
 }
 
 MP3Decoder::~MP3Decoder()
@@ -137,7 +139,7 @@ MP3Decoder::~MP3Decoder()
     mpg123_delete(this->handle);
 }
 
-bool MP3Decoder::Accepts(const std::string & ext)
+bool MP3Decoder::Accepts(const std::string& ext)
 {
     static const std::string supported[] = { "mp3", "" };
 
@@ -156,17 +158,17 @@ void MP3Decoder::Quit()
         mpg123_exit();
 }
 
-Decoder * MP3Decoder::Clone()
+Decoder* MP3Decoder::Clone()
 {
     return new MP3Decoder(this->data.Get(), bufferSize);
 }
 
 int MP3Decoder::Decode()
 {
-    return this->Decode((s16 *)this->buffer);
+    return this->Decode((s16*)this->buffer);
 }
 
-int MP3Decoder::Decode(s16 * buffer)
+int MP3Decoder::Decode(s16* buffer)
 {
     int size = 0;
 
@@ -174,7 +176,8 @@ int MP3Decoder::Decode(s16 * buffer)
     {
         size_t bytes = 0;
 
-        int result = mpg123_read(this->handle, (unsigned char *)buffer + size, this->bufferSize - size, &bytes);
+        int result = mpg123_read(this->handle, (unsigned char*)buffer + size,
+                                 this->bufferSize - size, &bytes);
 
         switch (result)
         {

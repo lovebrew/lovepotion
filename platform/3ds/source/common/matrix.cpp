@@ -2,12 +2,12 @@
 
 using namespace love;
 
-void Matrix4::Multiply(const Matrix4 & a, const Matrix4 & b, C3D_Mtx & c)
+void Matrix4::Multiply(const Matrix4& a, const Matrix4& b, C3D_Mtx& c)
 {
     Mtx_Multiply(&c, &a.matrix, &b.matrix);
 }
 
-void Matrix4::Multiply(const Matrix4 & a, const Matrix4 & b, Matrix4 & c)
+void Matrix4::Multiply(const Matrix4& a, const Matrix4& b, Matrix4& c)
 {
     Multiply(a, b, c.matrix);
 }
@@ -17,7 +17,7 @@ Matrix4::Matrix4()
     this->SetIdentity();
 }
 
-Matrix4::Matrix4(const C3D_Mtx & a)
+Matrix4::Matrix4(const C3D_Mtx& a)
 {
     Mtx_Copy(&this->matrix, &a);
 }
@@ -26,30 +26,29 @@ bool Matrix4::IsAffine2DTransform() const
 {
     /*
         return fabsf(this->matrix[2] + this->matrix[3] + this->matrix[6] + this->matrix[7] +
-                 this->matrix[8] + this->matrix[9] + this->matrix[11] + this->matrix[14]) < 0.00001f &&
-           fabsf(this->matrix[10] + this->matrix[15] - 2.0f) < 0.00001f;
+                 this->matrix[8] + this->matrix[9] + this->matrix[11] + this->matrix[14]) < 0.00001f
+       && fabsf(this->matrix[10] + this->matrix[15] - 2.0f) < 0.00001f;
     */
     return true; //?
 }
 
-Matrix4::Matrix4(const Matrix4 & a, const Matrix4 & b)
+Matrix4::Matrix4(const Matrix4& a, const Matrix4& b)
 {
     Matrix4::Multiply(a, b, this->matrix);
 }
 
-Matrix4::Matrix4(float x, float y, float angle,
-                 float sx, float sy, float ox,
-                 float oy, float kx, float ky)
+Matrix4::Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
+                 float ky)
 {
     this->SetTransformation(x, y, angle, sx, sy, ox, oy, ky, ky);
 }
 
-void Matrix4::operator *= (const Matrix4 &m)
+void Matrix4::operator*=(const Matrix4& m)
 {
     Matrix4::Multiply(*this, m, this->matrix);
 }
 
-Matrix4 Matrix4::operator * (const Matrix4 & m) const
+Matrix4 Matrix4::operator*(const Matrix4& m) const
 {
     return Matrix4(*this, m);
 }
@@ -59,9 +58,7 @@ void Matrix4::SetIdentity()
     Mtx_Identity(&this->matrix);
 }
 
-void Matrix4::SetRawTransformation(float t00, float t10,
-                                   float t01, float t11,
-                                   float x, float y)
+void Matrix4::SetRawTransformation(float t00, float t10, float t01, float t11, float x, float y)
 {
     Mtx_Zeros(&this->matrix);
 
@@ -77,8 +74,7 @@ void Matrix4::SetRawTransformation(float t00, float t10,
     this->matrix.r[1].w = y;
 }
 
-void Matrix4::SetTransformation(float x, float y, float angle,
-                                float sx, float sy, float ox,
+void Matrix4::SetTransformation(float x, float y, float angle, float sx, float sy, float ox,
                                 float oy, float kx, float ky)
 {
     Mtx_Zeros(&this->matrix);
@@ -91,14 +87,14 @@ void Matrix4::SetTransformation(float x, float y, float angle,
 
     this->matrix.r[2].z = this->matrix.r[3].w = 1.0f;
 
-    this->matrix.r[0].x  = c * sx - ky * s * sy; // = a
-    this->matrix.r[1].x  = s * sx + ky * c * sy; // = b
+    this->matrix.r[0].x = c * sx - ky * s * sy; // = a
+    this->matrix.r[1].x = s * sx + ky * c * sy; // = b
 
-    this->matrix.r[0].y  = kx * c * sx - s * sy; // = c
-    this->matrix.r[1].y  = kx * s * sx + c * sy; // = d
+    this->matrix.r[0].y = kx * c * sx - s * sy; // = c
+    this->matrix.r[1].y = kx * s * sx + c * sy; // = d
 
-    this->matrix.r[0].w  = x - ox * this->matrix.r[0].x - oy * this->matrix.r[0].y; // = c
-    this->matrix.r[1].w  = y - ox * this->matrix.r[1].x - oy * this->matrix.r[1].y; // = d
+    this->matrix.r[0].w = x - ox * this->matrix.r[0].x - oy * this->matrix.r[0].y; // = c
+    this->matrix.r[1].w = y - ox * this->matrix.r[1].x - oy * this->matrix.r[1].y; // = d
 }
 
 void Matrix4::Translate(float x, float y)
@@ -116,10 +112,12 @@ void Matrix4::Scale(float sx, float sy)
     Mtx_Scale(&this->matrix, sx, sy, 1.0f);
 }
 
-void Matrix4::GetApproximateScale(float & sx, float & sy) const
+void Matrix4::GetApproximateScale(float& sx, float& sy) const
 {
-    sx = sqrtf(this->matrix.r[0].x * this->matrix.r[0].x + this->matrix.r[0].y * this->matrix.r[0].y);
-    sy = sqrtf(this->matrix.r[1].x * this->matrix.r[1].x + this->matrix.r[1].y * this->matrix.r[1].y);
+    sx = sqrtf(this->matrix.r[0].x * this->matrix.r[0].x +
+               this->matrix.r[0].y * this->matrix.r[0].y);
+    sy = sqrtf(this->matrix.r[1].x * this->matrix.r[1].x +
+               this->matrix.r[1].y * this->matrix.r[1].y);
 }
 
 void Matrix4::Shear(float kx, float ky)
@@ -133,7 +131,7 @@ void Matrix4::Shear(float kx, float ky)
     Mtx_Multiply(&this->matrix, &this->matrix, &mtx);
 }
 
-const C3D_Mtx & Matrix4::GetElements() const
+const C3D_Mtx& Matrix4::GetElements() const
 {
     return this->matrix;
 }
@@ -143,7 +141,7 @@ void Matrix4::TransformXY()
     C2D_ViewRestore(&this->matrix);
 }
 
-void Matrix4::TransformXY(const Elements & elements)
+void Matrix4::TransformXY(const Elements& elements)
 {
     C2D_ViewRestore(&elements);
 }

@@ -1,5 +1,11 @@
 #pragma once
 
+#if defined(_3DS)
+    #include <citro2d.h>
+#elif defined(__SWITCH__)
+    #include <deko3d.h>
+#endif
+
 #include "objects/texture/texture.h"
 
 namespace love
@@ -10,26 +16,27 @@ namespace love
     {
         class Canvas : public love::Texture
         {
-            public:
-                static love::Type type;
+          public:
+            static love::Type type;
 
-                struct Settings
-                {
-                    int width = 1;
-                    int height = 1;
-                };
+            struct Settings
+            {
+                int width  = 1;
+                int height = 1;
+            };
 
-                Canvas(const Settings & settings);
+            Canvas(const Settings& settings);
 
-                virtual void Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform) = 0;
+            virtual void Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform) = 0;
 
-                bool HasFirstClear() {
-                    return this->cleared;
-                }
+            bool HasFirstClear()
+            {
+                return this->cleared;
+            }
 
-            protected:
-                Settings settings;
-                bool cleared;
+          protected:
+            Settings settings;
+            bool cleared;
         };
-    }
-}
+    } // namespace common
+} // namespace love

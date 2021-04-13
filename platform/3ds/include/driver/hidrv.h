@@ -9,20 +9,20 @@ namespace love::driver
 {
     class Hidrv : public common::driver::Hidrv
     {
-        public:
-            Hidrv();
+      public:
+        Hidrv();
 
-            bool Poll(LOVE_Event * event) override;
+        bool Poll(LOVE_Event* event) override;
 
-            bool IsDown(size_t button) override;
+        bool IsDown(size_t button) override;
 
-        private:
-            circlePosition sticks[2];
-            circlePosition oldSticks[2];
+      private:
+        circlePosition sticks[2];
+        circlePosition oldSticks[2];
 
-            touchPosition touchState;
-            touchPosition oldTouchState;
+        touchPosition touchState;
+        touchPosition oldTouchState;
 
-            bool touchHeld;
+        bool touchHeld;
     };
-}
+} // namespace love::driver

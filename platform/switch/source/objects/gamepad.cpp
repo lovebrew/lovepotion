@@ -3,22 +3,24 @@
 #include "driver/hidrv.h"
 #include "modules/timer/timer.h"
 
-#include "modules/joystick/joystick.h"
 #include "modules/event/event.h"
+#include "modules/joystick/joystick.h"
 
 using namespace love;
 
 #define JOYSTICK_MODULE() (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
-#define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define EVENT_MODULE()    (Module::GetInstance<love::Event>(Module::M_EVENT))
 
-Gamepad::Gamepad(size_t id) : common::Gamepad(id),
-                              sixAxisHandles(nullptr),
-                              vibrationHandles(nullptr)
+Gamepad::Gamepad(size_t id) :
+    common::Gamepad(id),
+    sixAxisHandles(nullptr),
+    vibrationHandles(nullptr)
 {}
 
-Gamepad::Gamepad(size_t id, size_t index) : common::Gamepad(id),
-                                            sixAxisHandles(nullptr),
-                                            vibrationHandles(nullptr)
+Gamepad::Gamepad(size_t id, size_t index) :
+    common::Gamepad(id),
+    sixAxisHandles(nullptr),
+    vibrationHandles(nullptr)
 {
     this->Open(index);
 }
@@ -28,7 +30,7 @@ Gamepad::~Gamepad()
     this->Close();
 }
 
-PadState & Gamepad::GetPadState()
+PadState& Gamepad::GetPadState()
 {
     return this->pad;
 }
@@ -79,7 +81,9 @@ bool Gamepad::Open(size_t index)
             this->name = "Pro Controller";
 
             this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(1);
-            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadFullKey);
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1,
+                                       static_cast<HidNpadIdType>(this->id),
+                                       HidNpadStyleTag_NpadFullKey);
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(1);
             break;
@@ -87,7 +91,8 @@ bool Gamepad::Open(size_t index)
             this->name = "Nintendo Switch";
 
             this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(1);
-            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, HidNpadIdType_Handheld, HidNpadStyleTag_NpadHandheld);
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1, HidNpadIdType_Handheld,
+                                       HidNpadStyleTag_NpadHandheld);
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
             break;
@@ -95,7 +100,9 @@ bool Gamepad::Open(size_t index)
             this->name = "Dual Joy-Con";
 
             this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(2);
-            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 2, static_cast<HidNpadIdType>(this->id), HidNpadStyleTag_NpadJoyDual);
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 2,
+                                       static_cast<HidNpadIdType>(this->id),
+                                       HidNpadStyleTag_NpadJoyDual);
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
         default:
@@ -106,12 +113,14 @@ bool Gamepad::Open(size_t index)
     memset(this->vibrationValues, 0, sizeof(this->vibrationValues));
 
     size_t handleCount = (styleTag == HidNpadStyleTag_NpadFullKey) ? 1 : 2;
-    hidInitializeVibrationDevices(this->vibrationHandles.get(), handleCount, this->GetNpadIdType(), styleTag);
+    hidInitializeVibrationDevices(this->vibrationHandles.get(), handleCount, this->GetNpadIdType(),
+                                  styleTag);
 
     hidStartSixAxisSensor(this->sixAxisHandles[0]);
 
     u32 attributes = padGetAttributes(&this->pad);
-    if ((this->style & HidNpadStyleTag_NpadJoyDual) && (attributes & HidNpadAttribute_IsRightConnected))
+    if ((this->style & HidNpadStyleTag_NpadJoyDual) &&
+        (attributes & HidNpadAttribute_IsRightConnected))
         hidStartSixAxisSensor(this->sixAxisHandles[1]);
 
     return this->IsConnected();
@@ -132,11 +141,12 @@ void Gamepad::Close()
         hidStopSixAxisSensor(this->sixAxisHandles[0]);
 
         u32 attributes = padGetAttributes(&this->pad);
-        if ((this->style & HidNpadStyleTag_NpadJoyDual) && (attributes & HidNpadAttribute_IsRightConnected))
+        if ((this->style & HidNpadStyleTag_NpadJoyDual) &&
+            (attributes & HidNpadAttribute_IsRightConnected))
             hidStopSixAxisSensor(this->sixAxisHandles[1]);
     }
 
-    this->sixAxisHandles = nullptr;
+    this->sixAxisHandles   = nullptr;
     this->vibrationHandles = nullptr;
 }
 
@@ -145,7 +155,7 @@ bool Gamepad::IsConnected() const
     return padIsConnected(&this->pad);
 }
 
-const char * Gamepad::GetName() const
+const char* Gamepad::GetName() const
 {
     return this->name.c_str();
 }
@@ -268,7 +278,7 @@ std::vector<float> Gamepad::GetAxes() const
     return axes;
 }
 
-bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
+bool Gamepad::IsDown(const std::vector<size_t>& buttons) const
 {
     size_t buttonCount = this->GetButtonCount();
 
@@ -285,7 +295,7 @@ bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
 
 float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
 {
-    const char * name = nullptr;
+    const char* name = nullptr;
     if (!common::Gamepad::GetConstant(axis, name))
         return 0.0f;
 
@@ -306,7 +316,7 @@ float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
     return 0.0f;
 }
 
-bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
+bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
     int32_t consoleButton = -1;
 
@@ -330,14 +340,14 @@ bool Gamepad::IsVibrationSupported()
 
 bool Gamepad::SetVibration(float left, float right, float duration)
 {
-    left = std::clamp(left, 0.0f, 1.0f);
+    left  = std::clamp(left, 0.0f, 1.0f);
     right = std::clamp(right, 0.0f, 1.0f);
 
     uint32_t length = Vibration::max;
     if (duration >= 0)
         length = (uint32_t)std::min(duration, Vibration::max / 1000.0f);
 
-    for (auto & vibrationValue : this->vibrationValues)
+    for (auto& vibrationValue : this->vibrationValues)
     {
         vibrationValue.freq_low  = 160.0f;
         vibrationValue.freq_high = 320.0f;
@@ -349,12 +359,12 @@ bool Gamepad::SetVibration(float left, float right, float duration)
     this->vibrationValues[1].amp_low  = left;
     this->vibrationValues[1].amp_high = right;
 
-    Result res = hidSendVibrationValues(this->vibrationHandles.get(), this->vibrationValues, 2);
+    Result res   = hidSendVibrationValues(this->vibrationHandles.get(), this->vibrationValues, 2);
     bool success = R_SUCCEEDED(res);
 
     if (success && (left != 0.0f && right != 0.0f))
     {
-        this->vibration.left = left;
+        this->vibration.left  = left;
         this->vibration.right = right;
 
         if (length == Vibration::max)
@@ -367,7 +377,7 @@ bool Gamepad::SetVibration(float left, float right, float duration)
     else
     {
         this->vibration.left = this->vibration.right = 0.0f;
-        this->vibration.endTime = Vibration::max;
+        this->vibration.endTime                      = Vibration::max;
     }
 
     return R_SUCCEEDED(success);
@@ -379,44 +389,46 @@ bool Gamepad::SetVibration()
     return this->SetVibration(0, 0);
 }
 
-void Gamepad::GetVibration(float & left, float & right)
+void Gamepad::GetVibration(float& left, float& right)
 {
-    left = this->vibration.left;
+    left  = this->vibration.left;
     right = this->vibration.right;
 }
 
-const Gamepad::Vibration & Gamepad::GetVibration() const
+const Gamepad::Vibration& Gamepad::GetVibration() const
 {
     return this->vibration;
 }
 
-bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton & out)
+bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton& out)
 {
     return buttons.Find(in, out);
 }
 
-bool Gamepad::GetConstant(Gamepad::GamepadButton in, int32_t & out)
+bool Gamepad::GetConstant(Gamepad::GamepadButton in, int32_t& out)
 {
     return buttons.Find(in, out);
 }
 
-EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM>::Entry Gamepad::buttonEntries[] =
-{
-    { Gamepad::GAMEPAD_BUTTON_A,             HidNpadButton_A      },
-    { Gamepad::GAMEPAD_BUTTON_B,             HidNpadButton_B      },
-    { Gamepad::GAMEPAD_BUTTON_X,             HidNpadButton_X      },
-    { Gamepad::GAMEPAD_BUTTON_Y,             HidNpadButton_Y      },
-    { Gamepad::GAMEPAD_BUTTON_BACK,          HidNpadButton_Minus  },
-    { Gamepad::GAMEPAD_BUTTON_GUIDE,         -1                   },
-    { Gamepad::GAMEPAD_BUTTON_START,         HidNpadButton_Plus   },
-    { Gamepad::GAMEPAD_BUTTON_LEFTSTICK,     HidNpadButton_StickL }, //< left stick click doesn't exist
-    { Gamepad::GAMEPAD_BUTTON_RIGHTSTICK,    HidNpadButton_StickR }, //< right stick click doesn't exist
-    { Gamepad::GAMEPAD_BUTTON_LEFTSHOULDER,  HidNpadButton_L      },
-    { Gamepad::GAMEPAD_BUTTON_RIGHTSHOULDER, HidNpadButton_R      },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_UP,       HidNpadButton_Up     },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_DOWN,     HidNpadButton_Down   },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_LEFT,     HidNpadButton_Left   },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_RIGHT,    HidNpadButton_Right  },
+EnumMap<Gamepad::GamepadButton, int32_t,
+        Gamepad::GAMEPAD_BUTTON_MAX_ENUM>::Entry Gamepad::buttonEntries[] = {
+    { Gamepad::GAMEPAD_BUTTON_A, HidNpadButton_A },
+    { Gamepad::GAMEPAD_BUTTON_B, HidNpadButton_B },
+    { Gamepad::GAMEPAD_BUTTON_X, HidNpadButton_X },
+    { Gamepad::GAMEPAD_BUTTON_Y, HidNpadButton_Y },
+    { Gamepad::GAMEPAD_BUTTON_BACK, HidNpadButton_Minus },
+    { Gamepad::GAMEPAD_BUTTON_GUIDE, -1 },
+    { Gamepad::GAMEPAD_BUTTON_START, HidNpadButton_Plus },
+    { Gamepad::GAMEPAD_BUTTON_LEFTSTICK, HidNpadButton_StickL }, //< left stick click doesn't exist
+    { Gamepad::GAMEPAD_BUTTON_RIGHTSTICK,
+      HidNpadButton_StickR }, //< right stick click doesn't exist
+    { Gamepad::GAMEPAD_BUTTON_LEFTSHOULDER, HidNpadButton_L },
+    { Gamepad::GAMEPAD_BUTTON_RIGHTSHOULDER, HidNpadButton_R },
+    { Gamepad::GAMEPAD_BUTTON_DPAD_UP, HidNpadButton_Up },
+    { Gamepad::GAMEPAD_BUTTON_DPAD_DOWN, HidNpadButton_Down },
+    { Gamepad::GAMEPAD_BUTTON_DPAD_LEFT, HidNpadButton_Left },
+    { Gamepad::GAMEPAD_BUTTON_DPAD_RIGHT, HidNpadButton_Right },
 };
 
-EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM> Gamepad::buttons(Gamepad::buttonEntries, sizeof(Gamepad::buttonEntries));
+EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM> Gamepad::buttons(
+    Gamepad::buttonEntries, sizeof(Gamepad::buttonEntries));

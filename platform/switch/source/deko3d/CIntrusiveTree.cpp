@@ -10,8 +10,8 @@
 
 void CIntrusiveTreeBase::rotate(N* node, N::Leaf leaf)
 {
-    N *tmp    = node->child(leaf);
-    N *parent = node->getParent();
+    N* tmp    = node->child(leaf);
+    N* parent = node->getParent();
 
     node->child(leaf) = tmp->child(!leaf);
     if (tmp->child(!leaf))
@@ -35,12 +35,12 @@ void CIntrusiveTreeBase::rotate(N* node, N::Leaf leaf)
 
 void CIntrusiveTreeBase::recolor(N* parent, N* node)
 {
-    N *sibling;
+    N* sibling;
 
     while ((!node || node->isBlack()) && node != m_root)
     {
         N::Leaf leaf = node == parent->left() ? N::Right : N::Left;
-        sibling = parent->child(leaf);
+        sibling      = parent->child(leaf);
 
         if (sibling->isRed())
         {
@@ -51,13 +51,13 @@ void CIntrusiveTreeBase::recolor(N* parent, N* node)
         }
 
         N::Color clr[2];
-        clr[N::Left]  = sibling->left()  ? sibling->left()->getColor()  : N::Black;
+        clr[N::Left]  = sibling->left() ? sibling->left()->getColor() : N::Black;
         clr[N::Right] = sibling->right() ? sibling->right()->getColor() : N::Black;
 
         if (clr[N::Left] == N::Black && clr[N::Right] == N::Black)
         {
             sibling->setRed();
-            node = parent;
+            node   = parent;
             parent = node->getParent();
         }
         else
@@ -93,10 +93,10 @@ auto CIntrusiveTreeBase::walk(N* node, N::Leaf leaf) const -> N*
     }
     else
     {
-        N *parent = node->getParent();
+        N* parent = node->getParent();
         while (parent && node == parent->child(leaf))
         {
-            node = parent;
+            node   = parent;
             parent = node->getParent();
         }
         node = parent;
@@ -113,9 +113,9 @@ void CIntrusiveTreeBase::insert(N* node, N* parent)
 
     while ((parent = node->getParent()) && parent->isRed())
     {
-        N *grandparent = parent->getParent();
-        N::Leaf leaf = parent == grandparent->left() ? N::Right : N::Left;
-        N *uncle = grandparent->child(leaf);
+        N* grandparent = parent->getParent();
+        N::Leaf leaf   = parent == grandparent->left() ? N::Right : N::Left;
+        N* uncle       = grandparent->child(leaf);
 
         if (uncle && uncle->isRed())
         {
@@ -133,7 +133,7 @@ void CIntrusiveTreeBase::insert(N* node, N* parent)
 
                 N* tmp = parent;
                 parent = node;
-                node = tmp;
+                node   = tmp;
             }
 
             parent->setBlack();
@@ -152,7 +152,7 @@ void CIntrusiveTreeBase::remove(N* node)
 
     if (node->left() && node->right())
     {
-        N *old = node;
+        N* old = node;
 
         node = node->right();
         while (node->left())

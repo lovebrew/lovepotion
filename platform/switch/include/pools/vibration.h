@@ -11,26 +11,27 @@ namespace love
 {
     class VibrationPool
     {
-        public:
-            ~VibrationPool() {}
+      public:
+        ~VibrationPool()
+        {}
 
-            bool IsRunning();
+        bool IsRunning();
 
-            bool FindGamepad(Gamepad * gamepad);
+        bool FindGamepad(Gamepad* gamepad);
 
-            bool AssignGamepad(Gamepad * gamepad, size_t id);
+        bool AssignGamepad(Gamepad* gamepad, size_t id);
 
-            bool ReleaseGamepad(Gamepad * gamepad, bool stop = true);
+        bool ReleaseGamepad(Gamepad* gamepad, bool stop = true);
 
-            void Finish();
+        void Finish();
 
-            void Update();
+        void Update();
 
-            thread::Lock Lock();
+        thread::Lock Lock();
 
-        private:
-            std::atomic<bool> running = true;
-            std::map<Gamepad *, size_t> vibrating;
-            thread::MutexRef mutex;
+      private:
+        std::atomic<bool> running = true;
+        std::map<Gamepad*, size_t> vibrating;
+        thread::MutexRef mutex;
     };
-}
+} // namespace love

@@ -1,5 +1,5 @@
-#include "modules/thread/thread.h"
 #include "modules/thread/types/threadable.h"
+#include "modules/thread/thread.h"
 
 using namespace love;
 
@@ -30,7 +30,7 @@ bool Threadable::IsRunning() const
     return this->owner->IsRunning();
 }
 
-const char * Threadable::GetThreadName() const
+const char* Threadable::GetThreadName() const
 {
     return this->threadName.empty() ? nullptr : this->threadName.c_str();
 }

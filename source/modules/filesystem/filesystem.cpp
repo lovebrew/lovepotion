@@ -2,14 +2,14 @@
 
 #include <physfs.h>
 
-#include <sys/stat.h>
 #include <limits.h>
+#include <sys/stat.h>
 
 #include <unistd.h>
 
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds.h>
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch.h>
 #endif
 
@@ -18,7 +18,7 @@
 #define LOVE_APPDATA_FOLDER ""
 #define LOVE_APPDATA_PREFIX ""
 #define LOVE_PATH_SEPARATOR "/"
-#define LOVE_MAX_PATH PATH_MAX
+#define LOVE_MAX_PATH       PATH_MAX
 
 using namespace love;
 
@@ -26,7 +26,7 @@ love::Type Filesystem::type("Filesystem", &Module::type);
 
 namespace
 {
-    std::string normalize(const std::string &input)
+    std::string normalize(const std::string& input)
     {
         std::string out;
         bool seenSep = false, isSep = false;
@@ -43,19 +43,19 @@ namespace
 
         return out;
     }
-}
+} // namespace
 
-Filesystem::Filesystem() : fused(false),
-                           fusedSet(false)
+Filesystem::Filesystem() : fused(false), fusedSet(false)
 {
-    requirePath  = {"?.lua", "?/init.lua"};
-    cRequirePath = {"??"};
+    requirePath  = { "?.lua", "?/init.lua" };
+    cRequirePath = { "??" };
 }
 
-void Filesystem::Init(const char * arg0)
+void Filesystem::Init(const char* arg0)
 {
     if (!PHYSFS_init(arg0))
-        throw love::Exception("Failed to initialize filesystem: %s", PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
+        throw love::Exception("Failed to initialize filesystem: %s",
+                              PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode()));
 
     this->exePath = arg0;
 
@@ -72,7 +72,7 @@ Filesystem::~Filesystem()
         PHYSFS_deinit();
 }
 
-void Filesystem::Append(const char * filename, const void * data, int64_t size)
+void Filesystem::Append(const char* filename, const void* data, int64_t size)
 {
     File file(filename);
     file.Open(File::MODE_APPEND);
@@ -81,13 +81,12 @@ void Filesystem::Append(const char * filename, const void * data, int64_t size)
         throw love::Exception("Data could not be written.");
 }
 
-
-std::string Filesystem::GetRealDirectory(const char * filename) const
+std::string Filesystem::GetRealDirectory(const char* filename) const
 {
     if (!PHYSFS_isInit())
         throw love::Exception("PhysFS is not initialized.");
 
-    const char * dir = PHYSFS_getRealDir(filename);
+    const char* dir = PHYSFS_getRealDir(filename);
 
     if (dir == nullptr)
         throw love::Exception("File does not exist on disk.");
@@ -95,7 +94,7 @@ std::string Filesystem::GetRealDirectory(const char * filename) const
     return std::string(dir);
 }
 
-bool Filesystem::CreateDirectory(const char * name)
+bool Filesystem::CreateDirectory(const char* name)
 {
     if (!PHYSFS_isInit())
         return false;
@@ -109,17 +108,17 @@ bool Filesystem::CreateDirectory(const char * name)
     return true;
 }
 
-void Filesystem::GetDirectoryItems(const char * directory, std::vector<std::string> & items)
+void Filesystem::GetDirectoryItems(const char* directory, std::vector<std::string>& items)
 {
     if (!PHYSFS_isInit())
         return;
 
-    char ** results = PHYSFS_enumerateFiles(directory);
+    char** results = PHYSFS_enumerateFiles(directory);
 
     if (results == nullptr)
         return;
 
-    for (char ** item = results; *item != 0; item++)
+    for (char** item = results; *item != 0; item++)
         items.push_back(*item);
 
     PHYSFS_freeList(results);
@@ -133,12 +132,12 @@ bool Filesystem::SetupWriteDirectory()
     if (this->identity.empty() || this->fullSavePath.empty() || this->relativeSavePath.empty())
         return false;
 
-    std::string tmpWriteDirectory = this->fullSavePath;
+    std::string tmpWriteDirectory  = this->fullSavePath;
     std::string tmpCreateDirectory = this->fullSavePath;
 
     if (this->fullSavePath.find(this->GetUserDirectory()) == 0)
     {
-        tmpWriteDirectory = this->GetUserDirectory();
+        tmpWriteDirectory  = this->GetUserDirectory();
         tmpCreateDirectory = this->fullSavePath.substr(this->GetUserDirectory().length());
 
         // Strip leading '/' characters from the path we want to create.
@@ -169,12 +168,12 @@ bool Filesystem::SetupWriteDirectory()
     return true;
 }
 
-const char * Filesystem::GetIdentity()
+const char* Filesystem::GetIdentity()
 {
     return this->identity.c_str();
 }
 
-bool Filesystem::GetInfo(const char * filepath, Filesystem::Info & info) const
+bool Filesystem::GetInfo(const char* filepath, Filesystem::Info& info) const
 {
     if (!PHYSFS_isInit())
         return false;
@@ -185,7 +184,7 @@ bool Filesystem::GetInfo(const char * filepath, Filesystem::Info & info) const
         return false;
 
     info.modtime = std::min<int64_t>(stat.modtime, MAX_STAMP);
-    info.size    = std::min<int64_t>(stat.filesize,  MAX_STAMP);
+    info.size    = std::min<int64_t>(stat.filesize, MAX_STAMP);
 
     if (stat.filetype == PHYSFS_FILETYPE_REGULAR)
         info.type = FILETYPE_FILE;
@@ -204,20 +203,20 @@ std::string Filesystem::GetSaveDirectory()
     return this->fullSavePath;
 }
 
-File * Filesystem::NewFile(const char * filename)
+File* Filesystem::NewFile(const char* filename)
 {
     return new File(filename);
 }
 
-FileData * Filesystem::NewFileData(const void * data, size_t size, const char * filename)
+FileData* Filesystem::NewFileData(const void* data, size_t size, const char* filename)
 {
-    FileData * fileData = new FileData(size, filename);
+    FileData* fileData = new FileData(size, filename);
     memcpy(fileData->GetData(), data, size);
 
     return fileData;
 }
 
-FileData * Filesystem::Read(const char * filename, int64_t size)
+FileData* Filesystem::Read(const char* filename, int64_t size)
 {
     File file(filename);
 
@@ -226,7 +225,7 @@ FileData * Filesystem::Read(const char * filename, int64_t size)
     return file.Read(size);
 }
 
-bool Filesystem::Remove(const char * filename)
+bool Filesystem::Remove(const char* filename)
 {
     if (!PHYSFS_isInit())
         return false;
@@ -250,15 +249,15 @@ void Filesystem::SetFused(bool fused)
     if (this->fusedSet)
         return;
 
-    this->fused = fused;
+    this->fused    = fused;
     this->fusedSet = true;
 }
 
-const char * Filesystem::GetWorkingDirectory()
+const char* Filesystem::GetWorkingDirectory()
 {
     if (this->cwd.empty())
     {
-        char *cwd_char = new char[LOVE_MAX_PATH];
+        char* cwd_char = new char[LOVE_MAX_PATH];
 
         if (getcwd(cwd_char, LOVE_MAX_PATH))
             this->cwd = cwd_char;
@@ -285,12 +284,12 @@ bool Filesystem::IsFused() const
     return this->fused;
 }
 
-const char * Filesystem::GetSource() const
+const char* Filesystem::GetSource() const
 {
     return this->gameSource.c_str();
 }
 
-bool Filesystem::SetSource(const char * source)
+bool Filesystem::SetSource(const char* source)
 {
     if (!PHYSFS_isInit())
         return false;
@@ -325,7 +324,7 @@ std::string Filesystem::GetSourceBaseDirectory() const
     return this->gameSource.substr(0, end);
 }
 
-bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appendToPath)
+bool Filesystem::Mount(const char* archive, const char* mountpoint, bool appendToPath)
 {
     if (!PHYSFS_isInit() || !archive)
         return false;
@@ -333,7 +332,8 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
     std::string realPath;
     std::string sourceBase = this->GetSourceBaseDirectory();
 
-    auto iterator = std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), archive);
+    auto iterator =
+        std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), archive);
 
     if (iterator != this->allowedMountPaths.end())
         realPath = *iterator;
@@ -350,7 +350,7 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
         if (strlen(archive) == 0 || strstr(archive, "..") || strcmp(archive, "/") == 0)
             return false;
 
-        const char * realDirectory = PHYSFS_getRealDir(archive);
+        const char* realDirectory = PHYSFS_getRealDir(archive);
 
         if (!realDirectory)
             return false;
@@ -370,12 +370,13 @@ bool Filesystem::Mount(const char * archive, const char * mountpoint, bool appen
     return PHYSFS_mount(realPath.c_str(), mountpoint, appendToPath) != 0;
 }
 
-bool Filesystem::Mount(Data * data, const char * archive, const char * mountpoint, bool appendToPath)
+bool Filesystem::Mount(Data* data, const char* archive, const char* mountpoint, bool appendToPath)
 {
     if (!PHYSFS_isInit())
         return false;
 
-    if (PHYSFS_mountMemory(data->GetData(), data->GetSize(), nullptr, archive, mountpoint, appendToPath) != 0)
+    if (PHYSFS_mountMemory(data->GetData(), data->GetSize(), nullptr, archive, mountpoint,
+                           appendToPath) != 0)
     {
         this->mountedData[archive] = data;
         return true;
@@ -384,7 +385,7 @@ bool Filesystem::Mount(Data * data, const char * archive, const char * mountpoin
     return false;
 }
 
-bool Filesystem::UnMount(const char * archive)
+bool Filesystem::UnMount(const char* archive)
 {
     if (!PHYSFS_isInit() || !archive)
         return false;
@@ -401,7 +402,8 @@ bool Filesystem::UnMount(const char * archive)
     std::string sourceBase = this->GetSourceBaseDirectory();
 
     // Check whether the given archive path is in the list of allowed full paths.
-    auto iterator = std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), archive);
+    auto iterator =
+        std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), archive);
 
     // Special case: if the game is fused and the archive is the source's
     // base directory, unmount it even though it's outside of the save dir.
@@ -416,7 +418,7 @@ bool Filesystem::UnMount(const char * archive)
         if (strlen(archive) == 0 || strstr(archive, "..") || strcmp(archive, "/") == 0)
             return false;
 
-        const char * realDirectory = PHYSFS_getRealDir(archive);
+        const char* realDirectory = PHYSFS_getRealDir(archive);
 
         if (!realDirectory)
             return false;
@@ -430,7 +432,7 @@ bool Filesystem::UnMount(const char * archive)
         realPath += archive;
     }
 
-    const char * mountPoint = PHYSFS_getMountPoint(realPath.c_str());
+    const char* mountPoint = PHYSFS_getMountPoint(realPath.c_str());
 
     if (!mountPoint)
         return false;
@@ -438,9 +440,9 @@ bool Filesystem::UnMount(const char * archive)
     return PHYSFS_unmount(realPath.c_str()) != 0;
 }
 
-bool Filesystem::UnMount(Data * data)
+bool Filesystem::UnMount(Data* data)
 {
-    for (const auto & dataPair : this->mountedData)
+    for (const auto& dataPair : this->mountedData)
     {
         if (dataPair.second.Get() == data)
         {
@@ -452,7 +454,7 @@ bool Filesystem::UnMount(Data * data)
     return false;
 }
 
-std::vector<std::string> & Filesystem::GetRequirePath()
+std::vector<std::string>& Filesystem::GetRequirePath()
 {
     return this->requirePath;
 }
@@ -464,7 +466,7 @@ std::string Filesystem::GetUserDirectory()
     return userDirectory;
 }
 
-bool Filesystem::SetIdentity(const char * name, bool appendToPath)
+bool Filesystem::SetIdentity(const char* name, bool appendToPath)
 {
     if (!PHYSFS_isInit())
         return false;
@@ -475,7 +477,8 @@ bool Filesystem::SetIdentity(const char * name, bool appendToPath)
     this->identity = name;
 
     // /{game}
-    this->relativeSavePath = std::string(LOVE_APPDATA_PREFIX LOVE_APPDATA_FOLDER LOVE_PATH_SEPARATOR) + this->identity;
+    this->relativeSavePath =
+        std::string(LOVE_APPDATA_PREFIX LOVE_APPDATA_FOLDER LOVE_PATH_SEPARATOR) + this->identity;
 
     // sdmc:/switch/LovePotion
     this->fullSavePath = this->GetAppDataDirectory() + LOVE_PATH_SEPARATOR;
@@ -502,7 +505,7 @@ std::string Filesystem::GetAppDataDirectory()
     return this->GetUserDirectory();
 }
 
-void Filesystem::Write(const char * filename, const void * data, int64_t size)
+void Filesystem::Write(const char* filename, const void* data, int64_t size)
 {
     File file(filename);
 
@@ -511,18 +514,19 @@ void Filesystem::Write(const char * filename, const void * data, int64_t size)
         throw love::Exception("Data could not be written.");
 }
 
-void Filesystem::AllowMountingForPath(const std::string &path)
+void Filesystem::AllowMountingForPath(const std::string& path)
 {
-    if (std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), path) == this->allowedMountPaths.end())
+    if (std::find(this->allowedMountPaths.begin(), this->allowedMountPaths.end(), path) ==
+        this->allowedMountPaths.end())
         this->allowedMountPaths.push_back(path);
 }
 
-bool Filesystem::GetConstant(const char *in, FileType &out)
+bool Filesystem::GetConstant(const char* in, FileType& out)
 {
     return fileTypes.Find(in, out);
 }
 
-bool Filesystem::GetConstant(FileType in, const char *&out)
+bool Filesystem::GetConstant(FileType in, const char*& out)
 {
     return fileTypes.Find(in, out);
 }
@@ -532,12 +536,13 @@ std::vector<std::string> Filesystem::GetConstants(FileType)
     return fileTypes.GetNames();
 }
 
-StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry Filesystem::fileTypeEntries[] =
-    {
-        {"file", FILETYPE_FILE},
-        {"directory", FILETYPE_DIRECTORY},
-        {"symlink", FILETYPE_SYMLINK},
-        {"other", FILETYPE_OTHER},
-};
+StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry
+    Filesystem::fileTypeEntries[] = {
+        { "file", FILETYPE_FILE },
+        { "directory", FILETYPE_DIRECTORY },
+        { "symlink", FILETYPE_SYMLINK },
+        { "other", FILETYPE_OTHER },
+    };
 
-StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(Filesystem::fileTypeEntries, sizeof(Filesystem::fileTypeEntries));
+StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(
+    Filesystem::fileTypeEntries, sizeof(Filesystem::fileTypeEntries));

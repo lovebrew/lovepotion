@@ -6,11 +6,11 @@ using namespace love;
 
 namespace
 {
-    typedef std::map<std::string, Module *> ModuleRegistry;
+    typedef std::map<std::string, Module*> ModuleRegistry;
 
-    ModuleRegistry * registry = nullptr;
+    ModuleRegistry* registry = nullptr;
 
-    ModuleRegistry & RegistryInstance()
+    ModuleRegistry& RegistryInstance()
     {
         if (!registry)
             registry = new ModuleRegistry();
@@ -26,15 +26,15 @@ namespace
             registry = nullptr;
         }
     }
-}
+} // namespace
 
 // Make our "type" and empty our instances
 love::Type Module::type("Module", &Object::type);
-Module * Module::instances[] = {};
+Module* Module::instances[] = {};
 
 Module::~Module()
 {
-    ModuleRegistry & registry = RegistryInstance();
+    ModuleRegistry& registry = RegistryInstance();
 
     // Destroy registry
     for (auto it = registry.begin(); it != registry.end(); ++it)
@@ -55,13 +55,13 @@ Module::~Module()
     freeEmptyRegistry();
 }
 
-void Module::RegisterInstance(Module * instance)
+void Module::RegisterInstance(Module* instance)
 {
     if (!instance)
         throw love::Exception("Module instance is null.");
 
     std::string name(instance->GetName());
-    ModuleRegistry & registry = RegistryInstance();
+    ModuleRegistry& registry = RegistryInstance();
 
     auto it = registry.find(name);
 
@@ -84,10 +84,10 @@ void Module::RegisterInstance(Module * instance)
     instances[otherType] = instance;
 }
 
-Module * Module::GetInstance(const std::string & name)
+Module* Module::GetInstance(const std::string& name)
 {
-    ModuleRegistry & registry = RegistryInstance();
-    auto it = registry.find(name);
+    ModuleRegistry& registry = RegistryInstance();
+    auto it                  = registry.find(name);
 
     if (registry.end() == it)
         return nullptr;

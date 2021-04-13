@@ -4,8 +4,8 @@
 */
 #pragma once
 
-#include "deko3d/common.h"
 #include "deko3d/CMemPool.h"
+#include "deko3d/common.h"
 
 #include "common/lmath.h"
 #include <memory>
@@ -16,52 +16,52 @@ class CImage
     dk::ImageDescriptor m_descriptor;
     CMemPool::Handle m_mem;
 
-    public:
-        CImage() : m_image{},
-                   m_descriptor{},
-                   m_mem{}
-        {}
+  public:
+    CImage() : m_image {}, m_descriptor {}, m_mem {}
+    {}
 
-        CImage(CImage const &) = delete;
+    CImage(CImage const&) = delete;
 
-        CImage(CImage &&) = delete;
+    CImage(CImage&&) = delete;
 
-        ~CImage()
-        {
-            m_mem.destroy();
-        }
+    ~CImage()
+    {
+        m_mem.destroy();
+    }
 
-        constexpr operator bool() const
-        {
-            return m_mem;
-        }
+    constexpr operator bool() const
+    {
+        return m_mem;
+    }
 
-        constexpr dk::Image & get()
-        {
-            return m_image;
-        }
+    constexpr dk::Image& get()
+    {
+        return m_image;
+    }
 
-        constexpr dk::ImageDescriptor const & getDescriptor() const
-        {
-            return m_descriptor;
-        }
+    constexpr dk::ImageDescriptor const& getDescriptor() const
+    {
+        return m_descriptor;
+    }
 
-        bool load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                  void * buffer, size_t size, int & width, int & height);
+    bool load(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
+              dk::Queue transferQueue, void* buffer, size_t size, int& width, int& height);
 
-        bool loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue queue,
-                             uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+    bool loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
+                         dk::Queue queue, uint32_t width, uint32_t height, DkImageFormat format,
+                         uint32_t flags = 0);
 
-        bool replacePixels(CMemPool & scratchPool, dk::Device device, const void * data,
-                           size_t size, dk::Queue transferQueue, const love::Rect & rect);
+    bool replacePixels(CMemPool& scratchPool, dk::Device device, const void* data, size_t size,
+                       dk::Queue transferQueue, const love::Rect& rect);
 
-        bool loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                        const void * data, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
+    bool loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
+                    dk::Queue transferQueue, const void* data, uint32_t width, uint32_t height,
+                    DkImageFormat format, uint32_t flags = 0);
 
-        size_t getFormatSize(DkImageFormat format);
+    size_t getFormatSize(DkImageFormat format);
 
-        private:
-            std::unique_ptr<u32[]> loadPNG(const void * buffer, const size_t size, int & width, int & height);
+  private:
+    std::unique_ptr<u32[]> loadPNG(const void* buffer, const size_t size, int& width, int& height);
 
-            std::unique_ptr<u8[]> loadJPG(const void * buffer, const size_t size, int & width, int & height);
+    std::unique_ptr<u8[]> loadJPG(const void* buffer, const size_t size, int& width, int& height);
 };

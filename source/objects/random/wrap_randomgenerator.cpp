@@ -4,8 +4,7 @@
 
 using namespace love;
 
-template <typename T>
-static T CheckRandomSeed_Part(lua_State * L, int index)
+template<typename T> static T CheckRandomSeed_Part(lua_State* L, int index)
 {
     double num = luaL_checknumber(L, index);
     double inf = std::numeric_limits<double>::infinity();
@@ -14,12 +13,12 @@ static T CheckRandomSeed_Part(lua_State * L, int index)
     if (num == inf || num == -inf || num != num)
         luaL_argerror(L, index, "invalid random seed");
 
-    return (T) num;
+    return (T)num;
 }
 
-int Wrap_RandomGenerator::GetSeed(lua_State * L)
+int Wrap_RandomGenerator::GetSeed(lua_State* L)
 {
-    RandomGenerator * self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    RandomGenerator* self      = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
     RandomGenerator::Seed seed = self->GetSeed();
 
     lua_pushnumber(L, (lua_Number)seed.b32.low);
@@ -28,28 +27,28 @@ int Wrap_RandomGenerator::GetSeed(lua_State * L)
     return 2;
 }
 
-int Wrap_RandomGenerator::GetState(lua_State * L)
+int Wrap_RandomGenerator::GetState(lua_State* L)
 {
-    RandomGenerator * self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
-    std::string state = self->GetState();
+    RandomGenerator* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    std::string state     = self->GetState();
 
     lua_pushlstring(L, state.data(), state.size());
 
     return 1;
 }
 
-int Wrap_RandomGenerator::_Random(lua_State * L)
+int Wrap_RandomGenerator::_Random(lua_State* L)
 {
-    RandomGenerator * self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    RandomGenerator* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
 
     lua_pushnumber(L, self->Random());
 
     return 1;
 }
 
-int Wrap_RandomGenerator::RandomNormal(lua_State * L)
+int Wrap_RandomGenerator::RandomNormal(lua_State* L)
 {
-    RandomGenerator * self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    RandomGenerator* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
 
     double stddev = luaL_optnumber(L, 2, 1.0);
     double mean   = luaL_optnumber(L, 3, 0.0);
@@ -61,35 +60,31 @@ int Wrap_RandomGenerator::RandomNormal(lua_State * L)
     return 1;
 }
 
-int Wrap_RandomGenerator::SetSeed(lua_State * L)
+int Wrap_RandomGenerator::SetSeed(lua_State* L)
 {
-    RandomGenerator * self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    RandomGenerator* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
 
-    Luax::CatchException(L, [&]() {
-        self->SetSeed(Wrap_RandomGenerator::CheckRandomSeed(L, 2));
-    });
+    Luax::CatchException(L, [&]() { self->SetSeed(Wrap_RandomGenerator::CheckRandomSeed(L, 2)); });
 
     return 0;
 }
 
-int Wrap_RandomGenerator::SetState(lua_State * L)
+int Wrap_RandomGenerator::SetState(lua_State* L)
 {
-    RandomGenerator * self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    RandomGenerator* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
 
-    Luax::CatchException(L, [&]() {
-        self->SetState(luaL_checkstring(L, 2));
-    });
+    Luax::CatchException(L, [&]() { self->SetState(luaL_checkstring(L, 2)); });
 
     return 0;
 }
 
-RandomGenerator::Seed Wrap_RandomGenerator::CheckRandomSeed(lua_State * L, int index)
+RandomGenerator::Seed Wrap_RandomGenerator::CheckRandomSeed(lua_State* L, int index)
 {
     RandomGenerator::Seed seed;
 
     if (!lua_isnoneornil(L, index + 1))
     {
-        seed.b32.low = CheckRandomSeed_Part<uint32_t>(L, index);
+        seed.b32.low  = CheckRandomSeed_Part<uint32_t>(L, index);
         seed.b32.high = CheckRandomSeed_Part<uint32_t>(L, index + 1);
     }
     else
@@ -98,27 +93,25 @@ RandomGenerator::Seed Wrap_RandomGenerator::CheckRandomSeed(lua_State * L, int i
     return seed;
 }
 
-RandomGenerator * Wrap_RandomGenerator::CheckRandomGenerator(lua_State * L, int index)
+RandomGenerator* Wrap_RandomGenerator::CheckRandomGenerator(lua_State* L, int index)
 {
     return Luax::CheckType<RandomGenerator>(L, index);
 }
 
-int Wrap_RandomGenerator::Register(lua_State * L)
+int Wrap_RandomGenerator::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "getSeed",      GetSeed      },
-        { "getState",     GetState     },
-        { "_random",      _Random      },
-        { "randomNormal", RandomNormal },
-        { "setSeed",      SetSeed      },
-        { "setState",     SetState     },
-        { 0, 0 }
-    };
+    luaL_Reg reg[] = { { "getSeed", GetSeed },
+                       { "getState", GetState },
+                       { "_random", _Random },
+                       { "randomNormal", RandomNormal },
+                       { "setSeed", SetSeed },
+                       { "setState", SetState },
+                       { 0, 0 } };
 
     int ret = Luax::RegisterType(L, &RandomGenerator::type, reg, nullptr);
 
-    Luax::RunWrapper(L, (const char *)wrap_randomgenerator_lua, wrap_randomgenerator_lua_size, "wrap_randomgenerator.lua", RandomGenerator::type);
+    Luax::RunWrapper(L, (const char*)wrap_randomgenerator_lua, wrap_randomgenerator_lua_size,
+                     "wrap_randomgenerator.lua", RandomGenerator::type);
 
     return ret;
 }

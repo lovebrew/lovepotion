@@ -9,62 +9,61 @@ namespace love
 {
     class GlyphData : public Data
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            struct GlyphMetrics
-            {
-                int height;
-                int width;
-                int advance;
-                int bearingX;
-                int bearingY;
-            };
+        struct GlyphMetrics
+        {
+            int height;
+            int width;
+            int advance;
+            int bearingX;
+            int bearingY;
+        };
 
-            GlyphData(uint32_t glyph, GlyphMetrics metrics);
+        GlyphData(uint32_t glyph, GlyphMetrics metrics);
 
-            GlyphData(const GlyphData & c);
+        GlyphData(const GlyphData& c);
 
-            virtual ~GlyphData();
+        virtual ~GlyphData();
 
-            GlyphData * Clone() const;
+        GlyphData* Clone() const;
 
-            size_t GetPixelSize() const;
+        size_t GetPixelSize() const;
 
-            void * GetData() const;
+        void* GetData() const;
 
-            size_t GetSize() const;
+        size_t GetSize() const;
 
-            void * GetData(int x, int y) const;
+        void* GetData(int x, int y) const;
 
-            int GetHeight() const;
+        int GetHeight() const;
 
-            int GetWidth() const;
+        int GetWidth() const;
 
-            uint32_t GetGlyph() const;
+        uint32_t GetGlyph() const;
 
-            std::string GetGlyphString() const;
+        std::string GetGlyphString() const;
 
-            int GetAdvance() const;
+        int GetAdvance() const;
 
-            int GetBearingX() const;
+        int GetBearingX() const;
 
-            int GetBearingY() const;
+        int GetBearingY() const;
 
-            int GetMinX() const;
+        int GetMinX() const;
 
-            int GetMinY() const;
+        int GetMinY() const;
 
-            int GetMaxX() const;
+        int GetMaxX() const;
 
-            int GetMaxY() const;
+        int GetMaxY() const;
 
-        private:
-            uint32_t glyph;
+      private:
+        uint32_t glyph;
 
-            GlyphMetrics metrics;
+        GlyphMetrics metrics;
 
-            uint8_t * data;
-
+        uint8_t* data;
     };
-}
+} // namespace love

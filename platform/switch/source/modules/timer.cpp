@@ -7,7 +7,7 @@ static constexpr auto NS_TO_SEC = 1000000000.0;
 
 Timer::Timer()
 {
-    Timer::reference = armGetSystemTick();
+    Timer::reference    = armGetSystemTick();
     this->prevFPSUpdate = currentTime = this->GetTime();
 }
 

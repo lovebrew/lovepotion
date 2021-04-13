@@ -6,47 +6,47 @@ namespace love
 {
     class Source : public common::Source
     {
-        public:
-            Source(Pool * pool, SoundData * sound);
+      public:
+        Source(Pool* pool, SoundData* sound);
 
-            Source(Pool * pool, Decoder * decoder);
+        Source(Pool* pool, Decoder* decoder);
 
-            virtual ~Source();
+        virtual ~Source();
 
-            Source * Clone();
+        Source* Clone();
 
-            void SetLooping(bool should) override;
+        void SetLooping(bool should) override;
 
-            bool Update() override;
+        bool Update() override;
 
-            bool IsPlaying() const override;
+        bool IsPlaying() const override;
 
-            bool IsFinished() const override;
+        bool IsFinished() const override;
 
-            void SetVolume(float volume) override;
+        void SetVolume(float volume) override;
 
-            void StopAtomic() override;
+        void StopAtomic() override;
 
-        protected:
-            double GetSampleOffset() override;
+      protected:
+        double GetSampleOffset() override;
 
-        private:
-            ndspWaveBuf sources[Source::MAX_BUFFERS];
+      private:
+        ndspWaveBuf sources[Source::MAX_BUFFERS];
 
-            void Reset() override;
+        void Reset() override;
 
-            void InitializeStreamBuffers(Decoder * decoder) override;
+        void InitializeStreamBuffers(Decoder* decoder) override;
 
-            void PrepareAtomic() override;
+        void PrepareAtomic() override;
 
-            int StreamAtomic(size_t which) override;
+        int StreamAtomic(size_t which) override;
 
-            bool PlayAtomic() override;
+        bool PlayAtomic() override;
 
-            void PauseAtomic() override;
+        void PauseAtomic() override;
 
-            void ResumeAtomic() override;
+        void ResumeAtomic() override;
 
-            void FreeBuffer() override;
+        void FreeBuffer() override;
     };
-}
+} // namespace love

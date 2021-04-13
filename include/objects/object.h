@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/type.h"
 #include "common/strongref.h"
+#include "common/type.h"
 
 #include <atomic>
 
@@ -9,22 +9,22 @@ namespace love
 {
     class Object
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            Object();
+        Object();
 
-            Object(const Object & other);
+        Object(const Object& other);
 
-            virtual ~Object() = 0;
+        virtual ~Object() = 0;
 
-            void Retain();
+        void Retain();
 
-            int GetReferenceCount() const;
+        int GetReferenceCount() const;
 
-            void Release();
+        void Release();
 
-        private:
-            std::atomic<int> count;
+      private:
+        std::atomic<int> count;
     };
-}
+} // namespace love

@@ -4,20 +4,20 @@ using namespace love;
 
 /* libvorbis callbacks */
 
-static int vorbisClose(void * data)
+static int vorbisClose(void* data)
 {
     /* Handled elsewhere */
 
     return 1;
 }
 
-static size_t vorbisRead(void * data, size_t byteSize, size_t readSize, void * source)
+static size_t vorbisRead(void* data, size_t byteSize, size_t readSize, void* source)
 {
-    size_t spaceUntilEOF = 0;
+    size_t spaceUntilEOF  = 0;
     size_t actualSizeRead = 0;
 
-    VorbisDecoder::OggFile * vorbisData = (VorbisDecoder::OggFile *)source;
-    spaceUntilEOF = vorbisData->size - vorbisData->read;
+    VorbisDecoder::OggFile* vorbisData = (VorbisDecoder::OggFile*)source;
+    spaceUntilEOF                      = vorbisData->size - vorbisData->read;
 
     if ((readSize * byteSize) < spaceUntilEOF)
         actualSizeRead = (readSize * byteSize);
@@ -26,20 +26,20 @@ static size_t vorbisRead(void * data, size_t byteSize, size_t readSize, void * s
 
     if (actualSizeRead)
     {
-        memcpy(data, (const char * )vorbisData->data + vorbisData->read, actualSizeRead);
+        memcpy(data, (const char*)vorbisData->data + vorbisData->read, actualSizeRead);
         vorbisData->read += (actualSizeRead);
     }
 
     return actualSizeRead;
 }
 
-static int vorbisSeek(void * source, ogg_int64_t offset, int whence)
+static int vorbisSeek(void* source, ogg_int64_t offset, int whence)
 {
     int64_t spaceUntilEOF;
     int64_t actualOffset;
-    VorbisDecoder::OggFile * vorbisData;
+    VorbisDecoder::OggFile* vorbisData;
 
-    vorbisData = (VorbisDecoder::OggFile *)source;
+    vorbisData = (VorbisDecoder::OggFile*)source;
 
     switch (whence)
     {
@@ -76,25 +76,24 @@ static int vorbisSeek(void * source, ogg_int64_t offset, int whence)
     return 0;
 }
 
-static long vorbisTell(void * source)
+static long vorbisTell(void* source)
 {
-    VorbisDecoder::OggFile * vorbisData;
-    vorbisData = (VorbisDecoder::OggFile *)source;
+    VorbisDecoder::OggFile* vorbisData;
+    vorbisData = (VorbisDecoder::OggFile*)source;
 
     return vorbisData->read;
 }
 
 /* VorbisDecoder */
 
-VorbisDecoder::VorbisDecoder(Data * data, int bufferSize) : Decoder(data, bufferSize),
-                                                            duration(-2.0)
+VorbisDecoder::VorbisDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize), duration(-2.0)
 {
     this->callbacks.close_func = vorbisClose;
     this->callbacks.seek_func  = vorbisSeek;
     this->callbacks.read_func  = vorbisRead;
     this->callbacks.tell_func  = vorbisTell;
 
-    this->file.data = (const char *)data->GetData();
+    this->file.data = (const char*)data->GetData();
     this->file.size = data->GetSize();
     this->file.read = 0;
 
@@ -102,7 +101,7 @@ VorbisDecoder::VorbisDecoder(Data * data, int bufferSize) : Decoder(data, buffer
     if ((success = ov_open_callbacks(&this->file, &this->handle, NULL, 0, this->callbacks)) < 0)
         throw love::Exception("Could not read Ogg bitstream (error: %d).", success);
 
-    this->info = ov_info(&this->handle, -1);
+    this->info    = ov_info(&this->handle, -1);
     this->comment = ov_comment(&this->handle, -1);
 }
 
@@ -111,12 +110,9 @@ VorbisDecoder::~VorbisDecoder()
     ov_clear(&this->handle);
 }
 
-bool VorbisDecoder::Accepts(const std::string & extension)
+bool VorbisDecoder::Accepts(const std::string& extension)
 {
-    static const std::string supported[] =
-    {
-        "ogg", "oga", "ogv", ""
-    };
+    static const std::string supported[] = { "ogg", "oga", "ogv", "" };
 
     for (size_t i = 0; !(supported[i].empty()); i++)
     {
@@ -127,24 +123,25 @@ bool VorbisDecoder::Accepts(const std::string & extension)
     return false;
 }
 
-Decoder * VorbisDecoder::Clone()
+Decoder* VorbisDecoder::Clone()
 {
     return new VorbisDecoder(this->data.Get(), this->bufferSize);
 }
 
 int VorbisDecoder::Decode()
 {
-    return this->Decode((s16 *)this->buffer);
+    return this->Decode((s16*)this->buffer);
 }
 
-int VorbisDecoder::Decode(s16 * buffer)
+int VorbisDecoder::Decode(s16* buffer)
 {
-    int size = 0;
+    int size      = 0;
     int bitstream = 0;
 
     while (size < this->bufferSize)
     {
-        long result = ov_read(&this->handle, (char *)buffer + size, this->bufferSize - size, &bitstream);
+        long result =
+            ov_read(&this->handle, (char*)buffer + size, this->bufferSize - size, &bitstream);
 
         if (result == OV_HOLE)
             continue;

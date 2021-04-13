@@ -1,14 +1,14 @@
 #pragma once
 
 #define _USE_MATH_DEFINES
-#include <math.h>
-#include <cstdlib> // for rand() and RAND_MAX
 #include <algorithm>
+#include <cstdlib> // for rand() and RAND_MAX
+#include <math.h>
 
-#define LOVE_M_TORAD	(float)(M_PI / 180.0f)
-#define LOVE_M_TODEG    (float)(180.0f / M_PI)
-#define LOVE_TORAD(x)	(float)(x * LOVE_M_TORAD)
-#define LOVE_TODEG(x)	(float)(x * LOVE_M_TODEG)
+#define LOVE_M_TORAD  (float)(M_PI / 180.0f)
+#define LOVE_M_TODEG  (float)(180.0f / M_PI)
+#define LOVE_TORAD(x) (float)(x * LOVE_M_TORAD)
+#define LOVE_TODEG(x) (float)(x * LOVE_M_TODEG)
 
 namespace love
 {
@@ -17,10 +17,9 @@ namespace love
         int x, y;
         int w, h;
 
-        bool operator == (const Rect & rhs) const
+        bool operator==(const Rect& rhs) const
         {
-            return x == rhs.x && y == rhs.y &&
-                   w == rhs.w && h == rhs.h;
+            return x == rhs.x && y == rhs.y && w == rhs.w && h == rhs.h;
         }
     };
 
@@ -44,4 +43,4 @@ namespace love
 
         return std::clamp(in, LOVE_MIN_TEX, LOVE_MAX_TEX);
     }
-}
+} // namespace love

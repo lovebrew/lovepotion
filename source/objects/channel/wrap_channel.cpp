@@ -2,9 +2,9 @@
 
 using namespace love;
 
-int Wrap_Channel::Push(lua_State * L)
+int Wrap_Channel::Push(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
 
     Luax::CatchException(L, [&]() {
         Variant var = Variant::FromLua(L, 2);
@@ -20,10 +20,10 @@ int Wrap_Channel::Push(lua_State * L)
     return 1;
 }
 
-int Wrap_Channel::Supply(lua_State * L)
+int Wrap_Channel::Supply(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
-    bool result = false;
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
+    bool result   = false;
 
     Luax::CatchException(L, [&]() {
         Variant var = Variant::FromLua(L, 2);
@@ -42,9 +42,9 @@ int Wrap_Channel::Supply(lua_State * L)
     return 1;
 }
 
-int Wrap_Channel::Pop(lua_State * L)
+int Wrap_Channel::Pop(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
     Variant var;
 
     if (self->Pop(&var))
@@ -55,9 +55,9 @@ int Wrap_Channel::Pop(lua_State * L)
     return 1;
 }
 
-int Wrap_Channel::Demand(lua_State * L)
+int Wrap_Channel::Demand(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
     Variant var;
     bool result = false;
 
@@ -74,9 +74,9 @@ int Wrap_Channel::Demand(lua_State * L)
     return 1;
 }
 
-int Wrap_Channel::Peek(lua_State * L)
+int Wrap_Channel::Peek(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
     Variant var;
 
     if (self->Peek(&var))
@@ -87,37 +87,37 @@ int Wrap_Channel::Peek(lua_State * L)
     return 1;
 }
 
-int Wrap_Channel::GetCount(lua_State * L)
+int Wrap_Channel::GetCount(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
 
     lua_pushnumber(L, self->GetCount());
 
     return 1;
 }
 
-int Wrap_Channel::HasRead(lua_State * L)
+int Wrap_Channel::HasRead(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
-    uint64_t id = (uint64_t)luaL_checknumber(L, 2);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
+    uint64_t id   = (uint64_t)luaL_checknumber(L, 2);
 
     lua_pushboolean(L, self->HasRead(id));
 
     return 1;
 }
 
-int Wrap_Channel::Clear(lua_State * L)
+int Wrap_Channel::Clear(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
 
     self->Clear();
 
     return 0;
 }
 
-int love::Wrap_Channel_PerformAtomic(lua_State * L)
+int love::Wrap_Channel_PerformAtomic(lua_State* L)
 {
-    Channel * self = Wrap_Channel::CheckChannel(L, 1);
+    Channel* self = Wrap_Channel::CheckChannel(L, 1);
     luaL_checktype(L, 2, LUA_TFUNCTION);
 
     // Pass our channel to function arg
@@ -128,7 +128,7 @@ int love::Wrap_Channel_PerformAtomic(lua_State * L)
 
     // Call the function with our channel and args
     int numargs = lua_gettop(L) - 2;
-    int error = lua_pcall(L, numargs, LUA_MULTRET, 0);
+    int error   = lua_pcall(L, numargs, LUA_MULTRET, 0);
 
     self->UnlockMutex();
 
@@ -138,26 +138,23 @@ int love::Wrap_Channel_PerformAtomic(lua_State * L)
     return lua_gettop(L) - 1;
 }
 
-Channel * Wrap_Channel::CheckChannel(lua_State * L, int index)
+Channel* Wrap_Channel::CheckChannel(lua_State* L, int index)
 {
     return Luax::CheckType<Channel>(L, index);
 }
 
-int Wrap_Channel::Register(lua_State * L)
+int Wrap_Channel::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "push",          Push                             },
-        { "supply",        Supply                           },
-        { "pop",           Pop                              },
-        { "demand",        Demand                           },
-        { "peek",          Peek                             },
-        { "getCount",      GetCount                         },
-        { "hasRead",       HasRead                          },
-        { "clear",         Clear                            },
-        { "performAtomic", love::Wrap_Channel_PerformAtomic },
-        { 0,               0                                }
-    };
+    luaL_Reg reg[] = { { "push", Push },
+                       { "supply", Supply },
+                       { "pop", Pop },
+                       { "demand", Demand },
+                       { "peek", Peek },
+                       { "getCount", GetCount },
+                       { "hasRead", HasRead },
+                       { "clear", Clear },
+                       { "performAtomic", love::Wrap_Channel_PerformAtomic },
+                       { 0, 0 } };
 
     return Luax::RegisterType(L, &Channel::type, reg, nullptr);
 }

@@ -6,9 +6,9 @@ namespace love
 {
     class Event : public common::Event
     {
-        public:
-            Event();
+      public:
+        Event();
 
-            virtual ~Event();
+        virtual ~Event();
     };
-}
+} // namespace love

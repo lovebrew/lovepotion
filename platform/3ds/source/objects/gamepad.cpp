@@ -32,7 +32,7 @@ bool Gamepad::Open(size_t index)
 void Gamepad::Close()
 {
     this->instanceID = -1;
-    this->vibration = Vibration();
+    this->vibration  = Vibration();
 }
 
 bool Gamepad::IsConnected() const
@@ -40,7 +40,7 @@ bool Gamepad::IsConnected() const
     return true;
 }
 
-const char * Gamepad::GetName() const
+const char* Gamepad::GetName() const
 {
     return this->name.c_str();
 }
@@ -98,10 +98,10 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 5)
     {
-    //    if (Input::GetKeyHeld<u32>() & KEY_ZL)
-    //         return 1.0f;
-    //     else if (Input::GetKeyUp<u32>() & KEY_ZL)
-    //         return 0.0f;
+        //    if (Input::GetKeyHeld<u32>() & KEY_ZL)
+        //         return 1.0f;
+        //     else if (Input::GetKeyUp<u32>() & KEY_ZL)
+        //         return 0.0f;
     }
     else if (axis == 6)
     {
@@ -157,7 +157,7 @@ std::vector<float> Gamepad::GetAxes() const
     return axes;
 }
 
-bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
+bool Gamepad::IsDown(const std::vector<size_t>& buttons) const
 {
     size_t buttonCount = this->GetButtonCount();
 
@@ -174,7 +174,7 @@ bool Gamepad::IsDown(const std::vector<size_t> & buttons) const
 
 float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
 {
-    const char * name = nullptr;
+    const char* name = nullptr;
     if (!common::Gamepad::GetConstant(axis, name))
         return 0.0f;
 
@@ -195,7 +195,7 @@ float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
     return 0.0f;
 }
 
-bool Gamepad::IsGamepadDown(const std::vector<GamepadButton> & buttons) const
+bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
     int32_t consoleButton = -1;
     for (GamepadButton button : buttons)
@@ -226,39 +226,40 @@ bool Gamepad::SetVibration()
     return false;
 }
 
-void Gamepad::GetVibration(float & left, float & right)
+void Gamepad::GetVibration(float& left, float& right)
 {
-    left = 0.0f;
+    left  = 0.0f;
     right = 0.0f;
 }
 
-bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton & out)
+bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton& out)
 {
     return buttons.Find(in, out);
 }
 
-bool Gamepad::GetConstant(Gamepad::GamepadButton in, int32_t & out)
+bool Gamepad::GetConstant(Gamepad::GamepadButton in, int32_t& out)
 {
     return buttons.Find(in, out);
 }
 
-EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM>::Entry Gamepad::buttonEntries[] =
-{
-    { Gamepad::GAMEPAD_BUTTON_A,             KEY_A      },
-    { Gamepad::GAMEPAD_BUTTON_B,             KEY_B      },
-    { Gamepad::GAMEPAD_BUTTON_X,             KEY_X      },
-    { Gamepad::GAMEPAD_BUTTON_Y,             KEY_Y      },
-    { Gamepad::GAMEPAD_BUTTON_BACK,          KEY_SELECT },
-    { Gamepad::GAMEPAD_BUTTON_GUIDE,         -1         },
-    { Gamepad::GAMEPAD_BUTTON_START,         KEY_START  },
-    { Gamepad::GAMEPAD_BUTTON_LEFTSTICK,     -1         }, //< left stick click doesn't exist
-    { Gamepad::GAMEPAD_BUTTON_RIGHTSTICK,    -1         }, //< right stick click doesn't exist
-    { Gamepad::GAMEPAD_BUTTON_LEFTSHOULDER,  KEY_L      },
-    { Gamepad::GAMEPAD_BUTTON_RIGHTSHOULDER, KEY_R      },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_UP,       KEY_DUP    },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_DOWN,     KEY_DDOWN  },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_LEFT,     KEY_DLEFT  },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_RIGHT,    KEY_DRIGHT },
-};
+EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM>::Entry
+    Gamepad::buttonEntries[] = {
+        { Gamepad::GAMEPAD_BUTTON_A, KEY_A },
+        { Gamepad::GAMEPAD_BUTTON_B, KEY_B },
+        { Gamepad::GAMEPAD_BUTTON_X, KEY_X },
+        { Gamepad::GAMEPAD_BUTTON_Y, KEY_Y },
+        { Gamepad::GAMEPAD_BUTTON_BACK, KEY_SELECT },
+        { Gamepad::GAMEPAD_BUTTON_GUIDE, -1 },
+        { Gamepad::GAMEPAD_BUTTON_START, KEY_START },
+        { Gamepad::GAMEPAD_BUTTON_LEFTSTICK, -1 },  //< left stick click doesn't exist
+        { Gamepad::GAMEPAD_BUTTON_RIGHTSTICK, -1 }, //< right stick click doesn't exist
+        { Gamepad::GAMEPAD_BUTTON_LEFTSHOULDER, KEY_L },
+        { Gamepad::GAMEPAD_BUTTON_RIGHTSHOULDER, KEY_R },
+        { Gamepad::GAMEPAD_BUTTON_DPAD_UP, KEY_DUP },
+        { Gamepad::GAMEPAD_BUTTON_DPAD_DOWN, KEY_DDOWN },
+        { Gamepad::GAMEPAD_BUTTON_DPAD_LEFT, KEY_DLEFT },
+        { Gamepad::GAMEPAD_BUTTON_DPAD_RIGHT, KEY_DRIGHT },
+    };
 
-EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM> Gamepad::buttons(Gamepad::buttonEntries, sizeof(Gamepad::buttonEntries));
+EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM> Gamepad::buttons(
+    Gamepad::buttonEntries, sizeof(Gamepad::buttonEntries));

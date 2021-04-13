@@ -2,7 +2,7 @@
 
 using namespace love;
 
-int Wrap_Drawable::Register(lua_State * L)
+int Wrap_Drawable::Register(lua_State* L)
 {
     return Luax::RegisterType(L, &Drawable::type, nullptr);
 }

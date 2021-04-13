@@ -10,29 +10,29 @@ namespace love::driver
 {
     class Hidrv : public common::driver::Hidrv
     {
-        public:
-            Hidrv();
+      public:
+        Hidrv();
 
-            bool Poll(LOVE_Event * event) override;
+        bool Poll(LOVE_Event* event) override;
 
-            bool IsDown(size_t button) override;
+        bool IsDown(size_t button) override;
 
-        private:
-            void CheckFocus();
+      private:
+        void CheckFocus();
 
-            static constexpr int MAX_TOUCHES = 16;
+        static constexpr int MAX_TOUCHES = 16;
 
-            HidAnalogStickState sticks[2];
-            HidAnalogStickState oldSticks[2];
+        HidAnalogStickState sticks[2];
+        HidAnalogStickState oldSticks[2];
 
-            HidTouchScreenState touchState;
+        HidTouchScreenState touchState;
 
-            std::array<HidTouchState, MAX_TOUCHES> stateTouches;
-            std::array<HidTouchState, MAX_TOUCHES> oldStateTouches;
+        std::array<HidTouchState, MAX_TOUCHES> stateTouches;
+        std::array<HidTouchState, MAX_TOUCHES> oldStateTouches;
 
-            PadState currentPad;
-            size_t currentPadIndex;
+        PadState currentPad;
+        size_t currentPadIndex;
 
-            int prevTouchCount;
+        int prevTouchCount;
     };
-}
+} // namespace love::driver

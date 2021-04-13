@@ -10,7 +10,7 @@ love::common::Event::Event()
     this->driver = std::make_unique<love::driver::Hidrv>();
 }
 
-std::unique_ptr<love::driver::Hidrv> & love::common::Event::GetDriver()
+std::unique_ptr<love::driver::Hidrv>& love::common::Event::GetDriver()
 {
     return this->driver;
 }
@@ -21,7 +21,7 @@ void love::common::Event::Pump()
 
     while (this->driver->Poll(&event))
     {
-        Message * message = this->Convert(event);
+        Message* message = this->Convert(event);
 
         if (message)
         {
@@ -31,16 +31,16 @@ void love::common::Event::Pump()
     }
 }
 
-love::Message * love::common::Event::Convert(const Hidrv::LOVE_Event & event)
+love::Message* love::common::Event::Convert(const Hidrv::LOVE_Event& event)
 {
-    Message * message = nullptr;
+    Message* message = nullptr;
 
     std::vector<Variant> vargs;
     vargs.reserve(4);
 
-    const char * text = nullptr;
+    const char* text = nullptr;
 
-    Touch * touchModule = nullptr;
+    Touch* touchModule = nullptr;
     Touch::TouchInfo touchinfo;
 
     switch (event.type)
@@ -49,19 +49,19 @@ love::Message * love::common::Event::Convert(const Hidrv::LOVE_Event & event)
         case Hidrv::TYPE_TOUCHRELEASE:
         case Hidrv::TYPE_TOUCHMOVED:
         {
-            touchinfo.id = (int64_t)event.touch.id;
-            touchinfo.x = event.touch.x;
-            touchinfo.y = event.touch.y;
-            touchinfo.dx = event.touch.dx;
-            touchinfo.dy = event.touch.dy;
+            touchinfo.id       = (int64_t)event.touch.id;
+            touchinfo.x        = event.touch.x;
+            touchinfo.y        = event.touch.y;
+            touchinfo.dx       = event.touch.dx;
+            touchinfo.dy       = event.touch.dy;
             touchinfo.pressure = event.touch.pressure;
 
-            touchModule = (Touch *)Module::GetInstance<Touch>(M_TOUCH);
+            touchModule = (Touch*)Module::GetInstance<Touch>(M_TOUCH);
 
             if (touchModule)
                 touchModule->OnEvent(event.type, touchinfo);
 
-            vargs.emplace_back((void *)(intptr_t)touchinfo.id);
+            vargs.emplace_back((void*)(intptr_t)touchinfo.id);
             vargs.emplace_back((float)touchinfo.x);
             vargs.emplace_back((float)touchinfo.y);
             vargs.emplace_back((float)touchinfo.dx);
@@ -102,26 +102,26 @@ love::Message * love::common::Event::Convert(const Hidrv::LOVE_Event & event)
     return message;
 }
 
-love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Event & event) const
+love::Message* love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Event& event) const
 {
     auto joyModule = Module::GetInstance<Joystick>(M_JOYSTICK);
 
     if (!joyModule)
         return nullptr;
 
-    Message * message = nullptr;
+    Message* message = nullptr;
 
     std::vector<Variant> vargs;
     vargs.reserve(4);
 
-    love::Type * joystickType = &Gamepad::type;
+    love::Type* joystickType = &Gamepad::type;
 
-    love::Gamepad * stick = nullptr;
+    love::Gamepad* stick = nullptr;
 
     love::Gamepad::GamepadButton padButton;
     love::Gamepad::GamepadAxis padAxis;
 
-    const char * text = nullptr;
+    const char* text = nullptr;
 
     switch (event.type)
     {
@@ -142,7 +142,9 @@ love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Even
             vargs.emplace_back(joystickType, stick);
             vargs.emplace_back(text, strlen(text));
 
-            message = new Message((event.type == Hidrv::TYPE_GAMEPADDOWN) ? "gamepadpressed" : "gamepadreleased", vargs);
+            message = new Message((event.type == Hidrv::TYPE_GAMEPADDOWN) ? "gamepadpressed"
+                                                                          : "gamepadreleased",
+                                  vargs);
 
             break;
         }
@@ -201,14 +203,14 @@ love::Message * love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Even
     return message;
 }
 
-love::Message * love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event & event)
+love::Message* love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event& event)
 {
-    Message * message = nullptr;
+    Message* message = nullptr;
 
     std::vector<Variant> vargs;
     vargs.reserve(4);
 
-    Window * windowModule = nullptr;
+    Window* windowModule = nullptr;
 
     switch (event.subType)
     {
@@ -246,11 +248,12 @@ love::Message * love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event 
 }
 
 /* potentially useless? */
-void love::common::Event::ExceptionIfInRenderPass(const char * name)
+void love::common::Event::ExceptionIfInRenderPass(const char* name)
 {
     auto gfx = Module::GetInstance<Graphics>(M_GRAPHICS);
     if (gfx != nullptr && gfx->IsCanvasActive())
-        throw love::Exception("%s cannot be called while a Canvas is active in love.graphics.", name);
+        throw love::Exception("%s cannot be called while a Canvas is active in love.graphics.",
+                              name);
 }
 
 void love::common::Event::InternalClear()
@@ -276,7 +279,7 @@ void love::common::Event::Clear()
     }
 }
 
-bool love::common::Event::Poll(Message *& message)
+bool love::common::Event::Poll(Message*& message)
 {
     thread::Lock lock(this->mutex);
 
@@ -289,7 +292,7 @@ bool love::common::Event::Poll(Message *& message)
     return true;
 };
 
-void love::common::Event::Push(Message * message)
+void love::common::Event::Push(Message* message)
 {
     thread::Lock lock(this->mutex);
 
@@ -297,7 +300,7 @@ void love::common::Event::Push(Message * message)
     this->queue.push(message);
 }
 
-love::Message * love::common::Event::Wait()
+love::Message* love::common::Event::Wait()
 {
     Hidrv::LOVE_Event event;
 

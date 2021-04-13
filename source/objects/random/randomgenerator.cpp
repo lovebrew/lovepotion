@@ -1,7 +1,7 @@
 #include "objects/random/randomgenerator.h"
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 using namespace love;
 
@@ -44,7 +44,7 @@ double RandomGenerator::RandomNormal(double stddev)
 {
     if (this->lastRandomNormal != std::numeric_limits<double>::infinity())
     {
-        double random = this->lastRandomNormal;
+        double random          = this->lastRandomNormal;
         this->lastRandomNormal = std::numeric_limits<double>::infinity();
 
         return random * stddev;
@@ -67,7 +67,7 @@ void RandomGenerator::SetSeed(Seed newSeed)
         newSeed.b64 = wangHash64(newSeed.b64);
     } while (newSeed.b64 == 0);
 
-    this->state = newSeed;
+    this->state            = newSeed;
     this->lastRandomNormal = std::numeric_limits<double>::infinity();
 }
 
@@ -76,7 +76,7 @@ RandomGenerator::Seed RandomGenerator::GetSeed() const
     return this->seed;
 }
 
-void RandomGenerator::SetState(const std::string & stateString)
+void RandomGenerator::SetState(const std::string& stateString)
 {
     // For this implementation we'll accept a hex string representing the
     // 64-bit state integer xorshift uses.
@@ -87,14 +87,14 @@ void RandomGenerator::SetState(const std::string & stateString)
         throw love::Exception("Invalid random state: %s", stateString.c_str());
 
     Seed state = {};
-    char * end = nullptr;
+    char* end  = nullptr;
 
     this->state.b64 = strtoull(stateString.c_str(), &end, 16);
 
     if (end != nullptr && *end != 0)
         throw love::Exception("Invalid random state: %s", stateString.c_str());
 
-    this->state = state;
+    this->state            = state;
     this->lastRandomNormal = std::numeric_limits<double>::infinity();
 }
 

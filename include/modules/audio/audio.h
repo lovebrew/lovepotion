@@ -3,8 +3,8 @@
 #include "common/module.h"
 #include "objects/source/source.h"
 
-#include "modules/thread/types/threadable.h"
 #include "modules/audio/pool/pool.h"
+#include "modules/thread/types/threadable.h"
 
 #include "driver/audiodrv.h"
 #include <memory>
@@ -13,70 +13,76 @@ namespace love
 {
     class Audio : public Module
     {
-        public:
-            ModuleType GetModuleType() const { return M_AUDIO; }
+      public:
+        ModuleType GetModuleType() const
+        {
+            return M_AUDIO;
+        }
 
-            const char * GetName() const override { return "love.audio"; }
+        const char* GetName() const override
+        {
+            return "love.audio";
+        }
 
-            Audio();
+        Audio();
 
-            virtual ~Audio();
+        virtual ~Audio();
 
-            int GetActiveSourceCount() const;
+        int GetActiveSourceCount() const;
 
-            int GetMaxSources() const;
+        int GetMaxSources() const;
 
-            Source * NewSource(SoundData * data);
+        Source* NewSource(SoundData* data);
 
-            Source * NewSource(Decoder * decoder);
+        Source* NewSource(Decoder* decoder);
 
-            bool Play(Source * source);
+        bool Play(Source* source);
 
-            bool Play(const std::vector<Source *> & sources);
+        bool Play(const std::vector<Source*>& sources);
 
-            void Stop(Source * source);
+        void Stop(Source* source);
 
-            void Stop(const std::vector<Source *> & sources);
+        void Stop(const std::vector<Source*>& sources);
 
-            void Stop();
+        void Stop();
 
-            void Pause(Source * source);
+        void Pause(Source* source);
 
-            void Pause (const std::vector<Source *> & sources);
+        void Pause(const std::vector<Source*>& sources);
 
-            std::vector<Source *> Pause();
+        std::vector<Source*> Pause();
 
-            // void Pause();
+        // void Pause();
 
-            void SetVolume(float volume);
+        void SetVolume(float volume);
 
-            float GetVolume() const;
+        float GetVolume() const;
 
-            std::unique_ptr<driver::Audrv> & GetDriver();
+        std::unique_ptr<driver::Audrv>& GetDriver();
 
-        private:
-            std::unique_ptr<driver::Audrv> driver;
+      private:
+        std::unique_ptr<driver::Audrv> driver;
 
-            Pool * pool;
+        Pool* pool;
 
-            class PoolThread : public Threadable
-            {
-                public:
-                    PoolThread(Pool * pool);
+        class PoolThread : public Threadable
+        {
+          public:
+            PoolThread(Pool* pool);
 
-                    virtual ~PoolThread();
+            virtual ~PoolThread();
 
-                    void SetFinish();
+            void SetFinish();
 
-                    void ThreadFunction();
+            void ThreadFunction();
 
-                protected:
-                    Pool * pool;
-                    std::atomic<bool> finish;
-            };
+          protected:
+            Pool* pool;
+            std::atomic<bool> finish;
+        };
 
-            float volume = 1.0f;
+        float volume = 1.0f;
 
-            PoolThread * poolThread;
+        PoolThread* poolThread;
     };
-}
+} // namespace love

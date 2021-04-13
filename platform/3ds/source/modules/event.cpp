@@ -7,7 +7,7 @@ static aptHookCookie s_aptHookCookie;
 
 #define Instance() (love::Module::GetInstance<love::Event>(love::Module::M_EVENT))
 
-static void aptEventHook(const APT_HookType type, void * param)
+static void aptEventHook(const APT_HookType type, void* param)
 {
     switch (type)
     {

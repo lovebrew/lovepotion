@@ -6,17 +6,18 @@ namespace love
 {
     class Debugger : public common::Debugger
     {
-        public:
-            static Debugger & Instance() {
-                static Debugger instance;
-                return instance;
-            }
+      public:
+        static Debugger& Instance()
+        {
+            static Debugger instance;
+            return instance;
+        }
 
-            ~Debugger();
+        ~Debugger();
 
-        private:
-            int sockfd;
+      private:
+        int sockfd;
 
-            Debugger();
+        Debugger();
     };
-}
+} // namespace love

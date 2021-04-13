@@ -1,9 +1,9 @@
 #include "common/luax.h"
 #include "modules/love.h"
 
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds.h>
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch.h>
 #endif
 
@@ -15,32 +15,31 @@ enum DoneAction
 
 static bool IsApplicationType()
 {
-    #if defined (__SWITCH__)
-        /* check for applet type */
+#if defined(__SWITCH__)
+    /* check for applet type */
 
-        AppletType type = appletGetAppletType();
+    AppletType type = appletGetAppletType();
 
-        bool isApplication = (type == AppletType_Application ||
-                              type == AppletType_SystemApplication);
+    bool isApplication = (type == AppletType_Application || type == AppletType_SystemApplication);
 
-        if (isApplication)
-            return true;
+    if (isApplication)
+        return true;
 
-        const char * TITLE_TAKEOVER_ERROR = "Please run LÖVE Potion under "
-                                            "Atmosphère title takeover.";
+    const char* TITLE_TAKEOVER_ERROR = "Please run LÖVE Potion under "
+                                       "Atmosphère title takeover.";
 
-        ErrorApplicationConfig config;
+    ErrorApplicationConfig config;
 
-        errorApplicationCreate(&config, TITLE_TAKEOVER_ERROR, NULL);
-        errorApplicationShow(&config);
+    errorApplicationCreate(&config, TITLE_TAKEOVER_ERROR, NULL);
+    errorApplicationShow(&config);
 
-        return false;
-    #endif
+    return false;
+#endif
 
     return true;
 }
 
-static int love_preload(lua_State *L, lua_CFunction f, const char *name)
+static int love_preload(lua_State* L, lua_CFunction f, const char* name)
 {
     lua_getglobal(L, "package");
     lua_getfield(L, -1, "preload");
@@ -51,10 +50,10 @@ static int love_preload(lua_State *L, lua_CFunction f, const char *name)
     return 0;
 }
 
-DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
+DoneAction Run_Love_Potion(int argc, char** argv, int& retval)
 {
     // Make a new Lua state
-    lua_State * L = luaL_newstate();
+    lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
     // preload love
@@ -102,14 +101,14 @@ DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
     */
     int stackpos = lua_gettop(L);
 
-    #if defined (_3DS)
-        while (Luax::Resume(L, 0) == LUA_YIELD && aptMainLoop())
-    #elif defined (__SWITCH__)
-        while (Luax::Resume(L, 0) == LUA_YIELD)
-    #endif
-            lua_pop(L, lua_gettop(L) - stackpos);
+#if defined(_3DS)
+    while (Luax::Resume(L, 0) == LUA_YIELD && aptMainLoop())
+#elif defined(__SWITCH__)
+    while (Luax::Resume(L, 0) == LUA_YIELD)
+#endif
+        lua_pop(L, lua_gettop(L) - stackpos);
 
-    retval = 0;
+    retval          = 0;
     DoneAction done = DONE_QUIT;
 
     // if we wish to "restart", start up again after closing
@@ -126,13 +125,13 @@ DoneAction Run_Love_Potion(int argc, char ** argv, int & retval)
     return done;
 }
 
-int main(int argc, char * argv[])
+int main(int argc, char* argv[])
 {
     if (!IsApplicationType())
         return 0;
 
     DoneAction done = DONE_QUIT;
-    int retval = 0;
+    int retval      = 0;
 
     do
     {

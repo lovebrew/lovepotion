@@ -6,14 +6,13 @@ using namespace love;
 
 love::Type Channel::type("Channel", &Object::type);
 
-Channel::Channel() : sent(0),
-                     received(0)
+Channel::Channel() : sent(0), received(0)
 {}
 
 Channel::~Channel()
 {}
 
-uint64_t Channel::_Push(const Variant & variant)
+uint64_t Channel::_Push(const Variant& variant)
 {
     this->queue.push(variant);
     condition->Broadcast();
@@ -21,14 +20,14 @@ uint64_t Channel::_Push(const Variant & variant)
     return ++sent;
 }
 
-uint64_t Channel::Push(const Variant & variant)
+uint64_t Channel::Push(const Variant& variant)
 {
     thread::Lock lock(this->mutex);
 
     return this->_Push(variant);
 }
 
-bool Channel::Supply(const Variant & variant)
+bool Channel::Supply(const Variant& variant)
 {
     thread::Lock lock(this->mutex);
     uint64_t id = this->_Push(variant);
@@ -41,7 +40,7 @@ bool Channel::Supply(const Variant & variant)
     return true;
 }
 
-bool Channel::Supply(const Variant & variant, double timeout)
+bool Channel::Supply(const Variant& variant, double timeout)
 {
     thread::Lock lock(this->mutex);
     uint64_t id = this->_Push(variant);
@@ -53,7 +52,7 @@ bool Channel::Supply(const Variant & variant, double timeout)
 
         double start = love::Timer::GetTime();
         this->condition->Wait(this->mutex, timeout);
-        double stop  = love::Timer::GetTime();
+        double stop = love::Timer::GetTime();
 
         timeout -= (stop - start);
     }
@@ -61,14 +60,14 @@ bool Channel::Supply(const Variant & variant, double timeout)
     return false;
 }
 
-bool Channel::Pop(Variant * variant)
+bool Channel::Pop(Variant* variant)
 {
     thread::Lock lock(this->mutex);
 
     return this->_Pop(variant);
 }
 
-bool Channel::_Pop(Variant * variant)
+bool Channel::_Pop(Variant* variant)
 {
     if (this->queue.empty())
         return false;
@@ -82,7 +81,7 @@ bool Channel::_Pop(Variant * variant)
     return true;
 }
 
-bool Channel::Demand(Variant * variant)
+bool Channel::Demand(Variant* variant)
 {
     thread::Lock lock(this->mutex);
 
@@ -92,7 +91,7 @@ bool Channel::Demand(Variant * variant)
     return true;
 }
 
-bool Channel::Demand(Variant * variant, double timeout)
+bool Channel::Demand(Variant* variant, double timeout)
 {
     thread::Lock lock(this->mutex);
 
@@ -103,7 +102,7 @@ bool Channel::Demand(Variant * variant, double timeout)
 
         double start = love::Timer::GetTime();
         this->condition->Wait(this->mutex, timeout * 1000);
-        double stop  = love::Timer::GetTime();
+        double stop = love::Timer::GetTime();
 
         timeout -= (stop - start);
     }
@@ -111,7 +110,7 @@ bool Channel::Demand(Variant * variant, double timeout)
     return false;
 }
 
-bool Channel::Peek(Variant * variant)
+bool Channel::Peek(Variant* variant)
 {
     thread::Lock lock(this->mutex);
 

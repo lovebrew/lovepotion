@@ -1,8 +1,8 @@
 #include "objects/texture/texture.h"
 #include "modules/graphics/graphics.h"
 
-#include "common/vector.h"
 #include "common/matrix.h"
+#include "common/vector.h"
 
 #include "deko3d/deko.h"
 
@@ -26,26 +26,26 @@ DkResHandle Texture::GetHandle()
     return this->handle;
 }
 
-bool Texture::SetWrap(const Wrap & wrap)
+bool Texture::SetWrap(const Wrap& wrap)
 {
     ::deko3d::Instance().SetTextureWrap(this, wrap);
     return true;
 }
 
-void Texture::SetFilter(const Filter & filter)
+void Texture::SetFilter(const Filter& filter)
 {
     ::deko3d::Instance().SetTextureFilter(this, filter);
 }
 
-void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
+void Texture::Draw(Graphics* gfx, const Matrix4& localTransform)
 {
     this->Draw(gfx, this->quad, localTransform);
 }
 
-void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)
+void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform)
 {
-    const Matrix4 & tm = gfx->GetTransform();
-    bool is2D = tm.IsAffine2DTransform();
+    const Matrix4& tm = gfx->GetTransform();
+    bool is2D         = tm.IsAffine2DTransform();
 
     Matrix4 t(tm, localTransform);
 
@@ -55,7 +55,8 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
     {
         Vector2 transformed[4];
         t.TransformXY(transformed, quad->GetVertexPositions(), 4);
-        points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(), points.size(), gfx->GetColor());
+        points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(),
+                                                    points.size(), gfx->GetColor());
     }
 
     ::deko3d::Instance().RenderTexture(this->handle, points.data(), 4);

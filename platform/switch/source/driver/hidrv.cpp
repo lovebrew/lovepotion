@@ -9,42 +9,40 @@ using namespace love::driver;
 
 #define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
 
-static constexpr std::array<Hidrv::ButtonMapping, 16> mappings =
-{
-    {
-        { "a", HidNpadButton_A, 1 },
-        { "b", HidNpadButton_B, 2 },
-        { "x", HidNpadButton_X, 3 },
-        { "y", HidNpadButton_Y, 4 },
+static constexpr std::array<Hidrv::ButtonMapping, 16> mappings = {
+    { { "a", HidNpadButton_A, 1 },
+      { "b", HidNpadButton_B, 2 },
+      { "x", HidNpadButton_X, 3 },
+      { "y", HidNpadButton_Y, 4 },
 
-        { "leftshoulder",  HidNpadButton_L, 5 },
-        { "rightshoulder", HidNpadButton_R, 6 },
+      { "leftshoulder", HidNpadButton_L, 5 },
+      { "rightshoulder", HidNpadButton_R, 6 },
 
-        { "back",  HidNpadButton_Minus, 7 },
-        { "start", HidNpadButton_Plus,  8 },
+      { "back", HidNpadButton_Minus, 7 },
+      { "start", HidNpadButton_Plus, 8 },
 
-        { "leftstick",  HidNpadButton_StickL, 9  },
-        { "rightstick", HidNpadButton_StickR, 10 },
+      { "leftstick", HidNpadButton_StickL, 9 },
+      { "rightstick", HidNpadButton_StickR, 10 },
 
-        { "dpright", HidNpadButton_Right, -1 },
-        { "dpleft",  HidNpadButton_Left,  -1 },
-        { "dpup",    HidNpadButton_Up,    -1 },
-        { "dpdown",  HidNpadButton_Down,  -1 },
+      { "dpright", HidNpadButton_Right, -1 },
+      { "dpleft", HidNpadButton_Left, -1 },
+      { "dpup", HidNpadButton_Up, -1 },
+      { "dpdown", HidNpadButton_Down, -1 },
 
-        { "leftshoulder",  HidNpadButton_AnySL, 5 },
-        { "rightshoulder", HidNpadButton_AnySR, 6 }
-    }
+      { "leftshoulder", HidNpadButton_AnySL, 5 },
+      { "rightshoulder", HidNpadButton_AnySR, 6 } }
 };
 
 #include "common/debug/logger.h"
 
-Hidrv::Hidrv() : sticks{},
-                 oldSticks{},
-                 touchState{},
-                 oldStateTouches{},
-                 currentPad{},
-                 currentPadIndex(0),
-                 prevTouchCount(0)
+Hidrv::Hidrv() :
+    sticks {},
+    oldSticks {},
+    touchState {},
+    oldStateTouches {},
+    currentPad {},
+    currentPadIndex(0),
+    prevTouchCount(0)
 {}
 
 bool Hidrv::IsDown(size_t button)
@@ -58,7 +56,7 @@ void Hidrv::CheckFocus()
     bool focused = (appletGetFocusState() == AppletFocusState_InFocus);
 
     uint32_t message = 0;
-    Result res = appletGetMessage(&message);
+    Result res       = appletGetMessage(&message);
 
     if (R_SUCCEEDED(res))
     {
@@ -75,7 +73,7 @@ void Hidrv::CheckFocus()
             case AppletMessage_FocusStateChanged:
             {
 
-                bool oldFocus = focused;
+                bool oldFocus          = focused;
                 AppletFocusState state = appletGetFocusState();
 
                 focused = (state == AppletFocusState_InFocus);
@@ -109,7 +107,7 @@ void Hidrv::CheckFocus()
     }
 }
 
-bool Hidrv::Poll(LOVE_Event * event)
+bool Hidrv::Poll(LOVE_Event* event)
 {
     if (!this->events.empty())
     {
@@ -131,8 +129,8 @@ bool Hidrv::Poll(LOVE_Event * event)
     if (this->currentPadIndex > 3)
         this->currentPadIndex = 0;
 
-    Gamepad * gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
-    bool connected = false;
+    Gamepad* gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
+    bool connected   = false;
 
     if (gamepad != nullptr)
     {
@@ -146,11 +144,11 @@ bool Hidrv::Poll(LOVE_Event * event)
         /* connection status changed */
         if (connected != initialStatus)
         {
-            auto & newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
             newEvent.type = (connected) ? TYPE_GAMEPADADDED : TYPE_GAMEPADREMOVED;
 
-            newEvent.padStatus.which = gamepad->GetID();
+            newEvent.padStatus.which     = gamepad->GetID();
             newEvent.padStatus.connected = connected;
         }
     }
@@ -163,19 +161,21 @@ bool Hidrv::Poll(LOVE_Event * event)
     {
         for (int id = 0; id < touchCount; id++)
         {
-            auto & newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
             if (touchCount > this->prevTouchCount && id >= this->prevTouchCount)
             {
-                this->stateTouches[id]    = this->touchState.touches[id]; //< read the touches
-                this->oldStateTouches[id] = this->stateTouches[id]; //< set old touches to newly read ones
+                this->stateTouches[id] = this->touchState.touches[id]; //< read the touches
+                this->oldStateTouches[id] =
+                    this->stateTouches[id]; //< set old touches to newly read ones
 
                 newEvent.type = TYPE_TOUCHPRESS;
             }
             else
             {
-                this->oldStateTouches[id] = this->stateTouches[id]; //< set old touches to currently read ones
-                this->stateTouches[id]    = this->touchState.touches[id]; //< read the touches
+                this->oldStateTouches[id] =
+                    this->stateTouches[id]; //< set old touches to currently read ones
+                this->stateTouches[id] = this->touchState.touches[id]; //< read the touches
 
                 newEvent.type = TYPE_TOUCHMOVED;
             }
@@ -202,15 +202,15 @@ bool Hidrv::Poll(LOVE_Event * event)
     {
         for (int id = 0; id < prevTouchCount; ++id)
         {
-            auto & newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
             newEvent.type = TYPE_TOUCHRELEASE;
 
-            newEvent.touch.id = id;
-            newEvent.touch.x = this->stateTouches[id].x;
-            newEvent.touch.y = this->stateTouches[id].y;
-            newEvent.touch.dx = 0.0f;
-            newEvent.touch.dy = 0.0f;
+            newEvent.touch.id       = id;
+            newEvent.touch.x        = this->stateTouches[id].x;
+            newEvent.touch.y        = this->stateTouches[id].y;
+            newEvent.touch.dx       = 0.0f;
+            newEvent.touch.dy       = 0.0f;
             newEvent.touch.pressure = 0.0f;
         }
     }
@@ -224,12 +224,12 @@ bool Hidrv::Poll(LOVE_Event * event)
         this->buttonStates.released = padGetButtonsUp(&this->currentPad);
         this->buttonStates.held     = padGetButtons(&this->currentPad);
 
-        for (auto & mapping : mappings)
+        for (auto& mapping : mappings)
         {
             if (this->buttonStates.pressed != this->buttonStates.oldPressed &&
-               (this->buttonStates.pressed & mapping.key))
+                (this->buttonStates.pressed & mapping.key))
             {
-                auto & newEvent = this->events.emplace_back();
+                auto& newEvent = this->events.emplace_back();
 
                 newEvent.type = TYPE_GAMEPADDOWN;
 
@@ -239,12 +239,12 @@ bool Hidrv::Poll(LOVE_Event * event)
             }
         }
 
-        for (auto & mapping : mappings)
+        for (auto& mapping : mappings)
         {
             if (this->buttonStates.released != this->buttonStates.oldReleased &&
-               (this->buttonStates.released & mapping.key))
+                (this->buttonStates.released & mapping.key))
             {
-                auto & newEvent = this->events.emplace_back();
+                auto& newEvent = this->events.emplace_back();
 
                 newEvent.type = TYPE_GAMEPADUP;
 
@@ -255,33 +255,37 @@ bool Hidrv::Poll(LOVE_Event * event)
         }
 
         /* axes */
-        if ((this->buttonStates.pressed != this->buttonStates.oldPressed && (this->buttonStates.pressed & HidNpadButton_ZL)) ||
-            (this->buttonStates.released != this->buttonStates.oldReleased && (this->buttonStates.released & HidNpadButton_ZL)))
+        if ((this->buttonStates.pressed != this->buttonStates.oldPressed &&
+             (this->buttonStates.pressed & HidNpadButton_ZL)) ||
+            (this->buttonStates.released != this->buttonStates.oldReleased &&
+             (this->buttonStates.released & HidNpadButton_ZL)))
         {
-            auto & newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
             newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which = gamepad->GetID();
-            newEvent.axis.axis  = "triggerleft";
+            newEvent.axis.which  = gamepad->GetID();
+            newEvent.axis.axis   = "triggerleft";
             newEvent.axis.number = 3;
 
-            float value = (this->buttonStates.pressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
+            float value         = (this->buttonStates.pressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         }
 
-        if ((this->buttonStates.pressed != this->buttonStates.oldPressed && (this->buttonStates.pressed & HidNpadButton_ZR)) ||
-            (this->buttonStates.released != this->buttonStates.oldReleased && (this->buttonStates.released & HidNpadButton_ZR)))
+        if ((this->buttonStates.pressed != this->buttonStates.oldPressed &&
+             (this->buttonStates.pressed & HidNpadButton_ZR)) ||
+            (this->buttonStates.released != this->buttonStates.oldReleased &&
+             (this->buttonStates.released & HidNpadButton_ZR)))
         {
-            auto & newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
             newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which = gamepad->GetID();
-            newEvent.axis.axis  = "triggerright";
+            newEvent.axis.which  = gamepad->GetID();
+            newEvent.axis.axis   = "triggerright";
             newEvent.axis.number = 6;
 
-            float value = (this->buttonStates.pressed & HidNpadButton_ZR) ? 1.0f : 0.0f;
+            float value         = (this->buttonStates.pressed & HidNpadButton_ZR) ? 1.0f : 0.0f;
             newEvent.axis.value = value;
         }
 
@@ -295,30 +299,30 @@ bool Hidrv::Poll(LOVE_Event * event)
 
             if (this->oldSticks[index].x != this->sticks[index].x)
             {
-                auto & newEvent = this->events.emplace_back();
+                auto& newEvent = this->events.emplace_back();
 
                 newEvent.type = TYPE_GAMEPADAXIS;
 
                 newEvent.axis.which = gamepad->GetID();
 
                 newEvent.axis.number = (index == 1) ? 5 : 2;
-                newEvent.axis.axis = (index == 1) ? "rightx" : "leftx";
-                newEvent.axis.value = this->sticks[index].x / JOYSTICK_MAX;
+                newEvent.axis.axis   = (index == 1) ? "rightx" : "leftx";
+                newEvent.axis.value  = this->sticks[index].x / JOYSTICK_MAX;
 
                 oldSticks[index].x = sticks[index].x;
             }
 
             if (this->oldSticks[index].y != this->sticks[index].y)
             {
-                auto & newEvent = this->events.emplace_back();
+                auto& newEvent = this->events.emplace_back();
 
                 newEvent.type = TYPE_GAMEPADAXIS;
 
                 newEvent.axis.which = gamepad->GetID();
 
                 newEvent.axis.number = (index == 1) ? 4 : 1;
-                newEvent.axis.axis = (index == 1) ? "righty" : "lefty";
-                newEvent.axis.value = -(this->sticks[index].y / JOYSTICK_MAX);
+                newEvent.axis.axis   = (index == 1) ? "righty" : "lefty";
+                newEvent.axis.value  = -(this->sticks[index].y / JOYSTICK_MAX);
 
                 oldSticks[index].y = sticks[index].y;
             }

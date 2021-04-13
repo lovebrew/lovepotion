@@ -9,33 +9,33 @@ namespace love
 {
     class Joystick : public common::Joystick
     {
-        public:
-            Joystick();
+      public:
+        Joystick();
 
-            virtual ~Joystick();
+        virtual ~Joystick();
 
-            bool AddVibration(Gamepad * gamepad, size_t id);
+        bool AddVibration(Gamepad* gamepad, size_t id);
 
-        private:
-            class VibrationThread : public Threadable
-            {
-                public:
-                    VibrationThread(VibrationPool * pool);
+      private:
+        class VibrationThread : public Threadable
+        {
+          public:
+            VibrationThread(VibrationPool* pool);
 
-                    virtual ~VibrationThread();
+            virtual ~VibrationThread();
 
-                    void SetFinish();
+            void SetFinish();
 
-                    void ThreadFunction();
+            void ThreadFunction();
 
-                protected:
-                    VibrationPool * pool;
-                    std::atomic<bool> finish;
-            };
+          protected:
+            VibrationPool* pool;
+            std::atomic<bool> finish;
+        };
 
-            std::vector<Gamepad *> vibrations;
+        std::vector<Gamepad*> vibrations;
 
-            VibrationPool * pool;
-            VibrationThread * poolThread;
+        VibrationPool* pool;
+        VibrationThread* poolThread;
     };
-}
+} // namespace love

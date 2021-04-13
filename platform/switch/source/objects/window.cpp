@@ -2,16 +2,11 @@
 
 using namespace love;
 
-#include "deko3d/deko.h"
 #include "common/exception.h"
+#include "deko3d/deko.h"
 
-static constexpr std::array<Window::DisplaySize, 2> displaySizes =
-{
-    {
-        { 1920, 1080 },
-        { 1280, 720  }
-    }
-};
+static constexpr std::array<Window::DisplaySize, 2> displaySizes = { { { 1920, 1080 },
+                                                                       { 1280, 720 } } };
 
 Window::Window() : open(false)
 {}
@@ -28,7 +23,7 @@ bool Window::SetMode()
     return this->open = true;
 }
 
-void Window::SetGraphics(Graphics * g)
+void Window::SetGraphics(Graphics* g)
 {
     this->graphics.Set(g);
 }
@@ -38,11 +33,11 @@ void Window::OnSizeChanged(int width, int height)
     if (this->graphics.Get())
         this->graphics->Resize(width, height);
 
-    const Rect newViewport = {0, 0, width, height};
+    const Rect newViewport = { 0, 0, width, height };
     ::deko3d::Instance().SetViewport(newViewport);
 }
 
-const std::array<Window::DisplaySize, 2> & Window::GetFullscreenModes()
+const std::array<Window::DisplaySize, 2>& Window::GetFullscreenModes()
 {
     return displaySizes;
 }

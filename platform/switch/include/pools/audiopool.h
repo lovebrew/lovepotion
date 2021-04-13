@@ -1,36 +1,35 @@
 #pragma once
 
-#include <switch.h>
+#include <malloc.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
+#include <switch.h>
 
 #include <utility>
-
 
 namespace AudioPool
 {
     // Initialize BASE during audio module load?
-    extern void * AUDIO_POOL_BASE;
+    extern void* AUDIO_POOL_BASE;
     inline u64 AUDIO_POOL_SIZE = 0x1000000;
 
     struct MemoryChunk
     {
-        u8 * address;
+        u8* address;
         size_t size;
     };
 
     struct MemoryBlock
     {
-        MemoryBlock * prev;
-        MemoryBlock * next;
+        MemoryBlock* prev;
+        MemoryBlock* next;
 
-        u8 * base;
+        u8* base;
         size_t size;
 
-        static MemoryBlock * Create(u8 * base, size_t size)
+        static MemoryBlock* Create(u8* base, size_t size)
         {
-            auto block = (MemoryBlock *)malloc(sizeof(MemoryBlock));
+            auto block = (MemoryBlock*)malloc(sizeof(MemoryBlock));
 
             if (!block)
                 return nullptr;
@@ -47,15 +46,15 @@ namespace AudioPool
 
     struct MemoryPool
     {
-        MemoryBlock * first;
-        MemoryBlock * last;
+        MemoryBlock* first;
+        MemoryBlock* last;
 
         bool Ready()
         {
             return first != nullptr;
         }
 
-        void AddBlock(MemoryBlock * block)
+        void AddBlock(MemoryBlock* block)
         {
             block->prev = last;
 
@@ -68,13 +67,13 @@ namespace AudioPool
             last = block;
         }
 
-        void DeleteBlock(MemoryBlock * block)
+        void DeleteBlock(MemoryBlock* block)
         {
-            auto prev = block->prev;
-            auto &pNext = (prev) ? prev->next : first;
+            auto prev   = block->prev;
+            auto& pNext = (prev) ? prev->next : first;
 
-            auto next = block->next;
-            auto &nPrev = (next) ? next->prev : last;
+            auto next   = block->next;
+            auto& nPrev = (next) ? next->prev : last;
 
             pNext = next;
             nPrev = prev;
@@ -82,10 +81,10 @@ namespace AudioPool
             free(block);
         }
 
-        void InsertBefore(MemoryBlock * b, MemoryBlock * p)
+        void InsertBefore(MemoryBlock* b, MemoryBlock* p)
         {
-            auto prev = b->prev;
-            auto &pNext = (prev) ? prev->next : first;
+            auto prev   = b->prev;
+            auto& pNext = (prev) ? prev->next : first;
 
             b->prev = p;
             p->next = b;
@@ -95,10 +94,10 @@ namespace AudioPool
             pNext = p;
         }
 
-        void InsertAfter(MemoryBlock * b, MemoryBlock * n)
+        void InsertAfter(MemoryBlock* b, MemoryBlock* n)
         {
-            auto next = b->next;
-            auto &nPrev = (next) ? next->prev : last;
+            auto next   = b->next;
+            auto& nPrev = (next) ? next->prev : last;
 
             b->next = n;
             n->prev = b;
@@ -108,14 +107,14 @@ namespace AudioPool
             nPrev = n;
         }
 
-        void CoalesceRight(MemoryBlock * block);
+        void CoalesceRight(MemoryBlock* block);
 
-        bool Allocate(MemoryChunk & chunk, size_t size);
-        void DeAllocate(u8 * address, size_t size);
+        bool Allocate(MemoryChunk& chunk, size_t size);
+        void DeAllocate(u8* address, size_t size);
 
         void Destroy()
         {
-            MemoryBlock * next = nullptr;
+            MemoryBlock* next = nullptr;
 
             for (auto block = first; block; block = next)
             {
@@ -124,7 +123,7 @@ namespace AudioPool
             }
 
             first = nullptr;
-            last = nullptr;
+            last  = nullptr;
         }
     };
 
@@ -132,7 +131,7 @@ namespace AudioPool
 
     bool Initialize();
 
-    std::pair<void *, size_t> MemoryAlign(size_t size);
+    std::pair<void*, size_t> MemoryAlign(size_t size);
 
-    void MemoryFree(const std::pair<void *, size_t> & chunk);
-}
+    void MemoryFree(const std::pair<void*, size_t>& chunk);
+} // namespace AudioPool

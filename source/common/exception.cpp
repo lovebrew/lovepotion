@@ -4,13 +4,13 @@
 
 using namespace love;
 
-Exception::Exception(const char * format, ...)
+Exception::Exception(const char* format, ...)
 {
     va_list args;
 
     int sizeBuffer = 256;
-    int sizeOut = 0;
-    char * buffer;
+    int sizeOut    = 0;
+    char* buffer;
 
     while (true)
     {

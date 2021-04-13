@@ -2,25 +2,26 @@
 
 using namespace love::common;
 
-//Löve2D Functions
+// Löve2D Functions
 
 static constexpr auto SLEEP_DURATION = 1000000ULL;
 
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds.h>
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch.h>
 #endif
 
 uint64_t Timer::reference = 0;
 
-Timer::Timer() : currentTime(0),
-                 prevFPSUpdate(0),
-                 fps(0),
-                 averageDelta(0),
-                 fpsUpdateFrequency(1),
-                 frames(0),
-                 dt(0)
+Timer::Timer() :
+    currentTime(0),
+    prevFPSUpdate(0),
+    fps(0),
+    averageDelta(0),
+    fpsUpdateFrequency(1),
+    frames(0),
+    dt(0)
 {}
 
 double Timer::GetAverageDelta()
@@ -47,7 +48,7 @@ void Timer::Sleep(float seconds)
     if (seconds >= 0)
     {
         u32 milliseconds = seconds * 1000.0f;
-        u64 nanoSeconds = milliseconds * SLEEP_DURATION;
+        u64 nanoSeconds  = milliseconds * SLEEP_DURATION;
 
         svcSleepThread(nanoSeconds);
     }
@@ -57,7 +58,7 @@ double Timer::Step()
 {
     this->frames++;
 
-    this->lastTime = this->currentTime;
+    this->lastTime    = this->currentTime;
     this->currentTime = Timer::GetTime();
 
     this->dt = this->currentTime - this->lastTime;
@@ -69,10 +70,10 @@ double Timer::Step()
 
     if (timeSinceLast > this->fpsUpdateFrequency)
     {
-        this->fps = int((this->frames / timeSinceLast) + 0.5);
-        this->averageDelta = timeSinceLast / frames;
+        this->fps           = int((this->frames / timeSinceLast) + 0.5);
+        this->averageDelta  = timeSinceLast / frames;
         this->prevFPSUpdate = this->currentTime;
-        this->frames = 0;
+        this->frames        = 0;
     }
 
     return this->dt;

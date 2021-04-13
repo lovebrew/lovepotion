@@ -1,5 +1,5 @@
-#include "objects/source/source.h"
 #include "modules/audio/pool/pool.h"
+#include "objects/source/source.h"
 
 using namespace love;
 
@@ -24,12 +24,12 @@ int Pool::GetMaxSources() const
     return 24;
 }
 
-std::vector<common::Source *> Pool::GetPlayingSources()
+std::vector<common::Source*> Pool::GetPlayingSources()
 {
-    std::vector<common::Source *> sources;
+    std::vector<common::Source*> sources;
     sources.reserve(this->playing.size());
 
-    for (auto & item : this->playing)
+    for (auto& item : this->playing)
         sources.push_back(item.first);
 
     return sources;
@@ -45,7 +45,7 @@ void Pool::Finish()
     this->running = false;
 }
 
-bool Pool::IsPlaying(common::Source * source)
+bool Pool::IsPlaying(common::Source* source)
 {
     bool isPlaying = false;
 
@@ -57,7 +57,7 @@ bool Pool::IsPlaying(common::Source * source)
     return isPlaying;
 }
 
-bool Pool::AssignSource(common::Source * source, size_t & channel, bool & wasPlaying)
+bool Pool::AssignSource(common::Source* source, size_t& channel, bool& wasPlaying)
 {
     channel = 0;
 
@@ -79,7 +79,7 @@ bool Pool::AssignSource(common::Source * source, size_t & channel, bool & wasPla
     return true;
 }
 
-bool Pool::FindSource(common::Source * source, size_t & channel)
+bool Pool::FindSource(common::Source* source, size_t& channel)
 {
     auto iterator = this->playing.find(source);
 
@@ -91,7 +91,7 @@ bool Pool::FindSource(common::Source * source, size_t & channel)
     return true;
 }
 
-bool Pool::ReleaseSource(common::Source * source, bool stop)
+bool Pool::ReleaseSource(common::Source* source, bool stop)
 {
     size_t channel;
 
@@ -115,15 +115,15 @@ void Pool::Update()
 {
     thread::Lock lock(this->mutex);
 
-    std::vector<common::Source *> release;
+    std::vector<common::Source*> release;
 
-    for (const auto & item : this->playing)
+    for (const auto& item : this->playing)
     {
         if (!item.first->Update())
             release.push_back(item.first);
     }
 
-    for (common::Source * source : release)
+    for (common::Source* source : release)
         this->ReleaseSource(source);
 }
 

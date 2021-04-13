@@ -2,13 +2,8 @@
 
 using namespace love;
 
-static constexpr std::array<Window::DisplaySize, 2> displaySizes =
-{
-    {
-        { 400, 240 },
-        { 320, 240 }
-    }
-};
+static constexpr std::array<Window::DisplaySize, 2> displaySizes = { { { 400, 240 },
+                                                                       { 320, 240 } } };
 
 Window::Window() : open(false)
 {}
@@ -19,7 +14,7 @@ Window::~Window()
     this->open = false;
 }
 
-void Window::SetGraphics(Graphics * g)
+void Window::SetGraphics(Graphics* g)
 {
     this->graphics.Set(g);
 }
@@ -37,7 +32,7 @@ int Window::GetDisplayCount()
 void Window::OnSizeChanged(int width, int height)
 {}
 
-const std::array<Window::DisplaySize, 2> & Window::GetFullscreenModes()
+const std::array<Window::DisplaySize, 2>& Window::GetFullscreenModes()
 {
     return displaySizes;
 }

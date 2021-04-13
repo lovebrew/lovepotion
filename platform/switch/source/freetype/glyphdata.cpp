@@ -6,18 +6,20 @@ using namespace love;
 
 love::Type GlyphData::type("GlyphData", &Data::type);
 
-GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) : glyph(glyph),
-                                                             metrics(metrics),
-                                                             data(nullptr)
+GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) :
+    glyph(glyph),
+    metrics(metrics),
+    data(nullptr)
 {
     size_t pixelSize = this->GetPixelSize();
     if (this->metrics.width > 0 && this->metrics.height > 0)
         this->data = new uint8_t[(metrics.width * metrics.height) * pixelSize];
 }
 
-GlyphData::GlyphData(const GlyphData & glyphData) : glyph(glyphData.glyph),
-                                                    metrics(glyphData.metrics),
-                                                    data(nullptr)
+GlyphData::GlyphData(const GlyphData& glyphData) :
+    glyph(glyphData.glyph),
+    metrics(glyphData.metrics),
+    data(nullptr)
 {
     size_t pixelSize = this->GetPixelSize();
     if (this->metrics.width > 0 && this->metrics.height > 0)
@@ -35,20 +37,20 @@ size_t GlyphData::GetPixelSize() const
 
 GlyphData::~GlyphData()
 {
-    delete [] this->data;
+    delete[] this->data;
 }
 
-GlyphData * GlyphData::Clone() const
+GlyphData* GlyphData::Clone() const
 {
     return new GlyphData(*this);
 }
 
-void * GlyphData::GetData() const
+void* GlyphData::GetData() const
 {
     return this->data;
 }
 
-void * GlyphData::GetData(int x, int y) const
+void* GlyphData::GetData(int x, int y) const
 {
     size_t offset = (y * this->GetWidth() + x) * this->GetPixelSize();
     return this->data + offset;
@@ -76,15 +78,15 @@ uint32_t GlyphData::GetGlyph() const
 
 std::string GlyphData::GetGlyphString() const
 {
-    char u[5] = {0, 0, 0, 0, 0};
+    char u[5]        = { 0, 0, 0, 0, 0 };
     ptrdiff_t length = 0;
 
     try
     {
-        char * end = utf8::append(glyph, u);
-        length = end - u;
+        char* end = utf8::append(glyph, u);
+        length    = end - u;
     }
-    catch (utf8::exception & e)
+    catch (utf8::exception& e)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }

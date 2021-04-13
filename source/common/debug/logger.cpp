@@ -12,7 +12,7 @@ Logger::~Logger()
     fclose(this->file);
 }
 
-void Logger::LogOutput(const char * func, size_t line, const char * format, ...) const
+void Logger::LogOutput(const char* func, size_t line, const char* format, ...) const
 {
     if (!this->file)
         return;

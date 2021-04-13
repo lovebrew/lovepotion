@@ -2,12 +2,12 @@
 
 using namespace love;
 
-Quad::Quad(const Viewport & viewport, double sw, double sh) : common::Quad(sw, sh)
+Quad::Quad(const Viewport& viewport, double sw, double sh) : common::Quad(sw, sh)
 {
     this->Refresh(viewport, sw, sh);
 }
 
-void Quad::Refresh(const Viewport & viewport, double sw, double sh)
+void Quad::Refresh(const Viewport& viewport, double sw, double sh)
 {
     this->RefreshViewport(viewport, sw, sh);
 
@@ -17,17 +17,20 @@ void Quad::Refresh(const Viewport & viewport, double sw, double sh)
     this->vertexPositions[3] = Vector2((float)viewport.w, 0.0f);
 
     this->vertexTexCoords[0] = Vector2((float)(viewport.x / sw), (float)(viewport.y / sh));
-    this->vertexTexCoords[1] = Vector2((float)(viewport.x / sw), (float)((viewport.y + viewport.h) / sh));
-    this->vertexTexCoords[2] = Vector2((float)((viewport.x + viewport.w) / sw), (float)((viewport.y + viewport.h) / sh));
-    this->vertexTexCoords[3] = Vector2((float)((viewport.x + viewport.w) / sw), (float)(viewport.y / sh));
+    this->vertexTexCoords[1] =
+        Vector2((float)(viewport.x / sw), (float)((viewport.y + viewport.h) / sh));
+    this->vertexTexCoords[2] =
+        Vector2((float)((viewport.x + viewport.w) / sw), (float)((viewport.y + viewport.h) / sh));
+    this->vertexTexCoords[3] =
+        Vector2((float)((viewport.x + viewport.w) / sw), (float)(viewport.y / sh));
 }
 
-const Vector2 * Quad::GetVertexPositions() const
+const Vector2* Quad::GetVertexPositions() const
 {
     return this->vertexPositions;
 }
 
-const Vector2 * Quad::GetVertexTexCoords() const
+const Vector2* Quad::GetVertexTexCoords() const
 {
     return this->vertexTexCoords;
 }

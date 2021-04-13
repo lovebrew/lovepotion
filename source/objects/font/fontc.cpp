@@ -23,7 +23,7 @@ float Font::GetLineHeight() const
     return this->lineHeight;
 }
 
-int Font::GetWidth(const std::string & string)
+int Font::GetWidth(const std::string& string)
 {
     if (string.size() == 0)
         return 0;
@@ -38,7 +38,7 @@ int Font::GetWidth(const std::string & string)
         while (i != end)
         {
             uint32_t prevGlyph = 0;
-            int width = 0;
+            int width          = 0;
 
             for (; i != end && *i != '\n'; ++i)
             {
@@ -57,7 +57,7 @@ int Font::GetWidth(const std::string & string)
                 ++i;
         }
     }
-    catch (utf8::exception & e)
+    catch (utf8::exception& e)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
@@ -65,12 +65,12 @@ int Font::GetWidth(const std::string & string)
     return maxWidth;
 }
 
-bool Font::GetConstant(const char * in, AlignMode & out)
+bool Font::GetConstant(const char* in, AlignMode& out)
 {
     return alignModes.Find(in, out);
 }
 
-bool Font::GetConstant(AlignMode in, const char *& out)
+bool Font::GetConstant(AlignMode in, const char*& out)
 {
     return alignModes.Find(in, out);
 }
@@ -80,12 +80,12 @@ std::vector<std::string> Font::GetConstants(AlignMode)
     return alignModes.GetNames();
 }
 
-bool Font::GetConstant(const char * in, Font::SystemFontType & out)
+bool Font::GetConstant(const char* in, Font::SystemFontType& out)
 {
     return sharedFonts.Find(in, out);
 }
 
-bool Font::GetConstant(Font::SystemFontType in, const char *& out)
+bool Font::GetConstant(Font::SystemFontType in, const char*& out)
 {
     return sharedFonts.Find(in, out);
 }
@@ -95,12 +95,12 @@ std::vector<std::string> Font::GetConstants(Font::SystemFontType)
     return sharedFonts.GetNames();
 }
 
-StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM>::Entry Font::alignModeEntries[] =
-{
-    { "left",    ALIGN_LEFT    },
-    { "right",   ALIGN_RIGHT   },
-    { "center",  ALIGN_CENTER  },
+StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM>::Entry Font::alignModeEntries[] = {
+    { "left", ALIGN_LEFT },
+    { "right", ALIGN_RIGHT },
+    { "center", ALIGN_CENTER },
     { "justify", ALIGN_JUSTIFY }
 };
 
-StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(Font::alignModeEntries, sizeof(Font::alignModeEntries));
+StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(Font::alignModeEntries,
+                                                                  sizeof(Font::alignModeEntries));

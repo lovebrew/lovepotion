@@ -16,7 +16,8 @@
 /*
 ** Load the specified @buffer with @size into an std::unique_ptr
 */
-[[ nodiscard ]] std::unique_ptr<u32[]> CImage::loadPNG(const void * buffer, const size_t size, int & width, int & height)
+[[nodiscard]] std::unique_ptr<u32[]> CImage::loadPNG(const void* buffer, const size_t size,
+                                                     int& width, int& height)
 {
     png_image image;
     memset(&image, 0, sizeof(image));
@@ -52,7 +53,8 @@
 ** have their "progressive" flag turned off, usually dealt with in GIMP or
 ** similar programs
 */
-[[ nodiscard ]] std::unique_ptr<u8[]> CImage::loadJPG(const void * buffer, size_t size, int & width, int & height)
+[[nodiscard]] std::unique_ptr<u8[]> CImage::loadJPG(const void* buffer, size_t size, int& width,
+                                                    int& height)
 {
 
     tjhandle _jpegDecompressor = tjInitDecompress();
@@ -61,34 +63,36 @@
         return nullptr;
 
     int samples;
-    if (tjDecompressHeader2(_jpegDecompressor, (u8 *)buffer, size, &width, &height, &samples) == -1)
+    if (tjDecompressHeader2(_jpegDecompressor, (u8*)buffer, size, &width, &height, &samples) == -1)
         return nullptr;
 
     std::unique_ptr<u8[]> outBuffer = std::make_unique<u8[]>(width * height * 4);
 
     /* we always want RGBA, hopefully outputs as RGBA8 */
-    if (tjDecompress2(_jpegDecompressor, (u8 *)buffer, size, outBuffer.get(), width, 0, height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
+    if (tjDecompress2(_jpegDecompressor, (u8*)buffer, size, outBuffer.get(), width, 0, height,
+                      TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
         goto fail0;
 
     tjDestroy(_jpegDecompressor);
 
     return outBuffer;
 
-    fail0:
-        tjDestroy(_jpegDecompressor);
-        return nullptr;
+fail0:
+    tjDestroy(_jpegDecompressor);
+    return nullptr;
 }
 
-bool CImage::load(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device,
-                  dk::Queue transferQueue, void * buffer, size_t size, int & width,
-                  int & height)
+bool CImage::load(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
+                  dk::Queue transferQueue, void* buffer, size_t size, int& width, int& height)
 {
     DkImageFormat imageFormat = DkImageFormat_RGBA8_Unorm;
 
     if (auto uniqueBuffer = this->loadPNG(buffer, size, width, height); uniqueBuffer)
-        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(), width, height, imageFormat);
+        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(),
+                                width, height, imageFormat);
     else if (auto uniqueBuffer = this->loadJPG(buffer, size, width, height); uniqueBuffer)
-        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(), width, height, imageFormat);
+        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(),
+                                width, height, imageFormat);
 
     return false;
 }
@@ -109,8 +113,8 @@ size_t CImage::getFormatSize(DkImageFormat format)
 }
 
 /* replace the pixels at a location */
-bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void * data, size_t size,
-                           dk::Queue transferQueue, const love::Rect & rect)
+bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void* data, size_t size,
+                           dk::Queue transferQueue, const love::Rect& rect)
 {
     if (data == nullptr)
         return false;
@@ -126,12 +130,14 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
     */
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
-    CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { device }.create();
+    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
-    dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {uint32_t(rect.x), uint32_t(rect.y), 0, uint32_t(rect.w), uint32_t(rect.h), 1});
+    dk::ImageView imageView { m_image };
+    tempCmdBuff.copyBufferToImage(
+        { tempImageMemory.getGpuAddr() }, imageView,
+        { uint32_t(rect.x), uint32_t(rect.y), 0, uint32_t(rect.w), uint32_t(rect.h), 1 });
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());
@@ -145,8 +151,9 @@ bool CImage::replacePixels(CMemPool & scratchPool, dk::Device device, const void
 }
 
 /* load a CImage with transparent black pixels */
-bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                             uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
+                             dk::Queue transferQueue, uint32_t width, uint32_t height,
+                             DkImageFormat format, uint32_t flags)
 {
     size_t size = width * height * this->getFormatSize(format);
 
@@ -166,13 +173,13 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
     */
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
-    CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { device }.create();
+    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     // Set the image layout for the image
     dk::ImageLayout layout;
-    dk::ImageLayoutMaker{device}
+    dk::ImageLayoutMaker { device }
         .setFlags(flags)
         .setFormat(format)
         .setDimensions(width, height)
@@ -183,8 +190,9 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
     m_descriptor.initialize(m_image);
 
-    dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1});
+    dk::ImageView imageView { m_image };
+    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView,
+                                  { 0, 0, 0, width, height, 1 });
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());
@@ -197,8 +205,9 @@ bool CImage::loadEmptyPixels(CMemPool & imagePool, CMemPool & scratchPool, dk::D
     return true;
 }
 
-bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device device, dk::Queue transferQueue,
-                        const void * data, uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags)
+bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
+                        dk::Queue transferQueue, const void* data, uint32_t width, uint32_t height,
+                        DkImageFormat format, uint32_t flags)
 {
     if (data == nullptr)
         return false;
@@ -220,13 +229,13 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
     */
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker{device}.create();
-    CMemPool::Handle tempCmdMem = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { device }.create();
+    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     // Set the image layout for the image
     dk::ImageLayout layout;
-    dk::ImageLayoutMaker{device}
+    dk::ImageLayoutMaker { device }
         .setFlags(flags)
         .setFormat(format)
         .setDimensions(width, height)
@@ -241,8 +250,9 @@ bool CImage::loadMemory(CMemPool & imagePool, CMemPool & scratchPool, dk::Device
     ** Create the image's view and copy the data
     ** to the temporary image memory
     */
-    dk::ImageView imageView{m_image};
-    tempCmdBuff.copyBufferToImage({tempImageMemory.getGpuAddr()}, imageView, {0, 0, 0, width, height, 1}, 0);
+    dk::ImageView imageView { m_image };
+    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView,
+                                  { 0, 0, 0, width, height, 1 }, 0);
 
     // Submit the commands to the transfer queue
     transferQueue.submitCommands(tempCmdBuff.finishList());

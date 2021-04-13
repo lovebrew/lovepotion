@@ -1,20 +1,20 @@
 #pragma once
 
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds.h>
 
-    typedef LightLock LOVE_Mutex;
+typedef LightLock LOVE_Mutex;
 
-    #define LOVE_mutexInit LightLock_Init
-    #define LOVE_mutexLock LightLock_Lock
+    #define LOVE_mutexInit   LightLock_Init
+    #define LOVE_mutexLock   LightLock_Lock
     #define LOVE_mutexUnlock LightLock_Unlock
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch.h>
 
-    typedef Mutex LOVE_Mutex;
+typedef Mutex LOVE_Mutex;
 
-    #define LOVE_mutexInit mutexInit
-    #define LOVE_mutexLock mutexLock
+    #define LOVE_mutexInit   mutexInit
+    #define LOVE_mutexLock   mutexLock
     #define LOVE_mutexUnlock mutexUnlock
 #endif
 
@@ -24,46 +24,46 @@ namespace love::thread
 
     class Mutex
     {
-        public:
-            Mutex();
+      public:
+        Mutex();
 
-            ~Mutex();
+        ~Mutex();
 
-            Mutex(const Mutex &) = delete;
-            Mutex(Mutex &&) = delete;
-            Mutex & operator = (const Mutex &) = delete;
-            Mutex & operator = (Mutex &&) = delete;
+        Mutex(const Mutex&) = delete;
+        Mutex(Mutex&&)      = delete;
+        Mutex& operator=(const Mutex&) = delete;
+        Mutex& operator=(Mutex&&) = delete;
 
-            void Lock();
+        void Lock();
 
-            bool IsLocked();
+        bool IsLocked();
 
-            void Unlock();
+        void Unlock();
 
-        private:
-            LOVE_Mutex mutex;
+      private:
+        LOVE_Mutex mutex;
 
-            bool locked;
+        bool locked;
 
-            friend class Conditional;
+        friend class Conditional;
     };
 
     class MutexRef
     {
-        public:
-            MutexRef();
+      public:
+        MutexRef();
 
-            ~MutexRef();
+        ~MutexRef();
 
-            operator Mutex * () const;
-            Mutex * operator -> () const;
+        operator Mutex*() const;
+        Mutex* operator->() const;
 
-        private:
-            Mutex * mutex;
+      private:
+        Mutex* mutex;
     };
 
-    inline Mutex * NewMutex()
+    inline Mutex* NewMutex()
     {
         return new Mutex();
     }
-}
+} // namespace love::thread

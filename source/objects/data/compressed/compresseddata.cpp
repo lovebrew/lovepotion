@@ -4,11 +4,12 @@ using namespace love;
 
 love::Type CompressedData::type("CompressedData", &Data::type);
 
-CompressedData::CompressedData(Compressor::Format format, char * cdata,
-                               size_t compressedSize, size_t rawSize, bool own) : format(format),
-                                                                                  data(nullptr),
-                                                                                  dataSize(compressedSize),
-                                                                                  originalSize(rawSize)
+CompressedData::CompressedData(Compressor::Format format, char* cdata, size_t compressedSize,
+                               size_t rawSize, bool own) :
+    format(format),
+    data(nullptr),
+    dataSize(compressedSize),
+    originalSize(rawSize)
 {
     if (own)
         this->data = cdata;
@@ -18,7 +19,7 @@ CompressedData::CompressedData(Compressor::Format format, char * cdata,
         {
             this->data = new char[this->dataSize];
         }
-        catch(std::bad_alloc &)
+        catch (std::bad_alloc&)
         {
             throw love::Exception("Out of memroy.");
         }
@@ -27,16 +28,17 @@ CompressedData::CompressedData(Compressor::Format format, char * cdata,
     }
 }
 
-CompressedData::CompressedData(const CompressedData & other) : format(other.format),
-                                                               data(nullptr),
-                                                               dataSize(other.dataSize),
-                                                               originalSize(other.originalSize)
+CompressedData::CompressedData(const CompressedData& other) :
+    format(other.format),
+    data(nullptr),
+    dataSize(other.dataSize),
+    originalSize(other.originalSize)
 {
     try
     {
         this->data = new char[this->dataSize];
     }
-    catch(std::bad_alloc &)
+    catch (std::bad_alloc&)
     {
         throw love::Exception("Out of memory.");
     }
@@ -49,7 +51,7 @@ CompressedData::~CompressedData()
     delete[] this->data;
 }
 
-CompressedData * CompressedData::Clone() const
+CompressedData* CompressedData::Clone() const
 {
     return new CompressedData(*this);
 }
@@ -64,7 +66,7 @@ size_t CompressedData::GetDecompressedSize() const
     return this->originalSize;
 }
 
-void * CompressedData::GetData() const
+void* CompressedData::GetData() const
 {
     return this->data;
 }

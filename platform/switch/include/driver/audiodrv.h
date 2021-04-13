@@ -11,31 +11,30 @@ namespace love::driver
 {
     class Audrv : public common::driver::Audrv
     {
-        public:
-            Audrv();
+      public:
+        Audrv();
 
-            ~Audrv();
+        ~Audrv();
 
-            void Update();
+        void Update();
 
-            template <typename T>
-            void LockFunction(const T & func)
+        template<typename T> void LockFunction(const T& func)
+        {
+            try
             {
-                try
-                {
-                    thread::Lock lock(this->mutex);
-                    func(&this->driver);
-                }
-                catch(const std::exception & e)
-                {
-                    throw;
-                }
+                thread::Lock lock(this->mutex);
+                func(&this->driver);
             }
+            catch (const std::exception& e)
+            {
+                throw;
+            }
+        }
 
-        private:
-            thread::MutexRef mutex;
+      private:
+        thread::MutexRef mutex;
 
-            bool audioInitialized;
-            AudioDriver driver;
+        bool audioInitialized;
+        AudioDriver driver;
     };
-}
+} // namespace love::driver

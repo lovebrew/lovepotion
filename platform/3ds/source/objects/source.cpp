@@ -2,9 +2,9 @@
 
 using namespace love;
 
-StaticDataBuffer::StaticDataBuffer(void * data, size_t size)
+StaticDataBuffer::StaticDataBuffer(void* data, size_t size)
 {
-    this->buffer.first = (s16 *)linearAlloc(size);
+    this->buffer.first  = (s16*)linearAlloc(size);
     this->buffer.second = size;
 
     memcpy(this->buffer.first, data, size);
@@ -17,18 +17,18 @@ StaticDataBuffer::~StaticDataBuffer()
 
 /* SOURCE IMPLEMENTATION */
 
-Source::Source(Pool * pool, SoundData * sound) : common::Source(pool, sound)
+Source::Source(Pool* pool, SoundData* sound) : common::Source(pool, sound)
 {
-    this->sources[0] = ndspWaveBuf();
+    this->sources[0]          = ndspWaveBuf();
     this->sources[0].nsamples = sound->GetSampleCount();
 }
 
-Source::Source(Pool * pool, Decoder * decoder) : common::Source(pool, decoder)
+Source::Source(Pool* pool, Decoder* decoder) : common::Source(pool, decoder)
 {
     this->InitializeStreamBuffers(decoder);
 }
 
-love::Source * Source::Clone()
+love::Source* Source::Clone()
 {
     return new Source(*this);
 }
@@ -39,16 +39,13 @@ Source::~Source()
     this->FreeBuffer();
 }
 
-void Source::InitializeStreamBuffers(Decoder * decoder)
+void Source::InitializeStreamBuffers(Decoder* decoder)
 {
-    for (auto & source : this->sources)
+    for (auto& source : this->sources)
     {
-        source = ndspWaveBuf
-        {
-            .data_pcm16 = (s16 *)linearAlloc(decoder->GetSize()),
-            .nsamples = 0,
-            .status = NDSP_WBUF_DONE
-        };
+        source = ndspWaveBuf { .data_pcm16 = (s16*)linearAlloc(decoder->GetSize()),
+                               .nsamples   = 0,
+                               .status     = NDSP_WBUF_DONE };
     }
 }
 
@@ -101,8 +98,7 @@ void Source::Reset()
             break;
     }
 
-    ndspInterpType interpType = (this->channels == 2) ?
-                                    NDSP_INTERP_POLYPHASE : NDSP_INTERP_LINEAR;
+    ndspInterpType interpType = (this->channels == 2) ? NDSP_INTERP_POLYPHASE : NDSP_INTERP_LINEAR;
 
     ndspChnSetFormat(this->channel, format);
     ndspChnSetRate(this->channel, this->sampleRate);
@@ -166,7 +162,7 @@ void Source::PrepareAtomic()
     switch (this->sourceType)
     {
         case TYPE_STATIC:
-            this->sources[0].data_pcm16 = (s16 *)this->staticBuffer.Get()->GetBuffer();
+            this->sources[0].data_pcm16 = (s16*)this->staticBuffer.Get()->GetBuffer();
             break;
         case TYPE_STREAM:
         {
@@ -211,14 +207,15 @@ bool Source::IsPlaying() const
     size_t bufferCount = (this->sourceType == TYPE_STREAM) ? MAX_BUFFERS : 1;
     /* check if any of our sources are queued or playing */
     for (size_t index = 0; index < bufferCount; index++)
-        sourcePlaying |= (this->sources[index].status == NDSP_WBUF_QUEUED || this->sources[index].status == NDSP_WBUF_PLAYING);
+        sourcePlaying |= (this->sources[index].status == NDSP_WBUF_QUEUED ||
+                          this->sources[index].status == NDSP_WBUF_PLAYING);
 
     return sourcePlaying;
 }
 
 bool Source::IsFinished() const
 {
-   if (!this->valid)
+    if (!this->valid)
         return false;
 
     if (this->sourceType == TYPE_STREAM && (this->IsLooping() || !this->decoder->IsFinished()))
@@ -243,7 +240,7 @@ bool Source::PlayAtomic()
 
     success = true;
 
-    //isPlaying() needs source to be valid
+    // isPlaying() needs source to be valid
     if (this->sourceType == TYPE_STREAM)
     {
         this->valid = true;
@@ -252,7 +249,7 @@ bool Source::PlayAtomic()
             success = false;
     }
 
-    //stop() needs source to be valid
+    // stop() needs source to be valid
     if (!success)
     {
         this->valid = true;

@@ -1,44 +1,46 @@
-#include "common/luax.h"
 #include "objects/texture/wrap_texture.h"
+#include "common/luax.h"
 
 using namespace love;
 
-int Wrap_Texture::GetTextureType(lua_State * L)
+int Wrap_Texture::GetTextureType(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
-    const char * typeStr;
+    const char* typeStr;
     const Texture::TextureType t = self->GetTextureType();
 
     if (!love::Texture::GetConstant(t, typeStr))
-        return Luax::EnumError(L, "texture type", love::Texture::GetConstants(love::Texture::TEXTURE_MAX_ENUM), typeStr);
+        return Luax::EnumError(L, "texture type",
+                               love::Texture::GetConstants(love::Texture::TEXTURE_MAX_ENUM),
+                               typeStr);
 
     lua_pushstring(L, typeStr);
 
     return 1;
 }
 
-int Wrap_Texture::GetWidth(lua_State * L)
+int Wrap_Texture::GetWidth(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     lua_pushnumber(L, self->GetWidth());
 
     return 1;
 }
 
-int Wrap_Texture::GetHeight(lua_State * L)
+int Wrap_Texture::GetHeight(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     lua_pushnumber(L, self->GetHeight());
 
     return 1;
 }
 
-int Wrap_Texture::GetDimensions(lua_State * L)
+int Wrap_Texture::GetDimensions(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     lua_pushnumber(L, self->GetWidth());
     lua_pushnumber(L, self->GetHeight());
@@ -46,14 +48,14 @@ int Wrap_Texture::GetDimensions(lua_State * L)
     return 2;
 }
 
-int Wrap_Texture::SetFilter(lua_State * L)
+int Wrap_Texture::SetFilter(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     love::Texture::Filter filter = self->GetFilter();
 
-    const char * min = luaL_checkstring(L, 2);
-    const char * mag = luaL_optstring(L, 3, min);
+    const char* min = luaL_checkstring(L, 2);
+    const char* mag = luaL_optstring(L, 3, min);
 
     if (!love::Texture::GetConstant(min, filter.min))
         return Luax::EnumError(L, "filter mode", love::Texture::GetConstants(filter.min), min);
@@ -61,21 +63,19 @@ int Wrap_Texture::SetFilter(lua_State * L)
     if (!love::Texture::GetConstant(mag, filter.mag))
         return Luax::EnumError(L, "filter mode", love::Texture::GetConstants(filter.mag), mag);
 
-    Luax::CatchException(L, [&]() {
-        self->SetFilter(filter);
-    });
+    Luax::CatchException(L, [&]() { self->SetFilter(filter); });
 
     return 0;
 }
 
-int Wrap_Texture::GetFilter(lua_State * L)
+int Wrap_Texture::GetFilter(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     const love::Texture::Filter filter = self->GetFilter();
 
-    const char * min = nullptr;
-    const char * mag = nullptr;
+    const char* min = nullptr;
+    const char* mag = nullptr;
 
     if (!love::Texture::GetConstant(filter.min, min))
         return luaL_error(L, "Unknown filter mode.");
@@ -89,15 +89,15 @@ int Wrap_Texture::GetFilter(lua_State * L)
     return 2;
 }
 
-int Wrap_Texture::SetWrap(lua_State * L)
+int Wrap_Texture::SetWrap(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     love::Texture::Wrap wrap;
 
-    const char * sstr = luaL_checkstring(L, 2);
-    const char * tstr = luaL_optstring(L, 3, sstr);
-    const char * rstr = luaL_optstring(L, 4, sstr);
+    const char* sstr = luaL_checkstring(L, 2);
+    const char* tstr = luaL_optstring(L, 3, sstr);
+    const char* rstr = luaL_optstring(L, 4, sstr);
 
     if (!love::Texture::GetConstant(sstr, wrap.s))
         return Luax::EnumError(L, "wrap mode", love::Texture::GetConstants(wrap.s), sstr);
@@ -113,15 +113,15 @@ int Wrap_Texture::SetWrap(lua_State * L)
     return 1;
 }
 
-int Wrap_Texture::GetWrap(lua_State * L)
+int Wrap_Texture::GetWrap(lua_State* L)
 {
-    love::Texture * self = Wrap_Texture::CheckTexture(L, 1);
+    love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
     const love::Texture::Wrap wrap = self->GetWrap();
 
-    const char * sstr = nullptr;
-    const char * tstr = nullptr;
-    const char * rstr = nullptr;
+    const char* sstr = nullptr;
+    const char* tstr = nullptr;
+    const char* rstr = nullptr;
 
     if (!love::Texture::GetConstant(wrap.s, sstr))
         return luaL_error(L, "Unknown wrap mode.");
@@ -139,25 +139,22 @@ int Wrap_Texture::GetWrap(lua_State * L)
     return 3;
 }
 
-love::Texture * Wrap_Texture::CheckTexture(lua_State * L, int index)
+love::Texture* Wrap_Texture::CheckTexture(lua_State* L, int index)
 {
     return Luax::CheckType<love::Texture>(L, index);
 }
 
-luaL_Reg Wrap_Texture::functions[9] =
-{
-    { "getTextureType", GetTextureType },
-    { "getWidth",       GetWidth       },
-    { "getHeight",      GetHeight      },
-    { "getDimensions",  GetDimensions  },
-    { "setFilter",      SetFilter      },
-    { "getFilter",      GetFilter      },
-    { "setWrap",        SetWrap        },
-    { "getWrap",        GetWrap        },
-    { 0, 0 }
-};
+luaL_Reg Wrap_Texture::functions[9] = { { "getTextureType", GetTextureType },
+                                        { "getWidth", GetWidth },
+                                        { "getHeight", GetHeight },
+                                        { "getDimensions", GetDimensions },
+                                        { "setFilter", SetFilter },
+                                        { "getFilter", GetFilter },
+                                        { "setWrap", SetWrap },
+                                        { "getWrap", GetWrap },
+                                        { 0, 0 } };
 
-int Wrap_Texture::Register(lua_State * L)
+int Wrap_Texture::Register(lua_State* L)
 {
     return Luax::RegisterType(L, &Texture::type, functions, nullptr);
 }

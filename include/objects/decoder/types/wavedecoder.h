@@ -8,43 +8,43 @@ namespace love
 {
     class WaveDecoder : public Decoder
     {
-        public:
-            struct WaveFile
-            {
-                char * data;
-                size_t size;
-                size_t offset;
-            };
+      public:
+        struct WaveFile
+        {
+            char* data;
+            size_t size;
+            size_t offset;
+        };
 
-            WaveDecoder(Data * decoder, int bufferCode);
-            ~WaveDecoder();
+        WaveDecoder(Data* decoder, int bufferCode);
+        ~WaveDecoder();
 
-            static bool Accepts(const std::string & ext);
+        static bool Accepts(const std::string& ext);
 
-            Decoder * Clone();
+        Decoder* Clone();
 
-            int Decode();
+        int Decode();
 
-            int Decode(s16 * buffer);
+        int Decode(s16* buffer);
 
-            bool Seek(double position);
+        bool Seek(double position);
 
-            bool Rewind();
+        bool Rewind();
 
-            bool IsSeekable();
+        bool IsSeekable();
 
-            int GetChannelCount() const;
+        int GetChannelCount() const;
 
-            int GetBitDepth() const;
+        int GetBitDepth() const;
 
-            int GetSampleRate() const;
+        int GetSampleRate() const;
 
-            double GetDuration();
+        double GetDuration();
 
-        private:
-            WaveFile file;
+      private:
+        WaveFile file;
 
-            wuff_handle * handle;
-            wuff_info info;
+        wuff_handle* handle;
+        wuff_info info;
     };
-}
+} // namespace love

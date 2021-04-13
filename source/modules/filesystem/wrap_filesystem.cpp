@@ -6,10 +6,10 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Filesystem>(Module::M_FILESYSTEM))
 
-static void replaceAll(std::string & str, const std::string & substr, const std::string & replacement)
+static void replaceAll(std::string& str, const std::string& substr, const std::string& replacement)
 {
     std::vector<size_t> locations;
-    size_t pos = 0;
+    size_t pos    = 0;
     size_t sublen = substr.length();
 
     while ((pos = str.find(substr, pos)) != std::string::npos)
@@ -18,45 +18,46 @@ static void replaceAll(std::string & str, const std::string & substr, const std:
         pos += sublen;
     }
 
-    for (int i = (int) locations.size() - 1; i >= 0; i--)
+    for (int i = (int)locations.size() - 1; i >= 0; i--)
         str.replace(locations[i], sublen, replacement);
 }
 
 #if defined(_3DS)
-    static void translatePath(std::filesystem::path & filepath)
+static void translatePath(std::filesystem::path& filepath)
+{
+    static constexpr std::array<const char*, 3> textures = { ".png", ".jpg", ".jpeg" };
+    static constexpr std::array<const char*, 2> fonts    = { ".ttf", ".otf" };
+
+    for (auto extension : textures)
     {
-        static constexpr std::array<const char *, 3> textures    = {".png", ".jpg", ".jpeg"};
-        static constexpr std::array<const char *, 2> fonts       = {".ttf", ".otf"};
-
-        for (auto extension : textures)
-        {
-            if (extension == filepath.extension())
-                filepath.replace_extension(".t3x");
-        }
-
-        for (auto extension : fonts)
-        {
-            if (extension == filepath.extension())
-                filepath.replace_extension(".bcfnt");
-        }
+        if (extension == filepath.extension())
+            filepath.replace_extension(".t3x");
     }
+
+    for (auto extension : fonts)
+    {
+        if (extension == filepath.extension())
+            filepath.replace_extension(".bcfnt");
+    }
+}
 #endif
 
-int Wrap_Filesystem::Load(lua_State * L)
+int Wrap_Filesystem::Load(lua_State* L)
 {
     std::string filename = luaL_checkstring(L, 1);
-    Data * data = nullptr;
+    Data* data           = nullptr;
 
     try
     {
         data = instance()->Read(filename.c_str());
     }
-    catch(love::Exception & e)
+    catch (love::Exception& e)
     {
         return Luax::IOError(L, "%s", e.what());
     }
 
-    int status = luaL_loadbuffer(L, (const char *)data->GetData(), data->GetSize(), ("@" + filename).c_str());
+    int status =
+        luaL_loadbuffer(L, (const char*)data->GetData(), data->GetSize(), ("@" + filename).c_str());
     data->Release();
 
     switch (status)
@@ -70,40 +71,38 @@ int Wrap_Filesystem::Load(lua_State * L)
     }
 }
 
-int Wrap_Filesystem::Init(lua_State * L)
+int Wrap_Filesystem::Init(lua_State* L)
 {
-    const char * arg0 = luaL_optstring(L, 1, NULL);
+    const char* arg0 = luaL_optstring(L, 1, NULL);
 
-    Luax::CatchException(L, [&](){
-        instance()->Init(arg0);
-    });
+    Luax::CatchException(L, [&]() { instance()->Init(arg0); });
 
     return 0;
 }
 
-int Wrap_Filesystem::Mount(lua_State * L)
+int Wrap_Filesystem::Mount(lua_State* L)
 {
     std::string archive;
 
     if (Luax::IsType(L, 1, Data::type))
     {
-        Data * data = Wrap_Data::CheckData(L, 1);
-        int start = 2;
+        Data* data = Wrap_Data::CheckData(L, 1);
+        int start  = 2;
 
         if (Luax::IsType(L, 1, FileData::type) && !lua_isstring(L, 3))
         {
-            FileData * fileData = Wrap_FileData::CheckFileData(L, 1);
-            archive = fileData->GetFilename();
-            start = 2;
+            FileData* fileData = Wrap_FileData::CheckFileData(L, 1);
+            archive            = fileData->GetFilename();
+            start              = 2;
         }
         else
         {
             archive = luaL_checkstring(L, 2);
-            start = 3;
+            start   = 3;
         }
 
-        const char * mountPoint = luaL_checkstring(L, start + 0);
-        bool append = Luax::OptBoolean(L, start + 1, false);
+        const char* mountPoint = luaL_checkstring(L, start + 0);
+        bool append            = Luax::OptBoolean(L, start + 1, false);
 
         lua_pushboolean(L, instance()->Mount(data, archive.c_str(), mountPoint, append));
 
@@ -112,48 +111,48 @@ int Wrap_Filesystem::Mount(lua_State * L)
     else // Don't check for DroppedFile (as LOVE would) since it's not supported here
         archive = luaL_checkstring(L, 1);
 
-    const char * mountPoint = luaL_checkstring(L, 2);
-    bool append = Luax::OptBoolean(L, 3, false);
+    const char* mountPoint = luaL_checkstring(L, 2);
+    bool append            = Luax::OptBoolean(L, 3, false);
 
     lua_pushboolean(L, instance()->Mount(archive.c_str(), mountPoint, append));
 
     return 1;
 }
 
-int Wrap_Filesystem::UnMount(lua_State * L)
+int Wrap_Filesystem::UnMount(lua_State* L)
 {
     if (Luax::IsType(L, 1, Data::type))
     {
-        Data * data = Wrap_Data::CheckData(L, 1);
+        Data* data = Wrap_Data::CheckData(L, 1);
         lua_pushboolean(L, instance()->UnMount(data));
     }
     else
     {
-        const char * archive = luaL_checkstring(L, 1);
+        const char* archive = luaL_checkstring(L, 1);
         lua_pushboolean(L, instance()->UnMount(archive));
     }
 
     return 1;
 }
 
-int Wrap_Filesystem::GetUserDirectory(lua_State * L)
+int Wrap_Filesystem::GetUserDirectory(lua_State* L)
 {
     Luax::PushString(L, instance()->GetUserDirectory());
 
     return 1;
 }
 
-int Wrap_Filesystem::Loader(lua_State * L)
+int Wrap_Filesystem::Loader(lua_State* L)
 {
     std::string modulename = luaL_checkstring(L, 1);
 
-    for (char & c : modulename)
+    for (char& c : modulename)
     {
         if (c == '.')
             c = '/';
     }
 
-    auto * inst = instance();
+    auto* inst = instance();
     for (std::string element : inst->GetRequirePath())
     {
         replaceAll(element, "?", modulename);
@@ -183,13 +182,13 @@ bool SetupWriteDirectory()
     return false;
 }
 
-int Wrap_Filesystem::GetRequirePath(lua_State * L)
+int Wrap_Filesystem::GetRequirePath(lua_State* L)
 {
     std::string path;
     bool seperator = false;
-    auto paths = instance()->GetRequirePath();
+    auto paths     = instance()->GetRequirePath();
 
-    for (auto & element : paths)
+    for (auto& element : paths)
     {
         if (seperator)
             path += ";";
@@ -204,14 +203,14 @@ int Wrap_Filesystem::GetRequirePath(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::Append(lua_State * L)
+int Wrap_Filesystem::Append(lua_State* L)
 {
     return Wrap_Filesystem::WriteOrAppend(L, File::MODE_APPEND);
 }
 
-int Wrap_Filesystem::CreateDirectory(lua_State * L)
+int Wrap_Filesystem::CreateDirectory(lua_State* L)
 {
-    const char * name = luaL_checkstring(L, 1);
+    const char* name = luaL_checkstring(L, 1);
 
     bool success = instance()->CreateDirectory(name);
 
@@ -220,30 +219,30 @@ int Wrap_Filesystem::CreateDirectory(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::SetFused(lua_State * L)
+int Wrap_Filesystem::SetFused(lua_State* L)
 {
     instance()->SetFused(lua_toboolean(L, 1));
 
     return 0;
 }
 
-int Wrap_Filesystem::GetExecutablePath(lua_State * L)
+int Wrap_Filesystem::GetExecutablePath(lua_State* L)
 {
     Luax::PushString(L, instance()->GetExecutablePath());
 
     return 1;
 }
 
-int Wrap_Filesystem::IsFused(lua_State * L)
+int Wrap_Filesystem::IsFused(lua_State* L)
 {
     lua_pushboolean(L, instance()->IsFused());
 
     return 1;
 }
 
-int Wrap_Filesystem::SetSource(lua_State * L)
+int Wrap_Filesystem::SetSource(lua_State* L)
 {
-    const char * arg = luaL_checkstring(L, 1);
+    const char* arg = luaL_checkstring(L, 1);
 
     if (!instance()->SetSource(arg))
         return luaL_error(L, "Could not set source.");
@@ -251,16 +250,16 @@ int Wrap_Filesystem::SetSource(lua_State * L)
     return 0;
 }
 
-int Wrap_Filesystem::GetSource(lua_State * L)
+int Wrap_Filesystem::GetSource(lua_State* L)
 {
     lua_pushstring(L, instance()->GetSource());
 
     return 1;
 }
 
-int Wrap_Filesystem::GetDirectoryItems(lua_State * L)
+int Wrap_Filesystem::GetDirectoryItems(lua_State* L)
 {
-    const char * directory = luaL_checkstring(L, 1);
+    const char* directory = luaL_checkstring(L, 1);
     std::vector<std::string> items;
 
     instance()->GetDirectoryItems(directory, items);
@@ -276,24 +275,24 @@ int Wrap_Filesystem::GetDirectoryItems(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::GetIdentity(lua_State * L)
+int Wrap_Filesystem::GetIdentity(lua_State* L)
 {
     lua_pushstring(L, instance()->GetIdentity());
 
     return 1;
 }
 
-int Wrap_Filesystem::GetInfo(lua_State * L)
+int Wrap_Filesystem::GetInfo(lua_State* L)
 {
-    const char * filepath = luaL_checkstring(L, 1);
+    const char* filepath  = luaL_checkstring(L, 1);
     Filesystem::Info info = {};
 
-    int start = 2;
+    int start                   = 2;
     Filesystem::FileType filter = Filesystem::FileType::FILETYPE_MAX_ENUM;
 
     if (lua_isstring(L, start))
     {
-        const char * type = luaL_checkstring(L, start);
+        const char* type = luaL_checkstring(L, start);
         if (!Filesystem::GetConstant(type, filter))
             return Luax::EnumError(L, "file type", Filesystem::GetConstants(filter), type);
 
@@ -302,9 +301,9 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
 
     std::filesystem::path path = filepath;
 
-    #if defined (_3DS)
-        translatePath(path);
-    #endif
+#if defined(_3DS)
+    translatePath(path);
+#endif
 
     if (instance()->GetInfo(path.c_str(), info))
     {
@@ -315,7 +314,7 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
             return 1;
         }
 
-        const char * type = nullptr;
+        const char* type = nullptr;
         if (!Filesystem::GetConstant(info.type, type))
             return luaL_error(L, "Uknown file type.");
 
@@ -345,19 +344,19 @@ int Wrap_Filesystem::GetInfo(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::GetSaveDirectory(lua_State * L)
+int Wrap_Filesystem::GetSaveDirectory(lua_State* L)
 {
     Luax::PushString(L, instance()->GetSaveDirectory());
 
     return 1;
 }
 
-int Wrap_Filesystem::NewFile(lua_State * L)
+int Wrap_Filesystem::NewFile(lua_State* L)
 {
-    const char * filename = luaL_checkstring(L, 1);
+    const char* filename = luaL_checkstring(L, 1);
 
-    const char * string = 0;
-    File::Mode mode = File::MODE_CLOSED;
+    const char* string = 0;
+    File::Mode mode    = File::MODE_CLOSED;
 
     if (lua_isstring(L, 2))
     {
@@ -366,7 +365,7 @@ int Wrap_Filesystem::NewFile(lua_State * L)
             return Luax::EnumError(L, "file open mode", File::GetConstants(mode), string);
     }
 
-    File * file = instance()->NewFile(filename);
+    File* file = instance()->NewFile(filename);
 
     if (mode != File::MODE_CLOSED)
     {
@@ -375,7 +374,7 @@ int Wrap_Filesystem::NewFile(lua_State * L)
             if (!file->Open(mode))
                 throw love::Exception("Could not open file.");
         }
-        catch(love::Exception & e)
+        catch (love::Exception& e)
         {
             file->Release();
             return Luax::IOError(L, "%s", e.what());
@@ -388,16 +387,16 @@ int Wrap_Filesystem::NewFile(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::GetRealDirectory(lua_State * L)
+int Wrap_Filesystem::GetRealDirectory(lua_State* L)
 {
-    const char * filename = luaL_checkstring(L, 1);
+    const char* filename = luaL_checkstring(L, 1);
     std::string directory;
 
     try
     {
         directory = instance()->GetRealDirectory(filename);
     }
-    catch (love::Exception &e)
+    catch (love::Exception& e)
     {
         return Luax::IOError(L, "%s", e.what());
     }
@@ -407,7 +406,7 @@ int Wrap_Filesystem::GetRealDirectory(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::NewFileData(lua_State * L)
+int Wrap_Filesystem::NewFileData(lua_State* L)
 {
     if (lua_gettop(L) == 1)
     {
@@ -416,14 +415,14 @@ int Wrap_Filesystem::NewFileData(lua_State * L)
 
         if (Luax::IsType(L, 1, File::type))
         {
-            File * file = Wrap_File::CheckFile(L, 1);
+            File* file = Wrap_File::CheckFile(L, 1);
             StrongReference<FileData> data;
 
             try
             {
                 data.Set(file->Read(), Acquire::NORETAIN);
             }
-            catch(love::Exception & e)
+            catch (love::Exception& e)
             {
                 return Luax::IOError(L, "%s", e.what());
             }
@@ -436,14 +435,12 @@ int Wrap_Filesystem::NewFileData(lua_State * L)
             return luaL_argerror(L, 1, "filename or File expected");
     }
 
-    size_t length = 0;
-    const char * string = luaL_checklstring(L, 1, &length);
-    const char * filename = luaL_checkstring(L, 2);
+    size_t length        = 0;
+    const char* string   = luaL_checklstring(L, 1, &length);
+    const char* filename = luaL_checkstring(L, 2);
 
-    FileData * data = nullptr;
-    Luax::CatchException(L, [&]() {
-        data = instance()->NewFileData(string, length, filename);
-    });
+    FileData* data = nullptr;
+    Luax::CatchException(L, [&]() { data = instance()->NewFileData(string, length, filename); });
 
     Luax::PushType(L, data);
     data->Release();
@@ -451,27 +448,27 @@ int Wrap_Filesystem::NewFileData(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::Read(lua_State * L)
+int Wrap_Filesystem::Read(lua_State* L)
 {
     love::data::ContainerType type = love::data::CONTAINER_STRING;
-    int start = 1;
+    int start                      = 1;
 
     if (lua_type(L, 2) == LUA_TSTRING)
     {
-        type = Wrap_DataModule::CheckContainerType(L, 1);
+        type  = Wrap_DataModule::CheckContainerType(L, 1);
         start = 2;
     }
 
-    const char * filename = luaL_checkstring(L, start + 0);
-    int64_t length = (int64_t)luaL_optinteger(L, start + 1, File::ALL);
+    const char* filename = luaL_checkstring(L, start + 0);
+    int64_t length       = (int64_t)luaL_optinteger(L, start + 1, File::ALL);
 
-    FileData * data = nullptr;
+    FileData* data = nullptr;
 
     try
     {
         data = instance()->Read(filename, length);
     }
-    catch(love::Exception & e)
+    catch (love::Exception& e)
     {
         return Luax::IOError(L, "%s", e.what());
     }
@@ -482,7 +479,7 @@ int Wrap_Filesystem::Read(lua_State * L)
     if (type == love::data::CONTAINER_DATA)
         Luax::PushType(L, data);
     else
-        lua_pushlstring(L, (const char *)data->GetData(), data->GetSize());
+        lua_pushlstring(L, (const char*)data->GetData(), data->GetSize());
 
     lua_pushinteger(L, data->GetSize());
     data->Release();
@@ -490,9 +487,9 @@ int Wrap_Filesystem::Read(lua_State * L)
     return 2;
 }
 
-int Wrap_Filesystem::Remove(lua_State * L)
+int Wrap_Filesystem::Remove(lua_State* L)
 {
-    const char * filename = luaL_checkstring(L, 1);
+    const char* filename = luaL_checkstring(L, 1);
 
     bool success = instance()->Remove(filename);
 
@@ -501,24 +498,24 @@ int Wrap_Filesystem::Remove(lua_State * L)
     return 1;
 }
 
-int Wrap_Filesystem::GetSourceBaseDirectory(lua_State * L)
+int Wrap_Filesystem::GetSourceBaseDirectory(lua_State* L)
 {
     Luax::PushString(L, instance()->GetSourceBaseDirectory());
 
     return 1;
 }
 
-int Wrap_Filesystem::GetWorkingDirectory(lua_State * L)
+int Wrap_Filesystem::GetWorkingDirectory(lua_State* L)
 {
     lua_pushstring(L, instance()->GetWorkingDirectory());
 
     return 1;
 }
 
-int Wrap_Filesystem::SetRequirePath(lua_State * L)
+int Wrap_Filesystem::SetRequirePath(lua_State* L)
 {
     std::string element = luaL_checkstring(L, 1);
-    auto & requirePath = instance()->GetRequirePath();
+    auto& requirePath   = instance()->GetRequirePath();
 
     requirePath.clear();
     std::string path;
@@ -537,29 +534,29 @@ int Wrap_Filesystem::SetRequirePath(lua_State * L)
     return 0;
 }
 
-int Wrap_Filesystem::SetIdentity(lua_State * L)
+int Wrap_Filesystem::SetIdentity(lua_State* L)
 {
-    const char * name = luaL_checkstring(L, 1);
-    bool append = Luax::OptBoolean(L, 2, false);
+    const char* name = luaL_checkstring(L, 1);
+    bool append      = Luax::OptBoolean(L, 2, false);
 
     if (!instance()->SetIdentity(name, append))
-        return luaL_error(L,  "Could not set write directory.");
+        return luaL_error(L, "Could not set write directory.");
 
     return 0;
 }
 
-int Wrap_Filesystem::WriteOrAppend(lua_State * L, File::Mode mode)
+int Wrap_Filesystem::WriteOrAppend(lua_State* L, File::Mode mode)
 {
-    const char * filename = luaL_checkstring(L, 1);
+    const char* filename = luaL_checkstring(L, 1);
 
-    const char * input = nullptr;
-    size_t length = 0;
+    const char* input = nullptr;
+    size_t length     = 0;
 
     if (Luax::IsType(L, 2, Data::type))
     {
-        Data * data = Luax::ToType<Data>(L, 2);
+        Data* data = Luax::ToType<Data>(L, 2);
 
-        input = (const char *)data->GetData();
+        input  = (const char*)data->GetData();
         length = data->GetSize();
     }
     else if (lua_isstring(L, 2))
@@ -572,11 +569,11 @@ int Wrap_Filesystem::WriteOrAppend(lua_State * L, File::Mode mode)
     try
     {
         if (mode == File::MODE_APPEND)
-            instance()->Append(filename, (const void *)input, length);
+            instance()->Append(filename, (const void*)input, length);
         else
-            instance()->Write(filename, (const void *)input, length);
+            instance()->Write(filename, (const void*)input, length);
     }
-    catch(love::Exception & e)
+    catch (love::Exception& e)
     {
         return Luax::IOError(L, "%s", e.what());
     }
@@ -586,22 +583,22 @@ int Wrap_Filesystem::WriteOrAppend(lua_State * L, File::Mode mode)
     return 1;
 }
 
-int Wrap_Filesystem::Write(lua_State * L)
+int Wrap_Filesystem::Write(lua_State* L)
 {
     return Wrap_Filesystem::WriteOrAppend(L, File::MODE_WRITE);
 }
 
-File * Wrap_Filesystem::GetFile(lua_State * L, int index)
+File* Wrap_Filesystem::GetFile(lua_State* L, int index)
 {
-    File * file = nullptr;
+    File* file = nullptr;
 
     if (lua_isstring(L, index))
     {
         std::filesystem::path filename = luaL_checkstring(L, index);
 
-        #if defined (_3DS)
-            translatePath(filename);
-        #endif
+#if defined(_3DS)
+        translatePath(filename);
+#endif
 
         file = instance()->NewFile(filename.c_str());
     }
@@ -614,16 +611,14 @@ File * Wrap_Filesystem::GetFile(lua_State * L, int index)
     return file;
 }
 
-int Wrap_Filesystem::Lines(lua_State * L)
+int Wrap_Filesystem::Lines(lua_State* L)
 {
     if (lua_isstring(L, 1))
     {
-        File *file = instance()->NewFile(lua_tostring(L, 1));
+        File* file   = instance()->NewFile(lua_tostring(L, 1));
         bool success = false;
 
-        Luax::CatchException(L, [&]() {
-            success = file->Open(File::MODE_READ);
-        });
+        Luax::CatchException(L, [&]() { success = file->Open(File::MODE_READ); });
 
         if (!success)
         {
@@ -638,15 +633,15 @@ int Wrap_Filesystem::Lines(lua_State * L)
         return luaL_argerror(L, 1, "expected filename.");
 
     lua_pushstring(L, ""); // buffer
-    lua_pushstring(L, 0); // buffer offset
+    lua_pushstring(L, 0);  // buffer offset
     lua_pushcclosure(L, Wrap_File::Lines_I, 3);
 
     return 1;
 }
-FileData * Wrap_Filesystem::GetFileData(lua_State * L, int index)
+FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index)
 {
-    FileData * data = nullptr;
-    File * file = nullptr;
+    FileData* data = nullptr;
+    File* file     = nullptr;
 
     if (lua_isstring(L, index) || Luax::IsType(L, index, File::type))
         file = Wrap_Filesystem::GetFile(L, index);
@@ -664,19 +659,17 @@ FileData * Wrap_Filesystem::GetFileData(lua_State * L, int index)
 
     if (file)
     {
-        Luax::CatchException(L,
-            [&]() { data = file->Read(); },
-            [&](bool) { file->Release(); }
-        );
+        Luax::CatchException(
+            L, [&]() { data = file->Read(); }, [&](bool) { file->Release(); });
     }
 
     return data;
 }
 
-Data * Wrap_Filesystem::GetData(lua_State * L, int index)
+Data* Wrap_Filesystem::GetData(lua_State* L, int index)
 {
-    Data * data = nullptr;
-    File * file = nullptr;
+    Data* data = nullptr;
+    File* file = nullptr;
 
     if (lua_isstring(L, index) || Luax::IsType(L, index, File::type))
     {
@@ -696,63 +689,54 @@ Data * Wrap_Filesystem::GetData(lua_State * L, int index)
 
     if (file)
     {
-        Luax::CatchException(L,
-            [&]() { data = file->Read(); },
-            [&](bool) { file->Release(); }
-        );
+        Luax::CatchException(
+            L, [&]() { data = file->Read(); }, [&](bool) { file->Release(); });
     }
 
     return data;
 }
 
-bool Wrap_Filesystem::CanGetData(lua_State * L, int index)
+bool Wrap_Filesystem::CanGetData(lua_State* L, int index)
 {
-    return lua_isstring(L, index) || Luax::IsType(L, index, File::type) || Luax::IsType(L, index, Data::type);
+    return lua_isstring(L, index) || Luax::IsType(L, index, File::type) ||
+           Luax::IsType(L, index, Data::type);
 }
 
-int Wrap_Filesystem::Register(lua_State * L)
+int Wrap_Filesystem::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "init",                   Init                   },
-        { "append",                 Append                 },
-        { "createDirectory",        CreateDirectory        },
-        { "getDirectoryItems",      GetDirectoryItems      },
-        { "getExecutablePath",      GetExecutablePath      },
-        { "getIdentity",            GetIdentity            },
-        { "getInfo",                GetInfo                },
-        { "getRealDirectory",       GetRealDirectory       },
-        { "getRequirePath",         GetRequirePath         },
-        { "getSaveDirectory",       GetSaveDirectory       },
-        { "getSourceBaseDirectory", GetSourceBaseDirectory },
-        { "getSource",              GetSource              },
-        { "getUserDirectory",       GetUserDirectory       },
-        { "getWorkingDirectory",    GetWorkingDirectory    },
-        { "isFused",                IsFused                },
-        { "lines",                  Lines                  },
-        { "load",                   Load                   },
-        { "mount",                  Mount                  },
-        { "newFile",                NewFile                },
-        { "newFileData",            NewFileData            },
-        { "read",                   Read                   },
-        { "remove",                 Remove                 },
-        { "setIdentity",            SetIdentity            },
-        { "setFused",               SetFused               },
-        { "setRequirePath",         SetRequirePath         },
-        { "setSource",              SetSource              },
-        { "unmount",                UnMount                },
-        { "write",                  Write                  },
-        { 0,                        0                      }
-    };
+    luaL_Reg reg[] = { { "init", Init },
+                       { "append", Append },
+                       { "createDirectory", CreateDirectory },
+                       { "getDirectoryItems", GetDirectoryItems },
+                       { "getExecutablePath", GetExecutablePath },
+                       { "getIdentity", GetIdentity },
+                       { "getInfo", GetInfo },
+                       { "getRealDirectory", GetRealDirectory },
+                       { "getRequirePath", GetRequirePath },
+                       { "getSaveDirectory", GetSaveDirectory },
+                       { "getSourceBaseDirectory", GetSourceBaseDirectory },
+                       { "getSource", GetSource },
+                       { "getUserDirectory", GetUserDirectory },
+                       { "getWorkingDirectory", GetWorkingDirectory },
+                       { "isFused", IsFused },
+                       { "lines", Lines },
+                       { "load", Load },
+                       { "mount", Mount },
+                       { "newFile", NewFile },
+                       { "newFileData", NewFileData },
+                       { "read", Read },
+                       { "remove", Remove },
+                       { "setIdentity", SetIdentity },
+                       { "setFused", SetFused },
+                       { "setRequirePath", SetRequirePath },
+                       { "setSource", SetSource },
+                       { "unmount", UnMount },
+                       { "write", Write },
+                       { 0, 0 } };
 
-    lua_CFunction types[] =
-    {
-        Wrap_FileData::Register,
-        Wrap_File::Register,
-        0
-    };
+    lua_CFunction types[] = { Wrap_FileData::Register, Wrap_File::Register, 0 };
 
-    Filesystem * instance = instance();
+    Filesystem* instance = instance();
 
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Filesystem(); });
@@ -763,11 +747,11 @@ int Wrap_Filesystem::Register(lua_State * L)
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "filesystem";
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "filesystem";
     wrappedModule.functions = reg;
-    wrappedModule.type = &Module::type;
-    wrappedModule.types = types;
+    wrappedModule.type      = &Module::type;
+    wrappedModule.types     = types;
 
     return Luax::RegisterModule(L, wrappedModule);
 }

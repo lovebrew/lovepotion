@@ -7,36 +7,40 @@ using namespace love::common;
 
 love::Type Source::type("Source", &Object::type);
 
-Source::Source(Pool * pool, SoundData * sound) : sourceType(Source::TYPE_STATIC),
-                                                 sampleRate(sound->GetSampleRate()),
-                                                 channels(sound->GetChannelCount()),
-                                                 bitDepth(sound->GetBitDepth()),
-                                                 pool(pool)
+Source::Source(Pool* pool, SoundData* sound) :
+    sourceType(Source::TYPE_STATIC),
+    sampleRate(sound->GetSampleRate()),
+    channels(sound->GetChannelCount()),
+    bitDepth(sound->GetBitDepth()),
+    pool(pool)
 {
-    this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()), Acquire::NORETAIN);
+    this->staticBuffer.Set(new StaticDataBuffer(sound->GetData(), sound->GetSize()),
+                           Acquire::NORETAIN);
 }
 
-Source::Source(Pool * pool, Decoder * decoder) : sourceType(Source::TYPE_STREAM),
-                                                 sampleRate(decoder->GetSampleRate()),
-                                                 channels(decoder->GetChannelCount()),
-                                                 bitDepth(decoder->GetBitDepth()),
-                                                 pool(pool),
-                                                 decoder(decoder)
+Source::Source(Pool* pool, Decoder* decoder) :
+    sourceType(Source::TYPE_STREAM),
+    sampleRate(decoder->GetSampleRate()),
+    channels(decoder->GetChannelCount()),
+    bitDepth(decoder->GetBitDepth()),
+    pool(pool),
+    decoder(decoder)
 {}
 
-Source::Source(const Source & other) : sourceType(other.sourceType),
-                                       valid(false),
-                                       volume(other.volume),
-                                       looping(other.looping),
-                                       minVolume(other.minVolume),
-                                       maxVolume(other.maxVolume),
-                                       offsetSamples(0),
-                                       sampleRate(other.sampleRate),
-                                       channels(other.channels),
-                                       bitDepth(other.bitDepth),
-                                       pool(other.pool),
-                                       decoder(nullptr),
-                                       staticBuffer(other.staticBuffer)
+Source::Source(const Source& other) :
+    sourceType(other.sourceType),
+    valid(false),
+    volume(other.volume),
+    looping(other.looping),
+    minVolume(other.minVolume),
+    maxVolume(other.maxVolume),
+    offsetSamples(0),
+    sampleRate(other.sampleRate),
+    channels(other.channels),
+    bitDepth(other.bitDepth),
+    pool(other.pool),
+    decoder(nullptr),
+    staticBuffer(other.staticBuffer)
 {
     if (this->sourceType == TYPE_STREAM && other.decoder.Get())
         this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
@@ -145,7 +149,7 @@ double Source::GetDuration(Source::Unit unit)
     {
         case TYPE_STATIC:
         {
-            size_t size = this->staticBuffer->GetSize();
+            size_t size    = this->staticBuffer->GetSize();
             size_t samples = (size / this->channels) / (this->bitDepth / 8);
 
             if (unit == UNIT_SAMPLES)
@@ -173,7 +177,7 @@ double Source::GetDuration(Source::Unit unit)
 
 void Source::Seek(double offset, Source::Unit unit)
 {
-    int offsetSamples = 0;
+    int offsetSamples    = 0;
     double offsetSeconds = 0.0;
 
     switch (unit)
@@ -243,17 +247,17 @@ bool Source::IsLooping() const
     return this->looping;
 }
 
-void Source::Stop(const std::vector<Source *> & sources)
+void Source::Stop(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)
         return;
 
-    Pool * pool = ((Source *)sources[0])->pool;
+    Pool* pool        = ((Source*)sources[0])->pool;
     thread::Lock lock = pool->Lock();
 
-    for (auto & _source : sources)
+    for (auto& _source : sources)
     {
-        Source * source = (Source *)_source;
+        Source* source = (Source*)_source;
         if (source->valid)
             source->StopAtomic();
 
@@ -275,29 +279,28 @@ double Source::Tell(Source::Unit unit)
         return offset;
 }
 
-void Source::Pause(const std::vector<Source *> & sources)
+void Source::Pause(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)
         return;
 
-    thread::Lock lock = ((Source *)sources[0])->pool->Lock();
+    thread::Lock lock = ((Source*)sources[0])->pool->Lock();
 
-    for (auto & _source : sources)
+    for (auto& _source : sources)
     {
-        Source * source = (Source *)_source;
+        Source* source = (Source*)_source;
         if (source->valid)
             source->PauseAtomic();
     }
 }
 
-std::vector<Source *> Source::Pause(Pool * pool)
+std::vector<Source*> Source::Pause(Pool* pool)
 {
-    thread::Lock lock = pool->Lock();
-    std::vector<Source *> sources = pool->GetPlayingSources();
+    thread::Lock lock            = pool->Lock();
+    std::vector<Source*> sources = pool->GetPlayingSources();
 
-    auto newEnd = std::remove_if(sources.begin(), sources.end(), [](Source * source) {
-        return !source->IsPlaying();
-    });
+    auto newEnd = std::remove_if(sources.begin(), sources.end(),
+                                 [](Source* source) { return !source->IsPlaying(); });
 
     sources.erase(newEnd, sources.end());
 
@@ -306,7 +309,7 @@ std::vector<Source *> Source::Pause(Pool * pool)
     return sources;
 }
 
-void Source::Stop(Pool * pool)
+void Source::Stop(Pool* pool)
 {
     thread::Lock lock = pool->Lock();
     Source::Stop(pool->GetPlayingSources());
@@ -314,12 +317,12 @@ void Source::Stop(Pool * pool)
 
 /* CONSTANTS */
 
-bool Source::GetConstant(const char * in, Type & out)
+bool Source::GetConstant(const char* in, Type& out)
 {
     return types.Find(in, out);
 }
 
-bool Source::GetConstant(Type in, const char  *& out)
+bool Source::GetConstant(Type in, const char*& out)
 {
     return types.Find(in, out);
 }
@@ -329,19 +332,18 @@ std::vector<std::string> Source::GetConstants(Type)
     return types.GetNames();
 }
 
-StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry Source::typeEntries[] =
-{
+StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry Source::typeEntries[] = {
     { "static", Source::TYPE_STATIC },
     { "stream", Source::TYPE_STREAM },
-    { "queue",  Source::TYPE_QUEUE  },
+    { "queue", Source::TYPE_QUEUE },
 };
 
-bool Source::GetConstant(const char * in, Unit & out)
+bool Source::GetConstant(const char* in, Unit& out)
 {
     return units.Find(in, out);
 }
 
-bool Source::GetConstant(Unit in, const char *& out)
+bool Source::GetConstant(Unit in, const char*& out)
 {
     return units.Find(in, out);
 }
@@ -351,12 +353,13 @@ std::vector<std::string> Source::GetConstants(Unit)
     return units.GetNames();
 }
 
-StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(Source::typeEntries, sizeof(Source::typeEntries));
+StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(Source::typeEntries,
+                                                             sizeof(Source::typeEntries));
 
-StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry Source::unitEntries[] =
-{
-    {"seconds", Source::UNIT_SECONDS},
-    {"samples", Source::UNIT_SAMPLES},
+StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry Source::unitEntries[] = {
+    { "seconds", Source::UNIT_SECONDS },
+    { "samples", Source::UNIT_SAMPLES },
 };
 
-StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(Source::unitEntries, sizeof(Source::unitEntries));
+StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(Source::unitEntries,
+                                                             sizeof(Source::unitEntries));

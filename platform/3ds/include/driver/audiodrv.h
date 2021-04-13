@@ -7,22 +7,22 @@ namespace love::driver
 {
     class Audrv : public common::driver::Audrv
     {
-        public:
-            Audrv();
+      public:
+        Audrv();
 
-            ~Audrv();
+        ~Audrv();
 
-            Audrv(const Audrv &) = delete;
+        Audrv(const Audrv&) = delete;
 
-            Audrv(Audrv &&) = delete;
+        Audrv(Audrv&&) = delete;
 
-            Audrv operator = (const Audrv &) = delete;
+        Audrv operator=(const Audrv&) = delete;
 
-            Audrv operator = (Audrv &&) = delete;
+        Audrv operator=(Audrv&&) = delete;
 
-            LightEvent & GetEvent();
+        LightEvent& GetEvent();
 
-        private:
-            LightEvent ndspEvent;
+      private:
+        LightEvent ndspEvent;
     };
-}
+} // namespace love::driver

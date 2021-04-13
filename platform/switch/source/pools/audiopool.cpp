@@ -1,12 +1,12 @@
 #include "pools/audiopool.h"
 
 /* Audio Pool */
-void * AudioPool::AUDIO_POOL_BASE;
+void* AudioPool::AUDIO_POOL_BASE;
 AudioPool::MemoryPool AudioPool::audioPool;
 
 bool AudioPool::Initialize()
 {
-    auto block = MemoryBlock::Create((u8 *)AUDIO_POOL_BASE, AUDIO_POOL_SIZE);
+    auto block = MemoryBlock::Create((u8*)AUDIO_POOL_BASE, AUDIO_POOL_SIZE);
 
     if (block)
     {
@@ -18,7 +18,7 @@ bool AudioPool::Initialize()
     return false;
 }
 
-std::pair<void *, size_t> AudioPool::MemoryAlign(size_t size)
+std::pair<void*, size_t> AudioPool::MemoryAlign(size_t size)
 {
     if (!audioPool.Ready() && !Initialize())
         return std::pair(nullptr, -1);
@@ -30,17 +30,17 @@ std::pair<void *, size_t> AudioPool::MemoryAlign(size_t size)
     return std::pair(chunk.address, chunk.size);
 }
 
-void AudioPool::MemoryFree(const std::pair<void *, size_t> & chunk)
+void AudioPool::MemoryFree(const std::pair<void*, size_t>& chunk)
 {
-    audioPool.DeAllocate((u8 *)chunk.first, chunk.second);
+    audioPool.DeAllocate((u8*)chunk.first, chunk.second);
 }
 
 /* Audio Pool's Memory Pool */
 
-void AudioPool::MemoryPool::CoalesceRight(MemoryBlock * block)
+void AudioPool::MemoryPool::CoalesceRight(MemoryBlock* block)
 {
     auto current = block->base + block->size;
-    auto next = block->next;
+    auto next    = block->next;
 
     for (auto n = next; n; n = next)
     {
@@ -56,7 +56,7 @@ void AudioPool::MemoryPool::CoalesceRight(MemoryBlock * block)
     }
 }
 
-bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
+bool AudioPool::MemoryPool::Allocate(MemoryChunk& chunk, size_t size)
 {
     size_t alignMask = (AUDREN_BUFFER_ALIGNMENT - 1);
 
@@ -65,7 +65,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
         if (size > UINTPTR_MAX - alignMask)
             return false;
 
-        size = (size + alignMask) &~ alignMask;
+        size = (size + alignMask) & ~alignMask;
     }
 
     for (auto block = first; block; block = block->next)
@@ -89,7 +89,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
 
         // found space
         chunk.address = address;
-        chunk.size = size;
+        chunk.size    = size;
 
         if (!waste)
         {
@@ -102,7 +102,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
         else
         {
             auto nextAddress = address + size;
-            auto nextSize = blockSize - size;
+            auto nextSize    = blockSize - size;
 
             block->size = waste;
 
@@ -123,7 +123,7 @@ bool AudioPool::MemoryPool::Allocate(MemoryChunk & chunk, size_t size)
     return false;
 }
 
-void AudioPool::MemoryPool::DeAllocate(u8 * chunkAddress, size_t chunkSize)
+void AudioPool::MemoryPool::DeAllocate(u8* chunkAddress, size_t chunkSize)
 {
     bool done = false;
 

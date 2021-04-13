@@ -2,10 +2,7 @@
 
 using namespace love;
 
-Type::Type(const char * name, Type * parent) : name(name),
-                                               parent(parent),
-                                               id(0),
-                                               initialized(false)
+Type::Type(const char* name, Type* parent) : name(name), parent(parent), id(0), initialized(false)
 {}
 
 void Type::Init()
@@ -16,10 +13,10 @@ void Type::Init()
         return;
 
     m_types[this->name] = this;
-    this->id = nextID++;
+    this->id            = nextID++;
 
     m_bits[this->id] = true;
-    initialized = true;
+    initialized      = true;
 
     if (!this->parent)
         return;
@@ -30,7 +27,7 @@ void Type::Init()
     m_bits |= this->parent->m_bits;
 }
 
-bool Type::IsA(const Type & other)
+bool Type::IsA(const Type& other)
 {
     if (!initialized)
         Init();
@@ -38,7 +35,7 @@ bool Type::IsA(const Type & other)
     return m_bits[other.id];
 }
 
-bool Type::IsA(const uint32_t & other)
+bool Type::IsA(const uint32_t& other)
 {
     if (!initialized)
         Init();
@@ -46,7 +43,7 @@ bool Type::IsA(const uint32_t & other)
     return m_bits[other];
 }
 
-Type * Type::ByName(const char * name)
+Type* Type::ByName(const char* name)
 {
     auto position = m_types.find(name);
 
@@ -56,7 +53,7 @@ Type * Type::ByName(const char * name)
     return position->second;
 }
 
-const char * love::Type::GetName() const
+const char* love::Type::GetName() const
 {
     return this->name;
 }

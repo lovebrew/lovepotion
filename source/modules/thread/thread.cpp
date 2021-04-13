@@ -1,14 +1,12 @@
-#include "modules/thread/types/threadable.h"
 #include "modules/thread/thread.h"
+#include "modules/thread/types/threadable.h"
 
-#include "modules/thread/types/lock.h"
 #include "common/exception.h"
+#include "modules/thread/types/lock.h"
 
 using namespace love;
 
-LOVE_Thread::LOVE_Thread(Threadable * t) : t(t),
-                                           running(false),
-                                           hasThread(false)
+LOVE_Thread::LOVE_Thread(Threadable* t) : t(t), running(false), hasThread(false)
 {}
 
 LOVE_Thread::~LOVE_Thread()
@@ -17,9 +15,9 @@ LOVE_Thread::~LOVE_Thread()
         LOVE_CloseThread(this->thread);
 }
 
-void LOVE_Thread::Runner(void * data)
+void LOVE_Thread::Runner(void* data)
 {
-    LOVE_Thread * self = (LOVE_Thread *)data;
+    LOVE_Thread* self = (LOVE_Thread*)data;
     self->t->Retain();
 
     self->t->ThreadFunction();
@@ -68,20 +66,20 @@ bool LOVE_Thread::Start()
     s32 priority = 0;
     svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
 
-    #if defined (_3DS)
-        this->thread = threadCreate(Runner, this, 0x1000, priority - 1, 1, false);
-        this->hasThread = (this->thread != NULL);
-    #elif defined (__SWITCH__)
-        Result created = threadCreate(&this->thread, Runner, this, NULL, 0x1000, 0x3B, 0);
+#if defined(_3DS)
+    this->thread    = threadCreate(Runner, this, 0x1000, priority - 1, 1, false);
+    this->hasThread = (this->thread != NULL);
+#elif defined(__SWITCH__)
+    Result created = threadCreate(&this->thread, Runner, this, NULL, 0x1000, 0x3B, 0);
 
-        if (R_SUCCEEDED(created))
-        {
-            threadStart(&this->thread);
-            this->hasThread = true;
-        }
-        else
-            throw love::Exception("Failed to spawn thread");
-    #endif
+    if (R_SUCCEEDED(created))
+    {
+        threadStart(&this->thread);
+        this->hasThread = true;
+    }
+    else
+        throw love::Exception("Failed to spawn thread");
+#endif
 
     this->running = this->hasThread;
     return this->running;

@@ -3,7 +3,7 @@
 
 using namespace love;
 
-Image::Image(Data * data) : Texture(Texture::TEXTURE_2D)
+Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
 {
     this->sheet = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
 
@@ -27,7 +27,7 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 
 void Image::Init(int width, int height)
 {
-    this->width = width;
+    this->width  = width;
     this->height = height;
 }
 

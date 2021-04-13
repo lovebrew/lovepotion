@@ -4,7 +4,7 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Timer>(Module::M_TIMER))
 
-int Wrap_Timer::GetAverageDelta(lua_State * L)
+int Wrap_Timer::GetAverageDelta(lua_State* L)
 {
     double average = instance()->GetAverageDelta();
 
@@ -13,7 +13,7 @@ int Wrap_Timer::GetAverageDelta(lua_State * L)
     return 1;
 }
 
-int Wrap_Timer::GetDelta(lua_State * L)
+int Wrap_Timer::GetDelta(lua_State* L)
 {
     float delta = instance()->GetDelta();
 
@@ -22,7 +22,7 @@ int Wrap_Timer::GetDelta(lua_State * L)
     return 1;
 }
 
-int Wrap_Timer::GetFPS(lua_State * L)
+int Wrap_Timer::GetFPS(lua_State* L)
 {
     int fps = instance()->GetFPS();
 
@@ -31,7 +31,7 @@ int Wrap_Timer::GetFPS(lua_State * L)
     return 1;
 }
 
-int Wrap_Timer::GetTime(lua_State * L)
+int Wrap_Timer::GetTime(lua_State* L)
 {
     double time = instance()->GetTime();
 
@@ -40,7 +40,7 @@ int Wrap_Timer::GetTime(lua_State * L)
     return 1;
 }
 
-int Wrap_Timer::Sleep(lua_State * L)
+int Wrap_Timer::Sleep(lua_State* L)
 {
     float seconds = luaL_checknumber(L, 1);
 
@@ -49,7 +49,7 @@ int Wrap_Timer::Sleep(lua_State * L)
     return 0;
 }
 
-int Wrap_Timer::Step(lua_State * L)
+int Wrap_Timer::Step(lua_State* L)
 {
     double dt = instance()->Step();
 
@@ -58,20 +58,17 @@ int Wrap_Timer::Step(lua_State * L)
     return 1;
 }
 
-int Wrap_Timer::Register(lua_State * L)
+int Wrap_Timer::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "getAverageDelta", GetAverageDelta },
-        { "getDelta",        GetDelta        },
-        { "getFPS",          GetFPS          },
-        { "getTime",         GetTime         },
-        { "sleep",           Sleep           },
-        { "step",            Step            },
-        { 0,                 0               }
-    };
+    luaL_Reg reg[] = { { "getAverageDelta", GetAverageDelta },
+                       { "getDelta", GetDelta },
+                       { "getFPS", GetFPS },
+                       { "getTime", GetTime },
+                       { "sleep", Sleep },
+                       { "step", Step },
+                       { 0, 0 } };
 
-    Timer * instance = instance();
+    Timer* instance = instance();
 
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Timer(); });
@@ -80,11 +77,11 @@ int Wrap_Timer::Register(lua_State * L)
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "timer";
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "timer";
     wrappedModule.functions = reg;
-    wrappedModule.type = &Module::type;
-    wrappedModule.types = nullptr;
+    wrappedModule.type      = &Module::type;
+    wrappedModule.types     = nullptr;
 
     return Luax::RegisterModule(L, wrappedModule);
 }

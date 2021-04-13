@@ -2,9 +2,9 @@
 
 using namespace love::driver;
 
-void audioCallback(void * data)
+void audioCallback(void* data)
 {
-    auto event = (LightEvent *)data;
+    auto event = (LightEvent*)data;
     LightEvent_Signal(event);
 }
 
@@ -25,7 +25,7 @@ Audrv::~Audrv()
         ndspExit();
 }
 
-LightEvent & Audrv::GetEvent()
+LightEvent& Audrv::GetEvent()
 {
     return this->ndspEvent;
 }

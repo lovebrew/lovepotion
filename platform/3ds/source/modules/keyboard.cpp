@@ -1,12 +1,12 @@
-#include <3ds.h>
 #include "modules/keyboard/keyboard.h"
+#include <3ds.h>
 
 using namespace love;
 
 Keyboard::Keyboard() : common::Keyboard((MAX_INPUT_LENGTH * 3) + 1)
 {}
 
-std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt & options)
+std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt& options)
 {
     uint32_t maxLength = this->CalculateEncodingMaxLength(options.maxLength);
     memset(this->text, 0, maxLength);
@@ -29,12 +29,12 @@ std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt & options)
     return text;
 }
 
-bool Keyboard::GetConstant(const char * in, KeyboardType & out)
+bool Keyboard::GetConstant(const char* in, KeyboardType& out)
 {
     return keyboardTypes.Find(in, out);
 }
 
-bool Keyboard::GetConstant(KeyboardType in, const char *& out)
+bool Keyboard::GetConstant(KeyboardType in, const char*& out)
 {
     return keyboardTypes.Find(in, out);
 }
@@ -44,11 +44,10 @@ std::vector<std::string> Keyboard::GetConstants(KeyboardType)
     return keyboardTypes.GetNames();
 }
 
-StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)>::Entry Keyboard::keyboardTypeEntries[] =
-{
-    { "normal", KeyboardType::TYPE_NORMAL },
-    { "qwerty", KeyboardType::TYPE_QWERTY },
-    { "numpad", KeyboardType::TYPE_NUMPAD }
-};
+StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)>::Entry
+    Keyboard::keyboardTypeEntries[] = { { "normal", KeyboardType::TYPE_NORMAL },
+                                        { "qwerty", KeyboardType::TYPE_QWERTY },
+                                        { "numpad", KeyboardType::TYPE_NUMPAD } };
 
-StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)> Keyboard::keyboardTypes(Keyboard::keyboardTypeEntries, sizeof(Keyboard::keyboardTypeEntries));
+StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)> Keyboard::
+    keyboardTypes(Keyboard::keyboardTypeEntries, sizeof(Keyboard::keyboardTypeEntries));

@@ -4,28 +4,29 @@
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Keyboard>(Module::M_KEYBOARD))
+#define instance()     (Module::GetInstance<Keyboard>(Module::M_KEYBOARD))
 #define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
 
-int Wrap_Keyboard::SetTextInput(lua_State * L)
+int Wrap_Keyboard::SetTextInput(lua_State* L)
 {
     Keyboard::SwkbdOpt options;
 
-    options.type = Keyboard::KeyboardType::TYPE_NORMAL;
-    options.hint = "Enter String";
+    options.type       = Keyboard::KeyboardType::TYPE_NORMAL;
+    options.hint       = "Enter String";
     options.isPassword = false;
-    options.maxLength = Keyboard::DEFAULT_INPUT_LENGTH;
+    options.maxLength  = Keyboard::DEFAULT_INPUT_LENGTH;
 
     if (!lua_isnoneornil(L, 1))
     {
-        Luax::CheckTableFields<Keyboard::KeyboardOption>(L, 1, "keyboard setting name", common::Keyboard::GetConstant);
+        Luax::CheckTableFields<Keyboard::KeyboardOption>(L, 1, "keyboard setting name",
+                                                         common::Keyboard::GetConstant);
 
         /* keyboard type option */
 
         lua_getfield(L, 1, common::Keyboard::GetConstant(Keyboard::OPTION_TYPE));
         if (!lua_isnoneornil(L, -1))
         {
-            const char * string = luaL_checkstring(L, -1);
+            const char* string = luaL_checkstring(L, -1);
             if (!Keyboard::GetConstant(string, options.type))
                 return Luax::EnumError(L, "keyboard type", string);
         }
@@ -51,7 +52,8 @@ int Wrap_Keyboard::SetTextInput(lua_State * L)
         if (!lua_isnoneornil(L, -1))
         {
             uint32_t length = luaL_checknumber(L, -1);
-            options.maxLength = std::clamp(length, Keyboard::MINIMUM_INPUT_LENGTH, Keyboard::MAX_INPUT_LENGTH);
+            options.maxLength =
+                std::clamp(length, Keyboard::MINIMUM_INPUT_LENGTH, Keyboard::MAX_INPUT_LENGTH);
         }
         lua_pop(L, 1);
     }
@@ -69,15 +71,11 @@ int Wrap_Keyboard::SetTextInput(lua_State * L)
     return 0;
 }
 
-int Wrap_Keyboard::Register(lua_State * L)
+int Wrap_Keyboard::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "setTextInput", SetTextInput },
-        { 0,              0            }
-    };
+    luaL_Reg reg[] = { { "setTextInput", SetTextInput }, { 0, 0 } };
 
-    Keyboard * instance = instance();
+    Keyboard* instance = instance();
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Keyboard(); });
     else
@@ -85,11 +83,11 @@ int Wrap_Keyboard::Register(lua_State * L)
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "keyboard";
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "keyboard";
     wrappedModule.functions = reg;
-    wrappedModule.type = &Module::type;
-    wrappedModule.types = nullptr;
+    wrappedModule.type      = &Module::type;
+    wrappedModule.types     = nullptr;
 
     return Luax::RegisterModule(L, wrappedModule);
 }

@@ -2,23 +2,22 @@
 
 using namespace love;
 
-int Wrap_LuaThread::Start(lua_State * L)
+int Wrap_LuaThread::Start(lua_State* L)
 {
-    LuaThread * self = Wrap_LuaThread::CheckThread(L, 1);
+    LuaThread* self = Wrap_LuaThread::CheckThread(L, 1);
     std::vector<Variant> args;
 
     int nargs = lua_gettop(L) - 1;
 
     for (int i = 0; i < nargs; ++i)
     {
-        Luax::CatchException(L, [&]() {
-            args.push_back(Variant::FromLua(L, i + 2));
-        });
+        Luax::CatchException(L, [&]() { args.push_back(Variant::FromLua(L, i + 2)); });
 
         if (args.back().GetType() == Variant::UNKNOWN)
         {
             args.clear();
-            return luaL_argerror(L, i + 2, "boolean, number, string, love type, or flat table expected");
+            return luaL_argerror(L, i + 2,
+                                 "boolean, number, string, love type, or flat table expected");
         }
     }
 
@@ -27,17 +26,17 @@ int Wrap_LuaThread::Start(lua_State * L)
     return 1;
 }
 
-int Wrap_LuaThread::Wait(lua_State * L)
+int Wrap_LuaThread::Wait(lua_State* L)
 {
-    LuaThread * self = Wrap_LuaThread::CheckThread(L, 1);
+    LuaThread* self = Wrap_LuaThread::CheckThread(L, 1);
     self->Wait();
 
     return 0;
 }
 
-int Wrap_LuaThread::GetError(lua_State * L)
+int Wrap_LuaThread::GetError(lua_State* L)
 {
-    LuaThread * self = Wrap_LuaThread::CheckThread(L, 1);
+    LuaThread* self   = Wrap_LuaThread::CheckThread(L, 1);
     std::string error = self->GetError();
 
     if (error.empty())
@@ -48,30 +47,27 @@ int Wrap_LuaThread::GetError(lua_State * L)
     return 1;
 }
 
-int Wrap_LuaThread::IsRunning(lua_State * L)
+int Wrap_LuaThread::IsRunning(lua_State* L)
 {
-    LuaThread * self = Wrap_LuaThread::CheckThread(L, 1);
+    LuaThread* self = Wrap_LuaThread::CheckThread(L, 1);
 
     lua_pushboolean(L, self->IsRunning());
 
     return 1;
 }
 
-LuaThread * Wrap_LuaThread::CheckThread(lua_State * L, int index)
+LuaThread* Wrap_LuaThread::CheckThread(lua_State* L, int index)
 {
     return Luax::CheckType<LuaThread>(L, index);
 }
 
-int Wrap_LuaThread::Register(lua_State * L)
+int Wrap_LuaThread::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "start",     Start     },
-        { "wait",      Wait      },
-        { "getError",  GetError  },
-        { "isRunning", IsRunning },
-        { 0,           0         }
-    };
+    luaL_Reg reg[] = { { "start", Start },
+                       { "wait", Wait },
+                       { "getError", GetError },
+                       { "isRunning", IsRunning },
+                       { 0, 0 } };
 
     return Luax::RegisterType(L, &LuaThread::type, reg, nullptr);
 }

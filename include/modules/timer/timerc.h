@@ -11,42 +11,48 @@ namespace love::common
 {
     class Timer : public Module
     {
-        public:
-            Timer();
+      public:
+        Timer();
 
-            ModuleType GetModuleType() const { return M_TIMER; }
+        ModuleType GetModuleType() const
+        {
+            return M_TIMER;
+        }
 
-            const char * GetName() const override { return "love.timer"; }
+        const char* GetName() const override
+        {
+            return "love.timer";
+        }
 
-            //Löve2D Functions
+        // Löve2D Functions
 
-            static double GetTime();
+        static double GetTime();
 
-            double GetAverageDelta();
+        double GetAverageDelta();
 
-            double GetDelta();
+        double GetDelta();
 
-            int GetFPS();
+        int GetFPS();
 
-            void Sleep(float seconds);
+        void Sleep(float seconds);
 
-            double Step();
+        double Step();
 
-            //End Löve2D Functions
+        // End Löve2D Functions
 
-        protected:
-            double currentTime;
-            double lastTime;
-            double prevFPSUpdate;
+      protected:
+        double currentTime;
+        double lastTime;
+        double prevFPSUpdate;
 
-            int fps;
-            double averageDelta;
+        int fps;
+        double averageDelta;
 
-            double fpsUpdateFrequency;
-            int frames;
+        double fpsUpdateFrequency;
+        int frames;
 
-            double dt;
+        double dt;
 
-            static uint64_t reference;
+        static uint64_t reference;
     };
-}
+} // namespace love::common

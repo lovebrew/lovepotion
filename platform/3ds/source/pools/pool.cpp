@@ -10,6 +10,6 @@ void Pool::Sleep()
     if (!AudioModule())
         return;
 
-    auto & tmp = AudioModule()->GetDriver();
+    auto& tmp = AudioModule()->GetDriver();
     LightEvent_Wait(&tmp->GetEvent());
 }

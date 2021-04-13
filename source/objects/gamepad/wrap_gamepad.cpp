@@ -6,9 +6,9 @@ using namespace love;
 ** @func GetAxes
 ** @ret float/per axis
 */
-int Wrap_Gamepad::GetAxes(lua_State * L)
+int Wrap_Gamepad::GetAxes(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     size_t axisCount = self->GetAxisCount();
 
@@ -22,9 +22,9 @@ int Wrap_Gamepad::GetAxes(lua_State * L)
 ** @func GetAxis
 ** @ret float value for size_t @axis
 */
-int Wrap_Gamepad::GetAxis(lua_State * L)
+int Wrap_Gamepad::GetAxis(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     size_t axis = luaL_checknumber(L, 2);
 
@@ -37,9 +37,9 @@ int Wrap_Gamepad::GetAxis(lua_State * L)
 ** @func GetButtonCount
 ** @ret total button count
 */
-int Wrap_Gamepad::GetButtonCount(lua_State * L)
+int Wrap_Gamepad::GetButtonCount(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     lua_pushnumber(L, self->GetButtonCount());
 
@@ -50,11 +50,11 @@ int Wrap_Gamepad::GetButtonCount(lua_State * L)
 ** @func GetGamepadAxis
 ** @ret float value for string @axis
 */
-int Wrap_Gamepad::GetGamepadAxis(lua_State * L)
+int Wrap_Gamepad::GetGamepadAxis(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    const char * str = luaL_checkstring(L, 2);
+    const char* str = luaL_checkstring(L, 2);
     Gamepad::GamepadAxis axis;
 
     if (!common::Gamepad::GetConstant(str, axis))
@@ -69,9 +69,9 @@ int Wrap_Gamepad::GetGamepadAxis(lua_State * L)
 ** @func GetID
 ** @ret Joystick ID
 */
-int Wrap_Gamepad::GetID(lua_State * L)
+int Wrap_Gamepad::GetID(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     lua_pushnumber(L, self->GetID());
 
@@ -82,9 +82,9 @@ int Wrap_Gamepad::GetID(lua_State * L)
 ** @func GetName
 ** @ret Joystick Name
 */
-int Wrap_Gamepad::GetName(lua_State * L)
+int Wrap_Gamepad::GetName(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     lua_pushstring(L, self->GetName());
 
@@ -95,9 +95,9 @@ int Wrap_Gamepad::GetName(lua_State * L)
 ** @func GetVibration
 ** @ret Current vibration for <left, right>
 */
-int Wrap_Gamepad::GetVibration(lua_State * L)
+int Wrap_Gamepad::GetVibration(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     float left, right = 0.0f;
     self->GetVibration(left, right);
@@ -112,9 +112,9 @@ int Wrap_Gamepad::GetVibration(lua_State * L)
 ** @func IsConnected
 ** @ret bool Joystick is connected
 */
-int Wrap_Gamepad::IsConnected(lua_State * L)
+int Wrap_Gamepad::IsConnected(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     lua_pushboolean(L, self->IsConnected());
 
@@ -125,12 +125,12 @@ int Wrap_Gamepad::IsConnected(lua_State * L)
 ** @func IsDown
 ** @ret bool is index @button down
 */
-int Wrap_Gamepad::IsDown(lua_State * L)
+int Wrap_Gamepad::IsDown(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     bool istable = lua_istable(L, 2);
-    int num = istable ? (int)lua_objlen(L, 2) : (lua_gettop(L) - 1);
+    int num      = istable ? (int)lua_objlen(L, 2) : (lua_gettop(L) - 1);
 
     if (num == 0)
         luaL_checkinteger(L, 2);
@@ -162,9 +162,9 @@ int Wrap_Gamepad::IsDown(lua_State * L)
 ** @func IsGamepad
 ** @ret bool is it a Gamepad
 */
-int Wrap_Gamepad::IsGamepad(lua_State * L)
+int Wrap_Gamepad::IsGamepad(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     lua_pushboolean(L, self->IsGamepad());
 
@@ -175,12 +175,12 @@ int Wrap_Gamepad::IsGamepad(lua_State * L)
 ** @func IsGamepadDown
 ** @ret bool is string @button down
 */
-int Wrap_Gamepad::IsGamepadDown(lua_State * L)
+int Wrap_Gamepad::IsGamepadDown(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     bool istable = lua_istable(L, 2);
-    int num = istable ? (int)lua_objlen(L, 2) : (lua_gettop(L) - 1);
+    int num      = istable ? (int)lua_objlen(L, 2) : (lua_gettop(L) - 1);
 
     if (num == 0)
         luaL_checkstring(L, 2);
@@ -195,7 +195,7 @@ int Wrap_Gamepad::IsGamepadDown(lua_State * L)
         for (int i = 0; i < num; i++)
         {
             lua_rawgeti(L, 2, i + 1);
-            const char * str = luaL_checkstring(L, -1);
+            const char* str = luaL_checkstring(L, -1);
 
             if (!common::Gamepad::GetConstant(str, button))
                 return Luax::EnumError(L, "gamepad button", str);
@@ -209,7 +209,7 @@ int Wrap_Gamepad::IsGamepadDown(lua_State * L)
     {
         for (int i = 0; i < num; i++)
         {
-            const char *str = luaL_checkstring(L, i + 2);
+            const char* str = luaL_checkstring(L, i + 2);
 
             if (!common::Gamepad::GetConstant(str, button))
                 return Luax::EnumError(L, "gamepad button", str);
@@ -227,9 +227,9 @@ int Wrap_Gamepad::IsGamepadDown(lua_State * L)
 ** @func IsVibrationSupported
 ** @ret bool if vibration is supported
 */
-int Wrap_Gamepad::IsVibrationSupported(lua_State * L)
+int Wrap_Gamepad::IsVibrationSupported(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     lua_pushboolean(L, self->IsVibrationSupported());
 
@@ -242,9 +242,9 @@ int Wrap_Gamepad::IsVibrationSupported(lua_State * L)
 ** Calling this without values stops all vibration
 ** @ret bool success
 */
-int Wrap_Gamepad::SetVibration(lua_State * L)
+int Wrap_Gamepad::SetVibration(lua_State* L)
 {
-    Gamepad * self = Wrap_Gamepad::CheckJoystick(L, 1);
+    Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
     bool success = false;
 
@@ -271,30 +271,27 @@ int Wrap_Gamepad::SetVibration(lua_State * L)
 ** @func CheckJoystick
 ** Quick wrapper for @Luax::CheckType<T>
 */
-Gamepad * Wrap_Gamepad::CheckJoystick(lua_State * L, int index)
+Gamepad* Wrap_Gamepad::CheckJoystick(lua_State* L, int index)
 {
     return Luax::CheckType<Gamepad>(L, index);
 }
 
-int Wrap_Gamepad::Register(lua_State * L)
+int Wrap_Gamepad::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "getAxes",              GetAxes              },
-        { "getAxis",              GetAxis              },
-        { "getButtonCount",       GetButtonCount       },
-        { "getGamepadAxis",       GetGamepadAxis       },
-        { "getID",                GetID                },
-        { "getName",              GetName              },
-        { "getVibration",         GetVibration         },
-        { "isConnected",          IsConnected          },
-        { "isDown",               IsDown               },
-        { "isGamepad",            IsGamepad            },
-        { "isGamepadDown",        IsGamepadDown        },
-        { "isVibrationSupported", IsVibrationSupported },
-        { "setVibration",         SetVibration         },
-        { 0,                      0                    }
-    };
+    luaL_Reg reg[] = { { "getAxes", GetAxes },
+                       { "getAxis", GetAxis },
+                       { "getButtonCount", GetButtonCount },
+                       { "getGamepadAxis", GetGamepadAxis },
+                       { "getID", GetID },
+                       { "getName", GetName },
+                       { "getVibration", GetVibration },
+                       { "isConnected", IsConnected },
+                       { "isDown", IsDown },
+                       { "isGamepad", IsGamepad },
+                       { "isGamepadDown", IsGamepadDown },
+                       { "isVibrationSupported", IsVibrationSupported },
+                       { "setVibration", SetVibration },
+                       { 0, 0 } };
 
     return Luax::RegisterType(L, &Gamepad::type, reg, nullptr);
 }

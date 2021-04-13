@@ -2,26 +2,28 @@
 
 #include "deko3d/deko.h"
 
-#include "s_vsh_dksh.h" //< Vertex Shader
 #include "s_fsh_dksh.h" //< Default Fragment Shader
+#include "s_vsh_dksh.h" //< Vertex Shader
 #include "t_fsh_dksh.h" //< Texture Fragment Shader
 
 using namespace love;
 
 Type love::Shader::type("Shader", &love::Object::type);
 
-Shader * love::Shader::current = nullptr;
-Shader * love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = {nullptr};
+Shader* love::Shader::current                                          = nullptr;
+Shader* love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = { nullptr };
 
 Shader::Shader() : program()
 {}
 
-Shader::Shader(Data * vertex, Data * pixel) : program()
+Shader::Shader(Data* vertex, Data* pixel) : program()
 {
     std::string error;
 
-    this->program.vertex->loadMemory(::deko3d::Instance().GetCode(), vertex->GetData(), vertex->GetSize());
-    this->program.fragment->loadMemory(::deko3d::Instance().GetCode(), pixel->GetData(), pixel->GetSize());
+    this->program.vertex->loadMemory(::deko3d::Instance().GetCode(), vertex->GetData(),
+                                     vertex->GetSize());
+    this->program.fragment->loadMemory(::deko3d::Instance().GetCode(), pixel->GetData(),
+                                       pixel->GetSize());
 
     if (!this->Validate(*this->program.vertex, *this->program.fragment, error))
         throw love::Exception(error.c_str());
@@ -44,12 +46,16 @@ void Shader::LoadDefaults(StandardShader type)
     switch (type)
     {
         case STANDARD_DEFAULT:
-            this->program.vertex->loadMemory(::deko3d::Instance().GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
-            this->program.fragment->loadMemory(::deko3d::Instance().GetCode(), (void *)s_fsh_dksh, s_fsh_dksh_size);
+            this->program.vertex->loadMemory(::deko3d::Instance().GetCode(), (void*)s_vsh_dksh,
+                                             s_vsh_dksh_size);
+            this->program.fragment->loadMemory(::deko3d::Instance().GetCode(), (void*)s_fsh_dksh,
+                                               s_fsh_dksh_size);
             break;
         case STANDARD_TEXTURE:
-            this->program.vertex->loadMemory(::deko3d::Instance().GetCode(),   (void *)s_vsh_dksh, s_vsh_dksh_size);
-            this->program.fragment->loadMemory(::deko3d::Instance().GetCode(), (void *)t_fsh_dksh, t_fsh_dksh_size);
+            this->program.vertex->loadMemory(::deko3d::Instance().GetCode(), (void*)s_vsh_dksh,
+                                             s_vsh_dksh_size);
+            this->program.fragment->loadMemory(::deko3d::Instance().GetCode(), (void*)t_fsh_dksh,
+                                               t_fsh_dksh_size);
             break;
         default:
             break;
@@ -60,7 +66,7 @@ void Shader::LoadDefaults(StandardShader type)
         throw love::Exception(error.c_str());
 }
 
-const char * Shader::GetStageName(CShader & shader)
+const char* Shader::GetStageName(CShader& shader)
 {
     switch (shader.getStage())
     {
@@ -75,7 +81,7 @@ const char * Shader::GetStageName(CShader & shader)
     return NULL;
 }
 
-bool Shader::Validate(const CShader & vertex, const CShader & pixel, std::string & error)
+bool Shader::Validate(const CShader& vertex, const CShader& pixel, std::string& error)
 {
     if (!vertex.isValid())
     {
@@ -94,7 +100,7 @@ bool Shader::Validate(const CShader & vertex, const CShader & pixel, std::string
 
 void Shader::AttachDefault(StandardShader defaultType)
 {
-    Shader * defaultshader = standardShaders[defaultType];
+    Shader* defaultshader = standardShaders[defaultType];
 
     if (defaultshader == nullptr)
     {
@@ -127,20 +133,19 @@ void Shader::Attach()
     }
 }
 
-bool Shader::GetConstant(const char * in, StandardShader & out)
+bool Shader::GetConstant(const char* in, StandardShader& out)
 {
     return shaderNames.Find(in, out);
 }
 
-bool Shader::GetConstant(StandardShader in, const char *& out)
+bool Shader::GetConstant(StandardShader in, const char*& out)
 {
     return shaderNames.Find(in, out);
 }
 
-StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry Shader::shaderEntries[] =
-{
-    { "default", STANDARD_DEFAULT },
-    { "texture", STANDARD_TEXTURE }
+StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry Shader::shaderEntries[] = {
+    { "default", STANDARD_DEFAULT }, { "texture", STANDARD_TEXTURE }
 };
 
-StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(Shader::shaderEntries, sizeof(Shader::shaderEntries));
+StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(
+    Shader::shaderEntries, sizeof(Shader::shaderEntries));

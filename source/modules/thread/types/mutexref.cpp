@@ -10,12 +10,12 @@ MutexRef::~MutexRef()
     delete this->mutex;
 }
 
-MutexRef::operator Mutex * () const
+MutexRef::operator Mutex*() const
 {
     return this->mutex;
 }
 
-love::thread::Mutex * MutexRef::operator-> () const
+love::thread::Mutex* MutexRef::operator->() const
 {
     return this->mutex;
 }

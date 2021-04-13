@@ -4,8 +4,7 @@
 
 using namespace love;
 
-Joystick::VibrationThread::VibrationThread(VibrationPool * pool) : pool(pool),
-                                                                   finish(false)
+Joystick::VibrationThread::VibrationThread(VibrationPool* pool) : pool(pool), finish(false)
 {
     this->threadName = "VibrationPool";
 }
@@ -27,8 +26,7 @@ void Joystick::VibrationThread::SetFinish()
     this->finish = true;
 }
 
-Joystick::Joystick() : pool(nullptr),
-                       poolThread(nullptr)
+Joystick::Joystick() : pool(nullptr), poolThread(nullptr)
 {
 
     this->pool = new VibrationPool();
@@ -46,7 +44,7 @@ Joystick::~Joystick()
     delete this->pool;
 }
 
-bool Joystick::AddVibration(Gamepad * gamepad, size_t id)
+bool Joystick::AddVibration(Gamepad* gamepad, size_t id)
 {
     return this->pool->AssignGamepad(gamepad, id);
 }

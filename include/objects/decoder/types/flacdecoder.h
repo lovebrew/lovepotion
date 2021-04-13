@@ -7,56 +7,56 @@ namespace love
 {
     class FLACDecoder : public Decoder
     {
-        public:
-            FLACDecoder(Data * data, int bufferSize);
-            ~FLACDecoder();
+      public:
+        FLACDecoder(Data* data, int bufferSize);
+        ~FLACDecoder();
 
-            struct FLACFile
-            {
-                int sampleRate;
-                int channels;
-                int PCMCount;
-                int bitsPerSample;
-                int totalSamples;
+        struct FLACFile
+        {
+            int sampleRate;
+            int channels;
+            int PCMCount;
+            int bitsPerSample;
+            int totalSamples;
 
-                const char * data;
-                size_t size;
-                size_t read;
+            const char* data;
+            size_t size;
+            size_t read;
 
-                size_t usedSamples;
+            size_t usedSamples;
 
-                int32_t * buffer;
-                int32_t * writePointer = nullptr;
-            };
+            int32_t* buffer;
+            int32_t* writePointer = nullptr;
+        };
 
-            static bool Accepts(const std::string & ext);
+        static bool Accepts(const std::string& ext);
 
-            Decoder * Clone();
+        Decoder* Clone();
 
-            int Decode();
+        int Decode();
 
-            int Decode(s16 * buffer);
+        int Decode(s16* buffer);
 
-            bool Seek(double position);
+        bool Seek(double position);
 
-            bool Rewind();
+        bool Rewind();
 
-            bool IsSeekable();
+        bool IsSeekable();
 
-            int GetChannelCount() const;
+        int GetChannelCount() const;
 
-            int GetBitDepth() const;
+        int GetBitDepth() const;
 
-            int GetSampleRate() const;
+        int GetSampleRate() const;
 
-            double GetDuration();
+        double GetDuration();
 
-        private:
-            static bool inited;
+      private:
+        static bool inited;
 
-            FLACFile file;
+        FLACFile file;
 
-            FLAC__StreamDecoder * decoder;
-            FLAC__StreamDecoderInitStatus status;
+        FLAC__StreamDecoder* decoder;
+        FLAC__StreamDecoderInitStatus status;
     };
-}
+} // namespace love

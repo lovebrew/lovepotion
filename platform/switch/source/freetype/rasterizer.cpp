@@ -29,7 +29,7 @@ int Rasterizer::GetDescent() const
     return this->metrics.descent;
 }
 
-GlyphData * Rasterizer::GetGlyphData(const std::string & text) const
+GlyphData* Rasterizer::GetGlyphData(const std::string& text) const
 {
     uint32_t codepoint = 0;
 
@@ -37,7 +37,7 @@ GlyphData * Rasterizer::GetGlyphData(const std::string & text) const
     {
         codepoint = utf8::peek_next(text.begin(), text.end());
     }
-    catch (utf8::exception & e)
+    catch (utf8::exception& e)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
@@ -45,7 +45,7 @@ GlyphData * Rasterizer::GetGlyphData(const std::string & text) const
     return this->GetGlyphData(codepoint);
 }
 
-bool Rasterizer::HasGlyphs(const std::string & text) const
+bool Rasterizer::HasGlyphs(const std::string& text) const
 {
     if (text.size() == 0)
         return false;
@@ -63,7 +63,7 @@ bool Rasterizer::HasGlyphs(const std::string & text) const
                 return false;
         }
     }
-    catch (utf8::exception & e)
+    catch (utf8::exception& e)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }

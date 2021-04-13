@@ -1,75 +1,75 @@
 #pragma once
 
-#include "objects/gamepad/gamepadc.h"
 #include "common/enummap.h"
+#include "objects/gamepad/gamepadc.h"
 
 #include "common/bitalloc.h"
 
-#include <switch.h>
 #include <memory>
+#include <switch.h>
 
 namespace love
 {
     class Gamepad : public common::Gamepad
     {
-        public:
-            Gamepad(size_t id);
+      public:
+        Gamepad(size_t id);
 
-            Gamepad(size_t id, size_t index);
+        Gamepad(size_t id, size_t index);
 
-            virtual ~Gamepad();
+        virtual ~Gamepad();
 
-            bool Open(size_t id) override;
+        bool Open(size_t id) override;
 
-            void Close() override;
+        void Close() override;
 
-            bool IsConnected() const override;
+        bool IsConnected() const override;
 
-            const char * GetName() const override;
+        const char* GetName() const override;
 
-            size_t GetAxisCount() const override;
+        size_t GetAxisCount() const override;
 
-            size_t GetButtonCount() const override;
+        size_t GetButtonCount() const override;
 
-            float GetAxis(size_t axis) const override;
+        float GetAxis(size_t axis) const override;
 
-            std::vector<float> GetAxes() const override;
+        std::vector<float> GetAxes() const override;
 
-            bool IsDown(const std::vector<size_t> & buttons) const override;
+        bool IsDown(const std::vector<size_t>& buttons) const override;
 
-            float GetGamepadAxis(GamepadAxis axis) const override;
+        float GetGamepadAxis(GamepadAxis axis) const override;
 
-            bool IsGamepadDown(const std::vector<GamepadButton> & buttons) const override;
+        bool IsGamepadDown(const std::vector<GamepadButton>& buttons) const override;
 
-            bool IsVibrationSupported() override;
+        bool IsVibrationSupported() override;
 
-            bool SetVibration(float left, float right, float duration = -1.0f) override;
+        bool SetVibration(float left, float right, float duration = -1.0f) override;
 
-            bool SetVibration() override;
+        bool SetVibration() override;
 
-            void GetVibration(float & left, float & right) override;
+        void GetVibration(float& left, float& right) override;
 
-            const Vibration & GetVibration() const;
+        const Vibration& GetVibration() const;
 
-            PadState & GetPadState();
+        PadState& GetPadState();
 
-            static bool GetConstant(int32_t in, GamepadButton & out);
-            static bool GetConstant(GamepadButton in, int32_t & out);
+        static bool GetConstant(int32_t in, GamepadButton& out);
+        static bool GetConstant(GamepadButton in, int32_t& out);
 
-        private:
-            PadState pad;
-            u32 style;
+      private:
+        PadState pad;
+        u32 style;
 
-            std::unique_ptr<HidSixAxisSensorHandle[]> sixAxisHandles;
+        std::unique_ptr<HidSixAxisSensorHandle[]> sixAxisHandles;
 
-            std::unique_ptr<HidVibrationDeviceHandle[]> vibrationHandles;
-            HidVibrationValue vibrationValues[2];
+        std::unique_ptr<HidVibrationDeviceHandle[]> vibrationHandles;
+        HidVibrationValue vibrationValues[2];
 
-            const HidNpadStyleTag GetStyleTag() const;
+        const HidNpadStyleTag GetStyleTag() const;
 
-            const HidNpadIdType GetNpadIdType() const;
+        const HidNpadIdType GetNpadIdType() const;
 
-            static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM>::Entry buttonEntries[];
-            static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM> buttons;
+        static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM>::Entry buttonEntries[];
+        static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM> buttons;
     };
-}
+} // namespace love

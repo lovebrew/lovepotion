@@ -6,40 +6,46 @@ namespace love
 {
     class Window : public Module
     {
-        public:
-            struct DisplaySize
-            {
-                int width;
-                int height;
-            };
+      public:
+        struct DisplaySize
+        {
+            int width;
+            int height;
+        };
 
-            Window();
+        Window();
 
-            virtual ~Window();
+        virtual ~Window();
 
-            ModuleType GetModuleType() const { return M_WINDOW; }
+        ModuleType GetModuleType() const
+        {
+            return M_WINDOW;
+        }
 
-            const char * GetName() const override { return "love.window"; }
+        const char* GetName() const override
+        {
+            return "love.window";
+        }
 
-            // Löve2D Functions
+        // Löve2D Functions
 
-            int GetDisplayCount();
+        int GetDisplayCount();
 
-            const std::array<DisplaySize, 2> & GetFullscreenModes();
+        const std::array<DisplaySize, 2>& GetFullscreenModes();
 
-            bool IsOpen();
+        bool IsOpen();
 
-            bool SetMode();
+        bool SetMode();
 
-            // End Löve2D Functions
+        // End Löve2D Functions
 
-            void SetGraphics(Graphics * g);
+        void SetGraphics(Graphics* g);
 
-            void OnSizeChanged(int width, int height);
+        void OnSizeChanged(int width, int height);
 
-        private:
-            StrongReference<Graphics> graphics;
+      private:
+        StrongReference<Graphics> graphics;
 
-            bool open;
+        bool open;
     };
-}
+} // namespace love

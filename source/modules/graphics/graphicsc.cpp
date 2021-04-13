@@ -19,7 +19,7 @@ bool Graphics::IsGammaCorrect()
     return Graphics::gammaCorrectColor;
 }
 
-void Graphics::GammaCorrectColor(Colorf & c)
+void Graphics::GammaCorrectColor(Colorf& c)
 {
     if (Graphics::IsGammaCorrect())
     {
@@ -29,7 +29,7 @@ void Graphics::GammaCorrectColor(Colorf & c)
     }
 }
 
-Colorf Graphics::GammaCorrectColor(const Colorf & c)
+Colorf Graphics::GammaCorrectColor(const Colorf& c)
 {
     Colorf r = c;
     Graphics::GammaCorrectColor(r);
@@ -37,7 +37,7 @@ Colorf Graphics::GammaCorrectColor(const Colorf & c)
     return r;
 }
 
-void Graphics::UnGammaCorrectColor(Colorf & c)
+void Graphics::UnGammaCorrectColor(Colorf& c)
 {
     if (Graphics::IsGammaCorrect())
     {
@@ -47,7 +47,7 @@ void Graphics::UnGammaCorrectColor(Colorf & c)
     }
 }
 
-Colorf Graphics::UnGammaCorrectColor(const Colorf & c)
+Colorf Graphics::UnGammaCorrectColor(const Colorf& c)
 {
     Colorf r = c;
     Graphics::UnGammaCorrectColor(r);
@@ -57,8 +57,7 @@ Colorf Graphics::UnGammaCorrectColor(const Colorf & c)
 
 /* End */
 
-Graphics::Graphics() : width(0),
-                       height(0)
+Graphics::Graphics() : width(0), height(0)
 {
     this->states.reserve(10);
     this->states.push_back(DisplayState());
@@ -106,7 +105,7 @@ Colorf Graphics::GetBackgroundColor() const
     return this->states.back().background;
 }
 
-void Graphics::SetBackgroundColor(const Colorf & color)
+void Graphics::SetBackgroundColor(const Colorf& color)
 {
     this->states.back().background = color;
 }
@@ -121,30 +120,29 @@ void Graphics::SetLineWidth(float width)
     this->states.back().lineWidth = width;
 }
 
-
 #if defined(__SWITCH__)
-    Shader * Graphics::GetShader() const
-    {
-        return states.back().shader.Get();
-    }
+Shader* Graphics::GetShader() const
+{
+    return states.back().shader.Get();
+}
 
-    void Graphics::SetShader(Shader * shader)
-    {
-        if (shader == nullptr)
-            return this->SetShader();
+void Graphics::SetShader(Shader* shader)
+{
+    if (shader == nullptr)
+        return this->SetShader();
 
-        shader->Attach();
-        states.back().shader.Set(shader);
-    }
+    shader->Attach();
+    states.back().shader.Set(shader);
+}
 
-    void Graphics::SetShader()
-    {
-        Shader::AttachDefault(Shader::STANDARD_DEFAULT);
-        states.back().shader.Set(nullptr);
-    }
+void Graphics::SetShader()
+{
+    Shader::AttachDefault(Shader::STANDARD_DEFAULT);
+    states.back().shader.Set(nullptr);
+}
 #endif
 
-bool Graphics::IsCanvasActive(Canvas * canvas) const
+bool Graphics::IsCanvasActive(Canvas* canvas) const
 {
     const auto target = this->states.back().canvas;
 
@@ -156,28 +154,28 @@ bool Graphics::IsCanvasActive() const
     return this->states.back().canvas != nullptr;
 }
 
-bool Graphics::GetScissor(Rect & scissor) const
+bool Graphics::GetScissor(Rect& scissor) const
 {
-    const DisplayState & state = states.back();
-    scissor = state.scissorRect;
+    const DisplayState& state = states.back();
+    scissor                   = state.scissorRect;
 
     return state.scissor;
 }
 
-void Graphics::SetDefaultFilter(const Texture::Filter & filter)
+void Graphics::SetDefaultFilter(const Texture::Filter& filter)
 {
-    Texture::defaultFilter = filter;
+    Texture::defaultFilter            = filter;
     this->states.back().defaultFilter = filter;
 }
 
-const Texture::Filter & Graphics::GetDefaultFilter() const
+const Texture::Filter& Graphics::GetDefaultFilter() const
 {
     return Texture::defaultFilter;
 }
 
 void Graphics::Origin()
 {
-    auto & transform = this->transformStack.back();
+    auto& transform = this->transformStack.back();
     transform.SetIdentity();
 
     this->pixelScaleStack.back() = 1;
@@ -199,19 +197,19 @@ void Graphics::Push(StackType type)
 
 void Graphics::Translate(float offsetX, float offsetY)
 {
-    auto & transform = this->transformStack.back();
+    auto& transform = this->transformStack.back();
     transform.Translate(offsetX, offsetY);
 }
 
 void Graphics::Rotate(float rotation)
 {
-    auto & transform = this->transformStack.back();
+    auto& transform = this->transformStack.back();
     transform.Rotate(rotation);
 }
 
 void Graphics::Scale(float x, float y)
 {
-    auto & transform = this->transformStack.back();
+    auto& transform = this->transformStack.back();
     transform.Scale(x, y);
 
     pixelScaleStack.back() *= (fabs(x) + fabs(y)) / 2.0;
@@ -219,7 +217,7 @@ void Graphics::Scale(float x, float y)
 
 void Graphics::Shear(float kx, float ky)
 {
-    auto & transform = this->transformStack.back();
+    auto& transform = this->transformStack.back();
     transform.Shear(kx, ky);
 }
 
@@ -233,7 +231,7 @@ void Graphics::Pop()
 
     if (this->stackTypeStack.back() == STACK_ALL)
     {
-        DisplayState & newstate = states[states.size() - 2];
+        DisplayState& newstate = states[states.size() - 2];
 
         this->RestoreStateChecked(newstate);
 
@@ -264,39 +262,39 @@ Vector2 Graphics::InverseTransformPoint(Vector2 point)
 
 /* Objects */
 
-Image * Graphics::NewImage(Data * data)
+Image* Graphics::NewImage(Data* data)
 {
     return new Image(data);
 }
 
-Quad * Graphics::NewQuad(Quad::Viewport viewport, double sw, double sh)
+Quad* Graphics::NewQuad(Quad::Viewport viewport, double sw, double sh)
 {
     return new Quad(viewport, sw, sh);
 }
 
-Text * Graphics::NewText(Font * font, const std::vector<Font::ColoredString> & text)
+Text* Graphics::NewText(Font* font, const std::vector<Font::ColoredString>& text)
 {
     return new Text(font, text);
 }
 
-Canvas * Graphics::NewCanvas(const Canvas::Settings & settings)
+Canvas* Graphics::NewCanvas(const Canvas::Settings& settings)
 {
     return new Canvas(settings);
 }
 
 /* ------ */
 
-void Graphics::Draw(Drawable * drawable, const Matrix4 & matrix)
+void Graphics::Draw(Drawable* drawable, const Matrix4& matrix)
 {
     drawable->Draw(this, matrix);
 }
 
-void Graphics::Draw(Texture * texture, Quad * quad, const Matrix4 & matrix)
+void Graphics::Draw(Texture* texture, Quad* quad, const Matrix4& matrix)
 {
     texture->Draw(this, quad, matrix);
 }
 
-void Graphics::Print(const std::vector<Font::ColoredString> & strings, const Matrix4 & localTransform)
+void Graphics::Print(const std::vector<Font::ColoredString>& strings, const Matrix4& localTransform)
 {
     this->CheckSetDefaultFont();
 
@@ -304,12 +302,14 @@ void Graphics::Print(const std::vector<Font::ColoredString> & strings, const Mat
         this->Print(strings, this->states.back().font.Get(), localTransform);
 }
 
-void Graphics::Print(const  std::vector<Font::ColoredString> & strings, Font * font, const Matrix4 & localTransform)
+void Graphics::Print(const std::vector<Font::ColoredString>& strings, Font* font,
+                     const Matrix4& localTransform)
 {
     font->Print(this, strings, localTransform, this->states.back().foreground);
 }
 
-void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
+void Graphics::PrintF(const std::vector<Font::ColoredString>& strings, float wrap,
+                      Font::AlignMode align, const Matrix4& localTransform)
 {
     this->CheckSetDefaultFont();
 
@@ -317,7 +317,8 @@ void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, float wr
         this->PrintF(strings, this->states.back().font.Get(), wrap, align, localTransform);
 }
 
-void Graphics::PrintF(const std::vector<Font::ColoredString> & strings, Font * font, float wrap, Font::AlignMode align, const Matrix4 & localTransform)
+void Graphics::PrintF(const std::vector<Font::ColoredString>& strings, Font* font, float wrap,
+                      Font::AlignMode align, const Matrix4& localTransform)
 {
     font->Printf(this, strings, wrap, align, localTransform, this->states.back().foreground);
 }
@@ -343,7 +344,7 @@ void Graphics::Reset()
 
 /* Private */
 
-void Graphics::RestoreState(const DisplayState & state)
+void Graphics::RestoreState(const DisplayState& state)
 {
     this->SetColor(state.foreground);
     this->SetBackgroundColor(state.background);
@@ -361,12 +362,12 @@ void Graphics::RestoreState(const DisplayState & state)
     else
         this->SetScissor();
 
-    #if defined(__SWITCH__)
-        this->SetMeshCullMode(state.meshCullMode);
-        this->SetFrontFaceWinding(state.winding);
+#if defined(__SWITCH__)
+    this->SetMeshCullMode(state.meshCullMode);
+    this->SetFrontFaceWinding(state.winding);
 
-        this->SetShader(state.shader.Get());
-    #endif
+    this->SetShader(state.shader.Get());
+#endif
 
     this->SetFont(state.font.Get());
 
@@ -375,9 +376,9 @@ void Graphics::RestoreState(const DisplayState & state)
     this->SetDefaultFilter(state.defaultFilter);
 }
 
-void Graphics::RestoreStateChecked(const DisplayState & state)
+void Graphics::RestoreStateChecked(const DisplayState& state)
 {
-    const DisplayState & current = states.back();
+    const DisplayState& current = states.back();
 
     if (state.foreground != current.foreground)
         this->SetColor(state.foreground);
@@ -395,7 +396,8 @@ void Graphics::RestoreStateChecked(const DisplayState & state)
     if (state.pointSize != current.pointSize)
         this->SetPointSize(state.pointSize);
 
-    if (state.scissor != current.scissor || (state.scissor && !(state.scissorRect == current.scissorRect)))
+    if (state.scissor != current.scissor ||
+        (state.scissor && !(state.scissorRect == current.scissorRect)))
     {
         if (state.scissor)
             this->SetScissor(state.scissorRect);
@@ -403,14 +405,14 @@ void Graphics::RestoreStateChecked(const DisplayState & state)
             this->SetScissor();
     }
 
-    #if defined(__SWITCH__)
-        this->SetMeshCullMode(state.meshCullMode);
+#if defined(__SWITCH__)
+    this->SetMeshCullMode(state.meshCullMode);
 
-        if (state.winding != current.winding)
-            this->SetFrontFaceWinding(state.winding);
+    if (state.winding != current.winding)
+        this->SetFrontFaceWinding(state.winding);
 
-        this->SetShader(state.shader.Get());
-    #endif
+    this->SetShader(state.shader.Get());
+#endif
 
     if (state.colorMask != current.colorMask)
         this->SetColorMask(state.colorMask);
@@ -424,14 +426,14 @@ void Graphics::RestoreStateChecked(const DisplayState & state)
 
 void Graphics::SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness)
 {
-    Texture::defaultMipmapFilter = filter;
+    Texture::defaultMipmapFilter    = filter;
     Texture::defaultMipmapSharpness = sharpness;
 
-    this->states.back().defaultMipmapFilter = filter;
+    this->states.back().defaultMipmapFilter    = filter;
     this->states.back().defaultMipmapSharpness = sharpness;
 }
 
-void Graphics::IntersectScissor(const Rect & rect)
+void Graphics::IntersectScissor(const Rect& rect)
 {
     Rect currect = states.back().scissorRect;
 
@@ -449,7 +451,7 @@ void Graphics::IntersectScissor(const Rect & rect)
     int x2 = std::min(currect.x + currect.w, rect.x + rect.w);
     int y2 = std::min(currect.y + currect.h, rect.y + rect.h);
 
-    Rect newrect = {x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1)};
+    Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
     this->SetScissor(newrect);
 }
 
@@ -464,31 +466,32 @@ void Graphics::CheckSetDefaultFont()
     // Create a new default font if we don't have one yet.
     if (!this->defaultFont.Get())
     {
-        #if defined(__SWITCH__)
-            this->defaultFont.Set(this->NewDefaultFont(12, TrueTypeRasterizer::HINTING_NORMAL), Acquire::NORETAIN);
-        #else
-            this->defaultFont.Set(this->NewDefaultFont(24), Acquire::NORETAIN);
-        #endif
+#if defined(__SWITCH__)
+        this->defaultFont.Set(this->NewDefaultFont(12, TrueTypeRasterizer::HINTING_NORMAL),
+                              Acquire::NORETAIN);
+#else
+        this->defaultFont.Set(this->NewDefaultFont(24), Acquire::NORETAIN);
+#endif
     }
 
     this->states.back().font.Set(this->defaultFont.Get());
 }
 
-void Graphics::SetFont(Font * font)
+void Graphics::SetFont(Font* font)
 {
-    DisplayState & state = this->states.back();
+    DisplayState& state = this->states.back();
     state.font.Set(font);
 }
 
-Font * Graphics::GetFont()
+Font* Graphics::GetFont()
 {
     this->CheckSetDefaultFont();
     return this->states.back().font.Get();
 }
 
-void Graphics::ApplyTransform(Transform * transform)
+void Graphics::ApplyTransform(Transform* transform)
 {
-    Matrix4 & m = transformStack.back();
+    Matrix4& m = transformStack.back();
     m *= transform->GetMatrix();
 
     float sx, sy;
@@ -496,9 +499,9 @@ void Graphics::ApplyTransform(Transform * transform)
     this->pixelScaleStack.back() = (sx + sy) / 2.0;
 }
 
-void Graphics::ReplaceTransform(Transform * transform)
+void Graphics::ReplaceTransform(Transform* transform)
 {
-    const Matrix4 & m = transform->GetMatrix();
+    const Matrix4& m      = transform->GetMatrix();
     transformStack.back() = m;
 
     float sx, sy;
@@ -533,12 +536,12 @@ Graphics::LineJoin Graphics::GetLineJoin() const
 
 /* Constants */
 
-bool Graphics::GetConstant(const char * in, Screen & out)
+bool Graphics::GetConstant(const char* in, Screen& out)
 {
     return screens.Find(in, out);
 }
 
-bool Graphics::GetConstant(Screen in, const char *& out)
+bool Graphics::GetConstant(Screen in, const char*& out)
 {
     return screens.Find(in, out);
 }
@@ -548,12 +551,12 @@ std::vector<std::string> Graphics::GetConstants(Screen)
     return screens.GetNames();
 }
 
-bool Graphics::GetConstant(const char * in, DrawMode & out)
+bool Graphics::GetConstant(const char* in, DrawMode& out)
 {
     return drawModes.Find(in, out);
 }
 
-bool Graphics::GetConstant(DrawMode in, const char *& out)
+bool Graphics::GetConstant(DrawMode in, const char*& out)
 {
     return drawModes.Find(in, out);
 }
@@ -563,12 +566,12 @@ std::vector<std::string> Graphics::GetConstants(DrawMode)
     return drawModes.GetNames();
 }
 
-bool Graphics::GetConstant(const char * in, ArcMode & out)
+bool Graphics::GetConstant(const char* in, ArcMode& out)
 {
     return arcModes.Find(in, out);
 }
 
-bool Graphics::GetConstant(ArcMode in, const char *&out)
+bool Graphics::GetConstant(ArcMode in, const char*& out)
 {
     return arcModes.Find(in, out);
 }
@@ -578,12 +581,12 @@ std::vector<std::string> Graphics::GetConstants(ArcMode)
     return arcModes.GetNames();
 }
 
-bool Graphics::GetConstant(const char *in, BlendMode & out)
+bool Graphics::GetConstant(const char* in, BlendMode& out)
 {
     return blendModes.Find(in, out);
 }
 
-bool Graphics::GetConstant(BlendMode in, const char *& out)
+bool Graphics::GetConstant(BlendMode in, const char*& out)
 {
     return blendModes.Find(in, out);
 }
@@ -593,12 +596,12 @@ std::vector<std::string> Graphics::GetConstants(BlendMode)
     return blendModes.GetNames();
 }
 
-bool Graphics::GetConstant(const char * in, BlendAlpha & out)
+bool Graphics::GetConstant(const char* in, BlendAlpha& out)
 {
     return blendAlphaModes.Find(in, out);
 }
 
-bool Graphics::GetConstant(BlendAlpha in, const char *& out)
+bool Graphics::GetConstant(BlendAlpha in, const char*& out)
 {
     return blendAlphaModes.Find(in, out);
 }
@@ -608,12 +611,12 @@ std::vector<std::string> Graphics::GetConstants(BlendAlpha)
     return blendAlphaModes.GetNames();
 }
 
-bool Graphics::GetConstant(const char * in, StackType & out)
+bool Graphics::GetConstant(const char* in, StackType& out)
 {
     return stackTypes.Find(in, out);
 }
 
-bool Graphics::GetConstant(StackType in, const char *& out)
+bool Graphics::GetConstant(StackType in, const char*& out)
 {
     return stackTypes.Find(in, out);
 }
@@ -623,51 +626,45 @@ std::vector<std::string> Graphics::GetConstants(StackType)
     return stackTypes.GetNames();
 }
 
-StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] =
-{
-    { "alpha",    BLEND_ALPHA    },
-    { "add",      BLEND_ADD      },
-    { "subtract", BLEND_SUBTRACT },
-    { "multiply", BLEND_MULTIPLY },
-    { "lighten",  BLEND_LIGHTEN  },
-    { "darken",   BLEND_DARKEN   },
-    { "screen",   BLEND_SCREEN   },
-    { "replace",  BLEND_REPLACE  },
-    { "none",     BLEND_NONE     },
+StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] = {
+    { "alpha", BLEND_ALPHA },       { "add", BLEND_ADD },         { "subtract", BLEND_SUBTRACT },
+    { "multiply", BLEND_MULTIPLY }, { "lighten", BLEND_LIGHTEN }, { "darken", BLEND_DARKEN },
+    { "screen", BLEND_SCREEN },     { "replace", BLEND_REPLACE }, { "none", BLEND_NONE },
 };
 
-StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(Graphics::blendModeEntries, sizeof(Graphics::blendModeEntries));
+StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(
+    Graphics::blendModeEntries, sizeof(Graphics::blendModeEntries));
 
-StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry Graphics::drawModeEntries[] =
-{
+StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry Graphics::drawModeEntries[] = {
     { "line", DRAW_LINE },
     { "fill", DRAW_FILL },
 };
 
-StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(Graphics::drawModeEntries, sizeof(Graphics::drawModeEntries));
+StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(
+    Graphics::drawModeEntries, sizeof(Graphics::drawModeEntries));
 
-StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry Graphics::arcModeEntries[] =
-{
-    { "open",   ARC_OPEN   },
+StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry Graphics::arcModeEntries[] = {
+    { "open", ARC_OPEN },
     { "closed", ARC_CLOSED },
-    { "pie",    ARC_PIE    },
+    { "pie", ARC_PIE },
 };
 
-StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(Graphics::arcModeEntries, sizeof(Graphics::arcModeEntries));
+StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(
+    Graphics::arcModeEntries, sizeof(Graphics::arcModeEntries));
 
-StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry Graphics::blendAlphaEntries[] =
-{
-    { "alphamultiply", BLENDALPHA_MULTIPLY      },
-    { "premultiplied", BLENDALPHA_PREMULTIPLIED },
-};
+StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry
+    Graphics::blendAlphaEntries[] = {
+        { "alphamultiply", BLENDALPHA_MULTIPLY },
+        { "premultiplied", BLENDALPHA_PREMULTIPLIED },
+    };
 
-StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(Graphics::blendAlphaEntries, sizeof(Graphics::blendAlphaEntries));
+StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(
+    Graphics::blendAlphaEntries, sizeof(Graphics::blendAlphaEntries));
 
-
-StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry Graphics::stackTypeEntries[] =
-{
-    { "all",       STACK_ALL       },
+StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry Graphics::stackTypeEntries[] = {
+    { "all", STACK_ALL },
     { "transform", STACK_TRANSFORM },
 };
 
-StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(Graphics::stackTypeEntries, sizeof(Graphics::stackTypeEntries));
+StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(
+    Graphics::stackTypeEntries, sizeof(Graphics::stackTypeEntries));

@@ -20,7 +20,7 @@ love::deko3d::Graphics::Graphics()
                 Shader::standardShaders[i] = this->NewShader(Shader::StandardShader(i));
         }
     }
-    catch (love::Exception &)
+    catch (love::Exception&)
     {
         throw;
     }
@@ -67,9 +67,9 @@ std::vector<std::string> love::deko3d::Graphics::GetScreens() const
     return Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
 }
 
-void Graphics::SetCanvas(Canvas * canvas)
+void Graphics::SetCanvas(Canvas* canvas)
 {
-    DisplayState & state = this->states.back();
+    DisplayState& state = this->states.back();
     state.canvas.Set(canvas, Acquire::NORETAIN);
 
     ::deko3d::Instance().BindFramebuffer(canvas);
@@ -78,7 +78,8 @@ void Graphics::SetCanvas(Canvas * canvas)
         this->SetScissor(this->states.back().scissorRect);
 }
 
-void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
+void love::deko3d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil,
+                                   std::optional<double> depth)
 {
     if (this->IsCanvasActive() == false)
         ::deko3d::Instance().BindFramebuffer();
@@ -119,7 +120,7 @@ void love::deko3d::Graphics::SetColor(Colorf color)
     ::deko3d::Instance().SetBlendColor(color);
 }
 
-love::Image * love::deko3d::Graphics::NewImage(Texture::TextureType t, int width, int height)
+love::Image* love::deko3d::Graphics::NewImage(Texture::TextureType t, int width, int height)
 {
     return new Image(t, width, height);
 }
@@ -165,7 +166,7 @@ void love::deko3d::Graphics::SetFrontFaceWinding(vertex::Winding winding)
     ::deko3d::Instance().SetFrontFaceWinding(face);
 }
 
-void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter & filter)
+void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter& filter)
 {
     love::Graphics::SetDefaultFilter(filter);
 }
@@ -173,24 +174,25 @@ void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter & filter)
 void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 {
     if (mode != this->states.back().blendMode || alphamode != this->states.back().blendAlphaMode)
-    {} // flush stream draws
+    {
+    } // flush stream draws
 
     if (alphamode != BLENDALPHA_PREMULTIPLIED)
     {
-        const char * modestr = "unknown";
+        const char* modestr = "unknown";
         switch (mode)
         {
             case BLEND_LIGHTEN:
             case BLEND_DARKEN:
             case BLEND_MULTIPLY:
                 Graphics::GetConstant(mode, modestr);
-                throw love::Exception("The '%s' blend mode must be used with premultiplied alpha.", modestr);
+                throw love::Exception("The '%s' blend mode must be used with premultiplied alpha.",
+                                      modestr);
                 break;
             default:
                 break;
         }
     }
-
 
     DkBlendOp func = DkBlendOp_Add;
 
@@ -251,24 +253,24 @@ void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 
     ::deko3d::Instance().SetBlendMode(func, srcColor, srcAlpha, dstColor, dstAlpha);
 
-    this->states.back().blendMode = mode;
+    this->states.back().blendMode      = mode;
     this->states.back().blendAlphaMode = alphamode;
 }
 
-Font * love::deko3d::Graphics::NewFont(Rasterizer * data, const Texture::Filter & filter)
+Font* love::deko3d::Graphics::NewFont(Rasterizer* data, const Texture::Filter& filter)
 {
     return new Font(data, filter);
 }
 
 /* Primitives */
 
-void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2 * points,
-                                     size_t count, bool skipLastVertex)
+void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count,
+                                     bool skipLastVertex)
 {
     Colorf color[1] = { this->GetColor() };
 
-    const Matrix4 & t = this->GetTransform();
-    bool is2D = t.IsAffine2DTransform();
+    const Matrix4& t = this->GetTransform();
+    bool is2D        = t.IsAffine2DTransform();
 
     int vertexCount = (int)count - (mode == DRAW_FILL && skipLastVertex ? 1 : 0);
 
@@ -293,26 +295,36 @@ void love::deko3d::Graphics::SetLineWidth(float width)
     ::deko3d::Instance().SetLineWidth(width);
 }
 
-void love::deko3d::Graphics::Line(const Vector2 * points, int count)
+void love::deko3d::Graphics::Line(const Vector2* points, int count)
 {
     this->Polygon(DRAW_LINE, points, count);
 }
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
 {
-    Vector2 points[5] =
-    {
-        { x, y,                 },
-        { x, y + height,        },
-        { x + width, y + height },
-        { x + width, y,         },
-        { x, y,                 }
-    };
+    Vector2 points[5] = { {
+                              x,
+                              y,
+                          },
+                          {
+                              x,
+                              y + height,
+                          },
+                          { x + width, y + height },
+                          {
+                              x + width,
+                              y,
+                          },
+                          {
+                              x,
+                              y,
+                          } };
 
     this->Polygon(mode, points, 5);
 }
 
-void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry, int points)
+void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
+                                       float rx, float ry, int points)
 {
     if (rx == 0 || ry == 0)
     {
@@ -331,12 +343,12 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
     points = std::max(points / 4, 1);
 
     const float half_pi = (float)(M_PI / 2);
-    float angle_shift = half_pi / ((float)points + 1.0f);
+    float angle_shift   = half_pi / ((float)points + 1.0f);
 
     int num_coords = (points + 2) * 4;
 
     Vector2 coords[num_coords + 1] = {};
-    float phi = .0f;
+    float phi                      = .0f;
 
     for (int i = 0; i <= points + 2; ++i, phi += angle_shift)
     {
@@ -349,14 +361,14 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
     for (int i = points + 2; i <= 2 * (points + 2); ++i, phi += angle_shift)
     {
         coords[i].x = x + width - rx * (1 + cosf(phi));
-        coords[i].y = y +         ry * (1 - sinf(phi));
+        coords[i].y = y + ry * (1 - sinf(phi));
     }
 
     phi = 2 * half_pi;
 
     for (int i = 2 * (points + 2); i <= 3 * (points + 2); ++i, phi += angle_shift)
     {
-        coords[i].x = x + width  - rx * (1 + cosf(phi));
+        coords[i].x = x + width - rx * (1 + cosf(phi));
         coords[i].y = y + height - ry * (1 + sinf(phi));
     }
 
@@ -364,7 +376,7 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
 
     for (int i = 3 * (points + 2); i <= 4 * (points + 2); ++i, phi += angle_shift)
     {
-        coords[i].x = x +          rx * (1 - cosf(phi));
+        coords[i].x = x + rx * (1 - cosf(phi));
         coords[i].y = y + height - ry * (1 + sinf(phi));
     }
 
@@ -373,7 +385,8 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
     this->Polygon(mode, coords, num_coords + 1);
 }
 
-void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height, float rx, float ry)
+void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
+                                       float rx, float ry)
 {
     this->Rectangle(mode, x, y, width, height, rx, ry, this->CalculateEllipsePoints(rx, ry));
 }
@@ -385,7 +398,7 @@ void love::deko3d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, f
         points = 1;
 
     float angle_shift = (two_pi / points);
-    float phi = .0f;
+    float phi         = .0f;
 
     // 1 extra point at the end for a closed loop, and 1 extra point at the
     // start in filled mode for the vertex in the center of the ellipse.
@@ -426,7 +439,8 @@ void love::deko3d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, f
     this->Ellipse(mode, x, y, a, b, this->CalculateEllipsePoints(a, b));
 }
 
-void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2, int points)
+void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,
+                                 float angle1, float angle2, int points)
 {
     /*
     ** Nothing to display with no points or equal angles.
@@ -465,11 +479,10 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
 
     float phi = angle1;
 
-    int num_coords = 0;
-    Vector2 * coords = nullptr;
+    int num_coords  = 0;
+    Vector2* coords = nullptr;
 
-    const auto createPoints = [&](Vector2 * coordinates)
-    {
+    const auto createPoints = [&](Vector2* coordinates) {
         for (int i = 0; i <= points; ++i, phi += angle_shift)
         {
             coordinates[i].x = x + radius * cosf(phi);
@@ -480,7 +493,7 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     if (arcmode == ARC_PIE)
     {
         num_coords = points + 3;
-        coords = new Vector2[num_coords];
+        coords     = new Vector2[num_coords];
 
         coords[0] = coords[num_coords - 1] = Vector2(x, y);
 
@@ -489,14 +502,14 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     else if (arcmode == ARC_OPEN)
     {
         num_coords = points + 1;
-        coords = new Vector2[num_coords];
+        coords     = new Vector2[num_coords];
 
         createPoints(coords);
     }
     else // ARC_CLOSED
     {
         num_coords = points + 2;
-        coords = new Vector2[num_coords];
+        coords     = new Vector2[num_coords];
 
         createPoints(coords);
 
@@ -505,12 +518,14 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
     }
 
     this->Polygon(drawmode, coords, num_coords);
-    delete [] coords;
+    delete[] coords;
 }
 
-void love::deko3d::Graphics::Points(const Vector2 * points, size_t count, const Colorf * colors, size_t colorCount)
+void love::deko3d::Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,
+                                    size_t colorCount)
 {
-    std::vector<vertex::Vertex> verts = vertex::GeneratePrimitiveFromVectors(points, count, colors, colorCount);
+    std::vector<vertex::Vertex> verts =
+        vertex::GeneratePrimitiveFromVectors(points, count, colors, colorCount);
 
     ::deko3d::Instance().RenderPoints(verts.data(), count);
 }
@@ -521,7 +536,8 @@ void love::deko3d::Graphics::SetPointSize(float size)
     this->states.back().pointSize = size;
 }
 
-void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2)
+void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,
+                                 float angle1, float angle2)
 {
     float points = (float)this->CalculateEllipsePoints(radius, radius);
 
@@ -535,19 +551,19 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
 
 int love::deko3d::Graphics::CalculateEllipsePoints(float rx, float ry) const
 {
-    int points = (int) sqrtf(((rx + ry) / 2.0f) * 20.0f * (float)this->pixelScaleStack.back());
+    int points = (int)sqrtf(((rx + ry) / 2.0f) * 20.0f * (float)this->pixelScaleStack.back());
     return std::max(points, 8);
 }
 
 /* Primitives */
 
-void love::deko3d::Graphics::SetScissor(const Rect & scissor)
+void love::deko3d::Graphics::SetScissor(const Rect& scissor)
 {
-    DisplayState & state = this->states.back();
+    DisplayState& state = this->states.back();
 
     ::deko3d::Instance().SetScissor(scissor, this->IsCanvasActive());
 
-    state.scissor = true;
+    state.scissor     = true;
     state.scissorRect = scissor;
 }
 
@@ -564,32 +580,35 @@ void love::deko3d::Graphics::SetScissor()
     int width  = this->GetWidth(this->GetActiveScreen());
     int height = this->GetHeight();
 
-    ::deko3d::Instance().SetScissor({0, 0, width, height}, this->IsCanvasActive());
+    ::deko3d::Instance().SetScissor({ 0, 0, width, height }, this->IsCanvasActive());
     states.back().scissor = false;
 }
 
-Shader * love::deko3d::Graphics::NewShader(Shader::StandardShader type)
+Shader* love::deko3d::Graphics::NewShader(Shader::StandardShader type)
 {
-    Shader * s = new Shader();
+    Shader* s = new Shader();
     s->LoadDefaults(type);
 
     return s;
 }
 
-Font * love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting, const Texture::Filter & filter)
+Font* love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting,
+                                             const Texture::Filter& filter)
 {
     auto fontModule = Module::GetInstance<FontModule>(M_FONT);
     if (!fontModule)
         throw love::Exception("Font module has not been loaded.");
 
-    StrongReference<Rasterizer> r(fontModule->NewTrueTypeRasterizer(size, TrueTypeRasterizer::HINTING_NORMAL), Acquire::NORETAIN);
+    StrongReference<Rasterizer> r(
+        fontModule->NewTrueTypeRasterizer(size, TrueTypeRasterizer::HINTING_NORMAL),
+        Acquire::NORETAIN);
 
     return new Font(r.Get(), filter);
 }
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] =
-{
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] = {
     { "default", Screen::SCREEN_DEFAULT },
 };
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(
+    Graphics::screenEntries, sizeof(Graphics::screenEntries));

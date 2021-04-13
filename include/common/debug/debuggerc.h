@@ -1,17 +1,17 @@
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
 #include <unistd.h>
 
 namespace love::common
 {
     class Debugger
     {
-        public:
-            bool IsInited();
+      public:
+        bool IsInited();
 
-        protected:
-            bool initialized;
+      protected:
+        bool initialized;
 
-            Debugger();
+        Debugger();
     };
-}
+} // namespace love::common

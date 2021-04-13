@@ -4,11 +4,12 @@ using namespace love;
 
 love::Type Decoder::type("Decoder", &Object::type);
 
-Decoder::Decoder(Data * data, int bufferSize) : data(data),
-                                                bufferSize(bufferSize),
-                                                sampleRate(DEFAULT_SAMPLE_RATE),
-                                                buffer(0),
-                                                eof(false)
+Decoder::Decoder(Data* data, int bufferSize) :
+    data(data),
+    bufferSize(bufferSize),
+    sampleRate(DEFAULT_SAMPLE_RATE),
+    buffer(0),
+    eof(false)
 {
     this->buffer = new char[bufferSize];
 }
@@ -16,10 +17,10 @@ Decoder::Decoder(Data * data, int bufferSize) : data(data),
 Decoder::~Decoder()
 {
     if (this->buffer != 0)
-        delete [](char *)this->buffer;
+        delete[](char*) this->buffer;
 }
 
-void * Decoder::GetBuffer() const
+void* Decoder::GetBuffer() const
 {
     return this->buffer;
 }

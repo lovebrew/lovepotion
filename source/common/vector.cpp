@@ -1,3 +1,4 @@
 #include "common/vector.h"
 
-namespace love {}
+namespace love
+{}

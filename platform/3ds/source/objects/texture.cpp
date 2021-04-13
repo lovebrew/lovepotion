@@ -1,36 +1,35 @@
-#include <citro2d.h>
 #include "citro2d/citro.h"
 
-#include "objects/texture/texture.h"
 #include "modules/graphics/graphics.h"
+#include "objects/texture/texture.h"
 
 using namespace love;
 
 Texture::Texture(TextureType type) : common::Texture(TEXTURE_2D)
 {}
 
-void Texture::Draw(Graphics * gfx, const Matrix4 & localTransform)
+void Texture::Draw(Graphics* gfx, const Matrix4& localTransform)
 {
     this->Draw(gfx, this->quad, localTransform);
 }
 
-const C2D_Image & Texture::GetHandle()
+const C2D_Image& Texture::GetHandle()
 {
     return this->texture;
 }
 
-bool Texture::SetWrap(const Wrap & wrap)
+bool Texture::SetWrap(const Wrap& wrap)
 {
     ::citro2d::Instance().SetTextureWrap(wrap);
     return true;
 }
 
-void Texture::SetFilter(const Filter & filter)
+void Texture::SetFilter(const Filter& filter)
 {
     ::citro2d::Instance().SetTextureFilter(filter);
 }
 
-void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTransform)
+void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform)
 {
     Tex3DS_SubTexture tv = quad->GetTex3DSViewport();
     this->texture.subtex = &tv;
@@ -42,10 +41,10 @@ void Texture::Draw(Graphics * gfx, love::Quad * quad, const Matrix4 & localTrans
 
     C2D_DrawParams params;
 
-    params.pos = {0.0f, 0.0f, (float)v.w, (float)v.h};
-    params.depth = Graphics::CURRENT_DEPTH;
-    params.angle = 0.0f;
-    params.center = {0.0f, 0.0f};
+    params.pos    = { 0.0f, 0.0f, (float)v.w, (float)v.h };
+    params.depth  = Graphics::CURRENT_DEPTH;
+    params.angle  = 0.0f;
+    params.center = { 0.0f, 0.0f };
 
     C2D_ViewRestore(&t.GetElements());
 

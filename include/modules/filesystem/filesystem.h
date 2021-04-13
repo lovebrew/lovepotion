@@ -8,8 +8,8 @@
 #include "common/module.h"
 #include "common/stringmap.h"
 
-#include "objects/filedata/filedata.h"
 #include "objects/file/file.h"
+#include "objects/filedata/filedata.h"
 
 #define MAX_STAMP 0x20000000000000LL
 
@@ -17,129 +17,136 @@ namespace love
 {
     class Filesystem : public Module
     {
-        public:
-            enum FileType
-            {
-                FILETYPE_FILE,
-                FILETYPE_DIRECTORY,
-                FILETYPE_SYMLINK,
-                FILETYPE_OTHER,
-                FILETYPE_MAX_ENUM
-            };
+      public:
+        enum FileType
+        {
+            FILETYPE_FILE,
+            FILETYPE_DIRECTORY,
+            FILETYPE_SYMLINK,
+            FILETYPE_OTHER,
+            FILETYPE_MAX_ENUM
+        };
 
-            struct Info
-            {
-                int64_t size;
-                int64_t modtime;
-                FileType type;
-            };
+        struct Info
+        {
+            int64_t size;
+            int64_t modtime;
+            FileType type;
+        };
 
-            Filesystem();
-            ~Filesystem();
+        Filesystem();
+        ~Filesystem();
 
-            static love::Type type;
+        static love::Type type;
 
-            /* Module implementors */
+        /* Module implementors */
 
-            const char * GetName() const override { return "love.filesystem"; }
+        const char* GetName() const override
+        {
+            return "love.filesystem";
+        }
 
-            ModuleType GetModuleType() const { return M_FILESYSTEM; }
+        ModuleType GetModuleType() const
+        {
+            return M_FILESYSTEM;
+        }
 
-            /* Löve2D Functions */
+        /* Löve2D Functions */
 
-            void Init(const char * arg0);
+        void Init(const char* arg0);
 
-            void Append(const char * filename, const void * data, int64_t size);
+        void Append(const char* filename, const void* data, int64_t size);
 
-            bool CreateDirectory(const char * name);
+        bool CreateDirectory(const char* name);
 
-            void GetDirectoryItems(const char * directory, std::vector<std::string> & items);
+        void GetDirectoryItems(const char* directory, std::vector<std::string>& items);
 
-            const char * GetIdentity();
+        const char* GetIdentity();
 
-            bool GetInfo(const char * filename, Info & info) const;
+        bool GetInfo(const char* filename, Info& info) const;
 
-            std::string GetSaveDirectory();
+        std::string GetSaveDirectory();
 
-            File * NewFile(const char * filename);
+        File* NewFile(const char* filename);
 
-            FileData * NewFileData(const void * data, size_t size, const char * filename);
+        FileData* NewFileData(const void* data, size_t size, const char* filename);
 
-            FileData * Read(const char * filename, int64_t size = File::ALL);
+        FileData* Read(const char* filename, int64_t size = File::ALL);
 
-            bool Remove(const char * filename);
+        bool Remove(const char* filename);
 
-            bool SetIdentity(const char * identity, bool appendToPath);
+        bool SetIdentity(const char* identity, bool appendToPath);
 
-            void Write(const char * filename, const void * data, int64_t size);
+        void Write(const char* filename, const void* data, int64_t size);
 
-            void AllowMountingForPath(const std::string & path);
+        void AllowMountingForPath(const std::string& path);
 
-            bool Mount(const char * archive, const char * mountpoint, bool appendToPath = false);
+        bool Mount(const char* archive, const char* mountpoint, bool appendToPath = false);
 
-            bool Mount(Data * data, const char * archive, const char * mountpoint, bool appendToPath = false);
+        bool Mount(Data* data, const char* archive, const char* mountpoint,
+                   bool appendToPath = false);
 
-            bool UnMount(const char * archive);
+        bool UnMount(const char* archive);
 
-            bool UnMount(Data * data);
+        bool UnMount(Data* data);
 
-            bool SetSource(const char * source);
+        bool SetSource(const char* source);
 
-            void SetFused(bool fused);
+        void SetFused(bool fused);
 
-            bool IsFused() const;
+        bool IsFused() const;
 
-            const char * GetSource() const;
+        const char* GetSource() const;
 
-            const char * GetWorkingDirectory();
+        const char* GetWorkingDirectory();
 
-            std::string GetExecutablePath() const;
+        std::string GetExecutablePath() const;
 
-            std::string GetSourceBaseDirectory() const;
+        std::string GetSourceBaseDirectory() const;
 
-            bool SetupWriteDirectory();
+        bool SetupWriteDirectory();
 
-            std::vector<std::string> & GetRequirePath();
+        std::vector<std::string>& GetRequirePath();
 
-            void SetSymLinksEnabled(bool enable);
+        void SetSymLinksEnabled(bool enable);
 
-            std::string GetUserDirectory();
+        std::string GetUserDirectory();
 
-            std::string GetRealDirectory(const char * filename) const;
+        std::string GetRealDirectory(const char* filename) const;
 
-            // std::vector<std::string> & GetCRequirePath() override;
+        // std::vector<std::string> & GetCRequirePath() override;
 
-            /* Helper Functions */
+        /* Helper Functions */
 
-            static bool GetConstant(const char * in, FileType & out);
+        static bool GetConstant(const char* in, FileType& out);
 
-            static bool GetConstant(FileType in, const char *& out);
+        static bool GetConstant(FileType in, const char*& out);
 
-            static std::vector<std::string> GetConstants(FileType);
+        static std::vector<std::string> GetConstants(FileType);
 
-        private:
-            std::string identity;
-            std::string relativeSavePath;
-            std::string fullSavePath;
+      private:
+        std::string identity;
+        std::string relativeSavePath;
+        std::string fullSavePath;
 
-            std::string appdata;
-            std::string gameSource;
-            std::string cwd;
-            std::string exePath;
+        std::string appdata;
+        std::string gameSource;
+        std::string cwd;
+        std::string exePath;
 
-            std::vector<std::string> allowedMountPaths;
+        std::vector<std::string> allowedMountPaths;
 
-            std::vector<std::string> requirePath;
-            std::vector<std::string> cRequirePath;
+        std::vector<std::string> requirePath;
+        std::vector<std::string> cRequirePath;
 
-            std::map<std::string, StrongReference<Data>> mountedData;
+        std::map<std::string, StrongReference<Data>> mountedData;
 
-            bool fused;
-            bool fusedSet;
+        bool fused;
+        bool fusedSet;
 
-            std::string GetAppDataDirectory();
+        std::string GetAppDataDirectory();
 
-            static StringMap<FileType, FILETYPE_MAX_ENUM>::Entry fileTypeEntries[];
-            static StringMap<FileType, FILETYPE_MAX_ENUM> fileTypes;
+        static StringMap<FileType, FILETYPE_MAX_ENUM>::Entry fileTypeEntries[];
+        static StringMap<FileType, FILETYPE_MAX_ENUM> fileTypes;
     };
-}
+} // namespace love

@@ -1,5 +1,5 @@
-#include <sys/stat.h>
 #include "objects/file/file.h"
+#include <sys/stat.h>
 
 using namespace love;
 
@@ -7,11 +7,12 @@ extern bool SetupWriteDirectory();
 
 love::Type File::type("File", &Object::type);
 
-File::File(const std::string & filename) : filename(filename),
-                                           file(nullptr),
-                                           mode(MODE_CLOSED),
-                                           bufferMode(BUFFER_NONE),
-                                           bufferSize(0)
+File::File(const std::string& filename) :
+    filename(filename),
+    file(nullptr),
+    mode(MODE_CLOSED),
+    bufferMode(BUFFER_NONE),
+    bufferSize(0)
 {}
 
 File::~File()
@@ -39,14 +40,14 @@ bool File::Flush()
     return PHYSFS_flush(this->file) != 0;
 }
 
-File::BufferMode File::GetBuffer(int64_t & size) const
+File::BufferMode File::GetBuffer(int64_t& size) const
 {
     size = this->bufferSize;
 
     return bufferMode;
 }
 
-const std::string & File::GetFilename() const
+const std::string& File::GetFilename() const
 {
     return this->filename;
 }
@@ -90,14 +91,15 @@ bool File::Open(File::Mode openMode)
     if ((openMode == MODE_READ) && !PHYSFS_exists(this->filename.c_str()))
         throw love::Exception("Could not open file %s. Does not exist.", this->filename.c_str());
 
-    if ((openMode == MODE_APPEND || openMode == MODE_WRITE) && (PHYSFS_getWriteDir() == nullptr) && !SetupWriteDirectory())
+    if ((openMode == MODE_APPEND || openMode == MODE_WRITE) && (PHYSFS_getWriteDir() == nullptr) &&
+        !SetupWriteDirectory())
         throw love::Exception("Could not set write directory.");
 
     if (this->file != nullptr)
         return false;
 
     PHYSFS_getLastErrorCode();
-    PHYSFS_File * handle = nullptr;
+    PHYSFS_File* handle = nullptr;
 
     switch (openMode)
     {
@@ -116,7 +118,7 @@ bool File::Open(File::Mode openMode)
 
     if (handle == nullptr)
     {
-        const char * error = PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
+        const char* error = PHYSFS_getErrorByCode(PHYSFS_getLastErrorCode());
 
         if (error == nullptr)
             error = "unknown error";
@@ -136,7 +138,7 @@ bool File::Open(File::Mode openMode)
     return (this->file != nullptr);
 }
 
-int64_t File::Read(void * destination, int64_t size)
+int64_t File::Read(void* destination, int64_t size)
 {
     if (!this->file || this->mode != MODE_READ)
         throw love::Exception("File is not opened for reading.");
@@ -152,12 +154,12 @@ int64_t File::Read(void * destination, int64_t size)
     return PHYSFS_readBytes(this->file, destination, (PHYSFS_uint64)size);
 }
 
-FileData * File::Read(int64_t size)
+FileData* File::Read(int64_t size)
 {
     if (!this->IsOpen() && !this->Open(MODE_READ))
         throw love::Exception("Could not read file %s.", this->GetFilename().c_str());
 
-    int64_t max = this->GetSize();
+    int64_t max     = this->GetSize();
     int64_t current = this->Tell();
 
     size = (size == ALL) ? max : size;
@@ -173,7 +175,7 @@ FileData * File::Read(int64_t size)
     if (current + size > max)
         size = max - current;
 
-    FileData * fileData = new FileData(size, this->GetFilename());
+    FileData* fileData = new FileData(size, this->GetFilename());
 
     int64_t bytesRead = this->Read(fileData->GetData(), size);
 
@@ -185,7 +187,7 @@ FileData * File::Read(int64_t size)
 
     if (bytesRead < size)
     {
-        FileData * tmp = new FileData(bytesRead, this->GetFilename());
+        FileData* tmp = new FileData(bytesRead, this->GetFilename());
         memcpy(tmp->GetData(), fileData->GetData(), (size_t)bytesRead);
 
         fileData->Release();
@@ -221,7 +223,7 @@ bool File::SetBuffer(BufferMode mode, int64_t size)
     {
         case BUFFER_NONE:
         default:
-            ret = PHYSFS_setBuffer(this->file, 0);
+            ret  = PHYSFS_setBuffer(this->file, 0);
             size = 0;
             break;
         case BUFFER_LINE:
@@ -247,12 +249,12 @@ int64_t File::Tell()
     return (int64_t)PHYSFS_tell(file);
 }
 
-bool File::Write(Data * data, int64_t size)
+bool File::Write(Data* data, int64_t size)
 {
     return this->Write(data->GetData(), (size == ALL) ? data->GetSize() : size);
 }
 
-bool File::Write(const void * data, int64_t size)
+bool File::Write(const void* data, int64_t size)
 {
     if (!this->file || (this->mode != MODE_WRITE && this->mode != MODE_APPEND))
         throw love::Exception("File is not opened for writing.");
@@ -277,12 +279,12 @@ bool File::Write(const void * data, int64_t size)
 
 /* OPEN MODES */
 
-bool File::GetConstant(const char * in, Mode & out)
+bool File::GetConstant(const char* in, Mode& out)
 {
     return modes.Find(in, out);
 }
 
-bool File::GetConstant(Mode in, const char *& out)
+bool File::GetConstant(Mode in, const char*& out)
 {
     return modes.Find(in, out);
 }
@@ -293,22 +295,20 @@ std::vector<std::string> File::GetConstants(Mode mode)
 }
 
 StringMap<File::Mode, File::MODE_MAX_ENUM>::Entry File::modeEntries[] = {
-    { "c", MODE_CLOSED },
-    { "r", MODE_READ   },
-    { "w", MODE_WRITE  },
-    { "a", MODE_APPEND }
+    { "c", MODE_CLOSED }, { "r", MODE_READ }, { "w", MODE_WRITE }, { "a", MODE_APPEND }
 };
 
-StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(File::modeEntries, sizeof(File::modeEntries));
+StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(File::modeEntries,
+                                                       sizeof(File::modeEntries));
 
 /* BUFFER MODES */
 
-bool File::GetConstant(const char * in, BufferMode & out)
+bool File::GetConstant(const char* in, BufferMode& out)
 {
     return bufferModes.Find(in, out);
 }
 
-bool File::GetConstant(BufferMode in, const char *& out)
+bool File::GetConstant(BufferMode in, const char*& out)
 {
     return bufferModes.Find(in, out);
 }
@@ -319,9 +319,8 @@ std::vector<std::string> File::GetConstants(BufferMode mode)
 }
 
 StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry File::bufferModeEntries[] = {
-    { "none", BUFFER_NONE },
-    { "line", BUFFER_LINE },
-    { "full", BUFFER_FULL }
+    { "none", BUFFER_NONE }, { "line", BUFFER_LINE }, { "full", BUFFER_FULL }
 };
 
-StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(File::bufferModeEntries, sizeof(File::bufferModeEntries));
+StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(
+    File::bufferModeEntries, sizeof(File::bufferModeEntries));

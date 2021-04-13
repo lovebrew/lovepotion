@@ -11,14 +11,14 @@
 
 #include "modules/joystick/joystick.h"
 
-#include "modules/thread/types/mutex.h"
 #include "modules/thread/types/lock.h"
+#include "modules/thread/types/mutex.h"
 
 #include "driver/hidrv.h"
 
+#include <memory>
 #include <queue>
 #include <vector>
-#include <memory>
 
 struct LOVE_Event;
 
@@ -31,41 +31,47 @@ namespace love::common
 {
     class Event : public Module
     {
-        public:
-            Event();
+      public:
+        Event();
 
-            ModuleType GetModuleType() const { return M_EVENT; }
+        ModuleType GetModuleType() const
+        {
+            return M_EVENT;
+        }
 
-            const char * GetName() const override { return "love.event"; }
+        const char* GetName() const override
+        {
+            return "love.event";
+        }
 
-            void InternalClear();
+        void InternalClear();
 
-            void Pump();
+        void Pump();
 
-            Message * Wait();
+        Message* Wait();
 
-            void Clear();
+        void Clear();
 
-            void Push(Message * message);
+        void Push(Message* message);
 
-            bool Poll(Message *& message);
+        bool Poll(Message*& message);
 
-            void ExceptionIfInRenderPass(const char * name);
+        void ExceptionIfInRenderPass(const char* name);
 
-            std::unique_ptr<love::driver::Hidrv> & GetDriver();
+        std::unique_ptr<love::driver::Hidrv>& GetDriver();
 
-        protected:
-            love::thread::MutexRef mutex;
+      protected:
+        love::thread::MutexRef mutex;
 
-            std::unique_ptr<love::driver::Hidrv> driver;
+        std::unique_ptr<love::driver::Hidrv> driver;
 
-        private:
-            std::queue<Message *> queue;
+      private:
+        std::queue<Message*> queue;
 
-            Message * Convert(const driver::Hidrv::LOVE_Event & event);
+        Message* Convert(const driver::Hidrv::LOVE_Event& event);
 
-            Message * ConvertJoystickEvent(const driver::Hidrv::LOVE_Event & event) const;
+        Message* ConvertJoystickEvent(const driver::Hidrv::LOVE_Event& event) const;
 
-            Message * ConvertWindowEvent(const driver::Hidrv::LOVE_Event & event);
+        Message* ConvertWindowEvent(const driver::Hidrv::LOVE_Event& event);
     };
-}
+} // namespace love::common

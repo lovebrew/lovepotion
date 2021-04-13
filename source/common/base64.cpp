@@ -7,10 +7,11 @@
 using namespace love;
 
 // Translation table as described in RFC1113
-static const char cb64[]="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char cb64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 // Translation table to decode (created by Bob Trower)
-static const char cd64[]="|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
+static const char cd64[] =
+    "|$$$}rstuvwxyz{$$$$$$$>?@ABCDEFGHIJKLMNOPQRSTUVW$$$$$$XYZ[\\]^_`abcdefghijklmnopq";
 
 // Encode 3 8-bit binary bytes as 4 '6-bit' characters
 static void b64_encode_block(char in[3], char out[4], int len)
@@ -21,29 +22,29 @@ static void b64_encode_block(char in[3], char out[4], int len)
     out[3] = (char)(len > 2 ? cb64[(int)(in[2] & 0x3f)] : '=');
 }
 
-char * love::b64_encode(const char * src, size_t srclen, size_t linelen, size_t & dstlen)
+char* love::b64_encode(const char* src, size_t srclen, size_t linelen, size_t& dstlen)
 {
     if (linelen == 0)
         linelen = std::numeric_limits<size_t>::max();
 
     size_t blocksout = 0;
-    size_t srcpos = 0;
+    size_t srcpos    = 0;
 
     size_t adjustment = (srclen % 3) ? (3 - (srclen % 3)) : 0;
-    size_t paddedlen = ((srclen + adjustment) / 3) * 4;
+    size_t paddedlen  = ((srclen + adjustment) / 3) * 4;
 
     dstlen = paddedlen + paddedlen / linelen;
 
     if (dstlen == 0)
         return nullptr;
 
-    char *dst = nullptr;
+    char* dst = nullptr;
 
     try
     {
         dst = new char[dstlen + 1];
     }
-    catch (std::bad_alloc &)
+    catch (std::bad_alloc&)
     {
         throw love::Exception("Out of memory.");
     }
@@ -52,8 +53,8 @@ char * love::b64_encode(const char * src, size_t srclen, size_t linelen, size_t 
 
     while (srcpos < srclen)
     {
-        char in[3]  = {0};
-        char out[4] = {0};
+        char in[3]  = { 0 };
+        char out[4] = { 0 };
 
         int len = 0;
 
@@ -96,24 +97,24 @@ static void b64_decode_block(char in[4], char out[3])
     out[2] = (char)(((in[2] << 6) & 0xc0) | in[3]);
 }
 
-char * love::b64_decode(const char * src, size_t srclen, size_t & size)
+char* love::b64_decode(const char* src, size_t srclen, size_t& size)
 {
     size_t paddedsize = (srclen / 4) * 3;
 
-    char *dst = nullptr;
+    char* dst = nullptr;
     try
     {
         dst = new char[paddedsize];
     }
-    catch (std::bad_alloc &)
+    catch (std::bad_alloc&)
     {
         throw love::Exception("Out of memory.");
     }
 
-    char *d = dst;
+    char* d = dst;
 
-    char in[4]  = {0};
-    char out[3] = {0};
+    char in[4]  = { 0 };
+    char out[3] = { 0 };
     size_t i, len, srcpos = 0;
 
     while (srcpos <= srclen)
@@ -146,7 +147,7 @@ char * love::b64_decode(const char * src, size_t srclen, size_t & size)
             b64_decode_block(in, out);
 
             for (i = 0; i < len - 1; i++)
-                 *(d++) = out[i];
+                *(d++) = out[i];
         }
     }
 

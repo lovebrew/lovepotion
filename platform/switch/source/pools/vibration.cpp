@@ -14,7 +14,7 @@ void VibrationPool::Finish()
     this->running = false;
 }
 
-bool VibrationPool::FindGamepad(Gamepad * gamepad)
+bool VibrationPool::FindGamepad(Gamepad* gamepad)
 {
     auto iterator = this->vibrating.find(gamepad);
 
@@ -24,7 +24,7 @@ bool VibrationPool::FindGamepad(Gamepad * gamepad)
     return true;
 }
 
-bool VibrationPool::ReleaseGamepad(Gamepad * gamepad, bool stop)
+bool VibrationPool::ReleaseGamepad(Gamepad* gamepad, bool stop)
 {
     if (this->FindGamepad(gamepad))
     {
@@ -40,7 +40,7 @@ bool VibrationPool::ReleaseGamepad(Gamepad * gamepad, bool stop)
     return false;
 }
 
-bool VibrationPool::AssignGamepad(Gamepad * gamepad, size_t id)
+bool VibrationPool::AssignGamepad(Gamepad* gamepad, size_t id)
 {
     this->vibrating.insert(std::make_pair(gamepad, id));
     gamepad->Retain();
@@ -52,15 +52,15 @@ void VibrationPool::Update()
 {
     thread::Lock lock(this->mutex);
 
-    std::vector<Gamepad *> release;
+    std::vector<Gamepad*> release;
 
-    for (const auto & item : this->vibrating)
+    for (const auto& item : this->vibrating)
     {
         if (love::Timer::GetTime() > item.first->GetVibration().endTime)
             release.push_back(item.first);
     }
 
-    for (Gamepad * gamepad : release)
+    for (Gamepad* gamepad : release)
         this->ReleaseGamepad(gamepad);
 }
 

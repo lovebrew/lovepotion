@@ -5,8 +5,8 @@
 ** Superclass for Textures
 */
 
-#include "objects/object.h"
 #include "common/matrix.h"
+#include "objects/object.h"
 
 namespace love
 {
@@ -14,11 +14,11 @@ namespace love
 
     class Drawable : public Object
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            virtual ~Drawable() {};
+        virtual ~Drawable() {};
 
-            virtual void Draw(Graphics * gfx, const Matrix4 & localTransform) = 0;
+        virtual void Draw(Graphics* gfx, const Matrix4& localTransform) = 0;
     };
-}
+} // namespace love

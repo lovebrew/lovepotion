@@ -9,39 +9,39 @@ namespace love::common
 {
     class Quad : public Object
     {
-        public:
-            struct Viewport
-            {
-                double x, y;
-                double w, h;
-            };
+      public:
+        struct Viewport
+        {
+            double x, y;
+            double w, h;
+        };
 
-            static love::Type type;
+        static love::Type type;
 
-            Quad(double sw, double sh);
+        Quad(double sw, double sh);
 
-            virtual ~Quad();
+        virtual ~Quad();
 
-            /* LOVE FUNCTIONS */
+        /* LOVE FUNCTIONS */
 
-            double GetTextureWidth() const;
+        double GetTextureWidth() const;
 
-            double GetTextureHeight() const;
+        double GetTextureHeight() const;
 
-            void SetViewport(const Viewport & viewport);
+        void SetViewport(const Viewport& viewport);
 
-            const Viewport & GetViewport() const;
+        const Viewport& GetViewport() const;
 
-            /* END LOVE FUNCTIONS */
+        /* END LOVE FUNCTIONS */
 
-            void RefreshViewport(const Viewport & viewport, double sw, double sh);
+        void RefreshViewport(const Viewport& viewport, double sw, double sh);
 
-            virtual void Refresh(const Viewport & viewport, double sw, double sh) = 0;
+        virtual void Refresh(const Viewport& viewport, double sw, double sh) = 0;
 
-        protected:
-            Viewport viewport;
+      protected:
+        Viewport viewport;
 
-            double sw;
-            double sh;
+        double sw;
+        double sh;
     };
-}
+} // namespace love::common

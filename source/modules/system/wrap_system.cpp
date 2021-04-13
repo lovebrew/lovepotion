@@ -6,25 +6,24 @@ using namespace love;
 
 #define instance() (Module::GetInstance<System>(Module::M_SYSTEM))
 
-int Wrap_System::GetOS(lua_State * L)
+int Wrap_System::GetOS(lua_State* L)
 {
     Luax::PushString(L, instance()->GetOS());
 
     return 1;
 }
 
-
-int Wrap_System::GetProcessorCount(lua_State * L)
+int Wrap_System::GetProcessorCount(lua_State* L)
 {
     lua_pushinteger(L, instance()->GetProcessorCount());
 
     return 1;
 }
 
-int Wrap_System::GetPowerInfo(lua_State * L)
+int Wrap_System::GetPowerInfo(lua_State* L)
 {
-    int percent = -1;
-    const char * str = nullptr;
+    int percent     = -1;
+    const char* str = nullptr;
 
     System::PowerState state = instance()->GetPowerInfo(percent);
 
@@ -43,10 +42,10 @@ int Wrap_System::GetPowerInfo(lua_State * L)
     return 3;
 }
 
-int Wrap_System::GetNetworkInfo(lua_State * L)
+int Wrap_System::GetNetworkInfo(lua_State* L)
 {
-    int signal = -1;
-    const char * str = nullptr;
+    int signal      = -1;
+    const char* str = nullptr;
 
     System::NetworkState state = instance()->GetNetworkInfo(signal);
 
@@ -59,7 +58,7 @@ int Wrap_System::GetNetworkInfo(lua_State * L)
     return 2;
 }
 
-int Wrap_System::GetLanguage(lua_State * L)
+int Wrap_System::GetLanguage(lua_State* L)
 {
     std::string language = instance()->GetLanguage();
 
@@ -68,7 +67,7 @@ int Wrap_System::GetLanguage(lua_State * L)
     return 1;
 }
 
-int Wrap_System::GetModel(lua_State * L)
+int Wrap_System::GetModel(lua_State* L)
 {
     std::string model = instance()->GetModel();
 
@@ -77,7 +76,7 @@ int Wrap_System::GetModel(lua_State * L)
     return 1;
 }
 
-int Wrap_System::GetRegion(lua_State * L)
+int Wrap_System::GetRegion(lua_State* L)
 {
     std::string region = instance()->GetRegion();
 
@@ -86,7 +85,7 @@ int Wrap_System::GetRegion(lua_State * L)
     return 1;
 }
 
-int Wrap_System::GetUsername(lua_State * L)
+int Wrap_System::GetUsername(lua_State* L)
 {
     std::string username = instance()->GetUsername();
 
@@ -95,7 +94,7 @@ int Wrap_System::GetUsername(lua_State * L)
     return 1;
 }
 
-int Wrap_System::GetVersion(lua_State * L)
+int Wrap_System::GetVersion(lua_State* L)
 {
     std::string version = instance()->GetVersion();
 
@@ -104,7 +103,7 @@ int Wrap_System::GetVersion(lua_State * L)
     return 1;
 }
 
-int Wrap_System::GetFriendCode(lua_State * L)
+int Wrap_System::GetFriendCode(lua_State* L)
 {
     std::string friendCode = instance()->GetFriendCode();
 
@@ -113,24 +112,21 @@ int Wrap_System::GetFriendCode(lua_State * L)
     return 1;
 }
 
-int Wrap_System::Register(lua_State * L)
+int Wrap_System::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "getFriendCode",     GetFriendCode     },
-        { "getOS",             GetOS             },
-        { "getProcessorCount", GetProcessorCount },
-        { "getPowerInfo",      GetPowerInfo      },
-        { "getNetworkInfo",    GetNetworkInfo    },
-        { "getLanguage",       GetLanguage       },
-        { "getModel",          GetModel          },
-        { "getRegion",         GetRegion         },
-        { "getUsername",       GetUsername       },
-        { "getVersion",        GetVersion        },
-        { 0, 0 }
-    };
+    luaL_Reg reg[] = { { "getFriendCode", GetFriendCode },
+                       { "getOS", GetOS },
+                       { "getProcessorCount", GetProcessorCount },
+                       { "getPowerInfo", GetPowerInfo },
+                       { "getNetworkInfo", GetNetworkInfo },
+                       { "getLanguage", GetLanguage },
+                       { "getModel", GetModel },
+                       { "getRegion", GetRegion },
+                       { "getUsername", GetUsername },
+                       { "getVersion", GetVersion },
+                       { 0, 0 } };
 
-    System * instance = instance();
+    System* instance = instance();
 
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new System(); });
@@ -139,11 +135,11 @@ int Wrap_System::Register(lua_State * L)
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "system";
-    wrappedModule.type = &Module::type;
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "system";
+    wrappedModule.type      = &Module::type;
     wrappedModule.functions = reg;
-    wrappedModule.types = nullptr;
+    wrappedModule.types     = nullptr;
 
     return Luax::RegisterModule(L, wrappedModule);
 }

@@ -7,9 +7,10 @@ namespace love
 {
     class Timer : public common::Timer
     {
-        public:
-            Timer();
+      public:
+        Timer();
 
-            virtual ~Timer() {}
+        virtual ~Timer()
+        {}
     };
-}
+} // namespace love

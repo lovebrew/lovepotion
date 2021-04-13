@@ -2,14 +2,14 @@
 
 using namespace love;
 
-Proxy * Variant::TryExtractProxy(lua_State * L, size_t index)
+Proxy* Variant::TryExtractProxy(lua_State* L, size_t index)
 {
-    Proxy * proxy = (Proxy *)lua_touserdata(L, index);
+    Proxy* proxy = (Proxy*)lua_touserdata(L, index);
 
     if (!proxy || !proxy->type)
         return nullptr;
 
-    if (dynamic_cast<Object *>(proxy->object) != nullptr)
+    if (dynamic_cast<Object*>(proxy->object) != nullptr)
         return proxy;
 
     return nullptr;
@@ -33,11 +33,11 @@ Variant::~Variant()
         this->GetValue<Type::TABLE>()->Release();
 }
 
-Variant::Variant(love::Type * loveType, Object * object)
+Variant::Variant(love::Type* loveType, Object* object)
 {
     Proxy proxy;
 
-    proxy.type = loveType;
+    proxy.type   = loveType;
     proxy.object = object;
 
     if (proxy.object != nullptr)
@@ -46,7 +46,7 @@ Variant::Variant(love::Type * loveType, Object * object)
     this->variant = proxy;
 }
 
-Variant::Variant(const char * string, size_t length)
+Variant::Variant(const char* string, size_t length)
 {
     if (length <= MAX_SMALL_STRING_LENGTH)
     {
@@ -60,10 +60,10 @@ Variant::Variant(const char * string, size_t length)
         this->variant = new SharedString(string, length);
 }
 
-Variant::Variant(const std::string & string) : Variant(string.c_str(), string.length())
+Variant::Variant(const std::string& string) : Variant(string.c_str(), string.length())
 {}
 
-Variant & Variant::operator=(const Variant & v)
+Variant& Variant::operator=(const Variant& v)
 {
     Type other = v.GetType();
 
@@ -100,22 +100,23 @@ Variant & Variant::operator=(const Variant & v)
     return *this;
 }
 
-Variant::Variant(std::vector<std::pair<Variant, Variant>> * table)
+Variant::Variant(std::vector<std::pair<Variant, Variant>>* table)
 {
     this->variant = new SharedTable(table);
 }
 
-Variant::Variant(const Variant & other) : variant(other.variant)
+Variant::Variant(const Variant& other) : variant(other.variant)
 {
     if (this->GetType() == Type::STRING)
         this->GetValue<Type::STRING>()->Retain();
-    else if (this->GetType() == Type::LOVE_OBJECT && this->GetValue<Type::LOVE_OBJECT>().object != nullptr)
+    else if (this->GetType() == Type::LOVE_OBJECT &&
+             this->GetValue<Type::LOVE_OBJECT>().object != nullptr)
         this->GetValue<Type::LOVE_OBJECT>().object->Retain();
     else if (this->GetType() == Type::TABLE)
         this->GetValue<Type::TABLE>()->Retain();
 }
 
-Variant::Variant(Variant && other) : variant(std::move(other.variant))
+Variant::Variant(Variant&& other) : variant(std::move(other.variant))
 {}
 
 std::string Variant::GetTypeString() const
@@ -147,10 +148,10 @@ Variant::Type Variant::GetType() const
     return retval;
 }
 
-Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet)
+Variant Variant::FromLua(lua_State* L, int n, std::set<const void*>* tableSet)
 {
-    Proxy * proxy = nullptr;
-    const char * string;
+    Proxy* proxy = nullptr;
+    const char* string;
     size_t length;
 
     if (n < 0)
@@ -181,9 +182,10 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
         case LUA_TTABLE:
         {
             bool success = true;
-            std::set<const void *> topTableSet;
+            std::set<const void*> topTableSet;
 
-            std::vector<std::pair<Variant, Variant>> * table = new std::vector<std::pair<Variant, Variant>>();
+            std::vector<std::pair<Variant, Variant>>* table =
+                new std::vector<std::pair<Variant, Variant>>();
 
             // We can use a pointer to a stack-allocated variable because it's
             // never used after the stack-allocated variable is destroyed.
@@ -191,7 +193,7 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
                 tableSet = &topTableSet;
 
             // Check it's not already serialized
-            const void * tablePointer = lua_topointer(L, n);
+            const void* tablePointer = lua_topointer(L, n);
 
             {
                 auto result = tableSet->insert(tablePointer);
@@ -210,7 +212,7 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
                 table->emplace_back(FromLua(L, -2, tableSet), FromLua(L, -1, tableSet));
                 lua_pop(L, 1);
 
-                const auto & p = table->back();
+                const auto& p = table->back();
 
                 if (p.first.GetType() == Type::UNKNOWN || p.second.GetType() == Type::UNKNOWN)
                 {
@@ -234,14 +236,14 @@ Variant Variant::FromLua(lua_State * L, int n, std::set<const void *> * tableSet
     return Variant(std::monostate());
 }
 
-void Variant::ToLua(lua_State * L) const
+void Variant::ToLua(lua_State* L) const
 {
-    SharedString * str;
+    SharedString* str;
     SmallString smallStr;
     Proxy proxy;
     bool boolean;
     float number;
-    void * lightUserdata;
+    void* lightUserdata;
 
     switch (this->GetType())
     {
@@ -271,14 +273,14 @@ void Variant::ToLua(lua_State * L) const
             break;
         case Type::TABLE:
         {
-            auto table = GetValue<Type::TABLE>()->table;
+            auto table  = GetValue<Type::TABLE>()->table;
             size_t size = table->size();
 
             lua_createtable(L, 0, size);
 
             for (size_t index = 0; index < size; ++index)
             {
-                std::pair<Variant, Variant> & keyValue = (*table)[index];
+                std::pair<Variant, Variant>& keyValue = (*table)[index];
 
                 keyValue.first.ToLua(L);
                 keyValue.second.ToLua(L);

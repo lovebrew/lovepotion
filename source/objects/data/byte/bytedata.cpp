@@ -12,16 +12,16 @@ ByteData::ByteData(size_t size) : size(size)
     memset(this->data, 0, size);
 }
 
-ByteData::ByteData(const void * data, size_t size) : size(size)
+ByteData::ByteData(const void* data, size_t size) : size(size)
 {
     this->Create();
     memcpy(this->data, data, size);
 }
 
-ByteData::ByteData(void * data, size_t size, bool own) : size(size)
+ByteData::ByteData(void* data, size_t size, bool own) : size(size)
 {
     if (own)
-        this->data = (char *)data;
+        this->data = (char*)data;
     else
     {
         this->Create();
@@ -29,7 +29,7 @@ ByteData::ByteData(void * data, size_t size, bool own) : size(size)
     }
 }
 
-ByteData::ByteData(const ByteData & other) : size(other.size)
+ByteData::ByteData(const ByteData& other) : size(other.size)
 {
     this->Create();
     memcpy(this->data, other.data, this->size);
@@ -44,18 +44,18 @@ void ByteData::Create()
     {
         this->data = new char[this->size];
     }
-    catch (std::bad_alloc &)
+    catch (std::bad_alloc&)
     {
         throw love::Exception("Out of memory.");
     }
 }
 
-ByteData * ByteData::Clone() const
+ByteData* ByteData::Clone() const
 {
     return new ByteData(*this);
 }
 
-void * ByteData::GetData() const
+void* ByteData::GetData() const
 {
     return this->data;
 }

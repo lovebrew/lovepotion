@@ -6,15 +6,15 @@ namespace love::thread
 {
     class Lock
     {
-        public:
-            Lock(Mutex & mutex);
-            Lock(Mutex * mutex);
+      public:
+        Lock(Mutex& mutex);
+        Lock(Mutex* mutex);
 
-            Lock(Lock && other);
+        Lock(Lock&& other);
 
-            ~Lock();
+        ~Lock();
 
-        private:
-            Mutex * mutex;
+      private:
+        Mutex* mutex;
     };
-}
+} // namespace love::thread

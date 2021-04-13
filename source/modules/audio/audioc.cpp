@@ -5,8 +5,7 @@ using namespace love;
 
 /* POOL THREAD */
 
-Audio::PoolThread::PoolThread(Pool * pool) : pool(pool),
-                                             finish(false)
+Audio::PoolThread::PoolThread(Pool* pool) : pool(pool), finish(false)
 {
     this->threadName = "AudioPool";
 }
@@ -30,8 +29,7 @@ void Audio::PoolThread::SetFinish()
 
 /* POOL THREAD */
 
-Audio::Audio() : pool(nullptr),
-                 poolThread(nullptr)
+Audio::Audio() : pool(nullptr), poolThread(nullptr)
 {
     this->driver = std::make_unique<driver::Audrv>();
 
@@ -42,7 +40,7 @@ Audio::Audio() : pool(nullptr),
     {
         this->pool = new Pool();
     }
-    catch (love::Exception &)
+    catch (love::Exception&)
     {
         throw;
     }
@@ -60,7 +58,7 @@ Audio::~Audio()
     delete this->pool;
 }
 
-std::unique_ptr<driver::Audrv> & Audio::GetDriver()
+std::unique_ptr<driver::Audrv>& Audio::GetDriver()
 {
     return this->driver;
 }
@@ -80,27 +78,27 @@ int Audio::GetMaxSources() const
     return this->pool->GetMaxSources();
 }
 
-Source * Audio::NewSource(Decoder * decoder)
+Source* Audio::NewSource(Decoder* decoder)
 {
     return new Source(this->pool, decoder);
 }
 
-Source * Audio::NewSource(SoundData * sound)
+Source* Audio::NewSource(SoundData* sound)
 {
     return new Source(this->pool, sound);
 }
 
-bool Audio::Play(Source * source)
+bool Audio::Play(Source* source)
 {
     return source->Play();
 }
 
-void Audio::Stop(Source * source)
+void Audio::Stop(Source* source)
 {
     source->Stop();
 }
 
-void Audio::Pause(Source * source)
+void Audio::Pause(Source* source)
 {
     source->Pause();
 }

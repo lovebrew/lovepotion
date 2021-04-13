@@ -1,142 +1,142 @@
 #pragma once
 
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds.h>
 #else
     #include <switch.h>
 #endif
 
-#include <list>
 #include <array>
+#include <list>
 
-#include "modules/thread/types/mutex.h"
 #include "modules/thread/types/lock.h"
+#include "modules/thread/types/mutex.h"
 
 namespace love::common::driver
 {
     class Hidrv
     {
-        public:
-            struct ButtonMapping
-            {
-                const char * name;
-                uint32_t key;
-                int index;
-            };
+      public:
+        struct ButtonMapping
+        {
+            const char* name;
+            uint32_t key;
+            int index;
+        };
 
-            struct GamePadButton
-            {
-                size_t which; //< Gamepad ID
+        struct GamePadButton
+        {
+            size_t which; //< Gamepad ID
 
-                const char * name; //< Button Name
-                int button; //< Button ID (0-index)
-            };
+            const char* name; //< Button Name
+            int button;       //< Button ID (0-index)
+        };
 
-            struct GamePadAxis
-            {
-                size_t which; //< Gamepad ID
+        struct GamePadAxis
+        {
+            size_t which; //< Gamepad ID
 
-                size_t number;
-                const char * axis; //< Axis name
-                float value; //< Axis value (0-1)
-            };
+            size_t number;
+            const char* axis; //< Axis name
+            float value;      //< Axis value (0-1)
+        };
 
-            struct GamePadStatus
-            {
-                size_t which; //< Gamepad ID
+        struct GamePadStatus
+        {
+            size_t which; //< Gamepad ID
 
-                bool connected;
-            };
+            bool connected;
+        };
 
-            struct Finger
-            {
-                int64_t id; //< Touch ID
+        struct Finger
+        {
+            int64_t id; //< Touch ID
 
-                double x;
-                double y;
-                double dx;
-                double dy;
-                double pressure;
-            };
+            double x;
+            double y;
+            double dx;
+            double dy;
+            double pressure;
+        };
 
-            struct Resize
-            {
-                int width;
-                int height;
-            };
+        struct Resize
+        {
+            int width;
+            int height;
+        };
 
-            struct LOVE_Event
-            {
-                uint8_t type;
-                uint8_t subType;
+        struct LOVE_Event
+        {
+            uint8_t type;
+            uint8_t subType;
 
-                GamePadStatus padStatus;
-                GamePadButton button;
-                GamePadAxis axis;
+            GamePadStatus padStatus;
+            GamePadButton button;
+            GamePadAxis axis;
 
-                Finger touch;
-                Resize size;
-            };
+            Finger touch;
+            Resize size;
+        };
 
-            enum EventType
-            {
-                TYPE_GAMEPADAXIS,
-                TYPE_GAMEPADDOWN,
-                TYPE_GAMEPADUP,
+        enum EventType
+        {
+            TYPE_GAMEPADAXIS,
+            TYPE_GAMEPADDOWN,
+            TYPE_GAMEPADUP,
 
-                TYPE_GAMEPADADDED,
-                TYPE_GAMEPADREMOVED,
+            TYPE_GAMEPADADDED,
+            TYPE_GAMEPADREMOVED,
 
-                TYPE_TOUCHPRESS,
-                TYPE_TOUCHRELEASE,
-                TYPE_TOUCHMOVED,
+            TYPE_TOUCHPRESS,
+            TYPE_TOUCHRELEASE,
+            TYPE_TOUCHMOVED,
 
-                TYPE_LOWMEMORY,
+            TYPE_LOWMEMORY,
 
-                TYPE_WINDOWEVENT,
+            TYPE_WINDOWEVENT,
 
-                TYPE_FOCUS_GAINED,
-                TYPE_FOCUS_LOST,
+            TYPE_FOCUS_GAINED,
+            TYPE_FOCUS_LOST,
 
-                TYPE_RESIZE,
+            TYPE_RESIZE,
 
-                TYPE_QUIT
-            };
+            TYPE_QUIT
+        };
 
-            Hidrv();
+        Hidrv();
 
-            uint64_t GetButtonPressed();
+        uint64_t GetButtonPressed();
 
-            uint64_t GetButtonReleased();
+        uint64_t GetButtonReleased();
 
-            uint64_t GetButtonHeld();
+        uint64_t GetButtonHeld();
 
-            virtual bool Poll(LOVE_Event * event) = 0;
+        virtual bool Poll(LOVE_Event* event) = 0;
 
-            virtual bool IsDown(size_t button) = 0;
+        virtual bool IsDown(size_t button) = 0;
 
-            void SendFocus(bool focus);
+        void SendFocus(bool focus);
 
-            void SendQuit();
+        void SendQuit();
 
-            void SendLowMemory();
+        void SendLowMemory();
 
-            void SendResize(int width, int height);
+        void SendResize(int width, int height);
 
-        protected:
-            bool hysteresis;
-            std::list<LOVE_Event> events;
+      protected:
+        bool hysteresis;
+        std::list<LOVE_Event> events;
 
-            struct ButtonState
-            {
-                uint64_t oldPressed;
-                uint64_t pressed;
+        struct ButtonState
+        {
+            uint64_t oldPressed;
+            uint64_t pressed;
 
-                uint64_t oldReleased;
-                uint64_t released;
+            uint64_t oldReleased;
+            uint64_t released;
 
-                uint64_t oldHeld;
-                uint64_t held;
-            } buttonStates;
+            uint64_t oldHeld;
+            uint64_t held;
+        } buttonStates;
     };
-}
+} // namespace love::common::driver

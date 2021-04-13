@@ -1,6 +1,6 @@
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds/types.h>
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch/types.h>
 #endif
 
@@ -8,11 +8,11 @@
 
 using namespace love;
 
-static wuff_sint32 read_callback(void * source, wuff_uint8 * buffer, size_t * size)
+static wuff_sint32 read_callback(void* source, wuff_uint8* buffer, size_t* size)
 {
-    WaveDecoder::WaveFile * file = (WaveDecoder::WaveFile *)source;
+    WaveDecoder::WaveFile* file = (WaveDecoder::WaveFile*)source;
 
-    size_t bytesLeft = file->size - file->offset;
+    size_t bytesLeft  = file->size - file->offset;
     size_t targetSize = (*size < bytesLeft) ? *size : bytesLeft;
 
     memcpy(buffer, file->data + file->offset, targetSize);
@@ -23,30 +23,30 @@ static wuff_sint32 read_callback(void * source, wuff_uint8 * buffer, size_t * si
     return WUFF_SUCCESS;
 }
 
-static wuff_sint32 seek_callback(void * source, wuff_uint64 offset)
+static wuff_sint32 seek_callback(void* source, wuff_uint64 offset)
 {
-    WaveDecoder::WaveFile * file = (WaveDecoder::WaveFile *)source;
+    WaveDecoder::WaveFile* file = (WaveDecoder::WaveFile*)source;
 
     file->offset = (size_t)((offset < file->size) ? offset : file->size);
 
     return WUFF_SUCCESS;
 }
 
-static wuff_sint32 tell_callback(void * source, wuff_uint64 * offset)
+static wuff_sint32 tell_callback(void* source, wuff_uint64* offset)
 {
-    WaveDecoder::WaveFile * file = (WaveDecoder::WaveFile *)source;
+    WaveDecoder::WaveFile* file = (WaveDecoder::WaveFile*)source;
 
     *offset = file->offset;
 
     return WUFF_SUCCESS;
 }
 
-wuff_callback callbacks = {read_callback, seek_callback, tell_callback};
+wuff_callback callbacks = { read_callback, seek_callback, tell_callback };
 
-WaveDecoder::WaveDecoder(Data * data, int bufferSize) : Decoder(data, bufferSize)
+WaveDecoder::WaveDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
 {
-    this->file.data = (char *)data->GetData();
-    this->file.size = data->GetSize();
+    this->file.data   = (char*)data->GetData();
+    this->file.size   = data->GetSize();
     this->file.offset = 0;
 
     int status = wuff_open(&this->handle, &callbacks, &this->file);
@@ -72,7 +72,7 @@ WaveDecoder::WaveDecoder(Data * data, int bufferSize) : Decoder(data, bufferSize
                 throw love::Exception("Could not set WAVE output format.");
         }
     }
-    catch(love::Exception & e)
+    catch (love::Exception& e)
     {
         wuff_close(this->handle);
         throw;
@@ -84,7 +84,7 @@ WaveDecoder::~WaveDecoder()
     wuff_close(this->handle);
 }
 
-bool WaveDecoder::Accepts(const std::string & ext)
+bool WaveDecoder::Accepts(const std::string& ext)
 {
     static const std::string supported[] = { "wav", "" };
 
@@ -97,17 +97,17 @@ bool WaveDecoder::Accepts(const std::string & ext)
     return false;
 }
 
-Decoder * WaveDecoder::Clone()
+Decoder* WaveDecoder::Clone()
 {
     return new WaveDecoder(this->data.Get(), bufferSize);
 }
 
 int WaveDecoder::Decode()
 {
-    return this->Decode((s16 *)this->buffer);
+    return this->Decode((s16*)this->buffer);
 }
 
-int WaveDecoder::Decode(s16 * buffer)
+int WaveDecoder::Decode(s16* buffer)
 {
     size_t size = 0;
 
@@ -115,7 +115,7 @@ int WaveDecoder::Decode(s16 * buffer)
     {
         size_t bytes = this->bufferSize - size;
 
-        int status = wuff_read(this->handle, (wuff_uint8 *)buffer + size, &bytes);
+        int status = wuff_read(this->handle, (wuff_uint8*)buffer + size, &bytes);
 
         if (status < 0)
             return 0;

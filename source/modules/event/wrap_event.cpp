@@ -6,9 +6,9 @@ using namespace love;
 
 #define instance() (Module::GetInstance<love::Event>(Module::M_EVENT))
 
-static int Poll_I(lua_State * L)
+static int Poll_I(lua_State* L)
 {
-    Message * message = nullptr;
+    Message* message = nullptr;
 
     if (instance()->Poll(message))
     {
@@ -21,31 +21,25 @@ static int Poll_I(lua_State * L)
     return 0;
 }
 
-int Wrap_Event::Clear(lua_State * L)
+int Wrap_Event::Clear(lua_State* L)
 {
-    Luax::CatchException(L, [&]() {
-        instance()->Clear();
-    });
+    Luax::CatchException(L, [&]() { instance()->Clear(); });
 
     return 0;
 }
 
-int Wrap_Event::Pump(lua_State * L)
+int Wrap_Event::Pump(lua_State* L)
 {
-    Luax::CatchException(L, [&]() {
-        instance()->Pump();
-    });
+    Luax::CatchException(L, [&]() { instance()->Pump(); });
 
     return 0;
 }
 
-int Wrap_Event::Push(lua_State * L)
+int Wrap_Event::Push(lua_State* L)
 {
     StrongReference<Message> message;
 
-    Luax::CatchException(L, [&]() {
-        message.Set(Message::FromLua(L, 1), Acquire::NORETAIN);
-    });
+    Luax::CatchException(L, [&]() { message.Set(Message::FromLua(L, 1), Acquire::NORETAIN); });
 
     lua_pushboolean(L, message.Get() != nullptr);
 
@@ -57,13 +51,11 @@ int Wrap_Event::Push(lua_State * L)
     return 1;
 }
 
-int Wrap_Event::Wait(lua_State * L)
+int Wrap_Event::Wait(lua_State* L)
 {
-    Message * message = nullptr;
+    Message* message = nullptr;
 
-    Luax::CatchException(L, [&]() {
-        message = instance()->Wait();
-    });
+    Luax::CatchException(L, [&]() { message = instance()->Wait(); });
 
     if (message)
     {
@@ -76,10 +68,10 @@ int Wrap_Event::Wait(lua_State * L)
     return 0;
 }
 
-int Wrap_Event::Quit(lua_State * L)
+int Wrap_Event::Quit(lua_State* L)
 {
     Luax::CatchException(L, [&]() {
-        std::vector<Variant> args = {Variant::FromLua(L, 1)};
+        std::vector<Variant> args = { Variant::FromLua(L, 1) };
 
         StrongReference<Message> message(new Message("quit", args), Acquire::NORETAIN);
 
@@ -91,20 +83,12 @@ int Wrap_Event::Quit(lua_State * L)
     return 1;
 }
 
-int Wrap_Event::Register(lua_State * L)
+int Wrap_Event::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "poll_i", Poll_I },
-        { "clear",  Clear  },
-        { "pump",   Pump   },
-        { "push",   Push   },
-        { "quit",   Quit   },
-        { "wait",   Wait   },
-        { 0,        0      }
-    };
+    luaL_Reg reg[] = { { "poll_i", Poll_I }, { "clear", Clear }, { "pump", Pump }, { "push", Push },
+                       { "quit", Quit },     { "wait", Wait },   { 0, 0 } };
 
-    love::Event * instance = instance();
+    love::Event* instance = instance();
 
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new love::Event(); });
@@ -113,15 +97,15 @@ int Wrap_Event::Register(lua_State * L)
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "event";
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "event";
     wrappedModule.functions = reg;
-    wrappedModule.type = &Module::type;
-    wrappedModule.types = nullptr;
+    wrappedModule.type      = &Module::type;
+    wrappedModule.types     = nullptr;
 
     int ret = Luax::RegisterModule(L, wrappedModule);
 
-    if (luaL_loadbuffer(L, (const char *)wrap_event_lua, wrap_event_lua_size, "wrap_event.lua") == 0)
+    if (luaL_loadbuffer(L, (const char*)wrap_event_lua, wrap_event_lua_size, "wrap_event.lua") == 0)
         lua_call(L, 0, 0);
     else
         lua_error(L);

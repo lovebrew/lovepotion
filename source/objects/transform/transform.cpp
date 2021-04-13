@@ -4,34 +4,30 @@ using namespace love;
 
 love::Type Transform::type("Transform", &Object::type);
 
-Transform::Transform() : matrix(),
-                         inverseDirty(true),
-                         inverseMatrix()
+Transform::Transform() : matrix(), inverseDirty(true), inverseMatrix()
 {}
 
-Transform::Transform(const Matrix4 &m) : matrix(m),
-                                         inverseDirty(true),
-                                         inverseMatrix()
+Transform::Transform(const Matrix4& m) : matrix(m), inverseDirty(true), inverseMatrix()
 {}
 
-Transform::Transform(float x, float y, float a,
-                     float sx, float sy, float ox,
-                     float oy, float kx, float ky) : matrix(x, y, a, sx, sy, ox, oy, kx, ky),
-                                                     inverseDirty(true),
-                                                     inverseMatrix()
+Transform::Transform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx,
+                     float ky) :
+    matrix(x, y, a, sx, sy, ox, oy, kx, ky),
+    inverseDirty(true),
+    inverseMatrix()
 {}
 
-Transform * Transform::Clone()
+Transform* Transform::Clone()
 {
     return new Transform(*this);
 }
 
-Transform * Transform::Inverse()
+Transform* Transform::Inverse()
 {
     return new Transform(this->GetInverseMatrix());
 }
 
-void Transform::Apply(Transform * other)
+void Transform::Apply(Transform* other)
 {
     this->matrix *= other->GetMatrix();
     this->inverseDirty = true;
@@ -67,9 +63,8 @@ void Transform::Reset()
     this->inverseDirty = true;
 }
 
-void Transform::SetTransformation(float x, float y, float a,
-                                  float sx, float sy, float ox,
-                                  float oy, float kx, float ky)
+void Transform::SetTransformation(float x, float y, float a, float sx, float sy, float ox, float oy,
+                                  float kx, float ky)
 {
     this->matrix.SetTransformation(x, y, a, sx, sy, ox, oy, kx, ky);
     this->inverseDirty = true;
@@ -91,23 +86,23 @@ love::Vector2 Transform::InverseTransformPoint(love::Vector2 p)
     return result;
 }
 
-const Matrix4 & Transform::GetMatrix() const
+const Matrix4& Transform::GetMatrix() const
 {
     return this->matrix;
 }
 
-void Transform::SetMatrix(const Matrix4 & m)
+void Transform::SetMatrix(const Matrix4& m)
 {
-    this->matrix = m;
+    this->matrix       = m;
     this->inverseDirty = true;
 }
 
-bool Transform::GetConstant(const char *in, MatrixLayout & out)
+bool Transform::GetConstant(const char* in, MatrixLayout& out)
 {
     return matrixLayouts.Find(in, out);
 }
 
-bool Transform::GetConstant(MatrixLayout in, const char *& out)
+bool Transform::GetConstant(MatrixLayout in, const char*& out)
 {
     return matrixLayouts.Find(in, out);
 }
@@ -117,10 +112,11 @@ std::vector<std::string> Transform::GetConstants(MatrixLayout)
     return matrixLayouts.GetNames();
 }
 
-StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM>::Entry Transform::matrixLayoutEntries[] =
-{
-    { "row",    MATRIX_ROW_MAJOR    },
-    { "column", MATRIX_COLUMN_MAJOR },
-};
+StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM>::Entry
+    Transform::matrixLayoutEntries[] = {
+        { "row", MATRIX_ROW_MAJOR },
+        { "column", MATRIX_COLUMN_MAJOR },
+    };
 
-StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM> Transform::matrixLayouts(Transform::matrixLayoutEntries, sizeof(Transform::matrixLayoutEntries));
+StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM> Transform::matrixLayouts(
+    Transform::matrixLayoutEntries, sizeof(Transform::matrixLayoutEntries));

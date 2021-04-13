@@ -7,30 +7,31 @@ namespace love
 {
     class CompressedData : public Data
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            CompressedData(Compressor::Format format, char * data, size_t compressedSize, size_t rawSize, bool own = true);
-            CompressedData(const CompressedData & other);
+        CompressedData(Compressor::Format format, char* data, size_t compressedSize, size_t rawSize,
+                       bool own = true);
+        CompressedData(const CompressedData& other);
 
-            virtual ~CompressedData();
+        virtual ~CompressedData();
 
-            Compressor::Format GetFormat() const;
+        Compressor::Format GetFormat() const;
 
-            size_t GetDecompressedSize() const;
+        size_t GetDecompressedSize() const;
 
-            CompressedData * Clone() const override;
+        CompressedData* Clone() const override;
 
-            void * GetData() const override;
+        void* GetData() const override;
 
-            size_t GetSize() const override;
+        size_t GetSize() const override;
 
-        private:
-            Compressor::Format format;
+      private:
+        Compressor::Format format;
 
-            char * data;
-            size_t dataSize;
+        char* data;
+        size_t dataSize;
 
-            size_t originalSize;
+        size_t originalSize;
     };
-}
+} // namespace love

@@ -15,27 +15,30 @@ namespace love
 
     class Keyboard : public common::Keyboard
     {
-        public:
-            static constexpr uint32_t MAX_INPUT_LENGTH = 0x1F4;
+      public:
+        static constexpr uint32_t MAX_INPUT_LENGTH = 0x1F4;
 
-            constexpr uint32_t ENCODING_MULTIPLIER() override {
-                return 0x04;
-            }
+        constexpr uint32_t ENCODING_MULTIPLIER() override
+        {
+            return 0x04;
+        }
 
-            Keyboard();
+        Keyboard();
 
-            virtual ~Keyboard() {}
+        virtual ~Keyboard()
+        {}
 
-            std::string SetTextInput(const SwkbdOpt & options) override;
+        std::string SetTextInput(const SwkbdOpt& options) override;
 
-            static bool GetConstant(const char * in, KeyboardType & out);
-            static bool GetConstant(KeyboardType in, const char *& out);
-            static std::vector<std::string> GetConstants(KeyboardType);
+        static bool GetConstant(const char* in, KeyboardType& out);
+        static bool GetConstant(KeyboardType in, const char*& out);
+        static std::vector<std::string> GetConstants(KeyboardType);
 
-        private:
-            SwkbdConfig keyboard;
+      private:
+        SwkbdConfig keyboard;
 
-            static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)>::Entry keyboardTypeEntries[];
-            static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)> keyboardTypes;
+        static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)>::Entry
+            keyboardTypeEntries[];
+        static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)> keyboardTypes;
     };
-}
+} // namespace love

@@ -11,26 +11,26 @@ namespace love
 {
     class LuaThread : public Threadable
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            LuaThread(const std::string & name, love::Data * code);
-            ~LuaThread();
+        LuaThread(const std::string& name, love::Data* code);
+        ~LuaThread();
 
-            void ThreadFunction();
+        void ThreadFunction();
 
-            const std::string & GetError() const;
+        const std::string& GetError() const;
 
-            bool Start(const std::vector<Variant> & args);
+        bool Start(const std::vector<Variant>& args);
 
-        private:
-            void OnError();
+      private:
+        void OnError();
 
-            StrongReference<love::Data> code;
+        StrongReference<love::Data> code;
 
-            std::string name;
-            std::string error;
+        std::string name;
+        std::string error;
 
-            std::vector<Variant> args;
+        std::vector<Variant> args;
     };
-}
+} // namespace love

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "objects/font/fontc.h"
 #include "deko3d/vertex.h"
+#include "objects/font/fontc.h"
 
 #include "objects/image/image.h"
 #include "objects/texture/texture.h"
 
-#include "freetype/truetyperasterizer.h"
 #include "freetype/glyphdata.h"
+#include "freetype/truetyperasterizer.h"
 
 enum class love::common::Font::SystemFontType : uint8_t
 {
@@ -24,128 +24,134 @@ namespace love
 {
     class Font : public love::common::Font
     {
-        public:
-            typedef std::vector<uint32_t> Codepoints;
+      public:
+        typedef std::vector<uint32_t> Codepoints;
 
-            struct IndexedColor
-            {
-                Colorf color;
-                int index;
-            };
+        struct IndexedColor
+        {
+            Colorf color;
+            int index;
+        };
 
-            struct ColoredCodepoints
-            {
-                std::vector<uint32_t> codes;
-                std::vector<IndexedColor> colors;
-            };
+        struct ColoredCodepoints
+        {
+            std::vector<uint32_t> codes;
+            std::vector<IndexedColor> colors;
+        };
 
-            struct TextInfo
-            {
-                int width;
-                int height;
-            };
-
-            static void GetCodepointsFromString(const std::string & string, Codepoints & points);
-
-            static void GetCodepointsFromString(const std::vector<ColoredString> & strings, ColoredCodepoints & codepoints);
-
-            struct DrawCommand
-            {
-                int startVertex;
-                int vertexCount;
-
-                love::Texture * texture;
-            };
-
-            std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints & codepoints, const Colorf & constantcolor,
-                                                      std::vector<vertex::GlyphVertex> & glyphVertices, float extra_spacing = 0.0f,
-                                                      Vector2 offset = {}, TextInfo * info = nullptr);
-
-            std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints & text, const Colorf & constantColor,
-                                                               float wrap, AlignMode align, std::vector<vertex::GlyphVertex> & vertices,
-                                                               TextInfo * info = nullptr);
-
-            void Print(Graphics * gfx, const std::vector<ColoredString> & text,
-                       const Matrix4 & localTransform, const Colorf & color) override;
-
-            void Printf(Graphics * gfx, const std::vector<ColoredString> & text, float wrap, AlignMode align,
-                        const Matrix4 & localTransform, const Colorf & color) override;
-
-            void PrintV(Graphics * gfx, const Matrix4 & t, const std::vector<DrawCommand> & drawcommands, const std::vector<vertex::GlyphVertex> & vertices);
-
-            void GetWrap(const std::vector<ColoredString> & text, float wraplimit, std::vector<std::string> & lines, std::vector<int> * lineWidths = nullptr);
-
-            void GetWrap(const ColoredCodepoints & codepoints, float wraplimit, std::vector<ColoredCodepoints> & lines, std::vector<int> * lineWidths = nullptr);
-
-            int GetWidth(uint32_t prevGlyph, uint32_t codepoint) override;
-
-            using common::Font::GetWidth;
-
-            float GetHeight() const override;
-
-            struct Glyph
-            {
-                love::Texture * texture;
-                int spacing;
-                vertex::GlyphVertex vertices[4];
-            };
-
-            uint32_t GetTextureCacheID();
-
-            Font(Rasterizer * r, const Texture::Filter & filter);
-
-            virtual ~Font();
-
-            const Font::Glyph & FindGlyph(uint32_t glyph);
-
-            const Font::Glyph & AddGlyph(uint32_t glyph);
-
-            love::GlyphData * GetRasterizerGlyphData(uint32_t glyph);
-
-            float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph);
-
-            float GetAscent() const;
-
-            float GetBaseline() const;
-
-            float GetDescent() const;
-
-        private:
-            struct TextureSize
-            {
-                int width;
-                int height;
-            };
-
-            TextureSize GetNextTextureSize() const;
-
-            std::vector<love::StrongReference<love::Rasterizer>> rasterizers;
-
+        struct TextInfo
+        {
+            int width;
             int height;
+        };
 
-            int textureWidth;
-            int textureHeight;
+        static void GetCodepointsFromString(const std::string& string, Codepoints& points);
 
-            bool useSpacesAsTab;
+        static void GetCodepointsFromString(const std::vector<ColoredString>& strings,
+                                            ColoredCodepoints& codepoints);
 
-            uint32_t textureCacheID;
+        struct DrawCommand
+        {
+            int startVertex;
+            int vertexCount;
 
-            float dpiScale;
+            love::Texture* texture;
+        };
 
-            int textureX;
-            int textureY;
-            int rowHeight;
+        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
+                                                  const Colorf& constantcolor,
+                                                  std::vector<vertex::GlyphVertex>& glyphVertices,
+                                                  float extra_spacing = 0.0f, Vector2 offset = {},
+                                                  TextInfo* info = nullptr);
 
-            static const int TEXTURE_PADDING = 2;
+        std::vector<DrawCommand> GenerateVerticesFormatted(
+            const ColoredCodepoints& text, const Colorf& constantColor, float wrap, AlignMode align,
+            std::vector<vertex::GlyphVertex>& vertices, TextInfo* info = nullptr);
 
-            static const int SPACES_PER_TAB = 4;
+        void Print(Graphics* gfx, const std::vector<ColoredString>& text,
+                   const Matrix4& localTransform, const Colorf& color) override;
 
-            std::unordered_map<uint32_t, Font::Glyph> glyphs;
+        void Printf(Graphics* gfx, const std::vector<ColoredString>& text, float wrap,
+                    AlignMode align, const Matrix4& localTransform, const Colorf& color) override;
 
-            std::vector<love::StrongReference<love::Image>> images;
+        void PrintV(Graphics* gfx, const Matrix4& t, const std::vector<DrawCommand>& drawcommands,
+                    const std::vector<vertex::GlyphVertex>& vertices);
 
-            std::unordered_map<uint64_t, float> kerning;
+        void GetWrap(const std::vector<ColoredString>& text, float wraplimit,
+                     std::vector<std::string>& lines, std::vector<int>* lineWidths = nullptr);
 
-            void CreateTexture();
+        void GetWrap(const ColoredCodepoints& codepoints, float wraplimit,
+                     std::vector<ColoredCodepoints>& lines, std::vector<int>* lineWidths = nullptr);
+
+        int GetWidth(uint32_t prevGlyph, uint32_t codepoint) override;
+
+        using common::Font::GetWidth;
+
+        float GetHeight() const override;
+
+        struct Glyph
+        {
+            love::Texture* texture;
+            int spacing;
+            vertex::GlyphVertex vertices[4];
+        };
+
+        uint32_t GetTextureCacheID();
+
+        Font(Rasterizer* r, const Texture::Filter& filter);
+
+        virtual ~Font();
+
+        const Font::Glyph& FindGlyph(uint32_t glyph);
+
+        const Font::Glyph& AddGlyph(uint32_t glyph);
+
+        love::GlyphData* GetRasterizerGlyphData(uint32_t glyph);
+
+        float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph);
+
+        float GetAscent() const;
+
+        float GetBaseline() const;
+
+        float GetDescent() const;
+
+      private:
+        struct TextureSize
+        {
+            int width;
+            int height;
+        };
+
+        TextureSize GetNextTextureSize() const;
+
+        std::vector<love::StrongReference<love::Rasterizer>> rasterizers;
+
+        int height;
+
+        int textureWidth;
+        int textureHeight;
+
+        bool useSpacesAsTab;
+
+        uint32_t textureCacheID;
+
+        float dpiScale;
+
+        int textureX;
+        int textureY;
+        int rowHeight;
+
+        static const int TEXTURE_PADDING = 2;
+
+        static const int SPACES_PER_TAB = 4;
+
+        std::unordered_map<uint32_t, Font::Glyph> glyphs;
+
+        std::vector<love::StrongReference<love::Image>> images;
+
+        std::unordered_map<uint64_t, float> kerning;
+
+        void CreateTexture();
     };
-}
+} // namespace love

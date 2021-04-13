@@ -75,13 +75,15 @@ Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
 
 std::vector<std::string> love::citro2d::Graphics::GetScreens() const
 {
-    auto constants = (this->Get3D()) ? love::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM)
-                                 : love::citro2d::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
+    auto constants = (this->Get3D())
+                         ? love::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM)
+                         : love::citro2d::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
 
     return constants;
 }
 
-void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
+void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil,
+                                    std::optional<double> depth)
 {
     if (!this->IsCanvasActive())
         ::citro2d::Instance().BindFramebuffer();
@@ -102,9 +104,9 @@ void love::citro2d::Graphics::Present()
 }
 
 /* Keep out from common */
-void Graphics::SetCanvas(Canvas * canvas)
+void Graphics::SetCanvas(Canvas* canvas)
 {
-    DisplayState & state = this->states.back();
+    DisplayState& state = this->states.back();
     state.canvas.Set(canvas);
 
     ::citro2d::Instance().BindFramebuffer(canvas);
@@ -118,28 +120,23 @@ void love::citro2d::Graphics::SetColor(Colorf color)
     this->states.back().foreground = color;
 }
 
-Font * love::citro2d::Graphics::NewDefaultFont(int size, const Texture::Filter & filter)
+Font* love::citro2d::Graphics::NewDefaultFont(int size, const Texture::Filter& filter)
 {
-    const Rasterizer rasterizer =
-    {
-        .size = size,
-        .data = nullptr,
-        .font = C2D_FontLoadSystem(CFG_REGION_USA),
-        .buffer = nullptr
+    const Rasterizer rasterizer = {
+        .size = size, .data = nullptr, .font = C2D_FontLoadSystem(CFG_REGION_USA), .buffer = nullptr
     };
 
     return new Font(rasterizer, filter);
 }
 
-Font * love::citro2d::Graphics::NewFont(const Rasterizer & rasterizer, const Texture::Filter & filter)
+Font* love::citro2d::Graphics::NewFont(const Rasterizer& rasterizer, const Texture::Filter& filter)
 {
     return new Font(rasterizer, filter);
 }
 
 /* Primitives */
 
-inline const auto normalizeAngle = [](float angle)
-{
+inline const auto normalizeAngle = [](float angle) {
     angle = fmodf(angle, M_TAU);
     if (angle < 0)
         angle += M_TAU;
@@ -147,20 +144,20 @@ inline const auto normalizeAngle = [](float angle)
     return angle;
 };
 
-inline std::vector<Vector2> GenerateOutline(const Vector2 * points, size_t count, float lineWidth)
+inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count, float lineWidth)
 {
     std::vector<Vector2> innerPoints(count);
 
     for (size_t startPoint = 0; startPoint < count; startPoint++)
     {
-        const auto & middle = points[startPoint];
-        const auto & after  = points[(startPoint + 1) % count];
-        const auto & before = points[startPoint == 0 ? count - 1 : startPoint - 1];
+        const auto& middle = points[startPoint];
+        const auto& after  = points[(startPoint + 1) % count];
+        const auto& before = points[startPoint == 0 ? count - 1 : startPoint - 1];
 
         const float theta = normalizeAngle(atan2f(middle.y - after.y, middle.x - after.x));
         const float phi   = normalizeAngle(atan2f(middle.y - before.y, middle.x - before.x));
 
-        const float angleWithinPolygon = normalizeAngle(phi - theta);
+        const float angleWithinPolygon   = normalizeAngle(phi - theta);
         const float angleOfRightTriangle = (M_PI - angleWithinPolygon) / 2;
 
         const float lengthOfKite = lineWidth * (1 / cosf(angleOfRightTriangle));
@@ -174,21 +171,22 @@ inline std::vector<Vector2> GenerateOutline(const Vector2 * points, size_t count
     return innerPoints;
 }
 
-void love::citro2d::Graphics::Polyfill(const Vector2 * points, size_t count, u32 color, float depth)
+void love::citro2d::Graphics::Polyfill(const Vector2* points, size_t count, u32 color, float depth)
 {
     for (size_t currentPoint = 2; currentPoint < count; currentPoint++)
     {
-        C2D_DrawTriangle(points[0].x, points[0].y, color, points[currentPoint - 1].x, points[currentPoint - 1].y,
-                         color, points[currentPoint].x, points[currentPoint].y, color, depth);
+        C2D_DrawTriangle(points[0].x, points[0].y, color, points[currentPoint - 1].x,
+                         points[currentPoint - 1].y, color, points[currentPoint].x,
+                         points[currentPoint].y, color, depth);
     }
 }
 
-void love::citro2d::Graphics::Polygon(DrawMode mode, const Vector2 * points, size_t count)
+void love::citro2d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count)
 {
-    Colorf color = this->GetColor();
+    Colorf color   = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-    const Matrix4 & t = this->GetTransform();
+    const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
     if (mode == DRAW_LINE)
@@ -197,11 +195,12 @@ void love::citro2d::Graphics::Polygon(DrawMode mode, const Vector2 * points, siz
         this->Polyfill(points, count, foreground, Graphics::CURRENT_DEPTH);
 }
 
-void love::citro2d::Graphics::Polyline(const Vector2 * points, size_t count)
+void love::citro2d::Graphics::Polyline(const Vector2* points, size_t count)
 {
     // Generate the outline and draw it
     std::vector<Vector2> outline = GenerateOutline(points, count, this->states.back().lineWidth);
-    this->Polyfill(outline.data(), outline.size(), TRANSPARENCY, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
+    this->Polyfill(outline.data(), outline.size(), TRANSPARENCY,
+                   Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
 
     // Draw our filled polygon
     this->Polygon(DRAW_FILL, points, count);
@@ -211,12 +210,8 @@ void love::citro2d::Graphics::Polyline(const Vector2 * points, size_t count)
 
 void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
 {
-    Vector2 points[4] =
-    {
-        {x, y},
-        {x + width, y},
-        {x + width, y + height},
-        {x, y + height}
+    Vector2 points[4] = {
+        { x, y }, { x + width, y }, { x + width, y + height }, { x, y + height }
     };
 
     this->Polygon(mode, points, 4);
@@ -224,10 +219,10 @@ void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float w
 
 void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b)
 {
-    Colorf color = this->GetColor();
+    Colorf color   = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-    const Matrix4 & t = this->GetTransform();
+    const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
     if (mode == DRAW_FILL)
@@ -236,9 +231,9 @@ void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, 
     {
         float lineWidth = this->states.back().lineWidth;
 
-        C2D_DrawEllipseSolid((x - a) + lineWidth, (y - b) + lineWidth, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                             (a - lineWidth) * 2, (b - lineWidth) * 2,
-                             TRANSPARENCY);
+        C2D_DrawEllipseSolid((x - a) + lineWidth, (y - b) + lineWidth,
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, (a - lineWidth) * 2,
+                             (b - lineWidth) * 2, TRANSPARENCY);
 
         C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2, foreground);
 
@@ -248,10 +243,10 @@ void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, 
 
 void love::citro2d::Graphics::Circle(DrawMode mode, float x, float y, float radius)
 {
-    Colorf color = this->GetColor();
+    Colorf color   = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-    const Matrix4 & t = this->GetTransform();
+    const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
     if (mode == DRAW_FILL)
@@ -267,16 +262,14 @@ void love::citro2d::Graphics::Circle(DrawMode mode, float x, float y, float radi
     }
 }
 
-void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float y, float radius, float angle1, float angle2)
+void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float y, float radius,
+                                  float angle1, float angle2)
 {
-    const auto calc45Triangle = [](float x, float y, float radius, float angle) -> std::array<Vector2, 3>
-    {
-        return
-        {
-            Vector2(x, y),
-            Vector2(x + radius * cosf(angle), y + radius * sinf(angle)),
-            Vector2(x + radius * sqrtf(2) * cosf(angle + M_PI_4), y + radius * sqrtf(2) * sinf(angle + M_PI_4))
-        };
+    const auto calc45Triangle = [](float x, float y, float radius,
+                                   float angle) -> std::array<Vector2, 3> {
+        return { Vector2(x, y), Vector2(x + radius * cosf(angle), y + radius * sinf(angle)),
+                 Vector2(x + radius * sqrtf(2) * cosf(angle + M_PI_4),
+                         y + radius * sqrtf(2) * sinf(angle + M_PI_4)) };
     };
 
     angle1 = normalizeAngle(angle1);
@@ -286,30 +279,30 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
     if (angle2 > angle1)
         angle2 -= M_TAU;
 
-    const Matrix4 & t = this->GetTransform();
+    const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
     while (angle2 + M_PI_4 < angle1)
     {
-        const auto & pts = calc45Triangle(x, y, radius, angle2);
+        const auto& pts = calc45Triangle(x, y, radius, angle2);
         C2D_DrawTriangle(pts[0].x, pts[0].y, TRANSPARENCY, pts[1].x, pts[1].y, TRANSPARENCY,
-                         pts[2].x, pts[2].y, TRANSPARENCY, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
+                         pts[2].x, pts[2].y, TRANSPARENCY,
+                         Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
         angle2 += M_PI_4;
     }
 
-    const std::array<Vector2, 3> finalTriangle =
-    {
-        Vector2(x, y),
-        Vector2(x + radius * cosf(angle2), y + radius * sinf(angle2)),
+    const std::array<Vector2, 3> finalTriangle = {
+        Vector2(x, y), Vector2(x + radius * cosf(angle2), y + radius * sinf(angle2)),
         Vector2(x + radius * sqrtf(2) * cosf(angle1), y + radius * sqrtf(2) * sinf(angle1))
     };
 
-    C2D_DrawTriangle(finalTriangle[0].x, finalTriangle[0].y, TRANSPARENCY, finalTriangle[1].x, finalTriangle[1].y, TRANSPARENCY,
-                     finalTriangle[2].x, finalTriangle[2].y, TRANSPARENCY, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
+    C2D_DrawTriangle(finalTriangle[0].x, finalTriangle[0].y, TRANSPARENCY, finalTriangle[1].x,
+                     finalTriangle[1].y, TRANSPARENCY, finalTriangle[2].x, finalTriangle[2].y,
+                     TRANSPARENCY, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
 
     /* Sort of code duplication, but uh.. fix the arcs! */
 
-    Colorf color = this->GetColor();
+    Colorf color   = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
     if (mode == DRAW_FILL)
@@ -327,16 +320,18 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
     Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
 }
 
-void love::citro2d::Graphics::Line(const Vector2 * points, int count)
+void love::citro2d::Graphics::Line(const Vector2* points, int count)
 {
-    Colorf color = this->GetColor();
+    Colorf color   = this->GetColor();
     u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-    const Matrix4 & t = this->GetTransform();
+    const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
-    for (size_t index = 1; index < count; index += 2)
-        C2D_DrawLine(points[index - 1].x, points[index - 1].y, foreground, points[index].x, points[index].y, foreground, this->states.back().lineWidth, Graphics::CURRENT_DEPTH);
+    for (size_t index = 1; index < (size_t)count; index += 2)
+        C2D_DrawLine(points[index - 1].x, points[index - 1].y, foreground, points[index].x,
+                     points[index].y, foreground, this->states.back().lineWidth,
+                     Graphics::CURRENT_DEPTH);
 }
 
 void love::citro2d::Graphics::SetLineWidth(float width)
@@ -344,16 +339,16 @@ void love::citro2d::Graphics::SetLineWidth(float width)
     this->states.back().lineWidth = width;
 }
 
-void love::citro2d::Graphics::SetDefaultFilter(const Texture::Filter & filter)
+void love::citro2d::Graphics::SetDefaultFilter(const Texture::Filter& filter)
 {
     Texture::defaultFilter = filter;
 }
 
 /* End Primitives */
 
-void love::citro2d::Graphics::SetScissor(const Rect & scissor)
+void love::citro2d::Graphics::SetScissor(const Rect& scissor)
 {
-    DisplayState & state = this->states.back();
+    DisplayState& state = this->states.back();
 
     if (state.scissor)
         C2D_Flush();
@@ -361,7 +356,7 @@ void love::citro2d::Graphics::SetScissor(const Rect & scissor)
     int screenWidth = this->GetWidth(this->GetActiveScreen());
     ::citro2d::Instance().SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
 
-    state.scissor = true;
+    state.scissor     = true;
     state.scissorRect = scissor;
 }
 
@@ -371,7 +366,8 @@ void love::citro2d::Graphics::SetScissor()
         C2D_Flush();
 
     int screenWidth = this->GetWidth(this->GetActiveScreen());
-    ::citro2d::Instance().SetScissor(GPU_SCISSOR_DISABLE, {0, 0, screenWidth, 240}, screenWidth, false);
+    ::citro2d::Instance().SetScissor(GPU_SCISSOR_DISABLE, { 0, 0, screenWidth, 240 }, screenWidth,
+                                     false);
 
     states.back().scissor = false;
 }
@@ -388,12 +384,12 @@ Graphics::RendererInfo love::citro2d::Graphics::GetRendererInfo() const
     return info;
 }
 
-bool love::citro2d::Graphics::GetConstant(const char * in, Screen & out)
+bool love::citro2d::Graphics::GetConstant(const char* in, Screen& out)
 {
     return plainScreens.Find(in, out);
 }
 
-bool love::citro2d::Graphics::GetConstant(Screen in, const char *& out)
+bool love::citro2d::Graphics::GetConstant(Screen in, const char*& out)
 {
     return plainScreens.Find(in, out);
 }
@@ -405,21 +401,21 @@ std::vector<std::string> love::citro2d::Graphics::GetConstants(Screen)
 
 /* 2D Screens */
 
-StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::Entry love::citro2d::Graphics::plainScreenEntries[] =
-{
-    { "top",    Screen::SCREEN_LEFT   },
-    { "bottom", Screen::SCREEN_BOTTOM }
-};
+StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::Entry
+    love::citro2d::Graphics::plainScreenEntries[] = { { "top", Screen::SCREEN_LEFT },
+                                                      { "bottom", Screen::SCREEN_BOTTOM } };
 
-StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::plainScreens(love::citro2d::Graphics::plainScreenEntries, sizeof(love::citro2d::Graphics::plainScreenEntries));
+StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::
+    plainScreens(love::citro2d::Graphics::plainScreenEntries,
+                 sizeof(love::citro2d::Graphics::plainScreenEntries));
 
 /* "3D" Screens */
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] =
-{
-    { "left",   Screen::SCREEN_LEFT   },
-    { "right",  Screen::SCREEN_RIGHT  },
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] = {
+    { "left", Screen::SCREEN_LEFT },
+    { "right", Screen::SCREEN_RIGHT },
     { "bottom", Screen::SCREEN_BOTTOM }
 };
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(Graphics::screenEntries, sizeof(Graphics::screenEntries));
+StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(
+    Graphics::screenEntries, sizeof(Graphics::screenEntries));

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "modules/thread/types/lock.h"
 #include "driver/audiodrv.h"
+#include "modules/thread/types/lock.h"
 
 #include <atomic>
-#include <queue>
 #include <map>
+#include <queue>
 
 namespace love
 {
@@ -16,43 +16,43 @@ namespace love
 
     class Pool
     {
-        public:
-            Pool();
+      public:
+        Pool();
 
-            ~Pool();
+        ~Pool();
 
-            int GetActiveSourceCount() const;
+        int GetActiveSourceCount() const;
 
-            int GetMaxSources() const;
+        int GetMaxSources() const;
 
-            bool IsRunning();
+        bool IsRunning();
 
-            bool IsPlaying(common::Source * source);
+        bool IsPlaying(common::Source* source);
 
-            bool AssignSource(common::Source * source, size_t & channel, bool & wasPlaying);
+        bool AssignSource(common::Source* source, size_t& channel, bool& wasPlaying);
 
-            bool FindSource(common::Source * source, size_t & channel);
+        bool FindSource(common::Source* source, size_t& channel);
 
-            bool ReleaseSource(common::Source * source, bool stop = true);
+        bool ReleaseSource(common::Source* source, bool stop = true);
 
-            void Finish();
+        void Finish();
 
-            void Update();
+        void Update();
 
-            void Sleep();
+        void Sleep();
 
-            thread::Lock Lock();
+        thread::Lock Lock();
 
-        private:
-            friend class common::Source;
+      private:
+        friend class common::Source;
 
-            std::vector<common::Source *> GetPlayingSources();
+        std::vector<common::Source*> GetPlayingSources();
 
-            std::atomic<bool> running = true;
-            std::map<common::Source *, size_t> playing;
-            thread::MutexRef mutex;
+        std::atomic<bool> running = true;
+        std::map<common::Source*, size_t> playing;
+        thread::MutexRef mutex;
 
-            std::queue<size_t> available;
-            const size_t TOTAL_CHANNELS = 24;
+        std::queue<size_t> available;
+        const size_t TOTAL_CHANNELS = 24;
     };
-}
+} // namespace love

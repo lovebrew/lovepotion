@@ -3,9 +3,9 @@
 #include <bitset>
 #include <unordered_map>
 
-#if defined (_3DS)
+#if defined(_3DS)
     #include <3ds.h>
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch.h>
 #endif
 
@@ -13,32 +13,32 @@ namespace love
 {
     class Type
     {
-        public:
-            static const uint32_t MAX_TYPES = 128;
+      public:
+        static const uint32_t MAX_TYPES = 128;
 
-            Type(const char * name, Type * parent);
+        Type(const char* name, Type* parent);
 
-            Type(const Type &) = delete;
+        Type(const Type&) = delete;
 
-            void Init();
+        void Init();
 
-            const char * GetName() const;
+        const char* GetName() const;
 
-            bool IsA(const love::Type & other);
+        bool IsA(const love::Type& other);
 
-            bool IsA(const uint32_t & other);
+        bool IsA(const uint32_t& other);
 
-            static Type * ByName(const char * name);
+        static Type* ByName(const char* name);
 
-        private:
-            const char * const name;
-            Type * const parent;
+      private:
+        const char* const name;
+        Type* const parent;
 
-            uint32_t id;
-            bool initialized;
+        uint32_t id;
+        bool initialized;
 
-            std::bitset<MAX_TYPES> m_bits;
+        std::bitset<MAX_TYPES> m_bits;
 
-            static inline std::unordered_map<std::string, love::Type *> m_types = {};
+        static inline std::unordered_map<std::string, love::Type*> m_types = {};
     };
-}
+} // namespace love

@@ -10,12 +10,12 @@ ConditionalRef::~ConditionalRef()
     delete this->conditional;
 }
 
-ConditionalRef::operator Conditional * () const
+ConditionalRef::operator Conditional*() const
 {
     return this->conditional;
 }
 
-Conditional * ConditionalRef::operator-> () const
+Conditional* ConditionalRef::operator->() const
 {
     return this->conditional;
 }

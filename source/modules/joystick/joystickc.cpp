@@ -2,10 +2,10 @@
 
 using namespace love::common;
 
-#if defined (_3DS)
-    static const size_t MAX_GAMEPADS = 1;
+#if defined(_3DS)
+static const size_t MAX_GAMEPADS = 1;
 #elif defined(__SWITCH__)
-    static const size_t MAX_GAMEPADS = 4;
+static const size_t MAX_GAMEPADS = 4;
 #endif
 
 Joystick::Joystick()
@@ -23,7 +23,7 @@ Joystick::~Joystick()
     }
 }
 
-love::Gamepad * Joystick::GetJoystickFromID(size_t index)
+love::Gamepad* Joystick::GetJoystickFromID(size_t index)
 {
     for (auto stick : this->active)
     {
@@ -39,20 +39,20 @@ size_t Joystick::GetJoystickCount() const
     return this->active.size();
 }
 
-love::Gamepad * Joystick::AddGamepad(size_t index)
+love::Gamepad* Joystick::AddGamepad(size_t index)
 {
     if (index < 0 || index > MAX_GAMEPADS)
         return nullptr;
 
-    love::Gamepad * joystick = nullptr;
-    bool reused = false;
+    love::Gamepad* joystick = nullptr;
+    bool reused             = false;
 
     for (auto stick : this->gamepads)
     {
         if (!stick->IsConnected())
         {
             joystick = stick;
-            reused = true;
+            reused   = true;
             break;
         }
     }
@@ -93,7 +93,7 @@ love::Gamepad * Joystick::AddGamepad(size_t index)
     return joystick;
 }
 
-void Joystick::RemoveGamepad(love::Gamepad * gamepad)
+void Joystick::RemoveGamepad(love::Gamepad* gamepad)
 {
     if (!gamepad)
         return;
@@ -107,7 +107,7 @@ void Joystick::RemoveGamepad(love::Gamepad * gamepad)
     }
 }
 
-int Joystick::GetIndex(const love::Gamepad *joystick)
+int Joystick::GetIndex(const love::Gamepad* joystick)
 {
     for (int i = 0; i < (int)this->active.size(); i++)
     {

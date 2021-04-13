@@ -6,7 +6,7 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 
-int Wrap_Graphics::GetScreens(lua_State * L)
+int Wrap_Graphics::GetScreens(lua_State* L)
 {
     auto screens = instance()->GetScreens();
 
@@ -21,15 +21,13 @@ int Wrap_Graphics::GetScreens(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::GetActiveScreen(lua_State * L)
+int Wrap_Graphics::GetActiveScreen(lua_State* L)
 {
 
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
-    const char * name = nullptr;
+    const char* name        = nullptr;
 
-    Luax::CatchException(L, [&]() {
-        screen = instance()->GetActiveScreen();
-    });
+    Luax::CatchException(L, [&]() { screen = instance()->GetActiveScreen(); });
 
     if (!Graphics::GetConstant(screen, name))
         return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
@@ -39,39 +37,38 @@ int Wrap_Graphics::GetActiveScreen(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::SetActiveScreen(lua_State * L)
+int Wrap_Graphics::SetActiveScreen(lua_State* L)
 {
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
-    const char * name = luaL_checkstring(L, 1);
+    const char* name        = luaL_checkstring(L, 1);
 
-    #if defined(_3DS)
-        if (gfxIs3D())
-        {
-            if (!Graphics::GetConstant(name, screen))
-                return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
-        }
-        else
-        {
-            if (!love::citro2d::Graphics::GetConstant(name, screen))
-                return Luax::EnumError(L, "screen", love::citro2d::Graphics::GetConstants(screen), name);
-        }
-    #elif defined(__SWITCH__)
-            if (!Graphics::GetConstant(name, screen))
-                return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
-    #endif
+#if defined(_3DS)
+    if (gfxIs3D())
+    {
+        if (!Graphics::GetConstant(name, screen))
+            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+    }
+    else
+    {
+        if (!love::citro2d::Graphics::GetConstant(name, screen))
+            return Luax::EnumError(L, "screen", love::citro2d::Graphics::GetConstants(screen),
+                                   name);
+    }
+#elif defined(__SWITCH__)
+    if (!Graphics::GetConstant(name, screen))
+        return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);
+#endif
 
-    Luax::CatchException(L, [&]() {
-        instance()->SetActiveScreen(screen);
-    });
+    Luax::CatchException(L, [&]() { instance()->SetActiveScreen(screen); });
 
     return 0;
 }
 
-int Wrap_Graphics::GetDimensions(lua_State * L)
+int Wrap_Graphics::GetDimensions(lua_State* L)
 {
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
 
-    const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+    const char* sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
 
     if (sname == nullptr)
         screen = instance()->GetActiveScreen();
@@ -87,11 +84,11 @@ int Wrap_Graphics::GetDimensions(lua_State * L)
     return 2;
 }
 
-int Wrap_Graphics::GetWidth(lua_State * L)
+int Wrap_Graphics::GetWidth(lua_State* L)
 {
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
 
-    const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+    const char* sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
 
     if (sname == nullptr)
         screen = instance()->GetActiveScreen();
@@ -106,17 +103,17 @@ int Wrap_Graphics::GetWidth(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::GetHeight(lua_State * L)
+int Wrap_Graphics::GetHeight(lua_State* L)
 {
     lua_pushnumber(L, instance()->GetHeight());
 
     return 1;
 }
 
-int Wrap_Graphics::Arc(lua_State * L)
+int Wrap_Graphics::Arc(lua_State* L)
 {
     Graphics::DrawMode drawMode;
-    const char * mode = luaL_checkstring(L, 1);
+    const char* mode = luaL_checkstring(L, 1);
     if (!Graphics::GetConstant(mode, drawMode))
         return Luax::EnumError(L, "draw mode", Graphics::GetConstants(drawMode), mode);
 
@@ -126,39 +123,37 @@ int Wrap_Graphics::Arc(lua_State * L)
 
     if (lua_type(L, 2) == LUA_TSTRING)
     {
-        const char *arcstr = luaL_checkstring(L, 2);
+        const char* arcstr = luaL_checkstring(L, 2);
         if (!Graphics::GetConstant(arcstr, arcmode))
             return Luax::EnumError(L, "arc mode", Graphics::GetConstants(arcmode), arcstr);
 
         startidx = 3;
     }
 
-    float x = luaL_checknumber(L, startidx + 0);
-    float y = luaL_checknumber(L, startidx + 1);
+    float x      = luaL_checknumber(L, startidx + 0);
+    float y      = luaL_checknumber(L, startidx + 1);
     float radius = luaL_checknumber(L, startidx + 2);
     float angle1 = luaL_checknumber(L, startidx + 3);
     float angle2 = luaL_checknumber(L, startidx + 4);
 
     if (lua_isnoneornil(L, startidx + 5))
     {
-        Luax::CatchException(L, [&]() {
-            instance()->Arc(drawMode, arcmode, x, y, radius, angle1, angle2);
-        });
+        Luax::CatchException(
+            L, [&]() { instance()->Arc(drawMode, arcmode, x, y, radius, angle1, angle2); });
     }
     else
     {
-        int points = (int) luaL_checkinteger(L, startidx + 5);
-        Luax::CatchException(L, [&]() {
-            instance()->Arc(drawMode, arcmode, x, y, radius, angle1, angle2, points);
-        });
+        int points = (int)luaL_checkinteger(L, startidx + 5);
+        Luax::CatchException(
+            L, [&]() { instance()->Arc(drawMode, arcmode, x, y, radius, angle1, angle2, points); });
     }
 
     return 0;
 }
 
-int Wrap_Graphics::Ellipse(lua_State * L)
+int Wrap_Graphics::Ellipse(lua_State* L)
 {
-    const char * mode = luaL_checkstring(L, 1);
+    const char* mode            = luaL_checkstring(L, 1);
     Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
 
     if (!Graphics::GetConstant(mode, drawMode))
@@ -170,24 +165,19 @@ int Wrap_Graphics::Ellipse(lua_State * L)
     float b = (float)luaL_optnumber(L, 5, a);
 
     if (lua_isnoneornil(L, 6))
-        Luax::CatchException(L, [&]() {
-            instance()->Ellipse(drawMode, x, y, a, b);
-        });
+        Luax::CatchException(L, [&]() { instance()->Ellipse(drawMode, x, y, a, b); });
     else
     {
         int points = (int)luaL_checkinteger(L, 6);
-        Luax::CatchException(L, [&]() {
-            instance()->Ellipse(drawMode, x, y, a, b, points);
-        });
+        Luax::CatchException(L, [&]() { instance()->Ellipse(drawMode, x, y, a, b, points); });
     }
-
 
     return 0;
 }
 
-int Wrap_Graphics::Rectangle(lua_State * L)
+int Wrap_Graphics::Rectangle(lua_State* L)
 {
-    const char * mode = luaL_checkstring(L, 1);
+    const char* mode            = luaL_checkstring(L, 1);
     Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
 
     if (!Graphics::GetConstant(mode, drawMode))
@@ -196,7 +186,7 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float x = luaL_optnumber(L, 2, 0);
     float y = luaL_optnumber(L, 3, 0);
 
-    float width = luaL_checknumber(L, 4);
+    float width  = luaL_checknumber(L, 4);
     float height = luaL_checknumber(L, 5);
 
     if (lua_isnoneornil(L, 6))
@@ -209,48 +199,42 @@ int Wrap_Graphics::Rectangle(lua_State * L)
     float ry = (float)luaL_optnumber(L, 7, rx);
 
     if (lua_isnoneornil(L, 8))
-        Luax::CatchException(L, [&]() {
-            instance()->Rectangle(drawMode, x, y, width, height, rx, ry);
-        });
+        Luax::CatchException(
+            L, [&]() { instance()->Rectangle(drawMode, x, y, width, height, rx, ry); });
     else
     {
-        int points = (int) luaL_checkinteger(L, 8);
-        Luax::CatchException(L, [&]() {
-            instance()->Rectangle(drawMode, x, y, width, height, rx, ry, points);
-        });
+        int points = (int)luaL_checkinteger(L, 8);
+        Luax::CatchException(
+            L, [&]() { instance()->Rectangle(drawMode, x, y, width, height, rx, ry, points); });
     }
 
     return 0;
 }
 
-int Wrap_Graphics::Circle(lua_State * L)
+int Wrap_Graphics::Circle(lua_State* L)
 {
-    const char * mode = luaL_checkstring(L, 1);
+    const char* mode            = luaL_checkstring(L, 1);
     Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
 
     if (!Graphics::GetConstant(mode, drawMode))
         return luaL_error(L, "Invalid draw mode %s", mode);
 
-    float x = luaL_checknumber(L, 2);
-    float y = luaL_checknumber(L, 3);
+    float x      = luaL_checknumber(L, 2);
+    float y      = luaL_checknumber(L, 3);
     float radius = luaL_checknumber(L, 4);
 
     if (lua_isnoneornil(L, 5))
-        Luax::CatchException(L, [&]() {
-            instance()->Circle(drawMode, x, y, radius);
-        });
+        Luax::CatchException(L, [&]() { instance()->Circle(drawMode, x, y, radius); });
     else
     {
-        int points = (int) luaL_checkinteger(L, 5);
-        Luax::CatchException(L, [&]() {
-            instance()->Circle(drawMode, x, y, radius, points);
-        });
+        int points = (int)luaL_checkinteger(L, 5);
+        Luax::CatchException(L, [&]() { instance()->Circle(drawMode, x, y, radius, points); });
     }
 
     return 0;
 }
 
-int Wrap_Graphics::GetPointSize(lua_State * L)
+int Wrap_Graphics::GetPointSize(lua_State* L)
 {
     float size = instance()->GetPointSize();
     lua_pushnumber(L, size);
@@ -258,7 +242,7 @@ int Wrap_Graphics::GetPointSize(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::SetPointSize(lua_State * L)
+int Wrap_Graphics::SetPointSize(lua_State* L)
 {
     float size = luaL_checknumber(L, 1);
     instance()->SetPointSize(size);
@@ -266,21 +250,21 @@ int Wrap_Graphics::SetPointSize(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Points(lua_State * L)
+int Wrap_Graphics::Points(lua_State* L)
 {
     // love.graphics.points has 3 variants:
     // - points(x1, y1, x2, y2, ...)
     // - points({x1, y1, x2, y2, ...})
     // - points({{x1, y1 [, r, g, b, a]}, {x2, y2 [, r, g, b, a]}, ...})
 
-    int args = lua_gettop(L);
-    bool isTable = false;
+    int args             = lua_gettop(L);
+    bool isTable         = false;
     bool isTableOfTables = false;
 
     if (args == 1 && lua_istable(L, 1))
     {
         isTable = true;
-        args = (int)lua_objlen(L, 1);
+        args    = (int)lua_objlen(L, 1);
 
         lua_rawgeti(L, 1, 1);
         isTableOfTables = lua_istable(L, -1);
@@ -294,25 +278,24 @@ int Wrap_Graphics::Points(lua_State * L)
     if (isTableOfTables)
         points = args;
 
-    Vector2 * positions = nullptr;
-    Colorf * colors = nullptr;
+    Vector2* positions = nullptr;
+    Colorf* colors     = nullptr;
 
     if (isTableOfTables)
     {
         positions = new Vector2[points * (sizeof(Colorf) + sizeof(Vector2))];
-        colors = new Colorf[sizeof(Vector2) * points];
+        colors    = new Colorf[sizeof(Vector2) * points];
     }
     else
     {
         positions = new Vector2[points];
-        colors = new Colorf[1] { instance()->GetColor() };
+        colors    = new Colorf[1] { instance()->GetColor() };
     }
 
     if (isTable)
     {
         if (isTableOfTables)
         {
-
 
             // points({{x1, y1 [, r, g, b, a]}, {x2, y2 [, r, g, b, a]}, ...})
             for (int i = 0; i < args; i++)
@@ -356,23 +339,21 @@ int Wrap_Graphics::Points(lua_State * L)
         }
     }
 
-    Luax::CatchException(L, [&]() {
-        instance()->Points(positions, points, colors, points);
-    });
+    Luax::CatchException(L, [&]() { instance()->Points(positions, points, colors, points); });
 
     return 0;
 }
 
-int Wrap_Graphics::Line(lua_State * L)
+int Wrap_Graphics::Line(lua_State* L)
 {
-    int args = lua_gettop(L);
+    int args    = lua_gettop(L);
     int argType = lua_type(L, 1);
 
     bool is_table = false;
 
     if (args == 1 && argType == LUA_TTABLE)
     {
-        args = (int)lua_objlen(L, 1);
+        args     = (int)lua_objlen(L, 1);
         is_table = true;
     }
 
@@ -385,7 +366,7 @@ int Wrap_Graphics::Line(lua_State * L)
 
     int numvertices = args / 2;
 
-    Vector2 * coords = new Vector2[numvertices];
+    Vector2* coords = new Vector2[numvertices];
 
     if (is_table)
     {
@@ -408,19 +389,17 @@ int Wrap_Graphics::Line(lua_State * L)
         }
     }
 
-    Luax::CatchException(L, [&]() {
-        instance()->Line(coords, numvertices);
-    });
+    Luax::CatchException(L, [&]() { instance()->Line(coords, numvertices); });
 
     delete[] coords;
 
     return 0;
 }
 
-int Wrap_Graphics::Polygon(lua_State * L)
+int Wrap_Graphics::Polygon(lua_State* L)
 {
-    int argc = lua_gettop(L) - 1;
-    const char * mode = luaL_checkstring(L, 1);
+    int argc                    = lua_gettop(L) - 1;
+    const char* mode            = luaL_checkstring(L, 1);
     Graphics::DrawMode drawMode = Graphics::DRAW_FILL;
 
     if (!Graphics::GetConstant(mode, drawMode))
@@ -429,7 +408,7 @@ int Wrap_Graphics::Polygon(lua_State * L)
     bool isTable = false;
     if (argc == 1 && lua_istable(L, 2))
     {
-        argc = (int)lua_objlen(L, 2);
+        argc    = (int)lua_objlen(L, 2);
         isTable = true;
     }
 
@@ -479,14 +458,12 @@ int Wrap_Graphics::Polygon(lua_State * L)
     // make a closed loop
     points[numvertices] = points[0];
 
-    Luax::CatchException(L, [&]() {
-        instance()->Polygon(drawMode, points, numvertices + 1);
-    });
+    Luax::CatchException(L, [&]() { instance()->Polygon(drawMode, points, numvertices + 1); });
 
     return 0;
 }
 
-int Wrap_Graphics::SetLineWidth(lua_State * L)
+int Wrap_Graphics::SetLineWidth(lua_State* L)
 {
     float width = luaL_checknumber(L, 1);
 
@@ -495,66 +472,58 @@ int Wrap_Graphics::SetLineWidth(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetLineWidth(lua_State * L)
+int Wrap_Graphics::GetLineWidth(lua_State* L)
 {
     lua_pushnumber(L, instance()->GetLineWidth());
 
     return 1;
 }
 
-int Wrap_Graphics::Push(lua_State * L)
+int Wrap_Graphics::Push(lua_State* L)
 {
     Graphics::StackType stype = Graphics::STACK_TRANSFORM;
-    const char * sname = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
+    const char* sname         = lua_isnoneornil(L, 1) ? nullptr : luaL_checkstring(L, 1);
 
     if (sname && !Graphics::GetConstant(sname, stype))
         return Luax::EnumError(L, "graphics stack type", Graphics::GetConstants(stype), sname);
 
-    Luax::CatchException(L, [&](){
-        instance()->Push(stype);
-    });
+    Luax::CatchException(L, [&]() { instance()->Push(stype); });
 
     if (Luax::IsType(L, 2, Transform::type))
     {
-        Transform * t = Luax::ToType<Transform>(L, 2);
-        Luax::CatchException(L, [&]() {
-            instance()->ApplyTransform(t);
-        });
+        Transform* t = Luax::ToType<Transform>(L, 2);
+        Luax::CatchException(L, [&]() { instance()->ApplyTransform(t); });
     }
 
     return 0;
 }
 
-int Wrap_Graphics::ApplyTransform(lua_State * L)
+int Wrap_Graphics::ApplyTransform(lua_State* L)
 {
-    Transform * t = Wrap_Transform::CheckTransform(L, 1);
+    Transform* t = Wrap_Transform::CheckTransform(L, 1);
 
-    Luax::CatchException(L, [&]() {
-        instance()->ApplyTransform(t);
-    });
+    Luax::CatchException(L, [&]() { instance()->ApplyTransform(t); });
 
     return 0;
 }
 
-int Wrap_Graphics::ReplaceTransform(lua_State * L)
+int Wrap_Graphics::ReplaceTransform(lua_State* L)
 {
-    Transform * t = Wrap_Transform::CheckTransform(L, 1);
+    Transform* t = Wrap_Transform::CheckTransform(L, 1);
 
-    Luax::CatchException(L, [&]() {
-        instance()->ReplaceTransform(t);
-    });
+    Luax::CatchException(L, [&]() { instance()->ReplaceTransform(t); });
 
     return 0;
 }
 
-int Wrap_Graphics::Origin(lua_State  *L)
+int Wrap_Graphics::Origin(lua_State* L)
 {
     instance()->Origin();
 
     return 0;
 }
 
-int Wrap_Graphics::Translate(lua_State * L)
+int Wrap_Graphics::Translate(lua_State* L)
 {
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
@@ -564,7 +533,7 @@ int Wrap_Graphics::Translate(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Rotate(lua_State * L)
+int Wrap_Graphics::Rotate(lua_State* L)
 {
     float angle = luaL_checknumber(L, 1);
 
@@ -573,7 +542,7 @@ int Wrap_Graphics::Rotate(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Scale(lua_State * L)
+int Wrap_Graphics::Scale(lua_State* L)
 {
     float x = luaL_checknumber(L, 1);
     float y = luaL_optnumber(L, 2, x);
@@ -583,7 +552,7 @@ int Wrap_Graphics::Scale(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Shear(lua_State * L)
+int Wrap_Graphics::Shear(lua_State* L)
 {
     float x = luaL_checknumber(L, 1);
     float y = luaL_checknumber(L, 2);
@@ -593,24 +562,22 @@ int Wrap_Graphics::Shear(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Pop(lua_State * L)
+int Wrap_Graphics::Pop(lua_State* L)
 {
-    Luax::CatchException(L, [&]() {
-        instance()->Pop();
-    });
+    Luax::CatchException(L, [&]() { instance()->Pop(); });
 
     return 0;
 }
 
-int Wrap_Graphics::Clear(lua_State * L)
+int Wrap_Graphics::Clear(lua_State* L)
 {
     std::optional<Colorf> color(Colorf(0, 0, 0, 0));
 
-    std::optional<int>    stencil(0);
+    std::optional<int> stencil(0);
     std::optional<double> depth(1.0);
 
     int argtype = lua_type(L, 1);
-    int start = -1;
+    int start   = -1;
 
     Graphics::CURRENT_DEPTH = 0.0f;
 
@@ -635,23 +602,19 @@ int Wrap_Graphics::Clear(lua_State * L)
             depth.value() = luaL_checknumber(L, start + 1);
     }
 
-    Luax::CatchException(L, [&]() {
-        instance()->Clear(color, stencil, depth);
-    });
+    Luax::CatchException(L, [&]() { instance()->Clear(color, stencil, depth); });
 
     return 0;
 }
 
-int Wrap_Graphics::Present(lua_State * L)
+int Wrap_Graphics::Present(lua_State* L)
 {
-    Luax::CatchException(L, [&]() {
-        instance()->Present();
-    });
+    Luax::CatchException(L, [&]() { instance()->Present(); });
 
     return 0;
 }
 
-int Wrap_Graphics::SetScissor(lua_State * L)
+int Wrap_Graphics::SetScissor(lua_State* L)
 {
     int argCount = lua_gettop(L);
 
@@ -677,7 +640,7 @@ int Wrap_Graphics::SetScissor(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::IntersectScissor(lua_State * L)
+int Wrap_Graphics::IntersectScissor(lua_State* L)
 {
     Rect rect;
 
@@ -694,7 +657,7 @@ int Wrap_Graphics::IntersectScissor(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetScissor(lua_State * L)
+int Wrap_Graphics::GetScissor(lua_State* L)
 {
     Rect scissor;
 
@@ -709,12 +672,12 @@ int Wrap_Graphics::GetScissor(lua_State * L)
     return 4;
 }
 
-int Wrap_Graphics::SetDefaultFilter(lua_State * L)
+int Wrap_Graphics::SetDefaultFilter(lua_State* L)
 {
     Texture::Filter filter;
 
-    const char * min = luaL_checkstring(L, 1);
-    const char * mag = luaL_optstring(L, 2, min);
+    const char* min = luaL_checkstring(L, 1);
+    const char* mag = luaL_optstring(L, 2, min);
 
     if (!Texture::GetConstant(min, filter.min))
         return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.min), min);
@@ -727,12 +690,12 @@ int Wrap_Graphics::SetDefaultFilter(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetDefaultFilter(lua_State * L)
+int Wrap_Graphics::GetDefaultFilter(lua_State* L)
 {
-    const Texture::Filter & filter = instance()->GetDefaultFilter();
+    const Texture::Filter& filter = instance()->GetDefaultFilter();
 
-    const char * min;
-    const char * mag;
+    const char* min;
+    const char* mag;
 
     if (!Texture::GetConstant(filter.min, min))
         return luaL_error(L, "Unknown minification filter mode.");
@@ -746,14 +709,14 @@ int Wrap_Graphics::GetDefaultFilter(lua_State * L)
     return 2;
 }
 
-int Wrap_Graphics::NewImage(lua_State * L)
+int Wrap_Graphics::NewImage(lua_State* L)
 {
     StrongReference<Image> image;
 
     if (Wrap_Filesystem::CanGetData(L, 1))
     {
         Luax::CatchException(L, [&]() {
-            Data * data = Wrap_Filesystem::GetData(L, 1);
+            Data* data = Wrap_Filesystem::GetData(L, 1);
 
             image.Set(instance()->NewImage(data), Acquire::NORETAIN);
         });
@@ -764,10 +727,10 @@ int Wrap_Graphics::NewImage(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::NewText(lua_State * L)
+int Wrap_Graphics::NewText(lua_State* L)
 {
-    Font * font = Wrap_Font::CheckFont(L, 1);
-    Text * text = nullptr;
+    Font* font = Wrap_Font::CheckFont(L, 1);
+    Text* text = nullptr;
 
     if (lua_isnoneornil(L, 2))
         Luax::CatchException(L, [&]() { text = instance()->NewText(font); });
@@ -776,9 +739,7 @@ int Wrap_Graphics::NewText(lua_State * L)
         std::vector<Font::ColoredString> strings;
         Wrap_Font::CheckColoredString(L, 2, strings);
 
-        Luax::CatchException(L, [&]() {
-            text = instance()->NewText(font, strings);
-        });
+        Luax::CatchException(L, [&]() { text = instance()->NewText(font, strings); });
     }
 
     Luax::PushType(L, text);
@@ -787,21 +748,19 @@ int Wrap_Graphics::NewText(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::NewCanvas(lua_State * L)
+int Wrap_Graphics::NewCanvas(lua_State* L)
 {
     Canvas::Settings settings;
 
-    int width = instance()->GetWidth(instance()->GetActiveScreen());
+    int width  = instance()->GetWidth(instance()->GetActiveScreen());
     int height = instance()->GetHeight();
 
     settings.width  = luaL_optinteger(L, 1, width);
     settings.height = luaL_optinteger(L, 2, height);
 
-    Canvas * canvas = nullptr;
+    Canvas* canvas = nullptr;
 
-    Luax::CatchException(L, [&]() {
-        canvas = instance()->NewCanvas(settings);
-    });
+    Luax::CatchException(L, [&]() { canvas = instance()->NewCanvas(settings); });
 
     Luax::PushType(L, canvas);
     canvas->Release();
@@ -809,11 +768,11 @@ int Wrap_Graphics::NewCanvas(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::TransformPoint(lua_State *L)
+int Wrap_Graphics::TransformPoint(lua_State* L)
 {
     Vector2 point;
-    point.x = (float) luaL_checknumber(L, 1);
-    point.y = (float) luaL_checknumber(L, 2);
+    point.x = (float)luaL_checknumber(L, 1);
+    point.y = (float)luaL_checknumber(L, 2);
 
     point = instance()->TransformPoint(point);
 
@@ -823,11 +782,11 @@ int Wrap_Graphics::TransformPoint(lua_State *L)
     return 2;
 }
 
-int Wrap_Graphics::InverseTransformPoint(lua_State *L)
+int Wrap_Graphics::InverseTransformPoint(lua_State* L)
 {
     Vector2 point;
-    point.x = (float) luaL_checknumber(L, 1);
-    point.y = (float) luaL_checknumber(L, 2);
+    point.x = (float)luaL_checknumber(L, 1);
+    point.y = (float)luaL_checknumber(L, 2);
 
     point = instance()->InverseTransformPoint(point);
 
@@ -837,70 +796,68 @@ int Wrap_Graphics::InverseTransformPoint(lua_State *L)
     return 2;
 }
 
-int Wrap_Graphics::NewFont(lua_State * L)
+int Wrap_Graphics::NewFont(lua_State* L)
 {
-    Font * font = nullptr;
+    Font* font = nullptr;
 
-    #if defined (__SWITCH__)
-        // Convert to Rasterizer, if necessary.
-        if (!Luax::IsType(L, 1, Rasterizer::type))
+#if defined(__SWITCH__)
+    // Convert to Rasterizer, if necessary.
+    if (!Luax::IsType(L, 1, Rasterizer::type))
+    {
+        std::vector<int> idxs;
+
+        for (int i = 0; i < lua_gettop(L); i++)
+            idxs.push_back(i + 1);
+
+        Luax::ConvertObject(L, idxs, "font", "newRasterizer");
+    }
+
+    Rasterizer* rasterizer = Luax::CheckType<Rasterizer>(L, 1);
+
+    Luax::CatchException(
+        L, [&]() { font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter()); });
+#elif defined(_3DS)
+    int size;
+    if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
+    {
+        size = luaL_optinteger(L, 1, 24);
+        font = instance()->NewDefaultFont(size);
+    }
+    else
+    {
+        Rasterizer rasterizer {};
+        size = luaL_optinteger(L, 2, 24);
+
+        if (Luax::IsType(L, 1, love::Data::type))
         {
-            std::vector<int> idxs;
+            rasterizer.data = Wrap_Data::CheckData(L, 1);
+            rasterizer.data->Retain();
 
-            for (int i = 0; i < lua_gettop(L); i++)
-                idxs.push_back(i + 1);
-
-            Luax::ConvertObject(L, idxs, "font", "newRasterizer");
-        }
-
-        Rasterizer * rasterizer = Luax::CheckType<Rasterizer>(L, 1);
-
-        Luax::CatchException(L, [&]() {
-            font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter());
-        });
-    #elif defined (_3DS)
-        int size;
-        if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
-        {
-            size = luaL_optinteger(L, 1, 24);
-            font = instance()->NewDefaultFont(size);
+            rasterizer.size = size;
         }
         else
         {
-            Rasterizer rasterizer {};
-            size = luaL_optinteger(L, 2, 24);
+            const char* str = luaL_checkstring(L, 1);
 
-            if (Luax::IsType(L, 1, love::Data::type))
+            if (std::filesystem::path(str).extension().empty())
             {
-                rasterizer.data = Wrap_Data::CheckData(L, 1);
-                rasterizer.data->Retain();
+                Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
 
-                rasterizer.size = size;
+                if (!Font::GetConstant(str, type))
+                    return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
+                else
+                    font = (love::Font*)Font::GetSystemFontByType(size, type);
             }
-            else
-            {
-                const char * str = luaL_checkstring(L, 1);
+            else /* load font from a file, *.ttf usually */
+                rasterizer.data = Wrap_Filesystem::GetFileData(L, 1);
 
-                if (std::filesystem::path(str).extension().empty())
-                {
-                    Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
-
-                    if (!Font::GetConstant(str, type))
-                        return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
-                    else
-                        font = (love::Font *)Font::GetSystemFontByType(size, type);
-                }
-                else /* load font from a file, *.ttf usually */
-                    rasterizer.data = Wrap_Filesystem::GetFileData(L, 1);
-
-                rasterizer.size = size;
-            }
-
-
-            if (rasterizer.data)
-                font = instance()->NewFont(rasterizer);
+            rasterizer.size = size;
         }
-    #endif
+
+        if (rasterizer.data)
+            font = instance()->NewFont(rasterizer);
+    }
+#endif
 
     Luax::PushType(L, font);
     font->Release();
@@ -908,7 +865,7 @@ int Wrap_Graphics::NewFont(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::NewQuad(lua_State * L)
+int Wrap_Graphics::NewQuad(lua_State* L)
 {
     Quad::Viewport v;
 
@@ -923,7 +880,7 @@ int Wrap_Graphics::NewQuad(lua_State * L)
 
     if (Luax::IsType(L, 5, Texture::type))
     {
-        Texture * texture = Wrap_Texture::CheckTexture(L, 5);
+        Texture* texture = Wrap_Texture::CheckTexture(L, 5);
 
         sw = texture->GetWidth();
         sh = texture->GetHeight();
@@ -934,7 +891,7 @@ int Wrap_Graphics::NewQuad(lua_State * L)
         sh = luaL_checknumber(L, 6);
     }
 
-    Quad * quad = instance()->NewQuad(v, sw, sh);
+    Quad* quad = instance()->NewQuad(v, sw, sh);
 
     Luax::PushType(L, quad);
     quad->Release();
@@ -942,18 +899,18 @@ int Wrap_Graphics::NewQuad(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::Draw(lua_State * L)
+int Wrap_Graphics::Draw(lua_State* L)
 {
-    Drawable * drawable = nullptr;
-    Texture * texture = nullptr;
-    Quad * quad = nullptr;
+    Drawable* drawable = nullptr;
+    Texture* texture   = nullptr;
+    Quad* quad         = nullptr;
 
     int start = 2;
 
     if (Luax::IsType(L, 2, Quad::type))
     {
         texture = Wrap_Texture::CheckTexture(L, 1);
-        quad = Luax::ToType<Quad>(L, 2);
+        quad    = Luax::ToType<Quad>(L, 2);
 
         start = 3;
     }
@@ -962,10 +919,10 @@ int Wrap_Graphics::Draw(lua_State * L)
     else
     {
         drawable = Luax::CheckType<Drawable>(L, 1);
-        start = 2;
+        start    = 2;
     }
 
-    Graphics::CheckStandardTransform(L, start, [&](const Matrix4 & m) {
+    Graphics::CheckStandardTransform(L, start, [&](const Matrix4& m) {
         Luax::CatchException(L, [&]() {
             if (texture && quad)
                 instance()->Draw(texture, quad, m);
@@ -977,41 +934,37 @@ int Wrap_Graphics::Draw(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::Print(lua_State * L)
+int Wrap_Graphics::Print(lua_State* L)
 {
     std::vector<Font::ColoredString> string;
     Wrap_Font::CheckColoredString(L, 1, string);
 
     if (Luax::IsType(L, 2, Font::type))
     {
-        Font * font = Wrap_Font::CheckFont(L, 2);
+        Font* font = Wrap_Font::CheckFont(L, 2);
 
-        Graphics::CheckStandardTransform(L, 3, [&](const Matrix4 & m) {
-            Luax::CatchException(L, [&]() {
-                instance()->Print(string, font, m);
-            });
+        Graphics::CheckStandardTransform(L, 3, [&](const Matrix4& m) {
+            Luax::CatchException(L, [&]() { instance()->Print(string, font, m); });
         });
     }
     else
     {
-        Graphics::CheckStandardTransform(L, 2, [&](const Matrix4 & m) {
-            Luax::CatchException(L, [&]() {
-                instance()->Print(string, m);
-            });
+        Graphics::CheckStandardTransform(L, 2, [&](const Matrix4& m) {
+            Luax::CatchException(L, [&]() { instance()->Print(string, m); });
         });
     }
 
     return 0;
 }
 
-int Wrap_Graphics::PrintF(lua_State * L)
+int Wrap_Graphics::PrintF(lua_State* L)
 {
     std::vector<Font::ColoredString> string;
     Wrap_Font::CheckColoredString(L, 1, string);
 
     int start = 2;
 
-    Font * font = nullptr;
+    Font* font = nullptr;
     if (Luax::IsType(L, start, Font::type))
     {
         font = Wrap_Font::CheckFont(L, start);
@@ -1024,7 +977,8 @@ int Wrap_Graphics::PrintF(lua_State * L)
     int formatidx = start + 2;
 
     float wrap = luaL_checknumber(L, formatidx);
-    const char * alignment = lua_isnoneornil(L, formatidx + 1) ? nullptr : luaL_checkstring(L, formatidx + 1);
+    const char* alignment =
+        lua_isnoneornil(L, formatidx + 1) ? nullptr : luaL_checkstring(L, formatidx + 1);
 
     if (alignment != nullptr && !Font::GetConstant(alignment, mode))
         return Luax::EnumError(L, "alignment", Font::GetConstants(mode), alignment);
@@ -1044,42 +998,38 @@ int Wrap_Graphics::PrintF(lua_State * L)
 
     if (font != nullptr)
     {
-        Luax::CatchException(L, [&]() {
-            instance()->PrintF(string, font, wrap, mode, m);
-        });
+        Luax::CatchException(L, [&]() { instance()->PrintF(string, font, wrap, mode, m); });
     }
     else
     {
-        Luax::CatchException(L, [&]() {
-            instance()->PrintF(string, wrap, mode, m);
-        });
+        Luax::CatchException(L, [&]() { instance()->PrintF(string, wrap, mode, m); });
     }
 
     return 0;
 }
 
-int Wrap_Graphics::SetNewFont(lua_State * L)
+int Wrap_Graphics::SetNewFont(lua_State* L)
 {
-    int ret = Wrap_Graphics::NewFont(L);
-    Font * font = Luax::CheckType<Font>(L, -1);
+    int ret    = Wrap_Graphics::NewFont(L);
+    Font* font = Luax::CheckType<Font>(L, -1);
 
     instance()->SetFont(font);
 
     return ret;
 }
 
-int Wrap_Graphics::SetFont(lua_State * L)
+int Wrap_Graphics::SetFont(lua_State* L)
 {
-    Font * font = Luax::CheckType<Font>(L, 1);
+    Font* font = Luax::CheckType<Font>(L, 1);
 
     instance()->SetFont(font);
 
     return 0;
 }
 
-int Wrap_Graphics::SetCanvas(lua_State * L)
+int Wrap_Graphics::SetCanvas(lua_State* L)
 {
-    Canvas * canvas = nullptr;
+    Canvas* canvas = nullptr;
 
     if (!lua_isnoneornil(L, 1))
         canvas = Luax::CheckType<Canvas>(L, 1);
@@ -1089,26 +1039,24 @@ int Wrap_Graphics::SetCanvas(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetFont(lua_State * L)
+int Wrap_Graphics::GetFont(lua_State* L)
 {
-    Font * font = nullptr;
-    Luax::CatchException(L, [&]() {
-        font = instance()->GetFont();
-    });
+    Font* font = nullptr;
+    Luax::CatchException(L, [&]() { font = instance()->GetFont(); });
 
     Luax::PushType(L, font);
 
     return 1;
 }
 
-int Wrap_Graphics::Reset(lua_State * L)
+int Wrap_Graphics::Reset(lua_State* L)
 {
     instance()->Reset();
 
     return 0;
 }
 
-int Wrap_Graphics::GetBackgroundColor(lua_State * L)
+int Wrap_Graphics::GetBackgroundColor(lua_State* L)
 {
     Colorf background = instance()->GetBackgroundColor();
 
@@ -1120,7 +1068,7 @@ int Wrap_Graphics::GetBackgroundColor(lua_State * L)
     return 4;
 }
 
-int Wrap_Graphics::SetBackgroundColor(lua_State * L)
+int Wrap_Graphics::SetBackgroundColor(lua_State* L)
 {
     Colorf background;
 
@@ -1147,7 +1095,7 @@ int Wrap_Graphics::SetBackgroundColor(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetColor(lua_State * L)
+int Wrap_Graphics::GetColor(lua_State* L)
 {
     Colorf foreground = instance()->GetColor();
 
@@ -1159,9 +1107,9 @@ int Wrap_Graphics::GetColor(lua_State * L)
     return 4;
 }
 
-int Wrap_Graphics::SetColor(lua_State * L)
+int Wrap_Graphics::SetColor(lua_State* L)
 {
-    Colorf foreground = {0.0f, 0.0f, 0.0f, 0.0f};
+    Colorf foreground = { 0.0f, 0.0f, 0.0f, 0.0f };
 
     if (lua_istable(L, 1))
     {
@@ -1188,7 +1136,7 @@ int Wrap_Graphics::SetColor(lua_State * L)
 
 /* Nintendo 3DS */
 
-int Wrap_Graphics::SetBlendFactor(lua_State * L)
+int Wrap_Graphics::SetBlendFactor(lua_State* L)
 {
     float blendFactor = luaL_optnumber(L, 1, 0.0f);
 
@@ -1197,7 +1145,7 @@ int Wrap_Graphics::SetBlendFactor(lua_State * L)
     return 0;
 }
 
-int Wrap_Graphics::GetBlendFactor(lua_State * L)
+int Wrap_Graphics::GetBlendFactor(lua_State* L)
 {
     float blendFactor = instance()->GetBlendFactor();
 
@@ -1206,44 +1154,44 @@ int Wrap_Graphics::GetBlendFactor(lua_State * L)
     return 1;
 }
 
-int Wrap_Graphics::Get3D(lua_State * L)
+int Wrap_Graphics::Get3D(lua_State* L)
 {
-    #if defined (_3DS)
-        auto instance = (love::citro2d::Graphics *)instance();
+#if defined(_3DS)
+    auto instance = (love::citro2d::Graphics*)instance();
 
-        lua_pushboolean(L, instance->Get3D());
+    lua_pushboolean(L, instance->Get3D());
 
-        return 1;
-    #endif
+    return 1;
+#endif
     return 0;
 }
 
-int Wrap_Graphics::Set3D(lua_State * L)
+int Wrap_Graphics::Set3D(lua_State* L)
 {
-    #if defined (_3DS)
-        bool enabled = Luax::ToBoolean(L, 1);
+#if defined(_3DS)
+    bool enabled = Luax::ToBoolean(L, 1);
 
-        auto instance = (love::citro2d::Graphics *)instance();
-        instance->Set3D(enabled);
-    #endif
+    auto instance = (love::citro2d::Graphics*)instance();
+    instance->Set3D(enabled);
+#endif
     return 0;
 }
 
-int Wrap_Graphics::Get3DDepth(lua_State * L)
+int Wrap_Graphics::Get3DDepth(lua_State* L)
 {
-    #if defined (_3DS)
-        float sliderValue = (gfxIs3D()) ? osGet3DSliderState() : 0;
+#if defined(_3DS)
+    float sliderValue = (gfxIs3D()) ? osGet3DSliderState() : 0;
 
-        lua_pushnumber(L, sliderValue);
+    lua_pushnumber(L, sliderValue);
 
-        return 1;
-    #endif
+    return 1;
+#endif
     return 0;
 }
 
 /* End Nintendo 3DS */
 
-int Wrap_Graphics::GetRendererInfo(lua_State * L)
+int Wrap_Graphics::GetRendererInfo(lua_State* L)
 {
     Graphics::RendererInfo info = instance()->GetRendererInfo();
 
@@ -1255,76 +1203,70 @@ int Wrap_Graphics::GetRendererInfo(lua_State * L)
     return 4;
 }
 
-int Wrap_Graphics::Register(lua_State * L)
+int Wrap_Graphics::Register(lua_State* L)
 {
-    luaL_Reg funcs[] =
-    {
-        { "arc",                     Arc                   },
-        { "applyTransform",          ApplyTransform        },
-        { "circle",                  Circle                },
-        { "clear",                   Clear                 },
-        { "draw",                    Draw                  },
-        { "ellipse",                 Ellipse               },
-        { "getActiveScreen",         GetActiveScreen       },
-        { "getBackgroundColor",      GetBackgroundColor    },
-        { "getColor",                GetColor              },
-        { "getDefaultFilter",        GetDefaultFilter      },
-        { "getDimensions",           GetDimensions         },
-        { "getFont",                 GetFont               },
-        { "getHeight",               GetHeight             },
-        { "getLineWidth",            GetLineWidth          },
-        { "getPointSize",            GetPointSize          },
-        { "getRendererInfo",         GetRendererInfo       },
-        { "getScissor",              GetScissor            },
-        { "getScreens",              GetScreens            },
-        { "getWidth",                GetWidth              },
-        { "instersectScissor",       IntersectScissor      },
-        { "inverseTransformPoint",   InverseTransformPoint },
-        { "line",                    Line                  },
-        { "newCanvas",               NewCanvas             },
-        { "newFont",                 NewFont               },
-        { "newImage",                NewImage              },
-        { "newText",                 NewText               },
-        { "newQuad",                 NewQuad               },
-        { "origin",                  Origin                },
-        { "polygon",                 Polygon               },
-        { "pop",                     Pop                   },
-        { "points",                  Points                },
-        { "present",                 Present               },
-        { "print",                   Print                 },
-        { "printf",                  PrintF                },
-        { "push",                    Push                  },
-        { "rectangle",               Rectangle             },
-        { "replaceTransform",        ReplaceTransform      },
-        { "reset",                   Reset                 },
-        { "rotate",                  Rotate                },
-        { "scale",                   Scale                 },
-        { "shear",                   Shear                 },
-        { "setActiveScreen",         SetActiveScreen       },
-        { "setBackgroundColor",      SetBackgroundColor    },
-        { "setCanvas",               SetCanvas             },
-        { "setColor",                SetColor              },
-        { "setDefaultFilter",        SetDefaultFilter      },
-        { "setLineWidth",            SetLineWidth          },
-        { "setNewFont",              SetNewFont            },
-        { "setPointSize",            SetPointSize          },
-        { "setFont",                 SetFont               },
-        { "setScissor",              SetScissor            },
-        { "transformPoint",          TransformPoint        },
-        { "translate",               Translate             },
-        { 0,                         0                     }
-    };
+    luaL_Reg funcs[] = { { "arc", Arc },
+                         { "applyTransform", ApplyTransform },
+                         { "circle", Circle },
+                         { "clear", Clear },
+                         { "draw", Draw },
+                         { "ellipse", Ellipse },
+                         { "getActiveScreen", GetActiveScreen },
+                         { "getBackgroundColor", GetBackgroundColor },
+                         { "getColor", GetColor },
+                         { "getDefaultFilter", GetDefaultFilter },
+                         { "getDimensions", GetDimensions },
+                         { "getFont", GetFont },
+                         { "getHeight", GetHeight },
+                         { "getLineWidth", GetLineWidth },
+                         { "getPointSize", GetPointSize },
+                         { "getRendererInfo", GetRendererInfo },
+                         { "getScissor", GetScissor },
+                         { "getScreens", GetScreens },
+                         { "getWidth", GetWidth },
+                         { "instersectScissor", IntersectScissor },
+                         { "inverseTransformPoint", InverseTransformPoint },
+                         { "line", Line },
+                         { "newCanvas", NewCanvas },
+                         { "newFont", NewFont },
+                         { "newImage", NewImage },
+                         { "newText", NewText },
+                         { "newQuad", NewQuad },
+                         { "origin", Origin },
+                         { "polygon", Polygon },
+                         { "pop", Pop },
+                         { "points", Points },
+                         { "present", Present },
+                         { "print", Print },
+                         { "printf", PrintF },
+                         { "push", Push },
+                         { "rectangle", Rectangle },
+                         { "replaceTransform", ReplaceTransform },
+                         { "reset", Reset },
+                         { "rotate", Rotate },
+                         { "scale", Scale },
+                         { "shear", Shear },
+                         { "setActiveScreen", SetActiveScreen },
+                         { "setBackgroundColor", SetBackgroundColor },
+                         { "setCanvas", SetCanvas },
+                         { "setColor", SetColor },
+                         { "setDefaultFilter", SetDefaultFilter },
+                         { "setLineWidth", SetLineWidth },
+                         { "setNewFont", SetNewFont },
+                         { "setPointSize", SetPointSize },
+                         { "setFont", SetFont },
+                         { "setScissor", SetScissor },
+                         { "transformPoint", TransformPoint },
+                         { "translate", Translate },
+                         { 0, 0 } };
 
     /* 3DS extensions */
 
-    luaL_Reg modExt[] =
-    {
-        { "getBlendFactor", GetBlendFactor },
-        { "get3D",          Get3D          },
-        { "get3DDepth",     Get3DDepth     },
-        { "setBlendFactor", SetBlendFactor },
-        { "set3D",          Set3D          }
-    };
+    luaL_Reg modExt[] = { { "getBlendFactor", GetBlendFactor },
+                          { "get3D", Get3D },
+                          { "get3DDepth", Get3DDepth },
+                          { "setBlendFactor", SetBlendFactor },
+                          { "set3D", Set3D } };
 
     /* if it doesn't match the console, it just copies input to be the output */
 
@@ -1332,8 +1274,7 @@ int Wrap_Graphics::Register(lua_State * L)
 
     /* objects */
 
-    lua_CFunction objs[] =
-    {
+    lua_CFunction objs[] = {
         Wrap_Drawable::Register,
         Wrap_Texture::Register,
         Wrap_Font::Register,
@@ -1341,34 +1282,30 @@ int Wrap_Graphics::Register(lua_State * L)
         Wrap_Quad::Register,
         Wrap_Canvas::Register,
         Wrap_Text::Register,
-        #if defined (__SWITCH__)
-            Wrap_Shader::Register,
-        #endif
+#if defined(__SWITCH__)
+        Wrap_Shader::Register,
+#endif
         0
     };
 
-    Graphics * instance = instance();
+    Graphics* instance = instance();
 
     if (instance == nullptr)
-        #if defined (_3DS)
-            Luax::CatchException(L, [&]() {
-                instance = new love::citro2d::Graphics();
-            });
-        #elif defined (__SWITCH__)
-            Luax::CatchException(L, [&]() {
-                instance = new love::deko3d::Graphics();
-            });
-        #endif
+#if defined(_3DS)
+        Luax::CatchException(L, [&]() { instance = new love::citro2d::Graphics(); });
+#elif defined(__SWITCH__)
+        Luax::CatchException(L, [&]() { instance = new love::deko3d::Graphics(); });
+#endif
     else
         instance->Retain();
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance = instance;
-    wrappedModule.name = "graphics";
+    wrappedModule.instance  = instance;
+    wrappedModule.name      = "graphics";
     wrappedModule.functions = reg.get();
-    wrappedModule.type = &Module::type;
-    wrappedModule.types = objs;
+    wrappedModule.type      = &Module::type;
+    wrappedModule.types     = objs;
 
     int result = Luax::RegisterModule(L, wrappedModule);
 

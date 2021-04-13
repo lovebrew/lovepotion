@@ -4,60 +4,60 @@
 
 #include "common/data.h"
 
-#include "objects/object.h"
 #include "common/stringmap.h"
+#include "objects/object.h"
 
 namespace love
 {
     class Shader : public Object
     {
-        public:
-            static love::Type type;
+      public:
+        static love::Type type;
 
-            Shader();
+        Shader();
 
-            Shader(love::Data * vertex, love::Data * pixel);
+        Shader(love::Data* vertex, love::Data* pixel);
 
-            virtual ~Shader();
+        virtual ~Shader();
 
-            enum StandardShader
-            {
-                STANDARD_DEFAULT,
-                STANDARD_TEXTURE,
-                STANDARD_MAX_ENUM
-            };
+        enum StandardShader
+        {
+            STANDARD_DEFAULT,
+            STANDARD_TEXTURE,
+            STANDARD_MAX_ENUM
+        };
 
-            struct Program
-            {
-                std::optional<CShader> vertex;
-                std::optional<CShader> fragment;
-            };
+        struct Program
+        {
+            std::optional<CShader> vertex;
+            std::optional<CShader> fragment;
+        };
 
-            // Pointer to currently active Shader.
-            static Shader * current;
+        // Pointer to currently active Shader.
+        static Shader* current;
 
-            // Pointer to the default Shader.
-            static Shader * standardShaders[STANDARD_MAX_ENUM];
+        // Pointer to the default Shader.
+        static Shader* standardShaders[STANDARD_MAX_ENUM];
 
-            void Attach();
+        void Attach();
 
-            bool Validate(const CShader & vertex, const CShader & pixel, std::string & error);
+        bool Validate(const CShader& vertex, const CShader& pixel, std::string& error);
 
-            void LoadDefaults(StandardShader defaultType);
+        void LoadDefaults(StandardShader defaultType);
 
-            static void AttachDefault(StandardShader defaultType);
+        static void AttachDefault(StandardShader defaultType);
 
-            static const char * GetStageName(CShader & shader);
+        static const char* GetStageName(CShader& shader);
 
-            static bool GetConstant(const char * in, StandardShader & out);
-            static bool GetConstant(StandardShader in, const char *& out);
+        static bool GetConstant(const char* in, StandardShader& out);
+        static bool GetConstant(StandardShader in, const char*& out);
 
-            static bool IsDefaultActive();
+        static bool IsDefaultActive();
 
-        private:
-            Program program;
+      private:
+        Program program;
 
-            static StringMap<StandardShader, STANDARD_MAX_ENUM>::Entry shaderEntries[];
-            static StringMap<StandardShader, STANDARD_MAX_ENUM> shaderNames;
+        static StringMap<StandardShader, STANDARD_MAX_ENUM>::Entry shaderEntries[];
+        static StringMap<StandardShader, STANDARD_MAX_ENUM> shaderNames;
     };
-}
+} // namespace love

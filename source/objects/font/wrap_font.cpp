@@ -5,9 +5,9 @@
 
 using namespace love;
 
-int Wrap_Font::GetWidth(lua_State * L)
+int Wrap_Font::GetWidth(lua_State* L)
 {
-    love::Font * self = Wrap_Font::CheckFont(L, 1);
+    love::Font* self = Wrap_Font::CheckFont(L, 1);
     std::string text = luaL_checkstring(L, 2);
 
     lua_pushnumber(L, self->GetWidth(text));
@@ -15,9 +15,9 @@ int Wrap_Font::GetWidth(lua_State * L)
     return 1;
 }
 
-int Wrap_Font::GetHeight(lua_State * L)
+int Wrap_Font::GetHeight(lua_State* L)
 {
-    love::Font * self = Wrap_Font::CheckFont(L, 1);
+    love::Font* self = Wrap_Font::CheckFont(L, 1);
 
     float height = self->GetHeight();
 
@@ -26,12 +26,13 @@ int Wrap_Font::GetHeight(lua_State * L)
     return 1;
 }
 
-Font * Wrap_Font::CheckFont(lua_State * L, int index)
+Font* Wrap_Font::CheckFont(lua_State* L, int index)
 {
     return Luax::CheckType<Font>(L, index);
 }
 
-void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::ColoredString> & strings)
+void Wrap_Font::CheckColoredString(lua_State* L, int index,
+                                   std::vector<Font::ColoredString>& strings)
 {
     Font::ColoredString coloredString;
     coloredString.color = Colorf(1.0f, 1.0f, 1.0f, 1.0f);
@@ -72,13 +73,9 @@ void Wrap_Font::CheckColoredString(lua_State * L, int index, std::vector<Font::C
     }
 }
 
-int Wrap_Font::Register(lua_State * L)
+int Wrap_Font::Register(lua_State* L)
 {
-    luaL_Reg reg[] = {
-        { "getHeight",     GetHeight },
-        { "getWidth",      GetWidth  },
-        { 0, 0 }
-    };
+    luaL_Reg reg[] = { { "getHeight", GetHeight }, { "getWidth", GetWidth }, { 0, 0 } };
 
     return Luax::RegisterType(L, &love::Font::type, reg, nullptr);
 }

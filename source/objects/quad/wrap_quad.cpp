@@ -2,9 +2,9 @@
 
 using namespace love;
 
-int Wrap_Quad::GetTextureDimensions(lua_State * L)
+int Wrap_Quad::GetTextureDimensions(lua_State* L)
 {
-    Quad * self = Wrap_Quad::CheckQuad(L, 1);
+    Quad* self = Wrap_Quad::CheckQuad(L, 1);
 
     lua_pushnumber(L, self->GetTextureWidth());
     lua_pushnumber(L, self->GetTextureHeight());
@@ -12,9 +12,9 @@ int Wrap_Quad::GetTextureDimensions(lua_State * L)
     return 2;
 }
 
-int Wrap_Quad::GetViewport(lua_State * L)
+int Wrap_Quad::GetViewport(lua_State* L)
 {
-    Quad * self = Wrap_Quad::CheckQuad(L, 1);
+    Quad* self = Wrap_Quad::CheckQuad(L, 1);
 
     Quad::Viewport v = self->GetViewport();
 
@@ -27,9 +27,9 @@ int Wrap_Quad::GetViewport(lua_State * L)
     return 4;
 }
 
-int Wrap_Quad::SetViewport(lua_State * L)
+int Wrap_Quad::SetViewport(lua_State* L)
 {
-    Quad * self = Wrap_Quad::CheckQuad(L, 1);
+    Quad* self = Wrap_Quad::CheckQuad(L, 1);
 
     Quad::Viewport v;
 
@@ -52,20 +52,17 @@ int Wrap_Quad::SetViewport(lua_State * L)
     return 1;
 }
 
-Quad * Wrap_Quad::CheckQuad(lua_State * L, int index)
+Quad* Wrap_Quad::CheckQuad(lua_State* L, int index)
 {
     return Luax::CheckType<Quad>(L, index);
 }
 
-int Wrap_Quad::Register(lua_State * L)
+int Wrap_Quad::Register(lua_State* L)
 {
-    luaL_Reg reg[] =
-    {
-        { "getTextureDimensions", GetTextureDimensions },
-        { "getViewport",          GetViewport          },
-        { "setViewport",          SetViewport          },
-        { 0,                      0                    }
-    };
+    luaL_Reg reg[] = { { "getTextureDimensions", GetTextureDimensions },
+                       { "getViewport", GetViewport },
+                       { "setViewport", SetViewport },
+                       { 0, 0 } };
 
     return Luax::RegisterType(L, &Quad::type, reg, nullptr);
 }

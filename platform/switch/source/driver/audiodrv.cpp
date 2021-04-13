@@ -5,8 +5,7 @@ using namespace love::driver;
 
 Audrv::Audrv() : audioInitialized(false)
 {
-    static const AudioRendererConfig config =
-    {
+    static const AudioRendererConfig config = {
         .output_rate     = AudioRendererOutputRate_48kHz,
         .num_voices      = 24,
         .num_effects     = 0,
@@ -29,7 +28,8 @@ Audrv::Audrv() : audioInitialized(false)
     if (R_SUCCEEDED(res))
         this->initialized = true;
 
-    int mempoolID = audrvMemPoolAdd(&this->driver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
+    int mempoolID =
+        audrvMemPoolAdd(&this->driver, AudioPool::AUDIO_POOL_BASE, AudioPool::AUDIO_POOL_SIZE);
 
     audrvMemPoolAttach(&this->driver, mempoolID);
 
@@ -45,10 +45,10 @@ Audrv::Audrv() : audioInitialized(false)
 Audrv::~Audrv()
 {
     if (this->initialized)
-         audrvClose(&this->driver);
+        audrvClose(&this->driver);
 
     if (this->audioInitialized)
-         audrenExit();
+        audrenExit();
 }
 
 void Audrv::Update()
