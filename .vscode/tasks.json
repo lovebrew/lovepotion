@@ -39,6 +39,17 @@
 
             "group": "build",
             "problemMatcher": []
+        },
+
+        {
+            "label": "Format All Code",
+            "type": "shell",
+            "options": {
+                "shell": {
+                    "executable": "bash"
+                }
+            },
+            "command": "clang-format -style=file -i $(find ./include ./platform ./source -name *.h -o -name *.cpp)"
         }
     ],
 
