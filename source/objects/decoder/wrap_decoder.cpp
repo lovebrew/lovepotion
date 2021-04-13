@@ -1,5 +1,5 @@
-#include "common/luax.h"
 #include "objects/decoder/wrap_decoder.h"
+#include "modules/sound/sound.h"
 
 using namespace love;
 

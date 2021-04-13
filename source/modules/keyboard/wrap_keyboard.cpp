@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/keyboard/wrap_keyboard.h"
 
 #include "modules/event/event.h"

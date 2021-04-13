@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/luax.h"
+
 #include "objects/texture/wrap_texture.h"
 #include "objects/image/image.h"
 

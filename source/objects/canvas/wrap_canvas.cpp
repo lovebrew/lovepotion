@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "objects/canvas/wrap_canvas.h"
 
 #include "modules/graphics/graphics.h"

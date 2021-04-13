@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/luax.h"
 
 #include "objects/decoder/decoder.h"
 #include "objects/decoder/wrap_decoder.h"

@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/joystick/wrap_joystick.h"
 #include "objects/gamepad/wrap_gamepad.h"
 

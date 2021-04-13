@@ -31,6 +31,10 @@ class citro2d
 
         void SetTextureWrap(love::Texture * texture, const love::Texture::Wrap & filter);
 
+        void Set3D(bool enable);
+
+        bool Get3D() const;
+
         static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
 
     private:

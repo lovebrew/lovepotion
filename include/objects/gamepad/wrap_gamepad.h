@@ -1,6 +1,8 @@
 #pragma once
 
 #include "objects/gamepad/gamepad.h"
+#include "common/luax.h"
+
 namespace Wrap_Gamepad
 {
     int GetAxes(lua_State * L);

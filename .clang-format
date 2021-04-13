@@ -29,7 +29,20 @@ BraceWrapping:
   SplitEmptyRecord: 'true'
   SplitEmptyNamespace: 'false'
 BreakBeforeBraces: Custom
-BreakBeforeTernaryOperators: true
+BreakBeforeTernaryOperators: 'true'
+IncludeBlocks:   Preserve
+IncludeCategories:
+  - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
+    Priority:        2
+    SortPriority:    0
+  - Regex:           '^(<|"(gtest|gmock|isl|json)/)'
+    Priority:        3
+    SortPriority:    0
+  - Regex:           '.*'
+    Priority:        1
+    SortPriority:    0
+IncludeIsMainRegex: '(Test)?$'
+IncludeIsMainSourceRegex: ''
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: BeforeColon
 ColumnLimit: 100

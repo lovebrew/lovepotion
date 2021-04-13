@@ -6,6 +6,8 @@
 #include "objects/filedata/filedata.h"
 #include "objects/file/file.h"
 
+#include "common/luax.h"
+
 namespace Wrap_Audio
 {
     int _UpdateAudio();

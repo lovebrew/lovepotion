@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/random/randomgenerator.h"
+#include "common/luax.h"
 
 namespace Wrap_RandomGenerator
 {

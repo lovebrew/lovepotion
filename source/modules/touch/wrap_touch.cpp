@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/touch/wrap_touch.h"
 
 using namespace love;

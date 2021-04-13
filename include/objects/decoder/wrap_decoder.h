@@ -1,7 +1,8 @@
 #pragma once
 
+#include "common/luax.h"
 #include "objects/decoder/decoder.h"
-#include "modules/sound/sound.h"
+
 
 namespace Wrap_Decoder
 {

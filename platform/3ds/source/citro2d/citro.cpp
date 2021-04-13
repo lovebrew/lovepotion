@@ -54,6 +54,16 @@ citro2d& citro2d::Instance()
     return c2d;
 }
 
+void citro2d::Set3D(bool enable)
+{
+    gfxSet3D(enable);
+}
+
+bool citro2d::Get3D() const
+{
+    return gfxIs3D();
+}
+
 void citro2d::EnsureInFrame()
 {
     if (!this->inFrame)

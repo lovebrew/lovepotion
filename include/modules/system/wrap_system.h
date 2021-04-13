@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/luax.h"
 namespace Wrap_System
 {
     int GetOS(lua_State * L);

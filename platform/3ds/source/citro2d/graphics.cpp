@@ -45,7 +45,12 @@ const int love::citro2d::Graphics::GetWidth(Screen screen) const
 
 void love::citro2d::Graphics::Set3D(bool enabled)
 {
-    gfxSet3D(enabled);
+    ::citro2d::Instance().Set3D(enabled);
+}
+
+bool love::citro2d::Graphics::Get3D() const
+{
+    return ::citro2d::Instance().Get3D();
 }
 
 const int love::citro2d::Graphics::GetHeight() const
@@ -70,9 +75,11 @@ Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
 
 std::vector<std::string> love::citro2d::Graphics::GetScreens() const
 {
-    return (gfxIs3D()) ? love::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM) : love::citro2d::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
-}
+    auto constants = (this->Get3D()) ? love::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM)
+                                 : love::citro2d::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
 
+    return constants;
+}
 
 void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil, std::optional<double> depth)
 {

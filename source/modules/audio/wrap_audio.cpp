@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/audio/wrap_audio.h"
 
 using namespace love;

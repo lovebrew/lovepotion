@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/window/window.h"
-
+#include "common/luax.h"
 namespace Wrap_Window
 {
     int Close(lua_State * L);

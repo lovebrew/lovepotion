@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "objects/gamepad/wrap_gamepad.h"
 
 using namespace love;

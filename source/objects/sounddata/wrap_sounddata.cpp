@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "objects/sounddata/wrap_sounddata.h"
 
 using namespace love;

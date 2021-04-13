@@ -175,7 +175,7 @@ namespace love
 
                 virtual void ResumeAtomic() = 0;
 
-                virtual int GetSampleOffset() = 0;
+                virtual double GetSampleOffset() = 0;
 
                 void TeardownAtomic();
 

@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/filesystem/wrap_filesystem.h"
 
 #include <filesystem>

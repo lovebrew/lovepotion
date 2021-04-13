@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/graphics/wrap_graphics.h"
 
 #include <filesystem>
@@ -1210,9 +1209,9 @@ int Wrap_Graphics::GetBlendFactor(lua_State * L)
 int Wrap_Graphics::Get3D(lua_State * L)
 {
     #if defined (_3DS)
-        bool enabled = gfxIs3D();
+        auto instance = (love::citro2d::Graphics *)instance();
 
-        lua_pushboolean(L, enabled);
+        lua_pushboolean(L, instance->Get3D());
 
         return 1;
     #endif

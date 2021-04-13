@@ -1,6 +1,7 @@
-#include "common/luax.h"
 #include "objects/font/wrap_font.h"
 #include "modules/graphics/graphics.h"
+
+#include "common/lmath.h"
 
 using namespace love;
 

@@ -155,7 +155,8 @@ double Source::GetDuration(Source::Unit unit)
         }
         case TYPE_STREAM:
         {
-            double seconds = this->decoder->GetDuration();
+            /* vorbisidec 1.2.1 uses ms, not sec, convert */
+            double seconds = this->decoder->GetDuration() / 1000;
 
             if (unit == UNIT_SECONDS)
                 return seconds;
@@ -264,7 +265,9 @@ double Source::Tell(Source::Unit unit)
 {
     thread::Lock lock = this->pool->Lock();
 
-    int offset = this->GetSampleOffset();
+    double offset = 0;
+
+    offset += this->offsetSamples;
 
     if (unit == UNIT_SECONDS)
         return offset / (double)this->sampleRate;

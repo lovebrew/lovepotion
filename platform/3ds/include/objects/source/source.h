@@ -28,7 +28,7 @@ namespace love
             void StopAtomic() override;
 
         protected:
-            int GetSampleOffset() override;
+            double GetSampleOffset() override;
 
         private:
             ndspWaveBuf sources[Source::MAX_BUFFERS];

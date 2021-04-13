@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/data.h"
+#include "common/luax.h"
 
 namespace Wrap_Data
 {

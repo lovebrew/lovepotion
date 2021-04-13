@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/event/event.h"
-
+#include "common/luax.h"
 namespace Wrap_Event
 {
     int Clear(lua_State * L);

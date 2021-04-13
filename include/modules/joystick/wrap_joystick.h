@@ -3,6 +3,8 @@
 #include "objects/gamepad/gamepad.h"
 #include "modules/joystick/joystick.h"
 
+#include "common/luax.h"
+
 namespace Wrap_Joystick
 {
     int GetJoystickCount(lua_State * L);

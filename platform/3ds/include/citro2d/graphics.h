@@ -95,6 +95,8 @@ namespace love::citro2d
 
             void Set3D(bool enable);
 
+            bool Get3D() const;
+
             /* End Nintendo 3DS */
 
             /* Useless */

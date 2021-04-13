@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/transform/transform.h"
+#include "common/luax.h"
 
 namespace Wrap_Transform
 {

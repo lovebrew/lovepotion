@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/channel/channel.h"
+#include "common/luax.h"
 
 namespace Wrap_Channel
 {

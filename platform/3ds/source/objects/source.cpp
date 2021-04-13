@@ -123,6 +123,8 @@ bool Source::Update()
             if (this->IsFinished())
                 return false;
 
+            int newSamples = 0;
+
             for (int which = 0; which < Source::MAX_BUFFERS; which++)
             {
                 if (this->sources[which].status == NDSP_WBUF_DONE)
@@ -132,9 +134,13 @@ bool Source::Update()
                     if (decoded == 0)
                         return false;
 
+                    newSamples += this->GetSampleOffset();
+
                     ndspChnWaveBufAdd(this->channel, &this->sources[which]);
                 }
             }
+
+            this->offsetSamples += newSamples;
 
             return true;
         }
@@ -148,7 +154,7 @@ bool Source::Update()
     return false;
 }
 
-int Source::GetSampleOffset()
+double Source::GetSampleOffset()
 {
     return ndspChnGetSamplePos(this->channel);
 }

@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/event/wrap_event.h"
 
 #include "wrap_event_lua.h"

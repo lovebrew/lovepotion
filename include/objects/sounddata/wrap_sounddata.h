@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/sounddata/sounddata.h"
+#include "common/luax.h"
 
 namespace Wrap_SoundData
 {

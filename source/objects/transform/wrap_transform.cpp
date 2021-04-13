@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "objects/transform/wrap_transform.h"
 
 using namespace love;

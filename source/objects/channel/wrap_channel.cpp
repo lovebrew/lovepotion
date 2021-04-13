@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "objects/channel/wrap_channel.h"
 
 using namespace love;

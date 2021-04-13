@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/source/source.h"
+#include "common/luax.h"
 
 namespace Wrap_Source
 {

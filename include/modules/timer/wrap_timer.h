@@ -1,7 +1,7 @@
 #pragma once
 
 #include "modules/timer/timer.h"
-
+#include "common/luax.h"
 namespace Wrap_Timer
 {
     int GetAverageDelta(lua_State * L);

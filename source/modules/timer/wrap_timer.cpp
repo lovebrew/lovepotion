@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/timer/wrap_timer.h"
 
 using namespace love;

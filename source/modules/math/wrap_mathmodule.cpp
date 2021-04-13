@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/math/wrap_mathmodule.h"
 
 #include "wrap_math_lua.h"

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/quad/quad.h"
+#include "common/luax.h"
 
 namespace Wrap_Quad
 {

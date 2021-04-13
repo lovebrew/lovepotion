@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "modules/window/wrap_window.h"
 
 using namespace love;

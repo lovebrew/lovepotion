@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/luax.h"
+
 #include "objects/random/randomgenerator.h"
 #include "objects/random/wrap_randomgenerator.h"
 

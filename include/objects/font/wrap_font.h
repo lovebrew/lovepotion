@@ -1,7 +1,7 @@
 #pragma once
 
-#include "common/lmath.h"
 #include "objects/font/font.h"
+#include "common/luax.h"
 
 namespace Wrap_Font
 {

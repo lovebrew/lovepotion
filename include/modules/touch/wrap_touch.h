@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/touch/touch.h"
+#include "common/luax.h"
 
 namespace Wrap_Touch
 {

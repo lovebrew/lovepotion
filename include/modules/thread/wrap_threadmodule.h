@@ -1,10 +1,4 @@
-#include "modules/thread/threadmodule.h"
-
-#include "objects/thread/luathread.h"
-#include "objects/thread/wrap_luathread.h"
-
-#include "objects/channel/channel.h"
-#include "objects/channel/wrap_channel.h"
+#include "common/luax.h"
 
 namespace Wrap_ThreadModule
 {

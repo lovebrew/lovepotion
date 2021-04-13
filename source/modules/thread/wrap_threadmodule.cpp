@@ -1,8 +1,15 @@
-#include "common/luax.h"
 #include "modules/thread/wrap_threadmodule.h"
 
 #include "objects/file/file.h"
 #include "objects/filedata/filedata.h"
+
+#include "modules/thread/threadmodule.h"
+
+#include "objects/thread/luathread.h"
+#include "objects/thread/wrap_luathread.h"
+
+#include "objects/channel/channel.h"
+#include "objects/channel/wrap_channel.h"
 
 #define instance() (Module::GetInstance<ThreadModule>(Module::M_THREAD))
 

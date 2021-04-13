@@ -11,6 +11,8 @@
 #include "modules/window/window.h"
 
 #include "objects/font/font.h"
+
+#include "common/luax.h"
 #include "objects/drawable/wrap_drawable.h"
 
 namespace Wrap_Graphics

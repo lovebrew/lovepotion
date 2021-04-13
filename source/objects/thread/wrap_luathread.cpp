@@ -1,4 +1,3 @@
-#include "common/luax.h"
 #include "objects/thread/wrap_luathread.h"
 
 using namespace love;

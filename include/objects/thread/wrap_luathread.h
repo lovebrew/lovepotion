@@ -1,6 +1,7 @@
 #pragma once
 
 #include "objects/thread/luathread.h"
+#include "common/luax.h"
 
 namespace Wrap_LuaThread
 {
