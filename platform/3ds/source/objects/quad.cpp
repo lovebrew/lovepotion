@@ -19,20 +19,12 @@ void Quad::Refresh(const Viewport& viewport, double sw, double sh)
     int w = NextPO2(sw);
     int h = NextPO2(sh);
 
-    Viewport temp = viewport;
+    this->subTex.top  = 1.0f - (viewport.y / h);
+    this->subTex.left = (viewport.x / w);
 
-    temp.x += 1;
-    temp.y += 1;
+    this->subTex.right  = (viewport.x + viewport.w) / w;
+    this->subTex.bottom = 1.0f - ((viewport.y + viewport.h) / h);
 
-    temp.w -= 2;
-    temp.h -= 2;
-
-    this->subTex.top  = 1.0f - (temp.y / h);
-    this->subTex.left = (temp.x / w);
-
-    this->subTex.right  = (temp.x + temp.w) / w;
-    this->subTex.bottom = 1.0f - ((temp.y + temp.h) / h);
-
-    this->subTex.width  = temp.w;
-    this->subTex.height = temp.h;
+    this->subTex.width  = viewport.w;
+    this->subTex.height = viewport.h;
 }
