@@ -48,7 +48,7 @@ SOURCES		:=	${LOVE_SOURCES} \
 				${CONSOLE_SOURCES}
 
 DATA		:=	${LOVE_DATA_FILES} \
-				shaders
+				shaders/build
 
 INCLUDES	:=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
@@ -56,9 +56,8 @@ INCLUDES	:=	${LOVE_INCLUDES} \
 
 APP_TITLEID		:= 1043
 
-SHADERS			:= $(wildcard shaders/*.glsl)
-OUT_SHADERS		:= $(patsubst %.glsl,%.dksh,$(SHADERS))
-export SHADER_DEPS := $(foreach file,$(OUT_SHADERS),$(CURDIR)/$(file))
+# shaders directory
+SHADERS		:=	shaders
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -117,6 +116,9 @@ CPPFILES	:=	$(foreach dir, $(SOURCES),	$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir, $(SOURCES),	$(notdir $(wildcard $(dir)/*.s)))
 BINFILES	:=	$(foreach dir, $(DATA),		$(notdir $(wildcard $(dir)/*.*)))
 
+# glsl files in shaders directory
+GLSLFILES	:=	$(foreach dir,$(SHADERS),$(notdir $(wildcard $(dir)/*.glsl)))
+
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
 #---------------------------------------------------------------------------------
@@ -130,12 +132,22 @@ else
 #---------------------------------------------------------------------------------
 endif
 #---------------------------------------------------------------------------------
-
 export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
 export OFILES_SRC	:=	$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 export OFILES 		:=	$(OFILES_BIN) $(OFILES_SRC)
 export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
+#---------------------------------------------------------------------------------
+SHADERS_TARGETS :=
+SHADERS_FOLDERS :=
 
+ifneq ($(strip $(SHADERS)),)
+	BUILD_SHADERS := $(SHADERS)/build
+	SHADERS_TARGETS += $(patsubst %.glsl, $(BUILD_SHADERS)/%.dksh, $(GLSLFILES))
+	SHADERS_FOLDERS += $(BUILD_SHADERS)
+
+	export SHADERS_DEPS := $(foreach file,$(SHADERS_TARGETS),$(CURDIR)/$(file).o)
+endif
+#---------------------------------------------------------------------------------
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(BUILD)
@@ -184,21 +196,28 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(OUT_SHADERS) $(BUILD) clean all
+.PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
-all: $(OUT_SHADERS) $(BUILD)
+all: $(SHADERS_TARGETS) | $(BUILD)
 
 #---------------------------------------------------------------------------------
-# shaders
-#---------------------------------------------------------------------------------
-shaders/%_vsh.dksh : %_vsh.glsl
+ifneq ($(strip $(SHADERS_TARGETS)),)
+
+$(SHADERS_TARGETS): | $(SHADERS_FOLDERS)
+
+$(SHADERS_FOLDERS):
+	@mkdir -p $@
+
+$(BUILD_SHADERS)/%_vsh.dksh: $(SHADERS)/%_vsh.glsl
 	@echo {vert} $(notdir $<)
 	@uam -s vert -o $@ $<
-#---------------------------------------------------------------------------------
-shaders/%_fsh.dksh : %_fsh.glsl
+
+$(BUILD_SHADERS)/%_fsh.dksh: $(SHADERS)/%_fsh.glsl
 	@echo {frag} $(notdir $<)
 	@uam -s frag -o $@ $<
+
+endif
 #---------------------------------------------------------------------------------
 
 $(BUILD):
@@ -209,9 +228,9 @@ $(BUILD):
 clean:
 	@echo clean ...
 ifeq ($(strip $(APP_JSON)),)
-	@rm -fr $(BUILD) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
+	@rm -fr $(BUILD) $(SHADERS_FOLDERS) $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 else
-	@rm -fr $(BUILD) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf shaders/*.dksh
+	@rm -fr $(BUILD) $(SHADERS_FOLDERS) $(TARGET).nsp $(TARGET).nso $(TARGET).npdm $(TARGET).elf shaders/*.dksh
 endif
 
 
@@ -229,9 +248,9 @@ ifeq ($(strip $(APP_JSON)),)
 all	:	$(OUTPUT).nro
 
 ifeq ($(strip $(NO_NACP)),)
-$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp
+$(OUTPUT).nro	:	$(OUTPUT).elf $(OUTPUT).nacp $(SHADERS_DEPS)
 else
-$(OUTPUT).nro	:	$(OUTPUT).elf
+$(OUTPUT).nro	:	$(OUTPUT).elf $(SHADERS_DEPS)
 endif
 
 else
@@ -244,17 +263,12 @@ $(OUTPUT).nso	:	$(OUTPUT).elf
 
 endif
 
-$(OUTPUT).elf	:	$(OFILES)
+$(OUTPUT).elf	:	$(OFILES) $(SHADERS_DEPS)
 
 $(OFILES_SRC)	: $(HFILES_BIN)
 
 #---------------------------------------------------------------------------------
 # you need a rule like this for each extension you use as binary data
-#---------------------------------------------------------------------------------
-%.bin.o	%_bin.h :	%.bin
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
 #---------------------------------------------------------------------------------
 %.lua.o %_lua.h : %.lua
 	@echo $(notdir $<)

@@ -41,6 +41,11 @@ namespace vertex
         WINDING_MAX_ENUM
     };
 
+    static inline uint16_t normto16t(float in)
+    {
+        return uint16_t(in * 0xFFFF);
+    }
+
     namespace attributes
     {
         /* Primitives */

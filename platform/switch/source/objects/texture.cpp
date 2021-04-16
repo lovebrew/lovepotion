@@ -44,20 +44,31 @@ void Texture::Draw(Graphics* gfx, const Matrix4& localTransform)
 
 void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform)
 {
-    const Matrix4& tm = gfx->GetTransform();
-    bool is2D         = tm.IsAffine2DTransform();
+    const Matrix4& tm  = gfx->GetTransform();
+    bool is2D          = tm.IsAffine2DTransform();
+    const Colorf color = gfx->GetColor();
 
     Matrix4 t(tm, localTransform);
 
-    std::vector<vertex::Vertex> points(TEXTURE_QUAD_POINT_COUNT);
+    /* zero out a new vertex data thing */
+    vertex::Vertex vertexData[TEXTURE_QUAD_POINT_COUNT];
+    std::fill_n(vertexData, TEXTURE_QUAD_POINT_COUNT, vertex::Vertex {});
+
+    Vector2 transformed[TEXTURE_QUAD_POINT_COUNT];
+    std::fill_n(transformed, TEXTURE_QUAD_POINT_COUNT, Vector2 {});
 
     if (is2D)
+        t.TransformXY(transformed, quad->GetVertexPositions(), TEXTURE_QUAD_POINT_COUNT);
+
+    const Vector2* texCoords = quad->GetVertexTexCoords();
+
+    for (size_t i = 0; i < TEXTURE_QUAD_POINT_COUNT; i++)
     {
-        Vector2 transformed[4];
-        t.TransformXY(transformed, quad->GetVertexPositions(), 4);
-        points = vertex::GenerateTextureFromVectors(transformed, quad->GetVertexTexCoords(),
-                                                    points.size(), gfx->GetColor());
+        vertexData[i] = { { transformed[i].x, transformed[i].y, 0.0f },
+                          { color.r, color.g, color.b, color.a },
+                          { vertex::normto16t(texCoords[i].x),
+                            vertex::normto16t(texCoords[i].y) } };
     }
 
-    ::deko3d::Instance().RenderTexture(this->handle, points.data(), 4);
+    ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);
 }

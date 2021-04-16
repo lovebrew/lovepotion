@@ -1,4 +1,6 @@
 build
+shaders/build
+
 *.log
 
 *.3dsx

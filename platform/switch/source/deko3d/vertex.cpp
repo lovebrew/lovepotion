@@ -29,11 +29,6 @@ std::vector<vertex::Vertex> vertex::GeneratePrimitiveFromVectors(const Vector2* 
     return verts;
 }
 
-static inline uint16_t normto16t(float in)
-{
-    return uint16_t(in * 0xFFFF);
-}
-
 std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vector2* points,
                                                                const love::Vector2* texcoord,
                                                                size_t count, Colorf color)
