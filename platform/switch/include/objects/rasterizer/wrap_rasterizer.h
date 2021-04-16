@@ -1,7 +1,7 @@
 #pragma once
 
-#include "freetype/rasterizer.h"
 #include "common/luax.h"
+#include "freetype/rasterizer.h"
 
 namespace Wrap_Rasterizer
 {

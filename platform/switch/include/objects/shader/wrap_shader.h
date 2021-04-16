@@ -1,7 +1,7 @@
 #pragma once
 
-#include "deko3d/shader.h"
 #include "common/luax.h"
+#include "deko3d/shader.h"
 namespace Wrap_Shader
 {
     love::Shader* CheckShader(lua_State* L, int index);

@@ -5,7 +5,7 @@
 
 namespace love
 {
-    class LOVE_Thread;
+    class Thread;
 
     class Threadable : public love::Object
     {
@@ -26,10 +26,10 @@ namespace love
         const char* GetThreadName() const;
 
       private:
-        friend class LOVE_Thread;
+        friend class love::Thread;
 
       protected:
-        LOVE_Thread* owner;
+        love::Thread* owner;
         std::string threadName;
     };
 } // namespace love

@@ -58,9 +58,9 @@ System::PowerInfo System::GetPowerInfo() const
     PowerInfo info;
 
     info.percentage = batteryPercent;
-    info.state      = (batteryState == 1 && batteryPercent == 100) ? "charged"
-                      : (batteryState == 1)                        ? "charging"
-                                                                   : "battery";
+    info.state      = (batteryState == 1 && batteryPercent == 100)
+                     ? "charged"
+                     : (batteryState == 1) ? "charging" : "battery";
 
     return info;
 }

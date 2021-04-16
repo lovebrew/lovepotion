@@ -1,5 +1,5 @@
 #include "modules/thread/types/threadable.h"
-#include "modules/thread/thread.h"
+#include "thread/thread.h"
 
 using namespace love;
 
