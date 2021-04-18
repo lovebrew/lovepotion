@@ -42,5 +42,18 @@ class CShader
         return m_shader.isValid();
     }
 
-    bool loadMemory(CMemPool& pool, const void* buffer, const size_t size);
+    bool load(CMemPool& pool, const char* path);
+
+    bool load(CMemPool& pool, const void* buffer, size_t size);
+
+  private:
+    struct DkshHeader
+    {
+        uint32_t magic;     // DKSH_MAGIC
+        uint32_t header_sz; // sizeof(DkshHeader)
+        uint32_t control_sz;
+        uint32_t code_sz;
+        uint32_t programs_off;
+        uint32_t num_programs;
+    };
 };

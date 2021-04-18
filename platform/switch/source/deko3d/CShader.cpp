@@ -4,55 +4,60 @@
 */
 #include "deko3d/CShader.h"
 
-struct DkshHeader
+bool CShader::load(CMemPool& pool, const void* buffer, size_t size)
 {
-    uint32_t magic;     // DKSH_MAGIC
-    uint32_t header_sz; // sizeof(DkshHeader)
-    uint32_t control_sz;
-    uint32_t code_sz;
-    uint32_t programs_off;
-    uint32_t num_programs;
-};
+    return false;
+}
 
-bool CShader::loadMemory(CMemPool& pool, const void* buffer, const size_t size)
+bool CShader::load(CMemPool& pool, const char* path)
 {
-    if (buffer == nullptr || size <= 0)
-        return false;
-
-    DkshHeader hdr;
+    FILE* file;
+    DkshHeader header;
+    void* controlMemory;
 
     m_codemem.destroy();
 
-    // Copy the dksh buffer to the struct
-    memcpy(&hdr, buffer, sizeof(hdr));
+    if (path == nullptr)
+        return false;
 
-    /*
-    ** Allocate the code memory from the pool based on `code_sz`
-    ** this must be aligned to DK_SHADER_CODE_ALIGNMENT
-    */
-    m_codemem = pool.allocate(hdr.code_sz, DK_SHADER_CODE_ALIGNMENT);
+    file = fopen(path, "rb");
+    if (!file)
+        return false;
+
+    if (!fread(&header, sizeof(header), 1, file))
+        goto _fail0;
+
+    controlMemory = malloc(header.control_sz);
+    if (!controlMemory)
+        goto _fail0;
+
+    rewind(file);
+
+    if (!fread(controlMemory, header.control_sz, 1, file))
+        goto _fail1;
+
+    m_codemem = pool.allocate(header.code_sz, DK_SHADER_CODE_ALIGNMENT);
     if (!m_codemem)
-        goto _failShader;
+        goto _fail1;
 
-    /*
-    ** Copy the buffer's shader code to the CPU address of the code memory
-    ** Make sure to add hdr.control_sz to the buffer for the *correct* offset
-    ** As though the buffer were being dealt with like an fread
-    */
-    memcpy(m_codemem.getCpuAddr(), (char*)buffer + hdr.control_sz, hdr.code_sz);
+    if (!fread(m_codemem.getCpuAddr(), header.code_sz, 1, file))
+        goto _fail2;
 
-    /*
-    ** Create a shader based on m_codemem's memory block and offset
-    ** Set its control to control memory from the dksh and programId
-    ** to zero, as that is the entry point of the program
-    */
     dk::ShaderMaker { m_codemem.getMemBlock(), m_codemem.getOffset() }
-        .setControl(buffer)
+        .setControl(controlMemory)
         .setProgramId(0)
         .initialize(m_shader);
 
+    free(controlMemory);
+    fclose(file);
+
     return true;
 
-_failShader:
+_fail2:
+    m_codemem.destroy();
+_fail1:
+    free(controlMemory);
+_fail0:
+    fclose(file);
     return false;
 }

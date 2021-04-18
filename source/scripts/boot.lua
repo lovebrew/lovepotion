@@ -341,6 +341,21 @@ local function is3DHack()
     return true
 end
 
+local function saveError(text)
+    if not love.filesystem then
+        return
+    end
+
+    love.filesystem.createDirectory("errors")
+
+    local date = os.date("%H%M%S_%m%d%y")
+    local filename = string.format("errors/love_error_%s.txt", date)
+
+    love.filesystem.write(filename, text)
+
+    return filename
+end
+
 function love.errorhandler(message)
     message = tostring(message)
 
@@ -449,17 +464,8 @@ function love.errorhandler(message)
 
     local fullErrorText = pretty
 
-    local function saveError()
-        if not love.filesystem then
-            return
-        end
-
-        love.filesystem.createDirectory("errors")
-
-        local date = os.date("%H%M%S_%m%d%y")
-        local filename = string.format("errors/love_error_%s.txt", date)
-
-        love.filesystem.write(filename, fullErrorText)
+    local function updateError()
+        local filename = saveError(fullErrorText)
         pretty = pretty .. "\nSaved to " .. filename .. "!"
 
         draw()
@@ -476,7 +482,7 @@ function love.errorhandler(message)
                     if b == "start" then
                         return 1
                     elseif b == "a" then
-                        saveError()
+                        updateError()
                     end
                 end
             end
