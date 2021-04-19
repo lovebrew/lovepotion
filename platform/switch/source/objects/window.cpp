@@ -9,7 +9,10 @@ static constexpr std::array<Window::DisplaySize, 2> displaySizes = { { { 1920, 1
                                                                        { 1280, 720 } } };
 
 Window::Window() : open(false)
-{}
+{
+    auto size = ::deko3d::Instance().OnOperationMode(appletGetOperationMode());
+    this->OnSizeChanged(size.first, size.second);
+}
 
 Window::~Window()
 {
@@ -34,7 +37,9 @@ void Window::OnSizeChanged(int width, int height)
         this->graphics->Resize(width, height);
 
     const Rect newViewport = { 0, 0, width, height };
+
     ::deko3d::Instance().SetViewport(newViewport);
+    ::deko3d::Instance().SetScissor(newViewport, false);
 }
 
 const std::array<Window::DisplaySize, 2>& Window::GetFullscreenModes()

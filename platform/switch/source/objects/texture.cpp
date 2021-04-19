@@ -71,6 +71,5 @@ void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransfor
                             vertex::normto16t(texCoords[i].y) } };
     }
 
-    bool success = ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);
-    LOG("Success: %d", success);
+    ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);
 }

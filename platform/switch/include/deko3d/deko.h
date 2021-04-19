@@ -42,9 +42,6 @@ class deko3d
   public:
     static constexpr unsigned MAX_FRAMEBUFFERS = 2;
 
-    static constexpr uint32_t FRAMEBUFFER_WIDTH  = 1280;
-    static constexpr uint32_t FRAMEBUFFER_HEIGHT = 720;
-
     static constexpr unsigned COMMAND_SIZE      = 0x100000;
     static constexpr size_t VERTEX_COMMAND_SIZE = 0x100000;
 
@@ -54,9 +51,9 @@ class deko3d
 
     ~deko3d();
 
-    void CreateResources();
+    void CreateFramebufferResources();
 
-    void DestroyResources();
+    void DestroyFramebufferResources();
 
     void BindFramebuffer(love::Canvas* canvas = nullptr);
 
@@ -108,6 +105,8 @@ class deko3d
     void SetBlendColor(const Colorf& color);
 
     void SetStencil(DkStencilOp op, DkCompareOp compare, int value);
+
+    std::pair<uint32_t, uint32_t>  OnOperationMode(AppletOperationMode mode);
 
     dk::Device GetDevice()
     {

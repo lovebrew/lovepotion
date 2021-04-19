@@ -5,6 +5,8 @@
 
 #include <string.h>
 
+#include "deko3d/deko.h"
+
 using namespace love::driver;
 
 #define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
@@ -92,12 +94,8 @@ void Hidrv::CheckFocus()
             }
             case AppletMessage_OperationModeChanged:
             {
-                AppletOperationMode mode = appletGetOperationMode();
-
-                if (mode == AppletOperationMode_Handheld)
-                    this->SendResize(1280, 720);
-                else if (mode == AppletOperationMode_Console)
-                    this->SendResize(1920, 1080);
+                auto size = ::deko3d::Instance().OnOperationMode(appletGetOperationMode());
+                this->SendResize(size.first, size.second);
 
                 break;
             }
