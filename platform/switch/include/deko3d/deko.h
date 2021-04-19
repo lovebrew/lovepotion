@@ -109,15 +109,30 @@ class deko3d
 
     void SetStencil(DkStencilOp op, DkCompareOp compare, int value);
 
-    dk::Device GetDevice();
+    dk::Device GetDevice()
+    {
+        return this->device;
+    }
 
-    dk::Queue GetTextureQueue();
+    dk::Queue GetTextureQueue()
+    {
+        return this->textureQueue;
+    }
 
-    CMemPool& GetImages();
+    CMemPool& GetImages()
+    {
+        return this->pool.images;
+    }
 
-    CMemPool& GetCode();
+    CMemPool& GetCode()
+    {
+        return this->pool.code;
+    }
 
-    CMemPool& GetData();
+    CMemPool& GetData()
+    {
+        return this->pool.data;
+    }
 
     DkResHandle RegisterResHandle(const dk::ImageDescriptor& descriptor);
 

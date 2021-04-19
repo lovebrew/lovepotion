@@ -4,8 +4,15 @@
 
 namespace
 {
-    constexpr auto gpuFlags = (DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image);
-    constexpr auto cpuFlags = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
+    /* GPU & CPU Memory Pools */
+    constexpr auto gpuPoolSize = 64 * 1024 * 1024;
+    constexpr auto gpuFlags    = (DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image);
+
+    constexpr auto cpuPoolSize = 1 * 1024 * 1024;
+    constexpr auto cpuFlags    = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
+
+    /* Used for Shader code */
+    constexpr auto shaderPoolSize = 128 * 1024;
     constexpr auto shaderFlags =
         (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code);
 } // namespace
@@ -24,12 +31,9 @@ deko3d::deko3d() :
     ** Unique -- destroys automatically
     */
     queue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-    pool { /* GPU & CPU Memory Pools */
-           .images = CMemPool(this->device, gpuFlags, 64 * 1024 * 1024),
-           .data   = CMemPool(this->device, cpuFlags, 1 * 1024 * 1024),
-           /* Used for Shader code */
-           .code = CMemPool(this->device, shaderFlags, 128 * 1024)
-    },
+    pool { .images = CMemPool(this->device, gpuFlags, gpuPoolSize),
+           .data   = CMemPool(this->device, cpuFlags, cpuPoolSize),
+           .code   = CMemPool(this->device, shaderFlags, shaderPoolSize) },
     state(),
     textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
     viewport { 0, 0, FRAMEBUFFER_WIDTH, FRAMEBUFFER_HEIGHT },
@@ -153,10 +157,6 @@ void deko3d::DestroyResources()
         this->framebuffers.memory[i].destroy();
 
     this->depthBuffer.memory.destroy();
-
-    // this->pool.code.reset();
-    // this->pool.data.reset();
-    // this->pool.images.reset();
 }
 
 // Ensure we have begun our frame
@@ -221,31 +221,6 @@ void deko3d::ClearColor(const Colorf& color)
 void deko3d::ClearDepthStencil(double depth, int stencil)
 {
     // this->cmdBuf.clearDepthStencil(true, depth, 0xFF, stencil);
-}
-
-dk::Queue deko3d::GetTextureQueue()
-{
-    return this->textureQueue;
-}
-
-dk::Device deko3d::GetDevice()
-{
-    return this->device;
-}
-
-CMemPool& deko3d::GetCode()
-{
-    return this->pool.code;
-}
-
-CMemPool& deko3d::GetImages()
-{
-    return this->pool.images;
-}
-
-CMemPool& deko3d::GetData()
-{
-    return this->pool.data;
 }
 
 void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)

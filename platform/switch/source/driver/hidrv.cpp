@@ -118,7 +118,10 @@ bool Hidrv::Poll(LOVE_Event* event)
     }
 
     if (this->hysteresis)
-        return this->hysteresis = false;
+    {
+        this->hysteresis = false;
+        return false;
+    }
 
     /* applet focus handling */
     this->CheckFocus();
@@ -336,6 +339,7 @@ bool Hidrv::Poll(LOVE_Event* event)
     this->events.pop_front();
 
     // this->currentPadIndex++;
+    this->hysteresis = true;
 
-    return this->hysteresis = true;
+    return true;
 }

@@ -71,13 +71,13 @@
     /* we always want RGBA, hopefully outputs as RGBA8 */
     if (tjDecompress2(_jpegDecompressor, (u8*)buffer, size, outBuffer.get(), width, 0, height,
                       TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
-        goto fail0;
+        goto _fail0;
 
     tjDestroy(_jpegDecompressor);
 
     return outBuffer;
 
-fail0:
+_fail0:
     tjDestroy(_jpegDecompressor);
     return nullptr;
 }

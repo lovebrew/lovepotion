@@ -7,6 +7,8 @@
 #include "deko3d/CMemPool.h"
 #include "deko3d/common.h"
 
+#include "vertex.h"
+
 template<unsigned NumSlices> class CCmdVtxRing
 {
     static_assert(NumSlices > 0, "Need a non-zero number of slices...");
@@ -27,7 +29,7 @@ template<unsigned NumSlices> class CCmdVtxRing
     bool allocate(CMemPool& pool, uint32_t size)
     {
         m_sliceSize = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
-        m_mem       = pool.allocate(NumSlices * m_sliceSize);
+        m_mem       = pool.allocate(NumSlices * m_sliceSize, alignof(vertex::Vertex));
 
         return m_mem;
     }

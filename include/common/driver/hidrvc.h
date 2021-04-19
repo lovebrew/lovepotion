@@ -129,14 +129,14 @@ namespace love::common::driver
 
         struct ButtonState
         {
-            uint64_t oldPressed;
-            uint64_t pressed;
+            uint64_t oldPressed = -1;
+            uint64_t pressed = -1;
 
-            uint64_t oldReleased;
-            uint64_t released;
+            uint64_t oldReleased = -1;
+            uint64_t released = -1;
 
-            uint64_t oldHeld;
-            uint64_t held;
+            uint64_t oldHeld = -1;
+            uint64_t held = -1;
         } buttonStates;
     };
 } // namespace love::common::driver

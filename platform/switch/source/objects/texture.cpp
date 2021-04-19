@@ -8,12 +8,13 @@
 
 using namespace love;
 
-Texture::Texture(TextureType type) : common::Texture(type)
+Texture::Texture(TextureType type) : common::Texture(type), texture()
 {}
 
 Texture::~Texture()
 {
     ::deko3d::Instance().UnRegisterResHandle(this->handle);
+    this->texture.reset();
 }
 
 void Texture::SetHandle(DkResHandle handle)
@@ -70,5 +71,6 @@ void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransfor
                             vertex::normto16t(texCoords[i].y) } };
     }
 
-    ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);
+    bool success = ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);
+    LOG("Success: %d", success);
 }
