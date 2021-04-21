@@ -46,26 +46,21 @@ namespace love
 
         static bool GetConstant(const char* in, CFG_Language& out);
         static bool GetConstant(CFG_Language in, const char*& out);
-        static std::vector<std::string> GetConstants(CFG_Language);
+        static std::vector<const char*> GetConstants(CFG_Language);
 
         static bool GetConstant(const char* in, CFG_SystemModel& out);
         static bool GetConstant(CFG_SystemModel in, const char*& out);
-        static std::vector<std::string> GetConstants(CFG_SystemModel);
+        static std::vector<const char*> GetConstants(CFG_SystemModel);
 
         static bool GetConstant(const char* in, CFG_Region& out);
         static bool GetConstant(CFG_Region in, const char*& out);
-        static std::vector<std::string> GetConstants(CFG_Region);
+        static std::vector<const char*> GetConstants(CFG_Region);
 
       private:
         static Handle OpenPlayCoinsFile();
 
-        static StringMap<CFG_SystemModel, MAX_MODELS>::Entry modelEntries[];
-        static StringMap<CFG_SystemModel, MAX_MODELS> models;
-
-        static StringMap<CFG_Language, MAX_LANGUAGES>::Entry languageEntries[];
-        static StringMap<CFG_Language, MAX_LANGUAGES> languages;
-
-        static StringMap<CFG_Region, MAX_REGIONS>::Entry regionEntries[];
-        static StringMap<CFG_Region, MAX_REGIONS> regions;
+        const static StringMap<CFG_SystemModel, MAX_MODELS> models;
+        const static StringMap<CFG_Language, MAX_LANGUAGES> languages;
+        const static StringMap<CFG_Region, MAX_REGIONS> regions;
     };
 } // namespace love

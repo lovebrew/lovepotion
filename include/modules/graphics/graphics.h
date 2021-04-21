@@ -211,7 +211,7 @@ namespace love
 
         virtual const int GetHeight() const = 0;
 
-        virtual std::vector<std::string> GetScreens() const = 0;
+        virtual std::vector<const char*> GetScreens() const = 0;
 
         virtual void SetActiveScreen(Screen screen) = 0;
 
@@ -554,27 +554,27 @@ namespace love
 
         static bool GetConstant(const char* in, Screen& out);
         static bool GetConstant(Screen in, const char*& out);
-        static std::vector<std::string> GetConstants(Screen);
+        static std::vector<const char*> GetConstants(Screen);
 
         static bool GetConstant(const char* in, DrawMode& out);
         static bool GetConstant(DrawMode in, const char*& out);
-        static std::vector<std::string> GetConstants(DrawMode);
+        static std::vector<const char*> GetConstants(DrawMode);
 
         static bool GetConstant(const char* in, BlendMode& out);
         static bool GetConstant(BlendMode in, const char*& out);
-        static std::vector<std::string> GetConstants(BlendMode);
+        static std::vector<const char*> GetConstants(BlendMode);
 
         static bool GetConstant(const char* in, BlendAlpha& out);
         static bool GetConstant(BlendAlpha in, const char*& out);
-        static std::vector<std::string> GetConstants(BlendAlpha);
+        static std::vector<const char*> GetConstants(BlendAlpha);
 
         static bool GetConstant(const char* in, ArcMode& out);
         static bool GetConstant(ArcMode in, const char*& out);
-        static std::vector<std::string> GetConstants(ArcMode);
+        static std::vector<const char*> GetConstants(ArcMode);
 
         static bool GetConstant(const char* in, StackType& out);
         static bool GetConstant(StackType in, const char*& out);
-        static std::vector<std::string> GetConstants(StackType);
+        static std::vector<const char*> GetConstants(StackType);
 
       protected:
         struct DisplayState
@@ -634,22 +634,11 @@ namespace love
         StrongReference<Font> defaultFont;
         RendererInfo rendererInfo;
 
-        static StringMap<Screen, MAX_SCREENS>::Entry screenEntries[];
-        static StringMap<Screen, MAX_SCREENS> screens;
-
-        static StringMap<DrawMode, DRAW_MAX_ENUM>::Entry drawModeEntries[];
-        static StringMap<DrawMode, DRAW_MAX_ENUM> drawModes;
-
-        static StringMap<BlendMode, BLEND_MAX_ENUM>::Entry blendModeEntries[];
-        static StringMap<BlendMode, BLEND_MAX_ENUM> blendModes;
-
-        static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM>::Entry blendAlphaEntries[];
-        static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM> blendAlphaModes;
-
-        static StringMap<ArcMode, ARC_MAX_ENUM>::Entry arcModeEntries[];
-        static StringMap<ArcMode, ARC_MAX_ENUM> arcModes;
-
-        static StringMap<StackType, STACK_MAX_ENUM>::Entry stackTypeEntries[];
-        static StringMap<StackType, STACK_MAX_ENUM> stackTypes;
+        const static StringMap<Screen, MAX_SCREENS> screens;
+        const static StringMap<DrawMode, DRAW_MAX_ENUM> drawModes;
+        const static StringMap<BlendMode, BLEND_MAX_ENUM> blendModes;
+        const static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM> blendAlphaModes;
+        const static StringMap<ArcMode, ARC_MAX_ENUM> arcModes;
+        const static StringMap<StackType, STACK_MAX_ENUM> stackTypes;
     };
 } // namespace love

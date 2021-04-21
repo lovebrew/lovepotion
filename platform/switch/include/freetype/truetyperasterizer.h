@@ -49,7 +49,7 @@ namespace love
 
         static bool GetConstant(const char* in, Hinting& out);
         static bool GetConstant(Hinting in, const char*& out);
-        static std::vector<std::string> GetConstants(Hinting);
+        static std::vector<const char*> GetConstants(Hinting);
 
       private:
         FT_Face face;
@@ -58,8 +58,7 @@ namespace love
 
         Hinting hinting;
 
-        static StringMap<Hinting, HINTING_MAX_ENUM>::Entry hintingEntries[];
-        static StringMap<Hinting, HINTING_MAX_ENUM> hintings;
+        const static StringMap<Hinting, HINTING_MAX_ENUM> hintings;
 
         static FT_UInt HintingToLoadOption(Hinting hinting);
     };

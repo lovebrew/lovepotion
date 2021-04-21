@@ -206,18 +206,19 @@ bool TrueTypeRasterizer::GetConstant(Hinting in, const char*& out)
     return hintings.Find(in, out);
 }
 
-std::vector<std::string> TrueTypeRasterizer::GetConstants(Hinting)
+std::vector<const char*> TrueTypeRasterizer::GetConstants(Hinting)
 {
     return hintings.GetNames();
 }
 
-StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM>::Entry
-    TrueTypeRasterizer::hintingEntries[] = {
-        { "normal", HINTING_NORMAL },
-        { "light", HINTING_LIGHT },
-        { "mono", HINTING_MONO },
-        { "none", HINTING_NONE },
-    };
+// clang-format off
+constexpr StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM>::Entry hintingEntries[] =
+{
+    { "none",   TrueTypeRasterizer::Hinting::HINTING_NONE   },
+    { "mono",   TrueTypeRasterizer::Hinting::HINTING_MONO   },
+    { "light",  TrueTypeRasterizer::Hinting::HINTING_LIGHT  },
+    { "normal", TrueTypeRasterizer::Hinting::HINTING_NORMAL }
+};
 
-StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::
-    hintings(TrueTypeRasterizer::hintingEntries, sizeof(TrueTypeRasterizer::hintingEntries));
+const StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::hintings(hintingEntries);
+// clang-format on

@@ -9,8 +9,7 @@ namespace love
     {
         TYPE_NORMAL = SwkbdType_Normal,
         TYPE_QWERTY = SwkbdType_QWERTY,
-        TYPE_NUMPAD = SwkbdType_NumPad,
-        TYPE_MAX_ENUM
+        TYPE_NUMPAD = SwkbdType_NumPad
     };
 
     class Keyboard : public common::Keyboard
@@ -32,13 +31,10 @@ namespace love
 
         static bool GetConstant(const char* in, KeyboardType& out);
         static bool GetConstant(KeyboardType in, const char*& out);
-        static std::vector<std::string> GetConstants(KeyboardType);
+        static std::vector<const char*> GetConstants(KeyboardType);
 
       private:
         SwkbdConfig keyboard;
-
-        static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)>::Entry
-            keyboardTypeEntries[];
-        static StringMap<KeyboardType, uint8_t(KeyboardType::TYPE_MAX_ENUM)> keyboardTypes;
+        const static StringMap<KeyboardType, Keyboard::MAX_TYPES> keyboardTypes;
     };
 } // namespace love

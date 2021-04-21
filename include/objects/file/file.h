@@ -73,14 +73,14 @@ namespace love
         static bool GetConstant(const char* in, Mode& out);
         static bool GetConstant(Mode in, const char*& out);
 
-        static std::vector<std::string> GetConstants(Mode mode);
+        static std::vector<const char*> GetConstants(Mode mode);
 
         /* BUFFER MODES */
 
         static bool GetConstant(const char* in, BufferMode& out);
         static bool GetConstant(BufferMode in, const char*& out);
 
-        static std::vector<std::string> GetConstants(BufferMode mode);
+        static std::vector<const char*> GetConstants(BufferMode mode);
 
       private:
         std::string filename;
@@ -91,10 +91,7 @@ namespace love
         BufferMode bufferMode;
         int64_t bufferSize;
 
-        static StringMap<Mode, Mode::MODE_MAX_ENUM>::Entry modeEntries[];
-        static StringMap<Mode, Mode::MODE_MAX_ENUM> modes;
-
-        static StringMap<BufferMode, BufferMode::BUFFER_MAX_ENUM>::Entry bufferModeEntries[];
-        static StringMap<BufferMode, BufferMode::BUFFER_MAX_ENUM> bufferModes;
+        const static StringMap<Mode, Mode::MODE_MAX_ENUM> modes;
+        const static StringMap<BufferMode, BufferMode::BUFFER_MAX_ENUM> bufferModes;
     };
 } // namespace love

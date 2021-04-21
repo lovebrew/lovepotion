@@ -546,7 +546,7 @@ bool Graphics::GetConstant(Screen in, const char*& out)
     return screens.Find(in, out);
 }
 
-std::vector<std::string> Graphics::GetConstants(Screen)
+std::vector<const char*> Graphics::GetConstants(Screen)
 {
     return screens.GetNames();
 }
@@ -561,7 +561,7 @@ bool Graphics::GetConstant(DrawMode in, const char*& out)
     return drawModes.Find(in, out);
 }
 
-std::vector<std::string> Graphics::GetConstants(DrawMode)
+std::vector<const char*> Graphics::GetConstants(DrawMode)
 {
     return drawModes.GetNames();
 }
@@ -576,7 +576,7 @@ bool Graphics::GetConstant(ArcMode in, const char*& out)
     return arcModes.Find(in, out);
 }
 
-std::vector<std::string> Graphics::GetConstants(ArcMode)
+std::vector<const char*> Graphics::GetConstants(ArcMode)
 {
     return arcModes.GetNames();
 }
@@ -591,7 +591,7 @@ bool Graphics::GetConstant(BlendMode in, const char*& out)
     return blendModes.Find(in, out);
 }
 
-std::vector<std::string> Graphics::GetConstants(BlendMode)
+std::vector<const char*> Graphics::GetConstants(BlendMode)
 {
     return blendModes.GetNames();
 }
@@ -606,7 +606,7 @@ bool Graphics::GetConstant(BlendAlpha in, const char*& out)
     return blendAlphaModes.Find(in, out);
 }
 
-std::vector<std::string> Graphics::GetConstants(BlendAlpha)
+std::vector<const char*> Graphics::GetConstants(BlendAlpha)
 {
     return blendAlphaModes.GetNames();
 }
@@ -621,50 +621,57 @@ bool Graphics::GetConstant(StackType in, const char*& out)
     return stackTypes.Find(in, out);
 }
 
-std::vector<std::string> Graphics::GetConstants(StackType)
+std::vector<const char*> Graphics::GetConstants(StackType)
 {
     return stackTypes.GetNames();
 }
 
-StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry Graphics::blendModeEntries[] = {
-    { "alpha", BLEND_ALPHA },       { "add", BLEND_ADD },         { "subtract", BLEND_SUBTRACT },
-    { "multiply", BLEND_MULTIPLY }, { "lighten", BLEND_LIGHTEN }, { "darken", BLEND_DARKEN },
-    { "screen", BLEND_SCREEN },     { "replace", BLEND_REPLACE }, { "none", BLEND_NONE },
+// clang-format off
+constexpr StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry blendModeEntries[] =
+{
+    { "alpha",     Graphics::BlendMode::BLEND_ALPHA    },
+    { "add",       Graphics::BlendMode::BLEND_ADD      },
+    { "subtract",  Graphics::BlendMode::BLEND_SUBTRACT },
+    { "multiply",  Graphics::BlendMode::BLEND_MULTIPLY },
+    { "lighten",   Graphics::BlendMode::BLEND_LIGHTEN  },
+    { "darken",    Graphics::BlendMode::BLEND_DARKEN   },
+    { "screen",    Graphics::BlendMode::BLEND_SCREEN   },
+    { "replace",   Graphics::BlendMode::BLEND_REPLACE  },
+    { "none",      Graphics::BlendMode::BLEND_NONE     },
 };
 
-StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(
-    Graphics::blendModeEntries, sizeof(Graphics::blendModeEntries));
+const StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(blendModeEntries);
 
-StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry Graphics::drawModeEntries[] = {
-    { "line", DRAW_LINE },
-    { "fill", DRAW_FILL },
+constexpr StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry drawModeEntries[] =
+{
+    { "line", Graphics::DrawMode::DRAW_LINE },
+    { "fill", Graphics::DrawMode::DRAW_FILL }
 };
 
-StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(
-    Graphics::drawModeEntries, sizeof(Graphics::drawModeEntries));
+const StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(drawModeEntries);
 
-StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry Graphics::arcModeEntries[] = {
-    { "open", ARC_OPEN },
-    { "closed", ARC_CLOSED },
-    { "pie", ARC_PIE },
+constexpr StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry arcModeEntries[] =
+{
+    { "open",   Graphics::ArcMode::ARC_OPEN   },
+    { "closed", Graphics::ArcMode::ARC_CLOSED },
+    { "pie",    Graphics::ArcMode::ARC_PIE    },
 };
 
-StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(
-    Graphics::arcModeEntries, sizeof(Graphics::arcModeEntries));
+const StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(arcModeEntries);
 
-StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry
-    Graphics::blendAlphaEntries[] = {
-        { "alphamultiply", BLENDALPHA_MULTIPLY },
-        { "premultiplied", BLENDALPHA_PREMULTIPLIED },
-    };
-
-StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(
-    Graphics::blendAlphaEntries, sizeof(Graphics::blendAlphaEntries));
-
-StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry Graphics::stackTypeEntries[] = {
-    { "all", STACK_ALL },
-    { "transform", STACK_TRANSFORM },
+constexpr StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry blendAlphaEntries[] =
+{
+    { "alphamultiply", Graphics::BlendAlpha::BLENDALPHA_MULTIPLY      },
+    { "premultiplied", Graphics::BlendAlpha::BLENDALPHA_PREMULTIPLIED },
 };
 
-StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(
-    Graphics::stackTypeEntries, sizeof(Graphics::stackTypeEntries));
+const StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(blendAlphaEntries);
+
+constexpr StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry stackTypeEntries[] =
+{
+    { "all",       Graphics::StackType::STACK_ALL       },
+    { "transform", Graphics::StackType::STACK_TRANSFORM }
+};
+
+const StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(stackTypeEntries);
+// clang-format on

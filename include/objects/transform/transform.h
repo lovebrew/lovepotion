@@ -58,7 +58,7 @@ namespace love
 
         static bool GetConstant(const char* in, MatrixLayout& out);
         static bool GetConstant(MatrixLayout in, const char*& out);
-        static std::vector<std::string> GetConstants(MatrixLayout);
+        static std::vector<const char*> GetConstants(MatrixLayout);
 
       private:
         Matrix4 matrix;
@@ -76,7 +76,6 @@ namespace love
             return this->inverseMatrix;
         }
 
-        static StringMap<MatrixLayout, MATRIX_MAX_ENUM>::Entry matrixLayoutEntries[];
-        static StringMap<MatrixLayout, MATRIX_MAX_ENUM> matrixLayouts;
+        const static StringMap<MatrixLayout, MATRIX_MAX_ENUM> matrixLayouts;
     };
 } // namespace love

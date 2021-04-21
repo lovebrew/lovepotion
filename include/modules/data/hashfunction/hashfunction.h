@@ -38,14 +38,13 @@ namespace love
 
         static bool GetConstant(const char* in, Function& out);
         static bool GetConstant(const Function& in, const char*& out);
-        static std::vector<std::string> GetConstants(Function);
+        static std::vector<const char*> GetConstants(Function);
 
       protected:
         HashFunction()
         {}
 
       private:
-        static StringMap<Function, FUNCTION_MAX_ENUM>::Entry functionEntries[];
-        static StringMap<Function, FUNCTION_MAX_ENUM> functionNames;
+        const static StringMap<Function, FUNCTION_MAX_ENUM> functionNames;
     };
 } // namespace love

@@ -136,12 +136,14 @@ float Font::GetHeight() const
     return 30 * this->GetScale();
 }
 
-StringMap<Font::SystemFontType, Font::MAX_SYSFONTS>::Entry common::Font::sharedFontEntries[] = {
-    { "standard", SystemFontType::TYPE_STANDARD },
-    { "chinese", SystemFontType::TYPE_CHINESE },
-    { "taiwanese", SystemFontType::TYPE_TAIWANESE },
-    { "korean", SystemFontType::TYPE_KOREAN },
+// clang-format off
+constexpr StringMap<Font::SystemFontType, Font::MAX_SYSFONTS>::Entry sharedFontEntries[] =
+{
+    { "standard",  Font::SystemFontType::TYPE_STANDARD  },
+    { "chinese",   Font::SystemFontType::TYPE_CHINESE   },
+    { "taiwanese", Font::SystemFontType::TYPE_TAIWANESE },
+    { "korean",    Font::SystemFontType::TYPE_KOREAN    }
 };
 
-StringMap<Font::SystemFontType, Font::MAX_SYSFONTS> common::Font::sharedFonts(
-    Font::sharedFontEntries, sizeof(Font::sharedFontEntries));
+const StringMap<Font::SystemFontType, Font::MAX_SYSFONTS> common::Font::sharedFonts(sharedFontEntries);
+// clang-format on

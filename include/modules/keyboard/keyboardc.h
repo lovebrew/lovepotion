@@ -59,15 +59,15 @@ namespace love::common
 
         static bool GetConstant(const char* in, KeyboardOption& out);
         static bool GetConstant(KeyboardOption in, const char*& out);
-        static std::vector<std::string> GetConstants(KeyboardOption);
+        static std::vector<const char*> GetConstants(KeyboardOption);
 
         static const char* GetConstant(KeyboardOption in);
+        static constexpr uint8_t MAX_TYPES = 3;
 
       protected:
         char* text;
 
       private:
-        static StringMap<KeyboardOption, OPTION_MAX_ENUM>::Entry keyboardOptionsEntries[];
-        static StringMap<KeyboardOption, OPTION_MAX_ENUM> keyboardOptions;
+        const static StringMap<KeyboardOption, OPTION_MAX_ENUM> keyboardOptions;
     };
 } // namespace love::common

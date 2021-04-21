@@ -12,7 +12,7 @@ void Quad::Refresh(const Viewport& viewport, double sw, double sh)
     this->RefreshViewport(viewport, sw, sh);
 
     // zero out vertex positions
-    std::fill_n(this->vertexPositions, 4, Vector2{});
+    std::fill_n(this->vertexPositions, 4, Vector2 {});
 
     this->vertexPositions[0] = Vector2(0.0f, 0.0f);
     this->vertexPositions[1] = Vector2(0.0f, (float)viewport.h);
@@ -20,7 +20,7 @@ void Quad::Refresh(const Viewport& viewport, double sw, double sh)
     this->vertexPositions[3] = Vector2((float)viewport.w, 0.0f);
 
     // zero out texcoords
-    std::fill_n(this->vertexTexCoords, 4, Vector2{});
+    std::fill_n(this->vertexTexCoords, 4, Vector2 {});
 
     this->vertexTexCoords[0] = Vector2((float)(viewport.x / sw), (float)(viewport.y / sh));
     this->vertexTexCoords[1] =

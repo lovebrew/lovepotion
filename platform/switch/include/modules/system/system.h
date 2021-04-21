@@ -50,24 +50,19 @@ namespace love
 
         static bool GetConstant(const char* in, SetLanguage& out);
         static bool GetConstant(SetLanguage in, const char*& out);
-        static std::vector<std::string> GetConstants(SetLanguage);
+        static std::vector<const char*> GetConstants(SetLanguage);
 
         static bool GetConstant(const char* in, ProductModel& out);
         static bool GetConstant(ProductModel in, const char*& out);
-        static std::vector<std::string> GetConstants(ProductModel);
+        static std::vector<const char*> GetConstants(ProductModel);
 
         static bool GetConstant(const char* in, SetRegion& out);
         static bool GetConstant(SetRegion in, const char*& out);
-        static std::vector<std::string> GetConstants(SetRegion);
+        static std::vector<const char*> GetConstants(SetRegion);
 
       private:
-        static StringMap<ProductModel, MODEL_MAX_ENUM>::Entry modelEntries[];
-        static StringMap<ProductModel, MODEL_MAX_ENUM> models;
-
-        static StringMap<SetLanguage, SetLanguage_Total>::Entry languageEntries[];
-        static StringMap<SetLanguage, SetLanguage_Total> languages;
-
-        static StringMap<SetRegion, MAX_REGIONS>::Entry regionEntries[];
-        static StringMap<SetRegion, MAX_REGIONS> regions;
+        const static StringMap<ProductModel, MODEL_MAX_ENUM> models;
+        const static StringMap<SetLanguage, SetLanguage_Total> languages;
+        const static StringMap<SetRegion, MAX_REGIONS> regions;
     };
 } // namespace love

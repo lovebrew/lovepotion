@@ -31,17 +31,19 @@ bool Compressor::GetConstant(Format in, const char*& out)
     return formatNames.Find(in, out);
 }
 
-std::vector<std::string> Compressor::GetConstants(Format)
+std::vector<const char*> Compressor::GetConstants(Format)
 {
     return formatNames.GetNames();
 }
 
-StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM>::Entry Compressor::formatEntries[] = {
-    { "lz4", FORMAT_LZ4 },
-    { "zlib", FORMAT_ZLIB },
-    { "gzip", FORMAT_GZIP },
-    { "deflate", FORMAT_DEFLATE },
+// clang-format off
+constexpr StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM>::Entry formatEntries[] =
+{
+    { "lz4",     Compressor::Format::FORMAT_LZ4     },
+    { "zlib",    Compressor::Format::FORMAT_ZLIB    },
+    { "gzip",    Compressor::Format::FORMAT_GZIP    },
+    { "deflate", Compressor::Format::FORMAT_DEFLATE }
 };
 
-StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM> Compressor::formatNames(
-    Compressor::formatEntries, sizeof(Compressor::formatEntries));
+const StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM> Compressor::formatNames(formatEntries);
+// clang-format on

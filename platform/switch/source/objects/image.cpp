@@ -7,10 +7,10 @@ using namespace love;
 Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
 {
     // CImage can load PNG and JPG files with the proper libraries
-    bool success =
-        this->texture->load(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
-                           ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(),
-                           data->GetData(), data->GetSize(), this->width, this->height);
+    bool success = this->texture->load(
+        ::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
+        ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(), data->GetData(),
+        data->GetSize(), this->width, this->height);
 
     if (!success)
         throw love::Exception("Failed to upload Image data.");
@@ -47,7 +47,7 @@ Image::Image(TextureType type, int width, int height) : Texture(type)
 void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
 {
     this->texture->replacePixels(::deko3d::Instance().GetData(), ::deko3d::Instance().GetDevice(),
-                                data, size, ::deko3d::Instance().GetTextureQueue(), rect);
+                                 data, size, ::deko3d::Instance().GetTextureQueue(), rect);
 }
 
 void Image::Init(int width, int height)

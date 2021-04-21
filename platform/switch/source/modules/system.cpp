@@ -158,70 +158,35 @@ const std::string& System::GetFriendCode()
 
 bool System::GetConstant(const char* in, SetLanguage& out)
 {
-    return System::languages.Find(in, out);
+    return languages.Find(in, out);
 }
 
 bool System::GetConstant(SetLanguage in, const char*& out)
 {
-    return System::languages.Find(in, out);
+    return languages.Find(in, out);
 }
 
-std::vector<std::string> System::GetConstants(SetLanguage)
+std::vector<const char*> System::GetConstants(SetLanguage)
 {
-    return System::languages.GetNames();
+    return languages.GetNames();
 }
-
-StringMap<SetLanguage, SetLanguage_Total>::Entry System::languageEntries[] = {
-    { "Japanese", SetLanguage_JA },
-    { "US English", SetLanguage_ENUS },
-    { "French", SetLanguage_FR },
-    { "German", SetLanguage_DE },
-    { "Italian", SetLanguage_IT },
-    { "Spanish", SetLanguage_ES },
-    { "Chinese", SetLanguage_ZHCN },
-    { "Korean", SetLanguage_KO },
-    { "Dutch", SetLanguage_NL },
-    { "Portuguese", SetLanguage_PT },
-    { "Russian", SetLanguage_RU },
-    { "Taiwanese", SetLanguage_ZHTW },
-    { "British English", SetLanguage_ENGB },
-    { "Canadian French", SetLanguage_FRCA },
-    { "Latin American Spanish", SetLanguage_ES419 },
-    { "Chinese Simplified", SetLanguage_ZHHANS },
-    { "Chinese Traditional", SetLanguage_ZHHANT },
-    { "Brazilian Protuguese", SetLanguage_PTBR }
-};
-
-StringMap<SetLanguage, SetLanguage_Total> System::languages(System::languageEntries,
-                                                            sizeof(System::languageEntries));
 
 /* MODEL CONSTANTS */
 
 bool System::GetConstant(const char* in, ProductModel& out)
 {
-    return System::models.Find(in, out);
+    return models.Find(in, out);
 }
 
 bool System::GetConstant(ProductModel in, const char*& out)
 {
-    return System::models.Find(in, out);
+    return models.Find(in, out);
 }
 
-std::vector<std::string> System::GetConstants(ProductModel)
+std::vector<const char*> System::GetConstants(ProductModel)
 {
-    return System::models.GetNames();
+    return models.GetNames();
 }
-
-StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>::Entry
-    System::modelEntries[] = {
-        { "Invalid", MODEL_INVALID },          { "Erista", MODEL_NX },
-        { "Erista Simulation", MODEL_COPPER }, { "Mariko", MODEL_IOWA },
-        { "Mariko Lite", MODEL_HOAG },         { "Mariko Simulation", MODEL_CALCIO },
-        { "Mariko Pro", MODEL_AULA }
-    };
-
-StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(
-    System::modelEntries, sizeof(System::modelEntries));
 
 /* REGION CONSTANTS */
 
@@ -235,19 +200,58 @@ bool System::GetConstant(SetRegion in, const char*& out)
     return System::regions.Find(in, out);
 }
 
-std::vector<std::string> System::GetConstants(SetRegion)
+std::vector<const char*> System::GetConstants(SetRegion)
 {
     return System::regions.GetNames();
 }
 
-StringMap<SetRegion, System::MAX_REGIONS>::Entry System::regionEntries[] = {
-    { "Japan", SetRegion_JPN },
-    { "United States", SetRegion_USA },
-    { "Europe", SetRegion_EUR },
-    { "Australia/New Zealand", SetRegion_AUS },
-    { "Hong Kong/Taiwan/Korea", SetRegion_HTK },
-    { "China", SetRegion_CHN }
+// clang-format off
+constexpr StringMap<SetLanguage, SetLanguage_Total>::Entry languageEntries[] =
+{
+    {  "Japanese",               SetLanguage_JA     },
+    {  "US English",             SetLanguage_ENUS   },
+    {  "French",                 SetLanguage_FR     },
+    {  "German",                 SetLanguage_DE     },
+    {  "Italian",                SetLanguage_IT     },
+    {  "Spanish",                SetLanguage_ES     },
+    {  "Chinese",                SetLanguage_ZHCN   },
+    {  "Korean",                 SetLanguage_KO     },
+    {  "Dutch",                  SetLanguage_NL     },
+    {  "Portuguese",             SetLanguage_PT     },
+    {  "Russian",                SetLanguage_RU     },
+    {  "Taiwanese",              SetLanguage_ZHTW   },
+    {  "British English",        SetLanguage_ENGB   },
+    {  "Canadian French",        SetLanguage_FRCA   },
+    {  "Latin American Spanish", SetLanguage_ES419  },
+    {  "Chinese Simplified",     SetLanguage_ZHHANS },
+    {  "Chinese Traditional",    SetLanguage_ZHHANT },
+    {  "Brazilian Protuguese",   SetLanguage_PTBR   }
 };
 
-StringMap<SetRegion, System::MAX_REGIONS> System::regions(System::regionEntries,
-                                                          sizeof(System::regionEntries));
+const StringMap<SetLanguage, SetLanguage_Total> System::languages(languageEntries);
+
+constexpr StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>::Entry modelEntries[] =
+{
+    { "Invalid",           System::ProductModel::MODEL_INVALID },
+    { "Erista",            System::ProductModel::MODEL_NX      },
+    { "Erista Simulation", System::ProductModel::MODEL_COPPER  },
+    { "Mariko",            System::ProductModel::MODEL_IOWA    },
+    { "Mariko Lite",       System::ProductModel::MODEL_HOAG    },
+    { "Mariko Simulation", System::ProductModel::MODEL_CALCIO  },
+    { "Mariko Pro",        System::ProductModel::MODEL_AULA    }
+};
+
+const StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(modelEntries);
+
+constexpr StringMap<SetRegion, System::MAX_REGIONS>::Entry regionEntries[] =
+{
+    { "Japan",                  SetRegion_JPN },
+    { "United States",          SetRegion_USA },
+    { "Europe",                 SetRegion_EUR },
+    { "Australia/New Zealand",  SetRegion_AUS },
+    { "Hong Kong/Taiwan/Korea", SetRegion_HTK },
+    { "China",                  SetRegion_CHN }
+};
+
+const StringMap<SetRegion, System::MAX_REGIONS> System::regions(regionEntries);
+// clang-format on

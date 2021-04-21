@@ -14,7 +14,7 @@ int Wrap_Graphics::GetScreens(lua_State* L)
 
     for (size_t index = 0; index < screens.size(); index++)
     {
-        Luax::PushString(L, screens[index]);
+        lua_pushstring(L, screens[index]);
         lua_rawseti(L, -2, (index + 1));
     }
 
@@ -43,7 +43,8 @@ int Wrap_Graphics::SetActiveScreen(lua_State* L)
     const char* name        = luaL_checkstring(L, 1);
 
 #if defined(_3DS)
-    if (gfxIs3D())
+    auto instance = (love::citro2d::Graphics*)instance();
+    if (instance->Get3D())
     {
         if (!Graphics::GetConstant(name, screen))
             return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), name);

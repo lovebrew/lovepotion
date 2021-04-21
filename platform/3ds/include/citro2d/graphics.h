@@ -29,7 +29,7 @@ namespace love::citro2d
 
         Screen GetActiveScreen() const override;
 
-        std::vector<std::string> GetScreens() const override;
+        std::vector<const char*> GetScreens() const override;
 
         const int GetWidth(Screen screen) const override;
 
@@ -114,11 +114,10 @@ namespace love::citro2d
 
         static constexpr int MAX_2D_SCREENS = 2;
 
-        static StringMap<Screen, MAX_2D_SCREENS>::Entry plainScreenEntries[];
-        static StringMap<Screen, MAX_2D_SCREENS> plainScreens;
+        const static StringMap<Screen, MAX_2D_SCREENS> plainScreens;
 
         static bool GetConstant(const char* in, Screen& out);
         static bool GetConstant(Screen in, const char*& out);
-        static std::vector<std::string> GetConstants(Screen);
+        static std::vector<const char*> GetConstants(Screen);
     };
 } // namespace love::citro2d

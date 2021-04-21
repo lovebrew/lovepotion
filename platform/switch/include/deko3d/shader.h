@@ -57,7 +57,6 @@ namespace love
       private:
         Program program;
 
-        static StringMap<StandardShader, STANDARD_MAX_ENUM>::Entry shaderEntries[];
-        static StringMap<StandardShader, STANDARD_MAX_ENUM> shaderNames;
+        const static StringMap<StandardShader, STANDARD_MAX_ENUM> shaderNames;
     };
 } // namespace love

@@ -35,7 +35,7 @@ bool Keyboard::GetConstant(KeyboardOption in, const char*& out)
     return keyboardOptions.Find(in, out);
 }
 
-std::vector<std::string> Keyboard::GetConstants(KeyboardOption)
+std::vector<const char*> Keyboard::GetConstants(KeyboardOption)
 {
     return keyboardOptions.GetNames();
 }
@@ -48,11 +48,14 @@ const char* Keyboard::GetConstant(KeyboardOption in)
     return name;
 }
 
-StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM>::Entry
-    Keyboard::keyboardOptionsEntries[] = { { "type", Keyboard::OPTION_TYPE },
-                                           { "password", Keyboard::OPTION_PASSCODE },
-                                           { "hint", Keyboard::OPTION_HINT },
-                                           { "maxLength", Keyboard::OPTION_MAX_LEN } };
+// clang-format off
+constexpr StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM>::Entry keyboardOptionsEntries[] =
+{
+    { "type",      Keyboard::KeyboardOption::OPTION_TYPE     },
+    { "password",  Keyboard::KeyboardOption::OPTION_PASSCODE },
+    { "hint",      Keyboard::KeyboardOption::OPTION_HINT     },
+    { "maxLength", Keyboard::KeyboardOption::OPTION_MAX_LEN  }
+};
 
-StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM> Keyboard::keyboardOptions(
-    Keyboard::keyboardOptionsEntries, sizeof(Keyboard::keyboardOptionsEntries));
+const StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM> Keyboard::keyboardOptions(keyboardOptionsEntries);
+// clang-format on

@@ -75,7 +75,7 @@ bool Font::GetConstant(AlignMode in, const char*& out)
     return alignModes.Find(in, out);
 }
 
-std::vector<std::string> Font::GetConstants(AlignMode)
+std::vector<const char*> Font::GetConstants(AlignMode)
 {
     return alignModes.GetNames();
 }
@@ -90,17 +90,19 @@ bool Font::GetConstant(Font::SystemFontType in, const char*& out)
     return sharedFonts.Find(in, out);
 }
 
-std::vector<std::string> Font::GetConstants(Font::SystemFontType)
+std::vector<const char*> Font::GetConstants(Font::SystemFontType)
 {
     return sharedFonts.GetNames();
 }
 
-StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM>::Entry Font::alignModeEntries[] = {
-    { "left", ALIGN_LEFT },
-    { "right", ALIGN_RIGHT },
-    { "center", ALIGN_CENTER },
-    { "justify", ALIGN_JUSTIFY }
+// clang-format off
+constexpr StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM>::Entry alignModeEntries[] =
+{
+    { "left",    Font::AlignMode::ALIGN_LEFT    },
+    { "right",   Font::AlignMode::ALIGN_RIGHT   },
+    { "center",  Font::AlignMode::ALIGN_CENTER  },
+    { "justify", Font::AlignMode::ALIGN_JUSTIFY }
 };
 
-StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(Font::alignModeEntries,
-                                                                  sizeof(Font::alignModeEntries));
+const StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(alignModeEntries);
+// clang-format on

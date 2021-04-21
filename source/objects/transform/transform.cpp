@@ -107,16 +107,17 @@ bool Transform::GetConstant(MatrixLayout in, const char*& out)
     return matrixLayouts.Find(in, out);
 }
 
-std::vector<std::string> Transform::GetConstants(MatrixLayout)
+std::vector<const char*> Transform::GetConstants(MatrixLayout)
 {
     return matrixLayouts.GetNames();
 }
 
-StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM>::Entry
-    Transform::matrixLayoutEntries[] = {
-        { "row", MATRIX_ROW_MAJOR },
-        { "column", MATRIX_COLUMN_MAJOR },
-    };
+// clang-format off
+constexpr StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM>::Entry matrixLayoutEntries[] =
+{
+    { "row",    Transform::MatrixLayout::MATRIX_ROW_MAJOR    },
+    { "column", Transform::MatrixLayout::MATRIX_COLUMN_MAJOR },
+};
 
-StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM> Transform::matrixLayouts(
-    Transform::matrixLayoutEntries, sizeof(Transform::matrixLayoutEntries));
+const StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM> Transform::matrixLayouts(matrixLayoutEntries);
+// clang-format on

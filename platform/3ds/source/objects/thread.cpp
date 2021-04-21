@@ -25,7 +25,7 @@ void love::Thread::Wait()
     thread::Lock(this->mutex);
 
     this->running = false;
-    this->thread = nullptr;
+    this->thread  = nullptr;
 }
 
 bool love::Thread::Start()

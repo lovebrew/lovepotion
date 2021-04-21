@@ -141,9 +141,12 @@ bool Shader::GetConstant(StandardShader in, const char*& out)
     return shaderNames.Find(in, out);
 }
 
-StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry Shader::shaderEntries[] = {
-    { "default", STANDARD_DEFAULT }, { "texture", STANDARD_TEXTURE }
+// clang-format off
+constexpr StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry shaderEntries[] =
+{
+    { "default", Shader::StandardShader::STANDARD_DEFAULT },
+    { "texture", Shader::StandardShader::STANDARD_TEXTURE }
 };
 
-StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(
-    Shader::shaderEntries, sizeof(Shader::shaderEntries));
+const StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(shaderEntries);
+// clang-format on

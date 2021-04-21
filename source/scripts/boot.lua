@@ -302,11 +302,31 @@ end
 local utf8 = require("utf8")
 local debug, print, error = debug, print, error
 
+local function saveError(text)
+    if not love.filesystem then
+        return
+    end
+
+    love.filesystem.createDirectory("errors")
+
+    local date = os.date("%H%M%S_%m%d%y")
+    local filename = string.format("errors/love_error_%s.txt", date)
+
+    love.filesystem.write(filename, text)
+
+    return filename
+end
+
 local function error_printer(msg, layer)
     local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1))
     trace = trace:gsub("\n[^\n]+$", "")
 
     print(trace)
+
+    local f = io.open("log.txt", "w")
+    f:write(trace)
+    f:flush()
+    f:close()
 end
 
 function love.threaderror(t, err)
@@ -339,21 +359,6 @@ local function is3DHack()
         return love.graphics.get3D()
     end
     return true
-end
-
-local function saveError(text)
-    if not love.filesystem then
-        return
-    end
-
-    love.filesystem.createDirectory("errors")
-
-    local date = os.date("%H%M%S_%m%d%y")
-    local filename = string.format("errors/love_error_%s.txt", date)
-
-    love.filesystem.write(filename, text)
-
-    return filename
 end
 
 function love.errorhandler(message)
@@ -690,7 +695,8 @@ function love.init()
     -- load modules if they are configured to load
     for _, v in ipairs(modules) do
         if config.modules[v] then
-            pcall(function() require("love." .. v) end)
+            local success, result = pcall(function() require("love." .. v) end)
+            print(success, tostring(result))
         end
     end
 

@@ -199,7 +199,7 @@ namespace Luax
 
     int EnumError(lua_State* L, const char* enumName, const char* value);
 
-    int EnumError(lua_State* L, const char* enumName, const std::vector<std::string>& values,
+    int EnumError(lua_State* L, const char* enumName, const std::vector<const char*>& values,
                   const char* value);
 
     void PushType(lua_State* L, love::Type& type, love::Object* object);

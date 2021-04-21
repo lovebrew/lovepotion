@@ -4,11 +4,12 @@ AccessModifierOffset: '-2'
 AlignAfterOpenBracket: Align
 AlignConsecutiveMacros: 'true'
 AlignConsecutiveAssignments: 'true'
-AlignEscapedNewlines: Left
+AlignEscapedNewlines: 'Left'
 AlignTrailingComments: 'true'
 AllowAllArgumentsOnNextLine: 'true'
 AllowAllConstructorInitializersOnNextLine: 'false'
-AllowShortLambdasOnASingleLine: All
+AllowShortLambdasOnASingleLine: 'All'
+AlwaysBreakTemplateDeclarations: 'Yes'
 BinPackArguments: 'true'
 BinPackParameters: 'true'
 BraceWrapping:
@@ -28,9 +29,9 @@ BraceWrapping:
   SplitEmptyFunction: 'false'
   SplitEmptyRecord: 'true'
   SplitEmptyNamespace: 'false'
-BreakBeforeBraces: Custom
+BreakBeforeBraces: 'Custom'
 BreakBeforeTernaryOperators: 'true'
-IncludeBlocks:   Preserve
+IncludeBlocks:   'Preserve'
 IncludeCategories:
   - Regex:           '^"(llvm|llvm-c|clang|clang-c)/'
     Priority:        2
@@ -43,9 +44,9 @@ IncludeCategories:
     SortPriority:    0
 IncludeIsMainRegex: '(Test)?$'
 IncludeIsMainSourceRegex: ''
-BreakConstructorInitializers: AfterColon
-BreakInheritanceList: BeforeColon
-ColumnLimit: 100
+BreakConstructorInitializers: 'AfterColon'
+BreakInheritanceList: 'BeforeColon'
+ColumnLimit: '100'
 CommentPragmas:  '^ IWYU pragma:'
 CompactNamespaces: 'false'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
@@ -55,9 +56,9 @@ DerivePointerAlignment: 'false'
 IndentCaseLabels: 'true'
 IndentPPDirectives: 'BeforeHash'
 IndentWidth: '4'
-Language: Cpp
-NamespaceIndentation: All
-PointerAlignment: Left
+Language: 'Cpp'
+NamespaceIndentation: 'All'
+PointerAlignment: 'Left'
 SpaceAfterCStyleCast: 'false'
 SpaceAfterLogicalNot: 'false'
 SpaceAfterTemplateKeyword: 'false'
@@ -74,5 +75,5 @@ SpacesInParentheses: 'false'
 SpacesInSquareBrackets: 'false'
 Standard: Auto
 TabWidth: '4'
-UseTab: Never
+UseTab: 'Never'
 ...

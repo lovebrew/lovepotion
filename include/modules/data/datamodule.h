@@ -69,10 +69,10 @@ namespace love
 
         static bool GetConstant(data::ContainerType in, const char*& out);
         static bool GetConstant(const char* in, data::ContainerType& out);
-        static std::vector<std::string> GetConstants(data::ContainerType);
+        static std::vector<const char*> GetConstants(data::ContainerType);
 
         static bool GetConstant(data::EncodeFormat in, const char*& out);
         static bool GetConstant(const char* in, data::EncodeFormat& out);
-        static std::vector<std::string> GetConstants(data::EncodeFormat);
+        static std::vector<const char*> GetConstants(data::EncodeFormat);
     };
 } // namespace love

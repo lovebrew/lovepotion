@@ -39,15 +39,18 @@ bool Keyboard::GetConstant(KeyboardType in, const char*& out)
     return keyboardTypes.Find(in, out);
 }
 
-std::vector<std::string> Keyboard::GetConstants(KeyboardType)
+std::vector<const char*> Keyboard::GetConstants(KeyboardType)
 {
     return keyboardTypes.GetNames();
 }
 
-StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)>::Entry
-    Keyboard::keyboardTypeEntries[] = { { "normal", KeyboardType::TYPE_NORMAL },
-                                        { "qwerty", KeyboardType::TYPE_QWERTY },
-                                        { "numpad", KeyboardType::TYPE_NUMPAD } };
+// clang-format off
+constexpr StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES>::Entry keyboardTypeEntries[] =
+{
+    { "normal", Keyboard::KeyboardType::TYPE_NORMAL },
+    { "qwerty", Keyboard::KeyboardType::TYPE_QWERTY },
+    { "numpad", Keyboard::KeyboardType::TYPE_NUMPAD }
+};
 
-StringMap<Keyboard::KeyboardType, uint8_t(Keyboard::KeyboardType::TYPE_MAX_ENUM)> Keyboard::
-    keyboardTypes(Keyboard::keyboardTypeEntries, sizeof(Keyboard::keyboardTypeEntries));
+const StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES> Keyboard::keyboardTypes(keyboardTypeEntries);
+// clang-format on

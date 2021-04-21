@@ -608,16 +608,21 @@ bool HashFunction::GetConstant(const Function& in, const char*& out)
 {
     return functionNames.Find(in, out);
 }
-std::vector<std::string> HashFunction::GetConstants(Function)
+std::vector<const char*> HashFunction::GetConstants(Function)
 {
     return functionNames.GetNames();
 }
 
-StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM>::Entry
-    HashFunction::functionEntries[] = {
-        { "md5", FUNCTION_MD5 },       { "sha1", FUNCTION_SHA1 },     { "sha224", FUNCTION_SHA224 },
-        { "sha256", FUNCTION_SHA256 }, { "sha384", FUNCTION_SHA384 }, { "sha512", FUNCTION_SHA512 },
-    };
+// clang-format off
+constexpr StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM>::Entry functionEntries[] =
+{
+    { "md5",    HashFunction::Function::FUNCTION_MD5     },
+    { "sha1",   HashFunction::Function::FUNCTION_SHA1    },
+    { "sha224", HashFunction::Function::FUNCTION_SHA224  },
+    { "sha256", HashFunction::Function::FUNCTION_SHA256  },
+    { "sha384", HashFunction::Function:: FUNCTION_SHA384 },
+    { "sha512", HashFunction::Function::FUNCTION_SHA512  }
+};
 
-StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM> HashFunction::functionNames(
-    HashFunction::functionEntries, sizeof(HashFunction::functionEntries));
+const StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM> HashFunction::functionNames(functionEntries);
+// clang-format on

@@ -55,21 +55,23 @@ bool System::GetConstant(System::NetworkState in, const char*& out)
     return networkStates.Find(in, out);
 }
 
-StringMap<System::PowerState, System::POWER_MAX_ENUM>::Entry System::powerEntries[] = {
-    { "unknown", System::POWER_UNKNOWN },
-    { "battery", System::POWER_BATTERY },
-    { "charging", System::POWER_CHARGING },
-    { "charged", System::POWER_CHARGED }
+// clang-format off
+constexpr StringMap<System::PowerState, System::POWER_MAX_ENUM>::Entry powerEntries[] =
+{
+    { "unknown",  System::PowerState::POWER_UNKNOWN  },
+    { "battery",  System::PowerState::POWER_BATTERY  },
+    { "charged",  System::PowerState::POWER_CHARGED  },
+    { "charging", System::PowerState::POWER_CHARGING }
 };
 
-StringMap<System::PowerState, System::POWER_MAX_ENUM> System::powerStates(
-    System::powerEntries, sizeof(System::powerEntries));
+const StringMap<System::PowerState, System::POWER_MAX_ENUM> System::powerStates(powerEntries);
 
-StringMap<System::NetworkState, System::NETWORK_MAX_ENUM>::Entry System::networkEntries[] = {
-    { "unknown", System::NETWORK_UNKNOWN },
-    { "disconnected", System::NETWORK_DISCONNECTED },
-    { "connected", System::NETWORK_CONNECTED },
+constexpr StringMap<System::NetworkState, System::NETWORK_MAX_ENUM>::Entry networkEntries[] =
+{
+    { "unknown",      System::NetworkState::NETWORK_UNKNOWN      },
+    { "connected",    System::NetworkState::NETWORK_CONNECTED    },
+    { "disconnected", System::NetworkState::NETWORK_DISCONNECTED }
 };
 
-StringMap<System::NetworkState, System::NETWORK_MAX_ENUM> System::networkStates(
-    System::networkEntries, sizeof(System::networkEntries));
+const StringMap<System::NetworkState, System::NETWORK_MAX_ENUM> System::networkStates(networkEntries);
+// clang-format on

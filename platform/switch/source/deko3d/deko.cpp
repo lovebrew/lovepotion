@@ -19,7 +19,7 @@ namespace
     constexpr auto framebufferLayoutFlags =
         (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
 
-    uint32_t framebufferWidth = 1280;
+    uint32_t framebufferWidth  = 1280;
     uint32_t framebufferHeight = 720;
 } // namespace
 
@@ -93,8 +93,6 @@ deko3d& deko3d::Instance()
 void deko3d::CreateFramebufferResources()
 {
     /* initialize depth buffer */
-    LOG("Creating Framebuffers %lux%lu", framebufferWidth, framebufferHeight);
-
     dk::ImageLayout layout_depthbuffer;
     dk::ImageLayoutMaker { this->device }
         .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
@@ -108,7 +106,6 @@ void deko3d::CreateFramebufferResources()
                                        this->depthBuffer.memory.getOffset());
 
     /* Create a layout for the normal framebuffers */
-
     dk::ImageLayoutMaker { this->device }
         .setFlags(framebufferLayoutFlags)
         .setFormat(DkImageFormat_RGBA8_Unorm)
@@ -145,13 +142,13 @@ std::pair<uint32_t, uint32_t> deko3d::OnOperationMode(AppletOperationMode mode)
         default:
         case AppletOperationMode_Handheld:
         {
-            framebufferWidth = 1280;
+            framebufferWidth  = 1280;
             framebufferHeight = 720;
             break;
         }
         case AppletOperationMode_Console:
         {
-            framebufferWidth = 1920;
+            framebufferWidth  = 1920;
             framebufferHeight = 1080;
             break;
         }
@@ -159,17 +156,14 @@ std::pair<uint32_t, uint32_t> deko3d::OnOperationMode(AppletOperationMode mode)
 
     this->CreateFramebufferResources();
 
-    return {framebufferWidth, framebufferHeight};
+    return { framebufferWidth, framebufferHeight };
 }
 
 void deko3d::DestroyFramebufferResources()
 {
-    LOG("Try to Destroy Stuff");
     // Return early if we have nothing to destroy
     if (!this->swapchain)
         return;
-
-    LOG("Destroying Stuff");
 
     // Make sure the queue is idle before destroying anything
     this->queue.waitIdle();
@@ -630,7 +624,7 @@ void deko3d::SetViewport(const love::Rect& view)
     this->transformState.projMtx =
         glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
 
-    framebufferWidth = view.w;
+    framebufferWidth  = view.w;
     framebufferHeight = view.h;
 }
 

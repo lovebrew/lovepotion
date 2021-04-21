@@ -663,22 +663,19 @@ int Luax::EnumError(lua_State* L, const char* enumName, const char* value)
     return luaL_error(L, "Invalid %s: %s", enumName, value);
 }
 
-int Luax::EnumError(lua_State* L, const char* enumName, const std::vector<std::string>& values,
-                    const char* value)
+int Luax::EnumError(lua_State* L, const char* enumName,
+                    const std::vector<const char*>& values, const char* value)
 {
-    std::stringstream valueStream;
-
+    std::string enums;
     bool first = true;
 
-    for (auto value : values)
+    for (auto& item : values)
     {
-        valueStream << (first ? "'" : ", '") << value << "'";
+        enums += (first ? "'" : ", '") + std::string(item) + "'";
         first = false;
     }
 
-    std::string valueString = valueStream.str();
-    return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value,
-                      valueString.c_str());
+    return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value, enums.c_str());
 }
 
 void Luax::PushType(lua_State* L, love::Type& type, Object* object)

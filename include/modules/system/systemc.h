@@ -106,10 +106,7 @@ namespace love::common
         } systemInfo;
 
       private:
-        static StringMap<PowerState, POWER_MAX_ENUM>::Entry powerEntries[];
-        static StringMap<PowerState, POWER_MAX_ENUM> powerStates;
-
-        static StringMap<NetworkState, NETWORK_MAX_ENUM>::Entry networkEntries[];
-        static StringMap<NetworkState, NETWORK_MAX_ENUM> networkStates;
+        const static StringMap<PowerState, POWER_MAX_ENUM> powerStates;
+        const static StringMap<NetworkState, NETWORK_MAX_ENUM> networkStates;
     };
 } // namespace love::common

@@ -113,8 +113,6 @@ namespace love::common::driver
 
         virtual bool Poll(LOVE_Event* event) = 0;
 
-        virtual bool IsDown(size_t button) = 0;
-
         void SendFocus(bool focus);
 
         void SendQuit();
@@ -123,20 +121,20 @@ namespace love::common::driver
 
         void SendResize(int width, int height);
 
+#if defined(_3DS)
+        static constexpr uint8_t BUTTON_COUNT = 12;
+#elif defined(__SWITCH__)
+        static constexpr uint8_t BUTTON_COUNT = 16;
+#endif
+
       protected:
         bool hysteresis;
         std::list<LOVE_Event> events;
 
         struct ButtonState
         {
-            uint64_t oldPressed = -1;
-            uint64_t pressed = -1;
-
-            uint64_t oldReleased = -1;
-            uint64_t released = -1;
-
-            uint64_t oldHeld = -1;
-            uint64_t held = -1;
+            uint64_t oldPressed;
+            uint64_t oldReleased;
         } buttonStates;
     };
 } // namespace love::common::driver

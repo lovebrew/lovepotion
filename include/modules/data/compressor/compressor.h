@@ -37,14 +37,13 @@ namespace love
 
         static bool GetConstant(const char* in, Format& out);
         static bool GetConstant(Format in, const char*& out);
-        static std::vector<std::string> GetConstants(Format);
+        static std::vector<const char*> GetConstants(Format);
 
       protected:
         Compressor()
         {}
 
       private:
-        static StringMap<Format, FORMAT_MAX_ENUM>::Entry formatEntries[];
-        static StringMap<Format, FORMAT_MAX_ENUM> formatNames;
+        const static StringMap<Format, FORMAT_MAX_ENUM> formatNames;
     };
 } // namespace love

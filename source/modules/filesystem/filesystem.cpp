@@ -59,10 +59,7 @@ void Filesystem::Init(const char* arg0)
 
     this->exePath = arg0;
 
-    /*
-    ** NOTE:
-    ** Symlinks don't exist on 3DS/Switch
-    */
+    /* Symlinks don't exist on 3DS/Switch */
     this->SetSymLinksEnabled(false);
 }
 
@@ -531,18 +528,19 @@ bool Filesystem::GetConstant(FileType in, const char*& out)
     return fileTypes.Find(in, out);
 }
 
-std::vector<std::string> Filesystem::GetConstants(FileType)
+std::vector<const char*> Filesystem::GetConstants(FileType)
 {
     return fileTypes.GetNames();
 }
 
-StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry
-    Filesystem::fileTypeEntries[] = {
-        { "file", FILETYPE_FILE },
-        { "directory", FILETYPE_DIRECTORY },
-        { "symlink", FILETYPE_SYMLINK },
-        { "other", FILETYPE_OTHER },
-    };
+// clang-format off
+constexpr StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry fileTypeEntries[] =
+{
+    { "file",      Filesystem::FileType::FILETYPE_FILE      },
+    { "directory", Filesystem::FileType::FILETYPE_DIRECTORY },
+    { "symlink",   Filesystem::FileType::FILETYPE_SYMLINK   },
+    { "other",     Filesystem::FileType::FILETYPE_OTHER     },
+};
 
-StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(
-    Filesystem::fileTypeEntries, sizeof(Filesystem::fileTypeEntries));
+const StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(fileTypeEntries);
+// clang-format on

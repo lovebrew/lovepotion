@@ -606,9 +606,11 @@ Font* love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hinti
     return new Font(r.Get(), filter);
 }
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] = {
-    { "default", Screen::SCREEN_DEFAULT },
+// clang-format off
+constexpr StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry screenEntries[] =
+{
+    { "default", Graphics::Screen::SCREEN_DEFAULT }
 };
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(
-    Graphics::screenEntries, sizeof(Graphics::screenEntries));
+const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
+// clang-format on

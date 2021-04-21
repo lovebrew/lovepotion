@@ -289,19 +289,10 @@ bool File::GetConstant(Mode in, const char*& out)
     return modes.Find(in, out);
 }
 
-std::vector<std::string> File::GetConstants(Mode mode)
+std::vector<const char*> File::GetConstants(Mode mode)
 {
     return modes.GetNames();
 }
-
-StringMap<File::Mode, File::MODE_MAX_ENUM>::Entry File::modeEntries[] = {
-    { "c", MODE_CLOSED }, { "r", MODE_READ }, { "w", MODE_WRITE }, { "a", MODE_APPEND }
-};
-
-StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(File::modeEntries,
-                                                       sizeof(File::modeEntries));
-
-/* BUFFER MODES */
 
 bool File::GetConstant(const char* in, BufferMode& out)
 {
@@ -313,14 +304,27 @@ bool File::GetConstant(BufferMode in, const char*& out)
     return bufferModes.Find(in, out);
 }
 
-std::vector<std::string> File::GetConstants(BufferMode mode)
+std::vector<const char*> File::GetConstants(BufferMode mode)
 {
     return bufferModes.GetNames();
 }
 
-StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry File::bufferModeEntries[] = {
-    { "none", BUFFER_NONE }, { "line", BUFFER_LINE }, { "full", BUFFER_FULL }
+// clang-format off
+constexpr StringMap<File::Mode, File::MODE_MAX_ENUM>::Entry modeEntries[] =
+{
+    { "r", File::Mode::MODE_READ   },
+    { "w", File::Mode::MODE_WRITE  },
+    { "a", File::Mode::MODE_APPEND },
+    { "c", File::Mode::MODE_CLOSED }
 };
 
-StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(
-    File::bufferModeEntries, sizeof(File::bufferModeEntries));
+const StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(modeEntries);
+
+constexpr StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry bufferModeEntries[] =
+{
+    { "none", File::BufferMode::BUFFER_NONE },
+    { "line", File::BufferMode::BUFFER_LINE },
+    { "full", File::BufferMode::BUFFER_FULL }
+};
+
+const StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(bufferModeEntries);

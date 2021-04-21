@@ -192,20 +192,24 @@ namespace love::data
         }
     }
 
-    static StringMap<EncodeFormat, ENCODE_MAX_ENUM>::Entry encoderEntries[] = {
-        { "base64", ENCODE_BASE64 },
-        { "hex", ENCODE_HEX },
+    // clang-format off
+    constexpr StringMap<EncodeFormat, ENCODE_MAX_ENUM>::Entry encoderEntries[] =
+    {
+        { "hex",    data::EncodeFormat::ENCODE_HEX    },
+        { "base64", data::EncodeFormat::ENCODE_BASE64 },
     };
 
-    static StringMap<EncodeFormat, ENCODE_MAX_ENUM> encoders(encoderEntries,
-                                                             sizeof(encoderEntries));
+    const static StringMap<EncodeFormat, ENCODE_MAX_ENUM> encoders(encoderEntries);
 
-    static StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM>::Entry containerEntries[] = {
-        { "string", ContainerType::CONTAINER_STRING }, { "data", ContainerType::CONTAINER_DATA }
+    constexpr StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM>::Entry containerEntries[] =
+    {
+        { "data",   data::ContainerType::CONTAINER_DATA   },
+        { "string", data::ContainerType::CONTAINER_STRING }
     };
 
-    static StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM> containers(
-        containerEntries, sizeof(containerEntries));
+    static StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM> containers(containerEntries);
+    // clang-format on
+
 } // namespace love::data
 
 using namespace love;
@@ -235,7 +239,7 @@ bool DataModule::GetConstant(const char* in, data::ContainerType& out)
     return data::containers.Find(in, out);
 }
 
-std::vector<std::string> DataModule::GetConstants(data::ContainerType)
+std::vector<const char*> DataModule::GetConstants(data::ContainerType)
 {
     return data::containers.GetNames();
 }
@@ -250,7 +254,7 @@ bool DataModule::GetConstant(data::EncodeFormat in, const char*& out)
     return data::encoders.Find(in, out);
 }
 
-std::vector<std::string> DataModule::GetConstants(data::EncodeFormat)
+std::vector<const char*> DataModule::GetConstants(data::EncodeFormat)
 {
     return data::encoders.GetNames();
 }

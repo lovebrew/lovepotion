@@ -73,7 +73,7 @@ Graphics::Screen love::citro2d::Graphics::GetActiveScreen() const
     }
 }
 
-std::vector<std::string> love::citro2d::Graphics::GetScreens() const
+std::vector<const char*> love::citro2d::Graphics::GetScreens() const
 {
     auto constants = (this->Get3D())
                          ? love::Graphics::GetConstants(Screen::SCREEN_MAX_ENUM)
@@ -394,28 +394,30 @@ bool love::citro2d::Graphics::GetConstant(Screen in, const char*& out)
     return plainScreens.Find(in, out);
 }
 
-std::vector<std::string> love::citro2d::Graphics::GetConstants(Screen)
+std::vector<const char*> love::citro2d::Graphics::GetConstants(Screen)
 {
     return plainScreens.GetNames();
 }
 
 /* 2D Screens */
 
-StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::Entry
-    love::citro2d::Graphics::plainScreenEntries[] = { { "top", Screen::SCREEN_LEFT },
-                                                      { "bottom", Screen::SCREEN_BOTTOM } };
+// clang-format off
+constexpr StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::Entry plainScreenEntries[] =
+{
+    { "top",    Graphics::Screen::SCREEN_LEFT   },
+    { "bottom", Graphics::Screen::SCREEN_BOTTOM }
+};
 
-StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::
-    plainScreens(love::citro2d::Graphics::plainScreenEntries,
-                 sizeof(love::citro2d::Graphics::plainScreenEntries));
+const StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::plainScreens(plainScreenEntries);
 
 /* "3D" Screens */
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry Graphics::screenEntries[] = {
-    { "left", Screen::SCREEN_LEFT },
-    { "right", Screen::SCREEN_RIGHT },
-    { "bottom", Screen::SCREEN_BOTTOM }
+constexpr StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry screenEntries[] =
+{
+    { "left",   Graphics::Screen::SCREEN_LEFT   },
+    { "right",  Graphics::Screen::SCREEN_RIGHT  },
+    { "bottom", Graphics::Screen::SCREEN_BOTTOM }
 };
 
-StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(
-    Graphics::screenEntries, sizeof(Graphics::screenEntries));
+const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
+// clang-format on

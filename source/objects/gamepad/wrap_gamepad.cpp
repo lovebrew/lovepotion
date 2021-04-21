@@ -57,7 +57,7 @@ int Wrap_Gamepad::GetGamepadAxis(lua_State* L)
     const char* str = luaL_checkstring(L, 2);
     Gamepad::GamepadAxis axis;
 
-    if (!common::Gamepad::GetConstant(str, axis))
+    if (!Gamepad::GetConstant(str, axis))
         return Luax::EnumError(L, "gamepad axis", str);
 
     lua_pushnumber(L, self->GetGamepadAxis(axis));
@@ -197,7 +197,7 @@ int Wrap_Gamepad::IsGamepadDown(lua_State* L)
             lua_rawgeti(L, 2, i + 1);
             const char* str = luaL_checkstring(L, -1);
 
-            if (!common::Gamepad::GetConstant(str, button))
+            if (!Gamepad::GetConstant(str, button))
                 return Luax::EnumError(L, "gamepad button", str);
 
             buttons.push_back(button);
@@ -211,7 +211,7 @@ int Wrap_Gamepad::IsGamepadDown(lua_State* L)
         {
             const char* str = luaL_checkstring(L, i + 2);
 
-            if (!common::Gamepad::GetConstant(str, button))
+            if (!Gamepad::GetConstant(str, button))
                 return Luax::EnumError(L, "gamepad button", str);
 
             buttons.push_back(button);

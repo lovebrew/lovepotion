@@ -315,7 +315,7 @@ void Source::Stop(Pool* pool)
     Source::Stop(pool->GetPlayingSources());
 }
 
-/* CONSTANTS */
+/* Type Constants */
 
 bool Source::GetConstant(const char* in, Type& out)
 {
@@ -327,16 +327,12 @@ bool Source::GetConstant(Type in, const char*& out)
     return types.Find(in, out);
 }
 
-std::vector<std::string> Source::GetConstants(Type)
+std::vector<const char*> Source::GetConstants(Type)
 {
     return types.GetNames();
 }
 
-StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry Source::typeEntries[] = {
-    { "static", Source::TYPE_STATIC },
-    { "stream", Source::TYPE_STREAM },
-    { "queue", Source::TYPE_QUEUE },
-};
+/* Unit Constants */
 
 bool Source::GetConstant(const char* in, Unit& out)
 {
@@ -348,18 +344,26 @@ bool Source::GetConstant(Unit in, const char*& out)
     return units.Find(in, out);
 }
 
-std::vector<std::string> Source::GetConstants(Unit)
+std::vector<const char*> Source::GetConstants(Unit)
 {
     return units.GetNames();
 }
 
-StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(Source::typeEntries,
-                                                             sizeof(Source::typeEntries));
-
-StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry Source::unitEntries[] = {
-    { "seconds", Source::UNIT_SECONDS },
-    { "samples", Source::UNIT_SAMPLES },
+// clang-format off
+constexpr StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry typeEntries[] =
+{
+    { "static", Source::Type::TYPE_STATIC },
+    { "stream", Source::Type::TYPE_STREAM },
+    { "queue",  Source::Type::TYPE_QUEUE  }
 };
 
-StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(Source::unitEntries,
-                                                             sizeof(Source::unitEntries));
+const StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(typeEntries);
+
+constexpr StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry unitEntries[] =
+{
+    { "seconds", Source::Unit::UNIT_SECONDS },
+    { "samples", Source::Unit::UNIT_SAMPLES },
+};
+
+const StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(unitEntries);
+// clang-format on

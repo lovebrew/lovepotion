@@ -3,6 +3,32 @@
 #include "common/enummap.h"
 #include "objects/gamepad/gamepadc.h"
 
+enum class love::common::Gamepad::GamepadAxis : uint64_t
+{
+    GAMEPAD_AXIS_LEFTX        = KEY_CPAD_LEFT | KEY_CPAD_RIGHT,
+    GAMEPAD_AXIS_LEFTY        = KEY_CPAD_UP | KEY_CPAD_DOWN,
+    GAMEPAD_AXIS_RIGHTX       = KEY_CSTICK_LEFT | KEY_CSTICK_RIGHT,
+    GAMEPAD_AXIS_RIGHTY       = KEY_CSTICK_UP | KEY_CSTICK_DOWN,
+    GAMEPAD_AXIS_TRIGGERLEFT  = KEY_ZL,
+    GAMEPAD_AXIS_TRIGGERRIGHT = KEY_ZR
+};
+
+enum class love::common::Gamepad::GamepadButton : uint64_t
+{
+    GAMEPAD_BUTTON_A              = KEY_A,
+    GAMEPAD_BUTTON_B              = KEY_B,
+    GAMEPAD_BUTTON_X              = KEY_X,
+    GAMEPAD_BUTTON_Y              = KEY_Y,
+    GAMEPAD_BUTTON_BACK           = KEY_SELECT,
+    GAMEPAD_BUTTON_START          = KEY_START,
+    GAMEPAD_BUTTON_LEFT_SHOULDER  = KEY_L,
+    GAMEPAD_BUTTON_RIGHT_SHOULDER = KEY_R,
+    GAMEPAD_BUTTON_DPAD_UP        = KEY_DUP,
+    GAMEPAD_BUTTON_DPAD_RIGHT     = KEY_DRIGHT,
+    GAMEPAD_BUTTON_DPAD_DOWN      = KEY_DDOWN,
+    GAMEPAD_BUTTON_DPAD_LEFT      = KEY_DLEFT
+};
+
 namespace love
 {
     class Gamepad : public common::Gamepad
@@ -32,6 +58,12 @@ namespace love
 
         std::vector<float> GetAxes() const override;
 
+        bool IsDown(std::pair<const char*, size_t>& button) override;
+
+        bool IsHeld(std::pair<const char*, size_t>& button) override;
+
+        bool IsUp(std::pair<const char*, size_t>& button) override;
+
         bool IsDown(const std::vector<size_t>& buttons) const override;
 
         float GetGamepadAxis(GamepadAxis axis) const override;
@@ -46,11 +78,18 @@ namespace love
 
         void GetVibration(float& left, float& right) override;
 
-        static bool GetConstant(int32_t in, GamepadButton& out);
-        static bool GetConstant(GamepadButton in, int32_t& out);
+        static bool GetConstant(const char* in, GamepadAxis& out);
+        static bool GetConstant(GamepadAxis in, const char*& out);
+
+        static bool GetConstant(const char* in, GamepadButton& out);
+        static bool GetConstant(GamepadButton in, const char*& out);
+
+        static constexpr uint8_t MAX_BUTTONS = 12;
+        static constexpr uint8_t MAX_AXES    = 6;
 
       private:
-        static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM>::Entry buttonEntries[];
-        static EnumMap<GamepadButton, int32_t, GAMEPAD_BUTTON_MAX_ENUM> buttons;
+
+        const static StringMap<GamepadAxis, MAX_AXES> axes;
+        const static StringMap<GamepadButton, MAX_BUTTONS> buttons;
     };
 } // namespace love

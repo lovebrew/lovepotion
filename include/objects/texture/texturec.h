@@ -83,15 +83,15 @@ namespace love::common
 
         static bool GetConstant(const char* in, TextureType& out);
         static bool GetConstant(TextureType in, const char*& out);
-        static std::vector<std::string> GetConstants(TextureType t);
+        static std::vector<const char*> GetConstants(TextureType);
 
         static bool GetConstant(const char* in, FilterMode& out);
         static bool GetConstant(FilterMode in, const char*& out);
-        static std::vector<std::string> GetConstants(FilterMode f);
+        static std::vector<const char*> GetConstants(FilterMode);
 
         static bool GetConstant(const char* in, WrapMode& out);
         static bool GetConstant(WrapMode in, const char*& out);
-        static std::vector<std::string> GetConstants(WrapMode w);
+        static std::vector<const char*> GetConstants(WrapMode);
 
       protected:
         TextureType texType;
@@ -107,13 +107,8 @@ namespace love::common
         void InitQuad();
 
       private:
-        static StringMap<TextureType, TEXTURE_MAX_ENUM>::Entry texTypeEntries[];
-        static StringMap<TextureType, TEXTURE_MAX_ENUM> texTypes;
-
-        static StringMap<FilterMode, FILTER_MAX_ENUM>::Entry filterModeEntries[];
-        static StringMap<FilterMode, FILTER_MAX_ENUM> filterModes;
-
-        static StringMap<WrapMode, WRAP_MAX_ENUM>::Entry wrapModeEntries[];
-        static StringMap<WrapMode, WRAP_MAX_ENUM> wrapModes;
+        const static StringMap<TextureType, TEXTURE_MAX_ENUM> texTypes;
+        const static StringMap<FilterMode, FILTER_MAX_ENUM> filterModes;
+        const static StringMap<WrapMode, WRAP_MAX_ENUM> wrapModes;
     };
 } // namespace love::common

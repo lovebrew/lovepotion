@@ -119,10 +119,9 @@ namespace love
         /* Helper Functions */
 
         static bool GetConstant(const char* in, FileType& out);
-
         static bool GetConstant(FileType in, const char*& out);
 
-        static std::vector<std::string> GetConstants(FileType);
+        static std::vector<const char*> GetConstants(FileType);
 
       private:
         std::string identity;
@@ -146,7 +145,6 @@ namespace love
 
         std::string GetAppDataDirectory();
 
-        static StringMap<FileType, FILETYPE_MAX_ENUM>::Entry fileTypeEntries[];
-        static StringMap<FileType, FILETYPE_MAX_ENUM> fileTypes;
+        const static StringMap<FileType, FILETYPE_MAX_ENUM> fileTypes;
     };
 } // namespace love

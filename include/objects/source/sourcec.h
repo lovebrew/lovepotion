@@ -121,11 +121,11 @@ namespace love
 
             static bool GetConstant(const char* in, Type& out);
             static bool GetConstant(Type in, const char*& out);
-            static std::vector<std::string> GetConstants(Type);
+            static std::vector<const char*> GetConstants(Type);
 
             static bool GetConstant(const char* in, Unit& out);
             static bool GetConstant(Unit in, const char*& out);
-            static std::vector<std::string> GetConstants(Unit);
+            static std::vector<const char*> GetConstants(Unit);
 
             virtual bool Update() = 0;
 
@@ -180,11 +180,8 @@ namespace love
             void TeardownAtomic();
 
           private:
-            static StringMap<Type, TYPE_MAX_ENUM>::Entry typeEntries[];
-            static StringMap<Type, TYPE_MAX_ENUM> types;
-
-            static StringMap<Unit, UNIT_MAX_ENUM>::Entry unitEntries[];
-            static StringMap<Unit, UNIT_MAX_ENUM> units;
+            const static StringMap<Type, TYPE_MAX_ENUM> types;
+            const static StringMap<Unit, UNIT_MAX_ENUM> units;
         };
     } // namespace common
 } // namespace love

@@ -69,11 +69,11 @@ namespace love::common
 
         static bool GetConstant(const char* in, AlignMode& out);
         static bool GetConstant(AlignMode in, const char*& out);
-        static std::vector<std::string> GetConstants(AlignMode);
+        static std::vector<const char*> GetConstants(AlignMode);
 
         static bool GetConstant(const char* in, SystemFontType& out);
         static bool GetConstant(SystemFontType in, const char*& out);
-        static std::vector<std::string> GetConstants(SystemFontType);
+        static std::vector<const char*> GetConstants(SystemFontType);
 
         static int fontCount;
 
@@ -81,10 +81,7 @@ namespace love::common
         float lineHeight;
         Texture::Filter filter;
 
-        static StringMap<AlignMode, ALIGN_MAX_ENUM>::Entry alignModeEntries[];
-        static StringMap<AlignMode, ALIGN_MAX_ENUM> alignModes;
-
-        static StringMap<SystemFontType, MAX_SYSFONTS>::Entry sharedFontEntries[];
-        static StringMap<SystemFontType, MAX_SYSFONTS> sharedFonts;
+        const static StringMap<AlignMode, ALIGN_MAX_ENUM> alignModes;
+        const static StringMap<SystemFontType, MAX_SYSFONTS> sharedFonts;
     };
 } // namespace love::common

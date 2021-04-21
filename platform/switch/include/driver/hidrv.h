@@ -15,22 +15,16 @@ namespace love::driver
 
         bool Poll(LOVE_Event* event) override;
 
-        bool IsDown(size_t button) override;
-
       private:
         void CheckFocus();
 
         static constexpr int MAX_TOUCHES = 16;
-
-        HidAnalogStickState sticks[2];
-        HidAnalogStickState oldSticks[2];
 
         HidTouchScreenState touchState;
 
         std::array<HidTouchState, MAX_TOUCHES> stateTouches;
         std::array<HidTouchState, MAX_TOUCHES> oldStateTouches;
 
-        PadState currentPad;
         size_t currentPadIndex;
 
         int prevTouchCount;

@@ -8,51 +8,16 @@ namespace love::common
     class Gamepad : public Object
     {
       public:
-        enum GamepadAxis
-        {
-            GAMEPAD_AXIS_INVALID,
-            GAMEPAD_AXIS_LEFTX,
-            GAMEPAD_AXIS_LEFTY,
-            GAMEPAD_AXIS_RIGHTX,
-            GAMEPAD_AXIS_RIGHTY,
-            GAMEPAD_AXIS_TRIGGERLEFT,  //< zl button
-            GAMEPAD_AXIS_TRIGGERRIGHT, //< zr button
-            GAMEPAD_AXIS_MAX_ENUM
-        };
-
-        enum GamepadButton
-        {
-            GAMEPAD_BUTTON_INVALID,
-
-            GAMEPAD_BUTTON_A,
-            GAMEPAD_BUTTON_B,
-            GAMEPAD_BUTTON_X,
-            GAMEPAD_BUTTON_Y,
-
-            GAMEPAD_BUTTON_BACK,  //< select/minus
-            GAMEPAD_BUTTON_GUIDE, //< home
-            GAMEPAD_BUTTON_START, //< start/plus
-
-            GAMEPAD_BUTTON_LEFTSTICK,
-            GAMEPAD_BUTTON_RIGHTSTICK,
-
-            GAMEPAD_BUTTON_LEFTSHOULDER,  //< l button
-            GAMEPAD_BUTTON_RIGHTSHOULDER, //< r button
-
-            GAMEPAD_BUTTON_DPAD_UP,
-            GAMEPAD_BUTTON_DPAD_DOWN,
-            GAMEPAD_BUTTON_DPAD_LEFT,
-            GAMEPAD_BUTTON_DPAD_RIGHT,
-
-            GAMEPAD_BUTTON_MAX_ENUM
-        };
-
         enum InputType
         {
             INPUT_TYPE_AXIS,
             INPUT_TYPE_BUTTON,
             INPUT_TYPE_MAX_ENUM
         };
+
+        enum class GamepadAxis : uint64_t;
+
+        enum class GamepadButton : uint64_t;
 
         struct GamepadInput
         {
@@ -135,14 +100,22 @@ namespace love::common
 
         virtual void GetVibration(float& left, float& right) = 0;
 
+        /* helpers */
+
+        virtual bool IsDown(std::pair<const char*, size_t>& button) = 0;
+
+        virtual bool IsHeld(std::pair<const char*, size_t>& button) = 0;
+
+        virtual bool IsUp(std::pair<const char*, size_t>& button) = 0;
+
+        static bool GetConstant(const char* in, InputType& out);
+        static bool GetConstant(InputType in, const char*& out);
+
         static bool GetConstant(const char* in, GamepadAxis& out);
         static bool GetConstant(GamepadAxis in, const char*& out);
 
         static bool GetConstant(const char* in, GamepadButton& out);
         static bool GetConstant(GamepadButton in, const char*& out);
-
-        static bool GetConstant(const char* in, InputType& out);
-        static bool GetConstant(InputType in, const char*& out);
 
         static float ClampValue(float x);
 
@@ -159,13 +132,6 @@ namespace love::common
         Gamepad()
         {}
 
-        static StringMap<GamepadAxis, GAMEPAD_AXIS_MAX_ENUM>::Entry axisEntries[];
-        static StringMap<GamepadAxis, GAMEPAD_AXIS_MAX_ENUM> axes;
-
-        static StringMap<GamepadButton, GAMEPAD_BUTTON_MAX_ENUM>::Entry buttonEntries[];
-        static StringMap<GamepadButton, GAMEPAD_BUTTON_MAX_ENUM> buttons;
-
-        static StringMap<InputType, INPUT_TYPE_MAX_ENUM>::Entry inputTypeEntries[];
-        static StringMap<InputType, INPUT_TYPE_MAX_ENUM> inputTypes;
+        const static StringMap<InputType, INPUT_TYPE_MAX_ENUM> inputTypes;
     };
 } // namespace love::common

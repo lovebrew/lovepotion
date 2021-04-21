@@ -11,47 +11,8 @@ using namespace love::driver;
 
 #define MODULE() love::Module::GetInstance<love::Joystick>(love::Module::M_JOYSTICK)
 
-static constexpr std::array<Hidrv::ButtonMapping, 16> mappings = {
-    { { "a", HidNpadButton_A, 1 },
-      { "b", HidNpadButton_B, 2 },
-      { "x", HidNpadButton_X, 3 },
-      { "y", HidNpadButton_Y, 4 },
-
-      { "leftshoulder", HidNpadButton_L, 5 },
-      { "rightshoulder", HidNpadButton_R, 6 },
-
-      { "back", HidNpadButton_Minus, 7 },
-      { "start", HidNpadButton_Plus, 8 },
-
-      { "leftstick", HidNpadButton_StickL, 9 },
-      { "rightstick", HidNpadButton_StickR, 10 },
-
-      { "dpright", HidNpadButton_Right, -1 },
-      { "dpleft", HidNpadButton_Left, -1 },
-      { "dpup", HidNpadButton_Up, -1 },
-      { "dpdown", HidNpadButton_Down, -1 },
-
-      { "leftshoulder", HidNpadButton_AnySL, 5 },
-      { "rightshoulder", HidNpadButton_AnySR, 6 } }
-};
-
-#include "common/debug/logger.h"
-
-Hidrv::Hidrv() :
-    sticks {},
-    oldSticks {},
-    touchState {},
-    oldStateTouches {},
-    currentPad {},
-    currentPadIndex(0),
-    prevTouchCount(0)
+Hidrv::Hidrv() : touchState {}, oldStateTouches {}, currentPadIndex(0), prevTouchCount(0)
 {}
-
-bool Hidrv::IsDown(size_t button)
-{
-    size_t index = std::clamp((int)button - 1, 0, 9);
-    return this->buttonStates.held & mappings[index].key;
-}
 
 void Hidrv::CheckFocus()
 {
@@ -124,36 +85,6 @@ bool Hidrv::Poll(LOVE_Event* event)
     /* applet focus handling */
     this->CheckFocus();
 
-    if (!MODULE())
-        return false;
-
-    if (this->currentPadIndex > 3)
-        this->currentPadIndex = 0;
-
-    Gamepad* gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
-    bool connected   = false;
-
-    if (gamepad != nullptr)
-    {
-        bool initialStatus = gamepad->IsConnected();
-
-        this->currentPad = gamepad->GetPadState();
-        padUpdate(&this->currentPad);
-
-        connected = gamepad->IsConnected();
-
-        /* connection status changed */
-        if (connected != initialStatus)
-        {
-            auto& newEvent = this->events.emplace_back();
-
-            newEvent.type = (connected) ? TYPE_GAMEPADADDED : TYPE_GAMEPADREMOVED;
-
-            newEvent.padStatus.which     = gamepad->GetID();
-            newEvent.padStatus.connected = connected;
-        }
-    }
-
     /* touch screen */
     hidGetTouchScreenStates(&touchState, 1);
     int touchCount = touchState.count;
@@ -218,115 +149,70 @@ bool Hidrv::Poll(LOVE_Event* event)
 
     this->prevTouchCount = touchCount;
 
-    /* handle button inputs */
+    /* shouldn't happen, but eh */
+    if (!MODULE())
+        return false;
+
+    if (this->currentPadIndex > 3)
+        this->currentPadIndex = 0;
+
+    Gamepad* gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
+
     if (gamepad && gamepad->IsConnected())
     {
-        this->buttonStates.pressed  = padGetButtonsDown(&this->currentPad);
-        this->buttonStates.released = padGetButtonsUp(&this->currentPad);
-        this->buttonStates.held     = padGetButtons(&this->currentPad);
+        gamepad->UpdatePadState();
 
-        for (auto& mapping : mappings)
+        /* handle button inputs */
+
+        std::pair<const char*, size_t> button;
+
+        if (gamepad->IsDown(button))
         {
-            if (this->buttonStates.pressed != this->buttonStates.oldPressed &&
-                (this->buttonStates.pressed & mapping.key))
-            {
-                auto& newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
-                newEvent.type = TYPE_GAMEPADDOWN;
+            newEvent.type = TYPE_GAMEPADDOWN;
 
-                newEvent.button.name   = mapping.name;
-                newEvent.button.which  = gamepad->GetID();
-                newEvent.button.button = mapping.index;
-            }
+            newEvent.button.name   = button.first;
+            newEvent.button.which  = gamepad->GetID();
+            newEvent.button.button = button.second;
         }
 
-        for (auto& mapping : mappings)
+        if (gamepad->IsUp(button))
         {
-            if (this->buttonStates.released != this->buttonStates.oldReleased &&
-                (this->buttonStates.released & mapping.key))
-            {
-                auto& newEvent = this->events.emplace_back();
+            auto& newEvent = this->events.emplace_back();
 
-                newEvent.type = TYPE_GAMEPADUP;
+            newEvent.type = TYPE_GAMEPADUP;
 
-                newEvent.button.name   = mapping.name;
-                newEvent.button.which  = gamepad->GetID();
-                newEvent.button.button = mapping.index;
-            }
+            newEvent.button.name   = button.first;
+            newEvent.button.which  = gamepad->GetID();
+            newEvent.button.button = button.second;
         }
 
-        /* axes */
-        if ((this->buttonStates.pressed != this->buttonStates.oldPressed &&
-             (this->buttonStates.pressed & HidNpadButton_ZL)) ||
-            (this->buttonStates.released != this->buttonStates.oldReleased &&
-             (this->buttonStates.released & HidNpadButton_ZL)))
+        /* handle gamepad triggers */
+
+        /* handle gamepad sticks */
+        for (size_t i = 1; i <= 4; i++)
         {
             auto& newEvent = this->events.emplace_back();
 
             newEvent.type = TYPE_GAMEPADAXIS;
 
-            newEvent.axis.which  = gamepad->GetID();
-            newEvent.axis.axis   = "triggerleft";
-            newEvent.axis.number = 3;
+            newEvent.axis.which = gamepad->GetID();
 
-            float value         = (this->buttonStates.pressed & HidNpadButton_ZL) ? 1.0f : 0.0f;
-            newEvent.axis.value = value;
-        }
+            const char* name   = (i < 3) ? "left" : "right";
+            const char* direction   = ((i % 2) != 0) ? "x" : "y";
 
-        if ((this->buttonStates.pressed != this->buttonStates.oldPressed &&
-             (this->buttonStates.pressed & HidNpadButton_ZR)) ||
-            (this->buttonStates.released != this->buttonStates.oldReleased &&
-             (this->buttonStates.released & HidNpadButton_ZR)))
-        {
-            auto& newEvent = this->events.emplace_back();
+            size_t len = strlen(name) + strlen(direction) + 1;
+            char* axis = (char*)malloc(len); // include null term
 
-            newEvent.type = TYPE_GAMEPADAXIS;
+            strcpy(axis, name);
+            strcat(axis, direction);
 
-            newEvent.axis.which  = gamepad->GetID();
-            newEvent.axis.axis   = "triggerright";
-            newEvent.axis.number = 6;
+            newEvent.axis.axis = axis;
+            newEvent.axis.value = gamepad->GetAxis(i);
+            newEvent.axis.number = i;
 
-            float value         = (this->buttonStates.pressed & HidNpadButton_ZR) ? 1.0f : 0.0f;
-            newEvent.axis.value = value;
-        }
-
-        this->buttonStates.oldPressed  = this->buttonStates.pressed;
-        this->buttonStates.oldReleased = this->buttonStates.released;
-
-        /* handle stick inputs */
-        for (size_t index = 0; index < 2; index++)
-        {
-            this->sticks[index] = padGetStickPos(&this->currentPad, index);
-
-            if (this->oldSticks[index].x != this->sticks[index].x)
-            {
-                auto& newEvent = this->events.emplace_back();
-
-                newEvent.type = TYPE_GAMEPADAXIS;
-
-                newEvent.axis.which = gamepad->GetID();
-
-                newEvent.axis.number = (index == 1) ? 5 : 2;
-                newEvent.axis.axis   = (index == 1) ? "rightx" : "leftx";
-                newEvent.axis.value  = this->sticks[index].x / JOYSTICK_MAX;
-
-                oldSticks[index].x = sticks[index].x;
-            }
-
-            if (this->oldSticks[index].y != this->sticks[index].y)
-            {
-                auto& newEvent = this->events.emplace_back();
-
-                newEvent.type = TYPE_GAMEPADAXIS;
-
-                newEvent.axis.which = gamepad->GetID();
-
-                newEvent.axis.number = (index == 1) ? 4 : 1;
-                newEvent.axis.axis   = (index == 1) ? "righty" : "lefty";
-                newEvent.axis.value  = -(this->sticks[index].y / JOYSTICK_MAX);
-
-                oldSticks[index].y = sticks[index].y;
-            }
+            free(axis);
         }
     }
 

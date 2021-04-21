@@ -8,8 +8,9 @@
 
 using namespace love;
 
-#define JOYSTICK_MODULE() (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
-#define EVENT_MODULE()    (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define JOYSTICK_MODULE()      (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
+#define EVENT_MODULE()         (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define INVALID_GAMEPAD_BUTTON static_cast<HidNpadButton>(-1)
 
 Gamepad::Gamepad(size_t id) :
     common::Gamepad(id),
@@ -30,9 +31,12 @@ Gamepad::~Gamepad()
     this->Close();
 }
 
-PadState& Gamepad::GetPadState()
+void Gamepad::UpdatePadState()
 {
-    return this->pad;
+    if (!this->IsConnected())
+        return;
+
+    padUpdate(&this->pad);
 }
 
 const HidNpadStyleTag Gamepad::GetStyleTag() const
@@ -167,7 +171,7 @@ size_t Gamepad::GetAxisCount() const
 
 size_t Gamepad::GetButtonCount() const
 {
-    return this->IsConnected() ? GAMEPAD_BUTTON_MAX_ENUM - 6 : 0;
+    return this->IsConnected() ? 16 - 6 : 0;
 }
 
 float Gamepad::GetAxis(size_t axis) const
@@ -179,7 +183,7 @@ float Gamepad::GetAxis(size_t axis) const
 
     if (axis == 1 || axis == 2)
     {
-        HidAnalogStickState left = padGetStickPos(&pad, 0);
+        HidAnalogStickState left = padGetStickPos(&this->pad, 0);
 
         if (axis == 1)
             value = left.x;
@@ -190,7 +194,7 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 3 || axis == 4)
     {
-        HidAnalogStickState right = padGetStickPos(&pad, 1);
+        HidAnalogStickState right = padGetStickPos(&this->pad, 1);
 
         if (axis == 3)
             value = right.x;
@@ -278,37 +282,97 @@ std::vector<float> Gamepad::GetAxes() const
     return axes;
 }
 
+/* helper functions */
+bool Gamepad::IsDown(std::pair<const char*, size_t>& button)
+{
+    if (!this->IsConnected())
+        return false;
+
+    uint64_t pressedSet = padGetButtonsDown(&this->pad);
+    HidNpadButton hidButton;
+
+    auto records = buttons.GetRecords();
+    for (size_t i = 0; i < records.second; i++)
+    {
+        auto& record = records.first;
+        if ((hidButton = static_cast<HidNpadButton>(record.value)) & pressedSet)
+            button = { record.key, record.index };
+    }
+
+    return (pressedSet & hidButton);
+}
+
+// bool Gamepad::IsUp(std::pair<const char*, size_t>& button)
+// {
+//     if (!this->IsConnected())
+//         return false;
+
+//     uint64_t releasedSet    = padGetButtonsUp(&this->pad);
+//     HidNpadButton hidButton;
+
+//     for (auto& item : buttonEntries)
+//     {
+//         if ((hidButton = static_cast<HidNpadButton>(item.value)) & releasedSet)
+//             button = { item.key, item.index };
+//     }
+
+//     return (releasedSet & hidButton);
+// }
+
+// bool Gamepad::IsHeld(std::pair<const char*, size_t>& button)
+// {
+//     if (!this->IsConnected())
+//         return false;
+
+//     uint64_t heldSet = padGetButtons(&this->pad);
+//     HidNpadButton hidButton;
+
+//     for (auto& item : buttonEntries)
+//     {
+//         if ((hidButton = static_cast<HidNpadButton>(item.value)) & heldSet)
+//             button = { item.key, item.index };
+//     }
+
+//     return (heldSet & hidButton);
+// }
+
 bool Gamepad::IsDown(const std::vector<size_t>& buttons) const
 {
     size_t buttonCount = this->GetButtonCount();
+    uint64_t heldSet   = padGetButtons(&this->pad);
 
     for (size_t button : buttons)
     {
         if (button < 0 || button >= buttonCount)
             continue;
 
-        return EVENT_MODULE()->GetDriver()->IsDown(button);
+        size_t index = std::clamp((int)button - 1, 0, (int)buttonCount);
+        return heldSet & static_cast<HidNpadButton>(Gamepad::buttonEntries[index].value);
     }
 
     return false;
 }
 
-float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
+float Gamepad::GetGamepadAxis(GamepadAxis axis) const
 {
     const char* name = nullptr;
-    if (!common::Gamepad::GetConstant(axis, name))
+    if (!Gamepad::GetConstant(axis, name))
         return 0.0f;
 
     switch (axis)
     {
-        case GAMEPAD_AXIS_LEFTX:
+        case GamepadAxis::GAMEPAD_AXIS_LEFTX:
             return this->GetAxis(1);
-        case GAMEPAD_AXIS_LEFTY:
+        case GamepadAxis::GAMEPAD_AXIS_LEFTY:
             return this->GetAxis(2);
-        case GAMEPAD_AXIS_RIGHTX:
+        case GamepadAxis::GAMEPAD_AXIS_RIGHTX:
             return this->GetAxis(3);
-        case GAMEPAD_AXIS_RIGHTY:
+        case GamepadAxis::GAMEPAD_AXIS_RIGHTY:
             return this->GetAxis(4);
+        case GamepadAxis::GAMEPAD_AXIS_TRIGGERLEFT:
+            return this->GetAxis(5);
+        case GamepadAxis::GAMEPAD_AXIS_TRIGGERRIGHT:
+            return this->GetAxis(6);
         default:
             break;
     }
@@ -318,16 +382,22 @@ float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
 
 bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
-    int32_t consoleButton = -1;
+    uint64_t consoleButton = 0;
+    uint64_t heldSet       = padGetButtons(&this->pad);
+    const char* name       = nullptr;
 
+    GamepadButton button;
     for (GamepadButton button : buttons)
     {
-        /* make sure our out button isn't invalid too */
-        if (!GetConstant(button, consoleButton) || consoleButton < 0)
+        /* make sure our out button isn't invalid */
+        if (!GetConstant(button, name))
             continue;
 
-        if (consoleButton & EVENT_MODULE()->GetDriver()->GetButtonHeld())
-            return true;
+        /* convert to the proper button */
+        if (!GetConstant(name, button))
+            continue;
+
+        return heldSet & static_cast<HidNpadButton>(button);
     }
 
     return false;
@@ -400,35 +470,56 @@ const Gamepad::Vibration& Gamepad::GetVibration() const
     return this->vibration;
 }
 
-bool Gamepad::GetConstant(int32_t in, Gamepad::GamepadButton& out)
+bool Gamepad::GetConstant(const char* in, Gamepad::GamepadAxis& out)
+{
+    return axes.Find(in, out);
+}
+
+bool Gamepad::GetConstant(Gamepad::GamepadAxis in, const char*& out)
+{
+    return axes.Find(in, out);
+}
+
+bool Gamepad::GetConstant(const char* in, GamepadButton& out)
 {
     return buttons.Find(in, out);
 }
 
-bool Gamepad::GetConstant(Gamepad::GamepadButton in, int32_t& out)
+bool Gamepad::GetConstant(GamepadButton in, const char*& out)
 {
     return buttons.Find(in, out);
 }
 
-EnumMap<Gamepad::GamepadButton, int32_t,
-        Gamepad::GAMEPAD_BUTTON_MAX_ENUM>::Entry Gamepad::buttonEntries[] = {
-    { Gamepad::GAMEPAD_BUTTON_A, HidNpadButton_A },
-    { Gamepad::GAMEPAD_BUTTON_B, HidNpadButton_B },
-    { Gamepad::GAMEPAD_BUTTON_X, HidNpadButton_X },
-    { Gamepad::GAMEPAD_BUTTON_Y, HidNpadButton_Y },
-    { Gamepad::GAMEPAD_BUTTON_BACK, HidNpadButton_Minus },
-    { Gamepad::GAMEPAD_BUTTON_GUIDE, -1 },
-    { Gamepad::GAMEPAD_BUTTON_START, HidNpadButton_Plus },
-    { Gamepad::GAMEPAD_BUTTON_LEFTSTICK, HidNpadButton_StickL }, //< left stick click doesn't exist
-    { Gamepad::GAMEPAD_BUTTON_RIGHTSTICK,
-      HidNpadButton_StickR }, //< right stick click doesn't exist
-    { Gamepad::GAMEPAD_BUTTON_LEFTSHOULDER, HidNpadButton_L },
-    { Gamepad::GAMEPAD_BUTTON_RIGHTSHOULDER, HidNpadButton_R },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_UP, HidNpadButton_Up },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_DOWN, HidNpadButton_Down },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_LEFT, HidNpadButton_Left },
-    { Gamepad::GAMEPAD_BUTTON_DPAD_RIGHT, HidNpadButton_Right },
+// clang-format off
+constexpr StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES>::Entry axisEntries[] =
+{
+    { "leftx",        Gamepad::GamepadAxis::GAMEPAD_AXIS_LEFTX        },
+    { "lefty",        Gamepad::GamepadAxis::GAMEPAD_AXIS_LEFTY        },
+    { "rightx",       Gamepad::GamepadAxis::GAMEPAD_AXIS_RIGHTX       },
+    { "righty",       Gamepad::GamepadAxis::GAMEPAD_AXIS_RIGHTY       },
+    { "triggerleft",  Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERLEFT  },
+    { "triggerright", Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERRIGHT }
 };
 
-EnumMap<Gamepad::GamepadButton, int32_t, Gamepad::GAMEPAD_BUTTON_MAX_ENUM> Gamepad::buttons(
-    Gamepad::buttonEntries, sizeof(Gamepad::buttonEntries));
+const StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES> Gamepad::axes(axisEntries);
+
+constexpr StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS>::Entry buttonEntries[] =
+{
+    { "a",             Gamepad::GamepadButton::GAMEPAD_BUTTON_A              },
+    { "b",             Gamepad::GamepadButton::GAMEPAD_BUTTON_B              },
+    { "x",             Gamepad::GamepadButton::GAMEPAD_BUTTON_X              },
+    { "y",             Gamepad::GamepadButton::GAMEPAD_BUTTON_Y              },
+    { "back",          Gamepad::GamepadButton::GAMEPAD_BUTTON_BACK           },
+    { "start",         Gamepad::GamepadButton::GAMEPAD_BUTTON_START          },
+    { "leftstick",     Gamepad::GamepadButton::GAMEPAD_BUTTON_LEFTSTICK      },
+    { "rightstick",    Gamepad::GamepadButton::GAMEPAD_BUTTON_RIGHTSTICK     },
+    { "leftshoulder",  Gamepad::GamepadButton::GAMEPAD_BUTTON_LEFT_SHOULDER  },
+    { "rightshoulder", Gamepad::GamepadButton::GAMEPAD_BUTTON_RIGHT_SHOULDER },
+    { "dpup",          Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_UP        },
+    { "dpdown",        Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_DOWN      },
+    { "dpleft",        Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_LEFT      },
+    { "dpright",       Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_RIGHT     }
+};
+
+const StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS> Gamepad::buttons(buttonEntries);
+// clang-format on

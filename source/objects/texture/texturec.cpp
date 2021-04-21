@@ -65,7 +65,7 @@ bool Texture::GetConstant(TextureType in, const char*& out)
     return texTypes.Find(in, out);
 }
 
-std::vector<std::string> Texture::GetConstants(TextureType)
+std::vector<const char*> Texture::GetConstants(Texture::TextureType)
 {
     return texTypes.GetNames();
 }
@@ -80,7 +80,7 @@ bool Texture::GetConstant(FilterMode in, const char*& out)
     return filterModes.Find(in, out);
 }
 
-std::vector<std::string> Texture::GetConstants(FilterMode)
+std::vector<const char*> Texture::GetConstants(Texture::FilterMode)
 {
     return filterModes.GetNames();
 }
@@ -95,33 +95,35 @@ bool Texture::GetConstant(WrapMode in, const char*& out)
     return wrapModes.Find(in, out);
 }
 
-std::vector<std::string> Texture::GetConstants(WrapMode)
+std::vector<const char*> Texture::GetConstants(Texture::WrapMode)
 {
     return wrapModes.GetNames();
 }
 
-StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM>::Entry Texture::texTypeEntries[] = {
-    { "2d", TEXTURE_2D }
+// clang-format off
+constexpr StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM>::Entry texTypeEntries[] =
+{
+    { "2d", Texture::TextureType::TEXTURE_2D }
 };
 
-StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM> Texture::texTypes(
-    Texture::texTypeEntries, sizeof(Texture::texTypeEntries));
+const StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM> Texture::texTypes(texTypeEntries);
 
-StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM>::Entry Texture::filterModeEntries[] = {
-    { "nearest", FILTER_NEAREST },
-    { "linear", FILTER_LINEAR },
-    { "none", FILTER_NONE },
+constexpr StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM>::Entry filterModeEntries[] =
+{
+    { "none",    Texture::FilterMode::FILTER_NONE    },
+    { "linear",  Texture::FilterMode::FILTER_LINEAR  },
+    { "nearest", Texture::FilterMode::FILTER_NEAREST }
 };
 
-StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM> Texture::filterModes(
-    Texture::filterModeEntries, sizeof(Texture::filterModeEntries));
+const StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM> Texture::filterModes(filterModeEntries);
 
-StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM>::Entry Texture::wrapModeEntries[] = {
-    { "clamp", WRAP_CLAMP },
-    { "clampzero", WRAP_CLAMP_ZERO },
-    { "repeat", WRAP_REPEAT },
-    { "mirroredrepeat", WRAP_MIRRORED_REPEAT },
+constexpr StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM>::Entry wrapModeEntries[] =
+{
+    { "clamp",          Texture::WrapMode::WRAP_CLAMP           },
+    { "repeat",         Texture::WrapMode::WRAP_REPEAT          },
+    { "clampzero",      Texture::WrapMode::WRAP_CLAMP_ZERO      },
+    { "mirroredrepeat", Texture::WrapMode::WRAP_MIRRORED_REPEAT }
 };
 
-StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM> Texture::wrapModes(
-    Texture::wrapModeEntries, sizeof(Texture::wrapModeEntries));
+const StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM> Texture::wrapModes(wrapModeEntries);
+// clang-format on

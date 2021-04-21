@@ -128,10 +128,10 @@ love::Message* love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Event
         case Hidrv::TYPE_GAMEPADUP:
         case Hidrv::TYPE_GAMEPADDOWN:
         {
-            if (!common::Gamepad::GetConstant(event.button.name, padButton))
+            if (!love::Gamepad::GetConstant(event.button.name, padButton))
                 break;
 
-            if (!common::Gamepad::GetConstant(padButton, text))
+            if (!love::Gamepad::GetConstant(padButton, text))
                 break;
 
             stick = joyModule->GetJoystickFromID(event.button.which);
@@ -150,10 +150,10 @@ love::Message* love::common::Event::ConvertJoystickEvent(const Hidrv::LOVE_Event
         }
         case Hidrv::TYPE_GAMEPADAXIS:
         {
-            if (!common::Gamepad::GetConstant(event.axis.axis, padAxis))
+            if (!love::Gamepad::GetConstant(event.axis.axis, padAxis))
                 break;
 
-            if (!common::Gamepad::GetConstant(padAxis, text))
+            if (!love::Gamepad::GetConstant(padAxis, text))
                 break;
 
             stick = joyModule->GetJoystickFromID(event.axis.which);
