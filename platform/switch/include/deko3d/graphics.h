@@ -27,7 +27,7 @@ namespace love::deko3d
 
         Screen GetActiveScreen() const override;
 
-        std::vector<std::string> GetScreens() const override;
+        std::vector<const char*> GetScreens() const override;
 
         const int GetWidth(Screen screen) const override;
 

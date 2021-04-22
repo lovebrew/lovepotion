@@ -67,12 +67,12 @@ std::vector<const char*> Keyboard::GetConstants(KeyboardType)
 }
 
 // clang-format off
-StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES>::Entry keyboardTypeEntries[] =
+constexpr StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES>::Entry keyboardTypeEntries[] =
 {
     { "normal", Keyboard::KeyboardType::TYPE_NORMAL },
     { "qwerty", Keyboard::KeyboardType::TYPE_QWERTY },
     { "numpad", Keyboard::KeyboardType::TYPE_NUMPAD }
 };
 
-StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES> Keyboard::keyboardTypes(keyboardTypeEntries);
+constinit const StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES> Keyboard::keyboardTypes(keyboardTypeEntries);
 // clang-format on
