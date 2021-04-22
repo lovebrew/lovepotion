@@ -2,7 +2,7 @@
 
 using namespace love::common::driver;
 
-Hidrv::Hidrv() : hysteresis(false), events(), buttonStates()
+Hidrv::Hidrv() : hysteresis(false), events()
 {}
 
 void Hidrv::SendFocus(bool focus)

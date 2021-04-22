@@ -121,20 +121,8 @@ namespace love::common::driver
 
         void SendResize(int width, int height);
 
-#if defined(_3DS)
-        static constexpr uint8_t BUTTON_COUNT = 12;
-#elif defined(__SWITCH__)
-        static constexpr uint8_t BUTTON_COUNT = 16;
-#endif
-
       protected:
         bool hysteresis;
         std::list<LOVE_Event> events;
-
-        struct ButtonState
-        {
-            uint64_t oldPressed;
-            uint64_t oldReleased;
-        } buttonStates;
     };
 } // namespace love::common::driver

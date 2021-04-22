@@ -4,10 +4,10 @@
             "name": "3DS",
             "includePath": [
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/platform/3ds/include/**",
-                "/opt/devkitpro/portlibs/3ds/include/**",
-                "/opt/devkitpro/libctru/include/**",
-                "/opt/devkitpro/devkitARM/include"
+                "${workspaceFolder}/platform/3ds/**",
+                "${env:DEVKITPRO}/libctru/include/**",
+                "${env:DEVKITPRO}/portlibs/3ds/include/**",
+                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**"
             ],
             "defines": [
                 "_3DS",
@@ -16,64 +16,44 @@
             "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
             "cStandard": "c11",
             "cppStandard": "c++20",
-            "intelliSenseMode": "gcc-arm",
+            "intelliSenseMode": "linux-gcc-arm",
             "compilerArgs": [],
-            "browse": {
-                "path": [
-                    "${workspaceFolder}/include/**",
-                    "${workspaceFolder}/libraries/**",
-                    "${workspaceFolder}/platform/3ds/include/**",
-                    "/opt/devkitpro/portlibs/3ds/include/**",
-                    "/opt/devkitpro/libctru/include/**",
-                    "/opt/devkitpro/devkitARM/include/**",
-                    "${workspaceFolder}"
-                ],
-                "limitSymbolsToIncludedHeaders": true
-            },
             "customConfigurationVariables": {
                 "args": "ctr",
                 "name": "3DS"
             }
         },
+        //-------------------//
         {
             "name": "Switch",
-            "includePath": [
+            "includePath":
+            [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/libraries/**",
-                "${workspaceFolder}/platform/switch/include/**",
-                "${workspaceFolder}/platform/switch/scripts/**",
-                "${workspaceFolder}/platform/switch/build",
-                "/opt/devkitpro/portlibs/switch/include/**",
-                "/opt/devkitpro/libnx/include/**",
-                "/opt/devkitpro/devkitA64/include/**"
+                "${workspaceFolder}/platform/switch/**",
+                "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/10.1.0/include/**",
+                "${env:DEVKITPRO}/libnx/include/**",
+                "${env:DEVKITPRO}/portlibs/switch/include/**"
             ],
-            "defines": [
+            "defines":
+            [
                 "__SWITCH__",
                 "LOVE_POTION_CONSOLE=\"Switch\"",
                 "__BSD_VISIBLE"
             ],
-            "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
+            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
             "cStandard": "c11",
             "cppStandard": "c++20",
-            "intelliSenseMode": "gcc-arm64",
+            "intelliSenseMode": "linux-gcc-arm64",
             "compilerArgs": [],
-            "browse": {
-                "path": [
-                    "${workspaceFolder}/include/**",
-                    "${workspaceFolder}/libraries/**",
-                    "${workspaceFolder}/platform/switch/include/**",
-                    "/opt/devkitpro/portlibs/switch/include/**",
-                    "/opt/devkitpro/libnx/include/**",
-                    "/opt/devkitpro/devkitA64/include/**",
-                    "${workspaceFolder}"
-                ],
-                "limitSymbolsToIncludedHeaders": true
-            },
-            "customConfigurationVariables": {
+            "customConfigurationVariables":
+            {
                 "args": "hac",
                 "name": "Switch"
             }
         },
+        //-------------------//
         {
             "name": "3DS {Debug}",
             "includePath": [
@@ -111,6 +91,7 @@
                 "name": "3DS {Debug}"
             }
         },
+        //-------------------//
         {
             "name": "Switch {Debug}",
             "includePath": [
