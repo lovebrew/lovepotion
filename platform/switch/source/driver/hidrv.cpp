@@ -188,31 +188,46 @@ bool Hidrv::Poll(LOVE_Event* event)
             newEvent.button.button = button.second;
         }
 
-        /* handle gamepad triggers */
+        /* handle trigger inputs */
+        for (size_t i = 5; i <= 6; i++)
+        {
+            auto& newEvent = this->events.emplace_back();
 
-        /* handle gamepad sticks */
+            newEvent.type       = TYPE_GAMEPADAXIS;
+            newEvent.axis.which = gamepad->GetID();
+
+            newEvent.axis.axis   = (i == 5) ? "triggerleft" : "triggerright";
+            newEvent.axis.value  = gamepad->GetAxis(i);
+            newEvent.axis.number = i;
+        }
+
+        /* handle stick inputs */
         for (size_t i = 1; i <= 4; i++)
         {
             auto& newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADAXIS;
-
+            newEvent.type       = TYPE_GAMEPADAXIS;
             newEvent.axis.which = gamepad->GetID();
 
-            const char* name   = (i < 3) ? "left" : "right";
-            const char* direction   = ((i % 2) != 0) ? "x" : "y";
+            const char* axis = nullptr;
+            if (i < 3) // left
+            {
+                if ((i % 2) != 0)
+                    axis = "leftx";
+                else
+                    axis = "lefty";
+            }
+            else
+            {
+                if ((i % 2) != 0)
+                    axis = "rightx";
+                else
+                    axis = "righty";
+            }
 
-            size_t len = strlen(name) + strlen(direction) + 1;
-            char* axis = (char*)malloc(len); // include null term
-
-            strcpy(axis, name);
-            strcat(axis, direction);
-
-            newEvent.axis.axis = axis;
-            newEvent.axis.value = gamepad->GetAxis(i);
+            newEvent.axis.axis   = axis;
+            newEvent.axis.value  = gamepad->GetAxis(i);
             newEvent.axis.number = i;
-
-            free(axis);
         }
     }
 

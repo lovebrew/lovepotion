@@ -82,7 +82,7 @@ namespace love
 
         bool IsDown(std::pair<const char*, size_t>& button) override;
 
-        bool IsHeld(std::pair<const char*, size_t>& button) override;
+        bool IsHeld(std::pair<const char*, size_t>& button) const override;
 
         bool IsUp(std::pair<const char*, size_t>& button) override;
 
@@ -94,10 +94,10 @@ namespace love
         static bool GetConstant(const char* in, GamepadButton& out);
         static bool GetConstant(GamepadButton in, const char*& out);
 
-      private:
         static constexpr uint8_t MAX_BUTTONS = 15;
         static constexpr uint8_t MAX_AXES    = 6;
 
+      private:
         PadState pad;
         u32 style;
 
@@ -112,5 +112,11 @@ namespace love
 
         const static StringMap<GamepadAxis, MAX_AXES> axes;
         const static StringMap<GamepadButton, MAX_BUTTONS> buttons;
+
+        struct
+        {
+            uint64_t pressed;
+            uint64_t released;
+        } buttonStates;
     };
 } // namespace love
