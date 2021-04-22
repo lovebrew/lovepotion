@@ -357,7 +357,7 @@ constexpr StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry typeEntries[] =
     { "queue",  Source::Type::TYPE_QUEUE  }
 };
 
-const StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(typeEntries);
+constinit const StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(typeEntries);
 
 constexpr StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry unitEntries[] =
 {
@@ -365,5 +365,5 @@ constexpr StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry unitEntries[] =
     { "samples", Source::Unit::UNIT_SAMPLES },
 };
 
-const StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(unitEntries);
+constinit const StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(unitEntries);
 // clang-format on

@@ -624,5 +624,5 @@ constexpr StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM>::En
     { "sha512", HashFunction::Function::FUNCTION_SHA512  }
 };
 
-const StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM> HashFunction::functionNames(functionEntries);
+constinit const StringMap<HashFunction::Function, HashFunction::FUNCTION_MAX_ENUM> HashFunction::functionNames(functionEntries);
 // clang-format on

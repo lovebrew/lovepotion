@@ -220,5 +220,5 @@ constexpr StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX
     { "normal", TrueTypeRasterizer::Hinting::HINTING_NORMAL }
 };
 
-const StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::hintings(hintingEntries);
+constinit const StringMap<TrueTypeRasterizer::Hinting, TrueTypeRasterizer::HINTING_MAX_ENUM> TrueTypeRasterizer::hintings(hintingEntries);
 // clang-format on

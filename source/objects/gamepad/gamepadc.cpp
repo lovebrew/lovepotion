@@ -57,5 +57,5 @@ constexpr StringMap<Gamepad::InputType, Gamepad::INPUT_TYPE_MAX_ENUM>::Entry inp
     { "button", Gamepad::INPUT_TYPE_BUTTON }
 };
 
-const StringMap<Gamepad::InputType, Gamepad::INPUT_TYPE_MAX_ENUM> Gamepad::inputTypes(inputTypeEntries);
+constinit const StringMap<Gamepad::InputType, Gamepad::INPUT_TYPE_MAX_ENUM> Gamepad::inputTypes(inputTypeEntries);
 // clang-format on

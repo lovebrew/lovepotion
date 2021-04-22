@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/enummap.h"
 #include "objects/gamepad/gamepadc.h"
 
 enum class love::common::Gamepad::GamepadAxis : uint64_t
@@ -60,7 +59,7 @@ namespace love
 
         bool IsDown(std::pair<const char*, size_t>& button) override;
 
-        bool IsHeld(std::pair<const char*, size_t>& button) override;
+        bool IsHeld(std::pair<const char*, size_t>& button) const override;
 
         bool IsUp(std::pair<const char*, size_t>& button) override;
 
@@ -87,8 +86,13 @@ namespace love
         static constexpr uint8_t MAX_BUTTONS = 12;
         static constexpr uint8_t MAX_AXES    = 6;
 
-      private:
+        struct
+        {
+            uint32_t pressed;
+            uint32_t released;
+        } buttonStates;
 
+      private:
         const static StringMap<GamepadAxis, MAX_AXES> axes;
         const static StringMap<GamepadButton, MAX_BUTTONS> buttons;
     };

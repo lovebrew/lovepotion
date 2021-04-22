@@ -879,5 +879,5 @@ constexpr StringMap<love::Font::SystemFontType, love::Font::MAX_SYSFONTS>::Entry
     { "nintendo extended",           Font::SystemFontType::TYPE_NINTENDO_EXTENDED      }
 };
 
-const StringMap<Font::SystemFontType, love::Font::MAX_SYSFONTS> love::common::Font::sharedFonts(sharedFontEntries);
+constinit const StringMap<Font::SystemFontType, love::Font::MAX_SYSFONTS> love::common::Font::sharedFonts(sharedFontEntries);
 // clang-format on

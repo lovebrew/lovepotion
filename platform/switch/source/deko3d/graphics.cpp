@@ -612,5 +612,5 @@ constexpr StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry screenEntrie
     { "default", Graphics::Screen::SCREEN_DEFAULT }
 };
 
-const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
+constinit const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
 // clang-format on

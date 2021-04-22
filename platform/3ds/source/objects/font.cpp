@@ -145,5 +145,5 @@ constexpr StringMap<Font::SystemFontType, Font::MAX_SYSFONTS>::Entry sharedFontE
     { "korean",    Font::SystemFontType::TYPE_KOREAN    }
 };
 
-const StringMap<Font::SystemFontType, Font::MAX_SYSFONTS> common::Font::sharedFonts(sharedFontEntries);
+constinit const StringMap<Font::SystemFontType, Font::MAX_SYSFONTS> common::Font::sharedFonts(sharedFontEntries);
 // clang-format on

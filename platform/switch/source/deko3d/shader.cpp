@@ -148,5 +148,5 @@ constexpr StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry sh
     { "texture", Shader::StandardShader::STANDARD_TEXTURE }
 };
 
-const StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(shaderEntries);
+constinit const StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(shaderEntries);
 // clang-format on

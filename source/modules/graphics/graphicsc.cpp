@@ -640,7 +640,7 @@ constexpr StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry blendM
     { "none",      Graphics::BlendMode::BLEND_NONE     },
 };
 
-const StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(blendModeEntries);
+constinit const StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM> Graphics::blendModes(blendModeEntries);
 
 constexpr StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry drawModeEntries[] =
 {
@@ -648,7 +648,7 @@ constexpr StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM>::Entry drawMode
     { "fill", Graphics::DrawMode::DRAW_FILL }
 };
 
-const StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(drawModeEntries);
+constinit const StringMap<Graphics::DrawMode, Graphics::DRAW_MAX_ENUM> Graphics::drawModes(drawModeEntries);
 
 constexpr StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry arcModeEntries[] =
 {
@@ -657,7 +657,7 @@ constexpr StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM>::Entry arcModeEnt
     { "pie",    Graphics::ArcMode::ARC_PIE    },
 };
 
-const StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(arcModeEntries);
+constinit const StringMap<Graphics::ArcMode, Graphics::ARC_MAX_ENUM> Graphics::arcModes(arcModeEntries);
 
 constexpr StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry blendAlphaEntries[] =
 {
@@ -665,7 +665,7 @@ constexpr StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM>::Entry 
     { "premultiplied", Graphics::BlendAlpha::BLENDALPHA_PREMULTIPLIED },
 };
 
-const StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(blendAlphaEntries);
+constinit const StringMap<Graphics::BlendAlpha, Graphics::BLENDALPHA_MAX_ENUM> Graphics::blendAlphaModes(blendAlphaEntries);
 
 constexpr StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry stackTypeEntries[] =
 {
@@ -673,5 +673,5 @@ constexpr StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry stackT
     { "transform", Graphics::StackType::STACK_TRANSFORM }
 };
 
-const StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(stackTypeEntries);
+constinit const StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(stackTypeEntries);
 // clang-format on

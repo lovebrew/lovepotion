@@ -57,5 +57,5 @@ constexpr StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM>::Entry 
     { "maxLength", Keyboard::KeyboardOption::OPTION_MAX_LEN  }
 };
 
-const StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM> Keyboard::keyboardOptions(keyboardOptionsEntries);
+constinit const StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM> Keyboard::keyboardOptions(keyboardOptionsEntries);
 // clang-format on

@@ -318,7 +318,7 @@ constexpr StringMap<File::Mode, File::MODE_MAX_ENUM>::Entry modeEntries[] =
     { "c", File::Mode::MODE_CLOSED }
 };
 
-const StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(modeEntries);
+constinit const StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(modeEntries);
 
 constexpr StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry bufferModeEntries[] =
 {
@@ -327,4 +327,4 @@ constexpr StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry bufferModeEn
     { "full", File::BufferMode::BUFFER_FULL }
 };
 
-const StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(bufferModeEntries);
+constinit const StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(bufferModeEntries);

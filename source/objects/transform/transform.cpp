@@ -119,5 +119,5 @@ constexpr StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM>::Entry 
     { "column", Transform::MatrixLayout::MATRIX_COLUMN_MAJOR },
 };
 
-const StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM> Transform::matrixLayouts(matrixLayoutEntries);
+constinit const StringMap<Transform::MatrixLayout, Transform::MATRIX_MAX_ENUM> Transform::matrixLayouts(matrixLayoutEntries);
 // clang-format on

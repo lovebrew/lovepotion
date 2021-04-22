@@ -296,7 +296,7 @@ constexpr StringMap<CFG_Language, System::MAX_LANGUAGES>::Entry languageEntries[
     { "Traditional Chinese", CFG_LANGUAGE_TW }
 };
 
-const StringMap<CFG_Language, System::MAX_LANGUAGES> System::languages(languageEntries);
+constinit const StringMap<CFG_Language, System::MAX_LANGUAGES> System::languages(languageEntries);
 
 constexpr StringMap<CFG_SystemModel, System::MAX_MODELS>::Entry modelEntries[] =
 {
@@ -308,7 +308,7 @@ constexpr StringMap<CFG_SystemModel, System::MAX_MODELS>::Entry modelEntries[] =
     { "New 2DSXL", CFG_MODEL_N2DSXL },
 };
 
-const StringMap<CFG_SystemModel, System::MAX_MODELS> System::models(modelEntries);
+constinit const StringMap<CFG_SystemModel, System::MAX_MODELS> System::models(modelEntries);
 
 constexpr StringMap<CFG_Region, System::MAX_REGIONS>::Entry regionEntries[] =
 {
@@ -321,5 +321,5 @@ constexpr StringMap<CFG_Region, System::MAX_REGIONS>::Entry regionEntries[] =
     { "Taiwan",        CFG_REGION_TWN }
 };
 
-const StringMap<CFG_Region, System::MAX_REGIONS> System::regions(regionEntries);
+constinit const StringMap<CFG_Region, System::MAX_REGIONS> System::regions(regionEntries);
 // clang-format on

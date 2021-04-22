@@ -64,7 +64,7 @@ constexpr StringMap<System::PowerState, System::POWER_MAX_ENUM>::Entry powerEntr
     { "charging", System::PowerState::POWER_CHARGING }
 };
 
-const StringMap<System::PowerState, System::POWER_MAX_ENUM> System::powerStates(powerEntries);
+constinit const StringMap<System::PowerState, System::POWER_MAX_ENUM> System::powerStates(powerEntries);
 
 constexpr StringMap<System::NetworkState, System::NETWORK_MAX_ENUM>::Entry networkEntries[] =
 {
@@ -73,5 +73,5 @@ constexpr StringMap<System::NetworkState, System::NETWORK_MAX_ENUM>::Entry netwo
     { "disconnected", System::NetworkState::NETWORK_DISCONNECTED }
 };
 
-const StringMap<System::NetworkState, System::NETWORK_MAX_ENUM> System::networkStates(networkEntries);
+constinit const StringMap<System::NetworkState, System::NETWORK_MAX_ENUM> System::networkStates(networkEntries);
 // clang-format on

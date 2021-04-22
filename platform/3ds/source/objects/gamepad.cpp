@@ -6,8 +6,9 @@ using namespace love;
 #include "modules/event/event.h"
 
 #define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define INVALID_GAMEPAD_BUTTON static_cast<GamepadButton>(-1)
 
-Gamepad::Gamepad(size_t id) : common::Gamepad(id)
+Gamepad::Gamepad(size_t id) : common::Gamepad(id), buttonStates()
 {}
 
 Gamepad::Gamepad(size_t id, size_t index) : common::Gamepad(id)
@@ -98,17 +99,17 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 5)
     {
-        //    if (Input::GetKeyHeld<u32>() & KEY_ZL)
-        //         return 1.0f;
-        //     else if (Input::GetKeyUp<u32>() & KEY_ZL)
-        //         return 0.0f;
+        if (hidKeysHeld() & KEY_ZL)
+            return 1.0f;
+
+        return 0.0f;
     }
     else if (axis == 6)
     {
-        // if (Input::GetKeyHeld<u32>() & KEY_ZR)
-        //     return 1.0f;
-        // else if (Input::GetKeyUp<u32>() & KEY_ZR)
-        //     return 0.0f;
+        if (hidKeysHeld() & KEY_ZR)
+            return 1.0f;
+
+        return 0.0f;
     }
     else
     {
@@ -163,37 +164,111 @@ bool Gamepad::IsDown(std::pair<const char*, size_t>& button)
     uint32_t pressedSet = hidKeysDown();
     uint32_t hidButton;
 
-    auto records = buttons.GetEntries();
-    for (size_t i = 0; i < records.second; i++)
+    if (this->buttonStates.pressed != pressedSet)
     {
-        auto& record = records.first;
-        if ((hidButton = static_cast<uint32_t>(record[i].value)) & pressedSet)
+        auto recordPair = buttons.GetEntries();
+        auto records    = recordPair.first;
+
+        for (size_t i = 0; i < recordPair.second; i++)
         {
-            button = { record[i].key, i };
-            break;
+            if ((hidButton = static_cast<uint32_t>(records[i].value)) & pressedSet)
+            {
+                button = { records[i].key, i };
+                break;
+            }
         }
     }
 
+    this->buttonStates.pressed = pressedSet;
     return (pressedSet & hidButton);
 }
 
 bool Gamepad::IsUp(std::pair<const char*, size_t>& button)
-{ return false; }
-
-bool Gamepad::IsHeld(std::pair<const char*, size_t>& button)
-{ return false; }
-
-bool Gamepad::IsDown(const std::vector<size_t>& buttons) const
 {
-    // size_t buttonCount = this->GetButtonCount();
+    uint32_t releasedSet = hidKeysUp();
+    uint32_t hidButton;
 
-    // for (size_t button : buttons)
-    // {
-    //     if (button < 0 || button >= buttonCount)
-    //         continue;
+    if (this->buttonStates.released != releasedSet)
+    {
+        auto recordPair = buttons.GetEntries();
+        auto records    = recordPair.first;
 
-    //     return EVENT_MODULE()->GetDriver()->IsDown(button);
-    // }
+        for (size_t i = 0; i < recordPair.second; i++)
+        {
+            if ((hidButton = static_cast<uint32_t>(records[i].value)) & releasedSet)
+            {
+                button = { records[i].key, i };
+                break;
+            }
+        }
+    }
+
+    this->buttonStates.released = releasedSet;
+    return (releasedSet & hidButton);
+}
+
+bool Gamepad::IsHeld(std::pair<const char*, size_t>& button) const
+{
+    uint32_t heldSet = hidKeysHeld();
+    uint32_t hidButton;
+
+    auto recordPair = buttons.GetEntries();
+    auto records    = recordPair.first;
+
+    for (size_t i = 0; i < recordPair.second; i++)
+    {
+        if ((hidButton = static_cast<uint32_t>(records[i].value)) & heldSet)
+        {
+            button = { records[i].key, i };
+            break;
+        }
+    }
+
+    return (heldSet & hidButton);
+}
+
+bool Gamepad::IsDown(const std::vector<size_t>& buttonsVector) const
+{
+    auto recordPair = buttons.GetEntries();
+
+    uint32_t heldSet = hidKeysHeld();
+    auto records     = recordPair.first;
+
+    for (size_t button : buttonsVector)
+    {
+        if (button < 0 || button >= recordPair.second)
+            continue;
+
+        if (heldSet & static_cast<uint32_t>(records[button].value))
+            return true;
+    }
+
+    return false;
+}
+
+bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& buttonsVector) const
+{
+    auto recordPair = buttons.GetEntries();
+
+    uint32_t heldSet = hidKeysHeld();
+    auto records     = recordPair.first;
+
+    GamepadButton consoleButton = INVALID_GAMEPAD_BUTTON;
+    const char* name            = nullptr;
+
+    for (GamepadButton button : buttonsVector)
+    {
+        /* make sure our out button isn't invalid */
+        if (!GetConstant(button, name))
+            continue;
+
+        /* convert to the proper button */
+        if (!GetConstant(name, consoleButton))
+            continue;
+
+        if (heldSet & static_cast<uint32_t>(consoleButton))
+            return true;
+    }
 
     return false;
 }
@@ -223,11 +298,6 @@ float Gamepad::GetGamepadAxis(Gamepad::GamepadAxis axis) const
     }
 
     return 0.0f;
-}
-
-bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
-{
-    return false;
 }
 
 bool Gamepad::IsVibrationSupported()
@@ -282,7 +352,7 @@ constexpr StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES>::Entry axisEntries[
     { "triggerright", Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERRIGHT }
 };
 
-const StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES> Gamepad::axes(axisEntries);
+constinit const StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES> Gamepad::axes(axisEntries);
 
 constexpr StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS>::Entry buttonEntries[] =
 {
@@ -300,5 +370,5 @@ constexpr StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS>::Entry buttonE
     { "dpright",       Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_RIGHT     }
 };
 
-const StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS> Gamepad::buttons(buttonEntries);
+constinit const StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS> Gamepad::buttons(buttonEntries);
 // clang-format on

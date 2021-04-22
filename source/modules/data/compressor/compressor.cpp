@@ -45,5 +45,5 @@ constexpr StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM>::Entry form
     { "deflate", Compressor::Format::FORMAT_DEFLATE }
 };
 
-const StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM> Compressor::formatNames(formatEntries);
+constinit const StringMap<Compressor::Format, Compressor::FORMAT_MAX_ENUM> Compressor::formatNames(formatEntries);
 // clang-format on

@@ -6,7 +6,7 @@
 
 #include "common/debug/logger.h"
 
-template<typename T, unsigned int SIZE>
+template<typename T, size_t SIZE>
 class StringMap
 {
   public:
@@ -16,23 +16,25 @@ class StringMap
         T value;
     };
 
-    template<unsigned int ARRAY_SIZE>
+    StringMap() = delete;
+
+    template<size_t ARRAY_SIZE>
     consteval StringMap(const Entry (&inEntries)[ARRAY_SIZE]) : entries(), populated(ARRAY_SIZE)
     {
         static_assert(ARRAY_SIZE <= SIZE && ARRAY_SIZE > 0);
 
-        for (unsigned int i = 0; i < ARRAY_SIZE; i++)
+        for (size_t i = 0; i < ARRAY_SIZE; i++)
             this->entries[i] = inEntries[i];
 
-        for (unsigned int i = ARRAY_SIZE; i < SIZE; i++)
+        for (size_t i = ARRAY_SIZE; i < SIZE; i++)
             this->entries[i] = { nullptr, T(0) };
     }
 
     constexpr bool Find(const char* key, T& value) const
     {
-        for (size_t i = 0; i < populated; ++i)
+        for (size_t i = 0; i < this->populated; ++i)
         {
-            if (StringEqual(this->entries[i].key, key))
+            if (StringMap::StringEqual(this->entries[i].key, key))
             {
                 value = this->entries[i].value;
                 return true;
@@ -44,28 +46,24 @@ class StringMap
 
     constexpr bool Find(T key, const char*& string) const
     {
-        LOG("piepie be like: populate me with %zu items uwuw", populated);
-
-        for (size_t i = 0; i < populated; ++i)
+        for (size_t i = 0; i < this->populated; ++i)
         {
-            LOG("%zu", i);
             if (this->entries[i].value == key)
             {
-                LOG("found a key!");
                 string = this->entries[i].key;
                 return true;
             }
         }
-        LOG("YOU DONE FUCKED UP CHRIS");
+
         return false;
     }
 
     constexpr std::vector<const char*> GetNames() const
     {
         std::vector<const char*> strings;
-        strings.reserve(populated);
+        strings.reserve(this->populated);
 
-        for (size_t i = 0; i < populated; i++)
+        for (size_t i = 0; i < this->populated; i++)
         {
             if (this->entries[i].key != nullptr)
                 strings.emplace_back(this->entries[i].key);
@@ -74,9 +72,9 @@ class StringMap
         return strings;
     }
 
-    constexpr std::pair<const Entry*, int> GetEntries() const
+    constexpr std::pair<const Entry*, size_t> GetEntries() const
     {
-        return { entries, populated };
+        return { entries, this->populated };
     }
 
   private:
@@ -95,6 +93,5 @@ class StringMap
     };
 
     Entry entries[SIZE];
-
-    const unsigned int populated;
+    const size_t populated;
 };

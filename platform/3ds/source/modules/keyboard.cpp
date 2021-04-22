@@ -52,5 +52,5 @@ constexpr StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES>::Entry keyboard
     { "numpad", Keyboard::KeyboardType::TYPE_NUMPAD }
 };
 
-const StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES> Keyboard::keyboardTypes(keyboardTypeEntries);
+constinit const StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES> Keyboard::keyboardTypes(keyboardTypeEntries);
 // clang-format on

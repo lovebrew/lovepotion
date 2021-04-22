@@ -228,7 +228,7 @@ constexpr StringMap<SetLanguage, SetLanguage_Total>::Entry languageEntries[] =
     {  "Brazilian Protuguese",   SetLanguage_PTBR   }
 };
 
-const StringMap<SetLanguage, SetLanguage_Total> System::languages(languageEntries);
+constinit const StringMap<SetLanguage, SetLanguage_Total> System::languages(languageEntries);
 
 constexpr StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>::Entry modelEntries[] =
 {
@@ -241,7 +241,7 @@ constexpr StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>:
     { "Mariko Pro",        System::ProductModel::MODEL_AULA    }
 };
 
-const StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(modelEntries);
+constinit const StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(modelEntries);
 
 constexpr StringMap<SetRegion, System::MAX_REGIONS>::Entry regionEntries[] =
 {
@@ -253,5 +253,5 @@ constexpr StringMap<SetRegion, System::MAX_REGIONS>::Entry regionEntries[] =
     { "China",                  SetRegion_CHN }
 };
 
-const StringMap<SetRegion, System::MAX_REGIONS> System::regions(regionEntries);
+constinit const StringMap<SetRegion, System::MAX_REGIONS> System::regions(regionEntries);
 // clang-format on

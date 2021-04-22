@@ -104,5 +104,5 @@ constexpr StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM>::Entry alignModeEntri
     { "justify", Font::AlignMode::ALIGN_JUSTIFY }
 };
 
-const StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(alignModeEntries);
+constinit const StringMap<Font::AlignMode, Font::ALIGN_MAX_ENUM> Font::alignModes(alignModeEntries);
 // clang-format on

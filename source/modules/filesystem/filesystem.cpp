@@ -542,5 +542,5 @@ constexpr StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry 
     { "other",     Filesystem::FileType::FILETYPE_OTHER     },
 };
 
-const StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(fileTypeEntries);
+constinit const StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(fileTypeEntries);
 // clang-format on

@@ -104,7 +104,7 @@ namespace love::common
 
         virtual bool IsDown(std::pair<const char*, size_t>& button) = 0;
 
-        virtual bool IsHeld(std::pair<const char*, size_t>& button) = 0;
+        virtual bool IsHeld(std::pair<const char*, size_t>& button) const = 0;
 
         virtual bool IsUp(std::pair<const char*, size_t>& button) = 0;
 

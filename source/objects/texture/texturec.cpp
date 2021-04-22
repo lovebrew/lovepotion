@@ -106,7 +106,7 @@ constexpr StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM>::Entry texT
     { "2d", Texture::TextureType::TEXTURE_2D }
 };
 
-const StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM> Texture::texTypes(texTypeEntries);
+constinit const StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM> Texture::texTypes(texTypeEntries);
 
 constexpr StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM>::Entry filterModeEntries[] =
 {
@@ -115,7 +115,7 @@ constexpr StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM>::Entry filter
     { "nearest", Texture::FilterMode::FILTER_NEAREST }
 };
 
-const StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM> Texture::filterModes(filterModeEntries);
+constinit const StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM> Texture::filterModes(filterModeEntries);
 
 constexpr StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM>::Entry wrapModeEntries[] =
 {
@@ -125,5 +125,5 @@ constexpr StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM>::Entry wrapModeEn
     { "mirroredrepeat", Texture::WrapMode::WRAP_MIRRORED_REPEAT }
 };
 
-const StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM> Texture::wrapModes(wrapModeEntries);
+constinit const StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM> Texture::wrapModes(wrapModeEntries);
 // clang-format on

@@ -1,6 +1,6 @@
 #include "driver/hidrv.h"
-#include "objects/gamepad/gamepad.h"
 #include "modules/joystick/joystick.h"
+#include "objects/gamepad/gamepad.h"
 
 #include <string.h>
 
@@ -88,7 +88,6 @@ bool Hidrv::Poll(LOVE_Event* event)
         this->oldTouchState = this->touchState;
     }
 
-
     Gamepad* gamepad = MODULE()->GetJoystickFromID(0);
 
     if (gamepad && gamepad->IsConnected())
@@ -118,11 +117,49 @@ bool Hidrv::Poll(LOVE_Event* event)
             newEvent.button.which  = gamepad->GetID();
             newEvent.button.button = button.second;
         }
+
+        /* handle trigger inputs */
+        for (size_t i = 5; i <= 6; i++)
+        {
+            auto& newEvent = this->events.emplace_back();
+
+            newEvent.type       = TYPE_GAMEPADAXIS;
+            newEvent.axis.which = gamepad->GetID();
+
+            newEvent.axis.axis   = (i == 5) ? "triggerleft" : "triggerright";
+            newEvent.axis.value  = gamepad->GetAxis(i);
+            newEvent.axis.number = i;
+        }
+
+        /* handle stick inputs */
+        for (size_t i = 1; i <= 4; i++)
+        {
+            auto& newEvent = this->events.emplace_back();
+
+            newEvent.type       = TYPE_GAMEPADAXIS;
+            newEvent.axis.which = gamepad->GetID();
+
+            const char* axis = nullptr;
+            if (i < 3) // left
+            {
+                if ((i % 2) != 0)
+                    axis = "leftx";
+                else
+                    axis = "lefty";
+            }
+            else
+            {
+                if ((i % 2) != 0)
+                    axis = "rightx";
+                else
+                    axis = "righty";
+            }
+
+            newEvent.axis.axis   = axis;
+            newEvent.axis.value  = gamepad->GetAxis(i);
+            newEvent.axis.number = i;
+        }
     }
-
-    /* handle trigger inputs */
-
-    /* handle stick inputs */
 
     if (this->events.empty())
         return false;

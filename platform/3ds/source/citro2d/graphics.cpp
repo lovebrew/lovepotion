@@ -408,7 +408,7 @@ constexpr StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::
     { "bottom", Graphics::Screen::SCREEN_BOTTOM }
 };
 
-const StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::plainScreens(plainScreenEntries);
+constinit const StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::plainScreens(plainScreenEntries);
 
 /* "3D" Screens */
 
@@ -419,5 +419,5 @@ constexpr StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry screenEntrie
     { "bottom", Graphics::Screen::SCREEN_BOTTOM }
 };
 
-const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
+constinit const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
 // clang-format on
