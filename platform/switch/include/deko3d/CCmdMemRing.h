@@ -6,7 +6,8 @@
 #include "CMemPool.h"
 #include "common.h"
 
-template<unsigned NumSlices> class CCmdMemRing
+template<unsigned NumSlices>
+class CCmdMemRing
 {
     static_assert(NumSlices > 0, "Need a non-zero number of slices...");
 

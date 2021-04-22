@@ -663,8 +663,8 @@ int Luax::EnumError(lua_State* L, const char* enumName, const char* value)
     return luaL_error(L, "Invalid %s: %s", enumName, value);
 }
 
-int Luax::EnumError(lua_State* L, const char* enumName,
-                    const std::vector<const char*>& values, const char* value)
+int Luax::EnumError(lua_State* L, const char* enumName, const std::vector<const char*>& values,
+                    const char* value)
 {
     std::string enums;
     bool first = true;

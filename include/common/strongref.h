@@ -8,7 +8,8 @@ enum Acquire
 
 namespace love
 {
-    template<typename T> class StrongReference
+    template<typename T>
+    class StrongReference
     {
       public:
         StrongReference() : object(nullptr)

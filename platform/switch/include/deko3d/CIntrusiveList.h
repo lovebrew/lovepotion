@@ -5,7 +5,8 @@
 #pragma once
 #include "common.h"
 
-template<typename T> struct CIntrusiveListNode
+template<typename T>
+struct CIntrusiveListNode
 {
     T *m_next, *m_prev;
 
@@ -17,7 +18,8 @@ template<typename T> struct CIntrusiveListNode
     }
 };
 
-template<typename T, CIntrusiveListNode<T> T::*node_ptr> class CIntrusiveList
+template<typename T, CIntrusiveListNode<T> T::*node_ptr>
+class CIntrusiveList
 {
     T *m_first, *m_last;
 
@@ -131,7 +133,8 @@ template<typename T, CIntrusiveListNode<T> T::*node_ptr> class CIntrusiveList
         node.m_next = node.m_prev = 0;
     }
 
-    template<typename L> void iterate(L lambda) const
+    template<typename L>
+    void iterate(L lambda) const
     {
         T* next = nullptr;
         for (T* cur = m_first; cur; cur = next)

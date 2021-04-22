@@ -18,7 +18,8 @@ namespace love::driver
 
         void Update();
 
-        template<typename T> void LockFunction(const T& func)
+        template<typename T>
+        void LockFunction(const T& func)
         {
             try
             {

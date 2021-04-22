@@ -9,7 +9,8 @@
 
 #include "common/type.h"
 
-extern "C" {
+extern "C"
+{
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
@@ -29,7 +30,8 @@ namespace love
     class Object;
     class Module;
 
-    template<typename T> class StrongReference;
+    template<typename T>
+    class StrongReference;
 
     enum Registry
     {
@@ -218,19 +220,22 @@ namespace Luax
 
     bool CheckBoolean(lua_State* L, int index);
 
-    template<typename T> void PushType(lua_State* L, T* object)
+    template<typename T>
+    void PushType(lua_State* L, T* object)
     {
         PushType(L, T::type, object);
     }
 
-    template<typename T> void PushType(lua_State* L, love::StrongReference<T>& object)
+    template<typename T>
+    void PushType(lua_State* L, love::StrongReference<T>& object)
     {
         PushType(L, T::type, object);
     }
 
     int TypeErrror(lua_State* L, int narg, const char* name);
 
-    template<typename T> T* ToType(lua_State* L, int index, const love::Type& /*type*/)
+    template<typename T>
+    T* ToType(lua_State* L, int index, const love::Type& /*type*/)
     {
         T* object = (T*)(((love::Proxy*)lua_touserdata(L, index))->object);
 
@@ -240,12 +245,14 @@ namespace Luax
         return object;
     }
 
-    template<typename T> T* ToType(lua_State* L, int index)
+    template<typename T>
+    T* ToType(lua_State* L, int index)
     {
         return ToType<T>(L, index, T::type);
     }
 
-    template<typename T> T* CheckType(lua_State* L, int index, const love::Type& type)
+    template<typename T>
+    T* CheckType(lua_State* L, int index, const love::Type& type)
     {
         // If not userdata, error out
         if (lua_type(L, index) != LUA_TUSERDATA)
@@ -269,7 +276,8 @@ namespace Luax
         return (T*)proxy->object;
     }
 
-    template<size_t count> bool ArgcIsNil(lua_State* L)
+    template<size_t count>
+    bool ArgcIsNil(lua_State* L)
     {
         for (size_t i = 1; i <= count; i++)
         {
@@ -280,14 +288,16 @@ namespace Luax
         return true;
     }
 
-    template<typename T> T* CheckType(lua_State* L, int index)
+    template<typename T>
+    T* CheckType(lua_State* L, int index)
     {
         return CheckType<T>(L, index, T::type);
     }
 
     int Traceback(lua_State* L);
 
-    template<typename T> int CatchException(lua_State* L, const T& func)
+    template<typename T>
+    int CatchException(lua_State* L, const T& func)
     {
         bool should_error = false;
 

@@ -121,7 +121,8 @@ namespace love
             return std::get<size_t(type)>(variant);
         }
 
-        template<Type type> std::variant_alternative_t<size_t(type), decltype(variant)>& GetValue()
+        template<Type type>
+        std::variant_alternative_t<size_t(type), decltype(variant)>& GetValue()
         {
             return std::get<size_t(type)>(variant);
         }

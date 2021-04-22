@@ -41,7 +41,8 @@ namespace love
 
         Module* GetInstance(const std::string& name);
 
-        template<typename T> static T* GetInstance(ModuleType type)
+        template<typename T>
+        static T* GetInstance(ModuleType type)
         {
             return (T*)instances[type];
         }

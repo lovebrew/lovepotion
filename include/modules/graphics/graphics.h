@@ -499,7 +499,8 @@ namespace love
                 gfx->transformStack.back() *= t;
             }
 
-            template<typename vDst, typename vSrc> void TransformXY(vDst dst, vSrc src, int count)
+            template<typename vDst, typename vSrc>
+            void TransformXY(vDst dst, vSrc src, int count)
             {
                 gfx->GetTransform().TransformXY(dst, src, count);
             }

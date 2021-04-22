@@ -1,6 +1,7 @@
 #pragma once
 
-template<typename T> struct ColorT
+template<typename T>
+struct ColorT
 {
     T r;
     T g;
@@ -37,17 +38,20 @@ template<typename T> struct ColorT
     ColorT<T> operator/=(T s);
 };
 
-template<typename T> bool ColorT<T>::operator==(const ColorT<T>& other) const
+template<typename T>
+bool ColorT<T>::operator==(const ColorT<T>& other) const
 {
     return r == other.r && g == other.g && b == other.b && a == other.a;
 }
 
-template<typename T> bool ColorT<T>::operator!=(const ColorT<T>& other) const
+template<typename T>
+bool ColorT<T>::operator!=(const ColorT<T>& other) const
 {
     return !(operator==(other));
 }
 
-template<typename T> ColorT<T> ColorT<T>::operator+=(const ColorT<T>& other)
+template<typename T>
+ColorT<T> ColorT<T>::operator+=(const ColorT<T>& other)
 {
     r += other.r;
     g += other.g;
@@ -57,7 +61,8 @@ template<typename T> ColorT<T> ColorT<T>::operator+=(const ColorT<T>& other)
     return *this;
 }
 
-template<typename T> ColorT<T> ColorT<T>::operator*=(const ColorT<T>& other)
+template<typename T>
+ColorT<T> ColorT<T>::operator*=(const ColorT<T>& other)
 {
     r *= other.r;
     g *= other.g;
@@ -67,7 +72,8 @@ template<typename T> ColorT<T> ColorT<T>::operator*=(const ColorT<T>& other)
     return *this;
 }
 
-template<typename T> ColorT<T> ColorT<T>::operator*=(T s)
+template<typename T>
+ColorT<T> ColorT<T>::operator*=(T s)
 {
     r *= s;
     g *= s;
@@ -77,7 +83,8 @@ template<typename T> ColorT<T> ColorT<T>::operator*=(T s)
     return *this;
 }
 
-template<typename T> ColorT<T> ColorT<T>::operator/=(T s)
+template<typename T>
+ColorT<T> ColorT<T>::operator/=(T s)
 {
     r /= s;
     g /= s;
@@ -87,14 +94,16 @@ template<typename T> ColorT<T> ColorT<T>::operator/=(T s)
     return *this;
 }
 
-template<typename T> ColorT<T> operator+(const ColorT<T>& a, const ColorT<T>& b)
+template<typename T>
+ColorT<T> operator+(const ColorT<T>& a, const ColorT<T>& b)
 {
     ColorT<T> tmp(a);
 
     return tmp += b;
 }
 
-template<typename T> ColorT<T> operator*(const ColorT<T>& a, const ColorT<T>& b)
+template<typename T>
+ColorT<T> operator*(const ColorT<T>& a, const ColorT<T>& b)
 {
     ColorT<T> res;
     res.r = a.r * b.r;
@@ -105,14 +114,16 @@ template<typename T> ColorT<T> operator*(const ColorT<T>& a, const ColorT<T>& b)
     return res;
 }
 
-template<typename T> ColorT<T> operator*(const ColorT<T>& a, T s)
+template<typename T>
+ColorT<T> operator*(const ColorT<T>& a, T s)
 {
     ColorT<T> tmp(a);
 
     return tmp *= s;
 }
 
-template<typename T> ColorT<T> operator/(const ColorT<T>& a, T s)
+template<typename T>
+ColorT<T> operator/(const ColorT<T>& a, T s)
 {
     ColorT<T> tmp(a);
 

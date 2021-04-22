@@ -128,7 +128,8 @@ class CIntrusiveTreeBase
         return p;
     }
 
-    template<typename H> N*& navigate(N*& node, N*& parent, N::Leaf leafOnEqual, H helm) const
+    template<typename H>
+    N*& navigate(N*& node, N*& parent, N::Leaf leafOnEqual, H helm) const
     {
         node   = nullptr;
         parent = nullptr;
@@ -179,7 +180,8 @@ class CIntrusiveTree final : protected CIntrusiveTreeBase
         return m ? &(m->*node_ptr) : nullptr;
     }
 
-    template<typename A, typename B> static int compare(A const& a, B const& b)
+    template<typename A, typename B>
+    static int compare(A const& a, B const& b)
     {
         Comparator comp;
         if (comp(a, b))
@@ -226,7 +228,8 @@ class CIntrusiveTree final : protected CIntrusiveTreeBase
         UpperBound = 2,
     };
 
-    template<typename Lambda> T* search(SearchMode mode, Lambda lambda) const
+    template<typename Lambda>
+    T* search(SearchMode mode, Lambda lambda) const
     {
         N *node, *parent;
         N*& point = navigate(node, parent, mode != UpperBound ? N::Left : N::Right,
@@ -261,7 +264,8 @@ class CIntrusiveTree final : protected CIntrusiveTreeBase
         return toType(node);
     }
 
-    template<typename K> T* find(K const& key, SearchMode mode = Exact) const
+    template<typename K>
+    T* find(K const& key, SearchMode mode = Exact) const
     {
         return search(mode, [&key](T* obj) { return compare(key, *obj); });
     }

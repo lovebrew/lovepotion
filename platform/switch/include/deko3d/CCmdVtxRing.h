@@ -9,7 +9,8 @@
 
 #include "vertex.h"
 
-template<unsigned NumSlices> class CCmdVtxRing
+template<unsigned NumSlices>
+class CCmdVtxRing
 {
     static_assert(NumSlices > 0, "Need a non-zero number of slices...");
 

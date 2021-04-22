@@ -6,7 +6,8 @@
 #include "CMemPool.h"
 #include "common.h"
 
-template<unsigned NumDescriptors> class CDescriptorSet
+template<unsigned NumDescriptors>
+class CDescriptorSet
 {
     static_assert(NumDescriptors > 0, "Need a non-zero number of descriptors...");
     static_assert(sizeof(DkImageDescriptor) == sizeof(DkSamplerDescriptor), "shouldn't happen");
@@ -41,7 +42,8 @@ template<unsigned NumDescriptors> class CDescriptorSet
         cmdbuf.bindSamplerDescriptorSet(m_mem.getGpuAddr(), NumDescriptors);
     }
 
-    template<typename T> void update(dk::CmdBuf cmdbuf, uint32_t id, T const& descriptor)
+    template<typename T>
+    void update(dk::CmdBuf cmdbuf, uint32_t id, T const& descriptor)
     {
         static_assert(sizeof(T) == DescriptorSize);
         cmdbuf.pushData(m_mem.getGpuAddr() + id * DescriptorSize, &descriptor, DescriptorSize);

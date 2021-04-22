@@ -4,7 +4,8 @@
 #include <bitset>
 #include <deko3d.h>
 
-template<size_t N> class BitwiseAlloc : std::bitset<N>
+template<size_t N>
+class BitwiseAlloc : std::bitset<N>
 {
   public:
     size_t Allocate()

@@ -2,56 +2,57 @@
 
 #include "common/results.h"
 
-extern "C" {
-void userAppInit()
+extern "C"
 {
-    /* romFS */
-    R_ABORT_UNLESS(romfsInit());
+    void userAppInit()
+    {
+        /* romFS */
+        R_ABORT_UNLESS(romfsInit());
 
-    /* system fonts */
-    R_ABORT_UNLESS(plInitialize(PlServiceType_User));
+        /* system fonts */
+        R_ABORT_UNLESS(plInitialize(PlServiceType_User));
 
-    /* network interface manager */
-    R_ABORT_UNLESS(nifmInitialize(NifmServiceType_User));
+        /* network interface manager */
+        R_ABORT_UNLESS(nifmInitialize(NifmServiceType_User));
 
-    /* accounts */
-    R_ABORT_UNLESS(accountInitialize(AccountServiceType_Application));
+        /* accounts */
+        R_ABORT_UNLESS(accountInitialize(AccountServiceType_Application));
 
-    /* settings */
-    R_ABORT_UNLESS(setInitialize());
+        /* settings */
+        R_ABORT_UNLESS(setInitialize());
 
-    /* system settings */
-    R_ABORT_UNLESS(setsysInitialize());
+        /* system settings */
+        R_ABORT_UNLESS(setsysInitialize());
 
-    /* battery */
-    R_ABORT_UNLESS(psmInitialize());
+        /* battery */
+        R_ABORT_UNLESS(psmInitialize());
 
-    /* wireless comms */
-    R_ABORT_UNLESS(socketInitializeDefault());
+        /* wireless comms */
+        R_ABORT_UNLESS(socketInitializeDefault());
 
-    /* initialize controllers -- 4 players max */
-    padConfigureInput(4, HidNpadStyleSet_NpadStandard);
+        /* initialize controllers -- 4 players max */
+        padConfigureInput(4, HidNpadStyleSet_NpadStandard);
 
-    /* initialize touch screen */
-    hidInitializeTouchScreen();
-}
+        /* initialize touch screen */
+        hidInitializeTouchScreen();
+    }
 
-void userAppExit()
-{
-    romfsExit();
+    void userAppExit()
+    {
+        romfsExit();
 
-    socketExit();
+        socketExit();
 
-    psmExit();
+        psmExit();
 
-    setsysExit();
+        setsysExit();
 
-    setExit();
+        setExit();
 
-    accountExit();
+        accountExit();
 
-    nifmExit();
+        nifmExit();
 
-    plExit();
-}
+        plExit();
+    }
 }

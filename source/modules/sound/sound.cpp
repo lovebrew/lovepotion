@@ -12,7 +12,8 @@ struct DecoderImpl
     bool (*Accepts)(const std::string& ext);
 };
 
-template<typename DecoderType> DecoderImpl DecoderImplFor()
+template<typename DecoderType>
+DecoderImpl DecoderImplFor()
 {
     DecoderImpl decoderImpl;
 

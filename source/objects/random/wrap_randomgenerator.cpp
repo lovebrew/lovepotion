@@ -4,7 +4,8 @@
 
 using namespace love;
 
-template<typename T> static T CheckRandomSeed_Part(lua_State* L, int index)
+template<typename T>
+static T CheckRandomSeed_Part(lua_State* L, int index)
 {
     double num = luaL_checknumber(L, index);
     double inf = std::numeric_limits<double>::infinity();

@@ -4,7 +4,8 @@
 
 namespace love
 {
-    template<typename T, typename U, size_t PEAK> class EnumMap
+    template<typename T, typename U, size_t PEAK>
+    class EnumMap
     {
       public:
         struct Entry
