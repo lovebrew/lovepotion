@@ -41,7 +41,8 @@ SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
 				${CONSOLE_SOURCES}
 
-DATA		:=	${LOVE_DATA_FILES}
+DATA		:=	${LOVE_DATA_FILES} \
+				source/scripts
 
 INCLUDES	?=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \

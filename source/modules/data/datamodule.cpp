@@ -199,7 +199,7 @@ namespace love::data
         { "base64", data::EncodeFormat::ENCODE_BASE64 },
     };
 
-    const static StringMap<EncodeFormat, ENCODE_MAX_ENUM> encoders(encoderEntries);
+    constinit const static StringMap<EncodeFormat, ENCODE_MAX_ENUM> encoders(encoderEntries);
 
     constexpr StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM>::Entry containerEntries[] =
     {
@@ -207,7 +207,7 @@ namespace love::data
         { "string", data::ContainerType::CONTAINER_STRING }
     };
 
-    static StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM> containers(containerEntries);
+    constinit const static StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM> containers(containerEntries);
     // clang-format on
 
 } // namespace love::data

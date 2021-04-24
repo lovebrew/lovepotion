@@ -1,5 +1,9 @@
 #include "modules/window/wrap_window.h"
 
+#if defined(_3DS)
+    #include "wrap_window_lua.h"
+#endif
+
 using namespace love;
 
 #define instance() (Module::GetInstance<Window>(Module::M_WINDOW))
@@ -80,5 +84,19 @@ int Wrap_Window::Register(lua_State* L)
     wrappedModule.functions = functions;
     wrappedModule.types     = nullptr;
 
-    return Luax::RegisterModule(L, wrappedModule);
+    int ret = Luax::RegisterModule(L, wrappedModule);
+
+    #if defined(_3DS)
+        LOG("loading buffer!");
+        if (luaL_loadbuffer(L, (const char*)wrap_window_lua, wrap_window_lua_size, "wrap_window.lua") == 0)
+        {
+            LOG("CALLING IT");
+            lua_call(L, 0, 0);
+            LOG("Done");
+        }
+        else
+            lua_error(L);
+    #endif
+
+    return ret;
 }

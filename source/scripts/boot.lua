@@ -775,6 +775,10 @@ function love.run()
     end
 
     return function()
+        if love.window and g_windowShown then
+            return
+        end
+
         if love.event and love.event.pump then
             love.event.pump()
 
