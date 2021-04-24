@@ -1725,7 +1725,6 @@ function love.nogame()
 
     function Heart:init(x, rotation, args)
         self.x = x
-        self.y = y
 
         self.rotation = rotation
 

@@ -45,3 +45,14 @@ static std::string LOVE_STRING_EMPTY;
         if (R_FAILED(_tmp_r_try_rc))           \
             __CONSOLE_ABORT(_tmp_r_try_rc);    \
     })
+
+#define R_ABORT_LAMBDA_UNLESS(res_expr, lambda) \
+    ({                                          \
+        const auto _tmp_r_try_rc = (res_expr);  \
+        const auto _tmp_lambda   = (lambda);    \
+        if (R_FAILED(_tmp_r_try_rc))            \
+        {                                       \
+            _tmp_lambda();                      \
+            __CONSOLE_ABORT(_tmp_r_try_rc);     \
+        }                                       \
+    })

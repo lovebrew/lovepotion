@@ -12,6 +12,8 @@ namespace Love
 
     int EnableAccelerometerAsJoystick(lua_State* L);
 
+    int IsVersionCompatible(lua_State* L);
+
     /* init nxlink or something */
     int _OpenConsole(lua_State* L);
 

@@ -73,7 +73,7 @@ int Love::Initialize(lua_State* L)
     lua_pushstring(L, Version::LOVE);
     lua_setfield(L, -2, "_version");
 
-    // love._(major, minor, revision, codename)
+    // love._version_(major, minor, revision, codename)
     lua_pushnumber(L, Version::MAJOR);
     lua_setfield(L, -2, "_version_major");
 
@@ -86,6 +86,16 @@ int Love::Initialize(lua_State* L)
     lua_pushstring(L, Version::CODENAME);
     lua_setfield(L, -2, "_version_codename");
 
+    // love._potion_(major, minor, revision)
+    lua_pushnumber(L, Version::POTION_MAJOR);
+    lua_setfield(L, -2, "_potion_version_major");
+
+    lua_pushnumber(L, Version::POTION_MINOR);
+    lua_setfield(L, -2, "_potion_version_minor");
+
+    lua_pushnumber(L, Version::POTION_MAJOR);
+    lua_setfield(L, -2, "_potion_version_revision");
+
     // End Constants -- namespace functions //
 
     lua_pushcfunction(L, GetVersion);
@@ -96,6 +106,9 @@ int Love::Initialize(lua_State* L)
 
     lua_pushcfunction(L, EnableAccelerometerAsJoystick);
     lua_setfield(L, -2, "_setAccelerometerAsJoystick");
+
+    lua_pushcfunction(L, IsVersionCompatible);
+    lua_setfield(L, -2, "isVersionCompatible");
 
     //---------------------------------------//
 
@@ -140,12 +153,47 @@ int Love::NoGame(lua_State* L)
 
 int Love::GetVersion(lua_State* L)
 {
-    lua_pushnumber(L, Version::MAJOR);
-    lua_pushnumber(L, Version::MINOR);
-    lua_pushnumber(L, Version::REVISION);
+    lua_pushinteger(L, Version::MAJOR);
+    lua_pushinteger(L, Version::MINOR);
+    lua_pushinteger(L, Version::REVISION);
     lua_pushstring(L, Version::CODENAME);
 
     return 4;
+}
+
+int Love::IsVersionCompatible(lua_State* L)
+{
+    std::string version;
+
+    if (lua_type(L, 1) == LUA_TSTRING)
+    {
+        version = luaL_checkstring(L, 1);
+
+        if (std::count(version.begin(), version.end(), '.') < 2)
+            version.append(".0");
+    }
+    else
+    {
+        int major    = luaL_checkinteger(L, 1);
+        int minor    = luaL_checkinteger(L, 2);
+        int revision = luaL_optinteger(L, 3, 0);
+
+        sprintf(version.data(), "%d.%d.%d", major, minor, revision);
+    }
+
+    for (size_t i = 0; Version::COMPATABILITY[i]; i++)
+    {
+        std::string_view v(Version::COMPATABILITY[i]);
+
+        if (version.compare(v) != 0)
+            continue;
+
+        lua_pushboolean(L, true);
+        return 1;
+    }
+
+    lua_pushboolean(L, false);
+    return 1;
 }
 
 #include "common/debugger.h"

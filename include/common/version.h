@@ -2,12 +2,18 @@
 
 namespace Version
 {
-    static const char* LOVE_POTION = "2.0.0";
-    static const char* LOVE        = "11.3.0";
+    static constexpr const char* LOVE_POTION = "2.1.0";
+    static constexpr const char* LOVE        = "11.3.0";
 
-    static const int MAJOR    = 11;
-    static const int MINOR    = 3;
-    static const int REVISION = 0;
+    static constexpr int MAJOR    = 11;
+    static constexpr int MINOR    = 3;
+    static constexpr int REVISION = 0;
 
-    static const char* CODENAME = "Mysterious Mysteries";
+    static constexpr int POTION_MAJOR    = 2;
+    static constexpr int POTION_MINOR    = 1;
+    static constexpr int POTION_REVISION = 0;
+
+    static constexpr const char* CODENAME = "Mysterious Mysteries";
+
+    static constexpr const char* COMPATABILITY[] = { LOVE_POTION, 0 };
 } // namespace Version

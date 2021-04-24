@@ -583,6 +583,7 @@ function love.init()
         identity = false,
         appendidentity = false,
         version = love._version,
+        potion_version = love._potion_version,
         console = false,
 
         stereoScopic3D = true,
@@ -680,13 +681,13 @@ function love.init()
         "thread",
         "timer",
         "event",
-        "font",
         "keyboard",
         "joystick",
         "touch",
         "sound",
         "system",
         "audio",
+        "font",
         "window",
         "graphics",
         "math"
@@ -702,6 +703,25 @@ function love.init()
 
     if love.event then
         love.createhandlers()
+    end
+
+    -- check version - normally LÖVE's, but we
+    -- want to check the LÖVE Potion version
+    config.version = tostring(config.version)
+    local  message = "This game indicates it was made for version '%s' of LÖVE Potion." ..
+                     "It may not be compatible with the running version (%s)."
+
+    if not love.isVersionCompatible(config.potion_version) then
+        local major, minor, revision = config.version:match("^(%d+)%.(%d+)%.(%d+)$")
+        local t = {major = love._potion_version_major, minor = love._potion_version_minor, rev = love._potion_version_revision}
+        if (not major or not minor or not revision) or (major ~= t.major and minor ~= t.minor and revision ~= t.rev) then
+            local formatted = message:format(config.version, love._potion_version)
+            print(formatted)
+
+            if love.window then
+                -- love.window.showMessageBox(message)
+            end
+        end
     end
 
     -- Now we can throw any errors from `conf.lua`.

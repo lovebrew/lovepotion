@@ -4,10 +4,9 @@
 #include "common/results.h"
 
 u32* SOCKET_BUFFER;
-Result SOCKET_INITED;
 
-#define SO_MAX_BUFSIZE 0x100000
-#define SO_BUF_ALIGN   0x1000
+#define SOC_BUFSIZE  0x100000
+#define BUFFER_ALIGN 0x1000
 
 extern "C"
 {
@@ -28,8 +27,8 @@ extern "C"
         R_ABORT_UNLESS(frdInit());
 
         /* wireless */
-        SOCKET_BUFFER = (u32*)memalign(SO_BUF_ALIGN, SO_MAX_BUFSIZE);
-        SOCKET_INITED = socInit(SOCKET_BUFFER, SO_MAX_BUFSIZE);
+        SOCKET_BUFFER = (u32*)memalign(BUFFER_ALIGN, SOC_BUFSIZE);
+        R_ABORT_LAMBDA_UNLESS(socInit(SOCKET_BUFFER, SOC_BUFSIZE), [&]() { free(SOCKET_BUFFER); });
 
         HIDUSER_EnableAccelerometer();
 
@@ -42,7 +41,6 @@ extern "C"
         HIDUSER_DisableAccelerometer();
 
         socExit();
-
         free(SOCKET_BUFFER);
 
         frdExit();
