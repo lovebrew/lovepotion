@@ -53,10 +53,6 @@ local function newButton(id, t, x, width)
         end
 
         love.graphics.setColor(self.textColor)
-
-        if self.shortcut then
-            love.graphics.print(utf8.char("0xE000"), glyphFont, x - 32, y)
-        end
         love.graphics.print(self.text, textFont, x, y)
     end
 
