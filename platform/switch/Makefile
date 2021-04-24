@@ -48,7 +48,8 @@ SOURCES		:=	${LOVE_SOURCES} \
 				${CONSOLE_SOURCES} \
 				shaders
 
-DATA		:=	${LOVE_DATA_FILES}
+DATA		:=	${LOVE_DATA_FILES} \
+				source/scripts
 
 INCLUDES	:=	${LOVE_INCLUDES} \
 				${LOVE_LIBRARIES} \
