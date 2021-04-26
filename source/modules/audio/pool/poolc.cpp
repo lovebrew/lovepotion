@@ -73,10 +73,13 @@ bool Pool::AssignSource(common::Source* source, size_t& channel, bool& wasPlayin
 
     this->available.pop();
 
+    return true;
+}
+
+void Pool::AddSource(common::Source* source, size_t channel)
+{
     this->playing.insert(std::make_pair(source, channel));
     source->Retain();
-
-    return true;
 }
 
 bool Pool::FindSource(common::Source* source, size_t& channel)

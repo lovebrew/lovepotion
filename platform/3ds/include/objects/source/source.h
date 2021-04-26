@@ -11,6 +11,8 @@ namespace love
 
         Source(Pool* pool, Decoder* decoder);
 
+        Source(const Source& other);
+
         virtual ~Source();
 
         Source* Clone();

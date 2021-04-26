@@ -40,6 +40,11 @@ Source::Source(Pool* pool, Decoder* decoder) : common::Source(pool, decoder)
     this->InitializeStreamBuffers(decoder);
 }
 
+Source::Source(const Source& other) : common::Source(other)
+{
+    this->InitializeStreamBuffers(this->decoder.Get());
+}
+
 love::Source* Source::Clone()
 {
     return new Source(*this);
@@ -53,24 +58,29 @@ Source::~Source()
 
 void Source::InitializeStreamBuffers(Decoder* decoder)
 {
-    for (auto& source : this->sources)
+    if (!this->sourceBuffer)
     {
-        source                     = AudioDriverWaveBuf();
-        source.start_sample_offset = 0;
-        source.size                = 0;
-        source.data_pcm16          = (s16*)AudioPool::MemoryAlign(decoder->GetSize()).first;
-        source.state               = AudioDriverWaveBufState_Done;
+        auto aligned = AudioPool::MemoryAlign(decoder->GetSize() * 2);
+
+        this->sourceBuffer = aligned.first;
+        this->souceBufferSize = aligned.second;
+    }
+
+    for (size_t i = 0; i < MAX_BUFFERS; i++)
+    {
+        auto buffer = (s16*)(((size_t)this->sourceBuffer) + i * decoder->GetSize());
+
+        this->sources[i] = AudioDriverWaveBuf { .data_pcm16          = buffer,
+                                                .size                = 0,
+                                                .start_sample_offset = 0,
+                                                .state = AudioDriverWaveBufState_Done };
     }
 }
 
 void Source::FreeBuffer()
 {
     if (this->sourceType != TYPE_STATIC)
-    {
-        for (int i = 0; i < Source::MAX_BUFFERS; i++)
-            AudioPool::MemoryFree(
-                std::make_pair(this->sources[i].data_pcm16, this->sources[i].size));
-    }
+        AudioPool::MemoryFree(std::make_pair(this->sourceBuffer, this->souceBufferSize));
 }
 
 double Source::GetSampleOffset()
@@ -122,8 +132,6 @@ bool Source::Update()
             {
                 if (this->sources[which].state == AudioDriverWaveBufState_Done)
                 {
-                    this->offsetSamples += this->sources[which].end_sample_offset;
-
                     int decoded = this->StreamAtomic(which);
 
                     if (decoded == 0)
@@ -195,9 +203,13 @@ int Source::StreamAtomic(size_t which)
 
 bool Source::IsPlaying() const
 {
+    if (!this->valid)
+        return false;
+
     bool sourcePlaying = false;
 
-    AudioModule()->GetDriver()->LockFunction([this, &sourcePlaying](AudioDriver* driver)) {
+    AudioModule()->GetDriver()->LockFunction([ this, &sourcePlaying ](AudioDriver * driver)
+    {
         sourcePlaying = audrvVoiceIsPlaying(driver, this->channel);
     });
 
@@ -227,9 +239,7 @@ bool Source::PlayAtomic()
 {
     this->PrepareAtomic();
 
-    bool success = false;
-
-    if (this->sourceType != TYPE_STREAM) /* flush the DSP data cache */
+    if (this->sourceType != TYPE_STREAM) /* flush the armD data cache */
         armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
     /* add the initial wavebuffer */
@@ -238,28 +248,13 @@ bool Source::PlayAtomic()
         audrvVoiceStart(driver, this->channel);
     });
 
-    success = true;
-
-    // isPlaying() needs source to be valid
-    if (this->sourceType == TYPE_STREAM)
-    {
-        this->valid = true;
-
-        if (!this->IsPlaying())
-            success = false;
-    }
-
-    // stop() needs source to be valid
-    if (!success)
-    {
-        this->valid = true;
-        this->Stop();
-    }
-
     if (this->sourceType != TYPE_STREAM)
         this->offsetSamples = 0;
 
-    return success;
+    if (this->sourceType == TYPE_STREAM)
+        this->valid = true;
+
+    return true;
 }
 
 void Source::PauseAtomic()

@@ -28,6 +28,11 @@ Source::Source(Pool* pool, Decoder* decoder) : common::Source(pool, decoder)
     this->InitializeStreamBuffers(decoder);
 }
 
+Source::Source(const Source& other) : common::Source(other)
+{
+    this->InitializeStreamBuffers(this->decoder.Get());
+}
+
 love::Source* Source::Clone()
 {
     return new Source(*this);
@@ -41,21 +46,21 @@ Source::~Source()
 
 void Source::InitializeStreamBuffers(Decoder* decoder)
 {
-    for (auto& source : this->sources)
+    if (!this->sourceBuffer)
+        this->sourceBuffer = linearAlloc(decoder->GetSize() * 2);
+
+    for (size_t i = 0; i < MAX_BUFFERS; i++)
     {
-        source = ndspWaveBuf { .data_pcm16 = (s16*)linearAlloc(decoder->GetSize()),
-                               .nsamples   = 0,
-                               .status     = NDSP_WBUF_DONE };
+        auto buffer = (s16*)(((size_t)this->sourceBuffer) + i * decoder->GetSize());
+        this->sources[i] =
+            ndspWaveBuf { .data_pcm16 = buffer, .nsamples = 0, .status = NDSP_WBUF_DONE };
     }
 }
 
 void Source::FreeBuffer()
 {
     if (this->sourceType != TYPE_STATIC)
-    {
-        for (int i = 0; i < Source::MAX_BUFFERS; i++)
-            linearFree(this->sources[i].data_pcm16);
-    }
+        linearFree(this->sourceBuffer);
 }
 
 void Source::SetVolume(float volume)
@@ -220,6 +225,7 @@ bool Source::PlayAtomic()
         DSP_FlushDataCache(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
     /* add the initial wavebuffer */
+    ndspChnSetPaused(this->channel, false);
     ndspChnWaveBufAdd(this->channel, &this->sources[0]);
 
     if (this->sourceType != TYPE_STREAM)
@@ -239,7 +245,7 @@ void Source::PauseAtomic()
 
 void Source::ResumeAtomic()
 {
-    if (this->valid)
+    if (this->valid && !this->IsPlaying())
         ndspChnSetPaused(this->channel, false);
 }
 
