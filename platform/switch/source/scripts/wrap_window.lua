@@ -142,7 +142,7 @@ local function newMessageBox(text, buttons)
     releasedEvents.touchreleased = true
     releasedEvents.mousereleased = true
 
-    messagebox.selection = 1
+    messagebox.selection = 0
 
     function messagebox:poll(event, ...)
         local args = {...}

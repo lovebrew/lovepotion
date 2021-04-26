@@ -1663,12 +1663,6 @@ local function newMessageBox(text, buttons)
                         buttonID = button:getID()
                     end
                 end
-            elseif event == "mousepressed" then
-                for _, button in ipairs(self.buttons) do
-                    if button:mousepressed(unpack(args)) then
-                        buttonID = button:getID()
-                    end
-                end
             elseif event == "gamepadpressed" then
                 for _, button in ipairs(self.buttons) do
                     if button:gamepadpressed(unpack(args)) then
