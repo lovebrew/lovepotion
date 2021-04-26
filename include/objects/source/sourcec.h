@@ -146,7 +146,7 @@ namespace love
             float minVolume = 0.0f;
             float maxVolume = 1.0f;
 
-            int offsetSamples = 0;
+            std::atomic<int> offsetSamples = 0;
 
             int sampleRate = 0;
             int channels   = 0;

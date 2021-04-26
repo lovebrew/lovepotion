@@ -122,6 +122,8 @@ bool Source::Update()
             {
                 if (this->sources[which].state == AudioDriverWaveBufState_Done)
                 {
+                    this->offsetSamples += this->sources[which].end_sample_offset;
+
                     int decoded = this->StreamAtomic(which);
 
                     if (decoded == 0)
@@ -193,17 +195,13 @@ int Source::StreamAtomic(size_t which)
 
 bool Source::IsPlaying() const
 {
-    if (!this->valid)
-        return false;
-
     bool sourcePlaying = false;
-    size_t bufferCount = (this->sourceType == TYPE_STREAM) ? MAX_BUFFERS : 1;
-    /* check if any of our sources are queued or playing */
-    for (size_t index = 0; index < bufferCount; index++)
-        sourcePlaying |= (this->sources[index].state == AudioDriverWaveBufState_Queued ||
-                          this->sources[index].state == AudioDriverWaveBufState_Playing);
 
-    return sourcePlaying;
+    AudioModule()->GetDriver()->LockFunction([this, &sourcePlaying](AudioDriver* driver)) {
+        sourcePlaying = audrvVoiceIsPlaying(driver, this->channel);
+    });
+
+    return this->valid && sourcePlaying;
 }
 
 bool Source::IsFinished() const
@@ -287,8 +285,8 @@ void Source::StopAtomic()
         if (!this->valid)
             return;
 
-        this->TeardownAtomic();
         audrvVoiceStop(driver, this->channel);
+        this->TeardownAtomic();
     });
 }
 

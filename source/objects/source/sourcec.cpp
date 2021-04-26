@@ -60,15 +60,21 @@ void Source::TeardownAtomic()
         default:
             break;
     }
+
+    this->valid = false;
+    this->offsetSamples = 0;
 }
 
 bool Source::Play()
 {
-    thread::Lock lock = this->pool->Lock();
-
     bool wasPlaying;
-    if (!this->pool->AssignSource(this, this->channel, wasPlaying))
-        return valid = false;
+
+    {
+        thread::Lock lock = this->pool->Lock();
+
+        if (!this->pool->AssignSource(this, this->channel, wasPlaying))
+            return valid = false;
+    }
 
     if (!wasPlaying)
         return this->valid = this->PlayAtomic();
@@ -271,7 +277,8 @@ double Source::Tell(Source::Unit unit)
 
     double offset = 0;
 
-    offset += this->offsetSamples;
+    if (this->valid)
+        offset = this->offsetSamples + this->GetSampleOffset();
 
     if (unit == UNIT_SECONDS)
         return offset / (double)this->sampleRate;
