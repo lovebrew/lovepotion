@@ -23,6 +23,8 @@ namespace Wrap_System
 
     int GetFriendCode(lua_State* L);
 
+    int GetSystemTheme(lua_State* L);
+
     int GetPlayCoins(lua_State* L);
 
     int SetPlayCoins(lua_State* L);

@@ -1,5 +1,5 @@
 -- set up variables
-local textFont = love.graphics.newFont(24)
+local textFont = nil
 local glyphFont = nil
 
 local textColors = {}
@@ -7,30 +7,22 @@ local textColors = {}
 textColors.buttons = {}
 
 textColors.buttons.light = { 0.16, 0.28, 0.80 }
-textColors.buttons.dark  = {}
-
-textColors.buttons.default = textColors.buttons.light
+textColors.buttons.dark  = { 0.30, 0.79, 0.67 }
 
 textColors.body = {}
 
 textColors.body.light = { 0.00, 0.00, 0.00 }
-textColors.body.dark  = { 1.00, 1.00, 1.00 }
-
-textColors.body.default = textColors.body.light
+textColors.body.dark  = { 0.27, 0.27, 0.27 }
 
 local dividerColors = {}
 
 dividerColors.light = { 0.82, 0.82, 0.82 }
-dividerColors.dark  = {}
-
-dividerColors.default = dividerColors.light
+dividerColors.dark  = { 0.41, 0.41, 0.41 }
 
 local selectionColors = {}
 
 selectionColors.light = { 0.28, 0.95, 0.84 }
-selectionColors.dark  = {}
-
-selectionColors.default = selectionColors.light
+selectionColors.dark  = { 0.61, 0.91, 0.96 }
 
 g_windowShown = false
 
@@ -197,7 +189,7 @@ local function newMessageBox(text, buttons)
 
     function messagebox:draw()
         love.graphics.setColor(0, 0, 0, 0.5)
-        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth("bottom"), love.graphics.getHeight())
+        love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
         love.graphics.setColor(1, 1, 1, self.opacity)
         love.graphics.rectangle("fill", boxPosition.x, boxPosition.y, boxSize.w, boxSize.h, 4, 4)
@@ -259,9 +251,11 @@ local function main()
         -- Call update
         box:update(dt)
 
-        if love.graphics and love.graphics.isActive() then
+        if love.graphics then
             love.graphics.origin()
             love.graphics.clear(love.graphics.getBackgroundColor())
+
+            love.graphics.setActiveScreen("default")
 
             if love.draw then
                 love.draw()
@@ -278,11 +272,22 @@ local function main()
     end
 end
 
+local function selectColorSet(setting)
+    dividerColors.default      = dividerColors[setting]
+    selectionColors.default    = selectionColors[setting]
+    textColors.body.default    = textColors.body[setting]
+    textColors.buttons.default = textColors.buttons[setting]
+end
+
 function love.window.showMessageBox(_, text, buttons)
     g_windowShown = true
 
+    textFont = love.graphics.newFont(24)
+
     boxSize = { w = 770, h = 352}
     boxPosition = { x = (love.graphics.getWidth() - boxSize.w) / 2, y = (love.graphics.getHeight() - boxSize.h) / 2}
+
+    selectColorSet(love.system.getColorTheme())
 
     box = newMessageBox(text, buttons)
 

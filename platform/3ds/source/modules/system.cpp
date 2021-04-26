@@ -172,6 +172,11 @@ const std::string& System::GetFriendCode()
     return this->systemInfo.friendCode;
 }
 
+const std::string& System::GetSystemTheme()
+{
+    return THEME_NAME;
+}
+
 Handle System::OpenPlayCoinsFile()
 {
     Handle playCoinsFile;

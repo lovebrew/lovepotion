@@ -3,6 +3,7 @@
 #include "modules/system/systemc.h"
 
 #define USERNAME_LENGTH 0x1C
+static std::string THEME_NAME = "light";
 
 namespace love
 {
@@ -25,6 +26,8 @@ namespace love
         const std::string& GetUsername() override;
 
         NetworkInfo GetNetworkInfo() const override;
+
+        const std::string& GetSystemTheme() override;
 
         const std::string& GetLanguage() override;
 

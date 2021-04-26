@@ -3,6 +3,8 @@
 #include "common/module.h"
 #include "common/stringmap.h"
 
+using namespace std::literals::string_literals;
+
 #define OS_NAME "Horizon"
 
 #if defined(_3DS)
@@ -31,6 +33,13 @@ namespace love::common
             NETWORK_DISCONNECTED,
             NETWORK_CONNECTED,
             NETWORK_MAX_ENUM
+        };
+
+        enum SystemTheme
+        {
+            THEME_LIGHT,
+            THEME_DARK,
+            THEME_MAX_ENUM
         };
 
         struct PowerInfo
@@ -71,6 +80,8 @@ namespace love::common
 
         virtual NetworkInfo GetNetworkInfo() const = 0;
 
+        virtual const std::string& GetSystemTheme() = 0;
+
         virtual const std::string& GetLanguage() = 0;
 
         virtual const std::string& GetVersion() = 0;
@@ -103,6 +114,7 @@ namespace love::common
             std::string username;
             std::string language;
             std::string friendCode;
+            std::string colorTheme;
         } systemInfo;
 
       private:

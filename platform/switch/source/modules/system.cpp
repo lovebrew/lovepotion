@@ -154,6 +154,28 @@ const std::string& System::GetFriendCode()
     return LOVE_STRING_EMPTY;
 }
 
+const std::string& System::GetSystemTheme()
+{
+    const char* theme = nullptr;
+    ColorSetId colorID;
+
+    R_UNLESS(setsysGetColorSetId(&colorID), LOVE_STRING_EMPTY);
+
+    this->systemInfo.colorTheme = theme;
+    return this->systemInfo.colorTheme;
+}
+
+/* THEME CONSTANTS */
+bool System::GetConstant(const char* in, ColorSetId& out)
+{
+    return themes.Find(in, out);
+}
+
+bool System::GetConstant(ColorSetId in, const char*& out)
+{
+    return themes.Find(in, out);
+}
+
 /* LANGUAGE CONSTANTS */
 
 bool System::GetConstant(const char* in, SetLanguage& out)
@@ -254,4 +276,12 @@ constexpr StringMap<SetRegion, System::MAX_REGIONS>::Entry regionEntries[] =
 };
 
 constinit const StringMap<SetRegion, System::MAX_REGIONS> System::regions(regionEntries);
+
+constexpr StringMap<ColorSetId, System::MAX_THEMES>::Entry themeEntries[] =
+{
+    { "dark",  ColorSetId_Dark  },
+    { "light", ColorSetId_Light }
+};
+
+constinit const StringMap<ColorSetId, System::MAX_THEMES> System::themes(themeEntries);
 // clang-format on
