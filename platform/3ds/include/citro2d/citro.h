@@ -37,9 +37,15 @@ class citro2d
 
     bool Get3D() const;
 
+    void DeferCallToEndOfFrame(std::function<void()>&& func)
+    {
+        this->deferredFunctions.emplace_back(std::move(func));
+    }
+
     static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
 
   private:
+    std::vector<std::function<void()>> deferredFunctions;
     std::vector<C3D_RenderTarget*> targets;
     C3D_RenderTarget* current;
 

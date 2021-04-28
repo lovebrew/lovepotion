@@ -1,5 +1,6 @@
 #include "objects/canvas/canvas.h"
 
+#include "citro2d/citro.h"
 #include "modules/graphics/graphics.h"
 #include "modules/window/window.h"
 
@@ -14,10 +15,10 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
     u16 width  = this->citroTex.width;
     u16 height = this->citroTex.height;
 
-    const Tex3DS_SubTexture subtex = { width, height, 0.0f, 1.0f, 1.0f, 0.0f };
+    this->subtex = { width, height, 0.0f, 1.0f, 1.0f, 0.0f };
 
     // C2D_Image
-    this->texture = { &this->citroTex, &subtex };
+    this->texture = { &this->citroTex, &this->subtex };
 
     this->cleared = false;
 
@@ -27,7 +28,9 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
 Canvas::~Canvas()
 {
     C3D_TexDelete(&this->citroTex);
-    C3D_RenderTargetDelete(this->renderer);
+
+    ::citro2d::Instance().DeferCallToEndOfFrame(
+        ([r=renderer]() { C3D_RenderTargetDelete(r); }));
 }
 
 C3D_RenderTarget* Canvas::GetRenderer()

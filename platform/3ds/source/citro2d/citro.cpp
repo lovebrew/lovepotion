@@ -94,6 +94,12 @@ void citro2d::Present()
         C3D_FrameEnd(0);
         this->inFrame = false;
     }
+
+    for (size_t i = this->deferredFunctions.size(); i > 0; i--)
+    {
+        this->deferredFunctions[i - 1]();
+        this->deferredFunctions.erase(deferredFunctions.begin() + i - 1);
+    }
 }
 
 void citro2d::SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, int screenWidth,

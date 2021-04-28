@@ -1181,7 +1181,8 @@ int Wrap_Graphics::Set3D(lua_State* L)
 int Wrap_Graphics::Get3DDepth(lua_State* L)
 {
 #if defined(_3DS)
-    float sliderValue = (gfxIs3D()) ? osGet3DSliderState() : 0;
+    auto instance = (love::citro2d::Graphics*)instance();
+    float sliderValue = (instance->Get3D()) ? osGet3DSliderState() : 0;
 
     lua_pushnumber(L, sliderValue);
 

@@ -719,7 +719,7 @@ function love.init()
             print(formatted)
 
             if love.window then
-                -- love.window.showMessageBox(message)
+                love.window.showMessageBox(nil, message)
             end
         end
     end

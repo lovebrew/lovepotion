@@ -21,6 +21,7 @@ namespace love
 
       private:
         C3D_Tex citroTex;
+        Tex3DS_SubTexture subtex;
         C3D_RenderTarget* renderer;
     };
 } // namespace love
