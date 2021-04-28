@@ -715,7 +715,7 @@ function love.init()
         local major, minor, revision = config.version:match("^(%d+)%.(%d+)%.(%d+)$")
         local t = {major = love._potion_version_major, minor = love._potion_version_minor, rev = love._potion_version_revision}
         if (not major or not minor or not revision) or (major ~= t.major and minor ~= t.minor and revision ~= t.rev) then
-            local formatted = message:format(config.version, love._potion_version)
+            local formatted = message:format(config.potion_version, love._potion_version)
             print(formatted)
 
             if love.window then
