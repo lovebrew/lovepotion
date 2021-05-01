@@ -32,6 +32,8 @@
 #include "objects/text/text.h"
 #include "objects/text/wrap_text.h"
 
+#include <optional>
+
 #if defined(__SWITCH__)
 // #include "objects/font.h"
 // using gFont = love::deko3d::Font;

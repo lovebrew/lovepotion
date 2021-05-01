@@ -79,6 +79,7 @@ void Source::SetVolume(float volume)
 
 void Source::Reset()
 {
+    this->Stop();
     ndspChnReset(this->channel);
 
     u16 format = NDSP_FORMAT_STEREO_PCM16;
@@ -103,7 +104,8 @@ void Source::Reset()
             break;
     }
 
-    ndspInterpType interpType = (this->channels == 2) ? NDSP_INTERP_POLYPHASE : NDSP_INTERP_LINEAR;
+    ndspInterpType interpType = (this->channels == 2) ? NDSP_INTERP_POLYPHASE :
+                                                        NDSP_INTERP_LINEAR;
 
     ndspChnSetFormat(this->channel, format);
     ndspChnSetRate(this->channel, this->sampleRate);
@@ -163,7 +165,7 @@ void Source::PrepareAtomic()
     switch (this->sourceType)
     {
         case TYPE_STATIC:
-            this->sources[0].data_pcm16 = (s16*)this->staticBuffer.Get()->GetBuffer();
+            this->sources[0].data_pcm16 = (s16*)this->staticBuffer->GetBuffer();
             break;
         case TYPE_STREAM:
         {

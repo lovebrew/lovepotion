@@ -3,6 +3,8 @@
 #include "common/stringmap.h"
 #include "objects/object.h"
 
+#include <limits>
+
 namespace love::common
 {
     class Gamepad : public Object

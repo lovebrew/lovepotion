@@ -217,6 +217,105 @@ void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float w
     this->Polygon(mode, points, 4);
 }
 
+void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
+                                        float rx, float ry)
+{
+    if (rx == 0 && ry == 0)
+    {
+        this->Rectangle(mode, x, y, width, height);
+        return;
+    }
+
+    Colorf color   = this->GetColor();
+    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+    const Matrix4& t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
+
+    if (mode == DRAW_FILL)
+    {
+        // Top Left
+        C2D_DrawEllipseSolid(x - rx, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2, foreground);
+
+        // Bottom Left
+        C2D_DrawEllipseSolid(x - rx, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+                             foreground);
+
+        // Bottom Right
+        C2D_DrawEllipseSolid((x - rx) + width, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2,
+                             ry * 2, foreground);
+
+        // Top Right
+        C2D_DrawEllipseSolid((x - rx) + width, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+                             foreground);
+
+        // Vertical Rectangle
+        C2D_DrawRectSolid(x, y - rx, Graphics::CURRENT_DEPTH, width, height + (ry * 2), foreground);
+
+        // Horizontal Rectangle
+        C2D_DrawRectSolid(x - rx, y, Graphics::CURRENT_DEPTH, width + (rx * 2), height, foreground);
+    }
+    else
+    {
+        float lineWidth = this->states.back().lineWidth;
+
+        float ellipse_x = (x - rx) + lineWidth;
+        float ellipse_y = (y - ry) + lineWidth;
+
+        float ellipse_rx = (rx - lineWidth);
+        float ellipse_ry = (ry - lineWidth);
+
+        /* Rectangles first */
+
+        C2D_DrawRectSolid(x, y - ellipse_ry, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, width,
+                          (height + ellipse_ry * 2), TRANSPARENCY);
+
+        C2D_DrawRectSolid(x - ellipse_rx, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                          width + (ellipse_rx * 2), height, TRANSPARENCY);
+        /* Circles
+        ** 1   4
+        ** |   |
+        ** 2 - 3
+        */
+
+        C2D_DrawEllipseSolid(ellipse_x, ellipse_y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                             ellipse_rx * 2, ellipse_ry * 2, TRANSPARENCY);
+
+        C2D_DrawEllipseSolid(ellipse_x, ellipse_y + height,
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, ellipse_rx * 2,
+                             ellipse_ry * 2, TRANSPARENCY);
+
+        C2D_DrawEllipseSolid(ellipse_x + width, ellipse_y + height,
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, ellipse_rx * 2,
+                             ellipse_ry * 2, TRANSPARENCY);
+
+        C2D_DrawEllipseSolid(ellipse_x + width, ellipse_y,
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, ellipse_rx * 2,
+                             ellipse_ry * 2, TRANSPARENCY);
+
+        /* Solid stuff  -- Start with Rectangles */
+
+        C2D_DrawRectSolid(x, y - rx, Graphics::CURRENT_DEPTH, width, height + (ry * 2), foreground);
+
+        C2D_DrawRectSolid(x - rx, y, Graphics::CURRENT_DEPTH, width + (rx * 2), height, foreground);
+
+        /* Ellipses */
+
+        C2D_DrawEllipseSolid(x - rx, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2, foreground);
+
+        C2D_DrawEllipseSolid(x - rx, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+                             foreground);
+
+        C2D_DrawEllipseSolid((x - rx) + width, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2,
+                             ry * 2, foreground);
+
+        C2D_DrawEllipseSolid((x - rx) + width, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+                             foreground);
+
+        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+    }
+}
+
 void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b)
 {
     Colorf color   = this->GetColor();

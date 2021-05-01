@@ -13,6 +13,7 @@
 
 #include "objects/data/view/dataview.h"
 #include "objects/data/view/wrap_dataview.h"
+#include <limits>
 
 namespace Wrap_DataModule
 {
