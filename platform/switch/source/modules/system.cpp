@@ -161,6 +161,9 @@ const std::string& System::GetSystemTheme()
 
     R_UNLESS(setsysGetColorSetId(&colorID), LOVE_STRING_EMPTY);
 
+    if (!System::GetConstant(colorID, theme))
+        theme = "Unknown";
+
     this->systemInfo.colorTheme = theme;
     return this->systemInfo.colorTheme;
 }

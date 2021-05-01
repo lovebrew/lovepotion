@@ -11,8 +11,13 @@ textColors.buttons.dark  = { 0.30, 0.79, 0.67 }
 
 textColors.body = {}
 
-textColors.body.light = { 0.00, 0.00, 0.00 }
-textColors.body.dark  = { 0.27, 0.27, 0.27 }
+textColors.body.light = { 0.18, 0.18, 0.18 }
+textColors.body.dark  = { 0.95, 0.95, 0.95 }
+
+local bodyColors = {}
+
+bodyColors.light = { 0.95, 0.95, 0.95 }
+bodyColors.dark  = { 0.27, 0.27, 0.27 }
 
 local dividerColors = {}
 
@@ -135,6 +140,7 @@ local function newMessageBox(text, buttons)
     releasedEvents.mousereleased = true
 
     messagebox.selection = 0
+    messagebox.pressed_a = false
 
     function messagebox:poll(event, ...)
         local args = {...}
@@ -147,17 +153,14 @@ local function newMessageBox(text, buttons)
                     end
                 end
             elseif event == "gamepadpressed" then
-                for _, button in ipairs(self.buttons) do
-                    if button:gamepadpressed(unpack(args)) then
-                        buttonID = button:getID()
-                    end
-                end
                 table.remove(args, 1)
 
                 if args[1] == "dpright" then
                     self.selection = math.min(self.selection + 1, #self.buttons)
                 elseif args[1] == "dpleft" then
                     self.selection = math.max(1, self.selection - 1)
+                elseif args[1] == "a" then
+                    buttonID = self.selection
                 end
             elseif event == "gamepadaxis" then
                 table.remove(args, 1)
@@ -173,7 +176,7 @@ local function newMessageBox(text, buttons)
                 buttonID = self.selection
             end
         elseif releasedEvents[event] then
-            return self.mode == "double" and buttonID or buttonID and true
+            return self.mode == "double" and buttonID > 0 or buttonID > 0 and true
         end
     end
 
@@ -185,7 +188,7 @@ local function newMessageBox(text, buttons)
         love.graphics.setColor(0, 0, 0, 0.5)
         love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
-        love.graphics.setColor(1, 1, 1, self.opacity)
+        love.graphics.setColor(bodyColors.default, self.opacity)
         love.graphics.rectangle("fill", boxPosition.x, boxPosition.y, boxSize.w, boxSize.h, 4, 4)
 
         love.graphics.setColor(textColors.body.default)
@@ -267,6 +270,11 @@ local function main()
 end
 
 local function selectColorSet(setting)
+    if setting == "" then
+        setting = "light"
+    end
+
+    bodyColors.default         = bodyColors[setting]
     dividerColors.default      = dividerColors[setting]
     selectionColors.default    = selectionColors[setting]
     textColors.body.default    = textColors.body[setting]
