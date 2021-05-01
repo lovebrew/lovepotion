@@ -175,6 +175,7 @@ class deko3d
     {
         CDescriptorSet<MAX_OBJECTS> image;
         CDescriptorSet<MAX_OBJECTS> sampler;
+        bool dirty = false;
     } descriptors;
 
     struct Transformation

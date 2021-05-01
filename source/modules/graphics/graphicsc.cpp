@@ -186,7 +186,7 @@ void Graphics::Push(StackType type)
     if (this->transformStack.size() == MAX_USER_STACK_DEPTH)
         throw Exception("Maximum stack depth reached (more pushes than pops?)");
 
-    this->transformStack.push_back(transformStack.back());
+    this->PushTransform();
     this->pixelScaleStack.push_back(pixelScaleStack.back());
 
     if (type == STACK_ALL)
@@ -226,7 +226,7 @@ void Graphics::Pop()
     if (this->transformStack.size() < 1)
         throw Exception("Minimum stack depth reached (more pops than pushes?)");
 
-    this->transformStack.pop_back();
+    this->PopTransform();
     this->pixelScaleStack.pop_back();
 
     if (this->stackTypeStack.back() == STACK_ALL)

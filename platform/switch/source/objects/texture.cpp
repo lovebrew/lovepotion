@@ -14,7 +14,6 @@ Texture::Texture(TextureType type) : common::Texture(type), texture()
 Texture::~Texture()
 {
     ::deko3d::Instance().UnRegisterResHandle(this->handle);
-    this->texture.reset();
 }
 
 void Texture::SetHandle(DkResHandle handle)

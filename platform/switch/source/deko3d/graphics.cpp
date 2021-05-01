@@ -302,25 +302,10 @@ void love::deko3d::Graphics::Line(const Vector2* points, int count)
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
 {
-    Vector2 points[5] = { {
-                              x,
-                              y,
-                          },
-                          {
-                              x,
-                              y + height,
-                          },
-                          { x + width, y + height },
-                          {
-                              x + width,
-                              y,
-                          },
-                          {
-                              x,
-                              y,
-                          } };
+    Vector2 coords[5] = { Vector2(x, y), Vector2(x, y + height), Vector2(x + width, y + height),
+                          Vector2(x + width, y), Vector2(x, y) };
 
-    this->Polygon(mode, points, 5);
+    this->Polygon(mode, coords, 5);
 }
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,

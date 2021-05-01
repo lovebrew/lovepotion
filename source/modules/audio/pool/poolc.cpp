@@ -47,14 +47,7 @@ void Pool::Finish()
 
 bool Pool::IsPlaying(common::Source* source)
 {
-    bool isPlaying = false;
-
-    {
-        thread::Lock lock(this->mutex);
-        isPlaying = (this->playing.find(source) != this->playing.end());
-    }
-
-    return isPlaying;
+    return (this->playing.find(source) != this->playing.end());
 }
 
 bool Pool::AssignSource(common::Source* source, size_t& channel, bool& wasPlaying)
@@ -73,10 +66,13 @@ bool Pool::AssignSource(common::Source* source, size_t& channel, bool& wasPlayin
 
     this->available.pop();
 
+    return true;
+}
+
+void Pool::AddSource(common::Source* source, size_t channel)
+{
     this->playing.insert(std::make_pair(source, channel));
     source->Retain();
-
-    return true;
 }
 
 bool Pool::FindSource(common::Source* source, size_t& channel)

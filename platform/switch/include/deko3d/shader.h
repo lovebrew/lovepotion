@@ -7,6 +7,8 @@
 #include "common/stringmap.h"
 #include "objects/object.h"
 
+#include <optional>
+
 namespace love
 {
     class Shader : public Object

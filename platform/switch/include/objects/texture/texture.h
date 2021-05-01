@@ -28,6 +28,6 @@ namespace love
 
       protected:
         DkResHandle handle;
-        std::optional<CImage> texture;
+        CImage texture;
     };
 } // namespace love

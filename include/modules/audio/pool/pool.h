@@ -31,6 +31,8 @@ namespace love
 
         bool AssignSource(common::Source* source, size_t& channel, bool& wasPlaying);
 
+        void AddSource(common::Source*, size_t channel);
+
         bool FindSource(common::Source* source, size_t& channel);
 
         bool ReleaseSource(common::Source* source, bool stop = true);

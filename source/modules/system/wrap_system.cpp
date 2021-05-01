@@ -112,6 +112,15 @@ int Wrap_System::GetFriendCode(lua_State* L)
     return 1;
 }
 
+int Wrap_System::GetSystemTheme(lua_State* L)
+{
+    std::string theme = instance()->GetSystemTheme();
+
+    Luax::PushString(L, theme);
+
+    return 1;
+}
+
 int Wrap_System::SetPlayCoins(lua_State* L)
 {
 #if defined(_3DS)
@@ -138,7 +147,8 @@ int Wrap_System::GetPlayCoins(lua_State* L)
 
 int Wrap_System::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getFriendCode", GetFriendCode },
+    luaL_Reg funcs[] = { { "getColorTheme", GetSystemTheme },
+                         { "getFriendCode", GetFriendCode },
                          { "getOS", GetOS },
                          { "getProcessorCount", GetProcessorCount },
                          { "getPowerInfo", GetPowerInfo },

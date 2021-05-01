@@ -20,6 +20,7 @@ Source::Source(Pool* pool, SoundData* sound) :
 
 Source::Source(Pool* pool, Decoder* decoder) :
     sourceType(Source::TYPE_STREAM),
+    sourceBuffer(nullptr),
     sampleRate(decoder->GetSampleRate()),
     channels(decoder->GetChannelCount()),
     bitDepth(decoder->GetBitDepth()),
@@ -29,6 +30,7 @@ Source::Source(Pool* pool, Decoder* decoder) :
 
 Source::Source(const Source& other) :
     sourceType(other.sourceType),
+    sourceBuffer(nullptr),
     valid(false),
     volume(other.volume),
     looping(other.looping),
@@ -54,24 +56,42 @@ void Source::TeardownAtomic()
             break;
         case TYPE_STREAM:
             this->decoder->Rewind();
-            this->InitializeStreamBuffers(this->decoder);
+            this->InitializeStreamBuffers(this->decoder.Get());
             break;
         case TYPE_QUEUE:
         default:
             break;
     }
+
+    this->valid = false;
+    this->offsetSamples = 0;
 }
 
 bool Source::Play()
 {
-    thread::Lock lock = this->pool->Lock();
-
     bool wasPlaying;
-    if (!this->pool->AssignSource(this, this->channel, wasPlaying))
-        return valid = false;
+
+    {
+        thread::Lock lock = this->pool->Lock();
+
+        if (!this->pool->AssignSource(this, this->channel, wasPlaying))
+            return this->valid = false;
+    }
 
     if (!wasPlaying)
-        return this->valid = this->PlayAtomic();
+    {
+        if (!(this->valid = this->PlayAtomic()))
+            return false;
+
+        this->ResumeAtomic();
+
+        {
+            thread::Lock lock = this->pool->Lock();
+            this->pool->AddSource(this, this->channel);
+        }
+
+        return this->valid;
+    }
 
     this->ResumeAtomic();
 
@@ -271,7 +291,8 @@ double Source::Tell(Source::Unit unit)
 
     double offset = 0;
 
-    offset += this->offsetSamples;
+    if (this->valid)
+        offset = this->offsetSamples + this->GetSampleOffset();
 
     if (unit == UNIT_SECONDS)
         return offset / (double)this->sampleRate;

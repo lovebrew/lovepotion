@@ -467,7 +467,7 @@ void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
         { { r, DkColorMask_R }, { g, DkColorMask_G }, { b, DkColorMask_B }, { a, DkColorMask_A } }
     };
 
-    for (const std::pair<bool, uint32_t> pair : masks)
+    for (const std::pair<bool, uint32_t>& pair : masks)
         mask |= pair.first ? pair.second : 0;
 
     this->state.colorWrite.setMask(0, mask);

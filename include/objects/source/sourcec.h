@@ -134,8 +134,11 @@ namespace love
           protected:
             Type sourceType;
 
-            const static int DEFAULT_BUFFERS = 2;
-            const static int MAX_BUFFERS     = 2;
+            constexpr static int DEFAULT_BUFFERS = 2;
+            constexpr static int MAX_BUFFERS     = 2;
+
+            void* sourceBuffer;
+            size_t souceBufferSize;
 
             bool valid = false;
 
@@ -146,7 +149,7 @@ namespace love
             float minVolume = 0.0f;
             float maxVolume = 1.0f;
 
-            int offsetSamples = 0;
+            std::atomic<int> offsetSamples = 0;
 
             int sampleRate = 0;
             int channels   = 0;

@@ -3,6 +3,8 @@
 #include "common/data.h"
 #include "common/exception.h"
 
+#include <limits>
+
 namespace love
 {
     class FileData : public Data

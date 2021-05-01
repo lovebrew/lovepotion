@@ -62,14 +62,20 @@ namespace love::citro2d
         void Rectangle(DrawMode mode, float x, float y, float width, float height) override;
 
         void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
-                       float ry) override {};
+                       float ry);
 
         void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
-                       float ry, int points) override {};
+                       float ry, int points) override
+        {
+            this->Rectangle(mode, x, y, width, height, rx, ry);
+        };
 
         void Ellipse(DrawMode mode, float x, float y, float a, float b) override;
 
-        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points) override {};
+        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points) override
+        {
+            this->Ellipse(mode, x, y, a, b);
+        };
 
         void Circle(DrawMode mode, float x, float y, float radius) override;
 
