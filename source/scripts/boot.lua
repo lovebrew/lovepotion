@@ -536,10 +536,6 @@ function love.boot()
     local isFusedGame = can_has_game or love.arg.options.fused.set
     love.filesystem.setFused(isFusedGame)
 
-    if isFusedGame then
-        options.game.arg[1] = nil
-    end
-
     local identity = ""
     if not can_has_game and options.game.set and options.game.arg[1] then
         local directory = options.game.arg[1]
