@@ -9,7 +9,10 @@ namespace love::common::driver
       public:
         Audrv();
 
-        const bool IsInitialized();
+        bool IsInitialized() const
+        {
+            return this->initialized;
+        };
 
       protected:
         bool initialized;

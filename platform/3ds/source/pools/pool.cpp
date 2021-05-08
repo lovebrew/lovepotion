@@ -3,13 +3,7 @@
 
 using namespace love;
 
-#define AudioModule() (Module::GetInstance<Audio>(Module::M_AUDIO))
-
 void Pool::Sleep()
 {
-    if (!AudioModule())
-        return;
-
-    auto& tmp = AudioModule()->GetDriver();
-    LightEvent_Wait(&tmp->GetEvent());
+    LightEvent_Wait(&driver::Audrv::Instance().GetEvent());
 }

@@ -5,8 +5,6 @@ using namespace love;
 
 void Audio::SetVolume(float volume)
 {
-    this->driver->LockFunction([volume](AudioDriver* driver) {
-        for (int i = 0; i < 2; i++)
-            audrvMixSetVolume(driver, i, volume);
-    });
+    for (int mix = 0; mix < 2; mix++)
+        driver::Audrv::Instance().SetMixVolume(mix, volume);
 }

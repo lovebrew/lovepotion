@@ -62,7 +62,7 @@ void Source::InitializeStreamBuffers(Decoder* decoder)
     {
         auto aligned = AudioPool::MemoryAlign(decoder->GetSize() * 2);
 
-        this->sourceBuffer = aligned.first;
+        this->sourceBuffer    = aligned.first;
         this->souceBufferSize = aligned.second;
     }
 
@@ -85,33 +85,21 @@ void Source::FreeBuffer()
 
 double Source::GetSampleOffset()
 {
-    double offset = 0;
-
-    AudioModule()->GetDriver()->LockFunction([this, &offset](AudioDriver* driver) {
-        offset = audrvVoiceGetPlayedSampleCount(driver, this->channel);
-    });
-
-    return offset;
+    return driver::Audrv::Instance().GetSampleOffset(this->channel);
 }
 
 void Source::SetVolume(float volume)
 {
-    AudioModule()->GetDriver()->LockFunction([this, volume](AudioDriver* driver) {
-        audrvVoiceSetVolume(driver, this->channel, volume);
-    });
-
+    driver::Audrv::Instance().SetChannelVolume(this->channel, volume);
     this->volume = volume;
 }
 
 void Source::Reset()
 {
-    AudioModule()->GetDriver()->LockFunction([this](AudioDriver* driver) {
-        audrvVoiceInit(driver, this->channel, this->channels, PcmFormat_Int16, this->sampleRate);
-        audrvVoiceSetDestinationMix(driver, this->channel, AUDREN_FINAL_MIX_ID);
+    this->Stop();
 
-        audrvVoiceSetMixFactor(driver, this->channel, 1.0f, 0, 0);
-        audrvVoiceSetMixFactor(driver, this->channel, 1.0f, 0, 1);
-    });
+    PcmFormat format = (this->bitDepth == 8) ? PcmFormat_Int8 : PcmFormat_Int16;
+    driver::Audrv::Instance().ResetChannel(this->channel, format, this->sampleRate);
 }
 
 bool Source::Update()
@@ -137,10 +125,7 @@ bool Source::Update()
                     if (decoded == 0)
                         return false;
 
-                    AudioModule()->GetDriver()->LockFunction([this, which](AudioDriver* driver) {
-                        audrvVoiceAddWaveBuf(driver, this->channel, &this->sources[which]);
-                        audrvVoiceStart(driver, this->channel);
-                    });
+                    driver::Audrv::Instance().AddWaveBufStream(this->channel, &this->sources[0]);
                 }
             }
 
@@ -206,14 +191,9 @@ bool Source::IsPlaying() const
     if (!this->valid)
         return false;
 
-    bool sourcePlaying = false;
+    bool playing = driver::Audrv::Instance().IsChannelPlaying(this->channel);
 
-    AudioModule()->GetDriver()->LockFunction([ this, &sourcePlaying ](AudioDriver * driver)
-    {
-        sourcePlaying = audrvVoiceIsPlaying(driver, this->channel);
-    });
-
-    return this->valid && sourcePlaying;
+    return playing;
 }
 
 bool Source::IsFinished() const
@@ -224,13 +204,9 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    bool finished = false;
+    bool playing = driver::Audrv::Instance().IsChannelPlaying(this->channel);
 
-    AudioModule()->GetDriver()->LockFunction([this, &finished](AudioDriver* driver) {
-        finished = (audrvVoiceIsPlaying(driver, this->channel) == false);
-    });
-
-    return finished;
+    return playing == false;
 }
 
 /* ATOMIC STATES */
@@ -243,10 +219,7 @@ bool Source::PlayAtomic()
         armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
     /* add the initial wavebuffer */
-    AudioModule()->GetDriver()->LockFunction([this](AudioDriver* driver) {
-        audrvVoiceAddWaveBuf(driver, this->channel, &this->sources[0]);
-        audrvVoiceStart(driver, this->channel);
-    });
+    driver::Audrv::Instance().AddWaveBuf(this->channel, &this->sources[0]);
 
     if (this->sourceType != TYPE_STREAM)
         this->offsetSamples = 0;
@@ -259,30 +232,23 @@ bool Source::PlayAtomic()
 
 void Source::PauseAtomic()
 {
-    AudioModule()->GetDriver()->LockFunction([this](AudioDriver* driver) {
-        if (this->valid)
-            audrvVoiceSetPaused(driver, this->channel, true);
-    });
+    if (this->valid)
+        driver::Audrv::Instance().PauseChannel(this->channel, true);
 }
 
 void Source::ResumeAtomic()
 {
     if (this->valid && !this->IsPlaying())
-    {
-        AudioModule()->GetDriver()->LockFunction(
-            [this](AudioDriver* driver) { audrvVoiceSetPaused(driver, this->channel, false); });
-    }
+        driver::Audrv::Instance().PauseChannel(this->channel, false);
 }
 
 void Source::StopAtomic()
 {
-    AudioModule()->GetDriver()->LockFunction([this](AudioDriver* driver) {
-        if (!this->valid)
-            return;
+    if (!this->valid)
+        return;
 
-        audrvVoiceStop(driver, this->channel);
-        this->TeardownAtomic();
-    });
+    driver::Audrv::Instance().StopChannel(this->channel);
+    this->TeardownAtomic();
 }
 
 void Source::SetLooping(bool should)

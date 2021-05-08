@@ -58,11 +58,7 @@ namespace love
 
         float GetVolume() const;
 
-        std::unique_ptr<driver::Audrv>& GetDriver();
-
       private:
-        std::unique_ptr<driver::Audrv> driver;
-
         Pool* pool;
 
         class PoolThread : public Threadable

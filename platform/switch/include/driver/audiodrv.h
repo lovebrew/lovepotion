@@ -12,27 +12,39 @@ namespace love::driver
     class Audrv : public common::driver::Audrv
     {
       public:
-        Audrv();
-
         ~Audrv();
+
+        static Audrv& Instance()
+        {
+            static Audrv instance;
+            return instance;
+        }
+
+        void ResetChannel(size_t channel, PcmFormat format, int sampleRate);
+
+        void SetMixVolume(int mix, float volume);
+
+        void SetChannelVolume(size_t channel, float volume);
+
+        bool IsChannelPlaying(size_t channel);
+
+        void AddWaveBufStream(size_t channel, AudioDriverWaveBuf * waveBuf);
+
+        void AddWaveBuf(size_t channel, AudioDriverWaveBuf * waveBuf);
+
+        bool IsChannelPaused(size_t channel);
+
+        void PauseChannel(size_t channel, bool pause);
+
+        void StopChannel(size_t channel);
+
+        u32 GetSampleOffset(size_t channel);
 
         void Update();
 
-        template<typename T>
-        void LockFunction(const T& func)
-        {
-            try
-            {
-                thread::Lock lock(this->mutex);
-                func(&this->driver);
-            }
-            catch (const std::exception& e)
-            {
-                throw;
-            }
-        }
-
       private:
+        Audrv();
+
         thread::MutexRef mutex;
 
         bool audioInitialized;

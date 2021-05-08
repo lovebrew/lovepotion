@@ -8,7 +8,11 @@ namespace love::driver
     class Audrv : public common::driver::Audrv
     {
       public:
-        Audrv();
+        static Audrv& Instance()
+        {
+            static Audrv instance;
+            return instance;
+        }
 
         ~Audrv();
 
@@ -23,6 +27,8 @@ namespace love::driver
         LightEvent& GetEvent();
 
       private:
+        Audrv();
+
         LightEvent ndspEvent;
     };
 } // namespace love::driver
