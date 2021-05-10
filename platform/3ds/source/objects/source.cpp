@@ -79,7 +79,6 @@ void Source::SetVolume(float volume)
 
 void Source::Reset()
 {
-    this->Stop();
     ndspChnReset(this->channel);
 
     u16 format = NDSP_FORMAT_STEREO_PCM16;
@@ -166,6 +165,7 @@ void Source::PrepareAtomic()
     {
         case TYPE_STATIC:
             this->sources[0].data_pcm16 = (s16*)this->staticBuffer->GetBuffer();
+            DSP_FlushDataCache(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
             break;
         case TYPE_STREAM:
         {
@@ -214,6 +214,9 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (this->IsLooping() || !this->decoder->IsFinished()))
         return false;
 
+    if (this->sourceType == TYPE_STATIC)
+        return this->sources[0].status == NDSP_WBUF_DONE;
+
     return ndspChnIsPlaying(this->channel) == false;
 }
 
@@ -223,11 +226,7 @@ bool Source::PlayAtomic()
 {
     this->PrepareAtomic();
 
-    if (this->sourceType != TYPE_STREAM) /* flush the DSP data cache */
-        DSP_FlushDataCache(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
-
     /* add the initial wavebuffer */
-    ndspChnSetPaused(this->channel, false);
     ndspChnWaveBufAdd(this->channel, &this->sources[0]);
 
     if (this->sourceType != TYPE_STREAM)

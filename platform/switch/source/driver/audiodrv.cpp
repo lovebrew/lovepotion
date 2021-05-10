@@ -101,15 +101,6 @@ void Audrv::AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf)
     audrvVoiceStart(&this->driver, channel);
 }
 
-void Audrv::AddWaveBufStream(size_t channel, AudioDriverWaveBuf* waveBuf)
-{
-    thread::Lock lock(this->mutex);
-
-    audrvVoiceStop(&this->driver, channel);
-    audrvVoiceAddWaveBuf(&this->driver, channel, waveBuf);
-    audrvVoiceStart(&this->driver, channel);
-}
-
 /*
 ** Pause a channel
 */

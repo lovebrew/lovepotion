@@ -3,6 +3,9 @@
 
 using namespace love;
 
+Debugger::Debugger()
+{}
+
 bool Debugger::Initialize()
 {
     if (this->initialized)
@@ -19,6 +22,6 @@ bool Debugger::Initialize()
 
 Debugger::~Debugger()
 {
-    if (this->IsInited())
+    if (this->initialized)
         gdbHioDevExit();
 }

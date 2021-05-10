@@ -125,7 +125,7 @@ bool Source::Update()
                     if (decoded == 0)
                         return false;
 
-                    driver::Audrv::Instance().AddWaveBuf(this->channel, &this->sources[0]);
+                    driver::Audrv::Instance().AddWaveBuf(this->channel, &this->sources[which]);
                 }
             }
 

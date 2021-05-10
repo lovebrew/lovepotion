@@ -73,7 +73,6 @@ bool Source::Play()
 
     {
         thread::Lock lock = this->pool->Lock();
-
         if (!this->pool->AssignSource(this, this->channel, wasPlaying))
             return this->valid = false;
     }
