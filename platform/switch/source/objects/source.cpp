@@ -96,8 +96,6 @@ void Source::SetVolume(float volume)
 
 void Source::Reset()
 {
-    this->Stop();
-
     PcmFormat format = (this->bitDepth == 8) ? PcmFormat_Int8 : PcmFormat_Int16;
     driver::Audrv::Instance().ResetChannel(this->channel, format, this->sampleRate);
 }
@@ -204,9 +202,10 @@ bool Source::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
         return false;
 
-    bool playing = driver::Audrv::Instance().IsChannelPlaying(this->channel);
+    if (this->sourceType == TYPE_STATIC)
+        return this->sources[0].state == AudioDriverWaveBufState_Done;
 
-    return playing == false;
+    return driver::Audrv::Instance().IsChannelPlaying(this->channel) == false;
 }
 
 /* ATOMIC STATES */
