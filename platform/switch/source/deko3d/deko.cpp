@@ -58,7 +58,7 @@ deko3d::deko3d() :
 
     this->state.depthStencil.setDepthTestEnable(true);
     this->state.depthStencil.setDepthWriteEnable(true);
-    this->state.depthStencil.setDepthCompareOp(DkCompareOp_Greater);
+    this->state.depthStencil.setDepthCompareOp(DkCompareOp_Always);
 
     this->state.color.setBlendEnable(0, true);
 
@@ -216,8 +216,7 @@ void deko3d::EnsureInState(State state)
 }
 
 /*
-** Acquire a framebuffer
-** from the swapchain
+** Acquire a framebuffer from the swapchain
 ** (and wait for it to be available)
 */
 void deko3d::EnsureHasSlot()

@@ -102,9 +102,8 @@ size_t CImage::getFormatSize(DkImageFormat format)
     switch (format)
     {
         case DkImageFormat_RGBA8_Unorm:
-            return 4;
         default:
-            break;
+            return 4;
     }
 
     /* shouldn't happen */

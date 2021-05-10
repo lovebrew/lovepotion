@@ -17,6 +17,8 @@ std::unique_ptr<love::driver::Hidrv>& love::common::Event::GetDriver()
 
 void love::common::Event::Pump()
 {
+    this->ExceptionIfInRenderPass("love.event.pump");
+
     Hidrv::LOVE_Event event;
 
     while (this->driver->Poll(&event))
@@ -258,6 +260,8 @@ void love::common::Event::ExceptionIfInRenderPass(const char* name)
 
 void love::common::Event::InternalClear()
 {
+    this->ExceptionIfInRenderPass("love.event.clear");
+
     Hidrv::LOVE_Event event;
 
     while (this->driver->Poll(&event))
@@ -302,6 +306,8 @@ void love::common::Event::Push(Message* message)
 
 love::Message* love::common::Event::Wait()
 {
+    this->ExceptionIfInRenderPass("love.event.wait");
+
     Hidrv::LOVE_Event event;
 
     if (this->driver->Poll(&event) == false)

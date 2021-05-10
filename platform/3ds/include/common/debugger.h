@@ -13,6 +13,8 @@ namespace love
             return instance;
         }
 
+        bool Initialize() override;
+
         ~Debugger();
 
       private:

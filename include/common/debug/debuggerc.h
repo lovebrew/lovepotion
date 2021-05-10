@@ -1,5 +1,3 @@
-#include <stdarg.h>
-#include <stdio.h>
 #include <unistd.h>
 
 namespace love::common
@@ -7,7 +5,7 @@ namespace love::common
     class Debugger
     {
       public:
-        bool IsInited();
+        virtual bool Initialize() = 0;
 
       protected:
         bool initialized;

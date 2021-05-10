@@ -4,12 +4,18 @@
 using namespace love;
 
 Debugger::Debugger() : sockfd(-1)
-{
-    if (this->IsInited())
-        return;
+{}
 
-    this->sockfd      = nxlinkStdio();
+bool Debugger::Initialize()
+{
+    if (this->initialized)
+        return true;
+
+    this->sockfd = nxlinkStdio();
+
     this->initialized = (this->sockfd != -1);
+
+    return this->initialized;
 }
 
 Debugger::~Debugger()

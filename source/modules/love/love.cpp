@@ -193,6 +193,7 @@ int Love::IsVersionCompatible(lua_State* L)
     }
 
     lua_pushboolean(L, false);
+
     return 1;
 }
 
@@ -206,9 +207,7 @@ int Love::IsVersionCompatible(lua_State* L)
 */
 int Love::_OpenConsole(lua_State* L)
 {
-    auto& instance = love::Debugger::Instance();
-
-    lua_pushboolean(L, instance.IsInited());
+    lua_pushboolean(L, love::Debugger::Instance().Initialize());
 
     return 1;
 }
