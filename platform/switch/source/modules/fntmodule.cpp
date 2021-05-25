@@ -48,6 +48,7 @@ Data* FontModule::GetSystemFont(Font::SystemFontType type)
     return new SystemFontData(type);
 }
 
+/* Create from FileData */
 Rasterizer* FontModule::NewRasterizer(love::FileData* data)
 {
     if (love::TrueTypeRasterizer::Accepts(this->library, data))
@@ -56,31 +57,36 @@ Rasterizer* FontModule::NewRasterizer(love::FileData* data)
     throw love::Exception("Invalid font file: %s", data->GetFilename().c_str());
 }
 
+/* Create from Data with Size and Hinting */
 Rasterizer* FontModule::NewTrueTypeRasterizer(Data* data, int size,
                                               love::TrueTypeRasterizer::Hinting hinting)
 {
     return new love::TrueTypeRasterizer(this->library, data, size, hinting);
 }
 
+/* Create from Data with Size, DPI Scaling, and Hinting */
 Rasterizer* FontModule::NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
                                               love::TrueTypeRasterizer::Hinting hinting)
 {
     return new love::TrueTypeRasterizer(this->library, data, size, hinting);
 }
 
-/* default system font stuff */
+/* Create new System Font with Size */
 Rasterizer* FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
 {
     love::StrongReference<SystemFontData> data(
         new SystemFontData(Font::SystemFontType::TYPE_STANDARD), Acquire::NORETAIN);
+
     return NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
+/* Create new System Font with Size and DPI Scale */
 Rasterizer* FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale,
                                               TrueTypeRasterizer::Hinting hinting)
 {
     StrongReference<SystemFontData> data(new SystemFontData(Font::SystemFontType::TYPE_STANDARD),
                                          Acquire::NORETAIN);
+
     return NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
 }
 

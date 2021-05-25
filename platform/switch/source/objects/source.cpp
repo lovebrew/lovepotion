@@ -97,7 +97,7 @@ void Source::SetVolume(float volume)
 void Source::Reset()
 {
     PcmFormat format = (this->bitDepth == 8) ? PcmFormat_Int8 : PcmFormat_Int16;
-    driver::Audrv::Instance().ResetChannel(this->channel, format, this->sampleRate);
+    driver::Audrv::Instance().ResetChannel(this->channel, this->channels, format, this->sampleRate);
 }
 
 bool Source::Update()
@@ -147,6 +147,7 @@ void Source::PrepareAtomic()
     {
         case TYPE_STATIC:
             this->sources[0].data_pcm16 = (s16*)this->staticBuffer.Get()->GetBuffer();
+            armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
             break;
         case TYPE_STREAM:
         {
@@ -199,7 +200,7 @@ bool Source::IsFinished() const
     if (!this->valid)
         return false;
 
-    if (this->sourceType == TYPE_STREAM && (!this->decoder->IsFinished()))
+    if (this->sourceType == TYPE_STREAM && (this->IsLooping() || !this->decoder->IsFinished()))
         return false;
 
     if (this->sourceType == TYPE_STATIC)
@@ -213,9 +214,6 @@ bool Source::IsFinished() const
 bool Source::PlayAtomic()
 {
     this->PrepareAtomic();
-
-    if (this->sourceType != TYPE_STREAM) /* flush the armD data cache */
-        armDCacheFlush(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
 
     /* add the initial wavebuffer */
     driver::Audrv::Instance().AddWaveBuf(this->channel, &this->sources[0]);

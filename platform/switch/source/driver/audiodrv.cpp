@@ -56,15 +56,17 @@ void Audrv::SetMixVolume(int mix, float volume)
 ** Reset a channel to a given format and sample rate
 ** Also needs to Mix Factor reset.. for some reason
 */
-void Audrv::ResetChannel(size_t channel, PcmFormat format, int sampleRate)
+void Audrv::ResetChannel(size_t channel, int channels, PcmFormat format, int sampleRate)
 {
     thread::Lock lock(this->mutex);
 
-    audrvVoiceInit(&this->driver, channel, 2, format, sampleRate);
+    audrvVoiceInit(&this->driver, channel, channels, format, sampleRate);
     audrvVoiceSetDestinationMix(&this->driver, channel, AUDREN_FINAL_MIX_ID);
 
     audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 0);
-    audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 1);
+
+    if (channels == 2)
+        audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 1);
 }
 
 /*
@@ -91,7 +93,6 @@ bool Audrv::IsChannelPlaying(size_t channel)
 ** Adds an AudioDriverWaveBuf to the Audio Driver channel
 ** NOTE: Stop the Voice before Adding
 ** However, this is done when released from the audio pool
-** or Source:PepareAtomic()
 */
 void Audrv::AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf)
 {
@@ -113,8 +114,7 @@ void Audrv::PauseChannel(size_t channel, bool pause)
 
 /*
 ** Stop a channel
-** This is typically done on audio pool release
-** or Source:PrepareAtomic()
+** This is done on audio pool release
 */
 void Audrv::StopChannel(size_t channel)
 {
@@ -147,5 +147,6 @@ Audrv::~Audrv()
 void Audrv::Update()
 {
     thread::Lock lock(this->mutex);
+
     audrvUpdate(&this->driver);
 }
