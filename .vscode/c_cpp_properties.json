@@ -6,11 +6,11 @@
             "includePath":
             [
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/3ds/include/**",
+                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
+                "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
                 "${env:DEVKITPRO}/libctru/include/**",
-                "${env:DEVKITPRO}/portlibs/3ds/include/**",
-                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**"
+                "${env:DEVKITPRO}/portlibs/3ds/include/**"
             ],
             "defines": [ "_3DS" ],
             "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
@@ -25,11 +25,11 @@
             "includePath":
             [
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/3ds/include/**",
+                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
+                "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
                 "${env:DEVKITPRO}/libctru/include/**",
                 "${env:DEVKITPRO}/portlibs/3ds/include/**",
-                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**"
             ],
             "defines": [ "_3DS", "__DEBUG__" ],
             "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
@@ -44,10 +44,9 @@
             "includePath":
             [
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/switch/include/**",
                 "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/10.1.0/include/**",
+                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
                 "${env:DEVKITPRO}/libnx/include/**",
                 "${env:DEVKITPRO}/portlibs/switch/include/**"
             ],
@@ -64,10 +63,9 @@
             "includePath":
             [
                 "${workspaceFolder}/include/**",
-                "${workspaceFolder}/libraries/**",
                 "${workspaceFolder}/platform/switch/include/**",
                 "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/10.1.0/include/**",
+                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
                 "${env:DEVKITPRO}/libnx/include/**",
                 "${env:DEVKITPRO}/portlibs/switch/include/**"
             ],
@@ -75,7 +73,7 @@
             "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
             "cStandard": "c11",
             "cppStandard": "c++20",
-            "intelliSenseMode": "gcc-arm64",
+            "intelliSenseMode": "linux-gcc-arm64",
             "compilerArgs": []
         }
     ],

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "freetype/glyphdata.h"
+#include "objects/glyphdata/glyphdatac.h"
 
 namespace love
 {
@@ -19,6 +19,7 @@ namespace love
         {
             DATA_TRUETYPE,
             DATA_IMAGE,
+            DATA_BCFNT
         };
 
         static love::Type type;
@@ -35,9 +36,9 @@ namespace love
 
         virtual int GetLineHeight() const = 0;
 
-        virtual GlyphData* GetGlyphData(uint32_t glyph) const = 0;
+        virtual common::GlyphData* GetGlyphData(uint32_t glyph) const = 0;
 
-        virtual GlyphData* GetGlyphData(const std::string& text) const;
+        virtual common::GlyphData* GetGlyphData(const std::string& text) const;
 
         virtual int GetGlyphCount() const = 0;
 

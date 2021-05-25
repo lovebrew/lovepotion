@@ -1,4 +1,4 @@
-#include "freetype/rasterizer.h"
+#include "objects/rasterizer/rasterizer.h"
 
 #include "utf8/utf8.h"
 
@@ -29,7 +29,7 @@ int Rasterizer::GetDescent() const
     return this->metrics.descent;
 }
 
-GlyphData* Rasterizer::GetGlyphData(const std::string& text) const
+common::GlyphData* Rasterizer::GetGlyphData(const std::string& text) const
 {
     uint32_t codepoint = 0;
 
