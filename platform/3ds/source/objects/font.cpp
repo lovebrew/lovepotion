@@ -47,8 +47,8 @@ void Font::Print(Graphics* gfx, const std::vector<ColoredString>& text,
     C2D_ViewRestore(&t.GetElements());
 
     u32 renderColorf = C2D_Color32f(color.r, color.g, color.b, color.a);
-    C2D_DrawText(&citroText, C2D_WithColor, 0, 0, Graphics::CURRENT_DEPTH,
-                 this->GetScale(), this->GetScale(), renderColorf);
+    C2D_DrawText(&citroText, C2D_WithColor, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(),
+                 this->GetScale(), renderColorf);
 
     C2D_TextBufClear(this->buffer);
 }

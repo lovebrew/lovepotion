@@ -49,8 +49,8 @@ int Wrap_Rasterizer::GetLineHeight(lua_State* L)
 
 int Wrap_Rasterizer::GetGlyphData(lua_State* L)
 {
-    Rasterizer* self     = Wrap_Rasterizer::CheckRasterizer(L, 1);
-    GlyphData* glyphData = nullptr;
+    Rasterizer* self             = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    common::GlyphData* glyphData = nullptr;
 
     /*
     ** getGlyphData accepts a unicode character

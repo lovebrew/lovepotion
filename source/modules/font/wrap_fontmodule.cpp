@@ -1,5 +1,5 @@
-#include "common/luax.h"
 #include "modules/font/wrap_fontmodule.h"
+#include "common/luax.h"
 
 #include <filesystem>
 
@@ -45,7 +45,7 @@ int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
     }
     else
     {
-        Data* data = nullptr;
+        Data* data                        = nullptr;
         common::Font::SystemFontType type = common::Font::SystemFontType::TYPE_MAX_ENUM;
 
         if (Luax::IsType(L, 1, love::Data::type))
@@ -55,7 +55,7 @@ int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
         }
         else
         {
-            const char* str           = luaL_checkstring(L, 1);
+            const char* str = luaL_checkstring(L, 1);
 
             if (std::filesystem::path(str).extension().empty())
             {
@@ -69,8 +69,8 @@ int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
         int size = (int)luaL_optinteger(L, 2, 12);
 
         if (type == Font::SystemFontType::TYPE_MAX_ENUM)
-            Luax::CatchException(L,
-                [&]() { self = instance()->NewBCFNTRasterizer(data, size); },
+            Luax::CatchException(
+                L, [&]() { self = instance()->NewBCFNTRasterizer(data, size); },
                 [&](bool) { data->Release(); });
         else
             Luax::CatchException(L, [&]() { self = instance()->NewBCFNTRasterizer(size, type); });

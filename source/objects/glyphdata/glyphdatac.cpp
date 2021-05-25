@@ -9,9 +9,7 @@ love::Type GlyphData::type("GlyphData", &Data::type);
 GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) : glyph(glyph), metrics(metrics)
 {}
 
-GlyphData::GlyphData(const GlyphData& other) :
-    glyph(other.glyph),
-    metrics(other.metrics)
+GlyphData::GlyphData(const GlyphData& other) : glyph(other.glyph), metrics(other.metrics)
 {}
 
 GlyphData::~GlyphData()

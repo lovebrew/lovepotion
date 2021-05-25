@@ -49,65 +49,43 @@ Data* FontModule::GetSystemFont(Font::SystemFontType type)
 }
 
 /* Create from FileData */
-Rasterizer* FontModule::NewRasterizer(love::FileData* data)
+Rasterizer* FontModule::NewRasterizer(FileData* data)
 {
-    if (love::TrueTypeRasterizer::Accepts(this->library, data))
-        return this->NewTrueTypeRasterizer(data, 12, love::TrueTypeRasterizer::HINTING_NORMAL);
+    if (TrueTypeRasterizer::Accepts(this->library, data))
+        return this->NewTrueTypeRasterizer(data, 12, TrueTypeRasterizer::HINTING_NORMAL);
 
     throw love::Exception("Invalid font file: %s", data->GetFilename().c_str());
 }
 
 /* Create from Data with Size and Hinting */
 Rasterizer* FontModule::NewTrueTypeRasterizer(Data* data, int size,
-                                              love::TrueTypeRasterizer::Hinting hinting)
+                                              TrueTypeRasterizer::Hinting hinting)
 {
-    return new love::TrueTypeRasterizer(this->library, data, size, hinting);
+    return FontModule::NewTrueTypeRasterizer(data, size, 1.0f, hinting);
 }
 
 /* Create from Data with Size, DPI Scaling, and Hinting */
 Rasterizer* FontModule::NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
                                               love::TrueTypeRasterizer::Hinting hinting)
 {
-    return new love::TrueTypeRasterizer(this->library, data, size, hinting);
+    return new TrueTypeRasterizer(this->library, data, size, hinting);
 }
 
 /* Create new System Font with Size */
-Rasterizer* FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
+Rasterizer* FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting,
+                                              common::Font::SystemFontType type)
 {
-    love::StrongReference<SystemFontData> data(
-        new SystemFontData(Font::SystemFontType::TYPE_STANDARD), Acquire::NORETAIN);
+    love::StrongReference<SystemFontData> data(new SystemFontData(type), Acquire::NORETAIN);
 
-    return NewTrueTypeRasterizer(data.Get(), size, hinting);
+    return FontModule::NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
 /* Create new System Font with Size and DPI Scale */
 Rasterizer* FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale,
-                                              TrueTypeRasterizer::Hinting hinting)
+                                              TrueTypeRasterizer::Hinting hinting,
+                                              common::Font::SystemFontType type)
 {
-    StrongReference<SystemFontData> data(new SystemFontData(Font::SystemFontType::TYPE_STANDARD),
-                                         Acquire::NORETAIN);
+    StrongReference<SystemFontData> data(new SystemFontData(type), Acquire::NORETAIN);
 
     return NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
-}
-
-/* glyph data */
-GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, const std::string& text)
-{
-    uint32_t codepoint = 0;
-
-    try
-    {
-        codepoint = utf8::peek_next(text.begin(), text.end());
-    }
-    catch (utf8::exception& e)
-    {
-        throw love::Exception("UTF-8 decoding error: %s", e.what());
-    }
-
-    return rasterizer->GetGlyphData(codepoint);
-}
-
-GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, uint32_t glyph)
-{
-    return rasterizer->GetGlyphData(glyph);
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/stringmap.h"
-#include "freetype/rasterizer.h"
+#include "objects/rasterizer/rasterizer.h"
 
 #include "common/strongref.h"
 

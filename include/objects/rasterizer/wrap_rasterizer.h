@@ -2,8 +2,8 @@
 
 #include "common/luax.h"
 
-#include "objects/rasterizer/rasterizer.h"
 #include "objects/glyphdata/glyphdata.h"
+#include "objects/rasterizer/rasterizer.h"
 
 namespace Wrap_Rasterizer
 {
