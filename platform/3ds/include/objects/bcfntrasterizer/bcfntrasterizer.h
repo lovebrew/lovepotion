@@ -14,13 +14,23 @@ namespace love
       public:
         BCFNTRasterizer(Data* data, int size);
 
-        BCFNTRasterizer(Font::SystemFontType type, int size);
+        BCFNTRasterizer(common::Font::SystemFontType type, int size);
 
         virtual ~BCFNTRasterizer();
 
         int GetLineHeight() const override
         {
             return 1;
+        }
+
+        float GetScale() const
+        {
+            return this->scale;
+        }
+
+        C2D_Font GetFont() const
+        {
+            return this->font;
         }
 
         GlyphData* GetGlyphData(uint32_t glyph) const override;

@@ -122,14 +122,16 @@ void love::citro2d::Graphics::SetColor(Colorf color)
 
 Font* love::citro2d::Graphics::NewDefaultFont(int size, const Texture::Filter& filter)
 {
-    const Rasterizer rasterizer = {
-        .size = size, .data = nullptr, .font = C2D_FontLoadSystem(CFG_REGION_USA), .buffer = nullptr
-    };
+    auto fontModule = Module::GetInstance<FontModule>(M_FONT);
+    if (!fontModule)
+        throw love::Exception("Font module has not been loaded.");
 
-    return new Font(rasterizer, filter);
+    StrongReference<Rasterizer> r(fontModule->NewBCFNTRasterizer(size), Acquire::NORETAIN);
+
+    return new Font(r.Get(), filter);
 }
 
-Font* love::citro2d::Graphics::NewFont(const Rasterizer& rasterizer, const Texture::Filter& filter)
+Font* love::citro2d::Graphics::NewFont(Rasterizer* rasterizer, const Texture::Filter& filter)
 {
     return new Font(rasterizer, filter);
 }

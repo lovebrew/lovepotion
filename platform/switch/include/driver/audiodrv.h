@@ -28,9 +28,9 @@ namespace love::driver
 
         bool IsChannelPlaying(size_t channel);
 
-        void AddWaveBufStream(size_t channel, AudioDriverWaveBuf * waveBuf);
+        void AddWaveBufStream(size_t channel, AudioDriverWaveBuf* waveBuf);
 
-        void AddWaveBuf(size_t channel, AudioDriverWaveBuf * waveBuf);
+        void AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf);
 
         bool IsChannelPaused(size_t channel);
 

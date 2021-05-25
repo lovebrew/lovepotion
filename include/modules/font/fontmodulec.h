@@ -13,6 +13,7 @@ namespace love::common
 {
     class FontModule : public Module
     {
+      public:
         FontModule();
 
         virtual ~FontModule();

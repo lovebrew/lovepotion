@@ -103,8 +103,7 @@ void Source::Reset()
             break;
     }
 
-    ndspInterpType interpType = (this->channels == 2) ? NDSP_INTERP_POLYPHASE :
-                                                        NDSP_INTERP_LINEAR;
+    ndspInterpType interpType = (this->channels == 2) ? NDSP_INTERP_POLYPHASE : NDSP_INTERP_LINEAR;
 
     ndspChnSetFormat(this->channel, format);
     ndspChnSetRate(this->channel, this->sampleRate);

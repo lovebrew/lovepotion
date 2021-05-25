@@ -801,7 +801,6 @@ int Wrap_Graphics::NewFont(lua_State* L)
 {
     Font* font = nullptr;
 
-#if defined(__SWITCH__)
     // Convert to Rasterizer, if necessary.
     if (!Luax::IsType(L, 1, Rasterizer::type))
     {
@@ -817,48 +816,6 @@ int Wrap_Graphics::NewFont(lua_State* L)
 
     Luax::CatchException(
         L, [&]() { font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter()); });
-#elif defined(_3DS)
-    int size;
-    if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
-    {
-        size = luaL_optinteger(L, 1, 24);
-        font = instance()->NewDefaultFont(size);
-    }
-    else
-    {
-        Rasterizer rasterizer {};
-        size = luaL_optinteger(L, 2, 24);
-
-        if (Luax::IsType(L, 1, love::Data::type))
-        {
-            rasterizer.data = Wrap_Data::CheckData(L, 1);
-            rasterizer.data->Retain();
-
-            rasterizer.size = size;
-        }
-        else
-        {
-            const char* str = luaL_checkstring(L, 1);
-
-            if (std::filesystem::path(str).extension().empty())
-            {
-                Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
-
-                if (!Font::GetConstant(str, type))
-                    return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
-                else
-                    font = (love::Font*)Font::GetSystemFontByType(size, type);
-            }
-            else /* load font from a file, *.ttf usually */
-                rasterizer.data = Wrap_Filesystem::GetFileData(L, 1);
-
-            rasterizer.size = size;
-        }
-
-        if (rasterizer.data)
-            font = instance()->NewFont(rasterizer);
-    }
-#endif
 
     Luax::PushType(L, font);
     font->Release();
@@ -1181,7 +1138,7 @@ int Wrap_Graphics::Set3D(lua_State* L)
 int Wrap_Graphics::Get3DDepth(lua_State* L)
 {
 #if defined(_3DS)
-    auto instance = (love::citro2d::Graphics*)instance();
+    auto instance     = (love::citro2d::Graphics*)instance();
     float sliderValue = (instance->Get3D()) ? osGet3DSliderState() : 0;
 
     lua_pushnumber(L, sliderValue);

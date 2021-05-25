@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common/luax.h"
-#include "freetype/rasterizer.h"
+
+#include "objects/rasterizer/rasterizer.h"
+#include "objects/glyphdata/glyphdata.h"
 
 namespace Wrap_Rasterizer
 {

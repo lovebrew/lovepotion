@@ -84,7 +84,8 @@ int Wrap_Window::Register(lua_State* L)
 
     int ret = Luax::RegisterModule(L, wrappedModule);
 
-    if (luaL_loadbuffer(L, (const char*)wrap_window_lua, wrap_window_lua_size, "wrap_window.lua") == 0)
+    if (luaL_loadbuffer(L, (const char*)wrap_window_lua, wrap_window_lua_size, "wrap_window.lua") ==
+        0)
         lua_call(L, 0, 0);
     else
         lua_error(L);

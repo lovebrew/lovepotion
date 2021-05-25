@@ -1,6 +1,6 @@
 #pragma once
 
-#include "modules/modfont/fntmodule.h"
+#include "modules/font/fontmodule.h"
 
 #include "modules/filesystem/wrap_filesystem.h"
 #include "objects/filedata/wrap_filedata.h"
@@ -15,6 +15,8 @@ namespace Wrap_FontModule
     int NewGlyphData(lua_State* L);
 
     int NewTrueTypeRasterizer(lua_State* L);
+
+    int NewBCFNTRasterizer(lua_State* L);
 
     int Register(lua_State* L);
 } // namespace Wrap_FontModule

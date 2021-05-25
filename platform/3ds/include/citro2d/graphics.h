@@ -48,7 +48,7 @@ namespace love::citro2d
 
         Font* NewDefaultFont(int size, const Texture::Filter& filter) override;
 
-        Font* NewFont(const Rasterizer& rasterizer,
+        Font* NewFont(Rasterizer* rasterizer,
                       const Texture::Filter& filter = Texture::defaultFilter) override;
 
         /* Primitives */

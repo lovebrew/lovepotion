@@ -71,7 +71,7 @@ namespace love::common
 
         int GetMaxY() const;
 
-      private:
+      protected:
         uint32_t glyph;
         GlyphMetrics metrics;
     };

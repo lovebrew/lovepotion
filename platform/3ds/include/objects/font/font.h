@@ -48,6 +48,7 @@ namespace love
 
       private:
         StrongReference<Rasterizer> rasterizer;
+        C2D_TextBuf buffer;
 
         std::unordered_map<uint32_t, float> glyphWidths;
     };

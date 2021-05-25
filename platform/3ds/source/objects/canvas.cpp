@@ -29,8 +29,7 @@ Canvas::~Canvas()
 {
     C3D_TexDelete(&this->citroTex);
 
-    ::citro2d::Instance().DeferCallToEndOfFrame(
-        ([r=renderer]() { C3D_RenderTargetDelete(r); }));
+    ::citro2d::Instance().DeferCallToEndOfFrame(([r = renderer]() { C3D_RenderTargetDelete(r); }));
 }
 
 C3D_RenderTarget* Canvas::GetRenderer()

@@ -10,10 +10,10 @@ BCFNTRasterizer::BCFNTRasterizer(Data* data, int size) : data(data)
         throw love::Exception(
             "BCFNT loading error: C2D_FontLoadFromMem failed (problem with font file?)");
 
-    this->InitMetrics(size)
+    this->InitMetrics(size);
 }
 
-BCFNTRasterizer::BCFNTRasterizer(Font::SystemFontType type, int size)
+BCFNTRasterizer::BCFNTRasterizer(common::Font::SystemFontType type, int size)
 {
     this->font = C2D_FontLoadSystem(static_cast<CFG_Region>(type));
 
