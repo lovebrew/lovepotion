@@ -15,11 +15,6 @@ GlyphData::GlyphData(const GlyphData& other) : glyph(other.glyph), metrics(other
 GlyphData::~GlyphData()
 {}
 
-GlyphData* GlyphData::Clone() const
-{
-    return new GlyphData(*this);
-}
-
 int GlyphData::GetHeight() const
 {
     return this->metrics.height;

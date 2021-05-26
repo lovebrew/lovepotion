@@ -4,8 +4,6 @@
 
 using namespace love;
 
-love::Type GlyphData::type("GlyphData", &Data::type);
-
 GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) :
     common::GlyphData(glyph, metrics),
     data(nullptr)
@@ -25,6 +23,11 @@ GlyphData::GlyphData(const GlyphData& other) :
         data = new uint8_t[(metrics.width * metrics.height) * pixelSize];
         memcpy(data, other.data, other.GetSize());
     }
+}
+
+GlyphData* GlyphData::Clone() const
+{
+    return new GlyphData(*this);
 }
 
 size_t GlyphData::GetPixelSize() const

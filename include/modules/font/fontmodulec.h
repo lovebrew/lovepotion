@@ -5,7 +5,9 @@
 
 #include "objects/filedata/filedata.h"
 #include "objects/font/font.h"
+
 #include "objects/rasterizer/rasterizer.h"
+#include "objects/glyphdata/glyphdata.h"
 
 #include "common/module.h"
 
@@ -30,8 +32,8 @@ namespace love::common
 
         virtual Rasterizer* NewRasterizer(FileData* data) = 0;
 
-        GlyphData* NewGlyphData(Rasterizer* rasterizer, const std::string& glyph);
+        love::GlyphData* NewGlyphData(Rasterizer* rasterizer, const std::string& glyph);
 
-        GlyphData* NewGlyphData(Rasterizer* rasterizer, uint32_t glyph);
+        love::GlyphData* NewGlyphData(Rasterizer* rasterizer, uint32_t glyph);
     };
 } // namespace love::common

@@ -7,6 +7,7 @@
             [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/platform/3ds/include/**",
+                "${workspaceFolder}/libraries/**",
                 "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
                 "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
                 "${env:DEVKITPRO}/libctru/include/**",
@@ -26,6 +27,7 @@
             [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/platform/3ds/include/**",
+                "${workspaceFolder}/libraries/**",
                 "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
                 "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
                 "${env:DEVKITPRO}/libctru/include/**",
@@ -45,6 +47,7 @@
             [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/platform/switch/include/**",
+                "${workspaceFolder}/libraries/**",
                 "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
                 "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
                 "${env:DEVKITPRO}/libnx/include/**",
@@ -64,6 +67,7 @@
             [
                 "${workspaceFolder}/include/**",
                 "${workspaceFolder}/platform/switch/include/**",
+                "${workspaceFolder}/libraries/**",
                 "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
                 "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
                 "${env:DEVKITPRO}/libnx/include/**",

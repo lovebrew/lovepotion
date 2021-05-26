@@ -1,7 +1,7 @@
 #include "objects/font/font.h"
 
 #include "modules/graphics/graphics.h"
-#include "modules/modfont/fntmodule.h"
+#include "modules/font/fontmodule.h"
 
 #include "common/matrix.h"
 #include "deko3d/graphics.h"

@@ -29,7 +29,7 @@ int Rasterizer::GetDescent() const
     return this->metrics.descent;
 }
 
-common::GlyphData* Rasterizer::GetGlyphData(const std::string& text) const
+GlyphData* Rasterizer::GetGlyphData(const std::string& text) const
 {
     uint32_t codepoint = 0;
 

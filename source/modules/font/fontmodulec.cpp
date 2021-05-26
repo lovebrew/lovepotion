@@ -8,7 +8,7 @@ FontModule::FontModule()
 FontModule::~FontModule()
 {}
 
-GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, const std::string& text)
+love::GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, const std::string& text)
 {
     uint32_t codepoint = 0;
 
@@ -24,7 +24,7 @@ GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, const std::string& t
     return rasterizer->GetGlyphData(codepoint);
 }
 
-GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, uint32_t glyph)
+love::GlyphData* FontModule::NewGlyphData(Rasterizer* rasterizer, uint32_t glyph)
 {
     return rasterizer->GetGlyphData(glyph);
 }

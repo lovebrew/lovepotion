@@ -27,7 +27,7 @@ namespace love::common
 
         virtual ~GlyphData();
 
-        GlyphData* Clone() const;
+        virtual GlyphData* Clone() const = 0;
 
         virtual size_t GetPixelSize() const
         {

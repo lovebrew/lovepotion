@@ -1,7 +1,6 @@
 #pragma once
 
-#include "objects/glyphdata/glyphdatac.h"
-
+#include "objects/glyphdata/glyphdata.h"
 namespace love
 {
     class Rasterizer : public Object
@@ -36,9 +35,9 @@ namespace love
 
         virtual int GetLineHeight() const = 0;
 
-        virtual common::GlyphData* GetGlyphData(uint32_t glyph) const = 0;
+        virtual GlyphData* GetGlyphData(uint32_t glyph) const = 0;
 
-        virtual common::GlyphData* GetGlyphData(const std::string& text) const;
+        virtual GlyphData* GetGlyphData(const std::string& text) const;
 
         virtual int GetGlyphCount() const = 0;
 

@@ -1,4 +1,4 @@
-#include "freetype/truetyperasterizer.h"
+#include "objects/truetyperasterizer/truetyperasterizer.h"
 
 #include "deko3d/graphics.h"
 

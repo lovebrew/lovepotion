@@ -11,13 +11,12 @@
 
 extern "C"
 {
-#include <lauxlib.h>
-#include <lua.h>
-#include <lualib.h>
+#include "lua/lauxlib.h"
+#include "lua/lua.h"
+#include "lua/lualib.h"
 
-#include <lutf8lib.h>
-
-#include <l53strlib.h>
+#include "lua53/l53strlib.h"
+#include "lua53/lutf8lib.h"
 }
 
 #include <algorithm>

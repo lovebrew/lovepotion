@@ -1,7 +1,6 @@
-#include "modules/modfont/fntmodule.h"
+#include "modules/font/fontmodule.h"
 
 #include "common/data.h"
-
 #include "utf8/utf8.h"
 
 using namespace love;
@@ -61,7 +60,7 @@ Rasterizer* FontModule::NewRasterizer(FileData* data)
 Rasterizer* FontModule::NewTrueTypeRasterizer(Data* data, int size,
                                               TrueTypeRasterizer::Hinting hinting)
 {
-    return FontModule::NewTrueTypeRasterizer(data, size, 1.0f, hinting);
+    return this->NewTrueTypeRasterizer(data, size, 1.0f, hinting);
 }
 
 /* Create from Data with Size, DPI Scaling, and Hinting */
@@ -72,20 +71,20 @@ Rasterizer* FontModule::NewTrueTypeRasterizer(Data* data, int size, float dpiSca
 }
 
 /* Create new System Font with Size */
-Rasterizer* FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting,
-                                              common::Font::SystemFontType type)
+Rasterizer* FontModule::NewTrueTypeRasterizer(int size, TrueTypeRasterizer::Hinting hinting)
 {
-    love::StrongReference<SystemFontData> data(new SystemFontData(type), Acquire::NORETAIN);
+    love::StrongReference<SystemFontData> data(
+        new SystemFontData(Font::SystemFontType::TYPE_STANDARD), Acquire::NORETAIN);
 
-    return FontModule::NewTrueTypeRasterizer(data.Get(), size, hinting);
+    return this->NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
 /* Create new System Font with Size and DPI Scale */
-Rasterizer* FontModule::NewTrueTypeRasterizer(size_t size, float dpiScale,
-                                              TrueTypeRasterizer::Hinting hinting,
-                                              common::Font::SystemFontType type)
+Rasterizer* FontModule::NewTrueTypeRasterizer(int size, float dpiScale,
+                                              TrueTypeRasterizer::Hinting hinting)
 {
-    StrongReference<SystemFontData> data(new SystemFontData(type), Acquire::NORETAIN);
+    StrongReference<SystemFontData> data(new SystemFontData(Font::SystemFontType::TYPE_STANDARD),
+                                         Acquire::NORETAIN);
 
-    return NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
+    return this->NewTrueTypeRasterizer(data.Get(), size, dpiScale, hinting);
 }

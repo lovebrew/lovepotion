@@ -13,6 +13,8 @@ namespace love
 
         virtual ~GlyphData();
 
+        GlyphData* Clone() const override;
+
         size_t GetPixelSize() const;
 
         void* GetData() const;

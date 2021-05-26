@@ -4,5 +4,9 @@
 
 namespace love
 {
-    using GlyphData = common::GlyphData;
+    class GlyphData : public common::GlyphData
+    {
+        public:
+            GlyphData* Clone() const override;
+    };
 } // namespace love
