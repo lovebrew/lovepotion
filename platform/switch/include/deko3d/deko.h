@@ -230,6 +230,8 @@ class deko3d
         bool dirty   = false;
     } framebuffers;
 
+    bool descriptorsDirty;
+
     struct
     {
         dk::ImageLayout layout;
