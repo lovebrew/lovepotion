@@ -573,6 +573,8 @@ void deko3d::SetTextureFilter(love::Texture* texture, const love::Texture::Filte
 
     uint32_t handleID = this->allocator.Find(texture->GetHandle());
     this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
+
+    this->descriptorsDirty = true;
 }
 
 void deko3d::SetTextureWrap(const love::Texture::Wrap& wrap)
@@ -593,6 +595,8 @@ void deko3d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& w
 
     uint32_t handleID = this->allocator.Find(texture->GetHandle());
     this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
+
+    this->descriptorsDirty = true;
 }
 
 DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
