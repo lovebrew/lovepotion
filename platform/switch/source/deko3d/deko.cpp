@@ -363,6 +363,8 @@ void deko3d::UnRegisterResHandle(DkResHandle handle)
 
 DkResHandle deko3d::RegisterResHandle(const dk::ImageDescriptor& descriptor)
 {
+    this->EnsureInFrame();
+
     uint32_t index = this->allocator.Allocate();
 
     this->descriptors.image.update(this->cmdBuf, index, descriptor);
@@ -555,6 +557,8 @@ void deko3d::SetTextureFilter(const love::Texture::Filter& filter)
 
 void deko3d::SetTextureFilter(love::Texture* texture, const love::Texture::Filter& filter)
 {
+    this->EnsureInFrame();
+
     this->SetTextureFilter(filter);
 
     uint32_t handleID = this->allocator.Find(texture->GetHandle());
@@ -573,6 +577,8 @@ void deko3d::SetTextureWrap(const love::Texture::Wrap& wrap)
 
 void deko3d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& wrap)
 {
+    this->EnsureInFrame();
+
     this->SetTextureWrap(wrap);
 
     uint32_t handleID = this->allocator.Find(texture->GetHandle());
