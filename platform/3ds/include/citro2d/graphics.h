@@ -104,6 +104,8 @@ namespace love::citro2d
 
         void SetScissor() override;
 
+        void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
+
         /* Nintendo 3DS */
 
         void Set3D(bool enable);
@@ -113,8 +115,6 @@ namespace love::citro2d
         /* End Nintendo 3DS */
 
         /* Useless */
-
-        void SetBlendMode(BlendMode mode, BlendAlpha alpha) override {};
 
         void SetColorMask(ColorMask mask) override {};
 

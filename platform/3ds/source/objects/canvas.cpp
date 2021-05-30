@@ -27,9 +27,10 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
 
 Canvas::~Canvas()
 {
-    C3D_TexDelete(&this->citroTex);
-
-    ::citro2d::Instance().DeferCallToEndOfFrame(([r = renderer]() { C3D_RenderTargetDelete(r); }));
+    ::citro2d::Instance().DeferCallToEndOfFrame(([target = renderer, tex = citroTex]() mutable {
+        C3D_RenderTargetDelete(target);
+        C3D_TexDelete(&tex);
+    }));
 }
 
 C3D_RenderTarget* Canvas::GetRenderer()

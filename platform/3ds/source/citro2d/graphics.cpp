@@ -29,6 +29,94 @@ void love::citro2d::Graphics::SetActiveScreen(Screen screen)
             break;
     }
 }
+#include "debug/logger.h"
+void love::citro2d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphaMode)
+{
+    if (alphaMode != BLENDALPHA_PREMULTIPLIED)
+    {
+        const char* modestr = "unknown";
+        switch (mode)
+        {
+            case BLEND_LIGHTEN:
+            case BLEND_DARKEN:
+            case BLEND_MULTIPLY:
+                love::Graphics::GetConstant(mode, modestr);
+                throw love::Exception("The '%s' blend mode must be used with premultiplied alpha.",
+                                      modestr);
+                break;
+            default:
+                break;
+        }
+    }
+
+    GPU_BLENDEQUATION func = GPU_BLEND_ADD;
+
+    GPU_BLENDFACTOR srcColor = GPU_ONE;
+    GPU_BLENDFACTOR srcAlpha = GPU_ONE;
+
+    GPU_BLENDFACTOR dstColor = GPU_ZERO;
+    GPU_BLENDFACTOR dstAlpha = GPU_ZERO;
+
+    switch (mode)
+    {
+        case love::Graphics::BLEND_ALPHA:
+            // srcColor = srcAlpha = GPU_ONE;
+            // dstColor = dstAlpha = GPU_ONE_MINUS_SRC_ALPHA;
+            srcColor = GPU_SRC_ALPHA;
+            srcAlpha = GPU_ONE_MINUS_SRC_ALPHA;
+
+            dstColor = srcAlpha;
+            dstAlpha = GPU_ZERO;
+
+            break;
+        case love::Graphics::BLEND_MULTIPLY:
+            srcColor = srcAlpha = GPU_DST_COLOR;
+            dstColor = dstAlpha = GPU_ZERO;
+
+            break;
+        case love::Graphics::BLEND_SUBTRACT:
+            func = GPU_BLEND_REVERSE_SUBTRACT;
+
+            break;
+        case love::Graphics::BLEND_ADD:
+            srcColor = GPU_ONE;
+            srcAlpha = GPU_ZERO;
+
+            dstColor = dstAlpha = GPU_ONE;
+
+            break;
+        case love::Graphics::BLEND_LIGHTEN:
+            func = GPU_BLEND_MAX;
+
+            break;
+        case love::Graphics::BLEND_DARKEN:
+            func = GPU_BLEND_MIN;
+
+            break;
+        case love::Graphics::BLEND_SCREEN:
+            srcColor = srcAlpha = GPU_ONE;
+            dstColor = dstAlpha = GPU_ONE_MINUS_SRC_COLOR;
+
+            break;
+        case love::Graphics::BLEND_REPLACE:
+        case love::Graphics::BLEND_NONE:
+        default:
+            srcColor = srcAlpha = GPU_ONE;
+            dstColor = dstAlpha = GPU_ZERO;
+
+            break;
+    }
+
+    // We can only do alpha-multiplication when srcRGB would have been unmodified.
+    if (srcColor == GPU_ONE && alphaMode == BLENDALPHA_MULTIPLY && mode != BLEND_NONE)
+        srcColor = GPU_SRC_ALPHA;
+
+
+    ::citro2d::Instance().SetBlendMode(func, srcColor, srcAlpha, dstColor, dstAlpha);
+
+    this->states.back().blendMode      = mode;
+    this->states.back().blendAlphaMode = alphaMode;
+}
 
 const int love::citro2d::Graphics::GetWidth(Screen screen) const
 {
