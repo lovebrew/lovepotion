@@ -73,11 +73,6 @@ int Wrap_Graphics::GetDimensions(lua_State* L)
 
     if (sname == nullptr)
         screen = instance()->GetActiveScreen();
-    else
-    {
-        if (!Graphics::GetConstant(sname, screen))
-            return Luax::EnumError(L, "screen", Graphics::GetConstants(screen), sname);
-    }
 
     lua_pushnumber(L, instance()->GetWidth(screen));
     lua_pushnumber(L, instance()->GetHeight());
