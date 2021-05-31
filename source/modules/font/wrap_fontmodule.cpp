@@ -19,6 +19,7 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     else if (lua_isnoneornil(L, 2))
     {
         Rasterizer* self   = nullptr;
+
         FileData* fileData = Wrap_Filesystem::GetFileData(L, 1);
 
         Luax::CatchException(

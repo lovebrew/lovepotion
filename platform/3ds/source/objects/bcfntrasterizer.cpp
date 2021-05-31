@@ -24,13 +24,12 @@ void BCFNTRasterizer::InitMetrics(int size)
 {
     /* Set global metrics */
     FINF_s* s = C2D_FontGetInfo(this->font);
-
-    this->metrics.advance = (int)s->defaultWidth.charWidth;
-    this->metrics.ascent  = (int)s->ascent;
-    this->metrics.descent = (int)s->height - s->ascent;
-    this->metrics.height  = (int)s->height;
-
     this->scale = size / 30.0f;
+
+    this->metrics.advance = (int)s->defaultWidth.charWidth * this->scale;
+    this->metrics.ascent  = (int)s->ascent * this->scale;
+    this->metrics.descent = (int)(s->height - s->ascent) * this->scale;
+    this->metrics.height  = (int)s->height * this->scale;
 }
 
 BCFNTRasterizer::~BCFNTRasterizer()
