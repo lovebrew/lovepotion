@@ -6,8 +6,8 @@
 #include "objects/image/image.h"
 #include "objects/texture/texture.h"
 
-#include "freetype/glyphdata.h"
-#include "freetype/truetyperasterizer.h"
+#include "objects/glyphdata/glyphdata.h"
+#include "objects/truetyperasterizer/truetyperasterizer.h"
 
 enum class love::common::Font::SystemFontType : uint8_t
 {
@@ -106,15 +106,25 @@ namespace love
 
         const Font::Glyph& AddGlyph(uint32_t glyph);
 
+        bool HasGlyph(uint32_t glyph) const override;
+
         love::GlyphData* GetRasterizerGlyphData(uint32_t glyph);
 
-        float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph);
+        float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph) override;
 
-        float GetAscent() const;
+        float GetKerning(const std::string& leftChar, const std::string& rightChar) override;
 
-        float GetBaseline() const;
+        float GetDPIScale() const override;
 
-        float GetDescent() const;
+        void SetFallbacks(const std::vector<Font*>& fallbacks) override;
+
+        float GetAscent() const override;
+
+        float GetBaseline() const override;
+
+        float GetDescent() const override;
+
+        void SetFilter(const Texture::Filter& filter);
 
       private:
         struct TextureSize
@@ -127,16 +137,12 @@ namespace love
 
         std::vector<love::StrongReference<love::Rasterizer>> rasterizers;
 
-        int height;
-
         int textureWidth;
         int textureHeight;
 
         bool useSpacesAsTab;
 
         uint32_t textureCacheID;
-
-        float dpiScale;
 
         int textureX;
         int textureY;

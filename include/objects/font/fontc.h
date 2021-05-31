@@ -10,10 +10,14 @@
 #include "common/colors.h"
 #include "objects/texture/texture.h"
 
+#include "objects/rasterizer/rasterizer.h"
+
 namespace love
 {
     class Graphics;
-}
+
+    class Font;
+} // namespace love
 
 namespace love::common
 {
@@ -45,7 +49,7 @@ namespace love::common
 
         static love::Type type;
 
-        Font();
+        Font(const Texture::Filter& filter);
 
         virtual ~Font();
 
@@ -64,8 +68,29 @@ namespace love::common
 
         float GetLineHeight() const;
 
-        static Font* GetSystemFontByType(int size, SystemFontType type,
-                                         const Texture::Filter& filter = Texture::defaultFilter);
+        void SetLineHeight(float lineHeight);
+
+        Texture::Filter GetFilter();
+
+        virtual void SetFilter(const Texture::Filter& filter) = 0;
+
+        virtual float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph) = 0;
+
+        virtual float GetKerning(const std::string& leftChar, const std::string& rightChar) = 0;
+
+        virtual float GetDPIScale() const = 0;
+
+        virtual float GetAscent() const = 0;
+
+        virtual float GetBaseline() const = 0;
+
+        virtual float GetDescent() const = 0;
+
+        virtual void SetFallbacks(const std::vector<love::Font*>& fallbacks) = 0;
+
+        bool HasGlyphs(const std::string& text) const;
+
+        virtual bool HasGlyph(uint32_t glyph) const = 0;
 
         static bool GetConstant(const char* in, AlignMode& out);
         static bool GetConstant(AlignMode in, const char*& out);
@@ -80,6 +105,9 @@ namespace love::common
       protected:
         float lineHeight;
         Texture::Filter filter;
+
+        int height;
+        float dpiScale;
 
         const static StringMap<AlignMode, ALIGN_MAX_ENUM> alignModes;
         const static StringMap<SystemFontType, MAX_SYSFONTS> sharedFonts;

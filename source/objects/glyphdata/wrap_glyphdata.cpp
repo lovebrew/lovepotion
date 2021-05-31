@@ -4,8 +4,8 @@ using namespace love;
 
 int Wrap_GlyphData::Clone(lua_State* L)
 {
-    GlyphData* self  = Wrap_GlyphData::CheckGlyphData(L, 1);
-    GlyphData* clone = nullptr;
+    love::GlyphData* self  = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* clone = nullptr;
 
     Luax::CatchException(L, [&]() { clone = self->Clone(); });
 
@@ -17,7 +17,7 @@ int Wrap_GlyphData::Clone(lua_State* L)
 
 int Wrap_GlyphData::GetWidth(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     lua_pushinteger(L, self->GetWidth());
 
@@ -26,7 +26,7 @@ int Wrap_GlyphData::GetWidth(lua_State* L)
 
 int Wrap_GlyphData::GetHeight(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     lua_pushinteger(L, self->GetHeight());
 
@@ -35,7 +35,7 @@ int Wrap_GlyphData::GetHeight(lua_State* L)
 
 int Wrap_GlyphData::GetDimensions(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     lua_pushinteger(L, self->GetWidth());
     lua_pushinteger(L, self->GetHeight());
@@ -45,7 +45,7 @@ int Wrap_GlyphData::GetDimensions(lua_State* L)
 
 int Wrap_GlyphData::GetGlyph(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     lua_pushnumber(L, (lua_Number)self->GetGlyph());
 
@@ -54,7 +54,7 @@ int Wrap_GlyphData::GetGlyph(lua_State* L)
 
 int Wrap_GlyphData::GetGlyphString(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     Luax::CatchException(L, [&]() { Luax::PushString(L, self->GetGlyphString()); });
 
@@ -63,7 +63,7 @@ int Wrap_GlyphData::GetGlyphString(lua_State* L)
 
 int Wrap_GlyphData::GetAdvance(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     lua_pushinteger(L, self->GetAdvance());
 
@@ -72,7 +72,7 @@ int Wrap_GlyphData::GetAdvance(lua_State* L)
 
 int Wrap_GlyphData::GetBearing(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     lua_pushinteger(L, self->GetBearingX());
     lua_pushinteger(L, self->GetBearingY());
@@ -82,7 +82,7 @@ int Wrap_GlyphData::GetBearing(lua_State* L)
 
 int Wrap_GlyphData::GetBoundingBox(lua_State* L)
 {
-    GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
+    love::GlyphData* self = Wrap_GlyphData::CheckGlyphData(L, 1);
 
     int minX = self->GetMinX();
     int minY = self->GetMinY();
@@ -100,9 +100,9 @@ int Wrap_GlyphData::GetBoundingBox(lua_State* L)
     return 4;
 }
 
-GlyphData* Wrap_GlyphData::CheckGlyphData(lua_State* L, int index)
+love::GlyphData* Wrap_GlyphData::CheckGlyphData(lua_State* L, int index)
 {
-    return Luax::CheckType<GlyphData>(L, index);
+    return Luax::CheckType<love::GlyphData>(L, index);
 }
 
 int Wrap_GlyphData::Register(lua_State* L)

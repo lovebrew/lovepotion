@@ -58,7 +58,8 @@
         "iostream": "cpp",
         "compare": "cpp",
         "concepts": "cpp",
-        "ranges": "cpp"
+        "ranges": "cpp",
+        "numbers": "cpp"
     },
     "C_Cpp.intelliSenseEngineFallback": "Disabled",
     "python.linting.enabled": true

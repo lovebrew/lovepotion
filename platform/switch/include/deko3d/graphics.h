@@ -1,7 +1,6 @@
 #pragma once
 
 #include "modules/graphics/graphics.h"
-#include "modules/modfont/fntmodule.h"
 
 #include "deko3d/deko.h"
 

@@ -1,4 +1,4 @@
-#include "modules/modfont/wrap_fntmodule.h"
+#include "modules/font/wrap_fontmodule.h"
 #include "common/luax.h"
 
 #include <filesystem>
@@ -11,10 +11,15 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
 {
     /* First or second arg is a number */
     if (lua_type(L, 1) == LUA_TNUMBER || lua_type(L, 2) == LUA_TNUMBER || lua_isnone(L, 1))
+#if defined(_3DS)
+        return Wrap_FontModule::NewBCFNTRasterizer(L);
+#else
         return Wrap_FontModule::NewTrueTypeRasterizer(L);
+#endif
     else if (lua_isnoneornil(L, 2))
     {
-        Rasterizer* self   = nullptr;
+        Rasterizer* self = nullptr;
+
         FileData* fileData = Wrap_Filesystem::GetFileData(L, 1);
 
         Luax::CatchException(
@@ -28,6 +33,58 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     return 1;
 }
 
+#if defined(_3DS)
+int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
+{
+    Rasterizer* self = nullptr;
+
+    if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
+    {
+        int size = luaL_optinteger(L, 1, 12);
+
+        Luax::CatchException(L, [&]() { self = instance()->NewBCFNTRasterizer(size); });
+    }
+    else
+    {
+        Data* data                        = nullptr;
+        common::Font::SystemFontType type = common::Font::SystemFontType::TYPE_MAX_ENUM;
+
+        if (Luax::IsType(L, 1, love::Data::type))
+        {
+            data = Wrap_Data::CheckData(L, 1);
+            data->Retain();
+        }
+        else
+        {
+            const char* str = luaL_checkstring(L, 1);
+
+            if (std::filesystem::path(str).extension().empty())
+            {
+                if (!Font::GetConstant(str, type))
+                    return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
+            }
+            else /* load font from a file, *.ttf usually */
+                data = Wrap_Filesystem::GetFileData(L, 1);
+        }
+
+        int size = (int)luaL_optinteger(L, 2, 12);
+
+        if (type == Font::SystemFontType::TYPE_MAX_ENUM)
+            Luax::CatchException(
+                L, [&]() { self = instance()->NewBCFNTRasterizer(data, size); },
+                [&](bool) { data->Release(); });
+        else
+            Luax::CatchException(L, [&]() { self = instance()->NewBCFNTRasterizer(size, type); });
+    }
+
+    Luax::PushType(L, self);
+    self->Release();
+
+    return 1;
+}
+#endif
+
+#if defined(__SWITCH__)
 int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 {
     Rasterizer* self = nullptr;
@@ -55,7 +112,8 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
     }
     else
     {
-        love::Data* data = nullptr;
+        love::Data* data              = nullptr;
+        Font::SystemFontType fontType = Font::SystemFontType::TYPE_MAX_ENUM;
 
         if (Luax::IsType(L, 1, love::Data::type))
         {
@@ -68,14 +126,10 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 
             if (std::filesystem::path(str).extension().empty())
             {
-                Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD;
-
-                if (!Font::GetConstant(str, type))
-                    return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
-                else
-                    data = instance()->GetSystemFont(type);
+                if (!Font::GetConstant(str, fontType))
+                    return Luax::EnumError(L, "font type", Font::GetConstants(fontType), str);
             }
-            else /* load font from a file, *.ttf usually */
+            else /* load font from a file */
                 data = Wrap_Filesystem::GetFileData(L, 1);
         }
 
@@ -88,17 +142,30 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 
         if (lua_isnoneornil(L, 4))
         {
-            Luax::CatchException(
-                L, [&]() { self = instance()->NewTrueTypeRasterizer(data, size, hinting); },
-                [&](bool) { data->Release(); });
+            if (fontType != Font::SystemFontType::TYPE_MAX_ENUM)
+                Luax::CatchException(L, [&]() {
+                    self = instance()->NewTrueTypeRasterizer(fontType, size, hinting);
+                });
+            else
+                Luax::CatchException(
+                    L, [&]() { self = instance()->NewTrueTypeRasterizer(data, size, hinting); },
+                    [&](bool) { data->Release(); });
         }
         else
         {
-            float dpiscale = (float)luaL_checknumber(L, 4);
-            Luax::CatchException(
-                L,
-                [&]() { self = instance()->NewTrueTypeRasterizer(data, size, dpiscale, hinting); },
-                [&](bool) { data->Release(); });
+            float dpiScale = (float)luaL_checknumber(L, 4);
+
+            if (fontType != Font::SystemFontType::TYPE_MAX_ENUM)
+                Luax::CatchException(L, [&]() {
+                    self = instance()->NewTrueTypeRasterizer(fontType, size, dpiScale, hinting);
+                });
+            else
+                Luax::CatchException(
+                    L,
+                    [&]() {
+                        self = instance()->NewTrueTypeRasterizer(data, size, dpiScale, hinting);
+                    },
+                    [&](bool) { data->Release(); });
         }
     }
 
@@ -107,6 +174,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 
     return 1;
 }
+#endif
 
 int Wrap_FontModule::NewGlyphData(lua_State* L)
 {
@@ -133,10 +201,16 @@ int Wrap_FontModule::NewGlyphData(lua_State* L)
 
 int Wrap_FontModule::Register(lua_State* L)
 {
-    const luaL_Reg reg[] = { { "newRasterizer", NewRasterizer },
-                             { "newTrueTypeRasterizer", NewTrueTypeRasterizer },
-                             { "newGlyphData", NewGlyphData },
-                             { 0, 0 } };
+    const luaL_Reg reg[] = {
+        { "newRasterizer", NewRasterizer },
+#if defined(__SWITCH__)
+        { "newTrueTypeRasterizer", NewTrueTypeRasterizer },
+#elif defined(_3DS)
+        { "newBCFNTRasterizer", NewBCFNTRasterizer },
+#endif
+        { "newGlyphData", NewGlyphData },
+        { 0, 0 }
+    };
 
     const lua_CFunction types[] = { Wrap_GlyphData::Register, Wrap_Rasterizer::Register, 0 };
 

@@ -5,42 +5,84 @@
 
 using namespace love;
 
-Font::Font(const Rasterizer& rasterizer, const Texture::Filter& filter) : rasterizer(rasterizer)
+Font::Font(Rasterizer* rasterizer, const Texture::Filter& filter) :
+    common::Font(filter),
+    rasterizer(rasterizer),
+    buffer(C2D_TextBufNew(Font::FONT_BUFFER_SIZE))
 {
-    if (rasterizer.data != nullptr)
-        this->rasterizer.font =
-            C2D_FontLoadFromMem(rasterizer.data->GetData(), rasterizer.data->GetSize());
+    this->dpiScale = rasterizer->GetDPIScale();
+    this->height   = rasterizer->GetHeight();
 
-    this->rasterizer.buffer = C2D_TextBufNew(Font::FONT_BUFFER_SIZE);
-
-    this->lineHeight = 1.0f;
+    this->lineHeight = rasterizer->GetLineHeight();
 }
 
 Font::~Font()
 {
-    C2D_TextBufClear(this->rasterizer.buffer);
-
-    C2D_TextBufDelete(this->rasterizer.buffer);
-    C2D_FontFree(this->rasterizer.font);
+    C2D_TextBufClear(this->buffer);
+    C2D_TextBufDelete(this->buffer);
 }
 
 const C2D_Font Font::GetFont()
 {
-    return this->rasterizer.font;
+    auto r = static_cast<BCFNTRasterizer*>(this->rasterizer.Get());
+    return r->GetFont();
 }
 
-common::Font* common::Font::GetSystemFontByType(int size, Font::SystemFontType type,
-                                                const Texture::Filter& filter)
+float Font::GetScale() const
 {
-    const Rasterizer rasterizer = {
-        .size = size,
-        .data = nullptr,
+    auto r = static_cast<BCFNTRasterizer*>(this->rasterizer.Get());
 
-        .font   = C2D_FontLoadSystem((CFG_Region)type),
-        .buffer = nullptr,
-    };
+    return r->GetScale();
+}
 
-    return new love::Font(rasterizer, filter);
+float Font::GetDPIScale() const
+{
+    return this->dpiScale;
+}
+
+void Font::SetFilter(const Texture::Filter& filter)
+{
+    this->filter = filter;
+}
+
+float Font::GetAscent() const
+{
+    return floorf(this->rasterizer->GetAscent() / this->dpiScale + 0.5f);
+}
+
+float Font::GetDescent() const
+{
+    return floorf(this->rasterizer->GetDescent() / this->dpiScale + 0.5f);
+}
+
+bool Font::HasGlyph(uint32_t glyph) const
+{
+    return this->rasterizer->HasGlyph(glyph);
+}
+
+float Font::GetKerning(const std::string&, const std::string&)
+{
+    return 0.0f;
+}
+
+float Font::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
+{
+    return 0.0f;
+}
+
+void Font::SetFallbacks(const std::vector<Font*>& fallbacks)
+{}
+
+float Font::GetBaseline() const
+{
+    float ascent = this->GetAscent();
+
+    if (ascent != 0.0f)
+        return ascent;
+    else if (this->rasterizer->GetDataType() == love::Rasterizer::DATA_BCFNT)
+        return floorf(this->GetHeight() / 1.0f);
+    else
+        return 0.0f;
 }
 
 void Font::Print(Graphics* gfx, const std::vector<ColoredString>& text,
@@ -52,7 +94,7 @@ void Font::Print(Graphics* gfx, const std::vector<ColoredString>& text,
         text.begin(), text.end(), std::string {},
         [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
 
-    C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
+    C2D_TextFontParse(&citroText, this->GetFont(), this->buffer, result.c_str());
     C2D_TextOptimize(&citroText);
 
     Matrix4 t(gfx->GetTransform(), localTransform);
@@ -62,7 +104,7 @@ void Font::Print(Graphics* gfx, const std::vector<ColoredString>& text,
     C2D_DrawText(&citroText, C2D_WithColor, 0, 0, Graphics::CURRENT_DEPTH, this->GetScale(),
                  this->GetScale(), renderColorf);
 
-    C2D_TextBufClear(this->rasterizer.buffer);
+    C2D_TextBufClear(this->buffer);
 }
 
 void Font::Printf(Graphics* gfx, const std::vector<ColoredString>& text, float wrap,
@@ -95,7 +137,7 @@ void Font::Printf(Graphics* gfx, const std::vector<ColoredString>& text, float w
         text.begin(), text.end(), std::string {},
         [](const std::string& s1, const ColoredString& piece) { return s1 + piece.string; });
 
-    C2D_TextFontParse(&citroText, this->rasterizer.font, this->rasterizer.buffer, result.c_str());
+    C2D_TextFontParse(&citroText, this->GetFont(), this->buffer, result.c_str());
     C2D_TextOptimize(&citroText);
 
     Matrix4 t(gfx->GetTransform(), localTransform);
@@ -105,7 +147,7 @@ void Font::Printf(Graphics* gfx, const std::vector<ColoredString>& text, float w
     C2D_DrawText(&citroText, C2D_WithColor | alignMode, offset, 0, Graphics::CURRENT_DEPTH,
                  this->GetScale(), this->GetScale(), renderColorf, wrap);
 
-    C2D_TextBufClear(this->rasterizer.buffer);
+    C2D_TextBufClear(this->buffer);
 }
 
 int Font::GetWidth(uint32_t /* prevGlyph */, uint32_t current)
@@ -115,20 +157,11 @@ int Font::GetWidth(uint32_t /* prevGlyph */, uint32_t current)
     if (found != this->glyphWidths.end())
         return found->second;
 
-    fontGlyphPos_s out;
+    GlyphData* glyphData = this->rasterizer->GetGlyphData(current);
 
-    int glyphIndex = C2D_FontGlyphIndexFromCodePoint(this->rasterizer.font, current);
-    C2D_FontCalcGlyphPos(this->rasterizer.font, &out, glyphIndex, 0, this->GetScale(),
-                         this->GetScale());
+    this->glyphWidths[current] = glyphData->GetAdvance();
 
-    this->glyphWidths.emplace(current, out.xAdvance);
-
-    return out.xAdvance;
-}
-
-float Font::GetScale() const
-{
-    return (this->rasterizer.size / 30.0f);
+    return this->glyphWidths[current];
 }
 
 float Font::GetHeight() const

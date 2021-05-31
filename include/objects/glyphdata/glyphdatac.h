@@ -5,7 +5,7 @@
 
 #include <string.h>
 
-namespace love
+namespace love::common
 {
     class GlyphData : public Data
     {
@@ -23,23 +23,35 @@ namespace love
 
         GlyphData(uint32_t glyph, GlyphMetrics metrics);
 
-        GlyphData(const GlyphData& c);
+        GlyphData(const GlyphData& glyphData);
 
         virtual ~GlyphData();
 
-        GlyphData* Clone() const;
+        virtual GlyphData* Clone() const = 0;
 
-        size_t GetPixelSize() const;
+        virtual size_t GetPixelSize() const
+        {
+            return 0;
+        };
 
-        void* GetData() const;
+        virtual size_t GetSize() const
+        {
+            return 0;
+        };
 
-        size_t GetSize() const;
+        virtual void* GetData() const override
+        {
+            return nullptr;
+        }
 
-        void* GetData(int x, int y) const;
-
-        int GetHeight() const;
+        virtual void* GetData(int x, int y) const
+        {
+            return nullptr;
+        }
 
         int GetWidth() const;
+
+        int GetHeight() const;
 
         uint32_t GetGlyph() const;
 
@@ -59,11 +71,8 @@ namespace love
 
         int GetMaxY() const;
 
-      private:
+      protected:
         uint32_t glyph;
-
         GlyphMetrics metrics;
-
-        uint8_t* data;
     };
-} // namespace love
+} // namespace love::common

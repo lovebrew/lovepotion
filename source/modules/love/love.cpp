@@ -7,10 +7,7 @@
 #include "modules/data/wrap_datamodule.h"
 #include "modules/event/wrap_event.h"
 #include "modules/filesystem/wrap_filesystem.h"
-
-#if defined(__SWITCH__)
-    #include "modules/modfont/wrap_fntmodule.h"
-#endif
+#include "modules/font/wrap_fontmodule.h"
 
 #include "modules/graphics/wrap_graphics.h"
 #include "modules/joystick/wrap_joystick.h"
@@ -33,9 +30,7 @@ static const luaL_Reg modules[] = { { "love.audio", Wrap_Audio::Register },
                                     { "love.event", Wrap_Event::Register },
                                     { "love.graphics", Wrap_Graphics::Register },
                                     { "love.filesystem", Wrap_Filesystem::Register },
-#if defined(__SWITCH__)
                                     { "love.font", Wrap_FontModule::Register },
-#endif
                                     { "love.joystick", Wrap_Joystick::Register },
                                     { "love.keyboard", Wrap_Keyboard::Register },
                                     { "love.math", Wrap_Math::Register },

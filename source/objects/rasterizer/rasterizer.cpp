@@ -1,4 +1,4 @@
-#include "freetype/rasterizer.h"
+#include "objects/rasterizer/rasterizer.h"
 
 #include "utf8/utf8.h"
 

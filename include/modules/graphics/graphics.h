@@ -32,6 +32,8 @@
 #include "objects/text/text.h"
 #include "objects/text/wrap_text.h"
 
+#include "modules/font/fontmodule.h"
+
 #include <optional>
 
 #if defined(__SWITCH__)
@@ -245,18 +247,15 @@ namespace love
 
         Image* NewImage(Data* data);
 
+        virtual Font* NewFont(Rasterizer* rasterizer,
+                              const Texture::Filter& filter = Texture::defaultFilter) = 0;
 #if defined(__SWITCH__)
         virtual Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting,
                                      const Texture::Filter& filter = Texture::defaultFilter) = 0;
 
-        virtual Font* NewFont(Rasterizer* rasterizer,
-                              const Texture::Filter& filter = Texture::defaultFilter) = 0;
 #elif defined(_3DS)
         virtual Font* NewDefaultFont(int size,
                                      const Texture::Filter& filter = Texture::defaultFilter) = 0;
-
-        virtual Font* NewFont(const Rasterizer& rasterizer,
-                              const Texture::Filter& filter = Texture::defaultFilter) = 0;
 #endif
 
         Quad* NewQuad(Quad::Viewport v, double sw, double sh);
@@ -340,7 +339,7 @@ namespace love
         virtual void Polygon(DrawMode mode, const Vector2* points, size_t count,
                              bool skipLastFilledVertex = true) = 0;
 #else
-        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count)      = 0;
+        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count)             = 0;
 #endif
 
         virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,

@@ -20,6 +20,9 @@ extern "C"
         /* battery state */
         R_ABORT_UNLESS(ptmuInit());
 
+        /* Regional Stuff and Fonts */
+        R_ABORT_UNLESS(cfguInit());
+
         /* wifi state */
         R_ABORT_UNLESS(acInit());
 
@@ -46,6 +49,8 @@ extern "C"
         frdExit();
 
         acExit();
+
+        cfguExit();
 
         ptmuExit();
 

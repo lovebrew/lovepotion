@@ -1878,7 +1878,7 @@ function love.nogame()
             res[key] = love.graphics.newImage(value)
         end
 
-        local screen = is3DS and "top" or nil
+        local screen = is3DS and "left" or nil
 
         centerX = love.graphics.getWidth(screen) / 2
         centerY = love.graphics.getHeight() / 2

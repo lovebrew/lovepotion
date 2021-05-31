@@ -1,7 +1,6 @@
 #pragma once
 
-#include "freetype/glyphdata.h"
-
+#include "objects/glyphdata/glyphdata.h"
 namespace love
 {
     class Rasterizer : public Object
@@ -19,6 +18,7 @@ namespace love
         {
             DATA_TRUETYPE,
             DATA_IMAGE,
+            DATA_BCFNT
         };
 
         static love::Type type;

@@ -63,7 +63,7 @@ void Source::TeardownAtomic()
             break;
     }
 
-    this->valid = false;
+    this->valid         = false;
     this->offsetSamples = 0;
 }
 

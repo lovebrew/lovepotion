@@ -44,6 +44,7 @@ deko3d::deko3d() :
     textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
     viewport { 0, 0, framebufferWidth, framebufferHeight },
     framebuffers(),
+    descriptorsDirty(false),
     depthBuffer()
 {
     this->transformUniformBuffer =
@@ -188,7 +189,8 @@ void deko3d::EnsureInFrame()
 {
     if (!this->framebuffers.inFrame)
     {
-        this->firstVertex = 0;
+        this->firstVertex      = 0;
+        this->descriptorsDirty = false;
         this->cmdRing.begin(this->cmdBuf);
         this->framebuffers.inFrame = true;
     }
@@ -363,10 +365,14 @@ void deko3d::UnRegisterResHandle(DkResHandle handle)
 
 DkResHandle deko3d::RegisterResHandle(const dk::ImageDescriptor& descriptor)
 {
+    this->EnsureInFrame();
+
     uint32_t index = this->allocator.Allocate();
 
     this->descriptors.image.update(this->cmdBuf, index, descriptor);
     this->descriptors.sampler.update(this->cmdBuf, index, this->filter.descriptor);
+
+    this->descriptorsDirty = true;
 
     return dkMakeTextureHandle(index, index);
 }
@@ -377,6 +383,12 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* point
         return false;
 
     this->EnsureInState(STATE_TEXTURE);
+
+    if (this->descriptorsDirty)
+    {
+        this->cmdBuf.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+        this->descriptorsDirty = false;
+    }
 
     this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
 
@@ -555,10 +567,14 @@ void deko3d::SetTextureFilter(const love::Texture::Filter& filter)
 
 void deko3d::SetTextureFilter(love::Texture* texture, const love::Texture::Filter& filter)
 {
+    this->EnsureInFrame();
+
     this->SetTextureFilter(filter);
 
     uint32_t handleID = this->allocator.Find(texture->GetHandle());
     this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
+
+    this->descriptorsDirty = true;
 }
 
 void deko3d::SetTextureWrap(const love::Texture::Wrap& wrap)
@@ -573,10 +589,14 @@ void deko3d::SetTextureWrap(const love::Texture::Wrap& wrap)
 
 void deko3d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& wrap)
 {
+    this->EnsureInFrame();
+
     this->SetTextureWrap(wrap);
 
     uint32_t handleID = this->allocator.Find(texture->GetHandle());
     this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
+
+    this->descriptorsDirty = true;
 }
 
 DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)

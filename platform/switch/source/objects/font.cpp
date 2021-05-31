@@ -1,7 +1,7 @@
 #include "objects/font/font.h"
 
+#include "modules/font/fontmodule.h"
 #include "modules/graphics/graphics.h"
-#include "modules/modfont/fntmodule.h"
 
 #include "common/matrix.h"
 #include "deko3d/graphics.h"
@@ -16,14 +16,16 @@ using namespace love;
 #define FONT_MODULE() (Module::GetInstance<FontModule>(Module::M_FONT))
 
 Font::Font(Rasterizer* r, const Texture::Filter& filter) :
+    common::Font(filter),
     rasterizers({ r }),
-    height(r->GetHeight()),
     textureWidth(128),
     textureHeight(128),
     useSpacesAsTab(false),
-    textureCacheID(0),
-    dpiScale(r->GetDPIScale())
+    textureCacheID(0)
 {
+    this->dpiScale = rasterizers[0]->GetDPIScale();
+    this->height   = rasterizers[0]->GetHeight();
+
     this->lineHeight = 1.0f;
 
     this->filter        = filter;
@@ -53,6 +55,20 @@ Font::Font(Rasterizer* r, const Texture::Filter& filter) :
     this->images.clear();
 
     this->CreateTexture();
+}
+
+Font::~Font()
+{
+    this->glyphs.clear();
+    this->images.clear();
+}
+
+void Font::SetFilter(const Texture::Filter& filter)
+{
+    for (const auto& image : this->images)
+        image->SetFilter(filter);
+
+    this->filter = filter;
 }
 
 Font::TextureSize Font::GetNextTextureSize() const
@@ -156,6 +172,11 @@ love::GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
     return rasterizers[0]->GetGlyphData(glyph);
 }
 
+float Font::GetDPIScale() const
+{
+    return this->dpiScale;
+}
+
 const Font::Glyph& Font::FindGlyph(uint32_t glyph)
 {
     const auto it = this->glyphs.find(glyph);
@@ -164,6 +185,17 @@ const Font::Glyph& Font::FindGlyph(uint32_t glyph)
         return it->second;
 
     return this->AddGlyph(glyph);
+}
+
+bool Font::HasGlyph(uint32_t glyph) const
+{
+    for (const StrongReference<Rasterizer>& r : rasterizers)
+    {
+        if (r->HasGlyph(glyph))
+            return true;
+    }
+
+    return false;
 }
 
 static inline uint16_t norm16(double n)
@@ -305,12 +337,6 @@ void Font::GetCodepointsFromString(const std::vector<ColoredString>& strings,
         if (iColor.index == 0 && iColor.color == Colorf(1.0f, 1.0f, 1.0f, 1.0f))
             codepoints.colors.pop_back();
     }
-}
-
-Font::~Font()
-{
-    this->glyphs.clear();
-    this->images.clear();
 }
 
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& codepoints,
@@ -866,6 +892,39 @@ int Font::GetWidth(uint32_t prevGlyph, uint32_t current)
 {
     const Glyph& g = this->FindGlyph(current);
     return g.spacing + this->GetKerning(prevGlyph, current);
+}
+
+void Font::SetFallbacks(const std::vector<Font*>& fallbacks)
+{
+    for (const Font* font : fallbacks)
+    {
+        if (font->rasterizers[0]->GetDataType() != this->rasterizers[0]->GetDataType())
+            throw love::Exception("Font fallbacks must be of the same font type.");
+    }
+
+    this->rasterizers.resize(1);
+
+    // NOTE: this won't invalidate already-rasterized glyphs.
+    for (const Font* font : fallbacks)
+        this->rasterizers.push_back(font->rasterizers[0]);
+}
+
+float Font::GetKerning(const std::string& leftChar, const std::string& rightChar)
+{
+    uint32_t left  = 0;
+    uint32_t right = 0;
+
+    try
+    {
+        left  = utf8::peek_next(leftChar.begin(), leftChar.end());
+        right = utf8::peek_next(rightChar.begin(), rightChar.end());
+    }
+    catch (utf8::exception& e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
+
+    return this->GetKerning(left, right);
 }
 
 // clang-format off

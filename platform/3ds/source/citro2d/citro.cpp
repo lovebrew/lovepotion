@@ -21,6 +21,7 @@ citro2d::citro2d()
 
     C2D_Prepare();
 
+    C2D_Flush();
     C3D_AlphaTest(true, GPU_GREATER, 0);
 
     this->targets.reserve(4);
@@ -49,6 +50,14 @@ citro2d& citro2d::Instance()
 {
     static citro2d c2d;
     return c2d;
+}
+
+void citro2d::SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor,
+                           GPU_BLENDFACTOR srcAlpha, GPU_BLENDFACTOR dstColor,
+                           GPU_BLENDFACTOR dstAlpha)
+{
+    C2D_Flush();
+    C3D_AlphaBlend(func, func, srcColor, dstColor, srcAlpha, dstAlpha);
 }
 
 void citro2d::Set3D(bool enable)

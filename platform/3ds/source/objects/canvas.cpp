@@ -10,7 +10,8 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
 {
     C3D_TexInitVRAM(&this->citroTex, NextPO2(this->width), NextPO2(this->height), GPU_RGBA8);
 
-    this->renderer = C3D_RenderTargetCreateFromTex(&this->citroTex, GPU_TEXFACE_2D, 0, -1);
+    this->renderer =
+        C3D_RenderTargetCreateFromTex(&this->citroTex, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH16);
 
     u16 width  = this->citroTex.width;
     u16 height = this->citroTex.height;
@@ -27,10 +28,10 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
 
 Canvas::~Canvas()
 {
-    C3D_TexDelete(&this->citroTex);
-
-    ::citro2d::Instance().DeferCallToEndOfFrame(
-        ([r=renderer]() { C3D_RenderTargetDelete(r); }));
+    ::citro2d::Instance().DeferCallToEndOfFrame(([target = renderer, tex = citroTex]() mutable {
+        C3D_RenderTargetDelete(target);
+        C3D_TexDelete(&tex);
+    }));
 }
 
 C3D_RenderTarget* Canvas::GetRenderer()

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "freetype/glyphdata.h"
 #include "objects/data/wrap_data.h"
+#include "objects/glyphdata/glyphdata.h"
 
 #include "common/luax.h"
 
