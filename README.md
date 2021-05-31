@@ -1,7 +1,7 @@
-# LovePotion
+# LÖVE Potion
 LÖVE for Nintendo Homebrew
 
-Get started on the [Löve Potion wiki!](https://TurtleP.github.io/LovePotion/wiki)
+Get started on the [LÖVE Potion wiki!](https://lovebrew.org)
 
 ![Löve Potion](https://github.com/TurtleP/LovePotion/workflows/L%C3%B6ve%20Potion/badge.svg)
 
