@@ -35,6 +35,11 @@ float Font::GetScale() const
     return r->GetScale();
 }
 
+float Font::GetDPIScale() const
+{
+    return this->dpiScale;
+}
+
 void Font::SetFilter(const Texture::Filter& filter)
 {
     this->filter = filter;

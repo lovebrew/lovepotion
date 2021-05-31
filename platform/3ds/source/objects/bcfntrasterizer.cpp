@@ -2,7 +2,7 @@
 
 using namespace love;
 
-BCFNTRasterizer::BCFNTRasterizer(Data* data, int size) : data(data)
+BCFNTRasterizer::BCFNTRasterizer(Data* data, int size) : data(data), glyphCount(-1)
 {
     this->font = C2D_FontLoadFromMem(data->GetData(), data->GetSize());
 
@@ -13,7 +13,7 @@ BCFNTRasterizer::BCFNTRasterizer(Data* data, int size) : data(data)
     this->InitMetrics(size);
 }
 
-BCFNTRasterizer::BCFNTRasterizer(common::Font::SystemFontType type, int size)
+BCFNTRasterizer::BCFNTRasterizer(common::Font::SystemFontType type, int size) : glyphCount(-1)
 {
     this->font = C2D_FontLoadSystem(static_cast<CFG_Region>(type));
 
@@ -23,10 +23,12 @@ BCFNTRasterizer::BCFNTRasterizer(common::Font::SystemFontType type, int size)
 void BCFNTRasterizer::InitMetrics(int size)
 {
     /* Set global metrics */
-    FINF_s* s = C2D_FontGetInfo(this->font);
+    FINF_s* s                = C2D_FontGetInfo(this->font);
+    TGLP_s* textureSheetInfo = s->tglp;
+
     this->scale = size / 30.0f;
 
-    this->metrics.advance = (int)s->defaultWidth.charWidth * this->scale;
+    this->metrics.advance = (int)textureSheetInfo->maxCharWidth * this->scale;
     this->metrics.ascent  = (int)s->ascent * this->scale;
     this->metrics.descent = (int)(s->height - s->ascent) * this->scale;
     this->metrics.height  = (int)s->height * this->scale;
@@ -57,11 +59,17 @@ GlyphData* BCFNTRasterizer::GetGlyphData(uint32_t glyph) const
 
 int BCFNTRasterizer::GetGlyphCount() const
 {
+    if (this->glyphCount != -1)
+        return this->glyphCount;
+
+    /* cache this data, as it's slow and stupid */
+
     FINF_s* fontInfo = C2D_FontGetInfo(this->font);
 
-    /* TODO: this thing */
+    for (auto map = fontInfo->cmap; map; map = map->next)
+        this->glyphCount += (map->codeEnd - map->codeBegin) + 1;
 
-    return 0;
+    return this->glyphCount;
 }
 
 bool BCFNTRasterizer::HasGlyph(uint32_t glyph) const

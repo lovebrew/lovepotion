@@ -114,6 +114,8 @@ namespace love
 
         float GetKerning(const std::string& leftChar, const std::string& rightChar) override;
 
+        float GetDPIScale() const override;
+
         void SetFallbacks(const std::vector<Font*>& fallbacks) override;
 
         float GetAscent() const override;

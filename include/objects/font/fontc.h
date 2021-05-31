@@ -78,6 +78,8 @@ namespace love::common
 
         virtual float GetKerning(const std::string& leftChar, const std::string& rightChar) = 0;
 
+        virtual float GetDPIScale() const = 0;
+
         virtual float GetAscent() const = 0;
 
         virtual float GetBaseline() const = 0;

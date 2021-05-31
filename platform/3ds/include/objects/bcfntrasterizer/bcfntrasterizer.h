@@ -51,7 +51,10 @@ namespace love
       private:
         C2D_Font font;
         float scale;
+
         StrongReference<Data> data;
+
+        mutable int glyphCount;
 
         void InitMetrics(int size);
     };

@@ -172,6 +172,11 @@ love::GlyphData* Font::GetRasterizerGlyphData(uint32_t glyph)
     return rasterizers[0]->GetGlyphData(glyph);
 }
 
+float Font::GetDPIScale() const
+{
+    return this->dpiScale;
+}
+
 const Font::Glyph& Font::FindGlyph(uint32_t glyph)
 {
     const auto it = this->glyphs.find(glyph);

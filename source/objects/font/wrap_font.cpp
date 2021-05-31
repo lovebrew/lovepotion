@@ -222,7 +222,7 @@ int Wrap_Font::GetDPIScale(lua_State* L)
 {
     love::Font* self = Wrap_Font::CheckFont(L, 1);
 
-    lua_pushnumber(L, 1.0f);
+    lua_pushnumber(L, self->GetDPIScale());
 
     return 1;
 }

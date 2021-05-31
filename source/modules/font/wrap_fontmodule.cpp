@@ -18,7 +18,7 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
 #endif
     else if (lua_isnoneornil(L, 2))
     {
-        Rasterizer* self   = nullptr;
+        Rasterizer* self = nullptr;
 
         FileData* fileData = Wrap_Filesystem::GetFileData(L, 1);
 

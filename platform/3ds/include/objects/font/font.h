@@ -47,6 +47,8 @@ namespace love
 
         float GetKerning(const std::string& leftChar, const std::string& rightChar) override;
 
+        float GetDPIScale() const override;
+
         float GetAscent() const override;
 
         float GetBaseline() const override;
