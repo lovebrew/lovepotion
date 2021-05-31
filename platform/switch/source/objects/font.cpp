@@ -21,10 +21,10 @@ Font::Font(Rasterizer* r, const Texture::Filter& filter) :
     textureWidth(128),
     textureHeight(128),
     useSpacesAsTab(false),
-    textureCacheID(0),
+    textureCacheID(0)
 {
-    this->dpiScale = rasterizer->GetDPIScale();
-    this->height   = rasterizer->GetHeight();
+    this->dpiScale = rasterizers[0]->GetDPIScale();
+    this->height   = rasterizers[0]->GetHeight();
 
     this->lineHeight = 1.0f;
 
@@ -182,9 +182,9 @@ const Font::Glyph& Font::FindGlyph(uint32_t glyph)
     return this->AddGlyph(glyph);
 }
 
-bool Font::hasGlyph(uint32 glyph) const
+bool Font::HasGlyph(uint32_t glyph) const
 {
-    for (const StrongRef<Rasterizer>& r : rasterizers)
+    for (const StrongReference<Rasterizer>& r : rasterizers)
     {
         if (r->HasGlyph(glyph))
             return true;
