@@ -5,7 +5,8 @@
 using namespace love;
 using Screen = love::Graphics::Screen;
 
-#define TRANSPARENCY C2D_Color32(0, 0, 0, 1)
+#define TRANSPARENCY       C2D_Color32(0, 0, 0, 1)
+#define TRANSPARENCY_DEBUG C2D_Color32(255, 0, 0, 96)
 
 love::citro2d::Graphics::Graphics()
 {
@@ -318,84 +319,98 @@ void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float w
     const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
+    /* Offset the radii *properly* */
+    Vector2 offset(x + rx, y + ry);
+    Vector2 size(rx * 2, ry * 2);
+
+    /*
+    ** Ellipse Drawing Order
+    ** 1 - 4
+    ** |   |
+    ** 2 - 3
+    */
+
     if (mode == DRAW_FILL)
     {
-        // Top Left
-        C2D_DrawEllipseSolid(x - rx, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2, foreground);
+        /* Draw Ellipses first on Fill mode */
 
-        // Bottom Left
-        C2D_DrawEllipseSolid(x - rx, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH, size.x, size.y, foreground);
+
+        C2D_DrawEllipseSolid(x, y + (height - size.y), Graphics::CURRENT_DEPTH, size.x, size.y,
                              foreground);
 
-        // Bottom Right
-        C2D_DrawEllipseSolid((x - rx) + width, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2,
-                             ry * 2, foreground);
+        C2D_DrawEllipseSolid(x + (width - size.x), y + (height - size.y), Graphics::CURRENT_DEPTH,
+                             size.x, size.y, foreground);
 
-        // Top Right
-        C2D_DrawEllipseSolid((x - rx) + width, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+        C2D_DrawEllipseSolid(x + (width - size.x), y, Graphics::CURRENT_DEPTH, size.x, size.y,
                              foreground);
 
-        // Vertical Rectangle
-        C2D_DrawRectSolid(x, y - rx, Graphics::CURRENT_DEPTH, width, height + (ry * 2), foreground);
+        /* Draw Rectangles */
 
-        // Horizontal Rectangle
-        C2D_DrawRectSolid(x - rx, y, Graphics::CURRENT_DEPTH, width + (rx * 2), height, foreground);
+        C2D_DrawRectSolid(offset.x, y, Graphics::CURRENT_DEPTH, width - size.x, height, foreground);
+
+        C2D_DrawRectSolid(x, offset.y, Graphics::CURRENT_DEPTH, width, height - size.y, foreground);
     }
     else
     {
         float lineWidth = this->states.back().lineWidth;
 
-        float ellipse_x = (x - rx) + lineWidth;
-        float ellipse_y = (y - ry) + lineWidth;
+        /* normal rect offset + line width */
+        Vector2 lineOffset((x + rx) + lineWidth, (y + ry) + lineWidth);
 
-        float ellipse_rx = (rx - lineWidth);
-        float ellipse_ry = (ry - lineWidth);
+        /* normal radii size - line width */
+        Vector2 lineSize((rx * 2) - lineWidth, (ry * 2) - lineWidth);
+
+        /* normal radii pos + line width */
+        Vector2 linePos(x + lineWidth, y + lineWidth);
+
+        /* normal rect size - line width */
+        Vector2 rectSize(width - (lineWidth * 2), height - (lineWidth * 2));
 
         /* Rectangles first */
 
-        C2D_DrawRectSolid(x, y - ellipse_ry, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, width,
-                          (height + ellipse_ry * 2), TRANSPARENCY);
+        C2D_DrawRectSolid(offset.x + lineWidth, y + lineWidth,
+                          Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                          width - (size.x + lineWidth * 2), height - lineWidth * 2, TRANSPARENCY);
 
-        C2D_DrawRectSolid(x - ellipse_rx, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                          width + (ellipse_rx * 2), height, TRANSPARENCY);
-        /* Circles
-        ** 1   4
-        ** |   |
-        ** 2 - 3
-        */
+        C2D_DrawRectSolid(x + lineWidth, offset.y + lineWidth,
+                          Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, width - (lineWidth * 2),
+                          height - (size.y + lineWidth * 2), TRANSPARENCY);
 
-        C2D_DrawEllipseSolid(ellipse_x, ellipse_y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                             ellipse_rx * 2, ellipse_ry * 2, TRANSPARENCY);
+        /* Ellipses second */
 
-        C2D_DrawEllipseSolid(ellipse_x, ellipse_y + height,
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, ellipse_rx * 2,
-                             ellipse_ry * 2, TRANSPARENCY);
+        C2D_DrawEllipseSolid(linePos.x, linePos.y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                             size.x, size.y, TRANSPARENCY);
 
-        C2D_DrawEllipseSolid(ellipse_x + width, ellipse_y + height,
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, ellipse_rx * 2,
-                             ellipse_ry * 2, TRANSPARENCY);
+        C2D_DrawEllipseSolid(x + lineWidth, y + (height - size.y) - (lineWidth),
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, size.x, size.y,
+                             TRANSPARENCY);
 
-        C2D_DrawEllipseSolid(ellipse_x + width, ellipse_y,
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, ellipse_rx * 2,
-                             ellipse_ry * 2, TRANSPARENCY);
+        C2D_DrawEllipseSolid(
+            x + (width - size.x) - (lineWidth), y + (height - size.y) - (lineWidth),
+            Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, size.x, size.y, TRANSPARENCY);
+
+        C2D_DrawEllipseSolid(x + (width - size.x) - (lineWidth), y + lineWidth,
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, size.x, size.y,
+                             TRANSPARENCY);
 
         /* Solid stuff  -- Start with Rectangles */
 
-        C2D_DrawRectSolid(x, y - rx, Graphics::CURRENT_DEPTH, width, height + (ry * 2), foreground);
+        C2D_DrawRectSolid(offset.x, y, Graphics::CURRENT_DEPTH, width - size.x, height, foreground);
 
-        C2D_DrawRectSolid(x - rx, y, Graphics::CURRENT_DEPTH, width + (rx * 2), height, foreground);
+        C2D_DrawRectSolid(x, offset.y, Graphics::CURRENT_DEPTH, width, height - size.y, foreground);
 
         /* Ellipses */
 
-        C2D_DrawEllipseSolid(x - rx, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2, foreground);
+        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH, size.x, size.y, foreground);
 
-        C2D_DrawEllipseSolid(x - rx, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+        C2D_DrawEllipseSolid(x, y + (height - size.y), Graphics::CURRENT_DEPTH, size.x, size.y,
                              foreground);
 
-        C2D_DrawEllipseSolid((x - rx) + width, (y - ry) + height, Graphics::CURRENT_DEPTH, rx * 2,
-                             ry * 2, foreground);
+        C2D_DrawEllipseSolid(x + (width - size.x), y + (height - size.y), Graphics::CURRENT_DEPTH,
+                             size.x, size.y, foreground);
 
-        C2D_DrawEllipseSolid((x - rx) + width, y - ry, Graphics::CURRENT_DEPTH, rx * 2, ry * 2,
+        C2D_DrawEllipseSolid(x + (width - size.x), y, Graphics::CURRENT_DEPTH, size.x, size.y,
                              foreground);
 
         Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
