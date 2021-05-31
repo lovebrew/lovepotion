@@ -111,7 +111,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
     }
     else
     {
-        love::Data* data = nullptr;
+        love::Data* data              = nullptr;
         Font::SystemFontType fontType = Font::SystemFontType::TYPE_MAX_ENUM;
 
         if (Luax::IsType(L, 1, love::Data::type))
@@ -142,7 +142,9 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
         if (lua_isnoneornil(L, 4))
         {
             if (fontType != Font::SystemFontType::TYPE_MAX_ENUM)
-                Luax::CatchException(L, [&]() { self = instance()->NewTrueTypeRasterizer(fontType, size, hinting); });
+                Luax::CatchException(L, [&]() {
+                    self = instance()->NewTrueTypeRasterizer(fontType, size, hinting);
+                });
             else
                 Luax::CatchException(
                     L, [&]() { self = instance()->NewTrueTypeRasterizer(data, size, hinting); },
@@ -153,11 +155,15 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
             float dpiScale = (float)luaL_checknumber(L, 4);
 
             if (fontType != Font::SystemFontType::TYPE_MAX_ENUM)
-                Luax::CatchException(L, [&]() { self = instance()->NewTrueTypeRasterizer(fontType, size, dpiScale, hinting); });
+                Luax::CatchException(L, [&]() {
+                    self = instance()->NewTrueTypeRasterizer(fontType, size, dpiScale, hinting);
+                });
             else
                 Luax::CatchException(
                     L,
-                    [&]() { self = instance()->NewTrueTypeRasterizer(data, size, dpiScale, hinting); },
+                    [&]() {
+                        self = instance()->NewTrueTypeRasterizer(data, size, dpiScale, hinting);
+                    },
                     [&](bool) { data->Release(); });
         }
     }

@@ -42,7 +42,8 @@ class citro2d
         this->deferredFunctions.emplace_back(std::move(func));
     }
 
-    void SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor, GPU_BLENDFACTOR srcAlpha, GPU_BLENDFACTOR dstColor, GPU_BLENDFACTOR dstAlpha);
+    void SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor, GPU_BLENDFACTOR srcAlpha,
+                      GPU_BLENDFACTOR dstColor, GPU_BLENDFACTOR dstAlpha);
 
     static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
 

@@ -108,7 +108,6 @@ void love::citro2d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphaMode)
     if (srcColor == GPU_ONE && alphaMode == BLENDALPHA_MULTIPLY && mode != BLEND_NONE)
         srcColor = GPU_SRC_ALPHA;
 
-
     ::citro2d::Instance().SetBlendMode(func, srcColor, srcAlpha, dstColor, dstAlpha);
 
     this->states.back().blendMode      = mode;

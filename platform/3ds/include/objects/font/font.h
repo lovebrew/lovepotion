@@ -36,6 +36,27 @@ namespace love
 
         int GetWidth(uint32_t prevGlyph, uint32_t codepoint) override;
 
+        void GetWrap(const std::vector<ColoredString>& text, float wraplimit,
+                     std::vector<std::string>& lines, std::vector<int>* lineWidths = nullptr) {};
+
+        using love::common::Font::GetFilter;
+
+        void SetFilter(const Texture::Filter& filter) override;
+
+        float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph) override;
+
+        float GetKerning(const std::string& leftChar, const std::string& rightChar) override;
+
+        float GetAscent() const override;
+
+        float GetBaseline() const override;
+
+        float GetDescent() const override;
+
+        bool HasGlyph(uint32_t glyph) const override;
+
+        void SetFallbacks(const std::vector<Font*>& fallbacks) override;
+
         using love::common::Font::GetWidth;
 
         float GetHeight() const override;

@@ -189,7 +189,7 @@ void deko3d::EnsureInFrame()
 {
     if (!this->framebuffers.inFrame)
     {
-        this->firstVertex = 0;
+        this->firstVertex      = 0;
         this->descriptorsDirty = false;
         this->cmdRing.begin(this->cmdBuf);
         this->framebuffers.inFrame = true;

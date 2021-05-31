@@ -8,7 +8,7 @@ love::Type Font::type("Font", &Object::type);
 
 int Font::fontCount = 0;
 
-Font::Font()
+Font::Font(const Texture::Filter& filter)
 {
     fontCount++;
 }
@@ -21,6 +21,16 @@ Font::~Font()
 float Font::GetLineHeight() const
 {
     return this->lineHeight;
+}
+
+void Font::SetLineHeight(float lineHeight)
+{
+    this->lineHeight = lineHeight;
+}
+
+Texture::Filter Font::GetFilter()
+{
+    return this->filter;
 }
 
 int Font::GetWidth(const std::string& string)
@@ -63,6 +73,32 @@ int Font::GetWidth(const std::string& string)
     }
 
     return maxWidth;
+}
+
+bool Font::HasGlyphs(const std::string& text) const
+{
+    if (text.size() == 0)
+        return false;
+
+    try
+    {
+        utf8::iterator<std::string::const_iterator> i(text.begin(), text.begin(), text.end());
+        utf8::iterator<std::string::const_iterator> end(text.end(), text.begin(), text.end());
+
+        while (i != end)
+        {
+            uint32_t codepoint = *i++;
+
+            if (!this->HasGlyph(codepoint))
+                return false;
+        }
+    }
+    catch (utf8::exception& e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
+
+    return true;
 }
 
 bool Font::GetConstant(const char* in, AlignMode& out)

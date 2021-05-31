@@ -6,8 +6,8 @@
 #include "objects/filedata/filedata.h"
 #include "objects/font/font.h"
 
-#include "objects/rasterizer/rasterizer.h"
 #include "objects/glyphdata/glyphdata.h"
+#include "objects/rasterizer/rasterizer.h"
 
 #include "common/module.h"
 

@@ -6,9 +6,13 @@
 using namespace love;
 
 Font::Font(Rasterizer* rasterizer, const Texture::Filter& filter) :
+    common::Font(filter),
     rasterizer(rasterizer),
     buffer(C2D_TextBufNew(Font::FONT_BUFFER_SIZE))
 {
+    this->dpiScale = rasterizer->GetDPIScale();
+    this->height   = rasterizer->GetHeight();
+
     this->lineHeight = rasterizer->GetLineHeight();
 }
 
@@ -29,6 +33,51 @@ float Font::GetScale() const
     auto r = static_cast<BCFNTRasterizer*>(this->rasterizer.Get());
 
     return r->GetScale();
+}
+
+void Font::SetFilter(const Texture::Filter& filter)
+{
+    this->filter = filter;
+}
+
+float Font::GetAscent() const
+{
+    return floorf(this->rasterizer->GetAscent() / this->dpiScale + 0.5f);
+}
+
+float Font::GetDescent() const
+{
+    return floorf(this->rasterizer->GetDescent() / this->dpiScale + 0.5f);
+}
+
+bool Font::HasGlyph(uint32_t glyph) const
+{
+    return this->rasterizer->HasGlyph(glyph);
+}
+
+float Font::GetKerning(const std::string&, const std::string&)
+{
+    return 0.0f;
+}
+
+float Font::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
+{
+    return 0.0f;
+}
+
+void Font::SetFallbacks(const std::vector<Font*>& fallbacks)
+{}
+
+float Font::GetBaseline() const
+{
+    float ascent = this->GetAscent();
+
+    if (ascent != 0.0f)
+        return ascent;
+    else if (this->rasterizer->GetDataType() == love::Rasterizer::DATA_BCFNT)
+        return floorf(this->GetHeight() / 1.0f);
+    else
+        return 0.0f;
 }
 
 void Font::Print(Graphics* gfx, const std::vector<ColoredString>& text,
