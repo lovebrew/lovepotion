@@ -54,7 +54,6 @@ citro2d& citro2d::Instance()
 
 void citro2d::SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor, GPU_BLENDFACTOR srcAlpha, GPU_BLENDFACTOR dstColor, GPU_BLENDFACTOR dstAlpha)
 {
-    LOG("WE ARE GETTING CALLED");
     C2D_Flush();
     C3D_AlphaBlend(func, func, srcColor, dstColor, srcAlpha, dstAlpha);
 }

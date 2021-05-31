@@ -8,7 +8,9 @@ using Screen = love::Graphics::Screen;
 #define TRANSPARENCY C2D_Color32(0, 0, 0, 1)
 
 love::citro2d::Graphics::Graphics()
-{}
+{
+    this->RestoreState(this->states.back());
+}
 
 void love::citro2d::Graphics::SetActiveScreen(Screen screen)
 {
@@ -29,7 +31,7 @@ void love::citro2d::Graphics::SetActiveScreen(Screen screen)
             break;
     }
 }
-#include "debug/logger.h"
+
 void love::citro2d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphaMode)
 {
     if (alphaMode != BLENDALPHA_PREMULTIPLIED)
@@ -60,13 +62,8 @@ void love::citro2d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphaMode)
     switch (mode)
     {
         case love::Graphics::BLEND_ALPHA:
-            // srcColor = srcAlpha = GPU_ONE;
-            // dstColor = dstAlpha = GPU_ONE_MINUS_SRC_ALPHA;
-            srcColor = GPU_SRC_ALPHA;
-            srcAlpha = GPU_ONE_MINUS_SRC_ALPHA;
-
-            dstColor = srcAlpha;
-            dstAlpha = GPU_ZERO;
+            srcColor = srcAlpha = GPU_ONE;
+            dstColor = dstAlpha = GPU_ONE_MINUS_SRC_ALPHA;
 
             break;
         case love::Graphics::BLEND_MULTIPLY:
