@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/module.h"
+
 #include "common/stringmap.h"
 
 using namespace std::literals::string_literals;
@@ -42,18 +43,6 @@ namespace love::common
             THEME_MAX_ENUM
         };
 
-        struct PowerInfo
-        {
-            std::string state;
-            int percentage;
-        };
-
-        struct NetworkInfo
-        {
-            std::string status;
-            int signal;
-        };
-
         System();
 
         ModuleType GetModuleType() const
@@ -70,15 +59,15 @@ namespace love::common
 
         std::string GetOS() const;
 
+        virtual PowerState GetPowerInfo(uint8_t& percent) const = 0;
+
+        virtual NetworkState GetNetworkInfo(uint8_t& signal) const = 0;
+
         /* pure virtual subclass stuff */
 
         virtual int GetProcessorCount() = 0;
 
-        virtual PowerInfo GetPowerInfo() const = 0;
-
         virtual const std::string& GetUsername() = 0;
-
-        virtual NetworkInfo GetNetworkInfo() const = 0;
 
         virtual const std::string& GetSystemTheme() = 0;
 
@@ -93,10 +82,6 @@ namespace love::common
         virtual const std::string& GetFriendCode() = 0;
 
         /* end pure virtual methods */
-
-        PowerState GetPowerInfo(int& percent) const;
-
-        NetworkState GetNetworkInfo(int& signal) const;
 
         static bool GetConstant(const char* in, PowerState& out);
         static bool GetConstant(PowerState in, const char*& out);

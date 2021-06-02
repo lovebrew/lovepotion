@@ -37,7 +37,7 @@ namespace love
         int GetWidth(uint32_t prevGlyph, uint32_t codepoint) override;
 
         void GetWrap(const std::vector<ColoredString>& text, float wraplimit,
-                     std::vector<std::string>& lines, std::vector<int>* lineWidths = nullptr) {};
+                     std::vector<std::string>& lines, std::vector<int>* lineWidths = nullptr);
 
         using love::common::Font::GetFilter;
 

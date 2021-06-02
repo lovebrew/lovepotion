@@ -11,30 +11,6 @@ std::string System::GetOS() const
     return OS_NAME;
 }
 
-System::PowerState System::GetPowerInfo(int& percent) const
-{
-    PowerState state = POWER_UNKNOWN;
-
-    PowerInfo info = this->GetPowerInfo();
-
-    this->GetConstant(info.state.c_str(), state);
-    percent = info.percentage;
-
-    return state;
-}
-
-System::NetworkState System::GetNetworkInfo(int& signal) const
-{
-    NetworkState state = NETWORK_UNKNOWN;
-
-    NetworkInfo info = this->GetNetworkInfo();
-
-    this->GetConstant(info.status.c_str(), state);
-    signal = info.signal;
-
-    return state;
-}
-
 bool System::GetConstant(const char* in, System::PowerState& out)
 {
     return powerStates.Find(in, out);

@@ -30,11 +30,11 @@ namespace love
 
         int GetProcessorCount() override;
 
-        PowerInfo GetPowerInfo() const override;
-
         const std::string& GetUsername() override;
 
-        NetworkInfo GetNetworkInfo() const override;
+        PowerState GetPowerInfo(uint8_t& percent) const override;
+
+        NetworkState GetNetworkInfo(uint8_t& signal) const override;
 
         const std::string& GetSystemTheme() override;
 

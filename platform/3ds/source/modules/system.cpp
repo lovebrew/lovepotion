@@ -47,24 +47,6 @@ const std::string& System::GetModel()
     return this->systemInfo.model;
 }
 
-System::PowerInfo System::GetPowerInfo() const
-{
-    u8 batteryPercent = 100;
-    u8 batteryState   = 0;
-
-    MCUHWC_GetBatteryLevel(&batteryPercent);
-    PTMU_GetBatteryChargeState(&batteryState);
-
-    PowerInfo info;
-
-    info.percentage = batteryPercent;
-    info.state      = (batteryState == 1 && batteryPercent == 100)
-                     ? "charged"
-                     : (batteryState == 1) ? "charging" : "battery";
-
-    return info;
-}
-
 const std::string& System::GetUsername()
 {
     if (!this->systemInfo.username.empty())
@@ -97,17 +79,33 @@ const std::string& System::GetRegion()
     return this->systemInfo.region;
 }
 
-System::NetworkInfo System::GetNetworkInfo() const
+System::PowerState System::GetPowerInfo(uint8_t& percent) const
 {
-    u32 status = 0;
+    uint8_t batteryState = 0;
+    PowerState state     = PowerState::POWER_UNKNOWN;
+
+    MCUHWC_GetBatteryLevel(&percent);
+    PTMU_GetBatteryChargeState(&batteryState);
+
+    state = (batteryState) ? PowerState::POWER_CHARGING : PowerState::POWER_BATTERY;
+
+    if (percent == 100 && !batteryState)
+        state = PowerState::POWER_CHARGED;
+
+    return state;
+}
+
+System::NetworkState System::GetNetworkInfo(uint8_t& signal) const
+{
+    uint32_t status = 0;
     ACU_GetWifiStatus(&status);
 
-    NetworkInfo info;
+    NetworkState state = NetworkState::NETWORK_UNKNOWN;
 
-    info.signal = osGetWifiStrength();
-    info.status = (status > 0) ? "connected" : "disconnected";
+    signal = osGetWifiStrength();
+    state  = (status > 0) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
 
-    return info;
+    return state;
 }
 
 const std::string& System::GetLanguage()
@@ -180,7 +178,7 @@ const std::string& System::GetSystemTheme()
 Handle System::OpenPlayCoinsFile()
 {
     Handle playCoinsFile;
-    const u32 path[3] = { MEDIATYPE_NAND, 0xF000000B, 0x00048000 };
+    const uint32_t path[3] = { MEDIATYPE_NAND, 0xF000000B, 0x00048000 };
 
     const FS_Path archivePath = { PATH_BINARY, 0xC, path };
     const FS_Path filePath    = fsMakePath(PATH_UTF16, u"/gamecoin.dat");
@@ -198,7 +196,7 @@ int System::GetPlayCoins() const
 {
     Handle playCoinsFile = System::OpenPlayCoinsFile();
 
-    u8 buffer[2] = { 0 };
+    uint8_t buffer[2] = { 0 };
 
     Result res = FSFILE_Read(playCoinsFile, nullptr, 4, buffer, 2);
 
@@ -220,7 +218,7 @@ void System::SetPlayCoins(int amount)
 
     Handle playCoinsFile = System::OpenPlayCoinsFile();
 
-    const u8 buffer[2] = { (u8)amount, (u8)(amount >> 8) };
+    const uint8_t buffer[2] = { (uint8_t)amount, (uint8_t)(amount >> 8) };
 
     Result res = FSFILE_Write(playCoinsFile, nullptr, 4, buffer, 2, 0);
 

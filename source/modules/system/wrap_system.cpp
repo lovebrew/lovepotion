@@ -22,7 +22,7 @@ int Wrap_System::GetProcessorCount(lua_State* L)
 
 int Wrap_System::GetPowerInfo(lua_State* L)
 {
-    int percent     = -1;
+    uint8_t percent = -1;
     const char* str = nullptr;
 
     System::PowerState state = instance()->GetPowerInfo(percent);
@@ -44,7 +44,7 @@ int Wrap_System::GetPowerInfo(lua_State* L)
 
 int Wrap_System::GetNetworkInfo(lua_State* L)
 {
-    int signal      = -1;
+    uint8_t signal  = -1;
     const char* str = nullptr;
 
     System::NetworkState state = instance()->GetNetworkInfo(signal);

@@ -11,23 +11,6 @@ int System::GetProcessorCount()
     return TEGRA_CPU_COUNT;
 }
 
-love::System::PowerInfo System::GetPowerInfo() const
-{
-    u32 batteryPercent      = 100;
-    ChargerType chargerType = ChargerType_None;
-
-    psmGetBatteryChargePercentage(&batteryPercent);
-    psmGetChargerType(&chargerType);
-
-    PowerInfo info;
-    info.percentage = batteryPercent;
-    info.state      = (chargerType == ChargerType_Charger && batteryPercent == 100)
-                     ? "charged"
-                     : (chargerType == ChargerType_Charger) ? "charging" : "battery";
-
-    return info;
-}
-
 const std::string& System::GetUsername()
 {
     if (!this->systemInfo.username.empty())
@@ -56,19 +39,35 @@ const std::string& System::GetUsername()
     return this->systemInfo.username;
 }
 
-love::System::NetworkInfo System::GetNetworkInfo() const
+System::PowerState System::GetPowerInfo(uint8_t& percent) const
 {
-    bool enabled;
-    nifmIsWirelessCommunicationEnabled(&enabled);
+    uint32_t batteryPercent = 100;
+    ChargerType chargerType = ChargerType_None;
 
-    u32 wifiStrength = 0;
-    Result res       = nifmGetInternetConnectionStatus(NULL, &wifiStrength, NULL);
+    PowerState state = PowerState::POWER_UNKNOWN;
 
-    NetworkInfo info;
-    info.signal = wifiStrength;
-    info.status = (enabled && !R_FAILED(res)) ? "connected" : "disconnected";
+    psmGetBatteryChargePercentage(&batteryPercent);
+    psmGetChargerType(&chargerType);
 
-    return info;
+    state = (chargerType > 0) ? PowerState::POWER_CHARGING : PowerState::POWER_BATTERY;
+
+    if (percent == 100 && chargerType == ChargerType_Charger)
+        state = PowerState::POWER_CHARGED;
+
+    return state;
+}
+
+System::NetworkState System::GetNetworkInfo(uint8_t& signal) const
+{
+    NetworkState state = NetworkState::NETWORK_UNKNOWN;
+
+    uint32_t wifiStrength = 0;
+    Result res            = nifmGetInternetConnectionStatus(NULL, &wifiStrength, NULL);
+
+    signal = static_cast<uint8_t>(wifiStrength);
+    state = R_SUCCEEDED(res) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
+
+    return state;
 }
 
 const std::string& System::GetLanguage()

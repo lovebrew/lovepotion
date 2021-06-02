@@ -85,6 +85,9 @@ float Font::GetBaseline() const
         return 0.0f;
 }
 
+void Font::GetWrap(const std::vector<Font::ColoredString>& strings, float wrapLimit, std::vector<std::string>& lines, std::vector<int>* lineWidths)
+{}
+
 void Font::Print(Graphics* gfx, const std::vector<ColoredString>& text,
                  const Matrix4& localTransform, const Colorf& color)
 {
