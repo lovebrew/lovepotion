@@ -59,7 +59,8 @@
         "compare": "cpp",
         "concepts": "cpp",
         "ranges": "cpp",
-        "numbers": "cpp"
+        "numbers": "cpp",
+        "span": "cpp"
     },
     "C_Cpp.intelliSenseEngineFallback": "Disabled",
     "python.linting.enabled": true

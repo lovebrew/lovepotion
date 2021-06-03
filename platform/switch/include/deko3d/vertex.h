@@ -7,7 +7,11 @@
 #include "common/vector.h"
 
 #include <array>
+#include <assert.h>
 #include <memory>
+#include <span>
+
+using namespace love;
 
 namespace vertex
 {
@@ -77,8 +81,32 @@ namespace vertex
         };
     } // namespace attributes
 
-    std::vector<Vertex> GeneratePrimitiveFromVectors(const love::Vector2* points, size_t count,
-                                                     const Colorf* colors, size_t colorCount);
+    [[nodiscard]] std::unique_ptr<Vertex[]> GeneratePrimitiveFromVectors(std::span<Vector2> points,
+                                                                         std::span<Colorf> colors)
+    {
+        Colorf color = colors[0];
+
+        size_t pointCount                = points.size();
+        std::unique_ptr<Vertex[]> result = std::make_unique<Vertex[]>(points.size());
+
+        size_t colorCount = colors.size();
+
+        for (size_t index = 0; index < pointCount; index++)
+        {
+            const Vector2 point = points[index];
+
+            if (index < colorCount)
+                color = colors[index];
+
+            Vertex append = { .position = { point.x, point.y, 0.0f },
+                              .color    = { color.r, color.g, color.b, color.a },
+                              .texcoord = { 0, 0 } };
+
+            result[index] = append;
+        }
+
+        return result;
+    }
 
     std::vector<Vertex> GenerateTextureFromVectors(const love::Vector2* points,
                                                    const love::Vector2* texcoord, size_t count,

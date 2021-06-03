@@ -272,22 +272,20 @@ void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_
     const Matrix4& t = this->GetTransform();
     bool is2D        = t.IsAffine2DTransform();
 
-    int vertexCount = (int)count - (mode == DRAW_FILL && skipLastVertex ? 1 : 0);
+    const int vertexCount = (int)count - (mode == DRAW_FILL && skipLastVertex) ? 1 : 0;
 
-    std::vector<vertex::Vertex> verts;
+    Vector2 transformed[vertexCount];
+    std::fill_n(transformed, vertexCount, Vector2 {});
 
     if (is2D)
-    {
-        Vector2 transformed[vertexCount];
         t.TransformXY(transformed, points, vertexCount);
 
-        verts = vertex::GeneratePrimitiveFromVectors(transformed, vertexCount, color, 1);
-    }
+    auto vertices = vertex::GeneratePrimitiveFromVectors(std::span(transformed, vertexCount), std::span(color, 1));
 
     if (mode == DRAW_FILL)
-        ::deko3d::Instance().RenderPolygon(verts.data(), vertexCount);
+        ::deko3d::Instance().RenderPolygon(vertices.get(), vertexCount);
     else
-        ::deko3d::Instance().RenderPolyline(verts.data(), vertexCount);
+        ::deko3d::Instance().RenderPolyline(vertices.get(), vertexCount);
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)
@@ -322,12 +320,13 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
 
     if (width >= 0.02f)
         rx = std::min(rx, width / 2.0f - 0.01f);
+
     if (height >= 0.02f)
         ry = std::min(ry, height / 2.0f - 0.01f);
 
     points = std::max(points / 4, 1);
 
-    const float half_pi = (float)(M_PI / 2);
+    const float half_pi = static_cast<float>(LOVE_M_PI / 2);
     float angle_shift   = half_pi / ((float)points + 1.0f);
 
     int num_coords = (points + 2) * 4;
@@ -378,7 +377,7 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
 
 void love::deko3d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b, int points)
 {
-    float two_pi = (float)(M_PI * 2);
+    float two_pi = (float)(LOVE_M_PI * 2);
     if (points <= 0)
         points = 1;
 
@@ -435,7 +434,7 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
         return;
 
     // Oh, you want to draw a circle?
-    if (fabs(angle1 - angle2) >= 2.0f * (float)M_PI)
+    if (fabs(angle1 - angle2) >= 2.0f * (float)LOVE_M_PI)
     {
         this->Circle(drawmode, x, y, radius, points);
         return;
@@ -509,10 +508,21 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
 void love::deko3d::Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,
                                     size_t colorCount)
 {
-    std::vector<vertex::Vertex> verts =
-        vertex::GeneratePrimitiveFromVectors(points, count, colors, colorCount);
+    const Matrix4& t = this->GetTransform();
+    bool is2D        = t.IsAffine2DTransform();
 
-    ::deko3d::Instance().RenderPoints(verts.data(), count);
+    Vector2 transformed[count];
+    std::fill_n(transformed, count, Vector2{});
+
+    if (is2D)
+        t.TransformXY(transformed, points, count);
+
+    Colorf colorList[colorCount];
+    memcpy(colorList, colors, colorCount);
+
+    auto vertices = vertex::GeneratePrimitiveFromVectors(std::span(transformed, count), std::span(colorList, colorCount));
+
+    ::deko3d::Instance().RenderPoints(vertices.get(), count);
 }
 
 void love::deko3d::Graphics::SetPointSize(float size)
@@ -528,8 +538,8 @@ void love::deko3d::Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, fl
 
     // The amount of points is based on the fraction of the circle created by the arc.
     float angle = fabsf(angle1 - angle2);
-    if (angle < 2.0f * (float)M_PI)
-        points *= angle / (2.0f * (float)M_PI);
+    if (angle < 2.0f * (float)LOVE_M_PI)
+        points *= angle / (2.0f * (float)LOVE_M_PI);
 
     this->Arc(drawmode, arcmode, x, y, radius, angle1, angle2, (int)(points + 0.5f));
 }
