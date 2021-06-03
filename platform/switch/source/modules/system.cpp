@@ -51,7 +51,7 @@ System::PowerState System::GetPowerInfo(uint8_t& percent) const
 
     state = (chargerType > 0) ? PowerState::POWER_CHARGING : PowerState::POWER_BATTERY;
 
-    if (percent == 100 && chargerType == ChargerType_Charger)
+    if (percent == 100 && chargerType != ChargerType_None)
         state = PowerState::POWER_CHARGED;
 
     return state;
