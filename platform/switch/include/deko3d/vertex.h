@@ -7,7 +7,6 @@
 #include "common/vector.h"
 
 #include <array>
-#include <assert.h>
 #include <memory>
 #include <span>
 
@@ -81,8 +80,8 @@ namespace vertex
         };
     } // namespace attributes
 
-    [[nodiscard]] std::unique_ptr<Vertex[]> GeneratePrimitiveFromVectors(std::span<Vector2> points,
-                                                                         std::span<Colorf> colors)
+    [[nodiscard]] static inline std::unique_ptr<Vertex[]> GeneratePrimitiveFromVectors(
+        std::span<Vector2> points, std::span<Colorf> colors)
     {
         Colorf color = colors[0];
 

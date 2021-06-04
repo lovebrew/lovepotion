@@ -143,7 +143,7 @@ class deko3d
 
     bool RenderPolygon(const vertex::Vertex* points, size_t count);
 
-    bool RenderPolyline(const vertex::Vertex* points, size_t count);
+    bool RenderPolyline(DkPrimitive mode, const vertex::Vertex* points, size_t count);
 
     bool RenderPoints(const vertex::Vertex* points, size_t count);
 

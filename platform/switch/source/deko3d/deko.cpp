@@ -401,7 +401,7 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* point
     return true;
 }
 
-bool deko3d::RenderPolyline(const vertex::Vertex* points, size_t count)
+bool deko3d::RenderPolyline(DkPrimitive mode, const vertex::Vertex* points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
@@ -410,7 +410,7 @@ bool deko3d::RenderPolyline(const vertex::Vertex* points, size_t count)
 
     memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
 
-    this->cmdBuf.draw(DkPrimitive_LineStrip, count, 1, this->firstVertex, 0);
+    this->cmdBuf.draw(mode, count, 1, this->firstVertex, 0);
 
     this->firstVertex += count;
 
