@@ -4,6 +4,10 @@
 
 namespace love
 {
+    /*
+    ** A Polyline whose segments
+    ** are connected by a flat edge.
+    */
     class BevelJoinPolyline : public Polyline
     {
       public:

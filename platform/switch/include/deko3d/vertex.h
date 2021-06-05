@@ -11,7 +11,7 @@
 #include <span>
 
 using namespace love;
-#include "debug/logger.h"
+
 namespace vertex
 {
     struct Vertex
@@ -42,6 +42,14 @@ namespace vertex
         WINDING_CW,
         WINDING_CCW,
         WINDING_MAX_ENUM
+    };
+
+    enum class TriangleIndexMode
+    {
+        NONE,
+        STRIP,
+        FAN,
+        QUADS
     };
 
     static inline uint16_t normto16t(float in)

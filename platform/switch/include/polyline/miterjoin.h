@@ -4,7 +4,10 @@
 
 namespace love
 {
-   /* A Polyline whose segments are connected by a sharp edge. */
+    /*
+    ** A Polyline whose segments
+    ** are connected by a sharp edge.
+    */
     class MiterJoinPolyline : public Polyline
     {
       public:

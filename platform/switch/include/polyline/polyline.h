@@ -7,15 +7,19 @@ namespace love
 {
     class Graphics;
 
+    /*
+    ** Abstract base class
+    ** for a chain of segments.
+    */
     class Polyline
     {
       public:
-        Polyline(DkPrimitive mode = DkPrimitive_TriangleStrip) :
+        Polyline(vertex::TriangleIndexMode mode = vertex::TriangleIndexMode::STRIP) :
             vertices(nullptr),
             overdraw(nullptr),
             vertexCount(0),
             overdrawVertexCount(0),
-            triangleMode(mode),
+            triangleIndexMode(mode),
             overdrawVertexStart(0)
         {}
 
@@ -67,7 +71,9 @@ namespace love
         size_t vertexCount;
         size_t overdrawVertexCount;
 
-        DkPrimitive triangleMode;
+        vertex::TriangleIndexMode triangleIndexMode;
         size_t overdrawVertexStart;
+
+        DkPrimitive triangleMode = DkPrimitive_TriangleStrip;
     };
 } // namespace love
