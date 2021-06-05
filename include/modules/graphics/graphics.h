@@ -578,6 +578,14 @@ namespace love
         static bool GetConstant(StackType in, const char*& out);
         static std::vector<const char*> GetConstants(StackType);
 
+        static bool GetConstant(const char* in, LineStyle& out);
+        static bool GetConstant(LineStyle in, const char*& out);
+        static std::vector<const char*> GetConstants(LineStyle);
+
+        static bool GetConstant(const char* in, LineJoin& out);
+        static bool GetConstant(LineJoin in, const char*& out);
+        static std::vector<const char*> GetConstants(LineJoin);
+
       protected:
         struct DisplayState
         {
@@ -642,5 +650,7 @@ namespace love
         const static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM> blendAlphaModes;
         const static StringMap<ArcMode, ARC_MAX_ENUM> arcModes;
         const static StringMap<StackType, STACK_MAX_ENUM> stackTypes;
+        const static StringMap<LineStyle, LINE_MAX_ENUM> lineStyles;
+        const static StringMap<LineJoin, LINE_JOIN_MAX_ENUM> lineJoins;
     };
 } // namespace love
