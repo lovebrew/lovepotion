@@ -11,7 +11,7 @@
 #include <span>
 
 using namespace love;
-
+#include "debug/logger.h"
 namespace vertex
 {
     struct Vertex
@@ -85,8 +85,8 @@ namespace vertex
     {
         Colorf color = colors[0];
 
-        size_t pointCount                = points.size();
-        std::unique_ptr<Vertex[]> result = std::make_unique<Vertex[]>(points.size());
+        size_t pointCount = points.size();
+        auto result       = std::make_unique<Vertex[]>(pointCount);
 
         size_t colorCount = colors.size();
 

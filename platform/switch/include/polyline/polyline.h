@@ -41,7 +41,7 @@ namespace love
         virtual void RenderOverdraw(const std::vector<Vector2>& normals, float pixelSize,
                                     bool isLooping);
 
-        virtual void FillColorArray(Color32 constant, Color32* colors, int count);
+        virtual void FillColorArray(Colorf constant, Colorf* colors, int count);
 
         /** Calculate line boundary points.
          *

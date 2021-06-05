@@ -1,6 +1,6 @@
 #include "deko3d/graphics.h"
 
-#include "polyline/miterjoin.h"
+#include "polyline/common.h"
 
 using namespace love;
 using Screen = love::Graphics::Screen;
@@ -268,16 +268,32 @@ Font* love::deko3d::Graphics::NewFont(Rasterizer* data, const Texture::Filter& f
 
 void love::deko3d::Graphics::Polyline(const Vector2* points, size_t count)
 {
-    float halfwidth = this->GetLineWidth() * 0.5f;
-    float pixelsize = 1.0f / std::max((float)pixelScaleStack.back(), 0.000001f);
+    float halfWidth = this->GetLineWidth() * 0.5f;
+    float pixelSize = 1.0f / std::max((float)pixelScaleStack.back(), 0.000001f);
 
-    LineJoin linejoin   = this->GetLineJoin();
-    LineStyle linestyle = this->GetLineStyle();
+    LineJoin lineJoin   = this->GetLineJoin();
+    LineStyle lineStyle = this->GetLineStyle();
 
-    if (linejoin == LINE_JOIN_MITER)
+    bool drawOverdraw = (lineStyle == LINE_SMOOTH);
+
+    if (lineJoin == LINE_JOIN_NONE)
+    {
+        NoneJoinPolyline line;
+        line.Render(points, count, halfWidth, pixelSize, drawOverdraw);
+
+        line.Draw(this);
+    }
+    else if (lineJoin == LINE_JOIN_BEVEL)
+    {
+        BevelJoinPolyline line;
+        line.Render(points, count, halfWidth, pixelSize, drawOverdraw);
+
+        line.Draw(this);
+    }
+    else if (lineJoin == LINE_JOIN_MITER)
     {
         MiterJoinPolyline line;
-        line.Render(points, count, halfwidth, pixelsize, linestyle == LINE_SMOOTH);
+        line.Render(points, count, halfWidth, pixelSize, drawOverdraw);
 
         line.Draw(this);
     }
@@ -312,6 +328,7 @@ void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_
 
 void love::deko3d::Graphics::SetLineWidth(float width)
 {
+    ::Graphics::SetLineWidth(width);
     ::deko3d::Instance().SetLineWidth(width);
 }
 

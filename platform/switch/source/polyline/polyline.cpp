@@ -18,11 +18,11 @@ void Polyline::CalculateOverdrawVertexCount(bool isLooping)
     this->overdrawVertexCount = 2 * this->vertexCount + (isLooping ? 0 : 2);
 }
 
-void Polyline::FillColorArray(Color32 constantColor, Color32* colors, int count)
+void Polyline::FillColorArray(Colorf constantColor, Colorf* colors, int count)
 {
     for (int i = 0; i < count; ++i)
     {
-        Color32 color = constantColor;
+        Colorf color = constantColor;
         color.a *= (i + 1) % 2; // avoids branching. equiv to if (i%2 == 1) c.a = 0;
 
         colors[i] = color;
@@ -48,16 +48,16 @@ void Polyline::Render(const Vector2* coords, size_t count, size_t sizeHint, floa
     bool isLooping = (coords[0] == coords[count - 1]);
 
     Vector2 s;
-    if (!isLooping)
+    if (!isLooping) /* virtual starting point at second point mirrored on first point */
         s = coords[1] - coords[0];
-    else
+    else /* virtual starting point at last vertex */
         s = coords[0] - coords[count - 2];
 
     float lenS = s.getLength();
     Vector2 nS = s.getNormal(halfWidth / lenS);
 
     Vector2 q, r(coords[0]);
-    for (size_t i = 0; i < count; i++)
+    for (size_t i = 0; i + 1 < count; i++)
     {
         q = r;
         r = coords[i + 1];
@@ -89,7 +89,7 @@ void Polyline::Render(const Vector2* coords, size_t count, size_t sizeHint, floa
     if (drawOverdraw)
     {
         this->overdraw            = this->vertices + vertexCount + extraVertices;
-        this->overdrawVertexCount = this->vertexCount + extraVertices;
+        this->overdrawVertexStart = this->vertexCount + extraVertices;
 
         this->RenderOverdraw(normals, pixelSize, isLooping);
     }
@@ -110,6 +110,7 @@ void Polyline::RenderOverdraw(const std::vector<Vector2>& normals, float pixelSi
         this->overdraw[i + 1] =
             this->vertices[i] + normals[i] * (pixelSize / normals[i].getLength());
     }
+
     // lower segment
     for (size_t i = 0; i + 1 < this->vertexCount; i += 2)
     {
@@ -149,13 +150,12 @@ void Polyline::RenderOverdraw(const std::vector<Vector2>& normals, float pixelSi
     }
 }
 
-#include "debug/logger.h"
 void Polyline::Draw(Graphics* graphics)
 {
     const Matrix4& t = graphics->GetTransform();
     bool is2D        = t.IsAffine2DTransform();
 
-    Colorf colors[1] = { graphics->GetColor() };
+    Colorf currentColor = graphics->GetColor();
 
     int overdrawStart = (int)this->overdrawVertexStart;
     int overdrawCount = (int)this->overdrawVertexCount;
@@ -176,15 +176,22 @@ void Polyline::Draw(Graphics* graphics)
         const Vector2* verts = this->vertices + vertexStart;
         int cmdVertexCount   = std::min(maxVertices, totalVertexCount - vertexStart);
 
-        std::unique_ptr<Vector2[]> transformed = std::make_unique<Vector2[]>(cmdVertexCount);
+        /* make vector2 array - size to cmd.vertexCount */
+        Vector2 transformed[cmdVertexCount];
+        std::fill_n(transformed, cmdVertexCount, Vector2 {});
 
         if (is2D)
-            t.TransformXY(transformed.get(), verts, cmdVertexCount);
+            t.TransformXY(transformed, verts, cmdVertexCount);
 
-        int drawRoughCount = std::min((int)this->vertexCount, (int)this->vertexCount - vertexStart);
+        /* make colorf array - size to cmd.vertexCount */
+        Colorf colors[cmdVertexCount];
+        std::fill_n(colors, cmdVertexCount, Colorf {});
 
-        auto render = vertex::GeneratePrimitiveFromVectors(
-            std::span(transformed.get(), drawRoughCount), std::span(colors, 1));
+        int drawRoughCount = std::min(cmdVertexCount, (int)this->vertexCount - vertexStart);
+
+        /* Constant vertex color up to the overdraw vertices. */
+        for (int i = 0; i < drawRoughCount; i++)
+            colors[i] = currentColor;
 
         if (this->overdraw)
         {
@@ -198,9 +205,15 @@ void Polyline::Draw(Graphics* graphics)
             int drawOverdrawCount =
                 std::min(drawRemainingCount, drawOverdrawEnd - drawOverdrawBegin);
 
-            // if (drawOverdrawCount > 0)
-            //     continue;
+            if (drawOverdrawCount > 0)
+            {
+                Colorf* colordata = colors + drawOverdrawBegin;
+                this->FillColorArray(currentColor, colordata, drawOverdrawCount);
+            }
         }
+
+        auto render = vertex::GeneratePrimitiveFromVectors(
+            std::span(transformed, cmdVertexCount), std::span(colors, cmdVertexCount));
 
         ::deko3d::Instance().RenderPolyline(this->triangleMode, render.get(), cmdVertexCount);
     }

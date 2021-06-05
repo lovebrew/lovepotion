@@ -4,14 +4,13 @@
 
 namespace love
 {
-   /* A Polyline whose segments are connected by a sharp edge. */
-    class MiterJoinPolyline : public Polyline
+    class BevelJoinPolyline : public Polyline
     {
       public:
         void Render(const Vector2* coords, size_t count, float halfWidth, float pixelSize,
                     bool drawOverdraw)
         {
-            Polyline::Render(coords, count, 2 * count, halfWidth, pixelSize, drawOverdraw);
+            Polyline::Render(coords, count, 4 * count - 4, halfWidth, pixelSize, drawOverdraw);
         }
 
       protected:

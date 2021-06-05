@@ -10,6 +10,7 @@ struct ColorT
 
     ColorT() : r(0), g(0), b(0), a(0)
     {}
+
     ColorT(T r_, T g_, T b_, T a_) : r(r_), g(g_), b(b_), a(a_)
     {}
 
