@@ -41,6 +41,7 @@ namespace love
         virtual void RenderOverdraw(const std::vector<Vector2>& normals, float pixelSize,
                                     bool isLooping);
 
+        /* Enables a "fake" anti-aliasing line border */
         virtual void FillColorArray(Colorf constant, Colorf* colors, int count);
 
         /** Calculate line boundary points.

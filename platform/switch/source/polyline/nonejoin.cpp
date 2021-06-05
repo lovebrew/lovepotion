@@ -15,7 +15,7 @@ void NoneJoinPolyline::FillColorArray(Colorf constant_color, Colorf* colors, int
     }
 }
 
-void NoneJoinPolyline::RenderOverdraw(const std::vector<Vector2>& /*normals*/, float pixel_size,
+void NoneJoinPolyline::RenderOverdraw(const std::vector<Vector2>& /*normals*/, float pixelSize,
                                       bool /*is_looping*/)
 {
     for (size_t i = 2; i + 3 < this->vertexCount; i += 4)
@@ -24,32 +24,33 @@ void NoneJoinPolyline::RenderOverdraw(const std::vector<Vector2>& /*normals*/, f
         // | / | <- main quad line
         // v1-v3
 
-        Vector2 s = vertices[i + 0] - vertices[i + 2];
-        Vector2 t = vertices[i + 0] - vertices[i + 1];
-        s.normalize(pixel_size);
-        t.normalize(pixel_size);
+        Vector2 s = this->vertices[i + 0] - this->vertices[i + 2];
+        Vector2 t = this->vertices[i + 0] - this->vertices[i + 1];
+
+        s.normalize(pixelSize);
+        t.normalize(pixelSize);
 
         const size_t k = 4 * (i - 2);
 
-        overdraw[k + 0] = vertices[i + 0];
-        overdraw[k + 1] = vertices[i + 1];
-        overdraw[k + 2] = vertices[i + 0] + s + t;
-        overdraw[k + 3] = vertices[i + 1] + s - t;
+        this->overdraw[k + 0] = this->vertices[i + 0];
+        this->overdraw[k + 1] = this->vertices[i + 1];
+        this->overdraw[k + 2] = this->vertices[i + 0] + s + t;
+        this->overdraw[k + 3] = this->vertices[i + 1] + s - t;
 
-        overdraw[k + 4] = vertices[i + 1];
-        overdraw[k + 5] = vertices[i + 3];
-        overdraw[k + 6] = vertices[i + 1] + s - t;
-        overdraw[k + 7] = vertices[i + 3] - s - t;
+        this->overdraw[k + 4] = this->vertices[i + 1];
+        this->overdraw[k + 5] = this->vertices[i + 3];
+        this->overdraw[k + 6] = this->vertices[i + 1] + s - t;
+        this->overdraw[k + 7] = this->vertices[i + 3] - s - t;
 
-        overdraw[k + 8]  = vertices[i + 3];
-        overdraw[k + 9]  = vertices[i + 2];
-        overdraw[k + 10] = vertices[i + 3] - s - t;
-        overdraw[k + 11] = vertices[i + 2] - s + t;
+        this->overdraw[k + 8]  = this->vertices[i + 3];
+        this->overdraw[k + 9]  = this->vertices[i + 2];
+        this->overdraw[k + 10] = this->vertices[i + 3] - s - t;
+        this->overdraw[k + 11] = this->vertices[i + 2] - s + t;
 
-        overdraw[k + 12] = vertices[i + 2];
-        overdraw[k + 13] = vertices[i + 0];
-        overdraw[k + 14] = vertices[i + 2] - s + t;
-        overdraw[k + 15] = vertices[i + 0] + s + t;
+        this->overdraw[k + 12] = this->vertices[i + 2];
+        this->overdraw[k + 13] = this->vertices[i + 0];
+        this->overdraw[k + 14] = this->vertices[i + 2] - s + t;
+        this->overdraw[k + 15] = this->vertices[i + 0] + s + t;
     }
 }
 

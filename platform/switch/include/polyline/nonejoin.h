@@ -7,7 +7,7 @@ namespace love
     class NoneJoinPolyline : public Polyline
     {
       public:
-        NoneJoinPolyline() : Polyline(DkPrimitive_QuadStrip)
+        NoneJoinPolyline() : Polyline(DkPrimitive_Quads)
         {}
 
         void Render(const Vector2* vertices, size_t count, float halfWidth, float pixelSize,
@@ -23,7 +23,7 @@ namespace love
             // get rasterized. These vertices are in between the core line vertices
             // and the overdraw vertices in the combined vertex array, so they still
             // get "rendered" since we draw everything with one draw call.
-            std::fill_n(this->vertices + (this->vertexCount - 4), sizeof(Vector2) * 4, Vector2{});
+            memset(&this->vertices[this->vertexCount - 4], 0, sizeof(Vector2) * 4);
 
             this->vertexCount -= 4;
         }
