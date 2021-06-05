@@ -23,7 +23,7 @@ namespace love
             // get rasterized. These vertices are in between the core line vertices
             // and the overdraw vertices in the combined vertex array, so they still
             // get "rendered" since we draw everything with one draw call.
-            memset(&this->vertices[this->vertexCount - 4], 0, sizeof(Vector2) * 4);
+            std::fill_n(this->vertices + (this->vertexCount - 4), 4, Vector2 {});
 
             this->vertexCount -= 4;
         }
@@ -31,10 +31,13 @@ namespace love
       protected:
         void CalculateOverdrawVertexCount(bool /* isLooping */) override;
 
-        void RenderOverdraw(const std::vector<Vector2>& normals, float pixelSize, bool isLooping) override;
+        void RenderOverdraw(const std::vector<Vector2>& normals, float pixelSize,
+                            bool isLooping) override;
 
         void FillColorArray(Colorf constantColor, Colorf* colors, int count) override;
 
-        void RenderEdge(std::vector<Vector2>& anchors, std::vector<Vector2>& normals, Vector2& s, float& lengthS, Vector2& normalS, const Vector2& q, const Vector2& r, float halfWidth) override;
+        void RenderEdge(std::vector<Vector2>& anchors, std::vector<Vector2>& normals, Vector2& s,
+                        float& lengthS, Vector2& normalS, const Vector2& q, const Vector2& r,
+                        float halfWidth) override;
     };
 } // namespace love
