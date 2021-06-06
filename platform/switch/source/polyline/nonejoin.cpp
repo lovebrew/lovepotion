@@ -75,6 +75,6 @@ void NoneJoinPolyline::RenderEdge(std::vector<Vector2>& anchors, std::vector<Vec
 
     anchors.push_back(q);
     anchors.push_back(q);
-    normals.push_back(normalS);
     normals.push_back(-normalS);
+    normals.push_back(normalS);
 }
