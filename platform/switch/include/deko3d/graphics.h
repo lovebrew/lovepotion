@@ -65,6 +65,8 @@ namespace love::deko3d
 
         void Circle(DrawMode mode, float x, float y, float radius, int points) override;
 
+        void Polyline(const Vector2* points, size_t count);
+
         void Polygon(DrawMode mode, const Vector2* points, size_t size,
                      bool skipLastFilledVertex = true) override;
 

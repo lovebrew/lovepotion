@@ -89,6 +89,10 @@ namespace Wrap_Graphics
 
     int SetLineWidth(lua_State* L);
 
+    int SetLineJoin(lua_State* L);
+
+    int SetLineStyle(lua_State* L);
+
     int SetNewFont(lua_State* L);
 
     int SetFont(lua_State* L);
@@ -110,6 +114,10 @@ namespace Wrap_Graphics
     int GetFont(lua_State* L);
 
     int GetLineWidth(lua_State* L);
+
+    int GetLineJoin(lua_State* L);
+
+    int GetLineStyle(lua_State* L);
 
     int GetScissor(lua_State* L);
 

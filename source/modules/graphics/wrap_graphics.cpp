@@ -459,6 +459,58 @@ int Wrap_Graphics::Polygon(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::SetLineJoin(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+
+    Graphics::LineJoin join;
+    if (!Graphics::GetConstant(str, join))
+        return Luax::EnumError(L, "line join", Graphics::GetConstants(join), str);
+
+    instance()->SetLineJoin(join);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetLineJoin(lua_State* L)
+{
+    Graphics::LineJoin join = instance()->GetLineJoin();
+
+    const char* str = nullptr;
+    if (!Graphics::GetConstant(join, str))
+        return luaL_error(L, "Unknown line join");
+
+    lua_pushstring(L, str);
+
+    return 1;
+}
+
+int Wrap_Graphics::SetLineStyle(lua_State* L)
+{
+    const char* str = luaL_checkstring(L, 1);
+
+    Graphics::LineStyle style;
+    if (!Graphics::GetConstant(str, style))
+        return Luax::EnumError(L, "line style", Graphics::GetConstants(style), str);
+
+    instance()->SetLineStyle(style);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetLineStyle(lua_State* L)
+{
+    Graphics::LineStyle style = instance()->GetLineStyle();
+
+    const char* str;
+    if (!Graphics::GetConstant(style, str))
+        return luaL_error(L, "Unknown line style");
+
+    lua_pushstring(L, str);
+
+    return 1;
+}
+
 int Wrap_Graphics::SetLineWidth(lua_State* L)
 {
     float width = luaL_checknumber(L, 1);
@@ -1172,6 +1224,8 @@ int Wrap_Graphics::Register(lua_State* L)
                          { "getDimensions", GetDimensions },
                          { "getFont", GetFont },
                          { "getHeight", GetHeight },
+                         { "getLineStyle", GetLineStyle },
+                         { "getLineJoin", GetLineJoin },
                          { "getLineWidth", GetLineWidth },
                          { "getPointSize", GetPointSize },
                          { "getRendererInfo", GetRendererInfo },
@@ -1205,6 +1259,8 @@ int Wrap_Graphics::Register(lua_State* L)
                          { "setCanvas", SetCanvas },
                          { "setColor", SetColor },
                          { "setDefaultFilter", SetDefaultFilter },
+                         { "setLineStyle", SetLineStyle },
+                         { "setLineJoin", SetLineJoin },
                          { "setLineWidth", SetLineWidth },
                          { "setNewFont", SetNewFont },
                          { "setPointSize", SetPointSize },

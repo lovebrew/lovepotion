@@ -626,6 +626,36 @@ std::vector<const char*> Graphics::GetConstants(StackType)
     return stackTypes.GetNames();
 }
 
+bool Graphics::GetConstant(const char* in, LineJoin& out)
+{
+    return lineJoins.Find(in, out);
+}
+
+bool Graphics::GetConstant(LineJoin in, const char*& out)
+{
+    return lineJoins.Find(in, out);
+}
+
+std::vector<const char*> Graphics::GetConstants(LineJoin)
+{
+    return lineJoins.GetNames();
+}
+
+bool Graphics::GetConstant(const char* in, LineStyle& out)
+{
+    return lineStyles.Find(in, out);
+}
+
+bool Graphics::GetConstant(LineStyle in, const char*& out)
+{
+    return lineStyles.Find(in, out);
+}
+
+std::vector<const char*> Graphics::GetConstants(LineStyle)
+{
+    return lineStyles.GetNames();
+}
+
 // clang-format off
 constexpr StringMap<Graphics::BlendMode, Graphics::BLEND_MAX_ENUM>::Entry blendModeEntries[] =
 {
@@ -674,4 +704,21 @@ constexpr StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM>::Entry stackT
 };
 
 constinit const StringMap<Graphics::StackType, Graphics::STACK_MAX_ENUM> Graphics::stackTypes(stackTypeEntries);
+
+constexpr StringMap<Graphics::LineJoin, Graphics::LINE_JOIN_MAX_ENUM>::Entry lineJoinEntries[] =
+{
+    { "none",  Graphics::LINE_JOIN_NONE  },
+    { "miter", Graphics::LINE_JOIN_MITER },
+    { "bevel", Graphics::LINE_JOIN_BEVEL }
+};
+
+constinit const StringMap<Graphics::LineJoin, Graphics::LINE_JOIN_MAX_ENUM> Graphics::lineJoins(lineJoinEntries);
+
+constexpr StringMap<Graphics::LineStyle, Graphics::LINE_MAX_ENUM>::Entry lineStyleEntries[] =
+{
+    { "smooth", Graphics::LINE_SMOOTH },
+    { "rough",  Graphics::LINE_ROUGH  }
+};
+
+constinit const StringMap<Graphics::LineStyle, Graphics::LINE_MAX_ENUM> Graphics::lineStyles(lineStyleEntries);
 // clang-format on

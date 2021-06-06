@@ -1,5 +1,7 @@
 #include "deko3d/graphics.h"
 
+#include "polyline/common.h"
+
 using namespace love;
 using Screen = love::Graphics::Screen;
 
@@ -264,38 +266,75 @@ Font* love::deko3d::Graphics::NewFont(Rasterizer* data, const Texture::Filter& f
 
 /* Primitives */
 
+void love::deko3d::Graphics::Polyline(const Vector2* points, size_t count)
+{
+    float halfWidth = this->GetLineWidth() * 0.5f;
+    float pixelSize = 1.0f / std::max((float)pixelScaleStack.back(), 0.000001f);
+
+    LineJoin lineJoin   = this->GetLineJoin();
+    LineStyle lineStyle = this->GetLineStyle();
+
+    bool drawOverdraw = (lineStyle == LINE_SMOOTH);
+
+    if (lineJoin == LINE_JOIN_NONE)
+    {
+        NoneJoinPolyline line;
+        line.Render(points, count, halfWidth, pixelSize, drawOverdraw);
+
+        line.Draw(this);
+    }
+    else if (lineJoin == LINE_JOIN_BEVEL)
+    {
+        BevelJoinPolyline line;
+        line.Render(points, count, halfWidth, pixelSize, drawOverdraw);
+
+        line.Draw(this);
+    }
+    else if (lineJoin == LINE_JOIN_MITER)
+    {
+        MiterJoinPolyline line;
+        line.Render(points, count, halfWidth, pixelSize, drawOverdraw);
+
+        line.Draw(this);
+    }
+}
+
 void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count,
                                      bool skipLastVertex)
 {
-    Colorf color[1] = { this->GetColor() };
-
-    const Matrix4& t = this->GetTransform();
-    bool is2D        = t.IsAffine2DTransform();
-
-    const int vertexCount = (int)count - (mode == DRAW_FILL && skipLastVertex) ? 1 : 0;
-
-    Vector2 transformed[vertexCount];
-    std::fill_n(transformed, vertexCount, Vector2 {});
-
-    if (is2D)
-        t.TransformXY(transformed, points, vertexCount);
-
-    auto vertices = vertex::GeneratePrimitiveFromVectors(std::span(transformed, vertexCount), std::span(color, 1));
-
-    if (mode == DRAW_FILL)
-        ::deko3d::Instance().RenderPolygon(vertices.get(), vertexCount);
+    if (mode == DRAW_LINE)
+        this->Polyline(points, count);
     else
-        ::deko3d::Instance().RenderPolyline(vertices.get(), vertexCount);
+    {
+        Colorf color[1] = { this->GetColor() };
+
+        const Matrix4& t = this->GetTransform();
+        bool is2D        = t.IsAffine2DTransform();
+
+        int vertexCount = (int)count - ((skipLastVertex) ? 1 : 0);
+
+        Vector2 transformed[vertexCount];
+        std::fill_n(transformed, vertexCount, Vector2 {});
+
+        if (is2D)
+            t.TransformXY(transformed, points, vertexCount);
+
+        auto vertices = vertex::GeneratePrimitiveFromVectors(std::span(transformed, vertexCount),
+                                                             std::span(color, 1));
+
+        ::deko3d::Instance().RenderPolygon(vertices.get(), vertexCount);
+    }
 }
 
 void love::deko3d::Graphics::SetLineWidth(float width)
 {
+    ::Graphics::SetLineWidth(width);
     ::deko3d::Instance().SetLineWidth(width);
 }
 
 void love::deko3d::Graphics::Line(const Vector2* points, int count)
 {
-    this->Polygon(DRAW_LINE, points, count);
+    this->Polyline(points, count);
 }
 
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
@@ -512,7 +551,7 @@ void love::deko3d::Graphics::Points(const Vector2* points, size_t count, const C
     bool is2D        = t.IsAffine2DTransform();
 
     Vector2 transformed[count];
-    std::fill_n(transformed, count, Vector2{});
+    std::fill_n(transformed, count, Vector2 {});
 
     if (is2D)
         t.TransformXY(transformed, points, count);
@@ -520,7 +559,8 @@ void love::deko3d::Graphics::Points(const Vector2* points, size_t count, const C
     Colorf colorList[colorCount];
     memcpy(colorList, colors, colorCount);
 
-    auto vertices = vertex::GeneratePrimitiveFromVectors(std::span(transformed, count), std::span(colorList, colorCount));
+    auto vertices = vertex::GeneratePrimitiveFromVectors(std::span(transformed, count),
+                                                         std::span(colorList, colorCount));
 
     ::deko3d::Instance().RenderPoints(vertices.get(), count);
 }

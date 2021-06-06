@@ -7,7 +7,6 @@
 #include "common/vector.h"
 
 #include <array>
-#include <assert.h>
 #include <memory>
 #include <span>
 
@@ -43,6 +42,14 @@ namespace vertex
         WINDING_CW,
         WINDING_CCW,
         WINDING_MAX_ENUM
+    };
+
+    enum class TriangleIndexMode
+    {
+        NONE,
+        STRIP,
+        FAN,
+        QUADS
     };
 
     static inline uint16_t normto16t(float in)
@@ -81,13 +88,13 @@ namespace vertex
         };
     } // namespace attributes
 
-    [[nodiscard]] std::unique_ptr<Vertex[]> GeneratePrimitiveFromVectors(std::span<Vector2> points,
-                                                                         std::span<Colorf> colors)
+    [[nodiscard]] static inline std::unique_ptr<Vertex[]> GeneratePrimitiveFromVectors(
+        std::span<Vector2> points, std::span<Colorf> colors)
     {
         Colorf color = colors[0];
 
-        size_t pointCount                = points.size();
-        std::unique_ptr<Vertex[]> result = std::make_unique<Vertex[]>(points.size());
+        size_t pointCount = points.size();
+        auto result       = std::make_unique<Vertex[]>(pointCount);
 
         size_t colorCount = colors.size();
 
