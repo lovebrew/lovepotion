@@ -8,6 +8,7 @@
 #include "mp3decoder.h"
 #include "vorbisdecoder.h"
 #include "wavedecoder.h"
+#include "modplugdecoder.h"
 
 #include "common/module.h"
 
