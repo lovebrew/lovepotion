@@ -58,7 +58,7 @@
             "id": "args",
             "type": "command",
             "command": "cpptools.activeConfigCustomVariable",
-            "args": "args"
+            "args": "console"
         }
     ]
 }

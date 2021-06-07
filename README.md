@@ -3,7 +3,9 @@ LÖVE for Nintendo Homebrew
 
 Get started on the [LÖVE Potion wiki!](https://lovebrew.org)
 
-![Löve Potion](https://github.com/TurtleP/LovePotion/workflows/L%C3%B6ve%20Potion/badge.svg)
+<div align='center'>
+[![LÖVE Potion](https://github.com/lovebrew/LovePotion/actions/workflows/build.yml/badge.svg)](https://github.com/lovebrew/LovePotion/actions/workflows/build.yml)
+</div>
 
 <div align='center'>
   <img src="https://i.imgur.com/qf9wDlA.png"></img>

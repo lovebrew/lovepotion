@@ -18,7 +18,8 @@
             "cStandard": "c11",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-gcc-arm",
-            "compilerArgs": []
+            "compilerArgs": [],
+            "customConfigurationVariables": { "console": "ctr" }
         },
 
         {
@@ -38,7 +39,8 @@
             "cStandard": "c11",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-gcc-arm",
-            "compilerArgs": []
+            "compilerArgs": [],
+            "customConfigurationVariables": { "console": "ctr-debug" }
         },
 
         {
@@ -58,7 +60,8 @@
             "cStandard": "c11",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-gcc-arm64",
-            "compilerArgs": []
+            "compilerArgs": [],
+            "customConfigurationVariables": { "console": "hac" }
         },
 
         {
@@ -78,7 +81,8 @@
             "cStandard": "c11",
             "cppStandard": "c++20",
             "intelliSenseMode": "linux-gcc-arm64",
-            "compilerArgs": []
+            "compilerArgs": [],
+            "customConfigurationVariables": { "console": "hac-debug" }
         }
     ],
     "version": 4

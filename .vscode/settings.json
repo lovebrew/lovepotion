@@ -62,6 +62,11 @@
         "numbers": "cpp",
         "span": "cpp"
     },
-    "C_Cpp.intelliSenseEngineFallback": "Disabled",
-    "python.linting.enabled": true
+    "editor.fontSize": 14,
+    "editor.fontFamily": "'Cascadia Code', 'Courier New', monospace",
+    "editor.renderWhitespace": "all",
+    "editor.cursorStyle": "underline",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true
 }
