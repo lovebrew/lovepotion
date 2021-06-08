@@ -74,7 +74,8 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lmodplug -lphysfs -lz -lvorbisidec -lFLAC `arm-none-eabi-pkg-config libmpg123 --libs` -logg
+LIBS	:= -lmodplug -lphysfs -lz -lvorbisidec -lFLAC
+LIBS	+= `$(PREFIX)pkg-config libmpg123 --libs` -logg
 
 ifeq ($(strip $(DEBUG)),)
 	CFLAGS	+= -O2
