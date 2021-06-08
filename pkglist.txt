@@ -2,6 +2,7 @@
 3ds-libvorbisidec
 3ds-physfs
 3ds-pkg-config
+3ds-libmodplug
 3ds-zlib
 3dslink
 3dstools
@@ -22,6 +23,7 @@ switch-examples
 switch-libvorbisidec
 switch-physfs
 switch-pkg-config
+switch-libmodplug
 switch-libjpeg-turbo
 switch-bzip2
 switch-libpng
