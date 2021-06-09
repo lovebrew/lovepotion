@@ -5,7 +5,7 @@
 ** Original code for Polyline, etc by Matthias Richter
 */
 
-#include "polyline/polyline.h"
-#include "polyline/miterjoin.h"
 #include "polyline/beveljoin.h"
+#include "polyline/miterjoin.h"
 #include "polyline/nonejoin.h"
+#include "polyline/polyline.h"

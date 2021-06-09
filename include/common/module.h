@@ -23,6 +23,7 @@ namespace love
             M_JOYSTICK,
             M_KEYBOARD,
             M_MATH,
+            M_PHYSICS,
             M_SYSTEM,
             M_SOUND,
             M_THREAD,
