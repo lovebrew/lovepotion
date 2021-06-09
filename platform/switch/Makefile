@@ -79,7 +79,8 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := -lphysfs -lz -lvorbisidec  `aarch64-none-elf-pkg-config libmpg123 --libs` -lFLAC -lturbojpeg -lpng `freetype-config --libs` -logg
+LIBS := -lmodplug -lphysfs -lz -lvorbisidec  `$(PREFIX)pkg-config libmpg123 --libs`
+LIBS += -lFLAC -lturbojpeg -lpng `freetype-config --libs` -logg
 
 ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2

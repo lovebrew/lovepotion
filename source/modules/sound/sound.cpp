@@ -39,7 +39,8 @@ Decoder* Sound::NewDecoder(FileData* data, int bufferSize)
     std::vector<DecoderImpl> possibilities = { DecoderImplFor<VorbisDecoder>(),
                                                DecoderImplFor<MP3Decoder>(),
                                                DecoderImplFor<WaveDecoder>(),
-                                               DecoderImplFor<FLACDecoder>() };
+                                               DecoderImplFor<FLACDecoder>(),
+                                               DecoderImplFor<ModPlugDecoder>() };
 
     for (DecoderImpl& item : possibilities)
     {
