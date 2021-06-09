@@ -136,6 +136,8 @@ namespace Luax
 
     lua_State* InsistPinnedThread(lua_State* L);
 
+    lua_State* GetPinnedThread(lua_State* L);
+
     /* REGISTRY */
 
     int GetRegistry(lua_State* L, love::Registry registry);

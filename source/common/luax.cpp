@@ -320,6 +320,15 @@ lua_State* Luax::InsistPinnedThread(lua_State* L)
     return thread;
 }
 
+lua_State* Luax::GetPinnedThread(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
+    lua_State* thread = lua_tothread(L, -1);
+    lua_pop(L, 1);
+
+    return thread;
+}
+
 int Luax::InsistGlobal(lua_State* L, const char* field)
 {
     lua_getglobal(L, field);

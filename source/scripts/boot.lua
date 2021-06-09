@@ -679,6 +679,7 @@ function love.init()
         "event",
         "keyboard",
         "joystick",
+        "physics",
         "touch",
         "sound",
         "system",

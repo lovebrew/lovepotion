@@ -1,6 +1,8 @@
 #pragma once
 
 #include "common/module.h"
+#include "common/exception.h"
+
 #include "objects/box2d/common.h"
 
 namespace love
