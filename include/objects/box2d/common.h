@@ -7,4 +7,5 @@
 #include "wrap_body.h"
 #include "wrap_fixture.h"
 #include "wrap_shape.h"
+#include "wrap_joint.h"
 // clang-format on

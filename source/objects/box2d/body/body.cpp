@@ -2,10 +2,13 @@
 
 #include "modules/physics/physics.h"
 
-#include "contact.h"
-#include "fixture.h"
-#include "shape.h"
-#include "world.h"
+#include "contact/contact.h"
+#include "fixture/fixture.h"
+#include "joint/joint.h"
+#include "shape/shape.h"
+#include "world/world.h"
+
+#include "joint/wrap_joint.h"
 
 using namespace love;
 
@@ -508,29 +511,28 @@ int Body::GetFixtures(lua_State* L) const
 
 int Body::GetJoints(lua_State* L) const
 {
-    // lua_newtable(L);
-    // const b2JointEdge* jointEdge = body->GetJointList();
+    lua_newtable(L);
+    const b2JointEdge* jointEdge = body->GetJointList();
 
-    // int i = 1;
+    int i = 1;
 
-    // do
-    // {
-    //     if (!jointEdge)
-    //         break;
+    do
+    {
+        if (!jointEdge)
+            break;
 
-    //     Joint* joint = (Joint*)this->world->FindObject(jointEdge->joint);
+        Joint* joint = (Joint*)this->world->FindObject(jointEdge->joint);
 
-    //     if (!joint)
-    //         throw love::Exception("A joint has escaped Memoizer!");
+        if (!joint)
+            throw love::Exception("A joint has escaped Memoizer!");
 
-    //     Wrap_Joint::PushJoint(L, joint);
-    //     lua_rawseti(L, -2, i);
+        Wrap_Joint::PushJoint(L, joint);
+        lua_rawseti(L, -2, i);
 
-    //     i++;
-    // } while ((jointEdge = jointEdge->next));
+        i++;
+    } while ((jointEdge = jointEdge->next));
 
-    // return 1;
-    return 0;
+    return 1;
 }
 
 int Body::GetContacts(lua_State* L) const
