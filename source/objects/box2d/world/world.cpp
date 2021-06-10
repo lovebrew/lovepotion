@@ -19,10 +19,10 @@ void World::SayGoodbye(b2Fixture* bFixture)
 
 void World::SayGoodbye(b2Joint* bJoint)
 {
-    // Joint* joint = (Joint*)this->FindObject(bJoint);
+    Joint* joint = (Joint*)this->FindObject(bJoint);
 
-    // if (joint)
-    //     joint->DestroyJoint(true);
+    if (joint)
+        joint->DestroyJoint(true);
 }
 
 World::World() :
@@ -81,7 +81,7 @@ void World::Update(float dt, int velocityIterations, int positionIterations)
     this->world->Step(dt, velocityIterations, positionIterations);
 
     // Destroy all objects marked during the time step.
-    for (Body* b : destructBodies)
+    for (Body* b : this->destructBodies)
     {
         if (b->body != nullptr)
             b->Destroy();
@@ -90,7 +90,7 @@ void World::Update(float dt, int velocityIterations, int positionIterations)
         b->Release();
     }
 
-    for (Fixture* f : destructFixtures)
+    for (Fixture* f : this->destructFixtures)
     {
         if (f->IsValid())
             f->Destroy();
@@ -99,20 +99,20 @@ void World::Update(float dt, int velocityIterations, int positionIterations)
         f->Release();
     }
 
-    // for (Joint* j : destructJoints)
-    // {
-    //     if (j->IsValid())
-    //         j->DestroyJoint();
+    for (Joint* j : this->destructJoints)
+    {
+        if (j->IsValid())
+            j->DestroyJoint();
 
-    //     // Release for reference in vector.
-    //     j->Release();
-    // }
+        // Release for reference in vector.
+        j->Release();
+    }
 
-    destructBodies.clear();
-    destructFixtures.clear();
-    destructJoints.clear();
+    this->destructBodies.clear();
+    this->destructFixtures.clear();
+    this->destructJoints.clear();
 
-    if (destructWorld)
+    if (this->destructWorld)
         this->Destroy();
 }
 
