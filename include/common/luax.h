@@ -235,6 +235,17 @@ namespace Luax
 
     int TypeErrror(lua_State* L, int narg, const char* name);
 
+    template<size_t min, size_t max = min>
+    int AssertArgc(lua_State* L)
+    {
+        int argc = lua_gettop(L);
+
+        if (argc < min || argc > max)
+            return luaL_error(L, "Incorrect number of arguments. Got [%d], expected [%d-%d]", argc,
+                              min, max);
+        return 0;
+    }
+
     template<typename T>
     T* ToType(lua_State* L, int index, const love::Type& /*type*/)
     {

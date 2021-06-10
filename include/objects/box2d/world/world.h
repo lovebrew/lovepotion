@@ -10,6 +10,12 @@
 #include "querycallback.h"
 #include "raycastcallback.h"
 
+#include "contact.h"
+#include "fixture.h"
+#include "shape.h"
+
+#include "modules/physics/physics.h"
+
 #include <box2d/box2d.h>
 
 namespace love

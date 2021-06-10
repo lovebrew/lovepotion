@@ -14,5 +14,8 @@
 #include "fixture.h"
 #include "wrap_fixture.h"
 
+#include "contact.h"
+#include "wrap_contact.h"
+
 #include "world.h"
 #include "wrap_world.h"

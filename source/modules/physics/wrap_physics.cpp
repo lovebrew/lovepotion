@@ -38,7 +38,9 @@ int Wrap_Physics::Register(lua_State* L)
 
     lua_CFunction types[] =
     {
+        Wrap_Contact::Register,
         Wrap_Fixture::Register,
+        Wrap_Shape::Register,
         0
     };
     // clang-format on
