@@ -62,7 +62,7 @@ namespace love
 
         float GetReactionTorque(float delta);
 
-        bool IsActive() const;
+        bool IsEnabled() const;
 
         bool GetCollideConnected() const;
 
