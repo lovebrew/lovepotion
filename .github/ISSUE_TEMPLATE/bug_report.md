@@ -16,8 +16,8 @@ assignees: ''
 ### **Relevant Code To Reproduce**
 [If you're able, please provide a sample of code that allows us to reproduce the bug. For longer snippets, please use a service similar to pastebin.]
 
-### **[Screenshots]**
-[If applicable, add screenshots to help explain your problem. The best way is by using rosalina to screenshot the 3DS or using the Switch capture button on supported applications and uploading the relevant images to a site such as imgur.]
+### **Screenshots**
+[If applicable, add screenshots to help explain your problem. The best way is by using rosalina to screenshot the 3DS or using the Switch capture button on supported applications and uploading the relevant images to a site such as imgur. If no screenshots are applicable, please put **N/A**.]
 
 ### **System Info [Please complete the following information]:**
  - System: [e.g. 3DS, Switch]
