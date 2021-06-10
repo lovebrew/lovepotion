@@ -37,7 +37,10 @@ int Wrap_Physics::Register(lua_State* L)
     };
 
     lua_CFunction types[] =
-    {};
+    {
+        Wrap_Fixture::Register,
+        0
+    };
     // clang-format on
 
     Physics* instance = instance();
@@ -52,7 +55,7 @@ int Wrap_Physics::Register(lua_State* L)
     module.name      = "physics";
     module.type      = &Module::type;
     module.functions = funcs;
-    module.types     = nullptr;
+    module.types     = types;
 
     return Luax::RegisterModule(L, module);
 }

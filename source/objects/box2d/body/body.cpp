@@ -1,5 +1,10 @@
 #include "objects/box2d/body/body.h"
 
+#include "fixture.h"
+#include "modules/physics/physics.h"
+#include "shape.h"
+#include "world.h"
+
 using namespace love;
 
 love::Type Body::type("Body", &Object::type);

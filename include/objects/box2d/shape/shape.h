@@ -3,6 +3,7 @@
 #include "common/luax.h"
 #include "common/stringmap.h"
 
+#include "modules/physics/physics.h"
 #include "objects/object.h"
 
 #include <box2d/box2d.h>
@@ -44,7 +45,7 @@ namespace love
 
         int ComputeAABB(lua_State* L) const;
 
-        int ComputerMass(lua_State* L) const;
+        int ComputeMass(lua_State* L) const;
 
         static bool GetConstant(const char* in, Shape::Type& out);
         static bool GetConstant(Shape::Type in, const char*& out);

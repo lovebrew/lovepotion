@@ -2,13 +2,8 @@
 
 #include "common/luax.h"
 
-#include "wrap_body.h"
-#include "wrap_joint.h"
-#include "wrap_shape.h"
-#include "wrap_world.h"
-
 #include "modules/physics/physics.h"
-
+#include "objects/box2d/common.h"
 namespace Wrap_Physics
 {
     int NewWorld(lua_State* L);
