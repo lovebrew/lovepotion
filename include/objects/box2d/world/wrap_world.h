@@ -47,7 +47,7 @@ namespace Wrap_World
 
     int IsDestroyed(lua_State* L);
 
-    love::World* CheckWorld(lua_State* L);
+    love::World* CheckWorld(lua_State* L, int index);
 
     int Register(lua_State* L);
 } // namespace Wrap_World

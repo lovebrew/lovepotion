@@ -1,9 +1,10 @@
 #include "objects/box2d/world/world.h"
 
-#include "contact.h"
-#include "fixture.h"
-#include "joint.h"
-#include "shape.h"
+#include "contact/contact.h"
+#include "fixture/fixture.h"
+#include "joint/joint.h"
+#include "joint/wrap_joint.h"
+#include "shape/shape.h"
 
 using namespace love;
 
@@ -325,30 +326,30 @@ int World::GetBodies(lua_State* L) const
     return 1;
 }
 
-// int World::GetJoints(lua_State* L) const
-// {
-//     lua_newtable(L);
-//     b2Joint* jointList = this->world->GetJointList();
+int World::GetJoints(lua_State* L) const
+{
+    lua_newtable(L);
+    b2Joint* jointList = this->world->GetJointList();
 
-//     int i = 1;
+    int i = 1;
 
-//     do
-//     {
-//         if (!jointList)
-//             break;
+    do
+    {
+        if (!jointList)
+            break;
 
-//         Joint* joint = (Joint*)this->FindObject(j);
-//         if (!joint)
-//             throw love::Exception("A joint has escaped Memoizer!");
+        Joint* joint = (Joint*)this->FindObject(jointList);
+        if (!joint)
+            throw love::Exception("A joint has escaped Memoizer!");
 
-//         Joint::PushJoint(L, joint);
-//         lua_rawseti(L, -2, i);
+        Wrap_Joint::PushJoint(L, joint);
+        lua_rawseti(L, -2, i);
 
-//         i++;
-//     } while ((jointList = jointList->GetNext()));
+        i++;
+    } while ((jointList = jointList->GetNext()));
 
-//     return 1;
-// }
+    return 1;
+}
 
 int World::GetContacts(lua_State* L)
 {
