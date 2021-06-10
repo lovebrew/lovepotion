@@ -2,7 +2,7 @@
 
 #include "common/luax.h"
 
-#include "contact.h"
+#include "contact/contact.h"
 
 namespace Wrap_Contact
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/luax.h"
+
 #include "fixture.h"
 
 namespace Wrap_Fixture

@@ -39,6 +39,7 @@ int Wrap_Physics::Register(lua_State* L)
         Wrap_Contact::Register,
         Wrap_Fixture::Register,
         Wrap_Shape::Register,
+        Wrap_Body::Register,
         0
     };
     // clang-format on

@@ -276,6 +276,11 @@ void Body::SetGravityScale(float scale)
     this->body->SetGravityScale(scale);
 }
 
+void Body::SetActive(bool active)
+{
+    this->body->SetEnabled(active);
+}
+
 void Body::SetType(Body::Type type)
 {
     switch (type)
@@ -501,31 +506,32 @@ int Body::GetFixtures(lua_State* L) const
     return 1;
 }
 
-// int Body::GetJoints(lua_State* L) const
-// {
-//     lua_newtable(L);
-//     const b2JointEdge* jointEdge = body->GetJointList();
+int Body::GetJoints(lua_State* L) const
+{
+    // lua_newtable(L);
+    // const b2JointEdge* jointEdge = body->GetJointList();
 
-//     int i = 1;
+    // int i = 1;
 
-//     do
-//     {
-//         if (!jointEdge)
-//             break;
+    // do
+    // {
+    //     if (!jointEdge)
+    //         break;
 
-//         Joint* joint = (Joint*)this->world->FindObject(jointEdge->joint);
+    //     Joint* joint = (Joint*)this->world->FindObject(jointEdge->joint);
 
-//         if (!joint)
-//             throw love::Exception("A joint has escaped Memoizer!");
+    //     if (!joint)
+    //         throw love::Exception("A joint has escaped Memoizer!");
 
-//         Wrap_Joint::PushJoint(L, joint);
-//         lua_rawseti(L, -2, i);
+    //     Wrap_Joint::PushJoint(L, joint);
+    //     lua_rawseti(L, -2, i);
 
-//         i++;
-//     } while ((jointEdge = jointEdge->next));
+    //     i++;
+    // } while ((jointEdge = jointEdge->next));
 
-//     return 1;
-// }
+    // return 1;
+    return 0;
+}
 
 int Body::GetContacts(lua_State* L) const
 {

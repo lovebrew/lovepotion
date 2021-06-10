@@ -7,6 +7,8 @@
 
 using namespace love;
 
+love::Type World::type("World", &Object::type);
+
 void World::SayGoodbye(b2Fixture* bFixture)
 {
     Fixture* fixture = (Fixture*)this->FindObject(bFixture);
@@ -15,13 +17,13 @@ void World::SayGoodbye(b2Fixture* bFixture)
         fixture->Destroy(true);
 }
 
-// void World::SayGoodbye(b2Joint* bJoint)
-// {
-//     Joint* joint = (Joint*)this->FindObject(bJoint);
+void World::SayGoodbye(b2Joint* bJoint)
+{
+    // Joint* joint = (Joint*)this->FindObject(bJoint);
 
-//     if (joint)
-//         joint->DestroyJoint(true);
-// }
+    // if (joint)
+    //     joint->DestroyJoint(true);
+}
 
 World::World() :
     world(nullptr),
