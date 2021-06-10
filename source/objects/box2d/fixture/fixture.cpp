@@ -1,4 +1,7 @@
 #include "objects/box2d/fixture/fixture.h"
+#include "modules/physics/physics.h"
+
+#include "world.h"
 
 #include <bitset>
 
@@ -219,6 +222,11 @@ uint16_t Fixture::GetBits(lua_State* L)
     }
 
     return (uint16_t)bits.to_ulong();
+}
+
+bool Fixture::TestPoint(float x, float y) const
+{
+    return this->fixture->TestPoint(Physics::ScaleDown(b2Vec2(x, y)));
 }
 
 int Fixture::PushBits(lua_State* L, uint16_t bits)

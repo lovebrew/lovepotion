@@ -1,9 +1,12 @@
 #pragma once
 
-#include "common/module.h"
 #include "common/exception.h"
+#include "common/module.h"
 
-#include "objects/box2d/common.h"
+#include "body.h"
+#include "wrap_body.h"
+
+#include "wrap_fixture.h"
 
 namespace love
 {
@@ -46,6 +49,16 @@ namespace love
         static b2AABB ScaleDown(const b2AABB& aabb);
 
         static b2AABB ScaleUp(const b2AABB& aabb);
+
+        /* lua stuff */
+
+        int GetDistance(lua_State* L);
+
+        Body* NewBody(World* world, float x, float y, Body::Type type);
+
+        Body* NewBody(World* world, Body::Type type);
+
+        Fixture* NewFixture(Body* body, Shape* shape, float density);
 
       private:
         static float meter;

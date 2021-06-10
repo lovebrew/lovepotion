@@ -1,23 +1,22 @@
 #pragma once
 
-#include "body.h"
 #include "common/reference.h"
 #include "objects/object.h"
-#include "shape.h"
-
-#include "modules/physics/physics.h"
-#include "world.h"
 
 #include <box2d/box2d.h>
+
+#include "shape.h"
 
 namespace love
 {
     class World;
+    class Body;
 
     class Fixture : public Object
     {
       public:
         friend class Physics;
+        friend class Shape;
 
         struct FixtureUserdata
         {

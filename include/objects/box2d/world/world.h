@@ -1,3 +1,5 @@
+#pragma once
+
 #include "common/luax.h"
 #include "common/reference.h"
 #include "objects/object.h"
@@ -9,12 +11,6 @@
 #include "contactfilter.h"
 #include "querycallback.h"
 #include "raycastcallback.h"
-
-#include "contact.h"
-#include "fixture.h"
-#include "shape.h"
-
-#include "modules/physics/physics.h"
 
 #include <box2d/box2d.h>
 

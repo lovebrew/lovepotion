@@ -1,4 +1,8 @@
 #include "modules/physics/physics.h"
+#include <box2d/b2_distance.h>
+
+#include "fixture.h"
+#include "shape.h"
 
 using namespace love;
 
@@ -28,15 +32,15 @@ float Physics::GetMeter()
 
 /* Scale Down */
 
-float Physics::ScaleDown(float scale)
-{
-    return scale / Physics::meter;
-}
-
 void Physics::ScaleDown(float& x, float& y)
 {
     x /= Physics::meter;
     y /= Physics::meter;
+}
+
+float Physics::ScaleDown(float scale)
+{
+    return scale / Physics::meter;
 }
 
 b2Vec2 Physics::ScaleDown(const b2Vec2& v)
@@ -47,17 +51,27 @@ b2Vec2 Physics::ScaleDown(const b2Vec2& v)
     return t;
 }
 
-/* Scale Up */
-
-float Physics::ScaleUp(float scale)
+b2AABB Physics::ScaleDown(const b2AABB& aabb)
 {
-    return scale * Physics::meter;
+    b2AABB t;
+
+    t.lowerBound = Physics::ScaleDown(aabb.lowerBound);
+    t.upperBound = Physics::ScaleDown(aabb.upperBound);
+
+    return t;
 }
+
+/* Scale Up */
 
 void Physics::ScaleUp(float& x, float& y)
 {
     x *= Physics::meter;
     y *= Physics::meter;
+}
+
+float Physics::ScaleUp(float scale)
+{
+    return scale * Physics::meter;
 }
 
 b2Vec2 Physics::ScaleUp(const b2Vec2& v)
@@ -68,4 +82,65 @@ b2Vec2 Physics::ScaleUp(const b2Vec2& v)
     return t;
 }
 
-/* box2d creation methods */
+b2AABB Physics::ScaleUp(const b2AABB& aabb)
+{
+    b2AABB t;
+
+    t.lowerBound = Physics::ScaleUp(aabb.lowerBound);
+    t.upperBound = Physics::ScaleUp(aabb.upperBound);
+
+    return t;
+}
+
+/* lua methods */
+
+Body* Physics::NewBody(World* world, float x, float y, Body::Type type)
+{
+    return new Body(world, b2Vec2(x, y), type);
+}
+
+Body* Physics::NewBody(World* world, Body::Type type)
+{
+    return new Body(world, b2Vec2(0, 0), type);
+}
+
+Fixture* Physics::NewFixture(Body* body, Shape* shape, float density)
+{
+    return new Fixture(body, shape, density);
+}
+
+int Physics::GetDistance(lua_State* L)
+{
+    Fixture* fixtureA = Luax::CheckType<Fixture>(L, 1);
+    Fixture* fixtureB = Luax::CheckType<Fixture>(L, 2);
+
+    b2DistanceProxy pA, pB;
+    b2DistanceInput i;
+    b2DistanceOutput o;
+    b2SimplexCache c;
+
+    c.count = 0;
+
+    Luax::CatchException(L, [&]() {
+        pA.Set(fixtureA->fixture->GetShape(), 0);
+        pB.Set(fixtureB->fixture->GetShape(), 0);
+
+        i.proxyA = pA;
+        i.proxyB = pB;
+
+        i.transformA = fixtureA->fixture->GetBody()->GetTransform();
+        i.transformB = fixtureB->fixture->GetBody()->GetTransform();
+
+        i.useRadii = true;
+
+        b2Distance(&o, &c, &i);
+    });
+
+    lua_pushnumber(L, Physics::ScaleUp(o.distance));
+    lua_pushnumber(L, Physics::ScaleUp(o.pointA.x));
+    lua_pushnumber(L, Physics::ScaleUp(o.pointA.y));
+    lua_pushnumber(L, Physics::ScaleUp(o.pointB.x));
+    lua_pushnumber(L, Physics::ScaleUp(o.pointB.y));
+
+    return 5;
+}

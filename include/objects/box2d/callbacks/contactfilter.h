@@ -3,10 +3,10 @@
 #include "common/luax.h"
 #include "common/reference.h"
 
-#include "objects/box2d/world/world.h"
-
 namespace love
 {
+    class Fixture;
+
     class ContactFilter
     {
       public:

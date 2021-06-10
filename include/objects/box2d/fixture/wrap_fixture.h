@@ -57,9 +57,9 @@ namespace Wrap_Fixture
 
     int Destroy(lua_State* L);
 
-    int IsDestroyed(lua_State* L)
+    int IsDestroyed(lua_State* L);
 
-        love::Fixture* CheckFixture(lua_State* L, int index);
+    love::Fixture* CheckFixture(lua_State* L, int index);
 
     int Register(lua_State* L);
 } // namespace Wrap_Fixture

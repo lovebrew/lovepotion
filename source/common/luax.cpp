@@ -753,6 +753,19 @@ int Luax::TypeErrror(lua_State* L, int narg, const char* name)
     return luaL_argerror(L, narg, msg);
 }
 
+Reference* Luax::RefIf(lua_State* L, int type)
+{
+    Reference* r = nullptr;
+
+    // Create a reference only if the test succeeds.
+    if (lua_type(L, -1) == type)
+        r = new Reference(L);
+    else // Pop the value manually if it fails (done by Reference if it succeeds).
+        lua_pop(L, 1);
+
+    return r;
+}
+
 int Luax::Traceback(lua_State* L)
 {
     if (!lua_isstring(L, 1)) // 'message' not a string?

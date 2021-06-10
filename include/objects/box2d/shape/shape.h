@@ -3,7 +3,6 @@
 #include "common/luax.h"
 #include "common/stringmap.h"
 
-#include "modules/physics/physics.h"
 #include "objects/object.h"
 
 #include <box2d/box2d.h>

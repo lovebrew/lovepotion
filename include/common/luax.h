@@ -24,6 +24,8 @@ extern "C"
 #include <memory>
 #include <string.h>
 
+#include "common/reference.h"
+
 namespace love
 {
     class Object;
@@ -121,6 +123,8 @@ namespace Luax
 
         return registry;
     }
+
+    love::Reference* RefIf(lua_State* L, int type);
 
     int Resume(lua_State* L, int nargs);
 
@@ -235,12 +239,15 @@ namespace Luax
 
     int TypeErrror(lua_State* L, int narg, const char* name);
 
-    template<size_t min, size_t max = min>
+    template<int min, int max = -1>
     int AssertArgc(lua_State* L)
     {
         int argc = lua_gettop(L);
 
-        if (argc < min || argc > max)
+        if (argc < min)
+            return luaL_error(L, "Incorrect number of arguments. Expected at least %d", min);
+
+        if (max != -1 && argc > max)
             return luaL_error(L, "Incorrect number of arguments. Got [%d], expected [%d-%d]", argc,
                               min, max);
         return 0;

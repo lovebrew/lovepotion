@@ -62,6 +62,19 @@ namespace love
 
         float GetAngularVelocity() const;
 
+        bool IsEnabled() const;
+
+        void SetEnabled(bool enabled);
+
+        int SetUserData(lua_State* L);
+
+        int GetUserData(lua_State* L);
+
+        void GetKinematicState(b2Vec2& outPosition, float& outAngle, b2Vec2& outVelocity,
+                               float& outAngularVelocity) const;
+
+        void SetKinematicState(b2Vec2 pos, float a, b2Vec2 vel, float da);
+
         float GetMass() const;
 
         float GetInertia() const;

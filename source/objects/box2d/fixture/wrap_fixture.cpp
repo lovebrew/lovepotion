@@ -1,10 +1,13 @@
 #include "objects/box2d/fixture/wrap_fixture.h"
 
+#include "body.h"
+#include "shape.h"
+
 using namespace love;
 
 Fixture* Wrap_Fixture::CheckFixture(lua_State* L, int index)
 {
-    Fixture* self = Luax::CheckType(L, index);
+    Fixture* self = Luax::CheckType<Fixture>(L, index);
     if (!self->IsValid())
         luaL_error(L, "Attempt to use destroyed fixture.");
 
@@ -273,6 +276,14 @@ int Wrap_Fixture::Destroy(lua_State* L)
     Luax::CatchException(L, [&]() { self->Destroy(); });
 
     return 0;
+}
+
+int Wrap_Fixture::GetCategory(lua_State* L)
+{
+    Fixture* self = Wrap_Fixture::CheckFixture(L, 1);
+    lua_remove(L, 1);
+
+    return self->GetCategory(L);
 }
 
 int Wrap_Fixture::IsDestroyed(lua_State* L)

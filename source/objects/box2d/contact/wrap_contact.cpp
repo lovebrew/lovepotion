@@ -116,6 +116,53 @@ int Wrap_Contact::IsDestroyed(lua_State* L)
     return 1;
 }
 
+int Wrap_Contact::IsTouching(lua_State* L)
+{
+    Contact* self = Wrap_Contact::CheckContact(L, 1);
+    lua_pushboolean(L, self->IsTouching());
+
+    return 1;
+}
+
+int Wrap_Contact::SetFriction(lua_State* L)
+{
+    Contact* self  = Wrap_Contact::CheckContact(L, 1);
+    float friction = (float)luaL_checknumber(L, 2);
+
+    self->SetFriction(friction);
+
+    return 0;
+}
+
+int Wrap_Contact::SetRestitution(lua_State* L)
+{
+    Contact* self     = Wrap_Contact::CheckContact(L, 1);
+    float restitution = (float)luaL_checknumber(L, 2);
+
+    self->SetRestitution(restitution);
+
+    return 0;
+}
+
+int Wrap_Contact::SetEnabled(lua_State* L)
+{
+    Contact* self = Wrap_Contact::CheckContact(L, 1);
+    bool enabled  = lua_toboolean(L, 2);
+
+    self->SetEnabled(enabled);
+
+    return 0;
+}
+
+int Wrap_Contact::ResetRestitution(lua_State* L)
+{
+    Contact* self = Wrap_Contact::CheckContact(L, 1);
+
+    self->ResetRestitution();
+
+    return 0;
+}
+
 int Wrap_Contact::Register(lua_State* L)
 {
     luaL_Reg funcs[] = { { "getPositions", GetPositions },

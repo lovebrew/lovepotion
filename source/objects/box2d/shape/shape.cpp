@@ -1,4 +1,5 @@
 #include "objects/box2d/shape/shape.h"
+#include "modules/physics/physics.h"
 
 using namespace love;
 

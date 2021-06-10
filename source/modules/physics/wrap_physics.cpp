@@ -6,9 +6,7 @@ using namespace love;
 
 int Wrap_Physics::GetDistance(lua_State* L)
 {
-    // return instance()->GetDistance(L);
-
-    return 0;
+    return instance()->GetDistance(L);
 }
 
 int Wrap_Physics::SetMeter(lua_State* L)
