@@ -20,4 +20,5 @@
 #include "gearjoint/wrap_gearjoint.h"
 #include "motorjoint/wrap_motorjoint.h"
 #include "mousejoint/wrap_mousejoint.h"
+#include "prismaticjoint/wrap_prismaticjoint.h"
 // clang-format on

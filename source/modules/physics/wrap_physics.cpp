@@ -206,14 +206,23 @@ int Wrap_Physics::Register(lua_State* L)
                          { "setMeter", SetMeter },
                          { 0, 0 } };
 
-    lua_CFunction types[] = { Wrap_Contact::Register,       Wrap_Fixture::Register,
-                              Wrap_Shape::Register,         Wrap_Body::Register,
-                              Wrap_Joint::Register,         Wrap_World::Register,
-                              Wrap_EdgeShape::Register,     Wrap_ChainShape::Register,
-                              Wrap_CircleShape::Register,   Wrap_PolygonShape::Register,
-                              Wrap_DistanceJoint::Register, Wrap_FrictionJoint::Register,
-                              Wrap_GearJoint::Register,     Wrap_MotorJoint::Register,
-                              Wrap_MouseJoint::Register,    0 };
+    lua_CFunction types[] = { Wrap_Contact::Register,
+                              Wrap_Fixture::Register,
+                              Wrap_Shape::Register,
+                              Wrap_Body::Register,
+                              Wrap_Joint::Register,
+                              Wrap_World::Register,
+                              Wrap_EdgeShape::Register,
+                              Wrap_ChainShape::Register,
+                              Wrap_CircleShape::Register,
+                              Wrap_PolygonShape::Register,
+                              Wrap_DistanceJoint::Register,
+                              Wrap_FrictionJoint::Register,
+                              Wrap_GearJoint::Register,
+                              Wrap_MotorJoint::Register,
+                              Wrap_MouseJoint::Register,
+                              Wrap_PrismaticJoint::Register,
+                              0 };
 
     Physics* instance = instance();
 
