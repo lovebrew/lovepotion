@@ -29,7 +29,7 @@ namespace Wrap_MouseJoint
 
     int GetDamping(lua_State* L);
 
-    love::MouseJoint* CheckMouseJoint(lua_State* L);
+    love::MouseJoint* CheckMouseJoint(lua_State* L, int index);
 
     int Register(lua_State* L);
 } // namespace Wrap_MouseJoint

@@ -119,11 +119,11 @@ int Wrap_MouseJoint::SetDamping(lua_State* L)
     return 0;
 }
 
-int Wrap_MouseJoint::GetStiffness(lua_State* L)
+int Wrap_MouseJoint::GetDamping(lua_State* L)
 {
     MouseJoint* self = Wrap_MouseJoint::CheckMouseJoint(L, 1);
 
-    lua_pushnumber(L, self->GetStiffness());
+    lua_pushnumber(L, self->GetDamping());
 
     return 1;
 }
@@ -144,5 +144,5 @@ int Wrap_MouseJoint::Register(lua_State* L)
                          { "getDamping", GetDamping },
                          { 0, 0 } };
 
-    Luax::RegisterType(L, &MouseJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &MouseJoint::type, Wrap_Joint::functions, funcs, nullptr);
 }
