@@ -28,6 +28,7 @@ int Wrap_MotorJoint::SetLinearOffset(lua_State* L)
 int Wrap_MotorJoint::GetLinearOffset(lua_State* L)
 {
     MotorJoint* self = Wrap_MotorJoint::CheckMotorJoint(L, 1);
+    // lua_remove(L, 1); not needed?
 
     return self->GetLinearOffset(L);
 }
