@@ -22,4 +22,5 @@
 #include "mousejoint/wrap_mousejoint.h"
 #include "prismaticjoint/wrap_prismaticjoint.h"
 #include "pulleyjoint/wrap_pulleyjoint.h"
+#include "ropejoint/wrap_ropejoint.h"
 // clang-format on
