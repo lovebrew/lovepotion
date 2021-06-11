@@ -1,5 +1,6 @@
 3ds-examples
 3ds-libvorbisidec
+3ds-box2d
 3ds-physfs
 3ds-pkg-config
 3ds-libmodplug
@@ -30,6 +31,7 @@ switch-libpng
 switch-glm
 switch-freetype
 switch-tools
+switch-box2d
 switch-zlib
 tex3ds
 uam

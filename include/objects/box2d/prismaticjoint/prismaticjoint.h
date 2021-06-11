@@ -15,9 +15,6 @@ namespace love
         PrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB, float xAnchor,
                        float yAnchor, bool collideConnected, float referenceAngle);
 
-        void Initialize(b2PrismaticJointDef& def, Body* body1, Body* body2, float xA, float yA,
-                        float xB, float yB, float ax, float ay, bool collideConnected);
-
         virtual ~PrismaticJoint();
 
         float GetJointTranslation() const;
@@ -60,5 +57,8 @@ namespace love
 
       private:
         b2PrismaticJoint* joint;
+
+        void Initialize(b2PrismaticJointDef& def, Body* body1, Body* body2, float xA, float yA,
+                        float xB, float yB, float ax, float ay, bool collideConnected);
     };
 } // namespace love
