@@ -16,4 +16,5 @@
 #include "polygonshape/wrap_polygonshape.h"
 
 #include "distancejoint/wrap_distancejoint.h"
+#include "frictionjoint/wrap_frictionjoint.h"
 // clang-format on
