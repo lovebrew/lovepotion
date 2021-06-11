@@ -17,4 +17,5 @@
 
 #include "distancejoint/wrap_distancejoint.h"
 #include "frictionjoint/wrap_frictionjoint.h"
+#include "gearjoint/wrap_gearjoint.h"
 // clang-format on

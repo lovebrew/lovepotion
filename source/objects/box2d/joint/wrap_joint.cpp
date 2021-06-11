@@ -2,6 +2,10 @@
 
 #include "body/body.h"
 
+#include "distancejoint/distancejoint.h"
+#include "frictionjoint/frictionjoint.h"
+#include "gearjoint/gearjoint.h"
+
 using namespace love;
 
 void Wrap_Joint::PushJoint(lua_State* L, Joint* joint)
@@ -11,28 +15,28 @@ void Wrap_Joint::PushJoint(lua_State* L, Joint* joint)
 
     switch (joint->GetType())
     {
-        // case Joint::JOINT_DISTANCE:
-        //     return Luax::PushType(L, DistanceJoint::type, j);
+        case Joint::JOINT_DISTANCE:
+            return Luax::PushType(L, DistanceJoint::type, joint);
         // case Joint::JOINT_REVOLUTE:
-        //     return Luax::PushType(L, RevoluteJoint::type, j);
+        //     return Luax::PushType(L, RevoluteJoint::type, joint);
         // case Joint::JOINT_PRISMATIC:
-        //     return Luax::PushType(L, PrismaticJoint::type, j);
+        //     return Luax::PushType(L, PrismaticJoint::type, joint);
         // case Joint::JOINT_MOUSE:
-        //     return Luax::PushType(L, MouseJoint::type, j);
+        //     return Luax::PushType(L, MouseJoint::type, joint);
         // case Joint::JOINT_PULLEY:
-        //     return Luax::PushType(L, PulleyJoint::type, j);
-        // case Joint::JOINT_GEAR:
-        //     return Luax::PushType(L, GearJoint::type, j);
-        // case Joint::JOINT_FRICTION:
-        //     return Luax::PushType(L, FrictionJoint::type, j);
+        //     return Luax::PushType(L, PulleyJoint::type, joint);
+        case Joint::JOINT_GEAR:
+            return Luax::PushType(L, GearJoint::type, joint);
+        case Joint::JOINT_FRICTION:
+            return Luax::PushType(L, FrictionJoint::type, joint);
         // case Joint::JOINT_WELD:
-        //     return Luax::PushType(L, WeldJoint::type, j);
+        //     return Luax::PushType(L, WeldJoint::type, joint);
         // case Joint::JOINT_WHEEL:
-        //     return Luax::PushType(L, WheelJoint::type, j);
+        //     return Luax::PushType(L, WheelJoint::type, joint);
         // case Joint::JOINT_ROPE:
-        //     return Luax::PushType(L, RopeJoint::type, j);
+        //     return Luax::PushType(L, RopeJoint::type, joint);
         // case Joint::JOINT_MOTOR:
-        //     return Luax::PushType(L, MotorJoint::type, j);
+        //     return Luax::PushType(L, MotorJoint::type, joint);
         default:
             return lua_pushnil(L);
     }
