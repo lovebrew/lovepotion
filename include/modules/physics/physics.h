@@ -8,6 +8,11 @@
 
 #include "wrap_fixture.h"
 
+#include "chainshape/chainshape.h"
+#include "circleshape/circleshape.h"
+#include "edgeshape/edgeshape.h"
+#include "polygonshape/polygonshape.h"
+
 namespace love
 {
     class Physics : public Module
@@ -61,6 +66,22 @@ namespace love
         Body* NewBody(World* world, Body::Type type);
 
         Fixture* NewFixture(Body* body, Shape* shape, float density);
+
+        CircleShape* NewCircleShape(float radius);
+
+        CircleShape* NewCircleShape(float x, float y, float radius);
+
+        PolygonShape* NewRectangleShape(float width, float height);
+
+        PolygonShape* NewRectangleShape(float x, float y, float width, float height);
+
+        PolygonShape* NewRectangleShape(float x, float y, float width, float height, float angle);
+
+        EdgeShape* NewEdgeShape(float x1, float y1, float x2, float y2, bool oneSided);
+
+        int NewPolygonShape(lua_State* L);
+
+        int NewChainShape(lua_State* L);
 
       private:
         static float meter;

@@ -110,6 +110,191 @@ Body* Physics::NewBody(World* world, Body::Type type)
     return new Body(world, b2Vec2(0, 0), type);
 }
 
+CircleShape* Physics::NewCircleShape(float radius)
+{
+    return this->NewCircleShape(0, 0, radius);
+}
+
+CircleShape* Physics::NewCircleShape(float x, float y, float radius)
+{
+    b2CircleShape* shape = new b2CircleShape();
+
+    shape->m_p      = Physics::ScaleDown(b2Vec2(x, y));
+    shape->m_radius = Physics::ScaleDown(radius);
+
+    return new CircleShape(shape);
+}
+
+PolygonShape* Physics::NewRectangleShape(float width, float height)
+{
+    return this->NewRectangleShape(0, 0, width, height, 0);
+}
+
+PolygonShape* Physics::NewRectangleShape(float x, float y, float width, float height, float angle)
+{
+    b2PolygonShape* polygonShape = new b2PolygonShape();
+
+    float halfWidth  = Physics::ScaleDown(width / 2.0f);
+    float halfHeight = Physics::ScaleDown(height / 2.0f);
+
+    b2Vec2 center = Physics::ScaleDown(b2Vec2(x, y));
+
+    polygonShape->SetAsBox(halfWidth, halfHeight, center, angle);
+}
+
+EdgeShape* Physics::NewEdgeShape(float x1, float y1, float x2, float y2, bool oneSided)
+{
+    b2EdgeShape* edgeShape = new b2EdgeShape();
+
+    if (oneSided)
+    {
+        b2Vec2 vec1 = Physics::ScaleDown(b2Vec2(x1, y1));
+        b2Vec2 vec2 = Physics::ScaleDown(b2Vec2(x2, y2));
+
+        edgeShape->SetOneSided(vec1, vec1, vec2, vec2);
+    }
+    else
+        edgeShape->SetTwoSided(Physics::ScaleDown(b2Vec2(x1, y1)),
+                               Physics::ScaleDown(b2Vec2(x2, y2)));
+
+    return new EdgeShape(edgeShape);
+}
+
+int Physics::NewPolygonShape(lua_State* L)
+{
+    int argc     = lua_gettop(L);
+    bool isTable = lua_istable(L, 1);
+
+    if (isTable)
+        argc = lua_objlen(L, 1);
+
+    if ((argc % 2) != 0)
+        return luaL_error(L, "Number of vertex components must not be a multiple of two.");
+
+    int vertexCount = argc / 2;
+
+    if (vertexCount < 3)
+        return luaL_error(L, "Expected a minimum of 3 vertices, got %d.", vertexCount);
+    else if (vertexCount > b2_maxPolygonVertices)
+        return luaL_error(L, "Expected a maximum of %d vertices, got %d.", b2_maxPolygonVertices,
+                          vertexCount);
+
+    b2Vec2 vectors[b2_maxPolygonVertices];
+
+    if (isTable)
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            lua_rawgeti(L, 1, 1 + index * 2);
+            lua_rawgeti(L, 1, 2 + index * 2);
+
+            float x = luaL_checknumber(L, -2);
+            float y = luaL_checknumber(L, -1);
+
+            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            float x = luaL_checknumber(L, 1 + index * 2);
+            float y = luaL_checknumber(L, 2 + index * 2);
+
+            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
+        }
+    }
+
+    b2PolygonShape* polygonShape = new b2PolygonShape();
+
+    try
+    {
+        polygonShape->Set(vectors, vertexCount);
+    }
+    catch (love::Exception&)
+    {
+        delete polygonShape;
+        throw;
+    }
+
+    PolygonShape* p = new PolygonShape(polygonShape);
+
+    Luax::PushType(L, p);
+    p->Release();
+
+    return 1;
+}
+
+int Physics::NewChainShape(lua_State* L)
+{
+    int argc     = lua_gettop(L) - 1;
+    bool isTable = lua_istable(L, 2);
+
+    if (isTable)
+        argc = lua_objlen(L, 2);
+
+    if (argc == 0 || ((argc % 2) != 0))
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+
+    int vertexCount = argc / 2;
+    bool isLooping  = lua_toboolean(L, 1);
+
+    b2Vec2* vectors = new b2Vec2[vertexCount];
+
+    if (isTable)
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            lua_rawgeti(L, 2, 1 + index * 2);
+            lua_rawgeti(L, 2, 2 + index * 2);
+
+            float x = lua_tonumber(L, -2);
+            float y = lua_tonumber(L, -1);
+
+            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            float x = luaL_checknumber(L, 2 + index * 2);
+            float y = luaL_checknumber(L, 3 + index * 2);
+
+            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
+        }
+    }
+
+    b2ChainShape* chainShape = new b2ChainShape();
+
+    try
+    {
+        if (isLooping)
+            chainShape->CreateLoop(vectors, vertexCount);
+        else
+            chainShape->CreateChain(vectors, vertexCount, vectors[0], vectors[vertexCount - 1]);
+    }
+    catch (love::Exception&)
+    {
+        delete[] vectors;
+        delete chainShape;
+        throw;
+    }
+
+    delete[] vectors;
+
+    ChainShape* c = new ChainShape(chainShape);
+
+    Luax::PushType(L, c);
+    c->Release();
+
+    return 1;
+}
+
 Fixture* Physics::NewFixture(Body* body, Shape* shape, float density)
 {
     return new Fixture(body, shape, density);
