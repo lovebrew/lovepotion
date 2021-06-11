@@ -54,6 +54,8 @@ namespace love
 
         int GetDistance(lua_State* L);
 
+        World* NewWorld(float gx, float gy, bool sleep);
+
         Body* NewBody(World* world, float x, float y, Body::Type type);
 
         Body* NewBody(World* world, Body::Type type);

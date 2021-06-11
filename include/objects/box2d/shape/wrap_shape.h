@@ -22,4 +22,6 @@ namespace Wrap_Shape
     love::Shape* CheckShape(lua_State* L, int index);
 
     int Register(lua_State* L);
+
+    extern const luaL_Reg functions[8];
 } // namespace Wrap_Shape

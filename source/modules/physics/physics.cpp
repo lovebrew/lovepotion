@@ -1,8 +1,9 @@
 #include "modules/physics/physics.h"
 #include <box2d/b2_distance.h>
 
-#include "fixture.h"
-#include "shape.h"
+#include "fixture/fixture.h"
+#include "shape/shape.h"
+#include "world/world.h"
 
 using namespace love;
 
@@ -93,6 +94,11 @@ b2AABB Physics::ScaleUp(const b2AABB& aabb)
 }
 
 /* lua methods */
+
+World* Physics::NewWorld(float gx, float gy, bool sleep)
+{
+    return new World(b2Vec2(gx, gy), sleep);
+}
 
 Body* Physics::NewBody(World* world, float x, float y, Body::Type type)
 {
