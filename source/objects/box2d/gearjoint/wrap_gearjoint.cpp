@@ -8,7 +8,7 @@ GearJoint* Wrap_GearJoint::CheckGearJoint(lua_State* L, int index)
     GearJoint* joint = Luax::CheckType<GearJoint>(L, 1);
 
     if (!joint->IsValid())
-        luaL_error(L, "Attempt to use destroyed joint.");
+        luaL_error(L, "Attempt to use destroyed joint!");
 
     return joint;
 }

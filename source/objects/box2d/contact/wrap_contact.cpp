@@ -6,7 +6,7 @@ Contact* Wrap_Contact::CheckContact(lua_State* L, int index)
 {
     Contact* contact = Luax::CheckType<Contact>(L, index);
     if (!contact->IsValid())
-        luaL_error(L, "Attempt to use destroyed contact.");
+        luaL_error(L, "Attempt to use destroyed contact!");
 
     return contact;
 }

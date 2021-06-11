@@ -212,7 +212,8 @@ int Wrap_Physics::Register(lua_State* L)
                               Wrap_EdgeShape::Register,     Wrap_ChainShape::Register,
                               Wrap_CircleShape::Register,   Wrap_PolygonShape::Register,
                               Wrap_DistanceJoint::Register, Wrap_FrictionJoint::Register,
-                              Wrap_GearJoint::Register,     0 };
+                              Wrap_GearJoint::Register,     Wrap_MotorJoint::Register,
+                              Wrap_MouseJoint::Register,    0 };
 
     Physics* instance = instance();
 

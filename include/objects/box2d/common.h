@@ -18,4 +18,6 @@
 #include "distancejoint/wrap_distancejoint.h"
 #include "frictionjoint/wrap_frictionjoint.h"
 #include "gearjoint/wrap_gearjoint.h"
+#include "motorjoint/wrap_motorjoint.h"
+#include "mousejoint/wrap_mousejoint.h"
 // clang-format on

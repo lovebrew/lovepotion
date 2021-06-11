@@ -9,7 +9,7 @@ Fixture* Wrap_Fixture::CheckFixture(lua_State* L, int index)
 {
     Fixture* self = Luax::CheckType<Fixture>(L, index);
     if (!self->IsValid())
-        luaL_error(L, "Attempt to use destroyed fixture.");
+        luaL_error(L, "Attempt to use destroyed fixture!");
 
     return self;
 }

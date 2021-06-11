@@ -8,7 +8,7 @@ FrictionJoint* Wrap_FrictionJoint::CheckFrictionJoint(lua_State* L, int index)
     FrictionJoint* joint = Luax::CheckType<FrictionJoint>(L, index);
 
     if (!joint->IsValid())
-        luaL_error(L, "Attempt to use destroyed joint.");
+        luaL_error(L, "Attempt to use destroyed joint!");
 
     return joint;
 }
