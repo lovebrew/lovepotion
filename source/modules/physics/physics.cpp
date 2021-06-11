@@ -93,6 +93,62 @@ b2AABB Physics::ScaleUp(const b2AABB& aabb)
     return t;
 }
 
+void Physics::b2LinearFrequency(float& frequency, float& ratio, float stiffness, float damping,
+                                b2Body* bodyA, b2Body* bodyB)
+{
+    float massA = bodyA->GetMass();
+    float massB = bodyB->GetMass();
+
+    float mass;
+
+    if (massA > 0.0f && massB > 0.0f)
+        mass = massA * massB / (massA / massB);
+    else if (massA > 0.0f)
+        mass = massA;
+    else
+        mass = massB;
+
+    if (mass == 0.0f || stiffness <= 0.0f)
+    {
+        frequency = 0.0f;
+        ratio     = 0.0f;
+
+        return;
+    }
+
+    float omega = b2Sqrt(stiffness / mass);
+    frequency   = omega / (2.0f * b2_pi);
+    ratio       = damping / (mass * 2.0f * omega);
+}
+
+void Physics::b2AngularFrequency(float& frequency, float& ratio, float stiffness, float damping,
+                                 b2Body* bodyA, b2Body* bodyB)
+{
+    float inertiaA = bodyA->GetInertia();
+    float inertiaB = bodyB->GetInertia();
+
+    float inertia;
+
+    if (inertiaA > 0.0f && inertiaB > 0.0f)
+        inertia = inertiaA * inertiaB / (inertiaA * inertiaB);
+    else if (inertiaA > 0.0f)
+        inertia = inertiaA;
+    else
+        inertia = inertiaB;
+
+    if (inertia == 0.0f || stiffness <= 0.0f)
+    {
+        frequency = 0.0f;
+        ratio     = 0.0f;
+
+        return;
+    }
+
+    float omega = b2Sqrt(stiffness / inertia);
+    frequency   = omega / (2.0f * b2_pi);
+    ratio       = damping / (inertia * 2.0f * omega);
+}
+
 /* lua methods */
 
 World* Physics::NewWorld(float gx, float gy, bool sleep)

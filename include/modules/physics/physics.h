@@ -55,6 +55,12 @@ namespace love
 
         static b2AABB ScaleUp(const b2AABB& aabb);
 
+        static void b2LinearFrequency(float& frequency, float& ratio, float stiffness,
+                                      float damping, b2Body* bodyA, b2Body* bodyB);
+
+        static void b2AngularFrequency(float& frequency, float& ratio, float stiffness,
+                                       float damping, b2Body* bodyA, b2Body* bodyB);
+
         /* lua stuff */
 
         int GetDistance(lua_State* L);

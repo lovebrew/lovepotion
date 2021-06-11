@@ -147,7 +147,8 @@ int Wrap_Joint::IsDestroyed(lua_State* L)
     return 1;
 }
 
-const luaL_Reg Wrap_Joint::jointFuncs[11] = {
+// clang-format off
+const luaL_Reg Wrap_Joint::functions[11] = {
     { "getType", Wrap_Joint::GetType },
     { "getBodies", Wrap_Joint::GetBodies },
     { "getAnchors", Wrap_Joint::GetAnchors },
@@ -160,8 +161,9 @@ const luaL_Reg Wrap_Joint::jointFuncs[11] = {
     { "isDestroyed", Wrap_Joint::IsDestroyed },
     { 0, 0 }
 };
+// clang-format on
 
 int Wrap_Joint::Register(lua_State* L)
 {
-    return Luax::RegisterType(L, &Joint::type, Wrap_Joint::jointFuncs, nullptr);
+    return Luax::RegisterType(L, &Joint::type, Wrap_Joint::functions, nullptr);
 }

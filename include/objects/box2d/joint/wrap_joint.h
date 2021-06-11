@@ -31,5 +31,5 @@ namespace Wrap_Joint // ( ͡° ͜ʖ ͡°)
 
     int Register(lua_State* L);
 
-    extern const luaL_Reg jointFuncs[11];
+    extern const luaL_Reg functions[11];
 } // namespace Wrap_Joint
