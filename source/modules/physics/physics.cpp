@@ -196,6 +196,8 @@ PolygonShape* Physics::NewRectangleShape(float x, float y, float width, float he
     b2Vec2 center = Physics::ScaleDown(b2Vec2(x, y));
 
     polygonShape->SetAsBox(halfWidth, halfHeight, center, angle);
+
+    return new PolygonShape(polygonShape);
 }
 
 EdgeShape* Physics::NewEdgeShape(float x1, float y1, float x2, float y2, bool oneSided)

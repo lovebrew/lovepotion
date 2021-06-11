@@ -123,5 +123,5 @@ int Wrap_MotorJoint::Register(lua_State* L)
                          { "getCorrectionFactor", GetCorrectionFactor },
                          { 0, 0 } };
 
-    Luax::RegisterType(L, &MotorJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &MotorJoint::type, Wrap_Joint::functions, funcs, nullptr);
 }

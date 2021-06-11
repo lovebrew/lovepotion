@@ -46,16 +46,16 @@ void Fixture::CheckCreateShape()
     switch (bShape->GetType())
     {
         case b2Shape::e_circle:
-            // shape.Set(new CircleShape((b2CircleShape*)bShape, false), Acquire::NORETAIN);
+            this->shape.Set(new CircleShape((b2CircleShape*)bShape, false), Acquire::NORETAIN);
             break;
         case b2Shape::e_edge:
-            // shape.Set(new EdgeShape((b2EdgeShape*)bShape, false), Acquire::NORETAIN);
+            this->shape.Set(new EdgeShape((b2EdgeShape*)bShape, false), Acquire::NORETAIN);
             break;
         case b2Shape::e_polygon:
-            // shape.Set(new PolygonShape((b2PolygonShape*)bShape, false), Acquire::NORETAIN);
+            this->shape.Set(new PolygonShape((b2PolygonShape*)bShape, false), Acquire::NORETAIN);
             break;
         case b2Shape::e_chain:
-            // shape.Set(new ChainShape((b2ChainShape*)bShape, false), Acquire::NORETAIN);
+            this->shape.Set(new ChainShape((b2ChainShape*)bShape, false), Acquire::NORETAIN);
             break;
         default:
             break;

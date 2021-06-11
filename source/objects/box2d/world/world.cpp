@@ -35,6 +35,7 @@ World::World() :
     postsolve(this)
 {
     this->world = new b2World(b2Vec2(0, 0));
+
     this->world->SetAllowSleeping(true);
     this->world->SetContactListener(this);
     this->world->SetContactFilter(this);
@@ -55,6 +56,7 @@ World::World(b2Vec2 gravity, bool sleep) :
     postsolve(this)
 {
     this->world = new b2World(Physics::ScaleDown(gravity));
+
     this->world->SetAllowSleeping(sleep);
     this->world->SetContactListener(this);
     this->world->SetContactFilter(this);
