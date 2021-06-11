@@ -44,6 +44,8 @@ int Wrap_Physics::Register(lua_State* L)
         Wrap_World::Register,
         Wrap_EdgeShape::Register,
         Wrap_ChainShape::Register,
+        Wrap_CircleShape::Register,
+        Wrap_PolygonShape::Register,
         0
     };
     // clang-format on

@@ -12,4 +12,6 @@
 
 #include "chainshape/wrap_chainshape.h"
 #include "edgeshape/wrap_edgeshape.h"
+#include "circleshape/wrap_circleshape.h"
+#include "polygonshape/wrap_polygonshape.h"
 // clang-format on
