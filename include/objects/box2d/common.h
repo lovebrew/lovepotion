@@ -14,4 +14,6 @@
 #include "edgeshape/wrap_edgeshape.h"
 #include "circleshape/wrap_circleshape.h"
 #include "polygonshape/wrap_polygonshape.h"
+
+#include "distancejoint/wrap_distancejoint.h"
 // clang-format on
