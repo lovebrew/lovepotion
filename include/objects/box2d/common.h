@@ -23,4 +23,5 @@
 #include "prismaticjoint/wrap_prismaticjoint.h"
 #include "pulleyjoint/wrap_pulleyjoint.h"
 #include "ropejoint/wrap_ropejoint.h"
+#include "weldjoint/wrap_weldjoint.h"
 // clang-format on
