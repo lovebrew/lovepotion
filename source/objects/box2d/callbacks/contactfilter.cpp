@@ -35,7 +35,7 @@ bool ContactFilter::Process(Fixture* a, Fixture* b)
 
         lua_call(L, 2, 1);
 
-        return lua_toboolean(L, -1);
+        return Luax::CheckBoolean(L, -1);
     }
 
     return true;

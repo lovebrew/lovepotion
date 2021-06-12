@@ -34,7 +34,7 @@ int Wrap_PrismaticJoint::GetJointSpeed(lua_State* L)
 int Wrap_PrismaticJoint::SetMotorEnabled(lua_State* L)
 {
     PrismaticJoint* self = Wrap_PrismaticJoint::CheckPrismaticJoint(L, 1);
-    bool enabled         = lua_toboolean(L, 2);
+    bool enabled         = Luax::CheckBoolean(L, 2);
 
     self->SetMotorEnabled(enabled);
 
@@ -45,7 +45,7 @@ int Wrap_PrismaticJoint::IsMotorEnabled(lua_State* L)
 {
     PrismaticJoint* self = Wrap_PrismaticJoint::CheckPrismaticJoint(L, 1);
 
-    lua_pushboolean(L, self->IsMotorEnabled());
+    Luax::PushBoolean(L, self->IsMotorEnabled());
 
     return 1;
 }
@@ -101,7 +101,7 @@ int Wrap_PrismaticJoint::GetMaxMotorForce(lua_State* L)
 int Wrap_PrismaticJoint::SetLimitsEnabled(lua_State* L)
 {
     PrismaticJoint* self = Wrap_PrismaticJoint::CheckPrismaticJoint(L, 1);
-    bool enable          = lua_toboolean(L, 2);
+    bool enable          = Luax::CheckBoolean(L, 2);
 
     self->SetLimitsEnabled(enable);
 
@@ -112,7 +112,7 @@ int Wrap_PrismaticJoint::AreLimitsEnabled(lua_State* L)
 {
     PrismaticJoint* self = Wrap_PrismaticJoint::CheckPrismaticJoint(L, 1);
 
-    lua_pushboolean(L, self->AreLimitsEnabled());
+    Luax::PushBoolean(L, self->AreLimitsEnabled());
 
     return 1;
 }

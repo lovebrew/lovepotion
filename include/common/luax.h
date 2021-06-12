@@ -225,6 +225,8 @@ namespace Luax
 
     bool CheckBoolean(lua_State* L, int index);
 
+    void PushBoolean(lua_State* L, bool boolean);
+
     template<typename T>
     void PushType(lua_State* L, T* object)
     {

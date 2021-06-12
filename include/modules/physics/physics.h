@@ -19,6 +19,7 @@
 #include "polygonshape/polygonshape.h"
 #include "prismaticjoint/prismaticjoint.h"
 #include "pulleyjoint/pulleyjoint.h"
+#include "revolutejoint/revolutejoint.h"
 #include "ropejoint/ropejoint.h"
 #include "weldjoint/weldjoint.h"
 
@@ -103,11 +104,11 @@ namespace love
 
         MouseJoint* NewMouseJoint(Body* body, float x, float y);
 
-        // RevoluteJoint* newRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-        //                                 bool collideConnected);
+        RevoluteJoint* NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                        bool collideConnected);
 
-        // RevoluteJoint* newRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-        //                                 bool collideConnected, float referenceAngle);
+        RevoluteJoint* NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                        bool collideConnected, float referenceAngle);
 
         PrismaticJoint* NewPrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
                                           float xAnchor, float yAnchor, bool collideConnected);
@@ -131,7 +132,7 @@ namespace love
         WeldJoint* NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
                                 bool collideConnected, float referenceAngle);
 
-        // WheelJoint* newWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+        // WheelJoint* NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
         //                           float ax, float ay, bool collideConnected);
 
         RopeJoint* NewRopeJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,

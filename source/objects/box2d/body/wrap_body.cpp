@@ -582,7 +582,7 @@ int Wrap_Body::IsBullet(lua_State* L)
 {
     Body* self = Wrap_Body::CheckBody(L, 1);
 
-    lua_pushboolean(L, self->IsBullet());
+    Luax::PushBoolean(L, self->IsBullet());
 
     return 1;
 }
@@ -590,7 +590,7 @@ int Wrap_Body::IsBullet(lua_State* L)
 int Wrap_Body::SetBullet(lua_State* L)
 {
     Body* self  = Wrap_Body::CheckBody(L, 1);
-    bool bullet = lua_toboolean(L, 2);
+    bool bullet = Luax::CheckBoolean(L, 2);
 
     self->SetBullet(bullet);
 
@@ -601,7 +601,7 @@ int Wrap_Body::IsActive(lua_State* L)
 {
     Body* self = Wrap_Body::CheckBody(L, 1);
 
-    lua_pushboolean(L, self->IsEnabled());
+    Luax::PushBoolean(L, self->IsEnabled());
 
     return 1;
 }
@@ -610,7 +610,7 @@ int Wrap_Body::IsAwake(lua_State* L)
 {
     Body* self = Wrap_Body::CheckBody(L, 1);
 
-    lua_pushboolean(L, self->IsAwake());
+    Luax::PushBoolean(L, self->IsAwake());
 
     return 1;
 }
@@ -618,7 +618,7 @@ int Wrap_Body::IsAwake(lua_State* L)
 int Wrap_Body::SetSleepingAllowed(lua_State* L)
 {
     Body* self   = Wrap_Body::CheckBody(L, 1);
-    bool allowed = lua_toboolean(L, 2);
+    bool allowed = Luax::CheckBoolean(L, 2);
 
     self->SetSleepingAllowed(allowed);
 
@@ -629,7 +629,7 @@ int Wrap_Body::IsSleepingAllowed(lua_State* L)
 {
     Body* self = Wrap_Body::CheckBody(L, 1);
 
-    lua_pushboolean(L, self->IsSleepingAllowed());
+    Luax::PushBoolean(L, self->IsSleepingAllowed());
 
     return 1;
 }
@@ -637,7 +637,7 @@ int Wrap_Body::IsSleepingAllowed(lua_State* L)
 int Wrap_Body::SetActive(lua_State* L)
 {
     Body* self  = Wrap_Body::CheckBody(L, 1);
-    bool active = lua_toboolean(L, 2);
+    bool active = Luax::CheckBoolean(L, 2);
 
     Luax::CatchException(L, [&]() { self->SetActive(active); });
 
@@ -647,7 +647,7 @@ int Wrap_Body::SetActive(lua_State* L)
 int Wrap_Body::SetAwake(lua_State* L)
 {
     Body* self = Wrap_Body::CheckBody(L, 1);
-    bool awake = lua_toboolean(L, 2);
+    bool awake = Luax::CheckBoolean(L, 2);
 
     self->SetAwake(awake);
 
@@ -657,7 +657,7 @@ int Wrap_Body::SetAwake(lua_State* L)
 int Wrap_Body::SetFixedRotation(lua_State* L)
 {
     Body* self         = Wrap_Body::CheckBody(L, 1);
-    bool fixedRotation = lua_toboolean(L, 2);
+    bool fixedRotation = Luax::CheckBoolean(L, 2);
 
     Luax::CatchException(L, [&]() { self->SetFixedRotation(fixedRotation); });
 
@@ -668,7 +668,7 @@ int Wrap_Body::IsFixedRotation(lua_State* L)
 {
     Body* self = Wrap_Body::CheckBody(L, 1);
 
-    lua_pushboolean(L, self->IsFixedRotation());
+    Luax::PushBoolean(L, self->IsFixedRotation());
 
     return 1;
 }
@@ -678,7 +678,7 @@ int Wrap_Body::IsTouching(lua_State* L)
     Body* self  = Wrap_Body::CheckBody(L, 1);
     Body* other = Wrap_Body::CheckBody(L, 2);
 
-    lua_pushboolean(L, self->IsTouching(other));
+    Luax::PushBoolean(L, self->IsTouching(other));
 
     return 1;
 }
@@ -742,7 +742,7 @@ int Wrap_Body::IsDestroyed(lua_State* L)
 {
     Body* self = Luax::CheckType<Body>(L, 1);
 
-    lua_pushboolean(L, self->body == nullptr);
+    Luax::PushBoolean(L, self->body == nullptr);
 
     return 1;
 }

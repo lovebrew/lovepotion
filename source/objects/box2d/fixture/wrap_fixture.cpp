@@ -97,7 +97,7 @@ int Wrap_Fixture::IsSensor(lua_State* L)
 {
     Fixture* self = Wrap_Fixture::CheckFixture(L, 1);
 
-    lua_pushboolean(L, self->IsSensor());
+    Luax::PushBoolean(L, self->IsSensor());
 
     return 1;
 }
@@ -148,7 +148,7 @@ int Wrap_Fixture::TestPoint(lua_State* L)
     float y = luaL_checknumber(L, 3);
     ;
 
-    lua_pushboolean(L, self->TestPoint(x, y));
+    Luax::PushBoolean(L, self->TestPoint(x, y));
 
     return 1;
 }
@@ -290,7 +290,7 @@ int Wrap_Fixture::IsDestroyed(lua_State* L)
 {
     Fixture* fixture = Luax::CheckType<Fixture>(L, 1);
 
-    lua_pushboolean(L, !fixture->IsValid());
+    Luax::PushBoolean(L, !fixture->IsValid());
 
     return 1;
 }

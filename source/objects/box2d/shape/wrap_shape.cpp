@@ -49,7 +49,7 @@ int Wrap_Shape::TestPoint(lua_State* L)
 
     bool result = self->TestPoint(x, y, r, px, py);
 
-    lua_pushboolean(L, result);
+    Luax::PushBoolean(L, result);
 
     return 1;
 }

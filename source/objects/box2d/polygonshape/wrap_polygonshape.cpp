@@ -20,7 +20,7 @@ int Wrap_PolygonShape::Validate(lua_State* L)
 {
     PolygonShape* self = Wrap_PolygonShape::CheckPolygonShape(L, 1);
 
-    lua_pushboolean(L, self->Validate());
+    Luax::PushBoolean(L, self->Validate());
 
     return 1;
 }

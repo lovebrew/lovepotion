@@ -47,7 +47,7 @@ int Wrap_Contact::IsEnabled(lua_State* L)
 {
     Contact* self = Wrap_Contact::CheckContact(L, 1);
 
-    lua_pushboolean(L, self->IsEnabled());
+    Luax::PushBoolean(L, self->IsEnabled());
 
     return 1;
 }
@@ -111,7 +111,7 @@ int Wrap_Contact::IsDestroyed(lua_State* L)
 {
     Contact* contact = Luax::CheckType<Contact>(L, 1);
 
-    lua_pushboolean(L, !contact->IsValid());
+    Luax::PushBoolean(L, !contact->IsValid());
 
     return 1;
 }
@@ -119,7 +119,7 @@ int Wrap_Contact::IsDestroyed(lua_State* L)
 int Wrap_Contact::IsTouching(lua_State* L)
 {
     Contact* self = Wrap_Contact::CheckContact(L, 1);
-    lua_pushboolean(L, self->IsTouching());
+    Luax::PushBoolean(L, self->IsTouching());
 
     return 1;
 }
@@ -147,7 +147,7 @@ int Wrap_Contact::SetRestitution(lua_State* L)
 int Wrap_Contact::SetEnabled(lua_State* L)
 {
     Contact* self = Wrap_Contact::CheckContact(L, 1);
-    bool enabled  = lua_toboolean(L, 2);
+    bool enabled  = Luax::CheckBoolean(L, 2);
 
     self->SetEnabled(enabled);
 

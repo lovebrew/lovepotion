@@ -211,49 +211,49 @@ int Wrap_Physics::NewMouseJoint(lua_State* L)
     return 1;
 }
 
-// int Wrap_Physics::NewRevoluteJoint(lua_State* L)
-// {
-//     Body* body1 = Wrap_Body::CheckBody(L, 1);
-//     Body* body2 = Wrap_Body::CheckBody(L, 2);
+int Wrap_Physics::NewRevoluteJoint(lua_State* L)
+{
+    Body* body1 = Wrap_Body::CheckBody(L, 1);
+    Body* body2 = Wrap_Body::CheckBody(L, 2);
 
-//     float xA = luaL_checknumber(L, 3);
-//     float yA = luaL_checknumber(L, 4);
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
 
-//     float xB, yB;
-//     bool collideConnected;
+    float xB, yB;
+    bool collideConnected;
 
-//     if (lua_gettop(L) >= 6)
-//     {
-//         xB = luaL_checknumber(L, 5);
-//         yB = luaL_checknumber(L, 6);
+    if (lua_gettop(L) >= 6)
+    {
+        xB = luaL_checknumber(L, 5);
+        yB = luaL_checknumber(L, 6);
 
-//         collideConnected = Luax::OptBoolean(L, 7, false);
-//     }
-//     else
-//     {
-//         xB = xA;
-//         yB = yA;
+        collideConnected = Luax::OptBoolean(L, 7, false);
+    }
+    else
+    {
+        xB = xA;
+        yB = yA;
 
-//         collideConnected = Luax::OptBoolean(L, 5, false);
-//     }
+        collideConnected = Luax::OptBoolean(L, 5, false);
+    }
 
-//     RevoluteJoint* joint;
-//     Luax::CatchException(L, [&]() {
-//         if (lua_gettop(L) >= 8)
-//         {
-//             float referenceAngle = luaL_checknumber(L, 8);
-//             joint = instance()->NewRevoluteJoint(body1, body2, xA, yA, xB, yB, collideConnected,
-//                                                  referenceAngle);
-//         }
-//         else
-//             joint = instance()->NewRevoluteJoint(body1, body2, xA, yA, xB, yB, collideConnected);
-//     });
+    RevoluteJoint* joint;
+    Luax::CatchException(L, [&]() {
+        if (lua_gettop(L) >= 8)
+        {
+            float referenceAngle = luaL_checknumber(L, 8);
+            joint = instance()->NewRevoluteJoint(body1, body2, xA, yA, xB, yB, collideConnected,
+                                                 referenceAngle);
+        }
+        else
+            joint = instance()->NewRevoluteJoint(body1, body2, xA, yA, xB, yB, collideConnected);
+    });
 
-//     Luax::PushType(L, joint);
-//     joint->release();
+    Luax::PushType(L, joint);
+    joint->Release();
 
-//     return 1;
-// }
+    return 1;
+}
 
 int Wrap_Physics::NewPrismaticJoint(lua_State* L)
 {
@@ -560,7 +560,7 @@ int Wrap_Physics::Register(lua_State* L)
                          { "newChainShape", NewChainShape },
                          { "newDistanceJoint", NewDistanceJoint },
                          { "newMouseJoint", NewMouseJoint },
-                         //  { "newRevoluteJoint", NewRevoluteJoint },
+                         { "newRevoluteJoint", NewRevoluteJoint },
                          { "newPrismaticJoint", NewPrismaticJoint },
                          { "newPulleyJoint", NewPulleyJoint },
                          { "newGearJoint", NewGearJoint },

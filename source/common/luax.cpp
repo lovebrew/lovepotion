@@ -150,6 +150,11 @@ bool Luax::CheckBoolean(lua_State* L, int index)
     return Luax::ToBoolean(L, index);
 }
 
+void Luax::PushBoolean(lua_State* L, bool boolean)
+{
+    lua_pushboolean(L, boolean ? 1 : 0);
+}
+
 /*
 ** @func DoBuffer
 ** Runs a specified Lua Buffer

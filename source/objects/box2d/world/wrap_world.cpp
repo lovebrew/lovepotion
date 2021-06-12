@@ -100,7 +100,7 @@ int Wrap_World::TranslateOrigin(lua_State* L)
 int Wrap_World::SetSleepingAllowed(lua_State* L)
 {
     World* self  = Wrap_World::CheckWorld(L, 1);
-    bool allowed = lua_toboolean(L, 2);
+    bool allowed = Luax::CheckBoolean(L, 2);
 
     self->SetSleepingAllowed(allowed);
 
@@ -111,7 +111,7 @@ int Wrap_World::IsSleepingAllowed(lua_State* L)
 {
     World* self = Wrap_World::CheckWorld(L, 1);
 
-    lua_pushboolean(L, self->IsSleepingAllowed());
+    Luax::PushBoolean(L, self->IsSleepingAllowed());
 
     return 1;
 }
@@ -120,7 +120,7 @@ int Wrap_World::IsLocked(lua_State* L)
 {
     World* self = Wrap_World::CheckWorld(L, 1);
 
-    lua_pushboolean(L, self->IsLocked());
+    Luax::PushBoolean(L, self->IsLocked());
 
     return 1;
 }
@@ -217,7 +217,7 @@ int Wrap_World::IsDestroyed(lua_State* L)
 {
     World* self = Luax::CheckType<World>(L, 1);
 
-    lua_pushboolean(L, !self->IsValid());
+    Luax::PushBoolean(L, !self->IsValid());
 
     return 1;
 }

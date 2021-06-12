@@ -24,4 +24,5 @@
 #include "pulleyjoint/wrap_pulleyjoint.h"
 #include "ropejoint/wrap_ropejoint.h"
 #include "weldjoint/wrap_weldjoint.h"
+#include "revolutejoint/wrap_revolutejoint.h"
 // clang-format on

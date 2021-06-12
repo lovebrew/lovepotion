@@ -28,7 +28,7 @@ bool QueryCallback::ReportFixture(b2Fixture* fixture)
         Luax::PushType(L, f);
         lua_call(L, 1, 1);
 
-        bool cont = lua_toboolean(L, -1);
+        bool cont = Luax::CheckBoolean(L, -1);
         lua_pop(L, 1);
 
         return cont;

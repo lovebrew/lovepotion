@@ -364,19 +364,17 @@ MouseJoint* Physics::NewMouseJoint(Body* body, float x, float y)
     return new MouseJoint(body, x, y);
 }
 
-// RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float
-// yB,
-//                                          bool collideConnected)
-// {
-//     return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected);
-// }
+RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                         bool collideConnected)
+{
+    return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected);
+}
 
-// RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float
-// yB,
-//                                          bool collideConnected, float referenceAngle)
-// {
-//     return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
-// }
+RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                         bool collideConnected, float referenceAngle)
+{
+    return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
+}
 
 PrismaticJoint* Physics::NewPrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
                                            float ax, float ay, bool collideConnected)

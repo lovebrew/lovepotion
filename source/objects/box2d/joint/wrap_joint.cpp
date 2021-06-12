@@ -117,7 +117,7 @@ int Wrap_Joint::GetCollideConnected(lua_State* L)
 {
     Joint* self = Wrap_Joint::CheckJoint(L, 1);
 
-    lua_pushboolean(L, self->GetCollideConnected());
+    Luax::PushBoolean(L, self->GetCollideConnected());
 
     return 1;
 }
@@ -151,7 +151,7 @@ int Wrap_Joint::IsDestroyed(lua_State* L)
 {
     Joint* joint = Luax::CheckType<Joint>(L, 1);
 
-    lua_pushboolean(L, !joint->IsValid());
+    Luax::PushBoolean(L, !joint->IsValid());
 
     return 1;
 }
