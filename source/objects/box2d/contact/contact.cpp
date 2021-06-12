@@ -30,7 +30,7 @@ bool Contact::IsValid()
 
 int Contact::GetPositions(lua_State* L)
 {
-    Luax::AssertArgc<1>(L);
+    Luax::AssertArgc<1, 1>(L);
 
     b2WorldManifold manifold;
     this->contact->GetWorldManifold(&manifold);

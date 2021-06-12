@@ -56,16 +56,16 @@ bool Shape::TestPoint(float x, float y, float radius, float px, float py) const
 
 int Shape::RayCast(lua_State* L) const
 {
-    float pointA = Physics::ScaleDown((float)luaL_checknumber(L, 1));
-    float pointB = Physics::ScaleDown((float)luaL_checknumber(L, 2));
+    float pointA = Physics::ScaleDown(luaL_checknumber(L, 1));
+    float pointB = Physics::ScaleDown(luaL_checknumber(L, 2));
 
-    float pointC = Physics::ScaleDown((float)luaL_checknumber(L, 3));
-    float pointD = Physics::ScaleDown((float)luaL_checknumber(L, 4));
+    float pointC = Physics::ScaleDown(luaL_checknumber(L, 3));
+    float pointD = Physics::ScaleDown(luaL_checknumber(L, 4));
 
     float maxFraction = luaL_checknumber(L, 5);
 
-    float x = Physics::ScaleDown((float)luaL_checknumber(L, 6));
-    float y = Physics::ScaleDown((float)luaL_checknumber(L, 7));
+    float x = Physics::ScaleDown(luaL_checknumber(L, 6));
+    float y = Physics::ScaleDown(luaL_checknumber(L, 7));
     float r = luaL_checknumber(L, 8);
 
     int childIndex = luaL_optinteger(L, 9, 1) - 1; // Convert from 1-based index

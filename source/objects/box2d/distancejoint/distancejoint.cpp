@@ -8,7 +8,14 @@ DistanceJoint::DistanceJoint(Body* a, Body* b, float x1, float y1, float x2, flo
                              bool collideConnected) :
     Joint(a, b),
     joint(NULL)
-{}
+{
+    b2DistanceJointDef definition;
+    definition.Initialize(a->body, b->body, Physics::ScaleDown(b2Vec2(x1, y1)),
+                          Physics::ScaleDown(b2Vec2(x2, y2)));
+    definition.collideConnected = collideConnected;
+
+    this->joint = (b2DistanceJoint*)this->CreateJoint(&definition);
+}
 
 DistanceJoint::~DistanceJoint()
 {}
