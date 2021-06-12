@@ -7,12 +7,16 @@ using namespace love;
 
 System::System()
 {
-    /* Create player selection UI settings */
-    PselUiSettings settings;
-    pselUiCreate(&settings, PselUiMode_UserSelector);
+    /* Check if there's a pre-selected user first */
+    if (R_FAILED(accountGetPreselectedUser(&this->userID)))
+    {
+        /* Create player selection UI settings */
+        PselUiSettings settings;
+        pselUiCreate(&settings, PselUiMode_UserSelector);
 
-    /* Ask for a user account */
-    pselUiShow(&settings, &this->userID);
+        /* Ask for a user account */
+        pselUiShow(&settings, &this->userID);
+    }
 }
 
 /* https://tinyurl.com/yyh7tnml */
