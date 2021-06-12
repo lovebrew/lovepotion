@@ -30,6 +30,9 @@ extern "C"
         /* wireless comms */
         R_ABORT_UNLESS(socketInitializeDefault());
 
+        /* friends */
+        R_ABORT_UNLESS(friendsInitialize(FriendsServiceType_Viewer));
+
         /* initialize controllers -- 4 players max */
         padConfigureInput(4, HidNpadStyleSet_NpadStandard);
 
@@ -40,6 +43,8 @@ extern "C"
     void userAppExit()
     {
         romfsExit();
+
+        friendsExit();
 
         socketExit();
 

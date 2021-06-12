@@ -85,6 +85,8 @@ int Wrap_DistanceJoint::GetStiffness(lua_State* L)
     DistanceJoint* self = Wrap_DistanceJoint::CheckDistanceJoint(L, 1);
 
     lua_pushnumber(L, self->GetStiffness());
+
+    return 1;
 }
 
 int Wrap_DistanceJoint::SetDamping(lua_State* L)
