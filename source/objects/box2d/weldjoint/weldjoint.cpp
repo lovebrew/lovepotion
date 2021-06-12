@@ -29,6 +29,14 @@ WeldJoint::WeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
     this->joint = (b2WeldJoint*)this->CreateJoint(&definition);
 }
 
+void WeldJoint::Initialize(b2WeldJointDef& definition, Body* a, Body* b, float xA, float yA,
+                           float xB, float yB, bool collideConnected)
+{
+    definition.Initialize(a->body, b->body, Physics::ScaleDown(b2Vec2(xA, yA)));
+    definition.localAnchorB     = b->body->GetLocalPoint(Physics::ScaleDown(b2Vec2(xB, yB)));
+    definition.collideConnected = collideConnected;
+}
+
 WeldJoint::~WeldJoint()
 {}
 

@@ -9,7 +9,9 @@
 #include "mousejoint/mousejoint.h"
 #include "prismaticjoint/prismaticjoint.h"
 #include "pulleyjoint/pulleyjoint.h"
+#include "revolutejoint/revolutejoint.h"
 #include "ropejoint/ropejoint.h"
+#include "weldjoint/weldjoint.h"
 
 using namespace love;
 
@@ -22,8 +24,8 @@ void Wrap_Joint::PushJoint(lua_State* L, Joint* joint)
     {
         case Joint::JOINT_DISTANCE:
             return Luax::PushType(L, DistanceJoint::type, joint);
-        // case Joint::JOINT_REVOLUTE:
-        //     return Luax::PushType(L, RevoluteJoint::type, joint);
+        case Joint::JOINT_REVOLUTE:
+            return Luax::PushType(L, RevoluteJoint::type, joint);
         case Joint::JOINT_PRISMATIC:
             return Luax::PushType(L, PrismaticJoint::type, joint);
         case Joint::JOINT_MOUSE:

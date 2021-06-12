@@ -23,7 +23,7 @@ namespace Wrap_WeldJoint
 
     int GetReferenceAngle(lua_State* L);
 
-    love::WeldJoint* CheckWeldJoint(lua_State* L);
+    love::WeldJoint* CheckWeldJoint(lua_State* L, int index);
 
     int Register(lua_State* L);
 } // namespace Wrap_WeldJoint

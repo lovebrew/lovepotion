@@ -44,6 +44,9 @@ void PrismaticJoint::Initialize(b2PrismaticJointDef& definition, Body* a, Body* 
     definition.collideConnected = collideConnected;
 }
 
+PrismaticJoint::~PrismaticJoint()
+{}
+
 float PrismaticJoint::GetJointTranslation() const
 {
     return Physics::ScaleUp(this->joint->GetJointTranslation());

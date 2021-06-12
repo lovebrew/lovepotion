@@ -59,5 +59,5 @@ int Wrap_FrictionJoint::Register(lua_State* L)
                          { "getMaxTorque", GetMaxTorque },
                          { 0, 0 } };
 
-    Luax::RegisterType(L, &FrictionJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &FrictionJoint::type, Wrap_Joint::functions, funcs, nullptr);
 }
