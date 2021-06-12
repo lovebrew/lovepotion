@@ -321,27 +321,27 @@ void Body::GetWorldVector(float x, float y, float& xOut, float& yOut)
 int Body::GetWorldPoints(lua_State* L)
 {
     int argc   = lua_gettop(L);
-    int vcount = (int)argc / 2;
+    int vcount = argc / 2;
 
     // at least one point
     Luax::AssertArgc<2>(L);
 
     for (int i = 0; i < vcount; i++)
     {
-        float x = (float)lua_tonumber(L, 1);
-        float y = (float)lua_tonumber(L, 2);
+        float x = lua_tonumber(L, 1);
+        float y = lua_tonumber(L, 2);
 
         // Remove them, so we don't run out of stack space
         lua_remove(L, 1);
         lua_remove(L, 1);
 
         // Time for scaling
-        b2Vec2 point =
-            Physics::ScaleDown(this->body->GetWorldPoint(Physics::ScaleDown(b2Vec2(x, y))));
+        b2Vec2 bodyPoint  = this->body->GetWorldPoint(Physics::ScaleDown(b2Vec2(x, y)));
+        b2Vec2 worldPoint = Physics::ScaleUp(bodyPoint);
 
         // And then we push the result
-        lua_pushnumber(L, point.x);
-        lua_pushnumber(L, point.y);
+        lua_pushnumber(L, worldPoint.x);
+        lua_pushnumber(L, worldPoint.y);
     }
 
     return argc;

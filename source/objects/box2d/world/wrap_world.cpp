@@ -17,7 +17,7 @@ int Wrap_World::Update(lua_State* L)
     World* self = Wrap_World::CheckWorld(L, 1);
     float dt    = luaL_checknumber(L, 2);
 
-    self->SetCallbacks(L);
+    self->SetLuaCallbacks(L);
 
     if (lua_isnoneornil(L, 3))
         Luax::CatchException(L, [&]() { self->Update(dt); });

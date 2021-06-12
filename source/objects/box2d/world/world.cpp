@@ -129,13 +129,14 @@ void World::EndContact(b2Contact* bContact)
     this->end.Process(bContact);
 
     Contact* contact = (Contact*)this->FindObject(bContact);
+
     if (contact != nullptr)
         contact->Invalidate();
 }
 
-void World::PreSolve(b2Contact* bContact, const b2Manifold* /*oldManifold*/)
+void World::PreSolve(b2Contact* contact, const b2Manifold* /*oldManifold*/)
 {
-    this->presolve.Process(bContact);
+    this->presolve.Process(contact);
 }
 
 void World::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
