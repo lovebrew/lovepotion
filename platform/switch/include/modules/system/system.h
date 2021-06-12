@@ -10,17 +10,7 @@ namespace love
     class System : public common::System
     {
       public:
-        enum ProductModel
-        {
-            MODEL_INVALID,
-            MODEL_NX,
-            MODEL_COPPER,
-            MODEL_IOWA,
-            MODEL_HOAG,
-            MODEL_CALCIO,
-            MODEL_AULA,
-            MODEL_MAX_ENUM
-        };
+        System();
 
         virtual ~System() {};
 
@@ -50,6 +40,7 @@ namespace love
 
         static constexpr uint8_t MAX_REGIONS = 6;
         static constexpr uint8_t MAX_THEMES  = 2;
+        static constexpr uint8_t MAX_MODELS  = 7;
 
         static bool GetConstant(const char* in, ColorSetId& out);
         static bool GetConstant(ColorSetId in, const char*& out);
@@ -58,16 +49,18 @@ namespace love
         static bool GetConstant(SetLanguage in, const char*& out);
         static std::vector<const char*> GetConstants(SetLanguage);
 
-        static bool GetConstant(const char* in, ProductModel& out);
-        static bool GetConstant(ProductModel in, const char*& out);
-        static std::vector<const char*> GetConstants(ProductModel);
+        static bool GetConstant(const char* in, SetSysProductModel& out);
+        static bool GetConstant(SetSysProductModel in, const char*& out);
+        static std::vector<const char*> GetConstants(SetSysProductModel);
 
         static bool GetConstant(const char* in, SetRegion& out);
         static bool GetConstant(SetRegion in, const char*& out);
         static std::vector<const char*> GetConstants(SetRegion);
 
       private:
-        const static StringMap<ProductModel, MODEL_MAX_ENUM> models;
+        AccountUid userID;
+
+        const static StringMap<SetSysProductModel, MAX_MODELS> models;
         const static StringMap<SetLanguage, SetLanguage_Total> languages;
         const static StringMap<SetRegion, MAX_REGIONS> regions;
         const static StringMap<ColorSetId, MAX_THEMES> themes;

@@ -56,5 +56,5 @@ int Wrap_GearJoint::Register(lua_State* L)
         { "setRatio", SetRatio }, { "getRatio", GetRatio }, { "getJoints", GetJoints }, { 0, 0 }
     };
 
-    Luax::RegisterType(L, &GearJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &GearJoint::type, Wrap_Joint::functions, funcs, nullptr);
 }

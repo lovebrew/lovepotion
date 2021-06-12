@@ -5,6 +5,16 @@
 
 using namespace love;
 
+System::System()
+{
+    /* Create player selection UI settings */
+    PselUiSettings settings;
+    pselUiCreate(&settings, PselUiMode_UserSelector);
+
+    /* Ask for a user account */
+    pselUiShow(&settings, &this->userID);
+}
+
 /* https://tinyurl.com/yyh7tnml */
 int System::GetProcessorCount()
 {
@@ -16,18 +26,11 @@ const std::string& System::GetUsername()
     if (!this->systemInfo.username.empty())
         return this->systemInfo.username;
 
-    AccountUid userID = { 0 };
+    AccountProfile profile {};
+    AccountProfileBase base {};
 
-    AccountProfile profile;
-    AccountProfileBase base;
-
-    memset(&base, 0, sizeof(base));
-
-    /* Check we get a Pre-Selected User */
-    R_UNLESS(accountGetPreselectedUser(&userID), LOVE_STRING_EMPTY);
-
-    /* Get the profile */
-    R_UNLESS(accountGetProfile(&profile, userID), LOVE_STRING_EMPTY);
+    /* Get the profile from the System's userID we selected */
+    R_UNLESS(accountGetProfile(&profile, this->userID), LOVE_STRING_EMPTY);
 
     /* Get the base profile */
     R_UNLESS(accountProfileGet(&profile, NULL, &base), LOVE_STRING_EMPTY);
@@ -42,16 +45,17 @@ const std::string& System::GetUsername()
 System::PowerState System::GetPowerInfo(uint8_t& percent) const
 {
     uint32_t batteryPercent = 100;
-    ChargerType chargerType = ChargerType_None;
+    PsmChargerType type     = PsmChargerType_Unconnected;
 
     PowerState state = PowerState::POWER_UNKNOWN;
 
     psmGetBatteryChargePercentage(&batteryPercent);
-    psmGetChargerType(&chargerType);
+    psmGetChargerType(&type);
 
-    state = (chargerType > 0) ? PowerState::POWER_CHARGING : PowerState::POWER_BATTERY;
+    state = (type > 0 && type != PsmChargerType_NotSupported) ? PowerState::POWER_CHARGING
+                                                              : PowerState::POWER_BATTERY;
 
-    if (percent == 100 && chargerType != ChargerType_None)
+    if (percent == 100 && type != PsmChargerType_Unconnected)
         state = PowerState::POWER_CHARGED;
 
     return state;
@@ -98,13 +102,13 @@ const std::string& System::GetModel()
     if (!this->systemInfo.model.empty())
         return this->systemInfo.model;
 
-    int32_t model = 0;
+    SetSysProductModel model = SetSysProductModel_Invalid;
 
     /* Get the Product Model */
     R_UNLESS(setsysGetProductModel(&model), LOVE_STRING_EMPTY);
 
     const char* name = nullptr;
-    if (!System::GetConstant(static_cast<ProductModel>(model), name))
+    if (!System::GetConstant(model, name))
         name = "Unknown";
 
     this->systemInfo.model = name;
@@ -150,7 +154,13 @@ const std::string& System::GetFriendCode()
     if (!this->systemInfo.friendCode.empty())
         return this->systemInfo.friendCode;
 
-    return LOVE_STRING_EMPTY;
+    FriendsUserSetting settings;
+
+    R_UNLESS(friendsGetUserSetting(this->userID, &settings), LOVE_STRING_EMPTY);
+
+    this->systemInfo.friendCode = settings.friend_code;
+
+    return this->systemInfo.friendCode;
 }
 
 const std::string& System::GetSystemTheme()
@@ -197,17 +207,17 @@ std::vector<const char*> System::GetConstants(SetLanguage)
 
 /* MODEL CONSTANTS */
 
-bool System::GetConstant(const char* in, ProductModel& out)
+bool System::GetConstant(const char* in, SetSysProductModel& out)
 {
     return models.Find(in, out);
 }
 
-bool System::GetConstant(ProductModel in, const char*& out)
+bool System::GetConstant(SetSysProductModel in, const char*& out)
 {
     return models.Find(in, out);
 }
 
-std::vector<const char*> System::GetConstants(ProductModel)
+std::vector<const char*> System::GetConstants(SetSysProductModel)
 {
     return models.GetNames();
 }
@@ -254,18 +264,18 @@ constexpr StringMap<SetLanguage, SetLanguage_Total>::Entry languageEntries[] =
 
 constinit const StringMap<SetLanguage, SetLanguage_Total> System::languages(languageEntries);
 
-constexpr StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM>::Entry modelEntries[] =
+constexpr StringMap<SetSysProductModel, System::MAX_MODELS>::Entry modelEntries[] =
 {
-    { "Invalid",           System::ProductModel::MODEL_INVALID },
-    { "Erista",            System::ProductModel::MODEL_NX      },
-    { "Erista Simulation", System::ProductModel::MODEL_COPPER  },
-    { "Mariko",            System::ProductModel::MODEL_IOWA    },
-    { "Mariko Lite",       System::ProductModel::MODEL_HOAG    },
-    { "Mariko Simulation", System::ProductModel::MODEL_CALCIO  },
-    { "Mariko Pro",        System::ProductModel::MODEL_AULA    }
+    { "Invalid",           SetSysProductModel_Invalid},
+    { "Erista",            SetSysProductModel_Nx      },
+    { "Erista Simulation", SetSysProductModel_Copper  },
+    { "Mariko",            SetSysProductModel_Iowa    },
+    { "Mariko Lite",       SetSysProductModel_Hoag    },
+    { "Mariko Simulation", SetSysProductModel_Calcio  },
+    { "Mariko Pro",        SetSysProductModel_Aula    }
 };
 
-constinit const StringMap<System::ProductModel, System::ProductModel::MODEL_MAX_ENUM> System::models(modelEntries);
+constinit const StringMap<SetSysProductModel, System::MAX_MODELS> System::models(modelEntries);
 
 constexpr StringMap<SetRegion, System::MAX_REGIONS>::Entry regionEntries[] =
 {
