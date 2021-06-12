@@ -24,6 +24,8 @@ extern "C"
 #include <memory>
 #include <string.h>
 
+#include "common/reference.h"
+
 namespace love
 {
     class Object;
@@ -122,6 +124,8 @@ namespace Luax
         return registry;
     }
 
+    love::Reference* RefIf(lua_State* L, int type);
+
     int Resume(lua_State* L, int nargs);
 
     int DoBuffer(lua_State* L, const char* buffer, size_t size, const char* name);
@@ -135,6 +139,8 @@ namespace Luax
     int GetLove(lua_State* L, const char* key);
 
     lua_State* InsistPinnedThread(lua_State* L);
+
+    lua_State* GetPinnedThread(lua_State* L);
 
     /* REGISTRY */
 
@@ -219,6 +225,8 @@ namespace Luax
 
     bool CheckBoolean(lua_State* L, int index);
 
+    void PushBoolean(lua_State* L, bool boolean);
+
     template<typename T>
     void PushType(lua_State* L, T* object)
     {
@@ -232,6 +240,20 @@ namespace Luax
     }
 
     int TypeErrror(lua_State* L, int narg, const char* name);
+
+    template<int min, int max = -1>
+    int AssertArgc(lua_State* L)
+    {
+        int argc = lua_gettop(L);
+
+        if (argc < min)
+            return luaL_error(L, "Incorrect number of arguments. Expected at least %d", min);
+
+        if (max != -1 && argc > max)
+            return luaL_error(L, "Incorrect number of arguments. Got [%d], expected [%d-%d]", argc,
+                              min, max);
+        return 0;
+    }
 
     template<typename T>
     T* ToType(lua_State* L, int index, const love::Type& /*type*/)

@@ -34,8 +34,8 @@ include $(DEVKITARM)/3ds_rules
 TARGET		:=	LOVEPotion
 BUILD		:=	build
 
-CONSOLE_INCLUDE := include   $(foreach d, $(wildcard include/*),   $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
-CONSOLE_SOURCES	:= source    $(foreach d, $(wildcard source/*),    $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+CONSOLE_INCLUDE := include $(foreach d, $(wildcard include/*), $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
+CONSOLE_SOURCES	:= source  $(foreach d, $(wildcard source/*),  $(if $(wildcard $d/.), $(call DIR_WILDCARD, $d) $d,))
 
 SOURCES		?=	${LOVE_SOURCES} \
 				${LOVE_LIBRARIES} \
@@ -66,7 +66,7 @@ CFLAGS	:=	-g -Wall -mword-relocations \
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS
 
-# custom defines
+# Custom defines
 CFLAGS	+= -DLOVE_POTION_CONSOLE="\"3DS\"" -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
@@ -74,8 +74,7 @@ CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=3dsx.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lmodplug -lphysfs -lz -lvorbisidec -lFLAC
-LIBS	+= `$(PREFIX)pkg-config libmpg123 --libs` -logg
+LIBS	:= ${LOVE_PORTLIBS} `$(PREFIX)pkg-config libmpg123 --libs`
 
 ifeq ($(strip $(DEBUG)),)
 	CFLAGS	+= -O2

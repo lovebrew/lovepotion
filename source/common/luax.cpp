@@ -150,6 +150,11 @@ bool Luax::CheckBoolean(lua_State* L, int index)
     return Luax::ToBoolean(L, index);
 }
 
+void Luax::PushBoolean(lua_State* L, bool boolean)
+{
+    lua_pushboolean(L, boolean ? 1 : 0);
+}
+
 /*
 ** @func DoBuffer
 ** Runs a specified Lua Buffer
@@ -314,6 +319,15 @@ lua_State* Luax::InsistPinnedThread(lua_State* L)
         lua_setfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
     }
 
+    lua_State* thread = lua_tothread(L, -1);
+    lua_pop(L, 1);
+
+    return thread;
+}
+
+lua_State* Luax::GetPinnedThread(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
     lua_State* thread = lua_tothread(L, -1);
     lua_pop(L, 1);
 
@@ -742,6 +756,19 @@ int Luax::TypeErrror(lua_State* L, int narg, const char* name)
 
     const char* msg = lua_pushfstring(L, "%s expected, got %s", name, typeName);
     return luaL_argerror(L, narg, msg);
+}
+
+Reference* Luax::RefIf(lua_State* L, int type)
+{
+    Reference* r = nullptr;
+
+    // Create a reference only if the test succeeds.
+    if (lua_type(L, -1) == type)
+        r = new Reference(L);
+    else // Pop the value manually if it fails (done by Reference if it succeeds).
+        lua_pop(L, 1);
+
+    return r;
 }
 
 int Luax::Traceback(lua_State* L)

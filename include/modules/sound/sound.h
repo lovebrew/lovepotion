@@ -5,10 +5,10 @@
 #include "objects/sounddata/sounddata.h"
 
 #include "flacdecoder.h"
+#include "modplugdecoder.h"
 #include "mp3decoder.h"
 #include "vorbisdecoder.h"
 #include "wavedecoder.h"
-#include "modplugdecoder.h"
 
 #include "common/module.h"
 
