@@ -172,6 +172,362 @@ int Wrap_Physics::NewChainShape(lua_State* L)
     return ret;
 }
 
+int Wrap_Physics::NewDistanceJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    float x1 = luaL_checknumber(L, 3);
+    float y1 = luaL_checknumber(L, 4);
+    float x2 = luaL_checknumber(L, 5);
+    float y2 = luaL_checknumber(L, 6);
+
+    bool collideConnected = Luax::OptBoolean(L, 7, false);
+    DistanceJoint* joint  = nullptr;
+
+    Luax::CatchException(
+        L, [&]() { joint = instance()->NewDistanceJoint(a, b, x1, y1, x2, y2, collideConnected); });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewMouseJoint(lua_State* L)
+{
+    Body* body = Wrap_Body::CheckBody(L, 1);
+
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
+
+    MouseJoint* joint = nullptr;
+
+    Luax::CatchException(L, [&]() { joint = instance()->NewMouseJoint(body, x, y); });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+// int Wrap_Physics::NewRevoluteJoint(lua_State* L)
+// {
+//     Body* body1 = Wrap_Body::CheckBody(L, 1);
+//     Body* body2 = Wrap_Body::CheckBody(L, 2);
+
+//     float xA = luaL_checknumber(L, 3);
+//     float yA = luaL_checknumber(L, 4);
+
+//     float xB, yB;
+//     bool collideConnected;
+
+//     if (lua_gettop(L) >= 6)
+//     {
+//         xB = luaL_checknumber(L, 5);
+//         yB = luaL_checknumber(L, 6);
+
+//         collideConnected = Luax::OptBoolean(L, 7, false);
+//     }
+//     else
+//     {
+//         xB = xA;
+//         yB = yA;
+
+//         collideConnected = Luax::OptBoolean(L, 5, false);
+//     }
+
+//     RevoluteJoint* joint;
+//     Luax::CatchException(L, [&]() {
+//         if (lua_gettop(L) >= 8)
+//         {
+//             float referenceAngle = luaL_checknumber(L, 8);
+//             joint = instance()->NewRevoluteJoint(body1, body2, xA, yA, xB, yB, collideConnected,
+//                                                  referenceAngle);
+//         }
+//         else
+//             joint = instance()->NewRevoluteJoint(body1, body2, xA, yA, xB, yB, collideConnected);
+//     });
+
+//     Luax::PushType(L, joint);
+//     joint->release();
+
+//     return 1;
+// }
+
+int Wrap_Physics::NewPrismaticJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB, ax, ay;
+    bool collideConnected;
+
+    if (lua_gettop(L) >= 8)
+    {
+        xB = luaL_checknumber(L, 5);
+        yB = luaL_checknumber(L, 6);
+        ax = luaL_checknumber(L, 7);
+        ay = luaL_checknumber(L, 8);
+
+        collideConnected = Luax::OptBoolean(L, 9, false);
+    }
+    else
+    {
+        xB = xA;
+        yB = yA;
+        ax = luaL_checknumber(L, 5);
+        ay = luaL_checknumber(L, 6);
+
+        collideConnected = Luax::OptBoolean(L, 7, false);
+    }
+
+    PrismaticJoint* joint = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        if (lua_gettop(L) >= 10)
+        {
+            float referenceAngle = luaL_checknumber(L, 10);
+            joint = instance()->NewPrismaticJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected,
+                                                  referenceAngle);
+        }
+        else
+            joint = instance()->NewPrismaticJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
+    });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewPulleyJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    float gx1   = luaL_checknumber(L, 3);
+    float gy1   = luaL_checknumber(L, 4);
+    float gx2   = luaL_checknumber(L, 5);
+    float gy2   = luaL_checknumber(L, 6);
+    float x1    = luaL_checknumber(L, 7);
+    float y1    = luaL_checknumber(L, 8);
+    float x2    = luaL_checknumber(L, 9);
+    float y2    = luaL_checknumber(L, 10);
+    float ratio = luaL_optnumber(L, 11, 1.0);
+
+    /* PulleyJoints default to colliding connected bodies, see b2PulleyJoint.h */
+    bool collideConnected = Luax::OptBoolean(L, 12, true);
+
+    PulleyJoint* joint = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        joint = instance()->NewPulleyJoint(a, b, b2Vec2(gx1, gy1), b2Vec2(gx2, gy2), b2Vec2(x1, y1),
+                                           b2Vec2(x2, y2), ratio, collideConnected);
+    });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewGearJoint(lua_State* L)
+{
+    Joint* a = Wrap_Joint::CheckJoint(L, 1);
+    Joint* b = Wrap_Joint::CheckJoint(L, 2);
+
+    float ratio           = luaL_optnumber(L, 3, 1.0);
+    bool collideConnected = Luax::OptBoolean(L, 4, false);
+
+    GearJoint* joint = nullptr;
+
+    Luax::CatchException(
+        L, [&]() { joint = instance()->NewGearJoint(a, b, ratio, collideConnected); });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewFrictionJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB;
+    bool collideConnected;
+
+    if (lua_gettop(L) >= 6)
+    {
+        xB = luaL_checknumber(L, 5);
+        yB = luaL_checknumber(L, 6);
+
+        collideConnected = Luax::OptBoolean(L, 7, false);
+    }
+    else
+    {
+        xB = xA;
+        yB = yA;
+
+        collideConnected = Luax::OptBoolean(L, 5, false);
+    }
+
+    FrictionJoint* joint = nullptr;
+
+    Luax::CatchException(
+        L, [&]() { joint = instance()->NewFrictionJoint(a, b, xA, yA, xB, yB, collideConnected); });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewWeldJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB;
+    bool collideConnected;
+
+    if (lua_gettop(L) >= 6)
+    {
+        xB = luaL_checknumber(L, 5);
+        yB = luaL_checknumber(L, 6);
+
+        collideConnected = Luax::OptBoolean(L, 7, false);
+    }
+    else
+    {
+        xB = xA;
+        yB = yA;
+
+        collideConnected = Luax::OptBoolean(L, 5, false);
+    }
+
+    WeldJoint* joint = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        if (lua_gettop(L) >= 8)
+        {
+            float referenceAngle = luaL_checknumber(L, 8);
+            joint =
+                instance()->NewWeldJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
+        }
+        else
+            joint = instance()->NewWeldJoint(a, b, xA, yA, xB, yB, collideConnected);
+    });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+// int Wrap_Physics::NewWheelJoint(lua_State* L)
+// {
+//     Body* a = Wrap_Body::CheckBody(L, 1);
+//     Body* b = Wrap_Body::CheckBody(L, 2);
+
+//     float xA = luaL_checknumber(L, 3);
+//     float yA = luaL_checknumber(L, 4);
+
+//     float xB, yB, ax, ay;
+//     bool collideConnected;
+
+//     if (lua_gettop(L) >= 8)
+//     {
+//         xB = luaL_checknumber(L, 5);
+//         yB = luaL_checknumber(L, 6);
+//         ax = luaL_checknumber(L, 7);
+//         ay = luaL_checknumber(L, 8);
+
+//         collideConnected = Luax::OptBoolean(L, 9, false);
+//     }
+//     else
+//     {
+//         xB = xA;
+//         yB = yA;
+//         ax = luaL_checknumber(L, 5);
+//         ay = luaL_checknumber(L, 6);
+
+//         collideConnected = Luax::OptBoolean(L, 7, false);
+//     }
+
+//     WheelJoint* joint = nullptr;
+
+//     Luax::CatchException(L, [&]() {
+//         joint = instance()->NewWheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
+//     });
+
+//     Luax::PushType(L, joint);
+//     joint->release();
+
+//     return 1;
+// }
+
+int Wrap_Physics::NewRopeJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    float x1        = luaL_checknumber(L, 3);
+    float y1        = luaL_checknumber(L, 4);
+    float x2        = luaL_checknumber(L, 5);
+    float y2        = luaL_checknumber(L, 6);
+    float maxLength = luaL_checknumber(L, 7);
+
+    bool collideConnected = Luax::OptBoolean(L, 8, false);
+
+    RopeJoint* joint = nullptr;
+
+    Luax::CatchException(L, [&]() {
+        joint = instance()->NewRopeJoint(a, b, x1, y1, x2, y2, maxLength, collideConnected);
+    });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewMotorJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
+
+    MotorJoint* joint = nullptr;
+
+    if (!lua_isnoneornil(L, 3))
+    {
+        float correctionFactor = luaL_checknumber(L, 3);
+        bool collideConnected  = Luax::OptBoolean(L, 4, false);
+
+        Luax::CatchException(L, [&]() {
+            joint = instance()->NewMotorJoint(a, b, correctionFactor, collideConnected);
+        });
+    }
+    else
+        Luax::CatchException(L, [&]() { joint = instance()->NewMotorJoint(a, b); });
+
+    Luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
 int Wrap_Physics::GetDistance(lua_State* L)
 {
     return instance()->GetDistance(L);
@@ -202,6 +558,18 @@ int Wrap_Physics::Register(lua_State* L)
                          { "newPolygonShape", NewPolygonShape },
                          { "newEdgeShape", NewEdgeShape },
                          { "newChainShape", NewChainShape },
+                         { "newDistanceJoint", NewDistanceJoint },
+                         { "newMouseJoint", NewMouseJoint },
+                         //  { "newRevoluteJoint", NewRevoluteJoint },
+                         { "newPrismaticJoint", NewPrismaticJoint },
+                         { "newPulleyJoint", NewPulleyJoint },
+                         { "newGearJoint", NewGearJoint },
+                         { "newFrictionJoint", NewFrictionJoint },
+                         { "newWeldJoint", NewWeldJoint },
+                         //  { "newWheelJoint", NewWheelJoint },
+                         { "newRopeJoint", NewRopeJoint },
+                         { "newMotorJoint", NewMotorJoint },
+                         { "getDistance", GetDistance },
                          { "getMeter", GetMeter },
                          { "setMeter", SetMeter },
                          { 0, 0 } };

@@ -353,6 +353,97 @@ int Physics::NewChainShape(lua_State* L)
     return 1;
 }
 
+DistanceJoint* Physics::NewDistanceJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,
+                                         bool collideConnected)
+{
+    return new DistanceJoint(a, b, x1, y1, x2, y2, collideConnected);
+}
+
+MouseJoint* Physics::NewMouseJoint(Body* body, float x, float y)
+{
+    return new MouseJoint(body, x, y);
+}
+
+// RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float
+// yB,
+//                                          bool collideConnected)
+// {
+//     return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected);
+// }
+
+// RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float
+// yB,
+//                                          bool collideConnected, float referenceAngle)
+// {
+//     return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
+// }
+
+PrismaticJoint* Physics::NewPrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                           float ax, float ay, bool collideConnected)
+{
+    return new PrismaticJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
+}
+
+PrismaticJoint* Physics::NewPrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                           float ax, float ay, bool collideConnected,
+                                           float referenceAngle)
+{
+    return new PrismaticJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected, referenceAngle);
+}
+
+PulleyJoint* Physics::NewPulleyJoint(Body* a, Body* b, b2Vec2 groundAnchor1, b2Vec2 groundAnchor2,
+                                     b2Vec2 anchor1, b2Vec2 anchor2, float ratio,
+                                     bool collideConnected)
+{
+    return new PulleyJoint(a, b, groundAnchor1, groundAnchor2, anchor1, anchor2, ratio,
+                           collideConnected);
+}
+
+GearJoint* Physics::NewGearJoint(Joint* a, Joint* b, float ratio, bool collideConnected)
+{
+    return new GearJoint(a, b, ratio, collideConnected);
+}
+
+FrictionJoint* Physics::NewFrictionJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                         bool collideConnected)
+{
+    return new FrictionJoint(a, b, xA, yA, xB, yB, collideConnected);
+}
+
+WeldJoint* Physics::NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                 bool collideConnected)
+{
+    return new WeldJoint(a, b, xA, yA, xB, yB, collideConnected);
+}
+
+WeldJoint* Physics::NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                 bool collideConnected, float referenceAngle)
+{
+    return new WeldJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
+}
+
+// WheelJoint* Physics::NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+//                                    float ax, float ay, bool collideConnected)
+// {
+//     return new WheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
+// }
+
+RopeJoint* Physics::NewRopeJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,
+                                 float maxLength, bool collideConnected)
+{
+    return new RopeJoint(a, b, x1, y1, x2, y2, maxLength, collideConnected);
+}
+
+MotorJoint* Physics::NewMotorJoint(Body* a, Body* b)
+{
+    return new MotorJoint(a, b);
+}
+
+MotorJoint* Physics::NewMotorJoint(Body* a, Body* b, float correctionFactor, bool collideConnected)
+{
+    return new MotorJoint(a, b, correctionFactor, collideConnected);
+}
+
 Fixture* Physics::NewFixture(Body* body, Shape* shape, float density)
 {
     return new Fixture(body, shape, density);

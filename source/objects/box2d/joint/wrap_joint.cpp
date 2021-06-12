@@ -34,8 +34,8 @@ void Wrap_Joint::PushJoint(lua_State* L, Joint* joint)
             return Luax::PushType(L, GearJoint::type, joint);
         case Joint::JOINT_FRICTION:
             return Luax::PushType(L, FrictionJoint::type, joint);
-        // case Joint::JOINT_WELD:
-        //     return Luax::PushType(L, WeldJoint::type, joint);
+        case Joint::JOINT_WELD:
+            return Luax::PushType(L, WeldJoint::type, joint);
         // case Joint::JOINT_WHEEL:
         //     return Luax::PushType(L, WheelJoint::type, joint);
         case Joint::JOINT_ROPE:
