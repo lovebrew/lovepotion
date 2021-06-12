@@ -436,47 +436,47 @@ int Wrap_Physics::NewWeldJoint(lua_State* L)
     return 1;
 }
 
-// int Wrap_Physics::NewWheelJoint(lua_State* L)
-// {
-//     Body* a = Wrap_Body::CheckBody(L, 1);
-//     Body* b = Wrap_Body::CheckBody(L, 2);
+int Wrap_Physics::NewWheelJoint(lua_State* L)
+{
+    Body* a = Wrap_Body::CheckBody(L, 1);
+    Body* b = Wrap_Body::CheckBody(L, 2);
 
-//     float xA = luaL_checknumber(L, 3);
-//     float yA = luaL_checknumber(L, 4);
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
 
-//     float xB, yB, ax, ay;
-//     bool collideConnected;
+    float xB, yB, ax, ay;
+    bool collideConnected;
 
-//     if (lua_gettop(L) >= 8)
-//     {
-//         xB = luaL_checknumber(L, 5);
-//         yB = luaL_checknumber(L, 6);
-//         ax = luaL_checknumber(L, 7);
-//         ay = luaL_checknumber(L, 8);
+    if (lua_gettop(L) >= 8)
+    {
+        xB = luaL_checknumber(L, 5);
+        yB = luaL_checknumber(L, 6);
+        ax = luaL_checknumber(L, 7);
+        ay = luaL_checknumber(L, 8);
 
-//         collideConnected = Luax::OptBoolean(L, 9, false);
-//     }
-//     else
-//     {
-//         xB = xA;
-//         yB = yA;
-//         ax = luaL_checknumber(L, 5);
-//         ay = luaL_checknumber(L, 6);
+        collideConnected = Luax::OptBoolean(L, 9, false);
+    }
+    else
+    {
+        xB = xA;
+        yB = yA;
+        ax = luaL_checknumber(L, 5);
+        ay = luaL_checknumber(L, 6);
 
-//         collideConnected = Luax::OptBoolean(L, 7, false);
-//     }
+        collideConnected = Luax::OptBoolean(L, 7, false);
+    }
 
-//     WheelJoint* joint = nullptr;
+    WheelJoint* joint = nullptr;
 
-//     Luax::CatchException(L, [&]() {
-//         joint = instance()->NewWheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
-//     });
+    Luax::CatchException(L, [&]() {
+        joint = instance()->NewWheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
+    });
 
-//     Luax::PushType(L, joint);
-//     joint->release();
+    Luax::PushType(L, joint);
+    joint->Release();
 
-//     return 1;
-// }
+    return 1;
+}
 
 int Wrap_Physics::NewRopeJoint(lua_State* L)
 {
@@ -566,7 +566,7 @@ int Wrap_Physics::Register(lua_State* L)
                          { "newGearJoint", NewGearJoint },
                          { "newFrictionJoint", NewFrictionJoint },
                          { "newWeldJoint", NewWeldJoint },
-                         //  { "newWheelJoint", NewWheelJoint },
+                         { "newWheelJoint", NewWheelJoint },
                          { "newRopeJoint", NewRopeJoint },
                          { "newMotorJoint", NewMotorJoint },
                          { "getDistance", GetDistance },
@@ -574,16 +574,15 @@ int Wrap_Physics::Register(lua_State* L)
                          { "setMeter", SetMeter },
                          { 0, 0 } };
 
-    lua_CFunction types[] = { Wrap_Contact::Register,       Wrap_Fixture::Register,
-                              Wrap_Shape::Register,         Wrap_Body::Register,
-                              Wrap_Joint::Register,         Wrap_World::Register,
-                              Wrap_EdgeShape::Register,     Wrap_ChainShape::Register,
-                              Wrap_CircleShape::Register,   Wrap_PolygonShape::Register,
-                              Wrap_DistanceJoint::Register, Wrap_FrictionJoint::Register,
-                              Wrap_GearJoint::Register,     Wrap_MotorJoint::Register,
-                              Wrap_MouseJoint::Register,    Wrap_PrismaticJoint::Register,
-                              Wrap_PulleyJoint::Register,   Wrap_RopeJoint::Register,
-                              Wrap_WeldJoint::Register,     0 };
+    lua_CFunction types[] = {
+        Wrap_Contact::Register,        Wrap_Fixture::Register,       Wrap_Shape::Register,
+        Wrap_Body::Register,           Wrap_Joint::Register,         Wrap_World::Register,
+        Wrap_EdgeShape::Register,      Wrap_ChainShape::Register,    Wrap_CircleShape::Register,
+        Wrap_PolygonShape::Register,   Wrap_DistanceJoint::Register, Wrap_FrictionJoint::Register,
+        Wrap_GearJoint::Register,      Wrap_MotorJoint::Register,    Wrap_MouseJoint::Register,
+        Wrap_PrismaticJoint::Register, Wrap_PulleyJoint::Register,   Wrap_RopeJoint::Register,
+        Wrap_WeldJoint::Register,      Wrap_WheelJoint::Register,    0
+    };
 
     Physics* instance = instance();
 

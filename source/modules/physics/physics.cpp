@@ -420,11 +420,11 @@ WeldJoint* Physics::NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB,
     return new WeldJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
 }
 
-// WheelJoint* Physics::NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-//                                    float ax, float ay, bool collideConnected)
-// {
-//     return new WheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
-// }
+WheelJoint* Physics::NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                   float ax, float ay, bool collideConnected)
+{
+    return new WheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
+}
 
 RopeJoint* Physics::NewRopeJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,
                                  float maxLength, bool collideConnected)

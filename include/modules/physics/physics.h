@@ -22,6 +22,7 @@
 #include "revolutejoint/revolutejoint.h"
 #include "ropejoint/ropejoint.h"
 #include "weldjoint/weldjoint.h"
+#include "wheeljoint/wheeljoint.h"
 
 namespace love
 {
@@ -132,8 +133,8 @@ namespace love
         WeldJoint* NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
                                 bool collideConnected, float referenceAngle);
 
-        // WheelJoint* NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-        //                           float ax, float ay, bool collideConnected);
+        WheelJoint* NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
+                                  float ax, float ay, bool collideConnected);
 
         RopeJoint* NewRopeJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,
                                 float maxLength, bool collideConnected);
