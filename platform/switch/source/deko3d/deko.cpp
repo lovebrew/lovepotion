@@ -471,17 +471,9 @@ float deko3d::GetPointSize()
     return this->state.pointSize;
 }
 
-void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
+void deko3d::SetColorMask(const love::Graphics::ColorMask& mask)
 {
-    uint32_t mask             = 0;
-    const GPU_MaskArray masks = {
-        { { r, DkColorMask_R }, { g, DkColorMask_G }, { b, DkColorMask_B }, { a, DkColorMask_A } }
-    };
-
-    for (const auto& pair : masks)
-        mask |= pair.first ? pair.second : 0;
-
-    this->state.colorWrite.setMask(0, mask);
+    this->state.colorWrite.setMask(0, mask.GetColorMask());
 }
 
 void deko3d::SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,

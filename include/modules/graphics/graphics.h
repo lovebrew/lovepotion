@@ -143,6 +143,11 @@ namespace love
             {
                 return !(operator==(m));
             }
+
+            uint8_t GetColorMask() const
+            {
+                return (r ? 1 : 0) | (g ? 2 : 0) | (b ? 4 : 0) | (a ? 8 : 0);
+            }
         };
 
         std::vector<Matrix4> transformStack;

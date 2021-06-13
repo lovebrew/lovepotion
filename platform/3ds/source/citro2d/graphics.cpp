@@ -219,7 +219,7 @@ void love::citro2d::Graphics::SetColor(Colorf color)
 
 void love::citro2d::Graphics::SetColorMask(ColorMask mask)
 {
-    ::citro2d::Instance().SetColorMask(mask.r, mask.g, mask.b, mask.a);
+    ::citro2d::Instance().SetColorMask(mask);
     states.back().colorMask = mask;
 }
 

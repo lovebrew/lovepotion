@@ -4,6 +4,8 @@
 #include "objects/canvas/canvas.h"
 #include <citro2d.h>
 
+#include "graphics/graphics.h"
+
 class citro2d
 {
   private:
@@ -45,7 +47,7 @@ class citro2d
     void SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor, GPU_BLENDFACTOR srcAlpha,
                       GPU_BLENDFACTOR dstColor, GPU_BLENDFACTOR dstAlpha);
 
-    void SetColorMask(bool r, bool g, bool b, bool a);
+    void SetColorMask(const love::Graphics::ColorMask& mask);
 
     static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
 
@@ -61,8 +63,6 @@ class citro2d
 
         GPU_PROCTEX_FILTER mipMap;
     } filter;
-
-    typedef std::array<std::pair<bool, uint8_t>, 4> GPU_MaskArray;
 
     struct
     {

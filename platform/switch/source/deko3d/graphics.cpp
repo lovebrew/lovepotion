@@ -616,9 +616,7 @@ void love::deko3d::Graphics::SetScissor(const Rect& scissor)
 
 void love::deko3d::Graphics::SetColorMask(ColorMask mask)
 {
-    // flushStreamDraws();
-
-    ::deko3d::Instance().SetColorMask(mask.r, mask.g, mask.b, mask.a);
+    ::deko3d::Instance().SetColorMask(mask);
     states.back().colorMask = mask;
 }
 

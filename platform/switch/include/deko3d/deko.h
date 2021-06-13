@@ -16,6 +16,7 @@
 
 #include "common/lmath.h"
 #include "deko3d/vertex.h"
+#include "graphics/graphics.h"
 
 #include "deko3d/CDescriptorSet.h"
 
@@ -80,7 +81,7 @@ class deko3d
 
     void UseProgram(const love::Shader::Program& program);
 
-    void SetColorMask(bool r, bool g, bool b, bool a);
+    void SetColorMask(const love::Graphics::ColorMask& mask);
 
     float GetPointSize();
 
@@ -156,8 +157,6 @@ class deko3d
 
     uint32_t firstVertex = 0;
     BitwiseAlloc<MAX_OBJECTS> allocator;
-
-    typedef std::array<std::pair<bool, uint8_t>, 4> GPU_MaskArray;
 
     enum State
     {
