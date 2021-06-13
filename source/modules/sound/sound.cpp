@@ -48,7 +48,25 @@ Decoder* Sound::NewDecoder(FileData* data, int bufferSize)
             return item.Create(data, bufferSize);
     }
 
-    throw love::Exception("Failed to determine file type for %s.", data->GetFilename().c_str());
+    /* extension detection fails, let's probe 'em */
+    std::string decodingErrors = "Failed to determine file type:\n";
+
+    for (DecoderImpl& item : possibilities)
+    {
+        try
+        {
+            Decoder* decoder = item.Create(data, bufferSize);
+
+            return decoder;
+        }
+        catch (love::Exception& e)
+        {
+            decodingErrors += e.what() + '\n';
+        }
+    }
+
+    /* probing failure, throw the errors */
+    throw love::Exception(decodingErrors.c_str());
 
     return nullptr;
 }
