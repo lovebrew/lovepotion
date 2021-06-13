@@ -180,6 +180,18 @@ void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<i
     }
 }
 
+void love::citro2d::Graphics::Clear(std::vector<std::optional<Colorf>>& colors,
+                                    std::optional<int> stencil, std::optional<double> depth)
+{
+    int numColors = colors.size();
+
+    if (numColors == 0 || !stencil.has_value() || !depth.has_value())
+        return;
+
+    if (numColors <= 1)
+        this->Clear(numColors > 0 ? colors[0] : std::optional<Colorf>(), stencil, depth);
+}
+
 void love::citro2d::Graphics::Present()
 {
     if (this->IsCanvasActive())
