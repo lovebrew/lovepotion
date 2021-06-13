@@ -620,6 +620,7 @@ int Wrap_Graphics::Pop(lua_State* L)
 int Wrap_Graphics::Clear(lua_State* L)
 {
     std::optional<Colorf> color(Colorf(0, 0, 0, 0));
+    std::vector<std::optional<Colorf>> colors;
 
     std::optional<int> stencil(0);
     std::optional<double> depth(1.0);
@@ -629,7 +630,44 @@ int Wrap_Graphics::Clear(lua_State* L)
 
     Graphics::CURRENT_DEPTH = 0.0f;
 
-    if (argtype != LUA_TNONE && argtype != LUA_TNIL)
+    if (argtype == LUA_TTABLE)
+    {
+        int max = lua_gettop(L);
+        colors.reserve(max);
+
+        for (int index = 0; index < max; index++)
+        {
+            argtype = lua_type(L, index + 1);
+
+            if (argtype == LUA_TNUMBER || argtype == LUA_TBOOLEAN)
+            {
+                start = index + 1;
+                break;
+            }
+            else if (argtype == LUA_TNIL || argtype == LUA_TNONE || lua_objlen(L, index + 1) == 0)
+            {
+                colors.push_back(std::optional<Colorf>());
+                continue;
+            }
+
+            for (int j = 1; j <= 4; j++)
+                lua_rawgeti(L, index + 1, j);
+
+            std::optional<Colorf> clr;
+
+            clr.value().r = luaL_checknumber(L, -4);
+            clr.value().g = luaL_checknumber(L, -3);
+            clr.value().b = luaL_checknumber(L, -2);
+            clr.value().a = luaL_optnumber(L, -1, 1.0f);
+
+            colors.push_back(clr);
+
+            lua_pop(L, 4);
+        }
+    }
+    else if (argtype == LUA_TBOOLEAN)
+        start = 2;
+    else if (argtype != LUA_TNONE && argtype != LUA_TNIL)
     {
         color.value().r = luaL_checknumber(L, 1);
         color.value().g = luaL_checknumber(L, 2);
@@ -650,7 +688,10 @@ int Wrap_Graphics::Clear(lua_State* L)
             depth.value() = luaL_checknumber(L, start + 1);
     }
 
-    Luax::CatchException(L, [&]() { instance()->Clear(color, stencil, depth); });
+    if (colors.empty())
+        Luax::CatchException(L, [&]() { instance()->Clear(color, stencil, depth); });
+    else
+        Luax::CatchException(L, [&]() { instance()->Clear(colors, stencil, depth); });
 
     return 0;
 }

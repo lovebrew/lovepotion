@@ -303,6 +303,9 @@ namespace love
         virtual void Clear(std::optional<Colorf> color, std::optional<int> stencil,
                            std::optional<double> depth) = 0;
 
+        virtual void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
+                           std::optional<double> depth) = 0;
+
         virtual void SetBlendMode(BlendMode mode, BlendAlpha alpha) = 0;
 
         virtual void SetColorMask(ColorMask mask) = 0;

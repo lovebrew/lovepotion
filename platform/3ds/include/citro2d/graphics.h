@@ -42,6 +42,9 @@ namespace love::citro2d
         void Clear(std::optional<Colorf> color, std::optional<int> stencil,
                    std::optional<double> depth) override;
 
+        void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
+                   std::optional<double> depth) override;
+
         void Present() override;
 
         void SetColor(Colorf color) override;
