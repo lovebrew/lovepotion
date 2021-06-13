@@ -126,7 +126,7 @@ namespace love
 
         struct ColorMask
         {
-            bool r, g, b, a;
+            bool r : 1, g : 1, b : 1, a : 1;
 
             ColorMask() : r(true), g(true), b(true), a(true)
             {}
@@ -146,7 +146,7 @@ namespace love
 
             uint8_t GetColorMask() const
             {
-                return (r ? 1 : 0) | (g ? 2 : 0) | (b ? 4 : 0) | (a ? 8 : 0);
+                return r | (g << 1) | (b << 2) | (a << 3);
             }
         };
 
