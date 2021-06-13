@@ -60,6 +60,22 @@ void citro2d::SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor,
     C3D_AlphaBlend(func, func, srcColor, dstColor, srcAlpha, dstAlpha);
 }
 
+void citro2d::SetColorMask(bool r, bool g, bool b, bool a)
+{
+    C2D_Flush();
+
+    uint8_t mask              = GPU_WRITE_DEPTH;
+    const GPU_MaskArray masks = { { { r, GPU_WRITE_RED },
+                                    { g, GPU_WRITE_GREEN },
+                                    { b, GPU_WRITE_BLUE },
+                                    { a, GPU_WRITE_ALPHA } } };
+
+    for (const auto& pair : masks)
+        mask |= pair.first ? pair.second : 0;
+
+    C3D_DepthTest(true, GPU_ALWAYS, static_cast<GPU_WRITEMASK>(mask));
+}
+
 void citro2d::Set3D(bool enable)
 {
     gfxSet3D(enable);

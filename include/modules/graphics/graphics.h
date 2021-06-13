@@ -37,9 +37,6 @@
 #include <optional>
 
 #if defined(__SWITCH__)
-// #include "objects/font.h"
-// using gFont = love::deko3d::Font;
-
     #include "deko3d/shader.h"
     #include "deko3d/vertex.h"
 

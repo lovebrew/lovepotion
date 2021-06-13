@@ -119,7 +119,7 @@ namespace love::citro2d
 
         /* Useless */
 
-        void SetColorMask(ColorMask mask) override {};
+        void SetColorMask(ColorMask mask) override;
 
         static constexpr int MAX_2D_SCREENS = 2;
 

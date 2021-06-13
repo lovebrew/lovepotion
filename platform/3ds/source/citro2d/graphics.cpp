@@ -217,6 +217,12 @@ void love::citro2d::Graphics::SetColor(Colorf color)
     this->states.back().foreground = color;
 }
 
+void love::citro2d::Graphics::SetColorMask(ColorMask mask)
+{
+    ::citro2d::Instance().SetColorMask(mask.r, mask.g, mask.b, mask.a);
+    states.back().colorMask = mask;
+}
+
 Font* love::citro2d::Graphics::NewDefaultFont(int size, const Texture::Filter& filter)
 {
     auto fontModule = Module::GetInstance<FontModule>(M_FONT);

@@ -157,6 +157,8 @@ class deko3d
     uint32_t firstVertex = 0;
     BitwiseAlloc<MAX_OBJECTS> allocator;
 
+    typedef std::array<std::pair<bool, uint8_t>, 4> GPU_MaskArray;
+
     enum State
     {
         STATE_PRIMITIVE,

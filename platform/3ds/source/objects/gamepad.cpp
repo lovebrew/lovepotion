@@ -248,10 +248,7 @@ bool Gamepad::IsDown(const std::vector<size_t>& buttonsVector) const
 
 bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& buttonsVector) const
 {
-    auto recordPair = buttons.GetEntries();
-
     uint32_t heldSet = hidKeysHeld();
-    auto records     = recordPair.first;
 
     GamepadButton consoleButton = INVALID_GAMEPAD_BUTTON;
     const char* name            = nullptr;

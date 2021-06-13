@@ -473,12 +473,12 @@ float deko3d::GetPointSize()
 
 void deko3d::SetColorMask(bool r, bool g, bool b, bool a)
 {
-    uint32_t mask                                        = 0;
-    const std::array<std::pair<bool, uint32_t>, 4> masks = {
+    uint32_t mask             = 0;
+    const GPU_MaskArray masks = {
         { { r, DkColorMask_R }, { g, DkColorMask_G }, { b, DkColorMask_B }, { a, DkColorMask_A } }
     };
 
-    for (const std::pair<bool, uint32_t>& pair : masks)
+    for (const auto& pair : masks)
         mask |= pair.first ? pair.second : 0;
 
     this->state.colorWrite.setMask(0, mask);
