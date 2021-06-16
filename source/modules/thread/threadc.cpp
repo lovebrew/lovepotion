@@ -6,7 +6,7 @@
 
 using namespace love;
 
-love::common::Thread::Thread(Threadable* t) : t(t), running(false), hasThread(false)
+love::common::Thread::Thread(Threadable* t) : t(t), running(false), hasThread(false), thread {}
 {}
 
 love::common::Thread::~Thread()
