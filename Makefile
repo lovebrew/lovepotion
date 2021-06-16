@@ -55,11 +55,11 @@ $(DIST):
 
 dist-ctr: ctr $(DIST)
 	@echo Built for 3DS..
-	@zip -ujqr ./$(DIST)/LOVEPotion-3DS-$(COMMIT_HASH).zip platform -i '*.3dsx' '*.elf'
+	@zip -ujqr ./$(DIST)/LOVEPotion-3DS-$(COMMIT_HASH).zip platform/3ds -i '*.3dsx' '*.elf'
 
 dist-hac: hac $(DIST)
 	@echo Built for Switch..
-	@zip -ujqr ./$(DIST)/LOVEPotion-Switch-$(COMMIT_HASH).zip platform -i '*.nro' '*.elf'
+	@zip -ujqr ./$(DIST)/LOVEPotion-Switch-$(COMMIT_HASH).zip platform/switch -i '*.nro' '*.elf'
 
 #-----------------------------------
 # Debug/Development
