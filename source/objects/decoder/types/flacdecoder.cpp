@@ -250,8 +250,6 @@ int FLACDecoder::Decode(s16* buffer)
     }
 
     return read;
-
-    return read;
 }
 
 bool FLACDecoder::Seek(double position)
