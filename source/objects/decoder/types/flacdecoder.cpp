@@ -3,23 +3,24 @@
 
 using namespace love;
 
-bool FLACDecoder::inited = false;
+/* this is stupid and should be fixed */
+#define BUFFER_SIZE_SAMP (FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS)
 
-static void converBuffers(int32_t* source, int16_t* destination, size_t count, size_t result)
+static void converBuffers(int32_t* source, int16_t* destination, size_t count, size_t resolution)
 {
     int32_t* readBuffer  = source;
     int16_t* writeBuffer = destination;
 
-    if (result < Decoder::DEFAULT_BIT_DEPTH)
+    if (resolution < Decoder::DEFAULT_BIT_DEPTH)
     {
-        const uint8_t kPower = static_cast<uint8_t>(Decoder::DEFAULT_BIT_DEPTH - result);
+        const uint8_t kPower = static_cast<uint8_t>(Decoder::DEFAULT_BIT_DEPTH - resolution);
 
         for (unsigned i = 0; i < count; i++)
             *writeBuffer++ = readBuffer[i] << kPower;
     }
-    else if (result > Decoder::DEFAULT_BIT_DEPTH)
+    else if (resolution > Decoder::DEFAULT_BIT_DEPTH)
     {
-        const uint8_t kPower = static_cast<uint8_t>(result - Decoder::DEFAULT_BIT_DEPTH);
+        const uint8_t kPower = static_cast<uint8_t>(resolution - Decoder::DEFAULT_BIT_DEPTH);
 
         for (unsigned i = 0; i < count; i++)
             *writeBuffer++ = readBuffer[i] >> kPower;
@@ -34,7 +35,7 @@ static void converBuffers(int32_t* source, int16_t* destination, size_t count, s
 static void callbackFrameClear(FLACDecoder::FLACFile* file)
 {
     file->bufferUsed = 0;
-    memset(file->outputBuffer, 0, file->size);
+    memset(file->outputBuffer, 0, BUFFER_SIZE_SAMP);
     file->writeBuffer = &file->outputBuffer[0];
 }
 
@@ -72,6 +73,7 @@ static FLAC__StreamDecoderWriteStatus writeCallback(const FLAC__StreamDecoder* d
                                                     void* clientData)
 {
     FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
+    callbackFrameClear(file);
 
     if (file->channels != frame->header.channels || file->sampleRate != frame->header.sample_rate)
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
@@ -91,8 +93,8 @@ static FLAC__StreamDecoderWriteStatus writeCallback(const FLAC__StreamDecoder* d
 static void errorCallback(const FLAC__StreamDecoder* decoder, FLAC__StreamDecoderErrorStatus status,
                           void* clientData)
 {
-    const char* message;
 #if defined(DEBUG)
+    const char* message;
     LOG("FLAC: Decoder error callback called: %d\n", status);
     if ((message = FLAC__StreamDecoderErrorStatusString[status]))
         LOG("FLAC: Status of %d: %s\n", status, message);
@@ -166,7 +168,7 @@ FLACDecoder::FLACDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
     this->file.data = (const char*)data->GetData();
     this->file.size = data->GetSize();
 
-    this->file.outputBuffer = new int32_t[this->file.size];
+    this->file.outputBuffer = new int32_t[BUFFER_SIZE_SAMP];
     this->file.read         = 0;
 
     this->status = FLAC__stream_decoder_init_stream(
@@ -181,8 +183,6 @@ FLACDecoder::FLACDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
 
     if (!success)
         throw love::Exception("Failed to read FLAC metadata!");
-
-    FLACDecoder::inited = true;
 }
 
 FLACDecoder::~FLACDecoder()
@@ -190,7 +190,7 @@ FLACDecoder::~FLACDecoder()
     FLAC__stream_decoder_finish(this->decoder);
     FLAC__stream_decoder_delete(this->decoder);
 
-    FLACDecoder::inited = false;
+    delete this->file.outputBuffer;
 }
 
 bool FLACDecoder::Accepts(const std::string& ext)
@@ -218,17 +218,36 @@ int FLACDecoder::Decode()
 
 int FLACDecoder::Decode(s16* buffer)
 {
+    size_t read = 0;
+
     if (FLAC__stream_decoder_get_state(this->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
         return 0;
 
-    callbackFrameClear(&this->file);
+    if (this->decodeBufferRead >= this->file.bufferUsed * sizeof(int16_t) ||
+        !this->decodeBufferRead)
+    {
+        if (!FLAC__stream_decoder_process_single(this->decoder))
+            return 0;
 
-    if (!FLAC__stream_decoder_process_single(this->decoder))
-        return 0;
+        this->decodeBufferRead = 0;
+    }
 
-    converBuffers(this->file.outputBuffer, buffer, this->file.bufferUsed, this->GetBitDepth());
+    if (this->decodeBufferRead)
+    {
+        size_t clamp =
+            this->bufferSize - (this->file.bufferUsed * sizeof(int16_t) - this->decodeBufferRead);
 
-    return this->file.bufferUsed;
+        if (this->decodeBufferRead + this->bufferSize > this->file.bufferUsed * sizeof(int16_t))
+            read = clamp;
+        else
+            read = this->bufferSize;
+
+        converBuffers(this->file.outputBuffer, buffer, read / sizeof(int16_t), this->GetBitDepth());
+
+        this->decodeBufferRead += read;
+    }
+
+    return read;
 }
 
 bool FLACDecoder::Seek(double position)

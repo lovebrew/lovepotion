@@ -52,9 +52,8 @@ namespace love
         double GetDuration();
 
       private:
-        static bool inited;
-
         FLACFile file;
+        size_t decodeBufferRead;
 
         FLAC__StreamDecoder* decoder;
         FLAC__StreamDecoderInitStatus status;
