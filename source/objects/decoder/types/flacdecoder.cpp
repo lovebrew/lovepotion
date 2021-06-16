@@ -6,10 +6,14 @@ using namespace love;
 /* this is stupid and should be fixed */
 #define BUFFER_SIZE_SAMP (FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS)
 
-static void converBuffers(int32_t* source, int16_t* destination, size_t count, size_t resolution)
+#include "debug/logger.h"
+
+static void convertBuffers(int32_t* source, int16_t* destination, size_t count, size_t resolution)
 {
     int32_t* readBuffer  = source;
     int16_t* writeBuffer = destination;
+
+    LOG("Count %zu / Resolution %zu", count, resolution);
 
     if (resolution < Decoder::DEFAULT_BIT_DEPTH)
     {
@@ -223,8 +227,7 @@ int FLACDecoder::Decode(s16* buffer)
     if (FLAC__stream_decoder_get_state(this->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
         return 0;
 
-    if (this->decodeBufferRead >= this->file.bufferUsed * sizeof(int16_t) ||
-        !this->decodeBufferRead)
+    if (this->decodeBufferRead >= this->file.bufferUsed * sizeof(int16_t) || !this->file.bufferUsed)
     {
         if (!FLAC__stream_decoder_process_single(this->decoder))
             return 0;
@@ -232,20 +235,21 @@ int FLACDecoder::Decode(s16* buffer)
         this->decodeBufferRead = 0;
     }
 
-    if (this->decodeBufferRead)
+    if (this->file.bufferUsed)
     {
-        size_t clamp =
-            this->bufferSize - (this->file.bufferUsed * sizeof(int16_t) - this->decodeBufferRead);
-
         if (this->decodeBufferRead + this->bufferSize > this->file.bufferUsed * sizeof(int16_t))
-            read = clamp;
+            read = this->bufferSize -
+                   (this->file.bufferUsed * sizeof(int16_t) - this->decodeBufferRead);
         else
             read = this->bufferSize;
 
-        converBuffers(this->file.outputBuffer, buffer, read / sizeof(int16_t), this->GetBitDepth());
+        convertBuffers(this->file.outputBuffer, buffer, read / sizeof(int16_t),
+                       this->GetBitDepth());
 
         this->decodeBufferRead += read;
     }
+
+    return read;
 
     return read;
 }
