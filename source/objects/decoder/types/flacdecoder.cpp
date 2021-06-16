@@ -243,8 +243,8 @@ int FLACDecoder::Decode(s16* buffer)
         else
             read = this->bufferSize;
 
-        convertBuffers(this->file.outputBuffer, buffer, read / sizeof(int16_t),
-                       this->GetBitDepth());
+        convertBuffers(this->file.outputBuffer + this->decodeBufferRead, buffer,
+                       read / sizeof(int16_t), this->GetBitDepth());
 
         this->decodeBufferRead += read;
     }
