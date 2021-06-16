@@ -6,14 +6,10 @@ using namespace love;
 /* this is stupid and should be fixed */
 #define BUFFER_SIZE_SAMP (FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS)
 
-#include "debug/logger.h"
-
 static void convertBuffers(int32_t* source, int16_t* destination, size_t count, size_t resolution)
 {
     int32_t* readBuffer  = source;
     int16_t* writeBuffer = destination;
-
-    LOG("Count %zu / Resolution %zu", count, resolution);
 
     if (resolution < Decoder::DEFAULT_BIT_DEPTH)
     {
@@ -97,7 +93,7 @@ static FLAC__StreamDecoderWriteStatus writeCallback(const FLAC__StreamDecoder* d
 static void errorCallback(const FLAC__StreamDecoder* decoder, FLAC__StreamDecoderErrorStatus status,
                           void* clientData)
 {
-#if defined(DEBUG)
+#if defined(__DEBUG__)
     const char* message;
     LOG("FLAC: Decoder error callback called: %d\n", status);
     if ((message = FLAC__StreamDecoderErrorStatusString[status]))

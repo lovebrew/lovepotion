@@ -53,7 +53,7 @@ INCLUDES	?=	${LOVE_INCLUDES} \
 # ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 
-APP_DESCRIPTION	:= LÖVE for 3DS
+APP_DESCRIPTION	:= LÖVE for 3DS • $(APP_VERSION)
 
 
 #---------------------------------------------------------------------------------
