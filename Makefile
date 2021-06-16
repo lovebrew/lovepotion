@@ -32,7 +32,7 @@ export APP_VERSION := 2.1.0
 export APP_TITLEID := 1043
 
 #-----------------------------------
-# Build Release
+# Build
 #-----------------------------------
 all: ctr hac
 
@@ -41,6 +41,25 @@ ctr:
 
 hac:
 	@$(MAKE) -C platform/switch DEBUG=$(DEBUG)
+
+#-----------------------------------
+# Build & Distribute (Release)
+#-----------------------------------
+DIST := distribute
+COMMIT_HASH := $(shell git rev-parse --short HEAD)
+
+dist: $(DIST) dist-ctr dist-hac
+
+$(DIST):
+	@mkdir -p $@
+
+dist-ctr: ctr $(DIST)
+	@echo Built for 3DS..
+	@zip -ujqr ./$(DIST)/LOVEPotion-3DS-$(COMMIT_HASH).zip platform -i '*.3dsx' '*.elf'
+
+dist-hac: hac $(DIST)
+	@echo Built for Switch..
+	@zip -ujqr ./$(DIST)/LOVEPotion-Switch-$(COMMIT_HASH).zip platform -i '*.nro' '*.elf'
 
 #-----------------------------------
 # Debug/Development
@@ -57,6 +76,7 @@ hac-debug: hac
 # Clean
 #-----------------------------------
 clean: clean-ctr clean-hac
+	@rm -fr $(DIST)
 
 clean-ctr:
 	@$(MAKE) -C platform/3ds    clean
