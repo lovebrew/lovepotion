@@ -92,14 +92,7 @@ static FLAC__StreamDecoderWriteStatus writeCallback(const FLAC__StreamDecoder* d
 
 static void errorCallback(const FLAC__StreamDecoder* decoder, FLAC__StreamDecoderErrorStatus status,
                           void* clientData)
-{
-#if defined(__DEBUG__)
-    const char* message;
-    LOG("FLAC: Decoder error callback called: %d\n", status);
-    if ((message = FLAC__StreamDecoderErrorStatusString[status]))
-        LOG("FLAC: Status of %d: %s\n", status, message);
-#endif
-}
+{}
 
 void metadataCallback(const FLAC__StreamDecoder* decoder, const FLAC__StreamMetadata* metadata,
                       void* clientData)
