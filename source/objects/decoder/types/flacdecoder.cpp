@@ -3,75 +3,156 @@
 
 using namespace love;
 
-static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder* decoder,
-                                                     const FLAC__Frame* frame,
-                                                     const FLAC__int32* const buffer[],
-                                                     void* client_data)
-{
-    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)client_data;
+bool FLACDecoder::inited = false;
 
-    if (file->channels != (int)frame->header.channels ||
-        file->sampleRate != (int)frame->header.sample_rate)
+static void converBuffers(int32_t* source, int16_t* destination, size_t count, size_t result)
+{
+    int32_t* readBuffer  = source;
+    int16_t* writeBuffer = destination;
+
+    if (result < Decoder::DEFAULT_BIT_DEPTH)
+    {
+        const uint8_t kPower = static_cast<uint8_t>(Decoder::DEFAULT_BIT_DEPTH - result);
+
+        for (unsigned i = 0; i < count; i++)
+            *writeBuffer++ = readBuffer[i] << kPower;
+    }
+    else if (result > Decoder::DEFAULT_BIT_DEPTH)
+    {
+        const uint8_t kPower = static_cast<uint8_t>(result - Decoder::DEFAULT_BIT_DEPTH);
+
+        for (unsigned i = 0; i < count; i++)
+            *writeBuffer++ = readBuffer[i] >> kPower;
+    }
+    else
+    {
+        for (unsigned i = 0; i < count; i++)
+            *writeBuffer++ = readBuffer[i];
+    }
+}
+
+static void callbackFrameClear(FLACDecoder::FLACFile* file)
+{
+    file->bufferUsed = 0;
+    memset(file->outputBuffer, 0, file->size);
+    file->writeBuffer = &file->outputBuffer[0];
+}
+
+static FLAC__StreamDecoderReadStatus readCallback(const FLAC__StreamDecoder* decoder,
+                                                  FLAC__byte buffer[], size_t* bytes,
+                                                  void* clientData)
+{
+    size_t spaceUntilEOF  = 0;
+    size_t actualSizeRead = 0;
+
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
+    spaceUntilEOF               = file->size - file->read;
+
+    if (*bytes < spaceUntilEOF)
+        actualSizeRead = *bytes;
+    else
+        actualSizeRead = spaceUntilEOF;
+
+    if (actualSizeRead)
+    {
+        memcpy(buffer, file->data + file->read, actualSizeRead);
+        file->read += actualSizeRead;
+    }
+    else
+        return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+
+    *bytes = actualSizeRead;
+
+    return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+}
+
+static FLAC__StreamDecoderWriteStatus writeCallback(const FLAC__StreamDecoder* decoder,
+                                                    const FLAC__Frame* frame,
+                                                    const FLAC__int32* const buffer[],
+                                                    void* clientData)
+{
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
+
+    if (file->channels != frame->header.channels || file->sampleRate != frame->header.sample_rate)
         return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 
-    for (unsigned sample = 0; sample < frame->header.blocksize; sample++)
+    for (size_t sample = 0; sample < frame->header.blocksize; sample++)
     {
-        for (unsigned channel = 0; channel < frame->header.channels; channel++)
+        for (size_t channel = 0; channel < frame->header.channels; channel++)
         {
-            *(file->writePointer++) = buffer[channel][sample];
-            file->usedSamples += 1;
+            *(file->writeBuffer++) = buffer[channel][sample];
+            file->bufferUsed += 1;
         }
     }
 
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
-static void error_callback(const FLAC__StreamDecoder* decoder,
-                           FLAC__StreamDecoderErrorStatus status, void* client_data)
+static void errorCallback(const FLAC__StreamDecoder* decoder, FLAC__StreamDecoderErrorStatus status,
+                          void* clientData)
 {
-    // #if (__DEBUG__)
-    //     const char * str = nullptr;
-    //     LOG("FLAC: decoder error callback was called: %d\n", status);
-    //     if ((str = FLAC__StreamDecoderErrorStatusString[status]))
-    //         LOG("FLAC: status of %d: %s\n", status, str);
-    // #endif
+    const char* message;
+#if defined(DEBUG)
+    LOG("FLAC: Decoder error callback called: %d\n", status);
+    if ((message = FLAC__StreamDecoderErrorStatusString[status]))
+        LOG("FLAC: Status of %d: %s\n", status, message);
+#endif
 }
 
-static void metadata_callback(const FLAC__StreamDecoder* decoder,
-                              const FLAC__StreamMetadata* metadata, void* client_data)
+void metadataCallback(const FLAC__StreamDecoder* decoder, const FLAC__StreamMetadata* metadata,
+                      void* clientData)
 {
-    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)client_data;
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
 
     if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
     {
-        file->PCMCount      = metadata->data.stream_info.total_samples;
+        file->totalSamples  = metadata->data.stream_info.total_samples;
         file->bitsPerSample = metadata->data.stream_info.bits_per_sample;
-        file->channels      = metadata->data.stream_info.channels;
-        file->sampleRate    = metadata->data.stream_info.sample_rate;
+
+        file->channels   = metadata->data.stream_info.channels;
+        file->sampleRate = metadata->data.stream_info.sample_rate;
     }
 }
 
-static FLAC__StreamDecoderReadStatus read_callback(const FLAC__StreamDecoder* decoder,
-                                                   FLAC__byte buffer[], size_t* bytes,
-                                                   void* client_data)
+static FLAC__StreamDecoderSeekStatus seekCallback(const FLAC__StreamDecoder* decoder,
+                                                  FLAC__uint64 offset, void* clientData)
 {
-    FLACDecoder::FLACFile* file = ((FLACDecoder::FLACFile*)client_data);
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
 
-    if (*bytes > 0)
-    {
-        if (*bytes == 0)
-            return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
-        else
-        {
-            memcpy(buffer, (const char*)file->data, *bytes);
-            return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
-        }
-    }
-    else
-        return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+    if (file->read + offset > file->size)
+        return FLAC__STREAM_DECODER_SEEK_STATUS_ERROR;
+
+    file->read = offset;
+
+    return FLAC__STREAM_DECODER_SEEK_STATUS_OK;
 }
 
-bool FLACDecoder::inited = false;
+static FLAC__StreamDecoderTellStatus tellCallback(const FLAC__StreamDecoder* decoder,
+                                                  FLAC__uint64* offset, void* clientData)
+{
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
+
+    *offset = file->read;
+
+    return FLAC__STREAM_DECODER_TELL_STATUS_OK;
+}
+
+static FLAC__StreamDecoderLengthStatus lengthCallback(const FLAC__StreamDecoder* decoder,
+                                                      FLAC__uint64* length, void* clientData)
+{
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
+
+    *length = file->size;
+
+    return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
+}
+
+static FLAC__bool eofCallback(const FLAC__StreamDecoder* decoder, void* clientData)
+{
+    FLACDecoder::FLACFile* file = (FLACDecoder::FLACFile*)clientData;
+
+    return file->size <= file->read;
+}
 
 FLACDecoder::FLACDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
 {
@@ -80,13 +161,17 @@ FLACDecoder::FLACDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
     if (!this->decoder)
         throw love::Exception("Failed to create FLAC decoder!");
 
+    this->file = FLACDecoder::FLACFile();
+
     this->file.data = (const char*)data->GetData();
     this->file.size = data->GetSize();
-    this->file.read = 0;
 
-    this->status = FLAC__stream_decoder_init_stream(this->decoder, read_callback, NULL, NULL, NULL,
-                                                    NULL, write_callback, metadata_callback,
-                                                    error_callback, &this->file);
+    this->file.outputBuffer = new int32_t[this->file.size];
+    this->file.read         = 0;
+
+    this->status = FLAC__stream_decoder_init_stream(
+        this->decoder, readCallback, seekCallback, tellCallback, lengthCallback, eofCallback,
+        writeCallback, metadataCallback, errorCallback, &this->file);
 
     if (this->status != FLAC__STREAM_DECODER_INIT_STATUS_OK)
         throw love::Exception("Could not initialize the main FLAC decoder: %s (%d)\n",
@@ -131,57 +216,24 @@ int FLACDecoder::Decode()
     return this->Decode((s16*)this->buffer);
 }
 
-#define BUFTYPE_BITS 16
-
-static void convertBuffersGeneric(int32_t* src, int16_t* dst, unsigned count, unsigned res)
-{
-    int32_t* rp  = src;
-    int16_t* wp2 = dst;
-
-    if (res < BUFTYPE_BITS)
-    {
-        const uint8_t kPower = (uint8_t)(BUFTYPE_BITS - res);
-
-        for (unsigned i = 0; i < count; i++)
-            *wp2++ = static_cast<int16_t>(rp[i]) << kPower;
-    }
-    else if (res > BUFTYPE_BITS)
-    {
-        const uint8_t kPower = (uint8_t)(res - BUFTYPE_BITS);
-
-        for (unsigned i = 0; i < count; i++)
-            *wp2++ = static_cast<int16_t>(rp[i] >> kPower);
-    }
-    else
-    {
-        for (unsigned i = 0; i < count; i++)
-            *wp2++ = static_cast<int16_t>(rp[i]);
-    }
-}
-
 int FLACDecoder::Decode(s16* buffer)
 {
     if (FLAC__stream_decoder_get_state(this->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
         return 0;
 
-    this->file.usedSamples = 0;
+    callbackFrameClear(&this->file);
 
-    this->file.buffer = new int32_t[this->bufferSize];
-    memset(this->file.buffer, 0, sizeof(int32_t) * this->bufferSize);
-    this->file.writePointer = &this->file.buffer[0];
-
-    /* Try to decode a single frame of audio */
-    if (FLAC__stream_decoder_process_single(this->decoder) == false)
+    if (!FLAC__stream_decoder_process_single(this->decoder))
         return 0;
 
-    convertBuffersGeneric(this->file.buffer, buffer, this->file.usedSamples, this->file.PCMCount);
+    converBuffers(this->file.outputBuffer, buffer, this->file.bufferUsed, this->GetBitDepth());
 
-    return this->file.usedSamples;
+    return this->file.bufferUsed;
 }
 
 bool FLACDecoder::Seek(double position)
 {
-    if (position > this->file.PCMCount)
+    if (position > this->file.totalSamples)
         return false;
 
     return FLAC__stream_decoder_seek_absolute(this->decoder, position);
@@ -214,5 +266,5 @@ int FLACDecoder::GetSampleRate() const
 
 double FLACDecoder::GetDuration()
 {
-    return ((double)this->file.PCMCount) / ((double)this->file.sampleRate);
+    return ((double)this->file.totalSamples) / ((double)this->file.sampleRate);
 }

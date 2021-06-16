@@ -13,20 +13,20 @@ namespace love
 
         struct FLACFile
         {
-            int sampleRate;
-            int channels;
-            int PCMCount;
-            int bitsPerSample;
-            int totalSamples;
+            size_t bitsPerSample;
+            size_t sampleRate;
+            size_t channels;
+
+            uint32_t totalSamples;
 
             const char* data;
             size_t size;
             size_t read;
 
-            size_t usedSamples;
+            int32_t* outputBuffer;
+            int32_t* writeBuffer;
 
-            int32_t* buffer;
-            int32_t* writePointer = nullptr;
+            size_t bufferUsed;
         };
 
         static bool Accepts(const std::string& ext);
