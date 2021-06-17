@@ -67,7 +67,7 @@ void citro2d::SetColorMask(const love::Graphics::ColorMask& mask)
     uint8_t writeMask = GPU_WRITE_DEPTH;
     writeMask |= mask.GetColorMask();
 
-    C3D_DepthTest(true, GPU_ALWAYS, static_cast<GPU_WRITEMASK>(writeMask));
+    C3D_DepthTest(true, GPU_GREATER, static_cast<GPU_WRITEMASK>(writeMask));
 }
 
 void citro2d::Set3D(bool enable)
