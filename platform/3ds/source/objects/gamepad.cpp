@@ -158,53 +158,63 @@ std::vector<float> Gamepad::GetAxes() const
     return axes;
 }
 
+void Gamepad::Update()
+{
+    this->buttonStates.pressed  = hidKeysDown();
+    this->buttonStates.released = hidKeysUp();
+}
+
 /* helper functions */
 bool Gamepad::IsDown(std::pair<const char*, size_t>& button)
 {
-    uint32_t pressedSet = hidKeysDown();
-    uint32_t hidButton;
+    uint32_t hidButton = 0;
 
-    if (this->buttonStates.pressed != pressedSet)
+    if (!this->buttonStates.pressed)
+        return false;
+
+    auto recordPair = buttons.GetEntries();
+    auto records    = recordPair.first;
+
+    for (size_t i = 0; i < recordPair.second; i++)
     {
-        auto recordPair = buttons.GetEntries();
-        auto records    = recordPair.first;
+        hidButton = static_cast<uint32_t>(records[i].value);
 
-        for (size_t i = 0; i < recordPair.second; i++)
+        if (hidButton & this->buttonStates.pressed)
         {
-            if ((hidButton = static_cast<uint32_t>(records[i].value)) & pressedSet)
-            {
-                button = { records[i].key, i };
-                break;
-            }
+            this->buttonStates.pressed ^= hidButton;
+            button = std::make_pair(records[i].key, i);
+
+            return true;
         }
     }
 
-    this->buttonStates.pressed = pressedSet;
-    return (pressedSet & hidButton);
+    return false;
 }
 
 bool Gamepad::IsUp(std::pair<const char*, size_t>& button)
 {
-    uint32_t releasedSet = hidKeysUp();
-    uint32_t hidButton;
+    uint32_t hidButton = 0;
 
-    if (this->buttonStates.released != releasedSet)
+    if (!this->buttonStates.released)
+        return false;
+
+    auto recordPair = buttons.GetEntries();
+    auto records    = recordPair.first;
+
+    for (size_t i = 0; i < recordPair.second; i++)
     {
-        auto recordPair = buttons.GetEntries();
-        auto records    = recordPair.first;
+        hidButton = static_cast<uint32_t>(records[i].value);
 
-        for (size_t i = 0; i < recordPair.second; i++)
+        if (hidButton & this->buttonStates.released)
         {
-            if ((hidButton = static_cast<uint32_t>(records[i].value)) & releasedSet)
-            {
-                button = { records[i].key, i };
-                break;
-            }
+            this->buttonStates.released ^= hidButton;
+            button = std::make_pair(records[i].key, i);
+
+            return true;
         }
     }
 
-    this->buttonStates.released = releasedSet;
-    return (releasedSet & hidButton);
+    return false;
 }
 
 bool Gamepad::IsHeld(std::pair<const char*, size_t>& button) const

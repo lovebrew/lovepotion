@@ -4,6 +4,7 @@
 #include "objects/object.h"
 
 #include <limits>
+#include <optional>
 
 namespace love::common
 {

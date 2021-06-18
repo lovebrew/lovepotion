@@ -57,6 +57,8 @@ namespace love
 
         std::vector<float> GetAxes() const override;
 
+        void Update();
+
         bool IsDown(std::pair<const char*, size_t>& button) override;
 
         bool IsHeld(std::pair<const char*, size_t>& button) const override;

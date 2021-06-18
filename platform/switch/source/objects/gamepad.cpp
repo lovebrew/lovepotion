@@ -8,9 +8,11 @@
 
 using namespace love;
 
-#define JOYSTICK_MODULE()      (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
-#define EVENT_MODULE()         (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define JOYSTICK_MODULE() (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
+#define EVENT_MODULE()    (Module::GetInstance<love::Event>(Module::M_EVENT))
+
 #define INVALID_GAMEPAD_BUTTON static_cast<Gamepad::GamepadButton>(-1)
+#define INVALID_NPAD_BUTTON    static_cast<HidNpadButton>(0)
 
 Gamepad::Gamepad(size_t id) :
     common::Gamepad(id),
@@ -39,6 +41,9 @@ void Gamepad::UpdatePadState()
         return;
 
     padUpdate(&this->pad);
+
+    this->buttonStates.pressed  = padGetButtonsDown(&this->pad);
+    this->buttonStates.released = padGetButtonsUp(&this->pad);
 }
 
 const HidNpadStyleTag Gamepad::GetStyleTag() const
@@ -286,26 +291,28 @@ bool Gamepad::IsDown(std::pair<const char*, size_t>& button)
     if (!this->IsConnected())
         return false;
 
-    uint64_t pressedSet = padGetButtonsDown(&this->pad);
-    HidNpadButton hidButton;
+    HidNpadButton hidButton = INVALID_NPAD_BUTTON;
 
-    if (this->buttonStates.pressed != pressedSet)
+    if (!this->buttonStates.pressed)
+        return false;
+
+    auto recordPair = buttons.GetEntries();
+    auto records    = recordPair.first;
+
+    for (size_t i = 0; i < recordPair.second; i++)
     {
-        auto recordPair = buttons.GetEntries();
-        auto records    = recordPair.first;
+        hidButton = static_cast<HidNpadButton>(records[i].value);
 
-        for (size_t i = 0; i < recordPair.second; i++)
+        if (hidButton & this->buttonStates.pressed)
         {
-            if ((hidButton = static_cast<HidNpadButton>(records[i].value)) & pressedSet)
-            {
-                button = { records[i].key, i };
-                break;
-            }
+            this->buttonStates.released ^= hidButton;
+            button = std::make_pair(records[i].key, i);
+
+            return true;
         }
     }
 
-    this->buttonStates.pressed = pressedSet;
-    return (pressedSet & hidButton);
+    return false;
 }
 
 bool Gamepad::IsUp(std::pair<const char*, size_t>& button)
@@ -313,26 +320,25 @@ bool Gamepad::IsUp(std::pair<const char*, size_t>& button)
     if (!this->IsConnected())
         return false;
 
-    uint64_t releasedSet = padGetButtonsUp(&this->pad);
-    HidNpadButton hidButton;
+    HidNpadButton hidButton = INVALID_NPAD_BUTTON;
 
-    if (this->buttonStates.released != releasedSet)
+    auto recordPair = buttons.GetEntries();
+    auto records    = recordPair.first;
+
+    for (size_t i = 0; i < recordPair.second; i++)
     {
-        auto recordPair = buttons.GetEntries();
-        auto records    = recordPair.first;
+        hidButton = static_cast<HidNpadButton>(records[i].value);
 
-        for (size_t i = 0; i < recordPair.second; i++)
+        if (hidButton & this->buttonStates.released)
         {
-            if ((hidButton = static_cast<HidNpadButton>(records[i].value)) & releasedSet)
-            {
-                button = { records[i].key, i };
-                break;
-            }
+            this->buttonStates.released ^= hidButton;
+            button = std::make_pair(records[i].key, i);
+
+            return true;
         }
     }
 
-    this->buttonStates.released = releasedSet;
-    return (releasedSet & hidButton);
+    return false;
 }
 
 bool Gamepad::IsHeld(std::pair<const char*, size_t>& button) const

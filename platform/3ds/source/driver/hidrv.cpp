@@ -92,11 +92,13 @@ bool Hidrv::Poll(LOVE_Event* event)
 
     if (gamepad && gamepad->IsConnected())
     {
+        gamepad->Update();
+
         /* handle button inputs */
 
         std::pair<const char*, size_t> button;
 
-        if (gamepad->IsDown(button))
+        while (gamepad->IsDown(button))
         {
             auto& newEvent = this->events.emplace_back();
 
@@ -107,7 +109,7 @@ bool Hidrv::Poll(LOVE_Event* event)
             newEvent.button.button = button.second;
         }
 
-        if (gamepad->IsUp(button))
+        while (gamepad->IsUp(button))
         {
             auto& newEvent = this->events.emplace_back();
 
