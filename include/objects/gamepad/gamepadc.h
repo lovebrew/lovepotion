@@ -44,6 +44,8 @@ namespace love::common
             };
         };
 
+        typedef std::pair<const char*, int64_t> ButtonMapping;
+
         struct Vibration
         {
             float left  = 0.0f;
@@ -105,11 +107,11 @@ namespace love::common
 
         /* helpers */
 
-        virtual bool IsDown(std::pair<const char*, size_t>& button) = 0;
+        virtual bool IsDown(size_t index, ButtonMapping& button) = 0;
 
-        virtual bool IsHeld(std::pair<const char*, size_t>& button) const = 0;
+        virtual bool IsHeld(size_t index, ButtonMapping& button) const = 0;
 
-        virtual bool IsUp(std::pair<const char*, size_t>& button) = 0;
+        virtual bool IsUp(size_t index, ButtonMapping& button) = 0;
 
         static bool GetConstant(const char* in, InputType& out);
         static bool GetConstant(InputType in, const char*& out);

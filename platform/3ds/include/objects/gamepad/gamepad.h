@@ -59,11 +59,11 @@ namespace love
 
         void Update();
 
-        bool IsDown(std::pair<const char*, size_t>& button) override;
+        bool IsDown(size_t index, ButtonMapping& button) override;
 
-        bool IsHeld(std::pair<const char*, size_t>& button) const override;
+        bool IsHeld(size_t index, ButtonMapping& button) const override;
 
-        bool IsUp(std::pair<const char*, size_t>& button) override;
+        bool IsUp(size_t index, ButtonMapping& button) override;
 
         bool IsDown(const std::vector<size_t>& buttons) const override;
 
@@ -87,6 +87,11 @@ namespace love
 
         static constexpr uint8_t MAX_BUTTONS = 12;
         static constexpr uint8_t MAX_AXES    = 6;
+
+        const static StringMap<GamepadButton, MAX_BUTTONS> GetButtonMapping()
+        {
+            return Gamepad::buttons;
+        }
 
         struct
         {

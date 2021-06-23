@@ -164,28 +164,37 @@ bool Hidrv::Poll(LOVE_Event* event)
 
         /* handle button inputs */
 
-        std::pair<const char*, size_t> button;
+        Gamepad::ButtonMapping button;
 
-        while (gamepad->IsDown(button))
+        const auto mappings = gamepad->GetButtonMapping();
+        const auto entries  = mappings.GetEntries();
+
+        for (size_t index = 0; index < entries.second; index++)
         {
-            auto& newEvent = this->events.emplace_back();
+            if (gamepad->IsDown(index, button))
+            {
+                auto& newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADDOWN;
+                newEvent.type = TYPE_GAMEPADDOWN;
 
-            newEvent.button.name   = button.first;
-            newEvent.button.which  = gamepad->GetID();
-            newEvent.button.button = button.second;
+                newEvent.button.name   = button.first;
+                newEvent.button.which  = gamepad->GetID();
+                newEvent.button.button = button.second;
+            }
         }
 
-        while (gamepad->IsUp(button))
+        for (size_t index = 0; index < entries.second; index++)
         {
-            auto& newEvent = this->events.emplace_back();
+            if (gamepad->IsUp(index, button))
+            {
+                auto& newEvent = this->events.emplace_back();
 
-            newEvent.type = TYPE_GAMEPADUP;
+                newEvent.type = TYPE_GAMEPADUP;
 
-            newEvent.button.name   = button.first;
-            newEvent.button.which  = gamepad->GetID();
-            newEvent.button.button = button.second;
+                newEvent.button.name   = button.first;
+                newEvent.button.which  = gamepad->GetID();
+                newEvent.button.button = button.second;
+            }
         }
 
         /* handle trigger inputs */
@@ -231,13 +240,14 @@ bool Hidrv::Poll(LOVE_Event* event)
         }
     }
 
+    this->currentPadIndex++;
+
     if (this->events.empty())
         return false;
 
     *event = this->events.front();
     this->events.pop_front();
 
-    // this->currentPadIndex++;
     this->hysteresis = true;
 
     return true;

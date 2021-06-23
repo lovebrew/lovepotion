@@ -286,7 +286,7 @@ std::vector<float> Gamepad::GetAxes() const
 }
 
 /* helper functions */
-bool Gamepad::IsDown(std::pair<const char*, size_t>& button)
+bool Gamepad::IsDown(size_t index, ButtonMapping& button)
 {
     if (!this->IsConnected())
         return false;
@@ -296,52 +296,47 @@ bool Gamepad::IsDown(std::pair<const char*, size_t>& button)
     if (!this->buttonStates.pressed)
         return false;
 
-    auto recordPair = buttons.GetEntries();
-    auto records    = recordPair.first;
+    const auto records = buttons.GetEntries().first;
 
-    for (size_t i = 0; i < recordPair.second; i++)
+    hidButton = static_cast<HidNpadButton>(records[index].value);
+
+    if (hidButton & this->buttonStates.pressed)
     {
-        hidButton = static_cast<HidNpadButton>(records[i].value);
+        this->buttonStates.pressed ^= hidButton;
+        button = std::make_pair(records[index].key, index);
 
-        if (hidButton & this->buttonStates.pressed)
-        {
-            this->buttonStates.released ^= hidButton;
-            button = std::make_pair(records[i].key, i);
-
-            return true;
-        }
+        return true;
     }
 
     return false;
 }
 
-bool Gamepad::IsUp(std::pair<const char*, size_t>& button)
+bool Gamepad::IsUp(size_t index, ButtonMapping& button)
 {
     if (!this->IsConnected())
         return false;
 
     HidNpadButton hidButton = INVALID_NPAD_BUTTON;
 
-    auto recordPair = buttons.GetEntries();
-    auto records    = recordPair.first;
+    if (!this->buttonStates.released)
+        return false;
 
-    for (size_t i = 0; i < recordPair.second; i++)
+    const auto records = buttons.GetEntries().first;
+
+    hidButton = static_cast<HidNpadButton>(records[index].value);
+
+    if (hidButton & this->buttonStates.released)
     {
-        hidButton = static_cast<HidNpadButton>(records[i].value);
+        this->buttonStates.released ^= hidButton;
+        button = std::make_pair(records[index].key, index);
 
-        if (hidButton & this->buttonStates.released)
-        {
-            this->buttonStates.released ^= hidButton;
-            button = std::make_pair(records[i].key, i);
-
-            return true;
-        }
+        return true;
     }
 
     return false;
 }
 
-bool Gamepad::IsHeld(std::pair<const char*, size_t>& button) const
+bool Gamepad::IsHeld(size_t index, ButtonMapping& button) const
 {
     if (!this->IsConnected())
         return false;
