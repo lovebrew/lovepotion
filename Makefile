@@ -28,7 +28,7 @@ LOVE_PORTLIBS        += -lphysfs -lz -lbox2d
 #------------------------------------
 export APP_TITLE   := LÖVE Potion
 export APP_AUTHOR  := lövebrew team
-export APP_VERSION := 2.1.1
+export APP_VERSION := 2.1.2
 export APP_TITLEID := 1043
 
 #-----------------------------------
