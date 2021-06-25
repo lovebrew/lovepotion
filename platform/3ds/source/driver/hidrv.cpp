@@ -8,7 +8,7 @@
 
 using namespace love::driver;
 
-Hidrv::Hidrv() : oldSticks {}, oldTouchState {}, touchHeld(false)
+Hidrv::Hidrv() : oldSticks {}, oldTouchState {}, isTouchHeld(false)
 {}
 
 bool Hidrv::Poll(LOVE_Event* event)
@@ -34,7 +34,7 @@ bool Hidrv::Poll(LOVE_Event* event)
     u32 touchHeld     = hidKeysHeld();
     u32 touchReleased = hidKeysUp();
 
-    if (!this->touchHeld && (touchDown & KEY_TOUCH))
+    if (!this->isTouchHeld && (touchDown & KEY_TOUCH))
     {
         auto& newEvent = this->events.emplace_back();
 
@@ -68,7 +68,7 @@ bool Hidrv::Poll(LOVE_Event* event)
             newEvent.touch.dy       = dy;
             newEvent.touch.pressure = 1.0f;
 
-            this->touchHeld = true;
+            this->isTouchHeld = true;
         }
     }
 
@@ -86,6 +86,9 @@ bool Hidrv::Poll(LOVE_Event* event)
         newEvent.touch.pressure = 0.0f;
 
         this->oldTouchState = this->touchState;
+
+        if (this->isTouchHeld)
+            this->isTouchHeld = false;
     }
 
     Gamepad* gamepad = MODULE()->GetJoystickFromID(0);

@@ -322,11 +322,6 @@ local function error_printer(msg, layer)
     trace = trace:gsub("\n[^\n]+$", "")
 
     print(trace)
-
-    local f = io.open("log.txt", "w")
-    f:write(trace)
-    f:flush()
-    f:close()
 end
 
 function love.threaderror(t, err)

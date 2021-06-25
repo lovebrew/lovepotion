@@ -5,6 +5,7 @@
 
 #include <string.h>
 
+#include "debug/logger.h"
 #include "deko3d/deko.h"
 
 using namespace love::driver;
@@ -153,94 +154,101 @@ bool Hidrv::Poll(LOVE_Event* event)
     if (!MODULE())
         return false;
 
-    if (this->currentPadIndex > 3)
-        this->currentPadIndex = 0;
+    /* to do: find out why extra gamepads don't connect properly */
+    // if (Gamepad* pad = MODULE()->CheckGamepadAdded())
+    // {
+    //     auto& newEvent           = this->events.emplace_back();
+    //     newEvent.type            = TYPE_GAMEPADADDED;
+    //     newEvent.padStatus.which = pad->GetID();
+    // }
 
-    Gamepad* gamepad = MODULE()->GetJoystickFromID(this->currentPadIndex);
-
-    if (gamepad && gamepad->IsConnected())
+    /* this iterates the "active" joysticks only */
+    for (size_t index = 0; index < MODULE()->GetJoystickCount(); index++)
     {
-        gamepad->UpdatePadState();
+        Gamepad* gamepad = MODULE()->GetJoystickFromID(index);
 
-        /* handle button inputs */
-
-        Gamepad::ButtonMapping button;
-
-        const auto mappings = gamepad->GetButtonMapping();
-        const auto entries  = mappings.GetEntries();
-
-        for (size_t index = 0; index < entries.second; index++)
+        if (gamepad != nullptr)
         {
-            if (gamepad->IsDown(index, button))
+            gamepad->UpdatePadState();
+
+            /* handle button inputs */
+
+            Gamepad::ButtonMapping button;
+
+            const auto mappings = gamepad->GetButtonMapping();
+            const auto entries  = mappings.GetEntries();
+
+            for (size_t index = 0; index < entries.second; index++)
+            {
+                if (gamepad->IsDown(index, button))
+                {
+                    auto& newEvent = this->events.emplace_back();
+
+                    newEvent.type = TYPE_GAMEPADDOWN;
+
+                    newEvent.button.name   = button.first;
+                    newEvent.button.which  = gamepad->GetID();
+                    newEvent.button.button = button.second;
+                }
+            }
+
+            for (size_t index = 0; index < entries.second; index++)
+            {
+                if (gamepad->IsUp(index, button))
+                {
+                    auto& newEvent = this->events.emplace_back();
+
+                    newEvent.type = TYPE_GAMEPADUP;
+
+                    newEvent.button.name   = button.first;
+                    newEvent.button.which  = gamepad->GetID();
+                    newEvent.button.button = button.second;
+                }
+            }
+
+            /* handle trigger inputs */
+            for (size_t i = 5; i <= 6; i++)
             {
                 auto& newEvent = this->events.emplace_back();
 
-                newEvent.type = TYPE_GAMEPADDOWN;
+                newEvent.type       = TYPE_GAMEPADAXIS;
+                newEvent.axis.which = gamepad->GetID();
 
-                newEvent.button.name   = button.first;
-                newEvent.button.which  = gamepad->GetID();
-                newEvent.button.button = button.second;
+                newEvent.axis.axis   = (i == 5) ? "triggerleft" : "triggerright";
+                newEvent.axis.value  = gamepad->GetAxis(i);
+                newEvent.axis.number = i;
             }
-        }
 
-        for (size_t index = 0; index < entries.second; index++)
-        {
-            if (gamepad->IsUp(index, button))
+            /* handle stick inputs */
+            for (size_t i = 1; i <= 4; i++)
             {
                 auto& newEvent = this->events.emplace_back();
 
-                newEvent.type = TYPE_GAMEPADUP;
+                newEvent.type       = TYPE_GAMEPADAXIS;
+                newEvent.axis.which = gamepad->GetID();
 
-                newEvent.button.name   = button.first;
-                newEvent.button.which  = gamepad->GetID();
-                newEvent.button.button = button.second;
-            }
-        }
-
-        /* handle trigger inputs */
-        for (size_t i = 5; i <= 6; i++)
-        {
-            auto& newEvent = this->events.emplace_back();
-
-            newEvent.type       = TYPE_GAMEPADAXIS;
-            newEvent.axis.which = gamepad->GetID();
-
-            newEvent.axis.axis   = (i == 5) ? "triggerleft" : "triggerright";
-            newEvent.axis.value  = gamepad->GetAxis(i);
-            newEvent.axis.number = i;
-        }
-
-        /* handle stick inputs */
-        for (size_t i = 1; i <= 4; i++)
-        {
-            auto& newEvent = this->events.emplace_back();
-
-            newEvent.type       = TYPE_GAMEPADAXIS;
-            newEvent.axis.which = gamepad->GetID();
-
-            const char* axis = nullptr;
-            if (i < 3) // left
-            {
-                if ((i % 2) != 0)
-                    axis = "leftx";
+                const char* axis = nullptr;
+                if (i < 3) // left
+                {
+                    if ((i % 2) != 0)
+                        axis = "leftx";
+                    else
+                        axis = "lefty";
+                }
                 else
-                    axis = "lefty";
-            }
-            else
-            {
-                if ((i % 2) != 0)
-                    axis = "rightx";
-                else
-                    axis = "righty";
-            }
+                {
+                    if ((i % 2) != 0)
+                        axis = "rightx";
+                    else
+                        axis = "righty";
+                }
 
-            newEvent.axis.axis   = axis;
-            newEvent.axis.value  = gamepad->GetAxis(i);
-            newEvent.axis.number = i;
+                newEvent.axis.axis   = axis;
+                newEvent.axis.value  = gamepad->GetAxis(i);
+                newEvent.axis.number = i;
+            }
         }
     }
-
-    this->currentPadIndex++;
 
     if (this->events.empty())
         return false;

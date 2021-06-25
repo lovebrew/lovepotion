@@ -37,10 +37,10 @@ Gamepad::~Gamepad()
 
 void Gamepad::UpdatePadState()
 {
+    padUpdate(&this->pad);
+
     if (!this->IsConnected())
         return;
-
-    padUpdate(&this->pad);
 
     this->buttonStates.pressed  = padGetButtonsDown(&this->pad);
     this->buttonStates.released = padGetButtonsUp(&this->pad);
@@ -56,8 +56,12 @@ const HidNpadStyleTag Gamepad::GetStyleTag() const
         return HidNpadStyleTag_NpadHandheld;
     else if (tagStyle & HidNpadStyleTag_NpadJoyDual)
         return HidNpadStyleTag_NpadJoyDual;
+    else if (tagStyle & HidNpadStyleTag_NpadJoyLeft)
+        return HidNpadStyleTag_NpadJoyLeft;
+    else if (tagStyle & HidNpadStyleTag_NpadJoyRight)
+        return HidNpadStyleTag_NpadJoyRight;
 
-    return HidNpadStyleTag::HidNpadStyleTag_NpadSystem;
+    return HidNpadStyleTag_NpadSystem;
 }
 
 const HidNpadIdType Gamepad::GetNpadIdType() const
@@ -97,6 +101,29 @@ bool Gamepad::Open(size_t index)
                                        HidNpadStyleTag_NpadFullKey);
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(1);
+
+            break;
+        case HidNpadStyleTag_NpadJoyLeft:
+            this->name = "Left Joy-Con";
+
+            this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(1);
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1,
+                                       static_cast<HidNpadIdType>(this->id),
+                                       HidNpadStyleTag_NpadFullKey);
+
+            this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(1);
+
+            break;
+        case HidNpadStyleTag_NpadJoyRight:
+            this->name = "Right Joy-Con";
+
+            this->sixAxisHandles = std::make_unique<HidSixAxisSensorHandle[]>(1);
+            hidGetSixAxisSensorHandles(&this->sixAxisHandles[0], 1,
+                                       static_cast<HidNpadIdType>(this->id),
+                                       HidNpadStyleTag_NpadFullKey);
+
+            this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(1);
+
             break;
         case HidNpadStyleTag_NpadHandheld:
             this->name = "Nintendo Switch";
@@ -106,6 +133,7 @@ bool Gamepad::Open(size_t index)
                                        HidNpadStyleTag_NpadHandheld);
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
+
             break;
         case HidNpadStyleTag_NpadJoyDual:
             this->name = "Dual Joy-Con";
@@ -116,9 +144,11 @@ bool Gamepad::Open(size_t index)
                                        HidNpadStyleTag_NpadJoyDual);
 
             this->vibrationHandles = std::make_unique<HidVibrationDeviceHandle[]>(2);
-        default:
-            /* shouldn't happen */
+
             break;
+        default:
+            /* not supported */
+            return false;
     }
 
     memset(this->vibrationValues, 0, sizeof(this->vibrationValues));

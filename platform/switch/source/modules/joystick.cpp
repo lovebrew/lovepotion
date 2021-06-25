@@ -4,6 +4,8 @@
 
 using namespace love;
 
+static constexpr size_t MAX_GAMEPADS = 4;
+
 Joystick::VibrationThread::VibrationThread(VibrationPool* pool) : pool(pool), finish(false)
 {
     this->threadName = "VibrationPool";
@@ -42,6 +44,22 @@ Joystick::~Joystick()
 
     delete this->poolThread;
     delete this->pool;
+}
+
+size_t Joystick::GetActiveControllerCount()
+{
+    size_t active = 0;
+
+    for (size_t index = 0; index < MAX_GAMEPADS; index++)
+    {
+        HidNpadIdType id  = static_cast<HidNpadIdType>(HidNpadIdType_No1 + index);
+        uint32_t styleSet = hidGetNpadStyleSet(id);
+
+        if (styleSet != 0)
+            active++;
+    }
+
+    return active;
 }
 
 bool Joystick::AddVibration(Gamepad* gamepad, size_t id)

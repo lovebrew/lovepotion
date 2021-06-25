@@ -34,7 +34,7 @@ extern "C"
         R_ABORT_UNLESS(friendsInitialize(FriendsServiceType_Viewer));
 
         /* initialize controllers -- 4 players max */
-        padConfigureInput(4, HidNpadStyleSet_NpadStandard);
+        padConfigureInput(MAX_GAMEPADS, HidNpadStyleSet_NpadStandard);
 
         /* initialize touch screen */
         hidInitializeTouchScreen();

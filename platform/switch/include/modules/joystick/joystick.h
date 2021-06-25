@@ -16,6 +16,9 @@ namespace love
 
         bool AddVibration(Gamepad* gamepad, size_t id);
 
+      protected:
+        size_t GetActiveControllerCount();
+
       private:
         class VibrationThread : public Threadable
         {

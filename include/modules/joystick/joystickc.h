@@ -36,9 +36,18 @@ namespace love::common
 
         int GetIndex(const love::Gamepad* gamepad);
 
+        love::Gamepad* CheckGamepadAdded();
+
+      protected:
+        virtual size_t GetActiveControllerCount()
+        {
+            return 1;
+        };
+
       private:
         std::vector<love::Gamepad*> active;
-
         std::list<love::Gamepad*> gamepads;
+
+        size_t activeCount;
     };
 } // namespace love::common

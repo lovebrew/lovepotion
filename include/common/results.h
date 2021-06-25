@@ -3,6 +3,7 @@
 #if defined(__SWITCH__)
     #include <switch.h>
     #define __CONSOLE_ABORT(res_expr) diagAbortWithResult(res_expr)
+    #define MAX_GAMEPADS              4
 #elif defined(_3DS)
     #include <3ds.h>
     #define __CONSOLE_ABORT(res_expr) svcBreak(USERBREAK_PANIC)

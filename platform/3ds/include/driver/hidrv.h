@@ -21,6 +21,6 @@ namespace love::driver
         touchPosition touchState;
         touchPosition oldTouchState;
 
-        bool touchHeld;
+        bool isTouchHeld;
     };
 } // namespace love::driver

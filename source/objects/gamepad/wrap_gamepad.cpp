@@ -73,7 +73,7 @@ int Wrap_Gamepad::GetID(lua_State* L)
 {
     Gamepad* self = Wrap_Gamepad::CheckJoystick(L, 1);
 
-    lua_pushnumber(L, self->GetID());
+    lua_pushnumber(L, self->GetID() + 1);
 
     return 1;
 }

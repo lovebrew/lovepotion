@@ -2,15 +2,10 @@
 
 using namespace love::common;
 
-#if defined(_3DS)
-static const size_t MAX_GAMEPADS = 1;
-#elif defined(__SWITCH__)
-static const size_t MAX_GAMEPADS = 4;
-#endif
-
 Joystick::Joystick()
 {
-    for (size_t index = 0; index < MAX_GAMEPADS; index++)
+    this->activeCount = this->GetActiveControllerCount();
+    for (size_t index = 0; index < activeCount; index++)
         this->AddGamepad(index);
 }
 
@@ -41,7 +36,7 @@ size_t Joystick::GetJoystickCount() const
 
 love::Gamepad* Joystick::AddGamepad(size_t index)
 {
-    if (index < 0 || index > MAX_GAMEPADS)
+    if (index < 0 || index >= this->activeCount)
         return nullptr;
 
     love::Gamepad* joystick = nullptr;
@@ -70,7 +65,10 @@ love::Gamepad* Joystick::AddGamepad(size_t index)
     this->RemoveGamepad(joystick);
 
     if (!joystick->Open(index))
+    {
+        LOG("Why?");
         return nullptr;
+    }
 
     for (auto activeStick : this->active)
     {
@@ -105,6 +103,23 @@ void Joystick::RemoveGamepad(love::Gamepad* gamepad)
         (*iterator)->Close();
         this->active.erase(iterator);
     }
+}
+
+love::Gamepad* Joystick::CheckGamepadAdded()
+{
+    size_t totalActive     = this->GetActiveControllerCount();
+    love::Gamepad* gamepad = nullptr;
+
+    /* check that the active count updated */
+    if (totalActive > this->activeCount)
+    {
+        this->activeCount = totalActive;
+        gamepad           = this->AddGamepad(totalActive - 1);
+    }
+
+    LOG("new gamepad!? %d", gamepad != nullptr);
+
+    return gamepad;
 }
 
 int Joystick::GetIndex(const love::Gamepad* joystick)

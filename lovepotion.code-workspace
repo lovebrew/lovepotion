@@ -1,11 +1,14 @@
 {
-	"folders": [
+	"folders":
+	[
 		{
-			"path": "../../../.."
+			"path": "."
 		}
 	],
-	"settings": {
-		"files.associations": {
+	"settings":
+	{
+		"files.associations":
+		{
 			"array": "cpp",
 			"atomic": "cpp",
 			"bit": "cpp",
