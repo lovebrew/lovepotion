@@ -111,9 +111,9 @@ namespace love
         std::unique_ptr<HidVibrationDeviceHandle[]> vibrationHandles;
         HidVibrationValue vibrationValues[2];
 
-        const HidNpadStyleTag GetStyleTag() const;
+        HidNpadStyleTag GetStyleTag();
 
-        const HidNpadIdType GetNpadIdType() const;
+        HidNpadIdType GetNpadIdType();
 
         const static StringMap<GamepadAxis, MAX_AXES> axes;
         const static StringMap<GamepadButton, MAX_BUTTONS> buttons;

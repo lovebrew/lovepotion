@@ -36,7 +36,9 @@ namespace love::common
 
         int GetIndex(const love::Gamepad* gamepad);
 
-        love::Gamepad* CheckGamepadAdded();
+        int CheckGamepadAdded();
+
+        int CheckGamepadRemoved();
 
       protected:
         virtual size_t GetActiveControllerCount()

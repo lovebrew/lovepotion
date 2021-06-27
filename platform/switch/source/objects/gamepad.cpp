@@ -13,6 +13,7 @@ using namespace love;
 
 #define INVALID_GAMEPAD_BUTTON static_cast<Gamepad::GamepadButton>(-1)
 #define INVALID_NPAD_BUTTON    static_cast<HidNpadButton>(0)
+static constexpr HidNpadStyleTag INVALID_STYLE_TAG = static_cast<HidNpadStyleTag>(-1);
 
 Gamepad::Gamepad(size_t id) :
     common::Gamepad(id),
@@ -39,36 +40,30 @@ void Gamepad::UpdatePadState()
 {
     padUpdate(&this->pad);
 
-    if (!this->IsConnected())
-        return;
-
     this->buttonStates.pressed  = padGetButtonsDown(&this->pad);
     this->buttonStates.released = padGetButtonsUp(&this->pad);
 }
 
-const HidNpadStyleTag Gamepad::GetStyleTag() const
+HidNpadStyleTag Gamepad::GetStyleTag()
 {
-    u32 tagStyle = padGetStyleSet(&this->pad);
+    uint32_t styleSet = padGetStyleSet(&this->pad);
 
-    if (tagStyle & HidNpadStyleTag_NpadFullKey)
+    if (styleSet & HidNpadStyleTag_NpadFullKey)
         return HidNpadStyleTag_NpadFullKey;
-    else if (tagStyle & HidNpadStyleTag_NpadHandheld)
+    else if (styleSet & HidNpadStyleTag_NpadHandheld)
         return HidNpadStyleTag_NpadHandheld;
-    else if (tagStyle & HidNpadStyleTag_NpadJoyDual)
+    else if (styleSet & HidNpadStyleTag_NpadJoyDual)
         return HidNpadStyleTag_NpadJoyDual;
-    else if (tagStyle & HidNpadStyleTag_NpadJoyLeft)
+    else if (styleSet & HidNpadStyleTag_NpadJoyLeft)
         return HidNpadStyleTag_NpadJoyLeft;
-    else if (tagStyle & HidNpadStyleTag_NpadJoyRight)
+    else if (styleSet & HidNpadStyleTag_NpadJoyRight)
         return HidNpadStyleTag_NpadJoyRight;
 
-    return HidNpadStyleTag_NpadSystem;
+    return INVALID_STYLE_TAG;
 }
 
-const HidNpadIdType Gamepad::GetNpadIdType() const
+HidNpadIdType Gamepad::GetNpadIdType()
 {
-    if (padIsHandheld(&this->pad))
-        return HidNpadIdType_Handheld;
-
     return static_cast<HidNpadIdType>(HidNpadIdType_No1 + this->id);
 }
 
@@ -85,7 +80,7 @@ bool Gamepad::Open(size_t index)
 
     HidNpadStyleTag styleTag = this->GetStyleTag();
 
-    if (styleTag == HidNpadStyleTag_NpadSystem)
+    if (styleTag == INVALID_STYLE_TAG)
         return false;
 
     this->style = padGetStyleSet(&this->pad);

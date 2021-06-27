@@ -93,7 +93,7 @@ bool Hidrv::Poll(LOVE_Event* event)
 
     Gamepad* gamepad = MODULE()->GetJoystickFromID(0);
 
-    if (gamepad && gamepad->IsConnected())
+    if (gamepad)
     {
         gamepad->Update();
 

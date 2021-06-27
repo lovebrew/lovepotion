@@ -154,20 +154,27 @@ bool Hidrv::Poll(LOVE_Event* event)
     if (!MODULE())
         return false;
 
-    /* to do: find out why extra gamepads don't connect properly */
-    // if (Gamepad* pad = MODULE()->CheckGamepadAdded())
-    // {
-    //     auto& newEvent           = this->events.emplace_back();
-    //     newEvent.type            = TYPE_GAMEPADADDED;
-    //     newEvent.padStatus.which = pad->GetID();
-    // }
+    int newIndex = -1;
+    if ((newIndex = MODULE()->CheckGamepadAdded()) != -1)
+    {
+        auto& newEvent           = this->events.emplace_back();
+        newEvent.type            = TYPE_GAMEPADADDED;
+        newEvent.padStatus.which = newIndex;
+    }
+
+    if ((newIndex = MODULE()->CheckGamepadRemoved()) != -1)
+    {
+        auto& newEvent           = this->events.emplace_back();
+        newEvent.type            = TYPE_GAMEPADREMOVED;
+        newEvent.padStatus.which = newIndex;
+    }
 
     /* this iterates the "active" joysticks only */
     for (size_t index = 0; index < MODULE()->GetJoystickCount(); index++)
     {
         Gamepad* gamepad = MODULE()->GetJoystickFromID(index);
 
-        if (gamepad != nullptr)
+        if (gamepad)
         {
             gamepad->UpdatePadState();
 

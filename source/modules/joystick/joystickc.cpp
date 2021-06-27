@@ -65,10 +65,7 @@ love::Gamepad* Joystick::AddGamepad(size_t index)
     this->RemoveGamepad(joystick);
 
     if (!joystick->Open(index))
-    {
-        LOG("Why?");
         return nullptr;
-    }
 
     for (auto activeStick : this->active)
     {
@@ -105,21 +102,33 @@ void Joystick::RemoveGamepad(love::Gamepad* gamepad)
     }
 }
 
-love::Gamepad* Joystick::CheckGamepadAdded()
+int Joystick::CheckGamepadAdded()
 {
-    size_t totalActive     = this->GetActiveControllerCount();
-    love::Gamepad* gamepad = nullptr;
+    size_t active = this->GetActiveControllerCount();
 
     /* check that the active count updated */
-    if (totalActive > this->activeCount)
+    if (active > this->activeCount)
     {
-        this->activeCount = totalActive;
-        gamepad           = this->AddGamepad(totalActive - 1);
+        this->activeCount = active;
+        return (active - 1);
     }
 
-    LOG("new gamepad!? %d", gamepad != nullptr);
+    /* nothing added */
+    return -1;
+}
 
-    return gamepad;
+int Joystick::CheckGamepadRemoved()
+{
+    size_t active = this->GetActiveControllerCount();
+
+    /* check that the active count updated */
+    if (active < this->activeCount)
+    {
+        this->activeCount = active;
+        return active;
+    }
+
+    return -1;
 }
 
 int Joystick::GetIndex(const love::Gamepad* joystick)
