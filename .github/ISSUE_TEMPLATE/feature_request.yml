@@ -1,0 +1,36 @@
+name: Feature Request
+description: Suggest an idea or enhancement for LÖVE Potion
+title: "[Feature Request]: "
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: version
+    attributes:
+      label: Software Version
+      description: LÖVE Potion Version
+      options:
+        - 2.1.2 (Latest)
+    validations:
+      required: true
+  - type: input
+    id: description
+    attributes:
+      label: Enhancement Details
+      description: Describe the new feature.
+      placeholder: I need feature x for my game.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Solution
+      description: Describe what this feature should do.
+      placeholder: This feature should do y and z.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Additional Context
+      description: Further elaborate on any key points about this feature.
+      placeholder: Add any other context or screenshots.
+    validations:
+      required: true

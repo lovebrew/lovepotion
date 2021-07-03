@@ -1,0 +1,92 @@
+name: Bug Report
+description: Tell us about unexpected behavior from LÖVE Potion.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: dropdown
+    id: version
+    attributes:
+      label: Software Version
+      description: LÖVE Potion Version
+      options:
+        - 2.1.2 (Latest)
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What Happened?
+      description:
+        Describe the Bug. Optionally, add screenshots (or exception logs, if
+        applicable) to help with our understanding of the issue.
+      placeholder: A bug happened!
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What was Expected?
+      description:
+        Describe what should happen. Optionally, add screenshots to help with
+        our understanding of what is expected.
+      placeholder: The bug shouldn't happen!
+    validations:
+      required: true
+  - type: textarea
+    id: code
+    attributes:
+      label: Code to Reproduce
+      description: Please provide a **minimal** code sample. For big snippets,
+        use a service such as pastebin.
+      render: Lua
+    validations:
+      required: true
+  - type: dropdown
+    id: console
+    attributes:
+      label: Console
+      description: What console is LÖVE Potion running on?
+      options:
+        - Nintendo Switch
+        - Nintendo 3DS
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Firmware Version(s)
+      description: What is the firmware version the console is running?
+      placeholder: e.g. 11.14.0-46U, 12.0.3
+    validations:
+      required: true
+  - type: input
+    id: custom_firmware
+    attributes:
+      label: Custom Firmware Version
+      description:
+        What version(s) are you running? We can decipher which it is based
+        on your Console selection. If 'Both' was selected, add both of them here.
+      placeholder: e.g. 10.2.1, 0.19.4
+    validations:
+      required: true
+  - type: dropdown
+    id: execution
+    attributes:
+      label: Execution Method
+      options:
+        - Homebrew Menu
+        - Other
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description:
+        By submitting this issue, you agree that the above information is correct and accurate.
+        Please note that if you selected 'Other' for Execution Method, your issue will be closed
+        without comment.
+      options:
+        - label: I have read the Code of Conduct and agree to these terms
+          required: true
