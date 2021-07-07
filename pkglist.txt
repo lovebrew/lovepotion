@@ -1,6 +1,8 @@
 3ds-examples
 3ds-libvorbisidec
 3ds-box2d
+3ds-flac
+3ds-lz4
 3ds-physfs
 3ds-pkg-config
 3ds-libmodplug
@@ -21,7 +23,9 @@ libctru
 libnx
 picasso
 switch-examples
+switch-flac
 switch-libvorbisidec
+switch-lz4
 switch-physfs
 switch-pkg-config
 switch-libmodplug
