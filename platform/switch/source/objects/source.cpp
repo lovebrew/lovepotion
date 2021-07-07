@@ -216,6 +216,7 @@ bool Source::PlayAtomic()
     this->PrepareAtomic();
 
     /* add the initial wavebuffer */
+    driver::Audrv::Instance().StopChannel(this->channel);
     driver::Audrv::Instance().AddWaveBuf(this->channel, &this->sources[0]);
 
     if (this->sourceType != TYPE_STREAM)

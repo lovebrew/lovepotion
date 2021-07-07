@@ -155,19 +155,19 @@ bool Hidrv::Poll(LOVE_Event* event)
         return false;
 
     int newIndex = -1;
-    if ((newIndex = MODULE()->CheckGamepadAdded()) != -1)
-    {
-        auto& newEvent           = this->events.emplace_back();
-        newEvent.type            = TYPE_GAMEPADADDED;
-        newEvent.padStatus.which = newIndex;
-    }
+    // if ((newIndex = MODULE()->CheckGamepadAdded()) != -1)
+    // {
+    //     auto& newEvent           = this->events.emplace_back();
+    //     newEvent.type            = TYPE_GAMEPADADDED;
+    //     newEvent.padStatus.which = newIndex;
+    // }
 
-    if ((newIndex = MODULE()->CheckGamepadRemoved()) != -1)
-    {
-        auto& newEvent           = this->events.emplace_back();
-        newEvent.type            = TYPE_GAMEPADREMOVED;
-        newEvent.padStatus.which = newIndex;
-    }
+    // if ((newIndex = MODULE()->CheckGamepadRemoved()) != -1)
+    // {
+    //     auto& newEvent           = this->events.emplace_back();
+    //     newEvent.type            = TYPE_GAMEPADREMOVED;
+    //     newEvent.padStatus.which = newIndex;
+    // }
 
     /* this iterates the "active" joysticks only */
     for (size_t index = 0; index < MODULE()->GetJoystickCount(); index++)
