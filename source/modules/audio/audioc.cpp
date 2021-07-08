@@ -81,9 +81,24 @@ Source* Audio::NewSource(SoundData* sound)
     return new Source(this->pool, sound);
 }
 
+bool Audio::Play(const std::vector<common::Source*>& sources)
+{
+    return common::Source::Play(sources);
+}
+
 bool Audio::Play(Source* source)
 {
     return source->Play();
+}
+
+bool Audio::Play()
+{
+    return true;
+}
+
+void Audio::Stop(const std::vector<common::Source*>& sources)
+{
+    return common::Source::Stop(sources);
 }
 
 void Audio::Stop(Source* source)
@@ -91,10 +106,22 @@ void Audio::Stop(Source* source)
     source->Stop();
 }
 
+void Audio::Stop()
+{
+    return common::Source::Stop(this->pool);
+}
+
 void Audio::Pause(Source* source)
 {
     source->Pause();
 }
 
-void Audio::Stop()
-{}
+void Audio::Pause(const std::vector<common::Source*>& sources)
+{
+    return common::Source::Pause(sources);
+}
+
+std::vector<common::Source*> Audio::Pause()
+{
+    return common::Source::Pause(this->pool);
+}

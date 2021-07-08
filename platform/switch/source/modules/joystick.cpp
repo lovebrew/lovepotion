@@ -55,6 +55,10 @@ size_t Joystick::GetActiveControllerCount()
         HidNpadIdType id  = static_cast<HidNpadIdType>(HidNpadIdType_No1 + index);
         uint32_t styleSet = hidGetNpadStyleSet(id);
 
+        /* check for handheld */
+        if (styleSet == 0)
+            styleSet = hidGetNpadStyleSet(HidNpadIdType_Handheld);
+
         if (styleSet != 0)
             active++;
     }

@@ -54,13 +54,13 @@ int Wrap_Audio::NewSource(lua_State* L)
         return Luax::TypeErrror(L, 1, "Decoder or SoundData");
 }
 
-static std::vector<Source*> ReadSourceList(lua_State* L, int index)
+static std::vector<common::Source*> ReadSourceList(lua_State* L, int index)
 {
     if (index < 0)
         index += lua_gettop(L) + 1;
 
     size_t numItems = lua_objlen(L, index);
-    std::vector<Source*> sources(numItems);
+    std::vector<common::Source*> sources(numItems);
 
     for (size_t i = 0; i < numItems; i++)
     {
@@ -72,17 +72,17 @@ static std::vector<Source*> ReadSourceList(lua_State* L, int index)
     return sources;
 }
 
-static std::vector<Source*> ReadSourceVaArg(lua_State* L, int index)
+static std::vector<common::Source*> ReadSourceVaArg(lua_State* L, int index)
 {
     const int top = lua_gettop(L);
 
     if (index < 0)
         index += top + 1;
 
-    size_t numItems = top - 1 + 1;
-    std::vector<Source*> sources(numItems);
+    size_t numItems = top - index + 1;
+    std::vector<common::Source*> sources(numItems);
 
-    for (int position = 0; position <= top; index++, position++)
+    for (int position = 0; index <= top; index++, position++)
         sources[position] = Wrap_Source::CheckSource(L, index);
 
     return sources;
@@ -90,9 +90,17 @@ static std::vector<Source*> ReadSourceVaArg(lua_State* L, int index)
 
 int Wrap_Audio::Play(lua_State* L)
 {
-    Source* source = Wrap_Source::CheckSource(L, 1);
 
-    lua_pushboolean(L, instance()->Play(source));
+    if (lua_istable(L, 1))
+        Luax::PushBoolean(L, instance()->Play(ReadSourceList(L, 1)));
+    else if (lua_gettop(L) > 1)
+        Luax::PushBoolean(L, instance()->Play(ReadSourceVaArg(L, 1)));
+    else
+    {
+        Source* source = Wrap_Source::CheckSource(L, 1);
+
+        lua_pushboolean(L, instance()->Play(source));
+    }
 
     return 1;
 }
@@ -100,11 +108,46 @@ int Wrap_Audio::Play(lua_State* L)
 int Wrap_Audio::Pause(lua_State* L)
 {
     if (lua_isnone(L, 1))
-        printf("Pause all Sources");
+    {
+        auto sources = instance()->Pause();
+
+        lua_createtable(L, sources.size(), 0);
+
+        for (size_t index = 0; index < sources.size(); index++)
+        {
+            Luax::PushType(L, sources[index]);
+            lua_rawseti(L, -2, index + 1);
+        }
+
+        return 1;
+    }
+    else if (lua_istable(L, 1))
+        instance()->Pause(ReadSourceList(L, 1));
+    else if (lua_gettop(L) > 1)
+        instance()->Pause(ReadSourceVaArg(L, 1));
+    else
+    {
+        Source* self = Wrap_Source::CheckSource(L, 1);
+
+        self->Pause();
+    }
+
+    return 0;
+}
+
+int Wrap_Audio::Stop(lua_State* L)
+{
+    if (lua_isnone(L, 1))
+        instance()->Stop();
+    else if (lua_istable(L, 1))
+        instance()->Stop(ReadSourceList(L, 1));
+    else if (lua_gettop(L) > 1)
+        instance()->Stop(ReadSourceVaArg(L, 1));
     else
     {
         Source* source = Wrap_Source::CheckSource(L, 1);
-        source->Pause();
+
+        source->Stop();
     }
 
     return 0;
@@ -114,19 +157,6 @@ int Wrap_Audio::SetVolume(lua_State* L)
 {
     float volume = (float)luaL_checknumber(L, 1);
     instance()->SetVolume(volume);
-
-    return 0;
-}
-
-int Wrap_Audio::Stop(lua_State* L)
-{
-    if (lua_isnone(L, 1))
-        instance()->Stop();
-    else
-    {
-        Source* source = Wrap_Source::CheckSource(L, 1);
-        source->Stop();
-    }
 
     return 0;
 }

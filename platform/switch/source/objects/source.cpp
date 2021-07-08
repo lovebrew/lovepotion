@@ -240,12 +240,16 @@ void Source::ResumeAtomic()
         driver::Audrv::Instance().PauseChannel(this->channel, false);
 }
 
+void Source::ClearChannel()
+{
+    driver::Audrv::Instance().StopChannel(this->channel);
+}
+
 void Source::StopAtomic()
 {
     if (!this->valid)
         return;
 
-    driver::Audrv::Instance().StopChannel(this->channel);
     this->TeardownAtomic();
 }
 

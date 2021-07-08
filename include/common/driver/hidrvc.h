@@ -17,13 +17,6 @@ namespace love::common::driver
     class Hidrv
     {
       public:
-        struct ButtonMapping
-        {
-            const char* name;
-            uint32_t key;
-            int index;
-        };
-
         struct GamePadButton
         {
             size_t which; //< Gamepad ID

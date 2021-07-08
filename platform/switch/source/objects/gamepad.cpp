@@ -9,7 +9,6 @@
 using namespace love;
 
 #define JOYSTICK_MODULE() (Module::GetInstance<Joystick>(Module::M_JOYSTICK))
-#define EVENT_MODULE()    (Module::GetInstance<love::Event>(Module::M_EVENT))
 
 #define INVALID_GAMEPAD_BUTTON static_cast<Gamepad::GamepadButton>(-1)
 #define INVALID_NPAD_BUTTON    static_cast<HidNpadButton>(0)
@@ -158,6 +157,8 @@ bool Gamepad::Open(size_t index)
     if ((this->style & HidNpadStyleTag_NpadJoyDual) &&
         (attributes & HidNpadAttribute_IsRightConnected))
         hidStartSixAxisSensor(this->sixAxisHandles[1]);
+
+    this->guid = std::to_string(this->style);
 
     return this->IsConnected();
 }

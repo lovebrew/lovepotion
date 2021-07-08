@@ -517,7 +517,7 @@ int Luax::Release(lua_State* L)
 
         if (lua_istable(L, -1))
         {
-            lua_Number key = Luax::ComputerObjectKey(L, object);
+            lua_Number key = Luax::ComputeObjectKey(L, object);
             lua_pushnumber(L, key);
             lua_pushnil(L);
             lua_settable(L, -3);
@@ -640,7 +640,7 @@ void Luax::RawNewType(lua_State* L, love::Type& type, Object* object)
     lua_setmetatable(L, -2);
 }
 
-lua_Number Luax::ComputerObjectKey(lua_State* L, Object* object)
+lua_Number Luax::ComputeObjectKey(lua_State* L, Object* object)
 {
     // Compute a key to store our userdata
     const size_t minAlign = alignof(std::max_align_t);
@@ -709,7 +709,7 @@ void Luax::PushType(lua_State* L, love::Type& type, Object* object)
         return Luax::RawNewType(L, type, object);
     }
 
-    lua_Number key = Luax::ComputerObjectKey(L, object);
+    lua_Number key = Luax::ComputeObjectKey(L, object);
 
     // push using that key
     lua_pushnumber(L, key);

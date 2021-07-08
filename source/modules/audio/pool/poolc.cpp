@@ -1,4 +1,5 @@
 #include "modules/audio/pool/pool.h"
+
 #include "objects/source/source.h"
 
 using namespace love;
@@ -50,12 +51,12 @@ bool Pool::IsPlaying(common::Source* source)
     return (this->playing.find(source) != this->playing.end());
 }
 
-bool Pool::AssignSource(common::Source* source, size_t& channel, bool& wasPlaying)
+bool Pool::AssignSource(common::Source* source, size_t& channel, char& wasPlaying)
 {
     channel = 0;
 
     if (this->FindSource(source, channel))
-        return wasPlaying = true;
+        return (wasPlaying = true);
 
     wasPlaying = false;
 

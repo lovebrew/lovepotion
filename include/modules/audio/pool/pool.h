@@ -29,7 +29,7 @@ namespace love
 
         bool IsPlaying(common::Source* source);
 
-        bool AssignSource(common::Source* source, size_t& channel, bool& wasPlaying);
+        bool AssignSource(common::Source* source, size_t& channel, char& wasPlaying);
 
         void AddSource(common::Source*, size_t channel);
 
@@ -45,10 +45,10 @@ namespace love
 
         thread::Lock Lock();
 
+        std::vector<common::Source*> GetPlayingSources();
+
       private:
         friend class common::Source;
-
-        std::vector<common::Source*> GetPlayingSources();
 
         std::atomic<bool> running = true;
         std::map<common::Source*, size_t> playing;

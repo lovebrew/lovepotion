@@ -200,7 +200,7 @@ namespace Luax
 
     void RawNewType(lua_State* L, love::Type& type, love::Object* object);
 
-    lua_Number ComputerObjectKey(lua_State* L, love::Object* object);
+    lua_Number ComputeObjectKey(lua_State* L, love::Object* object);
 
     int IOError(lua_State* L, const char* format, ...);
 

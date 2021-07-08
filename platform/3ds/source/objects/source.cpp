@@ -202,7 +202,7 @@ int Source::StreamAtomic(size_t which)
 
 bool Source::IsPlaying() const
 {
-    return this->valid && ndspChnIsPlaying(this->channel);
+    return this->valid && !ndspChnIsPaused(this->channel);
 }
 
 bool Source::IsFinished() const
@@ -249,12 +249,16 @@ void Source::ResumeAtomic()
         ndspChnSetPaused(this->channel, false);
 }
 
+void Source::ClearChannel()
+{
+    ndspChnWaveBufClear(this->channel);
+}
+
 void Source::StopAtomic()
 {
     if (!this->valid)
         return;
 
-    ndspChnWaveBufClear(this->channel);
     this->TeardownAtomic();
 }
 

@@ -2,7 +2,7 @@
 
 namespace Version
 {
-    static constexpr const char* LOVE_POTION = "2.1.0";
+    static constexpr const char* LOVE_POTION = "2.1.3";
     static constexpr const char* LOVE        = "11.3.0";
 
     static constexpr int MAJOR    = 11;
@@ -15,5 +15,5 @@ namespace Version
 
     static constexpr const char* CODENAME = "Mysterious Mysteries";
 
-    static constexpr const char* COMPATABILITY[] = { LOVE_POTION, 0 };
+    static constexpr const char* COMPATABILITY[] = { LOVE_POTION, "2.1.2", 0 };
 } // namespace Version

@@ -50,6 +50,8 @@ Source::Source(const Source& other) :
 
 void Source::TeardownAtomic()
 {
+    this->ClearChannel();
+
     switch (this->sourceType)
     {
         case TYPE_STATIC:
@@ -69,7 +71,7 @@ void Source::TeardownAtomic()
 
 bool Source::Play()
 {
-    bool wasPlaying;
+    char wasPlaying;
 
     {
         thread::Lock lock = this->pool->Lock();
@@ -266,24 +268,6 @@ bool Source::IsLooping() const
     return this->looping;
 }
 
-void Source::Stop(const std::vector<Source*>& sources)
-{
-    if (sources.size() == 0)
-        return;
-
-    Pool* pool        = ((Source*)sources[0])->pool;
-    thread::Lock lock = pool->Lock();
-
-    for (auto& _source : sources)
-    {
-        Source* source = (Source*)_source;
-        if (source->valid)
-            source->StopAtomic();
-
-        pool->ReleaseSource(source, false);
-    }
-}
-
 double Source::Tell(Source::Unit unit)
 {
     thread::Lock lock = this->pool->Lock();
@@ -297,6 +281,111 @@ double Source::Tell(Source::Unit unit)
         return offset / (double)this->sampleRate;
     else
         return offset;
+}
+#include "debug/logger.h"
+bool Source::Play(const std::vector<Source*>& sources)
+{
+    if (sources.size() == 0)
+        return true;
+
+    Pool* pool        = ((Source*)sources[0])->pool;
+    thread::Lock lock = pool->Lock();
+
+    std::vector<char> wasPlaying(sources.size());
+    std::vector<size_t> channels(sources.size());
+
+    for (size_t index = 0; index < sources.size(); index++)
+    {
+        if (!pool->AssignSource((Source*)sources[index], channels[index], wasPlaying[index]))
+        {
+            for (size_t j = 0; j < index; j++)
+            {
+                if (!wasPlaying[j])
+                    pool->ReleaseSource((Source*)sources[index], false);
+            }
+
+            return false;
+        }
+    }
+
+    std::vector<common::Source*> toPlay;
+    toPlay.reserve(sources.size());
+
+    for (size_t index = 0; index < sources.size(); index++)
+    {
+        LOG("#%d IsPlaying %d, was %c", index, sources[index]->IsPlaying(), wasPlaying[index]);
+        if (wasPlaying[index] && sources[index]->IsPlaying())
+            continue;
+
+        if (!wasPlaying[index])
+        {
+            Source* source  = (Source*)sources[index];
+            source->channel = channels[index];
+
+            toPlay.push_back(source);
+        }
+        else
+        {
+            Source* source = (Source*)sources[index];
+            LOG("source valid %d", source->valid);
+            source->ResumeAtomic();
+        }
+    }
+
+    for (auto& _source : toPlay)
+    {
+        Source* source = (Source*)_source;
+
+        if (source->sourceType != TYPE_STREAM)
+            source->offsetSamples = 0;
+
+        if (!(_source->valid = _source->PlayAtomic()))
+            return false;
+
+        pool->AddSource(_source, source->channel);
+    }
+
+    return true;
+}
+
+void Source::Stop(const std::vector<Source*>& sources)
+{
+    if (sources.size() == 0)
+        return;
+
+    Pool* pool        = ((Source*)sources[0])->pool;
+    thread::Lock lock = pool->Lock();
+
+    std::vector<common::Source*> toStop;
+    toStop.reserve(sources.size());
+
+    for (auto& _source : sources)
+    {
+        Source* source = (Source*)_source;
+        if (source->valid)
+            toStop.push_back(source);
+    }
+
+    for (auto& _source : toStop)
+    {
+        Source* source = (Source*)_source;
+        if (source->valid)
+            source->TeardownAtomic();
+
+        pool->ReleaseSource(source, false);
+    }
+}
+
+void Source::Stop(Pool* pool)
+{
+    std::vector<Source*> sources;
+
+    {
+        thread::Lock lock = pool->Lock();
+        sources           = pool->GetPlayingSources();
+    }
+
+    common::Source::Stop(sources);
 }
 
 void Source::Pause(const std::vector<Source*>& sources)
@@ -316,23 +405,21 @@ void Source::Pause(const std::vector<Source*>& sources)
 
 std::vector<Source*> Source::Pause(Pool* pool)
 {
-    thread::Lock lock            = pool->Lock();
-    std::vector<Source*> sources = pool->GetPlayingSources();
+    std::vector<Source*> sources;
 
-    auto newEnd = std::remove_if(sources.begin(), sources.end(),
-                                 [](Source* source) { return !source->IsPlaying(); });
+    {
+        thread::Lock lock = pool->Lock();
+        sources           = pool->GetPlayingSources();
 
-    sources.erase(newEnd, sources.end());
+        auto newEnd = std::remove_if(sources.begin(), sources.end(),
+                                     [](Source* source) { return !source->IsPlaying(); });
+
+        sources.erase(newEnd, sources.end());
+    }
 
     Source::Pause(sources);
 
     return sources;
-}
-
-void Source::Stop(Pool* pool)
-{
-    thread::Lock lock = pool->Lock();
-    Source::Stop(pool->GetPlayingSources());
 }
 
 /* Type Constants */

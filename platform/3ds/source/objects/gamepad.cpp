@@ -3,9 +3,6 @@
 
 using namespace love;
 
-#include "modules/event/event.h"
-
-#define EVENT_MODULE()         (Module::GetInstance<love::Event>(Module::M_EVENT))
 #define INVALID_GAMEPAD_BUTTON static_cast<GamepadButton>(-1)
 
 Gamepad::Gamepad(size_t id) : common::Gamepad(id), buttonStates()

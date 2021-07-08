@@ -38,21 +38,21 @@ namespace love
 
         bool Play(Source* source);
 
-        bool Play(const std::vector<Source*>& sources);
+        bool Play(const std::vector<common::Source*>& sources);
+
+        bool Play();
 
         void Stop(Source* source);
 
-        void Stop(const std::vector<Source*>& sources);
+        void Stop(const std::vector<common::Source*>& sources);
 
         void Stop();
 
+        void Pause(const std::vector<common::Source*>& sources);
+
         void Pause(Source* source);
 
-        void Pause(const std::vector<Source*>& sources);
-
-        std::vector<Source*> Pause();
-
-        // void Pause();
+        std::vector<common::Source*> Pause();
 
         void SetVolume(float volume);
 

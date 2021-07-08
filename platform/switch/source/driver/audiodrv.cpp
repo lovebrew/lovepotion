@@ -86,7 +86,7 @@ bool Audrv::IsChannelPlaying(size_t channel)
 {
     thread::Lock lock(this->mutex);
 
-    return audrvVoiceIsPlaying(&this->driver, channel);
+    return !audrvVoiceIsPaused(&this->driver, channel);
 }
 
 /*

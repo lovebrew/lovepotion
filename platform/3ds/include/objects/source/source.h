@@ -32,6 +32,8 @@ namespace love
       protected:
         double GetSampleOffset() override;
 
+        void ClearChannel() override;
+
       private:
         ndspWaveBuf sources[Source::MAX_BUFFERS];
 

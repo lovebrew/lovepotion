@@ -109,7 +109,7 @@ namespace love
 
             double Tell(Source::Unit unit);
 
-            // static bool Play(const std::vector<Source *> & sources);
+            static bool Play(const std::vector<Source*>& sources);
 
             static void Stop(const std::vector<Source*>& sources);
 
@@ -163,6 +163,8 @@ namespace love
 
             StrongReference<Decoder> decoder;
             StrongReference<StaticDataBuffer> staticBuffer;
+
+            virtual void ClearChannel() = 0;
 
             virtual void FreeBuffer() = 0;
 

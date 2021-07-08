@@ -5,4 +5,4 @@
 namespace love
 {
     using Joystick = common::Joystick;
-}
+} // namespace love
