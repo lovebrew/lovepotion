@@ -10,7 +10,7 @@
 
 namespace Wrap_Audio
 {
-    int _UpdateAudio();
+    int GetActiveSourceCount(lua_State* L);
 
     int GetVolume(lua_State* L);
 

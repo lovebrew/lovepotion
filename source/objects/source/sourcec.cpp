@@ -313,7 +313,6 @@ bool Source::Play(const std::vector<Source*>& sources)
 
     for (size_t index = 0; index < sources.size(); index++)
     {
-        LOG("#%d IsPlaying %d, was %c", index, sources[index]->IsPlaying(), wasPlaying[index]);
         if (wasPlaying[index] && sources[index]->IsPlaying())
             continue;
 
@@ -327,7 +326,6 @@ bool Source::Play(const std::vector<Source*>& sources)
         else
         {
             Source* source = (Source*)sources[index];
-            LOG("source valid %d", source->valid);
             source->ResumeAtomic();
         }
     }

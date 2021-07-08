@@ -153,6 +153,15 @@ int Wrap_Audio::Stop(lua_State* L)
     return 0;
 }
 
+int Wrap_Audio::GetActiveSourceCount(lua_State* L)
+{
+    int count = instance()->GetActiveSourceCount();
+
+    lua_pushnumber(L, count);
+
+    return 1;
+}
+
 int Wrap_Audio::SetVolume(lua_State* L)
 {
     float volume = (float)luaL_checknumber(L, 1);
@@ -163,13 +172,10 @@ int Wrap_Audio::SetVolume(lua_State* L)
 
 int Wrap_Audio::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getVolume", GetVolume },
-                       { "newSource", NewSource },
-                       { "pause", Pause },
-                       { "play", Play },
-                       { "setVolume", SetVolume },
-                       { "stop", Stop },
-                       { 0, 0 } };
+    luaL_Reg reg[] = { { "getVolume", GetVolume }, { "getActiveSourceCount", GetActiveSourceCount },
+                       { "newSource", NewSource }, { "pause", Pause },
+                       { "play", Play },           { "setVolume", SetVolume },
+                       { "stop", Stop },           { 0, 0 } };
 
     lua_CFunction types[] = { Wrap_Source::Register, 0 };
 
