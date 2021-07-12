@@ -20,7 +20,7 @@ namespace love::driver
             return instance;
         }
 
-        void ResetChannel(size_t channel, int channels, PcmFormat format, int sampleRate);
+        bool ResetChannel(size_t channel, int channels, PcmFormat format, int sampleRate);
 
         void SetMixVolume(int mix, float volume);
 
@@ -28,11 +28,9 @@ namespace love::driver
 
         bool IsChannelPlaying(size_t channel);
 
-        void AddWaveBufStream(size_t channel, AudioDriverWaveBuf* waveBuf);
-
-        void AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf);
-
         bool IsChannelPaused(size_t channel);
+
+        bool AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf);
 
         void PauseChannel(size_t channel, bool pause);
 
@@ -48,6 +46,8 @@ namespace love::driver
         thread::MutexRef mutex;
 
         bool audioInitialized;
+        bool channelReset;
+
         AudioDriver driver;
     };
 } // namespace love::driver

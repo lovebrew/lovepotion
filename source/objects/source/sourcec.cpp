@@ -282,7 +282,7 @@ double Source::Tell(Source::Unit unit)
     else
         return offset;
 }
-#include "debug/logger.h"
+
 bool Source::Play(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)

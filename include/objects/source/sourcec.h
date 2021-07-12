@@ -8,12 +8,6 @@
 #include "modules/audio/pool/pool.h"
 #include "objects/object.h"
 
-#if defined(__SWITCH__)
-typedef AudioDriverWaveBuf _waveBuf;
-    #define LOVE_SetBufferLooping(waveBuf, loop) ((waveBuf).is_looping = (loop))
-    #define FlushAudioCache                      armDCacheFlush
-#endif
-
 namespace love
 {
     class StaticDataBuffer : public Object

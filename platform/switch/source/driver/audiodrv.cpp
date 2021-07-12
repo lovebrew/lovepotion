@@ -3,25 +3,28 @@
 
 using namespace love::driver;
 
+static constexpr AudioRendererConfig config = {
+    .output_rate     = AudioRendererOutputRate_48kHz,
+    .num_voices      = 24,
+    .num_effects     = 0,
+    .num_sinks       = 1,
+    .num_mix_objs    = 1,
+    .num_mix_buffers = 2,
+};
+
 Audrv::Audrv() : audioInitialized(false)
 {
-    static const AudioRendererConfig config = {
-        .output_rate     = AudioRendererOutputRate_48kHz,
-        .num_voices      = 24,
-        .num_effects     = 0,
-        .num_sinks       = 1,
-        .num_mix_objs    = 1,
-        .num_mix_buffers = 2,
-    };
-
     AudioPool::AUDIO_POOL_BASE = memalign(AUDREN_MEMPOOL_ALIGNMENT, AudioPool::AUDIO_POOL_SIZE);
 
     Result res = audrenInitialize(&config);
 
     this->audioInitialized = R_SUCCEEDED(res);
+    this->channelReset     = false;
 
     if (!this->audioInitialized)
         return;
+
+    this->driver = AudioDriver();
 
     res = audrvCreate(&this->driver, &config, 2);
 
@@ -56,17 +59,23 @@ void Audrv::SetMixVolume(int mix, float volume)
 ** Reset a channel to a given format and sample rate
 ** Also needs to Mix Factor reset.. for some reason
 */
-void Audrv::ResetChannel(size_t channel, int channels, PcmFormat format, int sampleRate)
+bool Audrv::ResetChannel(size_t channel, int channels, PcmFormat format, int sampleRate)
 {
     thread::Lock lock(this->mutex);
 
-    audrvVoiceInit(&this->driver, channel, channels, format, sampleRate);
-    audrvVoiceSetDestinationMix(&this->driver, channel, AUDREN_FINAL_MIX_ID);
+    this->channelReset = audrvVoiceInit(&this->driver, channel, channels, format, sampleRate);
 
-    audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 0);
+    if (this->channelReset)
+    {
+        audrvVoiceSetDestinationMix(&this->driver, channel, AUDREN_FINAL_MIX_ID);
 
-    if (channels == 2)
-        audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 1);
+        audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 0);
+
+        if (channels == 2)
+            audrvVoiceSetMixFactor(&this->driver, channel, 1.0f, 0, 1);
+    }
+
+    return this->channelReset;
 }
 
 /*
@@ -86,7 +95,17 @@ bool Audrv::IsChannelPlaying(size_t channel)
 {
     thread::Lock lock(this->mutex);
 
-    return !audrvVoiceIsPaused(&this->driver, channel);
+    return audrvVoiceIsPlaying(&this->driver, channel);
+}
+
+/*
+** Check if a channel is paused
+*/
+bool Audrv::IsChannelPaused(size_t channel)
+{
+    thread::Lock lock(this->mutex);
+
+    return audrvVoiceIsPaused(&this->driver, channel);
 }
 
 /*
@@ -94,12 +113,21 @@ bool Audrv::IsChannelPlaying(size_t channel)
 ** NOTE: Stop the Voice before Adding
 ** However, this is done when released from the audio pool
 */
-void Audrv::AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf)
+bool Audrv::AddWaveBuf(size_t channel, AudioDriverWaveBuf* waveBuf)
 {
-    thread::Lock lock(this->mutex);
+    if (this->channelReset)
+    {
+        thread::Lock lock(this->mutex);
 
-    audrvVoiceAddWaveBuf(&this->driver, channel, waveBuf);
-    audrvVoiceStart(&this->driver, channel);
+        bool success = audrvVoiceAddWaveBuf(&this->driver, channel, waveBuf);
+
+        if (success)
+            audrvVoiceStart(&this->driver, channel);
+
+        return success;
+    }
+
+    return false;
 }
 
 /*
@@ -121,6 +149,7 @@ void Audrv::StopChannel(size_t channel)
     thread::Lock lock(this->mutex);
 
     audrvVoiceStop(&this->driver, channel);
+    audrvVoiceDrop(&this->driver, channel);
 }
 
 /*

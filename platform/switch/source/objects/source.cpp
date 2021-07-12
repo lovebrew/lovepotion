@@ -97,7 +97,8 @@ void Source::SetVolume(float volume)
 void Source::Reset()
 {
     PcmFormat format = (this->bitDepth == 8) ? PcmFormat_Int8 : PcmFormat_Int16;
-    driver::Audrv::Instance().ResetChannel(this->channel, this->channels, format, this->sampleRate);
+    driver::Audrv::Instance().ResetChannel(this->channel, this->channels, PcmFormat_Int16,
+                                           this->sampleRate);
 }
 
 bool Source::Update()
@@ -187,12 +188,7 @@ int Source::StreamAtomic(size_t which)
 
 bool Source::IsPlaying() const
 {
-    if (!this->valid)
-        return false;
-
-    bool playing = driver::Audrv::Instance().IsChannelPlaying(this->channel);
-
-    return playing;
+    return this->valid && !driver::Audrv::Instance().IsChannelPaused(this->channel);
 }
 
 bool Source::IsFinished() const
@@ -216,7 +212,6 @@ bool Source::PlayAtomic()
     this->PrepareAtomic();
 
     /* add the initial wavebuffer */
-    driver::Audrv::Instance().StopChannel(this->channel);
     driver::Audrv::Instance().AddWaveBuf(this->channel, &this->sources[0]);
 
     if (this->sourceType != TYPE_STREAM)
