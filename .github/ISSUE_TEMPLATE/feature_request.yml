@@ -3,15 +3,6 @@ description: Suggest an idea or enhancement for LÖVE Potion
 title: "[Feature Request]: "
 labels: [enhancement]
 body:
-  - type: dropdown
-    id: version
-    attributes:
-      label: Software Version
-      description: LÖVE Potion Version
-      options:
-        - 2.1.2 (Latest)
-    validations:
-      required: true
   - type: input
     id: description
     attributes:

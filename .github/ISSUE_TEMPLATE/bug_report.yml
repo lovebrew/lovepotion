@@ -9,7 +9,8 @@ body:
       label: Software Version
       description: LÖVE Potion Version
       options:
-        - 2.1.2 (Latest)
+        - 2.2.0 (Latest)
+        - 2.1.x
     validations:
       required: true
   - type: textarea
