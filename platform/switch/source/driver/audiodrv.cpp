@@ -1,21 +1,19 @@
 #include "driver/audiodrv.h"
 #include "pools/audiopool.h"
 
-#include "debug/logger.h"
-
 using namespace love::driver;
+
+static constexpr AudioRendererConfig config = {
+    .output_rate     = AudioRendererOutputRate_48kHz,
+    .num_voices      = 24,
+    .num_effects     = 0,
+    .num_sinks       = 1,
+    .num_mix_objs    = 1,
+    .num_mix_buffers = 2,
+};
 
 Audrv::Audrv() : audioInitialized(false)
 {
-    static const AudioRendererConfig config = {
-        .output_rate     = AudioRendererOutputRate_48kHz,
-        .num_voices      = 24,
-        .num_effects     = 0,
-        .num_sinks       = 1,
-        .num_mix_objs    = 1,
-        .num_mix_buffers = 2,
-    };
-
     AudioPool::AUDIO_POOL_BASE = memalign(AUDREN_MEMPOOL_ALIGNMENT, AudioPool::AUDIO_POOL_SIZE);
 
     Result res = audrenInitialize(&config);
@@ -65,7 +63,6 @@ bool Audrv::ResetChannel(size_t channel, int channels, PcmFormat format, int sam
 {
     thread::Lock lock(this->mutex);
 
-    LOG("Channel %zu", channel);
     this->channelReset = audrvVoiceInit(&this->driver, channel, channels, format, sampleRate);
 
     if (this->channelReset)
@@ -152,6 +149,7 @@ void Audrv::StopChannel(size_t channel)
     thread::Lock lock(this->mutex);
 
     audrvVoiceStop(&this->driver, channel);
+    audrvVoiceDrop(&this->driver, channel);
 }
 
 /*

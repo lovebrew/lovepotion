@@ -12,7 +12,7 @@ Pool::Pool()
 
 Pool::~Pool()
 {
-    // Source::Stop(this);
+    Source::Stop(this);
 }
 
 int Pool::GetActiveSourceCount() const
@@ -64,7 +64,6 @@ bool Pool::AssignSource(common::Source* source, size_t& channel, char& wasPlayin
         return false;
 
     channel = this->available.front();
-    LOG("Assigned Channel #%zu", channel);
 
     this->available.pop();
 
@@ -102,8 +101,6 @@ bool Pool::ReleaseSource(common::Source* source, bool stop)
 
         this->available.push(channel);
         this->playing.erase(source);
-
-        LOG("Re-adding Channel #%zu", channel);
 
         return true;
     }
