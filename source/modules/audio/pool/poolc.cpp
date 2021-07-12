@@ -22,7 +22,7 @@ int Pool::GetActiveSourceCount() const
 
 int Pool::GetMaxSources() const
 {
-    return 24;
+    return this->TOTAL_CHANNELS;
 }
 
 std::vector<common::Source*> Pool::GetPlayingSources()
@@ -64,6 +64,7 @@ bool Pool::AssignSource(common::Source* source, size_t& channel, char& wasPlayin
         return false;
 
     channel = this->available.front();
+    LOG("Assigned Channel #%zu", channel);
 
     this->available.pop();
 
@@ -98,9 +99,11 @@ bool Pool::ReleaseSource(common::Source* source, bool stop)
             source->StopAtomic();
 
         source->Release();
-        this->available.push(channel);
 
+        this->available.push(channel);
         this->playing.erase(source);
+
+        LOG("Re-adding Channel #%zu", channel);
 
         return true;
     }
