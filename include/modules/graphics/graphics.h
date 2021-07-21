@@ -549,11 +549,7 @@ namespace love
 
         virtual void Present() = 0;
 
-        void Resize(int width, int height)
-        {
-            this->width  = width;
-            this->height = height;
-        }
+        bool SetMode(int width, int height);
 
         static constexpr float MIN_DEPTH  = 1.0f / 16384.0f;
         static inline float CURRENT_DEPTH = 0;
@@ -643,8 +639,6 @@ namespace love
 
       private:
         void CheckSetDefaultFont();
-
-        void SetMode();
 
         StrongReference<Font> defaultFont;
         RendererInfo rendererInfo;

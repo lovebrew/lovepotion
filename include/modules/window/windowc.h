@@ -2,16 +2,12 @@
 
 #include "modules/graphics/graphics.h"
 
-namespace love
+namespace love::common
 {
     class Window : public Module
     {
       public:
-        struct DisplaySize
-        {
-            int width;
-            int height;
-        };
+        typedef std::pair<int, int> DisplaySize;
 
         Window();
 
@@ -27,11 +23,24 @@ namespace love
             return "love.window";
         }
 
+        void Close();
+
+        void Close(bool allowExceptions);
+
         // Löve2D Functions
 
-        int GetDisplayCount();
+        virtual int GetDisplayCount() = 0;
 
-        const std::array<DisplaySize, 2>& GetFullscreenModes();
+        const std::vector<DisplaySize>& GetFullscreenModes();
+
+        virtual void OnSizeChanged(int width, int height)
+        {}
+
+        virtual void GetWindow(int& width, int& height)
+        {}
+
+        virtual void CreateWindowAndContext()
+        {}
 
         bool IsOpen();
 
@@ -41,11 +50,10 @@ namespace love
 
         void SetGraphics(Graphics* g);
 
-        void OnSizeChanged(int width, int height);
-
-      private:
+      protected:
         StrongReference<Graphics> graphics;
-
         bool open;
+
+        std::vector<DisplaySize> fullscreenModes;
     };
-} // namespace love
+} // namespace love::common

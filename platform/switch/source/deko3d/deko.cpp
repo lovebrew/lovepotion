@@ -634,9 +634,6 @@ void deko3d::SetViewport(const love::Rect& view)
 
     this->transformState.projMtx =
         glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
-
-    framebufferWidth  = view.w;
-    framebufferHeight = view.h;
 }
 
 love::Rect deko3d::GetViewport()
