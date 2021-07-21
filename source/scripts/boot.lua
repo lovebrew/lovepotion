@@ -247,6 +247,11 @@ function love.createhandlers()
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
+        resize = function(width, height)
+            if love.resize then
+                return love.resize(width, height)
+            end
+        end,
         textinput = function(text)
             if love.textinput then
                 return love.textinput(text)
