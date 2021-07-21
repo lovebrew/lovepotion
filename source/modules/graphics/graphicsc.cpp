@@ -71,13 +71,31 @@ Graphics::Graphics() : width(0), height(0)
     auto window = Module::GetInstance<Window>(M_WINDOW);
 
     if (window != nullptr)
+    {
         window->SetGraphics(this);
+
+        if (window->IsOpen())
+        {
+            int width, height = 0;
+            window->GetWindow(width, height);
+
+            this->SetMode(width, height);
+        }
+    }
 }
 
 Graphics::~Graphics()
 {
     this->states.clear();
     this->defaultFont.Set(nullptr);
+}
+
+bool Graphics::SetMode(int width, int height)
+{
+    this->width  = width;
+    this->height = height;
+
+    return true;
 }
 
 Colorf Graphics::GetColor() const

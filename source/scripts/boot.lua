@@ -693,8 +693,7 @@ function love.init()
     -- load modules if they are configured to load
     for _, v in ipairs(modules) do
         if config.modules[v] then
-            local success, result = pcall(function() require("love." .. v) end)
-            print(success, tostring(result))
+            require("love." .. v)
         end
     end
 
