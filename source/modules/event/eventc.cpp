@@ -230,7 +230,7 @@ love::Message* love::common::Event::ConvertWindowEvent(const Hidrv::LOVE_Event& 
             windowModule = Module::GetInstance<Window>(M_WINDOW);
 
             int width  = event.size.width;
-            int height = event.size.width;
+            int height = event.size.height;
 
             vargs.emplace_back((float)width);
             vargs.emplace_back((float)height);
