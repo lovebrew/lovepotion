@@ -238,14 +238,14 @@ float Gamepad::GetAxis(size_t axis) const
     }
     else if (axis == 5)
     {
-        if (padGetButtonsDown(&this->pad) & HidNpadButton_ZL)
+        if (padGetButtons(&this->pad) & HidNpadButton_ZL)
             return 1.0f;
 
         return 0.0f;
     }
     else if (axis == 6)
     {
-        if (padGetButtonsDown(&this->pad) & HidNpadButton_ZR)
+        if (padGetButtons(&this->pad) & HidNpadButton_ZR)
             return 1.0f;
 
         return 0.0f;
