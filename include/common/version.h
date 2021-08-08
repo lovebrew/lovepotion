@@ -10,7 +10,7 @@ namespace Version
     static constexpr int REVISION = 0;
 
     static constexpr int POTION_MAJOR    = 2;
-    static constexpr int POTION_MINOR    = 1;
+    static constexpr int POTION_MINOR    = 2;
     static constexpr int POTION_REVISION = 0;
 
     static constexpr const char* CODENAME = "Mysterious Mysteries";
