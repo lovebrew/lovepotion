@@ -34,6 +34,7 @@
 
 #include "modules/font/fontmodule.h"
 
+#include "common/lmath.h"
 #include <optional>
 
 #if defined(__SWITCH__)
@@ -54,7 +55,7 @@ namespace love
 
 #if defined(__SWITCH__)
         static constexpr int MAX_SCREENS = 1;
-#elif defined(_3DS)
+#elif defined(__3DS__)
         static constexpr int MAX_SCREENS                                                     = 3;
 #endif
 
@@ -255,7 +256,7 @@ namespace love
         virtual Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting,
                                      const Texture::Filter& filter = Texture::defaultFilter) = 0;
 
-#elif defined(_3DS)
+#elif defined(__3DS__)
         virtual Font* NewDefaultFont(int size,
                                      const Texture::Filter& filter = Texture::defaultFilter) = 0;
 #endif
@@ -540,10 +541,6 @@ namespace love
 
         bool IsCanvasActive() const;
 
-        void SetBlendFactor(const float blendFactor);
-
-        const float GetBlendFactor() const;
-
         /* States or Something */
         void Reset();
 
@@ -595,8 +592,6 @@ namespace love
 
             float lineWidth = 2.0f;
             float pointSize = 1.0f;
-
-            float blendFactor = 0.0f;
 
             StrongReference<Font> font;
             StrongReference<Canvas> canvas;

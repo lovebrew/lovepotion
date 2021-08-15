@@ -99,6 +99,8 @@ namespace love::citro2d
 
         /* End Primitives */
 
+        void SetBlendMode(BlendMode mode, BlendAlpha alphaMode) override;
+
         void SetLineWidth(float width) override;
 
         void SetDefaultFilter(const Texture::Filter& filter);
@@ -106,8 +108,6 @@ namespace love::citro2d
         void SetScissor(const Rect& scissor) override;
 
         void SetScissor() override;
-
-        void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
 
         /* Nintendo 3DS */
 

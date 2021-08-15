@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #include <citro2d.h>
 #elif defined(__SWITCH__)
     #include <deko3d.h>

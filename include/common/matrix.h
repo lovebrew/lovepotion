@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #include <citro2d.h>
 typedef C3D_Mtx Elements;
 #elif defined(__SWITCH__)
@@ -126,7 +126,7 @@ namespace love
             dst[i].z = z;
         }
     }
-#elif defined(_3DS)
+#elif defined(__3DS__)
     template<typename Vdst, typename Vsrc>
     void Matrix4::TransformXY(Vdst* dst, const Vsrc* src, int size) const
     {

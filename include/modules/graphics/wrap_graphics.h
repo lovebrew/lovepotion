@@ -4,7 +4,7 @@
 
 #if defined(__SWITCH__)
     #include "deko3d/graphics.h"
-#elif defined(_3DS)
+#elif defined(__3DS__)
     #include "citro2d/graphics.h"
 #endif
 
@@ -142,10 +142,6 @@ namespace Wrap_Graphics
     /* Nintendo 3DS */
 
     int Get3DDepth(lua_State* L);
-
-    int SetBlendFactor(lua_State* L);
-
-    int GetBlendFactor(lua_State* L);
 
     int Get3D(lua_State* L);
 

@@ -25,6 +25,7 @@ extern "C"
 #include <string.h>
 
 #include "common/reference.h"
+#include "common/version.h"
 
 namespace love
 {
@@ -100,7 +101,7 @@ namespace Luax
                                                 T (&funcs)[funcCount], const T (&ext)[extCount])
     {
         /* not the proper console *or* ext doesn't have anything */
-        if (console != LOVE_POTION_CONSOLE)
+        if (console != Version::LOVE_POTION_CONSOLE)
         {
             auto registry = std::make_unique<T[]>(funcCount);
             std::copy(funcs, funcs + funcCount, registry.get());

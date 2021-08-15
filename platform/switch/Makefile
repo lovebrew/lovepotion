@@ -72,7 +72,7 @@ CFLAGS	:=	-g -Wall -ffunction-sections \
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 
 # Custom defines
-CFLAGS	+= `freetype-config --cflags` -DLOVE_POTION_CONSOLE="\"Switch\"" -D__DEBUG__=$(DEBUG)
+CFLAGS	+= `freetype-config --cflags` -D__DEBUG__=$(DEBUG)
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 

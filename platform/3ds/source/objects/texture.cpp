@@ -52,10 +52,6 @@ void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransfor
     Colorf color = gfx->GetColor();
 
     /* blend factor of non-zero, tint the color */
-    if (float blend = gfx->GetBlendFactor())
-        C2D_PlainImageTint(&tint, C2D_Color32f(color.r, color.g, color.b, color.a), blend);
-    else
-        C2D_AlphaImageTint(&tint, color.a);
-
+    C2D_PlainImageTint(&tint, C2D_Color32f(color.r, color.g, color.b, color.a), 1);
     C2D_DrawImage(this->texture, &params, &tint);
 }

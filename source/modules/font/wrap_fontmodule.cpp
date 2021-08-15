@@ -11,7 +11,7 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
 {
     /* First or second arg is a number */
     if (lua_type(L, 1) == LUA_TNUMBER || lua_type(L, 2) == LUA_TNUMBER || lua_isnone(L, 1))
-#if defined(_3DS)
+#if defined(__3DS__)
         return Wrap_FontModule::NewBCFNTRasterizer(L);
 #else
         return Wrap_FontModule::NewTrueTypeRasterizer(L);
@@ -33,7 +33,7 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     return 1;
 }
 
-#if defined(_3DS)
+#if defined(__3DS__)
 int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
 {
     Rasterizer* self = nullptr;
@@ -205,7 +205,7 @@ int Wrap_FontModule::Register(lua_State* L)
         { "newRasterizer", NewRasterizer },
 #if defined(__SWITCH__)
         { "newTrueTypeRasterizer", NewTrueTypeRasterizer },
-#elif defined(_3DS)
+#elif defined(__3DS__)
         { "newBCFNTRasterizer", NewBCFNTRasterizer },
 #endif
         { "newGlyphData", NewGlyphData },
