@@ -276,6 +276,31 @@ inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count,
     return innerPoints;
 }
 
+void love::citro2d::Graphics::SetPointSize(float size)
+{
+    this->states.back().pointSize = size;
+}
+
+void love::citro2d::Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,
+                                     size_t colorCount)
+{
+    const Matrix4& t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
+
+    for (size_t index = 0; index < count; index++)
+    {
+        Colorf color        = colors[0];
+        const Vector2 point = points[index];
+
+        if (index < colorCount)
+            color = colors[index];
+
+        u32 pointColor = C2D_Color32f(color.r, color.g, color.b, color.a);
+        C2D_DrawCircleSolid(point.x, point.y, Graphics::CURRENT_DEPTH,
+                            this->states.back().pointSize, pointColor);
+    }
+}
+
 void love::citro2d::Graphics::Polyfill(const Vector2* points, size_t count, u32 color, float depth)
 {
     for (size_t currentPoint = 2; currentPoint < count; currentPoint++)
