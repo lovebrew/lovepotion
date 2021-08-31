@@ -98,6 +98,8 @@ void Source::Reset()
 {
     PcmFormat format = (this->bitDepth == 8) ? PcmFormat_Int8 : PcmFormat_Int16;
     driver::Audrv::Instance().ResetChannel(this->channel, this->channels, format, this->sampleRate);
+
+    this->SetVolume(this->GetVolume());
 }
 
 bool Source::Update()
