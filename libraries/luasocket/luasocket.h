@@ -22,17 +22,17 @@
 #define LOVE_LUASOCKET_LUASOCKET_H
 
 // LOVE
-#if defined (_3DS)
+#if defined(__3DS__)
     #include <3ds.h>
-#elif defined (__SWITCH__)
+#elif defined(__SWITCH__)
     #include <switch.h>
 #endif
 
 extern "C"
 {
-    #include <lua.h>
-    #include <lualib.h>
-    #include <lauxlib.h>
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
 }
 
 namespace love
@@ -40,23 +40,23 @@ namespace love
     namespace luasocket
     {
 
-        int __open(lua_State * L);
+        int __open(lua_State* L);
 
         // Loaders for all lua files. We want to be able
         // to load these dynamically. (Identical in the LuaSocket
         // documentation. These functions wrap the parsing of code, etc).
-        int __open_luasocket_socket(lua_State * L);
-        int __open_luasocket_ftp(lua_State * L);
-        int __open_luasocket_http(lua_State * L);
-        int __open_luasocket_ltn12(lua_State * L);
-        int __open_luasocket_mime(lua_State * L);
-        int __open_luasocket_smtp(lua_State * L);
-        int __open_luasocket_tp(lua_State * L);
-        int __open_luasocket_url(lua_State * L);
-        int __open_luasocket_headers(lua_State * L);
-        int __open_luasocket_mbox(lua_State * L);
+        int __open_luasocket_socket(lua_State* L);
+        int __open_luasocket_ftp(lua_State* L);
+        int __open_luasocket_http(lua_State* L);
+        int __open_luasocket_ltn12(lua_State* L);
+        int __open_luasocket_mime(lua_State* L);
+        int __open_luasocket_smtp(lua_State* L);
+        int __open_luasocket_tp(lua_State* L);
+        int __open_luasocket_url(lua_State* L);
+        int __open_luasocket_headers(lua_State* L);
+        int __open_luasocket_mbox(lua_State* L);
 
-    } // luasocket
-} // love
+    } // namespace luasocket
+} // namespace love
 
 #endif // LOVE_LUASOCKET_LUASOCKET_H

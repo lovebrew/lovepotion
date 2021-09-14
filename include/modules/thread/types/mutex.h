@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #include <3ds.h>
 
 typedef LightLock LOVE_Mutex;

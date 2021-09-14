@@ -276,6 +276,31 @@ inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count,
     return innerPoints;
 }
 
+void love::citro2d::Graphics::SetPointSize(float size)
+{
+    this->states.back().pointSize = size;
+}
+
+void love::citro2d::Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,
+                                     size_t colorCount)
+{
+    const Matrix4& t = this->GetTransform();
+    C2D_ViewRestore(&t.GetElements());
+
+    for (size_t index = 0; index < count; index++)
+    {
+        Colorf color        = colors[0];
+        const Vector2 point = points[index];
+
+        if (index < colorCount)
+            color = colors[index];
+
+        u32 pointColor = C2D_Color32f(color.r, color.g, color.b, color.a);
+        C2D_DrawCircleSolid(point.x, point.y, Graphics::CURRENT_DEPTH,
+                            this->states.back().pointSize, pointColor);
+    }
+}
+
 void love::citro2d::Graphics::Polyfill(const Vector2* points, size_t count, u32 color, float depth)
 {
     for (size_t currentPoint = 2; currentPoint < count; currentPoint++)
@@ -511,11 +536,12 @@ void love::citro2d::Graphics::Circle(DrawMode mode, float x, float y, float radi
 void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float y, float radius,
                                   float angle1, float angle2)
 {
-    const auto calc45Triangle = [](float x, float y, float radius,
-                                   float angle) -> std::array<Vector2, 3> {
+    const float diag_radius   = M_SQRT2 * radius;
+    const auto calc90Triangle = [radius = diag_radius](float x, float y,
+                                                       float angle) -> std::array<Vector2, 3> {
         return { Vector2(x, y), Vector2(x + radius * cosf(angle), y + radius * sinf(angle)),
-                 Vector2(x + radius * sqrtf(2) * cosf(angle + M_PI_4),
-                         y + radius * sqrtf(2) * sinf(angle + M_PI_4)) };
+                 Vector2(x + radius * sqrtf(2) * cosf(angle + M_PI_2),
+                         y + radius * sqrtf(2) * sinf(angle + M_PI_2)) };
     };
 
     angle1 = normalizeAngle(angle1);
@@ -528,18 +554,18 @@ void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float
     const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
-    while (angle2 + M_PI_4 < angle1)
+    while (angle2 + M_PI_2 < angle1)
     {
-        const auto& pts = calc45Triangle(x, y, radius, angle2);
+        const auto& pts = calc90Triangle(x, y, angle2);
         C2D_DrawTriangle(pts[0].x, pts[0].y, TRANSPARENCY, pts[1].x, pts[1].y, TRANSPARENCY,
                          pts[2].x, pts[2].y, TRANSPARENCY,
                          Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
-        angle2 += M_PI_4;
+        angle2 += M_PI_2;
     }
 
     const std::array<Vector2, 3> finalTriangle = {
-        Vector2(x, y), Vector2(x + radius * cosf(angle2), y + radius * sinf(angle2)),
-        Vector2(x + radius * sqrtf(2) * cosf(angle1), y + radius * sqrtf(2) * sinf(angle1))
+        Vector2(x, y), Vector2(x + diag_radius * cosf(angle2), y + diag_radius * sinf(angle2)),
+        Vector2(x + diag_radius * cosf(angle1), y + diag_radius * sinf(angle1))
     };
 
     C2D_DrawTriangle(finalTriangle[0].x, finalTriangle[0].y, TRANSPARENCY, finalTriangle[1].x,
@@ -574,7 +600,7 @@ void love::citro2d::Graphics::Line(const Vector2* points, int count)
     const Matrix4& t = this->GetTransform();
     C2D_ViewRestore(&t.GetElements());
 
-    for (size_t index = 1; index < (size_t)count; index += 2)
+    for (size_t index = 1; index < (size_t)count; index++)
         C2D_DrawLine(points[index - 1].x, points[index - 1].y, foreground, points[index].x,
                      points[index].y, foreground, this->states.back().lineWidth,
                      Graphics::CURRENT_DEPTH);

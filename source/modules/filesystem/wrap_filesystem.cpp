@@ -22,7 +22,7 @@ static void replaceAll(std::string& str, const std::string& substr, const std::s
         str.replace(locations[i], sublen, replacement);
 }
 
-#if defined(_3DS)
+#if defined(__3DS__)
 static void translatePath(std::filesystem::path& filepath)
 {
     static constexpr std::array<const char*, 3> textures = { ".png", ".jpg", ".jpeg" };
@@ -301,7 +301,7 @@ int Wrap_Filesystem::GetInfo(lua_State* L)
 
     std::filesystem::path path = filepath;
 
-#if defined(_3DS)
+#if defined(__3DS__)
     translatePath(path);
 #endif
 
@@ -596,7 +596,7 @@ File* Wrap_Filesystem::GetFile(lua_State* L, int index)
     {
         std::filesystem::path filename = luaL_checkstring(L, index);
 
-#if defined(_3DS)
+#if defined(__3DS__)
         translatePath(filename);
 #endif
 

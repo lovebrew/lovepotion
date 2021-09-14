@@ -91,13 +91,15 @@ namespace love::citro2d
                  float angle2, int points) {};
 
         void Points(const Vector2* points, size_t count, const Colorf* colors,
-                    size_t colorCount) override {};
+                    size_t colorCount) override;
 
-        void SetPointSize(float size) override {};
+        void SetPointSize(float size) override;
 
         void Line(const Vector2* points, int count) override;
 
         /* End Primitives */
+
+        void SetBlendMode(BlendMode mode, BlendAlpha alphaMode) override;
 
         void SetLineWidth(float width) override;
 
@@ -106,8 +108,6 @@ namespace love::citro2d
         void SetScissor(const Rect& scissor) override;
 
         void SetScissor() override;
-
-        void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
 
         /* Nintendo 3DS */
 

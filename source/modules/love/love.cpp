@@ -59,7 +59,7 @@ int Love::Initialize(lua_State* L)
     lua_setfield(L, -2, "_os");
 
     // love._console_name
-    lua_pushstring(L, LOVE_POTION_CONSOLE);
+    lua_pushstring(L, Version::LOVE_POTION_CONSOLE);
     lua_setfield(L, -2, "_console_name");
 
     // love._potion_version

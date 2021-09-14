@@ -8,7 +8,7 @@ using namespace std::literals::string_literals;
 
 #define OS_NAME "Horizon"
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #define LANGUAGE_COUNT 12
 #elif defined(__SWITCH__)
     #define LANGUAGE_COUNT 17

@@ -39,7 +39,7 @@ namespace love::common
             ALIGN_MAX_ENUM
         };
 
-#if defined(_3DS)
+#if defined(__3DS__)
         static constexpr int MAX_SYSFONTS = 5;
 #elif defined(__SWITCH__)
         static constexpr int MAX_SYSFONTS = 7;

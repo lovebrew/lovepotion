@@ -42,7 +42,7 @@ int Wrap_Graphics::SetActiveScreen(lua_State* L)
     Graphics::Screen screen = static_cast<Graphics::Screen>(0);
     const char* name        = luaL_checkstring(L, 1);
 
-#if defined(_3DS)
+#if defined(__3DS__)
     auto instance = (love::citro2d::Graphics*)instance();
     if (instance->Get3D())
     {
@@ -1182,27 +1182,9 @@ int Wrap_Graphics::SetColor(lua_State* L)
 
 /* Nintendo 3DS */
 
-int Wrap_Graphics::SetBlendFactor(lua_State* L)
-{
-    float blendFactor = luaL_optnumber(L, 1, 0.0f);
-
-    instance()->SetBlendFactor(blendFactor);
-
-    return 0;
-}
-
-int Wrap_Graphics::GetBlendFactor(lua_State* L)
-{
-    float blendFactor = instance()->GetBlendFactor();
-
-    lua_pushnumber(L, blendFactor);
-
-    return 1;
-}
-
 int Wrap_Graphics::Get3D(lua_State* L)
 {
-#if defined(_3DS)
+#if defined(__3DS__)
     auto instance = (love::citro2d::Graphics*)instance();
 
     lua_pushboolean(L, instance->Get3D());
@@ -1214,7 +1196,7 @@ int Wrap_Graphics::Get3D(lua_State* L)
 
 int Wrap_Graphics::Set3D(lua_State* L)
 {
-#if defined(_3DS)
+#if defined(__3DS__)
     bool enabled = Luax::ToBoolean(L, 1);
 
     auto instance = (love::citro2d::Graphics*)instance();
@@ -1225,7 +1207,7 @@ int Wrap_Graphics::Set3D(lua_State* L)
 
 int Wrap_Graphics::Get3DDepth(lua_State* L)
 {
-#if defined(_3DS)
+#if defined(__3DS__)
     auto instance     = (love::citro2d::Graphics*)instance();
     float sliderValue = (instance->Get3D()) ? osGet3DSliderState() : 0;
 
@@ -1313,11 +1295,7 @@ int Wrap_Graphics::Register(lua_State* L)
 
     /* 3DS extensions */
 
-    luaL_Reg modExt[] = { { "getBlendFactor", GetBlendFactor },
-                          { "get3D", Get3D },
-                          { "get3DDepth", Get3DDepth },
-                          { "setBlendFactor", SetBlendFactor },
-                          { "set3D", Set3D } };
+    luaL_Reg modExt[] = { { "get3D", Get3D }, { "get3DDepth", Get3DDepth }, { "set3D", Set3D } };
 
     /* if it doesn't match the console, it just copies input to be the output */
 
@@ -1342,7 +1320,7 @@ int Wrap_Graphics::Register(lua_State* L)
     Graphics* instance = instance();
 
     if (instance == nullptr)
-#if defined(_3DS)
+#if defined(__3DS__)
         Luax::CatchException(L, [&]() { instance = new love::citro2d::Graphics(); });
 #elif defined(__SWITCH__)
         Luax::CatchException(L, [&]() { instance = new love::deko3d::Graphics(); });

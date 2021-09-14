@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #include <3ds/types.h>
 #elif defined(__SWITCH__)
     #include <switch/types.h>

@@ -3,7 +3,7 @@
 #include <bitset>
 #include <unordered_map>
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #include <3ds.h>
 #elif defined(__SWITCH__)
     #include <switch.h>

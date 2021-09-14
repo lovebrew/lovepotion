@@ -123,7 +123,7 @@ int Wrap_System::GetSystemTheme(lua_State* L)
 
 int Wrap_System::SetPlayCoins(lua_State* L)
 {
-#if defined(_3DS)
+#if defined(__3DS__)
     int amount = luaL_checknumber(L, 1);
 
     Luax::CatchException(L, [&]() { instance()->SetPlayCoins(amount); });
@@ -133,7 +133,7 @@ int Wrap_System::SetPlayCoins(lua_State* L)
 
 int Wrap_System::GetPlayCoins(lua_State* L)
 {
-#if defined(_3DS)
+#if defined(__3DS__)
     int amount = 0;
 
     Luax::CatchException(L, [&]() { amount = instance()->GetPlayCoins(); });

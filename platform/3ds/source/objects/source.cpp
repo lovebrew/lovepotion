@@ -108,6 +108,7 @@ void Source::Reset()
     ndspChnSetFormat(this->channel, format);
     ndspChnSetRate(this->channel, this->sampleRate);
     ndspChnSetInterp(this->channel, interpType);
+    this->SetVolume(this->GetVolume());
 }
 
 bool Source::Update()

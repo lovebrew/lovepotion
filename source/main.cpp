@@ -1,7 +1,7 @@
 #include "common/luax.h"
 #include "modules/love.h"
 
-#if defined(_3DS)
+#if defined(__3DS__)
     #include <3ds.h>
 #elif defined(__SWITCH__)
     #include <switch.h>
@@ -101,7 +101,7 @@ DoneAction Run_Love_Potion(int argc, char** argv, int& retval)
     */
     int stackpos = lua_gettop(L);
 
-#if defined(_3DS)
+#if defined(__3DS__)
     while (Luax::Resume(L, 0) == LUA_YIELD && aptMainLoop())
 #elif defined(__SWITCH__)
     while (Luax::Resume(L, 0) == LUA_YIELD)

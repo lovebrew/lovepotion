@@ -24,6 +24,8 @@ citro2d::citro2d()
     C2D_Flush();
     C3D_AlphaTest(true, GPU_GREATER, 0);
 
+    C2D_SetTintMode(C2D_TintMult);
+
     this->targets.reserve(4);
 
     this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
