@@ -309,6 +309,8 @@ namespace love
         virtual void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
                            std::optional<double> depth) = 0;
 
+        Graphics::BlendMode GetBlendMode(BlendAlpha& alphaMode);
+
         virtual void SetBlendMode(BlendMode mode, BlendAlpha alpha) = 0;
 
         virtual void SetColorMask(ColorMask mask) = 0;
@@ -371,7 +373,7 @@ namespace love
 
         /* Primitives */
 
-        ColorMask getColorMask() const;
+        ColorMask GetColorMask() const;
 
 #if defined(__SWITCH__)
         vertex::CullMode GetMeshCullMode() const;

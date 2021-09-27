@@ -1180,6 +1180,79 @@ int Wrap_Graphics::SetColor(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::GetBlendMode(lua_State* L)
+{
+    const char* modeString  = nullptr;
+    const char* alphaString = nullptr;
+
+    Graphics::BlendAlpha alphaMode;
+    Graphics::BlendMode blendMode = instance()->GetBlendMode(alphaMode);
+
+    if (!Graphics::GetConstant(blendMode, modeString))
+        return luaL_error(L, "Unknown blend mode");
+
+    if (!Graphics::GetConstant(alphaMode, alphaString))
+        return luaL_error(L, "Unknown blend alpha mode");
+
+    lua_pushstring(L, modeString);
+    lua_pushstring(L, alphaString);
+
+    return 2;
+}
+
+int Wrap_Graphics::SetBlendMode(lua_State* L)
+{
+    Graphics::BlendMode mode;
+    const char* string = luaL_checkstring(L, 1);
+
+    if (!Graphics::GetConstant(string, mode))
+        return Luax::EnumError(L, "blend mode", Graphics::GetConstants(mode), string);
+
+    Graphics::BlendAlpha alphaMode = Graphics::BLENDALPHA_MULTIPLY;
+    if (!lua_isnoneornil(L, 2))
+    {
+        const char* alphaString = luaL_checkstring(L, 2);
+        if (!Graphics::GetConstant(string, alphaMode))
+            return Luax::EnumError(L, "blend alpha mode", Graphics::GetConstants(alphaMode),
+                                   alphaString);
+    }
+
+    Luax::CatchException(L, [&]() { instance()->SetBlendMode(mode, alphaMode); });
+
+    return 0;
+}
+
+int Wrap_Graphics::GetColorMask(lua_State* L)
+{
+    Graphics::ColorMask mask = instance()->GetColorMask();
+
+    lua_pushboolean(L, mask.r);
+    lua_pushboolean(L, mask.g);
+    lua_pushboolean(L, mask.b);
+    lua_pushboolean(L, mask.a);
+
+    return 4;
+}
+
+int Wrap_Graphics::SetColorMask(lua_State* L)
+{
+    Graphics::ColorMask mask;
+
+    if (lua_gettop(L) <= 1 && lua_isnoneornil(L, 1))
+        mask.r = mask.g = mask.b = mask.a = true;
+    else
+    {
+        mask.r = Luax::CheckBoolean(L, 1);
+        mask.g = Luax::CheckBoolean(L, 2);
+        mask.b = Luax::CheckBoolean(L, 3);
+        mask.a = Luax::CheckBoolean(L, 4);
+    }
+
+    instance()->SetColorMask(mask);
+
+    return 0;
+}
+
 /* Nintendo 3DS */
 
 int Wrap_Graphics::Get3D(lua_State* L)
@@ -1242,7 +1315,9 @@ int Wrap_Graphics::Register(lua_State* L)
                          { "ellipse", Ellipse },
                          { "getActiveScreen", GetActiveScreen },
                          { "getBackgroundColor", GetBackgroundColor },
+                         { "getBlendMode", GetBlendMode },
                          { "getColor", GetColor },
+                         { "getColorMask", GetColorMask },
                          { "getDefaultFilter", GetDefaultFilter },
                          { "getDimensions", GetDimensions },
                          { "getFont", GetFont },
@@ -1279,8 +1354,10 @@ int Wrap_Graphics::Register(lua_State* L)
                          { "shear", Shear },
                          { "setActiveScreen", SetActiveScreen },
                          { "setBackgroundColor", SetBackgroundColor },
+                         { "setBlendMode", SetBlendMode },
                          { "setCanvas", SetCanvas },
                          { "setColor", SetColor },
+                         { "setColorMask", SetColorMask },
                          { "setDefaultFilter", SetDefaultFilter },
                          { "setLineStyle", SetLineStyle },
                          { "setLineJoin", SetLineJoin },

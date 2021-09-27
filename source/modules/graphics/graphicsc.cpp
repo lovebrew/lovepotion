@@ -384,6 +384,12 @@ void Graphics::RestoreState(const DisplayState& state)
     this->SetDefaultFilter(state.defaultFilter);
 }
 
+Graphics::BlendMode Graphics::GetBlendMode(Graphics::BlendAlpha& alphaMode)
+{
+    alphaMode = this->states.back().blendAlphaMode;
+    return this->states.back().blendMode;
+}
+
 void Graphics::RestoreStateChecked(const DisplayState& state)
 {
     const DisplayState& current = states.back();
@@ -430,6 +436,11 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
 
     this->SetDefaultFilter(state.defaultFilter);
     this->SetDefaultMipmapFilter(state.defaultMipmapFilter, state.defaultMipmapSharpness);
+}
+
+Graphics::ColorMask Graphics::GetColorMask() const
+{
+    return this->states.back().colorMask;
 }
 
 void Graphics::SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness)
