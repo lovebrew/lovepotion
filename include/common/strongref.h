@@ -15,16 +15,16 @@ namespace love
         StrongReference() : object(nullptr)
         {}
 
-        StrongReference(T* object, Acquire acquire = Acquire::RETAIN) : object(object)
+        StrongReference(T* obj, Acquire acquire = Acquire::RETAIN) : object(obj)
         {
-            if (object && acquire == Acquire::RETAIN)
-                object->Retain();
+            if (this->object && acquire == Acquire::RETAIN)
+                this->object->Retain();
         }
 
         StrongReference(const StrongReference& other) : object(other.Get())
         {
-            if (object)
-                object->Retain();
+            if (this->object)
+                this->object->Retain();
         }
 
         StrongReference(StrongReference&& other) : object(other.object)
@@ -34,29 +34,29 @@ namespace love
 
         ~StrongReference()
         {
-            if (object)
-                object->Release();
+            if (this->object)
+                this->object->Release();
         }
 
         StrongReference& operator=(const StrongReference& other)
         {
-            Set(other.Get());
+            this->Set(other.Get());
             return *this;
         }
 
         T* operator->() const
         {
-            return object;
+            return this->object;
         }
 
         explicit operator bool() const
         {
-            return object != nullptr;
+            return this->object != nullptr;
         }
 
         operator T*() const
         {
-            return object;
+            return this->object;
         }
 
         void Set(T* obj, Acquire acquire = Acquire::RETAIN)
@@ -64,15 +64,15 @@ namespace love
             if (obj && acquire == Acquire::RETAIN)
                 obj->Retain();
 
-            if (object)
-                object->Release();
+            if (this->object)
+                this->object->Release();
 
-            object = obj;
+            this->object = obj;
         }
 
         T* Get() const
         {
-            return object;
+            return this->object;
         }
 
       private:

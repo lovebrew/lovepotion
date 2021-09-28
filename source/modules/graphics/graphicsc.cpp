@@ -428,6 +428,8 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
     this->SetShader(state.shader.Get());
 #endif
 
+    this->SetFont(state.font.Get());
+
     if (state.colorMask != current.colorMask)
         this->SetColorMask(state.colorMask);
 
