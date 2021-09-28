@@ -59,6 +59,13 @@ void Filesystem::Init(const char* arg0)
 
     this->exePath = arg0;
 
+    Result result = romfsInit();
+    if (R_FAILED(result))
+        throw love::Exception("Failed to initialize romfs: %x", result);
+
+    if (!PHYSFS_mount("romfs:/", "internal", true))
+        throw love::Exception("[DEBUG] romfs won't mount?!");
+
     /* Symlinks don't exist on 3DS/Switch */
     this->SetSymLinksEnabled(false);
 }

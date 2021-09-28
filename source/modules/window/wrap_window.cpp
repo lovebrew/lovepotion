@@ -1,5 +1,7 @@
 #include "modules/window/wrap_window.h"
 
+#include "window_button_lua.h"
+#include "window_messagebox_lua.h"
 #include "wrap_window_lua.h"
 
 using namespace love;
@@ -59,6 +61,28 @@ int Wrap_Window::SetMode(lua_State* L)
     return 1;
 }
 
+int Wrap_Window::LoadButtons(lua_State* L)
+{
+    if (luaL_loadbuffer(L, (const char*)window_button_lua, window_button_lua_size,
+                        "window_button.lua") == 0)
+        lua_call(L, 0, 1);
+    else
+        lua_error(L);
+
+    return 1;
+}
+
+int Wrap_Window::LoadMessageBox(lua_State* L)
+{
+    if (luaL_loadbuffer(L, (const char*)window_messagebox_lua, window_messagebox_lua_size,
+                        "window_messagebox.lua") == 0)
+        lua_call(L, 0, 1);
+    else
+        lua_error(L);
+
+    return 1;
+}
+
 int Wrap_Window::Register(lua_State* L)
 {
     luaL_Reg functions[] = { { "isOpen", IsOpen },
@@ -84,6 +108,10 @@ int Wrap_Window::Register(lua_State* L)
 
     int ret = Luax::RegisterModule(L, wrappedModule);
 
+    Luax::Preload(L, Wrap_Window::LoadButtons, "window_button");
+    Luax::Preload(L, Wrap_Window::LoadMessageBox, "window_messagebox");
+
+    /* load window buffer */
     if (luaL_loadbuffer(L, (const char*)wrap_window_lua, wrap_window_lua_size, "wrap_window.lua") ==
         0)
         lua_call(L, 0, 0);

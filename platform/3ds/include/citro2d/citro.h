@@ -12,6 +12,14 @@ class citro2d
     citro2d();
 
   public:
+    struct GPUFilter
+    {
+        GPU_TEXTURE_FILTER_PARAM min;
+        GPU_TEXTURE_FILTER_PARAM mag;
+
+        GPU_PROCTEX_FILTER mipMap;
+    };
+
     static citro2d& Instance();
 
     ~citro2d();
@@ -51,18 +59,16 @@ class citro2d
 
     static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
 
+    static GPU_TEXTURE_FILTER_PARAM GetCitroFilterMode(love::Texture::FilterMode mode);
+
+    static GPUFilter GetCitroFilterMode(const love::Texture::Filter& mode);
+
   private:
+    GPUFilter filter;
+
     std::vector<std::function<void()>> deferredFunctions;
     std::vector<C3D_RenderTarget*> targets;
     C3D_RenderTarget* current;
-
-    struct
-    {
-        GPU_TEXTURE_FILTER_PARAM min;
-        GPU_TEXTURE_FILTER_PARAM mag;
-
-        GPU_PROCTEX_FILTER mipMap;
-    } filter;
 
     struct
     {

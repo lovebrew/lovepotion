@@ -1,6 +1,8 @@
 #include "objects/font/font.h"
 #include "modules/graphics/graphics.h"
 
+#include "citro2d/citro.h"
+
 #include <numeric>
 
 using namespace love;
@@ -14,6 +16,9 @@ Font::Font(Rasterizer* rasterizer, const Texture::Filter& filter) :
     this->height   = rasterizer->GetHeight();
 
     this->lineHeight = rasterizer->GetLineHeight();
+
+    ::citro2d::GPUFilter gpuFilter = ::citro2d::GetCitroFilterMode(filter);
+    C2D_FontSetFilter(this->GetFont(), gpuFilter.mag, gpuFilter.min);
 }
 
 Font::~Font()

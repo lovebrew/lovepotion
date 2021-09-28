@@ -197,6 +197,28 @@ void citro2d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& 
     C3D_TexSetWrap(image.tex, this->wrap.s, this->wrap.t);
 }
 
+GPU_TEXTURE_FILTER_PARAM citro2d::GetCitroFilterMode(love::Texture::FilterMode mode)
+{
+    switch (mode)
+    {
+        default:
+        case love::Texture::FilterMode::FILTER_LINEAR:
+            return GPU_LINEAR;
+        case love::Texture::FilterMode::FILTER_NEAREST:
+            return GPU_NEAREST;
+    }
+}
+
+citro2d::GPUFilter citro2d::GetCitroFilterMode(const love::Texture::Filter& filter)
+{
+    citro2d::GPUFilter gpuFilter {};
+
+    gpuFilter.mag = citro2d::GetCitroFilterMode(filter.mag);
+    gpuFilter.min = citro2d::GetCitroFilterMode(filter.min);
+
+    return gpuFilter;
+}
+
 GPU_TEXTURE_WRAP_PARAM citro2d::GetCitroWrapMode(love::Texture::WrapMode wrap)
 {
     switch (wrap)

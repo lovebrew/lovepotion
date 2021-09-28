@@ -70,5 +70,6 @@
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
   "editor.formatOnSave": true,
-  "editor.bracketPairColorization.enabled": true
+  "editor.bracketPairColorization.enabled": true,
+  "Lua.diagnostics.globals": ["love", "g_windowShown"]
 }

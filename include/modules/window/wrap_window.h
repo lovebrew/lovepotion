@@ -14,5 +14,9 @@ namespace Wrap_Window
 
     int SetMode(lua_State* L);
 
+    int LoadButtons(lua_State* L);
+
+    int LoadMessageBox(lua_State* L);
+
     int Register(lua_State* L);
 } // namespace Wrap_Window
