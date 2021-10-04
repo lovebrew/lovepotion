@@ -26,6 +26,13 @@ void Window::CreateWindowAndContext()
     this->OnSizeChanged(size.first, size.second);
 }
 
+Window::DisplaySize Window::GetDesktopSize()
+{
+    auto operationMode = appletGetOperationMode();
+
+    return this->fullscreenModes[operationMode];
+}
+
 void Window::OnSizeChanged(int width, int height)
 {
     if (this->graphics.Get())

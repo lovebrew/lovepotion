@@ -44,9 +44,10 @@ bool Window::SetMode()
 
     this->Close();
 
-    /* dummy call */
+    auto desktopSize = this->GetDesktopSize();
+
     if (this->graphics.Get())
-        this->graphics->SetMode(0, 0);
+        this->graphics->SetMode(desktopSize.first, desktopSize.second);
 
     this->open = true;
 

@@ -16,6 +16,8 @@ namespace love
 
         void CreateWindowAndContext() override;
 
+        DisplaySize GetDesktopSize() override;
+
         void GetWindow(int& width, int& height) override;
 
         int GetDisplayCount() override;

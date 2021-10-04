@@ -33,6 +33,12 @@ namespace love::common
 
         const std::vector<DisplaySize>& GetFullscreenModes();
 
+        virtual DisplaySize GetDesktopSize()
+        {
+            DisplaySize size { 0, 0 };
+            return size;
+        }
+
         virtual void OnSizeChanged(int width, int height)
         {}
 
