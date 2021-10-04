@@ -96,6 +96,12 @@ namespace Luax
 
     int RegisterSearcher(lua_State* L, lua_CFunction function, int position);
 
+    /**
+     * Check if we should extend a functions definition table.
+     * This will be determined by the console type, "3DS" or "Switch".
+     * If it does not match, the result is merely copied as-is and returned.
+     * @return std::unique_ptr<T[]> funcs
+     **/
     template<typename T, size_t funcCount, size_t extCount>
     [[nodiscard]] std::unique_ptr<T[]> ExtendIf(const std::string_view& console,
                                                 T (&funcs)[funcCount], const T (&ext)[extCount])

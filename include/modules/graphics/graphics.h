@@ -206,6 +206,10 @@ namespace love
             return this->transformStack.back();
         }
 
+        bool IsActive() const;
+
+        bool IsCreated() const;
+
         Colorf GetColor() const;
 
         Colorf GetBackgroundColor() const;
@@ -636,6 +640,9 @@ namespace love
 
       private:
         void CheckSetDefaultFont();
+
+        bool active;
+        bool created;
 
         StrongReference<Font> defaultFont;
         RendererInfo rendererInfo;

@@ -6,6 +6,20 @@ using namespace love;
 
 #define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
 
+int Wrap_Graphics::IsActive(lua_State* L)
+{
+    Luax::PushBoolean(L, instance()->IsActive());
+
+    return 1;
+}
+
+int Wrap_Graphics::IsCreated(lua_State* L)
+{
+    Luax::PushBoolean(L, instance()->IsCreated());
+
+    return 1;
+}
+
 int Wrap_Graphics::GetScreens(lua_State* L)
 {
     auto screens = instance()->GetScreens();
@@ -1332,6 +1346,8 @@ int Wrap_Graphics::Register(lua_State* L)
                          { "getWidth", GetWidth },
                          { "instersectScissor", IntersectScissor },
                          { "inverseTransformPoint", InverseTransformPoint },
+                         { "isActive", IsActive },
+                         { "isCreated", IsCreated },
                          { "line", Line },
                          { "newCanvas", NewCanvas },
                          { "newFont", NewFont },
@@ -1373,8 +1389,6 @@ int Wrap_Graphics::Register(lua_State* L)
     /* 3DS extensions */
 
     luaL_Reg modExt[] = { { "get3D", Get3D }, { "get3DDepth", Get3DDepth }, { "set3D", Set3D } };
-
-    /* if it doesn't match the console, it just copies input to be the output */
 
     std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, modExt);
 

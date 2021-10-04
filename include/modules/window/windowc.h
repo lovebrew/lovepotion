@@ -42,7 +42,7 @@ namespace love::common
         virtual void CreateWindowAndContext()
         {}
 
-        bool IsOpen();
+        bool IsOpen() const;
 
         bool SetMode();
 

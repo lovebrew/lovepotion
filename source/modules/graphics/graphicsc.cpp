@@ -57,7 +57,7 @@ Colorf Graphics::UnGammaCorrectColor(const Colorf& c)
 
 /* End */
 
-Graphics::Graphics() : width(0), height(0)
+Graphics::Graphics() : width(0), height(0), active(true), created(false)
 {
     this->states.reserve(10);
     this->states.push_back(DisplayState());
@@ -90,10 +90,24 @@ Graphics::~Graphics()
     this->defaultFont.Set(nullptr);
 }
 
+bool Graphics::IsCreated() const
+{
+    return this->created;
+}
+
+bool Graphics::IsActive() const
+{
+    auto window = Module::GetInstance<Window>(M_WINDOW);
+
+    return this->active && this->IsCreated() && window != nullptr && window->IsOpen();
+}
+
 bool Graphics::SetMode(int width, int height)
 {
     this->width  = width;
     this->height = height;
+
+    this->created = true;
 
     return true;
 }

@@ -797,7 +797,7 @@ function love.run()
             love.update(delta)
         end
 
-        if love.graphics then
+        if love.graphics and love.graphics.isActive() then
             local screens = is3DHack() and normalScreens or plainScreens
 
             for _, screen in ipairs(screens) do

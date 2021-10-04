@@ -17,6 +17,10 @@
 
 namespace Wrap_Graphics
 {
+    int IsActive(lua_State* L);
+
+    int IsCreated(lua_State* L);
+
     int Arc(lua_State* L);
 
     int Circle(lua_State* L);

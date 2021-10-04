@@ -44,10 +44,13 @@ bool Window::SetMode()
 
     this->Close();
 
+    /* dummy call */
     if (this->graphics.Get())
-        this->CreateWindowAndContext();
+        this->graphics->SetMode(0, 0);
 
-    return this->open = true;
+    this->open = true;
+
+    return this->open;
 }
 
 void Window::SetGraphics(Graphics* g)
@@ -55,7 +58,7 @@ void Window::SetGraphics(Graphics* g)
     this->graphics.Set(g);
 }
 
-bool Window::IsOpen()
+bool Window::IsOpen() const
 {
     return this->open;
 }
