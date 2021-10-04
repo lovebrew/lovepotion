@@ -6,9 +6,6 @@ extern "C"
 {
     void userAppInit()
     {
-        /* romFS */
-        R_ABORT_UNLESS(romfsInit());
-
         /* system fonts */
         R_ABORT_UNLESS(plInitialize(PlServiceType_User));
 
@@ -42,8 +39,6 @@ extern "C"
 
     void userAppExit()
     {
-        romfsExit();
-
         friendsExit();
 
         socketExit();

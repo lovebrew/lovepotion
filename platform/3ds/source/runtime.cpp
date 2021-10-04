@@ -3,10 +3,10 @@
 
 #include "common/results.h"
 
-u32* SOCKET_BUFFER;
-
 #define SOC_BUFSIZE  0x100000
 #define BUFFER_ALIGN 0x1000
+
+u32* SOCKET_BUFFER = nullptr;
 
 extern "C"
 {
@@ -14,13 +14,13 @@ extern "C"
     {
         osSetSpeedupEnable(true);
 
-        /* mcu:hwc for raw battery info */
+        /* raw battery info */
         R_ABORT_UNLESS(mcuHwcInit());
 
         /* battery state */
         R_ABORT_UNLESS(ptmuInit());
 
-        /* Regional Stuff and Fonts */
+        /* region info and fonts */
         R_ABORT_UNLESS(cfguInit());
 
         /* wifi state */
@@ -33,14 +33,20 @@ extern "C"
         SOCKET_BUFFER = (u32*)memalign(BUFFER_ALIGN, SOC_BUFSIZE);
         R_ABORT_LAMBDA_UNLESS(socInit(SOCKET_BUFFER, SOC_BUFSIZE), [&]() { free(SOCKET_BUFFER); });
 
+        /* accelerometer */
         HIDUSER_EnableAccelerometer();
 
-        /* so we can have preemptive threads */
+        /* gyroscope */
+        HIDUSER_EnableGyroscope();
+
+        /* "enable" preemptive threads */
         APT_SetAppCpuTimeLimit(30);
     }
 
     void userAppExit()
     {
+        HIDUSER_DisableGyroscope();
+
         HIDUSER_DisableAccelerometer();
 
         socExit();

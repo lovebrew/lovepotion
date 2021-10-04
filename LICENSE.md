@@ -1,57 +1,84 @@
 # Löve Potion
-- Website: https://github.com/TurtleP/LovePotion
-- License: MIT
-- Copyright ©:
-  - 2018 - 2021 Jeremy S. Postelnek & Logan Hickok-Dickson
-  - 2015 (Original Software) Ruairidh Carmichael
+* Website: https://github.com/lovebrew/LovePotion
+* License: MIT
+* Copyrights:
+  + © 2018 - 2021 Jeremy S. Postelnek & Logan Hickok-Dickson
+  + © 2015 (Original Software) Ruairidh Carmichael
     - https://github.com/videah/LovePotion
 
 **Note: this software is not officially supported by the LÖVE Development Team (see below). However, much of this source uses the LÖVE codebase with various modifications. It has been built from the ground up to suit the Nintendo homebrew console scene to ensure it works as intended.**
 
-# SDL
-- Website: https://libsdl.org
-- License:
-  - SDL 1.2: GNU LGPL
-  - SDL 2.0: zlib
-
 # LÖVE
-- Website: https://love2d.org/
-- License: zlib
-- Copyright © 2006-2021 LOVE Development Team
+* Website: https://love2d.org/
+* License: zlib
+* Copyright © 2006-2021 LOVE Development Team
 
 ## Kepler Project's lua-compat-5.3
-- Website: https://github.com/keplerproject/lua-compat-5.3
-- License: MIT/Expat
-- Copyright (c) 2015 Kepler Project.
+
+* Website: https://github.com/keplerproject/lua-compat-5.3
+* License: MIT/Expat
+* Copyright (c) 2015 Kepler Project.
 
 ## Lua's UTF-8 module
-- Website: https://www.lua.org/
-- License: MIT/Expat
-- Copyright (C) 1994-2015 Lua.org, PUC-Rio, 2015 LOVE Development Team.
+
+* Website: https://www.lua.org/
+* License: MIT/Expat
+* Copyright (C) 1994-2015 Lua.org, PUC-Rio, 2015 LOVE Development Team.
+
+## LuaSocket
+
+* Website: http://w3.impa.br/~diego/software/luasocket/home.html
+* License: MIT/Expat
+* Copyright (C) 2004-2013 Diego Nehab
+# LZ4
+* Website: https://lz4.github.io/lz4/
+* License: 2-Clause BSD
+* Copyright (C) 2011-2015, Yann Collet.
+  + You can contact the author at :
+    - LZ4 source repository : https://github.com/Cyan4973/lz4
+    - LZ4 public forum : https://groups.google.com/forum/#!forum/lz4c
+# UTF8-CPP
+* Website: https://github.com/nemtrif/utfcpp
+* License: Unknown, MIT/Expat-like (listed as UTF8-CPP)
+* Copyright 2006 Nemanja Trifunovic
+# libmpg123
+  + Website: http://www.mpg123.de/
+  + Source download: http://sourceforge.net/projects/mpg123/files/latest/download
+  + License: LGPL 2.1
+  + Copyright (c) 1995-2013 by Michael Hipp and others, free software under the terms of the LGPL v2.1
+  + Detailed information from the debian project:
+     - Copyright 1995-2016 by the mpg123 project
+     - Copyright 2009-2011 by Malcolm Boczek
+     - Copyright 2008 Christian Weisgerber <naddy@openbsd.org>
+     - Copyright 2006-2007 by Zuxy Meng
+     - Copyright 2000-2002 David Olofson
+     - Copyright 1998 Fabrice Bellard
+     - Copyright 1997 Mikko Tommila
 
 # libctru
-- Website: https://github.com/smealum/ctrulib
-- License: zlib
-- Copyright © 2014-2020 libctru Authors
+* Website: https://github.com/smealum/ctrulib
+* License: zlib
+* Copyright © 2014-2020 libctru Authors
 
 ## citro2d
-- Website: https://github.com/devkitPro/citro2d
-- License: zlib
-- Copyright © 2017-2018 fincs
 
+* Website: https://github.com/devkitPro/citro2d
+* License: zlib
+* Copyright © 2017-2018 fincs
 # libnx
-- Website: https://github.com/switchbrew/libnx
-- License: ISC
-- Copyright 2017-2018 libnx Authors
+* Website: https://github.com/switchbrew/libnx
+* License: ISC
+* Copyright 2017-2018 libnx Authors
 
 ## deko3d
-- Website: https://github.com/devkitPro/deko3d
-- License: zlib
-- Copyright (C) 2018-2020 fincs
 
-# **License Text**
+* Website: https://github.com/devkitPro/deko3d
+* License: zlib
+* Copyright (C) 2018-2020 fincs
+# **License Texts**
 
 ## MIT license
+
 ```
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -73,6 +100,7 @@ SOFTWARE.
 ```
 
 ## zlib
+
 ```
 This software is provided 'as-is', without any express or implied
 warranty. In no event will the authors be held liable for any damages
@@ -82,19 +110,46 @@ Permission is granted to anyone to use this software for any purpose,
 including commercial applications, and to alter it and redistribute it
 freely, subject to the following restrictions:
 
-1. The origin of this software must not be misrepresented; you must not
+01. The origin of this software must not be misrepresented; you must not
 claim that you wrote the original software. If you use this software
 in a product, an acknowledgment in the product documentation would be
 appreciated but is not required.
 
-2. Altered source versions must be plainly marked as such, and must not be
+02. Altered source versions must be plainly marked as such, and must not be
 misrepresented as being the original software.
 
-3. This notice may not be removed or altered from any source
+03. This notice may not be removed or altered from any source
 distribution.
 ```
 
-## GNU LGPL
+## UTF8-CPP
+
+```
+Permission is hereby granted, free of charge, to any person or organization
+obtaining a copy of the software and accompanying documentation covered by
+this license (the "Software") to use, reproduce, display, distribute,
+execute, and transmit the Software, and to prepare derivative works of the
+Software, and to permit third-parties to whom the Software is furnished to
+do so, all subject to the following:
+
+The copyright notices in the Software and this entire statement, including
+the above license grant, this restriction and the following disclaimer,
+must be included in all copies of the Software, in whole or in part, and
+all derivative works of the Software, unless such copies or derivative
+works are solely in the form of machine-executable object code generated by
+a source language processor.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT
+SHALL THE COPYRIGHT HOLDERS OR ANYONE DISTRIBUTING THE SOFTWARE BE LIABLE
+FOR ANY DAMAGES OR OTHER LIABILITY, WHETHER IN CONTRACT, TORT OR OTHERWISE,
+ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+```
+
+## GNU LGPL 2.1
+
 ```
             GNU LESSER GENERAL PUBLIC LICENSE
                Version 2.1, February 1999
@@ -213,7 +268,7 @@ be combined with the library in order to run.
                 GNU LESSER GENERAL PUBLIC LICENSE
    TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
-0. This License Agreement applies to any software library or other
+00. This License Agreement applies to any software library or other
 program which contains a notice placed by the copyright holder or
 other authorized party saying it may be distributed under the terms of
 this Lesser General Public License (also called "this License").
@@ -245,7 +300,7 @@ on the Library (independent of the use of the Library in a tool for
 writing it).  Whether that is true depends on what the Library does
 and what the program that uses the Library does.
 
-1. You may copy and distribute verbatim copies of the Library's
+01. You may copy and distribute verbatim copies of the Library's
 complete source code as you receive it, in any medium, provided that
 you conspicuously and appropriately publish on each copy an
 appropriate copyright notice and disclaimer of warranty; keep intact
@@ -257,7 +312,7 @@ You may charge a fee for the physical act of transferring a copy,
 and you may at your option offer warranty protection in exchange for a
 fee.
 
-2. You may modify your copy or copies of the Library or any portion
+02. You may modify your copy or copies of the Library or any portion
 of it, thus forming a work based on the Library, and copy and
 distribute such modifications or work under the terms of Section 1
 above, provided that you also meet all of these conditions:
@@ -306,7 +361,7 @@ with the Library (or with a work based on the Library) on a volume of
 a storage or distribution medium does not bring the other work under
 the scope of this License.
 
-3. You may opt to apply the terms of the ordinary GNU General Public
+03. You may opt to apply the terms of the ordinary GNU General Public
 License instead of this License to a given copy of the Library.  To do
 this, you must alter all the notices that refer to this License, so
 that they refer to the ordinary GNU General Public License, version 2,
@@ -322,7 +377,7 @@ subsequent copies and derivative works made from that copy.
 This option is useful when you wish to copy part of the code of
 the Library into a program that is not a library.
 
-4. You may copy and distribute the Library (or a portion or
+04. You may copy and distribute the Library (or a portion or
 derivative of it, under Section 2) in object code or executable form
 under the terms of Sections 1 and 2 above provided that you accompany
 it with the complete corresponding machine-readable source code, which
@@ -335,7 +390,7 @@ source code from the same place satisfies the requirement to
 distribute the source code, even though third parties are not
 compelled to copy the source along with the object code.
 
-5. A program that contains no derivative of any portion of the
+05. A program that contains no derivative of any portion of the
 Library, but is designed to work with the Library by being compiled or
 linked with it, is called a "work that uses the Library".  Such a
 work, in isolation, is not a derivative work of the Library, and
@@ -366,7 +421,7 @@ distribute the object code for the work under the terms of Section 6.
 Any executables containing that work also fall under Section 6,
 whether or not they are linked directly with the Library itself.
 
-6. As an exception to the Sections above, you may also combine or
+06. As an exception to the Sections above, you may also combine or
 link a "work that uses the Library" with the Library to produce a
 work containing portions of the Library, and distribute that work
 under terms of your choice, provided that the terms permit
@@ -428,7 +483,7 @@ accompany the operating system.  Such a contradiction means you cannot
 use both them and the Library together in an executable that you
 distribute.
 
-7. You may place library facilities that are a work based on the
+07. You may place library facilities that are a work based on the
 Library side-by-side in a single library together with other library
 facilities not covered by this License, and distribute such a combined
 library, provided that the separate distribution of the work based on
@@ -444,7 +499,7 @@ b) Give prominent notice with the combined library of the fact
 that part of it is a work based on the Library, and explaining
 where to find the accompanying uncombined form of the same work.
 
-8. You may not copy, modify, sublicense, link with, or distribute
+08. You may not copy, modify, sublicense, link with, or distribute
 the Library except as expressly provided under this License.  Any
 attempt otherwise to copy, modify, sublicense, link with, or
 distribute the Library is void, and will automatically terminate your
@@ -452,7 +507,7 @@ rights under this License.  However, parties who have received copies,
 or rights, from you under this License will not have their licenses
 terminated so long as such parties remain in full compliance.
 
-9. You are not required to accept this License, since you have not
+09. You are not required to accept this License, since you have not
 signed it.  However, nothing else grants you permission to modify or
 distribute the Library or its derivative works.  These actions are
 prohibited by law if you do not accept this License.  Therefore, by
@@ -601,6 +656,7 @@ That's all there is to it!
 ```
 
 ## ISC
+
 ```
 Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
 

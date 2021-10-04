@@ -5,10 +5,14 @@ distribute
 
 *.3dsx
 *.elf
+*.t3x
+
 *.smdh
 
 *.nro
 *.nso
 *.nacp
 *.pfs0
+*.dksh
+
 *.zip

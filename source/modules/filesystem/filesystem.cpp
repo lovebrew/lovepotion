@@ -64,7 +64,7 @@ void Filesystem::Init(const char* arg0)
         throw love::Exception("Failed to initialize romfs: %x", result);
 
     if (!PHYSFS_mount("romfs:/", "internal", true))
-        throw love::Exception("[DEBUG] romfs won't mount?!");
+        throw love::Exception("Could not mount romFS");
 
     /* Symlinks don't exist on 3DS/Switch */
     this->SetSymLinksEnabled(false);
@@ -74,6 +74,8 @@ Filesystem::~Filesystem()
 {
     if (PHYSFS_isInit())
         PHYSFS_deinit();
+
+    romfsExit();
 }
 
 void Filesystem::Append(const char* filename, const void* data, int64_t size)
