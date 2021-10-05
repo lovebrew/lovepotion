@@ -1226,7 +1226,7 @@ int Wrap_Graphics::SetBlendMode(lua_State* L)
     if (!lua_isnoneornil(L, 2))
     {
         const char* alphaString = luaL_checkstring(L, 2);
-        if (!Graphics::GetConstant(string, alphaMode))
+        if (!Graphics::GetConstant(alphaString, alphaMode))
             return Luax::EnumError(L, "blend alpha mode", Graphics::GetConstants(alphaMode),
                                    alphaString);
     }
