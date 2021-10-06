@@ -184,27 +184,32 @@ int Wrap_RevoluteJoint::GetReferenceAngle(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "areLimitsEnabled",  Wrap_RevoluteJoint::AreLimitsEnabled  },
+    { "getJointAngle",     Wrap_RevoluteJoint::GetJointAngle     },
+    { "getJointSpeed",     Wrap_RevoluteJoint::GetJointSpeed     },
+    { "getLimits",         Wrap_RevoluteJoint::GetLimits         },
+    { "getLowerLimit",     Wrap_RevoluteJoint::GetLowerLimit     },
+    { "getMaxMotorTorque", Wrap_RevoluteJoint::GetMaxMotorTorque },
+    { "getMotorSpeed",     Wrap_RevoluteJoint::GetMotorSpeed     },
+    { "getMotorTorque",    Wrap_RevoluteJoint::GetMotorTorque    },
+    { "getReferenceAngle", Wrap_RevoluteJoint::GetReferenceAngle },
+    { "getUpperLimit",     Wrap_RevoluteJoint::GetUpperLimit     },
+    { "isMotorEnabled",    Wrap_RevoluteJoint::IsMotorEnabled    },
+    { "setLimits",         Wrap_RevoluteJoint::SetLimits         },
+    { "setLimitsEnabled",  Wrap_RevoluteJoint::SetLimitsEnabled  },
+    { "setLowerLimit",     Wrap_RevoluteJoint::SetLowerLimit     },
+    { "setMaxMotorTorque", Wrap_RevoluteJoint::SetMaxMotorTorque },
+    { "setMotorEnabled",   Wrap_RevoluteJoint::SetMotorEnabled   },
+    { "setMotorSpeed",     Wrap_RevoluteJoint::SetMotorSpeed     },
+    { "setUpperLimit",     Wrap_RevoluteJoint::SetUpperLimit     },
+    { 0,                   0                                     }
+};
+// clang-format on
+
 int Wrap_RevoluteJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getJointAngle", GetJointAngle },
-                         { "getJointSpeed", GetJointSpeed },
-                         { "setMotorEnabled", SetMotorEnabled },
-                         { "isMotorEnabled", IsMotorEnabled },
-                         { "setMaxMotorTorque", SetMaxMotorTorque },
-                         { "setMotorSpeed", SetMotorSpeed },
-                         { "getMotorSpeed", GetMotorSpeed },
-                         { "getMotorTorque", GetMotorTorque },
-                         { "getMaxMotorTorque", GetMaxMotorTorque },
-                         { "setLimitsEnabled", SetLimitsEnabled },
-                         { "areLimitsEnabled", AreLimitsEnabled },
-                         { "setUpperLimit", SetUpperLimit },
-                         { "setLowerLimit", SetLowerLimit },
-                         { "setLimits", SetLimits },
-                         { "getLowerLimit", GetLowerLimit },
-                         { "getUpperLimit", GetUpperLimit },
-                         { "getLimits", GetLimits },
-                         { "getReferenceAngle", GetReferenceAngle },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &RevoluteJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &RevoluteJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

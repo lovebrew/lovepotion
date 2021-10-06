@@ -143,18 +143,23 @@ Channel* Wrap_Channel::CheckChannel(lua_State* L, int index)
     return Luax::CheckType<Channel>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clear",         Wrap_Channel::Clear                            },
+    { "demand",        Wrap_Channel::Demand                           },
+    { "getCount",      Wrap_Channel::GetCount                         },
+    { "hasRead",       Wrap_Channel::HasRead                          },
+    { "peek",          Wrap_Channel::Peek                             },
+    { "performAtomic", love::Wrap_Channel_PerformAtomic               },
+    { "pop",           Wrap_Channel::Pop                              },
+    { "push",          Wrap_Channel::Push                             },
+    { "supply",        Wrap_Channel::Supply                           },
+    { 0,               0                                              }
+};
+// clang-format on
+
 int Wrap_Channel::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "push", Push },
-                       { "supply", Supply },
-                       { "pop", Pop },
-                       { "demand", Demand },
-                       { "peek", Peek },
-                       { "getCount", GetCount },
-                       { "hasRead", HasRead },
-                       { "clear", Clear },
-                       { "performAtomic", love::Wrap_Channel_PerformAtomic },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Channel::type, reg, nullptr);
+    return Luax::RegisterType(L, &Channel::type, functions, nullptr);
 }

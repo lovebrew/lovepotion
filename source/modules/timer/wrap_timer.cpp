@@ -58,16 +58,21 @@ int Wrap_Timer::Step(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getAverageDelta", Wrap_Timer::GetAverageDelta },
+    { "getDelta",        Wrap_Timer::GetDelta        },
+    { "getFPS",          Wrap_Timer::GetFPS          },
+    { "getTime",         Wrap_Timer::GetTime         },
+    { "sleep",           Wrap_Timer::Sleep           },
+    { "step",            Wrap_Timer::Step            },
+    { 0,                 0                           }
+};
+// clang-format on
+
 int Wrap_Timer::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getAverageDelta", GetAverageDelta },
-                       { "getDelta", GetDelta },
-                       { "getFPS", GetFPS },
-                       { "getTime", GetTime },
-                       { "sleep", Sleep },
-                       { "step", Step },
-                       { 0, 0 } };
-
     Timer* instance = instance();
 
     if (instance == nullptr)
@@ -79,7 +84,7 @@ int Wrap_Timer::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "timer";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = nullptr;
 

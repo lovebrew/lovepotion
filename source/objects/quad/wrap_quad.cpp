@@ -57,12 +57,17 @@ Quad* Wrap_Quad::CheckQuad(lua_State* L, int index)
     return Luax::CheckType<Quad>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getTextureDimensions", Wrap_Quad::GetTextureDimensions },
+    { "getViewport",          Wrap_Quad::GetViewport          },
+    { "setViewport",          Wrap_Quad::SetViewport          },
+    { 0,                      0                               }
+};
+// clang-format on
+
 int Wrap_Quad::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getTextureDimensions", GetTextureDimensions },
-                       { "getViewport", GetViewport },
-                       { "setViewport", SetViewport },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Quad::type, reg, nullptr);
+    return Luax::RegisterType(L, &Quad::type, functions, nullptr);
 }

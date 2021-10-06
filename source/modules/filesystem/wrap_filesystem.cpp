@@ -702,40 +702,50 @@ bool Wrap_Filesystem::CanGetData(lua_State* L, int index)
            Luax::IsType(L, index, Data::type);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "append",                 Wrap_Filesystem::Append                 },
+    { "createDirectory",        Wrap_Filesystem::CreateDirectory        },
+    { "getDirectoryItems",      Wrap_Filesystem::GetDirectoryItems      },
+    { "getExecutablePath",      Wrap_Filesystem::GetExecutablePath      },
+    { "getIdentity",            Wrap_Filesystem::GetIdentity            },
+    { "getInfo",                Wrap_Filesystem::GetInfo                },
+    { "getRealDirectory",       Wrap_Filesystem::GetRealDirectory       },
+    { "getRequirePath",         Wrap_Filesystem::GetRequirePath         },
+    { "getSaveDirectory",       Wrap_Filesystem::GetSaveDirectory       },
+    { "getSource",              Wrap_Filesystem::GetSource              },
+    { "getSourceBaseDirectory", Wrap_Filesystem::GetSourceBaseDirectory },
+    { "getUserDirectory",       Wrap_Filesystem::GetUserDirectory       },
+    { "getWorkingDirectory",    Wrap_Filesystem::GetWorkingDirectory    },
+    { "init",                   Wrap_Filesystem::Init                   },
+    { "isFused",                Wrap_Filesystem::IsFused                },
+    { "lines",                  Wrap_Filesystem::Lines                  },
+    { "load",                   Wrap_Filesystem::Load                   },
+    { "mount",                  Wrap_Filesystem::Mount                  },
+    { "newFile",                Wrap_Filesystem::NewFile                },
+    { "newFileData",            Wrap_Filesystem::NewFileData            },
+    { "read",                   Wrap_Filesystem::Read                   },
+    { "remove",                 Wrap_Filesystem::Remove                 },
+    { "setFused",               Wrap_Filesystem::SetFused               },
+    { "setIdentity",            Wrap_Filesystem::SetIdentity            },
+    { "setRequirePath",         Wrap_Filesystem::SetRequirePath         },
+    { "setSource",              Wrap_Filesystem::SetSource              },
+    { "unmount",                Wrap_Filesystem::UnMount                },
+    { "write",                  Wrap_Filesystem::Write                  },
+    { 0,                        0                                       }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_FileData::Register,
+    Wrap_File::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_Filesystem::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "init", Init },
-                       { "append", Append },
-                       { "createDirectory", CreateDirectory },
-                       { "getDirectoryItems", GetDirectoryItems },
-                       { "getExecutablePath", GetExecutablePath },
-                       { "getIdentity", GetIdentity },
-                       { "getInfo", GetInfo },
-                       { "getRealDirectory", GetRealDirectory },
-                       { "getRequirePath", GetRequirePath },
-                       { "getSaveDirectory", GetSaveDirectory },
-                       { "getSourceBaseDirectory", GetSourceBaseDirectory },
-                       { "getSource", GetSource },
-                       { "getUserDirectory", GetUserDirectory },
-                       { "getWorkingDirectory", GetWorkingDirectory },
-                       { "isFused", IsFused },
-                       { "lines", Lines },
-                       { "load", Load },
-                       { "mount", Mount },
-                       { "newFile", NewFile },
-                       { "newFileData", NewFileData },
-                       { "read", Read },
-                       { "remove", Remove },
-                       { "setIdentity", SetIdentity },
-                       { "setFused", SetFused },
-                       { "setRequirePath", SetRequirePath },
-                       { "setSource", SetSource },
-                       { "unmount", UnMount },
-                       { "write", Write },
-                       { 0, 0 } };
-
-    lua_CFunction types[] = { Wrap_FileData::Register, Wrap_File::Register, 0 };
-
     Filesystem* instance = instance();
 
     if (instance == nullptr)
@@ -749,7 +759,7 @@ int Wrap_Filesystem::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "filesystem";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = types;
 

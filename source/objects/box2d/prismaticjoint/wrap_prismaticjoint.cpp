@@ -192,28 +192,33 @@ int Wrap_PrismaticJoint::GetReferenceAngle(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "areLimitsEnabled",    Wrap_PrismaticJoint::AreLimitsEnabled    },
+    { "getAxis",             Wrap_PrismaticJoint::GetAxis             },
+    { "getJointSpeed",       Wrap_PrismaticJoint::GetJointSpeed       },
+    { "getJointTranslation", Wrap_PrismaticJoint::GetJointTranslation },
+    { "getLimits",           Wrap_PrismaticJoint::GetLimits           },
+    { "getLowerLimit",       Wrap_PrismaticJoint::GetLowerLimit       },
+    { "getMaxMotorForce",    Wrap_PrismaticJoint::GetMaxMotorForce    },
+    { "getMotorForce",       Wrap_PrismaticJoint::GetMotorForce       },
+    { "getMotorSpeed",       Wrap_PrismaticJoint::GetMotorSpeed       },
+    { "getReferenceAngle",   Wrap_PrismaticJoint::GetReferenceAngle   },
+    { "getUpperLimit",       Wrap_PrismaticJoint::GetUpperLimit       },
+    { "isMotorEnabled",      Wrap_PrismaticJoint::IsMotorEnabled      },
+    { "setLimits",           Wrap_PrismaticJoint::SetLimits           },
+    { "setLimitsEnabled",    Wrap_PrismaticJoint::SetLimitsEnabled    },
+    { "setLowerLimit",       Wrap_PrismaticJoint::SetLowerLimit       },
+    { "setMaxMotorForce",    Wrap_PrismaticJoint::SetMaxMotorForce    },
+    { "setMotorEnabled",     Wrap_PrismaticJoint::SetMotorEnabled     },
+    { "setMotorSpeed",       Wrap_PrismaticJoint::SetMotorSpeed       },
+    { "setUpperLimit",       Wrap_PrismaticJoint::SetUpperLimit       },
+    { 0,                     0                                        }
+};
+// clang-format on
+
 int Wrap_PrismaticJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getJointTranslation", GetJointTranslation },
-                         { "getJointSpeed", GetJointSpeed },
-                         { "setMotorEnabled", SetMotorEnabled },
-                         { "isMotorEnabled", IsMotorEnabled },
-                         { "setMaxMotorForce", SetMaxMotorForce },
-                         { "setMotorSpeed", SetMotorSpeed },
-                         { "getMotorSpeed", GetMotorSpeed },
-                         { "getMotorForce", GetMotorForce },
-                         { "getMaxMotorForce", GetMaxMotorForce },
-                         { "setLimitsEnabled", SetLimitsEnabled },
-                         { "areLimitsEnabled", AreLimitsEnabled },
-                         { "setUpperLimit", SetUpperLimit },
-                         { "setLowerLimit", SetLowerLimit },
-                         { "setLimits", SetLimits },
-                         { "getLowerLimit", GetLowerLimit },
-                         { "getUpperLimit", GetUpperLimit },
-                         { "getLimits", GetLimits },
-                         { "getAxis", GetAxis },
-                         { "getReferenceAngle", GetReferenceAngle },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &PrismaticJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &PrismaticJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

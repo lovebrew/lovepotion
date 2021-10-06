@@ -34,9 +34,16 @@ CompressedData* Wrap_CompressedData::CheckCompressedData(lua_State* L, int index
     return Luax::CheckType<CompressedData>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",     Wrap_CompressedData::Clone     },
+    { "getFormat", Wrap_CompressedData::GetFormat },
+    { 0,           0                              }
+};
+// clang-format on
+
 int Wrap_CompressedData::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "clone", Clone }, { "getFormat", GetFormat }, { 0, 0 } };
-
-    return Luax::RegisterType(L, &CompressedData::type, Wrap_Data::functions, reg, nullptr);
+    return Luax::RegisterType(L, &CompressedData::type, Wrap_Data::functions, functions, nullptr);
 }

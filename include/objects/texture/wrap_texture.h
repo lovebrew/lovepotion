@@ -20,7 +20,7 @@ namespace Wrap_Texture
 
     int GetWrap(lua_State* L);
 
-    extern luaL_Reg functions[9];
+    extern const luaL_Reg functions[9];
 
     love::Texture* CheckTexture(lua_State* L, int index);
 

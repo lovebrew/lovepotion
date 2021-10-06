@@ -117,17 +117,22 @@ int Wrap_ChainShape::GetPoints(lua_State* L)
     return count * 2;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getChildEdge",      Wrap_ChainShape::GetChildEdge      },
+    { "getNextVertex",     Wrap_ChainShape::GetNextVertex     },
+    { "getPoint",          Wrap_ChainShape::GetPoint          },
+    { "getPoints",         Wrap_ChainShape::GetPoints         },
+    { "getPreviousVertex", Wrap_ChainShape::GetPreviousVertex },
+    { "getVertexCount",    Wrap_ChainShape::GetVertexCount    },
+    { "setNextVertex",     Wrap_ChainShape::SetNextVertex     },
+    { "setPreviousVertex", Wrap_ChainShape::SetPreviousVertex },
+    { 0,                   0                                  }
+};
+// clang-format on
+
 int Wrap_ChainShape::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "setNextVertex", SetNextVertex },
-                         { "setPreviousVertex", SetPreviousVertex },
-                         { "getNextVertex", GetNextVertex },
-                         { "getPreviousVertex", GetPreviousVertex },
-                         { "getChildEdge", GetChildEdge },
-                         { "getVertexCount", GetVertexCount },
-                         { "getPoint", GetPoint },
-                         { "getPoints", GetPoints },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &ChainShape::type, Wrap_Shape::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &ChainShape::type, Wrap_Shape::functions, functions, nullptr);
 }

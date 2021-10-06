@@ -116,17 +116,22 @@ Rasterizer* Wrap_Rasterizer::CheckRasterizer(lua_State* L, int index)
     return Luax::CheckType<Rasterizer>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getAdvance",    Wrap_Rasterizer::GetAdvance    },
+    { "getAscent",     Wrap_Rasterizer::GetAscent     },
+    { "getDescent",    Wrap_Rasterizer::GetDescent    },
+    { "getGlyphCount", Wrap_Rasterizer::GetGlyphCount },
+    { "getGlyphData",  Wrap_Rasterizer::GetGlyphData  },
+    { "getHeight",     Wrap_Rasterizer::GetHeight     },
+    { "getLineHeight", Wrap_Rasterizer::GetLineHeight },
+    { "hasGlyphs",     Wrap_Rasterizer::HasGlyphs     },
+    { 0,               0                              }
+};
+// clang-format on
+
 int Wrap_Rasterizer::Register(lua_State* L)
 {
-    const luaL_Reg reg[] = { { "getHeight", GetHeight },
-                             { "getAdvance", GetAdvance },
-                             { "getAscent", GetAscent },
-                             { "getDescent", GetDescent },
-                             { "getLineHeight", GetLineHeight },
-                             { "getGlyphData", GetGlyphData },
-                             { "getGlyphCount", GetGlyphCount },
-                             { "hasGlyphs", HasGlyphs },
-                             { 0, 0 } };
-
-    return Luax::RegisterType(L, &Rasterizer::type, reg, nullptr);
+    return Luax::RegisterType(L, &Rasterizer::type, functions, nullptr);
 }

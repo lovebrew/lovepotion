@@ -420,16 +420,29 @@ File* Wrap_File::CheckFile(lua_State* L, int index)
     return Luax::CheckType<File>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "close",       Wrap_File::Close       },
+    { "flush",       Wrap_File::Flush       },
+    { "getBuffer",   Wrap_File::GetBuffer   },
+    { "getFilename", Wrap_File::GetFilename },
+    { "getMode",     Wrap_File::GetMode     },
+    { "getSize",     Wrap_File::GetSize     },
+    { "isEOF",       Wrap_File::IsEOF       },
+    { "isOpen",      Wrap_File::IsOpen      },
+    { "lines",       Wrap_File::Lines       },
+    { "open",        Wrap_File::Open        },
+    { "read",        Wrap_File::Read        },
+    { "seek",        Wrap_File::Seek        },
+    { "setBuffer",   Wrap_File::SetBuffer   },
+    { "tell",        Wrap_File::Tell        },
+    { "write",       Wrap_File::Write       },
+    { 0,             0                      }
+};
+// clang-format on
+
 int Wrap_File::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "close", Close },         { "flush", Flush },
-                       { "getBuffer", GetBuffer }, { "getFilename", GetFilename },
-                       { "getMode", GetMode },     { "getSize", GetSize },
-                       { "isEOF", IsEOF },         { "isOpen", IsOpen },
-                       { "lines", Lines },         { "open", Open },
-                       { "read", Read },           { "seek", Seek },
-                       { "setBuffer", SetBuffer }, { "tell", Tell },
-                       { "write", Write },         { 0, 0 } };
-
-    return Luax::RegisterType(L, &File::type, reg, nullptr);
+    return Luax::RegisterType(L, &File::type, functions, nullptr);
 }

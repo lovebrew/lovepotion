@@ -99,17 +99,22 @@ RandomGenerator* Wrap_RandomGenerator::CheckRandomGenerator(lua_State* L, int in
     return Luax::CheckType<RandomGenerator>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "_random",      Wrap_RandomGenerator::_Random      },
+    { "getSeed",      Wrap_RandomGenerator::GetSeed      },
+    { "getState",     Wrap_RandomGenerator::GetState     },
+    { "randomNormal", Wrap_RandomGenerator::RandomNormal },
+    { "setSeed",      Wrap_RandomGenerator::SetSeed      },
+    { "setState",     Wrap_RandomGenerator::SetState     },
+    { 0,              0                                  }
+};
+// clang-format on
+
 int Wrap_RandomGenerator::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getSeed", GetSeed },
-                       { "getState", GetState },
-                       { "_random", _Random },
-                       { "randomNormal", RandomNormal },
-                       { "setSeed", SetSeed },
-                       { "setState", SetState },
-                       { 0, 0 } };
-
-    int ret = Luax::RegisterType(L, &RandomGenerator::type, reg, nullptr);
+    int ret = Luax::RegisterType(L, &RandomGenerator::type, functions, nullptr);
 
     Luax::RunWrapper(L, (const char*)wrap_randomgenerator_lua, wrap_randomgenerator_lua_size,
                      "wrap_randomgenerator.lua", RandomGenerator::type);

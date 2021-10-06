@@ -128,21 +128,26 @@ int Wrap_MouseJoint::GetDamping(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getDamping",      Wrap_MouseJoint::GetDamping      },
+    { "getDampingRatio", Wrap_MouseJoint::GetDampingRatio },
+    { "getFrequency",    Wrap_MouseJoint::GetFrequency    },
+    { "getMaxForce",     Wrap_MouseJoint::GetMaxForce     },
+    { "getStiffness",    Wrap_MouseJoint::GetStiffness    },
+    { "getTarget",       Wrap_MouseJoint::GetTarget       },
+    { "setDamping",      Wrap_MouseJoint::SetDamping      },
+    { "setDampingRatio", Wrap_MouseJoint::SetDampingRatio },
+    { "setFrequency",    Wrap_MouseJoint::SetFrequency    },
+    { "setMaxForce",     Wrap_MouseJoint::SetMaxForce     },
+    { "setStiffness",    Wrap_MouseJoint::SetStiffness    },
+    { "setTarget",       Wrap_MouseJoint::SetTarget       },
+    { 0,                 0                                }
+};
+// clang-format on
+
 int Wrap_MouseJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "setTarget", SetTarget },
-                         { "getTarget", GetTarget },
-                         { "setMaxForce", SetMaxForce },
-                         { "getMaxForce", GetMaxForce },
-                         { "setFrequency", SetFrequency },
-                         { "getFrequency", GetFrequency },
-                         { "setDampingRatio", SetDampingRatio },
-                         { "getDampingRatio", GetDampingRatio },
-                         { "setStiffness", SetStiffness },
-                         { "getStiffness", GetStiffness },
-                         { "setDamping", SetDamping },
-                         { "getDamping", GetDamping },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &MouseJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &MouseJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

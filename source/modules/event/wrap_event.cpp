@@ -83,11 +83,22 @@ int Wrap_Event::Quit(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clear",  Wrap_Event::Clear  },
+    { "poll_i", Poll_I             },
+    { "pump",   Wrap_Event::Pump   },
+    { "push",   Wrap_Event::Push   },
+    { "quit",   Wrap_Event::Quit   },
+    { "wait",   Wrap_Event::Wait   },
+    { 0,        0                  }
+};
+
+// clang-format on
+
 int Wrap_Event::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "poll_i", Poll_I }, { "clear", Clear }, { "pump", Pump }, { "push", Push },
-                       { "quit", Quit },     { "wait", Wait },   { 0, 0 } };
-
     love::Event* instance = instance();
 
     if (instance == nullptr)
@@ -99,7 +110,7 @@ int Wrap_Event::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "event";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = nullptr;
 

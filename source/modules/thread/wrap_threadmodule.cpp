@@ -80,15 +80,25 @@ int Wrap_ThreadModule::GetChannel(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getChannel", Wrap_ThreadModule::GetChannel },
+    { "newChannel", Wrap_ThreadModule::NewChannel },
+    { "newThread",  Wrap_ThreadModule::NewThread  },
+    { 0,            0                             }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_LuaThread::Register,
+    Wrap_Channel::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_ThreadModule::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "newThread", NewThread },
-                       { "newChannel", NewChannel },
-                       { "getChannel", GetChannel },
-                       { 0, 0 } };
-
-    lua_CFunction types[] = { Wrap_LuaThread::Register, Wrap_Channel::Register, 0 };
-
     ThreadModule* instance = instance();
 
     if (instance == nullptr)
@@ -101,7 +111,7 @@ int Wrap_ThreadModule::Register(lua_State* L)
     wrappedModule.instance  = instance;
     wrappedModule.name      = "thread";
     wrappedModule.type      = &Module::type;
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.types     = types;
 
     return Luax::RegisterModule(L, wrappedModule);

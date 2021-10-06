@@ -163,25 +163,30 @@ int Wrap_Contact::ResetRestitution(lua_State* L)
     return 0;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getChildren",      Wrap_Contact::GetChildren      },
+    { "getFixtures",      Wrap_Contact::GetFixtures      },
+    { "getFriction",      Wrap_Contact::GetFriction      },
+    { "getNormal",        Wrap_Contact::GetNormal        },
+    { "getPositions",     Wrap_Contact::GetPositions     },
+    { "getRestitution",   Wrap_Contact::GetRestitution   },
+    { "getTangentSpeed",  Wrap_Contact::GetTangentSpeed  },
+    { "isDestroyed",      Wrap_Contact::IsDestroyed      },
+    { "isEnabled",        Wrap_Contact::IsEnabled        },
+    { "isTouching",       Wrap_Contact::IsTouching       },
+    { "resetFriction",    Wrap_Contact::ResetFriction    },
+    { "resetRestitution", Wrap_Contact::ResetRestitution },
+    { "setEnabled",       Wrap_Contact::SetEnabled       },
+    { "setFriction",      Wrap_Contact::SetFriction      },
+    { "setRestitution",   Wrap_Contact::SetRestitution   },
+    { "setTangentSpeed",  Wrap_Contact::SetTangentSpeed  },
+    { 0,                  0                              }
+};
+// clang-format on
+
 int Wrap_Contact::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getPositions", GetPositions },
-                         { "getNormal", GetNormal },
-                         { "getFriction", GetFriction },
-                         { "getRestitution", GetRestitution },
-                         { "isEnabled", IsEnabled },
-                         { "isTouching", IsTouching },
-                         { "setFriction", SetFriction },
-                         { "setRestitution", SetRestitution },
-                         { "setEnabled", SetEnabled },
-                         { "resetFriction", ResetFriction },
-                         { "resetRestitution", ResetRestitution },
-                         { "setTangentSpeed", SetTangentSpeed },
-                         { "getTangentSpeed", GetTangentSpeed },
-                         { "getChildren", GetChildren },
-                         { "getFixtures", GetFixtures },
-                         { "isDestroyed", IsDestroyed },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &Contact::type, funcs, nullptr);
+    return Luax::RegisterType(L, &Contact::type, functions, nullptr);
 }

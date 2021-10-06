@@ -52,13 +52,18 @@ int Wrap_CircleShape::SetPoint(lua_State* L)
     return 0;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getPoint",  Wrap_CircleShape::GetPoint  },
+    { "getRadius", Wrap_CircleShape::GetRadius },
+    { "setPoint",  Wrap_CircleShape::SetPoint  },
+    { "setRadius", Wrap_CircleShape::SetRadius },
+    { 0,           0                           }
+};
+// clang-format on
+
 int Wrap_CircleShape::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getRadius", GetRadius },
-                         { "setRadius", SetRadius },
-                         { "getPoint", GetPoint },
-                         { "setPoint", SetPoint },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &CircleShape::type, Wrap_Shape::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &CircleShape::type, Wrap_Shape::functions, functions, nullptr);
 }

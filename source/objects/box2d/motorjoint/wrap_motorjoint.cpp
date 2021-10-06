@@ -109,19 +109,24 @@ int Wrap_MotorJoint::GetCorrectionFactor(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getAngularOffset",    Wrap_MotorJoint::GetAngularOffset    },
+    { "getCorrectionFactor", Wrap_MotorJoint::GetCorrectionFactor },
+    { "getLinearOffset",     Wrap_MotorJoint::GetLinearOffset     },
+    { "getMaxForce",         Wrap_MotorJoint::GetMaxForce         },
+    { "getMaxTorque",        Wrap_MotorJoint::GetMaxTorque        },
+    { "setAngularOffset",    Wrap_MotorJoint::SetAngularOffset    },
+    { "setCorrectionFactor", Wrap_MotorJoint::SetCorrectionFactor },
+    { "setLinearOffset",     Wrap_MotorJoint::SetLinearOffset     },
+    { "setMaxForce",         Wrap_MotorJoint::SetMaxForce         },
+    { "setMaxTorque",        Wrap_MotorJoint::SetMaxTorque        },
+    { 0,                     0                                    }
+};
+// clang-format on
+
 int Wrap_MotorJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "setLinearOffset", SetLinearOffset },
-                         { "getLinearOffset", GetLinearOffset },
-                         { "setAngularOffset", SetAngularOffset },
-                         { "getAngularOffset", GetAngularOffset },
-                         { "setMaxForce", SetMaxForce },
-                         { "getMaxForce", GetMaxForce },
-                         { "setMaxTorque", SetMaxTorque },
-                         { "getMaxTorque", GetMaxTorque },
-                         { "setCorrectionFactor", SetCorrectionFactor },
-                         { "getCorrectionFactor", GetCorrectionFactor },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &MotorJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &MotorJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

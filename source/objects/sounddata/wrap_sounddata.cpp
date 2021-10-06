@@ -105,17 +105,22 @@ SoundData* Wrap_SoundData::CheckSoundData(lua_State* L, int index)
     return Luax::CheckType<SoundData>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",           Wrap_SoundData::Clone           },
+    { "getBitDepth",     Wrap_SoundData::GetBitDepth     },
+    { "getChannelCount", Wrap_SoundData::GetChannelCount },
+    { "getDuration",     Wrap_SoundData::GetDuration     },
+    { "getSample",       Wrap_SoundData::GetSample       },
+    { "getSampleCount",  Wrap_SoundData::GetSampleCount  },
+    { "getSampleRate",   Wrap_SoundData::GetSampleRate   },
+    { "setSample",       Wrap_SoundData::SetSample       },
+    { 0,                 0                               }
+};
+// clang-format on
+
 int Wrap_SoundData::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "clone", Clone },
-                       { "getBitDepth", GetBitDepth },
-                       { "getChannelCount", GetChannelCount },
-                       { "getDuration", GetDuration },
-                       { "getSampleCount", GetSampleCount },
-                       { "getSampleRate", GetSampleRate },
-                       { "setSample", SetSample },
-                       { "getSample", GetSample },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &SoundData::type, reg, nullptr);
+    return Luax::RegisterType(L, &SoundData::type, functions, nullptr);
 }

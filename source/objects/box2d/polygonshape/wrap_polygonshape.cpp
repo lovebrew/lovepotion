@@ -25,9 +25,16 @@ int Wrap_PolygonShape::Validate(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getPoints", Wrap_PolygonShape::GetPoints },
+    { "validate",  Wrap_PolygonShape::Validate  },
+    { 0,           0                            }
+};
+// clang-format on
+
 int Wrap_PolygonShape::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getPoints", GetPoints }, { "validate", Validate }, { 0, 0 } };
-
-    return Luax::RegisterType(L, &PolygonShape::type, Wrap_Shape::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &PolygonShape::type, Wrap_Shape::functions, functions, nullptr);
 }

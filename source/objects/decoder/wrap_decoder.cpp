@@ -96,16 +96,21 @@ Decoder* Wrap_Decoder::CheckDecoder(lua_State* L, int index)
     return Luax::CheckType<Decoder>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",           Wrap_Decoder::Clone           },
+    { "decode",          Wrap_Decoder::Decode          },
+    { "getBitDepth",     Wrap_Decoder::GetBitDepth     },
+    { "getChannelCount", Wrap_Decoder::GetChannelCount },
+    { "getDuration",     Wrap_Decoder::GetDuration     },
+    { "getSampleRate",   Wrap_Decoder::GetSampleRate   },
+    { "seek",            Wrap_Decoder::Seek            },
+    { 0,                 0                             }
+};
+// clang-format on
+
 int Wrap_Decoder::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "clone", Clone },
-                       { "getChannelCount", GetChannelCount },
-                       { "getBitDepth", GetBitDepth },
-                       { "getSampleRate", GetSampleRate },
-                       { "getDuration", GetDuration },
-                       { "decode", Decode },
-                       { "seek", Seek },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Decoder::type, reg, nullptr);
+    return Luax::RegisterType(L, &Decoder::type, functions, nullptr);
 }

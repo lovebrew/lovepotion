@@ -98,18 +98,23 @@ int Wrap_WeldJoint::GetReferenceAngle(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getDamping",        Wrap_WeldJoint::GetDamping        },
+    { "getDampingRatio",   Wrap_WeldJoint::GetDampingRatio   },
+    { "getFrequency",      Wrap_WeldJoint::GetFrequency      },
+    { "getReferenceAngle", Wrap_WeldJoint::GetReferenceAngle },
+    { "getStiffness",      Wrap_WeldJoint::GetStiffness      },
+    { "setDamping",        Wrap_WeldJoint::SetDamping        },
+    { "setDampingRatio",   Wrap_WeldJoint::SetDampingRatio   },
+    { "setFrequency",      Wrap_WeldJoint::SetFrequency      },
+    { "setStiffness",      Wrap_WeldJoint::SetStiffness      },
+    { 0,                   0                                 }
+};
+// clang-format on
+
 int Wrap_WeldJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "setFrequency", SetFrequency },
-                         { "getFrequency", GetFrequency },
-                         { "setDampingRatio", SetDampingRatio },
-                         { "getDampingRatio", GetDampingRatio },
-                         { "setStiffness", SetStiffness },
-                         { "getStiffness", GetStiffness },
-                         { "setDamping", SetDamping },
-                         { "getDamping", GetDamping },
-                         { "getReferenceAngle", GetReferenceAngle },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &WeldJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &WeldJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

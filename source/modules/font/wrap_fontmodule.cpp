@@ -199,21 +199,30 @@ int Wrap_FontModule::NewGlyphData(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+#if defined(__3DS__)
+    { "newBCFNTRasterizer",    Wrap_FontModule::NewBCFNTRasterizer    },
+#endif
+    { "newGlyphData",          Wrap_FontModule::NewGlyphData          },
+#if defined(__SWICH__)
+    { "newTrueTypeRasterizer", Wrap_FontModule::NewTrueTypeRasterizer },
+#endif
+    { "newRasterizer",         Wrap_FontModule::NewRasterizer         },
+    {  0,                      0                                      }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_GlyphData::Register,
+    Wrap_Rasterizer::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_FontModule::Register(lua_State* L)
 {
-    const luaL_Reg reg[] = {
-        { "newRasterizer", NewRasterizer },
-#if defined(__SWITCH__)
-        { "newTrueTypeRasterizer", NewTrueTypeRasterizer },
-#elif defined(__3DS__)
-        { "newBCFNTRasterizer", NewBCFNTRasterizer },
-#endif
-        { "newGlyphData", NewGlyphData },
-        { 0, 0 }
-    };
-
-    const lua_CFunction types[] = { Wrap_GlyphData::Register, Wrap_Rasterizer::Register, 0 };
-
     FontModule* instance = instance();
 
     if (instance == nullptr)
@@ -225,7 +234,7 @@ int Wrap_FontModule::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "font";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = types;
 

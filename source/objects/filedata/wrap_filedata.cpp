@@ -38,12 +38,17 @@ FileData* Wrap_FileData::CheckFileData(lua_State* L, int index)
     return Luax::CheckType<FileData>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",        Wrap_FileData::Clone        },
+    { "getExtension", Wrap_FileData::GetExtension },
+    { "getFilename",  Wrap_FileData::GetFilename  },
+    { 0,              0                           }
+};
+// clang-format on
+
 int Wrap_FileData::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "clone", Clone },
-                       { "getFilename", GetFilename },
-                       { "getExtension", GetExtension },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &FileData::type, Wrap_Data::functions, reg, nullptr);
+    return Luax::RegisterType(L, &FileData::type, Wrap_Data::functions, functions, nullptr);
 }

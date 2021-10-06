@@ -180,20 +180,24 @@ Text* Wrap_Text::CheckText(lua_State* L, int index)
     return Luax::CheckType<Text>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "add",           Wrap_Text::Add           },
+    { "addf",          Wrap_Text::Addf          },
+    { "clear",         Wrap_Text::Clear         },
+    { "getDimensions", Wrap_Text::GetDimensions },
+    { "getFont",       Wrap_Text::GetFont       },
+    { "getHeight",     Wrap_Text::GetHeight     },
+    { "getWidth",      Wrap_Text::GetWidth      },
+    { "set",           Wrap_Text::Set           },
+    { "setf",          Wrap_Text::Setf          },
+    { "setFont",       Wrap_Text::SetFont       },
+    { 0,               0                        }
+};
+// clang-format on
+
 int Wrap_Text::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "add", Add },
-                       { "addf", Addf },
-                       { "clear", Clear },
-                       { "getDimensions", GetDimensions },
-                       { "getFont", GetFont },
-                       { "getHeight", GetHeight },
-                       { "getWidth", GetWidth },
-                       { "set", Set },
-                       { "setf", Setf },
-                       { "setFont", SetFont },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Text::type, reg, nullptr);
-    ;
+    return Luax::RegisterType(L, &Text::type, functions, nullptr);
 }

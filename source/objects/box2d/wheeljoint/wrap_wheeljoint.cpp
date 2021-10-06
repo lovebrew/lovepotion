@@ -182,35 +182,40 @@ int Wrap_WheelJoint::GetAxis(lua_State* L)
     return self->GetAxis(L);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getAxis",               Wrap_WheelJoint::GetAxis             },
+    { "getDamping",            Wrap_WheelJoint::GetDamping          },
+    { "getDampingRatio",       Wrap_WheelJoint::GetDampingRatio     },
+    { "getFrequency",          Wrap_WheelJoint::GetFrequency        },
+    { "getJointSpeed",         Wrap_WheelJoint::GetJointSpeed       },
+    { "getJointTranslation",   Wrap_WheelJoint::GetJointTranslation },
+    { "getMaxMotorTorque",     Wrap_WheelJoint::GetMaxMotorTorque   },
+    { "getMotorSpeed",         Wrap_WheelJoint::GetMotorSpeed       },
+    { "getMotorTorque",        Wrap_WheelJoint::GetMotorTorque      },
+    { "getSpringDamping",      Wrap_WheelJoint::GetDamping          },
+    { "getSpringDampingRatio", Wrap_WheelJoint::GetDampingRatio     },
+    { "getSpringFrequency",    Wrap_WheelJoint::GetFrequency        },
+    { "getSpringStiffness",    Wrap_WheelJoint::GetStiffness        },
+    { "getStiffness",          Wrap_WheelJoint::GetStiffness        },
+    { "isMotorEnabled",        Wrap_WheelJoint::IsMotorEnabled      },
+    { "setDamping",            Wrap_WheelJoint::SetDamping          },
+    { "setDampingRatio",       Wrap_WheelJoint::SetDampingRatio     },
+    { "setFrequency",          Wrap_WheelJoint::SetFrequency        },
+    { "setMaxMotorTorque",     Wrap_WheelJoint::SetMaxMotorTorque   },
+    { "setMotorEnabled",       Wrap_WheelJoint::SetMotorEnabled     },
+    { "setMotorSpeed",         Wrap_WheelJoint::SetMotorSpeed       },
+    { "setSpringDamping",      Wrap_WheelJoint::SetDamping          },
+    { "setSpringDampingRatio", Wrap_WheelJoint::SetDampingRatio     },
+    { "setSpringFrequency",    Wrap_WheelJoint::SetFrequency        },
+    { "setSpringStiffness",    Wrap_WheelJoint::SetStiffness        },
+    { "setStiffness",          Wrap_WheelJoint::SetStiffness        },
+    { 0,                       0                                    }
+};
+// clang-format on
+
 int Wrap_WheelJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getJointTranslation", GetJointTranslation },
-                         { "getJointSpeed", GetJointSpeed },
-                         { "setMotorEnabled", SetMotorEnabled },
-                         { "isMotorEnabled", IsMotorEnabled },
-                         { "setMotorSpeed", SetMotorSpeed },
-                         { "getMotorSpeed", GetMotorSpeed },
-                         { "setMaxMotorTorque", SetMaxMotorTorque },
-                         { "getMaxMotorTorque", GetMaxMotorTorque },
-                         { "getMotorTorque", GetMotorTorque },
-                         { "setSpringFrequency", SetFrequency },
-                         { "getSpringFrequency", GetFrequency },
-                         { "setSpringDampingRatio", SetDampingRatio },
-                         { "getSpringDampingRatio", GetDampingRatio },
-                         { "setSpringStiffness", SetStiffness },
-                         { "getSpringStiffness", GetStiffness },
-                         { "setSpringDamping", SetDamping },
-                         { "getSpringDamping", GetDamping },
-                         { "setFrequency", SetFrequency },
-                         { "getFrequency", GetFrequency },
-                         { "setDampingRatio", SetDampingRatio },
-                         { "getDampingRatio", GetDampingRatio },
-                         { "setStiffness", SetStiffness },
-                         { "getStiffness", GetStiffness },
-                         { "setDamping", SetDamping },
-                         { "getDamping", GetDamping },
-                         { "getAxis", GetAxis },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &WheelJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &WheelJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

@@ -52,13 +52,18 @@ int Wrap_Touch::GetPressure(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getPosition", Wrap_Touch::GetPosition },
+    { "getPressure", Wrap_Touch::GetPressure },
+    { "getTouches",  Wrap_Touch::GetTouches  },
+    { 0,             0                       }
+};
+// clang-format on
+
 int Wrap_Touch::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getTouches", GetTouches },
-                       { "getPosition", GetPosition },
-                       { "getPressure", GetPressure },
-                       { 0, 0 } };
-
     Touch* instance = instance();
 
     if (instance == nullptr)
@@ -71,7 +76,7 @@ int Wrap_Touch::Register(lua_State* L)
     wrappedModule.instance  = instance;
     wrappedModule.name      = "touch";
     wrappedModule.type      = &Module::type;
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.types     = nullptr;
 
     return Luax::RegisterModule(L, wrappedModule);

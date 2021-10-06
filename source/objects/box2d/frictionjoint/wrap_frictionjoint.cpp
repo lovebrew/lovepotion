@@ -51,13 +51,18 @@ int Wrap_FrictionJoint::GetMaxTorque(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getMaxForce",  Wrap_FrictionJoint::GetMaxForce  },
+    { "getMaxTorque", Wrap_FrictionJoint::GetMaxTorque },
+    { "setMaxForce",  Wrap_FrictionJoint::SetMaxForce  },
+    { "setMaxTorque", Wrap_FrictionJoint::SetMaxTorque },
+    { 0,              0                                }
+};
+// clang-format on
+
 int Wrap_FrictionJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "setMaxForce", SetMaxForce },
-                         { "getMaxForce", GetMaxForce },
-                         { "setMaxTorque", SetMaxTorque },
-                         { "getMaxTorque", GetMaxTorque },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &FrictionJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &FrictionJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

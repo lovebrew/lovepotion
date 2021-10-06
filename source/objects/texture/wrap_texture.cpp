@@ -144,15 +144,20 @@ love::Texture* Wrap_Texture::CheckTexture(lua_State* L, int index)
     return Luax::CheckType<love::Texture>(L, index);
 }
 
-luaL_Reg Wrap_Texture::functions[9] = { { "getTextureType", GetTextureType },
-                                        { "getWidth", GetWidth },
-                                        { "getHeight", GetHeight },
-                                        { "getDimensions", GetDimensions },
-                                        { "setFilter", SetFilter },
-                                        { "getFilter", GetFilter },
-                                        { "setWrap", SetWrap },
-                                        { "getWrap", GetWrap },
-                                        { 0, 0 } };
+// clang-format off
+const luaL_Reg Wrap_Texture::functions[9] =
+{
+    { "getTextureType", GetTextureType },
+    { "getWidth",       GetWidth       },
+    { "getHeight",      GetHeight      },
+    { "getDimensions",  GetDimensions  },
+    { "setFilter",      SetFilter      },
+    { "getFilter",      GetFilter      },
+    { "setWrap",        SetWrap        },
+    { "getWrap",        GetWrap        },
+    { 0,                0              }
+};
+// clang-format on
 
 int Wrap_Texture::Register(lua_State* L)
 {

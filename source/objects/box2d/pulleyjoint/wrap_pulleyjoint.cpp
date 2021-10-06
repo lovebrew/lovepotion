@@ -48,13 +48,18 @@ int Wrap_PulleyJoint::GetRatio(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getGroundAnchors", Wrap_PulleyJoint::GetGroundAnchors },
+    { "getLengthA",       Wrap_PulleyJoint::GetLengthA       },
+    { "getLengthB",       Wrap_PulleyJoint::GetLengthB       },
+    { "getRatio",         Wrap_PulleyJoint::GetRatio         },
+    { 0,                  0                                  }
+};
+// clang-format on
+
 int Wrap_PulleyJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getGroundAnchors", GetGroundAnchors },
-                         { "getLengthA", GetLengthA },
-                         { "getLengthB", GetLengthB },
-                         { "getRatio", GetRatio },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &PulleyJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &PulleyJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

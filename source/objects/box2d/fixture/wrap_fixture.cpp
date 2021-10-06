@@ -295,36 +295,41 @@ int Wrap_Fixture::IsDestroyed(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "destroy",        Wrap_Fixture::Destroy        },
+    { "getBody",        Wrap_Fixture::GetBody        },
+    { "getBoundingBox", Wrap_Fixture::GetBoundingBox },
+    { "getCategory",    Wrap_Fixture::GetCategory    },
+    { "getDensity",     Wrap_Fixture::GetDensity     },
+    { "getFilterData",  Wrap_Fixture::GetFilterData  },
+    { "getFriction",    Wrap_Fixture::GetFriction    },
+    { "getGroupIndex",  Wrap_Fixture::GetGroupIndex  },
+    { "getMask",        Wrap_Fixture::GetMask        },
+    { "getMassData",    Wrap_Fixture::GetMassData    },
+    { "getRestitution", Wrap_Fixture::GetRestitution },
+    { "getShape",       Wrap_Fixture::GetShape       },
+    { "getType",        Wrap_Fixture::GetType        },
+    { "getUserData",    Wrap_Fixture::GetUserdata    },
+    { "isDestroyed",    Wrap_Fixture::IsDestroyed    },
+    { "isSensor",       Wrap_Fixture::IsSensor       },
+    { "rayCast",        Wrap_Fixture::RayCast        },
+    { "setCategory",    Wrap_Fixture::SetCategory    },
+    { "setDensity",     Wrap_Fixture::SetDensity     },
+    { "setFilterData",  Wrap_Fixture::SetFilterData  },
+    { "setFriction",    Wrap_Fixture::SetFriction    },
+    { "setGroupIndex",  Wrap_Fixture::SetGroupIndex  },
+    { "setMask",        Wrap_Fixture::SetMask        },
+    { "setRestitution", Wrap_Fixture::SetRestitution },
+    { "setSensor",      Wrap_Fixture::SetSensor      },
+    { "setUserData",    Wrap_Fixture::SetUserdata    },
+    { "testPoint",      Wrap_Fixture::TestPoint      },
+    { 0,                0                       }
+};
+// clang-format on
+
 int Wrap_Fixture::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getType", GetType },
-                         { "setFriction", SetFriction },
-                         { "setRestitution", SetRestitution },
-                         { "setDensity", SetDensity },
-                         { "setSensor", SetSensor },
-                         { "getFriction", GetFriction },
-                         { "getRestitution", GetRestitution },
-                         { "getDensity", GetDensity },
-                         { "getBody", GetBody },
-                         { "getShape", GetShape },
-                         { "isSensor", IsSensor },
-                         { "testPoint", TestPoint },
-                         { "rayCast", RayCast },
-                         { "setFilterData", SetFilterData },
-                         { "getFilterData", GetFilterData },
-                         { "setCategory", SetCategory },
-                         { "getCategory", GetCategory },
-                         { "setMask", SetMask },
-                         { "getMask", GetMask },
-                         { "setUserData", SetUserdata },
-                         { "getUserData", GetUserdata },
-                         { "getBoundingBox", GetBoundingBox },
-                         { "getMassData", GetMassData },
-                         { "getGroupIndex", GetGroupIndex },
-                         { "setGroupIndex", SetGroupIndex },
-                         { "destroy", Destroy },
-                         { "isDestroyed", IsDestroyed },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &Fixture::type, funcs, nullptr);
+    return Luax::RegisterType(L, &Fixture::type, functions, nullptr);
 }

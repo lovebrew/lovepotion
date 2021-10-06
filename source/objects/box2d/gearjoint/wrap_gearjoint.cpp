@@ -50,11 +50,17 @@ int Wrap_GearJoint::GetJoints(lua_State* L)
     return 2;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getJoints", Wrap_GearJoint::GetJoints },
+    { "getRatio",  Wrap_GearJoint::GetRatio  },
+    { "setRatio",  Wrap_GearJoint::SetRatio  },
+    { 0,           0                         }
+};
+// clang-format on
+
 int Wrap_GearJoint::Register(lua_State* L)
 {
-    luaL_reg funcs[] = {
-        { "setRatio", SetRatio }, { "getRatio", GetRatio }, { "getJoints", GetJoints }, { 0, 0 }
-    };
-
-    return Luax::RegisterType(L, &GearJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &GearJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

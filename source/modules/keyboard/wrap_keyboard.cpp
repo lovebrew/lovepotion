@@ -71,11 +71,18 @@ int Wrap_Keyboard::SetTextInput(lua_State* L)
     return 0;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "setTextInput", Wrap_Keyboard::SetTextInput },
+    { 0,              0                           }
+};
+// clang-format on
+
 int Wrap_Keyboard::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "setTextInput", SetTextInput }, { 0, 0 } };
-
     Keyboard* instance = instance();
+
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Keyboard(); });
     else
@@ -85,7 +92,7 @@ int Wrap_Keyboard::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "keyboard";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = nullptr;
 

@@ -121,19 +121,18 @@ int Wrap_System::GetSystemTheme(lua_State* L)
     return 1;
 }
 
+#if defined(__3DS__)
 int Wrap_System::SetPlayCoins(lua_State* L)
 {
-#if defined(__3DS__)
     int amount = luaL_checknumber(L, 1);
 
     Luax::CatchException(L, [&]() { instance()->SetPlayCoins(amount); });
-#endif
+
     return 0;
 }
 
 int Wrap_System::GetPlayCoins(lua_State* L)
 {
-#if defined(__3DS__)
     int amount = 0;
 
     Luax::CatchException(L, [&]() { amount = instance()->GetPlayCoins(); });
@@ -141,31 +140,33 @@ int Wrap_System::GetPlayCoins(lua_State* L)
     lua_pushnumber(L, amount);
 
     return 1;
-#endif
-    return 0;
 }
+#endif
+
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getColorTheme",     Wrap_System::GetSystemTheme    },
+    { "getFriendCode",     Wrap_System::GetFriendCode     },
+    { "getLanguage",       Wrap_System::GetLanguage       },
+    { "getModel",          Wrap_System::GetModel          },
+    { "getNetworkInfo",    Wrap_System::GetNetworkInfo    },
+    { "getOS",             Wrap_System::GetOS             },
+    { "getPowerInfo",      Wrap_System::GetPowerInfo      },
+    { "getProcessorCount", Wrap_System::GetProcessorCount },
+    { "getRegion",         Wrap_System::GetRegion         },
+    { "getUsername",       Wrap_System::GetUsername       },
+    { "getVersion",        Wrap_System::GetVersion        },
+#if defined(__3DS__)
+    { "getPlayCoins",      Wrap_System::GetPlayCoins      },
+    { "setPlayCoins",      Wrap_System::SetPlayCoins      },
+#endif
+    { 0,                   0                              }
+};
+// clang-format on
 
 int Wrap_System::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getColorTheme", GetSystemTheme },
-                         { "getFriendCode", GetFriendCode },
-                         { "getOS", GetOS },
-                         { "getProcessorCount", GetProcessorCount },
-                         { "getPowerInfo", GetPowerInfo },
-                         { "getNetworkInfo", GetNetworkInfo },
-                         { "getLanguage", GetLanguage },
-                         { "getModel", GetModel },
-                         { "getRegion", GetRegion },
-                         { "getUsername", GetUsername },
-                         { "getVersion", GetVersion },
-                         { 0, 0 } };
-
-    /* 3DS extensions */
-
-    luaL_Reg modExt[] = { { "getPlayCoins", GetPlayCoins }, { "setPlayCoins", SetPlayCoins } };
-
-    std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, modExt);
-
     System* instance = instance();
 
     if (instance == nullptr)
@@ -178,7 +179,7 @@ int Wrap_System::Register(lua_State* L)
     wrappedModule.instance  = instance;
     wrappedModule.name      = "system";
     wrappedModule.type      = &Module::type;
-    wrappedModule.functions = reg.get();
+    wrappedModule.functions = functions;
     wrappedModule.types     = nullptr;
 
     return Luax::RegisterModule(L, wrappedModule);

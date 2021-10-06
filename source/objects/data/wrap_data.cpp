@@ -34,9 +34,15 @@ Data* Wrap_Data::CheckData(lua_State* L, int index)
     return Luax::CheckType<Data>(L, index);
 }
 
-luaL_Reg Wrap_Data::functions[4] = {
-    { "getPointer", GetPointer }, { "getSize", GetSize }, { "getString", GetString }, { 0, 0 }
+// clang-format off
+const luaL_Reg Wrap_Data::functions[4] =
+{
+    { "getPointer", Wrap_Data::GetPointer },
+    { "getSize",    Wrap_Data::GetSize    },
+    { "getString",  Wrap_Data::GetString  },
+    { 0,            0                     }
 };
+// clang-format on
 
 int Wrap_Data::Register(lua_State* L)
 {

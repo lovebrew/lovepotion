@@ -96,41 +96,6 @@ namespace Luax
 
     int RegisterSearcher(lua_State* L, lua_CFunction function, int position);
 
-    /**
-     * Check if we should extend a functions definition table.
-     * This will be determined by the console type, "3DS" or "Switch".
-     * If it does not match, the result is merely copied as-is and returned.
-     * @return std::unique_ptr<T[]> funcs
-     **/
-    template<typename T, size_t funcCount, size_t extCount>
-    [[nodiscard]] std::unique_ptr<T[]> ExtendIf(const std::string_view& console,
-                                                T (&funcs)[funcCount], const T (&ext)[extCount])
-    {
-        /* not the proper console *or* ext doesn't have anything */
-        if (console != Version::LOVE_POTION_CONSOLE)
-        {
-            auto registry = std::make_unique<T[]>(funcCount);
-            std::copy(funcs, funcs + funcCount, registry.get());
-
-            return registry;
-        }
-        /* funcCount includes the null terminator */
-        const size_t maxSize    = funcCount + extCount;
-        const size_t copyOffset = funcCount - 1;
-
-        auto registry = std::make_unique<T[]>(maxSize);
-
-        /* don't append the null terminated registry value */
-        std::copy(funcs, funcs + copyOffset, registry.get());
-
-        /* copy over the extended values */
-        std::copy(ext, ext + extCount, registry.get() + copyOffset);
-
-        registry[maxSize - 1] = { 0, 0 };
-
-        return registry;
-    }
-
     love::Reference* RefIf(lua_State* L, int type);
 
     int Resume(lua_State* L, int nargs);

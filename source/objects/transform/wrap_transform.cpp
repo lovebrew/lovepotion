@@ -314,24 +314,29 @@ Transform* Wrap_Transform::CheckTransform(lua_State* L, int index)
     return Luax::CheckType<Transform>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",                 Wrap_Transform::Clone                 },
+    { "inverse",               Wrap_Transform::Inverse               },
+    { "apply",                 Wrap_Transform::Apply                 },
+    { "isAffine2DTransform",   Wrap_Transform::IsAffine2DTransform   },
+    { "translate",             Wrap_Transform::Translate             },
+    { "rotate",                Wrap_Transform::Rotate                },
+    { "scale",                 Wrap_Transform::Scale                 },
+    { "shear",                 Wrap_Transform::Shear                 },
+    { "reset",                 Wrap_Transform::Reset                 },
+    { "setTransformation",     Wrap_Transform::SetTransformation     },
+    { "setMatrix",             Wrap_Transform::SetMatrix             },
+    { "getMatrix",             Wrap_Transform::GetMatrix             },
+    { "transformPoint",        Wrap_Transform::TransformPoint        },
+    { "inverseTransformPoint", Wrap_Transform::InverseTransformPoint },
+    { "__mul",                 Wrap_Transform::_Mul                  },
+    { 0,                       0                                     }
+};
+// clang-format on
+
 int Wrap_Transform::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "clone", Clone },
-                       { "inverse", Inverse },
-                       { "apply", Apply },
-                       { "isAffine2DTransform", IsAffine2DTransform },
-                       { "translate", Translate },
-                       { "rotate", Rotate },
-                       { "scale", Scale },
-                       { "shear", Shear },
-                       { "reset", Reset },
-                       { "setTransformation", SetTransformation },
-                       { "setMatrix", SetMatrix },
-                       { "getMatrix", GetMatrix },
-                       { "transformPoint", TransformPoint },
-                       { "inverseTransformPoint", InverseTransformPoint },
-                       { "__mul", _Mul },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Transform::type, reg, nullptr);
+    return Luax::RegisterType(L, &Transform::type, functions, nullptr);
 }

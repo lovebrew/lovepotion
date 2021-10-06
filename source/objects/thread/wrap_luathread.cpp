@@ -61,13 +61,18 @@ LuaThread* Wrap_LuaThread::CheckThread(lua_State* L, int index)
     return Luax::CheckType<LuaThread>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getError",  Wrap_LuaThread::GetError  },
+    { "isRunning", Wrap_LuaThread::IsRunning },
+    { "start",     Wrap_LuaThread::Start     },
+    { "wait",      Wrap_LuaThread::Wait      },
+    { 0,           0                         }
+};
+// clang-format on
+
 int Wrap_LuaThread::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "start", Start },
-                       { "wait", Wait },
-                       { "getError", GetError },
-                       { "isRunning", IsRunning },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &LuaThread::type, reg, nullptr);
+    return Luax::RegisterType(L, &LuaThread::type, functions, nullptr);
 }

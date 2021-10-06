@@ -319,19 +319,29 @@ int Wrap_Math::Triangulate(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "_getRandomGenerator", Wrap_Math::GetRandomGenerator },
+    { "gammaToLinear",       Wrap_Math::GammaToLinear      },
+    { "isConvex",            Wrap_Math::IsConvex           },
+    { "linearToGamma",       Wrap_Math::LinearToGamma      },
+    { "newRandomGenerator",  Wrap_Math::NewRandomGenerator },
+    { "newTransform",        Wrap_Math::NewTransform       },
+    { "triangulate",         Wrap_Math::Triangulate        },
+    { 0,                     0                             }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_RandomGenerator::Register,
+    Wrap_Transform::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_Math::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "_getRandomGenerator", GetRandomGenerator },
-                       { "isConvex", IsConvex },
-                       { "newRandomGenerator", NewRandomGenerator },
-                       { "newTransform", NewTransform },
-                       { "gammaToLinear", GammaToLinear },
-                       { "linearToGamma", LinearToGamma },
-                       { "triangulate", Triangulate },
-                       { 0, 0 } };
-
-    lua_CFunction types[] = { Wrap_RandomGenerator::Register, Wrap_Transform::Register, 0 };
-
     Math* instance = instance();
 
     if (instance == nullptr)
@@ -343,7 +353,7 @@ int Wrap_Math::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "math";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = types;
 

@@ -105,18 +105,23 @@ love::GlyphData* Wrap_GlyphData::CheckGlyphData(lua_State* L, int index)
     return Luax::CheckType<love::GlyphData>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",          Wrap_GlyphData::Clone          },
+    { "getAdvance",     Wrap_GlyphData::GetAdvance     },
+    { "getBearing",     Wrap_GlyphData::GetBearing     },
+    { "getBoundingBox", Wrap_GlyphData::GetBoundingBox },
+    { "getDimensions",  Wrap_GlyphData::GetDimensions  },
+    { "getGlyph",       Wrap_GlyphData::GetGlyph       },
+    { "getGlyphString", Wrap_GlyphData::GetGlyphString },
+    { "getHeight",      Wrap_GlyphData::GetHeight      },
+    { "getWidth",       Wrap_GlyphData::GetWidth       },
+    { 0,                0                              }
+};
+// clang-format on
+
 int Wrap_GlyphData::Register(lua_State* L)
 {
-    const luaL_Reg reg[] = { { "clone", Clone },
-                             { "getWidth", GetWidth },
-                             { "getHeight", GetHeight },
-                             { "getDimensions", GetDimensions },
-                             { "getGlyph", GetGlyph },
-                             { "getGlyphString", GetGlyphString },
-                             { "getAdvance", GetAdvance },
-                             { "getBearing", GetBearing },
-                             { "getBoundingBox", GetBoundingBox },
-                             { 0, 0 } };
-
-    return Luax::RegisterType(L, &GlyphData::type, Wrap_Data::functions, reg, nullptr);
+    return Luax::RegisterType(L, &GlyphData::type, Wrap_Data::functions, functions, nullptr);
 }

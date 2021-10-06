@@ -32,11 +32,16 @@ int Wrap_RopeJoint::SetMaxLength(lua_State* L)
     return 0;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getMaxLength", Wrap_RopeJoint::GetMaxLength },
+    { "setMaxLength", Wrap_RopeJoint::SetMaxLength },
+    { 0,              0                            }
+};
+// clang-format on
+
 int Wrap_RopeJoint::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "getMaxLength", GetMaxLength },
-                         { "setMaxLength", SetMaxLength },
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &RopeJoint::type, Wrap_Joint::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &RopeJoint::type, Wrap_Joint::functions, functions, nullptr);
 }

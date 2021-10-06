@@ -276,22 +276,27 @@ Gamepad* Wrap_Gamepad::CheckJoystick(lua_State* L, int index)
     return Luax::CheckType<Gamepad>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getAxes",              Wrap_Gamepad::GetAxes              },
+    { "getAxis",              Wrap_Gamepad::GetAxis              },
+    { "getButtonCount",       Wrap_Gamepad::GetButtonCount       },
+    { "getGamepadAxis",       Wrap_Gamepad::GetGamepadAxis       },
+    { "getID",                Wrap_Gamepad::GetID                },
+    { "getName",              Wrap_Gamepad::GetName              },
+    { "getVibration",         Wrap_Gamepad::GetVibration         },
+    { "isConnected",          Wrap_Gamepad::IsConnected          },
+    { "isDown",               Wrap_Gamepad::IsDown               },
+    { "isGamepad",            Wrap_Gamepad::IsGamepad            },
+    { "isGamepadDown",        Wrap_Gamepad::IsGamepadDown        },
+    { "isVibrationSupported", Wrap_Gamepad::IsVibrationSupported },
+    { "setVibration",         Wrap_Gamepad::SetVibration         },
+    { 0,                      0                                  }
+};
+// clang-format on
+
 int Wrap_Gamepad::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getAxes", GetAxes },
-                       { "getAxis", GetAxis },
-                       { "getButtonCount", GetButtonCount },
-                       { "getGamepadAxis", GetGamepadAxis },
-                       { "getID", GetID },
-                       { "getName", GetName },
-                       { "getVibration", GetVibration },
-                       { "isConnected", IsConnected },
-                       { "isDown", IsDown },
-                       { "isGamepad", IsGamepad },
-                       { "isGamepadDown", IsGamepadDown },
-                       { "isVibrationSupported", IsVibrationSupported },
-                       { "setVibration", SetVibration },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Gamepad::type, reg, nullptr);
+    return Luax::RegisterType(L, &Gamepad::type, functions, nullptr);
 }

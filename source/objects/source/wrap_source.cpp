@@ -202,26 +202,31 @@ Source* Wrap_Source::CheckSource(lua_State* L, int index)
     return Luax::CheckType<Source>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "clone",              Wrap_Source::Clone              },
+    { "getChannelCount",    Wrap_Source::GetChannelCount    },
+    { "getDuration",        Wrap_Source::GetDuration        },
+    { "getFreeBufferCount", Wrap_Source::GetFreeBufferCount },
+    { "getType",            Wrap_Source::GetType            },
+    { "getVolume",          Wrap_Source::GetVolume          },
+    { "getVolumeLimits",    Wrap_Source::GetVolumeLimits    },
+    { "isLooping",          Wrap_Source::IsLooping          },
+    { "isPlaying",          Wrap_Source::IsPlaying          },
+    { "pause",              Wrap_Source::Pause              },
+    { "play",               Wrap_Source::Play               },
+    { "seek",               Wrap_Source::Seek               },
+    { "setLooping",         Wrap_Source::SetLooping         },
+    { "setVolume",          Wrap_Source::SetVolume          },
+    { "setVolumeLimits",    Wrap_Source::SetVolumeLimits    },
+    { "stop",               Wrap_Source::Stop               },
+    { "tell",               Wrap_Source::Tell               },
+    { 0,                    0                               }
+};
+// clang-format on
+
 int Wrap_Source::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "clone", Clone },
-                       { "getChannelCount", GetChannelCount },
-                       { "getDuration", GetDuration },
-                       { "getFreeBufferCount", GetFreeBufferCount },
-                       { "getType", GetType },
-                       { "getVolume", GetVolume },
-                       { "getVolumeLimits", GetVolumeLimits },
-                       { "isLooping", IsLooping },
-                       { "isPlaying", IsPlaying },
-                       { "pause", Pause },
-                       { "play", Play },
-                       { "seek", Seek },
-                       { "setLooping", SetLooping },
-                       { "setVolume", SetVolume },
-                       { "setVolumeLimits", SetVolumeLimits },
-                       { "stop", Stop },
-                       { "tell", Tell },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &Source::type, reg, nullptr);
+    return Luax::RegisterType(L, &Source::type, functions, nullptr);
 }

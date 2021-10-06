@@ -170,15 +170,28 @@ int Wrap_Audio::SetVolume(lua_State* L)
     return 0;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getVolume",            Wrap_Audio::GetVolume            },
+    { "getActiveSourceCount", Wrap_Audio::GetActiveSourceCount },
+    { "newSource",            Wrap_Audio::NewSource            },
+    { "pause",                Wrap_Audio::Pause                },
+    { "play",                 Wrap_Audio::Play                 },
+    { "setVolume",            Wrap_Audio::SetVolume            },
+    { "stop",                 Wrap_Audio::Stop                 },
+    { 0,                      0                                }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_Source::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_Audio::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getVolume", GetVolume }, { "getActiveSourceCount", GetActiveSourceCount },
-                       { "newSource", NewSource }, { "pause", Pause },
-                       { "play", Play },           { "setVolume", SetVolume },
-                       { "stop", Stop },           { 0, 0 } };
-
-    lua_CFunction types[] = { Wrap_Source::Register, 0 };
-
     Audio* instance = instance();
 
     if (instance == nullptr)
@@ -191,7 +204,7 @@ int Wrap_Audio::Register(lua_State* L)
     wrappedModule.instance  = instance;
     wrappedModule.name      = "audio";
     wrappedModule.type      = &Module::type;
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.types     = types;
 
     return Luax::RegisterModule(L, wrappedModule);

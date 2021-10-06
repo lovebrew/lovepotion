@@ -82,14 +82,19 @@ int Wrap_Shape::ComputeMass(lua_State* L)
     return self->ComputeMass(L);
 }
 
-const luaL_Reg Wrap_Shape::functions[8] = { { "getType", GetType },
-                                            { "getRadius", GetRadius },
-                                            { "getChildCount", GetChildCount },
-                                            { "testPoint", TestPoint },
-                                            { "rayCast", RayCast },
-                                            { "computeAABB", ComputeAABB },
-                                            { "computeMass", ComputeMass },
-                                            { 0, 0 } };
+// clang-format off
+const luaL_Reg Wrap_Shape::functions[8] =
+{
+    { "computeAABB",   Wrap_Shape::ComputeAABB   },
+    { "computeMass",   Wrap_Shape::ComputeMass   },
+    { "getChildCount", Wrap_Shape::GetChildCount },
+    { "getRadius",     Wrap_Shape::GetRadius     },
+    { "getType",       Wrap_Shape::GetType       },
+    { "rayCast",       Wrap_Shape::RayCast       },
+    { "testPoint",     Wrap_Shape::TestPoint     },
+    { 0,               0                         }
+};
+// clang-format on
 
 int Wrap_Shape::Register(lua_State* L)
 {

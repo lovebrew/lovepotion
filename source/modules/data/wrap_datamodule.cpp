@@ -373,24 +373,34 @@ int Wrap_DataModule::Unpack(lua_State* L)
     return lua53_str_unpack(L, formatStr, dataStr, size, 2, 3);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "compress",      Wrap_DataModule::Compress    },
+    { "decode",        Wrap_DataModule::Decode      },
+    { "decompress",    Wrap_DataModule::Decompress  },
+    { "encode",        Wrap_DataModule::Encode      },
+    { "getPackedSize", lua53_str_packsize           },
+    { "hash",          Wrap_DataModule::Hash        },
+    { "newByteData",   Wrap_DataModule::NewByteData },
+    { "newDataView",   Wrap_DataModule::NewDataView },
+    { "pack",          Wrap_DataModule::Pack        },
+    { "unpack",        Wrap_DataModule::Unpack      },
+    { 0,               0                            }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_Data::Register,
+    Wrap_ByteData::Register,
+    Wrap_CompressedData::Register,
+    Wrap_DataView::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_DataModule::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "newByteData", NewByteData },
-                       { "compress", Compress },
-                       { "decompress", Decompress },
-                       { "decode", Decode },
-                       { "encode", Encode },
-                       { "hash", Hash },
-                       { "newDataView", NewDataView },
-
-                       { "pack", Pack },
-                       { "unpack", Unpack },
-                       { "getPackedSize", lua53_str_packsize },
-                       { 0, 0 } };
-
-    lua_CFunction types[] = { Wrap_Data::Register, Wrap_ByteData::Register,
-                              Wrap_CompressedData::Register, Wrap_DataView::Register, nullptr };
-
     DataModule* instance = instance();
 
     if (instance == nullptr)
@@ -403,7 +413,7 @@ int Wrap_DataModule::Register(lua_State* L)
     wrappedModule.instance  = instance;
     wrappedModule.name      = "data";
     wrappedModule.type      = &Module::type;
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.types     = types;
 
     return Luax::RegisterModule(L, wrappedModule);

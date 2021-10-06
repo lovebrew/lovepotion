@@ -34,9 +34,15 @@ Canvas* Wrap_Canvas::CheckCanvas(lua_State* L, int index)
     return Luax::CheckType<Canvas>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "renderTo", Wrap_Canvas::RenderTo },
+    { 0, 0 }
+};
+// clang-format on
+
 int Wrap_Canvas::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "renderTo", RenderTo }, { 0, 0 } };
-
-    return Luax::RegisterType(L, &Canvas::type, Wrap_Texture::functions, reg, nullptr);
+    return Luax::RegisterType(L, &Canvas::type, Wrap_Texture::functions, functions, nullptr);
 }

@@ -83,14 +83,19 @@ int Wrap_Window::LoadMessageBox(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getDisplayCount",    Wrap_Window::GetDisplayCount    },
+    { "getFullscreenModes", Wrap_Window::GetFullscreenModes },
+    { "isOpen",             Wrap_Window::IsOpen             },
+    { "setMode",            Wrap_Window::SetMode            },
+    { 0,                    0                               }
+};
+// clang-format on
+
 int Wrap_Window::Register(lua_State* L)
 {
-    luaL_Reg functions[] = { { "isOpen", IsOpen },
-                             { "setMode", SetMode },
-                             { "getDisplayCount", GetDisplayCount },
-                             { "getFullscreenModes", GetFullscreenModes },
-                             { 0, 0 } };
-
     Window* instance = instance();
 
     if (instance == nullptr)

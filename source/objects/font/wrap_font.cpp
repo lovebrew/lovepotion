@@ -274,23 +274,28 @@ void Wrap_Font::CheckColoredString(lua_State* L, int index,
     }
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getHeight",     Wrap_Font::GetHeight     },
+    { "getWidth",      Wrap_Font::GetWidth      },
+    { "getWrap",       Wrap_Font::GetWrap       },
+    { "setLineHeight", Wrap_Font::SetLineHeight },
+    { "getAscent",     Wrap_Font::GetAscent     },
+    { "getBaseline",   Wrap_Font::GetBaseline   },
+    { "getDescent",    Wrap_Font::GetDescent    },
+    { "getDPIScale",   Wrap_Font::GetDPIScale   },
+    { "getFilter",     Wrap_Font::GetFilter     },
+    { "getKerning",    Wrap_Font::GetKerning    },
+    { "getLineHeight", Wrap_Font::GetLineHeight },
+    { "hasGlyphs",     Wrap_Font::HasGlyphs     },
+    { "setFallbacks",  Wrap_Font::SetFallbacks  },
+    { "setFilter",     Wrap_Font::SetFilter     },
+    { 0,               0                        }
+};
+// clang-format on
+
 int Wrap_Font::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getHeight", GetHeight },
-                       { "getWidth", GetWidth },
-                       { "getWrap", GetWrap },
-                       { "setLineHeight", SetLineHeight },
-                       { "getAscent", GetAscent },
-                       { "getBaseline", GetBaseline },
-                       { "getDescent", GetDescent },
-                       { "getDPIScale", GetDPIScale },
-                       { "getFilter", GetFilter },
-                       { "getKerning", GetKerning },
-                       { "getLineHeight", GetLineHeight },
-                       { "hasGlyphs", HasGlyphs },
-                       { "setFallbacks", SetFallbacks },
-                       { "setFilter", SetFilter },
-                       { 0, 0 } };
-
-    return Luax::RegisterType(L, &love::Font::type, reg, nullptr);
+    return Luax::RegisterType(L, &love::Font::type, functions, nullptr);
 }

@@ -548,42 +548,62 @@ int Wrap_Physics::GetMeter(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getDistance",       Wrap_Physics::GetDistance       },
+    { "getMeter",          Wrap_Physics::GetMeter          },
+    { "newBody",           Wrap_Physics::NewBody           },
+    { "newChainShape",     Wrap_Physics::NewChainShape     },
+    { "newCircleShape",    Wrap_Physics::NewCircleShape    },
+    { "newDistanceJoint",  Wrap_Physics::NewDistanceJoint  },
+    { "newEdgeShape",      Wrap_Physics::NewEdgeShape      },
+    { "newFixture",        Wrap_Physics::NewFixture        },
+    { "newFrictionJoint",  Wrap_Physics::NewFrictionJoint  },
+    { "newGearJoint",      Wrap_Physics::NewGearJoint      },
+    { "newMotorJoint",     Wrap_Physics::NewMotorJoint     },
+    { "newMouseJoint",     Wrap_Physics::NewMouseJoint     },
+    { "newPolygonShape",   Wrap_Physics::NewPolygonShape   },
+    { "newPrismaticJoint", Wrap_Physics::NewPrismaticJoint },
+    { "newPulleyJoint",    Wrap_Physics::NewPulleyJoint    },
+    { "newRectangleShape", Wrap_Physics::NewRectangleShape },
+    { "newRevoluteJoint",  Wrap_Physics::NewRevoluteJoint  },
+    { "newRopeJoint",      Wrap_Physics::NewRopeJoint      },
+    { "newWeldJoint",      Wrap_Physics::NewWeldJoint      },
+    { "newWheelJoint",     Wrap_Physics::NewWheelJoint     },
+    { "newWorld",          Wrap_Physics::NewWorld          },
+    { "setMeter",          Wrap_Physics::SetMeter          },
+    { 0,                   0                               }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_Body::Register,
+    Wrap_Contact::Register,
+    Wrap_Fixture::Register,
+    Wrap_Joint::Register,
+    Wrap_Shape::Register,
+    Wrap_ChainShape::Register,
+    Wrap_CircleShape::Register,
+    Wrap_DistanceJoint::Register,
+    Wrap_EdgeShape::Register,
+    Wrap_FrictionJoint::Register,
+    Wrap_GearJoint::Register,
+    Wrap_MotorJoint::Register,
+    Wrap_MouseJoint::Register,
+    Wrap_PolygonShape::Register,
+    Wrap_PrismaticJoint::Register,
+    Wrap_PulleyJoint::Register,
+    Wrap_RopeJoint::Register,
+    Wrap_WeldJoint::Register,
+    Wrap_WheelJoint::Register,
+    Wrap_World::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_Physics::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "newWorld", NewWorld },
-                         { "newBody", NewBody },
-                         { "newFixture", NewFixture },
-                         { "newCircleShape", NewCircleShape },
-                         { "newRectangleShape", NewRectangleShape },
-                         { "newPolygonShape", NewPolygonShape },
-                         { "newEdgeShape", NewEdgeShape },
-                         { "newChainShape", NewChainShape },
-                         { "newDistanceJoint", NewDistanceJoint },
-                         { "newMouseJoint", NewMouseJoint },
-                         { "newRevoluteJoint", NewRevoluteJoint },
-                         { "newPrismaticJoint", NewPrismaticJoint },
-                         { "newPulleyJoint", NewPulleyJoint },
-                         { "newGearJoint", NewGearJoint },
-                         { "newFrictionJoint", NewFrictionJoint },
-                         { "newWeldJoint", NewWeldJoint },
-                         { "newWheelJoint", NewWheelJoint },
-                         { "newRopeJoint", NewRopeJoint },
-                         { "newMotorJoint", NewMotorJoint },
-                         { "getDistance", GetDistance },
-                         { "getMeter", GetMeter },
-                         { "setMeter", SetMeter },
-                         { 0, 0 } };
-
-    lua_CFunction types[] = {
-        Wrap_Contact::Register,        Wrap_Fixture::Register,       Wrap_Shape::Register,
-        Wrap_Body::Register,           Wrap_Joint::Register,         Wrap_World::Register,
-        Wrap_EdgeShape::Register,      Wrap_ChainShape::Register,    Wrap_CircleShape::Register,
-        Wrap_PolygonShape::Register,   Wrap_DistanceJoint::Register, Wrap_FrictionJoint::Register,
-        Wrap_GearJoint::Register,      Wrap_MotorJoint::Register,    Wrap_MouseJoint::Register,
-        Wrap_PrismaticJoint::Register, Wrap_PulleyJoint::Register,   Wrap_RopeJoint::Register,
-        Wrap_WeldJoint::Register,      Wrap_WheelJoint::Register,    0
-    };
-
     Physics* instance = instance();
 
     if (instance == nullptr)
@@ -595,7 +615,7 @@ int Wrap_Physics::Register(lua_State* L)
     module.instance  = instance;
     module.name      = "physics";
     module.type      = &Module::type;
-    module.functions = funcs;
+    module.functions = functions;
     module.types     = types;
 
     return Luax::RegisterModule(L, module);

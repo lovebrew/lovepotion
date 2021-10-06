@@ -36,15 +36,25 @@ Gamepad* Wrap_Joystick::CheckGamepad(lua_State* L, int index)
     return Luax::CheckType<Gamepad>(L, index);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getJoystickCount", Wrap_Joystick::GetJoystickCount },
+    { "getJoysticks",     Wrap_Joystick::GetJoysticks     },
+    { 0,                  0                               }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_Gamepad::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_Joystick::Register(lua_State* L)
 {
-    luaL_Reg reg[] = { { "getJoystickCount", GetJoystickCount },
-                       { "getJoysticks", GetJoysticks },
-                       { 0, 0 } };
-
-    lua_CFunction types[] = { Wrap_Gamepad::Register, 0 };
-
     Joystick* instance = instance();
+
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Joystick(); });
     else
@@ -54,7 +64,7 @@ int Wrap_Joystick::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "joystick";
-    wrappedModule.functions = reg;
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = types;
 

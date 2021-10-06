@@ -222,31 +222,36 @@ int Wrap_World::IsDestroyed(lua_State* L)
     return 1;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "destroy",            Wrap_World::Destroy            },
+    { "getBodies",          Wrap_World::GetBodies          },
+    { "getBodyCount",       Wrap_World::GetBodyCount       },
+    { "getCallbacks",       Wrap_World::GetCallbacks       },
+    { "getContactCount",    Wrap_World::GetContactCount    },
+    { "getContactFilter",   Wrap_World::GetContactFilter   },
+    { "getContacts",        Wrap_World::GetContacts        },
+    { "getGravity",         Wrap_World::GetGravity         },
+    { "getJointCount",      Wrap_World::GetJointCount      },
+    { "getJoints",          Wrap_World::GetJoints          },
+    { "isDestroyed",        Wrap_World::IsDestroyed        },
+    { "isLocked",           Wrap_World::IsLocked           },
+    { "isSleepingAllowed",  Wrap_World::IsSleepingAllowed  },
+    { "queryBoundingBox",   Wrap_World::QueryBoundingBox   },
+    { "rayCast",            Wrap_World::RayCast            },
+    { "setCallbacks",       Wrap_World::SetCallbacks       },
+    { "setContactFilter",   Wrap_World::SetContactFilter   },
+    { "setGravity",         Wrap_World::SetGravity         },
+    { "setSleepingAllowed", Wrap_World::SetSleepingAllowed },
+    { "translateOrigin",    Wrap_World::TranslateOrigin    },
+    { "update",             Wrap_World::Update             },
+    { 0,                    0                              }
+};
+
+// clang-format on
+
 int Wrap_World::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "update", Update },
-                         { "setCallbacks", SetCallbacks },
-                         { "getCallbacks", GetCallbacks },
-                         { "setContactFilter", SetContactFilter },
-                         { "getContactFilter", GetContactFilter },
-                         { "setGravity", SetGravity },
-                         { "getGravity", GetGravity },
-                         { "translateOrigin", TranslateOrigin },
-                         { "setSleepingAllowed", SetSleepingAllowed },
-                         { "isSleepingAllowed", IsSleepingAllowed },
-                         { "isLocked", IsLocked },
-                         { "getBodyCount", GetBodyCount },
-                         { "getJointCount", GetJointCount },
-                         { "getContactCount", GetContactCount },
-                         { "getBodies", GetBodies },
-                         { "getJoints", GetJoints },
-                         { "getContacts", GetContacts },
-                         { "queryBoundingBox", QueryBoundingBox },
-                         { "rayCast", RayCast },
-                         { "destroy", Destroy },
-                         { "isDestroyed", IsDestroyed },
-
-                         { 0, 0 } };
-
-    return Luax::RegisterType(L, &World::type, funcs, nullptr);
+    return Luax::RegisterType(L, &World::type, functions, nullptr);
 }

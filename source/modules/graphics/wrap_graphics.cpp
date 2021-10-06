@@ -1319,95 +1319,98 @@ int Wrap_Graphics::GetRendererInfo(lua_State* L)
     return 4;
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "applyTransform",        Wrap_Graphics::ApplyTransform        },
+    { "arc",                   Wrap_Graphics::Arc                   },
+    { "circle",                Wrap_Graphics::Circle                },
+    { "clear",                 Wrap_Graphics::Clear                 },
+    { "draw",                  Wrap_Graphics::Draw                  },
+    { "ellipse",               Wrap_Graphics::Ellipse               },
+    { "getActiveScreen",       Wrap_Graphics::GetActiveScreen       },
+    { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },
+    { "getBlendMode",          Wrap_Graphics::GetBlendMode          },
+    { "getColor",              Wrap_Graphics::GetColor              },
+    { "getColorMask",          Wrap_Graphics::GetColorMask          },
+    { "getDefaultFilter",      Wrap_Graphics::GetDefaultFilter      },
+    { "getDimensions",         Wrap_Graphics::GetDimensions         },
+    { "getFont",               Wrap_Graphics::GetFont               },
+    { "getHeight",             Wrap_Graphics::GetHeight             },
+    { "getLineJoin",           Wrap_Graphics::GetLineJoin           },
+    { "getLineStyle",          Wrap_Graphics::GetLineStyle          },
+    { "getLineWidth",          Wrap_Graphics::GetLineWidth          },
+    { "getPointSize",          Wrap_Graphics::GetPointSize          },
+    { "getRendererInfo",       Wrap_Graphics::GetRendererInfo       },
+    { "getScissor",            Wrap_Graphics::GetScissor            },
+    { "getScreens",            Wrap_Graphics::GetScreens            },
+    { "getWidth",              Wrap_Graphics::GetWidth              },
+    { "instersectScissor",     Wrap_Graphics::IntersectScissor      },
+    { "inverseTransformPoint", Wrap_Graphics::InverseTransformPoint },
+    { "isActive",              Wrap_Graphics::IsActive              },
+    { "isCreated",             Wrap_Graphics::IsCreated             },
+    { "line",                  Wrap_Graphics::Line                  },
+    { "newCanvas",             Wrap_Graphics::NewCanvas             },
+    { "newFont",               Wrap_Graphics::NewFont               },
+    { "newImage",              Wrap_Graphics::NewImage              },
+    { "newQuad",               Wrap_Graphics::NewQuad               },
+    { "newText",               Wrap_Graphics::NewText               },
+    { "origin",                Wrap_Graphics::Origin                },
+    { "points",                Wrap_Graphics::Points                },
+    { "polygon",               Wrap_Graphics::Polygon               },
+    { "pop",                   Wrap_Graphics::Pop                   },
+    { "present",               Wrap_Graphics::Present               },
+    { "print",                 Wrap_Graphics::Print                 },
+    { "printf",                Wrap_Graphics::PrintF                },
+    { "push",                  Wrap_Graphics::Push                  },
+    { "rectangle",             Wrap_Graphics::Rectangle             },
+    { "replaceTransform",      Wrap_Graphics::ReplaceTransform      },
+    { "reset",                 Wrap_Graphics::Reset                 },
+    { "rotate",                Wrap_Graphics::Rotate                },
+    { "scale",                 Wrap_Graphics::Scale                 },
+    { "setActiveScreen",       Wrap_Graphics::SetActiveScreen       },
+    { "setBackgroundColor",    Wrap_Graphics::SetBackgroundColor    },
+    { "setBlendMode",          Wrap_Graphics::SetBlendMode          },
+    { "setCanvas",             Wrap_Graphics::SetCanvas             },
+    { "setColor",              Wrap_Graphics::SetColor              },
+    { "setColorMask",          Wrap_Graphics::SetColorMask          },
+    { "setDefaultFilter",      Wrap_Graphics::SetDefaultFilter      },
+    { "setFont",               Wrap_Graphics::SetFont               },
+    { "setLineJoin",           Wrap_Graphics::SetLineJoin           },
+    { "setLineStyle",          Wrap_Graphics::SetLineStyle          },
+    { "setLineWidth",          Wrap_Graphics::SetLineWidth          },
+    { "setNewFont",            Wrap_Graphics::SetNewFont            },
+    { "setPointSize",          Wrap_Graphics::SetPointSize          },
+    { "setScissor",            Wrap_Graphics::SetScissor            },
+    { "shear",                 Wrap_Graphics::Shear                 },
+    { "transformPoint",        Wrap_Graphics::TransformPoint        },
+    { "translate",             Wrap_Graphics::Translate             },
+#if defined(__3DS__)
+    { "get3D",                 Wrap_Graphics::Get3D                 },
+    { "get3DDepth",            Wrap_Graphics::Get3DDepth            },
+    { "set3D",                 Wrap_Graphics::Set3D                 },
+#endif
+    { 0,                       0                                    }
+};
+
+static constexpr lua_CFunction types[] =
+{
+    Wrap_Drawable::Register,
+    Wrap_Texture::Register,
+    Wrap_Canvas::Register,
+    Wrap_Font::Register,
+    Wrap_Image::Register,
+    Wrap_Quad::Register,
+#if defined(__SWITCH__)
+    Wrap_Shader::Register,
+#endif
+    Wrap_Text::Register,
+    nullptr
+};
+// clang-format on
+
 int Wrap_Graphics::Register(lua_State* L)
 {
-    luaL_Reg funcs[] = { { "arc", Arc },
-                         { "applyTransform", ApplyTransform },
-                         { "circle", Circle },
-                         { "clear", Clear },
-                         { "draw", Draw },
-                         { "ellipse", Ellipse },
-                         { "getActiveScreen", GetActiveScreen },
-                         { "getBackgroundColor", GetBackgroundColor },
-                         { "getBlendMode", GetBlendMode },
-                         { "getColor", GetColor },
-                         { "getColorMask", GetColorMask },
-                         { "getDefaultFilter", GetDefaultFilter },
-                         { "getDimensions", GetDimensions },
-                         { "getFont", GetFont },
-                         { "getHeight", GetHeight },
-                         { "getLineStyle", GetLineStyle },
-                         { "getLineJoin", GetLineJoin },
-                         { "getLineWidth", GetLineWidth },
-                         { "getPointSize", GetPointSize },
-                         { "getRendererInfo", GetRendererInfo },
-                         { "getScissor", GetScissor },
-                         { "getScreens", GetScreens },
-                         { "getWidth", GetWidth },
-                         { "instersectScissor", IntersectScissor },
-                         { "inverseTransformPoint", InverseTransformPoint },
-                         { "isActive", IsActive },
-                         { "isCreated", IsCreated },
-                         { "line", Line },
-                         { "newCanvas", NewCanvas },
-                         { "newFont", NewFont },
-                         { "newImage", NewImage },
-                         { "newText", NewText },
-                         { "newQuad", NewQuad },
-                         { "origin", Origin },
-                         { "polygon", Polygon },
-                         { "pop", Pop },
-                         { "points", Points },
-                         { "present", Present },
-                         { "print", Print },
-                         { "printf", PrintF },
-                         { "push", Push },
-                         { "rectangle", Rectangle },
-                         { "replaceTransform", ReplaceTransform },
-                         { "reset", Reset },
-                         { "rotate", Rotate },
-                         { "scale", Scale },
-                         { "shear", Shear },
-                         { "setActiveScreen", SetActiveScreen },
-                         { "setBackgroundColor", SetBackgroundColor },
-                         { "setBlendMode", SetBlendMode },
-                         { "setCanvas", SetCanvas },
-                         { "setColor", SetColor },
-                         { "setColorMask", SetColorMask },
-                         { "setDefaultFilter", SetDefaultFilter },
-                         { "setLineStyle", SetLineStyle },
-                         { "setLineJoin", SetLineJoin },
-                         { "setLineWidth", SetLineWidth },
-                         { "setNewFont", SetNewFont },
-                         { "setPointSize", SetPointSize },
-                         { "setFont", SetFont },
-                         { "setScissor", SetScissor },
-                         { "transformPoint", TransformPoint },
-                         { "translate", Translate },
-                         { 0, 0 } };
-
-    /* 3DS extensions */
-
-    luaL_Reg modExt[] = { { "get3D", Get3D }, { "get3DDepth", Get3DDepth }, { "set3D", Set3D } };
-
-    std::unique_ptr<luaL_Reg[]> reg = Luax::ExtendIf("3DS", funcs, modExt);
-
-    /* objects */
-
-    lua_CFunction objs[] = {
-        Wrap_Drawable::Register,
-        Wrap_Texture::Register,
-        Wrap_Font::Register,
-        Wrap_Image::Register,
-        Wrap_Quad::Register,
-        Wrap_Canvas::Register,
-        Wrap_Text::Register,
-#if defined(__SWITCH__)
-        Wrap_Shader::Register,
-#endif
-        0
-    };
-
     Graphics* instance = instance();
 
     if (instance == nullptr)
@@ -1423,9 +1426,9 @@ int Wrap_Graphics::Register(lua_State* L)
 
     wrappedModule.instance  = instance;
     wrappedModule.name      = "graphics";
-    wrappedModule.functions = reg.get();
+    wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
-    wrappedModule.types     = objs;
+    wrappedModule.types     = types;
 
     int result = Luax::RegisterModule(L, wrappedModule);
 

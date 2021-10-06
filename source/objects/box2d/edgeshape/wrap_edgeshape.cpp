@@ -62,18 +62,19 @@ int Wrap_EdgeShape::GetPoints(lua_State* L)
     return self->GetPoints(L);
 }
 
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "getNextVertex",     Wrap_EdgeShape::GetNextVertex     },
+    { "getPoints",         Wrap_EdgeShape::GetPoints         },
+    { "getPreviousVertex", Wrap_EdgeShape::GetPreviousVertex },
+    { "setNextVertex",     Wrap_EdgeShape::SetNextVertex     },
+    { "setPreviousVertex", Wrap_EdgeShape::SetPreviousVertex },
+    { 0,                   0                                 }
+};
+// clang-format on
+
 int Wrap_EdgeShape::Register(lua_State* L)
 {
-    // clang-format off
-    luaL_Reg funcs[] = {
-        { "setNextVertex", SetNextVertex },
-        { "setPreviousVertex", SetPreviousVertex },
-        { "getNextVertex", GetNextVertex },
-        { "getPreviousVertex", GetPreviousVertex },
-        { "getPoints", GetPoints },
-        { 0, 0 }
-    };
-    // clang-format on
-
-    return Luax::RegisterType(L, &EdgeShape::type, Wrap_Shape::functions, funcs, nullptr);
+    return Luax::RegisterType(L, &EdgeShape::type, Wrap_Shape::functions, functions, nullptr);
 }

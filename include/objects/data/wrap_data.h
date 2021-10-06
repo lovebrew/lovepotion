@@ -13,7 +13,7 @@ namespace Wrap_Data
 
     love::Data* CheckData(lua_State* L, int index);
 
-    extern luaL_Reg functions[4];
+    extern const luaL_Reg functions[4];
 
     int Register(lua_State* L);
 } // namespace Wrap_Data
