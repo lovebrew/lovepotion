@@ -15,6 +15,7 @@ export LOVE_SOURCES   = $(foreach dir, $(ROOT_SOURCES),   ../../$(wildcard $(dir
 export LOVE_INCLUDES  = $(foreach dir, $(ROOT_INCLUDES),  ../../$(wildcard $(dir)))
 export LOVE_LIBRARIES = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir)))
 
+export LOVE_MAIN_DATA_FILES = ../../source/modules/love/scripts
 export LOVE_DATA_FILES = ../../source/scripts
 
 #-----------------------------------

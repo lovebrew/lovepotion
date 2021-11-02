@@ -22,7 +22,7 @@ void LuaThread::ThreadFunction()
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
-    Luax::Preload(L, Love::Initialize, "love");
+    Luax::Preload(L, love::Initialize, "love");
     Luax::Require(L, "love");
     lua_pop(L, 1);
 
