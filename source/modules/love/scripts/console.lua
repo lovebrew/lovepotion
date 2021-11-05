@@ -153,6 +153,7 @@ local _print = print
 - @param `format` -> Message format, see https://www.lua.org/pil/20.2.html.
 - @param `...` -> Variadic args for `format`.
 --]]
+__DEBUG_LOG = true
 local function log(format, ...)
     local dateTime = os.date("%Y-%m-%d/%H:%M:%S")
 
@@ -214,7 +215,7 @@ function love.console:init(host, _port)
     self.socket = socket.tcp()
     assert(self.socket, "failed to create socket")
 
-    if love.filesystem then
+    if love.filesystem and __DEBUG_LOG then
         self.logfile = love.filesystem.newFile("nestlink.log", "w")
     end
 
@@ -254,6 +255,11 @@ function love.console:send(data)
         return log("Failed to send '%s' to server: %s", data, message)
     end
     log("Sending '%s' to server", data)
+end
+
+function love.console:close()
+    self.socket:shutdown()
+    self.socket:close()
 end
 
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.

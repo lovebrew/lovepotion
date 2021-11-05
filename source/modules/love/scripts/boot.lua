@@ -354,7 +354,15 @@ return function()
 
     while func do
         local _, retval = xpcall(func, deferErrhand)
-        if retval then return retval end
+
+        if retval then
+            if love.console then
+                love.console:close()
+            end
+
+            return retval
+        end
+
         coroutine.yield()
     end
 
