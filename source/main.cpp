@@ -57,7 +57,7 @@ DoneAction Run_Love_Potion(int argc, char** argv, int& retval)
     luaL_openlibs(L);
 
     // preload love
-    love_preload(L, Love::Initialize, "love");
+    love_preload(L, love::Initialize, "love");
 
     {
         lua_newtable(L);

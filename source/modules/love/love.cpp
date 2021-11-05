@@ -23,30 +23,49 @@
 
 #include "luasocket/luasocket.h"
 
-#include "boot_lua.h"
+/* included scripts */
 #include "nogame_lua.h"
 
-static const luaL_Reg modules[] = { { "love.audio", Wrap_Audio::Register },
-                                    { "love.data", Wrap_DataModule::Register },
-                                    { "love.event", Wrap_Event::Register },
-                                    { "love.graphics", Wrap_Graphics::Register },
-                                    { "love.filesystem", Wrap_Filesystem::Register },
-                                    { "love.font", Wrap_FontModule::Register },
-                                    { "love.joystick", Wrap_Joystick::Register },
-                                    { "love.keyboard", Wrap_Keyboard::Register },
-                                    { "love.math", Wrap_Math::Register },
-                                    { "love.physics", Wrap_Physics::Register },
-                                    { "love.sound", Wrap_Sound::Register },
-                                    { "love.system", Wrap_System::Register },
-                                    { "love.thread", Wrap_ThreadModule::Register },
-                                    { "love.timer", Wrap_Timer::Register },
-                                    { "love.touch", Wrap_Touch::Register },
-                                    { "love.window", Wrap_Window::Register },
-                                    { "love.nogame", Love::NoGame },
-                                    { "love.boot", Love::Boot },
-                                    { 0, 0 } };
+// clang-format off
+static constexpr char arg_lua[] =
+#include "arg.lua"
+;
 
-int Love::Initialize(lua_State* L)
+static constexpr char callbacks_lua[] =
+#include "callbacks.lua"
+;
+
+static constexpr char boot_lua[] =
+#include "boot.lua"
+;
+
+static constexpr luaL_Reg modules[] =
+{
+    { "love.audio",      Wrap_Audio::Register        },
+    { "love.data",       Wrap_DataModule::Register   },
+    { "love.event",      Wrap_Event::Register        },
+    { "love.graphics",   Wrap_Graphics::Register     },
+    { "love.filesystem", Wrap_Filesystem::Register   },
+    { "love.font",       Wrap_FontModule::Register   },
+    { "love.joystick",   Wrap_Joystick::Register     },
+    { "love.keyboard",   Wrap_Keyboard::Register     },
+    { "love.math",       Wrap_Math::Register         },
+    { "love.physics",    Wrap_Physics::Register      },
+    { "love.sound",      Wrap_Sound::Register        },
+    { "love.system",     Wrap_System::Register       },
+    { "love.thread",     Wrap_ThreadModule::Register },
+    { "love.timer",      Wrap_Timer::Register        },
+    { "love.touch",      Wrap_Touch::Register        },
+    { "love.window",     Wrap_Window::Register       },
+    { "love.nogame",     love::NoGame                },
+    { "love.arg",        love::LoadArgs              },
+    { "love.callbacks",  love::LoadCallbacks         },
+    { "love.boot",       love::Boot                  },
+    { 0,                 0                           }
+};
+//clang-format on
+
+int love::Initialize(lua_State* L)
 {
     Luax::InsistPinnedThread(L);
 
@@ -125,22 +144,38 @@ int Love::Initialize(lua_State* L)
     return 1;
 }
 
-int Love::EnableAccelerometerAsJoystick(lua_State* L)
+int love::EnableAccelerometerAsJoystick(lua_State* L)
 {
     // bool enable = lua_toboolean(L, 1);
 
     return 0;
 }
 
-int Love::Boot(lua_State* L)
+int love::LoadArgs(lua_State* L)
 {
-    if (!luaL_loadbuffer(L, (const char*)boot_lua, boot_lua_size, "boot.lua"))
+    if (luaL_loadbuffer(L, arg_lua, sizeof(arg_lua), "arg.lua") == 0)
         lua_call(L, 0, 1);
 
     return 1;
 }
 
-int Love::NoGame(lua_State* L)
+int love::LoadCallbacks(lua_State*L)
+{
+    if (luaL_loadbuffer(L, callbacks_lua, sizeof(callbacks_lua), "callbacks.lua") == 0)
+        lua_call(L, 0, 1);
+
+    return 1;
+}
+
+int love::Boot(lua_State* L)
+{
+    if (luaL_loadbuffer(L, boot_lua, sizeof(boot_lua), "boot.lua") == 0)
+        lua_call(L, 0, 1);
+
+    return 1;
+}
+
+int love::NoGame(lua_State* L)
 {
     if (!luaL_loadbuffer(L, (const char*)nogame_lua, nogame_lua_size, "nogame.lua"))
         lua_call(L, 0, 1);
@@ -148,7 +183,7 @@ int Love::NoGame(lua_State* L)
     return 1;
 }
 
-int Love::GetVersion(lua_State* L)
+int love::GetVersion(lua_State* L)
 {
     lua_pushinteger(L, Version::MAJOR);
     lua_pushinteger(L, Version::MINOR);
@@ -158,7 +193,7 @@ int Love::GetVersion(lua_State* L)
     return 4;
 }
 
-int Love::IsVersionCompatible(lua_State* L)
+int love::IsVersionCompatible(lua_State* L)
 {
     std::string version;
 
@@ -202,7 +237,7 @@ int Love::IsVersionCompatible(lua_State* L)
 ** Switch - to nxlink
 ** 3DS - to gdb
 */
-int Love::_OpenConsole(lua_State* L)
+int love::_OpenConsole(lua_State* L)
 {
     lua_pushboolean(L, love::Debugger::Instance().Initialize());
 
