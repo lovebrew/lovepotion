@@ -20,7 +20,7 @@ namespace love
 
     /* Debugging Utility */
 
-    int _OpenConsole(lua_State* L);
+    int OpenConsole(lua_State* L);
 
     /* ----------------- */
 

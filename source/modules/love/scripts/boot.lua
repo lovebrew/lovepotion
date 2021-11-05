@@ -194,8 +194,24 @@ function love.init()
         -- the error message can be displayed in the window.
     end
 
-    if config.console and love._openConsole then
-        love._openConsole()
+    -- config.console is now a table or string
+    -- table is { ip, port } and string is just the ip
+    -- default port for nestlink is 8000
+    local consoleok, consoleerr
+    if config.console then
+        consoleok, consoleerr = pcall(require, "love.console")
+
+        if consoleok then
+            if type(config.console) == "table" then
+                consoleok, consoleerr = pcall(function()
+                    love.console:init(unpack(config.console))
+                end)
+            elseif type(config.console) == "string" then
+                consoleok, consoleerr = pcall(function()
+                    love.console:init(config.console)
+                end)
+            end
+        end
     end
 
     if love._setAccelerometerAsJoystick then
@@ -264,6 +280,10 @@ function love.init()
 
     if not confok and conferr then
         error(conferr)
+    end
+
+    if config.console and not consoleok and consoleerr then
+        error(consoleerr)
     end
 
     -- Setup window here.
