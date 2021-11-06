@@ -153,7 +153,6 @@ local _print = print
 - @param `format` -> Message format, see https://www.lua.org/pil/20.2.html.
 - @param `...` -> Variadic args for `format`.
 --]]
-__DEBUG_LOG = true
 local function log(format, ...)
     local dateTime = os.date("%Y-%m-%d/%H:%M:%S")
 
@@ -209,13 +208,15 @@ end
 --[[
 - @brief Initialize the client protocol.
 - @param `host` -> The IP address from the `love.conf` console field.
-- @param `port` -> The port number from the `love.conf` console field.
+- @param `_port` -> The port number from the `love.conf` console field.
+- @param `_debugMode` -> Whether to enable file logging for the console.
+- @note File logging can slow down your game!
 --]]
-function love.console:init(host, _port)
+function love.console:init(host, _port, _debugMode)
     self.socket = socket.tcp()
     assert(self.socket, "failed to create socket")
 
-    if love.filesystem and __DEBUG_LOG then
+    if love.filesystem and _debugMode then
         self.logfile = love.filesystem.newFile("nestlink.log", "w")
     end
 

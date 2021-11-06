@@ -196,6 +196,7 @@ function love.init()
 
     -- config.console is now a table or string
     -- table is { ip, port } and string is just the ip
+    -- an optional third table item is a boolean to enable logging
     -- default port for nestlink is 8000
     local consoleok, consoleerr
     if config.console then
