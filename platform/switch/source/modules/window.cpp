@@ -20,10 +20,12 @@ void Window::GetWindow(int& width, int& height)
     this->OnSizeChanged(width, height);
 }
 
-void Window::CreateWindowAndContext()
+bool Window::CreateWindowAndContext()
 {
     auto size = ::deko3d::Instance().OnOperationMode(appletGetOperationMode());
     this->OnSizeChanged(size.first, size.second);
+
+    return true;
 }
 
 Window::DisplaySize Window::GetDesktopSize()

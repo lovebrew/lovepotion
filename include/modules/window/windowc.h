@@ -45,8 +45,10 @@ namespace love::common
         virtual void GetWindow(int& width, int& height)
         {}
 
-        virtual void CreateWindowAndContext()
-        {}
+        virtual bool CreateWindowAndContext()
+        {
+            return true;
+        }
 
         bool IsOpen() const;
 

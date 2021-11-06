@@ -46,6 +46,9 @@ bool Window::SetMode()
 
     auto desktopSize = this->GetDesktopSize();
 
+    if (!this->CreateWindowAndContext())
+        return false;
+
     if (this->graphics.Get())
         this->graphics->SetMode(desktopSize.first, desktopSize.second);
 

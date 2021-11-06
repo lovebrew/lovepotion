@@ -14,7 +14,7 @@ namespace love
 
         void OnSizeChanged(int width, int height) override;
 
-        void CreateWindowAndContext() override;
+        bool CreateWindowAndContext() override;
 
         DisplaySize GetDesktopSize() override;
 

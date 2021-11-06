@@ -74,8 +74,6 @@ Filesystem::~Filesystem()
 {
     if (PHYSFS_isInit())
         PHYSFS_deinit();
-
-    romfsExit();
 }
 
 void Filesystem::Append(const char* filename, const void* data, int64_t size)
