@@ -39,6 +39,10 @@ static constexpr char boot_lua[] =
 #include "boot.lua"
 ;
 
+static constexpr char console_lua[] =
+#include "console.lua"
+;
+
 static constexpr luaL_Reg modules[] =
 {
     { "love.audio",      Wrap_Audio::Register        },
@@ -61,6 +65,7 @@ static constexpr luaL_Reg modules[] =
     { "love.arg",        love::LoadArgs              },
     { "love.callbacks",  love::LoadCallbacks         },
     { "love.boot",       love::Boot                  },
+    { "love.console",    love::OpenConsole           },
     { 0,                 0                           }
 };
 //clang-format on
@@ -117,9 +122,6 @@ int love::Initialize(lua_State* L)
     lua_pushcfunction(L, GetVersion);
     lua_setfield(L, -2, "getVersion");
 
-    lua_pushcfunction(L, _OpenConsole);
-    lua_setfield(L, -2, "_openConsole");
-
     lua_pushcfunction(L, EnableAccelerometerAsJoystick);
     lua_setfield(L, -2, "_setAccelerometerAsJoystick");
 
@@ -175,6 +177,14 @@ int love::Boot(lua_State* L)
     return 1;
 }
 
+int love::OpenConsole(lua_State* L)
+{
+    if (luaL_loadbuffer(L, console_lua, sizeof(console_lua), "console.lua") == 0)
+        lua_call(L, 0, 1);
+
+    return 1;
+}
+
 int love::NoGame(lua_State* L)
 {
     if (!luaL_loadbuffer(L, (const char*)nogame_lua, nogame_lua_size, "nogame.lua"))
@@ -182,6 +192,7 @@ int love::NoGame(lua_State* L)
 
     return 1;
 }
+
 
 int love::GetVersion(lua_State* L)
 {
@@ -225,21 +236,6 @@ int love::IsVersionCompatible(lua_State* L)
     }
 
     lua_pushboolean(L, false);
-
-    return 1;
-}
-
-#include "common/debugger.h"
-
-/*
-** Initialize the 'console'
-** Redirects Lua print calls:
-** Switch - to nxlink
-** 3DS - to gdb
-*/
-int love::_OpenConsole(lua_State* L)
-{
-    lua_pushboolean(L, love::Debugger::Instance().Initialize());
 
     return 1;
 }

@@ -194,8 +194,25 @@ function love.init()
         -- the error message can be displayed in the window.
     end
 
-    if config.console and love._openConsole then
-        love._openConsole()
+    -- config.console is now a table or string
+    -- table is { ip, port } and string is just the ip
+    -- an optional third table item is a boolean to enable logging
+    -- default port for nestlink is 8000
+    local consoleok, consoleerr
+    if config.console then
+        consoleok, consoleerr = pcall(require, "love.console")
+
+        if consoleok then
+            if type(config.console) == "table" then
+                consoleok, consoleerr = pcall(function()
+                    love.console:init(unpack(config.console))
+                end)
+            elseif type(config.console) == "string" then
+                consoleok, consoleerr = pcall(function()
+                    love.console:init(config.console)
+                end)
+            end
+        end
     end
 
     if love._setAccelerometerAsJoystick then
@@ -266,6 +283,10 @@ function love.init()
         error(conferr)
     end
 
+    if config.console and not consoleok and consoleerr then
+        error(consoleerr)
+    end
+
     -- Setup window here.
     if config.window and config.modules.window then
         assert(love.window.setMode(), "Could not set window mode")
@@ -334,7 +355,15 @@ return function()
 
     while func do
         local _, retval = xpcall(func, deferErrhand)
-        if retval then return retval end
+
+        if retval then
+            if love.console then
+                love.console:close()
+            end
+
+            return retval
+        end
+
         coroutine.yield()
     end
 
