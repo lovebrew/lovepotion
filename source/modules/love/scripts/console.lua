@@ -259,6 +259,10 @@ function love.console:send(data)
 end
 
 function love.console:close()
+    if not self.socket then
+        return
+    end
+
     self.socket:shutdown()
     self.socket:close()
 end
