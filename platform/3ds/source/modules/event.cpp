@@ -19,6 +19,9 @@ static void aptEventHook(const APT_HookType type, void* param)
         case APTHOOK_ONSLEEP:
             Instance()->GetDriver()->SendFocus(false);
             break;
+        case APTHOOK_ONEXIT:
+            Instance()->GetDriver()->SendQuit();
+            break;
         default:
             break;
     }
