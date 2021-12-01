@@ -90,7 +90,6 @@ function MessageBox.new(text, buttons)
                     break
                 end
             end
-
         elseif MessageBox.RELEASED_EVENTS[name] then
             self.currentTexture = self.defaultTexture
             self.released = true
@@ -102,12 +101,12 @@ function MessageBox.new(text, buttons)
     end
 
     function messagebox:update(dt)
+        if self.released and self.opacity == 0 then
+            return true
+        end
+
         if MessageBox.Button ~= 1 and self.released then
             self.opacity = math.max(self.opacity - dt / 0.20, 0)
-
-            if self.opacity == 0 then
-                return true
-            end
         else
             self.opacity = math.min(self.opacity + dt / 0.20, 1)
         end

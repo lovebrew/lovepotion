@@ -3,6 +3,7 @@
 3ds-box2d
 3ds-flac
 3ds-lz4
+3ds-mpg123
 3ds-physfs
 3ds-pkg-config
 3ds-libmodplug
@@ -26,6 +27,7 @@ switch-examples
 switch-flac
 switch-libvorbisidec
 switch-lz4
+switch-mpg123
 switch-physfs
 switch-pkg-config
 switch-libmodplug

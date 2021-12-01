@@ -206,12 +206,12 @@ function MessageBox.new(text, buttons)
     end
 
     function messagebox:update(dt)
+        if self.submitted and self.opacity == 0 then
+            return true
+        end
+
         if MessageBox.Button ~= 1 and self.submitted then
             self.opacity = math.max(self.opacity - dt / 0.10, 0)
-
-            if self.opacity == 0 then
-                return true
-            end
         else
             self.opacity = math.min(self.opacity + dt / 0.20, 1)
         end
