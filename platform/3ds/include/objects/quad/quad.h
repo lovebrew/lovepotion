@@ -15,7 +15,8 @@ namespace love
 
         void Refresh(const Viewport& viewport, double sw, double sh) override;
 
-        const Tex3DS_SubTexture& GetTex3DSViewport() const;
+        const Tex3DS_SubTexture& CalculateTex3DSViewport(const Viewport& viewport,
+                                                         C3D_Tex* texture);
 
       private:
         Tex3DS_SubTexture subTex;
