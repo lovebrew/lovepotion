@@ -456,7 +456,7 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
 
 Canvas* Graphics::GetCanvas() const
 {
-    return states.back().canvas;
+    return states.back().canvas.Get();
 }
 
 Graphics::ColorMask Graphics::GetColorMask() const
