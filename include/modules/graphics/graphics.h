@@ -287,6 +287,8 @@ namespace love
 
         Canvas* NewCanvas(const Canvas::Settings& settings);
 
+        Canvas* GetCanvas() const;
+
         void Draw(Drawable* drawable, const Matrix4& matrix);
         void Draw(Texture* texture, Quad* quad, const Matrix4& matrix);
 

@@ -39,6 +39,8 @@ namespace Wrap_Graphics
 
     int SetPointSize(lua_State* L);
 
+    int GetCanvas(lua_State* L);
+
     int Points(lua_State* L);
 
     int Polygon(lua_State* L);

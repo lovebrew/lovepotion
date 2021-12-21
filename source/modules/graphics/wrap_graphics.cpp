@@ -1057,13 +1057,9 @@ int Wrap_Graphics::PrintF(lua_State* L)
     m = Matrix4(x, y, r, sx, sy, ox, oy, kx, ky);
 
     if (font != nullptr)
-    {
         Luax::CatchException(L, [&]() { instance()->PrintF(string, font, wrap, mode, m); });
-    }
     else
-    {
         Luax::CatchException(L, [&]() { instance()->PrintF(string, wrap, mode, m); });
-    }
 
     return 0;
 }
@@ -1097,6 +1093,15 @@ int Wrap_Graphics::SetCanvas(lua_State* L)
     instance()->SetCanvas(canvas);
 
     return 0;
+}
+
+int Wrap_Graphics::GetCanvas(lua_State* L)
+{
+    Canvas* canvas = instance()->GetCanvas();
+
+    Luax::PushType(L, canvas);
+
+    return 1;
 }
 
 int Wrap_Graphics::GetFont(lua_State* L)
@@ -1331,6 +1336,7 @@ static constexpr luaL_Reg functions[] =
     { "getActiveScreen",       Wrap_Graphics::GetActiveScreen       },
     { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },
     { "getBlendMode",          Wrap_Graphics::GetBlendMode          },
+    { "getCanvas",             Wrap_Graphics::GetCanvas             },
     { "getColor",              Wrap_Graphics::GetColor              },
     { "getColorMask",          Wrap_Graphics::GetColorMask          },
     { "getDefaultFilter",      Wrap_Graphics::GetDefaultFilter      },

@@ -454,6 +454,11 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
     this->SetDefaultMipmapFilter(state.defaultMipmapFilter, state.defaultMipmapSharpness);
 }
 
+Canvas* Graphics::GetCanvas() const
+{
+    return states.back().canvas;
+}
+
 Graphics::ColorMask Graphics::GetColorMask() const
 {
     return this->states.back().colorMask;
