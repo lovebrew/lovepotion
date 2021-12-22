@@ -37,7 +37,7 @@ Fixture::~Fixture()
 
 void Fixture::CheckCreateShape()
 {
-    if (this->shape.Get() != nullptr || this->fixture != nullptr ||
+    if (this->shape.Get() != nullptr || this->fixture == nullptr ||
         this->fixture->GetShape() == nullptr)
         return;
 
