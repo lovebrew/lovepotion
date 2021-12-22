@@ -2,129 +2,73 @@ R"luastring"--(
 -- DO NOT REMOVE THE ABOVE LINE. It is used to load this file as a C++ string.
 -- There is a matching delimiter at the bottom of the file.
 --------------
---
--- json.lua
---
--- Copyright (c) 2020 rxi
---
--- Permission is hereby granted, free of charge, to any person obtaining a copy of
--- this software and associated documentation files (the "Software"), to deal in
--- the Software without restriction, including without limitation the rights to
--- use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
--- of the Software, and to permit persons to whom the Software is furnished to do
--- so, subject to the following conditions:
---
--- The above copyright notice and this permission notice shall be included in all
--- copies or substantial portions of the Software.
---
--- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
--- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
--- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
--- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
--- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
--- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
--- SOFTWARE.
---
-
-local json = { _version = "0.1.2" }
-
-local encode
-
-local escape_char_map = {
-  [ "\\" ] = "\\",
-  [ "\"" ] = "\"",
-  [ "\b" ] = "b",
-  [ "\f" ] = "f",
-  [ "\n" ] = "n",
-  [ "\r" ] = "r",
-  [ "\t" ] = "t",
-}
-
-local escape_char_map_inv = { [ "/" ] = "/" }
-for k, v in pairs(escape_char_map) do
-  escape_char_map_inv[v] = k
-end
-
-local function escape_char(c)
-  return "\\" .. (escape_char_map[c] or string.format("u%04x", c:byte()))
-end
-
-local function encode_nil(val)
-  return "null"
-end
-
-
-local function encode_table(val, stack)
-  local res = {}
-  stack = stack or {}
-
-  -- Circular reference?
-  if stack[val] then error("circular reference") end
-
-  stack[val] = true
-
-  if rawget(val, 1) ~= nil or next(val) == nil then
-    -- Treat as array -- check keys are valid and it is not sparse
-    local n = 0
-    for k in pairs(val) do
-      if type(k) ~= "number" then
-        error("invalid table: mixed or invalid key types")
-      end
-      n = n + 1
+local function merge(dest, source)
+    for _, value in pairs(source) do
+        table.insert(dest, value)
     end
-    if n ~= #val then
-      error("invalid table: sparse array")
+end
+
+local function any(t, v)
+    for _, value in ipairs(t) do
+        if v == value then
+            return true
+        end
     end
-    -- Encode
-    for i, v in ipairs(val) do
-      table.insert(res, encode(v, stack))
+    return false
+end
+
+local SerializeTypes = {}
+SerializeTypes.TYPE_NUMBER = "n"
+SerializeTypes.TYPE_STRING = "z"
+
+local function serialize(t, tablify)
+    local pattern = {}
+    local values  = {}
+
+    local as_table = tablify ~= nil and true
+
+    for _, value in pairs(t) do
+        local value_type = type(value)
+
+        if value_type == "number" then
+            table.insert(pattern, SerializeTypes.TYPE_NUMBER)
+            table.insert(values, value)
+        elseif any({"string", "nil", "boolean", "userdata"}, value_type) then
+            table.insert(pattern, SerializeTypes.TYPE_STRING)
+            if value_type == "boolean" then
+                table.insert(values, tostring(value))
+            elseif value_type == "nil" then
+                table.insert(values, "nil")
+            elseif value_type =="userdata" then
+                table.insert(values, tostring(value))
+            else
+                table.insert(values, value)
+            end
+        elseif value_type == "table" then
+            local tablePattern, tableValues = serialize(value, true)
+
+            merge(pattern, tablePattern)
+            merge(values, tableValues)
+        elseif value_type == "function" then
+            local result = { pcall(value) }
+
+            if table.remove(result, 1) then
+                local funcPattern, funcValues = serialize(result, false)
+
+                merge(pattern, funcPattern)
+                merge(values, funcValues)
+            else
+                table.insert(pattern, SerializeTypes.TYPE_STRING)
+                table.insert(values, tostring(value))
+            end
+        end
     end
-    stack[val] = nil
-    return "[" .. table.concat(res, ",") .. "]"
-  else
-    -- Treat as an object
-    for k, v in pairs(val) do
-      if type(k) ~= "string" then
-        error("invalid table: mixed or invalid key types")
-      end
-      table.insert(res, encode(k, stack) .. ":" .. encode(v, stack))
+
+    if not as_table then
+        pattern = table.concat(pattern, "x")
     end
-    stack[val] = nil
-    return "{" .. table.concat(res, ",") .. "}"
-  end
-end
 
-local function encode_string(val)
-  return '"' .. val:gsub('[%z\1-\31\\"]', escape_char) .. '"'
-end
-
-local function encode_number(val)
-  -- Check for NaN, -inf and inf
-  if val ~= val or val <= -math.huge or val >= math.huge then
-    error("unexpected number value '" .. tostring(val) .. "'")
-  end
-  return string.format("%.14g", val)
-end
-
-local type_func_map = {
-  [ "nil"     ] = encode_nil,
-  [ "table"   ] = encode_table,
-  [ "string"  ] = encode_string,
-  [ "number"  ] = encode_number,
-  [ "boolean" ] = tostring,
-}
-
-encode = function(val, stack)
-  local t = type(val)
-  local f = type_func_map[t]
-  if f then
-    return f(val, stack)
-  end
-  error("unexpected type '" .. t .. "'")
-end
-
-function json.encode(val)
-  return ( encode(val) )
+    return pattern, values
 end
 --------------
 
@@ -170,27 +114,15 @@ end
 - @param args: `...` -> variadic args to print.
 --]]
 function print(...)
-    local arg, results = ..., nil
-    local length = select("#", ...)
-
-    if type(arg) == "function" then
-        results = { pcall(arg) }
-        if not table.remove(results, 1) then
-            log("Function call failed.")
-        end
-    elseif length > 1 then
-        results = table.concat({...}, ", ")
-        return love.console:send(results)
-    elseif type(arg) == "nil" then
-        results = json.encode(nil)
-        return love.console:send(results)
-    elseif type(arg) == "table" then
-        results = arg
-    else
-        results = { ... }
+    local arg = {...}
+    if type(...) == "table" then
+        arg = ...
     end
 
-    love.console:send(json.encode(results))
+    local pattern, values = serialize(arg)
+    local data = love.data.pack("string", pattern, unpack(values))
+
+    love.console:send(pattern .. "/" .. data)
 end
 
 --[[

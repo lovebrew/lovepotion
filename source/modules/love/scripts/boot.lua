@@ -121,6 +121,16 @@ function love.boot()
     end
 end
 
+local function split(s, delim)
+    local t = {}
+    for text in self:gmatch("([^" .. delim .. "]+)") do
+        if text then
+            table.insert(t, text)
+        end
+    end
+    return t
+end
+
 function love.init()
 
     -- Create default configuration settings.
@@ -209,7 +219,8 @@ function love.init()
                 end)
             elseif type(config.console) == "string" then
                 consoleok, consoleerr = pcall(function()
-                    love.console:init(config.console)
+                    local info = split(config.console, ":")
+                    love.console:init(info[1], info[2])
                 end)
             end
         end
