@@ -328,6 +328,7 @@ static constexpr luaL_Reg functions[] =
     { "linearToGamma",       Wrap_Math::LinearToGamma      },
     { "newRandomGenerator",  Wrap_Math::NewRandomGenerator },
     { "newTransform",        Wrap_Math::NewTransform       },
+    { "noise",               Wrap_Math::Noise              },
     { "triangulate",         Wrap_Math::Triangulate        },
     { 0,                     0                             }
 };
