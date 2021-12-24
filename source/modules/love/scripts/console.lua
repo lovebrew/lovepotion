@@ -25,9 +25,11 @@ local function serialize(t, tablify)
     local pattern = {}
     local values  = {}
 
+    local t_len = #t
     local as_table = tablify ~= nil and true
 
-    for _, value in pairs(t) do
+    for index = 1, t_len do
+        local value = t[index]
         local value_type = type(value)
 
         if value_type == "number" then
@@ -45,15 +47,20 @@ local function serialize(t, tablify)
                 table.insert(values, value)
             end
         elseif value_type == "table" then
-            local tablePattern, tableValues = serialize(value, true)
+            if #value ~= 0 then
+                local tablePattern, tableValues = serialize(value, true)
 
-            merge(pattern, tablePattern)
-            merge(values, tableValues)
+                merge(pattern, tablePattern)
+                merge(values, tableValues)
+            else
+                table.insert(pattern, SerializeTypes.TYPE_STRING)
+                table.insert(values, tostring(value))
+            end
         elseif value_type == "function" then
             local result = { pcall(value) }
 
             if table.remove(result, 1) then
-                local funcPattern, funcValues = serialize(result, false)
+                local funcPattern, funcValues = serialize(result, true)
 
                 merge(pattern, funcPattern)
                 merge(values, funcValues)
@@ -118,9 +125,6 @@ end
 --]]
 function print(...)
     local arg = {...}
-    if type(...) == "table" then
-        arg = ...
-    end
 
     local pattern, values = serialize(arg)
     local data = love.data.pack("string", pattern, unpack(values))
