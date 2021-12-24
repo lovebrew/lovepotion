@@ -61,6 +61,9 @@ local function serialize(t, tablify)
                 table.insert(pattern, SerializeTypes.TYPE_STRING)
                 table.insert(values, tostring(value))
             end
+        elseif value_type == "thread" then
+            table.insert(pattern, SerializeTypes.TYPE_STRING)
+            table.insert(values, tostring(value))
         end
     end
 
