@@ -250,6 +250,7 @@ function love.init()
         "thread",
         "timer",
         "event",
+        "image",
         "keyboard",
         "joystick",
         "touch",

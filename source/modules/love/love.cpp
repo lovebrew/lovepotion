@@ -8,12 +8,12 @@
 #include "modules/event/wrap_event.h"
 #include "modules/filesystem/wrap_filesystem.h"
 #include "modules/font/wrap_fontmodule.h"
-#include "modules/physics/wrap_physics.h"
-
 #include "modules/graphics/wrap_graphics.h"
+#include "modules/image/wrap_imagemodule.h"
 #include "modules/joystick/wrap_joystick.h"
 #include "modules/keyboard/wrap_keyboard.h"
 #include "modules/math/wrap_mathmodule.h"
+#include "modules/physics/wrap_physics.h"
 #include "modules/sound/wrap_sound.h"
 #include "modules/system/wrap_system.h"
 #include "modules/thread/wrap_threadmodule.h"
@@ -51,6 +51,7 @@ static constexpr luaL_Reg modules[] =
     { "love.graphics",   Wrap_Graphics::Register     },
     { "love.filesystem", Wrap_Filesystem::Register   },
     { "love.font",       Wrap_FontModule::Register   },
+    { "love.image",      Wrap_ImageModule::Register  },
     { "love.joystick",   Wrap_Joystick::Register     },
     { "love.keyboard",   Wrap_Keyboard::Register     },
     { "love.math",       Wrap_Math::Register         },
