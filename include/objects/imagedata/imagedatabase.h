@@ -16,7 +16,7 @@ namespace love
 
         int GetHeight() const;
 
-        virtual bool isSRGB() const = 0;
+        virtual bool IsSRGB() const = 0;
 
       protected:
         ImageDataBase(PixelFormat format, int width, int height);
@@ -24,5 +24,5 @@ namespace love
         PixelFormat format;
         int width;
         int height;
-    }
+    };
 } // namespace love
