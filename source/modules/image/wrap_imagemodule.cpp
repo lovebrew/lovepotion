@@ -7,6 +7,73 @@ using namespace love;
 
 int Wrap_ImageModule::NewImageData(lua_State* L)
 {
+    if (lua_isnumber(L, 1))
+    {
+        int width  = luaL_checkinteger(L, 1);
+        int height = luaL_checkinteger(L, 2);
+
+        if (width <= 0 || height <= 0)
+            return luaL_error(L, "Invalid image size.");
+
+        PixelFormat format = PIXELFORMAT_RGBA8;
+
+        if (!lua_isnoneornil(L, 3))
+        {
+            const char* formatStr = luaL_checkstring(L, 3);
+            if (!ImageModule::GetConstant(formatStr, format))
+                return Luax::EnumError(L, "pixel format", formatStr);
+
+            size_t numberOfBytes = 0;
+            const char* bytes    = nullptr;
+
+            if (Luax::IsType(L, 4, Data::type))
+            {
+                Data* data = Wrap_Data::CheckData(L, 4);
+
+                bytes         = (const char*)data->GetData();
+                numberOfBytes = data->GetSize();
+            }
+            else if (!lua_isnoneornil(L, 4))
+                bytes = luaL_checklstring(L, 4, &numberOfBytes);
+
+            ImageData* imageData = nullptr;
+            Luax::CatchException(
+                L, [&]() { imageData = instance()->NewImageData(width, height, format); });
+
+            if (bytes)
+            {
+                if (numberOfBytes != imageData->GetSize())
+                {
+                    imageData->Release();
+                    return luaL_error(L, "The size of the raw byte string must match the "
+                                         "ImageData's actual size in bytes.");
+                }
+                memcpy(imageData->GetData(), bytes, imageData->GetSize());
+            }
+
+            Luax::PushType(L, imageData);
+            imageData->Release();
+
+            return 1;
+        }
+        else if (Wrap_Filesystem::CanGetData(L, 1))
+        {
+            Data* data           = Wrap_Filesystem::GetData(L, 1);
+            ImageData* imageData = nullptr;
+
+            Luax::CatchException(
+                L, [&]() { imageData = instance()->NewImageData(data); },
+                [&](bool) { data->Release(); });
+
+            Luax::PushType(L, imageData);
+            imageData->Release();
+
+            return 1;
+        }
+        else
+            return Luax::TypeErrror(L, 1, "value");
+    }
+
     return 0;
 }
 
@@ -26,11 +93,12 @@ static constexpr luaL_Reg functions[] =
     { "newImageData",      Wrap_ImageModule::NewImageData      },
     { "newCompressedData", Wrap_ImageModule::NewCompressedData },
     { "isCompressed",      Wrap_ImageModule::IsCompressed      },
-    { 0,                   0                             }
+    { 0,                   0                                   }
 };
 
 static constexpr lua_CFunction types[] =
 {
+    Wrap_ImageData::Register,
     0
 };
 // clang-format on

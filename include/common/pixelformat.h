@@ -10,6 +10,7 @@ namespace love
 
         // "regular" formats
         PIXELFORMAT_RGBA8,
+        PIXELFORMAT_RGBA16,
 
         // depth/stencil
         PIXELFORMAT_STENCIL8,
@@ -59,4 +60,17 @@ namespace love
 
         PIXELFORMAT_MAX_ENUM
     };
+
+    size_t GetPixelFormatSize(PixelFormat format)
+    {
+        switch (format)
+        {
+            case PIXELFORMAT_RGBA8:
+            case PIXELFORMAT_RGBA16:
+            default:
+                return 4;
+        }
+
+        return 0;
+    }
 } // namespace love

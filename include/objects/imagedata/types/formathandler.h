@@ -10,6 +10,7 @@ namespace love
 {
     class FormatHandler : public Object
     {
+      public:
         enum EncodedFormat
         {
             ENCODED_TGA,

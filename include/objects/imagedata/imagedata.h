@@ -8,6 +8,8 @@
 #include "objects/filedata/filedata.h"
 #include "objects/imagedata/imagedatabase.h"
 
+#include "objects/imagedata/types/formathandler.h"
+
 #include "thread/types/mutex.h"
 
 namespace love
@@ -70,8 +72,15 @@ namespace love
 
         void Decode(Data* data);
 
-        unsigned char* data = nullptr;
+        uint8_t* data = nullptr;
 
         thread::MutexRef mutex;
+
+        StrongReference<FormatHandler> decodeHandler;
+
+        static StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>::Entry
+            encodedFormatEntries[];
+        static StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>
+            encodedFormats;
     };
 } // namespace love
