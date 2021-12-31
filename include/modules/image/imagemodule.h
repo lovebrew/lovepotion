@@ -40,7 +40,7 @@ namespace love
 
         bool IsCompressed(Data* data);
 
-        const std::list<FormatHandler*>& getFormatHandlers() const;
+        const std::list<FormatHandler*>& GetFormatHandlers() const;
 
         static bool GetConstant(PixelFormat in, const char*& out);
 

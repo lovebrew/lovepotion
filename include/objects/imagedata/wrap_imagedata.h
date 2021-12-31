@@ -19,7 +19,7 @@ namespace Wrap_ImageData
 
     int SetPixel(lua_State* L);
 
-    int MapPixelUnsafe(lua_State* L);
+    int _MapPixelUnsafe(lua_State* L);
 
     int Paste(lua_State* L);
 

@@ -4,6 +4,8 @@
 #include "modules/filesystem/wrap_filesystem.h"
 #include "objects/texture/texture.h"
 
+#include "objects/imagedata/imagedata.h"
+
 namespace love
 {
     class Image : public Texture
@@ -12,6 +14,8 @@ namespace love
         static love::Type type;
 
         Image(Data* data);
+
+        Image(ImageData* data);
 
         ~Image();
 

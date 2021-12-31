@@ -5,8 +5,7 @@ using namespace love;
 
 Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
 {
-    this->sheet = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
-
+    this->sheet   = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
     this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
 
     this->Init(this->texture.subtex->width, this->texture.subtex->height);
@@ -16,6 +15,9 @@ Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
 }
+
+Image::Image(ImageData* image) : Texture(Texture::TEXTURE_2D)
+{}
 
 Image::Image(TextureType type, int width, int height) : Texture(type)
 {

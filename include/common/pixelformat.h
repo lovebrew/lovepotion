@@ -61,16 +61,7 @@ namespace love
         PIXELFORMAT_MAX_ENUM
     };
 
-    size_t GetPixelFormatSize(PixelFormat format)
-    {
-        switch (format)
-        {
-            case PIXELFORMAT_RGBA8:
-            case PIXELFORMAT_RGBA16:
-            default:
-                return 4;
-        }
+    int GetPixelFormatColorComponents(PixelFormat format);
 
-        return 0;
-    }
+    unsigned GetPixelFormatSize(PixelFormat format);
 } // namespace love

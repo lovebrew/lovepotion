@@ -166,7 +166,7 @@ function love.init()
             timer = true,
             joystick = true,
             touch = true,
-            image = false,
+            image = true,
             graphics = true,
             audio = true,
             math = true,
@@ -250,13 +250,13 @@ function love.init()
         "thread",
         "timer",
         "event",
-        "image",
         "keyboard",
         "joystick",
         "touch",
         "sound",
         "system",
         "audio",
+        "image",
         "font",
         "window",
         "graphics",
@@ -264,7 +264,10 @@ function love.init()
         "physics",
     } do
         if config.modules[v] then
-            require("love." .. v)
+            local success, error_msg = pcall(require, "love." .. v)
+            if (not success) then
+                error(error_msg)
+            end
         end
     end
 

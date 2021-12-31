@@ -34,6 +34,8 @@
 
 #include "modules/font/fontmodule.h"
 
+#include "objects/imagedata/imagedata.h"
+
 #include "common/lmath.h"
 #include <optional>
 

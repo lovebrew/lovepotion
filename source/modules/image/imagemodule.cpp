@@ -33,7 +33,7 @@ ImageData* ImageModule::NewImageData(int width, int height, PixelFormat format, 
     return new ImageData(width, height, format, data, own);
 }
 
-const std::list<FormatHandler*>& ImageModule::getFormatHandlers() const
+const std::list<FormatHandler*>& ImageModule::GetFormatHandlers() const
 {
     return this->formatHandlers;
 }

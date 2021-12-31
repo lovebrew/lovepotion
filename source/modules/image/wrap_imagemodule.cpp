@@ -56,23 +56,25 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
 
             return 1;
         }
-        else if (Wrap_Filesystem::CanGetData(L, 1))
-        {
-            Data* data           = Wrap_Filesystem::GetData(L, 1);
-            ImageData* imageData = nullptr;
-
-            Luax::CatchException(
-                L, [&]() { imageData = instance()->NewImageData(data); },
-                [&](bool) { data->Release(); });
-
-            Luax::PushType(L, imageData);
-            imageData->Release();
-
-            return 1;
-        }
-        else
-            return Luax::TypeErrror(L, 1, "value");
     }
+    else if (Wrap_Filesystem::CanGetData(L, 1))
+    {
+        Data* data           = Wrap_Filesystem::GetData(L, 1);
+        ImageData* imageData = nullptr;
+
+        Luax::CatchException(
+            L, [&]() { imageData = instance()->NewImageData(data); },
+            [&](bool) { data->Release(); });
+
+        Luax::PushType(L, imageData);
+        imageData->Release();
+
+        return 1;
+    }
+    else
+        return Luax::TypeErrror(L, 1, "value");
+
+    /* should never happen */
 
     return 0;
 }
@@ -99,7 +101,7 @@ static constexpr luaL_Reg functions[] =
 static constexpr lua_CFunction types[] =
 {
     Wrap_ImageData::Register,
-    0
+    nullptr
 };
 // clang-format on
 
@@ -108,7 +110,7 @@ int Wrap_ImageModule::Register(lua_State* L)
     ImageModule* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new love::ImageModule(); });
+        Luax::CatchException(L, [&]() { instance = new ImageModule(); });
     else
         instance->Retain();
 

@@ -24,6 +24,12 @@ FormatHandler::DecodedImage FormatHandler::Decode(Data* /*data*/)
     throw love::Exception("Image decoding is not implemented for this format backend.");
 }
 
+FormatHandler::EncodedImage FormatHandler::Encode(const DecodedImage& /*img*/,
+                                                  EncodedFormat /*format*/)
+{
+    throw love::Exception("Image encoding is not implemented for this format backend.");
+}
+
 bool FormatHandler::CanParseCompressed(Data* /*data*/)
 {
     return false;

@@ -22,7 +22,7 @@ export LOVE_DATA_FILES = ../../source/scripts
 # Common portlibs for the consoles
 #-----------------------------------
 export LOVE_PORTLIBS  = -lmodplug -lvorbisidec -lFLAC -lvorbisidec -logg
-LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d
+LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -lturbojpeg -lpng
 
 #------------------------------------
 # Common configuration for consoles

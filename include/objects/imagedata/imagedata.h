@@ -43,13 +43,15 @@ namespace love
 
         bool Inside(int x, int y) const;
 
+        /* TODO: SetPixel and GetPixel differ between 3DS and Switch! */
         void SetPixel(int x, int y, const Colorf& color);
 
         void GetPixel(int x, int y, Colorf& color) const;
 
         Colorf GetPixel(int x, int y) const;
 
-        FileData* Encode(/* TODO */);
+        FileData* Encode(FormatHandler::EncodedFormat encodedFormat, const char* filename,
+                         bool writefile) const;
 
         thread::Mutex* GetMutex() const;
 
@@ -67,6 +69,12 @@ namespace love
 
         static bool CanPaste(PixelFormat source, PixelFormat destination);
 
+        static bool GetConstant(const char* in, FormatHandler::EncodedFormat& out);
+
+        static bool GetConstant(FormatHandler::EncodedFormat in, const char*& out);
+
+        static std::vector<const char*> GetConstants(FormatHandler::EncodedFormat);
+
       private:
         void Create(int width, int height, PixelFormat format, void* data = nullptr);
 
@@ -78,9 +86,7 @@ namespace love
 
         StrongReference<FormatHandler> decodeHandler;
 
-        static StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>::Entry
-            encodedFormatEntries[];
-        static StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>
+        static const StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>
             encodedFormats;
     };
 } // namespace love
