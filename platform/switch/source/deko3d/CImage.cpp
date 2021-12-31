@@ -3,8 +3,10 @@
 **   CExternalImage.cpp: Utility class for loading images from the filesystem
 */
 #include "deko3d/CImage.h"
+#include "deko3d/deko.h"
 
 #include "common/lmath.h"
+#include "common/pixelformat.h"
 
 #include <cstdio>
 
@@ -12,8 +14,8 @@ bool CImage::load(void* buffer, size_t size, int width, int height)
 {
     return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
                             ::deko3d::Instance().GetDevice(),
-                            ::deko3d::Instance().GetTextureQueue(), uniqueBuffer.get(), width,
-                            height, DkImageFormat_RGBA8_Unorm);
+                            ::deko3d::Instance().GetTextureQueue(), buffer, width, height,
+                            DkImageFormat_RGBA8_Unorm);
 }
 
 /* replace the pixels at a location */
@@ -57,9 +59,10 @@ bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void*
 /* load a CImage with transparent black pixels */
 bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
                              dk::Queue transferQueue, uint32_t width, uint32_t height,
-                             DkImageFormat format, uint32_t flags)
+                             DkImageFormat dkFormat, uint32_t flags)
 {
-    size_t size = width * height * this->getFormatSize(format);
+    PixelFormat format = ::deko3d::GetPixelFormat(dkFormat);
+    size_t size        = width * height * love::GetPixelFormatSize(format);
 
     if (size <= 0)
         return false;
@@ -85,7 +88,7 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
     dk::ImageLayout layout;
     dk::ImageLayoutMaker { device }
         .setFlags(flags)
-        .setFormat(format)
+        .setFormat(dkFormat)
         .setDimensions(width, height)
         .initialize(layout);
 
@@ -111,13 +114,15 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
 
 bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
                         dk::Queue transferQueue, const void* data, uint32_t width, uint32_t height,
-                        DkImageFormat format, uint32_t flags)
+                        DkImageFormat dkFormat, uint32_t flags)
 {
     if (data == nullptr)
         return false;
 
     // Allocate temporary memory for the image
-    size_t size = width * height * this->getFormatSize(format);
+    PixelFormat format = ::deko3d::GetPixelFormat(dkFormat);
+
+    size_t size = width * height * love::GetPixelFormatSize(format);
 
     if (size <= 0)
         return false;
@@ -141,7 +146,7 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
     dk::ImageLayout layout;
     dk::ImageLayoutMaker { device }
         .setFlags(flags)
-        .setFormat(format)
+        .setFormat(dkFormat)
         .setDimensions(width, height)
         .initialize(layout);
 

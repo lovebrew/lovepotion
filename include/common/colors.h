@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 template<typename T>
 struct ColorT
 {
@@ -13,6 +15,24 @@ struct ColorT
 
     ColorT(T r_, T g_, T b_, T a_) : r(r_), g(g_), b(b_), a(a_)
     {}
+
+    void UnpackRGBA(unsigned colors)
+    {
+        this->r = ((colors & 0xFF000000) >> 0x18) / 255.0f;
+        this->g = ((colors & 0x00FF0000) >> 0x10) / 255.0f;
+        this->b = ((colors & 0x0000FF00) >> 0x08) / 255.0f;
+        this->a = ((colors & 0x000000FF) >> 0x00) / 255.0f;
+    }
+
+    uint32_t PackRGBA()
+    {
+        int _r = (0xFF & (this->r * 0xFF)) << 0x18;
+        int _g = (0xFF & (this->g * 0xFF)) << 0x10;
+        int _b = (0xFF & (this->b * 0xFF)) << 0x08;
+        int _a = (0xFF & (this->a * 0xFF)) << 0x00;
+
+        return (_r | _g | _b | _a);
+    }
 
     void Set(T r_, T g_, T b_, T a_)
     {
@@ -145,17 +165,13 @@ inline Colorf toColorf(Color32 c)
     return Colorf(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
 }
 
-// inline Colorf fromBytes(unsigned colors)
-// {
-//     Colorf color = toColorf(colors);
+inline Colorf fromBytes(unsigned colors)
+{
+    Colorf color {};
+    color.UnpackRGBA(colors);
 
-//     color.r = colorFromBytes((colors & 0xFF000000) >> 0x18);
-//     color.g = colorFromBytes((colors & 0x00FF0000) >> 0x10);
-//     color.b = colorFromBytes((colors & 0x0000FF00) >> 0x08);
-//     color.a = colorFromBytes((colors & 0x000000FF) >> 0x00);
-
-//     return color;
-// }
+    return color;
+}
 
 #if defined(__3DS__)
 // clang-format off

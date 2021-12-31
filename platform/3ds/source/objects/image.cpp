@@ -7,10 +7,18 @@ Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
 {
     ImageDataBase* data = slices.Get(0, 0);
 
-    this->sheet   = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
-    this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
+    this->texture.tex = new C3D_Tex();
 
-    this->Init(this->texture.subtex->width, this->texture.subtex->height);
+    unsigned powTwoWidth  = NextPO2(data->GetWidth());
+    unsigned powTwoHeight = NextPO2(data->GetHeight());
+
+    if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, GPU_RGBA8))
+        throw love::Exception("Failed to initialize texture!");
+
+    memcpy(this->texture.tex->data, data->GetData(), data->GetSize());
+    C3D_TexFlush(this->texture.tex);
+
+    this->Init(data->GetWidth(), data->GetHeight());
 
     this->InitQuad();
 
@@ -33,7 +41,4 @@ void Image::Init(int width, int height)
 }
 
 Image::~Image()
-{
-    if (this->sheet != NULL)
-        C2D_SpriteSheetFree(this->sheet);
-}
+{}

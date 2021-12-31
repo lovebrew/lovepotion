@@ -607,6 +607,16 @@ DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
     }
 }
 
+PixelFormat deko3d::GetPixelFormat(DkImageFormat format)
+{
+    switch (format)
+    {
+        default:
+        case DkImageFormat_RGBA8_Unorm:
+            return PIXELFORMAT_RGBA8;
+    }
+}
+
 /*
 ** Set the Scissor region to clip
 ** Anything drawn outside of this will not be rendered

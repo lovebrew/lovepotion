@@ -825,6 +825,8 @@ static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData
 
     if (Luax::IsType(L, index, ImageData::type))
         imageData.Set(Wrap_ImageData::CheckImageData(L, index));
+    else if (Luax::IsType(L, index, CompressedImageData::type))
+        compressedImageData.Set(nullptr);
     else if (Wrap_Filesystem::CanGetData(L, index))
     {
         auto imageModule = Module::GetInstance<ImageModule>(Module::M_IMAGE);

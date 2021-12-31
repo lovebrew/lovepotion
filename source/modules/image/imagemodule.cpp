@@ -8,7 +8,13 @@ using namespace love;
 
 ImageModule::ImageModule()
 {
-    this->formatHandlers = { new PNGHandler(), new JPGHandler(), new T3XHandler() };
+    this->formatHandlers = {
+#if not defined(__3DS__)
+        new PNGHandler(),
+        new JPGHandler(),
+#endif
+        new T3XHandler()
+    };
 }
 
 ImageModule::~ImageModule()
