@@ -123,7 +123,7 @@ StrongReference<CompressedMemory> DDSHandler::ParseCompressed(
     bool& sRGB)
 {
     if (!dds::isCompressedDDS(fileData->GetData(), fileData->GetSize()))
-        throw love::Exception("Could not decode compressed data (not a DDS file?)");
+        throw love::Exception("Could not decode compressed data (not a *.dds file?)");
 
     PixelFormat pixelFormat = PIXELFORMAT_UNKNOWN;
 

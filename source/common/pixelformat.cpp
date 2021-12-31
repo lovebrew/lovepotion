@@ -7,15 +7,31 @@ unsigned love::GetPixelFormatSize(PixelFormat format)
     switch (format)
     {
         case PIXELFORMAT_DXT1:
+        case PIXELFORMAT_ETC1:
+        case PIXELFORMAT_ETC2_RGBA1:
             return 8;
         case PIXELFORMAT_DXT3:
-            return 16;
         case PIXELFORMAT_DXT5:
+        case PIXELFORMAT_ETC2_RGBA:
             return 16;
         case PIXELFORMAT_RGBA8:
             return 4;
         case PIXELFORMAT_RGBA16:
             return 8;
+        case PIXELFORMAT_ASTC_4x4:
+        case PIXELFORMAT_ASTC_5x4:
+        case PIXELFORMAT_ASTC_6x5:
+        case PIXELFORMAT_ASTC_6x6:
+        case PIXELFORMAT_ASTC_8x5:
+        case PIXELFORMAT_ASTC_8x6:
+        case PIXELFORMAT_ASTC_8x8:
+        case PIXELFORMAT_ASTC_10x5:
+        case PIXELFORMAT_ASTC_10x6:
+        case PIXELFORMAT_ASTC_10x8:
+        case PIXELFORMAT_ASTC_10x10:
+        case PIXELFORMAT_ASTC_12x10:
+        case PIXELFORMAT_ASTC_12x12:
+            return 1;
         default:
             return 0;
     }
@@ -26,13 +42,27 @@ int love::GetPixelFormatColorComponents(PixelFormat format)
     switch (format)
     {
         case PIXELFORMAT_DXT1:
+        case PIXELFORMAT_ETC1:
             return 3;
         case PIXELFORMAT_DXT3:
-            return 4;
+        case PIXELFORMAT_ETC2_RGBA1:
+        case PIXELFORMAT_ETC2_RGBA:
         case PIXELFORMAT_DXT5:
-            return 4;
         case PIXELFORMAT_RGBA8:
         case PIXELFORMAT_RGBA16:
+        case PIXELFORMAT_ASTC_4x4:
+        case PIXELFORMAT_ASTC_5x4:
+        case PIXELFORMAT_ASTC_6x5:
+        case PIXELFORMAT_ASTC_6x6:
+        case PIXELFORMAT_ASTC_8x5:
+        case PIXELFORMAT_ASTC_8x6:
+        case PIXELFORMAT_ASTC_8x8:
+        case PIXELFORMAT_ASTC_10x5:
+        case PIXELFORMAT_ASTC_10x6:
+        case PIXELFORMAT_ASTC_10x8:
+        case PIXELFORMAT_ASTC_10x10:
+        case PIXELFORMAT_ASTC_12x10:
+        case PIXELFORMAT_ASTC_12x12:
             return 4;
         default:
             return 0;

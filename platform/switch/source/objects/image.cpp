@@ -7,10 +7,13 @@ using namespace love;
 Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
 {
     ImageDataBase* slice = slices.Get(0, 0);
+    PixelFormat format   = slice->GetFormat();
 
-    PixelFormat format = slice->GetFormat();
-    this->texture.load(format, slice->IsSRGB(), slice->GetData(), slice->GetSize(),
-                       slice->GetWidth(), slice->GetHeight());
+    bool success = this->texture.load(format, slice->IsSRGB(), slice->GetData(), slice->GetSize(),
+                                      slice->GetWidth(), slice->GetHeight());
+
+    if (!success)
+        throw love::Exception("Failed to upload image data.");
 
     this->width  = slice->GetWidth();
     this->height = slice->GetHeight();

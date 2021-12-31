@@ -13,7 +13,9 @@
 bool CImage::load(love::PixelFormat pixelFormat, bool isSRGB, void* buffer, size_t size, int width,
                   int height)
 {
-    DkImageFormat format = ::deko3d::GetDkImageFormat(pixelFormat, isSRGB);
+    DkImageFormat format;
+    if (!::deko3d::GetConstant(pixelFormat, format))
+        return false;
 
     return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
                             ::deko3d::Instance().GetDevice(),
@@ -63,8 +65,11 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
                              dk::Queue transferQueue, uint32_t width, uint32_t height,
                              DkImageFormat dkFormat, uint32_t flags)
 {
-    PixelFormat format = ::deko3d::GetPixelFormat(dkFormat);
-    size_t size        = width * height * love::GetPixelFormatSize(format);
+    PixelFormat format;
+    if (!::deko3d::GetConstant(dkFormat, format))
+        return false;
+
+    size_t size = width * height * love::GetPixelFormatSize(format);
 
     if (size <= 0)
         return false;
@@ -122,7 +127,9 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
         return false;
 
     // Allocate temporary memory for the image
-    PixelFormat format = ::deko3d::GetPixelFormat(dkFormat);
+    PixelFormat format;
+    if (!::deko3d::GetConstant(dkFormat, format))
+        return false;
 
     size_t size = width * height * love::GetPixelFormatSize(format);
 

@@ -30,6 +30,8 @@
 
 #define MAX_ANISOTROPY 16
 
+#include "common/enummap.h"
+
 namespace love
 {
     class Graphics;
@@ -150,9 +152,9 @@ class deko3d
 
     static DkWrapMode GetDekoWrapMode(love::Texture::WrapMode wrap);
 
-    static PixelFormat GetPixelFormat(DkImageFormat format);
+    static bool GetConstant(PixelFormat in, DkImageFormat& out);
 
-    static DkImageFormat GetDkImageFormat(PixelFormat format, bool isSRGB);
+    static bool GetConstant(DkImageFormat in, PixelFormat& out);
 
     void SetDekoBarrier(DkBarrier barrier, uint32_t flags);
 
@@ -255,4 +257,6 @@ class deko3d
     void EnsureInFrame();
 
     void EnsureHasSlot();
+
+    const static EnumMap<PixelFormat, DkImageFormat, PIXELFORMAT_MAX_ENUM> pixelFormats;
 };
