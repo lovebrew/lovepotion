@@ -1,6 +1,8 @@
 #include "objects/imagedata/types/formathandler.h"
 #include "common/exception.h"
 
+#include <vector>
+
 using namespace love;
 
 FormatHandler::FormatHandler()
@@ -33,6 +35,13 @@ FormatHandler::EncodedImage FormatHandler::Encode(const DecodedImage& /*img*/,
 bool FormatHandler::CanParseCompressed(Data* /*data*/)
 {
     return false;
+}
+
+StrongReference<CompressedMemory> FormatHandler::ParseCompressed(
+    Data* /*filedata*/, std::vector<StrongReference<CompressedSlice>>& /*images*/,
+    PixelFormat& /*format*/, bool& /*sRGB*/)
+{
+    throw love::Exception("Compressed image parsing is not implemented for this format backend.");
 }
 
 void FormatHandler::FreeRawPixels(unsigned char* memory)

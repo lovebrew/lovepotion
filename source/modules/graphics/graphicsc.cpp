@@ -284,7 +284,7 @@ Vector2 Graphics::InverseTransformPoint(Vector2 point)
 
 /* Objects */
 
-Image* Graphics::NewImage(Data* data)
+Image* Graphics::NewImage(const Image::Slices& data)
 {
     return new Image(data);
 }

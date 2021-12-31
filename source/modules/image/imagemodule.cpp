@@ -33,6 +33,22 @@ ImageData* ImageModule::NewImageData(int width, int height, PixelFormat format, 
     return new ImageData(width, height, format, data, own);
 }
 
+CompressedImageData* ImageModule::NewCompressedData(Data* data)
+{
+    return new CompressedImageData(this->formatHandlers, data);
+}
+
+bool ImageModule::IsCompressed(Data* data)
+{
+    for (FormatHandler* handler : formatHandlers)
+    {
+        if (handler->CanParseCompressed(data))
+            return true;
+    }
+
+    return false;
+}
+
 const std::list<FormatHandler*>& ImageModule::GetFormatHandlers() const
 {
     return this->formatHandlers;

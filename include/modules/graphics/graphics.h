@@ -254,7 +254,7 @@ namespace love
 
         /* Objects */
 
-        Image* NewImage(Data* data);
+        Image* NewImage(const Image::Slices& data);
 
         virtual Font* NewFont(Rasterizer* rasterizer,
                               const Texture::Filter& filter = Texture::defaultFilter) = 0;

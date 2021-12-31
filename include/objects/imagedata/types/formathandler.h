@@ -3,8 +3,12 @@
 #include "common/data.h"
 #include "common/pixelformat.h"
 
-#include "objects/imagedata/types/compressedmemory.h"
+#include "objects/compressedimagedata/types/compressedmemory.h"
+#include "objects/compressedimagedata/types/compressedslice.h"
+
 #include "objects/object.h"
+
+#include <vector>
 
 namespace love
 {
@@ -50,6 +54,10 @@ namespace love
         virtual EncodedImage Encode(const DecodedImage& image, EncodedFormat format);
 
         virtual bool CanParseCompressed(Data* data);
+
+        virtual StrongReference<CompressedMemory> ParseCompressed(
+            Data* filedata, std::vector<StrongReference<CompressedSlice>>& images,
+            PixelFormat& format, bool& sRGB);
 
         virtual void FreeRawPixels(unsigned char* memory);
     };

@@ -6,7 +6,9 @@
 #include "modules/data/wrap_datamodule.h"
 #include "modules/filesystem/wrap_filesystem.h"
 
+#include "objects/compressedimagedata/compressedimagedata.h"
 #include "objects/imagedata/imagedata.h"
+
 #include "objects/imagedata/types/formathandler.h"
 #include "objects/imagedata/wrap_imagedata.h"
 
@@ -37,6 +39,8 @@ namespace love
 
         ImageData* NewImageData(int width, int height, PixelFormat format, void* data,
                                 bool own = false);
+
+        CompressedImageData* NewCompressedData(Data* data);
 
         bool IsCompressed(Data* data);
 

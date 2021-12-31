@@ -1,6 +1,4 @@
-#pragma once
-
-#include "objects/imagedata/types/compressedmemory.h"
+#include "objects/compressedimagedata/types/compressedmemory.h"
 #include "common/exception.h"
 
 using namespace love;

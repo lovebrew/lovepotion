@@ -3,8 +3,10 @@
 
 using namespace love;
 
-Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
+Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
 {
+    ImageDataBase* data = slices.Get(0, 0);
+
     this->sheet   = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
     this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
 
@@ -15,9 +17,6 @@ Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
 }
-
-Image::Image(ImageData* image) : Texture(Texture::TEXTURE_2D)
-{}
 
 Image::Image(TextureType type, int width, int height) : Texture(type)
 {

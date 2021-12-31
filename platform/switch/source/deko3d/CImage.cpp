@@ -8,6 +8,14 @@
 
 #include <cstdio>
 
+bool CImage::load(void* buffer, size_t size, int width, int height)
+{
+    return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
+                            ::deko3d::Instance().GetDevice(),
+                            ::deko3d::Instance().GetTextureQueue(), uniqueBuffer.get(), width,
+                            height, DkImageFormat_RGBA8_Unorm);
+}
+
 /* replace the pixels at a location */
 bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void* data, size_t size,
                            dk::Queue transferQueue, const love::Rect& rect)

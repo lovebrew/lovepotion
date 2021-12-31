@@ -4,6 +4,7 @@
 #include "common/lmath.h"
 
 #include "common/colors.h"
+#include "common/debug/logger.h"
 
 using namespace love;
 
@@ -40,12 +41,17 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
 
     DecodedImage decoded {};
 
-    decoded.width  = header.width;
+    decoded.width = header.width;
+    LOG("%d", header.width);
+
     decoded.height = header.height;
+    LOG("%d", header.height);
+
     decoded.format = PIXELFORMAT_RGBA8;
 
     unsigned powTwoWidth = NextPO2(decoded.width + 2);
     decoded.size         = 4 * header.width * header.height;
+    LOG("%zu", decoded.size);
 
     decoded.data = new uint8_t[decoded.size];
     for (size_t y = 1; y <= header.height; y++)

@@ -4,16 +4,14 @@
 
 using namespace love;
 
-Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
+Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
 {
-    // CImage can load PNG and JPG files with the proper libraries
-    bool success =
-        this->texture.load(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
-                           ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(),
-                           data->GetData(), data->GetSize(), this->width, this->height);
+    ImageDataBase* slice = slices.Get(0, 0);
 
-    if (!success)
-        throw love::Exception("Failed to upload Image data.");
+    this->texture.load(slice->GetData(), slice->GetSize(), slice->GetWidth(), slice->GetHeight());
+
+    this->width  = slice->GetWidth();
+    this->height = slice->GetHeight();
 
     this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
 

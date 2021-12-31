@@ -2,6 +2,11 @@
 
 #include <filesystem>
 
+#include "modules/image/imagemodule.h"
+
+#include "objects/compressedimagedata/compressedimagedata.h"
+#include "objects/imagedata/wrap_imagedata.h"
+
 using namespace love;
 
 #define instance() (Module::GetInstance<Graphics>(Module::M_GRAPHICS))
@@ -812,22 +817,64 @@ int Wrap_Graphics::GetDefaultFilter(lua_State* L)
     return 2;
 }
 
-int Wrap_Graphics::NewImage(lua_State* L)
+static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData>> getImageData(
+    lua_State* L, int index, bool allowCompressed, float* dpiScale)
+{
+    StrongReference<ImageData> imageData;
+    StrongReference<CompressedImageData> compressedImageData;
+
+    if (Luax::IsType(L, index, ImageData::type))
+        imageData.Set(Wrap_ImageData::CheckImageData(L, index));
+    else if (Wrap_Filesystem::CanGetData(L, index))
+    {
+        auto imageModule = Module::GetInstance<ImageModule>(Module::M_IMAGE);
+
+        if (imageModule == nullptr)
+            luaL_error(L, "Cannot load images without the love.image module.");
+
+        StrongReference<Data> fileData(Wrap_Filesystem::GetData(L, index), Acquire::NORETAIN);
+
+        if (allowCompressed && imageModule->IsCompressed(fileData))
+            Luax::CatchException(L, [&]() {
+                compressedImageData.Set(imageModule->NewCompressedData(fileData),
+                                        Acquire::NORETAIN);
+            });
+        else
+            Luax::CatchException(L, [&]() {
+                imageData.Set(imageModule->NewImageData(fileData), Acquire::NORETAIN);
+            });
+    }
+
+    return std::make_pair(imageData, compressedImageData);
+}
+
+static int _pushNewImage(lua_State* L, Image::Slices& slices)
 {
     StrongReference<Image> image;
 
-    if (Wrap_Filesystem::CanGetData(L, 1))
-    {
-        Luax::CatchException(L, [&]() {
-            Data* data = Wrap_Filesystem::GetData(L, 1);
-
-            image.Set(instance()->NewImage(data), Acquire::NORETAIN);
-        });
-    }
+    Luax::CatchException(
+        L, [&]() { image.Set(instance()->NewImage(slices), Acquire::NORETAIN); },
+        [&](bool) { slices.Clear(); });
 
     Luax::PushType(L, image);
 
     return 1;
+}
+
+int Wrap_Graphics::NewImage(lua_State* L)
+{
+    Image::Slices slices(Texture::TEXTURE_2D);
+    bool dpiScaleSet = false;
+
+    float dpiScale = 1.0f;
+    auto data      = getImageData(L, 1, true, &dpiScale);
+
+    if (data.first.Get())
+        slices.Set(0, 0, data.first);
+    else
+        slices.Add(data.second, 0, 0, false, false);
+
+    return _pushNewImage(L, slices);
 }
 
 int Wrap_Graphics::NewText(lua_State* L)
