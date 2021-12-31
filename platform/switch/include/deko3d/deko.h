@@ -152,6 +152,8 @@ class deko3d
 
     static PixelFormat GetPixelFormat(DkImageFormat format);
 
+    static DkImageFormat GetDkImageFormat(PixelFormat format, bool isSRGB);
+
     void SetDekoBarrier(DkBarrier barrier, uint32_t flags);
 
   private:

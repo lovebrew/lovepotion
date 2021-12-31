@@ -5,6 +5,8 @@
 #include "modules/image/imagemodule.h"
 
 #include "objects/compressedimagedata/compressedimagedata.h"
+#include "objects/compressedimagedata/wrap_compressedimagedata.h"
+
 #include "objects/imagedata/wrap_imagedata.h"
 
 using namespace love;
@@ -826,7 +828,7 @@ static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData
     if (Luax::IsType(L, index, ImageData::type))
         imageData.Set(Wrap_ImageData::CheckImageData(L, index));
     else if (Luax::IsType(L, index, CompressedImageData::type))
-        compressedImageData.Set(nullptr);
+        compressedImageData.Set(Wrap_CompressedImageData::CheckCompressedImageData(L, index));
     else if (Wrap_Filesystem::CanGetData(L, index))
     {
         auto imageModule = Module::GetInstance<ImageModule>(Module::M_IMAGE);

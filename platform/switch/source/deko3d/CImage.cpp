@@ -10,12 +10,14 @@
 
 #include <cstdio>
 
-bool CImage::load(void* buffer, size_t size, int width, int height)
+bool CImage::load(love::PixelFormat pixelFormat, bool isSRGB, void* buffer, size_t size, int width,
+                  int height)
 {
+    DkImageFormat format = ::deko3d::GetDkImageFormat(pixelFormat, isSRGB);
+
     return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
                             ::deko3d::Instance().GetDevice(),
-                            ::deko3d::Instance().GetTextureQueue(), buffer, width, height,
-                            DkImageFormat_RGBA8_Unorm);
+                            ::deko3d::Instance().GetTextureQueue(), buffer, width, height, format);
 }
 
 /* replace the pixels at a location */

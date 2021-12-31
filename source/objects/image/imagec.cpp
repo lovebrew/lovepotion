@@ -36,14 +36,14 @@ ImageDataBase* Image::Slices::Get(int slice, int mipmap) const
 void Image::Slices::Add(CompressedImageData* data, int startslice, int startmip, bool addallslices,
                         bool addallmips)
 {
-    // int slicecount = addallslices ? data->GetSliceCount() : 1;
-    // int mipcount   = addallmips ? data->GetMipmapCount() : 1;
+    int sliceCount = addallslices ? data->GetSliceCount() : 1;
+    int mipCount   = addallmips ? data->GetMipmapCount() : 1;
 
-    // for (int mip = 0; mip < mipcount; mip++)
-    // {
-    //     for (int slice = 0; slice < slicecount; slice++)
-    //         set(startslice + slice, startmip + mip, data->getSlice(slice, mip));
-    // }
+    for (int mip = 0; mip < mipCount; mip++)
+    {
+        for (int slice = 0; slice < sliceCount; slice++)
+            this->Set(startslice + slice, startmip + mip, data->GetSlice(slice, mip));
+    }
 }
 
 int Image::Slices::GetSliceCount(int mip) const

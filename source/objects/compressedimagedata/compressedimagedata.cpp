@@ -23,7 +23,7 @@ CompressedImageData::CompressedImageData(const std::list<FormatHandler*>& format
     if (parser == nullptr)
         throw love::Exception("Could not parse compressed data: Unknown format.");
 
-    this->memory = parser->ParseCompressed(fileData, images, format, sRGB);
+    this->memory = parser->ParseCompressed(fileData, images, format, this->sRGB);
 
     if (this->memory == nullptr)
         throw love::Exception("Could not parse compressed data.");

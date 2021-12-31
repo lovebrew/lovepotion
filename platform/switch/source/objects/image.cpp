@@ -8,7 +8,9 @@ Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
 {
     ImageDataBase* slice = slices.Get(0, 0);
 
-    this->texture.load(slice->GetData(), slice->GetSize(), slice->GetWidth(), slice->GetHeight());
+    PixelFormat format = slice->GetFormat();
+    this->texture.load(format, slice->IsSRGB(), slice->GetData(), slice->GetSize(),
+                       slice->GetWidth(), slice->GetHeight());
 
     this->width  = slice->GetWidth();
     this->height = slice->GetHeight();

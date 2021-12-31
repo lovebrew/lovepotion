@@ -7,6 +7,8 @@
 
 #include "modules/data/datamodule.h"
 
+#include "debug/logger.h"
+
 using namespace love;
 
 #if defined(__3DS__)
@@ -37,15 +39,6 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
     Tex3DSHeader header {};
     memcpy(&header, data->GetData(), sizeof(header));
 
-    uint8_t* uncompressed = new uint8_t[header.size];
-
-    bool wasDecompressed =
-        decompress(uncompressed, header.size, NULL, (uint8_t*)data->GetData() + sizeof(header) - 4,
-                   data->GetSize() - sizeof(header) + 4);
-
-    if (!wasDecompressed)
-        throw love::Exception("Failed to decompress t3x file.");
-
     DecodedImage decoded {};
 
     decoded.width  = header.width;
@@ -54,7 +47,16 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
     decoded.size   = 4 * header.width * header.height;
 
     decoded.data = new uint8_t[decoded.size];
-    memcpy(decoded.data, uncompressed, decoded.size);
+
+    uint8_t* uncompressed = new uint8_t[header.size];
+
+    bool wasDecompressed = decompress(uncompressed, header.size, NULL,
+                                      (uint8_t*)data->GetData() + sizeof(header), header.size);
+
+    if (!wasDecompressed)
+        memcpy(decoded.data, (uint8_t*)data->GetData() + sizeof(header), header.size);
+    else
+        memcpy(decoded.data, uncompressed, decoded.size);
 
     delete[] uncompressed;
 

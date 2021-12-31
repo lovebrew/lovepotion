@@ -81,12 +81,32 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
 
 int Wrap_ImageModule::NewCompressedData(lua_State* L)
 {
-    return 0;
+    Data* data                = Wrap_Filesystem::GetData(L, 1);
+    CompressedImageData* self = nullptr;
+
+    // clang-format off
+    Luax::CatchException(
+        L, [&]() { self = instance()->NewCompressedData(data); },
+        [&](bool) { data->Release();
+    });
+    // clang-format on
+
+    Luax::PushType(L, CompressedImageData::type, self);
+    self->Release();
+
+    return 1;
 }
 
 int Wrap_ImageModule::IsCompressed(lua_State* L)
 {
-    return 0;
+    Data* data = Wrap_Filesystem::GetData(L, 1);
+
+    bool compressed = instance()->IsCompressed(data);
+    data->Release();
+
+    Luax::PushBoolean(L, compressed);
+
+    return 1;
 }
 
 // clang-format off
@@ -101,6 +121,7 @@ static constexpr luaL_Reg functions[] =
 static constexpr lua_CFunction types[] =
 {
     Wrap_ImageData::Register,
+    Wrap_CompressedData::Register,
     nullptr
 };
 // clang-format on

@@ -607,6 +607,37 @@ DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
     }
 }
 
+DkImageFormat deko3d::GetDkImageFormat(PixelFormat format, bool isSRGB)
+{
+    switch (format)
+    {
+        default:
+        case PIXELFORMAT_RGBA8:
+            return DkImageFormat_RGBA8_Unorm;
+        case PIXELFORMAT_DXT1:
+        {
+            if (isSRGB)
+                return DkImageFormat_RGBA_BC1_sRGB;
+
+            return DkImageFormat_RGBA_BC1;
+        }
+        case PIXELFORMAT_DXT3:
+        {
+            if (isSRGB)
+                return DkImageFormat_RGBA_BC2_sRGB;
+
+            return DkImageFormat_RGBA_BC2;
+        }
+        case PIXELFORMAT_DXT5:
+        {
+            if (isSRGB)
+                return DkImageFormat_RGBA_BC3_sRGB;
+
+            return DkImageFormat_RGBA_BC3;
+        }
+    }
+}
+
 PixelFormat deko3d::GetPixelFormat(DkImageFormat format)
 {
     switch (format)
@@ -614,6 +645,12 @@ PixelFormat deko3d::GetPixelFormat(DkImageFormat format)
         default:
         case DkImageFormat_RGBA8_Unorm:
             return PIXELFORMAT_RGBA8;
+        case DkImageFormat_RGBA_BC1:
+            return PIXELFORMAT_DXT1;
+        case DkImageFormat_RGBA_BC2:
+            return PIXELFORMAT_DXT3;
+        case DkImageFormat_RGBA_BC3:
+            return PIXELFORMAT_DXT5;
     }
 }
 

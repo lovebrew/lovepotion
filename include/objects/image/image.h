@@ -61,6 +61,8 @@ namespace love
 
         Image(TextureType type, int width, int height);
 
+        void Init(PixelFormat format, int width, int height);
+
         void Init(int width, int height);
 
       private:
