@@ -27,6 +27,9 @@ namespace love
             uint32_t packed32;
         };
 
+        typedef void (*PixelSetFunction)(const Colorf& c, Pixel* p);
+        typedef void (*PixelGetFunction)(const Pixel* p, Colorf& c);
+
         static love::Type type;
 
         ImageData(Data* data);
@@ -49,6 +52,16 @@ namespace love
         void GetPixel(int x, int y, Colorf& color) const;
 
         Colorf GetPixel(int x, int y) const;
+
+        PixelSetFunction getPixelSetFunction() const
+        {
+            return pixelSetFunction;
+        }
+
+        PixelGetFunction getPixelGetFunction() const
+        {
+            return pixelGetFunction;
+        }
 
         FileData* Encode(FormatHandler::EncodedFormat encodedFormat, const char* filename,
                          bool writefile) const;
@@ -75,6 +88,10 @@ namespace love
 
         static std::vector<const char*> GetConstants(FormatHandler::EncodedFormat);
 
+        static PixelSetFunction GetPixelSetFunction(PixelFormat format);
+
+        static PixelGetFunction GetPixelGetFunction(PixelFormat format);
+
       private:
         void Create(int width, int height, PixelFormat format, void* data = nullptr);
 
@@ -85,6 +102,9 @@ namespace love
         thread::MutexRef mutex;
 
         StrongReference<FormatHandler> decodeHandler;
+
+        PixelSetFunction pixelSetFunction;
+        PixelGetFunction pixelGetFunction;
 
         static const StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>
             encodedFormats;

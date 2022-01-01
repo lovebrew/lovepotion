@@ -20,22 +20,22 @@ namespace love
       private:
         struct __attribute__((packed)) Tex3DSHeader
         {
-            u16 numSubTextures; //< 1
-            u8 width_log2 : 3;  //< log2(texWidth)  - 3 (powTwoWidth)
-            u8 height_log2 : 3; //< log2(texHeight) - 3 (powTwoHeight)
-            u8 type : 1;        //< 0 = GPU_TEX_2D
-            u8 format;          //< 0 = GPU_RGBA8
-            u8 mipmapLevels;    //< 0
+            uint16_t numSubTextures; //< 1
 
-            u16 width;    //< subtexWidth  (sourceWidth)
-            u16 height;   //< subtexHeight (sourceHeight)
-            float left;   //< left   = border
-            float top;    //< top    = texHeight - border
-            float right;  //< right  = subtexWidth + border
-            float bottom; //< bottom = texHeight - border - subtexHeight
+            uint8_t width_log2 : 3;  //< log2(texWidth)  - 3 (powTwoWidth)
+            uint8_t height_log2 : 3; //< log2(texHeight) - 3 (powTwoHeight)
 
-            u32 size : 24;           //< texture size in bytes; should be 4 * texWidth * texHeight
-            u32 compressionType : 8; //< 0 (no compression)
+            uint8_t type : 1;     //< 0 = GPU_TEX_2D
+            uint8_t format;       //< 0 = GPU_RGBA8
+            uint8_t mipmapLevels; //< 0
+
+            uint16_t width;  //< subtexWidth  (sourceWidth)
+            uint16_t height; //< subtexHeight (sourceHeight)
+
+            uint16_t left;   //< left   = border
+            uint16_t top;    //< top    = texHeight - border
+            uint16_t right;  //< right  = subtexWidth + border
+            uint16_t bottom; //< bottom = texHeight - border - subtexHeight
         };
     };
 } // namespace love

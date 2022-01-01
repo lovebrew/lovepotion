@@ -34,6 +34,16 @@ struct ColorT
         return (_r | _g | _b | _a);
     }
 
+    uint32_t PackRGBA(const T r_, const T g_, const T b_, const T a_)
+    {
+        int _r = (0xFF & (r_ * 0xFF)) << 0x18;
+        int _g = (0xFF & (g_ * 0xFF)) << 0x10;
+        int _b = (0xFF & (b_ * 0xFF)) << 0x08;
+        int _a = (0xFF & (a_ * 0xFF)) << 0x00;
+
+        return (_r | _g | _b | _a);
+    }
+
     void Set(T r_, T g_, T b_, T a_)
     {
         r = r_;
@@ -171,6 +181,17 @@ inline Colorf fromBytes(unsigned colors)
     color.UnpackRGBA(colors);
 
     return color;
+}
+
+template<typename T>
+uint32_t packRGBA(const T r_, const T g_, const T b_, const T a_)
+{
+    int _r = (0xFF & static_cast<int>(r_ * 0xFF)) << 0x18;
+    int _g = (0xFF & static_cast<int>(g_ * 0xFF)) << 0x10;
+    int _b = (0xFF & static_cast<int>(b_ * 0xFF)) << 0x08;
+    int _a = (0xFF & static_cast<int>(a_ * 0xFF)) << 0x00;
+
+    return (_r | _g | _b | _a);
 }
 
 #if defined(__3DS__)

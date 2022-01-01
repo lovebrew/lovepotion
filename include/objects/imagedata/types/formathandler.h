@@ -30,6 +30,11 @@ namespace love
             int height  = 0;
             size_t size = 0;
 
+#if defined(__3DS__)
+            int subWidth  = 0;
+            int subHeight = 0;
+#endif
+
             unsigned char* data = nullptr;
         };
 
