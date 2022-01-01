@@ -1,4 +1,5 @@
 #include "objects/image/image.h"
+#include "modules/image/imagemodule.h"
 
 #include "deko3d/deko.h"
 
@@ -13,7 +14,12 @@ Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
                                       slice->GetWidth(), slice->GetHeight());
 
     if (!success)
-        throw love::Exception("Failed to upload image data.");
+    {
+        const char* formatName = nullptr;
+        ImageModule::GetConstant(format, formatName);
+
+        throw love::Exception("Failed to upload image data: format %s not supported", formatName);
+    }
 
     this->width  = slice->GetWidth();
     this->height = slice->GetHeight();

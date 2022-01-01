@@ -296,9 +296,7 @@ std::vector<const char*> ImageData::GetConstants(FormatHandler::EncodedFormat)
 // clang-format off
 constexpr StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>::Entry formatEntries[] =
 {
-	{ "t3x", FormatHandler::ENCODED_T3X },
-	{ "png", FormatHandler::ENCODED_PNG },
-    { "jpg", FormatHandler::ENCODED_JPG }
+    { "png", FormatHandler::ENCODED_PNG }
 };
 
 constinit const StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM> ImageData::encodedFormats(formatEntries);

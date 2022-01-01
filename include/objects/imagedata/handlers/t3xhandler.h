@@ -9,19 +9,11 @@ namespace love
       public:
 #if not defined(__3DS__)
         using FormatHandler::CanDecode;
-        using FormatHandler::CanEncode;
-
         using FormatHandler::Decode;
-        using FormatHandler::Encode;
 #else
         virtual bool CanDecode(Data* data);
 
-        virtual bool CanEncode(PixelFormat rawFormat, EncodedFormat encodedFormat);
-
         virtual DecodedImage Decode(Data* data);
-
-        virtual EncodedImage Encode(const DecodedImage& image, EncodedFormat format);
-
 #endif
         virtual void FreeRawPixels(unsigned char* memory);
 

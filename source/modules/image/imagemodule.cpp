@@ -6,6 +6,7 @@
 
 #include "objects/compressedimagedata/handlers/astchandler.h"
 #include "objects/compressedimagedata/handlers/ddshandler.h"
+#include "objects/compressedimagedata/handlers/pkmhandler.h"
 
 using namespace love;
 
@@ -17,6 +18,7 @@ ImageModule::ImageModule()
         new JPGHandler(),
         new DDSHandler(),
         new ASTCHandler(),
+        new PKMHandler(),
 #endif
         new T3XHandler()
     };

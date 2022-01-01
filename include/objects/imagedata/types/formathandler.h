@@ -19,8 +19,6 @@ namespace love
         {
             ENCODED_TGA,
             ENCODED_PNG,
-            ENCODED_T3X,
-            ENCODED_JPG,
             ENCODED_MAX_ENUM
         };
 
