@@ -20,9 +20,9 @@ bool T3XHandler::CanDecode(Data* data)
 
     if (header.numSubTextures != 1)
         return false;
-    else if (header.type != 0) //< GPU_TEX_2D
+    else if (header.type != GPU_TEX_2D) //< GPU_TEX_2D
         return false;
-    else if (header.format != 0) //< GPU_RGBA8
+    else if (header.format != GPU_RGBA8) //< GPU_RGBA8
         return false;
     else if (header.mipmapLevels != 0)
         return false;
@@ -67,7 +67,7 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
     decoded.size = outSize;
     decoded.data = new uint8_t[outSize];
 
-    if (!decompress(decoded.data, outSize, NULL, compressed, outSize))
+    if (!decompress(decoded.data, outSize, NULL, compressed, size))
         throw love::Exception("Failed to decompress t3x data.");
 
     return decoded;

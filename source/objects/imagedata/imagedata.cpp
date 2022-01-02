@@ -1,6 +1,7 @@
 #include "objects/imagedata/imagedata.h"
 #include "modules/filesystem/filesystem.h"
 
+#include "common/lmath.h"
 #include "modules/image/imagemodule.h"
 
 #include <algorithm>
@@ -308,6 +309,20 @@ void ImageData::GetPixel(int x, int y, Colorf& color) const
 
     color = fromBytes(((u32*)this->data)[index]);
 #endif
+}
+
+bool ImageData::CanPaste(PixelFormat src, PixelFormat dst)
+{
+    if (src == dst)
+        return true;
+
+    if (!(src == PIXELFORMAT_RGBA8 || src == PIXELFORMAT_RGBA16))
+        return false;
+
+    if (!(dst == PIXELFORMAT_RGBA8 || dst == PIXELFORMAT_RGBA16))
+        return false;
+
+    return true;
 }
 
 void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, int sh)

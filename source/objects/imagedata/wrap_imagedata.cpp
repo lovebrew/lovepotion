@@ -151,46 +151,46 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     PixelFormat format = self->GetFormat();
     int components     = love::GetPixelFormatColorComponents(format);
 
-    // auto pixelsetfunction = self->GetPixelSetFunction();
-    // auto pixelgetfunction = self->GetPixelGetFunction();
+    auto pixelsetfunction = self->GetPixelSetFunction(format);
+    auto pixelgetfunction = self->GetPixelGetFunction(format);
 
-    // uint8_t* data    = (uint8_t*)self->GetData();
-    // size_t pixelsize = self->GetPixelSize();
+    uint8_t* data    = (uint8_t*)self->GetData();
+    size_t pixelsize = self->GetPixelSize();
 
-    // for (int y = sourceY; y < sourceY + sourceH; y++)
-    // {
-    //     for (int x = sourceX; x < sourceX + sourceW; x++)
-    //     {
-    //         auto pixeldata = (ImageData::Pixel*)(data + (y * imageWidth + x) * pixelsize);
+    for (int y = sourceY; y < sourceY + sourceH; y++)
+    {
+        for (int x = sourceX; x < sourceX + sourceW; x++)
+        {
+            auto pixeldata = (ImageData::Pixel*)(data + (y * imageWidth + x) * pixelsize);
 
-    //         Colorf color {};
-    //         pixelgetfunction(pixeldata, color);
+            Colorf color {};
+            pixelgetfunction(pixeldata, color);
 
-    //         lua_pushvalue(L, 2); // ImageData
+            lua_pushvalue(L, 2); // ImageData
 
-    //         lua_pushnumber(L, x);
-    //         lua_pushnumber(L, y);
+            lua_pushnumber(L, x);
+            lua_pushnumber(L, y);
 
-    //         lua_pushnumber(L, color.r);
-    //         lua_pushnumber(L, color.g);
-    //         lua_pushnumber(L, color.b);
-    //         lua_pushnumber(L, color.a);
+            lua_pushnumber(L, color.r);
+            lua_pushnumber(L, color.g);
+            lua_pushnumber(L, color.b);
+            lua_pushnumber(L, color.a);
 
-    //         lua_call(L, 6, 4);
+            lua_call(L, 6, 4);
 
-    //         color.r = (float)luaL_checknumber(L, -4);
-    //         if (components > 1)
-    //             color.g = (float)luaL_checknumber(L, -3);
-    //         if (components > 2)
-    //             color.b = (float)luaL_checknumber(L, -2);
-    //         if (components > 3)
-    //             color.a = (float)luaL_optnumber(L, -1, 1.0);
+            color.r = (float)luaL_checknumber(L, -4);
+            if (components > 1)
+                color.g = (float)luaL_checknumber(L, -3);
+            if (components > 2)
+                color.b = (float)luaL_checknumber(L, -2);
+            if (components > 3)
+                color.a = (float)luaL_optnumber(L, -1, 1.0);
 
-    //         pixelsetfunction(color, pixeldata);
+            pixelsetfunction(color, pixeldata);
 
-    //         lua_pop(L, 4); // Pop return values.
-    //     }
-    // }
+            lua_pop(L, 4); // Pop return values.
+        }
+    }
 
     return 0;
 }
