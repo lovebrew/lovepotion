@@ -79,8 +79,8 @@ bool Hidrv::Poll(LOVE_Event* event)
         newEvent.type = TYPE_TOUCHRELEASE;
 
         newEvent.touch.id       = 0;
-        newEvent.touch.x        = this->oldTouchState.px;
-        newEvent.touch.y        = this->oldTouchState.py;
+        newEvent.touch.x        = this->touchState.px;
+        newEvent.touch.y        = this->touchState.py;
         newEvent.touch.dx       = 0.0f;
         newEvent.touch.dy       = 0.0f;
         newEvent.touch.pressure = 0.0f;

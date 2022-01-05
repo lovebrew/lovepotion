@@ -130,7 +130,7 @@ int Wrap_ImageData::SetPixel(lua_State* L)
 
     return 0;
 }
-#include "debug/logger.h"
+
 // ImageData:mapPixel. Not thread-safe! See wrap_ImageData.lua for the thread-
 // safe wrapper function.
 int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
@@ -141,11 +141,11 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     // No optints because we assume they're done in the wrapper function.
     int sourceX = (int)lua_tonumber(L, 3);
     int sourceY = (int)lua_tonumber(L, 4);
-    int sourceW = (int)lua_tonumber(L, 5);
-    int sourceH = (int)lua_tonumber(L, 6);
+    int width   = (int)lua_tonumber(L, 5);
+    int height  = (int)lua_tonumber(L, 6);
 
     if (!(self->Inside(sourceX, sourceY) &&
-          self->Inside(sourceX + sourceW - 1, sourceY + sourceH - 1)))
+          self->Inside(sourceX + width - 1, sourceY + height - 1)))
         return luaL_error(L, "Invalid rectangle dimensions.");
 
     int imageWidth = self->GetWidth();
@@ -160,14 +160,11 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     unsigned _srcPowTwo = NextPO2(imageWidth + 2);
     uint32_t* data      = reinterpret_cast<uint32_t*>(self->GetData());
 
-    int maxWidth  = sourceX + (sourceW - 2);
-    int maxHeight = sourceY + (sourceH - 2);
-
-    for (int y = 0; y < std::min(sourceH, sourceH - sourceY); y++)
+    for (int y = sourceY; y < sourceY + height; y++)
     {
-        for (int x = 0; x < std::min(sourceW, sourceW - sourceX); x++)
+        for (int x = sourceX; x < sourceX + width; x++)
         {
-            unsigned index = coordToIndex(_srcPowTwo, (sourceX + x) + 1, (sourceY + y) + 1);
+            unsigned index = coordToIndex(_srcPowTwo, x + 1, y + 1);
             auto pixel     = reinterpret_cast<ImageData::Pixel*>(data + index);
 
             Colorf color {};
@@ -303,6 +300,8 @@ int Wrap_ImageData::_PerformAtomic(lua_State* L)
     if (error != 0)
         return lua_error(L);
 
+    /* The function and everything after it in the stack are eaten by the pcall */
+    /* leaving only the ImageData object. Everything else is a return value. */
     return lua_gettop(L) - 1;
 }
 

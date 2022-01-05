@@ -71,3 +71,11 @@ int love::GetPixelFormatColorComponents(PixelFormat format)
             return 0;
     }
 }
+
+bool love::IsPixelFormatCompressed(PixelFormat pixelFormat)
+{
+    int format = static_cast<int>(pixelFormat);
+
+    return format >= static_cast<int>(PIXELFORMAT_DXT1) &&
+           format < static_cast<int>(PIXELFORMAT_MAX_ENUM);
+}

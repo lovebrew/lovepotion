@@ -149,13 +149,14 @@ void ImageData::Decode(Data* data)
     this->width     = decoded.subWidth;
     this->height    = decoded.subHeight;
 #endif
+
     this->data   = decoded.data;
     this->format = decoded.format;
 
     this->decodeHandler = decoder;
 
-    pixelSetFunction = this->GetPixelSetFunction(format);
-    pixelGetFunction = this->GetPixelGetFunction(format);
+    this->pixelSetFunction = this->GetPixelSetFunction(format);
+    this->pixelGetFunction = this->GetPixelGetFunction(format);
 }
 
 FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, const char* filename,
@@ -267,10 +268,10 @@ static void setPixelRGBA16(const Colorf& color, ImageData::Pixel* pixel)
 
 static void setPixelTex3ds(const Colorf& color, ImageData::Pixel* pixel)
 {
-    int a = (0xFF & static_cast<int>(color.a * 0xFF)) << 0x18;
-    int b = (0xFF & static_cast<int>(color.b * 0xFF)) << 0x10;
-    int g = (0xFF & static_cast<int>(color.g * 0xFF)) << 0x08;
     int r = (0xFF & static_cast<int>(color.r * 0xFF)) << 0x00;
+    int g = (0xFF & static_cast<int>(color.g * 0xFF)) << 0x08;
+    int b = (0xFF & static_cast<int>(color.b * 0xFF)) << 0x10;
+    int a = (0xFF & static_cast<int>(color.a * 0xFF)) << 0x18;
 
     pixel->packed32 = (a | b | g | r);
 }
@@ -293,10 +294,10 @@ static void getPixelRGBA16(const ImageData::Pixel* pixel, Colorf& color)
 
 static void getPixelTex3ds(const ImageData::Pixel* pixel, Colorf& color)
 {
-    color = { ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f,
-              ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f,
-              ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f,
-              ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f };
+    color.r = ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f;
+    color.g = ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f;
+    color.b = ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f;
+    color.a = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
 }
 
 void ImageData::SetPixel(int x, int y, const Colorf& color)

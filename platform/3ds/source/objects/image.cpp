@@ -3,43 +3,52 @@
 
 using namespace love;
 
-Image::Image(const Slices& slices) : Texture(Texture::TEXTURE_2D)
+Image::Image(const Slices& slices) : Image(slices, true)
 {
-    ImageDataBase* data = slices.Get(0, 0);
+    ImageDataBase* slice = slices.Get(0, 0);
+    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
+}
 
+Image::Image(const Slices& slices, bool validate) :
+    Texture(data.GetTextureType()),
+    data(slices),
+    mipmapsType(MIPMAPS_NONE),
+    sRGB(false)
+{
+    if (validate && this->data.Validate() == MIPMAPS_DATA)
+        mipmapsType = MIPMAPS_DATA;
+}
+
+Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :
+    Image(Slices(textureType), false)
+{
+    this->Init(format, width, height);
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
+}
+
+void Image::Init(PixelFormat format, int width, int height)
+{
     this->texture.tex = new C3D_Tex();
 
-    unsigned powTwoWidth  = NextPO2(data->GetWidth() + 2);
-    unsigned powTwoHeight = NextPO2(data->GetHeight() + 2);
+    unsigned powTwoWidth  = NextPO2(width + 2);
+    unsigned powTwoHeight = NextPO2(height + 2);
 
     if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, GPU_RGBA8))
         throw love::Exception("Failed to initialize texture!");
 
     size_t copySize = powTwoWidth * powTwoHeight * 4;
-    memcpy(this->texture.tex->data, data->GetData(), copySize);
+    memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);
 
     C3D_TexFlush(this->texture.tex);
 
-    this->Init(data->GetWidth(), data->GetHeight());
+    this->format = format;
 
     this->InitQuad();
 
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
-}
-
-Image::Image(TextureType type, int width, int height) : Texture(type)
-{
-    this->Init(width, height);
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
-}
-
-void Image::Init(int width, int height)
-{
-    this->width  = width;
-    this->height = height;
 }
 
 Image::~Image()

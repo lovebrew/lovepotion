@@ -24,29 +24,13 @@ function ImageData:mapPixel(func, ix, iy, iw, ih)
     iw = iw or idw
     ih = ih or idh
 
-    if type(ix) ~= "number" then
-        error("bad argument #2 to ImageData:mapPixel (expected number)", 2)
-    end
+    if type(ix) ~= "number" then error("bad argument #2 to ImageData:mapPixel (expected number)", 2) end
+    if type(iy) ~= "number" then error("bad argument #3 to ImageData:mapPixel (expected number)", 2) end
+    if type(iw) ~= "number" then error("bad argument #4 to ImageData:mapPixel (expected number)", 2) end
+    if type(ih) ~= "number" then error("bad argument #5 to ImageData:mapPixel (expected number)", 2) end
 
-    if type(iy) ~= "number" then
-        error("bad argument #3 to ImageData:mapPixel (expected number)", 2)
-    end
-
-    if type(iw) ~= "number" then
-        error("bad argument #4 to ImageData:mapPixel (expected number)", 2)
-    end
-
-    if type(ih) ~= "number" then
-        error("bad argument #5 to ImageData:mapPixel (expected number)", 2)
-    end
-
-    if type(func) ~= "function" then
-        error("bad argument #1 to ImageData:mapPixel (expected function)", 2)
-    end
-
-    if not (inside(ix, iy, idw, idh) and inside(ix + iw - 1, iy + ih - 1, idw, idh)) then
-        error("Invalid rectangle dimensions", 2)
-    end
+    if type(func) ~= "function" then error("bad argument #1 to ImageData:mapPixel (expected function)", 2) end
+    if not (inside(ix, iy, idw, idh) and inside(ix + iw - 1, iy + ih - 1, idw, idh)) then error("Invalid rectangle dimensions", 2) end
 
     -- performAtomic and mapPixelUnsafe have Lua-C API and FFI versions.
     self:_performAtomic(self._mapPixelUnsafe, self, func, ix, iy, iw, ih)

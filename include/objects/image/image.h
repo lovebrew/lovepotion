@@ -55,17 +55,23 @@ namespace love
         void ReplacePixels(const void* data, size_t size, const Rect& rect);
 #endif
 
-        Image(const Slices& data);
-
         ~Image();
 
-        Image(TextureType type, int width, int height);
+        Image(TextureType type, PixelFormat format, int width, int height, int slices);
 
         void Init(PixelFormat format, int width, int height);
 
-        void Init(int width, int height);
+        Image(const Slices& data);
+
+      protected:
+        PixelFormat format;
+        Slices data;
+        MipmapsType mipmapsType;
+        bool sRGB;
 
       private:
+        Image(const Slices& data, bool validate);
+
         TextureType textureType;
     };
 } // namespace love

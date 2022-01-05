@@ -66,4 +66,6 @@ namespace love
     int GetPixelFormatColorComponents(PixelFormat format);
 
     unsigned GetPixelFormatSize(PixelFormat format);
+
+    bool IsPixelFormatCompressed(PixelFormat format);
 } // namespace love
