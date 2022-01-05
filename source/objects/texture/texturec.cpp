@@ -13,6 +13,7 @@ Texture::Texture(TextureType texType) :
     width(0),
     height(0),
     filter(defaultFilter),
+    mipmapCount(1),
     wrap()
 {}
 
@@ -53,6 +54,21 @@ const Texture::Wrap& Texture::GetWrap() const
 love::Quad* Texture::GetQuad() const
 {
     return this->quad;
+}
+
+int Texture::GetMipmapCount() const
+{
+    return this->mipmapCount;
+}
+
+int Texture::GetTotalMipmapCount(int width, int height)
+{
+    return (int)log2(std::max(width, height)) + 1;
+}
+
+int Texture::GetTotalMipmapCount(int width, int height, int depth)
+{
+    return (int)log2(std::max(std::max(width, height), depth)) + 1;
 }
 
 bool Texture::GetConstant(const char* in, TextureType& out)

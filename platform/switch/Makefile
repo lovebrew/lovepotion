@@ -80,7 +80,7 @@ CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := ${LOVE_PORTLIBS} `$(PREFIX)pkg-config libmpg123 --libs` -lturbojpeg -lpng `freetype-config --libs`
+LIBS := ${LOVE_PORTLIBS} `$(PREFIX)pkg-config libmpg123 --libs` `freetype-config --libs`
 
 ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2

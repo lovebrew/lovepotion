@@ -21,7 +21,7 @@ CompressedData::CompressedData(Compressor::Format format, char* cdata, size_t co
         }
         catch (std::bad_alloc&)
         {
-            throw love::Exception("Out of memroy.");
+            throw love::Exception("Out of memory.");
         }
 
         memcpy(this->data, cdata, this->dataSize);

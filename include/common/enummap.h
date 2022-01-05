@@ -4,7 +4,7 @@
 
 namespace love
 {
-    template<typename T, typename U, size_t PEAK>
+    template<typename T, typename U, size_t SIZE>
     class EnumMap
     {
       public:
@@ -14,62 +14,50 @@ namespace love
             U u;
         };
 
-        EnumMap(const Entry* entries, size_t size)
+        EnumMap() = delete;
+
+        template<size_t ARRAY_SIZE>
+        consteval EnumMap(const Entry (&inEntries)[ARRAY_SIZE]) : entries(), populated(ARRAY_SIZE)
         {
-            size_t n = size / sizeof(Entry);
+            static_assert(ARRAY_SIZE <= SIZE && ARRAY_SIZE > 0);
 
-            for (size_t i = 0; i < n; ++i)
-            {
-                size_t e_t = (size_t)entries[i].t;
-                size_t e_u = (size_t)entries[i].u;
+            for (size_t i = 0; i < ARRAY_SIZE; i++)
+                this->entries[i] = inEntries[i];
 
-                if (e_t < PEAK)
-                {
-                    values_u[e_t].v   = e_u;
-                    values_u[e_t].set = true;
-                }
-
-                if (e_u < PEAK)
-                {
-                    values_t[e_u].v   = e_t;
-                    values_t[e_u].set = true;
-                }
-            }
+            for (size_t i = ARRAY_SIZE; i < SIZE; i++)
+                this->entries[i] = { T(0), U(0) };
         }
 
-        bool Find(T t, U& u)
+        constexpr bool Find(T key, U& value) const
         {
-            if ((size_t)t < PEAK && values_u[(size_t)t].set)
+            for (size_t i = 0; i < this->populated; ++i)
             {
-                u = (U)values_u[(size_t)t].v;
-                return true;
+                if (this->entries[i].t == key)
+                {
+                    value = this->entries[i].u;
+                    return true;
+                }
             }
 
             return false;
         }
 
-        bool Find(U u, T& t)
+        constexpr bool Find(U key, T& value) const
         {
-            if ((size_t)u < PEAK && values_t[(size_t)u].set)
+            for (size_t i = 0; i < this->populated; ++i)
             {
-                t = (T)values_t[(size_t)u].v;
-                return true;
+                if (this->entries[i].u == key)
+                {
+                    value = this->entries[i].t;
+                    return true;
+                }
             }
 
             return false;
         }
 
       private:
-        struct Value
-        {
-            unsigned v;
-            bool set;
-
-            Value() : set(false)
-            {}
-        };
-
-        Value values_t[PEAK];
-        Value values_u[PEAK];
+        Entry entries[SIZE];
+        const size_t populated;
     };
 } // namespace love

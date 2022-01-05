@@ -134,9 +134,10 @@ void love::deko3d::Graphics::SetColor(Colorf color)
     ::deko3d::Instance().SetBlendColor(color);
 }
 
-love::Image* love::deko3d::Graphics::NewImage(Texture::TextureType t, int width, int height)
+love::Image* love::deko3d::Graphics::NewImage(Texture::TextureType t, PixelFormat format, int width,
+                                              int height, int slices)
 {
-    return new Image(t, width, height);
+    return new Image(t, format, width, height, slices);
 }
 
 void love::deko3d::Graphics::SetMeshCullMode(vertex::CullMode mode)

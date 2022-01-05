@@ -1,48 +1,39 @@
 #include "objects/image/image.h"
+#include "modules/image/imagemodule.h"
 
 #include "deko3d/deko.h"
 
+#include "modules/graphics/graphics.h"
+
 using namespace love;
 
-Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
+Image::Image(const Slices& slices, bool validate) :
+    Texture(slices.GetTextureType()),
+    data(slices),
+    mipmapsType(MIPMAPS_NONE),
+    sRGB(Graphics::IsGammaCorrect())
 {
-    // CImage can load PNG and JPG files with the proper libraries
-    bool success =
-        this->texture.load(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
-                           ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(),
-                           data->GetData(), data->GetSize(), this->width, this->height);
+    if (validate && data.Validate() == MIPMAPS_DATA)
+        this->mipmapsType = MIPMAPS_DATA;
+}
 
-    if (!success)
-        throw love::Exception("Failed to upload Image data.");
+Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :
+    Image(Slices(textureType), false)
+{
+    if (love::IsPixelFormatCompressed(format))
+        throw love::Exception("This constructor only supports non-compressesd pixel formats.");
 
-    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
+    this->Init(format, width, height);
+}
 
-    this->InitQuad();
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
+Image::Image(const Slices& slices) : Image(slices, true)
+{
+    ImageDataBase* slice = slices.Get(0, 0);
+    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
 }
 
 Image::~Image()
 {}
-
-Image::Image(TextureType type, int width, int height) : Texture(type)
-{
-    this->Init(width, height);
-
-    bool success = this->texture.loadEmptyPixels(
-        ::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
-        ::deko3d::Instance().GetDevice(), ::deko3d::Instance().GetTextureQueue(), width, height,
-        DkImageFormat_RGBA8_Unorm);
-
-    if (!success)
-        throw love::Exception("Failed to create Image data");
-
-    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
-}
 
 void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
 {
@@ -50,10 +41,28 @@ void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
                                 data, size, ::deko3d::Instance().GetTextureQueue(), rect);
 }
 
-void Image::Init(int width, int height)
+void Image::Init(PixelFormat pixelFormat, int width, int height)
 {
+    PixelFormat format = pixelFormat;
+
+    bool success = this->texture.load(format, this->sRGB, this->data.Get(0, 0)->GetData(),
+                                      this->data.Get(0, 0)->GetSize(), width, height);
+
+    if (!success)
+    {
+        const char* formatName = nullptr;
+        ImageModule::GetConstant(format, formatName);
+
+        throw love::Exception("Failed to upload image data: format %s not supported", formatName);
+    }
+
     this->width  = width;
     this->height = height;
 
+    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
+
     this->InitQuad();
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
 }

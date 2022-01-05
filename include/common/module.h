@@ -20,6 +20,7 @@ namespace love
             M_FILESYSTEM,
             M_FONT,
             M_GRAPHICS,
+            M_IMAGE,
             M_JOYSTICK,
             M_KEYBOARD,
             M_MATH,

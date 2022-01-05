@@ -81,6 +81,15 @@ namespace love::common
 
         love::Quad* GetQuad() const;
 
+        int GetMipmapCount() const;
+
+        static int GetTotalMipmapCount(int width, int height);
+
+        static int GetTotalMipmapCount(int width, int height, int depth);
+
+        static int getTotalMipmapCount(int w, int h);
+        static int getTotalMipmapCount(int w, int h, int d);
+
         static bool GetConstant(const char* in, TextureType& out);
         static bool GetConstant(TextureType in, const char*& out);
         static std::vector<const char*> GetConstants(TextureType);
@@ -100,6 +109,7 @@ namespace love::common
         int height;
 
         Filter filter;
+        int mipmapCount;
         Wrap wrap;
 
         StrongReference<love::Quad> quad;

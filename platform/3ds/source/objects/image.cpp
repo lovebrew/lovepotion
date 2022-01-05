@@ -3,13 +3,47 @@
 
 using namespace love;
 
-Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
+Image::Image(const Slices& slices) : Image(slices, true)
 {
-    this->sheet = C2D_SpriteSheetLoadFromMem(data->GetData(), data->GetSize());
+    ImageDataBase* slice = slices.Get(0, 0);
+    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
+}
 
-    this->texture = C2D_SpriteSheetGetImage(this->sheet, 0);
+Image::Image(const Slices& slices, bool validate) :
+    Texture(data.GetTextureType()),
+    data(slices),
+    mipmapsType(MIPMAPS_NONE),
+    sRGB(false)
+{
+    if (validate && this->data.Validate() == MIPMAPS_DATA)
+        mipmapsType = MIPMAPS_DATA;
+}
 
-    this->Init(this->texture.subtex->width, this->texture.subtex->height);
+Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :
+    Image(Slices(textureType), false)
+{
+    this->Init(format, width, height);
+
+    this->SetFilter(this->filter);
+    this->SetWrap(this->wrap);
+}
+
+void Image::Init(PixelFormat format, int width, int height)
+{
+    this->texture.tex = new C3D_Tex();
+
+    unsigned powTwoWidth  = NextPO2(width + 2);
+    unsigned powTwoHeight = NextPO2(height + 2);
+
+    if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, GPU_RGBA8))
+        throw love::Exception("Failed to initialize texture!");
+
+    size_t copySize = powTwoWidth * powTwoHeight * 4;
+    memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);
+
+    C3D_TexFlush(this->texture.tex);
+
+    this->format = format;
 
     this->InitQuad();
 
@@ -17,22 +51,5 @@ Image::Image(Data* data) : Texture(Texture::TEXTURE_2D)
     this->SetWrap(this->wrap);
 }
 
-Image::Image(TextureType type, int width, int height) : Texture(type)
-{
-    this->Init(width, height);
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
-}
-
-void Image::Init(int width, int height)
-{
-    this->width  = width;
-    this->height = height;
-}
-
 Image::~Image()
-{
-    if (this->sheet != NULL)
-        C2D_SpriteSheetFree(this->sheet);
-}
+{}

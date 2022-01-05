@@ -14,7 +14,7 @@
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
-                "panel": "new",
+                "panel":"shared",
                 "showReuseMessage": false,
                 "clear": true
             },
@@ -32,7 +32,7 @@
                 "echo": true,
                 "reveal": "always",
                 "focus": true,
-                "panel": "dedicated",
+                "panel": "shared",
                 "showReuseMessage": false,
                 "clear": true
             },

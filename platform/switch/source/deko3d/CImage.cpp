@@ -3,112 +3,23 @@
 **   CExternalImage.cpp: Utility class for loading images from the filesystem
 */
 #include "deko3d/CImage.h"
+#include "deko3d/deko.h"
 
 #include "common/lmath.h"
+#include "common/pixelformat.h"
 
 #include <cstdio>
 
-#include <libpng16/png.h>
-#include <turbojpeg.h>
-
-#include "common/debug/logger.h"
-
-/*
-** Load the specified @buffer with @size into an std::unique_ptr
-*/
-[[nodiscard]] std::unique_ptr<u32[]> CImage::loadPNG(const void* buffer, const size_t size,
-                                                     int& width, int& height)
+bool CImage::load(love::PixelFormat pixelFormat, bool isSRGB, void* buffer, size_t size, int width,
+                  int height)
 {
-    png_image image;
-    memset(&image, 0, sizeof(image));
+    DkImageFormat format;
+    if (!::deko3d::GetConstant(pixelFormat, format))
+        return false;
 
-    image.version = PNG_IMAGE_VERSION;
-
-    png_image_begin_read_from_memory(&image, buffer, size);
-
-    if (PNG_IMAGE_FAILED(image))
-    {
-        png_image_free(&image);
-        return nullptr;
-    }
-
-    image.format = PNG_FORMAT_RGBA;
-
-    width  = image.width;
-    height = image.height;
-
-    std::unique_ptr<u32[]> outBuffer = std::make_unique<u32[]>(width * height);
-
-    png_image_finish_read(&image, NULL, outBuffer.get(), PNG_IMAGE_ROW_STRIDE(image), NULL);
-    png_image_free(&image);
-
-    if (PNG_IMAGE_FAILED(image))
-        return nullptr;
-
-    return outBuffer;
-}
-
-/*
-** Due to the way libjpg-turbo is, this works as-expected, but images must
-** have their "progressive" flag turned off, usually dealt with in GIMP or
-** similar programs
-*/
-[[nodiscard]] std::unique_ptr<u8[]> CImage::loadJPG(const void* buffer, size_t size, int& width,
-                                                    int& height)
-{
-
-    tjhandle _jpegDecompressor = tjInitDecompress();
-
-    if (_jpegDecompressor == NULL)
-        return nullptr;
-
-    int samples;
-    if (tjDecompressHeader2(_jpegDecompressor, (u8*)buffer, size, &width, &height, &samples) == -1)
-        return nullptr;
-
-    std::unique_ptr<u8[]> outBuffer = std::make_unique<u8[]>(width * height * 4);
-
-    /* we always want RGBA, hopefully outputs as RGBA8 */
-    if (tjDecompress2(_jpegDecompressor, (u8*)buffer, size, outBuffer.get(), width, 0, height,
-                      TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
-        goto _fail0;
-
-    tjDestroy(_jpegDecompressor);
-
-    return outBuffer;
-
-_fail0:
-    tjDestroy(_jpegDecompressor);
-    return nullptr;
-}
-
-bool CImage::load(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
-                  dk::Queue transferQueue, void* buffer, size_t size, int& width, int& height)
-{
-    DkImageFormat imageFormat = DkImageFormat_RGBA8_Unorm;
-
-    if (auto uniqueBuffer = this->loadPNG(buffer, size, width, height); uniqueBuffer)
-        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(),
-                                width, height, imageFormat);
-    else if (auto uniqueBuffer = this->loadJPG(buffer, size, width, height); uniqueBuffer)
-        return this->loadMemory(imagePool, scratchPool, device, transferQueue, uniqueBuffer.get(),
-                                width, height, imageFormat);
-
-    return false;
-}
-
-size_t CImage::getFormatSize(DkImageFormat format)
-{
-    switch (format)
-    {
-        case DkImageFormat_RGBA8_Unorm:
-        default:
-            return 4;
-    }
-
-    /* shouldn't happen */
-
-    return 0;
+    return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
+                            ::deko3d::Instance().GetDevice(),
+                            ::deko3d::Instance().GetTextureQueue(), buffer, width, height, format);
 }
 
 /* replace the pixels at a location */
@@ -152,9 +63,13 @@ bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void*
 /* load a CImage with transparent black pixels */
 bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
                              dk::Queue transferQueue, uint32_t width, uint32_t height,
-                             DkImageFormat format, uint32_t flags)
+                             DkImageFormat dkFormat, uint32_t flags)
 {
-    size_t size = width * height * this->getFormatSize(format);
+    PixelFormat format;
+    if (!::deko3d::GetConstant(dkFormat, format))
+        return false;
+
+    size_t size = width * height * love::GetPixelFormatSize(format);
 
     if (size <= 0)
         return false;
@@ -180,7 +95,7 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
     dk::ImageLayout layout;
     dk::ImageLayoutMaker { device }
         .setFlags(flags)
-        .setFormat(format)
+        .setFormat(dkFormat)
         .setDimensions(width, height)
         .initialize(layout);
 
@@ -206,13 +121,17 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
 
 bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
                         dk::Queue transferQueue, const void* data, uint32_t width, uint32_t height,
-                        DkImageFormat format, uint32_t flags)
+                        DkImageFormat dkFormat, uint32_t flags)
 {
     if (data == nullptr)
         return false;
 
     // Allocate temporary memory for the image
-    size_t size = width * height * this->getFormatSize(format);
+    PixelFormat format;
+    if (!::deko3d::GetConstant(dkFormat, format))
+        return false;
+
+    size_t size = width * height * love::GetPixelFormatSize(format);
 
     if (size <= 0)
         return false;
@@ -236,7 +155,7 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
     dk::ImageLayout layout;
     dk::ImageLayoutMaker { device }
         .setFlags(flags)
-        .setFormat(format)
+        .setFormat(dkFormat)
         .setDimensions(width, height)
         .initialize(layout);
 

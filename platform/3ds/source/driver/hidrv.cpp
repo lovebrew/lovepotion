@@ -28,11 +28,12 @@ bool Hidrv::Poll(LOVE_Event* event)
 
     /* touch screen */
 
-    hidTouchRead(&this->touchState);
-
     u32 touchDown     = hidKeysDown();
     u32 touchHeld     = hidKeysHeld();
     u32 touchReleased = hidKeysUp();
+
+    if (touchDown & KEY_TOUCH || touchHeld & KEY_TOUCH)
+        hidTouchRead(&this->touchState);
 
     if (!this->isTouchHeld && (touchDown & KEY_TOUCH))
     {
@@ -74,7 +75,8 @@ bool Hidrv::Poll(LOVE_Event* event)
 
     if (touchReleased & KEY_TOUCH)
     {
-        auto& newEvent = this->events.emplace_back();
+        auto& newEvent      = this->events.emplace_back();
+        this->oldTouchState = this->touchState;
 
         newEvent.type = TYPE_TOUCHRELEASE;
 
@@ -84,8 +86,6 @@ bool Hidrv::Poll(LOVE_Event* event)
         newEvent.touch.dx       = 0.0f;
         newEvent.touch.dy       = 0.0f;
         newEvent.touch.pressure = 0.0f;
-
-        this->oldTouchState = this->touchState;
 
         if (this->isTouchHeld)
             this->isTouchHeld = false;
