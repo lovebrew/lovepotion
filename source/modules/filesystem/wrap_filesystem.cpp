@@ -435,12 +435,24 @@ int Wrap_Filesystem::NewFileData(lua_State* L)
             return luaL_argerror(L, 1, "filename or File expected");
     }
 
-    size_t length        = 0;
-    const char* string   = luaL_checklstring(L, 1, &length);
+    size_t length   = 0;
+    const void* ptr = nullptr;
+    if (Luax::IsType(L, 1, Data::type))
+    {
+        Data* data = Wrap_Data::CheckData(L, 1);
+
+        ptr    = data->GetData();
+        length = data->GetSize();
+    }
+    else if (lua_isstring(L, 1))
+        ptr = luaL_checklstring(L, 1, &length);
+    else
+        return luaL_argerror(L, 1, "string or Data expected");
+
     const char* filename = luaL_checkstring(L, 2);
 
     FileData* data = nullptr;
-    Luax::CatchException(L, [&]() { data = instance()->NewFileData(string, length, filename); });
+    Luax::CatchException(L, [&]() { data = instance()->NewFileData(ptr, length, filename); });
 
     Luax::PushType(L, data);
     data->Release();
