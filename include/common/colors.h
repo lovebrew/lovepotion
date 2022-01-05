@@ -16,34 +16,6 @@ struct ColorT
     ColorT(T r_, T g_, T b_, T a_) : r(r_), g(g_), b(b_), a(a_)
     {}
 
-    void UnpackRGBA(unsigned colors)
-    {
-        this->r = ((colors & 0xFF000000) >> 0x18) / 255.0f;
-        this->g = ((colors & 0x00FF0000) >> 0x10) / 255.0f;
-        this->b = ((colors & 0x0000FF00) >> 0x08) / 255.0f;
-        this->a = ((colors & 0x000000FF) >> 0x00) / 255.0f;
-    }
-
-    uint32_t PackRGBA()
-    {
-        int _r = (0xFF & (this->r * 0xFF)) << 0x18;
-        int _g = (0xFF & (this->g * 0xFF)) << 0x10;
-        int _b = (0xFF & (this->b * 0xFF)) << 0x08;
-        int _a = (0xFF & (this->a * 0xFF)) << 0x00;
-
-        return (_r | _g | _b | _a);
-    }
-
-    uint32_t PackRGBA(const T r_, const T g_, const T b_, const T a_)
-    {
-        int _r = (0xFF & (r_ * 0xFF)) << 0x18;
-        int _g = (0xFF & (g_ * 0xFF)) << 0x10;
-        int _b = (0xFF & (b_ * 0xFF)) << 0x08;
-        int _a = (0xFF & (a_ * 0xFF)) << 0x00;
-
-        return (_r | _g | _b | _a);
-    }
-
     void Set(T r_, T g_, T b_, T a_)
     {
         r = r_;
@@ -177,21 +149,20 @@ inline Colorf toColorf(Color32 c)
 
 inline Colorf fromBytes(unsigned colors)
 {
-    Colorf color {};
-    color.UnpackRGBA(colors);
-
-    return color;
+    return Colorf { ((colors & 0x000000FF) >> 0x00) / 255.0f,
+                    ((colors & 0x0000FF00) >> 0x08) / 255.0f,
+                    ((colors & 0x00FF0000) >> 0x10) / 255.0f,
+                    ((colors & 0xFF000000) >> 0x18) / 255.0f };
 }
 
-template<typename T>
-uint32_t packRGBA(const T r_, const T g_, const T b_, const T a_)
+inline uint32_t packRGBA(const float r_, const float g_, const float b_, const float a_)
 {
-    int _r = (0xFF & static_cast<int>(r_ * 0xFF)) << 0x18;
-    int _g = (0xFF & static_cast<int>(g_ * 0xFF)) << 0x10;
-    int _b = (0xFF & static_cast<int>(b_ * 0xFF)) << 0x08;
-    int _a = (0xFF & static_cast<int>(a_ * 0xFF)) << 0x00;
+    int _a = (0xFF & static_cast<int>(a_ * 0xFF)) << 0x18;
+    int _b = (0xFF & static_cast<int>(b_ * 0xFF)) << 0x10;
+    int _g = (0xFF & static_cast<int>(g_ * 0xFF)) << 0x08;
+    int _r = (0xFF & static_cast<int>(r_ * 0xFF)) << 0x00;
 
-    return (_r | _g | _b | _a);
+    return (_a | _b | _g | _r);
 }
 
 #if defined(__3DS__)

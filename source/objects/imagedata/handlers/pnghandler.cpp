@@ -2,6 +2,7 @@
 
 #include "common/exception.h"
 
+#include "debug/logger.h"
 #include <libpng16/png.h>
 
 using namespace love;
@@ -33,9 +34,6 @@ bool PNGHandler::CanEncode(PixelFormat rawFormat, EncodedFormat encodedFormat)
 
 PNGHandler::DecodedImage PNGHandler::Decode(Data* data)
 {
-    unsigned width  = 0;
-    unsigned height = 0;
-
     DecodedImage decoded {};
 
     png_image image;
@@ -53,12 +51,12 @@ PNGHandler::DecodedImage PNGHandler::Decode(Data* data)
 
     image.format = PNG_FORMAT_RGBA;
 
-    decoded.width  = width;
-    decoded.height = height;
+    decoded.width  = image.width;
+    decoded.height = image.height;
     decoded.format = PIXELFORMAT_RGBA8;
-    decoded.size   = (width * height) * sizeof(uint32_t);
+    decoded.size   = (image.width * image.height) * sizeof(uint32_t);
 
-    decoded.data = new uint8_t[decoded.size];
+    decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];
 
     png_image_finish_read(&image, NULL, decoded.data, PNG_IMAGE_ROW_STRIDE(image), NULL);
     png_image_free(&image);

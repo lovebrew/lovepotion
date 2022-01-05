@@ -43,7 +43,7 @@ deko3d::deko3d() :
            .code   = CMemPool(this->device, shaderFlags, shaderPoolSize) },
     state(),
     textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-    viewport { 0, 0, framebufferWidth, framebufferHeight },
+    viewport { 0, 0, static_cast<int>(framebufferWidth), static_cast<int>(framebufferHeight) },
     framebuffers(),
     descriptorsDirty(false),
     depthBuffer()

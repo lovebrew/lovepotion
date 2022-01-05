@@ -22,40 +22,40 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
             const char* formatStr = luaL_checkstring(L, 3);
             if (!ImageModule::GetConstant(formatStr, format))
                 return Luax::EnumError(L, "pixel format", formatStr);
-
-            size_t numberOfBytes = 0;
-            const char* bytes    = nullptr;
-
-            if (Luax::IsType(L, 4, Data::type))
-            {
-                Data* data = Wrap_Data::CheckData(L, 4);
-
-                bytes         = (const char*)data->GetData();
-                numberOfBytes = data->GetSize();
-            }
-            else if (!lua_isnoneornil(L, 4))
-                bytes = luaL_checklstring(L, 4, &numberOfBytes);
-
-            ImageData* imageData = nullptr;
-            Luax::CatchException(
-                L, [&]() { imageData = instance()->NewImageData(width, height, format); });
-
-            if (bytes)
-            {
-                if (numberOfBytes != imageData->GetSize())
-                {
-                    imageData->Release();
-                    return luaL_error(L, "The size of the raw byte string must match the "
-                                         "ImageData's actual size in bytes.");
-                }
-                memcpy(imageData->GetData(), bytes, imageData->GetSize());
-            }
-
-            Luax::PushType(L, imageData);
-            imageData->Release();
-
-            return 1;
         }
+
+        size_t numberOfBytes = 0;
+        const char* bytes    = nullptr;
+
+        if (Luax::IsType(L, 4, Data::type))
+        {
+            Data* data = Wrap_Data::CheckData(L, 4);
+
+            bytes         = (const char*)data->GetData();
+            numberOfBytes = data->GetSize();
+        }
+        else if (!lua_isnoneornil(L, 4))
+            bytes = luaL_checklstring(L, 4, &numberOfBytes);
+
+        ImageData* imageData = nullptr;
+        Luax::CatchException(
+            L, [&]() { imageData = instance()->NewImageData(width, height, format); });
+
+        if (bytes)
+        {
+            if (numberOfBytes != imageData->GetSize())
+            {
+                imageData->Release();
+                return luaL_error(L, "The size of the raw byte string must match the "
+                                     "ImageData's actual size in bytes.");
+            }
+            memcpy(imageData->GetData(), bytes, imageData->GetSize());
+        }
+
+        Luax::PushType(L, imageData);
+        imageData->Release();
+
+        return 1;
     }
     else if (Wrap_Filesystem::CanGetData(L, 1))
     {

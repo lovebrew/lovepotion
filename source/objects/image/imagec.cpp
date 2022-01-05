@@ -82,9 +82,9 @@ Image::MipmapsType Image::Slices::Validate() const
             "Image does not have all required mipmap levels (expected %d, got %d)", expectedmips,
             mipcount);
 
-    int mipw      = w;
-    int miph      = h;
-    int mipslices = slicecount;
+    int mipw = w;
+    int miph = h;
+    // int mipslices = slicecount;
 
     for (int mip = 0; mip < mipcount; mip++)
     {

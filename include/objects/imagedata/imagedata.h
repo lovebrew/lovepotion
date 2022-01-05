@@ -93,6 +93,12 @@ namespace love
         static PixelGetFunction GetPixelGetFunction(PixelFormat format);
 
       private:
+        union Row
+        {
+            uint8_t* u8;
+            uint16_t* u16;
+        };
+
         void Create(int width, int height, PixelFormat format, void* data = nullptr);
 
         void Decode(Data* data);

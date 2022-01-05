@@ -76,8 +76,8 @@ void ImageData::Create(int width, int height, PixelFormat format, void* data)
     this->decodeHandler = nullptr;
     this->format        = format;
 
-    this->pixelSetFunction = GetPixelSetFunction(format);
-    this->pixelGetFunction = GetPixelGetFunction(format);
+    this->pixelSetFunction = this->GetPixelSetFunction(format);
+    this->pixelGetFunction = this->GetPixelGetFunction(format);
 }
 
 bool ImageData::ValidatePixelFormat(PixelFormat format)
@@ -149,6 +149,9 @@ void ImageData::Decode(Data* data)
     this->format = decoded.format;
 
     this->decodeHandler = decoder;
+
+    pixelSetFunction = this->GetPixelSetFunction(format);
+    pixelGetFunction = this->GetPixelGetFunction(format);
 }
 
 FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, const char* filename,
@@ -236,11 +239,11 @@ static float clamp01(float x)
     return std::clamp(x, 0.0f, 1.0f);
 }
 
-static void setPixelRGB(const Colorf& color, ImageData::Pixel* pixel)
-{
-    pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF + 0.5f);
-    pixel->rgba8[1] = static_cast<uint8_t>(clamp01(color.g) * 0xFF + 0.5f);
-}
+// static void setPixelRGB(const Colorf& color, ImageData::Pixel* pixel)
+// {
+//     pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF + 0.5f);
+//     pixel->rgba8[1] = static_cast<uint8_t>(clamp01(color.g) * 0xFF + 0.5f);
+// }
 
 static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
 {
@@ -290,9 +293,11 @@ void ImageData::SetPixel(int x, int y, const Colorf& color)
     this->pixelSetFunction(color, pixel);
 #else
     Lock lock(this->mutex);
-    unsigned index = coordToIndex(this->width, x + 1, y + 1);
 
-    ((uint32_t*)this->data)[index] = packRGBA<float>(color.r, color.g, color.b, color.a);
+    unsigned _width = NextPO2(this->width + 2);
+    unsigned index  = coordToIndex(_width, x + 1, y + 1);
+
+    ((uint32_t*)this->data)[index] = packRGBA(color.r, color.g, color.b, color.a);
 #endif
 }
 
@@ -302,12 +307,21 @@ void ImageData::GetPixel(int x, int y, Colorf& color) const
         throw love::Exception("Attempt to get out-of-range pixel!");
 
 #if not defined(__3DS__)
+    size_t pixelSize   = this->GetPixelSize();
+    const Pixel* pixel = (const Pixel*)(this->data + ((y * this->width + x) * pixelSize));
 
+    if (this->pixelGetFunction == nullptr)
+        throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", format);
+
+    Lock lock(this->mutex);
+    this->pixelGetFunction(pixel, color);
 #else
     Lock lock(this->mutex);
-    unsigned index = coordToIndex(this->width, x + 1, y + 1);
 
-    color = fromBytes(((u32*)this->data)[index]);
+    unsigned _width = NextPO2(this->width + 2);
+    unsigned index  = coordToIndex(_width, x + 1, y + 1);
+
+    color = fromBytes(((uint32_t*)this->data)[index]);
 #endif
 }
 
@@ -337,6 +351,86 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
 
     size_t srcpixelsize = src->GetPixelSize();
     size_t dstpixelsize = this->GetPixelSize();
+
+    // Check bounds; if the data ends up completely out of bounds, get out early.
+    if (sx >= srcW || sx + sw < 0 || sy >= srcH || sy + sh < 0 || dx >= dstW || dx + sw < 0 ||
+        dy >= dstH || dy + sh < 0)
+        return;
+
+    // Normalize values to the inside of both images.
+    if (dx < 0)
+    {
+        sw += dx;
+        sx -= dx;
+        dx = 0;
+    }
+    if (dy < 0)
+    {
+        sh += dy;
+        sy -= dy;
+        dy = 0;
+    }
+    if (sx < 0)
+    {
+        sw += sx;
+        dx -= sx;
+        sx = 0;
+    }
+    if (sy < 0)
+    {
+        sh += sy;
+        dy -= sy;
+        sy = 0;
+    }
+
+    if (dx + sw > dstW)
+        sw = dstW - dx;
+
+    if (dy + sh > dstH)
+        sh = dstH - dy;
+
+    if (sx + sw > srcW)
+        sw = srcW - sx;
+
+    if (sy + sh > srcH)
+        sh = srcH - sy;
+
+    Lock lock2(src->mutex);
+    Lock lock1(this->mutex);
+
+    uint8_t* source      = (uint8_t*)src->GetData();
+    uint8_t* destination = (uint8_t*)this->GetData();
+
+    auto getFunction = src->pixelGetFunction;
+    auto setFunction = this->pixelSetFunction;
+
+    if (srcformat == dstformat && (sw == dstW && dstW == srcW && sh == dstH && dstH == srcH))
+        memcpy(destination, source, srcpixelsize * sw * sh);
+    else if (sw > 0)
+    {
+        // Otherwise, copy each row individually.
+        for (int i = 0; i < sh; i++)
+        {
+            Row rowsrc = { source + (sx + (i + sy) * srcW) * srcpixelsize };
+            Row rowdst = { destination + (dx + (i + dy) * dstW) * dstpixelsize };
+
+            if (srcformat == dstformat)
+                memcpy(rowdst.u8, rowsrc.u8, srcpixelsize * sw);
+            else
+            {
+                // Slow path: convert src -> Colorf -> dst.
+                Colorf c;
+                for (int x = 0; x < sw; x++)
+                {
+                    auto srcp = (const Pixel*)(rowsrc.u8 + x * srcpixelsize);
+                    auto dstp = (Pixel*)(rowdst.u8 + x * dstpixelsize);
+
+                    getFunction(srcp, c);
+                    setFunction(c, dstp);
+                }
+            }
+        }
+    }
 }
 
 ImageData::PixelSetFunction ImageData::GetPixelSetFunction(PixelFormat format)

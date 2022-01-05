@@ -46,7 +46,7 @@ JPGHandler::DecodedImage JPGHandler::Decode(Data* data)
     int width  = 0;
     int height = 0;
 
-    if (tjDecompressHeader2(handle, (u8*)data->GetData(), data->GetSize(), &width, &height,
+    if (tjDecompressHeader2(handle, (uint8_t*)data->GetData(), data->GetSize(), &width, &height,
                             &samples) == -1)
     {
         tjDestroy(handle);
@@ -56,12 +56,12 @@ JPGHandler::DecodedImage JPGHandler::Decode(Data* data)
     decoded.width  = width;
     decoded.height = height;
     decoded.format = PIXELFORMAT_RGBA8;
+    decoded.size   = width * height * 4;
 
-    decoded.data = new uint8_t[width * height * 4];
+    decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];
 
-    /* we always want RGBA, hopefully outputs as RGBA8 */
-    if (tjDecompress2(handle, (u8*)data->GetData(), data->GetSize(), decoded.data, width, 0, height,
-                      TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
+    if (tjDecompress2(handle, (uint8_t*)data->GetData(), data->GetSize(), decoded.data, width, 0,
+                      height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
     {
         tjDestroy(handle);
         throw love::Exception("Could not decode JPG image (%s)", tjGetErrorStr());
