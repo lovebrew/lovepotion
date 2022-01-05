@@ -424,7 +424,10 @@ void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float wi
 void love::deko3d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
                                        float rx, float ry)
 {
-    this->Rectangle(mode, x, y, width, height, rx, ry, this->CalculateEllipsePoints(rx, ry));
+    int points = this->CalculateEllipsePoints(std::min(rx, std::abs(width / 2)),
+                                              std::min(ry, std::abs(height / 2)));
+
+    this->Rectangle(mode, x, y, width, height, rx, ry, points);
 }
 
 void love::deko3d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b, int points)
