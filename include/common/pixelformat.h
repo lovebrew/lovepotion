@@ -8,6 +8,8 @@ namespace love
 
         PIXELFORMAT_NORMAL,
 
+        PIXELFORMAT_TEX3DS_RGBA8,
+
         // "regular" formats
         PIXELFORMAT_RGBA8,
         PIXELFORMAT_RGBA16,

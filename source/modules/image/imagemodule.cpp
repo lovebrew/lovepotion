@@ -17,8 +17,8 @@ ImageModule::ImageModule()
         new PNGHandler(),
         new JPGHandler(),
         new DDSHandler(),
-        new ASTCHandler(),
         new PKMHandler(),
+        new ASTCHandler(),
 #endif
         new T3XHandler()
     };

@@ -16,5 +16,10 @@ namespace love
         virtual EncodedImage Encode(const DecodedImage& image, EncodedFormat format);
 
         virtual void FreeRawPixels(unsigned char* memory);
+
+        virtual const char* GetName()
+        {
+            return "PNGHandler";
+        }
     };
 } // namespace love

@@ -52,7 +52,7 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
 
     decoded.width  = width;
     decoded.height = height;
-    decoded.format = PIXELFORMAT_RGBA8;
+    decoded.format = PIXELFORMAT_TEX3DS_RGBA8;
 
     decoded.subWidth  = header.width;
     decoded.subHeight = header.height;

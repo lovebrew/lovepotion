@@ -17,6 +17,11 @@ namespace love
 #endif
         virtual void FreeRawPixels(unsigned char* memory);
 
+        virtual const char* GetName()
+        {
+            return "T3XHandler";
+        }
+
       private:
         struct __attribute__((packed)) Tex3DSHeader
         {

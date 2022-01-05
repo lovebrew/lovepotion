@@ -147,24 +147,6 @@ inline Colorf toColorf(Color32 c)
     return Colorf(c.r / 255.0f, c.g / 255.0f, c.b / 255.0f, c.a / 255.0f);
 }
 
-inline Colorf fromBytes(unsigned colors)
-{
-    return Colorf { ((colors & 0x000000FF) >> 0x00) / 255.0f,
-                    ((colors & 0x0000FF00) >> 0x08) / 255.0f,
-                    ((colors & 0x00FF0000) >> 0x10) / 255.0f,
-                    ((colors & 0xFF000000) >> 0x18) / 255.0f };
-}
-
-inline uint32_t packRGBA(const float r_, const float g_, const float b_, const float a_)
-{
-    int _a = (0xFF & static_cast<int>(a_ * 0xFF)) << 0x18;
-    int _b = (0xFF & static_cast<int>(b_ * 0xFF)) << 0x10;
-    int _g = (0xFF & static_cast<int>(g_ * 0xFF)) << 0x08;
-    int _r = (0xFF & static_cast<int>(r_ * 0xFF)) << 0x00;
-
-    return (_a | _b | _g | _r);
-}
-
 #if defined(__3DS__)
 // clang-format off
 /// \brief Convert 3DS texture coordinates to pixel index

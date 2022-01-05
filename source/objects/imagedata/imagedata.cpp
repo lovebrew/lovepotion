@@ -59,11 +59,15 @@ ImageData* ImageData::Clone() const
 
 void ImageData::Create(int width, int height, PixelFormat format, void* data)
 {
-    size_t datasize = width * height * GetPixelFormatSize(format);
+#if defined(__3DS__)
+    size_t dataSize = NextPO2(width + 2) * NextPO2(height + 2) * GetPixelFormatSize(format);
+#elif defined(__SWITCH__)
+    size_t dataSize = width * height * GetPixelFormatSize(format);
+#endif
 
     try
     {
-        this->data = new uint8_t[datasize];
+        this->data = new uint8_t[dataSize];
     }
     catch (std::bad_alloc&)
     {
@@ -71,7 +75,7 @@ void ImageData::Create(int width, int height, PixelFormat format, void* data)
     }
 
     if (data)
-        memcpy(this->data, data, datasize);
+        memcpy(this->data, data, dataSize);
 
     this->decodeHandler = nullptr;
     this->format        = format;
@@ -142,8 +146,8 @@ void ImageData::Decode(Data* data)
     this->width  = decoded.width;
     this->height = decoded.height;
 #else
-    this->width  = decoded.subWidth;
-    this->height = decoded.subHeight;
+    this->width     = decoded.subWidth;
+    this->height    = decoded.subHeight;
 #endif
     this->data   = decoded.data;
     this->format = decoded.format;
@@ -261,6 +265,16 @@ static void setPixelRGBA16(const Colorf& color, ImageData::Pixel* pixel)
     pixel->rgba16[3] = static_cast<uint16_t>(clamp01(color.a) * 0xFFFF + 0.5f);
 }
 
+static void setPixelTex3ds(const Colorf& color, ImageData::Pixel* pixel)
+{
+    int a = (0xFF & static_cast<int>(color.a * 0xFF)) << 0x18;
+    int b = (0xFF & static_cast<int>(color.b * 0xFF)) << 0x10;
+    int g = (0xFF & static_cast<int>(color.g * 0xFF)) << 0x08;
+    int r = (0xFF & static_cast<int>(color.r * 0xFF)) << 0x00;
+
+    pixel->packed32 = (a | b | g | r);
+}
+
 static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
 {
     color.r = pixel->rgba8[0] / 0xFF;
@@ -275,6 +289,14 @@ static void getPixelRGBA16(const ImageData::Pixel* pixel, Colorf& color)
     color.g = pixel->rgba16[1] / 0xFFFF;
     color.b = pixel->rgba16[2] / 0xFFFF;
     color.a = pixel->rgba16[3] / 0xFFFF;
+}
+
+static void getPixelTex3ds(const ImageData::Pixel* pixel, Colorf& color)
+{
+    color = { ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f,
+              ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f,
+              ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f,
+              ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f };
 }
 
 void ImageData::SetPixel(int x, int y, const Colorf& color)
@@ -292,12 +314,13 @@ void ImageData::SetPixel(int x, int y, const Colorf& color)
     Lock lock(this->mutex);
     this->pixelSetFunction(color, pixel);
 #else
-    Lock lock(this->mutex);
-
     unsigned _width = NextPO2(this->width + 2);
     unsigned index  = coordToIndex(_width, x + 1, y + 1);
 
-    ((uint32_t*)this->data)[index] = packRGBA(color.r, color.g, color.b, color.a);
+    Pixel* pixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + index);
+
+    Lock lock(this->mutex);
+    setPixelTex3ds(color, pixel);
 #endif
 }
 
@@ -316,12 +339,13 @@ void ImageData::GetPixel(int x, int y, Colorf& color) const
     Lock lock(this->mutex);
     this->pixelGetFunction(pixel, color);
 #else
-    Lock lock(this->mutex);
-
     unsigned _width = NextPO2(this->width + 2);
     unsigned index  = coordToIndex(_width, x + 1, y + 1);
 
-    color = fromBytes(((uint32_t*)this->data)[index]);
+    const Pixel* pixel = reinterpret_cast<const Pixel*>((uint32_t*)this->data + index);
+
+    Lock lock(this->mutex);
+    getPixelTex3ds(pixel, color);
 #endif
 }
 
@@ -341,16 +365,10 @@ bool ImageData::CanPaste(PixelFormat src, PixelFormat dst)
 
 void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, int sh)
 {
-    PixelFormat dstformat = this->GetFormat();
-    PixelFormat srcformat = src->GetFormat();
-
     int srcW = src->GetWidth();
     int srcH = src->GetHeight();
     int dstW = this->GetWidth();
     int dstH = this->GetHeight();
-
-    size_t srcpixelsize = src->GetPixelSize();
-    size_t dstpixelsize = this->GetPixelSize();
 
     // Check bounds; if the data ends up completely out of bounds, get out early.
     if (sx >= srcW || sx + sw < 0 || sy >= srcH || sy + sh < 0 || dx >= dstW || dx + sw < 0 ||
@@ -398,11 +416,38 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
     Lock lock2(src->mutex);
     Lock lock1(this->mutex);
 
+#if defined(__3DS__)
+    unsigned _srcPowTwo = NextPO2(src->width + 2);
+    unsigned _dstPowTwo = NextPO2(this->width + 2);
+
+    for (int y = 0; y < std::min(sh, dstH - dy); y++)
+    {
+        for (int x = 0; x < std::min(sw, dstW - dx); x++)
+        {
+            unsigned srcIndex = coordToIndex(_srcPowTwo, (sx + x) + 1, (sy + y) + 1);
+            unsigned dstIndex = coordToIndex(_dstPowTwo, (dx + x) + 1, (dy + y) + 1);
+
+            Colorf color {};
+
+            const Pixel* srcPixel = reinterpret_cast<const Pixel*>((uint32_t*)src->data + srcIndex);
+            getPixelTex3ds(srcPixel, color);
+
+            Pixel* dstPixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + dstIndex);
+            setPixelTex3ds(color, dstPixel);
+        }
+    }
+#elif defined(__SWITCH__)
     uint8_t* source      = (uint8_t*)src->GetData();
     uint8_t* destination = (uint8_t*)this->GetData();
 
+    size_t srcpixelsize = src->GetPixelSize();
+    size_t dstpixelsize = this->GetPixelSize();
+
     auto getFunction = src->pixelGetFunction;
     auto setFunction = this->pixelSetFunction;
+
+    PixelFormat dstformat = this->GetFormat();
+    PixelFormat srcformat = src->GetFormat();
 
     if (srcformat == dstformat && (sw == dstW && dstW == srcW && sh == dstH && dstH == srcH))
         memcpy(destination, source, srcpixelsize * sw * sh);
@@ -431,12 +476,15 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
             }
         }
     }
+#endif
 }
 
 ImageData::PixelSetFunction ImageData::GetPixelSetFunction(PixelFormat format)
 {
     switch (format)
     {
+        case PIXELFORMAT_TEX3DS_RGBA8:
+            return setPixelTex3ds;
         case PIXELFORMAT_RGBA8:
             return setPixelRGBA8;
         case PIXELFORMAT_RGBA16:
@@ -450,6 +498,8 @@ ImageData::PixelGetFunction ImageData::GetPixelGetFunction(PixelFormat format)
 {
     switch (format)
     {
+        case PIXELFORMAT_TEX3DS_RGBA8:
+            return getPixelTex3ds;
         case PIXELFORMAT_RGBA8:
             return getPixelRGBA8;
         case PIXELFORMAT_RGBA16:

@@ -29,6 +29,11 @@ namespace love
             Data* fileData, std::vector<StrongReference<CompressedSlice>>& images,
             PixelFormat& format, bool& isSRGB) override;
 
+        const char* GetName() override
+        {
+            return "PKMHandler";
+        }
+
       private:
         static constexpr uint8_t PKMIDENTIFIER[] = { 'P', 'K', 'M', ' ' };
 

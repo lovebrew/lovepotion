@@ -19,5 +19,10 @@ namespace love
         StrongReference<CompressedMemory> ParseCompressed(
             Data* fileData, std::vector<StrongReference<CompressedSlice>>& images,
             PixelFormat& format, bool& isSRGB) override;
+
+        const char* GetName() override
+        {
+            return "DDSHandler";
+        }
     };
 } // namespace love

@@ -8,6 +8,8 @@
 #include "objects/data/wrap_data.h"
 #include "objects/file/file.h"
 
+#include "common/lmath.h"
+
 #include "wrap_imagedata_lua.h"
 
 using namespace love;
@@ -128,7 +130,7 @@ int Wrap_ImageData::SetPixel(lua_State* L)
 
     return 0;
 }
-
+#include "debug/logger.h"
 // ImageData:mapPixel. Not thread-safe! See wrap_ImageData.lua for the thread-
 // safe wrapper function.
 int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
@@ -154,6 +156,49 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     auto pixelsetfunction = self->GetPixelSetFunction(format);
     auto pixelgetfunction = self->GetPixelGetFunction(format);
 
+#if defined(__3DS__)
+    unsigned _srcPowTwo = NextPO2(imageWidth + 2);
+    uint32_t* data      = reinterpret_cast<uint32_t*>(self->GetData());
+
+    int maxWidth  = sourceX + (sourceW - 2);
+    int maxHeight = sourceY + (sourceH - 2);
+
+    for (int y = 0; y < std::min(sourceH, sourceH - sourceY); y++)
+    {
+        for (int x = 0; x < std::min(sourceW, sourceW - sourceX); x++)
+        {
+            unsigned index = coordToIndex(_srcPowTwo, (sourceX + x) + 1, (sourceY + y) + 1);
+            auto pixel     = reinterpret_cast<ImageData::Pixel*>(data + index);
+
+            Colorf color {};
+            pixelgetfunction(pixel, color);
+
+            lua_pushvalue(L, 2); // ImageData
+
+            lua_pushnumber(L, x);
+            lua_pushnumber(L, y);
+
+            lua_pushnumber(L, color.r);
+            lua_pushnumber(L, color.g);
+            lua_pushnumber(L, color.b);
+            lua_pushnumber(L, color.a);
+
+            lua_call(L, 6, 4);
+
+            color.r = (float)luaL_checknumber(L, -4);
+            if (components > 1)
+                color.g = (float)luaL_checknumber(L, -3);
+            if (components > 2)
+                color.b = (float)luaL_checknumber(L, -2);
+            if (components > 3)
+                color.a = (float)luaL_optnumber(L, -1, 1.0);
+
+            pixelsetfunction(color, pixel);
+
+            lua_pop(L, 4); // Pop return values.
+        }
+    }
+#elif defined(__SWITCH__)
     uint8_t* data    = (uint8_t*)self->GetData();
     size_t pixelsize = self->GetPixelSize();
 
@@ -191,7 +236,7 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
             lua_pop(L, 4); // Pop return values.
         }
     }
-
+#endif
     return 0;
 }
 

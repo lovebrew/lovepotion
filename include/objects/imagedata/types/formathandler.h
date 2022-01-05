@@ -56,6 +56,11 @@ namespace love
 
         virtual EncodedImage Encode(const DecodedImage& image, EncodedFormat format);
 
+        virtual const char* GetName()
+        {
+            return "FormatHandler";
+        }
+
         virtual bool CanParseCompressed(Data* data);
 
         virtual StrongReference<CompressedMemory> ParseCompressed(

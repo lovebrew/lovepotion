@@ -823,12 +823,12 @@ static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData
     lua_State* L, int index, bool allowCompressed, float* dpiScale)
 {
     StrongReference<ImageData> imageData;
-    StrongReference<CompressedImageData> compressedImageData;
+    StrongReference<CompressedImageData> cData;
 
     if (Luax::IsType(L, index, ImageData::type))
         imageData.Set(Wrap_ImageData::CheckImageData(L, index));
     else if (Luax::IsType(L, index, CompressedImageData::type))
-        compressedImageData.Set(Wrap_CompressedImageData::CheckCompressedImageData(L, index));
+        cData.Set(Wrap_CompressedImageData::CheckCompressedImageData(L, index));
     else if (Wrap_Filesystem::CanGetData(L, index))
     {
         auto imageModule = Module::GetInstance<ImageModule>(Module::M_IMAGE);
@@ -840,8 +840,7 @@ static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData
 
         if (allowCompressed && imageModule->IsCompressed(fileData))
             Luax::CatchException(L, [&]() {
-                compressedImageData.Set(imageModule->NewCompressedData(fileData),
-                                        Acquire::NORETAIN);
+                cData.Set(imageModule->NewCompressedData(fileData), Acquire::NORETAIN);
             });
         else
             Luax::CatchException(L, [&]() {
@@ -849,7 +848,7 @@ static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData
             });
     }
 
-    return std::make_pair(imageData, compressedImageData);
+    return std::make_pair(imageData, cData);
 }
 
 static int _pushNewImage(lua_State* L, Image::Slices& slices)

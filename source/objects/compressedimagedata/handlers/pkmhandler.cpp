@@ -25,7 +25,7 @@ static PixelFormat convertFormat(uint16_t format)
             return PIXELFORMAT_UNKNOWN;
     }
 }
-#include "debug/logger.h"
+
 bool PKMHandler::CanParseCompressed(Data* data)
 {
     if (data->GetSize() <= sizeof(PKMHeader))

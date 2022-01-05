@@ -44,7 +44,7 @@ function ImageData:mapPixel(func, ix, iy, iw, ih)
         error("bad argument #1 to ImageData:mapPixel (expected function)", 2)
     end
 
-    if not (inside(ix, iy, idw, idh) and inside(ix+iw-1, iy+ih-1, idw, idh)) then
+    if not (inside(ix, iy, idw, idh) and inside(ix + iw - 1, iy + ih - 1, idw, idh)) then
         error("Invalid rectangle dimensions", 2)
     end
 

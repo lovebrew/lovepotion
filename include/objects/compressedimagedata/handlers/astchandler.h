@@ -16,6 +16,11 @@ namespace love
             Data* fileData, std::vector<StrongReference<CompressedSlice>>& images,
             PixelFormat& format, bool& sRGB) override;
 
+        const char* GetName() override
+        {
+            return "ASTCHandler";
+        }
+
       private:
         static constexpr uint32_t ASTC_IDENTIFIER = 0x5CA1AB13;
 
