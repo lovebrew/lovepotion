@@ -45,15 +45,23 @@ void Image::Init(PixelFormat pixelFormat, int width, int height)
 {
     PixelFormat format = pixelFormat;
 
-    bool success = this->texture.load(format, this->sRGB, this->data.Get(0, 0)->GetData(),
-                                      this->data.Get(0, 0)->GetSize(), width, height);
-
-    if (!success)
+    if (this->data.Get(0, 0))
     {
-        const char* formatName = nullptr;
-        ImageModule::GetConstant(format, formatName);
+        bool success = this->texture.load(format, this->sRGB, this->data.Get(0, 0)->GetData(),
+                                          this->data.Get(0, 0)->GetSize(), width, height);
 
-        throw love::Exception("Failed to upload image data: format %s not supported", formatName);
+        if (!success)
+        {
+            const char* formatName = nullptr;
+            ImageModule::GetConstant(format, formatName);
+
+            throw love::Exception("Failed to upload image data: format %s not supported",
+                                  formatName);
+        }
+    }
+    else
+    {
+        this->texture.load(pixelFormat, this->sRGB, nullptr, 0, width, height, true);
     }
 
     this->width  = width;

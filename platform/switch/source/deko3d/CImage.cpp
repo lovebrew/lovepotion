@@ -11,15 +11,22 @@
 #include <cstdio>
 
 bool CImage::load(love::PixelFormat pixelFormat, bool isSRGB, void* buffer, size_t size, int width,
-                  int height)
+                  int height, bool empty)
 {
     DkImageFormat format;
     if (!::deko3d::GetConstant(pixelFormat, format))
         return false;
 
-    return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
-                            ::deko3d::Instance().GetDevice(),
-                            ::deko3d::Instance().GetTextureQueue(), buffer, width, height, format);
+    if (!empty)
+        return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
+                                ::deko3d::Instance().GetDevice(),
+                                ::deko3d::Instance().GetTextureQueue(), buffer, width, height,
+                                format);
+    else
+        return this->loadEmptyPixels(::deko3d::Instance().GetImages(),
+                                     ::deko3d::Instance().GetData(),
+                                     ::deko3d::Instance().GetDevice(),
+                                     ::deko3d::Instance().GetTextureQueue(), width, height, format);
 }
 
 /* replace the pixels at a location */

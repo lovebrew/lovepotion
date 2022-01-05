@@ -47,7 +47,7 @@ class CImage
     }
 
     bool load(love::PixelFormat format, bool isSRGB, void* buffer, size_t size, int width,
-              int height);
+              int height, bool empty = false);
 
     bool loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
                          dk::Queue queue, uint32_t width, uint32_t height, DkImageFormat format,
