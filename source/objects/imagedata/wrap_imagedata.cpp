@@ -199,9 +199,9 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     uint8_t* data    = (uint8_t*)self->GetData();
     size_t pixelsize = self->GetPixelSize();
 
-    for (int y = sourceY; y < sourceY + sourceH; y++)
+    for (int y = sourceY; y < sourceY + height; y++)
     {
-        for (int x = sourceX; x < sourceX + sourceW; x++)
+        for (int x = sourceX; x < sourceX + width; x++)
         {
             auto pixeldata = (ImageData::Pixel*)(data + (y * imageWidth + x) * pixelsize);
 
