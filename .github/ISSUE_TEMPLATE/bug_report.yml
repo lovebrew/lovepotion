@@ -4,7 +4,8 @@ title: "[Bug]: "
 labels: [bug]
 body:
   - type: markdown
-    value: "## Welcome!"
+    attributes:
+      value: "## Welcome!"
   - type: markdown
     attributes:
       value: Thanks for taking the time to fill out this bug! If you need general support, join the Discord.
