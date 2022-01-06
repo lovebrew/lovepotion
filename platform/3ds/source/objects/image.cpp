@@ -20,7 +20,7 @@ Image::Image(const Slices& slices, bool validate) :
 }
 
 Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :
-    Image(Slices(textureType), false)
+    Image(Slices(type), false)
 {
     this->Init(format, width, height);
 
@@ -44,6 +44,9 @@ void Image::Init(PixelFormat format, int width, int height)
     C3D_TexFlush(this->texture.tex);
 
     this->format = format;
+
+    this->width  = width;
+    this->height = height;
 
     this->InitQuad();
 
