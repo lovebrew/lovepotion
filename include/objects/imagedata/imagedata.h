@@ -34,8 +34,11 @@ namespace love
 
         ImageData(Data* data);
 
+#if defined(__SWITCH__)
         ImageData(int width, int height, PixelFormat format = PIXELFORMAT_RGBA8);
-
+#elif defined(__3DS__)
+        ImageData(int width, int height, PixelFormat format = PIXELFORMAT_TEX3DS_RGBA8);
+#endif
         ImageData(int width, int height, PixelFormat format, void* data, bool own);
 
         ImageData(const ImageData& other);

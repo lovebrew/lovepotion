@@ -59,11 +59,12 @@ ImageData* ImageData::Clone() const
 
 void ImageData::Create(int width, int height, PixelFormat format, void* data)
 {
-#if defined(__3DS__)
-    size_t dataSize = NextPO2(width + 2) * NextPO2(height + 2) * GetPixelFormatSize(format);
-#elif defined(__SWITCH__)
-    size_t dataSize = width * height * GetPixelFormatSize(format);
-#endif
+    size_t dataSize = 0;
+
+    if (format == PIXELFORMAT_TEX3DS_RGBA8)
+        dataSize = NextPO2(width + 2) * NextPO2(height + 2) * GetPixelFormatSize(format);
+    else
+        dataSize = width * height * GetPixelFormatSize(format);
 
     try
     {
@@ -90,6 +91,7 @@ bool ImageData::ValidatePixelFormat(PixelFormat format)
     {
         case PIXELFORMAT_RGBA8:
         case PIXELFORMAT_RGBA16:
+        case PIXELFORMAT_TEX3DS_RGBA8:
             return true;
         default:
             return false;
@@ -268,12 +270,12 @@ static void setPixelRGBA16(const Colorf& color, ImageData::Pixel* pixel)
 
 static void setPixelTex3ds(const Colorf& color, ImageData::Pixel* pixel)
 {
-    int r = (0xFF & static_cast<int>(color.r * 0xFF)) << 0x00;
-    int g = (0xFF & static_cast<int>(color.g * 0xFF)) << 0x08;
-    int b = (0xFF & static_cast<int>(color.b * 0xFF)) << 0x10;
-    int a = (0xFF & static_cast<int>(color.a * 0xFF)) << 0x18;
+    uint8_t r = uint8_t(0xFF * clamp01(color.r) + 0.5f);
+    uint8_t g = uint8_t(0xFF * clamp01(color.g) + 0.5f);
+    uint8_t b = uint8_t(0xFF * clamp01(color.b) + 0.5f);
+    uint8_t a = uint8_t(0xFF * clamp01(color.a) + 0.5f);
 
-    pixel->packed32 = (a | b | g | r);
+    pixel->packed32 = (a | (b << uint32_t(0x08)) | (g << uint32_t(0x10)) | (r << uint32_t(0x18)));
 }
 
 static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
@@ -294,10 +296,10 @@ static void getPixelRGBA16(const ImageData::Pixel* pixel, Colorf& color)
 
 static void getPixelTex3ds(const ImageData::Pixel* pixel, Colorf& color)
 {
-    color.r = ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f;
-    color.g = ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f;
-    color.b = ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f;
-    color.a = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
+    color.r = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
+    color.g = ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f;
+    color.b = ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f;
+    color.a = ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f;
 }
 
 void ImageData::SetPixel(int x, int y, const Colorf& color)
@@ -517,7 +519,10 @@ bool ImageData::Inside(int x, int y) const
 
 size_t ImageData::GetSize() const
 {
-    return size_t(this->GetWidth() * this->GetHeight()) * this->GetPixelSize();
+    if (this->format == PIXELFORMAT_TEX3DS_RGBA8)
+        return NextPO2(this->width + 2) * NextPO2(this->height + 2) * this->GetPixelSize();
+    else
+        return size_t(this->GetWidth() * this->GetHeight()) * this->GetPixelSize();
 }
 
 thread::Mutex* ImageData::GetMutex() const

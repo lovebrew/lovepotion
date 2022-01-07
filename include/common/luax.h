@@ -227,6 +227,14 @@ namespace Luax
         return 0;
     }
 
+    inline bool IsCTR()
+    {
+        if (strncmp(Version::LOVE_POTION_CONSOLE, "3DS", 3) != 0)
+            return false;
+
+        return true;
+    }
+
     template<typename T>
     T* ToType(lua_State* L, int index, const love::Type& /*type*/)
     {

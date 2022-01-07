@@ -16,6 +16,8 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
             return luaL_error(L, "Invalid image size.");
 
         PixelFormat format = PIXELFORMAT_RGBA8;
+        if (Luax::IsCTR())
+            format = PIXELFORMAT_TEX3DS_RGBA8;
 
         if (!lua_isnoneornil(L, 3))
         {

@@ -90,6 +90,7 @@ constexpr static StringMap<PixelFormat, PIXELFORMAT_MAX_ENUM>::Entry formatEntri
     { "depth24",         PIXELFORMAT_DEPTH24          },
     { "depth32f",        PIXELFORMAT_DEPTH32F         },
     { "depth24stencil8", PIXELFORMAT_DEPTH24_STENCIL8 },
+    { "tex3ds_rgba8",    PIXELFORMAT_TEX3DS_RGBA8     },
 
     { "DXT1",            PIXELFORMAT_DXT1             },
     { "DXT3",            PIXELFORMAT_DXT3             },
