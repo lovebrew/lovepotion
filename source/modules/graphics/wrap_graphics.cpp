@@ -847,6 +847,8 @@ static std::pair<StrongReference<ImageData>, StrongReference<CompressedImageData
                 imageData.Set(imageModule->NewImageData(fileData), Acquire::NORETAIN);
             });
     }
+    else
+        imageData.Set(Wrap_ImageData::CheckImageData(L, index));
 
     return std::make_pair(imageData, cData);
 }
