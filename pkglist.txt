@@ -7,6 +7,8 @@
 3ds-physfs
 3ds-pkg-config
 3ds-libmodplug
+3ds-libjpeg-turbo
+3ds-libpng
 3ds-zlib
 3dslink
 3dstools

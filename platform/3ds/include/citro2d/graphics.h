@@ -4,7 +4,7 @@
 #include "modules/graphics/graphics.h"
 
 #define RENDERER_NAME    "citro3d"
-#define RENDERER_VERSION "1.6.2"
+#define RENDERER_VERSION "1.7.0"
 #define RENDERER_VENDOR  "devkitPro"
 #define RENDERER_DEVICE  "DMP PICA200"
 
