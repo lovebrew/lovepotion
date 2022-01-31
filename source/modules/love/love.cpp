@@ -84,38 +84,38 @@ int love::Initialize(lua_State* L)
     lua_setfield(L, -2, "_os");
 
     // love._console_name
-    lua_pushstring(L, Version::LOVE_POTION_CONSOLE);
+    lua_pushstring(L, __CONSOLE__);
     lua_setfield(L, -2, "_console_name");
 
     // love._potion_version
-    lua_pushstring(L, Version::LOVE_POTION);
+    lua_pushstring(L, __APP_VERSION__);
     lua_setfield(L, -2, "_potion_version");
 
     // love._version
-    lua_pushstring(L, Version::LOVE);
+    lua_pushstring(L, __LOVE_VERSION__);
     lua_setfield(L, -2, "_version");
 
     // love._version_(major, minor, revision, codename)
-    lua_pushnumber(L, Version::MAJOR);
+    lua_pushnumber(L, version::LOVE_FRAMEWORK.Major());
     lua_setfield(L, -2, "_version_major");
 
-    lua_pushnumber(L, Version::MINOR);
+    lua_pushnumber(L, version::LOVE_FRAMEWORK.Minor());
     lua_setfield(L, -2, "_version_minor");
 
-    lua_pushnumber(L, Version::REVISION);
+    lua_pushnumber(L, version::LOVE_FRAMEWORK.Revision());
     lua_setfield(L, -2, "_version_revision");
 
-    lua_pushstring(L, Version::CODENAME);
+    lua_pushstring(L, version::CODENAME);
     lua_setfield(L, -2, "_version_codename");
 
     // love._potion_(major, minor, revision)
-    lua_pushnumber(L, Version::POTION_MAJOR);
+    lua_pushnumber(L, version::LOVE_POTION.Major());
     lua_setfield(L, -2, "_potion_version_major");
 
-    lua_pushnumber(L, Version::POTION_MINOR);
+    lua_pushnumber(L, version::LOVE_POTION.Minor());
     lua_setfield(L, -2, "_potion_version_minor");
 
-    lua_pushnumber(L, Version::POTION_MAJOR);
+    lua_pushnumber(L, version::LOVE_POTION.Revision());
     lua_setfield(L, -2, "_potion_version_revision");
 
     // End Constants -- namespace functions //
@@ -197,10 +197,10 @@ int love::NoGame(lua_State* L)
 
 int love::GetVersion(lua_State* L)
 {
-    lua_pushinteger(L, Version::MAJOR);
-    lua_pushinteger(L, Version::MINOR);
-    lua_pushinteger(L, Version::REVISION);
-    lua_pushstring(L, Version::CODENAME);
+    lua_pushinteger(L, version::LOVE_FRAMEWORK.Major());
+    lua_pushinteger(L, version::LOVE_FRAMEWORK.Minor());
+    lua_pushinteger(L, version::LOVE_FRAMEWORK.Revision());
+    lua_pushstring(L,  version::CODENAME);
 
     return 4;
 }
@@ -225,9 +225,9 @@ int love::IsVersionCompatible(lua_State* L)
         sprintf(version.data(), "%d.%d.%d", major, minor, revision);
     }
 
-    for (size_t i = 0; Version::COMPATABILITY[i]; i++)
+    for (size_t i = 0; version::COMPATABILITY[i]; i++)
     {
-        std::string_view v(Version::COMPATABILITY[i]);
+        std::string_view v(version::COMPATABILITY[i]);
 
         if (version.compare(v) != 0)
             continue;

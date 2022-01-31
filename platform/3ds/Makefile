@@ -65,11 +65,7 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS	:=	-g -Wall -mword-relocations \
 			-fomit-frame-pointer -ffunction-sections $(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -D__3DS__
-
-# Custom defines
-CFLAGS	+= -D__DEBUG__=$(DEBUG)
-
+CFLAGS	+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 CXXFLAGS	:= $(CFLAGS) -Wno-psabi -fno-rtti -fexceptions -std=gnu++20
 
 ASFLAGS	:=	-g $(ARCH)
@@ -188,7 +184,7 @@ endif
 
 #---------------------------------------------------------------------------------
 all: $(BUILD) $(GFXBUILD) $(DEPSDIR) $(ROMFS_T3XFILES) $(T3XHFILES)
-	@$(MAKE) --no-print-directory --silent -C $(BUILD) -f $(CURDIR)/Makefile
+	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 $(BUILD):
 	@mkdir -p $@

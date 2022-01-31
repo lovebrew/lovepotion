@@ -70,17 +70,17 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ $(DEFINES)
 
 # Custom defines
-CFLAGS	+= `freetype-config --cflags` -D__DEBUG__=$(DEBUG)
+CFLAGS	+= `freetype-config --cflags`
 
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fexceptions -std=gnu++20
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS := ${LOVE_PORTLIBS} `$(PREFIX)pkg-config libmpg123 --libs` `freetype-config --libs`
+LIBS := ${LOVE_PORTLIBS} `freetype-config --libs` `$(PREFIX)pkg-config libmpg123 --libs`
 
 ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2

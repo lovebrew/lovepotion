@@ -25,7 +25,6 @@ extern "C"
 #include <string.h>
 
 #include "common/reference.h"
-#include "common/version.h"
 
 namespace love
 {
@@ -229,10 +228,10 @@ namespace Luax
 
     inline bool IsCTR()
     {
-        if (strncmp(Version::LOVE_POTION_CONSOLE, "3DS", 3) != 0)
-            return false;
+        if (strncmp(__CONSOLE__, "3DS", 3))
+            return true;
 
-        return true;
+        return false;
     }
 
     template<typename T>

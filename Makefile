@@ -18,6 +18,7 @@ export LOVE_LIBRARIES = $(foreach dir, $(ROOT_LIBRARIES), ../../$(wildcard $(dir
 export LOVE_MAIN_DATA_FILES = ../../source/modules/love/scripts
 export LOVE_DATA_FILES = ../../source/scripts
 
+export LOVE_VERSION = 11.4.0
 #-----------------------------------
 # Common portlibs for the consoles
 #-----------------------------------
@@ -29,19 +30,23 @@ LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -ljpeg -lpng
 #------------------------------------
 export APP_TITLE   := LÖVE Potion
 export APP_AUTHOR  := lövebrew team
-export APP_VERSION := 2.3.0
+export APP_VERSION := 2.3.1
 export APP_TITLEID := 1043
 
+export DEFINES := -D__DEBUG__=$(DEBUG) -D__APP_VERSION__=\"$(APP_VERSION)\" \
+					-D__LOVE_VERSION__=\"$(LOVE_VERSION)\" -D__CONSOLE__=\"$(CONSOLE)\"
 #-----------------------------------
 # Build
 #-----------------------------------
 all: ctr hac
 
+ctr: CONSOLE=3DS
 ctr:
-	@$(MAKE) -C platform/3ds    DEBUG=$(DEBUG)
+	@$(MAKE) -C platform/3ds
 
+hac: CONSOLE=Switch
 hac:
-	@$(MAKE) -C platform/switch DEBUG=$(DEBUG)
+	@$(MAKE) -C platform/switch
 
 #-----------------------------------
 # Build & Distribute (Release)

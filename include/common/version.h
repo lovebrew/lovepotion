@@ -1,25 +1,79 @@
 #pragma once
 
-namespace Version
+namespace love
 {
-    static constexpr const char* LOVE_POTION = "2.3.0";
-    static constexpr const char* LOVE        = "11.4.0";
+    namespace version
+    {
+        class Version
+        {
+          public:
+            consteval Version(std::string_view version) : values()
+            {
+                int position = 0;
+                size_t last  = 0;
+                size_t size  = 0;
 
-#if defined(__3DS__)
-    static constexpr const char* LOVE_POTION_CONSOLE = "3DS";
-#elif defined(__SWITCH__)
-    static constexpr const char* LOVE_POTION_CONSOLE = "Switch";
-#endif
+                for (size_t index = 0; index < version.length(); index++)
+                {
+                    if (version.at(index) == DELIMETER)
+                    {
+                        std::string_view token = version.substr(last, size);
+                        this->values[position] = Version::atoi(token);
 
-    static constexpr int MAJOR    = 11;
-    static constexpr int MINOR    = 4;
-    static constexpr int REVISION = 0;
+                        last = index + 1;
+                        position++;
+                        size = 0;
+                    }
+                    else
+                    {
+                        if (position == 2)
+                        {
+                            std::string_view token = version.substr(last, version.length() - last);
+                            this->values[position++] = Version::atoi(token);
+                        }
+                        size++;
+                    }
+                }
+            }
 
-    static constexpr int POTION_MAJOR    = 2;
-    static constexpr int POTION_MINOR    = 3;
-    static constexpr int POTION_REVISION = 0;
+            consteval int Major() const
+            {
+                return this->values[0];
+            }
 
-    static constexpr const char* CODENAME = "Mysterious Mysteries";
+            consteval int Minor() const
+            {
+                return this->values[1];
+            }
 
-    static constexpr const char* COMPATABILITY[] = { LOVE_POTION, "2.2.0", 0 };
-} // namespace Version
+            consteval int Revision() const
+            {
+                return this->values[2];
+            }
+
+          private:
+            static constexpr char DELIMETER = '.';
+
+            constexpr static int atoi(std::string_view view)
+            {
+                int value = 0;
+                for (const auto& character : view)
+                {
+                    if ('0' <= character <= '9')
+                    {
+                        value = value * 10 + character - '0';
+                    }
+                }
+                return value;
+            }
+
+            std::array<int, 3> values;
+        };
+
+        static constexpr Version LOVE_POTION(__APP_VERSION__);
+        static constexpr Version LOVE_FRAMEWORK(__LOVE_VERSION__);
+
+        static constexpr const char* CODENAME        = "Mysterious Mysteries";
+        static constexpr const char* COMPATABILITY[] = { __APP_VERSION__, "2.2.0", 0 };
+    } // namespace version
+} // namespace love
