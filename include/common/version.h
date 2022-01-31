@@ -59,7 +59,7 @@ namespace love
                 int value = 0;
                 for (const auto& character : view)
                 {
-                    if ('0' <= character <= '9')
+                    if ('0' <= character && character <= '9')
                     {
                         value = value * 10 + character - '0';
                     }
