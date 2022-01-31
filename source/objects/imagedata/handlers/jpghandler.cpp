@@ -1,69 +1,67 @@
 #include "objects/imagedata/handlers/jpghandler.h"
 
 #include "common/exception.h"
-#include <turbojpeg.h>
+#include <jpeglib.h>
 
 using namespace love;
 
 bool JPGHandler::CanDecode(Data* data)
 {
-    tjhandle handle = tjInitDecompress();
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr jerr;
 
-    if (handle == NULL)
-        return false;
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_decompress(&cinfo);
 
-    int samples;
+    jpeg_mem_src(&cinfo, (uint8_t*)data->GetData(), data->GetSize());
 
-    int width  = 0;
-    int height = 0;
+    int result = jpeg_read_header(&cinfo, true);
+    jpeg_destroy_decompress(&cinfo);
 
-    if (tjDecompressHeader2(handle, (uint8_t*)data->GetData(), data->GetSize(), &width, &height,
-                            &samples) == -1)
-    {
-        tjDestroy(handle);
-        return false;
-    }
-
-    tjDestroy(handle);
-
-    return true;
+    return result == 1;
 }
 
 JPGHandler::DecodedImage JPGHandler::Decode(Data* data)
 {
-    tjhandle handle = tjInitDecompress();
     DecodedImage decoded {};
 
-    if (handle == NULL)
-        throw love::Exception("Failed to initialize JPG decompressor.");
+    struct jpeg_decompress_struct cinfo;
+    struct jpeg_error_mgr jerr;
 
-    int samples;
+    cinfo.err = jpeg_std_error(&jerr);
+    jpeg_create_decompress(&cinfo);
 
-    int width  = 0;
-    int height = 0;
+    jpeg_mem_src(&cinfo, (uint8_t*)data->GetData(), data->GetSize());
 
-    if (tjDecompressHeader2(handle, (uint8_t*)data->GetData(), data->GetSize(), &width, &height,
-                            &samples) == -1)
+    if (jpeg_read_header(&cinfo, true) != 1)
     {
-        tjDestroy(handle);
-        throw love::Exception("Failed to read JPG header.");
+        jpeg_destroy_decompress(&cinfo);
+        throw love::Exception("Could not decode non-JPG image.");
     }
 
-    decoded.width  = width;
-    decoded.height = height;
+    cinfo.out_color_space = JCS_EXT_RGBA;
+
+    jpeg_start_decompress(&cinfo);
+
+    decoded.width  = cinfo.output_width;
+    decoded.height = cinfo.output_height;
     decoded.format = PIXELFORMAT_RGBA8;
-    decoded.size   = width * height * 4;
+    decoded.size   = decoded.width * decoded.height * 4;
 
     decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];
 
-    if (tjDecompress2(handle, (uint8_t*)data->GetData(), data->GetSize(), decoded.data, width, 0,
-                      height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
+    size_t row_stride = decoded.width * 4;
+
+    while (cinfo.output_scanline < cinfo.output_height)
     {
-        tjDestroy(handle);
-        throw love::Exception("Could not decode JPG image (%s)", tjGetErrorStr());
+        uint8_t* buffer_array[1];
+        buffer_array[0] = decoded.data + (cinfo.output_scanline) * row_stride;
+
+        jpeg_read_scanlines(&cinfo, buffer_array, 1);
     }
 
-    tjDestroy(handle);
+    jpeg_finish_decompress(&cinfo);
+    jpeg_destroy_decompress(&cinfo);
 
     return decoded;
 }

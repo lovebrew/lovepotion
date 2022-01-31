@@ -1,89 +1,84 @@
 {
-    "configurations":
-    [
-        {
-            "name": "3DS",
-            "includePath":
-            [
-                "${workspaceFolder}/include/**",
-                "${workspaceFolder}/platform/3ds/include/**",
-                "${workspaceFolder}/libraries/**",
-                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
-                "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
-                "${env:DEVKITPRO}/libctru/include/**",
-                "${env:DEVKITPRO}/portlibs/3ds/include/**"
-            ],
-            "defines": [ "__3DS__" ],
-            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-arm",
-            "compilerArgs": [],
-            "customConfigurationVariables": { "console": "ctr" }
-        },
+  "configurations": [
+    {
+      "name": "3DS",
+      "includePath": [
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/platform/3ds/include/**",
+        "${workspaceFolder}/libraries/**",
+        "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
+        "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
+        "${env:DEVKITPRO}/libctru/include/**",
+        "${env:DEVKITPRO}/portlibs/3ds/include/**"
+      ],
+      "defines": ["__3DS__"],
+      "compilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "linux-gcc-arm",
+      "compilerArgs": [],
+      "customConfigurationVariables": { "console": "ctr" }
+    },
 
-        {
-            "name": "3DS {Debug}",
-            "includePath":
-            [
-                "${workspaceFolder}/include/**",
-                "${workspaceFolder}/platform/3ds/include/**",
-                "${workspaceFolder}/libraries/**",
-                "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
-                "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
-                "${env:DEVKITPRO}/libctru/include/**",
-                "${env:DEVKITPRO}/portlibs/3ds/include/**",
-            ],
-            "defines": [ "__3DS__", "__DEBUG__" ],
-            "compilerPath": "/opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-arm",
-            "compilerArgs": [],
-            "customConfigurationVariables": { "console": "ctr-debug" }
-        },
+    {
+      "name": "3DS {Debug}",
+      "includePath": [
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/platform/3ds/include/**",
+        "${workspaceFolder}/libraries/**",
+        "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
+        "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
+        "${env:DEVKITPRO}/libctru/include/**",
+        "${env:DEVKITPRO}/portlibs/3ds/include/**"
+      ],
+      "defines": ["__3DS__", "__DEBUG__"],
+      "compilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "linux-gcc-arm",
+      "compilerArgs": [],
+      "customConfigurationVariables": { "console": "ctr-debug" }
+    },
 
-        {
-            "name": "Switch",
-            "includePath":
-            [
-                "${workspaceFolder}/include/**",
-                "${workspaceFolder}/platform/switch/include/**",
-                "${workspaceFolder}/libraries/**",
-                "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
-                "${env:DEVKITPRO}/libnx/include/**",
-                "${env:DEVKITPRO}/portlibs/switch/include/**"
-            ],
-            "defines": [ "__SWITCH__", "__BSD_VISIBLE" ],
-            "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
-            "cStandard": "c11",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-arm64",
-            "compilerArgs": [],
-            "customConfigurationVariables": { "console": "hac" }
-        },
+    {
+      "name": "Switch",
+      "includePath": [
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/platform/switch/include/**",
+        "${workspaceFolder}/libraries/**",
+        "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+        "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
+        "${env:DEVKITPRO}/libnx/include/**",
+        "${env:DEVKITPRO}/portlibs/switch/include/**"
+      ],
+      "defines": ["__SWITCH__", "__BSD_VISIBLE"],
+      "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "linux-gcc-arm64",
+      "compilerArgs": [],
+      "customConfigurationVariables": { "console": "hac" }
+    },
 
-        {
-            "name": "Switch {Debug}",
-            "includePath":
-            [
-                "${workspaceFolder}/include/**",
-                "${workspaceFolder}/platform/switch/include/**",
-                "${workspaceFolder}/libraries/**",
-                "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-                "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
-                "${env:DEVKITPRO}/libnx/include/**",
-                "${env:DEVKITPRO}/portlibs/switch/include/**"
-            ],
-            "defines": [ "__SWITCH__", "__BSD_VISIBLE", "__DEBUG__" ],
-            "compilerPath": "/opt/devkitpro/devkitA64/bin/aarch64-none-elf-gcc",
-            "cStandard": "c11",
-            "cppStandard": "c++20",
-            "intelliSenseMode": "linux-gcc-arm64",
-            "compilerArgs": [],
-            "customConfigurationVariables": { "console": "hac-debug" }
-        }
-    ],
-    "version": 4
+    {
+      "name": "Switch {Debug}",
+      "includePath": [
+        "${workspaceFolder}/include/**",
+        "${workspaceFolder}/platform/switch/include/**",
+        "${workspaceFolder}/libraries/**",
+        "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
+        "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
+        "${env:DEVKITPRO}/libnx/include/**",
+        "${env:DEVKITPRO}/portlibs/switch/include/**"
+      ],
+      "defines": ["__SWITCH__", "__BSD_VISIBLE", "__DEBUG__"],
+      "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-gcc",
+      "cStandard": "c11",
+      "cppStandard": "c++20",
+      "intelliSenseMode": "linux-gcc-arm64",
+      "compilerArgs": [],
+      "customConfigurationVariables": { "console": "hac-debug" }
+    }
+  ],
+  "version": 4
 }

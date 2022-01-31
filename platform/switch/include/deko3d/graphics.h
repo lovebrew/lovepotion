@@ -5,7 +5,7 @@
 #include "deko3d/deko.h"
 
 #define RENDERER_NAME    "deko3d"
-#define RENDERER_VERSION "0.3.0"
+#define RENDERER_VERSION "0.4.0"
 #define RENDERER_VENDOR  "devkitPro"
 #define RENDERER_DEVICE  "NVIDIA Tegra X1"
 

@@ -212,7 +212,7 @@ clean:
 $(GFXBUILD)/%.t3x	:	%.png
 #---------------------------------------------------------------------------------
 	@echo $(notdir $<)
-	@tex3ds $< -d $(DEPSDIR)/$*.d --format=rgba8888 -z=auto --border -o $@
+	@tex3ds $< -d $(DEPSDIR)/$*.d --format=rgba8888 -z=auto --border=transparent -o $@
 
 #---------------------------------------------------------------------------------
 else
