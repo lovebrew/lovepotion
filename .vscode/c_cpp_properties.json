@@ -11,7 +11,7 @@
         "${env:DEVKITPRO}/libctru/include/**",
         "${env:DEVKITPRO}/portlibs/3ds/include/**"
       ],
-      "defines": ["__3DS__"],
+      "defines": ["__3DS__", "__CONSOLE__=\"3DS\""],
       "compilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -31,7 +31,7 @@
         "${env:DEVKITPRO}/libctru/include/**",
         "${env:DEVKITPRO}/portlibs/3ds/include/**"
       ],
-      "defines": ["__3DS__", "__DEBUG__"],
+      "defines": ["__3DS__", "__DEBUG__", "__CONSOLE__=\"3DS\""],
       "compilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -51,7 +51,7 @@
         "${env:DEVKITPRO}/libnx/include/**",
         "${env:DEVKITPRO}/portlibs/switch/include/**"
       ],
-      "defines": ["__SWITCH__", "__BSD_VISIBLE"],
+      "defines": ["__SWITCH__", "__BSD_VISIBLE", "__CONSOLE__=\"Switch\""],
       "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -71,7 +71,12 @@
         "${env:DEVKITPRO}/libnx/include/**",
         "${env:DEVKITPRO}/portlibs/switch/include/**"
       ],
-      "defines": ["__SWITCH__", "__BSD_VISIBLE", "__DEBUG__"],
+      "defines": [
+        "__SWITCH__",
+        "__BSD_VISIBLE",
+        "__DEBUG__",
+        "__CONSOLE__=\"Switch\""
+      ],
       "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-gcc",
       "cStandard": "c11",
       "cppStandard": "c++20",

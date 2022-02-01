@@ -34,17 +34,17 @@ export APP_VERSION := 2.3.1
 export APP_TITLEID := 1043
 
 export DEFINES := -D__DEBUG__=$(DEBUG) -D__APP_VERSION__=\"$(APP_VERSION)\" \
-					-D__LOVE_VERSION__=\"$(LOVE_VERSION)\" -D__CONSOLE__=\"$(CONSOLE)\"
+					-D__LOVE_VERSION__=\"$(LOVE_VERSION)\"
 #-----------------------------------
 # Build
 #-----------------------------------
 all: ctr hac
 
-ctr: CONSOLE=3DS
+ctr: DEFINES += -D__CONSOLE__=\"3DS\"
 ctr:
 	@$(MAKE) -C platform/3ds
 
-hac: CONSOLE=Switch
+hac: DEFINES += -D__CONSOLE__=\"Switch\"
 hac:
 	@$(MAKE) -C platform/switch
 
