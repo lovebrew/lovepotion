@@ -58,6 +58,7 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
     if (!handle)
         throw std::runtime_error("Could not create curl request");
 
+    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
     curl_easy_setopt(handle, CURLOPT_URL, req.url.c_str());
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
 
