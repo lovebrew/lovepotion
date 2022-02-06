@@ -21,6 +21,7 @@
 #include "modules/touch/wrap_touch.h"
 #include "modules/window/wrap_window.h"
 
+#include "https/common/HTTPSCommon.h"
 #include "luasocket/luasocket.h"
 
 /* included scripts */
@@ -144,6 +145,9 @@ int love::Initialize(lua_State* L)
     // lua 5.3 stuff
     Luax::Preload(L, luaopen_luautf8, "utf8");
 
+    // https module
+    Luax::Preload(L, luaopen_https, "https");
+
     return 1;
 }
 
@@ -156,7 +160,7 @@ int love::EnableAccelerometerAsJoystick(lua_State* L)
 
 int love::LoadArgs(lua_State* L)
 {
-    if (luaL_loadbuffer(L, arg_lua, sizeof(arg_lua), "arg.lua") == 0)
+    if (luaL_loadbuffer(L, arg_lua, sizeof(arg_lua), "=[love \"arg.lua\"]") == 0)
         lua_call(L, 0, 1);
 
     return 1;
@@ -164,7 +168,7 @@ int love::LoadArgs(lua_State* L)
 
 int love::LoadCallbacks(lua_State*L)
 {
-    if (luaL_loadbuffer(L, callbacks_lua, sizeof(callbacks_lua), "callbacks.lua") == 0)
+    if (luaL_loadbuffer(L, callbacks_lua, sizeof(callbacks_lua), "=[love \"callbacks.lua\"]") == 0)
         lua_call(L, 0, 1);
 
     return 1;
@@ -172,7 +176,7 @@ int love::LoadCallbacks(lua_State*L)
 
 int love::Boot(lua_State* L)
 {
-    if (luaL_loadbuffer(L, boot_lua, sizeof(boot_lua), "boot.lua") == 0)
+    if (luaL_loadbuffer(L, boot_lua, sizeof(boot_lua), "=[love \"boot.lua\"]") == 0)
         lua_call(L, 0, 1);
 
     return 1;
@@ -180,7 +184,7 @@ int love::Boot(lua_State* L)
 
 int love::OpenConsole(lua_State* L)
 {
-    if (luaL_loadbuffer(L, console_lua, sizeof(console_lua), "console.lua") == 0)
+    if (luaL_loadbuffer(L, console_lua, sizeof(console_lua), "=[love \"console.lua\"]") == 0)
         lua_call(L, 0, 1);
 
     return 1;
@@ -188,7 +192,7 @@ int love::OpenConsole(lua_State* L)
 
 int love::NoGame(lua_State* L)
 {
-    if (!luaL_loadbuffer(L, (const char*)nogame_lua, nogame_lua_size, "nogame.lua"))
+    if (!luaL_loadbuffer(L, (const char*)nogame_lua, nogame_lua_size, "=[love \"nogame.lua\"]"))
         lua_call(L, 0, 1);
 
     return 1;
