@@ -23,7 +23,7 @@ export LOVE_VERSION = 11.4.0
 # Common portlibs for the consoles
 #-----------------------------------
 export LOVE_PORTLIBS  = -lmodplug -lvorbisidec -lFLAC -lvorbisidec -logg
-LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -ljpeg -lpng
+LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -ljpeg -lpng `curl-config --libs`
 
 #------------------------------------
 # Common configuration for consoles

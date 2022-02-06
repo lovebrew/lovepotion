@@ -1,6 +1,7 @@
 3ds-examples
 3ds-libvorbisidec
 3ds-box2d
+3ds-curl
 3ds-flac
 3ds-lz4
 3ds-mpg123
@@ -9,6 +10,7 @@
 3ds-libmodplug
 3ds-libjpeg-turbo
 3ds-libpng
+3ds-mbedtls
 3ds-zlib
 3dslink
 3dstools
@@ -24,6 +26,7 @@ general-tools
 libctru
 libnx
 picasso
+switch-curl
 switch-examples
 switch-flac
 switch-libvorbisidec
