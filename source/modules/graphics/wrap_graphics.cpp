@@ -1403,7 +1403,7 @@ static constexpr luaL_Reg functions[] =
     { "getScissor",            Wrap_Graphics::GetScissor            },
     { "getScreens",            Wrap_Graphics::GetScreens            },
     { "getWidth",              Wrap_Graphics::GetWidth              },
-    { "instersectScissor",     Wrap_Graphics::IntersectScissor      },
+    { "intersectScissor",      Wrap_Graphics::IntersectScissor      },
     { "inverseTransformPoint", Wrap_Graphics::InverseTransformPoint },
     { "isActive",              Wrap_Graphics::IsActive              },
     { "isCreated",             Wrap_Graphics::IsCreated             },
