@@ -322,6 +322,36 @@ local function error_printer(msg, layer)
     print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
 end
 
+local max_lines = 14
+local function fix_long_error(font, text, max_width)
+    local text_result, result = "", 0
+
+    for line in text:gmatch("(.-)\n") do
+        if result < max_lines then
+            local width = 10
+            for index = 1, #line do
+                local glyph = line:sub(index, index)
+                width = width + font:getWidth(glyph)
+                if width > max_width then
+                    text_result = text_result .. "\n"
+                    result = result + 1
+                    width = 10
+                end
+                text_result = text_result .. glyph
+            end
+            text_result = text_result .. "\n"
+        end
+        result = result + 1
+    end
+
+    -- note: don't forget to concat this
+    local str = "%s\n... and %d more lines."
+    local extra_lines = (result - max_lines)
+    local full_text = str:format(text_result, extra_lines)
+
+    return full_text
+end
+
 function love.errorhandler(message)
     message = tostring(message)
 
@@ -357,7 +387,7 @@ function love.errorhandler(message)
 
     love.graphics.origin()
 
-    love.graphics.setNewFont(fontSize)
+    local font = love.graphics.setNewFont(fontSize)
 
     love.graphics.setColor(1, 1, 1, 1)
 
@@ -377,15 +407,13 @@ function love.errorhandler(message)
     table.insert(err, sanitized)
 
     if #sanitized ~= #message then
-        table.insert(err, "Invalid UTF-8 string in error message.")
+        table.insert(err, "Invalid UTF-8 string in error message.\n")
     end
 
-    table.insert(err, "\n")
-
-    for l in trace:gmatch("(.-)\n") do
-        if not l:match("boot.lua") then
-            l = l:gsub("stack traceback:", "Traceback\n")
-            table.insert(err, l)
+    for line in trace:gmatch("(.-)\n") do
+        if not line:match("boot.lua") then
+            line = line:gsub("stack traceback:", "\nTraceback\n")
+            table.insert(err, line)
         end
     end
 
@@ -394,10 +422,10 @@ function love.errorhandler(message)
     pretty = pretty:gsub("\t", "    ")
     pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
 
-    -- tell the user about how to quit the error handler
-    pretty = pretty .. "\n\nPress A to save this error or Start to quit."
+    local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth("left") * 0.75)
 
-    pretty = hackForMissingFilename(pretty)
+    -- tell the user about how to quit the error handler
+    pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
 
     if not love.window.isOpen() then
         return
@@ -420,7 +448,11 @@ function love.errorhandler(message)
                 love.graphics.clear(0.35, 0.62, 0.86)
 
                 if screen ~= "bottom" then
-                    love.graphics.printf(pretty, 10, 10, love.graphics.getWidth() * 0.75)
+                    local line_num = 1
+                    for line in pretty_fixed:gmatch("(.-)\n") do
+                        love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
+                        line_num = line_num + 1
+                    end
                 end
             end
 
@@ -429,12 +461,16 @@ function love.errorhandler(message)
     end
 
     local fullErrorText = pretty
+    local saved = false
 
     local function updateError()
-        local filename = saveError(fullErrorText)
-        pretty = pretty .. "\nSaved to " .. filename .. "!"
+        if not saved then
+            local filename = saveError(fullErrorText)
+            pretty_fixed = pretty_fixed .. "Saved to " .. filename .. "!\n"
 
-        draw()
+            draw()
+            saved = true
+        end
     end
 
     return function()
