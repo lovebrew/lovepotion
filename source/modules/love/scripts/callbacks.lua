@@ -422,7 +422,11 @@ function love.errorhandler(message)
     pretty = pretty:gsub("\t", "    ")
     pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
 
-    local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth("left") * 0.75)
+    local screen = "left"
+    if love._console_name == "Switch" then
+        screen = nil
+    end
+    local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth(screen) * 0.75)
 
     -- tell the user about how to quit the error handler
     pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
