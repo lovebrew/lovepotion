@@ -30,7 +30,7 @@ LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -ljpeg -lpng `curl-config --l
 #------------------------------------
 export APP_TITLE   := LÖVE Potion
 export APP_AUTHOR  := lövebrew team
-export APP_VERSION := 2.3.1
+export APP_VERSION := 2.3.2
 export APP_TITLEID := 1043
 
 export DEFINES := -D__DEBUG__=$(DEBUG) -D__APP_VERSION__=\"$(APP_VERSION)\" \
