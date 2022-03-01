@@ -9,15 +9,12 @@ body:
   - type: markdown
     attributes:
       value: Thanks for taking the time to fill out this bug! If you need general support, join the Discord.
-  - type: dropdown
+  - type: input
     id: version
     attributes:
       label: Software Version
       description: LÖVE Potion Version
-      options:
-        - 2.3.0 (Latest)
-        - 2.2.0
-        - 2.1.x
+      placeholder: e.g. 2.3.1
     validations:
       required: true
   - type: textarea
