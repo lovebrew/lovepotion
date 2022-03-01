@@ -55,4 +55,7 @@ void Image::Init(PixelFormat format, int width, int height)
 }
 
 Image::~Image()
-{}
+{
+    C3D_TexDelete(this->texture.tex);
+    delete this->texture.tex;
+}
