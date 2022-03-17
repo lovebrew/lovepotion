@@ -1,5 +1,6 @@
 #include "deko3d/graphics.h"
 
+#include "common/bidirectionalmap.h"
 #include "polyline/common.h"
 
 using namespace love;
@@ -654,12 +655,3 @@ Font* love::deko3d::Graphics::NewDefaultFont(int size, TrueTypeRasterizer::Hinti
 
     return new Font(r.Get(), filter);
 }
-
-// clang-format off
-constexpr StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry screenEntries[] =
-{
-    { "default", Graphics::Screen::SCREEN_DEFAULT }
-};
-
-constinit const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
-// clang-format on

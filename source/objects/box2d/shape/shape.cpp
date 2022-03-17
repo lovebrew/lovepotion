@@ -1,4 +1,5 @@
 #include "objects/box2d/shape/shape.h"
+#include "common/bidirectionalmap.h"
 #include "modules/physics/physics.h"
 
 using namespace love;
@@ -127,6 +128,15 @@ int Shape::ComputeMass(lua_State* L) const
     return 4;
 }
 
+// clang-format off
+constexpr auto types = BidirectionalMap<>::Create(
+    "circle",  Shape::SHAPE_CIRCLE,
+    "polygon", Shape::SHAPE_POLYGON,
+    "edge",    Shape::SHAPE_EDGE,
+    "chain",   Shape::SHAPE_CHAIN
+);
+// clang-format on
+
 bool Shape::GetConstant(const char* in, Shape::Type& out)
 {
     return types.Find(in, out);
@@ -134,17 +144,5 @@ bool Shape::GetConstant(const char* in, Shape::Type& out)
 
 bool Shape::GetConstant(Shape::Type in, const char*& out)
 {
-    return types.Find(in, out);
+    return types.ReverseFind(in, out);
 }
-
-// clang-format off
-constexpr StringMap<Shape::Type, Shape::SHAPE_MAX_ENUM>::Entry typeEntries[] =
-{
-    { "circle",  Shape::SHAPE_CIRCLE  },
-    { "polygon", Shape::SHAPE_POLYGON },
-    { "edge",    Shape::SHAPE_EDGE    },
-    { "chain",   Shape::SHAPE_CHAIN   }
-};
-
-constinit const StringMap<Shape::Type, Shape::SHAPE_MAX_ENUM> Shape::types(typeEntries);
-// clang-format on

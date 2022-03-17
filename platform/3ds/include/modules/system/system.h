@@ -2,6 +2,8 @@
 
 #include "modules/system/systemc.h"
 
+#include <vector>
+
 #define USERNAME_LENGTH 0x1C
 static std::string THEME_NAME = "light";
 
@@ -57,9 +59,5 @@ namespace love
 
       private:
         static Handle OpenPlayCoinsFile();
-
-        const static StringMap<CFG_SystemModel, MAX_MODELS> models;
-        const static StringMap<CFG_Language, MAX_LANGUAGES> languages;
-        const static StringMap<CFG_Region, MAX_REGIONS> regions;
     };
 } // namespace love

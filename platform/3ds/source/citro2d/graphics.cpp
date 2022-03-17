@@ -1,6 +1,7 @@
 #include <citro2d.h>
 
 #include "citro2d/graphics.h"
+#include "common/bidirectionalmap.h"
 
 using namespace love;
 using Screen = love::Graphics::Screen;
@@ -656,6 +657,13 @@ Graphics::RendererInfo love::citro2d::Graphics::GetRendererInfo() const
     return info;
 }
 
+// clang-format off
+constexpr auto plainScreens = BidirectionalMap<>::Create(
+    "top",    Graphics::Screen::SCREEN_LEFT,
+    "bottom", Graphics::Screen::SCREEN_BOTTOM
+);
+// clang-format on
+
 bool love::citro2d::Graphics::GetConstant(const char* in, Screen& out)
 {
     return plainScreens.Find(in, out);
@@ -663,33 +671,19 @@ bool love::citro2d::Graphics::GetConstant(const char* in, Screen& out)
 
 bool love::citro2d::Graphics::GetConstant(Screen in, const char*& out)
 {
-    return plainScreens.Find(in, out);
+    return plainScreens.ReverseFind(in, out);
 }
 
 std::vector<const char*> love::citro2d::Graphics::GetConstants(Screen)
 {
-    return plainScreens.GetNames();
+    auto entries = plainScreens.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 /* 2D Screens */
-
-// clang-format off
-constexpr StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS>::Entry plainScreenEntries[] =
-{
-    { "top",    Graphics::Screen::SCREEN_LEFT   },
-    { "bottom", Graphics::Screen::SCREEN_BOTTOM }
-};
-
-constinit const StringMap<Graphics::Screen, love::citro2d::Graphics::MAX_2D_SCREENS> love::citro2d::Graphics::plainScreens(plainScreenEntries);
-
-/* "3D" Screens */
-
-constexpr StringMap<Graphics::Screen, Graphics::MAX_SCREENS>::Entry screenEntries[] =
-{
-    { "left",   Graphics::Screen::SCREEN_LEFT   },
-    { "right",  Graphics::Screen::SCREEN_RIGHT  },
-    { "bottom", Graphics::Screen::SCREEN_BOTTOM }
-};
-
-constinit const StringMap<Graphics::Screen, Graphics::MAX_SCREENS> Graphics::screens(screenEntries);
-// clang-format on

@@ -6,10 +6,11 @@
 #pragma once
 
 #include "common/module.h"
-#include "common/stringmap.h"
 
 #include "objects/file/file.h"
 #include "objects/filedata/filedata.h"
+
+#include <vector>
 
 #define MAX_STAMP 0x20000000000000LL
 
@@ -144,7 +145,5 @@ namespace love
         bool fusedSet;
 
         std::string GetAppDataDirectory();
-
-        const static StringMap<FileType, FILETYPE_MAX_ENUM> fileTypes;
     };
 } // namespace love

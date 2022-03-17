@@ -1,9 +1,9 @@
 #pragma once
 
 #include "common/module.h"
-#include "common/stringmap.h"
 
 #include <string>
+#include <vector>
 
 namespace love::common
 {
@@ -66,8 +66,5 @@ namespace love::common
 
       protected:
         char* text;
-
-      private:
-        const static StringMap<KeyboardOption, OPTION_MAX_ENUM> keyboardOptions;
     };
 } // namespace love::common

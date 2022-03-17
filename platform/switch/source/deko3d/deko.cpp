@@ -1,5 +1,6 @@
 #include "deko3d/deko.h"
 
+#include "common/bidirectionalmap.h"
 #include "common/pixelformat.h"
 #include "deko3d/vertex.h"
 
@@ -608,6 +609,32 @@ DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
     }
 }
 
+// clang-format off
+constexpr auto pixelFormats = BidirectionalMap<>::Create(
+    PIXELFORMAT_RGBA8,      DkImageFormat_RGBA8_Unorm,
+    PIXELFORMAT_DXT1,       DkImageFormat_RGBA_BC1,
+    PIXELFORMAT_DXT3,       DkImageFormat_RGBA_BC2,
+    PIXELFORMAT_DXT5,       DkImageFormat_RGBA_BC3,
+    PIXELFORMAT_ETC1,       DkImageFormat_RGB_ETC2,
+    PIXELFORMAT_ETC2_RGB,   DkImageFormat_RGB_ETC2,
+    PIXELFORMAT_ETC2_RGBA1, DkImageFormat_RGBA_ETC2,
+    PIXELFORMAT_ETC2_RGBA,  DkImageFormat_RGBA_ETC2,
+    PIXELFORMAT_ASTC_4x4,   DkImageFormat_RGBA_ASTC_4x4,
+    PIXELFORMAT_ASTC_5x4,   DkImageFormat_RGBA_ASTC_5x4,
+    PIXELFORMAT_ASTC_6x5,   DkImageFormat_RGBA_ASTC_6x5,
+    PIXELFORMAT_ASTC_6x6,   DkImageFormat_RGBA_ASTC_6x6,
+    PIXELFORMAT_ASTC_8x5,   DkImageFormat_RGBA_ASTC_8x5,
+    PIXELFORMAT_ASTC_8x6,   DkImageFormat_RGBA_ASTC_8x6,
+    PIXELFORMAT_ASTC_8x8,   DkImageFormat_RGBA_ASTC_8x8,
+    PIXELFORMAT_ASTC_10x5,  DkImageFormat_RGBA_ASTC_10x5,
+    PIXELFORMAT_ASTC_10x6,  DkImageFormat_RGBA_ASTC_10x6,
+    PIXELFORMAT_ASTC_10x8,  DkImageFormat_RGBA_ASTC_10x8,
+    PIXELFORMAT_ASTC_10x10, DkImageFormat_RGBA_ASTC_10x10,
+    PIXELFORMAT_ASTC_12x10, DkImageFormat_RGBA_ASTC_12x10,
+    PIXELFORMAT_ASTC_12x12, DkImageFormat_RGBA_ASTC_12x12
+);
+// clang-format on
+
 bool deko3d::GetConstant(PixelFormat in, DkImageFormat& out)
 {
     return pixelFormats.Find(in, out);
@@ -615,37 +642,8 @@ bool deko3d::GetConstant(PixelFormat in, DkImageFormat& out)
 
 bool deko3d::GetConstant(DkImageFormat in, PixelFormat& out)
 {
-    return pixelFormats.Find(in, out);
+    return pixelFormats.ReverseFind(in, out);
 }
-
-// clang-format off
-constexpr EnumMap<love::PixelFormat, DkImageFormat, PIXELFORMAT_MAX_ENUM>::Entry formatEntries[] =
-{
-    { PIXELFORMAT_RGBA8,      DkImageFormat_RGBA8_Unorm     },
-    { PIXELFORMAT_DXT1,       DkImageFormat_RGBA_BC1        },
-    { PIXELFORMAT_DXT3,       DkImageFormat_RGBA_BC2        },
-    { PIXELFORMAT_DXT5,       DkImageFormat_RGBA_BC3        },
-    { PIXELFORMAT_ETC1,       DkImageFormat_RGB_ETC2        },
-    { PIXELFORMAT_ETC2_RGB,   DkImageFormat_RGB_ETC2        },
-    { PIXELFORMAT_ETC2_RGBA1, DkImageFormat_RGBA_ETC2       },
-    { PIXELFORMAT_ETC2_RGBA,  DkImageFormat_RGBA_ETC2       },
-    { PIXELFORMAT_ASTC_4x4,   DkImageFormat_RGBA_ASTC_4x4   },
-    { PIXELFORMAT_ASTC_5x4,   DkImageFormat_RGBA_ASTC_5x4   },
-    { PIXELFORMAT_ASTC_6x5,   DkImageFormat_RGBA_ASTC_6x5   },
-    { PIXELFORMAT_ASTC_6x6,   DkImageFormat_RGBA_ASTC_6x6   },
-    { PIXELFORMAT_ASTC_8x5,   DkImageFormat_RGBA_ASTC_8x5   },
-    { PIXELFORMAT_ASTC_8x6,   DkImageFormat_RGBA_ASTC_8x6   },
-    { PIXELFORMAT_ASTC_8x8,   DkImageFormat_RGBA_ASTC_8x8   },
-    { PIXELFORMAT_ASTC_10x5,  DkImageFormat_RGBA_ASTC_10x5  },
-    { PIXELFORMAT_ASTC_10x6,  DkImageFormat_RGBA_ASTC_10x6  },
-    { PIXELFORMAT_ASTC_10x8,  DkImageFormat_RGBA_ASTC_10x8  },
-    { PIXELFORMAT_ASTC_10x10, DkImageFormat_RGBA_ASTC_10x10 },
-    { PIXELFORMAT_ASTC_12x10, DkImageFormat_RGBA_ASTC_12x10 },
-    { PIXELFORMAT_ASTC_12x12, DkImageFormat_RGBA_ASTC_12x12 },
-};
-
-constinit const EnumMap<love::PixelFormat, DkImageFormat, PIXELFORMAT_MAX_ENUM> deko3d::pixelFormats(formatEntries);
-// clang-format on
 
 /*
 ** Set the Scissor region to clip

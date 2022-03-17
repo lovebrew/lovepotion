@@ -1,11 +1,12 @@
 #pragma once
 
 #include "common/luax.h"
-#include "common/stringmap.h"
 
 #include "objects/object.h"
 
 #include <box2d/box2d.h>
+
+#include <vector>
 
 namespace love
 {
@@ -53,8 +54,5 @@ namespace love
       protected:
         b2Shape* shape;
         bool own;
-
-      private:
-        const static StringMap<Shape::Type, SHAPE_MAX_ENUM> types;
     };
 } // namespace love

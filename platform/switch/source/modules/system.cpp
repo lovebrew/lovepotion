@@ -1,6 +1,7 @@
 #include "modules/system/system.h"
 #include <switch.h>
 
+#include "common/bidirectionalmap.h"
 #include "common/results.h"
 
 using namespace love;
@@ -181,6 +182,53 @@ const std::string& System::GetSystemTheme()
     return this->systemInfo.colorTheme;
 }
 
+// clang-format off
+constexpr auto languages = BidirectionalMap<>::Create(
+    "Japanese",               SetLanguage_JA,
+    "US English",             SetLanguage_ENUS,
+    "French",                 SetLanguage_FR,
+    "German",                 SetLanguage_DE,
+    "Italian",                SetLanguage_IT,
+    "Spanish",                SetLanguage_ES,
+    "Chinese",                SetLanguage_ZHCN,
+    "Korean",                 SetLanguage_KO,
+    "Dutch",                  SetLanguage_NL,
+    "Portuguese",             SetLanguage_PT,
+    "Russian",                SetLanguage_RU,
+    "Taiwanese",              SetLanguage_ZHTW,
+    "British English",        SetLanguage_ENGB,
+    "Canadian French",        SetLanguage_FRCA,
+    "Latin American Spanish", SetLanguage_ES419,
+    "Chinese Simplified",     SetLanguage_ZHHANS,
+    "Chinese Traditional",    SetLanguage_ZHHANT,
+    "Brazilian Protuguese",   SetLanguage_PTBR
+);
+
+constexpr auto models = BidirectionalMap<>::Create(
+    "Invalid",           SetSysProductModel_Invalid,
+    "Erista",            SetSysProductModel_Nx,
+    "Erista Simulation", SetSysProductModel_Copper,
+    "Mariko",            SetSysProductModel_Iowa,
+    "Mariko Lite",       SetSysProductModel_Hoag,
+    "Mariko Simulation", SetSysProductModel_Calcio,
+    "Mariko Pro",        SetSysProductModel_Aula
+);
+
+constexpr auto regions = BidirectionalMap<>::Create(
+    "Japan",                  SetRegion_JPN,
+    "United States",          SetRegion_USA,
+    "Europe",                 SetRegion_EUR,
+    "Australia/New Zealand",  SetRegion_AUS,
+    "Hong Kong/Taiwan/Korea", SetRegion_HTK,
+    "China",                  SetRegion_CHN
+);
+
+constexpr auto themes = BidirectionalMap<>::Create(
+    "dark",  ColorSetId_Dark,
+    "light", ColorSetId_Light
+);
+// clang-format on
+
 /* THEME CONSTANTS */
 bool System::GetConstant(const char* in, ColorSetId& out)
 {
@@ -189,7 +237,7 @@ bool System::GetConstant(const char* in, ColorSetId& out)
 
 bool System::GetConstant(ColorSetId in, const char*& out)
 {
-    return themes.Find(in, out);
+    return themes.ReverseFind(in, out);
 }
 
 /* LANGUAGE CONSTANTS */
@@ -201,12 +249,19 @@ bool System::GetConstant(const char* in, SetLanguage& out)
 
 bool System::GetConstant(SetLanguage in, const char*& out)
 {
-    return languages.Find(in, out);
+    return languages.ReverseFind(in, out);
 }
 
 std::vector<const char*> System::GetConstants(SetLanguage)
 {
-    return languages.GetNames();
+    auto entries = languages.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 /* MODEL CONSTANTS */
@@ -218,86 +273,41 @@ bool System::GetConstant(const char* in, SetSysProductModel& out)
 
 bool System::GetConstant(SetSysProductModel in, const char*& out)
 {
-    return models.Find(in, out);
+    return models.ReverseFind(in, out);
 }
 
 std::vector<const char*> System::GetConstants(SetSysProductModel)
 {
-    return models.GetNames();
+    auto entries = models.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 /* REGION CONSTANTS */
 
 bool System::GetConstant(const char* in, SetRegion& out)
 {
-    return System::regions.Find(in, out);
+    return regions.Find(in, out);
 }
 
 bool System::GetConstant(SetRegion in, const char*& out)
 {
-    return System::regions.Find(in, out);
+    return regions.ReverseFind(in, out);
 }
 
 std::vector<const char*> System::GetConstants(SetRegion)
 {
-    return System::regions.GetNames();
+    auto entries = regions.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<SetLanguage, SetLanguage_Total>::Entry languageEntries[] =
-{
-    {  "Japanese",               SetLanguage_JA     },
-    {  "US English",             SetLanguage_ENUS   },
-    {  "French",                 SetLanguage_FR     },
-    {  "German",                 SetLanguage_DE     },
-    {  "Italian",                SetLanguage_IT     },
-    {  "Spanish",                SetLanguage_ES     },
-    {  "Chinese",                SetLanguage_ZHCN   },
-    {  "Korean",                 SetLanguage_KO     },
-    {  "Dutch",                  SetLanguage_NL     },
-    {  "Portuguese",             SetLanguage_PT     },
-    {  "Russian",                SetLanguage_RU     },
-    {  "Taiwanese",              SetLanguage_ZHTW   },
-    {  "British English",        SetLanguage_ENGB   },
-    {  "Canadian French",        SetLanguage_FRCA   },
-    {  "Latin American Spanish", SetLanguage_ES419  },
-    {  "Chinese Simplified",     SetLanguage_ZHHANS },
-    {  "Chinese Traditional",    SetLanguage_ZHHANT },
-    {  "Brazilian Protuguese",   SetLanguage_PTBR   }
-};
-
-constinit const StringMap<SetLanguage, SetLanguage_Total> System::languages(languageEntries);
-
-constexpr StringMap<SetSysProductModel, System::MAX_MODELS>::Entry modelEntries[] =
-{
-    { "Invalid",           SetSysProductModel_Invalid},
-    { "Erista",            SetSysProductModel_Nx      },
-    { "Erista Simulation", SetSysProductModel_Copper  },
-    { "Mariko",            SetSysProductModel_Iowa    },
-    { "Mariko Lite",       SetSysProductModel_Hoag    },
-    { "Mariko Simulation", SetSysProductModel_Calcio  },
-    { "Mariko Pro",        SetSysProductModel_Aula    }
-};
-
-constinit const StringMap<SetSysProductModel, System::MAX_MODELS> System::models(modelEntries);
-
-constexpr StringMap<SetRegion, System::MAX_REGIONS>::Entry regionEntries[] =
-{
-    { "Japan",                  SetRegion_JPN },
-    { "United States",          SetRegion_USA },
-    { "Europe",                 SetRegion_EUR },
-    { "Australia/New Zealand",  SetRegion_AUS },
-    { "Hong Kong/Taiwan/Korea", SetRegion_HTK },
-    { "China",                  SetRegion_CHN }
-};
-
-constinit const StringMap<SetRegion, System::MAX_REGIONS> System::regions(regionEntries);
-
-constexpr StringMap<ColorSetId, System::MAX_THEMES>::Entry themeEntries[] =
-{
-    { "dark",  ColorSetId_Dark  },
-    { "light", ColorSetId_Light }
-};
-
-constinit const StringMap<ColorSetId, System::MAX_THEMES> System::themes(themeEntries);
-// clang-format on

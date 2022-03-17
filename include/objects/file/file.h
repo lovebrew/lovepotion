@@ -3,10 +3,11 @@
 #include "objects/object.h"
 
 #include "common/exception.h"
-#include "common/stringmap.h"
 #include "objects/filedata/filedata.h"
 
 #include <physfs.h>
+
+#include <vector>
 
 namespace love
 {
@@ -90,8 +91,5 @@ namespace love
 
         BufferMode bufferMode;
         int64_t bufferSize;
-
-        const static StringMap<Mode, Mode::MODE_MAX_ENUM> modes;
-        const static StringMap<BufferMode, BufferMode::BUFFER_MAX_ENUM> bufferModes;
     };
 } // namespace love

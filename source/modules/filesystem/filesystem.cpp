@@ -15,6 +15,8 @@
 
 #include <filesystem>
 
+#include "common/bidirectionalmap.h"
+
 #define LOVE_APPDATA_FOLDER ""
 #define LOVE_APPDATA_PREFIX ""
 #define LOVE_PATH_SEPARATOR "/"
@@ -525,6 +527,15 @@ void Filesystem::AllowMountingForPath(const std::string& path)
         this->allowedMountPaths.push_back(path);
 }
 
+// clang-format off
+constexpr auto fileTypes = BidirectionalMap<>::Create(
+    "file",      Filesystem::FileType::FILETYPE_FILE,
+    "directory", Filesystem::FileType::FILETYPE_DIRECTORY,
+    "symlink",   Filesystem::FileType::FILETYPE_SYMLINK,
+    "other",     Filesystem::FileType::FILETYPE_OTHER
+);
+// clang-format on
+
 bool Filesystem::GetConstant(const char* in, FileType& out)
 {
     return fileTypes.Find(in, out);
@@ -532,22 +543,17 @@ bool Filesystem::GetConstant(const char* in, FileType& out)
 
 bool Filesystem::GetConstant(FileType in, const char*& out)
 {
-    return fileTypes.Find(in, out);
+    return fileTypes.ReverseFind(in, out);
 }
 
 std::vector<const char*> Filesystem::GetConstants(FileType)
 {
-    return fileTypes.GetNames();
+    auto entries = fileTypes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM>::Entry fileTypeEntries[] =
-{
-    { "file",      Filesystem::FileType::FILETYPE_FILE      },
-    { "directory", Filesystem::FileType::FILETYPE_DIRECTORY },
-    { "symlink",   Filesystem::FileType::FILETYPE_SYMLINK   },
-    { "other",     Filesystem::FileType::FILETYPE_OTHER     },
-};
-
-constinit const StringMap<Filesystem::FileType, Filesystem::FILETYPE_MAX_ENUM> Filesystem::fileTypes(fileTypeEntries);
-// clang-format on

@@ -3,6 +3,8 @@
 #include "citro2d/citro.h"
 #include "modules/graphics/graphics.h"
 
+#include <vector>
+
 #define RENDERER_NAME    "citro3d"
 #define RENDERER_VERSION "1.7.0"
 #define RENDERER_VENDOR  "devkitPro"
@@ -122,8 +124,6 @@ namespace love::citro2d
         void SetColorMask(ColorMask mask) override;
 
         static constexpr int MAX_2D_SCREENS = 2;
-
-        const static StringMap<Screen, MAX_2D_SCREENS> plainScreens;
 
         static bool GetConstant(const char* in, Screen& out);
         static bool GetConstant(Screen in, const char*& out);

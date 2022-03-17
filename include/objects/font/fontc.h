@@ -2,7 +2,6 @@
 
 #include "common/exception.h"
 #include "common/lmath.h"
-#include "common/stringmap.h"
 
 #include "common/matrix.h"
 #include "common/vector.h"
@@ -11,6 +10,8 @@
 #include "objects/texture/texture.h"
 
 #include "objects/rasterizer/rasterizer.h"
+
+#include <vector>
 
 namespace love
 {
@@ -108,8 +109,5 @@ namespace love::common
 
         int height;
         float dpiScale;
-
-        const static StringMap<AlignMode, ALIGN_MAX_ENUM> alignModes;
-        const static StringMap<SystemFontType, MAX_SYSFONTS> sharedFonts;
     };
 } // namespace love::common

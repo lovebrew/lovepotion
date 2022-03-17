@@ -1,6 +1,7 @@
 #include "objects/source/sourcec.h"
 #include "modules/audio/pool/pool.h"
 
+#include "common/bidirectionalmap.h"
 #include "objects/source/source.h"
 
 using namespace love::common;
@@ -420,6 +421,19 @@ std::vector<Source*> Source::Pause(Pool* pool)
     return sources;
 }
 
+// clang-format off
+constexpr auto types = BidirectionalMap<>::Create(
+    "static", Source::Type::TYPE_STATIC,
+    "stream", Source::Type::TYPE_STREAM,
+    "queue",  Source::Type::TYPE_QUEUE
+);
+
+constexpr auto units = BidirectionalMap<>::Create(
+    "seconds", Source::Unit::UNIT_SECONDS,
+    "samples", Source::Unit::UNIT_SAMPLES
+);
+// clang-format on
+
 /* Type Constants */
 
 bool Source::GetConstant(const char* in, Type& out)
@@ -429,12 +443,19 @@ bool Source::GetConstant(const char* in, Type& out)
 
 bool Source::GetConstant(Type in, const char*& out)
 {
-    return types.Find(in, out);
+    return types.ReverseFind(in, out);
 }
 
 std::vector<const char*> Source::GetConstants(Type)
 {
-    return types.GetNames();
+    auto entries = types.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 /* Unit Constants */
@@ -446,29 +467,17 @@ bool Source::GetConstant(const char* in, Unit& out)
 
 bool Source::GetConstant(Unit in, const char*& out)
 {
-    return units.Find(in, out);
+    return units.ReverseFind(in, out);
 }
 
 std::vector<const char*> Source::GetConstants(Unit)
 {
-    return units.GetNames();
+    auto entries = units.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<Source::Type, Source::TYPE_MAX_ENUM>::Entry typeEntries[] =
-{
-    { "static", Source::Type::TYPE_STATIC },
-    { "stream", Source::Type::TYPE_STREAM },
-    { "queue",  Source::Type::TYPE_QUEUE  }
-};
-
-constinit const StringMap<Source::Type, Source::TYPE_MAX_ENUM> Source::types(typeEntries);
-
-constexpr StringMap<Source::Unit, Source::UNIT_MAX_ENUM>::Entry unitEntries[] =
-{
-    { "seconds", Source::Unit::UNIT_SECONDS },
-    { "samples", Source::Unit::UNIT_SAMPLES },
-};
-
-constinit const StringMap<Source::Unit, Source::UNIT_MAX_ENUM> Source::units(unitEntries);
-// clang-format on

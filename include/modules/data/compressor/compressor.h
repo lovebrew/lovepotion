@@ -1,12 +1,13 @@
 #pragma once
 
 #include "common/exception.h"
-#include "common/stringmap.h"
 
 #include <lz4.h>
 #include <lz4hc.h>
 
 #include <zlib.h>
+
+#include <vector>
 
 namespace love
 {
@@ -42,8 +43,5 @@ namespace love
       protected:
         Compressor()
         {}
-
-      private:
-        const static StringMap<Format, FORMAT_MAX_ENUM> formatNames;
     };
 } // namespace love

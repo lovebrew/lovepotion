@@ -1,4 +1,5 @@
 #include "objects/font/font.h"
+#include "common/bidirectionalmap.h"
 #include "modules/graphics/graphics.h"
 
 #include "citro2d/citro.h"
@@ -177,15 +178,3 @@ float Font::GetHeight() const
 {
     return 30 * this->GetScale();
 }
-
-// clang-format off
-constexpr StringMap<Font::SystemFontType, Font::MAX_SYSFONTS>::Entry sharedFontEntries[] =
-{
-    { "standard",  Font::SystemFontType::TYPE_STANDARD  },
-    { "chinese",   Font::SystemFontType::TYPE_CHINESE   },
-    { "taiwanese", Font::SystemFontType::TYPE_TAIWANESE },
-    { "korean",    Font::SystemFontType::TYPE_KOREAN    }
-};
-
-constinit const StringMap<Font::SystemFontType, Font::MAX_SYSFONTS> common::Font::sharedFonts(sharedFontEntries);
-// clang-format on

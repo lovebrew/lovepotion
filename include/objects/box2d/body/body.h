@@ -1,11 +1,12 @@
 #pragma once
 
-#include "common/stringmap.h"
 #include "objects/object.h"
 
 #include "common/reference.h"
 
 #include <box2d/box2d.h>
+
+#include <vector>
 
 namespace love
 {
@@ -192,7 +193,5 @@ namespace love
       private:
         World* world;
         BodyUserdata* userdata;
-
-        const static StringMap<Body::Type, BODY_MAX_ENUM> types;
     };
 } // namespace love

@@ -2,7 +2,8 @@
 
 #include "common/data.h"
 #include "common/exception.h"
-#include "common/stringmap.h"
+
+#include <vector>
 
 namespace love
 {
@@ -43,8 +44,5 @@ namespace love
       protected:
         HashFunction()
         {}
-
-      private:
-        const static StringMap<Function, FUNCTION_MAX_ENUM> functionNames;
     };
 } // namespace love

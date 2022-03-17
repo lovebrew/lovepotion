@@ -3,6 +3,7 @@
 #include "modules/font/fontmodule.h"
 #include "modules/graphics/graphics.h"
 
+#include "common/bidirectionalmap.h"
 #include "common/matrix.h"
 #include "deko3d/graphics.h"
 
@@ -937,17 +938,3 @@ float Font::GetKerning(const std::string& leftChar, const std::string& rightChar
 
     return this->GetKerning(left, right);
 }
-
-// clang-format off
-constexpr StringMap<love::Font::SystemFontType, love::Font::MAX_SYSFONTS>::Entry sharedFontEntries[] =
-{
-    { "standard",                    Font::SystemFontType::TYPE_STANDARD               },
-    { "chinese simplified",          Font::SystemFontType::TYPE_CHINESE_SIMPLIFIED     },
-    { "chinese traditional",         Font::SystemFontType::TYPE_CHINESE_TRADITIONAL    },
-    { "extended chinese simplified", Font::SystemFontType::TYPE_CHINESE_SIMPLIFIED_EXT },
-    { "korean",                      Font::SystemFontType::TYPE_KOREAN                 },
-    { "nintendo extended",           Font::SystemFontType::TYPE_NINTENDO_EXTENDED      }
-};
-
-constinit const StringMap<Font::SystemFontType, love::Font::MAX_SYSFONTS> love::common::Font::sharedFonts(sharedFontEntries);
-// clang-format on

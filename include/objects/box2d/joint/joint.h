@@ -1,12 +1,13 @@
 #pragma once
 
 #include "common/luax.h"
-#include "common/stringmap.h"
 
 #include "common/reference.h"
 #include "objects/object.h"
 
 #include <box2d/box2d.h>
+
+#include <vector>
 
 namespace love
 {
@@ -86,7 +87,5 @@ namespace love
         Body* bodyB;
 
         b2Joint* joint;
-
-        const static StringMap<Joint::Type, JOINT_MAX_ENUM> types;
     };
 } // namespace love

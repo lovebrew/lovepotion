@@ -1,5 +1,6 @@
 #include "deko3d/shader.h"
 
+#include "common/bidirectionalmap.h"
 #include "deko3d/deko.h"
 
 using namespace love;
@@ -131,6 +132,13 @@ void Shader::Attach()
     }
 }
 
+// clang-format off
+constexpr auto shaderNames = BidirectionalMap<>::Create(
+    "default", Shader::StandardShader::STANDARD_DEFAULT,
+    "texture", Shader::StandardShader::STANDARD_TEXTURE
+);
+// clang-format on
+
 bool Shader::GetConstant(const char* in, StandardShader& out)
 {
     return shaderNames.Find(in, out);
@@ -138,15 +146,5 @@ bool Shader::GetConstant(const char* in, StandardShader& out)
 
 bool Shader::GetConstant(StandardShader in, const char*& out)
 {
-    return shaderNames.Find(in, out);
+    return shaderNames.ReverseFind(in, out);
 }
-
-// clang-format off
-constexpr StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM>::Entry shaderEntries[] =
-{
-    { "default", Shader::StandardShader::STANDARD_DEFAULT },
-    { "texture", Shader::StandardShader::STANDARD_TEXTURE }
-};
-
-constinit const StringMap<Shader::StandardShader, Shader::STANDARD_MAX_ENUM> Shader::shaderNames(shaderEntries);
-// clang-format on

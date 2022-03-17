@@ -1,6 +1,7 @@
 #include "modules/system/system.h"
 #include <3ds.h>
 
+#include "common/bidirectionalmap.h"
 #include "common/results.h"
 
 using namespace love;
@@ -231,6 +232,42 @@ void System::SetPlayCoins(int amount)
     FSFILE_Close(playCoinsFile);
 }
 
+// clang-format off
+constexpr auto languages = BidirectionalMap<>::Create(
+    "Japanese",            CFG_LANGUAGE_JP,
+    "English",             CFG_LANGUAGE_EN,
+    "French",              CFG_LANGUAGE_FR,
+    "German",              CFG_LANGUAGE_DE,
+    "Italian",             CFG_LANGUAGE_IT,
+    "Spanish",             CFG_LANGUAGE_ES,
+    "Simplified Chinese",  CFG_LANGUAGE_ZH,
+    "Korean",              CFG_LANGUAGE_KO,
+    "Dutch",               CFG_LANGUAGE_NL,
+    "Portugese",           CFG_LANGUAGE_PT,
+    "Russian",             CFG_LANGUAGE_RU,
+    "Traditional Chinese", CFG_LANGUAGE_TW
+);
+
+constexpr auto models = BidirectionalMap<>::Create(
+    "3DS",       CFG_MODEL_3DS,
+    "3DSXL",     CFG_MODEL_3DSXL,
+    "New 3DS",   CFG_MODEL_N3DS,
+    "2DS",       CFG_MODEL_2DS,
+    "New 3DSXL", CFG_MODEL_N3DSXL,
+    "New 2DSXL", CFG_MODEL_N2DSXL
+);
+
+constexpr auto regions = BidirectionalMap<>::Create(
+    "Japan",         CFG_REGION_JPN,
+    "United States", CFG_REGION_USA,
+    "Europe",        CFG_REGION_EUR,
+    "Australia",     CFG_REGION_AUS,
+    "China",         CFG_REGION_CHN,
+    "Korea",         CFG_REGION_KOR,
+    "Taiwan",        CFG_REGION_TWN
+);
+// clang-format on
+
 /* LANGUAGE CONSTANTS */
 
 bool System::GetConstant(const char* in, CFG_Language& out)
@@ -240,12 +277,19 @@ bool System::GetConstant(const char* in, CFG_Language& out)
 
 bool System::GetConstant(CFG_Language in, const char*& out)
 {
-    return languages.Find(in, out);
+    return languages.ReverseFind(in, out);
 }
 
 std::vector<const char*> System::GetConstants(CFG_Language)
 {
-    return languages.GetNames();
+    auto entries = languages.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 /* MODEL CONSTANTS */
@@ -257,12 +301,19 @@ bool System::GetConstant(const char* in, CFG_SystemModel& out)
 
 bool System::GetConstant(CFG_SystemModel in, const char*& out)
 {
-    return models.Find(in, out);
+    return models.ReverseFind(in, out);
 }
 
 std::vector<const char*> System::GetConstants(CFG_SystemModel)
 {
-    return System::models.GetNames();
+    auto entries = models.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 /* REGION CONSTANTS */
@@ -274,55 +325,17 @@ bool System::GetConstant(const char* in, CFG_Region& out)
 
 bool System::GetConstant(CFG_Region in, const char*& out)
 {
-    return regions.Find(in, out);
+    return regions.ReverseFind(in, out);
 }
 
 std::vector<const char*> System::GetConstants(CFG_Region)
 {
-    return regions.GetNames();
+    auto entries = regions.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<CFG_Language, System::MAX_LANGUAGES>::Entry languageEntries[] =
-{
-    { "Japanese",            CFG_LANGUAGE_JP },
-    { "English",             CFG_LANGUAGE_EN },
-    { "French",              CFG_LANGUAGE_FR },
-    { "German",              CFG_LANGUAGE_DE },
-    { "Italian",             CFG_LANGUAGE_IT },
-    { "Spanish",             CFG_LANGUAGE_ES },
-    { "Simplified Chinese",  CFG_LANGUAGE_ZH },
-    { "Korean",              CFG_LANGUAGE_KO },
-    { "Dutch",               CFG_LANGUAGE_NL },
-    { "Portugese",           CFG_LANGUAGE_PT },
-    { "Russian",             CFG_LANGUAGE_RU },
-    { "Traditional Chinese", CFG_LANGUAGE_TW }
-};
-
-constinit const StringMap<CFG_Language, System::MAX_LANGUAGES> System::languages(languageEntries);
-
-constexpr StringMap<CFG_SystemModel, System::MAX_MODELS>::Entry modelEntries[] =
-{
-    { "3DS",       CFG_MODEL_3DS    },
-    { "3DSXL",     CFG_MODEL_3DSXL  },
-    { "New 3DS",   CFG_MODEL_N3DS   },
-    { "2DS",       CFG_MODEL_2DS    },
-    { "New 3DSXL", CFG_MODEL_N3DSXL },
-    { "New 2DSXL", CFG_MODEL_N2DSXL },
-};
-
-constinit const StringMap<CFG_SystemModel, System::MAX_MODELS> System::models(modelEntries);
-
-constexpr StringMap<CFG_Region, System::MAX_REGIONS>::Entry regionEntries[] =
-{
-    { "Japan",         CFG_REGION_JPN },
-    { "United States", CFG_REGION_USA },
-    { "Europe",        CFG_REGION_EUR },
-    { "Australia",     CFG_REGION_AUS },
-    { "China",         CFG_REGION_CHN },
-    { "Korea",         CFG_REGION_KOR },
-    { "Taiwan",        CFG_REGION_TWN }
-};
-
-constinit const StringMap<CFG_Region, System::MAX_REGIONS> System::regions(regionEntries);
-// clang-format on
