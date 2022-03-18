@@ -1,7 +1,6 @@
 #include "common/luax.h"
 
 #include "common/module.h"
-#include "common/stringmap.h"
 #include "objects/object.h"
 
 // C++

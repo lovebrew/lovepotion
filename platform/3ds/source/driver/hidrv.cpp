@@ -101,8 +101,8 @@ bool Hidrv::Poll(LOVE_Event* event)
 
         Gamepad::ButtonMapping button;
 
-        const auto mappings = gamepad->GetButtonMapping();
-        const auto entries  = mappings.GetEntries();
+        const auto& mappings = gamepad->GetButtonMapping();
+        const auto entries   = mappings.GetEntries();
 
         for (size_t index = 0; index < entries.second; index++)
         {

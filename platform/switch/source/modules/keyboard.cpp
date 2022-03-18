@@ -1,4 +1,5 @@
 #include "modules/keyboard/keyboard.h"
+#include "common/bidirectionalmap.h"
 #include <switch.h>
 
 using namespace love;
@@ -51,6 +52,14 @@ std::string Keyboard::SetTextInput(const Keyboard::SwkbdOpt& options)
     return text;
 }
 
+// clang-format off
+constexpr auto keyboardTypes = BidirectionalMap<>::Create(
+    "normal", Keyboard::KeyboardType::TYPE_NORMAL,
+    "qwerty", Keyboard::KeyboardType::TYPE_QWERTY,
+    "numpad", Keyboard::KeyboardType::TYPE_NUMPAD
+);
+// clang-format on
+
 bool Keyboard::GetConstant(const char* in, KeyboardType& out)
 {
     return keyboardTypes.Find(in, out);
@@ -58,21 +67,17 @@ bool Keyboard::GetConstant(const char* in, KeyboardType& out)
 
 bool Keyboard::GetConstant(KeyboardType in, const char*& out)
 {
-    return keyboardTypes.Find(in, out);
+    return keyboardTypes.ReverseFind(in, out);
 }
 
 std::vector<const char*> Keyboard::GetConstants(KeyboardType)
 {
-    return keyboardTypes.GetNames();
+    auto entries = keyboardTypes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES>::Entry keyboardTypeEntries[] =
-{
-    { "normal", Keyboard::KeyboardType::TYPE_NORMAL },
-    { "qwerty", Keyboard::KeyboardType::TYPE_QWERTY },
-    { "numpad", Keyboard::KeyboardType::TYPE_NUMPAD }
-};
-
-constinit const StringMap<Keyboard::KeyboardType, Keyboard::MAX_TYPES> Keyboard::keyboardTypes(keyboardTypeEntries);
-// clang-format on

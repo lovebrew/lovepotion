@@ -1,4 +1,5 @@
 #include "objects/gamepad/gamepad.h"
+#include "common/bidirectionalmap.h"
 #include "driver/hidrv.h"
 
 using namespace love;
@@ -171,12 +172,12 @@ bool Gamepad::IsDown(size_t index, ButtonMapping& button)
 
     const auto records = buttons.GetEntries().first;
 
-    hidButton = static_cast<uint32_t>(records[index].value);
+    hidButton = static_cast<uint32_t>(records[index].second);
 
     if (hidButton & this->buttonStates.pressed)
     {
         this->buttonStates.pressed ^= hidButton;
-        button = std::make_pair(records[index].key, index);
+        button = std::make_pair(records[index].first, index);
 
         return true;
     }
@@ -193,12 +194,12 @@ bool Gamepad::IsUp(size_t index, ButtonMapping& button)
 
     const auto records = buttons.GetEntries().first;
 
-    hidButton = static_cast<uint32_t>(records[index].value);
+    hidButton = static_cast<uint32_t>(records[index].second);
 
     if (hidButton & this->buttonStates.released)
     {
         this->buttonStates.released ^= hidButton;
-        button = std::make_pair(records[index].key, index);
+        button = std::make_pair(records[index].first, index);
 
         return true;
     }
@@ -216,9 +217,9 @@ bool Gamepad::IsHeld(size_t index, ButtonMapping& button) const
 
     for (size_t i = 0; i < recordPair.second; i++)
     {
-        if ((hidButton = static_cast<uint32_t>(records[i].value)) & heldSet)
+        if ((hidButton = static_cast<uint32_t>(records[i].second)) & heldSet)
         {
-            button = { records[i].key, i };
+            button = { records[i].first, i };
             break;
         }
     }
@@ -238,7 +239,7 @@ bool Gamepad::IsDown(const std::vector<size_t>& buttonsVector) const
         if (button < 0 || button >= recordPair.second)
             continue;
 
-        if (heldSet & static_cast<uint32_t>(records[button].value))
+        if (heldSet & static_cast<uint32_t>(records[button].second))
             return true;
     }
 
@@ -324,7 +325,7 @@ bool Gamepad::GetConstant(const char* in, Gamepad::GamepadAxis& out)
 
 bool Gamepad::GetConstant(Gamepad::GamepadAxis in, const char*& out)
 {
-    return axes.Find(in, out);
+    return axes.ReverseFind(in, out);
 }
 
 bool Gamepad::GetConstant(const char* in, GamepadButton& out)
@@ -334,37 +335,5 @@ bool Gamepad::GetConstant(const char* in, GamepadButton& out)
 
 bool Gamepad::GetConstant(GamepadButton in, const char*& out)
 {
-    return buttons.Find(in, out);
+    return buttons.ReverseFind(in, out);
 }
-
-// clang-format off
-constexpr StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES>::Entry axisEntries[] =
-{
-    { "leftx",        Gamepad::GamepadAxis::GAMEPAD_AXIS_LEFTX        },
-    { "lefty",        Gamepad::GamepadAxis::GAMEPAD_AXIS_LEFTY        },
-    { "rightx",       Gamepad::GamepadAxis::GAMEPAD_AXIS_RIGHTX       },
-    { "righty",       Gamepad::GamepadAxis::GAMEPAD_AXIS_RIGHTY       },
-    { "triggerleft",  Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERLEFT  },
-    { "triggerright", Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERRIGHT }
-};
-
-constinit const StringMap<Gamepad::GamepadAxis, Gamepad::MAX_AXES> Gamepad::axes(axisEntries);
-
-constexpr StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS>::Entry buttonEntries[] =
-{
-    { "a",             Gamepad::GamepadButton::GAMEPAD_BUTTON_A              },
-    { "b",             Gamepad::GamepadButton::GAMEPAD_BUTTON_B              },
-    { "x",             Gamepad::GamepadButton::GAMEPAD_BUTTON_X              },
-    { "y",             Gamepad::GamepadButton::GAMEPAD_BUTTON_Y              },
-    { "back",          Gamepad::GamepadButton::GAMEPAD_BUTTON_BACK           },
-    { "start",         Gamepad::GamepadButton::GAMEPAD_BUTTON_START          },
-    { "leftshoulder",  Gamepad::GamepadButton::GAMEPAD_BUTTON_LEFT_SHOULDER  },
-    { "rightshoulder", Gamepad::GamepadButton::GAMEPAD_BUTTON_RIGHT_SHOULDER },
-    { "dpup",          Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_UP        },
-    { "dpdown",        Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_DOWN      },
-    { "dpleft",        Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_LEFT      },
-    { "dpright",       Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_RIGHT     }
-};
-
-constinit const StringMap<Gamepad::GamepadButton, Gamepad::MAX_BUTTONS> Gamepad::buttons(buttonEntries);
-// clang-format on

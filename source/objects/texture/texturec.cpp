@@ -1,4 +1,5 @@
 #include "objects/texture/texturec.h"
+#include "common/bidirectionalmap.h"
 
 using namespace love::common;
 
@@ -71,6 +72,25 @@ int Texture::GetTotalMipmapCount(int width, int height, int depth)
     return (int)log2(std::max(std::max(width, height), depth)) + 1;
 }
 
+// clang-format off
+constexpr auto texTypes = BidirectionalMap<>::Create(
+    "2d", Texture::TextureType::TEXTURE_2D
+);
+
+constexpr auto filterModes = BidirectionalMap<>::Create(
+    "none",    Texture::FilterMode::FILTER_NONE,
+    "linear",  Texture::FilterMode::FILTER_LINEAR,
+    "nearest", Texture::FilterMode::FILTER_NEAREST
+);
+
+constexpr auto wrapModes = BidirectionalMap<>::Create(
+    "clamp",          Texture::WrapMode::WRAP_CLAMP,
+    "repeat",         Texture::WrapMode::WRAP_REPEAT,
+    "clampzero",      Texture::WrapMode::WRAP_CLAMP_ZERO,
+    "mirroredrepeat", Texture::WrapMode::WRAP_MIRRORED_REPEAT
+);
+// clang-format on
+
 bool Texture::GetConstant(const char* in, TextureType& out)
 {
     return texTypes.Find(in, out);
@@ -78,12 +98,19 @@ bool Texture::GetConstant(const char* in, TextureType& out)
 
 bool Texture::GetConstant(TextureType in, const char*& out)
 {
-    return texTypes.Find(in, out);
+    return texTypes.ReverseFind(in, out);
 }
 
 std::vector<const char*> Texture::GetConstants(Texture::TextureType)
 {
-    return texTypes.GetNames();
+    auto entries = texTypes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 bool Texture::GetConstant(const char* in, FilterMode& out)
@@ -93,12 +120,19 @@ bool Texture::GetConstant(const char* in, FilterMode& out)
 
 bool Texture::GetConstant(FilterMode in, const char*& out)
 {
-    return filterModes.Find(in, out);
+    return filterModes.ReverseFind(in, out);
 }
 
 std::vector<const char*> Texture::GetConstants(Texture::FilterMode)
 {
-    return filterModes.GetNames();
+    auto entries = filterModes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 bool Texture::GetConstant(const char* in, WrapMode& out)
@@ -108,38 +142,17 @@ bool Texture::GetConstant(const char* in, WrapMode& out)
 
 bool Texture::GetConstant(WrapMode in, const char*& out)
 {
-    return wrapModes.Find(in, out);
+    return wrapModes.ReverseFind(in, out);
 }
 
 std::vector<const char*> Texture::GetConstants(Texture::WrapMode)
 {
-    return wrapModes.GetNames();
+    auto entries = wrapModes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM>::Entry texTypeEntries[] =
-{
-    { "2d", Texture::TextureType::TEXTURE_2D }
-};
-
-constinit const StringMap<Texture::TextureType, Texture::TEXTURE_MAX_ENUM> Texture::texTypes(texTypeEntries);
-
-constexpr StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM>::Entry filterModeEntries[] =
-{
-    { "none",    Texture::FilterMode::FILTER_NONE    },
-    { "linear",  Texture::FilterMode::FILTER_LINEAR  },
-    { "nearest", Texture::FilterMode::FILTER_NEAREST }
-};
-
-constinit const StringMap<Texture::FilterMode, Texture::FILTER_MAX_ENUM> Texture::filterModes(filterModeEntries);
-
-constexpr StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM>::Entry wrapModeEntries[] =
-{
-    { "clamp",          Texture::WrapMode::WRAP_CLAMP           },
-    { "repeat",         Texture::WrapMode::WRAP_REPEAT          },
-    { "clampzero",      Texture::WrapMode::WRAP_CLAMP_ZERO      },
-    { "mirroredrepeat", Texture::WrapMode::WRAP_MIRRORED_REPEAT }
-};
-
-constinit const StringMap<Texture::WrapMode, Texture::WRAP_MAX_ENUM> Texture::wrapModes(wrapModeEntries);
-// clang-format on

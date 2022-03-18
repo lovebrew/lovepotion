@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/system/systemc.h"
+#include <vector>
 
 #define USERNAME_LENGTH 0x21
 #define TEGRA_CPU_COUNT 0x04
@@ -59,10 +60,5 @@ namespace love
 
       private:
         AccountUid userID;
-
-        const static StringMap<SetSysProductModel, MAX_MODELS> models;
-        const static StringMap<SetLanguage, SetLanguage_Total> languages;
-        const static StringMap<SetRegion, MAX_REGIONS> regions;
-        const static StringMap<ColorSetId, MAX_THEMES> themes;
     };
 } // namespace love

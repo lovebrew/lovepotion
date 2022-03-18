@@ -3,7 +3,6 @@
 #include "common/colors.h"
 #include "common/data.h"
 #include "common/pixelformat.h"
-#include "common/stringmap.h"
 
 #include "objects/filedata/filedata.h"
 #include "objects/imagedata/imagedatabase.h"
@@ -11,6 +10,8 @@
 #include "objects/imagedata/types/formathandler.h"
 
 #include "thread/types/mutex.h"
+
+#include <vector>
 
 namespace love
 {
@@ -114,8 +115,5 @@ namespace love
 
         PixelSetFunction pixelSetFunction;
         PixelGetFunction pixelGetFunction;
-
-        static const StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>
-            encodedFormats;
     };
 } // namespace love

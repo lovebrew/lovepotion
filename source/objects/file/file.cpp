@@ -1,4 +1,5 @@
 #include "objects/file/file.h"
+#include "common/bidirectionalmap.h"
 #include <sys/stat.h>
 
 using namespace love;
@@ -279,6 +280,21 @@ bool File::Write(const void* data, int64_t size)
 
 /* OPEN MODES */
 
+// clang-format off
+constexpr auto modes = BidirectionalMap<>::Create(
+    "r", File::Mode::MODE_READ,
+    "w", File::Mode::MODE_WRITE,
+    "a", File::Mode::MODE_APPEND,
+    "c", File::Mode::MODE_CLOSED
+);
+
+constexpr auto bufferModes = BidirectionalMap<>::Create(
+    "none", File::BufferMode::BUFFER_NONE,
+    "line", File::BufferMode::BUFFER_LINE,
+    "full", File::BufferMode::BUFFER_FULL
+);
+// clang-format on
+
 bool File::GetConstant(const char* in, Mode& out)
 {
     return modes.Find(in, out);
@@ -286,12 +302,19 @@ bool File::GetConstant(const char* in, Mode& out)
 
 bool File::GetConstant(Mode in, const char*& out)
 {
-    return modes.Find(in, out);
+    return modes.ReverseFind(in, out);
 }
 
 std::vector<const char*> File::GetConstants(Mode mode)
 {
-    return modes.GetNames();
+    auto entries = modes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 bool File::GetConstant(const char* in, BufferMode& out)
@@ -301,30 +324,17 @@ bool File::GetConstant(const char* in, BufferMode& out)
 
 bool File::GetConstant(BufferMode in, const char*& out)
 {
-    return bufferModes.Find(in, out);
+    return bufferModes.ReverseFind(in, out);
 }
 
 std::vector<const char*> File::GetConstants(BufferMode mode)
 {
-    return bufferModes.GetNames();
+    auto entries = bufferModes.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<File::Mode, File::MODE_MAX_ENUM>::Entry modeEntries[] =
-{
-    { "r", File::Mode::MODE_READ   },
-    { "w", File::Mode::MODE_WRITE  },
-    { "a", File::Mode::MODE_APPEND },
-    { "c", File::Mode::MODE_CLOSED }
-};
-
-constinit const StringMap<File::Mode, File::MODE_MAX_ENUM> File::modes(modeEntries);
-
-constexpr StringMap<File::BufferMode, File::BUFFER_MAX_ENUM>::Entry bufferModeEntries[] =
-{
-    { "none", File::BufferMode::BUFFER_NONE },
-    { "line", File::BufferMode::BUFFER_LINE },
-    { "full", File::BufferMode::BUFFER_FULL }
-};
-
-constinit const StringMap<File::BufferMode, File::BUFFER_MAX_ENUM> File::bufferModes(bufferModeEntries);

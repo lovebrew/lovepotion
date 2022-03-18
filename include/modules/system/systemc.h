@@ -2,8 +2,6 @@
 
 #include "common/module.h"
 
-#include "common/stringmap.h"
-
 using namespace std::literals::string_literals;
 
 #define OS_NAME "Horizon"
@@ -101,9 +99,5 @@ namespace love::common
             std::string friendCode;
             std::string colorTheme;
         } systemInfo;
-
-      private:
-        const static StringMap<PowerState, POWER_MAX_ENUM> powerStates;
-        const static StringMap<NetworkState, NETWORK_MAX_ENUM> networkStates;
     };
 } // namespace love::common

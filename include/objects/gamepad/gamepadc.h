@@ -1,10 +1,10 @@
 #pragma once
 
-#include "common/stringmap.h"
 #include "objects/object.h"
 
 #include <limits>
 #include <optional>
+#include <vector>
 
 namespace love::common
 {
@@ -136,7 +136,5 @@ namespace love::common
       private:
         Gamepad()
         {}
-
-        const static StringMap<InputType, INPUT_TYPE_MAX_ENUM> inputTypes;
     };
 } // namespace love::common

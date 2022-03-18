@@ -2,7 +2,6 @@
 
 #include "common/exception.h"
 #include "common/lmath.h"
-#include "common/stringmap.h"
 #include "common/strongref.h"
 #include "objects/quad/quad.h"
 
@@ -11,6 +10,8 @@
 #if defined(__SWITCH__)
     #include "deko3d/common.h"
 #endif
+
+#include <vector>
 
 namespace love::common
 {
@@ -115,10 +116,5 @@ namespace love::common
         StrongReference<love::Quad> quad;
 
         void InitQuad();
-
-      private:
-        const static StringMap<TextureType, TEXTURE_MAX_ENUM> texTypes;
-        const static StringMap<FilterMode, FILTER_MAX_ENUM> filterModes;
-        const static StringMap<WrapMode, WRAP_MAX_ENUM> wrapModes;
     };
 } // namespace love::common

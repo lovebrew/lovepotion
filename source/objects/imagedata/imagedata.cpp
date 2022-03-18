@@ -1,8 +1,10 @@
 #include "objects/imagedata/imagedata.h"
 #include "modules/filesystem/filesystem.h"
 
+#include "common/bidirectionalmap.h"
 #include "common/lmath.h"
 #include "modules/image/imagemodule.h"
+#include "modules/thread/types/lock.h"
 
 #include <algorithm>
 
@@ -148,8 +150,8 @@ void ImageData::Decode(Data* data)
     this->width  = decoded.width;
     this->height = decoded.height;
 #else
-    this->width     = decoded.subWidth;
-    this->height    = decoded.subHeight;
+    this->width  = decoded.subWidth;
+    this->height = decoded.subHeight;
 #endif
 
     this->data   = decoded.data;
@@ -545,6 +547,12 @@ bool ImageData::IsSRGB() const
     return false;
 }
 
+// clang-format off
+constexpr auto encodedFormats = BidirectionalMap<>::Create(
+    "png", FormatHandler::ENCODED_PNG
+);
+// clang-format on
+
 bool ImageData::GetConstant(const char* in, FormatHandler::EncodedFormat& out)
 {
     return encodedFormats.Find(in, out);
@@ -552,19 +560,17 @@ bool ImageData::GetConstant(const char* in, FormatHandler::EncodedFormat& out)
 
 bool ImageData::GetConstant(FormatHandler::EncodedFormat in, const char*& out)
 {
-    return encodedFormats.Find(in, out);
+    return encodedFormats.ReverseFind(in, out);
 }
 
 std::vector<const char*> ImageData::GetConstants(FormatHandler::EncodedFormat)
 {
-    return encodedFormats.GetNames();
+    auto entries = encodedFormats.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-constexpr StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM>::Entry formatEntries[] =
-{
-    { "png", FormatHandler::ENCODED_PNG }
-};
-
-constinit const StringMap<FormatHandler::EncodedFormat, FormatHandler::ENCODED_MAX_ENUM> ImageData::encodedFormats(formatEntries);
-// clang-format on

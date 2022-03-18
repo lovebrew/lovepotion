@@ -8,6 +8,7 @@
 #include "shape/shape.h"
 #include "world/world.h"
 
+#include "common/bidirectionalmap.h"
 #include "joint/wrap_joint.h"
 
 using namespace love;
@@ -616,6 +617,16 @@ int Body::GetUserData(lua_State* L)
     return 1;
 }
 
+// clang-format off
+
+constexpr auto types = BidirectionalMap<>::Create(
+    "static",    Body::BODY_STATIC,
+    "dynamic",   Body::BODY_DYNAMIC,
+    "kinematic", Body::BODY_KINEMATIC
+);
+
+// clang-format on
+
 bool Body::GetConstant(const char* in, Body::Type& out)
 {
     return types.Find(in, out);
@@ -623,23 +634,17 @@ bool Body::GetConstant(const char* in, Body::Type& out)
 
 bool Body::GetConstant(Body::Type in, const char*& out)
 {
-    return types.Find(in, out);
+    return types.ReverseFind(in, out);
 }
 
 std::vector<const char*> Body::GetConstants(Body::Type)
 {
-    return types.GetNames();
+    auto entries = types.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
-
-// clang-format off
-
-constexpr StringMap<Body::Type, Body::BODY_MAX_ENUM>::Entry typeEntries[] =
-{
-    { "static",    Body::BODY_STATIC    },
-    { "dynamic",   Body::BODY_DYNAMIC   },
-    { "kinematic", Body::BODY_KINEMATIC }
-};
-
-constinit const StringMap<Body::Type, Body::BODY_MAX_ENUM> Body::types(typeEntries);
-
-// clang-format on

@@ -35,6 +35,5 @@ namespace love
 
       private:
         SwkbdConfig keyboard;
-        const static StringMap<KeyboardType, Keyboard::MAX_TYPES> keyboardTypes;
     };
 } // namespace love

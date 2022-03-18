@@ -1,7 +1,7 @@
 #include "modules/data/datamodule.h"
 
 #include "common/base64.h"
-#include "common/stringmap.h"
+#include "common/bidirectionalmap.h"
 
 namespace
 {
@@ -193,21 +193,15 @@ namespace love::data
     }
 
     // clang-format off
-    constexpr StringMap<EncodeFormat, ENCODE_MAX_ENUM>::Entry encoderEntries[] =
-    {
-        { "hex",    data::EncodeFormat::ENCODE_HEX    },
-        { "base64", data::EncodeFormat::ENCODE_BASE64 },
-    };
+    constexpr auto encoders = BidirectionalMap<>::Create(
+        "hex",    data::EncodeFormat::ENCODE_HEX,
+        "base64", data::EncodeFormat::ENCODE_BASE64
+    );
 
-    constinit const static StringMap<EncodeFormat, ENCODE_MAX_ENUM> encoders(encoderEntries);
-
-    constexpr StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM>::Entry containerEntries[] =
-    {
-        { "data",   data::ContainerType::CONTAINER_DATA   },
-        { "string", data::ContainerType::CONTAINER_STRING }
-    };
-
-    constinit const static StringMap<ContainerType, ContainerType::CONTAINER_MAX_ENUM> containers(containerEntries);
+    constexpr auto containers = BidirectionalMap<>::Create(
+        "data",   data::ContainerType::CONTAINER_DATA,
+        "string", data::ContainerType::CONTAINER_STRING
+    );
     // clang-format on
 
 } // namespace love::data
@@ -241,7 +235,14 @@ bool DataModule::GetConstant(const char* in, data::ContainerType& out)
 
 std::vector<const char*> DataModule::GetConstants(data::ContainerType)
 {
-    return data::containers.GetNames();
+    auto entries = data::containers.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 bool DataModule::GetConstant(const char* in, data::EncodeFormat& out)
@@ -251,10 +252,17 @@ bool DataModule::GetConstant(const char* in, data::EncodeFormat& out)
 
 bool DataModule::GetConstant(data::EncodeFormat in, const char*& out)
 {
-    return data::encoders.Find(in, out);
+    return data::encoders.ReverseFind(in, out);
 }
 
 std::vector<const char*> DataModule::GetConstants(data::EncodeFormat)
 {
-    return data::encoders.GetNames();
+    auto entries = data::encoders.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }

@@ -30,8 +30,6 @@
 
 #define MAX_ANISOTROPY 16
 
-#include "common/enummap.h"
-
 namespace love
 {
     class Graphics;
@@ -257,6 +255,4 @@ class deko3d
     void EnsureInFrame();
 
     void EnsureHasSlot();
-
-    const static EnumMap<PixelFormat, DkImageFormat, PIXELFORMAT_MAX_ENUM> pixelFormats;
 };

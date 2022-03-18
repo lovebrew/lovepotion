@@ -7,7 +7,6 @@
 
 #include "common/colors.h"
 #include "common/module.h"
-#include "common/stringmap.h"
 #include "common/vector.h"
 
 /* OBJECTS */
@@ -38,6 +37,7 @@
 
 #include "common/lmath.h"
 #include <optional>
+#include <vector>
 
 #if defined(__SWITCH__)
     #include "deko3d/shader.h"
@@ -58,7 +58,7 @@ namespace love
 #if defined(__SWITCH__)
         static constexpr int MAX_SCREENS = 1;
 #elif defined(__3DS__)
-        static constexpr int MAX_SCREENS                                                     = 3;
+        static constexpr int MAX_SCREENS = 3;
 #endif
 
         enum DrawMode
@@ -355,7 +355,7 @@ namespace love
         virtual void Polygon(DrawMode mode, const Vector2* points, size_t count,
                              bool skipLastFilledVertex = true) = 0;
 #else
-        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count)             = 0;
+        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count) = 0;
 #endif
 
         virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,
@@ -650,14 +650,5 @@ namespace love
 
         StrongReference<Font> defaultFont;
         RendererInfo rendererInfo;
-
-        const static StringMap<Screen, MAX_SCREENS> screens;
-        const static StringMap<DrawMode, DRAW_MAX_ENUM> drawModes;
-        const static StringMap<BlendMode, BLEND_MAX_ENUM> blendModes;
-        const static StringMap<BlendAlpha, BLENDALPHA_MAX_ENUM> blendAlphaModes;
-        const static StringMap<ArcMode, ARC_MAX_ENUM> arcModes;
-        const static StringMap<StackType, STACK_MAX_ENUM> stackTypes;
-        const static StringMap<LineStyle, LINE_MAX_ENUM> lineStyles;
-        const static StringMap<LineJoin, LINE_JOIN_MAX_ENUM> lineJoins;
     };
 } // namespace love

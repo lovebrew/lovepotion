@@ -1,4 +1,5 @@
 #include "modules/keyboard/keyboardc.h"
+#include "common/bidirectionalmap.h"
 #include "common/debug/logger.h"
 
 using namespace love::common;
@@ -25,6 +26,15 @@ const uint32_t Keyboard::CalculateEncodingMaxLength(const uint32_t in)
     return in * this->ENCODING_MULTIPLIER() + 1;
 }
 
+// clang-format off
+constexpr auto keyboardOptions = BidirectionalMap<>::Create(
+    "type",      Keyboard::KeyboardOption::OPTION_TYPE,
+    "password",  Keyboard::KeyboardOption::OPTION_PASSCODE,
+    "hint",      Keyboard::KeyboardOption::OPTION_HINT,
+    "maxLength", Keyboard::KeyboardOption::OPTION_MAX_LEN
+);
+// clang-format on
+
 bool Keyboard::GetConstant(const char* in, KeyboardOption& out)
 {
     return keyboardOptions.Find(in, out);
@@ -32,12 +42,19 @@ bool Keyboard::GetConstant(const char* in, KeyboardOption& out)
 
 bool Keyboard::GetConstant(KeyboardOption in, const char*& out)
 {
-    return keyboardOptions.Find(in, out);
+    return keyboardOptions.ReverseFind(in, out);
 }
 
 std::vector<const char*> Keyboard::GetConstants(KeyboardOption)
 {
-    return keyboardOptions.GetNames();
+    auto entries = keyboardOptions.GetEntries();
+    std::vector<const char*> ret;
+    ret.reserve(entries.second);
+    for (size_t i = 0; i < entries.second; i++)
+    {
+        ret.emplace_back(entries.first[i].first);
+    }
+    return ret;
 }
 
 const char* Keyboard::GetConstant(KeyboardOption in)
@@ -47,15 +64,3 @@ const char* Keyboard::GetConstant(KeyboardOption in)
 
     return name;
 }
-
-// clang-format off
-constexpr StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM>::Entry keyboardOptionsEntries[] =
-{
-    { "type",      Keyboard::KeyboardOption::OPTION_TYPE     },
-    { "password",  Keyboard::KeyboardOption::OPTION_PASSCODE },
-    { "hint",      Keyboard::KeyboardOption::OPTION_HINT     },
-    { "maxLength", Keyboard::KeyboardOption::OPTION_MAX_LEN  }
-};
-
-constinit const StringMap<Keyboard::KeyboardOption, Keyboard::OPTION_MAX_ENUM> Keyboard::keyboardOptions(keyboardOptionsEntries);
-// clang-format on

@@ -3,10 +3,10 @@
 #include "objects/decoder/decoder.h"
 #include "objects/sounddata/sounddata.h"
 
-#include "common/stringmap.h"
-
 #include "modules/audio/pool/pool.h"
 #include "objects/object.h"
+
+#include <vector>
 
 namespace love
 {
@@ -177,10 +177,6 @@ namespace love
             virtual double GetSampleOffset() = 0;
 
             void TeardownAtomic();
-
-          private:
-            const static StringMap<Type, TYPE_MAX_ENUM> types;
-            const static StringMap<Unit, UNIT_MAX_ENUM> units;
         };
     } // namespace common
 } // namespace love

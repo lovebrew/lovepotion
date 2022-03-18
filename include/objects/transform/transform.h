@@ -1,10 +1,11 @@
 #pragma once
 
 #include "common/matrix.h"
-#include "common/stringmap.h"
 #include "common/vector.h"
 
 #include "objects/object.h"
+
+#include <vector>
 
 namespace love
 {
@@ -75,7 +76,5 @@ namespace love
 
             return this->inverseMatrix;
         }
-
-        const static StringMap<MatrixLayout, MATRIX_MAX_ENUM> matrixLayouts;
     };
 } // namespace love

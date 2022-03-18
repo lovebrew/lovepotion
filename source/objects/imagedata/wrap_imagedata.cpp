@@ -12,6 +12,8 @@
 
 #include "wrap_imagedata_lua.h"
 
+#include "modules/thread/types/lock.h"
+
 using namespace love;
 
 int Wrap_ImageData::Clone(lua_State* L)

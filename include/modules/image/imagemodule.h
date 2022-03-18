@@ -56,7 +56,5 @@ namespace love
 
       private:
         std::list<FormatHandler*> formatHandlers;
-
-        const static StringMap<PixelFormat, PIXELFORMAT_MAX_ENUM> pixelFormats;
     };
 } // namespace love

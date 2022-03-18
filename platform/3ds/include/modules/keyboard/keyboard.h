@@ -1,6 +1,7 @@
 #pragma once
 
 #include "modules/keyboard/keyboardc.h"
+#include <vector>
 
 namespace love
 {
@@ -34,6 +35,5 @@ namespace love
 
       private:
         SwkbdState keyboard;
-        const static StringMap<KeyboardType, MAX_TYPES> keyboardTypes;
     };
 } // namespace love

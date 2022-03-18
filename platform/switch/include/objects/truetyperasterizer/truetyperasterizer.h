@@ -1,6 +1,5 @@
 #pragma once
 
-#include "common/stringmap.h"
 #include "objects/rasterizer/rasterizer.h"
 
 #include "common/strongref.h"
@@ -9,6 +8,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
+
+#include <vector>
 
 namespace love
 {
@@ -57,8 +58,6 @@ namespace love
         StrongReference<love::Data> data;
 
         Hinting hinting;
-
-        const static StringMap<Hinting, HINTING_MAX_ENUM> hintings;
 
         static FT_UInt HintingToLoadOption(Hinting hinting);
     };

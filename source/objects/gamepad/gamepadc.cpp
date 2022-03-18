@@ -1,4 +1,5 @@
 #include "objects/gamepad/gamepadc.h"
+#include "common/bidirectionalmap.h"
 
 using namespace love::common;
 
@@ -40,6 +41,13 @@ bool Gamepad::IsGamepad() const
     return true;
 }
 
+// clang-format off
+constexpr auto inputTypes = BidirectionalMap<>::Create(
+    "axis",   Gamepad::INPUT_TYPE_AXIS,
+    "button", Gamepad::INPUT_TYPE_BUTTON
+);
+// clang-format on
+
 bool Gamepad::GetConstant(const char* in, Gamepad::InputType& out)
 {
     return inputTypes.Find(in, out);
@@ -47,15 +55,5 @@ bool Gamepad::GetConstant(const char* in, Gamepad::InputType& out)
 
 bool Gamepad::GetConstant(Gamepad::InputType in, const char*& out)
 {
-    return inputTypes.Find(in, out);
+    return inputTypes.ReverseFind(in, out);
 }
-
-// clang-format off
-constexpr StringMap<Gamepad::InputType, Gamepad::INPUT_TYPE_MAX_ENUM>::Entry inputTypeEntries[] =
-{
-    { "axis",   Gamepad::INPUT_TYPE_AXIS   },
-    { "button", Gamepad::INPUT_TYPE_BUTTON }
-};
-
-constinit const StringMap<Gamepad::InputType, Gamepad::INPUT_TYPE_MAX_ENUM> Gamepad::inputTypes(inputTypeEntries);
-// clang-format on

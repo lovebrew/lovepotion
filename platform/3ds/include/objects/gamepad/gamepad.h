@@ -2,6 +2,8 @@
 
 #include "objects/gamepad/gamepadc.h"
 
+#include "common/bidirectionalmap.h"
+
 enum class love::common::Gamepad::GamepadAxis : uint64_t
 {
     GAMEPAD_AXIS_LEFTX        = KEY_CPAD_LEFT | KEY_CPAD_RIGHT,
@@ -88,7 +90,7 @@ namespace love
         static constexpr uint8_t MAX_BUTTONS = 12;
         static constexpr uint8_t MAX_AXES    = 6;
 
-        const static StringMap<GamepadButton, MAX_BUTTONS> GetButtonMapping()
+        const static auto& GetButtonMapping()
         {
             return Gamepad::buttons;
         }
@@ -100,7 +102,30 @@ namespace love
         } buttonStates;
 
       private:
-        const static StringMap<GamepadAxis, MAX_AXES> axes;
-        const static StringMap<GamepadButton, MAX_BUTTONS> buttons;
+        // clang-format off
+        static constexpr auto axes = BidirectionalMap<>::Create(
+            "leftx",        Gamepad::GamepadAxis::GAMEPAD_AXIS_LEFTX,
+            "lefty",        Gamepad::GamepadAxis::GAMEPAD_AXIS_LEFTY,
+            "rightx",       Gamepad::GamepadAxis::GAMEPAD_AXIS_RIGHTX,
+            "righty",       Gamepad::GamepadAxis::GAMEPAD_AXIS_RIGHTY,
+            "triggerleft",  Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERLEFT,
+            "triggerright", Gamepad::GamepadAxis::GAMEPAD_AXIS_TRIGGERRIGHT
+        );
+
+        static constexpr auto buttons = BidirectionalMap<>::Create(
+            "a",             Gamepad::GamepadButton::GAMEPAD_BUTTON_A,
+            "b",             Gamepad::GamepadButton::GAMEPAD_BUTTON_B,
+            "x",             Gamepad::GamepadButton::GAMEPAD_BUTTON_X,
+            "y",             Gamepad::GamepadButton::GAMEPAD_BUTTON_Y,
+            "back",          Gamepad::GamepadButton::GAMEPAD_BUTTON_BACK,
+            "start",         Gamepad::GamepadButton::GAMEPAD_BUTTON_START,
+            "leftshoulder",  Gamepad::GamepadButton::GAMEPAD_BUTTON_LEFT_SHOULDER,
+            "rightshoulder", Gamepad::GamepadButton::GAMEPAD_BUTTON_RIGHT_SHOULDER,
+            "dpup",          Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_UP,
+            "dpdown",        Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_DOWN,
+            "dpleft",        Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_LEFT,
+            "dpright",       Gamepad::GamepadButton::GAMEPAD_BUTTON_DPAD_RIGHT
+        );
+        // clang-format on
     };
 } // namespace love
