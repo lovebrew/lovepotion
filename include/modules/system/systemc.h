@@ -69,7 +69,7 @@ namespace love::common
 
         virtual const std::string& GetSystemTheme() = 0;
 
-        virtual const std::string& GetLanguage() = 0;
+        virtual const std::string& GetPreferredLocales() = 0;
 
         virtual const std::string& GetVersion() = 0;
 

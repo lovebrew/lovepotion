@@ -29,7 +29,7 @@ namespace love
 
         const std::string& GetSystemTheme() override;
 
-        const std::string& GetLanguage() override;
+        const std::string& GetPreferredLocales() override;
 
         const std::string& GetModel() override;
 

@@ -11,7 +11,7 @@ namespace Wrap_System
 
     int GetNetworkInfo(lua_State* L);
 
-    int GetLanguage(lua_State* L);
+    int GetPreferredLocales(lua_State* L);
 
     int GetRegion(lua_State* L);
 
