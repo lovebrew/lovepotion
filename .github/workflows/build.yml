@@ -1,6 +1,10 @@
 name: LÖVE Potion
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
 
 jobs:
   first:
@@ -17,10 +21,13 @@ jobs:
 
       - name: Build
         run: make ctr
-
+        
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+      
       - uses: actions/upload-artifact@v2
         with:
-          name: Nintendo 3DS
+          name: Nintendo 3DS-${{ steps.commit.outputs.short }}
           path: |
             platform/3ds/*.elf
             platform/3ds/*.3dsx
@@ -39,10 +46,13 @@ jobs:
 
       - name: Build
         run: make hac
-
+      
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+        
       - uses: actions/upload-artifact@v2
         with:
-          name: Nintendo Switch
+          name: Nintendo Switch-${{ steps.commit.outputs.short }}
           path: |
             platform/switch/*.elf
             platform/switch/*.nro
