@@ -58,11 +58,13 @@ int Wrap_System::GetNetworkInfo(lua_State* L)
     return 2;
 }
 
-int Wrap_System::GetLanguage(lua_State* L)
+int Wrap_System::GetPreferredLocales(lua_State* L)
 {
-    std::string language = instance()->GetLanguage();
+    std::string language = instance()->GetPreferredLocales();
 
+    lua_createtable(L, 1, 0);
     Luax::PushString(L, language);
+    lua_rawseti(L, -2, 1);
 
     return 1;
 }
@@ -146,22 +148,22 @@ int Wrap_System::GetPlayCoins(lua_State* L)
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "getColorTheme",     Wrap_System::GetSystemTheme    },
-    { "getFriendCode",     Wrap_System::GetFriendCode     },
-    { "getLanguage",       Wrap_System::GetLanguage       },
-    { "getModel",          Wrap_System::GetModel          },
-    { "getNetworkInfo",    Wrap_System::GetNetworkInfo    },
-    { "getOS",             Wrap_System::GetOS             },
-    { "getPowerInfo",      Wrap_System::GetPowerInfo      },
-    { "getProcessorCount", Wrap_System::GetProcessorCount },
-    { "getRegion",         Wrap_System::GetRegion         },
-    { "getUsername",       Wrap_System::GetUsername       },
-    { "getVersion",        Wrap_System::GetVersion        },
+    { "getColorTheme",       Wrap_System::GetSystemTheme      },
+    { "getFriendCode",       Wrap_System::GetFriendCode       },
+    { "getPreferredLocales", Wrap_System::GetPreferredLocales },
+    { "getModel",            Wrap_System::GetModel            },
+    { "getNetworkInfo",      Wrap_System::GetNetworkInfo      },
+    { "getOS",               Wrap_System::GetOS               },
+    { "getPowerInfo",        Wrap_System::GetPowerInfo        },
+    { "getProcessorCount",   Wrap_System::GetProcessorCount   },
+    { "getRegion",           Wrap_System::GetRegion           },
+    { "getUsername",         Wrap_System::GetUsername         },
+    { "getVersion",          Wrap_System::GetVersion          },
 #if defined(__3DS__)
-    { "getPlayCoins",      Wrap_System::GetPlayCoins      },
-    { "setPlayCoins",      Wrap_System::SetPlayCoins      },
+    { "getPlayCoins",        Wrap_System::GetPlayCoins        },
+    { "setPlayCoins",        Wrap_System::SetPlayCoins        },
 #endif
-    { 0,                   0                              }
+    { 0,                     0                                }
 };
 // clang-format on
 

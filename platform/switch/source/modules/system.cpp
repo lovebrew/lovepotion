@@ -79,7 +79,7 @@ System::NetworkState System::GetNetworkInfo(uint8_t& signal) const
     return state;
 }
 
-const std::string& System::GetLanguage()
+const std::string& System::GetPreferredLocales()
 {
     if (!this->systemInfo.language.empty())
         return this->systemInfo.language;
@@ -184,24 +184,24 @@ const std::string& System::GetSystemTheme()
 
 // clang-format off
 constexpr auto languages = BidirectionalMap<>::Create(
-    "Japanese",               SetLanguage_JA,
-    "US English",             SetLanguage_ENUS,
-    "French",                 SetLanguage_FR,
-    "German",                 SetLanguage_DE,
-    "Italian",                SetLanguage_IT,
-    "Spanish",                SetLanguage_ES,
-    "Chinese",                SetLanguage_ZHCN,
-    "Korean",                 SetLanguage_KO,
-    "Dutch",                  SetLanguage_NL,
-    "Portuguese",             SetLanguage_PT,
-    "Russian",                SetLanguage_RU,
-    "Taiwanese",              SetLanguage_ZHTW,
-    "British English",        SetLanguage_ENGB,
-    "Canadian French",        SetLanguage_FRCA,
-    "Latin American Spanish", SetLanguage_ES419,
-    "Chinese Simplified",     SetLanguage_ZHHANS,
-    "Chinese Traditional",    SetLanguage_ZHHANT,
-    "Brazilian Protuguese",   SetLanguage_PTBR
+    "jp",      SetLanguage_JA,
+    "en_US",   SetLanguage_ENUS,
+    "fr",      SetLanguage_FR,
+    "de",      SetLanguage_DE,
+    "it",      SetLanguage_IT,
+    "es",      SetLanguage_ES,
+    "zh_CN",   SetLanguage_ZHCN,
+    "ko",      SetLanguage_KO,
+    "nl",      SetLanguage_NL,
+    "pt",      SetLanguage_PT,
+    "ru",      SetLanguage_RU,
+    "zh_TW",   SetLanguage_ZHTW,
+    "en_GB",   SetLanguage_ENGB,
+    "fr_CA",   SetLanguage_FRCA,
+    "es_419",  SetLanguage_ES419,
+    "zh_HANS", SetLanguage_ZHHANS,
+    "zh_HANT", SetLanguage_ZHHANT,
+    "pt_BR",   SetLanguage_PTBR
 );
 
 constexpr auto models = BidirectionalMap<>::Create(

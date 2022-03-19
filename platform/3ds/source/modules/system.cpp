@@ -109,7 +109,7 @@ System::NetworkState System::GetNetworkInfo(uint8_t& signal) const
     return state;
 }
 
-const std::string& System::GetLanguage()
+const std::string& System::GetPreferredLocales()
 {
     if (!this->systemInfo.language.empty())
         return this->systemInfo.language;
@@ -234,18 +234,18 @@ void System::SetPlayCoins(int amount)
 
 // clang-format off
 constexpr auto languages = BidirectionalMap<>::Create(
-    "Japanese",            CFG_LANGUAGE_JP,
-    "English",             CFG_LANGUAGE_EN,
-    "French",              CFG_LANGUAGE_FR,
-    "German",              CFG_LANGUAGE_DE,
-    "Italian",             CFG_LANGUAGE_IT,
-    "Spanish",             CFG_LANGUAGE_ES,
-    "Simplified Chinese",  CFG_LANGUAGE_ZH,
-    "Korean",              CFG_LANGUAGE_KO,
-    "Dutch",               CFG_LANGUAGE_NL,
-    "Portugese",           CFG_LANGUAGE_PT,
-    "Russian",             CFG_LANGUAGE_RU,
-    "Traditional Chinese", CFG_LANGUAGE_TW
+    "jp",    CFG_LANGUAGE_JP,
+    "en",    CFG_LANGUAGE_EN,
+    "fr",    CFG_LANGUAGE_FR,
+    "de",    CFG_LANGUAGE_DE,
+    "it",    CFG_LANGUAGE_IT,
+    "es",    CFG_LANGUAGE_ES,
+    "zh_CN", CFG_LANGUAGE_ZH,
+    "ko",    CFG_LANGUAGE_KO,
+    "nl",    CFG_LANGUAGE_NL,
+    "pt",    CFG_LANGUAGE_PT,
+    "ru",    CFG_LANGUAGE_RU,
+    "zh_TW", CFG_LANGUAGE_TW
 );
 
 constexpr auto models = BidirectionalMap<>::Create(
