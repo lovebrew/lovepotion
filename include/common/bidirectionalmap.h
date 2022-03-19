@@ -112,6 +112,21 @@ class BidirectionalMap
         return false;
     }
 
+    /* Can only be used on String-mapped Keys */
+    constexpr std::vector<const char*> GetNames() const
+    {
+        std::vector<const char*> strings;
+        strings.reserve(this->populated);
+
+        for (size_t i = 0; i < this->populated; i++)
+        {
+            if (this->entries[i].first != nullptr)
+                strings.emplace_back(this->entries[i].first);
+        }
+
+        return strings;
+    }
+
     constexpr std::pair<const Entry*, size_t> GetEntries() const
     {
         return { entries.data(), this->populated };
@@ -120,6 +135,7 @@ class BidirectionalMap
   private:
     std::array<Entry, Size> entries;
     const size_t populated;
+
     [[no_unique_address]] KeyComparator kc;
     [[no_unique_address]] ValueComparator vc;
 };
