@@ -150,8 +150,8 @@ void ImageData::Decode(Data* data)
     this->width  = decoded.width;
     this->height = decoded.height;
 #else
-    this->width  = decoded.subWidth;
-    this->height = decoded.subHeight;
+    this->width     = decoded.subWidth;
+    this->height    = decoded.subHeight;
 #endif
 
     this->data   = decoded.data;
@@ -565,12 +565,5 @@ bool ImageData::GetConstant(FormatHandler::EncodedFormat in, const char*& out)
 
 std::vector<const char*> ImageData::GetConstants(FormatHandler::EncodedFormat)
 {
-    auto entries = encodedFormats.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return encodedFormats.GetNames();
 }

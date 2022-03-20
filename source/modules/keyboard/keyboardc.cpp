@@ -47,14 +47,7 @@ bool Keyboard::GetConstant(KeyboardOption in, const char*& out)
 
 std::vector<const char*> Keyboard::GetConstants(KeyboardOption)
 {
-    auto entries = keyboardOptions.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return keyboardOptions.GetNames();
 }
 
 const char* Keyboard::GetConstant(KeyboardOption in)

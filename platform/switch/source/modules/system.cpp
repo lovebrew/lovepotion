@@ -254,14 +254,7 @@ bool System::GetConstant(SetLanguage in, const char*& out)
 
 std::vector<const char*> System::GetConstants(SetLanguage)
 {
-    auto entries = languages.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return languages.GetNames();
 }
 
 /* MODEL CONSTANTS */
@@ -278,14 +271,7 @@ bool System::GetConstant(SetSysProductModel in, const char*& out)
 
 std::vector<const char*> System::GetConstants(SetSysProductModel)
 {
-    auto entries = models.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return models.GetNames();
 }
 
 /* REGION CONSTANTS */
@@ -302,12 +288,5 @@ bool System::GetConstant(SetRegion in, const char*& out)
 
 std::vector<const char*> System::GetConstants(SetRegion)
 {
-    auto entries = regions.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return regions.GetNames();
 }

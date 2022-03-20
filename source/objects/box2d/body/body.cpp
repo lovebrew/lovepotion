@@ -639,12 +639,5 @@ bool Body::GetConstant(Body::Type in, const char*& out)
 
 std::vector<const char*> Body::GetConstants(Body::Type)
 {
-    auto entries = types.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return types.GetNames();
 }

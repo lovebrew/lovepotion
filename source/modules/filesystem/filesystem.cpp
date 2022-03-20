@@ -548,12 +548,5 @@ bool Filesystem::GetConstant(FileType in, const char*& out)
 
 std::vector<const char*> Filesystem::GetConstants(FileType)
 {
-    auto entries = fileTypes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return fileTypes.GetNames();
 }

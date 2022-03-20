@@ -72,12 +72,5 @@ bool Keyboard::GetConstant(KeyboardType in, const char*& out)
 
 std::vector<const char*> Keyboard::GetConstants(KeyboardType)
 {
-    auto entries = keyboardTypes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return keyboardTypes.GetNames();
 }

@@ -117,12 +117,5 @@ bool Transform::GetConstant(MatrixLayout in, const char*& out)
 
 std::vector<const char*> Transform::GetConstants(MatrixLayout)
 {
-    auto entries = matrixLayouts.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return matrixLayouts.GetNames();
 }

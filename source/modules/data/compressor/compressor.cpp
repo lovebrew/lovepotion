@@ -43,12 +43,5 @@ bool Compressor::GetConstant(Format in, const char*& out)
 
 std::vector<const char*> Compressor::GetConstants(Format)
 {
-    auto entries = formatNames.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return formatNames.GetNames();
 }

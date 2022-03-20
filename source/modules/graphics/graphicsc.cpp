@@ -663,14 +663,7 @@ bool Graphics::GetConstant(DrawMode in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(DrawMode)
 {
-    auto entries = drawModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return drawModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, ArcMode& out)
@@ -685,14 +678,7 @@ bool Graphics::GetConstant(ArcMode in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(ArcMode)
 {
-    auto entries = arcModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return arcModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, BlendMode& out)
@@ -707,14 +693,7 @@ bool Graphics::GetConstant(BlendMode in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(BlendMode)
 {
-    auto entries = blendModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return blendModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, BlendAlpha& out)
@@ -729,14 +708,7 @@ bool Graphics::GetConstant(BlendAlpha in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(BlendAlpha)
 {
-    auto entries = blendAlphaModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return blendAlphaModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, StackType& out)
@@ -751,14 +723,7 @@ bool Graphics::GetConstant(StackType in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(StackType)
 {
-    auto entries = stackTypes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return stackTypes.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, LineJoin& out)
@@ -773,14 +738,7 @@ bool Graphics::GetConstant(LineJoin in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(LineJoin)
 {
-    auto entries = lineJoins.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return lineJoins.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, LineStyle& out)
@@ -795,12 +753,5 @@ bool Graphics::GetConstant(LineStyle in, const char*& out)
 
 std::vector<const char*> Graphics::GetConstants(LineStyle)
 {
-    auto entries = lineStyles.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return lineStyles.GetNames();
 }
