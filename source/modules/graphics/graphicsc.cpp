@@ -114,6 +114,15 @@ bool Graphics::SetMode(int width, int height)
 }
 
 /* Screen Stuff */
+void Graphics::SetActiveScreen(RenderScreen screen)
+{
+    Graphics::ACTIVE_SCREEN = screen;
+}
+
+const RenderScreen Graphics::GetActiveScreen() const
+{
+    return Graphics::ACTIVE_SCREEN;
+}
 
 const int Graphics::GetWidth(RenderScreen screen) const
 {

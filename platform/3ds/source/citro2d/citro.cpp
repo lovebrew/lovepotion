@@ -26,8 +26,6 @@ citro2d::citro2d()
 
     C2D_SetTintMode(C2D_TintMult);
 
-    this->targets.reserve(4);
-
     love::Texture::Filter filter;
     filter.min = filter.mag = love::Texture::FILTER_NEAREST;
     this->SetTextureFilter(filter);
@@ -36,6 +34,7 @@ citro2d::citro2d()
     wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
     this->SetTextureWrap(wrap);
 
+    this->targets.reserve(4);
     this->CreateFramebuffers();
 }
 

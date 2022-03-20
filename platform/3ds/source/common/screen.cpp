@@ -1,6 +1,8 @@
 #include "common/screen.h"
 
+#include "citro2d/citro.h"
 #include "common/bidirectionalmap.h"
+#include "modules/graphics/graphics.h"
 
 using namespace love;
 
@@ -24,6 +26,8 @@ int Screen::GetWidth(RenderScreen screen)
         {
             case (int)Screen::Ctr2dScreen::CTR_2D_SCREEN_TOP:
             default:
+                if (::citro2d::Instance().GetWide())
+                    return Screen::TOP_WIDE_WIDTH;
                 return Screen::TOP_WIDTH;
             case (int)Screen::Ctr2dScreen::CTR_2D_SCREEN_BOTTOM:
                 return Screen::BOTTOM_WIDTH;
@@ -31,7 +35,7 @@ int Screen::GetWidth(RenderScreen screen)
     }
 }
 
-int Screen::GetHeight(RenderScreen screen)
+int Screen::GetHeight()
 {
     return Screen::HEIGHT;
 }

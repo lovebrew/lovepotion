@@ -2,12 +2,8 @@
 
 #if defined(__3DS__)
     #include <3ds.h>
-
-    #include "citro2d/citro.h"
 #elif defined(__SWITCH__)
     #include <switch.h>
-
-    #include "deko3d/deko.h"
 #endif
 
 #include <vector>
@@ -22,7 +18,7 @@ namespace love::common
         template<typename T>
         static bool FindSetCast(const auto& BiMap, const char* in, RenderScreen& value)
         {
-            T temp;
+            T temp       = static_cast<T>(0);
             bool success = BiMap.Find(in, temp);
 
             value = static_cast<RenderScreen>(temp);
@@ -32,10 +28,9 @@ namespace love::common
         template<typename T>
         static bool ReverseFindSetCast(const auto& BiMap, RenderScreen& in, const char*& value)
         {
-            T temp;
-            bool success = BiMap.ReverseFind(in, temp);
+            T temp       = static_cast<T>(0);
+            bool success = BiMap.ReverseFind(temp, value);
 
-            value = static_cast<RenderScreen>(temp);
             return success;
         }
 

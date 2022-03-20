@@ -48,7 +48,7 @@ class citro2d
     void SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& filter);
 
     template<typename T>
-    int ModeChange(const T& func)
+    void ModeChange(const T& func)
     {
         this->DestroyFramebuffers();
         func();
@@ -57,17 +57,11 @@ class citro2d
 
     void SetWideMode(bool enable)
     {
-        if (this->GetWide())
-            return;
-
         this->ModeChange([enable]() { gfxSetWide(enable); });
     }
 
     void Set3D(bool enable)
     {
-        if (this->Get3D())
-            return;
-
         this->ModeChange([enable]() { gfxSet3D(enable); });
     }
 

@@ -7,6 +7,7 @@
 
 #include "common/colors.h"
 #include "common/module.h"
+#include "common/screen.h"
 #include "common/vector.h"
 
 /* OBJECTS */
@@ -45,8 +46,6 @@
 
     #include "objects/shader/wrap_shader.h"
 #endif
-
-#include "common/screen.h"
 
 namespace love
 {
@@ -120,6 +119,10 @@ namespace love
             STACK_TRANSFORM,
             STACK_MAX_ENUM
         };
+
+        static constexpr float MIN_DEPTH         = 1.0f / 16384.0f;
+        static inline float CURRENT_DEPTH        = 0;
+        static inline RenderScreen ACTIVE_SCREEN = 0;
 
         struct ColorMask
         {
@@ -214,15 +217,9 @@ namespace love
 
         /* render screen */
 
-        void SetActiveScreen(RenderScreen screen)
-        {
-            Graphics::ACTIVE_SCREEN = screen;
-        }
+        void SetActiveScreen(RenderScreen screen);
 
-        const RenderScreen GetActiveScreen() const
-        {
-            return Graphics::ACTIVE_SCREEN;
-        };
+        const RenderScreen GetActiveScreen() const;
 
         const int GetWidth(RenderScreen screen) const;
 
@@ -561,10 +558,6 @@ namespace love
         virtual void Present() = 0;
 
         bool SetMode(int width, int height);
-
-        static constexpr float MIN_DEPTH         = 1.0f / 16384.0f;
-        static inline float CURRENT_DEPTH        = 0;
-        static inline RenderScreen ACTIVE_SCREEN = 0;
 
         static bool GetConstant(const char* in, DrawMode& out);
         static bool GetConstant(DrawMode in, const char*& out);

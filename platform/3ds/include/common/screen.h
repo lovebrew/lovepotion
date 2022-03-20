@@ -17,6 +17,8 @@ namespace love
         static constexpr int BOTTOM_WIDTH = 0x140;
         static constexpr int HEIGHT       = 0x0F0;
 
+        static constexpr int TOP_WIDE_WIDTH = 0x320;
+
         /*
         ** 3D screens when 3D is enabled
         */
@@ -46,5 +48,5 @@ namespace love
         static bool GetConstant(const char* in, RenderScreen& out);
         static bool GetConstant(RenderScreen in, const char*& out);
         static std::vector<const char*> GetConstants(RenderScreen);
-    }
+    };
 } // namespace love

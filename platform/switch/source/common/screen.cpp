@@ -1,6 +1,8 @@
 #include "common/screen.h"
 
 #include "common/bidirectionalmap.h"
+#include "deko3d/deko.h"
+#include "modules/graphics/graphics.h"
 
 using namespace love;
 
