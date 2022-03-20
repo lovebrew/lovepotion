@@ -107,7 +107,14 @@ class deko3d
 
     void SetStencil(DkStencilOp op, DkCompareOp compare, int value);
 
-    std::pair<uint32_t, uint32_t> OnOperationMode(AppletOperationMode mode);
+    void OnOperationMode(std::pair<uint32_t, uint32_t>& size);
+
+    bool IsHandheldMode()
+    {
+        AppletOperationMode mode = appletGetOperationMode();
+
+        return mode == AppletOperationMode::AppletOperationMode_Handheld;
+    }
 
     dk::Device GetDevice()
     {

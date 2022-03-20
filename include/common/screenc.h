@@ -6,6 +6,8 @@
     #include "citro2d/citro.h"
 #elif defined(__SWITCH__)
     #include <switch.h>
+
+    #include "deko3d/deko.h"
 #endif
 
 #include <vector>
@@ -42,9 +44,9 @@ namespace love::common
             this->current = screen;
         }
 
-        virtual int GetWidth(RenderScreen screen) = 0;
+        virtual int GetWidth(RenderScreen screen = 0) = 0;
 
-        virtual int GetHeight(RenderScreen screen) = 0;
+        virtual int GetHeight() = 0;
 
       protected:
         RenderScreen current;

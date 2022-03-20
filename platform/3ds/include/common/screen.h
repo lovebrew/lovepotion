@@ -17,6 +17,9 @@ namespace love
         static constexpr int BOTTOM_WIDTH = 0x140;
         static constexpr int HEIGHT       = 0x0F0;
 
+        /*
+        ** 3D screens when 3D is enabled
+        */
         enum class CtrScreen : RenderScreen
         {
             CTR_SCREEN_LEFT,
@@ -25,16 +28,20 @@ namespace love
             CTR_SCREEN_MAX_ENUM
         };
 
+        /*
+        ** 2D screens when 3D is disabled
+        ** BOTTOM is 0x02 to properly index it in the citro2d class
+        */
         enum class Ctr2dScreen : RenderScreen
         {
             CTR_2D_SCREEN_TOP,
-            CTR_2D_SCREEN_BOTTOM,
+            CTR_2D_SCREEN_BOTTOM = 0x02,
             CTR_2D_SCREEN_MAX_ENUM
         };
 
-        int GetWidth(RenderScreen screen) override;
+        int GetWidth(RenderScreen screen = 0) override;
 
-        int GetHeight(RenderScreen screen) override;
+        int GetHeight() override;
 
         static bool GetConstant(const char* in, RenderScreen& out);
         static bool GetConstant(RenderScreen in, const char*& out);

@@ -6,12 +6,18 @@ using namespace love;
 
 int Screen::GetWidth(RenderScreen)
 {
-    return Screen::WIDTH;
+    if (::deko3d::Instance().IsHandheldMode())
+        return Screen::HANDHELD_WIDTH;
+
+    return Screen::DOCKED_WIDTH;
 }
 
 int Screen::GetHeight(RenderScreen)
 {
-    return Screen::HEIGHT;
+    if (::deko3d::Instance().IsHandheldMode())
+        return Screen::HANDHELD_HEIGHT;
+
+    return Screen::DOCKED_HEIGHT;
 }
 
 // clang-format off

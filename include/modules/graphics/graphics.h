@@ -46,20 +46,14 @@
     #include "objects/shader/wrap_shader.h"
 #endif
 
+#include "common/screen.h"
+
 namespace love
 {
     class Graphics : public Module
     {
       public:
         static const size_t MAX_USER_STACK_DEPTH = 128;
-
-        enum class Screen : uint8_t;
-
-#if defined(__SWITCH__)
-        static constexpr int MAX_SCREENS = 1;
-#elif defined(__3DS__)
-        static constexpr int MAX_SCREENS = 3;
-#endif
 
         enum DrawMode
         {
@@ -218,15 +212,25 @@ namespace love
 
         void SetBackgroundColor(const Colorf& color);
 
-        virtual Screen GetActiveScreen() const = 0;
+        /* render screen */
 
-        virtual const int GetWidth(Screen screen) const = 0;
+        void SetActiveScreen(RenderScreen screen)
+        {
+            Graphics::ACTIVE_SCREEN = screen;
+        }
 
-        virtual const int GetHeight() const = 0;
+        const RenderScreen GetActiveScreen() const
+        {
+            return Graphics::ACTIVE_SCREEN;
+        };
 
-        virtual std::vector<const char*> GetScreens() const = 0;
+        const int GetWidth(RenderScreen screen) const;
 
-        virtual void SetActiveScreen(Screen screen) = 0;
+        const int GetHeight() const;
+
+        std::vector<const char*> GetScreens() const;
+
+        /* end screens */
 
         bool GetScissor(Rect& scissor) const;
 
@@ -355,7 +359,7 @@ namespace love
         virtual void Polygon(DrawMode mode, const Vector2* points, size_t count,
                              bool skipLastFilledVertex = true) = 0;
 #else
-        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count) = 0;
+        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count)             = 0;
 #endif
 
         virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,
@@ -558,13 +562,9 @@ namespace love
 
         bool SetMode(int width, int height);
 
-        static constexpr float MIN_DEPTH  = 1.0f / 16384.0f;
-        static inline float CURRENT_DEPTH = 0;
-        static inline int ACTIVE_SCREEN   = 0;
-
-        static bool GetConstant(const char* in, Screen& out);
-        static bool GetConstant(Screen in, const char*& out);
-        static std::vector<const char*> GetConstants(Screen);
+        static constexpr float MIN_DEPTH         = 1.0f / 16384.0f;
+        static inline float CURRENT_DEPTH        = 0;
+        static inline RenderScreen ACTIVE_SCREEN = 0;
 
         static bool GetConstant(const char* in, DrawMode& out);
         static bool GetConstant(DrawMode in, const char*& out);

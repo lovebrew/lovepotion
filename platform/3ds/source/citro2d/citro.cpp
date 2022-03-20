@@ -28,10 +28,6 @@ citro2d::citro2d()
 
     this->targets.reserve(4);
 
-    this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
-                      C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT),
-                      C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT) };
-
     love::Texture::Filter filter;
     filter.min = filter.mag = love::Texture::FILTER_NEAREST;
     this->SetTextureFilter(filter);
@@ -39,6 +35,21 @@ citro2d::citro2d()
     love::Texture::Wrap wrap;
     wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
     this->SetTextureWrap(wrap);
+
+    this->CreateFramebuffers();
+}
+
+void citro2d::DestroyFramebuffers()
+{
+    for (auto framebuffer : this->targets)
+        C3D_RenderTargetDelete(framebuffer);
+}
+
+void citro2d::CreateFramebuffers()
+{
+    this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
+                      C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT),
+                      C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT) };
 }
 
 citro2d::~citro2d()
@@ -70,16 +81,6 @@ void citro2d::SetColorMask(const love::Graphics::ColorMask& mask)
     writeMask |= mask.GetColorMask();
 
     C3D_DepthTest(true, GPU_GEQUAL, static_cast<GPU_WRITEMASK>(writeMask));
-}
-
-void citro2d::Set3D(bool enable)
-{
-    gfxSet3D(enable);
-}
-
-bool citro2d::Get3D() const
-{
-    return gfxIs3D();
 }
 
 void citro2d::EnsureInFrame()

@@ -56,7 +56,9 @@ void Hidrv::CheckFocus()
             }
             case AppletMessage_OperationModeChanged:
             {
-                auto size = ::deko3d::Instance().OnOperationMode(appletGetOperationMode());
+                std::pair<uint32_t, uint32_t> size;
+                ::deko3d::Instance().OnOperationMode(size);
+
                 this->SendResize(size.first, size.second);
 
                 break;

@@ -113,6 +113,25 @@ bool Graphics::SetMode(int width, int height)
     return true;
 }
 
+/* Screen Stuff */
+
+const int Graphics::GetWidth(RenderScreen screen) const
+{
+    return Screen::Instance().GetWidth(screen);
+}
+
+const int Graphics::GetHeight() const
+{
+    return Screen::Instance().GetHeight();
+}
+
+std::vector<const char*> Graphics::GetScreens() const
+{
+    return Screen::Instance().GetConstants(Graphics::ACTIVE_SCREEN);
+}
+
+/* End Screen Stuff */
+
 Colorf Graphics::GetColor() const
 {
     return this->states.back().foreground;
@@ -619,46 +638,9 @@ constexpr auto lineStyles = BidirectionalMap<>::Create(
     "smooth", Graphics::LINE_SMOOTH,
     "rough",  Graphics::LINE_ROUGH
 );
-
-#if defined(__3DS__)
-/* "3D" Screens */
-#include "citro2d/graphics.h"
-constexpr auto screens = BidirectionalMap<>::Create(
-    "left",   Graphics::Screen::SCREEN_LEFT,
-    "right",  Graphics::Screen::SCREEN_RIGHT,
-    "bottom", Graphics::Screen::SCREEN_BOTTOM
-);
-#elif defined(__SWITCH__)
-#include "deko3d/graphics.h"
-constexpr auto screens = BidirectionalMap<>::Create(
-    "default", Graphics::Screen::SCREEN_DEFAULT
-);
-#endif
 // clang-format on
 
 /* Constants */
-
-bool Graphics::GetConstant(const char* in, Screen& out)
-{
-    return screens.Find(in, out);
-}
-
-bool Graphics::GetConstant(Screen in, const char*& out)
-{
-    return screens.ReverseFind(in, out);
-}
-
-std::vector<const char*> Graphics::GetConstants(Screen)
-{
-    auto entries = screens.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
-}
 
 bool Graphics::GetConstant(const char* in, DrawMode& out)
 {

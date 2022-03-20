@@ -10,34 +10,12 @@
 #define RENDERER_VENDOR  "devkitPro"
 #define RENDERER_DEVICE  "DMP PICA200"
 
-#define SCREEN_TOP_WIDTH 400
-#define SCREEN_BOT_WIDTH 320
-#define SCREEN_HEIGHT    240
-
-enum class love::Graphics::Screen : uint8_t
-{
-    SCREEN_LEFT,
-    SCREEN_RIGHT,
-    SCREEN_BOTTOM,
-    SCREEN_MAX_ENUM
-};
-
 namespace love::citro2d
 {
     class Graphics : public love::Graphics
     {
       public:
         Graphics();
-
-        Screen GetActiveScreen() const override;
-
-        std::vector<const char*> GetScreens() const override;
-
-        const int GetWidth(Screen screen) const override;
-
-        const int GetHeight() const override;
-
-        void SetActiveScreen(Screen screen) override;
 
         RendererInfo GetRendererInfo() const override;
 
@@ -115,18 +93,15 @@ namespace love::citro2d
 
         void Set3D(bool enable);
 
-        bool Get3D() const;
+        const bool Get3D() const;
 
+        void SetWide(bool enable);
+
+        const bool GetWide() const;
         /* End Nintendo 3DS */
 
         /* Useless */
 
         void SetColorMask(ColorMask mask) override;
-
-        static constexpr int MAX_2D_SCREENS = 2;
-
-        static bool GetConstant(const char* in, Screen& out);
-        static bool GetConstant(Screen in, const char*& out);
-        static std::vector<const char*> GetConstants(Screen);
     };
 } // namespace love::citro2d
