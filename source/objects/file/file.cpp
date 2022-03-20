@@ -307,14 +307,7 @@ bool File::GetConstant(Mode in, const char*& out)
 
 std::vector<const char*> File::GetConstants(Mode mode)
 {
-    auto entries = modes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return modes.GetNames();
 }
 
 bool File::GetConstant(const char* in, BufferMode& out)
@@ -329,12 +322,5 @@ bool File::GetConstant(BufferMode in, const char*& out)
 
 std::vector<const char*> File::GetConstants(BufferMode mode)
 {
-    auto entries = bufferModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return bufferModes.GetNames();
 }

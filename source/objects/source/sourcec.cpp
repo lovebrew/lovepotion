@@ -448,14 +448,7 @@ bool Source::GetConstant(Type in, const char*& out)
 
 std::vector<const char*> Source::GetConstants(Type)
 {
-    auto entries = types.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return types.GetNames();
 }
 
 /* Unit Constants */
@@ -472,12 +465,5 @@ bool Source::GetConstant(Unit in, const char*& out)
 
 std::vector<const char*> Source::GetConstants(Unit)
 {
-    auto entries = units.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return units.GetNames();
 }

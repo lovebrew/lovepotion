@@ -103,14 +103,7 @@ bool Texture::GetConstant(TextureType in, const char*& out)
 
 std::vector<const char*> Texture::GetConstants(Texture::TextureType)
 {
-    auto entries = texTypes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return texTypes.GetNames();
 }
 
 bool Texture::GetConstant(const char* in, FilterMode& out)
@@ -125,14 +118,7 @@ bool Texture::GetConstant(FilterMode in, const char*& out)
 
 std::vector<const char*> Texture::GetConstants(Texture::FilterMode)
 {
-    auto entries = filterModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return filterModes.GetNames();
 }
 
 bool Texture::GetConstant(const char* in, WrapMode& out)
@@ -147,12 +133,5 @@ bool Texture::GetConstant(WrapMode in, const char*& out)
 
 std::vector<const char*> Texture::GetConstants(Texture::WrapMode)
 {
-    auto entries = wrapModes.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return wrapModes.GetNames();
 }

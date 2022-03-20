@@ -24,6 +24,10 @@ class citro2d
 
     ~citro2d();
 
+    void DestroyFramebuffers();
+
+    void CreateFramebuffers();
+
     void BindFramebuffer(love::Canvas* canvas = nullptr);
 
     void ClearColor(const Colorf& color);
@@ -43,9 +47,33 @@ class citro2d
 
     void SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& filter);
 
-    void Set3D(bool enable);
+    template<typename T>
+    void ModeChange(const T& func)
+    {
+        this->DestroyFramebuffers();
+        func();
+        this->CreateFramebuffers();
+    }
 
-    bool Get3D() const;
+    void SetWideMode(bool enable)
+    {
+        this->ModeChange([enable]() { gfxSetWide(enable); });
+    }
+
+    void Set3D(bool enable)
+    {
+        this->ModeChange([enable]() { gfxSet3D(enable); });
+    }
+
+    const bool Get3D() const
+    {
+        return gfxIs3D();
+    }
+
+    const bool GetWide() const
+    {
+        return gfxIsWide();
+    }
 
     void DeferCallToEndOfFrame(std::function<void()>&& func)
     {

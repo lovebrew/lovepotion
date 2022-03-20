@@ -18,7 +18,7 @@ TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, love::Data* data, int
 
     FT_Error err = FT_Err_Ok;
     err          = FT_New_Memory_Face(library, (const FT_Byte*)data->GetData(), data->GetSize(), 0,
-                             &this->face);
+                                      &this->face);
 
     if (err != FT_Err_Ok)
         throw love::Exception(
@@ -218,12 +218,5 @@ bool TrueTypeRasterizer::GetConstant(Hinting in, const char*& out)
 
 std::vector<const char*> TrueTypeRasterizer::GetConstants(Hinting)
 {
-    auto entries = hintings.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return hintings.GetNames();
 }

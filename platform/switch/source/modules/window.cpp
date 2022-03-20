@@ -5,14 +5,18 @@ using namespace love;
 #include "common/exception.h"
 #include "deko3d/deko.h"
 
+#include "common/screen.h"
+
 Window::Window()
 {
-    this->fullscreenModes = { { 1280, 720 }, { 1920, 1080 } };
+    this->fullscreenModes = { { Screen::HANDHELD_WIDTH, Screen::HANDHELD_HEIGHT },
+                              { Screen::DOCKED_WIDTH, Screen::DOCKED_HEIGHT } };
 }
 
 void Window::GetWindow(int& width, int& height)
 {
-    auto size = ::deko3d::Instance().OnOperationMode(appletGetOperationMode());
+    std::pair<uint32_t, uint32_t> size;
+    ::deko3d::Instance().OnOperationMode(size);
 
     width  = size.first;
     height = size.second;
@@ -22,7 +26,9 @@ void Window::GetWindow(int& width, int& height)
 
 bool Window::CreateWindowAndContext()
 {
-    auto size = ::deko3d::Instance().OnOperationMode(appletGetOperationMode());
+    std::pair<uint32_t, uint32_t> size;
+    ::deko3d::Instance().OnOperationMode(size);
+
     this->OnSizeChanged(size.first, size.second);
 
     return true;

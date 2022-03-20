@@ -144,14 +144,7 @@ constexpr auto sharedFonts = BidirectionalMap<>::Create(
 
     std::vector<const char*> Font::GetConstants(AlignMode)
     {
-        auto entries = alignModes.GetEntries();
-        std::vector<const char*> ret;
-        ret.reserve(entries.second);
-        for (size_t i = 0; i < entries.second; i++)
-        {
-            ret.emplace_back(entries.first[i].first);
-        }
-        return ret;
+        return alignModes.GetNames();
     }
 
     bool Font::GetConstant(const char* in, Font::SystemFontType& out)
@@ -166,13 +159,6 @@ constexpr auto sharedFonts = BidirectionalMap<>::Create(
 
     std::vector<const char*> Font::GetConstants(Font::SystemFontType)
     {
-        auto entries = sharedFonts.GetEntries();
-        std::vector<const char*> ret;
-        ret.reserve(entries.second);
-        for (size_t i = 0; i < entries.second; i++)
-        {
-            ret.emplace_back(entries.first[i].first);
-        }
-        return ret;
+        return sharedFonts.GetNames();
     }
 } // namespace love::common

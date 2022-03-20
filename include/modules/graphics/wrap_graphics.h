@@ -161,6 +161,10 @@ namespace Wrap_Graphics
 
     int Set3D(lua_State* L);
 
+    int GetWide(lua_State* L);
+
+    int SetWide(lua_State* L);
+
     /* End Nintendo 3DS */
 
     int Register(lua_State* L);

@@ -4,6 +4,7 @@
 #include "common/pixelformat.h"
 #include "deko3d/vertex.h"
 
+#include "common/screen.h"
 namespace
 {
     /* GPU & CPU Memory Pools */
@@ -20,9 +21,6 @@ namespace
 
     constexpr auto framebufferLayoutFlags =
         (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
-
-    uint32_t framebufferWidth  = 1280;
-    uint32_t framebufferHeight = 720;
 } // namespace
 
 deko3d::deko3d() :
@@ -44,7 +42,8 @@ deko3d::deko3d() :
            .code   = CMemPool(this->device, shaderFlags, shaderPoolSize) },
     state(),
     textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-    viewport { 0, 0, static_cast<int>(framebufferWidth), static_cast<int>(framebufferHeight) },
+    viewport { 0, 0, static_cast<int>(Screen::HANDHELD_WIDTH),
+               static_cast<int>(Screen::HANDHELD_HEIGHT) },
     framebuffers(),
     descriptorsDirty(false),
     depthBuffer()
@@ -100,7 +99,7 @@ void deko3d::CreateFramebufferResources()
     dk::ImageLayoutMaker { this->device }
         .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
         .setFormat(DkImageFormat_Z24S8)
-        .setDimensions(framebufferWidth, framebufferHeight)
+        .setDimensions(Screen::Instance().GetWidth(), Screen::Instance().GetHeight())
         .initialize(layout_depthbuffer);
 
     this->depthBuffer.memory =
@@ -112,7 +111,7 @@ void deko3d::CreateFramebufferResources()
     dk::ImageLayoutMaker { this->device }
         .setFlags(framebufferLayoutFlags)
         .setFormat(DkImageFormat_RGBA8_Unorm)
-        .setDimensions(framebufferWidth, framebufferHeight)
+        .setDimensions(Screen::Instance().GetWidth(), Screen::Instance().GetHeight())
         .initialize(this->layoutFramebuffer);
 
     uint64_t framebufferSize  = this->layoutFramebuffer.getSize();
@@ -136,30 +135,15 @@ void deko3d::CreateFramebufferResources()
         dk::SwapchainMaker { this->device, nwindowGetDefault(), this->framebufferArray }.create();
 }
 
-std::pair<uint32_t, uint32_t> deko3d::OnOperationMode(AppletOperationMode mode)
+void deko3d::OnOperationMode(std::pair<uint32_t, uint32_t>& size)
 {
+    /* Destroy resources */
     this->DestroyFramebufferResources();
 
-    switch (mode)
-    {
-        default:
-        case AppletOperationMode_Handheld:
-        {
-            framebufferWidth  = 1280;
-            framebufferHeight = 720;
-            break;
-        }
-        case AppletOperationMode_Console:
-        {
-            framebufferWidth  = 1920;
-            framebufferHeight = 1080;
-            break;
-        }
-    }
-
+    /* Recreate them, Screem will auto-determine the sizes */
     this->CreateFramebufferResources();
 
-    return { framebufferWidth, framebufferHeight };
+    size = { Screen::Instance().GetWidth(), Screen::Instance().GetHeight() };
 }
 
 void deko3d::DestroyFramebufferResources()

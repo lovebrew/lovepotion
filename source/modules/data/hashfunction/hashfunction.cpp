@@ -622,12 +622,5 @@ bool HashFunction::GetConstant(const Function& in, const char*& out)
 }
 std::vector<const char*> HashFunction::GetConstants(Function)
 {
-    auto entries = functionNames.GetEntries();
-    std::vector<const char*> ret;
-    ret.reserve(entries.second);
-    for (size_t i = 0; i < entries.second; i++)
-    {
-        ret.emplace_back(entries.first[i].first);
-    }
-    return ret;
+    return functionNames.GetNames();
 }
