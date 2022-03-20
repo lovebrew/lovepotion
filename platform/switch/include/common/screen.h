@@ -27,10 +27,10 @@ namespace love
 
         int GetWidth(RenderScreen screen = 0) override;
 
-        int GetHeight(RenderScreen screen = 0) override;
+        int GetHeight() override;
 
         static bool GetConstant(const char* in, RenderScreen& out);
         static bool GetConstant(RenderScreen in, const char*& out);
         static std::vector<const char*> GetConstants(RenderScreen);
-    }
+    };
 } // namespace love

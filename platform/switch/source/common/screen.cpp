@@ -14,7 +14,7 @@ int Screen::GetWidth(RenderScreen)
     return Screen::DOCKED_WIDTH;
 }
 
-int Screen::GetHeight(RenderScreen)
+int Screen::GetHeight()
 {
     if (::deko3d::Instance().IsHandheldMode())
         return Screen::HANDHELD_HEIGHT;

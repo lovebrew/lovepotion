@@ -4,7 +4,6 @@
 #include "polyline/common.h"
 
 using namespace love;
-using Screen = love::Graphics::Screen;
 
 love::deko3d::Graphics::Graphics()
 {
@@ -36,39 +35,6 @@ love::deko3d::Graphics::Graphics()
 
 love::deko3d::Graphics::~Graphics()
 {}
-
-const int love::deko3d::Graphics::GetWidth(Screen screen) const
-{
-    switch (screen)
-    {
-        case Screen::SCREEN_DEFAULT:
-        default:
-            return this->width;
-    }
-
-    return 0;
-}
-
-const int love::deko3d::Graphics::GetHeight() const
-{
-    return this->height;
-}
-
-void love::deko3d::Graphics::SetActiveScreen(Screen screen)
-{
-    if (screen == Screen::SCREEN_MAX_ENUM)
-        throw love::Exception("invalid screen, expected 'default'.");
-}
-
-Graphics::Screen love::deko3d::Graphics::GetActiveScreen() const
-{
-    return Screen::SCREEN_DEFAULT;
-}
-
-std::vector<const char*> love::deko3d::Graphics::GetScreens() const
-{
-    return Graphics::GetConstants(Screen::SCREEN_MAX_ENUM);
-}
 
 void Graphics::SetCanvas(Canvas* canvas)
 {
