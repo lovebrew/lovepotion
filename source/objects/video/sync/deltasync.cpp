@@ -38,7 +38,7 @@ void DeltaSync::Seek(double time)
     this->position = time;
 }
 
-void DeltaSync::IsPlaying() const
+bool DeltaSync::IsPlaying() const
 {
     return this->playing;
 }

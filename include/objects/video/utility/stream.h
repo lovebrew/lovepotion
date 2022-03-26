@@ -20,5 +20,5 @@ namespace love
         virtual size_t GetSize() const = 0;
 
         virtual bool SwapBuffers() = 0;
-    }
+    };
 } // namespace love

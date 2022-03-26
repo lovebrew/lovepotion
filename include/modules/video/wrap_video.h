@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/luax.h"
-#include "modules/video/videomodule.h"
+#include "modules/video/video.h"
 
 namespace Wrap_VideoModule
 {

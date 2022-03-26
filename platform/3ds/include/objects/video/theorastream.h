@@ -8,7 +8,13 @@ namespace love
 {
     class TheoraStream : common::TheoraStream
     {
+      public:
         TheoraStream(File* file);
+
+        ~TheoraStream()
+        {
+            delete this->frame;
+        }
 
         struct Frame
         {
@@ -33,13 +39,12 @@ namespace love
 
         virtual void ThreadedFillBackBuffer(double dt) override;
 
-        virtual void DeleteBuffers() override;
-
       protected:
         virtual void ParseHeader() override;
 
       private:
         Handle handle;
+
         Frame* frame;
         Tex3DS_SubTexture subTexture;
     };

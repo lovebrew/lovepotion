@@ -5,6 +5,7 @@
 #include <theora/theoradec.h>
 
 #include "modules/thread/types/mutex.h"
+
 #include "objects/file/file.h"
 #include "objects/video/theora/oggdemuxer.h"
 #include "objects/video/videostream.h"
@@ -38,8 +39,6 @@ namespace love::common
 
         virtual void ThreadedFillBackBuffer(double dt) = 0;
 
-        virtual void DeleteBuffers() = 0;
-
       protected:
         OggDemuxer demuxer;
         bool headerParsed;
@@ -58,5 +57,5 @@ namespace love::common
         virtual void ParseHeader() = 0;
 
         void SeekDecoder(double target);
-    }
+    };
 } // namespace love::common

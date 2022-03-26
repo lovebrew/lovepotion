@@ -20,11 +20,6 @@ void SourceSync::Pause()
     this->source->Pause();
 }
 
-void SourceSync::Pause()
-{
-    this->source->Pause();
-}
-
 void SourceSync::Seek(double time)
 {
     this->source->Seek(time, Source::UNIT_SECONDS);

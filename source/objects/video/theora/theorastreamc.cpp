@@ -26,8 +26,6 @@ TheoraStream::~TheoraStream()
         th_decode_free(this->decoder);
 
     th_info_clear(&this->info);
-
-    this->DeleteBuffers();
 }
 
 int TheoraStream::GetWidth() const

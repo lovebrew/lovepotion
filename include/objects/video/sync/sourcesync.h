@@ -24,5 +24,5 @@ namespace love
 
       private:
         StrongReference<Source> source;
-    }
+    };
 } // namespace love
