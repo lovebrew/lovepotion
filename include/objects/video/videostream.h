@@ -39,21 +39,6 @@ namespace love
 
         virtual FrameSync* GetSync() const;
 
-        /* data structure */
-        struct Frame
-        {
-            Frame();
-
-            ~Frame();
-
-            int yw, yh;
-            unsigned char* yplane;
-
-            int cw, ch;
-            unsigned char* cbplane;
-            unsigned char* crplane;
-        };
-
       protected:
         StrongReference<FrameSync> frameSync;
     };

@@ -18,13 +18,13 @@ namespace love::common
 
         ~TheoraStream();
 
-        const void* GetFrontBuffer() const;
+        virtual const void* GetFrontBuffer() const = 0;
 
-        size_t GetSize() const;
+        virtual size_t GetSize() const = 0;
 
         void FillBackBuffer();
 
-        bool SwapBuffers();
+        virtual bool SwapBuffers() = 0;
 
         int GetWidth() const;
 
@@ -36,9 +36,11 @@ namespace love::common
 
         bool IsPlaying() const;
 
-        void ThreadedFillBackBuffer(double dt);
+        virtual void ThreadedFillBackBuffer(double dt) = 0;
 
-      private:
+        virtual void DeleteBuffers() = 0;
+
+      protected:
         OggDemuxer demuxer;
         bool headerParsed;
 
@@ -53,7 +55,8 @@ namespace love::common
         double lastFrame;
         double nextFrame;
 
-        void ParseHeader();
+        virtual void ParseHeader() = 0;
+
         void SeekDecoder(double target);
     }
 } // namespace love::common
