@@ -77,7 +77,7 @@ const std::string& OggDemuxer::GetFilename() const
 OggDemuxer::StreamType OggDemuxer::DetermineType()
 {
     ogg_packet packet;
-    if (ogg_stream_packetpeek(&this->stream, &packet))
+    if (ogg_stream_packetpeek(&this->stream, &packet) != 1)
         return OggDemuxer::TYPE_UNKNOWN;
 
     if (packet.bytes >= OggDemuxer::THEORA_BYTES_MIN)

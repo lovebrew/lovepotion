@@ -87,11 +87,11 @@ void TheoraStream::ParseHeader()
         case TH_PF_422:
             break;
         case TH_PF_444:
-            /* YUV444 is not supported by Y2R */
+            throw love::Exception("YUV444 is not supported by Y2R");
             return;
         case TH_PF_RSVD:
         default:
-            /* UNKNOWN Chroma sampling! */
+            throw love::Exception("UNKNOWN Chroma sampling!");
             return;
     }
 
@@ -110,7 +110,7 @@ void TheoraStream::ParseHeader()
     {
         C3D_Tex* curtex = &this->frame->buffer[index];
 
-        C3D_TexInit(curtex, width, height, GPU_RGB8);
+        C3D_TexInit(curtex, powTwoWidth, powTwoHeight, GPU_RGB8);
         C3D_TexSetFilter(curtex, GPU_LINEAR, GPU_LINEAR);
 
         memset(curtex->data, 0, curtex->size);

@@ -3,6 +3,8 @@
 
 using namespace love;
 
+#include "debug/logger.h"
+
 Video::Video()
 {
     this->workerThread = new Worker();
@@ -16,8 +18,11 @@ Video::~Video()
 
 VideoStream* Video::NewVideoStream(File* file)
 {
+    LOG("making a stream");
     TheoraStream* stream = new TheoraStream(file);
+    LOG("adding a stream to thread %x", this->workerThread);
     this->workerThread->AddStream(stream);
+    LOG("we exploded, probs %x", this->workerThread);
 
     return stream;
 }

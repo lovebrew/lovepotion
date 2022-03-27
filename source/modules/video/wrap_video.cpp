@@ -46,6 +46,7 @@ static constexpr luaL_Reg functions[] =
 int Wrap_Video::Register(lua_State* L)
 {
     Video* instance = instance();
+
     if (instance == nullptr)
         Luax::CatchException(L, [&]() { instance = new Video(); });
     else
