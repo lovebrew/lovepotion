@@ -1,4 +1,4 @@
-#include "objects/video/sync/deltasync.h"
+#include "objects/videostream/sync/deltasync.h"
 #include "modules/thread/types/lock.h"
 
 using namespace love;

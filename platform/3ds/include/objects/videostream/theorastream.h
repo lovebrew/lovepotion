@@ -2,7 +2,7 @@
 
 #include <citro2d.h>
 
-#include "objects/video/theora/theorastreamc.h"
+#include "objects/videostream/theora/theorastreamc.h"
 
 namespace love
 {

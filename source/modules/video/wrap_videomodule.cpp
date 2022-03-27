@@ -1,15 +1,15 @@
-#include "modules/video/wrap_video.h"
-#include "objects/video/wrap_videostream.h"
+#include "modules/video/wrap_videomodule.h"
+#include "objects/videostream/wrap_videostream.h"
 
 #include "modules/filesystem/wrap_filesystem.h"
 #include "objects/file/file.h"
-#include "objects/video/videostream.h"
+#include "objects/videostream/videostream.h"
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Video>(Module::M_VIDEO))
+#define instance() (Module::GetInstance<VideoModule>(Module::M_VIDEO))
 
-int Wrap_Video::NewVideoStream(lua_State* L)
+int Wrap_VideoModule::NewVideoStream(lua_State* L)
 {
     File* file = Wrap_Filesystem::GetFile(L, 1);
 
@@ -38,17 +38,17 @@ static constexpr lua_CFunction types[] =
 
 static constexpr luaL_Reg functions[] =
 {
-    { "newVideoStream", Wrap_Video::NewVideoStream },
+    { "newVideoStream", Wrap_VideoModule::NewVideoStream },
     { 0               , 0                          }
 };
 // clang-format on
 
-int Wrap_Video::Register(lua_State* L)
+int Wrap_VideoModule::Register(lua_State* L)
 {
-    Video* instance = instance();
+    VideoModule* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new Video(); });
+        Luax::CatchException(L, [&]() { instance = new VideoModule(); });
     else
         instance->Retain();
 

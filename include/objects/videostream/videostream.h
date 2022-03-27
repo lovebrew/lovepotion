@@ -2,8 +2,8 @@
 
 #include "common/strongref.h"
 
-#include "objects/video/sync/framesync.h"
-#include "objects/video/utility/stream.h"
+#include "objects/videostream/sync/framesync.h"
+#include "objects/videostream/utility/stream.h"
 
 namespace love
 {

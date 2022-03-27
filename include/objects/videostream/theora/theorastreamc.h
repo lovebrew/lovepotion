@@ -7,8 +7,8 @@
 #include "modules/thread/types/mutex.h"
 
 #include "objects/file/file.h"
-#include "objects/video/theora/oggdemuxer.h"
-#include "objects/video/videostream.h"
+#include "objects/videostream/theora/oggdemuxer.h"
+#include "objects/videostream/videostream.h"
 
 namespace love::common
 {

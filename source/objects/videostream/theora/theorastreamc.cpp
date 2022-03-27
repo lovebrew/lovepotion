@@ -1,5 +1,5 @@
-#include "objects/video/theora/theorastreamc.h"
-#include "objects/video/sync/deltasync.h"
+#include "objects/videostream/theora/theorastreamc.h"
+#include "objects/videostream/sync/deltasync.h"
 
 #include "modules/thread/types/lock.h"
 

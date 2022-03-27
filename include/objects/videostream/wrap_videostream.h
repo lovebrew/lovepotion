@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/luax.h"
-#include "objects/video/videostream.h"
+#include "objects/videostream/videostream.h"
 
 namespace Wrap_VideoStream
 {

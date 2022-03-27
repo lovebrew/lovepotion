@@ -3,8 +3,8 @@
 #include "modules/thread/types/conditional.h"
 #include "modules/thread/types/threadable.h"
 
-#include "objects/video/theorastream.h"
-#include "objects/video/utility/stream.h"
+#include "objects/videostream/theorastream.h"
+#include "objects/videostream/utility/stream.h"
 
 #include <vector>
 

@@ -2,18 +2,18 @@
 
 #include "common/module.h"
 #include "objects/file/file.h"
-#include "objects/video/videostream.h"
+#include "objects/videostream/videostream.h"
 
 namespace love
 {
     class Worker;
 
-    class Video : public Module
+    class VideoModule : public Module
     {
       public:
-        Video();
+        VideoModule();
 
-        virtual ~Video();
+        virtual ~VideoModule();
 
         virtual const char* GetName() const
         {

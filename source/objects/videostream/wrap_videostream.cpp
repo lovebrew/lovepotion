@@ -1,9 +1,9 @@
-#include "objects/video/wrap_videostream.h"
+#include "objects/videostream/wrap_videostream.h"
 
 #include "objects/source/source.h"
-#include "objects/video/sync/sourcesync.h"
+#include "objects/videostream/sync/sourcesync.h"
 
-#include "objects/video/sync/deltasync.h"
+#include "objects/videostream/sync/deltasync.h"
 
 using namespace love;
 

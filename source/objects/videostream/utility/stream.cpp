@@ -1,4 +1,4 @@
-#include "objects/video/utility/stream.h"
+#include "objects/videostream/utility/stream.h"
 
 using namespace love;
 

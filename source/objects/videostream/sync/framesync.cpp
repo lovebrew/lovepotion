@@ -1,4 +1,4 @@
-#include "objects/video/sync/framesync.h"
+#include "objects/videostream/sync/framesync.h"
 
 using namespace love;
 

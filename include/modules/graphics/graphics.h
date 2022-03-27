@@ -36,6 +36,9 @@
 
 #include "objects/imagedata/imagedata.h"
 
+#include "objects/video/video.h"
+#include "objects/videostream/videostream.h"
+
 #include "common/lmath.h"
 #include <optional>
 #include <vector>
@@ -275,6 +278,8 @@ namespace love
         void SetFont(Font* font);
 
         Font* GetFont();
+
+        Video* NewVideo(VideoStream* stream, float dpiscale);
 
         float GetPointSize() const;
 

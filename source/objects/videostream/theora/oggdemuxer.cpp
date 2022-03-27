@@ -1,4 +1,4 @@
-#include "objects/video/theora/oggdemuxer.h"
+#include "objects/videostream/theora/oggdemuxer.h"
 
 using namespace love;
 

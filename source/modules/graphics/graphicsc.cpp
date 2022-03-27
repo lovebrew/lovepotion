@@ -200,6 +200,11 @@ bool Graphics::IsCanvasActive(Canvas* canvas) const
     return target.Get() == canvas;
 }
 
+Video* Graphics::NewVideo(VideoStream* stream, float dpiscale)
+{
+    return new Video(this, stream, dpiscale);
+}
+
 bool Graphics::IsCanvasActive() const
 {
     return this->states.back().canvas != nullptr;
