@@ -164,7 +164,7 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
             failedSeek   = true;
         }
 
-        th_decode_ycbcr_out(decoder, bufferInfo);
+        th_decode_ycbcr_out(this->decoder, bufferInfo);
         hasFrame = true;
 
         ogg_int64_t granulePosition = -1;
@@ -217,7 +217,7 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
         Y2RU_SetStandardCoefficient(Y2RU_StandardCoefficient::COEFFICIENT_ITU_R_BT_601_SCALING);
         Y2RU_SetAlpha(0xFF);
 
-        /* set up the YUV datafor Y2RU */
+        /* set up the YUV data for Y2RU */
 
         Y2RU_SetSendingY(bufferInfo[0].data, this->frame->width * this->frame->height,
                          this->frame->width, bufferInfo[0].stride - this->frame->width);
@@ -247,8 +247,6 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
 
         this->frame->currentBuffer = drawBuffer;
         this->frame->image.tex     = writeFrame;
-
-        Y2RU_StopConversion();
     }
 }
 

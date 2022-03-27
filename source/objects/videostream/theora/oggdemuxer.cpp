@@ -40,7 +40,7 @@ bool OggDemuxer::ReadPacket(ogg_packet& packet, bool mustSucceed)
     if (!this->intiialized)
         throw love::Exception("Reading from OggDemuxer before initialization! (engine bug)");
 
-    while (ogg_stream_packetout(&this->stream, &packet))
+    while (ogg_stream_packetout(&this->stream, &packet) != 1)
     {
         do
         {
@@ -52,9 +52,11 @@ bool OggDemuxer::ReadPacket(ogg_packet& packet, bool mustSucceed)
 
             this->ReadPage();
         } while (ogg_page_serialno(&this->page) != this->serial);
+
+        ogg_stream_pagein(&this->stream, &page);
     }
 
-    return this->endOfStream == false;
+    return this->endOfStream = false;
 }
 
 void OggDemuxer::ReSync()
