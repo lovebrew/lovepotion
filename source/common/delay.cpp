@@ -4,11 +4,10 @@
     #include <switch.h>
 #endif
 
+#include "common/delay.h"
 #include "modules/timer/timerc.h"
 
-using namespace love;
-
-void Sleep(unsigned seconds)
+void love::Sleep(float seconds)
 {
     u32 milliseconds = seconds * 1000.0f;
     u64 nanoSeconds  = milliseconds * common::Timer::SLEEP_DURATION;

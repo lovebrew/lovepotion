@@ -259,6 +259,7 @@ function love.init()
         "image",
         "font",
         "window",
+        "video",
         "graphics",
         "math",
         "physics",

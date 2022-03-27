@@ -6,7 +6,7 @@
 
 namespace love
 {
-    class TheoraStream : common::TheoraStream
+    class TheoraStream : public common::TheoraStream
     {
       public:
         TheoraStream(File* file);

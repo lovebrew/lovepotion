@@ -7,7 +7,7 @@
 
 namespace love
 {
-    class SourceSync : FrameSync
+    class SourceSync : public FrameSync
     {
       public:
         SourceSync(Source* source);

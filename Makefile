@@ -24,6 +24,7 @@ export LOVE_VERSION = 11.4.0
 #-----------------------------------
 export LOVE_PORTLIBS  = -lmodplug -lvorbisidec -lFLAC -lvorbisidec -logg
 LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -ljpeg -lpng `curl-config --libs`
+LOVE_PORTLIBS        += -ltheora
 
 #------------------------------------
 # Common configuration for consoles

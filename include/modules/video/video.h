@@ -10,8 +10,10 @@ namespace love
 
     class Video : public Module
     {
-        virtual ~Video()
-        {}
+      public:
+        Video();
+
+        virtual ~Video();
 
         virtual const char* GetName() const
         {

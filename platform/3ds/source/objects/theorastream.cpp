@@ -5,6 +5,20 @@
 
 using namespace love;
 
+TheoraStream::Frame::Frame()
+{}
+
+TheoraStream::Frame::~Frame()
+{
+    Y2RU_StopConversion();
+
+    if (this->buffer[0].data)
+    {
+        C3D_TexDelete(&this->buffer[0]);
+        C3D_TexDelete(&this->buffer[1]);
+    }
+}
+
 TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
 {
     th_info_init(&this->info);
