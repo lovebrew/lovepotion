@@ -123,6 +123,9 @@ void TheoraStream::ParseHeader()
     this->subTexture.right  = (float)width / powTwoWidth;
     this->subTexture.bottom = 1.0f - ((float)height / powTwoHeight);
 
+    this->frame->image.tex    = &this->frame->buffer[this->frame->currentBuffer];
+    this->frame->image.subtex = &this->subTexture;
+
     this->headerParsed = true;
     th_decode_packetin(this->decoder, &packet, nullptr);
 }
@@ -203,8 +206,9 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
                 Y2RU_SetInputFormat(Y2RU_InputFormat::INPUT_YUV420_INDIV_8);
                 break;
             case TH_PF_422:
-            default:
                 Y2RU_SetInputFormat(Y2RU_InputFormat::INPUT_YUV422_INDIV_8);
+                break;
+            default:
                 break;
         }
 
