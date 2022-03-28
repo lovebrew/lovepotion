@@ -2,5 +2,5 @@
 
 namespace love
 {
-    void Sleep(float seconds);
+    void Sleep(float ms);
 }

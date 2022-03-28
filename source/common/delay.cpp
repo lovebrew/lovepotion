@@ -7,10 +7,10 @@
 #include "common/delay.h"
 #include "modules/timer/timerc.h"
 
-void love::Sleep(float seconds)
+void love::Sleep(float ms)
 {
-    u32 milliseconds = seconds * 1000.0f;
-    u64 nanoSeconds  = milliseconds * common::Timer::SLEEP_DURATION;
+    uint32_t milliseconds = static_cast<uint32_t>(ms);
+    uint64_t nanoSeconds  = milliseconds * common::Timer::SLEEP_DURATION;
 
     svcSleepThread(nanoSeconds);
 }

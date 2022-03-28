@@ -123,8 +123,9 @@ void TheoraStream::ParseHeader()
     this->subTexture.right  = (float)width / powTwoWidth;
     this->subTexture.bottom = 1.0f - ((float)height / powTwoHeight);
 
-    this->frame->image.tex    = &this->frame->buffer[this->frame->currentBuffer];
-    this->frame->image.subtex = &this->subTexture;
+    this->frame->currentBuffer = false;
+    this->frame->image.tex     = &this->frame->buffer[this->frame->currentBuffer];
+    this->frame->image.subtex  = &this->subTexture;
 
     this->headerParsed = true;
     th_decode_packetin(this->decoder, &packet, nullptr);
@@ -188,16 +189,15 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
             this->frameReady = false;
         }
 
-        bool isBusy     = true;
-        bool drawBuffer = !this->frame->currentBuffer;
+        bool isBusy = true;
 
-        C3D_Tex* writeFrame = &this->frame->buffer[drawBuffer];
+        C3D_Tex* writeFrame = &this->frame->buffer[this->frame->currentBuffer];
         if (!bufferInfo[0].data || !bufferInfo[1].data || !bufferInfo[2].data)
             return;
 
         Y2RU_StopConversion();
 
-        if (isBusy)
+        while (isBusy)
             Y2RU_IsBusyConversion(&isBusy);
 
         switch (this->frame->format)
@@ -249,8 +249,7 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
             this->frameReady = true;
         }
 
-        this->frame->currentBuffer = drawBuffer;
-        this->frame->image.tex     = writeFrame;
+        this->frame->image.tex = writeFrame;
     }
 }
 
@@ -266,8 +265,7 @@ bool TheoraStream::SwapBuffers()
     if (!this->frameReady)
         return false;
 
-    this->frameReady = false;
-
+    this->frameReady           = false;
     this->frame->currentBuffer = !this->frame->currentBuffer;
 
     return true;

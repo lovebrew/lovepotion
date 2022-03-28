@@ -14,6 +14,7 @@ namespace love
     {
       public:
         Worker();
+
         virtual ~Worker();
 
         void ThreadFunction();

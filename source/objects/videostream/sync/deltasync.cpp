@@ -18,6 +18,7 @@ double DeltaSync::GetPosition() const
 void DeltaSync::Update(double dt)
 {
     Lock lock(this->mutex);
+
     if (this->playing)
         this->position += this->speed * dt;
 }
