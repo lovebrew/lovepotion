@@ -29,6 +29,10 @@ namespace love
             th_pixel_fmt format;
 
             int width, height;
+
+            int postProcess;
+            int maxPostProcess;
+            int postProcessOffset;
         };
 
         virtual const void* GetFrontBuffer() const override;

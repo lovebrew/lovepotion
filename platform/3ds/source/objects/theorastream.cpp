@@ -78,6 +78,16 @@ void TheoraStream::ParseHeader()
     this->decoder = th_decode_alloc(&this->info, setupInfo);
     th_setup_free(setupInfo);
 
+    /* post processing */
+
+    // th_decode_ctl(this->decoder, TH_DECCTL_GET_PPLEVEL_MAX, &this->frame->maxPostProcess,
+    //               sizeof(this->frame->maxPostProcess));
+
+    // this->frame->postProcess = this->frame->maxPostProcess;
+
+    // th_decode_ctl(this->decoder, TH_DECCTL_SET_PPLEVEL, &this->frame->postProcess,
+    //               sizeof(this->frame->postProcess));
+
     switch (this->info.pixel_fmt)
     {
         case TH_PF_420:
@@ -156,6 +166,11 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
     th_ycbcr_buffer bufferInfo;
     bool hasFrame = false;
 
+    /*
+    ** Until we are at the end of the stream
+    ** or we are displaying the right frame
+    */
+
     size_t framesBehind = 0;
     bool failedSeek     = false;
 
@@ -172,15 +187,21 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
         hasFrame = true;
 
         ogg_int64_t granulePosition = -1;
+        int result                  = 0;
+
         do
         {
             if (this->demuxer.ReadPacket(packet))
                 return;
-        } while (th_decode_packetin(this->decoder, &packet, &granulePosition) != 0);
+        } while ((result = (th_decode_packetin(this->decoder, &packet, &granulePosition) != 0)));
 
         this->lastFrame = this->nextFrame;
         this->nextFrame = th_granule_time(this->decoder, granulePosition);
     }
+
+    /*
+    ** Only swap once, even if we read many frames to get here
+    */
 
     if (hasFrame)
     {
@@ -248,8 +269,6 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
             thread::Lock lock(this->bufferMutex);
             this->frameReady = true;
         }
-
-        this->frame->image.tex = writeFrame;
     }
 }
 
@@ -262,10 +281,13 @@ bool TheoraStream::SwapBuffers()
         return false;
 
     thread::Lock lock(this->bufferMutex);
+
     if (!this->frameReady)
         return false;
 
-    this->frameReady           = false;
+    this->frameReady = false;
+
+    this->frame->image.tex     = &this->frame->buffer[this->frame->currentBuffer];
     this->frame->currentBuffer = !this->frame->currentBuffer;
 
     return true;
