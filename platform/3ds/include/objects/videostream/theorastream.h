@@ -13,7 +13,8 @@ namespace love
 
         ~TheoraStream()
         {
-            delete this->frame;
+            for (auto frame : this->buffers)
+                delete frame;
         }
 
         struct Frame
@@ -22,17 +23,8 @@ namespace love
 
             ~Frame();
 
-            C2D_Image image;
-            C3D_Tex buffer[2];
-
-            bool currentBuffer;
-            th_pixel_fmt format;
-
-            int width, height;
-
-            int postProcess;
-            int maxPostProcess;
-            int postProcessOffset;
+            C3D_Tex buffer;
+            C2D_Image texture;
         };
 
         virtual const void* GetFrontBuffer() const override;
@@ -47,9 +39,22 @@ namespace love
         virtual void ParseHeader() override;
 
       private:
+        static constexpr int FRONT_BUFFER = 0x00;
+        static constexpr int BACK_BUFFER  = 0x01;
+
+        th_pixel_fmt format;
+
+        int width, height;
+
+        int postProcess;
+        int maxPostProcess;
+        bool currentBuffer;
+        int postProcessOffset;
+
         Handle handle;
 
-        Frame* frame;
+        Frame* buffers[2];
+
         Tex3DS_SubTexture subTexture;
     };
 } // namespace love

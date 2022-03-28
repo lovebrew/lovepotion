@@ -29,8 +29,8 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
 
         C2D_DrawParams params;
 
-        params.pos = { 0.0f, 0.0f, (float)frame->image.subtex->width,
-                       (float)frame->image.subtex->height };
+        params.pos = { 0.0f, 0.0f, (float)frame->texture.subtex->width,
+                       (float)frame->texture.subtex->height };
 
         params.depth  = Graphics::CURRENT_DEPTH;
         params.angle  = 0.0f;
@@ -42,6 +42,6 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
         Colorf color = graphics->GetColor();
 
         C2D_PlainImageTint(&tint, C2D_Color32f(color.r, color.g, color.b, color.a), 1);
-        C2D_DrawImage(frame->image, &params, &tint);
+        C2D_DrawImage(frame->texture, &params, &tint);
     }
 }

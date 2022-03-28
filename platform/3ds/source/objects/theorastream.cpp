@@ -10,18 +10,16 @@ TheoraStream::Frame::Frame()
 
 TheoraStream::Frame::~Frame()
 {
-    if (this->buffer[0].data)
-    {
-        C3D_TexDelete(&this->buffer[0]);
-        C3D_TexDelete(&this->buffer[1]);
-    }
+    if (this->buffer.data)
+        C3D_TexDelete(&this->buffer);
 }
 
 TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
 {
     th_info_init(&this->info);
 
-    this->frame = new Frame();
+    this->buffers[FRONT_BUFFER] = new Frame();
+    this->buffers[BACK_BUFFER]  = new Frame();
 
     try
     {
@@ -29,7 +27,8 @@ TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
     }
     catch (love::Exception& exception)
     {
-        delete this->frame;
+        delete this->buffers[FRONT_BUFFER];
+        delete this->buffers[BACK_BUFFER];
 
         th_info_clear(&this->info);
 
@@ -39,7 +38,7 @@ TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
 
 const void* TheoraStream::GetFrontBuffer() const
 {
-    return this->frame;
+    return this->buffers[FRONT_BUFFER];
 }
 
 size_t TheoraStream::GetSize() const
@@ -103,39 +102,42 @@ void TheoraStream::ParseHeader()
             return;
     }
 
-    this->frame->format = this->info.pixel_fmt;
+    this->format = this->info.pixel_fmt;
 
-    int width  = ((this->info.pic_x + this->info.frame_width + 1) & ~1) - (this->info.pic_x & ~1);
-    int height = ((this->info.pic_y + this->info.frame_height + 1) & ~1) - (this->info.pic_y & ~1);
+    int calcWidth =
+        ((this->info.pic_x + this->info.frame_width + 1) & ~1) - (this->info.pic_x & ~1);
+    int calcHeight =
+        ((this->info.pic_y + this->info.frame_height + 1) & ~1) - (this->info.pic_y & ~1);
 
-    this->frame->width  = width;
-    this->frame->height = height;
+    this->width  = calcWidth;
+    this->height = calcHeight;
 
-    int powTwoWidth  = NextPO2(width);
-    int powTwoHeight = NextPO2(height);
+    int powTwoWidth  = NextPO2(calcWidth);
+    int powTwoHeight = NextPO2(calcHeight);
 
     for (int index = 0; index < 2; index++)
     {
-        C3D_Tex* curtex = &this->frame->buffer[index];
+        C3D_Tex* texture = &this->buffers[index]->buffer;
 
-        C3D_TexInit(curtex, powTwoWidth, powTwoHeight, GPU_RGB8);
-        C3D_TexSetFilter(curtex, GPU_LINEAR, GPU_LINEAR);
+        C3D_TexInit(texture, powTwoWidth, powTwoHeight, GPU_RGB8);
+        C3D_TexSetFilter(texture, GPU_LINEAR, GPU_LINEAR);
 
-        memset(curtex->data, 0, curtex->size);
+        memset(texture->data, 0, texture->size);
     }
 
-    this->subTexture.width  = width;
-    this->subTexture.height = height;
+    this->subTexture.width  = calcWidth;
+    this->subTexture.height = calcHeight;
 
     this->subTexture.left = 0.0f;
     this->subTexture.top  = 1.0f;
 
-    this->subTexture.right  = (float)width / powTwoWidth;
-    this->subTexture.bottom = 1.0f - ((float)height / powTwoHeight);
+    this->subTexture.right  = (float)calcWidth / powTwoWidth;
+    this->subTexture.bottom = 1.0f - ((float)calcHeight / powTwoHeight);
 
-    this->frame->currentBuffer = false;
-    this->frame->image.tex     = &this->frame->buffer[this->frame->currentBuffer];
-    this->frame->image.subtex  = &this->subTexture;
+    this->buffers[FRONT_BUFFER]->texture.tex = &this->buffers[FRONT_BUFFER]->buffer;
+
+    for (size_t index = 0; index < 2; index++)
+        this->buffers[index]->texture.subtex = &this->subTexture;
 
     this->headerParsed = true;
     th_decode_packetin(this->decoder, &packet, nullptr);
@@ -167,7 +169,7 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
     bool hasFrame = false;
 
     /*
-    ** Until we are at the end of the stream
+    ** until we are at the end of the stream
     ** or we are displaying the right frame
     */
 
@@ -199,12 +201,12 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
         this->nextFrame = th_granule_time(this->decoder, granulePosition);
     }
 
-    /*
-    ** Only swap once, even if we read many frames to get here
-    */
+    /* only swap once, even if we read many frames to get here */
 
     if (hasFrame)
     {
+        /* don't swap whilst we're writing to the backbuffer */
+
         {
             thread::Lock lock(this->bufferMutex);
             this->frameReady = false;
@@ -212,7 +214,8 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
 
         bool isBusy = true;
 
-        C3D_Tex* writeFrame = &this->frame->buffer[this->frame->currentBuffer];
+        C3D_Tex* writeFrame = &this->buffers[BACK_BUFFER]->buffer;
+
         if (!bufferInfo[0].data || !bufferInfo[1].data || !bufferInfo[2].data)
             return;
 
@@ -221,7 +224,7 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
         while (isBusy)
             Y2RU_IsBusyConversion(&isBusy);
 
-        switch (this->frame->format)
+        switch (this->format)
         {
             case TH_PF_420:
                 Y2RU_SetInputFormat(Y2RU_InputFormat::INPUT_YUV420_INDIV_8);
@@ -237,27 +240,27 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
         Y2RU_SetRotation(Y2RU_Rotation::ROTATION_NONE);
         Y2RU_SetBlockAlignment(Y2RU_BlockAlignment::BLOCK_8_BY_8);
         Y2RU_SetTransferEndInterrupt(true);
-        Y2RU_SetInputLineWidth(this->frame->width);
-        Y2RU_SetInputLines(this->frame->height);
+        Y2RU_SetInputLineWidth(this->width);
+        Y2RU_SetInputLines(this->height);
         Y2RU_SetStandardCoefficient(Y2RU_StandardCoefficient::COEFFICIENT_ITU_R_BT_601_SCALING);
         Y2RU_SetAlpha(0xFF);
 
         /* set up the YUV data for Y2RU */
 
-        Y2RU_SetSendingY(bufferInfo[0].data, this->frame->width * this->frame->height,
-                         this->frame->width, bufferInfo[0].stride - this->frame->width);
+        Y2RU_SetSendingY(bufferInfo[0].data, this->width * this->height, this->width,
+                         bufferInfo[0].stride - this->width);
 
-        Y2RU_SetSendingU(bufferInfo[1].data, (this->frame->width / 2) * (this->frame->height / 2),
-                         this->frame->width / 2, bufferInfo[1].stride - (this->frame->width >> 1));
+        Y2RU_SetSendingU(bufferInfo[1].data, (this->width / 2) * (this->height / 2),
+                         this->width / 2, bufferInfo[1].stride - (this->width >> 1));
 
-        Y2RU_SetSendingV(bufferInfo[2].data, (this->frame->width / 2) * (this->frame->height / 2),
-                         this->frame->width / 2, bufferInfo[2].stride - (this->frame->width >> 1));
+        Y2RU_SetSendingV(bufferInfo[2].data, (this->width / 2) * (this->height / 2),
+                         this->width / 2, bufferInfo[2].stride - (this->width >> 1));
 
         size_t formatSize = getFormatComponents(writeFrame->fmt);
 
-        Y2RU_SetReceiving(writeFrame->data, this->frame->width * this->frame->height * formatSize,
-                          this->frame->width * 8 * formatSize,
-                          (NextPO2(this->frame->width) - this->frame->width) * 8 * formatSize);
+        Y2RU_SetReceiving(writeFrame->data, this->width * this->height * formatSize,
+                          this->width * 8 * formatSize,
+                          (NextPO2(this->width) - this->width) * 8 * formatSize);
 
         /* convert the data */
 
@@ -265,10 +268,14 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
 
         Y2RU_GetTransferEndEvent(&this->handle);
 
+        /* re-enable swapping */
+
         {
             thread::Lock lock(this->bufferMutex);
             this->frameReady = true;
         }
+
+        this->buffers[BACK_BUFFER]->texture.tex = writeFrame;
     }
 }
 
@@ -287,8 +294,10 @@ bool TheoraStream::SwapBuffers()
 
     this->frameReady = false;
 
-    this->frame->image.tex     = &this->frame->buffer[this->frame->currentBuffer];
-    this->frame->currentBuffer = !this->frame->currentBuffer;
+    Frame* temp = this->buffers[FRONT_BUFFER];
+
+    this->buffers[FRONT_BUFFER] = this->buffers[BACK_BUFFER];
+    this->buffers[BACK_BUFFER]  = temp;
 
     return true;
 }
