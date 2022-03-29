@@ -11,8 +11,15 @@ namespace love
         PIXELFORMAT_TEX3DS_RGBA8,
 
         // "regular" formats
+        PIXELFORMAT_RGB8,
+
         PIXELFORMAT_RGBA8,
         PIXELFORMAT_RGBA16,
+
+        PIXELFORMAT_RGBA4,
+        PIXELFORMAT_RGB565,
+
+        PIXELFORMAT_LA8,
 
         // depth/stencil
         PIXELFORMAT_STENCIL8,

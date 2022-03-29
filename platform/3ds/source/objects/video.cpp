@@ -7,41 +7,43 @@ using namespace love;
 
 Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
     common::Video(graphics, stream, dpiScale)
-{}
+{
+    this->stream->FillBackBuffer();
+
+    auto frame = (const TheoraStream::Frame*)this->stream->GetFrontBuffer();
+    Rect rect  = { 0, 0, frame->width, frame->height };
+
+    for (int index = 0; index < 1; index++)
+    {
+        Image* image = graphics->NewImage(Texture::TEXTURE_2D, PixelFormat::PIXELFORMAT_RGB8,
+                                          rect.w, rect.h, 1);
+
+        image->ReplacePixels(frame->buffer->data, frame->buffer->size, rect);
+        this->images[index].Set(image, Acquire::NORETAIN);
+    }
+}
 
 Video::~Video()
 {}
 
 void Video::Update()
-{}
+{
+    bool buffersChanged = this->stream->SwapBuffers();
+    this->stream->FillBackBuffer();
+
+    if (buffersChanged)
+    {
+        auto frame = (const TheoraStream::Frame*)this->stream->GetFrontBuffer();
+        Rect rect  = { 0, 0, frame->width, frame->height };
+
+        for (int index = 0; index < 1; index++)
+            this->images[index]->ReplacePixels(frame->buffer->data, frame->buffer->size, rect);
+    }
+}
 
 void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
 {
-    bool changed = this->stream->SwapBuffers();
-    this->stream->FillBackBuffer();
+    this->Update();
 
-    if (changed)
-    {
-        auto frame = (TheoraStream::Frame*)this->stream->GetFrontBuffer();
-
-        // Multiply the current and local transforms
-        Matrix4 t(graphics->GetTransform(), localTransform);
-
-        C2D_DrawParams params;
-
-        params.pos = { 0.0f, 0.0f, (float)frame->texture.subtex->width,
-                       (float)frame->texture.subtex->height };
-
-        params.depth  = Graphics::CURRENT_DEPTH;
-        params.angle  = 0.0f;
-        params.center = { 0.0f, 0.0f };
-
-        C2D_ViewRestore(&t.GetElements());
-
-        C2D_ImageTint tint;
-        Colorf color = graphics->GetColor();
-
-        C2D_PlainImageTint(&tint, C2D_Color32f(color.r, color.g, color.b, color.a), 1);
-        C2D_DrawImage(frame->texture, &params, &tint);
-    }
+    this->images[0]->Draw(graphics, localTransform);
 }

@@ -1,6 +1,9 @@
 #include "objects/image/image.h"
 #include "modules/graphics/graphics.h"
 
+#include "citro2d/citro.h"
+#include "common/pixelformat.h"
+
 using namespace love;
 
 Image::Image(const Slices& slices) : Image(slices, true)
@@ -35,11 +38,18 @@ void Image::Init(PixelFormat format, int width, int height)
     unsigned powTwoWidth  = NextPO2(width + 2);
     unsigned powTwoHeight = NextPO2(height + 2);
 
-    if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, GPU_RGBA8))
+    GPU_TEXCOLOR color;
+    ::citro2d::GetConstant(format, color);
+
+    if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, color))
         throw love::Exception("Failed to initialize texture!");
 
-    size_t copySize = powTwoWidth * powTwoHeight * 4;
-    memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);
+    size_t copySize = powTwoWidth * powTwoHeight * GetPixelFormatSize(format);
+
+    if (this->data.Get(0, 0))
+        memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);
+    else
+        memset(this->texture.tex->data, 0, copySize);
 
     C3D_TexFlush(this->texture.tex);
 
@@ -52,6 +62,52 @@ void Image::Init(PixelFormat format, int width, int height)
 
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
+}
+#include "debug/logger.h"
+void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
+{
+    if (!this->texture.tex)
+        throw love::Exception("Failed to replace pixels. Texture is uninitialized.");
+
+    if (size == 0)
+        throw love::Exception("Failed to replace pixels. Data is nullptr.");
+
+    size_t srcPowTwoWidth  = NextPO2(rect.w + 2);
+    size_t srcPowTwoHeight = NextPO2(rect.h + 2);
+
+    if (this->texture.tex->width == srcPowTwoWidth && this->texture.tex->height == srcPowTwoHeight)
+    {
+        memcpy(this->texture.tex->data, data, size);
+        return;
+    }
+
+    /* love::Rect should be Po2 already */
+
+    auto getFunction = ImageData::GetPixelGetFunction(this->format);
+    auto setFunction = ImageData::GetPixelSetFunction(this->format);
+
+    for (int y = 0; y < rect.h; y++)
+    {
+        for (int x = 0; x < rect.w; x++)
+        {
+            unsigned srcIndex = coordToIndex(srcPowTwoWidth, x + 1, y + 1);
+            unsigned dstIndex = coordToIndex(this->texture.tex->width, x + 1, y + 1);
+
+            Colorf color {};
+
+            /* grab the pixel data from our source */
+            const ImageData::Pixel* srcPixel =
+                reinterpret_cast<const ImageData::Pixel*>((uint32_t*)data + srcIndex);
+            getFunction(srcPixel, color);
+
+            /* set the pixel we got to ours */
+            ImageData::Pixel* dstPixel =
+                reinterpret_cast<ImageData::Pixel*>((uint32_t*)this->texture.tex->data + dstIndex);
+            setFunction(color, dstPixel);
+        }
+    }
+
+    C3D_TexFlush(this->texture.tex);
 }
 
 Image::~Image()

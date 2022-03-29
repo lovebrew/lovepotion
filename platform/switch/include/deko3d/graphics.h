@@ -34,9 +34,6 @@ namespace love::deko3d
 
         /* Primitives */
 
-        love::Image* NewImage(Texture::TextureType t, PixelFormat format, int width, int height,
-                              int slices);
-
         void Rectangle(DrawMode mode, float x, float y, float width, float height) override;
 
         void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,

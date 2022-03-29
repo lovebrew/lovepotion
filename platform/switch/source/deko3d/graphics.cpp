@@ -101,12 +101,6 @@ void love::deko3d::Graphics::SetColor(Colorf color)
     ::deko3d::Instance().SetBlendColor(color);
 }
 
-love::Image* love::deko3d::Graphics::NewImage(Texture::TextureType t, PixelFormat format, int width,
-                                              int height, int slices)
-{
-    return new Image(t, format, width, height, slices);
-}
-
 void love::deko3d::Graphics::SetMeshCullMode(vertex::CullMode mode)
 {
     DkFace face = DkFace_None;

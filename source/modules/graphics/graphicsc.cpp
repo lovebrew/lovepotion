@@ -318,6 +318,12 @@ Vector2 Graphics::InverseTransformPoint(Vector2 point)
 
 /* Objects */
 
+Image* Graphics::NewImage(Texture::TextureType t, PixelFormat format, int width, int height,
+                          int slices)
+{
+    return new Image(t, format, width, height, slices);
+}
+
 Image* Graphics::NewImage(const Image::Slices& data)
 {
     return new Image(data);

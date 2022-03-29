@@ -3,23 +3,28 @@
 #include "modules/thread/types/lock.h"
 #include "objects/videostream/theorastream.h"
 
+#include "citro2d/citro.h"
+#include "common/pixelformat.h"
+
 using namespace love;
 
 TheoraStream::Frame::Frame()
-{}
+{
+    this->buffer = new C3D_Tex();
+}
 
 TheoraStream::Frame::~Frame()
 {
-    if (this->buffer.data)
-        C3D_TexDelete(&this->buffer);
+    C3D_TexDelete(this->buffer);
+    delete this->buffer;
 }
 
 TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
 {
     th_info_init(&this->info);
 
-    this->buffers[FRONT_BUFFER] = new Frame();
-    this->buffers[BACK_BUFFER]  = new Frame();
+    this->frontBuffer = new Frame();
+    this->backBuffer  = new Frame();
 
     try
     {
@@ -27,8 +32,8 @@ TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
     }
     catch (love::Exception& exception)
     {
-        delete this->buffers[FRONT_BUFFER];
-        delete this->buffers[BACK_BUFFER];
+        delete this->frontBuffer;
+        delete this->backBuffer;
 
         th_info_clear(&this->info);
 
@@ -36,9 +41,15 @@ TheoraStream::TheoraStream(File* file) : common::TheoraStream(file)
     }
 }
 
+TheoraStream::~TheoraStream()
+{
+    delete this->frontBuffer;
+    delete this->backBuffer;
+}
+
 const void* TheoraStream::GetFrontBuffer() const
 {
-    return this->buffers[FRONT_BUFFER];
+    return this->frontBuffer;
 }
 
 size_t TheoraStream::GetSize() const
@@ -79,13 +90,13 @@ void TheoraStream::ParseHeader()
 
     /* post processing */
 
-    // th_decode_ctl(this->decoder, TH_DECCTL_GET_PPLEVEL_MAX, &this->frame->maxPostProcess,
-    //               sizeof(this->frame->maxPostProcess));
+    th_decode_ctl(this->decoder, TH_DECCTL_GET_PPLEVEL_MAX, &this->maxPostProcess,
+                  sizeof(this->maxPostProcess));
 
-    // this->frame->postProcess = this->frame->maxPostProcess;
+    this->postProcess = this->maxPostProcess;
 
-    // th_decode_ctl(this->decoder, TH_DECCTL_SET_PPLEVEL, &this->frame->postProcess,
-    //               sizeof(this->frame->postProcess));
+    th_decode_ctl(this->decoder, TH_DECCTL_SET_PPLEVEL, &this->postProcess,
+                  sizeof(this->postProcess));
 
     switch (this->info.pixel_fmt)
     {
@@ -115,46 +126,23 @@ void TheoraStream::ParseHeader()
     int powTwoWidth  = NextPO2(calcWidth);
     int powTwoHeight = NextPO2(calcHeight);
 
+    Frame* buffers[2] = { this->backBuffer, this->frontBuffer };
+
     for (int index = 0; index < 2; index++)
     {
-        C3D_Tex* texture = &this->buffers[index]->buffer;
+        C3D_Tex* texture = buffers[index]->buffer;
 
         C3D_TexInit(texture, powTwoWidth, powTwoHeight, GPU_RGB8);
         C3D_TexSetFilter(texture, GPU_LINEAR, GPU_LINEAR);
 
         memset(texture->data, 0, texture->size);
+
+        buffers[index]->width  = calcWidth;
+        buffers[index]->height = calcHeight;
     }
-
-    this->subTexture.width  = calcWidth;
-    this->subTexture.height = calcHeight;
-
-    this->subTexture.left = 0.0f;
-    this->subTexture.top  = 1.0f;
-
-    this->subTexture.right  = (float)calcWidth / powTwoWidth;
-    this->subTexture.bottom = 1.0f - ((float)calcHeight / powTwoHeight);
-
-    this->buffers[FRONT_BUFFER]->texture.tex = &this->buffers[FRONT_BUFFER]->buffer;
-
-    for (size_t index = 0; index < 2; index++)
-        this->buffers[index]->texture.subtex = &this->subTexture;
 
     this->headerParsed = true;
     th_decode_packetin(this->decoder, &packet, nullptr);
-}
-
-/* to do.. do not do this */
-static inline size_t getFormatComponents(GPU_TEXCOLOR fmt)
-{
-    switch (fmt)
-    {
-        case GPU_RGBA8:
-            return 4;
-        case GPU_RGB8:
-            return 3;
-        default:
-            return 0;
-    }
 }
 
 void TheoraStream::ThreadedFillBackBuffer(double dt)
@@ -214,8 +202,6 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
 
         bool isBusy = true;
 
-        C3D_Tex* writeFrame = &this->buffers[BACK_BUFFER]->buffer;
-
         if (!bufferInfo[0].data || !bufferInfo[1].data || !bufferInfo[2].data)
             return;
 
@@ -256,9 +242,12 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
         Y2RU_SetSendingV(bufferInfo[2].data, (this->width / 2) * (this->height / 2),
                          this->width / 2, bufferInfo[2].stride - (this->width >> 1));
 
-        size_t formatSize = getFormatComponents(writeFrame->fmt);
+        PixelFormat format;
+        ::citro2d::GetConstant(this->backBuffer->buffer->fmt, format);
 
-        Y2RU_SetReceiving(writeFrame->data, this->width * this->height * formatSize,
+        size_t formatSize = GetPixelFormatSize(format);
+
+        Y2RU_SetReceiving(this->backBuffer->buffer->data, this->width * this->height * formatSize,
                           this->width * 8 * formatSize,
                           (NextPO2(this->width) - this->width) * 8 * formatSize);
 
@@ -274,8 +263,6 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
             thread::Lock lock(this->bufferMutex);
             this->frameReady = true;
         }
-
-        this->buffers[BACK_BUFFER]->texture.tex = writeFrame;
     }
 }
 
@@ -294,10 +281,10 @@ bool TheoraStream::SwapBuffers()
 
     this->frameReady = false;
 
-    Frame* temp = this->buffers[FRONT_BUFFER];
+    Frame* temp = this->frontBuffer;
 
-    this->buffers[FRONT_BUFFER] = this->buffers[BACK_BUFFER];
-    this->buffers[BACK_BUFFER]  = temp;
+    this->frontBuffer = this->backBuffer;
+    this->backBuffer  = temp;
 
     return true;
 }

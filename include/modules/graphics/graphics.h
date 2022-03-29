@@ -271,6 +271,9 @@ namespace love
                                      const Texture::Filter& filter = Texture::defaultFilter) = 0;
 #endif
 
+        Image* NewImage(Texture::TextureType t, PixelFormat format, int width, int height,
+                        int slices);
+
         Quad* NewQuad(Quad::Viewport v, double sw, double sh);
 
         Text* NewText(Font* font, const std::vector<Font::ColoredString>& text = {});

@@ -33,6 +33,8 @@ unsigned love::GetPixelFormatSize(PixelFormat format)
         case PIXELFORMAT_ASTC_12x10:
         case PIXELFORMAT_ASTC_12x12:
             return 1;
+        case PIXELFORMAT_RGB8:
+            return 3;
         default:
             return 0;
     }
@@ -45,6 +47,7 @@ int love::GetPixelFormatColorComponents(PixelFormat format)
         case PIXELFORMAT_DXT1:
         case PIXELFORMAT_ETC1:
         case PIXELFORMAT_ETC2_RGB:
+        case PIXELFORMAT_RGB8:
             return 3;
         case PIXELFORMAT_DXT3:
         case PIXELFORMAT_ETC2_RGBA1:
