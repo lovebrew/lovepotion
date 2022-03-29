@@ -387,6 +387,30 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* point
     return true;
 }
 
+bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::Vertex* points, size_t count)
+{
+    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->EnsureInState(STATE_VIDEO);
+
+    if (this->descriptorsDirty)
+    {
+        this->cmdBuf.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+        this->descriptorsDirty = false;
+    }
+
+    this->cmdBuf.bindTextures(DkStage_Fragment, 0, { handles[0], handles[1], handles[2] });
+
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+
+    this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
 bool deko3d::RenderPolyline(DkPrimitive mode, const vertex::Vertex* points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
@@ -595,6 +619,7 @@ DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
 
 // clang-format off
 constexpr auto pixelFormats = BidirectionalMap<>::Create(
+    PIXELFORMAT_R8,         DkImageFormat_R8_Unorm,
     PIXELFORMAT_RGBA8,      DkImageFormat_RGBA8_Unorm,
     PIXELFORMAT_DXT1,       DkImageFormat_RGBA_BC1,
     PIXELFORMAT_DXT3,       DkImageFormat_RGBA_BC2,

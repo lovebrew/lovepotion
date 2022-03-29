@@ -16,6 +16,8 @@ namespace love
         PIXELFORMAT_RGBA8,
         PIXELFORMAT_RGBA16,
 
+        PIXELFORMAT_R8,
+
         PIXELFORMAT_RGBA4,
         PIXELFORMAT_RGB565,
 

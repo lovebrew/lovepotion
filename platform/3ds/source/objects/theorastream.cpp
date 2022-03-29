@@ -69,7 +69,7 @@ void TheoraStream::ParseHeader()
     int result = 0;
 
     this->demuxer.ReadPacket(this->packet);
-    result = th_decode_headerin(&this->info, &comment, &setupInfo, &packet);
+    result = th_decode_headerin(&this->info, &comment, &setupInfo, &this->packet);
 
     if (result < 0)
     {
@@ -79,8 +79,8 @@ void TheoraStream::ParseHeader()
 
     while (result > 0)
     {
-        this->demuxer.ReadPacket(packet);
-        result = th_decode_headerin(&this->info, &comment, &setupInfo, &packet);
+        this->demuxer.ReadPacket(this->packet);
+        result = th_decode_headerin(&this->info, &comment, &setupInfo, &this->packet);
     }
 
     th_comment_clear(&comment);
@@ -132,7 +132,7 @@ void TheoraStream::ParseHeader()
     }
 
     this->headerParsed = true;
-    th_decode_packetin(this->decoder, &packet, nullptr);
+    th_decode_packetin(this->decoder, &this->packet, nullptr);
 }
 
 void TheoraStream::SetPostProcessingLevel()
@@ -192,9 +192,9 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
 
         do
         {
-            if (this->demuxer.ReadPacket(packet))
+            if (this->demuxer.ReadPacket(this->packet))
                 return;
-        } while ((result = (th_decode_packetin(this->decoder, &packet, &granulePosition) != 0)));
+        } while (th_decode_packetin(this->decoder, &this->packet, &granulePosition) != 0);
 
         this->lastFrame = this->nextFrame;
         this->nextFrame = th_granule_time(this->decoder, granulePosition);

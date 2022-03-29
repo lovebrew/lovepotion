@@ -6,6 +6,8 @@ unsigned love::GetPixelFormatSize(PixelFormat format)
 {
     switch (format)
     {
+        case PIXELFORMAT_R8:
+            return 1;
         case PIXELFORMAT_DXT1:
         case PIXELFORMAT_ETC1:
         case PIXELFORMAT_ETC2_RGBA1:
@@ -44,6 +46,8 @@ int love::GetPixelFormatColorComponents(PixelFormat format)
 {
     switch (format)
     {
+        case PIXELFORMAT_R8:
+            return 1;
         case PIXELFORMAT_DXT1:
         case PIXELFORMAT_ETC1:
         case PIXELFORMAT_ETC2_RGB:

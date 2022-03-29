@@ -15,6 +15,7 @@ Shader* love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = { nullp
 #define DEFAULT_VERTEX_SHADER   (SHADERS_DIR "transform_vsh.dksh")
 #define DEFAULT_FRAGMENT_SHADER (SHADERS_DIR "color_fsh.dksh")
 #define DEFAULT_TEXTURE_SHADER  (SHADERS_DIR "texture_fsh.dksh")
+#define DEFAULT_VIDEO_SHADER    (SHADERS_DIR "video_fsh.dksh")
 
 Shader::Shader() : program()
 {}
@@ -56,6 +57,9 @@ void Shader::LoadDefaults(StandardShader type)
             this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
             this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_TEXTURE_SHADER);
             break;
+        case STANDARD_VIDEO:
+            this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
+            this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_VIDEO_SHADER);
         default:
             break;
     }
@@ -135,7 +139,8 @@ void Shader::Attach()
 // clang-format off
 constexpr auto shaderNames = BidirectionalMap<>::Create(
     "default", Shader::StandardShader::STANDARD_DEFAULT,
-    "texture", Shader::StandardShader::STANDARD_TEXTURE
+    "texture", Shader::StandardShader::STANDARD_TEXTURE,
+    "video",   Shader::StandardShader::STANDARD_VIDEO
 );
 // clang-format on
 
