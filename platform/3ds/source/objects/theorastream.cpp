@@ -88,16 +88,6 @@ void TheoraStream::ParseHeader()
     this->decoder = th_decode_alloc(&this->info, setupInfo);
     th_setup_free(setupInfo);
 
-    /* post processing */
-
-    th_decode_ctl(this->decoder, TH_DECCTL_GET_PPLEVEL_MAX, &this->maxPostProcess,
-                  sizeof(this->maxPostProcess));
-
-    this->postProcess = this->maxPostProcess;
-
-    th_decode_ctl(this->decoder, TH_DECCTL_SET_PPLEVEL, &this->postProcess,
-                  sizeof(this->postProcess));
-
     switch (this->info.pixel_fmt)
     {
         case TH_PF_420:
@@ -145,6 +135,17 @@ void TheoraStream::ParseHeader()
     th_decode_packetin(this->decoder, &packet, nullptr);
 }
 
+void TheoraStream::SetPostProcessingLevel()
+{
+    if (this->postProcessOffset)
+    {
+        this->postProcess += this->postProcessOffset;
+        th_decode_ctl(this->decoder, TH_DECCTL_SET_PPLEVEL, &this->postProcess,
+                      sizeof(this->postProcess));
+        this->postProcessOffset = 0;
+    }
+}
+
 void TheoraStream::ThreadedFillBackBuffer(double dt)
 {
     this->frameSync->Update(dt);
@@ -172,6 +173,16 @@ void TheoraStream::ThreadedFillBackBuffer(double dt)
             framesBehind = 0;
             failedSeek   = true;
         }
+
+        if (failedSeek)
+            this->postProcessOffset = this->postProcess > 0 ? -1 : 0;
+        else
+        {
+            if (framesBehind == 0)
+                this->postProcessOffset = this->postProcess < this->maxPostProcess ? 1 : 0;
+        }
+
+        // this->SetPostProcessingLevel();
 
         th_decode_ycbcr_out(this->decoder, bufferInfo);
         hasFrame = true;

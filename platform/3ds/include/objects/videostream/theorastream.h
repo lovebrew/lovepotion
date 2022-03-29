@@ -35,6 +35,8 @@ namespace love
         virtual void ParseHeader() override;
 
       private:
+        void SetPostProcessingLevel();
+
         Frame* frontBuffer;
         Frame* backBuffer;
 
@@ -44,7 +46,6 @@ namespace love
 
         int postProcess;
         int maxPostProcess;
-        bool currentBuffer;
         int postProcessOffset;
 
         Handle handle;
