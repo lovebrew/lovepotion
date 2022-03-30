@@ -12,6 +12,15 @@ namespace love
       public:
         static love::Type type;
 
+        struct IFrame
+        {
+            IFrame()
+            {}
+
+            ~IFrame()
+            {}
+        };
+
         virtual ~VideoStream()
         {}
 

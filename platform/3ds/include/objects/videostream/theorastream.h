@@ -11,17 +11,7 @@ namespace love
       public:
         TheoraStream(File* file);
 
-        ~TheoraStream();
-
-        virtual const void* GetFrontBuffer() const override;
-
-        virtual size_t GetSize() const override;
-
-        virtual bool SwapBuffers() override;
-
-        virtual void ThreadedFillBackBuffer(double dt) override;
-
-        struct Frame
+        struct Frame : VideoStream::IFrame
         {
             Frame();
 
@@ -31,23 +21,17 @@ namespace love
             int width, height;
         };
 
-      protected:
-        virtual void ParseHeader() override;
+        virtual size_t GetSize() const override;
+
+        virtual void SetupBuffers() override;
+
+        virtual void FillBufferData(th_ycbcr_buffer bufferInfo) override;
 
       private:
         void SetPostProcessingLevel();
 
-        Frame* frontBuffer;
-        Frame* backBuffer;
-
         th_pixel_fmt format;
-
         int width, height;
-
-        int postProcess;
-        int maxPostProcess;
-        int postProcessOffset;
-
         Handle handle;
     };
 } // namespace love

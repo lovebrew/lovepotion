@@ -9,17 +9,7 @@ namespace love
       public:
         TheoraStream(File* file);
 
-        ~TheoraStream();
-
-        virtual const void* GetFrontBuffer() const override;
-
-        virtual size_t GetSize() const override;
-
-        virtual bool SwapBuffers() override;
-
-        virtual void ThreadedFillBackBuffer(double dt) override;
-
-        struct Frame
+        struct Frame : VideoStream::IFrame
         {
             Frame();
 
@@ -33,13 +23,13 @@ namespace love
             uint8_t* crPlane;
         };
 
-      protected:
-        virtual void ParseHeader() override;
+        virtual size_t GetSize() const override;
+
+        virtual void SetupBuffers() override;
+
+        virtual void FillBufferData(th_ycbcr_buffer bufferInfo) override;
 
       private:
-        Frame* frontBuffer;
-        Frame* backBuffer;
-
         unsigned yPlaneXOffset;
         unsigned cPlaneXOffset;
         unsigned yPlaneYOffset;
