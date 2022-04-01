@@ -83,6 +83,8 @@ void Video::Update()
 
 void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
 {
+    this->Update();
+
     const Matrix4& tm  = graphics->GetTransform();
     bool is2D          = tm.IsAffine2DTransform();
     const Colorf color = graphics->GetColor();
@@ -112,7 +114,8 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
     {
         vertexData[i] = { { transformed[i].x, transformed[i].y, 0.0f },
                           { color.r, color.g, color.b, color.a },
-                          { this->vertices[i].texcoord[0], this->vertices[i].texcoord[1] } };
+                          { vertex::normto16t(this->vertices[i].texcoord[0]),
+                            vertex::normto16t(this->vertices[i].texcoord[1]) } };
     }
 
     ::deko3d::Instance().RenderVideo(handles, vertexData, 4);

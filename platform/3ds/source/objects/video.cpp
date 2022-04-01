@@ -13,7 +13,8 @@ Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
     auto frame = (const TheoraStream::Frame*)this->stream->GetFrontBuffer();
     Rect rect  = { 0, 0, frame->width, frame->height };
 
-    for (int index = 0; index < 1; index++)
+    /* initialize all these StrongReference<Image> items, so setFilter will be happy */
+    for (int index = 0; index < 3; index++)
     {
         Image* image = graphics->NewImage(Texture::TEXTURE_2D, PixelFormat::PIXELFORMAT_RGB8,
                                           rect.w, rect.h, 1);

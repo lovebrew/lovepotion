@@ -1,6 +1,8 @@
 build
 distribute
 .vscodecounter
+logs
+distribute
 
 *.log
 

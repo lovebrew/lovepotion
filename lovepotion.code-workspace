@@ -68,6 +68,9 @@
       "numbers": "cpp",
       "span": "cpp"
     },
-    "terminal.integrated.defaultProfile.windows": "msys2"
+    "terminal.integrated.defaultProfile.windows": "msys2",
+    "yaml.schemas": {
+      "https://json.schemastore.org/github-workflow.json": "file:///g%3A/GitHub/C%2B%2B/lovepotion/.github/workflows/build.yml"
+    }
   }
 }
