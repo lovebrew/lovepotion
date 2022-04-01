@@ -194,16 +194,12 @@ void deko3d::EnsureInState(State state)
         this->cmdBuf.bindVtxAttribState(vertex::attributes::PrimitiveAttribState);
         this->cmdBuf.bindVtxBufferState(vertex::attributes::PrimitiveBufferState);
     }
-    else if (this->renderState == STATE_TEXTURE)
+    else if (this->renderState == STATE_TEXTURE || this->renderState == STATE_VIDEO)
     {
-        love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
-
-        this->cmdBuf.bindVtxAttribState(vertex::attributes::TextureAttribState);
-        this->cmdBuf.bindVtxBufferState(vertex::attributes::TextureBufferState);
-    }
-    else if (this->renderState == STATE_VIDEO)
-    {
-        love::Shader::standardShaders[love::Shader::STANDARD_VIDEO]->Attach();
+        if (this->renderState == STATE_TEXTURE)
+            love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
+        else
+            love::Shader::standardShaders[love::Shader::STANDARD_VIDEO]->Attach();
 
         this->cmdBuf.bindVtxAttribState(vertex::attributes::TextureAttribState);
         this->cmdBuf.bindVtxBufferState(vertex::attributes::TextureBufferState);
