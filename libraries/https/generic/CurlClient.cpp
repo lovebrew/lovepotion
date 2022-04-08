@@ -62,9 +62,19 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
     curl_easy_setopt(handle, CURLOPT_URL, req.url.c_str());
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
 
-    if (req.method == Request::POST)
+    if (req.method == "PUT")
+        curl_easy_setopt(handle, CURLOPT_PUT, 1L);
+    if (req.method == "POST")
     {
         curl_easy_setopt(handle, CURLOPT_POST, 1L);
+        curl_easy_setopt(handle, CURLOPT_POSTFIELDS, req.postdata.c_str());
+        curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, req.postdata.size());
+    }
+    else
+        curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, req.method.c_str());
+
+    if (req.postdata.size() > 0 && (req.method != "GET" && req.method != "HEAD"))
+    {
         curl_easy_setopt(handle, CURLOPT_POSTFIELDS, req.postdata.c_str());
         curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, req.postdata.size());
     }

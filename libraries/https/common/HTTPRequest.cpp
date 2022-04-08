@@ -7,7 +7,7 @@
 #include "HTTPRequest.h"
 #include "PlaintextConnection.h"
 
-HTTPRequest::HTTPRequest(ConnectionFactory factory) : factory(factory), method("")
+HTTPRequest::HTTPRequest(ConnectionFactory factory) : factory(factory)
 {}
 
 HTTPSClient::Reply HTTPRequest::request(const HTTPSClient::Request& req)
