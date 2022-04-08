@@ -2,7 +2,7 @@
 
 using namespace love;
 
-love::Type SoundData::type("SoundData", &Object::type);
+love::Type SoundData::type("SoundData", &Data::type);
 
 SoundData::SoundData(Decoder* decoder) :
     data(0),
