@@ -1,3 +1,7 @@
+#include <algorithm>
+#include <numeric>
+#include <set>
+
 extern "C"
 {
 #include <lauxlib.h>
@@ -5,6 +9,10 @@ extern "C"
 }
 
 #include "common/HTTPSCommon.h"
+
+static const std::set<std::string> validMethods = {
+    "GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"
+};
 
 static std::string w_checkstring(lua_State* L, int idx)
 {
@@ -34,21 +42,31 @@ static void w_readheaders(lua_State* L, int idx, HTTPSClient::header_map& header
     lua_pop(L, 1);
 }
 
-static HTTPSClient::Request::Method w_optmethod(lua_State* L, int idx,
-                                                HTTPSClient::Request::Method defaultMethod)
+static std::string quoted(const std::string& value)
+{
+    return "\"" + value + "\"";
+}
+
+static std::string w_optmethod(lua_State* L, int idx, const std::string& defaultMethod)
 {
     if (lua_isnoneornil(L, idx))
         return defaultMethod;
 
     auto str = w_checkstring(L, idx);
-    if (str == "get")
-        return HTTPSClient::Request::GET;
-    else if (str == "post")
-        return HTTPSClient::Request::POST;
-    else
-        luaL_argerror(L, idx, "expected one of \"get\" or \"set\"");
 
-    return defaultMethod;
+    std::transform(str.begin(), str.end(), str.begin(), [](uint8_t c) { return std::toupper(c); });
+
+    if (validMethods.find(str) == validMethods.end())
+    {
+        // clang-format off
+        std::string values = std::accumulate(validMethods.begin(), validMethods.end(), std::string(),
+                                             [](const std::string& a, const std::string& b) { return a.empty() ? quoted(b) : quoted(a) + ", " + quoted(b); });
+        std::string message = std::string("Invalid method '" + str + "' Expected one of " + values);
+        // clang-format on
+        luaL_argerror(L, idx, message.c_str());
+    }
+
+    return str;
 }
 
 static int w_request(lua_State* L)
@@ -62,14 +80,16 @@ static int w_request(lua_State* L)
     {
         advanced = true;
 
-        HTTPSClient::Request::Method defaultMethod = HTTPSClient::Request::GET;
+        std::string defaultMethod = "GET";
 
         lua_getfield(L, 2, "data");
+
         if (!lua_isnoneornil(L, -1))
         {
             req.postdata  = w_checkstring(L, -1);
-            defaultMethod = HTTPSClient::Request::POST;
+            defaultMethod = "POST";
         }
+
         lua_pop(L, 1);
 
         lua_getfield(L, 2, "method");
