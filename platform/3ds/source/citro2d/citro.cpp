@@ -6,7 +6,12 @@
 
 #include "citro2d/citro.h"
 
+#include "common/bidirectionalmap.h"
 #include "modules/graphics/graphics.h"
+
+#include "common/pixelformat.h"
+
+using namespace love;
 
 citro2d::citro2d()
 {
@@ -233,4 +238,25 @@ GPU_TEXTURE_WRAP_PARAM citro2d::GetCitroWrapMode(love::Texture::WrapMode wrap)
         case love::Texture::WRAP_MIRRORED_REPEAT:
             return GPU_MIRRORED_REPEAT;
     }
+}
+
+// clang-format off
+constexpr auto pixelFormats = BidirectionalMap<>::Create(
+    PIXELFORMAT_TEX3DS_RGBA8, GPU_RGBA8,
+    PIXELFORMAT_RGBA8,        GPU_RGBA8,
+    PIXELFORMAT_RGB8,         GPU_RGB8,
+    PIXELFORMAT_RGB565,       GPU_RGB565,
+    PIXELFORMAT_LA8,          GPU_LA8,
+    PIXELFORMAT_ETC1,         GPU_ETC1
+);
+// clang-format on
+
+bool citro2d::GetConstant(PixelFormat in, GPU_TEXCOLOR& out)
+{
+    return pixelFormats.Find(in, out);
+}
+
+bool citro2d::GetConstant(GPU_TEXCOLOR in, PixelFormat& out)
+{
+    return pixelFormats.ReverseFind(in, out);
 }

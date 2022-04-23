@@ -31,6 +31,7 @@ namespace love
             M_TIMER,
             M_TOUCH,
             M_WINDOW,
+            M_VIDEO,
             M_MAX_ENUM
         };
 

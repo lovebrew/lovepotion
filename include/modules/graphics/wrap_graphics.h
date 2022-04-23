@@ -99,6 +99,8 @@ namespace Wrap_Graphics
 
     int NewCanvas(lua_State* L);
 
+    int NewVideo(lua_State* L);
+
     int SetDefaultFilter(lua_State* L);
 
     int SetLineWidth(lua_State* L);

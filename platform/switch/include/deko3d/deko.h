@@ -147,6 +147,8 @@ class deko3d
 
     bool RenderTexture(const DkResHandle handle, const vertex::Vertex* points, size_t count);
 
+    bool RenderVideo(const DkResHandle handles[3], const vertex::Vertex* points, size_t count);
+
     /* Primitives Rendering */
 
     bool RenderPolygon(const vertex::Vertex* points, size_t count);
@@ -173,6 +175,7 @@ class deko3d
     {
         STATE_PRIMITIVE,
         STATE_TEXTURE,
+        STATE_VIDEO,
         STATE_MAX_ENUM
     };
 

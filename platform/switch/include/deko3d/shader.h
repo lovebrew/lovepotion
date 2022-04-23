@@ -25,6 +25,7 @@ namespace love
         {
             STANDARD_DEFAULT,
             STANDARD_TEXTURE,
+            STANDARD_VIDEO,
             STANDARD_MAX_ENUM
         };
 

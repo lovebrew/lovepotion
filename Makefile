@@ -24,13 +24,14 @@ export LOVE_VERSION = 11.4.0
 #-----------------------------------
 export LOVE_PORTLIBS  = -lmodplug -lvorbisidec -lFLAC -lvorbisidec -logg
 LOVE_PORTLIBS        += -lphysfs -llz4 -lz -lbox2d -ljpeg -lpng `curl-config --libs`
+LOVE_PORTLIBS        += -ltheora
 
 #------------------------------------
 # Common configuration for consoles
 #------------------------------------
 export APP_TITLE   := LÖVE Potion
 export APP_AUTHOR  := lövebrew team
-export APP_VERSION := 2.3.2
+export APP_VERSION := 2.4.0
 export APP_TITLEID := 1043
 
 export DEFINES := -D__DEBUG__=$(DEBUG) -D__APP_VERSION__=\"$(APP_VERSION)\" \

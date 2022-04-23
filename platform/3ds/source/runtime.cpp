@@ -33,6 +33,8 @@ extern "C"
         SOCKET_BUFFER = (u32*)memalign(BUFFER_ALIGN, SOC_BUFSIZE);
         R_ABORT_LAMBDA_UNLESS(socInit(SOCKET_BUFFER, SOC_BUFSIZE), [&]() { free(SOCKET_BUFFER); });
 
+        R_ABORT_UNLESS(y2rInit());
+
         /* accelerometer */
         HIDUSER_EnableAccelerometer();
 
@@ -45,6 +47,8 @@ extern "C"
 
     void userAppExit()
     {
+        y2rExit();
+
         HIDUSER_DisableGyroscope();
 
         HIDUSER_DisableAccelerometer();

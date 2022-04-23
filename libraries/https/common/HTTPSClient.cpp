@@ -29,5 +29,5 @@ bool HTTPSClient::ci_string_less::operator()(const std::string& lhs, const std::
     return false;
 }
 
-HTTPSClient::Request::Request(const std::string& url) : url(url), method(GET)
+HTTPSClient::Request::Request(const std::string& url) : url(url), method("")
 {}

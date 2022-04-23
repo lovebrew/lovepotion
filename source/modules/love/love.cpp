@@ -19,6 +19,7 @@
 #include "modules/thread/wrap_threadmodule.h"
 #include "modules/timer/wrap_timer.h"
 #include "modules/touch/wrap_touch.h"
+#include "modules/video/wrap_videomodule.h"
 #include "modules/window/wrap_window.h"
 
 #include "https/common/HTTPSCommon.h"
@@ -62,6 +63,7 @@ static constexpr luaL_Reg modules[] =
     { "love.thread",     Wrap_ThreadModule::Register },
     { "love.timer",      Wrap_Timer::Register        },
     { "love.touch",      Wrap_Touch::Register        },
+    { "love.video",      Wrap_VideoModule::Register  },
     { "love.window",     Wrap_Window::Register       },
     { "love.nogame",     love::NoGame                },
     { "love.arg",        love::LoadArgs              },

@@ -12,6 +12,8 @@ namespace love::common
     class Timer : public Module
     {
       public:
+        static constexpr auto SLEEP_DURATION = 1000000ULL;
+
         Timer();
 
         ModuleType GetModuleType() const

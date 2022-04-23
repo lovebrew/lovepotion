@@ -347,9 +347,11 @@ local function fix_long_error(font, text, max_width)
     -- note: don't forget to concat this
     local str = "%s\n... and %d more lines."
     local extra_lines = (result - max_lines)
-    local full_text = str:format(text_result, extra_lines)
 
-    return full_text
+    if extra_lines > 0 then
+        return str:format(text_result, extra_lines)
+    end
+    return text
 end
 
 function love.errorhandler(message)

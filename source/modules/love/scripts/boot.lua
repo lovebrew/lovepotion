@@ -176,7 +176,7 @@ function love.init()
             font = true,
             thread = true,
             window = true,
-            video = false,
+            video = true,
         },
         audio = {
             mixwithsystem = true,
@@ -259,6 +259,7 @@ function love.init()
         "image",
         "font",
         "window",
+        "video",
         "graphics",
         "math",
         "physics",

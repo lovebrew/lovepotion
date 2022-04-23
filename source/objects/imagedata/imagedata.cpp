@@ -150,8 +150,8 @@ void ImageData::Decode(Data* data)
     this->width  = decoded.width;
     this->height = decoded.height;
 #else
-    this->width     = decoded.subWidth;
-    this->height    = decoded.subHeight;
+    this->width  = decoded.subWidth;
+    this->height = decoded.subHeight;
 #endif
 
     this->data   = decoded.data;
@@ -253,7 +253,7 @@ static float clamp01(float x)
 //     pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF + 0.5f);
 //     pixel->rgba8[1] = static_cast<uint8_t>(clamp01(color.g) * 0xFF + 0.5f);
 // }
-
+#if defined(__SWITCH__)
 static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
 {
     pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF);
@@ -261,6 +261,17 @@ static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
     pixel->rgba8[2] = static_cast<uint8_t>(clamp01(color.b) * 0xFF);
     pixel->rgba8[3] = static_cast<uint8_t>(clamp01(color.a) * 0xFF);
 }
+#elif defined(__3DS__)
+static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
+{
+    uint8_t r = uint8_t(0xFF * clamp01(color.r) + 0.5f);
+    uint8_t g = uint8_t(0xFF * clamp01(color.g) + 0.5f);
+    uint8_t b = uint8_t(0xFF * clamp01(color.b) + 0.5f);
+    uint8_t a = uint8_t(0xFF * clamp01(color.a) + 0.5f);
+
+    pixel->packed32 = (a | (b << uint32_t(0x08)) | (g << uint32_t(0x10)) | (r << uint32_t(0x18)));
+}
+#endif
 
 static void setPixelRGBA16(const Colorf& color, ImageData::Pixel* pixel)
 {
@@ -270,16 +281,7 @@ static void setPixelRGBA16(const Colorf& color, ImageData::Pixel* pixel)
     pixel->rgba16[3] = static_cast<uint16_t>(clamp01(color.a) * 0xFFFF + 0.5f);
 }
 
-static void setPixelTex3ds(const Colorf& color, ImageData::Pixel* pixel)
-{
-    uint8_t r = uint8_t(0xFF * clamp01(color.r) + 0.5f);
-    uint8_t g = uint8_t(0xFF * clamp01(color.g) + 0.5f);
-    uint8_t b = uint8_t(0xFF * clamp01(color.b) + 0.5f);
-    uint8_t a = uint8_t(0xFF * clamp01(color.a) + 0.5f);
-
-    pixel->packed32 = (a | (b << uint32_t(0x08)) | (g << uint32_t(0x10)) | (r << uint32_t(0x18)));
-}
-
+#if defined(__SWITCH__)
 static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
 {
     color.r = pixel->rgba8[0] / 0xFF;
@@ -287,6 +289,15 @@ static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
     color.b = pixel->rgba8[2] / 0xFF;
     color.a = pixel->rgba8[3] / 0xFF;
 }
+#elif defined(__3DS__)
+static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
+{
+    color.r = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
+    color.g = ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f;
+    color.b = ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f;
+    color.a = ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f;
+}
+#endif
 
 static void getPixelRGBA16(const ImageData::Pixel* pixel, Colorf& color)
 {
@@ -294,14 +305,6 @@ static void getPixelRGBA16(const ImageData::Pixel* pixel, Colorf& color)
     color.g = pixel->rgba16[1] / 0xFFFF;
     color.b = pixel->rgba16[2] / 0xFFFF;
     color.a = pixel->rgba16[3] / 0xFFFF;
-}
-
-static void getPixelTex3ds(const ImageData::Pixel* pixel, Colorf& color)
-{
-    color.r = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
-    color.g = ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f;
-    color.b = ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f;
-    color.a = ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f;
 }
 
 void ImageData::SetPixel(int x, int y, const Colorf& color)
@@ -320,12 +323,12 @@ void ImageData::SetPixel(int x, int y, const Colorf& color)
     this->pixelSetFunction(color, pixel);
 #else
     unsigned _width = NextPO2(this->width + 2);
-    unsigned index  = coordToIndex(_width, x + 1, y + 1);
+    unsigned index = coordToIndex(_width, x + 1, y + 1);
 
     Pixel* pixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + index);
 
     Lock lock(this->mutex);
-    setPixelTex3ds(color, pixel);
+    setPixelRGBA8(color, pixel);
 #endif
 }
 
@@ -345,12 +348,12 @@ void ImageData::GetPixel(int x, int y, Colorf& color) const
     this->pixelGetFunction(pixel, color);
 #else
     unsigned _width = NextPO2(this->width + 2);
-    unsigned index  = coordToIndex(_width, x + 1, y + 1);
+    unsigned index = coordToIndex(_width, x + 1, y + 1);
 
     const Pixel* pixel = reinterpret_cast<const Pixel*>((uint32_t*)this->data + index);
 
     Lock lock(this->mutex);
-    getPixelTex3ds(pixel, color);
+    getPixelRGBA8(pixel, color);
 #endif
 }
 
@@ -387,18 +390,21 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
         sx -= dx;
         dx = 0;
     }
+
     if (dy < 0)
     {
         sh += dy;
         sy -= dy;
         dy = 0;
     }
+
     if (sx < 0)
     {
         sw += sx;
         dx -= sx;
         sx = 0;
     }
+
     if (sy < 0)
     {
         sh += sy;
@@ -435,14 +441,14 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
             Colorf color {};
 
             const Pixel* srcPixel = reinterpret_cast<const Pixel*>((uint32_t*)src->data + srcIndex);
-            getPixelTex3ds(srcPixel, color);
+            getPixelRGBA8(srcPixel, color);
 
             Pixel* dstPixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + dstIndex);
-            setPixelTex3ds(color, dstPixel);
+            setPixelRGBA8(color, dstPixel);
         }
     }
 #elif defined(__SWITCH__)
-    uint8_t* source      = (uint8_t*)src->GetData();
+    uint8_t* source = (uint8_t*)src->GetData();
     uint8_t* destination = (uint8_t*)this->GetData();
 
     size_t srcpixelsize = src->GetPixelSize();
@@ -489,7 +495,6 @@ ImageData::PixelSetFunction ImageData::GetPixelSetFunction(PixelFormat format)
     switch (format)
     {
         case PIXELFORMAT_TEX3DS_RGBA8:
-            return setPixelTex3ds;
         case PIXELFORMAT_RGBA8:
             return setPixelRGBA8;
         case PIXELFORMAT_RGBA16:
@@ -504,7 +509,6 @@ ImageData::PixelGetFunction ImageData::GetPixelGetFunction(PixelFormat format)
     switch (format)
     {
         case PIXELFORMAT_TEX3DS_RGBA8:
-            return getPixelTex3ds;
         case PIXELFORMAT_RGBA8:
             return getPixelRGBA8;
         case PIXELFORMAT_RGBA16:

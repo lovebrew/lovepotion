@@ -2,8 +2,10 @@
 
 #include "common/lmath.h"
 #include "objects/canvas/canvas.h"
+
 #include <citro2d.h>
 
+#include "common/pixelformat.h"
 #include "graphics/graphics.h"
 
 class citro2d
@@ -90,6 +92,10 @@ class citro2d
     static GPU_TEXTURE_FILTER_PARAM GetCitroFilterMode(love::Texture::FilterMode mode);
 
     static GPUFilter GetCitroFilterMode(const love::Texture::Filter& mode);
+
+    static bool GetConstant(love::PixelFormat in, GPU_TEXCOLOR& out);
+
+    static bool GetConstant(GPU_TEXCOLOR in, love::PixelFormat& out);
 
   private:
     GPUFilter filter;

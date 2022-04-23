@@ -8,6 +8,9 @@
 #include "objects/compressedimagedata/wrap_compressedimagedata.h"
 
 #include "objects/imagedata/wrap_imagedata.h"
+#include "objects/video/wrap_video.h"
+
+#include "wrap_graphics_lua.h"
 
 using namespace love;
 
@@ -853,6 +856,24 @@ static int _pushNewImage(lua_State* L, Image::Slices& slices)
     return 1;
 }
 
+int Wrap_Graphics::NewVideo(lua_State* L)
+{
+    if (!Luax::IsType(L, 1, VideoStream::type))
+        Luax::ConvertObject(L, 1, "video", "newVideoStream");
+
+    VideoStream* stream = Luax::CheckType<VideoStream>(L, 1);
+    float dpiScale      = luaL_optnumber(L, 2, 1.0f);
+
+    Video* video = nullptr;
+
+    Luax::CatchException(L, [&]() { video = instance()->NewVideo(stream, dpiScale); });
+
+    Luax::PushType(L, video);
+    video->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::NewImage(lua_State* L)
 {
     Image::Slices slices(Texture::TEXTURE_2D);
@@ -1424,6 +1445,7 @@ static constexpr luaL_Reg functions[] =
     { "newImage",              Wrap_Graphics::NewImage              },
     { "newQuad",               Wrap_Graphics::NewQuad               },
     { "newText",               Wrap_Graphics::NewText               },
+    { "_newVideo",             Wrap_Graphics::NewVideo              },
     { "origin",                Wrap_Graphics::Origin                },
     { "points",                Wrap_Graphics::Points                },
     { "polygon",               Wrap_Graphics::Polygon               },
@@ -1476,6 +1498,7 @@ static constexpr lua_CFunction types[] =
     Wrap_Shader::Register,
 #endif
     Wrap_Text::Register,
+    Wrap_Video::Register,
     nullptr
 };
 // clang-format on
@@ -1502,6 +1525,10 @@ int Wrap_Graphics::Register(lua_State* L)
     wrappedModule.types     = types;
 
     int result = Luax::RegisterModule(L, wrappedModule);
+
+    luaL_loadbuffer(L, (const char*)wrap_graphics_lua, wrap_graphics_lua_size, "wrap_math.lua");
+    lua_pushvalue(L, -2);
+    lua_call(L, 1, 0);
 
     return result;
 }

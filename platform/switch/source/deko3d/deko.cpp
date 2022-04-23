@@ -194,9 +194,12 @@ void deko3d::EnsureInState(State state)
         this->cmdBuf.bindVtxAttribState(vertex::attributes::PrimitiveAttribState);
         this->cmdBuf.bindVtxBufferState(vertex::attributes::PrimitiveBufferState);
     }
-    else if (this->renderState == STATE_TEXTURE)
+    else if (this->renderState == STATE_TEXTURE || this->renderState == STATE_VIDEO)
     {
-        love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
+        if (this->renderState == STATE_TEXTURE)
+            love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
+        else
+            love::Shader::standardShaders[love::Shader::STANDARD_VIDEO]->Attach();
 
         this->cmdBuf.bindVtxAttribState(vertex::attributes::TextureAttribState);
         this->cmdBuf.bindVtxBufferState(vertex::attributes::TextureBufferState);
@@ -377,6 +380,30 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* point
     }
 
     this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
+
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+
+    this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
+bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::Vertex* points, size_t count)
+{
+    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->EnsureInState(STATE_VIDEO);
+
+    if (this->descriptorsDirty)
+    {
+        this->cmdBuf.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+        this->descriptorsDirty = false;
+    }
+
+    this->cmdBuf.bindTextures(DkStage_Fragment, 0, { handles[0], handles[1], handles[2] });
 
     memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
 
@@ -595,6 +622,7 @@ DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
 
 // clang-format off
 constexpr auto pixelFormats = BidirectionalMap<>::Create(
+    PIXELFORMAT_R8,         DkImageFormat_R8_Unorm,
     PIXELFORMAT_RGBA8,      DkImageFormat_RGBA8_Unorm,
     PIXELFORMAT_DXT1,       DkImageFormat_RGBA_BC1,
     PIXELFORMAT_DXT3,       DkImageFormat_RGBA_BC2,

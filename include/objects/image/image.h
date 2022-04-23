@@ -51,9 +51,7 @@ namespace love
             std::vector<std::vector<StrongReference<ImageDataBase>>> data;
         };
 
-#if defined(__SWITCH__)
         void ReplacePixels(const void* data, size_t size, const Rect& rect);
-#endif
 
         ~Image();
 
