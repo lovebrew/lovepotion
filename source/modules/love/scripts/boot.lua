@@ -1,4 +1,4 @@
-R"luastring"--(
+R "luastring" --(
 -- DO NOT REMOVE THE ABOVE LINE. It is used to load this file as a C++ string.
 -- There is a matching delimiter at the bottom of the file.
 
@@ -81,7 +81,13 @@ function love.boot()
             nouri = uridecode(nouri:sub(8))
         end
 
-        local full_source = love.path.getFull(nouri)
+        local full_source
+        if not nouri:find("(%w.love)") then
+            full_source = love.path.getFull(nouri)
+        else
+            full_source = nouri
+        end
+
         can_has_game = pcall(love.filesystem.setSource, full_source)
 
         if not can_has_game then
@@ -245,7 +251,7 @@ function love.init()
     end
 
     -- Gets desired modules.
-    for _, v in ipairs{
+    for _, v in ipairs {
         "data",
         "thread",
         "timer",
@@ -279,12 +285,12 @@ function love.init()
     -- check version - normally LÖVE's, but we
     -- want to check the LÖVE Potion version
     config._potion_version = tostring(config._potion_version)
-    local  message = "This game indicates it was made for version '%s' of LÖVE Potion." ..
-                     "It may not be compatible with the running version (%s)."
+    local message = "This game indicates it was made for version '%s' of LÖVE Potion." ..
+        "It may not be compatible with the running version (%s)."
 
     if not love.isVersionCompatible(config.potion_version) then
         local major, minor, revision = config.version:match("^(%d+)%.(%d+)%.(%d+)$")
-        local t = {major = love._potion_version_major, minor = love._potion_version_minor, rev = love._potion_version_revision}
+        local t = { major = love._potion_version_major, minor = love._potion_version_minor, rev = love._potion_version_revision }
         if (not major or not minor or not revision) or (major ~= t.major and minor ~= t.minor and revision ~= t.rev) then
             local formatted = message:format(config.potion_version, love._potion_version)
             print(formatted)
@@ -323,14 +329,14 @@ function love.init()
     if no_game_code then
         error("No code to run\nYour game might be packaged incorrectly.\nMake sure main.lua is at the top level of the zip.")
     elseif invalid_game_path then
-		error("Cannot load game at path '" .. invalid_game_path .. "'.\nMake sure a folder exists at the specified path.")
-	end
+        error("Cannot load game at path '" .. invalid_game_path .. "'.\nMake sure a folder exists at the specified path.")
+    end
 end
 
 local print, debug, tostring = print, debug, tostring
 
 local function error_printer(msg, layer)
-    print((debug.traceback("Error: " .. tostring(msg), 1+(layer or 1)):gsub("\n[^\n]+$", "")))
+    print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
 end
 
 -----------------------------------------------------------
