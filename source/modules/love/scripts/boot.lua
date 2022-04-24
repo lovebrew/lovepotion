@@ -1,4 +1,4 @@
-R "luastring" --(
+R"luastring"--(
 -- DO NOT REMOVE THE ABOVE LINE. It is used to load this file as a C++ string.
 -- There is a matching delimiter at the bottom of the file.
 
