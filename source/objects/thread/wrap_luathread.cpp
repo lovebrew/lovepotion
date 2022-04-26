@@ -36,13 +36,12 @@ int Wrap_LuaThread::Wait(lua_State* L)
 
 int Wrap_LuaThread::GetError(lua_State* L)
 {
-    LuaThread* self   = Wrap_LuaThread::CheckThread(L, 1);
-    std::string error = self->GetError();
+    LuaThread* self = Wrap_LuaThread::CheckThread(L, 1);
 
-    if (error.empty())
-        lua_pushnil(L);
+    if (self->HasError())
+        Luax::PushString(L, self->GetError());
     else
-        Luax::PushString(L, error);
+        lua_pushnil(L);
 
     return 1;
 }

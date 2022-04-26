@@ -7,7 +7,10 @@ using namespace love;
 
 love::Type LuaThread::type("Thread", &Threadable::type);
 
-LuaThread::LuaThread(const std::string& name, love::Data* code) : code(code), name(name)
+LuaThread::LuaThread(const std::string& name, love::Data* code) :
+    code(code),
+    name(name),
+    hasError(false)
 {
     this->threadName = name;
 }
@@ -18,6 +21,7 @@ LuaThread::~LuaThread()
 void LuaThread::ThreadFunction()
 {
     this->error.clear();
+    this->hasError = false;
 
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -43,7 +47,11 @@ void LuaThread::ThreadFunction()
 
     if (luaL_loadbuffer(L, (const char*)this->code->GetData(), this->code->GetSize(),
                         this->name.c_str()) != 0)
-        this->error = lua_tostring(L, -1);
+    {
+
+        this->error    = lua_tostring(L, -1);
+        this->hasError = true;
+    }
     else
     {
         size_t pushedArgs = this->args.size();
@@ -54,18 +62,31 @@ void LuaThread::ThreadFunction()
         this->args.clear();
 
         if (lua_pcall(L, pushedArgs, 0, tracebackIndex) != 0)
-            this->error = lua_tostring(L, -1);
+        {
+            this->error    = lua_tostring(L, -1);
+            this->hasError = true;
+        }
     }
 
     lua_close(L);
 
-    if (!this->error.empty())
+    if (this->hasError)
         this->OnError();
+}
+
+bool LuaThread::HasError() const
+{
+    return this->hasError;
 }
 
 bool LuaThread::Start(const std::vector<Variant>& args)
 {
+    if (this->IsRunning())
+        return false;
+
     this->args = args;
+    this->error.clear();
+    this->hasError = false;
 
     return Threadable::Start();
 }
@@ -77,9 +98,6 @@ const std::string& LuaThread::GetError() const
 
 void LuaThread::OnError()
 {
-    if (this->error.empty())
-        return;
-
     auto eventModule = Module::GetInstance<love::Event>(Module::M_EVENT);
 
     if (!eventModule)

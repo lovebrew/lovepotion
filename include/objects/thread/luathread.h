@@ -23,6 +23,8 @@ namespace love
 
         bool Start(const std::vector<Variant>& args);
 
+        bool HasError() const;
+
       private:
         void OnError();
 
@@ -30,6 +32,7 @@ namespace love
 
         std::string name;
         std::string error;
+        bool hasError;
 
         std::vector<Variant> args;
     };
