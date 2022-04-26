@@ -36,13 +36,13 @@ Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
     Texture::Wrap wrap;
     for (size_t index = 0; index < 3; index++)
     {
-        Image* image = graphics->NewImage(Texture::TEXTURE_2D, PIXELFORMAT_R8, widths[index],
+        Image* image = graphics->NewImage(Texture::TEXTURE_2D, PIXELFORMAT_R8_UNORM, widths[index],
                                           heights[index], 1);
 
         image->SetFilter(this->filter);
         image->SetWrap(wrap);
 
-        size_t formatSize = GetPixelFormatSize(PIXELFORMAT_R8);
+        size_t formatSize = love::GetPixelFormatBlockSize(PIXELFORMAT_R8_UNORM);
         size_t size       = widths[index] * heights[index] * formatSize;
 
         Rect rect = { 0, 0, widths[index], heights[index] };
@@ -71,7 +71,7 @@ void Video::Update()
 
         for (int i = 0; i < 3; i++)
         {
-            size_t formatSize = GetPixelFormatSize(PIXELFORMAT_R8);
+            size_t formatSize = love::GetPixelFormatBlockSize(PIXELFORMAT_R8_UNORM);
 
             size_t size = widths[i] * heights[i] * formatSize;
 

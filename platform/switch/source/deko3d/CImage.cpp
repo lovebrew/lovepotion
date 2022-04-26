@@ -76,7 +76,7 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
     if (!::deko3d::GetConstant(dkFormat, format))
         return false;
 
-    size_t size = width * height * love::GetPixelFormatSize(format);
+    size_t size = love::GetPixelFormatSliceSize(format, width, height);
 
     if (size <= 0)
         return false;
@@ -138,7 +138,7 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
     if (!::deko3d::GetConstant(dkFormat, format))
         return false;
 
-    size_t size = width * height * love::GetPixelFormatSize(format);
+    size_t size = love::GetPixelFormatSliceSize(format, width, height);
 
     if (size <= 0)
         return false;

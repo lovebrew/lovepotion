@@ -13,14 +13,14 @@ static PixelFormat convertFormat(uint16_t format)
     switch (format)
     {
         case PKMHandler::PKMTextureFormat::ETC1_RGB_NO_MIPMAPS:
-            return PIXELFORMAT_ETC1;
+            return PIXELFORMAT_ETC1_UNORM;
         case PKMHandler::PKMTextureFormat::ETC2PACKAGE_RGB_NO_MIPMAPS:
-            return PIXELFORMAT_ETC2_RGB;
+            return PIXELFORMAT_ETC2_RGB_UNORM;
         case PKMHandler::PKMTextureFormat::ETC2PACKAGE_RGBA_NO_MIPMAPS_OLD:
         case PKMHandler::PKMTextureFormat::ETC2PACKAGE_RGBA_NO_MIPMAPS:
-            return PIXELFORMAT_ETC2_RGBA;
+            return PIXELFORMAT_ETC2_RGBA_UNORM;
         case PKMHandler::PKMTextureFormat::ETC2PACKAGE_RGBA1_NO_MIPMAPS:
-            return PIXELFORMAT_ETC2_RGBA1;
+            return PIXELFORMAT_ETC2_RGBA1_UNORM;
         default:
             return PIXELFORMAT_UNKNOWN;
     }

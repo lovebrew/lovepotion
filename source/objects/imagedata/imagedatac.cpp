@@ -1,4 +1,4 @@
-#include "objects/imagedata/imagedata.h"
+#include "objects/imagedata/imagedatac.h"
 #include "modules/filesystem/filesystem.h"
 
 #include "common/bidirectionalmap.h"
@@ -8,8 +8,8 @@
 
 #include <algorithm>
 
-using namespace love;
-using thread::Lock;
+using namespace love::common;
+using love::thread::Lock;
 
 love::Type ImageData::type("ImageData", &Data::type);
 
@@ -54,19 +54,9 @@ ImageData::~ImageData()
         delete[] this->data;
 }
 
-ImageData* ImageData::Clone() const
-{
-    return new ImageData(*this);
-}
-
 void ImageData::Create(int width, int height, PixelFormat format, void* data)
 {
-    size_t dataSize = 0;
-
-    if (format == PIXELFORMAT_TEX3DS_RGBA8)
-        dataSize = NextPO2(width + 2) * NextPO2(height + 2) * GetPixelFormatSize(format);
-    else
-        dataSize = width * height * GetPixelFormatSize(format);
+    size_t dataSize = love::GetPixelFormatSliceSize(format, width, height);
 
     try
     {
@@ -91,9 +81,8 @@ bool ImageData::ValidatePixelFormat(PixelFormat format)
 {
     switch (format)
     {
-        case PIXELFORMAT_RGBA8:
-        case PIXELFORMAT_RGBA16:
-        case PIXELFORMAT_TEX3DS_RGBA8:
+        case PIXELFORMAT_RGBA8_UNORM:
+        case PIXELFORMAT_RGBA16_UNORM:
             return true;
         default:
             return false;
@@ -135,7 +124,9 @@ void ImageData::Decode(Data* data)
             throw love::Exception("Could not decode data to ImageData: unsupported encoded format");
     }
 
-    if (decoded.size != (decoded.width * decoded.height) * GetPixelFormatSize(decoded.format))
+    auto size = (decoded.width * decoded.height) * love::GetPixelFormatBlockSize(decoded.format);
+
+    if (decoded.size != size)
     {
         decoder->FreeRawPixels(decoded.data);
         throw love::Exception("Could not decode image!");
@@ -163,8 +154,8 @@ void ImageData::Decode(Data* data)
     this->pixelGetFunction = this->GetPixelGetFunction(format);
 }
 
-FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, const char* filename,
-                            bool writefile) const
+love::FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, const char* filename,
+                                  bool writefile) const
 {
     FormatHandler* encoder = nullptr;
 
@@ -243,25 +234,7 @@ FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, const ch
     return fileData;
 }
 
-static float clamp01(float x)
-{
-    return std::clamp(x, 0.0f, 1.0f);
-}
-
-// static void setPixelRGB(const Colorf& color, ImageData::Pixel* pixel)
-// {
-//     pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF + 0.5f);
-//     pixel->rgba8[1] = static_cast<uint8_t>(clamp01(color.g) * 0xFF + 0.5f);
-// }
-#if defined(__SWITCH__)
-static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
-{
-    pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF);
-    pixel->rgba8[1] = static_cast<uint8_t>(clamp01(color.g) * 0xFF);
-    pixel->rgba8[2] = static_cast<uint8_t>(clamp01(color.b) * 0xFF);
-    pixel->rgba8[3] = static_cast<uint8_t>(clamp01(color.a) * 0xFF);
-}
-#elif defined(__3DS__)
+#if defined(__3DS__)
 static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
 {
     uint8_t r = uint8_t(0xFF * clamp01(color.r) + 0.5f);
@@ -273,23 +246,7 @@ static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
 }
 #endif
 
-static void setPixelRGBA16(const Colorf& color, ImageData::Pixel* pixel)
-{
-    pixel->rgba16[0] = static_cast<uint16_t>(clamp01(color.r) * 0xFFFF + 0.5f);
-    pixel->rgba16[1] = static_cast<uint16_t>(clamp01(color.b) * 0xFFFF + 0.5f);
-    pixel->rgba16[2] = static_cast<uint16_t>(clamp01(color.g) * 0xFFFF + 0.5f);
-    pixel->rgba16[3] = static_cast<uint16_t>(clamp01(color.a) * 0xFFFF + 0.5f);
-}
-
-#if defined(__SWITCH__)
-static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
-{
-    color.r = pixel->rgba8[0] / 0xFF;
-    color.g = pixel->rgba8[1] / 0xFF;
-    color.b = pixel->rgba8[2] / 0xFF;
-    color.a = pixel->rgba8[3] / 0xFF;
-}
-#elif defined(__3DS__)
+#if defined(__3DS__)
 static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
 {
     color.r = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
@@ -299,73 +256,15 @@ static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
 }
 #endif
 
-static void getPixelRGBA16(const ImageData::Pixel* pixel, Colorf& color)
-{
-    color.r = pixel->rgba16[0] / 0xFFFF;
-    color.g = pixel->rgba16[1] / 0xFFFF;
-    color.b = pixel->rgba16[2] / 0xFFFF;
-    color.a = pixel->rgba16[3] / 0xFFFF;
-}
-
-void ImageData::SetPixel(int x, int y, const Colorf& color)
-{
-    if (!this->Inside(x, y))
-        throw love::Exception("Attempt to set out-of-range pixel!");
-
-#if not defined(__3DS__)
-    size_t pixelSize = this->GetPixelSize();
-    Pixel* pixel     = (Pixel*)(this->data + ((y * this->width + x) * pixelSize));
-
-    if (this->pixelSetFunction == nullptr)
-        throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", this->format);
-
-    Lock lock(this->mutex);
-    this->pixelSetFunction(color, pixel);
-#else
-    unsigned _width = NextPO2(this->width + 2);
-    unsigned index = coordToIndex(_width, x + 1, y + 1);
-
-    Pixel* pixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + index);
-
-    Lock lock(this->mutex);
-    setPixelRGBA8(color, pixel);
-#endif
-}
-
-void ImageData::GetPixel(int x, int y, Colorf& color) const
-{
-    if (!this->Inside(x, y))
-        throw love::Exception("Attempt to get out-of-range pixel!");
-
-#if not defined(__3DS__)
-    size_t pixelSize   = this->GetPixelSize();
-    const Pixel* pixel = (const Pixel*)(this->data + ((y * this->width + x) * pixelSize));
-
-    if (this->pixelGetFunction == nullptr)
-        throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", format);
-
-    Lock lock(this->mutex);
-    this->pixelGetFunction(pixel, color);
-#else
-    unsigned _width = NextPO2(this->width + 2);
-    unsigned index = coordToIndex(_width, x + 1, y + 1);
-
-    const Pixel* pixel = reinterpret_cast<const Pixel*>((uint32_t*)this->data + index);
-
-    Lock lock(this->mutex);
-    getPixelRGBA8(pixel, color);
-#endif
-}
-
 bool ImageData::CanPaste(PixelFormat src, PixelFormat dst)
 {
     if (src == dst)
         return true;
 
-    if (!(src == PIXELFORMAT_RGBA8 || src == PIXELFORMAT_RGBA16))
+    if (!(src == PIXELFORMAT_RGBA8_UNORM || src == PIXELFORMAT_RGBA16_UNORM))
         return false;
 
-    if (!(dst == PIXELFORMAT_RGBA8 || dst == PIXELFORMAT_RGBA16))
+    if (!(dst == PIXELFORMAT_RGBA8_UNORM || dst == PIXELFORMAT_RGBA16_UNORM))
         return false;
 
     return true;
@@ -448,74 +347,8 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
         }
     }
 #elif defined(__SWITCH__)
-    uint8_t* source = (uint8_t*)src->GetData();
-    uint8_t* destination = (uint8_t*)this->GetData();
-
-    size_t srcpixelsize = src->GetPixelSize();
-    size_t dstpixelsize = this->GetPixelSize();
-
-    auto getFunction = src->pixelGetFunction;
-    auto setFunction = this->pixelSetFunction;
-
-    PixelFormat dstformat = this->GetFormat();
-    PixelFormat srcformat = src->GetFormat();
-
-    if (srcformat == dstformat && (sw == dstW && dstW == srcW && sh == dstH && dstH == srcH))
-        memcpy(destination, source, srcpixelsize * sw * sh);
-    else if (sw > 0)
-    {
-        // Otherwise, copy each row individually.
-        for (int i = 0; i < sh; i++)
-        {
-            Row rowsrc = { source + (sx + (i + sy) * srcW) * srcpixelsize };
-            Row rowdst = { destination + (dx + (i + dy) * dstW) * dstpixelsize };
-
-            if (srcformat == dstformat)
-                memcpy(rowdst.u8, rowsrc.u8, srcpixelsize * sw);
-            else
-            {
-                // Slow path: convert src -> Colorf -> dst.
-                Colorf c;
-                for (int x = 0; x < sw; x++)
-                {
-                    auto srcp = (const Pixel*)(rowsrc.u8 + x * srcpixelsize);
-                    auto dstp = (Pixel*)(rowdst.u8 + x * dstpixelsize);
-
-                    getFunction(srcp, c);
-                    setFunction(c, dstp);
-                }
-            }
-        }
-    }
+    this->PasteData(src, dx, dy, sx, sy, sw, sh, dstW, dstH);
 #endif
-}
-
-ImageData::PixelSetFunction ImageData::GetPixelSetFunction(PixelFormat format)
-{
-    switch (format)
-    {
-        case PIXELFORMAT_TEX3DS_RGBA8:
-        case PIXELFORMAT_RGBA8:
-            return setPixelRGBA8;
-        case PIXELFORMAT_RGBA16:
-            return setPixelRGBA16;
-        default:
-            return nullptr;
-    }
-}
-
-ImageData::PixelGetFunction ImageData::GetPixelGetFunction(PixelFormat format)
-{
-    switch (format)
-    {
-        case PIXELFORMAT_TEX3DS_RGBA8:
-        case PIXELFORMAT_RGBA8:
-            return getPixelRGBA8;
-        case PIXELFORMAT_RGBA16:
-            return getPixelRGBA16;
-        default:
-            return nullptr;
-    }
 }
 
 bool ImageData::Inside(int x, int y) const
@@ -525,20 +358,17 @@ bool ImageData::Inside(int x, int y) const
 
 size_t ImageData::GetSize() const
 {
-    if (this->format == PIXELFORMAT_TEX3DS_RGBA8)
-        return NextPO2(this->width + 2) * NextPO2(this->height + 2) * this->GetPixelSize();
-    else
-        return size_t(this->GetWidth() * this->GetHeight()) * this->GetPixelSize();
+    return love::GetPixelFormatSliceSize(this->format, this->width, this->height);
 }
 
-thread::Mutex* ImageData::GetMutex() const
+love::thread::Mutex* ImageData::GetMutex() const
 {
     return this->mutex;
 }
 
 size_t ImageData::GetPixelSize() const
 {
-    return love::GetPixelFormatSize(format);
+    return love::GetPixelFormatBlockSize(this->format);
 }
 
 void* ImageData::GetData() const
@@ -553,7 +383,7 @@ bool ImageData::IsSRGB() const
 
 // clang-format off
 constexpr auto encodedFormats = BidirectionalMap<>::Create(
-    "png", FormatHandler::ENCODED_PNG
+    "png", love::FormatHandler::ENCODED_PNG
 );
 // clang-format on
 

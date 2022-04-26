@@ -877,7 +877,7 @@ int Wrap_Graphics::NewVideo(lua_State* L)
 int Wrap_Graphics::NewImage(lua_State* L)
 {
     Image::Slices slices(Texture::TEXTURE_2D);
-    bool dpiScaleSet = false;
+    // bool dpiScaleSet = false;
 
     float dpiScale = 1.0f;
     auto data      = getImageData(L, 1, true, &dpiScale);

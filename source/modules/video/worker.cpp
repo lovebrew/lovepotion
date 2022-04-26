@@ -29,7 +29,6 @@ void Worker::AddStream(TheoraStream* stream)
 void Worker::Stop()
 {
     {
-        thread::Lock lock(this->mutex);
         this->stopping = true;
         this->condition->Broadcast();
     }

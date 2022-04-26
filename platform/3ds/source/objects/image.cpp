@@ -44,7 +44,7 @@ void Image::Init(PixelFormat format, int width, int height)
     if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, color))
         throw love::Exception("Failed to initialize texture!");
 
-    size_t copySize = powTwoWidth * powTwoHeight * GetPixelFormatSize(format);
+    size_t copySize = love::GetPixelFormatSliceSize(format, width, height);
 
     if (this->data.Get(0, 0))
         memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);

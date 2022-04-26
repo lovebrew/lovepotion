@@ -28,7 +28,8 @@ bool PNGHandler::CanDecode(Data* data)
 
 bool PNGHandler::CanEncode(PixelFormat rawFormat, EncodedFormat encodedFormat)
 {
-    bool validFormat = rawFormat == PIXELFORMAT_RGBA8 || rawFormat == PIXELFORMAT_RGBA16;
+    bool validFormat =
+        rawFormat == PIXELFORMAT_RGBA8_UNORM || rawFormat == PIXELFORMAT_RGBA16_UNORM;
     return encodedFormat == ENCODED_PNG && validFormat;
 }
 
@@ -53,7 +54,7 @@ PNGHandler::DecodedImage PNGHandler::Decode(Data* data)
 
     decoded.width  = image.width;
     decoded.height = image.height;
-    decoded.format = PIXELFORMAT_RGBA8;
+    decoded.format = PIXELFORMAT_RGBA8_UNORM;
     decoded.size   = (image.width * image.height) * sizeof(uint32_t);
 
     decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];

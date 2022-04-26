@@ -26,6 +26,9 @@
 #define LOVE_M_LN2    0.693147180559945309417
 #define LOVE_M_LN10   2.30258509299404568402
 
+#define LOVE_TEX3DS_MIN 8U
+#define LOVE_TEX3DS_MAX 1024U
+
 namespace love
 {
     struct Rect
@@ -39,24 +42,19 @@ namespace love
         }
     };
 
-    constexpr size_t LOVE_MIN_TEX = 8U;
-    constexpr size_t LOVE_MAX_TEX = 1024U;
-
     /*
     ** Clamps 3DS textures between min
     ** and max texture size to prevent
     ** the GPU from locking up
+    ** ----
+    ** credit: https://github.com/oreo639/3ds-theoraplayer/blob/master/source/frame.c#L10
     */
-    inline int NextPO2(size_t in)
+    static inline uint32_t NextPo2(uint32_t x)
     {
-        in--;
-        in |= in >> 1;
-        in |= in >> 2;
-        in |= in >> 4;
-        in |= in >> 8;
-        in |= in >> 16;
-        in++;
+        if (x <= 2)
+            return x;
 
-        return std::clamp(in, LOVE_MIN_TEX, LOVE_MAX_TEX);
+        uint32_t result = 1u << (32 - __builtin_clz(x - 1));
+        return std::clamp(result, LOVE_TEX3DS_MIN, LOVE_TEX3DS_MAX);
     }
 } // namespace love

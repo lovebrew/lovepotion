@@ -29,6 +29,6 @@ namespace love
         thread::MutexRef mutex;
         thread::ConditionalRef condition;
 
-        bool stopping;
+        std::atomic<bool> stopping;
     };
 } // namespace love

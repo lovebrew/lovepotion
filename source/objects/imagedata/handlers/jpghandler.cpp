@@ -45,7 +45,7 @@ JPGHandler::DecodedImage JPGHandler::Decode(Data* data)
 
     decoded.width  = cinfo.output_width;
     decoded.height = cinfo.output_height;
-    decoded.format = PIXELFORMAT_RGBA8;
+    decoded.format = PIXELFORMAT_RGBA8_UNORM;
     decoded.size   = decoded.width * decoded.height * 4;
 
     decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];

@@ -226,14 +226,6 @@ namespace Luax
         return 0;
     }
 
-    inline bool IsCTR()
-    {
-        if (strncmp(__CONSOLE__, "3DS", 3))
-            return true;
-
-        return false;
-    }
-
     template<typename T>
     T* ToType(lua_State* L, int index, const love::Type& /*type*/)
     {

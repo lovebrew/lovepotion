@@ -147,7 +147,7 @@ void TheoraStream::FillBufferData(th_ycbcr_buffer bufferInfo)
     PixelFormat format;
     ::citro2d::GetConstant(((Frame*)this->backBuffer)->buffer->fmt, format);
 
-    size_t formatSize = GetPixelFormatSize(format);
+    size_t formatSize = love::GetPixelFormatBlockSize(format);
 
     Y2RU_SetReceiving(((Frame*)this->backBuffer)->buffer->data,
                       this->width * this->height * formatSize, this->width * 8 * formatSize,

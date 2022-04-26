@@ -115,13 +115,16 @@ void Font::CreateTexture()
         images.pop_back();
     }
 
-    texture =
-        gfx->NewImage(love::Texture::TEXTURE_2D, PIXELFORMAT_RGBA8, size.width, size.height, 1);
+    texture = gfx->NewImage(love::Texture::TEXTURE_2D, PIXELFORMAT_RGBA8_UNORM, size.width,
+                            size.height, 1);
+
     texture->SetFilter(this->filter);
 
     {
-        size_t bytesPerPixel = love::GetPixelFormatSize(PIXELFORMAT_RGBA8);
-        size_t pixelCount    = size.width * size.height;
+        size_t bytesPerPixel =
+            love::GetPixelFormatSliceSize(PIXELFORMAT_RGBA8_UNORM, size.width, size.height);
+
+        size_t pixelCount = size.width * size.height;
 
         std::vector<uint8_t> empty(pixelCount * bytesPerPixel, 0);
         Rect rect = { 0, 0, size.width, size.height };
