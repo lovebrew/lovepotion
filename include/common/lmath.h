@@ -49,12 +49,12 @@ namespace love
     ** ----
     ** credit: https://github.com/oreo639/3ds-theoraplayer/blob/master/source/frame.c#L10
     */
-    static inline uint32_t NextPo2(uint32_t x)
+    static inline unsigned NextPo2(unsigned x)
     {
         if (x <= 2)
             return x;
 
-        uint32_t result = 1u << (32 - __builtin_clz(x - 1));
+        unsigned result = 1u << (32 - __builtin_clz(x - 1));
         return std::clamp(result, LOVE_TEX3DS_MIN, LOVE_TEX3DS_MAX);
     }
 } // namespace love

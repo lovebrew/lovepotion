@@ -18,7 +18,7 @@ Image::Image(const Slices& slices, bool validate) :
 }
 
 Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :
-    Image(Slices(textureType), false)
+    Image(Slices(type), false)
 {
     if (love::IsPixelFormatCompressed(format))
         throw love::Exception("This constructor only supports non-compressesd pixel formats.");

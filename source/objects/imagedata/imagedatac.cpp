@@ -79,14 +79,7 @@ void ImageData::Create(int width, int height, PixelFormat format, void* data)
 
 bool ImageData::ValidatePixelFormat(PixelFormat format)
 {
-    switch (format)
-    {
-        case PIXELFORMAT_RGBA8_UNORM:
-        case PIXELFORMAT_RGBA16_UNORM:
-            return true;
-        default:
-            return false;
-    }
+    return love::IsPixelFormatColor(format) && !love::IsPixelFormatCompressed(format);
 }
 
 void ImageData::Decode(Data* data)
@@ -118,15 +111,17 @@ void ImageData::Decode(Data* data)
         {
             const std::string& name = fileData->GetFilename();
             throw love::Exception(
-                "Could not decode file '%s' to ImageData: unsupported file format", name.c_str());
+                "Could not decode file '%s' to ImageData: unsupported file format.", name.c_str());
         }
         else
-            throw love::Exception("Could not decode data to ImageData: unsupported encoded format");
+            throw love::Exception(
+                "Could not decode data to ImageData: unsupported encoded format.");
     }
 
-    auto size = (decoded.width * decoded.height) * love::GetPixelFormatBlockSize(decoded.format);
+    auto expectedSize =
+        (decoded.width * decoded.height) * love::GetPixelFormatBlockSize(decoded.format);
 
-    if (decoded.size != size)
+    if (decoded.size != expectedSize)
     {
         decoder->FreeRawPixels(decoded.data);
         throw love::Exception("Could not decode image!");
@@ -234,28 +229,6 @@ love::FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, co
     return fileData;
 }
 
-#if defined(__3DS__)
-static void setPixelRGBA8(const Colorf& color, ImageData::Pixel* pixel)
-{
-    uint8_t r = uint8_t(0xFF * clamp01(color.r) + 0.5f);
-    uint8_t g = uint8_t(0xFF * clamp01(color.g) + 0.5f);
-    uint8_t b = uint8_t(0xFF * clamp01(color.b) + 0.5f);
-    uint8_t a = uint8_t(0xFF * clamp01(color.a) + 0.5f);
-
-    pixel->packed32 = (a | (b << uint32_t(0x08)) | (g << uint32_t(0x10)) | (r << uint32_t(0x18)));
-}
-#endif
-
-#if defined(__3DS__)
-static void getPixelRGBA8(const ImageData::Pixel* pixel, Colorf& color)
-{
-    color.r = ((pixel->packed32 & 0xFF000000) >> 0x18) / 255.0f;
-    color.g = ((pixel->packed32 & 0x00FF0000) >> 0x10) / 255.0f;
-    color.b = ((pixel->packed32 & 0x0000FF00) >> 0x08) / 255.0f;
-    color.a = ((pixel->packed32 & 0x000000FF) >> 0x00) / 255.0f;
-}
-#endif
-
 bool ImageData::CanPaste(PixelFormat src, PixelFormat dst)
 {
     if (src == dst)
@@ -326,29 +299,7 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
     Lock lock2(src->mutex);
     Lock lock1(this->mutex);
 
-#if defined(__3DS__)
-    unsigned _srcPowTwo = NextPO2(src->width + 2);
-    unsigned _dstPowTwo = NextPO2(this->width + 2);
-
-    for (int y = 0; y < std::min(sh, dstH - dy); y++)
-    {
-        for (int x = 0; x < std::min(sw, dstW - dx); x++)
-        {
-            unsigned srcIndex = coordToIndex(_srcPowTwo, (sx + x) + 1, (sy + y) + 1);
-            unsigned dstIndex = coordToIndex(_dstPowTwo, (dx + x) + 1, (dy + y) + 1);
-
-            Colorf color {};
-
-            const Pixel* srcPixel = reinterpret_cast<const Pixel*>((uint32_t*)src->data + srcIndex);
-            getPixelRGBA8(srcPixel, color);
-
-            Pixel* dstPixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + dstIndex);
-            setPixelRGBA8(color, dstPixel);
-        }
-    }
-#elif defined(__SWITCH__)
     this->PasteData(src, dx, dy, sx, sy, sw, sh, dstW, dstH);
-#endif
 }
 
 bool ImageData::Inside(int x, int y) const

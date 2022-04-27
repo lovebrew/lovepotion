@@ -8,7 +8,7 @@ using namespace love;
 
 Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
 {
-    C3D_TexInitVRAM(&this->citroTex, NextPO2(this->width), NextPO2(this->height), GPU_RGBA8);
+    C3D_TexInitVRAM(&this->citroTex, NextPo2(this->width), NextPo2(this->height), GPU_RGBA8);
 
     this->renderer =
         C3D_RenderTargetCreateFromTex(&this->citroTex, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH16);

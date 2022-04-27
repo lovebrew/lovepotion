@@ -6,6 +6,8 @@
 #include "common/delay.h"
 #include "modules/timer/timer.h"
 
+#include "common/debug/logger.h"
+
 using namespace love;
 
 Worker::Worker() : stopping(false)

@@ -73,8 +73,8 @@ void TheoraStream::SetupBuffers()
     this->width  = calcWidth;
     this->height = calcHeight;
 
-    int powTwoWidth  = NextPO2(calcWidth);
-    int powTwoHeight = NextPO2(calcHeight);
+    int powTwoWidth  = NextPo2(calcWidth);
+    int powTwoHeight = NextPo2(calcHeight);
 
     Frame* buffers[2] = { (Frame*)this->backBuffer, (Frame*)this->frontBuffer };
 
@@ -151,7 +151,7 @@ void TheoraStream::FillBufferData(th_ycbcr_buffer bufferInfo)
 
     Y2RU_SetReceiving(((Frame*)this->backBuffer)->buffer->data,
                       this->width * this->height * formatSize, this->width * 8 * formatSize,
-                      (NextPO2(this->width) - this->width) * 8 * formatSize);
+                      (NextPo2(this->width) - this->width) * 8 * formatSize);
 
     /* convert the data */
 

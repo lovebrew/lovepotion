@@ -121,12 +121,11 @@ void Font::CreateTexture()
     texture->SetFilter(this->filter);
 
     {
-        size_t bytesPerPixel =
+        size_t dataSize =
             love::GetPixelFormatSliceSize(PIXELFORMAT_RGBA8_UNORM, size.width, size.height);
-
         size_t pixelCount = size.width * size.height;
 
-        std::vector<uint8_t> empty(pixelCount * bytesPerPixel, 0);
+        std::vector<uint8_t> empty(dataSize, 0);
         Rect rect = { 0, 0, size.width, size.height };
 
         texture->ReplacePixels(empty.data(), empty.size(), rect);
