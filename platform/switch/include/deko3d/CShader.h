@@ -6,8 +6,6 @@
 #include "deko3d/CMemPool.h"
 #include "deko3d/common.h"
 
-#include "common/debug/logger.h"
-
 class CShader
 {
     dk::Shader m_shader;
@@ -27,7 +25,7 @@ class CShader
         return m_codemem;
     }
 
-    constexpr operator dk::Shader const *() const
+    constexpr operator dk::Shader const*() const
     {
         return &m_shader;
     }

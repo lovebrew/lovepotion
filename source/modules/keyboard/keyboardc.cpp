@@ -1,6 +1,5 @@
 #include "modules/keyboard/keyboardc.h"
 #include "common/bidirectionalmap.h"
-#include "common/debug/logger.h"
 
 using namespace love::common;
 

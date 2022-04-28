@@ -70,8 +70,8 @@ void ImageData::PasteData(common::ImageData* src, int dx, int dy, int sx, int sy
     auto getFunction = ((ImageData*)src)->pixelGetFunction;
     auto setFunction = this->pixelSetFunction;
 
-    PixelFormat dstformat = this->GetFormat();
-    PixelFormat srcformat = src->GetFormat();
+    // PixelFormat dstformat = this->GetFormat();
+    // PixelFormat srcformat = src->GetFormat();
 
     unsigned _srcPowTwo = NextPo2(((ImageData*)src)->width + 2);
     unsigned _dstPowTwo = NextPo2(this->width + 2);
@@ -86,10 +86,10 @@ void ImageData::PasteData(common::ImageData* src, int dx, int dy, int sx, int sy
             Colorf color {};
 
             const Pixel* srcPixel = reinterpret_cast<const Pixel*>((uint32_t*)source + srcIndex);
-            this->pixelGetFunction(srcPixel, color);
+            getFunction(srcPixel, color);
 
             Pixel* dstPixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + dstIndex);
-            this->pixelSetFunction(color, dstPixel);
+            setFunction(color, dstPixel);
         }
     }
 }

@@ -3,8 +3,6 @@
 
 using namespace love;
 
-#include "debug/logger.h"
-
 VideoModule::VideoModule()
 {
     this->workerThread = new Worker();

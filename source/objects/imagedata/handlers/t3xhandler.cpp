@@ -8,8 +8,6 @@
 #include "modules/data/datamodule.h"
 #include <memory>
 
-#include "debug/logger.h"
-
 using namespace love;
 
 #if defined(__3DS__)

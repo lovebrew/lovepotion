@@ -63,7 +63,7 @@ void Image::Init(PixelFormat format, int width, int height)
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
 }
-#include "debug/logger.h"
+
 void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
 {
     if (!this->texture.tex)

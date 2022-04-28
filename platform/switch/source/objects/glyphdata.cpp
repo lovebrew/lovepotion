@@ -6,7 +6,7 @@ using namespace love;
 
 GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) :
     common::GlyphData(glyph, metrics),
-    data(nullptr),
+    data(nullptr)
 {
     size_t pixelSize = this->GetPixelSize();
 

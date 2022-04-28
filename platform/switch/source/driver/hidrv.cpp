@@ -5,7 +5,6 @@
 
 #include <string.h>
 
-#include "debug/logger.h"
 #include "deko3d/deko.h"
 
 using namespace love::driver;

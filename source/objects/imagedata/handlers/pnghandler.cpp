@@ -2,7 +2,6 @@
 
 #include "common/exception.h"
 
-#include "debug/logger.h"
 #include <libpng16/png.h>
 
 using namespace love;

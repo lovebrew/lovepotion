@@ -81,7 +81,7 @@ ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 LIBS := ${LOVE_PORTLIBS} `freetype-config --libs` `$(PREFIX)pkg-config libmpg123 --libs`
-$(info DEBUG is $(DEBUG))
+
 ifeq ($(strip $(DEBUG)),)
 	CFLAGS += -O2
 	ICON   := icon.jpg
