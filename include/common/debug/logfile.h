@@ -10,21 +10,21 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-class Logger
+class LogFile
 {
   public:
-    static Logger& Instance()
+    static LogFile& Instance()
     {
-        static Logger instance;
+        static LogFile instance;
         return instance;
     }
 
     void LogOutput(const char* func, size_t line, const char* format, ...) const;
 
-    ~Logger();
+    ~LogFile();
 
   private:
-    Logger();
+    LogFile();
 
     love::thread::MutexRef mutex;
 
@@ -35,5 +35,5 @@ class Logger
 
 #if defined(__DEBUG__)
     #define LOG(format, ...) \
-        Logger::Instance().LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ##__VA_ARGS__)
+        LogFile::Instance().LogOutput(__PRETTY_FUNCTION__, __LINE__, format, ##__VA_ARGS__)
 #endif

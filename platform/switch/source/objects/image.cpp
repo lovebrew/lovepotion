@@ -43,17 +43,15 @@ void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
 
 void Image::Init(PixelFormat pixelFormat, int width, int height)
 {
-    PixelFormat format = pixelFormat;
-
     if (this->data.Get(0, 0))
     {
-        bool success = this->texture.load(format, this->sRGB, this->data.Get(0, 0)->GetData(),
+        bool success = this->texture.load(pixelFormat, this->sRGB, this->data.Get(0, 0)->GetData(),
                                           this->data.Get(0, 0)->GetSize(), width, height);
 
         if (!success)
         {
             const char* formatName = nullptr;
-            ImageModule::GetConstant(format, formatName);
+            ImageModule::GetConstant(pixelFormat, formatName);
 
             throw love::Exception("Failed to upload image data: format %s not supported",
                                   formatName);

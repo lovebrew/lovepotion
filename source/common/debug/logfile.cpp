@@ -1,18 +1,18 @@
-#include "common/debug/logger.h"
+#include "common/debug/logfile.h"
 
 using namespace love;
 
-Logger::Logger()
+LogFile::LogFile()
 {
     this->file = freopen("love.log", "w", stderr);
 }
 
-Logger::~Logger()
+LogFile::~LogFile()
 {
     fclose(this->file);
 }
 
-void Logger::LogOutput(const char* func, size_t line, const char* format, ...) const
+void LogFile::LogOutput(const char* func, size_t line, const char* format, ...) const
 {
     if (!this->file)
         return;

@@ -6,9 +6,10 @@ using namespace love;
 
 GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics) :
     common::GlyphData(glyph, metrics),
-    data(nullptr)
+    data(nullptr),
 {
     size_t pixelSize = this->GetPixelSize();
+
     if (this->metrics.width > 0 && this->metrics.height > 0)
         this->data = new uint8_t[(metrics.width * metrics.height) * pixelSize];
 }
@@ -32,7 +33,7 @@ GlyphData* GlyphData::Clone() const
 
 size_t GlyphData::GetPixelSize() const
 {
-    return 4;
+    return love::GetPixelFormatBlockSize(PIXELFORMAT_RGBA8_UNORM);
 }
 
 GlyphData::~GlyphData()

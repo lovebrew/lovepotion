@@ -1,6 +1,7 @@
 #include "objects/imagedata/imagedata.h"
 #include "modules/thread/types/lock.h"
 
+#include "common/colors.h"
 #include "common/lmath.h"
 
 using namespace love;
@@ -85,10 +86,10 @@ void ImageData::PasteData(common::ImageData* src, int dx, int dy, int sx, int sy
             Colorf color {};
 
             const Pixel* srcPixel = reinterpret_cast<const Pixel*>((uint32_t*)source + srcIndex);
-            getPixelRGBA8(srcPixel, color);
+            this->pixelGetFunction(srcPixel, color);
 
             Pixel* dstPixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + dstIndex);
-            setPixelRGBA8(color, dstPixel);
+            this->pixelSetFunction(color, dstPixel);
         }
     }
 }

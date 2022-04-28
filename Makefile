@@ -43,11 +43,11 @@ all: ctr hac
 
 ctr: DEFINES += -D__CONSOLE__=\"3DS\"
 ctr:
-	@$(MAKE) -C platform/3ds
+	@$(MAKE) -C platform/3ds DEBUG=$(DEBUG)
 
 hac: DEFINES += -D__CONSOLE__=\"Switch\"
 hac:
-	@$(MAKE) -C platform/switch
+	@$(MAKE) -C platform/switch DEBUG=$(DEBUG)
 
 #-----------------------------------
 # Build & Distribute (Release)

@@ -2,6 +2,7 @@
 
 #include "common/data.h"
 #include "common/exception.h"
+#include "common/pixelformat.h"
 
 #include <string.h>
 
@@ -74,5 +75,6 @@ namespace love::common
       protected:
         uint32_t glyph;
         GlyphMetrics metrics;
+        PixelFormat format;
     };
 } // namespace love::common
