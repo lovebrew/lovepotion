@@ -8,7 +8,6 @@ love::Thread::Thread(Threadable* t) : common::Thread(t)
 
 love::Thread::~Thread()
 {
-    /* should be a detach, but that doesn't exist yet */
     if (this->hasThread)
     {
         threadWaitForExit(&this->thread);

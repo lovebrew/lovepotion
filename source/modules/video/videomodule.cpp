@@ -11,6 +11,7 @@ VideoModule::VideoModule()
 
 VideoModule::~VideoModule()
 {
+    this->workerThread->Stop();
     delete this->workerThread;
 }
 

@@ -22,10 +22,15 @@ void Conditional::Broadcast()
 
 bool Conditional::Wait(thread::Mutex* _mutex, s64 timeout)
 {
-    if (timeout < 0)
-        condvarWait(&this->condVar, &_mutex->mutex);
-    else if (R_FAILED(condvarWaitTimeout(&this->condVar, &_mutex->mutex, timeout)))
-        return false;
+    bool success = true;
 
-    return true;
+    if (timeout < 0)
+    {
+        if (R_FAILED(condvarWait(&this->condVar, &_mutex->mutex)))
+            success = false;
+    }
+    else if (R_FAILED(condvarWaitTimeout(&this->condVar, &_mutex->mutex, timeout)))
+        success = false;
+
+    return success;
 }

@@ -479,19 +479,24 @@ bool Filesystem::SetIdentity(const char* name, bool appendToPath)
 
     std::string oldSavePath = this->fullSavePath;
 
-    // Save directory
+    /* save identity */
     this->identity = name;
 
-    // /{game}
+    /* /{identity} */
     this->relativeSavePath =
         std::string(LOVE_APPDATA_PREFIX LOVE_APPDATA_FOLDER LOVE_PATH_SEPARATOR) + this->identity;
 
-    // sdmc:/switch/LovePotion
+    /* sdmc:/{platform}/LovePotion */
     this->fullSavePath = this->GetAppDataDirectory() + LOVE_PATH_SEPARATOR;
 
-    if (this->fused) // sdmc:/switch/{game}/save
+    /*
+    ** fused:   sdmc:/{platform}/{identity}/save
+    ** unfused: sdmc:/{platform}/LovePotion/save/{identity}
+    */
+
+    if (this->fused)
         this->fullSavePath += "save";
-    else // sdmc:/switch/LovePotion/save/{game}
+    else
         this->fullSavePath += std::string("save" LOVE_PATH_SEPARATOR) + this->relativeSavePath;
 
     this->fullSavePath = normalize(this->fullSavePath);

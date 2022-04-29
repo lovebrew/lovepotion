@@ -14,22 +14,22 @@ Worker::Worker() : stopping(false)
 }
 
 Worker::~Worker()
-{
-    this->Stop();
-}
+{}
 
 void Worker::AddStream(TheoraStream* stream)
 {
     thread::Lock lock(this->mutex);
-    this->streams.push_back(stream);
 
+    this->streams.push_back(stream);
     this->condition->Broadcast();
 }
 
 void Worker::Stop()
 {
+    this->stopping = true;
+
     {
-        this->stopping = true;
+        thread::Lock lock(this->mutex);
         this->condition->Broadcast();
     }
 

@@ -11,7 +11,7 @@ typedef LightLock LOVE_Mutex;
 #elif defined(__SWITCH__)
     #include <switch.h>
 
-typedef Mutex LOVE_Mutex;
+typedef ::Mutex LOVE_Mutex;
 
     #define LOVE_mutexInit   mutexInit
     #define LOVE_mutexLock   mutexLock
@@ -29,10 +29,10 @@ namespace love::thread
 
         ~Mutex();
 
-        Mutex(const Mutex&) = delete;
-        Mutex(Mutex&&)      = delete;
+        Mutex(const Mutex&)            = delete;
+        Mutex(Mutex&&)                 = delete;
         Mutex& operator=(const Mutex&) = delete;
-        Mutex& operator=(Mutex&&) = delete;
+        Mutex& operator=(Mutex&&)      = delete;
 
         void Lock();
 
