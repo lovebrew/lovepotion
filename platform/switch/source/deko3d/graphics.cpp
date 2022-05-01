@@ -39,7 +39,7 @@ love::deko3d::Graphics::~Graphics()
 void Graphics::SetCanvas(Canvas* canvas)
 {
     DisplayState& state = this->states.back();
-    state.canvas.Set(canvas, Acquire::NORETAIN);
+    state.canvas.Set(canvas);
 
     ::deko3d::Instance().BindFramebuffer(canvas);
 
@@ -150,8 +150,7 @@ void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter& filter)
 void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
 {
     if (mode != this->states.back().blendMode || alphamode != this->states.back().blendAlphaMode)
-    {
-    } // flush stream draws
+    {} // flush stream draws
 
     if (alphamode != BLENDALPHA_PREMULTIPLIED)
     {

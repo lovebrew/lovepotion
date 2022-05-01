@@ -913,7 +913,7 @@ int Wrap_Graphics::NewText(lua_State* L)
 
 int Wrap_Graphics::NewCanvas(lua_State* L)
 {
-    Canvas::Settings settings;
+    Canvas::Settings settings {};
 
     int width  = instance()->GetWidth(instance()->GetActiveScreen());
     int height = instance()->GetHeight();

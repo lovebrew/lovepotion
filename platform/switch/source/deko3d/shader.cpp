@@ -47,18 +47,17 @@ Shader::~Shader()
 
 void Shader::LoadDefaults(StandardShader type)
 {
+    this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
+
     switch (type)
     {
         case STANDARD_DEFAULT:
-            this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
             this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_FRAGMENT_SHADER);
             break;
         case STANDARD_TEXTURE:
-            this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
             this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_TEXTURE_SHADER);
             break;
         case STANDARD_VIDEO:
-            this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
             this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_VIDEO_SHADER);
         default:
             break;

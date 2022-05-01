@@ -5,6 +5,8 @@
 #include "deko3d/vertex.h"
 
 #include "common/screen.h"
+#include "debug/logfile.h"
+
 namespace
 {
     /* GPU & CPU Memory Pools */
@@ -140,7 +142,7 @@ void deko3d::OnOperationMode(std::pair<uint32_t, uint32_t>& size)
     /* Destroy resources */
     this->DestroyFramebufferResources();
 
-    /* Recreate them, Screem will auto-determine the sizes */
+    /* Recreate them, Screen will auto-determine the sizes */
     this->CreateFramebufferResources();
 
     size = { Screen::Instance().GetWidth(), Screen::Instance().GetHeight() };
@@ -249,6 +251,7 @@ void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)
 ** This is used to access the current Framebuffer image
 ** TODO: Add depth/stencil images
 */
+
 void deko3d::BindFramebuffer(love::Canvas* canvas)
 {
     if (!this->swapchain)
@@ -265,14 +268,14 @@ void deko3d::BindFramebuffer(love::Canvas* canvas)
     if (canvas != nullptr)
     {
         target = { canvas->GetImage() };
-        this->SetViewport({ 0, 0, canvas->GetWidth(), canvas->GetHeight() });
 
+        this->SetViewport({ 0, 0, canvas->GetWidth(), canvas->GetHeight() });
         this->framebuffers.dirty = true;
     }
     else
     {
         this->framebuffers.dirty = false;
-        this->SetViewport({ 0, 0, this->viewport.w, this->viewport.h });
+        this->SetViewport({ 0, 0, Screen::Instance().GetWidth(), Screen::Instance().GetHeight() });
     }
 
     this->cmdBuf.bindRenderTargets(&target);

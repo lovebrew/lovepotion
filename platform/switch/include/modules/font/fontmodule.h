@@ -41,8 +41,6 @@ namespace love
 
         virtual ~FontModule();
 
-        Data* GetSystemFont(Font::SystemFontType type);
-
         Rasterizer* NewRasterizer(FileData* data) override;
 
         Rasterizer* NewTrueTypeRasterizer(Font::SystemFontType fontType, int size,

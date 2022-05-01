@@ -6,7 +6,10 @@
 
 using namespace love;
 
-Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings), descriptor {}
+Canvas::Canvas(const Canvas::Settings& settings) :
+    common::Canvas(settings),
+    colorBuffer {},
+    descriptor {}
 {
     // Create layout for the (multisampled) color buffer
     dk::ImageLayout layoutColorBuffer;
@@ -19,6 +22,7 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings), des
     // Create the color buffer
     this->colorMemory = ::deko3d::Instance().GetImages().allocate(layoutColorBuffer.getSize(),
                                                                   layoutColorBuffer.getAlignment());
+
     this->colorBuffer.initialize(layoutColorBuffer, this->colorMemory.getMemBlock(),
                                  this->colorMemory.getOffset());
 
@@ -31,12 +35,15 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings), des
     this->descriptor.initialize(view);
 
     // Register the texture handle for the descriptor
-    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
+    this->handle = ::deko3d::Instance().RegisterResHandle(this->descriptor);
+
+    this->InitQuad();
 }
 
 Canvas::~Canvas()
 {
     this->colorMemory.destroy();
+    ::deko3d::Instance().UnRegisterResHandle(this->handle);
 }
 
 void Canvas::Draw(Graphics* gfx, Quad* quad, const Matrix4& localTransform)
