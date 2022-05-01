@@ -43,7 +43,6 @@ Canvas::Canvas(const Canvas::Settings& settings) :
 Canvas::~Canvas()
 {
     this->colorMemory.destroy();
-    ::deko3d::Instance().UnRegisterResHandle(this->handle);
 }
 
 void Canvas::Draw(Graphics* gfx, Quad* quad, const Matrix4& localTransform)
