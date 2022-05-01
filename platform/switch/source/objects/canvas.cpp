@@ -31,7 +31,7 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings), des
     this->descriptor.initialize(view);
 
     // Register the texture handle for the descriptor
-    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
+    this->handle = ::deko3d::Instance().RegisterResHandle(this->descriptor);
 }
 
 Canvas::~Canvas()
