@@ -8,8 +8,6 @@ love::Thread::Thread(Threadable* t) : common::Thread(t)
 
 love::Thread::~Thread()
 {
-    thread::Lock lock(this->mutex);
-
     if (this->hasThread)
         threadClose(&this->thread);
 }
