@@ -4,7 +4,7 @@ using namespace love;
 
 love::Type Object::type("Object", nullptr);
 
-Object::Object(const Object& other) : count(1)
+Object::Object(const Object& /* other */) : count(1)
 {}
 
 Object::Object() : count(1)

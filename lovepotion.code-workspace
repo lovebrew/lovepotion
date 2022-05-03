@@ -6,6 +6,7 @@
   ],
   "settings": {
     "files.associations": {
+      "*.yue": "moonscript",
       "array": "cpp",
       "atomic": "cpp",
       "bit": "cpp",
@@ -66,7 +67,8 @@
       "concepts": "cpp",
       "ranges": "cpp",
       "numbers": "cpp",
-      "span": "cpp"
+      "span": "cpp",
+      "*.lua": "cpp"
     },
     "terminal.integrated.defaultProfile.windows": "msys2",
     "yaml.schemas": {
