@@ -4,7 +4,6 @@
 #include "modules/thread/types/threadable.h"
 
 #include "objects/videostream/theorastream.h"
-#include "objects/videostream/utility/stream.h"
 
 #include <vector>
 

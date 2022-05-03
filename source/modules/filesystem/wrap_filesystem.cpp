@@ -351,38 +351,27 @@ int Wrap_Filesystem::GetSaveDirectory(lua_State* L)
     return 1;
 }
 
-int Wrap_Filesystem::NewFile(lua_State* L)
+int Wrap_Filesystem::OpenFile(lua_State* L)
 {
     const char* filename = luaL_checkstring(L, 1);
+    const char* filemode = luaL_checkstring(L, 2);
 
-    const char* string = 0;
-    File::Mode mode    = File::MODE_CLOSED;
+    File::Mode mode = File::MODE_CLOSED;
+    if (!File::GetConstant(filemode, mode))
+        return Luax::EnumError(L, "file open mode", File::GetConstants(mode), filemode);
 
-    if (lua_isstring(L, 2))
+    File* self = nullptr;
+    try
     {
-        string = luaL_checkstring(L, 2);
-        if (!File::GetConstant(string, mode))
-            return Luax::EnumError(L, "file open mode", File::GetConstants(mode), string);
+        self = instance()->OpenFile(filename, mode);
+    }
+    catch (love::Exception& e)
+    {
+        return Luax::IOError(L, "%s", e.what());
     }
 
-    File* file = instance()->NewFile(filename);
-
-    if (mode != File::MODE_CLOSED)
-    {
-        try
-        {
-            if (!file->Open(mode))
-                throw love::Exception("Could not open file.");
-        }
-        catch (love::Exception& e)
-        {
-            file->Release();
-            return Luax::IOError(L, "%s", e.what());
-        }
-    }
-
-    Luax::PushType(L, file);
-    file->Release();
+    Luax::PushType(L, self);
+    self->Release();
 
     return 1;
 }
@@ -472,7 +461,7 @@ int Wrap_Filesystem::Read(lua_State* L)
     }
 
     const char* filename = luaL_checkstring(L, start + 0);
-    int64_t length       = (int64_t)luaL_optinteger(L, start + 1, File::ALL);
+    int64_t length       = (int64_t)luaL_optinteger(L, start + 1, -1);
 
     FileData* data = nullptr;
 
@@ -612,7 +601,7 @@ File* Wrap_Filesystem::GetFile(lua_State* L, int index)
         translatePath(filename);
 #endif
 
-        file = instance()->NewFile(filename.c_str());
+        file = instance()->OpenFile(filename.c_str(), File::MODE_CLOSED);
     }
     else
     {
@@ -627,16 +616,11 @@ int Wrap_Filesystem::Lines(lua_State* L)
 {
     if (lua_isstring(L, 1))
     {
-        File* file   = instance()->NewFile(lua_tostring(L, 1));
-        bool success = false;
+        File* file = nullptr;
 
-        Luax::CatchException(L, [&]() { success = file->Open(File::MODE_READ); });
+        const char* filename = lua_tostring(L, 1);
 
-        if (!success)
-        {
-            file->Release();
-            return luaL_error(L, "Could not open file.");
-        }
+        Luax::CatchException(L, [&]() { file = instance()->OpenFile(filename, File::MODE_READ); });
 
         Luax::PushType(L, file);
         file->Release();
@@ -650,6 +634,7 @@ int Wrap_Filesystem::Lines(lua_State* L)
 
     return 1;
 }
+
 FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index)
 {
     FileData* data = nullptr;
@@ -735,7 +720,7 @@ static constexpr luaL_Reg functions[] =
     { "lines",                  Wrap_Filesystem::Lines                  },
     { "load",                   Wrap_Filesystem::Load                   },
     { "mount",                  Wrap_Filesystem::Mount                  },
-    { "newFile",                Wrap_Filesystem::NewFile                },
+    { "openFile",               Wrap_Filesystem::OpenFile               },
     { "newFileData",            Wrap_Filesystem::NewFileData            },
     { "read",                   Wrap_Filesystem::Read                   },
     { "remove",                 Wrap_Filesystem::Remove                 },

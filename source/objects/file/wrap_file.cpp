@@ -292,7 +292,7 @@ int Wrap_File::Read(lua_State* L)
         start = 3;
     }
 
-    int64_t size = (int64_t)luaL_optnumber(L, start, (lua_Number)File::ALL);
+    int64_t size = (int64_t)luaL_optnumber(L, start, -1);
 
     try
     {

@@ -11,19 +11,24 @@ love::Type DataStream::type("DataStream", &Stream::type);
 
 DataStream::DataStream(Data* data) :
     data(data),
-    offset(0),
-    size(data->GetSize()),
     memory((const uint8_t*)data->GetData()),
-    writableMemory((uint8_t*)data->GetData())
+    writableMemory((uint8_t*)data->GetData()),
+    offset(0),
+    size(data->GetSize())
 {}
 
 DataStream::DataStream(const DataStream& other) :
     data(other.data),
+    memory((const uint8_t*)data->GetData()),
+    writableMemory((uint8_t*)data->GetData()),
     offset(0),
-    size(other.size),
-    memory(other.memory),
-    writableMemory(other.writableMemory)
+    size(other.size)
 {}
+
+DataStream* DataStream::Clone()
+{
+    return new DataStream(*this);
+}
 
 DataStream::~DataStream()
 {}

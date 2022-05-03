@@ -5,13 +5,15 @@
 #include "common/exception.h"
 #include "objects/filedata/filedata.h"
 
+#include "objects/stream/stream.h"
+
 #include <physfs.h>
 
 #include <vector>
 
 namespace love
 {
-    class File : public Object
+    class File : public Stream
     {
       public:
         static love::Type type;
@@ -33,15 +35,45 @@ namespace love
             BUFFER_MAX_ENUM
         };
 
-        static const int64_t ALL = -1;
+        File(const std::string& filename, Mode mode);
 
-        File(const std::string& filename);
+        File(const File& other);
 
         virtual ~File();
 
+        bool IsReadable() const override;
+
+        bool IsWritable() const override;
+
+        bool IsSeekable() const override;
+
+        File* Clone() override;
+
+        int64_t Read(void* destination, int64_t size) override;
+
+        bool Write(const void* data, int64_t size) override;
+
+        bool Flush() override;
+
+        int64_t GetSize() override;
+
+        bool Seek(int64_t position, SeekOrigin origin = SeekOrigin::SEEK_ORIGIN_BEGIN) override;
+
+        int64_t Tell() override;
+
+        FileData* Read(int64_t size) override;
+
+        FileData* Read();
+
+        bool Open(File::Mode mode);
+
         bool Close();
 
-        bool Flush();
+        bool IsOpen() const;
+
+        bool IsEOF();
+
+        bool SetBuffer(BufferMode mode, int64_t size);
 
         BufferMode GetBuffer(int64_t& size) const;
 
@@ -49,25 +81,9 @@ namespace love
 
         Mode GetMode();
 
-        int64_t GetSize();
+        using Stream::Write;
 
-        bool IsEOF();
-
-        bool IsOpen();
-
-        bool Open(File::Mode mode);
-
-        int64_t Read(void* destination, int64_t size);
-        FileData* Read(int64_t size = ALL);
-
-        bool Seek(uint64_t position);
-
-        bool SetBuffer(BufferMode mode, int64_t size);
-
-        int64_t Tell();
-
-        bool Write(const void* data, int64_t size);
-        bool Write(Data* data, int64_t size);
+        using Stream::Read;
 
         /* OPEN MODES */
 

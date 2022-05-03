@@ -6,20 +6,53 @@ using namespace love;
 
 extern bool SetupWriteDirectory();
 
-love::Type File::type("File", &Object::type);
+love::Type File::type("File", &Stream::type);
 
-File::File(const std::string& filename) :
+File::File(const std::string& filename, Mode mode) :
     filename(filename),
     file(nullptr),
     mode(MODE_CLOSED),
     bufferMode(BUFFER_NONE),
     bufferSize(0)
-{}
+{
+    this->Open(mode);
+}
+
+File::File(const File& other) :
+    filename(other.filename),
+    file(nullptr),
+    mode(MODE_CLOSED),
+    bufferMode(other.bufferMode),
+    bufferSize(other.bufferSize)
+
+{
+    this->Open(other.mode);
+}
 
 File::~File()
 {
     if (this->mode != MODE_CLOSED)
         this->Close();
+}
+
+bool File::IsReadable() const
+{
+    return this->mode == MODE_READ;
+}
+
+bool File::IsWritable() const
+{
+    return this->mode == MODE_WRITE || this->mode == MODE_APPEND;
+}
+
+bool File::IsSeekable() const
+{
+    return this->IsOpen();
+}
+
+File* File::Clone()
+{
+    return new File(*this);
 }
 
 bool File::Close()
@@ -76,7 +109,7 @@ bool File::IsEOF()
     return PHYSFS_eof(file);
 }
 
-bool File::IsOpen()
+bool File::IsOpen() const
 {
     return (this->mode != MODE_CLOSED && this->file != nullptr);
 }
@@ -144,15 +177,15 @@ int64_t File::Read(void* destination, int64_t size)
     if (!this->file || this->mode != MODE_READ)
         throw love::Exception("File is not opened for reading.");
 
-    long selfSize = this->GetSize();
-
-    size = (size == ALL) ? selfSize : size;
-    size = (size > selfSize) ? selfSize : size;
-
     if (size < 0)
         throw love::Exception("Invalid read size.");
 
     return PHYSFS_readBytes(this->file, destination, (PHYSFS_uint64)size);
+}
+
+FileData* File::Read()
+{
+    return this->Read(this->GetSize());
 }
 
 FileData* File::Read(int64_t size)
@@ -162,8 +195,6 @@ FileData* File::Read(int64_t size)
 
     int64_t max     = this->GetSize();
     int64_t current = this->Tell();
-
-    size = (size == ALL) ? max : size;
 
     if (size < 0)
         throw love::Exception("Invalid read size.");
@@ -201,8 +232,19 @@ FileData* File::Read(int64_t size)
     return fileData;
 }
 
-bool File::Seek(u_int64_t position)
+bool File::Seek(int64_t position, SeekOrigin origin)
 {
+    if (this->file != nullptr)
+    {
+        if (origin == SEEK_ORIGIN_CURRENT)
+            position += this->Tell();
+        else if (origin == SEEK_ORIGIN_END)
+            position += this->GetSize();
+    }
+
+    if (position < 0)
+        return false;
+
     return this->file != nullptr && PHYSFS_seek(this->file, (PHYSFS_uint64)position) != 0;
 }
 
@@ -248,11 +290,6 @@ int64_t File::Tell()
         return -1;
 
     return (int64_t)PHYSFS_tell(file);
-}
-
-bool File::Write(Data* data, int64_t size)
-{
-    return this->Write(data->GetData(), (size == ALL) ? data->GetSize() : size);
 }
 
 bool File::Write(const void* data, int64_t size)

@@ -43,7 +43,7 @@ namespace Wrap_Filesystem
 
     int Load(lua_State* L);
 
-    int NewFile(lua_State* L);
+    int OpenFile(lua_State* L);
 
     int NewFileData(lua_State* L);
 

@@ -80,8 +80,7 @@ Filesystem::~Filesystem()
 
 void Filesystem::Append(const char* filename, const void* data, int64_t size)
 {
-    File file(filename);
-    file.Open(File::MODE_APPEND);
+    File file(filename, File::MODE_APPEND);
 
     if (!file.Write(data, size))
         throw love::Exception("Data could not be written.");
@@ -209,9 +208,9 @@ std::string Filesystem::GetSaveDirectory()
     return this->fullSavePath;
 }
 
-File* Filesystem::NewFile(const char* filename)
+File* Filesystem::OpenFile(const char* filename, File::Mode mode)
 {
-    return new File(filename);
+    return new File(filename, mode);
 }
 
 FileData* Filesystem::NewFileData(const void* data, size_t size, const char* filename)
@@ -222,11 +221,16 @@ FileData* Filesystem::NewFileData(const void* data, size_t size, const char* fil
     return fileData;
 }
 
+FileData* Filesystem::Read(const char* filename)
+{
+    File file(filename, File::MODE_READ);
+
+    return file.Read();
+}
+
 FileData* Filesystem::Read(const char* filename, int64_t size)
 {
-    File file(filename);
-
-    file.Open(File::MODE_READ);
+    File file(filename, File::MODE_READ);
 
     return file.Read(size);
 }
@@ -518,9 +522,8 @@ std::string Filesystem::GetAppDataDirectory()
 
 void Filesystem::Write(const char* filename, const void* data, int64_t size)
 {
-    File file(filename);
+    File file(filename, File::MODE_WRITE);
 
-    file.Open(File::MODE_WRITE);
     if (!file.Write(data, size))
         throw love::Exception("Data could not be written.");
 }

@@ -68,11 +68,13 @@ namespace love
 
         std::string GetSaveDirectory();
 
-        File* NewFile(const char* filename);
+        File* OpenFile(const char* filename, File::Mode mode);
 
         FileData* NewFileData(const void* data, size_t size, const char* filename);
 
-        FileData* Read(const char* filename, int64_t size = File::ALL);
+        FileData* Read(const char* filename);
+
+        FileData* Read(const char* filename, int64_t size);
 
         bool Remove(const char* filename);
 
