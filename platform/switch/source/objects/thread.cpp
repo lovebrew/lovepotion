@@ -8,11 +8,10 @@ love::Thread::Thread(Threadable* t) : common::Thread(t)
 
 love::Thread::~Thread()
 {
+    thread::Lock lock(this->mutex);
+
     if (this->hasThread)
-    {
-        threadWaitForExit(&this->thread);
         threadClose(&this->thread);
-    }
 }
 
 void love::Thread::Wait()
@@ -40,13 +39,8 @@ bool love::Thread::Start()
     if (this->running)
         return false;
 
-    /* Clean up the old handle properly */
-
     if (this->hasThread)
-    {
         threadWaitForExit(&this->thread);
-        threadClose(&this->thread);
-    }
 
     Result rc = threadCreate(&this->thread, Runner, this, NULL, 0x1000, 0x3B, 0);
 
