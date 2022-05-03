@@ -2,7 +2,7 @@
 
 using namespace love;
 
-love::Type VideoStream::type("VideoStream", &Stream::type);
+love::Type VideoStream::type("VideoStream", &Object::type);
 
 void VideoStream::SetSync(love::FrameSync* sync)
 {

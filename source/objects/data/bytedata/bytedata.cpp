@@ -6,16 +6,20 @@ using namespace love;
 
 love::Type ByteData::type("ByteData", &Data::type);
 
-ByteData::ByteData(size_t size) : size(size)
+ByteData::ByteData(size_t size, bool clear) : size(size)
 {
     this->Create();
-    memset(this->data, 0, size);
+
+    if (clear)
+        memset(this->data, 0, size);
 }
 
 ByteData::ByteData(const void* data, size_t size) : size(size)
 {
     this->Create();
-    memcpy(this->data, data, size);
+
+    if (data != nullptr)
+        memcpy(this->data, data, size);
 }
 
 ByteData::ByteData(void* data, size_t size, bool own) : size(size)
@@ -25,7 +29,9 @@ ByteData::ByteData(void* data, size_t size, bool own) : size(size)
     else
     {
         this->Create();
-        memcpy(this->data, data, size);
+
+        if (data != nullptr)
+            memcpy(this->data, data, size);
     }
 }
 

@@ -1,13 +1,11 @@
 #pragma once
 
 #include "common/strongref.h"
-
 #include "objects/videostream/sync/framesync.h"
-#include "objects/videostream/utility/stream.h"
 
 namespace love
 {
-    class VideoStream : public Stream
+    class VideoStream : public Object
     {
       public:
         static love::Type type;
@@ -47,6 +45,15 @@ namespace love
         virtual void SetSync(FrameSync* sync);
 
         virtual FrameSync* GetSync() const;
+
+        virtual void FillBackBuffer()
+        {}
+
+        virtual const void* GetFrontBuffer() const = 0;
+
+        virtual size_t GetSize() const = 0;
+
+        virtual bool SwapBuffers() = 0;
 
       protected:
         StrongReference<FrameSync> frameSync;
