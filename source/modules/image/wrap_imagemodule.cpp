@@ -20,7 +20,7 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
         if (!lua_isnoneornil(L, 3))
         {
             const char* formatStr = luaL_checkstring(L, 3);
-            if (!ImageModule::GetConstant(formatStr, format))
+            if (!GetPixelFormatConstant(formatStr, format))
                 return Luax::EnumError(L, "pixel format", formatStr);
         }
 

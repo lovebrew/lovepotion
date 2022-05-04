@@ -51,7 +51,7 @@ void Image::Init(PixelFormat pixelFormat, int width, int height)
         if (!success)
         {
             const char* formatName = nullptr;
-            ImageModule::GetConstant(pixelFormat, formatName);
+            GetPixelFormatConstant(pixelFormat, formatName);
 
             throw love::Exception("Failed to upload image data: format %s not supported",
                                   formatName);

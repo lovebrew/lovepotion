@@ -22,7 +22,8 @@ ImageData::ImageData(int width, int height, PixelFormat format) :
     ImageDataBase(format, width, height)
 {
     if (!this->ValidatePixelFormat(format))
-        throw love::Exception("Unsupported pixel format for ImageData.");
+        throw love::Exception("ImageData does not support the %s pixel format.",
+                              GetPixelFormatName(format));
 
     this->Create(width, height, format);
     memset(this->data, 0, this->GetSize());
@@ -32,7 +33,8 @@ ImageData::ImageData(int width, int height, PixelFormat format, void* data, bool
     ImageDataBase(format, width, height)
 {
     if (!this->ValidatePixelFormat(format))
-        throw love::Exception("Unsupported pixel format for ImageData");
+        throw love::Exception("ImageData does not support the %s pixel format.",
+                              GetPixelFormatName(format));
 
     if (own)
         this->data = (uint8_t*)data;
@@ -186,7 +188,7 @@ love::FileData* ImageData::Encode(FormatHandler::EncodedFormat encodedFormat, co
     if (encoder == nullptr || encoded.data == nullptr)
     {
         const char* formatName = "unknown";
-        ImageModule::GetConstant(format, formatName);
+        GetPixelFormatConstant(format, formatName);
         throw love::Exception("No suitable image encoder for '%s' format.", formatName);
     }
 

@@ -94,9 +94,11 @@ namespace love
         PixelFormatType dataType;
     };
 
-    bool GetConstant(PixelFormat in, const char*& out);
+    bool GetPixelFormatConstant(const char* in, PixelFormat& out);
 
-    bool GetConstant(const char* in, PixelFormat& out);
+    bool GetPixelFormatConstant(PixelFormat in, const char*& out);
+
+    const char* GetPixelFormatName(PixelFormat format);
 
     const PixelFormatInfo& GetPixelFormatInfo(PixelFormat format);
 

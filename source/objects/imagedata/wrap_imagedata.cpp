@@ -36,7 +36,7 @@ int Wrap_ImageData::GetFormat(lua_State* L)
     PixelFormat format    = self->GetFormat();
     const char* formatStr = nullptr;
 
-    if (!ImageModule::GetConstant(format, formatStr))
+    if (!GetPixelFormatConstant(format, formatStr))
         return luaL_error(L, "Unknown pixel format.");
 
     lua_pushstring(L, formatStr);

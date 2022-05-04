@@ -83,7 +83,7 @@ int Wrap_CompressedImageData::GetFormat(lua_State* L)
     PixelFormat format = self->GetFormat();
     const char* string = nullptr;
 
-    if (ImageModule::GetConstant(format, string))
+    if (GetPixelFormatConstant(format, string))
         lua_pushstring(L, string);
     else
         lua_pushstring(L, "unknown");
