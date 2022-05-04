@@ -31,7 +31,7 @@ CompressedImageData::CompressedImageData(const std::list<FormatHandler*>& format
     if (format == PIXELFORMAT_UNKNOWN)
         throw love::Exception("Could not parse compressed data: Unknown format.");
 
-    if (this->images.size() == 0 || this->memory->size == 0)
+    if (this->images.size() == 0 || this->memory->GetSize() == 0)
         throw love::Exception("Could not parse compressed data: No valid data?");
 }
 
@@ -39,13 +39,12 @@ CompressedImageData::CompressedImageData(const CompressedImageData& other) :
     format(other.format),
     sRGB(other.sRGB)
 {
-    this->memory.Set(new CompressedMemory(other.memory->size), Acquire::NORETAIN);
-    memcpy(this->memory->data, other.memory->data, this->memory->size);
+    this->memory.Set(other.memory->Clone(), Acquire::NORETAIN);
 
     for (const auto& image : other.images)
     {
         auto slice = new CompressedSlice(image->GetFormat(), image->GetWidth(), image->GetHeight(),
-                                         memory, image->GetOffset(), image->GetSize());
+                                         this->memory, image->GetOffset(), image->GetSize());
 
         images.push_back(slice);
         slice->Release();
@@ -62,12 +61,12 @@ CompressedImageData::~CompressedImageData()
 
 size_t CompressedImageData::GetSize() const
 {
-    return this->memory->size;
+    return this->memory->GetSize();
 }
 
 void* CompressedImageData::GetData() const
 {
-    return this->memory->data;
+    return this->memory->GetData();
 }
 
 int CompressedImageData::GetMipmapCount() const

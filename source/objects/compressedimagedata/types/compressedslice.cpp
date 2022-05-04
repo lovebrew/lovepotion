@@ -3,19 +3,21 @@
 
 using namespace love;
 
-CompressedSlice::CompressedSlice(PixelFormat format, int width, int height,
-                                 CompressedMemory* memory, size_t offset, size_t size) :
+CompressedSlice::CompressedSlice(PixelFormat format, int width, int height, ByteData* memory,
+                                 size_t offset, size_t size) :
     ImageDataBase(format, width, height),
     memory(memory),
     offset(offset),
-    dataSize(size)
+    dataSize(size),
+    sRGB(false)
 {}
 
 CompressedSlice::CompressedSlice(const CompressedSlice& s) :
     ImageDataBase(s.GetFormat(), s.GetWidth(), s.GetHeight()),
     memory(s.memory),
     offset(s.offset),
-    dataSize(s.dataSize)
+    dataSize(s.dataSize),
+    sRGB(s.sRGB)
 {}
 
 CompressedSlice::~CompressedSlice()

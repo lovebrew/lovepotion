@@ -42,9 +42,9 @@ bool PKMHandler::CanParseCompressed(Data* data)
     return true;
 }
 
-StrongReference<CompressedMemory> PKMHandler::ParseCompressed(
-    Data* fileData, std::vector<StrongReference<CompressedSlice>>& images, PixelFormat& format,
-    bool& isSRGB)
+StrongReference<ByteData> PKMHandler::ParseCompressed(Data* fileData,
+                                                      std::vector<StrongRefImageSlice>& images,
+                                                      PixelFormat& format, bool& isSRGB)
 {
     if (!this->CanParseCompressed(fileData))
         throw love::Exception("Could not decode compressed data (not a *.pkm file?)");
@@ -65,10 +65,9 @@ StrongReference<CompressedMemory> PKMHandler::ParseCompressed(
         throw love::Exception("Could not parse *.pkm file: unsupported texture format.");
 
     size_t totalSize = fileData->GetSize() - sizeof(PKMHeader);
-    StrongReference<CompressedMemory> memory;
+    StrongReference<ByteData> memory(new ByteData(totalSize, false), Acquire::NORETAIN);
 
-    memory.Set(new CompressedMemory(totalSize), Acquire::NORETAIN);
-    memcpy(memory->data, (uint8_t*)fileData->GetData() + sizeof(PKMHeader), totalSize);
+    memcpy(memory->GetData(), (uint8_t*)fileData->GetData() + sizeof(PKMHeader), totalSize);
 
     int width  = header.widthBig;
     int height = header.heightBig;

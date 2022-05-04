@@ -37,7 +37,7 @@ bool FormatHandler::CanParseCompressed(Data* /*data*/)
     return false;
 }
 
-StrongReference<CompressedMemory> FormatHandler::ParseCompressed(
+StrongReference<ByteData> FormatHandler::ParseCompressed(
     Data* /*filedata*/, std::vector<StrongReference<CompressedSlice>>& /*images*/,
     PixelFormat& /*format*/, bool& /*sRGB*/)
 {

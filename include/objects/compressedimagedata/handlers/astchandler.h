@@ -12,9 +12,9 @@ namespace love
 
         bool CanParseCompressed(Data* data) override;
 
-        StrongReference<CompressedMemory> ParseCompressed(
-            Data* fileData, std::vector<StrongReference<CompressedSlice>>& images,
-            PixelFormat& format, bool& sRGB) override;
+        StrongReference<ByteData> ParseCompressed(Data* fileData,
+                                                  std::vector<StrongRefImageSlice>& images,
+                                                  PixelFormat& format, bool& sRGB) override;
 
         const char* GetName() override
         {

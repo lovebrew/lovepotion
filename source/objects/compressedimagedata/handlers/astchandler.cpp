@@ -57,9 +57,9 @@ bool ASTCHandler::CanParseCompressed(Data* data)
     return true;
 }
 
-StrongReference<CompressedMemory> ASTCHandler::ParseCompressed(
-    Data* fileData, std::vector<StrongReference<CompressedSlice>>& images, PixelFormat& format,
-    bool& sRGB)
+StrongReference<ByteData> ASTCHandler::ParseCompressed(Data* fileData,
+                                                       std::vector<StrongRefImageSlice>& images,
+                                                       PixelFormat& format, bool& sRGB)
 {
     if (!this->CanParseCompressed(fileData))
         throw love::Exception("Could not decode compressed data (not a *.astc file?)");
@@ -85,10 +85,10 @@ StrongReference<CompressedMemory> ASTCHandler::ParseCompressed(
     if (totalsize + sizeof(header) > fileData->GetSize())
         throw love::Exception("Could not parse *.astc file: file is too small.");
 
-    StrongReference<CompressedMemory> memory(new CompressedMemory(totalsize), Acquire::NORETAIN);
+    StrongReference<ByteData> memory(new ByteData(totalsize, false), Acquire::NORETAIN);
 
     // .astc files only store a single mipmap level.
-    memcpy(memory->data, (uint8_t*)fileData->GetData() + sizeof(ASTCHeader), totalsize);
+    memcpy(memory->GetData(), (uint8_t*)fileData->GetData() + sizeof(ASTCHeader), totalsize);
 
     images.emplace_back(new CompressedSlice(pixelFormat, sizeX, sizeY, memory, 0, totalsize),
                         Acquire::NORETAIN);

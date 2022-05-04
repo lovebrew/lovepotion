@@ -4,6 +4,7 @@
 #include "common/pixelformat.h"
 
 #include "objects/compressedimagedata/types/compressedslice.h"
+#include "objects/data/byte/bytedata.h"
 #include "objects/imagedata/types/formathandler.h"
 
 #include <list>
@@ -50,8 +51,8 @@ namespace love
         PixelFormat format;
         bool sRGB;
 
-        StrongReference<CompressedMemory> memory;
-        std::vector<StrongReference<CompressedSlice>> images;
+        StrongReference<ByteData> memory;
+        std::vector<StrongRefImageSlice> images;
 
         void CheckSliceExists(int slice, int mipLevel) const;
     };

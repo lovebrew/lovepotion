@@ -3,7 +3,6 @@
 #include "common/data.h"
 #include "common/pixelformat.h"
 
-#include "objects/compressedimagedata/types/compressedmemory.h"
 #include "objects/compressedimagedata/types/compressedslice.h"
 
 #include "objects/object.h"
@@ -12,6 +11,8 @@
 
 namespace love
 {
+    typedef StrongReference<CompressedSlice> StrongRefImageSlice;
+
     class FormatHandler : public Object
     {
       public:
@@ -63,9 +64,9 @@ namespace love
 
         virtual bool CanParseCompressed(Data* data);
 
-        virtual StrongReference<CompressedMemory> ParseCompressed(
-            Data* filedata, std::vector<StrongReference<CompressedSlice>>& images,
-            PixelFormat& format, bool& sRGB);
+        virtual StrongReference<ByteData> ParseCompressed(Data* filedata,
+                                                          std::vector<StrongRefImageSlice>& images,
+                                                          PixelFormat& format, bool& sRGB);
 
         virtual void FreeRawPixels(unsigned char* memory);
     };

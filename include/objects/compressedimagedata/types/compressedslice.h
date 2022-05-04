@@ -1,6 +1,6 @@
 #pragma once
 
-#include "objects/compressedimagedata/types/compressedmemory.h"
+#include "objects/data/byte/bytedata.h"
 #include "objects/imagedata/imagedatabase.h"
 
 namespace love
@@ -8,8 +8,8 @@ namespace love
     class CompressedSlice : public ImageDataBase
     {
       public:
-        CompressedSlice(PixelFormat format, int width, int height, CompressedMemory* memory,
-                        size_t offset, size_t size);
+        CompressedSlice(PixelFormat format, int width, int height, ByteData* memory, size_t offset,
+                        size_t size);
 
         CompressedSlice(const CompressedSlice& slice);
 
@@ -19,7 +19,7 @@ namespace love
 
         void* GetData() const override
         {
-            return this->memory->data + this->offset;
+            return (uint8_t*)this->memory->GetData() + this->offset;
         }
 
         size_t GetSize() const override
@@ -38,7 +38,7 @@ namespace love
         }
 
       private:
-        StrongReference<CompressedMemory> memory;
+        StrongReference<ByteData> memory;
 
         size_t offset;
         size_t dataSize;
