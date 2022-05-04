@@ -16,6 +16,12 @@ static PixelFormat convertFormat(DXGIFormat dxFormat, bool& isSRGB, bool& isBGRA
     {
         case DXGI_FORMAT_R16G16B16A16_UNORM:
             return PIXELFORMAT_RGBA16_UNORM;
+        case DXGI_FORMAT_R16G16B16A16_TYPELESS:
+        case DXGI_FORMAT_R16G16B16A16_FLOAT:
+            return PIXELFORMAT_RGBA16_FLOAT;
+        case DXGI_FORMAT_R32G32B32A32_TYPELESS:
+        case DXGI_FORMAT_R32G32B32A32_FLOAT:
+            return PIXELFORMAT_RGBA32_FLOAT;
         case DXGI_FORMAT_R8G8B8A8_TYPELESS:
         case DXGI_FORMAT_R8G8B8A8_UNORM:
         case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
@@ -27,6 +33,12 @@ static PixelFormat convertFormat(DXGIFormat dxFormat, bool& isSRGB, bool& isBGRA
             isSRGB = (dxFormat == DXGI_FORMAT_B8G8R8A8_UNORM_SRGB);
             isBGRA = true;
             return PIXELFORMAT_RGBA8_UNORM;
+        case DXGI_FORMAT_R8_TYPELESS:
+        case DXGI_FORMAT_R8_UNORM:
+        case DXGI_FORMAT_A8_UNORM:
+            return PIXELFORMAT_R8_UNORM;
+        case DXGI_FORMAT_B5G6R5_UNORM:
+            return PIXELFORMAT_RGB565_UNORM;
         case DXGI_FORMAT_BC1_TYPELESS:
         case DXGI_FORMAT_BC1_UNORM:
         case DXGI_FORMAT_BC1_UNORM_SRGB:
@@ -42,6 +54,26 @@ static PixelFormat convertFormat(DXGIFormat dxFormat, bool& isSRGB, bool& isBGRA
         case DXGI_FORMAT_BC3_UNORM_SRGB:
             isSRGB = (dxFormat == DXGI_FORMAT_BC3_UNORM_SRGB);
             return PIXELFORMAT_DXT5_UNORM;
+        case DXGI_FORMAT_BC4_TYPELESS:
+        case DXGI_FORMAT_BC4_UNORM:
+            return PIXELFORMAT_BC4_UNORM;
+        case DXGI_FORMAT_BC4_SNORM:
+            return PIXELFORMAT_BC4_SNORM;
+        case DXGI_FORMAT_BC5_TYPELESS:
+        case DXGI_FORMAT_BC5_UNORM:
+            return PIXELFORMAT_BC5_UNORM;
+        case DXGI_FORMAT_BC5_SNORM:
+            return PIXELFORMAT_BC5_SNORM;
+        case DXGI_FORMAT_BC6H_TYPELESS:
+        case DXGI_FORMAT_BC6H_UF16:
+            return PIXELFORMAT_BC6H_UFLOAT;
+        case DXGI_FORMAT_BC6H_SF16:
+            return PIXELFORMAT_BC6H_SFLOAT;
+        case DXGI_FORMAT_BC7_TYPELESS:
+        case DXGI_FORMAT_BC7_UNORM:
+        case DXGI_FORMAT_BC7_UNORM_SRGB:
+            isSRGB = (dxFormat == DXGI_FORMAT_BC7_UNORM_SRGB);
+            return PIXELFORMAT_BC7_UNORM;
         default:
             return PIXELFORMAT_UNKNOWN;
     }
