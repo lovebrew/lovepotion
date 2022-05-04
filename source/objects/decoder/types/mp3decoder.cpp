@@ -16,11 +16,14 @@ static ssize_t read_callback(void* source, void* buffer, size_t count)
 
 static off_t seek_callback(void* source, off_t offset, int whence)
 {
-    Stream* stream = (Stream*)source;
-    Stream::SeekOrigin origin =
-        (whence == SEEK_CUR) ? Stream::SEEK_ORIGIN_CURRENT : Stream::SEEK_ORIGIN_BEGIN;
+    Stream* stream            = (Stream*)source;
+    Stream::SeekOrigin origin = Stream::SEEK_ORIGIN_BEGIN;
 
-    return stream->Seek(offset, origin);
+    Stream::GetConstant(whence, origin);
+
+    stream->Seek(offset, origin);
+
+    return stream->Tell();
 }
 
 bool MP3Decoder::inited = false;
@@ -72,8 +75,9 @@ MP3Decoder::MP3Decoder(Stream* stream, int bufferSize) :
         if (this->channels == 0)
             this->channels = 2;
 
-        mpg123_param(this->handle, MPG123_FLAGS,
-                     (this->channels == 2) ? MPG123_FORCE_STEREO : MPG123_MONO_MIX, 0);
+        long channelType = (this->channels == 2) ? MPG123_FORCE_STEREO : MPG123_MONO_MIX;
+        mpg123_param(this->handle, MPG123_FLAGS, channelType, 0);
+
         mpg123_format_none(this->handle);
         mpg123_format(this->handle, rate, this->channels, MPG123_ENC_SIGNED_16);
 
@@ -106,6 +110,52 @@ void MP3Decoder::Quit()
 Decoder* MP3Decoder::Clone()
 {
     return new MP3Decoder(this->stream->Clone(), bufferSize);
+}
+
+int MP3Decoder::Probe(Stream* stream)
+{
+    uint8_t header[MP3Decoder::MIN_HEADER_SIZE];
+
+    if (stream->Read(header, MP3Decoder::MIN_HEADER_SIZE) >= 10)
+    {
+        if (memcmp(header, MP3Decoder::ID3V1_TAG, 3) == 0)
+        {
+            stream->Seek(MP3Decoder::ID3V1_SIZE, Stream::SEEK_ORIGIN_BEGIN);
+            if (stream->Read(header, 0x04) < 4)
+                return 0;
+        }
+        else if (memcmp(header, MP3Decoder::ID3V2_TAG, 3) == 0)
+        {
+            size_t size = size_t(header[9] & 0x7F) | (size_t(header[8] & 0x7F) << 0x07);
+            size |= (size_t(header[7] & 0x7F) << 0x0E) | (size_t(header[6] & 0x7F) << 0x15);
+
+            stream->Seek(0xA + size, Stream::SEEK_ORIGIN_BEGIN);
+
+            if (stream->Read(header, 0x04) < 4)
+                return 0;
+        }
+    }
+    else
+        return 0;
+
+    if ((header[0] == 0xFF) && (((header[1] >> 0x05) & 0x07) == 0x07))
+    {
+        if (((header[1] >> 0x03) & 0x03) == 0x01)
+            return 0;
+
+        if (((header[1] >> 0x01) & 0x03) == 0x00)
+            return 0;
+
+        if (((header[2] >> 0x04) & 0x0F) == 0x0F)
+            return 0;
+
+        if ((header[3] & 0x03) == 0x02)
+            return 0;
+
+        return 0x4B;
+    }
+
+    return 1;
 }
 
 int MP3Decoder::Decode()

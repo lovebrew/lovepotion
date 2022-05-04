@@ -31,7 +31,7 @@ int Wrap_Audio::NewSource(lua_State* L)
 
     if (Wrap_Filesystem::CanGetData(L, 1))
     {
-        if (type == Source::TYPE_STREAM)
+        if (type == Source::TYPE_STATIC)
             lua_pushstring(L, "memory");
         else if (!lua_isnone(L, 3))
             lua_pushvalue(L, 3);
@@ -40,26 +40,27 @@ int Wrap_Audio::NewSource(lua_State* L)
 
         lua_pushnil(L);
 
-        int indexes[] = { 1, lua_gettop(L) - 1 };
+        /* file, buffer size, type */
+        int indexes[] = { 1, lua_gettop(L), lua_gettop(L) - 1 };
         Luax::ConvertObject(L, indexes, 3, "sound", "newDecoder");
     }
 
     if (type == Source::TYPE_STATIC && Luax::IsType(L, 1, Decoder::type))
         Luax::ConvertObject(L, 1, "sound", "newSoundData");
 
-    Source* source = nullptr;
+    Source* self = nullptr;
 
     Luax::CatchException(L, [&]() {
         if (Luax::IsType(L, 1, SoundData::type))
-            source = instance()->NewSource(Luax::ToType<SoundData>(L, 1));
+            self = instance()->NewSource(Luax::ToType<SoundData>(L, 1));
         else if (Luax::IsType(L, 1, Decoder::type))
-            source = instance()->NewSource(Luax::ToType<Decoder>(L, 1));
+            self = instance()->NewSource(Luax::ToType<Decoder>(L, 1));
     });
 
-    if (source != nullptr)
+    if (self != nullptr)
     {
-        Luax::PushType(L, source);
-        source->Release();
+        Luax::PushType(L, self);
+        self->Release();
 
         return 1;
     }

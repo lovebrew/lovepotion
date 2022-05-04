@@ -36,7 +36,12 @@ namespace love
 
         double GetDuration() override;
 
+        static int Probe(Stream* stream);
+
       private:
+        static constexpr int HEADER_SIZE        = 0x04;
+        static constexpr const char* HEADER_TAG = "OggS";
+
         OggVorbis_File handle;
         vorbis_info* info;
 

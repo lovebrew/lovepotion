@@ -33,7 +33,16 @@ namespace love
 
         double GetDuration() override;
 
+        static int Probe(Stream* stream);
+
       private:
+        static constexpr int MIN_HEADER_SIZE = 0xA;
+
+        static constexpr const char* ID3V1_TAG = "TAG";
+        static constexpr int ID3V1_SIZE        = 0x80;
+
+        static constexpr const char* ID3V2_TAG = "ID3";
+
         mpg123_handle* handle;
         static bool inited;
 

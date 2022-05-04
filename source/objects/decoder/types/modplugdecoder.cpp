@@ -69,6 +69,19 @@ Decoder* ModPlugDecoder::Clone()
     return new ModPlugDecoder(stream, this->bufferSize);
 }
 
+int ModPlugDecoder::Probe(Stream* stream)
+{
+    Data* data        = stream->Read(ModPlugDecoder::DATA_SIZE);
+    ModPlugFile* plug = ModPlug_Load(data->GetData(), (int)data->GetSize());
+
+    if (plug)
+        ModPlug_Unload(plug);
+
+    data->Release();
+
+    return plug ? 80 : 0;
+}
+
 int ModPlugDecoder::Decode()
 {
     return this->Decode((s16*)this->buffer);

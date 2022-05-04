@@ -13,7 +13,9 @@ namespace love
         static love::Type type;
 
         SoundData(Decoder* decoder);
+
         SoundData(int samples, int sampleRate, int bitDepth, int channels);
+
         SoundData(void* data, int samples, int sampleRate, int bitDepth, int channels);
 
         SoundData(const SoundData& other);

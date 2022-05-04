@@ -30,7 +30,11 @@ namespace love
 
         double GetDuration() override;
 
+        static int Probe(Stream* stream);
+
       private:
+        static constexpr int DATA_SIZE = 0x400000;
+
         StrongReference<Data> data;
 
         ModPlugFile* plug;

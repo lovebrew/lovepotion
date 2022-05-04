@@ -79,6 +79,28 @@ Decoder* WaveDecoder::Clone()
     return new WaveDecoder(stream, bufferSize);
 }
 
+int WaveDecoder::Probe(Stream* stream)
+{
+    char header[WaveDecoder::HEADER_SIZE];
+    size_t headerReadSize = WaveDecoder::HEADER_SIZE / 2;
+
+    if (stream->Read(header, headerReadSize) < headerReadSize)
+        return 0;
+
+    if (memcmp(header, WaveDecoder::HEADER_TAG, 4) != 0)
+        return 0;
+
+    stream->Seek(WaveDecoder::HEADER_SIZE, Stream::SEEK_ORIGIN_CURRENT);
+
+    if (stream->Read(header, WaveDecoder::HEADER_SIZE) < WaveDecoder::HEADER_SIZE)
+        return 0;
+
+    if (memcmp(header, WaveDecoder::FORMAT_TAG, 0x08) != 0)
+        return 0;
+
+    return 100;
+}
+
 int WaveDecoder::Decode()
 {
     return this->Decode((s16*)this->buffer);

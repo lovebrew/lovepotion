@@ -191,6 +191,21 @@ Decoder* FLACDecoder::Clone()
     return new FLACDecoder(this->stream->Clone(), this->bufferSize);
 }
 
+int FLACDecoder::Probe(Stream* stream)
+{
+    char header[FLACDecoder::HEADER_SIZE];
+
+    if (stream->Read(header, FLACDecoder::HEADER_SIZE) >= FLACDecoder::HEADER_SIZE)
+    {
+        if (memcmp(header, FLACDecoder::FLAC_TAG, 0x04) == 0)
+            return 100;
+        else if (memcmp(header, FLACDecoder::OGGV_TAG, 0x04) == 0)
+            return 40;
+    }
+
+    return 0;
+}
+
 int FLACDecoder::Decode()
 {
     return this->Decode((s16*)this->buffer);

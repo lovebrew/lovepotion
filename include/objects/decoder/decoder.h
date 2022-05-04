@@ -56,7 +56,10 @@ namespace love
 
         virtual double GetDuration() = 0;
 
+        static int Probe(Stream* /*stream*/);
+
         static bool GetConstant(const char* in, StreamSource& out);
+
         static bool GetConstant(StreamSource in, const char*& out);
 
         static std::vector<const char*> GetConstants(StreamSource);

@@ -19,6 +19,11 @@ Decoder::Decoder(Stream* stream, int bufferSize) :
     this->buffer = new char[bufferSize];
 }
 
+int Decoder::Probe(Stream* /*stream*/)
+{
+    return 0;
+}
+
 Decoder::~Decoder()
 {
     if (this->buffer != 0)

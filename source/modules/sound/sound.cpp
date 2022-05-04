@@ -11,8 +11,14 @@ love::Type Sound::type("Sound", &Module::type);
 struct DecoderImpl
 {
     Decoder* (*Create)(Stream* stream, int bufferSize);
-    bool (*Accepts)(const std::string& ext);
+    int (*Probe)(Stream* stream);
+    int probeScore;
 };
+
+static bool compareProbeScore(const DecoderImpl& a, const DecoderImpl& b)
+{
+    return a.probeScore > b.probeScore;
+}
 
 template<typename DecoderType>
 DecoderImpl DecoderImplFor()
@@ -22,6 +28,10 @@ DecoderImpl DecoderImplFor()
     decoderImpl.Create = [](Stream* stream, int bufferSize) -> Decoder* {
         return new DecoderType(stream, bufferSize);
     };
+
+    decoderImpl.Probe = [](Stream* stream) { return DecoderType::Probe(stream); };
+
+    decoderImpl.probeScore = 0;
 
     return decoderImpl;
 }
@@ -33,16 +43,33 @@ Sound::~Sound()
 
 Decoder* Sound::NewDecoder(Stream* stream, int bufferSize)
 {
-    std::vector<DecoderImpl> possibilities = { DecoderImplFor<MP3Decoder>(),
-                                               DecoderImplFor<VorbisDecoder>(),
-                                               DecoderImplFor<WaveDecoder>(),
-                                               DecoderImplFor<FLACDecoder>(),
-                                               DecoderImplFor<ModPlugDecoder>() };
+    // clang-format off
+    std::vector<DecoderImpl> active, possible =
+    {
+        DecoderImplFor<MP3Decoder>(),
+        DecoderImplFor<VorbisDecoder>(),
+        DecoderImplFor<WaveDecoder>(),
+        DecoderImplFor<FLACDecoder>(),
+        DecoderImplFor<ModPlugDecoder>()
+    };
+    // clang-format on
 
-    /* extension detection fails, let's probe 'em */
+    /* probe the decoders */
+
+    for (auto& possibleItem : possible)
+    {
+        stream->Seek(0);
+        possibleItem.probeScore = possibleItem.Probe(stream);
+
+        if (possibleItem.probeScore > 0)
+            active.push_back(possibleItem);
+    }
+
+    std::sort(active.begin(), active.end(), compareProbeScore);
+
     std::string decodingErrors = "Failed to determine file type:\n";
 
-    for (DecoderImpl& item : possibilities)
+    for (auto& item : active)
     {
         try
         {
@@ -53,7 +80,7 @@ Decoder* Sound::NewDecoder(Stream* stream, int bufferSize)
         }
         catch (love::Exception& e)
         {
-            decodingErrors += e.what() + '\n';
+            decodingErrors += e.what() + std::string("\n");
         }
     }
 

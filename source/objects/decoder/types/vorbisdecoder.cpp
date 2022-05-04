@@ -65,6 +65,19 @@ Decoder* VorbisDecoder::Clone()
     return new VorbisDecoder(this->stream->Clone(), this->bufferSize);
 }
 
+int VorbisDecoder::Probe(Stream* stream)
+{
+    char header[VorbisDecoder::HEADER_SIZE];
+
+    if (stream->Read(header, VorbisDecoder::HEADER_SIZE) >= 0x04)
+    {
+        if (memcmp(header, VorbisDecoder::HEADER_TAG, 4) == 0)
+            return 60;
+    }
+
+    return 1;
+}
+
 int VorbisDecoder::Decode()
 {
     return this->Decode((s16*)this->buffer);

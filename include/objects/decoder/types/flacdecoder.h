@@ -49,7 +49,14 @@ namespace love
 
         double GetDuration() override;
 
+        static int Probe(Stream* stream);
+
       private:
+        static constexpr int HEADER_SIZE = 0x04;
+
+        static constexpr const char* FLAC_TAG = "fLaC";
+        static constexpr const char* OGGV_TAG = "OggS";
+
         FLACFile file;
         size_t decodeBufferRead;
 
