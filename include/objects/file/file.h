@@ -37,8 +37,6 @@ namespace love
 
         File(const std::string& filename, Mode mode);
 
-        File(const File& other);
-
         virtual ~File();
 
         bool IsReadable() const override;
@@ -100,6 +98,8 @@ namespace love
         static std::vector<const char*> GetConstants(BufferMode mode);
 
       private:
+        File(const File& other);
+
         std::string filename;
 
         PHYSFS_file* file;

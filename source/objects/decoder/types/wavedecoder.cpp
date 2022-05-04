@@ -10,46 +10,35 @@ using namespace love;
 
 static wuff_sint32 read_callback(void* source, wuff_uint8* buffer, size_t* size)
 {
-    WaveDecoder::WaveFile* file = (WaveDecoder::WaveFile*)source;
+    Stream* stream  = (Stream*)source;
+    size_t readSize = stream->Read(buffer, *size);
 
-    size_t bytesLeft  = file->size - file->offset;
-    size_t targetSize = (*size < bytesLeft) ? *size : bytesLeft;
-
-    memcpy(buffer, file->data + file->offset, targetSize);
-    file->offset += targetSize;
-
-    *size = targetSize;
+    *size = readSize;
 
     return WUFF_SUCCESS;
 }
 
 static wuff_sint32 seek_callback(void* source, wuff_uint64 offset)
 {
-    WaveDecoder::WaveFile* file = (WaveDecoder::WaveFile*)source;
-
-    file->offset = (size_t)((offset < file->size) ? offset : file->size);
+    Stream* stream = (Stream*)source;
+    stream->Seek(offset, Stream::SEEK_ORIGIN_BEGIN);
 
     return WUFF_SUCCESS;
 }
 
 static wuff_sint32 tell_callback(void* source, wuff_uint64* offset)
 {
-    WaveDecoder::WaveFile* file = (WaveDecoder::WaveFile*)source;
-
-    *offset = file->offset;
+    Stream* stream = (Stream*)source;
+    *offset        = stream->Tell();
 
     return WUFF_SUCCESS;
 }
 
-wuff_callback callbacks = { read_callback, seek_callback, tell_callback };
+static wuff_callback callbacks = { read_callback, seek_callback, tell_callback };
 
-WaveDecoder::WaveDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
+WaveDecoder::WaveDecoder(Stream* stream, int bufferSize) : Decoder(stream, bufferSize)
 {
-    this->file.data   = (char*)data->GetData();
-    this->file.size   = data->GetSize();
-    this->file.offset = 0;
-
-    int status = wuff_open(&this->handle, &callbacks, &this->file);
+    int status = wuff_open(&this->handle, &callbacks, this->stream);
 
     if (status < 0)
         throw love::Exception("Could not open WAVE.");
@@ -84,22 +73,10 @@ WaveDecoder::~WaveDecoder()
     wuff_close(this->handle);
 }
 
-bool WaveDecoder::Accepts(const std::string& ext)
-{
-    static const std::string supported[] = { "wav", "" };
-
-    for (int i = 0; !(supported[i].empty()); i++)
-    {
-        if (supported[i].compare(ext) == 0)
-            return true;
-    }
-
-    return false;
-}
-
 Decoder* WaveDecoder::Clone()
 {
-    return new WaveDecoder(this->data.Get(), bufferSize);
+    StrongReference<Stream> stream(this->stream->Clone(), Acquire::NORETAIN);
+    return new WaveDecoder(stream, bufferSize);
 }
 
 int WaveDecoder::Decode()

@@ -31,7 +31,7 @@ namespace love
             return "love.sound";
         }
 
-        Decoder* NewDecoder(love::FileData* data, int bufferSize);
+        Decoder* NewDecoder(Stream* stream, int bufferSize);
 
         SoundData* NewSoundData(Decoder* decoder);
 

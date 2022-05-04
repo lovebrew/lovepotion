@@ -1,4 +1,5 @@
 #include "modules/sound/wrap_sound.h"
+#include "objects/datastream/datastream.h"
 
 using namespace love;
 
@@ -6,20 +7,52 @@ using namespace love;
 
 int Wrap_Sound::NewDecoder(lua_State* L)
 {
-    FileData* data = Wrap_Filesystem::GetFileData(L, 1);
     int bufferSize = (int)luaL_optinteger(L, 2, Decoder::DEFAULT_BUFFER_SIZE);
+    Stream* stream = nullptr;
 
-    Decoder* decoder = nullptr;
+    if (Wrap_Filesystem::CanGetFile(L, 1))
+    {
+        Decoder::StreamSource source = Decoder::STREAM_SOURCE_FILE;
+        const char* sourceType       = lua_isnoneornil(L, 3) ? nullptr : luaL_checkstring(L, 3);
+
+        if (sourceType != nullptr && !Decoder::GetConstant(sourceType, source))
+            return Luax::EnumError(L, "stream type", Decoder::GetConstants(source), sourceType);
+
+        if (source == Decoder::STREAM_SOURCE_FILE)
+        {
+            File* file = Wrap_Filesystem::GetFile(L, 1);
+            Luax::CatchException(L, [&]() { file->Open(File::MODE_READ); });
+
+            stream = file;
+        }
+        else
+        {
+            Luax::CatchException(L, [&]() {
+                StrongReference<FileData> fileData(Wrap_Filesystem::GetFileData(L, 1),
+                                                   Acquire::NORETAIN);
+                stream = new DataStream(fileData);
+            });
+        }
+    }
+    else if (Luax::IsType(L, 1, Data::type))
+    {
+        Data* data = Luax::CheckType<Data>(L, 1);
+        Luax::CatchException(L, [&]() { stream = new DataStream(data); });
+    }
+    else
+    {
+        stream = Luax::CheckType<Stream>(L, 1);
+        stream->Retain();
+    }
+
+    Decoder* self = nullptr;
 
     Luax::CatchException(
-        L, [&]() { decoder = instance()->NewDecoder(data, bufferSize); },
-        [&](bool) { data->Release(); });
+        L, [&]() { self = instance()->NewDecoder(stream, bufferSize); },
+        [&](bool) { stream->Release(); });
 
-    if (decoder == nullptr)
-        return luaL_error(L, "Extension \"%s\" not supported.", data->GetExtension().c_str());
-
-    Luax::PushType(L, decoder);
-    decoder->Release();
+    Luax::PushType(L, self);
+    self->Release();
 
     return 1;
 }

@@ -12,45 +12,33 @@ namespace love
     class VorbisDecoder : public Decoder
     {
       public:
-        struct OggFile
-        {
-            const char* data;
-            int64_t size;
-            int64_t read;
-        };
+        VorbisDecoder(Stream* stream, int bufferSize);
 
-        VorbisDecoder(Data* data, int bufferSize);
         ~VorbisDecoder();
 
-        static bool Accepts(const std::string& extension);
+        Decoder* Clone() override;
 
-        Decoder* Clone();
+        int Decode(s16* buffer) override;
 
-        int Decode(s16* buffer);
+        int Decode() override;
 
-        int Decode();
+        bool Seek(double s) override;
 
-        bool Seek(double s);
+        bool Rewind() override;
 
-        bool Rewind();
+        bool IsSeekable() override;
 
-        bool IsSeekable();
+        int GetChannelCount() const override;
 
-        int GetChannelCount() const;
+        int GetBitDepth() const override;
 
-        int GetBitDepth() const;
+        int GetSampleRate() const override;
 
-        int GetSampleRate() const;
-
-        double GetDuration();
+        double GetDuration() override;
 
       private:
-        OggFile file;
-
-        ov_callbacks callbacks;
         OggVorbis_File handle;
         vorbis_info* info;
-        vorbis_comment* comment;
 
         double duration;
     };

@@ -56,7 +56,7 @@ static FLAC__StreamDecoderReadStatus readCallback(const FLAC__StreamDecoder* dec
 
     if (actualSizeRead)
     {
-        memcpy(buffer, file->data + file->read, actualSizeRead);
+        file->stream->Read(buffer, actualSizeRead);
         file->read += actualSizeRead;
     }
     else
@@ -149,7 +149,7 @@ static FLAC__bool eofCallback(const FLAC__StreamDecoder* decoder, void* clientDa
     return file->size <= file->read;
 }
 
-FLACDecoder::FLACDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
+FLACDecoder::FLACDecoder(Stream* stream, int bufferSize) : Decoder(stream, bufferSize)
 {
     this->decoder = FLAC__stream_decoder_new();
 
@@ -158,8 +158,8 @@ FLACDecoder::FLACDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize)
 
     this->file = FLACDecoder::FLACFile();
 
-    this->file.data = (const char*)data->GetData();
-    this->file.size = data->GetSize();
+    this->file.stream = stream;
+    this->file.size   = stream->GetSize();
 
     this->file.outputBuffer = new int32_t[BUFFER_SIZE_SAMP];
     this->file.read         = 0;
@@ -186,22 +186,9 @@ FLACDecoder::~FLACDecoder()
     delete this->file.outputBuffer;
 }
 
-bool FLACDecoder::Accepts(const std::string& ext)
-{
-    static const std::string supported[] = { "flac", "ogg", "" };
-
-    for (int i = 0; !(supported[i].empty()); i++)
-    {
-        if (supported[i].compare(ext) == 0)
-            return true;
-    }
-
-    return false;
-}
-
 Decoder* FLACDecoder::Clone()
 {
-    return new FLACDecoder(this->data.Get(), this->bufferSize);
+    return new FLACDecoder(this->stream->Clone(), this->bufferSize);
 }
 
 int FLACDecoder::Decode()

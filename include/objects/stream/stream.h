@@ -49,5 +49,7 @@ namespace love
         virtual bool Seek(int64_t position, SeekOrigin = SEEK_ORIGIN_BEGIN) = 0;
 
         virtual int64_t Tell() = 0;
+
+        static bool GetConstant(int in, SeekOrigin& out);
     };
 } // namespace love

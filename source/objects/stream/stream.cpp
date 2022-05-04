@@ -1,5 +1,6 @@
 #include "objects/stream/stream.h"
 
+#include "common/bidirectionalmap.h"
 #include "common/exception.h"
 
 #include "common/data.h"
@@ -55,4 +56,17 @@ bool Stream::Write(Data* source, int64_t offset, int64_t size)
             "Offset and size parameters do not fit within the given Data's size.");
 
     return this->Write((const uint8_t*)source->GetData() + offset, size);
+}
+
+// clang-format off
+constexpr auto seekOrigins = BidirectionalMap<>::Create(
+    SEEK_CUR, Stream::SEEK_ORIGIN_CURRENT,
+    SEEK_SET, Stream::SEEK_ORIGIN_BEGIN,
+    SEEK_END, Stream::SEEK_ORIGIN_END
+);
+// clang-format on
+
+bool Stream::GetConstant(int in, Stream::SeekOrigin& out)
+{
+    return seekOrigins.Find(in, out);
 }

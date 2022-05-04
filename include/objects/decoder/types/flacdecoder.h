@@ -8,7 +8,7 @@ namespace love
     class FLACDecoder : public Decoder
     {
       public:
-        FLACDecoder(Data* data, int bufferSize);
+        FLACDecoder(Stream* stream, int bufferSize);
         ~FLACDecoder();
 
         struct FLACFile
@@ -19,7 +19,7 @@ namespace love
 
             uint32_t totalSamples;
 
-            const char* data;
+            Stream* stream;
             size_t size;
             size_t read;
 
@@ -29,27 +29,25 @@ namespace love
             size_t bufferUsed;
         };
 
-        static bool Accepts(const std::string& ext);
+        Decoder* Clone() override;
 
-        Decoder* Clone();
+        int Decode() override;
 
-        int Decode();
+        int Decode(s16* buffer) override;
 
-        int Decode(s16* buffer);
+        bool Seek(double position) override;
 
-        bool Seek(double position);
+        bool Rewind() override;
 
-        bool Rewind();
+        bool IsSeekable() override;
 
-        bool IsSeekable();
+        int GetChannelCount() const override;
 
-        int GetChannelCount() const;
+        int GetBitDepth() const override;
 
-        int GetBitDepth() const;
+        int GetSampleRate() const override;
 
-        int GetSampleRate() const;
-
-        double GetDuration();
+        double GetDuration() override;
 
       private:
         FLACFile file;

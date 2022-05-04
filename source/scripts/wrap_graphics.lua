@@ -9,7 +9,7 @@ function love.graphics.newVideo(file, settings)
     local source, success
 
     if settings.audio ~= false and love.audio then
-        success, source = pcall(love.audio.newSource, video:getStream():getFilename(), "stream")
+        success, source = pcall(love.audio.newSource, video:getStream():getFilename(), "stream", "file")
     end
 
     if success then

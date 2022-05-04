@@ -1,9 +1,11 @@
 #include "modplugdecoder.h"
 
+#include "common/data.h"
+
 using namespace love;
 
-ModPlugDecoder::ModPlugDecoder(Data* data, int bufferSize) :
-    Decoder(data, bufferSize),
+ModPlugDecoder::ModPlugDecoder(Stream* stream, int bufferSize) :
+    Decoder(stream, bufferSize),
     plug(0),
     duration(-2.0)
 {
@@ -33,9 +35,22 @@ ModPlugDecoder::ModPlugDecoder(Data* data, int bufferSize) :
     ModPlug_SetSettings(&settings);
 
     // Load the module.
-    this->plug = ModPlug_Load(data->GetData(), (int)data->GetSize());
+    if (stream->GetSize() > 1024 * 1024 * 4)
+    {
+        this->data.Set(stream->Read(1024 * 1024 * 4), Acquire::NORETAIN);
+        this->plug = ModPlug_Load(this->data->GetData(), (int)this->data->GetSize());
 
-    if (this->plug == NULL)
+        if (this->plug == nullptr)
+            throw love::Exception("Could not load file with ModPlug.");
+
+        this->stream->Seek(0);
+        ModPlug_Unload(this->plug);
+    }
+
+    this->data.Set(this->stream->Read(this->stream->GetSize()), Acquire::NORETAIN);
+    this->plug = ModPlug_Load(this->data->GetData(), (int)this->data->GetSize());
+
+    if (this->plug == nullptr)
         throw love::Exception("Could not load file with ModPlug.");
 
     // set master volume for delicate ears
@@ -44,29 +59,14 @@ ModPlugDecoder::ModPlugDecoder(Data* data, int bufferSize) :
 
 ModPlugDecoder::~ModPlugDecoder()
 {
-    if (this->plug != 0)
+    if (this->plug != nullptr)
         ModPlug_Unload(this->plug);
-}
-
-bool ModPlugDecoder::Accepts(const std::string& ext)
-{
-    static const std::string supported[] = { "699", "abc", "amf", "ams", "dbm", "dmf", "dsm",
-                                             "far", "it",  "j2b", "mdl", "med", "mid", "mod",
-                                             "mt2", "mtm", "okt", "pat", "psm", "s3m", "stm",
-                                             "ult", "umx", "xm",  "" };
-
-    for (int i = 0; !(supported[i].empty()); i++)
-    {
-        if (supported[i].compare(ext) == 0)
-            return true;
-    }
-
-    return false;
 }
 
 Decoder* ModPlugDecoder::Clone()
 {
-    return new ModPlugDecoder(this->data.Get(), this->bufferSize);
+    StrongReference<Stream> stream(this->stream->Clone(), Acquire::NORETAIN);
+    return new ModPlugDecoder(stream, this->bufferSize);
 }
 
 int ModPlugDecoder::Decode()

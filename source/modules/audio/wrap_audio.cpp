@@ -1,4 +1,5 @@
 #include "modules/audio/wrap_audio.h"
+#include "modules/filesystem/wrap_filesystem.h"
 
 using namespace love;
 
@@ -28,8 +29,20 @@ int Wrap_Audio::NewSource(lua_State* L)
                 "Cannot create queueable sources using newSource. Use newQueueableSource instead.");
     }
 
-    if (lua_isstring(L, 1) || Luax::IsType(L, 1, File::type) || Luax::IsType(L, 1, FileData::type))
-        Luax::ConvertObject(L, 1, "sound", "newDecoder");
+    if (Wrap_Filesystem::CanGetData(L, 1))
+    {
+        if (type == Source::TYPE_STREAM)
+            lua_pushstring(L, "memory");
+        else if (!lua_isnone(L, 3))
+            lua_pushvalue(L, 3);
+        else
+            lua_pushnil(L);
+
+        lua_pushnil(L);
+
+        int indexes[] = { 1, lua_gettop(L) - 1 };
+        Luax::ConvertObject(L, indexes, 3, "sound", "newDecoder");
+    }
 
     if (type == Source::TYPE_STATIC && Luax::IsType(L, 1, Decoder::type))
         Luax::ConvertObject(L, 1, "sound", "newSoundData");

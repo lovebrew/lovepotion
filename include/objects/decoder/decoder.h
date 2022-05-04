@@ -1,18 +1,26 @@
 #pragma once
 
-#include "common/data.h"
 #include "common/exception.h"
-
 #include "common/strongref.h"
+
+#include "objects/stream/stream.h"
+#include <vector>
 
 namespace love
 {
     class Decoder : public Object
     {
       public:
+        enum StreamSource
+        {
+            STREAM_SOURCE_MEMORY,
+            STREAM_SOURCE_FILE,
+            STREAM_SOURCE_MAX_ENUM
+        };
+
         static love::Type type;
 
-        Decoder(Data* data, int bufferSize);
+        Decoder(Stream* stream, int bufferSize);
 
         virtual ~Decoder();
 
@@ -48,8 +56,13 @@ namespace love
 
         virtual double GetDuration() = 0;
 
+        static bool GetConstant(const char* in, StreamSource& out);
+        static bool GetConstant(StreamSource in, const char*& out);
+
+        static std::vector<const char*> GetConstants(StreamSource);
+
       protected:
-        StrongReference<Data> data;
+        StrongReference<Stream> stream;
 
         int bufferSize;
         int sampleRate;

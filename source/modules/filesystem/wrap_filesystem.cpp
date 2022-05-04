@@ -693,6 +693,17 @@ Data* Wrap_Filesystem::GetData(lua_State* L, int index)
     return data;
 }
 
+bool Wrap_Filesystem::CanGetFile(lua_State* L, int index)
+{
+    return lua_isstring(L, index) || Luax::IsType(L, index, File::type);
+}
+
+bool Wrap_Filesystem::CanGetFileData(lua_State* L, int index)
+{
+    return lua_isstring(L, index) || Luax::IsType(L, index, File::type) ||
+           Luax::IsType(L, index, FileData::type);
+}
+
 bool Wrap_Filesystem::CanGetData(lua_State* L, int index)
 {
     return lua_isstring(L, index) || Luax::IsType(L, index, File::type) ||

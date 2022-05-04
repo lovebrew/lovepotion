@@ -9,49 +9,34 @@ namespace love
     class MP3Decoder : public Decoder
     {
       public:
-        struct MP3File
-        {
-            unsigned char* data;
-            size_t size;
-            size_t offset;
+        MP3Decoder(Stream* data, int bufferSize);
 
-            MP3File(Data* data) :
-                data((unsigned char*)data->GetData()),
-                size(data->GetSize()),
-                offset(0)
-            {}
-        };
-
-        MP3Decoder(Data* data, int bufferSize);
         ~MP3Decoder();
-
-        static bool Accepts(const std::string& ext);
 
         static void Quit();
 
-        Decoder* Clone();
+        Decoder* Clone() override;
 
-        int Decode();
+        int Decode() override;
 
-        int Decode(s16* buffer);
+        int Decode(s16* buffer) override;
 
-        bool Seek(double position);
+        bool Seek(double position) override;
 
-        bool Rewind();
+        bool Rewind() override;
 
-        bool IsSeekable();
+        bool IsSeekable() override;
 
-        int GetChannelCount() const;
+        int GetChannelCount() const override;
 
-        int GetBitDepth() const;
+        int GetBitDepth() const override;
 
-        double GetDuration();
+        double GetDuration() override;
 
       private:
-        MP3File file;
-
         mpg123_handle* handle;
         static bool inited;
+
         int channels;
         double duration;
     };

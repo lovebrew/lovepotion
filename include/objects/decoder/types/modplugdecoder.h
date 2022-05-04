@@ -8,31 +8,31 @@ namespace love
     class ModPlugDecoder : public Decoder
     {
       public:
-        ModPlugDecoder(Data* data, int bufferSize);
+        ModPlugDecoder(Stream* stream, int bufferSize);
 
         virtual ~ModPlugDecoder();
 
-        static bool Accepts(const std::string& ext);
+        Decoder* Clone() override;
 
-        Decoder* Clone();
+        int Decode() override;
 
-        int Decode();
+        int Decode(s16* buffer) override;
 
-        int Decode(s16* buffer);
+        bool Seek(double position) override;
 
-        bool Seek(double position);
+        bool Rewind() override;
 
-        bool Rewind();
+        bool IsSeekable() override;
 
-        bool IsSeekable();
+        int GetChannelCount() const override;
 
-        int GetChannelCount() const;
+        int GetBitDepth() const override;
 
-        int GetBitDepth() const;
-
-        double GetDuration();
+        double GetDuration() override;
 
       private:
+        StrongReference<Data> data;
+
         ModPlugFile* plug;
         ModPlug_Settings settings;
 

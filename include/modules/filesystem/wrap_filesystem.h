@@ -81,6 +81,10 @@ namespace Wrap_Filesystem
 
     bool CanGetData(lua_State* L, int index);
 
+    bool CanGetFile(lua_State* L, int index);
+
+    bool CanGetFileData(lua_State* L, int index);
+
     int Write(lua_State* L);
 
     std::string Redirect(const char* path);

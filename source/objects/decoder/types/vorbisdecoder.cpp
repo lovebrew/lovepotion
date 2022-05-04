@@ -4,105 +4,55 @@ using namespace love;
 
 /* libvorbis callbacks */
 
-static int vorbisClose(void* data)
+static int vorbisClose(void*)
 {
     /* Handled elsewhere */
 
     return 1;
 }
 
-static size_t vorbisRead(void* data, size_t byteSize, size_t readSize, void* source)
+static size_t vorbisRead(void* data, size_t byteSize, size_t sizeToRead, void* source)
 {
-    size_t spaceUntilEOF  = 0;
-    size_t actualSizeRead = 0;
+    Stream* stream = (Stream*)source;
 
-    VorbisDecoder::OggFile* vorbisData = (VorbisDecoder::OggFile*)source;
-    spaceUntilEOF                      = vorbisData->size - vorbisData->read;
-
-    if ((readSize * byteSize) < spaceUntilEOF)
-        actualSizeRead = (readSize * byteSize);
-    else
-        actualSizeRead = spaceUntilEOF;
-
-    if (actualSizeRead)
-    {
-        memcpy(data, (const char*)vorbisData->data + vorbisData->read, actualSizeRead);
-        vorbisData->read += (actualSizeRead);
-    }
-
-    return actualSizeRead;
+    return stream->Read(data, byteSize * sizeToRead);
 }
 
 static int vorbisSeek(void* source, ogg_int64_t offset, int whence)
 {
-    int64_t spaceUntilEOF;
-    int64_t actualOffset;
-    VorbisDecoder::OggFile* vorbisData;
+    Stream* stream            = (Stream*)source;
+    Stream::SeekOrigin origin = Stream::SEEK_ORIGIN_BEGIN;
 
-    vorbisData = (VorbisDecoder::OggFile*)source;
+    Stream::GetConstant(whence, origin);
 
-    switch (whence)
-    {
-        case SEEK_SET:
-            if (vorbisData->size >= offset)
-                actualOffset = offset;
-            else
-                actualOffset = vorbisData->size;
-
-            vorbisData->read = (int)actualOffset;
-            break;
-        case SEEK_CUR:
-            spaceUntilEOF = vorbisData->size - vorbisData->read;
-
-            if (offset < spaceUntilEOF)
-                actualOffset = offset;
-            else
-                actualOffset = spaceUntilEOF;
-
-            vorbisData->read += actualOffset;
-
-            break;
-        case SEEK_END:
-            if (offset < 0)
-                vorbisData->read = vorbisData->size + offset;
-            else
-                vorbisData->read = vorbisData->size;
-
-            break;
-        default:
-            break;
-    }
-
-    return 0;
+    return stream->Seek(offset, origin) ? 0 : -1;
 }
 
 static long vorbisTell(void* source)
 {
-    VorbisDecoder::OggFile* vorbisData;
-    vorbisData = (VorbisDecoder::OggFile*)source;
+    Stream* stream = (Stream*)source;
 
-    return vorbisData->read;
+    return (long)stream->Tell();
 }
 
 /* VorbisDecoder */
 
-VorbisDecoder::VorbisDecoder(Data* data, int bufferSize) : Decoder(data, bufferSize), duration(-2.0)
+VorbisDecoder::VorbisDecoder(Stream* stream, int bufferSize) :
+    Decoder(stream, bufferSize),
+    duration(-2.0)
 {
-    this->callbacks.close_func = vorbisClose;
-    this->callbacks.seek_func  = vorbisSeek;
-    this->callbacks.read_func  = vorbisRead;
-    this->callbacks.tell_func  = vorbisTell;
+    ov_callbacks callbacks;
 
-    this->file.data = (const char*)data->GetData();
-    this->file.size = data->GetSize();
-    this->file.read = 0;
+    callbacks.close_func = vorbisClose;
+    callbacks.seek_func  = vorbisSeek;
+    callbacks.read_func  = vorbisRead;
+    callbacks.tell_func  = vorbisTell;
 
     int success;
-    if ((success = ov_open_callbacks(&this->file, &this->handle, NULL, 0, this->callbacks)) < 0)
+    if ((success = ov_open_callbacks(this->stream, &this->handle, NULL, 0, callbacks)) < 0)
         throw love::Exception("Could not read Ogg bitstream (error: %d).", success);
 
-    this->info    = ov_info(&this->handle, -1);
-    this->comment = ov_comment(&this->handle, -1);
+    this->info = ov_info(&this->handle, -1);
 }
 
 VorbisDecoder::~VorbisDecoder()
@@ -110,22 +60,9 @@ VorbisDecoder::~VorbisDecoder()
     ov_clear(&this->handle);
 }
 
-bool VorbisDecoder::Accepts(const std::string& extension)
-{
-    static const std::string supported[] = { "ogg", "oga", "ogv", "" };
-
-    for (size_t i = 0; !(supported[i].empty()); i++)
-    {
-        if (supported[i].compare(extension) == 0)
-            return true;
-    }
-
-    return false;
-}
-
 Decoder* VorbisDecoder::Clone()
 {
-    return new VorbisDecoder(this->data.Get(), this->bufferSize);
+    return new VorbisDecoder(this->stream->Clone(), this->bufferSize);
 }
 
 int VorbisDecoder::Decode()

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "objects/decoder/decoder.h"
+
+#include "common/data.h"
 #include <limits>
 
 namespace love

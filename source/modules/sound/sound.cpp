@@ -1,5 +1,7 @@
 #include "modules/sound/sound.h"
 
+#include "common/data.h"
+
 #include <vector>
 
 using namespace love;
@@ -8,7 +10,7 @@ love::Type Sound::type("Sound", &Module::type);
 
 struct DecoderImpl
 {
-    Decoder* (*Create)(FileData* data, int bufferSize);
+    Decoder* (*Create)(Stream* stream, int bufferSize);
     bool (*Accepts)(const std::string& ext);
 };
 
@@ -17,11 +19,9 @@ DecoderImpl DecoderImplFor()
 {
     DecoderImpl decoderImpl;
 
-    decoderImpl.Create = [](FileData* data, int bufferSize) -> Decoder* {
-        return new DecoderType(data, bufferSize);
+    decoderImpl.Create = [](Stream* stream, int bufferSize) -> Decoder* {
+        return new DecoderType(stream, bufferSize);
     };
-
-    decoderImpl.Accepts = [](const std::string& ext) -> bool { return DecoderType::Accepts(ext); };
 
     return decoderImpl;
 }
@@ -31,22 +31,13 @@ Sound::~Sound()
     MP3Decoder::Quit();
 }
 
-Decoder* Sound::NewDecoder(FileData* data, int bufferSize)
+Decoder* Sound::NewDecoder(Stream* stream, int bufferSize)
 {
-    std::string ext = data->GetExtension();
-    std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
-
-    std::vector<DecoderImpl> possibilities = { DecoderImplFor<VorbisDecoder>(),
-                                               DecoderImplFor<MP3Decoder>(),
+    std::vector<DecoderImpl> possibilities = { DecoderImplFor<MP3Decoder>(),
+                                               DecoderImplFor<VorbisDecoder>(),
                                                DecoderImplFor<WaveDecoder>(),
                                                DecoderImplFor<FLACDecoder>(),
                                                DecoderImplFor<ModPlugDecoder>() };
-
-    for (DecoderImpl& item : possibilities)
-    {
-        if (item.Accepts(ext))
-            return item.Create(data, bufferSize);
-    }
 
     /* extension detection fails, let's probe 'em */
     std::string decodingErrors = "Failed to determine file type:\n";
@@ -55,7 +46,8 @@ Decoder* Sound::NewDecoder(FileData* data, int bufferSize)
     {
         try
         {
-            Decoder* decoder = item.Create(data, bufferSize);
+            stream->Seek(0);
+            Decoder* decoder = item.Create(stream, bufferSize);
 
             return decoder;
         }
@@ -66,7 +58,7 @@ Decoder* Sound::NewDecoder(FileData* data, int bufferSize)
     }
 
     /* probing failure, throw the errors */
-    throw love::Exception(decodingErrors.c_str());
+    throw love::Exception("No suitable audio decoders found. %s", decodingErrors.c_str());
 
     return nullptr;
 }
