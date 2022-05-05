@@ -3,8 +3,6 @@
 #include "objects/quad/quad.h"
 #include "objects/spritebatch/spritebatchc.h"
 
-#include <citro2d.h>
-
 namespace love
 {
     class SpriteBatch : public common::SpriteBatch

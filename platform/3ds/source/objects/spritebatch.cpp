@@ -1,8 +1,8 @@
+#include <citro2d.h>
+
 #include "objects/spritebatch/spritebatch.h"
 
 #include "modules/graphics/graphics.h"
-
-#include "objects/quad/quad.h"
 #include "objects/texture/texture.h"
 
 #include "common/exception.h"
@@ -56,8 +56,23 @@ void SpriteBatch::Draw(Graphics* graphics, const Matrix4& localTransform)
 
     Matrix4 world(graphics->GetTransform(), localTransform);
 
+    int counter = 0;
+    int start   = std::clamp(this->rangeStart, 0, this->next - 1);
+
+    int count = this->next;
+    if (this->rangeCount > 0)
+        count = std::min(count, this->rangeCount);
+
+    if (count <= 0)
+        return;
+
     for (const auto& buffInfo : this->buffer)
     {
+        counter += 1;
+
+        if (counter < start || counter > count)
+            continue;
+
         C2D_Image image = this->texture->GetHandle();
         image.subtex    = &buffInfo.subTex;
 
