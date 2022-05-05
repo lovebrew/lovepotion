@@ -91,6 +91,8 @@ namespace Wrap_Graphics
 
     int NewImage(lua_State* L);
 
+    int NewSpriteBatch(lua_State* L);
+
     int NewFont(lua_State* L);
 
     int NewQuad(lua_State* L);

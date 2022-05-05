@@ -23,6 +23,9 @@
 #include "objects/quad/quad.h"
 #include "objects/quad/wrap_quad.h"
 
+#include "objects/spritebatch/spritebatch.h"
+#include "objects/spritebatch/wrap_spritebatch.h"
+
 #include "objects/canvas/canvas.h"
 #include "objects/canvas/wrap_canvas.h"
 
@@ -40,6 +43,7 @@
 #include "objects/videostream/videostream.h"
 
 #include "common/lmath.h"
+
 #include <optional>
 #include <vector>
 
@@ -273,6 +277,8 @@ namespace love
 
         Image* NewImage(Texture::TextureType t, PixelFormat format, int width, int height,
                         int slices);
+
+        SpriteBatch* NewSpriteBatch(Texture* texture, int size);
 
         Quad* NewQuad(Quad::Viewport v, double sw, double sh);
 

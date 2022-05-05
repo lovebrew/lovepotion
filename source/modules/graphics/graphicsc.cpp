@@ -324,6 +324,11 @@ Image* Graphics::NewImage(Texture::TextureType t, PixelFormat format, int width,
     return new Image(t, format, width, height, slices);
 }
 
+SpriteBatch* Graphics::NewSpriteBatch(Texture* texture, int size)
+{
+    return new SpriteBatch(this, texture, size);
+}
+
 Image* Graphics::NewImage(const Image::Slices& data)
 {
     return new Image(data);

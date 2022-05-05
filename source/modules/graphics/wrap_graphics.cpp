@@ -856,6 +856,27 @@ static int _pushNewImage(lua_State* L, Image::Slices& slices)
     return 1;
 }
 
+int Wrap_Graphics::NewSpriteBatch(lua_State* L)
+{
+    Texture* texture = Wrap_Texture::CheckTexture(L, 1);
+
+    int size = luaL_optinteger(L, 2, 1000);
+
+    if (lua_gettop(L) > 2)
+    {
+        const char* usageString = luaL_checkstring(L, 3);
+        // check buffer usage
+    }
+
+    SpriteBatch* spriteBatch = nullptr;
+    Luax::CatchException(L, [&]() { spriteBatch = instance()->NewSpriteBatch(texture, size); });
+
+    Luax::PushType(L, spriteBatch);
+    spriteBatch->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::NewVideo(lua_State* L)
 {
     if (!Luax::IsType(L, 1, VideoStream::type))
@@ -1443,6 +1464,7 @@ static constexpr luaL_Reg functions[] =
     { "newCanvas",             Wrap_Graphics::NewCanvas             },
     { "newFont",               Wrap_Graphics::NewFont               },
     { "newImage",              Wrap_Graphics::NewImage              },
+    { "newSpriteBatch",        Wrap_Graphics::NewSpriteBatch        },
     { "newQuad",               Wrap_Graphics::NewQuad               },
     { "newText",               Wrap_Graphics::NewText               },
     { "_newVideo",             Wrap_Graphics::NewVideo              },
@@ -1494,6 +1516,7 @@ static constexpr lua_CFunction types[] =
     Wrap_Font::Register,
     Wrap_Image::Register,
     Wrap_Quad::Register,
+    Wrap_SpriteBatch::Register,
 #if defined(__SWITCH__)
     Wrap_Shader::Register,
 #endif

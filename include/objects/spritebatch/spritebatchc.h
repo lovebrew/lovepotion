@@ -13,7 +13,7 @@ namespace love
 
     namespace common
     {
-        class SpriteBatch
+        class SpriteBatch : public Drawable
         {
           public:
             static love::Type type;
