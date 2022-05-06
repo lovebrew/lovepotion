@@ -28,6 +28,7 @@ namespace love
         {
             Tex3DS_SubTexture subTex;
             Matrix4 transform;
+            bool empty = true;
         };
 
         std::vector<BufferInfo> buffer;

@@ -12,7 +12,7 @@ using namespace love;
 SpriteBatch::SpriteBatch(Graphics* graphics, love::Texture* texture, int size) :
     common::SpriteBatch(graphics, texture, size)
 {
-    this->buffer.reserve(size);
+    this->buffer.resize(size);
 }
 
 SpriteBatch::~SpriteBatch()
@@ -23,7 +23,7 @@ SpriteBatch::~SpriteBatch()
 void SpriteBatch::Flush()
 {
     this->buffer.clear();
-    this->buffer.reserve(this->size);
+    this->buffer.resize(this->size);
 }
 
 int SpriteBatch::Add(Quad* quad, const Matrix4& matrix, int index)
@@ -50,8 +50,9 @@ int SpriteBatch::Add(Quad* quad, const Matrix4& matrix, int index)
 
     buffInfo.subTex    = tv;
     buffInfo.transform = matrix;
+    buffInfo.empty     = false;
 
-    this->buffer.emplace(this->buffer.begin() + offset, buffInfo);
+    this->buffer[offset] = buffInfo;
 
     if (index == -1)
         return this->next++;
@@ -80,6 +81,9 @@ void SpriteBatch::Draw(Graphics* graphics, const Matrix4& localTransform)
 
     for (const auto& buffInfo : this->buffer)
     {
+        if (buffInfo.empty)
+            continue;
+
         image.subtex = &buffInfo.subTex;
 
         // Multiply the current and local transforms
