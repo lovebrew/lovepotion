@@ -34,14 +34,24 @@ int SpriteBatch::Add(Quad* quad, const Matrix4& matrix, int index)
     if (index == -1 && this->next >= this->size)
         this->SetBufferSize(this->size * 2);
 
+    /* viewport of the Quad object */
     const Quad::Viewport v = quad->GetViewport();
 
+    /* C2D_Image from the StrongRef<Texture> */
     const C2D_Image& handle = this->texture->GetHandle();
-    Tex3DS_SubTexture tv    = quad->CalculateTex3DSViewport(v, handle.tex);
+
+    /* calculate the SubTexture from the Quad::Viewport and handle's C3D_Tex */
+    /* this is also the same as in Texture::Draw */
+    Tex3DS_SubTexture tv = quad->CalculateTex3DSViewport(v, handle.tex);
 
     size_t offset = (index == -1) ? this->next : index;
 
-    this->buffer[offset] = BufferInfo { .subTex = tv, .viewport = v, .transform = matrix };
+    BufferInfo buffInfo {};
+
+    buffInfo.subTex    = tv;
+    buffInfo.transform = matrix;
+
+    this->buffer.emplace(this->buffer.begin() + offset, buffInfo);
 
     if (index == -1)
         return this->next++;
@@ -66,21 +76,17 @@ void SpriteBatch::Draw(Graphics* graphics, const Matrix4& localTransform)
     if (count <= 0)
         return;
 
+    C2D_Image image = this->texture->GetHandle();
+
     for (const auto& buffInfo : this->buffer)
     {
-        counter += 1;
-
-        if (counter < start || counter > count)
-            continue;
-
-        C2D_Image image = this->texture->GetHandle();
-        image.subtex    = &buffInfo.subTex;
+        image.subtex = &buffInfo.subTex;
 
         // Multiply the current and local transforms
         Matrix4 t(world, buffInfo.transform);
 
         C2D_DrawParams params;
-        params.pos    = { 0.0f, 0.0f, (float)buffInfo.viewport.w, (float)buffInfo.viewport.h };
+        params.pos    = { 0.0f, 0.0f, (float)buffInfo.subTex.width, (float)buffInfo.subTex.height };
         params.depth  = Graphics::CURRENT_DEPTH;
         params.angle  = 0.0f;
         params.center = { 0.0f, 0.0f };

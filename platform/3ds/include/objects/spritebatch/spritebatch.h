@@ -27,7 +27,6 @@ namespace love
         struct BufferInfo
         {
             Tex3DS_SubTexture subTex;
-            Quad::Viewport viewport;
             Matrix4 transform;
         };
 
