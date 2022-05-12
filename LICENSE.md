@@ -2,7 +2,7 @@
 * Website: https://github.com/lovebrew/LovePotion
 * License: MIT
 * Copyrights:
-  + © 2018 - 2021 Jeremy S. Postelnek & Logan Hickok-Dickson
+  + © 2018 - 2022 Jeremy S. Postelnek & Logan Hickok-Dickson
   + © 2015 (Original Software) Ruairidh Carmichael
     - https://github.com/videah/LovePotion
 
@@ -30,31 +30,36 @@
 * Website: http://w3.impa.br/~diego/software/luasocket/home.html
 * License: MIT/Expat
 * Copyright (C) 2004-2013 Diego Nehab
-# LZ4
+
+## LZ4
+
 * Website: https://lz4.github.io/lz4/
 * License: 2-Clause BSD
 * Copyright (C) 2011-2020, Yann Collet.
   + You can contact the author at :
     - LZ4 source repository : https://github.com/Cyan4973/lz4
     - LZ4 public forum : https://groups.google.com/forum/#!forum/lz4c
-# UTF8-CPP
+
+## UTF8-CPP
+
 * Website: https://github.com/nemtrif/utfcpp
 * License: Unknown, MIT/Expat-like (listed as UTF8-CPP)
 * Copyright 2006 Nemanja Trifunovic
-# libmpg123
-  + Website: http://www.mpg123.de/
-  + Source download: http://sourceforge.net/projects/mpg123/files/latest/download
-  + License: LGPL 2.1
-  + Copyright (c) 1995-2013 by Michael Hipp and others, free software under the terms of the LGPL v2.1
-  + Detailed information from the debian project:
-     - Copyright 1995-2016 by the mpg123 project
-     - Copyright 2009-2011 by Malcolm Boczek
-     - Copyright 2008 Christian Weisgerber <naddy@openbsd.org>
-     - Copyright 2006-2007 by Zuxy Meng
-     - Copyright 2000-2002 David Olofson
-     - Copyright 1998 Fabrice Bellard
-     - Copyright 1997 Mikko Tommila
 
+## libmpg123
+
+* Website: http://www.mpg123.de/
+* Source download: http://sourceforge.net/projects/mpg123/files/latest/download
+* License: LGPL 2.1
+* Copyright (c) 1995-2013 by Michael Hipp and others, free software under the terms of the LGPL v2.1
+* Detailed information from the debian project:
+    - Copyright 1995-2016 by the mpg123 project
+    - Copyright 2009-2011 by Malcolm Boczek
+    - Copyright 2008 Christian Weisgerber <naddy@openbsd.org>
+    - Copyright 2006-2007 by Zuxy Meng
+    - Copyright 2000-2002 David Olofson
+    - Copyright 1998 Fabrice Bellard
+    - Copyright 1997 Mikko Tommila
 # libctru
 * Website: https://github.com/smealum/ctrulib
 * License: zlib
