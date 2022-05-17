@@ -19,7 +19,8 @@ ImageData::ImageData(Data* data) : ImageDataBase(PIXELFORMAT_UNKNOWN, 0, 0)
 }
 
 ImageData::ImageData(int width, int height, PixelFormat format) :
-    ImageDataBase(format, width, height)
+    ImageDataBase(format, width, height),
+    initialized(false)
 {
     if (!this->ValidatePixelFormat(format))
         throw love::Exception("Unsupported pixel format for ImageData.");
@@ -29,7 +30,8 @@ ImageData::ImageData(int width, int height, PixelFormat format) :
 }
 
 ImageData::ImageData(int width, int height, PixelFormat format, void* data, bool own) :
-    ImageDataBase(format, width, height)
+    ImageDataBase(format, width, height),
+    initialized(false)
 {
     if (!this->ValidatePixelFormat(format))
         throw love::Exception("Unsupported pixel format for ImageData");
@@ -41,7 +43,8 @@ ImageData::ImageData(int width, int height, PixelFormat format, void* data, bool
 }
 
 ImageData::ImageData(const ImageData& other) :
-    ImageDataBase(other.format, other.width, other.height)
+    ImageDataBase(other.format, other.width, other.height),
+    initialized(true)
 {
     this->Create(width, height, format, other.GetData());
 }
@@ -63,7 +66,7 @@ void ImageData::Create(int width, int height, PixelFormat format, void* data)
 {
     size_t dataSize = 0;
 
-    if (format == PIXELFORMAT_TEX3DS_RGBA8)
+    if (!this->initialized && format == PIXELFORMAT_TEX3DS_RGBA8)
         dataSize = NextPO2(width + 2) * NextPO2(height + 2) * GetPixelFormatSize(format);
     else
         dataSize = width * height * GetPixelFormatSize(format);

@@ -115,5 +115,7 @@ namespace love
 
         PixelSetFunction pixelSetFunction;
         PixelGetFunction pixelGetFunction;
+
+        bool initialized;
     };
 } // namespace love
