@@ -44,6 +44,21 @@ namespace vertex
         WINDING_MAX_ENUM
     };
 
+    enum BufferType
+    {
+        BUFFER_VERTEX,
+        BUFFER_INDEX,
+        BUFFER_MAX_ENUM
+    };
+
+    enum Usage
+    {
+        USAGE_STREAM,
+        USAGE_DYNAMIC,
+        USAGE_STATIC,
+        USAGE_MAX_ENUM
+    };
+
     enum class TriangleIndexMode
     {
         NONE,
@@ -61,15 +76,14 @@ namespace vertex
     {
         /* Primitives */
 
+        // clang-format off
         constexpr std::array<DkVtxBufferState, 1> PrimitiveBufferState = {
             DkVtxBufferState { sizeof(vertex::Vertex), 0 },
         };
 
         constexpr std::array<DkVtxAttribState, 2> PrimitiveAttribState = {
-            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32,
-                               DkVtxAttribType_Float, 0 },
-            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, color), DkVtxAttribSize_4x32,
-                               DkVtxAttribType_Float, 0 }
+            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 }
         };
 
         /*  Textures */
@@ -79,13 +93,11 @@ namespace vertex
         };
 
         constexpr std::array<DkVtxAttribState, 3> TextureAttribState = {
-            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32,
-                               DkVtxAttribType_Float, 0 },
-            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, color), DkVtxAttribSize_4x32,
-                               DkVtxAttribType_Float, 0 },
-            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, texcoord), DkVtxAttribSize_2x16,
-                               DkVtxAttribType_Unorm, 0 }
+            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
+            DkVtxAttribState { 0, 0, offsetof(vertex::Vertex, texcoord), DkVtxAttribSize_2x16, DkVtxAttribType_Unorm, 0 }
         };
+        // clang-format on
     } // namespace attributes
 
     [[nodiscard]] static inline std::unique_ptr<Vertex[]> GeneratePrimitiveFromVectors(

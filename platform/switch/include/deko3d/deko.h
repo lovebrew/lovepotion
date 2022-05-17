@@ -160,7 +160,6 @@ class deko3d
     static DkWrapMode GetDekoWrapMode(love::Texture::WrapMode wrap);
 
     static bool GetConstant(PixelFormat in, DkImageFormat& out);
-
     static bool GetConstant(DkImageFormat in, PixelFormat& out);
 
     void SetDekoBarrier(DkBarrier barrier, uint32_t flags);

@@ -1,6 +1,8 @@
 #include "deko3d/vertex.h"
 #include "objects/font/font.h"
 
+#include "common/bidirectionalmap.h"
+
 using namespace love;
 
 std::vector<vertex::Vertex> vertex::GenerateTextureFromVectors(const love::Vector2* points,
