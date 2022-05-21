@@ -42,7 +42,7 @@ bool love::Thread::Start()
     if (this->hasThread)
         threadWaitForExit(&this->thread);
 
-    Result rc = threadCreate(&this->thread, Runner, this, NULL, 0x1000, 0x3B, 0);
+    Result rc = threadCreate(&this->thread, Runner, this, NULL, Thread::STACK_SIZE, 0x3B, 0);
 
     if (R_SUCCEEDED(rc))
         rc = threadStart(&this->thread);

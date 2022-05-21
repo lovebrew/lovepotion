@@ -26,6 +26,8 @@ namespace love
 
             bool IsRunning();
 
+            static constexpr size_t STACK_SIZE = 0x2000;
+
           protected:
             Threadable* t;
             bool running;
