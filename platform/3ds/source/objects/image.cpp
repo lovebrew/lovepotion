@@ -6,12 +6,6 @@
 
 using namespace love;
 
-Image::Image(const Slices& slices) : Image(slices, true)
-{
-    ImageDataBase* slice = slices.Get(0, 0);
-    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
-}
-
 Image::Image(const Slices& slices, bool validate) :
     Texture(data.GetTextureType()),
     data(slices),
@@ -22,29 +16,39 @@ Image::Image(const Slices& slices, bool validate) :
         mipmapsType = MIPMAPS_DATA;
 }
 
+Image::Image(const Slices& slices) : Image(slices, true)
+{
+    this->Init(slices.Get(0, 0));
+}
+
 Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :
     Image(Slices(type), false)
 {
     this->Init(format, width, height);
+}
 
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
+void Image::Init(ImageDataBase* data)
+{
+    this->Init(data->GetFormat(), data->GetWidth(), data->GetHeight());
 }
 
 void Image::Init(PixelFormat format, int width, int height)
 {
     this->texture.tex = new C3D_Tex();
 
-    unsigned powTwoWidth  = NextPO2(width + 2);
-    unsigned powTwoHeight = NextPO2(height + 2);
+    if (!::citro2d::IsSizeValid(width))
+        width = NextPO2(width + 2);
+
+    if (!::citro2d::IsSizeValid(height))
+        height = NextPO2(height + 2);
 
     GPU_TEXCOLOR color;
     ::citro2d::GetConstant(format, color);
 
-    if (!C3D_TexInit(this->texture.tex, powTwoWidth, powTwoHeight, color))
+    if (!C3D_TexInit(this->texture.tex, width, height, color))
         throw love::Exception("Failed to initialize texture!");
 
-    size_t copySize = powTwoWidth * powTwoHeight * GetPixelFormatSize(format);
+    size_t copySize = width * height * GetPixelFormatSize(format);
 
     if (this->data.Get(0, 0))
         memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);

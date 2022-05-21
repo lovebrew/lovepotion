@@ -202,6 +202,18 @@ void citro2d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& 
     C3D_TexSetWrap(image.tex, this->wrap.s, this->wrap.t);
 }
 
+/*
+** Check if a texture size is valid
+** because `size` should be power of two
+*/
+bool citro2d::IsSizeValid(int size)
+{
+    if (size == 0)
+        return false;
+
+    return (size & (size - 1)) == 0;
+}
+
 GPU_TEXTURE_FILTER_PARAM citro2d::GetCitroFilterMode(love::Texture::FilterMode mode)
 {
     switch (mode)

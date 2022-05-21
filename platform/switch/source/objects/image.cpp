@@ -28,17 +28,15 @@ Image::Image(TextureType type, PixelFormat format, int width, int height, int sl
 
 Image::Image(const Slices& slices) : Image(slices, true)
 {
-    ImageDataBase* slice = slices.Get(0, 0);
-    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
+    this->Init(slices.Get(0, 0));
 }
 
 Image::~Image()
 {}
 
-void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
+void Image::Init(ImageDataBase* data)
 {
-    this->texture.replacePixels(::deko3d::Instance().GetData(), ::deko3d::Instance().GetDevice(),
-                                data, size, ::deko3d::Instance().GetTextureQueue(), rect);
+    this->Init(data->GetFormat(), data->GetWidth(), data->GetHeight());
 }
 
 void Image::Init(PixelFormat pixelFormat, int width, int height)
@@ -73,4 +71,10 @@ void Image::Init(PixelFormat pixelFormat, int width, int height)
 
     this->SetFilter(this->filter);
     this->SetWrap(this->wrap);
+}
+
+void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
+{
+    this->texture.replacePixels(::deko3d::Instance().GetData(), ::deko3d::Instance().GetDevice(),
+                                data, size, ::deko3d::Instance().GetTextureQueue(), rect);
 }

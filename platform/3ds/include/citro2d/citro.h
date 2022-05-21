@@ -82,6 +82,8 @@ class citro2d
         this->deferredFunctions.emplace_back(std::move(func));
     }
 
+    static bool IsSizeValid(int size);
+
     void SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor, GPU_BLENDFACTOR srcAlpha,
                       GPU_BLENDFACTOR dstColor, GPU_BLENDFACTOR dstAlpha);
 

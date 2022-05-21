@@ -57,6 +57,8 @@ namespace love
 
         Image(TextureType type, PixelFormat format, int width, int height, int slices);
 
+        void Init(ImageDataBase* data);
+
         void Init(PixelFormat format, int width, int height);
 
         Image(const Slices& data);

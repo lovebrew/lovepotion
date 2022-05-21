@@ -46,8 +46,10 @@ int Wrap_Sound::NewSoundData(lua_State* L)
             lua_replace(L, 1);
         }
 
-        Luax::CatchException(
-            L, [&]() { data = instance()->NewSoundData(Wrap_Decoder::CheckDecoder(L, 1)); });
+        Luax::CatchException(L, [&]() {
+            Decoder* decoder = Wrap_Decoder::CheckDecoder(L, 1);
+            data             = instance()->NewSoundData(decoder);
+        });
     }
 
     Luax::PushType(L, data);
