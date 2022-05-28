@@ -16,33 +16,35 @@ int Wrap_Audio::NewSource(lua_State* L)
 {
     Source::Type type = Source::TYPE_STREAM;
 
-    if (!Luax::IsType(L, 1, SoundData::type) && !Luax::IsType(L, 1, Decoder::type))
+    if (!Luax::IsType(L, 1, SoundData::type))
     {
-        const char* typeString = luaL_checkstring(L, 2);
+        if (!Luax::IsType(L, 1, Decoder::type))
+        {
+            const char* typeString = luaL_checkstring(L, 2);
 
-        if (typeString && !Source::GetConstant(typeString, type))
-            return Luax::EnumError(L, "source type", Source::GetConstants(type), typeString);
+            if (typeString && !Source::GetConstant(typeString, type))
+                return Luax::EnumError(L, "source type", Source::GetConstants(type), typeString);
 
-        if (type == Source::TYPE_QUEUE)
-            return luaL_error(
-                L,
-                "Cannot create queueable sources using newSource. Use newQueueableSource instead.");
-    }
+            if (type == Source::TYPE_QUEUE)
+                return luaL_error(L, "Cannot create queueable sources using newSource. Use "
+                                     "newQueuebleSource instead.");
+        }
 
-    if (Wrap_Filesystem::CanGetData(L, 1))
-    {
-        if (type == Source::TYPE_STATIC)
-            lua_pushstring(L, "memory");
-        else if (!lua_isnone(L, 3))
-            lua_pushvalue(L, 3);
-        else
+        if (Wrap_Filesystem::CanGetData(L, 1))
+        {
+            if (type == Source::TYPE_STATIC)
+                lua_pushstring(L, "memory");
+            else if (!lua_isnone(L, 3))
+                lua_pushvalue(L, 3);
+            else
+                lua_pushnil(L);
+
             lua_pushnil(L);
 
-        lua_pushnil(L);
-
-        /* file, buffer size, type */
-        int indexes[] = { 1, lua_gettop(L), lua_gettop(L) - 1 };
-        Luax::ConvertObject(L, indexes, 3, "sound", "newDecoder");
+            /* file, buffer size, type */
+            int indexes[] = { 1, lua_gettop(L), lua_gettop(L) - 1 };
+            Luax::ConvertObject(L, indexes, 3, "sound", "newDecoder");
+        }
     }
 
     if (type == Source::TYPE_STATIC && Luax::IsType(L, 1, Decoder::type))
