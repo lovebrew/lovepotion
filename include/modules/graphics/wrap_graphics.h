@@ -81,9 +81,9 @@ namespace Wrap_Graphics
 
     int GetScissor(lua_State* L);
 
-    int GetBlendMode(lua_State* L);
+    int GetBlendState(lua_State* L);
 
-    int SetBlendMode(lua_State* L);
+    int SetBlendState(lua_State* L);
 
     int SetColorMask(lua_State* L);
 

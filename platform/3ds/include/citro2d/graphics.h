@@ -79,8 +79,6 @@ namespace love::citro2d
 
         /* End Primitives */
 
-        void SetBlendMode(BlendMode mode, BlendAlpha alphaMode) override;
-
         void SetLineWidth(float width) override;
 
         void SetDefaultFilter(const Texture::Filter& filter);
@@ -98,10 +96,7 @@ namespace love::citro2d
         void SetWide(bool enable);
 
         const bool GetWide() const;
+
         /* End Nintendo 3DS */
-
-        /* Useless */
-
-        void SetColorMask(ColorMask mask) override;
     };
 } // namespace love::citro2d

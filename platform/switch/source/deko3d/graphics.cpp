@@ -147,91 +147,6 @@ void love::deko3d::Graphics::SetDefaultFilter(const Texture::Filter& filter)
     love::Graphics::SetDefaultFilter(filter);
 }
 
-void love::deko3d::Graphics::SetBlendMode(BlendMode mode, BlendAlpha alphamode)
-{
-    if (mode != this->states.back().blendMode || alphamode != this->states.back().blendAlphaMode)
-    {} // flush stream draws
-
-    if (alphamode != BLENDALPHA_PREMULTIPLIED)
-    {
-        const char* modestr = "unknown";
-        switch (mode)
-        {
-            case BLEND_LIGHTEN:
-            case BLEND_DARKEN:
-            case BLEND_MULTIPLY:
-                Graphics::GetConstant(mode, modestr);
-                throw love::Exception("The '%s' blend mode must be used with premultiplied alpha.",
-                                      modestr);
-                break;
-            default:
-                break;
-        }
-    }
-
-    DkBlendOp func = DkBlendOp_Add;
-
-    DkBlendFactor srcColor = DkBlendFactor_One;
-    DkBlendFactor srcAlpha = DkBlendFactor_One;
-
-    DkBlendFactor dstColor = DkBlendFactor_Zero;
-    DkBlendFactor dstAlpha = DkBlendFactor_Zero;
-
-    switch (mode)
-    {
-        case love::Graphics::BLEND_ALPHA:
-            srcColor = srcAlpha = DkBlendFactor_One;
-            dstColor = dstAlpha = DkBlendFactor_InvSrcAlpha;
-
-            break;
-        case love::Graphics::BLEND_MULTIPLY:
-            srcColor = srcAlpha = DkBlendFactor_DstColor;
-            dstColor = dstAlpha = DkBlendFactor_Zero;
-
-            break;
-        case love::Graphics::BLEND_SUBTRACT:
-            func = DkBlendOp_RevSub;
-
-            break;
-        case love::Graphics::BLEND_ADD:
-            srcColor = DkBlendFactor_One;
-            srcAlpha = DkBlendFactor_Zero;
-
-            dstColor = dstAlpha = DkBlendFactor_One;
-
-            break;
-        case love::Graphics::BLEND_LIGHTEN:
-            func = DkBlendOp_Max;
-
-            break;
-        case love::Graphics::BLEND_DARKEN:
-            func = DkBlendOp_Min;
-
-            break;
-        case love::Graphics::BLEND_SCREEN:
-            srcColor = srcAlpha = DkBlendFactor_One;
-            dstColor = dstAlpha = DkBlendFactor_InvSrcColor;
-
-            break;
-        case love::Graphics::BLEND_REPLACE:
-        case love::Graphics::BLEND_NONE:
-        default:
-            srcColor = srcAlpha = DkBlendFactor_One;
-            dstColor = dstAlpha = DkBlendFactor_Zero;
-
-            break;
-    }
-
-    // We can only do alpha-multiplication when srcRGB would have been unmodified.
-    if (srcColor == DkBlendFactor_One && alphamode == BLENDALPHA_MULTIPLY && mode != BLEND_NONE)
-        srcColor = DkBlendFactor_SrcAlpha;
-
-    ::deko3d::Instance().SetBlendMode(func, srcColor, srcAlpha, dstColor, dstAlpha);
-
-    this->states.back().blendMode      = mode;
-    this->states.back().blendAlphaMode = alphamode;
-}
-
 Font* love::deko3d::Graphics::NewFont(Rasterizer* data, const Texture::Filter& filter)
 {
     return new Font(data, filter);
@@ -576,12 +491,6 @@ void love::deko3d::Graphics::SetScissor(const Rect& scissor)
 
     state.scissor     = true;
     state.scissorRect = scissor;
-}
-
-void love::deko3d::Graphics::SetColorMask(ColorMask mask)
-{
-    ::deko3d::Instance().SetColorMask(mask);
-    states.back().colorMask = mask;
 }
 
 void love::deko3d::Graphics::SetScissor()

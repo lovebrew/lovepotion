@@ -1259,51 +1259,106 @@ int Wrap_Graphics::SetColor(lua_State* L)
     return 0;
 }
 
-int Wrap_Graphics::GetBlendMode(lua_State* L)
+static RenderState::BlendOperation CheckBlendOperation(lua_State* L, int index)
 {
-    const char* modeString  = nullptr;
-    const char* alphaString = nullptr;
+    RenderState::BlendOperation operation = RenderState::BLENDOP_ADD;
+    const char* string                    = luaL_checkstring(L, index);
 
-    Graphics::BlendAlpha alphaMode;
-    Graphics::BlendMode blendMode = instance()->GetBlendMode(alphaMode);
+    if (!RenderState::GetConstant(string, operation))
+        Luax::EnumError(L, "blend operation", RenderState::GetConstants(operation), string);
 
-    if (!Graphics::GetConstant(blendMode, modeString))
-        return luaL_error(L, "Unknown blend mode");
-
-    if (!Graphics::GetConstant(alphaMode, alphaString))
-        return luaL_error(L, "Unknown blend alpha mode");
-
-    lua_pushstring(L, modeString);
-    lua_pushstring(L, alphaString);
-
-    return 2;
+    return operation;
 }
 
-int Wrap_Graphics::SetBlendMode(lua_State* L)
+static RenderState::BlendFactor CheckBlendFactor(lua_State* L, int index)
 {
-    Graphics::BlendMode mode;
-    const char* string = luaL_checkstring(L, 1);
+    RenderState::BlendFactor factor = RenderState::BLENDFACTOR_ZERO;
+    const char* string              = luaL_checkstring(L, index);
 
-    if (!Graphics::GetConstant(string, mode))
-        return Luax::EnumError(L, "blend mode", Graphics::GetConstants(mode), string);
+    if (!RenderState::GetConstant(string, factor))
+        Luax::EnumError(L, "blend factor", RenderState::GetConstants(factor), string);
 
-    Graphics::BlendAlpha alphaMode = Graphics::BLENDALPHA_MULTIPLY;
-    if (!lua_isnoneornil(L, 2))
+    return factor;
+}
+
+static void PushBlendOperation(lua_State* L, RenderState::BlendOperation operation)
+{
+    const char* string = nullptr;
+    if (!RenderState::GetConstant(operation, string))
+        luaL_error(L, "unknown blend operation");
+
+    lua_pushstring(L, string);
+}
+
+static void PushBlendFactor(lua_State* L, RenderState::BlendFactor factor)
+{
+    const char* string = nullptr;
+    if (!RenderState::GetConstant(factor, string))
+        luaL_error(L, "unknown blend factor");
+
+    lua_pushstring(L, string);
+}
+
+int Wrap_Graphics::GetBlendState(lua_State* L)
+{
+    const RenderState::BlendState& state = instance()->GetBlendState();
+
+    if (state.enabled)
     {
-        const char* alphaString = luaL_checkstring(L, 2);
-        if (!Graphics::GetConstant(alphaString, alphaMode))
-            return Luax::EnumError(L, "blend alpha mode", Graphics::GetConstants(alphaMode),
-                                   alphaString);
+        PushBlendOperation(L, state.operationRGB);
+        PushBlendOperation(L, state.operationA);
+
+        PushBlendFactor(L, state.srcFactorRGB);
+        PushBlendFactor(L, state.srcFactorA);
+
+        PushBlendFactor(L, state.dstFactorRGB);
+        PushBlendFactor(L, state.dstFactorA);
+    }
+    else
+    {
+        for (size_t index = 0; index < 6; index++)
+            lua_pushnil(L);
     }
 
-    Luax::CatchException(L, [&]() { instance()->SetBlendMode(mode, alphaMode); });
+    return 6;
+}
+
+int Wrap_Graphics::SetBlendState(lua_State* L)
+{
+    RenderState::BlendState state {};
+
+    if (!lua_isnoneornil(L, 1))
+    {
+        state.enabled = true;
+        if (lua_gettop(L) >= 4)
+        {
+            state.operationRGB = CheckBlendOperation(L, 1);
+            state.operationA   = CheckBlendOperation(L, 2);
+
+            state.srcFactorRGB = CheckBlendFactor(L, 3);
+            state.srcFactorA   = CheckBlendFactor(L, 4);
+
+            state.dstFactorRGB = CheckBlendFactor(L, 5);
+            state.dstFactorA   = CheckBlendFactor(L, 6);
+        }
+        else
+        {
+            state.operationRGB = state.operationA = CheckBlendOperation(L, 1);
+            state.srcFactorRGB = state.srcFactorA = CheckBlendFactor(L, 2);
+            state.dstFactorRGB = state.dstFactorA = CheckBlendFactor(L, 3);
+        }
+
+        Luax::CatchException(L, [&]() { instance()->SetBlendState(state); });
+
+        return 0;
+    }
 
     return 0;
 }
 
 int Wrap_Graphics::GetColorMask(lua_State* L)
 {
-    Graphics::ColorMask mask = instance()->GetColorMask();
+    RenderState::ColorMask mask = instance()->GetColorMask();
 
     lua_pushboolean(L, mask.r);
     lua_pushboolean(L, mask.g);
@@ -1315,7 +1370,7 @@ int Wrap_Graphics::GetColorMask(lua_State* L)
 
 int Wrap_Graphics::SetColorMask(lua_State* L)
 {
-    Graphics::ColorMask mask;
+    RenderState::ColorMask mask;
 
     if (lua_gettop(L) <= 1 && lua_isnoneornil(L, 1))
         mask.r = mask.g = mask.b = mask.a = true;
@@ -1419,7 +1474,7 @@ static constexpr luaL_Reg functions[] =
     { "ellipse",               Wrap_Graphics::Ellipse               },
     { "getActiveScreen",       Wrap_Graphics::GetActiveScreen       },
     { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },
-    { "getBlendMode",          Wrap_Graphics::GetBlendMode          },
+    { "getBlendState",         Wrap_Graphics::GetBlendState         },
     { "getCanvas",             Wrap_Graphics::GetCanvas             },
     { "getColor",              Wrap_Graphics::GetColor              },
     { "getColorMask",          Wrap_Graphics::GetColorMask          },
@@ -1461,7 +1516,7 @@ static constexpr luaL_Reg functions[] =
     { "scale",                 Wrap_Graphics::Scale                 },
     { "setActiveScreen",       Wrap_Graphics::SetActiveScreen       },
     { "setBackgroundColor",    Wrap_Graphics::SetBackgroundColor    },
-    { "setBlendMode",          Wrap_Graphics::SetBlendMode          },
+    { "setBlendState",         Wrap_Graphics::SetBlendState         },
     { "setCanvas",             Wrap_Graphics::SetCanvas             },
     { "setColor",              Wrap_Graphics::SetColor              },
     { "setColorMask",          Wrap_Graphics::SetColorMask          },

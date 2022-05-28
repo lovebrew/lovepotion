@@ -69,15 +69,31 @@ citro2d& citro2d::Instance()
     return c2d;
 }
 
-void citro2d::SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor,
-                           GPU_BLENDFACTOR srcAlpha, GPU_BLENDFACTOR dstColor,
-                           GPU_BLENDFACTOR dstAlpha)
+void citro2d::SetBlendMode(const RenderState::BlendState& blend)
 {
+    GPU_BLENDEQUATION opRGB;
+    citro2d::GetConstant(blend.operationRGB, opRGB);
+
+    GPU_BLENDEQUATION opAlpha;
+    citro2d::GetConstant(blend.operationA, opAlpha);
+
+    GPU_BLENDFACTOR srcColor;
+    citro2d::GetConstant(blend.srcFactorRGB, srcColor);
+
+    GPU_BLENDFACTOR dstColor;
+    citro2d::GetConstant(blend.dstFactorRGB, dstColor);
+
+    GPU_BLENDFACTOR srcAlpha;
+    citro2d::GetConstant(blend.srcFactorA, srcAlpha);
+
+    GPU_BLENDFACTOR dstAlpha;
+    citro2d::GetConstant(blend.dstFactorA, dstAlpha);
+
     C2D_Flush();
-    C3D_AlphaBlend(func, func, srcColor, dstColor, srcAlpha, dstAlpha);
+    C3D_AlphaBlend(opRGB, opAlpha, srcColor, dstColor, srcAlpha, dstAlpha);
 }
 
-void citro2d::SetColorMask(const love::Graphics::ColorMask& mask)
+void citro2d::SetColorMask(const RenderState::ColorMask& mask)
 {
     C2D_Flush();
 
@@ -248,6 +264,28 @@ constexpr auto pixelFormats = BidirectionalMap<>::Create(
     PIXELFORMAT_LA8_UNORM,    GPU_LA8,
     PIXELFORMAT_ETC1_UNORM,   GPU_ETC1
 );
+
+constexpr auto blendEquations = BidirectionalMap<>::Create(
+    RenderState::BLENDOP_ADD,                GPU_BLEND_ADD,
+    RenderState::BLENDOP_SUBTRACT,           GPU_BLEND_SUBTRACT,
+    RenderState::BLENDOP_REVERSE_SUBTRACT,   GPU_BLEND_REVERSE_SUBTRACT,
+    RenderState::BLENDOP_MIN,                GPU_BLEND_MIN,
+    RenderState::BLENDOP_MAX,                GPU_BLEND_MAX
+);
+
+constexpr auto blendFactors = BidirectionalMap<>::Create(
+    RenderState::BLENDFACTOR_ZERO,                GPU_ZERO,
+    RenderState::BLENDFACTOR_ONE,                 GPU_ONE,
+    RenderState::BLENDFACTOR_SRC_COLOR,           GPU_SRC_COLOR,
+    RenderState::BLENDFACTOR_ONE_MINUS_SRC_COLOR, GPU_ONE_MINUS_SRC_COLOR,
+    RenderState::BLENDFACTOR_SRC_ALPHA,           GPU_SRC_ALPHA,
+    RenderState::BLENDFACTOR_ONE_MINUS_SRC_ALPHA, GPU_ONE_MINUS_SRC_ALPHA,
+    RenderState::BLENDFACTOR_DST_COLOR,           GPU_DST_COLOR,
+    RenderState::BLENDFACTOR_ONE_MINUS_DST_COLOR, GPU_ONE_MINUS_DST_COLOR,
+    RenderState::BLENDFACTOR_DST_ALPHA,           GPU_DST_ALPHA,
+    RenderState::BLENDFACTOR_ONE_MINUS_DST_ALPHA, GPU_ONE_MINUS_DST_ALPHA,
+    RenderState::BLENDFACTOR_SRC_ALPHA_SATURATED, GPU_SRC_ALPHA_SATURATE
+);
 // clang-format on
 
 bool citro2d::GetConstant(PixelFormat in, GPU_TEXCOLOR& out)
@@ -258,4 +296,14 @@ bool citro2d::GetConstant(PixelFormat in, GPU_TEXCOLOR& out)
 bool citro2d::GetConstant(GPU_TEXCOLOR in, PixelFormat& out)
 {
     return pixelFormats.ReverseFind(in, out);
+}
+
+bool citro2d::GetConstant(RenderState::BlendOperation in, GPU_BLENDEQUATION& out)
+{
+    return blendEquations.Find(in, out);
+}
+
+bool citro2d::GetConstant(RenderState::BlendFactor in, GPU_BLENDFACTOR& out)
+{
+    return blendFactors.Find(in, out);
 }

@@ -7,6 +7,7 @@
 
 #include "common/colors.h"
 #include "common/module.h"
+#include "common/renderstate.h"
 #include "common/screen.h"
 #include "common/vector.h"
 
@@ -72,27 +73,6 @@ namespace love
             ARC_MAX_ENUM
         };
 
-        enum BlendMode
-        {
-            BLEND_ALPHA,
-            BLEND_ADD,
-            BLEND_SUBTRACT,
-            BLEND_MULTIPLY,
-            BLEND_LIGHTEN,
-            BLEND_DARKEN,
-            BLEND_SCREEN,
-            BLEND_REPLACE,
-            BLEND_NONE,
-            BLEND_MAX_ENUM
-        };
-
-        enum BlendAlpha
-        {
-            BLENDALPHA_MULTIPLY,
-            BLENDALPHA_PREMULTIPLIED,
-            BLENDALPHA_MAX_ENUM
-        };
-
         enum LineStyle
         {
             LINE_ROUGH,
@@ -126,32 +106,6 @@ namespace love
         static constexpr float MIN_DEPTH         = 1.0f / 16384.0f;
         static inline float CURRENT_DEPTH        = 0;
         static inline RenderScreen ACTIVE_SCREEN = 0;
-
-        struct ColorMask
-        {
-            bool r : 1, g : 1, b : 1, a : 1;
-
-            ColorMask() : r(true), g(true), b(true), a(true)
-            {}
-
-            ColorMask(bool _r, bool _g, bool _b, bool _a) : r(_r), g(_g), b(_b), a(_a)
-            {}
-
-            bool operator==(const ColorMask& m) const
-            {
-                return r == m.r && g == m.g && b == m.b && a == m.a;
-            }
-
-            bool operator!=(const ColorMask& m) const
-            {
-                return !(operator==(m));
-            }
-
-            uint8_t GetColorMask() const
-            {
-                return r | (g << 1) | (b << 2) | (a << 3);
-            }
-        };
 
         std::vector<Matrix4> transformStack;
 
@@ -326,11 +280,13 @@ namespace love
         virtual void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
                            std::optional<double> depth) = 0;
 
-        Graphics::BlendMode GetBlendMode(BlendAlpha& alphaMode);
+        RenderState::BlendMode GetBlendMode(RenderState::BlendAlpha& alphaMode);
 
-        virtual void SetBlendMode(BlendMode mode, BlendAlpha alpha) = 0;
+        const RenderState::BlendState& GetBlendState() const;
 
-        virtual void SetColorMask(ColorMask mask) = 0;
+        void SetBlendState(const RenderState::BlendState& state);
+
+        void SetColorMask(const RenderState::ColorMask& mask);
 
         virtual void SetColor(Colorf color);
 
@@ -390,7 +346,7 @@ namespace love
 
         /* Primitives */
 
-        ColorMask GetColorMask() const;
+        RenderState::ColorMask GetColorMask() const;
 
 #if defined(__SWITCH__)
         vertex::CullMode GetMeshCullMode() const;
@@ -571,14 +527,6 @@ namespace love
         static bool GetConstant(DrawMode in, const char*& out);
         static std::vector<const char*> GetConstants(DrawMode);
 
-        static bool GetConstant(const char* in, BlendMode& out);
-        static bool GetConstant(BlendMode in, const char*& out);
-        static std::vector<const char*> GetConstants(BlendMode);
-
-        static bool GetConstant(const char* in, BlendAlpha& out);
-        static bool GetConstant(BlendAlpha in, const char*& out);
-        static std::vector<const char*> GetConstants(BlendAlpha);
-
         static bool GetConstant(const char* in, ArcMode& out);
         static bool GetConstant(ArcMode in, const char*& out);
         static std::vector<const char*> GetConstants(ArcMode);
@@ -598,38 +546,41 @@ namespace love
       protected:
         struct DisplayState
         {
+            DisplayState();
+
             Colorf foreground = Colorf(1, 1, 1, 1);
             Colorf background = Colorf(0, 0, 0, 1);
 
-            float lineWidth = 2.0f;
+            RenderState::BlendState blend = RenderState::ComputeBlendState(
+                RenderState::BLEND_ALPHA, RenderState::BLENDALPHA_MULTIPLY);
+
+            float lineWidth     = 2.0f;
+            LineStyle lineStyle = LINE_SMOOTH;
+            LineJoin lineJoin   = LINE_JOIN_MITER;
+
             float pointSize = 1.0f;
 
             StrongReference<Font> font;
             StrongReference<Canvas> canvas;
 
-#if defined(__SWITCH__)
-            StrongReference<Shader> shader;
-#endif
-
-            Rect scissorRect = Rect();
             bool scissor     = false;
+            Rect scissorRect = Rect();
 
-            Texture::Filter defaultFilter           = Texture::Filter();
-            Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
-            float defaultMipmapSharpness            = 0.0f;
-
-            LineStyle lineStyle = LINE_SMOOTH;
-            LineJoin lineJoin   = LINE_JOIN_MITER;
+            RenderState::CompareMode depthTest = RenderState::COMPARE_ALWAYS;
+            bool depthWrite                    = false;
 
 #if defined(__SWITCH__)
             vertex::CullMode meshCullMode = vertex::CULL_NONE;
             vertex::Winding winding       = vertex::WINDING_CCW;
+
+            StrongReference<Shader> shader;
 #endif
 
-            BlendMode blendMode       = BLEND_ALPHA;
-            BlendAlpha blendAlphaMode = BLENDALPHA_MULTIPLY;
+            RenderState::ColorMask colorMask = RenderState::ColorMask(true, true, true, true);
 
-            ColorMask colorMask = ColorMask(true, true, true, true);
+            Texture::Filter defaultFilter           = Texture::Filter();
+            Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
+            float defaultMipmapSharpness            = 0.0f;
         };
 
         std::vector<DisplayState> states;

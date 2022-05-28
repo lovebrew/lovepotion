@@ -2,6 +2,7 @@
 
 #include "common/data.h"
 
+#include <algorithm>
 #include <vector>
 
 using namespace love;
@@ -46,10 +47,10 @@ Decoder* Sound::NewDecoder(Stream* stream, int bufferSize)
     // clang-format off
     std::vector<DecoderImpl> active, possible =
     {
-        DecoderImplFor<MP3Decoder>(),
-        DecoderImplFor<VorbisDecoder>(),
         DecoderImplFor<WaveDecoder>(),
         DecoderImplFor<FLACDecoder>(),
+        DecoderImplFor<VorbisDecoder>(),
+        DecoderImplFor<MP3Decoder>(),
         DecoderImplFor<ModPlugDecoder>()
     };
     // clang-format on

@@ -27,7 +27,7 @@ namespace
 
 deko3d::deko3d() :
     firstVertex(0),
-    renderState(STATE_MAX_ENUM),
+    gpuRenderState(STATE_MAX_ENUM),
     /*
     ** Create GPU device
     ** default origin is top left
@@ -186,19 +186,19 @@ void deko3d::EnsureInFrame()
 
 void deko3d::EnsureInState(State state)
 {
-    if (this->renderState != state && state != State::STATE_MAX_ENUM)
-        this->renderState = state;
+    if (this->gpuRenderState != state && state != State::STATE_MAX_ENUM)
+        this->gpuRenderState = state;
 
-    if (this->renderState == STATE_PRIMITIVE)
+    if (this->gpuRenderState == STATE_PRIMITIVE)
     {
         love::Shader::standardShaders[love::Shader::STANDARD_DEFAULT]->Attach();
 
         this->cmdBuf.bindVtxAttribState(vertex::attributes::PrimitiveAttribState);
         this->cmdBuf.bindVtxBufferState(vertex::attributes::PrimitiveBufferState);
     }
-    else if (this->renderState == STATE_TEXTURE || this->renderState == STATE_VIDEO)
+    else if (this->gpuRenderState == STATE_TEXTURE || this->gpuRenderState == STATE_VIDEO)
     {
-        if (this->renderState == STATE_TEXTURE)
+        if (this->gpuRenderState == STATE_TEXTURE)
             love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
         else
             love::Shader::standardShaders[love::Shader::STANDARD_VIDEO]->Attach();
@@ -607,6 +607,40 @@ void deko3d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& w
     this->descriptorsDirty = true;
 }
 
+/*
+** Set the Scissor region to clip
+** Anything drawn outside of this will not be rendered
+*/
+void deko3d::SetScissor(const love::Rect& scissor, bool canvasActive)
+{
+    this->EnsureInFrame();
+
+    this->scissor = scissor;
+    this->cmdBuf.setScissors(0, { { (uint32_t)scissor.x, (uint32_t)scissor.y, (uint32_t)scissor.w,
+                                    (uint32_t)scissor.h } });
+}
+
+/*
+** Set the viewing screen space for rendering
+** This sets up the actual bounds we can see
+*/
+void deko3d::SetViewport(const love::Rect& view)
+{
+    this->EnsureInFrame();
+
+    this->viewport = view;
+    this->cmdBuf.setViewports(
+        0, { { (float)view.x, (float)view.y, (float)view.w, (float)view.h, Z_NEAR, Z_FAR } });
+
+    this->transformState.projMtx =
+        glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
+}
+
+love::Rect deko3d::GetViewport()
+{
+    return this->viewport;
+}
+
 DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
 {
     switch (wrap)
@@ -656,6 +690,28 @@ constexpr auto pixelFormats = BidirectionalMap<>::Create(
     PIXELFORMAT_ASTC_12x10,       DkImageFormat_RGBA_ASTC_12x10,
     PIXELFORMAT_ASTC_12x12,       DkImageFormat_RGBA_ASTC_12x12
 );
+
+constexpr auto blendEquations = BidirectionalMap<>::Create(
+    RenderState::BLENDOP_ADD,              DkBlendOp_Add,
+    RenderState::BLENDOP_SUBTRACT,         DkBlendOp_Sub,
+    RenderState::BLENDOP_REVERSE_SUBTRACT, DkBlendOp_RevSub,
+    RenderState::BLENDOP_MIN,              DkBlendOp_Min,
+    RenderState::BLENDOP_MAX,              DkBlendOp_Max
+);
+
+constexpr auto blendFactors = BidirectionalMap<>::Create(
+    RenderState::BLENDFACTOR_ZERO,                DkBlendFactor_Zero,
+    RenderState::BLENDFACTOR_ONE,                 DkBlendFactor_One,
+    RenderState::BLENDFACTOR_SRC_COLOR,           DkBlendFactor_SrcColor,
+    RenderState::BLENDFACTOR_ONE_MINUS_SRC_COLOR, DkBlendFactor_InvSrcColor,
+    RenderState::BLENDFACTOR_SRC_ALPHA,           DkBlendFactor_SrcAlpha,
+    RenderState::BLENDFACTOR_ONE_MINUS_SRC_ALPHA, DkBlendFactor_InvSrcAlpha,
+    RenderState::BLENDFACTOR_DST_COLOR,           DkBlendFactor_DstColor,
+    RenderState::BLENDFACTOR_ONE_MINUS_DST_COLOR, DkBlendFactor_InvDstColor,
+    RenderState::BLENDFACTOR_DST_ALPHA,           DkBlendFactor_DstAlpha,
+    RenderState::BLENDFACTOR_ONE_MINUS_DST_ALPHA, DkBlendFactor_InvDstAlpha,
+    RenderState::BLENDFACTOR_SRC_ALPHA_SATURATED, DkBlendFactor_SrcAlphaSaturate
+);
 // clang-format on
 
 bool deko3d::GetConstant(PixelFormat in, DkImageFormat& out)
@@ -668,36 +724,12 @@ bool deko3d::GetConstant(DkImageFormat in, PixelFormat& out)
     return pixelFormats.ReverseFind(in, out);
 }
 
-/*
-** Set the Scissor region to clip
-** Anything drawn outside of this will not be rendered
-*/
-void deko3d::SetScissor(const love::Rect& scissor, bool canvasActive)
+bool deko3d::GetConstant(BlendOperation in, DkBlendOp& out)
 {
-    this->EnsureInFrame();
-
-    this->scissor = scissor;
-    this->cmdBuf.setScissors(0, { { (uint32_t)scissor.x, (uint32_t)scissor.y, (uint32_t)scissor.w,
-                                    (uint32_t)scissor.h } });
+    return blendEquations.Find(in, out);
 }
 
-/*
-** Set the viewing screen space for rendering
-** This sets up the actual bounds we can see
-*/
-void deko3d::SetViewport(const love::Rect& view)
+bool deko3d::GetConstant(BlendFactor in, DkBlendFactor& out)
 {
-    this->EnsureInFrame();
-
-    this->viewport = view;
-    this->cmdBuf.setViewports(
-        0, { { (float)view.x, (float)view.y, (float)view.w, (float)view.h, Z_NEAR, Z_FAR } });
-
-    this->transformState.projMtx =
-        glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
-}
-
-love::Rect deko3d::GetViewport()
-{
-    return this->viewport;
+    return blendFactors.Find(in, out);
 }

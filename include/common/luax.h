@@ -23,6 +23,7 @@ extern "C"
 #include <exception>
 #include <memory>
 #include <string.h>
+#include <vector>
 
 #include "common/reference.h"
 

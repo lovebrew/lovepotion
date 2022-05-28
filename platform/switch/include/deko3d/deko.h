@@ -1,13 +1,14 @@
 #pragma once
 
-#include "deko3d/common.h"
-
 #include "common/bitalloc.h"
+#include "common/renderstate.h"
+
 #include "deko3d/CCmdMemRing.h"
 #include "deko3d/CCmdVtxRing.h"
 #include "deko3d/CImage.h"
 #include "deko3d/CMemPool.h"
 #include "deko3d/CShader.h"
+#include "deko3d/common.h"
 #include "deko3d/shader.h"
 
 #include "objects/canvas/canvas.h"
@@ -81,7 +82,7 @@ class deko3d
 
     void UseProgram(const love::Shader::Program& program);
 
-    void SetColorMask(const love::Graphics::ColorMask& mask);
+    void SetColorMask(const RenderState::ColorMask& mask);
 
     float GetPointSize();
 
@@ -163,6 +164,10 @@ class deko3d
 
     static bool GetConstant(DkImageFormat in, PixelFormat& out);
 
+    static bool GetConstant(RenderState::BlendOperation in, DkBlendOp& out);
+
+    static bool GetConstant(RenderState::BlendFactor in, DkBlendFactor& out);
+
     void SetDekoBarrier(DkBarrier barrier, uint32_t flags);
 
   private:
@@ -182,7 +187,7 @@ class deko3d
     static constexpr float Z_NEAR = -10.0f;
     static constexpr float Z_FAR  = 10.0f;
 
-    State renderState;
+    State gpuRenderState;
 
     void EnsureInState(State state);
 

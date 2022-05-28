@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 namespace love
 {
     namespace version

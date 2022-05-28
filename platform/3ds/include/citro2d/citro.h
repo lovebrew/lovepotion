@@ -6,6 +6,7 @@
 #include <citro2d.h>
 
 #include "common/pixelformat.h"
+#include "common/renderstate.h"
 #include "graphics/graphics.h"
 
 class citro2d
@@ -82,10 +83,9 @@ class citro2d
         this->deferredFunctions.emplace_back(std::move(func));
     }
 
-    void SetBlendMode(GPU_BLENDEQUATION func, GPU_BLENDFACTOR srcColor, GPU_BLENDFACTOR srcAlpha,
-                      GPU_BLENDFACTOR dstColor, GPU_BLENDFACTOR dstAlpha);
+    void SetBlendMode(const love::RenderState::BlendState& blend);
 
-    void SetColorMask(const love::Graphics::ColorMask& mask);
+    void SetColorMask(const love::RenderState::ColorMask& mask);
 
     static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
 
@@ -96,6 +96,10 @@ class citro2d
     static bool GetConstant(love::PixelFormat in, GPU_TEXCOLOR& out);
 
     static bool GetConstant(GPU_TEXCOLOR in, love::PixelFormat& out);
+
+    static bool GetConstant(love::RenderState::BlendOperation, GPU_BLENDEQUATION& out);
+
+    static bool GetConstant(love::RenderState::BlendFactor, GPU_BLENDFACTOR& out);
 
   private:
     GPUFilter filter;

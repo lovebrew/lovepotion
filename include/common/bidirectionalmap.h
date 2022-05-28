@@ -84,6 +84,9 @@ class BidirectionalMap
         populate<Size>(inEntries.data());
     }
 
+    /*
+    ** When mapped as T, V -- find value V from T
+    */
     constexpr bool Find(const Key& search, Value& out) const
     {
         for (size_t i = 0; i < this->populated; ++i)
@@ -98,6 +101,9 @@ class BidirectionalMap
         return false;
     }
 
+    /*
+    ** When mapped as T, V -- find value T from V
+    */
     constexpr bool ReverseFind(const Value& search, Key& out) const
     {
         for (size_t i = 0; i < this->populated; ++i)

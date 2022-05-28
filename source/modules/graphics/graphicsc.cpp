@@ -6,6 +6,16 @@
 
 using namespace love;
 
+// clang-format off
+#if defined(__3DS__)
+    #include "citro2d/citro.h"
+    static auto renderer = ::citro2d::Instance();
+#elif defined(__SWITCH__)
+    #include "deko3d/deko.h"
+    static auto renderer = ::deko3d::Instance();
+#endif
+// clang-format on
+
 /* Gamma Correction */
 
 bool Graphics::gammaCorrectColor = false;
@@ -57,6 +67,9 @@ Colorf Graphics::UnGammaCorrectColor(const Colorf& c)
 }
 
 /* End */
+
+Graphics::DisplayState::DisplayState()
+{}
 
 Graphics::Graphics() : width(0), height(0), active(true), created(false)
 {
@@ -411,7 +424,7 @@ void Graphics::RestoreState(const DisplayState& state)
     this->SetColor(state.foreground);
     this->SetBackgroundColor(state.background);
 
-    this->SetBlendMode(state.blendMode, state.blendAlphaMode);
+    this->SetBlendState(state.blend);
 
     this->SetLineWidth(state.lineWidth);
     this->SetLineStyle(state.lineStyle);
@@ -438,10 +451,22 @@ void Graphics::RestoreState(const DisplayState& state)
     this->SetDefaultFilter(state.defaultFilter);
 }
 
-Graphics::BlendMode Graphics::GetBlendMode(Graphics::BlendAlpha& alphaMode)
+RenderState::BlendMode Graphics::GetBlendMode(RenderState::BlendAlpha& alphaMode)
 {
-    alphaMode = this->states.back().blendAlphaMode;
-    return this->states.back().blendMode;
+    return RenderState::ComputeBlendMode(this->states.back().blend, alphaMode);
+}
+
+const RenderState::BlendState& Graphics::GetBlendState() const
+{
+    return this->states.back().blend;
+}
+
+void Graphics::SetBlendState(const RenderState::BlendState& blend)
+{
+    if (blend.enabled)
+        renderer.SetBlendMode(blend);
+
+    this->states.back().blend = blend;
 }
 
 void Graphics::RestoreStateChecked(const DisplayState& state)
@@ -453,8 +478,8 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
 
     this->SetBackgroundColor(state.background);
 
-    if (state.blendMode != current.blendMode || state.blendAlphaMode != current.blendAlphaMode)
-        this->SetBlendMode(state.blendMode, state.blendAlphaMode);
+    if (state.blend != current.blend)
+        this->SetBlendState(state.blend);
 
     // These are just simple assignments.
     this->SetLineWidth(state.lineWidth);
@@ -499,9 +524,15 @@ Canvas* Graphics::GetCanvas() const
     return states.back().canvas.Get();
 }
 
-Graphics::ColorMask Graphics::GetColorMask() const
+RenderState::ColorMask Graphics::GetColorMask() const
 {
     return this->states.back().colorMask;
+}
+
+void Graphics::SetColorMask(const RenderState::ColorMask& mask)
+{
+    renderer.SetColorMask(mask);
+    this->states.back().colorMask = mask;
 }
 
 void Graphics::SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness)
@@ -615,18 +646,6 @@ Graphics::LineJoin Graphics::GetLineJoin() const
 }
 
 // clang-format off
-constexpr auto blendModes = BidirectionalMap<>::Create(
-    "alpha",     Graphics::BlendMode::BLEND_ALPHA,
-    "add",       Graphics::BlendMode::BLEND_ADD,
-    "subtract",  Graphics::BlendMode::BLEND_SUBTRACT,
-    "multiply",  Graphics::BlendMode::BLEND_MULTIPLY,
-    "lighten",   Graphics::BlendMode::BLEND_LIGHTEN,
-    "darken",    Graphics::BlendMode::BLEND_DARKEN,
-    "screen",    Graphics::BlendMode::BLEND_SCREEN,
-    "replace",   Graphics::BlendMode::BLEND_REPLACE,
-    "none",      Graphics::BlendMode::BLEND_NONE
-);
-
 constexpr auto drawModes = BidirectionalMap<>::Create(
     "line", Graphics::DrawMode::DRAW_LINE,
     "fill", Graphics::DrawMode::DRAW_FILL
@@ -636,11 +655,6 @@ constexpr auto arcModes = BidirectionalMap<>::Create(
     "open",   Graphics::ArcMode::ARC_OPEN,
     "closed", Graphics::ArcMode::ARC_CLOSED,
     "pie",    Graphics::ArcMode::ARC_PIE
-);
-
-constexpr auto blendAlphaModes = BidirectionalMap<>::Create(
-    "alphamultiply", Graphics::BlendAlpha::BLENDALPHA_MULTIPLY,
-    "premultiplied", Graphics::BlendAlpha::BLENDALPHA_PREMULTIPLIED
 );
 
 constexpr auto stackTypes = BidirectionalMap<>::Create(
@@ -690,36 +704,6 @@ bool Graphics::GetConstant(ArcMode in, const char*& out)
 std::vector<const char*> Graphics::GetConstants(ArcMode)
 {
     return arcModes.GetNames();
-}
-
-bool Graphics::GetConstant(const char* in, BlendMode& out)
-{
-    return blendModes.Find(in, out);
-}
-
-bool Graphics::GetConstant(BlendMode in, const char*& out)
-{
-    return blendModes.ReverseFind(in, out);
-}
-
-std::vector<const char*> Graphics::GetConstants(BlendMode)
-{
-    return blendModes.GetNames();
-}
-
-bool Graphics::GetConstant(const char* in, BlendAlpha& out)
-{
-    return blendAlphaModes.Find(in, out);
-}
-
-bool Graphics::GetConstant(BlendAlpha in, const char*& out)
-{
-    return blendAlphaModes.ReverseFind(in, out);
-}
-
-std::vector<const char*> Graphics::GetConstants(BlendAlpha)
-{
-    return blendAlphaModes.GetNames();
 }
 
 bool Graphics::GetConstant(const char* in, StackType& out)
