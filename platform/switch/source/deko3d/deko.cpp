@@ -487,16 +487,33 @@ float deko3d::GetPointSize()
     return this->state.pointSize;
 }
 
-void deko3d::SetColorMask(const love::Graphics::ColorMask& mask)
+void deko3d::SetColorMask(const RenderState::ColorMask& mask)
 {
     this->state.colorWrite.setMask(0, mask.GetColorMask());
 }
 
-void deko3d::SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,
-                          DkBlendFactor dstColor, DkBlendFactor dstAlpha)
+void deko3d::SetBlendMode(const RenderState::BlendState& state)
 {
-    this->state.blendState.setColorBlendOp(func);
-    this->state.blendState.setAlphaBlendOp(func);
+    DkBlendOp opRGB;
+    deko3d::GetConstant(state.operationRGB, opRGB);
+
+    DkBlendOp opAlpha;
+    deko3d::GetConstant(state.operationA, opAlpha);
+
+    DkBlendFactor srcColor;
+    deko3d::GetConstant(state.srcFactorRGB, srcColor);
+
+    DkBlendFactor srcAlpha;
+    deko3d::GetConstant(state.srcFactorA, srcAlpha);
+
+    DkBlendFactor dstColor;
+    deko3d::GetConstant(state.dstFactorRGB, dstColor);
+
+    DkBlendFactor dstAlpha;
+    deko3d::GetConstant(state.dstFactorA, dstAlpha);
+
+    this->state.blendState.setColorBlendOp(opRGB);
+    this->state.blendState.setAlphaBlendOp(opAlpha);
 
     // Blend factors
     this->state.blendState.setSrcColorBlendFactor(srcColor);
@@ -724,12 +741,12 @@ bool deko3d::GetConstant(DkImageFormat in, PixelFormat& out)
     return pixelFormats.ReverseFind(in, out);
 }
 
-bool deko3d::GetConstant(BlendOperation in, DkBlendOp& out)
+bool deko3d::GetConstant(RenderState::BlendOperation in, DkBlendOp& out)
 {
     return blendEquations.Find(in, out);
 }
 
-bool deko3d::GetConstant(BlendFactor in, DkBlendFactor& out)
+bool deko3d::GetConstant(RenderState::BlendFactor in, DkBlendFactor& out)
 {
     return blendFactors.Find(in, out);
 }

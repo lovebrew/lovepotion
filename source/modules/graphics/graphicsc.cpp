@@ -9,10 +9,10 @@ using namespace love;
 // clang-format off
 #if defined(__3DS__)
     #include "citro2d/citro.h"
-    static auto renderer = ::citro2d::Instance();
+    static auto renderer = ::citro2d::Instance;
 #elif defined(__SWITCH__)
     #include "deko3d/deko.h"
-    static auto renderer = ::deko3d::Instance();
+    static auto renderer = ::deko3d::Instance;
 #endif
 // clang-format on
 
@@ -464,7 +464,7 @@ const RenderState::BlendState& Graphics::GetBlendState() const
 void Graphics::SetBlendState(const RenderState::BlendState& blend)
 {
     if (blend.enabled)
-        renderer.SetBlendMode(blend);
+        renderer().SetBlendMode(blend);
 
     this->states.back().blend = blend;
 }
@@ -531,7 +531,7 @@ RenderState::ColorMask Graphics::GetColorMask() const
 
 void Graphics::SetColorMask(const RenderState::ColorMask& mask)
 {
-    renderer.SetColorMask(mask);
+    renderer().SetColorMask(mask);
     this->states.back().colorMask = mask;
 }
 

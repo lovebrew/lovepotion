@@ -74,10 +74,6 @@ namespace love::deko3d
 
         /* End Primitives */
 
-        void SetBlendMode(BlendMode mode, BlendAlpha alpha) override;
-
-        void SetColorMask(ColorMask mask) override;
-
         void SetMeshCullMode(vertex::CullMode cull) override;
 
         void SetFrontFaceWinding(vertex::Winding winding) override;

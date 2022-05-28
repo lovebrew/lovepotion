@@ -77,8 +77,7 @@ class deko3d
 
     void SetDepthWrites(bool enable);
 
-    void SetBlendMode(DkBlendOp func, DkBlendFactor srcColor, DkBlendFactor srcAlpha,
-                      DkBlendFactor dstColor, DkBlendFactor dstAlpha);
+    void SetBlendMode(const RenderState::BlendState& state);
 
     void UseProgram(const love::Shader::Program& program);
 

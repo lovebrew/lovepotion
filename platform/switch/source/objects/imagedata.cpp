@@ -1,6 +1,8 @@
 #include "objects/imagedata/imagedata.h"
 #include "modules/thread/types/lock.h"
 
+#include <algorithm>
+
 using namespace love;
 
 ImageData::ImageData(Data* data) : common::ImageData(data)
