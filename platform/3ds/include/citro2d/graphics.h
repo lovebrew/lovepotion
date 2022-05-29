@@ -5,11 +5,6 @@
 
 #include <vector>
 
-#define RENDERER_NAME    "citro3d"
-#define RENDERER_VERSION "1.7.0"
-#define RENDERER_VENDOR  "devkitPro"
-#define RENDERER_DEVICE  "DMP PICA200"
-
 namespace love::citro2d
 {
     class Graphics : public love::Graphics

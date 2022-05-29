@@ -1,15 +1,13 @@
 #include <3ds.h>
-#include <citro2d.h>
-
-#include "common/colors.h"
-#include "common/luax.h"
 
 #include "citro2d/citro.h"
 
-#include "common/bidirectionalmap.h"
+#include "common/luax.h"
+#include "common/pixelformat.h"
+
 #include "modules/graphics/graphics.h"
 
-#include "common/pixelformat.h"
+#include "objects/canvas/canvas.h"
 
 using namespace love;
 
@@ -31,16 +29,27 @@ citro2d::citro2d()
 
     C2D_SetTintMode(C2D_TintMult);
 
-    love::Texture::Filter filter;
-    filter.min = filter.mag = love::Texture::FILTER_NEAREST;
-    this->SetTextureFilter(filter);
+    this->InitRendererInfo();
 
-    love::Texture::Wrap wrap;
-    wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
-    this->SetTextureWrap(wrap);
-
-    this->targets.reserve(4);
+    this->targets.fill(nullptr);
     this->CreateFramebuffers();
+}
+
+citro2d::~citro2d()
+{
+    C2D_Fini();
+    C3D_Fini();
+    gfxExit();
+}
+
+void citro2d::InitRendererInfo()
+{
+    memset(&this->rendererInfo, 0, sizeof(RendererInfo));
+
+    this->rendererInfo.device  = RENDERER_DEVICE;
+    this->rendererInfo.name    = RENDERER_NAME;
+    this->rendererInfo.vendor  = RENDERER_VENDOR;
+    this->rendererInfo.version = RENDERER_VERSION;
 }
 
 void citro2d::DestroyFramebuffers()
@@ -51,22 +60,131 @@ void citro2d::DestroyFramebuffers()
 
 void citro2d::CreateFramebuffers()
 {
-    this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
-                      C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT),
-                      C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT) };
+    for (size_t index = 0; index < citro2d::MAX_RENDERTARGETS; index++)
+    {
+        gfxScreen_t screen = (index < 2) ? GFX_TOP : GFX_BOTTOM;
+        gfx3dSide_t side   = (index != 1) ? GFX_LEFT : GFX_RIGHT;
+
+        this->targets[index] = C2D_CreateScreenTarget(screen, side);
+    }
 }
 
-citro2d::~citro2d()
+void citro2d::Clear(const Colorf& color)
 {
-    C2D_Fini();
-    C3D_Fini();
-    gfxExit();
+    C2D_TargetClear(this->current, C2D_Color32f(color.r, color.g, color.b, color.a));
 }
 
-citro2d& citro2d::Instance()
+void citro2d::ClearDepthStencil(int stencil, double depth)
+{}
+
+void citro2d::SetBlendColor(const Colorf& color)
+{}
+
+void citro2d::EnsureInFrame()
 {
-    static citro2d c2d;
-    return c2d;
+    if (!this->inFrame)
+    {
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+        this->inFrame = true;
+    }
+}
+
+void citro2d::BindFramebuffer(love::Canvas* canvas)
+{
+    this->EnsureInFrame();
+
+    if (canvas != nullptr)
+        this->current = canvas->GetRenderer();
+    else
+        this->current = this->targets[love::Graphics::ACTIVE_SCREEN];
+
+    C2D_SceneBegin(this->current);
+}
+
+void citro2d::Present()
+{
+    if (this->inFrame)
+    {
+        C3D_FrameEnd(0);
+        this->inFrame = false;
+    }
+
+    for (size_t i = this->deferredFunctions.size(); i > 0; i--)
+    {
+        this->deferredFunctions[i - 1]();
+        this->deferredFunctions.erase(deferredFunctions.begin() + i - 1);
+    }
+}
+
+void citro2d::SetViewport(const Rect& viewport)
+{
+    C2D_Flush();
+    C3D_SetViewport(viewport.x, viewport.y, viewport.w, viewport.h);
+
+    this->viewport = viewport;
+}
+
+Rect citro2d::GetViewport() const
+{
+    return this->viewport;
+}
+
+void citro2d::SetScissor(bool enable, const Rect& scissor, bool canvasActive)
+{
+    GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
+
+    if (enable)
+        C2D_Flush();
+
+    size_t width = Screen::Instance().GetWidth(Graphics::ACTIVE_SCREEN);
+
+    C3D_SetScissor(mode, 240 - (scissor.y + scissor.h), screenWidth - (scissor.x + scissor.w),
+                   240 - scissor.y, screenWidth - scissor.x);
+}
+
+void citro2d::SetStencil(RenderState::CompareMode compare, int value)
+{
+    bool enabled = (compare == RenderState::COMPARE_ALWAYS) ? false : true;
+
+    GPU_TESTFUNC compareOp;
+    ::citro2d::GetConstant(compare, compareOp);
+
+    C3D_StencilTest(enabled, compareOp, value, 0xFFFFFFFF, 0xFFFFFFFF);
+    C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
+}
+
+void citro2d::SetMeshCullMode(Vertex::CullMode mode)
+{
+    GPU_CULLMODE cullMode;
+    ::citro2d::GetConstant(mode, cullMode);
+
+    C2D_Flush();
+    C3D_CullFace(cullMode);
+}
+
+void citro2d::SetVertexWinding(Vertex::Winding winding)
+{}
+
+void citro2d::SetSamplerState(const SamplerState& state)
+{
+    GPU_TEXTURE_FILTER_PARAM min;
+    ::citro2d::GetConstant(state.minFilter, min);
+
+    GPU_TEXTURE_FILTER_PARAM mag;
+    ::citro2d::GetConstant(state.magFilter, mag);
+
+    if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE)
+    {}
+}
+
+void citro2d::SetColorMask(const RenderState::ColorMask& mask)
+{
+    C2D_Flush();
+
+    uint8_t writeMask = GPU_WRITE_DEPTH;
+    writeMask |= mask.GetColorMask();
+
+    C3D_DepthTest(true, GPU_GEQUAL, static_cast<GPU_WRITEMASK>(writeMask));
 }
 
 void citro2d::SetBlendMode(const RenderState::BlendState& blend)
@@ -91,169 +209,6 @@ void citro2d::SetBlendMode(const RenderState::BlendState& blend)
 
     C2D_Flush();
     C3D_AlphaBlend(opRGB, opAlpha, srcColor, dstColor, srcAlpha, dstAlpha);
-}
-
-void citro2d::SetColorMask(const RenderState::ColorMask& mask)
-{
-    C2D_Flush();
-
-    uint8_t writeMask = GPU_WRITE_DEPTH;
-    writeMask |= mask.GetColorMask();
-
-    C3D_DepthTest(true, GPU_GEQUAL, static_cast<GPU_WRITEMASK>(writeMask));
-}
-
-void citro2d::EnsureInFrame()
-{
-    if (!this->inFrame)
-    {
-        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-        this->inFrame = true;
-    }
-}
-
-void citro2d::BindFramebuffer(love::Canvas* canvas)
-{
-    this->EnsureInFrame();
-
-    if (canvas != nullptr)
-        this->current = canvas->GetRenderer();
-    else
-        this->current = this->targets[love::Graphics::ACTIVE_SCREEN];
-
-    C2D_SceneBegin(this->current);
-}
-
-void citro2d::ClearColor(const Colorf& color)
-{
-    C2D_TargetClear(this->current, C2D_Color32f(color.r, color.g, color.b, color.a));
-}
-
-void citro2d::Present()
-{
-    if (this->inFrame)
-    {
-        C3D_FrameEnd(0);
-        this->inFrame = false;
-    }
-
-    for (size_t i = this->deferredFunctions.size(); i > 0; i--)
-    {
-        this->deferredFunctions[i - 1]();
-        this->deferredFunctions.erase(deferredFunctions.begin() + i - 1);
-    }
-}
-
-void citro2d::SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, int screenWidth,
-                         bool canvasActive)
-{
-    C3D_SetScissor(mode, 240 - (scissor.y + scissor.h), screenWidth - (scissor.x + scissor.w),
-                   240 - scissor.y, screenWidth - scissor.x);
-}
-
-void citro2d::SetStencil(GPU_TESTFUNC compare, int value)
-{
-    bool enabled = (compare == GPU_ALWAYS) ? false : true;
-
-    C3D_StencilTest(enabled, compare, value, 0xFFFFFFFF, 0xFFFFFFFF);
-    C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
-}
-
-// Set the global filter mode for textures
-void citro2d::SetTextureFilter(const love::Texture::Filter& filter)
-{
-    GPU_TEXTURE_FILTER_PARAM min =
-        (filter.min == love::Texture::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
-    GPU_TEXTURE_FILTER_PARAM mag =
-        (filter.min == love::Texture::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
-
-    GPU_PROCTEX_FILTER mipFilter = GPU_PT_LINEAR;
-
-    if (filter.mipmap != love::Texture::FILTER_NONE)
-    {
-        if (filter.min == love::Texture::FILTER_NEAREST &&
-            filter.mipmap == love::Texture::FILTER_NEAREST)
-            mipFilter = GPU_PT_NEAREST;
-        else if (filter.min == love::Texture::FILTER_NEAREST &&
-                 filter.mipmap == love::Texture::FILTER_LINEAR)
-            mipFilter = GPU_PT_LINEAR;
-        else if (filter.min == love::Texture::FILTER_LINEAR &&
-                 filter.mipmap == love::Texture::FILTER_NEAREST)
-            mipFilter = GPU_PT_NEAREST;
-        else if (filter.min == love::Texture::FILTER_LINEAR &&
-                 filter.mipmap == love::Texture::FILTER_LINEAR)
-            mipFilter = GPU_PT_LINEAR;
-        else
-            mipFilter = GPU_PT_LINEAR;
-    }
-
-    this->filter.min = min;
-    this->filter.mag = mag;
-
-    this->filter.mipMap = mipFilter;
-}
-
-void citro2d::SetTextureFilter(love::Texture* texture, const love::Texture::Filter& filter)
-{
-    this->SetTextureFilter(filter);
-
-    const C2D_Image& image = texture->GetHandle();
-    C3D_TexSetFilter(image.tex, this->filter.mag, this->filter.min);
-}
-
-void citro2d::SetTextureWrap(const love::Texture::Wrap& wrap)
-{
-    GPU_TEXTURE_WRAP_PARAM u = citro2d::GetCitroWrapMode(wrap.s);
-    GPU_TEXTURE_WRAP_PARAM v = citro2d::GetCitroWrapMode(wrap.t);
-
-    this->wrap.s = u;
-    this->wrap.t = v;
-}
-
-void citro2d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& wrap)
-{
-    this->SetTextureWrap(wrap);
-
-    const C2D_Image& image = texture->GetHandle();
-    C3D_TexSetWrap(image.tex, this->wrap.s, this->wrap.t);
-}
-
-GPU_TEXTURE_FILTER_PARAM citro2d::GetCitroFilterMode(love::Texture::FilterMode mode)
-{
-    switch (mode)
-    {
-        default:
-        case love::Texture::FilterMode::FILTER_LINEAR:
-            return GPU_LINEAR;
-        case love::Texture::FilterMode::FILTER_NEAREST:
-            return GPU_NEAREST;
-    }
-}
-
-citro2d::GPUFilter citro2d::GetCitroFilterMode(const love::Texture::Filter& filter)
-{
-    citro2d::GPUFilter gpuFilter {};
-
-    gpuFilter.mag = citro2d::GetCitroFilterMode(filter.mag);
-    gpuFilter.min = citro2d::GetCitroFilterMode(filter.min);
-
-    return gpuFilter;
-}
-
-GPU_TEXTURE_WRAP_PARAM citro2d::GetCitroWrapMode(love::Texture::WrapMode wrap)
-{
-    switch (wrap)
-    {
-        case love::Texture::WRAP_CLAMP:
-        default:
-            return GPU_CLAMP_TO_EDGE;
-        case love::Texture::WRAP_CLAMP_ZERO:
-            return GPU_CLAMP_TO_BORDER;
-        case love::Texture::WRAP_REPEAT:
-            return GPU_REPEAT;
-        case love::Texture::WRAP_MIRRORED_REPEAT:
-            return GPU_MIRRORED_REPEAT;
-    }
 }
 
 // clang-format off
@@ -286,16 +241,40 @@ constexpr auto blendFactors = BidirectionalMap<>::Create(
     RenderState::BLENDFACTOR_ONE_MINUS_DST_ALPHA, GPU_ONE_MINUS_DST_ALPHA,
     RenderState::BLENDFACTOR_SRC_ALPHA_SATURATED, GPU_SRC_ALPHA_SATURATE
 );
+
+constexpr auto filterModes = BidirectionalMap<>::Create(
+    SamplerState::FILTER_LINEAR,  GPU_LINEAR,
+    SamplerState::FILTER_NEAREST, GPU_NEAREST
+);
+
+constexpr auto wrapModes = BidirectionalMap<>::Create(
+    SamplerState::WRAP_CLAMP,           GPU_CLAMP_TO_EDGE,
+    SamplerState::WRAP_CLAMP_ZERO,      GPU_CLAMP_TO_BORDER,
+    SamplerState::WRAP_REPEAT,          GPU_REPEAT,
+    SamplerState::WRAP_MIRRORED_REPEAT, GPU_MIRRORED_REPEAT
+);
+
+constexpr auto cullModes = BidirectionalMap<>::Create(
+    Vertex::CULL_NONE,  GPU_CULL_NONE,
+    Vertex::CULL_BACK,  GPU_CULL_BACK_CCW,
+    Vertex::CULL_FRONT, GPU_CULL_FRONT_CCW
+);
+
+constexpr auto compareModes = BidirectionalMap<>::Create(
+    RenderState::COMPARE_LESS,     GPU_LESS,
+    RenderState::COMPARE_LEQUAL,   GPU_LEQUAL,
+    RenderState::COMPARE_EQUAL,    GPU_EQUAL,
+    RenderState::COMPARE_GEQUAL,   GPU_GEQUAL,
+    RenderState::COMPARE_GREATER,  GPU_GREATER,
+    RenderState::COMPARE_NOTEQUAL, GPU_NOTEQUAL,
+    RenderState::COMPARE_ALWAYS,   GPU_ALWAYS,
+    RenderState::COMPARE_NEVER,    GPU_NEVER
+);
 // clang-format on
 
 bool citro2d::GetConstant(PixelFormat in, GPU_TEXCOLOR& out)
 {
     return pixelFormats.Find(in, out);
-}
-
-bool citro2d::GetConstant(GPU_TEXCOLOR in, PixelFormat& out)
-{
-    return pixelFormats.ReverseFind(in, out);
 }
 
 bool citro2d::GetConstant(RenderState::BlendOperation in, GPU_BLENDEQUATION& out)
@@ -306,4 +285,24 @@ bool citro2d::GetConstant(RenderState::BlendOperation in, GPU_BLENDEQUATION& out
 bool citro2d::GetConstant(RenderState::BlendFactor in, GPU_BLENDFACTOR& out)
 {
     return blendFactors.Find(in, out);
+}
+
+bool citro2d::GetConstant(SamplerState::FilterMode in, GPU_TEXTURE_FILTER_PARAM& out)
+{
+    return filterModes.Find(in, out);
+}
+
+bool citro2d::GetConstant(SamplerState::WrapMode in, GPU_TEXTURE_WRAP_PARAM& out)
+{
+    return wrapModes.Find(in, out);
+}
+
+bool citro2d::GetConstant(Vertex::CullMode in, GPU_CULLMODE& out)
+{
+    return cullModes.Find(in, out);
+}
+
+bool citro2d::GetConstant(RenderState::CompareMode in, GPU_TESTFUNC& out)
+{
+    return compareModes.Find(in, out);
 }

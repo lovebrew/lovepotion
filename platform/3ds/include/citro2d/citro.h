@@ -1,54 +1,86 @@
 #pragma once
 
 #include "common/lmath.h"
-#include "objects/canvas/canvas.h"
 
 #include <citro2d.h>
 
 #include "common/pixelformat.h"
-#include "common/render/renderstate.h"
-#include "graphics/graphics.h"
+#include "common/render/renderer.h"
 
-class citro2d
+#include <array>
+
+using namespace love;
+
+class citro2d : public Renderer
 {
   private:
     citro2d();
 
+    static constexpr size_t MAX_RENDERTARGETS = 3;
+
+    static constexpr const char* RENDERER_NAME    = "citro3d";
+    static constexpr const char* RENDERER_VERSION = "1.7.0";
+    static constexpr const char* RENDERER_VENDOR  = "devkitPro";
+    static constexpr const char* RENDERER_DEVICE  = "DMP PICA200";
+
+    C2D_ImageTint texForeground;
+
   public:
-    struct GPUFilter
+    static citro2d& Instance()
     {
-        GPU_TEXTURE_FILTER_PARAM min;
-        GPU_TEXTURE_FILTER_PARAM mag;
-
-        GPU_PROCTEX_FILTER mipMap;
+        static citro2d instance;
+        return instance;
     };
-
-    static citro2d& Instance();
 
     ~citro2d();
 
-    void DestroyFramebuffers();
+    virtual void DestroyFramebuffers() override;
 
-    void CreateFramebuffers();
+    virtual void CreateFramebuffers() override;
 
-    void BindFramebuffer(love::Canvas* canvas = nullptr);
+    virtual void Clear(const Colorf& color) override;
 
-    void ClearColor(const Colorf& color);
+    virtual void ClearDepthStencil(int stencil, double depth) override;
 
-    void SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, int screenWidth,
-                    bool canvasActive);
+    virtual void SetBlendColor(const Colorf& color) override;
 
-    void SetStencil(GPU_TESTFUNC compare, int value);
+    virtual void SetBlendMode(const RenderState::BlendState& blend) override;
 
-    void Present();
+    virtual void BindFramebuffer(love::Canvas* canvas = nullptr) override;
 
-    void SetTextureFilter(const love::Texture::Filter& filter);
+    virtual void Present() override;
 
-    void SetTextureFilter(love::Texture* texture, const love::Texture::Filter& filter);
+    virtual void SetViewport(const Rect& viewport) override;
 
-    void SetTextureWrap(const love::Texture::Wrap& wrap);
+    virtual Rect GetViewport() const override;
 
-    void SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& filter);
+    virtual void SetScissor(bool enable, const Rect& scissor, bool canvasActive) override;
+
+    virtual void SetStencil(RenderState::CompareMode mode, int value) override;
+
+    virtual void SetMeshCullMode(Vertex::CullMode mode) override;
+
+    virtual void SetVertexWinding(Vertex::Winding winding) override;
+
+    virtual void SetSamplerState(const SamplerState& state) override;
+
+    virtual void SetColorMask(const RenderState::ColorMask& mask) override;
+
+    /* internal functions */
+
+    static bool GetConstant(PixelFormat in, GPU_TEXCOLOR& out);
+
+    static bool GetConstant(RenderState::BlendOperation in, GPU_BLENDEQUATION& out);
+
+    static bool GetConstant(RenderState::BlendFactor in, GPU_BLENDFACTOR& out);
+
+    static bool GetConstant(SamplerState::FilterMode in, GPU_TEXTURE_FILTER_PARAM& out);
+
+    static bool GetConstant(SamplerState::WrapMode in, GPU_TEXTURE_WRAP_PARAM& out);
+
+    static bool GetConstant(Vertex::CullMode in, GPU_CULLMODE& out);
+
+    static bool GetConstant(RenderState::CompareMode in, GPU_TESTFUNC& out);
 
     template<typename T>
     void ModeChange(const T& func)
@@ -83,38 +115,13 @@ class citro2d
         this->deferredFunctions.emplace_back(std::move(func));
     }
 
-    void SetBlendMode(const love::RenderState::BlendState& blend);
-
-    void SetColorMask(const love::RenderState::ColorMask& mask);
-
-    static GPU_TEXTURE_WRAP_PARAM GetCitroWrapMode(love::Texture::WrapMode wrap);
-
-    static GPU_TEXTURE_FILTER_PARAM GetCitroFilterMode(love::Texture::FilterMode mode);
-
-    static GPUFilter GetCitroFilterMode(const love::Texture::Filter& mode);
-
-    static bool GetConstant(love::PixelFormat in, GPU_TEXCOLOR& out);
-
-    static bool GetConstant(GPU_TEXCOLOR in, love::PixelFormat& out);
-
-    static bool GetConstant(love::RenderState::BlendOperation, GPU_BLENDEQUATION& out);
-
-    static bool GetConstant(love::RenderState::BlendFactor, GPU_BLENDFACTOR& out);
-
   private:
-    GPUFilter filter;
+    void EnsureInFrame();
+
+    virtual void InitRendererInfo() override;
 
     std::vector<std::function<void()>> deferredFunctions;
-    std::vector<C3D_RenderTarget*> targets;
+    std::array<C3D_RenderTarget*, MAX_RENDERTARGETS> targets;
+
     C3D_RenderTarget* current;
-
-    struct
-    {
-        GPU_TEXTURE_WRAP_PARAM s;
-        GPU_TEXTURE_WRAP_PARAM t;
-    } wrap;
-
-    bool inFrame = false;
-
-    void EnsureInFrame();
 };

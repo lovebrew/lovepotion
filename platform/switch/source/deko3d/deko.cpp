@@ -28,16 +28,7 @@ namespace
 deko3d::deko3d() :
     firstVertex(0),
     gpuRenderState(STATE_MAX_ENUM),
-    /*
-    ** Create GPU device
-    ** default origin is top left
-    ** Unique -- destroys automatically
-    */
     device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
-    /*
-    ** Render Queue
-    ** Unique -- destroys automatically
-    */
     queue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
     pool { .images = CMemPool(this->device, gpuFlags, gpuPoolSize),
            .data   = CMemPool(this->device, cpuFlags, cpuPoolSize),
