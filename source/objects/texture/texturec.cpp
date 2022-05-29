@@ -5,17 +5,14 @@ using namespace love::common;
 
 love::Type Texture::type("Texture", &Drawable::type);
 
-Texture::Filter Texture::defaultFilter;
-Texture::FilterMode Texture::defaultMipmapFilter = Texture::FILTER_LINEAR;
-float Texture::defaultMipmapSharpness            = 0.0f;
+float Texture::defaultMipmapSharpness = 0.0f;
 
 Texture::Texture(TextureType texType) :
     texType(texType),
     width(0),
     height(0),
-    filter(defaultFilter),
     mipmapCount(1),
-    wrap()
+    samplerState {}
 {}
 
 Texture::~Texture()
@@ -42,14 +39,17 @@ int Texture::GetHeight(int mip) const
     return std::max(this->height >> mip, 1);
 }
 
-const Texture::Filter& Texture::GetFilter() const
+void Texture::SetSamplerState(const SamplerState& state)
 {
-    return this->filter;
+    this->samplerState = state;
+
+    if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE && this->GetMipmapCount() == 1)
+        this->samplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
 }
 
-const Texture::Wrap& Texture::GetWrap() const
+const love::SamplerState& Texture::GetSamplerState() const
 {
-    return this->wrap;
+    return this->samplerState;
 }
 
 love::Quad* Texture::GetQuad() const
@@ -76,19 +76,6 @@ int Texture::GetTotalMipmapCount(int width, int height, int depth)
 constexpr auto texTypes = BidirectionalMap<>::Create(
     "2d", Texture::TextureType::TEXTURE_2D
 );
-
-constexpr auto filterModes = BidirectionalMap<>::Create(
-    "none",    Texture::FilterMode::FILTER_NONE,
-    "linear",  Texture::FilterMode::FILTER_LINEAR,
-    "nearest", Texture::FilterMode::FILTER_NEAREST
-);
-
-constexpr auto wrapModes = BidirectionalMap<>::Create(
-    "clamp",          Texture::WrapMode::WRAP_CLAMP,
-    "repeat",         Texture::WrapMode::WRAP_REPEAT,
-    "clampzero",      Texture::WrapMode::WRAP_CLAMP_ZERO,
-    "mirroredrepeat", Texture::WrapMode::WRAP_MIRRORED_REPEAT
-);
 // clang-format on
 
 bool Texture::GetConstant(const char* in, TextureType& out)
@@ -104,34 +91,4 @@ bool Texture::GetConstant(TextureType in, const char*& out)
 std::vector<const char*> Texture::GetConstants(Texture::TextureType)
 {
     return texTypes.GetNames();
-}
-
-bool Texture::GetConstant(const char* in, FilterMode& out)
-{
-    return filterModes.Find(in, out);
-}
-
-bool Texture::GetConstant(FilterMode in, const char*& out)
-{
-    return filterModes.ReverseFind(in, out);
-}
-
-std::vector<const char*> Texture::GetConstants(Texture::FilterMode)
-{
-    return filterModes.GetNames();
-}
-
-bool Texture::GetConstant(const char* in, WrapMode& out)
-{
-    return wrapModes.Find(in, out);
-}
-
-bool Texture::GetConstant(WrapMode in, const char*& out)
-{
-    return wrapModes.ReverseFind(in, out);
-}
-
-std::vector<const char*> Texture::GetConstants(Texture::WrapMode)
-{
-    return wrapModes.GetNames();
 }

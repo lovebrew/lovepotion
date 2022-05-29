@@ -88,14 +88,6 @@ namespace love
             LINE_JOIN_MAX_ENUM
         };
 
-        struct RendererInfo
-        {
-            std::string name;
-            std::string version;
-            std::string vendor;
-            std::string device;
-        };
-
         enum StackType
         {
             STACK_ALL,
