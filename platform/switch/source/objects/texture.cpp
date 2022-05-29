@@ -51,8 +51,8 @@ void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransfor
     Matrix4 t(tm, localTransform);
 
     /* zero out a new vertex data thing */
-    vertex::Vertex vertexData[TEXTURE_QUAD_POINT_COUNT];
-    std::fill_n(vertexData, TEXTURE_QUAD_POINT_COUNT, vertex::Vertex {});
+    vertex::PrimitiveVertex vertexData[TEXTURE_QUAD_POINT_COUNT];
+    std::fill_n(vertexData, TEXTURE_QUAD_POINT_COUNT, vertex::PrimitiveVertex {});
 
     Vector2 transformed[TEXTURE_QUAD_POINT_COUNT];
     std::fill_n(transformed, TEXTURE_QUAD_POINT_COUNT, Vector2 {});

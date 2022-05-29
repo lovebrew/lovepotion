@@ -6,7 +6,7 @@
 #include <citro2d.h>
 
 #include "common/pixelformat.h"
-#include "common/renderstate.h"
+#include "common/render/renderstate.h"
 #include "graphics/graphics.h"
 
 class citro2d

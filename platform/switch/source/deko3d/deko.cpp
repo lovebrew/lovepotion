@@ -291,7 +291,7 @@ void deko3d::BeginFrame()
 {
     std::pair<void*, DkGpuAddr> data = this->vtxRing.begin();
 
-    this->vertexData = (vertex::Vertex*)data.first;
+    this->vertexData = (vertex::PrimitiveVertex*)data.first;
 
     this->cmdBuf.bindRasterizerState(this->state.rasterizer);
     this->cmdBuf.bindColorState(this->state.color);
@@ -369,7 +369,8 @@ DkResHandle deko3d::RegisterResHandle(const dk::ImageDescriptor& descriptor)
     return dkMakeTextureHandle(index, index);
 }
 
-bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* points, size_t count)
+bool deko3d::RenderTexture(const DkResHandle handle, const vertex::PrimitiveVertex* points,
+                           size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
@@ -384,7 +385,7 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* point
 
     this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
 
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
 
     this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
 
@@ -393,7 +394,8 @@ bool deko3d::RenderTexture(const DkResHandle handle, const vertex::Vertex* point
     return true;
 }
 
-bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::Vertex* points, size_t count)
+bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::PrimitiveVertex* points,
+                         size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
@@ -408,7 +410,7 @@ bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::Vertex* poi
 
     this->cmdBuf.bindTextures(DkStage_Fragment, 0, { handles[0], handles[1], handles[2] });
 
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
 
     this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
 
@@ -417,14 +419,14 @@ bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::Vertex* poi
     return true;
 }
 
-bool deko3d::RenderPolyline(DkPrimitive mode, const vertex::Vertex* points, size_t count)
+bool deko3d::RenderPolyline(DkPrimitive mode, const vertex::PrimitiveVertex* points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
 
     this->cmdBuf.draw(mode, count, 1, this->firstVertex, 0);
 
@@ -433,14 +435,14 @@ bool deko3d::RenderPolyline(DkPrimitive mode, const vertex::Vertex* points, size
     return true;
 }
 
-bool deko3d::RenderPolygon(const vertex::Vertex* points, size_t count)
+bool deko3d::RenderPolygon(const vertex::PrimitiveVertex* points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
 
     this->cmdBuf.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
 
@@ -449,14 +451,14 @@ bool deko3d::RenderPolygon(const vertex::Vertex* points, size_t count)
     return true;
 }
 
-bool deko3d::RenderPoints(const vertex::Vertex* points, size_t count)
+bool deko3d::RenderPoints(const vertex::PrimitiveVertex* points, size_t count)
 {
     if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
         return false;
 
     this->EnsureInState(STATE_PRIMITIVE);
 
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::Vertex));
+    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
 
     this->cmdBuf.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
 

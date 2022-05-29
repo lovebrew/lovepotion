@@ -18,6 +18,6 @@ namespace love
         void Update() override;
 
       private:
-        vertex::Vertex vertices[4];
+        vertex::PrimitiveVertex vertices[4];
     };
 } // namespace love

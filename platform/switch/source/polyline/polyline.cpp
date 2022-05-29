@@ -77,7 +77,7 @@ void Polyline::Render(const Vector2* coords, size_t count, size_t sizeHint, floa
     {
         this->CalculateOverdrawVertexCount(isLooping);
 
-        if (this->triangleIndexMode == vertex::TriangleIndexMode::STRIP)
+        if (this->triangleIndexMode == vertex::TriangleIndexMode::TRIANGLE_STRIP)
             extraVertices = 2;
     }
 
@@ -168,7 +168,7 @@ void Polyline::Draw(Graphics* graphics)
     int maxVertices = std::numeric_limits<uint16_t>::max() - 3;
     int advance     = maxVertices;
 
-    if (this->triangleIndexMode == vertex::TriangleIndexMode::STRIP)
+    if (this->triangleIndexMode == vertex::TriangleIndexMode::TRIANGLE_STRIP)
         advance -= 2;
 
     for (int vertexStart = 0; vertexStart < totalVertexCount; vertexStart += advance)

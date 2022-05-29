@@ -15,8 +15,6 @@ namespace love::citro2d
     class Graphics : public love::Graphics
     {
       public:
-        Graphics();
-
         RendererInfo GetRendererInfo() const override;
 
         void Clear(std::optional<Colorf> color, std::optional<int> stencil,

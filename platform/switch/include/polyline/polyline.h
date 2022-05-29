@@ -14,7 +14,7 @@ namespace love
     class Polyline
     {
       public:
-        Polyline(vertex::TriangleIndexMode mode = vertex::TriangleIndexMode::STRIP) :
+        Polyline(vertex::TriangleIndexMode mode = vertex::TriangleIndexMode::TRIANGLE_STRIP) :
             vertices(nullptr),
             overdraw(nullptr),
             vertexCount(0),

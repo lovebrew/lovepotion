@@ -76,6 +76,8 @@ Graphics::Graphics() : width(0), height(0), active(true), created(false)
     this->states.reserve(10);
     this->states.push_back(DisplayState());
 
+    this->RestoreState(this->states.back());
+
     this->transformStack.reserve(16);
     this->transformStack.push_back(Matrix4());
 

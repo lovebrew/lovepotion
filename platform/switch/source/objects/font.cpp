@@ -677,7 +677,8 @@ void Font::PrintV(Graphics* gfx, const Matrix4& t, const std::vector<DrawCommand
         memcpy(vertexData, &vertices[cmd.startVertex], sizeof(GlyphVertex) * cmd.vertexCount);
         m.TransformXY(vertexData, &vertices[cmd.startVertex], cmd.vertexCount);
 
-        std::vector<Vertex> verts = vertex::GenerateTextureFromGlyphs(vertexData, cmd.vertexCount);
+        std::vector<PrimitiveVertex> verts =
+            vertex::GenerateTextureFromGlyphs(vertexData, cmd.vertexCount);
 
         ::deko3d::Instance().RenderTexture(cmd.texture->GetHandle(), verts.data(), cmd.vertexCount);
     }

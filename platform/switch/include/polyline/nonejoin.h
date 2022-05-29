@@ -11,7 +11,7 @@ namespace love
     class NoneJoinPolyline : public Polyline
     {
       public:
-        NoneJoinPolyline() : Polyline(vertex::TriangleIndexMode::QUADS)
+        NoneJoinPolyline() : Polyline(vertex::TriangleIndexMode::TRIANGLE_QUADS)
         {
             this->triangleMode = DkPrimitive_Quads;
         }

@@ -7,7 +7,7 @@
 
 #include "common/colors.h"
 #include "common/module.h"
-#include "common/renderstate.h"
+#include "common/render/renderstate.h"
 #include "common/screen.h"
 #include "common/vector.h"
 

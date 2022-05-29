@@ -7,13 +7,6 @@ using namespace love;
 
 love::deko3d::Graphics::Graphics()
 {
-    /* quick hax */
-
-    this->width  = 1280;
-    this->height = 720;
-
-    this->RestoreState(this->states.back());
-
     try
     {
         for (int i = 0; i < Shader::STANDARD_MAX_ENUM; i++)

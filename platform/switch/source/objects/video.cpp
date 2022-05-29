@@ -10,7 +10,7 @@ using namespace love;
 Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
     common::Video(graphics, stream, dpiScale)
 {
-    std::fill_n(this->vertices, 4, vertex::Vertex {});
+    std::fill_n(this->vertices, 4, vertex::PrimitiveVertex {});
 
     this->vertices[0] = { .position = { 0, 0 }, .color = { 1, 1, 1, 1 }, .texcoord = { 0, 0 } };
 
@@ -91,8 +91,8 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
 
     Matrix4 t(tm, localTransform);
 
-    vertex::Vertex vertexData[4];
-    std::fill_n(vertexData, 4, vertex::Vertex {});
+    vertex::PrimitiveVertex vertexData[4];
+    std::fill_n(vertexData, 4, vertex::PrimitiveVertex {});
 
     Vector2 transformed[4];
     std::fill_n(transformed, 4, Vector2 {});

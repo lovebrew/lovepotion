@@ -8,11 +8,6 @@ using namespace love;
 #define TRANSPARENCY       C2D_Color32(0, 0, 0, 1)
 #define TRANSPARENCY_DEBUG C2D_Color32(255, 0, 0, 96)
 
-love::citro2d::Graphics::Graphics()
-{
-    this->RestoreState(this->states.back());
-}
-
 void love::citro2d::Graphics::Set3D(bool enabled)
 {
     ::citro2d::Instance().Set3D(enabled);

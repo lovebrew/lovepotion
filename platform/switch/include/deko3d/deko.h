@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/bitalloc.h"
-#include "common/renderstate.h"
+#include "common/render/renderstate.h"
 
 #include "deko3d/CCmdMemRing.h"
 #include "deko3d/CCmdVtxRing.h"
@@ -145,17 +145,19 @@ class deko3d
 
     void UnRegisterResHandle(DkResHandle handle);
 
-    bool RenderTexture(const DkResHandle handle, const vertex::Vertex* points, size_t count);
+    bool RenderTexture(const DkResHandle handle, const vertex::PrimitiveVertex* points,
+                       size_t count);
 
-    bool RenderVideo(const DkResHandle handles[3], const vertex::Vertex* points, size_t count);
+    bool RenderVideo(const DkResHandle handles[3], const vertex::PrimitiveVertex* points,
+                     size_t count);
 
     /* Primitives Rendering */
 
-    bool RenderPolygon(const vertex::Vertex* points, size_t count);
+    bool RenderPolygon(const vertex::PrimitiveVertex* points, size_t count);
 
-    bool RenderPolyline(DkPrimitive mode, const vertex::Vertex* points, size_t count);
+    bool RenderPolyline(DkPrimitive mode, const vertex::PrimitiveVertex* points, size_t count);
 
-    bool RenderPoints(const vertex::Vertex* points, size_t count);
+    bool RenderPoints(const vertex::PrimitiveVertex* points, size_t count);
 
     static DkWrapMode GetDekoWrapMode(love::Texture::WrapMode wrap);
 
@@ -170,7 +172,7 @@ class deko3d
     void SetDekoBarrier(DkBarrier barrier, uint32_t flags);
 
   private:
-    vertex::Vertex* vertexData;
+    vertex::PrimitiveVertex* vertexData;
 
     uint32_t firstVertex = 0;
     BitwiseAlloc<MAX_OBJECTS> allocator;
