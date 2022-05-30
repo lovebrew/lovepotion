@@ -8,15 +8,6 @@
 
 #include "objects/bcfntrasterizer/bcfntrasterizer.h"
 
-enum class love::common::Font::SystemFontType : uint8_t
-{
-    TYPE_STANDARD  = CFG_REGION_USA,
-    TYPE_CHINESE   = CFG_REGION_CHN,
-    TYPE_TAIWANESE = CFG_REGION_TWN,
-    TYPE_KOREAN    = CFG_REGION_KOR,
-    TYPE_MAX_ENUM
-};
-
 namespace love
 {
     class Font : public love::common::Font
@@ -24,7 +15,16 @@ namespace love
       public:
         static constexpr int FONT_BUFFER_SIZE = 0x200;
 
-        Font(Rasterizer* r, const Texture::Filter& filter);
+        enum class SystemFontType : uint8_t
+        {
+            TYPE_STANDARD  = CFG_REGION_USA,
+            TYPE_CHINESE   = CFG_REGION_CHN,
+            TYPE_TAIWANESE = CFG_REGION_TWN,
+            TYPE_KOREAN    = CFG_REGION_KOR,
+            TYPE_MAX_ENUM
+        };
+
+        Font(Rasterizer* rasterizer, const SamplerState& state);
 
         virtual ~Font();
 
@@ -39,9 +39,7 @@ namespace love
         void GetWrap(const std::vector<ColoredString>& text, float wraplimit,
                      std::vector<std::string>& lines, std::vector<int>* lineWidths = nullptr);
 
-        using love::common::Font::GetFilter;
-
-        void SetFilter(const Texture::Filter& filter) override;
+        void SetSamplerState(const SamplerState& state) override;
 
         float GetKerning(uint32_t leftGlyph, uint32_t rightGlyph) override;
 
@@ -69,8 +67,11 @@ namespace love
 
         float GetScale() const;
 
+        static bool GetConstant(const char* in, SystemFontType& out);
+        static bool GetConstant(SystemFontType in, const char*& out);
+        static std::vector<const char*> GetConstants(SystemFontType);
+
       private:
-        StrongReference<Rasterizer> rasterizer;
         C2D_TextBuf buffer;
 
         std::unordered_map<uint32_t, float> glyphWidths;

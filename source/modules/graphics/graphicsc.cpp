@@ -6,16 +6,6 @@
 
 using namespace love;
 
-// clang-format off
-#if defined(__3DS__)
-    #include "citro2d/citro.h"
-    static auto renderer = ::citro2d::Instance;
-#elif defined(__SWITCH__)
-    #include "deko3d/deko.h"
-    static auto renderer = ::deko3d::Instance;
-#endif
-// clang-format on
-
 /* Gamma Correction */
 
 bool Graphics::gammaCorrectColor = false;
@@ -69,9 +59,11 @@ Colorf Graphics::UnGammaCorrectColor(const Colorf& c)
 /* End */
 
 Graphics::DisplayState::DisplayState()
-{}
+{
+    this->defaultSamplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_LINEAR;
+}
 
-Graphics::Graphics() : width(0), height(0), active(true), created(false)
+Graphics::Graphics() : active(true), created(false)
 {
     this->states.reserve(10);
     this->states.push_back(DisplayState());
@@ -103,6 +95,7 @@ Graphics::Graphics() : width(0), height(0), active(true), created(false)
 Graphics::~Graphics()
 {
     this->states.clear();
+
     this->defaultFont.Set(nullptr);
 }
 
@@ -120,9 +113,6 @@ bool Graphics::IsActive() const
 
 bool Graphics::SetMode(int width, int height)
 {
-    this->width  = width;
-    this->height = height;
-
     this->created = true;
 
     return true;
@@ -233,15 +223,14 @@ bool Graphics::GetScissor(Rect& scissor) const
     return state.scissor;
 }
 
-void Graphics::SetDefaultFilter(const Texture::Filter& filter)
+void Graphics::SetDefaultSamplerState(const SamplerState& state)
 {
-    Texture::defaultFilter            = filter;
-    this->states.back().defaultFilter = filter;
+    this->states.back().defaultSamplerState = state;
 }
 
-const Texture::Filter& Graphics::GetDefaultFilter() const
+const SamplerState& Graphics::GetDefaultSamplerState() const
 {
-    return Texture::defaultFilter;
+    return this->states.back().defaultSamplerState;
 }
 
 void Graphics::Origin()
@@ -439,18 +428,16 @@ void Graphics::RestoreState(const DisplayState& state)
     else
         this->SetScissor();
 
-#if defined(__SWITCH__)
-    this->SetMeshCullMode(state.meshCullMode);
+    this->SetMeshCullMode(state.cullMode);
     this->SetFrontFaceWinding(state.winding);
 
     this->SetShader(state.shader.Get());
-#endif
 
     this->SetFont(state.font.Get());
 
     this->SetColorMask(state.colorMask);
     this->SetCanvas(state.canvas.Get());
-    this->SetDefaultFilter(state.defaultFilter);
+    this->SetDefaultSamplerState(state.defaultSamplerState);
 }
 
 RenderState::BlendMode Graphics::GetBlendMode(RenderState::BlendAlpha& alphaMode)
@@ -466,7 +453,7 @@ const RenderState::BlendState& Graphics::GetBlendState() const
 void Graphics::SetBlendState(const RenderState::BlendState& blend)
 {
     if (blend.enabled)
-        renderer().SetBlendMode(blend);
+        Graphics::Renderer().SetBlendMode(blend);
 
     this->states.back().blend = blend;
 }
@@ -500,14 +487,13 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
             this->SetScissor();
     }
 
-#if defined(__SWITCH__)
-    this->SetMeshCullMode(state.meshCullMode);
+    if (state.cullMode != current.cullMode)
+        this->SetMeshCullMode(state.cullMode);
 
     if (state.winding != current.winding)
         this->SetFrontFaceWinding(state.winding);
 
     this->SetShader(state.shader.Get());
-#endif
 
     this->SetFont(state.font.Get());
 
@@ -517,8 +503,7 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
     if (state.canvas.Get() != current.canvas.Get())
         this->SetCanvas(state.canvas.Get());
 
-    this->SetDefaultFilter(state.defaultFilter);
-    this->SetDefaultMipmapFilter(state.defaultMipmapFilter, state.defaultMipmapSharpness);
+    this->SetDefaultSamplerState(state.defaultSamplerState);
 }
 
 Canvas* Graphics::GetCanvas() const
@@ -533,17 +518,8 @@ RenderState::ColorMask Graphics::GetColorMask() const
 
 void Graphics::SetColorMask(const RenderState::ColorMask& mask)
 {
-    renderer().SetColorMask(mask);
+    Graphics::Renderer().SetColorMask(mask);
     this->states.back().colorMask = mask;
-}
-
-void Graphics::SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness)
-{
-    Texture::defaultMipmapFilter    = filter;
-    Texture::defaultMipmapSharpness = sharpness;
-
-    this->states.back().defaultMipmapFilter    = filter;
-    this->states.back().defaultMipmapSharpness = sharpness;
 }
 
 void Graphics::IntersectScissor(const Rect& rect)

@@ -26,7 +26,6 @@ namespace love::common
         };
 
         static love::Type type;
-        static float defaultMipmapSharpness;
 
         Texture(TextureType texType);
         virtual ~Texture();
@@ -43,7 +42,7 @@ namespace love::common
 
         int GetMipmapCount() const;
 
-        void SetSamplerState(const SamplerState& state);
+        virtual void SetSamplerState(const SamplerState& state) = 0;
 
         const SamplerState& GetSamplerState() const;
 

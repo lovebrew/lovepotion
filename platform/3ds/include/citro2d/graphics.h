@@ -10,23 +10,6 @@ namespace love::citro2d
     class Graphics : public love::Graphics
     {
       public:
-        RendererInfo GetRendererInfo() const override;
-
-        void Clear(std::optional<Colorf> color, std::optional<int> stencil,
-                   std::optional<double> depth) override;
-
-        void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
-                   std::optional<double> depth) override;
-
-        void Present() override;
-
-        void SetColor(Colorf color) override;
-
-        Font* NewDefaultFont(int size, const Texture::Filter& filter) override;
-
-        Font* NewFont(Rasterizer* rasterizer,
-                      const Texture::Filter& filter = Texture::defaultFilter) override;
-
         /* Primitives */
 
         void Polygon(DrawMode mode, const Vector2* points, size_t count) override;

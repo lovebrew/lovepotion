@@ -60,9 +60,10 @@ class citro2d : public Renderer
 
     virtual void SetMeshCullMode(Vertex::CullMode mode) override;
 
+    /* winding is only ccw, but can be changed by inverting mesh cull */
     virtual void SetVertexWinding(Vertex::Winding winding) override;
 
-    virtual void SetSamplerState(const SamplerState& state) override;
+    virtual void SetSamplerState(love::Texture* texture, SamplerState& state) override;
 
     virtual void SetColorMask(const RenderState::ColorMask& mask) override;
 

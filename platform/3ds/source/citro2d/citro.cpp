@@ -8,6 +8,7 @@
 #include "modules/graphics/graphics.h"
 
 #include "objects/canvas/canvas.h"
+#include "objects/texture/texture.h"
 
 using namespace love;
 
@@ -138,8 +139,8 @@ void citro2d::SetScissor(bool enable, const Rect& scissor, bool canvasActive)
 
     size_t width = Screen::Instance().GetWidth(Graphics::ACTIVE_SCREEN);
 
-    C3D_SetScissor(mode, 240 - (scissor.y + scissor.h), screenWidth - (scissor.x + scissor.w),
-                   240 - scissor.y, screenWidth - scissor.x);
+    C3D_SetScissor(mode, 240 - (scissor.y + scissor.h), width - (scissor.x + scissor.w),
+                   240 - scissor.y, width - scissor.x);
 }
 
 void citro2d::SetStencil(RenderState::CompareMode compare, int value)
@@ -165,7 +166,7 @@ void citro2d::SetMeshCullMode(Vertex::CullMode mode)
 void citro2d::SetVertexWinding(Vertex::Winding winding)
 {}
 
-void citro2d::SetSamplerState(const SamplerState& state)
+void citro2d::SetSamplerState(Texture* texture, SamplerState& state)
 {
     GPU_TEXTURE_FILTER_PARAM min;
     ::citro2d::GetConstant(state.minFilter, min);
@@ -173,8 +174,48 @@ void citro2d::SetSamplerState(const SamplerState& state)
     GPU_TEXTURE_FILTER_PARAM mag;
     ::citro2d::GetConstant(state.magFilter, mag);
 
+    GPU_TEXTURE_FILTER_PARAM mipFilter;
+
     if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE)
-    {}
+    {
+        if (state.minFilter == SamplerState::FILTER_NEAREST &&
+            state.mipmapFilter == SamplerState::MIPMAP_FILTER_NEAREST)
+        {
+            mipFilter = GPU_NEAREST;
+        }
+        else if (state.minFilter == SamplerState::FILTER_NEAREST &&
+                 state.mipmapFilter == SamplerState::MIPMAP_FILTER_LINEAR)
+        {
+            mipFilter = GPU_LINEAR;
+        }
+        else if (state.magFilter == SamplerState::FILTER_LINEAR &&
+                 state.mipmapFilter == SamplerState::MIPMAP_FILTER_NEAREST)
+        {
+            mipFilter = GPU_NEAREST;
+        }
+        else if (state.magFilter == SamplerState::FILTER_LINEAR &&
+                 state.mipmapFilter == SamplerState::MIPMAP_FILTER_LINEAR)
+        {
+            mipFilter = GPU_LINEAR;
+        }
+    }
+
+    C3D_TexSetFilter(texture->GetHandle().tex, mag, min);
+    C3D_TexSetFilterMipmap(texture->GetHandle().tex, mipFilter);
+
+    if (SamplerState::IsClampZeroOrOne(state.wrapU))
+        state.wrapU = SamplerState::WRAP_CLAMP;
+
+    if (SamplerState::IsClampZeroOrOne(state.wrapV))
+        state.wrapV = SamplerState::WRAP_CLAMP;
+
+    GPU_TEXTURE_WRAP_PARAM wrapU;
+    citro2d::GetConstant(state.wrapU, wrapU);
+
+    GPU_TEXTURE_WRAP_PARAM wrapV;
+    citro2d::GetConstant(state.wrapV, wrapV);
+
+    C3D_TexSetWrap(texture->GetHandle().tex, wrapU, wrapV);
 }
 
 void citro2d::SetColorMask(const RenderState::ColorMask& mask)

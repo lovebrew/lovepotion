@@ -3,103 +3,14 @@
 #include "citro2d/graphics.h"
 #include "common/bidirectionalmap.h"
 
+#define TRANSPARENCY C2D_Color32(0, 0, 0, 1)
+
 using namespace love;
 
-#define TRANSPARENCY       C2D_Color32(0, 0, 0, 1)
-#define TRANSPARENCY_DEBUG C2D_Color32(255, 0, 0, 96)
-
-void love::citro2d::Graphics::Set3D(bool enabled)
-{
-    ::citro2d::Instance().Set3D(enabled);
-}
-
-const bool love::citro2d::Graphics::Get3D() const
-{
-    return ::citro2d::Instance().Get3D();
-}
-
-void love::citro2d::Graphics::SetWide(bool enabled)
-{
-    ::citro2d::Instance().SetWideMode(enabled);
-}
-
-const bool love::citro2d::Graphics::GetWide() const
-{
-    return ::citro2d::Instance().GetWide();
-}
-
-void love::citro2d::Graphics::Clear(std::optional<Colorf> color, std::optional<int> stencil,
-                                    std::optional<double> depth)
-{
-    if (!this->IsCanvasActive())
-        ::citro2d::Instance().BindFramebuffer();
-
-    if (color.has_value())
-    {
-        Graphics::GammaCorrectColor(color.value());
-        ::citro2d::Instance().ClearColor(color.value());
-    }
-}
-
-void love::citro2d::Graphics::Clear(std::vector<std::optional<Colorf>>& colors,
-                                    std::optional<int> stencil, std::optional<double> depth)
-{
-    int numColors = colors.size();
-
-    if (numColors == 0 || !stencil.has_value() || !depth.has_value())
-        return;
-
-    if (numColors <= 1)
-        this->Clear(numColors > 0 ? colors[0] : std::optional<Colorf>(), stencil, depth);
-}
-
-void love::citro2d::Graphics::Present()
-{
-    if (this->IsCanvasActive())
-        throw love::Exception("present cannot be called while a Canvas is active.");
-
-    ::citro2d::Instance().Present();
-}
-
-/* Keep out from common */
-void Graphics::SetCanvas(Canvas* canvas)
-{
-    DisplayState& state = this->states.back();
-    state.canvas.Set(canvas);
-
-    ::citro2d::Instance().BindFramebuffer(canvas);
-
-    if (this->states.back().scissor)
-        this->SetScissor(this->states.back().scissorRect);
-}
-
-void love::citro2d::Graphics::SetColor(Colorf color)
-{
-    this->states.back().foreground = color;
-}
-
-Font* love::citro2d::Graphics::NewDefaultFont(int size, const Texture::Filter& filter)
-{
-    auto fontModule = Module::GetInstance<FontModule>(M_FONT);
-    if (!fontModule)
-        throw love::Exception("Font module has not been loaded.");
-
-    StrongReference<Rasterizer> r(fontModule->NewBCFNTRasterizer(size), Acquire::NORETAIN);
-
-    return new Font(r.Get(), filter);
-}
-
-Font* love::citro2d::Graphics::NewFont(Rasterizer* rasterizer, const Texture::Filter& filter)
-{
-    return new Font(rasterizer, filter);
-}
-
-/* Primitives */
-
 inline const auto normalizeAngle = [](float angle) {
-    angle = fmodf(angle, M_TAU);
+    angle = fmodf(angle, LOVE_M_TAU);
     if (angle < 0)
-        angle += M_TAU;
+        angle += LOVE_M_TAU;
 
     return angle;
 };
@@ -118,12 +29,12 @@ inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count,
         const float phi   = normalizeAngle(atan2f(middle.y - before.y, middle.x - before.x));
 
         const float angleWithinPolygon   = normalizeAngle(phi - theta);
-        const float angleOfRightTriangle = (M_PI - angleWithinPolygon) / 2;
+        const float angleOfRightTriangle = (LOVE_M_PI - angleWithinPolygon) / 2;
 
         const float lengthOfKite = lineWidth * (1 / cosf(angleOfRightTriangle));
 
-        const float offsetX = cosf(theta + (M_PI_2 - angleOfRightTriangle)) * lengthOfKite;
-        const float offsetY = sinf(theta + (M_PI_2 - angleOfRightTriangle)) * lengthOfKite;
+        const float offsetX = cosf(theta + (LOVE_M_2_PI - angleOfRightTriangle)) * lengthOfKite;
+        const float offsetY = sinf(theta + (LOVE_M_2_PI - angleOfRightTriangle)) * lengthOfKite;
 
         innerPoints[startPoint] = Vector2(middle.x - offsetX, middle.y - offsetY);
     }
@@ -131,384 +42,376 @@ inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count,
     return innerPoints;
 }
 
-void love::citro2d::Graphics::SetPointSize(float size)
+namespace love
 {
-    this->states.back().pointSize = size;
-}
-
-void love::citro2d::Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,
-                                     size_t colorCount)
-{
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
-
-    for (size_t index = 0; index < count; index++)
+    Renderer& Graphics::Renderer()
     {
-        Colorf color        = colors[0];
-        const Vector2 point = points[index];
-
-        if (index < colorCount)
-            color = colors[index];
-
-        u32 pointColor = C2D_Color32f(color.r, color.g, color.b, color.a);
-        C2D_DrawCircleSolid(point.x, point.y, Graphics::CURRENT_DEPTH,
-                            this->states.back().pointSize, pointColor);
-    }
-}
-
-void love::citro2d::Graphics::Polyfill(const Vector2* points, size_t count, u32 color, float depth)
-{
-    for (size_t currentPoint = 2; currentPoint < count; currentPoint++)
-    {
-        C2D_DrawTriangle(points[0].x, points[0].y, color, points[currentPoint - 1].x,
-                         points[currentPoint - 1].y, color, points[currentPoint].x,
-                         points[currentPoint].y, color, depth);
-    }
-}
-
-void love::citro2d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count)
-{
-    Colorf color   = this->GetColor();
-    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
-
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
-
-    if (mode == DRAW_LINE)
-        this->Polyline(points, count);
-    else
-        this->Polyfill(points, count, foreground, Graphics::CURRENT_DEPTH);
-}
-
-void love::citro2d::Graphics::Polyline(const Vector2* points, size_t count)
-{
-    // Generate the outline and draw it
-    std::vector<Vector2> outline = GenerateOutline(points, count, this->states.back().lineWidth);
-    this->Polyfill(outline.data(), outline.size(), TRANSPARENCY,
-                   Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
-
-    // Draw our filled polygon
-    this->Polygon(DRAW_FILL, points, count);
-
-    Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
-}
-
-void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
-{
-    Vector2 points[4] = {
-        { x, y }, { x + width, y }, { x + width, y + height }, { x, y + height }
-    };
-
-    this->Polygon(mode, points, 4);
-}
-
-void love::citro2d::Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
-                                        float rx, float ry)
-{
-    if (rx == 0 && ry == 0)
-    {
-        this->Rectangle(mode, x, y, width, height);
-        return;
+        return ::citro2d::Instance();
     }
 
-    Colorf color   = this->GetColor();
-    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
-
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
-
-    /* Offset the radii *properly* */
-    Vector2 offset(x + rx, y + ry);
-    Vector2 size(rx * 2, ry * 2);
-
-    /*
-    ** Ellipse Drawing Order
-    ** 1 - 4
-    ** |   |
-    ** 2 - 3
-    */
-
-    if (mode == DRAW_FILL)
+    namespace citro2d
     {
-        /* Draw Ellipses first on Fill mode */
-
-        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
-                             size.y, foreground);
-
-        C2D_DrawEllipseSolid(x, y + (height - size.y),
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x, size.y,
-                             foreground);
-
-        C2D_DrawEllipseSolid(x + (width - size.x), y + (height - size.y),
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x, size.y,
-                             foreground);
-
-        C2D_DrawEllipseSolid(x + (width - size.x), y,
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x, size.y,
-                             foreground);
-
-        /* Draw Rectangles */
-
-        C2D_DrawRectSolid(offset.x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                          width - size.x, height, foreground);
-
-        C2D_DrawRectSolid(x, offset.y, Graphics::CURRENT_DEPTH, width, height - size.y, foreground);
-
-        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH * 2;
-    }
-    else
-    {
-        float& lineWidth = this->states.back().lineWidth;
-
-        Vector2 innerDiameter((rx - lineWidth) * 2, (ry - lineWidth) * 2);
-        if (innerDiameter.x <= 0 || innerDiameter.y <= 0)
+        void Graphics::Set3D(bool enabled)
         {
-            innerDiameter.x = 0;
-            innerDiameter.y = 0;
+            ::citro2d::Instance().Set3D(enabled);
         }
 
-        /* normal rect offset + line width */
-        Vector2 lineOffset((x + rx) + lineWidth, (y + ry) + lineWidth);
-
-        /* normal radii size - line width */
-        Vector2 lineSize((rx * 2) - lineWidth, (ry * 2) - lineWidth);
-
-        /* normal radii pos + line width */
-        Vector2 linePos(x + lineWidth, y + lineWidth);
-
-        /* normal rect size - line width */
-        Vector2 rectSize(width - (lineWidth * 2), height - (lineWidth * 2));
-
-        /* Transparent rectangles first */
-
-        C2D_DrawRectSolid(x + innerDiameter.x / 2 + lineWidth, y + lineWidth,
-                          Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
-                          width - (lineWidth * 2 + innerDiameter.x), height - lineWidth * 2,
-                          TRANSPARENCY);
-
-        C2D_DrawRectSolid(x + lineWidth, y + innerDiameter.y / 2 + lineWidth,
-                          Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
-                          width - (lineWidth * 2), height - (lineWidth * 2 + innerDiameter.y),
-                          TRANSPARENCY);
-
-        /* Transparent ellipses second, if they aren't nonexistent */
-
-        if (innerDiameter.x > 0 && innerDiameter.y > 0)
+        const bool Graphics::Get3D() const
         {
-            C2D_DrawEllipseSolid(x + lineWidth, y + lineWidth,
-                                 Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3, innerDiameter.x,
-                                 innerDiameter.y, TRANSPARENCY);
-
-            C2D_DrawEllipseSolid(x + lineWidth, y + height - ry - innerDiameter.y / 2,
-                                 Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3, innerDiameter.x,
-                                 innerDiameter.y, TRANSPARENCY);
-
-            C2D_DrawEllipseSolid(x + width - rx - innerDiameter.x / 2,
-                                 y + height - ry - innerDiameter.y / 2,
-                                 Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3, innerDiameter.x,
-                                 innerDiameter.y, TRANSPARENCY);
-
-            C2D_DrawEllipseSolid(x + width - rx - innerDiameter.x / 2, y + lineWidth,
-                                 Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3, innerDiameter.x,
-                                 innerDiameter.y, TRANSPARENCY);
+            return ::citro2d::Instance().Get3D();
         }
 
-        /* Solid stuff  -- Start with ellipses */
+        void Graphics::SetWide(bool enabled)
+        {
+            ::citro2d::Instance().SetWideMode(enabled);
+        }
 
-        C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
-                             size.y, foreground);
+        const bool Graphics::GetWide() const
+        {
+            return ::citro2d::Instance().GetWide();
+        }
 
-        C2D_DrawEllipseSolid(x, y + (height - size.y),
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x, size.y,
-                             foreground);
+        Font* love::citro2d::Graphics::NewDefaultFont(int size)
+        {
+            auto fontModule = Module::GetInstance<FontModule>(M_FONT);
+            if (!fontModule)
+                throw love::Exception("Font module has not been loaded.");
 
-        C2D_DrawEllipseSolid(x + (width - size.x), y + (height - size.y),
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x, size.y,
-                             foreground);
+            StrongReference<Rasterizer> r(fontModule->NewBCFNTRasterizer(size), Acquire::NORETAIN);
 
-        C2D_DrawEllipseSolid(x + (width - size.x), y,
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x, size.y,
-                             foreground);
+            return new Font(r.Get());
+        }
 
-        /* Rectangles */
+        void Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,
+                              size_t colorCount)
+        {
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
 
-        C2D_DrawRectSolid(offset.x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                          width - size.x, height, foreground);
+            for (size_t index = 0; index < count; index++)
+            {
+                Colorf color        = colors[0];
+                const Vector2 point = points[index];
 
-        C2D_DrawRectSolid(x, offset.y, Graphics::CURRENT_DEPTH, width, height - size.y, foreground);
+                if (index < colorCount)
+                    color = colors[index];
 
-        /* Ellipses */
+                u32 pointColor = C2D_Color32f(color.r, color.g, color.b, color.a);
+                C2D_DrawCircleSolid(point.x, point.y, Graphics::CURRENT_DEPTH,
+                                    this->states.back().pointSize, pointColor);
+            }
+        }
 
-        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH * 3;
-    }
-}
+        void Graphics::Polyfill(const Vector2* points, size_t count, u32 color, float depth)
+        {
+            for (size_t currentPoint = 2; currentPoint < count; currentPoint++)
+            {
+                C2D_DrawTriangle(points[0].x, points[0].y, color, points[currentPoint - 1].x,
+                                 points[currentPoint - 1].y, color, points[currentPoint].x,
+                                 points[currentPoint].y, color, depth);
+            }
+        }
 
-void love::citro2d::Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b)
-{
-    Colorf color   = this->GetColor();
-    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+        void Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count)
+        {
+            Colorf color   = this->GetColor();
+            u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
 
-    if (mode == DRAW_FILL)
-        C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2, foreground);
-    else
-    {
-        float lineWidth = this->states.back().lineWidth;
+            if (mode == DRAW_LINE)
+                this->Polyline(points, count);
+            else
+                this->Polyfill(points, count, foreground, Graphics::CURRENT_DEPTH);
+        }
 
-        C2D_DrawEllipseSolid((x - a) + lineWidth, (y - b) + lineWidth,
-                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH, (a - lineWidth) * 2,
-                             (b - lineWidth) * 2, TRANSPARENCY);
+        void Graphics::Polyline(const Vector2* points, size_t count)
+        {
+            // Generate the outline and draw it
+            std::vector<Vector2> outline =
+                GenerateOutline(points, count, this->states.back().lineWidth);
+            this->Polyfill(outline.data(), outline.size(), TRANSPARENCY,
+                           Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
 
-        C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2, foreground);
+            // Draw our filled polygon
+            this->Polygon(DRAW_FILL, points, count);
 
-        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
-    }
-}
+            Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+        }
 
-void love::citro2d::Graphics::Circle(DrawMode mode, float x, float y, float radius)
-{
-    Colorf color   = this->GetColor();
-    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+        void Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height)
+        {
+            Vector2 points[4] = {
+                { x, y }, { x + width, y }, { x + width, y + height }, { x, y + height }
+            };
 
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
+            this->Polygon(mode, points, 4);
+        }
 
-    if (mode == DRAW_FILL)
-        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
-    else
-    {
-        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                            radius - this->states.back().lineWidth, TRANSPARENCY);
+        void Graphics::Rectangle(DrawMode mode, float x, float y, float width, float height,
+                                 float rx, float ry)
+        {
+            if (rx == 0 && ry == 0)
+            {
+                this->Rectangle(mode, x, y, width, height);
+                return;
+            }
 
-        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+            Colorf color   = this->GetColor();
+            u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
 
-        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
-    }
-}
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
 
-void love::citro2d::Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float y, float radius,
-                                  float angle1, float angle2)
-{
-    const float diag_radius   = M_SQRT2 * radius;
-    const auto calc90Triangle = [radius = diag_radius](float x, float y,
-                                                       float angle) -> std::array<Vector2, 3> {
-        return { Vector2(x, y), Vector2(x + radius * cosf(angle), y + radius * sinf(angle)),
-                 Vector2(x + radius * sqrtf(2) * cosf(angle + M_PI_2),
-                         y + radius * sqrtf(2) * sinf(angle + M_PI_2)) };
-    };
+            /* Offset the radii *properly* */
+            Vector2 offset(x + rx, y + ry);
+            Vector2 size(rx * 2, ry * 2);
 
-    angle1 = normalizeAngle(angle1);
-    angle2 = normalizeAngle(angle2);
+            /*
+            ** Ellipse Drawing Order
+            ** 1 - 4
+            ** |   |
+            ** 2 - 3
+            */
 
-    // Only go around counterclockwise rather than having a conditional
-    if (angle2 > angle1)
-        angle2 -= M_TAU;
+            if (mode == DRAW_FILL)
+            {
+                /* Draw Ellipses first on Fill mode */
 
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
+                C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2,
+                                     size.x, size.y, foreground);
 
-    while (angle2 + M_PI_2 < angle1)
-    {
-        const auto& pts = calc90Triangle(x, y, angle2);
-        C2D_DrawTriangle(pts[0].x, pts[0].y, TRANSPARENCY, pts[1].x, pts[1].y, TRANSPARENCY,
-                         pts[2].x, pts[2].y, TRANSPARENCY,
-                         Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
-        angle2 += M_PI_2;
-    }
+                C2D_DrawEllipseSolid(x, y + (height - size.y),
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
+                                     size.y, foreground);
 
-    const std::array<Vector2, 3> finalTriangle = {
-        Vector2(x, y), Vector2(x + diag_radius * cosf(angle2), y + diag_radius * sinf(angle2)),
-        Vector2(x + diag_radius * cosf(angle1), y + diag_radius * sinf(angle1))
-    };
+                C2D_DrawEllipseSolid(x + (width - size.x), y + (height - size.y),
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
+                                     size.y, foreground);
 
-    C2D_DrawTriangle(finalTriangle[0].x, finalTriangle[0].y, TRANSPARENCY, finalTriangle[1].x,
-                     finalTriangle[1].y, TRANSPARENCY, finalTriangle[2].x, finalTriangle[2].y,
-                     TRANSPARENCY, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
+                C2D_DrawEllipseSolid(x + (width - size.x), y,
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
+                                     size.y, foreground);
 
-    /* Sort of code duplication, but uh.. fix the arcs! */
+                /* Draw Rectangles */
 
-    Colorf color   = this->GetColor();
-    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+                C2D_DrawRectSolid(offset.x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                                  width - size.x, height, foreground);
 
-    if (mode == DRAW_FILL)
-        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
-    else
-    {
-        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
-                            radius - this->states.back().lineWidth, TRANSPARENCY);
+                C2D_DrawRectSolid(x, offset.y, Graphics::CURRENT_DEPTH, width, height - size.y,
+                                  foreground);
 
-        C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+                Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH * 2;
+            }
+            else
+            {
+                float& lineWidth = this->states.back().lineWidth;
 
-        Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
-    }
+                Vector2 innerDiameter((rx - lineWidth) * 2, (ry - lineWidth) * 2);
+                if (innerDiameter.x <= 0 || innerDiameter.y <= 0)
+                {
+                    innerDiameter.x = 0;
+                    innerDiameter.y = 0;
+                }
 
-    Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
-}
+                /* normal rect offset + line width */
+                Vector2 lineOffset((x + rx) + lineWidth, (y + ry) + lineWidth);
 
-void love::citro2d::Graphics::Line(const Vector2* points, int count)
-{
-    Colorf color   = this->GetColor();
-    u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+                /* normal radii size - line width */
+                Vector2 lineSize((rx * 2) - lineWidth, (ry * 2) - lineWidth);
 
-    const Matrix4& t = this->GetTransform();
-    C2D_ViewRestore(&t.GetElements());
+                /* normal radii pos + line width */
+                Vector2 linePos(x + lineWidth, y + lineWidth);
 
-    for (size_t index = 1; index < (size_t)count; index++)
-        C2D_DrawLine(points[index - 1].x, points[index - 1].y, foreground, points[index].x,
-                     points[index].y, foreground, this->states.back().lineWidth,
-                     Graphics::CURRENT_DEPTH);
-}
+                /* normal rect size - line width */
+                Vector2 rectSize(width - (lineWidth * 2), height - (lineWidth * 2));
 
-void love::citro2d::Graphics::SetLineWidth(float width)
-{
-    this->states.back().lineWidth = width;
-}
+                /* Transparent rectangles first */
 
-void love::citro2d::Graphics::SetDefaultFilter(const Texture::Filter& filter)
-{
-    Texture::defaultFilter = filter;
-}
+                C2D_DrawRectSolid(x + innerDiameter.x / 2 + lineWidth, y + lineWidth,
+                                  Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
+                                  width - (lineWidth * 2 + innerDiameter.x), height - lineWidth * 2,
+                                  TRANSPARENCY);
 
-/* End Primitives */
+                C2D_DrawRectSolid(x + lineWidth, y + innerDiameter.y / 2 + lineWidth,
+                                  Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
+                                  width - (lineWidth * 2),
+                                  height - (lineWidth * 2 + innerDiameter.y), TRANSPARENCY);
 
-void love::citro2d::Graphics::SetScissor(const Rect& scissor)
-{
-    DisplayState& state = this->states.back();
+                /* Transparent ellipses second, if they aren't nonexistent */
 
-    if (state.scissor)
-        C2D_Flush();
+                if (innerDiameter.x > 0 && innerDiameter.y > 0)
+                {
+                    C2D_DrawEllipseSolid(x + lineWidth, y + lineWidth,
+                                         Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
+                                         innerDiameter.x, innerDiameter.y, TRANSPARENCY);
 
-    int screenWidth = this->GetWidth(this->GetActiveScreen());
-    ::citro2d::Instance().SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
+                    C2D_DrawEllipseSolid(x + lineWidth, y + height - ry - innerDiameter.y / 2,
+                                         Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
+                                         innerDiameter.x, innerDiameter.y, TRANSPARENCY);
 
-    state.scissor     = true;
-    state.scissorRect = scissor;
-}
+                    C2D_DrawEllipseSolid(x + width - rx - innerDiameter.x / 2,
+                                         y + height - ry - innerDiameter.y / 2,
+                                         Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
+                                         innerDiameter.x, innerDiameter.y, TRANSPARENCY);
 
-void love::citro2d::Graphics::SetScissor()
-{
-    if (states.back().scissor)
-        C2D_Flush();
+                    C2D_DrawEllipseSolid(x + width - rx - innerDiameter.x / 2, y + lineWidth,
+                                         Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 3,
+                                         innerDiameter.x, innerDiameter.y, TRANSPARENCY);
+                }
 
-    int screenWidth = this->GetWidth(this->GetActiveScreen());
-    ::citro2d::Instance().SetScissor(GPU_SCISSOR_DISABLE, { 0, 0, screenWidth, 240 }, screenWidth,
-                                     false);
+                /* Solid stuff  -- Start with ellipses */
 
-    states.back().scissor = false;
-}
+                C2D_DrawEllipseSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2,
+                                     size.x, size.y, foreground);
 
-Graphics::RendererInfo love::citro2d::Graphics::GetRendererInfo() const
-{
-    RendererInfo info {};
+                C2D_DrawEllipseSolid(x, y + (height - size.y),
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
+                                     size.y, foreground);
 
-    info.name    = RENDERER_NAME;
-    info.device  = RENDERER_DEVICE;
-    info.vendor  = RENDERER_VENDOR;
-    info.version = RENDERER_VERSION;
+                C2D_DrawEllipseSolid(x + (width - size.x), y + (height - size.y),
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
+                                     size.y, foreground);
 
-    return info;
-}
+                C2D_DrawEllipseSolid(x + (width - size.x), y,
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH * 2, size.x,
+                                     size.y, foreground);
 
-/* 2D Screens */
+                /* Rectangles */
+
+                C2D_DrawRectSolid(offset.x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                                  width - size.x, height, foreground);
+
+                C2D_DrawRectSolid(x, offset.y, Graphics::CURRENT_DEPTH, width, height - size.y,
+                                  foreground);
+
+                /* Ellipses */
+
+                Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH * 3;
+            }
+        }
+
+        void Graphics::Ellipse(DrawMode mode, float x, float y, float a, float b)
+        {
+            Colorf color   = this->GetColor();
+            u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
+
+            if (mode == DRAW_FILL)
+                C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2,
+                                     foreground);
+            else
+            {
+                float lineWidth = this->states.back().lineWidth;
+
+                C2D_DrawEllipseSolid((x - a) + lineWidth, (y - b) + lineWidth,
+                                     Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                                     (a - lineWidth) * 2, (b - lineWidth) * 2, TRANSPARENCY);
+
+                C2D_DrawEllipseSolid(x - a, y - b, Graphics::CURRENT_DEPTH, a * 2, b * 2,
+                                     foreground);
+
+                Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+            }
+        }
+
+        void Graphics::Circle(DrawMode mode, float x, float y, float radius)
+        {
+            Colorf color   = this->GetColor();
+            u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
+
+            if (mode == DRAW_FILL)
+                C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+            else
+            {
+                C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                                    radius - this->states.back().lineWidth, TRANSPARENCY);
+
+                C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+
+                Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+            }
+        }
+
+        void Graphics::Arc(DrawMode mode, ArcMode arcmode, float x, float y, float radius,
+                           float angle1, float angle2)
+        {
+            const float diag_radius = LOVE_M_SQRT2 * radius;
+            const auto calc90Triangle =
+                [radius = diag_radius](float x, float y, float angle) -> std::array<Vector2, 3> {
+                return { Vector2(x, y), Vector2(x + radius * cosf(angle), y + radius * sinf(angle)),
+                         Vector2(x + radius * sqrtf(2) * cosf(angle + LOVE_M_PI_2),
+                                 y + radius * sqrtf(2) * sinf(angle + LOVE_M_PI_2)) };
+            };
+
+            angle1 = normalizeAngle(angle1);
+            angle2 = normalizeAngle(angle2);
+
+            // Only go around counterclockwise rather than having a conditional
+            if (angle2 > angle1)
+                angle2 -= LOVE_M_TAU;
+
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
+
+            while (angle2 + LOVE_M_PI_2 < angle1)
+            {
+                const auto& pts = calc90Triangle(x, y, angle2);
+                C2D_DrawTriangle(pts[0].x, pts[0].y, TRANSPARENCY, pts[1].x, pts[1].y, TRANSPARENCY,
+                                 pts[2].x, pts[2].y, TRANSPARENCY,
+                                 Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
+                angle2 += LOVE_M_PI_2;
+            }
+
+            const std::array<Vector2, 3> finalTriangle = {
+                Vector2(x, y),
+                Vector2(x + diag_radius * cosf(angle2), y + diag_radius * sinf(angle2)),
+                Vector2(x + diag_radius * cosf(angle1), y + diag_radius * sinf(angle1))
+            };
+
+            C2D_DrawTriangle(finalTriangle[0].x, finalTriangle[0].y, TRANSPARENCY,
+                             finalTriangle[1].x, finalTriangle[1].y, TRANSPARENCY,
+                             finalTriangle[2].x, finalTriangle[2].y, TRANSPARENCY,
+                             Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH);
+
+            /* Sort of code duplication, but uh.. fix the arcs! */
+
+            Colorf color   = this->GetColor();
+            u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+            if (mode == DRAW_FILL)
+                C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+            else
+            {
+                C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH + Graphics::MIN_DEPTH,
+                                    radius - this->states.back().lineWidth, TRANSPARENCY);
+
+                C2D_DrawCircleSolid(x, y, Graphics::CURRENT_DEPTH, radius, foreground);
+
+                Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+            }
+
+            Graphics::CURRENT_DEPTH += Graphics::MIN_DEPTH;
+        }
+
+        void Graphics::Line(const Vector2* points, int count)
+        {
+            Colorf color   = this->GetColor();
+            u32 foreground = C2D_Color32f(color.r, color.g, color.b, color.a);
+
+            const Matrix4& t = this->GetTransform();
+            C2D_ViewRestore(&t.GetElements());
+
+            for (size_t index = 1; index < (size_t)count; index++)
+                C2D_DrawLine(points[index - 1].x, points[index - 1].y, foreground, points[index].x,
+                             points[index].y, foreground, this->states.back().lineWidth,
+                             Graphics::CURRENT_DEPTH);
+        }
+    } // namespace citro2d
+} // namespace love

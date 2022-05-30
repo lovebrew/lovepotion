@@ -6,10 +6,16 @@
 #pragma once
 
 #include "common/colors.h"
-#include "common/module.h"
-#include "common/render/renderstate.h"
+#include "common/lmath.h"
 #include "common/screen.h"
 #include "common/vector.h"
+
+#include "common/render/renderer.h"
+#include "common/render/renderstate.h"
+#include "common/render/samplerstate.h"
+#include "common/render/vertex.h"
+
+#include "common/module.h"
 
 /* OBJECTS */
 
@@ -40,23 +46,15 @@
 #include "objects/video/video.h"
 #include "objects/videostream/videostream.h"
 
-#include "common/lmath.h"
 #include <optional>
 #include <vector>
-
-#if defined(__SWITCH__)
-    #include "deko3d/shader.h"
-    #include "deko3d/vertex.h"
-
-    #include "objects/shader/wrap_shader.h"
-#endif
 
 namespace love
 {
     class Graphics : public Module
     {
       public:
-        static const size_t MAX_USER_STACK_DEPTH = 128;
+        static constexpr size_t MAX_USER_STACK_DEPTH = 128;
 
         enum DrawMode
         {
@@ -182,8 +180,6 @@ namespace love
 
         void IntersectScissor(const Rect& scissor);
 
-        const Texture::Filter& GetDefaultFilter() const;
-
         void Push(StackType type = STACK_TRANSFORM);
 
         void ApplyTransform(Transform* transform);
@@ -206,15 +202,12 @@ namespace love
 
         Image* NewImage(const Image::Slices& data);
 
-        virtual Font* NewFont(Rasterizer* rasterizer,
-                              const Texture::Filter& filter = Texture::defaultFilter) = 0;
+        virtual Font* NewFont(Rasterizer* rasterizer) = 0;
 #if defined(__SWITCH__)
-        virtual Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting,
-                                     const Texture::Filter& filter = Texture::defaultFilter) = 0;
+        virtual Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting) = 0;
 
 #elif defined(__3DS__)
-        virtual Font* NewDefaultFont(int size,
-                                     const Texture::Filter& filter = Texture::defaultFilter) = 0;
+        virtual Font* NewDefaultFont(int size)                                   = 0;
 #endif
 
         Image* NewImage(Texture::TextureType t, PixelFormat format, int width, int height,
@@ -258,19 +251,21 @@ namespace love
         void PrintF(const std::vector<Font::ColoredString>& strings, Font* font, float wrap,
                     Font::AlignMode align, const Matrix4& localTransform);
 
-        virtual void SetDefaultFilter(const Texture::Filter& filter);
+        virtual void SetDefaultSamplerState(const SamplerState& state);
+
+        const SamplerState& GetDefaultSamplerState() const;
 
         /* virtual void stuff  -- subclass implements */
 
-        virtual void SetScissor(const Rect& rect) = 0;
+        virtual void SetScissor(const Rect& rect);
 
-        virtual void SetScissor() = 0;
+        virtual void SetScissor();
 
         virtual void Clear(std::optional<Colorf> color, std::optional<int> stencil,
-                           std::optional<double> depth) = 0;
+                           std::optional<double> depth);
 
         virtual void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
-                           std::optional<double> depth) = 0;
+                           std::optional<double> depth);
 
         RenderState::BlendMode GetBlendMode(RenderState::BlendAlpha& alphaMode);
 
@@ -282,13 +277,9 @@ namespace love
 
         virtual void SetColor(Colorf color);
 
-        void SetDefaultMipmapFilter(Texture::FilterMode filter, float sharpness);
+        virtual void SetMeshCullMode(Vertex::CullMode cull);
 
-#if defined(__SWITCH__)
-        virtual void SetMeshCullMode(vertex::CullMode cull) = 0;
-
-        virtual void SetFrontFaceWinding(vertex::Winding winding) = 0;
-#endif
+        virtual void SetFrontFaceWinding(Vertex::Winding winding);
 
         /* Primitives */
 
@@ -312,7 +303,7 @@ namespace love
         virtual void Polygon(DrawMode mode, const Vector2* points, size_t count,
                              bool skipLastFilledVertex = true) = 0;
 #else
-        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count)             = 0;
+        virtual void Polygon(DrawMode mode, const Vector2* points, size_t count) = 0;
 #endif
 
         virtual void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,
@@ -330,7 +321,7 @@ namespace love
 
         virtual void SetLineWidth(float width) = 0;
 
-        virtual RendererInfo GetRendererInfo() const = 0;
+        Renderer::RendererInfo GetRendererInfo() const;
 
         Vector2 TransformPoint(Vector2 point);
 
@@ -340,17 +331,15 @@ namespace love
 
         RenderState::ColorMask GetColorMask() const;
 
-#if defined(__SWITCH__)
-        vertex::CullMode GetMeshCullMode() const;
+        Vertex::CullMode GetMeshCullMode() const;
 
-        vertex::Winding GetFrontFaceWinding() const;
+        Vertex::Winding GetFrontFaceWinding() const;
 
         void SetShader();
 
         void SetShader(Shader* shader);
 
         Shader* GetShader() const;
-#endif
 
         size_t GetStackDepth() const
         {
@@ -515,6 +504,8 @@ namespace love
 
         bool SetMode(int width, int height);
 
+        static Renderer& Renderer();
+
         static bool GetConstant(const char* in, DrawMode& out);
         static bool GetConstant(DrawMode in, const char*& out);
         static std::vector<const char*> GetConstants(DrawMode);
@@ -561,18 +552,15 @@ namespace love
             RenderState::CompareMode depthTest = RenderState::COMPARE_ALWAYS;
             bool depthWrite                    = false;
 
-#if defined(__SWITCH__)
-            vertex::CullMode meshCullMode = vertex::CULL_NONE;
-            vertex::Winding winding       = vertex::WINDING_CCW;
+            Vertex::CullMode cullMode = Vertex::CULL_NONE;
+            Vertex::Winding winding   = Vertex::WINDING_CCW;
 
             StrongReference<Shader> shader;
-#endif
 
             RenderState::ColorMask colorMask = RenderState::ColorMask(true, true, true, true);
+            float defaultMipmapSharpness     = 0.0f;
 
-            Texture::Filter defaultFilter           = Texture::Filter();
-            Texture::FilterMode defaultMipmapFilter = Texture::FILTER_LINEAR;
-            float defaultMipmapSharpness            = 0.0f;
+            SamplerState defaultSamplerState = SamplerState();
         };
 
         std::vector<DisplayState> states;
@@ -583,9 +571,6 @@ namespace love
 
         void RestoreStateChecked(const DisplayState& state);
 
-        int width;
-        int height;
-
       private:
         void CheckSetDefaultFont();
 
@@ -593,6 +578,5 @@ namespace love
         bool created;
 
         StrongReference<Font> defaultFont;
-        RendererInfo rendererInfo;
     };
 } // namespace love

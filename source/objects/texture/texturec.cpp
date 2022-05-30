@@ -1,11 +1,11 @@
 #include "objects/texture/texturec.h"
 #include "common/bidirectionalmap.h"
 
+#include "modules/graphics/graphics.h"
+
 using namespace love::common;
 
 love::Type Texture::type("Texture", &Drawable::type);
-
-float Texture::defaultMipmapSharpness = 0.0f;
 
 Texture::Texture(TextureType texType) :
     texType(texType),
@@ -37,14 +37,6 @@ int Texture::GetWidth(int mip) const
 int Texture::GetHeight(int mip) const
 {
     return std::max(this->height >> mip, 1);
-}
-
-void Texture::SetSamplerState(const SamplerState& state)
-{
-    this->samplerState = state;
-
-    if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE && this->GetMipmapCount() == 1)
-        this->samplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
 }
 
 const love::SamplerState& Texture::GetSamplerState() const

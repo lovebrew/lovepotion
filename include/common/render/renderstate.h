@@ -8,9 +8,10 @@
 
 namespace love
 {
+    class Shader;
+
     namespace RenderState
     {
-        class Shader;
 
         enum BlendMode
         {

@@ -19,9 +19,7 @@ namespace love
 
         void Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform) override;
 
-        bool SetWrap(const Wrap& wrap) override;
-
-        void SetFilter(const Filter& filter) override;
+        void SetSamplerState(const SamplerState& state);
 
       protected:
         C2D_Image texture;

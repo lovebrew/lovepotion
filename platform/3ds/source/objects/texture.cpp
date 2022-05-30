@@ -18,15 +18,14 @@ const C2D_Image& Texture::GetHandle()
     return this->texture;
 }
 
-bool Texture::SetWrap(const Wrap& wrap)
+void Texture::SetSamplerState(const SamplerState& state)
 {
-    ::citro2d::Instance().SetTextureWrap(wrap);
-    return true;
-}
+    this->samplerState = state;
 
-void Texture::SetFilter(const Filter& filter)
-{
-    ::citro2d::Instance().SetTextureFilter(filter);
+    if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE && this->GetMipmapCount() == 1)
+        this->samplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
+
+    ::citro2d::Instance().SetSamplerState(this, this->samplerState);
 }
 
 void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform)

@@ -7,19 +7,16 @@
 #include <numeric>
 
 using namespace love;
+typedef utf8::iterator<std::string::const_iterator> utf8_iter;
 
-Font::Font(Rasterizer* rasterizer, const Texture::Filter& filter) :
-    common::Font(filter),
-    rasterizer(rasterizer),
+Font::Font(Rasterizer* rasterizer, const SamplerState& state) :
+    common::Font(rasterizer, state),
     buffer(C2D_TextBufNew(Font::FONT_BUFFER_SIZE))
 {
     this->dpiScale = rasterizer->GetDPIScale();
     this->height   = rasterizer->GetHeight();
 
     this->lineHeight = rasterizer->GetLineHeight();
-
-    ::citro2d::GPUFilter gpuFilter = ::citro2d::GetCitroFilterMode(filter);
-    C2D_FontSetFilter(this->GetFont(), gpuFilter.mag, gpuFilter.min);
 }
 
 Font::~Font()
@@ -30,13 +27,13 @@ Font::~Font()
 
 const C2D_Font Font::GetFont()
 {
-    auto r = static_cast<BCFNTRasterizer*>(this->rasterizer.Get());
+    auto r = static_cast<BCFNTRasterizer*>(this->rasterizers[0].Get());
     return r->GetFont();
 }
 
 float Font::GetScale() const
 {
-    auto r = static_cast<BCFNTRasterizer*>(this->rasterizer.Get());
+    auto r = static_cast<BCFNTRasterizer*>(this->rasterizers[0].Get());
 
     return r->GetScale();
 }
@@ -46,24 +43,32 @@ float Font::GetDPIScale() const
     return this->dpiScale;
 }
 
-void Font::SetFilter(const Texture::Filter& filter)
+void Font::SetSamplerState(const SamplerState& state)
 {
-    this->filter = filter;
+    this->samplerState = state;
+
+    GPU_TEXTURE_FILTER_PARAM mag;
+    ::citro2d::GetConstant(state.magFilter, mag);
+
+    GPU_TEXTURE_FILTER_PARAM min;
+    ::citro2d::GetConstant(state.minFilter, min);
+
+    C2D_FontSetFilter(this->GetFont(), mag, min);
 }
 
 float Font::GetAscent() const
 {
-    return floorf(this->rasterizer->GetAscent() / this->dpiScale + 0.5f);
+    return floorf(this->rasterizers[0]->GetAscent() / this->dpiScale + 0.5f);
 }
 
 float Font::GetDescent() const
 {
-    return floorf(this->rasterizer->GetDescent() / this->dpiScale + 0.5f);
+    return floorf(this->rasterizers[0]->GetDescent() / this->dpiScale + 0.5f);
 }
 
 bool Font::HasGlyph(uint32_t glyph) const
 {
-    return this->rasterizer->HasGlyph(glyph);
+    return this->rasterizers[0]->HasGlyph(glyph);
 }
 
 float Font::GetKerning(const std::string&, const std::string&)
@@ -85,7 +90,7 @@ float Font::GetBaseline() const
 
     if (ascent != 0.0f)
         return ascent;
-    else if (this->rasterizer->GetDataType() == love::Rasterizer::DATA_BCFNT)
+    else if (this->rasterizers[0]->GetDataType() == love::Rasterizer::DATA_BCFNT)
         return floorf(this->GetHeight() / 1.0f);
     else
         return 0.0f;
@@ -167,7 +172,7 @@ int Font::GetWidth(uint32_t /* prevGlyph */, uint32_t current)
     if (found != this->glyphWidths.end())
         return found->second;
 
-    GlyphData* glyphData = this->rasterizer->GetGlyphData(current);
+    GlyphData* glyphData = this->rasterizers[0]->GetGlyphData(current);
 
     this->glyphWidths[current] = glyphData->GetAdvance();
 
@@ -177,4 +182,28 @@ int Font::GetWidth(uint32_t /* prevGlyph */, uint32_t current)
 float Font::GetHeight() const
 {
     return 30 * this->GetScale();
+}
+
+// clang-format off
+constexpr auto sharedFonts = BidirectionalMap<>::Create(
+    "standard",  Font::SystemFontType::TYPE_STANDARD,
+    "chinese",   Font::SystemFontType::TYPE_CHINESE,
+    "taiwanese", Font::SystemFontType::TYPE_TAIWANESE,
+    "korean",    Font::SystemFontType::TYPE_KOREAN
+);
+// clang-format on
+
+bool Font::GetConstant(const char* in, Font::SystemFontType& out)
+{
+    return sharedFonts.Find(in, out);
+}
+
+bool Font::GetConstant(Font::SystemFontType in, const char*& out)
+{
+    return sharedFonts.ReverseFind(in, out);
+}
+
+std::vector<const char*> Font::GetConstants(Font::SystemFontType)
+{
+    return sharedFonts.GetNames();
 }

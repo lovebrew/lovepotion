@@ -26,9 +26,6 @@ Image::Image(TextureType type, PixelFormat format, int width, int height, int sl
     Image(Slices(type), false)
 {
     this->Init(format, width, height);
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
 }
 
 void Image::Init(PixelFormat format, int width, int height)
@@ -59,9 +56,7 @@ void Image::Init(PixelFormat format, int width, int height)
     this->height = height;
 
     this->InitQuad();
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
+    this->SetSamplerState(this->samplerState);
 }
 
 void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)

@@ -22,7 +22,7 @@ Canvas::Canvas(const Canvas::Settings& settings) : common::Canvas(settings)
     this->texture = { &this->citroTex, &this->subtex };
 
     ::citro2d::Instance().BindFramebuffer(this);
-    ::citro2d::Instance().ClearColor({ 0, 0, 0, 0 });
+    ::citro2d::Instance().Clear({ 0, 0, 0, 0 });
     ::citro2d::Instance().BindFramebuffer();
 
     this->InitQuad();

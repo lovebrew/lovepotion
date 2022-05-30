@@ -12,6 +12,7 @@
 namespace love
 {
     class Canvas;
+    class Texture;
 
     /* Abstract class for renderers */
     class Renderer
@@ -67,7 +68,7 @@ namespace love
         virtual void SetVertexWinding(Vertex::Winding winding) = 0;
 
         /* sets the sampler state */
-        virtual void SetSamplerState(const SamplerState& state) = 0;
+        virtual void SetSamplerState(Texture* texture, SamplerState& state) = 0;
 
         /* sets the color mask for writing */
         virtual void SetColorMask(const RenderState::ColorMask& mask) = 0;
