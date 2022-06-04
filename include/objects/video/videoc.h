@@ -39,9 +39,9 @@ namespace love
 
             int GetPixelHeight() const;
 
-            void SetFilter(const Texture::Filter& filter);
+            void SetSamplerState(const SamplerState& state);
 
-            const Texture::Filter& GetFilter() const;
+            const SamplerState& GetSamplerState() const;
 
           protected:
             virtual void Update() = 0;
@@ -51,7 +51,7 @@ namespace love
             int width;
             int height;
 
-            Texture::Filter filter;
+            SamplerState samplerState;
 
             StrongReference<love::Source> source;
             StrongReference<Image> images[3];

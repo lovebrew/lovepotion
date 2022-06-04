@@ -774,33 +774,33 @@ int Wrap_Graphics::GetScissor(lua_State* L)
 
 int Wrap_Graphics::SetDefaultFilter(lua_State* L)
 {
-    Texture::Filter filter;
+    SamplerState state {};
 
     const char* min = luaL_checkstring(L, 1);
     const char* mag = luaL_optstring(L, 2, min);
 
-    if (!Texture::GetConstant(min, filter.min))
-        return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.min), min);
+    if (!SamplerState::GetConstant(min, state.minFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.minFilter), min);
 
-    if (!Texture::GetConstant(mag, filter.mag))
-        return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.mag), mag);
+    if (!SamplerState::GetConstant(mag, state.magFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.minFilter), mag);
 
-    instance()->SetDefaultFilter(filter);
+    instance()->SetDefaultSamplerState(state);
 
     return 0;
 }
 
 int Wrap_Graphics::GetDefaultFilter(lua_State* L)
 {
-    const Texture::Filter& filter = instance()->GetDefaultFilter();
+    const SamplerState& state = instance()->GetDefaultSamplerState();
 
-    const char* min;
-    const char* mag;
+    const char* min = nullptr;
+    const char* mag = nullptr;
 
-    if (!Texture::GetConstant(filter.min, min))
+    if (!SamplerState::GetConstant(state.minFilter, min))
         return luaL_error(L, "Unknown minification filter mode.");
 
-    if (!Texture::GetConstant(filter.mag, mag))
+    if (!SamplerState::GetConstant(state.magFilter, mag))
         return luaL_error(L, "Unknown magnification filter mode.");
 
     lua_pushstring(L, min);
@@ -976,8 +976,7 @@ int Wrap_Graphics::NewFont(lua_State* L)
 
     Rasterizer* rasterizer = Luax::CheckType<Rasterizer>(L, 1);
 
-    Luax::CatchException(
-        L, [&]() { font = instance()->NewFont(rasterizer, instance()->GetDefaultFilter()); });
+    Luax::CatchException(L, [&]() { font = instance()->NewFont(rasterizer); });
 
     Luax::PushType(L, font);
     font->Release();
@@ -1100,8 +1099,8 @@ int Wrap_Graphics::PrintF(lua_State* L)
     const char* alignment =
         lua_isnoneornil(L, formatidx + 1) ? nullptr : luaL_checkstring(L, formatidx + 1);
 
-    if (alignment != nullptr && !Font::GetConstant(alignment, mode))
-        return Luax::EnumError(L, "alignment", Font::GetConstants(mode), alignment);
+    if (alignment != nullptr && !common::Font::GetConstant(alignment, mode))
+        return Luax::EnumError(L, "alignment", common::Font::GetConstants(mode), alignment);
 
     float x = luaL_checknumber(L, start + 0);
     float y = luaL_checknumber(L, start + 1);
@@ -1453,7 +1452,7 @@ int Wrap_Graphics::GetWide(lua_State* L)
 
 int Wrap_Graphics::GetRendererInfo(lua_State* L)
 {
-    Graphics::RendererInfo info = instance()->GetRendererInfo();
+    Renderer::RendererInfo info = instance()->GetRendererInfo();
 
     Luax::PushString(L, info.name);
     Luax::PushString(L, info.version);

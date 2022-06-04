@@ -52,16 +52,16 @@ namespace love
             return uint16_t(in * 0xFFFF);
         }
 
-        static bool GetConstant(const char* in, Winding& out);
-        static bool GetConstant(Winding in, const char*& out);
-        static std::vector<const char*> GetConstants(Winding);
+        bool GetConstant(const char* in, Winding& out);
+        bool GetConstant(Winding in, const char*& out);
+        std::vector<const char*> GetConstants(Winding);
 
-        static bool GetConstant(const char* in, CullMode& out);
-        static bool GetConstant(CullMode in, const char*& out);
-        static std::vector<const char*> GetConstants(CullMode);
+        bool GetConstant(const char* in, CullMode& out);
+        bool GetConstant(CullMode in, const char*& out);
+        std::vector<const char*> GetConstants(CullMode);
 
-        static bool GetConstant(const char* in, TriangleIndexMode& out);
-        static bool GetConstant(TriangleIndexMode in, const char*& out);
-        static std::vector<const char*> GetConstants(TriangleIndexMode);
+        bool GetConstant(const char* in, TriangleIndexMode& out);
+        bool GetConstant(TriangleIndexMode in, const char*& out);
+        std::vector<const char*> GetConstants(TriangleIndexMode);
     } // namespace Vertex
 } // namespace love

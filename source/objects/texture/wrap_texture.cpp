@@ -52,18 +52,21 @@ int Wrap_Texture::SetFilter(lua_State* L)
 {
     love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
-    love::Texture::Filter filter = self->GetFilter();
+    SamplerState state = self->GetSamplerState();
 
     const char* min = luaL_checkstring(L, 2);
     const char* mag = luaL_optstring(L, 3, min);
 
-    if (!love::Texture::GetConstant(min, filter.min))
-        return Luax::EnumError(L, "filter mode", love::Texture::GetConstants(filter.min), min);
+    if (!SamplerState::GetConstant(min, state.minFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.minFilter), min);
 
-    if (!love::Texture::GetConstant(mag, filter.mag))
-        return Luax::EnumError(L, "filter mode", love::Texture::GetConstants(filter.mag), mag);
+    if (!SamplerState::GetConstant(mag, state.magFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.magFilter), mag);
 
-    Luax::CatchException(L, [&]() { self->SetFilter(filter); });
+    state.maxAnisotropy = std::min(std::max(1, (int)luaL_optnumber(L, 4, 1.0)),
+                                   (int)std::numeric_limits<uint8_t>::max());
+
+    Luax::CatchException(L, [&]() { self->SetSamplerState(state); });
 
     return 0;
 }
@@ -72,69 +75,70 @@ int Wrap_Texture::GetFilter(lua_State* L)
 {
     love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
-    const love::Texture::Filter filter = self->GetFilter();
+    const SamplerState& state = self->GetSamplerState();
 
     const char* min = nullptr;
     const char* mag = nullptr;
 
-    if (!love::Texture::GetConstant(filter.min, min))
+    if (!SamplerState::GetConstant(state.minFilter, min))
         return luaL_error(L, "Unknown filter mode.");
 
-    if (!love::Texture::GetConstant(filter.mag, mag))
+    if (!SamplerState::GetConstant(state.magFilter, mag))
         return luaL_error(L, "Unknown filter mode.");
 
     lua_pushstring(L, min);
     lua_pushstring(L, mag);
+    lua_pushnumber(L, state.maxAnisotropy);
 
-    return 2;
+    return 3;
 }
 
 int Wrap_Texture::SetWrap(lua_State* L)
 {
     love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
-    love::Texture::Wrap wrap;
+    SamplerState state = self->GetSamplerState();
 
-    const char* sstr = luaL_checkstring(L, 2);
-    const char* tstr = luaL_optstring(L, 3, sstr);
-    const char* rstr = luaL_optstring(L, 4, sstr);
+    const char* ustr = luaL_checkstring(L, 2);
+    const char* vstr = luaL_optstring(L, 3, ustr);
+    const char* wstr = luaL_optstring(L, 4, ustr);
 
-    if (!love::Texture::GetConstant(sstr, wrap.s))
-        return Luax::EnumError(L, "wrap mode", love::Texture::GetConstants(wrap.s), sstr);
+    if (!SamplerState::GetConstant(ustr, state.wrapU))
+        return Luax::EnumError(L, "wrap mode", SamplerState::GetConstants(state.wrapU), ustr);
 
-    if (!love::Texture::GetConstant(tstr, wrap.t))
-        return Luax::EnumError(L, "wrap mode", love::Texture::GetConstants(wrap.t), tstr);
+    if (!SamplerState::GetConstant(vstr, state.wrapV))
+        return Luax::EnumError(L, "wrap mode", SamplerState::GetConstants(state.wrapV), vstr);
 
-    if (!love::Texture::GetConstant(rstr, wrap.r))
-        return Luax::EnumError(L, "wrap mode", love::Texture::GetConstants(wrap.r), rstr);
+    if (!SamplerState::GetConstant(wstr, state.wrapW))
+        return Luax::EnumError(L, "wrap mode", SamplerState::GetConstants(state.wrapW), wstr);
 
-    lua_pushboolean(L, self->SetWrap(wrap));
+    Luax::CatchException(L, [&]() { self->SetSamplerState(state); });
 
-    return 1;
+    return 0;
 }
 
 int Wrap_Texture::GetWrap(lua_State* L)
 {
     love::Texture* self = Wrap_Texture::CheckTexture(L, 1);
 
-    const love::Texture::Wrap wrap = self->GetWrap();
+    const SamplerState& state = self->GetSamplerState();
 
-    const char* sstr = nullptr;
-    const char* tstr = nullptr;
-    const char* rstr = nullptr;
+    const char* ustr = nullptr;
+    const char* vstr = nullptr;
+    const char* wstr = nullptr;
 
-    if (!love::Texture::GetConstant(wrap.s, sstr))
-        return luaL_error(L, "Unknown wrap mode.");
+    if (!SamplerState::GetConstant(state.wrapU, ustr))
+        return Luax::EnumError(L, "wrap mode", SamplerState::GetConstants(state.wrapU), ustr);
 
-    if (!love::Texture::GetConstant(wrap.t, tstr))
-        return luaL_error(L, "Unknown wrap mode.");
+    if (!SamplerState::GetConstant(state.wrapV, vstr))
+        return Luax::EnumError(L, "wrap mode", SamplerState::GetConstants(state.wrapV), vstr);
 
-    if (!love::Texture::GetConstant(wrap.r, rstr))
-        return luaL_error(L, "Unknown wrap mode.");
+    if (!SamplerState::GetConstant(state.wrapW, wstr))
+        return Luax::EnumError(L, "wrap mode", SamplerState::GetConstants(state.wrapW), wstr);
 
-    lua_pushstring(L, sstr);
-    lua_pushstring(L, tstr);
-    lua_pushstring(L, rstr);
+    lua_pushstring(L, ustr);
+    lua_pushstring(L, vstr);
+    lua_pushstring(L, wstr);
 
     return 3;
 }

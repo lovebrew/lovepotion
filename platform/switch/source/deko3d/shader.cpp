@@ -5,11 +5,6 @@
 
 using namespace love;
 
-Type love::Shader::type("Shader", &love::Object::type);
-
-Shader* love::Shader::current                                          = nullptr;
-Shader* love::Shader::standardShaders[love::Shader::STANDARD_MAX_ENUM] = { nullptr };
-
 #define SHADERS_DIR "romfs:/shaders/"
 
 #define DEFAULT_VERTEX_SHADER   (SHADERS_DIR "transform_vsh.dksh")
@@ -98,20 +93,6 @@ bool Shader::Validate(const CShader& vertex, const CShader& pixel, std::string& 
     }
 
     return true;
-}
-
-void Shader::AttachDefault(StandardShader defaultType)
-{
-    Shader* defaultshader = standardShaders[defaultType];
-
-    if (defaultshader == nullptr)
-    {
-        current = nullptr;
-        return;
-    }
-
-    if (current != defaultshader)
-        defaultshader->Attach();
 }
 
 bool Shader::IsDefaultActive()

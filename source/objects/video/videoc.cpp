@@ -1,4 +1,5 @@
 #include "objects/video/videoc.h"
+#include "modules/graphics/graphics.h"
 
 using namespace love::common;
 
@@ -8,9 +9,8 @@ Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
     stream(stream),
     width(stream->GetWidth() / dpiScale),
     height(stream->GetHeight() / dpiScale),
-    filter(Texture::defaultFilter)
+    samplerState(graphics->GetDefaultSamplerState())
 {
-    this->filter.mipmap = Texture::FILTER_NONE;
     this->stream->FillBackBuffer();
 }
 
@@ -55,15 +55,15 @@ int Video::GetPixelHeight() const
     return this->stream->GetHeight();
 }
 
-void Video::SetFilter(const Texture::Filter& filter)
+void Video::SetSamplerState(const SamplerState& state)
 {
     for (const auto& image : this->images)
-        image->SetFilter(filter);
+        image->SetSamplerState(state);
 
-    this->filter = filter;
+    this->samplerState = state;
 }
 
-const Texture::Filter& Video::GetFilter() const
+const love::SamplerState& Video::GetSamplerState() const
 {
-    return this->filter;
+    return this->samplerState;
 }

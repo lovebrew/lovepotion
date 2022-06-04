@@ -46,8 +46,8 @@ int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
     }
     else
     {
-        Data* data                        = nullptr;
-        common::Font::SystemFontType type = common::Font::SystemFontType::TYPE_MAX_ENUM;
+        Data* data                = nullptr;
+        Font::SystemFontType type = Font::SystemFontType::TYPE_MAX_ENUM;
 
         if (Luax::IsType(L, 1, love::Data::type))
         {

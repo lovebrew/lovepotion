@@ -24,8 +24,6 @@ namespace love
 
 namespace love
 {
-    enum class SystemFontType : uint8_t;
-
     namespace common
     {
         class Font : public love::Object

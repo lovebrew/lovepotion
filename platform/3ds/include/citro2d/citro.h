@@ -70,6 +70,7 @@ class citro2d : public Renderer
     /* internal functions */
 
     static bool GetConstant(PixelFormat in, GPU_TEXCOLOR& out);
+    static bool GetConstant(GPU_TEXCOLOR in, PixelFormat& out);
 
     static bool GetConstant(RenderState::BlendOperation in, GPU_BLENDEQUATION& out);
 

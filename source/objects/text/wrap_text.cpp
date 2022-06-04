@@ -25,8 +25,8 @@ int Wrap_Text::Setf(lua_State* L)
 
     Font::AlignMode align;
     const char* alignStr = luaL_checkstring(L, 4);
-    if (!Font::GetConstant(alignStr, align))
-        return Luax::EnumError(L, "align mode", Font::GetConstants(align), alignStr);
+    if (!common::Font::GetConstant(alignStr, align))
+        return Luax::EnumError(L, "align mode", common::Font::GetConstants(align), alignStr);
 
     std::vector<Font::ColoredString> newText;
     Wrap_Font::CheckColoredString(L, 2, newText);
@@ -85,8 +85,8 @@ int Wrap_Text::Addf(lua_State* L)
     Font::AlignMode align = Font::ALIGN_MAX_ENUM;
     const char* alignStr  = luaL_checkstring(L, 4);
 
-    if (!Font::GetConstant(alignStr, align))
-        return Luax::EnumError(L, "align mode", Font::GetConstants(align), alignStr);
+    if (!common::Font::GetConstant(alignStr, align))
+        return Luax::EnumError(L, "align mode", common::Font::GetConstants(align), alignStr);
 
     if (Luax::IsType(L, 5, Transform::type))
     {

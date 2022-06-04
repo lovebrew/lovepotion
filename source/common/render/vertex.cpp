@@ -1,29 +1,30 @@
 #include "common/render/vertex.h"
-
 #include "common/bidirectionalmap.h"
+
+using namespace love;
+
+// clang-format off
+constexpr auto cullModes = BidirectionalMap<>::Create(
+    "none",  Vertex::CULL_NONE,
+    "back",  Vertex::CULL_BACK,
+    "front", Vertex::CULL_FRONT
+);
+
+constexpr auto windModes = BidirectionalMap<>::Create(
+    "cw",  Vertex::WINDING_CW,
+    "ccw", Vertex::WINDING_CCW
+);
+
+constexpr auto triangleModes = BidirectionalMap<>::Create(
+    "none",  Vertex::TRIANGLE_NONE,
+    "strip", Vertex::TRIANGLE_STRIP,
+    "fan",   Vertex::TRIANGLE_FAN,
+    "quads", Vertex::TRIANGLE_QUADS
+);
+// clang-format on
 
 namespace love::Vertex
 {
-    // clang-format off
-    constexpr auto cullModes = BidirectionalMap<>::Create(
-        "none",  CULL_NONE,
-        "back",  CULL_BACK,
-        "front", CULL_FRONT
-    );
-
-    constexpr auto windModes = BidirectionalMap<>::Create(
-        "cw",  WINDING_CW,
-        "ccw", WINDING_CCW
-    );
-
-    constexpr auto triangleModes = BidirectionalMap<>::Create(
-        "none",  TRIANGLE_NONE,
-        "strip", TRIANGLE_STRIP,
-        "fan",   TRIANGLE_FAN,
-        "quads", TRIANGLE_QUADS
-    );
-    // clang-format on
-
     // CullMode
     bool GetConstant(const char* in, CullMode& out)
     {

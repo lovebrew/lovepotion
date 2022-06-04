@@ -98,43 +98,45 @@ int Wrap_Video::GetPixelDimensions(lua_State* L)
 
 int Wrap_Video::SetFilter(lua_State* L)
 {
-    Video* self            = Wrap_Video::CheckVideo(L, 1);
-    Texture::Filter filter = self->GetFilter();
+    Video* self = Wrap_Video::CheckVideo(L, 1);
+
+    SamplerState state = self->GetSamplerState();
 
     const char* min = luaL_checkstring(L, 2);
-    const char* mag = luaL_checkstring(L, 3);
+    const char* mag = luaL_optstring(L, 3, min);
 
-    if (!Texture::GetConstant(min, filter.min))
-        return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.min), min);
+    if (!SamplerState::GetConstant(min, state.minFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.minFilter), min);
 
-    if (!Texture::GetConstant(mag, filter.mag))
-        return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.mag), mag);
+    if (!SamplerState::GetConstant(mag, state.magFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.magFilter), mag);
 
-    filter.anisotropy = luaL_optnumber(L, 4, 1.0f);
+    state.maxAnisotropy = std::min(std::max(1, (int)luaL_optnumber(L, 4, 1.0)),
+                                   (int)std::numeric_limits<uint8_t>::max());
 
-    Luax::CatchException(L, [&]() { self->SetFilter(filter); });
+    Luax::CatchException(L, [&]() { self->SetSamplerState(state); });
 
     return 0;
 }
 
 int Wrap_Video::GetFilter(lua_State* L)
 {
-    Video* self                  = Wrap_Video::CheckVideo(L, 1);
-    const Texture::Filter filter = self->GetFilter();
+    Video* self = Wrap_Video::CheckVideo(L, 1);
+
+    const SamplerState& state = self->GetSamplerState();
 
     const char* min = nullptr;
     const char* mag = nullptr;
 
-    if (!Texture::GetConstant(filter.min, min))
+    if (!SamplerState::GetConstant(state.minFilter, min))
         return luaL_error(L, "Unknown filter mode.");
 
-    if (!Texture::GetConstant(filter.mag, mag))
+    if (!SamplerState::GetConstant(state.magFilter, mag))
         return luaL_error(L, "Unknown filter mode.");
 
     lua_pushstring(L, min);
     lua_pushstring(L, mag);
-
-    lua_pushnumber(L, filter.anisotropy);
+    lua_pushnumber(L, state.maxAnisotropy);
 
     return 3;
 }

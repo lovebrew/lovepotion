@@ -13,10 +13,10 @@ Font::Font(Rasterizer* rasterizer, const SamplerState& state) :
     common::Font(rasterizer, state),
     buffer(C2D_TextBufNew(Font::FONT_BUFFER_SIZE))
 {
-    this->dpiScale = rasterizer->GetDPIScale();
-    this->height   = rasterizer->GetHeight();
+    this->dpiScale = this->rasterizers[0]->GetDPIScale();
+    this->height   = this->rasterizers[0]->GetHeight();
 
-    this->lineHeight = rasterizer->GetLineHeight();
+    this->lineHeight = this->rasterizers[0]->GetLineHeight();
 }
 
 Font::~Font()

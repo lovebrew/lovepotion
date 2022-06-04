@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 
 template<typename T>
 struct ColorT
@@ -135,6 +136,7 @@ ColorT<T> operator/(const ColorT<T>& a, T s)
 
 typedef ColorT<unsigned char> Color32;
 typedef ColorT<float> Colorf;
+typedef std::optional<Colorf> OptionalColor;
 
 inline Color32 toColor32(Colorf cf)
 {

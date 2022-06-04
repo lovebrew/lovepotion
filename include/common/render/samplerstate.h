@@ -70,9 +70,5 @@ namespace love
         static bool GetConstant(const char* in, MipmapFilterMode& out);
         static bool GetConstant(MipmapFilterMode in, const char*& out);
         static std::vector<const char*> GetConstants(MipmapFilterMode);
-
-        static bool GetConstant(const char* in, MipmapFilterMode& out);
-        static bool GetConstant(MipmapFilterMode in, const char*& out);
-        static std::vector<const char*> GetConstants(MipmapFilterMode);
     };
 } // namespace love

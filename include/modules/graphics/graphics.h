@@ -46,6 +46,8 @@
 #include "objects/video/video.h"
 #include "objects/videostream/videostream.h"
 
+#include "objects/shader/shader.h"
+
 #include <optional>
 #include <vector>
 
@@ -202,10 +204,9 @@ namespace love
 
         Image* NewImage(const Image::Slices& data);
 
-        virtual Font* NewFont(Rasterizer* rasterizer) = 0;
+        Font* NewFont(Rasterizer* rasterizer);
 #if defined(__SWITCH__)
         virtual Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting) = 0;
-
 #elif defined(__3DS__)
         virtual Font* NewDefaultFont(int size)                                   = 0;
 #endif
@@ -261,11 +262,10 @@ namespace love
 
         virtual void SetScissor();
 
-        virtual void Clear(std::optional<Colorf> color, std::optional<int> stencil,
-                           std::optional<double> depth);
+        void Clear(OptionalColor color, std::optional<int> stencil, std::optional<double> depth);
 
-        virtual void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
-                           std::optional<double> depth);
+        void Clear(std::vector<OptionalColor>& colors, std::optional<int> stencil,
+                   std::optional<double> depth);
 
         RenderState::BlendMode GetBlendMode(RenderState::BlendAlpha& alphaMode);
 
@@ -319,7 +319,7 @@ namespace love
 
         virtual void Line(const Vector2* points, int count) = 0;
 
-        virtual void SetLineWidth(float width) = 0;
+        void SetLineWidth(float width);
 
         Renderer::RendererInfo GetRendererInfo() const;
 
@@ -500,11 +500,11 @@ namespace love
         /* States or Something */
         void Reset();
 
-        virtual void Present() = 0;
+        void Present();
 
         bool SetMode(int width, int height);
 
-        static Renderer& Renderer();
+        static Renderer& GetRenderer();
 
         static bool GetConstant(const char* in, DrawMode& out);
         static bool GetConstant(DrawMode in, const char*& out);

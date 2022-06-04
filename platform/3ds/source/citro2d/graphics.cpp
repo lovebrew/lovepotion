@@ -44,7 +44,7 @@ inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count,
 
 namespace love
 {
-    Renderer& Graphics::Renderer()
+    Renderer& Graphics::GetRenderer()
     {
         return ::citro2d::Instance();
     }
@@ -71,15 +71,16 @@ namespace love
             return ::citro2d::Instance().GetWide();
         }
 
-        Font* love::citro2d::Graphics::NewDefaultFont(int size)
+        Font* Graphics::NewDefaultFont(int size)
         {
             auto fontModule = Module::GetInstance<FontModule>(M_FONT);
+
             if (!fontModule)
                 throw love::Exception("Font module has not been loaded.");
 
             StrongReference<Rasterizer> r(fontModule->NewBCFNTRasterizer(size), Acquire::NORETAIN);
 
-            return new Font(r.Get());
+            return this->NewFont(r.Get());
         }
 
         void Graphics::Points(const Vector2* points, size_t count, const Colorf* colors,

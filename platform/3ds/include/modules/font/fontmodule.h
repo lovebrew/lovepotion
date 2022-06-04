@@ -14,7 +14,7 @@ namespace love
 
         Rasterizer* NewBCFNTRasterizer(Data* data, int size);
 
-        Rasterizer* NewBCFNTRasterizer(int size, common::Font::SystemFontType type =
-                                                     common::Font::SystemFontType::TYPE_STANDARD);
+        Rasterizer* NewBCFNTRasterizer(
+            int size, Font::SystemFontType type = Font::SystemFontType::TYPE_STANDARD);
     };
 } // namespace love

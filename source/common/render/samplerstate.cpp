@@ -39,8 +39,7 @@ SamplerState SamplerState::FromKey(uint64_t key)
     state.minLod = (key >> 16) & BITS_4;
     state.maxLod = (key >> 20) & BITS_4;
 
-    state.depthSampleMode.has_value() = ((key >> 24) & BITS_1) != 0;
-    state.depthSampleMode.value()     = (RenderState::CompareMode)((key >> 25) & BITS_4);
+    state.depthSampleMode.value() = (RenderState::CompareMode)((key >> 25) & BITS_4);
 
     union
     {

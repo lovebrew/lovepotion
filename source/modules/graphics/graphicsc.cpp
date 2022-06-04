@@ -144,6 +144,43 @@ std::vector<const char*> Graphics::GetScreens() const
     return Screen::Instance().GetConstants(Graphics::ACTIVE_SCREEN);
 }
 
+void Graphics::Clear(std::vector<OptionalColor>& colors, std::optional<int> stencil,
+                     std::optional<double> depth)
+{
+    int numColors = colors.size();
+
+    if (numColors == 0 || !stencil.has_value() || !depth.has_value())
+        return;
+
+    if (numColors <= 1)
+        this->Clear(numColors > 0 ? colors[0] : std::optional<Colorf>(), stencil, depth);
+}
+
+void Graphics::Clear(OptionalColor color, std::optional<int> stencil, std::optional<double> depth)
+{
+    if (!this->IsCanvasActive())
+        Graphics::GetRenderer().BindFramebuffer();
+
+    if (color.has_value())
+    {
+        Graphics::GammaCorrectColor(color.value());
+        Graphics::GetRenderer().Clear(color.value());
+    }
+}
+
+void Graphics::Present()
+{
+    if (this->IsCanvasActive())
+        throw love::Exception("present cannot be called while a Canvas is active.");
+
+    Graphics::GetRenderer().Present();
+}
+
+Font* Graphics::NewFont(Rasterizer* data)
+{
+    return new Font(data, this->states.back().defaultSamplerState);
+}
+
 /* End Screen Stuff */
 
 Colorf Graphics::GetColor() const
@@ -176,7 +213,11 @@ void Graphics::SetLineWidth(float width)
     this->states.back().lineWidth = width;
 }
 
-#if defined(__SWITCH__)
+void Graphics::SetPointSize(float size)
+{
+    this->states.back().pointSize = size;
+}
+
 Shader* Graphics::GetShader() const
 {
     return states.back().shader.Get();
@@ -196,7 +237,6 @@ void Graphics::SetShader()
     Shader::AttachDefault(Shader::STANDARD_DEFAULT);
     states.back().shader.Set(nullptr);
 }
-#endif
 
 bool Graphics::IsCanvasActive(Canvas* canvas) const
 {
@@ -453,7 +493,7 @@ const RenderState::BlendState& Graphics::GetBlendState() const
 void Graphics::SetBlendState(const RenderState::BlendState& blend)
 {
     if (blend.enabled)
-        Graphics::Renderer().SetBlendMode(blend);
+        Graphics::GetRenderer().SetBlendMode(blend);
 
     this->states.back().blend = blend;
 }
@@ -506,6 +546,17 @@ void Graphics::RestoreStateChecked(const DisplayState& state)
     this->SetDefaultSamplerState(state.defaultSamplerState);
 }
 
+void Graphics::SetCanvas(Canvas* canvas)
+{
+    DisplayState& state = this->states.back();
+    state.canvas.Set(canvas);
+
+    Graphics::GetRenderer().BindFramebuffer(canvas);
+
+    if (this->states.back().scissor)
+        this->SetScissor(this->states.back().scissorRect);
+}
+
 Canvas* Graphics::GetCanvas() const
 {
     return states.back().canvas.Get();
@@ -518,7 +569,7 @@ RenderState::ColorMask Graphics::GetColorMask() const
 
 void Graphics::SetColorMask(const RenderState::ColorMask& mask)
 {
-    Graphics::Renderer().SetColorMask(mask);
+    Graphics::GetRenderer().SetColorMask(mask);
     this->states.back().colorMask = mask;
 }
 

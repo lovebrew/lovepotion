@@ -8,8 +8,6 @@
 
 namespace love
 {
-    class Shader;
-
     namespace RenderState
     {
 

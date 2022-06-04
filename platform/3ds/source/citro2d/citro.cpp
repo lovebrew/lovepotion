@@ -318,6 +318,11 @@ bool citro2d::GetConstant(PixelFormat in, GPU_TEXCOLOR& out)
     return pixelFormats.Find(in, out);
 }
 
+bool citro2d::GetConstant(GPU_TEXCOLOR in, PixelFormat& out)
+{
+    return pixelFormats.ReverseFind(in, out);
+}
+
 bool citro2d::GetConstant(RenderState::BlendOperation in, GPU_BLENDEQUATION& out)
 {
     return blendEquations.Find(in, out);

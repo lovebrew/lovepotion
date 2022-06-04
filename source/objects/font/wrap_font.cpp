@@ -81,21 +81,25 @@ int Wrap_Font::GetLineHeight(lua_State* L)
 
 int Wrap_Font::SetFilter(lua_State* L)
 {
-    love::Font* self       = Wrap_Font::CheckFont(L, 1);
-    Texture::Filter filter = self->GetFilter();
+    love::Font* self = Wrap_Font::CheckFont(L, 1);
+
+    SamplerState state = self->GetSamplerState();
 
     const char* min = luaL_checkstring(L, 2);
     const char* mag = luaL_optstring(L, 3, min);
 
-    if (!Texture::GetConstant(min, filter.min))
-        return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.min), min);
+    if (!SamplerState::GetConstant(min, state.minFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.minFilter), min);
 
-    if (!Texture::GetConstant(mag, filter.mag))
-        return Luax::EnumError(L, "filter mode", Texture::GetConstants(filter.mag), mag);
+    if (!SamplerState::GetConstant(mag, state.magFilter))
+        return Luax::EnumError(L, "filter mode", SamplerState::GetConstants(state.magFilter), mag);
 
-    filter.anisotropy = luaL_optnumber(L, 4, 1.0f);
+    state.maxAnisotropy = std::min(std::max(1, (int)luaL_optnumber(L, 4, 1.0)),
+                                   (int)std::numeric_limits<uint8_t>::max());
 
-    Luax::CatchException(L, [&]() { self->SetFilter(filter); });
+    Luax::CatchException(L, [&]() { self->SetSamplerState(state); });
+
+    return 0;
 
     return 0;
 }
@@ -104,18 +108,22 @@ int Wrap_Font::GetFilter(lua_State* L)
 {
     love::Font* self = Wrap_Font::CheckFont(L, 1);
 
-    const Texture::Filter filter = self->GetFilter();
+    const SamplerState& state = self->GetSamplerState();
 
-    const char* min;
-    const char* mag;
+    const char* min = nullptr;
+    const char* mag = nullptr;
 
-    Texture::GetConstant(filter.min, min);
-    Texture::GetConstant(filter.mag, mag);
+    if (!SamplerState::GetConstant(state.minFilter, min))
+        return luaL_error(L, "Unknown filter mode.");
+
+    if (!SamplerState::GetConstant(state.magFilter, mag))
+        return luaL_error(L, "Unknown filter mode.");
 
     lua_pushstring(L, min);
     lua_pushstring(L, mag);
+    lua_pushnumber(L, state.maxAnisotropy);
 
-    lua_pushnumber(L, filter.anisotropy);
+    return 3;
 
     return 3;
 }

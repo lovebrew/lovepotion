@@ -14,7 +14,7 @@ namespace love
       public:
         BCFNTRasterizer(Data* data, int size);
 
-        BCFNTRasterizer(common::Font::SystemFontType type, int size);
+        BCFNTRasterizer(Font::SystemFontType type, int size);
 
         virtual ~BCFNTRasterizer();
 

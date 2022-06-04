@@ -19,7 +19,7 @@ Rasterizer* FontModule::NewBCFNTRasterizer(Data* data, int size)
     return new BCFNTRasterizer(data, size);
 }
 
-Rasterizer* FontModule::NewBCFNTRasterizer(int size, common::Font::SystemFontType type)
+Rasterizer* FontModule::NewBCFNTRasterizer(int size, Font::SystemFontType type)
 {
     return new BCFNTRasterizer(type, size);
 }

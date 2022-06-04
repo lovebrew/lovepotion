@@ -55,13 +55,7 @@ namespace love::citro2d
 
         /* End Primitives */
 
-        void SetLineWidth(float width) override;
-
-        void SetDefaultFilter(const Texture::Filter& filter);
-
-        void SetScissor(const Rect& scissor) override;
-
-        void SetScissor() override;
+        virtual Font* NewDefaultFont(int size);
 
         /* Nintendo 3DS */
 

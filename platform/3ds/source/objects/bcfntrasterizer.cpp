@@ -13,10 +13,9 @@ BCFNTRasterizer::BCFNTRasterizer(Data* data, int size) : data(data), glyphCount(
     this->InitMetrics(size);
 }
 
-BCFNTRasterizer::BCFNTRasterizer(common::Font::SystemFontType type, int size) : glyphCount(-1)
+BCFNTRasterizer::BCFNTRasterizer(Font::SystemFontType type, int size) : glyphCount(-1)
 {
     this->font = C2D_FontLoadSystem(static_cast<CFG_Region>(type));
-
     this->InitMetrics(size);
 }
 
