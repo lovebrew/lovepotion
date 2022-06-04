@@ -277,10 +277,6 @@ namespace love
 
         virtual void SetColor(Colorf color);
 
-        virtual void SetMeshCullMode(Vertex::CullMode cull);
-
-        virtual void SetFrontFaceWinding(Vertex::Winding winding);
-
         /* Primitives */
 
         virtual void Rectangle(DrawMode mode, float x, float y, float width, float height) = 0;
@@ -315,7 +311,7 @@ namespace love
         virtual void Points(const Vector2* points, size_t count, const Colorf* colors,
                             size_t colorCount) = 0;
 
-        virtual void SetPointSize(float size) = 0;
+        void SetPointSize(float size);
 
         virtual void Line(const Vector2* points, int count) = 0;
 
@@ -330,6 +326,10 @@ namespace love
         /* Primitives */
 
         RenderState::ColorMask GetColorMask() const;
+
+        void SetMeshCullMode(Vertex::CullMode cull);
+
+        void SetFrontFaceWinding(Vertex::Winding winding);
 
         Vertex::CullMode GetMeshCullMode() const;
 

@@ -232,6 +232,42 @@ void Graphics::SetShader(Shader* shader)
     states.back().shader.Set(shader);
 }
 
+void Graphics::SetScissor(const Rect& scissor)
+{
+    DisplayState& state = this->states.back();
+    Graphics::GetRenderer().SetScissor(state.scissor, scissor, false);
+
+    state.scissor     = true;
+    state.scissorRect = scissor;
+}
+
+void Graphics::SetScissor()
+{
+    Rect scissor { 0, 0, Screen::Instance().GetWidth(Graphics::ACTIVE_SCREEN),
+                   Screen::Instance().GetHeight() };
+
+    Graphics::GetRenderer().SetScissor(false, scissor, false);
+
+    states.back().scissor = false;
+}
+
+void Graphics::SetFrontFaceWinding(Vertex::Winding winding)
+{
+    Graphics::GetRenderer().SetVertexWinding(winding);
+    this->states.back().winding = winding;
+}
+
+Vertex::Winding Graphics::GetFrontFaceWinding() const
+{
+    return this->states.back().winding;
+}
+
+void Graphics::SetMeshCullMode(Vertex::CullMode culling)
+{
+    Graphics::GetRenderer().SetMeshCullMode(culling);
+    this->states.back().cullMode = culling;
+}
+
 void Graphics::SetShader()
 {
     Shader::AttachDefault(Shader::STANDARD_DEFAULT);
@@ -496,6 +532,11 @@ void Graphics::SetBlendState(const RenderState::BlendState& blend)
         Graphics::GetRenderer().SetBlendMode(blend);
 
     this->states.back().blend = blend;
+}
+
+Renderer::RendererInfo Graphics::GetRendererInfo() const
+{
+    return Graphics::GetRenderer().GetRendererInfo();
 }
 
 void Graphics::RestoreStateChecked(const DisplayState& state)

@@ -6,8 +6,6 @@
 #include <c2d/font.h>
 #include <c2d/text.h>
 
-#include "objects/bcfntrasterizer/bcfntrasterizer.h"
-
 namespace love
 {
     class Font : public love::common::Font

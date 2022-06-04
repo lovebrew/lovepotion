@@ -4,6 +4,8 @@
 
 #include "citro2d/citro.h"
 
+#include "objects/bcfntrasterizer/bcfntrasterizer.h"
+
 #include <numeric>
 
 using namespace love;
