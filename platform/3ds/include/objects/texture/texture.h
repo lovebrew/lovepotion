@@ -19,7 +19,7 @@ namespace love
 
         void Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform) override;
 
-        void SetSamplerState(const SamplerState& state);
+        virtual void SetSamplerState(const SamplerState& state) override;
 
       protected:
         C2D_Image texture;

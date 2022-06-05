@@ -4,11 +4,6 @@
 
 #include "deko3d/deko.h"
 
-#define RENDERER_NAME    "deko3d"
-#define RENDERER_VERSION "0.4.0"
-#define RENDERER_VENDOR  "devkitPro"
-#define RENDERER_DEVICE  "NVIDIA Tegra X1"
-
 namespace love::deko3d
 {
     class Graphics : public love::Graphics
@@ -17,20 +12,6 @@ namespace love::deko3d
         Graphics();
 
         virtual ~Graphics();
-
-        void Clear(std::optional<Colorf> color, std::optional<int> stencil,
-                   std::optional<double> depth) override;
-
-        void Clear(std::vector<std::optional<Colorf>>& colors, std::optional<int> stencil,
-                   std::optional<double> depth) override;
-
-        void Present() override;
-
-        void SetScissor(const Rect& scissor) override;
-
-        void SetScissor() override;
-
-        void SetColor(Colorf color) override;
 
         /* Primitives */
 
@@ -64,26 +45,11 @@ namespace love::deko3d
         void Points(const Vector2* points, size_t count, const Colorf* colors,
                     size_t colorCount) override;
 
-        void SetPointSize(float size) override;
-
         void Line(const Vector2* points, int count) override;
-
-        void SetLineWidth(float width) override;
-
-        void SetDefaultFilter(const Texture::Filter& filter);
 
         /* End Primitives */
 
-        void SetMeshCullMode(vertex::CullMode cull) override;
-
-        void SetFrontFaceWinding(vertex::Winding winding) override;
-
-        Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting,
-                             const Texture::Filter& filter = Texture::defaultFilter) override;
-
-        Font* NewFont(Rasterizer* rasterizer, const Texture::Filter& filter) override;
-
-        RendererInfo GetRendererInfo() const override;
+        Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting) override;
 
         // Internal?
         Shader* NewShader(Shader::StandardShader type);

@@ -40,9 +40,9 @@ class CShader
         return m_shader.isValid();
     }
 
-    bool load(CMemPool& pool, const char* path);
+    bool load(const char* path);
 
-    bool load(CMemPool& pool, const void* buffer, size_t size);
+    bool load(const void* buffer, size_t size);
 
   private:
     struct DkshHeader

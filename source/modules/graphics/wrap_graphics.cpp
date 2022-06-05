@@ -10,6 +10,8 @@
 #include "objects/imagedata/wrap_imagedata.h"
 #include "objects/video/wrap_video.h"
 
+#include "objects/shader/wrap_shader.h"
+
 #include "wrap_graphics_lua.h"
 
 using namespace love;
@@ -1548,9 +1550,7 @@ static constexpr lua_CFunction types[] =
     Wrap_Font::Register,
     Wrap_Image::Register,
     Wrap_Quad::Register,
-#if defined(__SWITCH__)
     Wrap_Shader::Register,
-#endif
     Wrap_Text::Register,
     Wrap_Video::Register,
     nullptr

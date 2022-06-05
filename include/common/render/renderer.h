@@ -36,7 +36,7 @@ namespace love
         virtual void Clear(const Colorf& color) = 0;
 
         /* clear the depth and stencil buffers */
-        virtual void ClearDepthStencil(int stencil, double depth) = 0;
+        virtual void ClearDepthStencil(int stencil, uint8_t mask, double depth) = 0;
 
         /* set the foreground rendering color */
         virtual void SetBlendColor(const Colorf& color) = 0;
@@ -72,6 +72,12 @@ namespace love
 
         /* sets the color mask for writing */
         virtual void SetColorMask(const RenderState::ColorMask& mask) = 0;
+
+        /* sets the line width */
+        virtual void SetLineWidth(float lineWidth) = 0;
+
+        /* sets the point size */
+        virtual void SetPointSize(float pointSize) = 0;
 
         /* gets the renderer info */
         const RendererInfo& GetRendererInfo() const

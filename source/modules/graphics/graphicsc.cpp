@@ -211,11 +211,13 @@ float Graphics::GetLineWidth() const
 void Graphics::SetLineWidth(float width)
 {
     this->states.back().lineWidth = width;
+    Graphics::GetRenderer().SetLineWidth(width);
 }
 
 void Graphics::SetPointSize(float size)
 {
     this->states.back().pointSize = size;
+    Graphics::GetRenderer().SetPointSize(size);
 }
 
 Shader* Graphics::GetShader() const

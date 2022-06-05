@@ -49,21 +49,10 @@ class CImage
     bool load(love::PixelFormat format, bool isSRGB, void* buffer, size_t size, int width,
               int height, bool empty = false);
 
-    bool loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
-                         dk::Queue queue, uint32_t width, uint32_t height, DkImageFormat format,
-                         uint32_t flags = 0);
+    bool loadEmptyPixels(uint32_t width, uint32_t height, DkImageFormat format, uint32_t flags = 0);
 
-    bool replacePixels(CMemPool& scratchPool, dk::Device device, const void* data, size_t size,
-                       dk::Queue transferQueue, const love::Rect& rect);
+    bool replacePixels(const void* data, size_t size, const love::Rect& rect);
 
-    bool loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
-                    dk::Queue transferQueue, const void* data, uint32_t width, uint32_t height,
-                    DkImageFormat format, uint32_t flags = 0);
-
-    size_t getFormatSize(DkImageFormat format);
-
-  private:
-    std::unique_ptr<u32[]> loadPNG(const void* buffer, const size_t size, int& width, int& height);
-
-    std::unique_ptr<u8[]> loadJPG(const void* buffer, const size_t size, int& width, int& height);
+    bool loadMemory(const void* data, uint32_t width, uint32_t height, DkImageFormat format,
+                    uint32_t flags = 0);
 };

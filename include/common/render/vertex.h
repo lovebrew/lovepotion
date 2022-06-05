@@ -1,7 +1,10 @@
 #pragma once
 
 #include "common/colors.h"
+#include "common/vector.h"
 
+#include <memory>
+#include <span>
 #include <stdint.h>
 #include <vector>
 
@@ -15,6 +18,7 @@ namespace love
             float color[4];
             uint16_t texcoord[2];
         };
+        static constexpr int PRIM_VERTEX_SIZE = sizeof(PrimitiveVertex);
 
         struct GlyphVertex
         {
@@ -23,6 +27,7 @@ namespace love
 
             Colorf color;
         };
+        static constexpr int GLYPH_VERTEX_SIZE = sizeof(GlyphVertex);
 
         enum CullMode
         {
@@ -63,5 +68,77 @@ namespace love
         bool GetConstant(const char* in, TriangleIndexMode& out);
         bool GetConstant(TriangleIndexMode in, const char*& out);
         std::vector<const char*> GetConstants(TriangleIndexMode);
+
+        [[nodiscard]] static inline std::unique_ptr<Vertex::PrimitiveVertex[]>
+        GeneratePrimitiveFromVectors(std::span<Vector2> points, std::span<Colorf> colors)
+        {
+            Colorf color = colors[0];
+
+            size_t pointCount = points.size();
+            auto result       = std::make_unique<Vertex::PrimitiveVertex[]>(pointCount);
+
+            size_t colorCount = colors.size();
+
+            for (size_t index = 0; index < pointCount; index++)
+            {
+                const Vector2 point = points[index];
+
+                if (index < colorCount)
+                    color = colors[index];
+
+                Vertex::PrimitiveVertex append = { .position = { point.x, point.y, 0.0f },
+                                                   .color = { color.r, color.g, color.b, color.a },
+                                                   .texcoord = { 0, 0 } };
+
+                result[index] = append;
+            }
+
+            return result;
+        }
+
+        static inline std::vector<Vertex::PrimitiveVertex> GenerateTextureFromVectors(
+            const Vector2* points, const Vector2* texcoord, size_t count, Colorf color)
+        {
+            std::vector<Vertex::PrimitiveVertex> verts(count);
+
+            for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
+            {
+                const Vector2 point    = points[currentVertex];
+                const Vector2 texCoord = texcoord[currentVertex];
+
+                Vertex::PrimitiveVertex vert = { .position = { point.x, point.y, 0.0f },
+                                                 .color    = { 1, 1, 1, 1 },
+                                                 .texcoord = { Vertex::normto16t(texCoord.x),
+                                                               Vertex::normto16t(texCoord.y) } };
+
+                color.CopyTo(vert.color);
+
+                verts[currentVertex] = vert;
+            }
+
+            return verts;
+        }
+
+        static inline std::vector<Vertex::PrimitiveVertex> GenerateTextureFromGlyphs(
+            const Vertex::GlyphVertex* data, size_t count)
+        {
+            std::vector<Vertex::PrimitiveVertex> verts(count);
+
+            for (size_t currentVertex = 0; currentVertex < count; currentVertex++)
+            {
+                const Vertex::GlyphVertex vertex = data[currentVertex];
+                Colorf color                     = vertex.color;
+
+                Vertex::PrimitiveVertex vert = { .position = { vertex.x, vertex.y, 0.0f },
+                                                 .color    = { 1, 1, 1, 1 },
+                                                 .texcoord = { vertex.s, vertex.t } };
+
+                color.CopyTo(vert.color);
+
+                verts[currentVertex] = vert;
+            }
+
+            return verts;
+        }
     } // namespace Vertex
 } // namespace love

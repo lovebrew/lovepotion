@@ -68,7 +68,12 @@
       "ranges": "cpp",
       "numbers": "cpp",
       "span": "cpp",
-      "*.lua": "cpp"
+      "*.lua": "cpp",
+      "condition_variable": "cpp",
+      "mutex": "cpp",
+      "semaphore": "cpp",
+      "stop_token": "cpp",
+      "thread": "cpp"
     },
     "terminal.integrated.defaultProfile.windows": "msys2",
     "yaml.schemas": {

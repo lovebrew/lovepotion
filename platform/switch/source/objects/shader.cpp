@@ -1,4 +1,4 @@
-#include "deko3d/shader.h"
+#include "objects/shader/shader.h"
 
 #include "common/bidirectionalmap.h"
 #include "deko3d/deko.h"
@@ -19,10 +19,8 @@ Shader::Shader(Data* vertex, Data* pixel) : program()
 {
     std::string error;
 
-    this->program.vertex->load(::deko3d::Instance().GetCode(), vertex->GetData(),
-                               vertex->GetSize());
-    this->program.fragment->load(::deko3d::Instance().GetCode(), pixel->GetData(),
-                                 pixel->GetSize());
+    this->program.vertex->load(vertex->GetData(), vertex->GetSize());
+    this->program.fragment->load(pixel->GetData(), pixel->GetSize());
 
     if (!this->Validate(*this->program.vertex, *this->program.fragment, error))
         throw love::Exception(error.c_str());
@@ -42,18 +40,18 @@ Shader::~Shader()
 
 void Shader::LoadDefaults(StandardShader type)
 {
-    this->program.vertex->load(::deko3d::Instance().GetCode(), DEFAULT_VERTEX_SHADER);
+    this->program.vertex->load(DEFAULT_VERTEX_SHADER);
 
     switch (type)
     {
         case STANDARD_DEFAULT:
-            this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_FRAGMENT_SHADER);
+            this->program.fragment->load(DEFAULT_FRAGMENT_SHADER);
             break;
         case STANDARD_TEXTURE:
-            this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_TEXTURE_SHADER);
+            this->program.fragment->load(DEFAULT_TEXTURE_SHADER);
             break;
         case STANDARD_VIDEO:
-            this->program.fragment->load(::deko3d::Instance().GetCode(), DEFAULT_VIDEO_SHADER);
+            this->program.fragment->load(DEFAULT_VIDEO_SHADER);
         default:
             break;
     }
@@ -95,41 +93,16 @@ bool Shader::Validate(const CShader& vertex, const CShader& pixel, std::string& 
     return true;
 }
 
-bool Shader::IsDefaultActive()
+const Shader::Program& Shader::GetProgram()
 {
-    for (int i = 0; i < STANDARD_MAX_ENUM; i++)
-    {
-        if (current == standardShaders[i])
-            return true;
-    }
-
-    return false;
+    return this->program;
 }
 
 void Shader::Attach()
 {
     if (Shader::current != this)
     {
-        ::deko3d::Instance().UseProgram(this->program);
-
+        ::deko3d::Instance().SetShader(this);
         Shader::current = this;
     }
-}
-
-// clang-format off
-constexpr auto shaderNames = BidirectionalMap<>::Create(
-    "default", Shader::StandardShader::STANDARD_DEFAULT,
-    "texture", Shader::StandardShader::STANDARD_TEXTURE,
-    "video",   Shader::StandardShader::STANDARD_VIDEO
-);
-// clang-format on
-
-bool Shader::GetConstant(const char* in, StandardShader& out)
-{
-    return shaderNames.Find(in, out);
-}
-
-bool Shader::GetConstant(StandardShader in, const char*& out)
-{
-    return shaderNames.ReverseFind(in, out);
 }

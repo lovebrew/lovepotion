@@ -1,6 +1,10 @@
 #pragma once
 
-#include "deko3d/vertex.h"
+#include "common/render/vertex.h"
+#include <deko3d.h>
+
+#include <vector>
+
 #include <span>
 
 namespace love
@@ -14,7 +18,7 @@ namespace love
     class Polyline
     {
       public:
-        Polyline(vertex::TriangleIndexMode mode = vertex::TriangleIndexMode::TRIANGLE_STRIP) :
+        Polyline(Vertex::TriangleIndexMode mode = Vertex::TriangleIndexMode::TRIANGLE_STRIP) :
             vertices(nullptr),
             overdraw(nullptr),
             vertexCount(0),
@@ -71,7 +75,7 @@ namespace love
         size_t vertexCount;
         size_t overdrawVertexCount;
 
-        vertex::TriangleIndexMode triangleIndexMode;
+        Vertex::TriangleIndexMode triangleIndexMode;
         size_t overdrawVertexStart;
 
         DkPrimitive triangleMode = DkPrimitive_TriangleStrip;

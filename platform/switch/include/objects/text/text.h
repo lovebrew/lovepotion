@@ -1,6 +1,6 @@
 #pragma once
 
-#include "deko3d/vertex.h"
+#include "common/render/vertex.h"
 #include "objects/text/textc.h"
 
 namespace love
@@ -49,13 +49,13 @@ namespace love
 
         std::vector<TextData> textData;
 
-        std::vector<vertex::GlyphVertex> vertexBuffer;
+        std::vector<Vertex::GlyphVertex> vertexBuffer;
 
         size_t vertexOffset;
 
         uint32_t textureCacheId;
 
-        void CopyVertices(const std::vector<vertex::GlyphVertex>& vertices, size_t vertoffset);
+        void CopyVertices(const std::vector<Vertex::GlyphVertex>& vertices, size_t vertoffset);
 
         void RegenerateVertices();
 

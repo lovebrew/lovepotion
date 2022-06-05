@@ -13,7 +13,7 @@ Texture::Texture(TextureType type) : common::Texture(type), texture()
 
 Texture::~Texture()
 {
-    ::deko3d::Instance().UnRegisterResHandle(this->handle);
+    ::deko3d::Instance().DeRegisterDescriptor(this->handle);
 }
 
 void Texture::SetHandle(DkResHandle handle)
@@ -26,15 +26,14 @@ DkResHandle Texture::GetHandle()
     return this->handle;
 }
 
-bool Texture::SetWrap(const Wrap& wrap)
+void Texture::SetSamplerState(const SamplerState& state)
 {
-    ::deko3d::Instance().SetTextureWrap(this, wrap);
-    return true;
-}
+    this->samplerState = state;
 
-void Texture::SetFilter(const Filter& filter)
-{
-    ::deko3d::Instance().SetTextureFilter(this, filter);
+    if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE && this->GetMipmapCount() == 1)
+        this->samplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
+
+    ::deko3d::Instance().SetSamplerState(this, this->samplerState);
 }
 
 void Texture::Draw(Graphics* gfx, const Matrix4& localTransform)
@@ -51,8 +50,8 @@ void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransfor
     Matrix4 t(tm, localTransform);
 
     /* zero out a new vertex data thing */
-    vertex::PrimitiveVertex vertexData[TEXTURE_QUAD_POINT_COUNT];
-    std::fill_n(vertexData, TEXTURE_QUAD_POINT_COUNT, vertex::PrimitiveVertex {});
+    Vertex::PrimitiveVertex vertexData[TEXTURE_QUAD_POINT_COUNT];
+    std::fill_n(vertexData, TEXTURE_QUAD_POINT_COUNT, Vertex::PrimitiveVertex {});
 
     Vector2 transformed[TEXTURE_QUAD_POINT_COUNT];
     std::fill_n(transformed, TEXTURE_QUAD_POINT_COUNT, Vector2 {});
@@ -66,8 +65,8 @@ void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransfor
     {
         vertexData[i] = { { transformed[i].x, transformed[i].y, 0.0f },
                           { color.r, color.g, color.b, color.a },
-                          { vertex::normto16t(texCoords[i].x),
-                            vertex::normto16t(texCoords[i].y) } };
+                          { Vertex::normto16t(texCoords[i].x),
+                            Vertex::normto16t(texCoords[i].y) } };
     }
 
     ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);

@@ -8,6 +8,12 @@ namespace love
     class Shader : public common::Shader
     {
       public:
+        Shader();
+
+        Shader(Data*, Data*);
+
+        virtual ~Shader();
+
         struct Program
         {
             std::optional<CShader> vertex;
@@ -21,6 +27,8 @@ namespace love
         bool Validate(const CShader& vertex, const CShader& pixel, std::string& error);
 
         static const char* GetStageName(CShader& shader);
+
+        const Program& GetProgram();
 
       private:
         Program program;

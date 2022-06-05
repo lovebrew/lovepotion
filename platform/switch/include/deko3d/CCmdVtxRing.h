@@ -7,7 +7,7 @@
 #include "deko3d/CMemPool.h"
 #include "deko3d/common.h"
 
-#include "vertex.h"
+#include "common/render/vertex.h"
 
 template<unsigned NumSlices>
 class CCmdVtxRing
@@ -30,7 +30,7 @@ class CCmdVtxRing
     bool allocate(CMemPool& pool, uint32_t size)
     {
         m_sliceSize = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
-        m_mem       = pool.allocate(NumSlices * m_sliceSize, alignof(vertex::Vertex));
+        m_mem = pool.allocate(NumSlices * m_sliceSize, alignof(love::Vertex::PrimitiveVertex));
 
         return m_mem;
     }

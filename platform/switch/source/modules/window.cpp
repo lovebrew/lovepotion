@@ -15,7 +15,7 @@ Window::Window()
 
 void Window::GetWindow(int& width, int& height)
 {
-    std::pair<uint32_t, uint32_t> size;
+    DisplaySize size;
     ::deko3d::Instance().OnOperationMode(size);
 
     width  = size.first;
@@ -26,7 +26,7 @@ void Window::GetWindow(int& width, int& height)
 
 bool Window::CreateWindowAndContext()
 {
-    std::pair<uint32_t, uint32_t> size;
+    DisplaySize size;
     ::deko3d::Instance().OnOperationMode(size);
 
     this->OnSizeChanged(size.first, size.second);
@@ -49,7 +49,7 @@ void Window::OnSizeChanged(int width, int height)
     const Rect newViewport = { 0, 0, width, height };
 
     ::deko3d::Instance().SetViewport(newViewport);
-    ::deko3d::Instance().SetScissor(newViewport, false);
+    ::deko3d::Instance().SetScissor(true, newViewport, false);
 }
 
 int Window::GetDisplayCount()

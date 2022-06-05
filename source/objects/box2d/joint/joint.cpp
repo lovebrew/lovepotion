@@ -161,7 +161,7 @@ bool Joint::IsEnabled() const
 
 bool Joint::GetCollideConnected() const
 {
-    return this->GetCollideConnected();
+    return this->joint->GetCollideConnected();
 }
 
 int Joint::SetUserdata(lua_State* L)

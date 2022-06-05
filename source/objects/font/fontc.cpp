@@ -3,8 +3,6 @@
 #include "common/bidirectionalmap.h"
 #include "utf8/utf8.h"
 
-#include "objects/font/font.h"
-
 using namespace love::common;
 
 love::Type Font::type("Font", &Object::type);
@@ -108,23 +106,12 @@ bool Font::HasGlyphs(const std::string& text) const
 
 // clang-format off
 constexpr auto alignModes = BidirectionalMap<>::Create(
-    "left",    love::Font::AlignMode::ALIGN_LEFT,
-    "right",   love::Font::AlignMode::ALIGN_RIGHT,
-    "center",  love::Font::AlignMode::ALIGN_CENTER,
-    "justify", love::Font::AlignMode::ALIGN_JUSTIFY
+    "left",    Font::AlignMode::ALIGN_LEFT,
+    "right",   Font::AlignMode::ALIGN_RIGHT,
+    "center",  Font::AlignMode::ALIGN_CENTER,
+    "justify", Font::AlignMode::ALIGN_JUSTIFY
 );
-#if defined(__3DS__)
 
-#elif defined(__SWITCH__)
-constexpr auto sharedFonts = BidirectionalMap<>::Create(
-    "standard",                    love::Font::SystemFontType::TYPE_STANDARD,
-    "chinese simplified",          love::Font::SystemFontType::TYPE_CHINESE_SIMPLIFIED,
-    "chinese traditional",         love::Font::SystemFontType::TYPE_CHINESE_TRADITIONAL,
-    "extended chinese simplified", love::Font::SystemFontType::TYPE_CHINESE_SIMPLIFIED_EXT,
-    "korean",                      love::Font::SystemFontType::TYPE_KOREAN,
-    "nintendo extended",           love::Font::SystemFontType::TYPE_NINTENDO_EXTENDED
-);
-#endif
 // clang-format on
 
 bool Font::GetConstant(const char* in, AlignMode& out)

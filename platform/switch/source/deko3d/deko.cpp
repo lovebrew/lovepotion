@@ -1,82 +1,66 @@
 #include "deko3d/deko.h"
-
-#include "common/bidirectionalmap.h"
-#include "common/pixelformat.h"
-#include "deko3d/vertex.h"
+#include "deko3d/vertexattribs.h"
 
 #include "common/screen.h"
-#include "debug/logfile.h"
 
-namespace
-{
-    /* GPU & CPU Memory Pools */
-    constexpr auto gpuPoolSize = 64 * 1024 * 1024;
-    constexpr auto gpuFlags    = (DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image);
+#include "objects/canvas/canvas.h"
 
-    constexpr auto cpuPoolSize = 1 * 1024 * 1024;
-    constexpr auto cpuFlags    = (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached);
-
-    /* Used for Shader code */
-    constexpr auto shaderPoolSize = 128 * 1024;
-    constexpr auto shaderFlags =
-        (DkMemBlockFlags_CpuUncached | DkMemBlockFlags_GpuCached | DkMemBlockFlags_Code);
-
-    constexpr auto framebufferLayoutFlags =
-        (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
-} // namespace
+using namespace love;
 
 deko3d::deko3d() :
     firstVertex(0),
-    gpuRenderState(STATE_MAX_ENUM),
+    gpuRenderState(GPU_RENDER_STATE_MAX_ENUM),
+    vertexData(nullptr),
     device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
     queue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-    pool { .images = CMemPool(this->device, gpuFlags, gpuPoolSize),
-           .data   = CMemPool(this->device, cpuFlags, cpuPoolSize),
-           .code   = CMemPool(this->device, shaderFlags, shaderPoolSize) },
-    state(),
     textureQueue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
-    viewport { 0, 0, static_cast<int>(Screen::HANDHELD_WIDTH),
-               static_cast<int>(Screen::HANDHELD_HEIGHT) },
-    framebuffers(),
-    descriptorsDirty(false),
-    depthBuffer()
+    commandBuffer {},
+    swapchain {},
+    pool { .images = CMemPool(this->device, GPU_USE_FLAGS, GPU_POOL_SIZE),
+           .data   = CMemPool(this->device, CPU_USE_FLAGS, CPU_POOL_SIZE),
+           .code   = CMemPool(this->device, SHADER_USE_FLAGS, SHADER_POOL_SIZE) },
+    deviceState {},
+    framebuffers {},
+    depthBuffer {},
+    transform {},
+    descriptors {},
+    filter {}
 {
-    this->transformUniformBuffer =
-        this->pool.data.allocate(sizeof(this->transformState), DK_UNIFORM_BUF_ALIGNMENT);
-    this->transformState.mdlvMtx = glm::mat4(1.0f);
+    this->transform.buffer =
+        this->AllocatePool(MEMPOOL_DATA, TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
+    this->transform.state.mdlvMtx = glm::mat4(1.0f);
 
     this->descriptors.image.allocate(this->pool.data);
     this->descriptors.sampler.allocate(this->pool.data);
 
-    this->cmdRing.allocate(this->pool.data, COMMAND_SIZE);
-    this->vtxRing.allocate(this->pool.data, VERTEX_COMMAND_SIZE / 2);
+    /* command and vertex rings */
+    this->commands.allocate(this->pool.data, COMMAND_SIZE);
+    this->vertices.allocate(this->pool.data, VERTEX_COMMAND_SIZE / 2);
 
-    this->state.depthStencil.setDepthTestEnable(true);
-    this->state.depthStencil.setDepthWriteEnable(true);
-    this->state.depthStencil.setDepthCompareOp(DkCompareOp_Always);
+    this->deviceState.depthStencil.setDepthTestEnable(true);
+    this->deviceState.depthStencil.setDepthWriteEnable(true);
+    this->deviceState.depthStencil.setDepthCompareOp(DkCompareOp_Always);
 
-    this->state.color.setBlendEnable(0, true);
+    this->deviceState.color.setBlendEnable(0, true);
 
-    love::Texture::Filter filter;
-    filter.min = filter.mag = love::Texture::FILTER_NEAREST;
-    this->SetTextureFilter(filter);
+    this->filter.sampler.setFilter(DkFilter_Linear, DkFilter_Linear);
+    this->filter.sampler.setWrapMode(DkWrapMode_Clamp, DkWrapMode_Clamp);
+    this->filter.descriptor.initialize(this->filter.sampler);
 
-    love::Texture::Wrap wrap;
-    wrap.s = wrap.t = wrap.r = love::Texture::WRAP_CLAMP;
-    this->SetTextureWrap(wrap);
-
-    // Create the dynamic command buffer
-    this->cmdBuf = dk::CmdBufMaker { this->device }.create();
+    /* create the dynamic command buffer */
+    this->commandBuffer = dk::CmdBufMaker { this->device }.create();
     this->EnsureInFrame();
 
-    this->descriptors.image.bindForImages(this->cmdBuf);
-    this->descriptors.sampler.bindForSamplers(this->cmdBuf);
+    this->descriptors.image.bindForImages(this->commandBuffer);
+    this->descriptors.sampler.bindForSamplers(this->commandBuffer);
+
+    this->InitRendererInfo();
 }
 
 deko3d::~deko3d()
 {
-    this->DestroyFramebufferResources();
-    this->transformUniformBuffer.destroy();
+    this->DestroyFramebuffers();
+    this->transform.buffer.destroy();
 }
 
 deko3d& deko3d::Instance()
@@ -85,24 +69,112 @@ deko3d& deko3d::Instance()
     return instance;
 }
 
-void deko3d::CreateFramebufferResources()
+CMemPool& deko3d::GetMemPool(MemPoolType type)
+{
+    switch (type)
+    {
+        case MemPoolType::MEMPOOL_DATA:
+            return this->pool.data;
+        case MemPoolType::MEMPOOL_CODE:
+            return this->pool.code;
+        case MemPoolType::MEMPOOL_IMAGES:
+        default:
+            return this->pool.images;
+    }
+}
+
+CMemPool::Handle deko3d::AllocatePool(MemPoolType type, size_t size, uint32_t alignment)
+{
+    return this->GetMemPool(type).allocate(size, alignment);
+}
+
+DkResHandle deko3d::RegisterDescriptor(const dk::ImageDescriptor& descriptor)
+{
+    this->EnsureInFrame();
+
+    uint32_t index = this->allocator.Allocate();
+
+    this->descriptors.image.update(this->commandBuffer, index, descriptor);
+    this->descriptors.sampler.update(this->commandBuffer, index, this->filter.descriptor);
+
+    this->descriptors.dirty = true;
+
+    return dkMakeTextureHandle(index, index);
+}
+
+void deko3d::DeRegisterDescriptor(DkResHandle handle)
+{
+    this->allocator.DeAllocate(handle);
+}
+
+void deko3d::InitRendererInfo()
+{
+    memset(&this->rendererInfo, 0, sizeof(RendererInfo));
+
+    this->rendererInfo.device  = RENDERER_DEVICE;
+    this->rendererInfo.name    = RENDERER_NAME;
+    this->rendererInfo.vendor  = RENDERER_VENDOR;
+    this->rendererInfo.version = RENDERER_VERSION;
+}
+
+void deko3d::OnOperationMode(Window::DisplaySize& size)
+{
+    /* destroy resources */
+    this->DestroyFramebuffers();
+
+    /* recreate them, Screen will auto-determine the sizes */
+    this->CreateFramebuffers();
+
+    size = { Screen::Instance().GetWidth(), Screen::Instance().GetHeight() };
+}
+
+bool deko3d::IsHandheldMode()
+{
+    return appletGetOperationMode() == AppletOperationMode_Handheld;
+}
+
+void deko3d::DestroyFramebuffers()
+{
+    /* return early if we have nothing to destroy */
+    if (!this->swapchain)
+        return;
+
+    /* make sure the queue is idle before destroying anything */
+    this->queue.waitIdle();
+
+    this->textureQueue.waitIdle();
+
+    /* clear the command buffer */
+    this->commandBuffer.clear();
+
+    /* Destroy the swapchain */
+    this->swapchain.destroy();
+
+    // Destroy the framebuffers
+    for (unsigned i = 0; i < MAX_FRAMEBUFFERS; i++)
+        this->framebuffers.memory[i].destroy();
+
+    this->depthBuffer.memory.destroy();
+}
+
+void deko3d::CreateFramebuffers()
 {
     /* initialize depth buffer */
-    dk::ImageLayout layout_depthbuffer;
+    dk::ImageLayout layoutDepthBuffer;
     dk::ImageLayoutMaker { this->device }
         .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
         .setFormat(DkImageFormat_Z24S8)
         .setDimensions(Screen::Instance().GetWidth(), Screen::Instance().GetHeight())
-        .initialize(layout_depthbuffer);
+        .initialize(layoutDepthBuffer);
 
-    this->depthBuffer.memory =
-        this->pool.images.allocate(layout_depthbuffer.getSize(), layout_depthbuffer.getAlignment());
-    this->depthBuffer.image.initialize(layout_depthbuffer, this->depthBuffer.memory.getMemBlock(),
+    this->depthBuffer.memory = this->AllocatePool(MEMPOOL_IMAGES, layoutDepthBuffer.getSize(),
+                                                  layoutDepthBuffer.getAlignment());
+    this->depthBuffer.image.initialize(layoutDepthBuffer, this->depthBuffer.memory.getMemBlock(),
                                        this->depthBuffer.memory.getOffset());
 
-    /* Create a layout for the normal framebuffers */
+    /* create a layout for the normal framebuffers */
     dk::ImageLayoutMaker { this->device }
-        .setFlags(framebufferLayoutFlags)
+        .setFlags(FRAMEBUFFER_USE_FLAGS)
         .setFormat(DkImageFormat_RGBA8_Unorm)
         .setDimensions(Screen::Instance().GetWidth(), Screen::Instance().GetHeight())
         .initialize(this->layoutFramebuffer);
@@ -114,7 +186,7 @@ void deko3d::CreateFramebufferResources()
     {
         // Allocate a framebuffer
         this->framebuffers.memory[i] =
-            this->pool.images.allocate(framebufferSize, framebufferAlign);
+            this->AllocatePool(MEMPOOL_IMAGES, framebufferSize, framebufferAlign);
         this->framebuffers.images[i].initialize(this->layoutFramebuffer,
                                                 this->framebuffers.memory[i].getMemBlock(),
                                                 this->framebuffers.memory[i].getOffset());
@@ -128,122 +200,43 @@ void deko3d::CreateFramebufferResources()
         dk::SwapchainMaker { this->device, nwindowGetDefault(), this->framebufferArray }.create();
 }
 
-void deko3d::OnOperationMode(std::pair<uint32_t, uint32_t>& size)
+void deko3d::Clear(const Colorf& color)
 {
-    /* Destroy resources */
-    this->DestroyFramebufferResources();
-
-    /* Recreate them, Screen will auto-determine the sizes */
-    this->CreateFramebufferResources();
-
-    size = { Screen::Instance().GetWidth(), Screen::Instance().GetHeight() };
+    this->EnsureInFrame();
+    this->commandBuffer.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
 }
 
-void deko3d::DestroyFramebufferResources()
+void deko3d::ClearDepthStencil(int stencil, uint8_t mask, double depth)
 {
-    // Return early if we have nothing to destroy
-    if (!this->swapchain)
-        return;
-
-    // Make sure the queue is idle before destroying anything
-    this->queue.waitIdle();
-
-    this->textureQueue.waitIdle();
-
-    // Clear the cmdbuf
-    this->cmdBuf.clear();
-
-    // Destroy the swapchain
-    this->swapchain.destroy();
-
-    // Destroy the framebuffers
-    for (unsigned i = 0; i < MAX_FRAMEBUFFERS; i++)
-        this->framebuffers.memory[i].destroy();
-
-    this->depthBuffer.memory.destroy();
+    this->EnsureInFrame();
+    this->commandBuffer.clearDepthStencil(true, depth, mask, stencil);
 }
 
-// Ensure we have begun our frame
+void deko3d::SetBlendColor(const Colorf& color)
+{
+    this->EnsureInFrame();
+    this->commandBuffer.setBlendConst(color.r, color.g, color.b, color.a);
+}
+
 void deko3d::EnsureInFrame()
 {
     if (!this->framebuffers.inFrame)
     {
-        this->firstVertex      = 0;
-        this->descriptorsDirty = false;
-        this->cmdRing.begin(this->cmdBuf);
+        this->firstVertex       = 0;
+        this->descriptors.dirty = false;
+        this->commands.begin(this->commandBuffer);
+
         this->framebuffers.inFrame = true;
     }
 }
 
-void deko3d::EnsureInState(State state)
-{
-    if (this->gpuRenderState != state && state != State::STATE_MAX_ENUM)
-        this->gpuRenderState = state;
-
-    if (this->gpuRenderState == STATE_PRIMITIVE)
-    {
-        love::Shader::standardShaders[love::Shader::STANDARD_DEFAULT]->Attach();
-
-        this->cmdBuf.bindVtxAttribState(vertex::attributes::PrimitiveAttribState);
-        this->cmdBuf.bindVtxBufferState(vertex::attributes::PrimitiveBufferState);
-    }
-    else if (this->gpuRenderState == STATE_TEXTURE || this->gpuRenderState == STATE_VIDEO)
-    {
-        if (this->gpuRenderState == STATE_TEXTURE)
-            love::Shader::standardShaders[love::Shader::STANDARD_TEXTURE]->Attach();
-        else
-            love::Shader::standardShaders[love::Shader::STANDARD_VIDEO]->Attach();
-
-        this->cmdBuf.bindVtxAttribState(vertex::attributes::TextureAttribState);
-        this->cmdBuf.bindVtxBufferState(vertex::attributes::TextureBufferState);
-    }
-}
-
-/*
-** Acquire a framebuffer from the swapchain
-** (and wait for it to be available)
-*/
 void deko3d::EnsureHasSlot()
 {
     if (this->framebuffers.slot < 0)
         this->framebuffers.slot = this->queue.acquireImage(this->swapchain);
 }
 
-void deko3d::SetBlendColor(const Colorf& color)
-{
-    this->cmdBuf.setBlendConst(color.r, color.g, color.b, color.a);
-}
-
-/*
-** First thing that happens to start the frame
-** Clear the screen to a specified color
-*/
-void deko3d::ClearColor(const Colorf& color)
-{
-    this->EnsureInFrame();
-
-    this->cmdBuf.clearColor(0, DkColorMask_RGBA, color.r, color.g, color.b, color.a);
-}
-
-void deko3d::ClearDepthStencil(double depth, int stencil)
-{
-    // this->cmdBuf.clearDepthStencil(true, depth, 0xFF, stencil);
-}
-
-void deko3d::SetDekoBarrier(DkBarrier barrier, uint32_t flags)
-{
-    this->EnsureInFrame();
-    this->cmdBuf.barrier(barrier, flags);
-}
-
-/*
-** Binds a Framebuffer we have allocated
-** It ensures that there's a "slot" from @EnsureHasSlot
-** This is used to access the current Framebuffer image
-** TODO: Add depth/stencil images
-*/
-
-void deko3d::BindFramebuffer(love::Canvas* canvas)
+void deko3d::BindFramebuffer(Canvas* canvas)
 {
     if (!this->swapchain)
         return;
@@ -252,7 +245,7 @@ void deko3d::BindFramebuffer(love::Canvas* canvas)
     this->EnsureHasSlot();
 
     if (this->framebuffers.dirty)
-        this->SetDekoBarrier(DkBarrier_Fragments, 0);
+        this->commandBuffer.barrier(DkBarrier_Fragments, 0);
 
     dk::ImageView target { this->framebuffers.images[this->framebuffers.slot] };
 
@@ -269,36 +262,157 @@ void deko3d::BindFramebuffer(love::Canvas* canvas)
         this->SetViewport({ 0, 0, Screen::Instance().GetWidth(), Screen::Instance().GetHeight() });
     }
 
-    this->cmdBuf.bindRenderTargets(&target);
+    this->commandBuffer.bindRenderTargets(&target);
+    this->commandBuffer.pushConstants(this->transform.buffer.getGpuAddr(),
+                                      this->transform.buffer.getSize(), 0, TRANSFORM_SIZE,
+                                      &this->transform.state);
 
-    this->cmdBuf.pushConstants(this->transformUniformBuffer.getGpuAddr(),
-                               this->transformUniformBuffer.getSize(), 0, sizeof(transformState),
-                               &transformState);
+    /* begin the vertex ring */
+    std::pair<void*, DkGpuAddr> data = this->vertices.begin();
 
-    this->BeginFrame();
-}
+    this->vertexData = (Vertex::PrimitiveVertex*)data.first;
 
-void deko3d::BeginFrame()
-{
-    std::pair<void*, DkGpuAddr> data = this->vtxRing.begin();
-
-    this->vertexData = (vertex::PrimitiveVertex*)data.first;
-
-    this->cmdBuf.bindRasterizerState(this->state.rasterizer);
-    this->cmdBuf.bindColorState(this->state.color);
-    this->cmdBuf.bindColorWriteState(this->state.colorWrite);
-    this->cmdBuf.bindBlendStates(0, this->state.blendState);
+    this->commandBuffer.bindRasterizerState(this->deviceState.rasterizer);
+    this->commandBuffer.bindColorState(this->deviceState.color);
+    this->commandBuffer.bindColorWriteState(this->deviceState.colorWrite);
+    this->commandBuffer.bindBlendStates(0, this->deviceState.blendState);
     // this->cmdBuf.bindDepthStencilState(this->state.depthStencil);
 
     // Bind the current slice's GPU address to the buffer
-    this->cmdBuf.bindVtxBuffer(0, data.second, this->vtxRing.getSize());
+    this->commandBuffer.bindVtxBuffer(0, data.second, this->vertices.getSize());
 }
 
-/*
-** Presents the current Framebuffer to the screen
-** and submits all our commands from the buffer
-** to the queue
-*/
+void deko3d::SetGPURenderState(GpuRenderState state)
+{
+    if (this->gpuRenderState != state && state != GPU_RENDER_STATE_MAX_ENUM)
+        this->gpuRenderState = state;
+
+    Shader::standardShaders[state]->Attach();
+
+    if (state == GpuRenderState::GPU_RENDER_STATE_PRIMITIVE)
+    {
+        this->commandBuffer.bindVtxAttribState(VertexAttributes::PrimitiveAttribState);
+        this->commandBuffer.bindVtxBufferState(VertexAttributes::PrimitiveBufferState);
+    }
+    else if (state == GpuRenderState::GPU_RENDER_STATE_TEXTURE ||
+             state == GpuRenderState::GPU_RENDER_STATE_VIDEO)
+    {
+        this->commandBuffer.bindVtxAttribState(VertexAttributes::TextureAttribState);
+        this->commandBuffer.bindVtxBufferState(VertexAttributes::TextureBufferState);
+    }
+}
+
+void deko3d::SetShader(Shader* shader)
+{
+    this->EnsureInFrame();
+
+    const Shader::Program& program = shader->GetProgram();
+
+    this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask,
+                                    { *program.vertex, *program.fragment });
+
+    this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->transform.buffer.getGpuAddr(),
+                                          this->transform.buffer.getSize());
+}
+
+bool deko3d::RenderPolyline(DkPrimitive mode, const Vertex::PrimitiveVertex* points, size_t count)
+{
+    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->SetGPURenderState(GPU_RENDER_STATE_PRIMITIVE);
+
+    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
+
+    this->commandBuffer.draw(mode, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
+bool deko3d::RenderPolygon(const Vertex::PrimitiveVertex* points, size_t count)
+{
+    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->SetGPURenderState(GPU_RENDER_STATE_PRIMITIVE);
+
+    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
+
+    this->commandBuffer.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
+bool deko3d::RenderPoints(const Vertex::PrimitiveVertex* points, size_t count)
+{
+    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->SetGPURenderState(GPU_RENDER_STATE_PRIMITIVE);
+
+    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
+
+    this->commandBuffer.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
+bool deko3d::RenderTexture(const DkResHandle handle, const Vertex::PrimitiveVertex* points,
+                           size_t count)
+{
+    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->SetGPURenderState(GPU_RENDER_STATE_TEXTURE);
+
+    if (this->descriptors.dirty)
+    {
+        this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+        this->descriptors.dirty = false;
+    }
+
+    this->commandBuffer.bindTextures(DkStage_Fragment, 0, handle);
+
+    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
+
+    this->commandBuffer.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
+bool deko3d::RenderVideo(const DkResHandle handles[3], const Vertex::PrimitiveVertex* points,
+                         size_t count)
+{
+    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
+        return false;
+
+    this->SetGPURenderState(GPU_RENDER_STATE_VIDEO);
+
+    if (this->descriptors.dirty)
+    {
+        this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+        this->descriptors.dirty = false;
+    }
+
+    this->commandBuffer.bindTextures(DkStage_Fragment, 0, { handles[0], handles[1], handles[2] });
+
+    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
+
+    this->commandBuffer.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
+
+    this->firstVertex += count;
+
+    return true;
+}
+
 void deko3d::Present()
 {
     if (!this->swapchain)
@@ -306,8 +420,8 @@ void deko3d::Present()
 
     if (this->framebuffers.inFrame)
     {
-        this->vtxRing.end();
-        this->queue.submitCommands(this->cmdRing.end(this->cmdBuf));
+        this->vertices.end();
+        this->queue.submitCommands(this->commands.end(this->commandBuffer));
         this->queue.presentImage(this->swapchain, this->framebuffers.slot);
 
         this->framebuffers.inFrame = false;
@@ -316,173 +430,137 @@ void deko3d::Present()
     this->framebuffers.slot = -1;
 }
 
-void deko3d::SetStencil(DkStencilOp op, DkCompareOp compare, int value)
-{
-    bool enabled = (compare == DkCompareOp_Always) ? false : true;
-
-    this->state.depthStencil.setStencilTestEnable(enabled);
-
-    // Front
-
-    this->state.depthStencil.setStencilFrontCompareOp(compare);
-
-    this->state.depthStencil.setStencilFrontDepthFailOp(DkStencilOp_Keep);
-    this->state.depthStencil.setStencilFrontFailOp(DkStencilOp_Keep);
-    this->state.depthStencil.setStencilFrontPassOp(DkStencilOp_Keep);
-
-    // Back
-
-    this->state.depthStencil.setStencilBackCompareOp(compare);
-
-    this->state.depthStencil.setStencilBackDepthFailOp(DkStencilOp_Keep);
-    this->state.depthStencil.setStencilBackFailOp(DkStencilOp_Keep);
-    this->state.depthStencil.setStencilBackPassOp(DkStencilOp_Keep);
-
-    this->cmdBuf.setStencil(DkFace_FrontAndBack, 0xFF, value, 0xFF);
-}
-
-void deko3d::UnRegisterResHandle(DkResHandle handle)
-{
-    this->allocator.DeAllocate(handle);
-}
-
-DkResHandle deko3d::RegisterResHandle(const dk::ImageDescriptor& descriptor)
+void deko3d::SetViewport(const Rect& viewport)
 {
     this->EnsureInFrame();
 
-    uint32_t index = this->allocator.Allocate();
+    this->commandBuffer.setViewports(0, { { (float)viewport.x, (float)viewport.y, (float)viewport.w,
+                                            (float)viewport.h, Z_NEAR, Z_FAR } });
 
-    this->descriptors.image.update(this->cmdBuf, index, descriptor);
-    this->descriptors.sampler.update(this->cmdBuf, index, this->filter.descriptor);
+    this->transform.state.projMtx =
+        glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
 
-    this->descriptorsDirty = true;
-
-    return dkMakeTextureHandle(index, index);
+    this->viewport = viewport;
 }
 
-bool deko3d::RenderTexture(const DkResHandle handle, const vertex::PrimitiveVertex* points,
-                           size_t count)
+Rect deko3d::GetViewport() const
 {
-    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
-        return false;
+    return this->viewport;
+}
 
-    this->EnsureInState(STATE_TEXTURE);
+void deko3d::SetScissor(bool enable, const love::Rect& scissor, bool canvasActive)
+{
+    this->EnsureInFrame();
 
-    if (this->descriptorsDirty)
+    this->commandBuffer.setScissors(0, { { (uint32_t)scissor.x, (uint32_t)scissor.y,
+                                           (uint32_t)scissor.w, (uint32_t)scissor.h } });
+}
+
+/* todo: missing something? */
+void deko3d::SetStencil(RenderState::CompareMode compare, int value)
+{
+    bool enabled = (compare == RenderState::COMPARE_ALWAYS) ? false : true;
+
+    DkCompareOp operation;
+    ::deko3d::GetConstant(compare, operation);
+
+    this->deviceState.depthStencil.setDepthTestEnable(enabled);
+    this->deviceState.depthStencil.setDepthCompareOp(operation);
+}
+
+void deko3d::SetMeshCullMode(Vertex::CullMode mode)
+{
+    DkFace cullMode;
+    ::deko3d::GetConstant(mode, cullMode);
+
+    this->deviceState.rasterizer.setCullMode(cullMode);
+}
+
+void deko3d::SetVertexWinding(Vertex::Winding winding)
+{
+    DkFrontFace frontFace;
+    ::deko3d::GetConstant(winding, frontFace);
+
+    this->deviceState.rasterizer.setFrontFace(frontFace);
+}
+
+void deko3d::SetLineWidth(float lineWidth)
+{
+    this->EnsureInFrame();
+    this->commandBuffer.setLineWidth(lineWidth);
+}
+
+void deko3d::SetPointSize(float pointSize)
+{
+    this->EnsureInFrame();
+    this->commandBuffer.setPointSize(pointSize);
+}
+
+void deko3d::SetSamplerState(Texture* texture, SamplerState& state)
+{
+    this->EnsureInFrame();
+
+    DkFilter min;
+    ::deko3d::GetConstant(state.minFilter, min);
+
+    DkFilter mag;
+    ::deko3d::GetConstant(state.magFilter, mag);
+
+    DkMipFilter mipFilter;
+
+    if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE)
     {
-        this->cmdBuf.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
-        this->descriptorsDirty = false;
+        if (state.minFilter == SamplerState::FILTER_NEAREST &&
+            state.mipmapFilter == SamplerState::MIPMAP_FILTER_NEAREST)
+        {
+            mipFilter = DkMipFilter_Nearest;
+        }
+        else if (state.minFilter == SamplerState::FILTER_NEAREST &&
+                 state.mipmapFilter == SamplerState::MIPMAP_FILTER_LINEAR)
+        {
+            mipFilter = DkMipFilter_Linear;
+        }
+        else if (state.magFilter == SamplerState::FILTER_LINEAR &&
+                 state.mipmapFilter == SamplerState::MIPMAP_FILTER_NEAREST)
+        {
+            mipFilter = DkMipFilter_Nearest;
+        }
+        else if (state.magFilter == SamplerState::FILTER_LINEAR &&
+                 state.mipmapFilter == SamplerState::MIPMAP_FILTER_LINEAR)
+        {
+            mipFilter = DkMipFilter_Linear;
+        }
     }
 
-    this->cmdBuf.bindTextures(DkStage_Fragment, 0, handle);
+    this->filter.sampler.setFilter(min, mag, mipFilter);
 
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
+    float anisotropy = std::clamp((float)state.maxAnisotropy, 1.0f, (float)MAX_ANISOTROPY);
+    this->filter.sampler.setMaxAnisotropy(anisotropy);
 
-    this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
+    this->filter.descriptor.initialize(this->filter.sampler);
 
-    this->firstVertex += count;
+    if (SamplerState::IsClampZeroOrOne(state.wrapU))
+        state.wrapU = SamplerState::WRAP_CLAMP;
 
-    return true;
-}
+    if (SamplerState::IsClampZeroOrOne(state.wrapV))
+        state.wrapV = SamplerState::WRAP_CLAMP;
 
-bool deko3d::RenderVideo(const DkResHandle handles[3], const vertex::PrimitiveVertex* points,
-                         size_t count)
-{
-    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
-        return false;
+    DkWrapMode wrapU;
+    ::deko3d::GetConstant(state.wrapU, wrapU);
 
-    this->EnsureInState(STATE_VIDEO);
+    DkWrapMode wrapV;
+    ::deko3d::GetConstant(state.wrapV, wrapV);
 
-    if (this->descriptorsDirty)
-    {
-        this->cmdBuf.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
-        this->descriptorsDirty = false;
-    }
+    DkWrapMode wrapW;
+    ::deko3d::GetConstant(state.wrapW, wrapW);
 
-    this->cmdBuf.bindTextures(DkStage_Fragment, 0, { handles[0], handles[1], handles[2] });
-
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
-
-    this->cmdBuf.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderPolyline(DkPrimitive mode, const vertex::PrimitiveVertex* points, size_t count)
-{
-    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->EnsureInState(STATE_PRIMITIVE);
-
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
-
-    this->cmdBuf.draw(mode, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderPolygon(const vertex::PrimitiveVertex* points, size_t count)
-{
-    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->EnsureInState(STATE_PRIMITIVE);
-
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
-
-    this->cmdBuf.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderPoints(const vertex::PrimitiveVertex* points, size_t count)
-{
-    if (count > (this->vtxRing.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->EnsureInState(STATE_PRIMITIVE);
-
-    memcpy(this->vertexData + this->firstVertex, points, count * sizeof(vertex::PrimitiveVertex));
-
-    this->cmdBuf.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-void deko3d::SetPointSize(float size)
-{
-    this->EnsureInFrame();
-    this->cmdBuf.setPointSize(size);
-}
-
-void deko3d::SetLineWidth(float width)
-{
-    this->EnsureInFrame();
-    this->cmdBuf.setLineWidth(width);
-}
-
-void deko3d::SetLineStyle(bool smooth)
-{
-    this->state.rasterizer.setPolygonSmoothEnable(smooth);
-}
-
-float deko3d::GetPointSize()
-{
-    return this->state.pointSize;
+    this->filter.sampler.setWrapMode(wrapU, wrapV, wrapW);
+    this->filter.descriptor.initialize(this->filter.sampler);
 }
 
 void deko3d::SetColorMask(const RenderState::ColorMask& mask)
 {
-    this->state.colorWrite.setMask(0, mask.GetColorMask());
+    this->deviceState.colorWrite.setMask(0, mask.GetColorMask());
 }
 
 void deko3d::SetBlendMode(const RenderState::BlendState& state)
@@ -505,166 +583,15 @@ void deko3d::SetBlendMode(const RenderState::BlendState& state)
     DkBlendFactor dstAlpha;
     deko3d::GetConstant(state.dstFactorA, dstAlpha);
 
-    this->state.blendState.setColorBlendOp(opRGB);
-    this->state.blendState.setAlphaBlendOp(opAlpha);
+    this->deviceState.blendState.setColorBlendOp(opRGB);
+    this->deviceState.blendState.setAlphaBlendOp(opAlpha);
 
     // Blend factors
-    this->state.blendState.setSrcColorBlendFactor(srcColor);
-    this->state.blendState.setSrcAlphaBlendFactor(srcAlpha);
+    this->deviceState.blendState.setSrcColorBlendFactor(srcColor);
+    this->deviceState.blendState.setSrcAlphaBlendFactor(srcAlpha);
 
-    this->state.blendState.setDstColorBlendFactor(dstColor);
-    this->state.blendState.setDstAlphaBlendFactor(dstAlpha);
-}
-
-void deko3d::SetFrontFaceWinding(DkFrontFace face)
-{
-    this->state.rasterizer.setFrontFace(face);
-}
-
-void deko3d::SetCullMode(DkFace face)
-{
-    this->state.rasterizer.setCullMode(face);
-}
-
-/* Encapsulation and Abstraction - fincs */
-
-/*
-** Equivalent to LÖVE's OpenGL::UseProgram function
-** We need to make sure that we're *in* a frame before attaching the Shader
-** LÖVE attaches a default Shader on Graphics creation, which is not in a frame
-** although OpenGL *hides* this from the user, so we have to deal with it in deko3d
-*/
-void deko3d::UseProgram(const love::Shader::Program& program)
-{
-    this->EnsureInFrame();
-
-    this->cmdBuf.bindShaders(DkStageFlag_GraphicsMask, { *program.vertex, *program.fragment });
-    this->cmdBuf.bindUniformBuffer(DkStage_Vertex, 0, this->transformUniformBuffer.getGpuAddr(),
-                                   this->transformUniformBuffer.getSize());
-}
-
-void deko3d::SetDepthWrites(bool enable)
-{
-    this->state.rasterizer.setDepthClampEnable(enable);
-}
-
-// Set the global filter mode for textures
-void deko3d::SetTextureFilter(const love::Texture::Filter& filter)
-{
-    DkFilter min =
-        (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
-    DkFilter mag =
-        (filter.min == love::Texture::FILTER_NEAREST) ? DkFilter_Nearest : DkFilter_Linear;
-
-    DkMipFilter mipFilter = DkMipFilter_Linear;
-    if (filter.mipmap != love::Texture::FILTER_NONE)
-    {
-        if (filter.min == love::Texture::FILTER_NEAREST &&
-            filter.mipmap == love::Texture::FILTER_NEAREST)
-            mipFilter = DkMipFilter_Nearest;
-        else if (filter.min == love::Texture::FILTER_NEAREST &&
-                 filter.mipmap == love::Texture::FILTER_LINEAR)
-            mipFilter = DkMipFilter_Linear;
-        else if (filter.min == love::Texture::FILTER_LINEAR &&
-                 filter.mipmap == love::Texture::FILTER_NEAREST)
-            mipFilter = DkMipFilter_Nearest;
-        else if (filter.min == love::Texture::FILTER_LINEAR &&
-                 filter.mipmap == love::Texture::FILTER_LINEAR)
-            mipFilter = DkMipFilter_Linear;
-        else
-            mipFilter = DkMipFilter_Linear;
-    }
-
-    this->filter.sampler.setFilter(min, mag, mipFilter);
-
-    float anisotropy = std::clamp(filter.anisotropy, 1.0f, (float)MAX_ANISOTROPY);
-    this->filter.sampler.setMaxAnisotropy(anisotropy);
-
-    this->filter.descriptor.initialize(this->filter.sampler);
-}
-
-void deko3d::SetTextureFilter(love::Texture* texture, const love::Texture::Filter& filter)
-{
-    this->EnsureInFrame();
-
-    this->SetTextureFilter(filter);
-
-    uint32_t handleID = this->allocator.Find(texture->GetHandle());
-    this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
-
-    this->descriptorsDirty = true;
-}
-
-void deko3d::SetTextureWrap(const love::Texture::Wrap& wrap)
-{
-    DkWrapMode u = deko3d::GetDekoWrapMode(wrap.s);
-    DkWrapMode v = deko3d::GetDekoWrapMode(wrap.t);
-
-    this->filter.sampler.setWrapMode(u, v);
-
-    this->filter.descriptor.initialize(this->filter.sampler);
-}
-
-void deko3d::SetTextureWrap(love::Texture* texture, const love::Texture::Wrap& wrap)
-{
-    this->EnsureInFrame();
-
-    this->SetTextureWrap(wrap);
-
-    uint32_t handleID = this->allocator.Find(texture->GetHandle());
-    this->descriptors.sampler.update(this->cmdBuf, handleID, this->filter.descriptor);
-
-    this->descriptorsDirty = true;
-}
-
-/*
-** Set the Scissor region to clip
-** Anything drawn outside of this will not be rendered
-*/
-void deko3d::SetScissor(const love::Rect& scissor, bool canvasActive)
-{
-    this->EnsureInFrame();
-
-    this->scissor = scissor;
-    this->cmdBuf.setScissors(0, { { (uint32_t)scissor.x, (uint32_t)scissor.y, (uint32_t)scissor.w,
-                                    (uint32_t)scissor.h } });
-}
-
-/*
-** Set the viewing screen space for rendering
-** This sets up the actual bounds we can see
-*/
-void deko3d::SetViewport(const love::Rect& view)
-{
-    this->EnsureInFrame();
-
-    this->viewport = view;
-    this->cmdBuf.setViewports(
-        0, { { (float)view.x, (float)view.y, (float)view.w, (float)view.h, Z_NEAR, Z_FAR } });
-
-    this->transformState.projMtx =
-        glm::ortho(0.0f, (float)view.w, (float)view.h, 0.0f, Z_NEAR, Z_FAR);
-}
-
-love::Rect deko3d::GetViewport()
-{
-    return this->viewport;
-}
-
-DkWrapMode deko3d::GetDekoWrapMode(love::Texture::WrapMode wrap)
-{
-    switch (wrap)
-    {
-        case love::Texture::WRAP_CLAMP:
-        default:
-            return DkWrapMode_ClampToEdge;
-        case love::Texture::WRAP_CLAMP_ZERO:
-            return DkWrapMode_ClampToBorder;
-        case love::Texture::WRAP_REPEAT:
-            return DkWrapMode_Repeat;
-        case love::Texture::WRAP_MIRRORED_REPEAT:
-            return DkWrapMode_MirroredRepeat;
-    }
+    this->deviceState.blendState.setDstColorBlendFactor(dstColor);
+    this->deviceState.blendState.setDstAlphaBlendFactor(dstAlpha);
 }
 
 // clang-format off
@@ -722,6 +649,40 @@ constexpr auto blendFactors = BidirectionalMap<>::Create(
     RenderState::BLENDFACTOR_ONE_MINUS_DST_ALPHA, DkBlendFactor_InvDstAlpha,
     RenderState::BLENDFACTOR_SRC_ALPHA_SATURATED, DkBlendFactor_SrcAlphaSaturate
 );
+
+constexpr auto filterModes = BidirectionalMap<>::Create(
+    SamplerState::FILTER_LINEAR,  DkFilter_Linear,
+    SamplerState::FILTER_NEAREST, DkFilter_Nearest
+);
+
+constexpr auto wrapModes = BidirectionalMap<>::Create(
+    SamplerState::WRAP_CLAMP,           DkWrapMode_ClampToEdge,
+    SamplerState::WRAP_CLAMP_ZERO,      DkWrapMode_ClampToBorder,
+    SamplerState::WRAP_REPEAT,          DkWrapMode_Repeat,
+    SamplerState::WRAP_MIRRORED_REPEAT, DkWrapMode_MirroredRepeat
+);
+
+constexpr auto cullModes = BidirectionalMap<>::Create(
+    Vertex::CULL_NONE,  DkFace_None,
+    Vertex::CULL_BACK,  DkFace_Back,
+    Vertex::CULL_FRONT, DkFace_Front
+);
+
+constexpr auto windingModes = BidirectionalMap<>::Create(
+    Vertex::WINDING_CW,  DkFrontFace_CW,
+    Vertex::WINDING_CCW, DkFrontFace_CCW
+);
+
+constexpr auto compareModes = BidirectionalMap<>::Create(
+    RenderState::COMPARE_LESS,     DkCompareOp_Less,
+    RenderState::COMPARE_LEQUAL,   DkCompareOp_Lequal,
+    RenderState::COMPARE_EQUAL,    DkCompareOp_Equal,
+    RenderState::COMPARE_GEQUAL,   DkCompareOp_Gequal,
+    RenderState::COMPARE_GREATER,  DkCompareOp_Greater,
+    RenderState::COMPARE_NOTEQUAL, DkCompareOp_NotEqual,
+    RenderState::COMPARE_ALWAYS,   DkCompareOp_Always,
+    RenderState::COMPARE_NEVER,    DkCompareOp_Never
+);
 // clang-format on
 
 bool deko3d::GetConstant(PixelFormat in, DkImageFormat& out)
@@ -742,4 +703,29 @@ bool deko3d::GetConstant(RenderState::BlendOperation in, DkBlendOp& out)
 bool deko3d::GetConstant(RenderState::BlendFactor in, DkBlendFactor& out)
 {
     return blendFactors.Find(in, out);
+}
+
+bool deko3d::GetConstant(SamplerState::FilterMode in, DkFilter& out)
+{
+    return filterModes.Find(in, out);
+}
+
+bool deko3d::GetConstant(SamplerState::WrapMode in, DkWrapMode& out)
+{
+    return wrapModes.Find(in, out);
+}
+
+bool deko3d::GetConstant(Vertex::CullMode in, DkFace& out)
+{
+    return cullModes.Find(in, out);
+}
+
+bool deko3d::GetConstant(Vertex::Winding in, DkFrontFace& out)
+{
+    return windingModes.Find(in, out);
+}
+
+bool deko3d::GetConstant(RenderState::CompareMode in, DkCompareOp& out)
+{
+    return compareModes.Find(in, out);
 }

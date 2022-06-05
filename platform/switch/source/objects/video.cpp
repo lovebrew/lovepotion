@@ -10,7 +10,7 @@ using namespace love;
 Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
     common::Video(graphics, stream, dpiScale)
 {
-    std::fill_n(this->vertices, 4, vertex::PrimitiveVertex {});
+    std::fill_n(this->vertices, 4, Vertex::PrimitiveVertex {});
 
     this->vertices[0] = { .position = { 0, 0 }, .color = { 1, 1, 1, 1 }, .texcoord = { 0, 0 } };
 
@@ -33,14 +33,12 @@ Video::Video(Graphics* graphics, VideoStream* stream, float dpiScale) :
 
     const uint8_t* data[3] = { frame->yPlane, frame->cbPlane, frame->crPlane };
 
-    Texture::Wrap wrap;
     for (size_t index = 0; index < 3; index++)
     {
         Image* image = graphics->NewImage(Texture::TEXTURE_2D, PIXELFORMAT_R8_UNORM, widths[index],
                                           heights[index], 1);
 
-        image->SetFilter(this->filter);
-        image->SetWrap(wrap);
+        image->SetSamplerState(this->samplerState);
 
         size_t formatSize = love::GetPixelFormatBlockSize(PIXELFORMAT_R8_UNORM);
         size_t size       = widths[index] * heights[index] * formatSize;
@@ -91,8 +89,8 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
 
     Matrix4 t(tm, localTransform);
 
-    vertex::PrimitiveVertex vertexData[4];
-    std::fill_n(vertexData, 4, vertex::PrimitiveVertex {});
+    Vertex::PrimitiveVertex vertexData[4];
+    std::fill_n(vertexData, 4, Vertex::PrimitiveVertex {});
 
     Vector2 transformed[4];
     std::fill_n(transformed, 4, Vector2 {});
@@ -114,8 +112,8 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
     {
         vertexData[i] = { { transformed[i].x, transformed[i].y, 0.0f },
                           { color.r, color.g, color.b, color.a },
-                          { vertex::normto16t(this->vertices[i].texcoord[0]),
-                            vertex::normto16t(this->vertices[i].texcoord[1]) } };
+                          { Vertex::normto16t(this->vertices[i].texcoord[0]),
+                            Vertex::normto16t(this->vertices[i].texcoord[1]) } };
     }
 
     ::deko3d::Instance().RenderVideo(handles, vertexData, 4);

@@ -10,7 +10,9 @@
 
 #include <cstdio>
 
-bool CImage::load(love::PixelFormat pixelFormat, bool isSRGB, void* buffer, size_t size, int width,
+using namespace love;
+
+bool CImage::load(PixelFormat pixelFormat, bool isSRGB, void* buffer, size_t size, int width,
                   int height, bool empty)
 {
     DkImageFormat format;
@@ -18,25 +20,19 @@ bool CImage::load(love::PixelFormat pixelFormat, bool isSRGB, void* buffer, size
         return false;
 
     if (!empty)
-        return this->loadMemory(::deko3d::Instance().GetImages(), ::deko3d::Instance().GetData(),
-                                ::deko3d::Instance().GetDevice(),
-                                ::deko3d::Instance().GetTextureQueue(), buffer, width, height,
-                                format);
+        return this->loadMemory(buffer, width, height, format);
     else
-        return this->loadEmptyPixels(::deko3d::Instance().GetImages(),
-                                     ::deko3d::Instance().GetData(),
-                                     ::deko3d::Instance().GetDevice(),
-                                     ::deko3d::Instance().GetTextureQueue(), width, height, format);
+        return this->loadEmptyPixels(width, height, format);
 }
 
 /* replace the pixels at a location */
-bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void* data, size_t size,
-                           dk::Queue transferQueue, const love::Rect& rect)
+bool CImage::replacePixels(const void* data, size_t size, const Rect& rect)
 {
     if (data == nullptr)
         return false;
 
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    CMemPool::Handle tempImageMemory = ::deko3d::Instance().AllocatePool(
+        deko3d::MEMPOOL_DATA, size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;
@@ -47,8 +43,9 @@ bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void*
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
     */
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { device }.create();
-    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { ::deko3d::Instance().GetDevice() }.create();
+    CMemPool::Handle tempCmdMem =
+        ::deko3d::Instance().GetMemPool(deko3d::MEMPOOL_DATA).allocate(DK_MEMBLOCK_ALIGNMENT);
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     dk::ImageView imageView { m_image };
@@ -57,8 +54,8 @@ bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void*
         { uint32_t(rect.x), uint32_t(rect.y), 0, uint32_t(rect.w), uint32_t(rect.h), 1 });
 
     // Submit the commands to the transfer queue
-    transferQueue.submitCommands(tempCmdBuff.finishList());
-    transferQueue.waitIdle();
+    ::deko3d::Instance().GetTextureQueue().submitCommands(tempCmdBuff.finishList());
+    ::deko3d::Instance().GetTextureQueue().waitIdle();
 
     // Destroy the memory we don't need
     tempCmdMem.destroy();
@@ -68,9 +65,8 @@ bool CImage::replacePixels(CMemPool& scratchPool, dk::Device device, const void*
 }
 
 /* load a CImage with transparent black pixels */
-bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
-                             dk::Queue transferQueue, uint32_t width, uint32_t height,
-                             DkImageFormat dkFormat, uint32_t flags)
+bool CImage::loadEmptyPixels(uint32_t width, uint32_t height, DkImageFormat dkFormat,
+                             uint32_t flags)
 {
     PixelFormat format;
     if (!::deko3d::GetConstant(dkFormat, format))
@@ -81,54 +77,13 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
     if (size <= 0)
         return false;
 
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
-
-    if (!tempImageMemory)
-        return false;
-
-    /* memcpy for transparent black pixels */
     std::vector<uint8_t> empty(size, 0);
-    memcpy(tempImageMemory.getCpuAddr(), empty.data(), sizeof(uint8_t) * empty.size());
 
-    /*
-    ** We need to have a command buffer and some more memory for it
-    ** so allocate both and add the memory to the temporary command buffer
-    */
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { device }.create();
-    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
-    tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
-
-    // Set the image layout for the image
-    dk::ImageLayout layout;
-    dk::ImageLayoutMaker { device }
-        .setFlags(flags)
-        .setFormat(dkFormat)
-        .setDimensions(width, height)
-        .initialize(layout);
-
-    // Create the image
-    m_mem = imagePool.allocate(layout.getSize(), layout.getAlignment());
-    m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
-    m_descriptor.initialize(m_image);
-
-    dk::ImageView imageView { m_image };
-    tempCmdBuff.copyBufferToImage({ tempImageMemory.getGpuAddr() }, imageView,
-                                  { 0, 0, 0, width, height, 1 });
-
-    // Submit the commands to the transfer queue
-    transferQueue.submitCommands(tempCmdBuff.finishList());
-    transferQueue.waitIdle();
-
-    // Destroy the memory we don't need
-    tempCmdMem.destroy();
-    tempImageMemory.destroy();
-
-    return true;
+    return this->loadMemory(empty.data(), width, height, dkFormat, flags);
 }
 
-bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device device,
-                        dk::Queue transferQueue, const void* data, uint32_t width, uint32_t height,
-                        DkImageFormat dkFormat, uint32_t flags)
+bool CImage::loadMemory(const void* data, uint32_t width, uint32_t height, DkImageFormat dkFormat,
+                        uint32_t flags)
 {
     if (data == nullptr)
         return false;
@@ -143,7 +98,8 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
     if (size <= 0)
         return false;
 
-    CMemPool::Handle tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    CMemPool::Handle tempImageMemory = ::deko3d::Instance().AllocatePool(
+        deko3d::MEMPOOL_DATA, size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempImageMemory)
         return false;
@@ -154,20 +110,24 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
     ** We need to have a command buffer and some more memory for it
     ** so allocate both and add the memory to the temporary command buffer
     */
-    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { device }.create();
-    CMemPool::Handle tempCmdMem  = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    dk::UniqueCmdBuf tempCmdBuff = dk::CmdBufMaker { ::deko3d::Instance().GetDevice() }.create();
+    CMemPool::Handle tempCmdMem =
+        ::deko3d::Instance().GetMemPool(deko3d::MEMPOOL_DATA).allocate(DK_MEMBLOCK_ALIGNMENT);
+
     tempCmdBuff.addMemory(tempCmdMem.getMemBlock(), tempCmdMem.getOffset(), tempCmdMem.getSize());
 
     // Set the image layout for the image
     dk::ImageLayout layout;
-    dk::ImageLayoutMaker { device }
+    dk::ImageLayoutMaker { ::deko3d::Instance().GetDevice() }
         .setFlags(flags)
         .setFormat(dkFormat)
         .setDimensions(width, height)
         .initialize(layout);
 
     // Create the image
-    m_mem = imagePool.allocate(layout.getSize(), layout.getAlignment());
+    m_mem = ::deko3d::Instance().AllocatePool(deko3d::MEMPOOL_IMAGES, layout.getSize(),
+                                              layout.getAlignment());
+
     m_image.initialize(layout, m_mem.getMemBlock(), m_mem.getOffset());
     m_descriptor.initialize(m_image);
 
@@ -180,8 +140,8 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
                                   { 0, 0, 0, width, height, 1 }, 0);
 
     // Submit the commands to the transfer queue
-    transferQueue.submitCommands(tempCmdBuff.finishList());
-    transferQueue.waitIdle();
+    ::deko3d::Instance().GetTextureQueue().submitCommands(tempCmdBuff.finishList());
+    ::deko3d::Instance().GetTextureQueue().waitIdle();
 
     // Destroy the memory we don't need
     tempCmdMem.destroy();

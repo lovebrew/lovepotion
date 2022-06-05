@@ -1,5 +1,7 @@
 #include "polyline/nonejoin.h"
 
+using namespace love;
+
 void NoneJoinPolyline::CalculateOverdrawVertexCount(bool /* isLooping */)
 {
     this->overdrawVertexCount = 4 * (this->vertexCount - 2);

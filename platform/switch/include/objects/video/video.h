@@ -1,6 +1,6 @@
 #pragma once
 
-#include "deko3d/vertex.h"
+#include "common/render/vertex.h"
 #include "objects/video/videoc.h"
 
 namespace love
@@ -18,6 +18,6 @@ namespace love
         void Update() override;
 
       private:
-        vertex::PrimitiveVertex vertices[4];
+        Vertex::PrimitiveVertex vertices[4];
     };
 } // namespace love

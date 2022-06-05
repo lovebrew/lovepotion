@@ -40,7 +40,7 @@ class citro2d : public Renderer
 
     virtual void Clear(const Colorf& color) override;
 
-    virtual void ClearDepthStencil(int stencil, double depth) override;
+    virtual void ClearDepthStencil(int stencil, uint8_t mask, double depth) override;
 
     virtual void SetBlendColor(const Colorf& color) override;
 
@@ -66,6 +66,10 @@ class citro2d : public Renderer
     virtual void SetSamplerState(love::Texture* texture, SamplerState& state) override;
 
     virtual void SetColorMask(const RenderState::ColorMask& mask) override;
+
+    virtual void SetLineWidth(float lineWidth) override;
+
+    virtual void SetPointSize(float pointSize) override;
 
     /* internal functions */
 

@@ -75,7 +75,7 @@ void citro2d::Clear(const Colorf& color)
     C2D_TargetClear(this->current, C2D_Color32f(color.r, color.g, color.b, color.a));
 }
 
-void citro2d::ClearDepthStencil(int stencil, double depth)
+void citro2d::ClearDepthStencil(int stencil, uint8_t mask, double depth)
 {}
 
 void citro2d::SetBlendColor(const Colorf& color)
@@ -139,8 +139,12 @@ void citro2d::SetScissor(bool enable, const Rect& scissor, bool canvasActive)
 
     size_t width = Screen::Instance().GetWidth(Graphics::ACTIVE_SCREEN);
 
-    C3D_SetScissor(mode, 240 - (scissor.y + scissor.h), width - (scissor.x + scissor.w),
-                   240 - scissor.y, width - scissor.x);
+    uint32_t left   = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
+    uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;
+    uint32_t right  = 240 - scissor.y;
+    uint32_t bottom = width - scissor.x;
+
+    C3D_SetScissor(mode, left, top, right, bottom);
 }
 
 void citro2d::SetStencil(RenderState::CompareMode compare, int value)
@@ -251,6 +255,12 @@ void citro2d::SetBlendMode(const RenderState::BlendState& blend)
     C2D_Flush();
     C3D_AlphaBlend(opRGB, opAlpha, srcColor, dstColor, srcAlpha, dstAlpha);
 }
+
+void citro2d::SetLineWidth(float lineWidth)
+{}
+
+void citro2d::SetPointSize(float pointSize)
+{}
 
 // clang-format off
 constexpr auto pixelFormats = BidirectionalMap<>::Create(

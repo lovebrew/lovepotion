@@ -30,10 +30,10 @@ void Text::RegenerateVertices()
     }
 }
 
-void Text::CopyVertices(const std::vector<vertex::GlyphVertex>& vertices, size_t vertoffset)
+void Text::CopyVertices(const std::vector<Vertex::GlyphVertex>& vertices, size_t vertoffset)
 {
-    size_t offset   = vertoffset * sizeof(vertex::GlyphVertex);
-    size_t dataSize = vertices.size() * sizeof(vertex::GlyphVertex);
+    size_t offset   = vertoffset * sizeof(Vertex::GlyphVertex);
+    size_t dataSize = vertices.size() * sizeof(Vertex::GlyphVertex);
 
     if (dataSize > 0 &&
         (this->vertexBuffer.empty() || (offset + dataSize) > this->vertexBuffer.size()))
@@ -52,7 +52,7 @@ void Text::CopyVertices(const std::vector<vertex::GlyphVertex>& vertices, size_t
 
 void Text::AddTextData(const Text::TextData& text)
 {
-    std::vector<vertex::GlyphVertex> vertices;
+    std::vector<Vertex::GlyphVertex> vertices;
     std::vector<Font::DrawCommand> commands;
 
     Font::TextInfo info;
@@ -201,13 +201,13 @@ void Text::Draw(Graphics* gfx, const Matrix4& localTransform)
     for (const Font::DrawCommand& command : this->drawCommands)
     {
         size_t vertexCount = command.vertexCount;
-        vertex::GlyphVertex vertexData[command.vertexCount];
+        Vertex::GlyphVertex vertexData[command.vertexCount];
 
-        memcpy(vertexData, this->vertexBuffer.data(), sizeof(vertex::GlyphVertex) * vertexCount);
+        memcpy(vertexData, this->vertexBuffer.data(), sizeof(Vertex::GlyphVertex) * vertexCount);
         transform.TransformXY(vertexData, this->vertexBuffer.data(), vertexCount);
 
-        std::vector<vertex::PrimitiveVertex> verts =
-            vertex::GenerateTextureFromGlyphs(vertexData, command.vertexCount);
+        std::vector<Vertex::PrimitiveVertex> verts =
+            Vertex::GenerateTextureFromGlyphs(vertexData, command.vertexCount);
         ::deko3d::Instance().RenderTexture(command.texture->GetHandle(), verts.data(), vertexCount);
     }
 }

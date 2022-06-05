@@ -3,13 +3,14 @@
 **   CShader.cpp: Utility class for loading shaders from the filesystem
 */
 #include "deko3d/CShader.h"
+#include "deko3d/deko.h"
 
-bool CShader::load(CMemPool& pool, const void* buffer, size_t size)
+bool CShader::load(const void* buffer, size_t size)
 {
     return false;
 }
 
-bool CShader::load(CMemPool& pool, const char* path)
+bool CShader::load(const char* path)
 {
     FILE* file;
     DkshHeader header;
@@ -25,23 +26,48 @@ bool CShader::load(CMemPool& pool, const char* path)
         return false;
 
     if (!fread(&header, sizeof(header), 1, file))
-        goto _fail0;
+    {
+        fclose(file);
+        return false;
+    }
 
     controlMemory = malloc(header.control_sz);
     if (!controlMemory)
-        goto _fail0;
+    {
+        fclose(file);
+
+        return false;
+    }
 
     rewind(file);
 
     if (!fread(controlMemory, header.control_sz, 1, file))
-        goto _fail1;
+    {
+        free(controlMemory);
+        fclose(file);
 
-    m_codemem = pool.allocate(header.code_sz, DK_SHADER_CODE_ALIGNMENT);
+        return false;
+    }
+
+    m_codemem = ::deko3d::Instance().AllocatePool(deko3d::MEMPOOL_CODE, header.code_sz,
+                                                  DK_SHADER_CODE_ALIGNMENT);
+
     if (!m_codemem)
-        goto _fail1;
+    {
+        free(controlMemory);
+        fclose(file);
+
+        return false;
+    }
 
     if (!fread(m_codemem.getCpuAddr(), header.code_sz, 1, file))
-        goto _fail2;
+    {
+        free(controlMemory);
+        fclose(file);
+        m_codemem.destroy();
+
+        return false;
+    }
 
     dk::ShaderMaker { m_codemem.getMemBlock(), m_codemem.getOffset() }
         .setControl(controlMemory)
@@ -52,12 +78,4 @@ bool CShader::load(CMemPool& pool, const char* path)
     fclose(file);
 
     return true;
-
-_fail2:
-    m_codemem.destroy();
-_fail1:
-    free(controlMemory);
-_fail0:
-    fclose(file);
-    return false;
 }

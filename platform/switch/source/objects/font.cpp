@@ -10,15 +10,12 @@
 #include "deko3d/deko.h"
 #include "utf8/utf8.h"
 
-using namespace vertex;
-
 using namespace love;
 
 #define FONT_MODULE() (Module::GetInstance<FontModule>(Module::M_FONT))
 
-Font::Font(Rasterizer* r, const Texture::Filter& filter) :
-    common::Font(filter),
-    rasterizers({ r }),
+Font::Font(Rasterizer* r, const SamplerState& state) :
+    common::Font(r, state),
     textureWidth(128),
     textureHeight(128),
     useSpacesAsTab(false),
@@ -28,9 +25,6 @@ Font::Font(Rasterizer* r, const Texture::Filter& filter) :
     this->height   = rasterizers[0]->GetHeight();
 
     this->lineHeight = 1.0f;
-
-    this->filter        = filter;
-    this->filter.mipmap = Texture::FILTER_NONE;
 
     while (true)
     {
@@ -64,12 +58,12 @@ Font::~Font()
     this->images.clear();
 }
 
-void Font::SetFilter(const Texture::Filter& filter)
+void Font::SetSamplerState(const SamplerState& state)
 {
     for (const auto& image : this->images)
-        image->SetFilter(filter);
+        image->SetSamplerState(state);
 
-    this->filter = filter;
+    this->samplerState = state;
 }
 
 Font::TextureSize Font::GetNextTextureSize() const
@@ -117,7 +111,7 @@ void Font::CreateTexture()
 
     PixelFormat format = PIXELFORMAT_RGBA8_UNORM;
     texture = gfx->NewImage(love::Texture::TEXTURE_2D, format, size.width, size.height, 1);
-    texture->SetFilter(this->filter);
+    texture->SetSamplerState(this->samplerState);
 
     {
         size_t dataSize = love::GetPixelFormatSliceSize(format, size.width, size.height);
@@ -210,11 +204,6 @@ bool Font::HasGlyph(uint32_t glyph) const
     return false;
 }
 
-static inline uint16_t norm16(double n)
-{
-    return uint16_t(n * 0xFFFF);
-}
-
 const Font::Glyph& Font::AddGlyph(uint32_t glyph)
 {
     love::StrongReference<love::GlyphData> gd(this->GetRasterizerGlyphData(glyph),
@@ -249,7 +238,7 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
     g.texture = 0;
     g.spacing = floorf(gd->GetAdvance() / this->dpiScale + 0.5f);
 
-    std::fill_n(g.vertices, 4, GlyphVertex {});
+    std::fill_n(g.vertices, 4, Vertex::GlyphVertex {});
 
     /* Don't waste space on empty glyphs */
     if (width > 0 && height > 0)
@@ -274,15 +263,16 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
         // 0---3
         // |   |
         // 1---2
-        const GlyphVertex verts[4] = {
-            { float(-o), float(-o), norm16((tX - o) / tWidth), norm16((tY - o) / tHeight), c },
-            { float(-o), (height + o) / this->dpiScale, norm16((tX - o) / tWidth),
-              norm16((tY + height + o) / tHeight), c },
-            { (width + o) / this->dpiScale, (height + o) / this->dpiScale,
-              norm16((tX + width + o) / tWidth), norm16((tY + height + o) / tHeight), c },
-            { (width + o) / this->dpiScale, float(-o), norm16((tX + width + o) / tWidth),
-              norm16((tY - o) / tHeight), c },
+
+        // clang-format off
+        const Vertex::GlyphVertex verts[4] =
+        {
+            { float(-o),                    float(-o),                     Vertex::normto16t((tX - o) / tWidth),         Vertex::normto16t((tY - o) / tHeight),          c },
+            { float(-o),                    (height + o) / this->dpiScale, Vertex::normto16t((tX - o) / tWidth),         Vertex::normto16t((tY + height + o) / tHeight), c },
+            { (width + o) / this->dpiScale, (height + o) / this->dpiScale, Vertex::normto16t((tX + width + o) / tWidth), Vertex::normto16t((tY + height + o) / tHeight), c },
+            { (width + o) / this->dpiScale, float(-o),                     Vertex::normto16t((tX + width + o) / tWidth), Vertex::normto16t((tY - o) / tHeight), c },
         };
+        // clang-format on
 
         // Copy vertex data to the glyph
         // and set proper bearing.
@@ -351,11 +341,10 @@ void Font::GetCodepointsFromString(const std::vector<ColoredString>& strings,
     }
 }
 
-std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& codepoints,
-                                                      const Colorf& constantColor,
-                                                      std::vector<GlyphVertex>& glyphVertices,
-                                                      float extra_spacing, Vector2 offset,
-                                                      TextInfo* info)
+std::vector<Font::DrawCommand> Font::GenerateVertices(
+    const ColoredCodepoints& codepoints, const Colorf& constantColor,
+    std::vector<Vertex::GlyphVertex>& glyphVertices, float extra_spacing, Vector2 offset,
+    TextInfo* info)
 {
     /*
     ** Spacing counter and
@@ -521,7 +510,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
 
 std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
     const ColoredCodepoints& text, const Colorf& constantColor, float wrap, AlignMode align,
-    std::vector<vertex::GlyphVertex>& vertices, TextInfo* info)
+    std::vector<Vertex::GlyphVertex>& vertices, TextInfo* info)
 {
     wrap = std::max(wrap, 0.0f);
 
@@ -643,7 +632,7 @@ void Font::Print(Graphics* gfx, const std::vector<Font::ColoredString>& text,
     ColoredCodepoints codepoints;
     Font::GetCodepointsFromString(text, codepoints);
 
-    std::vector<GlyphVertex> vertices;
+    std::vector<Vertex::GlyphVertex> vertices;
     std::vector<DrawCommand> drawCommands = this->GenerateVertices(codepoints, color, vertices);
 
     this->PrintV(gfx, localTransform, drawCommands, vertices);
@@ -655,7 +644,7 @@ void Font::Printf(Graphics* gfx, const std::vector<Font::ColoredString>& text, f
     ColoredCodepoints codepoints;
     Font::GetCodepointsFromString(text, codepoints);
 
-    std::vector<GlyphVertex> vertices;
+    std::vector<Vertex::GlyphVertex> vertices;
     std::vector<DrawCommand> drawCommands =
         this->GenerateVerticesFormatted(codepoints, color, wrap, align, vertices);
 
@@ -663,7 +652,7 @@ void Font::Printf(Graphics* gfx, const std::vector<Font::ColoredString>& text, f
 }
 
 void Font::PrintV(Graphics* gfx, const Matrix4& t, const std::vector<DrawCommand>& drawCommands,
-                  const std::vector<GlyphVertex>& vertices)
+                  const std::vector<Vertex::GlyphVertex>& vertices)
 {
     if (vertices.empty() || drawCommands.empty())
         return;
@@ -672,13 +661,13 @@ void Font::PrintV(Graphics* gfx, const Matrix4& t, const std::vector<DrawCommand
 
     for (const DrawCommand& cmd : drawCommands)
     {
-        vertex::GlyphVertex vertexData[cmd.vertexCount];
+        Vertex::GlyphVertex vertexData[cmd.vertexCount];
 
-        memcpy(vertexData, &vertices[cmd.startVertex], sizeof(GlyphVertex) * cmd.vertexCount);
+        memcpy(vertexData, &vertices[cmd.startVertex], Vertex::GLYPH_VERTEX_SIZE * cmd.vertexCount);
         m.TransformXY(vertexData, &vertices[cmd.startVertex], cmd.vertexCount);
 
-        std::vector<PrimitiveVertex> verts =
-            vertex::GenerateTextureFromGlyphs(vertexData, cmd.vertexCount);
+        std::vector<Vertex::PrimitiveVertex> verts =
+            Vertex::GenerateTextureFromGlyphs(vertexData, cmd.vertexCount);
 
         ::deko3d::Instance().RenderTexture(cmd.texture->GetHandle(), verts.data(), cmd.vertexCount);
     }
@@ -938,4 +927,30 @@ float Font::GetKerning(const std::string& leftChar, const std::string& rightChar
     }
 
     return this->GetKerning(left, right);
+}
+
+// clang-format off
+constexpr auto sharedFonts = BidirectionalMap<>::Create(
+    "standard",                    Font::SystemFontType::TYPE_STANDARD,
+    "chinese simplified",          Font::SystemFontType::TYPE_CHINESE_SIMPLIFIED,
+    "chinese traditional",         Font::SystemFontType::TYPE_CHINESE_TRADITIONAL,
+    "extended chinese simplified", Font::SystemFontType::TYPE_CHINESE_SIMPLIFIED_EXT,
+    "korean",                      Font::SystemFontType::TYPE_KOREAN,
+    "nintendo extended",           Font::SystemFontType::TYPE_NINTENDO_EXTENDED
+);
+// clang-format on
+
+bool Font::GetConstant(const char* in, Font::SystemFontType& out)
+{
+    return sharedFonts.Find(in, out);
+}
+
+bool Font::GetConstant(Font::SystemFontType in, const char*& out)
+{
+    return sharedFonts.ReverseFind(in, out);
+}
+
+std::vector<const char*> Font::GetConstants(Font::SystemFontType)
+{
+    return sharedFonts.GetNames();
 }

@@ -60,7 +60,7 @@ void WheelJoint::SetMaxMotorTorque(float torque)
 
 float WheelJoint::GetMaxMotorTorque() const
 {
-    return Physics::ScaleUp(Physics::ScaleUp(this->GetMaxMotorTorque()));
+    return Physics::ScaleUp(Physics::ScaleUp(this->joint->GetMaxMotorTorque()));
 }
 
 float WheelJoint::GetMotorTorque(float invDt) const

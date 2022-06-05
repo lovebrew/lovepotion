@@ -37,8 +37,7 @@ Image::~Image()
 
 void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
 {
-    this->texture.replacePixels(::deko3d::Instance().GetData(), ::deko3d::Instance().GetDevice(),
-                                data, size, ::deko3d::Instance().GetTextureQueue(), rect);
+    this->texture.replacePixels(data, size, rect);
 }
 
 void Image::Init(PixelFormat pixelFormat, int width, int height)
@@ -65,10 +64,8 @@ void Image::Init(PixelFormat pixelFormat, int width, int height)
     this->width  = width;
     this->height = height;
 
-    this->handle = ::deko3d::Instance().RegisterResHandle(this->texture.getDescriptor());
+    this->handle = ::deko3d::Instance().RegisterDescriptor(this->texture.getDescriptor());
 
     this->InitQuad();
-
-    this->SetFilter(this->filter);
-    this->SetWrap(this->wrap);
+    this->SetSamplerState(this->samplerState);
 }
