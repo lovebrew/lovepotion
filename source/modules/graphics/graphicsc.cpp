@@ -700,6 +700,7 @@ void Graphics::SetLineJoin(LineJoin join)
 void Graphics::SetLineStyle(LineStyle style)
 {
     this->states.back().lineStyle = style;
+    Graphics::GetRenderer().SetLineStyle(style);
 }
 
 float Graphics::GetPointSize() const

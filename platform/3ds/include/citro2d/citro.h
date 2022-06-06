@@ -69,6 +69,8 @@ class citro2d : public Renderer
 
     virtual void SetLineWidth(float lineWidth) override;
 
+    virtual void SetLineStyle(Graphics::LineStyle style) override;
+
     virtual void SetPointSize(float pointSize) override;
 
     /* internal functions */

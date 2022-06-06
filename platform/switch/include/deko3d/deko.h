@@ -120,6 +120,8 @@ class deko3d : public Renderer
 
     virtual void SetLineWidth(float lineWidth) override;
 
+    virtual void SetLineStyle(Graphics::LineStyle style) override;
+
     virtual void SetPointSize(float pointSize) override;
 
     /* helper functions */
@@ -223,8 +225,6 @@ class deko3d : public Renderer
         dk::ColorWriteState colorWrite;
         dk::BlendState blendState;
         dk::DepthStencilState depthStencil;
-
-        float pointSize;
     } deviceState;
 
     struct

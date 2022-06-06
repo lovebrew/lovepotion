@@ -7,6 +7,8 @@
 #include "common/render/samplerstate.h"
 #include "common/render/vertex.h"
 
+#include "modules/graphics/graphics.h"
+
 #include <optional>
 
 namespace love
@@ -75,6 +77,9 @@ namespace love
 
         /* sets the line width */
         virtual void SetLineWidth(float lineWidth) = 0;
+
+        /* sets the line join style */
+        virtual void SetLineStyle(Graphics::LineStyle style) = 0;
 
         /* sets the point size */
         virtual void SetPointSize(float pointSize) = 0;

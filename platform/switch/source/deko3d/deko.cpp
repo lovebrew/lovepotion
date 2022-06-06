@@ -490,6 +490,12 @@ void deko3d::SetLineWidth(float lineWidth)
     this->commandBuffer.setLineWidth(lineWidth);
 }
 
+void deko3d::SetLineStyle(Graphics::LineStyle style)
+{
+    bool smooth = (style == Graphics::LineStyle::LINE_SMOOTH);
+    this->deviceState.rasterizer.setPolygonSmoothEnable(smooth);
+}
+
 void deko3d::SetPointSize(float pointSize)
 {
     this->EnsureInFrame();

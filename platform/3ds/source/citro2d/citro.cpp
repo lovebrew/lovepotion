@@ -259,6 +259,9 @@ void citro2d::SetBlendMode(const RenderState::BlendState& blend)
 void citro2d::SetLineWidth(float lineWidth)
 {}
 
+void citro2d::SetLineStyle(Graphics::LineStyle style)
+{}
+
 void citro2d::SetPointSize(float pointSize)
 {}
 
