@@ -215,6 +215,6 @@ void Polyline::Draw(Graphics* graphics)
         auto render = Vertex::GeneratePrimitiveFromVectors(std::span(transformed, cmdVertexCount),
                                                            std::span(colors, cmdVertexCount));
 
-        ::deko3d::Instance().RenderPolyline(this->triangleMode, render.get(), cmdVertexCount);
+        // ::deko3d::Instance().RenderPolyline(this->triangleMode, render.get(), cmdVertexCount);
     }
 }

@@ -33,7 +33,7 @@ deko3d::deko3d() :
     this->descriptors.image.allocate(this->pool.data);
     this->descriptors.sampler.allocate(this->pool.data);
 
-    /* command and vertex rings */
+    /* command ring */
     this->commands.allocate(this->pool.data, COMMAND_SIZE);
     this->vertices.allocate(this->pool.data, VERTEX_COMMAND_SIZE / 2);
 
@@ -269,8 +269,7 @@ void deko3d::BindFramebuffer(Canvas* canvas)
 
     /* begin the vertex ring */
     std::pair<void*, DkGpuAddr> data = this->vertices.begin();
-
-    this->vertexData = (Vertex::PrimitiveVertex*)data.first;
+    this->vertexData                 = (Vertex::PrimitiveVertex*)data.first;
 
     this->commandBuffer.bindRasterizerState(this->deviceState.rasterizer);
     this->commandBuffer.bindColorState(this->deviceState.color);
@@ -282,24 +281,19 @@ void deko3d::BindFramebuffer(Canvas* canvas)
     this->commandBuffer.bindVtxBuffer(0, data.second, this->vertices.getSize());
 }
 
-void deko3d::SetGPURenderState(GpuRenderState state)
+void deko3d::CheckDescriptorsDirty()
 {
-    if (this->gpuRenderState != state && state != GPU_RENDER_STATE_MAX_ENUM)
-        this->gpuRenderState = state;
-
-    Shader::standardShaders[state]->Attach();
-
-    if (state == GpuRenderState::GPU_RENDER_STATE_PRIMITIVE)
+    if (this->descriptors.dirty)
     {
-        this->commandBuffer.bindVtxAttribState(VertexAttributes::PrimitiveAttribState);
-        this->commandBuffer.bindVtxBufferState(VertexAttributes::PrimitiveBufferState);
+        this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
+        this->descriptors.dirty = false;
     }
-    else if (state == GpuRenderState::GPU_RENDER_STATE_TEXTURE ||
-             state == GpuRenderState::GPU_RENDER_STATE_VIDEO)
-    {
-        this->commandBuffer.bindVtxAttribState(VertexAttributes::TextureAttribState);
-        this->commandBuffer.bindVtxBufferState(VertexAttributes::TextureBufferState);
-    }
+}
+
+void deko3d::SetAttributes(const VertexAttributes::Attribs& attributes)
+{
+    this->commandBuffer.bindVtxAttribState(attributes.attributeState);
+    this->commandBuffer.bindVtxBufferState(attributes.bufferState);
 }
 
 void deko3d::SetShader(Shader* shader)
@@ -315,102 +309,20 @@ void deko3d::SetShader(Shader* shader)
                                           this->transform.buffer.getSize());
 }
 
-bool deko3d::RenderPolyline(DkPrimitive mode, const Vertex::PrimitiveVertex* points, size_t count)
+void deko3d::Render(const StreamBufferState& state)
 {
-    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
-        return false;
+    DkPrimitive primitive;
+    ::deko3d::GetConstant(state.primitiveMode, primitive);
 
-    this->SetGPURenderState(GPU_RENDER_STATE_PRIMITIVE);
+    if (state.texture)
+        this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
 
-    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
+    memcpy(this->vertexData + this->firstVertex, state.vertexData,
+           state.vertices * Vertex::PRIM_VERTEX_SIZE);
 
-    this->commandBuffer.draw(mode, count, 1, this->firstVertex, 0);
+    this->commandBuffer.draw(primitive, state.vertices, 1, this->firstVertex, 0);
 
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderPolygon(const Vertex::PrimitiveVertex* points, size_t count)
-{
-    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->SetGPURenderState(GPU_RENDER_STATE_PRIMITIVE);
-
-    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
-
-    this->commandBuffer.draw(DkPrimitive_TriangleFan, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderPoints(const Vertex::PrimitiveVertex* points, size_t count)
-{
-    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->SetGPURenderState(GPU_RENDER_STATE_PRIMITIVE);
-
-    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
-
-    this->commandBuffer.draw(DkPrimitive_Points, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderTexture(const DkResHandle handle, const Vertex::PrimitiveVertex* points,
-                           size_t count)
-{
-    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->SetGPURenderState(GPU_RENDER_STATE_TEXTURE);
-
-    if (this->descriptors.dirty)
-    {
-        this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
-        this->descriptors.dirty = false;
-    }
-
-    this->commandBuffer.bindTextures(DkStage_Fragment, 0, handle);
-
-    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
-
-    this->commandBuffer.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
-}
-
-bool deko3d::RenderVideo(const DkResHandle handles[3], const Vertex::PrimitiveVertex* points,
-                         size_t count)
-{
-    if (count > (this->vertices.getSize() - this->firstVertex) || points == nullptr)
-        return false;
-
-    this->SetGPURenderState(GPU_RENDER_STATE_VIDEO);
-
-    if (this->descriptors.dirty)
-    {
-        this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
-        this->descriptors.dirty = false;
-    }
-
-    this->commandBuffer.bindTextures(DkStage_Fragment, 0, { handles[0], handles[1], handles[2] });
-
-    memcpy(this->vertexData + this->firstVertex, points, count * Vertex::PRIM_VERTEX_SIZE);
-
-    this->commandBuffer.draw(DkPrimitive_Quads, count, 1, this->firstVertex, 0);
-
-    this->firstVertex += count;
-
-    return true;
+    this->firstVertex += state.vertices;
 }
 
 void deko3d::Present()
@@ -689,6 +601,14 @@ constexpr auto compareModes = BidirectionalMap<>::Create(
     RenderState::COMPARE_ALWAYS,   DkCompareOp_Always,
     RenderState::COMPARE_NEVER,    DkCompareOp_Never
 );
+
+constexpr auto primitiveModes = BidirectionalMap<>::Create(
+    Vertex::PRIMITIVE_TRIANGLES,      DkPrimitive_Triangles,
+    Vertex::PRIMITIVE_TRIANGLE_FAN,   DkPrimitive_TriangleFan,
+    Vertex::PRIMITIVE_TRIANGLE_STRIP, DkPrimitive_TriangleStrip,
+    Vertex::PRIMITIVE_QUADS,          DkPrimitive_Quads,
+    Vertex::PRIMITIVE_POINTS,         DkPrimitive_Points
+);
 // clang-format on
 
 bool deko3d::GetConstant(PixelFormat in, DkImageFormat& out)
@@ -734,4 +654,9 @@ bool deko3d::GetConstant(Vertex::Winding in, DkFrontFace& out)
 bool deko3d::GetConstant(RenderState::CompareMode in, DkCompareOp& out)
 {
     return compareModes.Find(in, out);
+}
+
+bool deko3d::GetConstant(Vertex::PrimitiveType in, DkPrimitive& out)
+{
+    return primitiveModes.Find(in, out);
 }

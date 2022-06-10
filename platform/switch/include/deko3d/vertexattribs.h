@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common/bidirectionalmap.h"
 #include "common/colors.h"
 #include "common/render/vertex.h"
 #include "common/vector.h"
@@ -42,4 +43,31 @@ namespace VertexAttributes
         DkVtxAttribState { 0, 0, offsetof(Vertex::PrimitiveVertex, texcoord), DkVtxAttribSize_2x16, DkVtxAttribType_Unorm, 0 }
     };
     // clang-format on
+
+    struct Attribs
+    {
+        dk::detail::ArrayProxy<const DkVtxAttribState> attributeState;
+        dk::detail::ArrayProxy<const DkVtxBufferState> bufferState;
+    };
+
+    inline Attribs GetConstant(Vertex::CommonFormat inFormat)
+    {
+        Attribs attributes {};
+
+        switch (inFormat)
+        {
+            case Vertex::CommonFormat::PRIMITIVE:
+                attributes.attributeState = PrimitiveAttribState;
+                attributes.bufferState    = PrimitiveBufferState;
+                break;
+            case Vertex::CommonFormat::TEXTURE:
+                attributes.attributeState = TextureAttribState;
+                attributes.bufferState    = TextureBufferState;
+                break;
+            default:
+                break;
+        }
+
+        return attributes;
+    }
 } // namespace VertexAttributes

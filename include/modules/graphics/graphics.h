@@ -13,6 +13,7 @@
 #include "common/render/renderer.h"
 #include "common/render/renderstate.h"
 #include "common/render/samplerstate.h"
+#include "common/render/streamdraw.h"
 #include "common/render/vertex.h"
 
 #include "common/module.h"
@@ -338,6 +339,14 @@ namespace love
         void SetShader();
 
         void SetShader(Shader* shader);
+
+        virtual void FlushStreamDraws() {};
+
+        virtual StreamVertexData RequestStreamDraw(const StreamDrawCommand& command)
+        {
+            StreamVertexData data;
+            return data;
+        };
 
         Shader* GetShader() const;
 

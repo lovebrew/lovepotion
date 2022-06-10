@@ -116,5 +116,5 @@ void Video::Draw(Graphics* graphics, const Matrix4& localTransform)
                             Vertex::normto16t(this->vertices[i].texcoord[1]) } };
     }
 
-    ::deko3d::Instance().RenderVideo(handles, vertexData, 4);
+    // ::deko3d::Instance().RenderVideo(handles, vertexData, 4);
 }

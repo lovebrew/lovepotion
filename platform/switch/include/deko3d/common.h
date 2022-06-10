@@ -9,4 +9,5 @@
 
 #include <switch.h>
 
+#define DK_HPP_SUPPORT_VECTOR
 #include <deko3d.hpp>

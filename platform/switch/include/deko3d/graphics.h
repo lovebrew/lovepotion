@@ -2,8 +2,6 @@
 
 #include "modules/graphics/graphics.h"
 
-#include "deko3d/deko.h"
-
 namespace love::deko3d
 {
     class Graphics : public love::Graphics
@@ -54,7 +52,13 @@ namespace love::deko3d
         // Internal?
         Shader* NewShader(Shader::StandardShader type);
 
+        void FlushStreamDraws() override;
+
+        StreamVertexData RequestStreamDraw(const StreamDrawCommand& command) override;
+
       private:
         int CalculateEllipsePoints(float rx, float ry) const;
+
+        StreamBufferState streamBufferState;
     };
 } // namespace love::deko3d

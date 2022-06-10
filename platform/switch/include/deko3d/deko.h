@@ -15,6 +15,7 @@
 #include "deko3d/CImage.h"
 #include "deko3d/CMemPool.h"
 #include "deko3d/CShader.h"
+#include "deko3d/streamdraw.h"
 
 #include "modules/window/window.h"
 
@@ -43,8 +44,7 @@ class deko3d : public Renderer
 
     static constexpr unsigned MAX_FRAMEBUFFERS = 2;
 
-    static constexpr unsigned COMMAND_SIZE      = 0x100000;
-    static constexpr size_t VERTEX_COMMAND_SIZE = 0x100000;
+    static constexpr unsigned COMMAND_SIZE = 0x100000;
 
     static constexpr size_t MAX_OBJECTS = 0x250;
 
@@ -66,6 +66,8 @@ class deko3d : public Renderer
         (DkImageFlags_UsageRender | DkImageFlags_UsagePresent | DkImageFlags_HwCompression);
 
   public:
+    static constexpr size_t VERTEX_COMMAND_SIZE = 0x100000;
+
     static deko3d& Instance();
 
     ~deko3d();
@@ -146,11 +148,19 @@ class deko3d : public Renderer
 
     void OnOperationMode(Window::DisplaySize& size);
 
+    /*
+    ** checks if the descriptors for textures got dirty
+    ** if so, barrier the primitives and invalidate descriptors
+    */
+    void CheckDescriptorsDirty();
+
+    void Render(const StreamBufferState& state);
+
     static bool IsHandheldMode();
 
     /* rendering */
 
-    void SetGPURenderState(GpuRenderState state);
+    void SetAttributes(const VertexAttributes::Attribs& attributes);
 
     void SetShader(Shader* shader);
 
@@ -184,6 +194,8 @@ class deko3d : public Renderer
     static bool GetConstant(Vertex::Winding in, DkFrontFace& out);
 
     static bool GetConstant(RenderState::CompareMode in, DkCompareOp& out);
+
+    static bool GetConstant(Vertex::PrimitiveType in, DkPrimitive& out);
 
   private:
     void EnsureInFrame();

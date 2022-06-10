@@ -1,6 +1,8 @@
-#include "deko3d/graphics.h"
-
 #include "common/bidirectionalmap.h"
+
+#include "deko3d/graphics.h"
+#include "deko3d/vertexattribs.h"
+
 #include "polyline/common.h"
 
 namespace love
@@ -36,6 +38,76 @@ namespace love
         Graphics::~Graphics()
         {}
 
+        StreamVertexData Graphics::RequestStreamDraw(const StreamDrawCommand& command)
+        {
+            StreamBufferState& state = this->streamBufferState;
+
+            bool shouldFlush  = false;
+            bool shouldResize = false;
+
+            if (command.primitveMode != state.primitiveMode ||
+                command.formats[0] != state.formats[0] || command.formats[1] != state.formats[1] ||
+                ((command.indexMode != Vertex::TriangleIndexMode::TRIANGLE_NONE) !=
+                 (state.indecies > 0)) ||
+                command.texture != state.texture || command.shaderType != state.shaderType)
+            {
+                shouldFlush = true;
+            }
+
+            int totalVertices = state.vertices + command.vertices;
+
+            if (totalVertices > std::numeric_limits<uint16_t>::max() &&
+                command.indexMode != Vertex::TriangleIndexMode::TRIANGLE_NONE)
+            {
+                shouldFlush = true;
+            }
+
+            if (shouldFlush)
+            {
+                this->FlushStreamDraws();
+
+                state.primitiveMode = command.primitveMode;
+                state.formats[0]    = command.formats[0];
+                state.formats[1]    = command.formats[1];
+                state.texture       = command.texture;
+                state.shaderType    = command.shaderType;
+            }
+
+            if (state.vertices == 0 && Shader::IsDefaultActive())
+                Shader::AttachDefault(state.shaderType);
+
+            if (state.vertices > 0)
+                printf("!");
+
+            StreamVertexData data;
+            data.stream = state.vertexData;
+
+            state.vertices += command.vertices;
+
+            return data;
+        }
+
+        void Graphics::FlushStreamDraws()
+        {
+            StreamBufferState& state = this->streamBufferState;
+
+            if (state.vertices == 0 && state.indecies == 0)
+                return;
+
+            VertexAttributes::Attribs attributes {};
+
+            if (state.formats[0] != Vertex::CommonFormat::NONE)
+                attributes = VertexAttributes::GetConstant(state.formats[0]);
+
+            Shader::standardShaders[state.shaderType]->Attach();
+            ::deko3d::Instance().SetAttributes(attributes);
+
+            if (state.indecies > 0)
+            {
+                ::deko3d::Instance().CheckDescriptorsDirty();
+            }
+        }
+
         void Graphics::Polyline(const Vector2* points, size_t count)
         {
             float halfWidth = this->GetLineWidth() * 0.5f;
@@ -69,8 +141,8 @@ namespace love
             }
         }
 
-        void love::deko3d::Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count,
-                                             bool skipLastVertex)
+        void Graphics::Polygon(DrawMode mode, const Vector2* points, size_t count,
+                               bool skipLastVertex)
         {
             if (mode == DRAW_LINE)
                 this->Polyline(points, count);
@@ -92,7 +164,7 @@ namespace love
                 auto vertices = Vertex::GeneratePrimitiveFromVectors(
                     std::span(transformed, vertexCount), std::span(color, 1));
 
-                ::deko3d::Instance().RenderPolygon(vertices.get(), vertexCount);
+                // ::deko3d::Instance().RenderPolygon(vertices.get(), vertexCount);
             }
         }
 
@@ -376,6 +448,5 @@ namespace love
 
             return this->NewFont(r.Get());
         }
-
     } // namespace deko3d
 } // namespace love

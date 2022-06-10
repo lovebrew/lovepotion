@@ -16,11 +16,6 @@ Texture::~Texture()
     ::deko3d::Instance().DeRegisterDescriptor(this->handle);
 }
 
-void Texture::SetHandle(DkResHandle handle)
-{
-    this->handle = handle;
-}
-
 DkResHandle Texture::GetHandle()
 {
     return this->handle;
@@ -36,38 +31,31 @@ void Texture::SetSamplerState(const SamplerState& state)
     ::deko3d::Instance().SetSamplerState(this, this->samplerState);
 }
 
-void Texture::Draw(Graphics* gfx, const Matrix4& localTransform)
+void Texture::Draw(Graphics* graphics, const Matrix4& localTransform)
 {
-    this->Draw(gfx, this->quad, localTransform);
+    this->Draw(graphics, this->quad, localTransform);
 }
 
-void Texture::Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform)
+void Texture::Draw(Graphics* graphics, love::Quad* quad, const Matrix4& localTransform)
 {
-    const Matrix4& tm  = gfx->GetTransform();
+    const Matrix4& tm  = graphics->GetTransform();
     bool is2D          = tm.IsAffine2DTransform();
-    const Colorf color = gfx->GetColor();
+    const Colorf color = graphics->GetColor();
 
     Matrix4 t(tm, localTransform);
 
-    /* zero out a new vertex data thing */
-    Vertex::PrimitiveVertex vertexData[TEXTURE_QUAD_POINT_COUNT];
-    std::fill_n(vertexData, TEXTURE_QUAD_POINT_COUNT, Vertex::PrimitiveVertex {});
+    StreamDrawCommand command;
+    command.indexMode  = Vertex::TRIANGLE_QUADS;
+    command.vertices   = 4;
+    command.texture    = this;
+    command.shaderType = Shader::STANDARD_TEXTURE;
 
-    Vector2 transformed[TEXTURE_QUAD_POINT_COUNT];
-    std::fill_n(transformed, TEXTURE_QUAD_POINT_COUNT, Vector2 {});
+    StreamVertexData data = (love::deko3d::Graphics*)graphics->RequestStreamDraw(command);
 
     if (is2D)
-        t.TransformXY(transformed, quad->GetVertexPositions(), TEXTURE_QUAD_POINT_COUNT);
+        t.TransformXY((Vertex::PrimitiveVertex*)data.stream, quad->GetVertexPositions(), 4);
 
     const Vector2* texCoords = quad->GetVertexTexCoords();
-
-    for (size_t i = 0; i < TEXTURE_QUAD_POINT_COUNT; i++)
-    {
-        vertexData[i] = { { transformed[i].x, transformed[i].y, 0.0f },
-                          { color.r, color.g, color.b, color.a },
-                          { Vertex::normto16t(texCoords[i].x),
-                            Vertex::normto16t(texCoords[i].y) } };
-    }
-
-    ::deko3d::Instance().RenderTexture(this->handle, vertexData, TEXTURE_QUAD_POINT_COUNT);
+    for (size_t index = 0; index < 4; index++)
+    {}
 }
