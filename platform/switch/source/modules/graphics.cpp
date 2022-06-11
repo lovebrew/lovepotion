@@ -3,6 +3,8 @@
 #include "deko3d/graphics.h"
 #include "deko3d/vertexattribs.h"
 
+#include "deko3d/deko.h"
+
 #include "polyline/common.h"
 
 namespace love
@@ -80,7 +82,7 @@ namespace love
                 printf("!");
 
             StreamVertexData data;
-            data.stream = state.vertexData;
+            data.verts = state.vertexData;
 
             state.vertices += command.vertices;
 

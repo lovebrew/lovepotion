@@ -15,7 +15,6 @@
 #include "deko3d/CImage.h"
 #include "deko3d/CMemPool.h"
 #include "deko3d/CShader.h"
-#include "deko3d/streamdraw.h"
 
 #include "modules/window/window.h"
 

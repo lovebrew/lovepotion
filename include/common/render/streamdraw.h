@@ -19,7 +19,8 @@ namespace love
     /* { position, quads } */
     struct StreamVertexData
     {
-        void* stream;
+        void* position;
+        void* verts;
     };
 
     struct StreamBufferState
