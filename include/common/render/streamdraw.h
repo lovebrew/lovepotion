@@ -6,40 +6,53 @@
 #include "objects/shader/shader.h"
 #include "objects/texture/texture.h"
 
+#include <memory>
+
 namespace love
 {
-    struct StreamDrawCommand
+    struct DrawCommand
     {
-        Vertex::PrimitiveType primitveMode   = Vertex::PRIMITIVE_TRIANGLES;
-        Vertex::CommonFormat formats[2]      = { Vertex::CommonFormat::NONE };
-        Vertex::TriangleIndexMode indexMode  = Vertex::TRIANGLE_NONE;
+        Vertex::PrimitiveType primitiveMode  = Vertex::PRIMITIVE_TRIANGLES;
+        Vertex::CommonFormat format          = Vertex::CommonFormat::NONE;
         std::vector<uint32_t> textureHandles = {};
 
-        int vertices                      = 0;
-        Texture* texture                  = nullptr;
-        Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT;
-    };
+        std::unique_ptr<Vertex::PrimitiveVertex[]> vertices = nullptr;
+        std::unique_ptr<Vector2[]> positions                = nullptr;
 
-    /* { position, quads } */
-    struct StreamVertexData
-    {
-        void* stream[2];
-    };
-
-    struct StreamBufferState
-    {
-        Vertex::PrimitiveType primitiveMode = Vertex::PRIMITIVE_TRIANGLES;
-        Vertex::CommonFormat formats[2]     = { Vertex::CommonFormat::NONE };
-
-        uint8_t* buffers[2];
-        size_t bufferSizes[2] = {0, 0};
-
-        StrongReference<Texture> texture;
         Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT;
 
-        std::vector<uint32_t> textureHandles = {};
+        size_t count;
+        size_t size;
 
-        int vertices = 0;
-        int indecies = 0;
+        /* constructor for Primitives */
+        DrawCommand(Vertex::PrimitiveType mode, size_t count,
+                    Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT) :
+            primitiveMode(mode),
+            shaderType(shaderType),
+            size(count * Vertex::PRIM_VERTEX_SIZE)
+        {
+            this->vertices  = std::make_unique<Vertex::PrimitiveVertex[]>(count);
+            this->positions = std::make_unique<Vector2[]>(count);
+        }
+
+        /* constructor for Textures */
+        DrawCommand(Vertex::PrimitiveType type, size_t count, const std::vector<uint32_t>& handles,
+                    Shader::StandardShader shaderType) :
+            DrawCommand(type, count, shaderType)
+        {
+
+            this->textureHandles = handles;
+            this->format         = Vertex::CommonFormat::TEXTURE;
+        }
+
+        Vertex::PrimitiveVertex* GetVertices()
+        {
+            return this->vertices.get();
+        }
+
+        Vector2* GetPositions()
+        {
+            return this->positions.get();
+        }
     };
 } // namespace love

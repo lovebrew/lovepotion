@@ -69,16 +69,9 @@ namespace love
         enum class CommonFormat
         {
             NONE,
-            XYf,
-            XYZf,
-            RGBAub,
-            STf_RGBAub,
+            PRIMITIVE,
+            TEXTURE
         };
-
-        static inline CommonFormat Is2DPositionalFormat(bool is2D)
-        {
-            return is2D ? CommonFormat::XYf : CommonFormat::XYZf;
-        }
 
         static inline uint16_t normto16t(float in)
         {

@@ -309,20 +309,26 @@ void deko3d::SetShader(Shader* shader)
                                           this->transform.buffer.getSize());
 }
 
-void deko3d::Render(const StreamBufferState& state)
+void deko3d::Render(const DrawCommand& command)
 {
     DkPrimitive primitive;
-    ::deko3d::GetConstant(state.primitiveMode, primitive);
+    ::deko3d::GetConstant(command.primitiveMode, primitive);
 
-    if (state.texture)
-        this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
+    if (!Shader::IsActive(command.shaderType))
+        Shader::standardShaders[command.shaderType]->Attach();
 
-    memcpy(this->vertexData + this->firstVertex, state.buffers[1],
-           state.vertices * Vertex::PRIM_VERTEX_SIZE);
+    VertexAttributes::Attribs attributes {};
+    VertexAttributes::GetAttributes(command.format, attributes);
 
-    this->commandBuffer.draw(primitive, state.vertices, 1, this->firstVertex, 0);
+    this->SetAttributes(attributes);
 
-    this->firstVertex += state.vertices;
+    if (!command.textureHandles.empty())
+        this->commandBuffer.bindTextures(DkStage_Fragment, 0, command.textureHandles);
+
+    memcpy(this->vertexData + this->firstVertex, command.vertices.get(), command.size);
+    this->commandBuffer.draw(primitive, command.count, 1, this->firstVertex, 0);
+
+    this->firstVertex += command.count;
 }
 
 void deko3d::Present()

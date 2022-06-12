@@ -43,6 +43,11 @@ bool Shader::IsDefaultActive()
     return false;
 }
 
+bool Shader::IsActive(StandardShader shader)
+{
+    return current == standardShaders[shader];
+}
+
 // clang-format off
 constexpr auto shaderNames = BidirectionalMap<>::Create(
     "default", Shader::StandardShader::STANDARD_DEFAULT,

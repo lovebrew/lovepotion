@@ -52,13 +52,7 @@ namespace love::deko3d
         // Internal?
         Shader* NewShader(Shader::StandardShader type);
 
-        void FlushStreamDraws() override;
-
-        StreamVertexData RequestStreamDraw(const StreamDrawCommand& command) override;
-
       private:
         int CalculateEllipsePoints(float rx, float ry) const;
-
-        StreamBufferState streamBufferState;
     };
 } // namespace love::deko3d

@@ -339,14 +339,6 @@ namespace love
 
         void SetShader(Shader* shader);
 
-        virtual void FlushStreamDraws() {};
-
-        virtual StreamVertexData RequestStreamDraw(const StreamDrawCommand& command)
-        {
-            StreamVertexData data;
-            return data;
-        };
-
         Shader* GetShader() const;
 
         size_t GetStackDepth() const

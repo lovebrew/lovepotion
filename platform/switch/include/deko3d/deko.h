@@ -154,7 +154,7 @@ class deko3d : public Renderer
     */
     void CheckDescriptorsDirty();
 
-    void Render(const StreamBufferState& state);
+    void Render(const DrawCommand& command);
 
     static bool IsHandheldMode();
 

@@ -41,5 +41,6 @@ namespace love::common
         static bool GetConstant(StandardShader in, const char*& out);
 
         static bool IsDefaultActive();
+        static bool IsActive(StandardShader type);
     };
 } // namespace love::common

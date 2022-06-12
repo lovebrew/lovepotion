@@ -44,32 +44,24 @@ void Texture::Draw(Graphics* graphics, love::Quad* quad, const Matrix4& localTra
 
     Matrix4 t(tm, localTransform);
 
-    StreamDrawCommand command;
-    command.indexMode      = Vertex::TRIANGLE_QUADS;
-    command.vertices       = 4;
-    command.texture        = this;
-    command.shaderType     = Shader::STANDARD_TEXTURE;
-    command.primitveMode   = Vertex::PRIMITIVE_QUADS;
-    command.formats[0]     = Vertex::Is2DPositionalFormat(is2D);
-    command.formats[1]     = Vertex::CommonFormat::STf_RGBAub;
-    command.textureHandles = { this->handle };
-
-    StreamVertexData data = graphics->RequestStreamDraw(command);
+    DrawCommand command(Vertex::PRIMITIVE_QUADS, 4, { this->handle }, Shader::STANDARD_TEXTURE);
 
     if (is2D)
-        t.TransformXY((Vector2*)data.stream[0], quad->GetVertexPositions(), 4);
+        t.TransformXY(command.GetPositions(), quad->GetVertexPositions(), 4);
 
     const Vector2* texCoords            = quad->GetVertexTexCoords();
-    Vertex::PrimitiveVertex* vertexData = (Vertex::PrimitiveVertex*)data.stream[1];
+    Vertex::PrimitiveVertex* vertexData = command.GetVertices();
 
     // clang-format off
     for (size_t index = 0; index < 4; index++)
     {
         vertexData[index] = {
-            .position = { ((Vector2*)data.stream[0])[index].x, ((Vector2*)data.stream[0])[index].y, 0.0f },
+            .position = { command.positions[index].x, command.positions[index].y, 0.0f },
             .color    = { color.r, color.g, color.b, color.a },
             .texcoord = { Vertex::normto16t(texCoords[index].x), Vertex::normto16t(texCoords[index].y) }
         };
     }
     // clang-format on
+
+    ::deko3d::Instance().Render(command);
 }
