@@ -62,17 +62,30 @@ namespace love
             PRIMITIVE_MAX_ENUM
         };
 
+        /*
+        ** Position, Color
+        ** Position, TexCoords, Color
+        */
         enum class CommonFormat
         {
             NONE,
-            PRIMITIVE,
-            TEXTURE
+            XYf,
+            XYZf,
+            RGBAub,
+            STf_RGBAub,
         };
+
+        static inline CommonFormat Is2DPositionalFormat(bool is2D)
+        {
+            return is2D ? CommonFormat::XYf : CommonFormat::XYZf;
+        }
 
         static inline uint16_t normto16t(float in)
         {
             return uint16_t(in * 0xFFFF);
         }
+
+        size_t GetFormatStride(CommonFormat format);
 
         bool GetConstant(const char* in, Winding& out);
         bool GetConstant(Winding in, const char*& out);

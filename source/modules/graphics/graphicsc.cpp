@@ -1,7 +1,10 @@
+
 #include "modules/graphics/graphics.h"
 #include "modules/window/window.h"
 
 #include "common/bidirectionalmap.h"
+#include "common/render/renderer.h"
+
 #include "modules/math/mathmodule.h"
 
 using namespace love;
@@ -534,11 +537,6 @@ void Graphics::SetBlendState(const RenderState::BlendState& blend)
         Graphics::GetRenderer().SetBlendMode(blend);
 
     this->states.back().blend = blend;
-}
-
-Renderer::RendererInfo Graphics::GetRendererInfo() const
-{
-    return Graphics::GetRenderer().GetRendererInfo();
 }
 
 void Graphics::RestoreStateChecked(const DisplayState& state)

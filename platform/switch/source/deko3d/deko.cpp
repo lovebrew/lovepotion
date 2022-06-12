@@ -317,7 +317,7 @@ void deko3d::Render(const StreamBufferState& state)
     if (state.texture)
         this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
 
-    memcpy(this->vertexData + this->firstVertex, state.vertexData,
+    memcpy(this->vertexData + this->firstVertex, state.buffers[1],
            state.vertices * Vertex::PRIM_VERTEX_SIZE);
 
     this->commandBuffer.draw(primitive, state.vertices, 1, this->firstVertex, 0);

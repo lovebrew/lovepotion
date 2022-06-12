@@ -1,4 +1,5 @@
 #include "modules/window/windowc.h"
+#include "modules/graphics/graphics.h"
 
 using namespace love::common;
 

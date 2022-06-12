@@ -25,6 +25,23 @@ constexpr auto triangleModes = BidirectionalMap<>::Create(
 
 namespace love::Vertex
 {
+    size_t GetFormatStride(CommonFormat format)
+    {
+        switch (format)
+        {
+            case CommonFormat::NONE:
+                return 0;
+            case CommonFormat::XYf:
+                return sizeof(float) * 2;
+            case CommonFormat::XYZf:
+                return sizeof(float) * 3;
+            case CommonFormat::RGBAub:
+                return sizeof(uint8_t) * 4;
+            case CommonFormat::STf_RGBAub:
+                return PRIM_VERTEX_SIZE;
+        }
+    }
+
     // CullMode
     bool GetConstant(const char* in, CullMode& out)
     {

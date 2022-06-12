@@ -8,6 +8,7 @@
 #include "common/render/renderstate.h"
 
 #include "deko3d/common.h"
+#include "deko3d/vertexattribs.h"
 
 #include "deko3d/CCmdMemRing.h"
 #include "deko3d/CCmdVtxRing.h"

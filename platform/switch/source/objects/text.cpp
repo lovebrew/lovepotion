@@ -208,6 +208,7 @@ void Text::Draw(Graphics* gfx, const Matrix4& localTransform)
 
         std::vector<Vertex::PrimitiveVertex> verts =
             Vertex::GenerateTextureFromGlyphs(vertexData, command.vertexCount);
-        ::deko3d::Instance().RenderTexture(command.texture->GetHandle(), verts.data(), vertexCount);
+        // ::deko3d::Instance().RenderTexture(command.texture->GetHandle(), verts.data(),
+        // vertexCount);
     }
 }

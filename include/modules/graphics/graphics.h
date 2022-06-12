@@ -10,7 +10,6 @@
 #include "common/screen.h"
 #include "common/vector.h"
 
-#include "common/render/renderer.h"
 #include "common/render/renderstate.h"
 #include "common/render/samplerstate.h"
 #include "common/render/streamdraw.h"
@@ -54,6 +53,8 @@
 
 namespace love
 {
+    class Renderer;
+
     class Graphics : public Module
     {
       public:
@@ -317,8 +318,6 @@ namespace love
         virtual void Line(const Vector2* points, int count) = 0;
 
         void SetLineWidth(float width);
-
-        Renderer::RendererInfo GetRendererInfo() const;
 
         Vector2 TransformPoint(Vector2 point);
 

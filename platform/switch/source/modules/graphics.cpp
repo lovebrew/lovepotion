@@ -1,11 +1,11 @@
-#include "common/bidirectionalmap.h"
-
 #include "deko3d/graphics.h"
-#include "deko3d/vertexattribs.h"
+#include "polyline/common.h"
+
+#include "common/bidirectionalmap.h"
+#include "common/render/renderer.h"
 
 #include "deko3d/deko.h"
-
-#include "polyline/common.h"
+#include "deko3d/vertexattribs.h"
 
 namespace love
 {
@@ -44,8 +44,9 @@ namespace love
         {
             StreamBufferState& state = this->streamBufferState;
 
-            bool shouldFlush  = false;
-            bool shouldResize = false;
+            bool shouldFlush       = false;
+            bool shouldResize      = false;
+            size_t newDataSizes[2] = { 0, 0 };
 
             if (command.primitveMode != state.primitiveMode ||
                 command.formats[0] != state.formats[0] || command.formats[1] != state.formats[1] ||
@@ -64,15 +65,48 @@ namespace love
                 shouldFlush = true;
             }
 
-            if (shouldFlush)
+            for (size_t index = 0; index < 2; index++)
+            {
+                if (state.formats[0] == Vertex::CommonFormat::NONE)
+                    continue;
+
+                size_t stride   = Vertex::GetFormatStride(command.formats[index]);
+                size_t dataSize = stride * totalVertices;
+
+                if (state.buffers[index] != nullptr && dataSize > state.bufferSizes[index])
+                    shouldFlush = true;
+
+                if (dataSize > state.bufferSizes[index])
+                    shouldResize = true;
+
+                newDataSizes[index] = stride * command.vertices;
+            }
+
+            if (shouldFlush || shouldResize)
             {
                 this->FlushStreamDraws();
 
-                state.primitiveMode = command.primitveMode;
-                state.formats[0]    = command.formats[0];
-                state.formats[1]    = command.formats[1];
-                state.texture       = command.texture;
-                state.shaderType    = command.shaderType;
+                state.primitiveMode  = command.primitveMode;
+                state.formats[0]     = command.formats[0];
+                state.formats[1]     = command.formats[1];
+                state.texture        = command.texture;
+                state.shaderType     = command.shaderType;
+                state.textureHandles = command.textureHandles;
+            }
+
+            if (shouldResize)
+            {
+                for (size_t index = 0; index < 2; index++)
+                {
+                    if (state.bufferSizes[index] < newDataSizes[index])
+                    {
+                        if (state.buffers[index])
+                            delete[] state.buffers[index];
+
+                        state.buffers[index]     = new uint8_t[newDataSizes[index]];
+                        state.bufferSizes[index] = newDataSizes[index];
+                    }
+                }
             }
 
             if (state.vertices == 0 && Shader::IsDefaultActive())
@@ -82,7 +116,18 @@ namespace love
                 printf("!");
 
             StreamVertexData data;
-            data.verts = state.vertexData;
+
+            for (size_t index = 0; index < 2; index++)
+            {
+                if (newDataSizes[index] > 0)
+                {
+                    if (state.buffers[index] == nullptr)
+                        state.buffers[index] = new uint8_t[newDataSizes[index]];
+
+                    data.stream[index] = state.buffers[index];
+                    state.buffers[index] += newDataSizes[index];
+                }
+            }
 
             state.vertices += command.vertices;
 
@@ -98,15 +143,18 @@ namespace love
 
             VertexAttributes::Attribs attributes {};
 
-            if (state.formats[0] != Vertex::CommonFormat::NONE)
-                attributes = VertexAttributes::GetConstant(state.formats[0]);
+            if (state.formats[1] != Vertex::CommonFormat::NONE)
+                attributes = VertexAttributes::GetConstant(state.formats[1]);
 
             Shader::standardShaders[state.shaderType]->Attach();
             ::deko3d::Instance().SetAttributes(attributes);
 
-            if (state.indecies > 0)
+            if (state.vertices > 0)
             {
-                ::deko3d::Instance().CheckDescriptorsDirty();
+                if (state.texture)
+                    ::deko3d::Instance().CheckDescriptorsDirty();
+
+                ::deko3d::Instance().Render(state);
             }
         }
 
@@ -405,7 +453,7 @@ namespace love
             auto vertices = Vertex::GeneratePrimitiveFromVectors(std::span(transformed, count),
                                                                  std::span(colorList, colorCount));
 
-            ::deko3d::Instance().RenderPoints(vertices.get(), count);
+            // ::deko3d::Instance().RenderPoints(vertices.get(), count);
         }
 
         void Graphics::Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius,

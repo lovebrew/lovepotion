@@ -1,4 +1,6 @@
 #include "modules/touch/touch.h"
+
+#include "modules/graphics/graphics.h"
 #include "modules/window/window.h"
 
 #include "modules/event/eventc.h"

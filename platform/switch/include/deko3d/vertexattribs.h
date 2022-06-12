@@ -56,11 +56,11 @@ namespace VertexAttributes
 
         switch (inFormat)
         {
-            case Vertex::CommonFormat::PRIMITIVE:
+            case Vertex::CommonFormat::RGBAub:
                 attributes.attributeState = PrimitiveAttribState;
                 attributes.bufferState    = PrimitiveBufferState;
                 break;
-            case Vertex::CommonFormat::TEXTURE:
+            case Vertex::CommonFormat::STf_RGBAub:
                 attributes.attributeState = TextureAttribState;
                 attributes.bufferState    = TextureBufferState;
                 break;

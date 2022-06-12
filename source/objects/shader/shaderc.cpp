@@ -32,6 +32,17 @@ void Shader::AttachDefault(StandardShader defaultType)
         defaultshader->Attach();
 }
 
+bool Shader::IsDefaultActive()
+{
+    for (int i = 0; i < STANDARD_MAX_ENUM; i++)
+    {
+        if (current == standardShaders[i])
+            return true;
+    }
+
+    return false;
+}
+
 // clang-format off
 constexpr auto shaderNames = BidirectionalMap<>::Create(
     "default", Shader::StandardShader::STANDARD_DEFAULT,

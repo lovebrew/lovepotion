@@ -1,6 +1,8 @@
+#include <filesystem>
+
 #include "modules/graphics/wrap_graphics.h"
 
-#include <filesystem>
+#include "common/render/renderer.h"
 
 #include "modules/image/imagemodule.h"
 
@@ -1454,7 +1456,7 @@ int Wrap_Graphics::GetWide(lua_State* L)
 
 int Wrap_Graphics::GetRendererInfo(lua_State* L)
 {
-    Renderer::RendererInfo info = instance()->GetRendererInfo();
+    Renderer::RendererInfo info = Graphics::GetRenderer().GetRendererInfo();
 
     Luax::PushString(L, info.name);
     Luax::PushString(L, info.version);
