@@ -33,7 +33,9 @@ Image::Image(const Slices& slices) : Image(slices, true)
 }
 
 Image::~Image()
-{}
+{
+    Image::imageCount--;
+}
 
 void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
 {
@@ -68,4 +70,5 @@ void Image::Init(PixelFormat pixelFormat, int width, int height)
 
     this->InitQuad();
     this->SetSamplerState(this->samplerState);
+    Image::imageCount++;
 }

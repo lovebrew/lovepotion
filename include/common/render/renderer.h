@@ -20,6 +20,9 @@ namespace love
     class Renderer
     {
       public:
+        static int shaderSwitches;
+        static int drawCalls;
+
         struct RendererInfo
         {
             const char* name;

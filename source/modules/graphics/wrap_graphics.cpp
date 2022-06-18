@@ -34,6 +34,42 @@ int Wrap_Graphics::IsCreated(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::GetStats(lua_State* L)
+{
+    Graphics::Stats stats = instance()->GetStats();
+
+    if (lua_istable(L, 1))
+        lua_pushvalue(L, 1);
+    else
+        lua_createtable(L, 0, 7);
+
+    lua_pushinteger(L, stats.drawCalls);
+    lua_setfield(L, -2, "drawcalls");
+
+    lua_pushinteger(L, stats.drawCallsBatched);
+    lua_setfield(L, -2, "drawcallsbatched");
+
+    lua_pushinteger(L, stats.canvasSwitches);
+    lua_setfield(L, -2, "canvasswitches");
+
+    lua_pushinteger(L, stats.shaderSwitches);
+    lua_setfield(L, -2, "shaderswitches");
+
+    lua_pushinteger(L, stats.canvases);
+    lua_setfield(L, -2, "canvases");
+
+    lua_pushinteger(L, stats.images);
+    lua_setfield(L, -2, "images");
+
+    lua_pushinteger(L, stats.fonts);
+    lua_setfield(L, -2, "fonts");
+
+    lua_pushinteger(L, stats.textureMemory);
+    lua_setfield(L, -2, "texturememory");
+
+    return 1;
+}
+
 int Wrap_Graphics::GetScreens(lua_State* L)
 {
     auto screens = instance()->GetScreens();
@@ -1492,6 +1528,7 @@ static constexpr luaL_Reg functions[] =
     { "getRendererInfo",       Wrap_Graphics::GetRendererInfo       },
     { "getScissor",            Wrap_Graphics::GetScissor            },
     { "getScreens",            Wrap_Graphics::GetScreens            },
+    { "getStats",              Wrap_Graphics::GetStats              },
     { "getWidth",              Wrap_Graphics::GetWidth              },
     { "intersectScissor",      Wrap_Graphics::IntersectScissor      },
     { "inverseTransformPoint", Wrap_Graphics::InverseTransformPoint },

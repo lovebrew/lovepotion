@@ -177,11 +177,13 @@ void Polyline::Draw(Graphics* graphics)
         int cmdVertexCount   = std::min(maxVertices, totalVertexCount - vertexStart);
 
         /* make vector2 array - size to cmd.vertexCount */
-        Vector2 transformed[cmdVertexCount];
-        std::fill_n(transformed, cmdVertexCount, Vector2 {});
+        Vertex::PrimitiveType primitive;
+        ::deko3d::GetConstant(this->triangleMode, primitive);
+
+        DrawCommand command(primitive, cmdVertexCount);
 
         if (is2D)
-            t.TransformXY(transformed, verts, cmdVertexCount);
+            t.TransformXY(command.GetPositions(), verts, cmdVertexCount);
 
         /* make colorf array - size to cmd.vertexCount */
         Colorf colors[cmdVertexCount];
@@ -212,9 +214,17 @@ void Polyline::Draw(Graphics* graphics)
             }
         }
 
-        auto render = Vertex::GeneratePrimitiveFromVectors(std::span(transformed, cmdVertexCount),
-                                                           std::span(colors, cmdVertexCount));
+        Vertex::PrimitiveVertex* vertexData = command.GetVertices();
 
-        // ::deko3d::Instance().RenderPolyline(this->triangleMode, render.get(), cmdVertexCount);
+        for (size_t index = 0; index < vertexCount; index++)
+        {
+            vertexData[index] = {
+                .position = { command.positions[index].x, command.positions[index].y, 0.0f },
+                .color    = { colors[index].r, colors[index].g, colors[index].b, colors[index].a },
+                .texcoord = { 0, 0 }
+            };
+        }
+
+        graphics->RequestStreamDraw(command);
     }
 }

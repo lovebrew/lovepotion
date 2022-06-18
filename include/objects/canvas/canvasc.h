@@ -19,6 +19,8 @@ namespace love
           public:
             static love::Type type;
 
+            static int canvasCount;
+
             struct Settings
             {
                 int width  = 1;
@@ -26,6 +28,8 @@ namespace love
             };
 
             Canvas(const Settings& settings);
+
+            virtual ~Canvas();
 
             virtual void Draw(Graphics* gfx, love::Quad* quad, const Matrix4& localTransform) = 0;
 

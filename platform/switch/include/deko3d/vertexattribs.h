@@ -50,20 +50,19 @@ namespace VertexAttributes
         dk::detail::ArrayProxy<const DkVtxBufferState> bufferState;
     };
 
-    static inline Attribs GetAttributes(Vertex::CommonFormat inFormat, Attribs& out)
+    static inline void GetAttributes(Vertex::CommonFormat inFormat, Attribs& out)
     {
 
         switch (inFormat)
         {
             case Vertex::CommonFormat::PRIMITIVE:
+            default:
                 out.attributeState = PrimitiveAttribState;
                 out.bufferState    = PrimitiveBufferState;
                 break;
             case Vertex::CommonFormat::TEXTURE:
                 out.attributeState = TextureAttribState;
                 out.bufferState    = TextureBufferState;
-                break;
-            default:
                 break;
         }
     }

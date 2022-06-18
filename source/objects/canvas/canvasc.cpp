@@ -3,6 +3,7 @@
 using namespace love::common;
 
 love::Type Canvas::type("Canvas", &Texture::type);
+int Canvas::canvasCount = 0;
 
 Canvas::Canvas(const Settings& settings) : Texture(TEXTURE_2D), settings(settings)
 {
@@ -10,4 +11,10 @@ Canvas::Canvas(const Settings& settings) : Texture(TEXTURE_2D), settings(setting
     this->height = settings.height;
 
     this->InitQuad();
+    Canvas::canvasCount++;
+}
+
+Canvas::~Canvas()
+{
+    Canvas::canvasCount--;
 }

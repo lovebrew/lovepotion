@@ -154,7 +154,7 @@ class deko3d : public Renderer
     */
     void CheckDescriptorsDirty();
 
-    void Render(const DrawCommand& command);
+    void Render(const StreamDrawState& state);
 
     static bool IsHandheldMode();
 
@@ -163,18 +163,6 @@ class deko3d : public Renderer
     void SetAttributes(const VertexAttributes::Attribs& attributes);
 
     void SetShader(Shader* shader);
-
-    bool RenderPolygon(const Vertex::PrimitiveVertex* points, size_t count);
-
-    bool RenderPolyline(DkPrimitive mode, const Vertex::PrimitiveVertex* points, size_t count);
-
-    bool RenderPoints(const Vertex::PrimitiveVertex* points, size_t count);
-
-    bool RenderTexture(const DkResHandle handle, const Vertex::PrimitiveVertex* points,
-                       size_t count);
-
-    bool RenderVideo(const DkResHandle handles[3], const Vertex::PrimitiveVertex* points,
-                     size_t count);
 
     /* internal functions */
 
@@ -196,6 +184,8 @@ class deko3d : public Renderer
     static bool GetConstant(RenderState::CompareMode in, DkCompareOp& out);
 
     static bool GetConstant(Vertex::PrimitiveType in, DkPrimitive& out);
+
+    static bool GetConstant(DkPrimitive in, Vertex::PrimitiveType& out);
 
   private:
     void EnsureInFrame();

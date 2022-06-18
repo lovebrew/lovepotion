@@ -3,6 +3,8 @@
 
 using namespace love;
 
+int Image::imageCount = 0;
+
 Image::Slices::Slices(TextureType type) : textureType(type)
 {}
 

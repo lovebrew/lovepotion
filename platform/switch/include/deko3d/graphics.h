@@ -46,6 +46,9 @@ namespace love::deko3d
         void Line(const Vector2* points, int count) override;
 
         /* End Primitives */
+        void RequestStreamDraw(const DrawCommand& command) override;
+
+        void FlushStreamDraws() override;
 
         Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting) override;
 
@@ -54,5 +57,7 @@ namespace love::deko3d
 
       private:
         int CalculateEllipsePoints(float rx, float ry) const;
+
+        StreamDrawState streamDrawState;
     };
 } // namespace love::deko3d

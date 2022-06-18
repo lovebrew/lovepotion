@@ -45,6 +45,7 @@ void Texture::Draw(Graphics* graphics, love::Quad* quad, const Matrix4& localTra
     Matrix4 t(tm, localTransform);
 
     DrawCommand command(Vertex::PRIMITIVE_QUADS, 4, { this->handle }, Shader::STANDARD_TEXTURE);
+    command.texture = this;
 
     if (is2D)
         t.TransformXY(command.GetPositions(), quad->GetVertexPositions(), 4);
@@ -63,5 +64,5 @@ void Texture::Draw(Graphics* graphics, love::Quad* quad, const Matrix4& localTra
     }
     // clang-format on
 
-    ::deko3d::Instance().Render(command);
+    graphics->RequestStreamDraw(command);
 }

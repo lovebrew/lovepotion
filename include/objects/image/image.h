@@ -14,6 +14,8 @@ namespace love
       public:
         static love::Type type;
 
+        static int imageCount;
+
         enum MipmapsType
         {
             MIPMAPS_NONE,
@@ -52,6 +54,8 @@ namespace love
         };
 
         void ReplacePixels(const void* data, size_t size, const Rect& rect);
+
+        Image();
 
         ~Image();
 

@@ -658,6 +658,25 @@ void Graphics::CheckSetDefaultFont()
     this->states.back().font.Set(this->defaultFont.Get());
 }
 
+Graphics::Stats Graphics::GetStats() const
+{
+    Stats stats {};
+
+    stats.drawCalls        = Renderer::drawCalls;
+    stats.drawCallsBatched = this->drawCallsBatched;
+
+    stats.shaderSwitches = Renderer::shaderSwitches;
+    stats.canvasSwitches = 0;
+
+    stats.canvases = Canvas::canvasCount;
+    stats.images   = Image::imageCount;
+    stats.fonts    = Font::fontCount;
+
+    stats.textureMemory = 0;
+
+    return stats;
+}
+
 void Graphics::SetFont(Font* font)
 {
     DisplayState& state = this->states.back();

@@ -346,6 +346,12 @@ namespace love
             return this->stackTypeStack.size();
         }
 
+        virtual void RequestStreamDraw(const DrawCommand& command)
+        {}
+
+        virtual void FlushStreamDraws()
+        {}
+
         /* RenderTarget Stuff */
 
         enum TemporaryRenderTargetFlags
@@ -480,12 +486,19 @@ namespace love
         struct Stats
         {
             int drawCalls;
+            int drawCallsBatched;
+
             int canvasSwitches;
             int shaderSwitches;
+
             int canvases;
             int images;
             int fonts;
+
+            int textureMemory;
         };
+
+        Graphics::Stats GetStats() const;
 
         void PushTransform();
 
@@ -527,6 +540,8 @@ namespace love
         static std::vector<const char*> GetConstants(LineJoin);
 
       protected:
+        size_t drawCallsBatched = 0;
+
         struct DisplayState
         {
             DisplayState();

@@ -307,28 +307,34 @@ void deko3d::SetShader(Shader* shader)
 
     this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->transform.buffer.getGpuAddr(),
                                           this->transform.buffer.getSize());
+
+    deko3d::shaderSwitches++;
 }
 
-void deko3d::Render(const DrawCommand& command)
+void deko3d::Render(const StreamDrawState& state)
 {
-    DkPrimitive primitive;
-    ::deko3d::GetConstant(command.primitiveMode, primitive);
+    if (state.count > (this->vertices.getSize() - this->firstVertex))
+        return;
 
-    if (!Shader::IsActive(command.shaderType))
-        Shader::standardShaders[command.shaderType]->Attach();
+    DkPrimitive primitive;
+    ::deko3d::GetConstant(state.primitveMode, primitive);
+
+    if (!Shader::IsActive(state.shaderType))
+        Shader::standardShaders[state.shaderType]->Attach();
 
     VertexAttributes::Attribs attributes {};
-    VertexAttributes::GetAttributes(command.format, attributes);
+    VertexAttributes::GetAttributes(state.vertexFormat, attributes);
 
     this->SetAttributes(attributes);
 
-    if (!command.textureHandles.empty())
-        this->commandBuffer.bindTextures(DkStage_Fragment, 0, command.textureHandles);
+    if (!state.textureHandles.empty())
+        this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
 
-    memcpy(this->vertexData + this->firstVertex, command.vertices.get(), command.size);
-    this->commandBuffer.draw(primitive, command.count, 1, this->firstVertex, 0);
+    memcpy(this->vertexData + this->firstVertex, state.vertices.data(), state.size);
+    this->commandBuffer.draw(primitive, state.count, 1, this->firstVertex, 0);
 
-    this->firstVertex += command.count;
+    this->firstVertex += state.count;
+    deko3d::drawCalls++;
 }
 
 void deko3d::Present()
@@ -344,6 +350,9 @@ void deko3d::Present()
 
         this->framebuffers.inFrame = false;
     }
+
+    deko3d::shaderSwitches = 0;
+    deko3d::drawCalls      = 0;
 
     this->framebuffers.slot = -1;
 }
@@ -665,4 +674,9 @@ bool deko3d::GetConstant(RenderState::CompareMode in, DkCompareOp& out)
 bool deko3d::GetConstant(Vertex::PrimitiveType in, DkPrimitive& out)
 {
     return primitiveModes.Find(in, out);
+}
+
+bool deko3d::GetConstant(DkPrimitive in, Vertex::PrimitiveType& out)
+{
+    return primitiveModes.ReverseFind(in, out);
 }

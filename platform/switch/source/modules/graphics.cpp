@@ -7,6 +7,8 @@
 #include "deko3d/deko.h"
 #include "deko3d/vertexattribs.h"
 
+#include "debug/logfile.h"
+
 namespace love
 {
     Renderer& Graphics::GetRenderer()
@@ -16,7 +18,7 @@ namespace love
 
     namespace deko3d
     {
-        Graphics::Graphics()
+        Graphics::Graphics() : streamDrawState {}
         {
             try
             {
@@ -80,25 +82,30 @@ namespace love
                 this->Polyline(points, count);
             else
             {
-                Colorf color[1] = { this->GetColor() };
 
+                Colorf color     = this->GetColor();
                 const Matrix4& t = this->GetTransform();
                 bool is2D        = t.IsAffine2DTransform();
 
                 int vertexCount = (int)count - ((skipLastVertex) ? 1 : 0);
-
-                Vector2 transformed[vertexCount];
-                std::fill_n(transformed, vertexCount, Vector2 {});
+                DrawCommand command(Vertex::PRIMITIVE_TRIANGLE_FAN, vertexCount);
 
                 if (is2D)
-                    t.TransformXY(transformed, points, vertexCount);
+                    t.TransformXY(command.GetPositions(), points, vertexCount);
 
-                auto vertices = Vertex::GeneratePrimitiveFromVectors(
-                    std::span(transformed, vertexCount), std::span(color, 1));
+                Vertex::PrimitiveVertex* vertexData = command.GetVertices();
 
-                // ::deko3d::Instance().RenderPolygon(vertices.get(), vertexCount);
+                for (size_t index = 0; index < vertexCount; index++)
+                {
+                    vertexData[index] = { .position = { command.positions[index].x,
+                                                        command.positions[index].y, 0.0f },
+                                          .color    = { color.r, color.g, color.b, color.a },
+                                          .texcoord = { 0, 0 } };
+                }
+
+                this->RequestStreamDraw(command);
             }
-        }
+        } // namespace deko3d
 
         void Graphics::Line(const Vector2* points, int count)
         {
@@ -379,6 +386,69 @@ namespace love
                 Acquire::NORETAIN);
 
             return this->NewFont(r.Get());
+        }
+
+        void Graphics::RequestStreamDraw(const DrawCommand& command)
+        {
+            StreamDrawState& state = this->streamDrawState;
+
+            bool shouldFlush  = false;
+            bool shouldResize = false;
+
+            if (command.shaderType != state.shaderType || command.texture != state.texture ||
+                command.primitiveMode != state.primitveMode ||
+                command.vertexFormat != state.vertexFormat)
+            {
+                shouldFlush = true;
+            }
+
+            size_t totalVertices = command.count + state.count;
+
+            if (totalVertices > std::numeric_limits<uint16_t>::max())
+                shouldFlush = true;
+
+            if (state.vertices.data() != nullptr && totalVertices > state.count)
+                shouldFlush = true;
+
+            if (totalVertices > state.vertices.size())
+            {
+                shouldResize = true;
+                state.vertices.resize(totalVertices);
+            }
+
+            if (state.vertices.data())
+                memcpy(state.vertices.data() + state.count, command.vertices.get(), command.size);
+
+            state.size = totalVertices * Vertex::PRIM_VERTEX_SIZE;
+
+            if (shouldFlush || shouldResize)
+            {
+                this->FlushStreamDraws();
+
+                state.primitveMode   = command.primitiveMode;
+                state.textureHandles = command.textureHandles;
+                state.vertexFormat   = command.vertexFormat;
+                state.shaderType     = command.shaderType;
+                state.texture        = command.texture;
+            }
+
+            if (state.count > 0)
+                this->drawCallsBatched++;
+
+            state.count += command.count;
+        }
+
+        void Graphics::FlushStreamDraws()
+        {
+            StreamDrawState& state = this->streamDrawState;
+
+            if (state.count == 0 || state.size == 0)
+                return;
+
+            ::deko3d::Instance().Render(state);
+
+            state.count = 0;
+            state.size  = 0;
         }
     } // namespace deko3d
 } // namespace love
