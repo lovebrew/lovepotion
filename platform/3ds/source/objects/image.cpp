@@ -6,12 +6,6 @@
 
 using namespace love;
 
-Image::Image(const Slices& slices) : Image(slices, true)
-{
-    ImageDataBase* slice = slices.Get(0, 0);
-    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
-}
-
 Image::Image(const Slices& slices, bool validate) :
     Texture(data.GetTextureType()),
     data(slices),
@@ -20,6 +14,21 @@ Image::Image(const Slices& slices, bool validate) :
 {
     if (validate && this->data.Validate() == MIPMAPS_DATA)
         mipmapsType = MIPMAPS_DATA;
+
+    int64_t memorySize = 0;
+    for (int slice = 0; slice < data.GetSliceCount(0); slice++)
+        memorySize += data.Get(slice, 0)->GetSize();
+
+    if (this->GetMipmapCount() > 1)
+        memorySize *= 1.33334;
+
+    this->SetGraphicsMemorySize(memorySize);
+}
+
+Image::Image(const Slices& slices) : Image(slices, true)
+{
+    ImageDataBase* slice = slices.Get(0, 0);
+    this->Init(slice->GetFormat(), slice->GetWidth(), slice->GetHeight());
 }
 
 Image::Image(TextureType type, PixelFormat format, int width, int height, int slices) :

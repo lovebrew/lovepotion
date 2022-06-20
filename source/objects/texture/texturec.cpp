@@ -7,16 +7,31 @@ using namespace love::common;
 
 love::Type Texture::type("Texture", &Drawable::type);
 
+int64_t Texture::totalMemory = 0;
+
 Texture::Texture(TextureType texType) :
     texType(texType),
     width(0),
     height(0),
     mipmapCount(1),
+    memorySize(0),
     samplerState {}
 {}
 
 Texture::~Texture()
-{}
+{
+    this->SetGraphicsMemorySize(0);
+}
+
+void Texture::SetGraphicsMemorySize(int64_t bytes)
+{
+    Texture::totalMemory = std::max(Texture::totalMemory - this->memorySize, (int64_t)0);
+
+    bytes = std::max(bytes, (int64_t)0);
+
+    this->memorySize = bytes;
+    Texture::totalMemory += bytes;
+}
 
 void Texture::InitQuad()
 {

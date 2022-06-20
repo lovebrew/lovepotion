@@ -27,6 +27,8 @@ namespace love::common
 
         static love::Type type;
 
+        static int64_t totalMemory;
+
         Texture(TextureType texType);
         virtual ~Texture();
 
@@ -63,10 +65,13 @@ namespace love::common
         int width;
         int height;
         int mipmapCount;
+        int64_t memorySize;
 
         SamplerState samplerState;
         StrongReference<love::Quad> quad;
 
         void InitQuad();
+
+        void SetGraphicsMemorySize(int64_t bytes);
     };
 } // namespace love::common

@@ -680,7 +680,7 @@ Graphics::Stats Graphics::GetStats() const
     stats.images   = Image::imageCount;
     stats.fonts    = Font::fontCount;
 
-    stats.textureMemory = 0;
+    stats.textureMemory = Texture::totalMemory;
 
     return stats;
 }

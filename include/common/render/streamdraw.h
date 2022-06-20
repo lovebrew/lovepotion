@@ -77,7 +77,10 @@ namespace love
 
         std::vector<Vertex::PrimitiveVertex> vertices;
 
-        size_t size  = 0;
+        /* count * sizeof(PrimitiveVertex) */
+        size_t size = 0;
+
+        /* count of vertices */
         size_t count = 0;
     };
 } // namespace love

@@ -397,8 +397,7 @@ namespace love
 
             if (command.shaderType != state.shaderType || command.texture != state.texture ||
                 command.primitiveMode != state.primitveMode ||
-                command.vertexFormat != state.vertexFormat ||
-                ((command.vertexFormat != Vertex::CommonFormat::NONE) != (state.count > 0)))
+                command.vertexFormat != state.vertexFormat)
 
             {
                 shouldFlush = true;
