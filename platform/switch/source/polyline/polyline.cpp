@@ -176,11 +176,7 @@ void Polyline::Draw(Graphics* graphics)
         const Vector2* verts = this->vertices + vertexStart;
         int cmdVertexCount   = std::min(maxVertices, totalVertexCount - vertexStart);
 
-        /* make vector2 array - size to cmd.vertexCount */
-        Vertex::PrimitiveType primitive;
-        ::deko3d::GetConstant(this->triangleMode, primitive);
-
-        DrawCommand command(primitive, cmdVertexCount);
+        DrawCommand command(this->triangleMode, cmdVertexCount);
 
         if (is2D)
             t.TransformXY(command.GetPositions(), verts, cmdVertexCount);
@@ -216,7 +212,7 @@ void Polyline::Draw(Graphics* graphics)
 
         Vertex::PrimitiveVertex* vertexData = command.GetVertices();
 
-        for (size_t index = 0; index < vertexCount; index++)
+        for (size_t index = 0; index < (size_t)cmdVertexCount; index++)
         {
             vertexData[index] = {
                 .position = { command.positions[index].x, command.positions[index].y, 0.0f },

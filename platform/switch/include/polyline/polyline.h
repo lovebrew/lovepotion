@@ -78,6 +78,6 @@ namespace love
         Vertex::TriangleIndexMode triangleIndexMode;
         size_t overdrawVertexStart;
 
-        DkPrimitive triangleMode = DkPrimitive_TriangleStrip;
+        Vertex::PrimitiveType triangleMode = Vertex::PRIMITIVE_TRIANGLE_STRIP;
     };
 } // namespace love

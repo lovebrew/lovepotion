@@ -517,6 +517,8 @@ namespace love
 
         bool SetMode(int width, int height);
 
+        static void FlushStreamDrawsGlobal();
+
         static Renderer& GetRenderer();
 
         static bool GetConstant(const char* in, DrawMode& out);

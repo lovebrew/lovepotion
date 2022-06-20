@@ -102,6 +102,8 @@ void Shader::Attach()
 {
     if (Shader::current != this)
     {
+        Graphics::FlushStreamDrawsGlobal();
+
         ::deko3d::Instance().SetShader(this);
         Shader::current = this;
     }

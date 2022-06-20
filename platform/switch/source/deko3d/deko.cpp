@@ -5,6 +5,8 @@
 
 #include "objects/canvas/canvas.h"
 
+#include "common/debug/logfile.h"
+
 using namespace love;
 
 deko3d::deko3d() :
@@ -328,7 +330,10 @@ void deko3d::Render(const StreamDrawState& state)
     this->SetAttributes(attributes);
 
     if (!state.textureHandles.empty())
+    {
+        this->CheckDescriptorsDirty();
         this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
+    }
 
     memcpy(this->vertexData + this->firstVertex, state.vertices.data(), state.size);
     this->commandBuffer.draw(primitive, state.count, 1, this->firstVertex, 0);

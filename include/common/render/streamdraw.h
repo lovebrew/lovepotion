@@ -13,9 +13,10 @@ namespace love
     struct DrawCommand
     {
         Texture* texture                     = nullptr;
-        Vertex::PrimitiveType primitiveMode  = Vertex::PRIMITIVE_TRIANGLES;
-        Vertex::CommonFormat vertexFormat    = Vertex::CommonFormat::NONE;
         std::vector<uint32_t> textureHandles = {};
+
+        Vertex::PrimitiveType primitiveMode = Vertex::PRIMITIVE_TRIANGLES;
+        Vertex::CommonFormat vertexFormat   = Vertex::CommonFormat::PRIMITIVE;
 
         /* vertices to upload data to */
         std::unique_ptr<Vertex::PrimitiveVertex[]> vertices = nullptr;
@@ -23,6 +24,7 @@ namespace love
         /* positional vectors */
         std::unique_ptr<Vector2[]> positions = nullptr;
 
+        /* shader enum to use */
         Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT;
 
         /* count of how many vertices */
@@ -68,9 +70,10 @@ namespace love
     {
         StrongReference<Texture> texture;
         std::vector<uint32_t> textureHandles = {};
-        Shader::StandardShader shaderType    = Shader::STANDARD_DEFAULT;
-        Vertex::PrimitiveType primitveMode   = Vertex::PRIMITIVE_TRIANGLES;
-        Vertex::CommonFormat vertexFormat    = Vertex::CommonFormat::NONE;
+
+        Shader::StandardShader shaderType  = Shader::STANDARD_DEFAULT;
+        Vertex::PrimitiveType primitveMode = Vertex::PRIMITIVE_TRIANGLES;
+        Vertex::CommonFormat vertexFormat  = Vertex::CommonFormat::NONE;
 
         std::vector<Vertex::PrimitiveVertex> vertices;
 

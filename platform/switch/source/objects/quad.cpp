@@ -22,13 +22,12 @@ void Quad::Refresh(const Viewport& viewport, double sw, double sh)
     // zero out texcoords
     std::fill_n(this->vertexTexCoords, 4, Vector2 {});
 
+    // clang-format off
     this->vertexTexCoords[0] = Vector2((float)(viewport.x / sw), (float)(viewport.y / sh));
-    this->vertexTexCoords[1] =
-        Vector2((float)(viewport.x / sw), (float)((viewport.y + viewport.h) / sh));
-    this->vertexTexCoords[2] =
-        Vector2((float)((viewport.x + viewport.w) / sw), (float)((viewport.y + viewport.h) / sh));
-    this->vertexTexCoords[3] =
-        Vector2((float)((viewport.x + viewport.w) / sw), (float)(viewport.y / sh));
+    this->vertexTexCoords[1] = Vector2((float)(viewport.x / sw), (float)((viewport.y + viewport.h) / sh));
+    this->vertexTexCoords[2] = Vector2((float)((viewport.x + viewport.w) / sw), (float)((viewport.y + viewport.h) / sh));
+    this->vertexTexCoords[3] = Vector2((float)((viewport.x + viewport.w) / sw), (float)(viewport.y / sh));
+    // clang-format on
 }
 
 const Vector2* Quad::GetVertexPositions() const

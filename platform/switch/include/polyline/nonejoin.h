@@ -13,7 +13,7 @@ namespace love
       public:
         NoneJoinPolyline() : Polyline(Vertex::TriangleIndexMode::TRIANGLE_QUADS)
         {
-            this->triangleMode = DkPrimitive_Quads;
+            this->triangleMode = Vertex::PRIMITIVE_QUADS;
         }
 
         void Render(const Vector2* vertices, size_t count, float halfWidth, float pixelSize,

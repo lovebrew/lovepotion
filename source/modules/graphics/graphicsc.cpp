@@ -66,7 +66,7 @@ Graphics::DisplayState::DisplayState()
     this->defaultSamplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_LINEAR;
 }
 
-Graphics::Graphics() : active(true), created(false)
+Graphics::Graphics() : active(true), created(false), drawCallsBatched(0)
 {
     this->states.reserve(10);
     this->states.push_back(DisplayState());
@@ -177,6 +177,7 @@ void Graphics::Present()
         throw love::Exception("present cannot be called while a Canvas is active.");
 
     Graphics::GetRenderer().Present();
+    this->drawCallsBatched = 0;
 }
 
 Font* Graphics::NewFont(Rasterizer* data)
@@ -320,6 +321,13 @@ void Graphics::Origin()
     transform.SetIdentity();
 
     this->pixelScaleStack.back() = 1;
+}
+
+void Graphics::FlushStreamDrawsGlobal()
+{
+    Graphics* instance = Module::GetInstance<Graphics>(M_GRAPHICS);
+    if (instance != nullptr)
+        instance->FlushStreamDraws();
 }
 
 void Graphics::Push(StackType type)

@@ -95,7 +95,7 @@ namespace love
 
                 Vertex::PrimitiveVertex* vertexData = command.GetVertices();
 
-                for (size_t index = 0; index < vertexCount; index++)
+                for (size_t index = 0; index < (size_t)vertexCount; index++)
                 {
                     vertexData[index] = { .position = { command.positions[index].x,
                                                         command.positions[index].y, 0.0f },
@@ -397,29 +397,26 @@ namespace love
 
             if (command.shaderType != state.shaderType || command.texture != state.texture ||
                 command.primitiveMode != state.primitveMode ||
-                command.vertexFormat != state.vertexFormat)
+                command.vertexFormat != state.vertexFormat ||
+                ((command.vertexFormat != Vertex::CommonFormat::NONE) != (state.count > 0)))
+
             {
                 shouldFlush = true;
             }
 
             size_t totalVertices = command.count + state.count;
 
+            /* flush if we hit the limit (max of uint16_t) */
             if (totalVertices > std::numeric_limits<uint16_t>::max())
                 shouldFlush = true;
 
+            /* flush if we have data and total verts is bigger than our state count */
             if (state.vertices.data() != nullptr && totalVertices > state.count)
                 shouldFlush = true;
 
-            if (totalVertices > state.vertices.size())
-            {
+            /* resize if total vertices exceeds vector size */
+            if (totalVertices > state.count)
                 shouldResize = true;
-                state.vertices.resize(totalVertices);
-            }
-
-            if (state.vertices.data())
-                memcpy(state.vertices.data() + state.count, command.vertices.get(), command.size);
-
-            state.size = totalVertices * Vertex::PRIM_VERTEX_SIZE;
 
             if (shouldFlush || shouldResize)
             {
@@ -431,6 +428,17 @@ namespace love
                 state.shaderType     = command.shaderType;
                 state.texture        = command.texture;
             }
+
+            if (shouldResize)
+            {
+                if (state.count < totalVertices)
+                    state.vertices.resize(totalVertices);
+            }
+
+            if (state.vertices.data())
+                memcpy(state.vertices.data() + state.count, command.vertices.get(), command.size);
+
+            state.size = state.count * Vertex::PRIM_VERTEX_SIZE;
 
             if (state.count > 0)
                 this->drawCallsBatched++;
