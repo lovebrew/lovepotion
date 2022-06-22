@@ -321,9 +321,6 @@ void deko3d::Render(const StreamDrawState& state)
     DkPrimitive primitive;
     ::deko3d::GetConstant(state.primitveMode, primitive);
 
-    if (!Shader::IsActive(state.shaderType))
-        Shader::standardShaders[state.shaderType]->Attach();
-
     VertexAttributes::Attribs attributes {};
     VertexAttributes::GetAttributes(state.vertexFormat, attributes);
 
@@ -335,7 +332,9 @@ void deko3d::Render(const StreamDrawState& state)
         this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
     }
 
-    memcpy(this->vertexData + this->firstVertex, state.vertices.data(), state.size);
+    size_t size = state.count * Vertex::PRIM_VERTEX_SIZE;
+    memcpy(this->vertexData + this->firstVertex, state.vertices.data(), size);
+
     this->commandBuffer.draw(primitive, state.count, 1, this->firstVertex, 0);
 
     this->firstVertex += state.count;

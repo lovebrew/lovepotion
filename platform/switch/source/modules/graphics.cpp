@@ -33,10 +33,7 @@ namespace love
                 throw;
             }
 
-            // A shader should always be active, but the default shader shouldn't be
-            // returned by getShader(), so we don't do setShader(defaultShader).
-            if (!Shader::current)
-                Shader::standardShaders[Shader::STANDARD_DEFAULT]->Attach();
+            Shader::AttachDefault(Shader::STANDARD_DEFAULT);
         }
 
         Graphics::~Graphics()
@@ -404,17 +401,18 @@ namespace love
             }
 
             size_t totalVertices = command.count + state.count;
+            size_t totalSize     = totalVertices * Vertex::PRIM_VERTEX_SIZE;
 
             /* flush if we hit the limit (max of uint16_t) */
             if (totalVertices > std::numeric_limits<uint16_t>::max())
                 shouldFlush = true;
 
             /* flush if we have data and total verts is bigger than our state count */
-            if (state.vertices.data() != nullptr && totalVertices > state.count)
+            if (state.vertices.data() != nullptr && totalSize > state.size)
                 shouldFlush = true;
 
-            /* resize if total vertices exceeds vector size */
-            if (totalVertices > state.count)
+            /* resize if total size exceeds state size */
+            if (totalSize > state.size)
                 shouldResize = true;
 
             if (shouldFlush || shouldResize)
@@ -427,6 +425,9 @@ namespace love
                 state.shaderType     = command.shaderType;
                 state.texture        = command.texture;
             }
+
+            if (Shader::IsDefaultActive() && !Shader::IsActive(state.shaderType))
+                Shader::AttachDefault(state.shaderType);
 
             if (shouldResize)
             {
