@@ -18,52 +18,35 @@ namespace love
         Vertex::PrimitiveType primitiveMode = Vertex::PRIMITIVE_TRIANGLES;
         Vertex::CommonFormat vertexFormat   = Vertex::CommonFormat::PRIMITIVE;
 
-        /* vertices to upload data to */
-        std::unique_ptr<Vertex::PrimitiveVertex[]> vertices = nullptr;
-
-        /* positional vectors */
-        std::unique_ptr<Vector2[]> positions = nullptr;
-
         /* shader enum to use */
         Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT;
 
-        /* count of how many vertices */
+        /* count of vertices */
         size_t count = 0;
 
-        /* size of vertices, auto-calculated */
-        size_t size = 0;
-
         /* constructor for Primitives */
-        DrawCommand(Vertex::PrimitiveType mode, size_t count,
+        DrawCommand(Vertex::PrimitiveType mode, size_t vertexCount,
                     Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT) :
             primitiveMode(mode),
             shaderType(shaderType),
-            count(count),
-            size(count * Vertex::PRIM_VERTEX_SIZE)
-        {
-            this->vertices  = std::make_unique<Vertex::PrimitiveVertex[]>(count);
-            this->positions = std::make_unique<Vector2[]>(count);
-        }
+            count(vertexCount)
+        {}
 
         /* constructor for Textures */
-        DrawCommand(Vertex::PrimitiveType type, size_t count, const std::vector<uint32_t>& handles,
-                    Shader::StandardShader shaderType) :
-            DrawCommand(type, count, shaderType)
+        DrawCommand(Vertex::PrimitiveType mode, size_t vertexCount,
+                    const std::vector<uint32_t>& handles, Shader::StandardShader shaderType) :
+            DrawCommand(mode, vertexCount, shaderType)
         {
 
             this->textureHandles = handles;
             this->vertexFormat   = Vertex::CommonFormat::TEXTURE;
         }
+    };
 
-        Vertex::PrimitiveVertex* GetVertices()
-        {
-            return this->vertices.get();
-        }
-
-        Vector2* GetPositions()
-        {
-            return this->positions.get();
-        }
+    struct BatchedVertexData
+    {
+        std::vector<Vector2> positions;
+        void* stream;
     };
 
     struct StreamDrawState

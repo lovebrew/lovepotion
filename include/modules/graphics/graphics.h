@@ -10,9 +10,9 @@
 #include "common/screen.h"
 #include "common/vector.h"
 
+#include "common/render/batchdraw.h"
 #include "common/render/renderstate.h"
 #include "common/render/samplerstate.h"
-#include "common/render/streamdraw.h"
 #include "common/render/vertex.h"
 
 #include "common/module.h"
@@ -346,12 +346,6 @@ namespace love
             return this->stackTypeStack.size();
         }
 
-        virtual void RequestStreamDraw(const DrawCommand& command)
-        {}
-
-        virtual void FlushStreamDraws()
-        {}
-
         /* RenderTarget Stuff */
 
         enum TemporaryRenderTargetFlags
@@ -517,7 +511,17 @@ namespace love
 
         bool SetMode(int width, int height);
 
-        static void FlushStreamDrawsGlobal();
+        virtual BatchedVertexData RequestBatchedDraw(const DrawCommand& command)
+        {
+            BatchedVertexData data {};
+
+            return data;
+        }
+
+        virtual void FlushBatchedDraws()
+        {}
+
+        static void FlushBatchedDrawsGlobal();
 
         static Renderer& GetRenderer();
 

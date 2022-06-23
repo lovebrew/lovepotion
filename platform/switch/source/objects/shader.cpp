@@ -41,6 +41,7 @@ Shader::~Shader()
 void Shader::LoadDefaults(StandardShader type)
 {
     this->program.vertex->load(DEFAULT_VERTEX_SHADER);
+    this->shaderType = type;
 
     switch (type)
     {
@@ -102,7 +103,7 @@ void Shader::Attach()
 {
     if (Shader::current != this)
     {
-        Graphics::FlushStreamDrawsGlobal();
+        Graphics::FlushBatchedDrawsGlobal();
 
         ::deko3d::Instance().SetShader(this);
         Shader::current = this;

@@ -46,9 +46,9 @@ namespace love::deko3d
         void Line(const Vector2* points, int count) override;
 
         /* End Primitives */
-        void RequestStreamDraw(const DrawCommand& command) override;
+        BatchedVertexData RequestBatchedDraw(const DrawCommand& command) override;
 
-        void FlushStreamDraws() override;
+        void FlushBatchedDraws() override;
 
         Font* NewDefaultFont(int size, TrueTypeRasterizer::Hinting hinting) override;
 

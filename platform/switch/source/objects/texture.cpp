@@ -47,22 +47,22 @@ void Texture::Draw(Graphics* graphics, love::Quad* quad, const Matrix4& localTra
     DrawCommand command(Vertex::PRIMITIVE_QUADS, 4, { this->handle }, Shader::STANDARD_TEXTURE);
     command.texture = this;
 
+    BatchedVertexData data = graphics->RequestBatchedDraw(command);
+
     if (is2D)
-        t.TransformXY(command.GetPositions(), quad->GetVertexPositions(), 4);
+        t.TransformXY(data.positions.data(), quad->GetVertexPositions(), 4);
 
     const Vector2* texCoords            = quad->GetVertexTexCoords();
-    Vertex::PrimitiveVertex* vertexData = command.GetVertices();
+    Vertex::PrimitiveVertex* vertexData = (Vertex::PrimitiveVertex*)data.stream;
 
     // clang-format off
     for (size_t index = 0; index < 4; index++)
     {
         vertexData[index] = {
-            .position = { command.positions[index].x, command.positions[index].y, 0.0f },
+            .position = { data.positions[index].x, data.positions[index].y },
             .color    = { color.r, color.g, color.b, color.a },
             .texcoord = { Vertex::normto16t(texCoords[index].x), Vertex::normto16t(texCoords[index].y) }
         };
     }
     // clang-format on
-
-    graphics->RequestStreamDraw(command);
 }

@@ -323,11 +323,12 @@ void Graphics::Origin()
     this->pixelScaleStack.back() = 1;
 }
 
-void Graphics::FlushStreamDrawsGlobal()
+void Graphics::FlushBatchedDrawsGlobal()
 {
     Graphics* instance = Module::GetInstance<Graphics>(M_GRAPHICS);
+
     if (instance != nullptr)
-        instance->FlushStreamDraws();
+        instance->FlushBatchedDraws();
 }
 
 void Graphics::Push(StackType type)

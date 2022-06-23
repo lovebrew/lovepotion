@@ -85,22 +85,22 @@ namespace love
                 bool is2D        = t.IsAffine2DTransform();
 
                 int vertexCount = (int)count - ((skipLastVertex) ? 1 : 0);
-                DrawCommand command(Vertex::PRIMITIVE_TRIANGLE_FAN, vertexCount);
+                DrawCommand command(Vertex::PRIMITIVE_QUADS, vertexCount);
+
+                BatchedVertexData data = this->RequestBatchedDraw(command);
 
                 if (is2D)
-                    t.TransformXY(command.GetPositions(), points, vertexCount);
+                    t.TransformXY(data.positions.data(), points, vertexCount);
 
-                Vertex::PrimitiveVertex* vertexData = command.GetVertices();
+                Vertex::PrimitiveVertex* vertexData = (Vertex::PrimitiveVertex*)data.stream;
 
                 for (size_t index = 0; index < (size_t)vertexCount; index++)
                 {
-                    vertexData[index] = { .position = { command.positions[index].x,
-                                                        command.positions[index].y, 0.0f },
+                    vertexData[index] = { .position = { data.positions[index].x,
+                                                        data.positions[index].y, 0.0f },
                                           .color    = { color.r, color.g, color.b, color.a },
                                           .texcoord = { 0, 0 } };
                 }
-
-                this->RequestStreamDraw(command);
             }
         } // namespace deko3d
 
@@ -385,7 +385,7 @@ namespace love
             return this->NewFont(r.Get());
         }
 
-        void Graphics::RequestStreamDraw(const DrawCommand& command)
+        BatchedVertexData Graphics::RequestBatchedDraw(const DrawCommand& command)
         {
             StreamDrawState& state = this->streamDrawState;
 
@@ -401,23 +401,23 @@ namespace love
             }
 
             size_t totalVertices = command.count + state.count;
-            size_t totalSize     = totalVertices * Vertex::PRIM_VERTEX_SIZE;
+            size_t verticesSize  = command.count * Vertex::PRIM_VERTEX_SIZE;
 
             /* flush if we hit the limit (max of uint16_t) */
             if (totalVertices > std::numeric_limits<uint16_t>::max())
                 shouldFlush = true;
 
             /* flush if we have data and total verts is bigger than our state count */
-            if (state.vertices.data() != nullptr && totalSize > state.size)
+            if (state.vertices.data() != nullptr && verticesSize > state.size)
                 shouldFlush = true;
 
             /* resize if total size exceeds state size */
-            if (totalSize > state.size)
+            if (verticesSize > state.size)
                 shouldResize = true;
 
             if (shouldFlush || shouldResize)
             {
-                this->FlushStreamDraws();
+                this->FlushBatchedDraws();
 
                 state.primitveMode   = command.primitiveMode;
                 state.textureHandles = command.textureHandles;
@@ -426,7 +426,7 @@ namespace love
                 state.texture        = command.texture;
             }
 
-            if (Shader::IsDefaultActive() && !Shader::IsActive(state.shaderType))
+            if (Shader::IsDefaultActive())
                 Shader::AttachDefault(state.shaderType);
 
             if (shouldResize)
@@ -435,18 +435,22 @@ namespace love
                     state.vertices.resize(totalVertices);
             }
 
-            if (state.vertices.data())
-                memcpy(state.vertices.data() + state.count, command.vertices.get(), command.size);
+            state.size += command.count * Vertex::PRIM_VERTEX_SIZE;
 
-            state.size = state.count * Vertex::PRIM_VERTEX_SIZE;
+            BatchedVertexData data {};
+
+            data.positions.resize(command.count);
+            data.stream = state.vertices.data();
 
             if (state.count > 0)
                 this->drawCallsBatched++;
 
             state.count += command.count;
+
+            return data;
         }
 
-        void Graphics::FlushStreamDraws()
+        void Graphics::FlushBatchedDraws()
         {
             StreamDrawState& state = this->streamDrawState;
 

@@ -178,8 +178,8 @@ void Polyline::Draw(Graphics* graphics)
 
         DrawCommand command(this->triangleMode, cmdVertexCount);
 
-        if (is2D)
-            t.TransformXY(command.GetPositions(), verts, cmdVertexCount);
+        // if (is2D)
+        //     t.TransformXY(command.GetPositions(), verts, cmdVertexCount);
 
         /* make colorf array - size to cmd.vertexCount */
         Colorf colors[cmdVertexCount];
@@ -210,17 +210,17 @@ void Polyline::Draw(Graphics* graphics)
             }
         }
 
-        Vertex::PrimitiveVertex* vertexData = command.GetVertices();
+        // Vertex::PrimitiveVertex* vertexData = command.GetVertices();
 
-        for (size_t index = 0; index < (size_t)cmdVertexCount; index++)
-        {
-            vertexData[index] = {
-                .position = { command.positions[index].x, command.positions[index].y, 0.0f },
-                .color    = { colors[index].r, colors[index].g, colors[index].b, colors[index].a },
-                .texcoord = { 0, 0 }
-            };
-        }
+        // for (size_t index = 0; index < (size_t)cmdVertexCount; index++)
+        // {
+        //     vertexData[index] = {
+        //         .position = { command.positions[index].x, command.positions[index].y, 0.0f },
+        //         .color    = { colors[index].r, colors[index].g, colors[index].b, colors[index].a
+        //         }, .texcoord = { 0, 0 }
+        //     };
+        // }
 
-        graphics->RequestStreamDraw(command);
+        // graphics->RequestStreamDraw(command);
     }
 }

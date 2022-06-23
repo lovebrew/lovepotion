@@ -42,5 +42,8 @@ namespace love::common
 
         static bool IsDefaultActive();
         static bool IsActive(StandardShader type);
+
+      protected:
+        StandardShader shaderType;
     };
 } // namespace love::common
