@@ -584,6 +584,8 @@ namespace love
             SamplerState defaultSamplerState = SamplerState();
         };
 
+        StreamDrawState streamDrawState;
+
         std::vector<DisplayState> states;
         std::vector<StackType> stackTypeStack;
         std::vector<double> pixelScaleStack;

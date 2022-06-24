@@ -18,7 +18,7 @@ namespace love
 
     namespace deko3d
     {
-        Graphics::Graphics() : streamDrawState {}
+        Graphics::Graphics()
         {
             try
             {
@@ -426,7 +426,7 @@ namespace love
                 state.texture        = command.texture;
             }
 
-            if (Shader::IsDefaultActive())
+            if (Shader::IsDefaultActive() && state.count == 0)
                 Shader::AttachDefault(state.shaderType);
 
             if (shouldResize)

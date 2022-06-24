@@ -66,7 +66,7 @@ Graphics::DisplayState::DisplayState()
     this->defaultSamplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_LINEAR;
 }
 
-Graphics::Graphics() : active(true), created(false), drawCallsBatched(0)
+Graphics::Graphics() : active(true), created(false), drawCallsBatched(0), streamDrawState {}
 {
     this->states.reserve(10);
     this->states.push_back(DisplayState());
@@ -671,7 +671,10 @@ Graphics::Stats Graphics::GetStats() const
 {
     Stats stats {};
 
-    stats.drawCalls        = Renderer::drawCalls;
+    stats.drawCalls = Renderer::drawCalls;
+    if (this->streamDrawState.count > 0)
+        stats.drawCalls++;
+
     stats.drawCallsBatched = this->drawCallsBatched;
 
     stats.shaderSwitches = Renderer::shaderSwitches;

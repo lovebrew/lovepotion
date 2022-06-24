@@ -57,7 +57,5 @@ namespace love::deko3d
 
       private:
         int CalculateEllipsePoints(float rx, float ry) const;
-
-        StreamDrawState streamDrawState;
     };
 } // namespace love::deko3d
