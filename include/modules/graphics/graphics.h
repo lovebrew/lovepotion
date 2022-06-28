@@ -511,7 +511,7 @@ namespace love
 
         bool SetMode(int width, int height);
 
-        virtual BatchedVertexData RequestBatchedDraw(const DrawCommand& command)
+        virtual BatchedVertexData RequestBatchedDraw(const BatchedDrawCommand& command)
         {
             BatchedVertexData data {};
 

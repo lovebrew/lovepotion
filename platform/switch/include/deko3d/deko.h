@@ -80,14 +80,6 @@ class deko3d : public Renderer
         MEMPOOL_MAX_ENUM
     };
 
-    enum GpuRenderState
-    {
-        GPU_RENDER_STATE_PRIMITIVE,
-        GPU_RENDER_STATE_TEXTURE,
-        GPU_RENDER_STATE_VIDEO,
-        GPU_RENDER_STATE_MAX_ENUM
-    };
-
     virtual void DestroyFramebuffers() override;
 
     virtual void CreateFramebuffers() override;
@@ -152,13 +144,15 @@ class deko3d : public Renderer
     ** checks if the descriptors for textures got dirty
     ** if so, barrier the primitives and invalidate descriptors
     */
-    void CheckDescriptorsDirty();
+    void CheckDescriptorsDirty(const std::vector<uint32_t>& textureHandles);
 
-    void Render(const StreamDrawState& state);
+    void Render(const DrawCommand& command);
 
     static bool IsHandheldMode();
 
     /* rendering */
+
+    size_t GetMaxVertexSize();
 
     void SetAttributes(const VertexAttributes::Attribs& attributes);
 
@@ -201,8 +195,7 @@ class deko3d : public Renderer
     };
     static constexpr auto TRANSFORM_SIZE = sizeof(Transformation);
 
-    uint32_t firstVertex = 0;
-    GpuRenderState gpuRenderState;
+    uint32_t firstVertex;
     Vertex::PrimitiveVertex* vertexData;
 
     dk::UniqueDevice device;

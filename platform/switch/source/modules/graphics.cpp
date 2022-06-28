@@ -85,7 +85,7 @@ namespace love
                 bool is2D        = t.IsAffine2DTransform();
 
                 int vertexCount = (int)count - ((skipLastVertex) ? 1 : 0);
-                DrawCommand command(Vertex::PRIMITIVE_QUADS, vertexCount);
+                BatchedDrawCommand command(Vertex::PRIMITIVE_QUADS, vertexCount);
 
                 BatchedVertexData data = this->RequestBatchedDraw(command);
 
@@ -385,7 +385,7 @@ namespace love
             return this->NewFont(r.Get());
         }
 
-        BatchedVertexData Graphics::RequestBatchedDraw(const DrawCommand& command)
+        BatchedVertexData Graphics::RequestBatchedDraw(const BatchedDrawCommand& command)
         {
             StreamDrawState& state = this->streamDrawState;
 
@@ -403,8 +403,8 @@ namespace love
             size_t totalVertices = command.count + state.count;
             size_t verticesSize  = command.count * Vertex::PRIM_VERTEX_SIZE;
 
-            /* flush if we hit the limit (max of uint16_t) */
-            if (totalVertices > std::numeric_limits<uint16_t>::max())
+            /* flush if we hit the limit of max objects */
+            if (totalVertices > ::deko3d::Instance().GetMaxVertexSize())
                 shouldFlush = true;
 
             /* flush if we have data and total verts is bigger than our state count */
@@ -457,7 +457,21 @@ namespace love
             if (state.count == 0 || state.size == 0)
                 return;
 
-            ::deko3d::Instance().Render(state);
+            VertexAttributes::Attribs attributes {};
+            VertexAttributes::GetAttributes(state.vertexFormat, attributes);
+
+            ::deko3d::Instance().SetAttributes(attributes);
+
+            DrawCommand command {};
+            command.primitiveMode  = state.primitveMode;
+            command.textureHandles = state.textureHandles;
+            command.vertexCount    = state.count;
+            command.size           = state.size;
+
+            command.buffer.resize(command.vertexCount);
+            memcpy(command.buffer.data(), state.vertices.data(), state.size);
+
+            ::deko3d::Instance().Render(command);
 
             state.count = 0;
             state.size  = 0;

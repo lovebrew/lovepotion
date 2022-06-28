@@ -44,7 +44,8 @@ void Texture::Draw(Graphics* graphics, love::Quad* quad, const Matrix4& localTra
 
     Matrix4 t(tm, localTransform);
 
-    DrawCommand command(Vertex::PRIMITIVE_QUADS, 4, { this->handle }, Shader::STANDARD_TEXTURE);
+    BatchedDrawCommand command(Vertex::PRIMITIVE_QUADS, 4, { this->handle },
+                               Shader::STANDARD_TEXTURE);
     command.texture = this;
 
     BatchedVertexData data = graphics->RequestBatchedDraw(command);

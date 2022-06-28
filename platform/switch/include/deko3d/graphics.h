@@ -46,7 +46,7 @@ namespace love::deko3d
         void Line(const Vector2* points, int count) override;
 
         /* End Primitives */
-        BatchedVertexData RequestBatchedDraw(const DrawCommand& command) override;
+        BatchedVertexData RequestBatchedDraw(const BatchedDrawCommand& command) override;
 
         void FlushBatchedDraws() override;
 

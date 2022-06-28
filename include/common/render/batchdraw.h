@@ -10,7 +10,7 @@
 
 namespace love
 {
-    struct DrawCommand
+    struct BatchedDrawCommand
     {
         Texture* texture                     = nullptr;
         std::vector<uint32_t> textureHandles = {};
@@ -25,22 +25,35 @@ namespace love
         size_t count = 0;
 
         /* constructor for Primitives */
-        DrawCommand(Vertex::PrimitiveType mode, size_t vertexCount,
-                    Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT) :
+        BatchedDrawCommand(Vertex::PrimitiveType mode, size_t vertexCount,
+                           Shader::StandardShader shaderType = Shader::STANDARD_DEFAULT) :
             primitiveMode(mode),
             shaderType(shaderType),
             count(vertexCount)
         {}
 
         /* constructor for Textures */
-        DrawCommand(Vertex::PrimitiveType mode, size_t vertexCount,
-                    const std::vector<uint32_t>& handles, Shader::StandardShader shaderType) :
-            DrawCommand(mode, vertexCount, shaderType)
+        BatchedDrawCommand(Vertex::PrimitiveType mode, size_t vertexCount,
+                           const std::vector<uint32_t>& handles,
+                           Shader::StandardShader shaderType) :
+            BatchedDrawCommand(mode, vertexCount, shaderType)
         {
 
             this->textureHandles = handles;
             this->vertexFormat   = Vertex::CommonFormat::TEXTURE;
         }
+    };
+
+    struct DrawCommand
+    {
+        Vertex::PrimitiveType primitiveMode  = Vertex::PRIMITIVE_TRIANGLES;
+        std::vector<uint32_t> textureHandles = {};
+
+        std::vector<Vertex::PrimitiveVertex> buffer = {};
+
+        size_t vertexCount = 0;
+        size_t size        = 0;
+        size_t offset      = 0;
     };
 
     struct BatchedVertexData
@@ -57,6 +70,8 @@ namespace love
         Shader::StandardShader shaderType  = Shader::STANDARD_DEFAULT;
         Vertex::PrimitiveType primitveMode = Vertex::PRIMITIVE_TRIANGLES;
         Vertex::CommonFormat vertexFormat  = Vertex::CommonFormat::NONE;
+
+        Vertex::CullMode cullMode = Vertex::CULL_NONE;
 
         std::vector<Vertex::PrimitiveVertex> vertices;
 

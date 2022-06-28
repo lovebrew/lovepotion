@@ -11,7 +11,6 @@ using namespace love;
 
 deko3d::deko3d() :
     firstVertex(0),
-    gpuRenderState(GPU_RENDER_STATE_MAX_ENUM),
     vertexData(nullptr),
     device(dk::DeviceMaker {}.setFlags(DkDeviceFlags_DepthMinusOneToOne).create()),
     queue(dk::QueueMaker { this->device }.setFlags(DkQueueFlags_Graphics).create()),
@@ -224,10 +223,7 @@ void deko3d::EnsureInFrame()
 {
     if (!this->framebuffers.inFrame)
     {
-        this->firstVertex       = 0;
-        this->descriptors.dirty = false;
         this->commands.begin(this->commandBuffer);
-
         this->framebuffers.inFrame = true;
     }
 }
@@ -283,13 +279,20 @@ void deko3d::BindFramebuffer(Canvas* canvas)
     this->commandBuffer.bindVtxBuffer(0, data.second, this->vertices.getSize());
 }
 
-void deko3d::CheckDescriptorsDirty()
+size_t deko3d::GetMaxVertexSize()
+{
+    return this->vertices.getSize();
+}
+
+void deko3d::CheckDescriptorsDirty(const std::vector<uint32_t>& textureHandles)
 {
     if (this->descriptors.dirty)
     {
         this->commandBuffer.barrier(DkBarrier_Primitives, DkInvalidateFlags_Descriptors);
         this->descriptors.dirty = false;
     }
+
+    this->commandBuffer.bindTextures(DkStage_Fragment, 0, textureHandles);
 }
 
 void deko3d::SetAttributes(const VertexAttributes::Attribs& attributes)
@@ -313,31 +316,21 @@ void deko3d::SetShader(Shader* shader)
     deko3d::shaderSwitches++;
 }
 
-void deko3d::Render(const StreamDrawState& state)
+void deko3d::Render(const DrawCommand& command)
 {
-    if (state.count > (this->vertices.getSize() - this->firstVertex))
+    if (command.vertexCount > (this->vertices.getSize() - this->firstVertex))
         return;
 
     DkPrimitive primitive;
-    ::deko3d::GetConstant(state.primitveMode, primitive);
+    ::deko3d::GetConstant(command.primitiveMode, primitive);
 
-    VertexAttributes::Attribs attributes {};
-    VertexAttributes::GetAttributes(state.vertexFormat, attributes);
+    if (!command.textureHandles.empty())
+        this->CheckDescriptorsDirty(command.textureHandles);
 
-    this->SetAttributes(attributes);
+    memcpy(this->vertexData + this->firstVertex, command.buffer.data(), command.size);
+    this->commandBuffer.draw(primitive, command.vertexCount, 1, this->firstVertex, 0);
 
-    if (!state.textureHandles.empty())
-    {
-        this->CheckDescriptorsDirty();
-        this->commandBuffer.bindTextures(DkStage_Fragment, 0, state.textureHandles);
-    }
-
-    size_t size = state.count * Vertex::PRIM_VERTEX_SIZE;
-    memcpy(this->vertexData + this->firstVertex, state.vertices.data(), size);
-
-    this->commandBuffer.draw(primitive, state.count, 1, this->firstVertex, 0);
-
-    this->firstVertex += state.count;
+    this->firstVertex += command.vertexCount;
     deko3d::drawCalls++;
 }
 
@@ -351,6 +344,9 @@ void deko3d::Present()
         this->vertices.end();
         this->queue.submitCommands(this->commands.end(this->commandBuffer));
         this->queue.presentImage(this->swapchain, this->framebuffers.slot);
+
+        this->firstVertex       = 0;
+        this->descriptors.dirty = false;
 
         this->framebuffers.inFrame = false;
     }

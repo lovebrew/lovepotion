@@ -176,7 +176,7 @@ void Polyline::Draw(Graphics* graphics)
         const Vector2* verts = this->vertices + vertexStart;
         int cmdVertexCount   = std::min(maxVertices, totalVertexCount - vertexStart);
 
-        DrawCommand command(this->triangleMode, cmdVertexCount);
+        BatchedDrawCommand command(this->triangleMode, cmdVertexCount);
 
         // if (is2D)
         //     t.TransformXY(command.GetPositions(), verts, cmdVertexCount);
