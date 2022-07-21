@@ -8,7 +8,7 @@ namespace love
     class ImageDataBase : public Data
     {
       public:
-        ~ImageDataBase() {};
+        virtual ~ImageDataBase() {};
 
         PixelFormat GetFormat() const;
 
