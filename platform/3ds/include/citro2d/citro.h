@@ -7,6 +7,7 @@
 
 #include "common/pixelformat.h"
 #include "graphics/graphics.h"
+#include <functional>
 
 class citro2d
 {

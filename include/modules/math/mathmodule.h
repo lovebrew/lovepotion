@@ -10,6 +10,7 @@
 #include "noise1234/simplexnoise1234.h"
 
 #include <list>
+#include <vector>
 
 namespace love
 {

@@ -1,5 +1,6 @@
 #include "modules/filesystem/wrap_filesystem.h"
 
+#include <array>
 #include <filesystem>
 
 using namespace love;

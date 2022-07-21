@@ -1,5 +1,6 @@
 #include "modules/sound/sound.h"
 
+#include <algorithm>
 #include <vector>
 
 using namespace love;
