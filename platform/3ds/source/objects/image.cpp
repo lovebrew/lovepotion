@@ -35,20 +35,22 @@ void Image::Init(ImageDataBase* data)
 void Image::Init(PixelFormat format, int width, int height)
 {
     this->texture.tex = new C3D_Tex();
-
+    
+    int copyWidth = 0;
     if (!::citro2d::IsSizeValid(width))
-        width = NextPO2(width + 2);
-
+        copyWidth = NextPO2(width + 2);
+    
+    int copyHeight = 0;
     if (!::citro2d::IsSizeValid(height))
-        height = NextPO2(height + 2);
+        copyHeight = NextPO2(height + 2);
 
     GPU_TEXCOLOR color;
     ::citro2d::GetConstant(format, color);
 
-    if (!C3D_TexInit(this->texture.tex, width, height, color))
+    if (!C3D_TexInit(this->texture.tex, copyWidth, copyHeight, color))
         throw love::Exception("Failed to initialize texture!");
 
-    size_t copySize = width * height * GetPixelFormatSize(format);
+    size_t copySize = copyWidth * copyHeight * GetPixelFormatSize(format);
 
     if (this->data.Get(0, 0))
         memcpy(this->texture.tex->data, this->data.Get(0, 0)->GetData(), copySize);
