@@ -36,11 +36,11 @@ void Image::Init(PixelFormat format, int width, int height)
 {
     this->texture.tex = new C3D_Tex();
     
-    int copyWidth = 0;
+    int copyWidth = width;
     if (!::citro2d::IsSizeValid(width))
         copyWidth = NextPO2(width + 2);
     
-    int copyHeight = 0;
+    int copyHeight = height;
     if (!::citro2d::IsSizeValid(height))
         copyHeight = NextPO2(height + 2);
 
