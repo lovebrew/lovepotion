@@ -35,8 +35,7 @@ class citro2d
 
     void ClearColor(const Colorf& color);
 
-    void SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, int screenWidth,
-                    bool canvasActive);
+    void SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, bool canvasActive);
 
     void SetStencil(GPU_TESTFUNC compare, int value);
 

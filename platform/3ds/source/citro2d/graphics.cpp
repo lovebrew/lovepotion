@@ -570,11 +570,7 @@ void love::citro2d::Graphics::SetScissor(const Rect& scissor)
 {
     DisplayState& state = this->states.back();
 
-    if (state.scissor)
-        C2D_Flush();
-
-    int screenWidth = this->GetWidth(this->GetActiveScreen());
-    ::citro2d::Instance().SetScissor(GPU_SCISSOR_NORMAL, scissor, screenWidth, false);
+    ::citro2d::Instance().SetScissor(GPU_SCISSOR_NORMAL, scissor, false);
 
     state.scissor     = true;
     state.scissorRect = scissor;
@@ -582,12 +578,7 @@ void love::citro2d::Graphics::SetScissor(const Rect& scissor)
 
 void love::citro2d::Graphics::SetScissor()
 {
-    if (states.back().scissor)
-        C2D_Flush();
-
-    int screenWidth = this->GetWidth(this->GetActiveScreen());
-    ::citro2d::Instance().SetScissor(GPU_SCISSOR_DISABLE, { 0, 0, screenWidth, 240 }, screenWidth,
-                                     false);
+    ::citro2d::Instance().SetScissor(GPU_SCISSOR_DISABLE, { 0, 0, 0, 0 }, false);
 
     states.back().scissor = false;
 }

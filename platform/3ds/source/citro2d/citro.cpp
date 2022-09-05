@@ -128,11 +128,18 @@ void citro2d::Present()
     }
 }
 
-void citro2d::SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, int screenWidth,
-                         bool canvasActive)
+void citro2d::SetScissor(GPU_SCISSORMODE mode, const love::Rect& scissor, bool canvasActive)
 {
-    C3D_SetScissor(mode, 240 - (scissor.y + scissor.h), screenWidth - (scissor.x + scissor.w),
-                   240 - scissor.y, screenWidth - scissor.x);
+    C2D_Flush();
+
+    size_t width = Screen::Instance().GetWidth(Graphics::ACTIVE_SCREEN);
+
+    uint32_t left   = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
+    uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;
+    uint32_t right  = 240 - scissor.y;
+    uint32_t bottom = width - scissor.x;
+
+    C3D_SetScissor(mode, left, top, right, bottom);
 }
 
 void citro2d::SetStencil(GPU_TESTFUNC compare, int value)
