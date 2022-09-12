@@ -10,8 +10,6 @@ AllowAllArgumentsOnNextLine: 'true'
 AllowAllConstructorInitializersOnNextLine: 'false'
 AllowShortLambdasOnASingleLine: 'All'
 AlwaysBreakTemplateDeclarations: 'Yes'
-BinPackArguments: 'true'
-BinPackParameters: 'true'
 BraceWrapping:
   AfterCaseLabel:  'true'
   AfterClass:      'true'

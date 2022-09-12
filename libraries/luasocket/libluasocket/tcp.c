@@ -283,16 +283,21 @@ static int meth_close(lua_State *L)
 static int meth_getfamily(lua_State *L)
 {
     p_tcp tcp = (p_tcp) auxiliar_checkgroup(L, "tcp{any}", 1);
-    if (tcp->family == AF_INET6) {
-        lua_pushliteral(L, "inet6");
-        return 1;
-    } else if (tcp->family == AF_INET) {
+    #if !defined(__WIIU__)
+        if (tcp->family == AF_INET6) {
+            lua_pushliteral(L, "inet6");
+            return 1;
+        } else if (tcp->family == AF_INET) {
+            lua_pushliteral(L, "inet4");
+            return 1;
+        } else {
+            lua_pushliteral(L, "inet4");
+            return 1;
+        }
+    #else
         lua_pushliteral(L, "inet4");
         return 1;
-    } else {
-        lua_pushliteral(L, "inet4");
-        return 1;
-    }
+    #endif
 }
 
 /*-------------------------------------------------------------------------*\

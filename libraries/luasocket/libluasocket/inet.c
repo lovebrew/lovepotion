@@ -146,8 +146,11 @@ static int inet_global_toip(lua_State *L)
 int inet_optfamily(lua_State* L, int narg, const char* def)
 {
     static const char* optname[] = { "unspec", "inet", "inet6", NULL };
+    #if !defined (__WIIU__)
     static int optvalue[] = { AF_UNSPEC, AF_INET, AF_INET6, 0 };
-
+    #else
+    static int optvalue[] = { AF_UNSPEC, AF_INET, 0 };
+    #endif
     return optvalue[luaL_checkoption(L, narg, def, optname)];
 }
 
@@ -193,11 +196,14 @@ static int inet_global_getaddrinfo(lua_State *L)
                 lua_pushliteral(L, "inet");
                 lua_settable(L, -3);
                 break;
+            
+            #if !defined (__WIIU__)
             case AF_INET6:
                 lua_pushliteral(L, "family");
                 lua_pushliteral(L, "inet6");
                 lua_settable(L, -3);
                 break;
+            #endif
             case AF_UNSPEC:
                 lua_pushliteral(L, "family");
                 lua_pushliteral(L, "unspec");

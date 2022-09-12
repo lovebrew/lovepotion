@@ -182,7 +182,11 @@ static int meth_sendto(lua_State *L) {
     memset(&aihint, 0, sizeof(aihint));
     aihint.ai_family = udp->family;
     aihint.ai_socktype = SOCK_DGRAM;
-    aihint.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
+    #if !defined (__WIIU__)
+        aihint.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV;
+    #else
+        aihint.ai_flags = AI_NUMERICHOST;
+    #endif
     err = getaddrinfo(ip, port, &aihint, &ai);
 	if (err) {
         lua_pushnil(L);
@@ -280,6 +284,7 @@ static int meth_receivefrom(lua_State *L) {
 \*-------------------------------------------------------------------------*/
 static int meth_getfamily(lua_State *L) {
     p_udp udp = (p_udp) auxiliar_checkgroup(L, "udp{any}", 1);
+    #if !defined (__WIIU__)
     if (udp->family == AF_INET6) {
         lua_pushliteral(L, "inet6");
         return 1;
@@ -287,6 +292,10 @@ static int meth_getfamily(lua_State *L) {
         lua_pushliteral(L, "inet4");
         return 1;
     }
+    #else
+        lua_pushliteral(L, "inet4");
+        return 1;
+    #endif
 }
 
 /*-------------------------------------------------------------------------*\

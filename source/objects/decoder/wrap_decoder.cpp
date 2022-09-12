@@ -1,5 +1,7 @@
-#include "objects/decoder/wrap_decoder.h"
-#include "modules/sound/sound.h"
+#include <modules/sound/sound.hpp>
+#include <objects/data/sounddata/sounddata.hpp>
+
+#include <objects/decoder/wrap_decoder.hpp>
 
 using namespace love;
 
@@ -10,9 +12,9 @@ int Wrap_Decoder::Clone(lua_State* L)
     Decoder* self  = Wrap_Decoder::CheckDecoder(L, 1);
     Decoder* clone = nullptr;
 
-    Luax::CatchException(L, [&]() { clone = self->Clone(); });
+    luax::CatchException(L, [&]() { clone = self->Clone(); });
 
-    Luax::PushType(L, clone);
+    luax::PushType(L, clone);
     clone->Release();
 
     return 1;
@@ -61,12 +63,12 @@ int Wrap_Decoder::Decode(lua_State* L)
 
     if (decoded > 0)
     {
-        Luax::CatchException(L, [&]() {
+        luax::CatchException(L, [&]() {
             SoundData* soundData = instance()->NewSoundData(
                 self->GetBuffer(), decoded / (self->GetBitDepth() / 8 * self->GetChannelCount()),
                 self->GetSampleRate(), self->GetBitDepth(), self->GetChannelCount());
 
-            Luax::PushType(L, soundData);
+            luax::PushType(L, soundData);
             soundData->Release();
         });
     }
@@ -93,7 +95,7 @@ int Wrap_Decoder::Seek(lua_State* L)
 
 Decoder* Wrap_Decoder::CheckDecoder(lua_State* L, int index)
 {
-    return Luax::CheckType<Decoder>(L, index);
+    return luax::CheckType<Decoder>(L, index);
 }
 
 // clang-format off
@@ -105,12 +107,11 @@ static constexpr luaL_Reg functions[] =
     { "getChannelCount", Wrap_Decoder::GetChannelCount },
     { "getDuration",     Wrap_Decoder::GetDuration     },
     { "getSampleRate",   Wrap_Decoder::GetSampleRate   },
-    { "seek",            Wrap_Decoder::Seek            },
-    { 0,                 0                             }
+    { "seek",            Wrap_Decoder::Seek            }
 };
 // clang-format on
 
 int Wrap_Decoder::Register(lua_State* L)
 {
-    return Luax::RegisterType(L, &Decoder::type, functions, nullptr);
+    return luax::RegisterType(L, &Decoder::type, functions);
 }

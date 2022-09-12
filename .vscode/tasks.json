@@ -1,64 +1,32 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks":
-    [
-        {
-            "label": "Build Console",
-            "type": "shell",
-            "command": "make ${input:args} -j6",
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Configure 3DS",
+      "type": "shell",
+      "command": "${env:DEVKITPRO}/portlibs/3ds/bin/arm-none-eabi-cmake",
+      "args": ["-S", ".", "-B", "build"],
+      "group": "build",
+      "problemMatcher": []
+    },
 
-            "presentation":
-            {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel":"shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
+    {
+      "label": "Configure Switch",
+      "type": "shell",
+      "command": "${env:DEVKITPRO}/portlibs/switch/bin/aarch64-none-elf-cmake",
+      "args": ["-S", ".", "-B", "build"],
+      "group": "build",
+      "problemMatcher": []
+    },
 
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Clean All",
-            "type": "shell",
-            "command": "make clean",
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Format All Code",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "clang-format -style=file -i $(find ./include ./platform ./source -name \\*.h -o -name \\*.cpp)"
-            ]
-        }
-    ],
-
-    "inputs":
-    [
-        {
-            "id": "args",
-            "type": "command",
-            "command": "cpptools.activeConfigCustomVariable",
-            "args": "console"
-        }
-    ]
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "make -C build",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
 }

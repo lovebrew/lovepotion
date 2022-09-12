@@ -1,4 +1,4 @@
-#include "objects/data/wrap_data.h"
+#include "objects/data/wrap_data.hpp"
 
 using namespace love;
 
@@ -31,20 +31,19 @@ int Wrap_Data::GetString(lua_State* L)
 
 Data* Wrap_Data::CheckData(lua_State* L, int index)
 {
-    return Luax::CheckType<Data>(L, index);
+    return luax::CheckType<Data>(L, index);
 }
 
 // clang-format off
-const luaL_Reg Wrap_Data::functions[4] =
+const luaL_Reg Wrap_Data::functions[] =
 {
     { "getPointer", Wrap_Data::GetPointer },
     { "getSize",    Wrap_Data::GetSize    },
-    { "getString",  Wrap_Data::GetString  },
-    { 0,            0                     }
+    { "getString",  Wrap_Data::GetString  }
 };
 // clang-format on
 
 int Wrap_Data::Register(lua_State* L)
 {
-    return Luax::RegisterType(L, &Data::type, functions, nullptr);
+    return luax::RegisterType(L, &Data::type, functions);
 }

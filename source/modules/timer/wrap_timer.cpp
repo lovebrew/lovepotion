@@ -1,8 +1,9 @@
-#include "modules/timer/wrap_timer.h"
+#include <modules/timer/wrap_timer.hpp>
+#include <modules/timer_ext.hpp>
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Timer>(Module::M_TIMER))
+#define instance() (Module::GetInstance<Timer<Console::Which>>(Module::M_TIMER))
 
 int Wrap_Timer::GetAverageDelta(lua_State* L)
 {
@@ -66,17 +67,16 @@ static constexpr luaL_Reg functions[] =
     { "getFPS",          Wrap_Timer::GetFPS          },
     { "getTime",         Wrap_Timer::GetTime         },
     { "sleep",           Wrap_Timer::Sleep           },
-    { "step",            Wrap_Timer::Step            },
-    { 0,                 0                           }
+    { "step",            Wrap_Timer::Step            }
 };
 // clang-format on
 
 int Wrap_Timer::Register(lua_State* L)
 {
-    Timer* instance = instance();
+    Timer<Console::Which>* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new Timer(); });
+        luax::CatchException(L, [&]() { instance = new Timer<Console::Which>(); });
     else
         instance->Retain();
 
@@ -88,5 +88,5 @@ int Wrap_Timer::Register(lua_State* L)
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = nullptr;
 
-    return Luax::RegisterModule(L, wrappedModule);
+    return luax::RegisterModule(L, wrappedModule);
 }

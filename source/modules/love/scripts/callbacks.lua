@@ -254,10 +254,15 @@ function love.run()
 
     local delta = 0
 
-    local normalScreens = love.graphics.getScreens()
+    local normalScreens
     local plainScreens
-    if love._console_name == "3DS" then
-        plainScreens = {"top", "bottom"}
+
+    if love.graphics then
+        normalScreens = love.graphics.getScreens()
+
+        if love._console_name == "3DS" then
+            plainScreens = {"top", "bottom"}
+        end
     end
 
     return function()
@@ -270,6 +275,7 @@ function love.run()
 
             for name, a, b, c, d, e, f in love.event.poll() do
                 if name == "quit" then
+                    love.event._quit()
                     if not love.quit or not love.quit() then
                         return a or 0
                     end
@@ -319,7 +325,15 @@ end
 local utf8 = require("utf8")
 
 local function error_printer(msg, layer)
-    print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
+    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
+    print(trace)
+
+    local file = io.open("failure.txt", "w")
+    if file then
+        file:write(trace)
+        file:flush()
+        file:close()
+    end
 end
 
 local max_lines = 14

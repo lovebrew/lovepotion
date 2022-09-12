@@ -18,13 +18,13 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
-#include "luasocket/luasocket.h"
+#include "luasocket.h"
 
 // LuaSocket
 extern "C"
 {
-    #include "luasocket/libluasocket/libluasocket.h"
-    #include "luasocket/libluasocket/mime.h"
+    #include "libluasocket/libluasocket.h"
+    #include "libluasocket/mime.h"
 }
 
 // Quick macro for adding functions to

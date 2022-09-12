@@ -1,28 +1,29 @@
-#include "modules/thread/threadmodule.h"
+#include <modules/thread/threadmodule.hpp>
+#include <utilities/threads/threads.hpp>
 
 using namespace love;
 
-LuaThread* ThreadModule::NewThread(const std::string& name, Data* data)
+LuaThread* ThreadModule::NewThread(const std::string& name, Data* code) const
 {
-    return new LuaThread(name, data);
+    return new LuaThread(name, code);
 }
 
-Channel* ThreadModule::NewChannel()
+Channel* ThreadModule::NewChannel() const
 {
     return new Channel();
 }
 
 Channel* ThreadModule::GetChannel(const std::string& name)
 {
-    thread::Lock lock(this->namedChannelMutex);
+    std::unique_lock lock(this->mutex);
 
-    auto it = this->namedChannels.find(name);
+    auto iterator = this->namedChannels.find(name);
 
-    if (it != this->namedChannels.end())
-        return it->second;
+    if (iterator != this->namedChannels.end())
+        return iterator->second;
 
     Channel* channel = new Channel();
-    namedChannels[name].Set(channel, Acquire::NORETAIN);
+    this->namedChannels[name].Set(channel, Acquire::NORETAIN);
 
     return channel;
 }

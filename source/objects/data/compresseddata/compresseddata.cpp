@@ -1,30 +1,32 @@
-#include "objects/data/compressed/compresseddata.h"
+#include "objects/data/compresseddata/compresseddata.hpp"
+
+#include <algorithm>
 
 using namespace love;
 
-love::Type CompressedData::type("CompressedData", &Data::type);
+Type CompressedData::type("CompressedData", &Data::type);
 
-CompressedData::CompressedData(Compressor::Format format, char* cdata, size_t compressedSize,
-                               size_t rawSize, bool own) :
+CompressedData::CompressedData(Compressor::Format format, char* compressedData,
+                               size_t compressedSize, size_t rawSize, bool own) :
     format(format),
     data(nullptr),
     dataSize(compressedSize),
     originalSize(rawSize)
 {
     if (own)
-        this->data = cdata;
+        this->data.reset(compressedData);
     else
     {
         try
         {
-            this->data = new char[this->dataSize];
+            this->data = std::make_unique<char[]>(dataSize);
         }
         catch (std::bad_alloc&)
         {
             throw love::Exception("Out of memory.");
         }
 
-        memcpy(this->data, cdata, this->dataSize);
+        std::copy_n(compressedData, this->dataSize, this->data.get());
     }
 }
 
@@ -36,24 +38,29 @@ CompressedData::CompressedData(const CompressedData& other) :
 {
     try
     {
-        this->data = new char[this->dataSize];
+        this->data = std::make_unique<char[]>(this->dataSize);
     }
     catch (std::bad_alloc&)
     {
         throw love::Exception("Out of memory.");
     }
 
-    memcpy(this->data, other.data, this->dataSize);
-}
-
-CompressedData::~CompressedData()
-{
-    delete[] this->data;
+    std::copy_n(other.data.get(), this->dataSize, this->data.get());
 }
 
 CompressedData* CompressedData::Clone() const
 {
     return new CompressedData(*this);
+}
+
+void* CompressedData::GetData() const
+{
+    return this->data.get();
+}
+
+size_t CompressedData::GetSize() const
+{
+    return this->dataSize;
 }
 
 Compressor::Format CompressedData::GetFormat() const
@@ -64,14 +71,4 @@ Compressor::Format CompressedData::GetFormat() const
 size_t CompressedData::GetDecompressedSize() const
 {
     return this->originalSize;
-}
-
-void* CompressedData::GetData() const
-{
-    return this->data;
-}
-
-size_t CompressedData::GetSize() const
-{
-    return this->dataSize;
 }

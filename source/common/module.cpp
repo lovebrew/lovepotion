@@ -1,6 +1,5 @@
-#include "common/module.h"
-
-#include "common/exception.h"
+#include <common/exception.hpp>
+#include <common/module.hpp>
 
 using namespace love;
 
@@ -29,7 +28,8 @@ namespace
 } // namespace
 
 // Make our "type" and empty our instances
-love::Type Module::type("Module", &Object::type);
+Type Module::type("Module", &Object::type);
+
 Module* Module::instances[] = {};
 
 Module::~Module()
@@ -61,6 +61,7 @@ void Module::RegisterInstance(Module* instance)
         throw love::Exception("Module instance is null.");
 
     std::string name(instance->GetName());
+
     ModuleRegistry& registry = RegistryInstance();
 
     auto it = registry.find(name);
@@ -87,7 +88,8 @@ void Module::RegisterInstance(Module* instance)
 Module* Module::GetInstance(const std::string& name)
 {
     ModuleRegistry& registry = RegistryInstance();
-    auto it                  = registry.find(name);
+
+    auto it = registry.find(name);
 
     if (registry.end() == it)
         return nullptr;

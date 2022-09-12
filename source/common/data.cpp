@@ -1,5 +1,5 @@
-#include "common/data.h"
+#include <common/data.hpp>
 
 using namespace love;
 
-love::Type Data::type("Data", &Object::type);
+Type Data::type("Data", &Object::type);

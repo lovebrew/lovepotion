@@ -1,10 +1,10 @@
-#include "objects/data/view/dataview.h"
+#include "common/exception.hpp"
 
-#include "common/exception.h"
+#include "objects/data/dataview/dataview.hpp"
 
 using namespace love;
 
-love::Type DataView::type("DataView", &Data::type);
+Type DataView::type("DataView", &Data::type);
 
 DataView::DataView(Data* data, size_t offset, size_t size) : data(data), offset(offset), size(size)
 {
@@ -17,9 +17,6 @@ DataView::DataView(Data* data, size_t offset, size_t size) : data(data), offset(
 }
 
 DataView::DataView(const DataView& other) : data(other.data), offset(other.offset), size(other.size)
-{}
-
-DataView::~DataView()
 {}
 
 DataView* DataView::Clone() const

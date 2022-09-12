@@ -1,60 +1,57 @@
-#include "objects/channel/channel.h"
+#include <objects/channel/channel.hpp>
 
-#include "modules/timer/timer.h"
+#include <modules/timer_ext.hpp>
+
+#include <mutex>
 
 using namespace love;
+using Timer = love::Timer<Console::Which>;
 
-love::Type Channel::type("Channel", &Object::type);
-
-Channel::Channel() : sent(0), received(0)
-{}
-
-Channel::~Channel()
-{}
-
-uint64_t Channel::_Push(const Variant& variant)
-{
-    this->queue.push(variant);
-    condition->Broadcast();
-
-    return ++sent;
-}
+Type Channel::type("Channel", &Object::type);
 
 uint64_t Channel::Push(const Variant& variant)
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
-    return this->_Push(variant);
+    this->queue.push(variant);
+    this->condition.notify_all();
+
+    ++this->sent;
+
+    return this->sent;
 }
 
 bool Channel::Supply(const Variant& variant)
 {
-    thread::Lock lock(this->mutex);
-    uint64_t id = this->_Push(variant);
+    std::unique_lock lock(this->mutex);
+    uint64_t id = this->Push(variant);
 
     while (this->received < id)
-    {
-        this->condition->Wait(this->mutex);
-    }
+        this->condition.wait(lock);
 
     return true;
 }
 
 bool Channel::Supply(const Variant& variant, double timeout)
 {
-    thread::Lock lock(this->mutex);
-    uint64_t id = this->_Push(variant);
+    std::unique_lock lock(this->mutex);
+    uint64_t id = this->Push(variant);
 
     while (timeout >= 0)
     {
         if (this->received >= id)
             return true;
 
-        double start = love::Timer::GetTime();
-        this->condition->Wait(this->mutex, timeout);
-        double stop = love::Timer::GetTime();
+        if (timeout == 0)
+            this->condition.wait(lock);
+        else
+        {
+            double start = ::Timer::GetTime();
+            this->condition.wait_for(lock, std::chrono::milliseconds((int64_t)timeout * 1000));
+            double stop = ::Timer::GetTime();
 
-        timeout -= (stop - start);
+            timeout -= (stop - start);
+        }
     }
 
     return false;
@@ -62,13 +59,8 @@ bool Channel::Supply(const Variant& variant, double timeout)
 
 bool Channel::Pop(Variant* variant)
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
-    return this->_Pop(variant);
-}
-
-bool Channel::_Pop(Variant* variant)
-{
     if (this->queue.empty())
         return false;
 
@@ -76,35 +68,40 @@ bool Channel::_Pop(Variant* variant)
     this->queue.pop();
 
     this->received++;
-    this->condition->Broadcast();
+    this->condition.notify_all();
 
     return true;
 }
 
 bool Channel::Demand(Variant* variant)
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
-    while (!this->_Pop(variant))
-        this->condition->Wait(this->mutex);
+    while (!this->Pop(variant))
+        this->condition.wait(lock);
 
     return true;
 }
 
 bool Channel::Demand(Variant* variant, double timeout)
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
     while (timeout >= 0)
     {
-        if (this->_Pop(variant))
+        if (this->Pop(variant))
             return true;
 
-        double start = love::Timer::GetTime();
-        this->condition->Wait(this->mutex, timeout * 1000);
-        double stop = love::Timer::GetTime();
+        if (timeout == 0)
+            this->condition.wait(lock);
+        else
+        {
+            double start = ::Timer::GetTime();
+            this->condition.wait_for(lock, std::chrono::milliseconds((int64_t)timeout * 1000));
+            double stop = ::Timer::GetTime();
 
-        timeout -= (stop - start);
+            timeout -= (stop - start);
+        }
     }
 
     return false;
@@ -112,7 +109,7 @@ bool Channel::Demand(Variant* variant, double timeout)
 
 bool Channel::Peek(Variant* variant)
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
     if (this->queue.empty())
         return false;
@@ -122,23 +119,23 @@ bool Channel::Peek(Variant* variant)
     return true;
 }
 
-int Channel::GetCount() const
+int Channel::GetCount()
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
     return (int)this->queue.size();
 }
 
-bool Channel::HasRead(uint64_t id) const
+bool Channel::HasRead(uint64_t id)
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
     return this->received >= id;
 }
 
 void Channel::Clear()
 {
-    thread::Lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
     if (this->queue.empty())
         return;
@@ -147,15 +144,14 @@ void Channel::Clear()
         this->queue.pop();
 
     this->received = this->sent;
-    this->condition->Broadcast();
+    this->condition.notify_all();
 }
-
 void Channel::LockMutex()
 {
-    this->mutex->Lock();
+    this->mutex.lock();
 }
 
 void Channel::UnlockMutex()
 {
-    this->mutex->Unlock();
+    this->mutex.unlock();
 }

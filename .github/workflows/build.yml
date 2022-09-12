@@ -3,7 +3,7 @@ name: LÖVE Potion
 on:
   push:
     branches:
-      - main
+      - dev/3.0
   pull_request:
 
 jobs:
@@ -20,17 +20,17 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build
-        run: make ctr
-        
+        run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build ; make -C build
+
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
-      
+
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo 3DS-${{ steps.commit.outputs.short }}
           path: |
-            platform/3ds/*.elf
-            platform/3ds/*.3dsx
+            build/*.elf
+            build/*.3dsx
 
   second:
     name: Switch
@@ -45,14 +45,40 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build
-        run: make hac
-      
+        run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build ; make -C build
+
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
-        
+
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo Switch-${{ steps.commit.outputs.short }}
           path: |
-            platform/switch/*.elf
-            platform/switch/*.nro
+            build/*.elf
+            build/*.nro
+
+  third:
+    name: Wii U
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://devkitpro/devkitppc
+      options: --cpus 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: /opt/devkitpro/portlibs/switch/bin/powerpc-eabi-cmake -S . -B build ; make -C build
+
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Wii U-${{ steps.commit.outputs.short }}
+          path: |
+            build/*.elf
+            build/*.rpx
+            build/*.wuhb

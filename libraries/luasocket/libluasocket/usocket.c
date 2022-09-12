@@ -438,7 +438,7 @@ const char *socket_ioerror(p_socket ps, int err) {
 const char *socket_gaistrerror(int err) {
     if (err == 0) return NULL;
     switch (err) {
-        #if defined (__SWITCH__)
+        #if defined (__SWITCH__) || defined (__WIIU__)
             case EAI_AGAIN: return PIE_AGAIN;
             case EAI_BADFLAGS: return PIE_BADFLAGS;
             case EAI_BADHINTS: return PIE_BADHINTS;
