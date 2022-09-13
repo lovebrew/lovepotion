@@ -1,4 +1,5 @@
-#include "modules/love.hpp"
+#include "common/luax.hpp"
+#include "modules/love/love.hpp"
 
 #include <switch.h>
 
@@ -7,8 +8,7 @@ bool love::IsRunningAppletMode<love::Console::HAC>()
 {
     AppletType type = appletGetAppletType();
 
-    bool isApplication =
-        (type == AppletType_Application || type == AppletType_SystemApplication);
+    bool isApplication = (type == AppletType_Application || type == AppletType_SystemApplication);
 
     if (isApplication)
         return false;
@@ -22,4 +22,10 @@ bool love::IsRunningAppletMode<love::Console::HAC>()
     errorApplicationShow(&config);
 
     return true;
+}
+
+template<>
+bool love::MainLoop<love::Console::HAC>(lua_State* L, int numArgs)
+{
+    return luax::Resume(L, numArgs) == LUA_YIELD;
 }

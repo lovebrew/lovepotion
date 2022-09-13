@@ -4,6 +4,7 @@
 #include <common/module.hpp>
 
 #include <chrono>
+using namespace std::chrono_literals;
 
 namespace love
 {

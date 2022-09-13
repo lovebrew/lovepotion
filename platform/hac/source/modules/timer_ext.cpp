@@ -7,6 +7,8 @@ using namespace std::chrono_literals;
 
 using namespace love;
 
+double Timer<Console::HAC>::reference = 0;
+
 Timer<Console::HAC>::Timer()
 {
     Timer::reference        = armGetSystemTick();
@@ -24,7 +26,7 @@ void Timer<Console::HAC>::Sleep(double seconds) const
     if (seconds >= 0)
     {
         auto time = std::chrono::duration<double>(seconds);
-        svcSleepThread(time.count());
+        svcSleepThread(std::chrono::duration<double, std::nano>(time).count());
     }
 }
 

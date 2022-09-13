@@ -9,6 +9,8 @@ std::string love::guid::GetDeviceGUID(GamepadType type)
             return "{B58A259A-13AA-46E0-BDCB-31898EDAB24E}";
         case GAMEPAD_TYPE_NINTEDO_SWITCH_PRO:
             return "{42ECF5C5-AFA5-4EDE-B1A2-4E9C2287559A}";
+        case GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD:
+            return "{6EBE242C-820F-46E1-9A66-DC8200686D51}";
         case GAMEPAD_TYPE_JOYCON_LEFT:
             return "{660EBC7E-3953-4B74-8406-AD5992FCC5C7}";
         case GAMEPAD_TYPE_JOYCON_RIGHT:
@@ -37,6 +39,7 @@ constexpr auto gamepadTypes = BidirectionalMap<>::Create(
     "unknown",           love::guid::GAMEPAD_TYPE_UNKNOWN,
     "nintendo3ds",       love::guid::GAMEPAD_TYPE_NINTENDO_3DS,
     "switchpro",         love::guid::GAMEPAD_TYPE_NINTEDO_SWITCH_PRO,
+    "switchhandheld",    love::guid::GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD,
     "joyconleft",        love::guid::GAMEPAD_TYPE_JOYCON_LEFT,
     "joyconright",       love::guid::GAMEPAD_TYPE_JOYCON_RIGHT,
     "joyconpair",        love::guid::GAMEPAD_TYPE_JOYCON_PAIR,

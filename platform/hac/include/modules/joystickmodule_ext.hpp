@@ -3,6 +3,7 @@
 #include <modules/joystick/joystickmodule.tcc>
 
 #include <switch.h>
+#include <vector>
 
 namespace love
 {
@@ -12,11 +13,20 @@ namespace love
       public:
         JoystickModule();
 
-        int GetCurrentJoystickCount(HidsysUniquePadId* ids = nullptr);
+        virtual ~JoystickModule();
+
+        /* out pointer to whatever was added/removed */
+        int GetCurrentJoystickCount(std::vector<HidNpadIdType>* out = nullptr);
+
+        std::vector<HidNpadIdType> GetActiveIds() const
+        {
+            return this->activeIds;
+        }
 
         ::Joystick* AddJoystick(int index);
 
       private:
-        static constexpr MAX_JOYSTICKS = 0x08;
+        static constexpr size_t MAX_JOYSTICKS = 0x08;
+        std::vector<HidNpadIdType> activeIds;
     };
 } // namespace love

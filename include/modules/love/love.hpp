@@ -32,7 +32,7 @@ namespace love
     bool IsRunningAppletMode()
     {
         return false;
-    };
+    }
 
     template<Console::Platform T = Console::ALL>
     int Quit(lua_State* L)

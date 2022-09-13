@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <modules/joystick_ext.hpp>
-#include <objects/joystick.hpp>
+#include <modules/joystickmodule_ext.hpp>
+#include <objects/joystick_ext.hpp>
 
 #include <common/luax.hpp>
 

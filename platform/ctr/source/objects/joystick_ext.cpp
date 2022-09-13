@@ -1,4 +1,4 @@
-#include <objects/joystick.hpp>
+#include <objects/joystick_ext.hpp>
 #include <utilities/bidirectionalmap.hpp>
 
 #include <algorithm>

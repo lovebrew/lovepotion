@@ -143,6 +143,27 @@ std::string_view System<Console::HAC>::GetFriendCode()
     return this->info.friendCode;
 }
 
+std::string_view System<Console::HAC>::GetUsername()
+{
+    if (!this->info.username.empty())
+        return this->info.username;
+
+    AccountProfile profile {};
+    AccountProfileBase base {};
+
+    /* Get the profile from the System's userID we selected */
+    R_UNLESS(accountGetProfile(&profile, this->account), std::string {});
+
+    /* Get the base profile */
+    R_UNLESS(accountProfileGet(&profile, NULL, &base), std::string {});
+
+    this->info.username = base.nickname;
+
+    accountProfileClose(&profile);
+
+    return this->info.username;
+}
+
 // clang-format off
 constexpr auto languages = BidirectionalMap<>::Create(
     "jp",      SetLanguage_JA,

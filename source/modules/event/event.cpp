@@ -1,7 +1,7 @@
 #include <modules/event/event.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
-#include <modules/joystick_ext.hpp>
+#include <modules/joystickmodule_ext.hpp>
 #include <modules/touch/touch.hpp>
 
 #include <common/console.hpp>
@@ -13,7 +13,7 @@ using namespace love;
 using HID            = love::HID<Console::Which>;
 using JoystickModule = love::JoystickModule<Console::Which>;
 
-Message* Event::Convert(const LOVE_Event& event)
+Message* love::Event::Convert(const LOVE_Event& event)
 {
     Message* message = nullptr;
 
@@ -37,7 +37,7 @@ Message* Event::Convert(const LOVE_Event& event)
     return message;
 }
 
-Message* Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<Variant>& args)
+Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<Variant>& args)
 {
     auto* joystickModule = (::JoystickModule*)Module::GetInstance<::JoystickModule>(M_JOYSTICK);
 
@@ -71,7 +71,7 @@ Message* Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<Varian
     return result;
 }
 
-Message* Event::ConvertTouchEvent(const LOVE_Event& event, std::vector<Variant>& args)
+Message* love::Event::ConvertTouchEvent(const LOVE_Event& event, std::vector<Variant>& args)
 {
     auto touch = (Touch*)Module::GetInstance<Touch>(M_TOUCH);
     Finger fingerInfo {};
@@ -104,7 +104,7 @@ Message* Event::ConvertTouchEvent(const LOVE_Event& event, std::vector<Variant>&
     return new Message(name, args);
 }
 
-void Event::InternalClear()
+void love::Event::InternalClear()
 {
     LOVE_Event event;
     while (::HID::Instance().Poll(&event))
@@ -113,14 +113,14 @@ void Event::InternalClear()
     this->Clear();
 }
 
-void Event::Push(Message* message)
+void love::Event::Push(Message* message)
 {
     std::unique_lock lock(this->mutex);
     message->Retain();
     this->queue.push(message);
 }
 
-void Event::Pump()
+void love::Event::Pump()
 {
     while (::HID::Instance().Poll(&this->event))
     {
@@ -134,7 +134,7 @@ void Event::Pump()
     }
 }
 
-bool Event::Poll(Message*& message)
+bool love::Event::Poll(Message*& message)
 {
     std::unique_lock lock(this->mutex);
 
@@ -147,7 +147,7 @@ bool Event::Poll(Message*& message)
     return true;
 }
 
-void Event::Clear()
+void love::Event::Clear()
 {
     std::unique_lock lock(this->mutex);
 
@@ -158,7 +158,7 @@ void Event::Clear()
     }
 }
 
-Message* Event::Wait()
+Message* love::Event::Wait()
 {
     // this->ExceptionIfInRenderPass("love.event.wait");
 

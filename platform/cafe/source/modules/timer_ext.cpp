@@ -24,7 +24,7 @@ void Timer<Console::CAFE>::Sleep(double seconds) const
     if (seconds >= 0)
     {
         auto time = std::chrono::duration<double>(seconds);
-        OSSleepTicks(OSNanosecondsToTicks(time.count()));
+        OSSleepTicks(OSNanosecondsToTicks(std::chrono::duration<double, std::nano>(time).count()));
     }
 }
 

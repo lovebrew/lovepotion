@@ -176,6 +176,8 @@ namespace love
         }
 
       protected:
+        static constexpr float JoystickMax = 150.0f;
+
         const char* name;
 
         int instanceId;

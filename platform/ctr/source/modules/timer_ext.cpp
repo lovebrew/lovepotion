@@ -22,10 +22,8 @@ void Timer<Console::CTR>::Sleep(double seconds) const
 {
     if (seconds >= 0)
     {
-        auto ms          = seconds * 1000.0f;
-        auto nanoseconds = ms * 1000000ULL;
-
-        svcSleepThread(nanoseconds);
+        auto time = std::chrono::duration<double>(seconds);
+        svcSleepThread(std::chrono::duration<double, std::nano>(time).count());
     }
 }
 

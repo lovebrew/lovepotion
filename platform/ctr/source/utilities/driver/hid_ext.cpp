@@ -1,4 +1,4 @@
-#include <modules/joystick_ext.hpp>
+#include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
 using namespace love;

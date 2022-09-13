@@ -90,8 +90,6 @@ namespace love
         static bool GetConstant(GamepadAxis in, size_t& out);
 
       private:
-        static constexpr float JoystickMax = 150.0f;
-
         struct
         {
             uint32_t pressed;
