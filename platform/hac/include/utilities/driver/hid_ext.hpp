@@ -5,6 +5,7 @@
 #include <switch.h>
 
 #include <utilities/driver/hid.tcc>
+#include <utilities/npad.hpp>
 
 namespace love
 {
@@ -18,8 +19,7 @@ namespace love
             return instance;
         }
 
-        ~HID()
-        {}
+        ~HID();
 
         bool Poll(LOVE_Event* event);
 
@@ -36,5 +36,8 @@ namespace love
         std::array<HidTouchState, MAX_TOUCHES> oldStateTouches;
 
         int previousTouchCount;
+
+        std::vector<HidNpadIdType> previousJoystickState;
+        std::array<::Event, npad::MAX_JOYSTICKS> statusEvents;
     };
 } // namespace love

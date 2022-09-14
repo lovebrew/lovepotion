@@ -9,18 +9,18 @@ using namespace love;
 
 JoystickModule<Console::HAC>::JoystickModule()
 {
-    for (int index = 0; index < this->GetCurrentJoystickCount(&this->activeIds); index++)
+    for (int index = 0; index < (int)this->AcquireCurrentJoystickIds().size(); index++)
         this->AddJoystick(index);
 }
 
 JoystickModule<Console::HAC>::~JoystickModule()
 {}
 
-int JoystickModule<Console::HAC>::GetCurrentJoystickCount(std::vector<HidNpadIdType>* out)
+std::vector<HidNpadIdType> JoystickModule<Console::HAC>::AcquireCurrentJoystickIds()
 {
-    int total = 0;
+    std::vector<HidNpadIdType> info {};
 
-    for (size_t index = 0; index < JoystickModule::MAX_JOYSTICKS; index++)
+    for (size_t index = 0; index < npad::MAX_JOYSTICKS; index++)
     {
         PadState state {};
 
@@ -31,21 +31,16 @@ int JoystickModule<Console::HAC>::GetCurrentJoystickCount(std::vector<HidNpadIdT
 
         padUpdate(&state);
 
-        if (padIsConnected(&state))
-        {
-            total++;
-
-            if (out != nullptr)
-                out->push_back((HidNpadIdType)index);
-        }
+        if (padIsNpadActive(&state, (HidNpadIdType)index) && padIsConnected(&state))
+            info.push_back((HidNpadIdType)index);
     }
 
-    return total;
+    return info;
 }
 
 ::Joystick* JoystickModule<Console::HAC>::AddJoystick(int index)
 {
-    if (index < 0 || index >= this->GetCurrentJoystickCount())
+    if (index < 0 || index >= (int)this->AcquireCurrentJoystickIds().size())
         return nullptr;
 
     PadState state {};
@@ -53,10 +48,10 @@ int JoystickModule<Console::HAC>::GetCurrentJoystickCount(std::vector<HidNpadIdT
     padInitialize(&state, (HidNpadIdType)index);
     padUpdate(&state);
 
-    auto styleTag = love::GetStyleTag(&state);
+    auto styleTag = npad::GetStyleTag(&state);
 
     guid::GamepadType type;
-    love::GetConstant(styleTag, type);
+    npad::GetConstant(styleTag, type);
 
     std::string guid     = love::guid::GetDeviceGUID(type);
     ::Joystick* joystick = nullptr;
@@ -83,21 +78,21 @@ int JoystickModule<Console::HAC>::GetCurrentJoystickCount(std::vector<HidNpadIdT
     if (!joystick->Open(index))
         return nullptr;
 
-    for (auto activeStick : this->active)
-    {
-        if (joystick->GetHandle() == activeStick->GetHandle())
-        {
-            joystick->Close();
+    // for (auto activeStick : this->active)
+    // {
+    //     if (joystick->GetHandle() == activeStick->GetHandle())
+    //     {
+    //         joystick->Close();
 
-            if (!reused)
-            {
-                this->joysticks.remove(joystick);
-                joystick->Release();
-            }
+    //         if (!reused)
+    //         {
+    //             this->joysticks.remove(joystick);
+    //             joystick->Release();
+    //         }
 
-            return activeStick;
-        }
-    }
+    //         return activeStick;
+    //     }
+    // }
 
     this->recentGUIDs[joystick->GetGUID()] = true;
     this->active.push_back(joystick);

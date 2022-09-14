@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <utilities/threads/threads.hpp>
+
 class LogFile
 {
   public:
@@ -17,16 +19,17 @@ class LogFile
         return instance;
     }
 
-    void LogOutput(const char* func, size_t line, const char* format, ...) const;
+    void LogOutput(const char* func, size_t line, const char* format, ...);
 
     ~LogFile();
 
   private:
+    static constexpr const char* LOG_FORMAT = "%s:%zu:\n%s\n\n";
+
     LogFile();
 
     FILE* file;
-
-    static constexpr const char* LOG_FORMAT = "%s:%zu:\n%s\n\n";
+    love::mutex mutex;
 };
 
 #define LOG(format, ...) \

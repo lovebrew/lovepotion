@@ -15,18 +15,8 @@ namespace love
 
         virtual ~JoystickModule();
 
-        /* out pointer to whatever was added/removed */
-        int GetCurrentJoystickCount(std::vector<HidNpadIdType>* out = nullptr);
-
-        std::vector<HidNpadIdType> GetActiveIds() const
-        {
-            return this->activeIds;
-        }
+        std::vector<HidNpadIdType> AcquireCurrentJoystickIds();
 
         ::Joystick* AddJoystick(int index);
-
-      private:
-        static constexpr size_t MAX_JOYSTICKS = 0x08;
-        std::vector<HidNpadIdType> activeIds;
     };
 } // namespace love

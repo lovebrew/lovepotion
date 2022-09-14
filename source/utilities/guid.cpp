@@ -7,7 +7,7 @@ std::string love::guid::GetDeviceGUID(GamepadType type)
     {
         case GAMEPAD_TYPE_NINTENDO_3DS:
             return "{B58A259A-13AA-46E0-BDCB-31898EDAB24E}";
-        case GAMEPAD_TYPE_NINTEDO_SWITCH_PRO:
+        case GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
             return "{42ECF5C5-AFA5-4EDE-B1A2-4E9C2287559A}";
         case GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD:
             return "{6EBE242C-820F-46E1-9A66-DC8200686D51}";
@@ -34,11 +34,72 @@ std::string love::guid::GetDeviceGUID(GamepadType type)
     return std::string {};
 }
 
+std::string love::guid::GetDeviceName(GamepadType type)
+{
+    switch (type)
+    {
+        case GAMEPAD_TYPE_NINTENDO_3DS:
+            return "Nintendo 3DS";
+        case GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+            return "Nintendo Switch Pro Controller";
+        case GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD:
+            return "Nintendo Switch";
+        case GAMEPAD_TYPE_JOYCON_LEFT:
+            return "Joy-Con L";
+        case GAMEPAD_TYPE_JOYCON_RIGHT:
+            return "Joy-Con R";
+        case GAMEPAD_TYPE_JOYCON_PAIR:
+            return "Joy-Con Pair";
+        case GAMEPAD_TYPE_WII_U_GAMEPAD:
+            return "Nintendo Wii U Gamepad";
+        case GAMEPAD_TYPE_WII_REMOTE:
+            return "Nintendo Wii Remote";
+        case GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+            return "Nintendo Wii Remote and Nunchuck";
+        case GAMEPAD_TYPE_WII_CLASSIC:
+            return "Nintendo Wii Classic Controller";
+        case GAMEPAD_TYPE_WII_PRO:
+            return "Nintendo Wii Pro Controller";
+        default:
+            break;
+    }
+
+    return std::string {};
+}
+
+bool love::guid::GetDeviceInfo(GamepadType type, DeviceInfo& info)
+{
+    info.vendorId       = 0x057E;
+    info.productId      = 0x0000;
+    info.productVersion = 0x0001;
+
+    switch (type)
+    {
+        case GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD:
+            info.productId = 0x2000;
+            break;
+        case GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+            info.productId = 0x2009;
+            break;
+        case GAMEPAD_TYPE_JOYCON_LEFT:
+            info.productId = 0x2006;
+        case GAMEPAD_TYPE_JOYCON_RIGHT:
+            info.productId = 0x2007;
+        case GAMEPAD_TYPE_WII_REMOTE:
+            info.productId = 0x0306;
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 // clang-format off
 constexpr auto gamepadTypes = BidirectionalMap<>::Create(
     "unknown",           love::guid::GAMEPAD_TYPE_UNKNOWN,
     "nintendo3ds",       love::guid::GAMEPAD_TYPE_NINTENDO_3DS,
-    "switchpro",         love::guid::GAMEPAD_TYPE_NINTEDO_SWITCH_PRO,
+    "switchpro",         love::guid::GAMEPAD_TYPE_NINTENDO_SWITCH_PRO,
     "switchhandheld",    love::guid::GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD,
     "joyconleft",        love::guid::GAMEPAD_TYPE_JOYCON_LEFT,
     "joyconright",       love::guid::GAMEPAD_TYPE_JOYCON_RIGHT,

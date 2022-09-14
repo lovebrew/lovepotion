@@ -25,13 +25,7 @@ namespace love
 
         bool IsUp(JoystickInput& result);
 
-        bool WaitEvent()
-        {
-            auto result = eventWait(&this->event, 100);
-            return R_SUCCEEDED(result);
-        }
-
-        const char* GetName() const;
+        void GetDeviceInfo(int& vendor, int& product, int& version);
 
         int GetAxisCount() const;
 
@@ -45,12 +39,11 @@ namespace love
 
         bool IsDown(const std::vector<int>& buttons) const;
 
-        void SetPlayerIndex(int index)
-        {}
+        void SetPlayerIndex(int index);
 
         int GetPlayerIndex() const
         {
-            return this->id;
+            return (int)this->playerId;
         }
 
         bool IsGamepad() const
@@ -81,11 +74,16 @@ namespace love
         static bool GetConstant(uint64_t in, GamepadAxis& out);
         static bool GetConstant(GamepadAxis in, uint64_t& out);
 
+        static bool GetConstant(const char* in, HidNpadJoyDeviceType& out);
+        static bool GetConstant(HidNpadJoyDeviceType in, const char*& out);
+        static std::vector<const char*> GetConstants(HidNpadJoyDeviceType);
+
       private:
         PadState state;
         ::Event event;
 
         HidNpadStyleTag style;
+        HidNpadIdType playerId;
 
         struct
         {

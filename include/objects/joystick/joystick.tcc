@@ -20,10 +20,10 @@ namespace love
         enum GamepadAxis
         {
             GAMEPAD_AXIS_INVALID,
-            GAMEPAD_AXIS_LEFTX,
             GAMEPAD_AXIS_LEFTY,
-            GAMEPAD_AXIS_RIGHTX,
+            GAMEPAD_AXIS_LEFTX,
             GAMEPAD_AXIS_RIGHTY,
+            GAMEPAD_AXIS_RIGHTX,
             GAMEPAD_AXIS_TRIGGERLEFT,
             GAMEPAD_AXIS_TRIGGERRIGHT,
             GAMEPAD_AXIS_MAX_ENUM
@@ -70,7 +70,7 @@ namespace love
         virtual ~Joystick()
         {}
 
-        const char* GetName() const
+        std::string GetName() const
         {
             return this->name;
         }
@@ -178,7 +178,7 @@ namespace love
       protected:
         static constexpr float JoystickMax = 150.0f;
 
-        const char* name;
+        std::string name;
 
         int instanceId;
         int id;

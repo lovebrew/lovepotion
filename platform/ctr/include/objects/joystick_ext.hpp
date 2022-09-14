@@ -30,7 +30,7 @@ namespace love
 
         bool IsUp(JoystickInput& result);
 
-        const char* GetName() const;
+        void GetDeviceInfo(int& vendor, int& product, int& version);
 
         int GetAxisCount() const;
 
@@ -49,7 +49,7 @@ namespace love
 
         int GetPlayerIndex() const
         {
-            return 1;
+            return 0;
         }
 
         bool IsGamepad() const

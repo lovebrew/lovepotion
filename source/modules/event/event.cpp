@@ -8,6 +8,8 @@
 
 #include <mutex>
 
+#include <utilities/log/logfile.h>
+
 using namespace love;
 
 using HID            = love::HID<Console::Which>;
@@ -50,22 +52,69 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
 
     Message* result = nullptr;
 
-    if (event.subType == SUBTYPE_GAMEPADDOWN || event.subType == SUBTYPE_GAMEPADUP)
+    switch (event.subType)
     {
-        joystick = joystickModule->GetJoystickFromId(event.padButton.id);
+        case SUBTYPE_GAMEPADADDED:
+        {
+            joystick = joystickModule->AddJoystick(event.padStatus.id);
 
-        if (!joystick)
-            return result;
+            if (!joystick)
+                return result;
 
-        args.emplace_back(type, joystick);
-        args.emplace_back(event.padButton.name, strlen(event.padButton.name));
+            args.emplace_back(type, joystick);
 
-        if (event.subType == SUBTYPE_GAMEPADDOWN)
-            name = "gamepadpressed";
-        else if (event.subType == SUBTYPE_GAMEPADUP)
-            name = "gamepadreleased";
+            result = new Message("joystickadded", args);
+            break;
+        }
+        case SUBTYPE_GAMEPADREMOVED:
+        {
+            joystick = joystickModule->GetJoystickFromId(event.padStatus.id);
 
-        result = new Message(name, args);
+            if (!joystick)
+                return result;
+
+            joystickModule->RemoveJoystick(joystick);
+
+            args.emplace_back(type, joystick);
+
+            result = new Message("joystickremoved", args);
+            break;
+        }
+        case SUBTYPE_GAMEPADDOWN:
+        case SUBTYPE_GAMEPADUP:
+        {
+            joystick = joystickModule->GetJoystickFromId(event.padButton.id);
+
+            if (!joystick)
+                return result;
+
+            args.emplace_back(type, joystick);
+            args.emplace_back(event.padButton.name, strlen(event.padButton.name));
+
+            if (event.subType == SUBTYPE_GAMEPADDOWN)
+                name = "gamepadpressed";
+            else if (event.subType == SUBTYPE_GAMEPADUP)
+                name = "gamepadreleased";
+
+            result = new Message(name, args);
+            break;
+        }
+        case SUBTYPE_GAMEPADAXIS:
+        {
+            joystick = joystickModule->GetJoystickFromId(event.padButton.id);
+
+            if (!joystick)
+                return result;
+
+            args.emplace_back(type, joystick);
+            args.emplace_back(event.padAxis.name, strlen(event.padAxis.name));
+            args.emplace_back(event.padAxis.value);
+
+            result = new Message("gamepadaxis", args);
+            break;
+        }
+        default:
+            break;
     }
 
     return result;

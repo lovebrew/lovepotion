@@ -1,4 +1,5 @@
 #include <modules/joystick/wrap_joystickmodule.hpp>
+#include <objects/joystick/wrap_joystick.hpp>
 
 using namespace love;
 using JoystickModule = love::JoystickModule<Console::Which>;
@@ -42,6 +43,7 @@ static constexpr luaL_Reg functions[] =
 
 static constexpr lua_CFunction types[] =
 {
+    Wrap_Joystick::Register,
     0
 };
 // clang-format on
@@ -61,7 +63,7 @@ int Wrap_JoystickModule::Register(lua_State* L)
     wrappedModule.name      = "joystick";
     wrappedModule.functions = functions;
     wrappedModule.type      = &Module::type;
-    wrappedModule.types     = nullptr;
+    wrappedModule.types     = types;
 
     return luax::RegisterModule(L, wrappedModule);
 }

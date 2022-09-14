@@ -83,8 +83,7 @@ bool Joystick<Console::CTR>::Open(int index)
 {
     this->Close();
 
-    if (!guid::GetConstant(this->GetGamepadType(), this->name))
-        this->name = "unknown";
+    this->name = guid::GetDeviceName(this->GetGamepadType());
 
     this->instanceId = index;
 
@@ -94,6 +93,18 @@ bool Joystick<Console::CTR>::Open(int index)
 void Joystick<Console::CTR>::Close()
 {
     this->instanceId = -1;
+}
+
+void Joystick<Console::CTR>::GetDeviceInfo(int& vendor, int& product, int& version)
+{
+    guid::DeviceInfo info {};
+
+    if (!guid::GetDeviceInfo(this->GetGamepadType(), info))
+        return;
+
+    vendor  = info.vendorId;
+    product = info.productId;
+    version = info.productVersion;
 }
 
 int Joystick<Console::CTR>::GetAxisCount() const
@@ -118,10 +129,13 @@ void Joystick<Console::CTR>::Update()
 
 bool Joystick<Console::CTR>::IsDown(JoystickInput& result)
 {
-    uint32_t button = 0;
+    if (!this->IsConnected())
+        return false;
 
     if (!this->buttonStates.pressed)
         return false;
+
+    uint32_t button = 0;
 
     const auto entries = buttons.GetEntries();
 
@@ -186,7 +200,7 @@ float Joystick<Console::CTR>::GetAxis(int index) const
         circlePosition leftStick {};
         hidCircleRead(&leftStick);
 
-        float value = (index == 1) ? leftStick.dx : leftStick.dy;
+        float value = (index == 2) ? leftStick.dx : leftStick.dy;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
     else if (index == 3 || index == 4)
@@ -194,7 +208,7 @@ float Joystick<Console::CTR>::GetAxis(int index) const
         circlePosition rightStick {};
         irrstCstickRead(&rightStick);
 
-        float value = (index == 3) ? rightStick.dx : rightStick.dy;
+        float value = (index == 4) ? rightStick.dx : rightStick.dy;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
     else if (index == 5)
@@ -271,7 +285,7 @@ bool Joystick<Console::CTR>::IsDown(const std::vector<int>& buttons) const
         if (button < 0 || button >= count)
             continue;
 
-        if (hidKeysHeld() && records[button].second)
+        if (hidKeysHeld() & records[button].second)
             return true;
     }
 

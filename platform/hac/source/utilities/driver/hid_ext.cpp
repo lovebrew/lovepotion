@@ -1,12 +1,33 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
+#include <utilities/log/logfile.h>
+
 using namespace love;
 
 #define Module() Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK)
 
-HID<Console::HAC>::HID() : touchState {}, stateTouches {}, oldStateTouches {}, previousTouchCount(0)
-{}
+HID<Console::HAC>::HID() :
+    touchState {},
+    stateTouches {},
+    oldStateTouches {},
+    previousTouchCount(0),
+    previousJoystickState {}
+{
+    for (size_t index = 0; index < npad::MAX_JOYSTICKS; index++)
+    {
+        HidNpadIdType id = (HidNpadIdType)index;
+        hidAcquireNpadStyleSetUpdateEventHandle(id, &this->statusEvents[index], true);
+    }
+
+    this->previousJoystickState = Module()->AcquireCurrentJoystickIds();
+}
+
+HID<Console::HAC>::~HID()
+{
+    for (auto event : this->statusEvents)
+        eventClose(&event);
+}
 
 void HID<Console::HAC>::CheckFocus()
 {
@@ -144,56 +165,63 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
 
     if (Module())
     {
+        for (auto event : this->statusEvents)
+        {
+            /* a controller was updated! */
+            if (R_SUCCEEDED(eventWait(&event, 0)))
+            {
+                auto ids = Module()->AcquireCurrentJoystickIds();
+
+                if (ids.size() < this->previousJoystickState.size())
+                {
+                    for (auto id : this->previousJoystickState)
+                    {
+                        if (std::find(ids.begin(), ids.end(), id) == ids.end())
+                        {
+                            this->SendJoystickStatus((size_t)id, false);
+                            break;
+                        }
+                    }
+                }
+                else if (ids.size() > this->previousJoystickState.size())
+                    this->SendJoystickStatus((size_t)ids.back(), true);
+
+                this->previousJoystickState = ids;
+            }
+        }
+
         for (size_t index = 0; index < Module()->GetJoystickCount(); index++)
         {
             auto* joystick = Module()->GetJoystickFromId(index);
 
             if (joystick)
             {
-                if (joystick->WaitEvent())
+
+                joystick->Update();
+                Joystick<>::JoystickInput input {};
+
+                if (joystick->IsDown(input))
                 {
-                    std::vector<HidNpadIdType> ids;
-                    int count = Module()->GetCurrentJoystickCount(&ids);
+                    auto& newEvent = this->events.emplace_back();
 
-                    if (std::find(ids.begin(), ids.end(), (HidNpadIdType)joystick->GetID()) ==
-                        ids.end())
-                    {
-                        auto& newEvent = this->events.emplace_back();
+                    newEvent.type    = TYPE_GAMEPAD;
+                    newEvent.subType = SUBTYPE_GAMEPADDOWN;
 
-                        newEvent.type                = TYPE_GAMEPAD;
-                        newEvent.subType             = SUBTYPE_GAMEPADREMOVED;
-                        newEvent.padStatus.connected = false;
-                        newEvent.padStatus.id        = joystick->GetID();
-                    }
+                    Joystick<>::GetConstant(input.button, newEvent.padButton.name);
+                    newEvent.padButton.id     = joystick->GetID();
+                    newEvent.padButton.button = input.buttonNumber;
                 }
-                else
+
+                if (joystick->IsUp(input))
                 {
-                    joystick->Update();
-                    Joystick<>::JoystickInput input {};
+                    auto& newEvent = this->events.emplace_back();
 
-                    if (joystick->IsDown(input))
-                    {
-                        auto& newEvent = this->events.emplace_back();
+                    newEvent.type    = TYPE_GAMEPAD;
+                    newEvent.subType = SUBTYPE_GAMEPADUP;
 
-                        newEvent.type    = TYPE_GAMEPAD;
-                        newEvent.subType = SUBTYPE_GAMEPADDOWN;
-
-                        Joystick<>::GetConstant(input.button, newEvent.padButton.name);
-                        newEvent.padButton.id     = joystick->GetID();
-                        newEvent.padButton.button = input.buttonNumber;
-                    }
-
-                    if (joystick->IsUp(input))
-                    {
-                        auto& newEvent = this->events.emplace_back();
-
-                        newEvent.type    = TYPE_GAMEPAD;
-                        newEvent.subType = SUBTYPE_GAMEPADUP;
-
-                        Joystick<>::GetConstant(input.button, newEvent.padButton.name);
-                        newEvent.padButton.id     = joystick->GetID();
-                        newEvent.padButton.button = input.buttonNumber;
-                    }
+                    Joystick<>::GetConstant(input.button, newEvent.padButton.name);
+                    newEvent.padButton.id     = joystick->GetID();
+                    newEvent.padButton.button = input.buttonNumber;
                 }
             }
         }

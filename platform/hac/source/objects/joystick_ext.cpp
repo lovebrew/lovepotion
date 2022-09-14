@@ -63,8 +63,6 @@ Joystick<Console::HAC>::Joystick(int id) : buttonStates {}
 {
     this->instanceId = -1;
     this->id         = id;
-
-    hidAcquireNpadStyleSetUpdateEventHandle((HidNpadIdType)id, &this->event, false);
 }
 
 Joystick<Console::HAC>::Joystick(int id, int index) : Joystick(id)
@@ -87,14 +85,17 @@ bool Joystick<Console::HAC>::Open(int index)
         padInitialize(&this->state, (HidNpadIdType)index);
 
     padUpdate(&this->state);
-    this->style = love::GetStyleTag(&this->state);
+    this->style = npad::GetStyleTag(&this->state);
 
     this->instanceId = index;
+    this->playerId   = (HidNpadIdType)index;
+
+    this->guid = guid::GetDeviceGUID(this->GetGamepadType());
+
     if (this->style == (HidNpadStyleTag)-1)
         return false;
 
-    if (!guid::GetConstant(this->GetGamepadType(), this->name))
-        this->name = "unknown";
+    this->name = guid::GetDeviceName(this->GetGamepadType());
 
     /* todo: sixaxis and vibration stuff */
 
@@ -104,15 +105,26 @@ bool Joystick<Console::HAC>::Open(int index)
 void Joystick<Console::HAC>::Close()
 {
     this->instanceId = -1;
-    eventClear(&this->event);
 }
 
 guid::GamepadType Joystick<Console::HAC>::GetGamepadType() const
 {
     guid::GamepadType type;
-    love::GetConstant(this->style, type);
+    npad::GetConstant(this->style, type);
 
     return type;
+}
+
+void Joystick<Console::HAC>::GetDeviceInfo(int& vendor, int& product, int& version)
+{
+    guid::DeviceInfo info {};
+
+    if (!guid::GetDeviceInfo(this->GetGamepadType(), info))
+        return;
+
+    vendor  = info.vendorId;
+    product = info.productId;
+    version = info.productVersion;
 }
 
 bool Joystick<Console::HAC>::IsConnected() const
@@ -147,10 +159,10 @@ bool Joystick<Console::HAC>::IsDown(JoystickInput& result)
     if (!this->IsConnected())
         return false;
 
-    HidNpadButton button = (HidNpadButton)-1;
-
     if (!this->buttonStates.pressed)
         return false;
+
+    HidNpadButton button = (HidNpadButton)-1;
 
     const auto entries = buttons.GetEntries();
 
@@ -314,4 +326,54 @@ bool Joystick<Console::HAC>::IsGamepadDown(const std::vector<GamepadButton>& but
     }
 
     return false;
+}
+
+void Joystick<Console::HAC>::SetPlayerIndex(int index)
+{
+    if (!this->IsConnected())
+        return;
+
+    if (index < 0 || index > npad::MAX_JOYSTICKS)
+        return;
+
+    if (R_SUCCEEDED(hidSwapNpadAssignment(this->playerId, (HidNpadIdType)index)))
+        this->playerId = (HidNpadIdType)index;
+}
+
+/* todo VIBRATE */
+bool Joystick<Console::HAC>::SetVibration(float left, float right, float duration)
+{
+    return false;
+}
+
+/* todo STOP VIBRATING */
+bool Joystick<Console::HAC>::SetVibration()
+{
+    return false;
+}
+
+/* todo GET VIBRATION */
+void Joystick<Console::HAC>::GetVibration(float& left, float& right)
+{}
+
+// clang-format off
+constexpr auto deviceTypes = BidirectionalMap<>::Create(
+    "left",  HidNpadJoyDeviceType_Left,
+    "right", HidNpadJoyDeviceType_Right
+);
+// clang-format off
+
+bool Joystick<Console::HAC>::GetConstant(const char*in, HidNpadJoyDeviceType&out)
+{
+    return deviceTypes.Find(in, out);
+}
+
+bool Joystick<Console::HAC>::GetConstant(HidNpadJoyDeviceType in, const char*& out)
+{
+    return deviceTypes.ReverseFind(in, out);
+}
+
+std::vector<const char*> Joystick<Console::HAC>::GetConstants(HidNpadJoyDeviceType)
+{
+    return deviceTypes.GetNames();
 }

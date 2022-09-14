@@ -10,10 +10,12 @@ LogFile::~LogFile()
     fclose(this->file);
 }
 
-void LogFile::LogOutput(const char* func, size_t line, const char* format, ...) const
+void LogFile::LogOutput(const char* func, size_t line, const char* format, ...)
 {
     if (!this->file)
         return;
+
+    std::unique_lock lock(this->mutex);
 
     va_list args;
     va_start(args, format);

@@ -275,7 +275,7 @@ function love.run()
 
             for name, a, b, c, d, e, f in love.event.poll() do
                 if name == "quit" then
-                    love.event._quit()
+                    love.event.quit_i()
                     if not love.quit or not love.quit() then
                         return a or 0
                     end
