@@ -188,8 +188,8 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     this->SendJoystickStatus((size_t)ids.back(), true);
                 else /* updated */
                 {
-                    for ((size_t)id : ids)
-                        this->SendJoystickUpdated(id);
+                    for (auto id : ids)
+                        this->SendJoystickUpdated((size_t)id);
                 }
 
                 this->previousJoystickState = ids;
