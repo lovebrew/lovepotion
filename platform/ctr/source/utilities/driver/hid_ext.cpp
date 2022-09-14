@@ -182,15 +182,14 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
             newEvent.padAxis.name  = axis;
         }
     }
-}
 
-/* return our events */
+    /* return our events */
 
-if (this->events.empty())
-    return false;
+    if (this->events.empty())
+        return false;
 
-*event = this->events.front();
-this->events.pop_front();
+    *event = this->events.front();
+    this->events.pop_front();
 
-return this->hysteresis = true;
+    return this->hysteresis = true;
 }

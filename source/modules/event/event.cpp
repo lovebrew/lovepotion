@@ -113,6 +113,18 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
             result = new Message("gamepadaxis", args);
             break;
         }
+        case SUBTYPE_GAMEPADUPDATED:
+        {
+            /* no Message, because why send that it was updated? */
+            joystick = joystickModule->GetJoystickFromId(event.padButton.id);
+
+            if (!joystick)
+                return result;
+
+            joystick->Open(event.padButton.id);
+
+            break;
+        }
         default:
             break;
     }

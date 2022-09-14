@@ -30,9 +30,9 @@ if(NINTENDO_3DS)
         __CONSOLE__="3DS" __OS__="Horizon"
     )
 
-    set(APP_ICON, platform/ctr/icon.png)
+    set(APP_ICON platform/ctr/icon.png)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(APP_ICON, platform/ctr/icon-dev.png)
+        set(APP_ICON platform/ctr/icon-dev.png)
     endif()
 
     # Generate a SMDH file for the executable
@@ -75,9 +75,9 @@ if(NINTENDO_SWITCH)
 
     add_subdirectory(platform/hac)
 
-    set(APP_ICON, platform/hac/icon.jpg)
+    set(APP_ICON platform/hac/icon.jpg)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(APP_ICON, platform/hac/icon-dev.jpg)
+        set(APP_ICON platform/hac/icon-dev.jpg)
     endif()
 
     nx_create_nro(${PROJECT_NAME}
@@ -101,6 +101,11 @@ if (NINTENDO_WIIU)
         __CONSOLE__="Wii U" __OS__="Cafe"
     )
 
+    set(APP_ICON platform/cafe/icon.png)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(APP_ICON platform/cafe/icon-dev.png)
+    endif()
+
     add_subdirectory(platform/cafe)
 
     wut_create_rpx(${PROJECT_NAME})
@@ -114,7 +119,7 @@ if (NINTENDO_WIIU)
         # Other options available:
         SHORTNAME  "${PROJECT_NAME}"
         AUTHOR     ${APP_AUTHOR}
-        #ICON       myIcon.png
+        ICON       ${APP_ICON}
         #TVSPLASH   myTvSplash.png
         #DRCSPLASH  myDrcSplash.png
     )

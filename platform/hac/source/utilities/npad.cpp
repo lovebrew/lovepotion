@@ -8,7 +8,8 @@ using namespace love;
 
 HidNpadStyleTag love::npad::GetStyleTag(PadState* state)
 {
-    uint32_t styleSet = padGetStyleSet(state);
+    uint32_t styleSet   = padGetStyleSet(state);
+    uint32_t attributes = padGetAttributes(state);
 
     if (styleSet & HidNpadStyleTag_NpadFullKey)
         return HidNpadStyleTag_NpadFullKey;

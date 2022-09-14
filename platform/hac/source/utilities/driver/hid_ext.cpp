@@ -172,6 +172,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
             {
                 auto ids = Module()->AcquireCurrentJoystickIds();
 
+                /* joystick removed */
                 if (ids.size() < this->previousJoystickState.size())
                 {
                     for (auto id : this->previousJoystickState)
@@ -182,9 +183,14 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                             break;
                         }
                     }
-                }
+                } /* joystick added */
                 else if (ids.size() > this->previousJoystickState.size())
                     this->SendJoystickStatus((size_t)ids.back(), true);
+                else /* updated */
+                {
+                    for ((size_t)id : ids)
+                        this->SendJoystickUpdated(id);
+                }
 
                 this->previousJoystickState = ids;
             }

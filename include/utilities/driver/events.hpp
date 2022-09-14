@@ -24,8 +24,7 @@ namespace love
 
     struct GamepadStatus
     {
-        size_t id;      //< Gamepad ID
-        bool connected; //< Connected status
+        size_t id; //< Gamepad ID
     };
 
     struct Finger
@@ -55,6 +54,8 @@ namespace love
 
         SUBTYPE_GAMEPADADDED,
         SUBTYPE_GAMEPADREMOVED,
+
+        SUBTYPE_GAMEPADUPDATED,
 
         SUBTYPE_TOUCHPRESS,
         SUBTYPE_TOUCHRELEASE,

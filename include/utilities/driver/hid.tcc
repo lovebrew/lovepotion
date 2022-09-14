@@ -66,6 +66,16 @@ namespace love
             event.padStatus.id = id;
         }
 
+        void SendJoystickUpdated(size_t id)
+        {
+            auto& event = this->events.emplace_back();
+
+            event.type    = TYPE_GAMEPAD;
+            event.subType = SUBTYPE_GAMEPADUPDATED;
+
+            event.padStatus.id = id;
+        }
+
       protected:
         bool touchHeld;
         bool hysteresis;
