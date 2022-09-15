@@ -28,7 +28,7 @@ namespace love
 
         std::string_view GetModel();
 
-        std::string_view GetFriendCode();
+        std::string_view GetFriendInfo();
 
         static bool GetConstant(const char* in, ColorSetId& out);
         static bool GetConstant(ColorSetId in, const char*& out);

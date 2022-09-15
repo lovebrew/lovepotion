@@ -92,7 +92,32 @@ std::string_view System<Console::CAFE>::GetUsername()
     return this->info.username;
 }
 
-std::string_view System<Console::CAFE>::GetFriendCode()
+std::string_view System<Console::CAFE>::GetFriendInfo()
 {
-    return std::string {};
+    char username[nn::act::AccountIdSize];
+
+    if (!nn::act::IsNetworkAccount())
+        return std::string {};
+
+    R_UNLESS(nn::act::GetAccountId(username), std::string {});
+
+    this->info.friendCode = username;
+    return this->info.friendCode;
+}
+
+// clang-format off
+constexpr auto modelTypes = BidirectionalMap<>::Create(
+    "basic",  System<Console::CAFE>::SYSTEM_MODEL_BASIC,
+    "deluxe", System<Console::CAFE>::SYSTEM_MODEL_DELUXE
+);
+// clang-format on
+
+bool System<Console::CAFE>::GetConstant(const char* in, SystemModel& out)
+{
+    return modelTypes.Find(in, out);
+}
+
+bool System<Console::CAFE>::GetConstant(SystemModel in, const char*& out)
+{
+    return modelTypes.ReverseFind(in, out);
 }

@@ -136,20 +136,20 @@ std::string_view System<Console::CTR>::GetUsername()
     return username;
 }
 
-static inline std::string_view MAKE_FRIEND_CODE(uint64_t friendCode)
+static inline std::string MAKE_FRIEND_CODE(uint64_t friendCode)
 {
-    std::string result = "####-####-####";
+    std::string result(0x0E, '\0');
 
-    const auto first  = (int)(friendCode / 100000000) % 10000;
-    const auto second = (int)(friendCode / 10000) % 10000;
-    const auto third  = (int)(friendCode % 10000);
+    const auto first  = (int)((friendCode / 100000000) % 10000);
+    const auto second = (int)((friendCode / 10000) % 10000);
+    const auto third  = (int)((friendCode % 10000));
 
-    sprintf(result.data(), "%04i-%04i-%04i", first, second, third);
+    snprintf(result.data(), result.size(), "%04i-%04i-%04i", first, second, third);
 
     return result;
 }
 
-std::string_view System<Console::CTR>::GetFriendCode()
+std::string_view System<Console::CTR>::GetFriendInfo()
 {
     if (!this->info.friendCode.empty())
         return this->info.friendCode;

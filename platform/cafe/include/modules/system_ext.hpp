@@ -25,6 +25,13 @@ namespace love
     class System<Console::CAFE> : public System<Console::ALL>
     {
       public:
+        enum SystemModel
+        {
+            SYSTEM_MODEL_BASIC,
+            SYSTEM_MODEL_DELUXE,
+            SYSTEM_MODEL_MAX_ENUM
+        };
+
         System();
 
         ~System();
@@ -45,7 +52,10 @@ namespace love
 
         std::string_view GetModel();
 
-        std::string_view GetFriendCode();
+        std::string_view GetFriendInfo();
+
+        static bool GetConstant(const char* in, SystemModel& out);
+        static bool GetConstant(SystemModel in, const char*& out);
 
       private:
         int32_t handle;

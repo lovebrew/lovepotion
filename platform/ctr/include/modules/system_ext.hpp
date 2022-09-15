@@ -26,7 +26,7 @@ namespace love
 
         std::string_view GetModel();
 
-        std::string_view GetFriendCode();
+        std::string_view GetFriendInfo();
 
         int GetPlayCoins() const;
 

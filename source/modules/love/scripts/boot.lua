@@ -70,6 +70,13 @@ function love.boot()
         exepath = arg0
     end
 
+    -- todo: remove when wut supports proper getcwd --
+    if love._os:lower() == "cafe" then
+        local value = exepath:sub(-4) == ".rpx" and "rpx" or "wuhb"
+        local suffix = exepath:match("(.+)%." .. value .. "$")
+        exepath = string.format("wiiu/apps/%s/%s", suffix, exepath)
+    end
+
     no_game_code = false
     invalid_game_path = nil
 

@@ -20,7 +20,7 @@ namespace Wrap_System
 
     int GetVersion(lua_State* L);
 
-    int GetFriendCode(lua_State* L);
+    int GetFriendInfo(lua_State* L);
 
     int GetSystemTheme(lua_State* L);
 

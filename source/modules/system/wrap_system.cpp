@@ -101,9 +101,9 @@ int Wrap_System::GetVersion(lua_State* L)
     return 1;
 }
 
-int Wrap_System::GetFriendCode(lua_State* L)
+int Wrap_System::GetFriendInfo(lua_State* L)
 {
-    auto friendCode = instance()->GetFriendCode();
+    auto friendCode = instance()->GetFriendInfo();
 
     luax::PushString(L, friendCode);
 
@@ -123,7 +123,7 @@ int Wrap_System::GetSystemTheme(lua_State* L)
 static constexpr luaL_Reg functions[] =
 {
     { "getColorTheme",       Wrap_System::GetSystemTheme      },
-    { "getFriendCode",       Wrap_System::GetFriendCode       },
+    { "getFriendInfo",       Wrap_System::GetFriendInfo       },
     { "getPreferredLocales", Wrap_System::GetPreferredLocales },
     { "getModel",            Wrap_System::GetModel            },
     { "getNetworkInfo",      Wrap_System::GetNetworkInfo      },

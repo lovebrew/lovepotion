@@ -23,8 +23,10 @@ void Timer<Console::CAFE>::Sleep(double seconds) const
 {
     if (seconds >= 0)
     {
-        auto time = std::chrono::duration<double>(seconds);
-        OSSleepTicks(OSNanosecondsToTicks(std::chrono::duration<double, std::nano>(time).count()));
+        auto time        = std::chrono::duration<double>(seconds);
+        auto nanoseconds = std::chrono::duration<double, std::nano>(time).count();
+
+        OSSleepTicks(OSNanosecondsToTicks(nanoseconds));
     }
 }
 

@@ -129,7 +129,7 @@ std::string_view System<Console::HAC>::GetModel()
     return name;
 }
 
-std::string_view System<Console::HAC>::GetFriendCode()
+std::string_view System<Console::HAC>::GetFriendInfo()
 {
     if (!this->info.friendCode.empty())
         return this->info.friendCode;
