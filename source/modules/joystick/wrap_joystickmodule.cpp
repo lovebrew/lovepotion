@@ -50,7 +50,7 @@ static constexpr lua_CFunction types[] =
 
 int Wrap_JoystickModule::Register(lua_State* L)
 {
-    ::JoystickModule* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
         luax::CatchException(L, [&]() { instance = new ::JoystickModule(); });
