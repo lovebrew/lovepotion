@@ -12,7 +12,7 @@ namespace love
         template<typename T>
         ResultCode(T result)
         {
-            this->result = result.value;
+            this->result = result.mValue;
         }
         // clang-format on
 

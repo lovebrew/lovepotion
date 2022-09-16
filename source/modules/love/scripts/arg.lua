@@ -72,6 +72,10 @@ function love.path.getFull(p)
     end
 
     local cwd = love.filesystem.getWorkingDirectory()
+    if love._console:lower() == "wii u" then
+        cwd = "wiiu/apps/lovepotion/"
+    end
+
     cwd = love.path.normalslashes(cwd)
     cwd = love.path.endslash(cwd)
 

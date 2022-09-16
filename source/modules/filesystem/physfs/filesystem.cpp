@@ -112,7 +112,7 @@ void Filesystem::Init(const char* arg0)
         }
         case Console::CAFE:
         {
-            result = PHYSFS_init(nullptr);
+            result = PHYSFS_init(arg0);
             break;
         }
     }

@@ -263,7 +263,7 @@ float Joystick<Console::HAC>::GetAxis(int index) const
 
 std::vector<float> Joystick<Console::HAC>::GetAxes() const
 {
-    std::vector<float> axes;
+    std::vector<float> axes {};
     int count = this->GetAxisCount();
 
     if (!this->IsConnected() || count <= 0)

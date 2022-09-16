@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#if defined(__3DS__)
+#if !defined(__SWITCH__)
 std::span<const luaL_Reg> Wrap_Joystick::extension;
 #endif
 

@@ -10,6 +10,7 @@ namespace love
     template<>
     class Joystick<Console::CAFE> : public Joystick<Console::ALL>
     {
+      public:
         Joystick(int id);
 
         Joystick(int id, int index);
@@ -22,6 +23,8 @@ namespace love
 
         bool IsConnected() const;
 
+        void Update(const VPADStatus& status);
+
         bool IsDown(JoystickInput& result);
 
         bool IsUp(JoystickInput& result);
@@ -31,8 +34,6 @@ namespace love
         int GetAxisCount() const;
 
         int GetButtonCount() const;
-
-        void Update();
 
         float GetAxis(int index) const;
 
@@ -69,10 +70,35 @@ namespace love
 
         void GetVibration(float& left, float& right);
 
+        /* VPAD */
+        static bool GetConstant(GamepadButton in, VPADButtons& out);
+        static bool GetConstant(VPADButtons in, GamepadButton& out);
+
+        static bool GetConstant(GamepadAxis in, int32_t& out);
+        static bool GetConstant(int32_t in, GamepadAxis& out);
+
+        /* WPAD */
+        static bool GetConstant(GamepadButton in, WPADButton& out);
+        static bool GetConstant(WPADButton in, GamepadButton& out);
+
+        /* NUNCHUCK */
+        static bool GetConstant(GamepadButton in, WPADNunchukButton& out);
+        static bool GetConstant(WPADNunchukButton in, GamepadButton& out);
+
       private:
-        VPADStatus gamepad;
         KPADStatus kpad;
 
         int playerId;
+        bool isGamepad;
+
+        WPADExtensionType extension;
+
+        struct
+        {
+            uint32_t pressed;
+            uint32_t released;
+            VPADVec2D leftStick;
+            VPADVec2D rightStick;
+        } buttonStates;
     };
 } // namespace love

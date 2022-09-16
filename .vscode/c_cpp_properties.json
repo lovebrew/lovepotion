@@ -48,7 +48,7 @@
       "${env:DEVKITPRO}/portlibs/wiiu/include/**",
       "${env:DEVKITPRO}/portlibs/ppc/include/**"
     ],
-    "cafeDefines": ["__WIIU__", "__OS__=\"Café\"", "__CONSOLE__=\"Wii U\""],
+    "cafeDefines": ["__WIIU__", "__OS__=\"Cafe\"", "__CONSOLE__=\"Wii U\""],
     "cafeCompilerPath": "${env:DEVKITPRO}/devkitPPC/bin/powerpc-eabi-g++"
   },
 

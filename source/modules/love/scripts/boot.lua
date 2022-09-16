@@ -62,19 +62,19 @@ function love.boot()
     love.rawGameArguments = arg
 
     local arg0 = love.arg.getLow(love.rawGameArguments)
+
+    -- todo: remove when wut supports proper getcwd --
+    if love._console:lower() == "wii u" then
+        -- local suffix = exepath:match("(.+)%." .. value .. "$")
+        arg0 = "wiiu/apps/lovepotion/lovepotion.wuhb"
+    end
+
     love.filesystem.init(arg0)
 
     local exepath = love.filesystem.getExecutablePath()
     if #exepath == 0 then
         -- This shouldn't happen, but just in case we'll fall back to arg0.
         exepath = arg0
-    end
-
-    -- todo: remove when wut supports proper getcwd --
-    if love._os:lower() == "cafe" then
-        local value = exepath:sub(-4) == ".rpx" and "rpx" or "wuhb"
-        local suffix = exepath:match("(.+)%." .. value .. "$")
-        exepath = string.format("wiiu/apps/%s/%s", suffix, exepath)
     end
 
     no_game_code = false

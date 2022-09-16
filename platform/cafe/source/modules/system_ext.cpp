@@ -37,7 +37,7 @@ System<>::NetworkState System<Console::CAFE>::GetNetworkInfo(uint8_t& signal) co
     int32_t status     = 0;
     NetworkState state = NetworkState::NETWORK_UNKNOWN;
 
-    R_UNLESS(ACIsApplicationConnected(&status), state);
+    R_UNLESS(ACIsApplicationConnected(&status).value, state);
 
     signal = (status > 0) ? 100 : 0;
     state  = (status > 0) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
@@ -99,7 +99,10 @@ std::string_view System<Console::CAFE>::GetFriendInfo()
     if (!nn::act::IsNetworkAccount())
         return std::string {};
 
-    R_UNLESS(nn::act::GetAccountId(username), std::string {});
+    auto success = nn::act::GetAccountId(username);
+
+    if (!success.IsSuccess())
+        return std::string {};
 
     this->info.friendCode = username;
     return this->info.friendCode;

@@ -25,14 +25,14 @@ bool love::MainLoop<Console::CAFE>(lua_State* L, int numArgs)
 }
 
 template<>
-int love::Quit(lua_State* L)
+int love::Quit<Console::CAFE>(lua_State* L)
 {
     SYSLaunchMenu();
     return 0;
 }
 
 template<>
-int love::Restart(lua_State* L)
+int love::Restart<Console::CAFE>(lua_State* L)
 {
     _SYSLaunchTitleWithStdArgsInNoSplash(OSGetTitleID(), nullptr);
     return 0;
