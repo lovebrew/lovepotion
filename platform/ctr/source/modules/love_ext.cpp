@@ -4,8 +4,24 @@
 
 #include <3ds.h>
 
+using namespace love;
+
 template<>
-bool love::MainLoop<love::Console::CTR>(lua_State* L, int numArgs)
+void love::PreInit<Console::CTR>()
+{}
+
+template<>
+bool love::IsRunningAppletMode<Console::CTR>()
+{
+    return false;
+}
+
+template<>
+bool love::MainLoop<Console::CTR>(lua_State* L, int numArgs)
 {
     return (luax::Resume(L, numArgs) == LUA_YIELD && aptMainLoop());
 }
+
+template<>
+void love::OnExit<Console::CTR>()
+{}

@@ -29,6 +29,12 @@ local love = require("love")
 require("love.arg")
 require("love.callbacks")
 
+local is_debug, log = pcall(require, "love.log")
+local file        = nil
+if is_debug then
+    file = log.new("boot.log")
+end
+
 local function uridecode(s)
     return s:gsub("%%%x%x", function(str)
         return string.char(tonumber(str:sub(2), 16))
@@ -38,20 +44,6 @@ end
 local no_game_code = false
 local invalid_game_path = nil
 local main_file = "main.lua"
-local DEBUG = true
-local write_debug
-
-if DEBUG then
-    local debug_file = io.open("boot.log", "w")
-    local line_trace = 1
-
-    write_debug = function(...)
-        local items = table.concat({ ... }, ", ")
-        debug_file:write(string.format("%d :: " .. items .. "\n", line_trace))
-        debug_file:flush()
-        line_trace = line_trace + 1
-    end
-end
 
 -- This can't be overridden.
 function love.boot()
@@ -66,7 +58,7 @@ function love.boot()
     -- todo: remove when wut supports proper getcwd --
     if love._console:lower() == "wii u" then
         -- local suffix = exepath:match("(.+)%." .. value .. "$")
-        arg0 = "wiiu/apps/lovepotion/lovepotion.wuhb"
+        arg0 = love.path.getFull("lovepotion.wuhb")
     end
 
     love.filesystem.init(arg0)
@@ -422,7 +414,12 @@ end
 local print, debug, tostring = print, debug, tostring
 
 local function error_printer(msg, layer)
-    print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
+    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
+    print(trace)
+
+    if file then
+        file:echo(trace)
+    end
 end
 
 -----------------------------------------------------------
@@ -463,7 +460,9 @@ return function()
 
     while func do
         local _, retval, restartvalue = xpcall(func, deferErrhand)
-        if retval then return retval, restartvalue end
+        if retval then
+            return retval, restartvalue
+        end
         coroutine.yield()
     end
 

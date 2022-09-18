@@ -325,6 +325,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     __APP_VERSION__=\"${VERSION}\" __LOVE_VERSION__=\"${LOVE_VERSION}\"
 )
 
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    __DEBUG__=1
+)
+endif()
+
 # find PkgConfig for liblz4, libmpg123
 find_package(PkgConfig REQUIRED)
 

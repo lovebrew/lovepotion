@@ -398,7 +398,7 @@ static constexpr luaL_Reg functions[] =
     { "newByteData",   Wrap_DataModule::NewByteData },
     { "newDataView",   Wrap_DataModule::NewDataView },
     { "pack",          Wrap_DataModule::Pack        },
-    { "unpack",        Wrap_DataModule::Unpack      },
+    { "unpack",        Wrap_DataModule::Unpack      }
 };
 
 static constexpr lua_CFunction types[] =
@@ -413,7 +413,7 @@ static constexpr lua_CFunction types[] =
 
 int Wrap_DataModule::Register(lua_State* L)
 {
-    DataModule* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
         luax::CatchException(L, [&]() { instance = new DataModule(); });

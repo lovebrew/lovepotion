@@ -10,11 +10,15 @@ using namespace love;
 HID<Console::CAFE>::HID()
 {
     VPADInit();
+    WPADInit();
+    KPADInit();
 }
 
 HID<Console::CAFE>::~HID()
 {
     VPADShutdown();
+    WPADShutdown();
+    KPADShutdown();
 }
 
 bool HID<Console::CAFE>::Poll(LOVE_Event* event)

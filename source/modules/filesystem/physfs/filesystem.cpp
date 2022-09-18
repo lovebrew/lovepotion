@@ -96,28 +96,7 @@ bool Filesystem::IsAppCommonPath(CommonPath path)
 
 void Filesystem::Init(const char* arg0)
 {
-    int result = 0;
-
-    /*
-    ** init physfs on Wii U with nullptr
-    ** this is because arg0 isn't the rpx/wuhb path
-    */
-    switch (Console::Which)
-    {
-        case Console::CTR:
-        case Console::HAC:
-        {
-            result = PHYSFS_init(arg0);
-            break;
-        }
-        case Console::CAFE:
-        {
-            result = PHYSFS_init(arg0);
-            break;
-        }
-    }
-
-    if (result == 0)
+    if (!PHYSFS_init(arg0))
         throw love::Exception("Failed to initialize filesystem: %s", Filesystem::GetLastError());
 
     PHYSFS_setWriteDir(nullptr);
@@ -498,6 +477,9 @@ std::string Filesystem::GetWorkingDirectory()
             this->currentDirectory = cwdInfo;
 
         delete[] cwdInfo;
+
+        if (Console::Is(Console::CAFE))
+            this->currentDirectory = this->currentDirectory + "wiiu/apps/lovepotion";
     }
 
     return this->currentDirectory;

@@ -23,6 +23,11 @@ freely, subject to the following restrictions:
 --]]
 
 local love = require("love")
+local is_debug, log = pcall(require, "love.log")
+local file        = nil
+if is_debug then
+    file = log.new("callbacks.log")
+end
 
 function love.createhandlers()
 
@@ -46,144 +51,144 @@ function love.createhandlers()
             end
         end,
         -- REGION UNUSED --
-        textedited = function (text, start, length)
+        textedited = function(text, start, length)
             if love.textedited then
                 return love.textedited(text, start, length)
             end
         end,
-        mousemoved = function (x, y, dx, dy, isTouch)
+        mousemoved = function(x, y, dx, dy, isTouch)
             if love.mousemoved then
                 return love.mousemoved(x, y, dx, dy, isTouch)
             end
         end,
-        mousepressed = function (x, y, button, isTouch, presses)
+        mousepressed = function(x, y, button, isTouch, presses)
             if love.mousepressed then
                 return love.mousepressed(x, y, button, isTouch, presses)
             end
         end,
-        mousereleased = function (x, y, button, isTouch, presses)
+        mousereleased = function(x, y, button, isTouch, presses)
             if love.mousereleased then
                 return love.mousereleased(x, y, button, isTouch, presses)
             end
         end,
-        wheelmoved = function (x, y)
+        wheelmoved = function(x, y)
             if love.wheelmoved then
                 return love.wheelmoved(x, y)
             end
         end,
         -- END REGION UNUSED
-        touchpressed = function (id, x, y, dx, dy, pressure)
+        touchpressed = function(id, x, y, dx, dy, pressure)
             if love.touchpressed then
                 return love.touchpressed(id, x, y, dx, dy, pressure)
             end
         end,
-        touchreleased = function (id, x, y, dx, dy, pressure)
+        touchreleased = function(id, x, y, dx, dy, pressure)
             if love.touchreleased then
                 return love.touchreleased(id, x, y, dx, dy, pressure)
             end
         end,
-        touchmoved = function (id, x, y, dx, dy, pressure)
+        touchmoved = function(id, x, y, dx, dy, pressure)
             if love.touchmoved then
                 return love.touchmoved(id, x, y, dx, dy, pressure)
             end
         end,
-        joystickpressed = function (joystick, button)
+        joystickpressed = function(joystick, button)
             if love.joystickpressed then
                 return love.joystickpressed(joystick, button)
             end
         end,
-        joystickreleased = function (joystick, button)
+        joystickreleased = function(joystick, button)
             if love.joystickreleased then
                 return love.joystickreleased(joystick, button)
             end
         end,
-        joystickaxis = function (joystick, axis, value)
+        joystickaxis = function(joystick, axis, value)
             if love.joystickaxis then
                 return love.joystickaxis(joystick, axis, value)
             end
         end,
         -- REGION UNIMPLEMENTED --
-        joystickhat = function (joystick, hat, value)
+        joystickhat = function(joystick, hat, value)
             if love.joystickhat then
                 return love.joystickhat(joystick, hat, value)
             end
         end,
         -- END REGION UNIMPLEMENTED --
-        gamepadpressed = function (joystick, button)
+        gamepadpressed = function(joystick, button)
             if love.gamepadpressed then
                 return love.gamepadpressed(joystick, button)
             end
         end,
-        gamepadreleased = function (joystick, button)
+        gamepadreleased = function(joystick, button)
             if love.gamepadreleased then
                 return love.gamepadreleased(joystick, button)
             end
         end,
-        gamepadaxis = function (joystick, axis, value)
+        gamepadaxis = function(joystick, axis, value)
             if love.gamepadaxis then
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
-        joystickadded = function (joystick)
+        joystickadded = function(joystick)
             if love.joystickadded then
                 return love.joystickadded(joystick)
             end
         end,
-        joystickremoved = function (joystick)
+        joystickremoved = function(joystick)
             if love.joystickremoved then
                 return love.joystickremoved(joystick)
             end
         end,
-        focus = function (focused)
+        focus = function(focused)
             if love.focus then
                 return love.focus(focused)
             end
         end,
         -- REGION UNUSED --
-        mousefocus = function (mouseFocused)
+        mousefocus = function(mouseFocused)
             if love.mousefocus then
                 return love.mousefocus(mouseFocused)
             end
         end,
         -- END REGION UNUSED --
-        visible = function (visible)
+        visible = function(visible)
             if love.visible then
                 return love.visible(visible)
             end
         end,
-        quit = function ()
+        quit = function()
             return
         end,
-        threaderror = function (thread, error)
+        threaderror = function(thread, error)
             if love.threaderror then
                 return love.threaderror(thread, error)
             end
         end,
-        resize = function (width, height)
+        resize = function(width, height)
             if love.resize then
                 return love.resize(width, height)
             end
         end,
         -- REGION UNUSED --
-        filedropped = function (file)
+        filedropped = function(file)
             if love.filedropped then
                 return love.filedropped(file)
             end
         end,
-        directorydropped = function (directory)
+        directorydropped = function(directory)
             if love.directorydropped then
                 return love.directorydropped(directory)
             end
         end,
         -- END REGION UNUSED --
-        lowmemory = function ()
+        lowmemory = function()
             if love.lowmemory then
                 love.lowmemory()
             end
             collectgarbage()
             collectgarbage()
         end,
-        displayrotated = function (display, orient)
+        displayrotated = function(display, orient)
             if love.displayrotated then
                 return love.displayrotated(display, orient)
             end
@@ -261,7 +266,7 @@ function love.run()
         normalScreens = love.graphics.getScreens()
 
         if love._console_name == "3DS" then
-            plainScreens = {"top", "bottom"}
+            plainScreens = { "top", "bottom" }
         end
     end
 
@@ -275,12 +280,10 @@ function love.run()
 
             for name, a, b, c, d, e, f in love.event.poll() do
                 if name == "quit" then
-                    love.event.quit_i()
                     if not love.quit or not love.quit() then
                         return a or 0
                     end
                 end
-
                 love.handlers[name](a, b, c, d, e, f)
             end
         end
@@ -319,7 +322,7 @@ end
 local debug, print, tostring, error = debug, print, tostring, error
 
 function love.threaderror(t, err)
-    error("Thread error ("..tostring(t)..")\n\n".. err, 0)
+    error("Thread error (" .. tostring(t) .. ")\n\n" .. err, 0)
 end
 
 local utf8 = require("utf8")
@@ -328,11 +331,8 @@ local function error_printer(msg, layer)
     local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
     print(trace)
 
-    local file = io.open("failure.txt", "w")
     if file then
-        file:write(trace)
-        file:flush()
-        file:close()
+        file:echo(trace)
     end
 end
 
@@ -454,7 +454,7 @@ function love.errorhandler(message)
     local normalScreens = love.graphics.getScreens()
     local plainScreens
     if love._console_name == "3DS" then
-        plainScreens = {"top", "bottom"}
+        plainScreens = { "top", "bottom" }
     end
 
     local function draw()

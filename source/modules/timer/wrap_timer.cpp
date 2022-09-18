@@ -73,7 +73,7 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_Timer::Register(lua_State* L)
 {
-    Timer<Console::Which>* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
         luax::CatchException(L, [&]() { instance = new Timer<Console::Which>(); });

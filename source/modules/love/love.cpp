@@ -21,6 +21,10 @@ static constexpr char nogame_lua[] = {
 #include <scripts/nogame.lua>
 };
 
+static constexpr char logfile_lua[] = {
+#include "scripts/logfile.lua"
+};
+
 #include <modules/data/wrap_data.hpp>
 #include <modules/event/wrap_event.hpp>
 #include <modules/filesystem/wrap_filesystem.hpp>
@@ -43,6 +47,9 @@ static constexpr luaL_Reg modules[] =
     { "love.thread",     Wrap_ThreadModule::Register   },
     { "love.timer",      Wrap_Timer::Register          },
     { "love.touch",      Wrap_Touch::Register          },
+    #if defined(__DEBUG__)
+    { "love.log",        love::LoadLogFile             },
+    #endif
     { "love.arg",        love::LoadArgs                },
     { "love.callbacks",  love::LoadCallbacks           },
     { "love.boot",       love::Boot                    },
@@ -154,6 +161,14 @@ int love::IsVersionCompatible(lua_State* L)
     }
 
     lua_pushboolean(L, false);
+
+    return 1;
+}
+
+int love::LoadLogFile(lua_State* L)
+{
+    if (luaL_loadbuffer(L, logfile_lua, sizeof(logfile_lua), "=[love \"logfile.lua\"]") == 0)
+        lua_call(L, 0, 1);
 
     return 1;
 }

@@ -1,11 +1,10 @@
 #include <modules/timer_ext.hpp>
 
 #include <coreinit/thread.h>
-#include <coreinit/time.h>
 
 using namespace love;
 
-double Timer<Console::CAFE>::reference = 0;
+OSTick Timer<Console::CAFE>::reference = 0;
 
 Timer<Console::CAFE>::Timer()
 {
@@ -15,16 +14,16 @@ Timer<Console::CAFE>::Timer()
 
 double Timer<Console::CAFE>::GetTime()
 {
-    std::chrono::nanoseconds nanosec(OSTicksToNanoseconds(OSGetSystemTick() - Timer::reference));
-    return std::chrono::duration_cast<std::chrono::seconds>(nanosec).count();
+    auto nanoseconds = OSTicksToNanoseconds(OSGetSystemTick() - Timer::reference);
+    return nanoseconds / NANOSECONDS_TO_SECONDS;
 }
 
 void Timer<Console::CAFE>::Sleep(double seconds) const
 {
     if (seconds >= 0)
     {
-        auto time        = std::chrono::duration<double>(seconds);
-        auto nanoseconds = std::chrono::duration<double, std::nano>(time).count();
+        auto milliseconds = seconds * MILLISECONDS;
+        auto nanoseconds  = milliseconds * NANOSECONDS;
 
         OSSleepTicks(OSNanosecondsToTicks(nanoseconds));
     }

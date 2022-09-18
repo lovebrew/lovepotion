@@ -97,7 +97,7 @@ static constexpr lua_CFunction types[] =
 
 int Wrap_ThreadModule::Register(lua_State* L)
 {
-    ThreadModule* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
         luax::CatchException(L, [&]() { instance = new ThreadModule(); });

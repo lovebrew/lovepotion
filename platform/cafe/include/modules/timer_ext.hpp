@@ -2,6 +2,8 @@
 
 #include <modules/timer/timer.tcc>
 
+#include <coreinit/time.h>
+
 namespace love
 {
     template<>
@@ -17,6 +19,11 @@ namespace love
         static double GetTime();
 
       private:
-        static double reference;
+        static constexpr double NANOSECONDS_TO_SECONDS = 1000000000.0;
+
+        static constexpr double NANOSECONDS  = 1000000ULL;
+        static constexpr double MILLISECONDS = 1000.0;
+
+        static OSTick reference;
     };
 } // namespace love

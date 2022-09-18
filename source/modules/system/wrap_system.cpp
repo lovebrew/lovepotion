@@ -137,7 +137,7 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_System::Register(lua_State* L)
 {
-    System<Console::Which>* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
         luax::CatchException(L, [&]() { instance = new System<Console::Which>(); });

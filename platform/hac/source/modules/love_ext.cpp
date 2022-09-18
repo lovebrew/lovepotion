@@ -3,6 +3,16 @@
 
 #include <switch.h>
 
+using namespace love;
+
+template<>
+void love::PreInit<Console::HAC>()
+{}
+
+template<>
+void love::OnExit<Console::HAC>()
+{}
+
 template<>
 bool love::IsRunningAppletMode<love::Console::HAC>()
 {

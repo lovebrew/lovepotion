@@ -138,15 +138,13 @@ int Wrap_Event::Restart(lua_State* L)
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "clear",     Wrap_Event::Clear             },
-    { "poll_i",    poll_i                        },
-    { "pump",      Wrap_Event::Pump              },
-    { "push",      Wrap_Event::Push              },
-    { "quit",      Wrap_Event::Quit              },
-    { "quit_i",    love::Quit<Console::Which>    },
-    { "restart",   Wrap_Event::Restart           },
-    { "restart_i", love::Restart<Console::Which> },
-    { "wait",      Wrap_Event::Wait              }
+    { "clear",     Wrap_Event::Clear   },
+    { "poll_i",    poll_i              },
+    { "pump",      Wrap_Event::Pump    },
+    { "push",      Wrap_Event::Push    },
+    { "quit",      Wrap_Event::Quit    },
+    { "restart",   Wrap_Event::Restart },
+    { "wait",      Wrap_Event::Wait    }
 };
 
 // clang-format on

@@ -11,14 +11,12 @@ namespace love
     };
 
     template<Console::Platform T = Console::ALL>
-    void PreInit()
-    {}
+    void PreInit();
 
     int Initialize(lua_State* L);
 
     template<Console::Platform T = Console::ALL>
-    void OnExit()
-    {}
+    void OnExit();
 
     int LoadArgs(lua_State* L);
 
@@ -28,23 +26,10 @@ namespace love
 
     int NoGame(lua_State* L);
 
-    template<Console::Platform T = Console::ALL>
-    bool IsRunningAppletMode()
-    {
-        return false;
-    }
+    int LoadLogFile(lua_State* L);
 
     template<Console::Platform T = Console::ALL>
-    int Quit(lua_State* L)
-    {
-        return 0;
-    }
-
-    template<Console::Platform T = Console::ALL>
-    int Restart(lua_State* L)
-    {
-        return 0;
-    }
+    bool IsRunningAppletMode();
 
     template<Console::Platform T>
     bool MainLoop(lua_State* L, int numArgs);

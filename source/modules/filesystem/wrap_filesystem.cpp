@@ -842,7 +842,7 @@ static constexpr lua_CFunction types[] =
 
 int Wrap_Filesystem::Register(lua_State* L)
 {
-    Filesystem* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
         luax::CatchException(L, [&]() { instance = new physfs::Filesystem(); });

@@ -44,7 +44,7 @@ static constexpr luaL_Reg functions[] =
 static constexpr lua_CFunction types[] =
 {
     Wrap_Joystick::Register,
-    0
+    nullptr
 };
 // clang-format on
 
