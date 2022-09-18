@@ -7,6 +7,8 @@ using namespace love;
 
 JoystickModule<Console::CAFE>::JoystickModule()
 {
+    WPADInit();
+
     this->AddJoystick(0);
 
     for (size_t index = 0; index < this->AcquireCurrentJoystickIds().size(); index++)
@@ -14,7 +16,9 @@ JoystickModule<Console::CAFE>::JoystickModule()
 }
 
 JoystickModule<Console::CAFE>::~JoystickModule()
-{}
+{
+    WPADShutdown();
+}
 
 std::vector<WPADChan> JoystickModule<Console::CAFE>::AcquireCurrentJoystickIds()
 {

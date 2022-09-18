@@ -95,16 +95,79 @@ bool Joystick<Console::CAFE>::GetConstant(WPADButton in, GamepadButton& out)
 // -----
 /* NUNCHUCK SECTION */
 // clang-format off
-static constexpr auto axes = BidirectionalMap<>::Create(
+static constexpr auto nunchuckAxes = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_AXIS_LEFTX,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_LEFT | WPAD_NUNCHUK_STICK_EMULATION_RIGHT),
     Joystick<>::GAMEPAD_AXIS_LEFTY,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_UP   | WPAD_NUNCHUK_STICK_EMULATION_DOWN),
     Joystick<>::GAMEPAD_AXIS_RIGHTX,       (WPADNunchukButton)-1,
     Joystick<>::GAMEPAD_AXIS_RIGHTY,       (WPADNunchukButton)-1,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (WPADNunchukButton)-1,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (WPADNunchukButton)WPAD_NUNCHUK_BUTTON_Z,
     Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (WPADNunchukButton)-1
 );
 // clang-format on
 /* NUNCHUCK SECTION */
+// -----
+/* CLASSIC CONTROLLER SECTION */
+// clang-format off
+constexpr auto wpadClassicButtons = BidirectionalMap<>::Create(
+    Joystick<>::GAMEPAD_BUTTON_A,             WPAD_CLASSIC_BUTTON_A,
+    Joystick<>::GAMEPAD_BUTTON_B,             WPAD_CLASSIC_BUTTON_B,
+    Joystick<>::GAMEPAD_BUTTON_X,             WPAD_CLASSIC_BUTTON_X,
+    Joystick<>::GAMEPAD_BUTTON_Y,             WPAD_CLASSIC_BUTTON_Y,
+    Joystick<>::GAMEPAD_BUTTON_BACK,          WPAD_CLASSIC_BUTTON_MINUS,
+    Joystick<>::GAMEPAD_BUTTON_GUIDE,         WPAD_CLASSIC_BUTTON_HOME,
+    Joystick<>::GAMEPAD_BUTTON_START,         WPAD_CLASSIC_BUTTON_PLUS,
+    Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  WPAD_CLASSIC_BUTTON_L,
+    Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, WPAD_CLASSIC_BUTTON_R,
+    Joystick<>::GAMEPAD_BUTTON_LEFTSTICK,     (WPADClassicButton)-1,
+    Joystick<>::GAMEPAD_BUTTON_RIGHTSTICK,    (WPADClassicButton)-1,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       WPAD_CLASSIC_BUTTON_UP,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_CLASSIC_BUTTON_DOWN,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_CLASSIC_BUTTON_RIGHT,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_CLASSIC_BUTTON_LEFT
+);
+
+static constexpr auto wpadClassicAxes = BidirectionalMap<>::Create(
+    Joystick<>::GAMEPAD_AXIS_LEFTX,        (int32_t)(WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT),
+    Joystick<>::GAMEPAD_AXIS_LEFTY,        (int32_t)(WPAD_CLASSIC_STICK_L_EMULATION_UP   | WPAD_CLASSIC_STICK_L_EMULATION_DOWN),
+    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (int32_t)(WPAD_CLASSIC_STICK_R_EMULATION_LEFT | WPAD_CLASSIC_STICK_R_EMULATION_RIGHT),
+    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (int32_t)(WPAD_CLASSIC_STICK_R_EMULATION_UP   | WPAD_CLASSIC_STICK_R_EMULATION_DOWN),
+    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (int32_t)WPAD_CLASSIC_BUTTON_ZL,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (int32_t)WPAD_CLASSIC_BUTTON_ZR
+);
+// clang-format on
+/* CLASSIC CONTROLLER SECTION */
+//-----
+/* PRO CONTROLLER SECTION */
+// clang-format off
+constexpr auto wpadProButtons = BidirectionalMap<>::Create(
+    Joystick<>::GAMEPAD_BUTTON_A,             WPAD_PRO_BUTTON_A,
+    Joystick<>::GAMEPAD_BUTTON_B,             WPAD_PRO_BUTTON_B,
+    Joystick<>::GAMEPAD_BUTTON_X,             WPAD_PRO_BUTTON_X,
+    Joystick<>::GAMEPAD_BUTTON_Y,             WPAD_PRO_BUTTON_Y,
+    Joystick<>::GAMEPAD_BUTTON_BACK,          WPAD_PRO_BUTTON_MINUS,
+    Joystick<>::GAMEPAD_BUTTON_GUIDE,         WPAD_PRO_BUTTON_HOME,
+    Joystick<>::GAMEPAD_BUTTON_START,         WPAD_PRO_BUTTON_PLUS,
+    Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  WPAD_PRO_TRIGGER_L,
+    Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, WPAD_PRO_TRIGGER_R,
+    Joystick<>::GAMEPAD_BUTTON_LEFTSTICK,     WPAD_PRO_BUTTON_STICK_L,
+    Joystick<>::GAMEPAD_BUTTON_RIGHTSTICK,    WPAD_PRO_BUTTON_STICK_R,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       WPAD_PRO_BUTTON_UP,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_PRO_BUTTON_DOWN,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_PRO_BUTTON_RIGHT,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_PRO_BUTTON_LEFT
+);
+
+
+static constexpr auto wpadProAxes = BidirectionalMap<>::Create(
+    Joystick<>::GAMEPAD_AXIS_LEFTX,        (int32_t)(WPAD_PRO_STICK_L_EMULATION_LEFT | WPAD_PRO_STICK_L_EMULATION_RIGHT),
+    Joystick<>::GAMEPAD_AXIS_LEFTY,        (int32_t)(WPAD_PRO_STICK_L_EMULATION_UP   | WPAD_PRO_STICK_L_EMULATION_DOWN),
+    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (int32_t)(WPAD_PRO_STICK_R_EMULATION_LEFT | WPAD_PRO_STICK_R_EMULATION_RIGHT),
+    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (int32_t)(WPAD_PRO_STICK_R_EMULATION_UP   | WPAD_PRO_STICK_R_EMULATION_DOWN),
+    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (int32_t)WPAD_PRO_TRIGGER_ZL,
+    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (int32_t)WPAD_PRO_TRIGGER_ZR
+);
+// clang-format on
+/* PRO CONTROLLER SECTION */
 
 Joystick<Console::CAFE>::Joystick(int id) : kpad {}, isGamepad(false), buttonStates {}
 {
@@ -196,6 +259,12 @@ int Joystick<Console::CAFE>::GetButtonCount() const
     /* todo: other types */
     switch (this->GetGamepadType())
     {
+        case guid::GAMEPAD_TYPE_WII_CLASSIC:
+        case guid::GAMEPAD_TYPE_WII_PRO:
+            return 12;
+        case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+        case guid::GAMEPAD_TYPE_WII_REMOTE:
+            return 6;
         default:
             break;
     }
@@ -210,17 +279,100 @@ void Joystick<Console::CAFE>::Update(const VPADStatus& status)
         this->buttonStates.pressed  = status.trigger;
         this->buttonStates.released = status.release;
 
-        this->buttonStates.leftStick  = status.leftStick;
-        this->buttonStates.rightStick = status.rightStick;
+        this->buttonStates.leftStick  = { status.leftStick.x, status.leftStick.y };
+        this->buttonStates.rightStick = { status.rightStick.x, status.rightStick.y };
+
+        this->buttonStates.leftTrigger  = VPAD_BUTTON_ZL;
+        this->buttonStates.rightTrigger = VPAD_BUTTON_ZR;
     }
     else
     {
         KPADRead((WPADChan)(this->playerId - 1), &this->kpad, 1);
 
-        /* todo: handle other types */
         this->buttonStates.pressed  = this->kpad.trigger;
         this->buttonStates.released = this->kpad.release;
+
+        this->buttonStates.leftTrigger  = -1;
+        this->buttonStates.rightTrigger = -1;
+
+        switch (this->GetGamepadType())
+        {
+            case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+            {
+                this->buttonStates.extension.pressed  = this->kpad.nunchuck.trigger;
+                this->buttonStates.extension.released = this->kpad.nunchuck.trigger;
+
+                this->buttonStates.leftStick = { this->kpad.nunchuck.stick.x,
+                                                 this->kpad.nunchuck.stick.y };
+
+                this->buttonStates.leftTrigger = WPAD_NUNCHUK_BUTTON_Z;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_CLASSIC:
+            {
+                this->buttonStates.extension.pressed  = this->kpad.classic.trigger;
+                this->buttonStates.extension.released = this->kpad.classic.release;
+
+                this->buttonStates.leftStick = { this->kpad.classic.leftStick.x,
+                                                 this->kpad.classic.leftStick.y };
+
+                this->buttonStates.rightStick = { this->kpad.classic.rightStick.x,
+                                                  this->kpad.classic.rightStick.y };
+
+                this->buttonStates.leftTrigger  = WPAD_CLASSIC_BUTTON_ZL;
+                this->buttonStates.rightTrigger = WPAD_CLASSIC_BUTTON_ZR;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_PRO:
+            {
+                this->buttonStates.extension.pressed  = this->kpad.pro.trigger;
+                this->buttonStates.extension.released = this->kpad.pro.release;
+
+                this->buttonStates.leftStick = { this->kpad.pro.leftStick.x,
+                                                 this->kpad.pro.leftStick.y };
+
+                this->buttonStates.rightStick = { this->kpad.pro.rightStick.x,
+                                                  this->kpad.pro.rightStick.y };
+
+                this->buttonStates.leftTrigger  = WPAD_PRO_TRIGGER_ZL;
+                this->buttonStates.rightTrigger = WPAD_PRO_TRIGGER_ZR;
+
+                break;
+            }
+            default:
+                break;
+        }
     }
+}
+
+static bool IsChangedInternal(const auto& entriesList, int32_t state,
+                              Joystick<>::JoystickInput& result)
+{
+    const auto& entries = entriesList.GetEntries();
+
+    int32_t button = -1;
+
+    for (size_t index = 0; index < entries.second; index++)
+    {
+        button = entries.first[index].second;
+
+        if (entries.first[index].second == -1)
+            continue;
+
+        if (button & state)
+        {
+            state ^= button;
+            result = { .type         = Joystick<>::InputType::INPUT_TYPE_BUTTON,
+                       .button       = entries.first[index].first,
+                       .buttonNumber = (int)index };
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool Joystick<Console::CAFE>::IsDown(JoystickInput& result)
@@ -231,25 +383,20 @@ bool Joystick<Console::CAFE>::IsDown(JoystickInput& result)
     if (!this->buttonStates.pressed)
         return false;
 
-    const auto entries = vpadButtons.GetEntries();
-    int32_t button     = -1;
-
-    for (size_t index = 0; index < entries.second; index++)
+    switch (this->GetGamepadType())
     {
-        button = entries.first[index].second;
-
-        if (entries.first[index].second == -1)
-            continue;
-
-        if (button & this->buttonStates.pressed)
-        {
-            this->buttonStates.pressed ^= button;
-            result = { .type         = InputType::INPUT_TYPE_BUTTON,
-                       .button       = entries.first[index].first,
-                       .buttonNumber = (int)index };
-
-            return true;
-        }
+        case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
+        default:
+            return IsChangedInternal(vpadButtons, this->buttonStates.pressed, result);
+        case guid::GAMEPAD_TYPE_WII_REMOTE:
+            return IsChangedInternal(wpadButtons, this->buttonStates.pressed, result);
+        case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+            return IsChangedInternal(wpadButtons, this->buttonStates.pressed, result);
+        case guid::GAMEPAD_TYPE_WII_CLASSIC:
+            return IsChangedInternal(wpadClassicButtons, this->buttonStates.extension.pressed,
+                                     result);
+        case guid::GAMEPAD_TYPE_WII_PRO:
+            return IsChangedInternal(wpadProButtons, this->buttonStates.extension.pressed, result);
     }
 
     return false;
@@ -260,28 +407,23 @@ bool Joystick<Console::CAFE>::IsUp(JoystickInput& result)
     if (!this->IsConnected())
         return false;
 
-    if (!this->buttonStates.released)
+    if (!this->buttonStates.pressed)
         return false;
 
-    const auto entries = vpadButtons.GetEntries();
-    int32_t button     = -1;
-
-    for (size_t index = 0; index < entries.second; index++)
+    switch (this->GetGamepadType())
     {
-        button = entries.first[index].second;
-
-        if (entries.first[index].second == -1)
-            continue;
-
-        if (button & this->buttonStates.released)
-        {
-            this->buttonStates.released ^= button;
-            result = { .type         = InputType::INPUT_TYPE_BUTTON,
-                       .button       = entries.first[index].first,
-                       .buttonNumber = (int)index };
-
-            return true;
-        }
+        case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
+        default:
+            return IsChangedInternal(vpadButtons, this->buttonStates.released, result);
+        case guid::GAMEPAD_TYPE_WII_REMOTE:
+            return IsChangedInternal(wpadButtons, this->buttonStates.released, result);
+        case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+            return IsChangedInternal(wpadButtons, this->buttonStates.released, result);
+        case guid::GAMEPAD_TYPE_WII_CLASSIC:
+            return IsChangedInternal(wpadClassicButtons, this->buttonStates.extension.released,
+                                     result);
+        case guid::GAMEPAD_TYPE_WII_PRO:
+            return IsChangedInternal(wpadProButtons, this->buttonStates.extension.released, result);
     }
 
     return false;
@@ -292,43 +434,36 @@ float Joystick<Console::CAFE>::GetAxis(int index) const
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    if (this->isGamepad)
+    if (index == 1 || index == 2)
     {
-        if (index == 1 || index == 2)
-        {
-            auto stickState = this->buttonStates.leftStick;
+        auto stickState = this->buttonStates.leftStick;
 
-            float value = (index == 1) ? stickState.x : stickState.y;
-            return value;
-        }
-        else if (index == 3 || index == 4)
-        {
-            auto stickState = this->buttonStates.rightStick;
-
-            float value = (index == 1) ? stickState.x : stickState.y;
-            return value;
-        }
-        else if (index == 5)
-        {
-            if (this->buttonStates.pressed & VPAD_BUTTON_ZL)
-                return 1.0f;
-
-            return 0.0f;
-        }
-        else if (index == 6)
-        {
-            if (this->buttonStates.pressed & VPAD_BUTTON_ZR)
-                return 1.0f;
-
-            return 0.0f;
-        }
-        else /* todo: handle gyro/accel */
-        {}
+        float value = (index == 1) ? stickState.x : stickState.y;
+        return value;
     }
-    else
+    else if (index == 3 || index == 4)
     {
-        /* todo: handle others */
+        auto stickState = this->buttonStates.rightStick;
+
+        float value = (index == 1) ? stickState.x : stickState.y;
+        return value;
     }
+    else if (index == 5)
+    {
+        if (this->buttonStates.pressed & this->buttonStates.leftTrigger)
+            return 1.0f;
+
+        return 0.0f;
+    }
+    else if (index == 6)
+    {
+        if (this->buttonStates.pressed & this->buttonStates.rightTrigger)
+            return 1.0f;
+
+        return 0.0f;
+    }
+    else /* todo: handle gyro/accel */
+    {}
 
     return 0.0f;
 }

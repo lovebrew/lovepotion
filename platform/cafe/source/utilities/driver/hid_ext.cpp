@@ -1,8 +1,6 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
-#include <utilities/log/logfile.h>
-
 #define Module() Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK)
 
 using namespace love;
@@ -10,14 +8,12 @@ using namespace love;
 HID<Console::CAFE>::HID()
 {
     VPADInit();
-    WPADInit();
     KPADInit();
 }
 
 HID<Console::CAFE>::~HID()
 {
     VPADShutdown();
-    WPADShutdown();
     KPADShutdown();
 }
 
@@ -80,19 +76,15 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
         if (this->touchHeld)
             this->touchHeld = false;
     }
-    LOG("Checking Module(): %d", Module() != nullptr);
 
     if (Module())
     {
-        LOG("Module!", index);
         for (size_t index = 0; index < Module()->GetJoystickCount(); index++)
         {
-            LOG("Joystick %zu", index);
             auto* joystick = Module()->GetJoystickFromId(index);
 
             if (joystick)
             {
-                LOG("Joystick!");
                 joystick->Update(this->vpad);
                 Joystick<>::JoystickInput input {};
 

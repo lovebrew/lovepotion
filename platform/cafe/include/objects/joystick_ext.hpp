@@ -93,12 +93,28 @@ namespace love
 
         WPADExtensionType extension;
 
+        struct StickAxis
+        {
+            float x;
+            float y;
+        };
+
         struct
         {
             uint32_t pressed;
             uint32_t released;
-            VPADVec2D leftStick;
-            VPADVec2D rightStick;
+
+            struct
+            {
+                uint32_t pressed;
+                uint32_t released;
+            } extension;
+
+            StickAxis leftStick;
+            StickAxis rightStick;
+
+            int32_t leftTrigger;
+            int32_t rightTrigger;
         } buttonStates;
     };
 } // namespace love
