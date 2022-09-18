@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Build
-        run: /opt/devkitpro/portlibs/switch/bin/powerpc-eabi-cmake -S . -B build ; make -C build
+        run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build ; make -C build
 
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
