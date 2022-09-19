@@ -9,7 +9,6 @@
 #include <whb/proc.h>
 
 #include <sysapp/launch.h>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

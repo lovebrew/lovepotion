@@ -1,5 +1,4 @@
 #include <objects/joystick/wrap_joystick.hpp>
-#include <utilities/log/logfile.h>
 #include <utilities/npad.hpp>
 
 using namespace love;

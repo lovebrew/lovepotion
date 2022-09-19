@@ -4,8 +4,6 @@
 #include <utilities/result.hpp>
 #include <utilities/wpad.hpp>
 
-#include <utilities/log/logfile.h>
-
 using namespace love;
 
 template<>

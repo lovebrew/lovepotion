@@ -18,15 +18,19 @@ namespace love
             return instance;
         }
 
-        HID() : touchHeld(false), hysteresis(false), events()
+        HID() : touchHeld(false), hysteresis(false), focused(false), events()
         {}
 
         void SendFocus(bool focus)
         {
+            if (this->focused == focus)
+                return;
+
             auto& event = this->events.emplace_back();
 
             event.type    = TYPE_WINDOW;
             event.subType = (focus) ? SUBTYPE_FOCUS_GAINED : SUBTYPE_FOCUS_LOST;
+            this->focused = focus;
         }
 
         void SendLowMemory()
@@ -79,6 +83,7 @@ namespace love
       protected:
         bool touchHeld;
         bool hysteresis;
+        bool focused;
 
         std::list<LOVE_Event> events;
     };

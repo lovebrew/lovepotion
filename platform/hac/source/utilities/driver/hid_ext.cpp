@@ -1,8 +1,6 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
-#include <utilities/log/logfile.h>
-
 using namespace love;
 
 #define Module() Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK)

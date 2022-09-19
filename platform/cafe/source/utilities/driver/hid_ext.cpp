@@ -3,6 +3,8 @@
 
 #include <proc_ui/procui.h>
 
+#include <utilities/log/logfile.h>
+
 #define Module() Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK)
 
 using namespace love;
@@ -21,8 +23,7 @@ HID<Console::CAFE>::~HID()
 
 void HID<Console::CAFE>::CheckFocus()
 {
-    bool focused = (ProcUIInForeground() == true);
-    auto status  = ProcUIProcessMessages(true);
+    const auto status = ProcUIProcessMessages(true);
 
     if (status == PROCUI_STATUS_EXITING)
     {
@@ -33,17 +34,17 @@ void HID<Console::CAFE>::CheckFocus()
     switch (status)
     {
         case PROCUI_STATUS_IN_FOREGROUND:
-        case PROCUI_STATUS_IN_BACKGROUND:
         {
-            bool oldFocus = focused;
-            focused       = (ProcUIInForeground() == true);
-
-            if (oldFocus == focused)
-                break;
-
-            this->SendFocus(focused);
+            this->SendFocus(true);
             break;
         }
+        case PROCUI_STATUS_RELEASE_FOREGROUND:
+        {
+            this->SendFocus(false);
+            break;
+        }
+        default:
+            break;
     }
 }
 

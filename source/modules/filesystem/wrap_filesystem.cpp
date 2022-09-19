@@ -8,7 +8,6 @@
 #include <objects/file/wrap_file.hpp>
 
 #include <filesystem>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

@@ -8,8 +8,6 @@
 
 #include <mutex>
 
-#include <utilities/log/logfile.h>
-
 using namespace love;
 
 using HID            = love::HID<Console::Which>;

@@ -7,8 +7,6 @@ using namespace love;
 
 static aptHookCookie s_aptHookCookie;
 
-#include <utilities/log/logfile.h>
-
 static void aptEventHook(const APT_HookType type, void* parameter)
 {
     auto driver = HID<Console::CTR>::Instance();
@@ -64,9 +62,9 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
 
     /* touch screen */
 
-    u32 touchDown     = hidKeysDown();
-    u32 touchHeld     = hidKeysHeld();
-    u32 touchReleased = hidKeysUp();
+    uint32_t touchDown     = hidKeysDown();
+    uint32_t touchHeld     = hidKeysHeld();
+    uint32_t touchReleased = hidKeysUp();
 
     if (touchDown & KEY_TOUCH || touchHeld & KEY_TOUCH)
         hidTouchRead(&this->touchState.current);
