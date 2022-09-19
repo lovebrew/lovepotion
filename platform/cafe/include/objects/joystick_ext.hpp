@@ -23,7 +23,7 @@ namespace love
 
         bool IsConnected() const;
 
-        void Update(const VPADStatus& status);
+        void Update();
 
         bool IsDown(JoystickInput& result);
 
@@ -70,6 +70,8 @@ namespace love
 
         void GetVibration(float& left, float& right);
 
+        VPADTouchData GetTouchData() const;
+
         /* VPAD */
         static bool GetConstant(GamepadButton in, VPADButtons& out);
         static bool GetConstant(VPADButtons in, GamepadButton& out);
@@ -86,6 +88,7 @@ namespace love
         static bool GetConstant(WPADNunchukButton in, GamepadButton& out);
 
       private:
+        VPADStatus vpad;
         KPADStatus kpad;
 
         int playerId;
@@ -101,13 +104,13 @@ namespace love
 
         struct
         {
-            uint32_t pressed;
-            uint32_t released;
+            int32_t pressed;
+            int32_t released;
 
             struct
             {
-                uint32_t pressed;
-                uint32_t released;
+                int32_t pressed;
+                int32_t released;
             } extension;
 
             StickAxis leftStick;

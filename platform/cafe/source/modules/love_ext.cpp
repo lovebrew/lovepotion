@@ -4,6 +4,8 @@
 
 #include <coreinit/debug.h>
 #include <coreinit/title.h>
+#include <proc_ui/procui.h>
+
 #include <whb/proc.h>
 
 #include <sysapp/launch.h>
@@ -26,20 +28,19 @@ bool love::IsRunningAppletMode<Console::CAFE>()
 template<>
 bool love::MainLoop<Console::CAFE>(lua_State* L, int numArgs)
 {
-    int resume = luax::Resume(L, numArgs);
-    OSReport("lua_resume returned: %d, WHBProcIsRunning: %d", resume, WHBProcIsRunning());
-    return (resume == LUA_YIELD && WHBProcIsRunning());
+    return (luax::Resume(L, numArgs) == LUA_YIELD && WHBProcIsRunning());
 }
 
 template<>
 void love::OnExit<Console::CAFE>()
 {
-    if (WHBProcIsRunning())
+    if (ProcUIIsRunning())
     {
         SYSLaunchMenu();
         while (WHBProcIsRunning())
         {}
     }
 
-    WHBProcShutdown();
+    if (!ProcUIInShutdown())
+        WHBProcShutdown();
 }

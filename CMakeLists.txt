@@ -4,12 +4,7 @@ cmake_minimum_required(VERSION 3.13)
 project(lovepotion LANGUAGES C CXX ASM)
 add_executable(${PROJECT_NAME})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-
-set(LOVE_VERSION "11.4.0")
-set(APP_VERSION  "3.0.0")
-
-set(APP_TITLE  "LÖVE Potion")
-set(APP_AUTHOR "LÖVEBrew Team")
+message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 # Generate symbol list and map information (useful for debugging)
 dkp_target_generate_symbol_list(${PROJECT_NAME})
@@ -23,6 +18,16 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
+
+set(LOVE_VERSION "11.4.0")
+set(APP_VERSION  "3.0.0")
+
+set(APP_TITLE  "LÖVE Potion")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(APP_TITLE "LÖVE Potion (${COMMIT_HASH})")
+endif()
+
+set(APP_AUTHOR "LÖVEBrew Team")
 
 # arm-none-eabi-cmake
 if(NINTENDO_3DS)
@@ -68,7 +73,7 @@ if(NINTENDO_SWITCH)
     )
 
     nx_generate_nacp(${PROJECT_NAME}.nacp
-        NAME    ${PROJECT_NAME}
+        NAME    "${APP_TITLE}"
         AUTHOR  ${APP_AUTHOR}
         VERSION ${APP_VERSION}
     )
@@ -111,13 +116,13 @@ if (NINTENDO_WIIU)
     wut_create_rpx(${PROJECT_NAME})
 
     wut_create_wuhb(${PROJECT_NAME}
-        NAME       "${PROJECT_NAME}"
+        NAME       "${APP_TITLE}"
 
         # Bundle a content folder (optional)
         #CONTENT    ${PROJECT_NAME}_content
 
         # Other options available:
-        SHORTNAME  "${PROJECT_NAME}"
+        SHORTNAME  "${APP_TITLE}"
         AUTHOR     ${APP_AUTHOR}
         ICON       ${APP_ICON}
         #TVSPLASH   myTvSplash.png

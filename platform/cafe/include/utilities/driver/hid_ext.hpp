@@ -23,6 +23,8 @@ namespace love
       private:
         HID();
 
+        void CheckFocus();
+
         VPADStatus vpad;
         VPADTouchData previousTouch;
     };

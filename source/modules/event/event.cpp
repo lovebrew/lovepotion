@@ -25,6 +25,7 @@ Message* love::Event::Convert(const LOVE_Event& event)
     switch (event.type)
     {
         case TYPE_GENERAL:
+            message = this->ConvertGeneralEvent(event, args);
             break;
         case TYPE_GAMEPAD:
             message = this->ConvertJoystickEvent(event, args);
@@ -33,10 +34,54 @@ Message* love::Event::Convert(const LOVE_Event& event)
             message = this->ConvertTouchEvent(event, args);
             break;
         case TYPE_WINDOW:
+            message = this->ConvertWindowEvent(event, args);
+            break;
+        default:
             break;
     }
 
     return message;
+}
+
+Message* love::Event::ConvertGeneralEvent(const LOVE_Event& event, std::vector<Variant>& args)
+{
+    Message* result = nullptr;
+
+    switch (event.subType)
+    {
+        case SUBTYPE_QUIT:
+            result = new Message("quit");
+            break;
+        case SUBTYPE_LOWMEMORY:
+            result = new Message("lovememory");
+            break;
+        default:
+            break;
+    }
+
+    return result;
+}
+
+Message* love::Event::ConvertWindowEvent(const LOVE_Event& event, std::vector<Variant>& args)
+{
+    // auto* windowModule = (::WindowModule*)Module::GetInstance<::WindowModule>(M_WINDOW);
+    Message* result = nullptr;
+
+    switch (event.subType)
+    {
+        case SUBTYPE_FOCUS_GAINED:
+        case SUBTYPE_FOCUS_LOST:
+        {
+            args.emplace_back(event.subType == SUBTYPE_FOCUS_GAINED);
+
+            result = new Message("focus", args);
+            break;
+        }
+        default:
+            break;
+    }
+
+    return result;
 }
 
 Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<Variant>& args)

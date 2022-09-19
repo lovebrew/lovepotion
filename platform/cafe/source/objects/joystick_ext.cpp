@@ -169,7 +169,7 @@ static constexpr auto wpadProAxes = BidirectionalMap<>::Create(
 // clang-format on
 /* PRO CONTROLLER SECTION */
 
-Joystick<Console::CAFE>::Joystick(int id) : kpad {}, isGamepad(false), buttonStates {}
+Joystick<Console::CAFE>::Joystick(int id) : vpad {}, kpad {}, isGamepad(false), buttonStates {}
 {
     this->instanceId = -1;
     this->id         = id;
@@ -192,10 +192,10 @@ bool Joystick<Console::CAFE>::Open(int index)
     this->instanceId = index;
     this->playerId   = index;
 
+    this->isGamepad = (index == 0);
+
     this->guid = guid::GetDeviceGUID(this->GetGamepadType());
     this->name = guid::GetDeviceName(this->GetGamepadType());
-
-    this->isGamepad = (index == 0);
 
     if (!this->isGamepad)
         WPADProbe((WPADChan)(index - 1), &this->extension);
@@ -272,22 +272,32 @@ int Joystick<Console::CAFE>::GetButtonCount() const
     return 0;
 }
 
-void Joystick<Console::CAFE>::Update(const VPADStatus& status)
+void Joystick<Console::CAFE>::Update()
 {
     if (this->isGamepad)
     {
-        this->buttonStates.pressed  = status.trigger;
-        this->buttonStates.released = status.release;
-
-        this->buttonStates.leftStick  = { status.leftStick.x, status.leftStick.y };
-        this->buttonStates.rightStick = { status.rightStick.x, status.rightStick.y };
+        VPADReadError error {};
+        VPADRead(VPAD_CHAN_0, &this->vpad, 1, &error);
 
         this->buttonStates.leftTrigger  = VPAD_BUTTON_ZL;
         this->buttonStates.rightTrigger = VPAD_BUTTON_ZR;
+
+        if (error == VPAD_READ_NO_SAMPLES)
+            return;
+
+        this->buttonStates.pressed  = this->vpad.trigger;
+        this->buttonStates.released = this->vpad.release;
+
+        this->buttonStates.leftStick  = { this->vpad.leftStick.x, this->vpad.leftStick.y };
+        this->buttonStates.rightStick = { this->vpad.rightStick.x, this->vpad.rightStick.y };
     }
     else
     {
-        KPADRead((WPADChan)(this->playerId - 1), &this->kpad, 1);
+        KPADError error {};
+        KPADReadEx((WPADChan)(this->playerId - 1), &this->kpad, 1, &error);
+
+        if (error == KPAD_ERROR_NO_SAMPLES)
+            return;
 
         this->buttonStates.pressed  = this->kpad.trigger;
         this->buttonStates.released = this->kpad.release;
@@ -347,23 +357,31 @@ void Joystick<Console::CAFE>::Update(const VPADStatus& status)
     }
 }
 
-static bool IsChangedInternal(const auto& entriesList, int32_t state,
+VPADTouchData Joystick<Console::CAFE>::GetTouchData() const
+{
+    if (this->isGamepad)
+        return this->vpad.tpNormal;
+
+    return VPADTouchData { .x = 0, .y = 0, .touched = 0, .validity = 0 };
+}
+
+static bool IsChangedInternal(const auto& buttons, int32_t& buttonState,
                               Joystick<>::JoystickInput& result)
 {
-    const auto& entries = entriesList.GetEntries();
+    const auto& entries = buttons.GetEntries();
 
     int32_t button = -1;
 
     for (size_t index = 0; index < entries.second; index++)
     {
-        button = entries.first[index].second;
+        button = (int32_t)entries.first[index].second;
 
-        if (entries.first[index].second == -1)
+        if (button == (int32_t)-1)
             continue;
 
-        if (button & state)
+        if (button & buttonState)
         {
-            state ^= button;
+            buttonState ^= button;
             result = { .type         = Joystick<>::InputType::INPUT_TYPE_BUTTON,
                        .button       = entries.first[index].first,
                        .buttonNumber = (int)index };
@@ -380,13 +398,12 @@ bool Joystick<Console::CAFE>::IsDown(JoystickInput& result)
     if (!this->IsConnected())
         return false;
 
-    if (!this->buttonStates.pressed)
+    if (!this->buttonStates.pressed && !this->buttonStates.extension.pressed)
         return false;
 
     switch (this->GetGamepadType())
     {
         case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
-        default:
             return IsChangedInternal(vpadButtons, this->buttonStates.pressed, result);
         case guid::GAMEPAD_TYPE_WII_REMOTE:
             return IsChangedInternal(wpadButtons, this->buttonStates.pressed, result);
@@ -397,6 +414,8 @@ bool Joystick<Console::CAFE>::IsDown(JoystickInput& result)
                                      result);
         case guid::GAMEPAD_TYPE_WII_PRO:
             return IsChangedInternal(wpadProButtons, this->buttonStates.extension.pressed, result);
+        default:
+            break;
     }
 
     return false;
@@ -407,13 +426,12 @@ bool Joystick<Console::CAFE>::IsUp(JoystickInput& result)
     if (!this->IsConnected())
         return false;
 
-    if (!this->buttonStates.pressed)
+    if (!this->buttonStates.released && !this->buttonStates.extension.released)
         return false;
 
     switch (this->GetGamepadType())
     {
         case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
-        default:
             return IsChangedInternal(vpadButtons, this->buttonStates.released, result);
         case guid::GAMEPAD_TYPE_WII_REMOTE:
             return IsChangedInternal(wpadButtons, this->buttonStates.released, result);
@@ -424,6 +442,8 @@ bool Joystick<Console::CAFE>::IsUp(JoystickInput& result)
                                      result);
         case guid::GAMEPAD_TYPE_WII_PRO:
             return IsChangedInternal(wpadProButtons, this->buttonStates.extension.released, result);
+        default:
+            break;
     }
 
     return false;

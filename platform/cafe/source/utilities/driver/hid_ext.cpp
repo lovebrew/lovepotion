@@ -1,6 +1,8 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
+#include <proc_ui/procui.h>
+
 #define Module() Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK)
 
 using namespace love;
@@ -17,6 +19,34 @@ HID<Console::CAFE>::~HID()
     KPADShutdown();
 }
 
+void HID<Console::CAFE>::CheckFocus()
+{
+    bool focused = (ProcUIInForeground() == true);
+    auto status  = ProcUIProcessMessages(true);
+
+    if (status == PROCUI_STATUS_EXITING)
+    {
+        this->SendQuit();
+        return;
+    }
+
+    switch (status)
+    {
+        case PROCUI_STATUS_IN_FOREGROUND:
+        case PROCUI_STATUS_IN_BACKGROUND:
+        {
+            bool oldFocus = focused;
+            focused       = (ProcUIInForeground() == true);
+
+            if (oldFocus == focused)
+                break;
+
+            this->SendFocus(focused);
+            break;
+        }
+    }
+}
+
 bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 {
     if (!this->events.empty())
@@ -30,62 +60,99 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
     if (this->hysteresis)
         return this->hysteresis = false;
 
-    VPADReadError error {};
-    VPADRead(VPAD_CHAN_0, &this->vpad, 1, &error);
+    this->CheckFocus();
 
-    if (this->vpad.tpNormal.touched)
+    if (Module())
     {
-        auto& newEvent = this->events.emplace_back();
+        auto* joystick = Module()->GetJoystickFromId(0);
 
-        newEvent.type = TYPE_TOUCH;
+        if (joystick)
+        {
+            joystick->Update();
 
-        uint16_t dx = this->previousTouch.x - this->vpad.tpNormal.x;
-        uint16_t dy = this->previousTouch.y - this->vpad.tpNormal.y;
+            const auto tpNormal = joystick->GetTouchData();
 
-        if (dx == 0 && dy == 0)
-            newEvent.subType = SUBTYPE_TOUCHPRESS;
-        else
-            newEvent.subType = SUBTYPE_TOUCHMOVED;
+            if (tpNormal.touched)
+            {
+                auto& newEvent = this->events.emplace_back();
 
-        newEvent.touchFinger.id       = 0;
-        newEvent.touchFinger.x        = this->vpad.tpNormal.x;
-        newEvent.touchFinger.y        = this->vpad.tpNormal.y;
-        newEvent.touchFinger.dx       = dx;
-        newEvent.touchFinger.dy       = dy;
-        newEvent.touchFinger.pressure = 1.0f;
+                newEvent.type = TYPE_TOUCH;
 
-        this->touchHeld     = true;
-        this->previousTouch = this->vpad.tpNormal;
-    }
+                uint16_t dx = this->previousTouch.x - tpNormal.x;
+                uint16_t dy = this->previousTouch.y - tpNormal.y;
 
-    if (!this->vpad.tpNormal.touched && this->touchHeld)
-    {
-        auto& newEvent      = this->events.emplace_back();
-        this->previousTouch = this->vpad.tpNormal;
+                if (dx == 0 && dy == 0)
+                    newEvent.subType = SUBTYPE_TOUCHPRESS;
+                else
+                    newEvent.subType = SUBTYPE_TOUCHMOVED;
 
-        newEvent.type    = TYPE_TOUCH;
-        newEvent.subType = SUBTYPE_TOUCHRELEASE;
+                newEvent.touchFinger.id       = 0;
+                newEvent.touchFinger.x        = tpNormal.x;
+                newEvent.touchFinger.y        = tpNormal.y;
+                newEvent.touchFinger.dx       = dx;
+                newEvent.touchFinger.dy       = dy;
+                newEvent.touchFinger.pressure = 1.0f;
 
-        newEvent.touchFinger.id       = 0;
-        newEvent.touchFinger.x        = this->vpad.tpNormal.x;
-        newEvent.touchFinger.y        = this->vpad.tpNormal.y;
-        newEvent.touchFinger.dx       = 0.0f;
-        newEvent.touchFinger.dy       = 0.0f;
-        newEvent.touchFinger.pressure = 1.0f;
+                this->touchHeld     = true;
+                this->previousTouch = tpNormal;
+            }
 
-        if (this->touchHeld)
-            this->touchHeld = false;
+            if (!tpNormal.touched && this->touchHeld)
+            {
+                auto& newEvent      = this->events.emplace_back();
+                this->previousTouch = tpNormal;
+
+                newEvent.type    = TYPE_TOUCH;
+                newEvent.subType = SUBTYPE_TOUCHRELEASE;
+
+                newEvent.touchFinger.id       = 0;
+                newEvent.touchFinger.x        = tpNormal.x;
+                newEvent.touchFinger.y        = tpNormal.y;
+                newEvent.touchFinger.dx       = 0.0f;
+                newEvent.touchFinger.dy       = 0.0f;
+                newEvent.touchFinger.pressure = 1.0f;
+
+                if (this->touchHeld)
+                    this->touchHeld = false;
+            }
+
+            Joystick<>::JoystickInput input {};
+
+            if (joystick->IsDown(input))
+            {
+                auto& newEvent = this->events.emplace_back();
+
+                newEvent.type    = TYPE_GAMEPAD;
+                newEvent.subType = SUBTYPE_GAMEPADDOWN;
+
+                Joystick<>::GetConstant(input.button, newEvent.padButton.name);
+                newEvent.padButton.id     = joystick->GetID();
+                newEvent.padButton.button = input.buttonNumber;
+            }
+
+            if (joystick->IsUp(input))
+            {
+                auto& newEvent = this->events.emplace_back();
+
+                newEvent.type    = TYPE_GAMEPAD;
+                newEvent.subType = SUBTYPE_GAMEPADUP;
+
+                Joystick<>::GetConstant(input.button, newEvent.padButton.name);
+                newEvent.padButton.id     = joystick->GetID();
+                newEvent.padButton.button = input.buttonNumber;
+            }
+        }
     }
 
     if (Module())
     {
-        for (size_t index = 0; index < Module()->GetJoystickCount(); index++)
+        for (size_t index = 1; index < Module()->GetJoystickCount(); index++)
         {
             auto* joystick = Module()->GetJoystickFromId(index);
 
             if (joystick)
             {
-                joystick->Update(this->vpad);
+                joystick->Update();
                 Joystick<>::JoystickInput input {};
 
                 if (joystick->IsDown(input))

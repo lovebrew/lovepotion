@@ -38,14 +38,13 @@ namespace love
 
         Message* Convert(const LOVE_Event& event);
 
+        Message* ConvertGeneralEvent(const LOVE_Event& event, std::vector<Variant>& args);
+
         Message* ConvertJoystickEvent(const LOVE_Event& event, std::vector<Variant>& args);
 
         Message* ConvertTouchEvent(const LOVE_Event& event, std::vector<Variant>& args);
 
-        Message* ConvertWindowEvent(const LOVE_Event& event)
-        {
-            return nullptr;
-        }
+        Message* ConvertWindowEvent(const LOVE_Event& event, std::vector<Variant>& args);
 
       protected:
         std::queue<Message*> queue;
