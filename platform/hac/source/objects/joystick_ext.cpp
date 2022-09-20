@@ -59,7 +59,7 @@ bool Joystick<Console::HAC>::GetConstant(uint64_t in, GamepadAxis& out)
     return axes.ReverseFind(in, out);
 }
 
-Joystick<Console::HAC>::Joystick(int id) : buttonStates {}
+Joystick<Console::HAC>::Joystick(int id) : state {}, buttonStates {}
 {
     this->instanceId = -1;
     this->id         = id;
@@ -88,13 +88,13 @@ bool Joystick<Console::HAC>::Open(int index)
     this->style = npad::GetStyleTag(&this->state);
 
     this->instanceId = index;
-    this->playerId   = (HidNpadIdType)index;
 
-    this->guid = guid::GetDeviceGUID(this->GetGamepadType());
-
-    if (this->style == (HidNpadStyleTag)-1)
+    if (this->style == npad::INVALID_STYLE_TAG)
         return false;
 
+    this->playerId = (HidNpadIdType)index;
+
+    this->guid = guid::GetDeviceGUID(this->GetGamepadType());
     this->name = guid::GetDeviceName(this->GetGamepadType());
 
     /* todo: sixaxis and vibration stuff */
@@ -105,6 +105,8 @@ bool Joystick<Console::HAC>::Open(int index)
 void Joystick<Console::HAC>::Close()
 {
     this->instanceId = -1;
+    this->playerId   = npad::INVALID_PLAYER_ID;
+    this->state      = PadState {};
 }
 
 guid::GamepadType Joystick<Console::HAC>::GetGamepadType() const

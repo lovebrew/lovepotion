@@ -17,6 +17,8 @@ namespace love
 
         std::vector<HidNpadIdType> AcquireCurrentJoystickIds();
 
+        std::vector<guid::GamepadType> GetActiveStyleSets();
+
         ::Joystick* AddJoystick(int index);
     };
 } // namespace love

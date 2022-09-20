@@ -1,6 +1,8 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
+#include <utilities/log/logfile.h>
+
 using namespace love;
 
 #define Module() Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK)
@@ -10,7 +12,8 @@ HID<Console::HAC>::HID() :
     stateTouches {},
     oldStateTouches {},
     previousTouchCount(0),
-    previousJoystickState {}
+    previousJoystickState {},
+    previousGamepadTypes {}
 {
     for (size_t index = 0; index < npad::MAX_JOYSTICKS; index++)
     {
@@ -19,6 +22,7 @@ HID<Console::HAC>::HID() :
     }
 
     this->previousJoystickState = Module()->AcquireCurrentJoystickIds();
+    this->previousGamepadTypes  = Module()->GetActiveStyleSets();
 }
 
 HID<Console::HAC>::~HID()
@@ -168,6 +172,19 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
             /* a controller was updated! */
             if (R_SUCCEEDED(eventWait(&event, 0)))
             {
+                auto types = Module()->GetActiveStyleSets();
+
+                for (size_t index = 0; index < this->previousGamepadTypes.size(); index++)
+                {
+                    if (std::find(types.begin(), types.end(), this->previousGamepadTypes[index]) ==
+                        types.end())
+                    {
+                        this->SendJoystickUpdated(index);
+                    }
+                }
+
+                this->previousGamepadTypes = types;
+
                 auto ids = Module()->AcquireCurrentJoystickIds();
 
                 /* joystick removed */
@@ -184,11 +201,6 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                 } /* joystick added */
                 else if (ids.size() > this->previousJoystickState.size())
                     this->SendJoystickStatus((size_t)ids.back(), true);
-                else /* updated */
-                {
-                    for (auto id : ids)
-                        this->SendJoystickUpdated((size_t)id);
-                }
 
                 this->previousJoystickState = ids;
             }

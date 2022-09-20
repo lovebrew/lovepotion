@@ -5,6 +5,7 @@
 #include <modules/touch/touch.hpp>
 
 #include <common/console.hpp>
+#include <utilities/log/logfile.h>
 
 #include <mutex>
 
@@ -163,9 +164,8 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
 
             if (!joystick)
                 return result;
-
+            LOG("re-opening %zu", event.padStatus.id);
             joystick->Open(event.padButton.id);
-
             break;
         }
         default:

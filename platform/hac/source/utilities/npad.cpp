@@ -1,8 +1,7 @@
 #include <utilities/npad.hpp>
 
 #include <utilities/bidirectionalmap.hpp>
-
-static constexpr auto INVALID_STYLE_TAG = (HidNpadStyleTag)-1;
+#include <utilities/log/logfile.h>
 
 using namespace love;
 
@@ -17,21 +16,26 @@ HidNpadStyleTag love::npad::GetStyleTag(PadState* state)
         return HidNpadStyleTag_NpadHandheld;
     else if (styleSet & HidNpadStyleTag_NpadJoyLeft)
         return HidNpadStyleTag_NpadJoyLeft;
-    else if (styleSet & HidNpadStyleTag_NpadJoyRight)
-        return HidNpadStyleTag_NpadJoyRight;
-    else if (styleSet & HidNpadStyleTag_NpadJoyDual)
-        return HidNpadStyleTag_NpadJoyDual;
+
+    if (styleSet & HidNpadStyleTag_NpadJoyDual)
+    {
+        if (!(attributes & HidNpadAttribute_IsLeftConnected))
+            return HidNpadStyleTag_NpadJoyRight;
+        else
+            return HidNpadStyleTag_NpadJoyDual;
+    }
 
     return INVALID_STYLE_TAG;
 }
 
 // clang-format off
 constexpr auto styleTypes = BidirectionalMap<>::Create(
+    npad::INVALID_STYLE_TAG,      guid::GAMEPAD_TYPE_UNKNOWN,
     HidNpadStyleTag_NpadFullKey,  guid::GAMEPAD_TYPE_NINTENDO_SWITCH_PRO,
     HidNpadStyleTag_NpadHandheld, guid::GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD,
-    HidNpadStyleTag_NpadJoyDual,  guid::GAMEPAD_TYPE_JOYCON_PAIR,
     HidNpadStyleTag_NpadJoyLeft,  guid::GAMEPAD_TYPE_JOYCON_LEFT,
-    HidNpadStyleTag_NpadJoyRight, guid::GAMEPAD_TYPE_JOYCON_RIGHT
+    HidNpadStyleTag_NpadJoyRight, guid::GAMEPAD_TYPE_JOYCON_RIGHT,
+    HidNpadStyleTag_NpadJoyDual,  guid::GAMEPAD_TYPE_JOYCON_PAIR
 );
 // clang-format on
 

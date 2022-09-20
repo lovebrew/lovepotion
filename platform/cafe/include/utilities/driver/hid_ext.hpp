@@ -2,7 +2,10 @@
 
 #include <utilities/driver/hid.tcc>
 
+#include <padscore/wpad.h>
 #include <vpad/input.h>
+
+#include <vector>
 
 namespace love
 {
@@ -27,5 +30,7 @@ namespace love
 
         VPADStatus vpad;
         VPADTouchData previousTouch;
+
+        std::vector<WPADChan> previousChannels;
     };
 } // namespace love

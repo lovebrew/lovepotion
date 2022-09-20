@@ -1,6 +1,8 @@
 #include <objects/joystick/wrap_joystick.hpp>
 #include <utilities/npad.hpp>
 
+#include <utilities/log/logfile.h>
+
 using namespace love;
 
 #define instance() (Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK))
@@ -25,18 +27,17 @@ int Wrap_Joystick::Split(lua_State* L)
     HidNpadIdType right = luaL_checkIdType(L, 3);
 
     bool setOutput = true;
-    auto type      = HidNpadJoyDeviceType_Left;
 
     /* set the left */
     auto device = HidNpadJoyDeviceType_Left;
-    auto result = hidSetNpadJoyAssignmentModeSingleWithDestination(id, type, &setOutput, &left);
+    auto result = hidSetNpadJoyAssignmentModeSingleWithDestination(id, device, &setOutput, &left);
 
     if (R_FAILED(result))
         return 0;
 
     /* set the right */
     device = HidNpadJoyDeviceType_Right;
-    hidSetNpadJoyAssignmentModeSingleWithDestination(id, type, &setOutput, &right);
+    hidSetNpadJoyAssignmentModeSingleWithDestination(right, device, &setOutput, &right);
 
     return 0;
 }
@@ -61,25 +62,20 @@ int Wrap_Joystick::Join(lua_State* L)
     else
         return luaL_error(L, "Joystick does not exist.");
 
-    LOG("Merging ID #%d and ID %d", (int)first, (int)second);
-
     /* mark left to be merged */
     auto result = hidSetNpadJoyAssignmentModeDual(first);
-    LOG("hidSetNpadJoyAssignmentModeDual (left): %x", result);
 
     if (R_FAILED(result))
         return 0;
 
     /* mark right to merge */
     result = hidSetNpadJoyAssignmentModeDual(second);
-    LOG("hidSetNpadJoyAssignmentModeDual (right): %x", result);
 
     if (R_FAILED(result))
         return 0;
 
     /* merge both of the controllers now -- they become the id of "first" */
     result = hidMergeSingleJoyAsDualJoy(first, second);
-    LOG("hidMergeSingleJoyAsDualJoy: %x", result);
 
     return 0;
 }

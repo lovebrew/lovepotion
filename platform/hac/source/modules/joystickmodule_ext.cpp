@@ -31,8 +31,37 @@ std::vector<HidNpadIdType> JoystickModule<Console::HAC>::AcquireCurrentJoystickI
 
         padUpdate(&state);
 
-        if (padIsNpadActive(&state, (HidNpadIdType)index) && padIsConnected(&state))
+        if (padIsConnected(&state))
             info.push_back((HidNpadIdType)index);
+    }
+
+    return info;
+}
+
+std::vector<guid::GamepadType> JoystickModule<Console::HAC>::GetActiveStyleSets()
+{
+    std::vector<guid::GamepadType> info {};
+    HidNpadStyleTag tag;
+
+    for (size_t index = 0; index < npad::MAX_JOYSTICKS; index++)
+    {
+        PadState state {};
+
+        if (index == 0)
+            padInitializeDefault(&state);
+        else
+            padInitialize(&state, (HidNpadIdType)index);
+
+        padUpdate(&state);
+
+        if (padIsConnected(&state))
+        {
+            tag = npad::GetStyleTag(&state);
+
+            guid::GamepadType type;
+            if (npad::GetConstant(tag, type))
+                info.push_back(type);
+        }
     }
 
     return info;

@@ -38,6 +38,8 @@ namespace love
         int previousTouchCount;
 
         std::vector<HidNpadIdType> previousJoystickState;
+        std::vector<guid::GamepadType> previousGamepadTypes;
+
         std::array<::Event, npad::MAX_JOYSTICKS> statusEvents;
     };
 } // namespace love

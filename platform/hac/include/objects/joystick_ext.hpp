@@ -80,7 +80,6 @@ namespace love
 
       private:
         PadState state;
-        ::Event event;
 
         HidNpadStyleTag style;
         HidNpadIdType playerId;

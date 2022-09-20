@@ -8,6 +8,10 @@
 
 #include <whb/proc.h>
 
+#include <padscore/kpad.h>
+#include <padscore/wpad.h>
+#include <vpad/input.h>
+
 #include <sysapp/launch.h>
 
 using namespace love;
@@ -16,6 +20,12 @@ template<>
 void love::PreInit<Console::CAFE>()
 {
     WHBProcInit();
+
+    VPADInit();
+
+    WPADInit();
+
+    KPADInit();
 }
 
 template<>
@@ -33,6 +43,12 @@ bool love::MainLoop<Console::CAFE>(lua_State* L, int numArgs)
 template<>
 void love::OnExit<Console::CAFE>()
 {
+    KPADShutdown();
+
+    WPADShutdown();
+
+    VPADShutdown();
+
     if (ProcUIIsRunning())
     {
         SYSLaunchMenu();
