@@ -30,7 +30,5 @@ namespace love
 
         VPADStatus vpad;
         VPADTouchData previousTouch;
-
-        std::vector<WPADChan> previousChannels;
     };
 } // namespace love

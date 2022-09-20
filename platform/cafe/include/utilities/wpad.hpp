@@ -1,9 +1,11 @@
 #pragma once
 
-#include <padscore/wpad.h>
+#include <padscore/kpad.h>
 #include <utilities/guid.hpp>
 
 namespace love::wpad
 {
-    guid::GamepadType GetWPADType(WPADExtensionType extension);
+    static constexpr size_t MAX_JOYSTICKS = 4;
+
+    guid::GamepadType GetWPADType(KPADExtensionType extension);
 } // namespace love::wpad

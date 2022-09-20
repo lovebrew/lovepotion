@@ -9,40 +9,31 @@ JoystickModule<Console::CAFE>::JoystickModule()
 {
     this->AddJoystick(0);
 
-    for (size_t index = 0; index < this->AcquireCurrentJoystickIds().size(); index++)
+    for (size_t index = 0; index < wpad::MAX_JOYSTICKS; index++)
         this->AddJoystick(index + 1);
 }
 
 JoystickModule<Console::CAFE>::~JoystickModule()
 {}
 
-std::vector<WPADChan> JoystickModule<Console::CAFE>::AcquireCurrentJoystickIds()
-{
-    std::vector<WPADChan> info {};
-
-    for (size_t index = 0; index <= (size_t)WPAD_CHAN_3; index++)
-    {
-        WPADExtensionType extension;
-        if (ResultCode(WPADProbe((WPADChan)index, &extension)).Success())
-            info.push_back((WPADChan)index);
-    }
-
-    return info;
-}
-
 ::Joystick* JoystickModule<Console::CAFE>::AddJoystick(int index)
 {
-    if (index < 0 || index >= (int)this->AcquireCurrentJoystickIds().size() + 1)
+    if (index < 0 || index >= (int)wpad::MAX_JOYSTICKS + 1)
         return nullptr;
 
     guid::GamepadType type = guid::GAMEPAD_TYPE_WII_U_GAMEPAD;
 
     if (index != 0)
     {
-        WPADExtensionType extension;
-        WPADProbe((WPADChan)(index - 1), &extension);
+        KPADStatus status {};
+        KPADError error = KPAD_ERROR_OK;
 
-        type = wpad::GetWPADType(extension);
+        KPADReadEx((KPADChan)index, &status, 1, &error);
+
+        if (error == KPAD_ERROR_OK && status.extensionType != 0xFF)
+            type = wpad::GetWPADType((KPADExtensionType)status.extensionType);
+        else
+            return nullptr;
     }
 
     std::string guid     = guid::GetDeviceGUID(type);

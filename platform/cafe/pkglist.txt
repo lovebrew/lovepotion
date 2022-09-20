@@ -1,0 +1,17 @@
+ppc-box2d
+ppc-bzip2
+ppc-freetype
+ppc-libjpeg-turbo
+ppc-libmodplug
+ppc-libogg
+ppc-libpng
+ppc-libvorbisidec
+ppc-lz4
+ppc-zlib
+wiiu-curl
+wiiu-mbedtls
+wiiu-physfs
+wiiu-sdl2
+wiiu-sdl2_gfx
+wiiu-sdl2_ttf
+wiiu-cmake

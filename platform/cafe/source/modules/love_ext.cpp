@@ -23,8 +23,6 @@ void love::PreInit<Console::CAFE>()
 
     VPADInit();
 
-    WPADInit();
-
     KPADInit();
 }
 
@@ -44,8 +42,6 @@ template<>
 void love::OnExit<Console::CAFE>()
 {
     KPADShutdown();
-
-    WPADShutdown();
 
     VPADShutdown();
 

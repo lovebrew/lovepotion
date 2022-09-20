@@ -1,6 +1,7 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
+#include <padscore/kpad.h>
 #include <proc_ui/procui.h>
 
 #include <utilities/log/logfile.h>
@@ -9,32 +10,11 @@
 
 using namespace love;
 
-static void onConnection(WPADChan channel, int32_t status)
-{
-    LOG("WPADChan %d: %d", channel, status);
-}
-
-static void onExtension(WPADChan channel, int32_t status)
-{
-    LOG("WPADChan %d: %d", channel, status);
-}
-
-HID<Console::CAFE>::HID() : previousTouch {}, previousChannels {}
-{
-    for (size_t index = 0; index < WPAD_CHAN_3; index++)
-    {
-        WPADSetConnectCallback((WPADChan)index, onConnection);
-        WPADSetExtensionCallback((WPADChan)index, onExtension);
-    }
-
-    this->previousChannels = Module()->AcquireCurrentJoystickIds();
-}
+HID<Console::CAFE>::HID() : previousTouch {}
+{}
 
 HID<Console::CAFE>::~HID()
-{
-    VPADShutdown();
-    KPADShutdown();
-}
+{}
 
 void HID<Console::CAFE>::CheckFocus()
 {

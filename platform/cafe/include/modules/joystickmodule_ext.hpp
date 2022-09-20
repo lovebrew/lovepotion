@@ -12,8 +12,6 @@ namespace love
 
         virtual ~JoystickModule();
 
-        std::vector<WPADChan> AcquireCurrentJoystickIds();
-
         ::Joystick* AddJoystick(int index);
     };
 } // namespace love

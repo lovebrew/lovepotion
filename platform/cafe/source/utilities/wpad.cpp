@@ -2,7 +2,7 @@
 
 using namespace love;
 
-guid::GamepadType love::wpad::GetWPADType(WPADExtensionType extension)
+guid::GamepadType love::wpad::GetWPADType(KPADExtensionType extension)
 {
     switch (extension)
     {
