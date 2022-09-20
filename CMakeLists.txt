@@ -378,6 +378,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/object.cpp
     source/common/type.cpp
     source/common/variant.cpp
+    source/common/vector.cpp
     source/main.cpp
     source/modules/data/data.cpp
     source/modules/data/wrap_data.cpp

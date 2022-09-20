@@ -1,6 +1,8 @@
 #include <objects/joystick_ext.hpp>
 #include <utilities/npad.hpp>
 
+#include <modules/timer_ext.hpp>
+
 #include <utilities/bidirectionalmap.hpp>
 
 using namespace love;
@@ -97,7 +99,8 @@ bool Joystick<Console::HAC>::Open(int index)
     this->guid = guid::GetDeviceGUID(this->GetGamepadType());
     this->name = guid::GetDeviceName(this->GetGamepadType());
 
-    /* todo: sixaxis and vibration stuff */
+    this->sixAxis   = std::move(::SixAxis(this->playerId, this->style));
+    this->vibration = std::move(::Vibration(this->playerId, this->style));
 
     return this->IsConnected();
 }
@@ -107,6 +110,9 @@ void Joystick<Console::HAC>::Close()
     this->instanceId = -1;
     this->playerId   = npad::INVALID_PLAYER_ID;
     this->state      = PadState {};
+
+    this->vibration.SendValues(0, 0);
+    this->sixAxis.Stop();
 }
 
 guid::GamepadType Joystick<Console::HAC>::GetGamepadType() const
@@ -345,18 +351,43 @@ void Joystick<Console::HAC>::SetPlayerIndex(int index)
 /* todo VIBRATE */
 bool Joystick<Console::HAC>::SetVibration(float left, float right, float duration)
 {
-    return false;
+    left  = std::clamp(left, 0.0f, 1.0f);
+    right = std::clamp(right, 0.0f, 1.0f);
+
+    uint32_t length = Vibration<>::MAX;
+
+    if (left == 0.0f && right == 0.0f)
+        return this->SetVibration();
+
+    if (!this->IsConnected())
+    {
+        this->vibration.SendValues(0.0f, 0.0f);
+        return false;
+    }
+
+    if (duration >= 0.0f)
+        length = std::min(duration, Vibration<>::MAX / 1000.0f);
+
+    if (length == Vibration<>::HAPTYIC_INFINITY)
+        this->vibration.SetDuration(length);
+    else
+        this->vibration.SetDuration(Timer<Console::HAC>::GetTime() + length);
+
+    bool success = this->vibration.SendValues(left, right);
+
+    return success;
 }
 
-/* todo STOP VIBRATING */
 bool Joystick<Console::HAC>::SetVibration()
 {
-    return false;
+    return this->vibration.SendValues(0.0f, 0.0f);
 }
 
 /* todo GET VIBRATION */
 void Joystick<Console::HAC>::GetVibration(float& left, float& right)
-{}
+{
+    this->vibration.GetValues(left, right);
+}
 
 // clang-format off
 constexpr auto deviceTypes = BidirectionalMap<>::Create(

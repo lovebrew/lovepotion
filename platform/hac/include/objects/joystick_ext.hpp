@@ -1,7 +1,14 @@
 #pragma once
 
 #include <objects/joystick/joystick.tcc>
+
+#include <utilities/haptics/sixaxis_ext.hpp>
+#include <utilities/haptics/vibration_ext.hpp>
+
 #include <switch.h>
+
+using SixAxis   = love::SixAxis<love::Console::HAC>;
+using Vibration = love::Vibration<love::Console::HAC>;
 
 namespace love
 {
@@ -89,5 +96,8 @@ namespace love
             uint64_t pressed;
             uint64_t released;
         } buttonStates;
+
+        ::SixAxis sixAxis;
+        ::Vibration vibration;
     };
 } // namespace love

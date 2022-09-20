@@ -28,8 +28,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/wrap_joystick_ext.cpp
     source/runtime.cpp
     source/utilities/driver/hid_ext.cpp
-    source/utilities/haptics/sixaxis.cpp
-    source/utilities/haptics/vibration.cpp
+    source/utilities/haptics/sixaxis_ext.cpp
+    source/utilities/haptics/vibration_ext.cpp
     source/utilities/npad.cpp
     source/utilities/threads/thread_ext.cpp
 )
