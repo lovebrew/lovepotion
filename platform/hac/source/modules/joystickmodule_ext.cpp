@@ -82,7 +82,7 @@ std::vector<guid::GamepadType> JoystickModule<Console::HAC>::GetActiveStyleSets(
     guid::GamepadType type;
     npad::GetConstant(styleTag, type);
 
-    std::string guid     = love::guid::GetDeviceGUID(type);
+    std::string guid     = love::guid::GetGamepadGUID(type);
     ::Joystick* joystick = nullptr;
     bool reused          = false;
 

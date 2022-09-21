@@ -192,11 +192,17 @@ bool Joystick<Console::CAFE>::Open(int index)
 
     this->isGamepad = (index == 0);
 
-    this->guid = guid::GetDeviceGUID(this->GetGamepadType());
-    this->name = guid::GetDeviceName(this->GetGamepadType());
-
     if (!this->isGamepad)
-        WPADProbe((WPADChan)(index - 1), &this->extension);
+    {
+        KPADError error {};
+        KPADReadEx((KPADChan)index, &this->kpad, 1, &error);
+
+        if (error != KPAD_ERROR_OK || this->kpad.extensionType == 0xFF)
+            return false;
+    }
+
+    this->guid = guid::GetGamepadGUID(this->GetGamepadType());
+    this->name = guid::GetGamepadGUID(this->GetGamepadType());
 
     return this->IsConnected();
 }
@@ -230,44 +236,18 @@ bool Joystick<Console::CAFE>::IsConnected() const
 
 int Joystick<Console::CAFE>::GetAxisCount() const
 {
-    if (this->isGamepad)
-        return 12;
+    if (!this->IsConnected())
+        return 0;
 
-    switch (this->GetGamepadType())
-    {
-        case guid::GAMEPAD_TYPE_WII_REMOTE:
-            return 0;
-        case guid::GAMEPAD_TYPE_WII_CLASSIC:
-        case guid::GAMEPAD_TYPE_WII_PRO:
-            return 6;
-        case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
-            return 2;
-        default:
-            break;
-    }
-
-    return 0;
+    return guid::GetGamepadAxisCount(this->GetGamepadType());
 }
 
 int Joystick<Console::CAFE>::GetButtonCount() const
 {
-    if (this->isGamepad)
-        return 15;
+    if (!this->IsConnected())
+        return 0;
 
-    /* todo: other types */
-    switch (this->GetGamepadType())
-    {
-        case guid::GAMEPAD_TYPE_WII_CLASSIC:
-        case guid::GAMEPAD_TYPE_WII_PRO:
-            return 12;
-        case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
-        case guid::GAMEPAD_TYPE_WII_REMOTE:
-            return 6;
-        default:
-            break;
-    }
-
-    return 0;
+    return guid::GetGamepadButtonCount(this->GetGamepadType());
 }
 
 void Joystick<Console::CAFE>::Update()
@@ -452,28 +432,28 @@ float Joystick<Console::CAFE>::GetAxis(int index) const
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    if (index == 1 || index == 2)
+    if (index == 0 || index == 1)
     {
         auto stickState = this->buttonStates.leftStick;
 
         float value = (index == 1) ? stickState.x : stickState.y;
         return value;
     }
-    else if (index == 3 || index == 4)
+    else if (index == 2 || index == 3)
     {
         auto stickState = this->buttonStates.rightStick;
 
         float value = (index == 1) ? stickState.x : stickState.y;
         return value;
     }
-    else if (index == 5)
+    else if (index == 4)
     {
         if (this->buttonStates.pressed & this->buttonStates.leftTrigger)
             return 1.0f;
 
         return 0.0f;
     }
-    else if (index == 6)
+    else if (index == 5)
     {
         if (this->buttonStates.pressed & this->buttonStates.rightTrigger)
             return 1.0f;

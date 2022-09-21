@@ -36,7 +36,7 @@ JoystickModule<Console::CAFE>::~JoystickModule()
             return nullptr;
     }
 
-    std::string guid     = guid::GetDeviceGUID(type);
+    std::string guid     = guid::GetGamepadGUID(type);
     ::Joystick* joystick = nullptr;
     bool reused          = false;
 

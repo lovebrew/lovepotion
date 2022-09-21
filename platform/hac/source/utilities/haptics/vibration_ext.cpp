@@ -11,20 +11,25 @@ Vibration<Console::HAC>::Vibration(HidNpadIdType playerId, HidNpadStyleTag style
     if (style == HidNpadStyleTag_NpadJoyDual || style == HidNpadStyleTag_NpadHandheld)
         this->handleCount = 2;
 
-    this->handles = std::make_unique<HidVibrationDeviceHandle[]>(2);
-
+    this->handles = std::make_unique<HidVibrationDeviceHandle[]>(this->handleCount);
     hidInitializeVibrationDevices(this->handles.get(), this->handleCount, playerId, style);
 }
 
-Vibration<Console::HAC>::Vibration(Vibration&& other) :
-    Vibration<>(other),
-    handles(std::move(other.handles)),
-    playerId(other.playerId),
-    style(other.style)
-{}
+Vibration<Console::HAC>& Vibration<Console::HAC>::operator=(Vibration&& other)
+{
+    Vibration<>::operator=(std::move(other));
+    this->handles  = std::move(other.handles);
+    this->playerId = other.playerId;
+    this->style    = other.style;
+
+    return *this;
+}
 
 bool Vibration<Console::HAC>::SendValues(float left, float right)
 {
+    if (!this->handles)
+        return false;
+
     HidVibrationValue values[this->handleCount] {};
 
     for (auto& value : values)
@@ -36,9 +41,9 @@ bool Vibration<Console::HAC>::SendValues(float left, float right)
         value.amp_high = right;
     }
 
-    Result success = hidSendVibrationValues(this->handles.get(), values, this->handleCount);
+    Result result = hidSendVibrationValues(this->handles.get(), values, this->handleCount);
 
-    if (success)
+    if (R_SUCCEEDED(result))
     {
         this->vibrationInfo.left  = left;
         this->vibrationInfo.right = right;
@@ -49,7 +54,7 @@ bool Vibration<Console::HAC>::SendValues(float left, float right)
         this->vibrationInfo.endTime                          = -1.0f;
     }
 
-    return R_SUCCEEDED(success);
+    return R_SUCCEEDED(result);
 }
 
 Vibration<Console::HAC>::~Vibration()

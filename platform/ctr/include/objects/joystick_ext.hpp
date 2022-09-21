@@ -1,9 +1,13 @@
 #pragma once
 
-#include <3ds.h>
 #include <objects/joystick/joystick.tcc>
-
 #include <utilities/bidirectionalmap.hpp>
+
+#include <utilities/haptics/sixaxis_ext.hpp>
+
+#include <3ds.h>
+
+using SixAxis = love::SixAxis<love::Console::CTR>;
 
 namespace love
 {
@@ -38,9 +42,9 @@ namespace love
 
         void Update();
 
-        float GetAxis(int index) const;
+        float GetAxis(int index);
 
-        std::vector<float> GetAxes() const;
+        std::vector<float> GetAxes();
 
         bool IsDown(const std::vector<int>& buttons) const;
 
@@ -59,10 +63,16 @@ namespace love
 
         guid::GamepadType GetGamepadType() const
         {
-            return guid::GamepadType::GAMEPAD_TYPE_NINTENDO_3DS;
+            bool isN3DS = false;
+            APT_CheckNew3DS(&isN3DS);
+
+            if (isN3DS)
+                return guid::GAMEPAD_TYPE_NEW_NINTENDO_3DS;
+
+            return guid::GAMEPAD_TYPE_NINTENDO_3DS;
         }
 
-        float GetGamepadAxis(GamepadAxis axis) const;
+        float GetGamepadAxis(GamepadAxis axis);
 
         bool IsGamepadDown(const std::vector<GamepadButton>& buttons) const;
 
@@ -95,5 +105,7 @@ namespace love
             uint32_t pressed;
             uint32_t released;
         } buttonStates;
+
+        ::SixAxis sixAxis;
     };
 } // namespace love

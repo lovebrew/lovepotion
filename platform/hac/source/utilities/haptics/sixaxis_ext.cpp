@@ -14,17 +14,21 @@ SixAxis<Console::HAC>::SixAxis(HidNpadIdType playerId, HidNpadStyleTag style) :
         this->handleCount = 2;
 
     this->handles = std::make_unique<HidSixAxisSensorHandle[]>(this->handleCount);
-    hidGetSixAxisSensorHandles(this->handles.get(), this->handleCount, playerId, style);
+    auto res = hidGetSixAxisSensorHandles(this->handles.get(), this->handleCount, playerId, style);
 
-    this->Start();
+    if (R_SUCCEEDED(res))
+        this->Start();
 }
 
-SixAxis<Console::HAC>::SixAxis(SixAxis&& other) :
-    SixAxis<>(other),
-    handles(std::move(other.handles)),
-    playerId(other.playerId),
-    style(other.style)
-{}
+SixAxis<Console::HAC>& SixAxis<Console::HAC>::operator=(SixAxis&& other)
+{
+    SixAxis<>::operator=(std::move(other));
+    this->handles  = std::move(other.handles);
+    this->playerId = other.playerId;
+    this->style    = other.style;
+
+    return *this;
+}
 
 SixAxis<Console::HAC>::~SixAxis()
 {
@@ -33,8 +37,14 @@ SixAxis<Console::HAC>::~SixAxis()
 
 bool SixAxis<Console::HAC>::Start()
 {
+    Result results[this->handleCount];
     for (int index = 0; index < this->handleCount; index++)
-        hidStartSixAxisSensor(this->handles[index]);
+        results[index] = hidStartSixAxisSensor(this->handles[index]);
+
+    if (this->handleCount == 1)
+        return R_SUCCEEDED(results[0]);
+
+    return R_SUCCEEDED(results[0]) && R_SUCCEEDED(results[1]);
 }
 
 void SixAxis<Console::HAC>::Stop()
@@ -46,34 +56,33 @@ void SixAxis<Console::HAC>::Stop()
         hidStopSixAxisSensor(this->handles[index]);
 }
 
-std::pair<Vector3, Vector3> SixAxis<Console::HAC>::GetStateInfo(SixAxis<>::SixAxisType type)
+std::vector<Vector3> SixAxis<Console::HAC>::GetStateInfo(SixAxis<>::SixAxisType type)
 {
-    std::pair<Vector3, Vector3> info {};
+    std::vector<Vector3> info {};
 
-    auto fillData = [&](auto& dataInfo, const int handleId) {
+    auto fillData = [&](const int handleId) {
         HidSixAxisSensorState state {};
         hidGetSixAxisSensorStates(this->handles[handleId], &state, 1);
 
         if (type == SIXAXIS_ACCELEROMETER)
         {
-            dataInfo.x = state.acceleration.x;
-            dataInfo.y = state.acceleration.y;
-            dataInfo.z = state.acceleration.z;
+            Vector3 temp(state.acceleration.x, state.acceleration.y, state.acceleration.z);
+            info.push_back(temp);
         }
         else
         {
-            dataInfo.x = state.angular_velocity.x;
-            dataInfo.y = state.angular_velocity.y;
-            dataInfo.z = state.angular_velocity.z;
+            Vector3 temp(state.angular_velocity.x, state.angular_velocity.y,
+                         state.angular_velocity.z);
+            info.push_back(temp);
         }
     };
 
-    fillData(info.first, 0);
+    fillData(0);
 
     if (this->handleCount != 2)
         return info;
 
-    fillData(info.second, 1);
+    fillData(1);
 
     return info;
 }

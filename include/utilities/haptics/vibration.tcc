@@ -2,7 +2,9 @@
 
 #include <common/console.hpp>
 
+#include <limits>
 #include <memory>
+#include <stddef.h>
 
 namespace love
 {

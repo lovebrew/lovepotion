@@ -13,7 +13,7 @@ JoystickModule<Console::CTR>::JoystickModule()
     if (index < 0 || index >= this->GetCurrentJoystickCount())
         return nullptr;
 
-    std::string guid     = love::guid::GetDeviceGUID(guid::GAMEPAD_TYPE_NINTENDO_3DS);
+    std::string guid     = love::guid::GetGamepadGUID(guid::GAMEPAD_TYPE_NINTENDO_3DS);
     ::Joystick* joystick = nullptr;
     bool reused          = false;
 

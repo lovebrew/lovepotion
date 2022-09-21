@@ -40,9 +40,9 @@ namespace love
 
         void Update();
 
-        float GetAxis(int index) const;
+        float GetAxis(int index);
 
-        std::vector<float> GetAxes() const;
+        std::vector<float> GetAxes();
 
         bool IsDown(const std::vector<int>& buttons) const;
 
@@ -60,7 +60,7 @@ namespace love
 
         guid::GamepadType GetGamepadType() const;
 
-        float GetGamepadAxis(GamepadAxis axis) const;
+        float GetGamepadAxis(GamepadAxis axis);
 
         bool IsGamepadDown(const std::vector<GamepadButton>& buttons) const;
 

@@ -10,6 +10,7 @@ namespace love::guid
     {
         GAMEPAD_TYPE_UNKNOWN,
         GAMEPAD_TYPE_NINTENDO_3DS,
+        GAMEPAD_TYPE_NEW_NINTENDO_3DS,
         GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD,
         GAMEPAD_TYPE_NINTENDO_SWITCH_PRO,
         GAMEPAD_TYPE_JOYCON_LEFT,
@@ -23,6 +24,15 @@ namespace love::guid
         GAMEPAD_TYPE_MAX_ENUM
     };
 
+    struct GamepadInfo
+    {
+        int buttonCount;
+        int axisCount;
+        int hatCount;
+        const char* name;
+        const char* guid;
+    };
+
     struct DeviceInfo
     {
         int vendorId;
@@ -30,14 +40,15 @@ namespace love::guid
         int productVersion;
     };
 
-    /*
-    ** device guid values
-    ** generated from the following site:
-    ** https://www.guidgenerator.com/online-guid-generator.aspx
-    */
-    std::string GetDeviceGUID(GamepadType type);
+    int GetGamepadButtonCount(GamepadType type);
 
-    std::string GetDeviceName(GamepadType type);
+    int GetGamepadAxisCount(GamepadType type);
+
+    int GetGamepadHatCount(GamepadType type);
+
+    const char* GetGamepadGUID(GamepadType type);
+
+    const char* GetGamepadName(GamepadType type);
 
     bool GetDeviceInfo(GamepadType type, DeviceInfo& info);
 

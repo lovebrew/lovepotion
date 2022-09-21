@@ -14,5 +14,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/runtime.cpp
     source/utilities/driver/hid_ext.cpp
     source/utilities/driver/ndsp.cpp
+    source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/threads/thread_ext.cpp
 )

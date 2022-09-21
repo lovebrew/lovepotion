@@ -15,7 +15,7 @@ namespace love
 
         Vibration(HidNpadIdType playerId, HidNpadStyleTag style);
 
-        Vibration(Vibration&& other);
+        Vibration& operator=(Vibration&& other);
 
         ~Vibration();
 

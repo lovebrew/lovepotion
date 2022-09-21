@@ -4,6 +4,8 @@
 
 #include <switch.h>
 
+#include <vector>
+
 namespace love
 {
     template<>
@@ -15,7 +17,7 @@ namespace love
 
         SixAxis(HidNpadIdType playerId, HidNpadStyleTag style);
 
-        SixAxis(SixAxis&& other);
+        SixAxis& operator=(SixAxis&& other);
 
         ~SixAxis();
 
@@ -23,7 +25,7 @@ namespace love
 
         void Stop();
 
-        std::pair<Vector3, Vector3> GetStateInfo(SixAxis<>::SixAxisType type);
+        std::vector<Vector3> GetStateInfo(SixAxis<>::SixAxisType type);
 
       private:
         std::unique_ptr<HidSixAxisSensorHandle[]> handles;

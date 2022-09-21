@@ -179,7 +179,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     if (std::find(types.begin(), types.end(), this->previousGamepadTypes[index]) ==
                         types.end())
                     {
-                        this->SendJoystickUpdated(index);
+                        // this->SendJoystickUpdated(index);
                     }
                 }
 
@@ -208,11 +208,10 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
 
         for (size_t index = 0; index < Module()->GetJoystickCount(); index++)
         {
-            auto* joystick = Module()->GetJoystickFromId(index);
+            auto* joystick = Module()->GetJoystick(index);
 
             if (joystick)
             {
-
                 joystick->Update();
                 Joystick<>::JoystickInput input {};
 
@@ -224,7 +223,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     newEvent.subType = SUBTYPE_GAMEPADDOWN;
 
                     Joystick<>::GetConstant(input.button, newEvent.padButton.name);
-                    newEvent.padButton.id     = joystick->GetID();
+                    newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
 
@@ -236,7 +235,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     newEvent.subType = SUBTYPE_GAMEPADUP;
 
                     Joystick<>::GetConstant(input.button, newEvent.padButton.name);
-                    newEvent.padButton.id     = joystick->GetID();
+                    newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
             }

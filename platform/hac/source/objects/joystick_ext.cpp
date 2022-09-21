@@ -96,8 +96,8 @@ bool Joystick<Console::HAC>::Open(int index)
 
     this->playerId = (HidNpadIdType)index;
 
-    this->guid = guid::GetDeviceGUID(this->GetGamepadType());
-    this->name = guid::GetDeviceName(this->GetGamepadType());
+    this->guid = guid::GetGamepadGUID(this->GetGamepadType());
+    this->name = guid::GetGamepadName(this->GetGamepadType());
 
     this->sixAxis   = std::move(::SixAxis(this->playerId, this->style));
     this->vibration = std::move(::Vibration(this->playerId, this->style));
@@ -142,16 +142,18 @@ bool Joystick<Console::HAC>::IsConnected() const
 
 int Joystick<Console::HAC>::GetAxisCount() const
 {
-    return this->IsConnected() ? 12 : 0;
+    if (!this->IsConnected())
+        return 0;
+
+    return guid::GetGamepadAxisCount(this->GetGamepadType());
 }
 
 int Joystick<Console::HAC>::GetButtonCount() const
 {
-    /* todo: check horizontal single joycons */
-    if (this->style == HidNpadStyleTag_NpadJoyLeft || this->style == HidNpadStyleTag_NpadJoyRight)
-        return this->IsConnected() ? 6 : 0;
+    if (!this->IsConnected())
+        return 0;
 
-    return this->IsConnected() ? 14 : 0;
+    return guid::GetGamepadButtonCount(this->GetGamepadType());
 }
 
 void Joystick<Console::HAC>::Update()
@@ -228,33 +230,33 @@ bool Joystick<Console::HAC>::IsUp(JoystickInput& result)
     return false;
 }
 
-float Joystick<Console::HAC>::GetAxis(int index) const
+float Joystick<Console::HAC>::GetAxis(int index)
 {
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    if (index == 1 || index == 2)
+    if (index == 0 || index == 1)
     {
         auto stickState = padGetStickPos(&this->state, 0);
 
         float value = (index == 1) ? stickState.x : stickState.y;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
-    else if (index == 3 || index == 4)
+    else if (index == 2 || index == 3)
     {
         auto stickState = padGetStickPos(&this->state, 1);
 
         float value = (index == 3) ? stickState.x : stickState.y;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
-    else if (index == 5)
+    else if (index == 4)
     {
         if (padGetButtons(&this->state) & HidNpadButton_ZL)
             return 1.0f;
 
         return 0.0f;
     }
-    else if (index == 6)
+    else if (index == 5)
     {
         if (padGetButtons(&this->state) & HidNpadButton_ZR)
             return 1.0f;
@@ -263,13 +265,78 @@ float Joystick<Console::HAC>::GetAxis(int index) const
     }
     else
     {
-        /* todo handle sixaxis */
+        /* accelerometer(s) */
+        const auto accelerometer = this->sixAxis.GetStateInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
+        size_t axisOffset        = 6;
+
+        /* [6 <- index -> 9) */
+        if (index >= axisOffset && index < axisOffset + 3)
+        {
+            if (index == axisOffset)
+                return accelerometer.at(0).x;
+            else if (index == axisOffset + 1)
+                return accelerometer.at(0).y;
+            else
+                return accelerometer.at(0).z;
+        }
+
+        axisOffset += 3;
+
+        if (accelerometer.size() == 2)
+        {
+            /* [9 <- index -> 12) */
+            if (index >= axisOffset && index < axisOffset + 3)
+            {
+                if (index == axisOffset)
+                    return accelerometer.at(1).x;
+                else if (index == axisOffset + 1)
+                    return accelerometer.at(1).y;
+                else
+                    return accelerometer.at(1).z;
+            }
+
+            axisOffset += 3;
+        }
+
+        /* gyroscope(s) */
+        const auto gyroscope = this->sixAxis.GetStateInfo(SixAxis<>::SIXAXIS_GYROSCOPE);
+
+        /*
+        ** [9 <- index -> 12)
+        ** or
+        ** [12 <- index -> 15)
+        */
+        if (index >= axisOffset && index < axisOffset + 3)
+        {
+            if (index == axisOffset)
+                return gyroscope.at(0).x;
+            else if (index == axisOffset + 1)
+                return gyroscope.at(0).y;
+            else
+                return gyroscope.at(0).z;
+        }
+
+        axisOffset += 3;
+
+        if (gyroscope.size() == 2)
+        {
+            /* [15 <- index -> 18) */
+            if (index >= axisOffset && index < axisOffset + 3)
+            {
+                if (index == axisOffset)
+                    return gyroscope.at(1).x;
+                else if (index == axisOffset + 1)
+                    return gyroscope.at(1).y;
+                else
+                    return gyroscope.at(1).z;
+            }
+        }
     }
 
     return 0.0f;
 }
 
-std::vector<float> Joystick<Console::HAC>::GetAxes() const
+std::vector<float> Joystick<Console::HAC>::GetAxes()
 {
     std::vector<float> axes {};
     int count = this->GetAxisCount();
@@ -308,12 +375,13 @@ bool Joystick<Console::HAC>::IsDown(const std::vector<int>& buttons) const
     return false;
 }
 
-float Joystick<Console::HAC>::GetGamepadAxis(GamepadAxis axis) const
+float Joystick<Console::HAC>::GetGamepadAxis(GamepadAxis axis)
 {
     if (!this->IsConnected())
         return 0.0f;
 
-    return this->GetAxis((int)axis);
+    int getAxis = axis;
+    return this->GetAxis(getAxis - 1);
 }
 
 bool Joystick<Console::HAC>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const

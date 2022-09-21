@@ -98,6 +98,11 @@ namespace love
         Vector3(const Vector2& v, float z = 0.0f) : x(v.x), y(v.y), z(z)
         {}
 
+        bool isZero() const
+        {
+            return this->x == 0.0f && this->y == 0.0f && this->z == 0.0f;
+        }
+
         float getLength() const;
         float getLengthSquare() const;
 

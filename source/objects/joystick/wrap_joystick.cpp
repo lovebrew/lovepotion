@@ -101,7 +101,7 @@ int Wrap_Joystick::GetHatCount(lua_State* L)
 int Wrap_Joystick::GetAxis(lua_State* L)
 {
     auto* self = Wrap_Joystick::CheckJoystick(L, 1);
-    int axis   = luaL_checkinteger(L, 2);
+    int axis   = luaL_checkinteger(L, 2) - 1;
 
     lua_pushnumber(L, self->GetAxis(axis));
 

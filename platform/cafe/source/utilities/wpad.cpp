@@ -1,6 +1,14 @@
 #include <utilities/wpad.hpp>
 
+#include <utilities/bidirectionalmap.hpp>
+
 using namespace love;
+
+// clang-format off
+constexpr auto wpadTypes = BidirectionalMap<>::Create(
+    guid::GAMEPAD_TYPE_WII_REMOTE, WPAD_EXT_CORE | WPAD_EXT_MPLUS
+);
+// clang-format on
 
 guid::GamepadType love::wpad::GetWPADType(KPADExtensionType extension)
 {

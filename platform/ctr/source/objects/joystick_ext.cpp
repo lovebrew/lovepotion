@@ -65,7 +65,6 @@ Joystick<Console::CTR>::Joystick(int id) : buttonStates {}
     this->instanceId = -1;
     this->id         = id;
 
-    this->guid   = guid::GetDeviceGUID(this->GetGamepadType());
     this->handle = std::make_unique<uint8_t>(1);
 }
 
@@ -83,7 +82,8 @@ bool Joystick<Console::CTR>::Open(int index)
 {
     this->Close();
 
-    this->name = guid::GetDeviceName(this->GetGamepadType());
+    this->name = guid::GetGamepadName(this->GetGamepadType());
+    this->guid = guid::GetGamepadGUID(this->GetGamepadType());
 
     this->instanceId = index;
 
@@ -109,16 +109,12 @@ void Joystick<Console::CTR>::GetDeviceInfo(int& vendor, int& product, int& versi
 
 int Joystick<Console::CTR>::GetAxisCount() const
 {
-    bool isN3DS = false;
-    APT_CheckNew3DS(&isN3DS);
-
-    int count = 6;
-    return isN3DS ? count : count - 2;
+    return guid::GetGamepadAxisCount(this->GetGamepadType());
 }
 
 int Joystick<Console::CTR>::GetButtonCount() const
 {
-    return 12;
+    return guid::GetGamepadButtonCount(this->GetGamepadType());
 }
 
 void Joystick<Console::CTR>::Update()
@@ -190,12 +186,12 @@ bool Joystick<Console::CTR>::IsUp(JoystickInput& result)
     return false;
 }
 
-float Joystick<Console::CTR>::GetAxis(int index) const
+float Joystick<Console::CTR>::GetAxis(int index)
 {
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    if (index == 1 || index == 2)
+    if (index == 0 || index == 1)
     {
         circlePosition leftStick {};
         hidCircleRead(&leftStick);
@@ -203,7 +199,7 @@ float Joystick<Console::CTR>::GetAxis(int index) const
         float value = (index == 2) ? leftStick.dx : leftStick.dy;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
-    else if (index == 3 || index == 4)
+    else if (index == 2 || index == 3)
     {
         circlePosition rightStick {};
         irrstCstickRead(&rightStick);
@@ -211,14 +207,14 @@ float Joystick<Console::CTR>::GetAxis(int index) const
         float value = (index == 4) ? rightStick.dx : rightStick.dy;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
-    else if (index == 5)
+    else if (index == 4)
     {
         if (hidKeysHeld() & KEY_ZL)
             return 1.0f;
 
         return 0.0f;
     }
-    else if (index == 6)
+    else if (index == 5)
     {
         if (hidKeysHeld() & KEY_ZR)
             return 1.0f;
@@ -227,36 +223,34 @@ float Joystick<Console::CTR>::GetAxis(int index) const
     }
     else
     {
-        if (index >= 7 && index < 10)
+        if (index >= 6 && index < 9)
         {
-            angularRate gyroScope {};
-            hidGyroRead(&gyroScope);
+            auto vector = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
 
             if (index == 7)
-                return gyroScope.x;
+                return vector.x;
             else if (index == 8)
-                return gyroScope.y;
+                return vector.y;
 
-            return gyroScope.z;
+            return vector.z;
         }
-        else if (index >= 10 && index < 13)
+        else if (index >= 9 && index < 12)
         {
-            accelVector accelerometer {};
-            hidAccelRead(&accelerometer);
+            auto vector = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_GYROSCOPE);
 
             if (index == 10)
-                return accelerometer.x;
+                return vector.x;
             else if (index == 11)
-                return accelerometer.y;
+                return vector.y;
 
-            return accelerometer.z;
+            return vector.z;
         }
     }
 
     return 0.0f;
 }
 
-std::vector<float> Joystick<Console::CTR>::GetAxes() const
+std::vector<float> Joystick<Console::CTR>::GetAxes()
 {
     std::vector<float> axes;
     int count = this->GetAxisCount();
@@ -292,12 +286,13 @@ bool Joystick<Console::CTR>::IsDown(const std::vector<int>& buttons) const
     return false;
 }
 
-float Joystick<Console::CTR>::GetGamepadAxis(GamepadAxis axis) const
+float Joystick<Console::CTR>::GetGamepadAxis(GamepadAxis axis)
 {
     if (!this->IsConnected())
         return 0.0f;
 
-    return this->GetAxis((int)axis);
+    int getAxis = (int)axis;
+    return this->GetAxis(getAxis - 1);
 }
 
 bool Joystick<Console::CTR>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
