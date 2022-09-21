@@ -242,22 +242,29 @@ float Joystick<Console::HAC>::GetAxis(int index)
         float value = (index == 1) ? stickState.x : stickState.y;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
-    else if (index == 2 || index == 3)
+
+    if (index == 2 || index == 3)
     {
         auto stickState = padGetStickPos(&this->state, 1);
 
         float value = (index == 3) ? stickState.x : stickState.y;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
-    else if (index == 4)
+
+    size_t offset = 3;
+    if (guid::GetGamepadHasZL(this->GetGamepadType()) && offset == index)
     {
+        offset++;
+
         if (padGetButtons(&this->state) & HidNpadButton_ZL)
             return 1.0f;
 
         return 0.0f;
     }
-    else if (index == 5)
+    else if (guid::GetGamepadHasZR(this->GetGamepadType()) && offset == index + 1)
     {
+        offset++;
+
         if (padGetButtons(&this->state) & HidNpadButton_ZR)
             return 1.0f;
 
@@ -267,7 +274,7 @@ float Joystick<Console::HAC>::GetAxis(int index)
     {
         /* accelerometer(s) */
         const auto accelerometer = this->sixAxis.GetStateInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
-        size_t axisOffset        = 6;
+        size_t axisOffset        = offset;
 
         /* [6 <- index -> 9) */
         if (index >= axisOffset && index < axisOffset + 3)

@@ -31,6 +31,8 @@ namespace love::guid
         int hatCount;
         const char* name;
         const char* guid;
+        bool hasZL;
+        bool hasZR;
     };
 
     struct DeviceInfo
@@ -49,6 +51,10 @@ namespace love::guid
     const char* GetGamepadGUID(GamepadType type);
 
     const char* GetGamepadName(GamepadType type);
+
+    bool GetGamepadHasZL(GamepadType type);
+
+    bool GetGamepadHasZR(GamepadType type);
 
     bool GetDeviceInfo(GamepadType type, DeviceInfo& info);
 

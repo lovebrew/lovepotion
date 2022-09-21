@@ -238,6 +238,24 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
+
+                /* handle trigger and stick inputs */
+                for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+                {
+                    auto& newEvent = this->events.emplace_back();
+
+                    newEvent.type    = TYPE_GAMEPAD;
+                    newEvent.subType = SUBTYPE_GAMEPADAXIS;
+
+                    newEvent.padAxis.id = joystick->GetInstanceID();
+
+                    const char* axis = nullptr;
+                    Joystick<>::GetConstant((Joystick<>::GamepadAxis)index, axis);
+
+                    newEvent.padAxis.axis  = index;
+                    newEvent.padAxis.value = joystick->GetAxis(index);
+                    newEvent.padAxis.name  = axis;
+                }
             }
         }
     }

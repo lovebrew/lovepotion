@@ -115,9 +115,9 @@ namespace love
 
             StickAxis leftStick;
             StickAxis rightStick;
-
-            int32_t leftTrigger;
-            int32_t rightTrigger;
         } buttonStates;
+
+        int32_t leftTrigger;
+        int32_t rightTrigger;
     };
 } // namespace love

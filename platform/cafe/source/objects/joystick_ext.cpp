@@ -4,6 +4,8 @@
 #include <utilities/result.hpp>
 #include <utilities/wpad.hpp>
 
+#include <padscore/wpad.h>
+
 using namespace love;
 
 template<>
@@ -192,6 +194,9 @@ bool Joystick<Console::CAFE>::Open(int index)
 
     this->isGamepad = (index == 0);
 
+    this->leftTrigger  = VPAD_BUTTON_ZL;
+    this->rightTrigger = VPAD_BUTTON_ZR;
+
     if (!this->isGamepad)
     {
         KPADError error {};
@@ -199,6 +204,24 @@ bool Joystick<Console::CAFE>::Open(int index)
 
         if (error != KPAD_ERROR_OK || this->kpad.extensionType == 0xFF)
             return false;
+
+        this->extension = (WPADExtensionType)this->kpad.extensionType;
+
+        this->leftTrigger  = -1;
+        this->rightTrigger = -1;
+
+        if (this->GetGamepadType() == guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK)
+            this->leftTrigger = WPAD_NUNCHUK_BUTTON_Z;
+        else if (this->GetGamepadType() == guid::GAMEPAD_TYPE_WII_CLASSIC)
+        {
+            this->leftTrigger  = WPAD_CLASSIC_BUTTON_ZL;
+            this->rightTrigger = WPAD_CLASSIC_BUTTON_ZR;
+        }
+        else if (this->GetGamepadType() == guid::GAMEPAD_TYPE_WII_PRO)
+        {
+            this->leftTrigger  = WPAD_PRO_TRIGGER_ZL;
+            this->rightTrigger = WPAD_PRO_TRIGGER_ZR;
+        }
     }
 
     this->guid = guid::GetGamepadGUID(this->GetGamepadType());
@@ -257,9 +280,6 @@ void Joystick<Console::CAFE>::Update()
         VPADReadError error {};
         VPADRead(VPAD_CHAN_0, &this->vpad, 1, &error);
 
-        this->buttonStates.leftTrigger  = VPAD_BUTTON_ZL;
-        this->buttonStates.rightTrigger = VPAD_BUTTON_ZR;
-
         if (error == VPAD_READ_NO_SAMPLES)
             return;
 
@@ -280,9 +300,6 @@ void Joystick<Console::CAFE>::Update()
         this->buttonStates.pressed  = this->kpad.trigger;
         this->buttonStates.released = this->kpad.release;
 
-        this->buttonStates.leftTrigger  = -1;
-        this->buttonStates.rightTrigger = -1;
-
         switch (this->GetGamepadType())
         {
             case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
@@ -292,8 +309,6 @@ void Joystick<Console::CAFE>::Update()
 
                 this->buttonStates.leftStick = { this->kpad.nunchuck.stick.x,
                                                  this->kpad.nunchuck.stick.y };
-
-                this->buttonStates.leftTrigger = WPAD_NUNCHUK_BUTTON_Z;
 
                 break;
             }
@@ -308,9 +323,6 @@ void Joystick<Console::CAFE>::Update()
                 this->buttonStates.rightStick = { this->kpad.classic.rightStick.x,
                                                   this->kpad.classic.rightStick.y };
 
-                this->buttonStates.leftTrigger  = WPAD_CLASSIC_BUTTON_ZL;
-                this->buttonStates.rightTrigger = WPAD_CLASSIC_BUTTON_ZR;
-
                 break;
             }
             case guid::GAMEPAD_TYPE_WII_PRO:
@@ -323,9 +335,6 @@ void Joystick<Console::CAFE>::Update()
 
                 this->buttonStates.rightStick = { this->kpad.pro.rightStick.x,
                                                   this->kpad.pro.rightStick.y };
-
-                this->buttonStates.leftTrigger  = WPAD_PRO_TRIGGER_ZL;
-                this->buttonStates.rightTrigger = WPAD_PRO_TRIGGER_ZR;
 
                 break;
             }
@@ -448,20 +457,18 @@ float Joystick<Console::CAFE>::GetAxis(int index) const
     }
     else if (index == 4)
     {
-        if (this->buttonStates.pressed & this->buttonStates.leftTrigger)
+        if (this->buttonStates.pressed & this->leftTrigger)
             return 1.0f;
 
         return 0.0f;
     }
     else if (index == 5)
     {
-        if (this->buttonStates.pressed & this->buttonStates.rightTrigger)
+        if (this->buttonStates.pressed & this->rightTrigger)
             return 1.0f;
 
         return 0.0f;
     }
-    else /* todo: handle gyro/accel */
-    {}
 
     return 0.0f;
 }

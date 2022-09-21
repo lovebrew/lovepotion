@@ -163,7 +163,7 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
         }
 
         /* handle trigger and stick inputs */
-        for (size_t index = 1; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+        for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
         {
             auto& newEvent = this->events.emplace_back();
 

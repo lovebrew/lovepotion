@@ -88,4 +88,4 @@ static constexpr luaL_Reg functions[] =
 };
 // clang-format on
 
-std::span<const luaL_Reg> Wrap_Joystick::extension(functions);
+std::span<const luaL_Reg> Wrap_Joystick::extension;
