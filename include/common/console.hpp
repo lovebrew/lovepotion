@@ -24,6 +24,23 @@ namespace love
             return Which == platform;
         }
 
+        static void SetMainCore(uint32_t id)
+        {
+            if (Console::coreIdSet)
+                return;
+
+            Console::coreId    = id;
+            Console::coreIdSet = true;
+        }
+
+        static uint32_t GetMainCoreId()
+        {
+            return Console::coreId;
+        }
+
+        static uint32_t coreId;
+        static bool coreIdSet;
+
         Console() = delete;
     };
 } // namespace love

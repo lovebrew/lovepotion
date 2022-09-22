@@ -52,7 +52,7 @@ Message* love::Event::ConvertGeneralEvent(const LOVE_Event& event, std::vector<V
             result = new Message("quit");
             break;
         case SUBTYPE_LOWMEMORY:
-            result = new Message("lovememory");
+            result = new Message("lowmemory");
             break;
         default:
             break;

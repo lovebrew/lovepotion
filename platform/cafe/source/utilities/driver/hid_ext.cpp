@@ -4,8 +4,6 @@
 #include <padscore/kpad.h>
 #include <proc_ui/procui.h>
 
-#include <utilities/log/logfile.h>
-
 #define Module() Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK)
 
 using namespace love;
@@ -17,31 +15,7 @@ HID<Console::CAFE>::~HID()
 {}
 
 void HID<Console::CAFE>::CheckFocus()
-{
-    const auto status = ProcUIProcessMessages(true);
-
-    if (status == PROCUI_STATUS_EXITING)
-    {
-        this->SendQuit();
-        return;
-    }
-
-    switch (status)
-    {
-        case PROCUI_STATUS_IN_FOREGROUND:
-        {
-            this->SendFocus(true);
-            break;
-        }
-        case PROCUI_STATUS_RELEASE_FOREGROUND:
-        {
-            this->SendFocus(false);
-            break;
-        }
-        default:
-            break;
-    }
-}
+{}
 
 bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 {
@@ -142,7 +116,7 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 
     if (Module())
     {
-        for (size_t index = 1; index < Module()->GetJoystickCount(); index++)
+        for (size_t index = 1; index < (size_t)Module()->GetJoystickCount(); index++)
         {
             auto* joystick = Module()->GetJoystickFromId(index);
 
