@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/console.hpp>
+#include <common/object.hpp>
 
 #include <limits>
 #include <memory>
@@ -14,6 +15,8 @@ namespace love
       public:
         static constexpr uint32_t MAX           = std::numeric_limits<uint32_t>::max();
         static constexpr float HAPTYIC_INFINITY = -1.0f;
+
+        static Type type;
 
         struct VibrationInfo
         {

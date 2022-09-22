@@ -17,6 +17,7 @@ namespace love
         static double GetTime();
 
       private:
+        static constexpr double NANOSECONDS_TO_SECONDS = 1000000000.0;
         static double reference;
     };
 } // namespace love

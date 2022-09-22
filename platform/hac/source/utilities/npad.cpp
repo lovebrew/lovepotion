@@ -14,8 +14,6 @@ HidNpadStyleTag love::npad::GetStyleTag(PadState* state)
         return HidNpadStyleTag_NpadFullKey;
     else if (styleSet & HidNpadStyleTag_NpadHandheld)
         return HidNpadStyleTag_NpadHandheld;
-    else
-        return INVALID_STYLE_TAG;
 
     /* this won't work with PadState split and join at the moment */
     if (styleSet & HidNpadStyleTag_NpadJoyLeft)

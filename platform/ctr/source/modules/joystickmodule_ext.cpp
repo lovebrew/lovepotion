@@ -8,14 +8,14 @@ JoystickModule<Console::CTR>::JoystickModule()
         this->AddJoystick(index);
 }
 
-::Joystick* JoystickModule<Console::CTR>::AddJoystick(int index)
+Joystick<Console::Which>* JoystickModule<Console::CTR>::AddJoystick(int index)
 {
     if (index < 0 || index >= this->GetCurrentJoystickCount())
         return nullptr;
 
-    std::string guid     = love::guid::GetGamepadGUID(guid::GAMEPAD_TYPE_NINTENDO_3DS);
-    ::Joystick* joystick = nullptr;
-    bool reused          = false;
+    std::string guid = love::guid::GetGamepadGUID(guid::GAMEPAD_TYPE_NINTENDO_3DS);
+    Joystick<Console::Which>* joystick = nullptr;
+    bool reused                        = false;
 
     for (auto stick : this->joysticks)
     {
@@ -29,7 +29,7 @@ JoystickModule<Console::CTR>::JoystickModule()
 
     if (!joystick)
     {
-        joystick = new ::Joystick((int)this->joysticks.size());
+        joystick = new Joystick<Console::Which>((int)this->joysticks.size());
         this->joysticks.push_back(joystick);
     }
 

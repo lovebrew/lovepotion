@@ -9,9 +9,9 @@ std::span<const luaL_Reg> Wrap_Joystick::extension;
 
 using namespace love;
 
-::Joystick* Wrap_Joystick::CheckJoystick(lua_State* L, int index)
+Joystick<love::Console::Which>* Wrap_Joystick::CheckJoystick(lua_State* L, int index)
 {
-    return luax::CheckType<::Joystick>(L, index);
+    return luax::CheckType<Joystick<love::Console::Which>>(L, index);
 }
 
 int Wrap_Joystick::IsConnected(lua_State* L)
@@ -209,7 +209,7 @@ int Wrap_Joystick::GetGamepadAxis(lua_State* L)
     auto* self       = Wrap_Joystick::CheckJoystick(L, 1);
     const char* name = luaL_checkstring(L, 2);
 
-    ::Joystick::GamepadAxis axis;
+    Joystick<>::GamepadAxis axis;
     if (!love::Joystick<>::GetConstant(name, axis))
         return luax::EnumError(L, "gamepad axis", name);
 
@@ -228,10 +228,10 @@ int Wrap_Joystick::IsGamepadDown(lua_State* L)
     if (count == 0)
         luaL_checkstring(L, 2);
 
-    std::vector<::Joystick::GamepadButton> buttons;
+    std::vector<Joystick<>::GamepadButton> buttons;
     buttons.reserve(count);
 
-    ::Joystick::GamepadButton button;
+    Joystick<>::GamepadButton button;
 
     if (isTable)
     {
@@ -345,5 +345,5 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_Joystick::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &::Joystick::type, functions, Wrap_Joystick::extension);
+    return luax::RegisterType(L, &Joystick<>::type, functions, Wrap_Joystick::extension);
 }

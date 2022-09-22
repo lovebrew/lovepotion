@@ -1,11 +1,14 @@
 #include <objects/joystick_ext.hpp>
 #include <utilities/npad.hpp>
 
+#include <modules/joystickmodule_ext.hpp>
 #include <modules/timer_ext.hpp>
 
 #include <utilities/bidirectionalmap.hpp>
 
 using namespace love;
+
+#define Module() (Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK))
 
 template<>
 Type Joystick<>::type("Joystick", &Object::type);
@@ -268,71 +271,70 @@ float Joystick<Console::HAC>::GetAxis(int index)
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    switch (this->GetGamepadType())
+    // Buttons and sticks need separate code for each
+    if (index < 6)
     {
-        case guid::GAMEPAD_TYPE_JOYCON_LEFT:
-            break;
-        case guid::GAMEPAD_TYPE_JOYCON_RIGHT:
-            break;
-        default:
+        switch (this->GetGamepadType())
         {
-            if (index == 0 || index == 1)
-                return getStickPosition(this->state, index == 1, true);
-            else if (index == 2 || index == 3)
-                return getStickPosition(this->state, index == 3, false);
-            else if (index == 4)
-                return getTrigger(padGetButtons(&this->state), HidNpadButton_ZL);
-            else if (index == 5)
-                return getTrigger(padGetButtons(&this->state), HidNpadButton_ZR);
-            else
+            case guid::GAMEPAD_TYPE_JOYCON_LEFT:
             {
-                size_t offset = index;
-                const auto accelerometer =
-                    this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_ACCELEROMETER);
+                if (index / 4 == 0) // No left stick, yes right stick
+                    return (index / 2) ? 0 : getStickPosition(this->state, index % 2, false);
+                else
+                    return getTrigger(padGetButtons(&this->state),
+                                      (index % 2) ? HidNpadButton_LeftSR : HidNpadButton_LeftSL);
 
-                const auto angle = [&](const auto& haptic, bool isSecondary) {
-                    if (index >= offset && index < offset + 3)
-                    {
-                        if (index == offset)
-                            return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_X);
-                        else if (index == offset + 1)
-                            return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Y);
-                        else
-                            return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Z);
-                    }
-
-                    return 0.0f;
-                };
-
-                if (index >= offset && index < offset + 3)
-                    return angle(accelerometer, false);
-
-                offset += 3;
-
-                if (accelerometer.size() == 2)
-                {
-                    if (index >= offset && index < offset + 3)
-                        return angle(accelerometer, true);
-
-                    offset += 3;
-                }
-
-                const auto gyroscope = this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_GYROSCOPE);
-
-                if (index >= offset && index < offset + 3)
-                    return angle(gyroscope, false);
-
-                offset += 3;
-
-                if (gyroscope.size() == 2)
-                {
-                    if (index >= offset && index < offset + 3)
-                        return angle(gyroscope, true);
-                }
+                break;
+            }
+            case guid::GAMEPAD_TYPE_JOYCON_RIGHT:
+            {
+                if (index / 4 == 0) // No left stick, yes right stick
+                    return (index / 2) ? 0 : getStickPosition(this->state, index % 2, true);
+                else
+                    return getTrigger(padGetButtons(&this->state),
+                                      (index % 2) ? HidNpadButton_RightSR : HidNpadButton_RightSL);
+                break;
+            }
+            default:
+            {
+                if (index / 4 == 0)
+                    return getStickPosition(this->state, index % 2, (index / 2) == 0);
+                else
+                    return getTrigger(padGetButtons(&this->state),
+                                      (index % 2) ? HidNpadButton_ZR : HidNpadButton_ZL);
 
                 break;
             }
         }
+    }
+
+    const auto angle = [&](const auto& haptic) {
+        bool isSecondary = haptic.size() == 2 && index >= 12;
+        switch (index % 3)
+        {
+            case 0:
+                return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_X);
+            case 1:
+                return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Y);
+            case 2:
+                return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Z);
+
+            // unreachable
+            default:
+                return 0.0f;
+        }
+    };
+
+    switch ((index / 3) % 2)
+    {
+        case 0:
+            return angle(this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_ACCELEROMETER));
+        case 1:
+            return angle(this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_GYROSCOPE));
+
+        // unreachable
+        default:
+            return 0;
     }
 
     return 0.0f;
@@ -430,7 +432,7 @@ bool Joystick<Console::HAC>::SetVibration(float left, float right, float duratio
 
     if (!this->IsConnected())
     {
-        this->vibration.SendValues(0.0f, 0.0f);
+        this->SetVibration();
         return false;
     }
 
@@ -443,6 +445,9 @@ bool Joystick<Console::HAC>::SetVibration(float left, float right, float duratio
         this->vibration.SetDuration(Timer<Console::HAC>::GetTime() + length);
 
     bool success = this->vibration.SendValues(left, right);
+
+    if (success)
+        Module()->AddVibration(&this->vibration);
 
     return success;
 }

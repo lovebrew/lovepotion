@@ -9,8 +9,6 @@
 #include <map>
 #include <vector>
 
-using Joystick = love::Joystick<love::Console::Which>;
-
 namespace love
 {
     template<Console::Platform T = Console::ALL>
@@ -39,7 +37,7 @@ namespace love
             return "love.joystick";
         }
 
-        void RemoveJoystick(::Joystick* joystick)
+        void RemoveJoystick(Joystick<love::Console::Which>* joystick)
         {
             if (!joystick)
                 return;
@@ -53,7 +51,7 @@ namespace love
             }
         }
 
-        ::Joystick* GetJoystickFromId(int instanceId)
+        Joystick<love::Console::Which>* GetJoystickFromId(int instanceId)
         {
             for (auto joystick : this->active)
             {
@@ -64,7 +62,7 @@ namespace love
             return nullptr;
         }
 
-        ::Joystick* GetJoystick(int index)
+        Joystick<love::Console::Which>* GetJoystick(int index)
         {
             if (index < 0 || (size_t)index >= this->active.size())
                 return nullptr;
@@ -72,7 +70,7 @@ namespace love
             return this->active[index];
         }
 
-        int GetIndex(const ::Joystick* joystick)
+        int GetIndex(const Joystick<love::Console::Which>* joystick)
         {
             for (size_t index = 0; index < this->active.size(); index++)
             {
@@ -89,8 +87,8 @@ namespace love
         }
 
       protected:
-        std::vector<::Joystick*> active;
-        std::list<::Joystick*> joysticks;
+        std::vector<Joystick<love::Console::Which>*> active;
+        std::list<Joystick<love::Console::Which>*> joysticks;
 
         std::map<std::string, bool> recentGUIDs;
     };

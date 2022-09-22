@@ -1,5 +1,5 @@
 #include <utilities/haptics/vibration_ext.hpp>
-
+#include <utilities/log/logfile.h>
 using namespace love;
 
 Vibration<Console::HAC>::Vibration(HidNpadIdType playerId, HidNpadStyleTag style) :
@@ -13,6 +13,16 @@ Vibration<Console::HAC>::Vibration(HidNpadIdType playerId, HidNpadStyleTag style
 
     this->handles = std::make_unique<HidVibrationDeviceHandle[]>(this->handleCount);
     hidInitializeVibrationDevices(this->handles.get(), this->handleCount, playerId, style);
+}
+
+Vibration<Console::HAC>::~Vibration()
+{
+    LOG("DESTROYING");
+    if (!this->handles)
+        return;
+    LOG("Sending 0, 0");
+    bool successs = this->SendValues(0, 0);
+    LOG("Sent vibrations: %d", successs);
 }
 
 Vibration<Console::HAC>& Vibration<Console::HAC>::operator=(Vibration&& other)
@@ -56,6 +66,3 @@ bool Vibration<Console::HAC>::SendValues(float left, float right)
 
     return R_SUCCEEDED(result);
 }
-
-Vibration<Console::HAC>::~Vibration()
-{}

@@ -15,6 +15,6 @@ namespace love
             return 1;
         }
 
-        ::Joystick* AddJoystick(int index);
+        Joystick<Console::Which>* AddJoystick(int index);
     };
 } // namespace love

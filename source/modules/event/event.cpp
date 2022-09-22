@@ -90,9 +90,9 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
     if (!joystickModule)
         return nullptr;
 
-    auto* type           = &Joystick<>::type;
-    ::Joystick* joystick = nullptr;
-    const char* name     = nullptr;
+    auto* type                         = &Joystick<>::type;
+    Joystick<Console::Which>* joystick = nullptr;
+    const char* name                   = nullptr;
 
     Message* result = nullptr;
 

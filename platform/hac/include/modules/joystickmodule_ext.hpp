@@ -2,6 +2,9 @@
 
 #include <modules/joystick/joystickmodule.tcc>
 
+#include <utilities/pool/poolthread.hpp>
+#include <utilities/pool/vibrations.hpp>
+
 #include <switch.h>
 #include <vector>
 
@@ -19,6 +22,12 @@ namespace love
 
         std::vector<guid::GamepadType> GetActiveStyleSets();
 
-        ::Joystick* AddJoystick(int index);
+        Joystick<love::Console::Which>* AddJoystick(int index);
+
+        void AddVibration(::Vibration* vibration);
+
+      private:
+        VibrationPool* pool;
+        PoolThread* thread;
     };
 } // namespace love

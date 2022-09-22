@@ -17,8 +17,8 @@ Timer<Console::HAC>::Timer()
 
 double Timer<Console::HAC>::GetTime()
 {
-    std::chrono::nanoseconds nanoseconds(armTicksToNs(armGetSystemTick() - Timer::reference));
-    return std::chrono::duration_cast<std::chrono::seconds>(nanoseconds).count();
+    uint64_t nanoseconds = armTicksToNs(armGetSystemTick() - Timer::reference);
+    return nanoseconds / Timer::NANOSECONDS_TO_SECONDS;
 }
 
 void Timer<Console::HAC>::Sleep(double seconds) const

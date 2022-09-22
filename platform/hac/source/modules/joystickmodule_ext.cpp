@@ -7,14 +7,37 @@
 
 using namespace love;
 
-JoystickModule<Console::HAC>::JoystickModule()
+JoystickModule<Console::HAC>::JoystickModule() : pool(nullptr), thread(nullptr)
 {
     for (int index = 0; index < (int)this->AcquireCurrentJoystickIds().size(); index++)
         this->AddJoystick(index);
+
+    try
+    {
+        this->pool = new VibrationPool();
+    }
+    catch (love::Exception&)
+    {
+        throw;
+    }
+
+    this->thread = new PoolThread(this->pool);
+    this->thread->Start();
 }
 
 JoystickModule<Console::HAC>::~JoystickModule()
-{}
+{
+    this->thread->SetFinish();
+    this->thread->Wait();
+
+    delete thread;
+    delete pool;
+}
+
+void JoystickModule<Console::HAC>::AddVibration(::Vibration* vibration)
+{
+    this->pool->AddVibration(vibration);
+}
 
 std::vector<HidNpadIdType> JoystickModule<Console::HAC>::AcquireCurrentJoystickIds()
 {
@@ -67,7 +90,7 @@ std::vector<guid::GamepadType> JoystickModule<Console::HAC>::GetActiveStyleSets(
     return info;
 }
 
-::Joystick* JoystickModule<Console::HAC>::AddJoystick(int index)
+Joystick<love::Console::Which>* JoystickModule<Console::HAC>::AddJoystick(int index)
 {
     if (index < 0 || index >= (int)this->AcquireCurrentJoystickIds().size())
         return nullptr;
@@ -82,9 +105,9 @@ std::vector<guid::GamepadType> JoystickModule<Console::HAC>::GetActiveStyleSets(
     guid::GamepadType type;
     npad::GetConstant(styleTag, type);
 
-    std::string guid     = love::guid::GetGamepadGUID(type);
-    ::Joystick* joystick = nullptr;
-    bool reused          = false;
+    std::string guid                         = love::guid::GetGamepadGUID(type);
+    Joystick<love::Console::Which>* joystick = nullptr;
+    bool reused                              = false;
 
     for (auto stick : this->joysticks)
     {
@@ -98,7 +121,7 @@ std::vector<guid::GamepadType> JoystickModule<Console::HAC>::GetActiveStyleSets(
 
     if (!joystick)
     {
-        joystick = new ::Joystick((int)this->joysticks.size());
+        joystick = new Joystick<love::Console::Which>((int)this->joysticks.size());
         this->joysticks.push_back(joystick);
     }
 

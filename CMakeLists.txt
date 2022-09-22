@@ -436,6 +436,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/hashfunction/types/sha256.cpp
     source/utilities/hashfunction/types/sha512.cpp
     source/utilities/log/logfile.cpp
+    source/utilities/pool/poolthread.cpp
+    source/utilities/pool/vibrations.cpp
     source/utilities/result.cpp
     source/utilities/stream/stream.cpp
     source/utilities/stream/types/datastream.cpp

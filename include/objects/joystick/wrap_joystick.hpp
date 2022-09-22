@@ -7,7 +7,7 @@
 
 namespace Wrap_Joystick
 {
-    ::Joystick* CheckJoystick(lua_State* L, int index);
+    love::Joystick<love::Console::Which>* CheckJoystick(lua_State* L, int index);
 
     int IsConnected(lua_State* L);
 

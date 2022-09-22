@@ -17,7 +17,7 @@ namespace love
 
         Vibration& operator=(Vibration&& other);
 
-        ~Vibration();
+        virtual ~Vibration();
 
         bool SendValues(float left, float right);
 

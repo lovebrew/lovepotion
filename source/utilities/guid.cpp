@@ -21,8 +21,8 @@ static constexpr love::guid::GamepadInfo gamepadInfo[] =
     { 12,  12,  0, "New Nintendo 3DS",                  "{7BC9702D-7D81-4EBB-AD4F-8C94076588D5}", true,  true  }, // GAMEPAD_TYPE_NEW_NINTENDO_3DS
     { 14,   6,  0, "Nintendo Switch",                   "{6EBE242C-820F-46E1-9A66-DC8200686D51}", true,  true  }, // GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD
     { 14,   6,  0, "Nintendo Switch Pro Controller",    "{42ECF5C5-AFA5-4EDE-B1A2-4E9C2287559A}", true,  false }, // GAMEPAD_TYPE_NINTENDO_SWITCH_PRO
-    {  7,   6,  0, "Joy-Con L",                         "{660EBC7E-3953-4B74-8406-AD5992FCC5C7}", true,  false }, // GAMEPAD_TYPE_JOYCON_LEFT
-    {  7,   6,  0, "Joy-Con R",                         "{AD770831-A7E4-41A8-8DD0-FD48323E0043}", false, true  }, // GAMEPAD_TYPE_JOYCON_RIGHT
+    {  7,  12,  0, "Joy-Con L",                         "{660EBC7E-3953-4B74-8406-AD5992FCC5C7}", true,  false }, // GAMEPAD_TYPE_JOYCON_LEFT
+    {  7,  12,  0, "Joy-Con R",                         "{AD770831-A7E4-41A8-8DD0-FD48323E0043}", false, true  }, // GAMEPAD_TYPE_JOYCON_RIGHT
     { 14,  18,  0, "Joy-Con Pair",                      "{701B198B-9AD9-4730-8EEB-EBECF707B9DF}", true,  true  }, // GAMEPAD_TYPE_JOYCON_PAIR
     { 15,   6,  0, "Nintendo Wii U Gamepad",            "{62998927-C43D-41F5-B6B1-D22CBF031D91}", true,  true  }, // GAMEPAD_TYPE_WII_U_GAMEPAD
     {  8,   3,  0, "Nintendo Wii Remote",               "{02DC4D7B-2480-4678-BB06-D9AEDC3DE29B}", false, false }, // GAMEPAD_TYPE_WII_REMOTE

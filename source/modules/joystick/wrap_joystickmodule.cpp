@@ -13,7 +13,7 @@ int Wrap_JoystickModule::GetJoysticks(lua_State* L)
     lua_createtable(L, count, 0);
     for (int index = 0; index < count; index++)
     {
-        ::Joystick* joystick = instance()->GetJoystick(index);
+        Joystick<Console::Which>* joystick = instance()->GetJoystick(index);
         luax::PushType(L, joystick);
         lua_rawseti(L, -2, index + 1);
     }

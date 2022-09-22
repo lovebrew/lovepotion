@@ -138,7 +138,7 @@ std::string_view System<Console::CTR>::GetUsername()
 
 static inline std::string MAKE_FRIEND_CODE(uint64_t friendCode)
 {
-    std::string result(0x0E, '\0');
+    std::string result(0x0F, '\0');
 
     const auto first  = (int)((friendCode / 100000000) % 10000);
     const auto second = (int)((friendCode / 10000) % 10000);

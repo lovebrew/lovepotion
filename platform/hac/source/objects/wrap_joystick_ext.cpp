@@ -44,10 +44,10 @@ int Wrap_Joystick::Split(lua_State* L)
 
 int Wrap_Joystick::Join(lua_State* L)
 {
-    auto* self        = Wrap_Joystick::CheckJoystick(L, 1);
-    ::Joystick* other = nullptr;
+    auto* self                            = Wrap_Joystick::CheckJoystick(L, 1);
+    Joystick<love::Console::Which>* other = nullptr;
 
-    if (luax::IsType(L, 2, ::Joystick::type))
+    if (luax::IsType(L, 2, Joystick<>::type))
         other = Wrap_Joystick::CheckJoystick(L, 2);
     else if (lua_isnumber(L, 2))
         other = instance()->GetJoystickFromId(luaL_checknumber(L, 2) - 1);
