@@ -18,6 +18,13 @@ namespace love
             SIXAXIS_MAX_ENUM
         };
 
+        enum Axis
+        {
+            SIXAXIS_X,
+            SIXAXIS_Y,
+            SIXAXIS_Z
+        };
+
       protected:
         int handleCount;
     };

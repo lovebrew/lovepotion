@@ -4,6 +4,7 @@
 
 #include <list>
 
+#include <objects/joystick/joystick.tcc>
 #include <utilities/driver/events.hpp>
 
 namespace love
@@ -18,7 +19,7 @@ namespace love
             return instance;
         }
 
-        HID() : touchHeld(false), hysteresis(false), focused(false), events()
+        HID() : touchHeld(false), hysteresis(false), focused(false), events(), stickValues {}
         {}
 
         void SendFocus(bool focus)
@@ -86,5 +87,6 @@ namespace love
         bool focused;
 
         std::list<LOVE_Event> events;
+        std::array<float, Joystick<>::GamepadAxis::GAMEPAD_AXIS_MAX_ENUM> stickValues;
     };
 } // namespace love

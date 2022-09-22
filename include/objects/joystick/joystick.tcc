@@ -19,7 +19,6 @@ namespace love
 
         enum GamepadAxis
         {
-            GAMEPAD_AXIS_INVALID,
             GAMEPAD_AXIS_LEFTY,
             GAMEPAD_AXIS_LEFTX,
             GAMEPAD_AXIS_RIGHTY,
@@ -175,9 +174,9 @@ namespace love
             return inputTypes.GetNames();
         }
 
-      protected:
         static constexpr float JoystickMax = 150.0f;
 
+      protected:
         std::string name;
 
         int instanceId;

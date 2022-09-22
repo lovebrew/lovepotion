@@ -230,112 +230,107 @@ bool Joystick<Console::HAC>::IsUp(JoystickInput& result)
     return false;
 }
 
+/* helper functionality */
+
+static float getStickPosition(PadState& state, bool horizontal, bool isLeft)
+{
+    auto stickState = padGetStickPos(&state, isLeft);
+
+    float value = (horizontal) ? stickState.x : stickState.y;
+    return std::clamp<float>(value / Joystick<>::JoystickMax, -1.0f, 1.0f);
+}
+
+static float getTrigger(uint64_t held, HidNpadButton trigger)
+{
+    if (held & trigger)
+        return 1.0f;
+
+    return 0.0f;
+}
+
+static float getHapticAngle(std::vector<Vector3> haptic, size_t index, ::SixAxis::Axis axis)
+{
+    switch (axis)
+    {
+        case ::SixAxis::SIXAXIS_X:
+            return haptic[index].x;
+        case ::SixAxis::SIXAXIS_Y:
+            return haptic[index].y;
+        case ::SixAxis::SIXAXIS_Z:
+            return haptic[index].z;
+    }
+
+    return 0.0f;
+}
+
 float Joystick<Console::HAC>::GetAxis(int index)
 {
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    if (index == 0 || index == 1)
+    switch (this->GetGamepadType())
     {
-        auto stickState = padGetStickPos(&this->state, 0);
-
-        float value = (index == 1) ? stickState.x : stickState.y;
-        return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
-    }
-
-    if (index == 2 || index == 3)
-    {
-        auto stickState = padGetStickPos(&this->state, 1);
-
-        float value = (index == 3) ? stickState.x : stickState.y;
-        return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
-    }
-
-    size_t offset = 3;
-    if (guid::GetGamepadHasZL(this->GetGamepadType()) && offset == index)
-    {
-        offset++;
-
-        if (padGetButtons(&this->state) & HidNpadButton_ZL)
-            return 1.0f;
-
-        return 0.0f;
-    }
-    else if (guid::GetGamepadHasZR(this->GetGamepadType()) && offset == index + 1)
-    {
-        offset++;
-
-        if (padGetButtons(&this->state) & HidNpadButton_ZR)
-            return 1.0f;
-
-        return 0.0f;
-    }
-    else
-    {
-        /* accelerometer(s) */
-        const auto accelerometer = this->sixAxis.GetStateInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
-        size_t axisOffset        = offset;
-
-        /* [6 <- index -> 9) */
-        if (index >= axisOffset && index < axisOffset + 3)
+        case guid::GAMEPAD_TYPE_JOYCON_LEFT:
+            break;
+        case guid::GAMEPAD_TYPE_JOYCON_RIGHT:
+            break;
+        default:
         {
-            if (index == axisOffset)
-                return accelerometer.at(0).x;
-            else if (index == axisOffset + 1)
-                return accelerometer.at(0).y;
+            if (index == 0 || index == 1)
+                return getStickPosition(this->state, index == 1, true);
+            else if (index == 2 || index == 3)
+                return getStickPosition(this->state, index == 3, false);
+            else if (index == 4)
+                return getTrigger(padGetButtons(&this->state), HidNpadButton_ZL);
+            else if (index == 5)
+                return getTrigger(padGetButtons(&this->state), HidNpadButton_ZR);
             else
-                return accelerometer.at(0).z;
-        }
-
-        axisOffset += 3;
-
-        if (accelerometer.size() == 2)
-        {
-            /* [9 <- index -> 12) */
-            if (index >= axisOffset && index < axisOffset + 3)
             {
-                if (index == axisOffset)
-                    return accelerometer.at(1).x;
-                else if (index == axisOffset + 1)
-                    return accelerometer.at(1).y;
-                else
-                    return accelerometer.at(1).z;
-            }
+                size_t offset = index;
+                const auto accelerometer =
+                    this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_ACCELEROMETER);
 
-            axisOffset += 3;
-        }
+                const auto angle = [&](const auto& haptic, bool isSecondary) {
+                    if (index >= offset && index < offset + 3)
+                    {
+                        if (index == offset)
+                            return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_X);
+                        else if (index == offset + 1)
+                            return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Y);
+                        else
+                            return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Z);
+                    }
 
-        /* gyroscope(s) */
-        const auto gyroscope = this->sixAxis.GetStateInfo(SixAxis<>::SIXAXIS_GYROSCOPE);
+                    return 0.0f;
+                };
 
-        /*
-        ** [9 <- index -> 12)
-        ** or
-        ** [12 <- index -> 15)
-        */
-        if (index >= axisOffset && index < axisOffset + 3)
-        {
-            if (index == axisOffset)
-                return gyroscope.at(0).x;
-            else if (index == axisOffset + 1)
-                return gyroscope.at(0).y;
-            else
-                return gyroscope.at(0).z;
-        }
+                if (index >= offset && index < offset + 3)
+                    return angle(accelerometer, false);
 
-        axisOffset += 3;
+                offset += 3;
 
-        if (gyroscope.size() == 2)
-        {
-            /* [15 <- index -> 18) */
-            if (index >= axisOffset && index < axisOffset + 3)
-            {
-                if (index == axisOffset)
-                    return gyroscope.at(1).x;
-                else if (index == axisOffset + 1)
-                    return gyroscope.at(1).y;
-                else
-                    return gyroscope.at(1).z;
+                if (accelerometer.size() == 2)
+                {
+                    if (index >= offset && index < offset + 3)
+                        return angle(accelerometer, true);
+
+                    offset += 3;
+                }
+
+                const auto gyroscope = this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_GYROSCOPE);
+
+                if (index >= offset && index < offset + 3)
+                    return angle(gyroscope, false);
+
+                offset += 3;
+
+                if (gyroscope.size() == 2)
+                {
+                    if (index >= offset && index < offset + 3)
+                        return angle(gyroscope, true);
+                }
+
+                break;
             }
         }
     }
@@ -387,8 +382,7 @@ float Joystick<Console::HAC>::GetGamepadAxis(GamepadAxis axis)
     if (!this->IsConnected())
         return 0.0f;
 
-    int getAxis = axis;
-    return this->GetAxis(getAxis - 1);
+    return this->GetAxis(axis);
 }
 
 bool Joystick<Console::HAC>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
