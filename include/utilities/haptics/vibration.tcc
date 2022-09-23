@@ -45,6 +45,9 @@ namespace love
             right = this->vibrationInfo.right;
         }
 
+        void SendValues(float left, float right)
+        {}
+
         bool Stop()
         {
             return true;

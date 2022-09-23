@@ -1,23 +1,24 @@
 #pragma once
 
-#include <utilities/driver/driver.hpp>
+#include <utilities/driver/dsp.tcc>
 
 #include <3ds.h>
 
 namespace love
 {
-    class NDSP : public Driver
+    template<>
+    class DSP<Console::CTR> : public DSP<Console::ALL>
     {
       public:
-        static NDSP& Instance()
+        static DSP& Instance()
         {
-            static NDSP instance;
+            static DSP instance;
             return instance;
         }
 
-        NDSP();
+        DSP();
 
-        ~NDSP();
+        ~DSP();
 
         void SetMasterVolume(float volume);
 

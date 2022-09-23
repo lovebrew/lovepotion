@@ -1,7 +1,7 @@
 #include <common/exception.hpp>
 
 #include <utilities/bidirectionalmap.hpp>
-#include <utilities/driver/ndsp.hpp>
+#include <utilities/driver/dsp_ext.hpp>
 
 using namespace love;
 
@@ -11,7 +11,7 @@ static void audioCallback(void* data)
     LightEvent_Signal(event);
 }
 
-NDSP::NDSP()
+DSP<Console::CTR>::DSP()
 {
     if (Result result; R_FAILED(result = ndspInit()))
         throw love::Exception("Failed to initialize ndsp: %x", result);
@@ -22,28 +22,29 @@ NDSP::NDSP()
     ndspSetCallback(audioCallback, &this->event);
 }
 
-NDSP::~NDSP()
+DSP<Console::CTR>::~DSP()
 {
     if (this->initialized)
         ndspExit();
 }
 
-void NDSP::SetMasterVolume(float volume)
+void DSP<Console::CTR>::SetMasterVolume(float volume)
 {
     ndspSetMasterVol(volume);
 }
 
-float NDSP::GetMasterVolume() const
+float DSP<Console::CTR>::GetMasterVolume() const
 {
     return 0.0f;
 }
 
-bool NDSP::ChannelReset(size_t id, int channels, AudioFormat format, int bitDepth, int sampleRate)
+bool DSP<Console::CTR>::ChannelReset(size_t id, int channels, AudioFormat format, int bitDepth,
+                                     int sampleRate)
 {
     ndspChnReset(id);
     uint8_t ndspFormat = 0;
 
-    NDSP::GetChannelFormat(format, bitDepth, ndspFormat);
+    DSP<Console::CTR>::GetChannelFormat(format, bitDepth, ndspFormat);
 
     /* invalid format! */
     if (ndspFormat == 0)
@@ -52,7 +53,7 @@ bool NDSP::ChannelReset(size_t id, int channels, AudioFormat format, int bitDept
     ndspInterpType interpType;
 
     /* invalid interpType! */
-    if (!NDSP::GetInterpType(format, interpType))
+    if (!DSP<Console::CTR>::GetInterpType(format, interpType))
         return false;
 
     ndspChnSetFormat(id, ndspFormat);
@@ -64,7 +65,7 @@ bool NDSP::ChannelReset(size_t id, int channels, AudioFormat format, int bitDept
     return true;
 }
 
-void NDSP::ChannelSetVolume(size_t id, float volume)
+void DSP<Console::CTR>::ChannelSetVolume(size_t id, float volume)
 {
     float mix[12] { 0.0f };
     mix[0] = mix[1] = volume;
@@ -72,44 +73,44 @@ void NDSP::ChannelSetVolume(size_t id, float volume)
     ndspChnSetMix(id, mix);
 }
 
-float NDSP::ChannelGetVolume(size_t id) const
+float DSP<Console::CTR>::ChannelGetVolume(size_t id) const
 {
     return 0.0f;
 }
 
-bool NDSP::ChannelAddBuffer(size_t id, ndspWaveBuf* buffer)
+size_t DSP<Console::CTR>::ChannelGetSampleOffset(size_t id) const
+{
+    return ndspChnGetSamplePos(id);
+}
+
+bool DSP<Console::CTR>::ChannelAddBuffer(size_t id, ndspWaveBuf* buffer)
 {
     ndspChnWaveBufAdd(id, buffer);
 
     return true;
 }
 
-void NDSP::ChannelPause(size_t id, bool paused)
+void DSP<Console::CTR>::ChannelPause(size_t id, bool paused)
 {
     ndspChnSetPaused(id, paused);
 }
 
-bool NDSP::IsChannelPaused(size_t id) const
+bool DSP<Console::CTR>::IsChannelPaused(size_t id) const
 {
     return ndspChnIsPaused(id);
 }
 
-bool NDSP::IsChannelPlaying(size_t id) const
+bool DSP<Console::CTR>::IsChannelPlaying(size_t id) const
 {
     return ndspChnIsPlaying(id);
 }
 
-void NDSP::ChannelStop(size_t id)
+void DSP<Console::CTR>::ChannelStop(size_t id)
 {
     ndspChnWaveBufClear(id);
 }
 
-size_t NDSP::ChannelGetSampleOffset(size_t id) const
-{
-    return ndspChnGetSamplePos(id);
-}
-
-void NDSP::GetChannelFormat(AudioFormat format, int bitDepth, uint8_t& out)
+void DSP<Console::CTR>::GetChannelFormat(AudioFormat format, int bitDepth, uint8_t& out)
 {
     switch (format)
     {
@@ -134,7 +135,7 @@ void NDSP::GetChannelFormat(AudioFormat format, int bitDepth, uint8_t& out)
     }
 }
 
-bool NDSP::GetInterpType(AudioFormat format, ndspInterpType& out)
+bool DSP<Console::CTR>::GetInterpType(AudioFormat format, ndspInterpType& out)
 {
     switch (format)
     {

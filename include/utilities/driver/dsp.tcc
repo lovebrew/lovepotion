@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/console.hpp>
 #include <common/object.hpp>
 
 #include <memory>
@@ -28,7 +29,8 @@ namespace love
         size_t size;
     };
 
-    class Driver
+    template<Console::Platform T = Console::ALL>
+    class DSP
     {
       public:
         enum AudioFormat
