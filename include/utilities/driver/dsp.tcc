@@ -3,6 +3,7 @@
 #include <common/console.hpp>
 #include <common/object.hpp>
 
+#include <algorithm>
 #include <memory>
 
 namespace love
@@ -10,9 +11,11 @@ namespace love
     class DataBuffer : public Object
     {
       public:
-        DataBuffer(void* data, size_t size);
-
-        virtual ~DataBuffer();
+        DataBuffer(void* data, size_t size)
+        {
+            this->buffer = std::make_unique<int16_t[]>(size);
+            std::copy_n((int16_t*)data, size, this->buffer.get());
+        }
 
         inline int16_t* GetBuffer() const
         {

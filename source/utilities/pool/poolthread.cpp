@@ -10,6 +10,11 @@ PoolThread::PoolThread(VibrationPool* pool) : vibrations(pool), finish(false)
     this->name = "VibrationPool";
 }
 
+PoolThread::PoolThread(AudioPool* pool) : sources(pool), finish(false)
+{
+    this->name = "AudioPool";
+}
+
 PoolThread::~PoolThread()
 {}
 
@@ -19,6 +24,9 @@ void PoolThread::ThreadFunction()
     {
         if (this->vibrations)
             this->vibrations->Update();
+
+        if (this->sources)
+            this->sources->Update();
 
         Timer()->Sleep(0.0005);
     }
