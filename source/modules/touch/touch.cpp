@@ -20,9 +20,6 @@ const Finger& Touch::GetTouch(int64_t id) const
     throw love::Exception("Invalid active touch ID: %d.", id);
 }
 
-static std::vector<Finger>::iterator onCompare(std::vector<Finger>)
-{}
-
 void Touch::OnEvent(SubEventType type, const Finger& info)
 {
     auto compare = [&](const Finger& touch) -> bool { return touch.id == info.id; };

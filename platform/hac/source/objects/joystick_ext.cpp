@@ -20,7 +20,7 @@ constexpr auto buttons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_X,             HidNpadButton_X,
     Joystick<>::GAMEPAD_BUTTON_Y,             HidNpadButton_Y,
     Joystick<>::GAMEPAD_BUTTON_BACK,          HidNpadButton_Minus,
-    Joystick<>::GAMEPAD_BUTTON_GUIDE,         (int)-1,
+    Joystick<>::GAMEPAD_BUTTON_GUIDE,         (HidNpadButton)-1,
     Joystick<>::GAMEPAD_BUTTON_START,         HidNpadButton_Plus,
     Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  HidNpadButton_L,
     Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, HidNpadButton_R,
@@ -33,35 +33,14 @@ constexpr auto buttons = BidirectionalMap<>::Create(
 );
 // clang-format on
 
-bool Joystick<Console::HAC>::GetConstant(GamepadButton in, int& out)
+static bool getConstant(Joystick<>::GamepadButton in, HidNpadButton& out)
 {
     return buttons.Find(in, out);
 }
 
-bool Joystick<Console::HAC>::GetConstant(int in, GamepadButton& out)
+static bool getConstant(HidNpadButton in, Joystick<>::GamepadButton& out)
 {
     return buttons.ReverseFind(in, out);
-}
-
-// clang-format off
-static constexpr auto axes = BidirectionalMap<>::Create(
-    Joystick<>::GAMEPAD_AXIS_LEFTX,        (uint64_t)(HidNpadButton_StickLLeft | HidNpadButton_StickLRight),
-    Joystick<>::GAMEPAD_AXIS_LEFTY,        (uint64_t)(HidNpadButton_StickLUp   | HidNpadButton_StickLDown),
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (uint64_t)(HidNpadButton_StickRLeft | HidNpadButton_StickRRight),
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (uint64_t)(HidNpadButton_StickRUp   | HidNpadButton_StickRDown),
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (uint64_t)(HidNpadButton_ZL),
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (uint64_t)(HidNpadButton_ZR)
-);
-// clang-format on
-
-bool Joystick<Console::HAC>::GetConstant(GamepadAxis in, uint64_t& out)
-{
-    return axes.Find(in, out);
-}
-
-bool Joystick<Console::HAC>::GetConstant(uint64_t in, GamepadAxis& out)
-{
-    return axes.ReverseFind(in, out);
 }
 
 Joystick<Console::HAC>::Joystick(int id) : state {}, buttonStates {}
@@ -389,15 +368,14 @@ float Joystick<Console::HAC>::GetGamepadAxis(GamepadAxis axis)
 
 bool Joystick<Console::HAC>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
-    GamepadButton gamepadButton;
+    HidNpadButton gamepadButton;
     const char* name = nullptr;
 
     for (auto button : buttons)
     {
-        if (!Joystick<>::GetConstant(button, name))
-            continue;
+        getConstant(button, gamepadButton);
 
-        if (!Joystick<>::GetConstant(name, gamepadButton))
+        if (gamepadButton == -1)
             continue;
 
         if (padGetButtons(&this->state) & (uint32_t)gamepadButton)
@@ -419,7 +397,6 @@ void Joystick<Console::HAC>::SetPlayerIndex(int index)
         this->playerId = (HidNpadIdType)index;
 }
 
-/* todo VIBRATE */
 bool Joystick<Console::HAC>::SetVibration(float left, float right, float duration)
 {
     left  = std::clamp(left, 0.0f, 1.0f);
@@ -457,30 +434,7 @@ bool Joystick<Console::HAC>::SetVibration()
     return this->vibration.SendValues(0.0f, 0.0f);
 }
 
-/* todo GET VIBRATION */
 void Joystick<Console::HAC>::GetVibration(float& left, float& right)
 {
     this->vibration.GetValues(left, right);
-}
-
-// clang-format off
-constexpr auto deviceTypes = BidirectionalMap<>::Create(
-    "left",  HidNpadJoyDeviceType_Left,
-    "right", HidNpadJoyDeviceType_Right
-);
-// clang-format off
-
-bool Joystick<Console::HAC>::GetConstant(const char*in, HidNpadJoyDeviceType&out)
-{
-    return deviceTypes.Find(in, out);
-}
-
-bool Joystick<Console::HAC>::GetConstant(HidNpadJoyDeviceType in, const char*& out)
-{
-    return deviceTypes.ReverseFind(in, out);
-}
-
-std::vector<const char*> Joystick<Console::HAC>::GetConstants(HidNpadJoyDeviceType)
-{
-    return deviceTypes.GetNames();
 }

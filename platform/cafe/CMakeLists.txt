@@ -10,6 +10,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/timer_ext.cpp
     source/objects/joystick_ext.cpp
     source/utilities/driver/hid_ext.cpp
+    source/utilities/haptics/sixaxis_ext.cpp
+    source/utilities/haptics/vibration_ext.cpp
     source/utilities/threads/thread_ext.cpp
     source/utilities/wpad.cpp
 )

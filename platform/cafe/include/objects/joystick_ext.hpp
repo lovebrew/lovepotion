@@ -5,12 +5,24 @@
 #include <padscore/kpad.h>
 #include <vpad/input.h>
 
+#include <utilities/haptics/sixaxis_ext.hpp>
+#include <utilities/haptics/vibration_ext.hpp>
+
+using SixAxis   = love::SixAxis<love::Console::Which>;
+using Vibration = love::Vibration<love::Console::Which>;
+
 namespace love
 {
     template<>
     class Joystick<Console::CAFE> : public Joystick<Console::ALL>
     {
       public:
+        struct StickAxis
+        {
+            float x;
+            float y;
+        };
+
         Joystick(int id);
 
         Joystick(int id, int index);
@@ -35,9 +47,9 @@ namespace love
 
         int GetButtonCount() const;
 
-        float GetAxis(int index) const;
+        float GetAxis(int index);
 
-        std::vector<float> GetAxes() const;
+        std::vector<float> GetAxes();
 
         bool IsDown(const std::vector<int>& buttons) const;
 
@@ -55,7 +67,7 @@ namespace love
 
         guid::GamepadType GetGamepadType() const;
 
-        float GetGamepadAxis(GamepadAxis axis) const;
+        float GetGamepadAxis(GamepadAxis axis);
 
         bool IsGamepadDown(const std::vector<GamepadButton>& buttons) const;
 
@@ -72,21 +84,6 @@ namespace love
 
         VPADTouchData GetTouchData() const;
 
-        /* VPAD */
-        static bool GetConstant(GamepadButton in, VPADButtons& out);
-        static bool GetConstant(VPADButtons in, GamepadButton& out);
-
-        static bool GetConstant(GamepadAxis in, int32_t& out);
-        static bool GetConstant(int32_t in, GamepadAxis& out);
-
-        /* WPAD */
-        static bool GetConstant(GamepadButton in, WPADButton& out);
-        static bool GetConstant(WPADButton in, GamepadButton& out);
-
-        /* NUNCHUCK */
-        static bool GetConstant(GamepadButton in, WPADNunchukButton& out);
-        static bool GetConstant(WPADNunchukButton in, GamepadButton& out);
-
       private:
         VPADStatus vpad;
         KPADStatus kpad;
@@ -96,21 +93,17 @@ namespace love
 
         WPADExtensionType extension;
 
-        struct StickAxis
-        {
-            float x;
-            float y;
-        };
-
         struct
         {
             int32_t pressed;
             int32_t released;
+            int32_t held;
 
             struct
             {
                 int32_t pressed;
                 int32_t released;
+                int32_t held;
             } extension;
 
             StickAxis leftStick;
@@ -119,5 +112,10 @@ namespace love
 
         int32_t leftTrigger;
         int32_t rightTrigger;
+
+        ::SixAxis sixAxis;
+        ::SixAxis sixAxisExt;
+
+        ::Vibration vibration;
     };
 } // namespace love

@@ -59,8 +59,8 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                 newEvent.touchFinger.id       = 0;
                 newEvent.touchFinger.x        = tpNormal.x;
                 newEvent.touchFinger.y        = tpNormal.y;
-                newEvent.touchFinger.dx       = dx;
-                newEvent.touchFinger.dy       = dy;
+                newEvent.touchFinger.dx       = (double)(dx / 0xFFFF);
+                newEvent.touchFinger.dy       = (double)(dy / 0xFFFF);
                 newEvent.touchFinger.pressure = 1.0f;
 
                 this->touchHeld     = true;
@@ -111,6 +111,31 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                 newEvent.padButton.id     = joystick->GetID();
                 newEvent.padButton.button = input.buttonNumber;
             }
+
+            for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
+            {
+                const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
+                const auto axisValue = joystick->GetAxis(axis);
+
+                if (axisValue == this->stickValues[0][axisEnum])
+                    continue;
+
+                auto& newEvent = this->events.emplace_back();
+
+                newEvent.type    = TYPE_GAMEPAD;
+                newEvent.subType = SUBTYPE_GAMEPADAXIS;
+
+                newEvent.padAxis.id = joystick->GetInstanceID();
+
+                const char* axisName = nullptr;
+                Joystick<>::GetConstant(axisEnum, axisName);
+
+                newEvent.padAxis.axis  = axis;
+                newEvent.padAxis.value = axisValue;
+                newEvent.padAxis.name  = axisName;
+
+                this->stickValues[0][axisEnum] = axisValue;
+            }
         }
     }
 
@@ -147,6 +172,31 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                     Joystick<>::GetConstant(input.button, newEvent.padButton.name);
                     newEvent.padButton.id     = joystick->GetID();
                     newEvent.padButton.button = input.buttonNumber;
+                }
+
+                for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
+                {
+                    const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
+                    const auto axisValue = joystick->GetAxis(axis);
+
+                    if (axisValue == this->stickValues[index][axisEnum])
+                        continue;
+
+                    auto& newEvent = this->events.emplace_back();
+
+                    newEvent.type    = TYPE_GAMEPAD;
+                    newEvent.subType = SUBTYPE_GAMEPADAXIS;
+
+                    newEvent.padAxis.id = joystick->GetInstanceID();
+
+                    const char* axisName = nullptr;
+                    Joystick<>::GetConstant(axisEnum, axisName);
+
+                    newEvent.padAxis.axis  = axis;
+                    newEvent.padAxis.value = axisValue;
+                    newEvent.padAxis.name  = axisName;
+
+                    this->stickValues[index][axisEnum] = axisValue;
                 }
             }
         }

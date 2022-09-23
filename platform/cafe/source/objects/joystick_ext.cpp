@@ -1,12 +1,17 @@
 #include <objects/joystick_ext.hpp>
 #include <utilities/bidirectionalmap.hpp>
 
+#include <modules/joystickmodule_ext.hpp>
+#include <modules/timer_ext.hpp>
+
 #include <utilities/result.hpp>
 #include <utilities/wpad.hpp>
 
 #include <padscore/wpad.h>
 
 using namespace love;
+
+#define Module() (Module::GetInstance<JoystickModule<Console::Which>>(Module::M_JOYSTICK))
 
 template<>
 Type Joystick<>::type("Joystick", &Object::type);
@@ -30,34 +35,16 @@ constexpr auto vpadButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    VPAD_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     VPAD_BUTTON_LEFT
 );
-
-constexpr auto vpadAxes = BidirectionalMap<>::Create(
-    Joystick<>::GAMEPAD_AXIS_LEFTX,        (int32_t)(VPAD_STICK_L_EMULATION_LEFT | VPAD_STICK_L_EMULATION_RIGHT),
-    Joystick<>::GAMEPAD_AXIS_LEFTY,        (int32_t)(VPAD_STICK_L_EMULATION_UP   | VPAD_STICK_L_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (int32_t)(VPAD_STICK_L_EMULATION_LEFT | VPAD_STICK_R_EMULATION_RIGHT),
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (int32_t)(VPAD_STICK_R_EMULATION_UP   | VPAD_STICK_R_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (int32_t)(VPAD_BUTTON_ZL),
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (int32_t)(VPAD_BUTTON_ZR)
-);
 // clang-format on
-bool Joystick<Console::CAFE>::GetConstant(GamepadButton in, VPADButtons& out)
+
+static bool getVPADConstant(Joystick<>::GamepadButton in, VPADButtons& out)
 {
     return vpadButtons.Find(in, out);
 }
 
-bool Joystick<Console::CAFE>::GetConstant(VPADButtons in, GamepadButton& out)
+static bool getVPADConstant(VPADButtons in, Joystick<>::GamepadButton& out)
 {
     return vpadButtons.ReverseFind(in, out);
-}
-
-bool Joystick<Console::CAFE>::GetConstant(GamepadAxis in, int32_t& out)
-{
-    return vpadAxes.Find(in, out);
-}
-
-bool Joystick<Console::CAFE>::GetConstant(int32_t in, GamepadAxis& out)
-{
-    return vpadAxes.ReverseFind(in, out);
 }
 /* VPAD SECTION */
 // ----
@@ -82,12 +69,12 @@ constexpr auto wpadButtons = BidirectionalMap<>::Create(
 );
 // clang-format on
 
-bool Joystick<Console::CAFE>::GetConstant(GamepadButton in, WPADButton& out)
+static bool getWPADConstant(Joystick<>::GamepadButton in, WPADButton& out)
 {
     return wpadButtons.Find(in, out);
 }
 
-bool Joystick<Console::CAFE>::GetConstant(WPADButton in, GamepadButton& out)
+static bool getWPADConstant(WPADButton in, Joystick<>::GamepadButton& out)
 {
     return wpadButtons.ReverseFind(in, out);
 }
@@ -95,7 +82,7 @@ bool Joystick<Console::CAFE>::GetConstant(WPADButton in, GamepadButton& out)
 // -----
 /* NUNCHUCK SECTION */
 // clang-format off
-static constexpr auto nunchuckAxes = BidirectionalMap<>::Create(
+constexpr auto nunchuckAxes = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_AXIS_LEFTX,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_LEFT | WPAD_NUNCHUK_STICK_EMULATION_RIGHT),
     Joystick<>::GAMEPAD_AXIS_LEFTY,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_UP   | WPAD_NUNCHUK_STICK_EMULATION_DOWN),
     Joystick<>::GAMEPAD_AXIS_RIGHTX,       (WPADNunchukButton)-1,
@@ -103,6 +90,20 @@ static constexpr auto nunchuckAxes = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (WPADNunchukButton)WPAD_NUNCHUK_BUTTON_Z,
     Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (WPADNunchukButton)-1
 );
+
+constexpr auto nunchuckButtons = BidirectionalMap<>::Create(
+    Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER, WPAD_NUNCHUK_BUTTON_C
+);
+
+static bool getNunchuckConstant(Joystick<>::GamepadButton in, WPADNunchukButton& out)
+{
+    return nunchuckButtons.Find(in, out);
+}
+
+static bool getNunchuckConstant(WPADNunchukButton in, Joystick<>::GamepadButton& out)
+{
+    return nunchuckButtons.ReverseFind(in, out);
+}
 // clang-format on
 /* NUNCHUCK SECTION */
 // -----
@@ -125,16 +126,17 @@ constexpr auto wpadClassicButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_CLASSIC_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_CLASSIC_BUTTON_LEFT
 );
-
-static constexpr auto wpadClassicAxes = BidirectionalMap<>::Create(
-    Joystick<>::GAMEPAD_AXIS_LEFTX,        (int32_t)(WPAD_CLASSIC_STICK_L_EMULATION_LEFT | WPAD_CLASSIC_STICK_L_EMULATION_RIGHT),
-    Joystick<>::GAMEPAD_AXIS_LEFTY,        (int32_t)(WPAD_CLASSIC_STICK_L_EMULATION_UP   | WPAD_CLASSIC_STICK_L_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (int32_t)(WPAD_CLASSIC_STICK_R_EMULATION_LEFT | WPAD_CLASSIC_STICK_R_EMULATION_RIGHT),
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (int32_t)(WPAD_CLASSIC_STICK_R_EMULATION_UP   | WPAD_CLASSIC_STICK_R_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (int32_t)WPAD_CLASSIC_BUTTON_ZL,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (int32_t)WPAD_CLASSIC_BUTTON_ZR
-);
 // clang-format on
+
+static bool getWPADClassicConstant(Joystick<>::GamepadButton in, WPADClassicButton& out)
+{
+    return wpadClassicButtons.Find(in, out);
+}
+
+static bool getWPADClassicConstant(WPADClassicButton in, Joystick<>::GamepadButton& out)
+{
+    return wpadClassicButtons.ReverseFind(in, out);
+}
 /* CLASSIC CONTROLLER SECTION */
 //-----
 /* PRO CONTROLLER SECTION */
@@ -157,19 +159,25 @@ constexpr auto wpadProButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_PRO_BUTTON_LEFT
 );
 
+static bool getWPADProConstant(Joystick<>::GamepadButton in, WPADProButton& out)
+{
+    return wpadProButtons.Find(in, out);
+}
 
-static constexpr auto wpadProAxes = BidirectionalMap<>::Create(
-    Joystick<>::GAMEPAD_AXIS_LEFTX,        (int32_t)(WPAD_PRO_STICK_L_EMULATION_LEFT | WPAD_PRO_STICK_L_EMULATION_RIGHT),
-    Joystick<>::GAMEPAD_AXIS_LEFTY,        (int32_t)(WPAD_PRO_STICK_L_EMULATION_UP   | WPAD_PRO_STICK_L_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (int32_t)(WPAD_PRO_STICK_R_EMULATION_LEFT | WPAD_PRO_STICK_R_EMULATION_RIGHT),
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (int32_t)(WPAD_PRO_STICK_R_EMULATION_UP   | WPAD_PRO_STICK_R_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (int32_t)WPAD_PRO_TRIGGER_ZL,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (int32_t)WPAD_PRO_TRIGGER_ZR
-);
+static bool getWPADProConstant(WPADProButton in, Joystick<>::GamepadButton& out)
+{
+    return wpadProButtons.ReverseFind(in, out);
+}
 // clang-format on
 /* PRO CONTROLLER SECTION */
 
-Joystick<Console::CAFE>::Joystick(int id) : vpad {}, kpad {}, isGamepad(false), buttonStates {}
+Joystick<Console::CAFE>::Joystick(int id) :
+    vpad {},
+    kpad {},
+    isGamepad(false),
+    buttonStates {},
+    sixAxis {},
+    vibration {}
 {
     this->instanceId = -1;
     this->id         = id;
@@ -211,7 +219,10 @@ bool Joystick<Console::CAFE>::Open(int index)
         this->rightTrigger = -1;
 
         if (this->GetGamepadType() == guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK)
+        {
             this->leftTrigger = WPAD_NUNCHUK_BUTTON_Z;
+            this->sixAxisExt  = ::SixAxis(false);
+        }
         else if (this->GetGamepadType() == guid::GAMEPAD_TYPE_WII_CLASSIC)
         {
             this->leftTrigger  = WPAD_CLASSIC_BUTTON_ZL;
@@ -222,10 +233,14 @@ bool Joystick<Console::CAFE>::Open(int index)
             this->leftTrigger  = WPAD_PRO_TRIGGER_ZL;
             this->rightTrigger = WPAD_PRO_TRIGGER_ZR;
         }
+
+        this->vibration = ::Vibration((KPADChan)index);
     }
 
     this->guid = guid::GetGamepadGUID(this->GetGamepadType());
     this->name = guid::GetGamepadGUID(this->GetGamepadType());
+
+    this->sixAxis = ::SixAxis(this->isGamepad);
 
     return this->IsConnected();
 }
@@ -285,9 +300,13 @@ void Joystick<Console::CAFE>::Update()
 
         this->buttonStates.pressed  = this->vpad.trigger;
         this->buttonStates.released = this->vpad.release;
+        this->buttonStates.held     = this->vpad.hold;
 
         this->buttonStates.leftStick  = { this->vpad.leftStick.x, this->vpad.leftStick.y };
         this->buttonStates.rightStick = { this->vpad.rightStick.x, this->vpad.rightStick.y };
+
+        this->sixAxis.Update(this->vpad.accelorometer.acc, SixAxis<>::SIXAXIS_ACCELEROMETER);
+        this->sixAxis.Update(this->vpad.gyro, SixAxis<>::SIXAXIS_GYROSCOPE);
     }
     else
     {
@@ -299,6 +318,8 @@ void Joystick<Console::CAFE>::Update()
 
         this->buttonStates.pressed  = this->kpad.trigger;
         this->buttonStates.released = this->kpad.release;
+        this->buttonStates.held     = this->kpad.hold;
+        this->sixAxis.Update(this->kpad.acc, SixAxis<>::SIXAXIS_ACCELEROMETER);
 
         switch (this->GetGamepadType())
         {
@@ -310,12 +331,15 @@ void Joystick<Console::CAFE>::Update()
                 this->buttonStates.leftStick = { this->kpad.nunchuck.stick.x,
                                                  this->kpad.nunchuck.stick.y };
 
+                this->sixAxisExt.Update(this->kpad.nunchuck.acc, SixAxis<>::SIXAXIS_ACCELEROMETER);
+
                 break;
             }
             case guid::GAMEPAD_TYPE_WII_CLASSIC:
             {
                 this->buttonStates.extension.pressed  = this->kpad.classic.trigger;
                 this->buttonStates.extension.released = this->kpad.classic.release;
+                this->buttonStates.extension.held     = this->kpad.classic.hold;
 
                 this->buttonStates.leftStick = { this->kpad.classic.leftStick.x,
                                                  this->kpad.classic.leftStick.y };
@@ -329,6 +353,7 @@ void Joystick<Console::CAFE>::Update()
             {
                 this->buttonStates.extension.pressed  = this->kpad.pro.trigger;
                 this->buttonStates.extension.released = this->kpad.pro.release;
+                this->buttonStates.extension.held     = this->kpad.pro.hold;
 
                 this->buttonStates.leftStick = { this->kpad.pro.leftStick.x,
                                                  this->kpad.pro.leftStick.y };
@@ -436,44 +461,140 @@ bool Joystick<Console::CAFE>::IsUp(JoystickInput& result)
     return false;
 }
 
-float Joystick<Console::CAFE>::GetAxis(int index) const
+static float getStickPosition(Joystick<Console::CAFE>::StickAxis axis, bool isHorizontal)
+{
+    float value = (isHorizontal) ? axis.x : axis.y;
+    return value;
+}
+
+static float getTrigger(int32_t held, int32_t button)
+{
+    if (held & button)
+        return 1.0f;
+
+    return 0.0f;
+}
+
+float Joystick<Console::CAFE>::GetAxis(int index)
 {
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
         return 0.0f;
 
-    if (index == 0 || index == 1)
-    {
-        auto stickState = this->buttonStates.leftStick;
+    const auto type = this->GetGamepadType();
 
-        float value = (index == 1) ? stickState.x : stickState.y;
-        return value;
-    }
-    else if (index == 2 || index == 3)
+    switch (type)
     {
-        auto stickState = this->buttonStates.rightStick;
+        case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
+        {
+            if (index == 0 || index == 1)
+                return getStickPosition(this->buttonStates.leftStick, (index == 0));
+            else if (index == 2 || index == 3)
+                return getStickPosition(this->buttonStates.rightStick, (index == 2));
+            else if (index == 4)
+                return getTrigger(this->buttonStates.held, this->leftTrigger);
+            else if (index == 5)
+                return getTrigger(this->buttonStates.held, this->rightTrigger);
+            else
+            {
+                if (index >= 6 && index < 9)
+                {
+                    auto accelerometer = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
 
-        float value = (index == 1) ? stickState.x : stickState.y;
-        return value;
-    }
-    else if (index == 4)
-    {
-        if (this->buttonStates.pressed & this->leftTrigger)
-            return 1.0f;
+                    if (index == 6)
+                        return accelerometer.x;
+                    else if (index == 7)
+                        return accelerometer.y;
+                    else
+                        return accelerometer.z;
+                }
 
-        return 0.0f;
-    }
-    else if (index == 5)
-    {
-        if (this->buttonStates.pressed & this->rightTrigger)
-            return 1.0f;
+                if (index >= 9 && index < 12)
+                {
+                    auto gyroscope = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_GYROSCOPE);
 
-        return 0.0f;
+                    if (index == 9)
+                        return gyroscope.x;
+                    else if (index == 10)
+                        return gyroscope.y;
+                    else
+                        return gyroscope.z;
+                }
+            }
+
+            break;
+        }
+        case guid::GAMEPAD_TYPE_WII_REMOTE:
+        {
+            auto accelerometer = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
+
+            if (index >= 0 && index < 3)
+            {
+                if (index == 0)
+                    return accelerometer.x;
+                else if (index == 1)
+                    return accelerometer.y;
+                else
+                    return accelerometer.z;
+            }
+
+            break;
+        }
+        case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+        {
+            if (index == 0 || index == 1)
+                return getStickPosition(this->buttonStates.leftStick, (index == 0));
+            else if (index == 2)
+                return getTrigger(this->buttonStates.extension.held, this->leftTrigger);
+            else
+            {
+                if (index >= 3 && index < 6)
+                {
+                    auto acceleromter = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
+
+                    if (index == 3)
+                        return acceleromter.x;
+                    else if (index == 4)
+                        return acceleromter.y;
+                    else
+                        return acceleromter.z;
+                }
+
+                if (index >= 6 && index < 9)
+                {
+                    auto acceleromter = this->sixAxisExt.GetInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
+
+                    if (index == 6)
+                        return acceleromter.x;
+                    else if (index == 7)
+                        return acceleromter.y;
+                    else
+                        return acceleromter.z;
+                }
+            }
+            break;
+        }
+        case guid::GAMEPAD_TYPE_WII_CLASSIC:
+        case guid::GAMEPAD_TYPE_WII_PRO:
+        {
+            if (index == 0 || index == 1)
+                return getStickPosition(this->buttonStates.leftStick, (index == 0));
+            else if (index == 2 || index == 3)
+                return getStickPosition(this->buttonStates.rightStick, (index == 2));
+            else if (index == 4)
+                return getTrigger(this->buttonStates.held, this->leftTrigger);
+            else if (index == 5)
+                return getTrigger(this->buttonStates.held, this->rightTrigger);
+
+            break;
+        }
+        default:
+            break;
     }
 
     return 0.0f;
 }
 
-std::vector<float> Joystick<Console::CAFE>::GetAxes() const
+std::vector<float> Joystick<Console::CAFE>::GetAxes()
 {
     std::vector<float> axes {};
     int count = this->GetAxisCount();
@@ -487,24 +608,180 @@ std::vector<float> Joystick<Console::CAFE>::GetAxes() const
     return axes;
 }
 
-/* todo */
+static bool isDownInternal(const auto& buttons, uint32_t button, uint32_t held)
+{
+    const auto& records = buttons.GetEntries();
+}
+
 bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
 {
+    if (!this->IsConnected())
+        return false;
+
+    Joystick<>::JoystickInput input {};
+
+    int count = this->GetButtonCount();
+
+    for (auto& button : buttons)
+    {
+        if (button < 0 || button >= count)
+            continue;
+
+        switch (this->GetGamepadType())
+        {
+            case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
+            {
+                const auto& entries = vpadButtons.GetEntries().first;
+
+                if (entries[button].second == (VPADButtons)-1)
+                    continue;
+
+                if (this->buttonStates.held & entries[button].second)
+                    return true;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_REMOTE:
+            {
+                const auto& entries = wpadButtons.GetEntries().first;
+
+                if (entries[button].second == (VPADButtons)-1)
+                    continue;
+
+                if (this->buttonStates.held & entries[button].second)
+                    return true;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_CLASSIC:
+            {
+                const auto& entries = wpadClassicButtons.GetEntries().first;
+
+                if (entries[button].second == (VPADButtons)-1)
+                    continue;
+
+                if (this->buttonStates.held & entries[button].second)
+                    return true;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+            {
+                const auto& entries = wpadButtons.GetEntries().first;
+
+                if (entries[button].second != (WPADButton)-1)
+                {
+                    if (this->buttonStates.held & entries[button].second)
+                        return true;
+                }
+
+                if (button == 10)
+                {
+                    if (this->buttonStates.extension.held & WPAD_NUNCHUK_BUTTON_C)
+                        return true;
+                }
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_PRO:
+            {
+                const auto& entries = wpadProButtons.GetEntries().first;
+
+                if (entries[button].second == (WPADProButton)-1)
+                    continue;
+
+                if (this->buttonStates.held & entries[button].second)
+                    return true;
+
+                break;
+            }
+        }
+    }
+
     return false;
 }
 
-/* todo */
-float Joystick<Console::CAFE>::GetGamepadAxis(GamepadAxis axis) const
+float Joystick<Console::CAFE>::GetGamepadAxis(GamepadAxis axis)
 {
     if (!this->IsConnected())
         return 0.0f;
 
-    return 0.0f;
+    return this->GetAxis(axis);
 }
 
-/* todo */
 bool Joystick<Console::CAFE>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
+    const char* name = nullptr;
+    const auto type  = this->GetGamepadType();
+
+    for (auto button : buttons)
+    {
+        switch (type)
+        {
+            case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
+            {
+                VPADButtons gamepadButton;
+                getVPADConstant(button, gamepadButton);
+
+                if (gamepadButton == (VPADButtons)-1)
+                    continue;
+
+                if (this->buttonStates.held & gamepadButton)
+                    return true;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_REMOTE:
+            {
+                WPADButton gamepadButton;
+                getWPADConstant(button, gamepadButton);
+
+                if (gamepadButton == (WPADButton)-1)
+                    continue;
+
+                if (this->buttonStates.held & gamepadButton)
+                    return true;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_CLASSIC:
+            {
+                WPADClassicButton gamepadButton;
+                getWPADClassicConstant(button, gamepadButton);
+
+                if (gamepadButton == (WPADClassicButton)-1)
+                    continue;
+
+                if (this->buttonStates.held & gamepadButton)
+                    return true;
+
+                break;
+            }
+            case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
+            {
+                WPADButton gamepadButton;
+                getWPADConstant(button, gamepadButton);
+
+                if (gamepadButton != (WPADButton)-1)
+                {
+                    if (this->buttonStates.held & gamepadButton)
+                        return true;
+                }
+
+                WPADNunchukButton extButton;
+                getNunchuckConstant(button, extButton);
+
+                if (extButton != (WPADNunchukButton)-1)
+                {
+                    if (this->buttonStates.extension.held & extButton)
+                        return true;
+                }
+
+                break;
+            }
+        };
+    }
+
     return false;
 }
 
@@ -514,18 +791,44 @@ void Joystick<Console::CAFE>::SetPlayerIndex(int index)
         return;
 }
 
-/* todo */
 bool Joystick<Console::CAFE>::SetVibration(float left, float right, float duration)
 {
-    return false;
+    left  = std::clamp(left, 0.0f, 1.0f);
+    right = std::clamp(right, 0.0f, 1.0f);
+
+    uint32_t length = Vibration<>::MAX;
+
+    if (left == 0.0f && right == 0.0f)
+        return this->SetVibration();
+
+    if (!this->IsConnected())
+    {
+        this->SetVibration();
+        return false;
+    }
+
+    if (duration >= 0.0f)
+        length = std::min(duration, Vibration<>::MAX / 1000.0f);
+
+    if (length == Vibration<>::HAPTYIC_INFINITY)
+        this->vibration.SetDuration(length);
+    else
+        this->vibration.SetDuration(Timer<Console::CAFE>::GetTime() + length);
+
+    bool success = this->vibration.SendValues(left, right);
+
+    if (success)
+        Module()->AddVibration(&this->vibration);
+
+    return success;
 }
 
-/* todo */
 bool Joystick<Console::CAFE>::SetVibration()
 {
-    return false;
+    return this->vibration.Stop();
 }
 
-/* todo */
 void Joystick<Console::CAFE>::GetVibration(float& left, float& right)
-{}
+{
+    this->vibration.GetValues(left, right);
+}

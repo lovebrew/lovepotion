@@ -93,12 +93,6 @@ namespace love
 
         void GetVibration(float& left, float& right) {};
 
-        static bool GetConstant(int in, GamepadButton& out);
-        static bool GetConstant(GamepadButton in, int& out);
-
-        static bool GetConstant(size_t in, GamepadAxis& out);
-        static bool GetConstant(GamepadAxis in, size_t& out);
-
       private:
         struct
         {

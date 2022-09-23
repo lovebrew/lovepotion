@@ -240,12 +240,12 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                 }
 
                 /* handle trigger and stick inputs */
-                for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+                for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
                 {
-                    const auto axisEnum  = (Joystick<>::GamepadAxis)index;
-                    const auto axisValue = joystick->GetAxis(index);
+                    const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
+                    const auto axisValue = joystick->GetAxis(axis);
 
-                    if (axisValue == this->stickValues[axisEnum])
+                    if (axisValue == this->stickValues[index][axisEnum])
                         continue;
 
                     auto& newEvent = this->events.emplace_back();
@@ -255,14 +255,14 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
 
                     newEvent.padAxis.id = joystick->GetInstanceID();
 
-                    const char* axis = nullptr;
-                    Joystick<>::GetConstant(axisEnum, axis);
+                    const char* axisName = nullptr;
+                    Joystick<>::GetConstant(axisEnum, axisName);
 
-                    newEvent.padAxis.axis  = index;
+                    newEvent.padAxis.axis  = axis;
                     newEvent.padAxis.value = axisValue;
-                    newEvent.padAxis.name  = axis;
+                    newEvent.padAxis.name  = axisName;
 
-                    this->stickValues[axisEnum] = axisValue;
+                    this->stickValues[index][axisEnum] = axisValue;
                 }
             }
         }

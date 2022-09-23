@@ -2,6 +2,9 @@
 
 #include <modules/joystick/joystickmodule.tcc>
 
+#include <utilities/pool/poolthread.hpp>
+#include <utilities/pool/vibrations.hpp>
+
 namespace love
 {
     template<>
@@ -12,6 +15,12 @@ namespace love
 
         virtual ~JoystickModule();
 
-        ::Joystick* AddJoystick(int index);
+        Joystick<Console::Which>* AddJoystick(int index);
+
+        void AddVibration(::Vibration* vibration);
+
+      private:
+        VibrationPool* pool;
+        PoolThread* thread;
     };
 } // namespace love

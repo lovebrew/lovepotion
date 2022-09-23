@@ -75,16 +75,6 @@ namespace love
 
         void GetVibration(float& left, float& right);
 
-        static bool GetConstant(int in, GamepadButton& out);
-        static bool GetConstant(GamepadButton in, int& out);
-
-        static bool GetConstant(uint64_t in, GamepadAxis& out);
-        static bool GetConstant(GamepadAxis in, uint64_t& out);
-
-        static bool GetConstant(const char* in, HidNpadJoyDeviceType& out);
-        static bool GetConstant(HidNpadJoyDeviceType in, const char*& out);
-        static std::vector<const char*> GetConstants(HidNpadJoyDeviceType);
-
       private:
         PadState state;
 

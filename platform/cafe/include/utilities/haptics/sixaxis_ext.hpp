@@ -11,6 +11,11 @@ namespace love
     class SixAxis<Console::CAFE> : public SixAxis<Console::ALL>
     {
       public:
+        SixAxis()
+        {}
+
+        SixAxis(bool isGamepad);
+
         void Update(VPADVec3D vector, SixAxisType type);
 
         void Update(KPADVec3D vector, SixAxisType type);
@@ -22,5 +27,7 @@ namespace love
         VPADVec3D gyroscope;
 
         KPADVec3D kpadAccelerometer;
+
+        bool isGamepad;
     };
 } // namespace love

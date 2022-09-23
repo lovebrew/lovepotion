@@ -45,6 +45,11 @@ namespace love
             right = this->vibrationInfo.right;
         }
 
+        bool Stop()
+        {
+            return true;
+        }
+
       protected:
         VibrationInfo vibrationInfo;
         int handleCount;

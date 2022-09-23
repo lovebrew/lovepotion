@@ -23,6 +23,15 @@ void VibrationPool::Update()
     {
         if (Timer<Console::Which>::GetTime() > iterator.first->GetDuration())
             release.push_back(iterator.first);
+        else
+        {
+            if (Console::Is(Console::CAFE))
+            {
+                float left, right = 0.0f;
+                iterator.first->GetValues(left, right);
+                iterator.first->SendValues(left, right);
+            }
+        }
     }
 
     for (auto* vibration : release)
@@ -65,6 +74,8 @@ bool VibrationPool::ReleaseVibration(::Vibration* vibration)
     if (this->FindVibration(vibration, index))
     {
         this->available.push(index);
+
+        LOG("Stopping: %d", vibration->Stop());
         this->vibrating.erase(vibration);
 
         return true;

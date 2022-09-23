@@ -30,8 +30,8 @@ JoystickModule<Console::HAC>::~JoystickModule()
     this->thread->SetFinish();
     this->thread->Wait();
 
-    delete thread;
-    delete pool;
+    delete this->thread;
+    delete this->pool;
 }
 
 void JoystickModule<Console::HAC>::AddVibration(::Vibration* vibration)

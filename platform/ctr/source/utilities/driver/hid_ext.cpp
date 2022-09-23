@@ -168,7 +168,7 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
             const auto axisEnum  = (Joystick<>::GamepadAxis)index;
             const auto axisValue = joystick->GetAxis(index);
 
-            if (axisValue == this->stickValues[axisEnum])
+            if (axisValue == this->stickValues[0][axisEnum])
                 continue;
 
             auto& newEvent = this->events.emplace_back();
@@ -185,7 +185,7 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
             newEvent.padAxis.value = axisValue;
             newEvent.padAxis.name  = axis;
 
-            this->stickValues[axisEnum] = axisValue;
+            this->stickValues[0][axisEnum] = axisValue;
         }
     }
 

@@ -29,35 +29,14 @@ constexpr auto buttons = BidirectionalMap<>::Create(
 );
 // clang-format on
 
-bool Joystick<Console::CTR>::GetConstant(GamepadButton in, int& out)
+static bool getConstant(Joystick<>::GamepadButton in, int& out)
 {
     return buttons.Find(in, out);
 }
 
-bool Joystick<Console::CTR>::GetConstant(int in, GamepadButton& out)
+static bool getConstant(int in, Joystick<>::GamepadButton& out)
 {
     return buttons.ReverseFind(in, out);
-}
-
-// clang-format off
-static constexpr auto axes = BidirectionalMap<>::Create(
-    Joystick<>::GAMEPAD_AXIS_LEFTX,        KEY_CPAD_LEFT   | KEY_CPAD_RIGHT,
-    Joystick<>::GAMEPAD_AXIS_LEFTY,        KEY_CPAD_UP     | KEY_CPAD_DOWN,
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       KEY_CSTICK_LEFT | KEY_CSTICK_RIGHT,
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       KEY_CSTICK_UP   | KEY_CSTICK_DOWN,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  KEY_ZL,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, KEY_ZR
-);
-// clang-format on
-
-bool Joystick<Console::CTR>::GetConstant(GamepadAxis in, size_t& out)
-{
-    return axes.Find(in, out);
-}
-
-bool Joystick<Console::CTR>::GetConstant(size_t in, GamepadAxis& out)
-{
-    return axes.ReverseFind(in, out);
 }
 
 Joystick<Console::CTR>::Joystick(int id) : buttonStates {}
@@ -297,17 +276,16 @@ float Joystick<Console::CTR>::GetGamepadAxis(GamepadAxis axis)
 
 bool Joystick<Console::CTR>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
-    GamepadButton gamepadButton;
+    int gamepadButton;
     const char* name = nullptr;
 
     uint32_t heldSet = hidKeysHeld();
 
     for (auto button : buttons)
     {
-        if (!Joystick<>::GetConstant(button, name))
-            continue;
+        getConstant(button, gamepadButton);
 
-        if (!Joystick<>::GetConstant(name, gamepadButton))
+        if (gamepadButton == -1)
             continue;
 
         if (heldSet & (uint32_t)gamepadButton)

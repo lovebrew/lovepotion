@@ -87,6 +87,6 @@ namespace love
         bool focused;
 
         std::list<LOVE_Event> events;
-        std::array<float, Joystick<>::GamepadAxis::GAMEPAD_AXIS_MAX_ENUM> stickValues;
+        float stickValues[5][Joystick<>::GAMEPAD_AXIS_MAX_ENUM];
     };
 } // namespace love

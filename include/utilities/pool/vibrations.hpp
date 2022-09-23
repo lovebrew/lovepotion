@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utilities/haptics/vibration.tcc>
+#include <utilities/haptics/vibration_ext.hpp>
 #include <utilities/threads/threads.hpp>
 
 #include <map>

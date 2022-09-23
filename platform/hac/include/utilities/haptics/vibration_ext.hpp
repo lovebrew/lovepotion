@@ -21,6 +21,8 @@ namespace love
 
         bool SendValues(float left, float right);
 
+        bool Stop();
+
       private:
         std::unique_ptr<HidVibrationDeviceHandle[]> handles;
 

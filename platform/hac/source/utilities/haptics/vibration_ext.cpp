@@ -17,12 +17,10 @@ Vibration<Console::HAC>::Vibration(HidNpadIdType playerId, HidNpadStyleTag style
 
 Vibration<Console::HAC>::~Vibration()
 {
-    LOG("DESTROYING");
     if (!this->handles)
         return;
-    LOG("Sending 0, 0");
-    bool successs = this->SendValues(0, 0);
-    LOG("Sent vibrations: %d", successs);
+
+    this->Stop();
 }
 
 Vibration<Console::HAC>& Vibration<Console::HAC>::operator=(Vibration&& other)
@@ -33,6 +31,11 @@ Vibration<Console::HAC>& Vibration<Console::HAC>::operator=(Vibration&& other)
     this->style    = other.style;
 
     return *this;
+}
+
+bool Vibration<Console::HAC>::Stop()
+{
+    return this->SendValues(0, 0);
 }
 
 bool Vibration<Console::HAC>::SendValues(float left, float right)
