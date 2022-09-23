@@ -50,6 +50,13 @@ void AudioPool::Update()
         this->ReleaseSource(source);
 }
 
+std::unique_lock<love::mutex> AudioPool::Lock()
+{
+    std::unique_lock lock(this->mutex);
+
+    return lock;
+}
+
 int AudioPool::GetActiveSourceCount() const
 {
     return this->playing.size();

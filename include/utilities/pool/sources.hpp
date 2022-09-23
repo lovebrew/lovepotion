@@ -35,6 +35,8 @@ namespace love
         std::map<Source<Console::Which>*, size_t> playing;
         love::mutex mutex;
 
+        std::unique_lock<love::mutex> Lock();
+
         std::vector<Source<Console::Which>*> GetPlayingSources();
 
         bool ReleaseSource(Source<Console::Which>* source, bool stop = true);

@@ -1,12 +1,53 @@
 #pragma once
 
 #include <common/console.hpp>
+#include <common/exception.hpp>
 #include <common/object.hpp>
 
 #include <vector>
 
 namespace love
 {
+    class InvalidFormatException : public Exception
+    {
+      public:
+        InvalidFormatException(int channels, int bitDepth) :
+            Exception("%d-channel Sources with %d bits per sample are not supported.", channels,
+                      bitDepth)
+        {}
+    };
+
+    class QueueFormatMismatchException : public Exception
+    {
+      public:
+        QueueFormatMismatchException() :
+            Exception("Queued sound data must have same format as sound Source.")
+        {}
+    };
+
+    class QueueTypeMismatchException : public love::Exception
+    {
+      public:
+        QueueTypeMismatchException() :
+            Exception("Only queueable Sources can be queued with sound data.")
+        {}
+    };
+
+    class QueueMalformedLengthException : public love::Exception
+    {
+      public:
+        QueueMalformedLengthException(int bytes) :
+            Exception("Data length must be a multiple of sample size (%d bytes).", bytes)
+        {}
+    };
+
+    class QueueLoopingException : public love::Exception
+    {
+      public:
+        QueueLoopingException() : Exception("Queueable Sources can not be looped.")
+        {}
+    };
+
     template<Console::Platform T = Console::ALL>
     class Source : public Object
     {

@@ -15,7 +15,7 @@ namespace love
     class Source<Console::CTR> : public Source<Console::ALL>
     {
       public:
-        Source(AudioPool* pool, SoundData* data);
+        Source(AudioPool* pool, SoundData* soundData);
 
         Source(AudioPool* pool, Decoder* decoder);
 
@@ -79,9 +79,9 @@ namespace love
 
         static bool Play(const std::vector<Source<Console::Which>*>& sources);
 
-        static bool Stop(const std::vector<Source<Console::Which>*>& sources);
+        static void Stop(const std::vector<Source<Console::Which>*>& sources);
 
-        static bool Pause(const std::vector<Source<Console::Which>*>& sources);
+        static void Pause(const std::vector<Source<Console::Which>*>& sources);
 
         static std::vector<Source<Console::Which>*> Pause(AudioPool* pool);
 
@@ -104,5 +104,8 @@ namespace love
         int sampleRate;
         int channels;
         int bitDepth;
+
+        int bufferCount;
+        size_t channel;
     };
 } // namespace love
