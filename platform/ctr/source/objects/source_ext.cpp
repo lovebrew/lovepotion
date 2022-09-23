@@ -184,7 +184,7 @@ void Source<Console::CTR>::SetVolume(float volume)
 float Source<Console::CTR>::GetVolume() const
 {
     if (!this->valid)
-        return;
+        return 0.0f;
 
     return ::DSP::Instance().ChannelGetVolume(this->channel);
 }
