@@ -18,14 +18,13 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
     samplesOffset(0),
     channel(0)
 {
-    LOG("%zu", soundData->GetSize());
-    this->staticBuffer.Set(new DSP<>::DataBuffer(soundData->GetData(), soundData->GetSize()),
-                           Acquire::NORETAIN);
+    this->staticBuffer.Set(
+        new DSP<Console::CTR>::DataBuffer(soundData->GetData(), soundData->GetSize()),
+        Acquire::NORETAIN);
 
     std::fill_n(this->buffers, 2, ndspWaveBuf {});
 
-    this->buffers[this->current].data_pcm16 = (int16_t*)linearAlloc(soundData->GetSize());
-    this->buffers[this->current].nsamples   = soundData->GetSampleCount();
+    this->buffers[this->current].nsamples = soundData->GetSampleCount();
 }
 
 Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
@@ -262,8 +261,9 @@ void Source<Console::CTR>::PrepareAtomic()
         case TYPE_STATIC:
         {
             // clang-format off
-            std::copy_n(this->staticBuffer->GetBuffer(), this->staticBuffer->GetSize(), this->buffers[0].data_pcm16);
-            DSP_FlushDataCache(this->staticBuffer->GetBuffer(), this->staticBuffer->GetSize());
+            this->buffers[this->current].data_pcm16 = this->staticBuffer->GetBuffer();
+            auto result = DSP_FlushDataCache(this->buffers[this->current].data_pcm16, this->staticBuffer->GetSize());
+            LOG("DSP_FlushDataCache: %d", R_SUCCEEDED(result));
             // clang-format on
             break;
         }

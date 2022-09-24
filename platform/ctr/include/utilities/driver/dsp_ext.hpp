@@ -10,6 +10,35 @@ namespace love
     class DSP<Console::CTR> : public DSP<Console::ALL>
     {
       public:
+        class DataBuffer : public Object
+        {
+          public:
+            DataBuffer(void* data, size_t size) : size(size)
+            {
+                this->buffer = (int16_t*)linearAlloc(size);
+                std::copy_n((int16_t*)data, size, this->buffer);
+            }
+
+            ~DataBuffer()
+            {
+                linearFree(this->buffer);
+            }
+
+            inline int16_t* GetBuffer() const
+            {
+                return this->buffer;
+            }
+
+            inline size_t GetSize() const
+            {
+                return this->size;
+            }
+
+          private:
+            int16_t* buffer;
+            size_t size;
+        };
+
         static DSP& Instance()
         {
             static DSP instance;

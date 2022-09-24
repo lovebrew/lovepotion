@@ -102,7 +102,7 @@ namespace love
 
         ndspWaveBuf buffers[2];
 
-        StrongReference<DSP<>::DataBuffer> staticBuffer;
+        StrongReference<DSP<Console::CTR>::DataBuffer> staticBuffer;
         StrongReference<Decoder> decoder;
 
         int sampleRate;
