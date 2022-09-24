@@ -21,7 +21,7 @@ ByteData::ByteData(const void* data, size_t size) : size(size)
     this->Create();
 
     if (data != nullptr)
-        std::copy_n((char*)data, size, this->data.get());
+        std::copy_n((const char*)data, size, this->data.get());
 }
 
 ByteData::ByteData(void* data, size_t size, bool own) : size(size)

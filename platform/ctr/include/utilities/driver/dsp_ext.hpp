@@ -16,7 +16,7 @@ namespace love
             DataBuffer(void* data, size_t size) : size(size)
             {
                 this->buffer = (int16_t*)linearAlloc(size);
-                std::copy_n((int16_t*)data, size, this->buffer);
+                std::memcpy(this->buffer, (int16_t*)data, size);
             }
 
             ~DataBuffer()
