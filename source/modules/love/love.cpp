@@ -25,6 +25,7 @@ static constexpr char logfile_lua[] = {
 #include "scripts/logfile.lua"
 };
 
+#include <modules/audio/wrap_audio.hpp>
 #include <modules/data/wrap_data.hpp>
 #include <modules/event/wrap_event.hpp>
 #include <modules/filesystem/wrap_filesystem.hpp>
@@ -38,6 +39,7 @@ static constexpr char logfile_lua[] = {
 // clang-format off
 static constexpr luaL_Reg modules[] =
 {
+    { "love.audio",      Wrap_Audio::Register          },
     { "love.data",       Wrap_DataModule::Register     },
     { "love.event",      Wrap_Event::Register          },
     { "love.filesystem", Wrap_Filesystem::Register     },

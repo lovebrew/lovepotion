@@ -6,6 +6,8 @@
 #include <objects/data/sounddata/sounddata.hpp>
 #include <utilities/decoder/decoder.hpp>
 
+#include <queue>
+
 namespace love
 {
     class Audio;
@@ -67,7 +69,7 @@ namespace love
 
         void TeardownAtomic();
 
-        bool PlayAtomic();
+        bool PlayAtomic(ndspWaveBuf& waveBuffer);
 
         void StopAtomic();
 
@@ -98,7 +100,9 @@ namespace love
         bool valid;
         bool current;
 
-        std::unique_ptr<ndspWaveBuf[]> buffers;
+        ndspWaveBuf buffers[2];
+
+        StrongReference<DSP<>::DataBuffer> staticBuffer;
         StrongReference<Decoder> decoder;
 
         int sampleRate;
@@ -106,6 +110,8 @@ namespace love
         int bitDepth;
 
         int bufferCount;
+        double samplesOffset;
+
         size_t channel;
     };
 } // namespace love

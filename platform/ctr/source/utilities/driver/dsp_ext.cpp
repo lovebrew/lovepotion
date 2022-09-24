@@ -3,6 +3,8 @@
 #include <utilities/bidirectionalmap.hpp>
 #include <utilities/driver/dsp_ext.hpp>
 
+#include <utilities/log/logfile.h>
+
 using namespace love;
 
 static void audioCallback(void* data)
@@ -11,7 +13,7 @@ static void audioCallback(void* data)
     LightEvent_Signal(event);
 }
 
-DSP<Console::CTR>::DSP()
+void DSP<Console::CTR>::Initialize()
 {
     if (Result result; R_FAILED(result = ndspInit()))
         throw love::Exception("Failed to initialize ndsp: %x", result);
@@ -28,6 +30,11 @@ DSP<Console::CTR>::~DSP()
         ndspExit();
 }
 
+void DSP<Console::CTR>::Update()
+{
+    LightEvent_Wait(&this->event);
+}
+
 void DSP<Console::CTR>::SetMasterVolume(float volume)
 {
     ndspSetMasterVol(volume);
@@ -35,15 +42,15 @@ void DSP<Console::CTR>::SetMasterVolume(float volume)
 
 float DSP<Console::CTR>::GetMasterVolume() const
 {
-    return 0.0f;
+    return 1.0f;
 }
 
-bool DSP<Console::CTR>::ChannelReset(size_t id, int channels, AudioFormat format, int bitDepth,
-                                     int sampleRate)
+bool DSP<Console::CTR>::ChannelReset(size_t id, int channels, int bitDepth, int sampleRate)
 {
     ndspChnReset(id);
     uint8_t ndspFormat = 0;
 
+    AudioFormat format = (channels == 2) ? FORMAT_STEREO : FORMAT_MONO;
     DSP<Console::CTR>::GetChannelFormat(format, bitDepth, ndspFormat);
 
     /* invalid format! */
@@ -75,7 +82,7 @@ void DSP<Console::CTR>::ChannelSetVolume(size_t id, float volume)
 
 float DSP<Console::CTR>::ChannelGetVolume(size_t id) const
 {
-    return 0.0f;
+    return 1.0f;
 }
 
 size_t DSP<Console::CTR>::ChannelGetSampleOffset(size_t id) const

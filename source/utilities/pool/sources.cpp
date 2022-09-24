@@ -2,16 +2,18 @@
 
 using namespace love;
 
-AudioPool::AudioPool()
+AudioPool::AudioPool() : totalSources(0)
 {
     for (size_t index = 0; index < AudioPool::MAX_SOURCES; index++)
         this->available.push(index);
+
+    this->totalSources = this->available.size();
 }
 
 AudioPool::~AudioPool()
 {}
 
-bool AudioPool::IsAvailable() const
+bool AudioPool::IsAvailable()
 {
     bool has = false;
 
@@ -67,12 +69,18 @@ int AudioPool::GetMaxSources() const
     return this->totalSources;
 }
 
+void AudioPool::AddSource(Source<Console::Which>* source, size_t channel)
+{
+    this->playing.insert(std::make_pair(source, channel));
+    source->Retain();
+}
+
 bool AudioPool::AssignSource(Source<Console::Which>* source, size_t& channel, uint8_t& wasPlaying)
 {
     channel = 0;
 
     if (this->FindSource(source, channel))
-        return wasPlaying = true;
+        return (wasPlaying = true);
 
     wasPlaying = false;
 
@@ -82,8 +90,8 @@ bool AudioPool::AssignSource(Source<Console::Which>* source, size_t& channel, ui
     channel = this->available.front();
     this->available.pop();
 
-    this->playing.insert(std::make_pair(source, channel));
-    source->Retain();
+    if (!Console::Is(Console::CTR))
+        this->AddSource(source, channel);
 
     return true;
 }
@@ -95,8 +103,7 @@ bool AudioPool::ReleaseSource(Source<Console::Which>* source, bool stop)
     if (this->FindSource(source, channel))
     {
         if (stop)
-        {}
-        // source->StopAtomic()
+            source->StopAtomic();
 
         source->Release();
 

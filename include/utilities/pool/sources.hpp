@@ -16,7 +16,7 @@ namespace love
 
         ~AudioPool();
 
-        bool IsAvailable() const;
+        bool IsAvailable();
 
         bool IsPlaying(Source<Console::Which>* source);
 
@@ -40,6 +40,8 @@ namespace love
         std::vector<Source<Console::Which>*> GetPlayingSources();
 
         bool ReleaseSource(Source<Console::Which>* source, bool stop = true);
+
+        void AddSource(Source<Console::Which>* source, size_t channel);
 
         bool AssignSource(Source<Console::Which>* source, size_t& channel, uint8_t& wasPlaying);
 

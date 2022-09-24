@@ -6,6 +6,8 @@
 
 #include <vector>
 
+#include <utilities/bidirectionalmap.hpp>
+
 namespace love
 {
     class InvalidFormatException : public Exception
@@ -77,13 +79,49 @@ namespace love
             return this->sourceType;
         }
 
-        static bool GetConstant(const char* in, SourceType& out);
-        static bool GetConstant(SourceType in, const char*& out);
-        static std::vector<const char*> GetConstants(SourceType);
+        // clang-format off
+        static constexpr auto sourceTypes = BidirectionalMap<>::Create(
+          "static", TYPE_STATIC,
+          "stream", TYPE_STREAM,
+          "queue",  TYPE_QUEUE
+        );
+        // clang-format on
 
-        static bool GetConstant(const char* in, Unit& out);
-        static bool GetConstant(Unit in, const char*& out);
-        static std::vector<const char*> GetConstants(Unit);
+        static bool GetConstant(const char* in, SourceType& out)
+        {
+            return sourceTypes.Find(in, out);
+        }
+        static bool GetConstant(SourceType in, const char*& out)
+        {
+            return sourceTypes.ReverseFind(in, out);
+        }
+
+        static std::vector<const char*> GetConstants(SourceType)
+        {
+            return sourceTypes.GetNames();
+        }
+
+        // clang-format off
+        static constexpr auto unitTypes = BidirectionalMap<>::Create(
+          "seconds", UNIT_SECONDS,
+          "samples", UNIT_SAMPLES
+        );
+        // clang-format on
+
+        static bool GetConstant(const char* in, Unit& out)
+        {
+            return unitTypes.Find(in, out);
+        }
+
+        static bool GetConstant(Unit in, const char*& out)
+        {
+            return unitTypes.ReverseFind(in, out);
+        }
+
+        static std::vector<const char*> GetConstants(Unit)
+        {
+            return unitTypes.GetNames();
+        }
 
       protected:
         SourceType sourceType;

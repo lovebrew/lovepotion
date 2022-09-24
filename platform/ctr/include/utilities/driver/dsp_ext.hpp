@@ -16,16 +16,17 @@ namespace love
             return instance;
         }
 
-        DSP();
-
         ~DSP();
+
+        void Initialize();
+
+        void Update();
 
         void SetMasterVolume(float volume);
 
         float GetMasterVolume() const;
 
-        bool ChannelReset(size_t id, int channels, AudioFormat format, int bitDepth,
-                          int sampleRate);
+        bool ChannelReset(size_t id, int channels, int bitDepth, int sampleRate);
 
         void ChannelSetVolume(size_t id, float volume);
 

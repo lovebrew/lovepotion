@@ -381,6 +381,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/variant.cpp
     source/common/vector.cpp
     source/main.cpp
+    source/modules/audio/audio.cpp
+    source/modules/audio/wrap_audio.cpp
     source/modules/data/data.cpp
     source/modules/data/wrap_data.cpp
     source/modules/event/event.cpp
@@ -416,6 +418,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/file/physfs/file.cpp
     source/objects/file/wrap_file.cpp
     source/objects/joystick/wrap_joystick.cpp
+    source/objects/source/wrap_source.cpp
     source/objects/thread/luathread.cpp
     source/objects/thread/wrap_luathread.cpp
     source/utilities/base64.cpp
@@ -437,6 +440,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/hashfunction/types/sha512.cpp
     source/utilities/log/logfile.cpp
     source/utilities/pool/poolthread.cpp
+    source/utilities/pool/sources.cpp
     source/utilities/pool/vibrations.cpp
     source/utilities/result.cpp
     source/utilities/stream/stream.cpp
