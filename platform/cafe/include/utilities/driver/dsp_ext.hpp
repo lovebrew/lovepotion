@@ -3,6 +3,7 @@
 #include <utilities/driver/dsp.tcc>
 #include <utilities/threads/threads.hpp>
 
+#include <coreinit/event.h>
 #include <sndcore2/voice.h>
 
 #include <map>
@@ -62,9 +63,12 @@ namespace love
 
         void ChannelStop(size_t id);
 
+        OSEvent GetEvent();
+
       private:
         love::mutex mutex;
         std::map<size_t, AXVoice*> channels;
+        OSEvent event;
 
         AXVoice* FindVoice(size_t channel);
     };

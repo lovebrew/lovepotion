@@ -14,6 +14,12 @@ static AXInitParams params = {
 };
 // clang-format on
 
+static void audioCallback()
+{
+    OSEvent event = DSP<Console::CAFE>::Instance().GetEvent();
+    OSSignalEvent(&event);
+}
+
 DSP<Console::CAFE>::DSP() : channels {}
 {}
 
@@ -22,11 +28,24 @@ void DSP<Console::CAFE>::Initialize()
     if (!AXIsInit())
         AXInitWithParams(&params);
 
+    OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
+    AXRegisterFrameCallback(audioCallback);
+
     this->initialized = true;
 }
 
 DSP<Console::CAFE>::~DSP()
 {}
+
+void DSP<Console::CAFE>::Update()
+{
+    OSWaitEvent(&this->event);
+}
+
+OSEvent DSP<Console::CAFE>::GetEvent()
+{
+    return this->event;
+}
 
 void DSP<Console::CAFE>::SetMasterVolume(float volume)
 {
@@ -182,6 +201,7 @@ void DSP<Console::CAFE>::ChannelStop(size_t id)
     if (!voice)
         return;
 
+    AXVoiceEnd(voice);
     AXFreeVoice(voice);
     this->channels.erase(id);
 }
