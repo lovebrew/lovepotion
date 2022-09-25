@@ -82,7 +82,14 @@ bool DSP<Console::CAFE>::ChannelReset(size_t id, int channels, int bitDepth, int
     auto* voice = this->FindVoice(id);
 
     if (!voice)
-        this->channels.insert(std::make_pair(id, new AXVoice()));
+    {
+        voice = AXAcquireVoice(31, nullptr, nullptr);
+
+        if (!voice)
+            return false;
+
+        this->channels.insert(std::make_pair(id, voice));
+    }
 
     AXVoiceBegin(voice);
     AXSetVoiceType(voice, 0);
