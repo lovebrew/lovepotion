@@ -18,13 +18,14 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
     samplesOffset(0),
     channel(0)
 {
-    this->staticBuffer.Set(
-        new DSP<Console::CTR>::DataBuffer(soundData->GetData(), soundData->GetSize()),
-        Acquire::NORETAIN);
-
     std::fill_n(this->buffers, 2, ndspWaveBuf {});
 
-    this->buffers[this->current].nsamples = soundData->GetSampleCount();
+    this->buffers[0].data_pcm16 = (int16_t*)linearAlloc(soundData->GetSize());
+    std::memcpy(this->buffers[0].data_pcm16, soundData->GetData(), soundData->GetSize());
+
+    this->buffers[0].nsamples = soundData->GetSampleCount();
+
+    DSP_FlushDataCache(this->buffers[0].data_pcm16, soundData->GetSize());
 }
 
 Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
@@ -41,7 +42,10 @@ Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
     std::fill_n(this->buffers, 2, ndspWaveBuf {});
 
     for (size_t index = 0; index < Source::MAX_BUFFERS; index++)
-        this->buffers[index].status = NDSP_WBUF_DONE;
+    {
+        this->buffers[index].data_pcm16 = (int16_t*)linearAlloc(decoder->GetSize());
+        this->buffers[index].status     = NDSP_WBUF_DONE;
+    }
 }
 
 Source<Console::CTR>::Source(AudioPool* pool, int sampleRate, int bitDepth, int channels,
@@ -185,13 +189,15 @@ bool Source<Console::CTR>::Update()
             bool other = !this->current;
             if (this->buffers[other].status == NDSP_WBUF_DONE)
             {
-                this->samplesOffset += this->buffers[other].nsamples;
                 int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
 
                 if (decoded == 0)
                     return false;
 
                 ::DSP::Instance().ChannelAddBuffer(this->channel, &this->buffers[other]);
+                this->samplesOffset += this->buffers[other].nsamples;
+
+                this->current = !this->current;
             }
             return true;
         }
@@ -259,14 +265,7 @@ void Source<Console::CTR>::PrepareAtomic()
     switch (this->sourceType)
     {
         case TYPE_STATIC:
-        {
-            // clang-format off
-            this->buffers[this->current].data_pcm16 = this->staticBuffer->GetBuffer();
-            auto result = DSP_FlushDataCache(this->buffers[this->current].data_pcm16, this->staticBuffer->GetSize());
-            LOG("DSP_FlushDataCache: %d", R_SUCCEEDED(result));
-            // clang-format on
             break;
-        }
         case TYPE_STREAM:
         {
             if (this->StreamAtomic(this->buffers[0], this->decoder.Get()) == 0)
@@ -292,7 +291,7 @@ int Source<Console::CTR>::StreamAtomic(ndspWaveBuf& buffer, Decoder* decoder)
 
     if (decoded > 0)
     {
-        std::copy_n((int16_t*)decoder->GetBuffer(), decoded, buffer.data_pcm16);
+        std::memcpy(buffer.data_pcm16, (int16_t*)decoder->GetBuffer(), decoded);
         DSP_FlushDataCache(buffer.data_pcm16, decoded);
     }
 

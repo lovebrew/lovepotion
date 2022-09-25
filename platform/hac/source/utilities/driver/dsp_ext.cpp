@@ -19,6 +19,9 @@ static constexpr AudioRendererConfig config = {
 static constexpr uint8_t sinkChannels[2] = { 0, 1 };
 
 DSP<Console::HAC>::DSP() : channelReset(false), driver {}
+{}
+
+DSP<Console::HAC>::Initialize()
 {
     if (bool result = AudioMemory::InitMemPool(); !result)
         throw love::Exception("Failed to create audio memory pool!");

@@ -21,6 +21,8 @@ namespace love
 
         ~DSP();
 
+        void Initialize();
+
         void Update();
 
         void SetMasterVolume(float volume);

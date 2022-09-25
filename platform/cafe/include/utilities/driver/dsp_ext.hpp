@@ -5,6 +5,15 @@
 
 #include <sndcore2/voice.h>
 
+#include <map>
+
+extern "C"
+{
+    /* todo - remove when wut supports these */
+    void AXSetMasterVolume(uint32_t volume);
+    int16_t AXGetMasterVolume();
+}
+
 namespace love
 {
     template<>
@@ -17,25 +26,33 @@ namespace love
             return instance;
         }
 
+        struct AXWaveBuf
+        {
+            uint8_t* data_pcm8;
+            uint16_t* data_pcm16;
+        };
+
         DSP();
 
         ~DSP();
 
+        void Initialize();
+
         void Update();
 
-        void SetMasterVolume(AXDeviceType type, float volume);
+        void SetMasterVolume(float volume);
 
-        float GetMasterVolume(AXDeviceType type) const;
+        float GetMasterVolume() const;
 
         bool ChannelReset(size_t id, int channels, int bitDepth, int sampleRate);
 
         void ChannelSetVolume(size_t id, float volume);
 
-        float ChannelGetVolume(size_t id) const;
+        float ChannelGetVolume(size_t id);
 
         size_t ChannelGetSampleOffset(size_t id);
 
-        bool ChannelAddBuffer(size_t id, AXVoice* buffer);
+        bool ChannelAddBuffer(size_t id);
 
         void ChannelPause(size_t id, bool paused = true);
 
@@ -47,5 +64,8 @@ namespace love
 
       private:
         love::mutex mutex;
+        std::map<size_t, AXVoice*> channels;
+
+        AXVoice* FindVoice(size_t channel);
     };
 } // namespace love
