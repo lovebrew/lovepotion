@@ -1,3 +1,5 @@
+#include <common/exception.hpp>
+
 #include <utilities/driver/dsp_ext.hpp>
 #include <utilities/driver/dsp_mix.hpp>
 
@@ -28,6 +30,9 @@ void DSP<Console::CAFE>::Initialize()
     if (!AXIsInit())
         AXInitWithParams(&params);
 
+    if (!AXIsInit())
+        throw love::Exception("Failed to initialize AX!");
+
     OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
     AXRegisterFrameCallback(audioCallback);
 
@@ -35,7 +40,10 @@ void DSP<Console::CAFE>::Initialize()
 }
 
 DSP<Console::CAFE>::~DSP()
-{}
+{
+    if (this->initialized)
+        AXQuit();
+}
 
 void DSP<Console::CAFE>::Update()
 {
