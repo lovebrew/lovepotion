@@ -8,11 +8,25 @@ using namespace love;
 
 using DSP = love::DSP<Console::CTR>;
 
+template<>
+Source<Console::CTR>::DataBuffer::DataBuffer(const void* data, size_t size) : size(size)
+{
+    this->buffer = (int16_t*)linearAlloc(size);
+    std::memcpy(this->buffer, (int16_t*)data, size);
+
+    DSP_FlushDataCache(this->buffer, this->size);
+}
+
+template<>
+Source<Console::CTR>::DataBuffer::~DataBuffer()
+{
+    linearFree(this->buffer);
+}
+
 Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
     Source<>(TYPE_STATIC),
     pool(pool),
     current(false),
-    staticBuffer {},
     sampleRate(soundData->GetSampleRate()),
     channels(soundData->GetChannelCount()),
     bitDepth(soundData->GetBitDepth()),
@@ -21,11 +35,7 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
 {
     std::fill_n(this->buffers, 2, ndspWaveBuf {});
 
-    this->staticBuffer = { .buffer = (int16_t*)linearAlloc(soundData->GetSize()),
-                           .size   = soundData->GetSize() };
-
-    std::memcpy(this->staticBuffer.buffer, soundData->GetData(), soundData->GetSize());
-    DSP_FlushDataCache(this->staticBuffer.buffer, this->staticBuffer.size);
+    this->staticBuffer = std::make_shared<DataBuffer>(soundData->GetData(), soundData->GetSize());
 }
 
 Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
@@ -36,12 +46,13 @@ Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
     sampleRate(decoder->GetSampleRate()),
     channels(decoder->GetSampleRate()),
     bitDepth(decoder->GetBitDepth()),
+    bufferCount(MAX_BUFFERS),
     samplesOffset(0),
     channel(0)
 {
     std::fill_n(this->buffers, 2, ndspWaveBuf {});
 
-    for (size_t index = 0; index < Source::MAX_BUFFERS; index++)
+    for (size_t index = 0; index < this->bufferCount; index++)
     {
         this->buffers[index].data_pcm16 = (int16_t*)linearAlloc(decoder->GetSize());
         this->buffers[index].status     = NDSP_WBUF_DONE;
@@ -72,6 +83,8 @@ Source<Console::CTR>::Source(const Source& other) :
     Source<>(other.sourceType),
     pool(other.pool),
     valid(false),
+    current(false),
+    staticBuffer(other.staticBuffer),
     decoder(nullptr),
     sampleRate(other.sampleRate),
     channels(other.channels),
@@ -85,24 +98,20 @@ Source<Console::CTR>::Source(const Source& other) :
             this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
     }
 
-    if (this->sourceType != TYPE_STATIC)
-    {
-        std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
 
-        for (size_t index = 0; index < this->bufferCount; index++)
-            this->buffers[index].status = NDSP_WBUF_DONE;
+    for (size_t index = 0; index < this->bufferCount; index++)
+    {
+        if (this->type == TYPE_STREAM)
+            this->buffers[index].data_pcm16 = (int16_t*)linearAlloc(this->decoder->GetSize());
+
+        this->buffers[index].status = NDSP_WBUF_DONE;
     }
 }
 
 Source<Console::CTR>::~Source()
 {
     this->Stop();
-
-    if (this->sourceType == TYPE_STATIC)
-    {
-        linearFree(this->staticBuffer.buffer);
-        return;
-    }
 
     for (auto& buffer : this->buffers)
     {
@@ -254,14 +263,14 @@ void Source<Console::CTR>::Seek(double offset, Unit unit)
         case UNIT_SAMPLES:
         {
             offsetSamples = (int)offset;
-            offsetSeconds = offset / (double)this->sampleRate;
+            offsetSeconds = offset / ((double)this->sampleRate / this->channels);
             break;
         }
         case UNIT_SECONDS:
         default:
         {
             offsetSeconds = offset;
-            offsetSamples = (int)(offset * sampleRate);
+            offsetSamples = (int)(offset * sampleRate * this->channels);
         }
     }
 
@@ -325,7 +334,7 @@ double Source<Console::CTR>::Tell(Unit unit)
         offset += ::DSP::Instance().ChannelGetSampleOffset(this->channel);
 
     if (unit == UNIT_SECONDS)
-        return offset / (double)sampleRate;
+        return offset / (double)sampleRate / this->channels;
 
     return offset;
 }
@@ -339,7 +348,7 @@ double Source<Console::CTR>::GetDuration(Unit unit)
     {
         case TYPE_STATIC:
         {
-            size_t size    = this->staticBuffer.size;
+            size_t size    = this->staticBuffer->GetSize();
             size_t samples = (size / this->channels) / (this->bitDepth / 8);
 
             if (unit == UNIT_SAMPLES)
@@ -403,11 +412,16 @@ bool Source<Console::CTR>::Queue(void* data, size_t length, int sampleRate, int 
     if (length == 0)
         return true;
 
-    /* todo -- set up queue info */
+    // ndspWaveBuf buffer {};
+    // buffer.data_pcm16 = (int16_t*)linearAlloc(length);
+    // std::memcpy(buffer.data_pcm16, data, length);
+
+    // buffer.nsamples = (int)((length / this->channels) / (this->bitDepth / 8));
+    // this->queue.push(buffer);
+
     return true;
 }
 
-/* todo */
 int Source<Console::CTR>::GetFreeBufferCount() const
 {
     if (this->sourceType == TYPE_STATIC)
@@ -420,7 +434,6 @@ int Source<Console::CTR>::GetFreeBufferCount() const
     return count;
 }
 
-/* todo */
 void Source<Console::CTR>::PrepareAtomic()
 {
     this->Reset();
@@ -429,11 +442,11 @@ void Source<Console::CTR>::PrepareAtomic()
     {
         case TYPE_STATIC:
         {
-            const auto size = this->staticBuffer.size;
+            const auto size = this->staticBuffer->GetSize();
 
             // clang-format off
-            this->buffers[0].nsamples   = (int)((size / this->channels) / (this->bitDepth / 8)) - this->samplesOffset;
-            this->buffers[0].data_pcm16 = this->staticBuffer.buffer + (size_t)this->samplesOffset;
+            this->buffers[0].nsamples   = (int)((size / this->channels) / (this->bitDepth / 8)) - (this->samplesOffset / this->channels);
+            this->buffers[0].data_pcm16 = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
             // clang-format on
 
             break;

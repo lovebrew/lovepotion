@@ -12,12 +12,6 @@ namespace love
     class DSP
     {
       public:
-        struct DataBuffer
-        {
-            int16_t* buffer;
-            size_t size;
-        };
-
         enum AudioFormat
         {
             FORMAT_MONO,

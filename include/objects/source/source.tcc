@@ -54,6 +54,31 @@ namespace love
     class Source : public Object
     {
       public:
+        class DataBuffer
+        {
+          public:
+            DataBuffer()
+            {}
+
+            DataBuffer(const void* data, size_t size);
+
+            ~DataBuffer();
+
+            int16_t* GetBuffer()
+            {
+                return this->buffer;
+            }
+
+            size_t GetSize()
+            {
+                return this->size;
+            }
+
+          private:
+            int16_t* buffer;
+            size_t size;
+        };
+
         enum SourceType
         {
             TYPE_STATIC,

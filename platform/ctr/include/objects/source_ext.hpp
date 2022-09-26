@@ -100,7 +100,7 @@ namespace love
         bool valid;
         bool current;
 
-        DSP<>::DataBuffer staticBuffer;
+        std::shared_ptr<DataBuffer> staticBuffer;
         ndspWaveBuf buffers[2];
 
         StrongReference<Decoder> decoder;
