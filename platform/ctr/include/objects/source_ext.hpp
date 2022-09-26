@@ -100,9 +100,9 @@ namespace love
         bool valid;
         bool current;
 
+        DSP<>::DataBuffer staticBuffer;
         ndspWaveBuf buffers[2];
 
-        StrongReference<DSP<Console::CTR>::DataBuffer> staticBuffer;
         StrongReference<Decoder> decoder;
 
         int sampleRate;

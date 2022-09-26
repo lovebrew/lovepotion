@@ -11,7 +11,9 @@ AudioPool::AudioPool() : totalSources(0)
 }
 
 AudioPool::~AudioPool()
-{}
+{
+    Source<Console::Which>::Stop(this);
+}
 
 bool AudioPool::IsAvailable()
 {

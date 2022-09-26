@@ -150,6 +150,7 @@ static constexpr luaL_Reg functions[] =
 
 static constexpr lua_CFunction types[] =
 {
+    Wrap_Source::Register,
     nullptr
 };
 // clang-format on

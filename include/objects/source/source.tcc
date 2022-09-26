@@ -79,6 +79,26 @@ namespace love
             return this->sourceType;
         }
 
+        float GetMaxVolume() const
+        {
+            return this->maxVolume;
+        }
+
+        void SetMaxVolume(float volume)
+        {
+            this->maxVolume = volume;
+        }
+
+        float GetMinVolume() const
+        {
+            return this->minVolume;
+        }
+
+        void SetMinVolume(float volume)
+        {
+            this->minVolume = volume;
+        }
+
         // clang-format off
         static constexpr auto sourceTypes = BidirectionalMap<>::Create(
           "static", TYPE_STATIC,
@@ -125,5 +145,10 @@ namespace love
 
       protected:
         SourceType sourceType;
+        bool looping;
+
+        float minVolume;
+        float maxVolume;
+        float volume;
     };
 } // namespace love

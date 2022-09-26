@@ -12,6 +12,7 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
     Source<>(TYPE_STATIC),
     pool(pool),
     current(false),
+    staticBuffer {},
     sampleRate(soundData->GetSampleRate()),
     channels(soundData->GetChannelCount()),
     bitDepth(soundData->GetBitDepth()),
@@ -20,12 +21,11 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
 {
     std::fill_n(this->buffers, 2, ndspWaveBuf {});
 
-    this->buffers[0].data_pcm16 = (int16_t*)linearAlloc(soundData->GetSize());
-    std::memcpy(this->buffers[0].data_pcm16, soundData->GetData(), soundData->GetSize());
+    this->staticBuffer = { .buffer = (int16_t*)linearAlloc(soundData->GetSize()),
+                           .size   = soundData->GetSize() };
 
-    this->buffers[0].nsamples = soundData->GetSampleCount();
-
-    DSP_FlushDataCache(this->buffers[0].data_pcm16, soundData->GetSize());
+    std::memcpy(this->staticBuffer.buffer, soundData->GetData(), soundData->GetSize());
+    DSP_FlushDataCache(this->staticBuffer.buffer, this->staticBuffer.size);
 }
 
 Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
@@ -97,6 +97,18 @@ Source<Console::CTR>::Source(const Source& other) :
 Source<Console::CTR>::~Source()
 {
     this->Stop();
+
+    if (this->sourceType == TYPE_STATIC)
+    {
+        linearFree(this->staticBuffer.buffer);
+        return;
+    }
+
+    for (auto& buffer : this->buffers)
+    {
+        if (buffer.data_pcm16)
+            linearFree(buffer.data_pcm16);
+    }
 }
 
 Source<Console::CTR>* Source<Console::CTR>::Clone()
@@ -212,50 +224,201 @@ bool Source<Console::CTR>::Update()
 
 void Source<Console::CTR>::SetVolume(float volume)
 {
-    if (!this->valid)
+    if (volume < this->GetMinVolume() || volume > this->GetMaxVolume())
         return;
 
-    ::DSP::Instance().ChannelSetVolume(this->channel, volume);
+    if (this->valid)
+        ::DSP::Instance().ChannelSetVolume(this->channel, volume);
+
+    this->volume = volume;
 }
 
 float Source<Console::CTR>::GetVolume() const
 {
-    if (!this->valid)
-        return 0.0f;
+    if (this->valid)
+        return ::DSP::Instance().ChannelGetVolume(this->channel);
 
-    return ::DSP::Instance().ChannelGetVolume(this->channel);
+    return this->volume;
 }
 
 /* todo */
 void Source<Console::CTR>::Seek(double offset, Unit unit)
-{}
+{
+    // auto lock = this->pool->Lock();
+
+    int offsetSamples    = 0;
+    double offsetSeconds = 0.0f;
+
+    switch (unit)
+    {
+        case UNIT_SAMPLES:
+        {
+            offsetSamples = (int)offset;
+            offsetSeconds = offset / (double)this->sampleRate;
+            break;
+        }
+        case UNIT_SECONDS:
+        default:
+        {
+            offsetSeconds = offset;
+            offsetSamples = (int)(offset * sampleRate);
+        }
+    }
+
+    bool wasPlaying = this->IsPlaying();
+
+    switch (this->sourceType)
+    {
+        case TYPE_STATIC:
+        {
+            if (this->valid)
+                this->Stop();
+
+            this->samplesOffset = offsetSamples;
+
+            if (wasPlaying)
+                this->Play();
+
+            break;
+        }
+        case TYPE_STREAM:
+        {
+            if (this->valid)
+                this->Stop();
+
+            this->decoder->Seek(offsetSeconds);
+
+            if (wasPlaying)
+                this->Play();
+
+            break;
+        }
+        case TYPE_QUEUE:
+        {
+            /* todo */
+        }
+        default:
+            break;
+    }
+
+    if (wasPlaying && (this->sourceType == TYPE_STREAM && !this->IsPlaying()))
+    {
+        this->Stop();
+
+        if (this->IsLooping())
+            this->Play();
+
+        return;
+    }
+
+    this->samplesOffset = offsetSamples;
+}
 
 /* todo */
 double Source<Console::CTR>::Tell(Unit unit)
-{}
+{
+    auto lock = this->pool->Lock();
+
+    int offset = 0;
+
+    if (this->valid)
+        offset += ::DSP::Instance().ChannelGetSampleOffset(this->channel);
+
+    if (unit == UNIT_SECONDS)
+        return offset / (double)sampleRate;
+
+    return offset;
+}
 
 /* todo */
 double Source<Console::CTR>::GetDuration(Unit unit)
-{}
+{
+    auto lock = this->pool->Lock();
+
+    switch (this->sourceType)
+    {
+        case TYPE_STATIC:
+        {
+            size_t size    = this->staticBuffer.size;
+            size_t samples = (size / this->channels) / (this->bitDepth / 8);
+
+            if (unit == UNIT_SAMPLES)
+                return (double)samples;
+
+            return (double)samples / (double)sampleRate;
+        }
+        case TYPE_STREAM:
+        {
+            /* vorbisidec 1.2.1 uses ms, not sec, convert */
+            double seconds = this->decoder->GetDuration() / 1000.0;
+
+            if (unit == UNIT_SECONDS)
+                return seconds;
+
+            return seconds * decoder->GetSampleRate();
+        }
+        case TYPE_QUEUE:
+        {
+            /* todo */
+            break;
+        }
+        default:
+            return 0.0;
+    }
+
+    return 0.0;
+}
 
 /* todo */
 void Source<Console::CTR>::SetLooping(bool loop)
-{}
+{
+    if (this->sourceType == TYPE_QUEUE)
+        throw QueueLoopingException();
+
+    if (this->valid && this->sourceType == TYPE_STATIC)
+        this->buffers[0].looping = loop;
+
+    this->looping = loop;
+}
 
 /* todo */
 bool Source<Console::CTR>::IsLooping() const
 {
-    return false;
+    return this->looping;
 }
 
 /* todo */
 bool Source<Console::CTR>::Queue(void* data, size_t length, int sampleRate, int bitDepth,
                                  int channels)
-{}
+{
+    if (this->sourceType != TYPE_QUEUE)
+        throw QueueTypeMismatchException();
+
+    if (sampleRate != this->sampleRate || bitDepth != this->bitDepth || channels != this->channels)
+        throw QueueFormatMismatchException();
+
+    if (length % (bitDepth / 8 * channels) != 0)
+        throw QueueMalformedLengthException(bitDepth / 8 * channels);
+
+    if (length == 0)
+        return true;
+
+    /* todo -- set up queue info */
+    return true;
+}
 
 /* todo */
 int Source<Console::CTR>::GetFreeBufferCount() const
-{}
+{
+    if (this->sourceType == TYPE_STATIC)
+        return 0;
+
+    size_t count = 0;
+    for (auto& buffer : this->buffers)
+        count += (buffer.status == NDSP_WBUF_DONE) ? 1 : 0;
+
+    return count;
+}
 
 /* todo */
 void Source<Console::CTR>::PrepareAtomic()
@@ -265,7 +428,16 @@ void Source<Console::CTR>::PrepareAtomic()
     switch (this->sourceType)
     {
         case TYPE_STATIC:
+        {
+            const auto size = this->staticBuffer.size;
+
+            // clang-format off
+            this->buffers[0].nsamples   = (int)((size / this->channels) / (this->bitDepth / 8)) - this->samplesOffset;
+            this->buffers[0].data_pcm16 = this->staticBuffer.buffer + (size_t)this->samplesOffset;
+            // clang-format on
+
             break;
+        }
         case TYPE_STREAM:
         {
             if (this->StreamAtomic(this->buffers[0], this->decoder.Get()) == 0)
@@ -281,8 +453,6 @@ void Source<Console::CTR>::PrepareAtomic()
         default:
             break;
     }
-
-    /* todo: seek to offset */
 }
 
 int Source<Console::CTR>::StreamAtomic(ndspWaveBuf& buffer, Decoder* decoder)
@@ -319,10 +489,7 @@ void Source<Console::CTR>::TeardownAtomic()
             std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
 
             for (auto& buffer : this->buffers)
-            {
-                buffer.status     = NDSP_WBUF_DONE;
-                buffer.data_pcm16 = (int16_t*)linearAlloc(this->decoder->GetSize());
-            }
+                buffer.status = NDSP_WBUF_DONE;
 
             break;
         }
@@ -371,7 +538,6 @@ void Source<Console::CTR>::ResumeAtomic()
         ::DSP::Instance().ChannelPause(this->channel, false);
 }
 
-/* todo */
 bool Source<Console::CTR>::Play(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)
@@ -382,23 +548,133 @@ bool Source<Console::CTR>::Play(const std::vector<Source*>& sources)
 
     std::vector<uint8_t> wasPlaying(sources.size());
     std::vector<size_t> channels(sources.size());
+
+    for (size_t index = 0; index < sources.size(); index++)
+    {
+        if (!pool->AssignSource((Source*)sources[index], channels[index], wasPlaying[index]))
+        {
+            for (size_t j = 0; j < index; j++)
+            {
+                if (!wasPlaying[j])
+                    pool->ReleaseSource((Source*)sources[index], false);
+            }
+
+            return false;
+        }
+    }
+
+    std::vector<Source*> toPlay;
+    toPlay.reserve(sources.size());
+
+    for (size_t index = 0; index < sources.size(); index++)
+    {
+        if (wasPlaying[index] && sources[index]->IsPlaying())
+            continue;
+
+        if (!wasPlaying[index])
+        {
+            auto* source    = (Source*)sources[index];
+            source->channel = channels[index];
+
+            source->PrepareAtomic();
+        }
+
+        toPlay.push_back(sources[index]);
+    }
+
+    for (auto& _source : toPlay)
+    {
+        auto* source = (Source*)_source;
+
+        if (source->sourceType != TYPE_STREAM)
+            source->samplesOffset = 0;
+
+        if (!(_source->valid = _source->Play()))
+            return false;
+
+        pool->AddSource(_source, source->channel);
+    }
+
+    return true;
+}
+
+void Source<Console::CTR>::Stop(const std::vector<Source*>& sources)
+{
+    if (sources.size() == 0)
+        return;
+
+    auto* pool = ((Source*)sources[0])->pool;
+    auto lock  = pool->Lock();
+
+    std::vector<Source*> toStop;
+    toStop.reserve(sources.size());
+
+    for (auto& _source : sources)
+    {
+        auto* source = (Source*)_source;
+
+        if (source->valid)
+            toStop.push_back(source);
+    }
+
+    for (auto& _source : toStop)
+    {
+        auto* source = (Source*)_source;
+
+        if (source->valid)
+            source->TeardownAtomic();
+
+        pool->ReleaseSource(source, false);
+    }
+}
+
+void Source<Console::CTR>::Pause(const std::vector<Source*>& sources)
+{
+    if (sources.size() == 0)
+        return;
+
+    auto lock = ((Source*)sources[0])->pool->Lock();
+
+    for (auto& _source : sources)
+    {
+        auto* source = (Source*)_source;
+
+        if (source->valid)
+            source->PauseAtomic();
+    }
 }
 
 /* todo */
-void Source<Console::CTR>::Stop(const std::vector<Source*>& sources)
-{}
-
-/* todo */
-void Source<Console::CTR>::Pause(const std::vector<Source*>& sources)
-{}
-
-/* todo */
 std::vector<Source<Console::CTR>*> Source<Console::CTR>::Pause(AudioPool* pool)
-{}
+{
+    std::vector<Source*> sources;
 
-/* todo */
+    {
+        auto lock = pool->Lock();
+        sources   = pool->GetPlayingSources();
+
+        auto end = std::remove_if(sources.begin(), sources.end(),
+                                  [](Source* source) { return !source->IsPlaying(); });
+
+        sources.erase(end, sources.end());
+    }
+
+    Source::Pause(sources);
+
+    return sources;
+}
+
 void Source<Console::CTR>::Stop(AudioPool* pool)
-{}
+{
+    std::vector<Source*> sources;
+
+    {
+        auto lock = pool->Lock();
+        sources   = pool->GetPlayingSources();
+    }
+
+    Source::Stop(sources);
+}
 
 int Source<Console::CTR>::GetChannelCount() const
 {

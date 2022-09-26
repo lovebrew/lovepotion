@@ -12,27 +12,9 @@ namespace love
     class DSP
     {
       public:
-        class DataBuffer : public Object
+        struct DataBuffer
         {
-          public:
-            DataBuffer(void* data, size_t size)
-            {
-                this->buffer = std::make_unique<int16_t[]>(size);
-                std::copy_n((int16_t*)data, size, this->buffer.get());
-            }
-
-            inline int16_t* GetBuffer() const
-            {
-                return this->buffer.get();
-            }
-
-            inline size_t GetSize() const
-            {
-                return this->size;
-            }
-
-          private:
-            std::unique_ptr<int16_t[]> buffer;
+            int16_t* buffer;
             size_t size;
         };
 
