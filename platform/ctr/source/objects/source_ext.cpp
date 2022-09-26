@@ -102,7 +102,7 @@ Source<Console::CTR>::Source(const Source& other) :
 
     for (size_t index = 0; index < this->bufferCount; index++)
     {
-        if (this->type == TYPE_STREAM)
+        if (this->sourceType == TYPE_STREAM)
             this->buffers[index].data_pcm16 = (int16_t*)linearAlloc(this->decoder->GetSize());
 
         this->buffers[index].status = NDSP_WBUF_DONE;
