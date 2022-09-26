@@ -140,7 +140,7 @@ endif()
 # Options for code generation
 target_compile_options(${PROJECT_NAME} PRIVATE
     # Common C/C++ options
-    -Wall
+    -Wall -Wno-psabi
 
     # C++ specific options
     $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
