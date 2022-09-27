@@ -225,7 +225,7 @@ int System<Console::CTR>::GetPlayCoins() const
 }
 
 // clang-format off
-constexpr auto languages = BidirectionalMap<>::Create(
+constexpr BidirectionalMap languages = {
     "jp",    CFG_LANGUAGE_JP,
     "en",    CFG_LANGUAGE_EN,
     "fr",    CFG_LANGUAGE_FR,
@@ -238,18 +238,18 @@ constexpr auto languages = BidirectionalMap<>::Create(
     "pt",    CFG_LANGUAGE_PT,
     "ru",    CFG_LANGUAGE_RU,
     "zh_TW", CFG_LANGUAGE_TW
-);
+};
 
-constexpr auto models = BidirectionalMap<>::Create(
+constexpr BidirectionalMap models = {
     "3DS",       CFG_MODEL_3DS,
     "3DSXL",     CFG_MODEL_3DSXL,
     "New 3DS",   CFG_MODEL_N3DS,
     "2DS",       CFG_MODEL_2DS,
     "New 3DSXL", CFG_MODEL_N3DSXL,
     "New 2DSXL", CFG_MODEL_N2DSXL
-);
+};
 
-constexpr auto countryCodes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap countryCodes = {
     "JP", CFG_REGION_JPN,
     "US", CFG_REGION_USA,
     "EU", CFG_REGION_EUR,
@@ -257,7 +257,7 @@ constexpr auto countryCodes = BidirectionalMap<>::Create(
     "CN", CFG_REGION_CHN,
     "KR", CFG_REGION_KOR,
     "TW", CFG_REGION_TWN
-);
+};
 // clang-format on
 
 /* LANGUAGE CONSTANTS */
@@ -272,7 +272,7 @@ bool System<Console::CTR>::GetConstant(CFG_Language in, const char*& out)
     return languages.ReverseFind(in, out);
 }
 
-std::vector<const char*> System<Console::CTR>::GetConstants(CFG_Language)
+SmallTrivialVector<const char*, 12> System<Console::CTR>::GetConstants(CFG_Language)
 {
     return languages.GetNames();
 }
@@ -289,7 +289,7 @@ bool System<Console::CTR>::GetConstant(CFG_SystemModel in, const char*& out)
     return models.ReverseFind(in, out);
 }
 
-std::vector<const char*> System<Console::CTR>::GetConstants(CFG_SystemModel)
+SmallTrivialVector<const char*, 6> System<Console::CTR>::GetConstants(CFG_SystemModel)
 {
     return models.GetNames();
 }
@@ -306,7 +306,7 @@ bool System<Console::CTR>::GetConstant(CFG_Region in, const char*& out)
     return countryCodes.ReverseFind(in, out);
 }
 
-std::vector<const char*> System<Console::CTR>::GetConstants(CFG_Region)
+SmallTrivialVector<const char*, 7> System<Console::CTR>::GetConstants(CFG_Region)
 {
     return countryCodes.GetNames();
 }

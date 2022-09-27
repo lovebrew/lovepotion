@@ -1,5 +1,5 @@
 #include <objects/joystick_ext.hpp>
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <modules/joystickmodule_ext.hpp>
 #include <modules/timer_ext.hpp>
@@ -18,7 +18,7 @@ Type Joystick<>::type("Joystick", &Object::type);
 
 // clang-format off
 /* VPAD SECTION */
-constexpr auto vpadButtons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap vpadButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             VPAD_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             VPAD_BUTTON_B,
     Joystick<>::GAMEPAD_BUTTON_X,             VPAD_BUTTON_X,
@@ -34,7 +34,7 @@ constexpr auto vpadButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     VPAD_BUTTON_DOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    VPAD_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     VPAD_BUTTON_LEFT
-);
+};
 // clang-format on
 
 static bool getVPADConstant(Joystick<>::GamepadButton in, VPADButtons& out)
@@ -50,7 +50,7 @@ static bool getVPADConstant(VPADButtons in, Joystick<>::GamepadButton& out)
 // ----
 // clang-format off
 /* WPAD SECTION */
-constexpr auto wpadButtons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap wpadButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             WPAD_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             WPAD_BUTTON_B,
     Joystick<>::GAMEPAD_BUTTON_X,             (WPADButton)-1,
@@ -66,7 +66,7 @@ constexpr auto wpadButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_BUTTON_DOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_BUTTON_LEFT
-);
+};
 // clang-format on
 
 static bool getWPADConstant(Joystick<>::GamepadButton in, WPADButton& out)
@@ -82,18 +82,18 @@ static bool getWPADConstant(WPADButton in, Joystick<>::GamepadButton& out)
 // -----
 /* NUNCHUCK SECTION */
 // clang-format off
-constexpr auto nunchuckAxes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap nunchuckAxes = {
     Joystick<>::GAMEPAD_AXIS_LEFTX,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_LEFT | WPAD_NUNCHUK_STICK_EMULATION_RIGHT),
     Joystick<>::GAMEPAD_AXIS_LEFTY,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_UP   | WPAD_NUNCHUK_STICK_EMULATION_DOWN),
     Joystick<>::GAMEPAD_AXIS_RIGHTX,       (WPADNunchukButton)-1,
     Joystick<>::GAMEPAD_AXIS_RIGHTY,       (WPADNunchukButton)-1,
     Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (WPADNunchukButton)WPAD_NUNCHUK_BUTTON_Z,
     Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (WPADNunchukButton)-1
-);
+};
 
-constexpr auto nunchuckButtons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap nunchuckButtons = {
     Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER, WPAD_NUNCHUK_BUTTON_C
-);
+};
 
 static bool getNunchuckConstant(Joystick<>::GamepadButton in, WPADNunchukButton& out)
 {
@@ -109,7 +109,7 @@ static bool getNunchuckConstant(WPADNunchukButton in, Joystick<>::GamepadButton&
 // -----
 /* CLASSIC CONTROLLER SECTION */
 // clang-format off
-constexpr auto wpadClassicButtons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap wpadClassicButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             WPAD_CLASSIC_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             WPAD_CLASSIC_BUTTON_B,
     Joystick<>::GAMEPAD_BUTTON_X,             WPAD_CLASSIC_BUTTON_X,
@@ -125,7 +125,7 @@ constexpr auto wpadClassicButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_CLASSIC_BUTTON_DOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_CLASSIC_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_CLASSIC_BUTTON_LEFT
-);
+};
 // clang-format on
 
 static bool getWPADClassicConstant(Joystick<>::GamepadButton in, WPADClassicButton& out)
@@ -141,7 +141,7 @@ static bool getWPADClassicConstant(WPADClassicButton in, Joystick<>::GamepadButt
 //-----
 /* PRO CONTROLLER SECTION */
 // clang-format off
-constexpr auto wpadProButtons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap wpadProButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             WPAD_PRO_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             WPAD_PRO_BUTTON_B,
     Joystick<>::GAMEPAD_BUTTON_X,             WPAD_PRO_BUTTON_X,
@@ -157,7 +157,7 @@ constexpr auto wpadProButtons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_PRO_BUTTON_DOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_PRO_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_PRO_BUTTON_LEFT
-);
+};
 
 static bool getWPADProConstant(Joystick<>::GamepadButton in, WPADProButton& out)
 {

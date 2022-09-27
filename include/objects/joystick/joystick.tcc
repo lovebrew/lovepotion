@@ -3,7 +3,7 @@
 #include <common/console.hpp>
 #include <common/object.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/guid.hpp>
 
 #include <memory>
@@ -96,12 +96,12 @@ namespace love
 
       private:
         // clang-format off
-        static constexpr auto inputTypes = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap inputTypes = {
             "axis",   INPUT_TYPE_AXIS,
             "button", INPUT_TYPE_BUTTON
-        );
+        };
 
-        static constexpr auto buttonTypes = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap buttonTypes = {
             "a",             GAMEPAD_BUTTON_A,
             "b",             GAMEPAD_BUTTON_B,
             "x",             GAMEPAD_BUTTON_X,
@@ -117,16 +117,16 @@ namespace love
             "dpdown",        GAMEPAD_BUTTON_DPAD_DOWN,
             "dpleft",        GAMEPAD_BUTTON_DPAD_LEFT,
             "dpright",       GAMEPAD_BUTTON_DPAD_RIGHT
-        );
+        };
 
-        static constexpr auto axisTypes = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap axisTypes = {
             "leftx",        GAMEPAD_AXIS_LEFTX,
             "lefty",        GAMEPAD_AXIS_LEFTY,
             "rightx",       GAMEPAD_AXIS_RIGHTX,
             "righty",       GAMEPAD_AXIS_RIGHTY,
             "triggerleft",  GAMEPAD_AXIS_TRIGGERLEFT,
             "triggerright", GAMEPAD_AXIS_TRIGGERRIGHT
-        );
+        };
         // clang-format on
       public:
         static bool GetConstant(const char* in, GamepadAxis& out)
@@ -139,7 +139,7 @@ namespace love
             return axisTypes.ReverseFind(in, out);
         }
 
-        static std::vector<const char*> GetConstants(GamepadAxis)
+        static SmallTrivialVector<const char*, 6> GetConstants(GamepadAxis)
         {
             return axisTypes.GetNames();
         }
@@ -154,7 +154,7 @@ namespace love
             return buttonTypes.ReverseFind(in, out);
         }
 
-        static std::vector<const char*> GetConstants(GamepadButton)
+        static SmallTrivialVector<const char*, 15> GetConstants(GamepadButton)
         {
             return buttonTypes.GetNames();
         }
@@ -169,7 +169,7 @@ namespace love
             return inputTypes.ReverseFind(in, out);
         }
 
-        static std::vector<const char*> GetConstants(InputType)
+        static SmallTrivialVector<const char*, 2> GetConstants(InputType)
         {
             return inputTypes.GetNames();
         }

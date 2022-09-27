@@ -109,10 +109,10 @@ std::string_view System<Console::CAFE>::GetFriendInfo()
 }
 
 // clang-format off
-constexpr auto modelTypes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap modelTypes = {
     "basic",  System<Console::CAFE>::SYSTEM_MODEL_BASIC,
     "deluxe", System<Console::CAFE>::SYSTEM_MODEL_DELUXE
-);
+};
 // clang-format on
 
 bool System<Console::CAFE>::GetConstant(const char* in, SystemModel& out)

@@ -1,6 +1,5 @@
 #include <common/exception.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
 #include <utilities/driver/dsp_ext.hpp>
 
 #include <utilities/log/logfile.h>

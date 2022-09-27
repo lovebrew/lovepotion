@@ -1,4 +1,4 @@
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <utilities/compressor/compressor.hpp>
 #include <utilities/compressor/types/lz4compressor.hpp>
@@ -23,12 +23,12 @@ Compressor* Compressor::GetCompressor(Format format)
 }
 
 // clang-format off
-constexpr auto formatNames = BidirectionalMap<>::Create(
+constexpr BidirectionalMap formatNames = {
     "lz4",     Compressor::Format::FORMAT_LZ4,
     "zlib",    Compressor::Format::FORMAT_ZLIB,
     "gzip",    Compressor::Format::FORMAT_GZIP,
     "deflate", Compressor::Format::FORMAT_DEFLATE
-);
+};
 // clang-format on
 
 bool Compressor::GetConstant(const char* in, Format& out)
@@ -41,7 +41,7 @@ bool Compressor::GetConstant(Format in, const char*& out)
     return formatNames.ReverseFind(in, out);
 }
 
-std::vector<const char*> Compressor::GetConstants(Format)
+SmallTrivialVector<const char*, 4> Compressor::GetConstants(Format)
 {
     return formatNames.GetNames();
 }

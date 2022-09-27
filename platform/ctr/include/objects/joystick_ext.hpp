@@ -1,7 +1,6 @@
 #pragma once
 
 #include <objects/joystick/joystick.tcc>
-#include <utilities/bidirectionalmap.hpp>
 
 #include <utilities/haptics/sixaxis_ext.hpp>
 

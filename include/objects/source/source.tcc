@@ -6,7 +6,7 @@
 
 #include <vector>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 namespace love
 {
@@ -125,11 +125,11 @@ namespace love
         }
 
         // clang-format off
-        static constexpr auto sourceTypes = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap sourceTypes = {
           "static", TYPE_STATIC,
           "stream", TYPE_STREAM,
           "queue",  TYPE_QUEUE
-        );
+        };
         // clang-format on
 
         static bool GetConstant(const char* in, SourceType& out)
@@ -141,16 +141,16 @@ namespace love
             return sourceTypes.ReverseFind(in, out);
         }
 
-        static std::vector<const char*> GetConstants(SourceType)
+        static SmallTrivialVector<const char*, 3> GetConstants(SourceType)
         {
             return sourceTypes.GetNames();
         }
 
         // clang-format off
-        static constexpr auto unitTypes = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap unitTypes = {
           "seconds", UNIT_SECONDS,
           "samples", UNIT_SAMPLES
-        );
+        };
         // clang-format on
 
         static bool GetConstant(const char* in, Unit& out)
@@ -163,7 +163,7 @@ namespace love
             return unitTypes.ReverseFind(in, out);
         }
 
-        static std::vector<const char*> GetConstants(Unit)
+        static SmallTrivialVector<const char*, 2> GetConstants(Unit)
         {
             return unitTypes.GetNames();
         }

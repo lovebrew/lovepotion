@@ -3,16 +3,17 @@
 #include "smallvector.hpp"
 #include <array>
 #include <functional>
+#include <ranges>
 #include <string_view>
 #include <type_traits>
 #include <utility>
 
 template<typename K = void, typename V = void, std::size_t Size = 0, typename KC = std::equal_to<>,
          typename VC = std::equal_to<>>
-class BidirectionalMultiMap;
+class BidirectionalMap;
 
 template<>
-class BidirectionalMultiMap<>
+class BidirectionalMap<>
 {
   public:
     // Used to compare C strings; operator== doesn't work properly for those
@@ -49,10 +50,8 @@ class BidirectionalMultiMap<>
         }
     };
 
-    // clang-format off
     template<typename A, typename B, typename... Args>
     struct CheckArgs
-    // clang-format on
     {
       private:
         using CheckArgs2 = CheckArgs<Args...>;
@@ -111,24 +110,20 @@ class BidirectionalMultiMap<>
     static constexpr bool ValidArgs_v = (sizeof...(Args) % 2 == 0) && (sizeof...(Args) > 0) &&
                                         (CheckArgs<Args...>::value);
 
+    // clang-format off
     template<typename KC, typename VC, typename... Args>
+    requires (sizeof...(Args) % 2 == 0) && (sizeof...(Args) > 0)
     struct ValidComparatorArgs_s
+    // clang-format on
     {
         using Check = CheckArgs<Args...>;
         using AType = Check::AType;
         using BType = Check::BType;
 
-        static constexpr bool value =
-            (sizeof...(Args) % 2 == 0) && (sizeof...(Args) > 0) && Check::value && (requires {
-                requires std::equivalence_relation<KC, AType, AType>;
-                requires std::equivalence_relation<VC, BType, BType>;
-            });
-    };
-
-    template<typename KC, typename VC>
-    struct ValidComparatorArgs_s<KC, VC>
-    {
-        static constexpr bool value = false;
+        static constexpr bool value = Check::value && (requires {
+                                          requires std::equivalence_relation<KC, AType, AType>;
+                                          requires std::equivalence_relation<VC, BType, BType>;
+                                      });
     };
 
     template<typename KC, typename VC, typename... Args>
@@ -149,7 +144,7 @@ class BidirectionalMultiMap<>
         auto setArgs = [](std::array<PairType, Size>& addTo, Args... args) {
             auto setArgsRef = []<typename... InnerArgs>(auto& me, std::array<PairType, Size>& addTo,
                                                         AType key, BType val, InnerArgs... args) {
-                std::size_t index   = Size - (sizeof...(InnerArgs) + 2) / 2;
+                std::size_t index   = addTo.size() - (sizeof...(InnerArgs) + 2) / 2;
                 addTo[index].first  = key;
                 addTo[index].second = val;
 
@@ -165,8 +160,8 @@ class BidirectionalMultiMap<>
 
         setArgs(entries, std::forward<Args>(args)...);
 
-        return BidirectionalMultiMap<AType, BType, Size, KeyComparator, ValueComparator> { entries,
-                                                                                           kc, vc };
+        return BidirectionalMap<AType, BType, Size, KeyComparator, ValueComparator> { entries, kc,
+                                                                                      vc };
     }
 
     // Note: long name, but shouldn't often be used
@@ -203,9 +198,25 @@ class BidirectionalMultiMap<>
 template<std::default_initializable K, std::default_initializable V, std::size_t Size,
          std::equivalence_relation<K, K> KC, std::equivalence_relation<V, V> VC>
     requires (Size > 0)
-class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<>
+class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
 // clang-format on
 {
+  private:
+    template<std::size_t ArraySize>
+    consteval void populate(const std::pair<K, V>* data)
+    {
+        static_assert(ArraySize <= Size && ArraySize > 0);
+
+        for (std::size_t i = 0; i < ArraySize; i++)
+            this->entries[i] = data[i];
+
+        if constexpr (ArraySize < Size)
+        {
+            for (std::size_t i = ArraySize; i < Size; i++)
+                this->entries[i] = { Key(), Value() };
+        }
+    }
+
   public:
     using Key             = std::remove_cvref_t<K>;
     using Value           = std::remove_cvref_t<V>;
@@ -214,89 +225,37 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
 
     using Entry = std::pair<Key, Value>;
 
-    using BidirectionalMultiMap<>::CreateWithComparators;
-    using BidirectionalMultiMap<>::CreateWithKeyComparator;
-    using BidirectionalMultiMap<>::CreateWithValueComparator;
+    using BidirectionalMap<>::CreateWithComparators;
+    using BidirectionalMap<>::CreateWithKeyComparator;
+    using BidirectionalMap<>::CreateWithValueComparator;
 
-  private:
-    template<std::size_t ArraySize, typename Comparator, typename Accessor>
-    consteval static void populate(std::array<Entry, Size>& entries, const std::pair<K, V>* data,
-                                   Comparator&& c, Accessor&& a)
-    {
-        static_assert(ArraySize <= Size && ArraySize > 0);
-
-        for (std::size_t i = 0; i < ArraySize; i++)
-            entries[i] = data[i];
-
-        if constexpr (ArraySize < Size)
-        {
-            for (std::size_t i = ArraySize; i < Size; i++)
-                entries[i] = { Key(), Value() };
-        }
-
-        constexpr auto chunksort = [](std::array<Entry, Size>& sortMe, auto&& comparator,
-                                      auto&& accessor) {
-            std::size_t newIndex = 0;
-            std::array<Entry, Size> sorted {};
-            std::array<bool, Size> alreadyAdded {};
-
-            for (std::size_t i = 0; i < ArraySize; i++)
-            {
-                if (!alreadyAdded[i])
-                {
-                    sorted[newIndex++] = sortMe[i];
-                    alreadyAdded[i]    = true;
-                    for (std::size_t j = i + 1; j < ArraySize; j++)
-                    {
-                        if (!alreadyAdded[j] &&
-                            std::invoke(comparator, std::invoke(accessor, sortMe[j]),
-                                        std::invoke(accessor, sortMe[i])))
-                        {
-                            alreadyAdded[j]    = true;
-                            sorted[newIndex++] = sortMe[j];
-                        }
-                    }
-                }
-            }
-
-            sortMe = sorted;
-        };
-
-        chunksort(entries, c, a);
-    }
-
-  public:
-    BidirectionalMultiMap() = delete;
+    BidirectionalMap() = delete;
 
     template<std::size_t ArraySize = Size>
-    consteval BidirectionalMultiMap(const std::pair<K, V> (&inEntries)[ArraySize], KC kc = KC {},
-                                    VC vc = VC {}) :
+    consteval BidirectionalMap(const std::pair<K, V> (&inEntries)[ArraySize], KC kc = KC {},
+                               VC vc = VC {}) :
         entries(),
-        revEntries(),
         populated(ArraySize),
         kc(kc),
         vc(vc)
     {
-        populate<ArraySize>(entries, inEntries, kc, &std::pair<K, V>::first);
-        populate<ArraySize>(revEntries, inEntries, vc, &std::pair<K, V>::second);
+        populate<ArraySize>(inEntries);
     }
 
     template<std::size_t ArraySize = Size>
-    consteval BidirectionalMultiMap(const std::array<std::pair<K, V>, ArraySize>(&inEntries),
-                                    KC kc = KC {}, VC vc = VC {}) :
+    consteval BidirectionalMap(const std::array<std::pair<K, V>, ArraySize>(&inEntries),
+                               KC kc = KC {}, VC vc = VC {}) :
         entries(),
-        revEntries(),
         populated(ArraySize),
         kc(kc),
         vc(vc)
     {
-        populate<ArraySize>(entries, inEntries.data(), kc, &std::pair<K, V>::first);
-        populate<ArraySize>(revEntries, inEntries.data(), vc, &std::pair<K, V>::second);
+        populate<ArraySize>(inEntries.data());
     }
 
     template<typename... Args>
     requires ValidComparatorArgs_v<KC, VC, Args...>
-    consteval BidirectionalMultiMap(KC kc, VC vc, Args... args) :
+    consteval BidirectionalMap(KC kc, VC vc, Args... args) :
         entries {},
         populated(0),
         kc(kc),
@@ -328,83 +287,46 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
 
         setArgs(newEntries, std::forward<Args>(args)...);
 
-        populate<CurSize>(entries, newEntries.data(), kc, &std::pair<K, V>::first);
-        populate<CurSize>(revEntries, newEntries.data(), vc, &std::pair<K, V>::second);
+        populate<CurSize>(newEntries.data());
     }
 
     template<typename... Args>
     requires ValidArgs_v<Args...>
-    consteval BidirectionalMultiMap(Args... args) :
-        BidirectionalMultiMap(defaultcomp_v<K>(), defaultcomp_v<V>(), args...)
+    consteval BidirectionalMap(Args... args) :
+        BidirectionalMap(defaultcomp_v<K>(), defaultcomp_v<V>(), args...)
     {}
 
     /*
-    ** When mapped as T, V -- find first VectorSize values V from T
+    ** When mapped as T, V -- find value V from T
     */
-    template<std::size_t VectorSize = Size>
-    constexpr SmallTrivialVector<Value, VectorSize> Find(const Key& search) const
+    constexpr bool Find(const Key& search, Value& out) const
     {
-        SmallTrivialVector<Value, VectorSize> ret;
-
-        auto first = std::find_if(this->entries.begin(), this->entries.end(),
-                                  [&](const Entry& e) { return kc(e.first, search); });
-        auto last =
-            std::find_if(std::reverse_iterator(this->entries.begin() + populated),
-                         this->entries.rend(), [&](const Entry& e) { return kc(e.first, search); })
-                .base();
-
-        while (first != last && ret.size() < ret.capacity())
+        for (std::size_t i = 0; i < this->populated; ++i)
         {
-            ret.push_back(first->second);
-            ++first;
+            if (kc(this->entries[i].first, search))
+            {
+                out = this->entries[i].second;
+                return true;
+            }
         }
 
-        return ret;
-    }
-
-    constexpr bool FindFirst(const Key& search, Value& out) const
-    {
-        auto found = Find<1>(search);
-        if (found.size() == 1)
-        {
-            out = found[0];
-            return true;
-        }
         return false;
     }
 
     /*
-    ** When mapped as T, V -- find first VectorSize values T from V
+    ** When mapped as T, V -- find value T from V
     */
-    template<std::size_t VectorSize = Size>
-    constexpr SmallTrivialVector<Key, VectorSize> ReverseFind(const Value& search) const
+    constexpr bool ReverseFind(const Value& search, Key& out) const
     {
-        SmallTrivialVector<Value, VectorSize> ret;
-
-        auto first = std::find_if(this->revEntries.begin(), this->revEntries.begin() + populated,
-                                  [&](const Entry& e) { return kc(e.second, search); });
-        auto last  = std::find_if(std::reverse_iterator(this->revEntries.begin() + populated),
-                                  this->revEntries.rend(),
-                                  [&](const Entry& e) { return kc(e.second, search); })
-                        .base();
-
-        while (first != last && ret.size() < ret.capacity())
+        for (std::size_t i = 0; i < this->populated; ++i)
         {
-            ret.push_back(first->first);
-            ++first;
+            if (vc(this->entries[i].second, search))
+            {
+                out = this->entries[i].first;
+                return true;
+            }
         }
 
-        return ret;
-    }
-
-    constexpr bool ReverseFindFirst(const Value& search, Key& out) const
-    {
-        auto found = ReverseFind<1>(search);
-        if (found.size() == 1)
-        {
-            out = found[0];
-            return true;
-        }
         return false;
     }
 
@@ -435,7 +357,6 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
 
   private:
     std::array<Entry, Size> entries;
-    std::array<Entry, Size> revEntries;
     const std::size_t populated;
 
     [[no_unique_address]] KeyComparator kc;
@@ -444,16 +365,16 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
 
 // clang-format off
 template<typename KC, typename VC, typename... Args>
-requires BidirectionalMultiMap<>::ValidComparatorArgs_v<KC, VC, Args...>
-BidirectionalMultiMap(KC, VC, Args...) -> BidirectionalMultiMap<typename BidirectionalMultiMap<>::CheckArgs<Args...>::AType,
-                                                                typename BidirectionalMultiMap<>::CheckArgs<Args...>::BType,
-                                                                sizeof...(Args) / 2, KC, VC>;
+requires BidirectionalMap<>::ValidComparatorArgs_v<KC, VC, Args...>
+BidirectionalMap(KC, VC, Args...) -> BidirectionalMap<typename BidirectionalMap<>::CheckArgs<Args...>::AType,
+                                                      typename BidirectionalMap<>::CheckArgs<Args...>::BType,
+                                                      sizeof...(Args) / 2, KC, VC>;
 
 template<typename... Args>
-requires BidirectionalMultiMap<>::ValidArgs_v<Args...>
-BidirectionalMultiMap(Args...) -> BidirectionalMultiMap<typename BidirectionalMultiMap<>::CheckArgs<Args...>::AType,
-                                                        typename BidirectionalMultiMap<>::CheckArgs<Args...>::BType,
-                                                        sizeof...(Args) / 2,
-                                                        BidirectionalMultiMap<>::defaultcomp_v<typename BidirectionalMultiMap<>::CheckArgs<Args...>::AType>,
-                                                        BidirectionalMultiMap<>::defaultcomp_v<typename BidirectionalMultiMap<>::CheckArgs<Args...>::BType>>;
+requires BidirectionalMap<>::ValidArgs_v<Args...>
+BidirectionalMap(Args...) -> BidirectionalMap<typename BidirectionalMap<>::CheckArgs<Args...>::AType,
+                                              typename BidirectionalMap<>::CheckArgs<Args...>::BType,
+                                              sizeof...(Args) / 2,
+                                              BidirectionalMap<>::defaultcomp_v<typename BidirectionalMap<>::CheckArgs<Args...>::AType>,
+                                              BidirectionalMap<>::defaultcomp_v<typename BidirectionalMap<>::CheckArgs<Args...>::BType>>;
 // clang-format on

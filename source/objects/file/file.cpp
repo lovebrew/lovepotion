@@ -3,7 +3,7 @@
 
 #include <objects/file/file.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <algorithm>
 
@@ -72,18 +72,18 @@ std::string File::GetExtension() const
 }
 
 // clang-format off
-constexpr auto modes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap modes = {
     "r", File::Mode::MODE_READ,
     "w", File::Mode::MODE_WRITE,
     "a", File::Mode::MODE_APPEND,
     "c", File::Mode::MODE_CLOSED
-);
+};
 
-constexpr auto bufferModes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap bufferModes = {
     "none", File::BufferMode::BUFFER_NONE,
     "line", File::BufferMode::BUFFER_LINE,
     "full", File::BufferMode::BUFFER_FULL
-);
+};
 // clang-format on
 
 bool File::GetConstant(const char* in, Mode& out)
@@ -96,7 +96,7 @@ bool File::GetConstant(Mode in, const char*& out)
     return modes.ReverseFind(in, out);
 }
 
-std::vector<const char*> File::GetConstants(Mode mode)
+SmallTrivialVector<const char*, 4> File::GetConstants(Mode mode)
 {
     return modes.GetNames();
 }
@@ -111,7 +111,7 @@ bool File::GetConstant(BufferMode in, const char*& out)
     return bufferModes.ReverseFind(in, out);
 }
 
-std::vector<const char*> File::GetConstants(BufferMode mode)
+SmallTrivialVector<const char*, 3> File::GetConstants(BufferMode mode)
 {
     return bufferModes.GetNames();
 }

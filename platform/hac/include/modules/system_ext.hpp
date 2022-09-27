@@ -2,6 +2,8 @@
 
 #include <modules/system/system.tcc>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 #include <switch.h>
 
 namespace love
@@ -35,11 +37,11 @@ namespace love
 
         static bool GetConstant(const char* in, SetLanguage& out);
         static bool GetConstant(SetLanguage in, const char*& out);
-        static std::vector<const char*> GetConstants(SetLanguage);
+        static SmallTrivialVector<const char*, 18> GetConstants(SetLanguage);
 
         static bool GetConstant(const char* in, SetSysProductModel& out);
         static bool GetConstant(SetSysProductModel in, const char*& out);
-        static std::vector<const char*> GetConstants(SetSysProductModel);
+        static SmallTrivialVector<const char*, 7> GetConstants(SetSysProductModel);
 
       private:
         AccountUid account;
