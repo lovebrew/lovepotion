@@ -4,7 +4,7 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <modules/timer_ext.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 using namespace love;
 
@@ -14,7 +14,7 @@ template<>
 Type Joystick<>::type("Joystick", &Object::type);
 
 // clang-format off
-constexpr auto buttons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_A,             HidNpadButton_A,
     Joystick<>::GAMEPAD_BUTTON_B,             HidNpadButton_B,
     Joystick<>::GAMEPAD_BUTTON_X,             HidNpadButton_X,
@@ -30,7 +30,7 @@ constexpr auto buttons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     HidNpadButton_Down,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    HidNpadButton_Right,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     HidNpadButton_Left
-);
+};
 // clang-format on
 
 static bool getConstant(Joystick<>::GamepadButton in, HidNpadButton& out)

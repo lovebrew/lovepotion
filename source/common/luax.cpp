@@ -843,21 +843,6 @@ int luax::EnumError(lua_State* L, const char* enumName, const char* value)
     return luaL_error(L, "Invalid %s: %s", enumName, value);
 }
 
-int luax::EnumError(lua_State* L, const char* enumName, const std::vector<const char*>& values,
-                    const char* value)
-{
-    std::string enums;
-    bool first = true;
-
-    for (auto& item : values)
-    {
-        enums += (first ? "'" : ", '") + std::string(item) + "'";
-        first = false;
-    }
-
-    return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value, enums.c_str());
-}
-
 int luax::IOError(lua_State* L, const char* format, ...)
 {
     va_list args;

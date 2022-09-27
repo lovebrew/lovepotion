@@ -2,6 +2,8 @@
 
 #include <objects/joystick/joystick.tcc>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 #include <vector>
 
 namespace love::guid
@@ -60,5 +62,5 @@ namespace love::guid
 
     bool GetConstant(const char* in, GamepadType& out);
     bool GetConstant(GamepadType in, const char*& out);
-    std::vector<const char*> GetConstants(GamepadType);
+    SmallTrivialVector<const char*, 13> GetConstants(GamepadType);
 } // namespace love::guid

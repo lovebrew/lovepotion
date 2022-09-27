@@ -7,6 +7,7 @@
 #include <objects/data/dataview/dataview.hpp>
 
 #include <utilities/hashfunction/hashfunction.hpp>
+#include <utilities/bidirectionalmap/smallvector.hpp>
 
 namespace love
 {
@@ -66,11 +67,11 @@ namespace love
 
         static bool GetConstant(ContainerType in, const char*& out);
         static bool GetConstant(const char* in, ContainerType& out);
-        static std::vector<const char*> GetConstants(ContainerType);
+        static SmallTrivialVector<const char*, 2> GetConstants(ContainerType);
 
         static bool GetConstant(EncodeFormat in, const char*& out);
         static bool GetConstant(const char* in, EncodeFormat& out);
-        static std::vector<const char*> GetConstants(EncodeFormat);
+        static SmallTrivialVector<const char*, 2> GetConstants(EncodeFormat);
 
       private:
         std::string Hash(HashFunction::Function function, Data* input);

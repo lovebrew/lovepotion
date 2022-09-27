@@ -4,6 +4,7 @@
 #include <common/strongreference.hpp>
 
 #include <utilities/stream/stream.hpp>
+#include <utilities/bidirectionalmap/smallvector.hpp>
 
 #include <memory>
 #include <vector>
@@ -56,7 +57,7 @@ namespace love
 
         static bool GetConstant(const char* in, StreamSource& out);
         static bool GetConstant(StreamSource in, const char*& out);
-        static std::vector<const char*> GetConstants(StreamSource);
+        static SmallTrivialVector<const char*, 2> GetConstants(StreamSource);
 
       protected:
         StrongReference<Stream> stream;

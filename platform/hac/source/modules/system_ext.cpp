@@ -165,7 +165,7 @@ std::string_view System<Console::HAC>::GetUsername()
 }
 
 // clang-format off
-constexpr auto languages = BidirectionalMap<>::Create(
+constexpr BidirectionalMap languages = {
     "jp",      SetLanguage_JA,
     "en_US",   SetLanguage_ENUS,
     "fr",      SetLanguage_FR,
@@ -184,9 +184,9 @@ constexpr auto languages = BidirectionalMap<>::Create(
     "zh_HANS", SetLanguage_ZHHANS,
     "zh_HANT", SetLanguage_ZHHANT,
     "pt_BR",   SetLanguage_PTBR
-);
+};
 
-constexpr auto models = BidirectionalMap<>::Create(
+constexpr BidirectionalMap models = {
     "Invalid",           SetSysProductModel_Invalid,
     "Erista",            SetSysProductModel_Nx,
     "Erista Simulation", SetSysProductModel_Copper,
@@ -194,12 +194,12 @@ constexpr auto models = BidirectionalMap<>::Create(
     "Mariko Lite",       SetSysProductModel_Hoag,
     "Mariko Simulation", SetSysProductModel_Calcio,
     "Mariko Pro",        SetSysProductModel_Aula
-);
+};
 
-constexpr auto themes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap themes = {
     "dark",  ColorSetId_Dark,
     "light", ColorSetId_Light
-);
+};
 // clang-format on
 
 /* THEME CONSTANTS */
@@ -225,7 +225,7 @@ bool System<Console::HAC>::GetConstant(SetLanguage in, const char*& out)
     return languages.ReverseFind(in, out);
 }
 
-std::vector<const char*> System<Console::HAC>::GetConstants(SetLanguage)
+SmallTrivialVector<const char*, 18> System<Console::HAC>::GetConstants(SetLanguage)
 {
     return languages.GetNames();
 }
@@ -242,7 +242,7 @@ bool System<Console::HAC>::GetConstant(SetSysProductModel in, const char*& out)
     return models.ReverseFind(in, out);
 }
 
-std::vector<const char*> System<Console::HAC>::GetConstants(SetSysProductModel)
+SmallTrivialVector<const char*, 7> System<Console::HAC>::GetConstants(SetSysProductModel)
 {
     return models.GetNames();
 }

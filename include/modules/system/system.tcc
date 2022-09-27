@@ -3,7 +3,7 @@
 #include <common/console.hpp>
 #include <common/module.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 namespace love
 {
@@ -87,18 +87,18 @@ namespace love
 
       private:
         // clang-format off
-        static constexpr auto powerStates = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap powerStates = {
             "unknown",  System::PowerState::POWER_UNKNOWN,
             "battery",  System::PowerState::POWER_BATTERY,
             "charged",  System::PowerState::POWER_CHARGED,
             "charging", System::PowerState::POWER_CHARGING
-        );
+        };
 
-        static constexpr auto networkStates = BidirectionalMap<>::Create(
+        static constexpr BidirectionalMap networkStates = {
             "unknown",      System::NetworkState::NETWORK_UNKNOWN,
             "connected",    System::NetworkState::NETWORK_CONNECTED,
             "disconnected", System::NetworkState::NETWORK_DISCONNECTED
-        );
+        };
         // clang-format on
     };
 } // namespace love

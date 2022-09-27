@@ -1,5 +1,5 @@
 #include <objects/joystick_ext.hpp>
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <algorithm>
 #include <limits>
@@ -10,7 +10,7 @@ template<>
 Type Joystick<>::type("Joystick", &Object::type);
 
 // clang-format off
-constexpr auto buttons = BidirectionalMap<>::Create(
+constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_A,             KEY_A,
     Joystick<>::GAMEPAD_BUTTON_B,             KEY_B,
     Joystick<>::GAMEPAD_BUTTON_X,             KEY_X,
@@ -26,7 +26,7 @@ constexpr auto buttons = BidirectionalMap<>::Create(
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     KEY_DDOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    KEY_DRIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     KEY_LEFT
-);
+};
 // clang-format on
 
 static bool getConstant(Joystick<>::GamepadButton in, int& out)

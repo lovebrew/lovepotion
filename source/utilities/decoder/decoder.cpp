@@ -2,7 +2,7 @@
 
 #include <common/exception.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 using namespace love;
 
@@ -49,10 +49,10 @@ bool Decoder::IsFinished()
 }
 
 // clang-format off
-constexpr auto streamSources = BidirectionalMap<>::Create(
+constexpr BidirectionalMap streamSources = {
     "memory", Decoder::STREAM_MEMORY,
     "file",   Decoder::STREAM_FILE
-);
+};
 // clang-format on
 
 bool Decoder::GetConstant(const char* in, Decoder::StreamSource& out)
@@ -65,7 +65,7 @@ bool Decoder::GetConstant(Decoder::StreamSource in, const char*& out)
     return streamSources.ReverseFind(in, out);
 }
 
-std::vector<const char*> Decoder::GetConstants(Decoder::StreamSource)
+SmallTrivialVector<const char*, 2> Decoder::GetConstants(Decoder::StreamSource)
 {
     return streamSources.GetNames();
 }

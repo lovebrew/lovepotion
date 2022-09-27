@@ -1,4 +1,4 @@
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/guid.hpp>
 
 // clang-format off
@@ -98,7 +98,7 @@ bool love::guid::GetDeviceInfo(GamepadType type, DeviceInfo& info)
 }
 
 // clang-format off
-constexpr auto gamepadTypes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap gamepadTypes = {
     "unknown",           love::guid::GAMEPAD_TYPE_UNKNOWN,
     "nintendo3ds",       love::guid::GAMEPAD_TYPE_NINTENDO_3DS,
     "newnintendo3ds",    love::guid::GAMEPAD_TYPE_NEW_NINTENDO_3DS,
@@ -112,7 +112,7 @@ constexpr auto gamepadTypes = BidirectionalMap<>::Create(
     "wiiremotenunchuck", love::guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK,
     "wiiclassic",        love::guid::GAMEPAD_TYPE_WII_CLASSIC,
     "wiipro",            love::guid::GAMEPAD_TYPE_WII_PRO
-);
+};
 // clang-format on
 
 bool love::guid::GetConstant(const char* in, GamepadType& out)
@@ -125,7 +125,7 @@ bool love::guid::GetConstant(GamepadType in, const char*& out)
     return gamepadTypes.ReverseFind(in, out);
 }
 
-std::vector<const char*> love::guid::GetConstants(GamepadType)
+SmallTrivialVector<const char*, 13> love::guid::GetConstants(GamepadType)
 {
     return gamepadTypes.GetNames();
 }

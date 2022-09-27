@@ -6,6 +6,8 @@
 #include <objects/data/filedata/filedata.hpp>
 #include <objects/file/file.hpp>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 #include <limits.h>
 #include <vector>
 
@@ -147,15 +149,15 @@ namespace love
 
         static bool GetConstant(const char* in, FileType& out);
         static bool GetConstant(FileType in, const char*& out);
-        static std::vector<const char*> GetConstants(FileType);
+        static SmallTrivialVector<const char*, 4> GetConstants(FileType);
 
         static bool GetConstant(const char* in, CommonPath& out);
         static bool GetConstant(CommonPath in, const char*& out);
-        static std::vector<const char*> GetConstants(CommonPath);
+        static SmallTrivialVector<const char*, 4> GetConstants(CommonPath);
 
         static bool GetConstant(const char* in, MountPermissions& out);
         static bool GetConstant(MountPermissions in, const char*& out);
-        static std::vector<const char*> GetConstants(MountPermissions);
+        static SmallTrivialVector<const char*, 2> GetConstants(MountPermissions);
 
       protected:
         static constexpr int64_t MAX_STAMP = 0x20000000000000;

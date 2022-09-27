@@ -12,6 +12,7 @@ extern "C"
 #include <lutf8lib.h>
 }
 
+#include <ranges>
 #include <set>
 #include <span>
 #include <vector>
@@ -262,8 +263,24 @@ namespace luax
 
     int EnumError(lua_State* L, const char* enumName, const char* value);
 
-    int EnumError(lua_State* L, const char* enumName, const std::vector<const char*>& values,
-                  const char* value);
+    // clang-format off
+    template<std::ranges::range Range>
+        requires (std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>)
+    int EnumError(lua_State* L, const char* enumName, const Range& values, const char* value)
+    // clang-format on
+    {
+        std::string enums;
+        bool first = true;
+
+        for (auto& item : values)
+        {
+            enums += (first ? "'" : ", '") + std::string(item) + "'";
+            first = false;
+        }
+
+        return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value,
+                          enums.c_str());
+    }
 
     int Traceback(lua_State* L);
 

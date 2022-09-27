@@ -4,6 +4,8 @@
 
 #include <modules/system/system.tcc>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 namespace love
 {
     template<>
@@ -34,14 +36,14 @@ namespace love
 
         static bool GetConstant(const char* in, CFG_Language& out);
         static bool GetConstant(CFG_Language in, const char*& out);
-        static std::vector<const char*> GetConstants(CFG_Language);
+        static SmallTrivialVector<const char*, 12> GetConstants(CFG_Language);
 
         static bool GetConstant(const char* in, CFG_SystemModel& out);
         static bool GetConstant(CFG_SystemModel in, const char*& out);
-        static std::vector<const char*> GetConstants(CFG_SystemModel);
+        static SmallTrivialVector<const char*, 6> GetConstants(CFG_SystemModel);
 
         static bool GetConstant(const char* in, CFG_Region& out);
         static bool GetConstant(CFG_Region in, const char*& out);
-        static std::vector<const char*> GetConstants(CFG_Region);
+        static SmallTrivialVector<const char*, 7> GetConstants(CFG_Region);
     };
 } // namespace love

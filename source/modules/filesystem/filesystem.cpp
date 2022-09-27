@@ -1,6 +1,6 @@
 #include <common/console.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <algorithm>
 #include <filesystem>
@@ -60,12 +60,12 @@ std::string Filesystem::GetExecutablePath() const
 }
 
 // clang-format off
-constexpr auto fileTypes = BidirectionalMap<>::Create(
+constexpr BidirectionalMap fileTypes = {
     "file",      Filesystem::FileType::FILETYPE_FILE,
     "directory", Filesystem::FileType::FILETYPE_DIRECTORY,
     "symlink",   Filesystem::FileType::FILETYPE_SYMLINK,
     "other",     Filesystem::FileType::FILETYPE_OTHER
-);
+};
 // clang-format on
 
 bool Filesystem::GetConstant(const char* in, FileType& out)
@@ -78,18 +78,18 @@ bool Filesystem::GetConstant(FileType in, const char*& out)
     return fileTypes.ReverseFind(in, out);
 }
 
-std::vector<const char*> Filesystem::GetConstants(FileType)
+SmallTrivialVector<const char*, 4> Filesystem::GetConstants(FileType)
 {
     return fileTypes.GetNames();
 }
 
 // clang-format off
-constexpr auto commonPaths = BidirectionalMap<>::Create(
+constexpr BidirectionalMap commonPaths = {
     "appsavedir",    Filesystem::APP_SAVEDIR,
     "appdocuments",  Filesystem::APP_DOCUMENTS,
     "userhome",      Filesystem::USER_HOME,
     "userdocuments", Filesystem::USER_DOCUMENTS
-);
+};
 // clang-format on
 
 bool Filesystem::GetConstant(const char* in, CommonPath& out)
@@ -102,16 +102,16 @@ bool Filesystem::GetConstant(CommonPath in, const char*& out)
     return commonPaths.ReverseFind(in, out);
 }
 
-std::vector<const char*> Filesystem::GetConstants(CommonPath)
+SmallTrivialVector<const char*, 4> Filesystem::GetConstants(CommonPath)
 {
     return commonPaths.GetNames();
 }
 
 // clang-format off
-constexpr auto mountPermissions = BidirectionalMap<>::Create(
+constexpr BidirectionalMap mountPermissions = {
     "read",      Filesystem::MOUNT_READ,
     "readwrite", Filesystem::MOUNT_READWRITE
-);
+};
 // clang-format on
 
 bool Filesystem::GetConstant(const char* in, MountPermissions& out)
@@ -124,7 +124,7 @@ bool Filesystem::GetConstant(MountPermissions in, const char*& out)
     return mountPermissions.ReverseFind(in, out);
 }
 
-std::vector<const char*> Filesystem::GetConstants(MountPermissions)
+SmallTrivialVector<const char*, 2> Filesystem::GetConstants(MountPermissions)
 {
     return mountPermissions.GetNames();
 }

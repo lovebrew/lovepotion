@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
 #include <utilities/stream/stream.hpp>
 
 #include <objects/data/filedata/filedata.hpp>
@@ -76,10 +77,10 @@ namespace love
 
         static bool GetConstant(const char* in, Mode& out);
         static bool GetConstant(Mode in, const char*& out);
-        static std::vector<const char*> GetConstants(Mode mode);
+        static SmallTrivialVector<const char*, 4> GetConstants(Mode mode);
 
         static bool GetConstant(const char* in, BufferMode& out);
         static bool GetConstant(BufferMode in, const char*& out);
-        static std::vector<const char*> GetConstants(BufferMode mode);
+        static SmallTrivialVector<const char*, 3> GetConstants(BufferMode mode);
     };
 } // namespace love

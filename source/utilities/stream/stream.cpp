@@ -4,7 +4,7 @@
 
 #include <objects/data/bytedata/bytedata.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/stream/stream.hpp>
 
 #include <algorithm>
@@ -60,11 +60,11 @@ bool Stream::Write(Data* source, int64_t offset, int64_t size)
 }
 
 // clang-format off
-constexpr auto seekOrigins = BidirectionalMap<>::Create(
+constexpr BidirectionalMap seekOrigins = {
     SEEK_SET, Stream::ORIGIN_BEGIN,
     SEEK_CUR, Stream::ORIGIN_CURRENT,
     SEEK_END, Stream::ORIGIN_END
-);
+};
 // clang-format on
 
 bool Stream::GetConstant(int in, Stream::SeekOrigin& out)

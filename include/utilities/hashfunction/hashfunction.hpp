@@ -3,6 +3,8 @@
 #include <common/data.hpp>
 #include <common/exception.hpp>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 #include <vector>
 
 namespace love
@@ -56,7 +58,7 @@ namespace love
 
         static bool GetConstant(const Function& in, const char*& out);
 
-        static std::vector<const char*> GetConstants(Function);
+        static SmallTrivialVector<const char*, 6> GetConstants(Function);
 
       protected:
         HashFunction()

@@ -7,7 +7,7 @@
 #include <utilities/base64.hpp>
 #include <utilities/bytes.hpp>
 
-#include <utilities/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 using namespace love;
 
@@ -135,15 +135,15 @@ DataView* DataModule::NewDataView(Data* data, size_t offset, size_t size)
 }
 
 // clang-format off
-constexpr auto containers = BidirectionalMap<>::Create(
+constexpr BidirectionalMap containers = {
     "data",   DataModule::ContainerType::CONTAINER_DATA,
     "string", DataModule::ContainerType::CONTAINER_STRING
-);
+};
 
-constexpr auto encoders = BidirectionalMap<>::Create(
+constexpr BidirectionalMap encoders = {
     "hex",    DataModule::EncodeFormat::ENCODE_HEX,
     "base64", DataModule::EncodeFormat::ENCODE_BASE64
-);
+};
 // clang-format on
 
 /* container types */
@@ -152,7 +152,7 @@ bool DataModule::GetConstant(const char* in, ContainerType& out)
     return containers.Find(in, out);
 }
 
-std::vector<const char*> DataModule::GetConstants(ContainerType)
+SmallTrivialVector<const char*, 2> DataModule::GetConstants(ContainerType)
 {
     return containers.GetNames();
 }
@@ -168,7 +168,7 @@ bool DataModule::GetConstant(EncodeFormat in, const char*& out)
     return encoders.ReverseFind(in, out);
 }
 
-std::vector<const char*> DataModule::GetConstants(EncodeFormat)
+SmallTrivialVector<const char*, 2> DataModule::GetConstants(EncodeFormat)
 {
     return encoders.GetNames();
 }

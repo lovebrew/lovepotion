@@ -2,6 +2,8 @@
 
 #include <common/exception.hpp>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 #include <lz4.h>
 #include <lz4hc.h>
 
@@ -40,7 +42,7 @@ namespace love
 
         static bool GetConstant(Format in, const char*& out);
 
-        static std::vector<const char*> GetConstants(Format);
+        static SmallTrivialVector<const char*, 4> GetConstants(Format);
 
       protected:
         Compressor()
