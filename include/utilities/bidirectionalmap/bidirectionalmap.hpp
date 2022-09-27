@@ -15,6 +15,9 @@ class BidirectionalMap;
 template<>
 class BidirectionalMap<>
 {
+  protected:
+    BidirectionalMap() = default;
+
   public:
     // Used to compare C strings; operator== doesn't work properly for those
     struct cstringcomp
@@ -107,13 +110,31 @@ class BidirectionalMap<>
     using defaultcomp_v = typename DefaultComparatorForType<T>::value;
 
     template<typename... Args>
-    static constexpr bool ValidArgs_v = (sizeof...(Args) % 2 == 0) && (sizeof...(Args) > 0) &&
-                                        (CheckArgs<Args...>::value);
+    struct ValidArgs_s : public std::false_type
+    {
+    };
+
+    // clang-format off
+    template<typename... Args>
+    requires (sizeof...(Args) % 2 == 0) && (sizeof...(Args) > 0)
+    struct ValidArgs_s<Args...>
+    // clang-format on
+    {
+        static constexpr bool value = CheckArgs<Args...>::value;
+    };
+
+    template<typename... Args>
+    static constexpr bool ValidArgs_v = ValidArgs_s<Args...>::value;
+
+    template<typename KC, typename VC, typename... Args>
+    struct ValidComparatorArgs_s : public std::false_type
+    {
+    };
 
     // clang-format off
     template<typename KC, typename VC, typename... Args>
     requires (sizeof...(Args) % 2 == 0) && (sizeof...(Args) > 0)
-    struct ValidComparatorArgs_s
+    struct ValidComparatorArgs_s<KC, VC, Args...>
     // clang-format on
     {
         using Check = CheckArgs<Args...>;
@@ -131,9 +152,11 @@ class BidirectionalMap<>
 
   public:
     // Note: long name, but shouldn't often be used
+    // clang-format off
     template<typename KeyComparator, typename ValueComparator, typename... Args>
     requires ValidComparatorArgs_v<KeyComparator, ValueComparator, Args...>
     static consteval auto CreateWithComparators(KeyComparator kc, ValueComparator vc, Args... args)
+    // clang-format on
     {
         using check                = CheckArgs<Args...>;
         using AType                = typename check::AType;
@@ -143,7 +166,8 @@ class BidirectionalMap<>
 
         auto setArgs = [](std::array<PairType, Size>& addTo, Args... args) {
             auto setArgsRef = []<typename... InnerArgs>(auto& me, std::array<PairType, Size>& addTo,
-                                                        AType key, BType val, InnerArgs... args) {
+                                                        AType key, BType val, InnerArgs... args)
+            {
                 std::size_t index   = addTo.size() - (sizeof...(InnerArgs) + 2) / 2;
                 addTo[index].first  = key;
                 addTo[index].second = val;
@@ -165,29 +189,32 @@ class BidirectionalMap<>
     }
 
     // Note: long name, but shouldn't often be used
+    // clang-format off
     template<typename KeyComparator = std::equal_to<>, typename... Args>
-    requires ValidComparatorArgs_v<KeyComparator, defaultcomp_v<typename CheckArgs<Args...>::BType>,
-                                   Args...>
+    requires ValidComparatorArgs_v<KeyComparator, defaultcomp_v<typename CheckArgs<Args...>::BType>, Args...>
     static consteval auto CreateWithKeyComparator(KeyComparator kc = KeyComparator(), Args... args)
+    // clang-format on
     {
         return CreateWithComparators(std::move(kc),
                                      defaultcomp_v<typename CheckArgs<Args...>::BType>(), args...);
     }
 
     // Note: long name, but shouldn't often be used
+    // clang-format off
     template<typename ValueComparator = std::equal_to<>, typename... Args>
-    requires ValidComparatorArgs_v<defaultcomp_v<typename CheckArgs<Args...>::AType>,
-                                   ValueComparator, Args...>
-    static consteval auto CreateWithValueComparator(ValueComparator vc = ValueComparator(),
-                                                    Args... args)
+    requires ValidComparatorArgs_v<defaultcomp_v<typename CheckArgs<Args...>::AType>, ValueComparator, Args...>
+    static consteval auto CreateWithValueComparator(ValueComparator vc = ValueComparator(), Args... args)
+    // clang-format on
     {
         return CreateWithComparators(defaultcomp_v<typename CheckArgs<Args...>::AType>(),
                                      std::move(vc), args...);
     }
 
+    // clang-format off
     template<typename... Args>
     requires ValidArgs_v<Args...>
     static consteval auto Create(Args... args)
+    // clang-format on
     {
         return CreateWithComparators(defaultcomp_v<typename CheckArgs<Args...>::AType>(),
                                      defaultcomp_v<typename CheckArgs<Args...>::BType>(), args...);
@@ -253,6 +280,7 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         populate<ArraySize>(inEntries.data());
     }
 
+    // clang-format off
     template<typename... Args>
     requires ValidComparatorArgs_v<KC, VC, Args...>
     consteval BidirectionalMap(KC kc, VC vc, Args... args) :
@@ -260,6 +288,7 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         populated(0),
         kc(kc),
         vc(vc)
+    // clang-format on
     {
         using check                   = CheckArgs<Args...>;
         using AType                   = typename check::AType;
@@ -268,9 +297,10 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         constexpr std::size_t CurSize = sizeof...(Args) / 2;
 
         auto setArgs = [](std::array<PairType, CurSize>& addTo, Args... args) {
-            auto setArgsRef = []<typename... InnerArgs>(auto& me,
-                                                        std::array<PairType, CurSize>& addTo,
-                                                        AType key, BType val, InnerArgs... args) {
+            auto setArgsRef =
+                []<typename... InnerArgs>(auto& me, std::array<PairType, CurSize>& addTo, AType key,
+                                          BType val, InnerArgs... args)
+            {
                 std::size_t index   = addTo.size() - (sizeof...(InnerArgs) + 2) / 2;
                 addTo[index].first  = key;
                 addTo[index].second = val;
@@ -290,10 +320,12 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         populate<CurSize>(newEntries.data());
     }
 
+    // clang-format off
     template<typename... Args>
     requires ValidArgs_v<Args...>
     consteval BidirectionalMap(Args... args) :
         BidirectionalMap(defaultcomp_v<K>(), defaultcomp_v<V>(), args...)
+    // clang-format on
     {}
 
     /*
@@ -337,9 +369,11 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
     }
 
     /* Can only be used on String-mapped Keys */
+    // clang-format off
     constexpr SmallTrivialVector<Key, Size> GetNames() const
-        requires(std::is_same_v<Key, const char*> || std::is_same_v<Key, char*> ||
-                 std::is_same_v<Key, std::string_view>)
+        requires (std::is_same_v<Key, const char*> || std::is_same_v<Key, char*> ||
+                  std::is_same_v<Key, std::string_view>)
+    // clang-format on
     {
         return GetKeys();
     }

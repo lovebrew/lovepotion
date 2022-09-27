@@ -161,6 +161,10 @@ class SmallTrivialVector<T, Size>
 template<>
 class SmallTrivialVector<>
 {
+  private:
+    SmallTrivialVector() = default;
+
+  public:
     template<typename T, std::size_t Size>
     static consteval SmallTrivialVector<T, Size> Create(std::span<T, Size> data)
     {
