@@ -30,7 +30,7 @@ require("love.arg")
 require("love.callbacks")
 
 local is_debug, log = pcall(require, "love.log")
-local file        = nil
+local file          = nil
 if is_debug then
     file = log.new("boot.log")
 end

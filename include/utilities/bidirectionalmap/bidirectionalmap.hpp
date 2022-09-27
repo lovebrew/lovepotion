@@ -164,6 +164,7 @@ class BidirectionalMap<>
         using PairType             = std::pair<AType, BType>;
         constexpr std::size_t Size = sizeof...(Args) / 2;
 
+        // clang-format off
         auto setArgs = [](std::array<PairType, Size>& addTo, Args... args) {
             auto setArgsRef = []<typename... InnerArgs>(auto& me, std::array<PairType, Size>& addTo,
                                                         AType key, BType val, InnerArgs... args)
@@ -179,6 +180,7 @@ class BidirectionalMap<>
             };
             setArgsRef(setArgsRef, addTo, args...);
         };
+        // clang-format on
 
         std::array<PairType, Size> entries {};
 
@@ -285,7 +287,7 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
     requires ValidComparatorArgs_v<KC, VC, Args...>
     consteval BidirectionalMap(KC kc, VC vc, Args... args) :
         entries {},
-        populated(0),
+        populated(sizeof...(Args) / 2),
         kc(kc),
         vc(vc)
     // clang-format on
@@ -296,10 +298,11 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         using PairType                = std::pair<AType, BType>;
         constexpr std::size_t CurSize = sizeof...(Args) / 2;
 
+        // clang-format off
         auto setArgs = [](std::array<PairType, CurSize>& addTo, Args... args) {
-            auto setArgsRef =
-                []<typename... InnerArgs>(auto& me, std::array<PairType, CurSize>& addTo, AType key,
-                                          BType val, InnerArgs... args)
+            auto setArgsRef = []<typename... InnerArgs>(auto& me,
+                                                        std::array<PairType, CurSize>& addTo,
+                                                        AType key, BType val, InnerArgs... args)
             {
                 std::size_t index   = addTo.size() - (sizeof...(InnerArgs) + 2) / 2;
                 addTo[index].first  = key;
@@ -312,6 +315,7 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
             };
             setArgsRef(setArgsRef, addTo, args...);
         };
+        // clang-format on
 
         std::array<PairType, CurSize> newEntries {};
 

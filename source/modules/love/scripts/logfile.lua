@@ -1,6 +1,8 @@
 R"luastring"--(
 -- make sure love exists.
 local love  = require("love")
+require("love.arg")
+
 local debug = debug.getinfo
 
 -- to get the working directory
@@ -14,9 +16,8 @@ log.format = "%s:%d:\n%s\n\n"
 function log.new(filename)
     local instance = setmetatable({}, log)
 
-    local cwd = love.filesystem.getWorkingDirectory()
-
-    instance.file = io.open(cwd .. "/" .. filename, "w")
+    local path = love.path.getFull(filename)
+    instance.file = io.open(path, "w")
 
     return instance
 end
