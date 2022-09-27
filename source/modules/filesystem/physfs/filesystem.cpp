@@ -479,7 +479,7 @@ std::string Filesystem::GetWorkingDirectory()
         delete[] cwdInfo;
 
         if (Console::Is(Console::CAFE))
-            this->currentDirectory = this->currentDirectory + "wiiu/apps/lovepotion";
+            this->currentDirectory += "wiiu/apps/lovepotion";
     }
 
     return this->currentDirectory;

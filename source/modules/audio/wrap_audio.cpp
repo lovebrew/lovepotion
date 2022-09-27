@@ -126,19 +126,27 @@ int Wrap_Audio::Play(lua_State* L)
 
 /* todo */
 int Wrap_Audio::Stop(lua_State* L)
-{}
+{
+    return 0;
+}
 
 /* todo */
 int Wrap_Audio::Pause(lua_State* L)
-{}
+{
+    return 0;
+}
 
 /* todo */
 int Wrap_Audio::SetVolume(lua_State* L)
-{}
+{
+    return 0;
+}
 
 /* todo */
 int Wrap_Audio::GetVolume(lua_State* L)
-{}
+{
+    return 0;
+}
 
 // clang-format off
 static constexpr luaL_Reg functions[] =

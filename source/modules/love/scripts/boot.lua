@@ -57,7 +57,6 @@ function love.boot()
 
     -- todo: remove when wut supports proper getcwd --
     if love._console:lower() == "wii u" then
-        -- local suffix = exepath:match("(.+)%." .. value .. "$")
         arg0 = love.path.getFull("lovepotion.wuhb")
     end
 

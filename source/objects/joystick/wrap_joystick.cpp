@@ -299,7 +299,9 @@ int Wrap_Joystick::GetVibration(lua_State* L)
 {
     auto* self = Wrap_Joystick::CheckJoystick(L, 1);
 
-    float left, right;
+    float left  = 0;
+    float right = 0;
+
     self->GetVibration(left, right);
 
     lua_pushnumber(L, left);

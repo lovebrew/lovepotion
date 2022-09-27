@@ -66,7 +66,6 @@ end
 
 -- Converts any path into a full path.
 function love.path.getFull(p)
-
     if love.path.abs(p) then
         return love.path.normalslashes(p)
     end
