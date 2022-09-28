@@ -11,6 +11,14 @@ namespace love::npad
 
     HidNpadStyleTag GetStyleTag(PadState* state);
 
-    bool GetConstant(guid::GamepadType in, HidNpadStyleTag& out);
-    bool GetConstant(HidNpadStyleTag in, guid::GamepadType& out);
+    // clang-format off
+    constexpr BidirectionalMap styleTypes = {
+        npad::INVALID_STYLE_TAG,      guid::GAMEPAD_TYPE_UNKNOWN,
+        HidNpadStyleTag_NpadFullKey,  guid::GAMEPAD_TYPE_NINTENDO_SWITCH_PRO,
+        HidNpadStyleTag_NpadHandheld, guid::GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD,
+        HidNpadStyleTag_NpadJoyLeft,  guid::GAMEPAD_TYPE_JOYCON_LEFT,
+        HidNpadStyleTag_NpadJoyRight, guid::GAMEPAD_TYPE_JOYCON_RIGHT,
+        HidNpadStyleTag_NpadJoyDual,  guid::GAMEPAD_TYPE_JOYCON_PAIR
+    };
+    // clang-format on
 } // namespace love::npad

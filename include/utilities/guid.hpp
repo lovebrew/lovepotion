@@ -2,7 +2,7 @@
 
 #include <objects/joystick/joystick.tcc>
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <vector>
 
@@ -60,7 +60,21 @@ namespace love::guid
 
     bool GetDeviceInfo(GamepadType type, DeviceInfo& info);
 
-    bool GetConstant(const char* in, GamepadType& out);
-    bool GetConstant(GamepadType in, const char*& out);
-    SmallTrivialVector<const char*, 13> GetConstants(GamepadType);
+    // clang-format off
+    static constexpr BidirectionalMap gamepadTypes = {
+        "unknown",           love::guid::GAMEPAD_TYPE_UNKNOWN,
+        "nintendo3ds",       love::guid::GAMEPAD_TYPE_NINTENDO_3DS,
+        "newnintendo3ds",    love::guid::GAMEPAD_TYPE_NEW_NINTENDO_3DS,
+        "switchpro",         love::guid::GAMEPAD_TYPE_NINTENDO_SWITCH_PRO,
+        "switchhandheld",    love::guid::GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD,
+        "joyconleft",        love::guid::GAMEPAD_TYPE_JOYCON_LEFT,
+        "joyconright",       love::guid::GAMEPAD_TYPE_JOYCON_RIGHT,
+        "joyconpair",        love::guid::GAMEPAD_TYPE_JOYCON_PAIR,
+        "wiiugamepad",       love::guid::GAMEPAD_TYPE_WII_U_GAMEPAD,
+        "wiiremote",         love::guid::GAMEPAD_TYPE_WII_REMOTE,
+        "wiiremotenunchuck", love::guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK,
+        "wiiclassic",        love::guid::GAMEPAD_TYPE_WII_CLASSIC,
+        "wiipro",            love::guid::GAMEPAD_TYPE_WII_PRO
+    };
+    // clang-format on
 } // namespace love::guid

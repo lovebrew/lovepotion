@@ -20,11 +20,11 @@ int Wrap_CompressedData::GetFormat(lua_State* L)
     CompressedData* compressedData = Wrap_CompressedData::CheckCompressedData(L, 1);
     const char* formatName         = nullptr;
 
-    if (!Compressor::GetConstant(compressedData->GetFormat(), formatName))
-        return luax::EnumError(L, "compressed data format",
-                               Compressor::GetConstants(Compressor::FORMAT_MAX_ENUM), formatName);
-
-    lua_pushstring(L, formatName);
+    if (auto found = Compressor::formats.ReverseFind(compressedData->GetFormat()))
+        lua_pushstring(L, *found);
+    else
+        return luax::EnumError(L, "compressed data format", Compressor::formats.GetNames(),
+                               formatName);
 
     return 1;
 }

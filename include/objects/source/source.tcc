@@ -130,43 +130,12 @@ namespace love
           "stream", TYPE_STREAM,
           "queue",  TYPE_QUEUE
         };
-        // clang-format on
 
-        static bool GetConstant(const char* in, SourceType& out)
-        {
-            return sourceTypes.Find(in, out);
-        }
-        static bool GetConstant(SourceType in, const char*& out)
-        {
-            return sourceTypes.ReverseFind(in, out);
-        }
-
-        static SmallTrivialVector<const char*, 3> GetConstants(SourceType)
-        {
-            return sourceTypes.GetNames();
-        }
-
-        // clang-format off
         static constexpr BidirectionalMap unitTypes = {
           "seconds", UNIT_SECONDS,
           "samples", UNIT_SAMPLES
         };
         // clang-format on
-
-        static bool GetConstant(const char* in, Unit& out)
-        {
-            return unitTypes.Find(in, out);
-        }
-
-        static bool GetConstant(Unit in, const char*& out)
-        {
-            return unitTypes.ReverseFind(in, out);
-        }
-
-        static SmallTrivialVector<const char*, 2> GetConstants(Unit)
-        {
-            return unitTypes.GetNames();
-        }
 
       protected:
         SourceType sourceType;

@@ -222,7 +222,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     newEvent.type    = TYPE_GAMEPAD;
                     newEvent.subType = SUBTYPE_GAMEPADDOWN;
 
-                    Joystick<>::GetConstant(input.button, newEvent.padButton.name);
+                    newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
                     newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
@@ -234,7 +234,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                     newEvent.type    = TYPE_GAMEPAD;
                     newEvent.subType = SUBTYPE_GAMEPADUP;
 
-                    Joystick<>::GetConstant(input.button, newEvent.padButton.name);
+                    newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
                     newEvent.padButton.id     = joystick->GetInstanceID();
                     newEvent.padButton.button = input.buttonNumber;
                 }
@@ -255,8 +255,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
 
                     newEvent.padAxis.id = joystick->GetInstanceID();
 
-                    const char* axisName = nullptr;
-                    Joystick<>::GetConstant(axisEnum, axisName);
+                    const char* axisName = *Joystick<>::axisTypes.ReverseFind(axisEnum);
 
                     newEvent.padAxis.axis  = axis;
                     newEvent.padAxis.value = axisValue;

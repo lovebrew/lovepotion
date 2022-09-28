@@ -18,10 +18,9 @@ constexpr BidirectionalMultiMap wpadTypes = {
 
 guid::GamepadType love::wpad::GetWPADType(KPADExtensionType extension)
 {
-    guid::GamepadType ret;
-    if (wpadTypes.FindFirst(extension, ret))
+    if (auto ret = wpadTypes.FindFirst(extension))
     {
-        return ret;
+        return *ret;
     }
     // Return unknown gamepad type for unknown extension, seems reasonable to me
     return guid::GamepadType::GAMEPAD_TYPE_UNKNOWN;

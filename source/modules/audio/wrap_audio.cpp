@@ -25,8 +25,11 @@ int Wrap_Audio::NewSource(lua_State* L)
         if (!luax::IsType(L, 1, Decoder::type))
         {
             auto* typeName = luaL_checkstring(L, 2);
-            if (typeName && !::Source::GetConstant(typeName, type))
-                return luax::EnumError(L, "source type", ::Source::GetConstants(type), typeName);
+            if (auto found = ::Source::sourceTypes.Find(typeName))
+                type = *found;
+            else
+                return luax::EnumError(L, "source type", ::Source::sourceTypes.GetNames(),
+                                       typeName);
 
             if (type == ::Source::TYPE_QUEUE)
                 return luaL_error(L, "Cannot create queueable sources using newSource. Use "

@@ -107,20 +107,3 @@ std::string_view System<Console::CAFE>::GetFriendInfo()
     this->info.friendCode = username;
     return this->info.friendCode;
 }
-
-// clang-format off
-constexpr BidirectionalMap modelTypes = {
-    "basic",  System<Console::CAFE>::SYSTEM_MODEL_BASIC,
-    "deluxe", System<Console::CAFE>::SYSTEM_MODEL_DELUXE
-};
-// clang-format on
-
-bool System<Console::CAFE>::GetConstant(const char* in, SystemModel& out)
-{
-    return modelTypes.Find(in, out);
-}
-
-bool System<Console::CAFE>::GetConstant(SystemModel in, const char*& out)
-{
-    return modelTypes.ReverseFind(in, out);
-}

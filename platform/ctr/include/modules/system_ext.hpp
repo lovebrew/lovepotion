@@ -4,7 +4,7 @@
 
 #include <modules/system/system.tcc>
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 namespace love
 {
@@ -34,16 +34,40 @@ namespace love
 
         void SetPlayCoins(int amount);
 
-        static bool GetConstant(const char* in, CFG_Language& out);
-        static bool GetConstant(CFG_Language in, const char*& out);
-        static SmallTrivialVector<const char*, 12> GetConstants(CFG_Language);
+        // clang-format off
+        static constexpr BidirectionalMap languages = {
+            "jp",    CFG_LANGUAGE_JP,
+            "en",    CFG_LANGUAGE_EN,
+            "fr",    CFG_LANGUAGE_FR,
+            "de",    CFG_LANGUAGE_DE,
+            "it",    CFG_LANGUAGE_IT,
+            "es",    CFG_LANGUAGE_ES,
+            "zh_CN", CFG_LANGUAGE_ZH,
+            "ko",    CFG_LANGUAGE_KO,
+            "nl",    CFG_LANGUAGE_NL,
+            "pt",    CFG_LANGUAGE_PT,
+            "ru",    CFG_LANGUAGE_RU,
+            "zh_TW", CFG_LANGUAGE_TW
+        };
 
-        static bool GetConstant(const char* in, CFG_SystemModel& out);
-        static bool GetConstant(CFG_SystemModel in, const char*& out);
-        static SmallTrivialVector<const char*, 6> GetConstants(CFG_SystemModel);
+        static constexpr BidirectionalMap models = {
+            "3DS",       CFG_MODEL_3DS,
+            "3DSXL",     CFG_MODEL_3DSXL,
+            "New 3DS",   CFG_MODEL_N3DS,
+            "2DS",       CFG_MODEL_2DS,
+            "New 3DSXL", CFG_MODEL_N3DSXL,
+            "New 2DSXL", CFG_MODEL_N2DSXL
+        };
 
-        static bool GetConstant(const char* in, CFG_Region& out);
-        static bool GetConstant(CFG_Region in, const char*& out);
-        static SmallTrivialVector<const char*, 7> GetConstants(CFG_Region);
+        static constexpr BidirectionalMap countryCodes = {
+            "JP", CFG_REGION_JPN,
+            "US", CFG_REGION_USA,
+            "EU", CFG_REGION_EUR,
+            "AU", CFG_REGION_AUS,
+            "CN", CFG_REGION_CHN,
+            "KR", CFG_REGION_KOR,
+            "TW", CFG_REGION_TWN
+        };
+        // clang-format on
     };
 } // namespace love

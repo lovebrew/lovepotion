@@ -60,15 +60,15 @@ std::string_view System<Console::HAC>::GetSystemTheme()
     if (!this->info.colorTheme.empty())
         return this->info.colorTheme;
 
-    const char* theme = nullptr;
     ColorSetId colorID;
 
     R_UNLESS(setsysGetColorSetId(&colorID), std::string {});
 
-    if (!System::GetConstant(colorID, theme))
-        theme = "Unknown";
+    if (auto thm = System::themes.ReverseFind(colorID))
+        this->info.colorTheme = *thm;
+    else
+        this->info.colorTheme = "Unknown";
 
-    this->info.colorTheme = theme;
     return this->info.colorTheme;
 }
 
@@ -86,11 +86,10 @@ std::string_view System<Console::HAC>::GetPreferredLocales()
     /* Convert the Language Code to SetLanguage */
     R_UNLESS(setMakeLanguage(languageCode, &language), std::string {});
 
-    const char* name = nullptr;
-    if (!System::GetConstant(language, name))
-        name = "Unknown";
-
-    this->info.locale = name;
+    if (auto found = System::languages.ReverseFind(language))
+        this->info.locale = *found;
+    else
+        this->info.locale = "Unknown";
 
     return this->info.locale;
 }
@@ -120,13 +119,12 @@ std::string_view System<Console::HAC>::GetModel()
     /* Get the Product Model */
     R_UNLESS(setsysGetProductModel(&model), std::string {});
 
-    const char* name = nullptr;
-    if (!System<Console::HAC>::GetConstant(model, name))
-        name = "Unknown";
+    if (auto name = System::models.ReverseFind(model))
+        this->info.model = *name;
+    else
+        this->info.model = "Unknown";
 
-    this->info.model = name;
-
-    return name;
+    return this->info.model;
 }
 
 std::string_view System<Console::HAC>::GetFriendInfo()
@@ -162,87 +160,4 @@ std::string_view System<Console::HAC>::GetUsername()
     accountProfileClose(&profile);
 
     return this->info.username;
-}
-
-// clang-format off
-constexpr BidirectionalMap languages = {
-    "jp",      SetLanguage_JA,
-    "en_US",   SetLanguage_ENUS,
-    "fr",      SetLanguage_FR,
-    "de",      SetLanguage_DE,
-    "it",      SetLanguage_IT,
-    "es",      SetLanguage_ES,
-    "zh_CN",   SetLanguage_ZHCN,
-    "ko",      SetLanguage_KO,
-    "nl",      SetLanguage_NL,
-    "pt",      SetLanguage_PT,
-    "ru",      SetLanguage_RU,
-    "zh_TW",   SetLanguage_ZHTW,
-    "en_GB",   SetLanguage_ENGB,
-    "fr_CA",   SetLanguage_FRCA,
-    "es_419",  SetLanguage_ES419,
-    "zh_HANS", SetLanguage_ZHHANS,
-    "zh_HANT", SetLanguage_ZHHANT,
-    "pt_BR",   SetLanguage_PTBR
-};
-
-constexpr BidirectionalMap models = {
-    "Invalid",           SetSysProductModel_Invalid,
-    "Erista",            SetSysProductModel_Nx,
-    "Erista Simulation", SetSysProductModel_Copper,
-    "Mariko",            SetSysProductModel_Iowa,
-    "Mariko Lite",       SetSysProductModel_Hoag,
-    "Mariko Simulation", SetSysProductModel_Calcio,
-    "Mariko Pro",        SetSysProductModel_Aula
-};
-
-constexpr BidirectionalMap themes = {
-    "dark",  ColorSetId_Dark,
-    "light", ColorSetId_Light
-};
-// clang-format on
-
-/* THEME CONSTANTS */
-bool System<Console::HAC>::GetConstant(const char* in, ColorSetId& out)
-{
-    return themes.Find(in, out);
-}
-
-bool System<Console::HAC>::GetConstant(ColorSetId in, const char*& out)
-{
-    return themes.ReverseFind(in, out);
-}
-
-/* LANGUAGE CONSTANTS */
-
-bool System<Console::HAC>::GetConstant(const char* in, SetLanguage& out)
-{
-    return languages.Find(in, out);
-}
-
-bool System<Console::HAC>::GetConstant(SetLanguage in, const char*& out)
-{
-    return languages.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 18> System<Console::HAC>::GetConstants(SetLanguage)
-{
-    return languages.GetNames();
-}
-
-/* MODEL CONSTANTS */
-
-bool System<Console::HAC>::GetConstant(const char* in, SetSysProductModel& out)
-{
-    return models.Find(in, out);
-}
-
-bool System<Console::HAC>::GetConstant(SetSysProductModel in, const char*& out)
-{
-    return models.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 7> System<Console::HAC>::GetConstants(SetSysProductModel)
-{
-    return models.GetNames();
 }

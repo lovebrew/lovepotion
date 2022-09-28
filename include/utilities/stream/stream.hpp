@@ -4,6 +4,8 @@
 
 #include <stddef.h>
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+
 namespace love
 {
     class Data;
@@ -50,6 +52,12 @@ namespace love
 
         virtual int64_t Tell() = 0;
 
-        static bool GetConstant(int in, SeekOrigin& out);
+        // clang-format off
+        static constexpr BidirectionalMap seekOrigins = {
+            SEEK_SET, Stream::ORIGIN_BEGIN,
+            SEEK_CUR, Stream::ORIGIN_CURRENT,
+            SEEK_END, Stream::ORIGIN_END
+        };
+        // clang-format on
     };
 } // namespace love

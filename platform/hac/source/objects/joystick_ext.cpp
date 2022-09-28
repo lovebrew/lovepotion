@@ -20,7 +20,6 @@ constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_X,             HidNpadButton_X,
     Joystick<>::GAMEPAD_BUTTON_Y,             HidNpadButton_Y,
     Joystick<>::GAMEPAD_BUTTON_BACK,          HidNpadButton_Minus,
-    Joystick<>::GAMEPAD_BUTTON_GUIDE,         (HidNpadButton)-1,
     Joystick<>::GAMEPAD_BUTTON_START,         HidNpadButton_Plus,
     Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  HidNpadButton_L,
     Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, HidNpadButton_R,
@@ -32,16 +31,6 @@ constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     HidNpadButton_Left
 };
 // clang-format on
-
-static bool getConstant(Joystick<>::GamepadButton in, HidNpadButton& out)
-{
-    return buttons.Find(in, out);
-}
-
-static bool getConstant(HidNpadButton in, Joystick<>::GamepadButton& out)
-{
-    return buttons.ReverseFind(in, out);
-}
 
 Joystick<Console::HAC>::Joystick(int id) : state {}, buttonStates {}
 {
@@ -99,10 +88,7 @@ void Joystick<Console::HAC>::Close()
 
 guid::GamepadType Joystick<Console::HAC>::GetGamepadType() const
 {
-    guid::GamepadType type;
-    npad::GetConstant(this->style, type);
-
-    return type;
+    return *npad::styleTypes.Find(this->style);
 }
 
 void Joystick<Console::HAC>::GetDeviceInfo(int& vendor, int& product, int& version)
@@ -158,18 +144,18 @@ bool Joystick<Console::HAC>::IsDown(JoystickInput& result)
 
     const auto entries = buttons.GetEntries();
 
-    for (size_t index = 0; index < entries.second; index++)
+    for (size_t index = 0; index < entries.size(); index++)
     {
-        button = (HidNpadButton)entries.first[index].second;
+        button = (HidNpadButton)entries[index].second;
 
-        if (entries.first[index].second == -1)
+        if (entries[index].second == -1)
             continue;
 
         if (button & this->buttonStates.pressed)
         {
             this->buttonStates.pressed ^= button;
             result = { .type         = InputType::INPUT_TYPE_BUTTON,
-                       .button       = entries.first[index].first,
+                       .button       = entries[index].first,
                        .buttonNumber = (int)index };
 
             return true;
@@ -191,18 +177,18 @@ bool Joystick<Console::HAC>::IsUp(JoystickInput& result)
 
     const auto entries = buttons.GetEntries();
 
-    for (size_t index = 0; index < entries.second; index++)
+    for (size_t index = 0; index < entries.size(); index++)
     {
-        button = (HidNpadButton)entries.first[index].second;
+        button = (HidNpadButton)entries[index].second;
 
-        if (entries.first[index].second == -1)
+        if (entries[index].second == -1)
             continue;
 
         if (button & this->buttonStates.released)
         {
             this->buttonStates.released ^= button;
             result = { .type         = InputType::INPUT_TYPE_BUTTON,
-                       .button       = entries.first[index].first,
+                       .button       = entries[index].first,
                        .buttonNumber = (int)index };
 
             return true;
@@ -341,7 +327,7 @@ bool Joystick<Console::HAC>::IsDown(const std::vector<int>& buttons) const
         return false;
 
     int count    = this->GetButtonCount();
-    auto records = ::buttons.GetEntries().first;
+    auto records = ::buttons.GetEntries();
 
     for (int button : buttons)
     {
@@ -368,17 +354,10 @@ float Joystick<Console::HAC>::GetGamepadAxis(GamepadAxis axis)
 
 bool Joystick<Console::HAC>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
-    HidNpadButton gamepadButton;
-    const char* name = nullptr;
-
     for (auto button : buttons)
     {
-        getConstant(button, gamepadButton);
-
-        if (gamepadButton == -1)
-            continue;
-
-        if (padGetButtons(&this->state) & (uint32_t)gamepadButton)
+        if (auto gamepadButton = ::buttons.Find(button);
+            gamepadButton && (padGetButtons(&this->state) & (uint32_t)*gamepadButton))
             return true;
     }
 

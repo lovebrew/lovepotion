@@ -73,13 +73,12 @@ int Wrap_Source::Seek(lua_State* L)
     if (offset < 0)
         return luaL_argerror(L, 2, "Can't seek to a negative position!");
 
-    auto unit        = ::Source::UNIT_SECONDS;
     const char* type = lua_isnoneornil(L, 3) ? 0 : lua_tostring(L, 3);
 
-    if (type && !::Source::GetConstant(type, unit))
-        return luax::EnumError(L, "time unit", ::Source::GetConstants(unit), type);
-
-    self->Seek(offset, unit);
+    if (auto found = ::Source::unitTypes.Find(type))
+        self->Seek(offset, *found);
+    else
+        return luax::EnumError(L, "time unit", ::Source::unitTypes.GetNames(), type);
 
     return 0;
 }
@@ -88,13 +87,12 @@ int Wrap_Source::Tell(lua_State* L)
 {
     auto* self = Wrap_Source::CheckSource(L, 1);
 
-    auto unit        = ::Source::UNIT_SECONDS;
     const char* type = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
 
-    if (type && !::Source::GetConstant(unit, type))
-        return luax::EnumError(L, "time unit", ::Source::GetConstants(unit), type);
-
-    lua_pushnumber(L, self->Tell(unit));
+    if (auto found = ::Source::unitTypes.Find(type))
+        lua_pushnumber(L, self->Tell(*found));
+    else
+        return luax::EnumError(L, "time unit", ::Source::unitTypes.GetNames(), type);
 
     return 1;
 }
@@ -103,13 +101,12 @@ int Wrap_Source::GetDuration(lua_State* L)
 {
     auto* self = Wrap_Source::CheckSource(L, 1);
 
-    auto unit        = ::Source::UNIT_SECONDS;
     const char* type = lua_isnoneornil(L, 2) ? 0 : lua_tostring(L, 2);
 
-    if (type && ::Source::GetConstant(type, unit))
-        return luax::EnumError(L, "time unit", ::Source::GetConstants(unit), type);
-
-    lua_pushnumber(L, self->GetDuration(unit));
+    if (auto found = ::Source::unitTypes.Find(type))
+        lua_pushnumber(L, self->GetDuration(*found));
+    else
+        return luax::EnumError(L, "time unit", ::Source::unitTypes.GetNames(), type);
 
     return 1;
 }
@@ -243,12 +240,11 @@ int Wrap_Source::GetType(lua_State* L)
     auto* self = Wrap_Source::CheckSource(L, 1);
 
     auto type          = self->GetType();
-    const char* string = nullptr;
 
-    if (!::Source::GetConstant(type, string))
+    if (auto found = ::Source::sourceTypes.ReverseFind(type))
+        lua_pushstring(L, *found);
+    else
         return luaL_error(L, "Unknown Source type!");
-
-    lua_pushstring(L, string);
 
     return 1;
 }

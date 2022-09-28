@@ -3,7 +3,7 @@
 #include <common/data.hpp>
 #include <common/exception.hpp>
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <vector>
 
@@ -54,11 +54,16 @@ namespace love
 
         virtual bool IsSupported(Function func) const = 0;
 
-        static bool GetConstant(const char* in, Function& out);
-
-        static bool GetConstant(const Function& in, const char*& out);
-
-        static SmallTrivialVector<const char*, 6> GetConstants(Function);
+        // clang-format off
+        static constexpr BidirectionalMap functions = {
+            "md5",    HashFunction::Function::FUNCTION_MD5,
+            "sha1",   HashFunction::Function::FUNCTION_SHA1,
+            "sha224", HashFunction::Function::FUNCTION_SHA224,
+            "sha256", HashFunction::Function::FUNCTION_SHA256,
+            "sha384", HashFunction::Function::FUNCTION_SHA384,
+            "sha512", HashFunction::Function::FUNCTION_SHA512
+        };
+        // clang-format on
 
       protected:
         HashFunction()

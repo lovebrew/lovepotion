@@ -41,28 +41,3 @@ HashFunction* HashFunction::GetHashFunction(Function function)
 
     return nullptr;
 }
-
-// clang-format off
-constexpr BidirectionalMap functionNames = {
-    "md5",    HashFunction::Function::FUNCTION_MD5,
-    "sha1",   HashFunction::Function::FUNCTION_SHA1,
-    "sha224", HashFunction::Function::FUNCTION_SHA224,
-    "sha256", HashFunction::Function::FUNCTION_SHA256,
-    "sha384", HashFunction::Function::FUNCTION_SHA384,
-    "sha512", HashFunction::Function::FUNCTION_SHA512
-};
-// clang-format on
-
-bool HashFunction::GetConstant(const char* in, Function& out)
-{
-    return functionNames.Find(in, out);
-}
-
-bool HashFunction::GetConstant(const Function& in, const char*& out)
-{
-    return functionNames.ReverseFind(in, out);
-}
-SmallTrivialVector<const char*, 6> HashFunction::GetConstants(Function)
-{
-    return functionNames.GetNames();
-}

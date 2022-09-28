@@ -4,7 +4,7 @@
 #include <common/strongreference.hpp>
 
 #include <utilities/stream/stream.hpp>
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <memory>
 #include <vector>
@@ -55,9 +55,12 @@ namespace love
 
         virtual bool Seek(double position) = 0;
 
-        static bool GetConstant(const char* in, StreamSource& out);
-        static bool GetConstant(StreamSource in, const char*& out);
-        static SmallTrivialVector<const char*, 2> GetConstants(StreamSource);
+        // clang-format off
+        static constexpr BidirectionalMap streamSources = {
+            "memory", Decoder::STREAM_MEMORY,
+            "file",   Decoder::STREAM_FILE
+        };
+        // clang-format on
 
       protected:
         StrongReference<Stream> stream;

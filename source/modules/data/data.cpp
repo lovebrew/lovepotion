@@ -7,8 +7,6 @@
 #include <utilities/base64.hpp>
 #include <utilities/bytes.hpp>
 
-#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
-
 using namespace love;
 
 CompressedData* DataModule::Compress(Compressor::Format format, const char* rawBytes,
@@ -132,45 +130,6 @@ ByteData* DataModule::NewByteData(void* data, size_t size, bool own)
 DataView* DataModule::NewDataView(Data* data, size_t offset, size_t size)
 {
     return new DataView(data, offset, size);
-}
-
-// clang-format off
-constexpr BidirectionalMap containers = {
-    "data",   DataModule::ContainerType::CONTAINER_DATA,
-    "string", DataModule::ContainerType::CONTAINER_STRING
-};
-
-constexpr BidirectionalMap encoders = {
-    "hex",    DataModule::EncodeFormat::ENCODE_HEX,
-    "base64", DataModule::EncodeFormat::ENCODE_BASE64
-};
-// clang-format on
-
-/* container types */
-bool DataModule::GetConstant(const char* in, ContainerType& out)
-{
-    return containers.Find(in, out);
-}
-
-SmallTrivialVector<const char*, 2> DataModule::GetConstants(ContainerType)
-{
-    return containers.GetNames();
-}
-
-/* encoding formats */
-bool DataModule::GetConstant(const char* in, EncodeFormat& out)
-{
-    return encoders.Find(in, out);
-}
-
-bool DataModule::GetConstant(EncodeFormat in, const char*& out)
-{
-    return encoders.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 2> DataModule::GetConstants(EncodeFormat)
-{
-    return encoders.GetNames();
 }
 
 // clang-format off

@@ -75,18 +75,20 @@ std::string_view System<Console::CTR>::GetPreferredLocales()
     uint8_t language = 0;
     R_UNLESS(CFGU_GetSystemLanguage(&language), std::string {});
 
-    const char* languageName = nullptr;
-    if (!System::GetConstant(static_cast<CFG_Language>(language), languageName))
-        languageName = "Unknown";
+    if (auto lang = System::languages.ReverseFind((CFG_Language)language))
+        this->info.locale = *lang;
+    else
+        this->info.locale = "Unknown";
+
+    this->info.locale += "_";
 
     uint8_t region = 0;
     R_UNLESS(CFGU_SecureInfoGetRegion(&region), std::string {});
 
-    const char* country = nullptr;
-    if (!System::GetConstant(static_cast<CFG_Region>(region), country))
-        country = "Unknown";
-
-    this->info.locale = std::string(languageName) + "_" + std::string(country);
+    if (auto r = System::countryCodes.ReverseFind((CFG_Region)region))
+        this->info.locale += *r;
+    else
+        this->info.locale += "Unknown";
 
     return this->info.locale;
 }
@@ -113,13 +115,12 @@ std::string_view System<Console::CTR>::GetModel()
     uint8_t model = 0;
     R_UNLESS(CFGU_GetSystemModel(&model), std::string {});
 
-    const char* name = nullptr;
-    if (!System<Console::CTR>::GetConstant((CFG_SystemModel)model, name))
-        name = "Unknown";
+    if (auto modelName = System::models.ReverseFind((CFG_SystemModel)model))
+        this->info.model = *modelName;
+    else
+        this->info.model = "Unknown";
 
-    this->info.model = name;
-
-    return name;
+    return this->info.model;
 }
 
 std::string_view System<Console::CTR>::GetUsername()
@@ -222,91 +223,4 @@ int System<Console::CTR>::GetPlayCoins() const
     FSFILE_Close(playCoinsFile);
 
     return ((int)buffer[1] << 8) | buffer[0];
-}
-
-// clang-format off
-constexpr BidirectionalMap languages = {
-    "jp",    CFG_LANGUAGE_JP,
-    "en",    CFG_LANGUAGE_EN,
-    "fr",    CFG_LANGUAGE_FR,
-    "de",    CFG_LANGUAGE_DE,
-    "it",    CFG_LANGUAGE_IT,
-    "es",    CFG_LANGUAGE_ES,
-    "zh_CN", CFG_LANGUAGE_ZH,
-    "ko",    CFG_LANGUAGE_KO,
-    "nl",    CFG_LANGUAGE_NL,
-    "pt",    CFG_LANGUAGE_PT,
-    "ru",    CFG_LANGUAGE_RU,
-    "zh_TW", CFG_LANGUAGE_TW
-};
-
-constexpr BidirectionalMap models = {
-    "3DS",       CFG_MODEL_3DS,
-    "3DSXL",     CFG_MODEL_3DSXL,
-    "New 3DS",   CFG_MODEL_N3DS,
-    "2DS",       CFG_MODEL_2DS,
-    "New 3DSXL", CFG_MODEL_N3DSXL,
-    "New 2DSXL", CFG_MODEL_N2DSXL
-};
-
-constexpr BidirectionalMap countryCodes = {
-    "JP", CFG_REGION_JPN,
-    "US", CFG_REGION_USA,
-    "EU", CFG_REGION_EUR,
-    "AU", CFG_REGION_AUS,
-    "CN", CFG_REGION_CHN,
-    "KR", CFG_REGION_KOR,
-    "TW", CFG_REGION_TWN
-};
-// clang-format on
-
-/* LANGUAGE CONSTANTS */
-
-bool System<Console::CTR>::GetConstant(const char* in, CFG_Language& out)
-{
-    return languages.Find(in, out);
-}
-
-bool System<Console::CTR>::GetConstant(CFG_Language in, const char*& out)
-{
-    return languages.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 12> System<Console::CTR>::GetConstants(CFG_Language)
-{
-    return languages.GetNames();
-}
-
-/* MODEL CONSTANTS */
-
-bool System<Console::CTR>::GetConstant(const char* in, CFG_SystemModel& out)
-{
-    return models.Find(in, out);
-}
-
-bool System<Console::CTR>::GetConstant(CFG_SystemModel in, const char*& out)
-{
-    return models.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 6> System<Console::CTR>::GetConstants(CFG_SystemModel)
-{
-    return models.GetNames();
-}
-
-/* REGION CONSTANTS */
-
-bool System<Console::CTR>::GetConstant(const char* in, CFG_Region& out)
-{
-    return countryCodes.Find(in, out);
-}
-
-bool System<Console::CTR>::GetConstant(CFG_Region in, const char*& out)
-{
-    return countryCodes.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 7> System<Console::CTR>::GetConstants(CFG_Region)
-{
-    return countryCodes.GetNames();
 }
