@@ -21,27 +21,3 @@ Compressor* Compressor::GetCompressor(Format format)
 
     return nullptr;
 }
-
-// clang-format off
-constexpr BidirectionalMap formatNames = {
-    "lz4",     Compressor::Format::FORMAT_LZ4,
-    "zlib",    Compressor::Format::FORMAT_ZLIB,
-    "gzip",    Compressor::Format::FORMAT_GZIP,
-    "deflate", Compressor::Format::FORMAT_DEFLATE
-};
-// clang-format on
-
-bool Compressor::GetConstant(const char* in, Format& out)
-{
-    return formatNames.Find(in, out);
-}
-
-bool Compressor::GetConstant(Format in, const char*& out)
-{
-    return formatNames.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 4> Compressor::GetConstants(Format)
-{
-    return formatNames.GetNames();
-}

@@ -81,9 +81,8 @@ std::vector<guid::GamepadType> JoystickModule<Console::HAC>::GetActiveStyleSets(
         {
             tag = npad::GetStyleTag(&state);
 
-            guid::GamepadType type;
-            if (npad::GetConstant(tag, type))
-                info.push_back(type);
+            if (auto found = npad::styleTypes.Find(tag))
+                info.push_back(*found);
         }
     }
 
@@ -102,10 +101,7 @@ Joystick<love::Console::Which>* JoystickModule<Console::HAC>::AddJoystick(int in
 
     auto styleTag = npad::GetStyleTag(&state);
 
-    guid::GamepadType type;
-    npad::GetConstant(styleTag, type);
-
-    std::string guid                         = love::guid::GetGamepadGUID(type);
+    std::string guid = love::guid::GetGamepadGUID(*npad::styleTypes.Find(styleTag));
     Joystick<love::Console::Which>* joystick = nullptr;
     bool reused                              = false;
 

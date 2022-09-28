@@ -1,6 +1,6 @@
 #pragma once
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/stream/stream.hpp>
 
 #include <objects/data/filedata/filedata.hpp>
@@ -75,12 +75,19 @@ namespace love
 
         virtual std::string GetExtension() const;
 
-        static bool GetConstant(const char* in, Mode& out);
-        static bool GetConstant(Mode in, const char*& out);
-        static SmallTrivialVector<const char*, 4> GetConstants(Mode mode);
+        // clang-format off
+        static constexpr BidirectionalMap modes = {
+            "r", File::Mode::MODE_READ,
+            "w", File::Mode::MODE_WRITE,
+            "a", File::Mode::MODE_APPEND,
+            "c", File::Mode::MODE_CLOSED
+        };
 
-        static bool GetConstant(const char* in, BufferMode& out);
-        static bool GetConstant(BufferMode in, const char*& out);
-        static SmallTrivialVector<const char*, 3> GetConstants(BufferMode mode);
+        static constexpr BidirectionalMap bufferModes = {
+            "none", File::BufferMode::BUFFER_NONE,
+            "line", File::BufferMode::BUFFER_LINE,
+            "full", File::BufferMode::BUFFER_FULL
+        };
+        // clang-format on
     };
 } // namespace love

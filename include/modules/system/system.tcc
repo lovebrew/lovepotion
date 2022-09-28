@@ -53,39 +53,6 @@ namespace love
             return __OS__;
         }
 
-        static bool GetConstant(const char* in, PowerState& out)
-        {
-            return powerStates.Find(in, out);
-        }
-
-        static bool GetConstant(PowerState in, const char*& out)
-        {
-            return powerStates.ReverseFind(in, out);
-        }
-
-        static bool GetConstant(const char* in, NetworkState& out)
-        {
-            return networkStates.Find(in, out);
-        }
-
-        static bool GetConstant(NetworkState in, const char*& out)
-        {
-            return networkStates.ReverseFind(in, out);
-        }
-
-      protected:
-        struct
-        {
-            size_t processors;
-            std::string model;
-            std::string locale;
-            std::string version;
-            std::string username;
-            std::string friendCode;
-            std::string colorTheme;
-        } info;
-
-      private:
         // clang-format off
         static constexpr BidirectionalMap powerStates = {
             "unknown",  System::PowerState::POWER_UNKNOWN,
@@ -100,5 +67,19 @@ namespace love
             "disconnected", System::NetworkState::NETWORK_DISCONNECTED
         };
         // clang-format on
+
+      protected:
+        struct
+        {
+            size_t processors;
+            std::string model;
+            std::string locale;
+            std::string version;
+            std::string username;
+            std::string friendCode;
+            std::string colorTheme;
+        } info;
+
+      private:
     };
 } // namespace love

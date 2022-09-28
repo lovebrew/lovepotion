@@ -28,14 +28,13 @@ int Wrap_System::GetProcessorCount(lua_State* L)
 int Wrap_System::GetPowerInfo(lua_State* L)
 {
     uint8_t percent = -1;
-    const char* str = nullptr;
 
     auto state = instance()->GetPowerInfo(percent);
 
-    if (!System<>::GetConstant(state, str))
-        str = "unknown";
-
-    lua_pushstring(L, str);
+    if (auto found = System<>::powerStates.ReverseFind(state))
+        lua_pushstring(L, *found);
+    else
+        lua_pushstring(L, "unknown");
 
     if (percent >= 0)
         lua_pushinteger(L, percent);
@@ -50,14 +49,14 @@ int Wrap_System::GetPowerInfo(lua_State* L)
 int Wrap_System::GetNetworkInfo(lua_State* L)
 {
     uint8_t signal  = -1;
-    const char* str = nullptr;
 
     auto state = instance()->GetNetworkInfo(signal);
 
-    if (!System<>::GetConstant(state, str))
-        str = "unknown";
+    if (auto found = System<>::networkStates.ReverseFind(state))
+        lua_pushstring(L, *found);
+    else
+        lua_pushstring(L, "unknown");
 
-    lua_pushstring(L, str);
     lua_pushinteger(L, signal);
 
     return 2;

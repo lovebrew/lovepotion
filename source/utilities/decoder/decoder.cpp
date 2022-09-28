@@ -47,25 +47,3 @@ bool Decoder::IsFinished()
 {
     return this->eof;
 }
-
-// clang-format off
-constexpr BidirectionalMap streamSources = {
-    "memory", Decoder::STREAM_MEMORY,
-    "file",   Decoder::STREAM_FILE
-};
-// clang-format on
-
-bool Decoder::GetConstant(const char* in, Decoder::StreamSource& out)
-{
-    return streamSources.Find(in, out);
-}
-
-bool Decoder::GetConstant(Decoder::StreamSource in, const char*& out)
-{
-    return streamSources.ReverseFind(in, out);
-}
-
-SmallTrivialVector<const char*, 2> Decoder::GetConstants(Decoder::StreamSource)
-{
-    return streamSources.GetNames();
-}

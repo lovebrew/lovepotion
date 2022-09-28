@@ -1,8 +1,8 @@
 #pragma once
 
-#include "smallvector.hpp"
 #include <array>
 #include <functional>
+#include <ranges>
 #include <string_view>
 #include <type_traits>
 #include <utility>
@@ -23,22 +23,7 @@ class BidirectionalMultiMap<>
     {
         constexpr bool operator()(const char* a, const char* b) const
         {
-            std::size_t idx = 0;
-            while (a[idx] != '\0' && b[idx] != '\0')
-            {
-                if (a[idx] != b[idx])
-                {
-                    return false;
-                }
-                idx++;
-            }
-
-            if ((a[idx] == '\0') != (b[idx] == '\0'))
-            {
-                return false;
-            }
-
-            return true;
+            return std::string_view(a) == std::string_view(b);
         }
 
         constexpr bool operator()(const char* a, std::string_view b) const
@@ -52,10 +37,8 @@ class BidirectionalMultiMap<>
         }
     };
 
-    // clang-format off
     template<typename A, typename B, typename... Args>
     struct CheckArgs
-    // clang-format on
     {
       private:
         using CheckArgs2 = CheckArgs<Args...>;
@@ -64,28 +47,46 @@ class BidirectionalMultiMap<>
             std::is_convertible_v<std::remove_cvref_t<A>,
                                   std::remove_cvref_t<typename CheckArgs2::AType>> ||
             std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::AType>,
-                                  std::remove_cvref_t<A>>;
+                                  std::remove_cvref_t<A>> ||
+            std::is_convertible_v<std::remove_cvref_t<A>,
+                                  std::decay_t<typename CheckArgs2::AType>> ||
+            std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::AType>, std::decay_t<A>>;
         static constexpr bool ValueConvertible =
             std::is_convertible_v<std::remove_cvref_t<B>,
                                   std::remove_cvref_t<typename CheckArgs2::BType>> ||
             std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::BType>,
-                                  std::remove_cvref_t<B>>;
+                                  std::remove_cvref_t<B>> ||
+            std::is_convertible_v<std::remove_cvref_t<B>,
+                                  std::decay_t<typename CheckArgs2::BType>> ||
+            std::is_convertible_v<std::decay_t<typename CheckArgs2::BType>, std::remove_cvref_t<B>>;
 
       public:
         static constexpr bool value = KeyConvertible && ValueConvertible && CheckArgs2::value;
 
         using AType = std::conditional_t<
-            sizeof...(Args) == 0, A,
+            std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::AType>,
+                                  std::remove_cvref_t<A>>,
+            std::remove_cvref_t<A>,
             std::conditional_t<
-                std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::AType>,
-                                      std::remove_cvref_t<A>>,
-                std::remove_cvref_t<A>, std::remove_cvref_t<typename CheckArgs2::AType>>>;
+                std::is_convertible_v<std::remove_cvref_t<A>,
+                                      std::remove_cvref_t<typename CheckArgs2::AType>>,
+                std::remove_cvref_t<typename CheckArgs2::AType>,
+                std::conditional_t<
+                    std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::AType>,
+                                          std::decay_t<A>>,
+                    std::decay_t<A>, std::decay_t<typename CheckArgs2::AType>>>>;
         using BType = std::conditional_t<
-            sizeof...(Args) == 0, B,
+            std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::BType>,
+                                  std::remove_cvref_t<B>>,
+            std::remove_cvref_t<B>,
             std::conditional_t<
-                std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::BType>,
-                                      std::remove_cvref_t<B>>,
-                std::remove_cvref_t<B>, std::remove_cvref_t<typename CheckArgs2::BType>>>;
+                std::is_convertible_v<std::remove_cvref_t<B>,
+                                      std::remove_cvref_t<typename CheckArgs2::BType>>,
+                std::remove_cvref_t<typename CheckArgs2::BType>,
+                std::conditional_t<
+                    std::is_convertible_v<std::remove_cvref_t<typename CheckArgs2::BType>,
+                                          std::decay_t<B>>,
+                    std::decay_t<B>, std::decay_t<typename CheckArgs2::BType>>>>;
     };
 
     template<typename A, typename B>
@@ -167,8 +168,7 @@ class BidirectionalMultiMap<>
 
         auto setArgs = [](std::array<PairType, Size>& addTo, Args... args) {
             auto setArgsRef = []<typename... InnerArgs>(auto& me, std::array<PairType, Size>& addTo,
-                                                        AType key, BType val, InnerArgs... args)
-            {
+                                                        AType key, BType val, InnerArgs... args) {
                 std::size_t index   = Size - (sizeof...(InnerArgs) + 2) / 2;
                 addTo[index].first  = key;
                 addTo[index].second = val;
@@ -334,10 +334,9 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
         constexpr std::size_t CurSize = sizeof...(Args) / 2;
 
         auto setArgs = [](std::array<PairType, CurSize>& addTo, Args... args) {
-            auto setArgsRef =
-                []<typename... InnerArgs>(auto& me, std::array<PairType, CurSize>& addTo, AType key,
-                                          BType val, InnerArgs... args)
-            {
+            auto setArgsRef = []<typename... InnerArgs>(auto& me,
+                                                        std::array<PairType, CurSize>& addTo,
+                                                        AType key, BType val, InnerArgs... args) {
                 std::size_t index   = addTo.size() - (sizeof...(InnerArgs) + 2) / 2;
                 addTo[index].first  = key;
                 addTo[index].second = val;
@@ -367,13 +366,15 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
     {}
 
     /*
-    ** When mapped as T, V -- find first VectorSize values V from T
+    ** When mapped as T, V -- find values V from T
     */
-    template<std::size_t VectorSize = Size>
-    constexpr SmallTrivialVector<Value, VectorSize> Find(const Key& search) const
+    constexpr decltype(std::views::take(
+        std::views::drop(std::views::values(
+                             std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
+                         0),
+        0))
+    Find(const Key& search) const
     {
-        SmallTrivialVector<Value, VectorSize> ret;
-
         auto first = std::find_if(this->entries.begin(), this->entries.end(),
                                   [&](const Entry& e) { return kc(e.first, search); });
         auto last =
@@ -381,70 +382,64 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
                          this->entries.rend(), [&](const Entry& e) { return kc(e.first, search); })
                 .base();
 
-        while (first != last && ret.size() < ret.capacity())
-        {
-            ret.push_back(first->second);
-            ++first;
-        }
-
-        return ret;
+        return std::views::take(
+            std::views::drop(std::views::values(std::ranges::ref_view(this->entries)),
+                             first - this->entries.begin()),
+            last - first);
     }
 
-    constexpr bool FindFirst(const Key& search, Value& out) const
+    constexpr std::optional<std::reference_wrapper<const Value>> FindFirst(const Key& search) const
     {
-        auto found = Find<1>(search);
-        if (found.size() == 1)
-        {
-            out = found[0];
-            return true;
-        }
-        return false;
+        auto found = Find(search);
+        if (std::ranges::begin(found) != std::ranges::end(found))
+            return { std::ref(*std::ranges::begin(found)) };
+
+        return std::nullopt;
     }
 
     /*
     ** When mapped as T, V -- find first VectorSize values T from V
     */
-    template<std::size_t VectorSize = Size>
-    constexpr SmallTrivialVector<Key, VectorSize> ReverseFind(const Value& search) const
+    constexpr decltype(std::views::take(
+        std::views::drop(
+            std::views::keys(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
+            0),
+        0))
+    ReverseFind(const Value& search) const
     {
-        SmallTrivialVector<Key, VectorSize> ret;
-
         auto first = std::find_if(this->revEntries.begin(), this->revEntries.begin() + populated,
                                   [&](const Entry& e) { return kc(e.second, search); });
         auto last  = std::find_if(std::reverse_iterator(this->revEntries.begin() + populated),
-                                 this->revEntries.rend(),
-                                 [&](const Entry& e) { return kc(e.second, search); })
+                                  this->revEntries.rend(),
+                                  [&](const Entry& e) { return kc(e.second, search); })
                         .base();
 
-        while (first != last && ret.size() < ret.capacity())
-        {
-            ret.push_back(first->first);
-            ++first;
-        }
-
-        return ret;
+        return std::views::take(
+            std::views::drop(std::views::keys(std::ranges::ref_view(this->entries)),
+                             first - this->entries.begin()),
+            last - first);
     }
 
-    constexpr bool ReverseFindFirst(const Value& search, Key& out) const
+    constexpr std::optional<std::reference_wrapper<const Key>> ReverseFindFirst(
+        const Value& search) const
     {
-        auto found = ReverseFind<1>(search);
-        if (found.size() == 1)
-        {
-            out = found[0];
-            return true;
-        }
-        return false;
+        auto found = ReverseFind(search);
+        if (std::ranges::begin(found) != std::ranges::end(found))
+            return { std::ref(*std::ranges::begin(found)) };
+
+        return std::nullopt;
     }
 
-    constexpr SmallTrivialVector<Key, Size> GetKeys() const
+    constexpr decltype(std::views::take(
+        std::views::keys(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())), 0))
+    GetKeys() const
     {
-        return SmallTrivialVector<Key, Size>(std::views::keys(this->entries) |
-                                             std::views::take(this->populated));
+        return std::views::take(std::views::keys(std::ranges::ref_view(entries)), this->populated);
     }
 
     /* Can only be used on String-mapped Keys */
     // clang-format off
-    constexpr SmallTrivialVector<Key, Size> GetNames() const
+    constexpr auto GetNames() const -> decltype(GetKeys())
         requires (std::is_same_v<Key, const char*> || std::is_same_v<Key, char*> ||
                   std::is_same_v<Key, std::string_view>)
     // clang-format on
@@ -452,15 +447,18 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
         return GetKeys();
     }
 
-    constexpr SmallTrivialVector<Value, Size> GetValues() const
+    constexpr decltype(std::views::take(
+        std::views::values(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
+        0))
+    GetValues() const
     {
-        return SmallTrivialVector<Value, Size>(std::views::values(this->entries) |
-                                               std::views::take(this->populated));
+        return std::views::take(std::views::values(std::ranges::ref_view(entries)),
+                                this->populated);
     }
 
-    constexpr std::pair<const Entry*, std::size_t> GetEntries() const
+    constexpr std::span<Entry> GetEntries() const
     {
-        return { entries.data(), this->populated };
+        return { entries.begin(), entries.begin() + populated };
     }
 
   private:
@@ -474,16 +472,16 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
 
 // clang-format off
 template<typename KC, typename VC, typename... Args>
-requires BidirectionalMultiMap<>::ValidComparatorArgs_v<KC, VC, Args...>
-BidirectionalMultiMap(KC, VC, Args...) -> BidirectionalMultiMap<typename BidirectionalMultiMap<>::CheckArgs<Args...>::AType,
-                                                                typename BidirectionalMultiMap<>::CheckArgs<Args...>::BType,
-                                                                sizeof...(Args) / 2, KC, VC>;
+requires BidirectionalMultiMap<>::ValidComparatorArgs_v<KC, VC, Args&&...>
+BidirectionalMultiMap(KC&&, VC&&, Args&&...) -> BidirectionalMultiMap<typename BidirectionalMultiMap<>::CheckArgs<Args&&...>::AType,
+                                                      typename BidirectionalMultiMap<>::CheckArgs<Args&&...>::BType,
+                                                      sizeof...(Args) / 2, KC, VC>;
 
 template<typename... Args>
-requires BidirectionalMultiMap<>::ValidArgs_v<Args...>
-BidirectionalMultiMap(Args...) -> BidirectionalMultiMap<typename BidirectionalMultiMap<>::CheckArgs<Args...>::AType,
-                                                        typename BidirectionalMultiMap<>::CheckArgs<Args...>::BType,
-                                                        sizeof...(Args) / 2,
-                                                        BidirectionalMultiMap<>::defaultcomp_v<typename BidirectionalMultiMap<>::CheckArgs<Args...>::AType>,
-                                                        BidirectionalMultiMap<>::defaultcomp_v<typename BidirectionalMultiMap<>::CheckArgs<Args...>::BType>>;
+requires BidirectionalMultiMap<>::ValidArgs_v<Args&&...>
+BidirectionalMultiMap(Args&&...) -> BidirectionalMultiMap<typename BidirectionalMultiMap<>::CheckArgs<Args&&...>::AType,
+                                              typename BidirectionalMultiMap<>::CheckArgs<Args&&...>::BType,
+                                              sizeof...(Args) / 2,
+                                              BidirectionalMultiMap<>::defaultcomp_v<typename BidirectionalMultiMap<>::CheckArgs<Args&&...>::AType>,
+                                              BidirectionalMultiMap<>::defaultcomp_v<typename BidirectionalMultiMap<>::CheckArgs<Args&&...>::BType>>;
 // clang-format on

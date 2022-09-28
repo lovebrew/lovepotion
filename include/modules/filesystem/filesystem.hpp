@@ -6,7 +6,7 @@
 #include <objects/data/filedata/filedata.hpp>
 #include <objects/file/file.hpp>
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <limits.h>
 #include <vector>
@@ -147,17 +147,26 @@ namespace love
 
         std::string GetExecutablePath() const;
 
-        static bool GetConstant(const char* in, FileType& out);
-        static bool GetConstant(FileType in, const char*& out);
-        static SmallTrivialVector<const char*, 4> GetConstants(FileType);
+        // clang-format off
+        static constexpr BidirectionalMap fileTypes = {
+            "file",      Filesystem::FileType::FILETYPE_FILE,
+            "directory", Filesystem::FileType::FILETYPE_DIRECTORY,
+            "symlink",   Filesystem::FileType::FILETYPE_SYMLINK,
+            "other",     Filesystem::FileType::FILETYPE_OTHER
+        };
 
-        static bool GetConstant(const char* in, CommonPath& out);
-        static bool GetConstant(CommonPath in, const char*& out);
-        static SmallTrivialVector<const char*, 4> GetConstants(CommonPath);
-
-        static bool GetConstant(const char* in, MountPermissions& out);
-        static bool GetConstant(MountPermissions in, const char*& out);
-        static SmallTrivialVector<const char*, 2> GetConstants(MountPermissions);
+        static constexpr BidirectionalMap commonPaths = {
+            "appsavedir",    Filesystem::APP_SAVEDIR,
+            "appdocuments",  Filesystem::APP_DOCUMENTS,
+            "userhome",      Filesystem::USER_HOME,
+            "userdocuments", Filesystem::USER_DOCUMENTS
+        };
+        
+        static constexpr BidirectionalMap mountPermissions = {
+            "read",      Filesystem::MOUNT_READ,
+            "readwrite", Filesystem::MOUNT_READWRITE
+        };
+        // clang-format on
 
       protected:
         static constexpr int64_t MAX_STAMP = 0x20000000000000;

@@ -112,7 +112,7 @@ void DSP<Console::HAC>::ChannelSetVolume(size_t channel, float volume)
 
 float DSP<Console::HAC>::ChannelGetVolume(size_t channel) const
 {
-    this->driver.in_voices[channel].volume;
+    return this->driver.in_voices[channel].volume;
 }
 
 size_t DSP<Console::HAC>::ChannelGetSampleOffset(size_t channel)

@@ -2,7 +2,7 @@
 
 #include <common/exception.hpp>
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <lz4.h>
 #include <lz4hc.h>
@@ -38,11 +38,14 @@ namespace love
 
         virtual bool IsSupported(Format format) const = 0;
 
-        static bool GetConstant(const char* in, Format& out);
-
-        static bool GetConstant(Format in, const char*& out);
-
-        static SmallTrivialVector<const char*, 4> GetConstants(Format);
+        // clang-format off
+        static constexpr BidirectionalMap formats = {
+            "lz4",     Compressor::Format::FORMAT_LZ4,
+            "zlib",    Compressor::Format::FORMAT_ZLIB,
+            "gzip",    Compressor::Format::FORMAT_GZIP,
+            "deflate", Compressor::Format::FORMAT_DEFLATE
+        };
+        // clang-format on
 
       protected:
         Compressor()

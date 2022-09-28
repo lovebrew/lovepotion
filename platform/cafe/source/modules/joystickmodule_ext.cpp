@@ -61,7 +61,6 @@ Joystick<Console::Which>* JoystickModule<Console::CAFE>::AddJoystick(int index)
 
     std::string guid                   = guid::GetGamepadGUID(type);
     Joystick<Console::Which>* joystick = nullptr;
-    bool reused                        = false;
 
     for (auto stick : this->joysticks)
     {

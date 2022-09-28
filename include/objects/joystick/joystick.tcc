@@ -93,8 +93,6 @@ namespace love
         {
             return this->handle.get();
         }
-
-      private:
         // clang-format off
         static constexpr BidirectionalMap inputTypes = {
             "axis",   INPUT_TYPE_AXIS,
@@ -127,52 +125,6 @@ namespace love
             "triggerleft",  GAMEPAD_AXIS_TRIGGERLEFT,
             "triggerright", GAMEPAD_AXIS_TRIGGERRIGHT
         };
-        // clang-format on
-      public:
-        static bool GetConstant(const char* in, GamepadAxis& out)
-        {
-            return axisTypes.Find(in, out);
-        }
-
-        static bool GetConstant(GamepadAxis in, const char*& out)
-        {
-            return axisTypes.ReverseFind(in, out);
-        }
-
-        static SmallTrivialVector<const char*, 6> GetConstants(GamepadAxis)
-        {
-            return axisTypes.GetNames();
-        }
-
-        static bool GetConstant(const char* in, GamepadButton& out)
-        {
-            return buttonTypes.Find(in, out);
-        }
-
-        static bool GetConstant(GamepadButton in, const char*& out)
-        {
-            return buttonTypes.ReverseFind(in, out);
-        }
-
-        static SmallTrivialVector<const char*, 15> GetConstants(GamepadButton)
-        {
-            return buttonTypes.GetNames();
-        }
-
-        static bool GetConstant(const char* in, InputType& out)
-        {
-            return inputTypes.Find(in, out);
-        }
-
-        static bool GetConstant(InputType in, const char*& out)
-        {
-            return inputTypes.ReverseFind(in, out);
-        }
-
-        static SmallTrivialVector<const char*, 2> GetConstants(InputType)
-        {
-            return inputTypes.GetNames();
-        }
 
         static constexpr float JoystickMax = 150.0f;
 

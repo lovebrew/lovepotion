@@ -42,15 +42,12 @@ int Wrap_File::GetBuffer(lua_State* L)
     File* self = Wrap_File::CheckFile(L, 1);
 
     int64_t size;
-    File::BufferMode mode;
 
-    mode               = self->GetBuffer(size);
-    const char* string = 0;
-
-    if (!File::GetConstant(mode, string))
+    if (auto found = File::bufferModes.ReverseFind(self->GetBuffer(size)))
+        lua_pushstring(L, *found);
+    else
         return luax::IOError(L, "Unknown file buffer mode.");
 
-    lua_pushstring(L, string);
     lua_pushnumber(L, (lua_Number)size);
 
     return 2;
@@ -69,13 +66,12 @@ int Wrap_File::GetMode(lua_State* L)
 {
     File* self = Wrap_File::CheckFile(L, 1);
 
-    File::Mode mode    = self->GetMode();
-    const char* string = 0;
+    File::Mode mode = self->GetMode();
 
-    if (!File::GetConstant(mode, string))
+    if (auto found = File::modes.ReverseFind(mode))
+        lua_pushstring(L, *found);
+    else
         return luax::IOError(L, "Unknown file mode.");
-
-    lua_pushstring(L, string);
 
     return 1;
 }
@@ -270,8 +266,10 @@ int Wrap_File::Open(lua_State* L)
     const char* string = luaL_checkstring(L, 2);
     File::Mode mode;
 
-    if (!File::GetConstant(string, mode))
-        luax::EnumError(L, "file open mode", File::GetConstants(mode), string);
+    if (auto found = File::modes.Find(string))
+        mode = *found;
+    else
+        return luax::EnumError(L, "file open mode", File::modes.GetNames(), string);
 
     try
     {
@@ -341,8 +339,10 @@ int Wrap_File::SetBuffer(lua_State* L)
     int64_t size    = (int64_t)luaL_optnumber(L, 3, 0.0);
 
     File::BufferMode bufferMode;
-    if (!File::GetConstant(str, bufferMode))
-        return luax::EnumError(L, "file buffer mode", File::GetConstants(bufferMode), str);
+    if (auto found = File::bufferModes.Find(str))
+        bufferMode = *found;
+    else
+        return luax::EnumError(L, "file buffer mode", File::bufferModes.GetNames(), str);
 
     bool success = false;
 

@@ -47,24 +47,26 @@ static void translatePath(std::filesystem::path& filepath)
 
 Filesystem::MountPermissions Wrap_Filesystem::CheckPermissionType(lua_State* L, int index)
 {
-    const char* string  = luaL_checkstring(L, index);
-    auto permissionType = Filesystem::MOUNT_READ;
+    const char* string = luaL_checkstring(L, index);
 
-    if (!Filesystem::GetConstant(string, permissionType))
-        luax::EnumError(L, "mount permissions", Filesystem::GetConstants(permissionType), string);
+    if (auto found = Filesystem::mountPermissions.Find(string))
+        return *found;
+    else
+        luax::EnumError(L, "mount permissions", Filesystem::mountPermissions.GetNames(), string);
 
-    return permissionType;
+    return Filesystem::MountPermissions::MOUNT_READ;
 }
 
 Filesystem::CommonPath Wrap_Filesystem::CheckCommonPathType(lua_State* L, int index)
 {
     const char* string = luaL_checkstring(L, index);
-    Filesystem::CommonPath commonPathType;
 
-    if (!Filesystem::GetConstant(string, commonPathType))
-        luax::EnumError(L, "common path", Filesystem::GetConstants(commonPathType), string);
+    if (auto found = Filesystem::commonPaths.Find(string))
+        return *found;
+    else
+        luax::EnumError(L, "mount permissions", Filesystem::commonPaths.GetNames(), string);
 
-    return commonPathType;
+    return Filesystem::CommonPath::APP_SAVEDIR;
 }
 
 int Wrap_Filesystem::Load(lua_State* L)
@@ -371,8 +373,10 @@ int Wrap_Filesystem::GetInfo(lua_State* L)
     if (lua_isstring(L, start))
     {
         const char* type = luaL_checkstring(L, start);
-        if (!Filesystem::GetConstant(type, filter))
-            return luax::EnumError(L, "file type", Filesystem::GetConstants(filter), type);
+        if (auto found = Filesystem::fileTypes.Find(type))
+            filter = *found;
+        else
+            return luax::EnumError(L, "file type", Filesystem::fileTypes.GetNames(), type);
 
         start++;
     }
@@ -393,8 +397,10 @@ int Wrap_Filesystem::GetInfo(lua_State* L)
         }
 
         const char* type = nullptr;
-        if (!Filesystem::GetConstant(info.type, type))
-            return luaL_error(L, "Uknown file type.");
+        if (auto found = Filesystem::fileTypes.ReverseFind(info.type))
+            type = *found;
+        else
+            return luaL_error(L, "Unknown file type.");
 
         if (lua_istable(L, start))
             lua_pushvalue(L, start);
@@ -437,9 +443,11 @@ int Wrap_Filesystem::OpenFile(lua_State* L)
     const char* filename = luaL_checkstring(L, 1);
     const char* filemode = luaL_checkstring(L, 2);
 
-    File::Mode mode = File::MODE_CLOSED;
-    if (!File::GetConstant(filemode, mode))
-        return luax::EnumError(L, "file open mode", File::GetConstants(mode), filemode);
+    File::Mode mode;
+    if (auto found = File::modes.Find(filemode))
+        mode = *found;
+    else
+        return luax::EnumError(L, "file open mode", File::modes.GetNames(), filemode);
 
     File* self = nullptr;
 

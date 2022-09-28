@@ -35,80 +35,34 @@ constexpr BidirectionalMap vpadButtons = {
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    VPAD_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     VPAD_BUTTON_LEFT
 };
-// clang-format on
-
-static bool getVPADConstant(Joystick<>::GamepadButton in, VPADButtons& out)
-{
-    return vpadButtons.Find(in, out);
-}
-
-static bool getVPADConstant(VPADButtons in, Joystick<>::GamepadButton& out)
-{
-    return vpadButtons.ReverseFind(in, out);
-}
 /* VPAD SECTION */
 // ----
-// clang-format off
 /* WPAD SECTION */
 constexpr BidirectionalMap wpadButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             WPAD_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             WPAD_BUTTON_B,
-    Joystick<>::GAMEPAD_BUTTON_X,             (WPADButton)-1,
-    Joystick<>::GAMEPAD_BUTTON_Y,             (WPADButton)-1,
     Joystick<>::GAMEPAD_BUTTON_BACK,          WPAD_BUTTON_MINUS,
     Joystick<>::GAMEPAD_BUTTON_GUIDE,         WPAD_BUTTON_HOME,
     Joystick<>::GAMEPAD_BUTTON_START,         WPAD_BUTTON_PLUS,
-    Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  (WPADButton)-1,
-    Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, (WPADButton)-1,
-    Joystick<>::GAMEPAD_BUTTON_LEFTSTICK,     (WPADButton)-1,
-    Joystick<>::GAMEPAD_BUTTON_RIGHTSTICK,    (WPADButton)-1,
     Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       WPAD_BUTTON_UP,
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_BUTTON_DOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_BUTTON_LEFT
 };
-// clang-format on
-
-static bool getWPADConstant(Joystick<>::GamepadButton in, WPADButton& out)
-{
-    return wpadButtons.Find(in, out);
-}
-
-static bool getWPADConstant(WPADButton in, Joystick<>::GamepadButton& out)
-{
-    return wpadButtons.ReverseFind(in, out);
-}
 /* WPAD SECTION */
 // -----
 /* NUNCHUCK SECTION */
-// clang-format off
 constexpr BidirectionalMap nunchuckAxes = {
     Joystick<>::GAMEPAD_AXIS_LEFTX,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_LEFT | WPAD_NUNCHUK_STICK_EMULATION_RIGHT),
     Joystick<>::GAMEPAD_AXIS_LEFTY,        (WPADNunchukButton)(WPAD_NUNCHUK_STICK_EMULATION_UP   | WPAD_NUNCHUK_STICK_EMULATION_DOWN),
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       (WPADNunchukButton)-1,
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       (WPADNunchukButton)-1,
     Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  (WPADNunchukButton)WPAD_NUNCHUK_BUTTON_Z,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, (WPADNunchukButton)-1
 };
-
 constexpr BidirectionalMap nunchuckButtons = {
     Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER, WPAD_NUNCHUK_BUTTON_C
 };
-
-static bool getNunchuckConstant(Joystick<>::GamepadButton in, WPADNunchukButton& out)
-{
-    return nunchuckButtons.Find(in, out);
-}
-
-static bool getNunchuckConstant(WPADNunchukButton in, Joystick<>::GamepadButton& out)
-{
-    return nunchuckButtons.ReverseFind(in, out);
-}
-// clang-format on
 /* NUNCHUCK SECTION */
 // -----
 /* CLASSIC CONTROLLER SECTION */
-// clang-format off
 constexpr BidirectionalMap wpadClassicButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             WPAD_CLASSIC_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             WPAD_CLASSIC_BUTTON_B,
@@ -119,28 +73,14 @@ constexpr BidirectionalMap wpadClassicButtons = {
     Joystick<>::GAMEPAD_BUTTON_START,         WPAD_CLASSIC_BUTTON_PLUS,
     Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  WPAD_CLASSIC_BUTTON_L,
     Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, WPAD_CLASSIC_BUTTON_R,
-    Joystick<>::GAMEPAD_BUTTON_LEFTSTICK,     (WPADClassicButton)-1,
-    Joystick<>::GAMEPAD_BUTTON_RIGHTSTICK,    (WPADClassicButton)-1,
     Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       WPAD_CLASSIC_BUTTON_UP,
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_CLASSIC_BUTTON_DOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_CLASSIC_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_CLASSIC_BUTTON_LEFT
 };
-// clang-format on
-
-static bool getWPADClassicConstant(Joystick<>::GamepadButton in, WPADClassicButton& out)
-{
-    return wpadClassicButtons.Find(in, out);
-}
-
-static bool getWPADClassicConstant(WPADClassicButton in, Joystick<>::GamepadButton& out)
-{
-    return wpadClassicButtons.ReverseFind(in, out);
-}
 /* CLASSIC CONTROLLER SECTION */
 //-----
 /* PRO CONTROLLER SECTION */
-// clang-format off
 constexpr BidirectionalMap wpadProButtons = {
     Joystick<>::GAMEPAD_BUTTON_A,             WPAD_PRO_BUTTON_A,
     Joystick<>::GAMEPAD_BUTTON_B,             WPAD_PRO_BUTTON_B,
@@ -158,16 +98,6 @@ constexpr BidirectionalMap wpadProButtons = {
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_PRO_BUTTON_RIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_PRO_BUTTON_LEFT
 };
-
-static bool getWPADProConstant(Joystick<>::GamepadButton in, WPADProButton& out)
-{
-    return wpadProButtons.Find(in, out);
-}
-
-static bool getWPADProConstant(WPADProButton in, Joystick<>::GamepadButton& out)
-{
-    return wpadProButtons.ReverseFind(in, out);
-}
 // clang-format on
 /* PRO CONTROLLER SECTION */
 
@@ -384,9 +314,9 @@ static bool IsChangedInternal(const auto& buttons, int32_t& buttonState,
 
     int32_t button = -1;
 
-    for (size_t index = 0; index < entries.second; index++)
+    for (size_t index = 0; index < entries.size(); index++)
     {
-        button = (int32_t)entries.first[index].second;
+        button = (int32_t)entries[index].second;
 
         if (button == (int32_t)-1)
             continue;
@@ -395,7 +325,7 @@ static bool IsChangedInternal(const auto& buttons, int32_t& buttonState,
         {
             buttonState ^= button;
             result = { .type         = Joystick<>::InputType::INPUT_TYPE_BUTTON,
-                       .button       = entries.first[index].first,
+                       .button       = entries[index].first,
                        .buttonNumber = (int)index };
 
             return true;
@@ -611,6 +541,8 @@ std::vector<float> Joystick<Console::CAFE>::GetAxes()
 static bool isDownInternal(const auto& buttons, uint32_t button, uint32_t held)
 {
     const auto& records = buttons.GetEntries();
+
+    return false;
 }
 
 bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
@@ -631,7 +563,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
         {
             case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
             {
-                const auto& entries = vpadButtons.GetEntries().first;
+                const auto& entries = vpadButtons.GetEntries();
 
                 if (entries[button].second == (VPADButtons)-1)
                     continue;
@@ -643,7 +575,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
             }
             case guid::GAMEPAD_TYPE_WII_REMOTE:
             {
-                const auto& entries = wpadButtons.GetEntries().first;
+                const auto& entries = wpadButtons.GetEntries();
 
                 if (entries[button].second == (VPADButtons)-1)
                     continue;
@@ -655,7 +587,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
             }
             case guid::GAMEPAD_TYPE_WII_CLASSIC:
             {
-                const auto& entries = wpadClassicButtons.GetEntries().first;
+                const auto& entries = wpadClassicButtons.GetEntries();
 
                 if (entries[button].second == (VPADButtons)-1)
                     continue;
@@ -667,7 +599,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
             }
             case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
             {
-                const auto& entries = wpadButtons.GetEntries().first;
+                const auto& entries = wpadButtons.GetEntries();
 
                 if (entries[button].second != (WPADButton)-1)
                 {
@@ -685,7 +617,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
             }
             case guid::GAMEPAD_TYPE_WII_PRO:
             {
-                const auto& entries = wpadProButtons.GetEntries().first;
+                const auto& entries = wpadProButtons.GetEntries();
 
                 if (entries[button].second == (WPADProButton)-1)
                     continue;
@@ -711,8 +643,7 @@ float Joystick<Console::CAFE>::GetGamepadAxis(GamepadAxis axis)
 
 bool Joystick<Console::CAFE>::IsGamepadDown(const std::vector<GamepadButton>& buttons) const
 {
-    const char* name = nullptr;
-    const auto type  = this->GetGamepadType();
+    const auto type = this->GetGamepadType();
 
     for (auto button : buttons)
     {
@@ -720,62 +651,31 @@ bool Joystick<Console::CAFE>::IsGamepadDown(const std::vector<GamepadButton>& bu
         {
             case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
             {
-                VPADButtons gamepadButton;
-                getVPADConstant(button, gamepadButton);
-
-                if (gamepadButton == (VPADButtons)-1)
-                    continue;
-
-                if (this->buttonStates.held & gamepadButton)
-                    return true;
+                if (auto gamepadButton = vpadButtons.Find(button))
+                    return this->buttonStates.held & *gamepadButton;
 
                 break;
             }
             case guid::GAMEPAD_TYPE_WII_REMOTE:
             {
-                WPADButton gamepadButton;
-                getWPADConstant(button, gamepadButton);
-
-                if (gamepadButton == (WPADButton)-1)
-                    continue;
-
-                if (this->buttonStates.held & gamepadButton)
-                    return true;
+                if (auto gamepadButton = wpadButtons.Find(button))
+                    return this->buttonStates.held & *gamepadButton;
 
                 break;
             }
             case guid::GAMEPAD_TYPE_WII_CLASSIC:
             {
-                WPADClassicButton gamepadButton;
-                getWPADClassicConstant(button, gamepadButton);
-
-                if (gamepadButton == (WPADClassicButton)-1)
-                    continue;
-
-                if (this->buttonStates.held & gamepadButton)
-                    return true;
+                if (auto gamepadButton = wpadClassicButtons.Find(button))
+                    return this->buttonStates.held & *gamepadButton;
 
                 break;
             }
             case guid::GAMEPAD_TYPE_WII_REMOTE_NUNCHUCK:
             {
-                WPADButton gamepadButton;
-                getWPADConstant(button, gamepadButton);
-
-                if (gamepadButton != (WPADButton)-1)
-                {
-                    if (this->buttonStates.held & gamepadButton)
-                        return true;
-                }
-
-                WPADNunchukButton extButton;
-                getNunchuckConstant(button, extButton);
-
-                if (extButton != (WPADNunchukButton)-1)
-                {
-                    if (this->buttonStates.extension.held & extButton)
-                        return true;
-                }
+                if (auto gamepadButton = wpadButtons.Find(button))
+                    return this->buttonStates.held & *gamepadButton;
+                else if (auto extButton = nunchuckButtons.Find(button))
+                    return this->buttonStates.held & *extButton;
 
                 break;
             }

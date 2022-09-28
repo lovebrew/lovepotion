@@ -6,8 +6,8 @@
 #include <objects/data/compresseddata/compresseddata.hpp>
 #include <objects/data/dataview/dataview.hpp>
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/hashfunction/hashfunction.hpp>
-#include <utilities/bidirectionalmap/smallvector.hpp>
 
 namespace love
 {
@@ -65,13 +65,17 @@ namespace love
 
         DataView* NewDataView(Data* data, size_t offset, size_t size);
 
-        static bool GetConstant(ContainerType in, const char*& out);
-        static bool GetConstant(const char* in, ContainerType& out);
-        static SmallTrivialVector<const char*, 2> GetConstants(ContainerType);
+        // clang-format off
+        static constexpr BidirectionalMap containers = {
+            "data",   DataModule::ContainerType::CONTAINER_DATA,
+            "string", DataModule::ContainerType::CONTAINER_STRING
+        };
 
-        static bool GetConstant(EncodeFormat in, const char*& out);
-        static bool GetConstant(const char* in, EncodeFormat& out);
-        static SmallTrivialVector<const char*, 2> GetConstants(EncodeFormat);
+        static constexpr BidirectionalMap formats = {
+            "hex",    DataModule::EncodeFormat::ENCODE_HEX,
+            "base64", DataModule::EncodeFormat::ENCODE_BASE64
+        };
+        // clang-format on
 
       private:
         std::string Hash(HashFunction::Function function, Data* input);

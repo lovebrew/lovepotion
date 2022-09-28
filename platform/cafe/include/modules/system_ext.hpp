@@ -4,6 +4,8 @@
 
 #include <coreinit/mcp.h>
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+
 extern "C"
 {
     // remove all this if wut adds it and it causes errors
@@ -54,8 +56,12 @@ namespace love
 
         std::string_view GetFriendInfo();
 
-        static bool GetConstant(const char* in, SystemModel& out);
-        static bool GetConstant(SystemModel in, const char*& out);
+        // clang-format off
+        static constexpr BidirectionalMap systemModels = {
+            "basic",  System<Console::CAFE>::SYSTEM_MODEL_BASIC,
+            "deluxe", System<Console::CAFE>::SYSTEM_MODEL_DELUXE
+        };
+        // clang-format on
 
       private:
         int32_t handle;

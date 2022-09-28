@@ -21,11 +21,8 @@ static size_t read(void* buffer, size_t byteSize, size_t readSize, void* source)
 static int seek(void* source, ogg_int64_t offset, int whence)
 {
     auto stream = (Stream*)source;
-    auto origin = Stream::ORIGIN_BEGIN;
 
-    Stream::GetConstant(whence, origin);
-
-    return stream->Seek(offset, origin) ? 0 : -1;
+    return stream->Seek(offset, *Stream::seekOrigins.Find(whence)) ? 0 : -1;
 }
 
 static long tell(void* source)

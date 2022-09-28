@@ -58,16 +58,3 @@ bool Stream::Write(Data* source, int64_t offset, int64_t size)
 
     return this->Write((const uint8_t*)source->GetData() + offset, size);
 }
-
-// clang-format off
-constexpr BidirectionalMap seekOrigins = {
-    SEEK_SET, Stream::ORIGIN_BEGIN,
-    SEEK_CUR, Stream::ORIGIN_CURRENT,
-    SEEK_END, Stream::ORIGIN_END
-};
-// clang-format on
-
-bool Stream::GetConstant(int in, Stream::SeekOrigin& out)
-{
-    return seekOrigins.Find(in, out);
-}
