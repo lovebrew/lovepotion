@@ -137,7 +137,8 @@ void DSP<Console::CAFE>::ChannelSetVolume(size_t id, float volume)
         return;
 
     AXVoiceVeData data {};
-    data.volume = volume * 0x8000;
+    data.volume = (int16_t)(volume * 0x8000);
+    data.delta  = (int16_t)(volume * 0xFFFF) & 0xFFFF;
 
     AXSetVoiceVe(voice, &data);
 }
@@ -169,7 +170,7 @@ bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id)
 {
     auto* voice = this->FindVoice(id);
 
-    if (voice)
+    if (!voice)
         return false;
 
     AXSetVoiceState(voice, AX_VOICE_STATE_PLAYING);
