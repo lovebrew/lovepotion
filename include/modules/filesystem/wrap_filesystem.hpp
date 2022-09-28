@@ -2,7 +2,7 @@
 
 #include <common/luax.hpp>
 
-#include <modules/filesystem/filesystem.hpp>
+#include <modules/filesystem/physfs/filesystem.hpp>
 
 #include <objects/data/filedata/filedata.hpp>
 #include <objects/file/file.hpp>

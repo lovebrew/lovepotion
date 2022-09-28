@@ -21,7 +21,7 @@
       "${env:DEVKITPRO}/portlibs/3ds/include/**"
     ],
     "ctrDefines": ["__3DS__", "__OS__=\"Horizon\"", "__CONSOLE__=\"3DS\""],
-    "ctrCompilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
+    "ctrCompilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-g++",
 
     /* Switch paths and info */
     "hacIncludePaths": [

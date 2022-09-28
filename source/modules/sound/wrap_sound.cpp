@@ -10,6 +10,7 @@
 #include <utilities/stream/types/datastream.hpp>
 
 #include <modules/sound/wrap_sound.hpp>
+#include <utilities/log/logfile.h>
 
 using namespace love;
 
@@ -23,7 +24,7 @@ int Wrap_Sound::NewDecoder(lua_State* L)
     if (Wrap_Filesystem::CanGetFile(L, 1))
     {
         auto sourceType    = Decoder::STREAM_FILE;
-        const char* source = lua_isnoneornil(L, 3) ? nullptr : luaL_checkstring(L, 3);
+        const char* source = lua_isnoneornil(L, 3) ? "file" : luaL_checkstring(L, 3);
 
         if (auto found = Decoder::streamSources.Find(source))
             sourceType = *found;

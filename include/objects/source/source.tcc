@@ -124,6 +124,11 @@ namespace love
             this->minVolume = volume;
         }
 
+        bool IsLooping() const
+        {
+            return this->looping;
+        }
+
         // clang-format off
         static constexpr BidirectionalMap sourceTypes = {
           "static", TYPE_STATIC,

@@ -3,8 +3,8 @@
 #include <common/object.hpp>
 #include <common/strongreference.hpp>
 
-#include <utilities/stream/stream.hpp>
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+#include <utilities/stream/stream.hpp>
 
 #include <memory>
 #include <vector>
@@ -68,7 +68,7 @@ namespace love
         int bufferSize;
         int sampleRate;
 
-        std::unique_ptr<uint8_t[]> buffer;
+        std::unique_ptr<int8_t[]> buffer;
         bool eof;
     };
 } // namespace love

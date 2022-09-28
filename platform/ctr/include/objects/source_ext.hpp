@@ -55,8 +55,6 @@ namespace love
 
         void SetLooping(bool looping);
 
-        bool IsLooping() const;
-
         int GetChannelCount() const;
 
         int GetFreeBufferCount() const;

@@ -20,7 +20,7 @@ Decoder::Decoder(Stream* stream, int bufferSize) :
 
     try
     {
-        this->buffer = std::make_unique<uint8_t[]>(bufferSize);
+        this->buffer = std::make_unique<int8_t[]>(bufferSize);
     }
     catch (std::bad_alloc&)
     {

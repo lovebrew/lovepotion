@@ -330,7 +330,7 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
     requires ValidComparatorArgs_v<KC, VC, Args...>
     consteval BidirectionalMultiMap(KC kc, VC vc, Args... args) :
         entries {},
-        populated(0),
+        populated(Size),
         kc(kc),
         vc(vc)
     // clang-format on
