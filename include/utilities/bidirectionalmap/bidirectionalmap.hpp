@@ -366,16 +366,15 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         return std::nullopt;
     }
 
-    constexpr decltype(std::views::take(
-        std::views::keys(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())), 0))
-    GetKeys() const
+    constexpr auto GetKeys() const
     {
-        return std::views::take(std::views::keys(std::ranges::ref_view(entries)), this->populated);
+        return std::ranges::ref_view(this->entries) | std::views::keys |
+               std::views::take(this->populated);
     }
 
     /* Can only be used on String-mapped Keys */
     // clang-format off
-    constexpr auto GetNames() const -> decltype(GetKeys())
+    constexpr auto GetNames() const
         requires (std::is_same_v<Key, const char*> || std::is_same_v<Key, char*> ||
                   std::is_same_v<Key, std::string_view>)
     // clang-format on
@@ -383,13 +382,10 @@ class BidirectionalMap<K, V, Size, KC, VC> : private BidirectionalMap<>
         return GetKeys();
     }
 
-    constexpr decltype(std::views::take(
-        std::views::values(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
-        0))
-    GetValues() const
+    constexpr auto GetValues() const
     {
-        return std::views::take(std::views::values(std::ranges::ref_view(entries)),
-                                this->populated);
+        return std::ranges::ref_view(this->entries) | std::views::values |
+               std::views::take(this->populated);
     }
 
     constexpr std::span<const Entry> GetEntries() const

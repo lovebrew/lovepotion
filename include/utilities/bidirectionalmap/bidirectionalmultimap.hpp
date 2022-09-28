@@ -23,6 +23,14 @@ class BidirectionalMultiMap<>
     {
         constexpr bool operator()(const char* a, const char* b) const
         {
+            if (a == nullptr && b == nullptr)
+            {
+                return true;
+            }
+            else if (a == nullptr || b == nullptr)
+            {
+                return false;
+            }
             return std::string_view(a) == std::string_view(b);
         }
 
@@ -368,12 +376,7 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
     /*
     ** When mapped as T, V -- find values V from T
     */
-    constexpr decltype(std::views::take(
-        std::views::drop(std::views::values(
-                             std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
-                         0),
-        0))
-    Find(const Key& search) const
+    constexpr auto Find(const Key& search) const
     {
         auto first = std::find_if(this->entries.begin(), this->entries.end(),
                                   [&](const Entry& e) { return kc(e.first, search); });
@@ -382,10 +385,8 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
                          this->entries.rend(), [&](const Entry& e) { return kc(e.first, search); })
                 .base();
 
-        return std::views::take(
-            std::views::drop(std::views::values(std::ranges::ref_view(this->entries)),
-                             first - this->entries.begin()),
-            last - first);
+        return std::ranges::ref_view(this->entries) | std::views::values |
+               std::views::drop(first - this->entries.begin()) | std::views::take(last - first);
     }
 
     constexpr std::optional<std::reference_wrapper<const Value>> FindFirst(const Key& search) const
@@ -400,12 +401,7 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
     /*
     ** When mapped as T, V -- find first VectorSize values T from V
     */
-    constexpr decltype(std::views::take(
-        std::views::drop(
-            std::views::keys(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
-            0),
-        0))
-    ReverseFind(const Value& search) const
+    constexpr auto ReverseFind(const Value& search) const
     {
         auto first = std::find_if(this->revEntries.begin(), this->revEntries.begin() + populated,
                                   [&](const Entry& e) { return kc(e.second, search); });
@@ -414,10 +410,8 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
                                   [&](const Entry& e) { return kc(e.second, search); })
                         .base();
 
-        return std::views::take(
-            std::views::drop(std::views::keys(std::ranges::ref_view(this->entries)),
-                             first - this->entries.begin()),
-            last - first);
+        return std::ranges::ref_view(this->entries) | std::views::keys |
+               std::views::drop(first - this->entries.begin()) | std::views::take(last - first);
     }
 
     constexpr std::optional<std::reference_wrapper<const Key>> ReverseFindFirst(
@@ -430,16 +424,15 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
         return std::nullopt;
     }
 
-    constexpr decltype(std::views::take(
-        std::views::keys(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())), 0))
-    GetKeys() const
+    constexpr auto GetKeys() const
     {
-        return std::views::take(std::views::keys(std::ranges::ref_view(entries)), this->populated);
+        return std::ranges::ref_view(this->entries) | std::views::keys |
+               std::views::take(this->populated);
     }
 
     /* Can only be used on String-mapped Keys */
     // clang-format off
-    constexpr auto GetNames() const -> decltype(GetKeys())
+    constexpr auto GetNames() const
         requires (std::is_same_v<Key, const char*> || std::is_same_v<Key, char*> ||
                   std::is_same_v<Key, std::string_view>)
     // clang-format on
@@ -447,13 +440,10 @@ class BidirectionalMultiMap<K, V, Size, KC, VC> : private BidirectionalMultiMap<
         return GetKeys();
     }
 
-    constexpr decltype(std::views::take(
-        std::views::values(std::ranges::ref_view(std::declval<const std::array<Entry, Size>&>())),
-        0))
-    GetValues() const
+    constexpr auto GetValues() const
     {
-        return std::views::take(std::views::values(std::ranges::ref_view(entries)),
-                                this->populated);
+        return std::ranges::ref_view(this->entries) | std::views::values |
+               std::views::take(this->populated);
     }
 
     constexpr std::span<Entry> GetEntries() const
