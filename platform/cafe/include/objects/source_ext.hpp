@@ -14,7 +14,7 @@ namespace love
     class AudioPool;
 
     template<>
-    class Source<Console::CTR> : public Source<Console::ALL>
+    class Source<Console::CAFE> : public Source<Console::ALL>
     {
       public:
         Source(AudioPool* pool, SoundData* soundData);

@@ -44,6 +44,7 @@ Joystick<Console::Which>* JoystickModule<Console::CAFE>::AddJoystick(int index)
     if (index < 0 || index >= (int)wpad::MAX_JOYSTICKS + 1)
         return nullptr;
 
+    bool reused            = false;
     guid::GamepadType type = guid::GAMEPAD_TYPE_WII_U_GAMEPAD;
 
     if (index != 0)

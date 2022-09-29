@@ -9,6 +9,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
     source/objects/joystick_ext.cpp
+    source/objects/source_ext.cpp
     source/utilities/driver/dsp_ext.cpp
     source/utilities/driver/hid_ext.cpp
     source/utilities/haptics/sixaxis_ext.cpp

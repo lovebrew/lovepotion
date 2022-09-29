@@ -21,7 +21,8 @@ namespace love
     {
         int bitDepth;
         uint32_t endSamples;
-        uint16_t* data_pcm16;
+        int16_t* data_pcm16;
+        AXVoiceState state;
         bool looping;
     };
 
@@ -65,7 +66,7 @@ namespace love
 
         void ChannelStop(size_t id);
 
-        OSEvent GetEvent();
+        void SignalEvent();
 
       private:
         love::mutex mutex;

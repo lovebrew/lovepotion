@@ -627,6 +627,8 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
 
                 break;
             }
+            default:
+                break;
         }
     }
 
@@ -679,6 +681,15 @@ bool Joystick<Console::CAFE>::IsGamepadDown(const std::vector<GamepadButton>& bu
 
                 break;
             }
+            case guid::GAMEPAD_TYPE_WII_PRO:
+            {
+                if (auto gamepadButton = wpadProButtons.Find(button))
+                    return this->buttonStates.held & *gamepadButton;
+
+                break;
+            }
+            default:
+                break;
         };
     }
 

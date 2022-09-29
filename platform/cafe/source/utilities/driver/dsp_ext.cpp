@@ -16,10 +16,11 @@ static AXInitParams params = {
 };
 // clang-format on
 
+static OSEvent g_AudioEvent;
+
 static void audioCallback()
 {
-    OSEvent event = DSP<Console::CAFE>::Instance().GetEvent();
-    OSSignalEvent(&event);
+    OSSignalEvent(&g_AudioEvent);
 }
 
 DSP<Console::CAFE>::DSP() : channels {}
@@ -33,26 +34,29 @@ void DSP<Console::CAFE>::Initialize()
     if (!AXIsInit())
         throw love::Exception("Failed to initialize AX!");
 
-    OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
-    AXRegisterFrameCallback(audioCallback);
+    OSInitEvent(&g_AudioEvent, false, OS_EVENT_MODE_AUTO);
+    AXRegisterAppFrameCallback(audioCallback);
 
     this->initialized = true;
 }
 
 DSP<Console::CAFE>::~DSP()
 {
-    if (this->initialized)
-        AXQuit();
+    if (!this->initialized)
+        return;
+
+    AXQuit();
 }
 
 void DSP<Console::CAFE>::Update()
 {
-    OSWaitEvent(&this->event);
+    OSWaitEvent(&g_AudioEvent);
 }
 
-OSEvent DSP<Console::CAFE>::GetEvent()
+void DSP<Console::CAFE>::SignalEvent()
 {
-    return this->event;
+    std::unique_lock lock(this->mutex);
+    OSSignalEvent(&this->event);
 }
 
 void DSP<Console::CAFE>::SetMasterVolume(float volume)
@@ -143,7 +147,7 @@ float DSP<Console::CAFE>::ChannelGetVolume(size_t id)
     auto* voice = this->FindVoice(id);
 
     if (!voice)
-        return;
+        return 0.0f;
 
     return voice->volume;
 }
@@ -153,7 +157,7 @@ size_t DSP<Console::CAFE>::ChannelGetSampleOffset(size_t id)
     auto* voice = this->FindVoice(id);
 
     if (!voice)
-        return;
+        return 0;
 
     AXVoiceOffsets offsets {};
     AXGetVoiceOffsets(voice, &offsets);
@@ -200,7 +204,7 @@ bool DSP<Console::CAFE>::IsChannelPaused(size_t id)
     AXVoice* voice = this->FindVoice(id);
 
     if (!voice)
-        return;
+        return false;
 
     return voice->state == AX_VOICE_STATE_STOPPED;
 }
@@ -210,7 +214,7 @@ bool DSP<Console::CAFE>::IsChannelPlaying(size_t id)
     AXVoice* voice = this->FindVoice(id);
 
     if (!voice)
-        return;
+        return false;
 
     return voice->state == AX_VOICE_STATE_PLAYING;
 }
