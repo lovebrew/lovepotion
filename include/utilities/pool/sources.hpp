@@ -28,7 +28,7 @@ namespace love
 
       private:
         friend class Source<Console::Which>;
-        static constexpr size_t MAX_SOURCES = (Console::Is(Console::CAFE)) ? 6 : 24;
+        static constexpr size_t MAX_SOURCES = (Console::Is(Console::CAFE)) ? 96 : 24;
 
         int totalSources;
         std::queue<size_t> available;

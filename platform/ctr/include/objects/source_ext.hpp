@@ -95,21 +95,9 @@ namespace love
         int StreamAtomic(ndspWaveBuf& buffer, Decoder* decoder);
 
         AudioPool* pool;
-        bool valid;
-        bool current;
 
-        std::shared_ptr<DataBuffer> staticBuffer;
         ndspWaveBuf buffers[2];
 
         StrongReference<Decoder> decoder;
-
-        int sampleRate;
-        int channels;
-        int bitDepth;
-
-        int bufferCount;
-        double samplesOffset;
-
-        size_t channel;
     };
 } // namespace love

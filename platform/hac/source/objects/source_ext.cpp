@@ -1,29 +1,31 @@
+#include <algorithm>
 #include <objects/source_ext.hpp>
+
+#include <utilities/driver/dsp_mem.hpp>
 #include <utilities/pool/sources.hpp>
 
-#include <algorithm>
 #include <utilities/log/logfile.h>
 
 using namespace love;
 
-using DSP = love::DSP<Console::CTR>;
+using DSP = love::DSP<Console::HAC>;
 
 template<>
-Source<Console::CTR>::DataBuffer::DataBuffer(const void* data, size_t size) : size(size)
+Source<Console::HAC>::DataBuffer::DataBuffer(const void* data, size_t size) : size(size)
 {
-    this->buffer = (int16_t*)linearAlloc(size);
+    this->buffer = (int16_t*)AudioMemory::Align(size, this->alignSize);
     std::memcpy(this->buffer, (int16_t*)data, size);
 
-    DSP_FlushDataCache(this->buffer, this->size);
+    armDCacheFlush(this->buffer, this->size);
 }
 
 template<>
-Source<Console::CTR>::DataBuffer::~DataBuffer()
+Source<Console::HAC>::DataBuffer::~DataBuffer()
 {
-    linearFree(this->buffer);
+    AudioMemory::Free(this->buffer, this->alignSize);
 }
 
-Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
+Source<Console::HAC>::Source(AudioPool* pool, SoundData* soundData) :
     Source<>(TYPE_STATIC),
     pool(pool)
 {
@@ -32,35 +34,33 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
     this->bitDepth      = soundData->GetBitDepth();
     this->samplesOffset = 0;
 
-    std::fill_n(this->buffers, 2, ndspWaveBuf {});
+    std::fill_n(this->buffers, 2, WaveInfo {});
 
     this->staticBuffer = std::make_shared<DataBuffer>(soundData->GetData(), soundData->GetSize());
 }
 
-Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
-    Source<>(TYPE_STREAM),
-    pool(pool),
-    decoder(decoder),
+Source<Console::HAC>::Source(AudioPool* pool, Decoder* decoder) : Source<>(TYPE_STREAM), pool(pool)
 {
+    this->decoder       = decoder;
     this->sampleRate    = decoder->GetSampleRate();
     this->channels      = decoder->GetChannelCount();
     this->bitDepth      = decoder->GetBitDepth();
     this->bufferCount   = MAX_BUFFERS;
     this->samplesOffset = 0;
 
-    std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, WaveInfo {});
 
-    for (auto& buffer : this->buffers)
+    for (auto& info : this->buffers)
     {
-        buffer.data_pcm16 = (int16_t*)linearAlloc(decoder->GetSize());
-        buffer.status     = NDSP_WBUF_DONE;
+        info.buffer.data_pcm16 = (int16_t*)AudioMemory::Align(decoder->GetSize(), info.alignedSize);
+        info.buffer.state      = AudioDriverWaveBufState_Done;
     }
 }
 
-Source<Console::CTR>::Source(AudioPool* pool, int sampleRate, int bitDepth, int channels,
+Source<Console::HAC>::Source(AudioPool* pool, int sampleRate, int bitDepth, int channels,
                              int buffers) :
     Source<>(TYPE_QUEUE),
-    pool(pool),
+    pool(pool)
 {
     this->sampleRate    = sampleRate;
     this->channels      = channels;
@@ -71,13 +71,13 @@ Source<Console::CTR>::Source(AudioPool* pool, int sampleRate, int bitDepth, int 
     if (buffers < 1 || buffers > Source::MAX_BUFFERS)
         buffers = MAX_BUFFERS;
 
-    std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, WaveInfo {});
 
-    for (size_t index = 0; index < this->bufferCount; index++)
-        this->buffers[index].status = NDSP_WBUF_DONE;
+    for (auto& info : this->buffers)
+        info.buffer.state = AudioDriverWaveBufState_Done;
 }
 
-Source<Console::CTR>::Source(const Source& other) : Source<>(other.sourceType), pool(other.pool)
+Source<Console::HAC>::Source(const Source& other) : Source<>(other.sourceType), pool(other.pool)
 {
     this->staticBuffer  = other.staticBuffer;
     this->decoder       = nullptr;
@@ -93,34 +93,37 @@ Source<Console::CTR>::Source(const Source& other) : Source<>(other.sourceType), 
             this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
     }
 
-    std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, WaveInfo {});
 
     for (size_t index = 0; index < this->bufferCount; index++)
     {
         if (this->sourceType == TYPE_STREAM)
-            this->buffers[index].data_pcm16 = (int16_t*)linearAlloc(this->decoder->GetSize());
+        {
+            this->buffers[index].buffer.data_pcm16 =
+                (int16_t*)AudioMemory::Align(decoder->GetSize(), this->buffers[index].alignedSize);
+        }
 
-        this->buffers[index].status = NDSP_WBUF_DONE;
+        this->buffers[index].buffer.state = AudioDriverWaveBufState_Done;
     }
 }
 
-Source<Console::CTR>::~Source()
+Source<Console::HAC>::~Source()
 {
     this->Stop();
 
-    for (auto& buffer : this->buffers)
+    for (auto& info : this->buffers)
     {
-        if (buffer.data_pcm16)
-            linearFree(buffer.data_pcm16);
+        if (info.buffer.data_pcm16)
+            AudioMemory::Free(info.buffer.data_pcm16, info.alignedSize);
     }
 }
 
-Source<Console::CTR>* Source<Console::CTR>::Clone()
+Source<Console::HAC>* Source<Console::HAC>::Clone()
 {
     return new Source(*this);
 }
 
-bool Source<Console::CTR>::Play()
+bool Source<Console::HAC>::Play()
 {
     uint8_t wasPlaying = false;
 
@@ -132,7 +135,7 @@ bool Source<Console::CTR>::Play()
 
     if (!wasPlaying)
     {
-        if (!(this->valid = this->PlayAtomic(this->buffers[0])))
+        if (!(this->valid = this->PlayAtomic(this->buffers[0].buffer)))
             return false;
 
         this->ResumeAtomic();
@@ -150,12 +153,12 @@ bool Source<Console::CTR>::Play()
     return this->valid = true;
 }
 
-void Source<Console::CTR>::Reset()
+void Source<Console::HAC>::Reset()
 {
     ::DSP::Instance().ChannelReset(this->channel, this->channels, this->bitDepth, this->sampleRate);
 }
 
-void Source<Console::CTR>::Stop()
+void Source<Console::HAC>::Stop()
 {
     if (!this->valid)
         return;
@@ -164,7 +167,7 @@ void Source<Console::CTR>::Stop()
     this->pool->ReleaseSource(this);
 }
 
-void Source<Console::CTR>::Pause()
+void Source<Console::HAC>::Pause()
 {
     auto lock = this->pool->Lock();
 
@@ -172,12 +175,12 @@ void Source<Console::CTR>::Pause()
         this->PauseAtomic();
 }
 
-bool Source<Console::CTR>::IsPlaying() const
+bool Source<Console::HAC>::IsPlaying() const
 {
     return this->valid && !::DSP::Instance().IsChannelPaused(this->channel);
 }
 
-bool Source<Console::CTR>::IsFinished() const
+bool Source<Console::HAC>::IsFinished() const
 {
     if (!this->valid)
         return false;
@@ -186,12 +189,12 @@ bool Source<Console::CTR>::IsFinished() const
         return false;
 
     if (this->sourceType == TYPE_STATIC)
-        return this->buffers[0].status == NDSP_WBUF_DONE;
+        return this->buffers[0].buffer.state == AudioDriverWaveBufState_Done;
 
     return ::DSP::Instance().IsChannelPlaying(this->channel) == false;
 }
 
-bool Source<Console::CTR>::Update()
+bool Source<Console::HAC>::Update()
 {
     if (!this->valid)
         return false;
@@ -206,15 +209,15 @@ bool Source<Console::CTR>::Update()
                 return false;
 
             bool other = !this->current;
-            if (this->buffers[other].status == NDSP_WBUF_DONE)
+            if (this->buffers[other].buffer.state == AudioDriverWaveBufState_Done)
             {
-                int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
+                int decoded = this->StreamAtomic(this->buffers[other].buffer, this->decoder.Get());
 
                 if (decoded == 0)
                     return false;
 
-                ::DSP::Instance().ChannelAddBuffer(this->channel, &this->buffers[other]);
-                this->samplesOffset += this->buffers[other].nsamples;
+                ::DSP::Instance().ChannelAddBuffer(this->channel, &this->buffers[other].buffer);
+                this->samplesOffset += this->buffers[other].buffer.start_sample_offset;
 
                 this->current = !this->current;
             }
@@ -229,7 +232,7 @@ bool Source<Console::CTR>::Update()
     return false;
 }
 
-void Source<Console::CTR>::SetVolume(float volume)
+void Source<Console::HAC>::SetVolume(float volume)
 {
     if (volume < this->GetMinVolume() || volume > this->GetMaxVolume())
         return;
@@ -240,7 +243,7 @@ void Source<Console::CTR>::SetVolume(float volume)
     this->volume = volume;
 }
 
-float Source<Console::CTR>::GetVolume() const
+float Source<Console::HAC>::GetVolume() const
 {
     if (this->valid)
         return ::DSP::Instance().ChannelGetVolume(this->channel);
@@ -248,11 +251,8 @@ float Source<Console::CTR>::GetVolume() const
     return this->volume;
 }
 
-/* todo */
-void Source<Console::CTR>::Seek(double offset, Unit unit)
+void Source<Console::HAC>::Seek(double offset, Unit unit)
 {
-    // auto lock = this->pool->Lock();
-
     int offsetSamples    = 0;
     double offsetSeconds = 0.0f;
 
@@ -321,8 +321,7 @@ void Source<Console::CTR>::Seek(double offset, Unit unit)
     this->samplesOffset = offsetSamples;
 }
 
-/* todo */
-double Source<Console::CTR>::Tell(Unit unit)
+double Source<Console::HAC>::Tell(Unit unit)
 {
     auto lock = this->pool->Lock();
 
@@ -342,7 +341,7 @@ double Source<Console::CTR>::Tell(Unit unit)
     return offset;
 }
 
-double Source<Console::CTR>::GetDuration(Unit unit)
+double Source<Console::HAC>::GetDuration(Unit unit)
 {
     auto lock = this->pool->Lock();
 
@@ -380,19 +379,19 @@ double Source<Console::CTR>::GetDuration(Unit unit)
     return 0.0;
 }
 
-void Source<Console::CTR>::SetLooping(bool loop)
+void Source<Console::HAC>::SetLooping(bool loop)
 {
     if (this->sourceType == TYPE_QUEUE)
         throw QueueLoopingException();
 
     if (this->valid && this->sourceType == TYPE_STATIC)
-        this->buffers[0].looping = loop;
+        this->buffers[0].buffer.is_looping = loop;
 
     this->looping = loop;
 }
 
 /* todo */
-bool Source<Console::CTR>::Queue(void* data, size_t length, int sampleRate, int bitDepth,
+bool Source<Console::HAC>::Queue(void* data, size_t length, int sampleRate, int bitDepth,
                                  int channels)
 {
     if (this->sourceType != TYPE_QUEUE)
@@ -407,29 +406,22 @@ bool Source<Console::CTR>::Queue(void* data, size_t length, int sampleRate, int 
     if (length == 0)
         return true;
 
-    // ndspWaveBuf buffer {};
-    // buffer.data_pcm16 = (int16_t*)linearAlloc(length);
-    // std::memcpy(buffer.data_pcm16, data, length);
-
-    // buffer.nsamples = (int)((length / this->channels) / (this->bitDepth / 8));
-    // this->queue.push(buffer);
-
     return true;
 }
 
-int Source<Console::CTR>::GetFreeBufferCount() const
+int Source<Console::HAC>::GetFreeBufferCount() const
 {
     if (this->sourceType == TYPE_STATIC)
         return 0;
 
     size_t count = 0;
-    for (auto& buffer : this->buffers)
-        count += (buffer.status == NDSP_WBUF_DONE) ? 1 : 0;
+    for (auto& info : this->buffers)
+        count += (info.buffer.state == AudioDriverWaveBufState_Done) ? 1 : 0;
 
     return count;
 }
 
-void Source<Console::CTR>::PrepareAtomic()
+void Source<Console::HAC>::PrepareAtomic()
 {
     this->Reset();
 
@@ -440,15 +432,16 @@ void Source<Console::CTR>::PrepareAtomic()
             const auto size = this->staticBuffer->GetSize();
 
             // clang-format off
-            this->buffers[0].nsamples   = (int)((size / this->channels) / (this->bitDepth / 8)) - (this->samplesOffset / this->channels);
-            this->buffers[0].data_pcm16 = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
+            this->buffers[0].buffer.size = size;
+            this->buffers[0].buffer.end_sample_offset   = (int)((size / this->channels) / (this->bitDepth / 8)) - (this->samplesOffset / this->channels);
+            this->buffers[0].buffer.data_pcm16 = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
             // clang-format on
 
             break;
         }
         case TYPE_STREAM:
         {
-            if (this->StreamAtomic(this->buffers[0], this->decoder.Get()) == 0)
+            if (this->StreamAtomic(this->buffers[0].buffer, this->decoder.Get()) == 0)
                 break;
 
             if (this->decoder->IsFinished())
@@ -463,16 +456,18 @@ void Source<Console::CTR>::PrepareAtomic()
     }
 }
 
-int Source<Console::CTR>::StreamAtomic(ndspWaveBuf& buffer, Decoder* decoder)
+int Source<Console::HAC>::StreamAtomic(AudioDriverWaveBuf& buffer, Decoder* decoder)
 {
     int decoded = std::max(decoder->Decode(), 0);
 
     if (decoded > 0)
     {
         std::memcpy(buffer.data_pcm16, (int16_t*)decoder->GetBuffer(), decoded);
-        buffer.nsamples = (int)((decoded / this->channels) / (this->bitDepth / 8));
 
-        DSP_FlushDataCache(buffer.data_pcm16, decoded);
+        buffer.size              = decoded;
+        buffer.end_sample_offset = (int)((decoded / this->channels) / (this->bitDepth / 8));
+
+        armDCacheFlush(buffer.data_pcm16, decoded);
     }
 
     if (decoder->IsFinished() && this->IsLooping())
@@ -482,7 +477,7 @@ int Source<Console::CTR>::StreamAtomic(ndspWaveBuf& buffer, Decoder* decoder)
 }
 
 /* todo */
-void Source<Console::CTR>::TeardownAtomic()
+void Source<Console::HAC>::TeardownAtomic()
 {
     ::DSP::Instance().ChannelStop(this->channel);
 
@@ -494,8 +489,8 @@ void Source<Console::CTR>::TeardownAtomic()
         {
             this->decoder->Rewind();
 
-            for (auto& buffer : this->buffers)
-                buffer.status = NDSP_WBUF_DONE;
+            for (auto& info : this->buffers)
+                info.buffer.state = AudioDriverWaveBufState_Done;
 
             break;
         }
@@ -509,7 +504,7 @@ void Source<Console::CTR>::TeardownAtomic()
     this->samplesOffset = 0;
 }
 
-bool Source<Console::CTR>::PlayAtomic(ndspWaveBuf& waveBuffer)
+bool Source<Console::HAC>::PlayAtomic(AudioDriverWaveBuf& waveBuffer)
 {
     this->PrepareAtomic();
 
@@ -524,7 +519,7 @@ bool Source<Console::CTR>::PlayAtomic(ndspWaveBuf& waveBuffer)
     return true;
 }
 
-void Source<Console::CTR>::StopAtomic()
+void Source<Console::HAC>::StopAtomic()
 {
     if (!this->valid)
         return;
@@ -532,19 +527,19 @@ void Source<Console::CTR>::StopAtomic()
     this->TeardownAtomic();
 }
 
-void Source<Console::CTR>::PauseAtomic()
+void Source<Console::HAC>::PauseAtomic()
 {
     if (this->valid)
         ::DSP::Instance().ChannelPause(this->channel);
 }
 
-void Source<Console::CTR>::ResumeAtomic()
+void Source<Console::HAC>::ResumeAtomic()
 {
     if (this->valid)
         ::DSP::Instance().ChannelPause(this->channel, false);
 }
 
-bool Source<Console::CTR>::Play(const std::vector<Source*>& sources)
+bool Source<Console::HAC>::Play(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)
         return true;
@@ -604,7 +599,7 @@ bool Source<Console::CTR>::Play(const std::vector<Source*>& sources)
     return true;
 }
 
-void Source<Console::CTR>::Stop(const std::vector<Source*>& sources)
+void Source<Console::HAC>::Stop(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)
         return;
@@ -634,7 +629,7 @@ void Source<Console::CTR>::Stop(const std::vector<Source*>& sources)
     }
 }
 
-void Source<Console::CTR>::Pause(const std::vector<Source*>& sources)
+void Source<Console::HAC>::Pause(const std::vector<Source*>& sources)
 {
     if (sources.size() == 0)
         return;
@@ -651,7 +646,7 @@ void Source<Console::CTR>::Pause(const std::vector<Source*>& sources)
 }
 
 /* todo */
-std::vector<Source<Console::CTR>*> Source<Console::CTR>::Pause(AudioPool* pool)
+std::vector<Source<Console::HAC>*> Source<Console::HAC>::Pause(AudioPool* pool)
 {
     std::vector<Source*> sources;
 
@@ -670,7 +665,7 @@ std::vector<Source<Console::CTR>*> Source<Console::CTR>::Pause(AudioPool* pool)
     return sources;
 }
 
-void Source<Console::CTR>::Stop(AudioPool* pool)
+void Source<Console::HAC>::Stop(AudioPool* pool)
 {
     std::vector<Source*> sources;
 
@@ -682,7 +677,7 @@ void Source<Console::CTR>::Stop(AudioPool* pool)
     Source::Stop(sources);
 }
 
-int Source<Console::CTR>::GetChannelCount() const
+int Source<Console::HAC>::GetChannelCount() const
 {
     return this->channels;
 }

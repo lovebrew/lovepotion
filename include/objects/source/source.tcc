@@ -6,6 +6,9 @@
 
 #include <vector>
 
+#include <common/strongreference.hpp>
+#include <utilities/decoder/decoder.hpp>
+
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 namespace love
@@ -76,7 +79,9 @@ namespace love
 
           private:
             int16_t* buffer;
+
             size_t size;
+            size_t alignSize;
         };
 
         enum SourceType
@@ -96,7 +101,16 @@ namespace love
 
         static inline Type type = Type("Source", &Object::type);
 
-        Source(SourceType type) : sourceType(type)
+        Source(SourceType type) :
+            sourceType(type),
+            looping(false),
+            minVolume(1.0f),
+            maxVolume(1.0f),
+            volume(1.0f),
+            valid(false),
+            current(false),
+            samplesOffset(0.0),
+            channel(0)
         {}
 
         SourceType GetType() const
@@ -149,5 +163,21 @@ namespace love
         float minVolume;
         float maxVolume;
         float volume;
+
+        bool valid;
+        bool current;
+
+        StrongReference<Decoder> decoder;
+
+        int sampleRate;
+        int channels;
+        int bitDepth;
+
+        int bufferCount;
+        double samplesOffset;
+
+        size_t channel;
+
+        std::shared_ptr<DataBuffer> staticBuffer;
     };
 } // namespace love

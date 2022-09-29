@@ -174,15 +174,6 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
             {
                 auto types = Module()->GetActiveStyleSets();
 
-                for (size_t index = 0; index < this->previousGamepadTypes.size(); index++)
-                {
-                    if (std::find(types.begin(), types.end(), this->previousGamepadTypes[index]) ==
-                        types.end())
-                    {
-                        // this->SendJoystickUpdated(index);
-                    }
-                }
-
                 this->previousGamepadTypes = types;
 
                 auto ids = Module()->AcquireCurrentJoystickIds();
@@ -240,7 +231,7 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
                 }
 
                 /* handle trigger and stick inputs */
-                for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+                for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
                 {
                     const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
                     const auto axisValue = joystick->GetAxis(axis);

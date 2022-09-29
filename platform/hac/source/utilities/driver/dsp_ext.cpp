@@ -65,9 +65,13 @@ DSP<Console::HAC>::~DSP()
 
 void DSP<Console::HAC>::Update()
 {
-    std::unique_lock lock(this->mutex);
+    {
+        std::unique_lock lock(this->mutex);
 
-    audrvUpdate(&this->driver);
+        audrvUpdate(&this->driver);
+    }
+
+    audrenWaitFrame();
 }
 
 void DSP<Console::HAC>::SetMasterVolume(float volume)

@@ -29,8 +29,10 @@ namespace love
 
         struct AXWaveBuf
         {
-            uint8_t* data_pcm8;
+            int bitDepth;
+            uint32_t endSamples;
             uint16_t* data_pcm16;
+            bool looping;
         };
 
         DSP();
@@ -53,7 +55,7 @@ namespace love
 
         size_t ChannelGetSampleOffset(size_t id);
 
-        bool ChannelAddBuffer(size_t id);
+        bool ChannelAddBuffer(size_t id, AXWaveBuf* buffer);
 
         void ChannelPause(size_t id, bool paused = true);
 

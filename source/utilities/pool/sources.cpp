@@ -92,9 +92,6 @@ bool AudioPool::AssignSource(Source<Console::Which>* source, size_t& channel, ui
     channel = this->available.front();
     this->available.pop();
 
-    if (!Console::Is(Console::CTR))
-        this->AddSource(source, channel);
-
     return true;
 }
 

@@ -121,11 +121,6 @@ bool DSP<Console::CAFE>::ChannelReset(size_t id, int channels, int bitDepth, int
     AXSetVoiceSrcRatio(voice, ratio);
     AXSetVoiceSrcType(voice, AX_VOICE_SRC_TYPE_LINEAR);
 
-    AXVoiceOffsets offsets {};
-
-    offsets.dataType = (bitDepth == 8) ? AX_VOICE_FORMAT_LPCM8 : AX_VOICE_FORMAT_LPCM16;
-    AXSetVoiceOffsets(voice, &offsets);
-
     return false;
 }
 
@@ -166,13 +161,23 @@ size_t DSP<Console::CAFE>::ChannelGetSampleOffset(size_t id)
     return offsets.currentOffset;
 }
 
-bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id)
+bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id, AXWaveBuf* buffer)
 {
     auto* voice = this->FindVoice(id);
 
     if (!voice)
         return false;
 
+    AXVoiceOffsets offsets {};
+
+    offsets.dataType = (buffer->bitDepth == 8) ? AX_VOICE_FORMAT_LPCM8 : AX_VOICE_FORMAT_LPCM16;
+    offsets.loopingEnabled = (buffer->looping) ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED;
+    offsets.currentOffset  = 0;
+    offsets.data           = buffer->data_pcm16;
+    offsets.loopOffset     = 0;
+    offsets.endOffset      = buffer->endSamples;
+
+    AXSetVoiceOffsets(voice, &offsets);
     AXSetVoiceState(voice, AX_VOICE_STATE_PLAYING);
 
     return true;
