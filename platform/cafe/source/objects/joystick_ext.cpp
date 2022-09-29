@@ -550,8 +550,6 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
     if (!this->IsConnected())
         return false;
 
-    Joystick<>::JoystickInput input {};
-
     int count = this->GetButtonCount();
 
     for (auto& button : buttons)
@@ -577,7 +575,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
             {
                 const auto& entries = wpadButtons.GetEntries();
 
-                if (entries[button].second == (VPADButtons)-1)
+                if (entries[button].second == (WPADButton)-1)
                     continue;
 
                 if (this->buttonStates.held & entries[button].second)
@@ -589,7 +587,7 @@ bool Joystick<Console::CAFE>::IsDown(const std::vector<int>& buttons) const
             {
                 const auto& entries = wpadClassicButtons.GetEntries();
 
-                if (entries[button].second == (VPADButtons)-1)
+                if (entries[button].second == (WPADClassicButton)-1)
                     continue;
 
                 if (this->buttonStates.held & entries[button].second)

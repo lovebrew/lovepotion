@@ -16,11 +16,9 @@ static AXInitParams params = {
 };
 // clang-format on
 
-static OSEvent g_AudioEvent;
-
 static void audioCallback()
 {
-    OSSignalEvent(&g_AudioEvent);
+    DSP<Console::CAFE>::Instance().SignalEvent();
 }
 
 DSP<Console::CAFE>::DSP() : channels {}
@@ -34,7 +32,7 @@ void DSP<Console::CAFE>::Initialize()
     if (!AXIsInit())
         throw love::Exception("Failed to initialize AX!");
 
-    OSInitEvent(&g_AudioEvent, false, OS_EVENT_MODE_AUTO);
+    OSInitEvent(&this->event, false, OS_EVENT_MODE_MANUAL);
     AXRegisterAppFrameCallback(audioCallback);
 
     this->initialized = true;
@@ -50,13 +48,13 @@ DSP<Console::CAFE>::~DSP()
 
 void DSP<Console::CAFE>::Update()
 {
-    OSWaitEvent(&g_AudioEvent);
+    OSWaitEvent(&this->event);
 }
 
 void DSP<Console::CAFE>::SignalEvent()
 {
-    std::unique_lock lock(this->mutex);
     OSSignalEvent(&this->event);
+    OSResetEvent(&this->event);
 }
 
 void DSP<Console::CAFE>::SetMasterVolume(float volume)
@@ -118,6 +116,8 @@ bool DSP<Console::CAFE>::ChannelReset(size_t id, int channels, int bitDepth, int
                 AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, STEREO_MIX[channel]);
                 break;
             }
+            default:
+                return false;
         }
     }
 

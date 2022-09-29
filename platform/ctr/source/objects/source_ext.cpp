@@ -39,6 +39,7 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
 
 Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) : Source<>(TYPE_STREAM), pool(pool)
 {
+    this->decoder       = decoder;
     this->sampleRate    = decoder->GetSampleRate();
     this->channels      = decoder->GetChannelCount();
     this->bitDepth      = decoder->GetBitDepth();
