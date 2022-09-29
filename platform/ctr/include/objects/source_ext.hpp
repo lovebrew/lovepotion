@@ -97,7 +97,5 @@ namespace love
         AudioPool* pool;
 
         ndspWaveBuf buffers[2];
-
-        StrongReference<Decoder> decoder;
     };
 } // namespace love

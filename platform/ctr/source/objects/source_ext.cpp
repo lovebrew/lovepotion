@@ -37,10 +37,7 @@ Source<Console::CTR>::Source(AudioPool* pool, SoundData* soundData) :
     this->staticBuffer = std::make_shared<DataBuffer>(soundData->GetData(), soundData->GetSize());
 }
 
-Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
-    Source<>(TYPE_STREAM),
-    pool(pool),
-    decoder(decoder),
+Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) : Source<>(TYPE_STREAM), pool(pool)
 {
     this->sampleRate    = decoder->GetSampleRate();
     this->channels      = decoder->GetChannelCount();
@@ -60,7 +57,7 @@ Source<Console::CTR>::Source(AudioPool* pool, Decoder* decoder) :
 Source<Console::CTR>::Source(AudioPool* pool, int sampleRate, int bitDepth, int channels,
                              int buffers) :
     Source<>(TYPE_QUEUE),
-    pool(pool),
+    pool(pool)
 {
     this->sampleRate    = sampleRate;
     this->channels      = channels;

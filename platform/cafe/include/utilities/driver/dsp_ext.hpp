@@ -17,6 +17,14 @@ extern "C"
 
 namespace love
 {
+    struct AXWaveBuf
+    {
+        int bitDepth;
+        uint32_t endSamples;
+        uint16_t* data_pcm16;
+        bool looping;
+    };
+
     template<>
     class DSP<Console::CAFE> : public DSP<Console::ALL>
     {
@@ -26,14 +34,6 @@ namespace love
             static DSP instance;
             return instance;
         }
-
-        struct AXWaveBuf
-        {
-            int bitDepth;
-            uint32_t endSamples;
-            uint16_t* data_pcm16;
-            bool looping;
-        };
 
         DSP();
 
