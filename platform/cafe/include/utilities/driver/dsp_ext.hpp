@@ -85,11 +85,14 @@ namespace love
 
         bool IsChannelPlaying(size_t id);
 
+        void CheckChannelFinished(size_t id);
+
         void ChannelStop(size_t id);
 
         void SignalEvent();
 
       private:
+        love::mutex mutex;
         AXChannel axChannel[0x60];
         OSEvent event;
     };

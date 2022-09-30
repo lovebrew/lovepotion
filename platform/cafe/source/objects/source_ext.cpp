@@ -186,7 +186,7 @@ bool Source<Console::CAFE>::IsFinished() const
         return false;
 
     if (this->sourceType == TYPE_STATIC)
-        return this->buffers[0].state == AX_VOICE_STATE_STOPPED;
+        return this->buffers[0].state == ::DSP::STATE_FINISHED;
 
     return ::DSP::Instance().IsChannelPlaying(this->channel) == false;
 }
@@ -195,6 +195,8 @@ bool Source<Console::CAFE>::Update()
 {
     if (!this->valid)
         return false;
+
+    ::DSP::Instance().CheckChannelFinished(this->channel);
 
     switch (this->sourceType)
     {
@@ -490,7 +492,7 @@ void Source<Console::CAFE>::TeardownAtomic()
             this->decoder->Rewind();
 
             for (auto& buffer : this->buffers)
-                buffer.state = AX_VOICE_STATE_STOPPED;
+                buffer.state = ::DSP::STATE_FINISHED;
 
             break;
         }
