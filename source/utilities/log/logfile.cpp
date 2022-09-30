@@ -1,28 +1,57 @@
 #include <common/console.hpp>
+#include <utilities/threads/threads.hpp>
+
+#include <filesystem>
+#include <stdarg.h>
+#include <stdio.h>
+
 #include <utilities/log/logfile.h>
 
-LogFile::LogFile()
+using namespace love;
+
+static FILE* file = nullptr;
+static love::mutex fileMutex;
+static bool opened = false;
+
+constexpr const char* LOG_FORMAT = "%s(%zu:%zu): `%s`:\n%s\n\n";
+
+static void init(const char* filepath)
 {
-    this->file = fopen("love.log", "w");
+    const char* mode = (opened) ? "a" : "w";
+
+    file = fopen(filepath, mode);
+
+    if (!file)
+        fclose(file);
+    else
+        opened = true;
 }
 
-LogFile::~LogFile()
+static constexpr const char* getFilepath()
 {
-    fclose(this->file);
+    return (Console::Is(Console::CAFE)) ? "wiiu/apps/lovepotion/love.log" : "love.log";
 }
 
-void LogFile::LogOutput(const char* func, size_t line, const char* format, ...)
+void logFormat(std::source_location location, const char* format, ...)
 {
-    if (!this->file)
-        return;
+    std::unique_lock lock(fileMutex);
 
-    std::unique_lock lock(this->mutex);
+    init(getFilepath());
+
+    char buffer[256] { '\0' };
 
     va_list args;
-    va_start(args, format);
-    char buffer[255];
 
+    va_start(args, format);
     vsnprintf(buffer, sizeof(buffer), format, args);
-    fprintf(this->file, LOG_FORMAT, func, line, buffer);
-    fflush(this->file);
+    va_end(args);
+
+    std::filesystem::path filepath(location.file_name());
+
+    // clang-format off
+    fprintf(file, LOG_FORMAT, filepath.filename().c_str(), location.line(), location.column(), location.function_name(), buffer);
+    fflush(file);
+    // clang-format on
+
+    fclose(file);
 }

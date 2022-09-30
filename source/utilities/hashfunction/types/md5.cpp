@@ -23,8 +23,8 @@ void MD5::Hash(Function function, const char* input, uint64_t length, Value& out
 
     uint8_t* padded = new uint8_t[paddedLength + 8];
 
-    memcpy(padded, input, length);
-    memset(padded + length, 0, paddedLength - length);
+    std::memcpy(padded, input, length);
+    std::memset(padded + length, 0, paddedLength - length);
 
     padded[length] = 0x80;
 
@@ -82,10 +82,10 @@ void MD5::Hash(Function function, const char* input, uint64_t length, Value& out
 
     delete[] padded;
 
-    memcpy(&output.data[0], &a0, 4);
-    memcpy(&output.data[4], &b0, 4);
-    memcpy(&output.data[8], &c0, 4);
-    memcpy(&output.data[12], &d0, 4);
+    std::memcpy(&output.data[0], &a0, 4);
+    std::memcpy(&output.data[4], &b0, 4);
+    std::memcpy(&output.data[8], &c0, 4);
+    std::memcpy(&output.data[12], &d0, 4);
 
     output.size = 16;
 }

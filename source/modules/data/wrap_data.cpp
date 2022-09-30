@@ -365,7 +365,7 @@ int Wrap_DataModule::Pack(lua_State* L)
         Data* data = nullptr;
 
         luax::CatchException(L, [&]() { data = instance()->NewByteData(buffer.nelems); });
-        memcpy(data->GetData(), buffer.ptr, data->GetSize());
+        std::memcpy(data->GetData(), buffer.ptr, data->GetSize());
 
         lua53_cleanupbuffer(&buffer);
 

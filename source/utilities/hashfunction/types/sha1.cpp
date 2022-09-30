@@ -2,14 +2,12 @@
 
 using namespace love;
 
-void SHA1::Hash(Function function, const char* input, uint64_t length,
-                Value& output) const
+void SHA1::Hash(Function function, const char* input, uint64_t length, Value& output) const
 {
     if (function != FUNCTION_SHA1)
         throw love::Exception("Hash function not supported by SHA1 implementation");
 
-    uint32_t intermediate[5] = { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476,
-                                 0xC3D2E1F0 };
+    uint32_t intermediate[5] = { 0x67452301, 0xEFCDAB89, 0x98BADCFE, 0x10325476, 0xC3D2E1F0 };
 
     // Do the required padding (MD5, SHA1 and SHA2 use the same padding)
     uint64_t paddedLength = length + 1; // Consider the appended bit
@@ -22,8 +20,8 @@ void SHA1::Hash(Function function, const char* input, uint64_t length,
 
     uint8_t* padded = new uint8_t[paddedLength + 8];
 
-    memcpy(padded, input, length);
-    memset(padded + length, 0, paddedLength - length);
+    std::memcpy(padded, input, length);
+    std::memset(padded + length, 0, paddedLength - length);
 
     padded[length] = 0x80;
 
@@ -49,8 +47,7 @@ void SHA1::Hash(Function function, const char* input, uint64_t length,
         }
 
         for (int j = 16; j < 80; j++)
-            words[j] =
-                leftrot(words[j - 3] ^ words[j - 8] ^ words[j - 14] ^ words[j - 16], 1);
+            words[j] = leftrot(words[j - 3] ^ words[j - 8] ^ words[j - 14] ^ words[j - 16], 1);
 
         uint32_t A = intermediate[0];
         uint32_t B = intermediate[1];

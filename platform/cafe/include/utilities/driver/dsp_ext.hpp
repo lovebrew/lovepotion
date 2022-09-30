@@ -20,16 +20,36 @@ namespace love
     struct AXWaveBuf
     {
         int bitDepth;
+        int channels;
+        uint8_t state;
         uint32_t endSamples;
         int16_t* data_pcm16;
-        AXVoiceState state;
         bool looping;
+
+        AXWaveBuf* next;
+    };
+
+    struct AXChannel
+    {
+        uint8_t state;
+
+        AXVoice* voice;
+        AXWaveBuf* buffer;
     };
 
     template<>
     class DSP<Console::CAFE> : public DSP<Console::ALL>
     {
       public:
+        enum PlayState : uint8_t
+        {
+            STATE_STOPPED = AX_VOICE_STATE_STOPPED,
+            STATE_PLAYING = AX_VOICE_STATE_PLAYING,
+            STATE_QUEUED,
+            STATE_PAUSED,
+            STATE_FINISHED
+        };
+
         static DSP& Instance()
         {
             static DSP instance;
@@ -69,10 +89,7 @@ namespace love
         void SignalEvent();
 
       private:
-        love::mutex mutex;
-        std::map<size_t, AXVoice*> channels;
+        AXChannel axChannel[0x60];
         OSEvent event;
-
-        AXVoice* FindVoice(size_t channel);
     };
 } // namespace love

@@ -73,7 +73,8 @@
       "mutex": "cpp",
       "semaphore": "cpp",
       "stop_token": "cpp",
-      "thread": "cpp"
+      "thread": "cpp",
+      "source_location": "cpp"
     },
     "terminal.integrated.defaultProfile.windows": "msys2",
     "yaml.schemas": {

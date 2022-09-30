@@ -2,8 +2,8 @@
 
 using namespace love;
 
-char* ZlibCompressor::Compress(Compressor::Format format, const char* data, size_t size,
-                               int level, size_t& compressedSize)
+char* ZlibCompressor::Compress(Compressor::Format format, const char* data, size_t size, int level,
+                               size_t& compressedSize)
 {
     if (!this->IsSupported(format))
         throw love::Exception("Invalid format (expected zlib or gzip).");
@@ -49,7 +49,7 @@ char* ZlibCompressor::Compress(Compressor::Format format, const char* data, size
 
         if (compressionBytes)
         {
-            memcpy(compressionBytes, compressedBytes, destinationLength);
+            std::memcpy(compressionBytes, compressedBytes, destinationLength);
             delete[] compressedBytes;
             compressedBytes = compressionBytes;
         }
@@ -110,8 +110,8 @@ char* ZlibCompressor::Decompress(Compressor::Format format, const char* data, si
 
 uLong ZlibCompressor::zlibCompressBound(Compressor::Format format, uLong sourceLength)
 {
-    uLong size = sourceLength + (sourceLength >> 12) + (sourceLength >> 14) +
-                 (sourceLength >> 25) + 13;
+    uLong size =
+        sourceLength + (sourceLength >> 12) + (sourceLength >> 14) + (sourceLength >> 25) + 13;
 
     if (format == FORMAT_GZIP)
         size += 18 - 6;
@@ -120,8 +120,8 @@ uLong ZlibCompressor::zlibCompressBound(Compressor::Format format, uLong sourceL
 }
 
 int ZlibCompressor::zlibCompress(Compressor::Format format, Bytef* destination,
-                                 uLongf* destinationLength, const Bytef* source,
-                                 uLong sourceLength, int level)
+                                 uLongf* destinationLength, const Bytef* source, uLong sourceLength,
+                                 int level)
 {
     z_stream stream {};
 
@@ -138,8 +138,7 @@ int ZlibCompressor::zlibCompress(Compressor::Format format, Bytef* destination,
     else if (format == FORMAT_DEFLATE)
         windowBits = -windowBits;
 
-    int error =
-        deflateInit2(&stream, level, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
+    int error = deflateInit2(&stream, level, Z_DEFLATED, windowBits, 8, Z_DEFAULT_STRATEGY);
 
     if (error != Z_OK)
         return error;

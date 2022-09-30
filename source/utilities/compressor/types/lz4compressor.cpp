@@ -2,8 +2,8 @@
 
 using namespace love;
 
-char* LZ4Compressor::Compress(Compressor::Format format, const char* data, size_t size,
-                              int level, size_t& compressedSize)
+char* LZ4Compressor::Compress(Compressor::Format format, const char* data, size_t size, int level,
+                              size_t& compressedSize)
 {
     if (format != Compressor::FORMAT_LZ4)
         throw love::Exception("Invalid format (expected LZ4)");
@@ -36,8 +36,8 @@ char* LZ4Compressor::Compress(Compressor::Format format, const char* data, size_
         compressionSize = LZ4_compress_HC(data, compressedBytes + headerSize, (int)size,
                                           maxDestinationSize, LZ4HC_CLEVEL_DEFAULT);
     else
-        compressionSize = LZ4_compress_default(data, compressedBytes + headerSize,
-                                               (int)size, maxDestinationSize);
+        compressionSize =
+            LZ4_compress_default(data, compressedBytes + headerSize, (int)size, maxDestinationSize);
 
     if (compressionSize <= 0)
     {
@@ -57,7 +57,7 @@ char* LZ4Compressor::Compress(Compressor::Format format, const char* data, size_
 
         if (compressionBytes)
         {
-            memcpy(compressionBytes, compressedBytes, compressionSize + headerSize);
+            std::memcpy(compressionBytes, compressedBytes, compressionSize + headerSize);
             delete[] compressedBytes;
             compressedBytes = compressionBytes;
         }
@@ -111,8 +111,8 @@ char* LZ4Compressor::Decompress(Compressor::Format format, const char* data, siz
     else
     {
         // We do care for the header here, account for its size
-        int result = LZ4_decompress_safe(data + headerSize, rawBytes,
-                                         (int)(size - headerSize), rawSize);
+        int result =
+            LZ4_decompress_safe(data + headerSize, rawBytes, (int)(size - headerSize), rawSize);
 
         if (result < 0)
         {

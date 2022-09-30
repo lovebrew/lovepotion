@@ -2,12 +2,10 @@
 
 using namespace love;
 
-void SHA256::Hash(Function function, const char* input, uint64_t length,
-                  Value& output) const
+void SHA256::Hash(Function function, const char* input, uint64_t length, Value& output) const
 {
     if (!IsSupported(function))
-        throw love::Exception(
-            "Hash function not supported by SHA-224/SHA-256 implementation");
+        throw love::Exception("Hash function not supported by SHA-224/SHA-256 implementation");
 
     // Do the required padding (MD5, SHA1 and SHA2 use the same padding)
     uint64_t paddedLength = length + 1; // Consider the appended bit
@@ -20,8 +18,8 @@ void SHA256::Hash(Function function, const char* input, uint64_t length,
 
     uint8_t* padded = new uint8_t[paddedLength + 8];
 
-    memcpy(padded, input, length);
-    memset(padded + length, 0, paddedLength - length);
+    std::memcpy(padded, input, length);
+    std::memset(padded + length, 0, paddedLength - length);
 
     padded[length] = 0x80;
 
@@ -33,9 +31,9 @@ void SHA256::Hash(Function function, const char* input, uint64_t length,
     uint32_t intermediate[8];
 
     if (function == FUNCTION_SHA224)
-        memcpy(intermediate, initial224, sizeof(intermediate));
+        std::memcpy(intermediate, initial224, sizeof(intermediate));
     else
-        memcpy(intermediate, initial256, sizeof(intermediate));
+        std::memcpy(intermediate, initial256, sizeof(intermediate));
 
     // Allocate our extended words
     uint32_t words[64];

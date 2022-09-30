@@ -2,19 +2,17 @@
 
 using namespace love;
 
-void SHA512::Hash(Function function, const char* input, uint64_t length,
-                  Value& output) const
+void SHA512::Hash(Function function, const char* input, uint64_t length, Value& output) const
 {
     if (!IsSupported(function))
-        throw love::Exception(
-            "Hash function not supported by SHA-384/SHA-512 implementation");
+        throw love::Exception("Hash function not supported by SHA-384/SHA-512 implementation");
 
     uint64_t intermediates[8];
 
     if (function == FUNCTION_SHA384)
-        memcpy(intermediates, initial384, sizeof(intermediates));
+        std::memcpy(intermediates, initial384, sizeof(intermediates));
     else
-        memcpy(intermediates, initial512, sizeof(intermediates));
+        std::memcpy(intermediates, initial512, sizeof(intermediates));
 
     // Do the required padding
     uint64_t paddedLength = length + 1; // Consider the appended bit
@@ -29,8 +27,8 @@ void SHA512::Hash(Function function, const char* input, uint64_t length,
 
     paddedLength += 8;
 
-    memcpy(padded, input, length);
-    memset(padded + length, 0, paddedLength - length);
+    std::memcpy(padded, input, length);
+    std::memset(padded + length, 0, paddedLength - length);
 
     padded[length] = 0x80;
 

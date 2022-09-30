@@ -7,6 +7,8 @@
 #include <sndcore2/device.h>
 #include <sndcore2/drcvs.h>
 
+#include <utilities/log/logfile.h>
+
 using namespace love;
 
 // clang-format off
@@ -21,7 +23,7 @@ static void audioCallback()
     DSP<Console::CAFE>::Instance().SignalEvent();
 }
 
-DSP<Console::CAFE>::DSP() : channels {}
+DSP<Console::CAFE>::DSP()
 {}
 
 void DSP<Console::CAFE>::Initialize()
@@ -35,6 +37,8 @@ void DSP<Console::CAFE>::Initialize()
     OSInitEvent(&this->event, false, OS_EVENT_MODE_MANUAL);
     AXRegisterAppFrameCallback(audioCallback);
 
+    std::fill_n(this->axChannel, 0x60, AXChannel {});
+
     this->initialized = true;
 }
 
@@ -42,6 +46,8 @@ DSP<Console::CAFE>::~DSP()
 {
     if (!this->initialized)
         return;
+
+    AXDeregisterAppFrameCallback(audioCallback);
 
     AXQuit();
 }
@@ -69,51 +75,37 @@ float DSP<Console::CAFE>::GetMasterVolume() const
     return volume / (float)0x8000;
 }
 
-AXVoice* DSP<Console::CAFE>::FindVoice(size_t channel)
-{
-    auto iterator = this->channels.find(channel);
-
-    if (iterator == this->channels.end())
-        return nullptr;
-
-    return iterator->second;
-}
-
 bool DSP<Console::CAFE>::ChannelReset(size_t id, int channels, int bitDepth, int sampleRate)
 {
-    auto* voice = this->FindVoice(id);
+    AXChannel* channel = &axChannel[id];
 
-    if (!voice)
-    {
-        voice = AXAcquireVoice(31, nullptr, nullptr);
+    if (!channel->voice)
+        channel->voice = AXAcquireVoice(31, nullptr, nullptr);
 
-        if (!voice)
-            return false;
+    AXVoiceBegin(channel->voice);
+    AXSetVoiceType(channel->voice, AX_VOICE_TYPE_UNKNOWN);
 
-        this->channels.insert(std::make_pair(id, voice));
-    }
+    AXVoiceVeData data {};
+    data.volume = 0x8000;
 
-    AXVoiceBegin(voice);
-    AXSetVoiceType(voice, 0);
-
-    this->ChannelSetVolume(id, this->ChannelGetVolume(id));
+    AXSetVoiceVe(channel->voice, &data);
 
     AudioFormat format = (channels == 2) ? FORMAT_STEREO : FORMAT_MONO;
 
-    for (int channel = 0; channel < channels; channel++)
+    for (int mixId = 0; mixId < channels; mixId++)
     {
         switch (format)
         {
             case FORMAT_MONO:
             {
-                AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, MONO_MIX[channel]);
-                AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, MONO_MIX[channel]);
+                AXSetVoiceDeviceMix(channel->voice, AX_DEVICE_TYPE_DRC, 0, MONO_MIX[mixId]);
+                AXSetVoiceDeviceMix(channel->voice, AX_DEVICE_TYPE_TV, 0, MONO_MIX[mixId]);
                 break;
             }
             case FORMAT_STEREO:
             {
-                AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_DRC, 0, STEREO_MIX[channel]);
-                AXSetVoiceDeviceMix(voice, AX_DEVICE_TYPE_TV, 0, STEREO_MIX[channel]);
+                AXSetVoiceDeviceMix(channel->voice, AX_DEVICE_TYPE_DRC, 0, STEREO_MIX[mixId]);
+                AXSetVoiceDeviceMix(channel->voice, AX_DEVICE_TYPE_TV, 0, STEREO_MIX[mixId]);
                 break;
             }
             default:
@@ -122,55 +114,64 @@ bool DSP<Console::CAFE>::ChannelReset(size_t id, int channels, int bitDepth, int
     }
 
     float ratio = sampleRate / (float)AXGetInputSamplesPerSec();
-    AXSetVoiceSrcRatio(voice, ratio);
-    AXSetVoiceSrcType(voice, AX_VOICE_SRC_TYPE_LINEAR);
+    AXSetVoiceSrcRatio(channel->voice, ratio);
+    AXSetVoiceSrcType(channel->voice, AX_VOICE_SRC_TYPE_LINEAR);
+    AXVoiceEnd(channel->voice);
 
-    return false;
+    return true;
 }
 
 void DSP<Console::CAFE>::ChannelSetVolume(size_t id, float volume)
 {
-    auto* voice = this->FindVoice(id);
-
-    if (!voice)
-        return;
+    AXChannel* channel = &axChannel[id];
 
     AXVoiceVeData data {};
     data.volume = (int16_t)(volume * 0x8000);
-    data.delta  = (int16_t)(volume * 0xFFFF) & 0xFFFF;
 
-    AXSetVoiceVe(voice, &data);
+    AXVoiceBegin(channel->voice);
+    AXSetVoiceVe(channel->voice, &data);
+    AXVoiceEnd(channel->voice);
 }
 
 float DSP<Console::CAFE>::ChannelGetVolume(size_t id)
 {
-    auto* voice = this->FindVoice(id);
+    AXChannel* channel = &axChannel[id];
 
-    if (!voice)
-        return 0.0f;
-
-    return voice->volume;
+    return (float)channel->voice->volume / (float)0x8000;
 }
 
 size_t DSP<Console::CAFE>::ChannelGetSampleOffset(size_t id)
 {
-    auto* voice = this->FindVoice(id);
-
-    if (!voice)
-        return 0;
-
+    AXChannel* channel = &axChannel[id];
     AXVoiceOffsets offsets {};
-    AXGetVoiceOffsets(voice, &offsets);
+
+    AXVoiceBegin(channel->voice);
+    AXGetVoiceOffsets(channel->voice, &offsets);
+    AXVoiceEnd(channel->voice);
 
     return offsets.currentOffset;
 }
 
 bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id, AXWaveBuf* buffer)
 {
-    auto* voice = this->FindVoice(id);
+    AXChannel* channel = &axChannel[id];
 
-    if (!voice)
+    if (buffer->state == STATE_QUEUED || buffer->state == STATE_PLAYING)
         return false;
+
+    buffer->next   = nullptr;
+    buffer->state  = STATE_QUEUED;
+    auto* callback = channel->buffer;
+
+    if (callback)
+    {
+        while (callback->next)
+            callback = callback->next;
+
+        callback->next = buffer;
+    }
+    else
+        channel->buffer = buffer;
 
     AXVoiceOffsets offsets {};
 
@@ -181,52 +182,58 @@ bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id, AXWaveBuf* buffer)
     offsets.loopOffset     = 0;
     offsets.endOffset      = buffer->endSamples;
 
-    AXSetVoiceOffsets(voice, &offsets);
-    AXSetVoiceState(voice, AX_VOICE_STATE_PLAYING);
+    AXVoiceBegin(channel->voice);
+    AXSetVoiceOffsets(channel->voice, &offsets);
+    AXSetVoiceState(channel->voice, AX_VOICE_STATE_PLAYING);
+    AXVoiceEnd(channel->voice);
+
+    channel->state = STATE_QUEUED;
 
     return true;
 }
 
 void DSP<Console::CAFE>::ChannelPause(size_t id, bool paused)
 {
-    AXVoice* voice = this->FindVoice(id);
-
-    if (!voice)
-        return;
+    AXChannel* channel = &axChannel[id];
 
     AXVoiceState pausedState = (paused) ? AX_VOICE_STATE_STOPPED : AX_VOICE_STATE_PLAYING;
 
-    AXSetVoiceState(voice, pausedState);
+    channel->state         = (paused) ? STATE_PAUSED : STATE_PLAYING;
+    channel->buffer->state = channel->state;
+
+    AXVoiceBegin(channel->voice);
+    AXSetVoiceState(channel->voice, pausedState);
+    AXVoiceEnd(channel->voice);
 }
 
 bool DSP<Console::CAFE>::IsChannelPaused(size_t id)
 {
-    AXVoice* voice = this->FindVoice(id);
+    AXChannel* channel = &axChannel[id];
 
-    if (!voice)
-        return false;
-
-    return voice->state == AX_VOICE_STATE_STOPPED;
+    return channel->state == STATE_PAUSED;
 }
 
 bool DSP<Console::CAFE>::IsChannelPlaying(size_t id)
 {
-    AXVoice* voice = this->FindVoice(id);
+    AXChannel* channel = &axChannel[id];
+    bool running       = false;
 
-    if (!voice)
-        return false;
+    AXVoiceBegin(channel->voice);
+    running = AXIsVoiceRunning(channel->voice);
+    AXVoiceEnd(channel->voice);
 
-    return voice->state == AX_VOICE_STATE_PLAYING;
+    return running;
 }
 
 void DSP<Console::CAFE>::ChannelStop(size_t id)
 {
-    AXVoice* voice = this->FindVoice(id);
+    AXChannel* channel = &axChannel[id];
 
-    if (!voice)
-        return;
+    if (channel->voice)
+        AXFreeVoice(channel->voice);
 
-    AXVoiceEnd(voice);
-    AXFreeVoice(voice);
-    this->channels.erase(id);
+    if (channel->buffer)
+        channel->buffer->state = STATE_FINISHED;
+
+    channel->state = STATE_FINISHED;
 }
