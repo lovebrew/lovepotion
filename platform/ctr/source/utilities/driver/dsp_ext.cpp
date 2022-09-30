@@ -25,8 +25,10 @@ void DSP<Console::CTR>::Initialize()
 
 DSP<Console::CTR>::~DSP()
 {
-    if (this->initialized)
-        ndspExit();
+    if (!this->initialized)
+        return;
+
+    ndspExit();
 }
 
 void DSP<Console::CTR>::Update()

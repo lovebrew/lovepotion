@@ -32,8 +32,9 @@ namespace love
     struct AXChannel
     {
         uint8_t state;
+        int channels;
 
-        AXVoice* voice;
+        AXVoice* voices[0x02];
         AXWaveBuf* buffer;
     };
 
