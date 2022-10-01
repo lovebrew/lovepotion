@@ -14,7 +14,7 @@ using namespace love;
 // clang-format off
 static AXInitParams params = {
     .renderer = AX_INIT_RENDERER_48KHZ,
-    .pipeline = AX_INIT_PIPELINE_SINGLE
+    .pipeline = AX_INIT_PIPELINE_FOUR_STAGE
 };
 // clang-format on
 
@@ -35,8 +35,7 @@ void DSP<Console::CAFE>::Initialize()
         throw love::Exception("Failed to initialize AX!");
 
     OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
-    auto result = AXRegisterAppFrameCallback(audioCallback);
-    LOG("AXRegisterAppFrameCallback: %d", result);
+    AXRegisterAppFrameCallback(audioCallback);
 
     std::fill_n(this->axChannel, 0x60, AXChannel {});
 
@@ -96,16 +95,17 @@ bool DSP<Console::CAFE>::ChannelReset(size_t id, int channels, int bitDepth, int
 
         if (format == FORMAT_MONO)
         {
-            AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_DRC, 0, MONO_MIX[mixId]);
             AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_TV, 0, MONO_MIX[mixId]);
+            AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_DRC, 0, MONO_MIX[mixId]);
         }
         else if (format == FORMAT_STEREO)
         {
-            AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_DRC, 0, STEREO_MIX[mixId]);
-            AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_TV, 0, STEREO_MIX[mixId]);
+            AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_TV, 0, STEREO_MIX);
+            AXSetVoiceDeviceMix(channel->voices[mixId], AX_DEVICE_TYPE_DRC, 0, STEREO_MIX);
         }
 
-        float ratio = sampleRate / (float)AXGetInputSamplesPerSec();
+        float ratio = (sampleRate / (float)AXGetInputSamplesPerSec()) * channels;
+
         AXSetVoiceSrcRatio(channel->voices[mixId], ratio);
         AXSetVoiceSrcType(channel->voices[mixId], AX_VOICE_SRC_TYPE_LINEAR);
 
@@ -175,19 +175,21 @@ bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id, AXWaveBuf* buffer)
     else
         channel->buffer = buffer;
 
+    AXVoiceOffsets offsets {};
+    auto format  = (buffer->bitDepth == 8) ? AX_VOICE_FORMAT_LPCM8 : AX_VOICE_FORMAT_LPCM16;
+    auto looping = (buffer->looping) ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED;
+
     for (int mixId = 0; mixId < channel->channels; mixId++)
     {
-        AXVoiceOffsets offsets {};
-
-        offsets.dataType = (buffer->bitDepth == 8) ? AX_VOICE_FORMAT_LPCM8 : AX_VOICE_FORMAT_LPCM16;
-        offsets.loopingEnabled = (buffer->looping) ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED;
+        offsets.dataType       = format;
+        offsets.loopingEnabled = looping;
         offsets.currentOffset  = 0;
         offsets.data           = buffer->data_pcm16;
         offsets.loopOffset     = 0;
+        offsets.endOffset      = buffer->endSamples * channel->channels;
 
         AXVoiceBegin(channel->voices[mixId]);
         AXSetVoiceOffsets(channel->voices[mixId], &offsets);
-        AXSetVoiceEndOffset(channel->voices[mixId], buffer->endSamples);
         AXSetVoiceState(channel->voices[mixId], AX_VOICE_STATE_PLAYING);
         AXVoiceEnd(channel->voices[mixId]);
     }
@@ -237,19 +239,20 @@ bool DSP<Console::CAFE>::IsChannelPlaying(size_t id)
     return running;
 }
 
-void DSP<Console::CAFE>::CheckChannelFinished(size_t id)
+void DSP<Console::CAFE>::CheckChannelFinished(size_t id, size_t voiceBuffer)
 {
-    if (this->IsChannelPlaying(id))
-        return;
+    AXChannel* channel = &axChannel[id];
+    bool running       = false;
 
+    AXVoiceBegin(channel->voices[voiceBuffer]);
+    running = AXIsVoiceRunning(channel->voices[voiceBuffer]);
+    AXVoiceEnd(channel->voices[voiceBuffer]);
+
+    if (!running)
     {
-        AXChannel* channel = &axChannel[id];
-
-        channel->state         = STATE_FINISHED;
-        channel->buffer->state = STATE_FINISHED;
-
-        for (int mixId = 0; mixId < channel->channels; mixId++)
-            channel->voices[mixId]->state = STATE_FINISHED;
+        channel->state                      = STATE_FINISHED;
+        channel->buffer->state              = STATE_FINISHED;
+        channel->voices[voiceBuffer]->state = STATE_FINISHED;
     }
 }
 

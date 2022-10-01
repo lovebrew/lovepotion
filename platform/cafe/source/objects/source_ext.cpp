@@ -16,7 +16,7 @@ Source<Console::CAFE>::DataBuffer::DataBuffer(const void* data, size_t size) : s
     this->buffer = (int16_t*)malloc(size);
     std::memcpy(this->buffer, (int16_t*)data, size);
 
-    DCStoreRange(this->buffer, this->size);
+    DCFlushRange(this->buffer, this->size);
 }
 
 template<>
@@ -151,9 +151,7 @@ bool Source<Console::CAFE>::Play()
 }
 
 void Source<Console::CAFE>::Reset()
-{
-    ::DSP::Instance().ChannelReset(this->channel, this->channels, this->bitDepth, this->sampleRate);
-}
+{}
 
 void Source<Console::CAFE>::Stop()
 {
@@ -196,8 +194,6 @@ bool Source<Console::CAFE>::Update()
     if (!this->valid)
         return false;
 
-    ::DSP::Instance().CheckChannelFinished(this->channel);
-
     switch (this->sourceType)
     {
         case TYPE_STATIC:
@@ -208,6 +204,8 @@ bool Source<Console::CAFE>::Update()
                 return false;
 
             bool other = !this->current;
+            ::DSP::Instance().CheckChannelFinished(this->channel, other);
+
             if (this->buffers[other].state == ::DSP::STATE_FINISHED)
             {
                 int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
@@ -426,7 +424,7 @@ int Source<Console::CAFE>::GetFreeBufferCount() const
 
 void Source<Console::CAFE>::PrepareAtomic()
 {
-    this->Reset();
+    ::DSP::Instance().ChannelReset(this->channel, this->channels, this->bitDepth, this->sampleRate);
 
     switch (this->sourceType)
     {
@@ -469,7 +467,7 @@ int Source<Console::CAFE>::StreamAtomic(AXWaveBuf& buffer, Decoder* decoder)
         buffer.bitDepth   = this->bitDepth;
         buffer.endSamples = (int)((decoded / this->channels) / (this->bitDepth / 8));
 
-        DCStoreRange(buffer.data_pcm16, decoded);
+        DCFlushRange(buffer.data_pcm16, decoded);
     }
 
     if (decoder->IsFinished() && this->IsLooping())

@@ -24,7 +24,7 @@ int Wrap_Audio::NewSource(lua_State* L)
     {
         if (!luax::IsType(L, 1, Decoder::type))
         {
-            auto* typeName = luaL_checkstring(L, 2);
+            auto* typeName = lua_isnoneornil(L, 2) ? "stream" : luaL_checkstring(L, 2);
             if (auto found = ::Source::sourceTypes.Find(typeName))
                 type = *found;
             else

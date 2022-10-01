@@ -22,6 +22,7 @@ namespace love
         int bitDepth;
         int channels;
         uint8_t state;
+        uint32_t size;
         uint32_t endSamples;
         int16_t* data_pcm16;
         bool looping;
@@ -85,7 +86,7 @@ namespace love
 
         bool IsChannelPlaying(size_t id);
 
-        void CheckChannelFinished(size_t id);
+        void CheckChannelFinished(size_t id, size_t voiceBuffer);
 
         void ChannelStop(size_t id);
 

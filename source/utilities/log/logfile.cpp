@@ -17,9 +17,10 @@ constexpr const char* LOG_FORMAT = "%s(%zu:%zu): `%s`:\n%s\n\n";
 
 static void init(const char* filepath)
 {
-    const char* mode = (opened) ? "a" : "w";
+    if (opened)
+        return;
 
-    file = fopen(filepath, mode);
+    file = fopen(filepath, "w");
 
     if (!file)
         fclose(file);
@@ -52,6 +53,4 @@ void logFormat(std::source_location location, const char* format, ...)
     fprintf(file, LOG_FORMAT, filepath.filename().c_str(), location.line(), location.column(), location.function_name(), buffer);
     fflush(file);
     // clang-format on
-
-    fclose(file);
 }
