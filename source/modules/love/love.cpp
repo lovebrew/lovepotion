@@ -1,8 +1,8 @@
 #include <common/luax.hpp>
 #include <common/version.hpp>
 
-#include <luahttps/common/HTTPSCommon.h>
-#include <luasocket/luasocket.h>
+// #include <common/HTTPSCommon.h>
+#include <luasocket.h>
 
 #include <modules/love/love.hpp>
 
@@ -121,7 +121,7 @@ int love::Initialize(lua_State* L)
 
     love::luasocket::__open(L);
 
-    luax::Preload(L, luaopen_https, "https");
+    // luax::Preload(L, luaopen_https, "https");
     luax::Preload(L, luaopen_luautf8, "utf8");
 
     return 1;
@@ -129,10 +129,10 @@ int love::Initialize(lua_State* L)
 
 int love::GetVersion(lua_State* L)
 {
-    lua_pushinteger(L, version::LOVE_FRAMEWORK.major);
-    lua_pushinteger(L, version::LOVE_FRAMEWORK.minor);
-    lua_pushinteger(L, version::LOVE_FRAMEWORK.micro);
-    lua_pushstring(L, version::CODENAME);
+    lua_pushinteger(L, LOVE_FRAMEWORK.major);
+    lua_pushinteger(L, LOVE_FRAMEWORK.minor);
+    lua_pushinteger(L, LOVE_FRAMEWORK.micro);
+    lua_pushstring(L, CODENAME);
 
     return 4;
 }

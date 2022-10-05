@@ -10,6 +10,9 @@ namespace love
     struct Version
     {
       public:
+        constexpr Version() : major(0), minor(0), micro(0)
+        {}
+
         constexpr Version(std::string_view v) : major(0), minor(0), micro(0)
         {
             auto nposzero = [](size_t x) { return x == std::string_view::npos ? 0 : x; };
@@ -68,7 +71,7 @@ namespace love
 
             return value;
         }
-    }
+    };
 
     static constexpr Version LOVE_POTION(__APP_VERSION__);
     static constexpr Version LOVE_FRAMEWORK(__LOVE_VERSION__);
