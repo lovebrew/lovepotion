@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/driver/dsp.tcc>
 
 #include <3ds.h>
@@ -44,11 +45,21 @@ namespace love
 
         size_t ChannelGetSampleOffset(size_t id) const;
 
+        // clang-format off
+        static constexpr BidirectionalMap audioFormats = {
+          0x08, NDSP_ENCODING_PCM8,
+          0x10, NDSP_ENCODING_PCM16
+        };
+
+        static constexpr BidirectionalMap interpTypes = {
+          0x01, NDSP_INTERP_LINEAR,
+          0x02, NDSP_INTERP_POLYPHASE
+        };
+        // clang-format on
+
+        static int8_t GetFormat(int bitDepth, int channels);
+
       private:
         LightEvent event;
-
-        static void GetChannelFormat(AudioFormat format, int bitDepth, uint8_t& out);
-
-        static bool GetInterpType(AudioFormat format, ndspInterpType& out);
     };
 } // namespace love

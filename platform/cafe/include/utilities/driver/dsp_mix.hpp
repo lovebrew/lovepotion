@@ -8,7 +8,8 @@
 #define MIX_STEREO 2
 
 // clang-format off
-static AXVoiceDeviceMixData STEREO_MIX[AX_NUM_CHANNELS] = {
+static AXVoiceDeviceMixData STEREO_MIX[AX_NUM_CHANNELS] =
+{
     { .bus = { { .volume = 0x8000 } } }, //< AX_CHANNEL_LEFT,
     { .bus = { { .volume = 0x8000 } } } //< AX_CHANNEL_RIGHT
 };

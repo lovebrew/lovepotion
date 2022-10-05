@@ -1,5 +1,6 @@
 #pragma once
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/driver/dsp.tcc>
 #include <utilities/threads/threads.hpp>
 
@@ -46,6 +47,15 @@ namespace love
         bool IsChannelPlaying(size_t id);
 
         void ChannelStop(size_t id);
+
+        // clang-format off
+        static constexpr BidirectionalMap audioFormats = {
+            0x08, PcmFormat_Int8,
+            0x10, PcmFormat_Int16
+        };
+        // clang-format on
+
+        static int8_t GetFormat(int bitDepth, int channels);
 
       private:
         love::mutex mutex;

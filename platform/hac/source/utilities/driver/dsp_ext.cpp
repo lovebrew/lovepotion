@@ -91,7 +91,9 @@ bool DSP<Console::HAC>::ChannelReset(size_t channel, int channels, int bitDepth,
 {
     std::unique_lock lock(this->mutex);
 
-    PcmFormat format = (bitDepth == 8) ? PcmFormat_Int8 : PcmFormat_Int16;
+    PcmFormat format = PcmFormat_Invalid;
+    if (!(format = (PcmFormat)DSP::GetFormat(bitDepth, channels)))
+        return false;
 
     this->channelReset = audrvVoiceInit(&this->driver, channel, channels, format, sampleRate);
 
@@ -170,4 +172,17 @@ void DSP<Console::HAC>::ChannelStop(size_t channel)
 
     audrvVoiceStop(&this->driver, channel);
     audrvVoiceDrop(&this->driver, channel);
+}
+
+int8_t DSP<Console::HAC>::GetFormat(int bitDepth, int channels)
+{
+    /* invalid bitDepth */
+    if (bitDepth != 8 && bitDepth != 16)
+        return PcmFormat_Invalid;
+
+    /* invalid channel count */
+    if (channels < 0 || channels > 2)
+        return PcmFormat_Invalid;
+
+    return *DSP::audioFormats.Find(bitDepth);
 }

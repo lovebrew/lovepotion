@@ -1,12 +1,13 @@
 #pragma once
 
+#include <coreinit/event.h>
+#include <sndcore2/voice.h>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+
 #include <utilities/driver/dsp.tcc>
 #include <utilities/threads/threads.hpp>
 
-#include <coreinit/event.h>
-#include <sndcore2/voice.h>
-
-#include <map>
+#include <queue>
 
 extern "C"
 {
@@ -19,24 +20,27 @@ namespace love
 {
     struct AXWaveBuf
     {
-        int bitDepth;
-        int channels;
         uint8_t state;
-        uint32_t size;
+
         uint32_t endSamples;
         int16_t* data_pcm16;
         bool looping;
-
-        AXWaveBuf* next;
+        uint16_t id;
     };
 
     struct AXChannel
     {
         uint8_t state;
-        int channels;
+        uint8_t channels;
+        uint8_t bitDepth;
+        uint16_t sampleRate;
 
-        AXVoice* voices[0x02];
-        AXWaveBuf* buffer;
+        uint16_t currentId;
+        uint16_t sequenceId;
+
+        std::queue<AXWaveBuf*> queue;
+
+        AXVoice* voice;
     };
 
     template<>
@@ -86,11 +90,20 @@ namespace love
 
         bool IsChannelPlaying(size_t id);
 
-        void CheckChannelFinished(size_t id, size_t voiceBuffer);
+        void UpdateChannels();
 
         void ChannelStop(size_t id);
 
         void SignalEvent();
+
+        // clang-format off
+        static constexpr BidirectionalMap audioFormats = {
+            0x08, AX_VOICE_FORMAT_LPCM8,
+            0x10, AX_VOICE_FORMAT_LPCM16
+        };
+        // clang-format on
+
+        static int8_t GetFormat(int bitDepth, int channels);
 
       private:
         love::mutex mutex;

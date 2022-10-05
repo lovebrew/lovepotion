@@ -49,24 +49,18 @@ float DSP<Console::CTR>::GetMasterVolume() const
 bool DSP<Console::CTR>::ChannelReset(size_t id, int channels, int bitDepth, int sampleRate)
 {
     ndspChnReset(id);
+
     uint8_t ndspFormat = 0;
-
-    AudioFormat format = (channels == 2) ? FORMAT_STEREO : FORMAT_MONO;
-    DSP<Console::CTR>::GetChannelFormat(format, bitDepth, ndspFormat);
-
-    /* invalid format! */
-    if (ndspFormat == 0)
+    if ((ndspFormat = DSP::GetFormat(bitDepth, channels)) < 0)
         return false;
 
-    ndspInterpType interpType;
-
-    /* invalid interpType! */
-    if (!DSP<Console::CTR>::GetInterpType(format, interpType))
+    std::optional<ndspInterpType> interpType;
+    if (!(interpType = DSP::interpTypes.Find(channels)))
         return false;
 
     ndspChnSetFormat(id, ndspFormat);
     ndspChnSetRate(id, sampleRate);
-    ndspChnSetInterp(id, interpType);
+    ndspChnSetInterp(id, *interpType);
 
     this->ChannelSetVolume(id, this->ChannelGetVolume(id));
 
@@ -118,44 +112,19 @@ void DSP<Console::CTR>::ChannelStop(size_t id)
     ndspChnWaveBufClear(id);
 }
 
-void DSP<Console::CTR>::GetChannelFormat(AudioFormat format, int bitDepth, uint8_t& out)
+int8_t DSP<Console::CTR>::GetFormat(int bitDepth, int channels)
 {
-    switch (format)
-    {
-        case FORMAT_MONO:
-        {
-            if (bitDepth == 8)
-                out = NDSP_FORMAT_MONO_PCM8;
-            else
-                out = NDSP_FORMAT_MONO_PCM16;
+    /* invalid bitDepth */
+    if (bitDepth != 8 && bitDepth != 16)
+        return -1;
 
-            break;
-        }
-        case FORMAT_STEREO:
-            if (bitDepth == 8)
-                out = NDSP_FORMAT_STEREO_PCM8;
-            else
-                out = NDSP_FORMAT_STEREO_PCM16;
+    /* invalid channel count */
+    if (channels < 0 || channels > 2)
+        return -2;
 
-            break;
-        default:
-            break;
-    }
-}
+    /* grab the encoding */
+    uint8_t encoding = *DSP::audioFormats.Find(bitDepth);
 
-bool DSP<Console::CTR>::GetInterpType(AudioFormat format, ndspInterpType& out)
-{
-    switch (format)
-    {
-        case FORMAT_MONO:
-            out = NDSP_INTERP_LINEAR;
-            break;
-        case FORMAT_STEREO:
-            out = NDSP_INTERP_POLYPHASE;
-            break;
-        default:
-            return false;
-    }
-
-    return true;
+    /* https://github.com/devkitPro/libctru/blob/master/libctru/include/3ds/ndsp/channel.h#L25 */
+    return NDSP_CHANNELS(channels) | NDSP_ENCODING(encoding);
 }

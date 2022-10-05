@@ -204,7 +204,6 @@ bool Source<Console::CAFE>::Update()
                 return false;
 
             bool other = !this->current;
-            ::DSP::Instance().CheckChannelFinished(this->channel, other);
 
             if (this->buffers[other].state == ::DSP::STATE_FINISHED)
             {
@@ -463,8 +462,6 @@ int Source<Console::CAFE>::StreamAtomic(AXWaveBuf& buffer, Decoder* decoder)
     if (decoded > 0)
     {
         std::memcpy(buffer.data_pcm16, (int16_t*)decoder->GetBuffer(), decoded);
-
-        buffer.bitDepth   = this->bitDepth;
         buffer.endSamples = (int)((decoded / this->channels) / (this->bitDepth / 8));
 
         DCFlushRange(buffer.data_pcm16, decoded);
