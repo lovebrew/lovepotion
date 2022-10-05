@@ -1,84 +1,78 @@
 #pragma once
 
 #include <array>
-#include <stdint.h>
+#include <compare>
+#include <string>
 #include <string_view>
 
 namespace love
 {
-    namespace version
+    struct Version
     {
-        class Version
+      public:
+        constexpr Version(std::string_view v) : major(0), minor(0), micro(0)
         {
-          public:
-            consteval Version(std::string_view version) : values()
+            auto nposzero = [](size_t x) { return x == std::string_view::npos ? 0 : x; };
+
+            std::string_view major = v.substr(0, nposzero(v.find(DELIMITER)));
+            size_t minorIdx        = std::min(major.size() + 1, v.size());
+            std::string_view minor = v.substr(minorIdx, nposzero(v.find(DELIMITER, minorIdx)));
+            size_t microIdx        = std::min(major.size() + 1 + minor.size() + 1, v.size());
+            std::string_view micro =
+                v.substr(microIdx, nposzero(v.find_first_not_of(DIGITS, microIdx)));
+
+            if (major.size() != 0)
+                this->major = atoi(major);
+
+            if (minor.size() != 0)
+                this->minor = atoi(minor);
+
+            if (micro.size() != 0)
+                this->micro = atoi(micro);
+
+            if (major.size() == 0 && minor.size() == 0 && micro.size() == 0)
+                this->major = atoi(v);
+        }
+
+        template<typename T>
+        requires std::constructible_from<std::string_view, T> ||
+                 std::convertible_to<T, std::string_view>
+        constexpr Version(T&& version) : Version(std::string_view(std::forward<T>(version)))
+        {}
+
+        Version(uint8_t major, uint8_t minor, uint8_t micro) :
+            major(major),
+            minor(minor),
+            micro(micro)
+        {}
+
+        constexpr std::strong_ordering operator<=>(const Version&) const noexcept = default;
+
+        uint8_t major;
+        uint8_t minor;
+        uint8_t micro;
+
+      private:
+        static constexpr char DELIMITER     = '.';
+        static constexpr const char* DIGITS = "123457890";
+
+        constexpr static uint8_t atoi(std::string_view view)
+        {
+            uint8_t value = 0;
+
+            for (const auto& character : view)
             {
-                int position = 0;
-                size_t last  = 0;
-                size_t size  = 0;
-
-                for (size_t index = 0; index < version.length(); index++)
-                {
-                    if (version.at(index) == DELIMITER)
-                    {
-                        std::string_view token = version.substr(last, size);
-                        this->values[position] = Version::atoi(token);
-
-                        last = index + 1;
-                        position++;
-                        size = 0;
-                    }
-                    else
-                    {
-                        if (position == 2)
-                        {
-                            std::string_view token =
-                                version.substr(last, version.length() - last);
-                            this->values[position++] = Version::atoi(token);
-                        }
-                        size++;
-                    }
-                }
+                if ('0' <= character && character <= '9')
+                    value = value * 10 + character - '0';
             }
 
-            consteval int Major() const
-            {
-                return this->values[0];
-            }
+            return value;
+        }
+    }
 
-            consteval int Minor() const
-            {
-                return this->values[1];
-            }
+    static constexpr Version LOVE_POTION(__APP_VERSION__);
+    static constexpr Version LOVE_FRAMEWORK(__LOVE_VERSION__);
 
-            consteval int Revision() const
-            {
-                return this->values[2];
-            }
-
-          private:
-            static constexpr char DELIMITER = '.';
-
-            constexpr static int atoi(std::string_view view)
-            {
-                int value = 0;
-                for (const auto& character : view)
-                {
-                    if ('0' <= character && character <= '9')
-                    {
-                        value = value * 10 + character - '0';
-                    }
-                }
-                return value;
-            }
-
-            std::array<int, 3> values;
-        };
-
-        static constexpr Version LOVE_POTION(__APP_VERSION__);
-        static constexpr Version LOVE_FRAMEWORK(__LOVE_VERSION__);
-
-        static constexpr const char* CODENAME        = "Mysterious Mysteries";
-        static constexpr const char* COMPATABILITY[] = { __APP_VERSION__, "2.2.0", 0 };
-    } // namespace version
+    static constexpr const char* CODENAME                     = "Mysterious Mysteries";
+    static constexpr std::array<const char*, 1> COMPATIBILITY = { __APP_VERSION__ };
 } // namespace love

@@ -1,6 +1,9 @@
 #include <common/luax.hpp>
 #include <common/version.hpp>
 
+#include <luahttps/common/HTTPSCommon.h>
+#include <luasocket/luasocket.h>
+
 #include <modules/love/love.hpp>
 
 #include <algorithm>
@@ -81,27 +84,27 @@ int love::Initialize(lua_State* L)
     lua_pushstring(L, __LOVE_VERSION__);
     lua_setfield(L, -2, "_version");
 
-    // love._version_(major, minor, revision, codename)
-    lua_pushnumber(L, version::LOVE_FRAMEWORK.Major());
+    // love._version_(major, minor, micro, codename)
+    lua_pushnumber(L, LOVE_FRAMEWORK.major);
     lua_setfield(L, -2, "_version_major");
 
-    lua_pushnumber(L, version::LOVE_FRAMEWORK.Minor());
+    lua_pushnumber(L, LOVE_FRAMEWORK.minor);
     lua_setfield(L, -2, "_version_minor");
 
-    lua_pushnumber(L, version::LOVE_FRAMEWORK.Revision());
+    lua_pushnumber(L, LOVE_FRAMEWORK.micro);
     lua_setfield(L, -2, "_version_revision");
 
-    lua_pushstring(L, version::CODENAME);
+    lua_pushstring(L, CODENAME);
     lua_setfield(L, -2, "_version_codename");
 
-    // love._potion_(major, minor, revision)
-    lua_pushnumber(L, version::LOVE_POTION.Major());
+    // love._potion_(major, minor, micro)
+    lua_pushnumber(L, LOVE_POTION.major);
     lua_setfield(L, -2, "_potion_version_major");
 
-    lua_pushnumber(L, version::LOVE_POTION.Minor());
+    lua_pushnumber(L, LOVE_POTION.minor);
     lua_setfield(L, -2, "_potion_version_minor");
 
-    lua_pushnumber(L, version::LOVE_POTION.Revision());
+    lua_pushnumber(L, LOVE_POTION.micro);
     lua_setfield(L, -2, "_potion_version_revision");
 
     lua_pushcfunction(L, GetVersion);
@@ -116,6 +119,9 @@ int love::Initialize(lua_State* L)
     luax::Require(L, "love.data");
     lua_pop(L, 1);
 
+    love::luasocket::__open(L);
+
+    luax::Preload(L, luaopen_https, "https");
     luax::Preload(L, luaopen_luautf8, "utf8");
 
     return 1;
@@ -123,9 +129,9 @@ int love::Initialize(lua_State* L)
 
 int love::GetVersion(lua_State* L)
 {
-    lua_pushinteger(L, version::LOVE_FRAMEWORK.Major());
-    lua_pushinteger(L, version::LOVE_FRAMEWORK.Minor());
-    lua_pushinteger(L, version::LOVE_FRAMEWORK.Revision());
+    lua_pushinteger(L, version::LOVE_FRAMEWORK.major);
+    lua_pushinteger(L, version::LOVE_FRAMEWORK.minor);
+    lua_pushinteger(L, version::LOVE_FRAMEWORK.micro);
     lua_pushstring(L, version::CODENAME);
 
     return 4;
@@ -133,29 +139,22 @@ int love::GetVersion(lua_State* L)
 
 int love::IsVersionCompatible(lua_State* L)
 {
-    std::string version;
+    Version check {};
 
     if (lua_type(L, 1) == LUA_TSTRING)
-    {
-        version = luaL_checkstring(L, 1);
-
-        if (std::count(version.begin(), version.end(), '.') < 2)
-            version.append(".0");
-    }
+        check = Version(luaL_checkstring(L, 1));
     else
     {
         int major    = luaL_checkinteger(L, 1);
         int minor    = luaL_checkinteger(L, 2);
         int revision = luaL_optinteger(L, 3, 0);
 
-        sprintf(version.data(), "%d.%d.%d", major, minor, revision);
+        check = Version(major, minor, revision);
     }
 
-    for (size_t i = 0; version::COMPATABILITY[i]; i++)
+    for (auto& item : COMPATIBILITY)
     {
-        std::string_view v(version::COMPATABILITY[i]);
-
-        if (version.compare(v) != 0)
+        if (check != item)
             continue;
 
         lua_pushboolean(L, true);
