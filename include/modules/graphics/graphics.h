@@ -190,17 +190,25 @@ namespace love
         template<typename T>
         static void CheckStandardTransform(lua_State* L, int idx, const T& func)
         {
-            float x  = (float)luaL_optnumber(L, idx + 0, 0.0);
-            float y  = (float)luaL_optnumber(L, idx + 1, 0.0);
-            float a  = (float)luaL_optnumber(L, idx + 2, 0.0);
-            float sx = (float)luaL_optnumber(L, idx + 3, 1.0);
-            float sy = (float)luaL_optnumber(L, idx + 4, sx);
-            float ox = (float)luaL_optnumber(L, idx + 5, 0.0);
-            float oy = (float)luaL_optnumber(L, idx + 6, 0.0);
-            float kx = (float)luaL_optnumber(L, idx + 7, 0.0);
-            float ky = (float)luaL_optnumber(L, idx + 8, 0.0);
+            if (Luax::IsType(L, index, Transform::type))
+            {
+                Transform* self = Luax::ToType<Transform>(L, index);
+                func(self->GetMatrix());
+            }
+            else
+            {
+                float x  = (float)luaL_optnumber(L, idx + 0, 0.0);
+                float y  = (float)luaL_optnumber(L, idx + 1, 0.0);
+                float a  = (float)luaL_optnumber(L, idx + 2, 0.0);
+                float sx = (float)luaL_optnumber(L, idx + 3, 1.0);
+                float sy = (float)luaL_optnumber(L, idx + 4, sx);
+                float ox = (float)luaL_optnumber(L, idx + 5, 0.0);
+                float oy = (float)luaL_optnumber(L, idx + 6, 0.0);
+                float kx = (float)luaL_optnumber(L, idx + 7, 0.0);
+                float ky = (float)luaL_optnumber(L, idx + 8, 0.0);
 
-            func(Matrix4(x, y, a, sx, sy, ox, oy, kx, ky));
+                func(Matrix4(x, y, a, sx, sy, ox, oy, kx, ky));
+            }
         }
 
         Matrix4 GetTransform()
