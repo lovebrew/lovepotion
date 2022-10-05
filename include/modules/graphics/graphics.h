@@ -190,9 +190,9 @@ namespace love
         template<typename T>
         static void CheckStandardTransform(lua_State* L, int idx, const T& func)
         {
-            if (Luax::IsType(L, index, Transform::type))
+            if (Luax::IsType(L, idx, Transform::type))
             {
-                Transform* self = Luax::ToType<Transform>(L, index);
+                Transform* self = Luax::ToType<Transform>(L, idx);
                 func(self->GetMatrix());
             }
             else
