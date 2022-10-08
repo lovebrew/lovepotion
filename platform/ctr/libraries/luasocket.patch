@@ -3,7 +3,7 @@ index 138c9ab..6e61856 100755
 --- a/inet.c
 +++ b/inet.c
 @@ -139,8 +139,13 @@ static int inet_global_toip(lua_State *L)
- 
+
  int inet_optfamily(lua_State* L, int narg, const char* def)
  {
 +    #if !defined(__3DS__)
@@ -13,7 +13,7 @@ index 138c9ab..6e61856 100755
 +    static const char* optname[] = { "unspec", "inet", NULL };
 +    static int optvalue[] = { AF_UNSPEC, AF_INET, 0 };
 +    #endif
- 
+
      return optvalue[luaL_checkoption(L, narg, def, optname)];
  }
 @@ -348,10 +353,12 @@ static void inet_pushresolved(lua_State *L, struct hostent *hp)
@@ -28,7 +28,7 @@ index 138c9ab..6e61856 100755
 +    #endif
      return err;
  }
- 
+
 @@ -369,6 +376,7 @@ const char *inet_trydisconnect(p_socket ps, int family, p_timeout tm)
              return socket_strerror(socket_connect(ps, (SA *) &sin,
                  sizeof(sin), tm));
@@ -529,7 +529,7 @@ index 3280c51..a823dc6 100644
 @@ -22,6 +22,22 @@ static int opt_set(lua_State *L, p_socket ps, int level, int name,
  static int opt_get(lua_State *L, p_socket ps, int level, int name,
          void *val, int* len);
- 
+
 +static int set_opt_error(lua_State* L)
 +{
 +    lua_pushnil(L);
@@ -551,7 +551,7 @@ index 3280c51..a823dc6 100644
  \*=========================================================================*/
 @@ -147,6 +163,7 @@ int opt_get_keepalive(lua_State *L, p_socket ps)
  }
- 
+
  /*------------------------------------------------------*/
 +#if !defined(__3DS__)
  int opt_set_dontroute(lua_State *L, p_socket ps)
@@ -568,12 +568,12 @@ index 3280c51..a823dc6 100644
 +int opt_set_broadcast(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +int opt_get_broadcast(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +#endif
- 
+
  /*------------------------------------------------------*/
  int opt_set_recv_buf_size(lua_State *L, p_socket ps)
 @@ -216,6 +240,7 @@ int opt_set_tcp_defer_accept(lua_State *L, p_socket ps)
  #endif
- 
+
  /*------------------------------------------------------*/
 +#if !defined(__3DS__)
  int opt_set_ip6_unicast_hops(lua_State *L, p_socket ps)
@@ -590,12 +590,12 @@ index 3280c51..a823dc6 100644
 +int opt_set_ip6_multicast_hops(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +int opt_get_ip6_unicast_hops(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +#endif
- 
+
  /*------------------------------------------------------*/
  int opt_set_ip_multicast_loop(lua_State *L, p_socket ps)
 @@ -249,6 +281,7 @@ int opt_get_ip_multicast_loop(lua_State *L, p_socket ps)
  }
- 
+
  /*------------------------------------------------------*/
 +#if !defined(__3DS__)
  int opt_set_ip6_multicast_loop(lua_State *L, p_socket ps)
@@ -609,12 +609,12 @@ index 3280c51..a823dc6 100644
 +int opt_set_ip6_multicast_loop(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +int opt_get_ip6_multicast_loop(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +#endif
- 
+
  /*------------------------------------------------------*/
  int opt_set_linger(lua_State *L, p_socket ps)
 @@ -299,6 +336,7 @@ int opt_set_ip_multicast_ttl(lua_State *L, p_socket ps)
  }
- 
+
  /*------------------------------------------------------*/
 +#if !defined(__3DS__)
  int opt_set_ip_multicast_if(lua_State *L, p_socket ps)
@@ -628,12 +628,12 @@ index 3280c51..a823dc6 100644
 +int opt_set_ip_multicast_if(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +int opt_get_ip_multicast_if(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +#endif
- 
+
  /*------------------------------------------------------*/
  int opt_set_ip_add_membership(lua_State *L, p_socket ps)
 @@ -335,6 +377,7 @@ int opt_set_ip_drop_membersip(lua_State *L, p_socket ps)
  }
- 
+
  /*------------------------------------------------------*/
 +#if !defined(__3DS__)
  int opt_set_ip6_add_membership(lua_State *L, p_socket ps)
@@ -646,7 +646,7 @@ index 3280c51..a823dc6 100644
 +#else
 +int opt_set_ip6_add_membership(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +int opt_set_ip6_drop_membersip(lua_State *L, p_socket ps) { return set_opt_error(L); }
- 
+
 +int opt_get_ip6_v6only(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +int opt_set_ip6_v6only(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +#endif
@@ -664,6 +664,183 @@ index 3280c51..a823dc6 100644
      lua_pushstring(L, "interface");
      lua_gettable(L, 3);
      /* By default we listen to interface on default route
+diff --git a/serial.c b/serial.c
+deleted file mode 100644
+index 21485d3..0000000
+--- a/serial.c
++++ /dev/null
+@@ -1,171 +0,0 @@
+-/*=========================================================================*\
+-* Serial stream
+-* LuaSocket toolkit
+-\*=========================================================================*/
+-#include "luasocket.h"
+-
+-#include "auxiliar.h"
+-#include "socket.h"
+-#include "options.h"
+-#include "unix.h"
+-
+-#include <string.h>
+-#include <sys/un.h>
+-
+-/*
+-Reuses userdata definition from unix.h, since it is useful for all
+-stream-like objects.
+-
+-If we stored the serial path for use in error messages or userdata
+-printing, we might need our own userdata definition.
+-
+-Group usage is semi-inherited from unix.c, but unnecessary since we
+-have only one object type.
+-*/
+-
+-/*=========================================================================*\
+-* Internal function prototypes
+-\*=========================================================================*/
+-static int global_create(lua_State *L);
+-static int meth_send(lua_State *L);
+-static int meth_receive(lua_State *L);
+-static int meth_close(lua_State *L);
+-static int meth_settimeout(lua_State *L);
+-static int meth_getfd(lua_State *L);
+-static int meth_setfd(lua_State *L);
+-static int meth_dirty(lua_State *L);
+-static int meth_getstats(lua_State *L);
+-static int meth_setstats(lua_State *L);
+-
+-/* serial object methods */
+-static luaL_Reg serial_methods[] = {
+-    {"__gc",        meth_close},
+-    {"__tostring",  auxiliar_tostring},
+-    {"close",       meth_close},
+-    {"dirty",       meth_dirty},
+-    {"getfd",       meth_getfd},
+-    {"getstats",    meth_getstats},
+-    {"setstats",    meth_setstats},
+-    {"receive",     meth_receive},
+-    {"send",        meth_send},
+-    {"setfd",       meth_setfd},
+-    {"settimeout",  meth_settimeout},
+-    {NULL,          NULL}
+-};
+-
+-/*-------------------------------------------------------------------------*\
+-* Initializes module
+-\*-------------------------------------------------------------------------*/
+-LUASOCKET_API int luaopen_socket_serial(lua_State *L) {
+-    /* create classes */
+-    auxiliar_newclass(L, "serial{client}", serial_methods);
+-    /* create class groups */
+-    auxiliar_add2group(L, "serial{client}", "serial{any}");
+-    lua_pushcfunction(L, global_create);
+-    return 1;
+-}
+-
+-/*=========================================================================*\
+-* Lua methods
+-\*=========================================================================*/
+-/*-------------------------------------------------------------------------*\
+-* Just call buffered IO methods
+-\*-------------------------------------------------------------------------*/
+-static int meth_send(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkclass(L, "serial{client}", 1);
+-    return buffer_meth_send(L, &un->buf);
+-}
+-
+-static int meth_receive(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkclass(L, "serial{client}", 1);
+-    return buffer_meth_receive(L, &un->buf);
+-}
+-
+-static int meth_getstats(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkclass(L, "serial{client}", 1);
+-    return buffer_meth_getstats(L, &un->buf);
+-}
+-
+-static int meth_setstats(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkclass(L, "serial{client}", 1);
+-    return buffer_meth_setstats(L, &un->buf);
+-}
+-
+-/*-------------------------------------------------------------------------*\
+-* Select support methods
+-\*-------------------------------------------------------------------------*/
+-static int meth_getfd(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkgroup(L, "serial{any}", 1);
+-    lua_pushnumber(L, (int) un->sock);
+-    return 1;
+-}
+-
+-/* this is very dangerous, but can be handy for those that are brave enough */
+-static int meth_setfd(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkgroup(L, "serial{any}", 1);
+-    un->sock = (t_socket) luaL_checknumber(L, 2);
+-    return 0;
+-}
+-
+-static int meth_dirty(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkgroup(L, "serial{any}", 1);
+-    lua_pushboolean(L, !buffer_isempty(&un->buf));
+-    return 1;
+-}
+-
+-/*-------------------------------------------------------------------------*\
+-* Closes socket used by object
+-\*-------------------------------------------------------------------------*/
+-static int meth_close(lua_State *L)
+-{
+-    p_unix un = (p_unix) auxiliar_checkgroup(L, "serial{any}", 1);
+-    socket_destroy(&un->sock);
+-    lua_pushnumber(L, 1);
+-    return 1;
+-}
+-
+-
+-/*-------------------------------------------------------------------------*\
+-* Just call tm methods
+-\*-------------------------------------------------------------------------*/
+-static int meth_settimeout(lua_State *L) {
+-    p_unix un = (p_unix) auxiliar_checkgroup(L, "serial{any}", 1);
+-    return timeout_meth_settimeout(L, &un->tm);
+-}
+-
+-/*=========================================================================*\
+-* Library functions
+-\*=========================================================================*/
+-
+-
+-/*-------------------------------------------------------------------------*\
+-* Creates a serial object
+-\*-------------------------------------------------------------------------*/
+-static int global_create(lua_State *L) {
+-    const char* path = luaL_checkstring(L, 1);
+-
+-    /* allocate unix object */
+-    p_unix un = (p_unix) lua_newuserdata(L, sizeof(t_unix));
+-
+-    /* open serial device */
+-    t_socket sock = open(path, O_NOCTTY|O_RDWR);
+-
+-    /*printf("open %s on %d\n", path, sock);*/
+-
+-    if (sock < 0)  {
+-        lua_pushnil(L);
+-        lua_pushstring(L, socket_strerror(errno));
+-        lua_pushnumber(L, errno);
+-        return 3;
+-    }
+-    /* set its type as client object */
+-    auxiliar_setclass(L, "serial{client}", -1);
+-    /* initialize remaining structure fields */
+-    socket_setnonblocking(&sock);
+-    un->sock = sock;
+-    io_init(&un->io, (p_send) socket_write, (p_recv) socket_read,
+-            (p_error) socket_ioerror, &un->sock);
+-    timeout_init(&un->tm, -1, -1);
+-    buffer_init(&un->buf, &un->io, &un->tm);
+-    return 1;
+-}
 diff --git a/tcp.c b/tcp.c
 index e84db84..64abffa 100644
 --- a/tcp.c
@@ -671,7 +848,7 @@ index e84db84..64abffa 100644
 @@ -427,9 +427,18 @@ static int global_create4(lua_State *L) {
      return tcp_create(L, AF_INET);
  }
- 
+
 +#if !defined(__3DS__)
  static int global_create6(lua_State *L) {
      return tcp_create(L, AF_INET6);
@@ -684,7 +861,7 @@ index e84db84..64abffa 100644
 +    return 2;
 +}
 +#endif
- 
+
  static int global_connect(lua_State *L) {
      const char *remoteaddr = luaL_checkstring(L, 1);
 diff --git a/udp.c b/udp.c
@@ -694,7 +871,7 @@ index 712ad50..e8f1cd3 100755
 @@ -483,6 +483,15 @@ static int global_create4(lua_State *L) {
      return udp_create(L, AF_INET);
  }
- 
+
 +#if !defined(__3DS__)
  static int global_create6(lua_State *L) {
      return udp_create(L, AF_INET6);
@@ -794,7 +971,7 @@ index c203561..0000000
 -* Unix domain object
 -* LuaSocket toolkit
 -*
--* This module is just an example of how to extend LuaSocket with a new 
+-* This module is just an example of how to extend LuaSocket with a new
 -* domain.
 -\*=========================================================================*/
 -#include "luasocket.h"
@@ -1664,7 +1841,7 @@ index 45f2f99..12c25ca 100644
  /* TCP options (nagle algorithm disable) */
  #include <netinet/tcp.h>
 -#include <net/if.h>
- 
+
  #ifndef SO_REUSEPORT
  #define SO_REUSEPORT SO_REUSEADDR
 diff --git a/wsocket.c b/wsocket.c

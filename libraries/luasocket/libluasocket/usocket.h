@@ -29,6 +29,7 @@
 #include <arpa/inet.h>
 /* TCP options (nagle algorithm disable) */
 #include <netinet/tcp.h>
+#include <net/if.h>
 
 #ifndef SO_REUSEPORT
 #define SO_REUSEPORT SO_REUSEADDR

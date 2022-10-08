@@ -483,15 +483,6 @@ static int global_create4(lua_State *L) {
     return udp_create(L, AF_INET);
 }
 
-#if !defined(__3DS__)
 static int global_create6(lua_State *L) {
     return udp_create(L, AF_INET6);
 }
-#else
-static int global_create6(lua_State *L) {
-    lua_pushnil(L);
-    lua_pushstring(L, "Setting local interface error: not supported")
-
-    return 2;
-}
-#endif

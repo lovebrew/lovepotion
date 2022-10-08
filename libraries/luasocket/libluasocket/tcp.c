@@ -427,18 +427,9 @@ static int global_create4(lua_State *L) {
     return tcp_create(L, AF_INET);
 }
 
-#if !defined(__3DS__)
 static int global_create6(lua_State *L) {
     return tcp_create(L, AF_INET6);
 }
-#else
-static int global_create6(lua_State* L) {
-    lua_pushnil(L);
-    lua_pushstring(L, "Setting local interface error: not supported")
-
-    return 2;
-}
-#endif
 
 static int global_connect(lua_State *L) {
     const char *remoteaddr = luaL_checkstring(L, 1);

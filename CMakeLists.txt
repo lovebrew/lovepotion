@@ -68,7 +68,7 @@ if(NINTENDO_3DS)
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
     )
 
-    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -Np1 -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
 endif()
 
 # aarch64-none-elf-cmake
@@ -251,40 +251,40 @@ target_include_directories(luahttps PRIVATE
 
 # luasocket
 add_library(luasocket
-    libraries/luasocket/luasocket.hpp
-    libraries/luasocket/luasocket.cpp
-    libraries/luasocket/libluasocket/auxiliar.c
-    libraries/luasocket/libluasocket/auxiliar.h
-    libraries/luasocket/libluasocket/buffer.c
-    libraries/luasocket/libluasocket/buffer.h
-    libraries/luasocket/libluasocket/compat.c
-    libraries/luasocket/libluasocket/compat.h
-    libraries/luasocket/libluasocket/except.c
-    libraries/luasocket/libluasocket/except.h
-    libraries/luasocket/libluasocket/inet.c
-    libraries/luasocket/libluasocket/inet.h
-    libraries/luasocket/libluasocket/io.c
-    libraries/luasocket/libluasocket/io.h
-    libraries/luasocket/libluasocket/ltn12.lua
-    libraries/luasocket/libluasocket/luasocket.c
-    libraries/luasocket/libluasocket/luasocket.h
-    libraries/luasocket/libluasocket/mime.c
-    libraries/luasocket/libluasocket/mime.h
-    libraries/luasocket/libluasocket/options.c
-    libraries/luasocket/libluasocket/options.h
-    libraries/luasocket/libluasocket/pierror.h
-    libraries/luasocket/libluasocket/select.c
-    libraries/luasocket/libluasocket/select.h
-    libraries/luasocket/libluasocket/smtp.lua
-    libraries/luasocket/libluasocket/socket.h
-    libraries/luasocket/libluasocket/tcp.c
-    libraries/luasocket/libluasocket/tcp.h
-    libraries/luasocket/libluasocket/timeout.c
-    libraries/luasocket/libluasocket/timeout.h
-    libraries/luasocket/libluasocket/udp.c
-    libraries/luasocket/libluasocket/udp.h
-    libraries/luasocket/libluasocket/usocket.c
-    libraries/luasocket/libluasocket/usocket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.hpp
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/luasocket.cpp
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/auxiliar.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/buffer.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/compat.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/except.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/inet.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/io.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/ltn12.lua
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/luasocket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/mime.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/options.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/pierror.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/select.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/smtp.lua
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/socket.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/tcp.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/timeout.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/udp.h
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.c
+     ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.h
 )
 target_include_directories(luasocket PRIVATE
     include
