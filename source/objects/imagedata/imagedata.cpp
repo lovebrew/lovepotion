@@ -67,7 +67,7 @@ void ImageData::Create(int width, int height, PixelFormat format, void* data)
     size_t dataSize = 0;
 
     if (!this->initialized && format == PIXELFORMAT_TEX3DS_RGBA8)
-        dataSize = NextPO2(width + 2) * NextPO2(height + 2) * GetPixelFormatSize(format);
+        dataSize = NextPO2(width) * NextPO2(height) * GetPixelFormatSize(format);
     else
         dataSize = width * height * GetPixelFormatSize(format);
 
@@ -325,7 +325,7 @@ void ImageData::SetPixel(int x, int y, const Colorf& color)
     Lock lock(this->mutex);
     this->pixelSetFunction(color, pixel);
 #else
-    unsigned _width = NextPO2(this->width + 2);
+    unsigned _width = NextPO2(this->width);
     unsigned index = coordToIndex(_width, x + 1, y + 1);
 
     Pixel* pixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + index);
@@ -350,7 +350,7 @@ void ImageData::GetPixel(int x, int y, Colorf& color) const
     Lock lock(this->mutex);
     this->pixelGetFunction(pixel, color);
 #else
-    unsigned _width = NextPO2(this->width + 2);
+    unsigned _width = NextPO2(this->width);
     unsigned index = coordToIndex(_width, x + 1, y + 1);
 
     const Pixel* pixel = reinterpret_cast<const Pixel*>((uint32_t*)this->data + index);
@@ -431,8 +431,8 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
     Lock lock1(this->mutex);
 
 #if defined(__3DS__)
-    unsigned _srcPowTwo = NextPO2(src->width + 2);
-    unsigned _dstPowTwo = NextPO2(this->width + 2);
+    unsigned _srcPowTwo = NextPO2(src->width);
+    unsigned _dstPowTwo = NextPO2(this->width);
 
     for (int y = 0; y < std::min(sh, dstH - dy); y++)
     {
@@ -529,7 +529,7 @@ bool ImageData::Inside(int x, int y) const
 size_t ImageData::GetSize() const
 {
     if (this->format == PIXELFORMAT_TEX3DS_RGBA8)
-        return NextPO2(this->width + 2) * NextPO2(this->height + 2) * this->GetPixelSize();
+        return NextPO2(this->width) * NextPO2(this->height) * this->GetPixelSize();
     else
         return size_t(this->GetWidth() * this->GetHeight()) * this->GetPixelSize();
 }

@@ -159,7 +159,7 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     auto pixelgetfunction = self->GetPixelGetFunction(format);
 
 #if defined(__3DS__)
-    unsigned _srcPowTwo = NextPO2(imageWidth + 2);
+    unsigned _srcPowTwo = NextPO2(imageWidth);
     uint32_t* data      = reinterpret_cast<uint32_t*>(self->GetData());
 
     for (int y = sourceY; y < sourceY + height; y++)

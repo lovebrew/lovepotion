@@ -35,14 +35,14 @@ void Image::Init(ImageDataBase* data)
 void Image::Init(PixelFormat format, int width, int height)
 {
     this->texture.tex = new C3D_Tex();
-    
+
     int copyWidth = width;
     if (!::citro2d::IsSizeValid(width))
-        copyWidth = NextPO2(width + 2);
-    
+        copyWidth = NextPO2(width);
+
     int copyHeight = height;
     if (!::citro2d::IsSizeValid(height))
-        copyHeight = NextPO2(height + 2);
+        copyHeight = NextPO2(height);
 
     GPU_TEXCOLOR color;
     ::citro2d::GetConstant(format, color);
@@ -78,8 +78,8 @@ void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
     if (size == 0)
         throw love::Exception("Failed to replace pixels. Data is nullptr.");
 
-    size_t srcPowTwoWidth  = NextPO2(rect.w + 2);
-    size_t srcPowTwoHeight = NextPO2(rect.h + 2);
+    size_t srcPowTwoWidth  = NextPO2(rect.w);
+    size_t srcPowTwoHeight = NextPO2(rect.h);
 
     if (this->texture.tex->width == srcPowTwoWidth && this->texture.tex->height == srcPowTwoHeight)
     {
