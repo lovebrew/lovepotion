@@ -18,7 +18,7 @@
  * 3. This notice may not be removed or altered from any source distribution.
  **/
 
-#include "luasocket.h"
+#include "luasocket.hpp"
 
 // LuaSocket
 extern "C"

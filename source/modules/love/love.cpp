@@ -2,7 +2,7 @@
 #include <common/version.hpp>
 
 // #include <common/HTTPSCommon.h>
-#include <luasocket/luasocket.h>
+#include <luasocket.hpp>
 
 #include <modules/love/love.hpp>
 

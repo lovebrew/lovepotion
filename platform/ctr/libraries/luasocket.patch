@@ -1,5 +1,5 @@
 diff --git a/inet.c b/inet.c
-index 138c9ab..6e61856 100755
+index 138c9ab..c262cf9 100755
 --- a/inet.c
 +++ b/inet.c
 @@ -139,8 +139,13 @@ static int inet_global_toip(lua_State *L)
@@ -9,7 +9,7 @@ index 138c9ab..6e61856 100755
 +    #if !defined(__3DS__)
      static const char* optname[] = { "unspec", "inet", "inet6", NULL };
      static int optvalue[] = { AF_UNSPEC, AF_INET, AF_INET6, 0 };
-+    else
++    #else
 +    static const char* optname[] = { "unspec", "inet", NULL };
 +    static int optvalue[] = { AF_UNSPEC, AF_INET, 0 };
 +    #endif
@@ -55,6 +55,21 @@ index 138c9ab..6e61856 100755
          case AF_INET: len = sizeof(struct sockaddr_in); break;
          default: len = sizeof(addr); break;
      }
+diff --git a/inet.h b/inet.h
+index 5618b61..f11d5ed 100644
+--- a/inet.h
++++ b/inet.h
+@@ -22,6 +22,10 @@
+ #define LUASOCKET_INET_ATON
+ #endif
+
++#ifndef INET6_ADDRSTRLEN
++#define INET6_ADDRSTRLEN INET_ADDRSTRLEN
++#endif
++
+ #ifndef _WIN32
+ #pragma GCC visibility push(hidden)
+ #endif
 diff --git a/makefile b/makefile
 deleted file mode 100755
 index 06f4d19..0000000
@@ -523,7 +538,7 @@ index 06f4d19..0000000
 -usocket.$(O): usocket.c socket.h io.h timeout.h usocket.h
 -wsocket.$(O): wsocket.c socket.h io.h timeout.h usocket.h
 diff --git a/options.c b/options.c
-index 3280c51..a823dc6 100644
+index 3280c51..9a45e6f 100644
 --- a/options.c
 +++ b/options.c
 @@ -22,6 +22,22 @@ static int opt_set(lua_State *L, p_socket ps, int level, int name,
@@ -549,19 +564,22 @@ index 3280c51..a823dc6 100644
  /*=========================================================================*\
  * Exported functions
  \*=========================================================================*/
-@@ -147,6 +163,7 @@ int opt_get_keepalive(lua_State *L, p_socket ps)
- }
+@@ -136,6 +152,7 @@ int opt_set_tcp_keepintvl(lua_State *L, p_socket ps)
+ #endif
 
  /*------------------------------------------------------*/
 +#if !defined(__3DS__)
- int opt_set_dontroute(lua_State *L, p_socket ps)
+ int opt_set_keepalive(lua_State *L, p_socket ps)
  {
-     return opt_setboolean(L, ps, SOL_SOCKET, SO_DONTROUTE);
-@@ -167,6 +184,13 @@ int opt_get_broadcast(lua_State *L, p_socket ps)
+     return opt_setboolean(L, ps, SOL_SOCKET, SO_KEEPALIVE);
+@@ -167,6 +184,16 @@ int opt_get_broadcast(lua_State *L, p_socket ps)
  {
      return opt_getboolean(L, ps, SOL_SOCKET, SO_BROADCAST);
  }
 +#else
++int opt_set_keepalive(lua_State *L, p_socket ps) { return set_opt_error(L); }
++int opt_get_keepalive(lua_State *L, p_socket ps) { return get_opt_error(L); }
++
 +int opt_set_dontroute(lua_State *L, p_socket ps) { return set_opt_error(L); }
 +int opt_get_dontroute(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +
@@ -571,7 +589,7 @@ index 3280c51..a823dc6 100644
 
  /*------------------------------------------------------*/
  int opt_set_recv_buf_size(lua_State *L, p_socket ps)
-@@ -216,6 +240,7 @@ int opt_set_tcp_defer_accept(lua_State *L, p_socket ps)
+@@ -216,6 +243,7 @@ int opt_set_tcp_defer_accept(lua_State *L, p_socket ps)
  #endif
 
  /*------------------------------------------------------*/
@@ -579,7 +597,7 @@ index 3280c51..a823dc6 100644
  int opt_set_ip6_unicast_hops(lua_State *L, p_socket ps)
  {
    return opt_setint(L, ps, IPPROTO_IPV6, IPV6_UNICAST_HOPS);
-@@ -236,6 +261,13 @@ int opt_get_ip6_multicast_hops(lua_State *L, p_socket ps)
+@@ -236,6 +264,13 @@ int opt_get_ip6_multicast_hops(lua_State *L, p_socket ps)
  {
    return opt_getint(L, ps, IPPROTO_IPV6, IPV6_MULTICAST_HOPS);
  }
@@ -588,12 +606,12 @@ index 3280c51..a823dc6 100644
 +int opt_get_ip6_unicast_hops(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +
 +int opt_set_ip6_multicast_hops(lua_State *L, p_socket ps) { return set_opt_error(L); }
-+int opt_get_ip6_unicast_hops(lua_State *L, p_socket ps) { return get_opt_error(L); }
++int opt_get_ip6_multicast_hops(lua_State *L, p_socket ps) { return get_opt_error(L); }
 +#endif
 
  /*------------------------------------------------------*/
  int opt_set_ip_multicast_loop(lua_State *L, p_socket ps)
-@@ -249,6 +281,7 @@ int opt_get_ip_multicast_loop(lua_State *L, p_socket ps)
+@@ -249,6 +284,7 @@ int opt_get_ip_multicast_loop(lua_State *L, p_socket ps)
  }
 
  /*------------------------------------------------------*/
@@ -601,7 +619,7 @@ index 3280c51..a823dc6 100644
  int opt_set_ip6_multicast_loop(lua_State *L, p_socket ps)
  {
      return opt_setboolean(L, ps, IPPROTO_IPV6, IPV6_MULTICAST_LOOP);
-@@ -258,6 +291,10 @@ int opt_get_ip6_multicast_loop(lua_State *L, p_socket ps)
+@@ -258,6 +294,10 @@ int opt_get_ip6_multicast_loop(lua_State *L, p_socket ps)
  {
      return opt_getboolean(L, ps, IPPROTO_IPV6, IPV6_MULTICAST_LOOP);
  }
@@ -612,7 +630,7 @@ index 3280c51..a823dc6 100644
 
  /*------------------------------------------------------*/
  int opt_set_linger(lua_State *L, p_socket ps)
-@@ -299,6 +336,7 @@ int opt_set_ip_multicast_ttl(lua_State *L, p_socket ps)
+@@ -299,6 +339,7 @@ int opt_set_ip_multicast_ttl(lua_State *L, p_socket ps)
  }
 
  /*------------------------------------------------------*/
@@ -620,7 +638,7 @@ index 3280c51..a823dc6 100644
  int opt_set_ip_multicast_if(lua_State *L, p_socket ps)
  {
      const char *address = luaL_checkstring(L, 3);    /* obj, name, ip */
-@@ -322,6 +360,10 @@ int opt_get_ip_multicast_if(lua_State *L, p_socket ps)
+@@ -322,6 +363,10 @@ int opt_get_ip_multicast_if(lua_State *L, p_socket ps)
      lua_pushstring(L, inet_ntoa(val));
      return 1;
  }
@@ -631,7 +649,7 @@ index 3280c51..a823dc6 100644
 
  /*------------------------------------------------------*/
  int opt_set_ip_add_membership(lua_State *L, p_socket ps)
-@@ -335,6 +377,7 @@ int opt_set_ip_drop_membersip(lua_State *L, p_socket ps)
+@@ -335,6 +380,7 @@ int opt_set_ip_drop_membersip(lua_State *L, p_socket ps)
  }
 
  /*------------------------------------------------------*/
@@ -639,7 +657,7 @@ index 3280c51..a823dc6 100644
  int opt_set_ip6_add_membership(lua_State *L, p_socket ps)
  {
      return opt_ip6_setmembership(L, ps, IPPROTO_IPV6, IPV6_ADD_MEMBERSHIP);
-@@ -355,7 +398,13 @@ int opt_set_ip6_v6only(lua_State *L, p_socket ps)
+@@ -355,7 +401,13 @@ int opt_set_ip6_v6only(lua_State *L, p_socket ps)
  {
      return opt_setboolean(L, ps, IPPROTO_IPV6, IPV6_V6ONLY);
  }
@@ -653,17 +671,27 @@ index 3280c51..a823dc6 100644
  /*------------------------------------------------------*/
  int opt_get_error(lua_State *L, p_socket ps)
  {
-@@ -403,8 +452,10 @@ static int opt_ip6_setmembership(lua_State *L, p_socket ps, int level, int name)
-     lua_gettable(L, 3);
-     if (!lua_isstring(L, -1))
-         luaL_argerror(L, 3, "string 'multiaddr' field expected");
-+    #if !defined(__3DS__)
-     if (!inet_pton(AF_INET6, lua_tostring(L, -1), &val.ipv6mr_multiaddr))
-         luaL_argerror(L, 3, "invalid 'multiaddr' ip address");
-+    #endif
-     lua_pushstring(L, "interface");
-     lua_gettable(L, 3);
-     /* By default we listen to interface on default route
+@@ -394,6 +446,7 @@ static int opt_setmembership(lua_State *L, p_socket ps, int level, int name)
+     return opt_set(L, ps, level, name, (char *) &val, sizeof(val));
+ }
+
++#if !defined(__3DS__)
+ static int opt_ip6_setmembership(lua_State *L, p_socket ps, int level, int name)
+ {
+     struct ipv6_mreq val;                   /* obj, opt-name, table */
+@@ -419,6 +472,12 @@ static int opt_ip6_setmembership(lua_State *L, p_socket ps, int level, int name)
+     }
+     return opt_set(L, ps, level, name, (char *) &val, sizeof(val));
+ }
++#else
++static int opt_ip6_setmembership(lua_State *L, p_socket ps, int level, int name)
++{
++    return set_opt_error(L);
++}
++#endif
+
+ static
+ int opt_get(lua_State *L, p_socket ps, int level, int name, void *val, int* len)
 diff --git a/serial.c b/serial.c
 deleted file mode 100644
 index 21485d3..0000000
@@ -842,7 +870,7 @@ index 21485d3..0000000
 -    return 1;
 -}
 diff --git a/tcp.c b/tcp.c
-index e84db84..64abffa 100644
+index e84db84..9dfa27e 100644
 --- a/tcp.c
 +++ b/tcp.c
 @@ -427,9 +427,18 @@ static int global_create4(lua_State *L) {
@@ -856,7 +884,7 @@ index e84db84..64abffa 100644
 +#else
 +static int global_create6(lua_State* L) {
 +    lua_pushnil(L);
-+    lua_pushstring(L, "Setting local interface error: not supported")
++    lua_pushstring(L, "Setting local interface error: not supported");
 +
 +    return 2;
 +}
@@ -865,7 +893,7 @@ index e84db84..64abffa 100644
  static int global_connect(lua_State *L) {
      const char *remoteaddr = luaL_checkstring(L, 1);
 diff --git a/udp.c b/udp.c
-index 712ad50..e8f1cd3 100755
+index 712ad50..a3c7a5f 100755
 --- a/udp.c
 +++ b/udp.c
 @@ -483,6 +483,15 @@ static int global_create4(lua_State *L) {
@@ -879,7 +907,7 @@ index 712ad50..e8f1cd3 100755
 +#else
 +static int global_create6(lua_State *L) {
 +    lua_pushnil(L);
-+    lua_pushstring(L, "Setting local interface error: not supported")
++    lua_pushstring(L, "Setting local interface error: not supported");
 +
 +    return 2;
 +}
@@ -1832,6 +1860,50 @@ index 7916aff..0000000
 -#endif
 -
 -#endif /* UNIXSTREAM_H */
+diff --git a/usocket.c b/usocket.c
+index 69635da..3cd8cde 100644
+--- a/usocket.c
++++ b/usocket.c
+@@ -18,7 +18,7 @@
+ * Wait for readable/writable/connected socket with timeout
+ \*-------------------------------------------------------------------------*/
+ #ifndef SOCKET_SELECT
+-#include <sys/poll.h>
++#include <poll.h>
+
+ #define WAITFD_R        POLLIN
+ #define WAITFD_W        POLLOUT
+@@ -431,12 +431,16 @@ const char *socket_ioerror(p_socket ps, int err) {
+ const char *socket_gaistrerror(int err) {
+     if (err == 0) return NULL;
+     switch (err) {
++#if !defined(__3DS__)
+         case EAI_AGAIN: return PIE_AGAIN;
+         case EAI_BADFLAGS: return PIE_BADFLAGS;
++#endif
+ #ifdef EAI_BADHINTS
+         case EAI_BADHINTS: return PIE_BADHINTS;
+ #endif
++#if !defined(__3DS__)
+         case EAI_FAIL: return PIE_FAIL;
++#endif
+         case EAI_FAMILY: return PIE_FAMILY;
+         case EAI_MEMORY: return PIE_MEMORY;
+         case EAI_NONAME: return PIE_NONAME;
+@@ -446,9 +450,13 @@ const char *socket_gaistrerror(int err) {
+ #ifdef EAI_PROTOCOL
+         case EAI_PROTOCOL: return PIE_PROTOCOL;
+ #endif
++#if !defined(__3DS__)
+         case EAI_SERVICE: return PIE_SERVICE;
++#endif
+         case EAI_SOCKTYPE: return PIE_SOCKTYPE;
++#if !defined(__3DS__)
+         case EAI_SYSTEM: return strerror(errno);
++#endif
+         default: return LUA_GAI_STRERROR(err);
+     }
+ }
 diff --git a/usocket.h b/usocket.h
 index 45f2f99..12c25ca 100644
 --- a/usocket.h

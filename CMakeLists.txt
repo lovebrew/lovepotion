@@ -287,7 +287,6 @@ add_library(luasocket
      ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.h
 )
 target_include_directories(luasocket PRIVATE
-    include
     libraries/lua
     libraries/lua53
 )

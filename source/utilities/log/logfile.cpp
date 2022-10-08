@@ -13,7 +13,7 @@ static FILE* file = nullptr;
 static love::mutex fileMutex;
 static bool opened = false;
 
-constexpr const char* LOG_FORMAT = "%s(%zu:%zu): `%s`:\n%s\n\n";
+constexpr const char* LOG_FORMAT = "%s(%lu:%lu): `%s`:\n%s\n\n";
 
 static void init(const char* filepath)
 {

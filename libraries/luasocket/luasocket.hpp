@@ -22,16 +22,20 @@
 #define LOVE_LUASOCKET_LUASOCKET_H
 
 // LOVE
-#include <common/luax.hpp>
+
+extern "C"
+{
+#include <lauxlib.h>
+#include <lua.h>
+#include <lualib.h>
+}
 
 namespace love
 {
-namespace luasocket
-{
-
-int preload(lua_State * L);
-
-} // luasocket
-} // love
+    namespace luasocket
+    {
+        int preload(lua_State* L);
+    } // namespace luasocket
+} // namespace love
 
 #endif // LOVE_LUASOCKET_LUASOCKET_H
