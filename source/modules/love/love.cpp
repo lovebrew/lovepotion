@@ -2,7 +2,7 @@
 #include <common/version.hpp>
 
 // #include <common/HTTPSCommon.h>
-#include <luasocket.h>
+#include <luasocket/luasocket.h>
 
 #include <modules/love/love.hpp>
 
@@ -119,7 +119,7 @@ int love::Initialize(lua_State* L)
     luax::Require(L, "love.data");
     lua_pop(L, 1);
 
-    love::luasocket::__open(L);
+    love::luasocket::preload(L);
 
     // luax::Preload(L, luaopen_https, "https");
     luax::Preload(L, luaopen_luautf8, "utf8");

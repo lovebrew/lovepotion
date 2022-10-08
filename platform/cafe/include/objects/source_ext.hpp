@@ -67,7 +67,7 @@ namespace love
 
         void TeardownAtomic();
 
-        bool PlayAtomic(AXWaveBuf& waveBuffer);
+        bool PlayAtomic(AXVoice& waveBuffer);
 
         void StopAtomic();
 
@@ -92,11 +92,11 @@ namespace love
 
         void Reset();
 
-        int StreamAtomic(AXWaveBuf& buffer, Decoder* decoder);
+        int StreamAtomic(AXVoice& buffer, Decoder* decoder);
 
         AudioPool* pool;
 
-        AXWaveBuf buffers[2];
+        AXVoice buffers[2];
 
         StrongReference<Decoder> decoder;
     };

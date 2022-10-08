@@ -18,16 +18,6 @@ extern "C"
 
 namespace love
 {
-    struct AXWaveBuf
-    {
-        uint8_t state;
-
-        uint32_t endSamples;
-        int16_t* data_pcm16;
-        bool looping;
-        uint16_t id;
-    };
-
     struct AXChannel
     {
         uint8_t state;
@@ -38,7 +28,7 @@ namespace love
         uint16_t currentId;
         uint16_t sequenceId;
 
-        std::queue<AXWaveBuf*> queue;
+        std::queue<std::pair<AXVoice*, uint32_t>> queue;
 
         AXVoice* voice;
     };
@@ -82,7 +72,7 @@ namespace love
 
         size_t ChannelGetSampleOffset(size_t id);
 
-        bool ChannelAddBuffer(size_t id, AXWaveBuf* buffer);
+        bool ChannelAddBuffer(size_t id, AXVoice* buffer);
 
         void ChannelPause(size_t id, bool paused = true);
 

@@ -30,6 +30,8 @@ endif()
 
 set(APP_AUTHOR "LÖVEBrew Team")
 
+file(COPY libraries/luasocket DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # arm-none-eabi-cmake
 if(NINTENDO_3DS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE
@@ -65,6 +67,8 @@ if(NINTENDO_3DS)
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.3dsx"
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
     )
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -Np1 -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
 endif()
 
 # aarch64-none-elf-cmake
@@ -247,6 +251,8 @@ target_include_directories(luahttps PRIVATE
 
 # luasocket
 add_library(luasocket
+    libraries/luasocket/luasocket.hpp
+    libraries/luasocket/luasocket.cpp
     libraries/luasocket/libluasocket/auxiliar.c
     libraries/luasocket/libluasocket/auxiliar.h
     libraries/luasocket/libluasocket/buffer.c
@@ -255,50 +261,30 @@ add_library(luasocket
     libraries/luasocket/libluasocket/compat.h
     libraries/luasocket/libluasocket/except.c
     libraries/luasocket/libluasocket/except.h
-    libraries/luasocket/libluasocket/ftp.lua
-    libraries/luasocket/libluasocket/ftp.lua.h
-    libraries/luasocket/libluasocket/headers.lua
-    libraries/luasocket/libluasocket/headers.lua.h
-    libraries/luasocket/libluasocket/http.lua
-    libraries/luasocket/libluasocket/http.lua.h
     libraries/luasocket/libluasocket/inet.c
     libraries/luasocket/libluasocket/inet.h
     libraries/luasocket/libluasocket/io.c
     libraries/luasocket/libluasocket/io.h
-    libraries/luasocket/libluasocket/libluasocket.c
-    libraries/luasocket/libluasocket/libluasocket.h
     libraries/luasocket/libluasocket/ltn12.lua
-    libraries/luasocket/libluasocket/ltn12.lua.h
-    libraries/luasocket/libluasocket/mbox.lua
-    libraries/luasocket/libluasocket/mbox.lua.h
+    libraries/luasocket/libluasocket/luasocket.c
+    libraries/luasocket/libluasocket/luasocket.h
     libraries/luasocket/libluasocket/mime.c
     libraries/luasocket/libluasocket/mime.h
-    libraries/luasocket/libluasocket/mime.lua
-    libraries/luasocket/libluasocket/mime.lua.h
     libraries/luasocket/libluasocket/options.c
     libraries/luasocket/libluasocket/options.h
     libraries/luasocket/libluasocket/pierror.h
     libraries/luasocket/libluasocket/select.c
     libraries/luasocket/libluasocket/select.h
     libraries/luasocket/libluasocket/smtp.lua
-    libraries/luasocket/libluasocket/smtp.lua.h
     libraries/luasocket/libluasocket/socket.h
-    libraries/luasocket/libluasocket/socket.lua
-    libraries/luasocket/libluasocket/socket.lua.h
     libraries/luasocket/libluasocket/tcp.c
     libraries/luasocket/libluasocket/tcp.h
     libraries/luasocket/libluasocket/timeout.c
     libraries/luasocket/libluasocket/timeout.h
-    libraries/luasocket/libluasocket/tp.lua
-    libraries/luasocket/libluasocket/tp.lua.h
     libraries/luasocket/libluasocket/udp.c
     libraries/luasocket/libluasocket/udp.h
-    libraries/luasocket/libluasocket/url.lua
-    libraries/luasocket/libluasocket/url.lua.h
     libraries/luasocket/libluasocket/usocket.c
     libraries/luasocket/libluasocket/usocket.h
-    libraries/luasocket/luasocket.cpp
-    libraries/luasocket/luasocket.h
 )
 target_include_directories(luasocket PRIVATE
     include

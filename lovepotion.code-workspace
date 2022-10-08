@@ -74,7 +74,11 @@
       "semaphore": "cpp",
       "stop_token": "cpp",
       "thread": "cpp",
-      "source_location": "cpp"
+      "source_location": "cpp",
+      "socket.h": "c",
+      "usocket.h": "c",
+      "netdb.h": "c",
+      "luasocket.h": "c"
     },
     "terminal.integrated.defaultProfile.windows": "msys2",
     "yaml.schemas": {

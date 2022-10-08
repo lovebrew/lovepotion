@@ -25,41 +25,32 @@
 /* sigpipe handling */
 #include <signal.h>
 /* IP stuff*/
-#include <arpa/inet.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 /* TCP options (nagle algorithm disable) */
 #include <netinet/tcp.h>
 
-#if defined(__3DS__)
-    #define SO_KEEPALIVE 0x0008
-    #define SO_DONTROUTE 0x0010
-#endif
-
-#if defined(__SWITCH__)
-    #include <net/if.h>
-#endif
-
 #ifndef SO_REUSEPORT
-    #define SO_REUSEPORT SO_REUSEADDR
+#define SO_REUSEPORT SO_REUSEADDR
 #endif
 
 /* Some platforms use IPV6_JOIN_GROUP instead if
  * IPV6_ADD_MEMBERSHIP. The semantics are same, though. */
 #ifndef IPV6_ADD_MEMBERSHIP
-    #ifdef IPV6_JOIN_GROUP
-        #define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
-    #endif /* IPV6_JOIN_GROUP */
-#endif     /* !IPV6_ADD_MEMBERSHIP */
+#ifdef IPV6_JOIN_GROUP
+#define IPV6_ADD_MEMBERSHIP IPV6_JOIN_GROUP
+#endif /* IPV6_JOIN_GROUP */
+#endif /* !IPV6_ADD_MEMBERSHIP */
 
 /* Same with IPV6_DROP_MEMBERSHIP / IPV6_LEAVE_GROUP. */
 #ifndef IPV6_DROP_MEMBERSHIP
-    #ifdef IPV6_LEAVE_GROUP
-        #define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
-    #endif /* IPV6_LEAVE_GROUP */
-#endif     /* !IPV6_DROP_MEMBERSHIP */
+#ifdef IPV6_LEAVE_GROUP
+#define IPV6_DROP_MEMBERSHIP IPV6_LEAVE_GROUP
+#endif /* IPV6_LEAVE_GROUP */
+#endif /* !IPV6_DROP_MEMBERSHIP */
 
 typedef int t_socket;
-typedef t_socket* p_socket;
+typedef t_socket *p_socket;
 typedef struct sockaddr_storage t_sockaddr_storage;
 
 #define SOCKET_INVALID (-1)

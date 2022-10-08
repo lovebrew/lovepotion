@@ -34,7 +34,7 @@ Source<Console::CAFE>::Source(AudioPool* pool, SoundData* soundData) :
     this->bitDepth      = soundData->GetBitDepth();
     this->samplesOffset = 0;
 
-    std::fill_n(this->buffers, 2, AXWaveBuf {});
+    std::fill_n(this->buffers, 2, AXVoice {});
 
     this->staticBuffer = std::make_shared<DataBuffer>(soundData->GetData(), soundData->GetSize());
 }
@@ -48,12 +48,12 @@ Source<Console::CAFE>::Source(AudioPool* pool, Decoder* decoder) : Source<>(TYPE
     this->bufferCount   = MAX_BUFFERS;
     this->samplesOffset = 0;
 
-    std::fill_n(this->buffers, this->bufferCount, AXWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, AXVoice {});
 
     for (auto& buffer : this->buffers)
     {
-        buffer.data_pcm16 = (int16_t*)malloc(decoder->GetSize());
-        buffer.state      = ::DSP::STATE_FINISHED;
+        buffer.offsets.data = (int16_t*)malloc(decoder->GetSize());
+        buffer.state        = ::DSP::STATE_FINISHED;
     }
 }
 
@@ -71,7 +71,7 @@ Source<Console::CAFE>::Source(AudioPool* pool, int sampleRate, int bitDepth, int
     if (buffers < 1 || buffers > Source::MAX_BUFFERS)
         buffers = MAX_BUFFERS;
 
-    std::fill_n(this->buffers, this->bufferCount, AXWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, AXVoice {});
 
     for (size_t index = 0; index < this->bufferCount; index++)
         this->buffers[index].state = ::DSP::STATE_FINISHED;
@@ -93,12 +93,12 @@ Source<Console::CAFE>::Source(const Source& other) : Source<>(other.sourceType),
             this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
     }
 
-    std::fill_n(this->buffers, this->bufferCount, AXWaveBuf {});
+    std::fill_n(this->buffers, this->bufferCount, AXVoice {});
 
     for (size_t index = 0; index < this->bufferCount; index++)
     {
         if (this->sourceType == TYPE_STREAM)
-            this->buffers[index].data_pcm16 = (int16_t*)malloc(this->decoder->GetSize());
+            this->buffers[index].offsets.data = (int16_t*)malloc(this->decoder->GetSize());
 
         this->buffers[index].state = ::DSP::STATE_FINISHED;
     }
@@ -110,8 +110,8 @@ Source<Console::CAFE>::~Source()
 
     for (auto& buffer : this->buffers)
     {
-        if (buffer.data_pcm16)
-            free(buffer.data_pcm16);
+        // if (buffer.offsets.data)
+        //     free(buffer.offsets.data);
     }
 }
 
@@ -385,7 +385,7 @@ void Source<Console::CAFE>::SetLooping(bool loop)
         throw QueueLoopingException();
 
     if (this->valid && this->sourceType == TYPE_STATIC)
-        this->buffers[0].looping = loop;
+        this->buffers[0].offsets.loopingEnabled = loop;
 
     this->looping = loop;
 }
@@ -432,8 +432,8 @@ void Source<Console::CAFE>::PrepareAtomic()
             const auto size = this->staticBuffer->GetSize();
 
             // clang-format off
-            this->buffers[0].endSamples = (int)((size / this->channels) / (this->bitDepth / 8)) - (this->samplesOffset / this->channels);
-            this->buffers[0].data_pcm16 = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
+            this->buffers[0].offsets.endOffset = (int)((size / this->channels) / (this->bitDepth / 8)) - (this->samplesOffset / this->channels);
+            this->buffers[0].offsets.data = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
             // clang-format on
 
             break;
@@ -455,16 +455,16 @@ void Source<Console::CAFE>::PrepareAtomic()
     }
 }
 
-int Source<Console::CAFE>::StreamAtomic(AXWaveBuf& buffer, Decoder* decoder)
+int Source<Console::CAFE>::StreamAtomic(AXVoice& buffer, Decoder* decoder)
 {
     int decoded = std::max(decoder->Decode(), 0);
 
     if (decoded > 0)
     {
-        std::memcpy(buffer.data_pcm16, (int16_t*)decoder->GetBuffer(), decoded);
-        buffer.endSamples = (int)((decoded / this->channels) / (this->bitDepth / 8));
+        buffer.offsets.data      = decoder->GetBuffer();
+        buffer.offsets.endOffset = (int)((decoded / this->channels) / (this->bitDepth / 8));
 
-        DCFlushRange(buffer.data_pcm16, decoded);
+        DCFlushRange(decoder->GetBuffer(), decoded);
     }
 
     if (decoder->IsFinished() && this->IsLooping())
@@ -501,7 +501,7 @@ void Source<Console::CAFE>::TeardownAtomic()
     this->samplesOffset = 0;
 }
 
-bool Source<Console::CAFE>::PlayAtomic(AXWaveBuf& waveBuffer)
+bool Source<Console::CAFE>::PlayAtomic(AXVoice& waveBuffer)
 {
     this->PrepareAtomic();
 
