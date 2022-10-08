@@ -166,7 +166,7 @@ int Wrap_ImageData::_MapPixelUnsafe(lua_State* L)
     {
         for (int x = sourceX; x < sourceX + width; x++)
         {
-            unsigned index = coordToIndex(_srcPowTwo, x + 1, y + 1);
+            unsigned index = coordToIndex(_srcPowTwo, x, y);
             auto pixel     = reinterpret_cast<ImageData::Pixel*>(data + index);
 
             Colorf color {};

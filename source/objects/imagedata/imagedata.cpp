@@ -326,7 +326,7 @@ void ImageData::SetPixel(int x, int y, const Colorf& color)
     this->pixelSetFunction(color, pixel);
 #else
     unsigned _width = NextPO2(this->width);
-    unsigned index = coordToIndex(_width, x + 1, y + 1);
+    unsigned index = coordToIndex(_width, x, y);
 
     Pixel* pixel = reinterpret_cast<Pixel*>((uint32_t*)this->data + index);
 
@@ -351,7 +351,7 @@ void ImageData::GetPixel(int x, int y, Colorf& color) const
     this->pixelGetFunction(pixel, color);
 #else
     unsigned _width = NextPO2(this->width);
-    unsigned index = coordToIndex(_width, x + 1, y + 1);
+    unsigned index = coordToIndex(_width, x, y);
 
     const Pixel* pixel = reinterpret_cast<const Pixel*>((uint32_t*)this->data + index);
 
@@ -438,8 +438,8 @@ void ImageData::Paste(ImageData* src, int dx, int dy, int sx, int sy, int sw, in
     {
         for (int x = 0; x < std::min(sw, dstW - dx); x++)
         {
-            unsigned srcIndex = coordToIndex(_srcPowTwo, (sx + x) + 1, (sy + y) + 1);
-            unsigned dstIndex = coordToIndex(_dstPowTwo, (dx + x) + 1, (dy + y) + 1);
+            unsigned srcIndex = coordToIndex(_srcPowTwo, (sx + x), (sy + y));
+            unsigned dstIndex = coordToIndex(_dstPowTwo, (dx + x), (dy + y));
 
             Colorf color {};
 

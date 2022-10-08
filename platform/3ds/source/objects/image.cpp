@@ -96,8 +96,8 @@ void Image::ReplacePixels(const void* data, size_t size, const Rect& rect)
     {
         for (int x = 0; x < rect.w; x++)
         {
-            unsigned srcIndex = coordToIndex(srcPowTwoWidth, x + 1, y + 1);
-            unsigned dstIndex = coordToIndex(this->texture.tex->width, x + 1, y + 1);
+            unsigned srcIndex = coordToIndex(srcPowTwoWidth, x, y);
+            unsigned dstIndex = coordToIndex(this->texture.tex->width, x, y);
 
             Colorf color {};
 
