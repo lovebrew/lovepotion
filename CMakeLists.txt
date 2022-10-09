@@ -103,6 +103,8 @@ if(NINTENDO_SWITCH)
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.nro"
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
     )
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/hac/libraries/luasocket.patch)
 endif()
 
 # powerpc-eabi-cmake
