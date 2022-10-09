@@ -142,6 +142,8 @@ if (NINTENDO_WIIU)
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb"
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
     )
+
+    execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
 endif()
 
 # Options for code generation
