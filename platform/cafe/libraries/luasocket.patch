@@ -1579,7 +1579,7 @@ index 7916aff..0000000
 -
 -#endif /* UNIXSTREAM_H */
 diff --git a/usocket.c b/usocket.c
-index 69635da..3777a9e 100644
+index 69635da..ecf6d2a 100644
 --- a/usocket.c
 +++ b/usocket.c
 @@ -18,7 +18,7 @@
@@ -1600,7 +1600,7 @@ index 69635da..3777a9e 100644
          if (put >= 0) {
              *sent = put;
              return IO_DONE;
-@@ -403,7 +403,16 @@ const char *socket_hoststrerror(int err) {
+@@ -403,7 +403,15 @@ const char *socket_hoststrerror(int err) {
      if (err <= 0) return io_strerror(err);
      switch (err) {
          case HOST_NOT_FOUND: return PIE_HOST_NOT_FOUND;
@@ -1609,9 +1609,8 @@ index 69635da..3777a9e 100644
 +        #else
 +        case TRY_AGAIN: return "Host name lookup failure";
 +        case NO_RECOVERY: return "Unknown server error";
-+        case NO_DATA:
-+        case NOADDRESS:
-+            return "No address associated with name"
++        case NO_ADDRESS:
++            return "No address associated with name";
 +
 +        #endif
      }

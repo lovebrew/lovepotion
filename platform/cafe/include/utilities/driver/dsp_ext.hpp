@@ -25,12 +25,12 @@ namespace love
         uint8_t bitDepth;
         uint16_t sampleRate;
 
-        uint16_t currentId;
-        uint16_t sequenceId;
+        uint8_t bufferCount;
+        uint8_t buffersConsumed;
 
-        std::queue<std::pair<AXVoice*, uint32_t>> queue;
-
-        AXVoice* voice;
+        AXVoice* firstWaveBuf;
+        AXVoice* lastWaveBuf;
+        AXVoice* waitingWaveBuf;
     };
 
     template<>
@@ -41,6 +41,7 @@ namespace love
         {
             STATE_STOPPED = AX_VOICE_STATE_STOPPED,
             STATE_PLAYING = AX_VOICE_STATE_PLAYING,
+            STATE_STARTED,
             STATE_QUEUED,
             STATE_PAUSED,
             STATE_FINISHED
