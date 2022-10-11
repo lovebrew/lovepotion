@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/devkitpro/portlibs/ppc/",
+                "/opt/devkitpro/devkitPPC/",
+                "/opt/devkitpro/portlibs/wiiu/",
+                "/opt/devkitpro/portlibs/switch/",
+                "/opt/devkitpro/portlibs/3ds/"
+            ],
+            "defines": [],
+            "compilerPath": "/home/linuxbrew/.linuxbrew/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++14",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}

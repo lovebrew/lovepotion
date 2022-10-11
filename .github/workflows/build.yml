@@ -19,6 +19,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Dependecies
+        run: pacman -S --needed - < platform/ctr/pkglist.txt
+
       - name: Build
         run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build ; make -C build
 
@@ -44,6 +47,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
+      - name: Dependecies
+        run: pacman -S --needed - < platform/hac/pkglist.txt
+
       - name: Build
         run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build ; make -C build
 
@@ -68,6 +74,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+
+      - name: Dependecies
+        run: pacman -S --needed - < platform/cafe/pkglist.txt
 
       - name: Build
         run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build ; make -C build
