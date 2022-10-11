@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Dependecies
-        run: dkp-pacman -S --needed - < platform/ctr/pkglist.txt
+        run: dkp-pacman -S --noconfirm --needed - < platform/ctr/pkglist.txt
 
       - name: Build
         run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build ; make -C build
@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Dependecies
-        run: dkp-pacman -S --needed - < platform/hac/pkglist.txt
+        run: dkp-pacman -S --noconfirm --needed - < platform/hac/pkglist.txt
 
       - name: Build
         run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build ; make -C build
@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Dependecies
-        run: dkp-pacman -S --needed - < platform/cafe/pkglist.txt
+        run: dkp-pacman -S --noconfirm --needed - < platform/cafe/pkglist.txt
 
       - name: Build
         run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build ; make -C build
