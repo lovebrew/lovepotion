@@ -326,7 +326,12 @@ function love.init()
         "physics",
     } do
         if c.modules[v] then
-            pcall(require, "love." .. v)
+            local status, error = pcall(require, "love." .. v)
+            if not status then
+                if file then
+                    file:echo(error)
+                end
+            end
         end
     end
 

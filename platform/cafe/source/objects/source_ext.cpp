@@ -15,8 +15,6 @@ Source<Console::CAFE>::DataBuffer::DataBuffer(const void* data, size_t size) : s
 {
     this->buffer = (int16_t*)malloc(size);
     std::memcpy(this->buffer, (int16_t*)data, size);
-
-    DCFlushRange(this->buffer, this->size);
 }
 
 template<>
@@ -33,8 +31,8 @@ Source<Console::CAFE>::Source(AudioPool* pool, SoundData* soundData) :
     this->channels      = soundData->GetChannelCount();
     this->bitDepth      = soundData->GetBitDepth();
     this->samplesOffset = 0;
+    this->bufferCount   = 1;
 
-    this->buffers[0]   = AXAcquireVoice(31, nullptr, nullptr);
     this->staticBuffer = std::make_shared<DataBuffer>(soundData->GetData(), soundData->GetSize());
 }
 
@@ -46,15 +44,6 @@ Source<Console::CAFE>::Source(AudioPool* pool, Decoder* decoder) : Source<>(TYPE
     this->bitDepth      = decoder->GetBitDepth();
     this->bufferCount   = MAX_BUFFERS;
     this->samplesOffset = 0;
-
-    for (size_t index = 0; index < this->bufferCount; index++)
-    {
-        this->buffers[index] = AXAcquireVoice(31, nullptr, nullptr);
-
-        AXVoiceBegin(this->buffers[index]);
-        AXSetVoiceState(this->buffers[index], ::DSP::STATE_FINISHED);
-        AXVoiceEnd(this->buffers[index]);
-    }
 }
 
 Source<Console::CAFE>::Source(AudioPool* pool, int sampleRate, int bitDepth, int channels,
@@ -70,12 +59,6 @@ Source<Console::CAFE>::Source(AudioPool* pool, int sampleRate, int bitDepth, int
 
     if (buffers < 1 || buffers > Source::MAX_BUFFERS)
         buffers = MAX_BUFFERS;
-
-    for (size_t index = 0; index < this->bufferCount; index++)
-    {
-        this->buffers[index]        = AXAcquireVoice(31, nullptr, nullptr);
-        this->buffers[index]->state = ::DSP::STATE_FINISHED;
-    }
 }
 
 Source<Console::CAFE>::Source(const Source& other) : Source<>(other.sourceType), pool(other.pool)
@@ -93,27 +76,11 @@ Source<Console::CAFE>::Source(const Source& other) : Source<>(other.sourceType),
         if (other.decoder.Get())
             this->decoder.Set(other.decoder->Clone(), Acquire::NORETAIN);
     }
-
-    for (size_t index = 0; index < this->bufferCount; index++)
-    {
-        this->buffers[index] = AXAcquireVoice(31, nullptr, nullptr);
-
-        if (this->sourceType == TYPE_STREAM)
-            this->buffers[index]->offsets.data = (int16_t*)malloc(this->decoder->GetSize());
-
-        this->buffers[index]->state = ::DSP::STATE_FINISHED;
-    }
 }
 
 Source<Console::CAFE>::~Source()
 {
     this->Stop();
-
-    for (auto& buffer : this->buffers)
-    {
-        // if (buffer.offsets.data)
-        //     free(buffer.offsets.data);
-    }
 }
 
 Source<Console::CAFE>* Source<Console::CAFE>::Clone()
@@ -184,9 +151,6 @@ bool Source<Console::CAFE>::IsFinished() const
     if (this->sourceType == TYPE_STREAM && (this->IsLooping() || !this->decoder->IsFinished()))
         return false;
 
-    if (this->sourceType == TYPE_STATIC)
-        return this->buffers[0]->state == ::DSP::STATE_FINISHED;
-
     return ::DSP::Instance().IsChannelPlaying(this->channel) == false;
 }
 
@@ -206,18 +170,18 @@ bool Source<Console::CAFE>::Update()
 
             bool other = !this->current;
 
-            if (this->buffers[other]->state == ::DSP::STATE_FINISHED)
-            {
-                int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
+            // if (this->buffers[other]->state == ::DSP::STATE_FINISHED)
+            // {
+            //     int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
 
-                if (decoded == 0)
-                    return false;
+            //     if (decoded == 0)
+            //         return false;
 
-                ::DSP::Instance().ChannelAddBuffer(this->channel, this->buffers[other]);
-                this->samplesOffset += ::DSP::Instance().ChannelGetSampleOffset(this->channel);
+            //     ::DSP::Instance().ChannelAddBuffer(this->channel, this->buffers[other]);
+            //     this->samplesOffset += ::DSP::Instance().ChannelGetSampleOffset(this->channel);
 
-                this->current = !this->current;
-            }
+            //     this->current = !this->current;
+            // }
             return true;
         }
         case TYPE_QUEUE:
@@ -385,9 +349,6 @@ void Source<Console::CAFE>::SetLooping(bool loop)
     if (this->sourceType == TYPE_QUEUE)
         throw QueueLoopingException();
 
-    if (this->valid && this->sourceType == TYPE_STATIC)
-        this->buffers[0]->offsets.loopingEnabled = loop;
-
     this->looping = loop;
 }
 
@@ -416,28 +377,27 @@ int Source<Console::CAFE>::GetFreeBufferCount() const
         return 0;
 
     size_t count = 0;
-    for (auto& buffer : this->buffers)
-        count += (buffer->state == ::DSP::STATE_FINISHED) ? 1 : 0;
+    // for (auto& buffer : this->buffers)
+    //     count += (buffer->state == ::DSP::STATE_FINISHED) ? 1 : 0;
 
     return count;
 }
 
 void Source<Console::CAFE>::PrepareAtomic()
 {
-    ::DSP::Instance().ChannelReset(this->channel, this->channels, this->bitDepth, this->sampleRate);
+    ::DSP::Instance().ChannelReset(this->channel);
 
     switch (this->sourceType)
     {
         case TYPE_STATIC:
         {
-            const auto size = this->staticBuffer->GetSize();
+            const auto size   = this->staticBuffer->GetSize();
+            const auto rwSize = (int)((size / this->channels) / (this->bitDepth / 8)) -
+                                (this->samplesOffset / this->channels);
 
-            // clang-format off
-            AXVoiceBegin(this->buffers[0]);
-            this->buffers[0]->offsets.endOffset = (int)((size / this->channels) / (this->bitDepth / 8)) - (this->samplesOffset / this->channels);
-            this->buffers[0]->offsets.data = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
-            AXVoiceEnd(this->buffers[0]);
-            // clang-format on
+            /* 1 will free the source */
+            this->buffers[0] = Mix_QuickLoad_RAW(
+                (uint8_t*)this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset, rwSize);
 
             break;
         }
@@ -458,19 +418,12 @@ void Source<Console::CAFE>::PrepareAtomic()
     }
 }
 
-int Source<Console::CAFE>::StreamAtomic(AXVoice* buffer, Decoder* decoder)
+int Source<Console::CAFE>::StreamAtomic(Mix_Chunk* buffer, Decoder* decoder)
 {
     int decoded = std::max(decoder->Decode(), 0);
 
     if (decoded > 0)
-    {
-        AXVoiceBegin(buffer);
-        buffer->offsets.data = decoder->GetBuffer();
-        AXSetVoiceEndOffset(buffer, (int)((decoded / this->channels) / (this->bitDepth / 8)));
-        AXVoiceEnd(buffer);
-
-        DCFlushRange(decoder->GetBuffer(), decoded);
-    }
+        buffer = Mix_QuickLoad_RAW((uint8_t*)decoder->GetBuffer(), decoded);
 
     if (decoder->IsFinished() && this->IsLooping())
         decoder->Rewind();
@@ -491,9 +444,6 @@ void Source<Console::CAFE>::TeardownAtomic()
         {
             this->decoder->Rewind();
 
-            for (auto& buffer : this->buffers)
-                buffer->state = ::DSP::STATE_FINISHED;
-
             break;
         }
         case TYPE_QUEUE:
@@ -506,11 +456,11 @@ void Source<Console::CAFE>::TeardownAtomic()
     this->samplesOffset = 0;
 }
 
-bool Source<Console::CAFE>::PlayAtomic(AXVoice* waveBuffer)
+bool Source<Console::CAFE>::PlayAtomic(Mix_Chunk* buffer)
 {
     this->PrepareAtomic();
 
-    if (!(this->valid = ::DSP::Instance().ChannelAddBuffer(this->channel, waveBuffer)))
+    if (!(this->valid = ::DSP::Instance().ChannelAddBuffer(this->channel, buffer, this->looping)))
         return false;
 
     if (this->sourceType != TYPE_STREAM)
