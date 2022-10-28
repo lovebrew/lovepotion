@@ -69,8 +69,11 @@ size_t DSP<Console::CAFE>::ChannelGetSampleOffset(size_t id)
 bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id, Mix_Chunk* buffer, bool looping)
 {
     int loops = (looping) ? -1 : 0;
-    if (Mix_PlayChannel(id, buffer, loops) < 0)
+    if (Mix_PlayChannel(std::clamp<int>(id + 1, 1, 8), buffer, loops) < 0)
+    {
+        LOG("Mix_PlayChannel: %s", Mix_GetError());
         return false;
+    }
 
     return true;
 }
@@ -95,5 +98,6 @@ bool DSP<Console::CAFE>::IsChannelPlaying(size_t id)
 
 void DSP<Console::CAFE>::ChannelStop(size_t id)
 {
+    LOG("We halted?");
     Mix_HaltChannel(id);
 }

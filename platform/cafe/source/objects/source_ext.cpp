@@ -33,6 +33,7 @@ Source<Console::CAFE>::Source(AudioPool* pool, SoundData* soundData) :
     this->samplesOffset = 0;
     this->bufferCount   = 1;
 
+    std::memset(this->buffers, 0, sizeof(this->buffers));
     this->staticBuffer = std::make_shared<DataBuffer>(soundData->GetData(), soundData->GetSize());
 }
 
@@ -170,18 +171,19 @@ bool Source<Console::CAFE>::Update()
 
             bool other = !this->current;
 
-            // if (this->buffers[other]->state == ::DSP::STATE_FINISHED)
-            // {
-            //     int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
+            if (::DSP::Instance().IsChannelPlaying(this->channel))
+            {
+                int decoded = this->StreamAtomic(this->buffers[other], this->decoder.Get());
 
-            //     if (decoded == 0)
-            //         return false;
+                if (decoded == 0)
+                    return false;
 
-            //     ::DSP::Instance().ChannelAddBuffer(this->channel, this->buffers[other]);
-            //     this->samplesOffset += ::DSP::Instance().ChannelGetSampleOffset(this->channel);
+                ::DSP::Instance().ChannelAddBuffer(this->channel, this->buffers[other], false);
+                this->samplesOffset += ::DSP::Instance().ChannelGetSampleOffset(this->channel);
 
-            //     this->current = !this->current;
-            // }
+                this->current = !this->current;
+            }
+
             return true;
         }
         case TYPE_QUEUE:
@@ -391,13 +393,11 @@ void Source<Console::CAFE>::PrepareAtomic()
     {
         case TYPE_STATIC:
         {
-            const auto size   = this->staticBuffer->GetSize();
-            const auto rwSize = (int)((size / this->channels) / (this->bitDepth / 8)) -
-                                (this->samplesOffset / this->channels);
+            const auto rawSize = this->staticBuffer->GetSize() - this->samplesOffset;
 
-            /* 1 will free the source */
-            this->buffers[0] = Mix_QuickLoad_RAW(
-                (uint8_t*)this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset, rwSize);
+            // clang-format off
+            this->buffers[0] = Mix_QuickLoad_RAW((uint8_t*)this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset, rawSize);
+            // clang-format on
 
             break;
         }
@@ -460,7 +460,8 @@ bool Source<Console::CAFE>::PlayAtomic(Mix_Chunk* buffer)
 {
     this->PrepareAtomic();
 
-    if (!(this->valid = ::DSP::Instance().ChannelAddBuffer(this->channel, buffer, this->looping)))
+    bool looping = (this->sourceType == TYPE_STREAM) ? false : this->looping;
+    if (!(this->valid = ::DSP::Instance().ChannelAddBuffer(this->channel, buffer, looping)))
         return false;
 
     if (this->sourceType != TYPE_STREAM)
