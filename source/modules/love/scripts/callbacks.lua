@@ -281,6 +281,7 @@ function love.run()
             for name, a, b, c, d, e, f in love.event.poll() do
                 if name == "quit" then
                     if not love.quit or not love.quit() then
+                        love.audio.stop()
                         return a or 0
                     end
                 end

@@ -38,19 +38,25 @@ namespace love
 
         int GetMaxSources() const;
 
+        void SetVolume(float volume);
+
+        float GetVolume() const;
+
         bool Play(Source<Console::Which>* source);
+
+        bool Play(const std::vector<Source<Console::Which>*>& sources);
 
         void Stop(Source<Console::Which>* source);
 
-        // void Stop(const std::vector<Source*>& sources) ;
+        void Stop(const std::vector<Source<Console::Which>*>& sources);
 
-        // void Stop();
+        void Stop();
 
-        // void Pause(Source* source) ;
+        void Pause(Source<Console::Which>* source);
 
-        // void Pause(const std::vector<Source*>& sources) ;
+        void Pause(const std::vector<Source<Console::Which>*>& sources);
 
-        // std::vector<Source*> Pause() ;
+        std::vector<Source<Console::Which>*> Pause();
 
       private:
         AudioPool* pool;

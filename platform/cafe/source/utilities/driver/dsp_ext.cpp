@@ -10,11 +10,6 @@
 
 using namespace love;
 
-static void SDL_PostMixEvent(void* userdata, uint8_t* stream, int length)
-{
-    OSSignalEvent(&::DSP<Console::CAFE>::Instance().GetEvent());
-}
-
 static std::array<int, 24> channelOffsets;
 
 static void SDL_ChnEffectEvent(int channel, void* stream, int length, void* userdata)
@@ -34,39 +29,32 @@ void DSP<Console::CAFE>::Initialize()
     if (!this->initialized)
         throw love::Exception("Failed to initialize DSP driver: (%s)!", Mix_GetError());
 
-    OSInitEvent(&this->event, 1, OS_EVENT_MODE_AUTO);
-
-    Mix_SetPostMix(SDL_PostMixEvent, nullptr);
     Mix_AllocateChannels(24);
+    OSInitEvent(&this->event, 1, OS_EVENT_MODE_AUTO);
 }
 
 DSP<Console::CAFE>::~DSP()
 {
-    if (!this->initialized)
-        return;
-
     for (size_t channel = 0; channel < 24; channel++)
         Mix_UnregisterAllEffects(channel);
 
-    Mix_Quit();
+    OSResetEvent(&this->event);
+
+    Mix_CloseAudio();
     SDL_QuitSubSystem(SDL_INIT_AUDIO);
 }
 
 void DSP<Console::CAFE>::Update()
-{
-    OSWaitEvent(&this->event);
-}
+{}
 
 void DSP<Console::CAFE>::SetMasterVolume(float volume)
 {
-    AXSetMasterVolume(volume * 0x8000);
+    Mix_Volume(-1, (volume * 128));
 }
 
 float DSP<Console::CAFE>::GetMasterVolume() const
 {
-    int16_t volume = AXGetMasterVolume();
-
-    return volume / (float)0x8000;
+    return Mix_Volume(-1, -1) / 128.0f;
 }
 
 bool DSP<Console::CAFE>::ChannelReset(size_t id)
@@ -99,7 +87,7 @@ bool DSP<Console::CAFE>::ChannelAddBuffer(size_t id, Mix_Chunk* buffer, bool loo
     int loops = (looping) ? -1 : 0;
 
     Mix_RegisterEffect(id, SDL_ChnEffectEvent, nullptr, nullptr);
-    if (Mix_PlayChannel(std::min<int>(id, 8), buffer, loops) < 0)
+    if (Mix_PlayChannel(id, buffer, loops) < 0)
         return false;
 
     return true;

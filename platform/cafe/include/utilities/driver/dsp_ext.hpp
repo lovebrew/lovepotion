@@ -63,8 +63,6 @@ namespace love
         }
 
       private:
-        static constexpr int MIX_INIT_ALL = MIX_INIT_MP3 | MIX_INIT_OGG;
-
         OSEvent event;
     };
 } // namespace love
