@@ -144,6 +144,9 @@ if (NINTENDO_WIIU)
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
+
+    find_package(SDL2 REQUIRED)
+    target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_Mixer mpg123 SDL2)
 endif()
 
 # Options for code generation

@@ -127,36 +127,66 @@ int Wrap_Audio::Play(lua_State* L)
     return 1;
 }
 
-/* todo */
 int Wrap_Audio::Stop(lua_State* L)
 {
+    if (lua_isnone(L, 1))
+        instance()->Stop();
+    else if (lua_istable(L, 1))
+        instance()->Stop(readSourceList(L, 1));
+    else if (lua_gettop(L) > 1)
+        instance()->Stop(readSourceVararg(L, 1));
+    else
+    {
+        auto* self = Wrap_Source::CheckSource(L, 1);
+        self->Stop();
+    }
+
     return 0;
 }
 
-/* todo */
 int Wrap_Audio::Pause(lua_State* L)
 {
+    if (lua_isnone(L, 1))
+        instance()->Pause();
+    else if (lua_istable(L, 1))
+        instance()->Pause(readSourceList(L, 1));
+    else if (lua_gettop(L) > 1)
+        instance()->Pause(readSourceVararg(L, 1));
+    else
+    {
+        auto* self = Wrap_Source::CheckSource(L, 1);
+        self->Pause();
+    }
+
     return 0;
 }
 
-/* todo */
 int Wrap_Audio::SetVolume(lua_State* L)
 {
+    float volume = luaL_checknumber(L, 1);
+    instance()->SetVolume(volume);
+
     return 0;
 }
 
-/* todo */
 int Wrap_Audio::GetVolume(lua_State* L)
 {
-    return 0;
+    float volume = instance()->GetVolume();
+    lua_pushnumber(L, volume);
+
+    return 1;
 }
 
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
     { "getActiveSourceCount", Wrap_Audio::GetActiveSourceCount },
+    { "getVolume",            Wrap_Audio::GetVolume            },
     { "newSource",            Wrap_Audio::NewSource            },
-    { "play",                 Wrap_Audio::Play                 }
+    { "play",                 Wrap_Audio::Play                 },
+    { "pause",                Wrap_Audio::Pause                },
+    { "stop",                 Wrap_Audio::Stop                 },
+    { "setVolume",            Wrap_Audio::SetVolume            }
 };
 
 static constexpr lua_CFunction types[] =
