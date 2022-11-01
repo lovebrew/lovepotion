@@ -4,6 +4,8 @@
 
 #include <utilities/driver/dsp.tcc>
 
+#include <coreinit/event.h>
+
 #include <SDL2/SDL_mixer.h>
 
 extern "C"
@@ -31,8 +33,7 @@ namespace love
 
         void Initialize();
 
-        void Update()
-        {}
+        void Update();
 
         void SetMasterVolume(float volume);
 
@@ -44,7 +45,7 @@ namespace love
 
         float ChannelGetVolume(size_t id);
 
-        size_t ChannelGetSampleOffset(size_t id);
+        size_t ChannelGetSampleOffset(size_t id, int bitDepth);
 
         bool ChannelAddBuffer(size_t id, Mix_Chunk* buffer, bool looping);
 
@@ -56,7 +57,14 @@ namespace love
 
         void ChannelStop(size_t id);
 
+        OSEvent& GetEvent()
+        {
+            return this->event;
+        }
+
       private:
         static constexpr int MIX_INIT_ALL = MIX_INIT_MP3 | MIX_INIT_OGG;
+
+        OSEvent event;
     };
 } // namespace love
