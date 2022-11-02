@@ -21,11 +21,14 @@ extern "C"
         /* battery */
         R_ABORT_UNLESS(psmInitialize());
 
+        /* wireless */
+        R_ABORT_UNLESS(socketInitializeDefault());
+
         /* friends */
         R_ABORT_UNLESS(friendsInitialize(FriendsServiceType_Viewer));
 
         /* initialize controllers -- 4 players max */
-        padConfigureInput(0x08, HidNpadStyleSet_NpadStandard);
+        padConfigureInput(0x04, HidNpadStyleSet_NpadStandard);
 
         /* initialize touch screen */
         hidInitializeTouchScreen();
@@ -34,6 +37,8 @@ extern "C"
     void userAppExit()
     {
         friendsExit();
+
+        socketExit();
 
         psmExit();
 

@@ -2,6 +2,11 @@
 
 #include <utilities/results.hpp>
 
+#define SOC_BUFSIZE  0x100000
+#define BUFFER_ALIGN 0x1000
+
+uint32_t* SOCKET_BUFFER = nullptr;
+
 extern "C"
 {
     void userAppInit()
@@ -13,6 +18,9 @@ extern "C"
         R_ABORT_UNLESS(cfguInit());
 
         R_ABORT_UNLESS(frdInit());
+
+        SOCKET_BUFFER = (uint32_t*)memalign(BUFFER_ALIGN, SOC_BUFSIZE);
+        R_ABORT_LAMBDA_UNLESS(socInit(SOCKET_BUFFER, SOC_BUFSIZE), [&]() { free(SOCKET_BUFFER); });
 
         R_ABORT_UNLESS(ptmuInit());
 
@@ -32,6 +40,9 @@ extern "C"
         HIDUSER_DisableAccelerometer();
 
         mcuHwcExit();
+
+        socExit();
+        free(SOCKET_BUFFER);
 
         frdExit();
 
