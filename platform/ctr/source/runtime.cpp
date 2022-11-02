@@ -2,6 +2,8 @@
 
 #include <utilities/results.hpp>
 
+#include <cstdlib>
+
 #define SOC_BUFSIZE  0x100000
 #define BUFFER_ALIGN 0x1000
 
@@ -19,7 +21,7 @@ extern "C"
 
         R_ABORT_UNLESS(frdInit());
 
-        SOCKET_BUFFER = (uint32_t*)memalign(BUFFER_ALIGN, SOC_BUFSIZE);
+        SOCKET_BUFFER = (uint32_t*)aligned_alloc(BUFFER_ALIGN, SOC_BUFSIZE);
         R_ABORT_LAMBDA_UNLESS(socInit(SOCKET_BUFFER, SOC_BUFSIZE), [&]() { free(SOCKET_BUFFER); });
 
         R_ABORT_UNLESS(ptmuInit());
@@ -42,7 +44,7 @@ extern "C"
         mcuHwcExit();
 
         socExit();
-        free(SOCKET_BUFFER);
+        std::free(SOCKET_BUFFER);
 
         frdExit();
 
