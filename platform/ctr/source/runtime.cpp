@@ -1,57 +1,85 @@
 #include <3ds.h>
 
-#include <utilities/results.hpp>
+#include <result.hpp>
 
+#include <cstdio>
 #include <cstdlib>
-
-#define SOC_BUFSIZE  0x100000
-#define BUFFER_ALIGN 0x1000
-
-uint32_t* SOCKET_BUFFER = nullptr;
+#include <functional>
+#include <memory>
 
 extern "C"
 {
+    static void tryInit(love::ResultCode result, love::AbortCode code)
+    {
+        if (result.Success())
+            return;
+
+        errorConf conf {};
+
+        errorInit(&conf, ERROR_TEXT_WORD_WRAP, CFG_LANGUAGE_EN);
+        errorCode(&conf, result);
+
+        /* max errorConf message size */
+        char message[0x76C] {};
+
+        std::optional<const char*> header;
+        if ((header = love::abortTypes.Find(code)))
+            snprintf(message, sizeof(message), love::ABORT_FORMAT_KNOWN, *header, (int32_t)result,
+                     R_LEVEL(result), R_SUMMARY(result), R_DESCRIPTION(result));
+
+        errorText(&conf, message);
+        errorDisp(&conf);
+
+        love::g_EarlyExit = true;
+    }
+
+    static std::unique_ptr<uint32_t, love::FreeDeleter> socBuffer;
+    static constexpr int SOC_BUFFER_SIZE  = 0x100000;
+    static constexpr int SOC_BUFFER_ALIGN = 0x1000;
+
     void userAppInit()
     {
         osSetSpeedupEnable(true);
 
         gfxInitDefault();
 
-        R_ABORT_UNLESS(cfguInit());
+        /* raw battery info */
+        tryInit(mcuHwcInit(), love::ABORT_MCU_HWC);
 
-        R_ABORT_UNLESS(frdInit());
+        /* charging state */
+        tryInit(ptmuInit(), love::ABORT_PTMU);
 
-        SOCKET_BUFFER = (uint32_t*)aligned_alloc(BUFFER_ALIGN, SOC_BUFSIZE);
-        R_ABORT_LAMBDA_UNLESS(socInit(SOCKET_BUFFER, SOC_BUFSIZE), [&]() { free(SOCKET_BUFFER); });
+        /* region information and fonts */
+        tryInit(cfguInit(), love::ABORT_CFGU);
 
-        R_ABORT_UNLESS(ptmuInit());
+        /* network state */
+        tryInit(acInit(), love::ABORT_AC);
 
-        R_ABORT_UNLESS(mcuHwcInit());
+        /* friend code */
+        tryInit(frdInit(), love::ABORT_FRD);
 
-        R_ABORT_UNLESS(HIDUSER_EnableAccelerometer());
+        /* wireless */
+        socBuffer.reset((uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
+        tryInit(socInit(socBuffer.get(), SOC_BUFFER_SIZE), love::ABORT_SOC);
 
-        R_ABORT_UNLESS(HIDUSER_EnableGyroscope());
-
-        APT_SetAppCpuTimeLimit(0x1E);
+        /* theora video conversion */
+        tryInit(y2rInit(), love::ABORT_Y2R);
     }
 
     void userAppExit()
     {
-        HIDUSER_DisableGyroscope();
-
-        HIDUSER_DisableAccelerometer();
-
-        mcuHwcExit();
+        y2rExit();
 
         socExit();
-        std::free(SOCKET_BUFFER);
 
         frdExit();
 
+        acExit();
+
         cfguExit();
 
-        gfxExit();
+        ptmuExit();
 
-        osSetSpeedupEnable(false);
+        mcuHwcExit();
     }
 }

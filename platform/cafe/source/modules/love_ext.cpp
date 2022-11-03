@@ -5,14 +5,21 @@
 #include <coreinit/core.h>
 #include <coreinit/exit.h>
 #include <coreinit/foreground.h>
+
 #include <proc_ui/procui.h>
+
+#include <whb/gfx.h>
 
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
 #include <sysapp/launch.h>
 #include <vpad/input.h>
 
+#include <coreinit/bsp.h>
+#include <nn/ac/ac_c.h>
+
 #include <utilities/driver/hid_ext.hpp>
+#include <utilities/result.hpp>
 
 using namespace love;
 
@@ -21,17 +28,17 @@ void love::PreInit<Console::CAFE>()
 {
     ProcUIInit(OSSavesDone_ReadyToRelease);
 
+    WHBGfxInit();
+
     VPADInit();
 
     KPADInit();
 
-    Console::SetMainCore(OSGetCoreId());
-}
+    ACInitialize();
 
-template<>
-bool love::IsRunningAppletMode<Console::CAFE>()
-{
-    return false;
+    bspInitializeShimInterface();
+
+    Console::SetMainCore(OSGetCoreId());
 }
 
 static bool isRunning()
@@ -92,9 +99,15 @@ bool love::MainLoop<Console::CAFE>(lua_State* L, int numArgs)
 template<>
 void love::OnExit<Console::CAFE>()
 {
+    // bspShutdownShimInterface();
+
+    ACFinalize();
+
     KPADShutdown();
 
     VPADShutdown();
+
+    WHBGfxShutdown();
 
     ProcUIShutdown();
 }

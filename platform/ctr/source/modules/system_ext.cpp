@@ -1,6 +1,6 @@
 #include <3ds.h>
 
-#include <utilities/results.hpp>
+#include <utilities/result.hpp>
 
 #include <modules/system_ext.hpp>
 

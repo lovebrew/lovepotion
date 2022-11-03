@@ -1,6 +1,6 @@
 #include <modules/system_ext.hpp>
 
-#include <utilities/results.hpp>
+#include <utilities/result.hpp>
 
 using namespace love;
 

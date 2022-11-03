@@ -51,12 +51,12 @@ namespace love
         };
 
         static constexpr BidirectionalMap models = {
-            "3DS",       CFG_MODEL_3DS,
-            "3DSXL",     CFG_MODEL_3DSXL,
-            "New 3DS",   CFG_MODEL_N3DS,
-            "2DS",       CFG_MODEL_2DS,
-            "New 3DSXL", CFG_MODEL_N3DSXL,
-            "New 2DSXL", CFG_MODEL_N2DSXL
+            "CTR", CFG_MODEL_3DS,
+            "SPR", CFG_MODEL_3DSXL,
+            "KTR", CFG_MODEL_N3DS,
+            "FTR", CFG_MODEL_2DS,
+            "RED", CFG_MODEL_N3DSXL,
+            "JAN", CFG_MODEL_N2DSXL
         };
 
         static constexpr BidirectionalMap countryCodes = {

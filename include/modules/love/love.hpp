@@ -28,9 +28,6 @@ namespace love
 
     int LoadLogFile(lua_State* L);
 
-    template<Console::Platform T = Console::ALL>
-    bool IsRunningAppletMode();
-
     template<Console::Platform T>
     bool MainLoop(lua_State* L, int numArgs);
 

@@ -1,6 +1,7 @@
 #include <common/console.hpp>
 #include <common/luax.hpp>
 #include <common/variant.hpp>
+#include <utilities/result.hpp>
 
 #include <modules/love/love.hpp>
 #include <string.h>
@@ -91,14 +92,17 @@ DoneAction RunLOVE(int argc, char** argv, int& retval, Variant& restartValue)
 
 int main(int argc, char** argv)
 {
-    if (love::IsRunningAppletMode<Console::Which>())
+    love::PreInit<Console::Which>();
+
+    if (love::g_EarlyExit)
+    {
+        love::OnExit<Console::Which>();
         return 0;
+    }
 
     DoneAction done = love::DONE_QUIT;
     int returnValue = 0;
     Variant restartValue;
-
-    love::PreInit<Console::Which>();
 
     do
     {

@@ -11,12 +11,6 @@ void love::PreInit<Console::CTR>()
 {}
 
 template<>
-bool love::IsRunningAppletMode<Console::CTR>()
-{
-    return false;
-}
-
-template<>
 bool love::MainLoop<Console::CTR>(lua_State* L, int numArgs)
 {
     return (luax::Resume(L, numArgs) == LUA_YIELD && aptMainLoop());
