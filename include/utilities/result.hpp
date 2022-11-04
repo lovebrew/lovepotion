@@ -26,6 +26,11 @@ namespace love
     class ResultCode
     {
       public:
+        ResultCode()
+        {
+            this->result = 0;
+        }
+
         ResultCode(int32_t result);
 
         // clang-format off

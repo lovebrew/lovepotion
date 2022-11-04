@@ -3,27 +3,37 @@
 #include <utilities/result.hpp>
 
 #include <cstring>
+#include <functional>
 
 extern "C"
 {
-    static void tryInit(love::ResultCode result, love::AbortCode code)
+    static void tryInit(std::function<love::ResultCode()> serviceInit, love::AbortCode code)
     {
-        if (result.Success() || love::g_EarlyExit)
+        if (!serviceInit || love::g_EarlyExit)
             return;
 
-        ErrorApplicationConfig config {};
+        love::ResultCode result;
+        if ((result = serviceInit()); result.Success())
+            return;
 
         std::optional<const char*> header;
         if ((header = love::abortTypes.Find(code)) && code != love::ABORT_APPLET)
         {
-            char message[0x800] {};
+            static char message[0x100] {};
             int32_t info = R_DESCRIPTION(result);
 
             snprintf(message, sizeof(message), love::ABORT_FORMAT, *header, (int32_t)result, info);
 
+            ErrorApplicationConfig config {};
             errorApplicationCreate(&config, message, nullptr);
             errorApplicationSetNumber(&config, result);
             errorApplicationShow(&config);
+        }
+        else
+        {
+            ErrorSystemConfig config {};
+            errorSystemCreate(&config, love::TITLE_TAKEOVER_ERROR, nullptr);
+            errorSystemShow(&config);
         }
 
         love::g_EarlyExit = true;
@@ -36,39 +46,33 @@ extern "C"
             const bool isValid    = (appletType == AppletType_Application ||
                                   appletType == AppletType_SystemApplication);
 
-            tryInit(isValid ? 0 : -1, love::ABORT_APPLET);
-
-            ErrorSystemConfig config {};
-            errorSystemCreate(&config, love::TITLE_TAKEOVER_ERROR, nullptr);
-            errorSystemShow(&config);
-
-            if (love::g_EarlyExit)
-                return;
+            tryInit(std::bind_front([&]() { return (isValid) ? 0 : -1; }), love::ABORT_APPLET);
         }
 
         /* system fonts */
-        tryInit(plInitialize(PlServiceType_User), love::ABORT_PLU);
+        tryInit(std::bind_front(plInitialize, PlServiceType_User), love::ABORT_PLU);
 
         /* wireless */
-        tryInit(nifmInitialize(NifmServiceType_User), love::ABORT_NIFM);
+        tryInit(std::bind_front(nifmInitialize, NifmServiceType_User), love::ABORT_NIFM);
 
         /* accounts */
-        tryInit(accountInitialize(AccountServiceType_Application), love::ABORT_ACC);
+        tryInit(std::bind_front(accountInitialize, AccountServiceType_Application),
+                love::ABORT_ACC);
 
         /* settings */
-        tryInit(setInitialize(), love::ABORT_SET);
+        tryInit(std::bind_front(setInitialize), love::ABORT_SET);
 
         /* system settings */
-        tryInit(setsysInitialize(), love::ABORT_SETSYS);
+        tryInit(std::bind_front(setsysInitialize), love::ABORT_SETSYS);
 
         /* battery charge and state */
-        tryInit(psmInitialize(), love::ABORT_PSM);
+        tryInit(std::bind_front(psmInitialize), love::ABORT_PSM);
 
         /* wireless */
-        tryInit(socketInitializeDefault(), love::ABORT_SOCKETS);
+        tryInit(std::bind_front(socketInitializeDefault), love::ABORT_SOCKETS);
 
         /* friends */
-        tryInit(friendsInitialize(FriendsServiceType_Viewer), love::ABORT_FRIENDV);
+        tryInit(std::bind_front(friendsInitialize, FriendsServiceType_Viewer), love::ABORT_FRIENDV);
 
         /* initialize controllers -- 4 players max */
         padConfigureInput(0x04, HidNpadStyleSet_NpadStandard);

@@ -2,16 +2,19 @@
 
 #include <result.hpp>
 
-#include <cstdio>
-#include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <memory>
 
 extern "C"
 {
-    static void tryInit(love::ResultCode result, love::AbortCode code)
+    static void tryInit(std::function<love::ResultCode()> initFunction, love::AbortCode code)
     {
-        if (result.Success())
+        if (!initFunction || love::g_EarlyExit)
+            return;
+
+        love::ResultCode result;
+        if ((result = initFunction()); result.Success())
             return;
 
         errorConf conf {};
@@ -19,8 +22,7 @@ extern "C"
         errorInit(&conf, ERROR_TEXT_WORD_WRAP, CFG_LANGUAGE_EN);
         errorCode(&conf, result);
 
-        /* max errorConf message size */
-        char message[0x76C] {};
+        static char message[0x100] {};
 
         std::optional<const char*> header;
         if ((header = love::abortTypes.Find(code)))
@@ -44,26 +46,26 @@ extern "C"
         gfxInitDefault();
 
         /* raw battery info */
-        tryInit(mcuHwcInit(), love::ABORT_MCU_HWC);
+        tryInit(std::bind_front(mcuHwcInit), love::ABORT_MCU_HWC);
 
         /* charging state */
-        tryInit(ptmuInit(), love::ABORT_PTMU);
+        tryInit(std::bind_front(ptmuInit), love::ABORT_PTMU);
 
         /* region information and fonts */
-        tryInit(cfguInit(), love::ABORT_CFGU);
+        tryInit(std::bind_front(cfguInit), love::ABORT_CFGU);
 
         /* network state */
-        tryInit(acInit(), love::ABORT_AC);
+        tryInit(std::bind_front(acInit), love::ABORT_AC);
 
         /* friend code */
-        tryInit(frdInit(), love::ABORT_FRD);
+        tryInit(std::bind_front(frdInit), love::ABORT_FRD);
 
         /* wireless */
         socBuffer.reset((uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
-        tryInit(socInit(socBuffer.get(), SOC_BUFFER_SIZE), love::ABORT_SOC);
+        tryInit(std::bind_front(socInit, socBuffer.get(), SOC_BUFFER_SIZE), love::ABORT_SOC);
 
         /* theora video conversion */
-        tryInit(y2rInit(), love::ABORT_Y2R);
+        tryInit(std::bind_front(y2rInit), love::ABORT_Y2R);
     }
 
     void userAppExit()
