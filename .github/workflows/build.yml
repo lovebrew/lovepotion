@@ -17,10 +17,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build
+
+      - name: Patch luasocket
+      - run: patch -d build/luasocket/libluasocket -N -i platform/ctr/libraries/luasocket.patch
 
       - name: Build
-        run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build ; make -C build
+      - run: make -C build
 
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
@@ -28,9 +34,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo 3DS-${{ steps.commit.outputs.short }}
-          path: |
-            build/*.elf
-            build/*.3dsx
+          path: build/*.3dsx
 
   second:
     name: Switch
@@ -42,10 +46,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build
+
+      - name: Patch luasocket
+      - run: patch -d build/luasocket/libluasocket -N -i platform/hac/libraries/luasocket.patch
 
       - name: Build
-        run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build ; make -C build
+      - run: make -C build
 
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
@@ -53,9 +63,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo Switch-${{ steps.commit.outputs.short }}
-          path: |
-            build/*.elf
-            build/*.nro
+          path: build/*.nro
 
   third:
     name: Wii U
@@ -67,10 +75,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build
+
+      - name: Patch luasocket
+      - run: patch -d build/luasocket/libluasocket -N -i platform/cafe/libraries/luasocket.patch
 
       - name: Build
-        run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build ; make -C build
+      - run: make -C build
 
       - id: commit
         uses: pr-mpt/actions-commit-hash@v1
@@ -78,7 +92,97 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo Wii U-${{ steps.commit.outputs.short }}
+          path: build/*.wuhb
+
+  fourth:
+    name: 3DS (Debug)
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://devkitpro/devkitarm
+      options: --cpus 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+
+      - name: Patch luasocket
+      - run: patch -d build/luasocket/libluasocket -N -i platform/ctr/libraries/luasocket.patch
+
+      - name: Build
+      - run: make -C build
+
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo 3DS (Debug)-${{ steps.commit.outputs.short }}
           path: |
             build/*.elf
-            build/*.rpx
+            build/*.3dsx
+
+  fifth:
+    name: Switch (Debug)
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://devkitpro/devkita64
+      options: --cpus 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+
+      - name: Patch luasocket
+      - run: patch -d build/luasocket/libluasocket -N -i platform/hac/libraries/luasocket.patch
+
+      - name: Build
+      - run: make -C build
+
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Switch (Debug)-${{ steps.commit.outputs.short }}
+          path: |
+            build/*.elf
+            build/*.nro
+
+  sixth:
+    name: Wii U (Debug)
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://devkitpro/devkitppc
+      options: --cpus 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+
+      - name: Patch luasocket
+      - run: patch -d build/luasocket/libluasocket -N -i platform/cafe/libraries/luasocket.patch
+
+      - name: Build
+      - run: make -C build
+
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Wii U (Debug)-${{ steps.commit.outputs.short }}
+          path: |
+            build/*.elf
             build/*.wuhb
