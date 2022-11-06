@@ -1,6 +1,6 @@
 #include <3ds.h>
 
-#include <result.hpp>
+#include <utilities/result.hpp>
 
 #include <cstring>
 #include <functional>

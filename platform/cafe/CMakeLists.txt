@@ -5,6 +5,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
     source/modules/joystickmodule_ext.cpp
+    source/modules/keyboard_ext.cpp
     source/modules/love_ext.cpp
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
@@ -14,6 +15,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/hid_ext.cpp
     source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/haptics/vibration_ext.cpp
+    source/utilities/swkbdthread.cpp
     source/utilities/threads/thread_ext.cpp
     source/utilities/wpad.cpp
 )

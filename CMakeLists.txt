@@ -378,6 +378,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/filesystem/physfs/filesystem.cpp
     source/modules/filesystem/wrap_filesystem.cpp
     source/modules/joystick/wrap_joystickmodule.cpp
+    source/modules/keyboard/wrap_keyboard.cpp
     source/modules/love/love.cpp
     source/modules/sound/sound.cpp
     source/modules/sound/wrap_sound.cpp

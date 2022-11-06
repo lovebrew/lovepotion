@@ -33,6 +33,7 @@ static constexpr char logfile_lua[] = {
 #include <modules/event/wrap_event.hpp>
 #include <modules/filesystem/wrap_filesystem.hpp>
 #include <modules/joystick/wrap_joystickmodule.hpp>
+#include <modules/keyboard/wrap_keyboard.hpp>
 #include <modules/sound/wrap_sound.hpp>
 #include <modules/system/wrap_system.hpp>
 #include <modules/thread/wrap_threadmodule.hpp>
@@ -47,6 +48,7 @@ static constexpr luaL_Reg modules[] =
     { "love.event",      Wrap_Event::Register          },
     { "love.filesystem", Wrap_Filesystem::Register     },
     { "love.joystick",   Wrap_JoystickModule::Register },
+    { "love.keyboard",   Wrap_Keyboard::Register       },
     { "love.sound",      Wrap_Sound::Register          },
     { "love.system",     Wrap_System::Register         },
     { "love.thread",     Wrap_ThreadModule::Register   },

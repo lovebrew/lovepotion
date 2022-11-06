@@ -263,6 +263,32 @@ namespace luax
 
     int EnumError(lua_State* L, const char* enumName, const char* value);
 
+    template<typename T>
+    void CheckTableFields(lua_State* L, int idx, const char* enumName,
+                          bool (*getConstant)(const char*))
+    {
+        luaL_checktype(L, idx, LUA_TTABLE);
+
+        /* we want to error for invalid / misspelled */
+        /* fields in the table. */
+
+        lua_pushnil(L);
+
+        while (lua_next(L, idx))
+        {
+            if (lua_type(L, -2) != LUA_TSTRING)
+                luax::TypeError(L, -2, "string");
+
+            const char* key = luaL_checkstring(L, -2);
+
+            bool value;
+            if (!(value = getConstant(key)))
+                luax::EnumError(L, enumName, key);
+
+            lua_pop(L, 1);
+        }
+    }
+
     // clang-format off
     template<std::ranges::range Range>
         requires (std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>)
