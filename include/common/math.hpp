@@ -39,7 +39,7 @@ namespace love
 
         bool operator==(const Rect& other) const
         {
-            return x == rhs.x && y == rhs.y && w == rhs.w && h == rhs.h;
+            return x == other.x && y == other.y && w == other.w && h == other.h;
         }
     };
 

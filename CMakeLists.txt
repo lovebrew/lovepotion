@@ -364,6 +364,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/luax.cpp
     source/common/module.cpp
     source/common/object.cpp
+    source/common/pixelformat.cpp
     source/common/type.cpp
     source/common/variant.cpp
     source/common/vector.cpp
@@ -420,6 +421,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/decoder/types/mp3decoder.cpp
     source/utilities/decoder/types/vorbisdecoder.cpp
     source/utilities/decoder/types/wavedecoder.cpp
+    source/utilities/driver/renderer/renderstate.cpp
+    source/utilities/driver/renderer/samplerstate.cpp
     source/utilities/guid.cpp
     source/utilities/hashfunction/hashfunction.cpp
     source/utilities/hashfunction/types/md5.cpp
