@@ -15,7 +15,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/hid_ext.cpp
     source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/haptics/vibration_ext.cpp
-    source/utilities/swkbdthread.cpp
     source/utilities/threads/thread_ext.cpp
     source/utilities/wpad.cpp
 )
