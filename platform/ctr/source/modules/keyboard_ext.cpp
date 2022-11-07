@@ -1,4 +1,5 @@
 #include <modules/keyboard_ext.hpp>
+#include <utilities/driver/hid_ext.hpp>
 
 using namespace love;
 
@@ -7,7 +8,7 @@ Keyboard<Console::CTR>::Keyboard() :
     state {}
 {}
 
-std::string Keyboard<Console::CTR>::SetTextInput(const KeyboardOptions& options)
+void Keyboard<Console::CTR>::SetTextInput(const KeyboardOptions& options)
 {
     uint32_t maxLength = this->GetMaxEncodingLength(options.maxLength);
     this->text         = std::make_unique<char[]>(maxLength);
@@ -25,7 +26,5 @@ std::string Keyboard<Console::CTR>::SetTextInput(const KeyboardOptions& options)
     const auto button = swkbdInputText(&this->state, this->text.get(), maxLength);
 
     if (button != SWKBD_BUTTON_LEFT)
-        return this->text.get();
-
-    return std::string {};
+        HID<Console::CTR>::Instance().SendTextInput(this->GetText());
 }

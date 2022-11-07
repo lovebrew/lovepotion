@@ -73,6 +73,11 @@ namespace love
             return true;
         }
 
+        std::string_view GetText() const
+        {
+            return this->text.get();
+        }
+
         // clang-format off
         static constexpr BidirectionalMap keyboardOptions = {
             "type",      KeyboardOption::OPTION_TYPE,

@@ -46,6 +46,11 @@ namespace love
         int height; //< Screen height
     };
 
+    struct KeyboardInput
+    {
+        std::string text;
+    };
+
     enum SubEventType
     {
         SUBTYPE_GAMEPADAXIS,
@@ -60,6 +65,8 @@ namespace love
         SUBTYPE_TOUCHPRESS,
         SUBTYPE_TOUCHRELEASE,
         SUBTYPE_TOUCHMOVED,
+
+        SUBTYPE_TEXTINPUT,
 
         SUBTYPE_LOWMEMORY,
 
@@ -76,7 +83,8 @@ namespace love
         TYPE_WINDOW,
         TYPE_TOUCH,
         TYPE_GAMEPAD,
-        TYPE_GENERAL
+        TYPE_GENERAL,
+        TYPE_KEYBOARD
     };
 
     struct LOVE_Event
@@ -90,5 +98,6 @@ namespace love
 
         Finger touchFinger;
         Resize size;
+        KeyboardInput keyboard;
     };
 } // namespace love

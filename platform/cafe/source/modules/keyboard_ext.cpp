@@ -16,7 +16,12 @@ Keyboard<Console::CAFE>::Keyboard() :
     this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
     FSAddClient(this->client, FS_ERROR_FLAG_NONE);
 
-    this->thread = new SwkbdThread();
+    this->createArgs.regionType = nn::swkbd::RegionType::USA;
+    this->createArgs.workMemory = MEMAllocFromDefaultHeap(nn::swkbd::GetWorkMemorySize(0));
+    this->createArgs.fsClient   = this->client;
+
+    if (!nn::swkbd::Create(this->createArgs))
+        throw love::Exception("Failed to initialize nn:swkbd!");
 }
 
 Keyboard<Console::CAFE>::~Keyboard()
@@ -24,24 +29,23 @@ Keyboard<Console::CAFE>::~Keyboard()
     FSDelClient(this->client, FS_ERROR_FLAG_NONE);
     MEMFreeToDefaultHeap(this->client);
 
-    this->thread->SetFinish();
-    this->thread->Wait();
-
-    delete this->thread;
+    nn::swkbd::Destroy();
+    MEMFreeToDefaultHeap(this->createArgs.workMemory);
 }
 
-std::string Keyboard<Console::CAFE>::SetTextInput(const KeyboardOptions& options)
+void Keyboard<Console::CAFE>::Utf16toUtf8Text()
+{
+    const auto* str = nn::swkbd::GetInputFormString();
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> to_utf8;
+
+    std::string converted = to_utf8.to_bytes(str);
+    std::copy_n(converted.c_str(), converted.size(), this->text.get());
+}
+
+void Keyboard<Console::CAFE>::SetTextInput(const KeyboardOptions& options)
 {
     uint32_t maxLength = this->GetMaxEncodingLength(options.maxLength);
     this->text         = std::make_unique<char[]>(maxLength);
-
-    this->createArgs.regionType = nn::swkbd::RegionType::USA;
-    this->createArgs.workMemory = MEMAllocFromDefaultHeap(nn::swkbd::GetWorkMemorySize(0));
-    this->createArgs.fsClient   = this->client;
-
-    R_UNLESS(nn::swkbd::Create(this->createArgs) ? 0 : -1, std::string {});
-
-    nn::swkbd::MuteAllSound(false);
 
     this->appearArgs.keyboardArg.configArg.languageType = nn::swkbd::LanguageType::English;
 
@@ -54,19 +58,8 @@ std::string Keyboard<Console::CAFE>::SetTextInput(const KeyboardOptions& options
     this->appearArgs.inputFormArg.passwordMode =
         options.isPassword ? nn::swkbd::PasswordMode::Fade : nn::swkbd::PasswordMode::Clear;
 
-    R_UNLESS(nn::swkbd::AppearInputForm(this->appearArgs) ? 0 : -1, std::string {});
+    if (!nn::swkbd::AppearInputForm(this->appearArgs))
+        return;
 
-    this->thread->Start();
-    while (this->thread->IsRunning())
-    {}
-
-    nn::swkbd::Destroy();
-    MEMFreeToDefaultHeap(this->createArgs.workMemory);
-
-    /* utf16le to utf8 needed */
-    const auto* str = nn::swkbd::GetInputFormString();
-
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> to_utf8;
-
-    return to_utf8.to_bytes(str);
+    this->showing = true;
 }

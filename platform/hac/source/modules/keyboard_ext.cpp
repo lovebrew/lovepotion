@@ -1,15 +1,15 @@
 #include <modules/keyboard_ext.hpp>
-
-#include <utilities/result.hpp>
+#include <utilities/driver/hid_ext.hpp>
 
 using namespace love;
 
 Keyboard<Console::HAC>::Keyboard() : Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH) + 1)
 {}
 
-std::string Keyboard<Console::HAC>::SetTextInput(const KeyboardOptions& options)
+void Keyboard<Console::HAC>::SetTextInput(const KeyboardOptions& options)
 {
-    R_UNLESS(swkbdCreate(&this->config, 0), std::string {});
+    if (R_FAILED(swkbdCreate(&this->config, 0)))
+        return;
 
     uint32_t maxLength = this->GetMaxEncodingLength(options.maxLength);
     this->text         = std::make_unique<char[]>(maxLength);
@@ -26,9 +26,8 @@ std::string Keyboard<Console::HAC>::SetTextInput(const KeyboardOptions& options)
 
     swkbdConfigSetGuideText(&this->config, options.hint.data());
 
-    R_UNLESS(swkbdShow(&this->config, this->text.get(), maxLength), std::string {});
+    if (R_SUCCEEDED(swkbdShow(&this->config, this->text.get(), maxLength)))
+        HID<Console::HAC>::Instance().SendTextInput(this->GetText());
 
     swkbdClose(&this->config);
-
-    return this->text.get();
 }

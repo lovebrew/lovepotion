@@ -46,6 +46,8 @@ namespace love
 
         Message* ConvertWindowEvent(const LOVE_Event& event, std::vector<Variant>& args);
 
+        Message* ConvertKeyboardEvent(const LOVE_Event& event, std::vector<Variant>& args);
+
       protected:
         std::queue<Message*> queue;
         LOVE_Event event;

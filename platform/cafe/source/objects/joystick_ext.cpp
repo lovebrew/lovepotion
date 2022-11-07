@@ -299,6 +299,14 @@ void Joystick<Console::CAFE>::Update()
     }
 }
 
+VPADStatus Joystick<Console::CAFE>::GetVPADStatus() const
+{
+    if (this->isGamepad)
+        return this->vpad;
+
+    return VPADStatus {};
+}
+
 VPADTouchData Joystick<Console::CAFE>::GetTouchData() const
 {
     if (this->isGamepad)

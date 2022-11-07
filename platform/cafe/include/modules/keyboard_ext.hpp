@@ -20,12 +20,24 @@ namespace love
 
         virtual ~Keyboard();
 
-        std::string SetTextInput(const KeyboardOptions& options);
+        void SetTextInput(const KeyboardOptions& options);
 
         const uint32_t GetMaxEncodingLength(const uint32_t in)
         {
             return in * 0x03;
         }
+
+        const bool IsShowing() const
+        {
+            return this->showing;
+        }
+
+        void HideKeyboard()
+        {
+            this->showing = false;
+        }
+
+        void Utf16toUtf8Text();
 
         // clang-format off
         static constexpr BidirectionalMap keyboardTypes = {
@@ -41,5 +53,6 @@ namespace love
         FSClient* client;
 
         SwkbdThread* thread;
+        bool showing;
     };
 } // namespace love

@@ -15,7 +15,7 @@ namespace love
 
         Keyboard();
 
-        std::string SetTextInput(const KeyboardOptions& options);
+        void SetTextInput(const KeyboardOptions& options);
 
         const uint32_t GetMaxEncodingLength(const uint32_t in)
         {

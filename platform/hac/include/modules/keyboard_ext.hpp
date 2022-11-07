@@ -20,7 +20,7 @@ namespace love
 
         Keyboard();
 
-        std::string SetTextInput(const KeyboardOptions& options);
+        void SetTextInput(const KeyboardOptions& options);
 
         // clang-format off
         static constexpr BidirectionalMap keyboardTypes = {

@@ -28,7 +28,8 @@ namespace love
 
         void CheckFocus();
 
-        VPADStatus vpad;
+        void CheckSoftwareKeyboard(VPADStatus status);
+
         VPADTouchData previousTouch;
     };
 } // namespace love

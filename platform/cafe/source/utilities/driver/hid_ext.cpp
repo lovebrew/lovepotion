@@ -1,10 +1,15 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
-#include <padscore/kpad.h>
-#include <proc_ui/procui.h>
+#include <modules/keyboard_ext.hpp>
 
-#define Module() Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK)
+#include <padscore/kpad.h>
+
+#include <nn/swkbd.h>
+#include <whb/gfx.h>
+
+#define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
+#define Module()   (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
 
 using namespace love;
 
@@ -16,6 +21,52 @@ HID<Console::CAFE>::~HID()
 
 void HID<Console::CAFE>::CheckFocus()
 {}
+
+void HID<Console::CAFE>::CheckSoftwareKeyboard(VPADStatus vpadStatus)
+{
+    VPADGetTPCalibratedPoint(VPAD_CHAN_0, &vpadStatus.tpNormal, &vpadStatus.tpNormal);
+
+    nn::swkbd::ControllerInfo controllerInfo {};
+    controllerInfo.vpad = &vpadStatus;
+
+    nn::swkbd::Calc(controllerInfo);
+
+    if (nn::swkbd::IsNeedCalcSubThreadFont())
+        nn::swkbd::CalcSubThreadFont();
+
+    if (nn::swkbd::IsNeedCalcSubThreadPredict())
+        nn::swkbd::CalcSubThreadPredict();
+
+    bool isOkButtonPressed = nn::swkbd::IsDecideOkButton(nullptr);
+    bool isCancelPressed   = nn::swkbd::IsDecideCancelButton(nullptr);
+
+    if (isOkButtonPressed || isCancelPressed)
+    {
+        nn::swkbd::DisappearInputForm();
+        Keyboard()->HideKeyboard();
+
+        if (isOkButtonPressed)
+        {
+            Keyboard()->Utf16toUtf8Text();
+            this->SendTextInput(Keyboard()->GetText());
+        }
+    }
+
+    /* temporary! */
+    WHBGfxBeginRender();
+
+    WHBGfxBeginRenderTV();
+    WHBGfxClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    nn::swkbd::DrawTV();
+    WHBGfxFinishRenderTV();
+
+    WHBGfxBeginRenderDRC();
+    WHBGfxClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    nn::swkbd::DrawDRC();
+    WHBGfxFinishRenderDRC();
+
+    WHBGfxFinishRender();
+}
 
 bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 {
@@ -39,6 +90,9 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
         if (joystick)
         {
             joystick->Update();
+
+            if (Keyboard()->IsShowing())
+                this->CheckSoftwareKeyboard(joystick->GetVPADStatus());
 
             const auto tpNormal = joystick->GetTouchData();
 

@@ -35,6 +35,9 @@ Message* love::Event::Convert(const LOVE_Event& event)
         case TYPE_WINDOW:
             message = this->ConvertWindowEvent(event, args);
             break;
+        case TYPE_KEYBOARD:
+            message = this->ConvertKeyboardEvent(event, args);
+            break;
         default:
             break;
     }
@@ -160,6 +163,24 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
         default:
             break;
     }
+
+    return result;
+}
+
+Message* love::Event::ConvertKeyboardEvent(const LOVE_Event& event, std::vector<Variant>& args)
+{
+    Message* result = nullptr;
+
+    switch (event.subType)
+    {
+        case SUBTYPE_TEXTINPUT:
+        {
+            args.emplace_back(event.keyboard.text);
+            result = new Message("textinput", args);
+        }
+        default:
+            break;
+    };
 
     return result;
 }

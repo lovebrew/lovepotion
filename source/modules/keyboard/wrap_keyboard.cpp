@@ -87,14 +87,7 @@ int Wrap_Keyboard::SetTextInput(lua_State* L)
         lua_pop(L, 1);
     }
 
-    const auto text = instance()->SetTextInput(options);
-
-    luax::CatchException(L, [&]() {
-        std::vector<Variant> args = { text };
-        StrongReference<Message> message(new Message("textinput", args), Acquire::NORETAIN);
-
-        Event()->Push(message);
-    });
+    instance()->SetTextInput(options);
 
     return 0;
 }

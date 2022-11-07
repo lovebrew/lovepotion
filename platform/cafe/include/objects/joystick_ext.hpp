@@ -82,6 +82,8 @@ namespace love
 
         void GetVibration(float& left, float& right);
 
+        VPADStatus GetVPADStatus() const;
+
         VPADTouchData GetTouchData() const;
 
       private:

@@ -34,6 +34,16 @@ namespace love
             this->focused = focus;
         }
 
+        void SendTextInput(std::string_view string)
+        {
+            auto& event = this->events.emplace_back();
+
+            event.type    = TYPE_KEYBOARD;
+            event.subType = SUBTYPE_TEXTINPUT;
+
+            event.keyboard.text = string;
+        }
+
         void SendLowMemory()
         {
             auto& event = this->events.emplace_back();
