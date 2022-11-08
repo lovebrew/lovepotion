@@ -57,7 +57,7 @@ struct Color
     }
 
     /* https://github.com/devkitPro/citro2d/blob/master/include/c2d/base.h#L110 */
-    operator uint32_t()
+    operator uint32_t() const
     {
         uint8_t red   = Color::to_uint8_t(this->r);
         uint8_t green = Color::to_uint8_t(this->g);

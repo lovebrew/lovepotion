@@ -10,6 +10,8 @@
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
+#include <common/luax.hpp>
+
 #include <array>
 
 #include <3ds.h>
@@ -17,6 +19,14 @@
 
 namespace love
 {
+    enum class Screen : uint8_t
+    {
+        SCREEN_LEFT,
+        SCREEN_RIGHT,
+        SCREEN_TOP,
+        SCREEN_BOTTOM
+    };
+
     template<>
     class Renderer<Console::CTR> : public Renderer<Console::ALL>
     {
@@ -39,6 +49,8 @@ namespace love
 
         ~Renderer();
 
+        Info GetRendererInfo();
+
         void DestroyFramebuffers();
 
         void CreateFramebuffers();
@@ -51,16 +63,14 @@ namespace love
 
         void SetBlendMode(const RenderState::BlendState& state);
 
-        void BindFramebuffer(Canvas* canvas = nullptr);
+        void EnsureInFrame();
+
+        /* todo: canvases */
+        void BindFramebuffer(/* Canvas* canvas = nullptr*/);
 
         void Present();
 
         void SetViewport(const Rect& viewport);
-
-        const Rect GetViewport() const
-        {
-            return this->viewport;
-        }
 
         void SetScissor(bool enable, const Rect& scissor, bool canvasActive);
 
@@ -105,6 +115,26 @@ namespace love
         void DeferCallToEndOfFrame(std::function<void()>&& function)
         {
             this->deferred.emplace_back(std::move(function));
+        }
+
+        int CheckScreen(lua_State* L, const char* name, Screen* screen) const;
+
+        std::vector<std::string_view> GetScreens() const
+        {
+            std::vector<std::string_view> names;
+
+            if (this->Get3D())
+            {
+                for (const auto& name : gfx3dScreens.GetNames())
+                    names.push_back(name);
+            }
+            else
+            {
+                for (const auto& name : gfx2dScreens.GetNames())
+                    names.push_back(name);
+            }
+
+            return names;
         }
 
         // clang-format off
@@ -165,6 +195,17 @@ namespace love
             RenderState::COMPARE_NOTEQUAL, GPU_NOTEQUAL,
             RenderState::COMPARE_ALWAYS,   GPU_ALWAYS,
             RenderState::COMPARE_NEVER,    GPU_NEVER
+        };
+
+        static constexpr BidirectionalMap gfx3dScreens = {
+            "left",   Screen::SCREEN_LEFT,
+            "right",  Screen::SCREEN_RIGHT,
+            "bottom", Screen::SCREEN_BOTTOM
+        };
+
+        static constexpr BidirectionalMap gfx2dScreens = {
+            "top",   Screen::SCREEN_TOP,
+            "bottom", Screen::SCREEN_BOTTOM
         };
         // clang-format on
 

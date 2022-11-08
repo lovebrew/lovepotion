@@ -43,8 +43,6 @@ extern "C"
     {
         osSetSpeedupEnable(true);
 
-        gfxInitDefault();
-
         /* raw battery info */
         tryInit(std::bind_front(mcuHwcInit), love::ABORT_MCU_HWC);
 

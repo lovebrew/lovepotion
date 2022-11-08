@@ -69,13 +69,9 @@ namespace love
             bool useposition              = false;
             int x                         = 0;
             int y                         = 0;
-        }
+        };
 
-        Window() :
-            width(800),
-            height(600),
-            pixelWidth(800),
-            pixelHeight(600)
+        Window() : width(800), height(600), pixelWidth(800), pixelHeight(600)
         {}
 
         virtual ~Window();
@@ -131,7 +127,7 @@ namespace love
         // clang-format off
         static constexpr BidirectionalMap windowSettings = {
             "fullscreen",     SETTING_FULLSCREEN,
-            "fullscreentype", SETTING_FULLSCREEN_TYPE
+            "fullscreentype", SETTING_FULLSCREEN_TYPE,
             "vsync",          SETTING_VSYNC,
             "msaa",           SETTING_MSAA,
             "stencil",        SETTING_STENCIL,

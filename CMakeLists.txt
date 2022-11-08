@@ -60,7 +60,7 @@ if(NINTENDO_3DS)
         SMDH  ${PROJECT_NAME}.smdh
     )
 
-    set(APP_LIBS citro3d citro2d)
+    set(APP_LIBS citro2d citro3d)
 
     add_custom_target(dist COMMAND
         ${CMAKE_COMMAND} -E tar "cfv" "${PROJECT_NAME}-3ds-${COMMIT_HASH}.zip" --format=zip
@@ -378,6 +378,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/filesystem/filesystem.cpp
     source/modules/filesystem/physfs/filesystem.cpp
     source/modules/filesystem/wrap_filesystem.cpp
+    source/modules/graphics/wrap_graphics.cpp
     source/modules/joystick/wrap_joystickmodule.cpp
     source/modules/keyboard/wrap_keyboard.cpp
     source/modules/love/love.cpp

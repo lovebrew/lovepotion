@@ -27,9 +27,11 @@ std::string_view Window<Console::CTR>::GetDisplayName(int displayIndex) const
     switch (displayIndex)
     {
         case 0:
-            return "Nintendo 3DS (Top)";
+            return "left";
         case 1:
-            return "Nintendo 3DS (Bottom)";
+            return "right";
+        case 2:
+            return "bottom";
         default:
             break;
     }
