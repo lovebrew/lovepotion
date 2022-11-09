@@ -212,12 +212,12 @@ int Wrap_Graphics::IsCreated(lua_State* L)
 int Wrap_Graphics::SetActiveScreen(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 1);
-    Screen screen;
+    std::optional<Screen> screen;
 
-    luax::CatchException(L, [&]() {
-        ::Renderer::Instance().CheckScreen(L, name, &screen);
-        instance()->SetActiveScreen(screen);
-    });
+    if (screen = ::Renderer::Instance().CheckScreen(name); !screen)
+        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), name);
+
+    instance()->SetActiveScreen(*screen);
 
     return 0;
 }

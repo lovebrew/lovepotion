@@ -48,26 +48,21 @@ Renderer<Console::CTR>::Info Renderer<Console::CTR>::GetRendererInfo()
 
     return this->info;
 }
-#include <utilities/log/logfile.h>
-int Renderer<Console::CTR>::CheckScreen(lua_State* L, const char* name, Screen* out) const
+
+std::optional<Screen> Renderer<Console::CTR>::CheckScreen(const char* name) const
 {
-    std::optional<Screen> screen;
-
     if (this->Get3D())
-    {
-        if (!(screen = Renderer::gfx3dScreens.Find(name)))
-            return luax::EnumError(L, "screen name", Renderer::gfx3dScreens.GetNames(), name);
-    }
-    else
-    {
-        if (!(screen = Renderer::gfx2dScreens.Find(name)))
-            return luax::EnumError(L, "screen name", Renderer::gfx2dScreens.GetNames(), name);
-    }
+        return gfx3dScreens.Find(name);
 
-    if (out)
-        *out = *screen;
+    return gfx2dScreens.Find(name);
+}
 
-    return 0;
+SmallTrivialVector<const char*, 3> Renderer<Console::CTR>::GetScreens() const
+{
+    if (this->Get3D())
+        return { gfx3dScreens.GetNames() };
+
+    return { gfx2dScreens.GetNames() };
 }
 
 void Renderer<Console::CTR>::CreateFramebuffers()

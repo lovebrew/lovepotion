@@ -118,25 +118,9 @@ namespace love
             this->deferred.emplace_back(std::move(function));
         }
 
-        int CheckScreen(lua_State* L, const char* name, Screen* screen) const;
+        std::optional<Screen> CheckScreen(const char* name) const;
 
-        std::vector<std::string_view> GetScreens() const
-        {
-            std::vector<std::string_view> names;
-
-            if (this->Get3D())
-            {
-                for (const auto& name : gfx3dScreens.GetNames())
-                    names.push_back(name);
-            }
-            else
-            {
-                for (const auto& name : gfx2dScreens.GetNames())
-                    names.push_back(name);
-            }
-
-            return names;
-        }
+        SmallTrivialVector<const char*, 3> GetScreens() const;
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {
