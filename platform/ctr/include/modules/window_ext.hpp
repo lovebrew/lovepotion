@@ -12,6 +12,8 @@ namespace love
 
         virtual ~Window();
 
+        bool CreateWindowAndContext(int x, int y, int width, int height);
+
         bool SetWindow(int width = 800, int height = 600, WindowSettings* settings = nullptr);
 
         void GetWindow(int& width, int& height, WindowSettings& settings);

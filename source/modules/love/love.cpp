@@ -40,6 +40,7 @@ static constexpr char logfile_lua[] = {
 #include <modules/thread/wrap_threadmodule.hpp>
 #include <modules/timer/wrap_timer.hpp>
 #include <modules/touch/wrap_touch.hpp>
+#include <modules/window/wrap_window.hpp>
 
 // clang-format off
 static constexpr luaL_Reg modules[] =
@@ -56,6 +57,7 @@ static constexpr luaL_Reg modules[] =
     { "love.thread",     Wrap_ThreadModule::Register   },
     { "love.timer",      Wrap_Timer::Register          },
     { "love.touch",      Wrap_Touch::Register          },
+    { "love.window",     Wrap_Window::Register         },
     #if defined(__DEBUG__)
     { "love.log",        love::LoadLogFile             },
     #endif

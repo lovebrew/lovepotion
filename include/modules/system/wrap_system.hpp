@@ -28,7 +28,7 @@ namespace Wrap_System
 
     int SetPlayCoins(lua_State* L);
 
-    extern std::span<const luaL_Reg> extensions;
-
     int Register(lua_State* L);
+
+    extern std::span<const luaL_Reg> extensions;
 } // namespace Wrap_System

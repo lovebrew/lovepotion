@@ -206,15 +206,14 @@ end
 -----------------------------------------------------------
 
 local function saveError(text)
+    local date = os.date("%H%M%S_%m%d%y")
+    local filename = string.format("errors/love_error_%s.txt", date)
+
     if not love.filesystem then
         return
     end
 
     love.filesystem.createDirectory("errors")
-
-    local date = os.date("%H%M%S_%m%d%y")
-    local filename = string.format("errors/love_error_%s.txt", date)
-
     love.filesystem.write(filename, text)
 
     return filename
@@ -404,13 +403,11 @@ function love.errorhandler(message)
 
     love.graphics.origin()
 
-    local font = love.graphics.setNewFont(fontSize)
+    -- local font = love.graphics.setNewFont(fontSize)
 
     love.graphics.setColor(1, 1, 1, 1)
 
     local trace = debug.traceback()
-
-    -- love.graphics.origin
 
     local sanitized = {}
     for char in message:gmatch(utf8.charpattern) do
@@ -443,10 +440,10 @@ function love.errorhandler(message)
     if love._console_name == "Switch" then
         screen = nil
     end
-    local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth(screen) * 0.75)
+    -- local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth(screen) * 0.75)
 
     -- tell the user about how to quit the error handler
-    pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
+    -- pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
 
     if not love.window.isOpen() then
         return
@@ -469,11 +466,11 @@ function love.errorhandler(message)
                 love.graphics.clear(0.35, 0.62, 0.86)
 
                 if screen ~= "bottom" then
-                    local line_num = 1
-                    for line in pretty_fixed:gmatch("(.-)\n") do
-                        love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
-                        line_num = line_num + 1
-                    end
+                --    local line_num = 1
+                --    for line in pretty_fixed:gmatch("(.-)\n") do
+                --        -- love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
+                --        line_num = line_num + 1
+                --    end
                 end
             end
 
@@ -487,9 +484,9 @@ function love.errorhandler(message)
     local function updateError()
         if not saved then
             local filename = saveError(fullErrorText)
-            pretty_fixed = pretty_fixed .. "Saved to " .. filename .. "!\n"
+            -- pretty_fixed = pretty_fixed .. "Saved to " .. filename .. "!\n"
 
-            draw()
+            -- draw()
             saved = true
         end
     end

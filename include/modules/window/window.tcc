@@ -2,11 +2,15 @@
 
 #include <common/console.hpp>
 #include <common/module.hpp>
+#include <common/strongreference.hpp>
 
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 namespace love
 {
+    template<Console::Platform T>
+    class Graphics;
+
     template<Console::Platform T = Console::ALL>
     class Window : public Module
     {
@@ -71,14 +75,20 @@ namespace love
             int y                         = 0;
         };
 
-        Window() : width(800), height(600), pixelWidth(800), pixelHeight(600)
+        Window() : open(false), width(800), height(600), pixelWidth(800), pixelHeight(600)
         {}
 
-        virtual ~Window();
+        virtual ~Window()
+        {}
 
         virtual ModuleType GetModuleType() const
         {
             return M_WINDOW;
+        }
+
+        virtual const char* GetName() const
+        {
+            return "love.window";
         }
 
         bool IsOpen() const
@@ -124,6 +134,11 @@ namespace love
                 *y = (*y) * ((double)this->height / (double)this->pixelHeight);
         }
 
+        void SetGraphics(Graphics<Console::Which>* graphics)
+        {
+            this->graphics.Set(graphics);
+        }
+
         // clang-format off
         static constexpr BidirectionalMap windowSettings = {
             "fullscreen",     SETTING_FULLSCREEN,
@@ -160,5 +175,7 @@ namespace love
 
         int pixelWidth;
         int pixelHeight;
+
+        StrongReference<Graphics<Console::Which>> graphics;
     };
 } // namespace love

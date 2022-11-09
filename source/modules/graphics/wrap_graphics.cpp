@@ -9,6 +9,10 @@ using Renderer = love::Renderer<love::Console::Which>;
 using namespace love;
 #define instance() (Module::GetInstance<Graphics<Console::Which>>(Module::M_GRAPHICS))
 
+#if !defined(__3DS__)
+std::span<const luaL_Reg> Wrap_Graphics::extensions;
+#endif
+
 static int checkGraphicsCreated(lua_State* L)
 {
     if (!instance()->IsCreated())
@@ -42,6 +46,7 @@ int Wrap_Graphics::Clear(lua_State* L)
         for (int index = 0; index < maxValues; index++)
         {
             argtype = lua_type(L, index + 1);
+
             if (argtype == LUA_TNUMBER || argtype == LUA_TBOOLEAN)
             {
                 start = (index + 1);
@@ -78,7 +83,7 @@ int Wrap_Graphics::Clear(lua_State* L)
         value.r = luaL_checknumber(L, 1);
         value.g = luaL_checknumber(L, 2);
         value.b = luaL_checknumber(L, 3);
-        value.a = luaL_checknumber(L, 4);
+        value.a = luaL_optnumber(L, 4, 1.0f);
 
         start = 5;
     }
@@ -108,18 +113,6 @@ int Wrap_Graphics::Clear(lua_State* L)
     return 0;
 }
 
-int Wrap_Graphics::GetBackgroundColor(lua_State* L)
-{
-    const auto color = instance()->GetBackgroundColor();
-
-    lua_pushnumber(L, color.r);
-    lua_pushnumber(L, color.g);
-    lua_pushnumber(L, color.b);
-    lua_pushnumber(L, color.a);
-
-    return 4;
-}
-
 int Wrap_Graphics::SetBackgroundColor(lua_State* L)
 {
     Color color {};
@@ -133,6 +126,8 @@ int Wrap_Graphics::SetBackgroundColor(lua_State* L)
         color.g = luaL_checknumber(L, -3);
         color.b = luaL_checknumber(L, -2);
         color.a = luaL_optnumber(L, -1, 1.0f);
+
+        lua_pop(L, 4);
     }
     else if (lua_isnumber(L, 1))
     {
@@ -145,6 +140,59 @@ int Wrap_Graphics::SetBackgroundColor(lua_State* L)
     instance()->SetBackgroundColor(color);
 
     return 0;
+}
+
+int Wrap_Graphics::GetBackgroundColor(lua_State* L)
+{
+    const auto color = instance()->GetBackgroundColor();
+
+    lua_pushnumber(L, color.r);
+    lua_pushnumber(L, color.g);
+    lua_pushnumber(L, color.b);
+    lua_pushnumber(L, color.a);
+
+    return 4;
+}
+
+int Wrap_Graphics::SetColor(lua_State* L)
+{
+    Color color {};
+
+    if (lua_istable(L, 1))
+    {
+        for (int i = 1; i <= 4; i++)
+            lua_rawgeti(L, 1, i);
+
+        color.r = luaL_checknumber(L, -4);
+        color.g = luaL_checknumber(L, -3);
+        color.b = luaL_checknumber(L, -2);
+        color.a = luaL_optnumber(L, -1, 1.0f);
+
+        lua_pop(L, 4);
+    }
+    else if (lua_isnumber(L, 1))
+    {
+        color.r = luaL_checknumber(L, 1);
+        color.g = luaL_checknumber(L, 2);
+        color.b = luaL_checknumber(L, 3);
+        color.a = luaL_optnumber(L, 4, 1.0f);
+    }
+
+    instance()->SetColor(color);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetColor(lua_State* L)
+{
+    const auto color = instance()->GetColor();
+
+    lua_pushnumber(L, color.r);
+    lua_pushnumber(L, color.g);
+    lua_pushnumber(L, color.b);
+    lua_pushnumber(L, color.a);
+
+    return 4;
 }
 
 int Wrap_Graphics::IsActive(lua_State* L)
@@ -166,8 +214,10 @@ int Wrap_Graphics::SetActiveScreen(lua_State* L)
     const char* name = luaL_checkstring(L, 1);
     Screen screen;
 
-    ::Renderer::Instance().CheckScreen(L, name, &screen);
-    instance()->SetActiveScreen(screen);
+    luax::CatchException(L, [&]() {
+        ::Renderer::Instance().CheckScreen(L, name, &screen);
+        instance()->SetActiveScreen(screen);
+    });
 
     return 0;
 }
@@ -211,7 +261,9 @@ static constexpr luaL_Reg functions[] =
     { "present",            Wrap_Graphics::Present            },
     { "setActiveScreen",    Wrap_Graphics::SetActiveScreen    },
     { "setBackgroundColor", Wrap_Graphics::SetBackgroundColor },
+    { "setColor",           Wrap_Graphics::SetColor           },
     { "getBackgroundColor", Wrap_Graphics::GetBackgroundColor },
+    { "getColor",           Wrap_Graphics::GetColor           },
     { "getScreens",         Wrap_Graphics::GetScreens         },
     { "reset",              Wrap_Graphics::Reset              }
 };
@@ -232,11 +284,12 @@ int Wrap_Graphics::Register(lua_State* L)
         instance()->Retain();
 
     WrappedModule module {};
-    module.instance  = instance;
-    module.name      = "graphics";
-    module.functions = functions;
-    module.type      = &Module::type;
-    module.types     = types;
+    module.instance          = instance;
+    module.name              = "graphics";
+    module.functions         = functions;
+    module.extendedFunctions = extensions;
+    module.type              = &Module::type;
+    module.types             = types;
 
     return luax::RegisterModule(L, module);
 }

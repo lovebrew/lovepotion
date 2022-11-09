@@ -340,20 +340,20 @@ function love.init()
     end
 
     -- Check the version
-    c.version = tostring(c.version)
-    if not love.isVersionCompatible(c.version) then
-        local major, minor, revision = c.version:match("^(%d+)%.(%d+)%.(%d+)$")
-        if (not major or not minor or not revision) or (major ~= love._version_major and minor ~= love._version_minor) then
-            local msg = ("This game indicates it was made for version '%s' of LOVE.\n" ..
-                "It may not be compatible with the running version (%s)."):format(c.version, love._version)
+    -- c.potionversion = tostring(c.potionversion)
+    -- if not love.isVersionCompatible(c.potionversion) then
+    --     local major, minor, revision = c.potionversion:match("^(%d+)%.(%d+)%.(%d+)$")
+    --     if (not major or not minor or not revision) or (major ~= love._potion_version_major and minor ~= love._potion_version_minor) then
+    --         local msg = ("This game indicates it was made for version '%s' of LOVE.\n" ..
+    --             "It may not be compatible with the running version (%s)."):format(c.potionversion, love._potion_version)
 
-            print(msg)
+    --         print(msg)
 
-            if love.window then
-                love.window.showMessageBox("Compatibility Warning", msg, "warning")
-            end
-        end
-    end
+    --         if love.window then
+    --             love.window.showMessageBox("Compatibility Warning", msg, "warning")
+    --         end
+    --     end
+    -- end
 
     if not confok and conferr then
         error(conferr)

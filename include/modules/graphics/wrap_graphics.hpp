@@ -90,5 +90,9 @@ namespace Wrap_Graphics
 
     int GetScreens(lua_State* L);
 
+    int Get3D(lua_State* L);
+
     int Register(lua_State* L);
+
+    extern std::span<const luaL_Reg> extensions;
 } // namespace Wrap_Graphics

@@ -10,6 +10,8 @@
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 #include <common/luax.hpp>
 
 #include <array>
@@ -23,7 +25,6 @@ namespace love
     {
         SCREEN_LEFT,
         SCREEN_RIGHT,
-        SCREEN_TOP,
         SCREEN_BOTTOM
     };
 
@@ -204,7 +205,7 @@ namespace love
         };
 
         static constexpr BidirectionalMap gfx2dScreens = {
-            "top",   Screen::SCREEN_TOP,
+            "top",    Screen::SCREEN_LEFT,
             "bottom", Screen::SCREEN_BOTTOM
         };
         // clang-format on

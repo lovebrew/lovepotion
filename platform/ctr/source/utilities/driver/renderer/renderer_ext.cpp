@@ -45,8 +45,10 @@ Renderer<Console::CTR>::Info Renderer<Console::CTR>::GetRendererInfo()
     this->info.version = Renderer::RENDERER_VERSION;
 
     this->info.filled = true;
-}
 
+    return this->info;
+}
+#include <utilities/log/logfile.h>
 int Renderer<Console::CTR>::CheckScreen(lua_State* L, const char* name, Screen* out) const
 {
     std::optional<Screen> screen;
@@ -68,21 +70,18 @@ int Renderer<Console::CTR>::CheckScreen(lua_State* L, const char* name, Screen* 
     return 0;
 }
 
+void Renderer<Console::CTR>::CreateFramebuffers()
+{
+
+    this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
+                      C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT),
+                      C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT) };
+}
+
 void Renderer<Console::CTR>::DestroyFramebuffers()
 {
     for (auto* framebuffer : this->targets)
         C3D_RenderTargetDelete(framebuffer);
-}
-
-void Renderer<Console::CTR>::CreateFramebuffers()
-{
-    for (size_t index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
-    {
-        gfxScreen_t screen = (index < 2) ? GFX_TOP : GFX_BOTTOM;
-        gfx3dSide_t side   = (index != 1) ? GFX_LEFT : GFX_RIGHT;
-
-        this->targets[index] = C2D_CreateScreenTarget(screen, side);
-    }
 }
 
 void Renderer<Console::CTR>::Clear(const Color& color)
@@ -100,15 +99,18 @@ void Renderer<Console::CTR>::SetBlendColor(const Color& color)
 
 void Renderer<Console::CTR>::EnsureInFrame()
 {
-    if (this->inFrame)
-        return;
-
-    C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-    this->inFrame = true;
+    if (!this->inFrame)
+    {
+        C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+        this->inFrame = true;
+    }
 }
 
 void Renderer<Console::CTR>::BindFramebuffer()
 {
+    if ((uint8_t)Graphics<Console::ALL>::activeScreen < 0)
+        return;
+
     this->EnsureInFrame();
 
     this->current = this->targets[(uint8_t)Graphics<Console::ALL>::activeScreen];
@@ -117,11 +119,11 @@ void Renderer<Console::CTR>::BindFramebuffer()
 
 void Renderer<Console::CTR>::Present()
 {
-    if (!this->inFrame)
-        return;
-
-    C3D_FrameEnd(0);
-    this->inFrame = false;
+    if (this->inFrame)
+    {
+        C3D_FrameEnd(0);
+        this->inFrame = false;
+    }
 
     for (size_t i = this->deferred.size(); i > 0; i--)
     {

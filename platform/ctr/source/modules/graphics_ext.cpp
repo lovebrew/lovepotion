@@ -1,7 +1,22 @@
 #include <modules/graphics_ext.hpp>
 #include <utilities/driver/renderer_ext.hpp>
 
+#include <modules/window_ext.hpp>
+
 using namespace love;
+
+Graphics<Console::CTR>::Graphics()
+{
+    auto* window = Module::GetInstance<Window<Console::CTR>>(Module::M_WINDOW);
+
+    if (window != nullptr)
+    {
+        window->SetGraphics(this);
+
+        if (window->IsOpen())
+            window->SetWindow();
+    }
+}
 
 void Graphics<Console::CTR>::Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
 {
@@ -29,4 +44,10 @@ void Graphics<Console::CTR>::Clear(std::vector<OptionalColor>& colors, OptionalI
 void Graphics<Console::CTR>::Present()
 {
     Renderer<Console::CTR>::Instance().Present();
+}
+
+void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
+{
+    Renderer<Console::CTR>::Instance().CreateFramebuffers();
+    this->RestoreState(this->states.back());
 }

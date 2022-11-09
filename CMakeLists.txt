@@ -390,6 +390,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/timer/wrap_timer.cpp
     source/modules/touch/touch.cpp
     source/modules/touch/wrap_touch.cpp
+    source/modules/window/wrap_window.cpp
     source/objects/channel/channel.cpp
     source/objects/channel/wrap_channel.cpp
     source/objects/data/bytedata/bytedata.cpp
