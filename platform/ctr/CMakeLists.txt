@@ -12,6 +12,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
     source/modules/window_ext.cpp
+    source/modules/wrap_graphics_ext.cpp
     source/modules/wrap_system_ext.cpp
     source/objects/joystick_ext.cpp
     source/objects/source_ext.cpp

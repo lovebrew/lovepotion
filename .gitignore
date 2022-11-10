@@ -2,20 +2,25 @@ build
 distribute
 .vscodecounter
 logs
+settings.json
 distribute
-
 *.log
+*.love
+test
+
+*.elf
 
 *.3dsx
-*.elf
-*.t3x
-
 *.smdh
+*.t3x
 
 *.nro
 *.nso
 *.nacp
 *.pfs0
 *.dksh
+
+*.rpx
+*.wuhb
 
 *.zip

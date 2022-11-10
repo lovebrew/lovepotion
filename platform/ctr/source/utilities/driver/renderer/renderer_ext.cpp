@@ -81,7 +81,7 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    C2D_TargetClear(this->current, color);
+    C2D_TargetClear(this->current, color.rgba());
 }
 
 /* todo */
@@ -178,8 +178,7 @@ void Renderer<Console::CTR>::SetBlendMode(const RenderState::BlendState& state)
 void Renderer<Console::CTR>::SetLineWidth(float width)
 {}
 
-/* unnecessary -- would need Graphics::LineStyle though */
-void Renderer<Console::CTR>::SetLineStyle()
+void Renderer<Console::CTR>::SetLineStyle(Graphics<Console::Which>::LineStyle style)
 {}
 
 /* handled in Graphics<Console::ALL> */

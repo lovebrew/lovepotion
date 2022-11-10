@@ -4,12 +4,16 @@
 
 #include <modules/graphics_ext.hpp>
 
+#include <switch.h>
+
 namespace love
 {
     template<>
-    class Window<Console::CTR> : public Window<Console::ALL>
+    class Window<Console::HAC> : public Window<Console::ALL>
     {
       public:
+        Window();
+
         virtual ~Window();
 
         void SetGraphics(Graphics<Console::CTR>* graphics)
@@ -39,7 +43,7 @@ namespace love
 
         int GetDisplayCount() const
         {
-            return 2;
+            return 1;
         }
 
         std::string_view GetDisplayName(int displayIndex) const;
@@ -57,6 +61,7 @@ namespace love
         bool IsDisplaySleepEnabled() const;
 
       private:
-        StrongReference<Graphics<Console::CTR>> graphics;
+        bool sleepDisabledDefault;
+        StrongReference<Graphics<Console::HAC>> graphics;
     };
 } // namespace love

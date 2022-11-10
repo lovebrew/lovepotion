@@ -1,7 +1,7 @@
 #include <common/luax.hpp>
 #include <common/version.hpp>
 
-// #include <common/HTTPSCommon.h>
+#include <common/HTTPSCommon.h>
 #include <luasocket.hpp>
 
 #include <modules/love/love.hpp>

@@ -14,6 +14,15 @@ struct Color
     Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a)
     {}
 
+    /* only used for 3DS image data */
+    Color(uint32_t abgr)
+    {
+        this->r = ((abgr & 0xFF000000) >> 0x18) / 255.0f;
+        this->g = ((abgr & 0x00FF0000) >> 0x10) / 255.0f;
+        this->b = ((abgr & 0x0000FF00) >> 0x08) / 255.0f;
+        this->a = ((abgr & 0x000000FF) >> 0x00) / 255.0f;
+    }
+
     constexpr std::strong_ordering operator<=>(const Color&) const noexcept = default;
 
     Color operator+=(const Color& other)
@@ -57,7 +66,7 @@ struct Color
     }
 
     /* https://github.com/devkitPro/citro2d/blob/master/include/c2d/base.h#L110 */
-    operator uint32_t() const
+    uint32_t rgba() const
     {
         uint8_t red   = Color::to_uint8_t(this->r);
         uint8_t green = Color::to_uint8_t(this->g);
@@ -65,6 +74,16 @@ struct Color
         uint8_t alpha = Color::to_uint8_t(this->a);
 
         return red | (green << (uint32_t)8) | (blue << (uint32_t)16) | (alpha << (uint32_t)24);
+    }
+
+    uint32_t abgr() const
+    {
+        uint8_t red   = Color::to_uint8_t(this->r);
+        uint8_t green = Color::to_uint8_t(this->g);
+        uint8_t blue  = Color::to_uint8_t(this->b);
+        uint8_t alpha = Color::to_uint8_t(this->a);
+
+        return alpha | (blue << (uint32_t)8) | (green << (uint32_t)16) | (red << (uint32_t)24);
     }
 
     float r;

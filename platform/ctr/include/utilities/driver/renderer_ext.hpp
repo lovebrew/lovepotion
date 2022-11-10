@@ -6,13 +6,13 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
+#include <modules/graphics/graphics.tcc>
+
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
 #include <utilities/bidirectionalmap/smallvector.hpp>
-
-#include <common/luax.hpp>
 
 #include <array>
 
@@ -87,8 +87,7 @@ namespace love
 
         void SetLineWidth(float lineWidth);
 
-        /* todo -- need Graphics */
-        void SetLineStyle();
+        void SetLineStyle(Graphics<>::LineStyle style);
 
         void SetPointSize(float size);
 

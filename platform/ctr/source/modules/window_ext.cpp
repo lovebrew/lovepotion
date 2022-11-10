@@ -7,9 +7,6 @@
 
 using namespace love;
 
-Window<Console::CTR>::Window()
-{}
-
 Window<Console::CTR>::~Window()
 {
     this->Close();

@@ -3,12 +3,12 @@
 
 #include <modules/window_ext.hpp>
 
-using Renderer = love::Renderer<love::Console::CTR>;
+using Renderer = love::Renderer<love::Console::HAC>;
 using namespace love;
 
 Graphics<Console::CTR>::Graphics()
 {
-    auto* window = Module::GetInstance<Window<Console::CTR>>(Module::M_WINDOW);
+    auto* window = Module::GetInstance<Window<Console::HAC>>(Module::M_WINDOW);
 
     if (window != nullptr)
     {

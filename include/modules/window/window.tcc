@@ -134,11 +134,6 @@ namespace love
                 *y = (*y) * ((double)this->height / (double)this->pixelHeight);
         }
 
-        void SetGraphics(Graphics<Console::Which>* graphics)
-        {
-            this->graphics.Set(graphics);
-        }
-
         // clang-format off
         static constexpr BidirectionalMap windowSettings = {
             "fullscreen",     SETTING_FULLSCREEN,
@@ -175,7 +170,5 @@ namespace love
 
         int pixelWidth;
         int pixelHeight;
-
-        StrongReference<Graphics<Console::Which>> graphics;
     };
 } // namespace love

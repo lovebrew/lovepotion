@@ -68,6 +68,13 @@ if(NINTENDO_3DS)
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
     )
 
+    add_custom_target(test
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.3dsx"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test"
+        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "game.love" --format=zip .
+        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.3dsx" "game.love" > "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.3dsx"
+    )
+
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/ctr/libraries/luasocket.patch)
 endif()
 
@@ -102,6 +109,13 @@ if(NINTENDO_SWITCH)
         ${CMAKE_COMMAND} -E tar "cfv" "${PROJECT_NAME}-switch-${COMMIT_HASH}.zip" --format=zip
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.nro"
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
+    )
+
+    add_custom_target(test
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.nro"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test"
+        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "game.love" --format=zip .
+        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.nro" "game.love" > "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.nro"
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/hac/libraries/luasocket.patch)
@@ -141,6 +155,13 @@ if (NINTENDO_WIIU)
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.rpx"
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb"
             "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.elf"
+    )
+
+    add_custom_target(test
+        DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test"
+        COMMAND ${CMAKE_COMMAND} -E tar "cfv" "game.love" --format=zip .
+        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb" "game.love" > "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.wuhb"
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
@@ -332,7 +353,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::liblz4)
 
 # link curl
 find_package(CURL REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE CURL::libcurl)
 target_link_libraries(luahttps PRIVATE CURL::libcurl)
 
 # link everything else

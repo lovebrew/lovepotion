@@ -2,12 +2,22 @@
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
   "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "mode",
+      "description": "CMake release mode",
+      "type": "pickString",
+      "options": ["Release", "Debug"],
+      "default": "Release"
+    }
+  ],
+
   "tasks": [
     {
       "label": "Configure 3DS",
       "type": "shell",
       "command": "${env:DEVKITPRO}/portlibs/3ds/bin/arm-none-eabi-cmake",
-      "args": ["-S", ".", "-B", "build"],
+      "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
       "group": "build",
       "problemMatcher": []
     },
@@ -16,7 +26,16 @@
       "label": "Configure Switch",
       "type": "shell",
       "command": "${env:DEVKITPRO}/portlibs/switch/bin/aarch64-none-elf-cmake",
-      "args": ["-S", ".", "-B", "build"],
+      "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
+      "group": "build",
+      "problemMatcher": []
+    },
+
+    {
+      "label": "Configure Wii U",
+      "type":"shell",
+      "command": "${env:DEVKITPRO}/portlibs/wiiu/bin/powerpc-none-elf-cmake",
+      "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
       "group": "build",
       "problemMatcher": []
     },
