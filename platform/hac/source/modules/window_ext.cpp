@@ -6,13 +6,15 @@ using namespace love;
 
 Window<Console::HAC>::Window()
 {
-    this->sleepDisabledDefault = this->IsDisplaySleepEnabled();
+    this->sleepAllowed = this->IsDisplaySleepEnabled();
 }
 
 Window<Console::HAC>::~Window()
 {
     this->Close();
-    this->SetDisplaySleepEnabled(this->sleepDisabledDefault);
+    this->SetDisplaySleepEnabled(this->sleepAllowed);
+
+    this->graphics.Set(nullptr);
 }
 
 bool Window<Console::HAC>::SetWindow(int width, int height, WindowSettings* settings)
@@ -23,11 +25,11 @@ bool Window<Console::HAC>::SetWindow(int width, int height, WindowSettings* sett
     this->Close();
 
     /* handled internally */
-    if (!this->CreateWindowAndContext(0, 0, 0, 0))
+    if (!this->CreateWindowAndContext(width, height, width, height))
         return false;
 
     if (this->graphics.Get())
-        this->graphics->SetMode(400, 240, 400, 240);
+        this->graphics->SetMode(width, height, width, height);
 
     return true;
 }
@@ -40,7 +42,7 @@ bool Window<Console::HAC>::CreateWindowAndContext(int x, int y, int width, int h
 
 void Window<Console::HAC>::GetWindow(int& width, int& height, WindowSettings& settings)
 {
-    int width = 1280, height = 720;
+    width = 1280, height = 720;
     if (appletGetOperationMode() == AppletOperationMode_Console)
         width = 1920, height = 1080;
 }
@@ -48,7 +50,6 @@ void Window<Console::HAC>::GetWindow(int& width, int& height, WindowSettings& se
 void Window<Console::HAC>::Close()
 {
     this->open = false;
-    this->graphics.Set(nullptr);
 }
 
 bool Window<Console::HAC>::OnSizeChanged(int width, int height)
@@ -77,7 +78,7 @@ void Window<Console::HAC>::GetPosition(int& x, int& y, int& displayIndex)
 
 void Window<Console::HAC>::SetDisplaySleepEnabled(bool enabled)
 {
-    appletSetAutoSleepDisabled(enabled);
+    appletSetAutoSleepDisabled(!enabled);
 }
 
 bool Window<Console::HAC>::IsDisplaySleepEnabled() const

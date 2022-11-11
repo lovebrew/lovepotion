@@ -4,6 +4,8 @@
 
 #include <utilities/driver/renderer/vertex.hpp>
 
+#include <deko3d.hpp>
+
 #include <array>
 
 namespace vertex

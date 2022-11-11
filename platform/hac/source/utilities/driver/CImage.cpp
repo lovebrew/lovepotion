@@ -59,8 +59,8 @@ bool CImage::loadEmptyPixels(CMemPool& imagePool, CMemPool& scratchPool, dk::Dev
                              DkImageFormat dkFormat, uint32_t flags)
 {
     PixelFormat format;
-    if (!Renderer<Console::HAC>::pixelFormat.Find(dkFormat))
-        return false;
+    // if (!Renderer<Console::HAC>::pixelFormat.Find(dkFormat))
+    //     return false;
 
     size_t size = love::GetPixelFormatSliceSize(format, width, height);
 
@@ -121,10 +121,10 @@ bool CImage::loadMemory(CMemPool& imagePool, CMemPool& scratchPool, dk::Device d
 
     // Allocate temporary memory for the image
     PixelFormat format;
-    if (!::deko3d::GetConstant(dkFormat, format))
-        return false;
+    // if (!::deko3d::GetConstant(dkFormat, format))
+    //     return false;
 
-    size_t size = width * height * love::GetPixelFormatSize(format);
+    size_t size = love::GetPixelFormatSliceSize(format, width, height);
 
     if (size <= 0)
         return false;

@@ -3,6 +3,8 @@
 #include <common/console.hpp>
 #include <common/math.hpp>
 
+#include <utilities/bidirectionalmap/smallvector.hpp>
+
 namespace love
 {
     class Canvas;

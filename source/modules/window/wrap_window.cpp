@@ -10,6 +10,11 @@ int Wrap_Window::SetMode(lua_State* L)
     int width  = luaL_checkinteger(L, 1);
     int height = luaL_checkinteger(L, 2);
 
+    Window<>::WindowSettings settings {};
+
+    /* force to the console size on switch */
+    instance()->GetWindow(width, height, settings);
+
     if (lua_isnoneornil(L, 3))
     {
         // clang-format off
@@ -21,7 +26,6 @@ int Wrap_Window::SetMode(lua_State* L)
         return 1;
     }
 
-    Window<>::WindowSettings settings {};
     // readWindowSettings(L, 3, settings) -- unneeded
 
     // clang-format off

@@ -37,6 +37,12 @@ namespace love
         int x, y;
         int w, h;
 
+        Rect() : x(0), y(0), w(0), h(0)
+        {}
+
+        Rect(int x, int y, int width, int height) : x(x), y(y), w(width), h(height)
+        {}
+
         bool operator==(const Rect& other) const
         {
             return x == other.x && y == other.y && w == other.w && h == other.h;

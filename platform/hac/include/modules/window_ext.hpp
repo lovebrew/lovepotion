@@ -16,7 +16,7 @@ namespace love
 
         virtual ~Window();
 
-        void SetGraphics(Graphics<Console::CTR>* graphics)
+        void SetGraphics(Graphics<Console::HAC>* graphics)
         {
             this->graphics.Set(graphics);
         }
@@ -61,7 +61,6 @@ namespace love
         bool IsDisplaySleepEnabled() const;
 
       private:
-        bool sleepDisabledDefault;
         StrongReference<Graphics<Console::HAC>> graphics;
     };
 } // namespace love

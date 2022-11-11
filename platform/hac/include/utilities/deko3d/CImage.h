@@ -4,8 +4,8 @@
 */
 #pragma once
 
-#include "deko3d/CMemPool.h"
-#include "deko3d/common.h"
+#include <utilities/deko3d/CMemPool.h>
+#include <utilities/deko3d/common.h>
 
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>

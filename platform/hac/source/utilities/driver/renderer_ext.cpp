@@ -2,8 +2,11 @@
 
 using namespace love;
 
+template<>
 int Renderer<>::shaderSwitches = 0;
-int Renderer<>::drawCalls      = 0;
+
+template<>
+int Renderer<>::drawCalls = 0;
 
 Renderer<Console::HAC>::Renderer() :
     firstVertex(0),
@@ -30,6 +33,10 @@ Renderer<Console::HAC>::Renderer() :
     /* allocate descriptors */
     this->descriptors.image.allocate(this->pools.data);
     this->descriptors.sampler.allocate(this->pools.data);
+
+    /* allocate our rings */
+    this->commands.allocate(this->pools.data, COMMAND_SIZE);
+    this->vertices.allocate(this->pools.data, VERTEX_COMMAND_SIZE / 2);
 
     /* set up the device depth state */
     this->state.depthStencil.setDepthTestEnable(true);
@@ -108,7 +115,7 @@ void Renderer<Console::HAC>::CreateFramebuffers()
         const auto memory = this->framebuffers.memory[index];
 
         const auto& memBlock = memory.getMemBlock();
-        const auto offset    = memory.getOffset();
+        auto offset          = memory.getOffset();
 
         this->framebuffers.images[index].initialize(this->framebuffers.layout, memBlock, offset);
         this->rendertargets[index] = &this->framebuffers.images[index];
@@ -138,11 +145,11 @@ void Renderer<Console::HAC>::DestroyFramebuffers()
 
 void Renderer<Console::HAC>::EnsureInFrame()
 {
-    if (this->inFrame)
-        return;
-
-    this->commands.begin(this->commandBuffer);
-    this->inFrame = true;
+    if (!this->inFrame)
+    {
+        this->commands.begin(this->commandBuffer);
+        this->inFrame = true;
+    }
 }
 
 void Renderer<Console::HAC>::Clear(const Color& color)
@@ -152,7 +159,10 @@ void Renderer<Console::HAC>::Clear(const Color& color)
 }
 
 void Renderer<Console::HAC>::ClearDepthStencil(int stencil, uint8_t mask, double depth)
-{}
+{
+    this->EnsureInFrame();
+    this->commandBuffer.clearDepthStencil(true, depth, mask, stencil);
+}
 
 void Renderer<Console::HAC>::SetBlendColor(const Color& color)
 {
@@ -221,7 +231,7 @@ void Renderer<Console::HAC>::SetViewport(const Rect& viewport)
     this->EnsureInFrame();
 
     DkViewport dkViewport { viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR };
-    this->commandBuffer.setViewports(0, dkViewport);
+    this->commandBuffer.setViewports(0, { dkViewport });
 
     const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     this->transform.state.projection = ortho;
@@ -232,5 +242,15 @@ void Renderer<Console::HAC>::SetScissor(bool enable, const Rect& scissor, bool c
     this->EnsureInFrame();
 
     DkScissor dkScissor = { scissor.x, scissor.y, scissor.w, scissor.h };
-    this->commandBuffer.setScissors(0, dkScissor);
+    this->commandBuffer.setScissors(0, { dkScissor });
+}
+
+std::optional<Screen> Renderer<Console::HAC>::CheckScreen(const char* name) const
+{
+    return gfxScreens.Find(name);
+}
+
+SmallTrivialVector<const char*, 1> Renderer<Console::HAC>::GetScreens() const
+{
+    return { gfxScreens.GetNames() };
 }

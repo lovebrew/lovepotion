@@ -20,18 +20,25 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
+    source/modules/graphics_ext.cpp
     source/modules/joystickmodule_ext.cpp
     source/modules/keyboard_ext.cpp
     source/modules/love_ext.cpp
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
+    source/modules/window_ext.cpp
     source/objects/joystick_ext.cpp
     source/objects/source_ext.cpp
     source/objects/wrap_joystick_ext.cpp
     source/runtime.cpp
+    source/utilities/driver/CImage.cpp
+    source/utilities/driver/CIntrusiveTree.cpp
+    source/utilities/driver/CMemPool.cpp
+    source/utilities/driver/CShader.cpp
     source/utilities/driver/dsp_ext.cpp
     source/utilities/driver/dsp_mem.cpp
     source/utilities/driver/hid_ext.cpp
+    source/utilities/driver/renderer_ext.cpp
     source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/haptics/vibration_ext.cpp
     source/utilities/npad.cpp

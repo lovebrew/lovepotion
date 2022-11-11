@@ -12,8 +12,6 @@
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
-#include <utilities/bidirectionalmap/smallvector.hpp>
-
 #include <array>
 
 #include <3ds.h>
@@ -91,6 +89,10 @@ namespace love
 
         void SetPointSize(float size);
 
+        std::optional<Screen> CheckScreen(const char* name) const;
+
+        SmallTrivialVector<const char*, 3> GetScreens() const;
+
         void SetWideMode(bool enable)
         {
             this->ModeChanged([enable]() { gfxSetWide(enable); });
@@ -116,10 +118,6 @@ namespace love
         {
             this->deferred.emplace_back(std::move(function));
         }
-
-        std::optional<Screen> CheckScreen(const char* name) const;
-
-        SmallTrivialVector<const char*, 3> GetScreens() const;
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {

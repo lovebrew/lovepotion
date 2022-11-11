@@ -33,6 +33,11 @@
 
 namespace love
 {
+    enum class Screen : uint8_t
+    {
+        SCREEN_DEFAULT
+    };
+
     template<>
     class Renderer<Console::HAC> : public Renderer<Console::ALL>
     {
@@ -125,7 +130,113 @@ namespace love
 
         void SetPointSize(float size);
 
+        std::optional<Screen> CheckScreen(const char* name) const;
+
+        SmallTrivialVector<const char*, 1> GetScreens() const;
+
         bool IsHandheldMode() const;
+
+        // clang-format off
+        static constexpr BidirectionalMap pixelFormats = {
+            PIXELFORMAT_R8_UNORM,         DkImageFormat_R8_Unorm,
+            PIXELFORMAT_R16_UNORM,        DkImageFormat_R16_Unorm,
+            PIXELFORMAT_RG8_UNORM,        DkImageFormat_RG8_Unorm,
+            PIXELFORMAT_RGBA8_UNORM,      DkImageFormat_RGBA8_Unorm,
+            PIXELFORMAT_RGB565_UNORM,     DkImageFormat_RGB565_Unorm,
+            PIXELFORMAT_RGBA8_UNORM_SRGB, DkImageFormat_RGBA8_Unorm_sRGB,
+            PIXELFORMAT_DXT1_UNORM,       DkImageFormat_RGBA_BC1,
+            PIXELFORMAT_DXT3_UNORM,       DkImageFormat_RGBA_BC2,
+            PIXELFORMAT_DXT5_UNORM,       DkImageFormat_RGBA_BC3,
+            PIXELFORMAT_ETC1_UNORM,       DkImageFormat_RGB_ETC2,
+            PIXELFORMAT_ETC2_RGB_UNORM,   DkImageFormat_RGB_ETC2,
+            PIXELFORMAT_ETC2_RGBA1_UNORM, DkImageFormat_RGBA_ETC2,
+            PIXELFORMAT_ETC2_RGBA_UNORM,  DkImageFormat_RGBA_ETC2,
+            PIXELFORMAT_BC4_UNORM,        DkImageFormat_R_BC4_Unorm,
+            PIXELFORMAT_BC5_UNORM,        DkImageFormat_RG_BC5_Unorm,
+            PIXELFORMAT_BC7_UNORM,        DkImageFormat_RGBA_BC7_Unorm,
+            PIXELFORMAT_BC7_UNORM_SRGB,   DkImageFormat_RGBA_BC7_Unorm_sRGB,
+            PIXELFORMAT_ASTC_4x4,         DkImageFormat_RGBA_ASTC_4x4,
+            PIXELFORMAT_ASTC_5x4,         DkImageFormat_RGBA_ASTC_5x4,
+            PIXELFORMAT_ASTC_6x5,         DkImageFormat_RGBA_ASTC_6x5,
+            PIXELFORMAT_ASTC_6x6,         DkImageFormat_RGBA_ASTC_6x6,
+            PIXELFORMAT_ASTC_8x5,         DkImageFormat_RGBA_ASTC_8x5,
+            PIXELFORMAT_ASTC_8x6,         DkImageFormat_RGBA_ASTC_8x6,
+            PIXELFORMAT_ASTC_8x8,         DkImageFormat_RGBA_ASTC_8x8,
+            PIXELFORMAT_ASTC_10x5,        DkImageFormat_RGBA_ASTC_10x5,
+            PIXELFORMAT_ASTC_10x6,        DkImageFormat_RGBA_ASTC_10x6,
+            PIXELFORMAT_ASTC_10x8,        DkImageFormat_RGBA_ASTC_10x8,
+            PIXELFORMAT_ASTC_10x10,       DkImageFormat_RGBA_ASTC_10x10,
+            PIXELFORMAT_ASTC_12x10,       DkImageFormat_RGBA_ASTC_12x10,
+            PIXELFORMAT_ASTC_12x12,       DkImageFormat_RGBA_ASTC_12x12
+        };
+
+        static constexpr BidirectionalMap blendEquations = {
+            RenderState::BLENDOP_ADD,              DkBlendOp_Add,
+            RenderState::BLENDOP_SUBTRACT,         DkBlendOp_Sub,
+            RenderState::BLENDOP_REVERSE_SUBTRACT, DkBlendOp_RevSub,
+            RenderState::BLENDOP_MIN,              DkBlendOp_Min,
+            RenderState::BLENDOP_MAX,              DkBlendOp_Max
+        };
+
+        static constexpr BidirectionalMap blendFactors = {
+            RenderState::BLENDFACTOR_ZERO,                DkBlendFactor_Zero,
+            RenderState::BLENDFACTOR_ONE,                 DkBlendFactor_One,
+            RenderState::BLENDFACTOR_SRC_COLOR,           DkBlendFactor_SrcColor,
+            RenderState::BLENDFACTOR_ONE_MINUS_SRC_COLOR, DkBlendFactor_InvSrcColor,
+            RenderState::BLENDFACTOR_SRC_ALPHA,           DkBlendFactor_SrcAlpha,
+            RenderState::BLENDFACTOR_ONE_MINUS_SRC_ALPHA, DkBlendFactor_InvSrcAlpha,
+            RenderState::BLENDFACTOR_DST_COLOR,           DkBlendFactor_DstColor,
+            RenderState::BLENDFACTOR_ONE_MINUS_DST_COLOR, DkBlendFactor_InvDstColor,
+            RenderState::BLENDFACTOR_DST_ALPHA,           DkBlendFactor_DstAlpha,
+            RenderState::BLENDFACTOR_ONE_MINUS_DST_ALPHA, DkBlendFactor_InvDstAlpha,
+            RenderState::BLENDFACTOR_SRC_ALPHA_SATURATED, DkBlendFactor_SrcAlphaSaturate
+        };
+
+        static constexpr BidirectionalMap filterModes = {
+            SamplerState::FILTER_LINEAR,  DkFilter_Linear,
+            SamplerState::FILTER_NEAREST, DkFilter_Nearest
+        };
+
+        static constexpr BidirectionalMap wrapModes = {
+            SamplerState::WRAP_CLAMP,           DkWrapMode_ClampToEdge,
+            SamplerState::WRAP_CLAMP_ZERO,      DkWrapMode_ClampToBorder,
+            SamplerState::WRAP_REPEAT,          DkWrapMode_Repeat,
+            SamplerState::WRAP_MIRRORED_REPEAT, DkWrapMode_MirroredRepeat
+        };
+
+        static constexpr BidirectionalMap cullModes = {
+            Vertex::CULL_NONE,  DkFace_None,
+            Vertex::CULL_BACK,  DkFace_Back,
+            Vertex::CULL_FRONT, DkFace_Front
+        };
+
+        static constexpr BidirectionalMap windingModes = {
+            Vertex::WINDING_CW,  DkFrontFace_CW,
+            Vertex::WINDING_CCW, DkFrontFace_CCW
+        };
+
+        static constexpr BidirectionalMap compareModes = {
+            RenderState::COMPARE_LESS,     DkCompareOp_Less,
+            RenderState::COMPARE_LEQUAL,   DkCompareOp_Lequal,
+            RenderState::COMPARE_EQUAL,    DkCompareOp_Equal,
+            RenderState::COMPARE_GEQUAL,   DkCompareOp_Gequal,
+            RenderState::COMPARE_GREATER,  DkCompareOp_Greater,
+            RenderState::COMPARE_NOTEQUAL, DkCompareOp_NotEqual,
+            RenderState::COMPARE_ALWAYS,   DkCompareOp_Always,
+            RenderState::COMPARE_NEVER,    DkCompareOp_Never
+        };
+
+        static constexpr BidirectionalMap primitiveModes = {
+            Vertex::PRIMITIVE_TRIANGLES,      DkPrimitive_Triangles,
+            Vertex::PRIMITIVE_TRIANGLE_FAN,   DkPrimitive_TriangleFan,
+            Vertex::PRIMITIVE_TRIANGLE_STRIP, DkPrimitive_TriangleStrip,
+            Vertex::PRIMITIVE_QUADS,          DkPrimitive_Quads,
+            Vertex::PRIMITIVE_POINTS,         DkPrimitive_Points
+        };
+
+        static constexpr BidirectionalMap gfxScreens = {
+            (const char*)"default", Screen::SCREEN_DEFAULT
+        };
 
       private:
         struct Transform

@@ -17,5 +17,10 @@ namespace love
         void Present();
 
         void SetMode(int x, int y, int width, int height);
+
+        void SetScissor(const Rect& scissor);
+
+      private:
+        void SetViewportSize(int width, int height);
     };
 } // namespace love

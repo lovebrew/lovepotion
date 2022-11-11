@@ -2,7 +2,7 @@
 ** Sample Framework for deko3d Applications
 **   CShader.cpp: Utility class for loading shaders from the filesystem
 */
-#include "deko3d/CShader.h"
+#include <utilities/deko3d/CShader.h>
 
 bool CShader::load(CMemPool& pool, const void* buffer, size_t size)
 {

@@ -7,10 +7,17 @@
 
 using namespace love;
 
+Window<Console::CTR>::Window()
+{
+    this->sleepAllowed = this->IsDisplaySleepEnabled();
+}
+
 Window<Console::CTR>::~Window()
 {
     this->Close();
-    this->graphics.Set(nullptr);
+
+    this->SetDisplaySleepEnabled(this->sleepAllowed);
+    spt this->graphics.Set(nullptr);
 }
 
 bool Window<Console::CTR>::SetWindow(int width, int height, WindowSettings* settings)

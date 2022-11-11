@@ -3,10 +3,8 @@
 **   CShader.h: Utility class for loading shaders from the filesystem
 */
 #pragma once
-#include "deko3d/CMemPool.h"
-#include "deko3d/common.h"
-
-#include "common/debug/logger.h"
+#include <utilities/deko3d/CMemPool.h>
+#include <utilities/deko3d/common.h>
 
 class CShader
 {
@@ -27,7 +25,7 @@ class CShader
         return m_codemem;
     }
 
-    constexpr operator dk::Shader const *() const
+    constexpr operator dk::Shader const*() const
     {
         return &m_shader;
     }

@@ -162,6 +162,7 @@ namespace love
 
       protected:
         bool open;
+        bool sleepAllowed;
 
         WindowSettings settings;
 
