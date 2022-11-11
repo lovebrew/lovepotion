@@ -252,5 +252,5 @@ std::optional<Screen> Renderer<Console::HAC>::CheckScreen(const char* name) cons
 
 SmallTrivialVector<const char*, 1> Renderer<Console::HAC>::GetScreens() const
 {
-    return { gfxScreens.GetNames() };
+    return gfxScreens.GetNames();
 }

@@ -31,8 +31,8 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
+#include <array>
 #include <functional>
-#include <map>
 
 namespace love
 {
@@ -195,7 +195,13 @@ namespace love
         // clang-format on
 
       private:
-        std::map<Screen, std::pair<std::function<void()>, std::function<void()>>> rendertargets;
-        std::map<Screen, std::function<void()>> keyboardRender;
+        struct RenderFuncs
+        {
+            std::function<void()> begin;
+            std::function<void()> end;
+            std::function<void()> keyboard;
+        };
+
+        std::array<RenderFuncs, MAX_RENDERTARGETS> rendertargets;
     };
 } // namespace love

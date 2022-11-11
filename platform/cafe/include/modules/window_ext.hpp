@@ -10,6 +10,8 @@ namespace love
     class Window<Console::CAFE> : public Window<Console::ALL>
     {
       public:
+        Window();
+
         virtual ~Window();
 
         void SetGraphics(Graphics<Console::CAFE>* graphics)

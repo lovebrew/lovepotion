@@ -7,7 +7,8 @@
 
 #include <nn/swkbd.h>
 
-#define Module() (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
+#define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
+#define Module()   (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
 
 using namespace love;
 

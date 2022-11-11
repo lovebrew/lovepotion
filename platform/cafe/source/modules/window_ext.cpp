@@ -1,5 +1,7 @@
 #include <modules/window_ext.hpp>
 
+// #include <coreinit/im.h> - not in stable
+
 using namespace love;
 
 Window<Console::CAFE>::Window()
@@ -26,8 +28,9 @@ bool Window<Console::CAFE>::SetWindow(int width, int height, WindowSettings* set
     if (!this->CreateWindowAndContext(0, 0, 0, 0))
         return false;
 
+    /* handled internally */
     if (this->graphics.Get())
-        this->graphics->SetMode(400, 240, 400, 240);
+        this->graphics->SetMode(0, 0, 0, 0);
 
     return true;
 }
@@ -39,7 +42,10 @@ bool Window<Console::CAFE>::CreateWindowAndContext(int x, int y, int width, int 
 }
 
 void Window<Console::CAFE>::GetWindow(int& width, int& height, WindowSettings& settings)
-{}
+{
+    width  = 0;
+    height = 0;
+}
 
 void Window<Console::CAFE>::Close()
 {
@@ -80,9 +86,15 @@ void Window<Console::CAFE>::GetPosition(int& x, int& y, int& displayIndex)
 {}
 
 void Window<Console::CAFE>::SetDisplaySleepEnabled(bool enabled)
-{}
+{
+    // IM_SetRuntimeParameter(IM_PARAMETER_DIM_ENABLED, enabled);
+}
 
 bool Window<Console::CAFE>::IsDisplaySleepEnabled() const
 {
+    // IMParameters parameters {};
+    // IM_GetParameters(&parameters)
+    // return parameters.dimEnabled;
+
     return true;
 }

@@ -8,17 +8,32 @@
 
 using namespace love;
 
+#include <utilities/log/logfile.h>
+
 Keyboard<Console::CAFE>::Keyboard() :
     Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH)),
     createArgs {},
-    appearArgs {}
+    appearArgs {},
+    client(nullptr),
+    showing(false)
 {
     this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
-    FSAddClient(this->client, FS_ERROR_FLAG_NONE);
+
+    if (!this->client)
+        throw love::Exception("Failed to allocate FSClient for nn::swkbd!");
+
+    const auto result = FSAddClient(this->client, FS_ERROR_FLAG_ALL);
+
+    if (ResultCode(result).Failed())
+        throw love::Exception("FSAddClient: %x", result);
 
     this->createArgs.regionType = nn::swkbd::RegionType::USA;
     this->createArgs.workMemory = MEMAllocFromDefaultHeap(nn::swkbd::GetWorkMemorySize(0));
-    this->createArgs.fsClient   = this->client;
+
+    if (!this->createArgs.workMemory)
+        throw love::Exception("No work memory for nn::swkbd!");
+
+    this->createArgs.fsClient = this->client;
 
     if (!nn::swkbd::Create(this->createArgs))
         throw love::Exception("Failed to initialize nn:swkbd!");
@@ -26,7 +41,7 @@ Keyboard<Console::CAFE>::Keyboard() :
 
 Keyboard<Console::CAFE>::~Keyboard()
 {
-    FSDelClient(this->client, FS_ERROR_FLAG_NONE);
+    FSDelClient(this->client, FS_ERROR_FLAG_ALL);
     MEMFreeToDefaultHeap(this->client);
 
     nn::swkbd::Destroy();

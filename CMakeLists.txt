@@ -19,6 +19,8 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
     )
 endif()
 
+include(FetchContent)
+
 set(LOVE_VERSION "11.4.0")
 set(APP_VERSION  "3.0.0")
 
@@ -161,12 +163,13 @@ if (NINTENDO_WIIU)
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test"
         COMMAND ${CMAKE_COMMAND} -E tar "cfv" "game.love" --format=zip .
-        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb" "game.love" >> "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.wuhb"
+        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb" "game.love" > "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.wuhb"
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
 
     find_package(SDL2 REQUIRED)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${DEVKITPRO}/portlibs/wiiu/include)
     target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_Mixer mpg123 SDL2)
 endif()
 

@@ -8,40 +8,33 @@ using namespace love;
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 
 Renderer<Console::CAFE>::Renderer()
-{
-    WHBGfxInit();
-}
+{}
 
 Renderer<Console::CAFE>::~Renderer()
-{
-    WHBGfxShutdown();
-}
+{}
 
 void Renderer<Console::CAFE>::CreateFramebuffers()
 {
-    const auto tv = std::make_pair(WHBGfxBeginRenderTV, WHBGfxFinishRenderTV);
-    this->rendertargets.emplace(Screen::SCREEN_TV, tv);
+    auto tvFuncs = RenderFuncs { WHBGfxBeginRenderTV, WHBGfxFinishRenderTV, nn::swkbd::DrawTV };
+    this->rendertargets[(uint8_t)Screen::SCREEN_TV] = tvFuncs;
 
-    const auto drc = std::make_pair(WHBGfxBeginRenderDRC, WHBGfxFinishRenderDRC);
-    this->rendertargets.emplace(Screen::SCREEN_GAMEPAD, drc);
-
-    this->keyboardRender.emplace(Screen::SCREEN_TV, nn::swkbd::DrawTV);
-    this->keyboardRender.emplace(Screen::SCREEN_GAMEPAD, nn::swkbd::DrawDRC);
+    auto drcFuncs = RenderFuncs { WHBGfxBeginRenderDRC, WHBGfxFinishRenderDRC, nn::swkbd::DrawDRC };
+    this->rendertargets[(uint8_t)Screen::SCREEN_GAMEPAD] = drcFuncs;
 }
 
 void Renderer<Console::CAFE>::DestroyFramebuffers()
-{
-    this->rendertargets.clear();
-}
+{}
 
 void Renderer<Console::CAFE>::EnsureInFrame()
 {
-    if (this->inFrame)
-        return;
-
-    WHBGfxBeginRender();
+    if (!this->inFrame)
+    {
+        WHBGfxBeginRender();
+        this->inFrame = true;
+    }
 }
 
+#include <utilities/log/logfile.h>
 void Renderer<Console::CAFE>::Clear(const Color& color)
 {
     WHBGfxClearColor(color.r, color.g, color.b, color.a);
@@ -57,19 +50,24 @@ void Renderer<Console::CAFE>::BindFramebuffer(/* Canvas* canvas */)
 {
     this->EnsureInFrame();
 
-    this->rendertargets[Graphics<>::activeScreen].first();
+    this->rendertargets[(uint8_t)Graphics<>::activeScreen].begin();
 }
 
 void Renderer<Console::CAFE>::Present()
 {
-    if (!this->inFrame)
-        return;
+    if (this->inFrame)
+    {
+        if (Keyboard()->IsShowing())
+            this->rendertargets[(uint8_t)Graphics<>::activeScreen].keyboard();
 
-    if (Keyboard()->IsShowing())
-        this->keyboardRender[Graphics<>::activeScreen]();
+        this->rendertargets[(uint8_t)Graphics<>::activeScreen].end();
 
-    this->rendertargets[Graphics<>::activeScreen].second();
-    WHBGfxFinishRender();
+        if (Graphics<>::activeScreen == Screen::SCREEN_GAMEPAD)
+        {
+            WHBGfxFinishRender();
+            this->inFrame = false;
+        }
+    }
 }
 
 std::optional<Screen> Renderer<Console::CAFE>::CheckScreen(const char* name) const
@@ -79,5 +77,5 @@ std::optional<Screen> Renderer<Console::CAFE>::CheckScreen(const char* name) con
 
 SmallTrivialVector<const char*, 2> Renderer<Console::CAFE>::GetScreens() const
 {
-    return { gfxScreens.GetNames() };
+    return gfxScreens.GetNames();
 }

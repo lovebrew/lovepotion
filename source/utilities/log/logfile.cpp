@@ -7,6 +7,10 @@
 
 #include <utilities/log/logfile.h>
 
+#if defined(__WIIU__)
+    #include <coreinit/debug.h>
+#endif
+
 using namespace love;
 
 static FILE* file = nullptr;

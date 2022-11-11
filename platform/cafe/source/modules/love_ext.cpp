@@ -14,6 +14,8 @@
 #include <sysapp/launch.h>
 #include <vpad/input.h>
 
+#include <whb/gfx.h>
+
 #include <coreinit/bsp.h>
 #include <nn/ac/ac_c.h>
 
@@ -26,6 +28,8 @@ template<>
 void love::PreInit<Console::CAFE>()
 {
     ProcUIInit(OSSavesDone_ReadyToRelease);
+
+    WHBGfxInit();
 
     VPADInit();
 
@@ -105,6 +109,8 @@ void love::OnExit<Console::CAFE>()
     KPADShutdown();
 
     VPADShutdown();
+
+    WHBGfxShutdown();
 
     ProcUIShutdown();
 }

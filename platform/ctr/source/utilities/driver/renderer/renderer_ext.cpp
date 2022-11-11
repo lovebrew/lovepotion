@@ -60,9 +60,9 @@ std::optional<Screen> Renderer<Console::CTR>::CheckScreen(const char* name) cons
 SmallTrivialVector<const char*, 3> Renderer<Console::CTR>::GetScreens() const
 {
     if (this->Get3D())
-        return { gfx3dScreens.GetNames() };
+        return gfx3dScreens.GetNames();
 
-    return { gfx2dScreens.GetNames() };
+    return gfx2dScreens.GetNames();
 }
 
 void Renderer<Console::CTR>::CreateFramebuffers()
