@@ -17,7 +17,7 @@ Window<Console::CTR>::~Window()
     this->Close();
 
     this->SetDisplaySleepEnabled(this->sleepAllowed);
-    spt this->graphics.Set(nullptr);
+    this->graphics.Set(nullptr);
 }
 
 bool Window<Console::CTR>::SetWindow(int width, int height, WindowSettings* settings)

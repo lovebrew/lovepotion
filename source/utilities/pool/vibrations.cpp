@@ -74,8 +74,6 @@ bool VibrationPool::ReleaseVibration(::Vibration* vibration)
     if (this->FindVibration(vibration, index))
     {
         this->available.push(index);
-
-        LOG("Stopping: %d", vibration->Stop());
         this->vibrating.erase(vibration);
 
         return true;
