@@ -6,8 +6,6 @@
 #include <coreinit/memdefaultheap.h>
 #include <nn/swkbd.h>
 
-#include <utilities/swkbdthread.hpp>
-
 namespace love
 {
     template<>
@@ -52,7 +50,6 @@ namespace love
         nn::swkbd::AppearArg appearArgs;
         FSClient* client;
 
-        SwkbdThread* thread;
         bool showing;
     };
 } // namespace love

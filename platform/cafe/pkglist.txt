@@ -12,6 +12,5 @@ wiiu-curl
 wiiu-mbedtls
 wiiu-physfs
 wiiu-sdl2
-wiiu-sdl2_gfx
-wiiu-sdl2_ttf
+wiiu-sdl2_mixer
 wiiu-cmake

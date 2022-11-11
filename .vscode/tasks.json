@@ -33,8 +33,8 @@
 
     {
       "label": "Configure Wii U",
-      "type":"shell",
-      "command": "${env:DEVKITPRO}/portlibs/wiiu/bin/powerpc-none-elf-cmake",
+      "type": "shell",
+      "command": "${env:DEVKITPRO}/portlibs/wiiu/bin/powerpc-eabi-cmake",
       "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
       "group": "build",
       "problemMatcher": []

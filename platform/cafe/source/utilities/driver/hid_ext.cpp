@@ -6,10 +6,8 @@
 #include <padscore/kpad.h>
 
 #include <nn/swkbd.h>
-#include <whb/gfx.h>
 
-#define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
-#define Module()   (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
+#define Module() (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
 
 using namespace love;
 
@@ -51,21 +49,6 @@ void HID<Console::CAFE>::CheckSoftwareKeyboard(VPADStatus vpadStatus)
             this->SendTextInput(Keyboard()->GetText());
         }
     }
-
-    /* temporary! */
-    WHBGfxBeginRender();
-
-    WHBGfxBeginRenderTV();
-    WHBGfxClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    nn::swkbd::DrawTV();
-    WHBGfxFinishRenderTV();
-
-    WHBGfxBeginRenderDRC();
-    WHBGfxClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    nn::swkbd::DrawDRC();
-    WHBGfxFinishRenderDRC();
-
-    WHBGfxFinishRender();
 }
 
 bool HID<Console::CAFE>::Poll(LOVE_Event* event)

@@ -161,7 +161,7 @@ if (NINTENDO_WIIU)
         DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb"
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test"
         COMMAND ${CMAKE_COMMAND} -E tar "cfv" "game.love" --format=zip .
-        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb" "game.love" > "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.wuhb"
+        COMMAND ${CMAKE_COMMAND} -E cat "${CMAKE_CURRENT_BINARY_DIR}/lovepotion.wuhb" "game.love" >> "${CMAKE_CURRENT_BINARY_DIR}/lovepotion_test.wuhb"
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)

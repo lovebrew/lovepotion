@@ -9,8 +9,6 @@
 
 #include <proc_ui/procui.h>
 
-#include <whb/gfx.h>
-
 #include <padscore/kpad.h>
 #include <padscore/wpad.h>
 #include <sysapp/launch.h>
@@ -28,8 +26,6 @@ template<>
 void love::PreInit<Console::CAFE>()
 {
     ProcUIInit(OSSavesDone_ReadyToRelease);
-
-    WHBGfxInit();
 
     VPADInit();
 
@@ -109,8 +105,6 @@ void love::OnExit<Console::CAFE>()
     KPADShutdown();
 
     VPADShutdown();
-
-    WHBGfxShutdown();
 
     ProcUIShutdown();
 }
