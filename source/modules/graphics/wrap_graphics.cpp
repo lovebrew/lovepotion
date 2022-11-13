@@ -62,12 +62,11 @@ int Wrap_Graphics::Clear(lua_State* L)
                 lua_rawgeti(L, (index + 1), colorIndex);
 
             OptionalColor newColor {};
-            auto& value = newColor.value();
 
-            value.r = luaL_checknumber(L, -4);
-            value.g = luaL_checknumber(L, -3);
-            value.b = luaL_checknumber(L, -2);
-            value.a = luaL_optnumber(L, -1, 1.0f);
+            newColor.value().r = luaL_checknumber(L, 1);
+            newColor.value().g = luaL_checknumber(L, 2);
+            newColor.value().b = luaL_checknumber(L, 3);
+            newColor.value().a = luaL_optnumber(L, 4, 1.0);
 
             colors.push_back(newColor);
 
@@ -78,12 +77,10 @@ int Wrap_Graphics::Clear(lua_State* L)
         start = 2;
     else if (argtype != LUA_TNONE && argtype != LUA_TNIL)
     {
-        auto& value = color.value();
-
-        value.r = luaL_checknumber(L, 1);
-        value.g = luaL_checknumber(L, 2);
-        value.b = luaL_checknumber(L, 3);
-        value.a = luaL_optnumber(L, 4, 1.0f);
+        color.value().r = luaL_checknumber(L, 1);
+        color.value().g = luaL_checknumber(L, 2);
+        color.value().b = luaL_checknumber(L, 3);
+        color.value().a = luaL_optnumber(L, 4, 1.0);
 
         start = 5;
     }

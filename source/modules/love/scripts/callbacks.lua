@@ -486,7 +486,7 @@ function love.errorhandler(message)
             local filename = saveError(fullErrorText)
             -- pretty_fixed = pretty_fixed .. "Saved to " .. filename .. "!\n"
 
-            -- draw()
+            draw()
             saved = true
         end
     end

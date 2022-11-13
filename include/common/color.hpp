@@ -95,6 +95,6 @@ struct Color
     /* https://github.com/devkitPro/citro2d/blob/master/include/c2d/base.h#L86*/
     static uint8_t to_uint8_t(const float& in)
     {
-        return (uint8_t)(255.0f * (std::clamp(in, 0.0f, 1.0f) + 0.5f));
+        return (uint8_t)(255.0f * std::clamp(in, 0.0f, 1.0f) + 0.5f);
     }
 };

@@ -489,7 +489,11 @@ int Wrap_Filesystem::NewFileData(lua_State* L)
 {
     if (lua_gettop(L) == 1)
     {
-        FileData* data = Wrap_Filesystem::GetFileData(L, 1, true);
+        int numResults = 0;
+        FileData* data = Wrap_Filesystem::GetFileData(L, 1, true, numResults);
+
+        if (data == nullptr)
+            return numResults;
 
         luax::PushType(L, data);
         data->Release();
@@ -714,7 +718,7 @@ int Wrap_Filesystem::Lines(lua_State* L)
 
 /* helper functions */
 
-FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index, bool ioError)
+FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index, bool ioError, int& numResults)
 {
     FileData* data = nullptr;
     File* file     = nullptr;
@@ -729,7 +733,7 @@ FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index, bool ioError)
 
     if (!data && !file)
     {
-        luaL_argerror(L, index, "filename, File, or FileData expected.");
+        numResults = luaL_argerror(L, index, "filename, File, or FileData expected.");
         return nullptr;
     }
     else if (file && !data)
@@ -743,9 +747,9 @@ FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index, bool ioError)
             file->Release();
 
             if (ioError)
-                luax::IOError(L, "%s", e.what());
+                numResults = luax::IOError(L, "%s", e.what());
             else
-                luaL_error(L, "%s", e.what());
+                numResults = luaL_error(L, "%s", e.what());
 
             return nullptr;
         }
@@ -753,6 +757,12 @@ FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index, bool ioError)
     }
 
     return data;
+}
+
+FileData* Wrap_Filesystem::GetFileData(lua_State* L, int index)
+{
+    int numResults = 0;
+    return Wrap_Filesystem::GetFileData(L, index, false, numResults);
 }
 
 Data* Wrap_Filesystem::GetData(lua_State* L, int index)

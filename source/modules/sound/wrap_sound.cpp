@@ -41,7 +41,7 @@ int Wrap_Sound::NewDecoder(lua_State* L)
         else
         {
             luax::CatchException(L, [&]() {
-                StrongReference<FileData> data(Wrap_Filesystem::GetFileData(L, 1, true),
+                StrongReference<FileData> data(Wrap_Filesystem::GetFileData(L, 1),
                                                Acquire::NORETAIN);
 
                 stream = new DataStream(data);

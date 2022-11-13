@@ -43,7 +43,7 @@ static constexpr luaL_Reg functions[] =
 {
     { "clone",        Wrap_FileData::Clone        },
     { "getExtension", Wrap_FileData::GetExtension },
-    { "getFilename",  Wrap_FileData::GetFilename  },
+    { "getFilename",  Wrap_FileData::GetFilename  }
 };
 // clang-format on
 

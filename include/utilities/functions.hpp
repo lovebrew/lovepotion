@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <filesystem>
 
 namespace love
 {
@@ -13,5 +14,10 @@ namespace love
 
         const auto lambda = [](const auto& v) { return v == nullptr; };
         return std::ranges::all_of(range.begin(), range.end(), lambda);
+    }
+
+    inline bool has_file_extension(const std::filesystem::path& path)
+    {
+        return path.has_extension();
     }
 } // namespace love

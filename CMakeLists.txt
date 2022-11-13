@@ -401,6 +401,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/filesystem/filesystem.cpp
     source/modules/filesystem/physfs/filesystem.cpp
     source/modules/filesystem/wrap_filesystem.cpp
+    source/modules/font/wrap_fontmodule.cpp
     source/modules/graphics/wrap_graphics.cpp
     source/modules/joystick/wrap_joystickmodule.cpp
     source/modules/keyboard/wrap_keyboard.cpp
@@ -431,7 +432,10 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/file/file.cpp
     source/objects/file/physfs/file.cpp
     source/objects/file/wrap_file.cpp
+    source/objects/glyphdata/glyphdata.cpp
+    source/objects/glyphdata/wrap_glyphdata.cpp
     source/objects/joystick/wrap_joystick.cpp
+    source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
     source/objects/thread/luathread.cpp
     source/objects/thread/wrap_luathread.cpp

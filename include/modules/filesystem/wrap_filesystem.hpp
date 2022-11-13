@@ -89,7 +89,9 @@ namespace Wrap_Filesystem
 
     love::File* GetFile(lua_State* L, int index);
 
-    love::FileData* GetFileData(lua_State* L, int index, bool ioError);
+    love::FileData* GetFileData(lua_State* L, int index, bool ioError, int& numResults);
+
+    love::FileData* GetFileData(lua_State* L, int index);
 
     bool CanGetData(lua_State* L, int index);
 
