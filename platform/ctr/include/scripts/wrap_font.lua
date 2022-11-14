@@ -11,6 +11,7 @@ local utf8 = require("utf8")
 -- @return width      The maximum width of the wrapped text.
 -- @return wrapped    A sequence containing each line of text that was wrapped.
 -- https://love2d.org/wiki/Font:getWrap
+-- https://github.com/love2d/love/blob/main/src/modules/graphics/Font.cpp#L751-L904
 function Font:getWrap(text, wrap_limit)
     local lines = {}
     local line_widths = {}
