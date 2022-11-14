@@ -67,8 +67,14 @@ namespace love
             return this->dpiScale;
         }
 
+        DataType GetDataType() const
+        {
+            return this->dataType;
+        }
+
       protected:
         FontMetrics metrics;
         float dpiScale;
+        DataType dataType;
     };
 } // namespace love

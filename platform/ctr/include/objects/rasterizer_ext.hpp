@@ -46,8 +46,6 @@ namespace love
 
         float GetKerning(uint32_t left, uint32_t right) const;
 
-        DataType GetDataType() const;
-
         static bool Accepts(Data* data);
 
         int Scale(uint8_t in);

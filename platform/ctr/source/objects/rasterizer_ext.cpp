@@ -2,7 +2,7 @@
 
 using namespace love;
 
-Rasterizer<Console::CTR>::Rasterizer(Data* data, int size) : data(data), glyphCount(-1)
+Rasterizer<Console::CTR>::Rasterizer(Data* data, int size) : glyphCount(-1), data(data)
 {
     this->font = C2D_FontLoadFromMem(data->GetData(), data->GetSize());
 
@@ -40,6 +40,8 @@ void Rasterizer<Console::CTR>::InitMetrics(int size)
     this->metrics.ascent  = this->Scale(fontInfo->ascent);
     this->metrics.descent = this->Scale((fontInfo->height - fontInfo->ascent));
     this->metrics.height  = this->Scale(fontInfo->height);
+
+    this->dataType = DATA_BCFNT;
 }
 
 GlyphData* Rasterizer<Console::CTR>::GetGlyphData(const std::string& text) const
