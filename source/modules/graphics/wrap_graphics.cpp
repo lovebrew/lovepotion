@@ -249,6 +249,84 @@ int Wrap_Graphics::Present(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::Print(lua_State* L)
+{
+    Font<>::ColoredStrings strings {};
+    Wrap_Font::CheckColoredString(L, 1, strings);
+
+    if (luax::IsType(L, 2, Font<>::type))
+    {
+        auto* font = Wrap_Font::CheckFont(L, 2);
+
+        Wrap_Graphics::CheckStandardTransform(L, 3, [&](const Matrix4<Console::Which>& matrix) {
+            luax::CatchException(L, [&]() { instance()->Print(strings, font, matrix); });
+        });
+    }
+    else
+    {
+        Wrap_Graphics::CheckStandardTransform(L, 2, [&](const Matrix4<Console::Which>& matrix) {
+            luax::CatchException(L, [&]() { instance()->Print(strings, matrix); });
+        });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::Printf(lua_State* L)
+{
+    Font<>::ColoredStrings strings {};
+    Wrap_Font::CheckColoredString(L, 1, strings);
+
+    Font<Console::Which>* font = nullptr;
+    int start                  = 2;
+
+    if (luax::IsType(L, start, Font<>::type))
+    {
+        font = Wrap_Font::CheckFont(L, start);
+        start++;
+    }
+
+    Matrix4<Console::Which> matrix;
+
+    int formatIndex = start + 2;
+
+    /* todo check for Transform objects */
+    // if (luax::IsType(L, start, love::Transform<love::Console::Which>::type))
+    // {
+    //     love::Transform<Console::Which>* tf = luax::ToType<Transform<Console::Which>>(L,
+    //     start); func(tf->getMatrix());
+    // }
+    // else
+    {
+        float x  = luaL_optnumber(L, start + 0, 0.0);
+        float y  = luaL_optnumber(L, start + 1, 0.0);
+        float a  = luaL_optnumber(L, start + 4, 0.0);
+        float sx = luaL_optnumber(L, start + 5, 1.0);
+        float sy = luaL_optnumber(L, start + 6, sx);
+        float ox = luaL_optnumber(L, start + 7, 0.0);
+        float oy = luaL_optnumber(L, start + 8, 0.0);
+        float kx = luaL_optnumber(L, start + 9, 0.0);
+        float ky = luaL_optnumber(L, start + 10, 0.0);
+
+        matrix = Matrix4<Console::Which>(x, y, a, sx, sy, ox, oy, kx, ky);
+    }
+
+    float wrap            = luaL_checknumber(L, formatIndex);
+    const char* alignment = luaL_checkstring(L, formatIndex + 1);
+
+    std::optional<Font<>::AlignMode> align;
+
+    if (!(align = Font<>::alignModes.Find(alignment)))
+        return luax::EnumError(L, "alignment", Font<>::alignModes.GetNames(), alignment);
+
+    if (font != nullptr)
+        luax::CatchException(L, [&]() { instance()->Printf(strings, font, wrap, *align, matrix); });
+    else
+        luax::CatchException(L, [&]() { instance()->Printf(strings, wrap, *align, matrix); });
+
+    return 0;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -257,6 +335,8 @@ static constexpr luaL_Reg functions[] =
     { "isCreated",          Wrap_Graphics::IsCreated          },
     { "origin",             Wrap_Graphics::Origin             },
     { "present",            Wrap_Graphics::Present            },
+    { "print",              Wrap_Graphics::Print              },
+    { "printf",             Wrap_Graphics::Printf             },
     { "setActiveScreen",    Wrap_Graphics::SetActiveScreen    },
     { "setBackgroundColor", Wrap_Graphics::SetBackgroundColor },
     { "setColor",           Wrap_Graphics::SetColor           },
@@ -269,7 +349,7 @@ static constexpr luaL_Reg functions[] =
 static constexpr lua_CFunction types[] =
 {
     Wrap_Font::Register,
-    0
+    nullptr
 };
 // clang-format on
 

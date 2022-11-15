@@ -4,8 +4,11 @@
 #include <common/console.hpp>
 #include <common/math.hpp>
 #include <common/module.hpp>
+#include <common/strongreference.hpp>
 
 #include <common/matrix_ext.hpp>
+
+#include <objects/font/font.tcc>
 
 #include <utilities/driver/renderer/renderer.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
@@ -69,6 +72,8 @@ namespace love
             RenderState::BlendState blendState = RenderState::ComputeBlendState(
                 RenderState::BLEND_ALPHA, RenderState::BLENDALPHA_MULTIPLY);
 
+            StrongReference<Font<Console::Which>> font;
+
             struct
             {
                 float width     = 1.0f;
@@ -126,6 +131,9 @@ namespace love
             created(false),
             active(true)
         {
+            this->transformStack.reserve(16);
+            this->transformStack.push_back(Matrix4<Console::Which>());
+
             this->pixelScaleStack.reserve(16);
             this->pixelScaleStack.push_back(1.0);
 
@@ -148,12 +156,21 @@ namespace love
             return "love.graphics";
         }
 
+        void SetFont(Font<Console::Which>* font)
+        {
+            this->states.back().font = font;
+        }
+
+        Font<Console::CTR>* GetFont()
+        {
+            return this->states.back().font;
+        }
+
         void Reset()
         {
             DisplayState state {};
             this->RestoreState(state);
-
-            /* todo: origin */
+            this->Origin();
         }
 
         bool IsCreated() const
@@ -238,7 +255,7 @@ namespace love
             this->SetDefaultSamplerState(state.defaultSamplerState);
         }
 
-        void RestoreStateChecked(const DisplayState& state);
+        // void RestoreStateChecked(const DisplayStateBase& state);
 
         void SetActiveScreen(Screen screen)
         {
@@ -401,5 +418,7 @@ namespace love
 
         bool created;
         bool active;
+
+        StrongReference<Font<Console::Which>> defaultFont;
     };
 } // namespace love

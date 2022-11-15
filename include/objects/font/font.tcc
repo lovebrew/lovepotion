@@ -11,8 +11,6 @@
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 
-#include <modules/graphics/graphics.tcc>
-
 #include <objects/rasterizer/rasterizer.tcc>
 
 #include <vector>
@@ -38,6 +36,8 @@ namespace love
             std::string string;
             Color color;
         };
+
+        using ColoredStrings = std::vector<ColoredString>;
 
         struct IndexedColor
         {

@@ -59,8 +59,8 @@ extern "C"
         tryInit(std::bind_front(frdInit), love::ABORT_FRD);
 
         /* wireless */
-        socBuffer.reset((uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
-        tryInit(std::bind_front(socInit, socBuffer.get(), SOC_BUFFER_SIZE), love::ABORT_SOC);
+        // socBuffer.reset((uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
+        // tryInit(std::bind_front(socInit, socBuffer.get(), SOC_BUFFER_SIZE), love::ABORT_SOC);
 
         /* theora video conversion */
         tryInit(std::bind_front(y2rInit), love::ABORT_Y2R);

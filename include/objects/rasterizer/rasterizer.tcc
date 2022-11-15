@@ -11,7 +11,7 @@
 
 namespace love
 {
-    using Utf8Iterator = utf8::iterator<std::string::const_iterator>;
+    using Utf8Iterator = utf8::iterator<std::string_view::const_iterator>;
 
     template<Console::Platform T = Console::ALL>
     class Rasterizer : public Object

@@ -443,7 +443,7 @@ function love.errorhandler(message)
     -- local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth(screen) * 0.75)
 
     -- tell the user about how to quit the error handler
-    -- pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
+    pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
 
     if not love.window.isOpen() then
         return
@@ -466,11 +466,11 @@ function love.errorhandler(message)
                 love.graphics.clear(0.35, 0.62, 0.86)
 
                 if screen ~= "bottom" then
-                --    local line_num = 1
-                --    for line in pretty_fixed:gmatch("(.-)\n") do
-                --        -- love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
-                --        line_num = line_num + 1
-                --    end
+                    local line_num = 1
+                    for line in pretty_fixed:gmatch("(.-)\n") do
+                        -- love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
+                        line_num = line_num + 1
+                    end
                 end
             end
 

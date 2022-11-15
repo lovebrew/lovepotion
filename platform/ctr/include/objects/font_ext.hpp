@@ -2,6 +2,7 @@
 
 #include <objects/font/font.tcc>
 
+#include <modules/graphics_ext.hpp>
 #include <objects/rasterizer_ext.hpp>
 
 #include <citro2d.h>
@@ -18,11 +19,11 @@ namespace love
 
         virtual ~Font();
 
-        int GetWidth(const std::string& text);
+        int GetWidth(const std::string_view& text);
 
         int GetWidth(uint32_t glyph);
 
-        bool HasGlyphs(const std::string& text) const;
+        bool HasGlyphs(const std::string_view& text) const;
 
         bool HasGlyph(uint32_t glyph) const;
 
@@ -35,10 +36,10 @@ namespace love
         void SetFallbacks(const std::vector<Font<Console::CTR>*>& fallbacks)
         {}
 
-        void Print(Graphics<Console::CTR>& graphics, std::vector<ColoredString>& text,
+        void Print(Graphics<Console::CTR>& graphics, const ColoredStrings& text,
                    const Matrix4<Console::CTR>& localTransform, const Color& color);
 
-        void Printf(Graphics<Console::CTR>& graphics, std::vector<ColoredString>& text, float wrap,
+        void Printf(Graphics<Console::CTR>& graphics, const ColoredStrings& text, float wrap,
                     AlignMode alignment, const Matrix4<Console::CTR>& localTransform,
                     const Color& color);
 

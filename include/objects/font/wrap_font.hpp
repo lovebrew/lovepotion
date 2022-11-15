@@ -8,6 +8,9 @@ namespace Wrap_Font
 {
     love::Font<love::Console::Which>* CheckFont(lua_State* L, int index);
 
+    void CheckColoredString(lua_State* L, int index,
+                            love::Font<love::Console::Which>::ColoredStrings& strings);
+
     int GetWidth(lua_State* L);
 
     int GetHeight(lua_State* L);

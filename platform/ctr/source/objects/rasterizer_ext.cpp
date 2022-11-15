@@ -93,7 +93,7 @@ int Rasterizer<Console::CTR>::GetGlyphCount() const
     return this->glyphCount = count;
 }
 
-bool Rasterizer<Console::CTR>::HasGlyphs(const std::string& text) const
+bool Rasterizer<Console::CTR>::HasGlyphs(const std::string_view& text) const
 {
     if (text.size() == 0)
         return false;

@@ -2,8 +2,35 @@
 
 #include <common/luax.hpp>
 
+#include <common/matrix_ext.hpp>
+
 namespace Wrap_Graphics
 {
+    template<typename T>
+    static void CheckStandardTransform(lua_State* L, int index, const T& func)
+    {
+        /* todo: Transform objects */
+
+        // if (luax::IsType(L, index, love::Transform<love::Console::Which>::type))
+        // {
+        //     love::Transform<Console::Which>* tf = luax::ToType<Transform<Console::Which>>(L,
+        //     index); func(tf->getMatrix());
+        // }
+        // else
+        {
+            float x  = luaL_optnumber(L, index + 0, 0.0);
+            float y  = luaL_optnumber(L, index + 1, 0.0);
+            float a  = luaL_optnumber(L, index + 2, 0.0);
+            float sx = luaL_optnumber(L, index + 3, 1.0);
+            float sy = luaL_optnumber(L, index + 4, sx);
+            float ox = luaL_optnumber(L, index + 5, 0.0);
+            float oy = luaL_optnumber(L, index + 6, 0.0);
+            float kx = luaL_optnumber(L, index + 7, 0.0);
+            float ky = luaL_optnumber(L, index + 8, 0.0);
+            func(love::Matrix4<love::Console::Which>(x, y, a, sx, sy, ox, oy, kx, ky));
+        }
+    }
+
     int Reset(lua_State* L);
 
     int Clear(lua_State* L);
@@ -91,6 +118,10 @@ namespace Wrap_Graphics
     int GetScreens(lua_State* L);
 
     int Get3D(lua_State* L);
+
+    int Print(lua_State* L);
+
+    int Printf(lua_State* L);
 
     int Register(lua_State* L);
 

@@ -43,7 +43,7 @@ namespace love
 
         bool HasGlyph(uint32_t glyph) const;
 
-        bool HasGlyphs(const std::string& text) const;
+        bool HasGlyphs(const std::string_view& text) const;
 
         float GetKerning(uint32_t left, uint32_t right) const;
 

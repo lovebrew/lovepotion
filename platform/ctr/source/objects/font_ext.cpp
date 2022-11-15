@@ -33,20 +33,20 @@ Font<Console::CTR>::~Font()
     C2D_TextBufDelete(this->buffer);
 }
 
-int Font<Console::CTR>::GetWidth(const std::string& text)
+int Font<Console::CTR>::GetWidth(const std::string_view& text)
 {
     if (text.size() == 0)
         return 0;
 
     int maxWidth = 0;
 
-    long position = 0;
-    int start     = 0;
+    size_t position = 0;
+    int start       = 0;
 
     while ((position = love::get_line(text, start)) != std::string::npos)
     {
-        int width        = 0;
-        std::string line = text.substr(start, (position - start));
+        int width             = 0;
+        std::string_view line = text.substr(start, (position - start));
 
         try
         {
@@ -100,7 +100,7 @@ bool Font<Console::CTR>::HasGlyph(uint32_t glyph) const
     return false;
 }
 
-bool Font<Console::CTR>::HasGlyphs(const std::string& text) const
+bool Font<Console::CTR>::HasGlyphs(const std::string_view& text) const
 {
     if (text.size() == 0)
         return false;
@@ -131,8 +131,28 @@ static std::string stringify(const std::string& string, const Font<>::ColoredStr
     return string + piece.string;
 }
 
-void Font<Console::CTR>::Print(Graphics<Console::CTR>& graphics,
-                               std::vector<Font<>::ColoredString>& string,
+static void setMultiColors(const std::string& text, const Font<>::ColoredStrings& strings,
+                           uint32_t* colors, uint32_t& size)
+{
+    const size_t limit = strings.size() * 2;
+    std::fill_n(colors, limit, uint32_t {});
+
+    size_t position = 0;
+
+    for (uint32_t index = 0; index < limit; index += 2)
+    {
+        const auto& value = strings[index / 2];
+
+        colors[index + 0] = text.find(value.string, position);
+        colors[index + 1] = value.color.rgba();
+
+        position += colors[index + 0];
+    }
+
+    size = limit;
+}
+
+void Font<Console::CTR>::Print(Graphics<Console::CTR>& graphics, const ColoredStrings& string,
                                const Matrix4<Console::CTR>& localTransform, const Color& color)
 {
     C2D_Text text {};
@@ -152,22 +172,17 @@ void Font<Console::CTR>::Print(Graphics<Console::CTR>& graphics,
     float scale    = this->rasterizers[0]->GetScale();
     uint32_t flags = C2D_MultiColor;
 
-    const size_t limit = string.size() * 2;
     uint32_t colors[string.size() * 2] {};
+    uint32_t size = 0;
 
-    for (uint32_t index = 0; index < limit; index += 2)
-    {
-        const auto& value = string[index / 2];
+    setMultiColors(result, string, colors, size);
 
-        colors[index + 0] = result.find(value.string);
-        colors[index + 1] = value.color.rgba();
-    }
-
-    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, colors, limit);
+    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, colors, size);
+    C2D_TextBufClear(this->buffer);
 }
 
-void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics,
-                                std::vector<ColoredString>& string, float wrap, AlignMode alignment,
+void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics, const ColoredStrings& string,
+                                float wrap, AlignMode alignment,
                                 const Matrix4<Console::CTR>& localTransform, const Color& color)
 {
     C2D_Text text {};
@@ -178,8 +193,17 @@ void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics,
         mode = C2D_AlignLeft;
 
     float offset = 0.0f;
-    if (alignment == ALIGN_CENTER)
-        offset = wrap / 2.0f;
+    switch (alignment)
+    {
+        case ALIGN_RIGHT:
+            offset = floorf(wrap - this->GetWidth(result));
+            break;
+        case ALIGN_CENTER:
+            offset = wrap / 2.0f;
+            break;
+        default:
+            break;
+    }
 
     const auto font     = this->rasterizers[0]->GetFont();
     const auto* success = C2D_TextFontParse(&text, font, this->buffer, result.c_str());
@@ -193,19 +217,14 @@ void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics,
     float scale    = this->rasterizers[0]->GetScale();
     uint32_t flags = C2D_MultiColor | *mode;
 
-    const size_t limit = string.size() * 2;
     uint32_t colors[string.size() * 2] {};
+    uint32_t size = 0;
 
-    for (uint32_t index = 0; index < limit; index += 2)
-    {
-        const auto& value = string[index / 2];
+    setMultiColors(result, string, colors, size);
 
-        colors[index + 0] = result.find(value.string);
-        colors[index + 1] = value.color.rgba();
-    }
-
-    C2D_DrawText(&text, flags, offset, 0, graphics.GetCurrentDepth(), scale, scale, wrap, colors,
-                 limit);
+    C2D_DrawText(&text, flags, offset, 0, graphics.GetCurrentDepth(), scale, scale, colors, size,
+                 wrap);
+    C2D_TextBufClear(this->buffer);
 }
 
 float Font<Console::CTR>::GetKerning(const std::string&, const std::string&) const
