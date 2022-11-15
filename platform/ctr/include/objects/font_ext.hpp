@@ -2,6 +2,8 @@
 
 #include <objects/font/font.tcc>
 
+#include <objects/rasterizer_ext.hpp>
+
 #include <citro2d.h>
 
 namespace love
@@ -40,6 +42,33 @@ namespace love
                     AlignMode alignment, const Matrix4<Console::CTR>& localTransform,
                     const Color& color);
 
+        int GetAscent() const
+        {
+            return std::floor(this->rasterizers[0]->GetAscent() / this->dpiScale + 0.5f);
+        }
+
+        int GetDescent() const
+        {
+            return std::floor(this->rasterizers[0]->GetDescent() / this->dpiScale + 0.5f);
+        }
+
+        float GetHeight() const
+        {
+            return this->height;
+        }
+
+        float GetBaseline() const
+        {
+            float ascent = this->GetAscent();
+
+            if (ascent != 0.0f)
+                return ascent;
+            else if (this->rasterizers[0]->GetDataType() == Rasterizer<>::DATA_TRUETYPE)
+                return std::floor(this->GetHeight() / 1.25f + 0.5f);
+
+            return 0.0f;
+        }
+
         // clang-format off
         static constexpr BidirectionalMap textWrapModes = {
           ALIGN_LEFT,    C2D_AlignLeft,
@@ -52,5 +81,6 @@ namespace love
       private:
         C2D_TextBuf buffer;
         std::unordered_map<uint32_t, float> glyphWidths;
+        std::vector<StrongRasterizer> rasterizers;
     };
 } // namespace love

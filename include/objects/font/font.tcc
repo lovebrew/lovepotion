@@ -91,34 +91,6 @@ namespace love
             return this->samplerState;
         }
 
-        int GetAscent() const
-        {
-            return std::floor(this->rasterizers[0]->GetAscent() / this->dpiScale + 0.5f);
-        }
-
-        int GetDescent() const
-        {
-            return std::floor(this->rasterizers[0]->GetDescent() / this->dpiScale + 0.5f);
-        }
-
-        float GetHeight() const
-        {
-            return this->height;
-        }
-
-        float GetBaseline() const
-        {
-            float ascent = this->GetAscent();
-
-            if (ascent != 0.0f)
-                return ascent;
-            else if (this->rasterizers[0]->GetDataType() ==
-                     Rasterizer<Console::Which>::DATA_TRUETYPE)
-                return std::floor(this->GetHeight() / 1.25f + 0.5f);
-
-            return 0.0f;
-        }
-
         float GetDPIScale() const
         {
             return this->dpiScale;
@@ -139,7 +111,5 @@ namespace love
         SamplerState samplerState;
         float dpiScale;
         bool useSpacesAsTab;
-
-        std::vector<StrongRasterizer> rasterizers;
     };
 } // namespace love

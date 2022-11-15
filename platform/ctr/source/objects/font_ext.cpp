@@ -1,7 +1,6 @@
 #include <objects/font_ext.hpp>
 
 #include <modules/graphics_ext.hpp>
-#include <objects/rasterizer_ext.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
 

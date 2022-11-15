@@ -77,7 +77,7 @@ int Wrap_Font::GetHeight(lua_State* L)
 
     lua_pushnumber(L, self->GetHeight());
 
-    return;
+    return 1;
 }
 
 /* todo handle getWrap for Switch and Wii U */

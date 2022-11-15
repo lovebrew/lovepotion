@@ -21,7 +21,7 @@ namespace love
         return path.has_extension();
     }
 
-    long get_line(const std::string_view& string, int start)
+    inline long get_line(const std::string_view& string, int start)
     {
         if (string.empty())
             return std::string::npos;
