@@ -432,6 +432,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/file/file.cpp
     source/objects/file/physfs/file.cpp
     source/objects/file/wrap_file.cpp
+    source/objects/font/wrap_font.cpp
     source/objects/glyphdata/glyphdata.cpp
     source/objects/glyphdata/wrap_glyphdata.cpp
     source/objects/joystick/wrap_joystick.cpp

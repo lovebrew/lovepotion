@@ -245,6 +245,11 @@ namespace luax
         return std::string(string, length);
     }
 
+    void GetTypeMetaTable(lua_State* L, const love::Type& type);
+
+    void WrapObject(lua_State* L, const char* filedata, size_t length, const char* filename,
+                    const love::Type& type);
+
     inline void PushBoolean(lua_State* L, bool boolean)
     {
         lua_pushboolean(L, boolean ? 1 : 0);

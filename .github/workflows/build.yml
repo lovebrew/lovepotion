@@ -22,9 +22,6 @@ jobs:
       - name: Configure
         run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build
 
-      - name: Patch luasocket
-        run: patch -d build/luasocket/libluasocket -N -i platform/ctr/libraries/luasocket.patch
-
       - name: Build
         run: make -C build
 
@@ -50,9 +47,6 @@ jobs:
 
       - name: Configure
         run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build
-
-      - name: Patch luasocket
-        run: patch -d build/luasocket/libluasocket -N -i platform/hac/libraries/luasocket.patch
 
       - name: Build
         run: make -C build
@@ -80,9 +74,6 @@ jobs:
       - name: Configure
         run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build
 
-      - name: Patch luasocket
-        run: patch -d build/luasocket/libluasocket -N -i platform/cafe/libraries/luasocket.patch
-
       - name: Build
         run: make -C build
 
@@ -108,9 +99,6 @@ jobs:
 
       - name: Configure
         run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
-
-      - name: Patch luasocket
-        run: patch -d build/luasocket/libluasocket -N -i platform/ctr/libraries/luasocket.patch
 
       - name: Build
         run: make -C build
@@ -140,9 +128,6 @@ jobs:
       - name: Configure
         run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
 
-      - name: Patch luasocket
-        run: patch -d build/luasocket/libluasocket -N -i platform/hac/libraries/luasocket.patch
-
       - name: Build
         run: make -C build
 
@@ -170,9 +155,6 @@ jobs:
 
       - name: Configure
         run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
-
-      - name: Patch luasocket
-        run: patch -d build/luasocket/libluasocket -N -i platform/cafe/libraries/luasocket.patch
 
       - name: Build
         run: make -C build

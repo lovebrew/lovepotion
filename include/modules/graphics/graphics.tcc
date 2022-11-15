@@ -5,6 +5,8 @@
 #include <common/math.hpp>
 #include <common/module.hpp>
 
+#include <common/matrix_ext.hpp>
+
 #include <utilities/driver/renderer/renderer.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -164,9 +166,50 @@ namespace love
             return this->active;
         }
 
+        void PushTransform()
+        {
+            this->transformStack.push_back(this->transformStack.back());
+        }
+
+        void PushIdentityTransform()
+        {
+            this->transformStack.push_back(Matrix4<Console::Which>());
+        }
+
+        void PopTransform()
+        {
+            this->transformStack.pop_back();
+        }
+
+        const Matrix4<Console::Which>& GetTransform() const
+        {
+            return this->transformStack.back();
+        }
+
+        void Rotate(float r)
+        {
+            this->transformStack.back().Rotate(r);
+        }
+
+        void Scale(float x, float y)
+        {
+            this->transformStack.back().Scale(x, y);
+            this->pixelScaleStack.back() *= (fabs(x) + fabs(y)) / 2.0;
+        }
+
+        void Translate(float x, float y)
+        {
+            this->transformStack.back().Translate(x, y);
+        }
+
+        void Shear(float kx, float ky)
+        {
+            this->transformStack.back().Shear(kx, ky);
+        }
+
         void Origin()
         {
-            /* todo: transform stack - set identity */
+            this->transformStack.back().SetIdentity();
             this->pixelScaleStack.back() = 1;
         }
 
@@ -345,6 +388,7 @@ namespace love
 
       protected:
         std::vector<double> pixelScaleStack;
+        std::vector<Matrix4<Console::Which>> transformStack;
 
         std::vector<DisplayState> states;
         std::vector<StackType> stackTypeStack;

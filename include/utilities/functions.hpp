@@ -20,4 +20,16 @@ namespace love
     {
         return path.has_extension();
     }
+
+    long get_line(const std::string_view& string, int start)
+    {
+        if (string.empty())
+            return std::string::npos;
+
+        size_t position = 0;
+        if ((position = string.find("\n", start)) != std::string::npos)
+            return position;
+
+        return std::string::npos;
+    }
 } // namespace love

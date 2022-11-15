@@ -2,6 +2,7 @@
 
 #include <modules/graphics_ext.hpp>
 
+#include <objects/font/wrap_font.hpp>
 #include <utilities/driver/renderer_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::Which>;
@@ -267,6 +268,7 @@ static constexpr luaL_Reg functions[] =
 
 static constexpr lua_CFunction types[] =
 {
+    Wrap_Font::Register,
     0
 };
 // clang-format on

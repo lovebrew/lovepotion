@@ -11,6 +11,8 @@
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 
+#include <modules/graphics/graphics.tcc>
+
 #include <objects/rasterizer/rasterizer.tcc>
 
 #include <vector>
@@ -55,8 +57,17 @@ namespace love
             int height;
         };
 
+        static inline int fontCount = 0;
+
+        Font() : lineHeight(1.0f), dpiScale(1.0f)
+        {
+            Font::fontCount++;
+        }
+
         virtual ~Font()
-        {}
+        {
+            Font::fontCount--;
+        }
 
         void SetLineHeight(float height)
         {
@@ -90,13 +101,19 @@ namespace love
             return std::floor(this->rasterizers[0]->GetDescent() / this->dpiScale + 0.5f);
         }
 
+        float GetHeight() const
+        {
+            return this->height;
+        }
+
         float GetBaseline() const
         {
             float ascent = this->GetAscent();
 
             if (ascent != 0.0f)
                 return ascent;
-            else if (this->rasterizers[0]->GetDataType() == Rasterizer<>::DATA_TRUETYPE)
+            else if (this->rasterizers[0]->GetDataType() ==
+                     Rasterizer<Console::Which>::DATA_TRUETYPE)
                 return std::floor(this->GetHeight() / 1.25f + 0.5f);
 
             return 0.0f;
@@ -113,10 +130,11 @@ namespace love
             "center",  ALIGN_CENTER,
             "right",   ALIGN_RIGHT,
             "justify", ALIGN_JUSTIFY
-        }
+        };
         // clang-format on
       protected:
         float lineHeight;
+        float height;
 
         SamplerState samplerState;
         float dpiScale;

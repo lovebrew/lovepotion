@@ -536,6 +536,29 @@ int luax::TypeOf(lua_State* L)
     return 1;
 }
 
+void luax::GetTypeMetaTable(lua_State* L, const love::Type& type)
+{
+    const auto* name = type.GetName();
+    lua_getfield(L, LUA_REGISTRYINDEX, name);
+}
+
+void luax::WrapObject(lua_State* L, const char* filedata, size_t length, const char* filename,
+                      const love::Type& type)
+{
+    luax::GetTypeMetaTable(L, type);
+
+    if (lua_istable(L, -1))
+    {
+        luaL_loadbuffer(L, filedata, length, filename);
+        lua_pushvalue(L, -2);
+        lua_pushnil(L);
+
+        lua_call(L, 2, 0);
+    }
+
+    lua_pop(L, 1);
+}
+
 void luax::PushType(lua_State* L, love::Type& type, Object* object)
 {
     if (object == nullptr)
