@@ -146,7 +146,7 @@ static void setMultiColors(const std::string& text, const Font<>::ColoredStrings
         colors[index + 0] = text.find(value.string, position);
         colors[index + 1] = value.color.rgba();
 
-        position += colors[index + 0];
+        position += value.string.length();
     }
 
     size = limit;
