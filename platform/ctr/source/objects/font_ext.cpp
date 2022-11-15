@@ -192,19 +192,6 @@ void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics, const ColoredS
     if (!(mode = Font::textWrapModes.Find(alignment)))
         mode = C2D_AlignLeft;
 
-    float offset = 0.0f;
-    switch (alignment)
-    {
-        case ALIGN_RIGHT:
-            offset = floorf(wrap - this->GetWidth(result));
-            break;
-        case ALIGN_CENTER:
-            offset = wrap / 2.0f;
-            break;
-        default:
-            break;
-    }
-
     const auto font     = this->rasterizers[0]->GetFont();
     const auto* success = C2D_TextFontParse(&text, font, this->buffer, result.c_str());
 
@@ -215,15 +202,14 @@ void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics, const ColoredS
     C2D_ViewRestore(&transform.GetElements());
 
     float scale    = this->rasterizers[0]->GetScale();
-    uint32_t flags = C2D_MultiColor | *mode;
+    uint32_t flags = C2D_MultiColor | C2D_WordWrap | *mode;
 
     uint32_t colors[string.size() * 2] {};
     uint32_t size = 0;
 
     setMultiColors(result, string, colors, size);
 
-    C2D_DrawText(&text, flags, offset, 0, graphics.GetCurrentDepth(), scale, scale, colors, size,
-                 wrap);
+    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, colors, size, wrap);
     C2D_TextBufClear(this->buffer);
 }
 
