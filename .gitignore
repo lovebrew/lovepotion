@@ -7,6 +7,9 @@ distribute
 *.log
 *.love
 test
+*.code-workspace
+
+*.exe
 
 *.elf
 
@@ -22,5 +25,6 @@ test
 
 *.rpx
 *.wuhb
+*.gsh
 
 *.zip

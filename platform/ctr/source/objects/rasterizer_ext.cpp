@@ -44,7 +44,7 @@ void Rasterizer<Console::CTR>::InitMetrics(int size)
     this->dataType = DATA_BCFNT;
 }
 
-GlyphData* Rasterizer<Console::CTR>::GetGlyphData(const std::string& text) const
+GlyphData* Rasterizer<Console::CTR>::GetGlyphData(const std::string_view& text) const
 {
     uint32_t codepoint = 0;
 

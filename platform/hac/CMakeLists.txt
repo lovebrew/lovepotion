@@ -3,7 +3,7 @@ dkp_add_asset_target(${PROJECT_NAME}_hac_romfs romfs)
 
 # make our shader targets
 nx_add_shader_program(transform_vsh "shaders/transform_vsh.glsl" "vert")
-nx_add_shader_program(color_fsh     "shaders/color_fsh.glsl"         "frag")
+nx_add_shader_program(color_fsh     "shaders/color_fsh.glsl"     "frag")
 nx_add_shader_program(texture_fsh   "shaders/texture_fsh.glsl"   "frag")
 nx_add_shader_program(video_fsh     "shaders/video_fsh.glsl"     "frag")
 

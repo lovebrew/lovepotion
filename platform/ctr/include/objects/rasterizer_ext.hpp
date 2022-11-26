@@ -35,15 +35,15 @@ namespace love
             return this->font;
         }
 
-        GlyphData* GetGlyphData(const std::string& text) const;
+        GlyphData* GetGlyphData(const std::string_view& text) const;
 
         GlyphData* GetGlyphData(uint32_t glyph) const;
 
         int GetGlyphCount() const;
 
-        bool HasGlyph(uint32_t glyph) const;
-
         bool HasGlyphs(const std::string_view& text) const;
+
+        bool HasGlyph(uint32_t glyph) const;
 
         float GetKerning(uint32_t left, uint32_t right) const;
 

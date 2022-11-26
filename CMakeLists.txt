@@ -142,7 +142,7 @@ if (NINTENDO_WIIU)
         NAME       "${APP_TITLE}"
 
         # Bundle a content folder (optional)
-        #CONTENT    ${PROJECT_NAME}_content
+        CONTENT    ${PROJECT_NAME}_cafe_content
 
         # Other options available:
         SHORTNAME  "${APP_TITLE}"
