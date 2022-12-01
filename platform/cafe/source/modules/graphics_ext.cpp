@@ -51,4 +51,6 @@ void Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
 {
     ::Renderer::Instance().CreateFramebuffers();
     this->RestoreState(this->states.back());
+
+    this->created = true;
 }

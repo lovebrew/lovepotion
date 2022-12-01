@@ -22,9 +22,9 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 --]]
 
-local love = require("love")
+local love          = require("love")
 local is_debug, log = pcall(require, "love.log")
-local file        = nil
+local file          = nil
 if is_debug then
     file = log.new("callbacks.log")
 end
@@ -205,48 +205,6 @@ end
 -- Default callbacks.
 -----------------------------------------------------------
 
-local function saveError(text)
-    local date = os.date("%H%M%S_%m%d%y")
-    local filename = string.format("errors/love_error_%s.txt", date)
-
-    if not love.filesystem then
-        return
-    end
-
-    love.filesystem.createDirectory("errors")
-    love.filesystem.write(filename, text)
-
-    return filename
-end
-
-local function hackForMissingFilename(error)
-    -- assume that all missing filenames which are required
-    -- use this in their error message
-    if not error:find("module") then
-        return error
-    end
-
-    local split = {}
-
-    -- split by newlines
-    for line in error:gmatch("(.-)\n") do
-        local value = line:gsub("'", "")
-        if value:sub(-3) ~= ".so" and not value:find("/usr/") then
-            table.insert(split, line)
-        end
-    end
-
-    -- return our new string
-    return table.concat(split, "\n")
-end
-
-local function is3DHack()
-    if love._console_name == "3DS" then
-        return love.graphics.get3D()
-    end
-    return true
-end
-
 function love.run()
     if love.load then
         love.load(arg)
@@ -257,17 +215,6 @@ function love.run()
     end
 
     local delta = 0
-
-    local normalScreens
-    local plainScreens
-
-    if love.graphics then
-        normalScreens = love.graphics.getScreens()
-
-        if love._console_name == "3DS" then
-            plainScreens = { "top", "bottom" }
-        end
-    end
 
     return function()
         if love.window and g_windowShown then
@@ -297,7 +244,7 @@ function love.run()
         end
 
         if love.graphics and love.graphics.isActive() then
-            local screens = is3DHack() and normalScreens or plainScreens
+            local screens = love.graphics.getScreens()
 
             for _, screen in ipairs(screens) do
                 love.graphics.origin()
@@ -336,39 +283,7 @@ local function error_printer(msg, layer)
     end
 end
 
-local max_lines = 14
-local function fix_long_error(font, text, max_width)
-    local text_result, result = "", 0
-
-    for line in text:gmatch("(.-)\n") do
-        if result < max_lines then
-            local width = 10
-            for index = 1, #line do
-                local glyph = line:sub(index, index)
-                width = width + font:getWidth(glyph)
-                if width > max_width then
-                    text_result = text_result .. "\n"
-                    result = result + 1
-                    width = 10
-                end
-                text_result = text_result .. glyph
-            end
-            text_result = text_result .. "\n"
-        end
-        result = result + 1
-    end
-
-    -- note: don't forget to concat this
-    local str = "%s\n... and %d more lines."
-    local extra_lines = (result - max_lines)
-
-    if extra_lines > 0 then
-        return str:format(text_result, extra_lines)
-    end
-    return text
-end
-
-function love.errhand(msg)
+function love.errorhandler(msg)
     msg = tostring(msg)
 
     error_printer(msg, 2)
@@ -406,7 +321,7 @@ function love.errhand(msg)
     end
 
     love.graphics.reset()
-    local font = love.graphics.setNewFont(14)
+    local font = love.graphics.newFont(14)
 
     love.graphics.setColor(1, 1, 1)
 
@@ -446,14 +361,19 @@ function love.errhand(msg)
     local screens = love.graphics.getScreens()
 
     local _, text = font:getWrap(p, love.graphics.getWidth() - 20)
-    local text_length = #text
 
     if #text > 14 then
-        for index = 14, #text do
+        for index = 15, #text do
             text[index] = nil
         end
     end
-    table.insert(text, ("\n.. and %d more lines"):format(text_length - 14))
+
+    table.insert(text, "")
+
+    local not_saved_message = "Press Start to quit or A save this error."
+    local saved_message = "Error saved. Press Start to quit."
+
+    table.insert(text, not_saved_message)
 
     local function draw()
         if not love.graphics.isActive() then
@@ -468,7 +388,7 @@ function love.errhand(msg)
 
             if screen ~= "bottom" then
                 for index = 1, #text do
-                    love.graphics.print(text[index], 10, 10 + (index - 1) * 16)
+                    love.graphics.print(text[index], font, 5, (index - 1) * 16)
                 end
             end
         end
@@ -476,18 +396,24 @@ function love.errhand(msg)
         love.graphics.present()
     end
 
-    local fullErrorText = p
-    local function copyToClipboard()
-        if not love.system then
+    local fullErrorText, savedMessage = p, false
+    local function saveErrorToFile()
+        if savedMessage then
             return
         end
 
-        love.system.setClipboardText(fullErrorText)
-        p = p .. "\nCopied to clipboard!"
-    end
+        local date = os.date("%H%M%S_%m%d%y")
+        local filename = string.format("errors/love_error_%s.txt", date)
 
-    if love.system then
-        p = p .. "\n\nPress Ctrl+C or tap to copy this error"
+        if not love.filesystem then
+            return
+        end
+
+        love.filesystem.createDirectory("errors")
+        love.filesystem.write(filename, fullErrorText)
+
+        text[#text] = saved_message
+        savedMessage = true
     end
 
     return function()
@@ -496,10 +422,10 @@ function love.errhand(msg)
         for e, a, b, c in love.event.poll() do
             if e == "quit" then
                 return 1
-            elseif e == "keypressed" and a == "escape" then
+            elseif e == "gamepadpressed" and b == "start" then
                 return 1
-            elseif e == "keypressed" and a == "c" and love.keyboard.isDown("lctrl", "rctrl") then
-                copyToClipboard()
+            elseif e == "gamepadpressed" and b == "a" then
+                saveErrorToFile()
             elseif e == "touchpressed" then
                 local name = love.filesystem.getIdentity()
 

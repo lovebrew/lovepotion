@@ -48,6 +48,8 @@ void HID<Console::HAC>::CheckFocus()
             return;
         }
 
+        auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
+
         switch (message)
         {
             case AppletMessage_FocusStateChanged:
@@ -60,6 +62,9 @@ void HID<Console::HAC>::CheckFocus()
 
                 this->SendFocus(focused);
 
+                if (graphics)
+                    graphics->SetActive(focused);
+
                 if (focused == oldFocus)
                     break;
 
@@ -67,22 +72,22 @@ void HID<Console::HAC>::CheckFocus()
                     appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
                 else
                     appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleepNotify);
-
-                break;
             }
-            case AppletMessage_OperationModeChanged:
-            {
-                std::pair<uint32_t, uint32_t> size;
-                // ::deko3d::Instance().OnOperationMode(size);
-
-                this->SendResize(size.first, size.second);
-
-                break;
-            }
-            default:
-                break;
+            break;
         }
+        case AppletMessage_OperationModeChanged:
+        {
+            std::pair<uint32_t, uint32_t> size;
+            // ::deko3d::Instance().OnOperationMode(size);
+
+            this->SendResize(size.first, size.second);
+
+            break;
+        }
+        default:
+            break;
     }
+}
 }
 
 bool HID<Console::HAC>::Poll(LOVE_Event* event)

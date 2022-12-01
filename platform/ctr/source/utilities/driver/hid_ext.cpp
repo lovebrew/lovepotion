@@ -1,6 +1,8 @@
 #include <modules/joystickmodule_ext.hpp>
 #include <utilities/driver/hid_ext.hpp>
 
+#include <modules/graphics_ext.hpp>
+
 using namespace love;
 
 #define Module() Module::GetInstance<JoystickModule<Console::CTR>>(Module::M_JOYSTICK)
@@ -9,7 +11,8 @@ static aptHookCookie s_aptHookCookie;
 
 static void aptEventHook(const APT_HookType type, void* parameter)
 {
-    auto driver = HID<Console::CTR>::Instance();
+    auto driver    = HID<Console::CTR>::Instance();
+    auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
 
     switch (type)
     {
@@ -17,12 +20,20 @@ static void aptEventHook(const APT_HookType type, void* parameter)
         case APTHOOK_ONWAKEUP:
         {
             driver.SendFocus(true);
+
+            if (graphics)
+                graphics->SetActive(true);
+
             break;
         }
         case APTHOOK_ONSUSPEND:
         case APTHOOK_ONSLEEP:
         {
             driver.SendFocus(false);
+
+            if (graphics)
+                graphics->SetActive(false);
+
             break;
         }
         case APTHOOK_ONEXIT:
@@ -145,7 +156,7 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
             newEvent.type    = TYPE_GAMEPAD;
             newEvent.subType = SUBTYPE_GAMEPADDOWN;
 
-            newEvent.padButton.name = *Joystick<>::buttonTypes.ReverseFind(input.button);
+            newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
             newEvent.padButton.id     = joystick->GetID();
             newEvent.padButton.button = input.buttonNumber;
         }
@@ -157,7 +168,7 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
             newEvent.type    = TYPE_GAMEPAD;
             newEvent.subType = SUBTYPE_GAMEPADUP;
 
-            newEvent.padButton.name = *Joystick<>::buttonTypes.ReverseFind(input.button);
+            newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
             newEvent.padButton.id     = joystick->GetID();
             newEvent.padButton.button = input.buttonNumber;
         }

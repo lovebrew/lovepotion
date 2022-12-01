@@ -62,6 +62,7 @@ void Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
     this->SetViewportSize(width, height);
 
     this->RestoreState(this->states.back());
+    this->created = true;
 }
 
 void Graphics<Console::HAC>::SetViewportSize(int width, int height)

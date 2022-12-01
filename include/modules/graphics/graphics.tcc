@@ -183,6 +183,11 @@ namespace love
             return this->active;
         }
 
+        void SetActive(bool active)
+        {
+            this->active = active;
+        }
+
         void PushTransform()
         {
             this->transformStack.push_back(this->transformStack.back());

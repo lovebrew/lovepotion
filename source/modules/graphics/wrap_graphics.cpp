@@ -3,6 +3,8 @@
 #include <modules/graphics_ext.hpp>
 
 #include <objects/font/wrap_font.hpp>
+#include <objects/rasterizer/wrap_rasterizer.hpp>
+
 #include <utilities/driver/renderer_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::Which>;
@@ -286,6 +288,48 @@ int Wrap_Graphics::Present(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::NewFont(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    Font<Console::Which>* font = nullptr;
+    if (!luax::IsType(L, 1, Rasterizer<Console::Which>::type))
+    {
+        std::vector<int> indices;
+        for (int i = 0; i < lua_gettop(L); i++)
+            indices.push_back(i + 1);
+
+        luax::ConvertObject(L, indices, "font", "newRasterizer");
+    }
+
+    auto* rasterizer = Wrap_Rasterizer::CheckRasterizer(L, 1);
+
+    luax::CatchException(L, [&]() { font = instance()->NewFont(rasterizer); });
+
+    luax::PushType(L, font);
+    font->Release();
+
+    return 1;
+}
+
+int Wrap_Graphics::SetFont(lua_State* L)
+{
+    auto* font = Wrap_Font::CheckFont(L, 1);
+    instance()->SetFont(font);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetFont(lua_State* L)
+{
+    Font<Console::Which>* font = nullptr;
+    luax::CatchException(L, [&]() { font = instance()->GetFont(); });
+
+    luax::PushType(L, font);
+
+    return 1;
+}
+
 int Wrap_Graphics::Print(lua_State* L)
 {
     Font<>::ColoredStrings strings {};
@@ -383,6 +427,9 @@ static constexpr luaL_Reg functions[] =
     { "getWidth",           Wrap_Graphics::GetWidth           },
     { "getHeight",          Wrap_Graphics::GetHeight          },
     { "getDimensions",      Wrap_Graphics::GetDimensions      },
+    { "newFont",            Wrap_Graphics::NewFont            },
+    { "setFont",            Wrap_Graphics::SetFont            },
+    { "getFont",            Wrap_Graphics::GetFont            },
     { "reset",              Wrap_Graphics::Reset              }
 };
 

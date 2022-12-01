@@ -119,6 +119,12 @@ namespace Wrap_Graphics
 
     int Get3D(lua_State* L);
 
+    int NewFont(lua_State* L);
+
+    int SetFont(lua_State* L);
+
+    int GetFont(lua_State* L);
+
     int Print(lua_State* L);
 
     int Printf(lua_State* L);

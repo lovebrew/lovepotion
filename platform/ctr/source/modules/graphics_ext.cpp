@@ -122,6 +122,8 @@ void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
 {
     ::Renderer::Instance().CreateFramebuffers();
     this->RestoreState(this->states.back());
+
+    this->created = true;
 }
 
 int Graphics<Console::CTR>::GetWidth(Screen screen) const

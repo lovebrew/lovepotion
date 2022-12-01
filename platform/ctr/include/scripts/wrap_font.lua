@@ -69,7 +69,7 @@ function Font:getWrap(text, wrap_limit)
                 break
             end
 
-            char_width = Font:getWidth(codepoint)
+            char_width = self:getWidth(codepoint)
             local new_width = width + char_width
 
             -- push the line after limit is hit
