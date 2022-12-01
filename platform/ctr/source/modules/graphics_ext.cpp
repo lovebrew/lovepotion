@@ -123,3 +123,21 @@ void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
     ::Renderer::Instance().CreateFramebuffers();
     this->RestoreState(this->states.back());
 }
+
+int Graphics<Console::CTR>::GetWidth(Screen screen) const
+{
+    switch (screen)
+    {
+        case Screen::SCREEN_LEFT:
+        case Screen::SCREEN_RIGHT:
+        default:
+            return 400;
+        case Screen::SCREEN_BOTTOM:
+            return 320;
+    }
+}
+
+int Graphics<Console::CTR>::GetHeight() const
+{
+    return 240;
+}

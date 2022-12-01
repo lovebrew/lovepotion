@@ -33,6 +33,8 @@ namespace love
         ImageData<Console::Which>* NewImageData(int width, int height, PixelFormat format,
                                                 void* data, bool own = false) const;
 
+        bool IsCompressed(Data* data) const;
+
         const std::list<FormatHandler*>& GetFormatHandlers() const;
 
       private:

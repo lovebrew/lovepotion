@@ -48,7 +48,7 @@ namespace love
             return "love.system";
         }
 
-        std::string_view GetOS() const
+        static const char* GetOS()
         {
             return __OS__;
         }

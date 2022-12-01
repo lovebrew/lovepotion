@@ -11,7 +11,7 @@ using namespace love;
 
 int Wrap_System::GetOS(lua_State* L)
 {
-    auto osName = instance()->GetOS();
+    auto* osName = System<Console::Which>::GetOS();
 
     luax::PushString(L, osName);
 
@@ -48,7 +48,7 @@ int Wrap_System::GetPowerInfo(lua_State* L)
 
 int Wrap_System::GetNetworkInfo(lua_State* L)
 {
-    uint8_t signal  = -1;
+    uint8_t signal = -1;
 
     auto state = instance()->GetNetworkInfo(signal);
 
@@ -82,15 +82,6 @@ int Wrap_System::GetModel(lua_State* L)
     return 1;
 }
 
-int Wrap_System::GetUsername(lua_State* L)
-{
-    auto username = instance()->GetUsername();
-
-    luax::PushString(L, username);
-
-    return 1;
-}
-
 int Wrap_System::GetVersion(lua_State* L)
 {
     auto version = instance()->GetVersion();
@@ -102,9 +93,20 @@ int Wrap_System::GetVersion(lua_State* L)
 
 int Wrap_System::GetFriendInfo(lua_State* L)
 {
-    auto friendCode = instance()->GetFriendInfo();
+    if (lua_istable(L, 1))
+        lua_pushvalue(L, 1);
+    else
+        lua_createtable(L, 0, 3);
 
-    luax::PushString(L, friendCode);
+    auto username = instance()->GetUsername();
+
+    luax::PushString(L, username);
+    lua_setfield(L, -2, "username");
+
+    auto friendInfo = instance()->GetFriendInfo();
+
+    luax::PushString(L, friendInfo);
+    lua_setfield(L, -2, "code");
 
     return 1;
 }
@@ -129,7 +131,6 @@ static constexpr luaL_Reg functions[] =
     { "getOS",               Wrap_System::GetOS               },
     { "getPowerInfo",        Wrap_System::GetPowerInfo        },
     { "getProcessorCount",   Wrap_System::GetProcessorCount   },
-    { "getUsername",         Wrap_System::GetUsername         },
     { "getVersion",          Wrap_System::GetVersion          }
 };
 // clang-format on

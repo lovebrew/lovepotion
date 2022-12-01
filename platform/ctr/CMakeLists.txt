@@ -18,6 +18,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/wrap_graphics_ext.cpp
     source/modules/wrap_system_ext.cpp
     source/objects/font_ext.cpp
+    source/objects/imagedata_ext.cpp
     source/objects/joystick_ext.cpp
     source/objects/rasterizer_ext.cpp
     source/objects/source_ext.cpp
@@ -26,6 +27,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/dsp_ext.cpp
     source/utilities/driver/hid_ext.cpp
     source/utilities/driver/renderer/renderer_ext.cpp
+    source/utilities/formathandler/types/t3xhandler.cpp
     source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/threads/thread_ext.cpp
 )

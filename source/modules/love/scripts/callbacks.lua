@@ -368,24 +368,35 @@ local function fix_long_error(font, text, max_width)
     return text
 end
 
-function love.errorhandler(message)
-    message = tostring(message)
+function love.errhand(msg)
+    msg = tostring(msg)
 
-    error_printer(message, 2)
+    error_printer(msg, 2)
 
-    if not love.window or not love.event then
+    if not love.window or not love.graphics or not love.event then
         return
     end
 
-    if not love.window.isOpen() then
-        local success, status = pcall(love.window.setMode)
+    if not love.graphics.isCreated() or not love.window.isOpen() then
+        local success, status = pcall(love.window.setMode, 800, 600)
         if not success or not status then
             return
         end
     end
 
+    -- Reset state.
+    if love.mouse then
+        love.mouse.setVisible(true)
+        love.mouse.setGrabbed(false)
+        love.mouse.setRelativeMode(false)
+        if love.mouse.isCursorSupported() then
+            love.mouse.setCursor()
+        end
+    end
+
     if love.joystick then
-        for _, v in ipairs(love.joystick.getJoysticks()) do
+        -- Stop all joystick vibrations.
+        for i, v in ipairs(love.joystick.getJoysticks()) do
             v:setVibration()
         end
     end
@@ -395,115 +406,113 @@ function love.errorhandler(message)
     end
 
     love.graphics.reset()
+    local font = love.graphics.setNewFont(14)
 
-    local fontSize = 12
-    if love._console_name == "Switch" then
-        fontSize = 24
-    end
-
-    love.graphics.origin()
-
-    -- local font = love.graphics.setNewFont(fontSize)
-
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(1, 1, 1)
 
     local trace = debug.traceback()
 
-    local sanitized = {}
-    for char in message:gmatch(utf8.charpattern) do
-        table.insert(sanitized, char)
+    love.graphics.origin()
+
+    local sanitizedmsg = {}
+    for char in msg:gmatch(utf8.charpattern) do
+        table.insert(sanitizedmsg, char)
     end
-    sanitized = table.concat(sanitized)
+    sanitizedmsg = table.concat(sanitizedmsg)
 
     local err = {}
 
     table.insert(err, "Error\n")
-    table.insert(err, sanitized)
+    table.insert(err, sanitizedmsg)
 
-    if #sanitized ~= #message then
-        table.insert(err, "Invalid UTF-8 string in error message.\n")
+    if #sanitizedmsg ~= #msg then
+        table.insert(err, "Invalid UTF-8 string in error message.")
     end
 
-    for line in trace:gmatch("(.-)\n") do
-        if not line:match("boot.lua") then
-            line = line:gsub("stack traceback:", "\nTraceback\n")
-            table.insert(err, line)
+    table.insert(err, "\n")
+
+    for l in trace:gmatch("(.-)\n") do
+        if not l:match("boot.lua") then
+            l = l:gsub("stack traceback:", "Traceback\n")
+            table.insert(err, l)
         end
     end
 
-    local pretty = table.concat(err, "\n")
+    local p = table.concat(err, "\n")
 
-    pretty = pretty:gsub("\t", "    ")
-    pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
+    p = p:gsub("\t", "")
+    p = p:gsub("%[string \"(.-)\"%]", "%1")
 
-    local screen = "left"
-    if love._console_name == "Switch" then
-        screen = nil
+    local screens = love.graphics.getScreens()
+
+    local _, text = font:getWrap(p, love.graphics.getWidth() - 20)
+    local text_length = #text
+
+    if #text > 14 then
+        for index = 14, #text do
+            text[index] = nil
+        end
     end
-    -- local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth(screen) * 0.75)
-
-    -- tell the user about how to quit the error handler
-    pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
-
-    if not love.window.isOpen() then
-        return
-    end
-
-    local normalScreens = love.graphics.getScreens()
-    local plainScreens
-    if love._console_name == "3DS" then
-        plainScreens = { "top", "bottom" }
-    end
+    table.insert(text, ("\n.. and %d more lines"):format(text_length - 14))
 
     local function draw()
-        if love.graphics then
-            local screens = is3DHack() and normalScreens or plainScreens
+        if not love.graphics.isActive() then
+            return
+        end
 
-            for _, screen in ipairs(screens) do
-                love.graphics.origin()
+        for _, screen in ipairs(screens) do
+            love.graphics.origin()
 
-                love.graphics.setActiveScreen(screen)
-                love.graphics.clear(0.35, 0.62, 0.86)
+            love.graphics.setActiveScreen(screen)
+            love.graphics.clear(0.35, 0.62, 0.86)
 
-                if screen ~= "bottom" then
-                    local line_num = 1
-                    for line in pretty_fixed:gmatch("(.-)\n") do
-                        -- love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
-                        line_num = line_num + 1
-                    end
+            if screen ~= "bottom" then
+                for index = 1, #text do
+                    love.graphics.print(text[index], 10, 10 + (index - 1) * 16)
                 end
             end
-
-            love.graphics.present()
         end
+
+        love.graphics.present()
     end
 
-    local fullErrorText = pretty
-    local saved = false
-
-    local function updateError()
-        if not saved then
-            local filename = saveError(fullErrorText)
-            -- pretty_fixed = pretty_fixed .. "Saved to " .. filename .. "!\n"
-
-            draw()
-            saved = true
+    local fullErrorText = p
+    local function copyToClipboard()
+        if not love.system then
+            return
         end
+
+        love.system.setClipboardText(fullErrorText)
+        p = p .. "\nCopied to clipboard!"
+    end
+
+    if love.system then
+        p = p .. "\n\nPress Ctrl+C or tap to copy this error"
     end
 
     return function()
-        if love.event then
-            love.event.pump()
+        love.event.pump()
 
-            for name, a, b, c, d, e, f in love.event.poll() do
-                if name == "quit" then
+        for e, a, b, c in love.event.poll() do
+            if e == "quit" then
+                return 1
+            elseif e == "keypressed" and a == "escape" then
+                return 1
+            elseif e == "keypressed" and a == "c" and love.keyboard.isDown("lctrl", "rctrl") then
+                copyToClipboard()
+            elseif e == "touchpressed" then
+                local name = love.filesystem.getIdentity()
+
+                if #name == 0 or name == "Untitled" then
+                    name = "Game"
+                end
+
+                local buttons = { "OK", "Cancel" }
+
+                local pressed = love.window.showMessageBox("Quit " .. name .. "?", "", buttons)
+
+                if pressed == 1 then
                     return 1
-                elseif name == "gamepadpressed" then
-                    if b == "start" then
-                        return 1
-                    elseif b == "a" then
-                        updateError()
-                    end
                 end
             end
         end

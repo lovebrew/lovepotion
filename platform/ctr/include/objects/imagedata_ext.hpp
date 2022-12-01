@@ -19,13 +19,18 @@ namespace love
 
         virtual ~ImageData();
 
+        ImageData* Clone() const override
+        {
+            return new ImageData(*this);
+        }
+
         void Paste(ImageData* data, int x, int y, Rect& source);
 
         void SetPixel(int x, int y, const Color& color);
 
-        void GetPixel(int x, int y, Color& color) const;
+        void GetPixel(int x, int y, Color& color);
 
-        Color GetPixel(int x, int y) const;
+        Color GetPixel(int x, int y);
 
       private:
         void Create(int width, int height, PixelFormat format, void* data = nullptr);

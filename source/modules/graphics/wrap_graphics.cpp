@@ -193,6 +193,43 @@ int Wrap_Graphics::GetColor(lua_State* L)
     return 4;
 }
 
+// To do
+int Wrap_Graphics::GetWidth(lua_State* L)
+{
+    const char* screenName = luaL_optstring(L, 1, "top");
+    std::optional<Screen> screen;
+
+    if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
+        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
+
+    lua_pushinteger(L, instance()->GetWidth(*screen));
+
+    return 1;
+}
+
+// To do
+int Wrap_Graphics::GetHeight(lua_State* L)
+{
+    lua_pushinteger(L, instance()->GetHeight());
+
+    return 1;
+}
+
+// To do
+int Wrap_Graphics::GetDimensions(lua_State* L)
+{
+    const char* screenName = luaL_optstring(L, 1, "top");
+    std::optional<Screen> screen;
+
+    if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
+        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
+
+    lua_pushinteger(L, instance()->GetWidth(*screen));
+    lua_pushinteger(L, instance()->GetHeight());
+
+    return 1;
+}
+
 int Wrap_Graphics::IsActive(lua_State* L)
 {
     luax::PushBoolean(L, instance()->IsActive());
@@ -343,6 +380,9 @@ static constexpr luaL_Reg functions[] =
     { "getBackgroundColor", Wrap_Graphics::GetBackgroundColor },
     { "getColor",           Wrap_Graphics::GetColor           },
     { "getScreens",         Wrap_Graphics::GetScreens         },
+    { "getWidth",           Wrap_Graphics::GetWidth           },
+    { "getHeight",          Wrap_Graphics::GetHeight          },
+    { "getDimensions",      Wrap_Graphics::GetDimensions      },
     { "reset",              Wrap_Graphics::Reset              }
 };
 

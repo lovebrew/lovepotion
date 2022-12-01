@@ -34,6 +34,7 @@ static constexpr char logfile_lua[] = {
 #include <modules/filesystem/wrap_filesystem.hpp>
 #include <modules/font/wrap_fontmodule.hpp>
 #include <modules/graphics/wrap_graphics.hpp>
+#include <modules/image/wrap_imagemodule.hpp>
 #include <modules/joystick/wrap_joystickmodule.hpp>
 #include <modules/keyboard/wrap_keyboard.hpp>
 #include <modules/sound/wrap_sound.hpp>
@@ -54,6 +55,7 @@ static constexpr luaL_Reg modules[] =
     { "love.graphics",   Wrap_Graphics::Register       },
     { "love.joystick",   Wrap_JoystickModule::Register },
     { "love.keyboard",   Wrap_Keyboard::Register       },
+    { "love.image",      Wrap_ImageModule::Register    },
     { "love.sound",      Wrap_Sound::Register          },
     { "love.system",     Wrap_System::Register         },
     { "love.thread",     Wrap_ThreadModule::Register   },
@@ -71,13 +73,15 @@ static constexpr luaL_Reg modules[] =
 };
 // clang-format on
 
+#include <modules/system_ext.hpp>
+
 int love::Initialize(lua_State* L)
 {
     luax::InsistPinnedThread(L);
     luax::InsistGlobal(L, "love");
 
     // love._os
-    lua_pushstring(L, __OS__);
+    lua_pushstring(L, System<Console::Which>::GetOS());
     lua_setfield(L, -2, "_os");
 
     // love._console

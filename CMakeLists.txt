@@ -403,6 +403,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/filesystem/wrap_filesystem.cpp
     source/modules/font/wrap_fontmodule.cpp
     source/modules/graphics/wrap_graphics.cpp
+    source/modules/image/imagemodule.cpp
+    source/modules/image/wrap_imagemodule.cpp
     source/modules/joystick/wrap_joystickmodule.cpp
     source/modules/keyboard/wrap_keyboard.cpp
     source/modules/love/love.cpp
@@ -435,6 +437,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/font/wrap_font.cpp
     source/objects/glyphdata/glyphdata.cpp
     source/objects/glyphdata/wrap_glyphdata.cpp
+    source/objects/imagedata/wrap_imagedata.cpp
     source/objects/joystick/wrap_joystick.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
@@ -453,6 +456,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/decoder/types/wavedecoder.cpp
     source/utilities/driver/renderer/renderstate.cpp
     source/utilities/driver/renderer/samplerstate.cpp
+    source/utilities/formathandler/formathandler.cpp
+    source/utilities/formathandler/types/jpghandler.cpp
+    source/utilities/formathandler/types/pnghandler.cpp
     source/utilities/guid.cpp
     source/utilities/hashfunction/hashfunction.cpp
     source/utilities/hashfunction/types/md5.cpp

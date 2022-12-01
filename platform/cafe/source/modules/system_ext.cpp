@@ -18,6 +18,8 @@ System<Console::CAFE>::System()
     this->handles.mcp        = MCP_Open();
     this->handles.userConfig = UCOpen();
 
+    nn::act::Initialize();
+
     this->accountSlot = nn::act::GetDefaultAccount();
 }
 
@@ -28,6 +30,8 @@ System<Console::CAFE>::~System()
 
     if (this->handles.userConfig != 0)
         UCClose(this->handles.userConfig);
+
+    nn::act::Finalize();
 }
 
 System<>::PowerState System<Console::CAFE>::GetPowerInfo(uint8_t& percent) const

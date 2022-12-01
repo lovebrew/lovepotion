@@ -6,6 +6,8 @@
 #include <common/exception.hpp>
 #include <common/pixelformat.hpp>
 
+#include <objects/data/filedata/filedata.hpp>
+
 #include <utilities/threads/threads.hpp>
 
 #include <functional>
@@ -65,13 +67,25 @@ namespace love
             this->Create(width, height, format, other.GetData());
         }
 
-        ImageData* Clone() const override
-        {
-            return new ImageData(*this);
-        }
-
         virtual ~ImageData()
         {}
+
+        void Create(int width, int height, PixelFormat format, void* data = nullptr)
+        {
+            const auto size = GetPixelFormatSliceSize(format, width, height);
+
+            try
+            {
+                this->data = std::make_unique<uint8_t[]>(size);
+            }
+            catch (std::bad_alloc&)
+            {
+                throw love::Exception("Out of memory.");
+            }
+
+            if (data)
+                std::copy_n((uint8_t*)data, size, this->data.get());
+        }
 
         PixelFormat GetFormat() const
         {
@@ -95,7 +109,7 @@ namespace love
 
         void* GetData() const override
         {
-            return this->data;
+            return (void*)this->data.get();
         }
 
         bool Inside(int x, int y) const
@@ -111,7 +125,7 @@ namespace love
         static bool ValidPixelFormat(PixelFormat format)
         {
             bool isColorFormat      = IsPixelFormatColor(format);
-            bool isCompressedFormat = IsCompressedFormat(format);
+            bool isCompressedFormat = IsPixelFormatCompressed(format);
 
             return isColorFormat && !isCompressedFormat;
         }

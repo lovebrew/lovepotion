@@ -24,3 +24,19 @@ ImageData<Console::Which>* ImageModule::NewImageData(int width, int height,
 {
     return new ImageData<Console::Which>(width, height, format);
 }
+
+const std::list<FormatHandler*>& ImageModule::GetFormatHandlers() const
+{
+    return this->formatHandlers;
+}
+
+bool ImageModule::IsCompressed(Data* data) const
+{
+    for (auto* handler : this->formatHandlers)
+    {
+        if (handler->CanParseCompressed(data))
+            return true;
+    }
+
+    return false;
+}

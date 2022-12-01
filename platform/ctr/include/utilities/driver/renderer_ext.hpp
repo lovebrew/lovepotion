@@ -182,7 +182,8 @@ namespace love
         static constexpr BidirectionalMap gfx3dScreens = {
             "left",   Screen::SCREEN_LEFT,
             "right",  Screen::SCREEN_RIGHT,
-            "bottom", Screen::SCREEN_BOTTOM
+            "bottom", Screen::SCREEN_BOTTOM,
+            "top",    Screen::SCREEN_LEFT
         };
 
         static constexpr BidirectionalMap gfx2dScreens = {

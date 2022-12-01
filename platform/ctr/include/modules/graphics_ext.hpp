@@ -43,6 +43,10 @@ namespace love
             Graphics<>::RestoreState(state);
         }
 
+        int GetWidth(Screen screen) const;
+
+        int GetHeight() const;
+
         float GetCurrentDepth() const
         {
             return CURRENT_DEPTH;
