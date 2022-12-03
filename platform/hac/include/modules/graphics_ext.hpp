@@ -20,6 +20,16 @@ namespace love
 
         void SetScissor(const Rect& scissor);
 
+        int GetWidth() const
+        {
+            return this->width;
+        }
+
+        int GetHeight() const
+        {
+            return this->height;
+        }
+
       private:
         void SetViewportSize(int width, int height);
     };

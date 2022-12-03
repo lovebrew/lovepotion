@@ -124,6 +124,28 @@ namespace love
         PIXELFORMAT_MAX_ENUM
     };
 
+    enum PixelFormatUsage
+    {
+        PIXELFORMAT_USAGE_SAMPLE,       // Any sampling in shaders.
+        PIXELFORMAT_USAGE_LINEAR,       // Linear filtering.
+        PIXELFORMAT_USAGE_RENDERTARGET, // Usable as a render target.
+        PIXELFORMAT_USAGE_BLEND,        // Blend support when used as a render target.
+        PIXELFORMAT_USAGE_MSAA,         // MSAA support when used as a render target.
+        PIXELFORMAT_USAGE_COMPUTEWRITE, // Writable in compute shaders via imageStore.
+        PIXELFORMAT_USAGE_MAX_ENUM
+    };
+
+    enum PixelFormatUsageFlags
+    {
+        PIXELFORMAT_USAGE_FLAGS_NONE         = 0,
+        PIXELFORMAT_USAGE_FLAGS_SAMPLE       = (1 << PIXELFORMATUSAGE_SAMPLE),
+        PIXELFORMAT_USAGE_FLAGS_LINEAR       = (1 << PIXELFORMATUSAGE_LINEAR),
+        PIXELFORMAT_USAGE_FLAGS_RENDERTARGET = (1 << PIXELFORMATUSAGE_RENDERTARGET),
+        PIXELFORMAT_USAGE_FLAGS_BLEND        = (1 << PIXELFORMATUSAGE_BLEND),
+        PIXELFORMAT_USAGE_FLAGS_MSAA         = (1 << PIXELFORMATUSAGE_MSAA),
+        PIXELFORMAT_USAGE_FLAGS_COMPUTEWRITE = (1 << PIXELFORMATUSAGE_COMPUTEWRITE),
+    };
+
     enum PixelFormatType
     {
         PIXELFORMAT_TYPE_UNORM,

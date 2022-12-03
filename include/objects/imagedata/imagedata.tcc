@@ -8,6 +8,8 @@
 
 #include <objects/data/filedata/filedata.hpp>
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+#include <utilities/formathandler/formathandler.hpp>
 #include <utilities/threads/threads.hpp>
 
 #include <functional>
@@ -139,6 +141,18 @@ namespace love
         {
             return this->pixelGetFunction;
         }
+
+        love::mutex& GetMutex()
+        {
+            return this->mutex;
+        }
+
+        // clang-format off
+        static constexpr BidirectionalMap encodedFormats = {
+            "png", FormatHandler::ENCODED_PNG,
+            "exr", FormatHandler::ENCODED_EXR
+        };
+        // clang-format on
 
       protected:
         ImageData(PixelFormat format, int width, int height) :

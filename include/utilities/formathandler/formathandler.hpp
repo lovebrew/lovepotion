@@ -13,7 +13,8 @@ namespace love
         enum EncodedFormat
         {
             ENCODED_TGA,
-            ENCODED_PNG
+            ENCODED_PNG,
+            ENCODED_EXR
         };
 
         struct DecodedImage

@@ -124,28 +124,69 @@ int Wrap_ImageData::SetPixel(lua_State* L)
     return 0;
 }
 
-// To do
-int Wrap_ImageData::__MapPixelUnsafe(lua_State* L)
-{
-    return 0;
-}
-
-// To do
 int Wrap_ImageData::Paste(lua_State* L)
 {
+    auto* self   = Wrap_ImageData::CheckImageData(L, 1);
+    auto* source = Wrap_ImageData::CheckImageData(L, 2);
+
+    int x = luaL_checkinteger(L, 3);
+    int y = luaL_checkinteger(L, 4);
+
+    Rect paste {};
+    paste.x = luaL_optinteger(L, 5, 0);
+    paste.y = luaL_optinteger(L, 6, 0);
+    paste.w = luaL_optinteger(L, 7, source->GetWidth());
+    paste.h = luaL_optinteger(L, 8, source->GetHeight());
+
+    self->Paste(source, x, y, paste);
+
     return 0;
 }
 
-// To do
 int Wrap_ImageData::Encode(lua_State* L)
 {
-    return 0;
+    auto* self = Wrap_ImageData::CheckImageData(L, 1);
+
+    std::optional<FormatHandler::EncodedFormat> format;
+    const char* formatName = luaL_checkstring(L, 2);
+
+    if (!(format = ::ImageData::encodedFormats.Find(formatName)))
+        return luax::EnumError(L, "encoded image format", ::ImageData::encodedFormats.GetNames(),
+                               formatName);
+
+    bool hasFilename = false;
+
+    std::string_view filename = "Image." + std::string(formatName);
+    if (!lua_isnoneornil(L, 3))
+    {
+        hasFilename = true;
+        filename    = luax::CheckString(L, 3);
+    }
+
+    FileData* data = nullptr;
+    luax::CatchException(L, [&]() { data = self->Encode(*format, filename, hasFilename); });
+
+    luax::PushType(L, data);
+    data->Release();
+
+    return 1;
 }
 
 // To do
 int Wrap_ImageData::__PerformAtomic(lua_State* L)
 {
-    return 0;
+    auto* self = Wrap_ImageData::CheckImageData(L, 1);
+    int error  = 0;
+
+    {
+        std::unique_lock lock(self->GetMutex());
+        error = lua_pcall(L, lua_gettop(L) - 2, LUA_MULTRET, 0);
+    }
+
+    if (error != 0)
+        return lua_error(L);
+
+    return lua_gettop(L) - 1;
 }
 
 // clang-format off
@@ -161,12 +202,11 @@ static constexpr luaL_Reg functions[] =
     { "paste",         Wrap_ImageData::Paste         },
     { "encode",        Wrap_ImageData::Encode        },
     /* spacing */
-    { "_mapPixelUnsafe", Wrap_ImageData::__MapPixelUnsafe },
     { "_performAtomic",  Wrap_ImageData::__PerformAtomic  }
 };
 // clang-format on
 
 int Wrap_ImageData::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &::ImageData::type, functions);
+    return luax::RegisterType(L, &::ImageData::type, functions, extensions);
 }

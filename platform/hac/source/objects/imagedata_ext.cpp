@@ -1,6 +1,8 @@
 #include <modules/image/imagemodule.hpp>
 #include <objects/imagedata_ext.hpp>
 
+#include <modules/filesystem/physfs/filesystem.hpp>
+
 using namespace love;
 
 ImageData<Console::HAC>::ImageData(Data* data) : ImageData<>(PIXELFORMAT_UNKNOWN, 0, 0)
@@ -49,10 +51,13 @@ void ImageData<Console::HAC>::Decode(Data* data)
     }
 
     const auto expectedSize =
-        (image.width * image.height) * love::GetPixelFormatBlockSize(image.format);
+        love::GetPixelFormatSliceSize(image.format, image.width, image.height);
 
     if (image.size != expectedSize)
+    {
+        decoder->FreeRawPixels(image.data);
         throw love::Exception("Could not decode image!");
+    }
 
     this->width  = image.width;
     this->height = image.height;
@@ -62,6 +67,85 @@ void ImageData<Console::HAC>::Decode(Data* data)
 
     this->pixelGetFunction = getPixelGetFunction(this->format);
     this->pixelSetFunction = getPixelSetFunction(this->format);
+}
+
+FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFormat,
+                                          std::string_view filename, bool writeFile)
+{
+    FormatHandler* encoder = nullptr;
+
+    FormatHandler::EncodedImage encoded {};
+    FormatHandler::DecodedImage raw {};
+
+    raw.width  = this->width;
+    raw.height = this->height;
+    raw.size   = this->GetSize();
+    raw.data   = this->data.get();
+    raw.format = this->format;
+
+    auto* module = Module::GetInstance<ImageModule>(Module::M_IMAGE);
+
+    if (!module)
+        throw love::Exception("love.image must be loaded in order to encode ImageData.");
+
+    for (auto* handler : module->GetFormatHandlers())
+    {
+        if (handler->CanEncode(this->format, encodedFormat))
+        {
+            encoder = handler;
+            break;
+        }
+    }
+
+    if (encoder)
+    {
+        std::unique_lock lock(this->mutex);
+        encoded = encoder->Encode(raw, encodedFormat);
+    }
+
+    if (!encoder || encoded.data == nullptr)
+    {
+        throw love::Exception("No suitable image encoder for the %s pixel format.",
+                              love::GetPixelFormatName(this->format));
+    }
+
+    FileData* data = nullptr;
+
+    try
+    {
+        data = new FileData(encoded.size, filename);
+    }
+    catch (love::Exception&)
+    {
+        encoder->FreeEncodedImage(encoded.data);
+        throw;
+    }
+
+    std::memcpy(data->GetData(), encoded.data, encoded.size);
+
+    if (writeFile)
+    {
+        auto* filesystem = Module::GetInstance<Filesystem>(M_FILESYSTEM);
+
+        if (!filesystem)
+        {
+            data->Release();
+            throw love::Exception(
+                "love.filesystem must be loaded in order to write encoded ImageData to a file.");
+        }
+
+        try
+        {
+            filesystem->Write(filename, data->GetData(), data->GetSize());
+        }
+        catch (love::Exception&)
+        {
+            data->Release();
+            throw;
+        }
+    }
+
+    return data;
 }
 
 void ImageData<Console::HAC>::Create(int width, int height, PixelFormat format, void* data)

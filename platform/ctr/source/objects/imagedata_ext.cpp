@@ -59,10 +59,13 @@ void ImageData<Console::CTR>::Decode(Data* data)
     }
 
     const auto expectedSize =
-        (image.width * image.height) * love::GetPixelFormatBlockSize(image.format);
+        love::GetPixelFormatSliceSize(image.format, image.width, image.height);
 
     if (image.size != expectedSize)
+    {
+        decoder->FreeRawPixels(image.data);
         throw love::Exception("Could not decode image!");
+    }
 
     this->width  = image.width;
     this->height = image.height;
@@ -72,6 +75,15 @@ void ImageData<Console::CTR>::Decode(Data* data)
 
     this->pixelGetFunction = getPixelRGBA8;
     this->pixelSetFunction = setPixelRGBA8;
+}
+
+FileData* ImageData<Console::CTR>::Encode(FormatHandler::EncodedFormat encodedFormat,
+                                          std::string_view filename, bool writeFile) const
+{
+    throw love::Exception("No suitable image encoder for the %s pixel format.",
+                          love::GetPixelFormatName(this->format));
+
+    return nullptr;
 }
 
 /*
