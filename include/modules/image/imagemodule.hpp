@@ -35,9 +35,9 @@ namespace love
 
         bool IsCompressed(Data* data) const;
 
-        const std::list<FormatHandler*>& GetFormatHandlers() const;
+        const std::list<love::FormatHandler*>& GetFormatHandlers() const;
 
       private:
-        std::list<FormatHandler*> formatHandlers;
+        std::list<love::FormatHandler*> formatHandlers;
     };
 } // namespace love

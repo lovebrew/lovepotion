@@ -27,9 +27,9 @@ namespace love
             uint16_t height; //< subtexHeight (sourceHeight)
 
             uint16_t left;   //< left   = border
-            uint16_t top;    //< top    = texHeight - border
-            uint16_t right;  //< right  = subtexWidth + border
-            uint16_t bottom; //< bottom = texHeight - border - subtexHeight
+            uint16_t top;    //< top    = texHeight
+            uint16_t right;  //< right  = subtexWidth
+            uint16_t bottom; //< bottom = texHeight - subtexHeight
         };
     };
 } // namespace love

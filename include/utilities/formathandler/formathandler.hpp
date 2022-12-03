@@ -1,3 +1,5 @@
+#pragma once
+
 #include <common/data.hpp>
 #include <common/object.hpp>
 

@@ -195,7 +195,6 @@ int Wrap_Graphics::GetColor(lua_State* L)
     return 4;
 }
 
-// To do
 int Wrap_Graphics::GetWidth(lua_State* L)
 {
     const char* screenName = luaL_optstring(L, 1, "top");
@@ -209,7 +208,6 @@ int Wrap_Graphics::GetWidth(lua_State* L)
     return 1;
 }
 
-// To do
 int Wrap_Graphics::GetHeight(lua_State* L)
 {
     lua_pushinteger(L, instance()->GetHeight());
@@ -217,7 +215,6 @@ int Wrap_Graphics::GetHeight(lua_State* L)
     return 1;
 }
 
-// To do
 int Wrap_Graphics::GetDimensions(lua_State* L)
 {
     const char* screenName = luaL_optstring(L, 1, "top");

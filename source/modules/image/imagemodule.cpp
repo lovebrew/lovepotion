@@ -2,12 +2,6 @@
 
 using namespace love;
 
-ImageModule::ImageModule()
-{
-    if (Console::Is(Console::CTR))
-        this->formatHandlers.push_back(new T3XHandler());
-}
-
 ImageModule::~ImageModule()
 {
     for (auto* handler : this->formatHandlers)
@@ -25,7 +19,7 @@ ImageData<Console::Which>* ImageModule::NewImageData(int width, int height,
     return new ImageData<Console::Which>(width, height, format);
 }
 
-const std::list<FormatHandler*>& ImageModule::GetFormatHandlers() const
+const std::list<love::FormatHandler*>& ImageModule::GetFormatHandlers() const
 {
     return this->formatHandlers;
 }

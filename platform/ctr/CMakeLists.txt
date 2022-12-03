@@ -8,6 +8,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/matrix_ext.cpp
     source/modules/fontmodule_ext.cpp
     source/modules/graphics_ext.cpp
+    source/modules/imagemodule_ext.cpp
     source/modules/joystickmodule_ext.cpp
     source/modules/keyboard_ext.cpp
     source/modules/love_ext.cpp

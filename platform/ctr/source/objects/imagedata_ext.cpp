@@ -23,7 +23,7 @@ ImageData<Console::CTR>::~ImageData()
 
 void ImageData<Console::CTR>::Decode(Data* data)
 {
-    FormatHandler* decoder = nullptr;
+    FormatHandler* formatDecoder = nullptr;
     FormatHandler::DecodedImage image {};
 
     auto* module = Module::GetInstance<ImageModule>(Module::M_IMAGE);
@@ -35,13 +35,13 @@ void ImageData<Console::CTR>::Decode(Data* data)
     {
         if (handler->CanDecode(data))
         {
-            decoder = handler;
+            formatDecoder = handler;
             break;
         }
     }
 
-    if (decoder)
-        image = decoder->Decode(data);
+    if (formatDecoder)
+        image = formatDecoder->Decode(data);
 
     if (image.data == nullptr)
     {
