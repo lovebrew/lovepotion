@@ -408,6 +408,27 @@ namespace love
             return RenderState::ComputeBlendMode(this->states.back().blendState, alphaMode);
         }
 
+        PixelFormat GetSizedFormat(PixelFormat format, bool rendertarget, bool readable) const
+        {
+            uint32_t requiredFlags = 0;
+
+            if (rengertarget)
+                requiredFlags |= PIXELFORMAT_USAGE_FLAGS_RENDERTARGET;
+
+            if (readable)
+                requiredFlags |= PIXELFORMAT_USAGE_FLAGS_SAMPLE;
+
+            switch (format)
+            {
+                case PIXELFORMAT_NORMAL:
+                    return PIXELFORMAT_RGBA8_UNORM;
+                case PIXELFORMAT_HDR:
+                    return PIXELFORMAT_RGBA16_FLOAT;
+                default:
+                    return format;
+            }
+        }
+
       protected:
         std::vector<double> pixelScaleStack;
         std::vector<Matrix4<Console::Which>> transformStack;

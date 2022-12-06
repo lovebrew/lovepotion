@@ -23,7 +23,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/joystick_ext.cpp
     source/objects/rasterizer_ext.cpp
     source/objects/source_ext.cpp
+    source/objects/texture_ext.cpp
     source/objects/wrap_font_ext.cpp
+    source/objects/wrap_imagedata_ext.cpp
     source/runtime.cpp
     source/utilities/driver/dsp_ext.cpp
     source/utilities/driver/hid_ext.cpp

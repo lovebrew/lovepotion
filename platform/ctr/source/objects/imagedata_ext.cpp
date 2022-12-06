@@ -47,7 +47,7 @@ void ImageData<Console::CTR>::Decode(Data* data)
     {
         auto* fileData = (FileData*)data;
 
-        if (!fileData)
+        if (fileData)
         {
             const auto* name = fileData->GetFilename().c_str();
             throw love::Exception(

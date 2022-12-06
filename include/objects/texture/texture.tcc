@@ -8,10 +8,12 @@
 #include <common/strongreference.hpp>
 
 #include <objects/imagedata/imagedata.tcc>
+#include <objects/quad/quad.hpp>
 
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 
+#include <algorithm>
 #include <stddef.h>
 
 namespace love
@@ -27,12 +29,10 @@ namespace love
             TEXTURE_2D,
             TEXTURE_VOLUME,
             TEXTURE_2D_ARRAY,
-            TEXTUERE_CUBE
+            TEXTURE_CUBE
         };
 
         static inline Type type = Type("Texture", &Drawable::type);
-
-        static int textureCount;
 
         enum MipmapsMode
         {
@@ -162,7 +162,7 @@ namespace love
                         "At least one ImageData or CompressedImageData is required.");
                 }
 
-                if (this->textureType == TEXTUERE_CUBE && sliceCount != 6)
+                if (this->textureType == TEXTURE_CUBE && sliceCount != 6)
                     throw love::Exception("Cube textures must have exactly 6 sides.");
 
                 auto* first = this->Get(0, 0);
@@ -179,10 +179,10 @@ namespace love
                 {
                     throw love::Exception(
                         "Texture does not have all required mipmap levels (expected %d, got %d)",
-                        expectedmips, mipcount);
+                        expectedMipmaps, mipmapCount);
                 }
 
-                if (this->textureType == TEXTUERE_CUBE && width != height)
+                if (this->textureType == TEXTURE_CUBE && width != height)
                 {
                     throw love::Exception(
                         "Cube textures must have equal widths and heights for each cube face.");
@@ -202,7 +202,7 @@ namespace love
                         {
                             throw love::Exception("Invalid number of image data layers in mipmap "
                                                   "level %d (expected %d, got %d)",
-                                                  mip + 1, mipslices, slicecount);
+                                                  mipmap + 1, mipSlices, sliceCount);
                         }
                     }
 
@@ -213,7 +213,7 @@ namespace love
                         if (!sliceData)
                         {
                             throw love::Exception("Missing image data (slice %d, mipmap level %d)",
-                                                  slice + 1, mip + 1);
+                                                  slice + 1, mipmap + 1);
                         }
 
                         int realWidth  = sliceData->GetWidth();
@@ -229,14 +229,14 @@ namespace love
                         {
                             throw love::Exception("Width of image data (slice %d, mipmap level %d) "
                                                   "is incorrect (expected %d, got %d)",
-                                                  slice + 1, mip + 1, mipw, realw);
+                                                  slice + 1, mipmap + 1, mipWidth, realWidth);
                         }
 
                         if (mipHeight != realHeight)
                         {
                             throw love::Exception("Height of image data (slice %d, mipmap level "
                                                   "%d) is incorrect (expected %d, got %d)",
-                                                  slice + 1, mip + 1, miph, realh);
+                                                  slice + 1, mipmap + 1, mipHeight, realHeight);
                         }
 
                         if (format != sliceData->GetFormat())
@@ -261,11 +261,101 @@ namespace love
             VectorMipmapLayers data;
         };
 
-        static int64_t totalGraphicsMemory;
+        static inline int64_t totalGraphicsMemory = 0;
+        static inline int textureCount            = 0;
 
-        static int GetTotalMipmapCount(int width, int height, int depth)
+        Texture(Graphics<Console::Which>* graphics, const Settings& settings, const Slices* data) :
+            textureType(settings.type),
+            format(settings.format),
+            mipmapsMode(settings.mipmaps),
+            renderTarget(settings.renderTarget),
+            readable(true),
+            sRGB(!settings.linear),
+            width(settings.width),
+            height(settings.height),
+            depth(settings.type == TEXTURE_VOLUME ? settings.layers : 1),
+            layers(settings.type == TEXTURE_2D_ARRAY ? settings.layers : 1),
+            mipmapCount(1),
+            pixelWidth(0),
+            pixelHeight(0),
+            requestedMSAA(settings.msaa > 1 ? settings.msaa : 0),
+            state {},
+            graphicsMemorySize(0),
+            slices(settings.type)
         {
-            return 0;
+            if (data != nullptr && slices->GetMipmapCount() > 0 && slices->GetSliceCount() > 0)
+            {
+                this->textureType = slices->GetTexturetype();
+
+                if (requestedMSAA > 1)
+                    throw love::Exception("MSAA textures cannot be created from ImageData.");
+
+                int dataMipmaps = 1;
+                if (slices->Validate() && slices->GetMipmapCount() > 1)
+                    dataMipmaps = slices->GetMipmapCount();
+
+                const auto* slice = slices->Get(0, 0);
+                this->format      = slice->GetFormat();
+
+                if (sRGB)
+                    this->format = love::GetSRGBPixelFormat(this->format);
+
+                this->pixelWidth  = slice->GetWidth();
+                this->pixelHeight = slice->GetHeight();
+
+                if (this->textureType == TEXTURE_2D_ARRAY)
+                    this->layers = slices->GetSliceCount();
+                else if (this->textureType == TEXTURE_VOLUME)
+                    this->depth = slices->GetSliceCount();
+
+                this->width  = (int)(this->pixelWidth / settings.dpiScale + 0.5);
+                this->height = (int)(this->pixelHeight / settings.dpiScale + 0.5);
+
+                if (this->IsCompressed() && dataMipmaps <= 1)
+                    this->mipmapsMode = MIPMAPS_NONE;
+            }
+            else
+            {
+                if (this->IsCompressed())
+                    throw love::Exception("Compressed textures must be created with initial data.");
+
+                this->pixelWidth  = (int)(this->width / settings.dpiScale + 0.5);
+                this->pixelHeight = (int)(this->height / settings.dpiScale + 0.5);
+            }
+
+            if (settings.readable.has_value())
+                this->readable = settings.readable.value();
+            else
+            {
+                bool isDepthStencilFormat = love::IsPixelFormatDepthStencil(this->format);
+                this->readable            = (!this->renderTarget && !isDepthStencilFormat);
+            }
+
+            this->format = graphics->GetSizedFormat(format, this->renderTarget, this->readable);
+
+            if (this->mipmapsMode == MIPMAPS_AUTO && this->IsCompressed())
+                this->mipmapsMode = MIPMAPS_MANUAL;
+
+            if (this->mipmapsMode != MIPMAPS_NONE)
+                this->mipmapCount = Texture<>::GetTotalMipmapCount(this->pixelWidth,
+                                                                   this->pixelHeight, this->depth);
+
+            /* todo: Texture.cpp:236-298 */
+
+            this->state = graphics->GetDefaultSamplerState();
+            if (this->GetMipmapCount() == 1)
+                this->state.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
+
+            Quad::Viewport view { 0, 0, (double)this->width, (double)this->height };
+            this->quad.Set(new Quad(view, this->width, this->heightm), Acquire::NORETAIN);
+
+            ++textureCount;
+        }
+
+        ~Texture()
+        {
+            --textureCount;
+            this->SetGraphicsMemorySize(0);
         }
 
         MipmapsMode GetMipmapsMode() const
@@ -339,7 +429,7 @@ namespace love
             {
                 case TEXTURE_2D:
                     return 1;
-                case TEXTUERE_CUBE:
+                case TEXTURE_CUBE:
                     return 6;
                 case TEXTURE_2D_ARRAY:
                     return this->layers;
@@ -352,19 +442,67 @@ namespace love
             return 1;
         }
 
+        bool IsReadable() const
+        {
+            return this->readable;
+        }
+
+        bool IsRenderTarget() const
+        {
+            return this->renderTarget;
+        }
+
         bool IsValidSlice(int slice, int mipmap) const
         {
             return slice >= 0 && slice < this->GetSlicecount(mipmap);
         }
+
+        void SetSamplerState(const SamplerState& state)
+        {
+            if (!this->readable)
+                return;
+
+            this->state = state;
+
+            if (this->state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE &&
+                this->GetMipmapCount() == 1)
+            {
+                this->state.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
+            }
+        }
+
+        static int GetTotalMipmapCount(int width, int height)
+        {
+            return std::log2(std::max(width, height)) + 1;
+        }
+
+        static int GetTotalMipmapCount(int width, int height, int depth)
+        {
+            return std::log2(std::max(std::max(width, height), depth)) + 1;
+        }
+
+        const SamplerState& GetSamplerState() const
+        {
+            return this->state;
+        }
+
+        Quad* GetQuad() const
+        {
+            return this->quad;
+        }
+
+        virtual void Draw(Graphics<Console::Which>& graphics, Quad* quad,
+                          const Matrix4<Console::Which>& transform) = 0;
+
         // clang-format off
         static constexpr BidirectionalMap textureTypes = {
             "2d",     TEXTURE_2D,
             "volume", TEXTURE_VOLUME,
             "array",  TEXTURE_2D_ARRAY,
-            "cube",   TEXTUERE_CUBE
+            "cube",   TEXTURE_CUBE
         };
 
-        static constexpr BidirectionalMap mipmapsMode = {
+        static constexpr BidirectionalMap mipmapModes = {
             "none",   MIPMAPS_NONE,
             "manual", MIPMAPS_MANUAL,
             "auto",   MIPMAPS_AUTO
@@ -387,12 +525,26 @@ namespace love
         // clang-format on
 
       protected:
-        void SetGraphicsMemorySize(int64_t size);
+        void CreateTexture()
+        {
+            this->SetSamplerState(this->state);
+        }
+
+        void SetGraphicsMemorySize(int64_t bytes)
+        {
+            totalGraphicsMemory =
+                std::max<int64_t>(totalGraphicsMemory - this->graphicsMemorySize, 0);
+
+            bytes                    = std::max<int64_t>(bytes, 0);
+            this->graphicsMemorySize = bytes;
+
+            totalGraphicsMemory += bytes;
+        }
 
         bool ValidateDimensions(bool throwException) const;
 
-        PixelFormat format;
         TextureType textureType;
+        PixelFormat format;
         MipmapsMode mipmapsMode;
 
         bool renderTarget;
@@ -412,6 +564,8 @@ namespace love
         int requestedMSAA;
         SamplerState state;
 
+        StrongReference<Quad> quad;
         int64_t graphicsMemorySize;
+        Slices slices;
     };
 } // namespace love

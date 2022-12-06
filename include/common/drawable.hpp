@@ -5,7 +5,7 @@
 
 namespace love
 {
-    template<Console::Platform T = Console::ALL>
+    template<Console::Platform T>
     class Graphics;
 
     class Drawable : public Object
@@ -16,7 +16,7 @@ namespace love
         virtual ~Drawable()
         {}
 
-        virtual void Draw(Graphics<Console::Which>* graphics,
+        virtual void Draw(Graphics<Console::Which>& graphics,
                           const Matrix4<Console::Which>& matrix) = 0;
     };
 } // namespace love

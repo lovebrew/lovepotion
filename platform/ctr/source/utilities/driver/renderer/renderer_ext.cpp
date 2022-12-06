@@ -3,6 +3,8 @@
 #include <common/exception.hpp>
 #include <common/luax.hpp>
 
+#include <objects/texture_ext.hpp>
+
 #include <modules/graphics_ext.hpp>
 
 using namespace love;
@@ -163,8 +165,8 @@ void Renderer<Console::CTR>::SetVertexWinding(Vertex::Winding winding)
 {}
 
 /* todo -- need Texture */
-// void Renderer<Console::CTR>::SetSamplerState(Texture* texture, SamplerState& state)
-// {}
+void Renderer<Console::CTR>::SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state)
+{}
 
 /* todo */
 void Renderer<Console::CTR>::SetColorMask(const RenderState::ColorMask& mask)

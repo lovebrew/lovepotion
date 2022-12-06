@@ -79,7 +79,7 @@ namespace love
 
         void SetVertexWinding(Vertex::Winding winding);
 
-        void SetSamplerState(Texture* texture, SamplerState& state);
+        void SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state);
 
         void SetColorMask(const RenderState::ColorMask& mask);
 

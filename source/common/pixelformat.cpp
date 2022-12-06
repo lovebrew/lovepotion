@@ -214,8 +214,8 @@ namespace love
 
         if (Console::Is(Console::CTR))
         {
-            width  = NextPo2(width + 2);
-            height = NextPo2(height + 2);
+            width  = NextPo2(width);
+            height = NextPo2(height);
         }
 
         size_t blockWidth  = (width + info.blockWidth - 1) / info.blockWidth;

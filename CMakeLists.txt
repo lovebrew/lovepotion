@@ -439,6 +439,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/glyphdata/wrap_glyphdata.cpp
     source/objects/imagedata/wrap_imagedata.cpp
     source/objects/joystick/wrap_joystick.cpp
+    source/objects/quad/quad.cpp
+    source/objects/quad/wrap_quad.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
     source/objects/thread/luathread.cpp

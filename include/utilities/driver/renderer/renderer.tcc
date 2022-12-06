@@ -8,6 +8,8 @@
 namespace love
 {
     class Canvas;
+
+    template<Console::Platform T>
     class Texture;
 
     enum class Screen : uint8_t;
