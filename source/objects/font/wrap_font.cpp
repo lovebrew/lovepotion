@@ -112,11 +112,11 @@ int Wrap_Font::SetFilter(lua_State* L)
     std::optional<SamplerState::FilterMode> minOpt;
     std::optional<SamplerState::FilterMode> magOpt;
 
-    if (!(minOpt = filterModes.Find(min)))
-        return luax::EnumError(L, "filter mode", filterModes.GetNames(), min);
+    if (!(minOpt = SamplerState::filterModes.Find(min)))
+        return luax::EnumError(L, "filter mode", SamplerState::filterModes.GetNames(), min);
 
-    if (!(magOpt = filterModes.Find(mag)))
-        return luax::EnumError(L, "filter mode", filterModes.GetNames(), mag);
+    if (!(magOpt = SamplerState::filterModes.Find(mag)))
+        return luax::EnumError(L, "filter mode", SamplerState::filterModes.GetNames(), mag);
 
     int maxAnisotropy   = luaL_optnumber(L, 4, 1.0f);
     state.maxAnisotropy = std::clamp<int>(maxAnisotropy, 1, std::numeric_limits<uint8_t>::max());
@@ -134,8 +134,8 @@ int Wrap_Font::GetFilter(lua_State* L)
     std::optional<const char*> min;
     std::optional<const char*> mag;
 
-    min = love::filterModes.ReverseFind(state.minFilter);
-    mag = love::filterModes.ReverseFind(state.magFilter);
+    min = SamplerState::filterModes.ReverseFind(state.minFilter);
+    mag = SamplerState::filterModes.ReverseFind(state.magFilter);
 
     lua_pushstring(L, *min);
     lua_pushstring(L, *mag);

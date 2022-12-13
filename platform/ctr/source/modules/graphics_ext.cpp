@@ -2,6 +2,7 @@
 
 #include <objects/font_ext.hpp>
 #include <objects/rasterizer_ext.hpp>
+#include <objects/texture_ext.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
 
@@ -52,12 +53,12 @@ void Graphics<Console::CTR>::Present()
     ::Renderer::Instance().Present();
 }
 
-Font<Console::CTR>* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data)
+Font<Console::CTR>* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
 {
     return new Font<Console::CTR>(data, this->states.back().defaultSamplerState);
 }
 
-Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size, CFG_Region region)
+Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size, CFG_Region region) const
 {
     auto fontModule = Module::GetInstance<FontModule<Console::CTR>>(M_FONT);
 
@@ -68,6 +69,12 @@ Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size, CFG_Region 
         fontModule->NewBCFNTRasterizer(size, region), Acquire::NORETAIN);
 
     return this->NewFont(rasterizer.Get());
+}
+
+Texture<Console::CTR>* Graphics<Console::CTR>::NewTexture(const Texture<>::Settings& settings,
+                                                          const Texture<>::Slices* slices) const
+{
+    return new Texture<Console::CTR>(this, settings, slices);
 }
 
 void Graphics<Console::CTR>::CheckSetDefaultFont()

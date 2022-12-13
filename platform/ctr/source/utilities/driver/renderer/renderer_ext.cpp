@@ -164,9 +164,34 @@ void Renderer<Console::CTR>::SetMeshCullMode(Vertex::CullMode mode)
 void Renderer<Console::CTR>::SetVertexWinding(Vertex::Winding winding)
 {}
 
-/* todo -- need Texture */
 void Renderer<Console::CTR>::SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state)
-{}
+{
+    /* set the min and mag filters */
+
+    auto* handle = texture->GetHandle();
+
+    std::optional<GPU_TEXTURE_FILTER_PARAM> mag;
+    if (!(mag = Renderer::filterModes.Find(state.magFilter)))
+        return;
+
+    std::optional<GPU_TEXTURE_FILTER_PARAM> min;
+    if (!(min = Renderer::filterModes.Find(state.minFilter)))
+        return;
+
+    C3D_TexSetFilter(handle, *mag, *min);
+
+    /* set the wrapping modes */
+
+    std::optional<GPU_TEXTURE_WRAP_PARAM> wrapU;
+    if (!(wrapU = Renderer::wrapModes.Find(state.wrapU)))
+        return;
+
+    std::optional<GPU_TEXTURE_WRAP_PARAM> wrapV;
+    if (!(wrapV = Renderer::wrapModes.Find(state.wrapV)))
+        return;
+
+    C3D_TexSetWrap(handle, *wrapU, *wrapV);
+}
 
 /* todo */
 void Renderer<Console::CTR>::SetColorMask(const RenderState::ColorMask& mask)

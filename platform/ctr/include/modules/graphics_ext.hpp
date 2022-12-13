@@ -20,11 +20,14 @@ namespace love
 
         void CheckSetDefaultFont();
 
-        Font<Console::CTR>* NewFont(Rasterizer<Console::CTR>* data);
+        Font<Console::CTR>* NewFont(Rasterizer<Console::CTR>* data) const;
 
-        Font<Console::CTR>* NewDefaultFont(int size, CFG_Region region);
+        Font<Console::CTR>* NewDefaultFont(int size, CFG_Region region) const;
 
         Font<Console::CTR>* GetFont();
+
+        Texture<Console::CTR>* NewTexture(const Texture<>::Settings& settings,
+                                          const Texture<>::Slices* slices = nullptr) const;
 
         void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::CTR>& matrix);
 

@@ -9,10 +9,11 @@ namespace love
     // clang-format off
     static constexpr PixelFormatInfo formatInfo[] =
     {
-        /* components, blockW, blockH, blockSize, color, depth, stencil, compressed, sRGB dataType */
+        /* components, blockW, blockH, blockSize, color, depth, stencil, compressed, sRGB, dataType */
         { 0, 1, 1, 0, false, false, false, false, false, PIXELFORMAT_TYPE_UNORM }, // PIXELFORMAT_UNKNOWN
 
-        { 0, 1, 1, 0, true,  false, false, false, false, PIXELFORMAT_TYPE_UNORM }, // PIXELFORMAT_NORMAL
+        { 0, 1, 1, 0, true,  false, false, false, false, PIXELFORMAT_TYPE_UNORM  }, // PIXELFORMAT_NORMAL
+        { 0, 1, 1, 0, true,  false, false, false, false, PIXELFORMAT_TYPE_SFLOAT }, // PIXELFORMAT_HDR
 
         { 1, 1, 1, 1, true, false, false, false, false, PIXELFORMAT_TYPE_UNORM  }, // PIXELFORMAT_R8_UNORM
         { 1, 1, 1, 1, true, false, false, false, false, PIXELFORMAT_TYPE_SINT   }, // PIXELFORMAT_R8_INT
@@ -208,11 +209,11 @@ namespace love
         return (height + info.blockHeight - 1) / info.blockHeight;
     }
 
-    size_t GetPixelFormatSliceSize(PixelFormat format, int width, int height)
+    size_t GetPixelFormatSliceSize(PixelFormat format, int width, int height, bool needPowerOfTwo)
     {
         const PixelFormatInfo& info = formatInfo[format];
 
-        if (Console::Is(Console::CTR))
+        if (Console::Is(Console::CTR) && needPowerOfTwo)
         {
             width  = NextPo2(width);
             height = NextPo2(height);

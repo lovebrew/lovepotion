@@ -104,6 +104,7 @@ namespace love
             "justify", ALIGN_JUSTIFY
         };
         // clang-format on
+
       protected:
         float lineHeight;
         float height;

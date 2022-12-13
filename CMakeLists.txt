@@ -443,6 +443,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/quad/wrap_quad.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
+    source/objects/texture/wrap_texture.cpp
     source/objects/thread/luathread.cpp
     source/objects/thread/wrap_luathread.cpp
     source/utilities/base64.cpp

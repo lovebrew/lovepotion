@@ -52,33 +52,33 @@ namespace love
         std::optional<RenderState::CompareMode> depthSampleMode;
 
         uint8_t minLod = 0;
-        uint8_t maxLod = std::numeric_limits<uint8_t>::max();
+        uint8_t maxLod = LOVE_UINT8_MAX;
 
         uint64_t ToKey() const;
 
         static SamplerState FromKey(uint64_t);
 
         static bool IsClampZeroOrOne(WrapMode wrap);
-    };
 
-    // clang-format off
-    static constexpr BidirectionalMap filterModes = {
-        "linear",  SamplerState::FILTER_LINEAR,
-        "nearest", SamplerState::FILTER_NEAREST
-    };
+        // clang-format off
+        static constexpr BidirectionalMap filterModes = {
+            "nearest", SamplerState::FILTER_NEAREST,
+            "linear",  SamplerState::FILTER_LINEAR
+        };
 
-    static constexpr BidirectionalMap wrapModes = {
-        "clamp",          SamplerState::WRAP_CLAMP,
-        "repeat",         SamplerState::WRAP_REPEAT,
-        "clampzero",      SamplerState::WRAP_CLAMP_ZERO,
-        "clampone",       SamplerState::WRAP_CLAMP_ONE,
-        "mirroredrepeat", SamplerState::WRAP_MIRRORED_REPEAT
-    };
+        static constexpr BidirectionalMap wrapModes = {
+            "clamp",          SamplerState::WRAP_CLAMP,
+            "repeat",         SamplerState::WRAP_REPEAT,
+            "clampzero",      SamplerState::WRAP_CLAMP_ZERO,
+            "clampone",       SamplerState::WRAP_CLAMP_ONE,
+            "mirroredrepeat", SamplerState::WRAP_MIRRORED_REPEAT
+        };
 
-    static constexpr BidirectionalMap mipMapFilterModes = {
-        "none",    SamplerState::MIPMAP_FILTER_NONE,
-        "linear",  SamplerState::MIPMAP_FILTER_LINEAR,
-        "nearest", SamplerState::MIPMAP_FILTER_NEAREST
+        static constexpr BidirectionalMap mipMapFilterModes = {
+            "none",    SamplerState::MIPMAP_FILTER_NONE,
+            "linear",  SamplerState::MIPMAP_FILTER_LINEAR,
+            "nearest", SamplerState::MIPMAP_FILTER_NEAREST
+        };
+        // clang-format on
     };
-    // clang-format on
 } // namespace love

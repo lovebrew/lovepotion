@@ -12,6 +12,7 @@ namespace love
         PIXELFORMAT_UNKNOWN,
 
         PIXELFORMAT_NORMAL,
+        PIXELFORMAT_HDR,
 
         /* single channel */
         PIXELFORMAT_R8_UNORM,
@@ -204,7 +205,8 @@ namespace love
 
     size_t GetPixelFormatCompressedBlockRowCount(PixelFormat format, int height);
 
-    size_t GetPixelFormatSliceSize(PixelFormat format, int width, int height);
+    size_t GetPixelFormatSliceSize(PixelFormat format, int width, int height,
+                                   bool needPowerOfTwo = true);
 
     size_t GetPixelFormatColorComponents(PixelFormat format);
 

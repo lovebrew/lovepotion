@@ -125,6 +125,8 @@ namespace Wrap_Graphics
 
     int GetFont(lua_State* L);
 
+    int NewTexture(lua_State* L);
+
     int Print(lua_State* L);
 
     int Printf(lua_State* L);

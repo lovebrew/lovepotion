@@ -19,8 +19,6 @@ bool T3XHandler::CanDecode(Data* data)
         return false;
     else if (header.type != GPU_TEX_2D)
         return false;
-    else if (header.mipmapLevels != 0)
-        return false;
 
     return true;
 }
@@ -32,6 +30,7 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
 
     if (header.numSubTextures != 1)
         throw love::Exception("t3x does not contain exactly one subtexture");
+
     if (header.type != GPU_TEX_2D)
         throw love::Exception("t3x texture type is not GPU_TEX_2D");
 

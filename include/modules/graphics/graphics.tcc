@@ -9,6 +9,7 @@
 #include <common/matrix_ext.hpp>
 
 #include <objects/font/font.tcc>
+#include <objects/texture/texture.tcc>
 
 #include <utilities/driver/renderer/renderer.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
@@ -161,7 +162,7 @@ namespace love
             this->states.back().font = font;
         }
 
-        Font<Console::CTR>* GetFont()
+        Font<Console::Which>* GetFont()
         {
             return this->states.back().font;
         }
@@ -412,7 +413,7 @@ namespace love
         {
             uint32_t requiredFlags = 0;
 
-            if (rengertarget)
+            if (rendertarget)
                 requiredFlags |= PIXELFORMAT_USAGE_FLAGS_RENDERTARGET;
 
             if (readable)

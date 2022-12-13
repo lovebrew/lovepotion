@@ -58,10 +58,10 @@ void ImageData<Console::CTR>::Decode(Data* data)
                 "Could not decode data to ImageData: unsupported encoded format.");
     }
 
-    const auto expectedSize =
-        love::GetPixelFormatSliceSize(image.format, image.width, image.height);
+    const auto expected =
+        love::GetPixelFormatSliceSize(image.format, image.width, image.height, false);
 
-    if (image.size != expectedSize)
+    if (image.size != expected)
     {
         decoder->FreeRawPixels(image.data);
         throw love::Exception("Could not decode image!");
@@ -105,6 +105,12 @@ void ImageData<Console::CTR>::Paste(ImageData* sourceData, int x, int y, Rect& p
 {
     PixelFormat sourceFormat = sourceData->GetFormat();
     PixelFormat destFormat   = this->GetFormat();
+
+    bool sourceRGBA8 = (sourceFormat == PIXELFORMAT_RGBA8_UNORM);
+    bool destRGBA8   = (destFormat == PIXELFORMAT_RGBA8_UNORM);
+
+    if (sourceFormat != destFormat || (!sourceRGBA8 && !destRGBA8))
+        return;
 
     int sourceWidth  = sourceData->GetWidth();
     int sourceHeight = sourceData->GetHeight();
@@ -207,8 +213,12 @@ void ImageData<Console::CTR>::GetPixel(int x, int y, Color& color)
     if (!this->Inside(x, y))
         throw love::Exception("Attempt to get out-of-range pixel!");
 
-    size_t pixelSize   = this->GetPixelSize();
-    const Pixel* pixel = (const Pixel*)(this->data.get() + ((y * this->width + x) * pixelSize));
+    size_t pixelSize = this->GetPixelSize();
+
+    const auto _width = NextPo2(this->width);
+    const auto index  = coordToIndex(_width, x, y);
+
+    const Pixel* pixel = (const Pixel*)((uint32_t*)this->data.get() + index);
 
     if (this->pixelGetFunction == nullptr)
         throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", format);
@@ -223,7 +233,11 @@ void ImageData<Console::CTR>::SetPixel(int x, int y, const Color& color)
         throw love::Exception("Attempt to set out-of-range pixel!");
 
     size_t pixelSize = this->GetPixelSize();
-    Pixel* pixel     = (Pixel*)(this->data.get() + ((y * this->width + x) * pixelSize));
+
+    const auto _width = NextPo2(this->width);
+    const auto index  = coordToIndex(_width, x, y);
+
+    Pixel* pixel = (Pixel*)((uint32_t*)this->data.get() + index);
 
     if (this->pixelSetFunction == nullptr)
         throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", this->format);

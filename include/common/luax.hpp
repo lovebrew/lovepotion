@@ -1,6 +1,7 @@
 #pragma once
 
 #include <common/type.hpp>
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 extern "C"
 {
@@ -311,6 +312,12 @@ namespace luax
 
         return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value,
                           enums.c_str());
+    }
+
+    template<class T>
+    int EnumError(lua_State* L, const char* enumName, const T& map, const char* value)
+    {
+        return EnumError(L, enumName, map.GetNames(), value);
     }
 
     int Traceback(lua_State* L);

@@ -59,6 +59,19 @@ namespace love
             BLENDOP_MAX_ENUM
         };
 
+        enum StencilAction
+        {
+            STENCIL_KEEP,
+            STENCIL_ZERO,
+            STENCIL_REPLACE,
+            STENCIL_INCREMENT,
+            STENCIL_DECREMENT,
+            STENCIL_INCREMENT_WRAP,
+            STENCIL_DECREMENT_WRAP,
+            STENCIL_INVERT,
+            STENCIL_MAX_ENUM
+        };
+
         enum CompareMode
         {
             COMPARE_LESS,
@@ -160,6 +173,28 @@ namespace love
         bool IsAlphaMultiplyBlendSupported(BlendMode mode);
 
         // clang-format off
+        static constexpr BidirectionalMap compareModes = {
+            "less",     COMPARE_LESS,
+            "lequal",   COMPARE_LEQUAL,
+            "equal",    COMPARE_EQUAL,
+            "gequal",   COMPARE_GEQUAL,
+            "greater",  COMPARE_GREATER,
+            "notequal", COMPARE_NOTEQUAL,
+            "always",   COMPARE_ALWAYS,
+            "never",    COMPARE_NEVER
+        };
+
+        static constexpr BidirectionalMap stencilActions = {
+            "keep",          STENCIL_KEEP,
+            "zero",          STENCIL_ZERO,
+            "replace",       STENCIL_REPLACE,
+            "increment",     STENCIL_INCREMENT,
+            "decrement",     STENCIL_DECREMENT,
+            "incrementwrap", STENCIL_INCREMENT_WRAP,
+            "decrementwrap", STENCIL_DECREMENT_WRAP,
+            "invert",        STENCIL_INVERT
+        };
+
         static constexpr BidirectionalMap blendModes = {
             "alpha",    BLEND_ALPHA,
             "add",      BLEND_ADD,

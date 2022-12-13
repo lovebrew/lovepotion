@@ -10,7 +10,8 @@ namespace love
     class Texture<Console::CTR> : public Texture<Console::ALL>
     {
       public:
-        Texture(Graphics<Console::CTR>* graphics, const Settings& settings, const Slices* data);
+        Texture(const Graphics<Console::CTR>* graphics, const Settings& settings,
+                const Slices* data);
 
         virtual ~Texture();
 
@@ -26,9 +27,28 @@ namespace love
         void ReplacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
                            bool reloadMipmaps);
 
+        void SetSamplerState(const SamplerState& state);
+
+        void GenerateMipmaps()
+        {}
+
         bool LoadVolatile();
 
         void UnloadVolatile();
+
+        C3D_Tex* GetHandle()
+        {
+            return this->image.tex;
+        }
+
+        C3D_RenderTarget* GetRenderTargetHandle() const
+        {
+            if (this->renderTarget)
+                return this->framebuffer;
+
+            /* shouldn't happen */
+            return nullptr;
+        }
 
       private:
         void CreateTexture();

@@ -4,6 +4,7 @@
 
 #include <objects/font/wrap_font.hpp>
 #include <objects/rasterizer/wrap_rasterizer.hpp>
+#include <objects/texture/wrap_texture.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
 
@@ -405,6 +406,11 @@ int Wrap_Graphics::Printf(lua_State* L)
     return 0;
 }
 
+/* todo */
+static int pushNewTexture(lua_State* L, Texture<>::Slices* slices,
+                          const Texture<>::Settings& settings)
+{}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -433,6 +439,7 @@ static constexpr luaL_Reg functions[] =
 static constexpr lua_CFunction types[] =
 {
     Wrap_Font::Register,
+    Wrap_Texture::Register,
     nullptr
 };
 // clang-format on
