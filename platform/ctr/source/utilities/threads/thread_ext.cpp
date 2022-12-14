@@ -35,7 +35,7 @@ namespace love
 
         metadata.stack_size = 0x4000;
         metadata.prio       = priority - 1;
-        metadata.core_id    = 0x01;
+        metadata.core_id    = 0x0;
 
         this->thread = love::thread(metadata, &Thread<Console::CTR>::Runner, this);
 

@@ -7,7 +7,7 @@ using Texture = love::Texture<Console::Which>;
 
 ::Texture* Wrap_Texture::CheckTexture(lua_State* L, int index)
 {
-    return luax::CheckType<::Texture>(L, 1);
+    return luax::CheckType<::Texture>(L, index);
 }
 
 static int luax_optMipmap(lua_State* L, ::Texture* texture, int index)

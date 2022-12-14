@@ -11,6 +11,8 @@
 #include <objects/font/font.tcc>
 #include <objects/texture/texture.tcc>
 
+#include <objects/quad/quad.hpp>
+
 #include <utilities/driver/renderer/renderer.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -428,6 +430,11 @@ namespace love
                 default:
                     return format;
             }
+        }
+
+        Quad* NewQuad(const Quad::Viewport& viewport, double sourceWidth, double sourceHeight) const
+        {
+            return new Quad(viewport, sourceWidth, sourceHeight);
         }
 
       protected:

@@ -2,6 +2,8 @@
 
 using namespace love;
 
+#include <utilities/log/logfile.h>
+
 Audio::Audio()
 {
     DSP<Console::Which>::Instance().Initialize();
@@ -16,7 +18,8 @@ Audio::Audio()
     }
 
     this->thread = new PoolThread(this->pool);
-    this->thread->Start();
+    bool started = this->thread->Start();
+    LOG("Audio Thread: %d", started);
 }
 
 Audio::~Audio()

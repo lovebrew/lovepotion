@@ -174,8 +174,8 @@ void ImageData<Console::CTR>::Paste(ImageData* sourceData, int x, int y, Rect& p
     std::unique_lock lockTwo(sourceData->mutex);
     std::unique_lock lockOne(this->mutex);
 
-    uint8_t* source      = (uint8_t*)sourceData->GetData();
-    uint8_t* destination = (uint8_t*)this->GetData();
+    uint32_t* source      = (uint32_t*)sourceData->GetData();
+    uint32_t* destination = (uint32_t*)this->GetData();
 
     const auto getFunction = sourceData->pixelGetFunction;
     const auto setFunction = this->pixelSetFunction;
@@ -192,10 +192,10 @@ void ImageData<Console::CTR>::Paste(ImageData* sourceData, int x, int y, Rect& p
 
             Color color {};
 
-            const Pixel* srcPixel = reinterpret_cast<const Pixel*>((uint32_t*)source + srcIndex);
+            const Pixel* srcPixel = reinterpret_cast<const Pixel*>(source + srcIndex);
             getFunction(srcPixel, color);
 
-            Pixel* dstPixel = reinterpret_cast<Pixel*>((uint32_t*)this->data.get() + dstIndex);
+            Pixel* dstPixel = reinterpret_cast<Pixel*>(destination + dstIndex);
             setFunction(color, dstPixel);
         }
     }

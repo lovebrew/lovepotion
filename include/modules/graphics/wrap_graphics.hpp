@@ -129,6 +129,8 @@ namespace Wrap_Graphics
 
     int NewTexture(lua_State* L);
 
+    int NewQuad(lua_State* L);
+
     int Print(lua_State* L);
 
     int Printf(lua_State* L);

@@ -7,6 +7,7 @@
 
 #include <objects/font/wrap_font.hpp>
 #include <objects/imagedata/wrap_imagedata.hpp>
+#include <objects/quad/wrap_quad.hpp>
 #include <objects/rasterizer/wrap_rasterizer.hpp>
 #include <objects/texture/wrap_texture.hpp>
 
@@ -231,7 +232,7 @@ int Wrap_Graphics::GetDimensions(lua_State* L)
     lua_pushinteger(L, instance()->GetWidth(*screen));
     lua_pushinteger(L, instance()->GetHeight());
 
-    return 1;
+    return 2;
 }
 
 int Wrap_Graphics::IsActive(lua_State* L)
@@ -613,7 +614,7 @@ int Wrap_Graphics::Draw(lua_State* L)
             if (texture && quad)
                 instance()->Draw(texture, quad, matrix);
             else
-                instance()->Draw(texture, matrix);
+                instance()->Draw(drawable, matrix);
         });
     });
     // clang-format on
@@ -684,10 +685,63 @@ int Wrap_Graphics::NewTexture(lua_State* L)
     return pushNewTexture(L, slicesReference, settings);
 }
 
+int Wrap_Graphics::NewQuad(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    Quad::Viewport viewport {};
+
+    viewport.x = luaL_checknumber(L, 1);
+    viewport.y = luaL_checknumber(L, 2);
+    viewport.w = luaL_checknumber(L, 3);
+    viewport.h = luaL_checknumber(L, 4);
+
+    double sourceWidth  = 0.0;
+    double sourceHeight = 0.0;
+    int layer           = 0;
+
+    if (luax::IsType(L, 5, Texture<>::type))
+    {
+        auto* texture = Wrap_Texture::CheckTexture(L, 5);
+
+        sourceWidth  = texture->GetWidth();
+        sourceHeight = texture->GetHeight();
+    }
+    else if (luax::IsType(L, 6, Texture<>::type))
+    {
+        layer         = luaL_checkinteger(L, 5) - 1;
+        auto* texture = Wrap_Texture::CheckTexture(L, 6);
+
+        sourceWidth  = texture->GetWidth();
+        sourceHeight = texture->GetHeight();
+    }
+    else if (!lua_isnoneornil(L, 7))
+    {
+        layer = luaL_checkinteger(L, 5) - 1;
+
+        sourceWidth  = luaL_checknumber(L, 6);
+        sourceHeight = luaL_checknumber(L, 7);
+    }
+    else
+    {
+        sourceWidth  = luaL_checknumber(L, 5);
+        sourceHeight = luaL_checknumber(L, 6);
+    }
+
+    auto* quad = instance()->NewQuad(viewport, sourceWidth, sourceHeight);
+    quad->SetLayer(layer);
+
+    luax::PushType(L, quad);
+    quad->Release();
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
     { "clear",              Wrap_Graphics::Clear              },
+    { "draw",               Wrap_Graphics::Draw               },
     { "isActive",           Wrap_Graphics::IsActive           },
     { "isCreated",          Wrap_Graphics::IsCreated          },
     { "origin",             Wrap_Graphics::Origin             },
@@ -704,6 +758,7 @@ static constexpr luaL_Reg functions[] =
     { "getHeight",          Wrap_Graphics::GetHeight          },
     { "getDimensions",      Wrap_Graphics::GetDimensions      },
     { "newFont",            Wrap_Graphics::NewFont            },
+    { "newQuad",            Wrap_Graphics::NewQuad            },
     { "newTexture",         Wrap_Graphics::NewTexture         },
     { "setFont",            Wrap_Graphics::SetFont            },
     { "getFont",            Wrap_Graphics::GetFont            },
@@ -714,6 +769,7 @@ static constexpr lua_CFunction types[] =
 {
     Wrap_Font::Register,
     Wrap_Texture::Register,
+    Wrap_Quad::Register,
     nullptr
 };
 // clang-format on

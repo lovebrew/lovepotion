@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <stddef.h>
 
+#include <utilities/log/logfile.h>
+
 namespace love
 {
     using VectorMipmapLayers = std::vector<std::vector<StrongReference<ImageData<Console::Which>>>>;
@@ -289,7 +291,7 @@ namespace love
             mipmapMode(settings.mipmaps),
             renderTarget(settings.renderTarget),
             readable(true),
-            sRGB(!settings.linear),
+            sRGB(false),
             width(settings.width),
             height(settings.height),
             depth(settings.type == TEXTURE_VOLUME ? settings.layers : 1),
@@ -316,6 +318,7 @@ namespace love
 
                 const auto* slice = data->Get(0, 0);
                 this->format      = slice->GetFormat();
+                LOG("Slice::PixelFormat: %d", slice->GetFormat());
 
                 if (sRGB)
                     this->format = love::GetSRGBPixelFormat(this->format);
@@ -378,7 +381,7 @@ namespace love
             return love::IsPixelFormatCompressed(this->format);
         }
 
-        int GetWidth(int mipmap) const
+        int GetWidth(int mipmap = 0) const
         {
             return std::max(this->width >> mipmap, 1);
         }
@@ -388,12 +391,12 @@ namespace love
             return !this->sRGB && !love::IsPixelFormatSRGB(this->format);
         }
 
-        int GetHeight(int mipmap) const
+        int GetHeight(int mipmap = 0) const
         {
             return std::max(this->height >> mipmap, 1);
         }
 
-        int GetDepth(int mipmap) const
+        int GetDepth(int mipmap = 0) const
         {
             return std::max(this->depth >> mipmap, 1);
         }
@@ -408,12 +411,12 @@ namespace love
             return this->mipmapCount;
         }
 
-        int GetPixelWidth(int mipmap) const
+        int GetPixelWidth(int mipmap = 0) const
         {
             return std::max(this->pixelWidth >> mipmap, 1);
         }
 
-        int GetPixelHeight(int mipmap) const
+        int GetPixelHeight(int mipmap = 0) const
         {
             return std::max(this->pixelHeight >> mipmap, 1);
         }

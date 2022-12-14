@@ -36,9 +36,9 @@ Decoder* Sound::NewDecoder(Stream* stream, int bufferSize)
     std::vector<DecoderImpl> possibleDecoders =
     {
         DecoderImplFor<WaveDecoder>(),
-        DecoderImplFor<FLACDecoder>(),
         DecoderImplFor<VorbisDecoder>(),
         DecoderImplFor<MP3Decoder>(),
+        DecoderImplFor<FLACDecoder>(),
         DecoderImplFor<ModPlugDecoder>()
     };
     // clang-format on

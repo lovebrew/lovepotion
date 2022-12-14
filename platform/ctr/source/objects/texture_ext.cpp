@@ -10,6 +10,8 @@ static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture,
     const auto _width  = NextPo2(width);
     const auto _height = NextPo2(height);
 
+    texture = new C3D_Tex();
+
     if (!C3D_TexInitVRAM(texture, _width, _height, GPU_RGBA8))
         throw love::Exception("Failed to create framebuffer Texture");
 
@@ -21,6 +23,8 @@ static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t 
 {
     const auto _width  = NextPo2(width);
     const auto _height = NextPo2(height);
+
+    texture = new C3D_Tex();
 
     std::optional<GPU_TEXCOLOR> color;
     if (!(color = Renderer<Console::CTR>::pixelFormats.Find(format)))
@@ -118,6 +122,8 @@ void Texture<Console::CTR>::UnloadVolatile()
     {
         C3D_RenderTargetDelete(this->framebuffer);
         C3D_TexDelete(this->image.tex);
+
+        delete this->image.tex;
     }
     else
     {
@@ -168,7 +174,52 @@ void Texture<Console::CTR>::CreateTexture()
 /* todo */
 void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int slice, int mipmap,
                                           int x, int y, bool reloadMipmaps)
-{}
+{
+    if (!this->IsReadable())
+        throw love::Exception("replacePixels can only be called on a readable Texture.");
+
+    if (this->GetMSAA() > 1)
+        throw love::Exception("replacePixels cannot be called on a MSAA Texture.");
+
+    auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
+    // if (graphics == nullptr && graphics->IsRenderTargetActive(this))
+    //     throw love::Exception(
+    //         "replacePixels cannot be called on this Texture while it's an active render
+    //         target.");
+
+    if (this->GetHandle() == nullptr)
+        return;
+
+    if (data->GetFormat() != this->GetPixelFormat())
+        throw love::Exception("Pixel formats must match.");
+
+    if (mipmap < 0 || mipmap >= this->GetMipmapCount())
+        throw love::Exception("Invalid Texture mipmap index: %d", mipmap + 1);
+
+    // clang-format off
+    bool isInvalidCubeslice   = this->textureType == TEXTURE_CUBE && slice >= 6;
+    bool isInvalidVolumeSlice = this->textureType == TEXTURE_VOLUME && slice >= this->GetDepth(mipmap);
+    bool isInvalidArraySlice  = this->textureType == TEXTURE_2D_ARRAY && slice >= this->GetLayerCount();
+    // clang-format on
+
+    if (slice < 0 || isInvalidCubeslice || isInvalidVolumeSlice || isInvalidArraySlice)
+        throw love::Exception("Invalid texture slice index %d.", slice + 1);
+
+    Rect rect = { x, y, data->GetWidth(), data->GetHeight() };
+
+    int mipWidth  = this->GetPixelWidth(mipmap);
+    int mipHeight = this->GetPixelHeight(mipmap);
+
+    if (rect.x < 0 || rect.y < 0 || rect.w <= 0 || rect.h <= 0 || (rect.x + rect.w) > mipWidth ||
+        (rect.y + rect.h) > mipHeight)
+    {
+        throw love::Exception(
+            "Invalid rectangle dimensions (x = %d, y = %d, w = %d, h = %d) for a %dx%d Texture.",
+            rect.x, rect.y, rect.w, rect.h, mipWidth, mipHeight);
+    }
+
+    this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rect, reloadMipmaps);
+}
 
 /* todo */
 void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
@@ -186,10 +237,10 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
 {
     std::unique_ptr<Tex3DS_SubTexture> subTexture(new Tex3DS_SubTexture());
 
-    subTexture->top    = 1.0f - (viewport.y + 1.0f) / texture->height;
-    subTexture->left   = (1.0f + viewport.x) / texture->width;
-    subTexture->right  = (1.0f + viewport.x + viewport.w) / texture->width;
-    subTexture->bottom = 1.0f - ((viewport.y + viewport.h + 1.0f) / texture->height);
+    subTexture->top    = 1.0f - (viewport.y) / texture->height;
+    subTexture->left   = viewport.x / texture->width;
+    subTexture->right  = (viewport.x + viewport.w) / texture->width;
+    subTexture->bottom = 1.0f - ((viewport.y + viewport.h) / texture->height);
 
     return subTexture;
 }
