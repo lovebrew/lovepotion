@@ -69,6 +69,7 @@ void ImageData<Console::CTR>::Decode(Data* data)
 
     this->width  = image.width;
     this->height = image.height;
+    this->format = image.format;
 
     this->data.reset(image.data);
     this->decoder = decoder;

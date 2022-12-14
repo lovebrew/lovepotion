@@ -861,6 +861,66 @@ int luax::TypeError(lua_State* L, int argc, const char* name)
     return luaL_argerror(L, argc, msg);
 }
 
+bool luax::BoolFlag(lua_State* L, int tableIndex, const char* key, bool defaultValue)
+{
+    lua_getfield(L, tableIndex, key);
+
+    bool retval;
+    if (lua_isnoneornil(L, -1))
+        retval = defaultValue;
+    else
+        retval = lua_toboolean(L, -1) != 0;
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+int luax::IntFlag(lua_State* L, int tableIndex, const char* key, int defaultValue)
+{
+    lua_getfield(L, tableIndex, key);
+
+    int retval;
+    if (!lua_isnumber(L, -1))
+        retval = defaultValue;
+    else
+        retval = (int)lua_tointeger(L, -1);
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+double luax::NumberFlag(lua_State* L, int tableIndex, const char* key, double defaultValue)
+{
+    lua_getfield(L, tableIndex, key);
+
+    double retval;
+    if (!lua_isnumber(L, -1))
+        retval = defaultValue;
+    else
+        retval = lua_tonumber(L, -1);
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+int luax::CheckIntFlag(lua_State* L, int tableIndex, const char* key)
+{
+    lua_getfield(L, tableIndex, key);
+
+    int retval;
+    if (!lua_isnumber(L, -1))
+    {
+        std::string err = "expected integer field " + std::string(key) + " in table";
+        return luaL_argerror(L, tableIndex, err.c_str());
+    }
+    else
+        retval = (int)luaL_checkinteger(L, -1);
+
+    lua_pop(L, 1);
+
+    return retval;
+}
+
 int luax::EnumError(lua_State* L, const char* enumName, const char* value)
 {
     return luaL_error(L, "Invalid %s: %s", enumName, value);

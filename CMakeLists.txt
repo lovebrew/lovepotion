@@ -419,6 +419,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/window/wrap_window.cpp
     source/objects/channel/channel.cpp
     source/objects/channel/wrap_channel.cpp
+    source/objects/compressedimagedata/compressedimagedata.cpp
+    source/objects/compressedimagedata/compressedslice.cpp
     source/objects/data/bytedata/bytedata.cpp
     source/objects/data/bytedata/wrap_bytedata.cpp
     source/objects/data/compresseddata/compresseddata.cpp

@@ -7,6 +7,7 @@
 #include <common/object.hpp>
 #include <common/strongreference.hpp>
 
+#include <objects/compressedimagedata/compressedimagedata.hpp>
 #include <objects/imagedata/imagedata.tcc>
 #include <objects/quad/quad.hpp>
 
@@ -129,8 +130,21 @@ namespace love
                 return this->textureType;
             }
 
-            // void Add(CompressedImageData* data, int startSlice, int startMipmap, bool
-            // addAllSlices, bool addAllMipmaps) {}
+            void Add(CompressedImageData* data, int startSlice, int startMipmap, bool addAllSlices,
+                     bool addAllMipmaps)
+            {
+                int sliceCount  = addAllSlices ? data->GetSliceCount() : 1;
+                int mipmapCount = addAllMipmaps ? data->GetMipmapCount() : 1;
+
+                for (int mipmap = 0; mipmap < mipmapCount; mipmap++)
+                {
+                    for (int slice = 0; slice < sliceCount; slice++)
+                    {
+                        this->Set(startSlice + slice, startMipmap + mipmap,
+                                  data->GetSlice(slice, mipmap));
+                    }
+                }
+            }
 
             int GetSliceCount(int mipmap = 0) const
             {
@@ -509,19 +523,19 @@ namespace love
             "auto",   MIPMAPS_AUTO
         };
 
-        static constexpr BidirectionalMap settingsType = {
-            "width",        Texture::SETTING_WIDTH,
-            "height",       Texture::SETTING_HEIGHT,
-            "layers",       Texture::SETTING_LAYERS,
-            "mipmaps",      Texture::SETTING_MIPMAPS,
-            "format",       Texture::SETTING_FORMAT,
-            "linear",       Texture::SETTING_LINEAR,
-            "type",         Texture::SETTING_TYPE,
-            "dpiscale",     Texture::SETTING_DPI_SCALE,
-            "msaa",         Texture::SETTING_MSAA,
-            "canvas",       Texture::SETTING_RENDER_TARGET,
-            "computewrite", Texture::SETTING_COMPUTE_WRITE,
-            "readable",     Texture::SETTING_READABLE
+        static constexpr BidirectionalMap settingsTypes = {
+            "width",        SETTING_WIDTH,
+            "height",       SETTING_HEIGHT,
+            "layers",       SETTING_LAYERS,
+            "mipmaps",      SETTING_MIPMAPS,
+            "format",       SETTING_FORMAT,
+            "linear",       SETTING_LINEAR,
+            "type",         SETTING_TYPE,
+            "dpiscale",     SETTING_DPI_SCALE,
+            "msaa",         SETTING_MSAA,
+            "canvas",       SETTING_RENDER_TARGET,
+            "computewrite", SETTING_COMPUTE_WRITE,
+            "readable",     SETTING_READABLE
         };
         // clang-format on
 

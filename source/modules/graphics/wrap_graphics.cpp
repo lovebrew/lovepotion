@@ -1,8 +1,12 @@
 #include <modules/graphics/wrap_graphics.hpp>
 
 #include <modules/graphics_ext.hpp>
+#include <modules/image/imagemodule.hpp>
+
+#include <modules/filesystem/wrap_filesystem.hpp>
 
 #include <objects/font/wrap_font.hpp>
+#include <objects/imagedata/wrap_imagedata.hpp>
 #include <objects/rasterizer/wrap_rasterizer.hpp>
 #include <objects/texture/wrap_texture.hpp>
 
@@ -406,10 +410,279 @@ int Wrap_Graphics::Printf(lua_State* L)
     return 0;
 }
 
-/* todo */
+static void checkTextureSettings(lua_State* L, int index, bool option, bool checkType,
+                                 bool checkDimensions, std::optional<bool> forceRenderTarget,
+                                 Texture<>::Settings& settings, bool& setDpiScale)
+{
+    setDpiScale = false;
+
+    if (forceRenderTarget.has_value())
+        settings.renderTarget = forceRenderTarget.value();
+
+    if (option && lua_isnoneornil(L, index))
+        return;
+
+    luax::CheckTableFields<Texture<>::SettingType>(
+        L, index, "texture setting name", [](const char* v) {
+            std::optional<::Texture<>::SettingType> value;
+            return (Texture<>::settingsTypes.Find(v) != std::nullopt);
+        });
+
+    if (!forceRenderTarget.has_value())
+    {
+        bool defaultValue = settings.renderTarget;
+        const char* key   = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_RENDER_TARGET);
+
+        settings.renderTarget = luax::BoolFlag(L, index, key, defaultValue);
+    }
+
+    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_FORMAT));
+    if (!lua_isnoneornil(L, -1))
+    {
+        const char* string = luaL_checkstring(L, -1);
+        std::optional<PixelFormat> format;
+
+        if (!(format = pixelFormats.Find(string)))
+            luax::EnumError(L, "pixel format", string);
+    }
+    lua_pop(L, 1);
+
+    if (checkType)
+    {
+        lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_TYPE));
+        if (!lua_isnoneornil(L, -1))
+        {
+            const char* string = luaL_checkstring(L, -1);
+            std::optional<Texture<>::TextureType> type;
+
+            if (!(type = Texture<>::textureTypes.Find(string)))
+                luax::EnumError(L, "texture type", string);
+        }
+    }
+
+    if (checkDimensions)
+    {
+        const char* keyWidth  = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_WIDTH);
+        const char* keyHeight = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_HEIGHT);
+
+        settings.width  = luax::CheckIntFlag(L, index, keyWidth);
+        settings.height = luax::CheckIntFlag(L, index, keyHeight);
+
+        if (settings.type == Texture<>::TEXTURE_2D_ARRAY ||
+            settings.type == Texture<>::TEXTURE_VOLUME)
+        {
+            const char* keyLayers =
+                *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_LAYERS);
+
+            settings.layers = luax::CheckIntFlag(L, index, keyLayers);
+        }
+    }
+
+    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_MIPMAPS));
+    if (!lua_isnoneornil(L, -1))
+    {
+        if (lua_type(L, -1) == LUA_TBOOLEAN)
+        {
+            const auto hasMipmaps = luax::ToBoolean(L, -1);
+            settings.mipmaps = hasMipmaps ? Texture<>::MIPMAPS_MANUAL : Texture<>::MIPMAPS_NONE;
+        }
+        else
+        {
+            const char* string = luaL_checkstring(L, -1);
+            std::optional<Texture<>::MipmapsMode> mode;
+
+            if (!(mode = Texture<>::mipmapModes.Find(string)))
+                luax::EnumError(L, "Texture mipmap mode", Texture<>::mipmapModes, string);
+        }
+    }
+    lua_pop(L, 1);
+
+    const char* keyLinear = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_LINEAR);
+    const char* keyMSAA   = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_MSAA);
+
+    settings.linear = luax::BoolFlag(L, index, keyLinear, settings.linear);
+    settings.msaa   = luax::IntFlag(L, index, keyMSAA, settings.msaa);
+
+    const char* keyComputeWrite =
+        *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_COMPUTE_WRITE);
+
+    settings.computeWrite = luax::BoolFlag(L, index, keyComputeWrite, settings.computeWrite);
+
+    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_READABLE));
+    if (!lua_isnoneornil(L, -1))
+        settings.readable = luax::CheckBoolean(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_DPI_SCALE));
+    if (lua_isnumber(L, -1))
+    {
+        settings.dpiScale = lua_tonumber(L, -1);
+        setDpiScale       = true;
+    }
+    lua_pop(L, 1);
+}
+
+static void parseDPIScale(Data* fileData, float* dpiScale)
+{}
+
+static std::pair<StrongReference<ImageData<Console::Which>>, StrongReference<CompressedImageData>>
+getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
+{
+    StrongReference<ImageData<Console::Which>> image;
+    StrongReference<CompressedImageData> compressed;
+
+    if (luax::IsType(L, index, ImageData<>::type))
+        image.Set(Wrap_ImageData::CheckImageData(L, index));
+    else if (luax::IsType(L, index, CompressedImageData::type))
+    {
+        /* todo */
+    }
+    else if (Wrap_Filesystem::CanGetData(L, index))
+    {
+        auto* module = Module::GetInstance<ImageModule>(Module::M_IMAGE);
+        if (module == nullptr)
+            luaL_error(L, "Cannot load images without the image module.");
+
+        StrongReference<Data> fileData(Wrap_Filesystem::GetFileData(L, index), Acquire::NORETAIN);
+
+        if (dpiScale != nullptr)
+            parseDPIScale(fileData, dpiScale);
+
+        if (allowCompressed && module->IsCompressed(fileData))
+        {
+            luax::CatchException(L, [&]() {
+                /* todo */
+                // compressed.Set(module->NewCompressedData(fileData), Acquire::NORETAIN);
+            });
+        }
+        else
+        {
+            luax::CatchException(
+                L, [&]() { image.Set(module->NewImageData(fileData), Acquire::NORETAIN); });
+        }
+    }
+    else
+        image.Set(Wrap_ImageData::CheckImageData(L, index));
+
+    return std::make_pair(image, compressed);
+}
+
 static int pushNewTexture(lua_State* L, Texture<>::Slices* slices,
                           const Texture<>::Settings& settings)
-{}
+{
+    StrongReference<Texture<Console::Which>> image;
+
+    // clang-format off
+    luax::CatchException(L,
+        [&]() { image.Set(instance()->NewTexture(settings, slices), Acquire::NORETAIN); },
+        [&](bool) { if (slices) slices->Clear(); }
+    );
+    // clang-format on
+
+    luax::PushType(L, image);
+
+    return 1;
+}
+
+int Wrap_Graphics::Draw(lua_State* L)
+{
+    Drawable* drawable               = nullptr;
+    Texture<Console::Which>* texture = nullptr;
+    Quad* quad                       = nullptr;
+
+    int start = 2;
+
+    if (luax::IsType(L, 2, Quad::type))
+    {
+        texture = Wrap_Texture::CheckTexture(L, 1);
+        quad    = luax::ToType<Quad>(L, 2);
+
+        start = 3;
+    }
+    else if (lua_isnil(L, 2) && !lua_isnoneornil(L, 3))
+        return luax::TypeError(L, 2, "Quad");
+    else
+    {
+        drawable = luax::CheckType<Drawable>(L, 1);
+        start    = 2;
+    }
+
+    // clang-format off
+    Wrap_Graphics::CheckStandardTransform(L, start, [&](const Matrix4<Console::Which>& matrix) {
+        luax::CatchException(L, [&](){
+            if (texture && quad)
+                instance()->Draw(texture, quad, matrix);
+            else
+                instance()->Draw(texture, matrix);
+        });
+    });
+    // clang-format on
+
+    return 0;
+}
+
+int Wrap_Graphics::NewTexture(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    Texture<>::Slices slices(Texture<>::TEXTURE_2D);
+    Texture<>::Slices* slicesReference = &slices;
+
+    Texture<>::Settings settings {};
+    settings.type = Texture<>::TEXTURE_2D;
+    bool dpiSet   = false;
+
+    if (lua_type(L, 1) == LUA_TNUMBER)
+    {
+        slicesReference = nullptr;
+
+        settings.width  = luaL_checkinteger(L, 1);
+        settings.height = luaL_checkinteger(L, 2);
+
+        int start = 3;
+        if (lua_type(L, start) == LUA_TNUMBER)
+        {
+            settings.layers = luaL_checkinteger(L, 3);
+            settings.type   = Texture<>::TEXTURE_2D_ARRAY;
+            start           = 4;
+        }
+
+        checkTextureSettings(L, start, true, true, false, {}, settings, dpiSet);
+    }
+    else
+    {
+        checkTextureSettings(L, 2, true, false, false, {}, settings, dpiSet);
+        float* autoDpiScale = dpiSet ? nullptr : &settings.dpiScale;
+
+        if (lua_istable(L, 1))
+        {
+            int count = std::max<int>(1, luax::ObjectLength(L, 1));
+
+            for (int index = 0; index < count; index++)
+            {
+                lua_rawgeti(L, 1, index + 1);
+                auto data = getImageData(L, -1, true, index == 0 ? autoDpiScale : nullptr);
+
+                if (data.first.Get())
+                    slices.Set(0, index, data.first);
+                else
+                    slices.Set(0, index, data.second->GetSlice(0, 0));
+            }
+            lua_pop(L, count);
+        }
+        else
+        {
+            auto data = getImageData(L, 1, true, autoDpiScale);
+
+            if (data.first.Get())
+                slices.Set(0, 0, data.first);
+            else
+                slices.Add(data.second, 0, 0, false, settings.mipmaps != Texture<>::MIPMAPS_NONE);
+        }
+    }
+
+    return pushNewTexture(L, slicesReference, settings);
+}
 
 // clang-format off
 static constexpr luaL_Reg functions[] =
@@ -431,6 +704,7 @@ static constexpr luaL_Reg functions[] =
     { "getHeight",          Wrap_Graphics::GetHeight          },
     { "getDimensions",      Wrap_Graphics::GetDimensions      },
     { "newFont",            Wrap_Graphics::NewFont            },
+    { "newTexture",         Wrap_Graphics::NewTexture         },
     { "setFont",            Wrap_Graphics::SetFont            },
     { "getFont",            Wrap_Graphics::GetFont            },
     { "reset",              Wrap_Graphics::Reset              }

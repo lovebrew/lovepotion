@@ -2,11 +2,16 @@
 
 #include <common/data.hpp>
 #include <common/object.hpp>
+#include <common/strongreference.hpp>
 
 #include <common/pixelformat.hpp>
 
+#include <objects/data/bytedata/bytedata.hpp>
+
 namespace love
 {
+    class CompressedSlice;
+
     class FormatHandler : public Object
     {
       public:
@@ -44,6 +49,10 @@ namespace love
         virtual EncodedImage Encode(const DecodedImage& image, EncodedFormat format);
 
         virtual bool CanParseCompressed(Data* data);
+
+        virtual StrongReference<ByteData> ParseCompressed(
+            Data* filedata, std::vector<StrongReference<CompressedSlice>>& images,
+            PixelFormat& format, bool& sRGB);
 
         void FreeRawPixels(uint8_t* memory)
         {

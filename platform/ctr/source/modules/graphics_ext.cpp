@@ -71,6 +71,17 @@ Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size, CFG_Region 
     return this->NewFont(rasterizer.Get());
 }
 
+void Graphics<Console::CTR>::Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix)
+{
+    drawable->Draw(*this, matrix);
+}
+
+void Graphics<Console::CTR>::Draw(Texture<Console::CTR>* texture, Quad* quad,
+                                  const Matrix4<Console::CTR>& matrix)
+{
+    texture->Draw(*this, quad, matrix);
+}
+
 Texture<Console::CTR>* Graphics<Console::CTR>::NewTexture(const Texture<>::Settings& settings,
                                                           const Texture<>::Slices* slices) const
 {

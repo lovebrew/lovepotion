@@ -2,6 +2,7 @@
 
 #include <common/module.hpp>
 
+#include <objects/compressedimagedata/compressedimagedata.hpp>
 #include <objects/imagedata_ext.hpp>
 
 #include <list>

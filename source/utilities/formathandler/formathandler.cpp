@@ -2,6 +2,8 @@
 
 #include <common/exception.hpp>
 
+#include <objects/compressedimagedata/compressedslice.hpp>
+
 using namespace love;
 
 bool FormatHandler::CanDecode(Data* data)
@@ -28,4 +30,11 @@ FormatHandler::EncodedImage FormatHandler::Encode(const DecodedImage& /*image*/,
 bool FormatHandler::CanParseCompressed(Data* /*data*/)
 {
     return false;
+}
+
+StrongReference<ByteData> FormatHandler::ParseCompressed(
+    Data* /*filedata*/, std::vector<StrongReference<CompressedSlice>>& /*images*/,
+    PixelFormat& /*format*/, bool& /*sRGB*/)
+{
+    throw love::Exception("Compressed image parsing is not implemented for this format backend.");
 }

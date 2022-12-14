@@ -295,6 +295,14 @@ namespace luax
         }
     }
 
+    bool BoolFlag(lua_State* L, int tableIndex, const char* key, bool defaultValue);
+
+    int IntFlag(lua_State* L, int tableIndex, const char* key, int defaultValue);
+
+    double NumberFlag(lua_State* L, int tableIndex, const char* key, double defaultValue);
+
+    int CheckIntFlag(lua_State* L, int tableIndex, const char* key);
+
     // clang-format off
     template<std::ranges::range Range>
         requires (std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>)
