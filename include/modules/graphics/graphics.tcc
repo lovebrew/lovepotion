@@ -277,13 +277,13 @@ namespace love
 
         bool IsRenderTargetActive() const
         {
-            const auto* renderTarget = states.back().renderTarget;
+            const auto& renderTarget = states.back().renderTarget;
             return renderTarget != nullptr;
         }
 
         bool IsRenderTargetActive(Texture<Console::Which>* texture) const
         {
-            const auto* renderTarget = states.back().renderTarget;
+            const auto& renderTarget = states.back().renderTarget;
 
             if (renderTarget.Get() == texture)
                 return true;

@@ -7,8 +7,8 @@
 #include <objects/beziercurve/beziercurve.hpp>
 #include <objects/randomgenerator/randomgenerator.hpp>
 
-#include <noise1234/noise1234.h>
-#include <noise1234/simplexnoise1234.h>
+#include <noise1234.h>
+#include <simplexnoise1234.h>
 
 #include <vector>
 

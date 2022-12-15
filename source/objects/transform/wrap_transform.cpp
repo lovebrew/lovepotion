@@ -265,6 +265,8 @@ int Wrap_Transform::GetMatrix(lua_State* L)
         for (int column = 0; column < 4; column++)
             lua_pushnumber(L, elements.Get(row, column));
     }
+
+    return 16;
 }
 
 int Wrap_Transform::TransformPoint(lua_State* L)

@@ -1,4 +1,4 @@
-R"luastring" --(
+R"luastring"--(
 local rng_mt = ...
 
 local RandomGenerator = rng_mt.__index

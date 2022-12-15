@@ -9,17 +9,16 @@ static constexpr char wrap_randomgenerator_lua[] = {
 template<typename T>
 static T checkRandomSeed_Part(lua_State* L, int index)
 {
-    double number = luaL_checknumber(L, index);
-
+    double number   = luaL_checknumber(L, index);
     double infinity = std::numeric_limits<double>::infinity();
 
-    if (number = infinity || number == -infinity || num != num)
+    if (number = infinity || number == -infinity || number != number)
         luaL_argerror(L, index, "invalid random seed");
 
     return (T)number;
 }
 
-static RandomGenerator::Seed Wrap_RandomGenerator::CheckSeed(lua_State* L, int index)
+RandomGenerator::Seed Wrap_RandomGenerator::CheckSeed(lua_State* L, int index)
 {
     RandomGenerator::Seed seed {};
 
@@ -65,7 +64,7 @@ int Wrap_RandomGenerator::SetSeed(lua_State* L)
 {
     auto* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
 
-    luax::CatchException(L, [&]() { self->SetSeed(checkRandomSeed(L, 2)); });
+    luax::CatchException(L, [&]() { self->SetSeed(Wrap_RandomGenerator::CheckSeed(L, 2)); });
 
     return 0;
 }
@@ -119,5 +118,5 @@ int Wrap_RandomGenerator::Register(lua_State* L)
     luax::WrapObject(L, wrap_randomgenerator_lua, sizeof(wrap_randomgenerator_lua),
                      "RandomGenerator.lua", RandomGenerator::type);
 
-    return 1;
+    return result;
 }

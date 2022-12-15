@@ -5,7 +5,7 @@
 
 namespace Wrap_RandomGenerator
 {
-    love::RandomGenerator* CheckRandomGenerator(lua_State* L);
+    love::RandomGenerator* CheckRandomGenerator(lua_State* L, int index);
 
     love::RandomGenerator::Seed CheckSeed(lua_State* L, int index);
 

@@ -1,4 +1,4 @@
-R"luastring" --(
+R"luastring"--(
 local love_math = ...
 
 local floor = math.floor

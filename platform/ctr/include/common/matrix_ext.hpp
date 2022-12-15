@@ -32,9 +32,9 @@ namespace love
 
         Matrix4(float t00, float t10, float t01, float t11, float x, float y);
 
-        const float* GetElements() const
+        const C3D_Mtx& GetElements() const
         {
-            return this->matrix.m;
+            return this->matrix;
         }
 
         void SetIdentity();
@@ -84,7 +84,7 @@ namespace love
             return this->matrix.m[row * 4 + column];
         }
 
-        float Set(const unsigned row, const unsigned column, const float value)
+        void Set(const unsigned row, const unsigned column, const float value)
         {
             this->matrix.m[row * 4 + column] = value;
         }
