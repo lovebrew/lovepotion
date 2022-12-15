@@ -13,7 +13,7 @@ namespace Wrap_Graphics
         if (luax::IsType(L, index, love::Transform::type))
         {
             love::Transform* transform = luax::ToType<love::Transform>(L, index);
-            func(transform->getMatrix());
+            func(transform->GetMatrix());
         }
         else
         {
