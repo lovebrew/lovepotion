@@ -3,20 +3,19 @@
 #include <common/luax.hpp>
 
 #include <common/matrix_ext.hpp>
+#include <objects/transform/transform.hpp>
 
 namespace Wrap_Graphics
 {
     template<typename T>
     static void CheckStandardTransform(lua_State* L, int index, const T& func)
     {
-        /* todo: Transform objects */
-
-        // if (luax::IsType(L, index, love::Transform<love::Console::Which>::type))
-        // {
-        //     love::Transform<Console::Which>* tf = luax::ToType<Transform<Console::Which>>(L,
-        //     index); func(tf->getMatrix());
-        // }
-        // else
+        if (luax::IsType(L, index, love::Transform::type))
+        {
+            love::Transform* transform = luax::ToType<love::Transform>(L, index);
+            func(transform->getMatrix());
+        }
+        else
         {
             float x  = luaL_optnumber(L, index + 0, 0.0);
             float y  = luaL_optnumber(L, index + 1, 0.0);
