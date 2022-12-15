@@ -8,6 +8,8 @@ distribute
 *.love
 test
 *.code-workspace
+*.txt
+*.py
 
 *.exe
 

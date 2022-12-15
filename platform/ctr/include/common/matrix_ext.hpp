@@ -4,6 +4,8 @@
 
 #include <citro2d.h>
 
+#include <cstring>
+
 namespace love
 {
     template<>
@@ -14,6 +16,15 @@ namespace love
 
         Matrix4(const C3D_Mtx& matrix);
 
+        Matrix4(const float (&elements)[16], bool columnMajor)
+        {
+            static_assert(sizeof(elements) == sizeof(float[16]));
+            std::memcpy(this->matrix.m, elements, sizeof(elements));
+
+            if (columnMajor)
+                Mtx_Transpose(&this->matrix);
+        }
+
         Matrix4(const Matrix4& a, const Matrix4& b);
 
         Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
@@ -21,7 +32,10 @@ namespace love
 
         Matrix4(float t00, float t10, float t01, float t11, float x, float y);
 
-        const C3D_Mtx& GetElements() const;
+        const float* GetElements() const
+        {
+            return this->matrix.m;
+        }
 
         void SetIdentity();
 
@@ -36,6 +50,8 @@ namespace love
         void Shear(float kx, float ky);
 
         bool IsAffine2DTransform() const;
+
+        bool IsAffine3DTransform() const;
 
         Matrix4 Inverse() const;
 
@@ -62,6 +78,16 @@ namespace love
                              float far);
 
         static void Multiply(const Matrix4& a, const Matrix4& b, Matrix4& result);
+
+        float Get(const unsigned row, const unsigned column) const
+        {
+            return this->matrix.m[row * 4 + column];
+        }
+
+        float Set(const unsigned row, const unsigned column, const float value)
+        {
+            this->matrix.m[row * 4 + column] = value;
+        }
 
         void TransformXY(const C3D_Mtx& elements);
 

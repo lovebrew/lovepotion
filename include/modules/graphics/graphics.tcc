@@ -62,6 +62,17 @@ namespace love
             STACK_TRANSFORM
         };
 
+        struct Stats
+        {
+            int drawCalls;
+            int drawCallsBatched;
+            int renderTargetSwitches;
+            int shaderSwitches;
+            int textures;
+            int fonts;
+            int64_t textureMemory;
+        };
+
         struct DisplayState
         {
             DisplayState()
@@ -76,6 +87,7 @@ namespace love
                 RenderState::BLEND_ALPHA, RenderState::BLENDALPHA_MULTIPLY);
 
             StrongReference<Font<Console::Which>> font;
+            StrongReference<Texture<Console::Which>> renderTarget;
 
             struct
             {
@@ -261,6 +273,22 @@ namespace love
 
             this->SetColorMask(state.colorMask);
             this->SetDefaultSamplerState(state.defaultSamplerState);
+        }
+
+        bool IsRenderTargetActive() const
+        {
+            const auto* renderTarget = states.back().renderTarget;
+            return renderTarget != nullptr;
+        }
+
+        bool IsRenderTargetActive(Texture<Console::Which>* texture) const
+        {
+            const auto* renderTarget = states.back().renderTarget;
+
+            if (renderTarget.Get() == texture)
+                return true;
+
+            return false;
         }
 
         // void RestoreStateChecked(const DisplayStateBase& state);

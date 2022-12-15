@@ -22,15 +22,63 @@ Matrix4<Console::CTR>::Matrix4(const C3D_Mtx& a)
     Mtx_Copy(&this->matrix, &a);
 }
 
+/* credit to @mtheall */
+static bool fuzzy(float const a_, float const b_)
+{
+    float const EPSILON = 0.00001f;
+    return fabs(a_ - b_) < EPSILON;
+}
+
 bool Matrix4<Console::CTR>::IsAffine2DTransform() const
 {
-    /*
-        return fabsf(this->matrix[2] + this->matrix[3] + this->matrix[6] + this->matrix[7] +
-                 this->matrix[8] + this->matrix[9] + this->matrix[11] + this->matrix[14]) < 0.00001f
-       && fabsf(this->matrix[10] + this->matrix[15] - 2.0f) < 0.00001f;
-    */
-    return true; //?
+    // z-vector must remain unchanged
+    if (this->matrix.r[0].z != 0.0f || this->matrix.r[1].z != 0.0f || this->matrix.r[2].x != 0.0f ||
+        this->matrix.r[2].y != 0.0f || this->matrix.r[2].z != 1.0f || this->matrix.r[2].w != 0.0f)
+        return false;
+
+    // last row must be {0, 0, 0, 1}
+    if (this->matrix.r[3].x != 0.0f || this->matrix.r[3].y != 0.0f || this->matrix.r[3].z != 0.0f ||
+        this->matrix.r[3].w != 1.0f)
+        return false;
+
+    float const a = this->matrix.r[0].x;
+    float const b = this->matrix.r[0].y;
+    float const c = this->matrix.r[1].x;
+    float const d = this->matrix.r[1].y;
+
+    // M * transpose(M) must be identity matrix, where M is upper-left 2x2 matrix
+    if (!fuzzy(a * a + b * b, 1.0f) || !fuzzy(c * c + d * d, 1.0f) || !fuzzy(a * c + b * d, 0.0f))
+        return false;
+
+    return true;
 }
+
+bool Matrix4<Console::CTR>::IsAffine3DTransform() const
+{
+    // last row must be {0, 0, 0, 1}
+    if (this->matrix.r[3].x != 0.0f || this->matrix.r[3].y != 0.0f || this->matrix.r[3].z != 0.0f ||
+        this->matrix.r[3].w != 1.0f)
+        return false;
+
+    float const a = this->matrix.r[0].x;
+    float const b = this->matrix.r[0].y;
+    float const c = this->matrix.r[0].z;
+    float const d = this->matrix.r[1].x;
+    float const e = this->matrix.r[1].y;
+    float const f = this->matrix.r[1].z;
+    float const g = this->matrix.r[2].x;
+    float const h = this->matrix.r[2].y;
+    float const i = this->matrix.r[2].z;
+
+    // M * transpose(M) must be identity matrix, where M is upper-left 3x3 matrix
+    if (!fuzzy(a * a + b * b + c * c, 1.0f) || !fuzzy(d * d + e * e + f * f, 1.0f) ||
+        !fuzzy(g * g + h * h + i * i, 1.0f) || !fuzzy(a * d + b * e + c * f, 0.0f) ||
+        !fuzzy(a * g + b * h + c * i, 0.0f) || !fuzzy(d * g + e * h + g * i, 0.0f))
+        return false;
+
+    return true;
+}
+/* ----------------- */
 
 Matrix4<Console::CTR>::Matrix4(const Matrix4& a, const Matrix4& b)
 {
@@ -130,11 +178,6 @@ void Matrix4<Console::CTR>::Shear(float kx, float ky)
     mtx.r[1].x = ky;
 
     Mtx_Multiply(&this->matrix, &this->matrix, &mtx);
-}
-
-const C3D_Mtx& Matrix4<Console::CTR>::GetElements() const
-{
-    return this->matrix;
 }
 
 void Matrix4<Console::CTR>::TransformXY()

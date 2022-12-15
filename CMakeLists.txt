@@ -408,6 +408,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/joystick/wrap_joystickmodule.cpp
     source/modules/keyboard/wrap_keyboard.cpp
     source/modules/love/love.cpp
+    source/modules/math/math.cpp
+    source/modules/math/wrap_math.cpp
     source/modules/sound/sound.cpp
     source/modules/sound/wrap_sound.cpp
     source/modules/system/wrap_system.cpp
@@ -417,6 +419,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/touch/touch.cpp
     source/modules/touch/wrap_touch.cpp
     source/modules/window/wrap_window.cpp
+    source/objects/beziercurve/beziercurve.cpp
+    source/objects/beziercurve/wrap_beziercurve.cpp
     source/objects/channel/channel.cpp
     source/objects/channel/wrap_channel.cpp
     source/objects/compressedimagedata/compressedimagedata.cpp
@@ -443,11 +447,15 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/joystick/wrap_joystick.cpp
     source/objects/quad/quad.cpp
     source/objects/quad/wrap_quad.cpp
+    source/objects/randomgenerator/randomgenerator.cpp
+    source/objects/randomgenerator/wrap_randomgenerator.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
     source/objects/texture/wrap_texture.cpp
     source/objects/thread/luathread.cpp
     source/objects/thread/wrap_luathread.cpp
+    source/objects/transform/transform.cpp
+    source/objects/transform/wrap_transform.cpp
     source/utilities/base64.cpp
     source/utilities/bytes.cpp
     source/utilities/compressor/compressor.cpp

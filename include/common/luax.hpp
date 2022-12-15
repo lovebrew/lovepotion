@@ -219,6 +219,27 @@ namespace luax
         return boolean;
     }
 
+    inline lua_Number CheckNumberClamped(lua_State* L, int index, double min, double max)
+    {
+        return std::clamp(luaL_checknumber(L, index), min, max);
+    }
+
+    inline lua_Number OptNumberClamped(lua_State* L, int index, double min, double max,
+                                       double defaultValue)
+    {
+        return std::clamp(luaL_optnumber(L, index, defaultValue), min, max);
+    }
+
+    inline lua_Number CheckNumberClamped01(lua_State* L, int index)
+    {
+        return CheckNumberClamped(L, index, 0.0, 1.0);
+    }
+
+    inline lua_Number OptNumberClamped01(lua_State* L, int index, double defaultValue)
+    {
+        return OptNumberClamped(L, index, 0.0, 1.0, defaultValue);
+    }
+
     inline bool ToBoolean(lua_State* L, int index)
     {
         return (lua_toboolean(L, index) != 0);

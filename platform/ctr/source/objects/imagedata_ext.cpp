@@ -180,23 +180,26 @@ void ImageData<Console::CTR>::Paste(ImageData* sourceData, int x, int y, Rect& p
     const auto getFunction = sourceData->pixelGetFunction;
     const auto setFunction = this->pixelSetFunction;
 
-    unsigned sourcePowTwo      = NextPo2(sourceData->width);
-    unsigned destinationPowTwo = NextPo2(this->width);
+    unsigned _sourceWidth      = NextPo2(sourceData->width);
+    unsigned _destinationWidth = NextPo2(this->width);
 
     for (int _y = 0; _y < std::min(paste.h, destinationHeight - y); _y++)
     {
         for (int _x = 0; _x < std::min(paste.w, destinationWidth - x); _x++)
         {
-            unsigned srcIndex = coordToIndex(sourcePowTwo, (paste.x + _x), (paste.y + _y));
-            unsigned dstIndex = coordToIndex(destinationPowTwo, (x + _x), (y + _y));
-
             Color color {};
 
-            const Pixel* srcPixel = reinterpret_cast<const Pixel*>(source + srcIndex);
-            getFunction(srcPixel, color);
+            // clang-format off
+            Vector2 sourcePosition { (paste.x + _x), (paste.y + _y) };
+            const auto* sourcePixel = Color::FromTile(source, _sourceWidth, sourcePosition);
 
-            Pixel* dstPixel = reinterpret_cast<Pixel*>(destination + dstIndex);
-            setFunction(color, dstPixel);
+            getFunction((const Pixel*)sourcePixel, color);
+
+            Vector2 destinationPosition { (x + _x), (y + _y) };
+            auto* destinationPixel = Color::FromTile(destination, _destinationWidth, destinationPosition);
+
+            setFunction(color, (Pixel*)destinationPixel);
+            // clang-format on
         }
     }
 }

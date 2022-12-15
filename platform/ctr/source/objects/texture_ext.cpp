@@ -182,10 +182,9 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
         throw love::Exception("replacePixels cannot be called on a MSAA Texture.");
 
     auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
-    // if (graphics == nullptr && graphics->IsRenderTargetActive(this))
-    //     throw love::Exception(
-    //         "replacePixels cannot be called on this Texture while it's an active render
-    //         target.");
+    if (graphics == nullptr && graphics->IsRenderTargetActive(this))
+        throw love::Exception(
+            "replacePixels cannot be called on this Texture while it's an active rendertarget.");
 
     if (this->GetHandle() == nullptr)
         return;
@@ -213,9 +212,9 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
     if (rect.x < 0 || rect.y < 0 || rect.w <= 0 || rect.h <= 0 || (rect.x + rect.w) > mipWidth ||
         (rect.y + rect.h) > mipHeight)
     {
-        throw love::Exception(
-            "Invalid rectangle dimensions (x = %d, y = %d, w = %d, h = %d) for a %dx%d Texture.",
-            rect.x, rect.y, rect.w, rect.h, mipWidth, mipHeight);
+        throw love::Exception("Invalid rectangle dimensions (x = %d, y = %d, w = %d, h = %d) "
+                              "for a %dx%d Texture.",
+                              rect.x, rect.y, rect.w, rect.h, mipWidth, mipHeight);
     }
 
     this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rect, reloadMipmaps);
@@ -224,7 +223,30 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
 /* todo */
 void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
                                           const Rect& rect, bool reloadMipmaps)
-{}
+{
+    unsigned sourcePowTwo      = NextPo2(rect.w);
+    unsigned destinationPowTwo = NextPo2(this->width);
+
+    for (int _y = 0; _y < std::min(rect.h, this->height - rect.y); _y++)
+    {
+        for (int _x = 0; _x < std::min(rect.w, this->width - rect.x); _x++)
+        {
+            // clang-format off
+            Color color {};
+
+            Vector2 sourcePosition { _x, _y };
+            const uint32_t* sourcePixel = Color::FromTile(data, sourcePowTwo, sourcePosition);
+            color                       = Color(*sourcePixel);
+
+            Vector2 destinationPosition {(rect.x + _x), (rect.y + _y)};
+            uint32_t* destinationPixel = Color::FromTile(this->image.tex, destinationPosition);
+            *destinationPixel          = color.abgr();
+            // clang-format on
+        }
+    }
+
+    C3D_TexFlush(this->image.tex);
+}
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
                                  const Matrix4<Console::CTR>& matrix)
@@ -251,8 +273,8 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
     if (!this->readable)
         throw love::Exception("Textures with non-readable formats cannot be drawn.");
 
-    // if (this->renderTarget && graphics->IsRenderTargetActive(this))
-    //     throw love::Exception("Cannot render a Texture to itself.");
+    if (this->renderTarget && graphics.IsRenderTargetActive(this))
+        throw love::Exception("Cannot render a Texture to itself.");
 
     const Quad::Viewport& viewport = quad->GetViewport();
     const auto uniqueSubTexture    = calculateSubtextureViewport(viewport, this->image.tex);
