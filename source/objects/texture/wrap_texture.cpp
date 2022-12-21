@@ -422,8 +422,8 @@ int Wrap_Texture::ReplacePixels(lua_State* L)
     int x = 0;
     int y = 0;
 
-    bool autoMipmaps = self->GetMipmapsMode() == ::Texture::MIPMAPS_AUTO;
-    bool reloadMipmaps;
+    bool autoMipmaps   = self->GetMipmapsMode() == ::Texture::MIPMAPS_AUTO;
+    bool reloadMipmaps = false;
 
     if (self->GetTextureType() != ::Texture::TEXTURE_2D)
         slice = luaL_checkinteger(L, 3) - 1;

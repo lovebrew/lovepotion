@@ -5,6 +5,8 @@
 
 #include <utilities/bidirectionalmap/smallvector.hpp>
 
+#define DK_HPP_SUPPORT_VECTOR
+
 namespace love
 {
     class Canvas;
@@ -18,8 +20,8 @@ namespace love
     class Renderer
     {
       public:
-        static int shaderSwitches;
-        static int drawCalls;
+        static inline int shaderSwitches = 0;
+        static inline int drawCalls      = 0;
 
         struct Info
         {

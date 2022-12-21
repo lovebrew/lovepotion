@@ -30,7 +30,7 @@ class CCmdVtxRing
     bool allocate(CMemPool& pool, uint32_t size)
     {
         m_sliceSize = (size + DK_CMDMEM_ALIGNMENT - 1) & ~(DK_CMDMEM_ALIGNMENT - 1);
-        m_mem       = pool.allocate(NumSlices * m_sliceSize, alignof(vertex::Vertex));
+        m_mem       = pool.allocate(NumSlices * m_sliceSize, alignof(love::vertex::Vertex));
 
         return m_mem;
     }

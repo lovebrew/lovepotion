@@ -33,8 +33,7 @@ namespace love
 
         Color GetPixel(int x, int y);
 
-        FileData* Encode(FormatHandler::EncodedFormat format, std::string_view filename,
-                         bool writeFile) const;
+        FileData* Encode(FormatHandler::EncodedFormat format, std::string filename, bool writeFile);
 
       private:
         void Create(int width, int height, PixelFormat format, void* data);

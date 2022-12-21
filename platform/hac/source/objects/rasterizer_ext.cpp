@@ -1,11 +1,11 @@
-#include <objects/truetyperasterizer.hpp>
+#include <objects/rasterizer_ext.hpp>
 
 #include <math.h>
 
 using namespace love;
 
-TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, Data* data, int size, float dpiScale,
-                                       Hinting hinting) :
+Rasterizer<Console::HAC>::Rasterizer(FT_Library library, Data* data, int size, float dpiScale,
+                                     Hinting hinting) :
     data(data),
     hinting(hinting)
 {
@@ -36,17 +36,17 @@ TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, Data* data, int size,
     this->dataType = DATA_TRUETYPE;
 }
 
-TrueTypeRasterizer::~TrueTypeRasterizer()
+Rasterizer<Console::HAC>::~Rasterizer()
 {
     FT_Done_Face(this->face);
 }
 
-int TrueTypeRasterizer::GetLineHeight() const
+int Rasterizer<Console::HAC>::GetLineHeight() const
 {
     return this->GetHeight() * 1.25f;
 }
 
-GlyphData* TrueTypeRasterizer::GetGlyphData(const std::string_view& text) const
+GlyphData* Rasterizer<Console::HAC>::GetGlyphData(const std::string_view& text) const
 {
     uint32_t codepoint = 0;
 
@@ -62,7 +62,7 @@ GlyphData* TrueTypeRasterizer::GetGlyphData(const std::string_view& text) const
     return this->GetGlyphData(codepoint);
 }
 
-GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
+GlyphData* Rasterizer<Console::HAC>::GetGlyphData(uint32_t glyph) const
 {
     GlyphData::GlyphMetrics metrics {};
     FT_Glyph ftGlyph;
@@ -144,12 +144,12 @@ GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     return glyphData;
 }
 
-int TrueTypeRasterizer::GetGlyphCount() const
+int Rasterizer<Console::HAC>::GetGlyphCount() const
 {
     return face->num_glyphs;
 }
 
-bool TrueTypeRasterizer::HasGlyphs(const std::string_view& text) const
+bool Rasterizer<Console::HAC>::HasGlyphs(const std::string_view& text) const
 {
     if (text.size() == 0)
         return false;
@@ -175,12 +175,12 @@ bool TrueTypeRasterizer::HasGlyphs(const std::string_view& text) const
     return true;
 }
 
-bool TrueTypeRasterizer::HasGlyph(uint32_t glyph) const
+bool Rasterizer<Console::HAC>::HasGlyph(uint32_t glyph) const
 {
     return FT_Get_Char_Index(this->face, glyph) != 0;
 }
 
-float TrueTypeRasterizer::GetKerning(uint32_t left, uint32_t right) const
+float Rasterizer<Console::HAC>::GetKerning(uint32_t left, uint32_t right) const
 {
     FT_Vector kerning {};
 
@@ -192,7 +192,7 @@ float TrueTypeRasterizer::GetKerning(uint32_t left, uint32_t right) const
     return (float)(kerning.x >> 6);
 }
 
-bool TrueTypeRasterizer::Accepts(FT_Library library, Data* data)
+bool Rasterizer<Console::HAC>::Accepts(FT_Library library, Data* data)
 {
     const auto* faceData = (const FT_Byte*)data->GetData();
     const auto faceSize  = (FT_Long)data->GetSize();

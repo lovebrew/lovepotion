@@ -116,6 +116,11 @@ namespace love
             return this->pixelHeight;
         }
 
+        float GetDPIScale() const
+        {
+            return 1.0f;
+        }
+
         void WindowToPixelCoords(double* x, double* y) const
         {
             if (x != nullptr)

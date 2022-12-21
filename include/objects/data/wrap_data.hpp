@@ -5,13 +5,13 @@
 
 namespace Wrap_Data
 {
+    love::Data* CheckData(lua_State* L, int index);
+
     int GetPointer(lua_State* L);
 
     int GetSize(lua_State* L);
 
     int GetString(lua_State* L);
-
-    love::Data* CheckData(lua_State* L, int index);
 
     extern const luaL_Reg functions[0x03];
 

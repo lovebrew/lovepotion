@@ -8,46 +8,75 @@
 
 #include <array>
 
-namespace vertex
+namespace love
 {
-    struct Vertex
+    namespace vertex
     {
-        float position[3];
-        float color[4];
-        uint16_t texcoord[2];
-    };
-
-    struct GlyphVertex
-    {
-        float x, y;
-        uint16_t s, t;
-
-        Color color;
-    };
-
-    namespace attributes
-    {
-        // clang-format off
-        /* Primitives */
-        constexpr std::array<DkVtxBufferState, 1> PrimitiveBufferState = {
-            DkVtxBufferState { sizeof(Vertex), 0 },
+        struct Vertex
+        {
+            float position[3];
+            std::array<float, 4> color;
+            std::array<uint16_t, 2> texcoord;
         };
 
-        constexpr std::array<DkVtxAttribState, 2> PrimitiveAttribState = {
-            DkVtxAttribState { 0, 0, offsetof(Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
-            DkVtxAttribState { 0, 0, offsetof(Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 }
-        };
+        static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
 
-        /* Textures*/
-        constexpr std::array<DkVtxBufferState, 1> TextureBufferState = {
-            DkVtxBufferState { sizeof(Vertex), 0 },
-        };
+        static std::array<uint16_t, 2> Normalize(const Vector2& in)
+        {
+            return { normto16t(in.x), normto16t(in.y) };
+        }
 
-        constexpr std::array<DkVtxAttribState, 3> TextureAttribState = {
-            DkVtxAttribState { 0, 0, offsetof(Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
-            DkVtxAttribState { 0, 0, offsetof(Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
-            DkVtxAttribState { 0, 0, offsetof(Vertex, texcoord), DkVtxAttribSize_2x16, DkVtxAttribType_Unorm, 0 }
-        };
-        // clang-format on
-    } // namespace attributes
-} // namespace vertex
+        namespace attributes
+        {
+            struct Attribs
+            {
+                dk::detail::ArrayProxy<const DkVtxAttribState> attributeState;
+                dk::detail::ArrayProxy<const DkVtxBufferState> bufferState;
+            };
+
+            // clang-format off
+            /* Primitives */
+            constexpr std::array<DkVtxBufferState, 1> PrimitiveBufferState = {
+                DkVtxBufferState { sizeof(Vertex), 0 },
+            };
+
+            constexpr std::array<DkVtxAttribState, 2> PrimitiveAttribState = {
+                DkVtxAttribState { 0, 0, offsetof(Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+                DkVtxAttribState { 0, 0, offsetof(Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 }
+            };
+
+            /* Textures*/
+            constexpr std::array<DkVtxBufferState, 1> TextureBufferState = {
+                DkVtxBufferState { sizeof(Vertex), 0 },
+            };
+
+            constexpr std::array<DkVtxAttribState, 3> TextureAttribState = {
+                DkVtxAttribState { 0, 0, offsetof(Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
+                DkVtxAttribState { 0, 0, offsetof(Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
+                DkVtxAttribState { 0, 0, offsetof(Vertex, texcoord), DkVtxAttribSize_2x16, DkVtxAttribType_Unorm, 0 }
+            };
+            // clang-format on
+
+            static inline void GetAttributes(vertex::CommonFormat format, Attribs& out)
+            {
+
+                switch (format)
+                {
+                    case CommonFormat::PRIMITIVE:
+                    default:
+                    {
+                        out.attributeState = PrimitiveAttribState;
+                        out.bufferState    = PrimitiveBufferState;
+                        break;
+                    }
+                    case CommonFormat::TEXTURE:
+                    {
+                        out.attributeState = TextureAttribState;
+                        out.bufferState    = TextureBufferState;
+                        break;
+                    }
+                }
+            }
+        } // namespace attributes
+    }     // namespace vertex
+} // namespace love

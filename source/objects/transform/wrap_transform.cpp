@@ -157,7 +157,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
         index++;
     }
 
-    float elements[16] {};
+    auto& matrix = self->GetMatrix();
 
     if (lua_istable(L, index))
     {
@@ -177,7 +177,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                     for (int row = 0; row < 4; row++)
                     {
                         lua_rawgeti(L, -(row + 1), row + 1);
-                        elements[column * 4 + row] = luaL_checknumber(L, -1);
+                        matrix.Set(row, column, luaL_checknumber(L, -1));
                     }
 
                     lua_pop(L, 4 + 1);
@@ -191,10 +191,8 @@ int Wrap_Transform::SetMatrix(lua_State* L)
 
                     for (int column = 0; column < 4; column++)
                     {
-                        // The table has the matrix elements laid out in row-major
-                        // order, but we need to store them column-major in memory.
                         lua_rawgeti(L, -(column + 1), column + 1);
-                        elements[column * 4 + row] = luaL_checknumber(L, -1);
+                        matrix.Set(row, column, luaL_checknumber(L, -1));
                     }
 
                     lua_pop(L, 4 + 1);
@@ -210,7 +208,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                     for (int row = 0; row < 4; row++)
                     {
                         lua_rawgeti(L, index, column * 4 + row + 1);
-                        elements[column * 4 + row] = luaL_checknumber(L, -1);
+                        matrix.Set(row, column, luaL_checknumber(L, -1));
                     }
                 }
             }
@@ -220,10 +218,8 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                 {
                     for (int row = 0; row < 4; row++)
                     {
-                        // The table has the matrix elements laid out in row-major
-                        // order, but we need to store them column-major in memory.
                         lua_rawgeti(L, index, row * 4 + column + 1);
-                        elements[column * 4 + row] = luaL_checknumber(L, -1);
+                        matrix.Set(row, column, luaL_checknumber(L, -1));
                     }
                 }
             }
@@ -235,20 +231,24 @@ int Wrap_Transform::SetMatrix(lua_State* L)
     {
         if (columnMajor)
         {
-            for (int i = 0; i < 16; i++)
-                elements[i] = luaL_checknumber(L, index + i);
+            for (int column = 0; column < 4; column++)
+            {
+                for (int row = 0; row < 4; row++)
+                    matrix.Set(row, column, luaL_checknumber(L, column * 4 + row + index));
+            }
         }
         else
         {
             for (int column = 0; column < 4; column++)
             {
                 for (int row = 0; row < 4; row++)
-                    elements[column * 4 + row] = luaL_checknumber(L, row * 4 + column + index);
+                    matrix.Set(row, column, luaL_checknumber(L, row * 4 + column + index));
             }
         }
     }
 
-    self->SetMatrix(Matrix4<Console::Which>(elements, columnMajor));
+    if (columnMajor)
+        matrix.Transpose();
 
     lua_pushvalue(L, 1);
 

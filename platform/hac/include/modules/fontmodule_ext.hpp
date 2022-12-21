@@ -2,7 +2,9 @@
 
 #include <modules/font/fontmodule.tcc>
 
-#include <objects/truetyperasterizer.hpp>
+#include <objects/data/filedata/filedata.hpp>
+#include <objects/rasterizer_ext.hpp>
+
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <switch.h>
@@ -44,6 +46,25 @@ namespace love
         FontModule();
 
         ~FontModule();
+
+        Rasterizer<Console::HAC>* NewRasterizer(FileData* data) const;
+
+        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
+            int size, Rasterizer<Console::HAC>::Hinting hinting) const;
+
+        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
+            int size, float dpiScale, Rasterizer<Console::HAC>::Hinting hinting) const;
+
+        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
+            Data* data, int size, Rasterizer<Console::HAC>::Hinting hinting) const;
+
+        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
+            Data* data, int size, float dpiScale, Rasterizer<Console::HAC>::Hinting hinting) const;
+
+        GlyphData* NewGlyphData(Rasterizer<Console::HAC>* rasterizer,
+                                const std::string& text) const;
+
+        GlyphData* NewGlyphData(Rasterizer<Console::HAC>* rasterizer, uint32_t glyph) const;
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {

@@ -24,10 +24,10 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
 
         if (!lua_isnoneornil(L, 3))
         {
-            std::optional<const char*> formatName(luaL_checkstring(L, 3));
+            std::optional<const char*> formatName = luaL_checkstring(L, 3);
 
             if (!(formatName = pixelFormats.ReverseFind(format)))
-                return luax::EnumError(L, "pixel format", *formatName);
+                return luax::EnumError(L, "pixel format", pixelFormats, *formatName);
         }
 
         size_t numBytes   = 0;

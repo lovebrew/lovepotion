@@ -4,6 +4,7 @@
 #include <common/module.hpp>
 
 #include <common/data.hpp>
+#include <common/strongreference.hpp>
 
 #include <memory>
 
@@ -29,6 +30,6 @@ namespace love
         }
 
       protected:
-        std::shared_ptr<SystemFont> defaultFont;
+        StrongReference<Data> defaultFontData;
     };
 } // namespace love

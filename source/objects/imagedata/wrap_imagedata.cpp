@@ -156,7 +156,7 @@ int Wrap_ImageData::Encode(lua_State* L)
 
     bool hasFilename = false;
 
-    std::string_view filename = "Image." + std::string(formatName);
+    std::string filename = "Image." + std::string(formatName);
     if (!lua_isnoneornil(L, 3))
     {
         hasFilename = true;

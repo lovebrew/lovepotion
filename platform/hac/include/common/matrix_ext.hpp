@@ -2,17 +2,15 @@
 
 #include <common/matrix.tcc>
 
-#include <citro2d.h>
-
 namespace love
 {
     template<>
-    class Matrix4<Console::CTR> : public Matrix4<Console::ALL>
+    class Matrix4<Console::HAC> : public Matrix4<Console::ALL>
     {
       public:
         Matrix4();
 
-        Matrix4(const C3D_Mtx& matrix);
+        Matrix4(const float elements[16]);
 
         Matrix4(const Matrix4& a, const Matrix4& b);
 
@@ -21,17 +19,10 @@ namespace love
 
         Matrix4(float t00, float t10, float t01, float t11, float x, float y);
 
-        const C3D_Mtx& GetElements() const
-        {
-            return this->matrix;
-        }
-
         void SetIdentity();
 
         void Transpose()
-        {
-            Mtx_Transpose(&this->matrix);
-        }
+        {}
 
         void SetTranslation(float x, float y);
 
@@ -75,15 +66,15 @@ namespace love
 
         float Get(const unsigned row, const unsigned column) const
         {
-            return this->matrix.m[row * 4 + (3 - column)];
+            return this->elements[column * 4 + row];
         }
 
         void Set(const unsigned row, const unsigned column, const float value)
         {
-            this->matrix.m[row * 4 + (3 - column)] = value;
+            this->elements[column * 4 + row] = value;
         }
 
-        void TransformXY(const C3D_Mtx& elements);
+        void TransformXY(float elements[16]);
 
         void TransformXY();
 
@@ -94,6 +85,9 @@ namespace love
         template<typename Vdst, typename Vsrc>
         void TransformXY(Vdst* dst, const Vsrc* src, int size) const;
 
+        template<typename Vdst, typename Vsrc>
+        void TransformXYVert(Vdst* dst, const Vsrc* src, int size) const;
+
         /**
          * Transforms an array of 2-component vertices by this Matrix, and stores
          * them in an array of 3-component vertices.
@@ -102,22 +96,40 @@ namespace love
         void TransformXY0(Vdst* dst, const Vsrc* src, int size) const;
 
       private:
-        static void Multiply(const Matrix4& a, const Matrix4& b, C3D_Mtx& c);
+        static void Multiply(const Matrix4& a, const Matrix4& b, float elements[16]);
 
-        C3D_Mtx matrix;
+        float elements[16];
     };
 
+    /* use with Vector2 */
     template<typename Vdst, typename Vsrc>
-    void Matrix4<Console::CTR>::TransformXY(Vdst* dst, const Vsrc* src, int size) const
+    void Matrix4<Console::HAC>::TransformXY(Vdst* dst, const Vsrc* src, int size) const
     {
         for (int i = 0; i < size; i++)
         {
             // Store in temp variables in case src = dst
+            float x = (this->elements[0] * src[i].x) + (this->elements[4] * src[i].y) + (0) +
+                      (this->elements[12]);
+            float y = (this->elements[1] * src[i].x) + (this->elements[5] * src[i].y) + (0) +
+                      (this->elements[13]);
 
-            // clang-format off
-            float x = (this->matrix.r[0].x * src[i].x) + (this->matrix.r[0].y * src[i].y) + (0) + (this->matrix.r[0].w);
-            float y = (this->matrix.r[1].x * src[i].x) + (this->matrix.r[1].y * src[i].y) + (0) + (this->matrix.r[1].w);
-            // clang-format on
+            dst[i].x = x;
+            dst[i].y = y;
+        }
+    }
+
+    /* use with Vertex */
+    template<typename Vdst, typename Vsrc>
+    void Matrix4<Console::HAC>::TransformXYVert(Vdst* dst, const Vsrc* src, int size) const
+    {
+        for (int i = 0; i < size; i++)
+        {
+            // Store in temp variables in case src = dst
+            float x = (this->elements[0] * src[i].position[0]) +
+                      (this->elements[4] * src[i].position[1]) + (0) + (this->elements[12]);
+
+            float y = (this->elements[1] * src[i].position[0]) +
+                      (this->elements[5] * src[i].position[1]) + (0) + (this->elements[13]);
 
             dst[i].x = x;
             dst[i].y = y;

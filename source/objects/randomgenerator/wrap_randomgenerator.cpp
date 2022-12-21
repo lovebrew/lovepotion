@@ -12,7 +12,7 @@ static T checkRandomSeed_Part(lua_State* L, int index)
     double number   = luaL_checknumber(L, index);
     double infinity = std::numeric_limits<double>::infinity();
 
-    if (number = infinity || number == -infinity || number != number)
+    if (number == infinity || number == -infinity || number != number)
         luaL_argerror(L, index, "invalid random seed");
 
     return (T)number;

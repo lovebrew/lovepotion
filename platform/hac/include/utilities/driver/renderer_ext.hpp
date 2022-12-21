@@ -6,7 +6,7 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <modules/graphics/graphics.tcc>
+#include <modules/graphics_ext.hpp>
 
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -83,13 +83,19 @@ namespace love
             DATA
         };
 
+        enum QueueType
+        {
+            QUEUE_MAIN,
+            QUEUE_IMAGES
+        };
+
         static Renderer& Instance()
         {
             static Renderer instance;
             return instance;
         }
 
-        ~Renderer();
+        virtual ~Renderer();
 
         Info GetRendererInfo();
 
@@ -105,8 +111,7 @@ namespace love
 
         void SetBlendMode(const RenderState::BlendState& state);
 
-        /* todo: canvases */
-        void BindFramebuffer(/* Canvas* canvas = nullptr*/);
+        void BindFramebuffer(Texture<Console::Which>* texture = nullptr);
 
         void Present();
 
@@ -116,11 +121,11 @@ namespace love
 
         void SetStencil(RenderState::CompareMode mode, int value);
 
-        void SetMeshCullMode(Vertex::CullMode mode);
+        void SetMeshCullMode(vertex::CullMode mode);
 
-        void SetVertexWinding(Vertex::Winding winding);
+        void SetVertexWinding(vertex::Winding winding);
 
-        void SetSamplerState(Texture* texture, SamplerState& state);
+        void SetSamplerState(Texture<Console::HAC>* texture, SamplerState& state);
 
         void SetColorMask(const RenderState::ColorMask& mask);
 
@@ -130,11 +135,34 @@ namespace love
 
         void SetPointSize(float size);
 
+        void CheckDescriptorsDirty(const std::vector<DkResHandle>& handles);
+
+        bool Render(const Graphics<Console::HAC>::DrawCommand& command);
+
+        void UseProgram(const Shader<Console::Which>* program);
+
+        void Register(Texture<Console::Which>* texture, DkResHandle& handle);
+
+        void UnRegister(Texture<Console::Which>* texture);
+
+        void SetAttributes(const vertex::attributes::Attribs& attributes);
+
         std::optional<Screen> CheckScreen(const char* name) const;
 
         SmallTrivialVector<const char*, 1> GetScreens() const;
 
         bool IsHandheldMode() const;
+
+        CMemPool::Handle Allocate(MemPoolType type, size_t size, uint32_t alignment = 0);
+
+        CMemPool& GetMemPool(MemPoolType type);
+
+        dk::Queue GetQueue(QueueType type);
+
+        dk::Device GetDevice()
+        {
+            return this->device;
+        }
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {
@@ -197,6 +225,12 @@ namespace love
             SamplerState::FILTER_NEAREST, DkFilter_Nearest
         };
 
+        static constexpr BidirectionalMap mipmapFilterModes = {
+            SamplerState::MIPMAP_FILTER_NONE,    DkMipFilter_None,
+            SamplerState::MIPMAP_FILTER_LINEAR,  DkMipFilter_Linear,
+            SamplerState::MIPMAP_FILTER_NEAREST, DkMipFilter_Nearest
+        };
+
         static constexpr BidirectionalMap wrapModes = {
             SamplerState::WRAP_CLAMP,           DkWrapMode_ClampToEdge,
             SamplerState::WRAP_CLAMP_ZERO,      DkWrapMode_ClampToBorder,
@@ -205,14 +239,14 @@ namespace love
         };
 
         static constexpr BidirectionalMap cullModes = {
-            Vertex::CULL_NONE,  DkFace_None,
-            Vertex::CULL_BACK,  DkFace_Back,
-            Vertex::CULL_FRONT, DkFace_Front
+            vertex::CULL_NONE,  DkFace_None,
+            vertex::CULL_BACK,  DkFace_Back,
+            vertex::CULL_FRONT, DkFace_Front
         };
 
         static constexpr BidirectionalMap windingModes = {
-            Vertex::WINDING_CW,  DkFrontFace_CW,
-            Vertex::WINDING_CCW, DkFrontFace_CCW
+            vertex::WINDING_CW,  DkFrontFace_CW,
+            vertex::WINDING_CCW, DkFrontFace_CCW
         };
 
         static constexpr BidirectionalMap compareModes = {
@@ -227,11 +261,11 @@ namespace love
         };
 
         static constexpr BidirectionalMap primitiveModes = {
-            Vertex::PRIMITIVE_TRIANGLES,      DkPrimitive_Triangles,
-            Vertex::PRIMITIVE_TRIANGLE_FAN,   DkPrimitive_TriangleFan,
-            Vertex::PRIMITIVE_TRIANGLE_STRIP, DkPrimitive_TriangleStrip,
-            Vertex::PRIMITIVE_QUADS,          DkPrimitive_Quads,
-            Vertex::PRIMITIVE_POINTS,         DkPrimitive_Points
+            vertex::PRIMITIVE_TRIANGLES,      DkPrimitive_Triangles,
+            vertex::PRIMITIVE_TRIANGLE_FAN,   DkPrimitive_TriangleFan,
+            vertex::PRIMITIVE_TRIANGLE_STRIP, DkPrimitive_TriangleStrip,
+            vertex::PRIMITIVE_QUADS,          DkPrimitive_Quads,
+            vertex::PRIMITIVE_POINTS,         DkPrimitive_Points
         };
 
         static constexpr BidirectionalMap gfxScreens = {
@@ -261,7 +295,7 @@ namespace love
         dk::UniqueQueue textureQueue;
 
         dk::UniqueCmdBuf commandBuffer;
-        dk::UniqueSwapchain swapChain;
+        dk::UniqueSwapchain swapchain;
 
         struct MemPools
         {
@@ -279,21 +313,24 @@ namespace love
             dk::DepthStencilState depthStencil;
         } state;
 
-        struct DepthBuffer
-        {
-            dk::ImageLayout layout;
-            dk::Image image;
-            CMemPool::Handle memory;
-        } depthBuffer;
-
         struct Framebuffer
         {
             dk::Image images[MAX_RENDERTARGETS];
             CMemPool::Handle memory[MAX_RENDERTARGETS];
             dk::ImageLayout layout;
 
+            dk::Image depthImage;
+            CMemPool::Handle depthMemory;
+            dk::ImageLayout depthLayout;
+
             int slot = -1;
             bool dirty;
+
+            union
+            {
+                int width;
+                int height;
+            } size;
         } framebuffers;
 
         struct DescriptorSets
@@ -303,17 +340,9 @@ namespace love
             bool dirty = false;
         } descriptors;
 
-        struct SamplerFilter
-        {
-            dk::Sampler sampler;
-            dk::SamplerDescriptor descriptor;
-        } filter;
+        std::unordered_map<uint32_t, dk::SamplerDescriptor> descriptorList;
 
         void EnsureInFrame();
-
-        CMemPool::Handle Allocate(MemPoolType type, size_t size, uint32_t alignment = 0);
-
-        CMemPool& GetMemPool(MemPoolType type);
 
         CCmdMemRing<MAX_RENDERTARGETS> commands;
         CCmdVtxRing<MAX_RENDERTARGETS> vertices;

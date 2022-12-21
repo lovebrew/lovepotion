@@ -2,6 +2,8 @@
 
 #include <modules/graphics/graphics.tcc>
 
+#include <objects/rasterizer_ext.hpp>
+
 namespace love
 {
     template<>
@@ -16,13 +18,17 @@ namespace love
 
         void Present();
 
+        void Reset();
+
+        void RestoreState(const DisplayState& state);
+
         void SetMode(int x, int y, int width, int height);
 
         void CheckSetDefaultFont();
 
         Font<Console::CTR>* NewFont(Rasterizer<Console::CTR>* data) const;
 
-        Font<Console::CTR>* NewDefaultFont(int size, CFG_Region region) const;
+        Font<Console::CTR>* NewDefaultFont(int size) const;
 
         Font<Console::CTR>* GetFont();
 
@@ -43,6 +49,8 @@ namespace love
 
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix);
+
+        void SetScissor(const Rect& scissor);
 
         void RestoreState(const DisplayState& state)
         {

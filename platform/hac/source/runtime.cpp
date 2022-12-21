@@ -49,6 +49,8 @@ extern "C"
             tryInit(std::bind_front([&]() { return (isValid) ? 0 : -1; }), love::ABORT_APPLET);
         }
 
+        romfsInit();
+
         /* system fonts */
         tryInit(std::bind_front(plInitialize, PlServiceType_User), love::ABORT_PLU);
 

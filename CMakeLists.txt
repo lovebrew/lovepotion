@@ -105,7 +105,10 @@ if(NINTENDO_SWITCH)
         ROMFS ${PROJECT_NAME}_hac_romfs
     )
 
-    set(APP_LIBS deko3d freetype)
+    find_package(Freetype REQUIRED)
+
+    set(APP_LIBS deko3d freetype bz2)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
     add_custom_target(dist COMMAND
         ${CMAKE_COMMAND} -E tar "cfv" "${PROJECT_NAME}-switch-${COMMIT_HASH}.zip" --format=zip
@@ -360,7 +363,7 @@ target_link_libraries(luahttps PRIVATE CURL::libcurl)
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} physfs box2d z jpeg png vorbisidec ogg
+    ${APP_LIBS} physfs box2d z turbojpeg png vorbisidec ogg
     modplug lua51 lua53 wuff ddsparse luahttps luasocket noise1234
 )
 

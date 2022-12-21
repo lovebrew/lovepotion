@@ -52,7 +52,7 @@ namespace love
 
         Vector2 InverseTransformPoint(Vector2 point);
 
-        const Matrix4<Console::Which>& GetMatrix() const;
+        Matrix4<Console::Which>& GetMatrix();
 
         void SetMatrix(const Matrix4<Console::Which>& matrix);
 

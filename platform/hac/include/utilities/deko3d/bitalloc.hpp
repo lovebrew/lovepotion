@@ -18,14 +18,23 @@ class BitwiseAlloc : std::bitset<N>
 
     void DeAllocate(uint32_t handle)
     {
-        const auto index = this->Find(handle);
-        this->reset(index);
+        auto index = 0;
+
+        if (this->Find(handle, index))
+            this->reset(index);
     }
 
-    size_t Find(uint32_t handle)
+    bool Find(uint32_t handle, int& out)
     {
         size_t index = (handle & ((1U << 20) - 1));
 
-        return index;
+        if (this->test(index))
+        {
+            out = index;
+            return true;
+        }
+
+        out = -1;
+        return false;
     }
 };

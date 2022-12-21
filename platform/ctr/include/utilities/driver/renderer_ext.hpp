@@ -75,9 +75,9 @@ namespace love
 
         void SetStencil(RenderState::CompareMode mode, int value);
 
-        void SetMeshCullMode(Vertex::CullMode mode);
+        void SetMeshCullMode(vertex::CullMode mode);
 
-        void SetVertexWinding(Vertex::Winding winding);
+        void SetVertexWinding(vertex::Winding winding);
 
         void SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state);
 
@@ -163,9 +163,9 @@ namespace love
         };
 
         static constexpr BidirectionalMap cullModes = {
-            Vertex::CULL_NONE,  GPU_CULL_NONE,
-            Vertex::CULL_BACK,  GPU_CULL_BACK_CCW,
-            Vertex::CULL_FRONT, GPU_CULL_FRONT_CCW
+            vertex::CULL_NONE,  GPU_CULL_NONE,
+            vertex::CULL_BACK,  GPU_CULL_BACK_CCW,
+            vertex::CULL_FRONT, GPU_CULL_FRONT_CCW
         };
 
         static constexpr BidirectionalMap compareModes = {

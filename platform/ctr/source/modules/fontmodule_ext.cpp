@@ -4,14 +4,7 @@ using namespace love;
 
 FontModule<Console::CTR>::FontModule()
 {
-    try
-    {
-        this->defaultFont = std::make_shared<SystemFont>();
-    }
-    catch (std::bad_alloc& e)
-    {
-        throw love::Exception("Failed to create default system font!");
-    }
+    this->defaultFontData.Set(new SystemFont(), Acquire::NORETAIN);
 }
 
 Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewRasterizer(FileData* data) const
@@ -20,6 +13,11 @@ Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewRasterizer(FileData* data
         return new Rasterizer<Console::CTR>(data, 12);
 
     throw love::Exception("Invalid font file: %s", data->GetFilename());
+}
+
+Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(int size)
+{
+    return this->NewBCFNTRasterizer(size);
 }
 
 Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(Data* data, int size) const

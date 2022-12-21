@@ -6,8 +6,6 @@
 
 namespace Wrap_FontModule
 {
-    love::Rasterizer<love::Console::Which>* CheckRasterizer(lua_State* L, int index);
-
     int NewRasterizer(lua_State* L);
 
     int NewGlyphData(lua_State* L);

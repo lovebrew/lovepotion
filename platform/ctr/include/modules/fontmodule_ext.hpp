@@ -12,12 +12,27 @@
 
 namespace love
 {
-    class SystemFont : public Object
+    class SystemFont : public Data
     {
       public:
         SystemFont(CFG_Region region = CFG_REGION_USA)
         {
             this->font = C2D_FontLoadSystem(region);
+        }
+
+        void* GetData() const override
+        {
+            return nullptr;
+        }
+
+        SystemFont* Clone() const override
+        {
+            return new SystemFont(*this);
+        }
+
+        size_t GetSize() const override
+        {
+            return 0;
         }
 
         ~SystemFont()
@@ -41,6 +56,8 @@ namespace love
         Rasterizer<Console::CTR>* NewRasterizer(FileData* data) const;
 
         Rasterizer<Console::CTR>* NewBCFNTRasterizer(Data* data, int size) const;
+
+        Rasterizer<Console::CTR>* NewBCFNTRasterizer(int size);
 
         Rasterizer<Console::CTR>* NewBCFNTRasterizer(int size,
                                                      CFG_Region region = CFG_REGION_USA) const;

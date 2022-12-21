@@ -12,6 +12,7 @@
 using namespace love;
 
 Font<Console::CTR>::Font(Rasterizer<Console::CTR>* rasterizer, const SamplerState& state) :
+    Font<>::Font(),
     buffer {}
 {
     this->buffer      = C2D_TextBufNew(Font::TEXT_BUFFER_SIZE);

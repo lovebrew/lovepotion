@@ -67,11 +67,14 @@ void ImageData<Console::CTR>::Decode(Data* data)
         throw love::Exception("Could not decode image!");
     }
 
+    // clean up old data
+    this->data.reset();
+
     this->width  = image.width;
     this->height = image.height;
+    this->data.reset(image.data);
     this->format = image.format;
 
-    this->data.reset(image.data);
     this->decoder = decoder;
 
     this->pixelGetFunction = getPixelRGBA8;

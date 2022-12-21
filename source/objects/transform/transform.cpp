@@ -89,7 +89,7 @@ Vector2 Transform::InverseTransformPoint(Vector2 point)
     return result;
 }
 
-const Matrix4<Console::Which>& Transform::GetMatrix() const
+Matrix4<Console::Which>& Transform::GetMatrix()
 {
     return this->matrix;
 }

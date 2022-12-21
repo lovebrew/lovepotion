@@ -53,20 +53,33 @@ void Graphics<Console::CTR>::Present()
     ::Renderer::Instance().Present();
 }
 
+void Graphics<Console::CTR>::Reset()
+{
+    DisplayState state {};
+    this->RestoreState(state);
+    Graphics<>::Reset();
+}
+
+void Graphics<Console::CTR>::RestoreState(const DisplayState& state)
+{
+    Graphics<>::RestoreState(state);
+    this->SetShader(state.shader);
+}
+
 Font<Console::CTR>* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
 {
     return new Font<Console::CTR>(data, this->states.back().defaultSamplerState);
 }
 
-Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size, CFG_Region region) const
+Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size) const
 {
     auto fontModule = Module::GetInstance<FontModule<Console::CTR>>(M_FONT);
 
     if (!fontModule)
         throw love::Exception("Font module has not been loaded.");
 
-    StrongReference<Rasterizer<Console::CTR>> rasterizer(
-        fontModule->NewBCFNTRasterizer(size, region), Acquire::NORETAIN);
+    StrongReference<Rasterizer<Console::CTR>> rasterizer(fontModule->NewBCFNTRasterizer(size),
+                                                         Acquire::NORETAIN);
 
     return this->NewFont(rasterizer.Get());
 }
@@ -94,7 +107,7 @@ void Graphics<Console::CTR>::CheckSetDefaultFont()
         return;
 
     if (!this->defaultFont.Get())
-        this->defaultFont.Set(this->NewDefaultFont(12, CFG_REGION_USA), Acquire::NORETAIN);
+        this->defaultFont.Set(this->NewDefaultFont(12), Acquire::NORETAIN);
 
     this->states.back().font.Set(this->defaultFont.Get());
 }

@@ -6,13 +6,14 @@
 
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
-#include <ft2build.h>
+#include <freetype2/ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
 namespace love
 {
-    class TrueTypeRasterizer : public Rasterizer<Console::ALL>
+    template<>
+    class Rasterizer<Console::HAC> : public Rasterizer<Console::ALL>
     {
       public:
         enum Hinting
@@ -23,11 +24,9 @@ namespace love
             HINTING_NONE
         };
 
-        TrueTypeRasterizer(FT_Library library, Data* data, int size, float dpiSacale,
-                           Hinting hinting);
+        Rasterizer(FT_Library library, Data* data, int size, float dpiSacale, Hinting hinting);
 
-        ~TrueTypeRasterizer()
-        {}
+        ~Rasterizer();
 
         int GetLineHeight() const;
 

@@ -23,6 +23,8 @@ namespace love
     class Font : public Object
     {
       public:
+        using Codepoints = std::vector<uint32_t>;
+
         enum AlignMode
         {
             ALIGN_LEFT,
@@ -59,7 +61,7 @@ namespace love
 
         static inline int fontCount = 0;
 
-        Font() : lineHeight(1.0f), dpiScale(1.0f)
+        Font() : lineHeight(1.0f), samplerState {}, dpiScale(1.0f), useSpacesAsTab(false)
         {
             Font::fontCount++;
         }
@@ -112,5 +114,7 @@ namespace love
         SamplerState samplerState;
         float dpiScale;
         bool useSpacesAsTab;
+
+        PixelFormat format;
     };
 } // namespace love

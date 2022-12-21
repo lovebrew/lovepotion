@@ -171,7 +171,6 @@ void Texture<Console::CTR>::CreateTexture()
     }
 }
 
-/* todo */
 void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int slice, int mipmap,
                                           int x, int y, bool reloadMipmaps)
 {
@@ -220,7 +219,6 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
     this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rect, reloadMipmaps);
 }
 
-/* todo */
 void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
                                           const Rect& rect, bool reloadMipmaps)
 {

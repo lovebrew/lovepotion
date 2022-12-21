@@ -8,7 +8,10 @@
 
 #include <common/matrix_ext.hpp>
 
+#include <modules/math/math.hpp>
+
 #include <objects/font/font.tcc>
+#include <objects/shader/shader.tcc>
 #include <objects/texture/texture.tcc>
 
 #include <objects/quad/quad.hpp>
@@ -87,6 +90,7 @@ namespace love
                 RenderState::BLEND_ALPHA, RenderState::BLENDALPHA_MULTIPLY);
 
             StrongReference<Font<Console::Which>> font;
+            StrongReference<Shader<Console::Which>> shader;
             StrongReference<Texture<Console::Which>> renderTarget;
 
             struct
@@ -110,14 +114,14 @@ namespace love
                 bool depthWrite               = false;
             } compare;
 
-            Vertex::CullMode cullMode   = Vertex::CULL_NONE;
-            Vertex::Winding windingMode = Vertex::WINDING_CCW;
+            vertex::CullMode cullMode   = vertex::CULL_NONE;
+            vertex::Winding windingMode = vertex::WINDING_CCW;
 
             RenderState::ColorMask colorMask {};
             SamplerState defaultSamplerState = SamplerState {};
         };
 
-        static bool gammaCorrectColor;
+        static inline bool gammaCorrectColor = false;
 
         static inline Screen activeScreen = (Screen)0;
 
@@ -131,12 +135,41 @@ namespace love
             return gammaCorrectColor;
         }
 
-        /* todo: needs math module */
-        void GammaCorrectColor(Color& color)
-        {}
+        static void GammaCorrectColor(Color& color)
+        {
+            if (Graphics::IsGammaCorrect())
+            {
+                color.r = Math::GammaToLinear(color.r);
+                color.g = Math::GammaToLinear(color.g);
+                color.a = Math::GammaToLinear(color.b);
+            }
+        }
 
-        /* todo: needs math module */
-        void UnGammaCorrectColor(Color& color);
+        static Color GammaCorrectColor(const Color& color)
+        {
+            Color result = color;
+            Graphics::GammaCorrectColor(result);
+
+            return result;
+        }
+
+        static void UnGammaCorrectColor(Color& color)
+        {
+            if (Graphics::IsGammaCorrect())
+            {
+                color.r = Math::LinearToGamma(color.r);
+                color.g = Math::LinearToGamma(color.g);
+                color.a = Math::LinearToGamma(color.b);
+            }
+        }
+
+        static Color UnGammaCorrectColor(const Color& color)
+        {
+            Color result = color;
+            Graphics::UnGammaCorrectColor(result);
+
+            return result;
+        }
 
         Graphics() :
             width(0),
@@ -159,6 +192,7 @@ namespace love
         virtual ~Graphics()
         {
             this->states.clear();
+            this->defaultFont.Set(nullptr);
         }
 
         virtual ModuleType GetModuleType() const
@@ -181,10 +215,24 @@ namespace love
             return this->states.back().font;
         }
 
+        void SetShader()
+        {
+            this->states.back().shader.Set(nullptr);
+        }
+
+        void SetShader(Shader<Console::Which>* shader)
+        {
+            if (shader == nullptr)
+                return this->SetShader();
+        }
+
+        Shader<Console::Which>* GetShader() const
+        {
+            return this->states.back().shader.Get();
+        }
+
         void Reset()
         {
-            DisplayState state {};
-            this->RestoreState(state);
             this->Origin();
         }
 
@@ -271,8 +319,25 @@ namespace love
             this->SetMeshCullMode(state.cullMode);
             this->SetFrontFaceWinding(state.windingMode);
 
+            this->SetFont(state.font.Get());
+            this->SetShader(state.shader.Get());
+
             this->SetColorMask(state.colorMask);
             this->SetDefaultSamplerState(state.defaultSamplerState);
+        }
+
+        bool IsPixelFormatSupported(PixelFormat format, uint32_t usage, bool isSRGB = false)
+        {
+            if (isSRGB)
+                format = love::GetSRGBPixelFormat(format);
+
+            bool rendertarget = (usage & PIXELFORMAT_USAGE_FLAGS_RENDERTARGET) != 0;
+            bool readable     = (usage & PIXELFORMAT_USAGE_FLAGS_SAMPLE) != 0;
+
+            format = this->GetSizedFormat(format, rendertarget, readable);
+
+            /* todo: calculate pixel format usages*/
+            return false;
         }
 
         bool IsRenderTargetActive() const
@@ -374,22 +439,22 @@ namespace love
             this->states.back().scissor.active = false;
         }
 
-        void SetMeshCullMode(Vertex::CullMode mode)
+        void SetMeshCullMode(vertex::CullMode mode)
         {
             this->states.back().cullMode = mode;
         }
 
-        const Vertex::CullMode GetMeshCullMode() const
+        const vertex::CullMode GetMeshCullMode() const
         {
             return this->states.back().cullMode;
         }
 
-        void SetFrontFaceWinding(Vertex::Winding winding)
+        void SetFrontFaceWinding(vertex::Winding winding)
         {
             this->states.back().windingMode = winding;
         }
 
-        const Vertex::Winding GetFrontFaceWinding() const
+        const vertex::Winding GetFrontFaceWinding() const
         {
             return this->states.back().windingMode;
         }

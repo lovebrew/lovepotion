@@ -10,9 +10,5 @@ namespace love
         virtual bool CanDecode(Data* data);
 
         virtual DecodedImage Decode(Data* data);
-
-        virtual bool CanEncode(PixelFormat rawFormat, EncodedFormat encodedFormat);
-
-        virtual EncodedImage Encode(const DecodedImage& image, EncodedFormat format);
     };
 } // namespace love

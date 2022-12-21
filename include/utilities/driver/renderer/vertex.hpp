@@ -6,7 +6,7 @@
 
 namespace love
 {
-    namespace Vertex
+    namespace vertex
     {
         enum CullMode
         {
@@ -59,22 +59,22 @@ namespace love
 
         // clang-format off
         static constexpr BidirectionalMap cullModes = {
-            "none",  Vertex::CULL_NONE,
-            "back",  Vertex::CULL_BACK,
-            "front", Vertex::CULL_FRONT
+            "none",  CULL_NONE,
+            "back",  CULL_BACK,
+            "front", CULL_FRONT
         };
 
         static constexpr BidirectionalMap windingModes = {
-            "cw",  Vertex::WINDING_CW,
-            "ccw", Vertex::WINDING_CCW
+            "cw",  WINDING_CW,
+            "ccw", WINDING_CCW
         };
 
         static constexpr BidirectionalMap triangleModes = {
-            "none",  Vertex::TRIANGLE_NONE,
-            "strip", Vertex::TRIANGLE_STRIP,
-            "fan",   Vertex::TRIANGLE_FAN,
-            "quads", Vertex::TRIANGLE_QUADS
+            "none",  TRIANGLE_NONE,
+            "strip", TRIANGLE_STRIP,
+            "fan",   TRIANGLE_FAN,
+            "quads", TRIANGLE_QUADS
         };
         // clang-format on
-    } // namespace Vertex
+    } // namespace vertex
 } // namespace love

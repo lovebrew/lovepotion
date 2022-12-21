@@ -1,4 +1,6 @@
+#include <modules/graphics_ext.hpp>
 #include <modules/joystickmodule_ext.hpp>
+
 #include <utilities/driver/hid_ext.hpp>
 
 #include <utilities/log/logfile.h>
@@ -48,7 +50,7 @@ void HID<Console::HAC>::CheckFocus()
             return;
         }
 
-        auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
+        auto* graphics = Module::GetInstance<Graphics<Console::HAC>>(Module::M_GRAPHICS);
 
         switch (message)
         {
@@ -72,22 +74,21 @@ void HID<Console::HAC>::CheckFocus()
                     appletSetFocusHandlingMode(AppletFocusHandlingMode_NoSuspend);
                 else
                     appletSetFocusHandlingMode(AppletFocusHandlingMode_SuspendHomeSleepNotify);
+                break;
             }
-            break;
-        }
-        case AppletMessage_OperationModeChanged:
-        {
-            std::pair<uint32_t, uint32_t> size;
-            // ::deko3d::Instance().OnOperationMode(size);
+            case AppletMessage_OperationModeChanged:
+            {
+                std::pair<uint32_t, uint32_t> size;
+                // ::deko3d::Instance().OnOperationMode(size);
 
-            this->SendResize(size.first, size.second);
+                this->SendResize(size.first, size.second);
 
-            break;
+                break;
+            }
+            default:
+                break;
         }
-        default:
-            break;
     }
-}
 }
 
 bool HID<Console::HAC>::Poll(LOVE_Event* event)

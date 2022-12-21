@@ -12,11 +12,22 @@
 struct Color
 {
   public:
+    static constexpr float WHITE[4]       = { 1.0f, 1.0f, 1.0f, 1.0f };
+    static constexpr float TRANSPARENT[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
     Color() : r(0), g(0), b(0), a(0)
     {}
 
     Color(float r, float g, float b, float a) : r(r), g(g), b(b), a(a)
     {}
+
+    Color(const float (&rgba)[4])
+    {
+        this->r = rgba[0];
+        this->g = rgba[1];
+        this->b = rgba[2];
+        this->a = rgba[3];
+    }
 
     /* only used for 3DS image data */
     Color(uint32_t abgr)
@@ -90,6 +101,11 @@ struct Color
         return alpha | (blue << (uint32_t)8) | (green << (uint32_t)16) | (red << (uint32_t)24);
     }
 
+    std::array<float, 4> array() const
+    {
+        return { this->r, this->g, this->b, this->a };
+    }
+
     /*
     ** For tex3ds-based textures
     ** @param data: data from the tex3ds texture
@@ -141,19 +157,3 @@ struct Color
         return (uint8_t)(255.0f * std::clamp(in, 0.0f, 1.0f) + 0.5f);
     }
 };
-
-static inline unsigned coordToIndex(unsigned const width_, unsigned const x_, unsigned const y_)
-{
-    static unsigned char const table[] = {
-        0,  1,  4,  5,  16, 17, 20, 21, 2,  3,  6,  7,  18, 19, 22, 23, 8,  9,  12, 13, 24, 25,
-        28, 29, 10, 11, 14, 15, 26, 27, 30, 31, 32, 33, 36, 37, 48, 49, 52, 53, 34, 35, 38, 39,
-        50, 51, 54, 55, 40, 41, 44, 45, 56, 57, 60, 61, 42, 43, 46, 47, 58, 59, 62, 63,
-    };
-
-    unsigned const tileX = x_ / 8;
-    unsigned const tileY = y_ / 8;
-    unsigned const subX  = x_ % 8;
-    unsigned const subY  = y_ % 8;
-
-    return ((width_ / 8) * tileY + tileX) * 64 + table[subY * 8 + subX];
-}

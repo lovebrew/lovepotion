@@ -5,6 +5,66 @@
 
 using namespace love;
 
+/* set/get pixel functions */
+
+static void setPixelRGBA8(const Color& color, ImageData<>::Pixel* pixel)
+{
+    pixel->rgba8[0] = static_cast<uint8_t>(std::clamp<float>(color.r, 0, 1) * 0xFF);
+    pixel->rgba8[1] = static_cast<uint8_t>(std::clamp<float>(color.g, 0, 1) * 0xFF);
+    pixel->rgba8[2] = static_cast<uint8_t>(std::clamp<float>(color.b, 0, 1) * 0xFF);
+    pixel->rgba8[3] = static_cast<uint8_t>(std::clamp<float>(color.a, 0, 1) * 0xFF);
+}
+
+static void getPixelRGBA8(const ImageData<>::Pixel* pixel, Color& color)
+{
+    color.r = pixel->rgba8[0] / 0xFF;
+    color.g = pixel->rgba8[1] / 0xFF;
+    color.b = pixel->rgba8[2] / 0xFF;
+    color.a = pixel->rgba8[3] / 0xFF;
+}
+
+static void setPixelRGBA16(const Color& color, ImageData<>::Pixel* pixel)
+{
+    pixel->rgba16[0] = static_cast<uint16_t>(std::clamp<float>(color.r, 0, 1) * 0xFFFF + 0.5f);
+    pixel->rgba16[1] = static_cast<uint16_t>(std::clamp<float>(color.b, 0, 1) * 0xFFFF + 0.5f);
+    pixel->rgba16[2] = static_cast<uint16_t>(std::clamp<float>(color.g, 0, 1) * 0xFFFF + 0.5f);
+    pixel->rgba16[3] = static_cast<uint16_t>(std::clamp<float>(color.a, 0, 1) * 0xFFFF + 0.5f);
+}
+
+static void getPixelRGBA16(const ImageData<>::Pixel* pixel, Color& color)
+{
+    color.r = pixel->rgba16[0] / 0xFFFF;
+    color.g = pixel->rgba16[1] / 0xFFFF;
+    color.b = pixel->rgba16[2] / 0xFFFF;
+    color.a = pixel->rgba16[3] / 0xFFFF;
+}
+
+static ImageData<>::PixelSetFunction getPixelSetFunction(PixelFormat format)
+{
+    switch (format)
+    {
+        case PIXELFORMAT_RGBA8_UNORM:
+            return setPixelRGBA8;
+        case PIXELFORMAT_RGBA16_UNORM:
+            return setPixelRGBA16;
+        default:
+            return nullptr;
+    }
+}
+
+static ImageData<>::PixelGetFunction getPixelGetFunction(PixelFormat format)
+{
+    switch (format)
+    {
+        case PIXELFORMAT_RGBA8_UNORM:
+            return getPixelRGBA8;
+        case PIXELFORMAT_RGBA16_UNORM:
+            return getPixelRGBA16;
+        default:
+            return nullptr;
+    }
+}
+
 ImageData<Console::HAC>::ImageData(Data* data) : ImageData<>(PIXELFORMAT_UNKNOWN, 0, 0)
 {
     this->Decode(data);
@@ -39,7 +99,7 @@ void ImageData<Console::HAC>::Decode(Data* data)
     {
         auto* fileData = (FileData*)data;
 
-        if (!fileData)
+        if (fileData)
         {
             const auto* name = fileData->GetFilename().c_str();
             throw love::Exception(
@@ -70,7 +130,7 @@ void ImageData<Console::HAC>::Decode(Data* data)
 }
 
 FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFormat,
-                                          std::string_view filename, bool writeFile)
+                                          std::string filename, bool writeFile)
 {
     FormatHandler* encoder = nullptr;
 
@@ -125,7 +185,7 @@ FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFo
 
     if (writeFile)
     {
-        auto* filesystem = Module::GetInstance<Filesystem>(M_FILESYSTEM);
+        auto* filesystem = Module::GetInstance<Filesystem>(Module::M_FILESYSTEM);
 
         if (!filesystem)
         {
@@ -136,7 +196,7 @@ FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFo
 
         try
         {
-            filesystem->Write(filename, data->GetData(), data->GetSize());
+            filesystem->Write(filename.c_str(), data->GetData(), data->GetSize());
         }
         catch (love::Exception&)
         {
@@ -339,65 +399,5 @@ void ImageData<Console::HAC>::Paste(ImageData* sourceData, int x, int y, Rect& p
                     GetPixelFormatName(destFormat));
             }
         }
-    }
-}
-
-/* set/get pixel functions */
-
-static void setPixelRGBA8(const Color& color, ImageData<>::Pixel* pixel)
-{
-    pixel->rgba8[0] = static_cast<uint8_t>(clamp01(color.r) * 0xFF);
-    pixel->rgba8[1] = static_cast<uint8_t>(clamp01(color.g) * 0xFF);
-    pixel->rgba8[2] = static_cast<uint8_t>(clamp01(color.b) * 0xFF);
-    pixel->rgba8[3] = static_cast<uint8_t>(clamp01(color.a) * 0xFF);
-}
-
-static void getPixelRGBA8(const ImageData<>::Pixel* pixel, Color& color)
-{
-    color.r = pixel->rgba8[0] / 0xFF;
-    color.g = pixel->rgba8[1] / 0xFF;
-    color.b = pixel->rgba8[2] / 0xFF;
-    color.a = pixel->rgba8[3] / 0xFF;
-}
-
-static void setPixelRGBA16(const Color& color, ImageData<>::Pixel* pixel)
-{
-    pixel->rgba16[0] = static_cast<uint16_t>(clamp01(color.r) * 0xFFFF + 0.5f);
-    pixel->rgba16[1] = static_cast<uint16_t>(clamp01(color.b) * 0xFFFF + 0.5f);
-    pixel->rgba16[2] = static_cast<uint16_t>(clamp01(color.g) * 0xFFFF + 0.5f);
-    pixel->rgba16[3] = static_cast<uint16_t>(clamp01(color.a) * 0xFFFF + 0.5f);
-}
-
-static void getPixelRGBA16(const ImageData<>::Pixel* pixel, Color& color)
-{
-    color.r = pixel->rgba16[0] / 0xFFFF;
-    color.g = pixel->rgba16[1] / 0xFFFF;
-    color.b = pixel->rgba16[2] / 0xFFFF;
-    color.a = pixel->rgba16[3] / 0xFFFF;
-}
-
-static ImageData<>::PixelSetFunction getPixelSetFunction(PixelFormat format)
-{
-    switch (format)
-    {
-        case PIXELFORMAT_RGBA8_UNORM:
-            return setPixelRGBA8;
-        case PIXELFORMAT_RGBA16_UNORM:
-            return setPixelRGBA16;
-        default:
-            return nullptr;
-    }
-}
-
-static ImageData<>::PixelGetFunction getPixelGetFunction(PixelFormat format)
-{
-    switch (format)
-    {
-        case PIXELFORMAT_RGBA8_UNORM:
-            return getPixelRGBA8;
-        case PIXELFORMAT_RGBA16_UNORM:
-            return getPixelRGBA16;
-        default:
-            return nullptr;
     }
 }
