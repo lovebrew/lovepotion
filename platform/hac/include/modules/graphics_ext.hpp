@@ -14,6 +14,8 @@ namespace love
     class Graphics<Console::HAC> : public Graphics<Console::ALL>
     {
       public:
+        static constexpr const char* DEFAULT_SCREEN = "default";
+
         struct DrawCommand
         {
           public:
@@ -100,7 +102,7 @@ namespace love
 
         void Present();
 
-        void SetMode(int x, int y, int width, int height);
+        bool SetMode(int x, int y, int width, int height);
 
         void CheckSetDefaultFont();
 
@@ -158,7 +160,6 @@ namespace love
             return this->height;
         }
 
-      private:
         void SetViewportSize(int width, int height);
     }; // namespace love
 } // namespace love

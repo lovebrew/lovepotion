@@ -20,7 +20,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
     {
         int size = luaL_optinteger(L, 1, 13);
 
-        const char* hint = lua_isnoneornil(L, 2) ? nullptr : luaL_checkstring(L, 2);
+        const char* hint = luaL_optstring(L, 2, "normal");
         std::optional<::Rasterizer::Hinting> hinting;
 
         if (!(hinting = ::Rasterizer::hintings.Find(hint)))
@@ -50,7 +50,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 
         int size = luaL_optinteger(L, 2, 12);
 
-        const char* hint = lua_isnoneornil(L, 3) ? nullptr : luaL_checkstring(L, 3);
+        const char* hint = luaL_optstring(L, 2, "normal");
         std::optional<::Rasterizer::Hinting> hinting;
 
         if (!(hinting = ::Rasterizer::hintings.Find(hint)))
@@ -83,3 +83,12 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 
     return 1;
 }
+
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "newTrueTypeRasterizer", Wrap_FontModule::NewTrueTypeRasterizer }
+};
+// clang-format on
+
+std::span<const luaL_Reg> Wrap_FontModule::extensions = functions;

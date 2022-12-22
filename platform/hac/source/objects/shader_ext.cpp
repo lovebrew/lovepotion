@@ -16,11 +16,15 @@ Shader<Console::HAC>::Shader() : program {}
 
 Shader<Console::HAC>::Shader(Data* vertex, Data* fragment) : program {}
 {
-    if (!this->Validate(vertex, *this->program.vertex))
-        throw love::Exception("Invalid vertex shader.");
+    std::string error;
 
-    if (!this->Validate(fragment, *this->program.fragment))
-        throw love::Exception("Invalid fragment shader");
+    if (!this->Validate(vertex, *this->program.vertex, error))
+        throw love::Exception("Invalid vertex shader: %s", error.c_str());
+
+    error.clear();
+
+    if (!this->Validate(fragment, *this->program.fragment, error))
+        throw love::Exception("Invalid fragment shader: %s", error.c_str());
 }
 
 Shader<Console::HAC>::~Shader()
@@ -60,11 +64,14 @@ void Shader<Console::HAC>::LoadDefaults(StandardShader type)
             break;
     }
 
-    if (!this->Validate(DEFAULT_VERTEX_SHADER, *this->program.vertex))
-        throw love::Exception("Invalid vertex shader.");
+    std::string error;
+    if (!this->Validate(DEFAULT_VERTEX_SHADER, *this->program.vertex, error))
+        throw love::Exception("Invalid vertex shader: %s", error.c_str());
 
-    if (!this->Validate(fragmentStage, *this->program.fragment))
-        throw love::Exception("Invalid fragment shader.");
+    error.clear();
+
+    if (!this->Validate(fragmentStage, *this->program.fragment, error))
+        throw love::Exception("Invalid fragment shader: %s", error.c_str());
 }
 
 void Shader<Console::HAC>::AttachDefault(StandardShader type)
@@ -85,17 +92,17 @@ void Shader<Console::HAC>::Attach()
 {
     if (Shader::current != this)
     {
-        Renderer<Console::HAC>::Instance().UseProgram(this);
+        LOG("Using program!");
+        Renderer<Console::HAC>::Instance().UseProgram(this->program);
         Renderer<>::shaderSwitches++;
-
+        LOG("Done!");
         Shader::current = this;
+        LOG("Set current to this!");
     }
 }
 
-#include <utilities/log/logfile.h>
-
 static bool loadFile(Shader<Console::HAC>::DekoStage& stage, const uint8_t* buffer,
-                     const size_t size)
+                     const size_t size, std::string& error)
 {
     Shader<Console::HAC>::DkshHeader header {};
     std::unique_ptr<uint8_t[]> controlMemory;
@@ -103,10 +110,20 @@ static bool loadFile(Shader<Console::HAC>::DekoStage& stage, const uint8_t* buff
     stage.codeMemory.destroy();
 
     if (!buffer || size == 0)
+    {
+        error = "Buffer size is zero.";
         return false;
+    }
 
-    if (!std::memcpy(&header, buffer, sizeof(header)))
+    const auto headerSize = Shader<Console::HAC>::HEADER_SIZE;
+    std::memcpy(&header, buffer, headerSize);
+
+    if (header.header_sz != headerSize)
+    {
+        error = "Invalid dksh header size: expected " + std::to_string(headerSize) + ", got " +
+                std::to_string(header.header_sz);
         return false;
+    }
 
     try
     {
@@ -114,11 +131,11 @@ static bool loadFile(Shader<Console::HAC>::DekoStage& stage, const uint8_t* buff
     }
     catch (std::bad_alloc&)
     {
+        error = "Failed to allocate control memory.";
         return false;
     }
 
-    if (!std::memcpy(controlMemory.get(), buffer, header.control_sz))
-        return false;
+    std::memcpy(controlMemory.get(), buffer, header.control_sz);
 
     const auto poolId = Renderer<Console::HAC>::CODE;
     auto& pool        = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
@@ -126,32 +143,42 @@ static bool loadFile(Shader<Console::HAC>::DekoStage& stage, const uint8_t* buff
     stage.codeMemory = pool.allocate(header.code_sz, DK_SHADER_CODE_ALIGNMENT);
 
     if (!stage.codeMemory)
-        return false;
-
-    if (!std::memcpy(stage.codeMemory.getCpuAddr(), buffer + header.control_sz, header.code_sz))
     {
-        stage.codeMemory.destroy();
-
+        error = "Failed to allocate code memory.";
         return false;
     }
+
+    std::memcpy(stage.codeMemory.getCpuAddr(), buffer + header.control_sz, header.code_sz);
 
     dk::ShaderMaker { stage.codeMemory.getMemBlock(), stage.codeMemory.getOffset() }
         .setControl(controlMemory.get())
         .setProgramId(0)
         .initialize(stage.shader);
 
+    if (!stage.shader.isValid())
+    {
+        error = "Shader code is invalid.";
+        stage.codeMemory.destroy();
+        return false;
+    }
+
     return true;
 }
 
-bool Shader<Console::HAC>::Validate(const char* filepath, DekoStage& stage) const
+bool Shader<Console::HAC>::Validate(const char* filepath, DekoStage& stage,
+                                    std::string& error) const
 {
     if (!filepath)
+    {
+        error = "No filepath provided.";
         return false;
+    }
 
-    FILE* file = std::fopen(filepath, "r");
+    FILE* file = std::fopen(filepath, "rb");
 
     if (!file)
     {
+        error = "File '" + std::string(filepath) + "' does not exist.";
         std::fclose(file);
         return false;
     }
@@ -162,6 +189,7 @@ bool Shader<Console::HAC>::Validate(const char* filepath, DekoStage& stage) cons
 
     if (size == 0)
     {
+        error = "File size is zero.";
         std::fclose(file);
         return false;
     }
@@ -176,17 +204,18 @@ bool Shader<Console::HAC>::Validate(const char* filepath, DekoStage& stage) cons
     }
     catch (std::bad_alloc&)
     {
+        error = "Failed to allocate buffer.";
         std::fclose(file);
         return false;
     }
 
-    std::fwrite(buffer.get(), size, 1, file);
+    std::fread(buffer.get(), size, 1, file);
     fclose(file);
 
-    return loadFile(stage, buffer.get(), size);
+    return loadFile(stage, buffer.get(), size, error);
 }
 
-bool Shader<Console::HAC>::Validate(Data* data, DekoStage& stage) const
+bool Shader<Console::HAC>::Validate(Data* data, DekoStage& stage, std::string& error) const
 {
-    return loadFile(stage, (uint8_t*)data->GetData(), data->GetSize());
+    return loadFile(stage, (uint8_t*)data->GetData(), data->GetSize(), error);
 }

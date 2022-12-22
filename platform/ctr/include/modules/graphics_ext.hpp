@@ -10,6 +10,8 @@ namespace love
     class Graphics<Console::CTR> : public Graphics<Console::ALL>
     {
       public:
+        static constexpr const char* DEFAULT_SCREEN = "top";
+
         Graphics();
 
         void Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth);

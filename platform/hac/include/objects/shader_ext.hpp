@@ -26,13 +26,15 @@ namespace love
 
         struct DkshHeader
         {
-            uint32_t magic;     // DKSH_MAGIC
-            uint32_t header_sz; // sizeof(DkshHeader)
+            uint32_t magic;
+            uint32_t header_sz;
             uint32_t control_sz;
             uint32_t code_sz;
             uint32_t programs_off;
             uint32_t num_programs;
         };
+
+        static constexpr size_t HEADER_SIZE = sizeof(DkshHeader);
 
         Shader();
 
@@ -42,21 +44,21 @@ namespace love
 
         void Attach();
 
-        const dk::Shader* const Vertex() const
+        std::optional<DekoStage> Vertex()
         {
-            return &this->program.vertex.value().shader;
+            return this->program.vertex;
         }
 
-        const dk::Shader* const Fragment() const
+        std::optional<DekoStage> Fragment()
         {
-            return &this->program.fragment.value().shader;
+            return this->program.fragment;
         }
 
         static void AttachDefault(StandardShader type);
 
-        bool Validate(const char* filepath, DekoStage& stage) const;
+        bool Validate(const char* filepath, DekoStage& stage, std::string& error) const;
 
-        bool Validate(Data* data, DekoStage& stage) const;
+        bool Validate(Data* data, DekoStage& stage, std::string& error) const;
 
         void LoadDefaults(StandardShader type);
 

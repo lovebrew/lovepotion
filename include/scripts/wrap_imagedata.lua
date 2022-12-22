@@ -1,4 +1,4 @@
-R"luastring" --(
+R"luastring"--(
 local ImageData_mt = ...
 local ImageData = ImageData_mt.__index
 

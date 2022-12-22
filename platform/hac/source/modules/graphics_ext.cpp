@@ -82,7 +82,7 @@ void Graphics<Console::HAC>::RestoreState(const DisplayState& state)
     this->SetShader(state.shader);
 }
 
-void Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
+bool Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
 {
     this->width  = width;
     this->height = height;
@@ -106,9 +106,9 @@ void Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
                 Shader<Console::HAC>::defaults[index] = shader;
             }
         }
-        catch (love::Exception& exception)
+        catch (love::Exception&)
         {
-            return;
+            throw;
         }
     }
 
@@ -116,6 +116,7 @@ void Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
         Shader<Console::HAC>::defaults[Shader<>::STANDARD_DEFAULT]->Attach();
 
     this->created = true;
+    return true;
 }
 
 void Graphics<Console::HAC>::CheckSetDefaultFont()

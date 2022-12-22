@@ -108,6 +108,10 @@ if(NINTENDO_SWITCH)
     find_package(Freetype REQUIRED)
 
     set(APP_LIBS deko3d freetype bz2)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(APP_LIBS deko3dd freetype bz2)
+    endif()
+
     target_include_directories(${PROJECT_NAME} PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
     add_custom_target(dist COMMAND

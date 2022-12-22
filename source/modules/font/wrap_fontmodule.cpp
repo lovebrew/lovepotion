@@ -5,8 +5,18 @@
 
 #include <objects/glyphdata/wrap_glyphdata.hpp>
 
-#if !defined(__3DS__)
+#if defined(__WIIU__)
 std::span<const luaL_Reg> Wrap_FontModule::extensions;
+#elif defined(__SWITCH__)
+int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
+{
+    return 0;
+}
+#elif defined(__3DS__)
+int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
+{
+    return 0;
+}
 #endif
 
 using namespace love;

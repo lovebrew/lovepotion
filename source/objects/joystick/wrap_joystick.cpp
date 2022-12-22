@@ -343,5 +343,5 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_Joystick::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &Joystick<>::type, functions, Wrap_Joystick::extension);
+    return luax::RegisterType(L, &Joystick<>::type, functions);
 }

@@ -116,7 +116,7 @@ int Wrap_RandomGenerator::Register(lua_State* L)
     int result = luax::RegisterType(L, &RandomGenerator::type, functions);
 
     luax::WrapObject(L, wrap_randomgenerator_lua, sizeof(wrap_randomgenerator_lua),
-                     "RandomGenerator.lua", RandomGenerator::type);
+                     "wrap_randomgenerator.lua", RandomGenerator::type);
 
     return result;
 }

@@ -2,6 +2,8 @@
 
 using namespace love;
 
+Type Quad::type("Quad", &Object::type);
+
 Quad::Quad(const Viewport& viewport, double sourceWidth, double sourceHeight) :
     sourceWidth(sourceWidth),
     sourceHeight(sourceHeight)

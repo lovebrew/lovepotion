@@ -17,14 +17,14 @@ static FILE* file = nullptr;
 static love::mutex fileMutex;
 static bool opened = false;
 
-constexpr const char* LOG_FORMAT = "%s(%lu:%lu): `%s`:\n%s\n\n";
+constexpr const char* LOG_FORMAT = "%s(%u:%u): `%s`:\n%s\n\n";
 
 static void init(const char* filepath)
 {
     if (opened)
         return;
 
-    file = fopen(filepath, "w");
+    file = fopen(filepath, "a");
 
     if (!file)
         fclose(file);
@@ -53,8 +53,11 @@ void logFormat(std::source_location location, const char* format, ...)
 
     std::filesystem::path filepath(location.file_name());
 
-    // clang-format off
-    fprintf(file, LOG_FORMAT, filepath.filename().c_str(), location.line(), location.column(), location.function_name(), buffer);
+    const char* filename = filepath.filename().c_str();
+    const auto line      = (uint32_t)location.line();
+    const auto column    = (uint32_t)location.column();
+    const char* funcname = location.function_name();
+
+    fprintf(file, LOG_FORMAT, filename, line, column, funcname, buffer);
     fflush(file);
-    // clang-format on
 }

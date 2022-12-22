@@ -15,6 +15,8 @@ namespace love
     class GlyphData : public Data
     {
       public:
+        static Type type;
+
         struct GlyphMetrics
         {
             int width;

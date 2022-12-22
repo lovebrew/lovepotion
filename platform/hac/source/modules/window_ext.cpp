@@ -22,14 +22,24 @@ bool Window<Console::HAC>::SetWindow(int width, int height, WindowSettings* sett
     if (!this->graphics.Get())
         this->graphics.Set((Module::GetInstance<Graphics<Console::HAC>>(Module::M_GRAPHICS)));
 
-    this->Close();
+    bool setMode = false;
 
     /* handled internally */
-    if (!this->CreateWindowAndContext(width, height, width, height))
-        return false;
+    if (!this->IsOpen())
+    {
+        if (!this->CreateWindowAndContext(width, height, width, height))
+            return false;
+
+        setMode = true;
+    }
 
     if (this->graphics.Get())
-        this->graphics->SetMode(width, height, width, height);
+    {
+        if (setMode)
+            this->graphics->SetMode(width, height, width, height);
+        else
+            this->graphics->SetViewportSize(width, height);
+    }
 
     return true;
 }

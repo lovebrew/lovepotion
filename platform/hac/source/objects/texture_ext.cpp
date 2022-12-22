@@ -47,24 +47,24 @@ static DkImageRect dkImageRectFromRect(const Rect& rectangle)
 
 static void createTextureObject(dk::Image& image, CMemPool::Handle& handle,
                                 dk::ImageDescriptor& descriptor, const void* data,
-                                const size_t size, PixelFormat format, Rect rectangle)
+                                PixelFormat format, Rect rectangle)
 {
-    if (data == nullptr || size == 0)
+    if (data == nullptr || rectangle.w * rectangle.h == 0)
         throw love::Exception("No data for Texture.");
 
     std::optional<DkImageFormat> imageFormat;
-    if (!(Renderer<Console::HAC>::pixelFormats.Find(format)))
+    if (!(imageFormat = Renderer<Console::HAC>::pixelFormats.Find(format)))
         throw love::Exception("Invalid image format.");
 
-    const auto sliceSize = love::GetPixelFormatSliceSize(format, rectangle.w, rectangle.h);
+    const auto size = love::GetPixelFormatSliceSize(format, rectangle.w, rectangle.h);
 
-    if (sliceSize <= 0)
+    if (size <= 0)
         throw love::Exception("Invalid PixelFormat slice size.");
 
-    auto poolId  = Renderer<Console::HAC>::IMAGE;
-    auto scratch = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+    auto poolId      = Renderer<Console::HAC>::DATA;
+    auto scratchPool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
 
-    auto tempMemory = scratch.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    auto tempMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempMemory)
         throw love::Exception("Failed to allocate temporary memory.");
@@ -77,7 +77,7 @@ static void createTextureObject(dk::Image& image, CMemPool::Handle& handle,
     */
     auto device            = Renderer<Console::HAC>::Instance().GetDevice();
     auto tempCommandBuffer = dk::CmdBufMaker { device }.create();
-    auto tempCommandMemory = scratch.allocate(DK_MEMBLOCK_ALIGNMENT);
+    auto tempCommandMemory = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
 
     tempCommandBuffer.addMemory(tempCommandMemory.getMemBlock(), tempCommandMemory.getOffset(),
                                 tempCommandMemory.getSize());
@@ -90,12 +90,14 @@ static void createTextureObject(dk::Image& image, CMemPool::Handle& handle,
         .setDimensions(rectangle.w, rectangle.h)
         .initialize(layout);
 
-    handle = scratch.allocate(layout.getSize(), layout.getAlignment());
+    poolId         = Renderer<Console::HAC>::IMAGE;
+    auto imagePool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+
+    handle = imagePool.allocate(layout.getSize(), layout.getAlignment());
     image.initialize(layout, handle.getMemBlock(), handle.getOffset());
     descriptor.initialize(image);
 
     dk::ImageView view { image };
-
     DkImageRect _rectangle = dkImageRectFromRect(rectangle);
 
     tempCommandBuffer.copyBufferToImage({ tempMemory.getGpuAddr() }, view, _rectangle, 0);
@@ -218,17 +220,14 @@ void Texture<Console::HAC>::CreateTexture()
     {
         if (!hasData)
         {
-            std::vector<uint8_t> empty(_width * _height);
+            std::vector<uint8_t> empty(_width * _height, 0);
             createTextureObject(this->image, this->handle, this->descriptor, empty.data(),
-                                empty.size(), this->format, rectangle);
+                                this->format, rectangle);
         }
         else
         {
-            const auto size    = this->slices.Get(0, 0)->GetSize();
-            const auto* buffer = this->slices.Get(0, 0)->GetData();
-
-            createTextureObject(this->image, this->handle, this->descriptor, buffer, size,
-                                this->format, rectangle);
+            createTextureObject(this->image, this->handle, this->descriptor,
+                                this->slices.Get(0, 0)->GetData(), this->format, rectangle);
         }
     }
 
@@ -263,10 +262,10 @@ void Texture<Console::HAC>::ReplacePixels(const void* data, size_t size, int sli
     if (!data || size == 0)
         return;
 
-    auto poolId  = Renderer<Console::HAC>::IMAGE;
-    auto scratch = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+    auto poolId      = Renderer<Console::HAC>::DATA;
+    auto scratchPool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
 
-    auto tempMemory = scratch.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    auto tempMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
     if (!tempMemory)
         throw love::Exception("Failed to allocate temporary memory.");
@@ -279,7 +278,7 @@ void Texture<Console::HAC>::ReplacePixels(const void* data, size_t size, int sli
      */
     auto device            = Renderer<Console::HAC>::Instance().GetDevice();
     auto tempCommandBuffer = dk::CmdBufMaker { device }.create();
-    auto tempCommandMemory = scratch.allocate(DK_MEMBLOCK_ALIGNMENT);
+    auto tempCommandMemory = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
 
     tempCommandBuffer.addMemory(tempCommandMemory.getMemBlock(), tempCommandMemory.getOffset(),
                                 tempCommandMemory.getSize());

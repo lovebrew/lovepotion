@@ -23,6 +23,8 @@ namespace love
     class Font : public Object
     {
       public:
+        static inline Type type = Type("Font", &Object::type);
+
         using Codepoints = std::vector<uint32_t>;
 
         enum AlignMode

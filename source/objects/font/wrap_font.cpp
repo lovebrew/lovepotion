@@ -4,7 +4,7 @@ using namespace love;
 using Font = love::Font<Console::Which>;
 
 #if !defined(__3DS__)
-std::function<void(lua_State*)> Wrap_Font::wrap_extension = [](lua_State*) {};
+std::function<void(lua_State*)> Wrap_Font::wrap_extension;
 #endif
 
 void Wrap_Font::CheckColoredString(lua_State* L, int index, ::Font::ColoredStrings& strings)
@@ -269,7 +269,8 @@ int Wrap_Font::Register(lua_State* L)
 {
     int result = luax::RegisterType(L, &::Font::type, functions);
 
-    Wrap_Font::wrap_extension(L);
+    if (Wrap_Font::wrap_extension)
+        Wrap_Font::wrap_extension(L);
 
     return result;
 }

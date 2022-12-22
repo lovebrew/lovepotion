@@ -3,6 +3,10 @@
 using namespace love;
 using ImageData = love::ImageData<Console::Which>;
 
+static constexpr char wrap_imagedata_lua[] = {
+#include "scripts/wrap_imagedata.lua"
+};
+
 ::ImageData* Wrap_ImageData::CheckImageData(lua_State* L, int index)
 {
     return luax::CheckType<::ImageData>(L, index);
@@ -208,5 +212,10 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_ImageData::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &::ImageData::type, functions, extensions);
+    int result = luax::RegisterType(L, &::ImageData::type, functions, extensions);
+
+    luax::WrapObject(L, wrap_imagedata_lua, sizeof(wrap_imagedata_lua), "wrap_imagedata.lua",
+                     ::ImageData::type);
+
+    return result;
 }

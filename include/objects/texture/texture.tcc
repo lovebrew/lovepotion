@@ -318,7 +318,6 @@ namespace love
 
                 const auto* slice = data->Get(0, 0);
                 this->format      = slice->GetFormat();
-                LOG("Slice::PixelFormat: %d", slice->GetFormat());
 
                 if (sRGB)
                     this->format = love::GetSRGBPixelFormat(this->format);

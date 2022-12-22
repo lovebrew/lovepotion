@@ -139,7 +139,7 @@ namespace love
 
         bool Render(const Graphics<Console::HAC>::DrawCommand& command);
 
-        void UseProgram(const Shader<Console::Which>* program);
+        void UseProgram(Shader<Console::Which>::Program program);
 
         void Register(Texture<Console::Which>* texture, DkResHandle& handle);
 

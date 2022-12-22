@@ -23,7 +23,7 @@ ByteData* Wrap_ByteData::CheckByteData(lua_State* L, int index)
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "clone", Wrap_ByteData::Clone },
+    { "clone", Wrap_ByteData::Clone }
 };
 // clang-format on
 

@@ -41,6 +41,11 @@ Renderer<Console::HAC>::Renderer() :
     /* set up the device color state */
     this->state.color.setBlendEnable(0, true);
     this->commandBuffer = dk::CmdBufMaker { this->device }.create();
+
+    this->EnsureInFrame();
+
+    this->descriptors.image.bindForImages(this->commandBuffer);
+    this->descriptors.sampler.bindForSamplers(this->commandBuffer);
 }
 
 Renderer<Console::HAC>::~Renderer()
@@ -166,6 +171,9 @@ void Renderer<Console::HAC>::EnsureInFrame()
 {
     if (!this->inFrame)
     {
+        this->firstVertex       = 0;
+        this->descriptors.dirty = false;
+
         this->commands.begin(this->commandBuffer);
         this->inFrame = true;
     }
@@ -205,7 +213,7 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
     dk::ImageView target { this->framebuffers.images[this->framebuffers.slot] };
     // dk::ImageView depth { this->framebuffers.depthImage };
 
-    if (texture && texture->IsRenderTarget())
+    if (texture != nullptr && texture->IsRenderTarget())
     {
         target = { texture->GetImage() };
 
@@ -224,16 +232,16 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
                                       &this->transform.state);
 
     /* begin vertex ring */
-    const auto& data = this->vertices.begin();
-    this->data       = (vertex::Vertex*)data.first;
+    auto ring  = this->vertices.begin();
+    this->data = (vertex::Vertex*)ring.first;
 
     this->commandBuffer.bindRasterizerState(this->state.rasterizer);
-    this->commandBuffer.bindDepthStencilState(this->state.depthStencil);
+    // this->commandBuffer.bindDepthStencilState(this->state.depthStencil);
     this->commandBuffer.bindColorState(this->state.color);
     this->commandBuffer.bindColorWriteState(this->state.colorWrite);
     this->commandBuffer.bindBlendStates(0, this->state.blend);
 
-    this->commandBuffer.bindVtxBuffer(0, data.second, this->vertices.getSize());
+    this->commandBuffer.bindVtxBuffer(0, ring.second, this->vertices.getSize());
 }
 
 void Renderer<Console::HAC>::Present()
@@ -241,15 +249,12 @@ void Renderer<Console::HAC>::Present()
     if (!this->swapchain)
         return;
 
-    if (inFrame)
+    if (this->inFrame)
     {
         this->vertices.end();
 
         this->mainQueue.submitCommands(this->commands.end(this->commandBuffer));
         this->mainQueue.presentImage(this->swapchain, this->framebuffers.slot);
-
-        this->firstVertex       = 0;
-        this->descriptors.dirty = false;
 
         this->inFrame = false;
     }
@@ -326,12 +331,12 @@ bool Renderer<Console::HAC>::Render(const Graphics<Console::HAC>::DrawCommand& c
     return true;
 }
 
-void Renderer<Console::HAC>::UseProgram(const Shader<Console::Which>* program)
+void Renderer<Console::HAC>::UseProgram(Shader<Console::HAC>::Program program)
 {
     this->EnsureInFrame();
 
     // clang-format off
-    this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { program->Vertex(), program->Fragment() });
+    this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &program.vertex->shader, &program.fragment->shader });
     this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->transform.buffer.getGpuAddr(), TRANSFORM_SIZE);
     // clang-format on
 }

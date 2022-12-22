@@ -135,7 +135,6 @@ int love::Initialize(lua_State* L)
 
     love::luasocket::preload(L);
 
-    // luax::Preload(L, luaopen_https, "https");
     luax::Preload(L, luaopen_luautf8, "utf8");
 
     return 1;

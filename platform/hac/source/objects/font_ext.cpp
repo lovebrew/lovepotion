@@ -631,7 +631,10 @@ void Font<Console::HAC>::Printf(Graphics<Console::HAC>& graphics, const ColoredS
 }
 
 void Font<Console::HAC>::SetSamplerState(const SamplerState& state)
-{}
+{
+    for (const auto& texture : this->textures)
+        texture->SetSamplerState(state);
+}
 
 /* todo */
 int Font<Console::HAC>::GetWidth(std::string_view text)

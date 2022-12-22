@@ -24,6 +24,9 @@ namespace love
             return this->initialized;
         }
 
+        void Sleep()
+        {}
+
       protected:
         bool initialized;
     };

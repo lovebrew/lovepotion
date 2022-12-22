@@ -152,7 +152,7 @@ int luax::RegisterModule(lua_State* L, const WrappedModule& wrappedModule)
 
     if (wrappedModule.types != nullptr)
     {
-        for (const lua_CFunction* func = wrappedModule.types; *func != nullptr; func++)
+        for (const auto* func = wrappedModule.types; *func != nullptr; func++)
             (*func)(L);
     }
 

@@ -10,7 +10,7 @@ namespace love
     class Quad : public Object
     {
       public:
-        static inline Type type = Type("Quad", &Object::type);
+        static Type type;
 
         struct Viewport
         {

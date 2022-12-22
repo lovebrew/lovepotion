@@ -2,6 +2,8 @@
 
 using namespace love;
 
+Type GlyphData::type("GlyphData", &Data::type);
+
 GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format) :
     glyph(glyph),
     metrics(metrics),

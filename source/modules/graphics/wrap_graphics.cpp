@@ -203,7 +203,7 @@ int Wrap_Graphics::GetColor(lua_State* L)
 
 int Wrap_Graphics::GetWidth(lua_State* L)
 {
-    const char* screenName = luaL_optstring(L, 1, "top");
+    const char* screenName = luaL_optstring(L, 1, Graphics<Console::Which>::DEFAULT_SCREEN);
     std::optional<Screen> screen;
 
     if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
@@ -223,7 +223,7 @@ int Wrap_Graphics::GetHeight(lua_State* L)
 
 int Wrap_Graphics::GetDimensions(lua_State* L)
 {
-    const char* screenName = luaL_optstring(L, 1, "top");
+    const char* screenName = luaL_optstring(L, 1, Graphics<Console::Which>::DEFAULT_SCREEN);
     std::optional<Screen> screen;
 
     if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
