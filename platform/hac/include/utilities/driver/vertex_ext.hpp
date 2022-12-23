@@ -14,7 +14,7 @@ namespace love
     {
         struct Vertex
         {
-            float position[3];
+            std::array<float, 3> position;
             std::array<float, 4> color;
             std::array<uint16_t, 2> texcoord;
         };

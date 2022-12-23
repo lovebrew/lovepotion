@@ -231,6 +231,18 @@ namespace love
             return this->states.back().shader.Get();
         }
 
+        Stats GetStats() const
+        {
+            Stats stats {};
+
+            stats.drawCalls     = Renderer<>::drawCalls;
+            stats.textures      = Texture<>::textureCount;
+            stats.fonts         = Font<>::fontCount;
+            stats.textureMemory = Texture<>::totalGraphicsMemory;
+
+            return stats;
+        }
+
         void Reset()
         {
             this->Origin();
@@ -249,6 +261,29 @@ namespace love
         void SetActive(bool active)
         {
             this->active = active;
+        }
+
+        void Push(StackType type)
+        {
+            if (this->stackTypeStack.size() == MAX_USER_STACK_DEPTH)
+                throw love::Exception("Maximum stack depth reached (more pushes than pops?)");
+
+            this->PushTransform();
+            this->pixelScaleStack.push_back(this->pixelScaleStack.back());
+
+            if (type == STACK_ALL)
+                this->states.push_back(this->states.back());
+
+            this->stackTypeStack.push_back(type);
+        }
+
+        void Pop()
+        {
+            if (this->stackTypeStack.size() < 1)
+                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
+
+            this->PopTransform();
+            this->pixelScaleStack.pop_back();
         }
 
         void PushTransform()
@@ -282,6 +317,41 @@ namespace love
             this->pixelScaleStack.back() *= (fabs(x) + fabs(y)) / 2.0;
         }
 
+        void ApplyTransform(const Matrix4<Console::Which>& matrix)
+        {
+            auto& current = this->transformStack.back();
+            current *= matrix;
+
+            float scaleX, scaleY;
+            current.GetApproximateScale(scaleX, scaleY);
+            this->pixelScaleStack.back() = (scaleX + scaleY) / 2.0;
+        }
+
+        void ReplaceTransform(const Matrix4<Console::Which>& matrix)
+        {
+            this->transformStack.back() = matrix;
+
+            float scaleX, scaleY;
+            matrix.GetApproximateScale(scaleX, scaleY);
+            this->pixelScaleStack.back() = (scaleX + scaleY) / 2.0;
+        }
+
+        Vector2 TransformPoint(Vector2 point)
+        {
+            Vector2 result {};
+            this->transformStack.back().TransformXY(&result, &point, 1);
+
+            return result;
+        }
+
+        Vector2 InverseTransformPoint(Vector2 point)
+        {
+            Vector2 result {};
+            this->transformStack.back().Inverse().TransformXY(&result, &point, 1);
+
+            return result;
+        }
+
         void Translate(float x, float y)
         {
             this->transformStack.back().Translate(x, y);
@@ -294,7 +364,9 @@ namespace love
 
         void Origin()
         {
-            this->transformStack.back().SetIdentity();
+            auto& transform = this->transformStack.back();
+            transform.SetIdentity();
+
             this->pixelScaleStack.back() = 1;
         }
 
@@ -310,11 +382,6 @@ namespace love
             this->SetLineJoin(state.line.join);
 
             this->SetPointSize(state.pointSize);
-
-            if (state.scissor.active)
-                this->SetScissor(state.scissor.bounds);
-            else
-                this->SetScissor();
 
             this->SetMeshCullMode(state.cullMode);
             this->SetFrontFaceWinding(state.windingMode);
@@ -356,7 +423,37 @@ namespace love
             return false;
         }
 
-        // void RestoreStateChecked(const DisplayStateBase& state);
+        void RestoreStateChecked(const DisplayState& state)
+        {
+            const DisplayState& current = this->states.back();
+
+            if (state.foreground != current.foreground)
+                this->SetColor(state.foreground);
+
+            this->SetBackgroundColor(state.background);
+
+            /* todo set blend state */
+
+            this->SetLineWidth(state.line.width);
+            this->SetLineStyle(state.line.style);
+            this->SetLineJoin(state.line.join);
+
+            if (state.pointSize != current.pointSize)
+                this->SetPointSize(state.pointSize);
+
+            this->SetMeshCullMode(state.cullMode);
+
+            if (state.windingMode != current.windingMode)
+                this->SetFrontFaceWinding(state.windingMode);
+
+            this->SetFont(state.font.Get());
+            this->SetShader(state.shader.Get());
+
+            if (state.colorMask != current.colorMask)
+                this->SetColorMask(state.colorMask);
+
+            this->SetDefaultSamplerState(state.defaultSamplerState);
+        }
 
         void SetActiveScreen(Screen screen)
         {
@@ -529,6 +626,35 @@ namespace love
         {
             return new Quad(viewport, sourceWidth, sourceHeight);
         }
+
+        // clang-format off
+        static constexpr BidirectionalMap fillModes = {
+            "fill", DRAW_FILL,
+            "line", DRAW_LINE
+        };
+
+        static constexpr BidirectionalMap stackTypes = {
+            "all",       STACK_ALL,
+            "transform", STACK_TRANSFORM
+        };
+
+        static constexpr BidirectionalMap arcModes = {
+            "open",   ARC_OPEN,
+            "closed", ARC_CLOSED,
+            "pie",    ARC_PIE
+        };
+
+        static constexpr BidirectionalMap lineStyles = {
+            "rough",  LINE_ROUGH,
+            "smooth", LINE_SMOOTH,
+        };
+
+        static constexpr BidirectionalMap lineJoins = {
+            "none",  LINE_JOIN_NONE,
+            "miter", LINE_JOIN_MITER,
+            "bevel", LINE_JOIN_BEVEL
+        };
+        // clang-format on
 
       protected:
         std::vector<double> pixelScaleStack;

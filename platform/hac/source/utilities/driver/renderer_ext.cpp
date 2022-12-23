@@ -22,8 +22,8 @@ Renderer<Console::HAC>::Renderer() :
     descriptors {}
 {
     /* create our Transform information */
-    this->transform.buffer = this->Allocate(DATA, TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
-    this->transform.state.modelView = glm::mat4(1.0f);
+    this->uniformBuffer       = this->pools.data.allocate(TRANSFORM_SIZE, DK_UNIFORM_BUF_ALIGNMENT);
+    this->transform.modelView = glm::mat4(1.0f);
 
     /* allocate descriptors */
     this->descriptors.image.allocate(this->pools.data);
@@ -38,6 +38,9 @@ Renderer<Console::HAC>::Renderer() :
     this->state.depthStencil.setDepthWriteEnable(true);
     this->state.depthStencil.setDepthCompareOp(DkCompareOp_Always);
 
+    this->state.rasterizer.setCullMode(DkFace_None);
+    this->state.rasterizer.setFrontFace(DkFrontFace_CCW);
+
     /* set up the device color state */
     this->state.color.setBlendEnable(0, true);
     this->commandBuffer = dk::CmdBufMaker { this->device }.create();
@@ -51,7 +54,7 @@ Renderer<Console::HAC>::Renderer() :
 Renderer<Console::HAC>::~Renderer()
 {
     this->DestroyFramebuffers();
-    this->transform.buffer.destroy();
+    this->uniformBuffer.destroy();
 }
 
 CMemPool& Renderer<Console::HAC>::GetMemPool(MemPoolType type)
@@ -93,9 +96,14 @@ bool Renderer<Console::HAC>::IsHandheldMode() const
 
 void Renderer<Console::HAC>::CreateFramebuffers()
 {
-    int width = 1280, height = 720;
+    int width  = 1280;
+    int height = 720;
+
     if (!this->IsHandheldMode())
-        width = 1920, height = 1080;
+    {
+        width  = 1920;
+        height = 1080;
+    }
 
     /* create layout for the depth buffer */
     // dk::ImageLayoutMaker { this->device }
@@ -222,14 +230,19 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
     }
     else
     {
-        this->framebuffers.dirty = false;
-        this->SetViewport({ 0, 0, this->framebuffers.size.width, this->framebuffers.size.height });
+        if (this->framebuffers.dirty)
+        {
+            this->SetViewport(
+                { 0, 0, this->framebuffers.size.width, this->framebuffers.size.height });
+            this->framebuffers.dirty = false;
+        }
     }
 
     this->commandBuffer.bindRenderTargets(&target);
-    this->commandBuffer.pushConstants(this->transform.buffer.getGpuAddr(),
-                                      this->transform.buffer.getSize(), 0, TRANSFORM_SIZE,
-                                      &this->transform.state);
+
+    this->commandBuffer.pushConstants(this->uniformBuffer.getGpuAddr(),
+                                      this->uniformBuffer.getSize(), 0, TRANSFORM_SIZE,
+                                      &this->transform);
 
     /* begin vertex ring */
     auto ring  = this->vertices.begin();
@@ -337,7 +350,7 @@ void Renderer<Console::HAC>::UseProgram(Shader<Console::HAC>::Program program)
 
     // clang-format off
     this->commandBuffer.bindShaders(DkStageFlag_GraphicsMask, { &program.vertex->shader, &program.fragment->shader });
-    this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->transform.buffer.getGpuAddr(), TRANSFORM_SIZE);
+    this->commandBuffer.bindUniformBuffer(DkStage_Vertex, 0, this->uniformBuffer.getGpuAddr(), this->uniformBuffer.getSize());
     // clang-format on
 }
 
@@ -388,8 +401,6 @@ void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, Sam
     dk::SamplerDescriptor samplerDescriptor {};
     samplerDescriptor.initialize(sampler);
 
-    this->descriptorList[index] = samplerDescriptor;
-
     this->descriptors.sampler.update(this->commandBuffer, index, samplerDescriptor);
 
     this->descriptors.dirty = true;
@@ -399,18 +410,41 @@ void Renderer<Console::HAC>::SetViewport(const Rect& viewport)
 {
     this->EnsureInFrame();
 
-    DkViewport dkViewport { viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR };
+    DkViewport dkViewport {};
+
+    dkViewport.x      = (float)viewport.x;
+    dkViewport.y      = (float)viewport.y;
+    dkViewport.width  = (float)viewport.w;
+    dkViewport.height = (float)viewport.h;
+    dkViewport.near   = Z_NEAR;
+    dkViewport.far    = Z_FAR;
+
     this->commandBuffer.setViewports(0, { dkViewport });
 
     const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
-    this->transform.state.projection = ortho;
+    this->transform.projection = ortho;
 }
 
 void Renderer<Console::HAC>::SetScissor(bool enable, const Rect& scissor, bool canvasActive)
 {
     this->EnsureInFrame();
+    DkScissor dkScissor {};
 
-    DkScissor dkScissor = { scissor.x, scissor.y, scissor.w, scissor.h };
+    if (enable)
+    {
+        dkScissor.x      = (uint32_t)scissor.x;
+        dkScissor.y      = (uint32_t)scissor.y;
+        dkScissor.width  = (uint32_t)scissor.w;
+        dkScissor.height = (uint32_t)scissor.h;
+    }
+    else
+    {
+        dkScissor.x      = (uint32_t)0;
+        dkScissor.y      = (uint32_t)0;
+        dkScissor.width  = (uint32_t)this->framebuffers.size.width;
+        dkScissor.height = (uint32_t)this->framebuffers.size.height;
+    }
+
     this->commandBuffer.setScissors(0, { dkScissor });
 }
 

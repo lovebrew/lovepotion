@@ -134,6 +134,28 @@ namespace Wrap_Graphics
 
     int Printf(lua_State* L);
 
+    int GetStats(lua_State* L);
+
+    int Push(lua_State* L);
+
+    int Translate(lua_State* L);
+
+    int Scale(lua_State* L);
+
+    int Shear(lua_State* L);
+
+    int Rotate(lua_State* L);
+
+    int ApplyTransform(lua_State* L);
+
+    int InverseTransformPoint(lua_State* L);
+
+    int TransformPoint(lua_State* L);
+
+    int ReplaceTransform(lua_State* L);
+
+    int Pop(lua_State* L);
+
     int Register(lua_State* L);
 
     extern std::span<const luaL_Reg> extensions;

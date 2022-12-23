@@ -22,6 +22,8 @@ namespace love
 
         void Reset();
 
+        void Pop();
+
         void RestoreState(const DisplayState& state);
 
         void SetMode(int x, int y, int width, int height);

@@ -60,6 +60,20 @@ void Graphics<Console::CTR>::Reset()
     Graphics<>::Reset();
 }
 
+void Graphics<Console::CTR>::Pop()
+{
+    Graphics<>::Pop();
+
+    if (this->stackTypeStack.back() == STACK_ALL)
+    {
+        DisplayState& newState = this->states[this->states.size() - 2];
+        this->RestoreStateChecked(newState);
+        this->states.pop_back();
+    }
+
+    this->stackTypeStack.pop_back();
+}
+
 void Graphics<Console::CTR>::RestoreState(const DisplayState& state)
 {
     Graphics<>::RestoreState(state);

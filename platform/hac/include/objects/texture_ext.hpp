@@ -62,10 +62,10 @@ namespace love
         DkResHandle textureHandle;
 
         dk::Image image;
-
         dk::ImageDescriptor descriptor;
+        CMemPool::Handle memory;
+
         dk::Sampler sampler;
 
-        CMemPool::Handle handle;
     };
 } // namespace love

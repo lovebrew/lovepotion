@@ -115,6 +115,8 @@ namespace love
 
         void Present();
 
+        void SetViewport();
+
         void SetViewport(const Rect& viewport);
 
         void SetScissor(bool enable, const Rect& scissor, bool canvasActive);
@@ -277,14 +279,10 @@ namespace love
         {
             glm::mat4 modelView;
             glm::mat4 projection;
-        };
+        } transform;
         static constexpr int TRANSFORM_SIZE = sizeof(Transform);
 
-        struct TransformBuffer
-        {
-            Transform state;
-            CMemPool::Handle buffer;
-        } transform;
+        CMemPool::Handle uniformBuffer;
 
         uint32_t firstVertex;
         vertex::Vertex* data;

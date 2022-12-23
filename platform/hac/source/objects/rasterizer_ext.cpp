@@ -100,11 +100,12 @@ GlyphData* Rasterizer<Console::HAC>::GetGlyphData(uint32_t glyph) const
     metrics.advance  = (int)(ftGlyph->advance.x >> 16);
 
     /* copy the pixel data */
-    GlyphData* glyphData = new GlyphData(glyph, metrics, PIXELFORMAT_LA8_UNORM);
+    GlyphData* glyphData = new GlyphData(glyph, metrics, PIXELFORMAT_RGBA8_UNORM);
 
     const uint8_t* pixels = bitmap.buffer;
     uint8_t* destination  = (uint8_t*)glyphData->GetData();
 
+    /* force convert it to RGBA8 */
     if (bitmap.pixel_mode == FT_PIXEL_MODE_MONO)
     {
         for (int y = 0; y < (int)bitmap.rows; y++)
@@ -113,8 +114,10 @@ GlyphData* Rasterizer<Console::HAC>::GetGlyphData(uint32_t glyph) const
             {
                 uint8_t value = ((pixels[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
 
-                destination[2 * (y * bitmap.width + x) + 0] = 255;
-                destination[2 * (y * bitmap.width + x) + 1] = value;
+                destination[4 * (y * bitmap.width + x) + 0] = value;
+                destination[4 * (y * bitmap.width + x) + 1] = value;
+                destination[4 * (y * bitmap.width + x) + 2] = value;
+                destination[4 * (y * bitmap.width + x) + 3] = value ? 255 : 0;
             }
             pixels += bitmap.width;
         }
@@ -125,8 +128,10 @@ GlyphData* Rasterizer<Console::HAC>::GetGlyphData(uint32_t glyph) const
         {
             for (int x = 0; x < (int)bitmap.width; x++)
             {
-                destination[2 * (y * bitmap.width + x) + 0] = 255;
-                destination[2 * (y * bitmap.width + x) + 1] = pixels[x];
+                destination[4 * (y * bitmap.width + x) + 0] = 255;
+                destination[4 * (y * bitmap.width + x) + 1] = 255;
+                destination[4 * (y * bitmap.width + x) + 2] = 255;
+                destination[4 * (y * bitmap.width + x) + 3] = pixels[x];
             }
             pixels += bitmap.pitch;
         }

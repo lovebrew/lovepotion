@@ -47,9 +47,10 @@ PNGHandler::DecodedImage PNGHandler::Decode(Data* data)
     decoded.format = PIXELFORMAT_RGBA8_UNORM;
     decoded.size   = (image.width * image.height) * sizeof(uint32_t);
 
-    decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];
+    decoded.data = std::make_unique<uint8_t[]>(decoded.size);
 
-    png_image_finish_read(&image, nullptr, decoded.data, PNG_IMAGE_ROW_STRIDE(image), nullptr);
+    png_image_finish_read(&image, nullptr, decoded.data.get(), PNG_IMAGE_ROW_STRIDE(image),
+                          nullptr);
 
     if (PNG_IMAGE_FAILED(image))
     {
@@ -84,7 +85,7 @@ PNGHandler::EncodedImage PNGHandler::Encode(const DecodedImage& decoded, Encoded
     image.version = PNG_IMAGE_VERSION;
     image.format  = PNG_FORMAT_RGBA;
 
-    bool success = png_image_write_get_memory_size(image, encoded.size, 1, decoded.data,
+    bool success = png_image_write_get_memory_size(image, encoded.size, 1, decoded.data.get(),
                                                    PNG_IMAGE_ROW_STRIDE(image), NULL);
 
     if (!success)
@@ -92,7 +93,7 @@ PNGHandler::EncodedImage PNGHandler::Encode(const DecodedImage& decoded, Encoded
 
     encoded.data = new uint8_t[encoded.size];
 
-    success = png_image_write_to_memory(&image, encoded.data, &encoded.size, 1, decoded.data,
+    success = png_image_write_to_memory(&image, encoded.data, &encoded.size, 1, decoded.data.get(),
                                         PNG_IMAGE_ROW_STRIDE(image), NULL);
 
     if (!success)

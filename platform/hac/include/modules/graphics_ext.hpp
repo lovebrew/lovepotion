@@ -64,6 +64,22 @@ namespace love
                 }
             }
 
+            void FillVertices(const vertex::Vertex* data)
+            {
+                LOG("%zu", this->count);
+                for (size_t index = 0; index < this->count; index++)
+                {
+                    // clang-format off
+                    this->vertices[index] =
+                    {
+                        .position = { this->positions[index].x, this->positions[index].y, 0 },
+                        .color    = data[index].color,
+                        .texcoord = data[index].texcoord
+                    };
+                    // clang-format on
+                }
+            }
+
             void FillVertices(const Color& color, const Vector2* textureCoords)
             {
                 for (size_t index = 0; index < this->count; index++)
@@ -105,6 +121,10 @@ namespace love
         bool SetMode(int x, int y, int width, int height);
 
         void CheckSetDefaultFont();
+
+        void RestoreStateChecked(const DisplayState& state);
+
+        void Pop();
 
         void SetShader()
         {

@@ -114,16 +114,16 @@ void ImageData<Console::HAC>::Decode(Data* data)
         love::GetPixelFormatSliceSize(image.format, image.width, image.height);
 
     if (image.size != expectedSize)
-    {
-        decoder->FreeRawPixels(image.data);
         throw love::Exception("Could not decode image!");
-    }
+
+    // clean up old data
+    this->data.reset();
 
     this->width  = image.width;
     this->height = image.height;
+    this->data   = std::move(image.data);
     this->format = image.format;
 
-    this->data.reset(image.data);
     this->decoder = formatDecoder;
 
     this->pixelGetFunction = getPixelGetFunction(this->format);
@@ -141,7 +141,7 @@ FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFo
     raw.width  = this->width;
     raw.height = this->height;
     raw.size   = this->GetSize();
-    raw.data   = this->data.get();
+    raw.data   = std::move(this->data);
     raw.format = this->format;
 
     auto* module = Module::GetInstance<ImageModule>(Module::M_IMAGE);

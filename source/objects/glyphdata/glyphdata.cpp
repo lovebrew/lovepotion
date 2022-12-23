@@ -13,7 +13,7 @@ GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format) :
         throw love::Exception("Invalid GlyphData pixel format!");
 
     if (this->metrics.width > 0 && this->metrics.height > 0)
-        this->data = std::make_unique<uint8_t>(this->GetSize());
+        this->data = std::make_unique<uint8_t[]>(this->GetSize());
 }
 
 GlyphData::GlyphData(const GlyphData& other) :
@@ -24,8 +24,8 @@ GlyphData::GlyphData(const GlyphData& other) :
 {
     if (metrics.width > 0 && metrics.height > 0)
     {
-        data = std::make_unique<uint8_t>(this->GetSize());
-        std::copy_n(other.data.get(), other.GetSize(), this->data.get());
+        this->data = std::make_unique<uint8_t[]>(this->GetSize());
+        std::copy_n(other.data.get(), this->GetSize(), this->data.get());
     }
 }
 

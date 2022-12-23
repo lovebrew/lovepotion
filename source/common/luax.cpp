@@ -576,10 +576,10 @@ void luax::PushType(lua_State* L, love::Type& type, Object* object)
         return luax::RawNewType(L, type, object);
     }
 
-    lua_Number key = luax::ComputeObjectKey(L, object);
+    objectkey_t key = luax::ComputeObjectKey(L, object);
 
     // push using that key
-    lua_pushnumber(L, key);
+    luax::PushObjectKey(L, key);
     lua_gettable(L, -2);
 
     // if the proxy doesn't exist in registry, add it
@@ -588,7 +588,7 @@ void luax::PushType(lua_State* L, love::Type& type, Object* object)
         lua_pop(L, 1);
         luax::RawNewType(L, type, object);
 
-        lua_pushnumber(L, key);
+        luax::PushObjectKey(L, key);
         lua_pushvalue(L, -2);
 
         lua_settable(L, -4);

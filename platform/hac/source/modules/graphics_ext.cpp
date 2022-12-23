@@ -79,7 +79,31 @@ void Graphics<Console::HAC>::Reset()
 void Graphics<Console::HAC>::RestoreState(const DisplayState& state)
 {
     Graphics<>::RestoreState(state);
-    this->SetShader(state.shader);
+
+    if (state.scissor.active)
+        this->SetScissor(state.scissor.bounds);
+    else
+        Graphics<>::SetScissor();
+
+    this->SetShader(state.shader.Get());
+}
+
+void Graphics<Console::HAC>::RestoreStateChecked(const DisplayState& state)
+{
+    Graphics<>::RestoreStateChecked(state);
+
+    const DisplayState& current = this->states.back();
+
+    bool sameScissor = state.scissor.bounds == current.scissor.bounds;
+    if (state.scissor.active != current.scissor.active || (state.scissor.active && !sameScissor))
+    {
+        if (state.scissor.active)
+            this->SetScissor(state.scissor.bounds);
+        else
+            Graphics<>::SetScissor();
+    }
+
+    this->SetShader(state.shader.Get());
 }
 
 bool Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
@@ -133,6 +157,20 @@ void Graphics<Console::HAC>::CheckSetDefaultFont()
     }
 
     states.back().font.Set(this->defaultFont.Get());
+}
+
+void Graphics<Console::HAC>::Pop()
+{
+    Graphics<>::Pop();
+
+    if (this->stackTypeStack.back() == STACK_ALL)
+    {
+        DisplayState& newState = this->states[this->states.size() - 2];
+        this->RestoreStateChecked(newState);
+        this->states.pop_back();
+    }
+
+    this->stackTypeStack.pop_back();
 }
 
 Font<Console::HAC>* Graphics<Console::HAC>::NewFont(Rasterizer<Console::HAC>* data) const

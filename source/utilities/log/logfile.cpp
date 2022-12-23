@@ -51,9 +51,9 @@ void logFormat(std::source_location location, const char* format, ...)
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
-    std::filesystem::path filepath(location.file_name());
+    // std::filesystem::path filepath(location.file_name());
 
-    const char* filename = filepath.filename().c_str();
+    const char* filename = location.file_name();
     const auto line      = (uint32_t)location.line();
     const auto column    = (uint32_t)location.column();
     const char* funcname = location.function_name();

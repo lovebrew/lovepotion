@@ -27,7 +27,7 @@ bool Window<Console::HAC>::SetWindow(int width, int height, WindowSettings* sett
     /* handled internally */
     if (!this->IsOpen())
     {
-        if (!this->CreateWindowAndContext(width, height, width, height))
+        if (!this->CreateWindowAndContext(0, 0, width, height))
             return false;
 
         setMode = true;
@@ -36,7 +36,7 @@ bool Window<Console::HAC>::SetWindow(int width, int height, WindowSettings* sett
     if (this->graphics.Get())
     {
         if (setMode)
-            this->graphics->SetMode(width, height, width, height);
+            this->graphics->SetMode(0, 0, width, height);
         else
             this->graphics->SetViewportSize(width, height);
     }
@@ -52,9 +52,14 @@ bool Window<Console::HAC>::CreateWindowAndContext(int x, int y, int width, int h
 
 void Window<Console::HAC>::GetWindow(int& width, int& height, WindowSettings& settings)
 {
-    width = 1280, height = 720;
+    width  = 1280;
+    height = 720;
+
     if (appletGetOperationMode() == AppletOperationMode_Console)
-        width = 1920, height = 1080;
+    {
+        width  = 1920;
+        height = 1080;
+    }
 }
 
 void Window<Console::HAC>::Close()

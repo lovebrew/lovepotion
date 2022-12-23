@@ -524,7 +524,17 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
 }
 
 static void parseDPIScale(Data* fileData, float* dpiScale)
-{}
+{
+    auto* data = (FileData*)fileData;
+
+    if (data == nullptr)
+        return;
+
+    const std::string& filename = data->GetName();
+
+    size_t nameLength = filename.length();
+    size_t position   = filename.rfind('@');
+}
 
 static std::pair<StrongReference<ImageData<Console::Which>>, StrongReference<CompressedImageData>>
 getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
@@ -541,15 +551,16 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
     else if (Wrap_Filesystem::CanGetData(L, index))
     {
         auto* module = Module::GetInstance<ImageModule>(Module::M_IMAGE);
+
         if (module == nullptr)
             luaL_error(L, "Cannot load images without the image module.");
 
-        StrongReference<Data> fileData(Wrap_Filesystem::GetFileData(L, index), Acquire::NORETAIN);
+        StrongReference<Data> data(Wrap_Filesystem::GetFileData(L, index), Acquire::NORETAIN);
 
         if (dpiScale != nullptr)
-            parseDPIScale(fileData, dpiScale);
+            parseDPIScale(data, dpiScale);
 
-        if (allowCompressed && module->IsCompressed(fileData))
+        if (allowCompressed && module->IsCompressed(data))
         {
             luax::CatchException(L, [&]() {
                 /* todo */
@@ -559,7 +570,7 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
         else
         {
             luax::CatchException(
-                L, [&]() { image.Set(module->NewImageData(fileData), Acquire::NORETAIN); });
+                L, [&]() { image.Set(module->NewImageData(data), Acquire::NORETAIN); });
         }
     }
     else
@@ -641,7 +652,7 @@ int Wrap_Graphics::NewTexture(lua_State* L)
         settings.height = luaL_checkinteger(L, 2);
 
         int start = 3;
-        if (lua_type(L, start) == LUA_TNUMBER)
+        if (lua_type(L, 3) == LUA_TNUMBER)
         {
             settings.layers = luaL_checkinteger(L, 3);
             settings.type   = Texture<>::TEXTURE_2D_ARRAY;
@@ -683,6 +694,117 @@ int Wrap_Graphics::NewTexture(lua_State* L)
     }
 
     return pushNewTexture(L, slicesReference, settings);
+}
+
+int Wrap_Graphics::Push(lua_State* L)
+{
+    std::optional<Graphics<>::StackType> stackType;
+    const char* name = luaL_optstring(L, 1, "transform");
+
+    if (!(stackType = Graphics<>::stackTypes.Find(name)))
+        return luax::EnumError(L, "graphics stack type", Graphics<>::stackTypes, name);
+
+    luax::CatchException(L, [&]() { instance()->Push(*stackType); });
+
+    if (luax::IsType(L, 2, Transform::type))
+    {
+        auto* transform = luax::ToType<Transform>(L, 2);
+        luax::CatchException(L, [&]() { instance()->ApplyTransform(transform->GetMatrix()); });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::Translate(lua_State* L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    instance()->Translate(x, y);
+
+    return 0;
+}
+
+int Wrap_Graphics::Scale(lua_State* L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    instance()->Scale(x, y);
+
+    return 0;
+}
+
+int Wrap_Graphics::Rotate(lua_State* L)
+{
+    float angle = luaL_checknumber(L, 1);
+
+    instance()->Rotate(angle);
+
+    return 0;
+}
+
+int Wrap_Graphics::Shear(lua_State* L)
+{
+    float x = luaL_checknumber(L, 1);
+    float y = luaL_checknumber(L, 2);
+
+    instance()->Shear(x, y);
+
+    return 0;
+}
+
+int Wrap_Graphics::ApplyTransform(lua_State* L)
+{
+    Wrap_Graphics::CheckStandardTransform(L, 1, [&](const Matrix4<Console::Which>& matrix) {
+        luax::CatchException(L, [&]() { instance()->ApplyTransform(matrix); });
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::ReplaceTransform(lua_State* L)
+{
+    Wrap_Graphics::CheckStandardTransform(L, 1, [&](const Matrix4<Console::Which>& matrix) {
+        luax::CatchException(L, [&]() { instance()->ReplaceTransform(matrix); });
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::TransformPoint(lua_State* L)
+{
+    Vector2 point {};
+    point.x = luaL_checknumber(L, 1);
+    point.y = luaL_checknumber(L, 2);
+
+    point = instance()->TransformPoint(point);
+
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+
+    return 2;
+}
+
+int Wrap_Graphics::InverseTransformPoint(lua_State* L)
+{
+    Vector2 point {};
+    point.x = luaL_checknumber(L, 1);
+    point.y = luaL_checknumber(L, 2);
+
+    point = instance()->InverseTransformPoint(point);
+
+    lua_pushnumber(L, point.x);
+    lua_pushnumber(L, point.y);
+
+    return 2;
+}
+
+int Wrap_Graphics::Pop(lua_State* L)
+{
+    luax::CatchException(L, [&]() { instance()->Pop(); });
+
+    return 0;
 }
 
 int Wrap_Graphics::NewQuad(lua_State* L)
@@ -740,29 +862,39 @@ int Wrap_Graphics::NewQuad(lua_State* L)
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "clear",              Wrap_Graphics::Clear              },
-    { "draw",               Wrap_Graphics::Draw               },
-    { "isActive",           Wrap_Graphics::IsActive           },
-    { "isCreated",          Wrap_Graphics::IsCreated          },
-    { "origin",             Wrap_Graphics::Origin             },
-    { "present",            Wrap_Graphics::Present            },
-    { "print",              Wrap_Graphics::Print              },
-    { "printf",             Wrap_Graphics::Printf             },
-    { "setActiveScreen",    Wrap_Graphics::SetActiveScreen    },
-    { "setBackgroundColor", Wrap_Graphics::SetBackgroundColor },
-    { "setColor",           Wrap_Graphics::SetColor           },
-    { "getBackgroundColor", Wrap_Graphics::GetBackgroundColor },
-    { "getColor",           Wrap_Graphics::GetColor           },
-    { "getScreens",         Wrap_Graphics::GetScreens         },
-    { "getWidth",           Wrap_Graphics::GetWidth           },
-    { "getHeight",          Wrap_Graphics::GetHeight          },
-    { "getDimensions",      Wrap_Graphics::GetDimensions      },
-    { "newFont",            Wrap_Graphics::NewFont            },
-    { "newQuad",            Wrap_Graphics::NewQuad            },
-    { "newTexture",         Wrap_Graphics::NewTexture         },
-    { "setFont",            Wrap_Graphics::SetFont            },
-    { "getFont",            Wrap_Graphics::GetFont            },
-    { "reset",              Wrap_Graphics::Reset              }
+    { "applyTransform",        Wrap_Graphics::ApplyTransform        },
+    { "clear",                 Wrap_Graphics::Clear                 },
+    { "draw",                  Wrap_Graphics::Draw                  },
+    { "isActive",              Wrap_Graphics::IsActive              },
+    { "isCreated",             Wrap_Graphics::IsCreated             },
+    { "inverseTransformPoint", Wrap_Graphics::InverseTransformPoint },
+    { "origin",                Wrap_Graphics::Origin                },
+    { "pop",                   Wrap_Graphics::Pop                   },
+    { "present",               Wrap_Graphics::Present               },
+    { "print",                 Wrap_Graphics::Print                 },
+    { "printf",                Wrap_Graphics::Printf                },
+    { "push",                  Wrap_Graphics::Push                  },
+    { "replaceTransform",      Wrap_Graphics::ReplaceTransform      },
+    { "rotate",                Wrap_Graphics::Rotate                },
+    { "scale",                 Wrap_Graphics::Scale                 },
+    { "setActiveScreen",       Wrap_Graphics::SetActiveScreen       },
+    { "setBackgroundColor",    Wrap_Graphics::SetBackgroundColor    },
+    { "setColor",              Wrap_Graphics::SetColor              },
+    { "shear",                 Wrap_Graphics::Shear                 },
+    { "translate",             Wrap_Graphics::Translate             },
+    { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },
+    { "getColor",              Wrap_Graphics::GetColor              },
+    { "getScreens",            Wrap_Graphics::GetScreens            },
+    { "getWidth",              Wrap_Graphics::GetWidth              },
+    { "getHeight",             Wrap_Graphics::GetHeight             },
+    { "getDimensions",         Wrap_Graphics::GetDimensions         },
+    { "newFont",               Wrap_Graphics::NewFont               },
+    { "newQuad",               Wrap_Graphics::NewQuad               },
+    { "newTexture",            Wrap_Graphics::NewTexture            },
+    { "setFont",               Wrap_Graphics::SetFont               },
+    { "getFont",               Wrap_Graphics::GetFont               },
+    { "reset",                 Wrap_Graphics::Reset                 },
+    { "transformPoint",        Wrap_Graphics::TransformPoint        }
 };
 
 static constexpr lua_CFunction types[] =

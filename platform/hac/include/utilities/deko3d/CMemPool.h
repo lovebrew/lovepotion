@@ -148,7 +148,10 @@ class CMemPool
         m_sliceHeap {},
         m_freeList {}
     {}
+
     ~CMemPool();
+
+    CMemPool(const CMemPool&) = delete;
 
     Handle allocate(uint32_t size, uint32_t alignment = DK_CMDMEM_ALIGNMENT);
 };

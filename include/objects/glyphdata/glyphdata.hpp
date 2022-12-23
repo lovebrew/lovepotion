@@ -68,7 +68,7 @@ namespace love
       protected:
         uint32_t glyph;
         GlyphMetrics metrics;
-        std::unique_ptr<uint8_t> data;
+        std::unique_ptr<uint8_t[]> data;
         PixelFormat format;
     };
 } // namespace love

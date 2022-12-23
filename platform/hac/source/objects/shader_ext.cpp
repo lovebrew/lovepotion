@@ -37,6 +37,9 @@ Shader<Console::HAC>::~Shader()
 
     if (current == this)
         Shader::AttachDefault(STANDARD_DEFAULT);
+
+    this->program.vertex->codeMemory.destroy();
+    this->program.fragment->codeMemory.destroy();
 }
 
 void Shader<Console::HAC>::LoadDefaults(StandardShader type)
@@ -92,12 +95,10 @@ void Shader<Console::HAC>::Attach()
 {
     if (Shader::current != this)
     {
-        LOG("Using program!");
         Renderer<Console::HAC>::Instance().UseProgram(this->program);
         Renderer<>::shaderSwitches++;
-        LOG("Done!");
+
         Shader::current = this;
-        LOG("Set current to this!");
     }
 }
 

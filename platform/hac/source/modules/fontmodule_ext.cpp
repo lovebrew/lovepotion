@@ -6,7 +6,7 @@ using namespace love;
 
 FontModule<Console::HAC>::FontModule()
 {
-    this->defaultFontData.Set(new SystemFont(PlSharedFontType_Standard), Acquire::NORETAIN);
+    this->defaultFontData.Set(new SystemFont(), Acquire::NORETAIN);
 
     if (auto error = FT_Init_FreeType(&this->library); error != FT_Err_Ok)
         throw love::Exception("Failed to initialize FreeType: (%s)", FT_Error_String(error));

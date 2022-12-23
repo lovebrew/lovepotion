@@ -44,7 +44,7 @@ Font<Console::HAC>::Font(Rasterizer<Console::HAC>* rasterizer, const SamplerStat
 
     /* glyph data for the space character */
     auto* glyphData = rasterizer->GetGlyphData(Font::SPACE_GLYPH);
-    auto format     = glyphData->GetFormat();
+    this->format    = glyphData->GetFormat();
     glyphData->Release();
 
     auto* graphics = Module::GetInstance<Graphics<Console::HAC>>(Module::M_GRAPHICS);
@@ -220,8 +220,8 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
     float dpiScale = this->GetDPIScale();
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph, dpiScale));
 
-    const auto width       = data->GetWidth();
-    const auto height      = data->GetHeight();
+    auto width             = data->GetWidth();
+    auto height            = data->GetHeight();
     const auto glyphFormat = data->GetFormat();
 
     const auto glyphWidthPadding  = width + Font::TEXTURE_PADDING * 2;
@@ -250,6 +250,7 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
     Glyph _glyph {};
     _glyph.texture = nullptr;
     _glyph.spacing = std::floor(data->GetAdvance() / dpiScale + 0.5f);
+    std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
 
     /* don't waste space on empty glyphs */
     if (width > 0 && height > 0)
@@ -257,7 +258,7 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
         Texture<Console::HAC>* texture = this->textures.back();
         _glyph.texture                 = texture;
 
-        Rect rectangle = { this->textureX, this->textureY, width, height };
+        Rect rectangle = { this->textureX, this->textureY, data->GetWidth(), data->GetHeight() };
 
         /* if the formats don't match, we need to convert it */
         if (this->format != data->GetFormat())
@@ -293,16 +294,17 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
         const auto _width  = (double)this->textureWidth;
         const auto _height = (double)this->textureHeight;
 
-        const auto offset = 1;
+        const auto offset = 1.0f;
+        const auto color  = Color(Color::WHITE).array();
 
         // clang-format off
         const vertex::Vertex vertices[4] =
         {
-            /* x                                      y                             z         r  g  b  a      u                                                 v                                                  */
-            {{ -offset,                               -offset,                      0.0f }, { 1, 1, 1, 1 }, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y - offset) / _height)          }},
-            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, { 1, 1, 1, 1 }, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, { 1, 1, 1, 1 }, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, { 1, 1, 1, 1 }, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y - offset) / _height)          }}
+            /* x                                      y                             z                u                                                 v                                                  */
+            {{ -offset,                               -offset,                      0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y - offset) / _height)          }},
+            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y + height + offset) / _height) }},
+            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y + height + offset) / _height) }},
+            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y - offset) / _height)          }}
         };
         // clang-format on
 
@@ -312,7 +314,7 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
             _glyph.vertices[index] = vertices[index];
 
             _glyph.vertices[index].position[0] += data->GetBearingX() / dpiScale;
-            _glyph.vertices[index].position[1] += data->GetBearingY() / dpiScale;
+            _glyph.vertices[index].position[1] -= data->GetBearingY() / dpiScale;
         }
 
         this->textureX += width + Font::TEXTURE_PADDING;
@@ -448,7 +450,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
     int colorIndex        = -1;
     const auto colorCount = (int)text.colors.size();
 
-    for (int index = 0; index < colorCount; index++)
+    for (int index = 0; index < (int)text.codepoints.size(); index++)
     {
         /* current glyph to work on */
         const auto glyph = text.codepoints[index];
@@ -597,9 +599,14 @@ void Font<Console::HAC>::Printv(Graphics<Console::HAC>& graphics,
         drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
         drawCommand.handles      = { command.texture->GetHandle() };
 
-        transform.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
-                                  command.count);
+        LOG("Transforming verts");
+        matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
+                               command.count);
 
+        LOG("Filling verts");
+        drawCommand.FillVertices(vertices.data());
+
+        LOG("Rendering..");
         Renderer<Console::HAC>::Instance().Render(drawCommand);
     }
 }

@@ -54,10 +54,10 @@ JPGHandler::DecodedImage JPGHandler::Decode(Data* data)
     decoded.format = PIXELFORMAT_RGBA8_UNORM;
     decoded.size   = width * height * 4;
 
-    decoded.data = new (std::align_val_t(4)) uint8_t[decoded.size];
+    decoded.data = std::make_unique<uint8_t[]>(decoded.size);
 
-    if (tjDecompress2(handle, (uint8_t*)data->GetData(), data->GetSize(), decoded.data, width, 0,
-                      height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
+    if (tjDecompress2(handle, (uint8_t*)data->GetData(), data->GetSize(), decoded.data.get(), width,
+                      0, height, TJPF_RGBA, TJFLAG_ACCURATEDCT) == -1)
     {
         tjDestroy(handle);
         throw love::Exception("Could not decode JPG image (%s)", tjGetErrorStr());

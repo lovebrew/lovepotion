@@ -6,7 +6,7 @@
 
 using namespace love;
 
-static void createFramebufferObject(dk::Image& image, CMemPool::Handle& handle,
+static void createFramebufferObject(dk::Image& image, CMemPool::Handle& memory,
                                     dk::ImageDescriptor& descriptor, uint32_t width,
                                     uint32_t height)
 
@@ -20,36 +20,32 @@ static void createFramebufferObject(dk::Image& image, CMemPool::Handle& handle,
         .setDimensions(width, height)
         .initialize(layout);
 
-    auto poolId  = Renderer<Console::HAC>::IMAGE;
-    auto scratch = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+    auto poolId   = Renderer<Console::HAC>::IMAGE;
+    auto& scratch = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
 
-    handle = scratch.allocate(layout.getSize(), layout.getAlignment());
-    image.initialize(layout, handle.getMemBlock(), handle.getOffset());
+    memory = scratch.allocate(layout.getSize(), layout.getAlignment());
+    image.initialize(layout, memory.getMemBlock(), memory.getOffset());
 
     dk::ImageView imageView { image };
     descriptor.initialize(imageView);
 }
 
-static DkImageRect dkImageRectFromRect(const Rect& rectangle)
+static void dkImageRectFromRect(const Rect& rectangle, DkImageRect& out)
 {
-    DkImageRect result {};
+    out.x = (uint32_t)rectangle.x;
+    out.y = (uint32_t)rectangle.y;
+    out.z = (uint32_t)0;
 
-    result.x = (uint32_t)rectangle.x;
-    result.y = (uint32_t)rectangle.y;
-    result.z = (uint32_t)0;
-
-    result.width  = (uint32_t)rectangle.w;
-    result.height = (uint32_t)rectangle.h;
-    result.depth  = (uint32_t)1;
-
-    return result;
+    out.width  = (uint32_t)rectangle.w;
+    out.height = (uint32_t)rectangle.h;
+    out.depth  = (uint32_t)1;
 }
 
-static void createTextureObject(dk::Image& image, CMemPool::Handle& handle,
+static void createTextureObject(dk::Image& image, CMemPool::Handle& memory,
                                 dk::ImageDescriptor& descriptor, const void* data,
                                 PixelFormat format, Rect rectangle)
 {
-    if (data == nullptr || rectangle.w * rectangle.h == 0)
+    if (data == nullptr)
         throw love::Exception("No data for Texture.");
 
     std::optional<DkImageFormat> imageFormat;
@@ -61,26 +57,29 @@ static void createTextureObject(dk::Image& image, CMemPool::Handle& handle,
     if (size <= 0)
         throw love::Exception("Invalid PixelFormat slice size.");
 
-    auto poolId      = Renderer<Console::HAC>::DATA;
-    auto scratchPool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+    auto poolId       = Renderer<Console::HAC>::DATA;
+    auto& scratchPool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
 
-    auto tempMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    auto tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
-    if (!tempMemory)
+    if (!tempImageMemory)
         throw love::Exception("Failed to allocate temporary memory.");
 
-    std::memcpy(tempMemory.getCpuAddr(), data, size);
+    /* copy the data into the temp image memory */
+    std::memcpy(tempImageMemory.getCpuAddr(), data, size);
 
-    /*
-    ** We need to have a command buffer and some more memory for it
-    ** so allocate both and add the memory to the temporary command buffer
-    */
-    auto device            = Renderer<Console::HAC>::Instance().GetDevice();
-    auto tempCommandBuffer = dk::CmdBufMaker { device }.create();
-    auto tempCommandMemory = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    auto device     = Renderer<Console::HAC>::Instance().GetDevice();
+    auto tempCmdBuf = dk::CmdBufMaker { device }.create();
 
-    tempCommandBuffer.addMemory(tempCommandMemory.getMemBlock(), tempCommandMemory.getOffset(),
-                                tempCommandMemory.getSize());
+    /* make some memory for the command buffer */
+    auto tempCmdMemory = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+
+    const auto& memBlock = tempCmdMemory.getMemBlock();
+    const auto offset    = tempCmdMemory.getOffset();
+    const auto memSize   = tempCmdMemory.getSize();
+
+    /* add the memory to the command buffer */
+    tempCmdBuf.addMemory(memBlock, offset, memSize);
 
     /* set the image layout */
     dk::ImageLayout layout;
@@ -90,32 +89,41 @@ static void createTextureObject(dk::Image& image, CMemPool::Handle& handle,
         .setDimensions(rectangle.w, rectangle.h)
         .initialize(layout);
 
-    poolId         = Renderer<Console::HAC>::IMAGE;
-    auto imagePool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+    poolId          = Renderer<Console::HAC>::IMAGE;
+    auto& imagePool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
 
-    handle = imagePool.allocate(layout.getSize(), layout.getAlignment());
-    image.initialize(layout, handle.getMemBlock(), handle.getOffset());
+    memory = imagePool.allocate(layout.getSize(), layout.getAlignment());
+
+    if (!memory)
+        throw love::Exception("Failed to allocate image memory handle");
+
+    image.initialize(layout, memory.getMemBlock(), memory.getOffset());
     descriptor.initialize(image);
 
     dk::ImageView view { image };
-    DkImageRect _rectangle = dkImageRectFromRect(rectangle);
 
-    tempCommandBuffer.copyBufferToImage({ tempMemory.getGpuAddr() }, view, _rectangle, 0);
+    DkImageRect dkRectangle {};
+    dkImageRectFromRect(rectangle, dkRectangle);
+
+    tempCmdBuf.copyBufferToImage({ tempImageMemory.getGpuAddr() }, view, dkRectangle);
 
     const auto queueId = Renderer<Console::HAC>::QUEUE_IMAGES;
     auto transferQueue = Renderer<Console::HAC>::Instance().GetQueue(queueId);
 
-    transferQueue.submitCommands(tempCommandBuffer.finishList());
+    transferQueue.submitCommands(tempCmdBuf.finishList());
     transferQueue.waitIdle();
 
-    tempCommandMemory.destroy();
-    tempMemory.destroy();
+    tempCmdMemory.destroy();
+    tempImageMemory.destroy();
 }
 
 Texture<Console::HAC>::Texture(const Graphics<Console::HAC>* graphics, const Settings& settings,
                                const Slices* data) :
     Texture<Console::ALL>(settings, data),
-    textureHandle(0)
+    textureHandle(0),
+    image {},
+    descriptor {},
+    memory {}
 {
     this->format = graphics->GetSizedFormat(format, this->renderTarget, this->readable);
 
@@ -150,6 +158,7 @@ Texture<Console::HAC>::Texture(const Graphics<Console::HAC>* graphics, const Set
         throw love::Exception("Compressed textures cannot be render targets.");
 
     this->state = graphics->GetDefaultSamplerState();
+
     if (this->GetMipmapCount() == 1)
         this->state.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
 
@@ -159,11 +168,11 @@ Texture<Console::HAC>::Texture(const Graphics<Console::HAC>* graphics, const Set
     ++textureCount;
 
     if (data != nullptr)
-        slices = *data;
+        this->slices = *data;
 
     this->LoadVolatile();
 
-    slices.Clear();
+    this->slices.Clear();
 }
 
 Texture<Console::HAC>::~Texture()
@@ -196,7 +205,7 @@ bool Texture<Console::HAC>::LoadVolatile()
 
 void Texture<Console::HAC>::CreateTexture()
 {
-    Texture<Console::ALL>::CreateTexture();
+    Texture<>::CreateTexture();
     bool hasData = this->slices.Get(0, 0) != nullptr;
 
     int _width  = this->pixelWidth;
@@ -210,7 +219,7 @@ void Texture<Console::HAC>::CreateTexture()
 
         auto& instance = Renderer<Console::HAC>::Instance();
 
-        createFramebufferObject(this->image, this->handle, this->descriptor, _width, _height);
+        createFramebufferObject(this->image, this->memory, this->descriptor, _width, _height);
 
         instance.BindFramebuffer(this);
         instance.Clear({ 0, 0, 0, 0 });
@@ -221,17 +230,18 @@ void Texture<Console::HAC>::CreateTexture()
         if (!hasData)
         {
             std::vector<uint8_t> empty(_width * _height, 0);
-            createTextureObject(this->image, this->handle, this->descriptor, empty.data(),
+            createTextureObject(this->image, this->memory, this->descriptor, empty.data(),
                                 this->format, rectangle);
         }
         else
         {
-            createTextureObject(this->image, this->handle, this->descriptor,
+            createTextureObject(this->image, this->memory, this->descriptor,
                                 this->slices.Get(0, 0)->GetData(), this->format, rectangle);
         }
     }
 
     Renderer<Console::HAC>::Instance().Register(this, this->textureHandle);
+    this->SetSamplerState(this->state);
 }
 
 void Texture<Console::HAC>::SetSamplerState(const SamplerState& state)
@@ -249,54 +259,61 @@ void Texture<Console::HAC>::SetSamplerState(const SamplerState& state)
 void Texture<Console::HAC>::UnloadVolatile()
 {
     Renderer<Console::HAC>::Instance().UnRegister(this);
-    this->handle.destroy();
+    this->memory.destroy();
 }
 
 void Texture<Console::HAC>::ReplacePixels(ImageData<Console::HAC>* data, int slice, int mipmap,
                                           int x, int y, bool reloadMipmaps)
-{}
+{
+    this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap,
+                        { x, y, data->GetWidth(), data->GetHeight() }, false);
+}
 
 void Texture<Console::HAC>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
-                                          const Rect& rect, bool reloadMipmaps)
+                                          const Rect& rectangle, bool reloadMipmaps)
 {
     if (!data || size == 0)
-        return;
+        throw love::Exception("No data for replacement.");
 
-    auto poolId      = Renderer<Console::HAC>::DATA;
-    auto scratchPool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
+    auto poolId       = Renderer<Console::HAC>::DATA;
+    auto& scratchPool = Renderer<Console::HAC>::Instance().GetMemPool(poolId);
 
-    auto tempMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
+    auto tempImageMemory = scratchPool.allocate(size, DK_IMAGE_LINEAR_STRIDE_ALIGNMENT);
 
-    if (!tempMemory)
+    if (!tempImageMemory)
         throw love::Exception("Failed to allocate temporary memory.");
 
-    std::memcpy(tempMemory.getCpuAddr(), data, size);
+    /* copy the data into the temp image memory */
+    std::memcpy(tempImageMemory.getCpuAddr(), data, size);
 
-    /*
-     ** We need to have a command buffer and some more memory for it
-     ** so allocate both and add the memory to the temporary command buffer
-     */
-    auto device            = Renderer<Console::HAC>::Instance().GetDevice();
-    auto tempCommandBuffer = dk::CmdBufMaker { device }.create();
-    auto tempCommandMemory = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
+    auto device     = Renderer<Console::HAC>::Instance().GetDevice();
+    auto tempCmdBuf = dk::CmdBufMaker { device }.create();
 
-    tempCommandBuffer.addMemory(tempCommandMemory.getMemBlock(), tempCommandMemory.getOffset(),
-                                tempCommandMemory.getSize());
+    /* make some memory for the command buffer */
+    auto tempCmdMemory = scratchPool.allocate(DK_MEMBLOCK_ALIGNMENT);
 
-    dk::ImageView imageView { this->image };
+    const auto& memBlock = tempCmdMemory.getMemBlock();
+    const auto offset    = tempCmdMemory.getOffset();
+    const auto memSize   = tempCmdMemory.getSize();
 
-    DkImageRect _rectangle = dkImageRectFromRect(rect);
+    /* add the memory to the command buffer */
+    tempCmdBuf.addMemory(memBlock, offset, memSize);
 
-    tempCommandBuffer.copyBufferToImage({ tempMemory.getGpuAddr() }, imageView, _rectangle);
+    dk::ImageView view { this->image };
+
+    DkImageRect dkRectangle {};
+    dkImageRectFromRect(rectangle, dkRectangle);
+
+    tempCmdBuf.copyBufferToImage({ tempImageMemory.getGpuAddr() }, view, dkRectangle);
 
     const auto queueId = Renderer<Console::HAC>::QUEUE_IMAGES;
     auto transferQueue = Renderer<Console::HAC>::Instance().GetQueue(queueId);
 
-    transferQueue.submitCommands(tempCommandBuffer.finishList());
+    transferQueue.submitCommands(tempCmdBuf.finishList());
     transferQueue.waitIdle();
 
-    tempCommandMemory.destroy();
-    tempMemory.destroy();
+    tempCmdMemory.destroy();
+    tempImageMemory.destroy();
 }
 
 void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics,
