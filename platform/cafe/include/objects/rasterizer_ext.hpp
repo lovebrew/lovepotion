@@ -12,7 +12,8 @@
 
 namespace love
 {
-    class TrueTypeRasterizer : public Rasterizer<Console::ALL>
+    template<>
+    class Rasterizer<Console::CAFE> : public Rasterizer<Console::ALL>
     {
       public:
         enum Hinting
@@ -23,10 +24,9 @@ namespace love
             HINTING_NONE
         };
 
-        TrueTypeRasterizer(FT_Library library, Data* data, int size, float dpiSacale,
-                           Hinting hinting);
+        Rasterizer(FT_Library library, Data* data, int size, float dpiSacale, Hinting hinting);
 
-        ~TrueTypeRasterizer()
+        ~Rasterizer()
         {}
 
         int GetLineHeight() const;

@@ -41,6 +41,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/timer_ext.cpp
     source/modules/window_ext.cpp
     source/objects/joystick_ext.cpp
+    source/objects/rasterizer_ext.cpp
     source/objects/source_ext.cpp
     source/utilities/driver/dsp_ext.cpp
     source/utilities/driver/hid_ext.cpp

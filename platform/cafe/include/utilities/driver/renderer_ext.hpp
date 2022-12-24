@@ -91,11 +91,11 @@ namespace love
 
         void SetStencil(RenderState::CompareMode mode, int value);
 
-        void SetMeshCullMode(Vertex::CullMode mode);
+        void SetMeshCullMode(vertex::CullMode mode);
 
-        void SetVertexWinding(Vertex::Winding winding);
+        void SetVertexWinding(vertex::Winding winding);
 
-        void SetSamplerState(Texture* texture, SamplerState& state);
+        void SetSamplerState(Texture<Console::CAFE>* texture, SamplerState& state);
 
         void SetColorMask(const RenderState::ColorMask& mask);
 
@@ -159,14 +159,14 @@ namespace love
         };
 
         static constexpr BidirectionalMap cullModes = {
-            Vertex::CULL_NONE,  -1,
-            Vertex::CULL_BACK,  -2,
-            Vertex::CULL_FRONT, -3
+            vertex::CULL_NONE,  -1,
+            vertex::CULL_BACK,  -2,
+            vertex::CULL_FRONT, -3
         };
 
         static constexpr BidirectionalMap windingModes = {
-            Vertex::WINDING_CW,  GX2_FRONT_FACE_CW,
-            Vertex::WINDING_CCW, GX2_FRONT_FACE_CCW
+            vertex::WINDING_CW,  GX2_FRONT_FACE_CW,
+            vertex::WINDING_CCW, GX2_FRONT_FACE_CCW
         };
 
         static constexpr BidirectionalMap compareModes = {
@@ -181,11 +181,11 @@ namespace love
         };
 
         static constexpr BidirectionalMap primitiveModes = {
-            Vertex::PRIMITIVE_TRIANGLES,      GX2_PRIMITIVE_MODE_TRIANGLES,
-            Vertex::PRIMITIVE_TRIANGLE_FAN,   GX2_PRIMITIVE_MODE_TRIANGLE_FAN,
-            Vertex::PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP,
-            Vertex::PRIMITIVE_QUADS,          GX2_PRIMITIVE_MODE_QUADS,
-            Vertex::PRIMITIVE_POINTS,         -1
+            vertex::PRIMITIVE_TRIANGLES,      GX2_PRIMITIVE_MODE_TRIANGLES,
+            vertex::PRIMITIVE_TRIANGLE_FAN,   GX2_PRIMITIVE_MODE_TRIANGLE_FAN,
+            vertex::PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP,
+            vertex::PRIMITIVE_QUADS,          GX2_PRIMITIVE_MODE_QUADS,
+            vertex::PRIMITIVE_POINTS,         -1
         };
 
         static constexpr BidirectionalMap gfxScreens =  {

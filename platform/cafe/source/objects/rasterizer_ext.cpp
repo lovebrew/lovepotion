@@ -1,11 +1,11 @@
-#include <objects/truetyperasterizer.hpp>
+#include <objects/rasterizer_ext.hpp>
 
 #include <math.h>
 
 using namespace love;
 
-TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, Data* data, int size, float dpiScale,
-                                       Hinting hinting) :
+Rasterizer<Console::CAFE>::Rasterizer(FT_Library library, Data* data, int size, float dpiScale,
+                                      Hinting hinting) :
     data(data),
     hinting(hinting)
 {
@@ -36,17 +36,17 @@ TrueTypeRasterizer::TrueTypeRasterizer(FT_Library library, Data* data, int size,
     this->dataType = DATA_TRUETYPE;
 }
 
-TrueTypeRasterizer::~TrueTypeRasterizer()
+Rasterizer<Console::CAFE>::~Rasterizer<Console::CAFE>()
 {
     FT_Done_Face(this->face);
 }
 
-int TrueTypeRasterizer::GetLineHeight() const
+int Rasterizer<Console::CAFE>::GetLineHeight() const
 {
     return this->GetHeight() * 1.25f;
 }
 
-GlyphData* TrueTypeRasterizer::GetGlyphData(const std::string_view& text) const
+GlyphData* Rasterizer<Console::CAFE>::GetGlyphData(const std::string_view& text) const
 {
     uint32_t codepoint = 0;
 
@@ -62,7 +62,7 @@ GlyphData* TrueTypeRasterizer::GetGlyphData(const std::string_view& text) const
     return this->GetGlyphData(codepoint);
 }
 
-GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
+GlyphData* Rasterizer<Console::CAFE>::GetGlyphData(uint32_t glyph) const
 {
     GlyphData::GlyphMetrics metrics {};
     FT_Glyph ftGlyph;
@@ -113,8 +113,10 @@ GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
             {
                 uint8_t value = ((pixels[x / 8]) & (1 << (7 - (x % 8)))) ? 255 : 0;
 
-                destination[2 * (y * bitmap.width + x) + 0] = 255;
-                destination[2 * (y * bitmap.width + x) + 1] = value;
+                destination[4 * (y * bitmap.width + x) + 0] = value;
+                destination[4 * (y * bitmap.width + x) + 1] = value;
+                destination[4 * (y * bitmap.width + x) + 2] = value;
+                destination[4 * (y * bitmap.width + x) + 3] = value ? 255 : 0;
             }
             pixels += bitmap.width;
         }
@@ -125,8 +127,10 @@ GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
         {
             for (int x = 0; x < (int)bitmap.width; x++)
             {
-                destination[2 * (y * bitmap.width + x) + 0] = 255;
-                destination[2 * (y * bitmap.width + x) + 1] = pixels[x];
+                destination[4 * (y * bitmap.width + x) + 0] = 255;
+                destination[4 * (y * bitmap.width + x) + 1] = 255;
+                destination[4 * (y * bitmap.width + x) + 2] = 255;
+                destination[4 * (y * bitmap.width + x) + 3] = pixels[x];
             }
             pixels += bitmap.pitch;
         }
@@ -144,12 +148,12 @@ GlyphData* TrueTypeRasterizer::GetGlyphData(uint32_t glyph) const
     return glyphData;
 }
 
-int TrueTypeRasterizer::GetGlyphCount() const
+int Rasterizer<Console::CAFE>::GetGlyphCount() const
 {
     return face->num_glyphs;
 }
 
-bool TrueTypeRasterizer::HasGlyphs(const std::string_view& text) const
+bool Rasterizer<Console::CAFE>::HasGlyphs(const std::string_view& text) const
 {
     if (text.size() == 0)
         return false;
@@ -175,12 +179,12 @@ bool TrueTypeRasterizer::HasGlyphs(const std::string_view& text) const
     return true;
 }
 
-bool TrueTypeRasterizer::HasGlyph(uint32_t glyph) const
+bool Rasterizer<Console::CAFE>::HasGlyph(uint32_t glyph) const
 {
     return FT_Get_Char_Index(this->face, glyph) != 0;
 }
 
-float TrueTypeRasterizer::GetKerning(uint32_t left, uint32_t right) const
+float Rasterizer<Console::CAFE>::GetKerning(uint32_t left, uint32_t right) const
 {
     FT_Vector kerning {};
 
@@ -192,7 +196,7 @@ float TrueTypeRasterizer::GetKerning(uint32_t left, uint32_t right) const
     return (float)(kerning.x >> 6);
 }
 
-bool TrueTypeRasterizer::Accepts(FT_Library library, Data* data)
+bool Rasterizer<Console::CAFE>::Accepts(FT_Library library, Data* data)
 {
     const auto* faceData = (const FT_Byte*)data->GetData();
     const auto faceSize  = (FT_Long)data->GetSize();
