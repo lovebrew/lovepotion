@@ -3,6 +3,11 @@
 #include "body.h"
 #include "shape.h"
 
+#include "chainshape/chainshape.h"
+#include "circleshape/circleshape.h"
+#include "edgeshape/edgeshape.h"
+#include "polygonshape/polygonshape.h"
+
 using namespace love;
 
 Fixture* Wrap_Fixture::CheckFixture(lua_State* L, int index)
@@ -126,13 +131,25 @@ int Wrap_Fixture::GetShape(lua_State* L)
     switch (shape->GetType())
     {
         case Shape::SHAPE_EDGE:
+        {
+            Luax::PushType(L, (EdgeShape*)shape);
             break;
+        }
         case Shape::SHAPE_CHAIN:
+        {
+            Luax::PushType(L, (ChainShape*)shape);
             break;
+        }
         case Shape::SHAPE_CIRCLE:
+        {
+            Luax::PushType(L, (CircleShape*)shape);
             break;
+        }
         case Shape::SHAPE_POLYGON:
+        {
+            Luax::PushType(L, (PolygonShape*)shape);
             break;
+        }
         default:
             Luax::PushType(L, shape);
     }
