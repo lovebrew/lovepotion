@@ -20,17 +20,46 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     {
         Rasterizer* self = nullptr;
 
-        FileData* fileData = Wrap_Filesystem::GetFileData(L, 1);
+        auto type                  = common::Font::SystemFontType::TYPE_MAX_ENUM;
+        const char* name           = luaL_checkstring(L, 1);
+        const bool validSystemFont = Font::GetConstant(name, type);
 
-        Luax::CatchException(
-            L, [&]() { self = instance()->NewRasterizer(fileData); },
-            [&](bool) { fileData->Release(); });
+        if (!validSystemFont)
+        {
+            if (Wrap_Filesystem::CanGetData(L, 1))
+            {
+                FileData* fileData = Wrap_Filesystem::GetFileData(L, 1);
 
-        Luax::PushType(L, self);
-        self->Release();
+                Luax::CatchException(
+                    L, [&]() { self = instance()->NewRasterizer(fileData); },
+                    [&](bool) { fileData->Release(); });
+
+                Luax::PushType(L, self);
+                self->Release();
+
+                return 1;
+            }
+
+            return Luax::EnumError(L, "system font name", Font::GetConstants(type), name);
+        }
+        else
+        {
+#if defined(__3DS__)
+            Luax::CatchException(L, [&]() { self = instance()->NewBCFNTRasterizer(12, type); });
+#else
+            const auto hinting = TrueTypeRasterizer::HINTING_NORMAL;
+            Luax::CatchException(
+                L, [&]() { self = instance()->NewTrueTypeRasterizer(type, 12, hinting); });
+#endif
+
+            Luax::PushType(L, self);
+            self->Release();
+
+            return 1;
+        }
     }
 
-    return 1;
+    return 0;
 }
 
 #if defined(__3DS__)
@@ -60,10 +89,10 @@ int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
 
             if (std::filesystem::path(str).extension().empty())
             {
-                if (!Font::GetConstant(str, type))
-                    return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
+                if (!Font::GetConstant(str, fontType))
+                    return Luax::EnumError(L, "font type", Font::GetConstants(fontType), str);
             }
-            else /* load font from a file, *.ttf usually */
+            else /* load font from a file */
                 data = Wrap_Filesystem::GetFileData(L, 1);
         }
 
