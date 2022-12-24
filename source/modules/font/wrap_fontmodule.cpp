@@ -89,8 +89,8 @@ int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
 
             if (std::filesystem::path(str).extension().empty())
             {
-                if (!Font::GetConstant(str, fontType))
-                    return Luax::EnumError(L, "font type", Font::GetConstants(fontType), str);
+                if (!Font::GetConstant(str, type))
+                    return Luax::EnumError(L, "font type", Font::GetConstants(type), str);
             }
             else /* load font from a file */
                 data = Wrap_Filesystem::GetFileData(L, 1);
