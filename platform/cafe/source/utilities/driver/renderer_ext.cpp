@@ -228,6 +228,7 @@ void Renderer<Console::CAFE>::EnsureInFrame()
 void Renderer<Console::CAFE>::Clear(const Color& color)
 {
     GX2ClearColor(&this->current.buffer, color.r, color.g, color.b, color.a);
+    GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, double depth)
@@ -246,7 +247,6 @@ void Renderer<Console::CAFE>::BindFramebuffer(/* Canvas* canvas */)
 
     this->current = this->framebuffers[(uint8_t)activeScreenId];
     GX2SetColorBuffer(&this->current.buffer, GX2_RENDER_TARGET_0);
-    GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::Present()
