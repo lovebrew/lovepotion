@@ -39,6 +39,13 @@ Rasterizer<Console::HAC>* FontModule<Console::HAC>::NewTrueTypeRasterizer(
 }
 
 Rasterizer<Console::HAC>* FontModule<Console::HAC>::NewTrueTypeRasterizer(
+    int size, PlSharedFontType type, Rasterizer<Console::HAC>::Hinting hinting) const
+{
+    StrongReference<SystemFont> data(new SystemFont(type), Acquire::NORETAIN);
+    return this->NewTrueTypeRasterizer(data.Get(), size, hinting);
+}
+
+Rasterizer<Console::HAC>* FontModule<Console::HAC>::NewTrueTypeRasterizer(
     int size, Rasterizer<Console::HAC>::Hinting hinting) const
 {
     return this->NewTrueTypeRasterizer(this->defaultFontData.Get(), size, hinting);

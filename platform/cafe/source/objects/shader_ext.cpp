@@ -51,11 +51,23 @@ void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
         default:
         {
             this->Validate(DEFAULT_PRIMITIVE_SHADER, this->group, error);
+
+            // clang-format off
+            WHBGfxInitShaderAttribute(&this->group, "position", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+            WHBGfxInitShaderAttribute(&this->group, "color",    0, 16, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+            // clang-format on
+
             break;
         }
         case STANDARD_TEXTURE:
         {
             this->Validate(DEFAULT_TEXTURE_SHADER, this->group, error);
+
+            // clang-format off
+            WHBGfxInitShaderAttribute(&this->group, "position", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+            WHBGfxInitShaderAttribute(&this->group, "color",    0, 16, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
+            // clang-format on
+
             break;
         }
     }

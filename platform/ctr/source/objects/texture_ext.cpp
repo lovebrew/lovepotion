@@ -169,6 +169,8 @@ void Texture<Console::CTR>::CreateTexture()
 
         C3D_TexFlush(this->image.tex);
     }
+
+    this->SetSamplerState(this->state);
 }
 
 void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int slice, int mipmap,

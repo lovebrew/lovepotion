@@ -33,6 +33,9 @@ namespace love
             bool filled = false;
         };
 
+        static constexpr float Z_NEAR = -10.0f;
+        static constexpr float Z_FAR  = 10.0f;
+
         Renderer() : info {}, inFrame(false), viewport {}
         {}
 

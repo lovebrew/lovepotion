@@ -43,11 +43,21 @@ namespace love
 {
     struct Rect
     {
+        static constexpr int EMPTY[4] = { 0, 0, 0, 0 };
+
         int x, y;
         int w, h;
 
         Rect() : x(0), y(0), w(0), h(0)
         {}
+
+        Rect(const int (&rect)[4])
+        {
+            this->x = rect[0];
+            this->y = rect[1];
+            this->w = rect[2];
+            this->h = rect[4];
+        }
 
         Rect(int x, int y, int width, int height) : x(x), y(y), w(width), h(height)
         {}

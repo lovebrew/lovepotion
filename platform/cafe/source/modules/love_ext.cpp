@@ -29,8 +29,6 @@ void love::PreInit<Console::CAFE>()
 {
     ProcUIInit(OSSavesDone_ReadyToRelease);
 
-    WHBGfxInit();
-
     VPADInit();
 
     KPADInit();
@@ -109,8 +107,6 @@ void love::OnExit<Console::CAFE>()
     KPADShutdown();
 
     VPADShutdown();
-
-    WHBGfxShutdown();
 
     ProcUIShutdown();
 }

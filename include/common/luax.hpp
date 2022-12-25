@@ -395,5 +395,17 @@ namespace luax
         return 0;
     }
 
+    template<int count>
+    int AreArgsNil(lua_State* L, int start)
+    {
+        for (size_t index = 0; index < count; index++)
+        {
+            if (!lua_isnil(L, start + index))
+                return false;
+        }
+
+        return true;
+    }
+
     int AssertNilError(lua_State* L, int idx);
 } // namespace luax

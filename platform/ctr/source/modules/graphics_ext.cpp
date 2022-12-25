@@ -171,6 +171,18 @@ void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
     this->created = true;
 }
 
+void Graphics<Console::CTR>::SetScissor()
+{
+    Graphics<Console::ALL>::SetScissor();
+    ::Renderer::Instance().SetScissor({}, false);
+}
+
+void Graphics<Console::CTR>::SetScissor(const Rect& scissor)
+{
+    Graphics<Console::ALL>::SetScissor(scissor);
+    ::Renderer::Instance().SetScissor(scissor, this->IsRenderTargetActive());
+}
+
 int Graphics<Console::CTR>::GetWidth(Screen screen) const
 {
     switch (screen)

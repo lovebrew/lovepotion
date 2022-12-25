@@ -859,6 +859,56 @@ int Wrap_Graphics::NewQuad(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::IsGammaCorrect(lua_State* L)
+{
+    luax::PushBoolean(L, Graphics<>::IsGammaCorrect());
+
+    return 1;
+}
+
+/* todo */
+int Wrap_Graphics::GetPixelWidth(lua_State* L)
+{}
+
+/* todo */
+int Wrap_Graphics::GetPixelHeight(lua_State* L)
+{}
+
+/* todo */
+int Wrap_Graphics::GetPixelDimensions(lua_State* L)
+{}
+
+/* todo */
+int Wrap_Graphics::GetDPIScale(lua_State* L)
+{}
+
+int Wrap_Graphics::SetScissor(lua_State* L)
+{
+    int args = lua_gettop(L);
+
+    if (args == 0 || luax::AreArgsNil<4>(L, 1))
+    {
+        instance()->SetScissor();
+        return 0;
+    }
+
+    Rect rectangle {};
+    rectangle.x = luaL_checkinteger(L, 1);
+    rectangle.y = luaL_checkinteger(L, 2);
+    rectangle.w = luaL_checkinteger(L, 3);
+    rectangle.h = luaL_checkinteger(L, 4);
+
+    if (rectangle.w < 0 || rectangle.h < 0)
+        return luaL_error(L, "Can't set scissor with negative width and/or height");
+
+    instance()->SetScissor(rectangle);
+
+    return 0;
+}
+
+int Wrap_Graphics::IntersectScissor(lua_State* L)
+{}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {

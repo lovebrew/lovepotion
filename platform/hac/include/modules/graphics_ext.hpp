@@ -168,6 +168,8 @@ namespace love
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::HAC>& matrix);
 
+        void SetScissor();
+
         void SetScissor(const Rect& scissor);
 
         int GetWidth(Screen screen) const

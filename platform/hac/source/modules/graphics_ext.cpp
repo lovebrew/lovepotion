@@ -243,11 +243,17 @@ void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, Font<
 void Graphics<Console::HAC>::SetViewportSize(int width, int height)
 {
     ::Renderer::Instance().SetViewport({ 0, 0, width, height });
-    ::Renderer::Instance().SetScissor(true, { 0, 0, width, height }, false);
+    ::Renderer::Instance().SetScissor({ 0, 0, width, height }, false);
+}
+
+void Graphics<Console::HAC>::SetScissor()
+{
+    Graphics<Console::ALL>::SetScissor();
+    ::Renderer::Instance().SetScissor({}, false);
 }
 
 void Graphics<Console::HAC>::SetScissor(const Rect& scissor)
 {
     Graphics<Console::ALL>::SetScissor(scissor);
-    ::Renderer::Instance().SetScissor(this->states.back().scissor.active, scissor, false);
+    ::Renderer::Instance().SetScissor(scissor, this->IsRenderTargetActive());
 }

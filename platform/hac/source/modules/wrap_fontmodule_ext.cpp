@@ -6,6 +6,8 @@
 
 #include <modules/fontmodule_ext.hpp>
 
+#include <utilities/functions.hpp>
+
 using Rasterizer = love::Rasterizer<love::Console::HAC>;
 using namespace love;
 
@@ -39,6 +41,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
     else
     {
         Data* data = nullptr;
+        std::optional<uint8_t> systemFont;
 
         if (luax::IsType(L, 1, Data::type))
         {
@@ -46,11 +49,22 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
             data->Retain();
         }
         else
-            data = Wrap_Filesystem::GetFileData(L, 1);
+        {
+            const char* filename = luaL_checkstring(L, 1);
+
+            if (love::has_file_extension(filename))
+            {
+                const auto systemFonts = FontModule<Console::HAC>::systemFonts;
+                if (!(systemFont = systemFonts.Find(filename)))
+                    return luax::EnumError(L, "system font name", systemFonts, filename);
+            }
+            else
+                data = Wrap_Filesystem::GetFileData(L, 1);
+        }
 
         int size = luaL_optinteger(L, 2, 12);
 
-        const char* hint = luaL_optstring(L, 2, "normal");
+        const char* hint = luaL_optstring(L, 3, "normal");
         std::optional<::Rasterizer::Hinting> hinting;
 
         if (!(hinting = ::Rasterizer::hintings.Find(hint)))
@@ -59,10 +73,18 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
         if (lua_isnoneornil(L, 4))
         {
             // clang-format off
-            luax::CatchException(L,
-                [&]() { self = instance()->NewTrueTypeRasterizer(data, size, *hinting); },
-                [&](bool) { data->Release(); }
-            );
+            if (systemFont)
+            {
+                luax::CatchException(L,
+                    [&]() { self = instance()->NewTrueTypeRasterizer(size, *systemFont, *hinting);});
+            }
+            else
+            {
+                luax::CatchException(L,
+                    [&]() { self = instance()->NewTrueTypeRasterizer(data, size, *hinting); },
+                    [&](bool) { data->Release(); }
+                );
+            }
             // clang-format on
         }
         else
@@ -77,6 +99,20 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
             // clang-format on
         }
     }
+
+    luax::PushType(L, self);
+    self->Release();
+
+    return 1;
+}
+
+int Wrap_FontModule::NewSystemFontRasterizer(lua_State* L, uint8_t systemFont)
+{
+    ::Rasterizer* self = nullptr;
+    const auto type    = (PlSharedFontType)systemFont;
+    const auto hinting = ::Rasterizer::HINTING_NORMAL;
+
+    luax::CatchException(L, [&]() { self = instance()->NewTrueTypeRasterizer(13, type, hinting); });
 
     luax::PushType(L, self);
     self->Release();

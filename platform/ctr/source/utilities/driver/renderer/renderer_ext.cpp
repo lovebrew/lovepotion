@@ -137,31 +137,53 @@ void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
     this->viewport = viewport;
 }
 
-void Renderer<Console::CTR>::SetScissor(bool enable, const Rect& scissor, bool canvasActive)
+void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
+    const bool enable    = (scissor == Rect::EMPTY);
     GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
 
     if (enable)
         C2D_Flush();
 
-    // size_t width = Screen::Instance().GetWidth(Graphics::ActiveScreen);
+    auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
 
-    uint32_t left = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
-    // uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;
-    uint32_t right = 240 - scissor.y;
-    // uint32_t bottom = width - scissor.x;
+    if (!graphics)
+        throw love::Exception("Graphics module not loaded.");
 
-    // C3D_SetScissor(mode, left, top, right, bottom);
+    const auto width = graphics->GetWidth(Graphics<>::activeScreen);
+
+    uint32_t left   = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
+    uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;
+    uint32_t right  = 240 - scissor.y;
+    uint32_t bottom = width - scissor.x;
+
+    C3D_SetScissor(mode, left, top, right, bottom);
 }
 
-/* todo */
 void Renderer<Console::CTR>::SetStencil(RenderState::CompareMode mode, int value)
-{}
+{
+    bool enabled = (mode == RenderState::COMPARE_ALWAYS) ? false : true;
 
-void Renderer<Console::CTR>::SetMeshCullMode(Vertex::CullMode mode)
-{}
+    std::optional<GPU_TESTFUNC> compareOp;
+    if (!(compareOp = Renderer::compareModes.Find(mode)))
+        return;
 
-void Renderer<Console::CTR>::SetVertexWinding(Vertex::Winding winding)
+    C3D_StencilTest(enabled, *compareOp, value, 0xFFFFFFFF, 0xFFFFFFFF);
+    C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_KEEP);
+}
+
+void Renderer<Console::CTR>::SetMeshCullMode(vertex::CullMode mode)
+{
+    std::optional<GPU_CULLMODE> cullMode;
+    if (!(cullMode = Renderer::cullModes.Find(mode)))
+        return;
+
+    C2D_Flush();
+    C3D_CullFace(*cullMode);
+}
+
+/* ??? */
+void Renderer<Console::CTR>::SetVertexWinding(vertex::Winding winding)
 {}
 
 void Renderer<Console::CTR>::SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state)
@@ -193,18 +215,51 @@ void Renderer<Console::CTR>::SetSamplerState(Texture<Console::CTR>* texture, Sam
     C3D_TexSetWrap(handle, *wrapU, *wrapV);
 }
 
-/* todo */
 void Renderer<Console::CTR>::SetColorMask(const RenderState::ColorMask& mask)
-{}
+{
+    C2D_Flush();
 
-/* todo */
+    uint8_t writeMask = GPU_WRITE_DEPTH;
+    writeMask |= mask.GetColorMask();
+
+    C3D_DepthTest(true, GPU_GEQUAL, (GPU_WRITEMASK)writeMask);
+}
+
 void Renderer<Console::CTR>::SetBlendMode(const RenderState::BlendState& state)
-{}
+{
+    std::optional<GPU_BLENDEQUATION> opRGB;
+    if (!(opRGB = Renderer::blendEquations.Find(state.operationRGB)))
+        return;
+
+    std::optional<GPU_BLENDEQUATION> opAlpha;
+    if (!(opAlpha = Renderer::blendEquations.Find(state.operationA)))
+        return;
+
+    std::optional<GPU_BLENDFACTOR> srcColor;
+    if (!(srcColor = Renderer::blendFactors.Find(state.srcFactorRGB)))
+        return;
+
+    std::optional<GPU_BLENDFACTOR> dstColor;
+    if (!(dstColor = Renderer::blendFactors.Find(state.dstFactorRGB)))
+        return;
+
+    std::optional<GPU_BLENDFACTOR> srcAlpha;
+    if (!(srcAlpha = Renderer::blendFactors.Find(state.srcFactorA)))
+        return;
+
+    std::optional<GPU_BLENDFACTOR> dstAlpha;
+    if (!(dstAlpha = Renderer::blendFactors.Find(state.dstFactorA)))
+        return;
+
+    C2D_Flush();
+    C3D_AlphaBlend(*opRGB, *opAlpha, *srcColor, *dstColor, *srcAlpha, *dstAlpha);
+}
 
 /* handled in Graphics<Console::ALL> */
 void Renderer<Console::CTR>::SetLineWidth(float width)
 {}
 
+/* ??? */
 void Renderer<Console::CTR>::SetLineStyle(Graphics<Console::Which>::LineStyle style)
 {}
 

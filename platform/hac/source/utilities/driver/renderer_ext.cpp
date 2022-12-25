@@ -153,8 +153,7 @@ void Renderer<Console::HAC>::CreateFramebuffers()
     this->swapchain =
         dk::SwapchainMaker { this->device, nwindowGetDefault(), this->rendertargets }.create();
 
-    this->framebuffers.size.width  = width;
-    this->framebuffers.size.height = height;
+    this->viewport = { 0, 0, width, height };
 }
 
 void Renderer<Console::HAC>::DestroyFramebuffers()
@@ -232,8 +231,7 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
     {
         if (this->framebuffers.dirty)
         {
-            this->SetViewport(
-                { 0, 0, this->framebuffers.size.width, this->framebuffers.size.height });
+            this->SetViewport(this->viewport);
             this->framebuffers.dirty = false;
         }
     }
@@ -354,6 +352,43 @@ void Renderer<Console::HAC>::UseProgram(Shader<Console::HAC>::Program program)
     // clang-format on
 }
 
+void Renderer<Console::HAC>::SetBlendMode(const RenderState::BlendState& state)
+{
+    std::optional<DkBlendOp> opRGB;
+    if (!(opRGB = Renderer::blendEquations.Find(state.operationRGB)))
+        return;
+
+    std::optional<DkBlendOp> opAlpha;
+    if (!(opAlpha = Renderer::blendEquations.Find(state.operationA)))
+        return;
+
+    std::optional<DkBlendFactor> srcColor;
+    if (!(srcColor = Renderer::blendFactors.Find(state.srcFactorRGB)))
+        return;
+
+    std::optional<DkBlendFactor> dstColor;
+    if (!(dstColor = Renderer::blendFactors.Find(state.dstFactorRGB)))
+        return;
+
+    std::optional<DkBlendFactor> srcAlpha;
+    if (!(srcAlpha = Renderer::blendFactors.Find(state.srcFactorA)))
+        return;
+
+    std::optional<DkBlendFactor> dstAlpha;
+    if (!(dstAlpha = Renderer::blendFactors.Find(state.dstFactorA)))
+        return;
+
+    this->state.blend.setColorBlendOp(*opRGB);
+    this->state.blend.setAlphaBlendOp(*opAlpha);
+
+    // Blend factors
+    this->state.blend.setSrcColorBlendFactor(*srcColor);
+    this->state.blend.setSrcAlphaBlendFactor(*srcAlpha);
+
+    this->state.blend.setDstColorBlendFactor(*dstColor);
+    this->state.blend.setDstAlphaBlendFactor(*dstAlpha);
+}
+
 void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, SamplerState& state)
 {
     auto index = -1;
@@ -406,46 +441,97 @@ void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, Sam
     this->descriptors.dirty = true;
 }
 
+void Renderer<Console::HAC>::SetStencil(RenderState::CompareMode mode, int value)
+{
+    bool enabled = (mode == RenderState::COMPARE_ALWAYS) ? false : true;
+
+    std::optional<DkCompareOp> operation;
+    if (!(operation = Renderer::compareModes.Find(mode)))
+        return;
+
+    this->state.depthStencil.setDepthTestEnable(enabled);
+    this->state.depthStencil.setDepthCompareOp(*operation);
+}
+
+void Renderer<Console::HAC>::SetMeshCullMode(vertex::CullMode mode)
+{
+    std::optional<DkFace> cullFace;
+    if (!(cullFace = Renderer::cullModes.Find(mode)))
+        return;
+
+    this->state.rasterizer.setCullMode(*cullFace);
+}
+
+void Renderer<Console::HAC>::SetVertexWinding(vertex::Winding winding)
+{
+    std::optional<DkFrontFace> frontFace;
+    if (!(frontFace = Renderer::windingModes.Find(winding)))
+        return;
+
+    this->state.rasterizer.setFrontFace(*frontFace);
+}
+
+void Renderer<Console::HAC>::SetLineWidth(float width)
+{
+    this->EnsureInFrame();
+    this->commandBuffer.setLineWidth(width);
+}
+
+void Renderer<Console::HAC>::SetLineStyle(Graphics<Console::HAC>::LineStyle style)
+{
+    bool smooth = (style == Graphics<>::LINE_SMOOTH);
+    this->state.rasterizer.setPolygonSmoothEnable(smooth);
+}
+
+void Renderer<Console::HAC>::SetPointSize(float size)
+{
+    this->EnsureInFrame();
+    this->commandBuffer.setPointSize(size);
+}
+
+static void dkScissorFromRect(const Rect& scissor, DkScissor& out)
+{
+    out.x      = (uint32_t)scissor.x;
+    out.y      = (uint32_t)scissor.y;
+    out.width  = (uint32_t)scissor.w;
+    out.height = (uint32_t)scissor.h;
+}
+
+void Renderer<Console::HAC>::SetScissor(const Rect& scissor, bool canvasActive)
+{
+    this->EnsureInFrame();
+    DkScissor dkScissor {};
+
+    if (scissor == Rect::EMPTY)
+        dkScissorFromRect(this->viewport, dkScissor);
+    else
+        dkScissorFromRect(scissor, dkScissor);
+
+    this->commandBuffer.setScissors(0, { dkScissor });
+}
+
+static void dkViewportFromRect(const Rect& viewport, DkViewport& out)
+{
+    out.x      = (float)viewport.x;
+    out.y      = (float)viewport.y;
+    out.width  = (float)viewport.w;
+    out.height = (float)viewport.h;
+
+    out.near = Renderer<>::Z_NEAR;
+    out.far  = Renderer<>::Z_FAR;
+}
+
 void Renderer<Console::HAC>::SetViewport(const Rect& viewport)
 {
     this->EnsureInFrame();
 
     DkViewport dkViewport {};
-
-    dkViewport.x      = (float)viewport.x;
-    dkViewport.y      = (float)viewport.y;
-    dkViewport.width  = (float)viewport.w;
-    dkViewport.height = (float)viewport.h;
-    dkViewport.near   = Z_NEAR;
-    dkViewport.far    = Z_FAR;
+    dkViewportFromRect(viewport, dkViewport);
 
     this->commandBuffer.setViewports(0, { dkViewport });
 
     const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     this->transform.projection = ortho;
-}
-
-void Renderer<Console::HAC>::SetScissor(bool enable, const Rect& scissor, bool canvasActive)
-{
-    this->EnsureInFrame();
-    DkScissor dkScissor {};
-
-    if (enable)
-    {
-        dkScissor.x      = (uint32_t)scissor.x;
-        dkScissor.y      = (uint32_t)scissor.y;
-        dkScissor.width  = (uint32_t)scissor.w;
-        dkScissor.height = (uint32_t)scissor.h;
-    }
-    else
-    {
-        dkScissor.x      = (uint32_t)0;
-        dkScissor.y      = (uint32_t)0;
-        dkScissor.width  = (uint32_t)this->framebuffers.size.width;
-        dkScissor.height = (uint32_t)this->framebuffers.size.height;
-    }
-
-    this->commandBuffer.setScissors(0, { dkScissor });
 }
 
 std::optional<Screen> Renderer<Console::HAC>::CheckScreen(const char* name) const

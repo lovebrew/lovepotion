@@ -94,7 +94,7 @@ namespace Wrap_Graphics
 
     int SetDefaultMipmapFilter(lua_State* L);
 
-    int GetDefaultsMipmapFilter(lua_State* L);
+    int GetDefaultMipmapFilter(lua_State* L);
 
     int SetLineWidth(lua_State* L);
 

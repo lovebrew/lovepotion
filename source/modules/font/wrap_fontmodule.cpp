@@ -36,16 +36,25 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     else if (lua_isnoneornil(L, 2))
     {
         ::Rasterizer* self = nullptr;
-        auto* fileData     = Wrap_Filesystem::GetFileData(L, 1);
 
-        luax::CatchException(
-            L, [&]() { self = instance()->NewRasterizer(fileData); },
-            [&](bool) { fileData->Release(); });
+        const char* name           = luaL_checkstring(L, 1);
+        const auto systemFontValid = FontModule<Console::Which>::systemFonts.Find(name);
 
-        luax::PushType(L, self);
-        self->Release();
+        if (!systemFontValid)
+        {
+            auto* fileData = Wrap_Filesystem::GetFileData(L, 1);
 
-        return 1;
+            luax::CatchException(
+                L, [&]() { self = instance()->NewRasterizer(fileData); },
+                [&](bool) { fileData->Release(); });
+
+            luax::PushType(L, self);
+            self->Release();
+
+            return 1;
+        }
+        else
+            return Wrap_FontModule::NewSystemFontRasterizer(L, *systemFontValid);
     }
 
     return 0;

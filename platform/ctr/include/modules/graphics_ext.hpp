@@ -54,7 +54,9 @@ namespace love
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix);
 
-        void SetScissor(const Rect& scissor);
+        void SetScissor();
+
+        void SetScissor(const Rect& rectangle);
 
         void RestoreState(const DisplayState& state)
         {

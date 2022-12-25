@@ -12,11 +12,16 @@
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
-#include <gfd.h>
+#include <gx2/clear.h>
+#include <gx2/display.h>
 #include <gx2/draw.h>
+#include <gx2/event.h>
 #include <gx2/mem.h>
 #include <gx2/registers.h>
-#include <gx2/shaders.h>
+#include <gx2/state.h>
+#include <gx2/swap.h>
+#include <gx2/utils.h>
+
 #include <gx2r/buffer.h>
 #include <gx2r/draw.h>
 
@@ -53,6 +58,11 @@ namespace love
 
         static constexpr uint8_t MAX_RENDERTARGETS = 0x02;
 
+        static constexpr auto FRAMEBUFFER_FORMAT    = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
+        static constexpr auto FRAMEBUFFER_BUFFERING = GX2_BUFFERING_MODE_DOUBLE;
+        static constexpr auto INVALIDATE_COLOR_BUFFER =
+            GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_COLOR_BUFFER;
+
         Renderer();
 
       public:
@@ -87,7 +97,7 @@ namespace love
 
         void SetViewport(const Rect& viewport);
 
-        void SetScissor(bool enable, const Rect& scissor, bool canvasActive);
+        void SetScissor(const Rect& scissor, bool canvasActive);
 
         void SetStencil(RenderState::CompareMode mode, int value);
 
@@ -202,6 +212,44 @@ namespace love
             std::function<void()> keyboard;
         };
 
+        // clang-format off
+        static constexpr BidirectionalMap scanBuffers = {
+            Screen::SCREEN_TV,      GX2_SCAN_TARGET_TV,
+            Screen::SCREEN_GAMEPAD, GX2_SCAN_TARGET_DRC
+        };
+        // clang-format on
+
         std::array<RenderFuncs, MAX_RENDERTARGETS> rendertargets;
+
+        struct Transform
+        {
+            glm::mat4 modelView;
+            glm::mat4 projection;
+        } transform;
+
+        static uint32_t ProcUIAcquired(void* args);
+
+        static uint32_t ProcUIReleased(void* args);
+
+        int OnForegroundAcquired();
+
+        int OnForegroundReleased();
+
+        bool inForeground;
+        void* commandBuffer;
+
+        struct Framebuffer
+        {
+            uint8_t mode;
+            void* scanBuffer;
+            uint32_t scanBufferSize;
+            GX2ColorBuffer buffer;
+            Vector2 dimensions;
+        };
+
+        Framebuffer current;
+        GX2ContextState* state;
+
+        std::array<Framebuffer, MAX_RENDERTARGETS> framebuffers;
     };
 } // namespace love

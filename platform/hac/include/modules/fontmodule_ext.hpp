@@ -53,6 +53,9 @@ namespace love
             int size, Rasterizer<Console::HAC>::Hinting hinting) const;
 
         Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
+            int size, PlSharedFontType type, Rasterizer<Console::HAC>::Hinting hinting) const;
+
+        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
             int size, float dpiScale, Rasterizer<Console::HAC>::Hinting hinting) const;
 
         Rasterizer<Console::HAC>* NewTrueTypeRasterizer(

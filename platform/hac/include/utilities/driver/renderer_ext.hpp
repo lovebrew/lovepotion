@@ -55,9 +55,6 @@ namespace love
 
         static constexpr int MAX_OBJECTS = 0x250;
 
-        static constexpr float Z_NEAR = -10.0f;
-        static constexpr float Z_FAR  = 10.0f;
-
         // clang-format off
         static constexpr int GPU_POOL_SIZE = 0x4000000;
         static constexpr int GPU_USE_FLAGS = (DkMemBlockFlags_GpuCached | DkMemBlockFlags_Image);
@@ -115,11 +112,9 @@ namespace love
 
         void Present();
 
-        void SetViewport();
-
         void SetViewport(const Rect& viewport);
 
-        void SetScissor(bool enable, const Rect& scissor, bool canvasActive);
+        void SetScissor(const Rect& scissor, bool canvasActive);
 
         void SetStencil(RenderState::CompareMode mode, int value);
 
@@ -323,12 +318,6 @@ namespace love
 
             int slot = -1;
             bool dirty;
-
-            union
-            {
-                int width;
-                int height;
-            } size;
         } framebuffers;
 
         struct DescriptorSets
