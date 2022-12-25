@@ -246,17 +246,41 @@ void Renderer<Console::CAFE>::BindFramebuffer(/* Canvas* canvas */)
 
     this->current = this->framebuffers[(uint8_t)activeScreenId];
     GX2SetColorBuffer(&this->current.buffer, GX2_RENDER_TARGET_0);
+    GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::Present()
 {
-    if (this->inFrame)
-    {
-        std::optional<GX2ScanTarget> target;
-        target = Renderer::scanBuffers.Find(Graphics<>::activeScreen);
+    std::optional<GX2ScanTarget> target;
+    target = Renderer::scanBuffers.Find(Graphics<>::activeScreen);
 
-        GX2CopyColorBufferToScanBuffer(&this->current.buffer, *target);
-        GX2SetContextState(this->state);
+    GX2CopyColorBufferToScanBuffer(&this->current.buffer, *target);
+
+    GX2SwapScanBuffers();
+    GX2SetContextState(this->state);
+
+    GX2Flush();
+
+    /* wait to flip */
+    {
+        uint32_t swaps, flips;
+        OSTime lastFlip, lastVsync;
+        uint32_t waitCount;
+
+        while (true)
+        {
+            GX2GetSwapStatus(&swaps, &flips, &lastFlip, &lastVsync);
+
+            if (flips >= swaps)
+                break;
+
+            /* GPU timed out */
+            if (waitCount >= 0)
+                break;
+
+            waitCount++;
+            GX2WaitForVsync();
+        }
     }
 }
 
