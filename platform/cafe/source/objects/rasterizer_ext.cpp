@@ -36,7 +36,7 @@ Rasterizer<Console::CAFE>::Rasterizer(FT_Library library, Data* data, int size, 
     this->dataType = DATA_TRUETYPE;
 }
 
-Rasterizer<Console::CAFE>::~Rasterizer<Console::CAFE>()
+Rasterizer<Console::CAFE>::~Rasterizer()
 {
     FT_Done_Face(this->face);
 }

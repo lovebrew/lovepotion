@@ -216,7 +216,13 @@ int Wrap_Graphics::GetWidth(lua_State* L)
 
 int Wrap_Graphics::GetHeight(lua_State* L)
 {
-    lua_pushinteger(L, instance()->GetHeight());
+    const char* screenName = luaL_optstring(L, 1, Graphics<Console::Which>::DEFAULT_SCREEN);
+    std::optional<Screen> screen;
+
+    if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
+        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
+
+    lua_pushinteger(L, instance()->GetHeight(*screen));
 
     return 1;
 }
@@ -230,7 +236,7 @@ int Wrap_Graphics::GetDimensions(lua_State* L)
         return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
 
     lua_pushinteger(L, instance()->GetWidth(*screen));
-    lua_pushinteger(L, instance()->GetHeight());
+    lua_pushinteger(L, instance()->GetHeight(*screen));
 
     return 2;
 }

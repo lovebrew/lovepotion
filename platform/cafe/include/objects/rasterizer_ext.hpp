@@ -26,8 +26,7 @@ namespace love
 
         Rasterizer(FT_Library library, Data* data, int size, float dpiSacale, Hinting hinting);
 
-        ~Rasterizer()
-        {}
+        ~Rasterizer();
 
         int GetLineHeight() const;
 

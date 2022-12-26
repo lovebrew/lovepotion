@@ -196,7 +196,7 @@ int Graphics<Console::CTR>::GetWidth(Screen screen) const
     }
 }
 
-int Graphics<Console::CTR>::GetHeight() const
+int Graphics<Console::CTR>::GetHeight(Screen screen) const
 {
     return 240;
 }

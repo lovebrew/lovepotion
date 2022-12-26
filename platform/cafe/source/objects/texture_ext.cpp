@@ -242,6 +242,27 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
                   this->texture->surface.imageSize);
 }
 
+void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics,
+                                  const Matrix4<Console::CAFE>& matrix)
+{
+    this->Draw(graphics, this->quad, matrix);
+}
+
+void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
+                                  const Matrix4<Console::CAFE>& matrix)
+{
+    if (!this->readable)
+        throw love::Exception("Textures with non-readable formats cannot be drawn.");
+
+    if (this->renderTarget && graphics.IsRenderTargetActive(this))
+        throw love::Exception("Cannot render a Texture to itself.");
+
+    const auto& stateTransform = graphics.GetTransform();
+    bool is2D                  = stateTransform.IsAffine2DTransform();
+
+    Matrix4<Console::CAFE> transform(stateTransform, matrix);
+}
+
 void Texture<Console::CAFE>::SetSamplerState(const SamplerState& state)
 {
     Texture<>::SetSamplerState(state);

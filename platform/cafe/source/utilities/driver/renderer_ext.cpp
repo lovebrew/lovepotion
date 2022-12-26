@@ -56,6 +56,8 @@ Renderer<Console::CAFE>::Renderer() :
 
     this->transform.modelView = glm::mat4(1.0f);
 
+    this->CreateFramebuffers();
+
     ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, ProcUIAcquired, nullptr, 100);
     ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, ProcUIReleased, nullptr, 100);
 
@@ -204,6 +206,8 @@ void Renderer<Console::CAFE>::CreateFramebuffers()
     initColorBuffer(framebuffer.buffer, framebuffer.dimensions, FRAMEBUFFER_FORMAT);
     GX2SetTVScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
 
+    GX2SetTVEnable(true);
+
     /* set up the Gamepad */
 
     framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
@@ -212,6 +216,8 @@ void Renderer<Console::CAFE>::CreateFramebuffers()
 
     initColorBuffer(framebuffer.buffer, framebuffer.dimensions, FRAMEBUFFER_FORMAT);
     GX2SetDRCScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
+
+    GX2SetDRCEnable(true);
 }
 
 void Renderer<Console::CAFE>::DestroyFramebuffers()
@@ -313,6 +319,14 @@ void Renderer<Console::CAFE>::SetSamplerState(Texture<Console::CAFE>* texture, S
     GX2InitSamplerClamping(&sampler, *wrapU, *wrapV, *wrapW);
     GX2InitSamplerLOD(&sampler, state.minLod, state.maxLod, state.lodBias);
 }
+
+const Vector2& Renderer<Console::CAFE>::GetFrameBufferSize(Screen screen)
+{
+    return this->framebuffers[(uint8_t)screen].dimensions;
+}
+
+void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
+{}
 
 void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 {

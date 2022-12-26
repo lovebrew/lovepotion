@@ -11,7 +11,7 @@
 namespace love
 {
     template<>
-    class ImageData<Console::HAC> : public ImageData<Console::ALL>
+    class ImageData<Console::CAFE> : public ImageData<Console::ALL>
     {
       public:
         ImageData(Data* data);

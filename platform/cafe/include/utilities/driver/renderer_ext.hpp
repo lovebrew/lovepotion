@@ -115,9 +115,13 @@ namespace love
 
         void SetPointSize(float size);
 
+        void UseProgram(const WHBGfxShaderGroup& group);
+
         std::optional<Screen> CheckScreen(const char* name) const;
 
         SmallTrivialVector<const char*, 2> GetScreens() const;
+
+        const Vector2& GetFrameBufferSize(Screen screen);
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {

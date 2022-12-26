@@ -5,9 +5,7 @@
 
 #include <objects/glyphdata/wrap_glyphdata.hpp>
 
-#if defined(__WIIU__)
-std::span<const luaL_Reg> Wrap_FontModule::extensions;
-#elif defined(__SWITCH__)
+#if defined(__SWITCH__) || defined(__WIIU__)
 int Wrap_FontModule::NewBCFNTRasterizer(lua_State* L)
 {
     return 0;

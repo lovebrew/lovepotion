@@ -41,6 +41,17 @@ void Shader<Console::CAFE>::AttachDefault(StandardShader type)
         defaultshader->Attach();
 }
 
+void Shader<Console::CAFE>::Attach()
+{
+    if (Shader::current != this)
+    {
+        Renderer<Console::CAFE>::Instance().UseProgram(this->group);
+        Renderer<>::shaderSwitches++;
+
+        Shader::current = this;
+    }
+}
+
 void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
 {
     std::string error;

@@ -66,7 +66,7 @@ namespace love
 
         int GetWidth(Screen screen) const;
 
-        int GetHeight() const;
+        int GetHeight(Screen screen) const;
 
         float GetCurrentDepth() const
         {

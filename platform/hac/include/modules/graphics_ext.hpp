@@ -177,7 +177,7 @@ namespace love
             return this->width;
         }
 
-        int GetHeight() const
+        int GetHeight(Screen screen) const
         {
             return this->height;
         }

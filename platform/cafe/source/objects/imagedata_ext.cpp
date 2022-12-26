@@ -65,15 +65,15 @@ static ImageData<>::PixelGetFunction getPixelGetFunction(PixelFormat format)
     }
 }
 
-ImageData<Console::HAC>::ImageData(Data* data) : ImageData<>(PIXELFORMAT_UNKNOWN, 0, 0)
+ImageData<Console::CAFE>::ImageData(Data* data) : ImageData<>(PIXELFORMAT_UNKNOWN, 0, 0)
 {
     this->Decode(data);
 }
 
-ImageData<Console::HAC>::~ImageData()
+ImageData<Console::CAFE>::~ImageData()
 {}
 
-void ImageData<Console::HAC>::Decode(Data* data)
+void ImageData<Console::CAFE>::Decode(Data* data)
 {
     FormatHandler* formatDecoder = nullptr;
     FormatHandler::DecodedImage image {};
@@ -130,8 +130,8 @@ void ImageData<Console::HAC>::Decode(Data* data)
     this->pixelSetFunction = getPixelSetFunction(this->format);
 }
 
-FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFormat,
-                                          std::string filename, bool writeFile)
+FileData* ImageData<Console::CAFE>::Encode(FormatHandler::EncodedFormat encodedFormat,
+                                           std::string filename, bool writeFile)
 {
     FormatHandler* encoder = nullptr;
 
@@ -209,7 +209,7 @@ FileData* ImageData<Console::HAC>::Encode(FormatHandler::EncodedFormat encodedFo
     return data;
 }
 
-void ImageData<Console::HAC>::Create(int width, int height, PixelFormat format, void* data)
+void ImageData<Console::CAFE>::Create(int width, int height, PixelFormat format, void* data)
 {
     ImageData<Console::ALL>::Create(width, height, format, data);
 
@@ -219,7 +219,7 @@ void ImageData<Console::HAC>::Create(int width, int height, PixelFormat format, 
     this->decoder = nullptr;
 }
 
-void ImageData<Console::HAC>::GetPixel(int x, int y, Color& color)
+void ImageData<Console::CAFE>::GetPixel(int x, int y, Color& color)
 {
     if (!this->Inside(x, y))
         throw love::Exception("Attempt to get out-of-range pixel!");
@@ -234,7 +234,7 @@ void ImageData<Console::HAC>::GetPixel(int x, int y, Color& color)
     this->pixelGetFunction(pixel, color);
 }
 
-void ImageData<Console::HAC>::SetPixel(int x, int y, const Color& color)
+void ImageData<Console::CAFE>::SetPixel(int x, int y, const Color& color)
 {
     if (!this->Inside(x, y))
         throw love::Exception("Attempt to set out-of-range pixel!");
@@ -276,7 +276,7 @@ static void pasteRGBA16toRGBA8(Row src, Row dst, int w)
         dst.u8[i] = src.u16[i] >> 8u;
 }
 
-void ImageData<Console::HAC>::Paste(ImageData* sourceData, int x, int y, Rect& paste)
+void ImageData<Console::CAFE>::Paste(ImageData* sourceData, int x, int y, Rect& paste)
 {
     PixelFormat sourceFormat = sourceData->GetFormat();
     PixelFormat destFormat   = this->GetFormat();
