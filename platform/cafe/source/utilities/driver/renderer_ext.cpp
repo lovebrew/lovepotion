@@ -248,10 +248,11 @@ void Renderer<Console::CAFE>::BindFramebuffer(/* Canvas* canvas */)
     this->EnsureInFrame();
 
     const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
+
     if (activeScreenId < 0)
         return;
 
-    this->current = this->framebuffers[(uint8_t)activeScreenId];
+    this->current = this->framebuffers[activeScreenId];
     GX2SetColorBuffer(&this->current.buffer, GX2_RENDER_TARGET_0);
 }
 
@@ -261,6 +262,7 @@ void Renderer<Console::CAFE>::Present()
     target = Renderer::scanBuffers.Find(Graphics<>::activeScreen);
 
     GX2CopyColorBufferToScanBuffer(&this->current.buffer, *target);
+    GX2SetContextState(this->state);
 
     GX2SwapScanBuffers();
     GX2SetContextState(this->state);
