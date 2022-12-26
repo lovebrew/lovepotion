@@ -22,15 +22,24 @@ bool Window<Console::CAFE>::SetWindow(int width, int height, WindowSettings* set
     if (!this->graphics.Get())
         this->graphics.Set((Module::GetInstance<Graphics<Console::CAFE>>(Module::M_GRAPHICS)));
 
-    this->Close();
+    bool setMode = false;
 
     /* handled internally */
-    if (!this->CreateWindowAndContext(0, 0, 0, 0))
-        return false;
+    if (!this->IsOpen())
+    {
+        if (!this->CreateWindowAndContext(0, 0, width, height))
+            return false;
 
-    /* handled internally */
+        setMode = true;
+    }
+
     if (this->graphics.Get())
-        this->graphics->SetMode(0, 0, 0, 0);
+    {
+        if (setMode)
+            this->graphics->SetMode(0, 0, width, height);
+        else
+            this->graphics->SetViewportSize(width, height);
+    }
 
     return true;
 }

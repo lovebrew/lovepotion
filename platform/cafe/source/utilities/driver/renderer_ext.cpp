@@ -18,18 +18,23 @@ using namespace love;
 
 #include <utilities/log/logfile.h>
 
-static void initColorBuffer(GX2ColorBuffer& buffer, Vector2& size, GX2SurfaceFormat format)
+static void initColorBuffer(GX2ColorBuffer& buffer, const Vector2& size, GX2SurfaceFormat format)
 {
     memset(&buffer, 0, sizeof(GX2ColorBuffer));
 
     buffer.surface.use       = GX2_SURFACE_USE_TEXTURE_COLOR_BUFFER_TV;
     buffer.surface.dim       = GX2_SURFACE_DIM_TEXTURE_2D;
+    buffer.surface.aa        = GX2_AA_MODE1X;
     buffer.surface.width     = size.x;
     buffer.surface.height    = size.y;
     buffer.surface.depth     = 1;
     buffer.surface.mipLevels = 1;
     buffer.surface.format    = format;
+    buffer.surface.swizzle   = 0;
     buffer.surface.tileMode  = GX2_TILE_MODE_DEFAULT;
+    buffer.surface.mipmaps   = nullptr;
+    buffer.viewFirstSlice    = 0;
+    buffer.viewMip           = 0;
     buffer.viewNumSlices     = 1;
 
     GX2CalcSurfaceSizeAndAlignment(&buffer.surface);
@@ -86,7 +91,14 @@ Renderer<Console::CAFE>::Renderer() :
     GX2SetDRCEnable(true);
 
     GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
+
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
+
+    // Setup blend control
+    GX2SetBlendControl(GX2_RENDER_TARGET_0, GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA,
+                       GX2_BLEND_COMBINE_MODE_ADD, TRUE, GX2_BLEND_MODE_SRC_ALPHA,
+                       GX2_BLEND_MODE_INV_SRC_ALPHA, GX2_BLEND_COMBINE_MODE_ADD);
+
     GX2SetSwapInterval(1);
 }
 
@@ -208,18 +220,19 @@ void Renderer<Console::CAFE>::CreateFramebuffers()
 
     uint32_t unknown = 0;
 
-    /* set up the TV */
-
     // clang-format off
-    auto framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
-    GX2CalcTVSize((GX2TVRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING, &framebuffer.scanBufferSize, &unknown);
-    initColorBuffer(framebuffer.buffer, framebuffer.dimensions, FRAMEBUFFER_FORMAT);
+
+    /* set up the TV */
+    GX2CalcTVSize((GX2TVRenderMode)this->framebuffers[(uint8_t)Screen::SCREEN_TV].mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING,
+                  &this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBufferSize, &unknown);
+
+    initColorBuffer(this->framebuffers[(uint8_t)Screen::SCREEN_TV].buffer, this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions, FRAMEBUFFER_FORMAT);
 
     /* set up the Gamepad */
+    GX2CalcDRCSize((GX2DrcRenderMode)this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING,
+                   &this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBufferSize, &unknown);
 
-    framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
-    GX2CalcDRCSize((GX2DrcRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING, &framebuffer.scanBufferSize, &unknown);
-    initColorBuffer(framebuffer.buffer, framebuffer.dimensions, FRAMEBUFFER_FORMAT);
+    initColorBuffer(this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].buffer, this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].dimensions, FRAMEBUFFER_FORMAT);
     // clang-format on
 }
 
@@ -335,7 +348,13 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
 
 void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 {
-    GX2SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR);
+    if (viewport == Rect::EMPTY)
+    {
+        const auto& buffer = this->current.buffer;
+        GX2SetViewport(0, 0, buffer.surface.width, buffer.surface.height, Z_NEAR, Z_FAR);
+    }
+    else
+        GX2SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR);
 
     const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     this->transform.projection = ortho;
@@ -343,7 +362,13 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);
+    if (scissor == Rect::EMPTY)
+    {
+        const auto& buffer = this->current.buffer;
+        GX2SetScissor(0, 0, buffer.surface.width, buffer.surface.height);
+    }
+    else
+        GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);
 }
 
 std::optional<Screen> Renderer<Console::CAFE>::CheckScreen(const char* name) const

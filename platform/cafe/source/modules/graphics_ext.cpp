@@ -234,8 +234,8 @@ void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings,
 
 void Graphics<Console::CAFE>::SetViewportSize(int width, int height)
 {
-    ::Renderer::Instance().SetViewport({ 0, 0, width, height });
-    ::Renderer::Instance().SetScissor({ 0, 0, width, height }, false);
+    ::Renderer::Instance().SetViewport({});
+    ::Renderer::Instance().SetScissor({}, false);
 }
 
 void Graphics<Console::CAFE>::SetScissor()
