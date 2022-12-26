@@ -10,13 +10,18 @@
 #include <proc_ui/procui.h>
 
 #include <malloc.h>
+#include <stdlib.h>
 
 using namespace love;
 
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 
-static void initColorBuffer(GX2ColorBuffer& buffer, const Vector2& size, GX2SurfaceFormat format)
+#include <utilities/log/logfile.h>
+
+static void initColorBuffer(GX2ColorBuffer& buffer, Vector2& size, GX2SurfaceFormat format)
 {
+    memset(&buffer, 0, sizeof(GX2ColorBuffer));
+
     buffer.surface.use       = GX2_SURFACE_USE_TEXTURE_COLOR_BUFFER_TV;
     buffer.surface.dim       = GX2_SURFACE_DIM_TEXTURE_2D;
     buffer.surface.width     = size.x;
@@ -61,8 +66,8 @@ Renderer<Console::CAFE>::Renderer() :
     ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, ProcUIAcquired, nullptr, 100);
     ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, ProcUIReleased, nullptr, 100);
 
-    if (!this->OnForegroundAcquired())
-        throw love::Exception("Do not do this?");
+    if (int result = this->OnForegroundAcquired(); result != 0)
+        throw love::Exception("Failed to acquire application foreground (error %d).", result);
 
     this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
 
@@ -71,6 +76,14 @@ Renderer<Console::CAFE>::Renderer() :
 
     GX2SetupContextStateEx(this->state, true);
     GX2SetContextState(this->state);
+
+    auto& framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
+    GX2SetTVScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
+    GX2SetTVEnable(true);
+
+    framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
+    GX2SetDRCScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
+    GX2SetDRCEnable(true);
 
     GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
@@ -95,11 +108,9 @@ int Renderer<Console::CAFE>::OnForegroundAcquired()
     auto memOneHeap     = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
 
     /* allocate tv scan buffer */
-
     auto& framebuffer      = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
     framebuffer.scanBuffer = MEMAllocFromFrmHeapEx(foregroundHeap, framebuffer.scanBufferSize,
                                                    GX2_SCAN_BUFFER_ALIGNMENT);
-
     if (!framebuffer.scanBuffer)
         return -1;
 
@@ -108,29 +119,29 @@ int Renderer<Console::CAFE>::OnForegroundAcquired()
                    (GX2TVRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING);
 
     /* allocate gamepad scan buffer */
-
     framebuffer            = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
     framebuffer.scanBuffer = MEMAllocFromFrmHeapEx(foregroundHeap, framebuffer.scanBufferSize,
                                                    GX2_SCAN_BUFFER_ALIGNMENT);
 
     if (!framebuffer.scanBuffer)
-        return -1;
+        return -2;
 
     GX2Invalidate(GX2_INVALIDATE_MODE_CPU, framebuffer.scanBuffer, framebuffer.scanBufferSize);
     GX2SetDRCBuffer(framebuffer.scanBuffer, framebuffer.scanBufferSize,
                     (GX2DrcRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING);
-
     /* allocate color buffers */
 
-    for (int index = 0; index < Renderer::MAX_RENDERTARGETS; ++index)
+    for (int index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
     {
         auto& buffer = this->framebuffers[index].buffer;
 
-        buffer.surface.image =
-            MEMAllocFromFrmHeapEx(memOneHeap, buffer.surface.imageSize, buffer.surface.alignment);
+        const auto size      = buffer.surface.imageSize;
+        const auto alignment = buffer.surface.alignment;
+
+        buffer.surface.image = MEMAllocFromFrmHeapEx(memOneHeap, size, alignment);
 
         if (!buffer.surface.image)
-            return -1;
+            return -3;
 
         GX2Invalidate(INVALIDATE_COLOR_BUFFER, buffer.surface.image, buffer.surface.imageSize);
     }
@@ -173,13 +184,13 @@ void Renderer<Console::CAFE>::CreateFramebuffers()
         case GX2_TV_SCAN_MODE_480P:
         {
             this->framebuffers[(uint8_t)Screen::SCREEN_TV].mode = GX2_TV_RENDER_MODE_WIDE_480P;
-            this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions = { 854, 480 };
+            this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions = Vector2(854, 480);
             break;
         }
         case GX2_TV_SCAN_MODE_720P:
         {
             this->framebuffers[(uint8_t)Screen::SCREEN_TV].mode = GX2_TV_RENDER_MODE_WIDE_720P;
-            this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions = { 1280, 720 };
+            this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions = Vector2(1280, 720);
             break;
         }
         case GX2_TV_SCAN_MODE_1080I:
@@ -187,37 +198,29 @@ void Renderer<Console::CAFE>::CreateFramebuffers()
         default:
         {
             this->framebuffers[(uint8_t)Screen::SCREEN_TV].mode = GX2_TV_RENDER_MODE_WIDE_1080P;
-            this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions = { 1920, 1080 };
+            this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions = Vector2(1920, 1080);
             break;
         }
-    };
+    }
 
-    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].mode       = GX2GetSystemDRCMode();
-    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].dimensions = { 854, 480 };
+    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].mode       = GX2_DRC_RENDER_MODE_SINGLE;
+    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].dimensions = Vector2(854, 480);
 
     uint32_t unknown = 0;
 
     /* set up the TV */
 
-    auto& framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
-    GX2CalcTVSize((GX2TVRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING,
-                  &framebuffer.scanBufferSize, &unknown);
-
+    // clang-format off
+    auto framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
+    GX2CalcTVSize((GX2TVRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING, &framebuffer.scanBufferSize, &unknown);
     initColorBuffer(framebuffer.buffer, framebuffer.dimensions, FRAMEBUFFER_FORMAT);
-    GX2SetTVScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
-
-    GX2SetTVEnable(true);
 
     /* set up the Gamepad */
 
     framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
-    GX2CalcDRCSize((GX2DrcRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING,
-                   &framebuffer.scanBufferSize, &unknown);
-
+    GX2CalcDRCSize((GX2DrcRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING, &framebuffer.scanBufferSize, &unknown);
     initColorBuffer(framebuffer.buffer, framebuffer.dimensions, FRAMEBUFFER_FORMAT);
-    GX2SetDRCScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
-
-    GX2SetDRCEnable(true);
+    // clang-format on
 }
 
 void Renderer<Console::CAFE>::DestroyFramebuffers()

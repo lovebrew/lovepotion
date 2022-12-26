@@ -10,7 +10,6 @@
       "__APP_VERSION__=\"3.0.0\"",
       "__LOVE_VERSION__=\"12.0\""
     ],
-
     /* 3DS paths and info */
     "ctrIncludePaths": [
       "${workspaceFolder}/platform/ctr/include/**",
@@ -20,9 +19,12 @@
       "${env:DEVKITPRO}/libctru/include/**",
       "${env:DEVKITPRO}/portlibs/3ds/include/**"
     ],
-    "ctrDefines": ["__3DS__", "__OS__=\"Horizon\"", "__CONSOLE__=\"3DS\""],
+    "ctrDefines": [
+      "__3DS__",
+      "__OS__=\"Horizon\"",
+      "__CONSOLE__=\"3DS\""
+    ],
     "ctrCompilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-g++",
-
     /* Switch paths and info */
     "hacIncludePaths": [
       "${workspaceFolder}/platform/hac/include/**",
@@ -38,7 +40,6 @@
       "__OS__=\"Horizon\""
     ],
     "hacCompilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
-
     /* Wii U paths and info */
     "cafeIncludePaths": [
       "${workspaceFolder}/platform/cafe/include/**",
@@ -48,15 +49,24 @@
       "${env:DEVKITPRO}/portlibs/wiiu/include/**",
       "${env:DEVKITPRO}/portlibs/ppc/include/**"
     ],
-    "cafeDefines": ["__WIIU__", "__OS__=\"Cafe\"", "__CONSOLE__=\"Wii U\""],
+    "cafeDefines": [
+      "__WIIU__",
+      "__OS__=\"Cafe\"",
+      "__CONSOLE__=\"Wii U\""
+    ],
     "cafeCompilerPath": "${env:DEVKITPRO}/devkitPPC/bin/powerpc-eabi-g++"
   },
-
   "configurations": [
     {
       "name": "3DS",
-      "includePath": ["${env:defaultIncludePath}", "${env:ctrIncludePaths}"],
-      "defines": ["${env:defaultDefines}", "${env:ctrDefines}"],
+      "includePath": [
+        "${env:defaultIncludePath}",
+        "${env:ctrIncludePaths}"
+      ],
+      "defines": [
+        "${env:defaultDefines}",
+        "${env:ctrDefines}"
+      ],
       "compilerPath": "${env:ctrCompilerPath}",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -64,8 +74,15 @@
     },
     {
       "name": "3DS {Debug}",
-      "includePath": ["${env:defaultIncludePath}", "${env:ctrIncludePaths}"],
-      "defines": ["${env:defaultDefines}", "${env:ctrDefines}", "__DEBUG__"],
+      "includePath": [
+        "${env:defaultIncludePath}",
+        "${env:ctrIncludePaths}"
+      ],
+      "defines": [
+        "${env:defaultDefines}",
+        "${env:ctrDefines}",
+        "__DEBUG__"
+      ],
       "compilerPath": "${env:ctrCompilerPath}",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -73,8 +90,14 @@
     },
     {
       "name": "Switch",
-      "includePath": ["${env:defaultIncludePath}", "${env:hacIncludePaths}"],
-      "defines": ["${env:defaultDefines}", "${env:hacDefines}"],
+      "includePath": [
+        "${env:defaultIncludePath}",
+        "${env:hacIncludePaths}"
+      ],
+      "defines": [
+        "${env:defaultDefines}",
+        "${env:hacDefines}"
+      ],
       "compilerPath": "${env:hacCompilerPath}",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -82,8 +105,15 @@
     },
     {
       "name": "Switch {Debug}",
-      "includePath": ["${env:defaultIncludePath}", "${env:hacIncludePaths}"],
-      "defines": ["${env:defaultDefines}", "${env:hacDefines}", "__DEBUG__"],
+      "includePath": [
+        "${env:defaultIncludePath}",
+        "${env:hacIncludePaths}"
+      ],
+      "defines": [
+        "${env:defaultDefines}",
+        "${env:hacDefines}",
+        "__DEBUG__"
+      ],
       "compilerPath": "${env:hacCompilerPath}",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -91,8 +121,14 @@
     },
     {
       "name": "Wii U",
-      "includePath": ["${env:defaultIncludePath}", "${env:cafeIncludePaths}"],
-      "defines": ["${env:defaultDefines}", "${env:cafeDefines}"],
+      "includePath": [
+        "${env:defaultIncludePath}",
+        "${env:cafeIncludePaths}"
+      ],
+      "defines": [
+        "${env:defaultDefines}",
+        "${env:cafeDefines}"
+      ],
       "compilerPath": "${env:cafeCompilerPath}",
       "cStandard": "c11",
       "cppStandard": "c++20",
@@ -100,8 +136,15 @@
     },
     {
       "name": "Wii U {Debug}",
-      "includePath": ["${env:defaultIncludePath}", "${env:cafeIncludePaths}"],
-      "defines": ["${env:defaultDefines}", "${env:cafeDefines}", "__DEBUG__"],
+      "includePath": [
+        "${env:defaultIncludePath}",
+        "${env:cafeIncludePaths}"
+      ],
+      "defines": [
+        "${env:defaultDefines}",
+        "${env:cafeDefines}",
+        "__DEBUG__"
+      ],
       "compilerPath": "${env:cafeCompilerPath}",
       "cStandard": "c11",
       "cppStandard": "c++20",

@@ -5,9 +5,4 @@
 
 void logFormat(std::source_location location, const char* format, ...);
 
-#if defined(__WIIU__)
-    #include <coreinit/debug.h>
-    #define LOG(format, ...) OSReport(format, ##__VA_ARGS__)
-#else
-    #define LOG(format, ...) logFormat(std::source_location::current(), format, ##__VA_ARGS__)
-#endif
+#define LOG(format, ...) logFormat(std::source_location::current(), format, ##__VA_ARGS__)

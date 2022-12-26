@@ -4,6 +4,9 @@ distribute
 logs
 settings.json
 distribute
+
+launch.json
+
 *.log
 *.love
 test
