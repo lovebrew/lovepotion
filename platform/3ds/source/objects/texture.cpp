@@ -20,7 +20,7 @@ const C2D_Image& Texture::GetHandle()
 
 bool Texture::SetWrap(const Wrap& wrap)
 {
-    ::citro2d::Instance().SetTextureWrap(wrap);
+    ::citro2d::Instance().SetTextureWrap(this, wrap);
     return true;
 }
 
