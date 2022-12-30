@@ -1,12 +1,9 @@
 #version 460
 
 layout (location = 0) in vec3 inPos;
-
-// in attributes -- nothing happens if not used
 layout (location = 1) in vec4 inColor;
 layout (location = 2) in vec2 inTexCoord;
 
-// out attributes -- nothing happens if not used
 layout (location = 0) out vec4 outColor;
 layout (location = 1) out vec2 outTexCoord;
 

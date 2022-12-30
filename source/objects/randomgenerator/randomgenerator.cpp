@@ -109,7 +109,7 @@ std::string_view RandomGenerator::GetState() const
     // For this implementation we'll return a hex string representing the 64-bit
     // state integer xorshift uses.
     char result[255];
-    snprintf(result, sizeof(result), "0x%x", this->randomState.b64);
+    snprintf(result, sizeof(result), "0x%llx", this->randomState.b64);
 
     return result;
 }

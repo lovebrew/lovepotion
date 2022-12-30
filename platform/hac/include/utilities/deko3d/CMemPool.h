@@ -42,6 +42,8 @@ class CMemPool
         uint32_t m_start;
         uint32_t m_end;
 
+        Slice(const Slice&) = delete;
+
         constexpr uint32_t getSize() const
         {
             return m_end - m_start;
@@ -81,22 +83,27 @@ class CMemPool
       public:
         constexpr Handle(Slice* slice = nullptr) : m_slice { slice }
         {}
+
         constexpr operator bool() const
         {
             return m_slice != nullptr;
         }
+
         constexpr operator Slice*() const
         {
             return m_slice;
         }
+
         constexpr bool operator!() const
         {
             return !m_slice;
         }
+
         constexpr bool operator==(Handle const& rhs) const
         {
             return m_slice == rhs.m_slice;
         }
+
         constexpr bool operator!=(Handle const& rhs) const
         {
             return m_slice != rhs.m_slice;

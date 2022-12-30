@@ -114,13 +114,13 @@ bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
 
         try
         {
-            // if (!Shader<Console::CAFE>::defaults[index])
-            // {
-            //     auto* shader = new Shader<Console::CAFE>();
-            //     shader->LoadDefaults(type);
+            if (!Shader<Console::CAFE>::defaults[index])
+            {
+                auto* shader = new Shader<Console::CAFE>();
+                shader->LoadDefaults(type);
 
-            //     Shader<Console::CAFE>::defaults[index] = shader;
-            // }
+                Shader<Console::CAFE>::defaults[index] = shader;
+            }
         }
         catch (love::Exception&)
         {

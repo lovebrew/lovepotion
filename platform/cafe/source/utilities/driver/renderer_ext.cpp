@@ -343,8 +343,44 @@ const Vector2& Renderer<Console::CAFE>::GetFrameBufferSize(Screen screen)
     return this->framebuffers[(uint8_t)screen].dimensions;
 }
 
-void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
-{}
+void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup* group)
+{
+    GX2SetFetchShader(&group->fetchShader);
+
+    GX2SetVertexShader(group->vertexShader);
+    GX2SetPixelShader(group->pixelShader);
+
+    GX2SetVertexUniformReg(group->vertexShader->uniformVars[0].offset, 0,
+                           glm::value_ptr(this->transform.modelView));
+
+    GX2SetVertexUniformReg(group->vertexShader->uniformVars[1].offset, 16,
+                           glm::value_ptr(this->transform.projection));
+}
+
+bool Renderer<Console::CAFE>::Render(const Graphics<Console::CAFE>::DrawCommand& command)
+{
+    Shader<Console::CAFE>::defaults[command.shader]->Attach();
+
+    std::optional<GX2PrimitiveMode> primitive;
+    if (!(primitive = primitiveModes.Find(command.primitveType)) || (primitive && *primitive == -1))
+        return false;
+
+    if (!command.handles.empty())
+    {
+        for (int index = 0; index < command.handles.size(); index++)
+        {
+            uint32_t location = Shader<Console::CAFE>::current->GetPixelSamplerLocation(index);
+
+            GX2SetPixelTexture(command.handles[index]->GetHandle(), location);
+            GX2SetPixelSampler(&command.handles[index]->GetSampler(), location);
+        }
+    }
+
+    GX2SetAttribBuffer(0, command.stride * command.count, command.stride, command.vertices.get());
+    GX2DrawEx(*primitive, command.count, 0, 1);
+
+    return true;
+}
 
 void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 {

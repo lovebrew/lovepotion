@@ -6,7 +6,7 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <modules/graphics/graphics.tcc>
+#include <modules/graphics_ext.hpp>
 
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -31,7 +31,9 @@
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
 /* Enables usage of SIMD CPU instructions (requiring the above as well) */
 #define GLM_FORCE_INTRINSICS
+#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
@@ -115,7 +117,9 @@ namespace love
 
         void SetPointSize(float size);
 
-        void UseProgram(const WHBGfxShaderGroup& group);
+        bool Render(const Graphics<Console::CAFE>::DrawCommand& command);
+
+        void UseProgram(const WHBGfxShaderGroup* group);
 
         std::optional<Screen> CheckScreen(const char* name) const;
 
@@ -199,7 +203,7 @@ namespace love
             vertex::PRIMITIVE_TRIANGLE_FAN,   GX2_PRIMITIVE_MODE_TRIANGLE_FAN,
             vertex::PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP,
             vertex::PRIMITIVE_QUADS,          GX2_PRIMITIVE_MODE_QUADS,
-            vertex::PRIMITIVE_POINTS,         -1
+            vertex::PRIMITIVE_POINTS,         (GX2PrimitiveMode)-1
         };
 
         static constexpr BidirectionalMap gfxScreens =  {

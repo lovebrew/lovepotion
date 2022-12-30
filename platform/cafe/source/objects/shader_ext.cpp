@@ -2,17 +2,24 @@
 
 #include <utilities/driver/renderer_ext.hpp>
 
+#include <gfd.h>
+#include <gx2/mem.h>
+#include <whb/gfx.h>
+
+#include <malloc.h>
+
 using namespace love;
 
 #define SHADERS_DIR "/vol/content/shaders/"
 
-#define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "primitive.gsh")
-#define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gsh")
+#define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "primitive.gfd")
+#define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gfd")
+#define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gfd")
 
-Shader<Console::CAFE>::Shader() : group {}
+Shader<Console::CAFE>::Shader() : program(nullptr)
 {}
 
-Shader<Console::CAFE>::Shader(Data* vertex, Data* fragment)
+Shader<Console::CAFE>::Shader(Data* group) : Shader()
 {}
 
 Shader<Console::CAFE>::~Shader()
@@ -25,6 +32,16 @@ Shader<Console::CAFE>::~Shader()
 
     if (current == this)
         Shader::AttachDefault(STANDARD_DEFAULT);
+
+    WHBGfxFreeShaderGroup(this->program);
+}
+
+uint32_t Shader<Console::CAFE>::GetPixelSamplerLocation(int index)
+{
+    if (this->shaderType != Shader::STANDARD_TEXTURE)
+        throw love::Exception("Cannot fetch location from non-Texture pixel shader");
+
+    return this->program->pixelShader->samplerVars[index].location;
 }
 
 void Shader<Console::CAFE>::AttachDefault(StandardShader type)
@@ -45,11 +62,29 @@ void Shader<Console::CAFE>::Attach()
 {
     if (Shader::current != this)
     {
-        Renderer<Console::CAFE>::Instance().UseProgram(this->group);
+        Renderer<Console::CAFE>::Instance().UseProgram(this->program);
         Renderer<>::shaderSwitches++;
 
         Shader::current = this;
     }
+}
+
+static bool loadShaderFile(const char* filepath, Shader<>::StandardShader type,
+                           WHBGfxShaderGroup*& program)
+{
+    FILE* file = fopen(filepath, "r");
+    std::unique_ptr<uint8_t[]> data;
+
+    std::fseek(file, 0, SEEK_END);
+    long size = std::ftell(file);
+    std::rewind(file);
+
+    data = std::make_unique<uint8_t[]>(size);
+
+    std::fread(data.get(), 1, size, file);
+    std::fclose(file);
+
+    return WHBGfxLoadGFDShaderGroup(program, 0, data.get());
 }
 
 void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
@@ -61,84 +96,24 @@ void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
         case STANDARD_DEFAULT:
         default:
         {
-            this->Validate(DEFAULT_PRIMITIVE_SHADER, this->group, error);
-
-            // clang-format off
-            WHBGfxInitShaderAttribute(&this->group, "position", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-            WHBGfxInitShaderAttribute(&this->group, "color",    0, 16, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-            // clang-format on
-
+            loadShaderFile(DEFAULT_PRIMITIVE_SHADER, type, this->program);
             break;
         }
         case STANDARD_TEXTURE:
         {
-            this->Validate(DEFAULT_TEXTURE_SHADER, this->group, error);
-
-            // clang-format off
-            WHBGfxInitShaderAttribute(&this->group, "position", 0, 0, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-            WHBGfxInitShaderAttribute(&this->group, "color",    0, 16, GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32);
-            // clang-format on
-
+            loadShaderFile(DEFAULT_TEXTURE_SHADER, type, this->program);
+            break;
+        }
+        case STANDARD_VIDEO:
+        {
             break;
         }
     }
 
-    if (!error.empty())
-        throw love::Exception("Invalid Shader group: %s", error.c_str());
-}
+    WHBGfxInitShaderAttribute(this->program, "inPos", 0, 0, Shader::GX2_FORMAT_VEC3);
+    WHBGfxInitShaderAttribute(this->program, "inColor", 0, 12, Shader::GX2_FORMAT_VEC4);
+    WHBGfxInitShaderAttribute(this->program, "inTexCoord", 0, 28, Shader::GX2_FORMAT_VEC2);
+    WHBGfxInitFetchShader(this->program);
 
-bool Shader<Console::CAFE>::Validate(const char* filepath, WHBGfxShaderGroup& stage,
-                                     std::string& error) const
-{
-    if (!filepath)
-    {
-        error = "No filepath provided.";
-        return false;
-    }
-
-    FILE* file = std::fopen(filepath, "rb");
-
-    if (!file)
-    {
-        error = "File '" + std::string(filepath) + "' does not exist.";
-        std::fclose(file);
-        return false;
-    }
-
-    std::fseek(file, 0, SEEK_END);
-
-    size_t size = std::ftell(file);
-
-    if (size == 0)
-    {
-        error = "File size is zero.";
-        std::fclose(file);
-        return false;
-    }
-
-    std::rewind(file);
-
-    std::unique_ptr<uint8_t[]> buffer = nullptr;
-
-    try
-    {
-        buffer = std::make_unique<uint8_t[]>(size);
-    }
-    catch (std::bad_alloc&)
-    {
-        error = "Failed to allocate buffer.";
-        std::fclose(file);
-        return false;
-    }
-
-    std::fread(buffer.get(), size, 1, file);
-    fclose(file);
-
-    if (!WHBGfxLoadGFDShaderGroup(&stage, 0, buffer.get()))
-    {
-        error = "Invalid shader group.";
-        return false;
-    }
-
-    return true;
+    this->shaderType = type;
 }

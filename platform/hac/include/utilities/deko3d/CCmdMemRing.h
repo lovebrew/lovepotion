@@ -19,6 +19,8 @@ class CCmdMemRing
     CCmdMemRing() : m_mem {}, m_curSlice {}, m_fences {}
     {}
 
+    CCmdMemRing(const CCmdMemRing&) = delete;
+
     ~CCmdMemRing()
     {
         m_mem.destroy();

@@ -12,7 +12,7 @@ namespace love
       public:
         Shader();
 
-        Shader(Data* vertex, Data* fragment);
+        Shader(Data* group);
 
         virtual ~Shader();
 
@@ -20,13 +20,15 @@ namespace love
 
         static void AttachDefault(StandardShader type);
 
-        bool Validate(const char* filepath, WHBGfxShaderGroup& stage, std::string& error) const;
-
-        bool Validate(Data* data, WHBGfxShaderGroup& stage, std::string& error) const;
-
         void LoadDefaults(StandardShader type);
 
+        uint32_t GetPixelSamplerLocation(int index);
+
       private:
-        WHBGfxShaderGroup group;
+        static constexpr auto GX2_FORMAT_VEC2 = GX2_ATTRIB_FORMAT_FLOAT_32_32;
+        static constexpr auto GX2_FORMAT_VEC3 = GX2_ATTRIB_FORMAT_FLOAT_32_32_32;
+        static constexpr auto GX2_FORMAT_VEC4 = GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32;
+
+        WHBGfxShaderGroup* program;
     };
 } // namespace love

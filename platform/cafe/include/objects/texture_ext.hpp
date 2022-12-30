@@ -43,6 +43,11 @@ namespace love
             return this->sampler;
         }
 
+        GX2Texture* GetHandle()
+        {
+            return this->texture;
+        }
+
       private:
         void CreateTexture();
 

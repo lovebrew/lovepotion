@@ -22,6 +22,8 @@ class CCmdVtxRing
     CCmdVtxRing() : m_mem {}, m_curSlice {}, m_sliceSize {}
     {}
 
+    CCmdVtxRing(const CCmdVtxRing&) = delete;
+
     ~CCmdVtxRing()
     {
         m_mem.destroy();

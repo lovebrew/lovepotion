@@ -8,12 +8,42 @@
 
 using namespace love;
 
+static void createFramebufferObject(GX2ColorBuffer*& buffer, int width, int height)
+{
+    buffer = new GX2ColorBuffer();
+
+    if (!buffer)
+        throw love::Exception("Failed to create GX2Texture.");
+
+    std::memset(&buffer->surface, 0, sizeof(GX2Surface));
+
+    buffer->surface.use       = GX2_SURFACE_USE_TEXTURE_COLOR_BUFFER_TV;
+    buffer->surface.dim       = GX2_SURFACE_DIM_TEXTURE_2D;
+    buffer->surface.aa        = GX2_AA_MODE1X;
+    buffer->surface.width     = width;
+    buffer->surface.height    = height;
+    buffer->surface.depth     = 1;
+    buffer->surface.mipLevels = 1;
+    buffer->surface.format    = GX2_SURFACE_FORMAT_SINT_R8_G8_B8_A8;
+    buffer->surface.swizzle   = 0;
+    buffer->surface.tileMode  = GX2_TILE_MODE_DEFAULT;
+    buffer->surface.mipmaps   = nullptr;
+    buffer->viewFirstSlice    = 0;
+    buffer->viewMip           = 0;
+    buffer->viewNumSlices     = 1;
+
+    GX2CalcSurfaceSizeAndAlignment(&buffer->surface);
+    GX2InitColorBufferRegs(buffer);
+}
+
 static void createTextureObject(GX2Texture*& texture, PixelFormat format, int width, int height)
 {
     texture = new GX2Texture();
 
     if (!texture)
         throw love::Exception("Failed to create GX2Texture.");
+
+    std::memset(&texture->surface, 0, sizeof(GX2Surface));
 
     texture->surface.use    = GX2_SURFACE_USE_TEXTURE;
     texture->surface.dim    = GX2_SURFACE_DIM_TEXTURE_2D;
@@ -52,8 +82,8 @@ static void createTextureObject(GX2Texture*& texture, PixelFormat format, int wi
 Texture<Console::CAFE>::Texture(const Graphics<Console::CAFE>* graphics, const Settings& settings,
                                 const Slices* data) :
     Texture<Console::ALL>(settings, data),
-    framebuffer {},
-    texture {},
+    framebuffer(nullptr),
+    texture(nullptr),
     sampler {}
 {
     this->format = graphics->GetSizedFormat(format, this->renderTarget, this->readable);
@@ -163,6 +193,9 @@ void Texture<Console::CAFE>::UnloadVolatile()
 {
     if (this->texture)
         delete this->texture;
+
+    if (this->framebuffer)
+        delete this->framebuffer;
 }
 
 void Texture<Console::CAFE>::ReplacePixels(ImageData<Console::CAFE>* data, int slice, int mipmap,
@@ -261,6 +294,20 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
     bool is2D                  = stateTransform.IsAffine2DTransform();
 
     Matrix4<Console::CAFE> transform(stateTransform, matrix);
+
+    auto command         = Graphics<Console::CAFE>::DrawCommand(4);
+    command.shader       = Shader<>::STANDARD_TEXTURE;
+    command.format       = vertex::CommonFormat::TEXTURE;
+    command.primitveType = vertex::PRIMITIVE_QUADS;
+    command.handles      = { this };
+
+    if (is2D)
+        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);
+
+    const auto* textureCoords = quad->GetVertexTextureCoords();
+    command.FillVertices(graphics.GetColor(), textureCoords);
+
+    Renderer<Console::CAFE>::Instance().Render(command);
 }
 
 void Texture<Console::CAFE>::SetSamplerState(const SamplerState& state)

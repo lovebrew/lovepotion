@@ -21,6 +21,9 @@ class CDescriptorSet
   public:
     CDescriptorSet() : m_mem {}
     {}
+
+    CDescriptorSet(const CDescriptorSet&) = delete;
+
     ~CDescriptorSet()
     {
         m_mem.destroy();

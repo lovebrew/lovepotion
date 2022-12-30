@@ -20,6 +20,12 @@ namespace love
             STANDARD_MAX_ENUM
         };
 
+        enum ShaderStageType
+        {
+            STAGE_VERTEX,
+            STAGE_PIXEL
+        };
+
         static inline Type type = Type("Shader", &Object::type);
 
         static inline Shader<Console::Which>* current = nullptr;
@@ -47,6 +53,14 @@ namespace love
             "texture", STANDARD_TEXTURE,
             "video",   STANDARD_VIDEO
         };
+
+        static constexpr BidirectionalMap shaderStages = {
+            "vertex", STAGE_VERTEX,
+            "pixel",  STAGE_PIXEL
+        };
         // clang-format on
+
+      protected:
+        StandardShader shaderType;
     };
 } // namespace love
