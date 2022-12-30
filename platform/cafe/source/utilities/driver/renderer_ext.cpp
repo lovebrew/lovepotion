@@ -343,17 +343,16 @@ const Vector2& Renderer<Console::CAFE>::GetFrameBufferSize(Screen screen)
     return this->framebuffers[(uint8_t)screen].dimensions;
 }
 
-void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup* group)
+void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
 {
-    GX2SetFetchShader(&group->fetchShader);
+    GX2SetFetchShader(&group.fetchShader);
+    GX2SetVertexShader(group.vertexShader);
+    GX2SetPixelShader(group.pixelShader);
 
-    GX2SetVertexShader(group->vertexShader);
-    GX2SetPixelShader(group->pixelShader);
-
-    GX2SetVertexUniformReg(group->vertexShader->uniformVars[0].offset, 0,
+    GX2SetVertexUniformReg(group.vertexShader->uniformVars[0].offset, 0,
                            glm::value_ptr(this->transform.modelView));
 
-    GX2SetVertexUniformReg(group->vertexShader->uniformVars[1].offset, 16,
+    GX2SetVertexUniformReg(group.vertexShader->uniformVars[1].offset, 16,
                            glm::value_ptr(this->transform.projection));
 }
 
@@ -362,7 +361,7 @@ bool Renderer<Console::CAFE>::Render(const Graphics<Console::CAFE>::DrawCommand&
     Shader<Console::CAFE>::defaults[command.shader]->Attach();
 
     std::optional<GX2PrimitiveMode> primitive;
-    if (!(primitive = primitiveModes.Find(command.primitveType)) || (primitive && *primitive == -1))
+    if (!(primitive = primitiveModes.Find(command.primitveType)))
         return false;
 
     if (!command.handles.empty())
@@ -376,8 +375,11 @@ bool Renderer<Console::CAFE>::Render(const Graphics<Console::CAFE>::DrawCommand&
         }
     }
 
+    LOG("Setting Attribute Buffer!");
     GX2SetAttribBuffer(0, command.stride * command.count, command.stride, command.vertices.get());
+    LOG("Drawing!");
     GX2DrawEx(*primitive, command.count, 0, 1);
+    LOG("Done!");
 
     return true;
 }

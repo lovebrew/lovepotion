@@ -874,19 +874,27 @@ int Wrap_Graphics::IsGammaCorrect(lua_State* L)
 
 /* todo */
 int Wrap_Graphics::GetPixelWidth(lua_State* L)
-{}
+{
+    return 0;
+}
 
 /* todo */
 int Wrap_Graphics::GetPixelHeight(lua_State* L)
-{}
+{
+    return 0;
+}
 
 /* todo */
 int Wrap_Graphics::GetPixelDimensions(lua_State* L)
-{}
+{
+    return 0;
+}
 
 /* todo */
 int Wrap_Graphics::GetDPIScale(lua_State* L)
-{}
+{
+    return 0;
+}
 
 int Wrap_Graphics::SetScissor(lua_State* L)
 {
@@ -913,7 +921,9 @@ int Wrap_Graphics::SetScissor(lua_State* L)
 }
 
 int Wrap_Graphics::IntersectScissor(lua_State* L)
-{}
+{
+    return 0;
+}
 
 // clang-format off
 static constexpr luaL_Reg functions[] =

@@ -119,7 +119,7 @@ namespace love
 
         bool Render(const Graphics<Console::CAFE>::DrawCommand& command);
 
-        void UseProgram(const WHBGfxShaderGroup* group);
+        void UseProgram(const WHBGfxShaderGroup& group);
 
         std::optional<Screen> CheckScreen(const char* name) const;
 

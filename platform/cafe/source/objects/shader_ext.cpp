@@ -12,11 +12,11 @@ using namespace love;
 
 #define SHADERS_DIR "/vol/content/shaders/"
 
-#define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "primitive.gfd")
-#define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gfd")
-#define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gfd")
+#define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "primitive.gsh")
+#define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gsh")
+#define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gsh")
 
-Shader<Console::CAFE>::Shader() : program(nullptr)
+Shader<Console::CAFE>::Shader() : program {}
 {}
 
 Shader<Console::CAFE>::Shader(Data* group) : Shader()
@@ -33,7 +33,7 @@ Shader<Console::CAFE>::~Shader()
     if (current == this)
         Shader::AttachDefault(STANDARD_DEFAULT);
 
-    WHBGfxFreeShaderGroup(this->program);
+    WHBGfxFreeShaderGroup(&this->program);
 }
 
 uint32_t Shader<Console::CAFE>::GetPixelSamplerLocation(int index)
@@ -41,7 +41,7 @@ uint32_t Shader<Console::CAFE>::GetPixelSamplerLocation(int index)
     if (this->shaderType != Shader::STANDARD_TEXTURE)
         throw love::Exception("Cannot fetch location from non-Texture pixel shader");
 
-    return this->program->pixelShader->samplerVars[index].location;
+    return this->program.pixelShader->samplerVars[index].location;
 }
 
 void Shader<Console::CAFE>::AttachDefault(StandardShader type)
@@ -62,58 +62,107 @@ void Shader<Console::CAFE>::Attach()
 {
     if (Shader::current != this)
     {
+        LOG("Attaching!");
         Renderer<Console::CAFE>::Instance().UseProgram(this->program);
+        LOG("Done!");
+
         Renderer<>::shaderSwitches++;
 
         Shader::current = this;
     }
 }
 
-static bool loadShaderFile(const char* filepath, Shader<>::StandardShader type,
-                           WHBGfxShaderGroup*& program)
+static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std::string& error)
 {
-    FILE* file = fopen(filepath, "r");
+    LOG("Opening %s", filepath);
+    FILE* file = std::fopen(filepath, "r");
+
+    if (!file)
+    {
+        error = "File does not exist.";
+        std::fclose(file);
+        return false;
+    }
+
     std::unique_ptr<uint8_t[]> data;
 
+    LOG("Seeking to end");
     std::fseek(file, 0, SEEK_END);
     long size = std::ftell(file);
+    LOG("Size is %ld", size);
     std::rewind(file);
 
-    data = std::make_unique<uint8_t[]>(size);
+    try
+    {
+        data = std::make_unique<uint8_t[]>(size);
+    }
+    catch (std::bad_alloc&)
+    {
+        error = "Not enough memory.";
+        return false;
+    }
 
-    std::fread(data.get(), 1, size, file);
+    LOG("Reading from file");
+    size_t readSize = std::fread(data.get(), 1, size, file);
+
+    if (readSize != size)
+    {
+        error = "Failed to read whole file.";
+        std::fclose(file);
+        return false;
+    }
+
     std::fclose(file);
 
-    return WHBGfxLoadGFDShaderGroup(program, 0, data.get());
+    LOG("Loading shader group from pointer");
+    return WHBGfxLoadGFDShaderGroup(&program, 0, data.get());
 }
 
 void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
 {
     std::string error;
+    bool success = false;
 
     switch (type)
     {
         case STANDARD_DEFAULT:
         default:
         {
-            loadShaderFile(DEFAULT_PRIMITIVE_SHADER, type, this->program);
+            success = loadShaderFile(DEFAULT_PRIMITIVE_SHADER, this->program, error);
             break;
         }
         case STANDARD_TEXTURE:
         {
-            loadShaderFile(DEFAULT_TEXTURE_SHADER, type, this->program);
+            success = loadShaderFile(DEFAULT_TEXTURE_SHADER, this->program, error);
             break;
         }
         case STANDARD_VIDEO:
         {
-            break;
+            /* todo */
+            return;
         }
     }
 
-    WHBGfxInitShaderAttribute(this->program, "inPos", 0, 0, Shader::GX2_FORMAT_VEC3);
-    WHBGfxInitShaderAttribute(this->program, "inColor", 0, 12, Shader::GX2_FORMAT_VEC4);
-    WHBGfxInitShaderAttribute(this->program, "inTexCoord", 0, 28, Shader::GX2_FORMAT_VEC2);
-    WHBGfxInitFetchShader(this->program);
+    std::optional<const char*> shaderName;
+    shaderName = Shader::standardShaders.ReverseFind(type);
+
+    if (!success)
+    {
+        throw love::Exception("Failed to initialize the '%s' shader: %s", *shaderName,
+                              error.c_str());
+    }
+
+    LOG("Initializing inPos");
+    size_t offset = 0;
+    WHBGfxInitShaderAttribute(&this->program, "inPos", 0, offset, Shader::GX2_FORMAT_VEC3);
+    LOG("Initializing inColor");
+    offset += (4 * 3);
+    WHBGfxInitShaderAttribute(&this->program, "inColor", 0, offset, Shader::GX2_FORMAT_VEC4);
+    LOG("Initializing inTexCoord");
+    offset += (4 * 4);
+    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, offset, Shader::GX2_FORMAT_VEC2);
+    LOG("Initializing Fetch Shader");
+    WHBGfxInitFetchShader(&this->program);
 
     this->shaderType = type;
 }
