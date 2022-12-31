@@ -301,10 +301,10 @@ const Font<Console::CAFE>::Glyph& Font<Console::CAFE>::AddGlyph(uint32_t glyph)
         const vertex::Vertex vertices[4] =
         {
             /* x                                      y                             z                u                                                 v                                                  */
-            {{ -offset,                               -offset,                      0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y - offset) / _height)          }},
-            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y - offset) / _height)          }}
+            {{ -offset,                               -offset,                      0.0f }, color, { (x - offset) / _width,         (y - offset) / _height          }},
+            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { (x - offset) / _width,         (y + height + offset) / _height }},
+            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { (x + width + offset) / _width, (y + height + offset) / _height }},
+            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { (x + width + offset) / _width, (y - offset) / _height          }}
         };
         // clang-format on
 

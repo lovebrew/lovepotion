@@ -262,7 +262,7 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
     uint8_t* source = (uint8_t*)data;
 
     /* copy by row */
-    for (uint32_t y = 0; y < this->pixelHeight; ++y)
+    for (uint32_t y = 0; y < (uint32_t)this->pixelHeight; ++y)
     {
         const auto destRow = (y * pitch * 4);
         const auto srcRow  = (y * this->pixelWidth * 4);
@@ -301,7 +301,8 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
     command.handles      = { this };
 
     if (is2D)
-        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);
+        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(),
+                              command.buffer.elemCount);
 
     const auto* textureCoords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), textureCoords);

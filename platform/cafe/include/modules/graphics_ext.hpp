@@ -22,9 +22,6 @@ namespace love
           public:
             DrawCommand(int vertexCount) :
                 buffer {},
-                positions {},
-                count(vertexCount),
-                size(vertexCount * vertex::VERTEX_SIZE),
                 handles {},
                 format(vertex::CommonFormat::PRIMITIVE),
                 primitveType(vertex::PRIMITIVE_TRIANGLES),
@@ -39,13 +36,9 @@ namespace love
                     throw love::Exception("Out of memory.");
                 }
 
-                this->buffer.elemCount = this->count;
+                this->buffer.elemCount = vertexCount;
                 this->buffer.elemSize  = vertex::VERTEX_SIZE;
-
-                // clang-format off
-                this->buffer.flags     = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
-                                         GX2R_RESOURCE_USAGE_CPU_WRITE    | GX2R_RESOURCE_USAGE_GPU_READ;
-                // clang-format on
+                this->buffer.flags     = DrawCommand::GX2R_BUFFER_FLAGS;
 
                 GX2RCreateBuffer(&this->buffer);
             }
@@ -70,14 +63,14 @@ namespace love
                 auto* vertices =
                     (vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
 
-                for (size_t index = 0; index < this->count; index++)
+                for (size_t index = 0; index < this->buffer.elemCount; index++)
                 {
                     // clang-format off
                     vertices[index] =
                     {
                         .position = { this->positions[index].x, this->positions[index].y, 0 },
-                        .color    = color.array(),
-                        .texcoord = vertex::Normalize(textureCoords[index])
+                        .color    = { color.r, color.g, color.b, color.a },
+                        .texcoord = { textureCoords[index].x, textureCoords[index].y }
                     };
                     // clang-format on
                 }
@@ -88,15 +81,16 @@ namespace love
             GX2RBuffer buffer;
 
             std::unique_ptr<Vector2[]> positions;
-
-            size_t count;
-            size_t size;
-
             std::vector<Texture<Console::CAFE>*> handles;
 
             vertex::CommonFormat format;
             vertex::PrimitiveType primitveType;
             Shader<>::StandardShader shader;
+
+          private:
+            static constexpr auto GX2R_BUFFER_FLAGS =
+                GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
+                GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
         };
 
         static constexpr const char* DEFAULT_SCREEN = "tv";

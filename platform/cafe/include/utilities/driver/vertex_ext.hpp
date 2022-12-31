@@ -12,7 +12,7 @@ namespace love
 {
     namespace vertex
     {
-        struct Vertex
+        struct __attribute__((__packed__)) Vertex
         {
             std::array<float, 3> position;
             std::array<float, 4> color;
@@ -20,10 +20,5 @@ namespace love
         };
 
         static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
-
-        static std::array<float, 2> Normalize(const Vector2& in)
-        {
-            return { in.x, in.y };
-        }
     } // namespace vertex
 } // namespace love

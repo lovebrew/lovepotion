@@ -15,8 +15,7 @@ using namespace love;
 
 int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 {
-    ::Rasterizer* self            = nullptr;
-    ::Rasterizer::Hinting hinting = ::Rasterizer::HINTING_NORMAL;
+    ::Rasterizer* self = nullptr;
 
     if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
     {
