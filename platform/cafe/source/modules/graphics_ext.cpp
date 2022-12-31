@@ -113,16 +113,14 @@ bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
     for (int index = 0; index < Shader<>::STANDARD_MAX_ENUM; index++)
     {
         const auto type = (Shader<>::StandardShader)index;
-        LOG("Loading %d", type);
 
         try
         {
             if (!Shader<Console::CAFE>::defaults[index])
             {
                 auto* shader = new Shader<Console::CAFE>();
-                LOG("Loading..");
                 shader->LoadDefaults(type);
-                LOG("Done.");
+
                 Shader<Console::CAFE>::defaults[index] = shader;
             }
         }

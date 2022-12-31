@@ -93,7 +93,7 @@ namespace love
         void EnsureInFrame();
 
         /* todo: canvases */
-        void BindFramebuffer(/* Canvas* canvas = nullptr*/);
+        void BindFramebuffer(Texture<Console::CAFE>* texture = nullptr);
 
         void Present();
 
@@ -117,7 +117,7 @@ namespace love
 
         void SetPointSize(float size);
 
-        bool Render(const Graphics<Console::CAFE>::DrawCommand& command);
+        bool Render(Graphics<Console::CAFE>::DrawCommand& command);
 
         void UseProgram(const WHBGfxShaderGroup& group);
 
@@ -213,21 +213,12 @@ namespace love
         // clang-format on
 
       private:
-        struct RenderFuncs
-        {
-            std::function<void()> begin;
-            std::function<void()> end;
-            std::function<void()> keyboard;
-        };
-
         // clang-format off
         static constexpr BidirectionalMap scanBuffers = {
             Screen::SCREEN_TV,      GX2_SCAN_TARGET_TV,
             Screen::SCREEN_GAMEPAD, GX2_SCAN_TARGET_DRC
         };
         // clang-format on
-
-        std::array<RenderFuncs, MAX_RENDERTARGETS> rendertargets;
 
         struct Transform
         {

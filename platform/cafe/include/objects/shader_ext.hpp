@@ -24,10 +24,17 @@ namespace love
 
         uint32_t GetPixelSamplerLocation(int index);
 
+        WHBGfxShaderGroup& GetGroup()
+        {
+            return this->program;
+        }
+
       private:
         static constexpr auto GX2_FORMAT_VEC2 = GX2_ATTRIB_FORMAT_FLOAT_32_32;
         static constexpr auto GX2_FORMAT_VEC3 = GX2_ATTRIB_FORMAT_FLOAT_32_32_32;
         static constexpr auto GX2_FORMAT_VEC4 = GX2_ATTRIB_FORMAT_FLOAT_32_32_32_32;
+        static constexpr auto GX2_FORMAT_UINT16_VEC2 =
+            GX2_ATTRIB_FLAG_INTEGER | GX2_ATTRIB_TYPE_16_16;
 
         WHBGfxShaderGroup program;
     };

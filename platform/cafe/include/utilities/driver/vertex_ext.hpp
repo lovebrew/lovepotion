@@ -17,7 +17,7 @@ namespace love
             std::array<float, 3> position;
             std::array<float, 4> color;
             std::array<uint16_t, 2> texcoord;
-        } __attribute__((aligned(GX2_VERTEX_BUFFER_ALIGNMENT)));
+        };
 
         static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
 

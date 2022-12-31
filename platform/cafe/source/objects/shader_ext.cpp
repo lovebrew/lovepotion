@@ -62,10 +62,7 @@ void Shader<Console::CAFE>::Attach()
 {
     if (Shader::current != this)
     {
-        LOG("Attaching!");
         Renderer<Console::CAFE>::Instance().UseProgram(this->program);
-        LOG("Done!");
-
         Renderer<>::shaderSwitches++;
 
         Shader::current = this;
@@ -74,7 +71,6 @@ void Shader<Console::CAFE>::Attach()
 
 static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std::string& error)
 {
-    LOG("Opening %s", filepath);
     FILE* file = std::fopen(filepath, "r");
 
     if (!file)
@@ -86,10 +82,8 @@ static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std
 
     std::unique_ptr<uint8_t[]> data;
 
-    LOG("Seeking to end");
     std::fseek(file, 0, SEEK_END);
     long size = std::ftell(file);
-    LOG("Size is %ld", size);
     std::rewind(file);
 
     try
@@ -102,7 +96,6 @@ static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std
         return false;
     }
 
-    LOG("Reading from file");
     size_t readSize = std::fread(data.get(), 1, size, file);
 
     if (readSize != size)
@@ -114,7 +107,6 @@ static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std
 
     std::fclose(file);
 
-    LOG("Loading shader group from pointer");
     return WHBGfxLoadGFDShaderGroup(&program, 0, data.get());
 }
 
@@ -152,16 +144,13 @@ void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
                               error.c_str());
     }
 
-    LOG("Initializing inPos");
     size_t offset = 0;
     WHBGfxInitShaderAttribute(&this->program, "inPos", 0, offset, Shader::GX2_FORMAT_VEC3);
-    LOG("Initializing inColor");
     offset += (4 * 3);
     WHBGfxInitShaderAttribute(&this->program, "inColor", 0, offset, Shader::GX2_FORMAT_VEC4);
-    LOG("Initializing inTexCoord");
     offset += (4 * 4);
-    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, offset, Shader::GX2_FORMAT_VEC2);
-    LOG("Initializing Fetch Shader");
+    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, offset,
+                              Shader::GX2_FORMAT_UINT16_VEC2);
     WHBGfxInitFetchShader(&this->program);
 
     this->shaderType = type;

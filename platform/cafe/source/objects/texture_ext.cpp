@@ -178,12 +178,12 @@ void Texture<Console::CAFE>::CreateTexture()
     }
     else
     {
-        Rect rectangle { 0, 0, _width, _height };
-
+        LOG("Creating Texture..");
         createTextureObject(this->texture, this->format, _width, _height);
-        const auto copySize = love::GetPixelFormatSliceSize(this->format, _width, _height);
-
+        LOG("Texture Size: %dx%d", this->texture->surface.width, this->texture->surface.height);
+        LOG("Replacing pixels");
         this->ReplacePixels(this->slices.Get(0, 0), 0, 0, 0, 0, false);
+        LOG("Done");
     }
 
     this->SetSamplerState(this->state);
@@ -260,17 +260,19 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
     if (graphics != nullptr && graphics->IsRenderTargetActive(this))
         return;
 
-    const auto pitch     = this->texture->surface.pitch;
-    uint8_t* destination = (uint8_t*)this->texture->surface.image;
+    const auto pitch = this->texture->surface.pitch;
+
+    uint8_t* dest   = (uint8_t*)this->texture->surface.image;
+    uint8_t* source = (uint8_t*)data;
 
     /* copy by row */
-    for (uint32_t y = 0; y < std::min(rect.h, this->height - rect.y); ++y)
+    LOG("Copying by row");
+    for (uint32_t y = 0; y < this->pixelHeight; ++y)
     {
-        const auto row = (y * std::min(rect.w, this->width - rect.x) * 4);
-        std::memcpy(destination + (y * pitch * 4), data + row,
-                    std::min(rect.w, this->width - rect.x) * 4);
+        std::memcpy(dest + (y * pitch * 4), data + (y * this->pixelHeight * 4),
+                    this->pixelWidth * 4);
     }
-
+    LOG("Invalidating..");
     GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, this->texture->surface.image,
                   this->texture->surface.imageSize);
 }

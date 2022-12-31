@@ -8,6 +8,9 @@
 
 #include <utilities/driver/vertex_ext.hpp>
 
+#include <gx2/mem.h>
+#include <gx2r/buffer.h>
+
 namespace love
 {
     template<>
@@ -18,8 +21,8 @@ namespace love
         {
           public:
             DrawCommand(int vertexCount) :
+                buffer {},
                 positions {},
-                vertices {},
                 count(vertexCount),
                 size(vertexCount * vertex::VERTEX_SIZE),
                 handles {},
@@ -30,16 +33,26 @@ namespace love
                 try
                 {
                     this->positions = std::make_unique<Vector2[]>(vertexCount);
-                    this->vertices  = std::make_unique<vertex::Vertex[]>(vertexCount);
                 }
                 catch (std::bad_alloc&)
                 {
                     throw love::Exception("Out of memory.");
                 }
 
-                this->stride = 28;
-                if (!handles.empty())
-                    this->stride = 36;
+                this->buffer.elemCount = this->count;
+                this->buffer.elemSize  = vertex::VERTEX_SIZE;
+
+                // clang-format off
+                this->buffer.flags     = GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
+                                         GX2R_RESOURCE_USAGE_CPU_WRITE    | GX2R_RESOURCE_USAGE_GPU_READ;
+                // clang-format on
+
+                GX2RCreateBuffer(&this->buffer);
+            }
+
+            ~DrawCommand()
+            {
+                GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
             }
 
             const std::unique_ptr<Vector2[]>& Positions() const
@@ -47,46 +60,20 @@ namespace love
                 return this->positions;
             }
 
-            const std::unique_ptr<vertex::Vertex[]>& Vertices() const
+            GX2RBuffer& GetBuffer()
             {
-                return this->vertices;
-            }
-
-            void FillVertices(const Color& color)
-            {
-                for (size_t index = 0; index < this->count; index++)
-                {
-                    // clang-format off
-                    this->vertices[index] =
-                    {
-                        .position = { this->positions[index].x, this->positions[index].y, 0 },
-                        .color    = color.array()
-                    };
-                    // clang-format on
-                }
-            }
-
-            void FillVertices(const vertex::Vertex* data)
-            {
-                for (size_t index = 0; index < this->count; index++)
-                {
-                    // clang-format off
-                    this->vertices[index] =
-                    {
-                        .position = { this->positions[index].x, this->positions[index].y, 0 },
-                        .color    = data[index].color,
-                        .texcoord = data[index].texcoord
-                    };
-                    // clang-format on
-                }
+                return this->buffer;
             }
 
             void FillVertices(const Color& color, const Vector2* textureCoords)
             {
+                auto* vertices =
+                    (vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+
                 for (size_t index = 0; index < this->count; index++)
                 {
                     // clang-format off
-                    this->vertices[index] =
+                    vertices[index] =
                     {
                         .position = { this->positions[index].x, this->positions[index].y, 0 },
                         .color    = color.array(),
@@ -94,14 +81,16 @@ namespace love
                     };
                     // clang-format on
                 }
+
+                GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
             }
 
+            GX2RBuffer buffer;
+
             std::unique_ptr<Vector2[]> positions;
-            std::unique_ptr<vertex::Vertex[]> vertices;
 
             size_t count;
             size_t size;
-            size_t stride;
 
             std::vector<Texture<Console::CAFE>*> handles;
 
@@ -180,5 +169,5 @@ namespace love
             shader->Attach();
             this->states.back().shader.Set(shader);
         }
-    };
+    }; // namespace love
 } // namespace love

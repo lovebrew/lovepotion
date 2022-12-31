@@ -259,9 +259,26 @@ void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, doubl
 void Renderer<Console::CAFE>::SetBlendColor(const Color& color)
 {}
 
-void Renderer<Console::CAFE>::BindFramebuffer(/* Canvas* canvas */)
+void Renderer<Console::CAFE>::SetMeshCullMode(vertex::CullMode mode)
+{}
+
+void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
+{
+    std::optional<GX2FrontFace> face;
+    if (!(face = Renderer::windingModes.Find(winding)))
+        return;
+
+    GX2SetCullOnlyControl(*face, true, true);
+}
+
+void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 {
     this->EnsureInFrame();
+
+    if (texture && texture->IsRenderTarget())
+    {
+        return;
+    }
 
     const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
 
@@ -269,7 +286,20 @@ void Renderer<Console::CAFE>::BindFramebuffer(/* Canvas* canvas */)
         return;
 
     this->current = this->framebuffers[activeScreenId];
-    GX2SetColorBuffer(&this->current.buffer, GX2_RENDER_TARGET_0);
+    GX2SetColorBuffer(&this->current.buffer, (GX2RenderTarget)activeScreenId);
+
+    this->SetViewport({});
+    this->SetScissor({}, false);
+
+    auto& group = Shader<Console::CAFE>::current->GetGroup();
+
+    GX2SetVertexUniformReg(group.vertexShader->uniformVars[0].offset,
+                           sizeof(this->transform.projection) / sizeof(float),
+                           glm::value_ptr(this->transform.projection));
+
+    GX2SetVertexUniformReg(group.vertexShader->uniformVars[1].offset,
+                           sizeof(this->transform.modelView) / sizeof(float),
+                           glm::value_ptr(this->transform.modelView));
 }
 
 void Renderer<Console::CAFE>::Present()
@@ -348,15 +378,9 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     GX2SetFetchShader(&group.fetchShader);
     GX2SetVertexShader(group.vertexShader);
     GX2SetPixelShader(group.pixelShader);
-
-    GX2SetVertexUniformReg(group.vertexShader->uniformVars[0].offset, 0,
-                           glm::value_ptr(this->transform.modelView));
-
-    GX2SetVertexUniformReg(group.vertexShader->uniformVars[1].offset, 16,
-                           glm::value_ptr(this->transform.projection));
 }
 
-bool Renderer<Console::CAFE>::Render(const Graphics<Console::CAFE>::DrawCommand& command)
+bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
 {
     Shader<Console::CAFE>::defaults[command.shader]->Attach();
 
@@ -366,7 +390,7 @@ bool Renderer<Console::CAFE>::Render(const Graphics<Console::CAFE>::DrawCommand&
 
     if (!command.handles.empty())
     {
-        for (int index = 0; index < command.handles.size(); index++)
+        for (size_t index = 0; index < command.handles.size(); index++)
         {
             uint32_t location = Shader<Console::CAFE>::current->GetPixelSamplerLocation(index);
 
@@ -375,11 +399,8 @@ bool Renderer<Console::CAFE>::Render(const Graphics<Console::CAFE>::DrawCommand&
         }
     }
 
-    LOG("Setting Attribute Buffer!");
-    GX2SetAttribBuffer(0, command.stride * command.count, command.stride, command.vertices.get());
-    LOG("Drawing!");
+    GX2RSetAttributeBuffer(&command.buffer, 0, command.buffer.elemSize, 0);
     GX2DrawEx(*primitive, command.count, 0, 1);
-    LOG("Done!");
 
     return true;
 }
