@@ -3,7 +3,7 @@ dkp_add_asset_target(${PROJECT_NAME}_cafe_content content)
 
 dkp_track_assets(${PROJECT_NAME}_cafe_content
     FOLDER shaders
-    FILES primitive.gsh texture.gsh
+    FILES color.gsh texture.gsh
 )
 
 target_include_directories(${PROJECT_NAME} PRIVATE

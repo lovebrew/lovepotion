@@ -599,14 +599,10 @@ void Font<Console::HAC>::Printv(Graphics<Console::HAC>& graphics,
         drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
         drawCommand.handles      = { command.texture->GetHandle() };
 
-        LOG("Transforming verts");
         matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);
 
-        LOG("Filling verts");
         drawCommand.FillVertices(vertices.data());
-
-        LOG("Rendering..");
         Renderer<Console::HAC>::Instance().Render(drawCommand);
     }
 }

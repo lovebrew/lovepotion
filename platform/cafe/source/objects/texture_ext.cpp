@@ -178,12 +178,8 @@ void Texture<Console::CAFE>::CreateTexture()
     }
     else
     {
-        LOG("Creating Texture..");
         createTextureObject(this->texture, this->format, _width, _height);
-        LOG("Texture Size: %dx%d", this->texture->surface.width, this->texture->surface.height);
-        LOG("Replacing pixels");
         this->ReplacePixels(this->slices.Get(0, 0), 0, 0, 0, 0, false);
-        LOG("Done");
     }
 
     this->SetSamplerState(this->state);
@@ -266,13 +262,14 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
     uint8_t* source = (uint8_t*)data;
 
     /* copy by row */
-    LOG("Copying by row");
     for (uint32_t y = 0; y < this->pixelHeight; ++y)
     {
-        std::memcpy(dest + (y * pitch * 4), data + (y * this->pixelHeight * 4),
-                    this->pixelWidth * 4);
+        const auto destRow = (y * pitch * 4);
+        const auto srcRow  = (y * this->pixelWidth * 4);
+
+        std::memcpy(dest + destRow, source + srcRow, this->pixelWidth * 4);
     }
-    LOG("Invalidating..");
+
     GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, this->texture->surface.image,
                   this->texture->surface.imageSize);
 }

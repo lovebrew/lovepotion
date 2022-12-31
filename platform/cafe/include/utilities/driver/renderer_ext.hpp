@@ -68,7 +68,14 @@ namespace love
         Renderer();
 
       public:
+        struct alignas(0x100) Transform
+        {
+            glm::mat4 modelView;
+            glm::mat4 projection;
+        };
+
         static Renderer& Instance()
+
         {
             static Renderer instance;
             return instance;
@@ -220,11 +227,9 @@ namespace love
         };
         // clang-format on
 
-        struct Transform
-        {
-            glm::mat4 modelView;
-            glm::mat4 projection;
-        } transform;
+        Transform transform;
+
+        static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 
         static uint32_t ProcUIAcquired(void* args);
 
@@ -246,7 +251,7 @@ namespace love
             Vector2 dimensions;
         };
 
-        Framebuffer current;
+        GX2ColorBuffer* current;
         GX2ContextState* state;
 
         std::array<Framebuffer, MAX_RENDERTARGETS> framebuffers;

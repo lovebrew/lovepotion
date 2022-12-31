@@ -44,6 +44,7 @@ static void initColorBuffer(GX2ColorBuffer& buffer, const Vector2& size, GX2Surf
 Renderer<Console::CAFE>::Renderer() :
     inForeground(false),
     commandBuffer(nullptr),
+    current(nullptr),
     state {},
     framebuffers()
 {
@@ -82,22 +83,17 @@ Renderer<Console::CAFE>::Renderer() :
     GX2SetupContextStateEx(this->state, true);
     GX2SetContextState(this->state);
 
-    auto& framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
-    GX2SetTVScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
+    GX2SetTVScale(this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions.x,
+                  this->framebuffers[(uint8_t)Screen::SCREEN_TV].dimensions.y);
     GX2SetTVEnable(true);
 
-    framebuffer = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
-    GX2SetDRCScale(framebuffer.dimensions.x, framebuffer.dimensions.y);
+    GX2SetDRCScale(this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].dimensions.x,
+                   this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].dimensions.y);
     GX2SetDRCEnable(true);
 
-    GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
+    GX2SetDepthOnlyControl(true, false, GX2_COMPARE_FUNC_ALWAYS);
 
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
-
-    // Setup blend control
-    GX2SetBlendControl(GX2_RENDER_TARGET_0, GX2_BLEND_MODE_SRC_ALPHA, GX2_BLEND_MODE_INV_SRC_ALPHA,
-                       GX2_BLEND_COMBINE_MODE_ADD, TRUE, GX2_BLEND_MODE_SRC_ALPHA,
-                       GX2_BLEND_MODE_INV_SRC_ALPHA, GX2_BLEND_COMBINE_MODE_ADD);
 
     GX2SetSwapInterval(1);
 }
@@ -120,27 +116,39 @@ int Renderer<Console::CAFE>::OnForegroundAcquired()
     auto memOneHeap     = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
 
     /* allocate tv scan buffer */
-    auto& framebuffer      = this->framebuffers[(uint8_t)Screen::SCREEN_TV];
-    framebuffer.scanBuffer = MEMAllocFromFrmHeapEx(foregroundHeap, framebuffer.scanBufferSize,
-                                                   GX2_SCAN_BUFFER_ALIGNMENT);
-    if (!framebuffer.scanBuffer)
+    this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBuffer = MEMAllocFromFrmHeapEx(
+        foregroundHeap, this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBufferSize,
+        GX2_SCAN_BUFFER_ALIGNMENT);
+
+    if (!this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBuffer)
         return -1;
 
-    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, framebuffer.scanBuffer, framebuffer.scanBufferSize);
-    GX2SetTVBuffer(framebuffer.scanBuffer, framebuffer.scanBufferSize,
-                   (GX2TVRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU,
+                  this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBuffer,
+                  this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBufferSize);
+
+    GX2SetTVBuffer(this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBuffer,
+                   this->framebuffers[(uint8_t)Screen::SCREEN_TV].scanBufferSize,
+                   (GX2TVRenderMode)this->framebuffers[(uint8_t)Screen::SCREEN_TV].mode,
+                   FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING);
 
     /* allocate gamepad scan buffer */
-    framebuffer            = this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD];
-    framebuffer.scanBuffer = MEMAllocFromFrmHeapEx(foregroundHeap, framebuffer.scanBufferSize,
-                                                   GX2_SCAN_BUFFER_ALIGNMENT);
+    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBuffer = MEMAllocFromFrmHeapEx(
+        foregroundHeap, this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBufferSize,
+        GX2_SCAN_BUFFER_ALIGNMENT);
 
-    if (!framebuffer.scanBuffer)
+    if (!this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBuffer)
         return -2;
 
-    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, framebuffer.scanBuffer, framebuffer.scanBufferSize);
-    GX2SetDRCBuffer(framebuffer.scanBuffer, framebuffer.scanBufferSize,
-                    (GX2DrcRenderMode)framebuffer.mode, FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING);
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU,
+                  this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBuffer,
+                  this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBufferSize);
+
+    GX2SetDRCBuffer(this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBuffer,
+                    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].scanBufferSize,
+                    (GX2DrcRenderMode)this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].mode,
+                    FRAMEBUFFER_FORMAT, FRAMEBUFFER_BUFFERING);
+
     /* allocate color buffers */
 
     for (int index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
@@ -243,13 +251,16 @@ void Renderer<Console::CAFE>::EnsureInFrame()
 {
     if (!this->inFrame)
     {
+        const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
+
+        this->current = &this->framebuffers[activeScreenId].buffer;
         this->inFrame = true;
     }
 }
 
 void Renderer<Console::CAFE>::Clear(const Color& color)
 {
-    GX2ClearColor(&this->current.buffer, color.r, color.g, color.b, color.a);
+    GX2ClearColor(this->current, color.r, color.g, color.b, color.a);
     GX2SetContextState(this->state);
 }
 
@@ -258,6 +269,36 @@ void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, doubl
 
 void Renderer<Console::CAFE>::SetBlendColor(const Color& color)
 {}
+
+void Renderer<Console::CAFE>::SetBlendMode(const RenderState::BlendState& state)
+{
+    std::optional<GX2BlendCombineMode> opRGB;
+    if (!(opRGB = Renderer::blendEquations.Find(state.operationRGB)))
+        return;
+
+    std::optional<GX2BlendCombineMode> opAlpha;
+    if (!(opAlpha = Renderer::blendEquations.Find(state.operationA)))
+        return;
+
+    std::optional<GX2BlendMode> srcColor;
+    if (!(srcColor = Renderer::blendFactors.Find(state.srcFactorRGB)))
+        return;
+
+    std::optional<GX2BlendMode> dstColor;
+    if (!(dstColor = Renderer::blendFactors.Find(state.dstFactorRGB)))
+        return;
+
+    std::optional<GX2BlendMode> srcAlpha;
+    if (!(srcAlpha = Renderer::blendFactors.Find(state.srcFactorA)))
+        return;
+
+    std::optional<GX2BlendMode> dstAlpha;
+    if (!(dstAlpha = Renderer::blendFactors.Find(state.dstFactorA)))
+        return;
+
+    GX2SetBlendControl(GX2_RENDER_TARGET_0, *srcColor, *dstColor, *opRGB, true, *srcAlpha,
+                       *dstAlpha, *opAlpha);
+}
 
 void Renderer<Console::CAFE>::SetMeshCullMode(vertex::CullMode mode)
 {}
@@ -271,69 +312,73 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
     GX2SetCullOnlyControl(*face, true, true);
 }
 
+static void swapEndianness(Renderer<Console::CAFE>::Transform& transform)
+{
+    uint* model = (uint*)glm::value_ptr(transform.modelView);
+    for (size_t index = 0; index < 16; index++)
+        model[index] = __builtin_bswap32(model[index]);
+
+    uint* projection = (uint*)glm::value_ptr(transform.projection);
+    for (size_t index = 0; index < 16; index++)
+        projection[index] = __builtin_bswap32(projection[index]);
+}
+
 void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 {
+    /* wait to flip */
+    uint32_t swaps, flips;
+    OSTime lastFlip, lastVsync;
+    uint32_t waitCount;
+
+    while (true)
+    {
+        GX2GetSwapStatus(&swaps, &flips, &lastFlip, &lastVsync);
+
+        if (flips >= swaps)
+            break;
+
+        /* GPU timed out */
+        if (waitCount >= 0)
+            break;
+
+        waitCount++;
+        GX2WaitForVsync();
+    }
+
     this->EnsureInFrame();
 
     if (texture && texture->IsRenderTarget())
     {
-        return;
+        GX2SetColorBuffer(texture->GetFramebuffer(), GX2_RENDER_TARGET_0);
+
+        this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
+        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, false);
+    }
+    else
+    {
+        GX2SetColorBuffer(this->current, GX2_RENDER_TARGET_0);
+
+        this->SetViewport(Rect::EMPTY);
+        this->SetScissor(Rect::EMPTY, false);
     }
 
-    const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
-
-    if (activeScreenId < 0)
-        return;
-
-    this->current = this->framebuffers[activeScreenId];
-    GX2SetColorBuffer(&this->current.buffer, (GX2RenderTarget)activeScreenId);
-
-    this->SetViewport({});
-    this->SetScissor({}, false);
-
-    auto& group = Shader<Console::CAFE>::current->GetGroup();
-
-    GX2SetVertexUniformReg(group.vertexShader->uniformVars[0].offset,
-                           sizeof(this->transform.projection) / sizeof(float),
-                           glm::value_ptr(this->transform.projection));
-
-    GX2SetVertexUniformReg(group.vertexShader->uniformVars[1].offset,
-                           sizeof(this->transform.modelView) / sizeof(float),
-                           glm::value_ptr(this->transform.modelView));
+    swapEndianness(this->transform);
+    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->transform);
 }
 
 void Renderer<Console::CAFE>::Present()
 {
-    std::optional<GX2ScanTarget> target;
-    target = Renderer::scanBuffers.Find(Graphics<>::activeScreen);
-
-    GX2CopyColorBufferToScanBuffer(&this->current.buffer, *target);
-    GX2SetContextState(this->state);
-
-    GX2SwapScanBuffers();
-    GX2SetContextState(this->state);
-
-    GX2Flush();
-
-    /* wait to flip */
+    if (this->inFrame)
     {
-        uint32_t swaps, flips;
-        OSTime lastFlip, lastVsync;
-        uint32_t waitCount;
-
-        while (true)
+        if (Graphics<>::activeScreen == Screen::SCREEN_GAMEPAD)
         {
-            GX2GetSwapStatus(&swaps, &flips, &lastFlip, &lastVsync);
+            GX2SwapScanBuffers();
+            GX2SetContextState(this->state);
 
-            if (flips >= swaps)
-                break;
+            GX2Flush();
+            GX2DrawDone();
 
-            /* GPU timed out */
-            if (waitCount >= 0)
-                break;
-
-            waitCount++;
-            GX2WaitForVsync();
+            this->inFrame = false;
         }
     }
 }
@@ -402,20 +447,36 @@ bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& comma
     GX2RSetAttributeBuffer(&command.buffer, 0, command.buffer.elemSize, 0);
     GX2DrawEx(*primitive, command.count, 0, 1);
 
+    /* this is required - copy color buffers as needed */
+
+    std::optional<GX2ScanTarget> target;
+    target = Renderer::scanBuffers.Find(Graphics<>::activeScreen);
+
+    GX2CopyColorBufferToScanBuffer(this->current, *target);
+    GX2SetContextState(this->state);
+
     return true;
 }
 
 void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 {
+    this->EnsureInFrame();
+
+    glm::highp_mat4 ortho {};
+
     if (viewport == Rect::EMPTY)
     {
-        const auto& buffer = this->current.buffer;
-        GX2SetViewport(0, 0, buffer.surface.width, buffer.surface.height, Z_NEAR, Z_FAR);
+        const auto& buffer = this->current->surface;
+        GX2SetViewport(0, 0, buffer.width, buffer.height, Z_NEAR, Z_FAR);
+
+        ortho = glm::ortho(0.0f, (float)buffer.width, (float)buffer.height, 0.0f, Z_NEAR, Z_FAR);
     }
     else
+    {
         GX2SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR);
+        ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
+    }
 
-    const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     this->transform.projection = ortho;
 }
 
@@ -423,8 +484,8 @@ void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)
 {
     if (scissor == Rect::EMPTY)
     {
-        const auto& buffer = this->current.buffer;
-        GX2SetScissor(0, 0, buffer.surface.width, buffer.surface.height);
+        const auto& buffer = this->current->surface;
+        GX2SetScissor(0, 0, buffer.width, buffer.height);
     }
     else
         GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);

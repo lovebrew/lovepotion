@@ -66,7 +66,6 @@ namespace love
 
             void FillVertices(const vertex::Vertex* data)
             {
-                LOG("%zu", this->count);
                 for (size_t index = 0; index < this->count; index++)
                 {
                     // clang-format off

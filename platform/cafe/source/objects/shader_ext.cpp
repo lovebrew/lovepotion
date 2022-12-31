@@ -12,7 +12,7 @@ using namespace love;
 
 #define SHADERS_DIR "/vol/content/shaders/"
 
-#define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "primitive.gsh")
+#define DEFAULT_PRIMITIVE_SHADER (SHADERS_DIR "color.gsh")
 #define DEFAULT_TEXTURE_SHADER   (SHADERS_DIR "texture.gsh")
 #define DEFAULT_VIDEO_SHADER     (SHADERS_DIR "video.gsh")
 
@@ -149,8 +149,8 @@ void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
     offset += (4 * 3);
     WHBGfxInitShaderAttribute(&this->program, "inColor", 0, offset, Shader::GX2_FORMAT_VEC4);
     offset += (4 * 4);
-    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, offset,
-                              Shader::GX2_FORMAT_UINT16_VEC2);
+    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, offset, Shader::GX2_FORMAT_VEC2);
+
     WHBGfxInitFetchShader(&this->program);
 
     this->shaderType = type;

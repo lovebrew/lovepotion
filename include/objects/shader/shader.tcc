@@ -49,7 +49,7 @@ namespace love
 
         // clang-format off
         static constexpr BidirectionalMap standardShaders = {
-            "default", STANDARD_DEFAULT,
+            "color",   STANDARD_DEFAULT,
             "texture", STANDARD_TEXTURE,
             "video",   STANDARD_VIDEO
         };

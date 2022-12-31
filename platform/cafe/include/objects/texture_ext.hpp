@@ -48,6 +48,11 @@ namespace love
             return this->texture;
         }
 
+        GX2ColorBuffer* GetFramebuffer()
+        {
+            return this->framebuffer;
+        }
+
       private:
         void CreateTexture();
 

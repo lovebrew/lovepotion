@@ -43,7 +43,7 @@ namespace love
 {
     struct Rect
     {
-        static constexpr int EMPTY[4] = { 0, 0, 0, 0 };
+        static constexpr int EMPTY[4] = { -1, -1, -1, -1 };
 
         int x, y;
         int w, h;
