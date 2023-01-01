@@ -325,6 +325,9 @@ static void swapEndianness(Renderer<Console::CAFE>::Transform* little,
     uint* projection = (uint*)glm::value_ptr(big.projection);
     for (size_t index = 0; index < 16; index++)
         dstProj[index] = __builtin_bswap32(projection[index]);
+
+    const auto mode = Renderer<Console::CAFE>::INVALIDATE_UNIFORM;
+    GX2Invalidate(mode, (void*)little, sizeof(Renderer<Console::CAFE>::Transform));
 }
 
 void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
@@ -354,34 +357,18 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 
 void Renderer<Console::CAFE>::Present()
 {
+    GX2Flush();
+
     GX2CopyColorBufferToScanBuffer(&this->framebuffers[0].buffer, GX2_SCAN_TARGET_TV);
     GX2CopyColorBufferToScanBuffer(&this->framebuffers[1].buffer, GX2_SCAN_TARGET_DRC);
 
     GX2SwapScanBuffers();
+
     GX2Flush();
 
-    /* wait to flip */
-    uint32_t swaps, flips;
-    OSTime lastFlip, lastVsync;
-    uint32_t waitCount;
+    GX2WaitForFlip();
 
-    while (true)
-    {
-        GX2GetSwapStatus(&swaps, &flips, &lastFlip, &lastVsync);
-
-        if (flips >= swaps)
-            break;
-
-        /* GPU timed out */
-        if (waitCount >= 0)
-            break;
-
-        waitCount++;
-        GX2WaitForVsync();
-    }
-
-    for (auto& buffer : this->buffers)
-        GX2RDestroyBufferEx(&buffer, GX2R_RESOURCE_BIND_NONE);
+    this->buffers.clear();
 }
 
 void Renderer<Console::CAFE>::SetSamplerState(Texture<Console::CAFE>* texture, SamplerState& state)
@@ -435,6 +422,9 @@ bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& comma
 {
     Shader<Console::CAFE>::defaults[command.shader]->Attach();
 
+    if (!command.buffer->IsValid())
+        return false;
+
     std::optional<GX2PrimitiveMode> primitive;
     if (!(primitive = primitiveModes.Find(command.primitveType)))
         return false;
@@ -443,15 +433,15 @@ bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& comma
     {
         for (size_t index = 0; index < command.handles.size(); index++)
         {
-            uint32_t location = Shader<Console::CAFE>::current->GetPixelSamplerLocation(index);
+            auto* texture = command.handles[index]->GetHandle();
+            auto* sampler = &command.handles[index]->GetSampler();
 
-            GX2SetPixelTexture(command.handles[index]->GetHandle(), location);
-            GX2SetPixelSampler(&command.handles[index]->GetSampler(), location);
+            Shader<Console::CAFE>::current->BindTexture(index, texture, sampler);
         }
     }
 
-    GX2RSetAttributeBuffer(&command.buffer, 0, command.buffer.elemSize, 0);
-    GX2DrawEx(*primitive, command.buffer.elemCount, 0, 1);
+    GX2RSetAttributeBuffer(command.buffer->GetBuffer(), 0, command.stride, 0);
+    GX2DrawEx(*primitive, command.count, 0, 1);
 
     this->buffers.push_back(command.buffer);
 

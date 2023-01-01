@@ -19,12 +19,68 @@ namespace love
     class Graphics<Console::CAFE> : public Graphics<Console::ALL>
     {
       public:
+        struct DrawBuffer
+        {
+          public:
+            DrawBuffer(int elements)
+            {
+                this->buffer.elemCount = elements;
+                this->buffer.elemSize  = vertex::VERTEX_SIZE;
+                this->buffer.flags     = DrawBuffer::GX2R_BUFFER_FLAGS;
+
+                this->valid = GX2RCreateBuffer(&this->buffer);
+            };
+
+            DrawBuffer(DrawBuffer&&) = delete;
+
+            DrawBuffer(const DrawBuffer&) = delete;
+
+            DrawBuffer& operator=(const DrawBuffer&) = delete;
+
+            ~DrawBuffer()
+            {
+                if (!this->valid)
+                    return;
+
+                GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+            }
+
+            GX2RBuffer* GetBuffer()
+            {
+                return &this->buffer;
+            }
+
+            bool IsValid() const
+            {
+                return this->valid;
+            }
+
+            template<typename T>
+            void LockScope(const T& func)
+            {
+                if (!this->valid)
+                    return;
+
+                func((vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE));
+                GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+            }
+
+          private:
+            static constexpr auto GX2R_BUFFER_FLAGS =
+                GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
+                GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
+
+            GX2RBuffer buffer;
+            bool valid;
+        };
+
         struct DrawCommand
         {
           public:
             DrawCommand(int vertexCount) :
-                buffer {},
                 handles {},
+                count(vertexCount),
+                stride(vertex::VERTEX_SIZE),
                 format(vertex::CommonFormat::PRIMITIVE),
                 primitveType(vertex::PRIMITIVE_TRIANGLES),
                 shader(Shader<>::STANDARD_DEFAULT)
@@ -37,17 +93,7 @@ namespace love
                 {
                     throw love::Exception("Out of memory.");
                 }
-
-                this->buffer.elemCount = vertexCount;
-                this->buffer.elemSize  = vertex::VERTEX_SIZE;
-                this->buffer.flags     = DrawCommand::GX2R_BUFFER_FLAGS;
-
-                GX2RCreateBuffer(&this->buffer);
             }
-
-            DrawCommand(DrawCommand&&) = delete;
-
-            DrawCommand& operator=(const DrawCommand&) = delete;
 
             ~DrawCommand()
             {}
@@ -59,57 +105,53 @@ namespace love
 
             void FillVertices(const vertex::Vertex* data)
             {
-                auto* vertices =
-                    (vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+                this->buffer = std::make_shared<DrawBuffer>(this->count);
 
-                for (size_t index = 0; index < this->buffer.elemCount; index++)
-                {
-                    // clang-format off
-                    vertices[index] =
+                this->buffer->LockScope([&](vertex::Vertex* buffer) {
+                    for (size_t index = 0; index < this->count; index++)
                     {
-                        .position = { this->positions[index].x, this->positions[index].y, 0 },
-                        .color    = data[index].color,
-                        .texcoord = data[index].texcoord
-                    };
-                    // clang-format on
-                }
-
-                GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+                        // clang-format off
+                        buffer[index] =
+                        {
+                            .position = { this->positions[index].x, this->positions[index].y, 0 },
+                            .color    = data[index].color,
+                            .texcoord = data[index].texcoord
+                        };
+                        // clang-format on
+                    }
+                });
             }
 
             void FillVertices(const Color& color, const Vector2* textureCoords)
             {
-                auto* vertices =
-                    (vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+                this->buffer = std::make_shared<DrawBuffer>(this->count);
 
-                for (size_t index = 0; index < this->buffer.elemCount; index++)
-                {
-                    // clang-format off
-                    vertices[index] =
+                this->buffer->LockScope([&](vertex::Vertex* buffer) {
+                    for (size_t index = 0; index < this->count; index++)
                     {
-                        .position = { this->positions[index].x, this->positions[index].y, 0 },
-                        .color    = color.array(),
-                        .texcoord = { textureCoords[index].x, textureCoords[index].y }
-                    };
-                    // clang-format on
-                }
-
-                GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+                        // clang-format off
+                        buffer[index] =
+                        {
+                            .position = { this->positions[index].x, this->positions[index].y, 0 },
+                            .color    = color.array(),
+                            .texcoord = { textureCoords[index].x, textureCoords[index].y }
+                        };
+                        // clang-format on
+                    }
+                });
             }
-
-            GX2RBuffer buffer;
 
             std::unique_ptr<Vector2[]> positions;
             std::vector<Texture<Console::CAFE>*> handles;
 
+            std::shared_ptr<DrawBuffer> buffer;
+
+            size_t count;
+            size_t stride;
+
             vertex::CommonFormat format;
             vertex::PrimitiveType primitveType;
             Shader<>::StandardShader shader;
-
-          private:
-            static constexpr auto GX2R_BUFFER_FLAGS =
-                GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
-                GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
         };
 
         static constexpr const char* DEFAULT_SCREEN = "tv";
@@ -123,6 +165,8 @@ namespace love
         void Present();
 
         bool SetMode(int x, int y, int width, int height);
+
+        void SetColor(const Color& color);
 
         void CheckSetDefaultFont();
 

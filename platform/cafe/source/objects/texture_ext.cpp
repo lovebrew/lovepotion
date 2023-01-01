@@ -270,16 +270,6 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
 
     size_t pixelSize = GetPixelFormatBlockSize(this->format);
 
-    /*             dstX, dstY, srcW,        srcH
-    ** Rectangle { x,    y,    data->width, data->height }
-    ** Font data will ReplacePixels(textureX, textureY, dataW, dataH)
-    ** This means we need to apply offset data in the for loop
-    **
-    ** Row sourceRow = { source + (paste.x + (i + paste.y) * sourceWidth) * sourcePixelSize };
-    ** Row destRow   = { destination + (x + (i + y) * destinationWidth) * destinationPixelSize };
-    ** memcpy(destRow.u8, sourceRow.u8, sourcePixelSize * paste.w);
-    */
-
     /* copy by row */
     for (uint32_t y = 0; y < (uint32_t)rectangle.h; y++)
     {
@@ -289,8 +279,8 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
         std::memcpy(dest + destRow, source + srcRow, rectangle.w * pixelSize);
     }
 
-    GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, this->texture->surface.image,
-                  this->texture->surface.imageSize);
+    const auto imageSize = this->texture->surface.imageSize;
+    GX2Invalidate(Texture::INVALIDATE_MODE, this->texture->surface.image, imageSize);
 }
 
 void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics,
@@ -320,8 +310,7 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
     command.handles      = { this };
 
     if (is2D)
-        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(),
-                              command.buffer.elemCount);
+        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);
 
     const auto* textureCoords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), textureCoords);

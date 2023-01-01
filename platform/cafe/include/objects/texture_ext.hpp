@@ -54,6 +54,8 @@ namespace love
         }
 
       private:
+        static constexpr auto INVALIDATE_MODE = GX2_INVALIDATE_MODE_CPU_TEXTURE;
+
         void CreateTexture();
 
         GX2ColorBuffer* framebuffer;

@@ -9,6 +9,7 @@
 #include <malloc.h>
 
 using namespace love;
+using namespace vertex;
 
 #define SHADERS_DIR "/vol/content/shaders/"
 
@@ -41,6 +42,11 @@ uint32_t Shader<Console::CAFE>::GetPixelSamplerLocation(int index)
     if (this->shaderType != Shader::STANDARD_TEXTURE)
         throw love::Exception("Cannot fetch location from non-Texture pixel shader");
 
+    size_t count = this->program.pixelShader->samplerVarCount;
+
+    if (index > count)
+        throw love::Exception("Sampler variable #%d is out of bounds (max %d)", index, count);
+
     return this->program.pixelShader->samplerVars[index].location;
 }
 
@@ -67,6 +73,14 @@ void Shader<Console::CAFE>::Attach()
 
         Shader::current = this;
     }
+}
+
+void Shader<Console::CAFE>::BindTexture(int index, GX2Texture* texture, GX2Sampler* sampler)
+{
+    const auto location = this->GetPixelSamplerLocation(index);
+
+    GX2SetPixelTexture(texture, location);
+    GX2SetPixelSampler(sampler, location);
 }
 
 static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std::string& error)
@@ -150,12 +164,11 @@ void Shader<Console::CAFE>::LoadDefaults(StandardShader type)
                               error.c_str());
     }
 
-    size_t offset = 0;
-    WHBGfxInitShaderAttribute(&this->program, "inPos", 0, offset, Shader::GX2_FORMAT_VEC3);
-    offset += (4 * 3);
-    WHBGfxInitShaderAttribute(&this->program, "inColor", 0, offset, Shader::GX2_FORMAT_VEC4);
-    offset += (4 * 4);
-    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, offset, Shader::GX2_FORMAT_VEC2);
+    // clang-format off
+    WHBGfxInitShaderAttribute(&this->program, "inPos",      0, POSITION_OFFSET, Shader::GX2_FORMAT_VEC3);
+    WHBGfxInitShaderAttribute(&this->program, "inColor",    0, COLOR_OFFSET,    Shader::GX2_FORMAT_VEC4);
+    WHBGfxInitShaderAttribute(&this->program, "inTexCoord", 0, TEXCOORD_OFFSET, Shader::GX2_FORMAT_VEC2);
+    // clang-format on
 
     WHBGfxInitFetchShader(&this->program);
 

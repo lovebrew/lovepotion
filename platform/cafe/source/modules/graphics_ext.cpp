@@ -70,6 +70,7 @@ void Graphics<Console::CAFE>::RestoreState(const DisplayState& state)
     else
         Graphics<>::SetScissor();
 
+    this->SetColor(state.foreground);
     this->SetBlendState(state.blendState);
     this->SetShader(state.shader.Get());
 }
@@ -102,10 +103,19 @@ void Graphics<Console::CAFE>::RestoreStateChecked(const DisplayState& state)
             Graphics<>::SetScissor();
     }
 
+    if (state.foreground != current.foreground)
+        this->SetColor(state.foreground);
+
     if (!(state.blendState == current.blendState))
         this->SetBlendState(state.blendState);
 
     this->SetShader(state.shader.Get());
+}
+
+void Graphics<Console::CAFE>::SetColor(const Color& color)
+{
+    Graphics<>::SetColor(color);
+    Renderer<Console::CAFE>::Instance().SetBlendColor(color);
 }
 
 int Graphics<Console::CAFE>::GetWidth(Screen screen) const

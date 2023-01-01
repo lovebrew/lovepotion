@@ -68,6 +68,9 @@ namespace love
         Renderer();
 
       public:
+        static constexpr auto INVALIDATE_UNIFORM =
+            GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_UNIFORM_BLOCK;
+
         struct Transform
         {
             glm::mat4 modelView;
@@ -220,10 +223,7 @@ namespace love
         // clang-format on
 
       private:
-        std::vector<GX2RBuffer> buffers;
-
-        Transform transform;
-        Transform littleTransform;
+        std::vector<std::shared_ptr<Graphics<Console::CAFE>::DrawBuffer>> buffers;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 

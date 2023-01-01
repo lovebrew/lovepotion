@@ -22,6 +22,8 @@ namespace love
 
         void LoadDefaults(StandardShader type);
 
+        void BindTexture(int location, GX2Texture* texture, GX2Sampler* sampler);
+
         uint32_t GetPixelSamplerLocation(int index);
 
         WHBGfxShaderGroup& GetGroup()
