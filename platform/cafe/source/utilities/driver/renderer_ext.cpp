@@ -39,8 +39,6 @@ static void initColorBuffer(GX2ColorBuffer& buffer, const Vector2& size, GX2Surf
     GX2InitColorBufferRegs(&buffer);
 }
 
-static void initContextState(GX2ContextState*& state)
-{}
 Renderer<Console::CAFE>::Renderer() :
     inForeground(false),
     commandBuffer(nullptr),
@@ -66,6 +64,9 @@ Renderer<Console::CAFE>::Renderer() :
 
     for (size_t index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
         this->mainTransforms[index].modelView = glm::mat4(1.0f);
+
+    for (size_t index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
+        this->litteTransforms[index] = (Transform*)memalign(0x100, sizeof(Transform));
 
     this->CreateFramebuffers();
 
@@ -265,7 +266,9 @@ void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, doubl
 {}
 
 void Renderer<Console::CAFE>::SetBlendColor(const Color& color)
-{}
+{
+    GX2SetBlendConstantColor(color.r, color.g, color.b, color.a);
+}
 
 void Renderer<Console::CAFE>::SetBlendMode(const RenderState::BlendState& state)
 {
@@ -309,23 +312,19 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
     GX2SetCullOnlyControl(*face, true, true);
 }
 
-static Renderer<Console::CAFE>::Transform swapEndianness(
-    const Renderer<Console::CAFE>::Transform transform)
+static void swapEndianness(Renderer<Console::CAFE>::Transform* little,
+                           const Renderer<Console::CAFE>::Transform& big)
 {
-    Renderer<Console::CAFE>::Transform result {};
+    uint* dstModel = (uint*)glm::value_ptr(little->modelView);
+    uint* dstProj  = (uint*)glm::value_ptr(little->projection);
 
-    uint* dstModel = (uint*)glm::value_ptr(result.modelView);
-    uint* dstProj  = (uint*)glm::value_ptr(result.projection);
-
-    uint* model = (uint*)glm::value_ptr(transform.modelView);
+    uint* model = (uint*)glm::value_ptr(big.modelView);
     for (size_t index = 0; index < 16; index++)
         dstModel[index] = __builtin_bswap32(model[index]);
 
-    uint* projection = (uint*)glm::value_ptr(transform.projection);
+    uint* projection = (uint*)glm::value_ptr(big.projection);
     for (size_t index = 0; index < 16; index++)
         dstProj[index] = __builtin_bswap32(projection[index]);
-
-    return result;
 }
 
 void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
@@ -348,8 +347,8 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
     }
 
     // clang-format off
-    this->litteTransforms[(uint8_t)Graphics<>::activeScreen] = swapEndianness(this->mainTransforms[(uint8_t)Graphics<>::activeScreen]);
-    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->litteTransforms[(uint8_t)Graphics<>::activeScreen]);
+    swapEndianness(this->litteTransforms[(uint8_t)Graphics<>::activeScreen], this->mainTransforms[(uint8_t)Graphics<>::activeScreen]);
+    GX2SetVertexUniformBlock(1, sizeof(Transform), this->litteTransforms[(uint8_t)Graphics<>::activeScreen]);
     // clang-format on
 }
 
@@ -427,8 +426,8 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     GX2SetPixelShader(group.pixelShader);
 
     // clang-format off
-    this->litteTransforms[(uint8_t)Graphics<>::activeScreen] = swapEndianness(this->mainTransforms[(uint8_t)Graphics<>::activeScreen]);
-    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->litteTransforms[(uint8_t)Graphics<>::activeScreen]);
+    swapEndianness(this->litteTransforms[(uint8_t)Graphics<>::activeScreen], this->mainTransforms[(uint8_t)Graphics<>::activeScreen]);
+    GX2SetVertexUniformBlock(1, sizeof(Transform), this->litteTransforms[(uint8_t)Graphics<>::activeScreen]);
     // clang-format on
 }
 
@@ -457,6 +456,16 @@ bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& comma
     this->buffers.push_back(command.buffer);
 
     return true;
+}
+
+void Renderer<Console::CAFE>::SetLineWidth(float width)
+{
+    GX2SetLineWidth(width);
+}
+
+void Renderer<Console::CAFE>::SetPointSize(float size)
+{
+    GX2SetPointSize(size, size);
 }
 
 void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)

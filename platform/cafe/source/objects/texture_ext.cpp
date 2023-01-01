@@ -179,7 +179,14 @@ void Texture<Console::CAFE>::CreateTexture()
     else
     {
         createTextureObject(this->texture, this->format, _width, _height);
-        this->ReplacePixels(this->slices.Get(0, 0), 0, 0, 0, 0, false);
+
+        if (!hasData)
+        {
+            std::vector<uint8_t> empty(_width * _height, 0);
+            this->ReplacePixels(empty.data(), empty.size(), 0, 0, { 0, 0, _width, _height }, false);
+        }
+        else
+            this->ReplacePixels(this->slices.Get(0, 0), 0, 0, 0, 0, false);
     }
 
     this->SetSamplerState(this->state);
@@ -246,7 +253,7 @@ void Texture<Console::CAFE>::ReplacePixels(ImageData<Console::CAFE>* data, int s
 }
 
 void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
-                                           const Rect& rect, bool reloadMipmaps)
+                                           const Rect& rectangle, bool reloadMipmaps)
 {
     if (!this->IsReadable() || this->GetMSAA() > 1)
         return;
@@ -261,13 +268,25 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
     uint8_t* dest   = (uint8_t*)this->texture->surface.image;
     uint8_t* source = (uint8_t*)data;
 
-    /* copy by row */
-    for (uint32_t y = 0; y < (uint32_t)this->pixelHeight; ++y)
-    {
-        const auto destRow = (y * pitch * 4);
-        const auto srcRow  = (y * this->pixelWidth * 4);
+    size_t pixelSize = GetPixelFormatBlockSize(this->format);
 
-        std::memcpy(dest + destRow, source + srcRow, this->pixelWidth * 4);
+    /*             dstX, dstY, srcW,        srcH
+    ** Rectangle { x,    y,    data->width, data->height }
+    ** Font data will ReplacePixels(textureX, textureY, dataW, dataH)
+    ** This means we need to apply offset data in the for loop
+    **
+    ** Row sourceRow = { source + (paste.x + (i + paste.y) * sourceWidth) * sourcePixelSize };
+    ** Row destRow   = { destination + (x + (i + y) * destinationWidth) * destinationPixelSize };
+    ** memcpy(destRow.u8, sourceRow.u8, sourcePixelSize * paste.w);
+    */
+
+    /* copy by row */
+    for (uint32_t y = 0; y < (uint32_t)rectangle.h; y++)
+    {
+        const auto srcRow  = (y * rectangle.w * pixelSize);
+        const auto destRow = (rectangle.x + (y + rectangle.y) * pitch) * pixelSize;
+
+        std::memcpy(dest + destRow, source + srcRow, rectangle.w * pixelSize);
     }
 
     GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, this->texture->surface.image,

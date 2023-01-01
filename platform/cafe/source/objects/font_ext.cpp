@@ -593,21 +593,18 @@ void Font<Console::CAFE>::Printv(Graphics<Console::CAFE>& graphics,
 
     for (const auto& command : commands)
     {
-        // auto drawCommand         = Graphics<Console::CAFE>::DrawCommand(command.count);
-        // drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
-        // drawCommand.format       = vertex::CommonFormat::TEXTURE;
-        // drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
-        // drawCommand.handles      = { command.texture->GetHandle() };
+        auto drawCommand         = Graphics<Console::CAFE>::DrawCommand(command.count);
+        drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
+        drawCommand.format       = vertex::CommonFormat::TEXTURE;
+        drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
+        drawCommand.handles      = { command.texture };
 
-        // LOG("Transforming verts");
-        // matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
-        //                        command.count);
+        matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
+                               command.count);
 
-        // LOG("Filling verts");
-        // drawCommand.FillVertices(vertices.data());
+        drawCommand.FillVertices(vertices.data());
 
-        // LOG("Rendering..");
-        // Renderer<Console::CAFE>::Instance().Render(drawCommand);
+        Renderer<Console::CAFE>::Instance().Render(drawCommand);
     }
 }
 

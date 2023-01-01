@@ -100,7 +100,7 @@ GlyphData* Rasterizer<Console::CAFE>::GetGlyphData(uint32_t glyph) const
     metrics.advance  = (int)(ftGlyph->advance.x >> 16);
 
     /* copy the pixel data */
-    GlyphData* glyphData = new GlyphData(glyph, metrics, PIXELFORMAT_LA8_UNORM);
+    GlyphData* glyphData = new GlyphData(glyph, metrics, PIXELFORMAT_RGBA8_UNORM);
 
     const uint8_t* pixels = bitmap.buffer;
     uint8_t* destination  = (uint8_t*)glyphData->GetData();

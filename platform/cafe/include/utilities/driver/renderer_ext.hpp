@@ -68,7 +68,7 @@ namespace love
         Renderer();
 
       public:
-        struct alignas(0x100) Transform
+        struct Transform
         {
             glm::mat4 modelView;
             glm::mat4 projection;
@@ -247,7 +247,7 @@ namespace love
             Vector2 dimensions;
         };
 
-        Transform litteTransforms[2];
+        Transform* litteTransforms[2];
         Transform mainTransforms[2];
 
         GX2ColorBuffer* current;

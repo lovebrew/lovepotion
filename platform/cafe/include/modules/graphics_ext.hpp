@@ -45,12 +45,36 @@ namespace love
                 GX2RCreateBuffer(&this->buffer);
             }
 
+            DrawCommand(DrawCommand&&) = delete;
+
+            DrawCommand& operator=(const DrawCommand&) = delete;
+
             ~DrawCommand()
             {}
 
             const std::unique_ptr<Vector2[]>& Positions() const
             {
                 return this->positions;
+            }
+
+            void FillVertices(const vertex::Vertex* data)
+            {
+                auto* vertices =
+                    (vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
+
+                for (size_t index = 0; index < this->buffer.elemCount; index++)
+                {
+                    // clang-format off
+                    vertices[index] =
+                    {
+                        .position = { this->positions[index].x, this->positions[index].y, 0 },
+                        .color    = data[index].color,
+                        .texcoord = data[index].texcoord
+                    };
+                    // clang-format on
+                }
+
+                GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
             }
 
             void FillVertices(const Color& color, const Vector2* textureCoords)
