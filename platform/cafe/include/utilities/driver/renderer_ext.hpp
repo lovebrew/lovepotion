@@ -247,6 +247,9 @@ namespace love
             Vector2 dimensions;
         };
 
+        Transform litteTransforms[2];
+        Transform mainTransforms[2];
+
         GX2ColorBuffer* current;
         GX2ContextState* state;
 

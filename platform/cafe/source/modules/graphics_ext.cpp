@@ -70,7 +70,21 @@ void Graphics<Console::CAFE>::RestoreState(const DisplayState& state)
     else
         Graphics<>::SetScissor();
 
+    this->SetBlendState(state.blendState);
     this->SetShader(state.shader.Get());
+}
+
+void Graphics<Console::CAFE>::SetBlendMode(RenderState::BlendMode mode,
+                                           RenderState::BlendAlpha alphaMode)
+{
+    Graphics<>::SetBlendMode(mode, alphaMode);
+    this->SetBlendState(love::RenderState::ComputeBlendState(mode, alphaMode));
+}
+
+void Graphics<Console::CAFE>::SetBlendState(const RenderState::BlendState& state)
+{
+    Renderer<Console::CAFE>::Instance().SetBlendMode(state);
+    states.back().blendState = state;
 }
 
 void Graphics<Console::CAFE>::RestoreStateChecked(const DisplayState& state)
@@ -87,6 +101,9 @@ void Graphics<Console::CAFE>::RestoreStateChecked(const DisplayState& state)
         else
             Graphics<>::SetScissor();
     }
+
+    if (!(state.blendState == current.blendState))
+        this->SetBlendState(state.blendState);
 
     this->SetShader(state.shader.Get());
 }
@@ -107,8 +124,6 @@ bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
     this->RestoreState(this->states.back());
 
     this->SetViewportSize(width, height);
-
-    this->RestoreState(this->states.back());
 
     for (int index = 0; index < Shader<>::STANDARD_MAX_ENUM; index++)
     {

@@ -104,6 +104,10 @@ namespace love
 
         void RestoreStateChecked(const DisplayState& state);
 
+        void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode);
+
+        void SetBlendState(const RenderState::BlendState& state);
+
         void Pop();
 
         void Reset();

@@ -39,11 +39,12 @@ static void initColorBuffer(GX2ColorBuffer& buffer, const Vector2& size, GX2Surf
     GX2InitColorBufferRegs(&buffer);
 }
 
+static void initContextState(GX2ContextState*& state)
+{}
 Renderer<Console::CAFE>::Renderer() :
     inForeground(false),
     commandBuffer(nullptr),
     current(nullptr),
-    state {},
     framebuffers()
 {
     this->commandBuffer = memalign(GX2_COMMAND_BUFFER_ALIGNMENT, GX2_COMMAND_BUFFER_SIZE);
@@ -63,7 +64,8 @@ Renderer<Console::CAFE>::Renderer() :
 
     GX2Init(attributes);
 
-    this->transform.modelView = glm::mat4(1.0f);
+    for (size_t index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
+        this->mainTransforms[index].modelView = glm::mat4(1.0f);
 
     this->CreateFramebuffers();
 
@@ -89,13 +91,9 @@ Renderer<Console::CAFE>::Renderer() :
                    this->framebuffers[(uint8_t)Screen::SCREEN_GAMEPAD].dimensions.y);
     GX2SetDRCEnable(true);
 
-    GX2SetDepthOnlyControl(true, false, GX2_COMPARE_FUNC_ALWAYS);
+    GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
 
-    GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, true, true);
-
-    auto state = RenderState::ComputeBlendState(RenderState::BLEND_ALPHA,
-                                                RenderState::BLENDALPHA_PREMULTIPLIED);
-    this->SetBlendMode(state);
+    GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
 
     GX2SetSwapInterval(1);
 }
@@ -253,6 +251,8 @@ void Renderer<Console::CAFE>::EnsureInFrame()
 {
     const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
     this->current             = &this->framebuffers[activeScreenId].buffer;
+
+    GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::Clear(const Color& color)
@@ -347,8 +347,10 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
         this->SetScissor(Rect::EMPTY);
     }
 
-    this->littleTransform = swapEndianness(this->transform);
-    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->littleTransform);
+    // clang-format off
+    this->litteTransforms[(uint8_t)Graphics<>::activeScreen] = swapEndianness(this->mainTransforms[(uint8_t)Graphics<>::activeScreen]);
+    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->litteTransforms[(uint8_t)Graphics<>::activeScreen]);
+    // clang-format on
 }
 
 void Renderer<Console::CAFE>::Present()
@@ -357,8 +359,6 @@ void Renderer<Console::CAFE>::Present()
     GX2CopyColorBufferToScanBuffer(&this->framebuffers[1].buffer, GX2_SCAN_TARGET_DRC);
 
     GX2SwapScanBuffers();
-    GX2SetContextState(this->state);
-
     GX2Flush();
 
     /* wait to flip */
@@ -426,8 +426,10 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     GX2SetVertexShader(group.vertexShader);
     GX2SetPixelShader(group.pixelShader);
 
-    this->littleTransform = swapEndianness(this->transform);
-    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->littleTransform);
+    // clang-format off
+    this->litteTransforms[(uint8_t)Graphics<>::activeScreen] = swapEndianness(this->mainTransforms[(uint8_t)Graphics<>::activeScreen]);
+    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->litteTransforms[(uint8_t)Graphics<>::activeScreen]);
+    // clang-format on
 }
 
 bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
@@ -476,7 +478,7 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
         ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     }
 
-    this->transform.projection = ortho;
+    this->mainTransforms[(uint8_t)Graphics<>::activeScreen].projection = ortho;
 }
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor)
