@@ -380,13 +380,12 @@ int Wrap_Graphics::Printf(lua_State* L)
 
     int formatIndex = start + 2;
 
-    /* todo check for Transform objects */
-    // if (luax::IsType(L, start, love::Transform<love::Console::Which>::type))
-    // {
-    //     love::Transform<Console::Which>* tf = luax::ToType<Transform<Console::Which>>(L,
-    //     start); func(tf->getMatrix());
-    // }
-    // else
+    if (luax::IsType(L, start, love::Transform::type))
+    {
+        Transform* transform = luax::ToType<Transform>(L, start);
+        matrix               = transform->GetMatrix();
+    }
+    else
     {
         float x  = luaL_optnumber(L, start + 0, 0.0);
         float y  = luaL_optnumber(L, start + 1, 0.0);

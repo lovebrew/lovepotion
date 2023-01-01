@@ -251,13 +251,8 @@ void Renderer<Console::CAFE>::DestroyFramebuffers()
 
 void Renderer<Console::CAFE>::EnsureInFrame()
 {
-    if (!this->inFrame)
-    {
-        const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
-
-        this->current = &this->framebuffers[activeScreenId].buffer;
-        this->inFrame = true;
-    }
+    const auto activeScreenId = (uint8_t)Graphics<>::activeScreen;
+    this->current             = &this->framebuffers[activeScreenId].buffer;
 }
 
 void Renderer<Console::CAFE>::Clear(const Color& color)
@@ -342,22 +337,25 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
         GX2SetColorBuffer(texture->GetFramebuffer(), GX2_RENDER_TARGET_0);
 
         this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
-        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, false);
+        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
     }
     else
     {
         GX2SetColorBuffer(this->current, GX2_RENDER_TARGET_0);
 
         this->SetViewport(Rect::EMPTY);
-        this->SetScissor(Rect::EMPTY, false);
+        this->SetScissor(Rect::EMPTY);
     }
 
-    const auto swappedTransform = swapEndianness(this->transform);
-    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &swappedTransform);
+    this->littleTransform = swapEndianness(this->transform);
+    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->littleTransform);
 }
 
 void Renderer<Console::CAFE>::Present()
 {
+    GX2CopyColorBufferToScanBuffer(&this->framebuffers[0].buffer, GX2_SCAN_TARGET_TV);
+    GX2CopyColorBufferToScanBuffer(&this->framebuffers[1].buffer, GX2_SCAN_TARGET_DRC);
+
     GX2SwapScanBuffers();
     GX2SetContextState(this->state);
 
@@ -383,8 +381,8 @@ void Renderer<Console::CAFE>::Present()
         GX2WaitForVsync();
     }
 
-    if (this->inFrame)
-        this->inFrame = false;
+    for (auto& buffer : this->buffers)
+        GX2RDestroyBufferEx(&buffer, GX2R_RESOURCE_BIND_NONE);
 }
 
 void Renderer<Console::CAFE>::SetSamplerState(Texture<Console::CAFE>* texture, SamplerState& state)
@@ -428,8 +426,8 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     GX2SetVertexShader(group.vertexShader);
     GX2SetPixelShader(group.pixelShader);
 
-    const auto swappedTransform = swapEndianness(this->transform);
-    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &swappedTransform);
+    this->littleTransform = swapEndianness(this->transform);
+    GX2SetVertexUniformBlock(1, TRANSFORM_SIZE, &this->littleTransform);
 }
 
 bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
@@ -454,13 +452,7 @@ bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& comma
     GX2RSetAttributeBuffer(&command.buffer, 0, command.buffer.elemSize, 0);
     GX2DrawEx(*primitive, command.buffer.elemCount, 0, 1);
 
-    /* this is required - copy color buffers as needed */
-
-    std::optional<GX2ScanTarget> target;
-    target = Renderer::scanBuffers.Find(Graphics<>::activeScreen);
-
-    GX2CopyColorBufferToScanBuffer(this->current, *target);
-    GX2SetContextState(this->state);
+    this->buffers.push_back(command.buffer);
 
     return true;
 }
@@ -487,7 +479,7 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
     this->transform.projection = ortho;
 }
 
-void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)
+void Renderer<Console::CAFE>::SetScissor(const Rect& scissor)
 {
     if (scissor == Rect::EMPTY)
     {

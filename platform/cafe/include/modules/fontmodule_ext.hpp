@@ -8,21 +8,22 @@
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <coreinit/memory.h>
+#include <utilities/log/logfile.h>
 
 namespace love
 {
     class SystemFont : public Data
     {
       public:
-        SystemFont(OSSharedDataType type = OS_SHAREDDATATYPE_FONT_STANDARD) :
-            data(nullptr),
-            size(0),
-            type(type)
+        SystemFont(OSSharedDataType type = OS_SHAREDDATATYPE_FONT_STANDARD) : size(0), type(type)
         {
-            OSGetSharedData(type, 0, &data, &size);
+            OSGetSharedData(type, 0, &this->data, &this->size);
         }
 
-        Data* Clone() const override
+        ~SystemFont()
+        {}
+
+        SystemFont* Clone() const override
         {
             return new SystemFont(this->type);
         }
@@ -40,6 +41,7 @@ namespace love
       private:
         void* data;
         size_t size;
+
         OSSharedDataType type;
     };
 

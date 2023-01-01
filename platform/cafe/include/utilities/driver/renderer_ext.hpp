@@ -106,7 +106,7 @@ namespace love
 
         void SetViewport(const Rect& viewport);
 
-        void SetScissor(const Rect& scissor, bool canvasActive);
+        void SetScissor(const Rect& scissor);
 
         void SetStencil(RenderState::CompareMode mode, int value);
 
@@ -220,14 +220,10 @@ namespace love
         // clang-format on
 
       private:
-        // clang-format off
-        static constexpr BidirectionalMap scanBuffers = {
-            Screen::SCREEN_TV,      GX2_SCAN_TARGET_TV,
-            Screen::SCREEN_GAMEPAD, GX2_SCAN_TARGET_DRC
-        };
-        // clang-format on
+        std::vector<GX2RBuffer> buffers;
 
         Transform transform;
+        Transform littleTransform;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 

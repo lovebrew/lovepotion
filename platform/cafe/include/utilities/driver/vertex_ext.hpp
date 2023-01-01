@@ -12,7 +12,7 @@ namespace love
 {
     namespace vertex
     {
-        struct __attribute__((__packed__)) Vertex
+        struct Vertex
         {
             std::array<float, 3> position;
             std::array<float, 4> color;

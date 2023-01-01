@@ -11,6 +11,8 @@
 #include <gx2/mem.h>
 #include <gx2r/buffer.h>
 
+#include <memory>
+
 namespace love
 {
     template<>
@@ -44,18 +46,11 @@ namespace love
             }
 
             ~DrawCommand()
-            {
-                GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-            }
+            {}
 
             const std::unique_ptr<Vector2[]>& Positions() const
             {
                 return this->positions;
-            }
-
-            GX2RBuffer& GetBuffer()
-            {
-                return this->buffer;
             }
 
             void FillVertices(const Color& color, const Vector2* textureCoords)
@@ -69,7 +64,7 @@ namespace love
                     vertices[index] =
                     {
                         .position = { this->positions[index].x, this->positions[index].y, 0 },
-                        .color    = { color.r, color.g, color.b, color.a },
+                        .color    = color.array(),
                         .texcoord = { textureCoords[index].x, textureCoords[index].y }
                     };
                     // clang-format on

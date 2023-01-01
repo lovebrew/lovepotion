@@ -96,7 +96,7 @@ static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std
         return false;
     }
 
-    size_t readSize = std::fread(data.get(), 1, size, file);
+    long readSize = (long)std::fread(data.get(), 1, size, file);
 
     if (readSize != size)
     {
@@ -107,7 +107,13 @@ static bool loadShaderFile(const char* filepath, WHBGfxShaderGroup& program, std
 
     std::fclose(file);
 
-    return WHBGfxLoadGFDShaderGroup(&program, 0, data.get());
+    if (!WHBGfxLoadGFDShaderGroup(&program, 0, data.get()))
+    {
+        error = "Failed to load Shader Group";
+        return false;
+    }
+
+    return true;
 }
 
 void Shader<Console::CAFE>::LoadDefaults(StandardShader type)

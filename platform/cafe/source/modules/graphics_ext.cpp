@@ -32,7 +32,7 @@ void Graphics<Console::CAFE>::Clear(OptionalColor color, OptionalInt stencil, Op
 
     if (color.has_value())
     {
-        /* todo: Graphics<>::GammaCorrectColor(color); */
+        Graphics<Console::ALL>::GammaCorrectColor(color.value());
         ::Renderer::Instance().Clear(color.value());
     }
 
@@ -236,18 +236,18 @@ void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings,
 
 void Graphics<Console::CAFE>::SetViewportSize(int width, int height)
 {
-    ::Renderer::Instance().SetViewport({});
-    ::Renderer::Instance().SetScissor({}, false);
+    ::Renderer::Instance().SetViewport(Rect::EMPTY);
+    ::Renderer::Instance().SetScissor(Rect::EMPTY);
 }
 
 void Graphics<Console::CAFE>::SetScissor()
 {
     Graphics<Console::ALL>::SetScissor();
-    ::Renderer::Instance().SetScissor({}, false);
+    ::Renderer::Instance().SetScissor(Rect::EMPTY);
 }
 
 void Graphics<Console::CAFE>::SetScissor(const Rect& scissor)
 {
     Graphics<Console::ALL>::SetScissor(scissor);
-    ::Renderer::Instance().SetScissor(scissor, this->IsRenderTargetActive());
+    ::Renderer::Instance().SetScissor(scissor);
 }
