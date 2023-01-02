@@ -16,6 +16,26 @@ using namespace love;
 
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 
+static void initDepthBuffer(GX2DepthBuffer& buffer, int width, int height)
+{
+    std::memset(&buffer, 0, sizeof(GX2DepthBuffer));
+
+    buffer.surface.dim       = GX2_SURFACE_DIM_TEXTURE_2D;
+    buffer.surface.width     = width;
+    buffer.surface.height    = height;
+    buffer.surface.depth     = 1;
+    buffer.surface.mipLevels = 1;
+    buffer.surface.format    = GX2_SURFACE_FORMAT_FLOAT_D24_S8;
+    buffer.surface.aa        = GX2_AA_MODE1X;
+    buffer.surface.use       = GX2_SURFACE_USE_TEXTURE | GX2_SURFACE_USE_DEPTH_BUFFER;
+    buffer.surface.tileMode  = GX2_TILE_MODE_DEFAULT;
+    buffer.viewNumSlices     = 1;
+    buffer.depthClear        = 1.0f;
+
+    GX2CalcSurfaceSizeAndAlignment(&buffer.surface);
+    GX2InitDepthBufferRegs(&buffer);
+}
+
 Renderer<Console::CAFE>::Renderer() :
     inForeground(false),
     commandBuffer(nullptr),
@@ -45,6 +65,9 @@ Renderer<Console::CAFE>::Renderer() :
         const auto screen = (Screen)index;
         this->framebuffers[screen].Create(screen);
     }
+
+    const auto& size = this->framebuffers[Screen::SCREEN_TV].GetSize();
+    initDepthBuffer(this->depthBuffer.buffer, size.x, size.y);
 
     ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, ProcUIAcquired, nullptr, 100);
     ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, ProcUIReleased, nullptr, 100);
@@ -92,13 +115,25 @@ int Renderer<Console::CAFE>::OnForegroundAcquired()
     if (!this->framebuffers[Screen::SCREEN_GAMEPAD].AllocateScanBuffer(foregroundHeap))
         return -2;
 
+    /* allocate depth buffer */
+    const auto size      = this->depthBuffer.buffer.surface.imageSize;
+    const auto alignment = this->depthBuffer.buffer.surface.alignment;
+
+    this->depthBuffer.buffer.surface.image = MEMAllocFromFrmHeapEx(memOneHeap, size, alignment);
+
+    if (!this->depthBuffer.buffer.surface.image)
+        return -3;
+
+    /* invalidate depth buffer */
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, this->depthBuffer.buffer.surface.image, size);
+
     /* invalidate tv color buffer */
     if (!this->framebuffers[Screen::SCREEN_TV].InvalidateColorBuffer(memOneHeap))
-        return -3;
+        return -4;
 
     /* invalidate gamepad color buffer */
     if (!this->framebuffers[Screen::SCREEN_GAMEPAD].InvalidateColorBuffer(memOneHeap))
-        return -4;
+        return -5;
 
     return 0;
 }
@@ -208,6 +243,7 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
     else
     {
         GX2SetColorBuffer(this->current, GX2_RENDER_TARGET_0);
+        GX2SetDepthBuffer(&this->depthBuffer.buffer);
 
         this->SetViewport(Rect::EMPTY);
         this->SetScissor(Rect::EMPTY);
