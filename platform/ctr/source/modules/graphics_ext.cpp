@@ -77,6 +77,8 @@ void Graphics<Console::CTR>::Pop()
 void Graphics<Console::CTR>::RestoreState(const DisplayState& state)
 {
     Graphics<>::RestoreState(state);
+
+    this->SetFont(state.font.Get());
     this->SetShader(state.shader);
 }
 

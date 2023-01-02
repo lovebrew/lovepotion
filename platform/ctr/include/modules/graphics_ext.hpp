@@ -58,12 +58,6 @@ namespace love
 
         void SetScissor(const Rect& rectangle);
 
-        void RestoreState(const DisplayState& state)
-        {
-            this->SetFont(state.font.Get());
-            Graphics<>::RestoreState(state);
-        }
-
         int GetWidth(Screen screen) const;
 
         int GetHeight(Screen screen) const;

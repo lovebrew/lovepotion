@@ -17,7 +17,7 @@ Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewRasterizer(FileData* data
 
 Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(int size)
 {
-    return this->NewBCFNTRasterizer(size);
+    return this->NewBCFNTRasterizer(this->defaultFontData.Get(), size);
 }
 
 Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(Data* data, int size) const

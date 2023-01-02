@@ -310,6 +310,7 @@ Vector2 Renderer<Console::CAFE>::GetFrameBufferSize(Screen screen)
 
 void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
 {
+    GX2SetShaderModeEx(GX2_SHADER_MODE_UNIFORM_BLOCK, 48, 64, 0, 0, 200, 192);
     GX2SetFetchShader(&group.fetchShader);
     GX2SetVertexShader(group.vertexShader);
     GX2SetPixelShader(group.pixelShader);

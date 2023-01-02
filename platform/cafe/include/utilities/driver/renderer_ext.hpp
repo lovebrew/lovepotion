@@ -52,7 +52,7 @@ namespace love
         static constexpr const char* RENDERER_NAME    = "GX2";
         static constexpr const char* RENDERER_VERSION = "1.0.0";
         static constexpr const char* RENDERER_VENDOR  = "AMD";
-        static constexpr const char* RENDERER_DEVICE  = "Latte";
+        static constexpr const char* RENDERER_DEVICE  = "GPU7";
 
         static constexpr uint8_t MAX_RENDERTARGETS = 0x02;
 
