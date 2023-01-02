@@ -62,17 +62,14 @@ void ImageData<Console::CTR>::Decode(Data* data)
         love::GetPixelFormatSliceSize(image.format, image.width, image.height, false);
 
     if (image.size != expected)
-    {
-        decoder->FreeRawPixels(image.data);
         throw love::Exception("Could not decode image!");
-    }
 
     // clean up old data
     this->data.reset();
 
     this->width  = image.width;
     this->height = image.height;
-    this->data.reset(image.data);
+    this->data   = std::move(image.data);
     this->format = image.format;
 
     this->decoder = decoder;
@@ -222,10 +219,8 @@ void ImageData<Console::CTR>::GetPixel(int x, int y, Color& color)
 
     size_t pixelSize = this->GetPixelSize();
 
-    const auto _width = NextPo2(this->width);
-    const auto index  = coordToIndex(_width, x, y);
-
-    const Pixel* pixel = (const Pixel*)((uint32_t*)this->data.get() + index);
+    const auto _width  = NextPo2(this->width);
+    const Pixel* pixel = (const Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
 
     if (this->pixelGetFunction == nullptr)
         throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", format);
@@ -242,9 +237,7 @@ void ImageData<Console::CTR>::SetPixel(int x, int y, const Color& color)
     size_t pixelSize = this->GetPixelSize();
 
     const auto _width = NextPo2(this->width);
-    const auto index  = coordToIndex(_width, x, y);
-
-    Pixel* pixel = (Pixel*)((uint32_t*)this->data.get() + index);
+    Pixel* pixel      = (Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
 
     if (this->pixelSetFunction == nullptr)
         throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", this->format);

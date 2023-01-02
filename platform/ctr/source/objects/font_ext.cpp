@@ -170,16 +170,16 @@ void Font<Console::CTR>::Print(Graphics<Console::CTR>& graphics, const ColoredSt
     Matrix4<Console::CTR> transform(graphics.GetTransform(), localTransform);
     C2D_ViewRestore(&transform.GetElements());
 
-    float scale    = this->rasterizers[0]->GetScale();
-    uint32_t flags = C2D_WithColor;
-    uint32_t color = graphics.GetColor().rgba();
+    float scale     = this->rasterizers[0]->GetScale();
+    uint32_t flags  = C2D_WithColor;
+    uint32_t _color = graphics.GetColor().rgba();
 
     // uint32_t colors[string.size() * 2] {};
     // uint32_t size = 0;
 
     // setMultiColors(result, string, colors, size);
 
-    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, color);
+    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, _color);
     C2D_TextBufClear(this->buffer);
 }
 
@@ -203,16 +203,16 @@ void Font<Console::CTR>::Printf(Graphics<Console::CTR>& graphics, const ColoredS
     Matrix4<Console::CTR> transform(graphics.GetTransform(), localTransform);
     C2D_ViewRestore(&transform.GetElements());
 
-    float scale    = this->rasterizers[0]->GetScale();
-    uint32_t flags = C2D_WithColor | C2D_WordWrap | *mode;
-    uint32_t color = graphics.GetColor().rgba();
+    float scale     = this->rasterizers[0]->GetScale();
+    uint32_t flags  = C2D_WithColor | C2D_WordWrap | *mode;
+    uint32_t _color = graphics.GetColor().rgba();
 
     // uint32_t colors[string.size() * 2] {};
     // uint32_t size = 0;
 
     // setMultiColors(result, string, colors, size);
 
-    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, color, wrap);
+    C2D_DrawText(&text, flags, 0, 0, graphics.GetCurrentDepth(), scale, scale, _color, wrap);
     C2D_TextBufClear(this->buffer);
 }
 

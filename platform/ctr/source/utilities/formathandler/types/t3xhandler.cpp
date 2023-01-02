@@ -60,9 +60,9 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
         throw love::Exception("Failed to decompress t3x header!");
 
     decoded.size = (header.width * header.height * love::GetPixelFormatBlockSize(*pixelFormat));
-    decoded.data = new uint8_t[outSize];
+    decoded.data = std::make_unique<uint8_t[]>(outSize);
 
-    if (!decompress(decoded.data, outSize, nullptr, compressed, size))
+    if (!decompress(decoded.data.get(), outSize, nullptr, compressed, size))
         throw love::Exception("Failed to decompress t3x data!");
 
     return decoded;

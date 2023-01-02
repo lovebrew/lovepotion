@@ -1,7 +1,7 @@
 #include <objects/imagedata/wrap_imagedata.hpp>
 
 using namespace love;
-using ImageData = love::ImageData<Console::Which>;
+using ImageData = love::ImageData<Console::CTR>;
 
 int Wrap_ImageData::__MapPixelUnsafe(lua_State* L)
 {
@@ -35,8 +35,7 @@ int Wrap_ImageData::__MapPixelUnsafe(lua_State* L)
     {
         for (int x = sourceX; x < sourceX + width; x++)
         {
-            unsigned index = coordToIndex(_width, x, y);
-            auto pixelData = (::ImageData::Pixel*)(data + index);
+            auto* pixelData = (::ImageData::Pixel*)Color::FromTile(data, _width, { x, y });
 
             Color color {};
             pixelGetFunction(pixelData, color);

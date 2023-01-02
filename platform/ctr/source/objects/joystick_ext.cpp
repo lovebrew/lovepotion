@@ -105,7 +105,7 @@ bool Joystick<Console::CTR>::IsDown(JoystickInput& result)
     {
         button = (uint32_t)entries[index].second;
 
-        if (entries[index].second == -1)
+        if ((int)entries[index].second == -1)
             continue;
 
         if (button & this->buttonStates.pressed)
@@ -135,7 +135,7 @@ bool Joystick<Console::CTR>::IsUp(JoystickInput& result)
     {
         button = (uint32_t)entries[index].second;
 
-        if (entries[index].second == -1)
+        if ((int)entries[index].second == -1)
             continue;
 
         if (button & this->buttonStates.released)
