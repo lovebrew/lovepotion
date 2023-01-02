@@ -32,8 +32,7 @@ namespace love
 
         Framebuffer();
 
-        ~Framebuffer()
-        {}
+        ~Framebuffer();
 
         void Create(Screen id);
 
@@ -80,11 +79,19 @@ namespace love
             return &this->colorBuffer;
         }
 
+        operator GX2DepthBuffer*()
+        {
+            return &this->depthBuffer;
+        }
+
         /* Called on Renderer::OnForegroundAcquired */
         bool AllocateScanBuffer(MEMHeapHandle handle);
 
         /* Called on Renderer::OnForegroundAcquired */
         bool InvalidateColorBuffer(MEMHeapHandle handle);
+
+        /* Called on Renderer::OnForegroundAcquired */
+        bool InvalidateDepthBuffer(MEMHeapHandle handle);
 
       private:
         static constexpr GX2ScanTarget SCAN_TARGETS[0x02] { GX2_SCAN_TARGET_TV,
@@ -104,6 +111,9 @@ namespace love
 
         /* Called by SetSize at the end */
         void InitColorBuffer();
+
+        /* Called by SetSize at the end */
+        void InitDepthBuffer();
 
         /* Called by AllocateScanBuffer */
         void SetTVScanBuffer();
@@ -125,10 +135,12 @@ namespace love
 
         Screen id;
 
-        Transform main;
-        Transform* little;
+        glm::mat4 modelView;
+        Transform* transform;
 
         GX2ColorBuffer colorBuffer;
+        GX2DepthBuffer depthBuffer;
+
         uint8_t mode;
 
         void* scanBuffer;

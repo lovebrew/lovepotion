@@ -229,12 +229,6 @@ namespace love
         bool inForeground;
         void* commandBuffer;
 
-        struct DepthBuffer
-        {
-            GX2DepthBuffer buffer;
-            void* imageData;
-        } depthBuffer;
-
         Framebuffer current;
         GX2ContextState* state;
 

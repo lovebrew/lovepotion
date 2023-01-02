@@ -12,9 +12,10 @@
 using namespace love;
 
 Framebuffer::Framebuffer() :
-    main {},
-    little(nullptr),
+    modelView(1.0f),
+    transform(nullptr),
     colorBuffer {},
+    depthBuffer {},
     mode(0),
     scanBuffer(nullptr),
     scanBufferSize(0),
@@ -22,11 +23,14 @@ Framebuffer::Framebuffer() :
     height(0)
 {}
 
+Framebuffer::~Framebuffer()
+{}
+
 void Framebuffer::Create(Screen screen)
 {
-    this->id             = screen;
-    this->main.modelView = glm::mat4(1.0f);
-    this->little         = (Transform*)memalign(0x100, sizeof(Transform));
+    this->id        = screen;
+    this->modelView = glm::mat4(1.0f);
+    this->transform = (Transform*)memalign(0x100, sizeof(Transform));
 
     if (this->Is(Screen::SCREEN_TV))
         GX2SetTVEnable(true);
@@ -90,6 +94,26 @@ void Framebuffer::InitColorBuffer()
     GX2InitColorBufferRegs(&this->colorBuffer);
 }
 
+void Framebuffer::InitDepthBuffer()
+{
+    std::memset(&this->depthBuffer, 0, sizeof(GX2DepthBuffer));
+
+    this->depthBuffer.surface.dim       = GX2_SURFACE_DIM_TEXTURE_2D;
+    this->depthBuffer.surface.width     = this->width;
+    this->depthBuffer.surface.height    = this->height;
+    this->depthBuffer.surface.depth     = 1;
+    this->depthBuffer.surface.mipLevels = 1;
+    this->depthBuffer.surface.format    = GX2_SURFACE_FORMAT_FLOAT_D24_S8;
+    this->depthBuffer.surface.aa        = GX2_AA_MODE1X;
+    this->depthBuffer.surface.use       = GX2_SURFACE_USE_TEXTURE | GX2_SURFACE_USE_DEPTH_BUFFER;
+    this->depthBuffer.surface.tileMode  = GX2_TILE_MODE_DEFAULT;
+    this->depthBuffer.viewNumSlices     = 1;
+    this->depthBuffer.depthClear        = 1.0f;
+
+    GX2CalcSurfaceSizeAndAlignment(&this->depthBuffer.surface);
+    GX2InitDepthBufferRegs(&this->depthBuffer);
+}
+
 bool Framebuffer::AllocateScanBuffer(MEMHeapHandle handle)
 {
     const auto alignment = GX2_SCAN_BUFFER_ALIGNMENT;
@@ -119,6 +143,21 @@ bool Framebuffer::InvalidateColorBuffer(MEMHeapHandle handle)
         return false;
 
     GX2Invalidate(Framebuffer::INVALIDATE_COLOR_BUFFER, this->colorBuffer.surface.image, size);
+
+    return true;
+}
+
+bool Framebuffer::InvalidateDepthBuffer(MEMHeapHandle handle)
+{
+    const auto size      = this->depthBuffer.surface.imageSize;
+    const auto alignment = this->depthBuffer.surface.alignment;
+
+    this->depthBuffer.surface.image = MEMAllocFromFrmHeapEx(handle, size, alignment);
+
+    if (this->depthBuffer.surface.image == nullptr)
+        return false;
+
+    GX2Invalidate(GX2_INVALIDATE_MODE_CPU, this->depthBuffer.surface.image, size);
 
     return true;
 }
@@ -154,6 +193,7 @@ void Framebuffer::SetSize(int width, int height)
         this->SetDRCSize();
 
     this->InitColorBuffer();
+    this->InitDepthBuffer();
 }
 
 void Framebuffer::SetTVSize()
@@ -176,12 +216,11 @@ void Framebuffer::SetDRCSize()
 
 void Framebuffer::SetProjection(const glm::highp_mat4& _projection)
 {
-    this->main.projection = _projection;
+    /* glm::value_ptr lets us access the data linearly rather than an XxY matrix*/
+    unsigned int* dstModel = (unsigned int*)glm::value_ptr(this->transform->modelView);
+    unsigned int* dstProj  = (unsigned int*)glm::value_ptr(this->transform->projection);
 
-    unsigned int* dstModel = (unsigned int*)glm::value_ptr(this->little->modelView);
-    unsigned int* dstProj  = (unsigned int*)glm::value_ptr(this->little->projection);
-
-    unsigned int* model = (unsigned int*)glm::value_ptr(this->main.modelView);
+    unsigned int* model = (unsigned int*)glm::value_ptr(this->modelView);
     for (size_t index = 0; index < 16; index++)
         dstModel[index] = __builtin_bswap32(model[index]);
 
@@ -192,8 +231,9 @@ void Framebuffer::SetProjection(const glm::highp_mat4& _projection)
 
 void Framebuffer::UseProjection()
 {
-    GX2Invalidate(Framebuffer::INVALIDATE_UNIFORM, (void*)this->little,
+    GX2Invalidate(Framebuffer::INVALIDATE_UNIFORM, (void*)this->transform,
                   Framebuffer::TRANSFORM_SIZE);
 
-    GX2SetVertexUniformBlock(1, Framebuffer::TRANSFORM_SIZE, (void*)this->little);
+    /* uniform location 0 is invalid, we have to use 1 */
+    GX2SetVertexUniformBlock(1, Framebuffer::TRANSFORM_SIZE, (void*)this->transform);
 }
