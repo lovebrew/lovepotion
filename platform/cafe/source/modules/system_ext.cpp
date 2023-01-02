@@ -7,8 +7,6 @@
 #include <nn/ac/ac_c.h>
 #include <nn/act/client_cpp.h>
 
-#include <utilities/log/logfile.h>
-
 #include <stdio.h>
 
 using namespace love;

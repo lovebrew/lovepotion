@@ -1,5 +1,7 @@
 #include <utilities/driver/framebuffer.hpp>
 
+#include <objects/shader_ext.hpp>
+
 #include <gx2/display.h>
 #include <gx2/shaders.h>
 #include <gx2/swap.h>
@@ -216,16 +218,18 @@ void Framebuffer::SetDRCSize()
 
 void Framebuffer::SetProjection(const glm::highp_mat4& _projection)
 {
-    /* glm::value_ptr lets us access the data linearly rather than an XxY matrix*/
+    /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
     unsigned int* dstModel = (unsigned int*)glm::value_ptr(this->transform->modelView);
     unsigned int* dstProj  = (unsigned int*)glm::value_ptr(this->transform->projection);
 
+    const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
+
     unsigned int* model = (unsigned int*)glm::value_ptr(this->modelView);
-    for (size_t index = 0; index < 16; index++)
+    for (size_t index = 0; index < count; index++)
         dstModel[index] = __builtin_bswap32(model[index]);
 
     unsigned int* projection = (unsigned int*)glm::value_ptr(_projection);
-    for (size_t index = 0; index < 16; index++)
+    for (size_t index = 0; index < count; index++)
         dstProj[index] = __builtin_bswap32(projection[index]);
 }
 
@@ -234,6 +238,5 @@ void Framebuffer::UseProjection()
     GX2Invalidate(Framebuffer::INVALIDATE_UNIFORM, (void*)this->transform,
                   Framebuffer::TRANSFORM_SIZE);
 
-    /* uniform location 0 is invalid, we have to use 1 */
-    GX2SetVertexUniformBlock(1, Framebuffer::TRANSFORM_SIZE, (void*)this->transform);
+    GX2SetVertexUniformBlock(1, Framebuffer::TRANSFORM_SIZE, (const void*)this->transform);
 }

@@ -168,6 +168,10 @@ namespace love
 
         void SetColor(const Color& color);
 
+        void SetFrontFaceWinding(vertex::Winding winding);
+
+        void SetMeshCullMode(vertex::CullMode mode);
+
         void CheckSetDefaultFont();
 
         void RestoreStateChecked(const DisplayState& state);

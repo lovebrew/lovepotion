@@ -1,5 +1,5 @@
 #include <utilities/haptics/vibration_ext.hpp>
-#include <utilities/log/logfile.h>
+
 using namespace love;
 
 Vibration<Console::HAC>::Vibration(HidNpadIdType playerId, HidNpadStyleTag style) :

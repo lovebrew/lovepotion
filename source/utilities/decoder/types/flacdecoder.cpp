@@ -3,7 +3,6 @@
 #define DR_FLAC_IMPLEMENTATION
 #define DR_FLAC_NO_OGG
 #include <utilities/decoder/types/flacdecoder.hpp>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

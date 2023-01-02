@@ -50,6 +50,11 @@ uint32_t Shader<Console::CAFE>::GetPixelSamplerLocation(int index)
     return this->program.pixelShader->samplerVars[index].location;
 }
 
+GX2UniformBlock* Shader<Console::CAFE>::GetUniformBlock(const char* name)
+{
+    return GX2GetVertexUniformBlock(this->program.vertexShader, name);
+}
+
 void Shader<Console::CAFE>::AttachDefault(StandardShader type)
 {
     Shader* defaultshader = Shader::defaults[type];

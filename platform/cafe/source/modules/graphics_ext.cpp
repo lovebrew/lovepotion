@@ -68,6 +68,8 @@ void Graphics<Console::CAFE>::RestoreState(const DisplayState& state)
     else
         Graphics<>::SetScissor();
 
+    this->SetFrontFaceWinding(state.windingMode);
+    this->SetMeshCullMode(state.cullMode);
     this->SetColor(state.foreground);
     this->SetBlendState(state.blendState);
     this->SetShader(state.shader.Get());
@@ -101,6 +103,12 @@ void Graphics<Console::CAFE>::RestoreStateChecked(const DisplayState& state)
             Graphics<>::SetScissor();
     }
 
+    if (state.cullMode != current.cullMode)
+        this->SetMeshCullMode(state.cullMode);
+
+    if (state.windingMode != current.windingMode)
+        this->SetFrontFaceWinding(state.windingMode);
+
     if (state.foreground != current.foreground)
         this->SetColor(state.foreground);
 
@@ -108,6 +116,18 @@ void Graphics<Console::CAFE>::RestoreStateChecked(const DisplayState& state)
         this->SetBlendState(state.blendState);
 
     this->SetShader(state.shader.Get());
+}
+
+void Graphics<Console::CAFE>::SetFrontFaceWinding(vertex::Winding winding)
+{
+    Graphics<>::SetFrontFaceWinding(winding);
+    Renderer<Console::CAFE>::Instance().SetVertexWinding(winding);
+}
+
+void Graphics<Console::CAFE>::SetMeshCullMode(vertex::CullMode mode)
+{
+    Graphics<>::SetMeshCullMode(mode);
+    Renderer<Console::CAFE>::Instance().SetMeshCullMode(mode);
 }
 
 void Graphics<Console::CAFE>::SetColor(const Color& color)

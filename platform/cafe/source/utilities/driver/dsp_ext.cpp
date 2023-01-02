@@ -1,7 +1,6 @@
 #include <common/exception.hpp>
 
 #include <utilities/driver/dsp_ext.hpp>
-#include <utilities/log/logfile.h>
 
 #include <sndcore2/voice.h>
 

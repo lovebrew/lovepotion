@@ -1,8 +1,6 @@
 #include <objects/joystick/wrap_joystick.hpp>
 #include <utilities/npad.hpp>
 
-#include <utilities/log/logfile.h>
-
 using namespace love;
 
 #define instance() (Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK))

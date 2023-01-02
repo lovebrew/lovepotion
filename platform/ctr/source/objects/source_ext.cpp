@@ -2,7 +2,6 @@
 #include <utilities/pool/sources.hpp>
 
 #include <algorithm>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

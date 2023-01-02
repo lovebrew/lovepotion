@@ -4,8 +4,6 @@
 #include <utilities/driver/dsp_mem.hpp>
 #include <utilities/pool/sources.hpp>
 
-#include <utilities/log/logfile.h>
-
 using namespace love;
 
 using DSP = love::DSP<Console::HAC>;

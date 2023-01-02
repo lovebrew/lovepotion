@@ -1,7 +1,6 @@
 #include <utilities/npad.hpp>
 
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

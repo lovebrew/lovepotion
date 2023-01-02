@@ -2,8 +2,6 @@
 
 #include <utilities/driver/dsp_ext.hpp>
 
-#include <utilities/log/logfile.h>
-
 using namespace love;
 
 static void audioCallback(void* data)

@@ -12,11 +12,14 @@
 #include <malloc.h>
 #include <stdlib.h>
 
+#include <utilities/log/logfile.hpp>
+
 using namespace love;
 
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 
 Renderer<Console::CAFE>::Renderer() :
+    renderState {},
     inForeground(false),
     commandBuffer(nullptr),
     current {},
@@ -46,8 +49,6 @@ Renderer<Console::CAFE>::Renderer() :
         this->framebuffers[screen].Create(screen);
     }
 
-    const auto& size = this->framebuffers[Screen::SCREEN_TV].GetSize();
-
     ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, ProcUIAcquired, nullptr, 100);
     ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, ProcUIReleased, nullptr, 100);
 
@@ -59,14 +60,17 @@ Renderer<Console::CAFE>::Renderer() :
     if (!this->state)
         throw love::Exception("Failed to create GX2ContextState.");
 
-    GX2SetupContextStateEx(this->state, true);
+    GX2SetupContextStateEx(this->state, false);
     GX2SetContextState(this->state);
 
     GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
 
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
-
     GX2SetSwapInterval(1);
+
+    /* set up some state information */
+    this->renderState.winding   = GX2_FRONT_FACE_CCW;
+    this->renderState.cull.back = true;
 }
 
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
@@ -155,7 +159,10 @@ void Renderer<Console::CAFE>::Clear(const Color& color)
 }
 
 void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, double depth)
-{}
+{
+    GX2ClearDepthStencilEx(this->current, depth, stencil, GX2_CLEAR_FLAGS_BOTH);
+    GX2SetContextState(this->state);
+}
 
 void Renderer<Console::CAFE>::SetBlendColor(const Color& color)
 {
@@ -193,7 +200,16 @@ void Renderer<Console::CAFE>::SetBlendMode(const RenderState::BlendState& state)
 }
 
 void Renderer<Console::CAFE>::SetMeshCullMode(vertex::CullMode mode)
-{}
+{
+    bool enabled = (mode != vertex::CULL_NONE);
+
+    if (enabled && mode == vertex::CULL_FRONT)
+        GX2SetCullOnlyControl(this->renderState.winding, enabled, false);
+    else if (enabled && mode == vertex::CULL_BACK)
+        GX2SetCullOnlyControl(this->renderState.winding, false, enabled);
+    else if (!enabled)
+        GX2SetCullOnlyControl(this->renderState.winding, false, false);
+}
 
 void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
 {
@@ -201,7 +217,11 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
     if (!(face = Renderer::windingModes.Find(winding)))
         return;
 
-    GX2SetCullOnlyControl(*face, true, true);
+    bool front = this->renderState.cull.front;
+    bool back  = this->renderState.cull.back;
+
+    GX2SetCullOnlyControl(*face, front, back);
+    this->renderState.winding = *face;
 }
 
 void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
@@ -229,13 +249,23 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 
 void Renderer<Console::CAFE>::Present()
 {
+    /* flush commands before copying color buffers */
     GX2Flush();
 
+    /* copy our color buffers to their scan buffers */
     this->framebuffers[Screen::SCREEN_TV].CopyScanBuffer();
     this->framebuffers[Screen::SCREEN_GAMEPAD].CopyScanBuffer();
 
+    /* swap scan buffers */
     GX2SwapScanBuffers();
 
+    /* reset state for next frame */
+    GX2SetContextState(this->state);
+
+    /*
+    ** flush again as GX2WaitForFlip
+    ** will block the CPU
+    */
     GX2Flush();
 
     GX2WaitForFlip();
@@ -341,10 +371,11 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 
     if (viewport == Rect::EMPTY)
     {
-        const auto& buffer = this->current.GetBuffer().surface;
-        GX2SetViewport(0, 0, buffer.width, buffer.height, Z_NEAR, Z_FAR);
+        float width  = (float)this->current.GetWidth();
+        float height = (float)this->current.GetHeight();
 
-        ortho = glm::ortho(0.0f, (float)buffer.width, (float)buffer.height, 0.0f, Z_NEAR, Z_FAR);
+        GX2SetViewport(0.0f, 0.0f, width, height, Z_NEAR, Z_FAR);
+        ortho = glm::ortho(0.0f, width, height, 0.0f, Z_NEAR, Z_FAR);
     }
     else
     {
@@ -359,8 +390,10 @@ void Renderer<Console::CAFE>::SetScissor(const Rect& scissor)
 {
     if (scissor == Rect::EMPTY)
     {
-        const auto& buffer = this->current.GetBuffer().surface;
-        GX2SetScissor(0, 0, buffer.width, buffer.height);
+        uint32_t width  = (uint32_t)this->current.GetWidth();
+        uint32_t height = (uint32_t)this->current.GetHeight();
+
+        GX2SetScissor(0, 0, width, height);
     }
     else
         GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);

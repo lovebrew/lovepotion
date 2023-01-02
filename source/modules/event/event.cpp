@@ -5,7 +5,6 @@
 #include <modules/touch/touch.hpp>
 
 #include <common/console.hpp>
-#include <utilities/log/logfile.h>
 
 #include <mutex>
 

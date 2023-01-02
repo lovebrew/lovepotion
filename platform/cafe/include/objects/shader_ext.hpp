@@ -26,6 +26,8 @@ namespace love
 
         uint32_t GetPixelSamplerLocation(int index);
 
+        GX2UniformBlock* GetUniformBlock(const char* name);
+
         WHBGfxShaderGroup& GetGroup()
         {
             return this->program;

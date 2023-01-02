@@ -8,7 +8,6 @@
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <coreinit/memory.h>
-#include <utilities/log/logfile.h>
 
 namespace love
 {

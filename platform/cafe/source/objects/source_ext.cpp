@@ -4,7 +4,6 @@
 #include <coreinit/cache.h>
 
 #include <algorithm>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

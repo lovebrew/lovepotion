@@ -10,8 +10,6 @@ using namespace love;
 
 Type LuaThread::type("Thread", &Threadable::type);
 
-#include <utilities/log/logfile.h>
-
 LuaThread::LuaThread(const std::string& name, Data* code) : code(code), hasError(false)
 {
     this->name = name;

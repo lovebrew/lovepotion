@@ -8,8 +8,6 @@
 
 using namespace love;
 
-#include <utilities/log/logfile.h>
-
 Keyboard<Console::CAFE>::Keyboard() :
     Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH)),
     createArgs {},

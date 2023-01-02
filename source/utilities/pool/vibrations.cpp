@@ -1,7 +1,6 @@
 #include <utilities/pool/vibrations.hpp>
 
 #include <modules/timer_ext.hpp>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

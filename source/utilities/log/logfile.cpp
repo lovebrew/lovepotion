@@ -5,11 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include <utilities/log/logfile.h>
-
-#if defined(__WIIU__)
-    #include <coreinit/debug.h>
-#endif
+#include <utilities/log/logfile.hpp>
 
 using namespace love;
 

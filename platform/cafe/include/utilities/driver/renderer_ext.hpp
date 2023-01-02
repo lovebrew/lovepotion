@@ -214,6 +214,16 @@ namespace love
         // clang-format on
 
       private:
+        struct GX2RendererState
+        {
+            GX2FrontFace winding;
+            union
+            {
+                bool front;
+                bool back;
+            } cull;
+        } renderState;
+
         std::vector<std::shared_ptr<Graphics<Console::CAFE>::DrawBuffer>> buffers;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);

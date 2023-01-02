@@ -10,7 +10,6 @@
 #include <utilities/stream/types/datastream.hpp>
 
 #include <modules/sound/wrap_sound.hpp>
-#include <utilities/log/logfile.h>
 
 using namespace love;
 

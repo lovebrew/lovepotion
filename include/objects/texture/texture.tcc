@@ -17,8 +17,6 @@
 #include <algorithm>
 #include <stddef.h>
 
-#include <utilities/log/logfile.h>
-
 namespace love
 {
     using VectorMipmapLayers = std::vector<std::vector<StrongReference<ImageData<Console::Which>>>>;

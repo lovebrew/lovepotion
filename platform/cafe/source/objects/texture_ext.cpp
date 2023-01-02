@@ -75,6 +75,7 @@ static void createTextureObject(GX2Texture*& texture, PixelFormat format, int wi
         throw love::Exception("Failed to create GX2Surface.");
 
     std::memset(texture->surface.image, 0, texture->surface.imageSize);
+
     GX2Invalidate(GX2_INVALIDATE_MODE_CPU_TEXTURE, texture->surface.image,
                   texture->surface.imageSize);
 }
