@@ -41,14 +41,10 @@
 #include <array>
 #include <functional>
 
+#include <utilities/driver/framebuffer.hpp>
+
 namespace love
 {
-    enum class Screen : uint8_t
-    {
-        SCREEN_TV,
-        SCREEN_GAMEPAD
-    };
-
     template<>
     class Renderer<Console::CAFE> : public Renderer<Console::ALL>
     {
@@ -59,11 +55,6 @@ namespace love
         static constexpr const char* RENDERER_DEVICE  = "Latte";
 
         static constexpr uint8_t MAX_RENDERTARGETS = 0x02;
-
-        static constexpr auto FRAMEBUFFER_FORMAT    = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
-        static constexpr auto FRAMEBUFFER_BUFFERING = GX2_BUFFERING_MODE_DOUBLE;
-        static constexpr auto INVALIDATE_COLOR_BUFFER =
-            GX2_INVALIDATE_MODE_CPU | GX2_INVALIDATE_MODE_COLOR_BUFFER;
 
         Renderer();
 
@@ -135,7 +126,7 @@ namespace love
 
         SmallTrivialVector<const char*, 2> GetScreens() const;
 
-        const Vector2& GetFrameBufferSize(Screen screen);
+        Vector2 GetFrameBufferSize(Screen screen);
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {
@@ -238,21 +229,9 @@ namespace love
         bool inForeground;
         void* commandBuffer;
 
-        struct Framebuffer
-        {
-            uint8_t mode;
-            void* scanBuffer;
-            uint32_t scanBufferSize;
-            GX2ColorBuffer buffer;
-            Vector2 dimensions;
-        };
-
-        Transform* litteTransforms[2];
-        Transform mainTransforms[2];
-
-        GX2ColorBuffer* current;
+        Framebuffer current;
         GX2ContextState* state;
 
-        std::array<Framebuffer, MAX_RENDERTARGETS> framebuffers;
+        std::map<Screen, Framebuffer> framebuffers;
     };
 } // namespace love

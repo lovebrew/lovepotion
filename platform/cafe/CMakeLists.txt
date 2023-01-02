@@ -32,6 +32,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/texture_ext.cpp
     source/objects/wrap_imagedata_ext.cpp
     source/utilities/driver/dsp_ext.cpp
+    source/utilities/driver/framebuffer.cpp
     source/utilities/driver/hid_ext.cpp
     source/utilities/driver/renderer_ext.cpp
     source/utilities/haptics/sixaxis_ext.cpp

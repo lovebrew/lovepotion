@@ -8,8 +8,6 @@
 
 #include <objects/texture_ext.hpp>
 
-#include <utilities/log/logfile.h>
-
 using Renderer = love::Renderer<love::Console::CAFE>;
 using namespace love;
 
