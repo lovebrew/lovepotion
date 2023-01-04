@@ -75,6 +75,7 @@ class SmallTrivialVector<T, Size>
             data[populated++] = value;
             return true;
         }
+
         return false;
     }
 
@@ -87,6 +88,7 @@ class SmallTrivialVector<T, Size>
     {
         return data[i];
     }
+
     constexpr T& operator[](std::size_t i)
     {
         return data[i];
@@ -106,46 +108,57 @@ class SmallTrivialVector<T, Size>
     {
         return data.begin();
     }
+
     constexpr typename std::array<T, Size>::iterator end()
     {
         return data.begin() + size();
     }
+
     constexpr typename std::array<T, Size>::reverse_iterator rbegin()
     {
         return data.rbegin() + (capacity() - size());
     }
+
     constexpr typename std::array<T, Size>::reverse_iterator rend()
     {
         return data.rend();
     }
+
     constexpr typename std::array<T, Size>::const_iterator begin() const
     {
         return data.begin();
     }
+
     constexpr typename std::array<T, Size>::const_iterator end() const
     {
         return data.begin() + size();
     }
+
     constexpr typename std::array<T, Size>::const_reverse_iterator rbegin() const
     {
         return data.rbegin() + (capacity() - size());
     }
+
     constexpr typename std::array<T, Size>::const_reverse_iterator rend() const
     {
         return data.rend();
     }
+
     constexpr typename std::array<T, Size>::const_iterator cbegin() const
     {
         return data.begin();
     }
+
     constexpr typename std::array<T, Size>::const_iterator cend() const
     {
         return data.begin() + size();
     }
+
     constexpr typename std::array<T, Size>::const_reverse_iterator crbegin() const
     {
         return data.rbegin() + (capacity() - size());
     }
+
     constexpr typename std::array<T, Size>::const_reverse_iterator crend() const
     {
         return data.rend();

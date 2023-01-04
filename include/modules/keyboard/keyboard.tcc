@@ -83,7 +83,7 @@ namespace love
             "type",      KeyboardOption::OPTION_TYPE,
             "password",  KeyboardOption::OPTION_PASSCODE,
             "hint",      KeyboardOption::OPTION_HINT,
-            "length", KeyboardOption::OPTION_MAX_LENGTH
+            "length",    KeyboardOption::OPTION_MAX_LENGTH
         };
         // clang-format on
 

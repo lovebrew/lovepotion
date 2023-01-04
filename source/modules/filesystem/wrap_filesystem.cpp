@@ -52,7 +52,7 @@ Filesystem::MountPermissions Wrap_Filesystem::CheckPermissionType(lua_State* L, 
     if (auto found = Filesystem::mountPermissions.Find(string))
         return *found;
     else
-        luax::EnumError(L, "mount permissions", Filesystem::mountPermissions.GetNames(), string);
+        luax::EnumError(L, "mount permissions", Filesystem::mountPermissions, string);
 
     return Filesystem::MountPermissions::MOUNT_READ;
 }
@@ -64,7 +64,7 @@ Filesystem::CommonPath Wrap_Filesystem::CheckCommonPathType(lua_State* L, int in
     if (auto found = Filesystem::commonPaths.Find(string))
         return *found;
     else
-        luax::EnumError(L, "mount permissions", Filesystem::commonPaths.GetNames(), string);
+        luax::EnumError(L, "mount permissions", Filesystem::commonPaths, string);
 
     return Filesystem::CommonPath::APP_SAVEDIR;
 }
@@ -376,7 +376,7 @@ int Wrap_Filesystem::GetInfo(lua_State* L)
         if (auto found = Filesystem::fileTypes.Find(type))
             filter = *found;
         else
-            return luax::EnumError(L, "file type", Filesystem::fileTypes.GetNames(), type);
+            return luax::EnumError(L, "file type", Filesystem::fileTypes, type);
 
         start++;
     }
@@ -447,7 +447,7 @@ int Wrap_Filesystem::OpenFile(lua_State* L)
     if (auto found = File::modes.Find(filemode))
         mode = *found;
     else
-        return luax::EnumError(L, "file open mode", File::modes.GetNames(), filemode);
+        return luax::EnumError(L, "file open mode", File::modes, filemode);
 
     File* self = nullptr;
 

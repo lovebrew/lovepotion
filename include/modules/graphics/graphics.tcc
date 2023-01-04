@@ -123,8 +123,6 @@ namespace love
 
         static inline bool gammaCorrectColor = false;
 
-        static inline Screen activeScreen = (Screen)0;
-
         static void SetGammaCorrect(bool enable)
         {
             gammaCorrectColor = enable;
@@ -453,16 +451,6 @@ namespace love
                 this->SetColorMask(state.colorMask);
 
             this->SetDefaultSamplerState(state.defaultSamplerState);
-        }
-
-        void SetActiveScreen(Screen screen)
-        {
-            this->activeScreen = screen;
-        }
-
-        const Screen GetActiveScreen() const
-        {
-            return this->activeScreen;
         }
 
         void SetColor(const Color& color)

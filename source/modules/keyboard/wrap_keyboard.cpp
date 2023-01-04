@@ -1,6 +1,8 @@
 #include <modules/keyboard/wrap_keyboard.hpp>
 #include <modules/keyboard_ext.hpp>
 
+#include <utilities/driver/renderer_ext.hpp>
+
 #include <common/message.hpp>
 #include <common/strongreference.hpp>
 #include <common/variant.hpp>
@@ -15,17 +17,22 @@ using namespace love;
 
 int Wrap_Keyboard::SetTextInput(lua_State* L)
 {
+    bool enable = luax::CheckBoolean(L, 1);
+
+    if (!enable)
+        return 0;
+
     ::Keyboard::KeyboardOptions options {};
     options.type       = ::Keyboard::KeyboardType::TYPE_NORMAL;
     options.hint       = "Enter String";
     options.isPassword = false;
     options.maxLength  = ::Keyboard::DEFAULT_INPUT_LENGTH;
 
-    if (!lua_isnoneornil(L, 1))
+    if (!lua_isnoneornil(L, 2))
     {
 
         luax::CheckTableFields<::Keyboard::KeyboardOptions>(
-            L, 1, "keyboard setting name", [](const char* v) {
+            L, 2, "keyboard setting name", [](const char* v) {
                 std::optional<::Keyboard::KeyboardOption> value;
                 return (::Keyboard::keyboardOptions.Find(v) != std::nullopt);
             });
@@ -34,7 +41,7 @@ int Wrap_Keyboard::SetTextInput(lua_State* L)
 
         if (optionType)
         {
-            lua_getfield(L, 1, *optionType);
+            lua_getfield(L, 2, *optionType);
 
             if (!lua_isnoneornil(L, -1))
             {
@@ -53,7 +60,7 @@ int Wrap_Keyboard::SetTextInput(lua_State* L)
 
         if (optionHint)
         {
-            lua_getfield(L, 1, *optionHint);
+            lua_getfield(L, 2, *optionHint);
 
             if (!lua_isnoneornil(L, -1))
                 options.hint = luax::CheckString(L, -1);
@@ -64,7 +71,7 @@ int Wrap_Keyboard::SetTextInput(lua_State* L)
 
         if (optionPasscode)
         {
-            lua_getfield(L, 1, *optionPasscode);
+            lua_getfield(L, 2, *optionPasscode);
 
             if (!lua_isnoneornil(L, -1))
                 options.isPassword = luax::CheckBoolean(L, -1);
@@ -75,7 +82,7 @@ int Wrap_Keyboard::SetTextInput(lua_State* L)
 
         if (optionLength)
         {
-            lua_getfield(L, 1, *optionLength);
+            lua_getfield(L, 2, *optionLength);
 
             if (!lua_isnoneornil(L, -1))
             {

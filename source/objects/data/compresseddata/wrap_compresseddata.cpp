@@ -18,13 +18,12 @@ int Wrap_CompressedData::Clone(lua_State* L)
 int Wrap_CompressedData::GetFormat(lua_State* L)
 {
     CompressedData* compressedData = Wrap_CompressedData::CheckCompressedData(L, 1);
-    const char* formatName         = nullptr;
+    std::optional<const char*> formatName;
 
-    if (auto found = Compressor::formats.ReverseFind(compressedData->GetFormat()))
-        lua_pushstring(L, *found);
-    else
-        return luax::EnumError(L, "compressed data format", Compressor::formats.GetNames(),
-                               formatName);
+    if (!(formatName = Compressor::formats.ReverseFind(compressedData->GetFormat())))
+        formatName = "unknown";
+
+    lua_pushstring(L, *formatName);
 
     return 1;
 }

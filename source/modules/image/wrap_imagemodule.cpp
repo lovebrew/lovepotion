@@ -20,14 +20,14 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
         if (width <= 0 || height <= 0)
             return luaL_error(L, "Invalid image size.");
 
-        PixelFormat format = PIXELFORMAT_RGBA8_UNORM;
+        std::optional<PixelFormat> format = PIXELFORMAT_RGBA8_UNORM;
 
         if (!lua_isnoneornil(L, 3))
         {
-            std::optional<const char*> formatName = luaL_checkstring(L, 3);
+            const char* formatName = luaL_checkstring(L, 3);
 
-            if (!(formatName = pixelFormats.ReverseFind(format)))
-                return luax::EnumError(L, "pixel format", pixelFormats, *formatName);
+            if (!(format = pixelFormats.Find(formatName)))
+                return luax::EnumError(L, "pixel format", pixelFormats, formatName);
         }
 
         size_t numBytes   = 0;
@@ -44,7 +44,7 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
             bytes = luaL_checklstring(L, 4, &numBytes);
 
         ImageData<Console::Which>* data = nullptr;
-        luax::CatchException(L, [&]() { data = instance()->NewImageData(width, height, format); });
+        luax::CatchException(L, [&]() { data = instance()->NewImageData(width, height, *format); });
 
         if (bytes)
         {

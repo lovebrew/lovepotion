@@ -6,6 +6,8 @@
 #include <coreinit/memdefaultheap.h>
 #include <nn/swkbd.h>
 
+#include <utilities/driver/framebuffer.hpp>
+
 namespace love
 {
     template<>
@@ -16,7 +18,17 @@ namespace love
 
         Keyboard();
 
+        void Initialize();
+
         virtual ~Keyboard();
+
+        void Draw()
+        {
+            if (!this->showing)
+                return;
+
+            nn::swkbd::DrawDRC();
+        }
 
         void SetTextInput(const KeyboardOptions& options);
 
@@ -50,6 +62,8 @@ namespace love
         nn::swkbd::AppearArg appearArgs;
         FSClient* client;
 
+        bool inited;
         bool showing;
+        Screen screen;
     };
 } // namespace love

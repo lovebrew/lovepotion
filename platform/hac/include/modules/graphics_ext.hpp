@@ -14,8 +14,6 @@ namespace love
     class Graphics<Console::HAC> : public Graphics<Console::ALL>
     {
       public:
-        static constexpr const char* DEFAULT_SCREEN = "default";
-
         struct DrawCommand
         {
           public:
@@ -170,16 +168,6 @@ namespace love
         void SetScissor();
 
         void SetScissor(const Rect& scissor);
-
-        int GetWidth(Screen screen) const
-        {
-            return this->width;
-        }
-
-        int GetHeight(Screen screen) const
-        {
-            return this->height;
-        }
 
         void SetViewportSize(int width, int height);
     }; // namespace love

@@ -14,8 +14,6 @@ namespace love
     template<Console::Platform T>
     class Texture;
 
-    enum class Screen : uint8_t;
-
     template<Console::Platform T = Console::ALL>
     class Renderer
     {

@@ -24,6 +24,8 @@ class CCmdVtxRing
 
     CCmdVtxRing(const CCmdVtxRing&) = delete;
 
+    CCmdVtxRing& operator=(const CCmdVtxRing&) = delete;
+
     ~CCmdVtxRing()
     {
         m_mem.destroy();

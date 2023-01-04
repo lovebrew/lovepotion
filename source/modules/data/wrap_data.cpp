@@ -23,7 +23,7 @@ love::DataModule::ContainerType Wrap_DataModule::CheckContainerType(lua_State* L
     if (auto found = DataModule::containers.Find(string))
         return *found;
 
-    luax::EnumError(L, "container type", DataModule::containers.GetNames(), string);
+    luax::EnumError(L, "container type", DataModule::containers, string);
 
     return DataModule::CONTAINER_MAX_ENUM;
 }
@@ -36,7 +36,7 @@ int Wrap_DataModule::Hash(lua_State* L)
     if (auto found = HashFunction::functions.Find(name))
         function = *found;
     else
-        return luax::EnumError(L, "hash function", HashFunction::functions.GetNames(), name);
+        return luax::EnumError(L, "hash function", HashFunction::functions, name);
 
     HashFunction::Value value;
 
@@ -69,8 +69,7 @@ int Wrap_DataModule::Compress(lua_State* L)
     if (auto found = Compressor::formats.Find(formatName))
         format = *found;
     else
-        return luax::EnumError(L, "compressed data format", Compressor::formats.GetNames(),
-                               formatName);
+        return luax::EnumError(L, "compressed data format", Compressor::formats, formatName);
 
     int level = luaL_optinteger(L, 4, -1);
 
@@ -125,8 +124,7 @@ int Wrap_DataModule::Decompress(lua_State* L)
         if (auto found = Compressor::formats.Find(formatName))
             format = *found;
         else
-            return luax::EnumError(L, "compressed data format", Compressor::formats.GetNames(),
-                                   formatName);
+            return luax::EnumError(L, "compressed data format", Compressor::formats, formatName);
 
         const char* compressedBytes = nullptr;
         size_t compressedSize       = 0;
@@ -174,7 +172,7 @@ int Wrap_DataModule::Encode(lua_State* L)
     if (auto found = DataModule::formats.Find(formatName))
         format = *found;
     else
-        return luax::EnumError(L, "encode format", DataModule::formats.GetNames(), formatName);
+        return luax::EnumError(L, "encode format", DataModule::formats, formatName);
 
     const char* source  = nullptr;
     size_t sourceLength = 0;
@@ -234,7 +232,7 @@ int Wrap_DataModule::Decode(lua_State* L)
     if (auto found = DataModule::formats.Find(formatName))
         format = *found;
     else
-        return luax::EnumError(L, "decode format", DataModule::formats.GetNames(), formatName);
+        return luax::EnumError(L, "decode format", DataModule::formats, formatName);
 
     const char* source  = nullptr;
     size_t sourceLength = 0;

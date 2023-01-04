@@ -6,6 +6,8 @@
 #include <gx2/shaders.h>
 #include <gx2/swap.h>
 
+#include <nn/swkbd/swkbd_cpp.h>
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <malloc.h>
@@ -34,7 +36,7 @@ void Framebuffer::Create(Screen screen)
     this->modelView = glm::mat4(1.0f);
     this->transform = (Transform*)memalign(0x100, sizeof(Transform));
 
-    if (this->Is(Screen::SCREEN_TV))
+    if (this->Is(Screen::TV))
         GX2SetTVEnable(true);
     else
         GX2SetDRCEnable(true);
@@ -45,7 +47,7 @@ void Framebuffer::Create(Screen screen)
 void Framebuffer::ScanSystemMode()
 {
     /* early logic return */
-    if (this->Is(Screen::SCREEN_GAMEPAD))
+    if (this->Is(Screen::GAMEPAD))
     {
         this->mode = GX2_DRC_RENDER_MODE_SINGLE;
         return this->SetSize(854, 480);
@@ -126,7 +128,7 @@ bool Framebuffer::AllocateScanBuffer(MEMHeapHandle handle)
 
     GX2Invalidate(GX2_INVALIDATE_MODE_CPU, this->scanBuffer, this->scanBufferSize);
 
-    if (this->Is(Screen::SCREEN_TV))
+    if (this->Is(Screen::TV))
         this->SetTVScanBuffer();
     else
         this->SetDRCScanBuffer();
@@ -189,10 +191,12 @@ void Framebuffer::SetSize(int width, int height)
     this->width  = width;
     this->height = height;
 
-    if (this->Is(Screen::SCREEN_TV))
+    if (this->Is(Screen::TV))
         this->SetTVSize();
     else
         this->SetDRCSize();
+
+    love::SetScreenSize(this->id, width, height);
 
     this->InitColorBuffer();
     this->InitDepthBuffer();

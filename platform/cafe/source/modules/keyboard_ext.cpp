@@ -13,37 +13,41 @@ Keyboard<Console::CAFE>::Keyboard() :
     createArgs {},
     appearArgs {},
     client(nullptr),
+    inited(false),
     showing(false)
+{}
+
+void Keyboard<Console::CAFE>::Initialize()
 {
-    // this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
+    this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
 
-    // if (!this->client)
-    //     throw love::Exception("Failed to allocate FSClient for nn::swkbd!");
+    if (!this->client)
+        throw love::Exception("Failed to allocate FSClient for nn::swkbd!");
 
-    // const auto result = FSAddClient(this->client, FS_ERROR_FLAG_ALL);
+    const auto result = FSAddClient(this->client, FS_ERROR_FLAG_ALL);
 
-    // if (ResultCode(result).Failed())
-    //     throw love::Exception("FSAddClient: %x", result);
+    if (ResultCode(result).Failed())
+        throw love::Exception("FSAddClient: %x", result);
 
-    // this->createArgs.regionType = nn::swkbd::RegionType::USA;
-    // this->createArgs.workMemory = MEMAllocFromDefaultHeap(nn::swkbd::GetWorkMemorySize(0));
+    this->createArgs.regionType = nn::swkbd::RegionType::USA;
+    this->createArgs.workMemory = MEMAllocFromDefaultHeap(nn::swkbd::GetWorkMemorySize(0));
 
-    // if (!this->createArgs.workMemory)
-    //     throw love::Exception("No work memory for nn::swkbd!");
+    if (!this->createArgs.workMemory)
+        throw love::Exception("No work memory for nn::swkbd!");
 
-    // this->createArgs.fsClient = this->client;
+    this->createArgs.fsClient = this->client;
 
-    // if (!nn::swkbd::Create(this->createArgs))
-    //     throw love::Exception("Failed to initialize nn:swkbd!");
+    if (!nn::swkbd::Create(this->createArgs))
+        throw love::Exception("Failed to initialize nn:swkbd!");
 }
 
 Keyboard<Console::CAFE>::~Keyboard()
 {
-    // FSDelClient(this->client, FS_ERROR_FLAG_ALL);
-    // MEMFreeToDefaultHeap(this->client);
+    FSDelClient(this->client, FS_ERROR_FLAG_ALL);
+    MEMFreeToDefaultHeap(this->client);
 
-    // nn::swkbd::Destroy();
-    // MEMFreeToDefaultHeap(this->createArgs.workMemory);
+    nn::swkbd::Destroy();
+    MEMFreeToDefaultHeap(this->createArgs.workMemory);
 }
 
 void Keyboard<Console::CAFE>::Utf16toUtf8Text()

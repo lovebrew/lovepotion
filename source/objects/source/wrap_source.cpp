@@ -78,7 +78,7 @@ int Wrap_Source::Seek(lua_State* L)
     if (auto found = ::Source::unitTypes.Find(type))
         self->Seek(offset, *found);
     else
-        return luax::EnumError(L, "time unit", ::Source::unitTypes.GetNames(), type);
+        return luax::EnumError(L, "time unit", ::Source::unitTypes, type);
 
     return 0;
 }
@@ -92,7 +92,7 @@ int Wrap_Source::Tell(lua_State* L)
     if (auto found = ::Source::unitTypes.Find(type))
         lua_pushnumber(L, self->Tell(*found));
     else
-        return luax::EnumError(L, "time unit", ::Source::unitTypes.GetNames(), type);
+        return luax::EnumError(L, "time unit", ::Source::unitTypes, type);
 
     return 1;
 }
@@ -106,7 +106,7 @@ int Wrap_Source::GetDuration(lua_State* L)
     if (auto found = ::Source::unitTypes.Find(type))
         lua_pushnumber(L, self->GetDuration(*found));
     else
-        return luax::EnumError(L, "time unit", ::Source::unitTypes.GetNames(), type);
+        return luax::EnumError(L, "time unit", ::Source::unitTypes, type);
 
     return 1;
 }
@@ -239,7 +239,7 @@ int Wrap_Source::GetType(lua_State* L)
 {
     auto* self = Wrap_Source::CheckSource(L, 1);
 
-    auto type          = self->GetType();
+    auto type = self->GetType();
 
     if (auto found = ::Source::sourceTypes.ReverseFind(type))
         lua_pushstring(L, *found);

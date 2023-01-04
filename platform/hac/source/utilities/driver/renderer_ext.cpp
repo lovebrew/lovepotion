@@ -280,13 +280,9 @@ void Renderer<Console::HAC>::Register(Texture<Console::HAC>* texture, DkResHandl
 {
     this->EnsureInFrame();
 
-    auto index = -1;
+    const auto index = this->allocator.Allocate();
 
-    if (!this->allocator.Find(texture->GetHandle(), index))
-        index = this->allocator.Allocate();
-
-    this->descriptors.dirty = true;
-    handle                  = dkMakeTextureHandle(index, index);
+    handle = dkMakeTextureHandle(index, index);
 }
 
 void Renderer<Console::HAC>::UnRegister(Texture<Console::HAC>* texture)
@@ -388,14 +384,16 @@ void Renderer<Console::HAC>::SetBlendMode(const RenderState::BlendState& state)
     this->state.blend.setDstColorBlendFactor(*dstColor);
     this->state.blend.setDstAlphaBlendFactor(*dstAlpha);
 }
-
+#include <utilities/log/logfile.hpp>
 void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, SamplerState& state)
 {
+    this->EnsureInFrame();
+
     auto index = -1;
 
     if (!this->allocator.Find(texture->GetHandle(), index))
         index = this->allocator.Allocate();
-
+    LOG("%d", index);
     auto& descriptor = texture->GetDescriptor();
     auto& sampler    = texture->GetSampler();
 
@@ -532,14 +530,4 @@ void Renderer<Console::HAC>::SetViewport(const Rect& viewport)
 
     const auto ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     this->transform.projection = ortho;
-}
-
-std::optional<Screen> Renderer<Console::HAC>::CheckScreen(const char* name) const
-{
-    return gfxScreens.Find(name);
-}
-
-SmallTrivialVector<const char*, 1> Renderer<Console::HAC>::GetScreens() const
-{
-    return gfxScreens.GetNames();
 }

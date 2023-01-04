@@ -203,40 +203,40 @@ int Wrap_Graphics::GetColor(lua_State* L)
 
 int Wrap_Graphics::GetWidth(lua_State* L)
 {
-    const char* screenName = luaL_optstring(L, 1, Graphics<Console::Which>::DEFAULT_SCREEN);
-    std::optional<Screen> screen;
+    auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
+    Screen screen;
 
-    if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
-        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
+    if (!love::CheckScreenName(screenName, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), screenName);
 
-    lua_pushinteger(L, instance()->GetWidth(*screen));
+    lua_pushinteger(L, love::GetScreenWidth(screen));
 
     return 1;
 }
 
 int Wrap_Graphics::GetHeight(lua_State* L)
 {
-    const char* screenName = luaL_optstring(L, 1, Graphics<Console::Which>::DEFAULT_SCREEN);
-    std::optional<Screen> screen;
+    auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
+    Screen screen;
 
-    if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
-        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
+    if (!love::CheckScreenName(screenName, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), screenName);
 
-    lua_pushinteger(L, instance()->GetHeight(*screen));
+    lua_pushinteger(L, love::GetScreenHeight(screen));
 
     return 1;
 }
 
 int Wrap_Graphics::GetDimensions(lua_State* L)
 {
-    const char* screenName = luaL_optstring(L, 1, Graphics<Console::Which>::DEFAULT_SCREEN);
-    std::optional<Screen> screen;
+    auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
+    Screen screen;
 
-    if (!(screen = ::Renderer::Instance().CheckScreen(screenName)))
-        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), screenName);
+    if (!love::CheckScreenName(screenName, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), screenName);
 
-    lua_pushinteger(L, instance()->GetWidth(*screen));
-    lua_pushinteger(L, instance()->GetHeight(*screen));
+    lua_pushinteger(L, love::GetScreenWidth(screen));
+    lua_pushinteger(L, love::GetScreenHeight(screen));
 
     return 2;
 }
@@ -258,19 +258,19 @@ int Wrap_Graphics::IsCreated(lua_State* L)
 int Wrap_Graphics::SetActiveScreen(lua_State* L)
 {
     const char* name = luaL_checkstring(L, 1);
-    std::optional<Screen> screen;
+    Screen screen;
 
-    if (screen = ::Renderer::Instance().CheckScreen(name); !screen)
-        return luax::EnumError(L, "screen name", ::Renderer::Instance().GetScreens(), name);
+    if (!love::CheckScreenName(name, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), name);
 
-    instance()->SetActiveScreen(*screen);
+    love::SetActiveScreen(screen);
 
     return 0;
 }
 
 int Wrap_Graphics::GetScreens(lua_State* L)
 {
-    const auto screens = ::Renderer::Instance().GetScreens();
+    const auto& screens = love::GetScreens();
 
     lua_createtable(L, screens.size(), 0);
 
@@ -406,7 +406,7 @@ int Wrap_Graphics::Printf(lua_State* L)
     std::optional<Font<>::AlignMode> align;
 
     if (!(align = Font<>::alignModes.Find(alignment)))
-        return luax::EnumError(L, "alignment", Font<>::alignModes.GetNames(), alignment);
+        return luax::EnumError(L, "alignment", Font<>::alignModes, alignment);
 
     if (font != nullptr)
         luax::CatchException(L, [&]() { instance()->Printf(strings, font, wrap, *align, matrix); });

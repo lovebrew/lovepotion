@@ -33,11 +33,6 @@
 
 namespace love
 {
-    enum class Screen : uint8_t
-    {
-        SCREEN_DEFAULT
-    };
-
     template<>
     class Renderer<Console::HAC> : public Renderer<Console::ALL>
     {
@@ -143,8 +138,6 @@ namespace love
         void UnRegister(Texture<Console::Which>* texture);
 
         void SetAttributes(const vertex::attributes::Attribs& attributes);
-
-        std::optional<Screen> CheckScreen(const char* name) const;
 
         SmallTrivialVector<const char*, 1> GetScreens() const;
 
@@ -263,10 +256,6 @@ namespace love
             vertex::PRIMITIVE_TRIANGLE_STRIP, DkPrimitive_TriangleStrip,
             vertex::PRIMITIVE_QUADS,          DkPrimitive_Quads,
             vertex::PRIMITIVE_POINTS,         DkPrimitive_Points
-        };
-
-        static constexpr BidirectionalMap gfxScreens = {
-            (const char*)"default", Screen::SCREEN_DEFAULT
         };
 
       private:

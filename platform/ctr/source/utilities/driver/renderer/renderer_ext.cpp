@@ -51,22 +51,6 @@ Renderer<Console::CTR>::Info Renderer<Console::CTR>::GetRendererInfo()
     return this->info;
 }
 
-std::optional<Screen> Renderer<Console::CTR>::CheckScreen(const char* name) const
-{
-    if (this->Get3D())
-        return gfx3dScreens.Find(name);
-
-    return gfx2dScreens.Find(name);
-}
-
-SmallTrivialVector<const char*, 3> Renderer<Console::CTR>::GetScreens() const
-{
-    if (this->Get3D())
-        return gfx3dScreens.GetNames();
-
-    return gfx2dScreens.GetNames();
-}
-
 void Renderer<Console::CTR>::CreateFramebuffers()
 {
 
@@ -105,12 +89,12 @@ void Renderer<Console::CTR>::EnsureInFrame()
 
 void Renderer<Console::CTR>::BindFramebuffer()
 {
-    if ((uint8_t)Graphics<Console::ALL>::activeScreen < 0)
+    if (!IsActiveScreenValid())
         return;
 
     this->EnsureInFrame();
 
-    this->current = this->targets[(uint8_t)Graphics<Console::ALL>::activeScreen];
+    this->current = this->targets[love::GetActiveScreen()];
     C2D_SceneBegin(this->current);
 }
 
@@ -150,7 +134,7 @@ void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
     if (!graphics)
         throw love::Exception("Graphics module not loaded.");
 
-    const auto width = graphics->GetWidth(Graphics<>::activeScreen);
+    const auto width = love::GetScreenWidth();
 
     uint32_t left   = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
     uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;

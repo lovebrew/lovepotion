@@ -184,21 +184,3 @@ void Graphics<Console::CTR>::SetScissor(const Rect& scissor)
     Graphics<Console::ALL>::SetScissor(scissor);
     ::Renderer::Instance().SetScissor(scissor, this->IsRenderTargetActive());
 }
-
-int Graphics<Console::CTR>::GetWidth(Screen screen) const
-{
-    switch (screen)
-    {
-        case Screen::SCREEN_LEFT:
-        case Screen::SCREEN_RIGHT:
-        default:
-            return 400;
-        case Screen::SCREEN_BOTTOM:
-            return 320;
-    }
-}
-
-int Graphics<Console::CTR>::GetHeight(Screen screen) const
-{
-    return 240;
-}

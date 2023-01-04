@@ -19,13 +19,6 @@
 
 namespace love
 {
-    enum class Screen : uint8_t
-    {
-        SCREEN_LEFT,
-        SCREEN_RIGHT,
-        SCREEN_BOTTOM
-    };
-
     template<>
     class Renderer<Console::CTR> : public Renderer<Console::ALL>
     {
@@ -177,18 +170,6 @@ namespace love
             RenderState::COMPARE_NOTEQUAL, GPU_NOTEQUAL,
             RenderState::COMPARE_ALWAYS,   GPU_ALWAYS,
             RenderState::COMPARE_NEVER,    GPU_NEVER
-        };
-
-        static constexpr BidirectionalMap gfx3dScreens = {
-            "left",   Screen::SCREEN_LEFT,
-            "right",  Screen::SCREEN_RIGHT,
-            "bottom", Screen::SCREEN_BOTTOM,
-            "top",    Screen::SCREEN_LEFT
-        };
-
-        static constexpr BidirectionalMap gfx2dScreens = {
-            "top",    Screen::SCREEN_LEFT,
-            "bottom", Screen::SCREEN_BOTTOM
         };
         // clang-format on
 

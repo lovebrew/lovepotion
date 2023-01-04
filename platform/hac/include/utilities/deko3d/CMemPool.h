@@ -20,6 +20,10 @@ class CMemPool
         void* m_cpuAddr;
         DkGpuAddr m_gpuAddr;
 
+        Block(const Block&) = delete;
+
+        Block& operator=(const Block&) = delete;
+
         constexpr void* cpuOffset(uint32_t offset) const
         {
             return m_cpuAddr ? ((u8*)m_cpuAddr + offset) : nullptr;
@@ -43,6 +47,8 @@ class CMemPool
         uint32_t m_end;
 
         Slice(const Slice&) = delete;
+
+        Slice& operator=(const Slice&) = delete;
 
         constexpr uint32_t getSize() const
         {
@@ -75,7 +81,6 @@ class CMemPool
 
   public:
     static constexpr uint32_t DefaultBlockSize = 0x800000;
-
     class Handle
     {
         Slice* m_slice;
@@ -83,27 +88,22 @@ class CMemPool
       public:
         constexpr Handle(Slice* slice = nullptr) : m_slice { slice }
         {}
-
         constexpr operator bool() const
         {
             return m_slice != nullptr;
         }
-
         constexpr operator Slice*() const
         {
             return m_slice;
         }
-
         constexpr bool operator!() const
         {
             return !m_slice;
         }
-
         constexpr bool operator==(Handle const& rhs) const
         {
             return m_slice == rhs.m_slice;
         }
-
         constexpr bool operator!=(Handle const& rhs) const
         {
             return m_slice != rhs.m_slice;
@@ -158,9 +158,11 @@ class CMemPool
 
     ~CMemPool();
 
+    Handle allocate(uint32_t size, uint32_t alignment = DK_CMDMEM_ALIGNMENT);
+
     CMemPool(const CMemPool&) = delete;
 
-    Handle allocate(uint32_t size, uint32_t alignment = DK_CMDMEM_ALIGNMENT);
+    CMemPool& operator=(const CMemPool&) = delete;
 };
 
 constexpr bool operator<(uint32_t lhs, CMemPool::Slice const& rhs)

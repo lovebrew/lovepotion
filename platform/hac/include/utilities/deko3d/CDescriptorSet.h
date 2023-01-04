@@ -24,6 +24,8 @@ class CDescriptorSet
 
     CDescriptorSet(const CDescriptorSet&) = delete;
 
+    CDescriptorSet& operator=(const CDescriptorSet&) = delete;
+
     ~CDescriptorSet()
     {
         m_mem.destroy();

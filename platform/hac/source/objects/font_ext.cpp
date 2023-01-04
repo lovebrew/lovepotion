@@ -6,6 +6,8 @@
 
 #include <objects/texture_ext.hpp>
 
+#include <utilities/functions.hpp>
+
 #include <utf8.h>
 
 #include <algorithm>
@@ -419,7 +421,7 @@ void Font<Console::HAC>::GetCodepointsFromString(const ColoredStrings& strings,
     {
         IndexedColor color = codepoints.colors[0];
 
-        if (color.index == 0 && color.color == Color::WHITE)
+        if (color.index == 0 && color.color == Color(Color::WHITE))
             codepoints.colors.pop_back();
     }
 }
@@ -576,7 +578,92 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
     std::vector<DrawCommand> commands;
     vertices.reserve(text.codepoints.size() * 4);
 
-    /* todo: finish */
+    std::vector<int> widths;
+    std::vector<ColoredCodepoints> lines;
+
+    this->GetWrap(text, wrap, lines, &widths);
+
+    float y        = 0.0f;
+    float maxWidth = 0.0f;
+
+    for (int index = 0; index < (int)lines.size(); index++)
+    {
+        const auto& line = lines[index];
+        float width      = (float)widths[index];
+
+        Vector2 offset(0.0f, floorf(y));
+        float extraSpacing = 0.0f;
+
+        maxWidth = std::max(width, maxWidth);
+
+        switch (align)
+        {
+            case ALIGN_RIGHT:
+            {
+                offset.x = floorf(wrap - width);
+                break;
+            }
+            case ALIGN_CENTER:
+            {
+                offset.x = floorf((wrap - width) / 2.0f);
+                break;
+            }
+            case ALIGN_JUSTIFY:
+            {
+                float spaces = std::count(line.codepoints.begin(), line.codepoints.end(), ' ');
+
+                if (width < wrap && spaces >= 1)
+                    extraSpacing = (wrap - width) / spaces;
+                else
+                    extraSpacing = 0.0f;
+
+                break;
+            }
+            case ALIGN_LEFT:
+            default:
+                break;
+        }
+
+        std::vector<DrawCommand> newCommands =
+            this->GenerateVertices(line, constantColor, vertices, extraSpacing, offset);
+
+        if (!newCommands.empty())
+        {
+            auto first = newCommands.begin();
+
+            /*
+            ** if the first draw command has the same texture
+            ** as the last in the existing list and vertices
+            ** are in-order, we can combine them
+            */
+            if (!commands.empty())
+            {
+                auto previous = commands.back();
+
+                size_t total = (previous.start + previous.count);
+                if (previous.texture == first->texture && total == first->start)
+                {
+                    commands.back().count += first->count;
+                    ++first;
+                }
+            }
+
+            commands.insert(commands.end(), first, newCommands.end());
+        }
+        y += this->GetHeight() * this->GetLineHeight();
+    }
+
+    if (info != nullptr)
+    {
+        info->width  = (int)maxWidth;
+        info->height = (int)y;
+    }
+
+    if (cacheId != this->textureCacheID)
+    {
+        vertices.clear();
+        commands = this->GenerateVerticesFormatted(text, constantColor, wrap, align, vertices);
+    }
 
     return commands;
 }
@@ -630,7 +717,7 @@ void Font<Console::HAC>::Printf(Graphics<Console::HAC>& graphics, const ColoredS
     std::vector<DrawCommand> commands =
         this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
 
-    // printv(gfx, m, drawcommands, vertices);
+    this->Printv(graphics, matrix, commands, vertices);
 }
 
 void Font<Console::HAC>::SetSamplerState(const SamplerState& state)
@@ -639,32 +726,264 @@ void Font<Console::HAC>::SetSamplerState(const SamplerState& state)
         texture->SetSamplerState(state);
 }
 
-/* todo */
 int Font<Console::HAC>::GetWidth(std::string_view text)
 {
-    return 0;
+    if (text.size() == 0)
+        return 0;
+
+    int maxWidth = 0;
+
+    size_t position = 0;
+    int start       = 0;
+
+    while ((position = love::get_line(text, start)) != std::string::npos)
+    {
+        int width             = 0;
+        std::string_view line = text.substr(start, (position - start));
+
+        try
+        {
+            Utf8Iterator begin(line.begin(), line.begin(), line.end());
+            Utf8Iterator end(line.end(), line.begin(), line.end());
+
+            while (begin != end)
+            {
+                uint32_t codepoint = *begin++;
+
+                if (codepoint == '\r')
+                    continue;
+
+                width += this->GetWidth(codepoint);
+            }
+
+            start += position + 1;
+        }
+        catch (utf8::exception& e)
+        {
+            throw love::Exception("UTF-8 decoding error: %s", e.what());
+        }
+
+        maxWidth = std::max(maxWidth, width);
+    }
+
+    return maxWidth;
 }
 
 int Font<Console::HAC>::GetWidth(uint32_t glyph)
 {
-    return 0;
+    const auto& _glyph = this->FindGlyph(glyph);
+
+    return _glyph.spacing;
 }
 
 bool Font<Console::HAC>::HasGlyphs(std::string_view text) const
 {
-    return false;
+    if (text.size() == 0)
+        return false;
+
+    try
+    {
+        Utf8Iterator begin(text.begin(), text.begin(), text.end());
+        Utf8Iterator end(text.end(), text.begin(), text.end());
+
+        while (begin != end)
+        {
+            uint32_t codepoint = *begin++;
+
+            if (!this->HasGlyph(codepoint))
+                return false;
+        }
+    }
+    catch (utf8::exception& e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
+
+    return true;
 }
 
 bool Font<Console::HAC>::HasGlyph(uint32_t glyph) const
 {
+    for (auto& rasterizer : this->rasterizers)
+    {
+        if (rasterizer->HasGlyph(glyph))
+            return true;
+    }
+
     return false;
 }
 
 void Font<Console::HAC>::GetWrap(const std::vector<ColoredString>& text, float wraplimit,
-                                 std::vector<std::string>& lines, std::vector<int>* line_widths)
-{}
+                                 std::vector<std::string>& lines, std::vector<int>* lineWidths)
+{
+    ColoredCodepoints codepoints {};
+    Font::GetCodepointsFromString(text, codepoints);
+
+    std::vector<ColoredCodepoints> codepointLines {};
+    this->GetWrap(codepoints, wraplimit, codepointLines, lineWidths);
+
+    std::string line;
+
+    for (const ColoredCodepoints& codepoints : codepointLines)
+    {
+        line.clear();
+        line.reserve(codepoints.codepoints.size());
+
+        for (uint32_t codepoint : codepoints.codepoints)
+        {
+            char character[5] = { '\0' };
+            char* end         = utf8::unchecked::append(codepoint, character);
+            line.append(character, end - character);
+        }
+
+        lines.push_back(line);
+    }
+}
 
 void Font<Console::HAC>::GetWrap(const ColoredCodepoints& codepoints, float wraplimit,
                                  std::vector<ColoredCodepoints>& lines,
                                  std::vector<int>* linewidths)
-{}
+{
+    float width = 0.0f;
+
+    float widthBeforeLastSpace = 0.0f;
+    float widthOfTrailingSpace = 0.0f;
+
+    uint32_t previous  = 0;
+    int lastSpaceIndex = -1;
+
+    Color currentColor(1.0f, 1.0f, 1.0f, 1.0f);
+    bool addCurrentColor  = false;
+    int currentColorIndex = -1;
+    int endColorIndex     = (int)codepoints.colors.size() - 1;
+
+    ColoredCodepoints wrappedLine {};
+
+    int index = 0;
+    while (index < (int)codepoints.codepoints.size())
+    {
+        uint32_t current = codepoints.codepoints[index];
+
+        /* determine current color */
+        if (currentColorIndex < endColorIndex &&
+            codepoints.colors[currentColorIndex + 1].index == index)
+        {
+            currentColor = codepoints.colors[currentColorIndex + 1].color;
+            currentColorIndex++;
+            addCurrentColor = true;
+        }
+
+        /* split at newlines */
+        if (current == Font::NEWLINE_GLYPH)
+        {
+            lines.push_back(wrappedLine);
+
+            /* ignore width of trailing spaces for individual lines */
+            if (linewidths)
+                linewidths->push_back(width - widthOfTrailingSpace);
+
+            /* keep previously set color */
+            addCurrentColor = true;
+            width = widthBeforeLastSpace = widthOfTrailingSpace = 0.0f;
+
+            previous       = 0;
+            lastSpaceIndex = -1;
+            wrappedLine.codepoints.clear();
+            wrappedLine.colors.clear();
+
+            index++;
+
+            continue;
+        }
+
+        if (current == Font::CARRIAGE_GLYPH)
+        {
+            index++;
+            continue;
+        }
+
+        const auto& glyph = this->FindGlyph(current);
+
+        float charWidth = glyph.spacing + this->GetKerning(previous, current);
+        float newWidth  = width + charWidth;
+
+        /* wrap once we hit the line limit, except on newlines */
+        if (current != Font::SPACE_GLYPH && newWidth > wraplimit)
+        {
+            /* skip the first character in the line if it exceeds the limit */
+            if (wrappedLine.codepoints.empty())
+                index++;
+            else if (lastSpaceIndex != -1)
+            {
+                /* 'rewind' to last seen space, if the line contains one */
+                char last = wrappedLine.codepoints.back();
+                while (!wrappedLine.codepoints.empty() && last != Font::SPACE_GLYPH)
+                    wrappedLine.codepoints.pop_back();
+
+                int lastColorIndex = wrappedLine.colors.back().index;
+                size_t size        = wrappedLine.codepoints.size();
+                while (!wrappedLine.colors.empty() && lastColorIndex >= (int)size)
+                    wrappedLine.colors.pop_back();
+
+                /* 'rewind' to the last color */
+                for (int colorIndex = currentColorIndex; colorIndex >= 0; colorIndex--)
+                {
+                    if (codepoints.colors[colorIndex].index <= lastSpaceIndex)
+                    {
+                        currentColor      = codepoints.colors[colorIndex].color;
+                        currentColorIndex = colorIndex;
+                        break;
+                    }
+                }
+
+                width = widthBeforeLastSpace;
+                index = lastSpaceIndex;
+                index++;
+            }
+
+            lines.push_back(wrappedLine);
+
+            if (linewidths)
+                linewidths->push_back(width);
+
+            addCurrentColor = true;
+            previous        = 0;
+            width = widthBeforeLastSpace = widthOfTrailingSpace = 0.0f;
+
+            wrappedLine.codepoints.clear();
+            wrappedLine.colors.clear();
+            lastSpaceIndex = -1;
+
+            continue;
+        }
+
+        if (previous != Font::SPACE_GLYPH && current == Font::SPACE_GLYPH)
+            widthBeforeLastSpace = width;
+
+        width    = newWidth;
+        previous = current;
+
+        if (addCurrentColor)
+        {
+            wrappedLine.colors.push_back({ currentColor, (int)wrappedLine.codepoints.size() });
+            addCurrentColor = false;
+        }
+
+        wrappedLine.codepoints.push_back(current);
+
+        if (current == Font::SPACE_GLYPH)
+        {
+            lastSpaceIndex       = index;
+            widthOfTrailingSpace = charWidth;
+        }
+        else if (current != Font::NEWLINE_GLYPH)
+            widthOfTrailingSpace = 0.0f;
+
+        index++;
+    }
+
+    lines.push_back(wrappedLine);
+
+    if (linewidths)
+        linewidths->push_back(width - widthOfTrailingSpace);
+}

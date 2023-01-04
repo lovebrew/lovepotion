@@ -58,10 +58,6 @@ namespace love
 
         void SetScissor(const Rect& rectangle);
 
-        int GetWidth(Screen screen) const;
-
-        int GetHeight(Screen screen) const;
-
         float GetCurrentDepth() const
         {
             return CURRENT_DEPTH;

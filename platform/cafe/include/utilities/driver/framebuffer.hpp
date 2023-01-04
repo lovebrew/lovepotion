@@ -13,12 +13,6 @@
 
 namespace love
 {
-    enum class Screen : uint8_t
-    {
-        SCREEN_TV,
-        SCREEN_GAMEPAD
-    };
-
     class Framebuffer
     {
       public:
@@ -51,9 +45,14 @@ namespace love
             return { (float)this->width, (float)this->height };
         }
 
-        GX2ColorBuffer GetBuffer()
+        GX2ColorBuffer& GetBuffer()
         {
             return this->colorBuffer;
+        }
+
+        GX2DepthBuffer& GetDepthBuffer()
+        {
+            return this->depthBuffer;
         }
 
         /*

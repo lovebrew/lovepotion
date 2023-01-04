@@ -1,5 +1,7 @@
 #pragma once
 
+#include <common/screen_ext.hpp>
+
 #include <string_view>
 
 namespace love

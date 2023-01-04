@@ -28,8 +28,7 @@ int Wrap_Audio::NewSource(lua_State* L)
             if (auto found = ::Source::sourceTypes.Find(typeName))
                 type = *found;
             else
-                return luax::EnumError(L, "source type", ::Source::sourceTypes.GetNames(),
-                                       typeName);
+                return luax::EnumError(L, "source type", ::Source::sourceTypes, typeName);
 
             if (type == ::Source::TYPE_QUEUE)
                 return luaL_error(L, "Cannot create queueable sources using newSource. Use "

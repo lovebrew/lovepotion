@@ -122,12 +122,6 @@ namespace love
 
         void UseProgram(const WHBGfxShaderGroup& group);
 
-        std::optional<Screen> CheckScreen(const char* name) const;
-
-        SmallTrivialVector<const char*, 2> GetScreens() const;
-
-        Vector2 GetFrameBufferSize(Screen screen);
-
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {
             PIXELFORMAT_R8_UNORM,         GX2_SURFACE_FORMAT_UNORM_R8,
@@ -204,12 +198,7 @@ namespace love
             vertex::PRIMITIVE_TRIANGLE_FAN,   GX2_PRIMITIVE_MODE_TRIANGLE_FAN,
             vertex::PRIMITIVE_TRIANGLE_STRIP, GX2_PRIMITIVE_MODE_TRIANGLE_STRIP,
             vertex::PRIMITIVE_QUADS,          GX2_PRIMITIVE_MODE_QUADS,
-            vertex::PRIMITIVE_POINTS,         (GX2PrimitiveMode)-1
-        };
-
-        static constexpr BidirectionalMap gfxScreens =  {
-            "tv",      Screen::SCREEN_TV,
-            "gamepad", Screen::SCREEN_GAMEPAD
+            vertex::PRIMITIVE_POINTS,         GX2_PRIMITIVE_MODE_POINTS
         };
         // clang-format on
 
@@ -217,14 +206,11 @@ namespace love
         struct GX2RendererState
         {
             GX2FrontFace winding;
-            union
-            {
-                bool front;
-                bool back;
-            } cull;
+            bool cullFront;
+            bool cullBack;
         } renderState;
 
-        std::vector<std::shared_ptr<Graphics<Console::CAFE>::DrawBuffer>> buffers;
+        std::vector<std::shared_ptr<DrawBuffer>> buffers;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 
@@ -239,7 +225,7 @@ namespace love
         bool inForeground;
         void* commandBuffer;
 
-        Framebuffer current;
+        Framebuffer* current;
         GX2ContextState* state;
 
         std::map<Screen, Framebuffer> framebuffers;

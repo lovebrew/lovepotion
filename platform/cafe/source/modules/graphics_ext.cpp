@@ -136,19 +136,17 @@ void Graphics<Console::CAFE>::SetColor(const Color& color)
     Renderer<Console::CAFE>::Instance().SetBlendColor(color);
 }
 
-int Graphics<Console::CAFE>::GetWidth(Screen screen) const
-{
-    return Renderer<Console::CAFE>::Instance().GetFrameBufferSize(screen).x;
-}
-
-int Graphics<Console::CAFE>::GetHeight(Screen screen) const
-{
-    return Renderer<Console::CAFE>::Instance().GetFrameBufferSize(screen).y;
-}
-
 bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
 {
-    ::Renderer::Instance();
+    try
+    {
+        ::Renderer::Instance();
+    }
+    catch (love::Exception&)
+    {
+        throw;
+    }
+
     this->RestoreState(this->states.back());
 
     this->SetViewportSize(width, height);

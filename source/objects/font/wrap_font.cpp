@@ -113,10 +113,10 @@ int Wrap_Font::SetFilter(lua_State* L)
     std::optional<SamplerState::FilterMode> magOpt;
 
     if (!(minOpt = SamplerState::filterModes.Find(min)))
-        return luax::EnumError(L, "filter mode", SamplerState::filterModes.GetNames(), min);
+        return luax::EnumError(L, "filter mode", SamplerState::filterModes, min);
 
     if (!(magOpt = SamplerState::filterModes.Find(mag)))
-        return luax::EnumError(L, "filter mode", SamplerState::filterModes.GetNames(), mag);
+        return luax::EnumError(L, "filter mode", SamplerState::filterModes, mag);
 
     int maxAnisotropy   = luaL_optnumber(L, 4, 1.0f);
     state.maxAnisotropy = std::clamp<int>(maxAnisotropy, 1, std::numeric_limits<uint8_t>::max());

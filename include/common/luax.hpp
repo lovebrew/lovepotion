@@ -1,7 +1,9 @@
 #pragma once
 
 #include <common/type.hpp>
+
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+#include <utilities/bidirectionalmap/smallvector.hpp>
 
 extern "C"
 {
@@ -13,6 +15,7 @@ extern "C"
 #include <lutf8lib.h>
 }
 
+#include <numeric>
 #include <ranges>
 #include <set>
 #include <span>
@@ -219,6 +222,17 @@ namespace luax
         return boolean;
     }
 
+    inline std::string_view OptString(lua_State* L, int index, std::string_view string)
+    {
+        if (lua_isstring(L, index) == 1)
+        {
+            size_t length = 0;
+            return lua_tolstring(L, index, &length);
+        }
+
+        return string;
+    }
+
     inline lua_Number CheckNumberClamped(lua_State* L, int index, double min, double max)
     {
         return std::clamp(luaL_checknumber(L, index), min, max);
@@ -324,30 +338,29 @@ namespace luax
 
     int CheckIntFlag(lua_State* L, int tableIndex, const char* key);
 
-    // clang-format off
-    template<std::ranges::range Range>
-        requires (std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>)
-    int EnumError(lua_State* L, const char* enumName, const Range& values, const char* value)
-    // clang-format on
+    inline std::string concat(std::string&& first, const std::string_view& second)
     {
-        std::string enums;
-        bool first = true;
-
-        for (auto& item : values)
-        {
-            enums += (first ? "'" : ", '") + std::string(item) + "'";
-            first = false;
-        }
-
-        return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value,
-                          enums.c_str());
+        return first.empty() ? std::string(second) : first + ", " + std::string(second);
     }
 
-    template<class T>
-    int EnumError(lua_State* L, const char* enumName, const T& map, const char* value)
+    template<std::ranges::range Range>
+    requires(std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>)
+    int EnumError(lua_State* L, std::string_view type, const Range& values, std::string_view value)
+    {
+        std::string enums =
+            std::accumulate(std::begin(values), std::end(values), std::string {}, concat);
+
+        const char* enumType = std::string(value).c_str();
+        return luaL_error(L, "Invalid %s '%s', expected one of: %s", type, enumType, enums.c_str());
+    }
+
+    // clang-format off
+    template<typename K, typename V, std::size_t S, std::equivalence_relation<K, K> KC, std::equivalence_relation<V, V> VC>
+    int EnumError(lua_State* L, std::string_view enumName, const BidirectionalMap<K, V, S, KC, VC>& map, std::string_view value)
     {
         return EnumError(L, enumName, map.GetNames(), value);
     }
+    // clang-format on
 
     int Traceback(lua_State* L);
 

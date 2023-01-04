@@ -68,9 +68,12 @@ Renderer<Console::CAFE>::Renderer() :
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
     GX2SetSwapInterval(1);
 
+    if (Keyboard() != nullptr)
+        Keyboard()->Initialize();
+
     /* set up some state information */
-    this->renderState.winding   = GX2_FRONT_FACE_CCW;
-    this->renderState.cull.back = true;
+    this->renderState.winding  = GX2_FRONT_FACE_CCW;
+    this->renderState.cullBack = true;
 }
 
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
@@ -91,27 +94,27 @@ int Renderer<Console::CAFE>::OnForegroundAcquired()
     auto memOneHeap     = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
 
     /* allocate tv scan buffer */
-    if (!this->framebuffers[Screen::SCREEN_TV].AllocateScanBuffer(foregroundHeap))
+    if (!this->framebuffers[Screen::TV].AllocateScanBuffer(foregroundHeap))
         return -1;
 
     /* allocate gamepad scan buffer */
-    if (!this->framebuffers[Screen::SCREEN_GAMEPAD].AllocateScanBuffer(foregroundHeap))
+    if (!this->framebuffers[Screen::GAMEPAD].AllocateScanBuffer(foregroundHeap))
         return -2;
 
     /* invalidate tv color buffer */
-    if (!this->framebuffers[Screen::SCREEN_TV].InvalidateColorBuffer(memOneHeap))
+    if (!this->framebuffers[Screen::TV].InvalidateColorBuffer(memOneHeap))
         return -4;
 
     /* invalidate gamepad color buffer */
-    if (!this->framebuffers[Screen::SCREEN_GAMEPAD].InvalidateColorBuffer(memOneHeap))
+    if (!this->framebuffers[Screen::GAMEPAD].InvalidateColorBuffer(memOneHeap))
         return -5;
 
     /* invalidate tv depth buffer */
-    if (!this->framebuffers[Screen::SCREEN_TV].InvalidateDepthBuffer(memOneHeap))
+    if (!this->framebuffers[Screen::TV].InvalidateDepthBuffer(memOneHeap))
         return -6;
 
     /* invalidate gamepad depth buffer */
-    if (!this->framebuffers[Screen::SCREEN_GAMEPAD].InvalidateDepthBuffer(memOneHeap))
+    if (!this->framebuffers[Screen::GAMEPAD].InvalidateDepthBuffer(memOneHeap))
         return -7;
 
     return 0;
@@ -146,21 +149,19 @@ Renderer<Console::CAFE>::~Renderer()
 
 void Renderer<Console::CAFE>::EnsureInFrame()
 {
-    const auto activeScreenId = Graphics<>::activeScreen;
-    this->current             = this->framebuffers[activeScreenId];
-
+    this->current = &this->framebuffers[love::GetActiveScreen()];
     GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::Clear(const Color& color)
 {
-    GX2ClearColor(this->current, color.r, color.g, color.b, color.a);
+    GX2ClearColor(&this->current->GetBuffer(), color.r, color.g, color.b, color.a);
     GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, double depth)
 {
-    GX2ClearDepthStencilEx(this->current, depth, stencil, GX2_CLEAR_FLAGS_BOTH);
+    GX2ClearDepthStencilEx(&this->current->GetDepthBuffer(), depth, stencil, GX2_CLEAR_FLAGS_BOTH);
     GX2SetContextState(this->state);
 }
 
@@ -203,12 +204,11 @@ void Renderer<Console::CAFE>::SetMeshCullMode(vertex::CullMode mode)
 {
     bool enabled = (mode != vertex::CULL_NONE);
 
-    if (enabled && mode == vertex::CULL_FRONT)
-        GX2SetCullOnlyControl(this->renderState.winding, enabled, false);
-    else if (enabled && mode == vertex::CULL_BACK)
-        GX2SetCullOnlyControl(this->renderState.winding, false, enabled);
-    else if (!enabled)
-        GX2SetCullOnlyControl(this->renderState.winding, false, false);
+    this->renderState.cullFront = (enabled && mode == vertex::CULL_FRONT);
+    this->renderState.cullBack  = (enabled && mode == vertex::CULL_BACK);
+
+    GX2SetCullOnlyControl(this->renderState.winding, this->renderState.cullFront,
+                          this->renderState.cullBack);
 }
 
 void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
@@ -217,8 +217,8 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
     if (!(face = Renderer::windingModes.Find(winding)))
         return;
 
-    bool front = this->renderState.cull.front;
-    bool back  = this->renderState.cull.back;
+    bool front = this->renderState.cullFront;
+    bool back  = this->renderState.cullBack;
 
     GX2SetCullOnlyControl(*face, front, back);
     this->renderState.winding = *face;
@@ -237,14 +237,14 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
     }
     else
     {
-        GX2SetColorBuffer(this->current, GX2_RENDER_TARGET_0);
-        GX2SetDepthBuffer(this->current);
+        GX2SetColorBuffer(&this->current->GetBuffer(), GX2_RENDER_TARGET_0);
+        GX2SetDepthBuffer(&this->current->GetDepthBuffer());
 
         this->SetViewport(Rect::EMPTY);
         this->SetScissor(Rect::EMPTY);
     }
 
-    this->current.UseProjection();
+    this->current->UseProjection();
 }
 
 void Renderer<Console::CAFE>::Present()
@@ -252,9 +252,12 @@ void Renderer<Console::CAFE>::Present()
     /* flush commands before copying color buffers */
     GX2Flush();
 
+    if (Keyboard() != nullptr)
+        Keyboard()->Draw();
+
     /* copy our color buffers to their scan buffers */
-    this->framebuffers[Screen::SCREEN_TV].CopyScanBuffer();
-    this->framebuffers[Screen::SCREEN_GAMEPAD].CopyScanBuffer();
+    for (auto& framebuffer : this->framebuffers)
+        framebuffer.second.CopyScanBuffer();
 
     /* swap scan buffers */
     GX2SwapScanBuffers();
@@ -303,19 +306,14 @@ void Renderer<Console::CAFE>::SetSamplerState(Texture<Console::CAFE>* texture, S
     GX2InitSamplerLOD(&sampler, state.minLod, state.maxLod, state.lodBias);
 }
 
-Vector2 Renderer<Console::CAFE>::GetFrameBufferSize(Screen screen)
-{
-    return this->framebuffers[screen].GetSize();
-}
-
 void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
 {
-    GX2SetShaderModeEx(GX2_SHADER_MODE_UNIFORM_BLOCK, 48, 64, 0, 0, 200, 192);
+    GX2SetShaderMode(GX2_SHADER_MODE_UNIFORM_BLOCK);
     GX2SetFetchShader(&group.fetchShader);
     GX2SetVertexShader(group.vertexShader);
     GX2SetPixelShader(group.pixelShader);
 
-    this->current.UseProjection();
+    this->current->UseProjection();
 }
 
 bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
@@ -372,8 +370,8 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 
     if (viewport == Rect::EMPTY)
     {
-        float width  = (float)this->current.GetWidth();
-        float height = (float)this->current.GetHeight();
+        float width  = (float)this->current->GetWidth();
+        float height = (float)this->current->GetHeight();
 
         GX2SetViewport(0.0f, 0.0f, width, height, Z_NEAR, Z_FAR);
         ortho = glm::ortho(0.0f, width, height, 0.0f, Z_NEAR, Z_FAR);
@@ -384,28 +382,18 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
         ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
     }
 
-    this->current.SetProjection(ortho);
+    this->current->SetProjection(ortho);
 }
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor)
 {
     if (scissor == Rect::EMPTY)
     {
-        uint32_t width  = (uint32_t)this->current.GetWidth();
-        uint32_t height = (uint32_t)this->current.GetHeight();
+        uint32_t width  = (uint32_t)this->current->GetWidth();
+        uint32_t height = (uint32_t)this->current->GetHeight();
 
         GX2SetScissor(0, 0, width, height);
     }
     else
         GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);
-}
-
-std::optional<Screen> Renderer<Console::CAFE>::CheckScreen(const char* name) const
-{
-    return gfxScreens.Find(name);
-}
-
-SmallTrivialVector<const char*, 2> Renderer<Console::CAFE>::GetScreens() const
-{
-    return gfxScreens.GetNames();
 }

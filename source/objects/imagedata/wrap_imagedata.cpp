@@ -155,8 +155,7 @@ int Wrap_ImageData::Encode(lua_State* L)
     const char* formatName = luaL_checkstring(L, 2);
 
     if (!(format = ::ImageData::encodedFormats.Find(formatName)))
-        return luax::EnumError(L, "encoded image format", ::ImageData::encodedFormats.GetNames(),
-                               formatName);
+        return luax::EnumError(L, "encoded image format", ::ImageData::encodedFormats, formatName);
 
     bool hasFilename = false;
 

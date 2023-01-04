@@ -6,10 +6,8 @@
 #include <objects/rasterizer_ext.hpp>
 #include <objects/shader_ext.hpp>
 
+#include <utilities/driver/buffer.hpp>
 #include <utilities/driver/vertex_ext.hpp>
-
-#include <gx2/mem.h>
-#include <gx2r/buffer.h>
 
 #include <memory>
 
@@ -19,61 +17,6 @@ namespace love
     class Graphics<Console::CAFE> : public Graphics<Console::ALL>
     {
       public:
-        struct DrawBuffer
-        {
-          public:
-            DrawBuffer(int elements)
-            {
-                this->buffer.elemCount = elements;
-                this->buffer.elemSize  = vertex::VERTEX_SIZE;
-                this->buffer.flags     = DrawBuffer::GX2R_BUFFER_FLAGS;
-
-                this->valid = GX2RCreateBuffer(&this->buffer);
-            };
-
-            DrawBuffer(DrawBuffer&&) = delete;
-
-            DrawBuffer(const DrawBuffer&) = delete;
-
-            DrawBuffer& operator=(const DrawBuffer&) = delete;
-
-            ~DrawBuffer()
-            {
-                if (!this->valid)
-                    return;
-
-                GX2RDestroyBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-            }
-
-            GX2RBuffer* GetBuffer()
-            {
-                return &this->buffer;
-            }
-
-            bool IsValid() const
-            {
-                return this->valid;
-            }
-
-            template<typename T>
-            void LockScope(const T& func)
-            {
-                if (!this->valid)
-                    return;
-
-                func((vertex::Vertex*)GX2RLockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE));
-                GX2RUnlockBufferEx(&this->buffer, GX2R_RESOURCE_BIND_NONE);
-            }
-
-          private:
-            static constexpr auto GX2R_BUFFER_FLAGS =
-                GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
-                GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
-
-            GX2RBuffer buffer;
-            bool valid;
-        };
-
         struct DrawCommand
         {
           public:
@@ -105,40 +48,38 @@ namespace love
 
             void FillVertices(const vertex::Vertex* data)
             {
-                this->buffer = std::make_shared<DrawBuffer>(this->count);
+                this->buffer  = std::make_shared<DrawBuffer>(this->count);
+                auto vertices = this->buffer->Lock();
 
-                this->buffer->LockScope([&](vertex::Vertex* buffer) {
-                    for (size_t index = 0; index < this->count; index++)
+                for (size_t index = 0; index < this->count; index++)
+                {
+                    // clang-format off
+                    vertices[index] =
                     {
-                        // clang-format off
-                        buffer[index] =
-                        {
-                            .position = { this->positions[index].x, this->positions[index].y, 0 },
-                            .color    = data[index].color,
-                            .texcoord = data[index].texcoord
-                        };
-                        // clang-format on
-                    }
-                });
+                        .position = { this->positions[index].x, this->positions[index].y, 0 },
+                        .color    = data[index].color,
+                        .texcoord = data[index].texcoord
+                    };
+                    // clang-format on
+                }
             }
 
             void FillVertices(const Color& color, const Vector2* textureCoords)
             {
-                this->buffer = std::make_shared<DrawBuffer>(this->count);
+                this->buffer  = std::make_shared<DrawBuffer>(this->count);
+                auto vertices = this->buffer->Lock();
 
-                this->buffer->LockScope([&](vertex::Vertex* buffer) {
-                    for (size_t index = 0; index < this->count; index++)
+                for (size_t index = 0; index < this->count; index++)
+                {
+                    // clang-format off
+                    vertices[index] =
                     {
-                        // clang-format off
-                        buffer[index] =
-                        {
-                            .position = { this->positions[index].x, this->positions[index].y, 0 },
-                            .color    = color.array(),
-                            .texcoord = { textureCoords[index].x, textureCoords[index].y }
-                        };
-                        // clang-format on
-                    }
-                });
+                        .position = { this->positions[index].x, this->positions[index].y, 0 },
+                        .color    = color.array(),
+                        .texcoord = { textureCoords[index].x, textureCoords[index].y }
+                    };
+                    // clang-format on
+                }
             }
 
             std::unique_ptr<Vector2[]> positions;
@@ -213,10 +154,6 @@ namespace love
         void SetScissor();
 
         void SetScissor(const Rect& scissor);
-
-        int GetWidth(Screen screen) const;
-
-        int GetHeight(Screen screen) const;
 
         void SetViewportSize(int width, int height);
 

@@ -28,7 +28,7 @@ int Wrap_Sound::NewDecoder(lua_State* L)
         if (auto found = Decoder::streamSources.Find(source))
             sourceType = *found;
         else
-            return luax::EnumError(L, "stream type", Decoder::streamSources.GetNames(), source);
+            return luax::EnumError(L, "stream type", Decoder::streamSources, source);
 
         if (sourceType == Decoder::STREAM_FILE)
         {
