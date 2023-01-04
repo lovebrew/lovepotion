@@ -1,12 +1,10 @@
 #pragma once
 
-#include <3ds.h>
-
-#include <span>
+#include <common/screen.hpp>
 
 namespace love
 {
-    enum Screen
+    enum Screen : int8_t
     {
         LEFT,
         RIGHT,
@@ -33,21 +31,4 @@ namespace love
         { Screen::BOTTOM, "bottom", 320, 240 }
     };
     // clang-format on
-
-    std::span<const ScreenInfo> GetScreenInfo()
-    {
-        if (!gfxIs3D())
-            return { altScreenInfo };
-        else if (gfxIsWide())
-            return { wideScreenInfo };
-        else
-            return { screenInfo };
-    }
-
-    const ScreenInfo& GetScreenInfo(Screen id)
-    {
-        const auto& info = GetScreenInfo();
-
-        return info[id];
-    }
 } // namespace love

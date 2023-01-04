@@ -11,7 +11,7 @@ namespace love
     };
 
     // clang-format off
-    static constinit ScreenInfo screenInfo[0x02] =
+    inline constinit ScreenInfo screenInfo[0x02] =
     {
         { Screen::TV,      "tv",      -1, -1 },
         { Screen::GAMEPAD, "gamepad", -1, -1 }

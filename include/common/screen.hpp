@@ -6,6 +6,8 @@
 
 #include <utilities/bidirectionalmap/smallvector.hpp>
 
+#include <utilities/log/logfile.hpp>
+
 namespace love
 {
     struct ScreenInfo
@@ -46,19 +48,24 @@ namespace love
 
     inline int GetScreenWidth(Screen id = currentScreen)
     {
-        auto& info = GetScreenInfo(id);
+        const auto& info = GetScreenInfo(id);
+        LOG("%d", info.width);
+
         return info.width;
     }
 
     inline int GetScreenHeight(Screen id = currentScreen)
     {
-        auto& info = GetScreenInfo(id);
+        const auto& info = GetScreenInfo(id);
+        LOG("%d", info.height);
+
         return info.height;
     }
 
     inline std::string_view GetScreenName(Screen id = currentScreen)
     {
-        auto& info = GetScreenInfo(id);
+        const auto& info = GetScreenInfo(id);
+
         return info.name;
     }
 

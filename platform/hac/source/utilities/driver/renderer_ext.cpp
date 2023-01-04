@@ -154,6 +154,7 @@ void Renderer<Console::HAC>::CreateFramebuffers()
         dk::SwapchainMaker { this->device, nwindowGetDefault(), this->rendertargets }.create();
 
     this->viewport = { 0, 0, width, height };
+    love::SetScreenSize(width, height);
 }
 
 void Renderer<Console::HAC>::DestroyFramebuffers()
@@ -384,7 +385,7 @@ void Renderer<Console::HAC>::SetBlendMode(const RenderState::BlendState& state)
     this->state.blend.setDstColorBlendFactor(*dstColor);
     this->state.blend.setDstAlphaBlendFactor(*dstAlpha);
 }
-#include <utilities/log/logfile.hpp>
+
 void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, SamplerState& state)
 {
     this->EnsureInFrame();
@@ -393,7 +394,7 @@ void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, Sam
 
     if (!this->allocator.Find(texture->GetHandle(), index))
         index = this->allocator.Allocate();
-    LOG("%d", index);
+
     auto& descriptor = texture->GetDescriptor();
     auto& sampler    = texture->GetSampler();
 

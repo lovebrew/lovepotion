@@ -10,7 +10,7 @@ namespace love
     };
 
     // clang-format off
-    static constinit ScreenInfo screenInfo[0x01] =
+    inline constinit ScreenInfo screenInfo[0x01] =
     {
         { Screen::DEFAULT, "default", -1, -1 },
     };
