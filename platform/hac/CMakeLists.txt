@@ -23,7 +23,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/matrix_ext.cpp
     source/common/screen_ext.cpp
     source/modules/fontmodule_ext.cpp
-    source/modules/wrap_fontmodule_ext.cpp
     source/modules/graphics_ext.cpp
     source/modules/imagemodule_ext.cpp
     source/modules/joystickmodule_ext.cpp
@@ -32,16 +31,19 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
     source/modules/window_ext.cpp
+    source/modules/wrap_fontmodule_ext.cpp
     source/objects/font_ext.cpp
     source/objects/imagedata_ext.cpp
     source/objects/joystick_ext.cpp
+    source/objects/rasterizer_ext.cpp
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp
     source/objects/texture_ext.cpp
-    source/objects/rasterizer_ext.cpp
+    source/objects/wrap_font_ext.cpp
     source/objects/wrap_imagedata_ext.cpp
     source/objects/wrap_joystick_ext.cpp
     source/runtime.cpp
+    source/utilities/driver/CImage.cpp
     source/utilities/driver/CIntrusiveTree.cpp
     source/utilities/driver/CMemPool.cpp
     source/utilities/driver/dsp_ext.cpp

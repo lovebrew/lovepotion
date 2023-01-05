@@ -73,10 +73,10 @@ int Wrap_ImageData::__MapPixelUnsafe(lua_State* L)
 }
 
 // clang-format off
-static constexpr luaL_Reg extensions[] =
+static constexpr luaL_Reg functions[] =
 {
     { "_mapPixelUnsafe", Wrap_ImageData::__MapPixelUnsafe }
 };
 // clang-forma ton
 
-std::span<const luaL_Reg> Wrap_ImageData::extensions = extensions;
+std::span<const luaL_Reg> Wrap_ImageData::extensions = functions;

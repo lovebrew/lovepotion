@@ -2,14 +2,15 @@
 
 #include <utilities/result.hpp>
 
-#include <codecvt>
-#include <locale>
-#include <string>
+#include <utf8.h>
+
+#include <malloc.h>
 
 using namespace love;
 
 Keyboard<Console::CAFE>::Keyboard() :
     Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH)),
+    state(nullptr),
     createArgs {},
     appearArgs {},
     client(nullptr),
@@ -19,7 +20,10 @@ Keyboard<Console::CAFE>::Keyboard() :
 
 void Keyboard<Console::CAFE>::Initialize()
 {
+    this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
+
     this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
+    GX2SetupContextStateEx(this->state, false);
 
     if (!this->client)
         throw love::Exception("Failed to allocate FSClient for nn::swkbd!");
@@ -52,11 +56,18 @@ Keyboard<Console::CAFE>::~Keyboard()
 
 void Keyboard<Console::CAFE>::Utf16toUtf8Text()
 {
-    const auto* str = nn::swkbd::GetInputFormString();
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> to_utf8;
+    const auto* line = nn::swkbd::GetInputFormString();
+    const auto utf8  = utf8::utf16to8(line);
 
-    std::string converted = to_utf8.to_bytes(str);
-    std::copy_n(converted.c_str(), converted.size(), this->text.get());
+    std::copy_n(utf8.c_str(), utf8.size(), this->text.get());
+}
+
+static nn::swkbd::PasswordMode GetPasswordMode(bool isPassword)
+{
+    if (isPassword)
+        return nn::swkbd::PasswordMode::Fade;
+
+    return nn::swkbd::PasswordMode::Clear;
 }
 
 void Keyboard<Console::CAFE>::SetTextInput(const KeyboardOptions& options)
@@ -66,14 +77,11 @@ void Keyboard<Console::CAFE>::SetTextInput(const KeyboardOptions& options)
 
     this->appearArgs.keyboardArg.configArg.languageType = nn::swkbd::LanguageType::English;
 
-    /* utf8 to utf16le needed */
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> to_utf16;
-    std::u16string hintText = to_utf16.from_bytes(options.hint.data());
+    const auto hintText = utf8::utf8to16(options.hint);
 
     this->appearArgs.inputFormArg.hintText      = hintText.c_str();
     this->appearArgs.inputFormArg.maxTextLength = options.maxLength;
-    this->appearArgs.inputFormArg.passwordMode =
-        options.isPassword ? nn::swkbd::PasswordMode::Fade : nn::swkbd::PasswordMode::Clear;
+    this->appearArgs.inputFormArg.passwordMode  = GetPasswordMode(options.isPassword);
 
     if (!nn::swkbd::AppearInputForm(this->appearArgs))
         return;

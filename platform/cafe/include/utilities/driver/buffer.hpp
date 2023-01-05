@@ -42,8 +42,8 @@ namespace love
             }
 
           private:
-            Vertex* data;
             GX2RBuffer* buffer;
+            Vertex* data;
         };
 
       public:

@@ -16,7 +16,7 @@ namespace love
 
         virtual ~Shader();
 
-        void Attach();
+        void Attach(bool forced = false);
 
         static void AttachDefault(StandardShader type);
 

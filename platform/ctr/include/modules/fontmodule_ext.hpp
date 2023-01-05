@@ -20,6 +20,11 @@ namespace love
             this->font = C2D_FontLoadSystem(region);
         }
 
+        ~SystemFont()
+        {
+            C2D_FontFree(this->font);
+        }
+
         void* GetData() const override
         {
             return nullptr;
@@ -33,11 +38,6 @@ namespace love
         size_t GetSize() const override
         {
             return 0;
-        }
-
-        ~SystemFont()
-        {
-            C2D_FontFree(this->font);
         }
 
       private:

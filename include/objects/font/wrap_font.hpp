@@ -42,4 +42,6 @@ namespace Wrap_Font
     int Register(lua_State* L);
 
     extern std::function<void(lua_State*)> wrap_extension;
+
+    extern std::span<const luaL_Reg> extensions;
 } // namespace Wrap_Font

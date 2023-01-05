@@ -18,7 +18,7 @@ namespace love
     };
     // clang-format on
 
-    void SetScreenSize(Screen id, int width, int height)
+    inline void SetScreenSize(Screen id, int width, int height)
     {
         auto& info = screenInfo[id];
 

@@ -63,7 +63,7 @@ Renderer<Console::CAFE>::Renderer() :
     GX2SetupContextStateEx(this->state, false);
     GX2SetContextState(this->state);
 
-    GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
+    GX2SetDepthOnlyControl(true, true, GX2_COMPARE_FUNC_ALWAYS);
 
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
     GX2SetSwapInterval(1);
@@ -249,11 +249,11 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 
 void Renderer<Console::CAFE>::Present()
 {
+    if (Keyboard() != nullptr)
+        Keyboard()->Draw(this->state);
+
     /* flush commands before copying color buffers */
     GX2Flush();
-
-    if (Keyboard() != nullptr)
-        Keyboard()->Draw();
 
     /* copy our color buffers to their scan buffers */
     for (auto& framebuffer : this->framebuffers)

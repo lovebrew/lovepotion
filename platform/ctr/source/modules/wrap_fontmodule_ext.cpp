@@ -79,8 +79,11 @@ int Wrap_FontModule::NewSystemFontRasterizer(lua_State* L, uint8_t systemFont)
     return 1;
 }
 
-static constexpr luaL_Reg functions[] = {
-    {"newBCFNTRasterizer", Wrap_FontModule::NewBCFNTRasterizer}
+// clang-format off
+static constexpr luaL_Reg functions[] =
+{
+    { "newBCFNTRasterizer", Wrap_FontModule::NewBCFNTRasterizer }
 };
+// clang-format on
 
 std::span<const luaL_Reg> Wrap_FontModule::extensions = functions;

@@ -303,10 +303,10 @@ const Font<Console::CAFE>::Glyph& Font<Console::CAFE>::AddGlyph(uint32_t glyph)
         const vertex::Vertex vertices[4] =
         {
             /* x                                      y                             z                u                                                 v                                                  */
-            {{ -offset,                               -offset,                      0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y - offset) / _height)          }},
-            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y - offset) / _height)          }}
+            {{ -offset,                               -offset,                      0.0f }, color, { float((x - offset) / _width),         float((y - offset) / _height)          }},
+            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { float((x - offset) / _width),         float((y + height + offset) / _height) }},
+            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { float((x + width + offset) / _width), float((y + height + offset) / _height) }},
+            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { float((x + width + offset) / _width), float((y - offset) / _height)          }}
         };
         // clang-format on
 
@@ -641,7 +641,7 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
                 auto previous = commands.back();
 
                 size_t total = (previous.start + previous.count);
-                if (previous.texture == first->texture && total == first->start)
+                if (previous.texture == first->texture && (int)total == first->start)
                 {
                     commands.back().count += first->count;
                     ++first;
@@ -684,7 +684,7 @@ void Font<Console::CAFE>::Printv(Graphics<Console::CAFE>& graphics,
         drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
         drawCommand.format       = vertex::CommonFormat::TEXTURE;
         drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
-        drawCommand.handles      = { command.texture->GetHandle() };
+        drawCommand.handles      = { command.texture };
 
         matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);

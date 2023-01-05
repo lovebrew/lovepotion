@@ -69,9 +69,9 @@ void Shader<Console::CAFE>::AttachDefault(StandardShader type)
         defaultshader->Attach();
 }
 
-void Shader<Console::CAFE>::Attach()
+void Shader<Console::CAFE>::Attach(bool forced)
 {
-    if (Shader::current != this)
+    if (Shader::current != this || forced)
     {
         Renderer<Console::CAFE>::Instance().UseProgram(this->program);
         Renderer<>::shaderSwitches++;

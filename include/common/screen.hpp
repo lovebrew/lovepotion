@@ -20,7 +20,7 @@ namespace love
 
     enum Screen : int8_t;
 
-    static Screen currentScreen            = (Screen)0;
+    inline Screen currentScreen            = (Screen)0;
     static constexpr Screen SCREEN_INVALID = (Screen)-1;
 
     const ScreenInfo& GetScreenInfo(Screen);
@@ -49,7 +49,6 @@ namespace love
     inline int GetScreenWidth(Screen id = currentScreen)
     {
         const auto& info = GetScreenInfo(id);
-        LOG("%d", info.width);
 
         return info.width;
     }
@@ -57,7 +56,6 @@ namespace love
     inline int GetScreenHeight(Screen id = currentScreen)
     {
         const auto& info = GetScreenInfo(id);
-        LOG("%d", info.height);
 
         return info.height;
     }

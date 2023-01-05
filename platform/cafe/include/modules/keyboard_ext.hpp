@@ -2,11 +2,14 @@
 
 #include <modules/keyboard/keyboard.tcc>
 
+#include <objects/shader_ext.hpp>
+#include <utilities/driver/framebuffer.hpp>
+
 #include <coreinit/filesystem.h>
 #include <coreinit/memdefaultheap.h>
-#include <nn/swkbd.h>
 
-#include <utilities/driver/framebuffer.hpp>
+#include <gx2/context.h>
+#include <nn/swkbd.h>
 
 namespace love
 {
@@ -22,19 +25,22 @@ namespace love
 
         virtual ~Keyboard();
 
-        void Draw()
+        void Draw(GX2ContextState* restored)
         {
             if (!this->showing)
                 return;
 
             nn::swkbd::DrawDRC();
+
+            GX2SetContextState(restored);
+            Shader<>::current->Attach(true);
         }
 
         void SetTextInput(const KeyboardOptions& options);
 
         const uint32_t GetMaxEncodingLength(const uint32_t in)
         {
-            return in * 0x03;
+            return in * 0x04;
         }
 
         const bool IsShowing() const
@@ -44,6 +50,7 @@ namespace love
 
         void HideKeyboard()
         {
+            nn::swkbd::DisappearInputForm();
             this->showing = false;
         }
 
@@ -58,12 +65,13 @@ namespace love
         // clang-format on
 
       private:
+        GX2ContextState* state;
+
         nn::swkbd::CreateArg createArgs;
         nn::swkbd::AppearArg appearArgs;
         FSClient* client;
 
         bool inited;
         bool showing;
-        Screen screen;
     };
 } // namespace love

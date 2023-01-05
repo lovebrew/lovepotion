@@ -41,7 +41,6 @@ void HID<Console::CAFE>::CheckSoftwareKeyboard(VPADStatus vpadStatus)
 
     if (isOkButtonPressed || isCancelPressed)
     {
-        nn::swkbd::DisappearInputForm();
         Keyboard()->HideKeyboard();
 
         if (isOkButtonPressed)

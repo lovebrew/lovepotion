@@ -1,5 +1,6 @@
 #pragma once
 
+#include <common/screen_ext.hpp>
 #include <common/vector.hpp>
 
 #include <coreinit/memfrmheap.h>

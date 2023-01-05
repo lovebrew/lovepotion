@@ -12,20 +12,20 @@ namespace love
     };
 
     // clang-format off
-    static constexpr ScreenInfo screenInfo[0x03] =
+    inline constinit ScreenInfo screenInfo[0x03] =
     {
         { Screen::LEFT,   "left",   400, 240 },
         { Screen::RIGHT,  "right",  400, 240 },
         { Screen::BOTTOM, "bottom", 320, 240 }
     };
 
-    static constexpr ScreenInfo altScreenInfo[0x02] =
+    inline constinit ScreenInfo altScreenInfo[0x02] =
     {
         { Screen::LEFT,   "top",    400, 240 },
         { Screen::BOTTOM, "bottom", 320, 240 }
     };
 
-    static constexpr ScreenInfo wideScreenInfo[0x02] =
+    inline constinit ScreenInfo wideScreenInfo[0x02] =
     {
         { Screen::LEFT,   "top",    800, 240 },
         { Screen::BOTTOM, "bottom", 320, 240 }

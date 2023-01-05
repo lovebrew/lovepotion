@@ -5,6 +5,8 @@ using Font = love::Font<Console::Which>;
 
 #if !defined(__3DS__)
 std::function<void(lua_State*)> Wrap_Font::wrap_extension;
+#else
+std::span<const luaL_Reg> Wrap_Font::extensions;
 #endif
 
 void Wrap_Font::CheckColoredString(lua_State* L, int index, ::Font::ColoredStrings& strings)
@@ -79,8 +81,6 @@ int Wrap_Font::GetHeight(lua_State* L)
 
     return 1;
 }
-
-/* todo handle getWrap for Switch and Wii U */
 
 int Wrap_Font::SetLineHeight(lua_State* L)
 {
@@ -267,7 +267,7 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_Font::Register(lua_State* L)
 {
-    int result = luax::RegisterType(L, &::Font::type, functions);
+    int result = luax::RegisterType(L, &::Font::type, functions, extensions);
 
     if (Wrap_Font::wrap_extension)
         Wrap_Font::wrap_extension(L);

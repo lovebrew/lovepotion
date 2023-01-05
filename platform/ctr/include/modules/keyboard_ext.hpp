@@ -12,7 +12,6 @@ namespace love
     {
       public:
         static constexpr uint32_t MAX_INPUT_LENGTH = 0x100;
-        static constexpr Screen DEFAULT_SCREEN     = Screen::SCREEN_BOTTOM;
 
         Keyboard();
 

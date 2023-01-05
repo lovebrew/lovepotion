@@ -31,5 +31,6 @@ static constexpr luaL_Reg functions[] =
     { "getPlayCoins", Wrap_System::GetPlayCoins },
     { "setPlayCoins", Wrap_System::SetPlayCoins }
 };
-std::span<const luaL_Reg> Wrap_System::extensions = functions;
 // clang-format on
+
+std::span<const luaL_Reg> Wrap_System::extensions = functions;

@@ -88,7 +88,7 @@ namespace luax
     void RegisterTypeInner(lua_State* L, std::span<const luaL_Reg> values);
 
     template<typename... T>
-    int RegisterType(lua_State* L, love::Type* type, T&&... values)
+    inline int RegisterType(lua_State* L, love::Type* type, T&&... values)
     {
         RegisterTypeInit(L, type);
         (RegisterTypeInner(L, std::forward<T>(values)), ...);
