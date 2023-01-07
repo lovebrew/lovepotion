@@ -14,16 +14,19 @@ Keyboard<Console::CAFE>::Keyboard() :
     createArgs {},
     appearArgs {},
     client(nullptr),
-    inited(false),
-    showing(false)
+    inited(false)
 {}
 
 void Keyboard<Console::CAFE>::Initialize()
 {
     this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
 
-    this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
+    if (!this->state)
+        throw love::Exception("Failed to allocate GX2ContextState for nn::swkbd!");
+
     GX2SetupContextStateEx(this->state, false);
+
+    this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
 
     if (!this->client)
         throw love::Exception("Failed to allocate FSClient for nn::swkbd!");
@@ -83,8 +86,5 @@ void Keyboard<Console::CAFE>::SetTextInput(const KeyboardOptions& options)
     this->appearArgs.inputFormArg.maxTextLength = options.maxLength;
     this->appearArgs.inputFormArg.passwordMode  = GetPasswordMode(options.isPassword);
 
-    if (!nn::swkbd::AppearInputForm(this->appearArgs))
-        return;
-
-    this->showing = true;
+    nn::swkbd::AppearInputForm(this->appearArgs);
 }

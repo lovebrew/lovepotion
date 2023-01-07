@@ -25,15 +25,12 @@ namespace love
 
         virtual ~Keyboard();
 
-        void Draw(GX2ContextState* restored)
+        void SetContextState()
         {
-            if (!this->showing)
+            if (!this->IsShowing())
                 return;
 
-            nn::swkbd::DrawDRC();
-
-            GX2SetContextState(restored);
-            Shader<>::current->Attach(true);
+            GX2SetContextState(this->state);
         }
 
         void SetTextInput(const KeyboardOptions& options);
@@ -45,13 +42,13 @@ namespace love
 
         const bool IsShowing() const
         {
-            return this->showing;
+            auto state = nn::swkbd::GetStateInputForm();
+            return state != nn::swkbd::State::Hidden;
         }
 
         void HideKeyboard()
         {
             nn::swkbd::DisappearInputForm();
-            this->showing = false;
         }
 
         void Utf16toUtf8Text();
@@ -72,6 +69,5 @@ namespace love
         FSClient* client;
 
         bool inited;
-        bool showing;
     };
 } // namespace love

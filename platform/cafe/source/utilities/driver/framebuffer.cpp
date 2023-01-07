@@ -1,5 +1,7 @@
 #include <utilities/driver/framebuffer.hpp>
 
+#include <modules/keyboard_ext.hpp>
+
 #include <objects/shader_ext.hpp>
 
 #include <gx2/display.h>
@@ -14,6 +16,8 @@
 #include <stdlib.h>
 
 using namespace love;
+
+#define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 
 Framebuffer::Framebuffer() :
     modelView(1.0f),
@@ -182,7 +186,7 @@ void Framebuffer::SetDRCScanBuffer()
 
 void Framebuffer::CopyScanBuffer()
 {
-    const auto target = Framebuffer::SCAN_TARGETS[(uint8_t)this->id];
+    auto target = (this->Is(Screen::TV)) ? GX2_SCAN_TARGET_TV : GX2_SCAN_TARGET_DRC;
     GX2CopyColorBufferToScanBuffer(&this->colorBuffer, target);
 }
 

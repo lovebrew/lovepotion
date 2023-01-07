@@ -12,8 +12,6 @@
 #include <malloc.h>
 #include <stdlib.h>
 
-#include <utilities/log/logfile.hpp>
-
 using namespace love;
 
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
@@ -63,7 +61,8 @@ Renderer<Console::CAFE>::Renderer() :
     GX2SetupContextStateEx(this->state, false);
     GX2SetContextState(this->state);
 
-    GX2SetDepthOnlyControl(true, true, GX2_COMPARE_FUNC_ALWAYS);
+    GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
+    // GX2SetAlphaTest(true, GX2_COMPARE_FUNC_GREATER, 0);
 
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
     GX2SetSwapInterval(1);
@@ -249,21 +248,20 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 
 void Renderer<Console::CAFE>::Present()
 {
-    if (Keyboard() != nullptr)
-        Keyboard()->Draw(this->state);
-
-    /* flush commands before copying color buffers */
-    GX2Flush();
+    if (Keyboard()->IsShowing())
+    {
+        nn::swkbd::DrawDRC();
+        GX2SetContextState(this->state);
+        Shader<Console::CAFE>::current->Attach(true);
+    }
 
     /* copy our color buffers to their scan buffers */
-    for (auto& framebuffer : this->framebuffers)
-        framebuffer.second.CopyScanBuffer();
+    this->framebuffers[Screen::TV].CopyScanBuffer();
+
+    this->framebuffers[Screen::GAMEPAD].CopyScanBuffer();
 
     /* swap scan buffers */
     GX2SwapScanBuffers();
-
-    /* reset state for next frame */
-    GX2SetContextState(this->state);
 
     /*
     ** flush again as GX2WaitForFlip

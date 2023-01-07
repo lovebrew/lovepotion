@@ -14,24 +14,20 @@
     "ctrIncludePaths": [
       "${workspaceFolder}/platform/ctr/include/**",
       "${workspaceFolder}/platform/ctr/libraries/**",
-      "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
-      "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
-      "${env:DEVKITPRO}/libctru/include/**",
-      "${env:DEVKITPRO}/portlibs/3ds/include/**"
+      "C:/msys64/opt/devkitpro/libctru/include/**",
+      "C:/msys64/opt/devkitpro/portlibs/3ds/include/**"
     ],
     "ctrDefines": [
       "__3DS__",
       "__OS__=\"Horizon\"",
       "__CONSOLE__=\"3DS\""
     ],
-    "ctrCompilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-g++",
+    "ctrCompilerPath": "C:/msys64/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++",
     /* Switch paths and info */
     "hacIncludePaths": [
       "${workspaceFolder}/platform/hac/include/**",
-      "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-      "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
-      "${env:DEVKITPRO}/libnx/include/**",
-      "${env:DEVKITPRO}/portlibs/switch/include/**"
+      "C:/msys64/opt/devkitpro/libnx/include/**",
+      "C:/msys64/opt/devkitpro/portlibs/switch/include/**"
     ],
     "hacDefines": [
       "__SWITCH__",
@@ -39,22 +35,20 @@
       "__CONSOLE__=\"Switch\"",
       "__OS__=\"Horizon\""
     ],
-    "hacCompilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
+    "hacCompilerPath": "C:/msys64/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++",
     /* Wii U paths and info */
     "cafeIncludePaths": [
       "${workspaceFolder}/platform/cafe/include/**",
-      "${env:DEVKITPRO}/devkitPPC/powerpc-eabi/include/**",
-      "${env:DEVKITPRO}/devkitPPC/lib/gcc/powerpc-eabi/**",
-      "${env:DEVKITPRO}/wut/include/**",
-      "${env:DEVKITPRO}/portlibs/wiiu/include/**",
-      "${env:DEVKITPRO}/portlibs/ppc/include/**"
+      "C:/msys64/opt/devkitpro/wut/include/**",
+      "C:/msys64/opt/devkitpro/portlibs/wiiu/include/**",
+      "C:/msys64/opt/devkitpro/portlibs/ppc/include/**"
     ],
     "cafeDefines": [
       "__WIIU__",
       "__OS__=\"Cafe\"",
       "__CONSOLE__=\"Wii U\""
     ],
-    "cafeCompilerPath": "${env:DEVKITPRO}/devkitPPC/bin/powerpc-eabi-g++"
+    "cafeCompilerPath": "C:/msys64/opt/devkitpro/devkitPPC/bin/powerpc-eabi-g++"
   },
   "configurations": [
     {
