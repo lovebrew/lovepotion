@@ -10,7 +10,6 @@ using namespace love;
 
 Keyboard<Console::CAFE>::Keyboard() :
     Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH)),
-    state(nullptr),
     createArgs {},
     appearArgs {},
     client(nullptr),
@@ -19,13 +18,6 @@ Keyboard<Console::CAFE>::Keyboard() :
 
 void Keyboard<Console::CAFE>::Initialize()
 {
-    this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
-
-    if (!this->state)
-        throw love::Exception("Failed to allocate GX2ContextState for nn::swkbd!");
-
-    GX2SetupContextStateEx(this->state, false);
-
     this->client = (FSClient*)MEMAllocFromDefaultHeap(sizeof(FSClient));
 
     if (!this->client)

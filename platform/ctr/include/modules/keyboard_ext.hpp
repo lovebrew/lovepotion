@@ -22,6 +22,11 @@ namespace love
             return in * 0x03;
         }
 
+        const bool HasTextInput() const
+        {
+            return this->showing;
+        }
+
         // clang-format off
         static constexpr BidirectionalMap keyboardTypes = {
             "normal", SWKBD_TYPE_NORMAL,
@@ -32,5 +37,6 @@ namespace love
 
       private:
         SwkbdState state;
+        bool showing;
     };
 } // namespace love

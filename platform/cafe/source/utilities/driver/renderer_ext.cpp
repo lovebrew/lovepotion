@@ -41,17 +41,8 @@ Renderer<Console::CAFE>::Renderer() :
 
     GX2Init(attributes);
 
-    for (size_t index = 0; index < Renderer::MAX_RENDERTARGETS; index++)
-    {
-        const auto screen = (Screen)index;
+    for (const auto screen : love::GetScreenEnums())
         this->framebuffers[screen].Create(screen);
-    }
-
-    ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, ProcUIAcquired, nullptr, 100);
-    ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, ProcUIReleased, nullptr, 100);
-
-    if (int result = this->OnForegroundAcquired(); result != 0)
-        throw love::Exception("Failed to acquire application foreground (error %d).", result);
 
     this->state = (GX2ContextState*)memalign(GX2_CONTEXT_STATE_ALIGNMENT, sizeof(GX2ContextState));
 
@@ -62,17 +53,26 @@ Renderer<Console::CAFE>::Renderer() :
     GX2SetContextState(this->state);
 
     GX2SetDepthOnlyControl(false, false, GX2_COMPARE_FUNC_ALWAYS);
-    // GX2SetAlphaTest(true, GX2_COMPARE_FUNC_GREATER, 0);
+    GX2SetAlphaTest(true, GX2_COMPARE_FUNC_GREATER, 0);
 
     GX2SetColorControl(GX2_LOGIC_OP_COPY, 0xFF, false, true);
     GX2SetSwapInterval(1);
+
+    ProcUIRegisterCallback(PROCUI_CALLBACK_ACQUIRE, ProcUIAcquired, nullptr, 100);
+    ProcUIRegisterCallback(PROCUI_CALLBACK_RELEASE, ProcUIReleased, nullptr, 100);
+
+    if (int result = this->OnForegroundAcquired(); result != 0)
+        throw love::Exception("Failed to acquire application foreground (error %d).", result);
 
     if (Keyboard() != nullptr)
         Keyboard()->Initialize();
 
     /* set up some state information */
-    this->renderState.winding  = GX2_FRONT_FACE_CCW;
-    this->renderState.cullBack = true;
+    this->renderState.winding     = GX2_FRONT_FACE_CCW;
+    this->renderState.cullBack    = true;
+    this->renderState.depthTest   = false;
+    this->renderState.depthWrite  = false;
+    this->renderState.compareMode = GX2_COMPARE_FUNC_ALWAYS;
 }
 
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
@@ -139,9 +139,6 @@ Renderer<Console::CAFE>::~Renderer()
 
     GX2Shutdown();
 
-    free(this->state);
-    this->state = nullptr;
-
     free(this->commandBuffer);
     this->commandBuffer = nullptr;
 }
@@ -158,8 +155,17 @@ void Renderer<Console::CAFE>::Clear(const Color& color)
     GX2SetContextState(this->state);
 }
 
+void Renderer<Console::CAFE>::SetDepthWrites(bool enable)
+{
+    GX2SetDepthOnlyControl(this->renderState.depthTest, enable, this->renderState.compareMode);
+    this->renderState.depthWrite = enable;
+}
+
 void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, double depth)
 {
+    if (!this->renderState.depthWrite)
+        this->SetDepthWrites(true);
+
     GX2ClearDepthStencilEx(&this->current->GetDepthBuffer(), depth, stencil, GX2_CLEAR_FLAGS_BOTH);
     GX2SetContextState(this->state);
 }
@@ -167,6 +173,7 @@ void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, doubl
 void Renderer<Console::CAFE>::SetBlendColor(const Color& color)
 {
     GX2SetBlendConstantColor(color.r, color.g, color.b, color.a);
+    GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::SetBlendMode(const RenderState::BlendState& state)
@@ -239,26 +246,56 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
         GX2SetColorBuffer(&this->current->GetBuffer(), GX2_RENDER_TARGET_0);
         GX2SetDepthBuffer(&this->current->GetDepthBuffer());
 
-        this->SetViewport(Rect::EMPTY);
-        this->SetScissor(Rect::EMPTY);
+        this->SetViewport(this->current->GetViewport());
+        this->SetScissor(this->current->GetScissor());
     }
 
     this->current->UseProjection();
 }
 
+bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
+{
+    Shader<Console::CAFE>::defaults[command.shader]->Attach();
+
+    if (!command.buffer->IsValid())
+        return false;
+
+    std::optional<GX2PrimitiveMode> primitive;
+    if (!(primitive = primitiveModes.Find(command.primitveType)))
+        return false;
+
+    if (!command.handles.empty())
+    {
+        for (size_t index = 0; index < command.handles.size(); index++)
+        {
+            auto* texture = command.handles[index]->GetHandle();
+            auto* sampler = &command.handles[index]->GetSampler();
+
+            Shader<Console::CAFE>::current->BindTexture(index, texture, sampler);
+        }
+    }
+
+    GX2RSetAttributeBuffer(command.buffer->GetBuffer(), 0, command.stride, 0);
+    GX2DrawEx(*primitive, command.count, 0, 1);
+
+    this->buffers.push_back(command.buffer);
+
+    return true;
+}
+
 void Renderer<Console::CAFE>::Present()
 {
+    GX2DrawDone();
+
     if (Keyboard()->IsShowing())
     {
         nn::swkbd::DrawDRC();
         GX2SetContextState(this->state);
-        Shader<Console::CAFE>::current->Attach(true);
     }
 
     /* copy our color buffers to their scan buffers */
-    this->framebuffers[Screen::TV].CopyScanBuffer();
-
-    this->framebuffers[Screen::GAMEPAD].CopyScanBuffer();
+    for (auto& framebuffer : this->framebuffers)
+        framebuffer.second.CopyScanBuffer();
 
     /* swap scan buffers */
     GX2SwapScanBuffers();
@@ -314,36 +351,6 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     this->current->UseProjection();
 }
 
-bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
-{
-    Shader<Console::CAFE>::defaults[command.shader]->Attach();
-
-    if (!command.buffer->IsValid())
-        return false;
-
-    std::optional<GX2PrimitiveMode> primitive;
-    if (!(primitive = primitiveModes.Find(command.primitveType)))
-        return false;
-
-    if (!command.handles.empty())
-    {
-        for (size_t index = 0; index < command.handles.size(); index++)
-        {
-            auto* texture = command.handles[index]->GetHandle();
-            auto* sampler = &command.handles[index]->GetSampler();
-
-            Shader<Console::CAFE>::current->BindTexture(index, texture, sampler);
-        }
-    }
-
-    GX2RSetAttributeBuffer(command.buffer->GetBuffer(), 0, command.stride, 0);
-    GX2DrawEx(*primitive, command.count, 0, 1);
-
-    this->buffers.push_back(command.buffer);
-
-    return true;
-}
-
 /* todo */
 void Renderer<Console::CAFE>::SetColorMask(const RenderState::ColorMask& mask)
 {
@@ -364,34 +371,22 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 {
     this->EnsureInFrame();
 
-    glm::highp_mat4 ortho {};
+    float width  = viewport.w;
+    float height = viewport.h;
 
     if (viewport == Rect::EMPTY)
     {
-        float width  = (float)this->current->GetWidth();
-        float height = (float)this->current->GetHeight();
-
-        GX2SetViewport(0.0f, 0.0f, width, height, Z_NEAR, Z_FAR);
-        ortho = glm::ortho(0.0f, width, height, 0.0f, Z_NEAR, Z_FAR);
-    }
-    else
-    {
-        GX2SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR);
-        ortho = glm::ortho(0.0f, (float)viewport.w, (float)viewport.h, 0.0f, Z_NEAR, Z_FAR);
+        width  = (float)this->current->GetWidth();
+        height = (float)this->current->GetHeight();
     }
 
+    this->current->SetViewport(viewport);
+
+    auto ortho = glm::ortho(0.0f, width, height, 0.0f, Z_NEAR, Z_FAR);
     this->current->SetProjection(ortho);
 }
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor)
 {
-    if (scissor == Rect::EMPTY)
-    {
-        uint32_t width  = (uint32_t)this->current->GetWidth();
-        uint32_t height = (uint32_t)this->current->GetHeight();
-
-        GX2SetScissor(0, 0, width, height);
-    }
-    else
-        GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);
+    this->current->SetScissor(scissor);
 }

@@ -22,6 +22,11 @@ namespace love
 
         void SetTextInput(const KeyboardOptions& options);
 
+        const bool HasTextInput() const
+        {
+            return this->showing;
+        }
+
         // clang-format off
         static constexpr BidirectionalMap keyboardTypes = {
             "normal", SwkbdType_Normal,
@@ -32,5 +37,6 @@ namespace love
 
       private:
         SwkbdConfig config;
+        bool showing;
     };
 } // namespace love

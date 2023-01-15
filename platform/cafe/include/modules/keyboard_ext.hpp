@@ -25,14 +25,6 @@ namespace love
 
         virtual ~Keyboard();
 
-        void SetContextState()
-        {
-            if (!this->IsShowing())
-                return;
-
-            GX2SetContextState(this->state);
-        }
-
         void SetTextInput(const KeyboardOptions& options);
 
         const uint32_t GetMaxEncodingLength(const uint32_t in)
@@ -40,10 +32,24 @@ namespace love
             return in * 0x04;
         }
 
+        const nn::swkbd::State GetState() const
+        {
+            return nn::swkbd::GetStateInputForm();
+        }
+
+        const bool HasTextInput() const
+        {
+            return this->IsShowing();
+        }
+
         const bool IsShowing() const
         {
-            auto state = nn::swkbd::GetStateInputForm();
-            return state != nn::swkbd::State::Hidden;
+            return this->GetState() != nn::swkbd::State::Hidden;
+        }
+
+        const bool IsHiding() const
+        {
+            return this->GetState() == nn::swkbd::State::FadeOut;
         }
 
         void HideKeyboard()

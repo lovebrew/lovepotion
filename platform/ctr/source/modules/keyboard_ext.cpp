@@ -5,7 +5,8 @@ using namespace love;
 
 Keyboard<Console::CTR>::Keyboard() :
     Keyboard<Console::ALL>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH * 3) + 1),
-    state {}
+    state {},
+    showing(false)
 {}
 
 void Keyboard<Console::CTR>::SetTextInput(const KeyboardOptions& options)
@@ -23,6 +24,7 @@ void Keyboard<Console::CTR>::SetTextInput(const KeyboardOptions& options)
     if (options.isPassword)
         swkbdSetPasswordMode(&this->state, SWKBD_PASSWORD_HIDE_DELAY);
 
+    this->showing     = true;
     const auto button = swkbdInputText(&this->state, this->text.get(), maxLength);
 
     if (button != SWKBD_BUTTON_LEFT)

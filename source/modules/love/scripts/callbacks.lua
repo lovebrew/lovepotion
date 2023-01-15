@@ -215,6 +215,7 @@ function love.run()
     end
 
     local delta = 0
+    local is_wii_u = love._os == "Cafe"
 
     return function()
         if love.window and g_windowShown then
@@ -239,7 +240,7 @@ function love.run()
             delta = love.timer.step()
         end
 
-        if love.update then
+        if love.update and (is_wii_u and not love.keyboard.hasTextInput()) then
             love.update(delta)
         end
 

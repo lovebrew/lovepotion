@@ -85,6 +85,8 @@ namespace love
 
         void Clear(const Color& color);
 
+        void SetDepthWrites(bool write);
+
         void ClearDepthStencil(int stencil, uint8_t mask, double depth);
 
         void SetBlendColor(const Color& color);
@@ -208,6 +210,12 @@ namespace love
             GX2FrontFace winding;
             bool cullFront;
             bool cullBack;
+
+            bool depthWrite;
+            bool depthTest;
+            GX2CompareFunction compareMode;
+
+            uint32_t writeMask;
         } renderState;
 
         std::vector<std::shared_ptr<DrawBuffer>> buffers;

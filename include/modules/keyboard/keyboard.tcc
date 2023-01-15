@@ -63,11 +63,6 @@ namespace love
             return "love.keyboard";
         }
 
-        const bool HasTextInput() const
-        {
-            return true;
-        }
-
         const bool HasScreenKeyboard() const
         {
             return true;

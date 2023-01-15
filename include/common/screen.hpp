@@ -98,4 +98,15 @@ namespace love
 
         return result;
     }
+
+    inline std::vector<Screen> GetScreenEnums()
+    {
+        std::vector<Screen> result {};
+        const auto& info = GetScreenInfo();
+
+        for (auto& item : info)
+            result.push_back((Screen)item.id);
+
+        return result;
+    }
 } // namespace love

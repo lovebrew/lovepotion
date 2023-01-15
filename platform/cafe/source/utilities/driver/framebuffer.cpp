@@ -28,11 +28,16 @@ Framebuffer::Framebuffer() :
     scanBuffer(nullptr),
     scanBufferSize(0),
     width(0),
-    height(0)
+    height(0),
+    viewport {},
+    scissor {}
 {}
 
 Framebuffer::~Framebuffer()
-{}
+{
+    free(this->state);
+    this->state = nullptr;
+}
 
 void Framebuffer::Create(Screen screen)
 {
@@ -204,6 +209,12 @@ void Framebuffer::SetSize(int width, int height)
 
     this->InitColorBuffer();
     this->InitDepthBuffer();
+
+    this->viewport = { 0, 0, width, height };
+    this->scissor  = { 0, 0, width, height };
+
+    this->SetViewport();
+    this->SetScissor();
 }
 
 void Framebuffer::SetTVSize()
@@ -222,6 +233,22 @@ void Framebuffer::SetDRCSize()
 
     GX2CalcDRCSize(mode, Framebuffer::FORMAT, Framebuffer::BUFFERING, &this->scanBufferSize, &unk);
     GX2SetDRCScale(this->width, this->height);
+}
+
+void Framebuffer::SetViewport(const Rect& viewport)
+{
+    if (viewport == Rect::EMPTY)
+        GX2SetViewport(0, 0, (float)this->width, (float)this->height, Z_NEAR, Z_FAR);
+    else
+        GX2SetViewport(viewport.x, viewport.y, viewport.w, viewport.h, Z_NEAR, Z_FAR);
+}
+
+void Framebuffer::SetScissor(const Rect& scissor)
+{
+    if (scissor == Rect::EMPTY)
+        GX2SetScissor(0, 0, this->width, this->height);
+    else
+        GX2SetScissor(scissor.x, scissor.y, scissor.w, scissor.h);
 }
 
 void Framebuffer::SetProjection(const glm::highp_mat4& _projection)
@@ -243,8 +270,7 @@ void Framebuffer::SetProjection(const glm::highp_mat4& _projection)
 
 void Framebuffer::UseProjection()
 {
-    GX2Invalidate(Framebuffer::INVALIDATE_UNIFORM, (void*)this->transform,
-                  Framebuffer::TRANSFORM_SIZE);
+    GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->transform, TRANSFORM_SIZE);
 
     GX2SetVertexUniformBlock(1, Framebuffer::TRANSFORM_SIZE, (const void*)this->transform);
 }

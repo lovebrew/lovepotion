@@ -36,6 +36,9 @@ void Graphics<Console::CAFE>::Clear(OptionalColor color, OptionalInt stencil, Op
 
     if (stencil.has_value() && depth.has_value())
         ::Renderer::Instance().ClearDepthStencil(stencil.value(), 0xFF, depth.value());
+
+    if (color.has_value() && Shader<Console::CAFE>::current)
+        ::Renderer::Instance().UseProgram(Shader<Console::CAFE>::current->GetGroup());
 }
 
 void Graphics<Console::CAFE>::Clear(std::vector<OptionalColor>& colors, OptionalInt stencil,
@@ -44,7 +47,10 @@ void Graphics<Console::CAFE>::Clear(std::vector<OptionalColor>& colors, Optional
     int colorCount = colors.size();
 
     if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
-        this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
+        return;
+
+    if (stencil.has_value() || depth.has_value())
+        ::Renderer::Instance().ClearDepthStencil(stencil.value(), 0xFF, depth.value());
 }
 
 void Graphics<Console::CAFE>::Present()

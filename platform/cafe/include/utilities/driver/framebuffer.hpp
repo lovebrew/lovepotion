@@ -1,12 +1,15 @@
 #pragma once
 
+#include <common/math.hpp>
 #include <common/screen_ext.hpp>
 #include <common/vector.hpp>
 
 #include <coreinit/memfrmheap.h>
 
+#include <gx2/context.h>
 #include <gx2/mem.h>
 #include <gx2/registers.h>
+#include <gx2/state.h>
 
 #include <glm/mat4x4.hpp>
 
@@ -16,6 +19,10 @@ namespace love
 {
     class Framebuffer
     {
+      private:
+        static constexpr float Z_NEAR = -10.0f;
+        static constexpr float Z_FAR  = 10.0f;
+
       public:
         struct Transform
         {
@@ -62,6 +69,10 @@ namespace love
         */
         void SetProjection(const glm::highp_mat4& projection);
 
+        void SetViewport(const Rect& viewport = Rect::EMPTY);
+
+        void SetScissor(const Rect& scissor = Rect::EMPTY);
+
         /*
         ** Invalidates the little endian Transform
         ** to be used in the Uniform Block
@@ -92,6 +103,21 @@ namespace love
 
         /* Called on Renderer::OnForegroundAcquired */
         bool InvalidateDepthBuffer(MEMHeapHandle handle);
+
+        void SetContext()
+        {
+            GX2SetContextState(this->state);
+        }
+
+        Rect GetViewport() const
+        {
+            return this->viewport;
+        }
+
+        Rect GetScissor() const
+        {
+            return this->scissor;
+        }
 
       private:
         static constexpr GX2ScanTarget SCAN_TARGETS[0x02] { GX2_SCAN_TARGET_TV,
@@ -141,6 +167,8 @@ namespace love
         GX2ColorBuffer colorBuffer;
         GX2DepthBuffer depthBuffer;
 
+        GX2ContextState* state;
+
         uint8_t mode;
 
         void* scanBuffer;
@@ -148,5 +176,8 @@ namespace love
 
         int width;
         int height;
+
+        Rect viewport;
+        Rect scissor;
     };
 } // namespace love

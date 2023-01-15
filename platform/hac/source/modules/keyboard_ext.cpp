@@ -3,7 +3,10 @@
 
 using namespace love;
 
-Keyboard<Console::HAC>::Keyboard() : Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH) + 1)
+Keyboard<Console::HAC>::Keyboard() :
+    Keyboard<>(this->GetMaxEncodingLength(MAX_INPUT_LENGTH) + 1),
+    config {},
+    showing(false)
 {}
 
 void Keyboard<Console::HAC>::SetTextInput(const KeyboardOptions& options)
@@ -26,6 +29,7 @@ void Keyboard<Console::HAC>::SetTextInput(const KeyboardOptions& options)
 
     swkbdConfigSetGuideText(&this->config, options.hint.data());
 
+    this->showing = true;
     if (R_SUCCEEDED(swkbdShow(&this->config, this->text.get(), maxLength)))
         HID<Console::HAC>::Instance().SendTextInput(this->GetText());
 

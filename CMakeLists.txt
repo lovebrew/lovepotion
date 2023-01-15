@@ -182,7 +182,7 @@ if (NINTENDO_WIIU)
     target_include_directories(${PROJECT_NAME} PRIVATE ${DEVKITPRO}/portlibs/wiiu/include)
     target_include_directories(${PROJECT_NAME} PRIVATE ${FREETYPE_INCLUDE_DIRS})
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_Mixer mpg123 SDL2)
+    target_link_libraries(${PROJECT_NAME} PRIVATE SDL2_mixer mpg123 SDL2)
 endif()
 
 # Options for code generation
