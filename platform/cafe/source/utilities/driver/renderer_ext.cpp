@@ -139,6 +139,9 @@ Renderer<Console::CAFE>::~Renderer()
 
     GX2Shutdown();
 
+    free(this->state);
+    this->state = nullptr;
+
     free(this->commandBuffer);
     this->commandBuffer = nullptr;
 }
@@ -290,6 +293,8 @@ void Renderer<Console::CAFE>::Present()
     if (Keyboard()->IsShowing())
     {
         nn::swkbd::DrawDRC();
+        this->ClearDepthStencil(0, 0xFF, 1.0);
+
         GX2SetContextState(this->state);
     }
 

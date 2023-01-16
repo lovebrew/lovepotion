@@ -34,10 +34,7 @@ Framebuffer::Framebuffer() :
 {}
 
 Framebuffer::~Framebuffer()
-{
-    free(this->state);
-    this->state = nullptr;
-}
+{}
 
 void Framebuffer::Create(Screen screen)
 {

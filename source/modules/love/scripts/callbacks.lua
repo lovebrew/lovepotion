@@ -198,12 +198,30 @@ function love.createhandlers()
             error("Unknown event: " .. name)
         end,
     })
-
 end
 
 -----------------------------------------------------------
 -- Default callbacks.
 -----------------------------------------------------------
+
+-- we need to fix some bugs/inconsistencies on Wii U
+local is_wii_u = love._os == "Cafe"
+
+-- Checks if `love.draw("gamepad")` should fire
+-- This happens only when the software keyboard is shown
+-- For some reason the software keyboard has some kind of depth testing enabled
+local function shouldDraw(screen)
+    if not is_wii_u then
+        return true
+    end
+
+    -- when gamepad and keyboard shown, do not draw
+    if screen == "gamepad" and love.keyboard.hasTextInput() then
+        return false
+    end
+    -- when tv, always draw
+    return true
+end
 
 function love.run()
     if love.load then
@@ -215,7 +233,6 @@ function love.run()
     end
 
     local delta = 0
-    local is_wii_u = love._os == "Cafe"
 
     return function()
         if love.window and g_windowShown then
@@ -240,7 +257,7 @@ function love.run()
             delta = love.timer.step()
         end
 
-        if love.update and (is_wii_u and not love.keyboard.hasTextInput()) then
+        if love.update then
             love.update(delta)
         end
 
@@ -253,7 +270,7 @@ function love.run()
                 love.graphics.setActiveScreen(screen)
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
-                if love.draw then
+                if love.draw and shouldDraw(screen) then
                     love.draw(screen)
                 end
             end
