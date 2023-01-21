@@ -367,8 +367,8 @@ pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::liblz4)
 
 # link curl
-find_package(CURL REQUIRED)
-target_link_libraries(luahttps PRIVATE CURL::libcurl)
+pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
+target_link_libraries(luahttps PRIVATE PkgConfig::libcurl)
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE

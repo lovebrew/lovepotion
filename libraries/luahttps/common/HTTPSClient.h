@@ -11,7 +11,6 @@ class HTTPSClient
     {
         bool operator()(const std::string& lhs, const std::string& rhs) const;
     };
-
     using header_map = std::map<std::string, std::string, ci_string_less>;
 
     struct Request
@@ -33,7 +32,6 @@ class HTTPSClient
 
     virtual ~HTTPSClient()
     {}
-
     virtual bool valid() const                = 0;
     virtual Reply request(const Request& req) = 0;
 };

@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <numeric>
 #include <set>
 
 extern "C"
@@ -10,15 +9,18 @@ extern "C"
 
 #include "common/HTTPSCommon.h"
 
-static const std::set<std::string> validMethods = {
-    "GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"
-};
+static std::string validMethod[] = { "GET", "HEAD", "POST", "PUT", "DELETE", "PATCH" };
+
+static int str_toupper(char c)
+{
+    unsigned char uc = (unsigned char)c;
+    return toupper(uc);
+}
 
 static std::string w_checkstring(lua_State* L, int idx)
 {
     size_t len;
     const char* str = luaL_checklstring(L, idx, &len);
-
     return std::string(str, len);
 }
 
@@ -42,29 +44,20 @@ static void w_readheaders(lua_State* L, int idx, HTTPSClient::header_map& header
     lua_pop(L, 1);
 }
 
-static std::string quoted(const std::string& value)
-{
-    return "\"" + value + "\"";
-}
-
 static std::string w_optmethod(lua_State* L, int idx, const std::string& defaultMethod)
 {
+    std::string* const validMethodEnd = validMethod + sizeof(validMethod) / sizeof(std::string);
+
     if (lua_isnoneornil(L, idx))
         return defaultMethod;
 
-    auto str = w_checkstring(L, idx);
+    std::string str = w_checkstring(L, idx);
+    std::transform(str.begin(), str.end(), str.begin(), str_toupper);
 
-    std::transform(str.begin(), str.end(), str.begin(), [](uint8_t c) { return std::toupper(c); });
-
-    if (validMethods.find(str) == validMethods.end())
-    {
-        // clang-format off
-        std::string values = std::accumulate(validMethods.begin(), validMethods.end(), std::string(),
-                                             [](const std::string& a, const std::string& b) { return a.empty() ? quoted(b) : quoted(a) + ", " + quoted(b); });
-        std::string message = std::string("Invalid method '" + str + "' Expected one of " + values);
-        // clang-format on
-        luaL_argerror(L, idx, message.c_str());
-    }
+    if (std::find(validMethod, validMethodEnd, str) == validMethodEnd)
+        luaL_argerror(
+            L, idx,
+            "expected one of \"get\", \"head\", \"post\", \"put\", \"delete\", or \"patch\"");
 
     return str;
 }
@@ -83,13 +76,12 @@ static int w_request(lua_State* L)
         std::string defaultMethod = "GET";
 
         lua_getfield(L, 2, "data");
-
         if (!lua_isnoneornil(L, -1))
         {
-            req.postdata  = w_checkstring(L, -1);
-            defaultMethod = "POST";
+            req.postdata                = w_checkstring(L, -1);
+            req.headers["Content-Type"] = "application/x-www-form-urlencoded";
+            defaultMethod               = "POST";
         }
-
         lua_pop(L, 1);
 
         lua_getfield(L, 2, "method");

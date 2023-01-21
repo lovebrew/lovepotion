@@ -34,12 +34,12 @@ HTTPSClient::Reply HTTPRequest::request(const HTTPSClient::Request& req)
     {
         std::stringstream request;
         std::string method = req.method;
+        bool hasData       = req.postdata.length() > 0;
 
-        bool hasData = req.postdata.length() > 0;
         if (method.length() == 0)
             method = hasData ? "POST" : "GET";
 
-        request << req.method << info.query << " HTTP/1.1\r\n";
+        request << method << " " << info.query << " HTTP/1.1\r\n";
 
         for (auto& header : req.headers)
             request << header.first << ": " << header.second << "\r\n";
@@ -47,9 +47,6 @@ HTTPSClient::Reply HTTPRequest::request(const HTTPSClient::Request& req)
         request << "Connection: Close\r\n";
 
         request << "Host: " << info.hostname << "\r\n";
-
-        if (hasData && req.headers.count("Content-Type") == 0)
-            request << "Content-Type: application/x-www-form-urlencoded\r\n";
 
         if (hasData)
             request << "Content-Length: " << req.postdata.size() << "\r\n";
