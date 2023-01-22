@@ -3,9 +3,9 @@ description: Suggest code fixes or enhancements for LÖVE Potion
 title: "[Code Health]: "
 labels: [code]
 body:
-- type: markdown
-  attributes:
-    value: "**Before submitting, please note this is essentially a 'to-do' for code cleanup. If you would like to contribute, please file a pull request instead.**"
+  - type: markdown
+    attributes:
+      value: "**Before submitting, please note this is essentially a 'to-do' for code cleanup. If you would like to contribute, please file a pull request instead.**"
   - type: textarea
     id: description
     attributes:
