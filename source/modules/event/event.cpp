@@ -2,6 +2,7 @@
 #include <utilities/driver/hid_ext.hpp>
 
 #include <modules/joystickmodule_ext.hpp>
+#include <modules/sensor_ext.hpp>
 #include <modules/touch/touch.hpp>
 
 #include <common/console.hpp>
@@ -149,15 +150,29 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
         {
             joystick = joystickModule->GetJoystickFromId(event.padButton.id);
 
+            if (joystick)
+            {
+                const char* sensorName;
+                auto name = Sensor<>::sensorTypes.ReverseFind(event.padSensor.type);
+
+                sensorName = (name) ? *name : "unknown";
+
+                args.emplace_back(type, joystick);
+                args.emplace_back(sensorName, strlen(sensorName));
+                args.emplace_back(event.padSensor.data[0]);
+                args.emplace_back(event.padSensor.data[1]);
+                args.emplace_back(event.padSensor.data[2]);
+
+                result = new Message("joysticksensorupdated", args);
+            }
+            break;
+        }
+        case SUBTYPE_GAMEPADSENSORUPDATED:
+        {
+            joystick = joystickModule->GetJoystickFromId(event.padButton.id);
+
             if (!joystick)
                 return result;
-
-            args.emplace_back(type, joystick);
-            args.emplace_back(event.padAxis.name, strlen(event.padAxis.name));
-            args.emplace_back(event.padAxis.value);
-
-            result = new Message("gamepadaxis", args);
-            break;
         }
         default:
             break;

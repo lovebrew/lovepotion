@@ -3,6 +3,8 @@
 #include <stddef.h>
 #include <string_view>
 
+#include <common/vector.hpp>
+
 namespace love
 {
     struct GamepadButton
@@ -25,6 +27,14 @@ namespace love
     struct GamepadStatus
     {
         size_t id; //< Gamepad ID
+    };
+
+    struct GamepadSensor
+    {
+        size_t id;
+
+        Sensor<>::SensorType type;
+        std::array<float, 3> data;
     };
 
     struct Finger
@@ -51,6 +61,15 @@ namespace love
         std::string text;
     };
 
+    enum EventType
+    {
+        TYPE_WINDOW,
+        TYPE_TOUCH,
+        TYPE_GAMEPAD,
+        TYPE_GENERAL,
+        TYPE_KEYBOARD
+    };
+
     enum SubEventType
     {
         SUBTYPE_GAMEPADAXIS,
@@ -61,6 +80,7 @@ namespace love
         SUBTYPE_GAMEPADREMOVED,
 
         SUBTYPE_GAMEPADUPDATED,
+        SUBTYPE_GAMEPADSENSORUPDATED,
 
         SUBTYPE_TOUCHPRESS,
         SUBTYPE_TOUCHRELEASE,
@@ -78,15 +98,6 @@ namespace love
         SUBTYPE_QUIT
     };
 
-    enum EventType
-    {
-        TYPE_WINDOW,
-        TYPE_TOUCH,
-        TYPE_GAMEPAD,
-        TYPE_GENERAL,
-        TYPE_KEYBOARD
-    };
-
     struct LOVE_Event
     {
         EventType type;
@@ -95,6 +106,7 @@ namespace love
         GamepadStatus padStatus;
         GamepadButton padButton;
         GamepadAxis padAxis;
+        GamepadSensor padSensor;
 
         Finger touchFinger;
         Resize size;

@@ -422,6 +422,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/love/love.cpp
     source/modules/math/math.cpp
     source/modules/math/wrap_math.cpp
+    source/modules/sensor/wrap_sensor.cpp
     source/modules/sound/sound.cpp
     source/modules/sound/wrap_sound.cpp
     source/modules/system/wrap_system.cpp

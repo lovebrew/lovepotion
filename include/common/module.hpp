@@ -26,6 +26,7 @@ namespace love
             M_MATH,
             M_PHYSICS,
             M_SYSTEM,
+            M_SENSOR,
             M_SOUND,
             M_THREAD,
             M_TIMER,

@@ -22,7 +22,7 @@ constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       KEY_DUP,
     Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     KEY_DDOWN,
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    KEY_DRIGHT,
-    Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     KEY_LEFT
+    Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     KEY_DLEFT
 };
 // clang-format on
 
@@ -186,31 +186,6 @@ float Joystick<Console::CTR>::GetAxis(int index)
             return 1.0f;
 
         return 0.0f;
-    }
-    else
-    {
-        if (index >= 6 && index < 9)
-        {
-            auto vector = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_ACCELEROMETER);
-
-            if (index == 7)
-                return vector.x;
-            else if (index == 8)
-                return vector.y;
-
-            return vector.z;
-        }
-        else if (index >= 9 && index < 12)
-        {
-            auto vector = this->sixAxis.GetInfo(SixAxis<>::SIXAXIS_GYROSCOPE);
-
-            if (index == 10)
-                return vector.x;
-            else if (index == 11)
-                return vector.y;
-
-            return vector.z;
-        }
     }
 
     return 0.0f;

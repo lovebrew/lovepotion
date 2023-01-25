@@ -2,11 +2,7 @@
 
 #include <objects/joystick/joystick.tcc>
 
-#include <utilities/haptics/sixaxis_ext.hpp>
-
 #include <3ds.h>
-
-using SixAxis = love::SixAxis<love::Console::CTR>;
 
 namespace love
 {
@@ -98,7 +94,5 @@ namespace love
             uint32_t pressed;
             uint32_t released;
         } buttonStates;
-
-        ::SixAxis sixAxis;
     };
 } // namespace love

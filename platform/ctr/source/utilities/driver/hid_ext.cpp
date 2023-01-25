@@ -2,10 +2,12 @@
 #include <utilities/driver/hid_ext.hpp>
 
 #include <modules/graphics_ext.hpp>
+#include <modules/sensor_ext.hpp>
 
 using namespace love;
 
-#define Module() Module::GetInstance<JoystickModule<Console::CTR>>(Module::M_JOYSTICK)
+#define Module() (Module::GetInstance<JoystickModule<Console::CTR>>(Module::M_JOYSTICK))
+#define Sensor() (Module::GetInstance<Sensor<Console::CTR>>(Module::M_SENSOR))
 
 static aptHookCookie s_aptHookCookie;
 
@@ -148,6 +150,14 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
     {
         joystick->Update();
         Joystick<>::JoystickInput input {};
+
+        auto sensor = Sensor<>::SENSOR_ACCELEROMETER;
+        if (Sensor()->IsEnabled(Sensor<>::SENSOR_ACCELEROMETER))
+            this->SendJoystickSensorUpdated(0, sensor, Sensor()->GetData(sensor));
+
+        sensor = Sensor<>::SENSOR_GYROSCOPE;
+        if (Sensor()->IsEnabled(Sensor<>::SENSOR_GYROSCOPE))
+            this->SendJoystickSensorUpdated(0, sensor, Sensor()->GetData(sensor));
 
         if (joystick->IsDown(input))
         {

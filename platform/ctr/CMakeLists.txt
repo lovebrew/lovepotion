@@ -13,6 +13,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/joystickmodule_ext.cpp
     source/modules/keyboard_ext.cpp
     source/modules/love_ext.cpp
+    source/modules/sensor_ext.cpp
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
     source/modules/window_ext.cpp
@@ -33,6 +34,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/hid_ext.cpp
     source/utilities/driver/renderer/renderer_ext.cpp
     source/utilities/formathandler/types/t3xhandler.cpp
-    source/utilities/haptics/sixaxis_ext.cpp
+    source/utilities/sensor/accelerometer.cpp
+    source/utilities/sensor/gyroscope.cpp
     source/utilities/threads/thread_ext.cpp
 )
