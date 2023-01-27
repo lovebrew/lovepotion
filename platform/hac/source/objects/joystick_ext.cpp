@@ -70,7 +70,6 @@ bool Joystick<Console::HAC>::Open(int index)
     this->guid = guid::GetGamepadGUID(this->GetGamepadType());
     this->name = guid::GetGamepadName(this->GetGamepadType());
 
-    this->sixAxis   = std::move(::SixAxis(this->playerId, this->style));
     this->vibration = std::move(::Vibration(this->playerId, this->style));
 
     return this->IsConnected();
@@ -83,7 +82,6 @@ void Joystick<Console::HAC>::Close()
     this->state      = PadState {};
 
     this->vibration.SendValues(0, 0);
-    this->sixAxis.Stop();
 }
 
 guid::GamepadType Joystick<Console::HAC>::GetGamepadType() const
@@ -216,21 +214,6 @@ static float getTrigger(uint64_t held, HidNpadButton trigger)
     return 0.0f;
 }
 
-static float getHapticAngle(std::vector<Vector3> haptic, size_t index, ::SixAxis::Axis axis)
-{
-    switch (axis)
-    {
-        case ::SixAxis::SIXAXIS_X:
-            return haptic[index].x;
-        case ::SixAxis::SIXAXIS_Y:
-            return haptic[index].y;
-        case ::SixAxis::SIXAXIS_Z:
-            return haptic[index].z;
-    }
-
-    return 0.0f;
-}
-
 float Joystick<Console::HAC>::GetAxis(int index)
 {
     if (!this->IsConnected() || index < 0 || index >= this->GetAxisCount())
@@ -271,35 +254,6 @@ float Joystick<Console::HAC>::GetAxis(int index)
                 break;
             }
         }
-    }
-
-    const auto angle = [&](const auto& haptic) {
-        bool isSecondary = haptic.size() == 2 && index >= 12;
-        switch (index % 3)
-        {
-            case 0:
-                return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_X);
-            case 1:
-                return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Y);
-            case 2:
-                return getHapticAngle(haptic, isSecondary, ::SixAxis::SIXAXIS_Z);
-
-            // unreachable
-            default:
-                return 0.0f;
-        }
-    };
-
-    switch ((index / 3) % 2)
-    {
-        case 0:
-            return angle(this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_ACCELEROMETER));
-        case 1:
-            return angle(this->sixAxis.GetStateInfo(::SixAxis::SIXAXIS_GYROSCOPE));
-
-        // unreachable
-        default:
-            return 0;
     }
 
     return 0.0f;
@@ -416,4 +370,47 @@ bool Joystick<Console::HAC>::SetVibration()
 void Joystick<Console::HAC>::GetVibration(float& left, float& right)
 {
     this->vibration.GetValues(left, right);
+}
+
+bool Joystick<Console::HAC>::HasSensor(Sensor::SensorType type) const
+{
+    return true;
+}
+
+bool Joystick<Console::HAC>::IsSensorEnabled(Sensor::SensorType type)
+{
+    return this->sensors[type];
+}
+
+void Joystick<Console::HAC>::SetSensorEnabled(Sensor::SensorType type, bool enabled)
+{
+    if (this->sensors[type] && !enabled)
+        this->sensors[type] = nullptr;
+    else if (this->sensors[type] == nullptr && enabled)
+    {
+        SensorBase* sensor = nullptr;
+
+        HidNpadIdType idType = this->playerId;
+        if (padIsHandheld(&this->state))
+            idType = HidNpadIdType_Handheld;
+
+        if (type == Sensor::SENSOR_ACCELEROMETER)
+            sensor = new Accelerometer(idType, this->style);
+        else if (type == Sensor::SENSOR_GYROSCOPE)
+            sensor = new Gyroscope(idType, this->style);
+
+        sensor->SetEnabled(enabled);
+        this->sensors[type] = sensor;
+    }
+}
+
+std::vector<float> Joystick<Console::HAC>::GetSensorData(Sensor::SensorType type)
+{
+    if (!this->IsSensorEnabled(type))
+    {
+        auto name = Sensor::sensorTypes.ReverseFind(type);
+        throw love::Exception("\"%s\" sensor is not enabled", *name);
+    }
+
+    return this->sensors[type]->GetData();
 }

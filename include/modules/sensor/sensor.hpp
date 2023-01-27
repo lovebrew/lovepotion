@@ -12,18 +12,17 @@
 
 namespace love
 {
-    template<Console::Platform = Console::ALL>
     class Sensor : public Module
     {
       public:
         enum SensorType
         {
             SENSOR_ACCELEROMETER,
-            SENSOR_GYROSCOPE
+            SENSOR_GYROSCOPE,
+            SENSOR_MAX_ENUM
         };
 
-        Sensor() : sensors()
-        {}
+        Sensor();
 
         virtual ~Sensor()
         {}
@@ -38,23 +37,15 @@ namespace love
             return M_SENSOR;
         }
 
-        bool HasSensor(SensorType type)
-        {}
+        bool HasSensor(SensorType type);
 
-        bool IsEnabled(SensorType type)
-        {
-            return this->sensors[type];
-        }
+        bool IsEnabled(SensorType type);
 
-        const char* GetSensorName(SensorType type)
-        {
-            auto name = Sensor<>::sensorTypes.ReverseFind(type);
+        const char* GetSensorName(SensorType type);
 
-            if (!this->sensors[type])
-                throw love::Exception("\"%s\" sensor is not enabled.", *name);
+        void SetEnabled(SensorType type, bool enable);
 
-            return *name;
-        }
+        std::array<float, 3> GetData(SensorType type);
 
         // clang-format off
         static constexpr BidirectionalMap sensorTypes = {

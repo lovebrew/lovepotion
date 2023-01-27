@@ -2,15 +2,15 @@
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Sensor<Console::Which>>(Module::M_SENSOR))
+#define instance() (Module::GetInstance<Sensor>(Module::M_SENSOR))
 
-Sensor<Console::Which>::SensorType Wrap_Sensor::CheckSensorType(lua_State* L, int index)
+Sensor::SensorType Wrap_Sensor::CheckSensorType(lua_State* L, int index)
 {
     const char* typeName = luaL_checkstring(L, index);
-    std::optional<Sensor<Console::Which>::SensorType> type;
+    std::optional<Sensor::SensorType> type;
 
-    if (!(type = Sensor<Console::Which>::sensorTypes.Find(typeName)))
-        luax::EnumError(L, "sensor mode", Sensor<>::sensorTypes, typeName);
+    if (!(type = Sensor::sensorTypes.Find(typeName)))
+        luax::EnumError(L, "sensor mode", Sensor::sensorTypes, typeName);
 
     return *type;
 }
@@ -18,7 +18,11 @@ Sensor<Console::Which>::SensorType Wrap_Sensor::CheckSensorType(lua_State* L, in
 // TODO
 int Wrap_Sensor::HasSensor(lua_State* L)
 {
-    return 0;
+    auto type = Wrap_Sensor::CheckSensorType(L, 1);
+
+    luax::CatchException(L, [&]() { instance()->HasSensor(type); });
+
+    return 1;
 }
 
 int Wrap_Sensor::IsEnabled(lua_State* L)
@@ -47,8 +51,8 @@ int Wrap_Sensor::GetData(lua_State* L)
 
     luax::CatchException(L, [&]() { data = instance()->GetData(type); });
 
-    for (float value : data)
-        lua_pushnumber(L, value);
+    for (auto _ : data)
+        lua_pushnil(L);
 
     return (int)data.size();
 }
@@ -81,7 +85,7 @@ int Wrap_Sensor::Register(lua_State* L)
     auto* instance = instance();
 
     if (instance == nullptr)
-        luax::CatchException(L, [&]() { instance = new Sensor<Console::Which>(); });
+        luax::CatchException(L, [&]() { instance = new Sensor(); });
     else
         instance()->Retain();
 

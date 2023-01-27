@@ -10,11 +10,11 @@ Gyroscope::~Gyroscope()
     this->SetEnabled(false);
 }
 
-std::array<float, 3> Gyroscope::GetData()
+std::vector<float> Gyroscope::GetData()
 {
     hidGyroRead(&this->data);
 
-    return { this->data.x, this->data.y, this->data.z };
+    return { (float)this->data.x, (float)this->data.y, (float)this->data.z };
 }
 
 void Gyroscope::SetEnabled(bool enabled)

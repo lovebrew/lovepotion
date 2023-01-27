@@ -26,7 +26,7 @@ constexpr BidirectionalMap buttons = {
 };
 // clang-format on
 
-Joystick<Console::CTR>::Joystick(int id) : buttonStates {}
+Joystick<Console::CTR>::Joystick(int id) : buttonStates {}, sensors()
 {
     this->instanceId = -1;
     this->id         = id;
@@ -205,6 +205,45 @@ std::vector<float> Joystick<Console::CTR>::GetAxes()
         axes.push_back(this->GetAxis(index));
 
     return axes;
+}
+
+bool Joystick<Console::CTR>::HasSensor(Sensor::SensorType type) const
+{
+    return true;
+}
+
+bool Joystick<Console::CTR>::IsSensorEnabled(Sensor::SensorType type)
+{
+    return this->sensors[type];
+}
+
+void Joystick<Console::CTR>::SetSensorEnabled(Sensor::SensorType type, bool enabled)
+{
+    if (this->sensors[type] && !enabled)
+        this->sensors[type] = nullptr;
+    else if (this->sensors[type] == nullptr && enabled)
+    {
+        SensorBase* sensor = nullptr;
+
+        if (type == Sensor::SENSOR_ACCELEROMETER)
+            sensor = new Accelerometer();
+        else if (type == Sensor::SENSOR_GYROSCOPE)
+            sensor = new Gyroscope();
+
+        sensor->SetEnabled(enabled);
+        this->sensors[type] = sensor;
+    }
+}
+
+std::array<float, 3> Joystick<Console::CTR>::GetSensorData(Sensor::SensorType type)
+{
+    if (!this->IsSensorEnabled(type))
+    {
+        auto name = Sensor::sensorTypes.ReverseFind(type);
+        throw love::Exception("\"%s\" sensor is not enabled", *name);
+    }
+
+    return this->sensors[type]->GetData();
 }
 
 bool Joystick<Console::CTR>::IsDown(const std::vector<int>& buttons) const

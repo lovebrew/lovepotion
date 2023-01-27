@@ -2,7 +2,6 @@
 #include <utilities/driver/hid_ext.hpp>
 
 #include <modules/graphics_ext.hpp>
-#include <modules/sensor_ext.hpp>
 
 using namespace love;
 
@@ -151,13 +150,11 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
         joystick->Update();
         Joystick<>::JoystickInput input {};
 
-        auto sensor = Sensor<>::SENSOR_ACCELEROMETER;
-        if (Sensor()->IsEnabled(Sensor<>::SENSOR_ACCELEROMETER))
-            this->SendJoystickSensorUpdated(0, sensor, Sensor()->GetData(sensor));
-
-        sensor = Sensor<>::SENSOR_GYROSCOPE;
-        if (Sensor()->IsEnabled(Sensor<>::SENSOR_GYROSCOPE))
-            this->SendJoystickSensorUpdated(0, sensor, Sensor()->GetData(sensor));
+        for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
+        {
+            const auto sensor = (Sensor::SensorType)index;
+            this->SendJoystickSensorUpdated(0, sensor, joystick->GetSensorData(sensor));
+        }
 
         if (joystick->IsDown(input))
         {

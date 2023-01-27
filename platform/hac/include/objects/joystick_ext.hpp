@@ -2,12 +2,10 @@
 
 #include <objects/joystick/joystick.tcc>
 
-#include <utilities/haptics/sixaxis_ext.hpp>
 #include <utilities/haptics/vibration_ext.hpp>
 
 #include <switch.h>
 
-using SixAxis   = love::SixAxis<love::Console::HAC>;
 using Vibration = love::Vibration<love::Console::HAC>;
 
 namespace love
@@ -75,6 +73,14 @@ namespace love
 
         void GetVibration(float& left, float& right);
 
+        bool HasSensor(Sensor::SensorType type) const;
+
+        bool IsSensorEnabled(Sensor::SensorType type);
+
+        void SetSensorEnabled(Sensor::SensorType type, bool enabled);
+
+        std::vector<float> GetSensorData(Sensor::SensorType type);
+
       private:
         PadState state;
 
@@ -87,7 +93,6 @@ namespace love
             uint64_t released;
         } buttonStates;
 
-        ::SixAxis sixAxis;
         ::Vibration vibration;
     };
 } // namespace love

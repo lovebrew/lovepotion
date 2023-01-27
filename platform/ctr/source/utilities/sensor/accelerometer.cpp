@@ -10,7 +10,7 @@ Accelerometer::~Accelerometer()
     this->SetEnabled(false);
 }
 
-std::array<float, 3> Accelerometer::GetData()
+std::vector<float> Accelerometer::GetData()
 {
     hidAccelRead(&this->data);
 

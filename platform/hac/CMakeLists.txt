@@ -49,8 +49,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/dsp_mem.cpp
     source/utilities/driver/hid_ext.cpp
     source/utilities/driver/renderer_ext.cpp
-    source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/haptics/vibration_ext.cpp
     source/utilities/npad.cpp
+    source/utilities/sensor/accelerometer.cpp
+    source/utilities/sensor/gyroscope.cpp
     source/utilities/threads/thread_ext.cpp
 )

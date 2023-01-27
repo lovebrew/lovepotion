@@ -53,6 +53,14 @@ namespace Wrap_Joystick
 
     int GetVibration(lua_State* L);
 
+    int HasSensor(lua_State*L);
+
+    int IsSensorEnabled(lua_State*L);
+
+    int SetSensorEnabled(lua_State* L);
+
+    int GetSensorData(lua_State* L);
+
     int Split(lua_State* L);
 
     int Join(lua_State* L);

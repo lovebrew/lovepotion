@@ -308,9 +308,66 @@ int Wrap_Joystick::GetVibration(lua_State* L)
     return 2;
 }
 
-int Wrap_Joystick::GetIndex(lua_State* L)
+int Wrap_Joystick::HasSensor(lua_State* L)
 {
+    auto* self             = Wrap_Joystick::CheckJoystick(L, 1);
+    const char* sensorType = luaL_checkstring(L, 2);
+
+    std::optional<Sensor::SensorType> type;
+    if (!(type = Sensor::sensorTypes.Find(sensorType)))
+        luax::EnumError(L, "sensor type", Sensor::sensorTypes, sensorType);
+
+    luax::PushBoolean(L, self->HasSensor(*type));
+
+    return 1;
+}
+
+int Wrap_Joystick::IsSensorEnabled(lua_State* L)
+{
+    auto* self             = Wrap_Joystick::CheckJoystick(L, 1);
+    const char* sensorType = luaL_checkstring(L, 2);
+
+    std::optional<Sensor::SensorType> type;
+    if (!(type = Sensor::sensorTypes.Find(sensorType)))
+        luax::EnumError(L, "sensor type", Sensor::sensorTypes, sensorType);
+
+    luax::PushBoolean(L, self->IsSensorEnabled(*type));
+
+    return 1;
+}
+
+int Wrap_Joystick::SetSensorEnabled(lua_State* L)
+{
+    auto* self             = Wrap_Joystick::CheckJoystick(L, 1);
+    const char* sensorType = luaL_checkstring(L, 2);
+
+    std::optional<Sensor::SensorType> type;
+    if (!(type = Sensor::sensorTypes.Find(sensorType)))
+        luax::EnumError(L, "sensor type", Sensor::sensorTypes, sensorType);
+
+    bool enabled = luax::CheckBoolean(L, 3);
+
+    luax::CatchException(L, [&]() { self->SetSensorEnabled(*type, enabled); });
+
     return 0;
+}
+
+int Wrap_Joystick::GetSensorData(lua_State* L)
+{
+    auto* self             = Wrap_Joystick::CheckJoystick(L, 1);
+    const char* sensorType = luaL_checkstring(L, 2);
+
+    std::optional<Sensor::SensorType> type;
+    if (!(type = Sensor::sensorTypes.Find(sensorType)))
+        luax::EnumError(L, "sensor type", Sensor::sensorTypes, sensorType);
+
+    std::vector<float> data;
+    luax::CatchException(L, [&]() { data = self->GetSensorData(*type); });
+
+    for (float value : data)
+        lua_pushnumber(L, value);
+
+    return (int)data.size();
 }
 
 // clang-format off
@@ -337,7 +394,11 @@ static constexpr luaL_Reg functions[] =
     { "isVibrationSupported", Wrap_Joystick::IsVibrationSupported },
     { "setVibration",         Wrap_Joystick::SetVibration         },
     { "getVibration",         Wrap_Joystick::GetVibration         },
-    { "getConnectedIndex",    Wrap_Joystick::GetIndex             }
+    { "hasSensor",            Wrap_Joystick::HasSensor            },
+    { "isSensorEnabled",      Wrap_Joystick::IsSensorEnabled      },
+    { "setSensorEnabled",     Wrap_Joystick::SetSensorEnabled     },
+    { "getSensorData",        Wrap_Joystick::GetSensorData        }
+    // { "getConnectedIndex",    Wrap_Joystick::GetIndex             }
 };
 // clang-format on
 

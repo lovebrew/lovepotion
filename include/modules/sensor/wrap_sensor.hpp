@@ -1,11 +1,11 @@
 #pragma once
 
 #include <common/luax.hpp>
-#include <modules/sensor_ext.hpp>
+#include <modules/sensor/sensor.hpp>
 
 namespace Wrap_Sensor
 {
-    love::Sensor<love::Console::Which>::SensorType CheckSensorType(lua_State* L, int index);
+    love::Sensor::SensorType CheckSensorType(lua_State* L, int index);
 
     int HasSensor(lua_State* L);
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <vector>
 
 namespace love
 {
@@ -10,7 +10,7 @@ namespace love
         SensorBase() : enabled(false)
         {}
 
-        virtual std::array<float, 3> GetData() = 0;
+        virtual std::vector<float> GetData() = 0;
 
         virtual void SetEnabled(bool enable)
         {

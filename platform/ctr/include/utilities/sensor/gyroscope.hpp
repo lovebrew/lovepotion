@@ -13,7 +13,7 @@ namespace love
 
         ~Gyroscope();
 
-        std::array<float, 3> GetData();
+        std::vector<float> GetData() override;
 
         void SetEnabled(bool enabled);
 

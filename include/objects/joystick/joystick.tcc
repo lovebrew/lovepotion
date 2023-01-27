@@ -3,6 +3,11 @@
 #include <common/console.hpp>
 #include <common/object.hpp>
 
+#include <modules/sensor/sensor.hpp>
+
+#include <utilities/sensor/accelerometer.hpp>
+#include <utilities/sensor/gyroscope.hpp>
+
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 #include <utilities/guid.hpp>
 
@@ -65,6 +70,9 @@ namespace love
             GamepadButton button;
             int buttonNumber;
         };
+
+        Joystick() : sensors()
+        {}
 
         virtual ~Joystick()
         {}
@@ -136,5 +144,7 @@ namespace love
 
         std::string guid;
         std::unique_ptr<uint8_t> handle;
+
+        std::map<Sensor::SensorType, SensorBase*> sensors;
     };
 } // namespace love

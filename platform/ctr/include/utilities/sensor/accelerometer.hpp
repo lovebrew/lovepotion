@@ -1,6 +1,5 @@
 #pragma once
 
-#include <common/vector.hpp>
 #include <utilities/sensor/sensorbase.hpp>
 
 #include <3ds.h>
@@ -14,7 +13,7 @@ namespace love
 
         ~Accelerometer();
 
-        std::array<float, 3> GetData() override;
+        std::vector<float> GetData() override;
 
         void SetEnabled(bool enable);
 

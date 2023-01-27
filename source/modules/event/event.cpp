@@ -2,7 +2,6 @@
 #include <utilities/driver/hid_ext.hpp>
 
 #include <modules/joystickmodule_ext.hpp>
-#include <modules/sensor_ext.hpp>
 #include <modules/touch/touch.hpp>
 
 #include <common/console.hpp>
@@ -153,7 +152,7 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
             if (joystick)
             {
                 const char* sensorName;
-                auto name = Sensor<>::sensorTypes.ReverseFind(event.padSensor.type);
+                auto name = Sensor::sensorTypes.ReverseFind(event.padSensor.type);
 
                 sensorName = (name) ? *name : "unknown";
 

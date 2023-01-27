@@ -88,6 +88,14 @@ namespace love
 
         void GetVibration(float& left, float& right) {};
 
+        bool HasSensor(Sensor::SensorType type) const;
+
+        bool IsSensorEnabled(Sensor::SensorType type);
+
+        void SetSensorEnabled(Sensor::SensorType type, bool enabled);
+
+        std::array<float, 3> GetSensorData(Sensor::SensorType type);
+
       private:
         struct
         {

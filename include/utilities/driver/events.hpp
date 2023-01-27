@@ -5,6 +5,8 @@
 
 #include <common/vector.hpp>
 
+#include <modules/sensor/sensor.hpp>
+
 namespace love
 {
     struct GamepadButton
@@ -33,7 +35,7 @@ namespace love
     {
         size_t id;
 
-        Sensor<>::SensorType type;
+        Sensor::SensorType type;
         std::array<float, 3> data;
     };
 
