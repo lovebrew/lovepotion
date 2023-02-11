@@ -101,6 +101,7 @@ namespace love
         {
             return this->handle.get();
         }
+
         // clang-format off
         static constexpr BidirectionalMap inputTypes = {
             "axis",   INPUT_TYPE_AXIS,

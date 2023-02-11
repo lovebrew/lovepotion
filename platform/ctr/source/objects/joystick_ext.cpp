@@ -21,9 +21,16 @@ constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    KEY_DRIGHT,
     Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     KEY_DLEFT
 };
+
+constexpr BidirectionalMap axes = {
+    Joystick<>::GAMEPAD_AXIS_LEFTX,  KEY_CPAD_LEFT   | KEY_CPAD_RIGHT,
+    Joystick<>::GAMEPAD_AXIS_LEFTY,  KEY_CPAD_UP     | KEY_CPAD_DOWN,
+    Joystick<>::GAMEPAD_AXIS_RIGHTX, KEY_CSTICK_LEFT | KEY_CSTICK_RIGHT,
+    Joystick<>::GAMEPAD_AXIS_RIGHTY, KEY_CSTICK_UP   | KEY_CSTICK_DOWN
+};
 // clang-format on
 
-Joystick<Console::CTR>::Joystick(int id) : buttonStates {}, sensors()
+Joystick<Console::CTR>::Joystick(int id) : buttonStates {}
 {
     this->instanceId = -1;
     this->id         = id;
@@ -84,6 +91,7 @@ void Joystick<Console::CTR>::Update()
 {
     this->buttonStates.pressed  = hidKeysDown();
     this->buttonStates.released = hidKeysUp();
+    this->buttonStates.held     = hidKeysHeld();
 }
 
 bool Joystick<Console::CTR>::IsDown(JoystickInput& result)
@@ -204,6 +212,25 @@ std::vector<float> Joystick<Console::CTR>::GetAxes()
     return axes;
 }
 
+bool Joystick<Console::CTR>::IsAxisChanged(GamepadAxis axis)
+{
+    auto dsAxis = *axes.Find(axis);
+
+    if (dsAxis & this->buttonStates.held)
+    {
+        this->buttonStates.held ^= dsAxis;
+        return true;
+    }
+
+    if (dsAxis & this->buttonStates.released)
+    {
+        this->buttonStates.released ^= dsAxis;
+        return true;
+    }
+
+    return false;
+}
+
 bool Joystick<Console::CTR>::HasSensor(Sensor::SensorType type) const
 {
     return true;
@@ -232,7 +259,7 @@ void Joystick<Console::CTR>::SetSensorEnabled(Sensor::SensorType type, bool enab
     }
 }
 
-std::array<float, 3> Joystick<Console::CTR>::GetSensorData(Sensor::SensorType type)
+std::vector<float> Joystick<Console::CTR>::GetSensorData(Sensor::SensorType type)
 {
     if (!this->IsSensorEnabled(type))
     {

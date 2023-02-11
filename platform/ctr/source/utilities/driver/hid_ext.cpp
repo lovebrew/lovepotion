@@ -183,26 +183,23 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
         /* handle trigger and stick inputs */
         for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
         {
-            const auto axisEnum  = (Joystick<>::GamepadAxis)index;
-            const auto axisValue = joystick->GetAxis(index);
+            const auto axisEnum = (Joystick<>::GamepadAxis)index;
 
-            if (axisValue == this->stickValues[0][axisEnum])
-                continue;
+            if (joystick->IsAxisChanged(axisEnum))
+            {
+                auto& newEvent = this->events.emplace_back();
 
-            auto& newEvent = this->events.emplace_back();
+                newEvent.type    = TYPE_GAMEPAD;
+                newEvent.subType = SUBTYPE_GAMEPADAXIS;
 
-            newEvent.type    = TYPE_GAMEPAD;
-            newEvent.subType = SUBTYPE_GAMEPADAXIS;
+                newEvent.padAxis.id = joystick->GetID();
 
-            newEvent.padAxis.id = joystick->GetID();
+                const char* axis = *Joystick<>::axisTypes.ReverseFind(axisEnum);
 
-            const char* axis = *Joystick<>::axisTypes.ReverseFind(axisEnum);
-
-            newEvent.padAxis.axis  = index;
-            newEvent.padAxis.value = axisValue;
-            newEvent.padAxis.name  = axis;
-
-            this->stickValues[0][axisEnum] = axisValue;
+                newEvent.padAxis.axis  = index;
+                newEvent.padAxis.value = joystick->GetAxis(index);
+                newEvent.padAxis.name  = axis;
+            }
         }
     }
 

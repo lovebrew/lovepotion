@@ -81,8 +81,7 @@ namespace love
             event.padStatus.id = id;
         }
 
-        void SendJoystickSensorUpdated(size_t id, Sensor::SensorType type,
-                                       std::array<float, 3> data)
+        void SendJoystickSensorUpdated(size_t id, Sensor::SensorType type, std::vector<float> data)
         {
             auto& event = this->events.emplace_back();
 

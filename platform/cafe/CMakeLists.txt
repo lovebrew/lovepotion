@@ -27,6 +27,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/font_ext.cpp
     source/objects/gamepad.cpp
     source/objects/imagedata_ext.cpp
+    source/objects/procontroller.cpp
     source/objects/rasterizer_ext.cpp
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp

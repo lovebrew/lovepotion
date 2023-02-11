@@ -41,6 +41,8 @@ namespace love
 
         std::vector<float> GetAxes();
 
+        bool IsAxisChanged(GamepadAxis axis);
+
         bool IsDown(const std::vector<int>& buttons) const;
 
         void SetPlayerIndex(int index)
@@ -94,13 +96,14 @@ namespace love
 
         void SetSensorEnabled(Sensor::SensorType type, bool enabled);
 
-        std::array<float, 3> GetSensorData(Sensor::SensorType type);
+        std::vector<float> GetSensorData(Sensor::SensorType type);
 
       private:
         struct
         {
             uint32_t pressed;
             uint32_t released;
+            uint32_t held;
         } buttonStates;
     };
 } // namespace love

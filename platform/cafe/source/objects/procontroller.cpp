@@ -1,4 +1,4 @@
-#include <objects/gamepad.hpp>
+#include <objects/procontroller.hpp>
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <modules/joystickmodule_ext.hpp>
@@ -13,42 +13,40 @@ using namespace love;
 
 // clang-format off
 constexpr BidirectionalMap buttons = {
-    Joystick<>::GAMEPAD_BUTTON_A,             VPAD_BUTTON_A,
-    Joystick<>::GAMEPAD_BUTTON_B,             VPAD_BUTTON_B,
-    Joystick<>::GAMEPAD_BUTTON_X,             VPAD_BUTTON_X,
-    Joystick<>::GAMEPAD_BUTTON_Y,             VPAD_BUTTON_Y,
-    Joystick<>::GAMEPAD_BUTTON_BACK,          VPAD_BUTTON_MINUS,
-    Joystick<>::GAMEPAD_BUTTON_GUIDE,         VPAD_BUTTON_HOME,
-    Joystick<>::GAMEPAD_BUTTON_START,         VPAD_BUTTON_PLUS,
-    Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  VPAD_BUTTON_L,
-    Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, VPAD_BUTTON_R,
-    Joystick<>::GAMEPAD_BUTTON_LEFTSTICK,     VPAD_BUTTON_STICK_L,
-    Joystick<>::GAMEPAD_BUTTON_RIGHTSTICK,    VPAD_BUTTON_STICK_R,
-    Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       VPAD_BUTTON_UP,
-    Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     VPAD_BUTTON_DOWN,
-    Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    VPAD_BUTTON_RIGHT,
-    Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     VPAD_BUTTON_LEFT
+    Joystick<>::GAMEPAD_BUTTON_A,             WPAD_PRO_BUTTON_A,
+    Joystick<>::GAMEPAD_BUTTON_B,             WPAD_PRO_BUTTON_B,
+    Joystick<>::GAMEPAD_BUTTON_X,             WPAD_PRO_BUTTON_X,
+    Joystick<>::GAMEPAD_BUTTON_Y,             WPAD_PRO_BUTTON_Y,
+    Joystick<>::GAMEPAD_BUTTON_BACK,          WPAD_PRO_BUTTON_MINUS,
+    Joystick<>::GAMEPAD_BUTTON_GUIDE,         WPAD_PRO_BUTTON_HOME,
+    Joystick<>::GAMEPAD_BUTTON_START,         WPAD_PRO_BUTTON_PLUS,
+    Joystick<>::GAMEPAD_BUTTON_LEFTSHOULDER,  WPAD_PRO_TRIGGER_L,
+    Joystick<>::GAMEPAD_BUTTON_RIGHTSHOULDER, WPAD_PRO_TRIGGER_R,
+    Joystick<>::GAMEPAD_BUTTON_LEFTSTICK,     WPAD_PRO_BUTTON_STICK_L,
+    Joystick<>::GAMEPAD_BUTTON_RIGHTSTICK,    WPAD_PRO_BUTTON_STICK_R,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_UP,       WPAD_PRO_BUTTON_UP,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_DOWN,     WPAD_PRO_BUTTON_DOWN,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_RIGHT,    WPAD_PRO_BUTTON_RIGHT,
+    Joystick<>::GAMEPAD_BUTTON_DPAD_LEFT,     WPAD_PRO_BUTTON_LEFT
 };
 
 constexpr BidirectionalMap axes = {
-    Joystick<>::GAMEPAD_AXIS_LEFTX,        VPAD_STICK_L_EMULATION_LEFT | VPAD_STICK_L_EMULATION_RIGHT,
-    Joystick<>::GAMEPAD_AXIS_LEFTY,        VPAD_STICK_L_EMULATION_UP | VPAD_STICK_L_EMULATION_DOWN,
-    Joystick<>::GAMEPAD_AXIS_RIGHTX,       VPAD_STICK_R_EMULATION_LEFT | VPAD_STICK_R_EMULATION_RIGHT,
-    Joystick<>::GAMEPAD_AXIS_RIGHTY,       VPAD_STICK_R_EMULATION_UP | VPAD_STICK_R_EMULATION_DOWN,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERLEFT,  VPAD_BUTTON_ZL,
-    Joystick<>::GAMEPAD_AXIS_TRIGGERRIGHT, VPAD_BUTTON_ZR
+    Joystick<>::GAMEPAD_AXIS_LEFTX,  WPAD_PRO_STICK_L_EMULATION_LEFT | WPAD_PRO_STICK_L_EMULATION_RIGHT,
+    Joystick<>::GAMEPAD_AXIS_LEFTY,  WPAD_PRO_STICK_L_EMULATION_UP   | WPAD_PRO_STICK_L_EMULATION_DOWN,
+    Joystick<>::GAMEPAD_AXIS_RIGHTX, WPAD_PRO_STICK_R_EMULATION_LEFT | WPAD_PRO_STICK_R_EMULATION_RIGHT,
+    Joystick<>::GAMEPAD_AXIS_RIGHTY, WPAD_PRO_STICK_R_EMULATION_UP   | WPAD_PRO_STICK_R_EMULATION_DOWN,
 };
 // clang-format on
 
-Gamepad::Gamepad(int id) : state {}
+ProController::ProController(int id) : state {}
 {}
 
-Gamepad::Gamepad(int id, int index) : Gamepad(id)
+ProController::ProController(int id, int index) : ProController(id)
 {
     this->Open(index);
 }
 
-bool Gamepad::Open(int index)
+bool ProController::Open(int index)
 {
     this->Close();
 
@@ -60,39 +58,31 @@ bool Gamepad::Open(int index)
     return this->IsConnected();
 }
 
-void Gamepad::Update()
+void ProController::Update()
 {
-    VPADReadError error {};
-    VPADRead(VPAD_CHAN_0, &this->state, 1, &error);
+    KPADError error {};
+    KPADReadEx((WPADChan)(this->instanceId - 1), &this->state, 1, &error);
 
     std::fill_n(this->triggers, 0x2, Trigger {});
 
-    if (error == VPAD_READ_NO_SAMPLES)
+    if (error == KPAD_ERROR_NO_SAMPLES)
         return;
 
     this->buttonStates.pressed  = this->state.trigger;
     this->buttonStates.released = this->state.release;
     this->buttonStates.held     = this->state.hold;
 
-    this->leftStick  = { this->state.leftStick.x, this->state.leftStick.y };
-    this->rightStick = { this->state.rightStick.x, this->state.rightStick.y };
+    this->leftStick  = { this->state.pro.leftStick.x, this->state.pro.leftStick.y };
+    this->rightStick = { this->state.pro.rightStick.x, this->state.pro.rightStick.y };
 
-    if (this->buttonStates.held & VPAD_BUTTON_ZL)
+    if (this->buttonStates.held & WPAD_PRO_TRIGGER_ZL)
         this->triggers[0x0].down = true;
 
-    if (this->buttonStates.held & VPAD_BUTTON_ZR)
+    if (this->buttonStates.held & WPAD_PRO_TRIGGER_ZR)
         this->triggers[0x1].down = true;
-
-    // clang-format off
-    if (this->IsSensorEnabled(Sensor::SENSOR_ACCELEROMETER))
-        ((Accelerometer*)this->sensors[Sensor::SENSOR_ACCELEROMETER])->Update(this->state.accelorometer.acc);
-
-    if (this->IsSensorEnabled(Sensor::SENSOR_GYROSCOPE))
-        ((Gyroscope*)this->sensors[Sensor::SENSOR_GYROSCOPE])->Update(this->state.gyro);
-    // clang-format on
 }
 
-bool Gamepad::IsDown(JoystickInput& result)
+bool ProController::IsDown(JoystickInput& result)
 {
     if (!this->IsConnected())
         return false;
@@ -125,7 +115,7 @@ bool Gamepad::IsDown(JoystickInput& result)
     return false;
 }
 
-bool Gamepad::IsDown(const std::vector<int>& inputs) const
+bool ProController::IsDown(const std::vector<int>& inputs) const
 {
     if (!this->IsConnected())
         return false;
@@ -145,7 +135,7 @@ bool Gamepad::IsDown(const std::vector<int>& inputs) const
     return false;
 }
 
-bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& inputs) const
+bool ProController::IsGamepadDown(const std::vector<GamepadButton>& inputs) const
 {
     uint32_t heldSet = this->buttonStates.held;
 
@@ -158,7 +148,7 @@ bool Gamepad::IsGamepadDown(const std::vector<GamepadButton>& inputs) const
     return false;
 }
 
-bool Gamepad::IsUp(JoystickInput& result)
+bool ProController::IsUp(JoystickInput& result)
 {
     uint32_t button = 0;
 
@@ -188,7 +178,7 @@ bool Gamepad::IsUp(JoystickInput& result)
     return false;
 }
 
-float Gamepad::GetAxis(int index)
+float ProController::GetAxis(int index)
 {
     if (index == 0 || index == 1)
         return (index == 1) ? this->leftStick.dx : this->leftStick.dy;
@@ -203,7 +193,7 @@ float Gamepad::GetAxis(int index)
 }
 
 /* internal use for the callback */
-bool Gamepad::IsAxisChanged(GamepadAxis axis)
+bool ProController::IsAxisChanged(GamepadAxis axis)
 {
     auto vpadAxis = *axes.Find(axis);
 
@@ -222,7 +212,7 @@ bool Gamepad::IsAxisChanged(GamepadAxis axis)
     return false;
 }
 
-float Gamepad::GetGamepadAxis(GamepadAxis axis)
+float ProController::GetGamepadAxis(GamepadAxis axis)
 {
     if (!this->IsConnected())
         return 0.0f;
@@ -231,7 +221,7 @@ float Gamepad::GetGamepadAxis(GamepadAxis axis)
     return this->GetAxis(getAxis - 1);
 }
 
-std::vector<float> Gamepad::GetAxes()
+std::vector<float> ProController::GetAxes()
 {
     std::vector<float> axes;
     int count = this->GetAxisCount();
@@ -247,7 +237,7 @@ std::vector<float> Gamepad::GetAxes()
     return axes;
 }
 
-bool Gamepad::SetVibration(float left, float right, float duration)
+bool ProController::SetVibration(float left, float right, float duration)
 {
     left  = std::clamp(left, 0.0f, 1.0f);
     right = std::clamp(right, 0.0f, 1.0f);
@@ -279,45 +269,48 @@ bool Gamepad::SetVibration(float left, float right, float duration)
     return success;
 }
 
-bool Gamepad::SetVibration()
+bool ProController::SetVibration()
 {
     return this->vibration.Stop();
 }
 
-void Gamepad::GetVibration(float& left, float& right)
+void ProController::GetVibration(float& left, float& right)
 {
     this->vibration.GetValues(left, right);
 }
 
-bool Gamepad::HasSensor(Sensor::SensorType type) const
+bool ProController::HasSensor(Sensor::SensorType type) const
 {
-    return true;
+    return false;
 }
 
-bool Gamepad::IsSensorEnabled(Sensor::SensorType type)
+bool ProController::IsSensorEnabled(Sensor::SensorType type)
 {
     return this->sensors[type];
 }
 
-void Gamepad::SetSensorEnabled(Sensor::SensorType type, bool enabled)
+void ProController::SetSensorEnabled(Sensor::SensorType type, bool enabled)
 {
     if (this->sensors[type] && !enabled)
         this->sensors[type] = nullptr;
     else if (this->sensors[type] == nullptr && enabled)
     {
-        SensorBase* sensor = nullptr;
+        if (this->HasSensor(type))
+        {
+            SensorBase* sensor = nullptr;
 
-        if (type == Sensor::SENSOR_ACCELEROMETER)
-            sensor = new Accelerometer();
-        else if (type == Sensor::SENSOR_GYROSCOPE)
-            sensor = new Gyroscope();
+            if (type == Sensor::SENSOR_ACCELEROMETER)
+                sensor = new Accelerometer();
+            else if (type == Sensor::SENSOR_GYROSCOPE)
+                sensor = new Gyroscope();
 
-        sensor->SetEnabled(enabled);
-        this->sensors[type] = sensor;
+            sensor->SetEnabled(enabled);
+            this->sensors[type] = sensor;
+        }
     }
 }
 
-std::vector<float> Gamepad::GetSensorData(Sensor::SensorType type)
+std::vector<float> ProController::GetSensorData(Sensor::SensorType type)
 {
     if (!this->IsSensorEnabled(type))
     {
