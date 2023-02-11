@@ -25,8 +25,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/window_ext.cpp
     source/modules/wrap_fontmodule_ext.cpp
     source/objects/font_ext.cpp
+    source/objects/gamepad.cpp
     source/objects/imagedata_ext.cpp
-    source/objects/joystick_ext.cpp
     source/objects/rasterizer_ext.cpp
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp
@@ -37,8 +37,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/framebuffer.cpp
     source/utilities/driver/hid_ext.cpp
     source/utilities/driver/renderer_ext.cpp
-    source/utilities/haptics/sixaxis_ext.cpp
     source/utilities/haptics/vibration_ext.cpp
+    source/utilities/sensor/accelerometer.cpp
+    source/utilities/sensor/gyroscope.cpp
     source/utilities/threads/thread_ext.cpp
     source/utilities/wpad.cpp
 )

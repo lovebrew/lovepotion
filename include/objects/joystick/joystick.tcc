@@ -20,7 +20,7 @@ namespace love
     class Joystick : public Object
     {
       public:
-        static Type type;
+        static inline Type type = Type("Joystick", &Object::type);
 
         enum GamepadAxis
         {

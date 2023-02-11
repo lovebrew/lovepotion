@@ -74,54 +74,55 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
         {
             joystick->Update();
 
-            if (Keyboard()->IsShowing())
-                this->CheckSoftwareKeyboard(joystick->GetVPADStatus());
+            // TODO: Fix me
+            // if (Keyboard()->IsShowing())
+            //     this->CheckSoftwareKeyboard(joystick->GetVPADStatus());
 
-            const auto tpNormal = joystick->GetTouchData();
+            // const auto tpNormal = joystick->GetTouchData();
 
-            if (tpNormal.touched)
-            {
-                auto& newEvent = this->events.emplace_back();
+            // if (tpNormal.touched)
+            // {
+            //     auto& newEvent = this->events.emplace_back();
 
-                newEvent.type = TYPE_TOUCH;
+            //     newEvent.type = TYPE_TOUCH;
 
-                uint16_t dx = this->previousTouch.x - tpNormal.x;
-                uint16_t dy = this->previousTouch.y - tpNormal.y;
+            //     uint16_t dx = this->previousTouch.x - tpNormal.x;
+            //     uint16_t dy = this->previousTouch.y - tpNormal.y;
 
-                if (dx == 0 && dy == 0)
-                    newEvent.subType = SUBTYPE_TOUCHPRESS;
-                else
-                    newEvent.subType = SUBTYPE_TOUCHMOVED;
+            //     if (dx == 0 && dy == 0)
+            //         newEvent.subType = SUBTYPE_TOUCHPRESS;
+            //     else
+            //         newEvent.subType = SUBTYPE_TOUCHMOVED;
 
-                newEvent.touchFinger.id       = 0;
-                newEvent.touchFinger.x        = tpNormal.x;
-                newEvent.touchFinger.y        = tpNormal.y;
-                newEvent.touchFinger.dx       = (double)(dx / 0xFFFF);
-                newEvent.touchFinger.dy       = (double)(dy / 0xFFFF);
-                newEvent.touchFinger.pressure = 1.0f;
+            //     newEvent.touchFinger.id       = 0;
+            //     newEvent.touchFinger.x        = tpNormal.x;
+            //     newEvent.touchFinger.y        = tpNormal.y;
+            //     newEvent.touchFinger.dx       = (double)(dx / 0xFFFF);
+            //     newEvent.touchFinger.dy       = (double)(dy / 0xFFFF);
+            //     newEvent.touchFinger.pressure = 1.0f;
 
-                this->touchHeld     = true;
-                this->previousTouch = tpNormal;
-            }
+            //     this->touchHeld     = true;
+            //     this->previousTouch = tpNormal;
+            // }
 
-            if (!tpNormal.touched && this->touchHeld)
-            {
-                auto& newEvent      = this->events.emplace_back();
-                this->previousTouch = tpNormal;
+            // if (!tpNormal.touched && this->touchHeld)
+            // {
+            //     auto& newEvent      = this->events.emplace_back();
+            //     this->previousTouch = tpNormal;
 
-                newEvent.type    = TYPE_TOUCH;
-                newEvent.subType = SUBTYPE_TOUCHRELEASE;
+            //     newEvent.type    = TYPE_TOUCH;
+            //     newEvent.subType = SUBTYPE_TOUCHRELEASE;
 
-                newEvent.touchFinger.id       = 0;
-                newEvent.touchFinger.x        = tpNormal.x;
-                newEvent.touchFinger.y        = tpNormal.y;
-                newEvent.touchFinger.dx       = 0.0f;
-                newEvent.touchFinger.dy       = 0.0f;
-                newEvent.touchFinger.pressure = 1.0f;
+            //     newEvent.touchFinger.id       = 0;
+            //     newEvent.touchFinger.x        = tpNormal.x;
+            //     newEvent.touchFinger.y        = tpNormal.y;
+            //     newEvent.touchFinger.dx       = 0.0f;
+            //     newEvent.touchFinger.dy       = 0.0f;
+            //     newEvent.touchFinger.pressure = 1.0f;
 
-                if (this->touchHeld)
-                    this->touchHeld = false;
-            }
+            //     if (this->touchHeld)
+            //         this->touchHeld = false;
+            // }
 
             Joystick<>::JoystickInput input {};
 
@@ -151,26 +152,23 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 
             for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
             {
-                const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
-                const auto axisValue = joystick->GetAxis(axis);
+                const auto axisEnum = (Joystick<>::GamepadAxis)axis;
 
-                if (axisValue == this->stickValues[0][axisEnum])
-                    continue;
+                if (joystick->IsAxisChanged(axisEnum))
+                {
+                    auto& newEvent = this->events.emplace_back();
 
-                auto& newEvent = this->events.emplace_back();
+                    newEvent.type    = TYPE_GAMEPAD;
+                    newEvent.subType = SUBTYPE_GAMEPADAXIS;
 
-                newEvent.type    = TYPE_GAMEPAD;
-                newEvent.subType = SUBTYPE_GAMEPADAXIS;
+                    newEvent.padAxis.id = joystick->GetInstanceID();
 
-                newEvent.padAxis.id = joystick->GetInstanceID();
+                    const char* axisName = *Joystick<>::axisTypes.ReverseFind(axisEnum);
 
-                const char* axisName = *Joystick<>::axisTypes.ReverseFind(axisEnum);
-
-                newEvent.padAxis.axis  = axis;
-                newEvent.padAxis.value = axisValue;
-                newEvent.padAxis.name  = axisName;
-
-                this->stickValues[0][axisEnum] = axisValue;
+                    newEvent.padAxis.axis  = axis;
+                    newEvent.padAxis.value = joystick->GetAxis(axis);
+                    newEvent.padAxis.name  = axisName;
+                }
             }
         }
     }

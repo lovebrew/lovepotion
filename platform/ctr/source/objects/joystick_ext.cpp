@@ -6,9 +6,6 @@
 
 using namespace love;
 
-template<>
-Type Joystick<>::type("Joystick", &Object::type);
-
 // clang-format off
 constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_A,             KEY_A,
@@ -162,7 +159,7 @@ float Joystick<Console::CTR>::GetAxis(int index)
         circlePosition leftStick {};
         hidCircleRead(&leftStick);
 
-        float value = (index == 2) ? leftStick.dx : leftStick.dy;
+        float value = (index == 1) ? leftStick.dx : leftStick.dy;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
     else if (index == 2 || index == 3)
@@ -170,7 +167,7 @@ float Joystick<Console::CTR>::GetAxis(int index)
         circlePosition rightStick {};
         irrstCstickRead(&rightStick);
 
-        float value = (index == 4) ? rightStick.dx : rightStick.dy;
+        float value = (index == 3) ? rightStick.dx : rightStick.dy;
         return std::clamp<float>(value / Joystick::JoystickMax, 0, 1.0f);
     }
     else if (index == 4)

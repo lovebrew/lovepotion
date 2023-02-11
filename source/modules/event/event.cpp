@@ -149,21 +149,14 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
         {
             joystick = joystickModule->GetJoystickFromId(event.padButton.id);
 
-            if (joystick)
-            {
-                const char* sensorName;
-                auto name = Sensor::sensorTypes.ReverseFind(event.padSensor.type);
+            if (!joystick)
+                return result;
 
-                sensorName = (name) ? *name : "unknown";
+            args.emplace_back(type, joystick);
+            args.emplace_back(event.padAxis.name, strlen(event.padAxis.name));
+            args.emplace_back(event.padAxis.value);
 
-                args.emplace_back(type, joystick);
-                args.emplace_back(sensorName, strlen(sensorName));
-                args.emplace_back(event.padSensor.data[0]);
-                args.emplace_back(event.padSensor.data[1]);
-                args.emplace_back(event.padSensor.data[2]);
-
-                result = new Message("joysticksensorupdated", args);
-            }
+            result = new Message("gamepadaxis", args);
             break;
         }
         case SUBTYPE_GAMEPADSENSORUPDATED:
@@ -172,6 +165,19 @@ Message* love::Event::ConvertJoystickEvent(const LOVE_Event& event, std::vector<
 
             if (!joystick)
                 return result;
+
+            const char* sensorName;
+            auto name = Sensor::sensorTypes.ReverseFind(event.padSensor.type);
+
+            sensorName = (name) ? *name : "unknown";
+
+            args.emplace_back(type, joystick);
+            args.emplace_back(sensorName, strlen(sensorName));
+            args.emplace_back(event.padSensor.data[0]);
+            args.emplace_back(event.padSensor.data[1]);
+            args.emplace_back(event.padSensor.data[2]);
+
+            result = new Message("joysticksensorupdated", args);
         }
         default:
             break;

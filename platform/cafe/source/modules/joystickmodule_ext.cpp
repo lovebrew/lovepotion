@@ -3,6 +3,8 @@
 #include <utilities/result.hpp>
 #include <utilities/wpad.hpp>
 
+#include <objects/gamepad.hpp>
+
 using namespace love;
 
 JoystickModule<Console::CAFE>::JoystickModule()
@@ -37,6 +39,17 @@ JoystickModule<Console::CAFE>::~JoystickModule()
 void JoystickModule<Console::CAFE>::AddVibration(::Vibration* vibration)
 {
     this->pool->AddVibration(vibration);
+}
+
+static Joystick<Console::Which>* openByType(guid::GamepadType type, int index)
+{
+    switch (type)
+    {
+        case guid::GAMEPAD_TYPE_WII_U_GAMEPAD:
+            return new Gamepad(index);
+        default:
+            return nullptr;
+    }
 }
 
 Joystick<Console::Which>* JoystickModule<Console::CAFE>::AddJoystick(int index)
@@ -75,7 +88,7 @@ Joystick<Console::Which>* JoystickModule<Console::CAFE>::AddJoystick(int index)
 
     if (!joystick)
     {
-        joystick = new Joystick<Console::Which>((int)this->joysticks.size());
+        joystick = openByType(type, (int)this->joysticks.size());
         this->joysticks.push_back(joystick);
     }
 

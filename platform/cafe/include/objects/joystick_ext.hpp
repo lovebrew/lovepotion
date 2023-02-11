@@ -2,14 +2,7 @@
 
 #include <objects/joystick/joystick.tcc>
 
-#include <padscore/kpad.h>
-#include <vpad/input.h>
-
-#include <utilities/haptics/sixaxis_ext.hpp>
 #include <utilities/haptics/vibration_ext.hpp>
-
-using SixAxis   = love::SixAxis<love::Console::Which>;
-using Vibration = love::Vibration<love::Console::Which>;
 
 namespace love
 {
@@ -17,47 +10,30 @@ namespace love
     class Joystick<Console::CAFE> : public Joystick<Console::ALL>
     {
       public:
-        struct StickAxis
+        Joystick()
+        {}
+
+        Joystick(int id) : buttonStates {}, connected(false)
         {
-            float x;
-            float y;
-        };
+            this->instanceId = -1;
+            this->id         = id;
+        }
 
-        Joystick(int id);
+        virtual bool Open(int index) = 0;
 
-        Joystick(int id, int index);
-
-        virtual ~Joystick();
-
-        bool Open(int index);
-
-        void Close();
-
-        bool IsConnected() const;
-
-        void Update();
-
-        bool IsDown(JoystickInput& result);
-
-        bool IsUp(JoystickInput& result);
-
-        void GetDeviceInfo(int& vendor, int& product, int& version);
-
-        int GetAxisCount() const;
-
-        int GetButtonCount() const;
-
-        float GetAxis(int index);
-
-        std::vector<float> GetAxes();
-
-        bool IsDown(const std::vector<int>& buttons) const;
-
-        void SetPlayerIndex(int index);
-
-        int GetPlayerIndex() const
+        virtual ~Joystick()
         {
-            return this->playerId;
+            this->Close();
+        }
+
+        void Close()
+        {
+            this->instanceId = -1;
+        }
+
+        bool IsConnected() const
+        {
+            return this->connected;
         }
 
         bool IsGamepad() const
@@ -65,59 +41,102 @@ namespace love
             return true;
         }
 
-        guid::GamepadType GetGamepadType() const;
+        virtual bool IsDown(JoystickInput& result) = 0;
 
-        float GetGamepadAxis(GamepadAxis axis);
+        virtual bool IsDown(const std::vector<int>& buttons) const = 0;
 
-        bool IsGamepadDown(const std::vector<GamepadButton>& buttons) const;
+        virtual bool IsGamepadDown(const std::vector<GamepadButton>& buttons) const = 0;
 
-        bool IsVibrationSupported()
+        virtual bool IsUp(JoystickInput& result) = 0;
+
+        virtual bool IsAxisChanged(GamepadAxis axis) = 0;
+
+        virtual guid::GamepadType GetGamepadType() const = 0;
+
+        void GetDeviceInfo(int& vendor, int& product, int& version)
         {
-            return true;
+            guid::DeviceInfo info {};
+
+            if (!guid::GetDeviceInfo(this->GetGamepadType(), info))
+                return;
+
+            vendor  = info.vendorId;
+            product = info.productId;
+            version = info.productVersion;
         }
 
-        bool SetVibration(float left, float right, float duration = -1.0f);
+        int GetAxisCount() const
+        {
+            if (!this->IsConnected())
+                return 0;
 
-        bool SetVibration();
+            return guid::GetGamepadAxisCount(this->GetGamepadType());
+        }
 
-        void GetVibration(float& left, float& right);
+        int GetButtonCount() const
+        {
+            if (!this->IsConnected())
+                return 0;
 
-        VPADStatus GetVPADStatus() const;
+            return guid::GetGamepadButtonCount(this->GetGamepadType());
+        }
 
-        VPADTouchData GetTouchData() const;
+        virtual float GetAxis(int index) = 0;
 
-      private:
-        VPADStatus vpad;
-        KPADStatus kpad;
+        virtual float GetGamepadAxis(GamepadAxis axis) = 0;
 
-        int playerId;
-        bool isGamepad;
+        virtual std::vector<float> GetAxes() = 0;
 
-        WPADExtensionType extension;
+        virtual void Update() = 0;
 
-        struct
+        void SetPlayerIndex(int index)
+        {}
+
+        int GetPlayerIndex() const
+        {
+            return this->id;
+        }
+
+        virtual bool IsVibrationSupported() = 0;
+
+        virtual bool SetVibration(float left, float right, float duration = -1.0f) = 0;
+
+        virtual bool SetVibration() = 0;
+
+        virtual void GetVibration(float& left, float& right) = 0;
+
+        virtual bool HasSensor(Sensor::SensorType type) const = 0;
+
+        virtual bool IsSensorEnabled(Sensor::SensorType type) = 0;
+
+        virtual void SetSensorEnabled(Sensor::SensorType type, bool enabled) = 0;
+
+        virtual std::vector<float> GetSensorData(Sensor::SensorType type) = 0;
+
+      protected:
+        struct Stick
+        {
+            float dx;
+            float dy;
+        };
+
+        struct Trigger
+        {
+            bool down;
+        };
+
+        struct ButtonStates
         {
             int32_t pressed;
             int32_t released;
             int32_t held;
-
-            struct
-            {
-                int32_t pressed;
-                int32_t released;
-                int32_t held;
-            } extension;
-
-            StickAxis leftStick;
-            StickAxis rightStick;
         } buttonStates;
 
-        int32_t leftTrigger;
-        int32_t rightTrigger;
+        Stick leftStick;
+        Stick rightStick;
 
-        ::SixAxis sixAxis;
-        ::SixAxis sixAxisExt;
+        Trigger triggers[0x02];
 
-        ::Vibration vibration;
+        bool connected;
     };
 } // namespace love

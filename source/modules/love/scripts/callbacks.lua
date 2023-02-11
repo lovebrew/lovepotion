@@ -107,6 +107,11 @@ function love.createhandlers()
                 return love.joystickaxis(joystick, axis, value)
             end
         end,
+        joysticksensorupdated = function(joystick, sensor, ...)
+            if love.joysticksensorupdated then
+                return love.joysticksensorupdated(joystick, sensor, ...)
+            end
+        end,
         -- REGION UNIMPLEMENTED --
         joystickhat = function(joystick, hat, value)
             if love.joystickhat then
