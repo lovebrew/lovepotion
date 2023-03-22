@@ -36,7 +36,7 @@ namespace love
         size_t id;
 
         Sensor::SensorType type;
-        std::array<float, 3> data;
+        std::vector<float> data;
     };
 
     struct Finger
