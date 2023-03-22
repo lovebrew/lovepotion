@@ -18,9 +18,45 @@
 #define APPDATA_PREFIX ""
 #define PATH_SEPARATOR "/"
 
-#define normalize(x) std::filesystem::path((x)).lexically_normal();
+#define normalize(x) std::string(std::filesystem::path((x)).lexically_normal())
+#define parentize(x) std::string(std::filesystem::path((x)).parent_path())
 
 using namespace love::physfs;
+
+#if defined(__WIIU__)
+    #include <coreinit/dynload.h>
+#endif
+
+#include <utilities/log/logfile.hpp>
+
+static std::string_view getApplicationPath(std::string_view path)
+{
+    if (!love::Console::Is(love::Console::CAFE))
+        return path;
+
+#if defined(__WIIU__)
+    OSDynLoad_Module module;
+    const auto success = 0;
+    const auto name    = "RL_GetPathOfRunningExecutable";
+
+    if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
+    {
+        char path[256];
+
+        bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
+        auto** ptrFunction = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
+
+        // clang-format off
+        if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, name, ptrFunction) == OS_DYNLOAD_OK)
+        {
+            if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == success)
+                return path;
+        }
+        // clang-format on
+    }
+    return std::string_view {};
+#endif
+}
 
 Filesystem::Filesystem() :
     appendIdentityToPath(false),
@@ -96,12 +132,17 @@ bool Filesystem::IsAppCommonPath(CommonPath path)
 
 void Filesystem::Init(const char* arg0)
 {
-    if (!PHYSFS_init(arg0))
+    this->executablePath = getApplicationPath(arg0);
+    LOG("%s", this->executablePath.c_str());
+
+    /* should only happen on Wii U */
+    if (this->executablePath.empty())
+        throw love::Exception("Failed to get executable path.");
+
+    if (!PHYSFS_init(this->executablePath.c_str()))
         throw love::Exception("Failed to initialize filesystem: %s", Filesystem::GetLastError());
 
     PHYSFS_setWriteDir(nullptr);
-
-    this->executablePath = arg0;
 
     this->SetSymlinksEnabled(false);
 }
@@ -264,7 +305,11 @@ std::string Filesystem::GetFullCommonPath(CommonPath path)
         }
         case CommonPath::USER_APPDATA:
         {
-            this->fullPaths[path] = normalize(std::string(PHYSFS_getUserDir()) + "/save/");
+            if (Console::Is(Console::CAFE))
+                this->fullPaths[path] = normalize(parentize(this->executablePath)) + "/save/";
+            else
+                this->fullPaths[path] = normalize(std::string(PHYSFS_getUserDir()) + "/save/");
+
             break;
         }
         case CommonPath::USER_DOCUMENTS:
@@ -479,7 +524,9 @@ std::string Filesystem::GetWorkingDirectory()
         delete[] cwdInfo;
 
         if (Console::Is(Console::CAFE))
-            this->currentDirectory += "wiiu/apps/lovepotion";
+            this->currentDirectory += parentize(getApplicationPath(""));
+
+        LOG("%s", this->currentDirectory.c_str());
     }
 
     return this->currentDirectory;

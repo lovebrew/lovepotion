@@ -256,7 +256,7 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
     this->current->UseProjection();
 }
 
-bool Renderer<Console::CAFE>::Render(Graphics<Console::CAFE>::DrawCommand& command)
+bool Renderer<Console::CAFE>::Render(DrawCommand& command)
 {
     Shader<Console::CAFE>::defaults[command.shader]->Attach();
 

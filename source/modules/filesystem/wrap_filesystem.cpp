@@ -9,6 +9,8 @@
 
 #include <filesystem>
 
+#include <utilities/functions.hpp>
+
 using namespace love;
 
 #define instance() (Module::GetInstance<Filesystem>(Module::M_FILESYSTEM))
@@ -24,26 +26,6 @@ std::size_t replaceAll(std::string& inout, std::string_view what, std::string_vi
     }
     return count;
 }
-
-#if defined(__3DS__)
-static void translatePath(std::filesystem::path& filepath)
-{
-    static constexpr std::array<const char*, 3> textures = { ".png", ".jpg", ".jpeg" };
-    static constexpr std::array<const char*, 2> fonts    = { ".ttf", ".otf" };
-
-    for (auto extension : textures)
-    {
-        if (extension == filepath.extension())
-            filepath.replace_extension(".t3x");
-    }
-
-    for (auto extension : fonts)
-    {
-        if (extension == filepath.extension())
-            filepath.replace_extension(".bcfnt");
-    }
-}
-#endif
 
 Filesystem::MountPermissions Wrap_Filesystem::CheckPermissionType(lua_State* L, int index)
 {
@@ -382,10 +364,7 @@ int Wrap_Filesystem::GetInfo(lua_State* L)
     }
 
     std::filesystem::path path = filepath;
-
-#if defined(__3DS__)
     translatePath(path);
-#endif
 
     if (instance()->GetInfo(path.c_str(), info))
     {
@@ -677,10 +656,7 @@ File* Wrap_Filesystem::GetFile(lua_State* L, int index)
     if (lua_isstring(L, index))
     {
         std::filesystem::path filename = luaL_checkstring(L, index);
-
-#if defined(__3DS__)
         translatePath(filename);
-#endif
 
         file = instance()->OpenFile(filename.c_str(), File::MODE_CLOSED);
     }

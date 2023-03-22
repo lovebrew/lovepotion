@@ -16,6 +16,7 @@
 
 #include <objects/quad/quad.hpp>
 
+#include <utilities/driver/drawcommand.hpp>
 #include <utilities/driver/renderer/renderer.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>

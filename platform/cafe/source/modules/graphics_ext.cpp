@@ -1,4 +1,6 @@
 #include <modules/graphics_ext.hpp>
+
+#include <utilities/driver/drawcommand.hpp>
 #include <utilities/driver/renderer_ext.hpp>
 
 #include <common/matrix_ext.hpp>

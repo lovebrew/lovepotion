@@ -8,6 +8,7 @@
 
 #include <modules/graphics_ext.hpp>
 
+#include <utilities/driver/drawcommand.hpp>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
@@ -120,7 +121,7 @@ namespace love
 
         void SetPointSize(float size);
 
-        bool Render(Graphics<Console::CAFE>::DrawCommand& command);
+        bool Render(DrawCommand& command);
 
         void UseProgram(const WHBGfxShaderGroup& group);
 

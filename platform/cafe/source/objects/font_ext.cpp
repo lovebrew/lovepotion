@@ -6,12 +6,12 @@
 
 #include <objects/texture_ext.hpp>
 
+#include <utilities/driver/renderer_ext.hpp>
 #include <utilities/functions.hpp>
-
-#include <utf8.h>
 
 #include <algorithm>
 #include <limits>
+#include <utf8.h>
 
 using namespace love;
 
@@ -680,7 +680,7 @@ void Font<Console::CAFE>::Printv(Graphics<Console::CAFE>& graphics,
 
     for (const auto& command : commands)
     {
-        auto drawCommand         = Graphics<Console::CAFE>::DrawCommand(command.count);
+        auto drawCommand         = love::DrawCommand(command.count);
         drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
         drawCommand.format       = vertex::CommonFormat::TEXTURE;
         drawCommand.primitveType = vertex::PRIMITIVE_QUADS;

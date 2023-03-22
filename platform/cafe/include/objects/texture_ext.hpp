@@ -2,8 +2,7 @@
 
 #include <objects/texture/texture.tcc>
 
-#include <utilities/driver/renderer_ext.hpp>
-
+#include <gx2/sampler.h>
 #include <gx2/texture.h>
 
 namespace love

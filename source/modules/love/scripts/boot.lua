@@ -55,11 +55,6 @@ function love.boot()
 
     local arg0 = love.arg.getLow(love.rawGameArguments)
 
-    -- todo: remove when wut supports proper getcwd --
-    if love._console:lower() == "wii u" then
-        arg0 = love.path.getFull("lovepotion.wuhb")
-    end
-
     love.filesystem.init(arg0)
 
     local exepath = love.filesystem.getExecutablePath()
@@ -401,14 +396,10 @@ function love.init()
         local opts = love.arg.options
         local gamepath = opts.game.set and opts.game.arg[1] or ""
         local gamestr = gamepath == "" and "" or " at " .. '"' .. gamepath .. '"'
-        error("No code to run" ..
-            gamestr ..
-            "\nYour game might be packaged incorrectly.\nMake sure " ..
-            main_file .. " is at the top level of the zip or folder.")
+
+        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder."):format(gamestr, main_file))
     elseif invalid_game_path then
-        error("Cannot load game at path " ..
-            '"' .. invalid_game_path .. '"' ..
-            "\nMake sure a folder exists at the specified path.")
+        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(invalid_game_path))
     end
 end
 

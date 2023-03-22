@@ -304,7 +304,7 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
 
     Matrix4<Console::CAFE> transform(stateTransform, matrix);
 
-    auto command         = Graphics<Console::CAFE>::DrawCommand(4);
+    auto command         = DrawCommand(4);
     command.shader       = Shader<>::STANDARD_TEXTURE;
     command.format       = vertex::CommonFormat::TEXTURE;
     command.primitveType = vertex::PRIMITIVE_QUADS;
