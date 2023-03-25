@@ -3,6 +3,8 @@
 
 #include <modules/keyboard_ext.hpp>
 
+#include <objects/gamepad.hpp>
+
 #include <padscore/kpad.h>
 
 #include <nn/swkbd.h>
@@ -68,114 +70,7 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
 
     if (Module())
     {
-        auto* joystick = Module()->GetJoystickFromId(0);
-
-        if (joystick)
-        {
-            joystick->Update();
-
-            // TODO: Fix me
-            // if (Keyboard()->IsShowing())
-            //     this->CheckSoftwareKeyboard(joystick->GetVPADStatus());
-
-            // const auto tpNormal = joystick->GetTouchData();
-
-            // if (tpNormal.touched)
-            // {
-            //     auto& newEvent = this->events.emplace_back();
-
-            //     newEvent.type = TYPE_TOUCH;
-
-            //     uint16_t dx = this->previousTouch.x - tpNormal.x;
-            //     uint16_t dy = this->previousTouch.y - tpNormal.y;
-
-            //     if (dx == 0 && dy == 0)
-            //         newEvent.subType = SUBTYPE_TOUCHPRESS;
-            //     else
-            //         newEvent.subType = SUBTYPE_TOUCHMOVED;
-
-            //     newEvent.touchFinger.id       = 0;
-            //     newEvent.touchFinger.x        = tpNormal.x;
-            //     newEvent.touchFinger.y        = tpNormal.y;
-            //     newEvent.touchFinger.dx       = (double)(dx / 0xFFFF);
-            //     newEvent.touchFinger.dy       = (double)(dy / 0xFFFF);
-            //     newEvent.touchFinger.pressure = 1.0f;
-
-            //     this->touchHeld     = true;
-            //     this->previousTouch = tpNormal;
-            // }
-
-            // if (!tpNormal.touched && this->touchHeld)
-            // {
-            //     auto& newEvent      = this->events.emplace_back();
-            //     this->previousTouch = tpNormal;
-
-            //     newEvent.type    = TYPE_TOUCH;
-            //     newEvent.subType = SUBTYPE_TOUCHRELEASE;
-
-            //     newEvent.touchFinger.id       = 0;
-            //     newEvent.touchFinger.x        = tpNormal.x;
-            //     newEvent.touchFinger.y        = tpNormal.y;
-            //     newEvent.touchFinger.dx       = 0.0f;
-            //     newEvent.touchFinger.dy       = 0.0f;
-            //     newEvent.touchFinger.pressure = 1.0f;
-
-            //     if (this->touchHeld)
-            //         this->touchHeld = false;
-            // }
-
-            Joystick<>::JoystickInput input {};
-
-            if (joystick->IsDown(input))
-            {
-                auto& newEvent = this->events.emplace_back();
-
-                newEvent.type    = TYPE_GAMEPAD;
-                newEvent.subType = SUBTYPE_GAMEPADDOWN;
-
-                newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                newEvent.padButton.id     = joystick->GetID();
-                newEvent.padButton.button = input.buttonNumber;
-            }
-
-            if (joystick->IsUp(input))
-            {
-                auto& newEvent = this->events.emplace_back();
-
-                newEvent.type    = TYPE_GAMEPAD;
-                newEvent.subType = SUBTYPE_GAMEPADUP;
-
-                newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                newEvent.padButton.id     = joystick->GetID();
-                newEvent.padButton.button = input.buttonNumber;
-            }
-
-            for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
-            {
-                const auto axisEnum = (Joystick<>::GamepadAxis)axis;
-
-                if (joystick->IsAxisChanged(axisEnum))
-                {
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADAXIS;
-
-                    newEvent.padAxis.id = joystick->GetInstanceID();
-
-                    const char* axisName = *Joystick<>::axisTypes.ReverseFind(axisEnum);
-
-                    newEvent.padAxis.axis  = axis;
-                    newEvent.padAxis.value = joystick->GetAxis(axis);
-                    newEvent.padAxis.name  = axisName;
-                }
-            }
-        }
-    }
-
-    if (Module())
-    {
-        for (size_t index = 1; index < (size_t)Module()->GetJoystickCount(); index++)
+        for (size_t index = 0; index < (size_t)Module()->GetJoystickCount(); index++)
         {
             auto* joystick = Module()->GetJoystickFromId(index);
 
@@ -183,6 +78,60 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
             {
                 joystick->Update();
                 Joystick<>::JoystickInput input {};
+
+                if (joystick->GetGamepadType() == guid::GAMEPAD_TYPE_WII_U_GAMEPAD)
+                {
+                    auto status = ((Gamepad*)joystick)->GetVPADStatus();
+
+                    if (Keyboard()->IsShowing())
+                        this->CheckSoftwareKeyboard(status);
+
+                    const auto tpNormal = status.tpNormal;
+
+                    if (tpNormal.touched)
+                    {
+                        auto& newEvent = this->events.emplace_back();
+
+                        newEvent.type = TYPE_TOUCH;
+
+                        uint16_t dx = this->previousTouch.x - tpNormal.x;
+                        uint16_t dy = this->previousTouch.y - tpNormal.y;
+
+                        if (dx == 0 && dy == 0)
+                            newEvent.subType = SUBTYPE_TOUCHPRESS;
+                        else
+                            newEvent.subType = SUBTYPE_TOUCHMOVED;
+
+                        newEvent.touchFinger.id       = 0;
+                        newEvent.touchFinger.x        = tpNormal.x;
+                        newEvent.touchFinger.y        = tpNormal.y;
+                        newEvent.touchFinger.dx       = (double)(dx / 0xFFFF);
+                        newEvent.touchFinger.dy       = (double)(dy / 0xFFFF);
+                        newEvent.touchFinger.pressure = 1.0f;
+
+                        this->touchHeld     = true;
+                        this->previousTouch = tpNormal;
+                    }
+
+                    if (!tpNormal.touched && this->touchHeld)
+                    {
+                        auto& newEvent      = this->events.emplace_back();
+                        this->previousTouch = tpNormal;
+
+                        newEvent.type    = TYPE_TOUCH;
+                        newEvent.subType = SUBTYPE_TOUCHRELEASE;
+
+                        newEvent.touchFinger.id       = 0;
+                        newEvent.touchFinger.x        = tpNormal.x;
+                        newEvent.touchFinger.y        = tpNormal.y;
+                        newEvent.touchFinger.dx       = 0.0f;
+                        newEvent.touchFinger.dy       = 0.0f;
+                        newEvent.touchFinger.pressure = 1.0f;
+
+                        if (this->touchHeld)
+                            this->touchHeld = false;
+                    }
+                }
 
                 if (joystick->IsDown(input))
                 {
@@ -212,9 +161,6 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                 {
                     const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
                     const auto axisValue = joystick->GetAxis(axis);
-
-                    if (axisValue == this->stickValues[index][axisEnum])
-                        continue;
 
                     auto& newEvent = this->events.emplace_back();
 

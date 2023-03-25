@@ -265,8 +265,52 @@ void Texture<Console::HAC>::UnloadVolatile()
 void Texture<Console::HAC>::ReplacePixels(ImageData<Console::HAC>* data, int slice, int mipmap,
                                           int x, int y, bool reloadMipmaps)
 {
-    this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap,
-                        { x, y, data->GetWidth(), data->GetHeight() }, false);
+    if (!this->IsReadable())
+        throw love::Exception("replacePixels can only be called on readable Textures.");
+
+    if (this->GetMSAA() > 1)
+        throw love::Exception("replacePixels cannot be called on an MSAA Texture.");
+
+    auto* graphics = Module::GetInstance<Graphics<Console::CAFE>>(Module::M_GRAPHICS);
+
+    if (graphics != nullptr && graphics->IsRenderTargetActive(this))
+        throw love::Exception(
+            "replacePixels cannot be called on this Texture while it's an active render target.");
+
+    if (!this->memory)
+        return;
+
+    if (data->GetFormat() != this->GetPixelFormat())
+        throw love::Exception("Pixel formats must match.");
+
+    if (mipmap < 0 || mipmap >= this->GetMipmapCount())
+        throw love::Exception("Invalid texture mipmap index %d.", mipmap + 1);
+
+    const bool isCubeType   = this->textureType == TEXTURE_CUBE;
+    const bool isVolumeType = this->textureType == TEXTURE_VOLUME;
+    const bool isArrayType  = this->textureType == TEXTURE_2D_ARRAY;
+
+    if (slice < 0 || (isCubeType && slice >= 6) ||
+        (isVolumeType && slice >= this->GetDepth(mipmap)) ||
+        (isArrayType && slice >= this->GetLayerCount()))
+    {
+        throw love::Exception("Invalid texture slice index %d", slice + 1);
+    }
+
+    Rect rectangle = { x, y, data->GetWidth(), data->GetHeight() };
+
+    int mipWidth  = this->GetPixelWidth(mipmap);
+    int mipHeight = this->GetPixelHeight(mipmap);
+
+    if (rectangle.x < 0 || rectangle.y < 0 || rectangle.w <= 0 || rectangle.h <= 0 ||
+        (rectangle.x + rectangle.w) > mipWidth || (rectangle.y + rectangle.h) > mipHeight)
+    {
+        throw love::Exception(
+            "Invalid rectangle dimensions (x = %d, y = %d, w = %d, h = %d) for %dx%d Texture.",
+            rectangle.x, rectangle.y, rectangle.w, rectangle.h, mipWidth, mipHeight);
+    }
+
+    this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rectangle, false);
 }
 
 void Texture<Console::HAC>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,

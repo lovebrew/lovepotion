@@ -133,7 +133,6 @@ bool Filesystem::IsAppCommonPath(CommonPath path)
 void Filesystem::Init(const char* arg0)
 {
     this->executablePath = getApplicationPath(arg0);
-    LOG("%s", this->executablePath.c_str());
 
     /* should only happen on Wii U */
     if (this->executablePath.empty())
@@ -525,8 +524,6 @@ std::string Filesystem::GetWorkingDirectory()
 
         if (Console::Is(Console::CAFE))
             this->currentDirectory += parentize(getApplicationPath(""));
-
-        LOG("%s", this->currentDirectory.c_str());
     }
 
     return this->currentDirectory;

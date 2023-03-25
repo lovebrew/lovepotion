@@ -240,7 +240,7 @@ void Texture<Console::CAFE>::ReplacePixels(ImageData<Console::CAFE>* data, int s
     Rect rectangle = { x, y, data->GetWidth(), data->GetHeight() };
 
     int mipWidth  = this->GetPixelWidth(mipmap);
-    int mipHeight = this->GetPixelWidth(mipmap);
+    int mipHeight = this->GetPixelHeight(mipmap);
 
     if (rectangle.x < 0 || rectangle.y < 0 || rectangle.w <= 0 || rectangle.h <= 0 ||
         (rectangle.x + rectangle.w) > mipWidth || (rectangle.y + rectangle.h) > mipHeight)

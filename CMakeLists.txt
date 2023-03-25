@@ -28,6 +28,8 @@ set(APP_TITLE  "LÖVE Potion")
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(APP_TITLE "LÖVE Potion (${COMMIT_HASH})")
     target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=1)
+else()
+    target_compile_definitions(${PROJECT_NAME} PRIVATE __DEBUG__=0)
 endif()
 
 set(APP_AUTHOR "LÖVEBrew Team")
@@ -492,7 +494,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/hashfunction/types/sha1.cpp
     source/utilities/hashfunction/types/sha256.cpp
     source/utilities/hashfunction/types/sha512.cpp
-    source/utilities/log/logfile.cpp
     source/utilities/pool/poolthread.cpp
     source/utilities/pool/sources.cpp
     source/utilities/pool/vibrations.cpp

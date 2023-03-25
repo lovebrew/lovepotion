@@ -19,7 +19,7 @@
         "ctrDefines": [
             "__3DS__",
             "__OS__=\"Horizon\"",
-            "__CONSOLE__=\"3DS\""
+            "__CONSOLE__=\"3DS\"",
         ],
         "ctrCompilerPath": "C:/msys64/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++",
         "hacIncludePaths": [
@@ -57,7 +57,8 @@
             ],
             "defines": [
                 "${env:defaultDefines}",
-                "${env:ctrDefines}"
+                "${env:ctrDefines}",
+                "__DEBUG__=0"
             ],
             "compilerPath": "${env:ctrCompilerPath}",
             "cStandard": "c11",
@@ -73,7 +74,7 @@
             "defines": [
                 "${env:defaultDefines}",
                 "${env:ctrDefines}",
-                "__DEBUG__"
+                "__DEBUG__=1"
             ],
             "compilerPath": "${env:ctrCompilerPath}",
             "cStandard": "c11",
@@ -88,7 +89,8 @@
             ],
             "defines": [
                 "${env:defaultDefines}",
-                "${env:hacDefines}"
+                "${env:hacDefines}",
+                "__DEBUG__=0"
             ],
             "compilerPath": "${env:hacCompilerPath}",
             "cStandard": "c11",
@@ -104,7 +106,7 @@
             "defines": [
                 "${env:defaultDefines}",
                 "${env:hacDefines}",
-                "__DEBUG__"
+                "__DEBUG__=1"
             ],
             "compilerPath": "${env:hacCompilerPath}",
             "cStandard": "c11",
@@ -119,7 +121,8 @@
             ],
             "defines": [
                 "${env:defaultDefines}",
-                "${env:cafeDefines}"
+                "${env:cafeDefines}",
+                "__DEBUG__=0"
             ],
             "compilerPath": "${env:cafeCompilerPath}",
             "cStandard": "c11",
@@ -135,7 +138,7 @@
             "defines": [
                 "${env:defaultDefines}",
                 "${env:cafeDefines}",
-                "__DEBUG__"
+                "__DEBUG__=1"
             ],
             "compilerPath": "${env:cafeCompilerPath}",
             "cStandard": "c11",
