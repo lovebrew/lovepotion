@@ -1,5 +1,7 @@
 #include <objects/imagedata/wrap_imagedata.hpp>
 
+#include <objects/data/wrap_data.hpp>
+
 using namespace love;
 using ImageData = love::ImageData<Console::Which>;
 
@@ -211,7 +213,8 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_ImageData::Register(lua_State* L)
 {
-    int result = luax::RegisterType(L, &::ImageData::type, functions, extensions);
+    int result =
+        luax::RegisterType(L, &::ImageData::type, Wrap_Data::functions, functions, extensions);
 
     luax::WrapObject(L, wrap_imagedata_lua, sizeof(wrap_imagedata_lua), "wrap_imagedata.lua",
                      ::ImageData::type);

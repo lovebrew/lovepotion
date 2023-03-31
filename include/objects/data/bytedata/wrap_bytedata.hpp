@@ -7,9 +7,11 @@
 
 namespace Wrap_ByteData
 {
+    love::ByteData* CheckByteData(lua_State* L, int index);
+
     int Clone(lua_State* L);
 
-    love::ByteData* CheckByteData(lua_State* L, int index);
+    int SetString(lua_State* L);
 
     int Register(lua_State* L);
 } // namespace Wrap_ByteData

@@ -47,7 +47,7 @@ class Log
   private:
     static inline const char* FILENAME = "debug.log";
 
-    static constexpr const char* BUFFER_FORMAT = "%s(%u:%u): `%s`:\n%s\n\n";
+    static constexpr const char* BUFFER_FORMAT = "%s(%lu:%lu): `%s`:\n%s\n\n";
     static constexpr size_t BUFFER_LIMIT       = 0x200;
 
     Log() : file(nullptr)

@@ -10,8 +10,8 @@ namespace love
             return { altScreenInfo };
         else if (gfxIsWide())
             return { wideScreenInfo };
-        else
-            return { screenInfo };
+
+        return { screenInfo };
     }
 
     const ScreenInfo& GetScreenInfo(Screen id)

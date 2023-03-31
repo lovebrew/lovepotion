@@ -1,5 +1,7 @@
 #include <objects/data/sounddata/wrap_sounddata.hpp>
 
+#include <objects/data/wrap_data.hpp>
+
 using namespace love;
 
 int Wrap_SoundData::Clone(lua_State* L)
@@ -121,5 +123,5 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_SoundData::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &SoundData::type, functions);
+    return luax::RegisterType(L, &SoundData::type, Wrap_Data::functions, functions);
 }

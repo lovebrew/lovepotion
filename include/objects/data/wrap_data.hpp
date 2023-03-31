@@ -13,7 +13,7 @@ namespace Wrap_Data
 
     int GetString(lua_State* L);
 
-    extern const luaL_Reg functions[0x03];
+    extern const luaL_Reg functions[0x0D];
 
     int Register(lua_State* L);
 } // namespace Wrap_Data

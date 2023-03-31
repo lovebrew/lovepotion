@@ -153,7 +153,9 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
         for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
         {
             const auto sensor = (Sensor::SensorType)index;
-            this->SendJoystickSensorUpdated(0, sensor, joystick->GetSensorData(sensor));
+
+            if (joystick->IsSensorEnabled(sensor))
+                this->SendJoystickSensorUpdated(0, sensor, joystick->GetSensorData(sensor));
         }
 
         if (joystick->IsDown(input))

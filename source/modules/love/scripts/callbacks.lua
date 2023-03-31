@@ -34,16 +34,16 @@ function love.createhandlers()
     -- Standard callback handlers.
     love.handlers = setmetatable({
         -- REGION UNUSED --
-        keypressed = function(button, scancode, isRepeat)
-            if love.keypressed then
-                return love.keypressed(button, scancode, isRepeat)
-            end
-        end,
-        keyreleased = function(button, scancode)
-            if love.keyreleased then
-                return love.keyreleased(button, scancode)
-            end
-        end,
+        -- keypressed = function(button, scancode, isRepeat)
+        --     if love.keypressed then
+        --         return love.keypressed(button, scancode, isRepeat)
+        --     end
+        -- end,
+        -- keyreleased = function(button, scancode)
+        --     if love.keyreleased then
+        --         return love.keyreleased(button, scancode)
+        --     end
+        -- end,
         -- END REGION UNUSED --
         textinput = function(text)
             if love.textinput then
@@ -51,31 +51,31 @@ function love.createhandlers()
             end
         end,
         -- REGION UNUSED --
-        textedited = function(text, start, length)
-            if love.textedited then
-                return love.textedited(text, start, length)
-            end
-        end,
-        mousemoved = function(x, y, dx, dy, isTouch)
-            if love.mousemoved then
-                return love.mousemoved(x, y, dx, dy, isTouch)
-            end
-        end,
-        mousepressed = function(x, y, button, isTouch, presses)
-            if love.mousepressed then
-                return love.mousepressed(x, y, button, isTouch, presses)
-            end
-        end,
-        mousereleased = function(x, y, button, isTouch, presses)
-            if love.mousereleased then
-                return love.mousereleased(x, y, button, isTouch, presses)
-            end
-        end,
-        wheelmoved = function(x, y)
-            if love.wheelmoved then
-                return love.wheelmoved(x, y)
-            end
-        end,
+        -- textedited = function(text, start, length)
+        --     if love.textedited then
+        --         return love.textedited(text, start, length)
+        --     end
+        -- end,
+        -- mousemoved = function(x, y, dx, dy, isTouch)
+        --     if love.mousemoved then
+        --         return love.mousemoved(x, y, dx, dy, isTouch)
+        --     end
+        -- end,
+        -- mousepressed = function(x, y, button, isTouch, presses)
+        --     if love.mousepressed then
+        --         return love.mousepressed(x, y, button, isTouch, presses)
+        --     end
+        -- end,
+        -- mousereleased = function(x, y, button, isTouch, presses)
+        --     if love.mousereleased then
+        --         return love.mousereleased(x, y, button, isTouch, presses)
+        --     end
+        -- end,
+        -- wheelmoved = function(x, y)
+        --     if love.wheelmoved then
+        --         return love.wheelmoved(x, y)
+        --     end
+        -- end,
         -- END REGION UNUSED
         touchpressed = function(id, x, y, dx, dy, pressure)
             if love.touchpressed then
@@ -92,32 +92,32 @@ function love.createhandlers()
                 return love.touchmoved(id, x, y, dx, dy, pressure)
             end
         end,
-        joystickpressed = function(joystick, button)
-            if love.joystickpressed then
-                return love.joystickpressed(joystick, button)
-            end
-        end,
-        joystickreleased = function(joystick, button)
-            if love.joystickreleased then
-                return love.joystickreleased(joystick, button)
-            end
-        end,
-        joystickaxis = function(joystick, axis, value)
-            if love.joystickaxis then
-                return love.joystickaxis(joystick, axis, value)
-            end
-        end,
+        -- joystickpressed = function(joystick, button)
+        --     if love.joystickpressed then
+        --         return love.joystickpressed(joystick, button)
+        --     end
+        -- end,
+        -- joystickreleased = function(joystick, button)
+        --     if love.joystickreleased then
+        --         return love.joystickreleased(joystick, button)
+        --     end
+        -- end,
+        -- joystickaxis = function(joystick, axis, value)
+        --     if love.joystickaxis then
+        --         return love.joystickaxis(joystick, axis, value)
+        --     end
+        -- end,
         joysticksensorupdated = function(joystick, sensor, ...)
             if love.joysticksensorupdated then
                 return love.joysticksensorupdated(joystick, sensor, ...)
             end
         end,
         -- REGION UNIMPLEMENTED --
-        joystickhat = function(joystick, hat, value)
-            if love.joystickhat then
-                return love.joystickhat(joystick, hat, value)
-            end
-        end,
+        -- joystickhat = function(joystick, hat, value)
+        --     if love.joystickhat then
+        --         return love.joystickhat(joystick, hat, value)
+        --     end
+        -- end,
         -- END REGION UNIMPLEMENTED --
         gamepadpressed = function(joystick, button)
             if love.gamepadpressed then
@@ -134,27 +134,27 @@ function love.createhandlers()
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
-        joystickadded = function(joystick)
-            if love.joystickadded then
-                return love.joystickadded(joystick)
-            end
-        end,
-        joystickremoved = function(joystick)
-            if love.joystickremoved then
-                return love.joystickremoved(joystick)
-            end
-        end,
+        -- joystickadded = function(joystick)
+        --     if love.joystickadded then
+        --         return love.joystickadded(joystick)
+        --     end
+        -- end,
+        -- joystickremoved = function(joystick)
+        --     if love.joystickremoved then
+        --         return love.joystickremoved(joystick)
+        --     end
+        -- end,
         focus = function(focused)
             if love.focus then
                 return love.focus(focused)
             end
         end,
         -- REGION UNUSED --
-        mousefocus = function(mouseFocused)
-            if love.mousefocus then
-                return love.mousefocus(mouseFocused)
-            end
-        end,
+        -- mousefocus = function(mouseFocused)
+        --     if love.mousefocus then
+        --         return love.mousefocus(mouseFocused)
+        --     end
+        -- end,
         -- END REGION UNUSED --
         visible = function(visible)
             if love.visible then
@@ -175,16 +175,16 @@ function love.createhandlers()
             end
         end,
         -- REGION UNUSED --
-        filedropped = function(file)
-            if love.filedropped then
-                return love.filedropped(file)
-            end
-        end,
-        directorydropped = function(directory)
-            if love.directorydropped then
-                return love.directorydropped(directory)
-            end
-        end,
+        -- filedropped = function(file)
+        --     if love.filedropped then
+        --         return love.filedropped(file)
+        --     end
+        -- end,
+        -- directorydropped = function(directory)
+        --     if love.directorydropped then
+        --         return love.directorydropped(directory)
+        --     end
+        -- end,
         -- END REGION UNUSED --
         lowmemory = function()
             if love.lowmemory then
@@ -193,11 +193,11 @@ function love.createhandlers()
             collectgarbage()
             collectgarbage()
         end,
-        displayrotated = function(display, orient)
-            if love.displayrotated then
-                return love.displayrotated(display, orient)
-            end
-        end,
+        -- displayrotated = function(display, orient)
+        --     if love.displayrotated then
+        --         return love.displayrotated(display, orient)
+        --     end
+        -- end,
     }, {
         __index = function(self, name)
             error("Unknown event: " .. name)

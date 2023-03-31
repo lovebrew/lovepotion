@@ -21,7 +21,7 @@ endif()
 
 include(FetchContent)
 
-set(LOVE_VERSION "11.4.0")
+set(LOVE_VERSION "12.0")
 set(APP_VERSION  "3.0.0")
 
 set(APP_TITLE  "LÖVE Potion")

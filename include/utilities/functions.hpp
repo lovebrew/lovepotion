@@ -29,7 +29,12 @@ namespace love
             return std::string::npos;
 
         size_t position = 0;
-        if ((position = string.find("\n", start)) != std::string::npos)
+
+        std::string newline = "";
+        if (string.find("\n") == std::string::npos)
+            newline = "\n";
+
+        if ((position = (std::string(string) + newline).find("\n", start)) != std::string::npos)
             return position;
 
         return std::string::npos;
