@@ -10,10 +10,18 @@ int Wrap_Graphics::Get3D(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::GetDepth(lua_State* L)
+{
+    lua_pushnumber(L, osGet3DSliderState());
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "get3D", Wrap_Graphics::Get3D }
+    { "get3D",    Wrap_Graphics::Get3D    },
+    { "getDepth", Wrap_Graphics::GetDepth }
 };
 // clang-format on
 std::span<const luaL_Reg> Wrap_Graphics::extensions = functions;

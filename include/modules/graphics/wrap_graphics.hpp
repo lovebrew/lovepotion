@@ -116,7 +116,11 @@ namespace Wrap_Graphics
 
     int GetScreens(lua_State* L);
 
+    /* NINTENDO 3DS */
     int Get3D(lua_State* L);
+
+    int GetDepth(lua_State* L);
+    /* NINTENDO 3DS */
 
     int NewFont(lua_State* L);
 

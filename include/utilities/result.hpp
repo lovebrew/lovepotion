@@ -9,7 +9,8 @@ namespace love
     {
         void operator()(void* ptr)
         {
-            free(ptr);
+            if (ptr)
+                free(ptr);
         }
     };
 
