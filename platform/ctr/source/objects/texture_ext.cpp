@@ -34,7 +34,7 @@ static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t 
         throw love::Exception("Failed to create Texture!");
 }
 
-Texture<Console::CTR>::Texture(const Graphics<Console::CTR>* graphics, const Settings& settings,
+Texture<Console::CTR>::Texture(const Graphics<Console::ALL>* graphics, const Settings& settings,
                                const Slices* data) :
     Texture<Console::ALL>(settings, data),
     framebuffer(nullptr)

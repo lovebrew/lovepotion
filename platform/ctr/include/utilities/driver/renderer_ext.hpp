@@ -6,9 +6,6 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <modules/graphics/graphics.tcc>
-
-#include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
@@ -75,12 +72,6 @@ namespace love
         void SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state);
 
         void SetColorMask(const RenderState::ColorMask& mask);
-
-        void SetLineWidth(float lineWidth);
-
-        void SetLineStyle(Graphics<>::LineStyle style);
-
-        void SetPointSize(float size);
 
         std::optional<Screen> CheckScreen(const char* name) const;
 

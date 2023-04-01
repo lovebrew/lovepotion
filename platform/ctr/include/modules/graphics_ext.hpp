@@ -14,49 +14,19 @@ namespace love
 
         Graphics();
 
-        void Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth);
-
-        void Clear(std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth);
-
-        void Present();
-
-        void Reset();
-
-        void Pop();
-
-        void RestoreState(const DisplayState& state);
-
         void SetMode(int x, int y, int width, int height);
 
         void CheckSetDefaultFont();
 
-        Font<Console::CTR>* NewFont(Rasterizer<Console::CTR>* data) const;
-
         Font<Console::CTR>* NewDefaultFont(int size) const;
-
-        Font<Console::CTR>* GetFont();
-
-        Texture<Console::CTR>* NewTexture(const Texture<>::Settings& settings,
-                                          const Texture<>::Slices* slices = nullptr) const;
-
-        void Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4<Console::CTR>& matrix);
-
-        void Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix);
-
-        void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::CTR>& matrix);
-
-        void Print(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font,
-                   const Matrix4<Console::CTR>& matrix);
-
-        void Printf(const Font<>::ColoredStrings& strings, float wrap, Font<>::AlignMode align,
-                    const Matrix4<Console::CTR>& matrix);
-
-        void Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font, float wrap,
-                    Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix);
 
         void SetScissor();
 
         void SetScissor(const Rect& rectangle);
+
+        void Set3D(bool enabled);
+
+        bool Get3D();
 
         float GetCurrentDepth() const
         {

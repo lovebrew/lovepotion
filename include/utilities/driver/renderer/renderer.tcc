@@ -4,6 +4,7 @@
 #include <common/math.hpp>
 
 #include <utilities/bidirectionalmap/smallvector.hpp>
+#include <utilities/driver/renderer/renderstate.hpp>
 
 #define DK_HPP_SUPPORT_VECTOR
 
@@ -41,6 +42,15 @@ namespace love
         {
             return this->viewport;
         }
+
+        void SetLineWidth(float width)
+        {}
+
+        void SetLineStyle(RenderState::LineStyle style)
+        {}
+
+        void SetPointSize(float size)
+        {}
 
       protected:
         Info info;

@@ -9,20 +9,22 @@
 #include <common/matrix_ext.hpp>
 
 #include <modules/math/math.hpp>
+#include <modules/window/window.tcc>
 
-#include <objects/font/font.tcc>
+#include <objects/font_ext.hpp>
 #include <objects/shader/shader.tcc>
-#include <objects/texture/texture.tcc>
+#include <objects/texture_ext.hpp>
 
 #include <objects/quad/quad.hpp>
 
 #if !defined(__3DS__)
     #include <utilities/driver/drawcommand.hpp>
 #endif
-#include <utilities/driver/renderer/renderer.tcc>
+
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
+#include <utilities/driver/renderer_ext.hpp>
 
 namespace love
 {
@@ -47,19 +49,6 @@ namespace love
             ARC_OPEN,
             ARC_CLOSED,
             ARC_PIE
-        };
-
-        enum LineStyle
-        {
-            LINE_ROUGH,
-            LINE_SMOOTH
-        };
-
-        enum LineJoin
-        {
-            LINE_JOIN_NONE,
-            LINE_JOIN_MITER,
-            LINE_JOIN_BEVEL
         };
 
         enum StackType
@@ -98,9 +87,9 @@ namespace love
 
             struct
             {
-                float width     = 1.0f;
-                LineStyle style = LINE_SMOOTH;
-                LineJoin join   = LINE_JOIN_MITER;
+                float width                  = 1.0f;
+                RenderState::LineStyle style = RenderState::LINE_SMOOTH;
+                RenderState::LineJoin join   = RenderState::LINE_JOIN_MITER;
             } line;
 
             float pointSize = 1.0f;
@@ -206,6 +195,100 @@ namespace love
             return "love.graphics";
         }
 
+        void Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
+        {
+            Renderer<Console::Which>::Instance().BindFramebuffer();
+
+            if (color.has_value())
+            {
+                // GammaCorrectColor(color);
+                Renderer<Console::Which>::Instance().Clear(color.value());
+            }
+
+            if (stencil.has_value() && depth.has_value())
+                Renderer<Console::Which>::Instance().ClearDepthStencil(stencil.value(), 0xFF,
+                                                                       depth.value());
+        }
+
+        void Clear(std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth)
+        {
+            int colorCount = colors.size();
+
+            if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
+                this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
+        }
+
+        void Present()
+        {
+            Renderer<Console::Which>::Instance().Present();
+        }
+
+        /* graphics state */
+
+        void Reset()
+        {
+            DisplayState state {};
+            this->RestoreState(state);
+            this->Origin();
+        }
+
+        void RestoreStateChecked(const DisplayState& state)
+        {
+            const DisplayState& current = this->states.back();
+
+            if (state.foreground != current.foreground)
+                this->SetColor(state.foreground);
+
+            this->SetBackgroundColor(state.background);
+
+            /* todo set blend state */
+
+            this->SetLineWidth(state.line.width);
+            this->SetLineStyle(state.line.style);
+            this->SetLineJoin(state.line.join);
+
+            if (state.pointSize != current.pointSize)
+                this->SetPointSize(state.pointSize);
+
+            this->SetMeshCullMode(state.cullMode);
+
+            if (state.windingMode != current.windingMode)
+                this->SetFrontFaceWinding(state.windingMode);
+
+            this->SetFont(state.font.Get());
+            this->SetShader(state.shader.Get());
+
+            if (state.colorMask != current.colorMask)
+                this->SetColorMask(state.colorMask);
+
+            this->SetDefaultSamplerState(state.defaultSamplerState);
+        }
+
+        void Pop()
+        {
+            if (this->stackTypeStack.size() < 1)
+                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
+
+            this->PopTransform();
+            this->pixelScaleStack.pop_back();
+
+            if (this->stackTypeStack.back() == STACK_ALL)
+            {
+                DisplayState& newState = this->states[this->states.size() - 2];
+                this->RestoreStateChecked(newState);
+                this->states.pop_back();
+            }
+
+            this->stackTypeStack.pop_back();
+        }
+
+        /* objects */
+
+        Font<Console::Which>* NewFont(Rasterizer<Console::Which>* data) const
+        {
+            return new Font<Console::Which>(data, this->states.back().defaultSamplerState);
+        }
+
         void SetFont(Font<Console::Which>* font)
         {
             this->states.back().font = font;
@@ -232,6 +315,50 @@ namespace love
             return this->states.back().shader.Get();
         }
 
+        Texture<Console::Which>* NewTexture(const Texture<>::Settings& settings,
+                                            const Texture<>::Slices* slices = nullptr) const
+        {
+            return new Texture<Console::Which>(this, settings, slices);
+        }
+
+        /* objects */
+
+        void Draw(Drawable* drawable, const Matrix4<Console::Which>& matrix)
+        {
+            drawable->Draw(*this, matrix);
+        }
+
+        void Draw(Texture<Console::Which>* texture, Quad* quad,
+                  const Matrix4<Console::Which>& matrix)
+        {
+            texture->Draw(*this, quad, matrix);
+        }
+
+        void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
+        {
+            if (this->states.back().font.Get() != nullptr)
+                this->Print(strings, this->states.back().font.Get(), matrix);
+        }
+
+        void Print(const Font<>::ColoredStrings& strings, Font<Console::Which>* font,
+                   const Matrix4<Console::Which>& matrix)
+        {
+            font->Print(*this, strings, matrix, this->states.back().foreground);
+        }
+
+        void Printf(const Font<>::ColoredStrings& strings, float wrap, Font<>::AlignMode align,
+                    const Matrix4<Console::Which>& matrix)
+        {
+            if (this->states.back().font.Get() != nullptr)
+                this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
+        }
+
+        void Printf(const Font<>::ColoredStrings& strings, Font<Console::Which>* font, float wrap,
+                    Font<>::AlignMode align, const Matrix4<Console::Which>& matrix)
+        {
+            font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
+        }
+
         Stats GetStats() const
         {
             Stats stats {};
@@ -242,11 +369,6 @@ namespace love
             stats.textureMemory = Texture<>::totalGraphicsMemory;
 
             return stats;
-        }
-
-        void Reset()
-        {
-            this->Origin();
         }
 
         bool IsCreated() const
@@ -276,15 +398,6 @@ namespace love
                 this->states.push_back(this->states.back());
 
             this->stackTypeStack.push_back(type);
-        }
-
-        void Pop()
-        {
-            if (this->stackTypeStack.size() < 1)
-                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
-
-            this->PopTransform();
-            this->pixelScaleStack.pop_back();
         }
 
         void PushTransform()
@@ -424,7 +537,7 @@ namespace love
             return false;
         }
 
-        void RestoreStateChecked(const DisplayState& state)
+        void Checked(const DisplayState& state)
         {
             const DisplayState& current = this->states.back();
 
@@ -486,22 +599,22 @@ namespace love
             return this->states.back().line.width;
         }
 
-        void SetLineStyle(LineStyle style)
+        void SetLineStyle(RenderState::LineStyle style)
         {
             this->states.back().line.style = style;
         }
 
-        const LineStyle GetLineStyle() const
+        const RenderState::LineStyle GetLineStyle() const
         {
             return this->states.back().line.style;
         }
 
-        void SetLineJoin(LineJoin join)
+        void SetLineJoin(RenderState::LineJoin join)
         {
             this->states.back().line.join = join;
         }
 
-        const LineJoin GetLineJoin() const
+        const RenderState::LineJoin GetLineJoin() const
         {
             return this->states.back().line.join;
         }
@@ -633,17 +746,6 @@ namespace love
             "open",   ARC_OPEN,
             "closed", ARC_CLOSED,
             "pie",    ARC_PIE
-        };
-
-        static constexpr BidirectionalMap lineStyles = {
-            "rough",  LINE_ROUGH,
-            "smooth", LINE_SMOOTH,
-        };
-
-        static constexpr BidirectionalMap lineJoins = {
-            "none",  LINE_JOIN_NONE,
-            "miter", LINE_JOIN_MITER,
-            "bevel", LINE_JOIN_BEVEL
         };
         // clang-format on
 

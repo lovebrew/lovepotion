@@ -1,10 +1,6 @@
 #include <modules/graphics_ext.hpp>
 
-#include <objects/font_ext.hpp>
 #include <objects/rasterizer_ext.hpp>
-#include <objects/texture_ext.hpp>
-
-#include <utilities/driver/renderer_ext.hpp>
 
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
@@ -14,7 +10,7 @@ using namespace love;
 
 Graphics<Console::CTR>::Graphics()
 {
-    auto* window = Module::GetInstance<Window<Console::CTR>>(Module::M_WINDOW);
+    auto* window = Module::GetInstance<Window<Console::Which>>(Module::M_WINDOW);
 
     if (window != nullptr)
     {
@@ -23,68 +19,8 @@ Graphics<Console::CTR>::Graphics()
         if (window->IsOpen())
             window->SetWindow();
     }
-}
 
-void Graphics<Console::CTR>::Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
-{
-    ::Renderer::Instance().BindFramebuffer();
-
-    if (color.has_value())
-    {
-        /* todo: Graphics<>::GammaCorrectColor(color); */
-        ::Renderer::Instance().Clear(color.value());
-    }
-
-    if (stencil.has_value() && depth.has_value())
-        ::Renderer::Instance().ClearDepthStencil(stencil.value(), 0xFF, depth.value());
-}
-
-void Graphics<Console::CTR>::Clear(std::vector<OptionalColor>& colors, OptionalInt stencil,
-                                   OptionalDouble depth)
-{
-    int colorCount = colors.size();
-
-    if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
-        this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
-}
-
-void Graphics<Console::CTR>::Present()
-{
-    ::Renderer::Instance().Present();
-}
-
-void Graphics<Console::CTR>::Reset()
-{
-    DisplayState state {};
-    this->RestoreState(state);
-    Graphics<>::Reset();
-}
-
-void Graphics<Console::CTR>::Pop()
-{
-    Graphics<>::Pop();
-
-    if (this->stackTypeStack.back() == STACK_ALL)
-    {
-        DisplayState& newState = this->states[this->states.size() - 2];
-        this->RestoreStateChecked(newState);
-        this->states.pop_back();
-    }
-
-    this->stackTypeStack.pop_back();
-}
-
-void Graphics<Console::CTR>::RestoreState(const DisplayState& state)
-{
-    Graphics<>::RestoreState(state);
-
-    this->SetFont(state.font.Get());
-    this->SetShader(state.shader);
-}
-
-Font<Console::CTR>* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
-{
-    return new Font<Console::CTR>(data, this->states.back().defaultSamplerState);
+    this->CheckSetDefaultFont();
 }
 
 Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size) const
@@ -100,23 +36,6 @@ Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size) const
     return this->NewFont(rasterizer.Get());
 }
 
-void Graphics<Console::CTR>::Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix)
-{
-    drawable->Draw(*this, matrix);
-}
-
-void Graphics<Console::CTR>::Draw(Texture<Console::CTR>* texture, Quad* quad,
-                                  const Matrix4<Console::CTR>& matrix)
-{
-    texture->Draw(*this, quad, matrix);
-}
-
-Texture<Console::CTR>* Graphics<Console::CTR>::NewTexture(const Texture<>::Settings& settings,
-                                                          const Texture<>::Slices* slices) const
-{
-    return new Texture<Console::CTR>(this, settings, slices);
-}
-
 void Graphics<Console::CTR>::CheckSetDefaultFont()
 {
     if (this->states.back().font.Get() != nullptr)
@@ -128,41 +47,14 @@ void Graphics<Console::CTR>::CheckSetDefaultFont()
     this->states.back().font.Set(this->defaultFont.Get());
 }
 
-Font<Console::CTR>* Graphics<Console::CTR>::GetFont()
+void Graphics<Console::CTR>::Set3D(bool enabled)
 {
-    this->CheckSetDefaultFont();
-    return this->states.back().font.Get();
+    return ::Renderer::Instance().Set3D(enabled);
 }
 
-void Graphics<Console::CTR>::Print(const Font<>::ColoredStrings& strings,
-                                   const Matrix4<Console::CTR>& matrix)
+bool Graphics<Console::CTR>::Get3D()
 {
-    this->CheckSetDefaultFont();
-
-    if (this->states.back().font.Get() != nullptr)
-        this->Print(strings, this->states.back().font.Get(), matrix);
-}
-
-void Graphics<Console::CTR>::Print(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font,
-                                   const Matrix4<Console::CTR>& matrix)
-{
-    font->Print(*this, strings, matrix, this->states.back().foreground);
-}
-
-void Graphics<Console::CTR>::Printf(const Font<>::ColoredStrings& strings, float wrap,
-                                    Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix)
-{
-    this->CheckSetDefaultFont();
-
-    if (this->states.back().font.Get() != nullptr)
-        this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
-}
-
-void Graphics<Console::CTR>::Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font,
-                                    float wrap, Font<>::AlignMode align,
-                                    const Matrix4<Console::CTR>& matrix)
-{
-    font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
+    return ::Renderer::Instance().Get3D();
 }
 
 void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
