@@ -65,6 +65,7 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
+    Graphics<Console::CTR>::ResetDepth();
     C2D_TargetClear(this->current, color.rgba());
 }
 

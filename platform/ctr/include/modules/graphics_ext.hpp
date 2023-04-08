@@ -10,32 +10,104 @@ namespace love
     class Graphics<Console::CTR> : public Graphics<Console::ALL>
     {
       public:
+        static inline uint32_t TRANSPARENCY         = Color(Color::CTR_TRANSPARENCY).rgba();
         static constexpr const char* DEFAULT_SCREEN = "top";
 
         Graphics();
 
         void SetMode(int x, int y, int width, int height);
 
-        void CheckSetDefaultFont();
-
-        Font<Console::CTR>* NewDefaultFont(int size) const;
-
         void SetScissor();
 
         void SetScissor(const Rect& rectangle);
 
+        /* objects */
+
+        void CheckSetDefaultFont();
+
+        Font<Console::CTR>* NewDefaultFont(int size) const;
+
+        Font<Console::CTR>* NewFont(Rasterizer<Console::CTR>* data) const;
+
+        Texture<Console::CTR>* NewTexture(const Texture<>::Settings& settings,
+                                          const Texture<>::Slices* slices = nullptr) const;
+
+        void Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4<Console::CTR>& matrix);
+
+        void Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix);
+
+        void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::CTR>& matrix);
+
+        void Print(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font,
+                   const Matrix4<Console::CTR>& matrix);
+
+        void Printf(const Font<>::ColoredStrings& strings, float wrap, Font<>::AlignMode align,
+                    const Matrix4<Console::CTR>& matrix);
+
+        void Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font, float wrap,
+                    Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix);
+
+        /* primitives */
+
+        void Polygon(DrawMode mode, const Vector2* points, size_t count);
+
+        void Polyfill(const Vector2* points, size_t count, u32 color, float depth);
+
+        void Polyline(const Vector2* points, size_t count);
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height);
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry);
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry, int points)
+        {
+            this->Rectangle(mode, x, y, width, height, rx, ry);
+        };
+
+        void Ellipse(DrawMode mode, float x, float y, float a, float b);
+
+        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points)
+        {
+            this->Ellipse(mode, x, y, a, b);
+        };
+
+        void Circle(DrawMode mode, float x, float y, float radius);
+
+        void Circle(DrawMode mode, float x, float y, float radius, int points) {};
+
+        void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
+                 float angle2);
+
+        void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
+                 float angle2, int points) {};
+
+        void Points(const Vector2* points, size_t count, const Color* colors, size_t colorCount);
+
+        void SetPointSize(float size);
+
+        void Line(const Vector2* points, int count);
+
+        /* specific stuff */
+
         void Set3D(bool enabled);
 
         bool Get3D();
+
+        static void ResetDepth()
+        {
+            CURRENT_DEPTH = 0.0f;
+        }
 
         float GetCurrentDepth() const
         {
             return CURRENT_DEPTH;
         }
 
-        void PushCurrentDepth()
+        float PushCurrentDepth(float mul = 1.0f)
         {
-            CURRENT_DEPTH += MIN_DEPTH;
+            return CURRENT_DEPTH + MIN_DEPTH * mul;
         }
 
       private:

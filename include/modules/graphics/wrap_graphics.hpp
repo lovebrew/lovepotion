@@ -124,7 +124,7 @@ namespace Wrap_Graphics
 
     int GetDepth(lua_State* L);
 
-    /* NINTENDO 3DS */
+    /* OBJECTS */
 
     int NewFont(lua_State* L);
 
@@ -141,6 +141,24 @@ namespace Wrap_Graphics
     int Print(lua_State* L);
 
     int Printf(lua_State* L);
+
+    /* PRIMITIVES */
+
+    int Rectangle(lua_State* L);
+
+    int Circle(lua_State* L);
+
+    int Line(lua_State* L);
+
+    int Arc(lua_State* L);
+
+    int Points(lua_State* L);
+
+    int Ellipse(lua_State* L);
+
+    int Polygon(lua_State*L);
+
+    /* OTHER STUFF */
 
     int GetStats(lua_State* L);
 

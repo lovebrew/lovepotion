@@ -265,6 +265,11 @@ namespace luax
         return luax::ToBoolean(L, index);
     }
 
+    inline float CheckFloat(lua_State* L, int index)
+    {
+        return static_cast<float>(luaL_checknumber(L, index));
+    }
+
     inline std::string CheckString(lua_State* L, int index)
     {
         size_t length      = 0;

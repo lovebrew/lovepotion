@@ -12,8 +12,9 @@
 struct Color
 {
   public:
-    static constexpr float WHITE[4]       = { 1.0f, 1.0f, 1.0f, 1.0f };
-    static constexpr float TRANSPARENT[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    static constexpr float WHITE[4]            = { 1.0f, 1.0f, 1.0f, 1.0f };
+    static constexpr float TRANSPARENT[4]      = { 0.0f, 0.0f, 0.0f, 0.0f };
+    static constexpr float CTR_TRANSPARENCY[4] = { 0, 0, 0, 1.0f / 255.0f };
 
     Color() : r(0), g(0), b(0), a(0)
     {}

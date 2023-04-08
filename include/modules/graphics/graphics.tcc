@@ -11,9 +11,9 @@
 #include <modules/math/math.hpp>
 #include <modules/window/window.tcc>
 
-#include <objects/font_ext.hpp>
+#include <objects/font/font.tcc>
 #include <objects/shader/shader.tcc>
-#include <objects/texture_ext.hpp>
+#include <objects/texture/texture.tcc>
 
 #include <objects/quad/quad.hpp>
 
@@ -313,50 +313,6 @@ namespace love
         Shader<Console::Which>* GetShader() const
         {
             return this->states.back().shader.Get();
-        }
-
-        Texture<Console::Which>* NewTexture(const Texture<>::Settings& settings,
-                                            const Texture<>::Slices* slices = nullptr) const
-        {
-            return new Texture<Console::Which>(this, settings, slices);
-        }
-
-        /* objects */
-
-        void Draw(Drawable* drawable, const Matrix4<Console::Which>& matrix)
-        {
-            drawable->Draw(*this, matrix);
-        }
-
-        void Draw(Texture<Console::Which>* texture, Quad* quad,
-                  const Matrix4<Console::Which>& matrix)
-        {
-            texture->Draw(*this, quad, matrix);
-        }
-
-        void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
-        {
-            if (this->states.back().font.Get() != nullptr)
-                this->Print(strings, this->states.back().font.Get(), matrix);
-        }
-
-        void Print(const Font<>::ColoredStrings& strings, Font<Console::Which>* font,
-                   const Matrix4<Console::Which>& matrix)
-        {
-            font->Print(*this, strings, matrix, this->states.back().foreground);
-        }
-
-        void Printf(const Font<>::ColoredStrings& strings, float wrap, Font<>::AlignMode align,
-                    const Matrix4<Console::Which>& matrix)
-        {
-            if (this->states.back().font.Get() != nullptr)
-                this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
-        }
-
-        void Printf(const Font<>::ColoredStrings& strings, Font<Console::Which>* font, float wrap,
-                    Font<>::AlignMode align, const Matrix4<Console::Which>& matrix)
-        {
-            font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
         }
 
         Stats GetStats() const
@@ -680,6 +636,10 @@ namespace love
             return this->states.back().defaultSamplerState;
         }
 
+        /* PRIMITIVES */
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height) {}
+
         /* todo: this should be called in the child class via SetBlendState */
         void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode)
         {
@@ -732,7 +692,7 @@ namespace love
         }
 
         // clang-format off
-        static constexpr BidirectionalMap fillModes = {
+        static constexpr BidirectionalMap drawModes = {
             "fill", DRAW_FILL,
             "line", DRAW_LINE
         };
