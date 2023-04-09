@@ -224,24 +224,32 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
 void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
                                           const Rect& rect, bool reloadMipmaps)
 {
-    unsigned sourcePowTwo      = NextPo2(rect.w);
-    unsigned destinationPowTwo = NextPo2(this->width);
+    const auto sourcePowTwo = NextPo2(rect.w);
+    const auto destPowTwo   = NextPo2(this->width);
+
+    using BPP = uint32_t;
+    switch (this->GetPixelFormat())
+    {
+        case PIXELFORMAT_RGB565_UNORM:
+            using BPP = uint16_t;
+            break;
+        default:
+            break;
+    }
 
     for (int _y = 0; _y < std::min(rect.h, this->height - rect.y); _y++)
     {
         for (int _x = 0; _x < std::min(rect.w, this->width - rect.x); _x++)
         {
-            // clang-format off
             Color color {};
 
-            Vector2 sourcePosition { _x, _y };
-            const uint32_t* sourcePixel = Color::FromTile(data, sourcePowTwo, sourcePosition);
-            color                       = Color(*sourcePixel);
+            Vector2 srcPosition { _x, _y };
+            const auto* srcPixel = Color::FromTile<BPP>(data, sourcePowTwo, srcPosition);
+            color                = Color(*srcPixel);
 
-            Vector2 destinationPosition {(rect.x + _x), (rect.y + _y)};
-            uint32_t* destinationPixel = Color::FromTile(this->image.tex, destinationPosition);
-            *destinationPixel          = color.abgr();
-            // clang-format on
+            Vector2 destPosition { (rect.x + _x), (rect.y + _y) };
+            auto* destPixel = Color::FromTile<BPP>(this->image.tex->data, destPowTwo, destPosition);
+            *destPixel      = color.abgr();
         }
     }
 

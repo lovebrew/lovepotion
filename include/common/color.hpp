@@ -113,9 +113,10 @@ struct Color
     ** @param width: power-of-two width of the data
     ** @param position: Vector2 coordinate inside the image ([0-width-1], [0-height-1])
     */
-    static uint32_t* FromTile(const void* data, const unsigned width, love::Vector2 position)
+    template<typename T = uint32_t>
+    static T* FromTile(const void* data, const unsigned width, love::Vector2 position)
     {
-        return ((uint32_t*)data) + indexOfTile(width, position.x, position.y);
+        return ((T*)data) + indexOfTile(width, position.x, position.y);
     }
 
     /*
@@ -123,10 +124,10 @@ struct Color
     ** @param texture: C3D_Tex* holding texture data
     ** @param position: Vector2 coordinate inside the image ([0-width-1], [0-height-1])
     */
-    template<typename T>
-    static uint32_t* FromTile(const T* texture, love::Vector2 position)
+    template<typename T, typename V = uint32_t>
+    static V* FromTile(const T* texture, love::Vector2 position)
     {
-        return Color::FromTile(texture->data, texture->width, position);
+        return Color::FromTile<V>(texture->data, texture->width, position);
     }
 
     float r;

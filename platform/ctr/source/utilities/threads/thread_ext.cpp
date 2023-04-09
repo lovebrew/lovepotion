@@ -33,9 +33,8 @@ namespace love
 
         auto metadata = thread::basic_meta;
 
-        metadata.stack_size = 0x4000;
-        metadata.prio       = priority - 1;
-        metadata.core_id    = 0x0;
+        metadata.prio    = priority - 1;
+        metadata.core_id = 0x0;
 
         this->thread = love::thread(metadata, &Thread<Console::CTR>::Runner, this);
 

@@ -427,17 +427,16 @@ void Graphics<Console::CTR>::Arc(DrawMode mode, ArcMode arcmode, float x, float 
 
 void Graphics<Console::CTR>::Line(const Vector2* points, int count)
 {
-    const auto color   = this->GetColor().rgba();
+    const auto color      = this->GetColor().rgba();
     const auto& transform = this->GetTransform();
-    const auto lineWidth = this->GetLineWidth();
+    const auto lineWidth  = this->GetLineWidth();
 
     C2D_ViewRestore(&transform.GetElements());
 
     for (size_t index = 1; index < (size_t)count; index++)
     {
         C2D_DrawLine(points[index - 1].x, points[index - 1].y, color, points[index].x,
-                     points[index].y, color, lineWidth,
-                     Graphics::CURRENT_DEPTH);
+                     points[index].y, color, lineWidth, Graphics::CURRENT_DEPTH);
     }
 }
 

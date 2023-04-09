@@ -672,7 +672,7 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
 
     Proxy* proxy = nullptr;
 
-    if (index <= 0)
+    if (index < 0)
         index += lua_gettop(L) + 1;
 
     switch (lua_type(L, index))
@@ -723,7 +723,7 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
                     throw love::Exception("Cycle detected in table!");
             }
 
-            auto table    = new love::SharedTable();
+            auto* table   = new love::SharedTable();
             size_t length = luax::ObjectLength(L, -1);
 
             if (length > 0)
@@ -739,15 +739,16 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
                     luax::CheckVariant(L, -1, allowUserdata, tableSet)
                 );
                 // clang-format on
-            }
-            lua_pop(L, 1);
 
-            const auto& pair = table->pairs.back();
-            if (pair.first.GetType() == Variant::UNKNOWN ||
-                pair.second.GetType() == Variant::UNKNOWN)
-            {
-                success = false;
-                break;
+                lua_pop(L, 1);
+
+                const auto& pair = table->pairs.back();
+                if (pair.first.GetType() == Variant::UNKNOWN ||
+                    pair.second.GetType() == Variant::UNKNOWN)
+                {
+                    success = false;
+                    break;
+                }
             }
 
             tableSet->erase(tablePointer);
