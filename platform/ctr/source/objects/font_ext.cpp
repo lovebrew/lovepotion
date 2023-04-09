@@ -132,27 +132,6 @@ static std::string stringify(const std::string& string, const Font<>::ColoredStr
     return string + piece.string;
 }
 
-// static void setMultiColors(const std::string& text, const Font<>::ColoredStrings& strings,
-//                            uint32_t* colors, uint32_t& size)
-// {
-//     const size_t limit = strings.size() * 2;
-//     std::fill_n(colors, limit, uint32_t {});
-
-//     size_t position = 0;
-
-//     for (uint32_t index = 0; index < limit; index += 2)
-//     {
-//         const auto& value = strings[index / 2];
-
-//         colors[index + 0] = text.find(value.string, position);
-//         colors[index + 1] = value.color.rgba();
-
-//         position += value.string.length();
-//     }
-
-//     size = limit;
-// }
-
 void Font<Console::CTR>::Print(Graphics<Console::CTR>& graphics, const ColoredStrings& string,
                                const Matrix4<Console::CTR>& localTransform, const Color& color)
 {

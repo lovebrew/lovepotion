@@ -221,36 +221,41 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
     this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rect, reloadMipmaps);
 }
 
-void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
-                                          const Rect& rect, bool reloadMipmaps)
+template<typename T>
+void _replacePixels(const void* source, void* texture, const Rect& rect, const int width,
+                    const int height)
 {
     const auto sourcePowTwo = NextPo2(rect.w);
-    const auto destPowTwo   = NextPo2(this->width);
+    const auto destPowTwo   = NextPo2(width);
 
-    using BPP = uint32_t;
-    switch (this->GetPixelFormat())
+    for (int _y = 0; _y < std::min(rect.h, height - rect.y); _y++)
     {
-        case PIXELFORMAT_RGB565_UNORM:
-            using BPP = uint16_t;
-            break;
-        default:
-            break;
-    }
-
-    for (int _y = 0; _y < std::min(rect.h, this->height - rect.y); _y++)
-    {
-        for (int _x = 0; _x < std::min(rect.w, this->width - rect.x); _x++)
+        for (int _x = 0; _x < std::min(rect.w, width - rect.x); _x++)
         {
             Color color {};
 
             Vector2 srcPosition { _x, _y };
-            const auto* srcPixel = Color::FromTile<BPP>(data, sourcePowTwo, srcPosition);
+            const auto* srcPixel = Color::FromTile<T>(source, sourcePowTwo, srcPosition);
             color                = Color(*srcPixel);
 
             Vector2 destPosition { (rect.x + _x), (rect.y + _y) };
-            auto* destPixel = Color::FromTile<BPP>(this->image.tex->data, destPowTwo, destPosition);
+            auto* destPixel = Color::FromTile<T>(texture, destPowTwo, destPosition);
             *destPixel      = color.abgr();
         }
+    }
+}
+
+void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
+                                          const Rect& rect, bool reloadMipmaps)
+{
+    switch (this->GetPixelFormat())
+    {
+        case PIXELFORMAT_RGB565_UNORM:
+            _replacePixels<uint16_t>(data, this->image.tex->data, rect, this->width, this->height);
+            break;
+        default:
+            _replacePixels<uint32_t>(data, this->image.tex->data, rect, this->width, this->height);
+            break;
     }
 
     C3D_TexFlush(this->image.tex);
