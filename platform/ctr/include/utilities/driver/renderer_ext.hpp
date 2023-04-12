@@ -75,8 +75,6 @@ namespace love
 
         std::optional<Screen> CheckScreen(const char* name) const;
 
-        SmallTrivialVector<const char*, 3> GetScreens() const;
-
         void SetWideMode(bool enable)
         {
             this->ModeChanged([enable]() { gfxSetWide(enable); });

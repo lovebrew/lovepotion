@@ -139,8 +139,6 @@ namespace love
 
         void SetAttributes(const vertex::attributes::Attribs& attributes);
 
-        SmallTrivialVector<const char*, 1> GetScreens() const;
-
         bool IsHandheldMode() const;
 
         CMemPool::Handle Allocate(MemPoolType type, size_t size, uint32_t alignment = 0);
