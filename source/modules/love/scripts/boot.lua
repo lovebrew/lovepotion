@@ -24,6 +24,7 @@ freely, subject to the following restrictions:
 
 -- Make sure love exists.
 local love = require("love")
+local nestlink = nil
 
 -- Essential code boot/init.
 require("love.arg")
@@ -212,13 +213,6 @@ function love.init()
         excluderenderers = nil,
     }
 
-    -- Console hack, part 1.
-    local openedconsole = false
-    if love.arg.options.console.set and love._openConsole then
-        love._openConsole()
-        openedconsole = true
-    end
-
     -- If config file exists, load it and allow it to update config table.
     local confok, conferr
     if (not love.conf) and love.filesystem and love.filesystem.getInfo("conf.lua") then
@@ -233,9 +227,14 @@ function love.init()
         -- the error message can be displayed in the window.
     end
 
-    -- Console hack, part 2.
-    if c.console and love._openConsole and not openedconsole then
-        love._openConsole()
+    -- Open the nestlink client
+    local console_ok, console_error
+    if c.console and type(c.console) == "table" then
+        console_ok, nestlink = pcall(require, "nestlink")
+
+        if console_ok then
+            console_ok, console_error = pcall(function() nestlink.connect(unpack(c.console)) end)
+        end
     end
 
     -- Hack for disabling accelerometer-as-joystick on Android / iOS.
@@ -351,6 +350,10 @@ function love.init()
         error(conferr)
     end
 
+    if not console_ok and console_error then
+        error(console_error)
+    end
+
     -- Setup window here.
     if c.window and c.modules.window and love.window then
         love.window.setTitle(c.window.title or c.title)
@@ -453,6 +456,9 @@ return function()
     while func do
         local _, retval, restartvalue = xpcall(func, deferErrhand)
         if retval then
+            if nestlink then
+                nestlink.disconnect()
+            end
             return retval, restartvalue
         end
         coroutine.yield()
