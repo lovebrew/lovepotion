@@ -232,15 +232,12 @@ void _replacePixels(const void* source, void* texture, const Rect& rect, const i
     {
         for (int _x = 0; _x < std::min(rect.w, width - rect.x); _x++)
         {
-            Color color {};
-
             Vector2 srcPosition { _x, _y };
             const auto* srcPixel = Color::FromTile<T>(source, sourcePowTwo, srcPosition);
-            color                = Color(*srcPixel);
 
             Vector2 destPosition { (rect.x + _x), (rect.y + _y) };
             auto* destPixel = Color::FromTile<T>(texture, destPowTwo, destPosition);
-            *destPixel      = color.abgr();
+            *destPixel      = *srcPixel;
         }
     }
 }

@@ -87,6 +87,23 @@ FileData* ImageData<Console::CTR>::Encode(FormatHandler::EncodedFormat encodedFo
     return nullptr;
 }
 
+template<typename T>
+static void TileAndStuff(void* data, const int width, const int height, void* buffer)
+{
+    const auto powTwoWidth = NextPo2(width);
+
+    T* destination = (T*)data;
+    T* source      = (T*)buffer;
+
+    for (int j = 0; j < height; j += 8)
+    {
+        std::copy(source, source + width * 8, destination);
+
+        source += width * 8;
+        destination += powTwoWidth * 8;
+    }
+}
+
 /*
 ** ImageData::Create will internally make NextPo2 sized pixel data for citro3d textures
 ** ImageData's c'tors that take with/height will assign non-Po2 sizes to those variables
@@ -94,7 +111,27 @@ FileData* ImageData<Console::CTR>::Encode(FormatHandler::EncodedFormat encodedFo
 */
 void ImageData<Console::CTR>::Create(int width, int height, PixelFormat format, void* data)
 {
-    ImageData<Console::ALL>::Create(NextPo2(width), NextPo2(height), format, data);
+    const auto size = GetPixelFormatSliceSize(format, width, height);
+
+    try
+    {
+        this->data = std::make_unique<uint8_t[]>(size);
+    }
+    catch (std::bad_alloc&)
+    {
+        throw love::Exception("Out of memory.");
+    }
+
+    if (data != nullptr)
+    {
+        if (width % 8 != 0 && height % 8 != 0)
+            throw love::Exception("Cannot create ImageData that is not a multiple of 8.");
+
+        if (format == PIXELFORMAT_RGB565_UNORM)
+            TileAndStuff<uint16_t>(this->data.get(), width, height, data);
+        else
+            TileAndStuff<uint32_t>(this->data.get(), width, height, data);
+    }
 
     this->pixelSetFunction = setPixelRGBA8;
     this->pixelGetFunction = getPixelRGBA8;
