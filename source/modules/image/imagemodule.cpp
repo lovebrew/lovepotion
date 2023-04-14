@@ -19,6 +19,12 @@ ImageData<Console::Which>* ImageModule::NewImageData(int width, int height,
     return new ImageData<Console::Which>(width, height, format);
 }
 
+ImageData<Console::Which>* ImageModule::NewImageData(int width, int height, PixelFormat format,
+                                                     void* data, bool own) const
+{
+    return new ImageData<Console::Which>(width, height, format, data, own);
+}
+
 const std::list<love::FormatHandler*>& ImageModule::GetFormatHandlers() const
 {
     return this->formatHandlers;

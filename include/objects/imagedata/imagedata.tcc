@@ -4,6 +4,7 @@
 #include <common/console.hpp>
 #include <common/data.hpp>
 #include <common/exception.hpp>
+#include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
 #include <objects/data/filedata/filedata.hpp>
@@ -33,8 +34,8 @@ namespace love
 
         static inline Type type = Type("ImageData", &Object::type);
 
-        using PixelSetFunction = std::function<void(const Color& color, Pixel* pixel)>;
-        using PixelGetFunction = std::function<void(const Pixel* pixel, Color& color)>;
+        typedef void (*PixelSetFunction)(const Color&, Pixel*);
+        typedef void (*PixelGetFunction)(const Pixel*, Color&);
 
         ImageData(int width, int height, PixelFormat format = PIXELFORMAT_RGBA8_UNORM) :
             ImageData(format, width, height)
@@ -71,6 +72,32 @@ namespace love
 
         virtual ~ImageData()
         {}
+
+        void CopyBytes(const void* buffer, const size_t size)
+        {
+            if (buffer != nullptr)
+                std::memcpy(this->data.get(), buffer, size);
+        }
+
+        template<typename V>
+        void CopyBytesTiled(const void* buffer, const int width, const int height)
+        {
+            if (width % 8 != 0 && height % 8 != 0)
+                throw love::Exception("Cannot create ImageData that is not a multiple of 8.");
+
+            const auto powTwoWidth = NextPo2(width);
+
+            V* destination = (V*)this->data.get();
+            V* source      = (V*)buffer;
+
+            for (int j = 0; j < height; j += 8)
+            {
+                std::memcpy(destination, source, width * 8 * sizeof(V));
+
+                source += width * 8;
+                destination += powTwoWidth * 8;
+            }
+        }
 
         void Create(int width, int height, PixelFormat format, void* data = nullptr)
         {

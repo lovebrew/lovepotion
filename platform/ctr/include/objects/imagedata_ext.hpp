@@ -25,7 +25,6 @@ namespace love
             }
 
             this->Create(width, height, format);
-            this->data = std::make_unique<uint8_t[]>(this->GetSize());
         }
 
         ImageData(int width, int height, PixelFormat format, void* data, bool own) :
