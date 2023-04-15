@@ -467,6 +467,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/randomgenerator/wrap_randomgenerator.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
+    source/objects/textbatch/wrap_textbatch.cpp
     source/objects/texture/wrap_texture.cpp
     source/objects/thread/luathread.cpp
     source/objects/thread/wrap_luathread.cpp

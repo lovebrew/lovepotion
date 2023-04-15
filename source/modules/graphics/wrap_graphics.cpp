@@ -9,6 +9,7 @@
 #include <objects/imagedata/wrap_imagedata.hpp>
 #include <objects/quad/wrap_quad.hpp>
 #include <objects/rasterizer/wrap_rasterizer.hpp>
+#include <objects/textbatch/wrap_textbatch.hpp>
 #include <objects/texture/wrap_texture.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
@@ -1282,6 +1283,29 @@ int Wrap_Graphics::NewQuad(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::NewTextBatch(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    auto* font                           = Wrap_Font::CheckFont(L, 1);
+    TextBatch<Console::Which>* textBatch = nullptr;
+
+    if (lua_isnoneornil(L, 2))
+        luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font); });
+    else
+    {
+        Font<>::ColoredStrings text {};
+        Wrap_Font::CheckColoredString(L, 2, text);
+
+        luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font, text); });
+    }
+
+    luax::PushType(L, textBatch);
+    textBatch->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::IsGammaCorrect(lua_State* L)
 {
     luax::PushBoolean(L, Graphics<>::IsGammaCorrect());
@@ -1399,6 +1423,7 @@ static constexpr luaL_Reg functions[] =
     { "getDimensions",         Wrap_Graphics::GetDimensions         },
     { "newFont",               Wrap_Graphics::NewFont               },
     { "newQuad",               Wrap_Graphics::NewQuad               },
+    { "newTextBatch",          Wrap_Graphics::NewTextBatch          },
     { "newTexture",            Wrap_Graphics::NewTexture            },
     { "setFont",               Wrap_Graphics::SetFont               },
     { "setLineJoin",           Wrap_Graphics::SetLineJoin           },
@@ -1413,6 +1438,7 @@ static constexpr lua_CFunction types[] =
     Wrap_Font::Register,
     Wrap_Texture::Register,
     Wrap_Quad::Register,
+    Wrap_TextBatch::Register,
     nullptr
 };
 // clang-format on

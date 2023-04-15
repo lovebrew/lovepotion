@@ -70,6 +70,16 @@ namespace love
             return 0.0f;
         }
 
+        float GetScale() const
+        {
+            return this->rasterizers[0]->GetScale();
+        }
+
+        const C2D_Font GetFont() const
+        {
+            return this->rasterizers[0]->GetFont();
+        }
+
         // clang-format off
         static constexpr BidirectionalMap textWrapModes = {
           ALIGN_LEFT,    C2D_AlignLeft,

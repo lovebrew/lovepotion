@@ -122,7 +122,7 @@ void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    const bool enable    = (scissor == Rect::EMPTY);
+    const bool enable    = (scissor != Rect::EMPTY);
     GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
 
     if (enable)

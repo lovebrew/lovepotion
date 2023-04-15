@@ -138,6 +138,8 @@ namespace Wrap_Graphics
 
     int NewQuad(lua_State* L);
 
+    int NewTextBatch(lua_State* L);
+
     int Print(lua_State* L);
 
     int Printf(lua_State* L);
@@ -156,7 +158,7 @@ namespace Wrap_Graphics
 
     int Ellipse(lua_State* L);
 
-    int Polygon(lua_State*L);
+    int Polygon(lua_State* L);
 
     /* OTHER STUFF */
 

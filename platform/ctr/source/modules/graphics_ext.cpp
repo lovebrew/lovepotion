@@ -6,6 +6,7 @@
 #include <modules/window_ext.hpp>
 
 #include <objects/font_ext.hpp>
+#include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::CTR>;
@@ -55,6 +56,12 @@ void Graphics<Console::CTR>::CheckSetDefaultFont()
 Font<Console::CTR>* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
 {
     return new Font<Console::CTR>(data, this->states.back().defaultSamplerState);
+}
+
+TextBatch<Console::CTR>* Graphics<Console::CTR>::NewTextBatch(Font<Console::CTR>* font,
+                                                              const Font<>::ColoredStrings& text)
+{
+    return new TextBatch<Console::CTR>(font, text);
 }
 
 void Graphics<Console::CTR>::Print(const Font<>::ColoredStrings& strings,
@@ -483,7 +490,7 @@ void Graphics<Console::CTR>::IntersectScissor(const Rect& rectangle)
 void Graphics<Console::CTR>::SetScissor()
 {
     Graphics<Console::ALL>::SetScissor();
-    ::Renderer::Instance().SetScissor({}, false);
+    ::Renderer::Instance().SetScissor(Rect::EMPTY, false);
 }
 
 void Graphics<Console::CTR>::SetScissor(const Rect& scissor)
