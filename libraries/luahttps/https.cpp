@@ -7,7 +7,8 @@ extern "C"
 #include <lua.h>
 }
 
-#include "common/HTTPSCommon.h"
+#include "common/HTTPS.h"
+#include "common/config.h"
 
 static std::string validMethod[] = { "GET", "HEAD", "POST", "PUT", "DELETE", "PATCH" };
 
