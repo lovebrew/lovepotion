@@ -1324,6 +1324,7 @@ int Wrap_Graphics::SetScissor(lua_State* L)
     }
 
     Rect rectangle {};
+
     rectangle.x = luaL_checkinteger(L, 1);
     rectangle.y = luaL_checkinteger(L, 2);
     rectangle.w = luaL_checkinteger(L, 3);
@@ -1339,6 +1340,18 @@ int Wrap_Graphics::SetScissor(lua_State* L)
 
 int Wrap_Graphics::IntersectScissor(lua_State* L)
 {
+    Rect rectangle {};
+
+    rectangle.x = (int)luaL_checkinteger(L, 1);
+    rectangle.y = (int)luaL_checkinteger(L, 2);
+    rectangle.w = (int)luaL_checkinteger(L, 3);
+    rectangle.h = (int)luaL_checkinteger(L, 4);
+
+    if (rectangle.w < 0 || rectangle.h < 0)
+        return luaL_error(L, "Can't set scissor with negative width and/or height.");
+
+    instance()->IntersectScissor(rectangle);
+
     return 0;
 }
 
@@ -1370,6 +1383,8 @@ static constexpr luaL_Reg functions[] =
     { "setActiveScreen",       Wrap_Graphics::SetActiveScreen       },
     { "setBackgroundColor",    Wrap_Graphics::SetBackgroundColor    },
     { "setColor",              Wrap_Graphics::SetColor              },
+    { "setScissor",            Wrap_Graphics::SetScissor            },
+    { "intersectScissor",      Wrap_Graphics::IntersectScissor      },
     { "shear",                 Wrap_Graphics::Shear                 },
     { "translate",             Wrap_Graphics::Translate             },
     { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },

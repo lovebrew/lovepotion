@@ -8,8 +8,6 @@ namespace love
 
     int Thread<Console::CTR>::Runner()
     {
-        this->threadable->Retain();
-
         this->threadable->ThreadFunction();
 
         this->running = false;
@@ -28,6 +26,8 @@ namespace love
         if (this->thread)
             this->thread.join();
 
+        this->threadable->Retain();
+
         int32_t priority = 0;
         svcGetThreadPriority(&priority, CUR_THREAD_HANDLE);
 
@@ -40,6 +40,9 @@ namespace love
 
         if (this->thread)
             this->running = true;
+
+        if (!this->running)
+            this->threadable->Release();
 
         return this->running;
     }

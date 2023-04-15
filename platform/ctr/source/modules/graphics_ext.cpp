@@ -458,6 +458,28 @@ void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
     this->created = true;
 }
 
+void Graphics<Console::CTR>::IntersectScissor(const Rect& rectangle)
+{
+    Rect currect = states.back().scissor.bounds;
+
+    if (!states.back().scissor.active)
+    {
+        currect.x = 0;
+        currect.y = 0;
+        currect.w = std::numeric_limits<int>::max();
+        currect.h = std::numeric_limits<int>::max();
+    }
+
+    int x1 = std::max(currect.x, rectangle.x);
+    int y1 = std::max(currect.y, rectangle.y);
+
+    int x2 = std::min(currect.x + currect.w, rectangle.x + rectangle.w);
+    int y2 = std::min(currect.y + currect.h, rectangle.y + rectangle.h);
+
+    Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
+    SetScissor(newrect);
+}
+
 void Graphics<Console::CTR>::SetScissor()
 {
     Graphics<Console::ALL>::SetScissor();

@@ -21,6 +21,8 @@ namespace love
 
         void SetScissor(const Rect& rectangle);
 
+        void IntersectScissor(const Rect& rectangle);
+
         /* objects */
 
         void CheckSetDefaultFont();
