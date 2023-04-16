@@ -25,6 +25,7 @@ namespace love
 
       private:
         void OnError();
+        bool hasError;
 
         StrongReference<love::Data> code;
 

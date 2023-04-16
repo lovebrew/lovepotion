@@ -18,6 +18,7 @@ LuaThread::~LuaThread()
 void LuaThread::ThreadFunction()
 {
     this->error.clear();
+    this->hasError = false;
 
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
@@ -29,12 +30,6 @@ void LuaThread::ThreadFunction()
     Luax::Require(L, "love.thread");
     lua_pop(L, 1);
 
-    /*
-    ** We load love.filesystem by default, since require still exists without it
-    ** but won't load files from the proper paths. love.filesystem also must be
-    ** loaded before using any love function that can take a filepath argument.
-    */
-
     Luax::Require(L, "love.filesystem");
     lua_pop(L, 1);
 
@@ -43,12 +38,15 @@ void LuaThread::ThreadFunction()
 
     if (luaL_loadbuffer(L, (const char*)this->code->GetData(), this->code->GetSize(),
                         this->name.c_str()) != 0)
-        this->error = lua_tostring(L, -1);
+    {
+        this->error    = lua_tostring(L, -1);
+        this->hasError = true;
+    }
     else
     {
-        size_t pushedArgs = this->args.size();
+        int pushedArgs = (int)this->args.size();
 
-        for (size_t i = 0; i < pushedArgs; i++)
+        for (int i = 0; i < pushedArgs; i++)
             this->args[i].ToLua(L);
 
         this->args.clear();
@@ -59,13 +57,18 @@ void LuaThread::ThreadFunction()
 
     lua_close(L);
 
-    if (!this->error.empty())
+    if (this->hasError)
         this->OnError();
 }
 
 bool LuaThread::Start(const std::vector<Variant>& args)
 {
+    if (this->IsRunning())
+        return false;
+
     this->args = args;
+    this->error.clear();
+    this->hasError = false;
 
     return Threadable::Start();
 }
@@ -77,9 +80,6 @@ const std::string& LuaThread::GetError() const
 
 void LuaThread::OnError()
 {
-    if (this->error.empty())
-        return;
-
     auto eventModule = Module::GetInstance<love::Event>(Module::M_EVENT);
 
     if (!eventModule)
