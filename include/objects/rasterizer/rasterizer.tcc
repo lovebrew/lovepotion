@@ -17,6 +17,14 @@ namespace love
     class Rasterizer : public Object
     {
       public:
+        enum Hinting
+        {
+            HINTING_NORMAL,
+            HINTING_LIGHT,
+            HINTING_MONO,
+            HINTING_NONE
+        };
+
         struct FontMetrics
         {
             int advance;

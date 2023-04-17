@@ -1,5 +1,7 @@
 #include <utilities/driver/renderer_ext.hpp>
 
+#include <modules/graphics_ext.hpp>
+
 #include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 
@@ -309,7 +311,7 @@ void Renderer<Console::HAC>::SetAttributes(const vertex::attributes::Attribs& at
     this->commandBuffer.bindVtxBufferState(attributes.bufferState);
 }
 
-bool Renderer<Console::HAC>::Render(const Graphics<Console::HAC>::DrawCommand& command)
+bool Renderer<Console::HAC>::Render(const DrawCommand& command)
 {
     if (command.count > (this->vertices.getSize() - this->firstVertex))
         return false;
@@ -476,9 +478,9 @@ void Renderer<Console::HAC>::SetLineWidth(float width)
     this->commandBuffer.setLineWidth(width);
 }
 
-void Renderer<Console::HAC>::SetLineStyle(Graphics<Console::HAC>::LineStyle style)
+void Renderer<Console::HAC>::SetLineStyle(RenderState::LineStyle style)
 {
-    bool smooth = (style == Graphics<>::LINE_SMOOTH);
+    bool smooth = (style == RenderState::LINE_SMOOTH);
     this->state.rasterizer.setPolygonSmoothEnable(smooth);
 }
 

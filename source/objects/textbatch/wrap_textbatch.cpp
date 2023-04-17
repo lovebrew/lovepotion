@@ -64,7 +64,7 @@ int Wrap_TextBatch::Add(lua_State* L)
         float kx = luaL_optnumber(L, 10, 0.0);
         float ky = luaL_optnumber(L, 11, 0.0);
 
-        Matrix4<Console::CTR> matrix(x, y, a, sx, sy, ox, oy, kx, ky);
+        Matrix4<Console::Which> matrix(x, y, a, sx, sy, ox, oy, kx, ky);
         luax::CatchException(L, [&]() { index = self->Add(text, matrix); });
     }
 
@@ -108,7 +108,7 @@ int Wrap_TextBatch::Addf(lua_State* L)
         float kx = luaL_optnumber(L, 12, 0.0);
         float ky = luaL_optnumber(L, 13, 0.0);
 
-        Matrix4<Console::CTR> matrix(x, y, a, sx, sy, ox, oy, kx, ky);
+        Matrix4<Console::Which> matrix(x, y, a, sx, sy, ox, oy, kx, ky);
         luax::CatchException(L, [&]() { index = self->Addf(text, wrap, *align, matrix); });
     }
 

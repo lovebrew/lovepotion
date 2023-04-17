@@ -2,7 +2,7 @@
 
 #include <common/vector.hpp>
 
-#include <driver/vertex_ext.hpp>
+#include <utilities/driver/vertex_ext.hpp>
 
 #include <objects/shader_ext.hpp>
 
@@ -13,15 +13,16 @@ namespace love
     struct DrawCommand
     {
       public:
-        DrawCommand(int vertexCount) :
+        DrawCommand(int vertexCount, vertex::PrimitiveType type = vertex::PRIMITIVE_TRIANGLES,
+                    Shader<>::StandardShader shader = Shader<>::STANDARD_DEFAULT) :
             positions {},
             vertices {},
             count(vertexCount),
             size(vertexCount * vertex::VERTEX_SIZE),
             handles {},
             format(vertex::CommonFormat::PRIMITIVE),
-            primitveType(vertex::PRIMITIVE_TRIANGLES),
-            shader(Shader<>::STANDARD_DEFAULT)
+            primitveType(type),
+            shader(shader)
         {
             try
             {
@@ -49,11 +50,25 @@ namespace love
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-            this->vertices[index] =
+                this->vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = color.array()
+                };
+                // clang-format on
+            }
+        }
+
+        void FillVertices(std::span<Color> colors)
+        {
+            for (size_t index = 0; index < this->count; index++)
             {
-                .position = { this->positions[index].x, this->positions[index].y, 0 },
-                .color    = color.array()
-            };
+                // clang-format off
+                this->vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = colors[index].array()
+                };
                 // clang-format on
             }
         }
@@ -63,12 +78,12 @@ namespace love
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-            this->vertices[index] =
-            {
-                .position = { this->positions[index].x, this->positions[index].y, 0 },
-                .color    = data[index].color,
-                .texcoord = data[index].texcoord
-            };
+                this->vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = data[index].color,
+                    .texcoord = data[index].texcoord
+                };
                 // clang-format on
             }
         }
@@ -78,12 +93,12 @@ namespace love
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-            this->vertices[index] =
-            {
-                .position = { this->positions[index].x, this->positions[index].y, 0 },
-                .color    = color.array(),
-                .texcoord = vertex::Normalize(textureCoords[index])
-            };
+                this->vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = color.array(),
+                    .texcoord = vertex::Normalize(textureCoords[index])
+                };
                 // clang-format on
             }
         }

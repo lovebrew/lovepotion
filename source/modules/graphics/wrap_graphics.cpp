@@ -939,7 +939,7 @@ int Wrap_Graphics::Polygon(lua_State* L)
         return luaL_error(L, "Need at least three vertices to draw a polygon");
 
     int vertices = args / 2;
-    Vector2 points[vertices + 1];
+    std::vector<Vector2> points(vertices + 1);
 
     if (isTable)
     {
@@ -976,7 +976,7 @@ int Wrap_Graphics::Polygon(lua_State* L)
     }
 
     points[vertices] = points[0];
-    luax::CatchException(L, [&]() { instance()->Polygon(*mode, points, vertices + 1); });
+    luax::CatchException(L, [&]() { instance()->Polygon(*mode, points); });
 
     return 0;
 }
@@ -1002,7 +1002,7 @@ int Wrap_Graphics::Line(lua_State* L)
         return luaL_error(L, "Need at least two vertices to draw a line.");
 
     int vertices = args / 2;
-    Vector2 points[vertices];
+    std::vector<Vector2> points(vertices);
 
     if (isTable)
     {
@@ -1026,7 +1026,7 @@ int Wrap_Graphics::Line(lua_State* L)
         }
     }
 
-    luax::CatchException(L, [&]() { instance()->Line(points, vertices); });
+    luax::CatchException(L, [&]() { instance()->Line(points); });
 
     return 0;
 }
@@ -1054,18 +1054,18 @@ int Wrap_Graphics::Points(lua_State* L)
     if (isTableOfTables)
         vertices = args;
 
-    Vector2* positions = nullptr;
-    Color* colors      = nullptr;
+    std::vector<Vector2> positions;
+    std::vector<Color> colors;
 
     if (isTableOfTables)
     {
-        positions = new Vector2[vertices * (sizeof(Color) + sizeof(Vector2))];
-        colors    = new Color[sizeof(Vector2) * vertices];
+        positions.reserve(vertices * (sizeof(Color) + sizeof(Vector2)));
+        colors.reserve(sizeof(Vector2) * vertices);
     }
     else
     {
-        positions = new Vector2[vertices];
-        colors    = new Color[1] { instance()->GetColor() };
+        positions.reserve(vertices);
+        colors = { instance()->GetColor() };
     }
 
     if (isTable)
@@ -1112,8 +1112,7 @@ int Wrap_Graphics::Points(lua_State* L)
         }
     }
 
-    luax::CatchException(L, [&]() { instance()->Points(positions, vertices, colors, vertices); });
-    delete[] positions;
+    luax::CatchException(L, [&]() { instance()->Points(positions, colors); });
 
     return 0;
 }

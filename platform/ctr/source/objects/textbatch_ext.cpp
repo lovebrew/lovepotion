@@ -45,6 +45,7 @@ void TextBatch<Console::CTR>::AddText(const Font<>::ColoredStrings& text)
         std::accumulate(this->cache.begin(), this->cache.end(), std::string {}, stringify);
 }
 
+/* TODO */
 void TextBatch<Console::CTR>::AddText(const Font<>::ColoredStrings& text,
                                       const Matrix4<Console::CTR>& matrix)
 {}

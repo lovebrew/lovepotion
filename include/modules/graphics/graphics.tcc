@@ -13,6 +13,7 @@
 
 #include <objects/font/font.tcc>
 #include <objects/shader/shader.tcc>
+#include <objects/textbatch/textbatch.tcc>
 #include <objects/texture/texture.tcc>
 
 #include <objects/quad/quad.hpp>
@@ -25,6 +26,8 @@
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 #include <utilities/driver/renderer_ext.hpp>
+
+#include <cmath>
 
 namespace love
 {
@@ -230,38 +233,6 @@ namespace love
             DisplayState state {};
             this->RestoreState(state);
             this->Origin();
-        }
-
-        void RestoreStateChecked(const DisplayState& state)
-        {
-            const DisplayState& current = this->states.back();
-
-            if (state.foreground != current.foreground)
-                this->SetColor(state.foreground);
-
-            this->SetBackgroundColor(state.background);
-
-            /* todo set blend state */
-
-            this->SetLineWidth(state.line.width);
-            this->SetLineStyle(state.line.style);
-            this->SetLineJoin(state.line.join);
-
-            if (state.pointSize != current.pointSize)
-                this->SetPointSize(state.pointSize);
-
-            this->SetMeshCullMode(state.cullMode);
-
-            if (state.windingMode != current.windingMode)
-                this->SetFrontFaceWinding(state.windingMode);
-
-            this->SetFont(state.font.Get());
-            this->SetShader(state.shader.Get());
-
-            if (state.colorMask != current.colorMask)
-                this->SetColorMask(state.colorMask);
-
-            this->SetDefaultSamplerState(state.defaultSamplerState);
         }
 
         void Pop()
@@ -493,7 +464,7 @@ namespace love
             return false;
         }
 
-        void Checked(const DisplayState& state)
+        void RestoreStateChecked(const DisplayState& state)
         {
             const DisplayState& current = this->states.back();
 
@@ -638,7 +609,261 @@ namespace love
 
         /* PRIMITIVES */
 
-        void Rectangle(DrawMode mode, float x, float y, float width, float height) {}
+        void Polyline(const std::span<Vector2> points)
+        {}
+
+        void Polygon(DrawMode mode, std::span<Vector2> points, bool skipLastVertex = true)
+        {
+            if (mode == DRAW_LINE)
+                this->Polyline(points);
+            else
+            {
+                const auto transform = this->GetTransform();
+                bool is2D            = transform.IsAffine2DTransform();
+
+                const int count = points.size() - (skipLastVertex ? 1 : 0);
+                DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
+
+                if (is2D)
+                    transform.TransformXY(command.Positions().get(), points.data(), points.size());
+
+                command.FillVertices(this->GetColor());
+
+                Renderer<Console::Which>::Instance().Render(command);
+            }
+        }
+
+        int CalculateEllipsePoints(float rx, float ry) const
+        {
+            auto pixelScale = (float)this->pixelScaleStack.back();
+            auto points     = sqrtf(((rx + ry) / 2.0f) * 20.0f * pixelScale);
+
+            return std::max(points, 8.0f);
+        }
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height)
+        {
+            std::array<Vector2, 0x05> points = { Vector2(x, y), Vector2(x, y + height),
+                                                 Vector2(x + width, y + height),
+                                                 Vector2(x + width, y), Vector2(x, y) };
+
+            this->Polygon(mode, points);
+        }
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry, int points)
+        {
+            if (rx <= 0 || ry <= 0)
+            {
+                this->Rectangle(mode, x, y, width, height);
+                return;
+            }
+
+            if (width >= 0.02f)
+                rx = std::min(rx, width / 2.0f - 0.01f);
+
+            if (height >= 0.02f)
+                ry = std::min(ry, height / 2.0f - 0.01f);
+
+            points = std::max(points / 4, 1);
+
+            const float halfPi = (float)(LOVE_M_PI_2);
+            float angleShift   = halfPi / ((float)points + 1.0f);
+
+            int pointCount = (points + 2) * 4;
+
+            std::vector<Vector2> coords(pointCount + 1);
+            float phi = 0.0f;
+
+            for (int index = 0; index <= points + 2; ++index, phi += angleShift)
+            {
+                coords[index].x = x + rx * (1 - cosf(phi));
+                coords[index].y = y + ry * (1 - sinf(phi));
+            }
+
+            phi = halfPi;
+
+            for (int index = points + 2; index <= 2 * (points + 2); ++index, phi += angleShift)
+            {
+                coords[index].x = x + width - rx * (1 + cosf(phi));
+                coords[index].y = y + ry * (1 - sinf(phi));
+            }
+
+            phi = 2 * halfPi;
+
+            for (int index = 2 * (points + 2); index <= 3 * (points + 2);
+                 ++index, phi += angleShift)
+            {
+                coords[index].x = x + width - rx * (1 + cosf(phi));
+                coords[index].y = y + height - ry * (1 + sinf(phi));
+            }
+
+            phi = 3 * halfPi;
+
+            for (int index = 3 * (points + 2); index <= 4 * (points + 2);
+                 ++index, phi += angleShift)
+            {
+                coords[index].x = x + rx * (1 - cosf(phi));
+                coords[index].y = y + height - ry * (1 + sinf(phi));
+            }
+
+            coords[coords.size()] = coords[0];
+            this->Polygon(mode, coords);
+        }
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry)
+        {
+            const float pointsRx = std::min(rx, std::abs(width / 2));
+            const float pointsRy = std::min(ry, std::abs(height / 2));
+
+            int points = this->CalculateEllipsePoints(pointsRx, pointsRy);
+            this->Rectangle(mode, x, y, width, height, rx, ry, points);
+        }
+
+        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points)
+        {
+            float twoPi = (float)(LOVE_M_TAU);
+
+            if (points <= 0)
+                points = 1;
+
+            const float angleShift = (twoPi / points);
+            float phi              = 0.0f;
+
+            int extraPoints = 1 + (mode == DRAW_FILL ? 1 : 0);
+            std::vector<Vector2> coords(points + extraPoints);
+
+            if (mode == DRAW_FILL)
+            {
+                coords[0].x = x;
+                coords[0].y = y;
+            }
+
+            for (int index = 0; index < points; ++index, phi += angleShift)
+            {
+                coords[index].x = x + a * cosf(phi);
+                coords[index].y = y + b * sinf(phi);
+            }
+
+            coords[points] = coords[0];
+
+            this->Polygon(mode, coords);
+        }
+
+        void Ellipse(DrawMode mode, float x, float y, float a, float b)
+        {
+            this->Ellipse(mode, x, y, a, b, this->CalculateEllipsePoints(a, b));
+        }
+
+        void Circle(DrawMode mode, float x, float y, float radius, int points)
+        {
+            this->Ellipse(mode, x, y, radius, radius, points);
+        }
+
+        void Circle(DrawMode mode, float x, float y, float radius)
+        {
+            this->Ellipse(mode, x, y, radius, radius);
+        }
+
+        void Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1,
+                 float angle2, int points)
+        {
+            if (points <= 0 || angle1 == angle2)
+                return;
+
+            if (fabs(angle1 - angle2) >= LOVE_M_TAU)
+            {
+                this->Circle(mode, x, y, radius, points);
+                return;
+            }
+
+            const float angleShift = (angle2 - angle1) / points;
+
+            if (angleShift == 0.0f)
+                return;
+
+            const auto sharpAngle = fabsf(angle1 - angle2) < LOVE_TORAD(4);
+            if (mode == DRAW_LINE && arcMode == ARC_CLOSED && sharpAngle)
+                arcMode = ARC_OPEN;
+
+            if (mode == DRAW_FILL && arcMode == ARC_OPEN)
+                arcMode = ARC_CLOSED;
+
+            float phi = angle1;
+
+            std::vector<Vector2> coords;
+            int numCoords = 0;
+
+            // clang-format off
+            const auto createPoints = [&](Vector2* coordinates)
+            {
+                for (int index = 0; index <= points; ++index, phi += angleShift)
+                {
+                    coordinates[index].x = x + radius * cosf(phi);
+                    coordinates[index].y = y + radius * sinf(phi);
+                }
+            };
+            // clang-format on
+
+            if (arcMode == ARC_PIE)
+            {
+                numCoords = points + 3;
+                coords.reserve(numCoords);
+
+                coords[0] = coords[numCoords - 1] = Vector2(x, y);
+                createPoints(coords.data() + 1);
+            }
+            else if (arcMode == ARC_OPEN)
+            {
+                numCoords = points + 1;
+                coords.reserve(numCoords);
+
+                createPoints(coords.data());
+            }
+            else
+            {
+                numCoords = points + 2;
+                coords.reserve(numCoords);
+
+                createPoints(coords.data());
+                coords[numCoords - 1] = coords[0];
+            }
+
+            this->Polygon(mode, coords);
+        }
+
+        void Arc(DrawMode drawmode, ArcMode arcMode, float x, float y, float radius, float angle1,
+                 float angle2)
+        {
+            float points = this->CalculateEllipsePoints(radius, radius);
+            float angle  = fabsf(angle1 - angle2);
+
+            if (angle < (float)LOVE_M_TAU)
+                points *= angle / (float)LOVE_M_TAU;
+
+            this->Arc(mode, arcMode, x, y, radius, angle1, angle2, (int)(points + 0.5f));
+        }
+
+        void Points(std::span<Vector2> points, std::span<Color> colors)
+        {
+            const auto& transform = this->GetTransform();
+            bool is2D             = transform.IsAffine2DTransform();
+
+            DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
+
+            if (is2D)
+                transform.TransformXY(command.Positions().get(), points.data());
+
+            command.FillVertices(colors);
+
+            Renderer<Console::Which>::Instance().Render(command);
+        }
+
+        void Line(std::span<Vector2> points)
+        {}
+
+        /* PRIMITIVES */
 
         /* todo: this should be called in the child class via SetBlendState */
         void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode)
