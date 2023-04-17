@@ -107,6 +107,13 @@ if(NINTENDO_SWITCH)
         ROMFS ${PROJECT_NAME}_hac_romfs
     )
 
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/utilities/driver/renderer/polyline/polyline.cpp
+        source/utilities/driver/renderer/polyline/types/beveljoin.cpp
+        source/utilities/driver/renderer/polyline/types/miterjoin.cpp
+        source/utilities/driver/renderer/polyline/types/nonejoin.cpp
+    )
+
     find_package(Freetype REQUIRED)
 
     set(APP_LIBS deko3d freetype bz2)
@@ -176,6 +183,13 @@ if (NINTENDO_WIIU)
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/utilities/driver/renderer/polyline/polyline.cpp
+        source/utilities/driver/renderer/polyline/types/beveljoin.cpp
+        source/utilities/driver/renderer/polyline/types/miterjoin.cpp
+        source/utilities/driver/renderer/polyline/types/nonejoin.cpp
+    )
 
     find_package(Freetype REQUIRED)
     set(APP_LIBS freetype bz2)

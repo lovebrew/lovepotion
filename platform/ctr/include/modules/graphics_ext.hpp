@@ -55,11 +55,11 @@ namespace love
 
         /* primitives */
 
-        void Polygon(DrawMode mode, const Vector2* points, size_t count);
+        void Polygon(DrawMode mode, std::span<Vector2> points);
 
-        void Polyfill(const Vector2* points, size_t count, u32 color, float depth);
+        void Polyfill(std::span<Vector2> points, u32 color, float depth);
 
-        void Polyline(const Vector2* points, size_t count);
+        void Polyline(std::span<Vector2> points);
 
         void Rectangle(DrawMode mode, float x, float y, float width, float height);
 
@@ -89,11 +89,11 @@ namespace love
         void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
                  float angle2, int points) {};
 
-        void Points(const Vector2* points, size_t count, const Color* colors, size_t colorCount);
+        void Points(std::span<Vector2> points, std::span<Color> colors);
 
         void SetPointSize(float size);
 
-        void Line(const Vector2* points, int count);
+        void Line(std::span<Vector2> points);
 
         /* specific stuff */
 

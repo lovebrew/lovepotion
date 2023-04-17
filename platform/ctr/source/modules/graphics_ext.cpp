@@ -123,15 +123,15 @@ inline const auto normalizeAngle = [](float angle) {
     return angle;
 };
 
-inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count, float lineWidth)
+inline std::vector<Vector2> GenerateOutline(std::span<Vector2> points, float lineWidth)
 {
-    std::vector<Vector2> innerPoints(count);
+    std::vector<Vector2> innerPoints(points.size());
 
-    for (size_t startPoint = 0; startPoint < count; startPoint++)
+    for (size_t startPoint = 0; startPoint < points.size(); startPoint++)
     {
         const auto& middle = points[startPoint];
-        const auto& after  = points[(startPoint + 1) % count];
-        const auto& before = points[startPoint == 0 ? count - 1 : startPoint - 1];
+        const auto& after  = points[(startPoint + 1) % points.size()];
+        const auto& before = points[startPoint == 0 ? points.size() - 1 : startPoint - 1];
 
         const float theta = normalizeAngle(atan2f(middle.y - after.y, middle.x - after.x));
         const float phi   = normalizeAngle(atan2f(middle.y - before.y, middle.x - before.x));
@@ -152,19 +152,18 @@ inline std::vector<Vector2> GenerateOutline(const Vector2* points, size_t count,
 
 /* actual primitives */
 
-void Graphics<Console::CTR>::Points(const Vector2* points, size_t count, const Color* colors,
-                                    size_t colorCount)
+void Graphics<Console::CTR>::Points(std::span<Vector2> points, std::span<Color> colors)
 {
     const auto& transform = this->GetTransform();
     C2D_ViewRestore(&transform.GetElements());
     const auto pointSize = this->GetPointSize();
 
-    for (size_t index = 0; index < count; index++)
+    for (size_t index = 0; index < points.size(); index++)
     {
         Color color         = colors[0];
         const Vector2 point = points[index];
 
-        if (index < colorCount)
+        if (index < colors.size())
             color = colors[index];
 
         u32 pointColor = C2D_Color32f(color.r, color.g, color.b, color.a);
@@ -172,16 +171,16 @@ void Graphics<Console::CTR>::Points(const Vector2* points, size_t count, const C
     }
 }
 
-void Graphics<Console::CTR>::Polyfill(const Vector2* points, size_t count, u32 color, float depth)
+void Graphics<Console::CTR>::Polyfill(std::span<Vector2> points, u32 color, float depth)
 {
-    for (size_t index = 2; index < count; index++)
+    for (size_t index = 2; index < points.size(); index++)
     {
         C2D_DrawTriangle(points[0].x, points[0].y, color, points[index - 1].x, points[index - 1].y,
                          color, points[index].x, points[index].y, color, depth);
     }
 }
 
-void Graphics<Console::CTR>::Polygon(DrawMode mode, const Vector2* points, size_t count)
+void Graphics<Console::CTR>::Polygon(DrawMode mode, std::span<Vector2> points)
 {
     const auto color      = this->GetColor();
     const auto& transform = this->GetTransform();
@@ -189,35 +188,35 @@ void Graphics<Console::CTR>::Polygon(DrawMode mode, const Vector2* points, size_
     C2D_ViewRestore(&transform.GetElements());
 
     if (mode == DRAW_LINE)
-        this->Polyline(points, count);
+        this->Polyline(points);
     else
-        this->Polyfill(points, count, color.rgba(), Graphics::CURRENT_DEPTH);
+        this->Polyfill(points, color.rgba(), Graphics::CURRENT_DEPTH);
 }
 
-void Graphics<Console::CTR>::Polyline(const Vector2* points, size_t count)
+void Graphics<Console::CTR>::Polyline(std::span<Vector2> points)
 {
     // Generate the outline and draw it
-    const auto lineWidth         = this->GetLineWidth();
-    std::vector<Vector2> outline = GenerateOutline(points, count, lineWidth);
+    const auto lineWidth = this->GetLineWidth();
+    auto outline         = GenerateOutline(points, lineWidth);
 
     const auto depth = this->PushCurrentDepth();
-    this->Polyfill(outline.data(), outline.size(), TRANSPARENCY, depth);
+    this->Polyfill(std::span(outline.data(), outline.size()), TRANSPARENCY, depth);
 
     // Draw our filled polygon
-    this->Polygon(DRAW_FILL, points, count);
+    this->Polygon(DRAW_FILL, points);
     Graphics::CURRENT_DEPTH = this->PushCurrentDepth(1.0f);
 }
 
 void Graphics<Console::CTR>::Rectangle(DrawMode mode, float x, float y, float width, float height)
 {
-    const Vector2 points[4] = {
+    Vector2 points[4] = {
         {        x,          y},
         {x + width,          y},
         {x + width, y + height},
         {        x, y + height}
     };
 
-    this->Polygon(mode, points, 4);
+    this->Polygon(mode, points);
 }
 
 void Graphics<Console::CTR>::Rectangle(DrawMode mode, float x, float y, float width, float height,
@@ -432,7 +431,7 @@ void Graphics<Console::CTR>::Arc(DrawMode mode, ArcMode arcmode, float x, float 
     Graphics::CURRENT_DEPTH += this->PushCurrentDepth();
 }
 
-void Graphics<Console::CTR>::Line(const Vector2* points, int count)
+void Graphics<Console::CTR>::Line(std::span<Vector2> points)
 {
     const auto color      = this->GetColor().rgba();
     const auto& transform = this->GetTransform();
@@ -440,7 +439,7 @@ void Graphics<Console::CTR>::Line(const Vector2* points, int count)
 
     C2D_ViewRestore(&transform.GetElements());
 
-    for (size_t index = 1; index < (size_t)count; index++)
+    for (size_t index = 1; index < points.size(); index++)
     {
         C2D_DrawLine(points[index - 1].x, points[index - 1].y, color, points[index].x,
                      points[index].y, color, lineWidth, Graphics::CURRENT_DEPTH);

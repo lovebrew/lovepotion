@@ -20,6 +20,12 @@
 
 #if !defined(__3DS__)
     #include <utilities/driver/drawcommand.hpp>
+
+    #include <utilities/driver/renderer/polyline/polyline.hpp>
+
+    #include <utilities/driver/renderer/polyline/types/beveljoin.hpp>
+    #include <utilities/driver/renderer/polyline/types/miterjoin.hpp>
+    #include <utilities/driver/renderer/polyline/types/nonejoin.hpp>
 #endif
 
 #include <utilities/driver/renderer/renderstate.hpp>
@@ -609,8 +615,38 @@ namespace love
 
         /* PRIMITIVES */
 
+#if !defined(__3DS__)
         void Polyline(const std::span<Vector2> points)
-        {}
+        {
+            float halfWidth                  = this->GetLineWidth() * 0.5f;
+            RenderState::LineJoin lineJoin   = this->GetLineJoin();
+            RenderState::LineStyle lineStyle = this->GetLineStyle();
+
+            float pixelSize   = 1.0f / std::max((float)this->pixelScaleStack.back(), 0.000001f);
+            bool shouldSmooth = lineStyle == RenderState::LINE_SMOOTH;
+
+            if (lineJoin == RenderState::LINE_JOIN_NONE)
+            {
+                NoneJoinPolyline line;
+                line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+                line.draw(this);
+            }
+            else if (lineJoin == RenderState::LINE_JOIN_BEVEL)
+            {
+                BevelJoinPolyline line;
+                line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+                line.draw(this);
+            }
+            else if (lineJoin == RenderState::LINE_JOIN_MITER)
+            {
+                MiterJoinPolyline line;
+                line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+                line.draw(this);
+            }
+        }
 
         void Polygon(DrawMode mode, std::span<Vector2> points, bool skipLastVertex = true)
         {
@@ -833,7 +869,7 @@ namespace love
             this->Polygon(mode, coords);
         }
 
-        void Arc(DrawMode drawmode, ArcMode arcMode, float x, float y, float radius, float angle1,
+        void Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1,
                  float angle2)
         {
             float points = this->CalculateEllipsePoints(radius, radius);
@@ -853,7 +889,7 @@ namespace love
             DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
 
             if (is2D)
-                transform.TransformXY(command.Positions().get(), points.data());
+                transform.TransformXY(command.Positions().get(), points.data(), points.size());
 
             command.FillVertices(colors);
 
@@ -861,7 +897,10 @@ namespace love
         }
 
         void Line(std::span<Vector2> points)
-        {}
+        {
+            this->Polyline(points);
+        }
+#endif
 
         /* PRIMITIVES */
 

@@ -73,6 +73,20 @@ namespace love
             }
         }
 
+        void FillVertices(Color* colors)
+        {
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                this->vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = colors[index].array()
+                };
+                // clang-format on
+            }
+        }
+
         void FillVertices(const vertex::Vertex* data)
         {
             for (size_t index = 0; index < this->count; index++)
