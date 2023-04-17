@@ -2,13 +2,7 @@
 
 #include <modules/graphics/graphics.tcc>
 
-#include <objects/font_ext.hpp>
 #include <objects/rasterizer_ext.hpp>
-#include <objects/shader_ext.hpp>
-
-#include <utilities/driver/vertex_ext.hpp>
-
-#include <memory>
 
 namespace love
 {
@@ -20,12 +14,6 @@ namespace love
 
         Graphics();
 
-        void Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth);
-
-        void Clear(std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth);
-
-        void Present();
-
         bool SetMode(int x, int y, int width, int height);
 
         void SetColor(const Color& color);
@@ -36,17 +24,12 @@ namespace love
 
         void CheckSetDefaultFont();
 
-        void RestoreStateChecked(const DisplayState& state);
-
         void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode);
 
         void SetBlendState(const RenderState::BlendState& state);
 
-        void Pop();
-
-        void Reset();
-
-        void RestoreState(const DisplayState& state);
+        TextBatch<Console::CAFE>* NewTextBatch(Font<Console::CAFE>* font,
+                                               const Font<>::ColoredStrings& strings = {}) const;
 
         Font<Console::CAFE>* NewFont(Rasterizer<Console::CAFE>* data) const;
 
@@ -76,21 +59,12 @@ namespace love
 
         void SetScissor(const Rect& scissor);
 
+        void IntersectScissor(const Rect& scissor);
+
         void SetViewportSize(int width, int height);
 
-        void SetShader()
-        {
-            Shader<Console::CAFE>::AttachDefault(Shader<>::STANDARD_DEFAULT);
-            this->states.back().shader.Set(nullptr);
-        }
+        void SetShader();
 
-        void SetShader(Shader<Console::CAFE>* shader)
-        {
-            if (shader == nullptr)
-                return this->SetShader();
-
-            shader->Attach();
-            this->states.back().shader.Set(shader);
-        }
+        void SetShader(Shader<Console::CAFE>* shader);
     }; // namespace love
 } // namespace love

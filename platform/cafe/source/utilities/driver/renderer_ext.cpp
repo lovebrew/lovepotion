@@ -156,6 +156,9 @@ void Renderer<Console::CAFE>::Clear(const Color& color)
 {
     GX2ClearColor(&this->current->GetBuffer(), color.r, color.g, color.b, color.a);
     GX2SetContextState(this->state);
+
+    if (Shader<Console::CAFE>::current)
+        this->UseProgram(Shader<Console::CAFE>::current->GetGroup());
 }
 
 void Renderer<Console::CAFE>::SetDepthWrites(bool enable)
@@ -366,6 +369,9 @@ void Renderer<Console::CAFE>::SetLineWidth(float width)
 {
     GX2SetLineWidth(width);
 }
+
+void Renderer<Console::CAFE>::SetLineStyle(RenderState::LineStyle style)
+{}
 
 void Renderer<Console::CAFE>::SetPointSize(float size)
 {

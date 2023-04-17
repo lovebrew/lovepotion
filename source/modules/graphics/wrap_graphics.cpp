@@ -938,45 +938,34 @@ int Wrap_Graphics::Polygon(lua_State* L)
     else if (args < 6)
         return luaL_error(L, "Need at least three vertices to draw a polygon");
 
-    int vertices = args / 2;
-    std::vector<Vector2> points(vertices + 1);
+    int numVertices = args / 2;
+    Vector2 points[numVertices + 1] {};
 
     if (isTable)
     {
-        float x = 0;
-        float y = 0;
-
-        for (int index = 0; index < vertices; ++index)
+        for (int index = 0; index < numVertices; ++index)
         {
             lua_rawgeti(L, 2, (index * 2) + 1);
             lua_rawgeti(L, 2, (index * 2) + 2);
 
-            x = luaL_checkinteger(L, -2);
-            y = luaL_checkinteger(L, -1);
-
-            points[index].x = x;
-            points[index].y = y;
+            points[index].x = luax::CheckFloat(L, -2);
+            points[index].y = luax::CheckFloat(L, -1);
 
             lua_pop(L, 2);
         }
     }
     else
     {
-        float x = 0;
-        float y = 0;
-
-        for (int index = 0; index < vertices; ++index)
+        for (int index = 0; index < numVertices; ++index)
         {
-            x = luaL_checkinteger(L, (index * 2) + 2);
-            y = luaL_checkinteger(L, (index * 2) + 3);
-
-            points[index].x = x;
-            points[index].y = y;
+            points[index].x = luax::CheckFloat(L, (index * 2) + 2);
+            points[index].y = luax::CheckFloat(L, (index * 2) + 3);
         }
     }
 
-    points[vertices] = points[0];
-    luax::CatchException(L, [&]() { instance()->Polygon(*mode, points); });
+    points[numVertices] = points[0];
+    luax::CatchException(L,
+                         [&]() { instance()->Polygon(*mode, std::span(points, numVertices + 1)); });
 
     return 0;
 }

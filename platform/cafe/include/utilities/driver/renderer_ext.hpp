@@ -6,8 +6,6 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <modules/graphics_ext.hpp>
-
 #include <utilities/driver/drawcommand.hpp>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -27,6 +25,8 @@
 #include <gx2r/draw.h>
 
 #include <whb/gfx.h>
+
+#include <map>
 
 /* Enforces GLSL std140/std430 alignment rules for glm types */
 #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
@@ -117,7 +117,7 @@ namespace love
 
         void SetLineWidth(float lineWidth);
 
-        void SetLineStyle(Graphics<>::LineStyle style);
+        void SetLineStyle(RenderState::LineStyle style);
 
         void SetPointSize(float size);
 

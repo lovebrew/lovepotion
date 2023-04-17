@@ -661,7 +661,7 @@ namespace love
                 DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
                 if (is2D)
-                    transform.TransformXY(command.Positions().get(), points.data(), points.size());
+                    transform.TransformXY(command.Positions().get(), points.data(), command.count);
 
                 command.FillVertices(this->GetColor());
 
@@ -708,7 +708,7 @@ namespace love
 
             int pointCount = (points + 2) * 4;
 
-            std::vector<Vector2> coords(pointCount + 1);
+            Vector2 coords[pointCount + 1] {};
             float phi = 0.0f;
 
             for (int index = 0; index <= points + 2; ++index, phi += angleShift)
@@ -743,8 +743,8 @@ namespace love
                 coords[index].y = y + height - ry * (1 + sinf(phi));
             }
 
-            coords[coords.size()] = coords[0];
-            this->Polygon(mode, coords);
+            coords[pointCount] = coords[0];
+            this->Polygon(mode, std::span(coords, pointCount + 1));
         }
 
         void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
@@ -768,12 +768,14 @@ namespace love
             float phi              = 0.0f;
 
             int extraPoints = 1 + (mode == DRAW_FILL ? 1 : 0);
-            std::vector<Vector2> coords(points + extraPoints);
+            Vector2 polygonCoords[points + extraPoints] {};
+            Vector2* coords = polygonCoords;
 
             if (mode == DRAW_FILL)
             {
                 coords[0].x = x;
                 coords[0].y = y;
+                coords++;
             }
 
             for (int index = 0; index < points; ++index, phi += angleShift)
@@ -784,7 +786,7 @@ namespace love
 
             coords[points] = coords[0];
 
-            this->Polygon(mode, coords);
+            this->Polygon(mode, std::span(polygonCoords, points + extraPoints), false);
         }
 
         void Ellipse(DrawMode mode, float x, float y, float a, float b)
@@ -828,8 +830,8 @@ namespace love
 
             float phi = angle1;
 
-            std::vector<Vector2> coords;
-            int numCoords = 0;
+            Vector2* coords = nullptr;
+            int numCoords   = 0;
 
             // clang-format off
             const auto createPoints = [&](Vector2* coordinates)
@@ -845,28 +847,29 @@ namespace love
             if (arcMode == ARC_PIE)
             {
                 numCoords = points + 3;
-                coords.reserve(numCoords);
+                coords    = new Vector2[numCoords];
 
                 coords[0] = coords[numCoords - 1] = Vector2(x, y);
-                createPoints(coords.data() + 1);
+                createPoints(coords + 1);
             }
             else if (arcMode == ARC_OPEN)
             {
                 numCoords = points + 1;
-                coords.reserve(numCoords);
+                coords    = new Vector2[numCoords];
 
-                createPoints(coords.data());
+                createPoints(coords);
             }
             else
             {
                 numCoords = points + 2;
-                coords.reserve(numCoords);
+                coords    = new Vector2[numCoords];
 
-                createPoints(coords.data());
+                createPoints(coords);
                 coords[numCoords - 1] = coords[0];
             }
 
-            this->Polygon(mode, coords);
+            this->Polygon(mode, std::span(coords, numCoords));
+            delete[] coords;
         }
 
         void Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1,

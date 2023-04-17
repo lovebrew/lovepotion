@@ -1,6 +1,5 @@
 #include <modules/graphics_ext.hpp>
 
-#include <utilities/driver/drawcommand.hpp>
 #include <utilities/driver/renderer_ext.hpp>
 
 #include <common/matrix_ext.hpp>
@@ -8,6 +7,9 @@
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
 
+#include <objects/font_ext.hpp>
+#include <objects/shader_ext.hpp>
+#include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::CAFE>;
@@ -26,63 +28,6 @@ Graphics<Console::CAFE>::Graphics()
     }
 }
 
-void Graphics<Console::CAFE>::Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
-{
-    ::Renderer::Instance().BindFramebuffer();
-
-    if (color.has_value())
-    {
-        Graphics<Console::ALL>::GammaCorrectColor(color.value());
-        ::Renderer::Instance().Clear(color.value());
-    }
-
-    if (stencil.has_value() && depth.has_value())
-        ::Renderer::Instance().ClearDepthStencil(stencil.value(), 0xFF, depth.value());
-
-    if (color.has_value() && Shader<Console::CAFE>::current)
-        ::Renderer::Instance().UseProgram(Shader<Console::CAFE>::current->GetGroup());
-}
-
-void Graphics<Console::CAFE>::Clear(std::vector<OptionalColor>& colors, OptionalInt stencil,
-                                    OptionalDouble depth)
-{
-    int colorCount = colors.size();
-
-    if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
-        return;
-
-    if (stencil.has_value() || depth.has_value())
-        ::Renderer::Instance().ClearDepthStencil(stencil.value(), 0xFF, depth.value());
-}
-
-void Graphics<Console::CAFE>::Present()
-{
-    ::Renderer::Instance().Present();
-}
-
-void Graphics<Console::CAFE>::Reset()
-{
-    DisplayState state {};
-    this->RestoreState(state);
-    Graphics<>::Reset();
-}
-
-void Graphics<Console::CAFE>::RestoreState(const DisplayState& state)
-{
-    Graphics<>::RestoreState(state);
-
-    if (state.scissor.active)
-        this->SetScissor(state.scissor.bounds);
-    else
-        Graphics<>::SetScissor();
-
-    this->SetFrontFaceWinding(state.windingMode);
-    this->SetMeshCullMode(state.cullMode);
-    this->SetColor(state.foreground);
-    this->SetBlendState(state.blendState);
-    this->SetShader(state.shader.Get());
-}
-
 void Graphics<Console::CAFE>::SetBlendMode(RenderState::BlendMode mode,
                                            RenderState::BlendAlpha alphaMode)
 {
@@ -94,36 +39,6 @@ void Graphics<Console::CAFE>::SetBlendState(const RenderState::BlendState& state
 {
     Renderer<Console::CAFE>::Instance().SetBlendMode(state);
     states.back().blendState = state;
-}
-
-void Graphics<Console::CAFE>::RestoreStateChecked(const DisplayState& state)
-{
-    Graphics<>::RestoreStateChecked(state);
-
-    const DisplayState& current = this->states.back();
-
-    bool sameScissor = state.scissor.bounds == current.scissor.bounds;
-    if (state.scissor.active != current.scissor.active || (state.scissor.active && !sameScissor))
-    {
-        if (state.scissor.active)
-            this->SetScissor(state.scissor.bounds);
-        else
-            Graphics<>::SetScissor();
-    }
-
-    if (state.cullMode != current.cullMode)
-        this->SetMeshCullMode(state.cullMode);
-
-    if (state.windingMode != current.windingMode)
-        this->SetFrontFaceWinding(state.windingMode);
-
-    if (state.foreground != current.foreground)
-        this->SetColor(state.foreground);
-
-    if (!(state.blendState == current.blendState))
-        this->SetBlendState(state.blendState);
-
-    this->SetShader(state.shader.Get());
 }
 
 void Graphics<Console::CAFE>::SetFrontFaceWinding(vertex::Winding winding)
@@ -142,6 +57,12 @@ void Graphics<Console::CAFE>::SetColor(const Color& color)
 {
     Graphics<>::SetColor(color);
     Renderer<Console::CAFE>::Instance().SetBlendColor(color);
+}
+
+TextBatch<Console::CAFE>* Graphics<Console::CAFE>::NewTextBatch(
+    Font<Console::CAFE>* font, const Font<>::ColoredStrings& text) const
+{
+    return new TextBatch<Console::CAFE>(font, text);
 }
 
 bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
@@ -200,20 +121,6 @@ void Graphics<Console::CAFE>::CheckSetDefaultFont()
     }
 
     states.back().font.Set(this->defaultFont.Get());
-}
-
-void Graphics<Console::CAFE>::Pop()
-{
-    Graphics<>::Pop();
-
-    if (this->stackTypeStack.back() == STACK_ALL)
-    {
-        DisplayState& newState = this->states[this->states.size() - 2];
-        this->RestoreStateChecked(newState);
-        this->states.pop_back();
-    }
-
-    this->stackTypeStack.pop_back();
 }
 
 Font<Console::CAFE>* Graphics<Console::CAFE>::NewFont(Rasterizer<Console::CAFE>* data) const
@@ -276,6 +183,21 @@ void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings, floa
         this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
 }
 
+void Graphics<Console::CAFE>::SetShader()
+{
+    Shader<Console::CAFE>::AttachDefault(Shader<>::STANDARD_DEFAULT);
+    this->states.back().shader.Set(nullptr);
+}
+
+void Graphics<Console::CAFE>::SetShader(Shader<Console::CAFE>* shader)
+{
+    if (shader == nullptr)
+        return this->SetShader();
+
+    shader->Attach();
+    this->states.back().shader.Set(shader);
+}
+
 void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings,
                                      Font<Console::CAFE>* font, float wrap, Font<>::AlignMode align,
                                      const Matrix4<Console::CAFE>& matrix)
@@ -299,4 +221,26 @@ void Graphics<Console::CAFE>::SetScissor(const Rect& scissor)
 {
     Graphics<Console::ALL>::SetScissor(scissor);
     ::Renderer::Instance().SetScissor(scissor);
+}
+
+void Graphics<Console::CAFE>::IntersectScissor(const Rect& rectangle)
+{
+    Rect currect = states.back().scissor.bounds;
+
+    if (!states.back().scissor.active)
+    {
+        currect.x = 0;
+        currect.y = 0;
+        currect.w = std::numeric_limits<int>::max();
+        currect.h = std::numeric_limits<int>::max();
+    }
+
+    int x1 = std::max(currect.x, rectangle.x);
+    int y1 = std::max(currect.y, rectangle.y);
+
+    int x2 = std::min(currect.x + currect.w, rectangle.x + rectangle.w);
+    int y2 = std::min(currect.y + currect.h, rectangle.y + rectangle.h);
+
+    Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
+    SetScissor(newrect);
 }
