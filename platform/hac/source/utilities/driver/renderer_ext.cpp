@@ -388,6 +388,11 @@ void Renderer<Console::HAC>::SetBlendMode(const RenderState::BlendState& state)
     this->state.blend.setDstAlphaBlendFactor(*dstAlpha);
 }
 
+void Renderer<Console::HAC>::SetColorMask(const RenderState::ColorMask& mask)
+{
+    this->state.colorWrite.setMask(0, mask.GetColorMask());
+}
+
 void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, SamplerState& state)
 {
     this->EnsureInFrame();

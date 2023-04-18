@@ -15,10 +15,6 @@ namespace love
 
         ~TextBatch();
 
-        void AddText(const Font<>::ColoredStrings& text);
-
-        void AddText(const Font<>::ColoredStrings& text, const Matrix4<Console::CAFE>& matrix);
-
         void Set(const Font<>::ColoredStrings& text);
 
         void Set(const Font<>::ColoredStrings& text, float wrap, Font<>::AlignMode align);
@@ -27,6 +23,8 @@ namespace love
 
         int Addf(const Font<>::ColoredStrings& text, float wrap, Font<>::AlignMode mode,
                  const Matrix4<Console::CAFE>& transform);
+
+        void SetFont(Font<Console::CAFE>* font);
 
         void Clear();
 

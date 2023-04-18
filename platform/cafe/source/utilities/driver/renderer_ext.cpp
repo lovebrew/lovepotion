@@ -401,7 +401,7 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
     this->current->SetProjection(ortho);
 }
 
-void Renderer<Console::CAFE>::SetScissor(const Rect& scissor)
+void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)
 {
     this->current->SetScissor(scissor);
 }

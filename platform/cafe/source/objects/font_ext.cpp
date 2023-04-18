@@ -449,7 +449,7 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
 
     Color currentColor = constantColor;
 
-    int colorIndex        = -1;
+    int colorIndex        = 0;
     const auto colorCount = (int)text.colors.size();
 
     for (int index = 0; index < (int)text.codepoints.size(); index++)
@@ -458,13 +458,21 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
         const auto glyph = text.codepoints[index];
 
         /* gamma correct the glyph's color */
-        if (colorIndex + 1 < colorCount && text.colors[colorIndex + 1].index == index)
+        if (colorIndex < colorCount && text.colors[colorIndex].index == index)
         {
-            auto glyphColor = text.colors[++colorIndex].color;
+            auto glyphColor = text.colors[colorIndex].color;
+
+            glyphColor.r = std::min(std::max(glyphColor.r, 0.0f), 1.0f);
+            glyphColor.g = std::min(std::max(glyphColor.g, 0.0f), 1.0f);
+            glyphColor.b = std::min(std::max(glyphColor.b, 0.0f), 1.0f);
+            glyphColor.a = std::min(std::max(glyphColor.a, 0.0f), 1.0f);
 
             Graphics<>::GammaCorrectColor(glyphColor);
             glyphColor *= linearConstantColor;
             Graphics<>::UnGammaCorrectColor(glyphColor);
+
+            currentColor = glyphColor;
+            colorIndex++;
         }
 
         if (glyph == Font::NEWLINE_GLYPH)

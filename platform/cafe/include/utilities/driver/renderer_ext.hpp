@@ -103,7 +103,7 @@ namespace love
 
         void SetViewport(const Rect& viewport);
 
-        void SetScissor(const Rect& scissor);
+        void SetScissor(const Rect& scissor, bool canvasActive);
 
         void SetStencil(RenderState::CompareMode mode, int value);
 

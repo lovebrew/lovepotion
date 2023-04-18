@@ -88,6 +88,23 @@ namespace love
             return 0.0f;
         }
 
+        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
+                                                  const Color& color,
+                                                  std::vector<vertex::Vertex>& vertices,
+                                                  float extraSpacing = 0.0f, Vector2 offset = {},
+                                                  TextInfo* info = nullptr);
+
+        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
+                                                           const Color& color, float wrap,
+                                                           AlignMode align,
+                                                           std::vector<vertex::Vertex>& vertices,
+                                                           TextInfo* info = nullptr);
+
+        uint32_t GetTextureCacheID() const
+        {
+            return this->textureCacheID;
+        }
+
       private:
         struct Glyph
         {
@@ -126,18 +143,6 @@ namespace love
         const Glyph& AddGlyph(uint32_t glyph);
 
         const Glyph& FindGlyph(uint32_t glyph);
-
-        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
-                                                  const Color& color,
-                                                  std::vector<vertex::Vertex>& vertices,
-                                                  float extraSpacing = 0.0f, Vector2 offset = {},
-                                                  TextInfo* info = nullptr);
-
-        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
-                                                           const Color& color, float wrap,
-                                                           AlignMode align,
-                                                           std::vector<vertex::Vertex>& vertices,
-                                                           TextInfo* info = nullptr);
 
         void Printv(Graphics<Console::CAFE>& graphics, const Matrix4<Console::CAFE>& transform,
                     const std::vector<DrawCommand>& drawCommands,

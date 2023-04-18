@@ -191,5 +191,5 @@ void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, Font<
 void Graphics<Console::HAC>::SetViewportSize(int width, int height)
 {
     ::Renderer::Instance().SetViewport({ 0, 0, width, height });
-    this->SetScissor({ 0, 0, width, height }, false);
+    this->SetScissor({ 0, 0, width, height });
 }

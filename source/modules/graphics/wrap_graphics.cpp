@@ -423,7 +423,11 @@ int Wrap_Graphics::SetFont(lua_State* L)
 int Wrap_Graphics::GetFont(lua_State* L)
 {
     Font<Console::Which>* font = nullptr;
-    luax::CatchException(L, [&]() { font = instance()->GetFont(); });
+
+    luax::CatchException(L, [&]() {
+        instance()->CheckSetDefaultFont();
+        font = instance()->GetFont();
+    });
 
     luax::PushType(L, font);
 
@@ -1507,6 +1511,8 @@ int Wrap_Graphics::SetBlendState(lua_State* L)
     }
 
     luax::CatchException(L, [&]() { instance()->SetBlendState(state); });
+
+    return 0;
 }
 
 int Wrap_Graphics::GetBlendState(lua_State* L)

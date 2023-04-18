@@ -75,6 +75,11 @@ namespace love
             return std::floor(this->height / this->dpiScale + 0.5f);
         }
 
+        uint32_t GetTextureCacheID() const
+        {
+            return this->textureCacheID;
+        }
+
         float GetBaseline() const
         {
             float ascent        = this->GetAscent();
@@ -87,6 +92,20 @@ namespace love
 
             return 0.0f;
         }
+
+        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
+                                                  const Color& color,
+                                                  std::vector<vertex::Vertex>& vertices,
+                                                  float extraSpacing = 0.0f, Vector2 offset = {},
+                                                  TextInfo* info = nullptr);
+
+        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
+                                                           const Color& color, float wrap,
+                                                           AlignMode align,
+                                                           std::vector<vertex::Vertex>& vertices,
+                                                           TextInfo* info = nullptr);
+
+        void SetFont(Font* font);
 
       private:
         struct Glyph
@@ -126,18 +145,6 @@ namespace love
         const Glyph& AddGlyph(uint32_t glyph);
 
         const Glyph& FindGlyph(uint32_t glyph);
-
-        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
-                                                  const Color& color,
-                                                  std::vector<vertex::Vertex>& vertices,
-                                                  float extraSpacing = 0.0f, Vector2 offset = {},
-                                                  TextInfo* info = nullptr);
-
-        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
-                                                           const Color& color, float wrap,
-                                                           AlignMode align,
-                                                           std::vector<vertex::Vertex>& vertices,
-                                                           TextInfo* info = nullptr);
 
         void Printv(Graphics<Console::HAC>& graphics, const Matrix4<Console::HAC>& transform,
                     const std::vector<DrawCommand>& drawCommands,

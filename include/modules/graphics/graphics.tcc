@@ -604,7 +604,7 @@ namespace love
         void SetColorMask(const RenderState::ColorMask& mask)
         {
             this->states.back().colorMask = mask;
-            Renderer<Console::Which>::SetColorMask(mask);
+            Renderer<Console::Which>::Instance().SetColorMask(mask);
         }
 
         const RenderState::ColorMask GetColorMask() const
@@ -918,7 +918,7 @@ namespace love
 
         void SetBlendState(const RenderState::BlendState& state)
         {
-            Renderer<Console::Which>::SetBlendMode(state);
+            Renderer<Console::Which>::Instance().SetBlendMode(state);
             this->states.back().blendState = state;
         }
 
@@ -968,6 +968,11 @@ namespace love
                 default:
                     return format;
             }
+        }
+
+        void InternalScale(const Matrix4<Console::Which>& transform)
+        {
+            this->transformStack.back() *= transform;
         }
 
         void IntersectScissor(const Rect& rectangle)

@@ -15,10 +15,6 @@ namespace love
 
         ~TextBatch();
 
-        void AddText(const Font<>::ColoredStrings& text);
-
-        void AddText(const Font<>::ColoredStrings& text, const Matrix4<Console::HAC>& matrix);
-
         void Set(const Font<>::ColoredStrings& text);
 
         void Set(const Font<>::ColoredStrings& text, float wrap, Font<>::AlignMode align);
@@ -29,6 +25,8 @@ namespace love
                  const Matrix4<Console::HAC>& transform);
 
         void Clear();
+
+        void SetFont(Font<Console::HAC>* font);
 
         int GetWidth(int index = 0) const;
 
