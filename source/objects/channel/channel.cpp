@@ -146,6 +146,7 @@ void Channel::Clear()
     this->received = this->sent;
     this->condition.notify_all();
 }
+
 void Channel::LockMutex()
 {
     this->mutex.lock();

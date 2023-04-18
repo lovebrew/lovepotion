@@ -6,9 +6,6 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <modules/graphics/graphics.tcc>
-
-#include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
@@ -76,15 +73,7 @@ namespace love
 
         void SetColorMask(const RenderState::ColorMask& mask);
 
-        void SetLineWidth(float lineWidth);
-
-        void SetLineStyle(Graphics<>::LineStyle style);
-
-        void SetPointSize(float size);
-
         std::optional<Screen> CheckScreen(const char* name) const;
-
-        SmallTrivialVector<const char*, 3> GetScreens() const;
 
         void SetWideMode(bool enable)
         {
@@ -116,9 +105,7 @@ namespace love
         static constexpr BidirectionalMap pixelFormats = {
             PIXELFORMAT_RGBA8_UNORM,  GPU_RGBA8,
             PIXELFORMAT_RGB8,         GPU_RGB8,
-            PIXELFORMAT_RGB565_UNORM, GPU_RGB565,
-            PIXELFORMAT_LA8_UNORM,    GPU_LA8,
-            PIXELFORMAT_ETC1_UNORM,   GPU_ETC1
+            PIXELFORMAT_RGB565_UNORM, GPU_RGB565
         };
 
         static constexpr BidirectionalMap blendEquations = {

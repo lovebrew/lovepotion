@@ -641,7 +641,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
                 auto previous = commands.back();
 
                 size_t total = (previous.start + previous.count);
-                if (previous.texture == first->texture && total == first->start)
+                if (previous.texture == first->texture && (int)total == first->start)
                 {
                     commands.back().count += first->count;
                     ++first;
@@ -680,7 +680,7 @@ void Font<Console::HAC>::Printv(Graphics<Console::HAC>& graphics,
 
     for (const auto& command : commands)
     {
-        auto drawCommand         = Graphics<Console::HAC>::DrawCommand(command.count);
+        love::DrawCommand drawCommand(command.count);
         drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
         drawCommand.format       = vertex::CommonFormat::TEXTURE;
         drawCommand.primitveType = vertex::PRIMITIVE_QUADS;

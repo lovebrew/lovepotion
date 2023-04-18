@@ -4,79 +4,78 @@
 #include <common/object.hpp>
 
 #include <algorithm>
-#include <memory>
+#include <cstring>
 #include <set>
-#include <variant>
 #include <vector>
 
 namespace love
 {
-    class Variant;
-
-    using VariantPair = std::pair<Variant, Variant>;
-
-    class SharedString : public Object
-    {
-      public:
-        SharedString(const char* string, size_t length)
-        {
-            this->string = std::make_unique<char[]>(length + 1);
-            std::copy_n(string, length, this->string.get());
-            this->string[length] = '\0';
-
-            this->length = length;
-        }
-
-        std::unique_ptr<char[]> string;
-        size_t length;
-    };
-
-    struct SmallString
-    {
-        char string[0x0F];
-        uint8_t length;
-
-        SmallString(const char* string, size_t length)
-        {
-            std::copy_n(string, length, this->string);
-            this->length = length;
-        }
-    };
-
-    class SharedTable : public Object
-    {
-      public:
-        SharedTable()
-        {}
-
-        virtual ~SharedTable()
-        {}
-
-        std::vector<VariantPair> pairs;
-    };
-
-    struct Nil
-    {
-    };
-
-    // clang-format off
-    using variant_t = std::variant<std::monostate, bool, double, Proxy, SharedString*, SharedTable*, SmallString, void*, Nil>;
-    // clang-format on
-
     class Variant
     {
+
       public:
+        using VariantPair = std::pair<Variant, Variant>;
+
+        static constexpr int MAX_SMALL_STRING_LENGTH = 0x0F;
+
+        class SharedString : public Object
+        {
+          public:
+            SharedString(const char* string, size_t length) : length(length)
+            {
+                this->string         = new char[length + 1];
+                this->string[length] = '\0';
+
+                std::memcpy(this->string, string, length);
+            }
+
+            virtual ~SharedString()
+            {
+                delete[] this->string;
+            }
+
+            char* string;
+            size_t length;
+        };
+
+        class SharedTable : public Object
+        {
+          public:
+            SharedTable()
+            {}
+
+            virtual ~SharedTable()
+            {}
+
+            std::vector<VariantPair> pairs;
+        };
+
         enum Type
         {
             UNKNOWN = 0,
             BOOLEAN,
             NUMBER,
-            LOVEOBJECT,
             STRING,
-            TABLE,
             SMALLSTRING,
             LUSERDATA,
-            NIL
+            LOVEOBJECT,
+            NIL,
+            TABLE
+        };
+
+        union Data
+        {
+            bool boolean;
+            double number;
+            SharedString* string;
+            void* userdata;
+            Proxy objectproxy;
+            SharedTable* table;
+            struct
+            {
+                char str[MAX_SMALL_STRING_LENGTH];
+                uint8_t len;
+            } smallstring;
         };
 
         Variant();
@@ -101,11 +100,16 @@ namespace love
 
         ~Variant();
 
-        Variant& operator=(const Variant& v);
+        Variant& operator=(const Variant& other);
 
-        Type getType() const
+        Variant::Type GetType() const
         {
-            return type;
+            return this->type;
+        };
+
+        const Data& GetData() const
+        {
+            return this->data;
         }
 
         static Variant Unknown()
@@ -113,31 +117,20 @@ namespace love
             return Variant(UNKNOWN);
         }
 
-        Variant::Type GetType() const
+        bool Is(Variant::Type type)
         {
-            return this->type;
-        };
+            return this->type == type;
+        }
 
-        std::string GetTypeString() const;
+        bool Is(Variant::Type type) const
+        {
+            return this->type == type;
+        }
 
       private:
-        variant_t data;
         Variant::Type type;
+        Data data;
 
-      public:
-        template<Variant::Type type>
-        const std::variant_alternative_t<size_t(type), decltype(data)>& GetValue() const
-        {
-            return std::get<size_t(type)>(data);
-        }
-
-        template<Variant::Type type>
-        std::variant_alternative_t<size_t(type), decltype(data)>& GetValue()
-        {
-            return std::get<size_t(type)>(data);
-        }
-
-      private:
         Variant(Variant::Type type);
     };
 } // namespace love

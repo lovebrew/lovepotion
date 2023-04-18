@@ -16,14 +16,6 @@ namespace love
     class Rasterizer<Console::HAC> : public Rasterizer<Console::ALL>
     {
       public:
-        enum Hinting
-        {
-            HINTING_NORMAL,
-            HINTING_LIGHT,
-            HINTING_MONO,
-            HINTING_NONE
-        };
-
         Rasterizer(FT_Library library, Data* data, int size, float dpiSacale, Hinting hinting);
 
         ~Rasterizer();

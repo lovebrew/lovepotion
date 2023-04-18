@@ -34,7 +34,7 @@ static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t 
         throw love::Exception("Failed to create Texture!");
 }
 
-Texture<Console::CTR>::Texture(const Graphics<Console::CTR>* graphics, const Settings& settings,
+Texture<Console::CTR>::Texture(const Graphics<Console::ALL>* graphics, const Settings& settings,
                                const Slices* data) :
     Texture<Console::ALL>(settings, data),
     framebuffer(nullptr)
@@ -221,28 +221,38 @@ void Texture<Console::CTR>::ReplacePixels(ImageData<Console::CTR>* data, int sli
     this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rect, reloadMipmaps);
 }
 
+template<typename T>
+void _replacePixels(const void* source, void* texture, const Rect& rect, const int width,
+                    const int height)
+{
+    const auto sourcePowTwo = NextPo2(rect.w);
+    const auto destPowTwo   = NextPo2(width);
+
+    for (int _y = 0; _y < std::min(rect.h, height - rect.y); _y++)
+    {
+        for (int _x = 0; _x < std::min(rect.w, width - rect.x); _x++)
+        {
+            Vector2 srcPosition { _x, _y };
+            const auto* srcPixel = Color::FromTile<T>(source, sourcePowTwo, srcPosition);
+
+            Vector2 destPosition { (rect.x + _x), (rect.y + _y) };
+            auto* destPixel = Color::FromTile<T>(texture, destPowTwo, destPosition);
+            *destPixel      = *srcPixel;
+        }
+    }
+}
+
 void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int slice, int mipmap,
                                           const Rect& rect, bool reloadMipmaps)
 {
-    unsigned sourcePowTwo      = NextPo2(rect.w);
-    unsigned destinationPowTwo = NextPo2(this->width);
-
-    for (int _y = 0; _y < std::min(rect.h, this->height - rect.y); _y++)
+    switch (this->GetPixelFormat())
     {
-        for (int _x = 0; _x < std::min(rect.w, this->width - rect.x); _x++)
-        {
-            // clang-format off
-            Color color {};
-
-            Vector2 sourcePosition { _x, _y };
-            const uint32_t* sourcePixel = Color::FromTile(data, sourcePowTwo, sourcePosition);
-            color                       = Color(*sourcePixel);
-
-            Vector2 destinationPosition {(rect.x + _x), (rect.y + _y)};
-            uint32_t* destinationPixel = Color::FromTile(this->image.tex, destinationPosition);
-            *destinationPixel          = color.abgr();
-            // clang-format on
-        }
+        case PIXELFORMAT_RGB565_UNORM:
+            _replacePixels<uint16_t>(data, this->image.tex->data, rect, this->width, this->height);
+            break;
+        default:
+            _replacePixels<uint32_t>(data, this->image.tex->data, rect, this->width, this->height);
+            break;
     }
 
     C3D_TexFlush(this->image.tex);

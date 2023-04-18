@@ -10,7 +10,7 @@ namespace love
     class Texture<Console::CTR> : public Texture<Console::ALL>
     {
       public:
-        Texture(const Graphics<Console::CTR>* graphics, const Settings& settings,
+        Texture(const Graphics<Console::ALL>* graphics, const Settings& settings,
                 const Slices* data);
 
         virtual ~Texture();

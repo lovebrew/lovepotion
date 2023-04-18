@@ -88,6 +88,14 @@ namespace Wrap_Graphics
 
     int GetBlendState(lua_State* L);
 
+    int SetMeshCullMode(lua_State*L);
+
+    int GetMeshCullMode(lua_State*L);
+
+    int SetFrontFaceWinding(lua_State*L);
+
+    int GetFrontFaceWinding(lua_State*L);
+
     int SetDefaultFilter(lua_State* L);
 
     int GetDefaultFilter(lua_State* L);
@@ -117,10 +125,14 @@ namespace Wrap_Graphics
     int GetScreens(lua_State* L);
 
     /* NINTENDO 3DS */
+
     int Get3D(lua_State* L);
 
+    int Set3D(lua_State* L);
+
     int GetDepth(lua_State* L);
-    /* NINTENDO 3DS */
+
+    /* OBJECTS */
 
     int NewFont(lua_State* L);
 
@@ -134,9 +146,29 @@ namespace Wrap_Graphics
 
     int NewQuad(lua_State* L);
 
+    int NewTextBatch(lua_State* L);
+
     int Print(lua_State* L);
 
     int Printf(lua_State* L);
+
+    /* PRIMITIVES */
+
+    int Rectangle(lua_State* L);
+
+    int Circle(lua_State* L);
+
+    int Line(lua_State* L);
+
+    int Arc(lua_State* L);
+
+    int Points(lua_State* L);
+
+    int Ellipse(lua_State* L);
+
+    int Polygon(lua_State* L);
+
+    /* OTHER STUFF */
 
     int GetStats(lua_State* L);
 

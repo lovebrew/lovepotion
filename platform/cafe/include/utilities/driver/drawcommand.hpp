@@ -13,13 +13,14 @@ namespace love
     struct DrawCommand
     {
       public:
-        DrawCommand(int vertexCount) :
+        DrawCommand(int vertexCount, vertex::PrimitiveType type = vertex::PRIMITIVE_TRIANGLES,
+                    Shader<>::StandardShader shader = Shader<>::STANDARD_DEFAULT) :
             handles {},
             count(vertexCount),
             stride(vertex::VERTEX_SIZE),
             format(vertex::CommonFormat::PRIMITIVE),
-            primitveType(vertex::PRIMITIVE_TRIANGLES),
-            shader(Shader<>::STANDARD_DEFAULT)
+            primitveType(type),
+            shader(shader)
         {
             try
             {
@@ -37,6 +38,57 @@ namespace love
         const std::unique_ptr<Vector2[]>& Positions() const
         {
             return this->positions;
+        }
+
+        void FillVertices(const Color& color)
+        {
+            this->buffer  = std::make_shared<DrawBuffer>(this->count);
+            auto vertices = this->buffer->Lock();
+
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = color.array()
+                };
+                // clang-format on
+            }
+        }
+
+        void FillVertices(std::span<Color> colors)
+        {
+            this->buffer  = std::make_shared<DrawBuffer>(this->count);
+            auto vertices = this->buffer->Lock();
+
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = colors[index].array()
+                };
+                // clang-format on
+            }
+        }
+
+        void FillVertices(Color* colors)
+        {
+            this->buffer  = std::make_shared<DrawBuffer>(this->count);
+            auto vertices = this->buffer->Lock();
+
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = colors[index].array()
+                };
+                // clang-format on
+            }
         }
 
         void FillVertices(const vertex::Vertex* data)

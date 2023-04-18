@@ -1,8 +1,7 @@
 #pragma once
 
-#include <modules/window/window.tcc>
-
 #include <modules/graphics_ext.hpp>
+#include <modules/window/window.tcc>
 
 namespace love
 {

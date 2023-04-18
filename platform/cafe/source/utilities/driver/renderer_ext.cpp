@@ -156,6 +156,9 @@ void Renderer<Console::CAFE>::Clear(const Color& color)
 {
     GX2ClearColor(&this->current->GetBuffer(), color.r, color.g, color.b, color.a);
     GX2SetContextState(this->state);
+
+    if (Shader<Console::CAFE>::current)
+        this->UseProgram(Shader<Console::CAFE>::current->GetGroup());
 }
 
 void Renderer<Console::CAFE>::SetDepthWrites(bool enable)
@@ -356,16 +359,23 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     this->current->UseProjection();
 }
 
-/* todo */
 void Renderer<Console::CAFE>::SetColorMask(const RenderState::ColorMask& mask)
 {
-    // GX2SetTargetChannelMasks()
+    auto channelMask = (mask.r * GX2_CHANNEL_MASK_R) + (mask.g * GX2_CHANNEL_MASK_G) +
+                       (mask.b * GX2_CHANNEL_MASK_B) + (mask.a * GX2_CHANNEL_MASK_A);
+
+    GX2SetTargetChannelMasks((GX2ChannelMask)GX2ChannelMask, GX2_CHANNEL_MASK_NONE,
+                             GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE,
+                             GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE);
 }
 
 void Renderer<Console::CAFE>::SetLineWidth(float width)
 {
     GX2SetLineWidth(width);
 }
+
+void Renderer<Console::CAFE>::SetLineStyle(RenderState::LineStyle style)
+{}
 
 void Renderer<Console::CAFE>::SetPointSize(float size)
 {

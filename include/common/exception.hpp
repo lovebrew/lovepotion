@@ -1,9 +1,8 @@
 #pragma once
 
-#include <cstdarg> // vararg
-#include <cstdio>  // vsnprintf
-#include <cstring> // strncpy
+#include <cstring>
 #include <exception>
+#include <memory>
 #include <string>
 
 namespace love
@@ -11,13 +10,21 @@ namespace love
     class Exception : public std::exception
     {
       public:
-        Exception(const char* format, ...);
+        template<typename... FormatArgs>
+        Exception(const char* format, FormatArgs&&... args)
+        {
+            const auto size                = snprintf(nullptr, 0, format, args...);
+            std::unique_ptr<char[]> buffer = std::make_unique<char[]>(size + 1);
+
+            snprintf(buffer.get(), size + 1, format, args...);
+            this->message = std::string(buffer.get());
+        }
 
         virtual ~Exception() throw();
 
         inline virtual const char* what() const throw()
         {
-            return message.c_str();
+            return this->message.c_str();
         }
 
       private:

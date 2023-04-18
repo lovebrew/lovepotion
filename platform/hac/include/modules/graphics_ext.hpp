@@ -2,11 +2,7 @@
 
 #include <modules/graphics/graphics.tcc>
 
-#include <objects/font_ext.hpp>
 #include <objects/rasterizer_ext.hpp>
-#include <objects/shader_ext.hpp>
-
-#include <utilities/driver/vertex_ext.hpp>
 
 namespace love
 {
@@ -18,40 +14,18 @@ namespace love
 
         virtual ~Graphics();
 
-        void Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth);
-
-        void Clear(std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth);
-
-        void Present();
-
         bool SetMode(int x, int y, int width, int height);
 
         void CheckSetDefaultFont();
 
-        void RestoreStateChecked(const DisplayState& state);
+        void SetShader();
 
-        void Pop();
-
-        void SetShader()
-        {
-            Shader<Console::HAC>::AttachDefault(Shader<>::STANDARD_DEFAULT);
-            this->states.back().shader.Set(nullptr);
-        }
-
-        void SetShader(Shader<Console::HAC>* shader)
-        {
-            if (shader == nullptr)
-                return this->SetShader();
-
-            shader->Attach();
-            this->states.back().shader.Set(shader);
-        }
-
-        void Reset();
-
-        void RestoreState(const DisplayState& state);
+        void SetShader(Shader<Console::HAC>* shader);
 
         Font<Console::HAC>* NewFont(Rasterizer<Console::HAC>* data) const;
+
+        TextBatch<Console::HAC>* NewTextBatch(Font<Console::HAC>* font,
+                                              const Font<>::ColoredStrings& strings = {}) const;
 
         Font<Console::HAC>* NewDefaultFont(int size,
                                            Rasterizer<Console::HAC>::Hinting hinting) const;
@@ -73,10 +47,6 @@ namespace love
 
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::HAC>& matrix);
-
-        void SetScissor();
-
-        void SetScissor(const Rect& scissor);
 
         void SetViewportSize(int width, int height);
     }; // namespace love

@@ -8,7 +8,8 @@
         "defaultCppStandard": "c++20",
         "defaultDefines": [
             "__APP_VERSION__=\"3.0.0\"",
-            "__LOVE_VERSION__=\"12.0\""
+            "__LOVE_VERSION__=\"12.0\"",
+            "_USE_MATH_DEFINES"
         ],
         "ctrIncludePaths": [
             "${workspaceFolder}/platform/ctr/include/**",

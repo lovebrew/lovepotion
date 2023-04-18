@@ -15,7 +15,38 @@ namespace love
       public:
         ImageData(Data* data);
 
-        using ImageData<Console::ALL>::ImageData;
+        ImageData(int width, int height, PixelFormat format = PIXELFORMAT_RGBA8_UNORM) :
+            ImageData<Console::ALL>(format, width, height)
+        {
+            if (!this->ValidPixelFormat(format))
+            {
+                throw love::Exception("ImageData does not support the %s pixel format",
+                                      love::GetPixelFormatName(format));
+            }
+
+            this->Create(width, height, format);
+        }
+
+        ImageData(int width, int height, PixelFormat format, void* data, bool own) :
+            ImageData<Console::ALL>(format, width, height)
+        {
+            if (!this->ValidPixelFormat(format))
+            {
+                throw love::Exception("ImageData does not support the %s pixel format",
+                                      love::GetPixelFormatName(format));
+            }
+
+            if (own)
+                this->data.reset((uint8_t*)data);
+            else
+                this->Create(width, height, format, data);
+        }
+
+        ImageData(const ImageData& other) :
+            ImageData<Console::ALL>(other.format, other.width, other.height)
+        {
+            this->Create(width, height, format, other.GetData());
+        }
 
         virtual ~ImageData();
 

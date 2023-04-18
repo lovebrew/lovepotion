@@ -2,10 +2,10 @@
 
 #include <modules/font/fontmodule.tcc>
 
+#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+
 #include <objects/data/filedata/filedata.hpp>
 #include <objects/rasterizer_ext.hpp>
-
-#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <switch.h>
 

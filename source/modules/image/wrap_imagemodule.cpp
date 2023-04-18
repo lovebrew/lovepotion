@@ -55,7 +55,17 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
                                      "actual size in bytes.");
             }
 
-            std::copy_n(bytes, data->GetSize(), (char*)data->GetData());
+            if (Console::Is(Console::CTR))
+            {
+                luax::CatchException(L, [&]() {
+                    if (*format == PIXELFORMAT_RGB565_UNORM)
+                        data->CopyBytesTiled<uint16_t>(bytes, width, height);
+                    else if (*format == PIXELFORMAT_RGBA8_UNORM)
+                        data->CopyBytesTiled<uint32_t>(bytes, width, height);
+                });
+            }
+            else
+                data->CopyBytes(bytes, data->GetSize());
         }
 
         luax::PushType(L, data);

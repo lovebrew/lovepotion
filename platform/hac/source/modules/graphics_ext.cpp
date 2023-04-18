@@ -3,7 +3,13 @@
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
 
+#include <objects/font_ext.hpp>
+#include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
+
+#include <objects/textbatch_ext.hpp>
+
+#include <utilities/driver/vertex_ext.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
 
@@ -41,69 +47,19 @@ Graphics<Console::HAC>::~Graphics()
     }
 }
 
-void Graphics<Console::HAC>::Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
+void Graphics<Console::HAC>::SetShader()
 {
-    ::Renderer::Instance().BindFramebuffer();
-
-    if (color.has_value())
-    {
-        /* todo: Graphics<>::GammaCorrectColor(color); */
-        ::Renderer::Instance().Clear(color.value());
-    }
-
-    if (stencil.has_value() && depth.has_value())
-        ::Renderer::Instance().ClearDepthStencil(stencil.value(), 0xFF, depth.value());
+    Shader<Console::HAC>::AttachDefault(Shader<>::STANDARD_DEFAULT);
+    this->states.back().shader.Set(nullptr);
 }
 
-void Graphics<Console::HAC>::Clear(std::vector<OptionalColor>& colors, OptionalInt stencil,
-                                   OptionalDouble depth)
+void Graphics<Console::HAC>::SetShader(Shader<Console::HAC>* shader)
 {
-    int colorCount = colors.size();
+    if (shader == nullptr)
+        return this->SetShader();
 
-    if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
-        this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
-}
-
-void Graphics<Console::HAC>::Present()
-{
-    ::Renderer::Instance().Present();
-}
-
-void Graphics<Console::HAC>::Reset()
-{
-    DisplayState state {};
-    this->RestoreState(state);
-    Graphics<>::Reset();
-}
-
-void Graphics<Console::HAC>::RestoreState(const DisplayState& state)
-{
-    Graphics<>::RestoreState(state);
-
-    if (state.scissor.active)
-        this->SetScissor(state.scissor.bounds);
-    else
-        Graphics<>::SetScissor();
-
-    this->SetShader(state.shader.Get());
-}
-
-void Graphics<Console::HAC>::RestoreStateChecked(const DisplayState& state)
-{
-    Graphics<>::RestoreStateChecked(state);
-
-    const DisplayState& current = this->states.back();
-
-    bool sameScissor = state.scissor.bounds == current.scissor.bounds;
-    if (state.scissor.active != current.scissor.active || (state.scissor.active && !sameScissor))
-    {
-        if (state.scissor.active)
-            this->SetScissor(state.scissor.bounds);
-        else
-            Graphics<>::SetScissor();
-    }
-
-    this->SetShader(state.shader.Get());
+    shader->Attach();
+    this->states.back().shader.Set(shader);
 }
 
 bool Graphics<Console::HAC>::SetMode(int x, int y, int width, int height)
@@ -159,18 +115,10 @@ void Graphics<Console::HAC>::CheckSetDefaultFont()
     states.back().font.Set(this->defaultFont.Get());
 }
 
-void Graphics<Console::HAC>::Pop()
+TextBatch<Console::HAC>* Graphics<Console::HAC>::NewTextBatch(
+    Font<Console::HAC>* font, const Font<>::ColoredStrings& text) const
 {
-    Graphics<>::Pop();
-
-    if (this->stackTypeStack.back() == STACK_ALL)
-    {
-        DisplayState& newState = this->states[this->states.size() - 2];
-        this->RestoreStateChecked(newState);
-        this->states.pop_back();
-    }
-
-    this->stackTypeStack.pop_back();
+    return new TextBatch<Console::HAC>(font, text);
 }
 
 Font<Console::HAC>* Graphics<Console::HAC>::NewFont(Rasterizer<Console::HAC>* data) const
@@ -243,17 +191,5 @@ void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, Font<
 void Graphics<Console::HAC>::SetViewportSize(int width, int height)
 {
     ::Renderer::Instance().SetViewport({ 0, 0, width, height });
-    ::Renderer::Instance().SetScissor({ 0, 0, width, height }, false);
-}
-
-void Graphics<Console::HAC>::SetScissor()
-{
-    Graphics<Console::ALL>::SetScissor();
-    ::Renderer::Instance().SetScissor({}, false);
-}
-
-void Graphics<Console::HAC>::SetScissor(const Rect& scissor)
-{
-    Graphics<Console::ALL>::SetScissor(scissor);
-    ::Renderer::Instance().SetScissor(scissor, this->IsRenderTargetActive());
+    this->SetScissor({ 0, 0, width, height }, false);
 }

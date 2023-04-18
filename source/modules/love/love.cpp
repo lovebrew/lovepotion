@@ -28,6 +28,10 @@ static constexpr char logfile_lua[] = {
 #include "scripts/logfile.lua"
 };
 
+static constexpr char nestlink_lua[] = {
+#include "scripts/nestlink.lua"
+};
+
 #include <modules/audio/wrap_audio.hpp>
 #include <modules/data/wrap_data.hpp>
 #include <modules/event/wrap_event.hpp>
@@ -73,6 +77,7 @@ static constexpr luaL_Reg modules[] =
     { "love.callbacks",  love::LoadCallbacks           },
     { "love.boot",       love::Boot                    },
     { "love.nogame",     love::NoGame                  },
+    { "nestlink",        love::OpenNestlink            },
     { 0,                 0                             }
 };
 // clang-format on
@@ -217,6 +222,14 @@ int love::Boot(lua_State* L)
 int love::NoGame(lua_State* L)
 {
     if (luaL_loadbuffer(L, nogame_lua, sizeof(nogame_lua), "=[love \"nogame.lua\"]") == 0)
+        lua_call(L, 0, 1);
+
+    return 1;
+}
+
+int love::OpenNestlink(lua_State* L)
+{
+    if (luaL_loadbuffer(L, nestlink_lua, sizeof(nestlink_lua), "=[love \"nestlink.lua\"]") == 0)
         lua_call(L, 0, 1);
 
     return 1;

@@ -85,6 +85,19 @@ namespace love
             COMPARE_MAX_ENUM
         };
 
+        enum LineStyle
+        {
+            LINE_ROUGH,
+            LINE_SMOOTH
+        };
+
+        enum LineJoin
+        {
+            LINE_JOIN_NONE,
+            LINE_JOIN_MITER,
+            LINE_JOIN_BEVEL
+        };
+
         struct BlendState
         {
             BlendOperation operationRGB = BLENDOP_ADD;
@@ -233,6 +246,17 @@ namespace love
             "reversesubtract", BLENDOP_REVERSE_SUBTRACT,
             "min",             BLENDOP_MIN,
             "max",             BLENDOP_MAX
+        };
+
+        static constexpr BidirectionalMap lineStyles = {
+            "rough",  LINE_ROUGH,
+            "smooth", LINE_SMOOTH,
+        };
+
+        static constexpr BidirectionalMap lineJoins = {
+            "none",  LINE_JOIN_NONE,
+            "miter", LINE_JOIN_MITER,
+            "bevel", LINE_JOIN_BEVEL
         };
         // clang-format on
     } // namespace RenderState

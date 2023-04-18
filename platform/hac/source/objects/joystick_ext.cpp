@@ -10,9 +10,6 @@ using namespace love;
 
 #define Module() (Module::GetInstance<JoystickModule<Console::HAC>>(Module::M_JOYSTICK))
 
-template<>
-Type Joystick<>::type("Joystick", &Object::type);
-
 // clang-format off
 constexpr BidirectionalMap buttons = {
     Joystick<>::GAMEPAD_BUTTON_A,             HidNpadButton_A,

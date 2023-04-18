@@ -9,20 +9,31 @@
 #include <common/matrix_ext.hpp>
 
 #include <modules/math/math.hpp>
+#include <modules/window/window.tcc>
 
 #include <objects/font/font.tcc>
 #include <objects/shader/shader.tcc>
+#include <objects/textbatch/textbatch.tcc>
 #include <objects/texture/texture.tcc>
 
 #include <objects/quad/quad.hpp>
 
 #if !defined(__3DS__)
     #include <utilities/driver/drawcommand.hpp>
+
+    #include <utilities/driver/renderer/polyline/polyline.hpp>
+
+    #include <utilities/driver/renderer/polyline/types/beveljoin.hpp>
+    #include <utilities/driver/renderer/polyline/types/miterjoin.hpp>
+    #include <utilities/driver/renderer/polyline/types/nonejoin.hpp>
 #endif
-#include <utilities/driver/renderer/renderer.tcc>
+
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
+#include <utilities/driver/renderer_ext.hpp>
+
+#include <cmath>
 
 namespace love
 {
@@ -47,19 +58,6 @@ namespace love
             ARC_OPEN,
             ARC_CLOSED,
             ARC_PIE
-        };
-
-        enum LineStyle
-        {
-            LINE_ROUGH,
-            LINE_SMOOTH
-        };
-
-        enum LineJoin
-        {
-            LINE_JOIN_NONE,
-            LINE_JOIN_MITER,
-            LINE_JOIN_BEVEL
         };
 
         enum StackType
@@ -98,9 +96,9 @@ namespace love
 
             struct
             {
-                float width     = 1.0f;
-                LineStyle style = LINE_SMOOTH;
-                LineJoin join   = LINE_JOIN_MITER;
+                float width                  = 1.0f;
+                RenderState::LineStyle style = RenderState::LINE_SMOOTH;
+                RenderState::LineJoin join   = RenderState::LINE_JOIN_MITER;
             } line;
 
             float pointSize = 1.0f;
@@ -206,6 +204,68 @@ namespace love
             return "love.graphics";
         }
 
+        void Clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
+        {
+            Renderer<Console::Which>::Instance().BindFramebuffer();
+
+            if (color.has_value())
+            {
+                // GammaCorrectColor(color);
+                Renderer<Console::Which>::Instance().Clear(color.value());
+            }
+
+            if (stencil.has_value() && depth.has_value())
+                Renderer<Console::Which>::Instance().ClearDepthStencil(stencil.value(), 0xFF,
+                                                                       depth.value());
+        }
+
+        void Clear(std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth)
+        {
+            int colorCount = colors.size();
+
+            if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
+                this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
+        }
+
+        void Present()
+        {
+            Renderer<Console::Which>::Instance().Present();
+        }
+
+        /* graphics state */
+
+        void Reset()
+        {
+            DisplayState state {};
+            this->RestoreState(state);
+            this->Origin();
+        }
+
+        void Pop()
+        {
+            if (this->stackTypeStack.size() < 1)
+                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
+
+            this->PopTransform();
+            this->pixelScaleStack.pop_back();
+
+            if (this->stackTypeStack.back() == STACK_ALL)
+            {
+                DisplayState& newState = this->states[this->states.size() - 2];
+                this->RestoreStateChecked(newState);
+                this->states.pop_back();
+            }
+
+            this->stackTypeStack.pop_back();
+        }
+
+        /* objects */
+
+        Font<Console::Which>* NewFont(Rasterizer<Console::Which>* data) const
+        {
+            return new Font<Console::Which>(data, this->states.back().defaultSamplerState);
+        }
+
         void SetFont(Font<Console::Which>* font)
         {
             this->states.back().font = font;
@@ -236,17 +296,13 @@ namespace love
         {
             Stats stats {};
 
-            stats.drawCalls     = Renderer<>::drawCalls;
-            stats.textures      = Texture<>::textureCount;
-            stats.fonts         = Font<>::fontCount;
-            stats.textureMemory = Texture<>::totalGraphicsMemory;
+            stats.drawCalls      = Renderer<>::drawCalls;
+            stats.textures       = Texture<>::textureCount;
+            stats.fonts          = Font<>::fontCount;
+            stats.shaderSwitches = Renderer<>::shaderSwitches;
+            stats.textureMemory  = Texture<>::totalGraphicsMemory;
 
             return stats;
-        }
-
-        void Reset()
-        {
-            this->Origin();
         }
 
         bool IsCreated() const
@@ -276,15 +332,6 @@ namespace love
                 this->states.push_back(this->states.back());
 
             this->stackTypeStack.push_back(type);
-        }
-
-        void Pop()
-        {
-            if (this->stackTypeStack.size() < 1)
-                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
-
-            this->PopTransform();
-            this->pixelScaleStack.pop_back();
         }
 
         void PushTransform()
@@ -479,6 +526,7 @@ namespace love
         void SetLineWidth(float width)
         {
             this->states.back().line.width = width;
+            Renderer<Console::Which>::Instance().SetLineWidth(width);
         }
 
         const float GetLineWidth() const
@@ -486,22 +534,23 @@ namespace love
             return this->states.back().line.width;
         }
 
-        void SetLineStyle(LineStyle style)
+        void SetLineStyle(RenderState::LineStyle style)
         {
             this->states.back().line.style = style;
+            Renderer<Console::Which>::Instance().SetLineStyle(style);
         }
 
-        const LineStyle GetLineStyle() const
+        const RenderState::LineStyle GetLineStyle() const
         {
             return this->states.back().line.style;
         }
 
-        void SetLineJoin(LineJoin join)
+        void SetLineJoin(RenderState::LineJoin join)
         {
             this->states.back().line.join = join;
         }
 
-        const LineJoin GetLineJoin() const
+        const RenderState::LineJoin GetLineJoin() const
         {
             return this->states.back().line.join;
         }
@@ -509,6 +558,7 @@ namespace love
         void SetPointSize(float size)
         {
             this->states.back().pointSize = size;
+            Renderer<Console::Which>::Instance().SetPointSize(size);
         }
 
         const float GetPointSize() const
@@ -520,16 +570,19 @@ namespace love
         {
             this->states.back().scissor.bounds = scissor;
             this->states.back().scissor.active = true;
+            Renderer<Console::Which>::Instance().SetScissor(scissor, this->IsRenderTargetActive());
         }
 
         void SetScissor()
         {
             this->states.back().scissor.active = false;
+            Renderer<Console::Which>::Instance().SetScissor(Rect::EMPTY, false);
         }
 
         void SetMeshCullMode(vertex::CullMode mode)
         {
             this->states.back().cullMode = mode;
+            Renderer<Console::Which>::Instance().SetMeshCullMode(mode);
         }
 
         const vertex::CullMode GetMeshCullMode() const
@@ -540,6 +593,7 @@ namespace love
         void SetFrontFaceWinding(vertex::Winding winding)
         {
             this->states.back().windingMode = winding;
+            Renderer<Console::Which>::Instance().SetVertexWinding(winding);
         }
 
         const vertex::Winding GetFrontFaceWinding() const
@@ -550,6 +604,7 @@ namespace love
         void SetColorMask(const RenderState::ColorMask& mask)
         {
             this->states.back().colorMask = mask;
+            Renderer<Console::Which>::SetColorMask(mask);
         }
 
         const RenderState::ColorMask GetColorMask() const
@@ -567,7 +622,306 @@ namespace love
             return this->states.back().defaultSamplerState;
         }
 
-        /* todo: this should be called in the child class via SetBlendState */
+        /* PRIMITIVES */
+
+#if !defined(__3DS__)
+        void Polyline(const std::span<Vector2> points)
+        {
+            float halfWidth                  = this->GetLineWidth() * 0.5f;
+            RenderState::LineJoin lineJoin   = this->GetLineJoin();
+            RenderState::LineStyle lineStyle = this->GetLineStyle();
+
+            float pixelSize   = 1.0f / std::max((float)this->pixelScaleStack.back(), 0.000001f);
+            bool shouldSmooth = lineStyle == RenderState::LINE_SMOOTH;
+
+            if (lineJoin == RenderState::LINE_JOIN_NONE)
+            {
+                NoneJoinPolyline line;
+                line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+                line.draw(this);
+            }
+            else if (lineJoin == RenderState::LINE_JOIN_BEVEL)
+            {
+                BevelJoinPolyline line;
+                line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+                line.draw(this);
+            }
+            else if (lineJoin == RenderState::LINE_JOIN_MITER)
+            {
+                MiterJoinPolyline line;
+                line.render(points.data(), points.size(), halfWidth, pixelSize, shouldSmooth);
+
+                line.draw(this);
+            }
+        }
+
+        void Polygon(DrawMode mode, std::span<Vector2> points, bool skipLastVertex = true)
+        {
+            if (mode == DRAW_LINE)
+                this->Polyline(points);
+            else
+            {
+                const auto transform = this->GetTransform();
+                bool is2D            = transform.IsAffine2DTransform();
+
+                const int count = points.size() - (skipLastVertex ? 1 : 0);
+                DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
+
+                if (is2D)
+                    transform.TransformXY(command.Positions().get(), points.data(), command.count);
+
+                command.FillVertices(this->GetColor());
+
+                Renderer<Console::Which>::Instance().Render(command);
+            }
+        }
+
+        int CalculateEllipsePoints(float rx, float ry) const
+        {
+            auto pixelScale = (float)this->pixelScaleStack.back();
+            auto points     = sqrtf(((rx + ry) / 2.0f) * 20.0f * pixelScale);
+
+            return std::max(points, 8.0f);
+        }
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height)
+        {
+            std::array<Vector2, 0x05> points = { Vector2(x, y), Vector2(x, y + height),
+                                                 Vector2(x + width, y + height),
+                                                 Vector2(x + width, y), Vector2(x, y) };
+
+            this->Polygon(mode, points);
+        }
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry, int points)
+        {
+            if (rx <= 0 || ry <= 0)
+            {
+                this->Rectangle(mode, x, y, width, height);
+                return;
+            }
+
+            if (width >= 0.02f)
+                rx = std::min(rx, width / 2.0f - 0.01f);
+
+            if (height >= 0.02f)
+                ry = std::min(ry, height / 2.0f - 0.01f);
+
+            points = std::max(points / 4, 1);
+
+            const float halfPi = (float)(LOVE_M_PI_2);
+            float angleShift   = halfPi / ((float)points + 1.0f);
+
+            int pointCount = (points + 2) * 4;
+
+            Vector2 coords[pointCount + 1] {};
+            float phi = 0.0f;
+
+            for (int index = 0; index <= points + 2; ++index, phi += angleShift)
+            {
+                coords[index].x = x + rx * (1 - cosf(phi));
+                coords[index].y = y + ry * (1 - sinf(phi));
+            }
+
+            phi = halfPi;
+
+            for (int index = points + 2; index <= 2 * (points + 2); ++index, phi += angleShift)
+            {
+                coords[index].x = x + width - rx * (1 + cosf(phi));
+                coords[index].y = y + ry * (1 - sinf(phi));
+            }
+
+            phi = 2 * halfPi;
+
+            for (int index = 2 * (points + 2); index <= 3 * (points + 2);
+                 ++index, phi += angleShift)
+            {
+                coords[index].x = x + width - rx * (1 + cosf(phi));
+                coords[index].y = y + height - ry * (1 + sinf(phi));
+            }
+
+            phi = 3 * halfPi;
+
+            for (int index = 3 * (points + 2); index <= 4 * (points + 2);
+                 ++index, phi += angleShift)
+            {
+                coords[index].x = x + rx * (1 - cosf(phi));
+                coords[index].y = y + height - ry * (1 + sinf(phi));
+            }
+
+            coords[pointCount] = coords[0];
+            this->Polygon(mode, std::span(coords, pointCount + 1));
+        }
+
+        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
+                       float ry)
+        {
+            const float pointsRx = std::min(rx, std::abs(width / 2));
+            const float pointsRy = std::min(ry, std::abs(height / 2));
+
+            int points = this->CalculateEllipsePoints(pointsRx, pointsRy);
+            this->Rectangle(mode, x, y, width, height, rx, ry, points);
+        }
+
+        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points)
+        {
+            float twoPi = (float)(LOVE_M_TAU);
+
+            if (points <= 0)
+                points = 1;
+
+            const float angleShift = (twoPi / points);
+            float phi              = 0.0f;
+
+            int extraPoints = 1 + (mode == DRAW_FILL ? 1 : 0);
+            Vector2 polygonCoords[points + extraPoints] {};
+            Vector2* coords = polygonCoords;
+
+            if (mode == DRAW_FILL)
+            {
+                coords[0].x = x;
+                coords[0].y = y;
+                coords++;
+            }
+
+            for (int index = 0; index < points; ++index, phi += angleShift)
+            {
+                coords[index].x = x + a * cosf(phi);
+                coords[index].y = y + b * sinf(phi);
+            }
+
+            coords[points] = coords[0];
+
+            this->Polygon(mode, std::span(polygonCoords, points + extraPoints), false);
+        }
+
+        void Ellipse(DrawMode mode, float x, float y, float a, float b)
+        {
+            this->Ellipse(mode, x, y, a, b, this->CalculateEllipsePoints(a, b));
+        }
+
+        void Circle(DrawMode mode, float x, float y, float radius, int points)
+        {
+            this->Ellipse(mode, x, y, radius, radius, points);
+        }
+
+        void Circle(DrawMode mode, float x, float y, float radius)
+        {
+            this->Ellipse(mode, x, y, radius, radius);
+        }
+
+        void Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1,
+                 float angle2, int points)
+        {
+            if (points <= 0 || angle1 == angle2)
+                return;
+
+            if (fabs(angle1 - angle2) >= LOVE_M_TAU)
+            {
+                this->Circle(mode, x, y, radius, points);
+                return;
+            }
+
+            const float angleShift = (angle2 - angle1) / points;
+
+            if (angleShift == 0.0f)
+                return;
+
+            const auto sharpAngle = fabsf(angle1 - angle2) < LOVE_TORAD(4);
+            if (mode == DRAW_LINE && arcMode == ARC_CLOSED && sharpAngle)
+                arcMode = ARC_OPEN;
+
+            if (mode == DRAW_FILL && arcMode == ARC_OPEN)
+                arcMode = ARC_CLOSED;
+
+            float phi = angle1;
+
+            Vector2* coords = nullptr;
+            int numCoords   = 0;
+
+            // clang-format off
+            const auto createPoints = [&](Vector2* coordinates)
+            {
+                for (int index = 0; index <= points; ++index, phi += angleShift)
+                {
+                    coordinates[index].x = x + radius * cosf(phi);
+                    coordinates[index].y = y + radius * sinf(phi);
+                }
+            };
+            // clang-format on
+
+            if (arcMode == ARC_PIE)
+            {
+                numCoords = points + 3;
+                coords    = new Vector2[numCoords];
+
+                coords[0] = coords[numCoords - 1] = Vector2(x, y);
+                createPoints(coords + 1);
+            }
+            else if (arcMode == ARC_OPEN)
+            {
+                numCoords = points + 1;
+                coords    = new Vector2[numCoords];
+
+                createPoints(coords);
+            }
+            else
+            {
+                numCoords = points + 2;
+                coords    = new Vector2[numCoords];
+
+                createPoints(coords);
+                coords[numCoords - 1] = coords[0];
+            }
+
+            this->Polygon(mode, std::span(coords, numCoords));
+            delete[] coords;
+        }
+
+        void Arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1,
+                 float angle2)
+        {
+            float points = this->CalculateEllipsePoints(radius, radius);
+            float angle  = fabsf(angle1 - angle2);
+
+            if (angle < (float)LOVE_M_TAU)
+                points *= angle / (float)LOVE_M_TAU;
+
+            this->Arc(mode, arcMode, x, y, radius, angle1, angle2, (int)(points + 0.5f));
+        }
+
+        void Points(std::span<Vector2> points, std::span<Color> colors)
+        {
+            const auto& transform = this->GetTransform();
+            bool is2D             = transform.IsAffine2DTransform();
+
+            DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
+
+            if (is2D)
+                transform.TransformXY(command.Positions().get(), points.data(), points.size());
+
+            command.FillVertices(colors);
+
+            Renderer<Console::Which>::Instance().Render(command);
+        }
+
+        void Line(std::span<Vector2> points)
+        {
+            this->Polyline(points);
+        }
+#endif
+
+        /* PRIMITIVES */
+
+        void SetBlendState(const RenderState::BlendState& state)
+        {
+            Renderer<Console::Which>::SetBlendMode(state);
+            this->states.back().blendState = state;
+        }
+
         void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode)
         {
             if (alphaMode == RenderState::BLENDALPHA_MULTIPLY &&
@@ -580,6 +934,9 @@ namespace love
                 throw love::Exception("The '%s' blend mode must be used with premultiplied alpha.",
                                       *modeOpt);
             }
+
+            const auto state = RenderState::ComputeBlendState(mode, alphaMode);
+            Renderer<Console::Which>::Instance().SetBlendMode(state);
         }
 
         const RenderState::BlendState& GetBlendState() const
@@ -613,13 +970,35 @@ namespace love
             }
         }
 
+        void IntersectScissor(const Rect& rectangle)
+        {
+            Rect currect = states.back().scissor.bounds;
+
+            if (!states.back().scissor.active)
+            {
+                currect.x = 0;
+                currect.y = 0;
+                currect.w = std::numeric_limits<int>::max();
+                currect.h = std::numeric_limits<int>::max();
+            }
+
+            int x1 = std::max(currect.x, rectangle.x);
+            int y1 = std::max(currect.y, rectangle.y);
+
+            int x2 = std::min(currect.x + currect.w, rectangle.x + rectangle.w);
+            int y2 = std::min(currect.y + currect.h, rectangle.y + rectangle.h);
+
+            Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
+            SetScissor(newrect);
+        }
+
         Quad* NewQuad(const Quad::Viewport& viewport, double sourceWidth, double sourceHeight) const
         {
             return new Quad(viewport, sourceWidth, sourceHeight);
         }
 
         // clang-format off
-        static constexpr BidirectionalMap fillModes = {
+        static constexpr BidirectionalMap drawModes = {
             "fill", DRAW_FILL,
             "line", DRAW_LINE
         };
@@ -633,17 +1012,6 @@ namespace love
             "open",   ARC_OPEN,
             "closed", ARC_CLOSED,
             "pie",    ARC_PIE
-        };
-
-        static constexpr BidirectionalMap lineStyles = {
-            "rough",  LINE_ROUGH,
-            "smooth", LINE_SMOOTH,
-        };
-
-        static constexpr BidirectionalMap lineJoins = {
-            "none",  LINE_JOIN_NONE,
-            "miter", LINE_JOIN_MITER,
-            "bevel", LINE_JOIN_BEVEL
         };
         // clang-format on
 

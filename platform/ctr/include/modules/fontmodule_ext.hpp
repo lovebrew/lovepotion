@@ -1,6 +1,7 @@
 #pragma once
 
 #include <modules/font/fontmodule.tcc>
+
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <objects/data/filedata/filedata.hpp>

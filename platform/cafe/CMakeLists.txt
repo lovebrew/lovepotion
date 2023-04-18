@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/rasterizer_ext.cpp
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp
+    source/objects/textbatch_ext.cpp
     source/objects/texture_ext.cpp
     source/objects/wrap_font_ext.cpp
     source/objects/wrap_imagedata_ext.cpp

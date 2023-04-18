@@ -672,7 +672,7 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
 
     Proxy* proxy = nullptr;
 
-    if (index <= 0)
+    if (index < 0)
         index += lua_gettop(L) + 1;
 
     switch (lua_type(L, index))
@@ -723,7 +723,7 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
                     throw love::Exception("Cycle detected in table!");
             }
 
-            auto table    = new love::SharedTable();
+            auto* table   = new Variant::SharedTable();
             size_t length = luax::ObjectLength(L, -1);
 
             if (length > 0)
@@ -739,15 +739,15 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
                     luax::CheckVariant(L, -1, allowUserdata, tableSet)
                 );
                 // clang-format on
-            }
-            lua_pop(L, 1);
 
-            const auto& pair = table->pairs.back();
-            if (pair.first.GetType() == Variant::UNKNOWN ||
-                pair.second.GetType() == Variant::UNKNOWN)
-            {
-                success = false;
-                break;
+                lua_pop(L, 1);
+
+                const auto& pair = table->pairs.back();
+                if (pair.first.Is(Variant::UNKNOWN) || pair.second.Is(Variant::UNKNOWN))
+                {
+                    success = false;
+                    break;
+                }
             }
 
             tableSet->erase(tablePointer);
@@ -765,54 +765,50 @@ love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
 
 void luax::PushVariant(lua_State* L, const Variant& variant)
 {
+    const Variant::Data& data = variant.GetData();
+
     switch (variant.GetType())
     {
         case Variant::BOOLEAN:
         {
-            lua_pushboolean(L, variant.GetValue<Variant::BOOLEAN>());
+            lua_pushboolean(L, data.boolean);
             break;
         }
         case Variant::NUMBER:
         {
-            lua_pushnumber(L, variant.GetValue<Variant::NUMBER>());
+            lua_pushnumber(L, data.number);
             break;
         }
         case Variant::STRING:
         {
-            const auto string = variant.GetValue<Variant::STRING>();
-            lua_pushlstring(L, string->string.get(), string->length);
-
+            lua_pushlstring(L, data.string->string, data.string->length);
             break;
         }
         case Variant::SMALLSTRING:
         {
-            const auto string = variant.GetValue<Variant::SMALLSTRING>();
-            lua_pushlstring(L, string.string, string.length);
-
+            lua_pushlstring(L, data.smallstring.str, data.smallstring.len);
             break;
         }
         case Variant::LUSERDATA:
         {
-            lua_pushlightuserdata(L, variant.GetValue<Variant::LUSERDATA>());
+            lua_pushlightuserdata(L, data.userdata);
             break;
         }
         case Variant::LOVEOBJECT:
         {
-            const auto proxy = variant.GetValue<Variant::LOVEOBJECT>();
-            luax::PushType(L, *proxy.type, proxy.object);
-
+            luax::PushType(L, *data.objectproxy.type, data.objectproxy.object);
             break;
         }
         case Variant::TABLE:
         {
-            std::vector<VariantPair>& table = variant.GetValue<Variant::TABLE>()->pairs;
-            int tableSize                   = (int)table.size();
+            auto& table   = data.table->pairs;
+            int tableSize = (int)table.size();
 
             lua_createtable(L, 0, tableSize);
 
-            for (size_t index = 0; index < (size_t)tableSize; ++index)
+            for (int index = 0; index < tableSize; ++index)
             {
-                VariantPair& keyValue = table[index];
+                Variant::VariantPair& keyValue = table[index];
 
                 luax::PushVariant(L, keyValue.first);
                 luax::PushVariant(L, keyValue.second);

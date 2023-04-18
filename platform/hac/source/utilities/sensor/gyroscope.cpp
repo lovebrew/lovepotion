@@ -19,7 +19,6 @@ Gyroscope::Gyroscope(HidNpadIdType playerId, HidNpadStyleTag style) :
 
 Gyroscope& Gyroscope::operator=(Gyroscope&& other)
 {
-    Gyroscope::operator=(std::move(other));
     this->handles  = std::move(other.handles);
     this->playerId = other.playerId;
     this->style    = other.style;

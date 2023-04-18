@@ -79,6 +79,15 @@ bool HID<Console::CAFE>::Poll(LOVE_Event* event)
                 joystick->Update();
                 Joystick<>::JoystickInput input {};
 
+                for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
+                {
+                    const auto sensor = (Sensor::SensorType)index;
+
+                    if (joystick->IsSensorEnabled(sensor))
+                        this->SendJoystickSensorUpdated(index, sensor,
+                                                        joystick->GetSensorData(sensor));
+                }
+
                 if (joystick->GetGamepadType() == guid::GAMEPAD_TYPE_WII_U_GAMEPAD)
                 {
                     auto status = ((Gamepad*)joystick)->GetVPADStatus();

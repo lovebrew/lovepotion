@@ -7,6 +7,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <common/console.hpp>
+
 class Log
 {
   public:
@@ -40,15 +42,22 @@ class Log
         const auto column   = (uint32_t)location.column();
         const auto funcname = location.function_name();
 
+#if defined(__3DS__)
         fprintf(this->file, BUFFER_FORMAT, filename.c_str(), line, column, funcname, buffer);
+#else
+        fprintf(this->file, BUFFER_FORMAT2, filename.c_str(), line, column, funcname, buffer);
+#endif
+
         fflush(this->file);
     }
 
   private:
     static inline const char* FILENAME = "debug.log";
 
-    static constexpr const char* BUFFER_FORMAT = "%s(%lu:%lu): `%s`:\n%s\n\n";
-    static constexpr size_t BUFFER_LIMIT       = 0x200;
+    static constexpr const char* BUFFER_FORMAT  = "%s(%lu:%lu): `%s`:\n%s\n\n";
+    static constexpr const char* BUFFER_FORMAT2 = "%s(%u:%u): `%s`:\n%s\n\n";
+
+    static constexpr size_t BUFFER_LIMIT = 0x200;
 
     Log() : file(nullptr)
     {

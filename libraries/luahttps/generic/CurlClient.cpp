@@ -1,20 +1,42 @@
+#ifdef _WIN32
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#endif
+
 #include "CurlClient.h"
 
-#include <mutex>
+#ifdef HTTPS_BACKEND_CURL
+
+#include <algorithm>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-
-namespace
-{
-    std::once_flag once;
-}
 
 typedef struct StringReader
 {
     const std::string* str;
     size_t pos;
 } StringReader;
+
+CurlClient::Curl::Curl() : handle(nullptr), loaded(false)
+{
+    handle = curl_easy_init();
+
+    if (!handle)
+        return;
+
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+    loaded = true;
+}
+
+CurlClient::Curl::~Curl()
+{
+    if (loaded)
+        curl_global_cleanup();
+
+    if (handle)
+        curl_easy_cleanup(handle);
+}
 
 static char toUppercase(char c)
 {
@@ -40,44 +62,36 @@ static size_t stringstreamWriter(char* ptr, size_t size, size_t nmemb, std::stri
 {
     size_t count = size * nmemb;
     ss->write(ptr, count);
-
     return count;
 }
 
-static size_t headerWriter(char* ptr, size_t size, size_t nmemb,
-                           std::map<std::string, std::string>* userdata)
+static size_t headerWriter(
+    char* ptr, size_t size, size_t nmemb, std::map<std::string, std::string>* userdata)
 {
     std::map<std::string, std::string>& headers = *userdata;
-
-    size_t count = size * nmemb;
+    size_t count                                = size * nmemb;
     std::string line(ptr, count);
-
     size_t split   = line.find(':');
     size_t newline = line.find('\r');
-
     if (newline == std::string::npos)
         newline = line.size();
 
     if (split != std::string::npos)
         headers[line.substr(0, split)] = line.substr(split + 1, newline - split - 1);
-
     return count;
 }
 
 bool CurlClient::valid() const
 {
-    std::call_once(once, curl_global_init, CURL_GLOBAL_DEFAULT);
-
-    return true;
+    return curl.loaded;
 }
 
 HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
 {
-    std::call_once(once, curl_global_init, CURL_GLOBAL_DEFAULT);
-
-    Reply reply {};
+    Reply reply;
     reply.responseCode = 0;
 
+    // Use sensible default header for later
     HTTPSClient::header_map newHeaders = req.headers;
 
     CURL* handle = curl_easy_init();
@@ -87,10 +101,10 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
 
     curl_easy_setopt(handle, CURLOPT_URL, req.url.c_str());
     curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1L);
-    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L);
+    curl_easy_setopt(handle, CURLOPT_SSL_VERIFYPEER, 0L); /* do not verify */
     curl_easy_setopt(handle, CURLOPT_CUSTOMREQUEST, req.method.c_str());
 
-    StringReader reader {};
+    StringReader reader{};
 
     if (req.postdata.size() > 0 && (req.method != "GET" && req.method != "HEAD"))
     {
@@ -108,7 +122,7 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
 
     // Curl doesn't copy memory, keep the strings around
     std::vector<std::string> lines;
-    for (auto& header : req.headers)
+    for (auto& header : newHeaders)
     {
         std::stringstream line;
         line << header.first << ": " << header.second;
@@ -144,6 +158,9 @@ HTTPSClient::Reply CurlClient::request(const HTTPSClient::Request& req)
     reply.body = body.str();
 
     curl_easy_cleanup(handle);
-
     return reply;
 }
+
+CurlClient::Curl CurlClient::curl;
+
+#endif // HTTPS_BACKEND_CURL

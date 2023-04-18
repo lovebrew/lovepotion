@@ -6,8 +6,7 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <modules/graphics_ext.hpp>
-
+#include <utilities/driver/drawcommand.hpp>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/vertex_ext.hpp>
@@ -123,13 +122,13 @@ namespace love
 
         void SetLineWidth(float lineWidth);
 
-        void SetLineStyle(Graphics<Console::Which>::LineStyle style);
+        void SetLineStyle(RenderState::LineStyle style);
 
         void SetPointSize(float size);
 
         void CheckDescriptorsDirty(const std::vector<DkResHandle>& handles);
 
-        bool Render(const Graphics<Console::HAC>::DrawCommand& command);
+        bool Render(const DrawCommand& command);
 
         void UseProgram(Shader<Console::Which>::Program program);
 
@@ -138,8 +137,6 @@ namespace love
         void UnRegister(Texture<Console::Which>* texture);
 
         void SetAttributes(const vertex::attributes::Attribs& attributes);
-
-        SmallTrivialVector<const char*, 1> GetScreens() const;
 
         bool IsHandheldMode() const;
 

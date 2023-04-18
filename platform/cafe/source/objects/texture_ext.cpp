@@ -1,5 +1,6 @@
 #include <objects/texture_ext.hpp>
 
+#include <modules/graphics_ext.hpp>
 #include <utilities/driver/renderer_ext.hpp>
 
 #include <gx2/utils.h>

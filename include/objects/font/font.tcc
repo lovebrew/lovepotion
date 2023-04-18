@@ -32,7 +32,8 @@ namespace love
             ALIGN_LEFT,
             ALIGN_CENTER,
             ALIGN_RIGHT,
-            ALIGN_JUSTIFY
+            ALIGN_JUSTIFY,
+            ALIGN_MAX_ENUM
         };
 
         struct ColoredString

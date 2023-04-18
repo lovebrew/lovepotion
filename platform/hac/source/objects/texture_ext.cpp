@@ -380,7 +380,7 @@ void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics, Quad* quad,
 
     Matrix4<Console::HAC> transform(stateTransform, matrix);
 
-    auto command         = Graphics<Console::HAC>::DrawCommand(4);
+    DrawCommand command(4);
     command.shader       = Shader<>::STANDARD_TEXTURE;
     command.format       = vertex::CommonFormat::TEXTURE;
     command.primitveType = vertex::PRIMITIVE_QUADS;

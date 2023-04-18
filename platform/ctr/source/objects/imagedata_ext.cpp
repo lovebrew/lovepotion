@@ -94,7 +94,28 @@ FileData* ImageData<Console::CTR>::Encode(FormatHandler::EncodedFormat encodedFo
 */
 void ImageData<Console::CTR>::Create(int width, int height, PixelFormat format, void* data)
 {
-    ImageData<Console::ALL>::Create(NextPo2(width), NextPo2(height), format, data);
+    const auto size = GetPixelFormatSliceSize(format, width, height);
+
+    try
+    {
+        this->data = std::make_unique<uint8_t[]>(size);
+        std::memset(this->data.get(), 0, size);
+    }
+    catch (std::bad_alloc&)
+    {
+        throw love::Exception("Out of memory.");
+    }
+
+    if (data != nullptr)
+    {
+        if (width % 8 != 0 && height % 8 != 0)
+            throw love::Exception("Cannot create ImageData that is not a multiple of 8.");
+
+        if (format == PIXELFORMAT_RGB565_UNORM)
+            this->CopyBytesTiled<uint16_t>(data, width, height);
+        else
+            this->CopyBytesTiled<uint32_t>(data, width, height);
+    }
 
     this->pixelSetFunction = setPixelRGBA8;
     this->pixelGetFunction = getPixelRGBA8;

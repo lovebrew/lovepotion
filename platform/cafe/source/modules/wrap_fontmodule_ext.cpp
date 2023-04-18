@@ -51,7 +51,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
         {
             const char* filename = luaL_checkstring(L, 1);
 
-            if (love::has_file_extension(filename))
+            if (!love::has_file_extension(filename))
             {
                 const auto systemFonts = FontModule<Console::CAFE>::systemFonts;
                 if (!(systemFont = systemFonts.Find(filename)))

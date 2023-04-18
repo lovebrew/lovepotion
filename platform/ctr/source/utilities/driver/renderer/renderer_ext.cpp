@@ -5,8 +5,6 @@
 
 #include <objects/texture_ext.hpp>
 
-#include <modules/graphics_ext.hpp>
-
 using namespace love;
 
 Renderer<Console::CTR>::Renderer() : targets { nullptr }
@@ -67,6 +65,7 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
+    Graphics<Console::CTR>::ResetDepth();
     C2D_TargetClear(this->current, color.rgba());
 }
 
@@ -123,7 +122,7 @@ void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    const bool enable    = (scissor == Rect::EMPTY);
+    const bool enable    = (scissor != Rect::EMPTY);
     GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
 
     if (enable)
@@ -238,15 +237,3 @@ void Renderer<Console::CTR>::SetBlendMode(const RenderState::BlendState& state)
     C2D_Flush();
     C3D_AlphaBlend(*opRGB, *opAlpha, *srcColor, *dstColor, *srcAlpha, *dstAlpha);
 }
-
-/* handled in Graphics<Console::ALL> */
-void Renderer<Console::CTR>::SetLineWidth(float width)
-{}
-
-/* ??? */
-void Renderer<Console::CTR>::SetLineStyle(Graphics<Console::Which>::LineStyle style)
-{}
-
-/* handled in Graphics<Console::ALL> */
-void Renderer<Console::CTR>::SetPointSize(float size)
-{}
