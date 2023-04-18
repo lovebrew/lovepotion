@@ -1,0 +1,60 @@
+name: Nintendo Switch
+
+on:
+  push:
+    branches:
+      - dev/3.0
+  pull_request:
+
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://devkitpro/devkita64
+      options: --cpus 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -S . -B build
+
+      - name: Build
+        run: make -C build
+
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Switch-${{ steps.commit.outputs.short }}
+          path: build/*.nro
+
+  Debug:
+    runs-on: ubuntu-latest
+
+    container:
+      image: docker://devkitpro/devkita64
+      options: --cpus 2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure
+        run: /opt/devkitpro/portlibs/switch/bin/aarch64-none-elf-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
+
+      - name: Build
+        run: make -C build
+
+      - id: commit
+        uses: pr-mpt/actions-commit-hash@v1
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Nintendo Switch (Debug)-${{ steps.commit.outputs.short }}
+          path: |
+            build/*.elf
+            build/*.nro
