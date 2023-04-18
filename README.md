@@ -10,7 +10,7 @@ You can find the API reference and how to start making your own games [on the Wi
 
 ## Acknowledgements
 
-- [devkitPro](https:/github.com/devkitpro)
+- [devkitPro](https://github.com/devkitPro)
   - devkitARM and libctru
   - devkitPPC and wut
   - devkitA64 and libnx
