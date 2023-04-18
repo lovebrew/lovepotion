@@ -10,7 +10,7 @@ You can find the API reference and how to start making your own games [on the Wi
 
 ## Help and Support
 
-![Discord Shield](https://discordapp.com/api/guilds/215551912823619584/widget.png?style=shield)
+[![Discord Shield](https://discordapp.com/api/guilds/215551912823619584/widget.png?style=shield)](https://discord.gg/ggbKkhc)
 
 ## Acknowledgements
 
