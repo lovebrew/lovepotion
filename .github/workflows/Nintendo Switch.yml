@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  Release:
+  Switch (Release):
     runs-on: ubuntu-latest
 
     container:
@@ -32,7 +32,7 @@ jobs:
           name: Nintendo Switch-${{ steps.commit.outputs.short }}
           path: build/*.nro
 
-  Debug:
+  Switch (Debug):
     runs-on: ubuntu-latest
 
     container:

@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  Release:
+  3DS (Release):
     runs-on: ubuntu-latest
 
     container:
@@ -32,7 +32,7 @@ jobs:
           name: Nintendo 3DS-${{ steps.commit.outputs.short }}
           path: build/*.3dsx
 
-  Debug:
+  3DS (Debug):
     runs-on: ubuntu-latest
 
     container:
