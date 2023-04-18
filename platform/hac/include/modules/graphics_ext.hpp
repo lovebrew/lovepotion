@@ -48,12 +48,6 @@ namespace love
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::HAC>& matrix);
 
-        void SetScissor();
-
-        void SetScissor(const Rect& scissor);
-
-        void IntersectScissor(const Rect& scissor);
-
         void SetViewportSize(int width, int height);
     }; // namespace love
 } // namespace love

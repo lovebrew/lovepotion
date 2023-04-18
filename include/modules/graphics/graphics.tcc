@@ -296,10 +296,11 @@ namespace love
         {
             Stats stats {};
 
-            stats.drawCalls     = Renderer<>::drawCalls;
-            stats.textures      = Texture<>::textureCount;
-            stats.fonts         = Font<>::fontCount;
-            stats.textureMemory = Texture<>::totalGraphicsMemory;
+            stats.drawCalls      = Renderer<>::drawCalls;
+            stats.textures       = Texture<>::textureCount;
+            stats.fonts          = Font<>::fontCount;
+            stats.shaderSwitches = Renderer<>::shaderSwitches;
+            stats.textureMemory  = Texture<>::totalGraphicsMemory;
 
             return stats;
         }
@@ -525,6 +526,7 @@ namespace love
         void SetLineWidth(float width)
         {
             this->states.back().line.width = width;
+            Renderer<Console::Which>::Instance().SetLineWidth(width);
         }
 
         const float GetLineWidth() const
@@ -535,6 +537,7 @@ namespace love
         void SetLineStyle(RenderState::LineStyle style)
         {
             this->states.back().line.style = style;
+            Renderer<Console::Which>::Instance().SetLineStyle(style);
         }
 
         const RenderState::LineStyle GetLineStyle() const
@@ -555,6 +558,7 @@ namespace love
         void SetPointSize(float size)
         {
             this->states.back().pointSize = size;
+            Renderer<Console::Which>::Instance().SetPointSize(size);
         }
 
         const float GetPointSize() const
@@ -566,16 +570,19 @@ namespace love
         {
             this->states.back().scissor.bounds = scissor;
             this->states.back().scissor.active = true;
+            Renderer<Console::Which>::Instance().SetScissor(scissor, this->IsRenderTargetActive());
         }
 
         void SetScissor()
         {
             this->states.back().scissor.active = false;
+            Renderer<Console::Which>::Instance().SetScissor(Rect::EMPTY, false);
         }
 
         void SetMeshCullMode(vertex::CullMode mode)
         {
             this->states.back().cullMode = mode;
+            Renderer<Console::Which>::Instance().SetMeshCullMode(mode);
         }
 
         const vertex::CullMode GetMeshCullMode() const
@@ -586,6 +593,7 @@ namespace love
         void SetFrontFaceWinding(vertex::Winding winding)
         {
             this->states.back().windingMode = winding;
+            Renderer<Console::Which>::Instance().SetVertexWinding(winding);
         }
 
         const vertex::Winding GetFrontFaceWinding() const
@@ -596,6 +604,7 @@ namespace love
         void SetColorMask(const RenderState::ColorMask& mask)
         {
             this->states.back().colorMask = mask;
+            Renderer<Console::Which>::SetColorMask(mask);
         }
 
         const RenderState::ColorMask GetColorMask() const
@@ -907,7 +916,12 @@ namespace love
 
         /* PRIMITIVES */
 
-        /* todo: this should be called in the child class via SetBlendState */
+        void SetBlendState(const RenderState::BlendState& state)
+        {
+            Renderer<Console::Which>::SetBlendMode(state);
+            this->states.back().blendState = state;
+        }
+
         void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode)
         {
             if (alphaMode == RenderState::BLENDALPHA_MULTIPLY &&
@@ -920,6 +934,9 @@ namespace love
                 throw love::Exception("The '%s' blend mode must be used with premultiplied alpha.",
                                       *modeOpt);
             }
+
+            const auto state = RenderState::ComputeBlendState(mode, alphaMode);
+            Renderer<Console::Which>::Instance().SetBlendMode(state);
         }
 
         const RenderState::BlendState& GetBlendState() const
@@ -951,6 +968,28 @@ namespace love
                 default:
                     return format;
             }
+        }
+
+        void IntersectScissor(const Rect& rectangle)
+        {
+            Rect currect = states.back().scissor.bounds;
+
+            if (!states.back().scissor.active)
+            {
+                currect.x = 0;
+                currect.y = 0;
+                currect.w = std::numeric_limits<int>::max();
+                currect.h = std::numeric_limits<int>::max();
+            }
+
+            int x1 = std::max(currect.x, rectangle.x);
+            int y1 = std::max(currect.y, rectangle.y);
+
+            int x2 = std::min(currect.x + currect.w, rectangle.x + rectangle.w);
+            int y2 = std::min(currect.y + currect.h, rectangle.y + rectangle.h);
+
+            Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
+            SetScissor(newrect);
         }
 
         Quad* NewQuad(const Quad::Viewport& viewport, double sourceWidth, double sourceHeight) const

@@ -359,10 +359,14 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     this->current->UseProjection();
 }
 
-/* todo */
 void Renderer<Console::CAFE>::SetColorMask(const RenderState::ColorMask& mask)
 {
-    // GX2SetTargetChannelMasks()
+    auto channelMask = (mask.r * GX2_CHANNEL_MASK_R) + (mask.g * GX2_CHANNEL_MASK_G) +
+                       (mask.b * GX2_CHANNEL_MASK_B) + (mask.a * GX2_CHANNEL_MASK_A);
+
+    GX2SetTargetChannelMasks((GX2ChannelMask)GX2ChannelMask, GX2_CHANNEL_MASK_NONE,
+                             GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE,
+                             GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE);
 }
 
 void Renderer<Console::CAFE>::SetLineWidth(float width)

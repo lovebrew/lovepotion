@@ -191,39 +191,5 @@ void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, Font<
 void Graphics<Console::HAC>::SetViewportSize(int width, int height)
 {
     ::Renderer::Instance().SetViewport({ 0, 0, width, height });
-    ::Renderer::Instance().SetScissor({ 0, 0, width, height }, false);
-}
-
-void Graphics<Console::HAC>::SetScissor()
-{
-    Graphics<Console::ALL>::SetScissor();
-    ::Renderer::Instance().SetScissor({}, false);
-}
-
-void Graphics<Console::HAC>::SetScissor(const Rect& scissor)
-{
-    Graphics<Console::ALL>::SetScissor(scissor);
-    ::Renderer::Instance().SetScissor(scissor, this->IsRenderTargetActive());
-}
-
-void Graphics<Console::HAC>::IntersectScissor(const Rect& rectangle)
-{
-    Rect currect = states.back().scissor.bounds;
-
-    if (!states.back().scissor.active)
-    {
-        currect.x = 0;
-        currect.y = 0;
-        currect.w = std::numeric_limits<int>::max();
-        currect.h = std::numeric_limits<int>::max();
-    }
-
-    int x1 = std::max(currect.x, rectangle.x);
-    int y1 = std::max(currect.y, rectangle.y);
-
-    int x2 = std::min(currect.x + currect.w, rectangle.x + rectangle.w);
-    int y2 = std::min(currect.y + currect.h, rectangle.y + rectangle.h);
-
-    Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
-    SetScissor(newrect);
+    this->SetScissor({ 0, 0, width, height }, false);
 }

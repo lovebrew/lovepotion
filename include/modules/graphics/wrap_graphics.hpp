@@ -88,6 +88,14 @@ namespace Wrap_Graphics
 
     int GetBlendState(lua_State* L);
 
+    int SetMeshCullMode(lua_State*L);
+
+    int GetMeshCullMode(lua_State*L);
+
+    int SetFrontFaceWinding(lua_State*L);
+
+    int GetFrontFaceWinding(lua_State*L);
+
     int SetDefaultFilter(lua_State* L);
 
     int GetDefaultFilter(lua_State* L);

@@ -1367,6 +1367,298 @@ int Wrap_Graphics::IntersectScissor(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::SetColorMask(lua_State* L)
+{
+    RenderState::ColorMask mask;
+
+    if (lua_gettop(L) <= 1)
+        mask.r, mask.g, mask.b, mask.a = luax::CheckBoolean(L, 1);
+    else
+    {
+        mask.r = luax::CheckBoolean(L, 1);
+        mask.g = luax::CheckBoolean(L, 2);
+        mask.b = luax::CheckBoolean(L, 3);
+        mask.a = luax::CheckBoolean(L, 4);
+    }
+
+    instance()->SetColorMask(mask);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetColorMask(lua_State* L)
+{
+    auto mask = instance()->GetColorMask();
+
+    luax::PushBoolean(L, mask.r);
+    luax::PushBoolean(L, mask.g);
+    luax::PushBoolean(L, mask.b);
+    luax::PushBoolean(L, mask.a);
+
+    return 4;
+}
+
+int Wrap_Graphics::SetBlendMode(lua_State* L)
+{
+    std::optional<RenderState::BlendMode> mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!(mode = RenderState::blendModes.Find(name)))
+        return luax::EnumError(L, "blend mode", RenderState::blendModes, name);
+
+    std::optional<RenderState::BlendAlpha> alpha = RenderState::BLENDALPHA_MULTIPLY;
+    if (!lua_isnoneornil(L, 2))
+    {
+        const char* alphaName = luaL_checkstring(L, 2);
+        if (!(alpha = RenderState::blendAlphaModes.Find(alphaName)))
+            return luax::EnumError(L, "blend alpha mode", RenderState::blendAlphaModes, alphaName);
+    }
+
+    luax::CatchException(L, [&]() { instance()->SetBlendMode(*mode, *alpha); });
+
+    return 0;
+}
+
+int Wrap_Graphics::GetBlendMode(lua_State* L)
+{
+    std::optional<const char*> blendMode;
+    std::optional<const char*> alphaMode;
+
+    RenderState::BlendAlpha alpha;
+    RenderState::BlendMode mode = instance()->GetBlendMode(alpha);
+
+    if (!(blendMode = RenderState::blendModes.ReverseFind(mode)))
+        return luaL_error(L, "Unknown blend mode.");
+
+    if (!(alphaMode = RenderState::blendAlphaModes.ReverseFind(alpha)))
+        return luaL_error(L, "Unknown blend alpha mode.");
+
+    lua_pushstring(L, *blendMode);
+    lua_pushstring(L, *alphaMode);
+
+    return 2;
+}
+
+static RenderState::BlendOperation checkBlendOp(lua_State* L, int index)
+{
+    std::optional<RenderState::BlendOperation> operation = RenderState::BLENDOP_ADD;
+
+    const char* name = luaL_checkstring(L, index);
+    if (!(operation = RenderState::blendOperations.Find(name)))
+        luax::EnumError(L, "blend operation", RenderState::blendOperations, name);
+
+    return *operation;
+}
+
+static RenderState::BlendFactor checkBlendFactor(lua_State* L, int index)
+{
+    std::optional<RenderState::BlendFactor> factor = RenderState::BLENDFACTOR_ZERO;
+
+    const char* name = luaL_checkstring(L, index);
+    if (!(factor = RenderState::blendFactors.Find(name)))
+        luax::EnumError(L, "blend factor", RenderState::blendFactors, name);
+
+    return *factor;
+}
+
+static void pushBlendOperation(lua_State* L, RenderState::BlendOperation operation)
+{
+    std::optional<const char*> name;
+    if (!(name = RenderState::blendOperations.ReverseFind(operation)))
+        luaL_error(L, "Unknown blend operation.");
+
+    lua_pushstring(L, *name);
+}
+
+static void pushBlendFactor(lua_State* L, RenderState::BlendFactor factor)
+{
+    std::optional<const char*> name;
+    if (!(name = RenderState::blendFactors.ReverseFind(factor)))
+        luaL_error(L, "Unknown blend operation.");
+
+    lua_pushstring(L, *name);
+}
+
+int Wrap_Graphics::SetBlendState(lua_State* L)
+{
+    RenderState::BlendState state {};
+
+    if (!lua_isnoneornil(L, 1))
+    {
+        state.enabled = true;
+
+        if (lua_gettop(L) >= 4)
+        {
+            state.operationRGB = checkBlendOp(L, 1);
+            state.operationA   = checkBlendOp(L, 2);
+
+            state.srcFactorRGB = checkBlendFactor(L, 3);
+            state.srcFactorA   = checkBlendFactor(L, 4);
+
+            state.dstFactorRGB = checkBlendFactor(L, 5);
+            state.dstFactorA   = checkBlendFactor(L, 6);
+        }
+        else
+        {
+            state.operationRGB = state.operationA = checkBlendOp(L, 1);
+            state.srcFactorRGB = state.srcFactorA = checkBlendFactor(L, 2);
+            state.dstFactorRGB = state.dstFactorA = checkBlendFactor(L, 3);
+        }
+    }
+
+    luax::CatchException(L, [&]() { instance()->SetBlendState(state); });
+}
+
+int Wrap_Graphics::GetBlendState(lua_State* L)
+{
+    const auto& state = instance()->GetBlendState();
+
+    if (state.enabled)
+    {
+        pushBlendOperation(L, state.operationRGB);
+        pushBlendOperation(L, state.operationA);
+
+        pushBlendFactor(L, state.srcFactorRGB);
+        pushBlendFactor(L, state.srcFactorA);
+
+        pushBlendFactor(L, state.dstFactorRGB);
+        pushBlendFactor(L, state.dstFactorA);
+    }
+    else
+    {
+        for (int _ = 0; _ < 6; _++)
+            lua_pushnil(L);
+    }
+
+    return 6;
+}
+
+int Wrap_Graphics::SetDefaultFilter(lua_State* L)
+{
+    auto samplerState = instance()->GetDefaultSamplerState();
+
+    const char* minString = luaL_checkstring(L, 1);
+    const char* magString = luaL_optstring(L, 2, minString);
+
+    std::optional<SamplerState::FilterMode> min;
+    std::optional<SamplerState::FilterMode> mag;
+
+    if (!(min = SamplerState::filterModes.Find(minString)))
+        return luax::EnumError(L, "min filter mode", SamplerState::filterModes, minString);
+
+    if (!(mag = SamplerState::filterModes.Find(magString)))
+        return luax::EnumError(L, "mag filter mode", SamplerState::filterModes, magString);
+
+    samplerState.minFilter = *min;
+    samplerState.magFilter = *mag;
+
+    const auto max             = std::max(1, (int)luaL_optnumber(L, 3, 1));
+    samplerState.maxAnisotropy = std::min(max, LOVE_UINT8_MAX);
+
+    instance()->SetDefaultSamplerState(samplerState);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetDefaultFilter(lua_State* L)
+{
+    const auto& samplerState = instance()->GetDefaultSamplerState();
+
+    std::optional<const char*> minString;
+    std::optional<const char*> magString;
+
+    if (!(minString = SamplerState::filterModes.ReverseFind(samplerState.minFilter)))
+        return luaL_error(L, "Unknown minification filter mode.");
+
+    if (!(magString = SamplerState::filterModes.ReverseFind(samplerState.magFilter)))
+        return luaL_error(L, "Unknown magnification filter mode.");
+
+    lua_pushstring(L, *minString);
+    lua_pushstring(L, *magString);
+    lua_pushnumber(L, samplerState.maxAnisotropy);
+
+    return 3;
+}
+
+int Wrap_Graphics::SetMeshCullMode(lua_State* L)
+{
+    std::optional<vertex::CullMode> mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!(mode = vertex::cullModes.Find(name)))
+        return luax::EnumError(L, "cull mode", vertex::cullModes, name);
+
+    luax::CatchException(L, [&]() { instance()->SetMeshCullMode(*mode); });
+
+    return 0;
+}
+
+int Wrap_Graphics::GetMeshCullMode(lua_State* L)
+{
+    std::optional<const char*> name;
+    vertex::CullMode mode = instance()->GetMeshCullMode();
+
+    if (!(name = vertex::cullModes.ReverseFind(mode)))
+        return luaL_error(L, "Unknown cull mode.");
+
+    lua_pushstring(L, *name);
+
+    return 1;
+}
+
+int Wrap_Graphics::SetFrontFaceWinding(lua_State* L)
+{
+    std::optional<vertex::Winding> winding;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!(winding = vertex::windingModes.Find(name)))
+        return luax::EnumError(L, "vertex winding", vertex::windingModes, name);
+
+    luax::CatchException(L, [&]() { instance()->SetFrontFaceWinding(*winding); });
+
+    return 0;
+}
+
+int Wrap_Graphics::GetFrontFaceWinding(lua_State* L)
+{
+    std::optional<const char*> name;
+    vertex::Winding mode = instance()->GetFrontFaceWinding();
+
+    if (!(name = vertex::windingModes.ReverseFind(mode)))
+        return luaL_error(L, "Unknown vertex winding.");
+
+    lua_pushstring(L, *name);
+
+    return 1;
+}
+
+int Wrap_Graphics::GetStats(lua_State* L)
+{
+    auto stats = instance()->GetStats();
+
+    if (lua_istable(L, 1))
+        lua_pushvalue(L, 1);
+    else
+        lua_createtable(L, 0, 5);
+
+    lua_pushinteger(L, stats.drawCalls);
+    lua_setfield(L, -2, "drawcalls");
+
+    lua_pushinteger(L, stats.shaderSwitches);
+    lua_setfield(L, -2, "shaderswitches");
+
+    lua_pushinteger(L, stats.textures);
+    lua_setfield(L, -2, "textures");
+
+    lua_pushinteger(L, stats.fonts);
+    lua_setfield(L, -2, "fonts");
+
+    lua_pushinteger(L, stats.textureMemory);
+    lua_setfield(L, -2, "texturememory");
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -1394,18 +1686,31 @@ static constexpr luaL_Reg functions[] =
     { "scale",                 Wrap_Graphics::Scale                 },
     { "setActiveScreen",       Wrap_Graphics::SetActiveScreen       },
     { "setBackgroundColor",    Wrap_Graphics::SetBackgroundColor    },
+    { "setBlendMode",          Wrap_Graphics::SetBlendMode          },
+    { "setBlendState",         Wrap_Graphics::SetBlendState         },
     { "setColor",              Wrap_Graphics::SetColor              },
+    { "setColorMask",          Wrap_Graphics::SetColorMask          },
+    { "setMeshCullMode",       Wrap_Graphics::SetMeshCullMode       },
     { "setScissor",            Wrap_Graphics::SetScissor            },
+    { "setDefaultFilter",      Wrap_Graphics::SetDefaultFilter      },
+    { "setFrontFaceWinding",   Wrap_Graphics::SetFrontFaceWinding   },
     { "intersectScissor",      Wrap_Graphics::IntersectScissor      },
     { "shear",                 Wrap_Graphics::Shear                 },
     { "translate",             Wrap_Graphics::Translate             },
     { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },
+    { "getBlendMode",          Wrap_Graphics::GetBlendMode          },
+    { "getBlendState",         Wrap_Graphics::GetBlendState         },
     { "getColor",              Wrap_Graphics::GetColor              },
+    { "getColorMask",          Wrap_Graphics::GetColorMask          },
+    { "getDefaultFilter",      Wrap_Graphics::GetDefaultFilter      },
     { "getFont",               Wrap_Graphics::GetFont               },
+    { "getFrontFaceWinding",   Wrap_Graphics::GetFrontFaceWinding   },
     { "getLineJoin",           Wrap_Graphics::GetLineJoin           },
     { "getLineStyle",          Wrap_Graphics::GetLineStyle          },
     { "getLineWidth",          Wrap_Graphics::GetLineWidth          },
+    { "getMeshCullMode",       Wrap_Graphics::GetMeshCullMode       },
     { "getScreens",            Wrap_Graphics::GetScreens            },
+    { "getStats",              Wrap_Graphics::GetStats              },
     { "getWidth",              Wrap_Graphics::GetWidth              },
     { "getHeight",             Wrap_Graphics::GetHeight             },
     { "getDimensions",         Wrap_Graphics::GetDimensions         },

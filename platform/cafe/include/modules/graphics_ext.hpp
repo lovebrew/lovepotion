@@ -16,17 +16,7 @@ namespace love
 
         bool SetMode(int x, int y, int width, int height);
 
-        void SetColor(const Color& color);
-
-        void SetFrontFaceWinding(vertex::Winding winding);
-
-        void SetMeshCullMode(vertex::CullMode mode);
-
         void CheckSetDefaultFont();
-
-        void SetBlendMode(RenderState::BlendMode mode, RenderState::BlendAlpha alphaMode);
-
-        void SetBlendState(const RenderState::BlendState& state);
 
         TextBatch<Console::CAFE>* NewTextBatch(Font<Console::CAFE>* font,
                                                const Font<>::ColoredStrings& strings = {}) const;

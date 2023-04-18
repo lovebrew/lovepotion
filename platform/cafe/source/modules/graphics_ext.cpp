@@ -28,37 +28,6 @@ Graphics<Console::CAFE>::Graphics()
     }
 }
 
-void Graphics<Console::CAFE>::SetBlendMode(RenderState::BlendMode mode,
-                                           RenderState::BlendAlpha alphaMode)
-{
-    Graphics<>::SetBlendMode(mode, alphaMode);
-    this->SetBlendState(love::RenderState::ComputeBlendState(mode, alphaMode));
-}
-
-void Graphics<Console::CAFE>::SetBlendState(const RenderState::BlendState& state)
-{
-    Renderer<Console::CAFE>::Instance().SetBlendMode(state);
-    states.back().blendState = state;
-}
-
-void Graphics<Console::CAFE>::SetFrontFaceWinding(vertex::Winding winding)
-{
-    Graphics<>::SetFrontFaceWinding(winding);
-    Renderer<Console::CAFE>::Instance().SetVertexWinding(winding);
-}
-
-void Graphics<Console::CAFE>::SetMeshCullMode(vertex::CullMode mode)
-{
-    Graphics<>::SetMeshCullMode(mode);
-    Renderer<Console::CAFE>::Instance().SetMeshCullMode(mode);
-}
-
-void Graphics<Console::CAFE>::SetColor(const Color& color)
-{
-    Graphics<>::SetColor(color);
-    Renderer<Console::CAFE>::Instance().SetBlendColor(color);
-}
-
 TextBatch<Console::CAFE>* Graphics<Console::CAFE>::NewTextBatch(
     Font<Console::CAFE>* font, const Font<>::ColoredStrings& text) const
 {
@@ -208,39 +177,5 @@ void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings,
 void Graphics<Console::CAFE>::SetViewportSize(int width, int height)
 {
     ::Renderer::Instance().SetViewport(Rect::EMPTY);
-    ::Renderer::Instance().SetScissor(Rect::EMPTY);
-}
-
-void Graphics<Console::CAFE>::SetScissor()
-{
-    Graphics<Console::ALL>::SetScissor();
-    ::Renderer::Instance().SetScissor(Rect::EMPTY);
-}
-
-void Graphics<Console::CAFE>::SetScissor(const Rect& scissor)
-{
-    Graphics<Console::ALL>::SetScissor(scissor);
-    ::Renderer::Instance().SetScissor(scissor);
-}
-
-void Graphics<Console::CAFE>::IntersectScissor(const Rect& rectangle)
-{
-    Rect currect = states.back().scissor.bounds;
-
-    if (!states.back().scissor.active)
-    {
-        currect.x = 0;
-        currect.y = 0;
-        currect.w = std::numeric_limits<int>::max();
-        currect.h = std::numeric_limits<int>::max();
-    }
-
-    int x1 = std::max(currect.x, rectangle.x);
-    int y1 = std::max(currect.y, rectangle.y);
-
-    int x2 = std::min(currect.x + currect.w, rectangle.x + rectangle.w);
-    int y2 = std::min(currect.y + currect.h, rectangle.y + rectangle.h);
-
-    Rect newrect = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
-    SetScissor(newrect);
+    this->SetScissor(Rect::EMPTY);
 }
