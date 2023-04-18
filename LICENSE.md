@@ -67,12 +67,13 @@
 * Website: https://github.com/devkitPro/deko3d
 * License: zlib
 * Copyright © 2018-2020 fincs
-# **License Texts**
 
 # wut
 * Website: https://github.com/devkitPro/wut
 * License: zlib
 * Copyright © 2015 - Present devkitPro, wut Authors
+
+# **License Texts**
 
 ## MIT license
 
