@@ -7,7 +7,7 @@ on:
   pull_request:
 
 jobs:
-  Wii U (Release):
+  WiiU-Release:
     runs-on: ubuntu-latest
 
     container:
@@ -32,7 +32,7 @@ jobs:
           name: Nintendo Wii U-${{ steps.commit.outputs.short }}
           path: build/*.wuhb
 
-  Wii U (Debug):
+  WiiU-Debug:
     runs-on: ubuntu-latest
 
     container:
