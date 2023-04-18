@@ -8,6 +8,10 @@ You can find the API reference and how to start making your own games [on the Wi
 
 [![Nintendo 3DS](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%203DS.yml/badge.svg?branch=dev%2F3.0)](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%203DS.yml) [![Nintendo Switch](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Switch.yml/badge.svg?branch=dev%2F3.0)](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Switch.yml) [![Nintendo Wii U](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Wii%20U.yml/badge.svg?branch=dev%2F3.0)](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Wii%20U.yml)
 
+## Help and Support
+
+![Discord Shield](https://discordapp.com/api/guilds/215551912823619584/widget.png?style=shield)
+
 ## Acknowledgements
 
 - [devkitPro](https://github.com/devkitPro)
