@@ -45,12 +45,6 @@ namespace love
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::CAFE>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::CAFE>& matrix);
 
-        void SetScissor();
-
-        void SetScissor(const Rect& scissor);
-
-        void IntersectScissor(const Rect& scissor);
-
         void SetViewportSize(int width, int height);
 
         void SetShader();

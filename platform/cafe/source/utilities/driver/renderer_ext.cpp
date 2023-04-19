@@ -245,7 +245,7 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
         GX2SetColorBuffer(texture->GetFramebuffer(), GX2_RENDER_TARGET_0);
 
         this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
-        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
+        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
     }
     else
     {
@@ -253,7 +253,7 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
         GX2SetDepthBuffer(&this->current->GetDepthBuffer());
 
         this->SetViewport(this->current->GetViewport());
-        this->SetScissor(this->current->GetScissor());
+        this->SetScissor(this->current->GetScissor(), false);
     }
 
     this->current->UseProjection();
@@ -361,12 +361,12 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
 
 void Renderer<Console::CAFE>::SetColorMask(const RenderState::ColorMask& mask)
 {
-    auto channelMask = (mask.r * GX2_CHANNEL_MASK_R) + (mask.g * GX2_CHANNEL_MASK_G) +
-                       (mask.b * GX2_CHANNEL_MASK_B) + (mask.a * GX2_CHANNEL_MASK_A);
+    auto channelMask =
+        GX2ChannelMask((mask.r * GX2_CHANNEL_MASK_R) + (mask.g * GX2_CHANNEL_MASK_G) +
+                       (mask.b * GX2_CHANNEL_MASK_B) + (mask.a * GX2_CHANNEL_MASK_A));
 
-    GX2SetTargetChannelMasks((GX2ChannelMask)GX2ChannelMask, GX2_CHANNEL_MASK_NONE,
-                             GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE,
-                             GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE, GX2_CHANNEL_MASK_NONE);
+    GX2ChannelMask NONE = (GX2ChannelMask)0;
+    GX2SetTargetChannelMasks(channelMask, NONE, NONE, NONE, NONE, NONE, NONE, NONE);
 }
 
 void Renderer<Console::CAFE>::SetLineWidth(float width)

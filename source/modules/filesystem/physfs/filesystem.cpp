@@ -29,10 +29,10 @@ using namespace love::physfs;
 
 #include <utilities/log/logfile.hpp>
 
-static std::string_view getApplicationPath(std::string_view path)
+static std::string_view getApplicationPath(std::string_view path_view)
 {
     if (!love::Console::Is(love::Console::CAFE))
-        return path;
+        return path_view;
 
 #if defined(__WIIU__)
     OSDynLoad_Module module;
@@ -523,7 +523,7 @@ std::string Filesystem::GetWorkingDirectory()
         delete[] cwdInfo;
 
         if (Console::Is(Console::CAFE))
-            this->currentDirectory += parentize(getApplicationPath(""));
+            this->currentDirectory = parentize(getApplicationPath(""));
     }
 
     return this->currentDirectory;

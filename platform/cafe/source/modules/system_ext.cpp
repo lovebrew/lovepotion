@@ -105,7 +105,7 @@ std::string_view System<Console::CAFE>::GetVersion()
     if (!this->info.version.empty())
         return this->info.version;
 
-    MCP_SystemVersion systemVersion {};
+    MCPSystemVersion systemVersion {};
     R_UNLESS(MCP_GetSystemVersion(this->handles.mcp, &systemVersion), std::string {});
 
     std::string version {};

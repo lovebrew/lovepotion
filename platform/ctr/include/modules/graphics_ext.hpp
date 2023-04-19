@@ -18,12 +18,6 @@ namespace love
 
         void SetMode(int x, int y, int width, int height);
 
-        void SetScissor();
-
-        void SetScissor(const Rect& rectangle);
-
-        void IntersectScissor(const Rect& rectangle);
-
         /* objects */
 
         void CheckSetDefaultFont();
