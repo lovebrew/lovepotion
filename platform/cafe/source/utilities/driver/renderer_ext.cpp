@@ -403,5 +403,6 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)
 {
+    this->EnsureInFrame();
     this->current->SetScissor(scissor);
 }

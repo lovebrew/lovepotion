@@ -390,7 +390,10 @@ void Renderer<Console::HAC>::SetBlendMode(const RenderState::BlendState& state)
 
 void Renderer<Console::HAC>::SetColorMask(const RenderState::ColorMask& mask)
 {
-    this->state.colorWrite.setMask(0, mask.GetColorMask());
+    auto writeMask = uint32_t(DkColorMask_R * mask.r + DkColorMask_G * mask.g +
+                              DkColorMask_B * mask.b + DkColorMask_A * mask.a);
+
+    this->state.colorWrite.setMask(0, writeMask);
 }
 
 void Renderer<Console::HAC>::SetSamplerState(Texture<Console::HAC>* texture, SamplerState& state)
