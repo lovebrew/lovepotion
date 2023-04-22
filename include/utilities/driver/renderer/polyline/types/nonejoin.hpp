@@ -3,6 +3,7 @@
 #if !defined(__3DS__)
     #include <utilities/driver/renderer/polyline/polyline.hpp>
 
+    #include <algorithm>
 namespace love
 {
     /**
@@ -28,7 +29,7 @@ namespace love
             // get rasterized. These vertices are in between the core line vertices
             // and the overdraw vertices in the combined vertex array, so they still
             // get "rendered" since we draw everything with one draw call.
-            memset(&this->vertices[vertex_count - 4], 0, sizeof(love::Vector2) * 4);
+            std::fill_n(this->vertices + (vertex_count - 4), 4, Vector2 {});
 
             vertex_count -= 4;
         }
