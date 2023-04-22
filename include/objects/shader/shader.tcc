@@ -12,6 +12,8 @@ namespace love
     class Shader : public Object
     {
       public:
+        static inline int shaderSwitches = 0;
+
         enum StandardShader
         {
             STANDARD_DEFAULT, //< primitives

@@ -273,8 +273,8 @@ void Renderer<Console::HAC>::Present()
         this->inFrame = false;
     }
 
-    Renderer::shaderSwitches = 0;
-    Renderer::drawCalls      = 0;
+    Shader<>::shaderSwitches = 0;
+    drawCalls                = 0;
 
     this->framebuffers.slot = -1;
 }
@@ -336,7 +336,7 @@ bool Renderer<Console::HAC>::Render(const DrawCommand& command)
     this->commandBuffer.draw(*primitive, command.count, 1, this->firstVertex, 0);
 
     this->firstVertex += command.count;
-    Renderer<>::drawCalls++;
+    ++drawCalls;
 
     return true;
 }

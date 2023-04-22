@@ -96,7 +96,7 @@ void Shader<Console::HAC>::Attach()
     if (Shader::current != this)
     {
         Renderer<Console::HAC>::Instance().UseProgram(this->program);
-        Renderer<>::shaderSwitches++;
+        ++shaderSwitches;
 
         Shader::current = this;
     }

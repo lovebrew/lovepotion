@@ -299,7 +299,7 @@ namespace love
             stats.drawCalls      = Renderer<>::drawCalls;
             stats.textures       = Texture<>::textureCount;
             stats.fonts          = Font<>::fontCount;
-            stats.shaderSwitches = Renderer<>::shaderSwitches;
+            stats.shaderSwitches = Shader<>::shaderSwitches;
             stats.textureMemory  = Texture<>::totalGraphicsMemory;
 
             return stats;
@@ -903,7 +903,10 @@ namespace love
             if (is2D)
                 transform.TransformXY(command.Positions().get(), points.data(), points.size());
 
-            command.FillVertices(colors);
+            if (colors.size() > 1)
+                command.FillVertices(colors);
+            else
+                command.FillVertices(colors[0]);
 
             Renderer<Console::Which>::Instance().Render(command);
         }

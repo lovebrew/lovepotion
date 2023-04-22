@@ -995,7 +995,7 @@ int Wrap_Graphics::Line(lua_State* L)
         return luaL_error(L, "Need at least two vertices to draw a line.");
 
     int vertices = args / 2;
-    std::vector<Vector2> points(vertices);
+    Vector2 points[vertices] {};
 
     if (isTable)
     {
@@ -1019,7 +1019,7 @@ int Wrap_Graphics::Line(lua_State* L)
         }
     }
 
-    luax::CatchException(L, [&]() { instance()->Line(points); });
+    luax::CatchException(L, [&]() { instance()->Line(std::span(points, vertices)); });
 
     return 0;
 }
@@ -1047,18 +1047,18 @@ int Wrap_Graphics::Points(lua_State* L)
     if (isTableOfTables)
         vertices = args;
 
-    std::vector<Vector2> positions;
-    std::vector<Color> colors;
+    Vector2* positions = nullptr;
+    Color* colors      = nullptr;
 
     if (isTableOfTables)
     {
-        positions.reserve(vertices * (sizeof(Color) + sizeof(Vector2)));
-        colors.reserve(sizeof(Vector2) * vertices);
+        positions = new Vector2[vertices * (sizeof(Color) + sizeof(Vector2))];
+        colors    = new Color[sizeof(Vector2) * vertices];
     }
     else
     {
-        positions.reserve(vertices);
-        colors = { instance()->GetColor() };
+        positions = new Vector2[vertices];
+        colors    = new Color[1] { instance()->GetColor() };
     }
 
     if (isTable)
@@ -1105,7 +1105,10 @@ int Wrap_Graphics::Points(lua_State* L)
         }
     }
 
-    luax::CatchException(L, [&]() { instance()->Points(positions, colors); });
+    auto positionsSpan = std::span(positions, vertices);
+    auto colorsSpan    = std::span(colors, (isTableOfTables ? vertices : 1));
+
+    luax::CatchException(L, [&]() { instance()->Points(positionsSpan, colorsSpan); });
 
     return 0;
 }
