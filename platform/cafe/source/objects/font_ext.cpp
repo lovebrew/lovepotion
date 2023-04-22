@@ -924,14 +924,17 @@ void Font<Console::CAFE>::GetWrap(const ColoredCodepoints& codepoints, float wra
             else if (lastSpaceIndex != -1)
             {
                 /* 'rewind' to last seen space, if the line contains one */
-                char last = wrappedLine.codepoints.back();
-                while (!wrappedLine.codepoints.empty() && last != Font::SPACE_GLYPH)
+                while (!wrappedLine.codepoints.empty() &&
+                       wrappedLine.codepoints.back() != Font::SPACE_GLYPH)
+                {
                     wrappedLine.codepoints.pop_back();
+                }
 
-                int lastColorIndex = wrappedLine.colors.back().index;
-                size_t size        = wrappedLine.codepoints.size();
-                while (!wrappedLine.colors.empty() && lastColorIndex >= (int)size)
+                while (!wrappedLine.colors.empty() &&
+                       wrappedLine.colors.back().index >= (int)wrappedLine.codepoints.size())
+                {
                     wrappedLine.colors.pop_back();
+                }
 
                 /* 'rewind' to the last color */
                 for (int colorIndex = currentColorIndex; colorIndex >= 0; colorIndex--)

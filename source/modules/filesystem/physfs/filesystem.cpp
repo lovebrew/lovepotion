@@ -29,10 +29,10 @@ using namespace love::physfs;
 
 #include <utilities/log/logfile.hpp>
 
-static std::string_view getApplicationPath(std::string_view path_view)
+static std::string getApplicationPath(std::string origin)
 {
     if (!love::Console::Is(love::Console::CAFE))
-        return path_view;
+        return origin;
 
 #if defined(__WIIU__)
     OSDynLoad_Module module;
@@ -54,7 +54,7 @@ static std::string_view getApplicationPath(std::string_view path_view)
         }
         // clang-format on
     }
-    return std::string_view {};
+    return std::string {};
 #endif
 }
 

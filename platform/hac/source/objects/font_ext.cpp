@@ -709,7 +709,7 @@ void Font<Console::HAC>::Print(Graphics<Console::HAC>& graphics, const ColoredSt
     ColoredCodepoints codepoints {};
     Font::GetCodepointsFromString(text, codepoints);
 
-    std::vector<vertex::Vertex> vertices;
+    std::vector<vertex::Vertex> vertices {};
     std::vector<DrawCommand> commands = this->GenerateVertices(codepoints, color, vertices);
 
     this->Printv(graphics, matrix, commands, vertices);
@@ -722,7 +722,7 @@ void Font<Console::HAC>::Printf(Graphics<Console::HAC>& graphics, const ColoredS
     ColoredCodepoints codepoints {};
     Font::GetCodepointsFromString(text, codepoints);
 
-    std::vector<vertex::Vertex> vertices;
+    std::vector<vertex::Vertex> vertices {};
     std::vector<DrawCommand> commands =
         this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
 
@@ -925,14 +925,17 @@ void Font<Console::HAC>::GetWrap(const ColoredCodepoints& codepoints, float wrap
             else if (lastSpaceIndex != -1)
             {
                 /* 'rewind' to last seen space, if the line contains one */
-                char last = wrappedLine.codepoints.back();
-                while (!wrappedLine.codepoints.empty() && last != Font::SPACE_GLYPH)
+                while (!wrappedLine.codepoints.empty() &&
+                       wrappedLine.codepoints.back() != Font::SPACE_GLYPH)
+                {
                     wrappedLine.codepoints.pop_back();
+                }
 
-                int lastColorIndex = wrappedLine.colors.back().index;
-                size_t size        = wrappedLine.codepoints.size();
-                while (!wrappedLine.colors.empty() && lastColorIndex >= (int)size)
+                while (!wrappedLine.colors.empty() &&
+                       wrappedLine.colors.back().index >= (int)wrappedLine.codepoints.size())
+                {
                     wrappedLine.colors.pop_back();
+                }
 
                 /* 'rewind' to the last color */
                 for (int colorIndex = currentColorIndex; colorIndex >= 0; colorIndex--)
