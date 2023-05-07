@@ -712,7 +712,7 @@ namespace love
 
             points = std::max(points / 4, 1);
 
-            const float halfPi = (float)(LOVE_M_PI_2);
+            const float halfPi = static_cast<float>(LOVE_M_PI / 2);
             float angleShift   = halfPi / ((float)points + 1.0f);
 
             int pointCount = (points + 2) * 4;

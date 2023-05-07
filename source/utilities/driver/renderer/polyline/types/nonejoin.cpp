@@ -48,8 +48,8 @@ void NoneJoinPolyline::renderEdge(std::vector<Vector2>& anchors, std::vector<Vec
 
     anchors.push_back(pointA);
     anchors.push_back(pointA);
-    normals.push_back(segmentNormal);
     normals.push_back(-segmentNormal);
+    normals.push_back(segmentNormal);
 }
 
 void NoneJoinPolyline::calc_overdraw_vertex_count(bool /*is_looping*/)
@@ -62,9 +62,9 @@ void NoneJoinPolyline::render_overdraw(const std::vector<Vector2>& /*normals*/, 
 {
     for (size_t i = 2; i + 3 < vertex_count; i += 4)
     {
-        // v0-v2
+        // v0-v3
         // | / | <- main quad line
-        // v1-v3
+        // v1-v2
 
         Vector2 s = vertices[i + 0] - vertices[i + 2];
         Vector2 t = vertices[i + 0] - vertices[i + 1];
@@ -75,23 +75,23 @@ void NoneJoinPolyline::render_overdraw(const std::vector<Vector2>& /*normals*/, 
 
         overdraw[k + 0] = vertices[i + 0];
         overdraw[k + 1] = vertices[i + 1];
-        overdraw[k + 2] = vertices[i + 0] + s + t;
-        overdraw[k + 3] = vertices[i + 1] + s - t;
+        overdraw[k + 3] = vertices[i + 0] + s + t;
+        overdraw[k + 2] = vertices[i + 1] + s - t;
 
         overdraw[k + 4] = vertices[i + 1];
         overdraw[k + 5] = vertices[i + 3];
-        overdraw[k + 6] = vertices[i + 1] + s - t;
-        overdraw[k + 7] = vertices[i + 3] - s - t;
+        overdraw[k + 7] = vertices[i + 1] + s - t;
+        overdraw[k + 6] = vertices[i + 3] - s - t;
 
-        overdraw[k + 8]  = vertices[i + 3];
-        overdraw[k + 9]  = vertices[i + 2];
-        overdraw[k + 10] = vertices[i + 3] - s - t;
+        overdraw[k + 8]  = vertices[i + 2];
+        overdraw[k + 9]  = vertices[i + 0];
         overdraw[k + 11] = vertices[i + 2] - s + t;
+        overdraw[k + 10] = vertices[i + 0] + s + t;
 
-        overdraw[k + 12] = vertices[i + 2];
-        overdraw[k + 13] = vertices[i + 0];
+        overdraw[k + 12] = vertices[i + 3];
+        overdraw[k + 13] = vertices[i + 2];
+        overdraw[k + 15] = vertices[i + 3] - s - t;
         overdraw[k + 14] = vertices[i + 2] - s + t;
-        overdraw[k + 15] = vertices[i + 0] + s + t;
     }
 }
 

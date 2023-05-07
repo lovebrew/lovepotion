@@ -108,26 +108,25 @@ void Renderer<Console::HAC>::CreateFramebuffers()
     }
 
     /* create layout for the depth buffer */
-    // dk::ImageLayoutMaker { this->device }
-    //     .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
-    //     .setFormat(DkImageFormat_Z24S8)
-    //     .setDimensions(width, height)
-    //     .initialize(this->framebuffers.depthLayout);
+    dk::ImageLayoutMaker { this->device }
+        .setFlags(DkImageFlags_UsageRender | DkImageFlags_HwCompression)
+        .setFormat(DkImageFormat_Z24S8)
+        .setDimensions(width, height)
+        .initialize(this->framebuffers.depthLayout);
 
     // /* create the depth buffer */
     // const auto poolId = MemPoolType::IMAGE;
 
-    // const auto depthLayoutSize  = this->framebuffers.depthLayout.getSize();
-    // const auto depthLayoutAlign = this->framebuffers.depthLayout.getAlignment();
+    const auto depthLayoutSize  = this->framebuffers.depthLayout.getSize();
+    const auto depthLayoutAlign = this->framebuffers.depthLayout.getAlignment();
 
-    // this->framebuffers.depthMemory = this->pools.image.allocate(depthLayoutSize,
-    // depthLayoutAlign);
+    this->framebuffers.depthMemory = this->Allocate(IMAGE, depthLayoutSize, depthLayoutAlign);
 
-    // const auto& depthMemBlock = this->framebuffers.depthMemory.getMemBlock();
-    // auto depthMemOffset       = this->framebuffers.depthMemory.getOffset();
+    const auto& depthMemBlock = this->framebuffers.depthMemory.getMemBlock();
+    auto depthMemOffset       = this->framebuffers.depthMemory.getOffset();
 
-    // this->framebuffers.depthImage.initialize(this->framebuffers.depthLayout, depthMemBlock,
-    //                                          depthMemOffset);
+    this->framebuffers.depthImage.initialize(this->framebuffers.depthLayout, depthMemBlock,
+                                             depthMemOffset);
 
     /* initialize framebuffer layout */
     dk::ImageLayoutMaker { this->device }
@@ -174,7 +173,7 @@ void Renderer<Console::HAC>::DestroyFramebuffers()
     for (auto& framebuffer : this->framebuffers.memory)
         framebuffer.destroy();
 
-    // this->framebuffers.depthMemory.destroy();
+    this->framebuffers.depthMemory.destroy();
 }
 
 void Renderer<Console::HAC>::EnsureInFrame()
@@ -221,7 +220,7 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
         this->commandBuffer.barrier(DkBarrier_Fragments, 0);
 
     dk::ImageView target { this->framebuffers.images[this->framebuffers.slot] };
-    // dk::ImageView depth { this->framebuffers.depthImage };
+    dk::ImageView depth { this->framebuffers.depthImage };
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
@@ -239,7 +238,7 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
         }
     }
 
-    this->commandBuffer.bindRenderTargets(&target);
+    this->commandBuffer.bindRenderTargets(&target, &depth);
 
     this->commandBuffer.pushConstants(this->uniformBuffer.getGpuAddr(),
                                       this->uniformBuffer.getSize(), 0, TRANSFORM_SIZE,
@@ -488,8 +487,8 @@ void Renderer<Console::HAC>::SetLineWidth(float width)
 
 void Renderer<Console::HAC>::SetLineStyle(RenderState::LineStyle style)
 {
-    bool smooth = (style == RenderState::LINE_SMOOTH);
-    this->state.rasterizer.setPolygonSmoothEnable(smooth);
+    // bool smooth = (style == RenderState::LINE_SMOOTH);
+    // this->state.rasterizer.setPolygonSmoothEnable(smooth);
 }
 
 void Renderer<Console::HAC>::SetPointSize(float size)

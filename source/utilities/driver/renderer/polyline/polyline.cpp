@@ -188,14 +188,18 @@ void Polyline::draw(Graphics<Console::ALL>* gfx)
 
         int totalVertices = std::min(maxvertices, total_vertex_count - vertex_start);
 
-        DrawCommand command(totalVertices, vertex::PRIMITIVE_TRIANGLE_STRIP);
+        auto mode = vertex::PRIMITIVE_TRIANGLE_STRIP;
+        if (this->triangle_mode == vertex::TRIANGLE_QUADS)
+            mode = vertex::PRIMITIVE_QUADS;
+
+        DrawCommand command(totalVertices, mode);
 
         if (is2D)
             t.TransformXY(command.Positions().get(), verts, totalVertices);
 
-        Color colordata[totalVertices];
+        Color colordata[totalVertices] {};
 
-        int draw_rough_count = std::min(totalVertices, (int)vertex_count - vertex_start);
+        int draw_rough_count = std::min((int)command.count, (int)vertex_count - vertex_start);
 
         // Constant vertex color up to the overdraw vertices.
         for (int i = 0; i < draw_rough_count; i++)
