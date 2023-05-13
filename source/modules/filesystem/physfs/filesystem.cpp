@@ -7,6 +7,8 @@
     #include <3ds.h>
 #elif defined(__SWITCH__)
     #include <switch.h>
+#elif defined(__WIIU__)
+    #include <coreinit/dynload.h>
 #endif
 
 #include <unistd.h>
@@ -22,10 +24,6 @@
 #define parentize(x) std::string(std::filesystem::path((x)).parent_path())
 
 using namespace love::physfs;
-
-#if defined(__WIIU__)
-    #include <coreinit/dynload.h>
-#endif
 
 #include <utilities/log/logfile.hpp>
 
@@ -137,6 +135,9 @@ void Filesystem::Init(const char* arg0)
     /* should only happen on Wii U */
     if (this->executablePath.empty())
         throw love::Exception("Failed to get executable path.");
+
+    if (Console::Is(Console::CAFE))
+        this->executablePath = "/vol/content/game.zip";
 
     if (!PHYSFS_init(this->executablePath.c_str()))
         throw love::Exception("Failed to initialize filesystem: %s", Filesystem::GetLastError());

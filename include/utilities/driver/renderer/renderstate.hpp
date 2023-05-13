@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <cstdint>
+
 namespace love
 {
     namespace RenderState
