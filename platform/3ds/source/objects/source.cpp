@@ -165,6 +165,7 @@ void Source::PrepareAtomic()
     {
         case TYPE_STATIC:
             this->sources[0].data_pcm16 = (s16*)this->staticBuffer->GetBuffer();
+            this->sources[0].looping = this->looping;
             DSP_FlushDataCache(this->sources[0].data_pcm16, this->staticBuffer->GetSize());
             break;
         case TYPE_STREAM:
