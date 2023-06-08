@@ -46,7 +46,7 @@ bool love::Thread::Start()
     s32 priority = love::common::Thread::GetCurrentThreadPriority();
 
     /* do not detach because otherwise it cannot be freed or joined */
-    this->thread = threadCreate(Runner, this, Thread::STACK_SIZE, priority - 1, 1, false);
+    this->thread = threadCreate(Runner, this, Thread::STACK_SIZE, priority - 1, 0, false);
 
     this->running = (this->thread != nullptr);
 
