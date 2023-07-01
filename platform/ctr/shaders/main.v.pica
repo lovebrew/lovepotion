@@ -12,13 +12,11 @@
 .in inPosition     v0
 .in inColor        v1
 .in inTexCoord     v2
-.in inProcTexCoord v3
 
 ; Outputs
 .out outPosition  position
 .out outColor     color
 .out outTexCoord0 texcoord0
-.out outTexCoord1 texcoord1
 
 ; void main()
 .proc main
@@ -40,10 +38,6 @@
 
 	; outTexCoord = inTexCoord
     mov outTexCoord0, inTexCoord
-
-    ; outTexCoor1 = inProcTexCoord
-    ; blending operations(?)
-    mov outTexCoord1, inProcTexCoord
 
     ; outColor = inColor
 	mov outColor,    inColor
