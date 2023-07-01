@@ -1,6 +1,8 @@
 #pragma once
 
 #include <source_location>
+
+#include <memory>
 #include <string>
 
 #include <stdarg.h>
@@ -23,17 +25,16 @@ class Log
         fclose(this->file);
     }
 
-    void Write(std::source_location location, const char* format, ...)
+    template<typename... FormatArgs>
+    void Write(std::source_location location, const char* format, FormatArgs&&... args)
     {
         if (!m_enabled)
             return;
 
-        va_list args;
-        char buffer[BUFFER_LIMIT] { '\0' };
+        const auto size                = snprintf(nullptr, 0, format, args...);
+        std::unique_ptr<char[]> buffer = std::make_unique<char[]>(size + 1);
 
-        va_start(args, format);
-        vsnprintf(buffer, sizeof(buffer), format, args);
-        va_end(args);
+        snprintf(buffer.get(), size + 1, format, args...);
 
         const auto path     = std::string(location.file_name());
         const auto filename = path.substr(path.find_last_of('/') + 1);
@@ -42,22 +43,13 @@ class Log
         const auto column   = (uint32_t)location.column();
         const auto funcname = location.function_name();
 
-#if defined(__3DS__)
-        fprintf(this->file, BUFFER_FORMAT, filename.c_str(), line, column, funcname, buffer);
-#else
-        fprintf(this->file, BUFFER_FORMAT2, filename.c_str(), line, column, funcname, buffer);
-#endif
-
+        fprintf(this->file, BUFFER_FORMAT, filename.c_str(), line, column, funcname, buffer.get());
         fflush(this->file);
     }
 
   private:
-    static inline const char* FILENAME = "debug.log";
-
-    static constexpr const char* BUFFER_FORMAT  = "%s(%lu:%lu): `%s`:\n%s\n\n";
-    static constexpr const char* BUFFER_FORMAT2 = "%s(%u:%u): `%s`:\n%s\n\n";
-
-    static constexpr size_t BUFFER_LIMIT = 0x200;
+    static inline const char* FILENAME         = "debug.log";
+    static constexpr const char* BUFFER_FORMAT = "%s(%zu:%zu): `%s`:\n%s\n\n";
 
     Log() : file(nullptr)
     {
@@ -73,5 +65,5 @@ class Log
     #define LOG(...)
 #else
     #define LOG(format, ...) \
-        Log::Instance().Write(std::source_location::current(), format, ##__VA_ARGS__)
+        Log::Instance().Write(std::source_location::current(), format, ##__VA_ARGS__);
 #endif

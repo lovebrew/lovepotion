@@ -435,6 +435,8 @@ void Source<Console::HAC>::PrepareAtomic()
             this->buffers[0].buffer.data_pcm16 = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
             // clang-format on
 
+            this->buffers[0].buffer.is_looping = this->looping;
+
             break;
         }
         case TYPE_STREAM:

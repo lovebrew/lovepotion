@@ -441,6 +441,8 @@ void Source<Console::CTR>::PrepareAtomic()
             this->buffers[0].data_pcm16 = this->staticBuffer->GetBuffer() + (size_t)this->samplesOffset;
             // clang-format on
 
+            this->buffers[0].looping = this->looping;
+
             break;
         }
         case TYPE_STREAM:
