@@ -142,26 +142,21 @@ void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
     ::Renderer::Instance().CreateFramebuffers();
     this->RestoreState(this->states.back());
 
-    this->RestoreState(this->states.back());
+    const auto type = Shader<>::STANDARD_DEFAULT;
 
-    for (int index = 0; index < Shader<>::STANDARD_MAX_ENUM; index++)
+    try
     {
-        const auto type = (Shader<>::StandardShader)index;
-
-        try
+        if (!Shader<Console::CTR>::defaults[type])
         {
-            if (!Shader<Console::CTR>::defaults[index])
-            {
-                auto* shader = new Shader<Console::CTR>();
-                shader->LoadDefaults(type);
+            auto* shader = new Shader<Console::CTR>();
+            shader->LoadDefaults(type);
 
-                Shader<Console::CTR>::defaults[index] = shader;
-            }
+            Shader<Console::CTR>::defaults[type] = shader;
         }
-        catch (love::Exception&)
-        {
-            throw;
-        }
+    }
+    catch (love::Exception&)
+    {
+        throw;
     }
 
     if (!Shader<Console::CTR>::current)

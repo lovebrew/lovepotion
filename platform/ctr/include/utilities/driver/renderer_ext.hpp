@@ -57,7 +57,7 @@ namespace love
         void EnsureInFrame();
 
         /* todo: canvases */
-        void BindFramebuffer(/* Canvas* canvas = nullptr*/);
+        void BindFramebuffer(Texture<Console::CTR>* texture = nullptr);
 
         bool Render(DrawCommand<Console::CTR>& command);
 
@@ -76,6 +76,11 @@ namespace love
         void SetSamplerState(Texture<Console::CTR>* texture, SamplerState& state);
 
         void SetColorMask(const RenderState::ColorMask& mask);
+
+        Framebuffer<Console::CTR>* GetCurrent()
+        {
+            return this->current;
+        }
 
         std::optional<Screen> CheckScreen(const char* name) const;
 
@@ -109,7 +114,6 @@ namespace love
         static constexpr BidirectionalMap primitiveModes = 
         {
             vertex::PRIMITIVE_TRIANGLES,      GPU_TRIANGLES,
-            vertex::PRIMITIVE_QUADS,          GPU_TRIANGLE_FAN,
             vertex::PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP,
             vertex::PRIMITIVE_TRIANGLE_FAN,   GPU_TRIANGLE_FAN
         };

@@ -20,14 +20,11 @@
 
 #include <utilities/driver/drawcommand_ext.hpp>
 
-#if !defined(__3DS__)
+#include <utilities/driver/renderer/polyline/polyline.hpp>
 
-    #include <utilities/driver/renderer/polyline/polyline.hpp>
-
-    #include <utilities/driver/renderer/polyline/types/beveljoin.hpp>
-    #include <utilities/driver/renderer/polyline/types/miterjoin.hpp>
-    #include <utilities/driver/renderer/polyline/types/nonejoin.hpp>
-#endif
+#include <utilities/driver/renderer/polyline/types/beveljoin.hpp>
+#include <utilities/driver/renderer/polyline/types/miterjoin.hpp>
+#include <utilities/driver/renderer/polyline/types/nonejoin.hpp>
 
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -625,7 +622,6 @@ namespace love
 
         /* PRIMITIVES */
 
-#if !defined(__3DS__)
         void Polyline(const std::span<Vector2> points)
         {
             float halfWidth                  = this->GetLineWidth() * 0.5f;
@@ -657,13 +653,11 @@ namespace love
                 line.draw(this);
             }
         }
-#endif
 
         void Polygon(DrawMode mode, std::span<Vector2> points, bool skipLastVertex = true)
         {
             if (mode == DRAW_LINE)
-                return;
-            // this->Polyline(points);
+                this->Polyline(points);
             else
             {
                 const auto transform = this->GetTransform();
@@ -916,7 +910,7 @@ namespace love
 
         void Line(std::span<Vector2> points)
         {
-            // this->Polyline(points);
+            this->Polyline(points);
         }
 
         /* PRIMITIVES */

@@ -22,7 +22,7 @@ namespace love
         DrawCommand()
         {}
 
-        DrawCommand(int count, PrimitiveType type = PRIMITIVE_TRIANGLES,
+        DrawCommand(size_t count, PrimitiveType type = PRIMITIVE_TRIANGLES,
                     Shader<>::StandardShader shader = Shader<>::STANDARD_DEFAULT) :
             DrawCommand<Console::ALL>(count, type, shader)
         {}
@@ -37,6 +37,7 @@ namespace love
             DrawCommand<Console::ALL>::FillVertices(vertices, color);
 
             this->buffer->FlushGPUDataCache();
+            this->buffer->SetBufferInfo();
         }
 
         void FillVertices(const Color* colors)
@@ -48,6 +49,7 @@ namespace love
 
             DrawCommand<Console::ALL>::FillVertices(vertices, colors);
 
+            this->buffer->SetBufferInfo();
             this->buffer->FlushGPUDataCache();
         }
 
@@ -60,6 +62,7 @@ namespace love
 
             DrawCommand<Console::ALL>::FillVertices(vertices, colors);
 
+            this->buffer->SetBufferInfo();
             this->buffer->FlushGPUDataCache();
         }
 

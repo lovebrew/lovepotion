@@ -21,7 +21,7 @@ namespace love
         DrawCommand()
         {}
 
-        DrawCommand(int count, PrimitiveType type = PRIMITIVE_TRIANGLES,
+        DrawCommand(size_t count, PrimitiveType type = PRIMITIVE_TRIANGLES,
                     Shader<>::StandardShader shader = Shader<>::STANDARD_DEFAULT) :
             positions {},
             count(count),
@@ -30,6 +30,9 @@ namespace love
             type(type),
             shader(shader)
         {
+            if (count == 0)
+                throw love::Exception("Vertex count cannot be zero.");
+
             try
             {
                 this->positions = std::make_unique<Vector2[]>(count);

@@ -1,14 +1,14 @@
 #pragma once
 
-#if !defined(__3DS__)
-    #include <common/console.hpp>
-    #include <common/vector.hpp>
+#include <common/color.hpp>
+#include <common/console.hpp>
+#include <common/vector.hpp>
 
-    #include <utilities/driver/vertex_ext.hpp>
+#include <utilities/driver/renderer/vertex.hpp>
 
-    // C++
-    #include <string.h>
-    #include <vector>
+// C++
+#include <string.h>
+#include <vector>
 
 namespace love
 {
@@ -83,4 +83,3 @@ namespace love
 
     }; // Polyline
 } // namespace love
-#endif

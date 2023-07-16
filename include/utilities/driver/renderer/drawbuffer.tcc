@@ -12,10 +12,10 @@ namespace love
     struct DrawBuffer
     {
       public:
-        DrawBuffer() : vertices(nullptr), valid(true)
+        DrawBuffer() : vertices(nullptr), valid(false)
         {}
 
-        DrawBuffer(size_t count) : size(count * VERTEX_SIZE)
+        DrawBuffer(size_t count) : size(count * VERTEX_SIZE), vertices(nullptr), valid(true)
         {}
 
         DrawBuffer(DrawBuffer&&) = delete;

@@ -50,13 +50,15 @@ Renderer<Console::CTR>::Info Renderer<Console::CTR>::GetRendererInfo()
 
 void Renderer<Console::CTR>::CreateFramebuffers()
 {
-
     for (uint8_t index = 0; index < this->targets.size(); index++)
         this->targets[index].Create((Screen)index);
 }
 
 void Renderer<Console::CTR>::DestroyFramebuffers()
-{}
+{
+    for (uint8_t index = 0; index < this->targets.size(); index++)
+        this->targets[index].Destroy();
+}
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
@@ -82,14 +84,27 @@ void Renderer<Console::CTR>::EnsureInFrame()
     }
 }
 
-void Renderer<Console::CTR>::BindFramebuffer()
+void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
 {
     if (!IsActiveScreenValid())
         return;
 
     this->EnsureInFrame();
 
-    this->current = &this->targets[love::GetActiveScreen()];
+    if (texture != nullptr && texture->IsRenderTarget())
+    {
+        // this->current = texture->GetHandle();
+        this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
+        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
+    }
+    else
+    {
+        this->current = &this->targets[love::GetActiveScreen()];
+
+        this->SetViewport(this->current->GetViewport());
+        this->SetScissor(this->current->GetScissor(), false);
+    }
+
     C3D_FrameDrawOn(this->current->GetTarget());
 }
 
@@ -100,7 +115,8 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
     if (!command.buffer->IsValid())
         return false;
 
-    this->current->UseProjection(Shader<Console::CTR>::current->GetUniformLocations());
+    auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
+    this->current->UseProjection(uniforms);
 
     // if (command.handles.size() > 0)
     // {
@@ -109,12 +125,10 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
     // }
 
     std::optional<GPU_Primitive_t> primitive;
-    if (!(primitive = primitiveModes.Find(command.type)))
+    if (!(primitive = Renderer::primitiveModes.Find(command.type)))
         return false;
 
-    C3D_SetBufInfo(command.buffer->GetBuffer());
     C3D_DrawArrays(*primitive, 0, command.count);
-
     this->commands.push_back(command.buffer);
 
     return true;

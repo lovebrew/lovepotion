@@ -29,6 +29,16 @@ namespace love
             return this->target;
         }
 
+        C3D_Mtx& GetModelView()
+        {
+            return this->modelView;
+        }
+
+        C3D_Mtx& GetProjView()
+        {
+            return this->projView;
+        }
+
       private:
         static constexpr auto DISPLAY_FLAGS = GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) |
                                               GX_TRANSFER_RAW_COPY(0) |

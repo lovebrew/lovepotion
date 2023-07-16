@@ -1,5 +1,7 @@
 #include <utilities/driver/framebuffer_ext.hpp>
 
+#include <common/exception.hpp>
+
 using namespace love;
 
 Framebuffer<Console::CTR>::Framebuffer() : target(nullptr)
@@ -43,6 +45,11 @@ void Framebuffer<Console::CTR>::SetSize(int width, int height, gfxScreen_t scree
 
     if (this->target)
         C3D_RenderTargetSetOutput(this->target, screen, side, Framebuffer::DISPLAY_FLAGS);
+    else
+        throw love::Exception("Failed to allocate framebuffer %d", (size_t)this->id);
+
+    this->width  = width;
+    this->height = height;
 
     this->viewport = { 0, 0, width, height };
     this->scissor  = { 0, 0, width, height };

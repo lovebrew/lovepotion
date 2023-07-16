@@ -24,6 +24,16 @@ namespace love
             return this->height;
         }
 
+        Rect GetViewport()
+        {
+            return this->viewport;
+        }
+
+        Rect GetScissor()
+        {
+            return this->scissor;
+        }
+
       protected:
         static constexpr float Z_NEAR = -10.0f;
         static constexpr float Z_FAR  = 10.0f;

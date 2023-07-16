@@ -108,13 +108,6 @@ if(NINTENDO_SWITCH)
         ROMFS ${PROJECT_NAME}_hac_romfs
     )
 
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/utilities/driver/renderer/polyline/polyline.cpp
-        source/utilities/driver/renderer/polyline/types/beveljoin.cpp
-        source/utilities/driver/renderer/polyline/types/miterjoin.cpp
-        source/utilities/driver/renderer/polyline/types/nonejoin.cpp
-    )
-
     find_package(Freetype REQUIRED)
 
     set(APP_LIBS deko3d freetype bz2)
@@ -184,13 +177,6 @@ if (NINTENDO_WIIU)
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
-
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/utilities/driver/renderer/polyline/polyline.cpp
-        source/utilities/driver/renderer/polyline/types/beveljoin.cpp
-        source/utilities/driver/renderer/polyline/types/miterjoin.cpp
-        source/utilities/driver/renderer/polyline/types/nonejoin.cpp
-    )
 
     find_package(Freetype REQUIRED)
     set(APP_LIBS freetype bz2)
@@ -499,6 +485,10 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/decoder/types/mp3decoder.cpp
     source/utilities/decoder/types/vorbisdecoder.cpp
     source/utilities/decoder/types/wavedecoder.cpp
+    source/utilities/driver/renderer/polyline/polyline.cpp
+    source/utilities/driver/renderer/polyline/types/beveljoin.cpp
+    source/utilities/driver/renderer/polyline/types/miterjoin.cpp
+    source/utilities/driver/renderer/polyline/types/nonejoin.cpp
     source/utilities/driver/renderer/renderstate.cpp
     source/utilities/driver/renderer/samplerstate.cpp
     source/utilities/formathandler/formathandler.cpp

@@ -41,7 +41,7 @@ void Shader<Console::CTR>::LoadDefaults(StandardShader)
     std::string error {};
 
     if (!this->Validate(DEFAULT_SHADER, error))
-        throw love::Exception("Failed to load shader.");
+        throw love::Exception("Failed to load shader: %s.", error.c_str());
 
     shaderProgramInit(&this->program);
     shaderProgramSetVsh(&this->program, &this->binary->DVLE[0]);
@@ -92,7 +92,7 @@ bool Shader<Console::CTR>::Validate(const char* filepath, std::string& error)
 
     try
     {
-        this->data = std::make_unique<uint32_t[]>(size / 4);
+        this->data = std::make_unique<uint32_t[]>(size / sizeof(uint32_t));
     }
     catch (std::bad_alloc&)
     {

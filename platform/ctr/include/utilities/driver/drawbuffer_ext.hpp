@@ -31,6 +31,11 @@ namespace love
                 linearFree(this->vertices);
         }
 
+        void SetBufferInfo()
+        {
+            C3D_SetBufInfo(&this->info);
+        }
+
         void FlushGPUDataCache()
         {
             if (this->valid)
