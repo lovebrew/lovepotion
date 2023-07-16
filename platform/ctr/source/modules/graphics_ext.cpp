@@ -95,6 +95,21 @@ void Graphics<Console::CTR>::Printf(const Font<>::ColoredStrings& strings, Font<
     font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
 }
 
+void Graphics<Console::CTR>::SetShader()
+{
+    Shader<Console::CTR>::AttachDefault(Shader<>::STANDARD_DEFAULT);
+    this->states.back().shader.Set(nullptr);
+}
+
+void Graphics<Console::CTR>::SetShader(Shader<Console::CTR>* shader)
+{
+    if (shader == nullptr)
+        return this->SetShader();
+
+    shader->Attach();
+    this->states.back().shader.Set(shader);
+}
+
 void Graphics<Console::CTR>::Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix)
 {
     drawable->Draw(*this, matrix);

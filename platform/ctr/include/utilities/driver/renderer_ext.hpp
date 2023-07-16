@@ -110,7 +110,8 @@ namespace love
         {
             vertex::PRIMITIVE_TRIANGLES,      GPU_TRIANGLES,
             vertex::PRIMITIVE_QUADS,          GPU_TRIANGLE_FAN,
-            vertex::PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP
+            vertex::PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP,
+            vertex::PRIMITIVE_TRIANGLE_FAN,   GPU_TRIANGLE_FAN
         };
         // clang-format on
 

@@ -47,6 +47,10 @@ namespace love
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix);
 
+        void SetShader();
+
+        void SetShader(Shader<Console::CTR>* shader);
+
         /* specific stuff */
 
         void Set3D(bool enabled);

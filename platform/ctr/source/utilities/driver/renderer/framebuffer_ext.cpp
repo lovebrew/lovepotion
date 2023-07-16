@@ -12,7 +12,8 @@ void Framebuffer<Console::CTR>::Create(Screen screen)
 
     switch (screen)
     {
-        case Screen::LEFT... Screen::RIGHT:
+        case Screen::LEFT:
+        case Screen::RIGHT:
         {
             const auto side = (screen == Screen::LEFT) ? GFX_LEFT : GFX_RIGHT;
             this->SetSize(400, 240, GFX_TOP, side);
