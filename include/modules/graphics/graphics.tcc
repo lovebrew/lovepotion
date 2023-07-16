@@ -18,8 +18,9 @@
 
 #include <objects/quad/quad.hpp>
 
+#include <utilities/driver/drawcommand_ext.hpp>
+
 #if !defined(__3DS__)
-    #include <utilities/driver/drawcommand.hpp>
 
     #include <utilities/driver/renderer/polyline/polyline.hpp>
 
@@ -656,18 +657,20 @@ namespace love
                 line.draw(this);
             }
         }
+#endif
 
         void Polygon(DrawMode mode, std::span<Vector2> points, bool skipLastVertex = true)
         {
             if (mode == DRAW_LINE)
-                this->Polyline(points);
+                return;
+            // this->Polyline(points);
             else
             {
                 const auto transform = this->GetTransform();
                 bool is2D            = transform.IsAffine2DTransform();
 
                 const int count = points.size() - (skipLastVertex ? 1 : 0);
-                DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
+                DrawCommand<Console::Which> command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
                 if (is2D)
                     transform.TransformXY(command.Positions().get(), points.data(), command.count);
@@ -898,7 +901,7 @@ namespace love
             const auto& transform = this->GetTransform();
             bool is2D             = transform.IsAffine2DTransform();
 
-            DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
+            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_TRIANGLE_FAN);
 
             if (is2D)
                 transform.TransformXY(command.Positions().get(), points.data(), points.size());
@@ -913,9 +916,8 @@ namespace love
 
         void Line(std::span<Vector2> points)
         {
-            this->Polyline(points);
+            // this->Polyline(points);
         }
-#endif
 
         /* PRIMITIVES */
 

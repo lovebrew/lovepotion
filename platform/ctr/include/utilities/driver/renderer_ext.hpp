@@ -6,6 +6,8 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
+#include <utilities/driver/drawcommand_ext.hpp>
+#include <utilities/driver/framebuffer_ext.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
@@ -57,6 +59,8 @@ namespace love
         /* todo: canvases */
         void BindFramebuffer(/* Canvas* canvas = nullptr*/);
 
+        bool Render(DrawCommand<Console::CTR>& command);
+
         void Present();
 
         void SetViewport(const Rect& viewport);
@@ -100,6 +104,15 @@ namespace love
         {
             this->deferred.emplace_back(std::move(function));
         }
+
+        // clang-format off
+        static constexpr BidirectionalMap primitiveModes = 
+        {
+            vertex::PRIMITIVE_TRIANGLES,      GPU_TRIANGLES,
+            vertex::PRIMITIVE_QUADS,          GPU_TRIANGLE_FAN,
+            vertex::PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP
+        };
+        // clang-format on
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {
@@ -170,8 +183,9 @@ namespace love
         }
 
         std::vector<std::function<void()>> deferred;
-        std::array<C3D_RenderTarget*, MAX_RENDERTARGETS> targets;
+        std::array<Framebuffer<Console::CTR>, MAX_RENDERTARGETS> targets;
 
-        C3D_RenderTarget* current;
+        Framebuffer<Console::CTR>* current;
+        std::vector<std::shared_ptr<DrawBuffer<Console::CTR>>> commands;
     };
 } // namespace love

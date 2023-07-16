@@ -62,6 +62,7 @@ if(NINTENDO_3DS)
     # Specify that the executable is a 3DSX file
     ctr_create_3dsx(${PROJECT_NAME}
         SMDH  ${PROJECT_NAME}.smdh
+        ROMFS ${PROJECT_NAME}_ctr_romfs
     )
 
     set(APP_LIBS citro2d citro3d)

@@ -52,6 +52,15 @@ namespace love
             TEXTURE
         };
 
+        struct Vertex
+        {
+            std::array<float, 3> position;
+            std::array<float, 4> color;
+            std::array<float, 2> texcoord;
+        };
+
+        static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
+
         static inline uint16_t normto16t(float in)
         {
             return uint16_t(in * 0xFFFF);

@@ -3,11 +3,12 @@
 #include <common/exception.hpp>
 #include <common/luax.hpp>
 
+#include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using namespace love;
 
-Renderer<Console::CTR>::Renderer() : targets { nullptr }
+Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
 {
     gfxInitDefault();
     gfxSet3D(true);
@@ -15,22 +16,20 @@ Renderer<Console::CTR>::Renderer() : targets { nullptr }
     if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE))
         throw love::Exception("Failed to initialize citro3d!");
 
-    if (!C2D_Init(C2D_DEFAULT_MAX_OBJECTS))
-        throw love::Exception("Failed to initialize citro2d!");
+    C3D_CullFace(GPU_CULL_NONE);
+    C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
 
-    C2D_Prepare();
+    C3D_AttrInfo* attributes = C3D_GetAttrInfo();
+    AttrInfo_Init(attributes);
 
-    C2D_Flush();
-    C3D_AlphaTest(true, GPU_GREATER, 0);
-    C2D_SetTintMode(C2D_TintMult);
+    AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
+    AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
+    AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
 }
 
 Renderer<Console::CTR>::~Renderer()
 {
-    C2D_Fini();
-
     C3D_Fini();
-
     gfxExit();
 }
 
@@ -52,21 +51,16 @@ Renderer<Console::CTR>::Info Renderer<Console::CTR>::GetRendererInfo()
 void Renderer<Console::CTR>::CreateFramebuffers()
 {
 
-    this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
-                      C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT),
-                      C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT) };
+    for (uint8_t index = 0; index < this->targets.size(); index++)
+        this->targets[index].Create((Screen)index);
 }
 
 void Renderer<Console::CTR>::DestroyFramebuffers()
-{
-    for (auto* framebuffer : this->targets)
-        C3D_RenderTargetDelete(framebuffer);
-}
+{}
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    Graphics<Console::CTR>::ResetDepth();
-    C2D_TargetClear(this->current, color.rgba());
+    C3D_RenderTargetClear(this->current->GetTarget(), C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
 /* todo */
@@ -82,6 +76,8 @@ void Renderer<Console::CTR>::EnsureInFrame()
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
+
+        this->commands.clear();
         this->inFrame = true;
     }
 }
@@ -93,8 +89,35 @@ void Renderer<Console::CTR>::BindFramebuffer()
 
     this->EnsureInFrame();
 
-    this->current = this->targets[love::GetActiveScreen()];
-    C2D_SceneBegin(this->current);
+    this->current = &this->targets[love::GetActiveScreen()];
+    C3D_FrameDrawOn(this->current->GetTarget());
+}
+
+bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
+{
+    Shader<Console::CTR>::defaults[command.shader]->Attach();
+
+    if (!command.buffer->IsValid())
+        return false;
+
+    this->current->UseProjection(Shader<Console::CTR>::current->GetUniformLocations());
+
+    // if (command.handles.size() > 0)
+    // {
+    //     if (this->CheckHandle(command.handles.back()))
+    //         C3D_TexBind(0, this->currentTexture);
+    // }
+
+    std::optional<GPU_Primitive_t> primitive;
+    if (!(primitive = primitiveModes.Find(command.type)))
+        return false;
+
+    C3D_SetBufInfo(command.buffer->GetBuffer());
+    C3D_DrawArrays(*primitive, 0, command.count);
+
+    this->commands.push_back(command.buffer);
+
+    return true;
 }
 
 void Renderer<Console::CTR>::Present()
@@ -114,33 +137,12 @@ void Renderer<Console::CTR>::Present()
 
 void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
 {
-    C2D_Flush();
-    C3D_SetViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-    this->viewport = viewport;
+    this->current->SetViewport(viewport);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    const bool enable    = (scissor != Rect::EMPTY);
-    GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
-
-    if (enable)
-        C2D_Flush();
-
-    auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
-
-    if (!graphics)
-        throw love::Exception("Graphics module not loaded.");
-
-    const auto width = love::GetScreenWidth();
-
-    uint32_t left   = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
-    uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;
-    uint32_t right  = 240 - scissor.y;
-    uint32_t bottom = width - scissor.x;
-
-    C3D_SetScissor(mode, left, top, right, bottom);
+    this->current->SetScissor(scissor);
 }
 
 void Renderer<Console::CTR>::SetStencil(RenderState::CompareMode mode, int value)
@@ -161,7 +163,6 @@ void Renderer<Console::CTR>::SetMeshCullMode(vertex::CullMode mode)
     if (!(cullMode = Renderer::cullModes.Find(mode)))
         return;
 
-    C2D_Flush();
     C3D_CullFace(*cullMode);
 }
 
@@ -200,8 +201,6 @@ void Renderer<Console::CTR>::SetSamplerState(Texture<Console::CTR>* texture, Sam
 
 void Renderer<Console::CTR>::SetColorMask(const RenderState::ColorMask& mask)
 {
-    C2D_Flush();
-
     uint8_t writeMask = GPU_WRITE_DEPTH;
     writeMask |= mask.GetColorMask();
 
@@ -234,6 +233,5 @@ void Renderer<Console::CTR>::SetBlendMode(const RenderState::BlendState& state)
     if (!(dstAlpha = Renderer::blendFactors.Find(state.dstFactorA)))
         return;
 
-    C2D_Flush();
     C3D_AlphaBlend(*opRGB, *opAlpha, *srcColor, *dstColor, *srcAlpha, *dstAlpha);
 }

@@ -43,6 +43,8 @@ extern "C"
     {
         osSetSpeedupEnable(true);
 
+        tryInit(std::bind_front(romfsInit), love::ABORT_ROMFS);
+
         /* raw battery info */
         tryInit(std::bind_front(mcuHwcInit), love::ABORT_MCU_HWC);
 
@@ -79,6 +81,8 @@ extern "C"
         cfguExit();
 
         ptmuExit();
+
+        romfsExit();
 
         mcuHwcExit();
     }
