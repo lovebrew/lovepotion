@@ -2,7 +2,7 @@
 
 #include <modules/graphics_ext.hpp>
 
-#include <citro2d.h>
+#include <citro3d.h>
 
 namespace love
 {
@@ -38,7 +38,7 @@ namespace love
 
         C3D_Tex* GetHandle()
         {
-            return this->image.tex;
+            return this->texture;
         }
 
         C3D_RenderTarget* GetRenderTargetHandle() const
@@ -53,7 +53,7 @@ namespace love
       private:
         void CreateTexture();
 
-        C2D_Image image;
+        C3D_Tex* texture;
         C3D_RenderTarget* framebuffer;
     };
 } // namespace love

@@ -7,52 +7,38 @@
 #include <objects/data/filedata/filedata.hpp>
 #include <objects/rasterizer_ext.hpp>
 
-#include <citro2d.h>
-
 #include <3ds.h>
 
 namespace love
 {
-    class SystemFont : public Data
+    class SystemFont : public Object
     {
       public:
         SystemFont(CFG_Region region = CFG_REGION_USA)
         {
-            this->font = C2D_FontLoadSystem(region);
+            // this->font = FontModule<Console::CTR>::LoadSystemFont(region);
         }
+
+        static inline Type type = Type("SystemFont", &Object::type);
 
         ~SystemFont()
-        {
-            C2D_FontFree(this->font);
-        }
-
-        void* GetData() const override
-        {
-            return nullptr;
-        }
-
-        SystemFont* Clone() const override
-        {
-            return new SystemFont(*this);
-        }
-
-        size_t GetSize() const override
-        {
-            return 0;
-        }
-
-      private:
-        C2D_Font font;
+        {}
     };
 
     template<>
     class FontModule<Console::CTR> : public FontModule<Console::ALL>
     {
       public:
+        static constexpr auto FONT_ARCHIVE = 0x0004009B00014002ULL;
+
         FontModule();
 
         virtual ~FontModule()
         {}
+
+        static CFNT_s* LoadSystemFont(CFG_Region region);
+
+        static CFNT_s* LoadFontFromFile(const void* data, size_t size);
 
         Rasterizer<Console::CTR>* NewRasterizer(FileData* data) const;
 
@@ -70,11 +56,19 @@ namespace love
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {
-          "standard",  CFG_REGION_USA,
-          "chinese",   CFG_REGION_CHN,
-          "taiwanese", CFG_REGION_TWN,
-          "korean",    CFG_REGION_KOR
+            "standard",  CFG_REGION_USA,
+            "chinese",   CFG_REGION_CHN,
+            "taiwanese", CFG_REGION_TWN,
+            "korean",    CFG_REGION_KOR
         };
         // clang-format on
+
+      private:
+        static inline std::array<const char*, 0x04> fontPaths = {
+            "font:/cbf_std.bcfnt.lz",
+            "font:/cbf_zh-Hans-CN.bcfnt.lz",
+            "font:/cbf_ko-Hang-KR.bcfnt.lz",
+            "font:/cbf_zh-Hant-TW.bcfnt.lz",
+        };
     };
 } // namespace love

@@ -30,6 +30,6 @@ namespace love
         }
 
       protected:
-        StrongReference<Data> defaultFontData;
+        StrongReference<Object> defaultFontData;
     };
 } // namespace love

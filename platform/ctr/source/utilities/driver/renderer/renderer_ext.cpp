@@ -118,11 +118,13 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
     auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
     this->current->UseProjection(uniforms);
 
-    // if (command.handles.size() > 0)
-    // {
-    //     if (this->CheckHandle(command.handles.back()))
-    //         C3D_TexBind(0, this->currentTexture);
-    // }
+    if (command.handles.size() > 0)
+    {
+        if (this->currentTexture != command.handles.back())
+            this->currentTexture = command.handles.back();
+
+        C3D_TexBind(0, this->currentTexture);
+    }
 
     std::optional<GPU_Primitive_t> primitive;
     if (!(primitive = Renderer::primitiveModes.Find(command.type)))

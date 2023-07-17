@@ -1,8 +1,11 @@
 #pragma once
 
 #include <common/matrix.tcc>
+#include <common/vector.hpp>
 
-#include <citro2d.h>
+#include <utilities/driver/renderer/vertex.hpp>
+
+#include <citro3d.h>
 
 namespace love
 {
@@ -101,6 +104,8 @@ namespace love
         template<typename Vdst, typename Vsrc>
         void TransformXY0(Vdst* dst, const Vsrc* src, int size) const;
 
+        void TransformXY(Vector2* dst, const vertex::Vertex* src, int size) const;
+
       private:
         static void Multiply(const Matrix4& a, const Matrix4& b, C3D_Mtx& c);
 
@@ -118,6 +123,23 @@ namespace love
             float x = (this->matrix.r[0].x * src[i].x) + (this->matrix.r[0].y * src[i].y) + (0) + (this->matrix.r[0].w);
             float y = (this->matrix.r[1].x * src[i].x) + (this->matrix.r[1].y * src[i].y) + (0) + (this->matrix.r[1].w);
             // clang-format on
+
+            dst[i].x = x;
+            dst[i].y = y;
+        }
+    }
+
+    inline void Matrix4<Console::CTR>::TransformXY(Vector2* dst, const vertex::Vertex* src,
+                                                   int size) const
+    {
+        for (int i = 0; i < size; i++)
+        {
+            // Store in temp variables in case src = dst
+
+            // clang-format off
+            float x = (this->matrix.r[0].x * src[i].position[0]) + (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[0].w);
+            float y = (this->matrix.r[1].x * src[i].position[0]) + (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
+            //clang-format on
 
             dst[i].x = x;
             dst[i].y = y;

@@ -4,6 +4,7 @@
 #include <common/vector.hpp>
 
 #include <objects/shader/shader.tcc>
+#include <objects/texture/texture.tcc>
 
 #include <utilities/driver/renderer/drawbuffer.tcc>
 #include <utilities/driver/renderer/vertex.hpp>
@@ -93,6 +94,36 @@ namespace love
             }
         }
 
+        void FillVertices(Vertex* vertices, const Color& color, const Vector2* textureCoords)
+        {
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                vertices[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = color.array(),
+                    .texcoord = { textureCoords[index].x, textureCoords[index].y }
+                };
+                // clang-format on
+            }
+        }
+
+        void FillVertices(Vertex* destination, const Vertex* source)
+        {
+            for (size_t index = 0; index < this->count; index++)
+            {
+                // clang-format off
+                destination[index] =
+                {
+                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .color    = source[index].color,
+                    .texcoord = source[index].texcoord
+                };
+                // clang-format on
+            }
+        }
+
       public:
         std::unique_ptr<Vector2[]> positions;
         size_t count;
@@ -101,6 +132,12 @@ namespace love
         CommonFormat format;
         PrimitiveType type;
         Shader<>::StandardShader shader;
+
+#if not defined(__3DS__)
+        std::vector<Texture<Console::Which>*> handles;
+#else
+        std::vector<C3D_Tex*> handles;
+#endif
 
         std::shared_ptr<DrawBuffer<Console::Which>> buffer;
     }; // namespace love

@@ -14,9 +14,20 @@ namespace love
     class Rasterizer<Console::CTR> : public Rasterizer<Console::ALL>
     {
       public:
+        struct GlyphSheetInfo
+        {
+            int index;
+            float left;
+            float top;
+            float right;
+            float bottom;
+        };
+
         Rasterizer(Data* data, int size);
 
         Rasterizer(CFG_Region region, int size);
+
+        Rasterizer(CFNT_s* face);
 
         virtual ~Rasterizer();
 
@@ -30,14 +41,16 @@ namespace love
             return this->scale;
         }
 
-        C2D_Font GetFont() const
+        CFNT_s* GetFont() const
         {
-            return this->font;
+            return this->face;
         }
 
         GlyphData* GetGlyphData(const std::string_view& text) const;
 
         GlyphData* GetGlyphData(uint32_t glyph) const;
+
+        GlyphSheetInfo& GetSheetInfo(uint32_t glyph) const;
 
         int GetGlyphCount() const;
 
@@ -52,11 +65,13 @@ namespace love
         int Scale(uint8_t in);
 
       private:
-        C2D_Font font;
+        CFNT_s* face;
         float scale;
         mutable int glyphCount;
 
         StrongReference<Data> data;
         void InitMetrics(int size);
+
+        mutable std::unordered_map<uint32_t, GlyphSheetInfo> glyphSheetInfo;
     };
 } // namespace love

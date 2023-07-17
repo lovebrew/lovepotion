@@ -66,6 +66,32 @@ namespace love
             this->buffer->FlushGPUDataCache();
         }
 
+        void FillVertices(const Color& color, const Vector2* textureCoords)
+        {
+            this->SetTexEnv(TEXENV_MODE_TEXTURE);
+
+            this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
+            auto vertices = this->buffer->GetVertices();
+
+            DrawCommand<Console::ALL>::FillVertices(vertices, color, textureCoords);
+
+            this->buffer->SetBufferInfo();
+            this->buffer->FlushGPUDataCache();
+        }
+
+        void FillVertices(const Vertex* source)
+        {
+            this->SetTexEnv(TEXENV_MODE_TEXT);
+
+            this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
+            auto vertices = this->buffer->GetVertices();
+
+            DrawCommand<Console::ALL>::FillVertices(vertices, source);
+
+            this->buffer->SetBufferInfo();
+            this->buffer->FlushGPUDataCache();
+        }
+
       private:
         static inline TEXENV_MODE m_texEnvMode = TEXENV_MODE_MAX_ENUM;
 

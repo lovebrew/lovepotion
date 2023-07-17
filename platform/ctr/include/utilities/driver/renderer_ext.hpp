@@ -191,6 +191,8 @@ namespace love
         std::array<Framebuffer<Console::CTR>, MAX_RENDERTARGETS> targets;
 
         Framebuffer<Console::CTR>* current;
+        C3D_Tex* currentTexture;
+
         std::vector<std::shared_ptr<DrawBuffer<Console::CTR>>> commands;
     };
 } // namespace love
