@@ -113,6 +113,7 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
         this->SetScissor(this->current->GetScissor(), false);
     }
 
+    FlushVertices();
     C3D_FrameDrawOn(this->current->GetTarget());
 }
 
@@ -126,7 +127,9 @@ void Renderer<Console::CTR>::FlushVertices()
         return;
 
     C3D_DrawArrays(*primitive, 0, totalVertices);
-    totalVertices = 0;
+
+    DrawCommand<Console::CTR>::m_vertexOffset = 0;
+    totalVertices                             = 0;
 }
 
 void Renderer<Console::CTR>::FrameEndHook(void* /*_*/)

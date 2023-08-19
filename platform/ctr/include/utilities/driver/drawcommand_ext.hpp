@@ -19,6 +19,8 @@ namespace love
             TEXENV_MODE_MAX_ENUM
         };
 
+        static inline int m_vertexOffset = 0;
+
         DrawCommand()
         {}
 
@@ -45,11 +47,12 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
 
             this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
-            auto vertices = this->buffer->GetVertices();
+            auto vertices = this->buffer->GetVertices() + m_vertexOffset;
 
             DrawCommand<Console::ALL>::FillVertices(vertices, colors);
 
             this->buffer->SetBufferInfo();
+            m_vertexOffset += this->count;
         }
 
         void FillVertices(std::span<Color> colors)
@@ -57,11 +60,12 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
 
             this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
-            auto vertices = this->buffer->GetVertices();
+            auto vertices = this->buffer->GetVertices() + m_vertexOffset;
 
             DrawCommand<Console::ALL>::FillVertices(vertices, colors);
 
             this->buffer->SetBufferInfo();
+            m_vertexOffset += this->count;
         }
 
         void FillVertices(const Color& color, const Vector2* textureCoords)
@@ -82,16 +86,16 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_TEXT);
 
             this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
-            auto vertices = this->buffer->GetVertices();
+            auto vertices = this->buffer->GetVertices() + m_vertexOffset;
 
             DrawCommand<Console::ALL>::FillVertices(vertices, source);
 
             this->buffer->SetBufferInfo();
+            m_vertexOffset += this->count;
         }
 
       private:
         static inline TEXENV_MODE m_texEnvMode = TEXENV_MODE_MAX_ENUM;
-        static inline int m_vertexOffset       = 0;
 
         void SetTexEnv(TEXENV_MODE mode)
         {
