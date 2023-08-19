@@ -179,6 +179,10 @@ namespace love
         // clang-format on
 
       private:
+        static void FrameEndHook(void* _);
+
+        static void FlushVertices();
+
         template<typename T>
         void ModeChanged(const T& func)
         {
@@ -192,6 +196,9 @@ namespace love
 
         Framebuffer<Console::CTR>* current;
         C3D_Tex* currentTexture;
+
+        static inline PrimitiveType currentPrimitiveType = PRIMITIVE_MAX_ENUM;
+        static inline int totalVertices                  = 0;
 
         std::vector<std::shared_ptr<DrawBuffer<Console::CTR>>> commands;
     };

@@ -32,12 +32,12 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_PRIMITIVE);
 
             this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
-            auto vertices = this->buffer->GetVertices();
+            auto vertices = this->buffer->GetVertices() + m_vertexOffset;
 
             DrawCommand<Console::ALL>::FillVertices(vertices, color);
 
-            this->buffer->FlushGPUDataCache();
             this->buffer->SetBufferInfo();
+            m_vertexOffset += this->count;
         }
 
         void FillVertices(const Color* colors)
@@ -50,7 +50,6 @@ namespace love
             DrawCommand<Console::ALL>::FillVertices(vertices, colors);
 
             this->buffer->SetBufferInfo();
-            this->buffer->FlushGPUDataCache();
         }
 
         void FillVertices(std::span<Color> colors)
@@ -63,7 +62,6 @@ namespace love
             DrawCommand<Console::ALL>::FillVertices(vertices, colors);
 
             this->buffer->SetBufferInfo();
-            this->buffer->FlushGPUDataCache();
         }
 
         void FillVertices(const Color& color, const Vector2* textureCoords)
@@ -71,12 +69,12 @@ namespace love
             this->SetTexEnv(TEXENV_MODE_TEXTURE);
 
             this->buffer  = std::make_shared<DrawBuffer<Console::CTR>>(this->count);
-            auto vertices = this->buffer->GetVertices();
+            auto vertices = this->buffer->GetVertices() + m_vertexOffset;
 
             DrawCommand<Console::ALL>::FillVertices(vertices, color, textureCoords);
 
             this->buffer->SetBufferInfo();
-            this->buffer->FlushGPUDataCache();
+            m_vertexOffset += this->count;
         }
 
         void FillVertices(const Vertex* source)
@@ -89,11 +87,11 @@ namespace love
             DrawCommand<Console::ALL>::FillVertices(vertices, source);
 
             this->buffer->SetBufferInfo();
-            this->buffer->FlushGPUDataCache();
         }
 
       private:
         static inline TEXENV_MODE m_texEnvMode = TEXENV_MODE_MAX_ENUM;
+        static inline int m_vertexOffset       = 0;
 
         void SetTexEnv(TEXENV_MODE mode)
         {

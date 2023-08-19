@@ -11,18 +11,30 @@ namespace love
     struct DrawBuffer<Console::CTR> : public DrawBuffer<Console::ALL>
     {
       public:
+        static constexpr int MAX_OBJECTS        = 0x1000;
+        static constexpr int VERTEX_BUFFER_SIZE = 6 * MAX_OBJECTS;
+
         DrawBuffer()
         {}
 
-        DrawBuffer(size_t count) : DrawBuffer<Console::ALL>(count), info {}
-        {
-            BufInfo_Init(&this->info);
-            this->vertices = (Vertex*)linearAlloc(this->size);
+        DrawBuffer(size_t count) : DrawBuffer<Console::ALL>(count)
+        {}
 
-            int result = BufInfo_Add(&this->info, (void*)this->vertices, VERTEX_SIZE, 0x03, 0x210);
+        static void Init()
+        {
+            BufInfo_Init(&info);
+
+            vertices = (Vertex*)linearAlloc(VERTEX_BUFFER_SIZE * VERTEX_SIZE);
+
+            if (!vertices)
+                throw love::Exception("Out of memory.");
+
+            int result = BufInfo_Add(&info, (void*)vertices, VERTEX_SIZE, 0x03, 0x210);
 
             if (result < 0)
-                this->valid = false;
+                throw love::Exception("Failed to add C3D_BufInfo.");
+
+            initialized = true;
         }
 
         ~DrawBuffer()
@@ -36,23 +48,12 @@ namespace love
             C3D_SetBufInfo(&this->info);
         }
 
-        void FlushGPUDataCache()
-        {
-            if (this->valid)
-            {
-                Result result = GSPGPU_FlushDataCache((void*)this->vertices, this->size);
-
-                if (R_FAILED(result))
-                    this->valid = false;
-            }
-        }
-
         C3D_BufInfo* GetBuffer()
         {
             return &this->info;
         }
 
       private:
-        C3D_BufInfo info;
+        static inline C3D_BufInfo info {};
     };
 } // namespace love

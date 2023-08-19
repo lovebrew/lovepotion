@@ -6,6 +6,8 @@
 #include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 
+#include <algorithm>
+
 using namespace love;
 
 Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
@@ -25,10 +27,16 @@ Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
     AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
     AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
     AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
+
+    DrawBuffer<Console::CTR>::Init();
+
+    C3D_FrameEndHook(FrameEndHook, NULL);
 }
 
 Renderer<Console::CTR>::~Renderer()
 {
+    C3D_FrameEndHook(NULL, NULL);
+
     C3D_Fini();
     gfxExit();
 }
@@ -108,6 +116,24 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
     C3D_FrameDrawOn(this->current->GetTarget());
 }
 
+void Renderer<Console::CTR>::FlushVertices()
+{
+    if (totalVertices == 0)
+        return;
+
+    std::optional<GPU_Primitive_t> primitive;
+    if (!(primitive = Renderer::primitiveModes.Find(Renderer<Console::CTR>::currentPrimitiveType)))
+        return;
+
+    C3D_DrawArrays(*primitive, 0, totalVertices);
+    totalVertices = 0;
+}
+
+void Renderer<Console::CTR>::FrameEndHook(void* /*_*/)
+{
+    FlushVertices();
+}
+
 bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
 {
     Shader<Console::CTR>::defaults[command.shader]->Attach();
@@ -126,11 +152,9 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
         C3D_TexBind(0, this->currentTexture);
     }
 
-    std::optional<GPU_Primitive_t> primitive;
-    if (!(primitive = Renderer::primitiveModes.Find(command.type)))
-        return false;
+    currentPrimitiveType = command.type;
+    totalVertices += command.count;
 
-    C3D_DrawArrays(*primitive, 0, command.count);
     this->commands.push_back(command.buffer);
 
     return true;

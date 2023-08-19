@@ -49,6 +49,7 @@ namespace love
             return this->positions;
         }
 
+        /* primitive */
         void FillVertices(Vertex* vertices, const Color& color)
         {
             for (size_t index = 0; index < this->count; index++)
@@ -64,6 +65,7 @@ namespace love
             }
         }
 
+        /* primitive */
         void FillVertices(Vertex* vertices, const Color* colors)
         {
             for (size_t index = 0; index < this->count; index++)
@@ -79,6 +81,7 @@ namespace love
             }
         }
 
+        /* primitive */
         void FillVertices(Vertex* vertices, std::span<Color> colors)
         {
             for (size_t index = 0; index < this->count; index++)
@@ -94,6 +97,7 @@ namespace love
             }
         }
 
+        /* texture */
         void FillVertices(Vertex* vertices, const Color& color, const Vector2* textureCoords)
         {
             for (size_t index = 0; index < this->count; index++)
@@ -109,6 +113,7 @@ namespace love
             }
         }
 
+        /* font */
         void FillVertices(Vertex* destination, const Vertex* source)
         {
             for (size_t index = 0; index < this->count; index++)

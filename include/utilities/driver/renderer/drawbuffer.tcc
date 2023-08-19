@@ -12,12 +12,19 @@ namespace love
     struct DrawBuffer
     {
       public:
+#if defined(__3DS__)
+        DrawBuffer() : valid(false)
+        {}
+
+        DrawBuffer(size_t count) : size(count * VERTEX_SIZE), valid(true)
+        {}
+#else
         DrawBuffer() : vertices(nullptr), valid(false)
         {}
 
         DrawBuffer(size_t count) : size(count * VERTEX_SIZE), vertices(nullptr), valid(true)
         {}
-
+#endif
         DrawBuffer(DrawBuffer&&) = delete;
 
         DrawBuffer(const DrawBuffer&) = delete;
@@ -36,8 +43,14 @@ namespace love
 
       protected:
         size_t size;
+
+#if defined(__3DS__)
+        static inline Vertex* vertices = nullptr;
+#else
         Vertex* vertices;
+#endif
 
         bool valid;
+        static inline bool initialized = false;
     };
 } // namespace love
