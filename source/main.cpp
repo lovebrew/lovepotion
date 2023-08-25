@@ -14,6 +14,8 @@ DoneAction RunLOVE(int argc, char** argv, int& retval, Variant& restartValue)
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
+    luaopen_bit(L);
+
     /* preload "love" */
     luax::Preload(L, love::Initialize, "love");
 

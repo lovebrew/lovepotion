@@ -6,6 +6,7 @@ ppc-libmodplug
 ppc-libogg
 ppc-libpng
 ppc-libvorbisidec
+ppc-lua51
 ppc-lz4
 ppc-zlib
 wiiu-curl
