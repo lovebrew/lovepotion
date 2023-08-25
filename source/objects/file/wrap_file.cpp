@@ -403,7 +403,7 @@ int Wrap_File::Write(lua_State* L)
             Data* data = luax::ToType<Data>(L, 2);
 
             int64_t size = luaL_optinteger(L, 3, data->GetSize());
-            success      = self->Write(data, size);
+            success      = self->Write(data->GetData(), size);
         }
         catch (love::Exception& e)
         {
