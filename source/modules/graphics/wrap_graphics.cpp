@@ -796,6 +796,11 @@ int Wrap_Graphics::NewTexture(lua_State* L)
     return pushNewTexture(L, slicesReference, settings);
 }
 
+int Wrap_Graphics::NewImage(lua_State* L)
+{
+    return Wrap_Graphics::NewTexture(L);
+}
+
 /* PRIMITIVES */
 
 int Wrap_Graphics::Rectangle(lua_State* L)
@@ -1732,7 +1737,9 @@ static constexpr luaL_Reg functions[] =
     { "setLineStyle",          Wrap_Graphics::SetLineStyle          },
     { "setLineWidth",          Wrap_Graphics::SetLineWidth          },
     { "reset",                 Wrap_Graphics::Reset                 },
-    { "transformPoint",        Wrap_Graphics::TransformPoint        }
+    { "transformPoint",        Wrap_Graphics::TransformPoint        },
+    // helper and maybe deprecated soon™
+    { "newImage",              Wrap_Graphics::NewImage              }
 };
 
 static constexpr lua_CFunction types[] =

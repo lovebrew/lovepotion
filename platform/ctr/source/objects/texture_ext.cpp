@@ -297,6 +297,7 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
 
     DrawCommand<Console::CTR> command(0x04, vertex::PRIMITIVE_TRIANGLE_FAN);
     command.handles = { this->texture };
+    command.format  = CommonFormat::TEXTURE;
 
     if (is2D)
         translated.TransformXY(command.Positions().get(), this->quad->GetVertexPositions(),

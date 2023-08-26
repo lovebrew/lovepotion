@@ -679,6 +679,7 @@ void Font<Console::CTR>::Render(Graphics<Console::CTR>& graphics,
     {
         love::DrawCommand<Console::CTR> drawCommand(command.count, vertex::PRIMITIVE_TRIANGLES);
         drawCommand.handles = { command.texture };
+        drawCommand.format  = CommonFormat::FONT;
 
         translated.TransformXY(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);

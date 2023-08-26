@@ -55,6 +55,8 @@ namespace love
       protected:
         Info info;
 
+        static inline size_t m_vertexOffset = 0;
+
         bool inFrame;
         Rect viewport;
     };

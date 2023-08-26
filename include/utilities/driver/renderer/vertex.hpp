@@ -49,7 +49,8 @@ namespace love
         {
             NONE,
             PRIMITIVE,
-            TEXTURE
+            TEXTURE,
+            FONT
         };
 
         struct Vertex

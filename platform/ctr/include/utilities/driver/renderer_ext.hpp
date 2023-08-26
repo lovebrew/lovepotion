@@ -6,12 +6,12 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <utilities/driver/drawcommand_ext.hpp>
 #include <utilities/driver/framebuffer_ext.hpp>
+#include <utilities/driver/renderer/drawcommand.tcc>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
-#include <array>
+#include <vector>
 
 #include <3ds.h>
 #include <citro2d.h>
@@ -27,7 +27,10 @@ namespace love
         static constexpr const char* RENDERER_VENDOR  = "devkitPro";
         static constexpr const char* RENDERER_DEVICE  = "DMP PICA200";
 
-        static constexpr uint8_t MAX_RENDERTARGETS = 0x03;
+        static inline constexpr int MAX_OBJECTS        = 0x1000;
+        static inline constexpr int VERTEX_BUFFER_SIZE = 6 * MAX_OBJECTS;
+
+        static inline constexpr uint8_t MAX_RENDERTARGETS = 0x03;
 
         Renderer();
 
@@ -200,6 +203,11 @@ namespace love
         static inline PrimitiveType currentPrimitiveType = PRIMITIVE_MAX_ENUM;
         static inline int totalVertices                  = 0;
 
-        std::vector<std::shared_ptr<DrawBuffer<Console::CTR>>> commands;
+        static inline std::vector<DrawCommand<Console::CTR>> m_commands {};
+
+        C3D_BufInfo bufferInfo;
+
+        static inline CommonFormat m_format = CommonFormat::NONE;
+        static inline Vertex* m_vertices    = nullptr;
     };
 } // namespace love

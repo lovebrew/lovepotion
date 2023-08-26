@@ -18,7 +18,7 @@
 
 #include <objects/quad/quad.hpp>
 
-#include <utilities/driver/drawcommand_ext.hpp>
+#include <utilities/driver/renderer/drawcommand.tcc>
 
 #include <utilities/driver/renderer/polyline/polyline.hpp>
 
@@ -272,6 +272,16 @@ namespace love
         Font<Console::Which>* GetFont()
         {
             return this->states.back().font;
+        }
+
+        void SetCanvas(Texture<Console::Which>* canvas)
+        {
+            this->states.back().renderTarget = canvas;
+        }
+
+        Texture<Console::Which>* GetCanvas()
+        {
+            return this->states.back().renderTarget;
         }
 
         void SetShader()

@@ -1,12 +1,12 @@
 #include <utilities/driver/renderer_ext.hpp>
+#include <utilities/driver/vertex_ext.hpp>
 
 #include <common/exception.hpp>
 #include <common/luax.hpp>
 
+#include <algorithm>
 #include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
-
-#include <algorithm>
 
 using namespace love;
 
@@ -28,13 +28,23 @@ Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
     AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
     AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
 
-    DrawBuffer<Console::CTR>::Init();
+    BufInfo_Init(&this->bufferInfo);
+    m_vertices = (Vertex*)linearAlloc(VERTEX_BUFFER_SIZE * VERTEX_SIZE);
+
+    if (!m_vertices)
+        throw love::Exception("Out of memory.");
+
+    int result = BufInfo_Add(&this->bufferInfo, (void*)m_vertices, VERTEX_SIZE, 0x03, 0x210);
+
+    if (result < 0)
+        throw love::Exception("Failed to add C3D_BufInfo.");
 
     C3D_FrameEndHook(FrameEndHook, NULL);
 }
 
 Renderer<Console::CTR>::~Renderer()
 {
+    linearFree(m_vertices);
     C3D_FrameEndHook(NULL, NULL);
 
     C3D_Fini();
@@ -86,8 +96,6 @@ void Renderer<Console::CTR>::EnsureInFrame()
     if (!this->inFrame)
     {
         C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-
-        this->commands.clear();
         this->inFrame = true;
     }
 }
@@ -98,6 +106,7 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
         return;
 
     this->EnsureInFrame();
+    FlushVertices();
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
@@ -113,54 +122,76 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
         this->SetScissor(this->current->GetScissor(), false);
     }
 
-    FlushVertices();
     C3D_FrameDrawOn(this->current->GetTarget());
 }
 
 void Renderer<Console::CTR>::FlushVertices()
 {
-    if (totalVertices == 0)
-        return;
+    for (const auto& command : m_commands)
+    {
+        if (command.count + m_vertexOffset > MAX_OBJECTS)
+            m_vertexOffset = 0;
 
-    std::optional<GPU_Primitive_t> primitive;
-    if (!(primitive = Renderer::primitiveModes.Find(Renderer<Console::CTR>::currentPrimitiveType)))
-        return;
+        std::memcpy(m_vertices + m_vertexOffset, command.Vertices().get(), command.size);
 
-    C3D_DrawArrays(*primitive, 0, totalVertices);
+        if (m_format != command.format)
+        {
+            const auto setTexEnvFunction = vertex::attributes::GetTextEnvFunction(command.format);
+            setTexEnvFunction();
 
-    DrawCommand<Console::CTR>::m_vertexOffset = 0;
-    totalVertices                             = 0;
+            m_format = command.format;
+        }
+
+        std::optional<GPU_Primitive_t> primitive;
+        if (!(primitive = primitiveModes.Find(command.type)))
+            throw love::Exception("Invalid primitive mode");
+
+        C3D_DrawArrays(*primitive, m_vertexOffset, command.count);
+        m_vertexOffset += command.count;
+    }
+
+    m_commands.clear();
 }
 
 void Renderer<Console::CTR>::FrameEndHook(void* /*_*/)
 {
     FlushVertices();
+    m_vertexOffset = 0;
 }
 
 bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
 {
-    Shader<Console::CTR>::defaults[command.shader]->Attach();
-
-    if (!command.buffer->IsValid())
-        return false;
-
-    auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
-    this->current->UseProjection(uniforms);
-
-    if (command.handles.size() > 0)
     {
-        if (this->currentTexture != command.handles.back())
-            this->currentTexture = command.handles.back();
+        Shader<Console::CTR>::defaults[command.shader]->Attach();
 
-        C3D_TexBind(0, this->currentTexture);
+        auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
+        this->current->UseProjection(uniforms);
     }
 
-    currentPrimitiveType = command.type;
-    totalVertices += command.count;
+    // check if texture is the same, or no texture at all
+    if (command.handles.empty() ||
+        (command.handles.size() > 0 && this->currentTexture == command.handles.back()))
+    {
+        m_commands.push_back(command.Clone());
+        return true;
+    }
+    else
+    {
+        FlushVertices();
 
-    this->commands.push_back(command.buffer);
+        if (!command.handles.empty())
+        {
+            if (this->currentTexture != command.handles.back())
+                this->currentTexture = command.handles.back();
 
-    return true;
+            C3D_TexBind(0, command.handles.back());
+        }
+
+        m_commands.push_back(command.Clone());
+        return true;
+    }
+
+    return false;
 }
 
 void Renderer<Console::CTR>::Present()

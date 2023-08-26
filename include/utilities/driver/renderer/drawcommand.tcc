@@ -6,7 +6,6 @@
 #include <objects/shader/shader.tcc>
 #include <objects/texture/texture.tcc>
 
-#include <utilities/driver/renderer/drawbuffer.tcc>
 #include <utilities/driver/renderer/vertex.hpp>
 
 #include <memory>
@@ -37,6 +36,7 @@ namespace love
             try
             {
                 this->positions = std::make_unique<Vector2[]>(count);
+                this->vertices  = std::make_unique<Vertex[]>(count);
             }
             catch (std::bad_alloc&)
             {
@@ -44,18 +44,32 @@ namespace love
             }
         }
 
+        DrawCommand Clone()
+        {
+            DrawCommand clone(this->count);
+            std::copy_n(this->Positions().get(), count, clone.Positions().get());
+            std::copy_n(this->Vertices().get(), count, clone.Vertices().get());
+
+            return clone;
+        }
+
         const std::unique_ptr<Vector2[]>& Positions() const
         {
             return this->positions;
         }
 
+        const std::unique_ptr<Vertex[]>& Vertices() const
+        {
+            return this->vertices;
+        }
+
         /* primitive */
-        void FillVertices(Vertex* vertices, const Color& color)
+        void FillVertices(const Color& color)
         {
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-                vertices[index] =
+                this->vertices[index] =
                 {
                     .position = { this->positions[index].x, this->positions[index].y, 0 },
                     .color    = color.array(),
@@ -66,12 +80,12 @@ namespace love
         }
 
         /* primitive */
-        void FillVertices(Vertex* vertices, const Color* colors)
+        void FillVertices(const Color* colors)
         {
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-                vertices[index] =
+                this->vertices[index] =
                 {
                     .position = { this->positions[index].x, this->positions[index].y, 0 },
                     .color    = colors[index].array(),
@@ -82,12 +96,12 @@ namespace love
         }
 
         /* primitive */
-        void FillVertices(Vertex* vertices, std::span<Color> colors)
+        void FillVertices(std::span<Color> colors)
         {
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-                vertices[index] =
+                this->vertices[index] =
                 {
                     .position = { this->positions[index].x, this->positions[index].y, 0 },
                     .color    = colors[index].array(),
@@ -98,12 +112,12 @@ namespace love
         }
 
         /* texture */
-        void FillVertices(Vertex* vertices, const Color& color, const Vector2* textureCoords)
+        void FillVertices(const Color& color, const Vector2* textureCoords)
         {
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-                vertices[index] =
+                this->vertices[index] =
                 {
                     .position = { this->positions[index].x, this->positions[index].y, 0 },
                     .color    = color.array(),
@@ -114,12 +128,12 @@ namespace love
         }
 
         /* font */
-        void FillVertices(Vertex* destination, const Vertex* source)
+        void FillVertices(const Vertex* source)
         {
             for (size_t index = 0; index < this->count; index++)
             {
                 // clang-format off
-                destination[index] =
+                this->vertices[index] =
                 {
                     .position = { this->positions[index].x, this->positions[index].y, 0 },
                     .color    = source[index].color,
@@ -131,6 +145,8 @@ namespace love
 
       public:
         std::unique_ptr<Vector2[]> positions;
+        std::unique_ptr<Vertex[]> vertices;
+
         size_t count;
         size_t size;
 
@@ -143,7 +159,5 @@ namespace love
 #else
         std::vector<C3D_Tex*> handles;
 #endif
-
-        std::shared_ptr<DrawBuffer<Console::Which>> buffer;
     }; // namespace love
 } // namespace love
