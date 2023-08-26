@@ -108,9 +108,10 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
-        // this->current = texture->GetHandle();
         this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
         this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
+
+        C3D_FrameDrawOn(texture->GetRenderTargetHandle());
     }
     else
     {
@@ -118,9 +119,9 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
 
         this->SetViewport(this->current->GetViewport());
         this->SetScissor(this->current->GetScissor(), false);
-    }
 
-    C3D_FrameDrawOn(this->current->GetTarget());
+        C3D_FrameDrawOn(this->current->GetTarget());
+    }
 }
 
 void Renderer<Console::CTR>::FlushVertices()
@@ -144,6 +145,7 @@ void Renderer<Console::CTR>::FlushVertices()
         if (!(primitive = primitiveModes.Find(command.type)))
             throw love::Exception("Invalid primitive mode");
 
+        ++drawCallsBatched;
         C3D_DrawArrays(*primitive, m_vertexOffset, command.count);
         m_vertexOffset += command.count;
     }
@@ -164,6 +166,7 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
     if (command.handles.empty() ||
         (command.handles.size() > 0 && this->currentTexture == command.handles.back()))
     {
+        ++drawCalls;
         m_commands.push_back(command.Clone());
         return true;
     }
@@ -178,7 +181,7 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
 
             C3D_TexBind(0, command.handles.back());
         }
-
+        ++drawCalls;
         m_commands.push_back(command.Clone());
         return true;
     }
@@ -197,6 +200,9 @@ void Renderer<Console::CTR>::Present()
 
         this->inFrame = false;
     }
+
+    Renderer<>::cpuTime = C3D_GetProcessingTime();
+    Renderer<>::gpuTime = C3D_GetDrawingTime();
 
     for (size_t i = this->deferred.size(); i > 0; i--)
     {

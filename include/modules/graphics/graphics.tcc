@@ -73,6 +73,9 @@ namespace love
             int textures;
             int fonts;
             int64_t textureMemory;
+
+            float gpuTime;
+            float cpuTime;
         };
 
         struct DisplayState
@@ -228,6 +231,10 @@ namespace love
         void Present()
         {
             Renderer<Console::Which>::Instance().Present();
+
+            Renderer<Console::Which>::drawCalls        = 0;
+            Renderer<Console::Which>::drawCallsBatched = 0;
+            Shader<Console::Which>::shaderSwitches     = 0;
         }
 
         /* graphics state */
@@ -277,6 +284,10 @@ namespace love
         void SetCanvas(Texture<Console::Which>* canvas)
         {
             this->states.back().renderTarget = canvas;
+
+            Renderer<Console::Which>::Instance().BindFramebuffer(canvas);
+            if (this->states.back().scissor.active)
+                this->SetScissor(this->states.back().scissor.bounds);
         }
 
         Texture<Console::Which>* GetCanvas()
@@ -304,11 +315,15 @@ namespace love
         {
             Stats stats {};
 
-            stats.drawCalls      = Renderer<>::drawCalls;
-            stats.textures       = Texture<>::textureCount;
-            stats.fonts          = Font<>::fontCount;
-            stats.shaderSwitches = Shader<>::shaderSwitches;
-            stats.textureMemory  = Texture<>::totalGraphicsMemory;
+            stats.drawCalls        = Renderer<>::drawCalls;
+            stats.textures         = Texture<>::textureCount;
+            stats.fonts            = Font<>::fontCount;
+            stats.shaderSwitches   = Shader<>::shaderSwitches;
+            stats.textureMemory    = Texture<>::totalGraphicsMemory;
+            stats.drawCallsBatched = Renderer<>::drawCallsBatched;
+
+            stats.cpuTime = Renderer<>::cpuTime;
+            stats.gpuTime = Renderer<>::gpuTime;
 
             return stats;
         }

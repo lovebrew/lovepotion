@@ -146,6 +146,12 @@ namespace Wrap_Graphics
 
     int NewImage(lua_State* L);
 
+    int NewCanvas(lua_State* L);
+
+    int SetCanvas(lua_State* L);
+
+    int GetCanvas(lua_State* L);
+
     int NewQuad(lua_State* L);
 
     int NewTextBatch(lua_State* L);

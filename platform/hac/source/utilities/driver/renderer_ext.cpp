@@ -272,9 +272,6 @@ void Renderer<Console::HAC>::Present()
         this->inFrame = false;
     }
 
-    Shader<>::shaderSwitches = 0;
-    drawCalls                = 0;
-
     this->framebuffers.slot = -1;
 }
 
