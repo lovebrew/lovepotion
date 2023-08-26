@@ -11,6 +11,7 @@ switch-libpng
 switch-libtheora
 switch-libvorbis
 switch-libvorbisidec
+switch-lua51
 switch-lz4
 switch-physfs
 switch-zlib

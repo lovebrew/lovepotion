@@ -199,6 +199,13 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 # external libraries #
 
+# find PkgConfig for liblz4, libmpg123
+find_package(PkgConfig REQUIRED)
+
+# lua5.1
+pkg_check_modules(lua51 REQUIRED IMPORTED_TARGET lua51)
+target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::lua51)
+
 # ddsparse
 add_library(ddsparse
     libraries/ddsparse/ddsinfo.h
@@ -207,62 +214,10 @@ add_library(ddsparse
 )
 
 # lua51
-add_library(lua51
-    libraries/lua/bit.c
-    libraries/lua/lapi.c
-    libraries/lua/lapi.h
-    libraries/lua/lauxlib.c
-    libraries/lua/lauxlib.h
-    libraries/lua/lbaselib.c
-    libraries/lua/lcode.c
-    libraries/lua/lcode.h
-    libraries/lua/ldblib.c
-    libraries/lua/ldebug.c
-    libraries/lua/ldebug.h
-    libraries/lua/ldo.c
-    libraries/lua/ldo.h
-    libraries/lua/ldump.c
-    libraries/lua/lfunc.c
-    libraries/lua/lfunc.h
-    libraries/lua/lgc.c
-    libraries/lua/lgc.h
-    libraries/lua/linit.c
-    libraries/lua/liolib.c
-    libraries/lua/llex.c
-    libraries/lua/llex.h
-    libraries/lua/llimits.h
-    libraries/lua/lmathlib.c
-    libraries/lua/lmem.c
-    libraries/lua/lmem.h
-    libraries/lua/loadlib.c
-    libraries/lua/lobject.c
-    libraries/lua/lobject.h
-    libraries/lua/lopcodes.c
-    libraries/lua/lopcodes.h
-    libraries/lua/loslib.c
-    libraries/lua/lparser.c
-    libraries/lua/lparser.h
-    libraries/lua/lstate.c
-    libraries/lua/lstate.h
-    libraries/lua/lstring.c
-    libraries/lua/lstring.h
-    libraries/lua/lstrlib.c
-    libraries/lua/ltable.c
-    libraries/lua/ltable.h
-    libraries/lua/ltablib.c
-    libraries/lua/ltm.c
-    libraries/lua/ltm.h
-    libraries/lua/lua.h
-    libraries/lua/luaconf.h
-    libraries/lua/lualib.h
-    libraries/lua/lundump.c
-    libraries/lua/lundump.h
-    libraries/lua/lvm.c
-    libraries/lua/lvm.h
-    libraries/lua/lzio.c
-    libraries/lua/lzio.h
-    libraries/lua/print.c
+add_library(luabit
+    libraries/luabit/bit.c
 )
+target_link_libraries(luabit PRIVATE PkgConfig::lua51)
 
 # lua53-compat
 add_library(lua53
@@ -272,9 +227,7 @@ add_library(lua53
     libraries/lua53/lutf8lib.c
     libraries/lua53/lutf8lib.h
 )
-target_include_directories(lua53 PRIVATE
-    libraries/lua
-)
+target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
 add_library(luahttps
     libraries/luahttps/common/Connection.h
@@ -291,9 +244,7 @@ add_library(luahttps
     libraries/luahttps/generic/CurlClient.h
     libraries/luahttps/https.cpp
 )
-target_include_directories(luahttps PRIVATE
-    libraries/lua
-)
+target_link_libraries(luahttps PRIVATE PkgConfig::lua51)
 
 # luasocket
 add_library(luasocket
@@ -332,10 +283,13 @@ add_library(luasocket
      ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.c
      ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket/usocket.h
 )
+target_link_libraries(luasocket PRIVATE PkgConfig::lua51)
 target_include_directories(luasocket PRIVATE
-    libraries/lua
     libraries/lua53
 )
+
+# find PkgConfig for liblz4, libmpg123
+find_package(PkgConfig REQUIRED)
 
 # noise1234
 add_library(noise1234
@@ -362,12 +316,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
     __APP_VERSION__=\"${VERSION}\" __LOVE_VERSION__=\"${LOVE_VERSION}\"
 )
 
-# find PkgConfig for liblz4, libmpg123
-find_package(PkgConfig REQUIRED)
-
 # link lz4
 pkg_check_modules(liblz4 REQUIRED IMPORTED_TARGET liblz4)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::liblz4)
+
+# link lua5.1
+target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::lua51)
 
 # link curl
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
@@ -376,7 +330,7 @@ target_link_libraries(luahttps PRIVATE PkgConfig::libcurl)
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${APP_LIBS} physfs box2d z turbojpeg png vorbisidec ogg
-    modplug lua51 lua53 wuff ddsparse luahttps luasocket noise1234
+    modplug luabit lua53 wuff ddsparse luahttps luasocket noise1234
 )
 
 # Include directories
@@ -384,7 +338,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include
     libraries/ddsparse
     libraries/dr
-    libraries/lua
     libraries/lua53
     libraries/luahttps
     libraries/luasocket

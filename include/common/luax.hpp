@@ -13,6 +13,8 @@ extern "C"
 
 #include <l53strlib.h>
 #include <lutf8lib.h>
+
+    extern int luaopen_bit(lua_State*);
 }
 
 #include <numeric>
