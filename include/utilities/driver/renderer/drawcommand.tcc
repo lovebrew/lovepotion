@@ -46,7 +46,12 @@ namespace love
 
         DrawCommand Clone()
         {
-            DrawCommand clone(this->count);
+            DrawCommand clone(this->count, this->type);
+
+            clone.format  = this->format;
+            clone.handles = this->handles;
+            clone.shader  = this->shader;
+
             std::copy_n(this->Positions().get(), count, clone.Positions().get());
             std::copy_n(this->Vertices().get(), count, clone.Vertices().get());
 

@@ -182,8 +182,6 @@ namespace love
         // clang-format on
 
       private:
-        static void FrameEndHook(void* _);
-
         static void FlushVertices();
 
         template<typename T>

@@ -52,7 +52,7 @@ namespace love
                 C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
             }
 
-            static inline AttributeSetFunction GetTextEnvFunction(CommonFormat format)
+            static inline AttributeSetFunction GetTexEnvFunction(CommonFormat format)
             {
                 switch (format)
                 {

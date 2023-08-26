@@ -35,17 +35,15 @@ Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
         throw love::Exception("Out of memory.");
 
     int result = BufInfo_Add(&this->bufferInfo, (void*)m_vertices, VERTEX_SIZE, 0x03, 0x210);
+    C3D_SetBufInfo(&this->bufferInfo);
 
     if (result < 0)
         throw love::Exception("Failed to add C3D_BufInfo.");
-
-    C3D_FrameEndHook(FrameEndHook, NULL);
 }
 
 Renderer<Console::CTR>::~Renderer()
 {
     linearFree(m_vertices);
-    C3D_FrameEndHook(NULL, NULL);
 
     C3D_Fini();
     gfxExit();
@@ -136,7 +134,7 @@ void Renderer<Console::CTR>::FlushVertices()
 
         if (m_format != command.format)
         {
-            const auto setTexEnvFunction = vertex::attributes::GetTextEnvFunction(command.format);
+            const auto setTexEnvFunction = vertex::attributes::GetTexEnvFunction(command.format);
             setTexEnvFunction();
 
             m_format = command.format;
@@ -151,12 +149,6 @@ void Renderer<Console::CTR>::FlushVertices()
     }
 
     m_commands.clear();
-}
-
-void Renderer<Console::CTR>::FrameEndHook(void* /*_*/)
-{
-    FlushVertices();
-    m_vertexOffset = 0;
 }
 
 bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
@@ -198,7 +190,11 @@ void Renderer<Console::CTR>::Present()
 {
     if (this->inFrame)
     {
+        FlushVertices();
         C3D_FrameEnd(0);
+
+        m_vertexOffset = 0;
+
         this->inFrame = false;
     }
 
