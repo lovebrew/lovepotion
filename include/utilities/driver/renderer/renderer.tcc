@@ -19,8 +19,12 @@ namespace love
     class Renderer
     {
       public:
-        static inline int shaderSwitches = 0;
-        static inline int drawCalls      = 0;
+        static inline int shaderSwitches   = 0;
+        static inline int drawCalls        = 0;
+        static inline int drawCallsBatched = 0;
+
+        static inline float gpuTime = 0.0f;
+        static inline float cpuTime = 0.0f;
 
         struct Info
         {
@@ -54,6 +58,8 @@ namespace love
 
       protected:
         Info info;
+
+        static inline size_t m_vertexOffset = 0;
 
         bool inFrame;
         Rect viewport;

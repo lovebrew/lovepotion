@@ -192,7 +192,7 @@ void Polyline::draw(Graphics<Console::ALL>* gfx)
         if (this->triangle_mode == vertex::TRIANGLE_QUADS)
             mode = vertex::PRIMITIVE_QUADS;
 
-        DrawCommand command(totalVertices, mode);
+        DrawCommand<Console::Which> command(totalVertices, mode);
 
         if (is2D)
             t.TransformXY(command.Positions().get(), verts, totalVertices);

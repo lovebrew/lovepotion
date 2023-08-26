@@ -49,8 +49,18 @@ namespace love
         {
             NONE,
             PRIMITIVE,
-            TEXTURE
+            TEXTURE,
+            FONT
         };
+
+        struct Vertex
+        {
+            std::array<float, 3> position;
+            std::array<float, 4> color;
+            std::array<float, 2> texcoord;
+        };
+
+        static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
 
         static inline uint16_t normto16t(float in)
         {

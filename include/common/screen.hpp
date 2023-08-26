@@ -20,8 +20,9 @@ namespace love
 
     enum Screen : int8_t;
 
-    inline Screen currentScreen            = (Screen)0;
-    static constexpr Screen SCREEN_INVALID = (Screen)-1;
+    inline Screen currentScreen                   = (Screen)0;
+    static constexpr Screen SCREEN_INVALID        = (Screen)-1;
+    static constexpr inline Screen DEFAULT_SCREEN = (Screen)0;
 
     const ScreenInfo& GetScreenInfo(Screen);
     std::span<ScreenInfo> GetScreenInfo();

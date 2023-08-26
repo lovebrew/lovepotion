@@ -62,6 +62,7 @@ if(NINTENDO_3DS)
     # Specify that the executable is a 3DSX file
     ctr_create_3dsx(${PROJECT_NAME}
         SMDH  ${PROJECT_NAME}.smdh
+        ROMFS ${PROJECT_NAME}_ctr_romfs
     )
 
     set(APP_LIBS citro2d citro3d)
@@ -105,13 +106,6 @@ if(NINTENDO_SWITCH)
         ICON  ${APP_ICON}
         NACP  ${PROJECT_NAME}.nacp
         ROMFS ${PROJECT_NAME}_hac_romfs
-    )
-
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/utilities/driver/renderer/polyline/polyline.cpp
-        source/utilities/driver/renderer/polyline/types/beveljoin.cpp
-        source/utilities/driver/renderer/polyline/types/miterjoin.cpp
-        source/utilities/driver/renderer/polyline/types/nonejoin.cpp
     )
 
     find_package(Freetype REQUIRED)
@@ -183,13 +177,6 @@ if (NINTENDO_WIIU)
     )
 
     execute_process(COMMAND patch -d ${CMAKE_CURRENT_BINARY_DIR}/luasocket/libluasocket -N -i ${PROJECT_SOURCE_DIR}/platform/cafe/libraries/luasocket.patch)
-
-    target_sources(${PROJECT_NAME} PRIVATE
-        source/utilities/driver/renderer/polyline/polyline.cpp
-        source/utilities/driver/renderer/polyline/types/beveljoin.cpp
-        source/utilities/driver/renderer/polyline/types/miterjoin.cpp
-        source/utilities/driver/renderer/polyline/types/nonejoin.cpp
-    )
 
     find_package(Freetype REQUIRED)
     set(APP_LIBS freetype bz2)
@@ -451,6 +438,10 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/decoder/types/mp3decoder.cpp
     source/utilities/decoder/types/vorbisdecoder.cpp
     source/utilities/decoder/types/wavedecoder.cpp
+    source/utilities/driver/renderer/polyline/polyline.cpp
+    source/utilities/driver/renderer/polyline/types/beveljoin.cpp
+    source/utilities/driver/renderer/polyline/types/miterjoin.cpp
+    source/utilities/driver/renderer/polyline/types/nonejoin.cpp
     source/utilities/driver/renderer/renderstate.cpp
     source/utilities/driver/renderer/samplerstate.cpp
     source/utilities/formathandler/formathandler.cpp

@@ -4,6 +4,7 @@ namespace love
 {
     enum AbortCode
     {
+        ABORT_ROMFS,
         ABORT_MCU_HWC,
         ABORT_PTMU,
         ABORT_CFGU,
@@ -26,6 +27,7 @@ namespace love
     // clang-format off
     static constexpr BidirectionalMap abortTypes =
     {
+        ABORT_ROMFS,     "romfs",
         ABORT_MCU_HWC,   "mcu:HWC",
         ABORT_PTMU,      "ptm:u",
         ABORT_CFGU,      "cfg:u",

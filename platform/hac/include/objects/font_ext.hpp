@@ -126,12 +126,6 @@ namespace love
 
         static constexpr int MAX_TEXTURE_SIZE = 2048;
 
-        static constexpr uint32_t TAB_GLYPH   = 9;
-        static constexpr uint32_t SPACE_GLYPH = 32;
-
-        static constexpr uint32_t NEWLINE_GLYPH  = 10;
-        static constexpr uint32_t CARRIAGE_GLYPH = 13;
-
         bool LoadVolatile();
 
         void UnloadVolatile();
@@ -163,7 +157,6 @@ namespace love
 
         std::unordered_map<uint32_t, Glyph> glyphs;
         std::unordered_map<uint64_t, float> kernings;
-
         std::vector<StrongRasterizer> rasterizers;
     };
 } // namespace love

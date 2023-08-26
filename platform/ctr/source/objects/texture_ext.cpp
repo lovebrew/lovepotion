@@ -121,14 +121,14 @@ void Texture<Console::CTR>::UnloadVolatile()
     if (this->IsRenderTarget() && this->framebuffer != nullptr)
     {
         C3D_RenderTargetDelete(this->framebuffer);
-        C3D_TexDelete(this->image.tex);
+        C3D_TexDelete(this->texture);
 
-        delete this->image.tex;
+        delete this->texture;
     }
     else
     {
-        C3D_TexDelete(this->image.tex);
-        delete this->image.tex;
+        C3D_TexDelete(this->texture);
+        delete this->texture;
     }
 }
 
@@ -155,19 +155,19 @@ void Texture<Console::CTR>::CreateTexture()
     if (this->IsRenderTarget())
     {
         bool clear = !hasData;
-        createFramebufferObject(this->framebuffer, this->image.tex, _width, _height);
+        createFramebufferObject(this->framebuffer, this->texture, _width, _height);
     }
     else
     {
-        createTextureObject(this->image.tex, this->format, _width, _height);
+        createTextureObject(this->texture, this->format, _width, _height);
         const auto copySize = love::GetPixelFormatSliceSize(this->format, _width, _height);
 
         if (!hasData)
-            std::memset(this->image.tex->data, 0, copySize);
+            std::memset(this->texture->data, 0, copySize);
         else
-            std::memcpy(this->image.tex->data, this->slices.Get(0, 0)->GetData(), copySize);
+            std::memcpy(this->texture->data, this->slices.Get(0, 0)->GetData(), copySize);
 
-        C3D_TexFlush(this->image.tex);
+        C3D_TexFlush(this->texture);
     }
 
     this->SetSamplerState(this->state);
@@ -248,14 +248,14 @@ void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int sli
     switch (this->GetPixelFormat())
     {
         case PIXELFORMAT_RGB565_UNORM:
-            _replacePixels<uint16_t>(data, this->image.tex->data, rect, this->width, this->height);
+            _replacePixels<uint16_t>(data, this->texture->data, rect, this->width, this->height);
             break;
         default:
-            _replacePixels<uint32_t>(data, this->image.tex->data, rect, this->width, this->height);
+            _replacePixels<uint32_t>(data, this->texture->data, rect, this->width, this->height);
             break;
     }
 
-    C3D_TexFlush(this->image.tex);
+    C3D_TexFlush(this->texture);
 }
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
@@ -264,15 +264,15 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
     this->Draw(graphics, this->quad, matrix);
 }
 
-[[nodiscard]] static const std::unique_ptr<Tex3DS_SubTexture> calculateSubtextureViewport(
+[[nodiscard]] static const std::unique_ptr<Rect> calculateSubtextureViewport(
     const Quad::Viewport& viewport, C3D_Tex* texture)
 {
-    std::unique_ptr<Tex3DS_SubTexture> subTexture(new Tex3DS_SubTexture());
+    std::unique_ptr<Rect> subTexture(new Rect());
 
-    subTexture->top    = 1.0f - (viewport.y) / texture->height;
-    subTexture->left   = viewport.x / texture->width;
-    subTexture->right  = (viewport.x + viewport.w) / texture->width;
-    subTexture->bottom = 1.0f - ((viewport.y + viewport.h) / texture->height);
+    subTexture->y = 1.0f - (viewport.y) / texture->height;
+    subTexture->x = viewport.x / texture->width;
+    subTexture->w = (viewport.x + viewport.w) / texture->width;
+    subTexture->h = 1.0f - ((viewport.y + viewport.h) / texture->height);
 
     return subTexture;
 }
@@ -287,20 +287,24 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
         throw love::Exception("Cannot render a Texture to itself.");
 
     const Quad::Viewport& viewport = quad->GetViewport();
-    const auto uniqueSubTexture    = calculateSubtextureViewport(viewport, this->image.tex);
-    this->image.subtex             = uniqueSubTexture.get();
+    this->quad.Set(new Quad(viewport, (double)this->texture->width, (double)this->texture->height),
+                   Acquire::NORETAIN);
 
-    Matrix4<Console::CTR> transform(graphics.GetTransform(), matrix);
+    const auto& transform = graphics.GetTransform();
+    bool is2D             = transform.IsAffine2DTransform();
 
-    C2D_DrawParams params {};
-    params.pos    = { 0.0f, 0.0f, (float)viewport.w, (float)viewport.h };
-    params.center = { 0.0f, 0.0f };
-    params.depth  = graphics.GetCurrentDepth();
-    params.angle  = 0.0f;
+    Matrix4<Console::CTR> translated(graphics.GetTransform(), matrix);
 
-    C2D_ViewRestore(&transform.GetElements());
+    DrawCommand<Console::CTR> command(0x04, vertex::PRIMITIVE_TRIANGLE_FAN);
+    command.handles = { this->texture };
+    command.format  = CommonFormat::TEXTURE;
 
-    C2D_ImageTint tint {};
-    C2D_PlainImageTint(&tint, graphics.GetColor().rgba(), 1.0f);
-    C2D_DrawImage(this->image, &params, &tint);
+    if (is2D)
+        translated.TransformXY(command.Positions().get(), this->quad->GetVertexPositions(),
+                               command.count);
+
+    const auto* coords = this->quad->GetVertexTextureCoords();
+    command.FillVertices(graphics.GetColor(), coords);
+
+    Renderer<Console::CTR>::Instance().Render(command);
 }

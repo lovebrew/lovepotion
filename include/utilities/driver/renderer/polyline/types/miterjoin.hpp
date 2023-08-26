@@ -1,7 +1,7 @@
 #pragma once
 
-#if !defined(__3DS__)
-    #include <utilities/driver/renderer/polyline/polyline.hpp>
+#include <utilities/driver/renderer/polyline/polyline.hpp>
+
 namespace love
 {
     /**
@@ -24,4 +24,3 @@ namespace love
 
     }; // MiterJoinPolyline
 } // namespace love
-#endif

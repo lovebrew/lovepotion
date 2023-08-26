@@ -1,9 +1,9 @@
 #pragma once
 
-#if !defined(__3DS__)
-    #include <utilities/driver/renderer/polyline/polyline.hpp>
+#include <utilities/driver/renderer/polyline/polyline.hpp>
 
-    #include <algorithm>
+#include <algorithm>
+
 namespace love
 {
     /**
@@ -45,4 +45,3 @@ namespace love
 
     }; // NoneJoinPolyline
 } // namespace love
-#endif

@@ -18,15 +18,13 @@
 
 #include <objects/quad/quad.hpp>
 
-#if !defined(__3DS__)
-    #include <utilities/driver/drawcommand.hpp>
+#include <utilities/driver/renderer/drawcommand.tcc>
 
-    #include <utilities/driver/renderer/polyline/polyline.hpp>
+#include <utilities/driver/renderer/polyline/polyline.hpp>
 
-    #include <utilities/driver/renderer/polyline/types/beveljoin.hpp>
-    #include <utilities/driver/renderer/polyline/types/miterjoin.hpp>
-    #include <utilities/driver/renderer/polyline/types/nonejoin.hpp>
-#endif
+#include <utilities/driver/renderer/polyline/types/beveljoin.hpp>
+#include <utilities/driver/renderer/polyline/types/miterjoin.hpp>
+#include <utilities/driver/renderer/polyline/types/nonejoin.hpp>
 
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -75,6 +73,9 @@ namespace love
             int textures;
             int fonts;
             int64_t textureMemory;
+
+            float gpuTime;
+            float cpuTime;
         };
 
         struct DisplayState
@@ -230,6 +231,10 @@ namespace love
         void Present()
         {
             Renderer<Console::Which>::Instance().Present();
+
+            Renderer<Console::Which>::drawCalls        = 0;
+            Renderer<Console::Which>::drawCallsBatched = 0;
+            Shader<Console::Which>::shaderSwitches     = 0;
         }
 
         /* graphics state */
@@ -276,6 +281,20 @@ namespace love
             return this->states.back().font;
         }
 
+        void SetCanvas(Texture<Console::Which>* canvas)
+        {
+            this->states.back().renderTarget = canvas;
+
+            Renderer<Console::Which>::Instance().BindFramebuffer(canvas);
+            if (this->states.back().scissor.active)
+                this->SetScissor(this->states.back().scissor.bounds);
+        }
+
+        Texture<Console::Which>* GetCanvas()
+        {
+            return this->states.back().renderTarget;
+        }
+
         void SetShader()
         {
             this->states.back().shader.Set(nullptr);
@@ -296,11 +315,15 @@ namespace love
         {
             Stats stats {};
 
-            stats.drawCalls      = Renderer<>::drawCalls;
-            stats.textures       = Texture<>::textureCount;
-            stats.fonts          = Font<>::fontCount;
-            stats.shaderSwitches = Shader<>::shaderSwitches;
-            stats.textureMemory  = Texture<>::totalGraphicsMemory;
+            stats.drawCalls        = Renderer<>::drawCalls;
+            stats.textures         = Texture<>::textureCount;
+            stats.fonts            = Font<>::fontCount;
+            stats.shaderSwitches   = Shader<>::shaderSwitches;
+            stats.textureMemory    = Texture<>::totalGraphicsMemory;
+            stats.drawCallsBatched = Renderer<>::drawCallsBatched;
+
+            stats.cpuTime = Renderer<>::cpuTime;
+            stats.gpuTime = Renderer<>::gpuTime;
 
             return stats;
         }
@@ -624,7 +647,6 @@ namespace love
 
         /* PRIMITIVES */
 
-#if !defined(__3DS__)
         void Polyline(const std::span<Vector2> points)
         {
             float halfWidth                  = this->GetLineWidth() * 0.5f;
@@ -667,7 +689,7 @@ namespace love
                 bool is2D            = transform.IsAffine2DTransform();
 
                 const int count = points.size() - (skipLastVertex ? 1 : 0);
-                DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
+                DrawCommand<Console::Which> command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
                 if (is2D)
                     transform.TransformXY(command.Positions().get(), points.data(), command.count);
@@ -898,7 +920,7 @@ namespace love
             const auto& transform = this->GetTransform();
             bool is2D             = transform.IsAffine2DTransform();
 
-            DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
+            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_TRIANGLE_FAN);
 
             if (is2D)
                 transform.TransformXY(command.Positions().get(), points.data(), points.size());
@@ -915,7 +937,6 @@ namespace love
         {
             this->Polyline(points);
         }
-#endif
 
         /* PRIMITIVES */
 

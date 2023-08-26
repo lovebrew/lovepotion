@@ -10,9 +10,9 @@
 
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
+#include <utilities/driver/renderer/vertex.hpp>
 
 #include <objects/rasterizer/rasterizer.tcc>
-
 #include <vector>
 
 namespace love
@@ -60,6 +60,26 @@ namespace love
         {
             int width;
             int height;
+        };
+
+        template<typename Tex, size_t N>
+        struct Glyph
+        {
+            Tex* texture;
+            int spacing;
+            std::array<vertex::Vertex, N> vertices;
+
+            int sheet;
+        };
+
+        template<typename Tex>
+        struct DrawCommand
+        {
+            Tex* texture;
+            int start;
+            int count;
+
+            int sheet;
         };
 
         static inline int fontCount = 0;
@@ -111,12 +131,67 @@ namespace love
         // clang-format on
 
       protected:
+        static void GetCodepointsFromString(const ColoredStrings& strings, ColoredCodepoints& out)
+        {
+            if (strings.empty())
+                return;
+
+            out.codepoints.reserve(strings[0].string.size());
+
+            for (const auto& coloredString : strings)
+            {
+                if (coloredString.string.size() == 0)
+                    continue;
+
+                IndexedColor color = { coloredString.color, (int)out.codepoints.size() };
+                out.colors.push_back(color);
+
+                Font::GetCodepointsFromString(coloredString.string, out.codepoints);
+            }
+
+            if (out.colors.size() == 1)
+            {
+                IndexedColor color = out.colors[0];
+                if (color.index == 0 && color.color == Color(Color::WHITE))
+                    out.colors.pop_back();
+            }
+        }
+
+        static void GetCodepointsFromString(std::string_view text, Codepoints& out)
+        {
+            out.reserve(text.size());
+
+            try
+            {
+                Utf8Iterator start(text.begin(), text.begin(), text.end());
+                Utf8Iterator end(text.end(), text.begin(), text.end());
+
+                while (start != end)
+                {
+                    auto glyph = *start++;
+                    out.push_back(glyph);
+                }
+            }
+            catch (utf8::exception& exception)
+            {
+                throw love::Exception("UTF-8 decoding error: %s", exception.what());
+            }
+        }
+
+        static constexpr auto SPACES_PER_TAB  = 0x04;
+        static constexpr uint32_t TAB_GLYPH   = 9;
+        static constexpr uint32_t SPACE_GLYPH = 32;
+
+        static constexpr uint32_t NEWLINE_GLYPH  = 10;
+        static constexpr uint32_t CARRIAGE_GLYPH = 13;
+
         float lineHeight;
         float height;
 
         SamplerState samplerState;
         float dpiScale;
         bool useSpacesAsTab;
+        std::vector<Rasterizer<Console::Which>*> rasterizers;
 
         PixelFormat format;
     };

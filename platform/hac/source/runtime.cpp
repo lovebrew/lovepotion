@@ -99,6 +99,8 @@ extern "C"
 
         nifmExit();
 
+        romfsExit();
+
         plExit();
     }
 }

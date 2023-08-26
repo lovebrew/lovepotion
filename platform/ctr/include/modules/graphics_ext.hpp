@@ -47,47 +47,9 @@ namespace love
         void Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font, float wrap,
                     Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix);
 
-        /* primitives */
+        void SetShader();
 
-        void Polygon(DrawMode mode, std::span<Vector2> points);
-
-        void Polyfill(std::span<Vector2> points, u32 color, float depth);
-
-        void Polyline(std::span<Vector2> points);
-
-        void Rectangle(DrawMode mode, float x, float y, float width, float height);
-
-        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
-                       float ry);
-
-        void Rectangle(DrawMode mode, float x, float y, float width, float height, float rx,
-                       float ry, int points)
-        {
-            this->Rectangle(mode, x, y, width, height, rx, ry);
-        };
-
-        void Ellipse(DrawMode mode, float x, float y, float a, float b);
-
-        void Ellipse(DrawMode mode, float x, float y, float a, float b, int points)
-        {
-            this->Ellipse(mode, x, y, a, b);
-        };
-
-        void Circle(DrawMode mode, float x, float y, float radius);
-
-        void Circle(DrawMode mode, float x, float y, float radius, int points) {};
-
-        void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
-                 float angle2);
-
-        void Arc(DrawMode drawmode, ArcMode arcmode, float x, float y, float radius, float angle1,
-                 float angle2, int points) {};
-
-        void Points(std::span<Vector2> points, std::span<Color> colors);
-
-        void SetPointSize(float size);
-
-        void Line(std::span<Vector2> points);
+        void SetShader(Shader<Console::CTR>* shader);
 
         /* specific stuff */
 

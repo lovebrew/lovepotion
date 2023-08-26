@@ -38,13 +38,13 @@
 #define LOVE_TODEG(x) (float)(x * LOVE_M_TODEG)
 
 /* Misc. Math Constants */
-#define LOVE_M_E        2.71828182845904523536
-#define LOVE_M_LOG2E    1.44269504088896340736
-#define LOVE_M_LOG10E   0.434294481903251827651
-#define LOVE_M_LN2      0.693147180559945309417
-#define LOVE_M_LN10     2.30258509299404568402
-#define LOVE_M_SQRT2    1.41421356237309504880
-#define LOVE_M_SQRT1_2  0.707106781186547524401
+#define LOVE_M_E       2.71828182845904523536
+#define LOVE_M_LOG2E   1.44269504088896340736
+#define LOVE_M_LOG10E  0.434294481903251827651
+#define LOVE_M_LN2     0.693147180559945309417
+#define LOVE_M_LN10    2.30258509299404568402
+#define LOVE_M_SQRT2   1.41421356237309504880
+#define LOVE_M_SQRT1_2 0.707106781186547524401
 
 /* 3DS Texture Limits */
 #define LOVE_TEX3DS_MIN 0x08
@@ -76,7 +76,7 @@ namespace love
             this->x = rect[0];
             this->y = rect[1];
             this->w = rect[2];
-            this->h = rect[4];
+            this->h = rect[3];
         }
 
         Rect(int x, int y, int width, int height) : x(x), y(y), w(width), h(height)

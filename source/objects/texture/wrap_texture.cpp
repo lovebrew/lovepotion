@@ -252,7 +252,7 @@ int Wrap_Texture::GetMipmapFilter(lua_State* L)
     const SamplerState& state = self->GetSamplerState();
     std::optional<const char*> mipmapMode;
 
-    if (mipmapMode = SamplerState::mipMapFilterModes.ReverseFind(state.mipmapFilter))
+    if ((mipmapMode = SamplerState::mipMapFilterModes.ReverseFind(state.mipmapFilter)))
         lua_pushstring(L, *mipmapMode);
     else
         lua_pushnil(L);

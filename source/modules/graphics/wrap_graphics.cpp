@@ -796,6 +796,76 @@ int Wrap_Graphics::NewTexture(lua_State* L)
     return pushNewTexture(L, slicesReference, settings);
 }
 
+int Wrap_Graphics::NewImage(lua_State* L)
+{
+    return Wrap_Graphics::NewTexture(L);
+}
+
+int Wrap_Graphics::NewCanvas(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    Texture<Console::Which>::Settings settings {};
+    std::optional<bool> forceRenderTarget(false);
+    bool setDPIScale = false;
+
+    if (lua_istable(L, 1))
+        checkTextureSettings(L, 1, false, true, true, forceRenderTarget, settings, setDPIScale);
+    else
+    {
+        settings.width = luaL_optinteger(L, 1, love::GetScreenWidth(love::DEFAULT_SCREEN));
+        settings.width = luaL_optinteger(L, 1, love::GetScreenHeight(love::DEFAULT_SCREEN));
+
+        int start = 3;
+
+        if (lua_isnumber(L, 3))
+        {
+            settings.layers = luaL_checkinteger(L, 3);
+            settings.type   = Texture<Console::Which>::TEXTURE_2D_ARRAY;
+            start           = 4;
+        }
+
+        checkTextureSettings(L, start, true, true, false, forceRenderTarget, settings, setDPIScale);
+    }
+
+    if (!setDPIScale)
+        settings.dpiScale = 1.0f;
+
+    Texture<Console::Which>* texture = nullptr;
+    luax::CatchException(L, [&]() { texture = instance()->NewTexture(settings); });
+
+    luax::PushType(L, texture);
+    texture->Release();
+
+    return 1;
+}
+
+int Wrap_Graphics::SetCanvas(lua_State* L)
+{
+    Texture<Console::Which>* canvas = nullptr;
+
+    if (!lua_isnoneornil(L, 1))
+    {
+        canvas = luax::CheckType<Texture<Console::Which>>(L, 1);
+
+        if (!canvas->IsRenderTarget())
+            throw love::Exception("Texture is not a RenderTarget");
+    }
+
+    instance()->SetCanvas(canvas);
+
+    return 0;
+}
+
+int Wrap_Graphics::GetCanvas(lua_State* L)
+{
+    Texture<Console::Which>* canvas = instance()->GetCanvas();
+
+    luax::PushType(L, canvas);
+
+    return 1;
+}
+
 /* PRIMITIVES */
 
 int Wrap_Graphics::Rectangle(lua_State* L)
@@ -1665,6 +1735,15 @@ int Wrap_Graphics::GetStats(lua_State* L)
     lua_pushinteger(L, stats.textureMemory);
     lua_setfield(L, -2, "texturememory");
 
+    lua_pushnumber(L, stats.cpuTime);
+    lua_setfield(L, -2, "cputime");
+
+    lua_pushnumber(L, stats.gpuTime);
+    lua_setfield(L, -2, "gputime");
+
+    lua_pushnumber(L, stats.drawCallsBatched);
+    lua_setfield(L, -2, "drawcallsbatched");
+
     return 1;
 }
 
@@ -1732,7 +1811,10 @@ static constexpr luaL_Reg functions[] =
     { "setLineStyle",          Wrap_Graphics::SetLineStyle          },
     { "setLineWidth",          Wrap_Graphics::SetLineWidth          },
     { "reset",                 Wrap_Graphics::Reset                 },
-    { "transformPoint",        Wrap_Graphics::TransformPoint        }
+    { "transformPoint",        Wrap_Graphics::TransformPoint        },
+    // helper and maybe deprecated soon™
+    { "newImage",              Wrap_Graphics::NewImage              },
+    { "newCanvas",             Wrap_Graphics::NewCanvas             }
 };
 
 static constexpr lua_CFunction types[] =

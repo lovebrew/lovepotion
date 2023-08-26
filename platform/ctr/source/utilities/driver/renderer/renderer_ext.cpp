@@ -1,13 +1,16 @@
 #include <utilities/driver/renderer_ext.hpp>
+#include <utilities/driver/vertex_ext.hpp>
 
 #include <common/exception.hpp>
 #include <common/luax.hpp>
 
+#include <algorithm>
+#include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using namespace love;
 
-Renderer<Console::CTR>::Renderer() : targets { nullptr }
+Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
 {
     gfxInitDefault();
     gfxSet3D(true);
@@ -15,22 +18,34 @@ Renderer<Console::CTR>::Renderer() : targets { nullptr }
     if (!C3D_Init(C3D_DEFAULT_CMDBUF_SIZE))
         throw love::Exception("Failed to initialize citro3d!");
 
-    if (!C2D_Init(C2D_DEFAULT_MAX_OBJECTS))
-        throw love::Exception("Failed to initialize citro2d!");
+    C3D_CullFace(GPU_CULL_NONE);
+    C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
 
-    C2D_Prepare();
+    C3D_AttrInfo* attributes = C3D_GetAttrInfo();
+    AttrInfo_Init(attributes);
 
-    C2D_Flush();
-    C3D_AlphaTest(true, GPU_GREATER, 0);
-    C2D_SetTintMode(C2D_TintMult);
+    AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3); // position
+    AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
+    AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
+
+    BufInfo_Init(&this->bufferInfo);
+    m_vertices = (Vertex*)linearAlloc(VERTEX_BUFFER_SIZE * VERTEX_SIZE);
+
+    if (!m_vertices)
+        throw love::Exception("Out of memory.");
+
+    int result = BufInfo_Add(&this->bufferInfo, (void*)m_vertices, VERTEX_SIZE, 0x03, 0x210);
+    C3D_SetBufInfo(&this->bufferInfo);
+
+    if (result < 0)
+        throw love::Exception("Failed to add C3D_BufInfo.");
 }
 
 Renderer<Console::CTR>::~Renderer()
 {
-    C2D_Fini();
+    linearFree(m_vertices);
 
     C3D_Fini();
-
     gfxExit();
 }
 
@@ -51,22 +66,19 @@ Renderer<Console::CTR>::Info Renderer<Console::CTR>::GetRendererInfo()
 
 void Renderer<Console::CTR>::CreateFramebuffers()
 {
-
-    this->targets = { C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT),
-                      C2D_CreateScreenTarget(GFX_TOP, GFX_RIGHT),
-                      C2D_CreateScreenTarget(GFX_BOTTOM, GFX_LEFT) };
+    for (uint8_t index = 0; index < this->targets.size(); index++)
+        this->targets[index].Create((Screen)index);
 }
 
 void Renderer<Console::CTR>::DestroyFramebuffers()
 {
-    for (auto* framebuffer : this->targets)
-        C3D_RenderTargetDelete(framebuffer);
+    for (uint8_t index = 0; index < this->targets.size(); index++)
+        this->targets[index].Destroy();
 }
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    Graphics<Console::CTR>::ResetDepth();
-    C2D_TargetClear(this->current, color.rgba());
+    C3D_RenderTargetClear(this->current->GetTarget(), C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
 /* todo */
@@ -86,24 +98,111 @@ void Renderer<Console::CTR>::EnsureInFrame()
     }
 }
 
-void Renderer<Console::CTR>::BindFramebuffer()
+void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
 {
     if (!IsActiveScreenValid())
         return;
 
     this->EnsureInFrame();
+    FlushVertices();
 
-    this->current = this->targets[love::GetActiveScreen()];
-    C2D_SceneBegin(this->current);
+    if (texture != nullptr && texture->IsRenderTarget())
+    {
+        this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
+        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
+
+        C3D_FrameDrawOn(texture->GetRenderTargetHandle());
+    }
+    else
+    {
+        this->current = &this->targets[love::GetActiveScreen()];
+
+        this->SetViewport(this->current->GetViewport());
+        this->SetScissor(this->current->GetScissor(), false);
+
+        C3D_FrameDrawOn(this->current->GetTarget());
+    }
+}
+
+void Renderer<Console::CTR>::FlushVertices()
+{
+    for (const auto& command : m_commands)
+    {
+        if (command.count + m_vertexOffset > MAX_OBJECTS)
+            m_vertexOffset = 0;
+
+        std::memcpy(m_vertices + m_vertexOffset, command.Vertices().get(), command.size);
+
+        if (m_format != command.format)
+        {
+            const auto setTexEnvFunction = vertex::attributes::GetTexEnvFunction(command.format);
+            setTexEnvFunction();
+
+            m_format = command.format;
+        }
+
+        std::optional<GPU_Primitive_t> primitive;
+        if (!(primitive = primitiveModes.Find(command.type)))
+            throw love::Exception("Invalid primitive mode");
+
+        ++drawCallsBatched;
+        C3D_DrawArrays(*primitive, m_vertexOffset, command.count);
+        m_vertexOffset += command.count;
+    }
+
+    m_commands.clear();
+}
+
+bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
+{
+    {
+        Shader<Console::CTR>::defaults[command.shader]->Attach();
+
+        auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
+        this->current->UseProjection(uniforms);
+    }
+
+    // check if texture is the same, or no texture at all
+    if (command.handles.empty() ||
+        (command.handles.size() > 0 && this->currentTexture == command.handles.back()))
+    {
+        ++drawCalls;
+        m_commands.push_back(command.Clone());
+        return true;
+    }
+    else
+    {
+        FlushVertices();
+
+        if (!command.handles.empty())
+        {
+            if (this->currentTexture != command.handles.back())
+                this->currentTexture = command.handles.back();
+
+            C3D_TexBind(0, command.handles.back());
+        }
+        ++drawCalls;
+        m_commands.push_back(command.Clone());
+        return true;
+    }
+
+    return false;
 }
 
 void Renderer<Console::CTR>::Present()
 {
     if (this->inFrame)
     {
+        FlushVertices();
         C3D_FrameEnd(0);
+
+        m_vertexOffset = 0;
+
         this->inFrame = false;
     }
+
+    Renderer<>::cpuTime = C3D_GetProcessingTime();
+    Renderer<>::gpuTime = C3D_GetDrawingTime();
 
     for (size_t i = this->deferred.size(); i > 0; i--)
     {
@@ -114,33 +213,12 @@ void Renderer<Console::CTR>::Present()
 
 void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
 {
-    C2D_Flush();
-    C3D_SetViewport(viewport.x, viewport.y, viewport.w, viewport.h);
-
-    this->viewport = viewport;
+    this->current->SetViewport(viewport);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    const bool enable    = (scissor != Rect::EMPTY);
-    GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
-
-    if (enable)
-        C2D_Flush();
-
-    auto* graphics = Module::GetInstance<Graphics<Console::CTR>>(Module::M_GRAPHICS);
-
-    if (!graphics)
-        throw love::Exception("Graphics module not loaded.");
-
-    const auto width = love::GetScreenWidth();
-
-    uint32_t left   = 240 > (scissor.y + scissor.h) ? 240 - (scissor.y + scissor.h) : 0;
-    uint32_t top    = width > (scissor.x + scissor.w) ? width - (scissor.x + scissor.w) : 0;
-    uint32_t right  = 240 - scissor.y;
-    uint32_t bottom = width - scissor.x;
-
-    C3D_SetScissor(mode, left, top, right, bottom);
+    this->current->SetScissor(scissor);
 }
 
 void Renderer<Console::CTR>::SetStencil(RenderState::CompareMode mode, int value)
@@ -161,7 +239,6 @@ void Renderer<Console::CTR>::SetMeshCullMode(vertex::CullMode mode)
     if (!(cullMode = Renderer::cullModes.Find(mode)))
         return;
 
-    C2D_Flush();
     C3D_CullFace(*cullMode);
 }
 
@@ -200,8 +277,6 @@ void Renderer<Console::CTR>::SetSamplerState(Texture<Console::CTR>* texture, Sam
 
 void Renderer<Console::CTR>::SetColorMask(const RenderState::ColorMask& mask)
 {
-    C2D_Flush();
-
     uint8_t writeMask = GPU_WRITE_DEPTH;
     writeMask |= mask.GetColorMask();
 
@@ -234,6 +309,5 @@ void Renderer<Console::CTR>::SetBlendMode(const RenderState::BlendState& state)
     if (!(dstAlpha = Renderer::blendFactors.Find(state.dstFactorA)))
         return;
 
-    C2D_Flush();
     C3D_AlphaBlend(*opRGB, *opAlpha, *srcColor, *dstColor, *srcAlpha, *dstAlpha);
 }

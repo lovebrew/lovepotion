@@ -1,45 +1,55 @@
+#include <modules/fontmodule_ext.hpp>
+
 #include <objects/rasterizer_ext.hpp>
 
 using namespace love;
 
 Rasterizer<Console::CTR>::Rasterizer(Data* data, int size) : glyphCount(-1), data(data)
 {
-    this->font = C2D_FontLoadFromMem(data->GetData(), data->GetSize());
+    this->face = FontModule<Console::CTR>::LoadFontFromFile(data->GetData(), data->GetSize());
 
-    if (!this->font)
-        throw love::Exception("BCFNT loading erorr (problem with font file?)");
+    if (!this->face)
+        throw love::Exception("BCFNT loading error (problem with font file?)");
 
     this->InitMetrics(size);
 }
 
 Rasterizer<Console::CTR>::Rasterizer(CFG_Region region, int size) : glyphCount(-1)
 {
-    this->font = C2D_FontLoadSystem(region);
+    this->face = FontModule<Console::CTR>::LoadSystemFont(region);
 
     this->InitMetrics(size);
 }
 
-Rasterizer<Console::CTR>::~Rasterizer()
+Rasterizer<Console::CTR>::Rasterizer(CFNT_s* face) : glyphCount(-1)
 {
-    C2D_FontFree(this->font);
+    this->face = face;
 }
 
-int Rasterizer<Console::CTR>::Scale(uint8_t in)
+Rasterizer<Console::CTR>::~Rasterizer()
 {
-    return in * this->scale;
+    if (this->face)
+        linearFree(this->face);
+}
+
+int Rasterizer<Console::CTR>::Scale(uint8_t value)
+{
+    return value * this->scale;
 }
 
 void Rasterizer<Console::CTR>::InitMetrics(int size)
 {
-    FINF_s* fontInfo  = C2D_FontGetInfo(this->font);
+    this->dpiScale = 1.0f;
+
+    FINF_s* fontInfo  = fontGetInfo(this->face);
     TGLP_s* sheetInfo = fontInfo->tglp;
 
-    this->scale = size / 30.0f;
+    this->scale = std::floor(size + this->dpiScale + 0.5f) / sheetInfo->cellHeight;
 
     this->metrics.advance = this->Scale(sheetInfo->maxCharWidth);
     this->metrics.ascent  = this->Scale(fontInfo->ascent);
     this->metrics.descent = this->Scale((fontInfo->height - fontInfo->ascent));
-    this->metrics.height  = this->Scale(fontInfo->height);
+    this->metrics.height  = this->Scale(sheetInfo->cellHeight);
 
     this->dataType = DATA_BCFNT;
 }
@@ -62,20 +72,35 @@ GlyphData* Rasterizer<Console::CTR>::GetGlyphData(const std::string_view& text) 
 
 GlyphData* Rasterizer<Console::CTR>::GetGlyphData(uint32_t glyph) const
 {
-    GlyphData::GlyphMetrics gMetrics {};
+    GlyphData::GlyphMetrics metrics {};
+    fontGlyphPos_s out;
 
-    int glyphIndex = C2D_FontGlyphIndexFromCodePoint(this->font, glyph);
+    int index = fontGlyphIndexFromCodePoint(this->face, glyph);
+    fontCalcGlyphPos(&out, this->face, index, GLYPH_POS_CALC_VTXCOORD, this->scale, this->scale);
 
-    fontGlyphPos_s glyphPosition;
-    C2D_FontCalcGlyphPos(this->font, &glyphPosition, glyphIndex, 0, this->scale, this->scale);
+    metrics.height   = this->metrics.height;
+    metrics.width    = out.width;
+    metrics.advance  = out.xAdvance;
+    metrics.bearingX = out.xOffset;
+    metrics.bearingY = this->metrics.ascent;
 
-    gMetrics.height   = this->metrics.height;
-    gMetrics.width    = glyphPosition.width;
-    gMetrics.advance  = glyphPosition.xAdvance;
-    gMetrics.bearingX = glyphPosition.xOffset;
-    gMetrics.bearingY = this->metrics.ascent;
+    GlyphSheetInfo sheetInfo {};
+    sheetInfo.index = out.sheetIndex;
 
-    return new GlyphData(glyph, gMetrics, PIXELFORMAT_RGBA8_UNORM);
+    sheetInfo.top    = out.texcoord.top;
+    sheetInfo.left   = out.texcoord.left;
+    sheetInfo.right  = out.texcoord.right;
+    sheetInfo.bottom = out.texcoord.bottom;
+
+    this->glyphSheetInfo[glyph] = sheetInfo;
+
+    return new GlyphData(glyph, metrics, PIXELFORMAT_RGBA8_UNORM);
+}
+
+Rasterizer<Console::CTR>::GlyphSheetInfo& Rasterizer<Console::CTR>::GetSheetInfo(
+    uint32_t glyph) const
+{
+    return this->glyphSheetInfo[glyph];
 }
 
 int Rasterizer<Console::CTR>::GetGlyphCount() const
@@ -84,7 +109,7 @@ int Rasterizer<Console::CTR>::GetGlyphCount() const
         return this->glyphCount;
 
     /* cache this data, as it's slow and stupid */
-    FINF_s* info = C2D_FontGetInfo(this->font);
+    FINF_s* info = fontGetInfo(this->face);
     int count    = 0;
 
     for (auto map = info->cmap; map; map = map->next)
@@ -121,8 +146,8 @@ bool Rasterizer<Console::CTR>::HasGlyphs(const std::string_view& text) const
 
 bool Rasterizer<Console::CTR>::HasGlyph(uint32_t glyph) const
 {
-    int index    = C2D_FontGlyphIndexFromCodePoint(this->font, glyph);
-    FINF_s* info = C2D_FontGetInfo(this->font);
+    int index        = fontGlyphIndexFromCodePoint(this->face, glyph);
+    const auto* info = fontGetInfo(this->face);
 
     return index != info->alterCharIndex;
 }
