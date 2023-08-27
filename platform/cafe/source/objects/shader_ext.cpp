@@ -1,6 +1,7 @@
 #include <objects/shader_ext.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
+#include <utilities/driver/vertex_ext.hpp>
 
 #include <gfd.h>
 #include <gx2/mem.h>

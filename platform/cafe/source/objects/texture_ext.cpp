@@ -305,11 +305,11 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
 
     Matrix4<Console::CAFE> transform(stateTransform, matrix);
 
-    auto command         = DrawCommand(4);
-    command.shader       = Shader<>::STANDARD_TEXTURE;
-    command.format       = vertex::CommonFormat::TEXTURE;
-    command.primitveType = vertex::PRIMITIVE_QUADS;
-    command.handles      = { this };
+    love::DrawCommand<Console::CAFE> command(4);
+    command.shader  = Shader<>::STANDARD_TEXTURE;
+    command.format  = vertex::CommonFormat::TEXTURE;
+    command.type    = vertex::PRIMITIVE_QUADS;
+    command.handles = { this };
 
     if (is2D)
         transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);

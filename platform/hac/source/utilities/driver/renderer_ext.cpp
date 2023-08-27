@@ -307,7 +307,7 @@ void Renderer<Console::HAC>::SetAttributes(const vertex::attributes::Attribs& at
     this->commandBuffer.bindVtxBufferState(attributes.bufferState);
 }
 
-bool Renderer<Console::HAC>::Render(const DrawCommand& command)
+bool Renderer<Console::HAC>::Render(const DrawCommand<Console::HAC>& command)
 {
     if (command.count > (this->vertices.getSize() - this->firstVertex))
         return false;
@@ -322,11 +322,17 @@ bool Renderer<Console::HAC>::Render(const DrawCommand& command)
     }
 
     std::optional<DkPrimitive> primitive;
-    if (!(primitive = primitiveModes.Find(command.primitveType)))
+    if (!(primitive = primitiveModes.Find(command.type)))
         return false;
 
     if (!command.handles.empty())
-        this->CheckDescriptorsDirty(command.handles);
+    {
+        std::vector<DkResHandle> handles {};
+        for (size_t index = 0; index < command.handles.size(); index++)
+            handles.push_back(command.handles[index]->GetHandle());
+
+        this->CheckDescriptorsDirty(handles);
+    }
 
     std::memcpy(this->data + this->firstVertex, command.vertices.get(), command.size);
     this->commandBuffer.draw(*primitive, command.count, 1, this->firstVertex, 0);

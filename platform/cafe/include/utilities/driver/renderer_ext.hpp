@@ -6,7 +6,7 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <utilities/driver/drawcommand.hpp>
+#include <utilities/driver/renderer/drawcommand.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
@@ -46,6 +46,8 @@
 
 namespace love
 {
+    using namespace vertex;
+
     template<>
     class Renderer<Console::CAFE> : public Renderer<Console::ALL>
     {
@@ -54,6 +56,12 @@ namespace love
         static constexpr const char* RENDERER_VERSION = "1.0.0";
         static constexpr const char* RENDERER_VENDOR  = "AMD";
         static constexpr const char* RENDERER_DEVICE  = "GPU7";
+
+        static inline constexpr int MAX_OBJECTS        = 0x1000;
+        static inline constexpr int VERTEX_BUFFER_SIZE = 4 * MAX_OBJECTS;
+        static constexpr auto BUFFER_CREATE_FLAGS =
+            GX2R_RESOURCE_BIND_VERTEX_BUFFER | GX2R_RESOURCE_USAGE_CPU_READ |
+            GX2R_RESOURCE_USAGE_CPU_WRITE | GX2R_RESOURCE_USAGE_GPU_READ;
 
         static constexpr uint8_t MAX_RENDERTARGETS = 0x02;
 
@@ -121,9 +129,11 @@ namespace love
 
         void SetPointSize(float size);
 
-        bool Render(DrawCommand& command);
+        bool Render(DrawCommand<Console::CAFE>& command);
 
         void UseProgram(const WHBGfxShaderGroup& group);
+
+        static void FlushVertices();
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {
@@ -219,8 +229,6 @@ namespace love
             uint32_t writeMask;
         } renderState;
 
-        std::vector<std::shared_ptr<DrawBuffer>> buffers;
-
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 
         static uint32_t ProcUIAcquired(void* args);
@@ -236,6 +244,11 @@ namespace love
 
         Framebuffer* current;
         GX2ContextState* state;
+
+        static inline std::vector<DrawCommand<Console::CAFE>> m_commands {};
+        static inline CommonFormat m_format = CommonFormat::NONE;
+        static inline GX2RBuffer m_buffer {};
+        static inline size_t m_vertexOffset = 0;
 
         std::map<Screen, Framebuffer> framebuffers;
     };

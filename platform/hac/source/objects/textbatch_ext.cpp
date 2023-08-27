@@ -59,7 +59,7 @@ void TextBatch<Console::HAC>::RegenerateVertices()
 void TextBatch<Console::HAC>::AddTextData(const TextBatch<Console::HAC>::TextData& data)
 {
     std::vector<vertex::Vertex> vertices;
-    std::vector<Font<Console::HAC>::DrawCommand> newCommands;
+    std::vector<Font<Console::HAC>::DrawCommand<>> newCommands;
 
     Font<Console::HAC>::TextInfo info;
     Color constantColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -183,11 +183,11 @@ void TextBatch<Console::HAC>::Draw(Graphics<Console::HAC>& graphics,
 
     for (const auto& cmd : drawCommands)
     {
-        love::DrawCommand drawCommand(cmd.count);
-        drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
-        drawCommand.format       = vertex::CommonFormat::TEXTURE;
-        drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
-        drawCommand.handles      = { cmd.texture->GetHandle() };
+        love::DrawCommand<Console::HAC> drawCommand(cmd.count);
+        drawCommand.shader  = Shader<>::STANDARD_TEXTURE;
+        drawCommand.format  = vertex::CommonFormat::TEXTURE;
+        drawCommand.type    = vertex::PRIMITIVE_QUADS;
+        drawCommand.handles = { cmd.texture };
 
         transform.TransformXY(drawCommand.Positions().get(), this->vertexBuffer.data(), cmd.count);
 

@@ -39,7 +39,7 @@ namespace love
             constexpr std::array<DkVtxAttribState, 3> TextureAttribState = {
                 DkVtxAttribState { 0, 0, offsetof(Vertex, position), DkVtxAttribSize_3x32, DkVtxAttribType_Float, 0 },
                 DkVtxAttribState { 0, 0, offsetof(Vertex, color),    DkVtxAttribSize_4x32, DkVtxAttribType_Float, 0 },
-                DkVtxAttribState { 0, 0, offsetof(Vertex, texcoord), DkVtxAttribSize_2x16, DkVtxAttribType_Unorm, 0 }
+                DkVtxAttribState { 0, 0, offsetof(Vertex, texcoord), DkVtxAttribSize_2x32, DkVtxAttribType_Float, 0 }
             };
             // clang-format on
 

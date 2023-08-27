@@ -59,7 +59,7 @@ void TextBatch<Console::CAFE>::RegenerateVertices()
 void TextBatch<Console::CAFE>::AddTextData(const TextBatch<Console::CAFE>::TextData& data)
 {
     std::vector<vertex::Vertex> vertices;
-    std::vector<Font<Console::CAFE>::DrawCommand> newCommands;
+    std::vector<Font<Console::CAFE>::DrawCommand<>> newCommands;
 
     Font<Console::CAFE>::TextInfo info;
     Color constantColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -183,11 +183,11 @@ void TextBatch<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics,
 
     for (const auto& cmd : drawCommands)
     {
-        love::DrawCommand drawCommand(cmd.count);
-        drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
-        drawCommand.format       = vertex::CommonFormat::TEXTURE;
-        drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
-        drawCommand.handles      = { cmd.texture };
+        love::DrawCommand<Console::CAFE> drawCommand(cmd.count);
+        drawCommand.shader  = Shader<>::STANDARD_TEXTURE;
+        drawCommand.format  = vertex::CommonFormat::TEXTURE;
+        drawCommand.type    = vertex::PRIMITIVE_QUADS;
+        drawCommand.handles = { cmd.texture };
 
         transform.TransformXY(drawCommand.Positions().get(), this->vertexBuffer.data(), cmd.count);
 

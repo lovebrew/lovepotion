@@ -217,7 +217,7 @@ GlyphData* Font<Console::HAC>::GetRasterizerGlyphData(uint32_t glyph, float& dpi
     return this->rasterizers[0]->GetGlyphData(glyph);
 }
 
-const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
+const Font<Console::HAC>::Glyph<>& Font<Console::HAC>::AddGlyph(uint32_t glyph)
 {
     float dpiScale = this->GetDPIScale();
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph, dpiScale));
@@ -249,10 +249,10 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
         }
     }
 
-    Glyph _glyph {};
+    Glyph<> _glyph {};
     _glyph.texture = nullptr;
     _glyph.spacing = std::floor(data->GetAdvance() / dpiScale + 0.5f);
-    std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
+    std::fill_n(_glyph.vertices.data(), 4, vertex::Vertex {});
 
     /* don't waste space on empty glyphs */
     if (width > 0 && height > 0)
@@ -303,10 +303,10 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
         const vertex::Vertex vertices[4] =
         {
             /* x                                      y                             z                u                                                 v                                                  */
-            {{ -offset,                               -offset,                      0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y - offset) / _height)          }},
-            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x - offset) / _width),         vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y + height + offset) / _height) }},
-            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { vertex::normto16t((x + width + offset) / _width), vertex::normto16t((y - offset) / _height)          }}
+            {{ -offset,                               -offset,                      0.0f }, color, { (x - offset) / _width,         (y - offset) / _height          }},
+            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { (x - offset) / _width,         (y + height + offset) / _height }},
+            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { (x + width + offset) / _width, (y + height + offset) / _height }},
+            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { (x + width + offset) / _width, (y - offset) / _height          }}
         };
         // clang-format on
 
@@ -327,7 +327,7 @@ const Font<Console::HAC>::Glyph& Font<Console::HAC>::AddGlyph(uint32_t glyph)
     return this->glyphs[glyph];
 }
 
-const Font<Console::HAC>::Glyph& Font<Console::HAC>::FindGlyph(uint32_t glyph)
+const Font<Console::HAC>::Glyph<>& Font<Console::HAC>::FindGlyph(uint32_t glyph)
 {
     const auto iterator = this->glyphs.find(glyph);
 
@@ -427,7 +427,7 @@ void Font<Console::HAC>::GetCodepointsFromString(const ColoredStrings& strings,
     }
 }
 
-std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertices(
+std::vector<Font<Console::HAC>::DrawCommand<>> Font<Console::HAC>::GenerateVertices(
     const ColoredCodepoints& text, const Color& constantColor,
     std::vector<vertex::Vertex>& vertices, float extraSpacing, Vector2 offset, TextInfo* info)
 {
@@ -439,7 +439,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
         heightOffset = this->GetBaseline();
 
     int maxWidth = 0;
-    std::vector<DrawCommand> commands;
+    std::vector<DrawCommand<>> commands;
 
     /* reserve max possible vertex size */
     size_t startSize = vertices.size();
@@ -533,7 +533,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
 
             if (commands.empty() || commands.back().texture != glyphData.texture)
             {
-                DrawCommand command {};
+                DrawCommand<Texture<Console::Which>> command {};
                 command.start   = (int)vertices.size() - 4;
                 command.count   = 0;
                 command.texture = glyphData.texture;
@@ -554,7 +554,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
     }
 
     /* texture binds are expensive, so we should sort by that first */
-    const auto drawsort = [](const DrawCommand& a, const DrawCommand& b) -> bool {
+    const auto drawsort = [](const DrawCommand<>& a, const DrawCommand<>& b) -> bool {
         if (a.texture != b.texture)
             return a.texture < b.texture;
         else
@@ -577,14 +577,14 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
     return commands;
 }
 
-std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVerticesFormatted(
+std::vector<Font<Console::HAC>::DrawCommand<>> Font<Console::HAC>::GenerateVerticesFormatted(
     const ColoredCodepoints& text, const Color& constantColor, float wrap, AlignMode align,
     std::vector<vertex::Vertex>& vertices, TextInfo* info)
 {
     wrap             = std::max(wrap, 0.0f);
     uint32_t cacheId = this->textureCacheID;
 
-    std::vector<DrawCommand> commands;
+    std::vector<DrawCommand<>> commands;
     vertices.reserve(text.codepoints.size() * 4);
 
     std::vector<int> widths;
@@ -633,7 +633,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
                 break;
         }
 
-        std::vector<DrawCommand> newCommands =
+        std::vector<DrawCommand<>> newCommands =
             this->GenerateVertices(line, constantColor, vertices, extraSpacing, offset);
 
         if (!newCommands.empty())
@@ -679,7 +679,7 @@ std::vector<Font<Console::HAC>::DrawCommand> Font<Console::HAC>::GenerateVertice
 
 void Font<Console::HAC>::Printv(Graphics<Console::HAC>& graphics,
                                 const Matrix4<Console::HAC>& transform,
-                                const std::vector<DrawCommand>& commands,
+                                const std::vector<DrawCommand<>>& commands,
                                 const std::vector<vertex::Vertex>& vertices)
 {
     if (vertices.empty() || commands.empty())
@@ -689,11 +689,11 @@ void Font<Console::HAC>::Printv(Graphics<Console::HAC>& graphics,
 
     for (const auto& command : commands)
     {
-        love::DrawCommand drawCommand(command.count);
-        drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
-        drawCommand.format       = vertex::CommonFormat::TEXTURE;
-        drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
-        drawCommand.handles      = { command.texture->GetHandle() };
+        love::DrawCommand<Console::HAC> drawCommand(command.count);
+        drawCommand.shader  = Shader<>::STANDARD_TEXTURE;
+        drawCommand.format  = CommonFormat::TEXTURE;
+        drawCommand.type    = PRIMITIVE_QUADS;
+        drawCommand.handles = { command.texture };
 
         matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);
@@ -710,7 +710,7 @@ void Font<Console::HAC>::Print(Graphics<Console::HAC>& graphics, const ColoredSt
     Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<vertex::Vertex> vertices {};
-    std::vector<DrawCommand> commands = this->GenerateVertices(codepoints, color, vertices);
+    std::vector<DrawCommand<>> commands = this->GenerateVertices(codepoints, color, vertices);
 
     this->Printv(graphics, matrix, commands, vertices);
 }
@@ -723,7 +723,7 @@ void Font<Console::HAC>::Printf(Graphics<Console::HAC>& graphics, const ColoredS
     Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<vertex::Vertex> vertices {};
-    std::vector<DrawCommand> commands =
+    std::vector<DrawCommand<>> commands =
         this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
 
     this->Printv(graphics, matrix, commands, vertices);

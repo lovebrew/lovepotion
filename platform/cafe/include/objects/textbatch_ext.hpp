@@ -47,7 +47,7 @@ namespace love
             Matrix4<Console::CAFE> matrix;
         };
 
-        std::vector<Font<Console::CAFE>::DrawCommand> drawCommands;
+        std::vector<Font<Console::CAFE>::DrawCommand<>> drawCommands;
         std::vector<TextData> textData;
         size_t vertexOffset;
         std::vector<vertex::Vertex> vertexBuffer;

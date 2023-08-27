@@ -13,13 +13,6 @@ namespace love
     class Font<Console::HAC> : public Font<Console::ALL>
     {
       public:
-        struct DrawCommand
-        {
-            Texture<Console::HAC>* texture;
-            int start;
-            int count;
-        };
-
         Font(Rasterizer<Console::HAC>* rasterizer, const SamplerState& state);
 
         virtual ~Font()
@@ -93,28 +86,21 @@ namespace love
             return 0.0f;
         }
 
-        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
-                                                  const Color& color,
-                                                  std::vector<vertex::Vertex>& vertices,
-                                                  float extraSpacing = 0.0f, Vector2 offset = {},
-                                                  TextInfo* info = nullptr);
+        std::vector<DrawCommand<>> GenerateVertices(const ColoredCodepoints& codepoints,
+                                                    const Color& color,
+                                                    std::vector<vertex::Vertex>& vertices,
+                                                    float extraSpacing = 0.0f, Vector2 offset = {},
+                                                    TextInfo* info = nullptr);
 
-        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
-                                                           const Color& color, float wrap,
-                                                           AlignMode align,
-                                                           std::vector<vertex::Vertex>& vertices,
-                                                           TextInfo* info = nullptr);
+        std::vector<DrawCommand<>> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
+                                                             const Color& color, float wrap,
+                                                             AlignMode align,
+                                                             std::vector<vertex::Vertex>& vertices,
+                                                             TextInfo* info = nullptr);
 
         void SetFont(Font* font);
 
       private:
-        struct Glyph
-        {
-            Texture<Console::HAC>* texture;
-            int spacing;
-            vertex::Vertex vertices[4];
-        };
-
         struct TextureSize
         {
             int width;
@@ -136,12 +122,12 @@ namespace love
 
         GlyphData* GetRasterizerGlyphData(uint32_t glyph, float& dpiScale);
 
-        const Glyph& AddGlyph(uint32_t glyph);
+        const Glyph<>& AddGlyph(uint32_t glyph);
 
-        const Glyph& FindGlyph(uint32_t glyph);
+        const Glyph<>& FindGlyph(uint32_t glyph);
 
         void Printv(Graphics<Console::HAC>& graphics, const Matrix4<Console::HAC>& transform,
-                    const std::vector<DrawCommand>& drawCommands,
+                    const std::vector<DrawCommand<>>& drawCommands,
                     const std::vector<vertex::Vertex>& vertices);
 
         int textureX;
@@ -155,7 +141,7 @@ namespace love
 
         std::vector<StrongReference<Texture<Console::HAC>>> textures;
 
-        std::unordered_map<uint32_t, Glyph> glyphs;
+        std::unordered_map<uint32_t, Glyph<>> glyphs;
         std::unordered_map<uint64_t, float> kernings;
         std::vector<StrongRasterizer> rasterizers;
     };

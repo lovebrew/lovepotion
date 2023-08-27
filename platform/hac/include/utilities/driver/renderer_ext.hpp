@@ -6,7 +6,7 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
-#include <utilities/driver/drawcommand.hpp>
+#include <utilities/driver/renderer/drawcommand.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/vertex_ext.hpp>
@@ -128,7 +128,7 @@ namespace love
 
         void CheckDescriptorsDirty(const std::vector<DkResHandle>& handles);
 
-        bool Render(const DrawCommand& command);
+        bool Render(const DrawCommand<Console::HAC>& command);
 
         void UseProgram(Shader<Console::Which>::Program program);
 

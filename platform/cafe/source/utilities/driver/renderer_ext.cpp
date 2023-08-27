@@ -73,6 +73,15 @@ Renderer<Console::CAFE>::Renderer() :
     this->renderState.depthTest   = false;
     this->renderState.depthWrite  = false;
     this->renderState.compareMode = GX2_COMPARE_FUNC_ALWAYS;
+
+    m_buffer.elemCount = MAX_OBJECTS;
+    m_buffer.elemSize  = vertex::VERTEX_SIZE;
+    m_buffer.flags     = BUFFER_CREATE_FLAGS;
+
+    if (bool valid = GX2RCreateBuffer(&m_buffer); !valid)
+        throw love::Exception("Failed to create GX2RBuffer");
+
+    GX2RSetAttributeBuffer(&m_buffer, 0, VERTEX_SIZE, 0);
 }
 
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
@@ -136,6 +145,8 @@ Renderer<Console::CAFE>::~Renderer()
 {
     if (this->inForeground)
         this->OnForegroundReleased();
+
+    GX2RDestroyBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
 
     GX2Shutdown();
 
@@ -239,6 +250,7 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
 void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
 {
     this->EnsureInFrame();
+    FlushVertices();
 
     if (texture && texture->IsRenderTarget())
     {
@@ -259,38 +271,68 @@ void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
     this->current->UseProjection();
 }
 
-bool Renderer<Console::CAFE>::Render(DrawCommand& command)
+void Renderer<Console::CAFE>::FlushVertices()
+{
+    auto* vertices = (Vertex*)GX2RLockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
+
+    for (const auto& command : m_commands)
+    {
+        if (command.count + m_vertexOffset > MAX_OBJECTS)
+            m_vertexOffset = 0;
+
+        std::memcpy(vertices + m_vertexOffset, command.Vertices().get(), command.size);
+
+        std::optional<GX2PrimitiveMode> primitive;
+        if (!(primitive = primitiveModes.Find(command.type)))
+            throw love::Exception("Invalid primitive mode");
+
+        ++drawCallsBatched;
+        GX2DrawEx(*primitive, command.count, m_vertexOffset, 1);
+        m_vertexOffset += command.count;
+    }
+
+    GX2RUnlockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
+    m_commands.clear();
+}
+
+bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 {
     Shader<Console::CAFE>::defaults[command.shader]->Attach();
 
-    if (!command.buffer->IsValid())
-        return false;
-
-    std::optional<GX2PrimitiveMode> primitive;
-    if (!(primitive = primitiveModes.Find(command.primitveType)))
-        return false;
-
-    if (!command.handles.empty())
+    // todo: check for duplicate texture?
+    if (command.handles.empty())
     {
-        for (size_t index = 0; index < command.handles.size(); index++)
-        {
-            auto* texture = command.handles[index]->GetHandle();
-            auto* sampler = &command.handles[index]->GetSampler();
+        ++drawCalls;
+        m_commands.push_back(command.Clone());
+        return true;
+    }
+    else
+    {
+        FlushVertices();
 
-            Shader<Console::CAFE>::current->BindTexture(index, texture, sampler);
+        if (!command.handles.empty())
+        {
+            for (size_t index = 0; index < command.handles.size(); index++)
+            {
+                auto* texture = command.handles[index]->GetHandle();
+                auto* sampler = &command.handles[index]->GetSampler();
+
+                Shader<Console::CAFE>::current->BindTexture(index, texture, sampler);
+            }
         }
+
+        ++drawCalls;
+        m_commands.push_back(command.Clone());
+        return true;
     }
 
-    GX2RSetAttributeBuffer(command.buffer->GetBuffer(), 0, command.stride, 0);
-    GX2DrawEx(*primitive, command.count, 0, 1);
-
-    this->buffers.push_back(command.buffer);
-
-    return true;
+    return false;
 }
 
 void Renderer<Console::CAFE>::Present()
 {
+    FlushVertices();
+
     GX2DrawDone();
 
     if (Keyboard()->IsShowing())
@@ -315,8 +357,7 @@ void Renderer<Console::CAFE>::Present()
     GX2Flush();
 
     GX2WaitForFlip();
-
-    this->buffers.clear();
+    m_vertexOffset = 0;
 }
 
 void Renderer<Console::CAFE>::SetSamplerState(Texture<Console::CAFE>* texture, SamplerState& state)

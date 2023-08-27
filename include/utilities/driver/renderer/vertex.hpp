@@ -62,11 +62,6 @@ namespace love
 
         static constexpr size_t VERTEX_SIZE = sizeof(Vertex);
 
-        static inline uint16_t normto16t(float in)
-        {
-            return uint16_t(in * 0xFFFF);
-        }
-
         // clang-format off
         static constexpr BidirectionalMap cullModes = {
             "none",  CULL_NONE,

@@ -380,11 +380,11 @@ void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics, Quad* quad,
 
     Matrix4<Console::HAC> transform(stateTransform, matrix);
 
-    DrawCommand command(4);
-    command.shader       = Shader<>::STANDARD_TEXTURE;
-    command.format       = vertex::CommonFormat::TEXTURE;
-    command.primitveType = vertex::PRIMITIVE_QUADS;
-    command.handles      = { this->textureHandle };
+    DrawCommand<Console::HAC> command(4);
+    command.shader  = Shader<>::STANDARD_TEXTURE;
+    command.format  = vertex::CommonFormat::TEXTURE;
+    command.type    = vertex::PRIMITIVE_QUADS;
+    command.handles = { this };
 
     if (is2D)
         transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);

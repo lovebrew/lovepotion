@@ -4,14 +4,8 @@
 #include <modules/window_ext.hpp>
 
 #include <objects/font_ext.hpp>
-#include <objects/shader_ext.hpp>
-#include <objects/texture_ext.hpp>
-
 #include <objects/textbatch_ext.hpp>
-
-#include <utilities/driver/vertex_ext.hpp>
-
-#include <utilities/driver/renderer_ext.hpp>
+#include <objects/texture_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::HAC>;
 using namespace love;

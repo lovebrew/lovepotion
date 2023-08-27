@@ -13,6 +13,8 @@
 #include <utilities/driver/renderer/vertex.hpp>
 
 #include <objects/rasterizer/rasterizer.tcc>
+#include <objects/texture/texture.tcc>
+
 #include <vector>
 
 namespace love
@@ -62,7 +64,7 @@ namespace love
             int height;
         };
 
-        template<typename Tex, size_t N>
+        template<typename Tex = Texture<Console::Which>, size_t N = 4>
         struct Glyph
         {
             Tex* texture;
@@ -72,7 +74,7 @@ namespace love
             int sheet;
         };
 
-        template<typename Tex>
+        template<typename Tex = Texture<Console::Which>>
         struct DrawCommand
         {
             Tex* texture;

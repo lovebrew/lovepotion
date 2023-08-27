@@ -217,7 +217,7 @@ GlyphData* Font<Console::CAFE>::GetRasterizerGlyphData(uint32_t glyph, float& dp
     return this->rasterizers[0]->GetGlyphData(glyph);
 }
 
-const Font<Console::CAFE>::Glyph& Font<Console::CAFE>::AddGlyph(uint32_t glyph)
+const Font<Console::CAFE>::Glyph<>& Font<Console::CAFE>::AddGlyph(uint32_t glyph)
 {
     float dpiScale = this->GetDPIScale();
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph, dpiScale));
@@ -252,7 +252,7 @@ const Font<Console::CAFE>::Glyph& Font<Console::CAFE>::AddGlyph(uint32_t glyph)
     Glyph _glyph {};
     _glyph.texture = nullptr;
     _glyph.spacing = std::floor(data->GetAdvance() / dpiScale + 0.5f);
-    std::fill_n(_glyph.vertices, 4, vertex::Vertex {});
+    std::fill_n(_glyph.vertices.data(), 4, vertex::Vertex {});
 
     /* don't waste space on empty glyphs */
     if (width > 0 && height > 0)
@@ -327,7 +327,7 @@ const Font<Console::CAFE>::Glyph& Font<Console::CAFE>::AddGlyph(uint32_t glyph)
     return this->glyphs[glyph];
 }
 
-const Font<Console::CAFE>::Glyph& Font<Console::CAFE>::FindGlyph(uint32_t glyph)
+const Font<Console::CAFE>::Glyph<>& Font<Console::CAFE>::FindGlyph(uint32_t glyph)
 {
     const auto iterator = this->glyphs.find(glyph);
 
@@ -426,7 +426,7 @@ void Font<Console::CAFE>::GetCodepointsFromString(const ColoredStrings& strings,
     }
 }
 
-std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVertices(
+std::vector<Font<>::DrawCommand<>> Font<Console::CAFE>::GenerateVertices(
     const ColoredCodepoints& text, const Color& constantColor,
     std::vector<vertex::Vertex>& vertices, float extraSpacing, Vector2 offset, TextInfo* info)
 {
@@ -438,7 +438,7 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
         heightOffset = this->GetBaseline();
 
     int maxWidth = 0;
-    std::vector<DrawCommand> commands;
+    std::vector<DrawCommand<>> commands;
 
     /* reserve max possible vertex size */
     size_t startSize = vertices.size();
@@ -553,7 +553,7 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
     }
 
     /* texture binds are expensive, so we should sort by that first */
-    const auto drawsort = [](const DrawCommand& a, const DrawCommand& b) -> bool {
+    const auto drawsort = [](const DrawCommand<>& a, const DrawCommand<>& b) -> bool {
         if (a.texture != b.texture)
             return a.texture < b.texture;
         else
@@ -576,14 +576,14 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
     return commands;
 }
 
-std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerticesFormatted(
+std::vector<Font<>::DrawCommand<>> Font<Console::CAFE>::GenerateVerticesFormatted(
     const ColoredCodepoints& text, const Color& constantColor, float wrap, AlignMode align,
     std::vector<vertex::Vertex>& vertices, TextInfo* info)
 {
     wrap             = std::max(wrap, 0.0f);
     uint32_t cacheId = this->textureCacheID;
 
-    std::vector<DrawCommand> commands;
+    std::vector<DrawCommand<>> commands;
     vertices.reserve(text.codepoints.size() * 4);
 
     std::vector<int> widths;
@@ -632,7 +632,7 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
                 break;
         }
 
-        std::vector<DrawCommand> newCommands =
+        std::vector<DrawCommand<>> newCommands =
             this->GenerateVertices(line, constantColor, vertices, extraSpacing, offset);
 
         if (!newCommands.empty())
@@ -678,7 +678,7 @@ std::vector<Font<Console::CAFE>::DrawCommand> Font<Console::CAFE>::GenerateVerti
 
 void Font<Console::CAFE>::Printv(Graphics<Console::CAFE>& graphics,
                                  const Matrix4<Console::CAFE>& transform,
-                                 const std::vector<DrawCommand>& commands,
+                                 const std::vector<DrawCommand<>>& commands,
                                  const std::vector<vertex::Vertex>& vertices)
 {
     if (vertices.empty() || commands.empty())
@@ -688,11 +688,11 @@ void Font<Console::CAFE>::Printv(Graphics<Console::CAFE>& graphics,
 
     for (const auto& command : commands)
     {
-        auto drawCommand         = love::DrawCommand(command.count);
-        drawCommand.shader       = Shader<>::STANDARD_TEXTURE;
-        drawCommand.format       = vertex::CommonFormat::TEXTURE;
-        drawCommand.primitveType = vertex::PRIMITIVE_QUADS;
-        drawCommand.handles      = { command.texture };
+        love::DrawCommand<Console::CAFE> drawCommand(command.count);
+        drawCommand.shader  = Shader<>::STANDARD_TEXTURE;
+        drawCommand.format  = vertex::CommonFormat::TEXTURE;
+        drawCommand.type    = vertex::PRIMITIVE_QUADS;
+        drawCommand.handles = { command.texture };
 
         matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);
@@ -709,7 +709,7 @@ void Font<Console::CAFE>::Print(Graphics<Console::CAFE>& graphics, const Colored
     Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<vertex::Vertex> vertices;
-    std::vector<DrawCommand> commands = this->GenerateVertices(codepoints, color, vertices);
+    std::vector<DrawCommand<>> commands = this->GenerateVertices(codepoints, color, vertices);
 
     this->Printv(graphics, matrix, commands, vertices);
 }
@@ -722,7 +722,7 @@ void Font<Console::CAFE>::Printf(Graphics<Console::CAFE>& graphics, const Colore
     Font::GetCodepointsFromString(text, codepoints);
 
     std::vector<vertex::Vertex> vertices;
-    std::vector<DrawCommand> commands =
+    std::vector<DrawCommand<>> commands =
         this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
 
     this->Printv(graphics, matrix, commands, vertices);
