@@ -239,6 +239,8 @@ namespace love
 
         int OnForegroundReleased();
 
+        bool TexturesChanged(std::vector<Texture<Console::CAFE>*> handles);
+
         bool inForeground;
         void* commandBuffer;
 
@@ -249,6 +251,8 @@ namespace love
         static inline CommonFormat m_format = CommonFormat::NONE;
         static inline GX2RBuffer m_buffer {};
         static inline size_t m_vertexOffset = 0;
+
+        std::vector<Texture<Console::CAFE>*> currentTextures;
 
         std::map<Screen, Framebuffer> framebuffers;
     };

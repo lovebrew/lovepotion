@@ -281,7 +281,12 @@ void Renderer<Console::CAFE>::FlushVertices()
             m_vertexOffset = 0;
 
         std::memcpy(vertices + m_vertexOffset, command.Vertices().get(), command.size);
+    }
 
+    GX2RUnlockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
+
+    for (const auto& command : m_commands)
+    {
         std::optional<GX2PrimitiveMode> primitive;
         if (!(primitive = primitiveModes.Find(command.type)))
             throw love::Exception("Invalid primitive mode");
@@ -291,8 +296,21 @@ void Renderer<Console::CAFE>::FlushVertices()
         m_vertexOffset += command.count;
     }
 
-    GX2RUnlockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
     m_commands.clear();
+}
+
+bool Renderer<Console::CAFE>::TexturesChanged(std::vector<Texture<Console::CAFE>*> handles)
+{
+    if (handles.size() != this->currentTextures.size())
+        return true;
+
+    for (size_t index = 0; index < handles.size(); index++)
+    {
+        if (this->currentTextures[index] != handles[index])
+            return true;
+    }
+
+    return false;
 }
 
 bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
@@ -300,7 +318,8 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
     Shader<Console::CAFE>::defaults[command.shader]->Attach();
 
     // todo: check for duplicate texture?
-    if (command.handles.empty())
+    if (command.handles.empty() ||
+        (command.handles.size() > 0 && this->TexturesChanged(command.handles)))
     {
         ++drawCalls;
         m_commands.push_back(command.Clone());
