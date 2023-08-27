@@ -48,6 +48,7 @@ namespace love
             SETTING_HEIGHT,
             SETTING_LAYERS,
             SETTING_MIPMAPS,
+            SETTING_MIPMAP_COUNT,
             SETTING_FORMAT,
             SETTING_LINEAR,
             SETTING_TYPE,
@@ -73,6 +74,7 @@ namespace love
             int msaa            = 1;
             bool renderTarget   = false;
             bool computeWrite   = false;
+            int mipmapCount         = 0;
             std::optional<bool> readable;
         };
 

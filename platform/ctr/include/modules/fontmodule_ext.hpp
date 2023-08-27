@@ -11,12 +11,27 @@
 
 namespace love
 {
-    class SystemFont : public Object
+    class SystemFont : public Data
     {
       public:
         SystemFont(CFG_Region region = CFG_REGION_USA)
         {
             // this->font = FontModule<Console::CTR>::LoadSystemFont(region);
+        }
+
+        SystemFont* Clone() const override
+        {
+            return new SystemFont(*this);
+        }
+
+        size_t GetSize() const override
+        {
+            return 0;
+        }
+
+        void* GetData() const override
+        {
+            return nullptr;
         }
 
         static inline Type type = Type("SystemFont", &Object::type);

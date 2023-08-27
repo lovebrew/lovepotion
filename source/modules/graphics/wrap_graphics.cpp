@@ -559,6 +559,7 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
             if (!(type = Texture<>::textureTypes.Find(string)))
                 luax::EnumError(L, "texture type", string);
         }
+        lua_pop(L, 1);
     }
 
     if (checkDimensions)
@@ -596,6 +597,11 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
                 luax::EnumError(L, "Texture mipmap mode", Texture<>::mipmapModes, string);
         }
     }
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_MIPMAP_COUNT));
+    if (!lua_isnoneornil(L, -1))
+        settings.mipmapCount = luaL_checkinteger(L, -1);
     lua_pop(L, 1);
 
     const char* keyLinear = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_LINEAR);
@@ -806,15 +812,15 @@ int Wrap_Graphics::NewCanvas(lua_State* L)
     checkGraphicsCreated(L);
 
     Texture<Console::Which>::Settings settings {};
-    std::optional<bool> forceRenderTarget(false);
+    std::optional<bool> forceRenderTarget(true);
     bool setDPIScale = false;
 
     if (lua_istable(L, 1))
         checkTextureSettings(L, 1, false, true, true, forceRenderTarget, settings, setDPIScale);
     else
     {
-        settings.width = luaL_optinteger(L, 1, love::GetScreenWidth(love::DEFAULT_SCREEN));
-        settings.width = luaL_optinteger(L, 1, love::GetScreenHeight(love::DEFAULT_SCREEN));
+        settings.width  = luaL_optinteger(L, 1, love::GetScreenWidth(love::DEFAULT_SCREEN));
+        settings.height = luaL_optinteger(L, 2, love::GetScreenHeight(love::DEFAULT_SCREEN));
 
         int start = 3;
 

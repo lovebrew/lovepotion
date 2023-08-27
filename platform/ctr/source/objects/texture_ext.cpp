@@ -155,7 +155,15 @@ void Texture<Console::CTR>::CreateTexture()
     if (this->IsRenderTarget())
     {
         bool clear = !hasData;
+
         createFramebufferObject(this->framebuffer, this->texture, _width, _height);
+
+        if (clear)
+        {
+            Renderer<Console::CTR>::Instance().BindFramebuffer(this);
+            Renderer<Console::CTR>::Instance().Clear({ 0, 0, 0, 0 });
+            Renderer<Console::CTR>::Instance().BindFramebuffer();
+        }
     }
     else
     {

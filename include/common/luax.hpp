@@ -357,8 +357,11 @@ namespace luax
         std::string enums =
             std::accumulate(std::begin(values), std::end(values), std::string {}, concat);
 
-        const char* enumType = std::string(value).c_str();
-        return luaL_error(L, "Invalid %s '%s', expected one of: %s", type, enumType, enums.c_str());
+        const char* enumValue = std::string(value).c_str();
+        const char* enumType  = std::string(type).c_str();
+
+        return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumType, enumValue,
+                          enums.c_str());
     }
 
     // clang-format off
