@@ -159,6 +159,12 @@ Renderer<Console::CAFE>::~Renderer()
 
 void Renderer<Console::CAFE>::EnsureInFrame()
 {
+    if (!this->inFrame)
+    {
+        this->cpuTickReference = OSGetSystemTick();
+        this->inFrame          = true;
+    }
+
     this->current = &this->framebuffers[love::GetActiveScreen()];
     GX2SetContextState(this->state);
 }
@@ -275,16 +281,19 @@ void Renderer<Console::CAFE>::FlushVertices()
 {
     auto* vertices = (Vertex*)GX2RLockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
 
+    size_t writeOffset = m_vertexOffset;
     for (const auto& command : m_commands)
     {
         if (command.count + m_vertexOffset > MAX_OBJECTS)
             m_vertexOffset = 0;
 
-        std::memcpy(vertices + m_vertexOffset, command.Vertices().get(), command.size);
+        std::memcpy(vertices + writeOffset, command.Vertices().get(), command.size);
+        writeOffset += command.count;
     }
 
     GX2RUnlockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
 
+    size_t readOffset = m_vertexOffset;
     for (const auto& command : m_commands)
     {
         std::optional<GX2PrimitiveMode> primitive;
@@ -292,9 +301,13 @@ void Renderer<Console::CAFE>::FlushVertices()
             throw love::Exception("Invalid primitive mode");
 
         ++drawCallsBatched;
-        GX2DrawEx(*primitive, command.count, m_vertexOffset, 1);
-        m_vertexOffset += command.count;
+        GX2DrawEx(*primitive, command.count, readOffset, 1);
+
+        readOffset += command.count;
     }
+
+    m_vertexOffset   = readOffset;
+    gpuTickReference = OSGetSystemTick();
 
     m_commands.clear();
 }
@@ -319,7 +332,7 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 
     // todo: check for duplicate texture?
     if (command.handles.empty() ||
-        (command.handles.size() > 0 && this->TexturesChanged(command.handles)))
+        (command.handles.size() > 0 && !this->TexturesChanged(command.handles)))
     {
         ++drawCalls;
         m_commands.push_back(command.Clone());
@@ -351,7 +364,6 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 void Renderer<Console::CAFE>::Present()
 {
     FlushVertices();
-
     GX2DrawDone();
 
     if (Keyboard()->IsShowing())
@@ -369,13 +381,23 @@ void Renderer<Console::CAFE>::Present()
     /* swap scan buffers */
     GX2SwapScanBuffers();
 
+    const auto nanoSecSystem = OSTicksToNanoseconds(OSGetSystemTick() - this->cpuTickReference);
+    std::chrono::nanoseconds cpuNanoSec(nanoSecSystem);
+    Renderer<Console::CAFE>::cpuTime = std::chrono::duration<float, std::milli>(cpuNanoSec).count();
+
+    this->inFrame = false;
+
+    const auto nanoSecTicks = OSTicksToNanoseconds(OSGetSystemTick() - this->gpuTickReference);
+    std::chrono::nanoseconds gpuNanoSec(nanoSecTicks);
+    Renderer<Console::CAFE>::gpuTime = std::chrono::duration<float, std::milli>(gpuNanoSec).count();
+
     /*
     ** flush again as GX2WaitForFlip
     ** will block the CPU
     */
     GX2Flush();
-
     GX2WaitForFlip();
+
     m_vertexOffset = 0;
 }
 

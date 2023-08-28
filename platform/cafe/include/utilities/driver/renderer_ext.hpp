@@ -252,6 +252,9 @@ namespace love
         static inline GX2RBuffer m_buffer {};
         static inline size_t m_vertexOffset = 0;
 
+        OSTick cpuTickReference;
+        static inline OSTick gpuTickReference = 0;
+
         std::vector<Texture<Console::CAFE>*> currentTextures;
 
         std::map<Screen, Framebuffer> framebuffers;
