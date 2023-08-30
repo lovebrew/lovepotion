@@ -74,7 +74,7 @@ namespace love
             int msaa            = 1;
             bool renderTarget   = false;
             bool computeWrite   = false;
-            int mipmapCount         = 0;
+            int mipmapCount     = 0;
             std::optional<bool> readable;
         };
 
@@ -461,7 +461,7 @@ namespace love
 
         bool IsValidSlice(int slice, int mipmap) const
         {
-            return slice >= 0 && slice < this->GetSlicecount(mipmap);
+            return slice >= 0 && slice < this->GetSliceCount(mipmap);
         }
 
         int GetMSAA() const

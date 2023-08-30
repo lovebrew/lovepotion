@@ -5,6 +5,7 @@
 #include <common/luax.hpp>
 
 #include <algorithm>
+
 #include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 

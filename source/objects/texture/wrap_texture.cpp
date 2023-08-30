@@ -448,9 +448,55 @@ int Wrap_Texture::ReplacePixels(lua_State* L)
     return 0;
 }
 
-/* todo */
 int Wrap_Texture::RenderTo(lua_State* L)
 {
+    Graphics<Console::Which>::RenderTarget target(Wrap_Texture::CheckTexture(L, 1));
+
+    int args     = lua_gettop(L);
+    int startidx = 2;
+
+    if (target.texture->GetTextureType() != ::Texture::TEXTURE_2D)
+    {
+        target.slice = (int)luaL_checkinteger(L, 2) - 1;
+        startidx++;
+    }
+
+    luaL_checktype(L, startidx, LUA_TFUNCTION);
+    auto* graphics = Module::GetInstance<Graphics<Console::Which>>(Module::M_GRAPHICS);
+
+    if (graphics != nullptr)
+    {
+        Graphics<>::RenderTargets oldTargets = graphics->GetRenderTargets();
+
+        for (auto target : oldTargets.colors)
+            target.texture->Retain();
+
+        if (oldTargets.depthStencil.texture != nullptr)
+            oldTargets.depthStencil.texture->Retain();
+
+        luax::CatchException(
+            L, [&]() { graphics->SetRenderTarget(target, 0); },
+            [&](bool error) {
+                if (error)
+                {
+                    for (auto target : oldTargets.colors)
+                        target.texture->Release();
+                }
+            });
+
+        int status = lua_pcall(L, args - startidx, 0, 0);
+        graphics->SetRenderTargets(oldTargets);
+
+        for (auto target : oldTargets.colors)
+            target.texture->Release();
+
+        if (oldTargets.depthStencil.texture != nullptr)
+            oldTargets.depthStencil.texture->Release();
+
+        if (status != 0)
+            return lua_error(L);
+    }
+
     return 0;
 }
 

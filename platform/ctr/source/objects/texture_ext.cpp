@@ -272,19 +272,6 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
     this->Draw(graphics, this->quad, matrix);
 }
 
-[[nodiscard]] static const std::unique_ptr<Rect> calculateSubtextureViewport(
-    const Quad::Viewport& viewport, C3D_Tex* texture)
-{
-    std::unique_ptr<Rect> subTexture(new Rect());
-
-    subTexture->y = 1.0f - (viewport.y) / texture->height;
-    subTexture->x = viewport.x / texture->width;
-    subTexture->w = (viewport.x + viewport.w) / texture->width;
-    subTexture->h = 1.0f - ((viewport.y + viewport.h) / texture->height);
-
-    return subTexture;
-}
-
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
                                  const Matrix4<Console::CTR>& matrix)
 {

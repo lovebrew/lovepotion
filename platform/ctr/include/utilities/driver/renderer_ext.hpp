@@ -43,6 +43,8 @@ namespace love
 
         ~Renderer();
 
+        static void FlushVertices();
+
         Info GetRendererInfo();
 
         void DestroyFramebuffers();
@@ -182,8 +184,6 @@ namespace love
         // clang-format on
 
       private:
-        static void FlushVertices();
-
         template<typename T>
         void ModeChanged(const T& func)
         {

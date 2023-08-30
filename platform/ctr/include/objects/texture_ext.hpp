@@ -1,5 +1,3 @@
-#include <objects/texture/texture.tcc>
-
 #include <modules/graphics_ext.hpp>
 
 #include <citro3d.h>
