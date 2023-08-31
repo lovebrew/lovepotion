@@ -111,7 +111,7 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
-        Texture<Console::CTR>* _texture = static_cast<Texture<Console::CTR>*>(texture);
+        auto* _texture = (Texture<Console::CTR>*)texture;
 
         this->SetViewport({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() });
         this->SetScissor({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() }, true);

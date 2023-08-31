@@ -165,11 +165,13 @@ namespace love
             {
                 if (this->textureType == TEXTURE_VOLUME)
                     return this->data.size();
+                else
+                {
+                    if (slice < 0 || slice >= (int)data.size())
+                        return 0;
 
-                if (slice < 0 || slice >= (int)data.size())
-                    return 0;
-
-                return this->data[slice].size();
+                    return this->data[slice].size();
+                }
             }
 
             bool Validate() const
@@ -350,7 +352,7 @@ namespace love
             else
             {
                 bool isDepthStencilFormat = love::IsPixelFormatDepthStencil(this->format);
-                this->readable            = (!this->renderTarget && !isDepthStencilFormat);
+                this->readable            = (!this->renderTarget || !isDepthStencilFormat);
             }
         }
 

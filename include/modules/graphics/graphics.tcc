@@ -575,8 +575,6 @@ namespace love
 
             /* validate depth stencil */
 
-            Renderer<Console::Which>::FlushVertices();
-
             this->SetRenderTargetsInternal(targets, pixelWidth, pixelHeight, hasSRGBtexture);
 
             RenderTargetsStrongReference references {};
