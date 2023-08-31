@@ -3,7 +3,7 @@
 #include <common/console.hpp>
 #include <common/vector.hpp>
 
-#include <objects/shader_ext.hpp>
+#include <objects/shader/shader.tcc>
 #include <objects/texture/texture.tcc>
 
 #include <utilities/driver/renderer/vertex.hpp>

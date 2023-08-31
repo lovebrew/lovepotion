@@ -99,7 +99,7 @@ void Renderer<Console::CTR>::EnsureInFrame()
     }
 }
 
-void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
+void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
 {
     if (!IsActiveScreenValid())
         return;
@@ -107,17 +107,19 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
     this->EnsureInFrame();
     FlushVertices();
 
+    this->current = &this->targets[love::GetActiveScreen()];
+
     if (texture != nullptr && texture->IsRenderTarget())
     {
-        this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
-        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
+        Texture<Console::CTR>* _texture = static_cast<Texture<Console::CTR>*>(texture);
 
-        C3D_FrameDrawOn(texture->GetRenderTargetHandle());
+        this->SetViewport({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() });
+        this->SetScissor({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() }, true);
+
+        C3D_FrameDrawOn(_texture->GetRenderTargetHandle());
     }
     else
     {
-        this->current = &this->targets[love::GetActiveScreen()];
-
         this->SetViewport(this->current->GetViewport());
         this->SetScissor(this->current->GetScissor(), false);
 

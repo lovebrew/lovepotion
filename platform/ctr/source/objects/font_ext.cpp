@@ -3,7 +3,6 @@
 #include <modules/graphics_ext.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
-
 #include <utilities/functions.hpp>
 
 #include <algorithm>

@@ -62,7 +62,7 @@ namespace love
         void EnsureInFrame();
 
         /* todo: canvases */
-        void BindFramebuffer(Texture<Console::CTR>* texture = nullptr);
+        void BindFramebuffer(Texture<Console::ALL>* texture = nullptr);
 
         bool Render(DrawCommand<Console::CTR>& command);
 

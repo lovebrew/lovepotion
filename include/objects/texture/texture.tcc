@@ -508,6 +508,9 @@ namespace love
             return this->quad;
         }
 
+        virtual void Draw(Graphics<Console::Which>& graphics,
+                          const Matrix4<Console::Which>& transform) = 0;
+
         virtual void Draw(Graphics<Console::Which>& graphics, Quad* quad,
                           const Matrix4<Console::Which>& transform) = 0;
 

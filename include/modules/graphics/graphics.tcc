@@ -64,12 +64,18 @@ namespace love
             STACK_TRANSFORM
         };
 
+        enum TemporaryRenderTargetFlags
+        {
+            TEMPORARY_RT_DEPTH   = (1 << 0),
+            TEMPORARY_RT_STENCIL = (1 << 1),
+        };
+
         struct RenderTargetStrongReference;
 
         struct RenderTarget
         {
           public:
-            RenderTarget(Texture<Console::Which>* texture, int slice = 0, int mipmap = 0) :
+            RenderTarget(Texture<Console::ALL>* texture, int slice = 0, int mipmap = 0) :
                 texture(texture),
                 slice(slice),
                 mipmap(mipmap)
@@ -90,7 +96,7 @@ namespace love
                        this->mipmap != other.mipmap;
             }
 
-            Texture<Console::Which>* texture;
+            Texture<Console::ALL>* texture;
             int slice;
             int mipmap;
         };
@@ -98,7 +104,7 @@ namespace love
         struct RenderTargetStrongReference
         {
           public:
-            RenderTargetStrongReference(Texture<Console::Which>* texture, int slice = 0,
+            RenderTargetStrongReference(Texture<Console::ALL>* texture, int slice = 0,
                                         int mipmap = 0) :
                 texture(texture),
                 slice(slice),
@@ -117,7 +123,7 @@ namespace love
                        this->mipmap != other.mipmap;
             }
 
-            StrongReference<Texture<Console::Which>> texture;
+            StrongReference<Texture<Console::ALL>> texture;
             int slice  = 0;
             int mipmap = 0;
         };
@@ -396,7 +402,7 @@ namespace love
         void SetRenderTargetsInternal(const RenderTargets& targets, int width, int height,
                                       bool hasSRGBTexture)
         {
-            const DisplayState& state = this->states.back();
+            // const DisplayState& state = this->states.back();
 
             bool isWindow = targets.GetFirstTarget().texture == nullptr;
 
@@ -458,8 +464,8 @@ namespace love
             DisplayState& state = this->states.back();
             int count           = (int)targets.colors.size();
 
-            RenderTarget firstTarget              = targets.GetFirstTarget();
-            Texture<Console::Which>* firstTexture = firstTarget.texture;
+            RenderTarget firstTarget            = targets.GetFirstTarget();
+            Texture<Console::ALL>* firstTexture = firstTarget.texture;
 
             if (firstTexture == nullptr)
                 return this->SetRenderTarget();
@@ -526,10 +532,10 @@ namespace love
             /* do a ton of validation - NOTE: only ONE rendertarget allowed MAX */
             for (int i = 1; i < count; i++)
             {
-                Texture<Console::Which>* canvas = targets.colors[i].texture;
-                PixelFormat format              = canvas->GetPixelFormat();
-                int mip                         = targets.colors[i].mipmap;
-                int slice                       = targets.colors[i].slice;
+                Texture<Console::ALL>* canvas = targets.colors[i].texture;
+                PixelFormat format            = canvas->GetPixelFormat();
+                int mip                       = targets.colors[i].mipmap;
+                int slice                     = targets.colors[i].slice;
 
                 if (!canvas->IsRenderTarget())
                     throw love::Exception("Texture must be created as a render target to be used "
@@ -593,7 +599,7 @@ namespace love
             const auto& targets = this->states.back().renderTargets;
 
             RenderTargets newTargets {};
-            newTargets.colors.reseve(targets.colors.size());
+            newTargets.colors.reserve(targets.colors.size());
 
             for (const auto& target : targets.colors)
                 newTargets.colors.emplace_back(target.texture.Get(), target.slice, target.mipmap);
@@ -612,7 +618,7 @@ namespace love
             return !targets.colors.empty() || targets.depthStencil.texture != nullptr;
         }
 
-        bool IsRenderTargetActive(Texture<Console::Which>* texture) const
+        bool IsRenderTargetActive(Texture<Console::ALL>* texture) const
         {
             const auto& targets = this->states.back().renderTargets;
 
@@ -628,7 +634,7 @@ namespace love
             return false;
         }
 
-        bool IsRenderTargetActive(Texture<Console::Which>* texture, int slice) const
+        bool IsRenderTargetActive(Texture<Console::ALL>* texture, int slice) const
         {
             const auto& targets = this->states.back().renderTargets;
 

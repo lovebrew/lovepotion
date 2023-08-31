@@ -2,9 +2,6 @@
 
 #include <modules/graphics/graphics.tcc>
 
-#include <objects/rasterizer_ext.hpp>
-#include <objects/textbatch_ext.hpp>
-
 namespace love
 {
     template<>

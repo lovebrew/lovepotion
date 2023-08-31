@@ -4,6 +4,8 @@
 #include <common/module.hpp>
 #include <common/strongreference.hpp>
 
+#include <modules/graphics/graphics.tcc>
+
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 namespace love

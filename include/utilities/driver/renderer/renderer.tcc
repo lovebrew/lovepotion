@@ -10,11 +10,6 @@
 
 namespace love
 {
-    class Canvas;
-
-    template<Console::Platform T>
-    class Texture;
-
     template<Console::Platform T = Console::ALL>
     class Renderer
     {

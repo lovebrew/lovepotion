@@ -4,7 +4,7 @@
 
 using namespace love;
 
-static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture, uint16_t width,
+static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex*& texture, uint16_t width,
                                     uint16_t height)
 {
     const auto _width  = NextPo2(width);
