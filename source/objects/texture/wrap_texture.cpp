@@ -1,7 +1,8 @@
 #include <objects/texture/wrap_texture.hpp>
 
-#include <objects/imagedata/wrap_imagedata.hpp>
+#include <modules/graphics_ext.hpp>
 
+#include <objects/imagedata/wrap_imagedata.hpp>
 using namespace love;
 using Texture = love::Texture<Console::Which>;
 
@@ -450,7 +451,7 @@ int Wrap_Texture::ReplacePixels(lua_State* L)
 
 int Wrap_Texture::RenderTo(lua_State* L)
 {
-    Graphics<Console::Which>::RenderTarget target(Wrap_Texture::CheckTexture(L, 1));
+    Graphics<>::RenderTarget target(Wrap_Texture::CheckTexture(L, 1));
 
     int args     = lua_gettop(L);
     int startidx = 2;
@@ -462,6 +463,7 @@ int Wrap_Texture::RenderTo(lua_State* L)
     }
 
     luaL_checktype(L, startidx, LUA_TFUNCTION);
+
     auto* graphics = Module::GetInstance<Graphics<Console::Which>>(Module::M_GRAPHICS);
 
     if (graphics != nullptr)
