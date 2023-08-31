@@ -426,6 +426,8 @@ namespace love
             }
 
             Renderer<Console::Which>::FlushVertices();
+            this->SetRenderTargetsInternal(RenderTargets {}, this->width, this->height,
+                                           this->IsGammaCorrect());
 
             state.renderTargets = RenderTargetsStrongReference();
             renderTargetSwitchCount++;
@@ -518,6 +520,9 @@ namespace love
                     "Depth/stencil format textures must be used with the 'depthstencil' field of "
                     "the table passed into setRenderTargets.");
             }
+
+            if (firstTarget.mipmap < 0 || firstTarget.mipmap >= firstTexture->GetMipmapCount())
+                throw love::Exception("Invalid mipmap level %d.", firstTarget.mipmap + 1);
 
             if (!firstTexture->IsValidSlice(firstTarget.slice, firstTarget.mipmap))
                 throw love::Exception("Invalid slice index: %d.", firstTarget.slice + 1);

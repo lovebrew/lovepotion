@@ -343,8 +343,8 @@ namespace love
                 if (this->IsCompressed())
                     throw love::Exception("Compressed textures must be created with initial data.");
 
-                this->pixelWidth  = (int)(this->width / settings.dpiScale + 0.5);
-                this->pixelHeight = (int)(this->height / settings.dpiScale + 0.5);
+                this->pixelWidth  = (int)((this->width / settings.dpiScale) + 0.5);
+                this->pixelHeight = (int)((this->height / settings.dpiScale) + 0.5);
             }
 
             if (settings.readable.has_value())

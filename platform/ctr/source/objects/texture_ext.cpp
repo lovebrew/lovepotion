@@ -75,6 +75,8 @@ Texture<Console::CTR>::Texture(const Graphics<Console::ALL>* graphics, const Set
     if (this->GetMipmapCount() == 1)
         this->state.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
 
+    this->state = graphics->GetDefaultSamplerState();
+
     Quad::Viewport view { 0, 0, (double)this->width, (double)this->height };
     this->quad.Set(new Quad(view, this->width, this->height), Acquire::NORETAIN);
 
