@@ -79,7 +79,7 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    C3D_RenderTargetClear(this->current->GetTarget(), C3D_CLEAR_ALL, color.abgr(), 0);
+    C3D_RenderTargetClear(this->current, C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
 /* todo */
@@ -107,24 +107,23 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
     this->EnsureInFrame();
     FlushVertices();
 
-    this->current = &this->targets[love::GetActiveScreen()];
+    this->current = this->targets[love::GetActiveScreen()].GetTarget();
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
         auto* _texture = (Texture<Console::CTR>*)texture;
+        this->current  = _texture->GetRenderTargetHandle();
 
         this->SetViewport({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() });
         this->SetScissor({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() }, true);
-
-        C3D_FrameDrawOn(_texture->GetRenderTargetHandle());
     }
     else
     {
-        this->SetViewport(this->current->GetViewport());
-        this->SetScissor(this->current->GetScissor(), false);
-
-        C3D_FrameDrawOn(this->current->GetTarget());
+        this->SetViewport(Rect::EMPTY);
+        this->SetScissor(Rect::EMPTY, false);
     }
+
+    C3D_FrameDrawOn(this->current);
 }
 
 void Renderer<Console::CTR>::FlushVertices()
@@ -162,7 +161,7 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
         Shader<Console::CTR>::defaults[command.shader]->Attach();
 
         auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
-        this->current->UseProjection(uniforms);
+        this->targets[love::GetActiveScreen()].UseProjection(uniforms);
     }
 
     // check if texture is the same, or no texture at all
@@ -216,12 +215,12 @@ void Renderer<Console::CTR>::Present()
 
 void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
 {
-    this->current->SetViewport(viewport);
+    this->targets[love::GetActiveScreen()].SetViewport(viewport);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    this->current->SetScissor(scissor);
+    this->targets[love::GetActiveScreen()].SetScissor(scissor);
 }
 
 void Renderer<Console::CTR>::SetStencil(RenderState::CompareMode mode, int value)

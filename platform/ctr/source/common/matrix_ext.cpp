@@ -138,11 +138,11 @@ void Matrix4<Console::CTR>::SetTransformation(float x, float y, float angle, flo
 
     this->matrix.r[2].z = this->matrix.r[3].w = 1.0f;
 
-    this->matrix.r[0].x = c * sx - ky * s * sy;                                    // = a
-    this->matrix.r[1].x = s * sx + ky * c * sy;                                    // = b
+    this->matrix.r[0].x = c * sx - ky * s * sy; // = a
+    this->matrix.r[1].x = s * sx + ky * c * sy; // = b
 
-    this->matrix.r[0].y = kx * c * sx - s * sy;                                    // = c
-    this->matrix.r[1].y = kx * s * sx + c * sy;                                    // = d
+    this->matrix.r[0].y = kx * c * sx - s * sy; // = c
+    this->matrix.r[1].y = kx * s * sx + c * sy; // = d
 
     this->matrix.r[0].w = x - ox * this->matrix.r[0].x - oy * this->matrix.r[0].y; // = c
     this->matrix.r[1].w = y - ox * this->matrix.r[1].x - oy * this->matrix.r[1].y; // = d
@@ -185,13 +185,13 @@ void Matrix4<Console::CTR>::Shear(float kx, float ky)
 void Matrix4<Console::CTR>::TransformXY()
 {
     auto target = Renderer<Console::CTR>::Instance().GetCurrent();
-    Mtx_Copy(&target->GetModelView(), &this->matrix);
+    Mtx_Copy(&target.GetModelView(), &this->matrix);
 }
 
 void Matrix4<Console::CTR>::TransformXY(const C3D_Mtx& elements)
 {
     auto target = Renderer<Console::CTR>::Instance().GetCurrent();
-    Mtx_Copy(&target->GetModelView(), &elements);
+    Mtx_Copy(&target.GetModelView(), &elements);
 }
 
 Matrix4<Console::CTR> Matrix4<Console::CTR>::Inverse() const

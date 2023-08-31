@@ -82,9 +82,9 @@ namespace love
 
         void SetColorMask(const RenderState::ColorMask& mask);
 
-        Framebuffer<Console::CTR>* GetCurrent()
+        Framebuffer<Console::CTR>& GetCurrent()
         {
-            return this->current;
+            return this->targets[love::GetActiveScreen()];
         }
 
         std::optional<Screen> CheckScreen(const char* name) const;
@@ -195,7 +195,7 @@ namespace love
         std::vector<std::function<void()>> deferred;
         std::array<Framebuffer<Console::CTR>, MAX_RENDERTARGETS> targets;
 
-        Framebuffer<Console::CTR>* current;
+        C3D_RenderTarget* current;
         C3D_Tex* currentTexture;
 
         static inline PrimitiveType currentPrimitiveType = PRIMITIVE_MAX_ENUM;
