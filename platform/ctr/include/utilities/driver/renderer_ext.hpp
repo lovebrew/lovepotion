@@ -68,7 +68,7 @@ namespace love
 
         void Present();
 
-        void SetViewport(const Rect& viewport);
+        void SetViewport(const Rect& viewport, bool canvasActive);
 
         void SetScissor(const Rect& scissor, bool canvasActive);
 

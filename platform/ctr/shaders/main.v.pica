@@ -37,7 +37,10 @@
 	dp4 outPosition.w, projMtx[3], r1
 
 	; outTexCoord = inTexCoord
-    mov outTexCoord0, inTexCoord
+	; flip the y coordinate for top-left origin
+    mov outTexCoord0.x, inTexCoord.x
+	add outTexCoord0.y, consts.x, -outTexCoord0.y
+	mov outTexCoord0.zw, consts.x
 
     ; outColor = inColor
 	mov outColor,    inColor

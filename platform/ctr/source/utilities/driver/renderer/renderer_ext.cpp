@@ -108,22 +108,18 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
     FlushVertices();
 
     this->current = this->targets[love::GetActiveScreen()].GetTarget();
+    Rect viewport = Rect::EMPTY;
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
         auto* _texture = (Texture<Console::CTR>*)texture;
         this->current  = _texture->GetRenderTargetHandle();
 
-        this->SetViewport({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() });
-        this->SetScissor({ 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() }, true);
-    }
-    else
-    {
-        this->SetViewport(Rect::EMPTY);
-        this->SetScissor(Rect::EMPTY, false);
+        viewport = { 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() };
     }
 
     C3D_FrameDrawOn(this->current);
+    this->SetViewport(viewport, texture != nullptr);
 }
 
 void Renderer<Console::CTR>::FlushVertices()
@@ -213,14 +209,14 @@ void Renderer<Console::CTR>::Present()
     }
 }
 
-void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
+void Renderer<Console::CTR>::SetViewport(const Rect& viewport, bool canvasActive)
 {
-    this->targets[love::GetActiveScreen()].SetViewport(viewport);
+    this->targets[love::GetActiveScreen()].SetViewport(viewport, canvasActive);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    this->targets[love::GetActiveScreen()].SetScissor(scissor);
+    this->targets[love::GetActiveScreen()].SetScissor(scissor, canvasActive);
 }
 
 void Renderer<Console::CTR>::SetStencil(RenderState::CompareMode mode, int value)

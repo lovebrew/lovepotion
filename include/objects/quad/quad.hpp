@@ -36,6 +36,11 @@ namespace love
 
         const Vector2* GetVertexTextureCoords() const;
 
+        void SetVertexTextureCoord(int index, const Vector2& coord)
+        {
+            this->vertexTextureCoords[index] = coord;
+        }
+
         void SetLayer(int layer);
 
         int GetLayer() const;
