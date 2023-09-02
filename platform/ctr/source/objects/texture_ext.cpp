@@ -272,31 +272,13 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
     this->Draw(graphics, this->quad, matrix);
 }
 
-static Vector2 getVertex(const float x, const float y, double width, double height)
-{
-    const auto u = (double)y / width;
-    const auto v = (width - x) / height;
-
-    return Vector2(u, v);
-}
-
-static void setQuad(StrongReference<Quad> quad, const Quad::Viewport& viewport, const double width,
-                    const double height, bool isRendertarget)
+static void setQuad(StrongReference<Quad> quad, const Quad::Viewport& viewport,
+                    const Vector2& dimensions)
 {
     if (quad == nullptr)
         throw love::Exception("Invalid quad (is nullptr).");
 
-    if (isRendertarget)
-    {
-        quad->SetVertexTextureCoord(0, getVertex(0.0f, 0.0f, width, height));
-        quad->SetVertexTextureCoord(1, getVertex(0.0f, height, width, height));
-        quad->SetVertexTextureCoord(2, getVertex(width, height, width, height));
-        quad->SetVertexTextureCoord(3, getVertex(width, 0.0f, width, height));
-
-        return;
-    }
-
-    quad.Set(new Quad(viewport, width, height), Acquire::NORETAIN);
+    quad.Set(new Quad(viewport, dimensions.x, dimensions.y), Acquire::NORETAIN);
 }
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
@@ -309,7 +291,7 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
         throw love::Exception("Cannot render a Texture to itself.");
 
     const Quad::Viewport& viewport = quad->GetViewport();
-    setQuad(this->quad, viewport, this->texture->width, this->texture->height, this->renderTarget);
+    setQuad(this->quad, viewport, { this->texture->width, this->texture->height });
 
     const auto& transform = graphics.GetTransform();
     bool is2D             = transform.IsAffine2DTransform();

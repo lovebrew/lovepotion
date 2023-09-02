@@ -68,7 +68,7 @@ namespace love
 
         void Present();
 
-        void SetViewport(const Rect& viewport, bool canvasActive);
+        void SetViewport(const C3D_RenderTarget* target);
 
         void SetScissor(const Rect& scissor, bool canvasActive);
 
@@ -87,7 +87,10 @@ namespace love
             return this->targets[love::GetActiveScreen()];
         }
 
-        std::optional<Screen> CheckScreen(const char* name) const;
+        C3D_Mtx& GetModelView()
+        {
+            return this->context.modelView;
+        }
 
         void SetWideMode(bool enable)
         {
@@ -192,10 +195,16 @@ namespace love
             this->CreateFramebuffers();
         }
 
+        struct Context
+        {
+            C3D_Mtx modelView;
+            C3D_Mtx projection;
+            C3D_RenderTarget* target;
+        } context;
+
         std::vector<std::function<void()>> deferred;
         std::array<Framebuffer<Console::CTR>, MAX_RENDERTARGETS> targets;
 
-        C3D_RenderTarget* current;
         C3D_Tex* currentTexture;
 
         static inline PrimitiveType currentPrimitiveType = PRIMITIVE_MAX_ENUM;

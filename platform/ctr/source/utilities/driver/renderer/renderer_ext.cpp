@@ -11,7 +11,7 @@
 
 using namespace love;
 
-Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
+Renderer<Console::CTR>::Renderer() : targets {}, currentTexture(nullptr)
 {
     gfxInitDefault();
     gfxSet3D(true);
@@ -40,6 +40,9 @@ Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
 
     if (result < 0)
         throw love::Exception("Failed to add C3D_BufInfo.");
+
+    Mtx_Identity(&this->context.projection);
+    Mtx_Identity(&this->context.modelView);
 }
 
 Renderer<Console::CTR>::~Renderer()
@@ -79,7 +82,7 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    C3D_RenderTargetClear(this->current, C3D_CLEAR_ALL, color.abgr(), 0);
+    C3D_RenderTargetClear(this->context.target, C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
 /* todo */
@@ -107,19 +110,17 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
     this->EnsureInFrame();
     FlushVertices();
 
-    this->current = this->targets[love::GetActiveScreen()].GetTarget();
-    Rect viewport = Rect::EMPTY;
+    this->context.target = this->targets[love::GetActiveScreen()].GetTarget();
+    Rect viewport        = Rect::EMPTY;
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
-        auto* _texture = (Texture<Console::CTR>*)texture;
-        this->current  = _texture->GetRenderTargetHandle();
-
-        viewport = { 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() };
+        auto* _texture       = (Texture<Console::CTR>*)texture;
+        this->context.target = _texture->GetRenderTargetHandle();
     }
 
-    C3D_FrameDrawOn(this->current);
-    this->SetViewport(viewport, texture != nullptr);
+    C3D_FrameDrawOn(this->context.target);
+    this->SetViewport(this->context.target);
 }
 
 void Renderer<Console::CTR>::FlushVertices()
@@ -157,7 +158,9 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
         Shader<Console::CTR>::defaults[command.shader]->Attach();
 
         auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
-        this->targets[love::GetActiveScreen()].UseProjection(uniforms);
+
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &this->context.projection);
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
     }
 
     // check if texture is the same, or no texture at all
@@ -209,9 +212,30 @@ void Renderer<Console::CTR>::Present()
     }
 }
 
-void Renderer<Console::CTR>::SetViewport(const Rect& viewport, bool canvasActive)
+void Renderer<Console::CTR>::SetViewport(const C3D_RenderTarget* target)
 {
-    this->targets[love::GetActiveScreen()].SetViewport(viewport, canvasActive);
+    Rect newViewport = { 0, 0, target->frameBuf.width, target->frameBuf.height };
+    const bool tilt  = target->linked;
+
+    if (tilt) /* swap width and height for tilt */
+        newViewport = { 0, 0, target->frameBuf.height, target->frameBuf.width };
+
+    if (newViewport.h == GSP_SCREEN_WIDTH && tilt)
+    {
+        if (newViewport.w == GSP_SCREEN_HEIGHT_TOP || newViewport.w == GSP_SCREEN_HEIGHT_TOP_2X)
+        {
+            Mtx_Copy(&this->context.projection, &this->targets[0].GetProjView());
+            return;
+        }
+        else if (newViewport.w == GSP_SCREEN_HEIGHT_BOTTOM)
+        {
+            Mtx_Copy(&this->context.projection, &this->targets[2].GetProjView());
+            return;
+        }
+    }
+
+    auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
+    ortho(&this->context.projection, 0.0f, newViewport.w, newViewport.h, 0.0f, Z_NEAR, Z_FAR, true);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)

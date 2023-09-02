@@ -78,9 +78,6 @@ void Framebuffer<Console::CTR>::SetViewport(const Rect& viewport, bool canvasAct
 
     Mtx_OrthoTilt(&this->projView, newViewport.x, newViewport.w, newViewport.h, newViewport.y,
                   Z_NEAR, Z_FAR, true);
-
-    if (canvasActive)
-        C3D_SetViewport(newViewport.y, newViewport.x, newViewport.h, newViewport.w);
 }
 
 void Framebuffer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)

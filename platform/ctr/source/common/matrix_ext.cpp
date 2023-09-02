@@ -184,14 +184,14 @@ void Matrix4<Console::CTR>::Shear(float kx, float ky)
 
 void Matrix4<Console::CTR>::TransformXY()
 {
-    auto target = Renderer<Console::CTR>::Instance().GetCurrent();
-    Mtx_Copy(&target.GetModelView(), &this->matrix);
+    auto instance = Renderer<Console::CTR>::Instance();
+    Mtx_Copy(&instance.GetModelView(), &this->matrix);
 }
 
 void Matrix4<Console::CTR>::TransformXY(const C3D_Mtx& elements)
 {
-    auto target = Renderer<Console::CTR>::Instance().GetCurrent();
-    Mtx_Copy(&target.GetModelView(), &elements);
+    auto instance = Renderer<Console::CTR>::Instance();
+    Mtx_Copy(&instance.GetModelView(), &elements);
 }
 
 Matrix4<Console::CTR> Matrix4<Console::CTR>::Inverse() const
