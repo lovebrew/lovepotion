@@ -4,6 +4,7 @@
 
 #include <modules/graphics_ext.hpp>
 
+#include <objects/rasterizer_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 #include <utilities/functions.hpp>

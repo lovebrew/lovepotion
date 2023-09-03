@@ -68,7 +68,7 @@ namespace love
 
         void Present();
 
-        void SetViewport(const C3D_RenderTarget* target);
+        void SetViewport(const Rect& viewport, bool tilt);
 
         void SetScissor(const Rect& scissor, bool canvasActive);
 

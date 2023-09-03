@@ -272,13 +272,42 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
     this->Draw(graphics, this->quad, matrix);
 }
 
-static void setQuad(StrongReference<Quad> quad, const Quad::Viewport& viewport,
-                    const Vector2& dimensions)
+static Vector2 getVertex(const float x, const float y, const Vector2& virtualDim,
+                         const Vector2& physicalDim)
 {
-    if (quad == nullptr)
-        throw love::Exception("Invalid quad (is nullptr).");
+    const auto u = x / physicalDim.x;
+    const auto v = (virtualDim.y - y) / physicalDim.y;
 
-    quad.Set(new Quad(viewport, dimensions.x, dimensions.y), Acquire::NORETAIN);
+    return Vector2(u, v);
+}
+
+static void refreshQuad(StrongReference<Quad> quad, const Quad::Viewport& viewport,
+                        const Vector2& virtualDim, const Vector2& physicalDim, bool isRenderTarget)
+{
+    quad->Refresh(viewport, physicalDim.x, physicalDim.y);
+    const auto* texCoords = quad->GetVertexTextureCoords();
+
+    if (isRenderTarget)
+    {
+        auto coord = getVertex(0, 0, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(0, coord);
+
+        coord = getVertex(0, virtualDim.y, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(1, coord);
+
+        coord = getVertex(virtualDim.x, virtualDim.y, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(2, coord);
+
+        coord = getVertex(virtualDim.x, 0.0f, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(3, coord);
+
+        return;
+    }
+
+    quad->SetVertexTextureCoord(0, Vector2(texCoords[0].x, 1.0f - texCoords[0].y));
+    quad->SetVertexTextureCoord(1, Vector2(texCoords[1].x, 1.0f - texCoords[1].y));
+    quad->SetVertexTextureCoord(2, Vector2(texCoords[2].x, 1.0f - texCoords[2].y));
+    quad->SetVertexTextureCoord(3, Vector2(texCoords[3].x, 1.0f - texCoords[3].y));
 }
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
@@ -291,7 +320,11 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
         throw love::Exception("Cannot render a Texture to itself.");
 
     const Quad::Viewport& viewport = quad->GetViewport();
-    setQuad(this->quad, viewport, { this->texture->width, this->texture->height });
+
+    Vector2 physicalDim = { (double)this->texture->width, (double)this->texture->height };
+    Vector2 virtualDim  = { (double)this->pixelWidth, (double)this->pixelHeight };
+
+    refreshQuad(quad, viewport, virtualDim, physicalDim, this->renderTarget);
 
     const auto& transform = graphics.GetTransform();
     bool is2D             = transform.IsAffine2DTransform();
@@ -303,10 +336,10 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
     command.format  = CommonFormat::TEXTURE;
 
     if (is2D)
-        translated.TransformXY(command.Positions().get(), this->quad->GetVertexPositions(),
+        translated.TransformXY(command.Positions().get(), quad->GetVertexPositions(),
                                command.count);
 
-    const auto* coords = this->quad->GetVertexTextureCoords();
+    const auto* coords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), coords);
 
     Renderer<Console::CTR>::Instance().Render(command);

@@ -29,6 +29,15 @@ using namespace love::physfs;
 
 static std::string getApplicationPath(std::string origin)
 {
+#if defined(__EMULATION__)
+    if (love::Console::Is(love::Console::CTR))
+        return "sdmc:/lovepotion.3dsx";
+    else if (love::Console::Is(love::Console::HAC))
+        return "sdmc:/lovepotion.nro";
+    else
+        return "sdmc:/lovepotion.wuhb";
+#endif
+
     if (!love::Console::Is(love::Console::CAFE))
         return origin;
 

@@ -82,6 +82,7 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
+    C3D_FrameSplit(0);
     C3D_RenderTargetClear(this->context.target, C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
@@ -111,16 +112,18 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
     FlushVertices();
 
     this->context.target = this->targets[love::GetActiveScreen()].GetTarget();
-    Rect viewport        = Rect::EMPTY;
+    Rect viewport        = this->targets[love::GetActiveScreen()].GetViewport();
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
         auto* _texture       = (Texture<Console::CTR>*)texture;
         this->context.target = _texture->GetRenderTargetHandle();
+
+        viewport = { 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() };
     }
 
     C3D_FrameDrawOn(this->context.target);
-    this->SetViewport(this->context.target);
+    this->SetViewport(viewport, this->context.target->linked);
 }
 
 void Renderer<Console::CTR>::FlushVertices()
@@ -212,22 +215,18 @@ void Renderer<Console::CTR>::Present()
     }
 }
 
-void Renderer<Console::CTR>::SetViewport(const C3D_RenderTarget* target)
+void Renderer<Console::CTR>::SetViewport(const Rect& rect, bool tilt)
 {
-    Rect newViewport = { 0, 0, target->frameBuf.width, target->frameBuf.height };
-    const bool tilt  = target->linked;
+    Rect newView = rect;
 
-    if (tilt) /* swap width and height for tilt */
-        newViewport = { 0, 0, target->frameBuf.height, target->frameBuf.width };
-
-    if (newViewport.h == GSP_SCREEN_WIDTH && tilt)
+    if (newView.h == GSP_SCREEN_WIDTH && tilt)
     {
-        if (newViewport.w == GSP_SCREEN_HEIGHT_TOP || newViewport.w == GSP_SCREEN_HEIGHT_TOP_2X)
+        if (newView.w == GSP_SCREEN_HEIGHT_TOP || newView.w == GSP_SCREEN_HEIGHT_TOP_2X)
         {
             Mtx_Copy(&this->context.projection, &this->targets[0].GetProjView());
             return;
         }
-        else if (newViewport.w == GSP_SCREEN_HEIGHT_BOTTOM)
+        else if (newView.w == GSP_SCREEN_HEIGHT_BOTTOM)
         {
             Mtx_Copy(&this->context.projection, &this->targets[2].GetProjView());
             return;
@@ -235,7 +234,9 @@ void Renderer<Console::CTR>::SetViewport(const C3D_RenderTarget* target)
     }
 
     auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
-    ortho(&this->context.projection, 0.0f, newViewport.w, newViewport.h, 0.0f, Z_NEAR, Z_FAR, true);
+    ortho(&this->context.projection, 0.0f, rect.w, rect.h, 0.0f, Z_NEAR, Z_FAR, true);
+
+    C3D_SetViewport(0, 0, rect.w, rect.h);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
