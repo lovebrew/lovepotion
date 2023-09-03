@@ -5,6 +5,8 @@
 #include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
+#include <objects/shader_ext.hpp>
+
 #include <utilities/temptransform.hpp>
 
 using namespace love;

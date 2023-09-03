@@ -6,6 +6,8 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
+#include <objects/shader_ext.hpp>
+
 #include <utilities/driver/renderer/drawcommand.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -102,7 +104,7 @@ namespace love
 
         void SetBlendMode(const RenderState::BlendState& state);
 
-        void BindFramebuffer(Texture<Console::Which>* texture = nullptr);
+        void BindFramebuffer(Texture<Console::ALL>* texture = nullptr);
 
         void Present();
 
@@ -150,6 +152,9 @@ namespace love
         {
             return this->device;
         }
+
+        static void FlushVertices()
+        {}
 
         // clang-format off
         static constexpr BidirectionalMap pixelFormats = {

@@ -2,7 +2,6 @@
 
 #include <modules/graphics_ext.hpp>
 
-#include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using namespace love;
@@ -206,7 +205,7 @@ void Renderer<Console::HAC>::SetBlendColor(const Color& color)
     this->commandBuffer.setBlendConst(color.r, color.g, color.b, color.a);
 }
 
-void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
+void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::ALL>* texture)
 {
     if (!this->swapchain)
         return;
@@ -224,7 +223,8 @@ void Renderer<Console::HAC>::BindFramebuffer(Texture<Console::HAC>* texture)
 
     if (texture != nullptr && texture->IsRenderTarget())
     {
-        target = { texture->GetImage() };
+        auto* _texture = (Texture<Console::HAC>*)texture;
+        target         = { _texture->GetImage() };
 
         this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
         this->framebuffers.dirty = true;

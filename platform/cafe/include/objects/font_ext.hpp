@@ -71,7 +71,7 @@ namespace love
         float GetBaseline() const
         {
             float ascent        = this->GetAscent();
-            const auto truetype = Rasterizer<Console::Which>::DATA_TRUETYPE;
+            const auto truetype = Rasterizer<Console::ALL>::DATA_TRUETYPE;
 
             if (ascent != 0.0f)
                 return ascent;
