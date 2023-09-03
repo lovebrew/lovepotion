@@ -35,7 +35,7 @@ static std::string getApplicationPath(std::string origin)
     else if (love::Console::Is(love::Console::HAC))
         return "sdmc:/lovepotion.nro";
     else
-        return "sdmc:/lovepotion.wuhb";
+        return "fs:/vol/external01/wiiu/apps/lovepotion/lovepotion.wuhb";
 #endif
 
     if (!love::Console::Is(love::Console::CAFE))

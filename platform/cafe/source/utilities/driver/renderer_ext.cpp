@@ -253,14 +253,15 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
     this->renderState.winding = *face;
 }
 
-void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
+void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::ALL>* texture)
 {
     this->EnsureInFrame();
     FlushVertices();
 
     if (texture && texture->IsRenderTarget())
     {
-        GX2SetColorBuffer(texture->GetFramebuffer(), GX2_RENDER_TARGET_0);
+        auto* _texture = (Texture<Console::CAFE>*)texture;
+        GX2SetColorBuffer(_texture->GetFramebuffer(), GX2_RENDER_TARGET_0);
 
         this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
         this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);

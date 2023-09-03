@@ -6,6 +6,8 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
+#include <objects/shader_ext.hpp>
+
 #include <utilities/driver/renderer/drawcommand.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -105,7 +107,7 @@ namespace love
         void EnsureInFrame();
 
         /* todo: canvases */
-        void BindFramebuffer(Texture<Console::CAFE>* texture = nullptr);
+        void BindFramebuffer(Texture<Console::ALL>* texture = nullptr);
 
         void Present();
 

@@ -8,9 +8,10 @@
 #include <modules/window_ext.hpp>
 
 #include <objects/font_ext.hpp>
-#include <objects/shader_ext.hpp>
 #include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
+
+#include <objects/shader_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::CAFE>;
 using namespace love;

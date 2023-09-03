@@ -9,7 +9,8 @@
 
 using namespace love;
 
-static void createFramebufferObject(GX2ColorBuffer*& buffer, int width, int height)
+static void createFramebufferObject(GX2ColorBuffer*& buffer, GX2Texture*& texture, int width,
+                                    int height)
 {
     buffer = new GX2ColorBuffer();
 
@@ -35,6 +36,8 @@ static void createFramebufferObject(GX2ColorBuffer*& buffer, int width, int heig
 
     GX2CalcSurfaceSizeAndAlignment(&buffer->surface);
     GX2InitColorBufferRegs(buffer);
+
+    texture->surface.image = buffer->surface.image;
 }
 
 static void createTextureObject(GX2Texture*& texture, PixelFormat format, int width, int height)
@@ -176,7 +179,16 @@ void Texture<Console::CAFE>::CreateTexture()
     if (this->IsRenderTarget())
     {
         bool clear = !hasData;
-        // createFramebufferObject(this->framebuffer, this->image.tex, _width, _height);
+
+        createTextureObject(this->texture, PixelFormat::PIXELFORMAT_RGBA8_UNORM, width, height);
+        createFramebufferObject(this->framebuffer, this->texture, _width, _height);
+
+        if (clear)
+        {
+            Renderer<Console::CAFE>::Instance().BindFramebuffer(this);
+            Renderer<Console::CAFE>::Instance().Clear({ 0, 0, 0, 0 });
+            Renderer<Console::CAFE>::Instance().BindFramebuffer();
+        }
     }
     else
     {
