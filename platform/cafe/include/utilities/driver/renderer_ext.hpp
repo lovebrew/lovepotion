@@ -75,8 +75,8 @@ namespace love
 
         struct Transform
         {
-            glm::mat4 modelView;
             glm::mat4 projection;
+            glm::mat4 modelView;
         };
 
         static Renderer& Instance()
@@ -230,6 +230,12 @@ namespace love
 
             uint32_t writeMask;
         } renderState;
+
+        struct Context
+        {
+            GX2ColorBuffer* target;
+            Transform* transform;
+        } context;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 

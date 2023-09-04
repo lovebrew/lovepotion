@@ -209,9 +209,6 @@ void Framebuffer::SetSize(int width, int height)
 
     this->viewport = { 0, 0, width, height };
     this->scissor  = { 0, 0, width, height };
-
-    this->SetViewport();
-    this->SetScissor();
 }
 
 void Framebuffer::SetTVSize()

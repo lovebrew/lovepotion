@@ -26,9 +26,9 @@ static void createFramebufferObject(GX2ColorBuffer*& buffer, GX2Texture*& textur
     buffer->surface.height    = height;
     buffer->surface.depth     = 1;
     buffer->surface.mipLevels = 1;
-    buffer->surface.format    = GX2_SURFACE_FORMAT_SINT_R8_G8_B8_A8;
+    buffer->surface.format    = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
     buffer->surface.swizzle   = 0;
-    buffer->surface.tileMode  = GX2_TILE_MODE_DEFAULT;
+    buffer->surface.tileMode  = GX2_TILE_MODE_LINEAR_ALIGNED;
     buffer->surface.mipmaps   = nullptr;
     buffer->viewFirstSlice    = 0;
     buffer->viewMip           = 0;
@@ -36,6 +36,12 @@ static void createFramebufferObject(GX2ColorBuffer*& buffer, GX2Texture*& textur
 
     GX2CalcSurfaceSizeAndAlignment(&buffer->surface);
     GX2InitColorBufferRegs(buffer);
+
+    const auto size      = buffer->surface.imageSize;
+    const auto alignment = buffer->surface.alignment;
+
+    auto handle           = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    buffer->surface.image = MEMAllocFromFrmHeapEx(handle, size, alignment);
 
     texture->surface.image = buffer->surface.image;
 }
