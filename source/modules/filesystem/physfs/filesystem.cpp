@@ -145,9 +145,6 @@ void Filesystem::Init(const char* arg0)
     if (this->executablePath.empty())
         throw love::Exception("Failed to get executable path.");
 
-    if (Console::Is(Console::CAFE))
-        this->executablePath = "/vol/content/game.zip";
-
     if (!PHYSFS_init(this->executablePath.c_str()))
         throw love::Exception("Failed to initialize filesystem: %s", Filesystem::GetLastError());
 

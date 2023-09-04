@@ -70,8 +70,8 @@ bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
         }
     }
 
-    if (!Shader<Console::CAFE>::current)
-        Shader<Console::CAFE>::defaults[Shader<>::STANDARD_DEFAULT]->Attach();
+    // if (!Shader<Console::CAFE>::current)
+    //     Shader<Console::CAFE>::defaults[Shader<>::STANDARD_DEFAULT]->Attach();
 
     this->created = true;
     return true;

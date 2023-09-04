@@ -178,9 +178,6 @@ void Renderer<Console::CAFE>::Clear(const Color& color)
 {
     GX2ClearColor(this->context.target, color.r, color.g, color.b, color.a);
     GX2SetContextState(this->state);
-
-    if (Shader<Console::CAFE>::current)
-        this->UseProgram(Shader<Console::CAFE>::current->GetGroup());
 }
 
 void Renderer<Console::CAFE>::SetDepthWrites(bool enable)
@@ -306,7 +303,9 @@ void Renderer<Console::CAFE>::FlushVertices()
 
 bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 {
+    if (!Shader<Console::CAFE>::IsDefaultActive(command.shader))
     {
+        FlushVertices();
         Shader<Console::CAFE>::defaults[command.shader]->Attach();
 
         GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->context.transform, TRANSFORM_SIZE);
@@ -353,6 +352,10 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 void Renderer<Console::CAFE>::Present()
 {
     FlushVertices();
+
+    this->inFrame  = false;
+    m_vertexOffset = 0;
+
     GX2DrawDone();
 
     if (Keyboard()->IsShowing())
@@ -373,9 +376,6 @@ void Renderer<Console::CAFE>::Present()
     const auto nanoSecSystem = OSTicksToNanoseconds(OSGetSystemTick() - this->cpuTickReference);
     std::chrono::nanoseconds cpuNanoSec(nanoSecSystem);
     Renderer<Console::CAFE>::cpuTime = std::chrono::duration<float, std::milli>(cpuNanoSec).count();
-
-    this->inFrame  = false;
-    m_vertexOffset = 0;
 
     const auto nanoSecTicks = OSTicksToNanoseconds(OSGetSystemTick() - this->gpuTickReference);
     std::chrono::nanoseconds gpuNanoSec(nanoSecTicks);
@@ -463,7 +463,7 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
         height = (float)this->current->GetHeight();
     }
 
-    GX2SetViewport(0, 0, (float)width, height, Z_NEAR, Z_FAR);
+    GX2SetViewport(0, 0, width, height, Z_NEAR, Z_FAR);
 
     auto ortho = glm::ortho(0.0f, width, height, 0.0f, Z_NEAR, Z_FAR);
 
