@@ -2,7 +2,6 @@
 
 #include <objects/font/font.tcc>
 
-#include <modules/graphics_ext.hpp>
 #include <objects/rasterizer_ext.hpp>
 
 #include <citro3d.h>

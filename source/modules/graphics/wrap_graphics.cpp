@@ -811,7 +811,7 @@ int Wrap_Graphics::NewCanvas(lua_State* L)
 {
     checkGraphicsCreated(L);
 
-    Texture<Console::Which>::Settings settings {};
+    Texture<>::Settings settings {};
     std::optional<bool> forceRenderTarget(true);
     bool setDPIScale = false;
 
@@ -827,7 +827,7 @@ int Wrap_Graphics::NewCanvas(lua_State* L)
         if (lua_isnumber(L, 3))
         {
             settings.layers = luaL_checkinteger(L, 3);
-            settings.type   = Texture<Console::Which>::TEXTURE_2D_ARRAY;
+            settings.type   = Texture<>::TEXTURE_2D_ARRAY;
             start           = 4;
         }
 
@@ -846,30 +846,199 @@ int Wrap_Graphics::NewCanvas(lua_State* L)
     return 1;
 }
 
+static Graphics<>::RenderTarget checkRenderTarget(lua_State* L, int index)
+{
+    lua_rawgeti(L, index, 1);
+    Graphics<>::RenderTarget target(Wrap_Texture::CheckTexture(L, -1), 0);
+
+    Texture<>::TextureType type = target.texture->GetTextureType();
+    if (type == Texture<>::TEXTURE_2D_ARRAY || type == Texture<>::TEXTURE_VOLUME)
+        target.slice = luax::CheckIntFlag(L, index, "layer") - 1;
+    else if (type == Texture<>::TEXTURE_CUBE)
+        target.slice = luax::CheckIntFlag(L, index, "face") - 1;
+
+    target.mipmap = luax::IntFlag(L, index, "mipmap", 1) - 1;
+
+    return target;
+}
+
 int Wrap_Graphics::SetCanvas(lua_State* L)
 {
-    Texture<Console::Which>* canvas = nullptr;
-
-    if (!lua_isnoneornil(L, 1))
+    if (lua_isnoneornil(L, 1))
     {
-        canvas = luax::CheckType<Texture<Console::Which>>(L, 1);
-
-        if (!canvas->IsRenderTarget())
-            throw love::Exception("Texture is not a RenderTarget");
+        instance()->SetRenderTarget();
+        return 0;
     }
 
-    instance()->SetCanvas(canvas);
+    bool isTable = lua_istable(L, 1);
+    Graphics<>::RenderTargets targets {};
+
+    if (isTable)
+    {
+        lua_rawgeti(L, 1, 1);
+        bool tableOfTables = lua_istable(L, -1);
+        lua_pop(L, 1);
+
+        for (size_t index = 1; index <= luax::ObjectLength(L, 1); index++)
+        {
+            lua_rawgeti(L, 1, index);
+
+            if (tableOfTables)
+                targets.colors.push_back(checkRenderTarget(L, -1));
+            else
+            {
+                targets.colors.emplace_back(Wrap_Texture::CheckTexture(L, -1), 0);
+                if (targets.colors.back().texture->GetTextureType() != Texture<>::TEXTURE_2D)
+                {
+                    return luaL_error(
+                        L, "Non-2D textures must use table-of-tables variant of setCanvas.");
+                }
+            }
+
+            lua_pop(L, 1);
+        }
+
+        uint32_t tempDepthFlag   = Graphics<>::TEMPORARY_RT_DEPTH;
+        uint32_t tempStencilFlag = Graphics<>::TEMPORARY_RT_STENCIL;
+
+        lua_getfield(L, 1, "depthstencil");
+        int depthStencilType = lua_type(L, -1);
+
+        if (depthStencilType == LUA_TTABLE)
+            targets.depthStencil = checkRenderTarget(L, -1);
+        else if (depthStencilType == LUA_TBOOLEAN)
+            targets.temporaryFlags |=
+                luax::ToBoolean(L, -1) ? (tempDepthFlag | tempStencilFlag) : 0;
+        else
+            targets.depthStencil.texture = Wrap_Texture::CheckTexture(L, -1);
+
+        lua_pop(L, 1);
+
+        if (targets.depthStencil.texture == nullptr &&
+            (targets.temporaryFlags & tempDepthFlag) == 0)
+        {
+            targets.temporaryFlags |= luax::BoolFlag(L, 1, "depth", false) ? tempDepthFlag : 0;
+        }
+
+        if (targets.depthStencil.texture == nullptr &&
+            (targets.temporaryFlags & tempStencilFlag) == 0)
+        {
+            targets.temporaryFlags |= luax::BoolFlag(L, 1, "stencil", false) ? tempStencilFlag : 0;
+        }
+    }
+    else
+    {
+        int count = lua_gettop(L);
+        for (int index = 1; index <= count; index++)
+        {
+            Graphics<>::RenderTarget target(Wrap_Texture::CheckTexture(L, index), 0);
+            Texture<>::TextureType type = target.texture->GetTextureType();
+
+            if (index == 1 && type != Texture<>::TEXTURE_2D)
+            {
+                target.slice  = luaL_checkinteger(L, index + 1) - 1;
+                target.mipmap = luaL_optinteger(L, index + 2, 1) - 1;
+                targets.colors.push_back(target);
+            }
+            else if (type == Texture<>::TEXTURE_2D && lua_isnumber(L, index + 1))
+            {
+                target.mipmap = luaL_optinteger(L, index + 1, 1) - 1;
+                index++;
+            }
+
+            if (index > 1 && type != Texture<>::TEXTURE_2D)
+                return luaL_error(L, "This variant of setCanvas only supports 2D texture types.");
+
+            targets.colors.push_back(target);
+        }
+    }
+
+    luax::CatchException(L, [&]() {
+        if (targets.GetFirstTarget().texture != nullptr)
+            instance()->SetRenderTargets(targets);
+        else
+            instance()->SetRenderTarget();
+    });
 
     return 0;
 }
 
+static void pushRenderTarget(lua_State* L, const Graphics<>::RenderTarget& target)
+{
+    lua_createtable(L, 1, 2);
+
+    luax::PushType(L, target.texture);
+    lua_rawseti(L, -2, 1);
+
+    auto type = target.texture->GetTextureType();
+
+    if (type == Texture<>::TEXTURE_2D_ARRAY || type == Texture<>::TEXTURE_VOLUME)
+    {
+        lua_pushnumber(L, target.slice + 1);
+        lua_setfield(L, -2, "layer");
+    }
+    else if (type == Texture<>::TEXTURE_CUBE)
+    {
+        lua_pushnumber(L, target.slice + 1);
+        lua_setfield(L, -2, "face");
+    }
+
+    lua_pushnumber(L, target.mipmap + 1);
+    lua_setfield(L, -2, "mipmap");
+}
+
 int Wrap_Graphics::GetCanvas(lua_State* L)
 {
-    Texture<Console::Which>* canvas = instance()->GetCanvas();
+    Graphics<>::RenderTargets targets = instance()->GetRenderTargets();
+    const int count                   = targets.colors.size();
 
-    luax::PushType(L, canvas);
+    if (count == 0)
+    {
+        lua_pushnil(L);
+        return 1;
+    }
 
-    return 1;
+    bool useTablesVariant = targets.depthStencil.texture != nullptr;
+    if (!useTablesVariant)
+    {
+        for (const auto& target : targets.colors)
+        {
+            if (target.mipmap != 0 || target.texture->GetTextureType() != Texture<>::TEXTURE_2D)
+            {
+                useTablesVariant = true;
+                break;
+            }
+        }
+    }
+
+    if (useTablesVariant)
+    {
+        lua_createtable(L, count, 0);
+
+        for (int index = 0; index < count; index++)
+        {
+            pushRenderTarget(L, targets.colors[index]);
+            lua_rawseti(L, -2, index + 1);
+        }
+
+        if (targets.depthStencil.texture != nullptr)
+        {
+            pushRenderTarget(L, targets.depthStencil);
+            lua_setfield(L, -2, "depthstencil");
+        }
+
+        return 1;
+    }
+    else
+    {
+        for (const auto& target : targets.colors)
+            luax::PushType(L, target.texture);
+
+        return count;
+    }
+
+    /* shouldn't happen */
+    return 0;
 }
 
 /* PRIMITIVES */
@@ -1794,6 +1963,7 @@ static constexpr luaL_Reg functions[] =
     { "getBackgroundColor",    Wrap_Graphics::GetBackgroundColor    },
     { "getBlendMode",          Wrap_Graphics::GetBlendMode          },
     { "getBlendState",         Wrap_Graphics::GetBlendState         },
+    { "getCanvas",             Wrap_Graphics::GetCanvas             },
     { "getColor",              Wrap_Graphics::GetColor              },
     { "getColorMask",          Wrap_Graphics::GetColorMask          },
     { "getDefaultFilter",      Wrap_Graphics::GetDefaultFilter      },
@@ -1812,6 +1982,7 @@ static constexpr luaL_Reg functions[] =
     { "newQuad",               Wrap_Graphics::NewQuad               },
     { "newTextBatch",          Wrap_Graphics::NewTextBatch          },
     { "newTexture",            Wrap_Graphics::NewTexture            },
+    { "setCanvas",             Wrap_Graphics::SetCanvas             },
     { "setFont",               Wrap_Graphics::SetFont               },
     { "setLineJoin",           Wrap_Graphics::SetLineJoin           },
     { "setLineStyle",          Wrap_Graphics::SetLineStyle          },

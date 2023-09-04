@@ -1,11 +1,11 @@
 #include <objects/font_ext.hpp>
 
-#include <common/matrix_ext.hpp>
-
 #include <modules/graphics_ext.hpp>
 
+#include <objects/rasterizer_ext.hpp>
 #include <objects/texture_ext.hpp>
 
+#include <utilities/driver/renderer_ext.hpp>
 #include <utilities/functions.hpp>
 
 #include <utf8.h>
@@ -303,10 +303,10 @@ const Font<Console::HAC>::Glyph<>& Font<Console::HAC>::AddGlyph(uint32_t glyph)
         const vertex::Vertex vertices[4] =
         {
             /* x                                      y                             z                u                                                 v                                                  */
-            {{ -offset,                               -offset,                      0.0f }, color, { (x - offset) / _width,         (y - offset) / _height          }},
-            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { (x - offset) / _width,         (y + height + offset) / _height }},
-            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { (x + width + offset) / _width, (y + height + offset) / _height }},
-            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { (x + width + offset) / _width, (y - offset) / _height          }}
+            {{ -offset,                               -offset,                      0.0f }, color, { (float)((x - offset) / _width),         (float)((y - offset) / _height)          }},
+            {{ -offset,                               (height + offset) / dpiScale, 0.0f }, color, { (float)((x - offset) / _width),         (float)((y + height + offset) / _height) }},
+            {{ (width + offset) / dpiScale,           (height + offset) / dpiScale, 0.0f }, color, { (float)((x + width + offset) / _width), (float)((y + height + offset) / _height) }},
+            {{ (width + offset) / dpiScale,           -offset,                      0.0f }, color, { (float)((x + width + offset) / _width), (float)((y - offset) / _height)          }}
         };
         // clang-format on
 

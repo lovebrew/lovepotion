@@ -49,6 +49,14 @@ namespace love
             return false;
         }
 
+        static bool IsDefaultActive(StandardShader type)
+        {
+            if (current == defaults[type])
+                return true;
+
+            return false;
+        }
+
         // clang-format off
         static constexpr BidirectionalMap standardShaders = {
             "color",   STANDARD_DEFAULT,

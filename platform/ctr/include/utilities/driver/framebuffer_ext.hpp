@@ -20,9 +20,9 @@ namespace love
 
         void UseProjection(Shader<Console::CTR>::Uniforms uniforms);
 
-        void SetViewport(const Rect& viewport = Rect::EMPTY);
+        void SetViewport(const Rect& viewport = Rect::EMPTY, bool canvasActive = false);
 
-        void SetScissor(const Rect& scissor = Rect::EMPTY);
+        void SetScissor(const Rect& scissor = Rect::EMPTY, bool canvasActive = false);
 
         C3D_RenderTarget* GetTarget()
         {

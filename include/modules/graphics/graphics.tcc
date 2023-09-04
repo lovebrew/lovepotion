@@ -64,6 +64,123 @@ namespace love
             STACK_TRANSFORM
         };
 
+        enum TemporaryRenderTargetFlags
+        {
+            TEMPORARY_RT_DEPTH   = (1 << 0),
+            TEMPORARY_RT_STENCIL = (1 << 1),
+        };
+
+        struct RenderTargetStrongReference;
+
+        struct RenderTarget
+        {
+          public:
+            RenderTarget(Texture<Console::ALL>* texture, int slice = 0, int mipmap = 0) :
+                texture(texture),
+                slice(slice),
+                mipmap(mipmap)
+            {}
+
+            RenderTarget() : texture(nullptr), slice(0), mipmap(0)
+            {}
+
+            bool operator!=(const RenderTarget& other) const
+            {
+                return this->texture != other.texture || this->slice != other.slice ||
+                       mipmap != other.mipmap;
+            }
+
+            bool operator!=(const RenderTargetStrongReference& other) const
+            {
+                return this->texture != other.texture.Get() || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            Texture<Console::ALL>* texture;
+            int slice;
+            int mipmap;
+        };
+
+        struct RenderTargetStrongReference
+        {
+          public:
+            RenderTargetStrongReference(Texture<Console::ALL>* texture, int slice = 0,
+                                        int mipmap = 0) :
+                texture(texture),
+                slice(slice),
+                mipmap(mipmap)
+            {}
+
+            bool operator!=(const RenderTargetStrongReference& other) const
+            {
+                return this->texture.Get() != other.texture.Get() || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            bool operator!=(const RenderTarget& other) const
+            {
+                return this->texture.Get() != other.texture || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            StrongReference<Texture<Console::ALL>> texture;
+            int slice  = 0;
+            int mipmap = 0;
+        };
+
+        struct RenderTargets
+        {
+          public:
+            std::vector<RenderTarget> colors;
+            RenderTarget depthStencil;
+            uint32_t temporaryFlags;
+
+            RenderTargets() : depthStencil(nullptr), temporaryFlags(0)
+            {}
+
+            const RenderTarget& GetFirstTarget() const
+            {
+                return colors.empty() ? depthStencil : this->colors[0];
+            }
+
+            bool operator==(const RenderTargets& other) const
+            {
+                size_t totalColors = colors.size();
+                if (totalColors != other.colors.size())
+                    return false;
+
+                for (size_t index = 0; index < totalColors; index++)
+                {
+                    if (this->colors[index] != other.colors[index])
+                        return false;
+                }
+
+                if (this->depthStencil != other.depthStencil ||
+                    this->temporaryRTFlags != other.temporaryRTFlags)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        };
+
+        struct RenderTargetsStrongReference
+        {
+          public:
+            RenderTargetsStrongReference() : depthStencil(nullptr), temporaryFlags(0)
+            {}
+
+            const RenderTargetStrongReference& GetFirstTarget() const
+            {
+                return this->colors.empty() ? this->depthStencil : this->colors[0];
+            }
+
+            std::vector<RenderTargetStrongReference> colors;
+            RenderTargetStrongReference depthStencil;
+            uint_fast32_t temporaryFlags;
+        };
+
         struct Stats
         {
             int drawCalls;
@@ -93,7 +210,7 @@ namespace love
 
             StrongReference<Font<Console::Which>> font;
             StrongReference<Shader<Console::Which>> shader;
-            StrongReference<Texture<Console::Which>> renderTarget;
+            RenderTargetsStrongReference renderTargets;
 
             struct
             {
@@ -177,7 +294,8 @@ namespace love
             pixelWidth(0),
             pixelHeight(0),
             created(false),
-            active(true)
+            active(true),
+            renderTargetSwitchCount(0)
         {
             this->transformStack.reserve(16);
             this->transformStack.push_back(Matrix4<Console::Which>());
@@ -281,18 +399,261 @@ namespace love
             return this->states.back().font;
         }
 
-        void SetCanvas(Texture<Console::Which>* canvas)
+        void SetRenderTargetsInternal(const RenderTargets& targets, int width, int height,
+                                      bool hasSRGBTexture)
         {
-            this->states.back().renderTarget = canvas;
+            // const DisplayState& state = this->states.back();
 
-            Renderer<Console::Which>::Instance().BindFramebuffer(canvas);
-            if (this->states.back().scissor.active)
-                this->SetScissor(this->states.back().scissor.bounds);
+            bool isWindow = targets.GetFirstTarget().texture == nullptr;
+
+            if (isWindow)
+                Renderer<Console::Which>::Instance().BindFramebuffer();
+            else
+            {
+                Renderer<Console::Which>::Instance().BindFramebuffer(
+                    targets.GetFirstTarget().texture);
+            }
         }
 
-        Texture<Console::Which>* GetCanvas()
+        void SetRenderTarget()
         {
-            return this->states.back().renderTarget;
+            DisplayState& state = this->states.back();
+
+            if (state.renderTargets.colors.empty() &&
+                state.renderTargets.depthStencil.texture == nullptr)
+            {
+                return;
+            }
+
+            Renderer<Console::Which>::FlushVertices();
+            this->SetRenderTargetsInternal(RenderTargets {}, this->width, this->height,
+                                           this->IsGammaCorrect());
+
+            state.renderTargets = RenderTargetsStrongReference();
+            renderTargetSwitchCount++;
+        }
+
+        void SetRenderTarget(RenderTarget target, uint32_t flags)
+        {
+            if (target.texture == nullptr)
+                return SetRenderTarget();
+
+            RenderTargets targets {};
+            targets.colors.push_back(target);
+            targets.temporaryFlags = flags;
+
+            this->SetRenderTargets(targets);
+        }
+
+        void SetRenderTargets(const RenderTargetsStrongReference& strongTargets)
+        {
+            RenderTargets targets {};
+            targets.colors.reserve(strongTargets.colors.size());
+
+            for (const auto& target : strongTargets.colors)
+                targets.colors.emplace_back(target.texture.Get(), target.slice, target.mipmap);
+
+            targets.depthStencil =
+                RenderTarget(strongTargets.depthStencil.texture, strongTargets.depthStencil.slice,
+                             strongTargets.depthStencil.mipmap);
+
+            targets.temporaryFlags = strongTargets.temporaryFlags;
+            return this->SetRenderTargets(targets);
+        }
+
+        void SetRenderTargets(const RenderTargets& targets)
+        {
+            DisplayState& state = this->states.back();
+            int count           = (int)targets.colors.size();
+
+            RenderTarget firstTarget            = targets.GetFirstTarget();
+            Texture<Console::ALL>* firstTexture = firstTarget.texture;
+
+            if (firstTexture == nullptr)
+                return this->SetRenderTarget();
+
+            const auto& previousTargets = state.renderTargets;
+
+            /* validate if the rendertargets changed */
+            if (count == (int)previousTargets.colors.size())
+            {
+                bool modified = false;
+
+                for (int index = 0; index < count; index++)
+                {
+                    if (targets.colors[index] != previousTargets.colors[index])
+                    {
+                        modified = true;
+                        break;
+                    }
+                }
+
+                if (!modified && targets.depthStencil != previousTargets.depthStencil)
+                    modified = true;
+
+                if (targets.temporaryFlags != previousTargets.temporaryFlags)
+                    modified = true;
+
+                if (!modified)
+                    return;
+            }
+
+            if (count > 0x01)
+            {
+                throw love::Exception("This system can't simultaneously render to %d textures",
+                                      count);
+            }
+
+            PixelFormat firstColorFormat = PIXELFORMAT_UNKNOWN;
+            if (!targets.colors.empty())
+                firstColorFormat = targets.colors[0].texture->GetPixelFormat();
+
+            if (!firstTexture->IsRenderTarget())
+            {
+                throw love::Exception(
+                    "Texture must be created as a render target to be used in setRenderTargets.");
+            }
+
+            if (love::IsPixelFormatDepthStencil(firstColorFormat))
+            {
+                throw love::Exception(
+                    "Depth/stencil format textures must be used with the 'depthstencil' field of "
+                    "the table passed into setRenderTargets.");
+            }
+
+            if (firstTarget.mipmap < 0 || firstTarget.mipmap >= firstTexture->GetMipmapCount())
+                throw love::Exception("Invalid mipmap level %d.", firstTarget.mipmap + 1);
+
+            if (!firstTexture->IsValidSlice(firstTarget.slice, firstTarget.mipmap))
+                throw love::Exception("Invalid slice index: %d.", firstTarget.slice + 1);
+
+            bool hasSRGBtexture = love::IsPixelFormatSRGB(firstColorFormat);
+            int pixelWidth      = firstTexture->GetPixelWidth(firstTarget.mipmap);
+            int pixelHeight     = firstTexture->GetPixelHeight(firstTarget.mipmap);
+            int reqMSAA         = firstTexture->GetRequestedMSAA();
+
+            bool multiformatsupported = false;
+
+            /* do a ton of validation - NOTE: only ONE rendertarget allowed MAX */
+            for (int i = 1; i < count; i++)
+            {
+                Texture<Console::ALL>* canvas = targets.colors[i].texture;
+                PixelFormat format            = canvas->GetPixelFormat();
+                int mip                       = targets.colors[i].mipmap;
+                int slice                     = targets.colors[i].slice;
+
+                if (!canvas->IsRenderTarget())
+                    throw love::Exception("Texture must be created as a render target to be used "
+                                          "in setRenderTargets.");
+
+                if (mip < 0 || mip >= canvas->GetMipmapCount())
+                    throw love::Exception("Invalid mipmap level %d.", mip + 1);
+
+                if (!canvas->IsValidSlice(slice, mip))
+                    throw love::Exception("Invalid slice index: %d.", slice + 1);
+
+                if (canvas->GetPixelWidth(mip) != pixelWidth ||
+                    canvas->GetPixelHeight(mip) != pixelHeight)
+                {
+                    throw love::Exception("All textures must have the same pixel dimensions.");
+                }
+
+                if (!multiformatsupported && format != firstColorFormat)
+                {
+                    throw love::Exception("This system doesn't support multi-render-target "
+                                          "rendering with different texture formats.");
+                }
+
+                if (canvas->GetRequestedMSAA() != reqMSAA)
+                    throw love::Exception("All textures must have the same MSAA value.");
+
+                if (love::IsPixelFormatDepthStencil(format))
+                {
+                    throw love::Exception(
+                        "Depth/stencil format textures must be used with the 'depthstencil' field "
+                        "of the table passed into setRenderTargets.");
+                }
+
+                if (love::IsPixelFormatSRGB(format))
+                    hasSRGBtexture = true;
+            }
+
+            /* validate depth stencil */
+
+            this->SetRenderTargetsInternal(targets, pixelWidth, pixelHeight, hasSRGBtexture);
+
+            RenderTargetsStrongReference references {};
+            references.colors.reserve(targets.colors.size());
+
+            for (auto target : targets.colors)
+                references.colors.emplace_back(target.texture, target.slice, target.mipmap);
+
+            references.depthStencil   = RenderTargetStrongReference(targets.depthStencil.texture,
+                                                                    targets.depthStencil.slice);
+            references.temporaryFlags = targets.temporaryFlags;
+
+            std::swap(state.renderTargets, references);
+
+            renderTargetSwitchCount++;
+        }
+
+        RenderTargets GetRenderTargets() const
+        {
+            const auto& targets = this->states.back().renderTargets;
+
+            RenderTargets newTargets {};
+            newTargets.colors.reserve(targets.colors.size());
+
+            for (const auto& target : targets.colors)
+                newTargets.colors.emplace_back(target.texture.Get(), target.slice, target.mipmap);
+
+            newTargets.depthStencil =
+                RenderTarget(targets.depthStencil.texture, targets.depthStencil.slice,
+                             targets.depthStencil.mipmap);
+            newTargets.temporaryFlags = targets.temporaryFlags;
+
+            return newTargets;
+        }
+
+        bool IsRenderTargetActive() const
+        {
+            const auto& targets = this->states.back().renderTargets;
+            return !targets.colors.empty() || targets.depthStencil.texture != nullptr;
+        }
+
+        bool IsRenderTargetActive(Texture<Console::ALL>* texture) const
+        {
+            const auto& targets = this->states.back().renderTargets;
+
+            for (const auto& target : targets.colors)
+            {
+                if (target.texture.Get() == texture)
+                    return true;
+            }
+
+            if (targets.depthStencil.texture.Get() == texture)
+                return true;
+
+            return false;
+        }
+
+        bool IsRenderTargetActive(Texture<Console::ALL>* texture, int slice) const
+        {
+            const auto& targets = this->states.back().renderTargets;
+
+            for (const auto& target : targets.colors)
+            {
+                if (target.texture.Get() == texture && target.slice == slice)
+                    return true;
+            }
+
+            if (targets.depthStencil.texture.Get() == texture &&
+                targets.depthStencil.slice == slice)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         void SetShader()
@@ -315,12 +676,13 @@ namespace love
         {
             Stats stats {};
 
-            stats.drawCalls        = Renderer<>::drawCalls;
-            stats.textures         = Texture<>::textureCount;
-            stats.fonts            = Font<>::fontCount;
-            stats.shaderSwitches   = Shader<>::shaderSwitches;
-            stats.textureMemory    = Texture<>::totalGraphicsMemory;
-            stats.drawCallsBatched = Renderer<>::drawCallsBatched;
+            stats.drawCalls            = Renderer<>::drawCalls;
+            stats.textures             = Texture<>::textureCount;
+            stats.fonts                = Font<>::fontCount;
+            stats.shaderSwitches       = Shader<>::shaderSwitches;
+            stats.textureMemory        = Texture<>::totalGraphicsMemory;
+            stats.drawCallsBatched     = Renderer<>::drawCallsBatched;
+            stats.renderTargetSwitches = renderTargetSwitchCount;
 
             stats.cpuTime = Renderer<>::cpuTime;
             stats.gpuTime = Renderer<>::gpuTime;
@@ -459,6 +821,7 @@ namespace love
 
             this->SetFont(state.font.Get());
             this->SetShader(state.shader.Get());
+            this->SetRenderTargets(state.renderTargets);
 
             this->SetColorMask(state.colorMask);
             this->SetDefaultSamplerState(state.defaultSamplerState);
@@ -475,22 +838,6 @@ namespace love
             format = this->GetSizedFormat(format, rendertarget, readable);
 
             /* todo: calculate pixel format usages*/
-            return false;
-        }
-
-        bool IsRenderTargetActive() const
-        {
-            const auto& renderTarget = states.back().renderTarget;
-            return renderTarget != nullptr;
-        }
-
-        bool IsRenderTargetActive(Texture<Console::Which>* texture) const
-        {
-            const auto& renderTarget = states.back().renderTarget;
-
-            if (renderTarget.Get() == texture)
-                return true;
-
             return false;
         }
 
@@ -519,6 +866,33 @@ namespace love
 
             this->SetFont(state.font.Get());
             this->SetShader(state.shader.Get());
+
+            const auto& targets        = state.renderTargets;
+            const auto& currentTargets = current.renderTargets;
+
+            bool changed = targets.colors.size() != currentTargets.colors.size();
+
+            if (!changed)
+            {
+                for (size_t index = 0;
+                     index < targets.colors.size() && index < currentTargets.colors.size(); index++)
+                {
+                    if (targets.colors[index] != currentTargets.colors[index])
+                    {
+                        changed = true;
+                        break;
+                    }
+                }
+
+                if (!changed && targets.depthStencil != currentTargets.depthStencil)
+                    changed = true;
+
+                if (targets.temporaryFlags != currentTargets.temporaryFlags)
+                    changed = true;
+            }
+
+            if (changed)
+                this->SetRenderTargets(state.renderTargets);
 
             if (state.colorMask != current.colorMask)
                 this->SetColorMask(state.colorMask);
@@ -1059,6 +1433,8 @@ namespace love
 
         bool created;
         bool active;
+
+        int renderTargetSwitchCount;
 
         StrongReference<Font<Console::Which>> defaultFont;
     };

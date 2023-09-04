@@ -29,6 +29,15 @@ using namespace love::physfs;
 
 static std::string getApplicationPath(std::string origin)
 {
+#if defined(__EMULATION__)
+    if (love::Console::Is(love::Console::CTR))
+        return "sdmc:/lovepotion.3dsx";
+    else if (love::Console::Is(love::Console::HAC))
+        return "sdmc:/lovepotion.nro";
+    else
+        return "fs:/vol/external01/wiiu/apps/lovepotion/lovepotion.wuhb";
+#endif
+
     if (!love::Console::Is(love::Console::CAFE))
         return origin;
 
@@ -135,9 +144,6 @@ void Filesystem::Init(const char* arg0)
     /* should only happen on Wii U */
     if (this->executablePath.empty())
         throw love::Exception("Failed to get executable path.");
-
-    if (Console::Is(Console::CAFE))
-        this->executablePath = "/vol/content/game.zip";
 
     if (!PHYSFS_init(this->executablePath.c_str()))
         throw love::Exception("Failed to initialize filesystem: %s", Filesystem::GetLastError());

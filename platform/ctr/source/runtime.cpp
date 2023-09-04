@@ -45,8 +45,10 @@ extern "C"
 
         tryInit(std::bind_front(romfsInit), love::ABORT_ROMFS);
 
+#if !defined(__EMULATION__)
         /* raw battery info */
         tryInit(std::bind_front(mcuHwcInit), love::ABORT_MCU_HWC);
+#endif
 
         /* charging state */
         tryInit(std::bind_front(ptmuInit), love::ABORT_PTMU);

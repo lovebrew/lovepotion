@@ -9,7 +9,8 @@
 
 using namespace love;
 
-static void createFramebufferObject(GX2ColorBuffer*& buffer, int width, int height)
+static void createFramebufferObject(GX2ColorBuffer*& buffer, GX2Texture*& texture, int width,
+                                    int height)
 {
     buffer = new GX2ColorBuffer();
 
@@ -25,9 +26,9 @@ static void createFramebufferObject(GX2ColorBuffer*& buffer, int width, int heig
     buffer->surface.height    = height;
     buffer->surface.depth     = 1;
     buffer->surface.mipLevels = 1;
-    buffer->surface.format    = GX2_SURFACE_FORMAT_SINT_R8_G8_B8_A8;
+    buffer->surface.format    = GX2_SURFACE_FORMAT_UNORM_R8_G8_B8_A8;
     buffer->surface.swizzle   = 0;
-    buffer->surface.tileMode  = GX2_TILE_MODE_DEFAULT;
+    buffer->surface.tileMode  = GX2_TILE_MODE_LINEAR_ALIGNED;
     buffer->surface.mipmaps   = nullptr;
     buffer->viewFirstSlice    = 0;
     buffer->viewMip           = 0;
@@ -35,6 +36,14 @@ static void createFramebufferObject(GX2ColorBuffer*& buffer, int width, int heig
 
     GX2CalcSurfaceSizeAndAlignment(&buffer->surface);
     GX2InitColorBufferRegs(buffer);
+
+    const auto size      = buffer->surface.imageSize;
+    const auto alignment = buffer->surface.alignment;
+
+    auto handle           = MEMGetBaseHeapHandle(MEM_BASE_HEAP_MEM1);
+    buffer->surface.image = MEMAllocFromFrmHeapEx(handle, size, alignment);
+
+    texture->surface.image = buffer->surface.image;
 }
 
 static void createTextureObject(GX2Texture*& texture, PixelFormat format, int width, int height)
@@ -176,7 +185,16 @@ void Texture<Console::CAFE>::CreateTexture()
     if (this->IsRenderTarget())
     {
         bool clear = !hasData;
-        // createFramebufferObject(this->framebuffer, this->image.tex, _width, _height);
+
+        createTextureObject(this->texture, PixelFormat::PIXELFORMAT_RGBA8_UNORM, width, height);
+        createFramebufferObject(this->framebuffer, this->texture, _width, _height);
+
+        if (clear)
+        {
+            Renderer<Console::CAFE>::Instance().BindFramebuffer(this);
+            Renderer<Console::CAFE>::Instance().Clear({ 0, 0, 0, 0 });
+            Renderer<Console::CAFE>::Instance().BindFramebuffer();
+        }
     }
     else
     {

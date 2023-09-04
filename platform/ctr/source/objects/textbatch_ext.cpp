@@ -97,6 +97,7 @@ int TextBatch<Console::CTR>::Addf(const Font<>::ColoredStrings& text, float wrap
     // C2D_TextOptimize(&this->text);
 
     // return (int)this->cache.size() - 1;
+    return 0;
 }
 
 void TextBatch<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,

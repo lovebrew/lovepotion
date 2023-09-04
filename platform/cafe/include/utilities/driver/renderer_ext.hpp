@@ -6,6 +6,8 @@
 #include <common/math.hpp>
 #include <common/pixelformat.hpp>
 
+#include <objects/shader_ext.hpp>
+
 #include <utilities/driver/renderer/drawcommand.tcc>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
@@ -73,8 +75,8 @@ namespace love
 
         struct Transform
         {
-            glm::mat4 modelView;
             glm::mat4 projection;
+            glm::mat4 modelView;
         };
 
         static Renderer& Instance()
@@ -105,7 +107,7 @@ namespace love
         void EnsureInFrame();
 
         /* todo: canvases */
-        void BindFramebuffer(Texture<Console::CAFE>* texture = nullptr);
+        void BindFramebuffer(Texture<Console::ALL>* texture = nullptr);
 
         void Present();
 
@@ -228,6 +230,12 @@ namespace love
 
             uint32_t writeMask;
         } renderState;
+
+        struct Context
+        {
+            GX2ColorBuffer* target;
+            Transform* transform;
+        } context;
 
         static constexpr auto TRANSFORM_SIZE = sizeof(Transform);
 

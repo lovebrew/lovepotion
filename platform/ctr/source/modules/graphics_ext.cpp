@@ -1,11 +1,10 @@
 #include <modules/graphics_ext.hpp>
 
-#include <objects/rasterizer_ext.hpp>
-
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
 
 #include <objects/font_ext.hpp>
+#include <objects/rasterizer_ext.hpp>
 #include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 

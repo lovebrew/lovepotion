@@ -43,6 +43,8 @@ namespace love
 
         ~Renderer();
 
+        static void FlushVertices();
+
         Info GetRendererInfo();
 
         void DestroyFramebuffers();
@@ -60,13 +62,13 @@ namespace love
         void EnsureInFrame();
 
         /* todo: canvases */
-        void BindFramebuffer(Texture<Console::CTR>* texture = nullptr);
+        void BindFramebuffer(Texture<Console::ALL>* texture = nullptr);
 
         bool Render(DrawCommand<Console::CTR>& command);
 
         void Present();
 
-        void SetViewport(const Rect& viewport);
+        void SetViewport(const Rect& viewport, bool tilt);
 
         void SetScissor(const Rect& scissor, bool canvasActive);
 
@@ -80,12 +82,15 @@ namespace love
 
         void SetColorMask(const RenderState::ColorMask& mask);
 
-        Framebuffer<Console::CTR>* GetCurrent()
+        Framebuffer<Console::CTR>& GetCurrent()
         {
-            return this->current;
+            return this->targets[love::GetActiveScreen()];
         }
 
-        std::optional<Screen> CheckScreen(const char* name) const;
+        C3D_Mtx& GetModelView()
+        {
+            return this->context.modelView;
+        }
 
         void SetWideMode(bool enable)
         {
@@ -182,8 +187,6 @@ namespace love
         // clang-format on
 
       private:
-        static void FlushVertices();
-
         template<typename T>
         void ModeChanged(const T& func)
         {
@@ -192,10 +195,16 @@ namespace love
             this->CreateFramebuffers();
         }
 
+        struct Context
+        {
+            C3D_Mtx modelView;
+            C3D_Mtx projection;
+            C3D_RenderTarget* target;
+        } context;
+
         std::vector<std::function<void()>> deferred;
         std::array<Framebuffer<Console::CTR>, MAX_RENDERTARGETS> targets;
 
-        Framebuffer<Console::CTR>* current;
         C3D_Tex* currentTexture;
 
         static inline PrimitiveType currentPrimitiveType = PRIMITIVE_MAX_ENUM;

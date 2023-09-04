@@ -8,9 +8,10 @@
 #include <modules/window_ext.hpp>
 
 #include <objects/font_ext.hpp>
-#include <objects/shader_ext.hpp>
 #include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
+
+#include <objects/shader_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::CAFE>;
 using namespace love;
@@ -69,8 +70,8 @@ bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
         }
     }
 
-    if (!Shader<Console::CAFE>::current)
-        Shader<Console::CAFE>::defaults[Shader<>::STANDARD_DEFAULT]->Attach();
+    // if (!Shader<Console::CAFE>::current)
+    //     Shader<Console::CAFE>::defaults[Shader<>::STANDARD_DEFAULT]->Attach();
 
     this->created = true;
     return true;

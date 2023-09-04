@@ -6,7 +6,6 @@
 #include <common/strongreference.hpp>
 
 #include <objects/font/font.tcc>
-#include <objects/texture/texture.tcc>
 
 namespace love
 {

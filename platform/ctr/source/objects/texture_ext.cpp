@@ -4,7 +4,7 @@
 
 using namespace love;
 
-static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture, uint16_t width,
+static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex*& texture, uint16_t width,
                                     uint16_t height)
 {
     const auto _width  = NextPo2(width);
@@ -74,6 +74,8 @@ Texture<Console::CTR>::Texture(const Graphics<Console::ALL>* graphics, const Set
     this->state = graphics->GetDefaultSamplerState();
     if (this->GetMipmapCount() == 1)
         this->state.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
+
+    this->state = graphics->GetDefaultSamplerState();
 
     Quad::Viewport view { 0, 0, (double)this->width, (double)this->height };
     this->quad.Set(new Quad(view, this->width, this->height), Acquire::NORETAIN);
@@ -154,11 +156,9 @@ void Texture<Console::CTR>::CreateTexture()
 
     if (this->IsRenderTarget())
     {
-        bool clear = !hasData;
-
         createFramebufferObject(this->framebuffer, this->texture, _width, _height);
 
-        if (clear)
+        if (!hasData)
         {
             Renderer<Console::CTR>::Instance().BindFramebuffer(this);
             Renderer<Console::CTR>::Instance().Clear({ 0, 0, 0, 0 });
@@ -272,17 +272,42 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
     this->Draw(graphics, this->quad, matrix);
 }
 
-[[nodiscard]] static const std::unique_ptr<Rect> calculateSubtextureViewport(
-    const Quad::Viewport& viewport, C3D_Tex* texture)
+static Vector2 getVertex(const float x, const float y, const Vector2& virtualDim,
+                         const Vector2& physicalDim)
 {
-    std::unique_ptr<Rect> subTexture(new Rect());
+    const auto u = x / physicalDim.x;
+    const auto v = (virtualDim.y - y) / physicalDim.y;
 
-    subTexture->y = 1.0f - (viewport.y) / texture->height;
-    subTexture->x = viewport.x / texture->width;
-    subTexture->w = (viewport.x + viewport.w) / texture->width;
-    subTexture->h = 1.0f - ((viewport.y + viewport.h) / texture->height);
+    return Vector2(u, v);
+}
 
-    return subTexture;
+static void refreshQuad(StrongReference<Quad> quad, const Quad::Viewport& viewport,
+                        const Vector2& virtualDim, const Vector2& physicalDim, bool isRenderTarget)
+{
+    quad->Refresh(viewport, physicalDim.x, physicalDim.y);
+    const auto* texCoords = quad->GetVertexTextureCoords();
+
+    if (isRenderTarget)
+    {
+        auto coord = getVertex(0, 0, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(0, coord);
+
+        coord = getVertex(0, virtualDim.y, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(1, coord);
+
+        coord = getVertex(virtualDim.x, virtualDim.y, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(2, coord);
+
+        coord = getVertex(virtualDim.x, 0.0f, virtualDim, physicalDim);
+        quad->SetVertexTextureCoord(3, coord);
+
+        return;
+    }
+
+    quad->SetVertexTextureCoord(0, Vector2(texCoords[0].x, 1.0f - texCoords[0].y));
+    quad->SetVertexTextureCoord(1, Vector2(texCoords[1].x, 1.0f - texCoords[1].y));
+    quad->SetVertexTextureCoord(2, Vector2(texCoords[2].x, 1.0f - texCoords[2].y));
+    quad->SetVertexTextureCoord(3, Vector2(texCoords[3].x, 1.0f - texCoords[3].y));
 }
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
@@ -295,8 +320,11 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
         throw love::Exception("Cannot render a Texture to itself.");
 
     const Quad::Viewport& viewport = quad->GetViewport();
-    this->quad.Set(new Quad(viewport, (double)this->texture->width, (double)this->texture->height),
-                   Acquire::NORETAIN);
+
+    Vector2 physicalDim = { (double)this->texture->width, (double)this->texture->height };
+    Vector2 virtualDim  = { (double)this->pixelWidth, (double)this->pixelHeight };
+
+    refreshQuad(quad, viewport, virtualDim, physicalDim, this->renderTarget);
 
     const auto& transform = graphics.GetTransform();
     bool is2D             = transform.IsAffine2DTransform();
@@ -308,10 +336,10 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
     command.format  = CommonFormat::TEXTURE;
 
     if (is2D)
-        translated.TransformXY(command.Positions().get(), this->quad->GetVertexPositions(),
+        translated.TransformXY(command.Positions().get(), quad->GetVertexPositions(),
                                command.count);
 
-    const auto* coords = this->quad->GetVertexTextureCoords();
+    const auto* coords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), coords);
 
     Renderer<Console::CTR>::Instance().Render(command);

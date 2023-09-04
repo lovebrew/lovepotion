@@ -3,7 +3,6 @@
 #include <modules/graphics_ext.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
-
 #include <utilities/functions.hpp>
 
 #include <algorithm>
@@ -112,12 +111,12 @@ const Font<Console::CTR>::Glyph<C3D_Tex, 0x06>& Font<Console::CTR>::AddGlyph(uin
         const std::array<Vertex, 0x06> vertices = 
         {
             /*        x        y       z                u      v      */
-            Vertex {{ 0,       0,      0.0f }, color, { left,  top       }},
-            Vertex {{ 0,       height, 0.0f }, color, { left,  bottom    }},
-            Vertex {{ width,   height, 0.0f }, color, { right, bottom    }},
-            Vertex {{ width,   height, 0.0f }, color, { right, bottom    }},
-            Vertex {{ width,   0,      0.0f }, color, { right, top       }},
-            Vertex {{ 0,       0,      0.0f }, color, { left,  top       }}
+            Vertex {{ 0,       0,      0.0f }, color, { left,  top    }},
+            Vertex {{ 0,       height, 0.0f }, color, { left,  bottom }},
+            Vertex {{ width,   height, 0.0f }, color, { right, bottom }},
+            Vertex {{ width,   height, 0.0f }, color, { right, bottom }},
+            Vertex {{ width,   0,      0.0f }, color, { right, top    }},
+            Vertex {{ 0,       0,      0.0f }, color, { left,  top    }}
         };
         // clang-format on
 

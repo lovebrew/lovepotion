@@ -4,8 +4,6 @@
 
 #include <common/strongreference.hpp>
 
-#include <objects/glyphdata/glyphdata.hpp>
-
 #include <citro2d.h>
 
 namespace love

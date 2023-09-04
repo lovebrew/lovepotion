@@ -82,6 +82,11 @@ Renderer<Console::CAFE>::Renderer() :
         throw love::Exception("Failed to create GX2RBuffer");
 
     GX2RSetAttributeBuffer(&m_buffer, 0, VERTEX_SIZE, 0);
+
+    this->context.transform = (Transform*)memalign(0x100, sizeof(Transform));
+
+    this->context.transform->projection = glm::mat4(1.0f);
+    this->context.transform->modelView  = glm::mat4(1.0f);
 }
 
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
@@ -171,11 +176,8 @@ void Renderer<Console::CAFE>::EnsureInFrame()
 
 void Renderer<Console::CAFE>::Clear(const Color& color)
 {
-    GX2ClearColor(&this->current->GetBuffer(), color.r, color.g, color.b, color.a);
+    GX2ClearColor(this->context.target, color.r, color.g, color.b, color.a);
     GX2SetContextState(this->state);
-
-    if (Shader<Console::CAFE>::current)
-        this->UseProgram(Shader<Console::CAFE>::current->GetGroup());
 }
 
 void Renderer<Console::CAFE>::SetDepthWrites(bool enable)
@@ -195,8 +197,8 @@ void Renderer<Console::CAFE>::ClearDepthStencil(int stencil, uint8_t mask, doubl
 
 void Renderer<Console::CAFE>::SetBlendColor(const Color& color)
 {
-    GX2SetBlendConstantColor(color.r, color.g, color.b, color.a);
-    GX2SetContextState(this->state);
+    // GX2SetBlendConstantColor(color.r, color.g, color.b, color.a);
+    // GX2SetContextState(this->state);
 }
 
 void Renderer<Console::CAFE>::SetBlendMode(const RenderState::BlendState& state)
@@ -253,86 +255,66 @@ void Renderer<Console::CAFE>::SetVertexWinding(vertex::Winding winding)
     this->renderState.winding = *face;
 }
 
-void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::CAFE>* texture)
+void Renderer<Console::CAFE>::BindFramebuffer(Texture<Console::ALL>* texture)
 {
     this->EnsureInFrame();
     FlushVertices();
 
+    this->context.target = &this->current->GetBuffer();
+    auto viewport        = this->current->GetViewport();
+
     if (texture && texture->IsRenderTarget())
     {
-        GX2SetColorBuffer(texture->GetFramebuffer(), GX2_RENDER_TARGET_0);
+        auto* _texture       = (Texture<Console::CAFE>*)texture;
+        this->context.target = _texture->GetFramebuffer();
 
-        this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
-        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
-    }
-    else
-    {
-        GX2SetColorBuffer(&this->current->GetBuffer(), GX2_RENDER_TARGET_0);
-        GX2SetDepthBuffer(&this->current->GetDepthBuffer());
-
-        this->SetViewport(this->current->GetViewport());
-        this->SetScissor(this->current->GetScissor(), false);
+        viewport = { 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() };
     }
 
-    this->current->UseProjection();
+    GX2SetColorBuffer(this->context.target, GX2_RENDER_TARGET_0);
+    this->SetViewport(viewport);
 }
 
 void Renderer<Console::CAFE>::FlushVertices()
 {
     auto* vertices = (Vertex*)GX2RLockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
 
-    size_t writeOffset = m_vertexOffset;
     for (const auto& command : m_commands)
     {
         if (command.count + m_vertexOffset > MAX_OBJECTS)
             m_vertexOffset = 0;
 
-        std::memcpy(vertices + writeOffset, command.Vertices().get(), command.size);
-        writeOffset += command.count;
-    }
+        std::memcpy(vertices + m_vertexOffset, command.Vertices().get(), command.size);
 
-    GX2RUnlockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
-
-    size_t readOffset = m_vertexOffset;
-    for (const auto& command : m_commands)
-    {
         std::optional<GX2PrimitiveMode> primitive;
         if (!(primitive = primitiveModes.Find(command.type)))
             throw love::Exception("Invalid primitive mode");
 
         ++drawCallsBatched;
-        GX2DrawEx(*primitive, command.count, readOffset, 1);
-
-        readOffset += command.count;
+        GX2DrawEx(*primitive, command.count, m_vertexOffset, 1);
+        m_vertexOffset += command.count;
     }
 
-    m_vertexOffset   = readOffset;
+    GX2RUnlockBufferEx(&m_buffer, GX2R_RESOURCE_BIND_NONE);
+
     gpuTickReference = OSGetSystemTick();
-
     m_commands.clear();
-}
-
-bool Renderer<Console::CAFE>::TexturesChanged(std::vector<Texture<Console::CAFE>*> handles)
-{
-    if (handles.size() != this->currentTextures.size())
-        return true;
-
-    for (size_t index = 0; index < handles.size(); index++)
-    {
-        if (this->currentTextures[index] != handles[index])
-            return true;
-    }
-
-    return false;
 }
 
 bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 {
-    Shader<Console::CAFE>::defaults[command.shader]->Attach();
+    if (!Shader<Console::CAFE>::IsDefaultActive(command.shader))
+    {
+        FlushVertices();
+        Shader<Console::CAFE>::defaults[command.shader]->Attach();
+
+        GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->context.transform, TRANSFORM_SIZE);
+        GX2SetVertexUniformBlock(1, Renderer::TRANSFORM_SIZE, (const void*)this->context.transform);
+    }
 
     // todo: check for duplicate texture?
     if (command.handles.empty() ||
-        (command.handles.size() > 0 && !this->TexturesChanged(command.handles)))
+        (command.handles.size() > 0 && command.handles == this->currentTextures))
     {
         ++drawCalls;
         m_commands.push_back(command.Clone());
@@ -346,11 +328,17 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
         {
             for (size_t index = 0; index < command.handles.size(); index++)
             {
+                const auto location =
+                    Shader<Console::CAFE>::current->GetPixelSamplerLocation(index);
+
                 auto* texture = command.handles[index]->GetHandle();
                 auto* sampler = &command.handles[index]->GetSampler();
 
-                Shader<Console::CAFE>::current->BindTexture(index, texture, sampler);
+                GX2SetPixelTexture(texture, location);
+                GX2SetPixelSampler(sampler, location);
             }
+
+            this->currentTextures = command.handles;
         }
 
         ++drawCalls;
@@ -364,6 +352,10 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 void Renderer<Console::CAFE>::Present()
 {
     FlushVertices();
+
+    this->inFrame  = false;
+    m_vertexOffset = 0;
+
     GX2DrawDone();
 
     if (Keyboard()->IsShowing())
@@ -385,8 +377,6 @@ void Renderer<Console::CAFE>::Present()
     std::chrono::nanoseconds cpuNanoSec(nanoSecSystem);
     Renderer<Console::CAFE>::cpuTime = std::chrono::duration<float, std::milli>(cpuNanoSec).count();
 
-    this->inFrame = false;
-
     const auto nanoSecTicks = OSTicksToNanoseconds(OSGetSystemTick() - this->gpuTickReference);
     std::chrono::nanoseconds gpuNanoSec(nanoSecTicks);
     Renderer<Console::CAFE>::gpuTime = std::chrono::duration<float, std::milli>(gpuNanoSec).count();
@@ -397,8 +387,6 @@ void Renderer<Console::CAFE>::Present()
     */
     GX2Flush();
     GX2WaitForFlip();
-
-    m_vertexOffset = 0;
 }
 
 void Renderer<Console::CAFE>::SetSamplerState(Texture<Console::CAFE>* texture, SamplerState& state)
@@ -437,8 +425,6 @@ void Renderer<Console::CAFE>::UseProgram(const WHBGfxShaderGroup& group)
     GX2SetFetchShader(&group.fetchShader);
     GX2SetVertexShader(group.vertexShader);
     GX2SetPixelShader(group.pixelShader);
-
-    this->current->UseProjection();
 }
 
 void Renderer<Console::CAFE>::SetColorMask(const RenderState::ColorMask& mask)
@@ -477,10 +463,23 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
         height = (float)this->current->GetHeight();
     }
 
-    this->current->SetViewport(viewport);
+    GX2SetViewport(0, 0, width, height, Z_NEAR, Z_FAR);
 
     auto ortho = glm::ortho(0.0f, width, height, 0.0f, Z_NEAR, Z_FAR);
-    this->current->SetProjection(ortho);
+
+    /* glm::value_ptr lets us access the data linearly rather than an XxY matrix */
+    unsigned int* dstModel = (unsigned int*)glm::value_ptr(this->context.transform->modelView);
+    unsigned int* dstProj  = (unsigned int*)glm::value_ptr(this->context.transform->projection);
+
+    const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
+
+    unsigned int* model = (unsigned int*)glm::value_ptr(this->context.transform->modelView);
+    for (size_t index = 0; index < count; index++)
+        dstModel[index] = __builtin_bswap32(model[index]);
+
+    unsigned int* projection = (unsigned int*)glm::value_ptr(ortho);
+    for (size_t index = 0; index < count; index++)
+        dstProj[index] = __builtin_bswap32(projection[index]);
 }
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)

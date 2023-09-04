@@ -74,7 +74,7 @@ namespace love
             int msaa            = 1;
             bool renderTarget   = false;
             bool computeWrite   = false;
-            int mipmapCount         = 0;
+            int mipmapCount     = 0;
             std::optional<bool> readable;
         };
 
@@ -165,11 +165,13 @@ namespace love
             {
                 if (this->textureType == TEXTURE_VOLUME)
                     return this->data.size();
+                else
+                {
+                    if (slice < 0 || slice >= (int)data.size())
+                        return 0;
 
-                if (slice < 0 || slice >= (int)data.size())
-                    return 0;
-
-                return this->data[slice].size();
+                    return this->data[slice].size();
+                }
             }
 
             bool Validate() const
@@ -341,8 +343,8 @@ namespace love
                 if (this->IsCompressed())
                     throw love::Exception("Compressed textures must be created with initial data.");
 
-                this->pixelWidth  = (int)(this->width / settings.dpiScale + 0.5);
-                this->pixelHeight = (int)(this->height / settings.dpiScale + 0.5);
+                this->pixelWidth  = (int)((this->width / settings.dpiScale) + 0.5);
+                this->pixelHeight = (int)((this->height / settings.dpiScale) + 0.5);
             }
 
             if (settings.readable.has_value())
@@ -350,7 +352,7 @@ namespace love
             else
             {
                 bool isDepthStencilFormat = love::IsPixelFormatDepthStencil(this->format);
-                this->readable            = (!this->renderTarget && !isDepthStencilFormat);
+                this->readable            = (!this->renderTarget || !isDepthStencilFormat);
             }
         }
 
@@ -461,7 +463,7 @@ namespace love
 
         bool IsValidSlice(int slice, int mipmap) const
         {
-            return slice >= 0 && slice < this->GetSlicecount(mipmap);
+            return slice >= 0 && slice < this->GetSliceCount(mipmap);
         }
 
         int GetMSAA() const
@@ -507,6 +509,9 @@ namespace love
         {
             return this->quad;
         }
+
+        virtual void Draw(Graphics<Console::Which>& graphics,
+                          const Matrix4<Console::Which>& transform) = 0;
 
         virtual void Draw(Graphics<Console::Which>& graphics, Quad* quad,
                           const Matrix4<Console::Which>& transform) = 0;

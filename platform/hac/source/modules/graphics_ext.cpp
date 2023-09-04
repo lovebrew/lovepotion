@@ -7,6 +7,8 @@
 #include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
+#include <objects/shader_ext.hpp>
+
 using Renderer = love::Renderer<love::Console::HAC>;
 using namespace love;
 

@@ -70,7 +70,7 @@ const Rect Framebuffer<Console::CTR>::CalculateBounds(const Rect& bounds)
     return { (int)left, (int)top, (int)right, (int)bottom };
 }
 
-void Framebuffer<Console::CTR>::SetViewport(const Rect& viewport)
+void Framebuffer<Console::CTR>::SetViewport(const Rect& viewport, bool canvasActive)
 {
     Rect newViewport = viewport;
     if (viewport == Rect::EMPTY)
@@ -80,7 +80,7 @@ void Framebuffer<Console::CTR>::SetViewport(const Rect& viewport)
                   Z_NEAR, Z_FAR, true);
 }
 
-void Framebuffer<Console::CTR>::SetScissor(const Rect& scissor)
+void Framebuffer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
     const bool enable    = (scissor != Rect::EMPTY);
     GPU_SCISSORMODE mode = enable ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
@@ -89,7 +89,10 @@ void Framebuffer<Console::CTR>::SetScissor(const Rect& scissor)
     if (viewport == Rect::EMPTY)
         newScissor = this->CalculateBounds(this->scissor);
 
-    C3D_SetScissor(mode, newScissor.x, newScissor.y, newScissor.w, newScissor.h);
+    if (!canvasActive)
+        C3D_SetScissor(mode, newScissor.x, newScissor.y, newScissor.w, newScissor.h);
+    else
+        C3D_SetScissor(mode, newScissor.y, newScissor.x, newScissor.h, newScissor.w);
 }
 
 void Framebuffer<Console::CTR>::UseProjection(Shader<Console::CTR>::Uniforms uniforms)

@@ -5,12 +5,13 @@
 #include <common/luax.hpp>
 
 #include <algorithm>
+
 #include <objects/shader_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using namespace love;
 
-Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
+Renderer<Console::CTR>::Renderer() : targets {}, currentTexture(nullptr)
 {
     gfxInitDefault();
     gfxSet3D(true);
@@ -39,6 +40,9 @@ Renderer<Console::CTR>::Renderer() : targets {}, current(nullptr)
 
     if (result < 0)
         throw love::Exception("Failed to add C3D_BufInfo.");
+
+    Mtx_Identity(&this->context.projection);
+    Mtx_Identity(&this->context.modelView);
 }
 
 Renderer<Console::CTR>::~Renderer()
@@ -78,7 +82,8 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    C3D_RenderTargetClear(this->current->GetTarget(), C3D_CLEAR_ALL, color.abgr(), 0);
+    C3D_FrameSplit(0);
+    C3D_RenderTargetClear(this->context.target, C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
 /* todo */
@@ -98,7 +103,7 @@ void Renderer<Console::CTR>::EnsureInFrame()
     }
 }
 
-void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
+void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
 {
     if (!IsActiveScreenValid())
         return;
@@ -106,22 +111,19 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::CTR>* texture)
     this->EnsureInFrame();
     FlushVertices();
 
+    this->context.target = this->targets[love::GetActiveScreen()].GetTarget();
+    Rect viewport        = this->targets[love::GetActiveScreen()].GetViewport();
+
     if (texture != nullptr && texture->IsRenderTarget())
     {
-        this->SetViewport({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() });
-        this->SetScissor({ 0, 0, texture->GetPixelWidth(), texture->GetPixelHeight() }, true);
+        auto* _texture       = (Texture<Console::CTR>*)texture;
+        this->context.target = _texture->GetRenderTargetHandle();
 
-        C3D_FrameDrawOn(texture->GetRenderTargetHandle());
+        viewport = { 0, 0, _texture->GetPixelWidth(), _texture->GetPixelHeight() };
     }
-    else
-    {
-        this->current = &this->targets[love::GetActiveScreen()];
 
-        this->SetViewport(this->current->GetViewport());
-        this->SetScissor(this->current->GetScissor(), false);
-
-        C3D_FrameDrawOn(this->current->GetTarget());
-    }
+    C3D_FrameDrawOn(this->context.target);
+    this->SetViewport(viewport, this->context.target->linked);
 }
 
 void Renderer<Console::CTR>::FlushVertices()
@@ -159,7 +161,9 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
         Shader<Console::CTR>::defaults[command.shader]->Attach();
 
         auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
-        this->current->UseProjection(uniforms);
+
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &this->context.projection);
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
     }
 
     // check if texture is the same, or no texture at all
@@ -211,14 +215,33 @@ void Renderer<Console::CTR>::Present()
     }
 }
 
-void Renderer<Console::CTR>::SetViewport(const Rect& viewport)
+void Renderer<Console::CTR>::SetViewport(const Rect& rect, bool tilt)
 {
-    this->current->SetViewport(viewport);
+    Rect newView = rect;
+
+    if (newView.h == GSP_SCREEN_WIDTH && tilt)
+    {
+        if (newView.w == GSP_SCREEN_HEIGHT_TOP || newView.w == GSP_SCREEN_HEIGHT_TOP_2X)
+        {
+            Mtx_Copy(&this->context.projection, &this->targets[0].GetProjView());
+            return;
+        }
+        else if (newView.w == GSP_SCREEN_HEIGHT_BOTTOM)
+        {
+            Mtx_Copy(&this->context.projection, &this->targets[2].GetProjView());
+            return;
+        }
+    }
+
+    auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
+    ortho(&this->context.projection, 0.0f, rect.w, rect.h, 0.0f, Z_NEAR, Z_FAR, true);
+
+    C3D_SetViewport(0, 0, rect.w, rect.h);
 }
 
 void Renderer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActive)
 {
-    this->current->SetScissor(scissor);
+    this->targets[love::GetActiveScreen()].SetScissor(scissor, canvasActive);
 }
 
 void Renderer<Console::CTR>::SetStencil(RenderState::CompareMode mode, int value)
