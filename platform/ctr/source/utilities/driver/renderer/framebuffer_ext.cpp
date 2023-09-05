@@ -46,7 +46,10 @@ void Framebuffer<Console::CTR>::SetSize(int width, int height, gfxScreen_t scree
     if (this->target)
         C3D_RenderTargetSetOutput(this->target, screen, side, Framebuffer::DISPLAY_FLAGS);
     else
-        throw love::Exception("Failed to allocate framebuffer %d", (size_t)this->id);
+    {
+        const auto name = std::string(love::GetScreenName(this->id));
+        throw love::Exception("Failed to allocate framebuffer %s", name.c_str());
+    }
 
     this->width  = width;
     this->height = height;

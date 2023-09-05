@@ -9,6 +9,7 @@
 #include <objects/imagedata/wrap_imagedata.hpp>
 #include <objects/quad/wrap_quad.hpp>
 #include <objects/rasterizer/wrap_rasterizer.hpp>
+#include <objects/spritebatch/wrap_spritebatch.hpp>
 #include <objects/textbatch/wrap_textbatch.hpp>
 #include <objects/texture/wrap_texture.hpp>
 
@@ -1546,6 +1547,23 @@ int Wrap_Graphics::NewTextBatch(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::NewSpriteBatch(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    auto* texture = Wrap_Texture::CheckTexture(L, 1);
+    int size      = luaL_optinteger(L, 2, 0x100);
+
+    SpriteBatch* spritebatch = nullptr;
+
+    luax::CatchException(L, [&]() { spritebatch = instance()->NewSpriteBatch(texture, size); });
+
+    luax::PushType(L, spritebatch);
+    spritebatch->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::IsGammaCorrect(lua_State* L)
 {
     luax::PushBoolean(L, Graphics<>::IsGammaCorrect());
@@ -1980,6 +1998,7 @@ static constexpr luaL_Reg functions[] =
     { "getDimensions",         Wrap_Graphics::GetDimensions         },
     { "newFont",               Wrap_Graphics::NewFont               },
     { "newQuad",               Wrap_Graphics::NewQuad               },
+    { "newSpriteBatch",        Wrap_Graphics::NewSpriteBatch        },
     { "newTextBatch",          Wrap_Graphics::NewTextBatch          },
     { "newTexture",            Wrap_Graphics::NewTexture            },
     { "setCanvas",             Wrap_Graphics::SetCanvas             },
@@ -2000,6 +2019,7 @@ static constexpr lua_CFunction types[] =
     Wrap_Texture::Register,
     Wrap_Quad::Register,
     Wrap_TextBatch::Register,
+    Wrap_SpriteBatch::Register,
     nullptr
 };
 // clang-format on

@@ -17,6 +17,7 @@
 #include <objects/texture/texture.tcc>
 
 #include <objects/quad/quad.hpp>
+#include <objects/spritebatch/spritebatch.hpp>
 
 #include <utilities/driver/renderer/drawcommand.tcc>
 
@@ -397,6 +398,11 @@ namespace love
         Font<Console::Which>* GetFont()
         {
             return this->states.back().font;
+        }
+
+        SpriteBatch* NewSpriteBatch(Texture<Console::Which>* texture, int size) const
+        {
+            return new SpriteBatch(texture, size);
         }
 
         void SetRenderTargetsInternal(const RenderTargets& targets, int width, int height,

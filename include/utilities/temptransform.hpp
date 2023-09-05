@@ -7,29 +7,31 @@ namespace love
     class TempTransform
     {
       public:
-        TempTransform(Graphics<Console::Which>& graphics) : graphics(graphics)
+        TempTransform(Graphics<Console::Which>& graphics) : graphics(&graphics)
         {
-            this->graphics.PushTransform();
+            this->graphics->PushTransform();
         }
 
-        TempTransform(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& transform)
+        TempTransform(Graphics<Console::Which>& graphics,
+                      const Matrix4<Console::Which>& transform) :
+            TempTransform(graphics)
         {
-            this->graphics.PushTransform();
-            this->graphics.InternalScale(transform);
+            this->graphics->PushTransform();
+            this->graphics->InternalScale(transform);
         }
 
         template<typename vDst, typename vSrc>
         void TransformXY(vDst dst, vSrc src, int count)
         {
-            this->graphics.GetTransform().TransformXYVert(dst, src, count);
+            this->graphics->GetTransform().TransformXYVert(dst, src, count);
         }
 
         ~TempTransform()
         {
-            this->graphics.PopTransform();
+            this->graphics->PopTransform();
         }
 
       private:
-        Graphics<Console::Which> graphics;
+        Graphics<Console::Which>* graphics;
     };
 } // namespace love
