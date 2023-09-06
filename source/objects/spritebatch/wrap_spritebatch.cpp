@@ -41,6 +41,7 @@ int Wrap_SpriteBatch::Add(lua_State* L)
     int index  = addOrSet(L, self, 2, -1);
 
     lua_pushinteger(L, index + 1);
+
     return 1;
 }
 
@@ -138,6 +139,7 @@ int Wrap_SpriteBatch::GetDrawRange(lua_State* L)
 
     int start = 0;
     int count = 1;
+
     if (!self->GetDrawRange(start, count))
         return 0;
 

@@ -264,6 +264,7 @@ namespace love
         static inline OSTick gpuTickReference = 0;
 
         std::vector<Texture<Console::CAFE>*> currentTextures;
+        glm::mat4 modelView;
 
         std::map<Screen, Framebuffer> framebuffers;
     };

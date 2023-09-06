@@ -22,8 +22,7 @@ namespace love
 
         SpriteBatch(Texture<Console::Which>* texture, int size);
 
-        virtual ~SpriteBatch()
-        {}
+        virtual ~SpriteBatch();
 
         int Add(const Matrix4<Console::Which>& matrix, int index = -1);
 
@@ -71,9 +70,8 @@ namespace love
         int next;
 
         Color color;
-        bool colorActive;
 
-        std::vector<std::array<vertex::Vertex, 0x06>> buffer;
+        vertex::Vertex* buffer;
 
         vertex::CommonFormat format;
         size_t vertexStride;

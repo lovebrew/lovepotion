@@ -58,10 +58,10 @@ class Log
     }
 
     FILE* file;
-    static constexpr bool m_enabled = (true);
+    static constexpr bool m_enabled = (__DEBUG__);
 };
 
-#if __DEBUG__ == 1
+#if __DEBUG__ == 0
     #define LOG(...)
 #else
     #define LOG(format, ...) \

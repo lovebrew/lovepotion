@@ -9,8 +9,6 @@
 #include <algorithm>
 #include <stddef.h>
 
-#include <utilities/log/logfile.hpp>
-
 using namespace love;
 using namespace love::vertex;
 
@@ -21,7 +19,7 @@ SpriteBatch::SpriteBatch(Texture<Console::Which>* texture, int size) :
     size(size),
     next(0),
     color(1.0f, 1.0f, 1.0f, 1.0f),
-    colorActive(false),
+    buffer(nullptr),
     rangeStart(-1),
     rangeCount(-1)
 {
@@ -34,7 +32,15 @@ SpriteBatch::SpriteBatch(Texture<Console::Which>* texture, int size) :
     this->format       = CommonFormat::TEXTURE;
     this->vertexStride = VERTEX_SIZE;
 
-    this->buffer.reserve(size);
+    size_t bufferSize = size * this->vertexStride * 0x06;
+    this->buffer      = (Vertex*)std::malloc(bufferSize);
+
+    std::memset(this->buffer, 0, bufferSize);
+}
+
+SpriteBatch::~SpriteBatch()
+{
+    std::free(this->buffer);
 }
 
 int SpriteBatch::Add(const Matrix4<Console::Which>& matrix, int index)
@@ -52,8 +58,6 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
     if (index == -1 && this->next >= this->size)
         this->SetBufferSize(this->size * 2);
 
-    const Vector2* quadPositions = quad->GetVertexPositions();
-
     if (Console::Is(Console::CTR))
     {
         const auto& viewport = quad->GetViewport();
@@ -64,10 +68,12 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
         quad->Refresh(viewport, width, height);
     }
 
+    const Vector2* quadPositions = quad->GetVertexPositions();
     const Vector2* textureCoords = quad->GetVertexTextureCoords();
 
-    size_t offset  = index == -1 ? this->next : index;
-    auto* vertices = this->buffer[offset].data();
+    size_t spriteIndex = index == -1 ? this->next : index;
+    size_t offset      = spriteIndex * 0x06;
+    auto* vertices     = &this->buffer[offset];
 
     std::array<float, 0x04> color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
@@ -89,13 +95,18 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
     };
     // clang-format on
 
-    if (Console::Is(Console::CTR))
-    {
-        for (auto& vertex : textureVertices)
-            vertex.texcoord[1] = 1.0f - vertex.texcoord[1];
-    }
+    matrix.TransformXYVertPure(vertices, textureVertices.data(), textureVertices.size());
 
-    matrix.TransformXYVertPure(vertices, textureVertices.data(), 0x06);
+    for (size_t index = 0; index < textureVertices.size(); index++)
+    {
+        if (Console::Is(Console::CTR))
+            vertices[index].texcoord = { textureVertices[index].texcoord[0],
+                                         1.0f - textureVertices[index].texcoord[1] };
+        else
+            vertices[index].texcoord = textureVertices[index].texcoord;
+
+        vertices[index].color = textureVertices[index].color;
+    }
 
     if (index == -1)
         return this->next++;
@@ -176,16 +187,19 @@ void SpriteBatch::SetBufferSize(int newSize)
     if (newSize == this->size)
         return;
 
-    std::vector<std::array<Vertex, 0x06>> newBuffer(newSize);
+    size_t vertexSize = this->vertexStride * 0x06 * newSize;
+    Vertex* newBuffer = (Vertex*)realloc(this->buffer, vertexSize);
+
+    if (!newBuffer)
+        throw love::Exception("Out of memory.");
+
     int newNext = std::min(next, newSize);
 
-    /* copy the old data into the new buffer */
-    std::copy_n(this->buffer.data(), newNext, newBuffer.data());
-    this->buffer.clear();
+    std::memset(this->buffer, 0, vertexSize);
+    std::memcpy(this->buffer, newBuffer, this->vertexStride * 0x06 * newNext);
 
-    this->buffer = newBuffer;
-    this->size   = newSize;
-    this->next   = newNext;
+    this->size = newSize;
+    this->next = newNext;
 }
 
 int SpriteBatch::GetBufferSize() const
@@ -226,21 +240,6 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console
     if (this->next == 0)
         return;
 
-    Renderer<Console::Which>::FlushVertices();
-
-    if (this->texture.Get())
-    {
-        if (Shader<Console::Which>::IsDefaultActive())
-        {
-            auto defaultShader =
-                Console::Is(Console::CTR) ? Shader<>::STANDARD_DEFAULT : Shader<>::STANDARD_TEXTURE;
-
-            /* todo: 2d array texture check*/
-
-            Shader<Console::Which>::AttachDefault(defaultShader);
-        }
-    }
-
     TempTransform transform(graphics, matrix);
 
     int start = std::min(std::max(0, this->rangeStart), this->next - 1);
@@ -255,10 +254,11 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console
     if (count <= 0)
         return;
 
-    const auto shaderType =
-        Console::Is(Console::CTR) ? Shader<>::STANDARD_DEFAULT : Shader<>::STANDARD_TEXTURE;
+    auto shaderType = Shader<>::STANDARD_TEXTURE;
+    if (Console::Is(Console::CTR))
+        shaderType = Shader<>::STANDARD_DEFAULT;
 
-    DrawCommand<Console::CTR> command(count, PRIMITIVE_TRIANGLES, shaderType);
+    DrawCommand<Console::Which> command(count * 0x06, PRIMITIVE_TRIANGLES, shaderType);
     command.format = CommonFormat::TEXTURE;
 
 #if defined(__3DS__)
@@ -267,10 +267,12 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console
     command.handles = { this->texture };
 #endif
 
-    const auto* source = this->buffer.data()->data();
-    transform.TransformXY(command.Positions().get(), source, command.count);
-
-    command.FillVertices(source);
+    transform.TransformXYPure(command.vertices.get(), &this->buffer[start], command.count);
+    for (size_t index = 0; index < command.count; index++)
+    {
+        command.vertices[index].texcoord = this->buffer[start * 0x06 + index].texcoord;
+        command.vertices[index].color    = this->buffer[start * 0x06 + index].color;
+    }
 
     Renderer<Console::Which>::Instance().Render(command);
 }

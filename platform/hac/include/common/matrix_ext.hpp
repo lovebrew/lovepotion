@@ -86,7 +86,21 @@ namespace love
         void TransformXY(Vdst* dst, const Vsrc* src, int size) const;
 
         template<typename Vdst, typename Vsrc>
-        void TransformXYVert(Vdst* dst, const Vsrc* src, int size) const;
+        void TransformXYVert(Vdst* dst, const Vsrc* src, int size) const
+        {
+            for (int i = 0; i < size; i++)
+            {
+                // Store in temp variables in case src = dst
+                float x = (this->elements[0] * src[i].position[0]) +
+                          (this->elements[4] * src[i].position[1]) + (0) + (this->elements[12]);
+
+                float y = (this->elements[1] * src[i].position[0]) +
+                          (this->elements[5] * src[i].position[1]) + (0) + (this->elements[13]);
+
+                dst[i].x = x;
+                dst[i].y = y;
+            }
+        }
 
         template<typename Vdst, typename Vsrc>
         void TransformXYVertPure(Vdst* dst, const Vsrc* src, int size) const;
