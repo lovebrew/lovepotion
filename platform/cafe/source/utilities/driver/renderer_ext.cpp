@@ -309,10 +309,10 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
     {
         FlushVertices();
         Shader<Console::CAFE>::defaults[command.shader]->Attach();
-
-        GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->context.transform, TRANSFORM_SIZE);
-        GX2SetVertexUniformBlock(1, Renderer::TRANSFORM_SIZE, (const void*)this->context.transform);
     }
+
+    GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->context.transform, TRANSFORM_SIZE);
+    GX2SetVertexUniformBlock(1, Renderer::TRANSFORM_SIZE, (const void*)this->context.transform);
 
     // todo: check for duplicate texture?
     if (command.handles.empty() ||
