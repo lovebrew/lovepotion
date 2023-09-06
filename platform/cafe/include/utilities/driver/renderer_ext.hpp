@@ -247,8 +247,6 @@ namespace love
 
         int OnForegroundReleased();
 
-        bool TexturesChanged(std::vector<Texture<Console::CAFE>*> handles);
-
         bool inForeground;
         void* commandBuffer;
 

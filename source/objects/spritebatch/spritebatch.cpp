@@ -19,7 +19,6 @@ SpriteBatch::SpriteBatch(Texture<Console::Which>* texture, int size) :
     size(size),
     next(0),
     color(1.0f, 1.0f, 1.0f, 1.0f),
-    buffer(nullptr),
     rangeStart(-1),
     rangeCount(-1)
 {
@@ -32,16 +31,12 @@ SpriteBatch::SpriteBatch(Texture<Console::Which>* texture, int size) :
     this->format       = CommonFormat::TEXTURE;
     this->vertexStride = VERTEX_SIZE;
 
-    size_t bufferSize = size * this->vertexStride * 0x06;
-    this->buffer      = (Vertex*)std::malloc(bufferSize);
-
-    std::memset(this->buffer, 0, bufferSize);
+    size_t bufferSize = size * 0x06;
+    this->buffer.resize(bufferSize);
 }
 
 SpriteBatch::~SpriteBatch()
-{
-    std::free(this->buffer);
-}
+{}
 
 int SpriteBatch::Add(const Matrix4<Console::Which>& matrix, int index)
 {
@@ -187,19 +182,11 @@ void SpriteBatch::SetBufferSize(int newSize)
     if (newSize == this->size)
         return;
 
-    size_t vertexSize = this->vertexStride * 0x06 * newSize;
-    Vertex* newBuffer = (Vertex*)realloc(this->buffer, vertexSize);
+    size_t vertexSize = newSize * 0x06;
 
-    if (!newBuffer)
-        throw love::Exception("Out of memory.");
-
-    int newNext = std::min(next, newSize);
-
-    std::memset(this->buffer, 0, vertexSize);
-    std::memcpy(this->buffer, newBuffer, this->vertexStride * 0x06 * newNext);
-
+    this->buffer.resize(vertexSize);
     this->size = newSize;
-    this->next = newNext;
+    this->next = std::min(this->next, newSize);
 }
 
 int SpriteBatch::GetBufferSize() const

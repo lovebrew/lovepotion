@@ -10,7 +10,6 @@
 
 #include <utilities/driver/renderer/vertex.hpp>
 
-#include <array>
 #include <vector>
 
 namespace love
@@ -71,7 +70,7 @@ namespace love
 
         Color color;
 
-        vertex::Vertex* buffer;
+        std::vector<vertex::Vertex> buffer;
 
         vertex::CommonFormat format;
         size_t vertexStride;
