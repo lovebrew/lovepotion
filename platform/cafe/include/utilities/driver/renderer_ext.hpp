@@ -247,8 +247,6 @@ namespace love
 
         int OnForegroundReleased();
 
-        bool TexturesChanged(std::vector<Texture<Console::CAFE>*> handles);
-
         bool inForeground;
         void* commandBuffer;
 
@@ -264,6 +262,7 @@ namespace love
         static inline OSTick gpuTickReference = 0;
 
         std::vector<Texture<Console::CAFE>*> currentTextures;
+        glm::mat4 modelView;
 
         std::map<Screen, Framebuffer> framebuffers;
     };

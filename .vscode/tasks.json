@@ -7,39 +7,69 @@
       "id": "mode",
       "description": "CMake release mode",
       "type": "pickString",
-      "options": ["Release", "Debug"],
+      "options": [
+        "Release",
+        "Debug"
+      ],
       "default": "Release"
+    },
+    {
+      "id": "emulation",
+      "description": "Enable Emulation",
+      "type": "pickString",
+      "options": [
+        "0",
+        "1"
+      ],
+      "default": "0"
     }
   ],
-
   "tasks": [
     {
       "label": "Configure 3DS",
       "type": "shell",
       "command": "${env:DEVKITPRO}/portlibs/3ds/bin/arm-none-eabi-cmake",
-      "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
+      "args": [
+        "-DCMAKE_BUILD_TYPE=${input:mode}",
+        "-D__EMULATION__=${input:emulation}",
+        "-S",
+        ".",
+        "-B",
+        "build"
+      ],
       "group": "build",
       "problemMatcher": []
     },
-
     {
       "label": "Configure Switch",
       "type": "shell",
       "command": "${env:DEVKITPRO}/portlibs/switch/bin/aarch64-none-elf-cmake",
-      "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
+      "args": [
+        "-DCMAKE_BUILD_TYPE=${input:mode}",
+        "-D__EMULATION__=${input:emulation}",
+        "-S",
+        ".",
+        "-B",
+        "build"
+      ],
       "group": "build",
       "problemMatcher": []
     },
-
     {
       "label": "Configure Wii U",
       "type": "shell",
       "command": "${env:DEVKITPRO}/portlibs/wiiu/bin/powerpc-eabi-cmake",
-      "args": ["-DCMAKE_BUILD_TYPE=${input:mode}", "-S", ".", "-B", "build"],
+      "args": [
+        "-DCMAKE_BUILD_TYPE=${input:mode}",
+        "-D__EMULATION__=${input:emulation}",
+        "-S",
+        ".",
+        "-B",
+        "build"
+      ],
       "group": "build",
       "problemMatcher": []
     },
-
     {
       "label": "Build",
       "type": "shell",

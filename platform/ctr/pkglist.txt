@@ -8,7 +8,7 @@
 3ds-libpng
 3ds-libtheora
 3ds-libvorbisidec
-3ds-lua51
+3ds-liblua51
 3ds-lz4
 3ds-mbedtls
 3ds-physfs

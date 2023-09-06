@@ -78,7 +78,7 @@ Renderer<Console::CAFE>::Renderer() :
     m_buffer.elemSize  = vertex::VERTEX_SIZE;
     m_buffer.flags     = BUFFER_CREATE_FLAGS;
 
-    if (bool valid = GX2RCreateBuffer(&m_buffer); !valid)
+    if (!GX2RCreateBuffer(&m_buffer))
         throw love::Exception("Failed to create GX2RBuffer");
 
     GX2RSetAttributeBuffer(&m_buffer, 0, VERTEX_SIZE, 0);
@@ -87,6 +87,8 @@ Renderer<Console::CAFE>::Renderer() :
 
     this->context.transform->projection = glm::mat4(1.0f);
     this->context.transform->modelView  = glm::mat4(1.0f);
+
+    this->modelView = glm::mat4(1.0f);
 }
 
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
@@ -307,10 +309,10 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
     {
         FlushVertices();
         Shader<Console::CAFE>::defaults[command.shader]->Attach();
-
-        GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->context.transform, TRANSFORM_SIZE);
-        GX2SetVertexUniformBlock(1, Renderer::TRANSFORM_SIZE, (const void*)this->context.transform);
     }
+
+    GX2Invalidate(INVALIDATE_UNIFORM, (void*)this->context.transform, TRANSFORM_SIZE);
+    GX2SetVertexUniformBlock(1, Renderer::TRANSFORM_SIZE, (const void*)this->context.transform);
 
     // todo: check for duplicate texture?
     if (command.handles.empty() ||
@@ -473,7 +475,7 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 
     const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
 
-    unsigned int* model = (unsigned int*)glm::value_ptr(this->context.transform->modelView);
+    unsigned int* model = (unsigned int*)glm::value_ptr(this->modelView);
     for (size_t index = 0; index < count; index++)
         dstModel[index] = __builtin_bswap32(model[index]);
 
