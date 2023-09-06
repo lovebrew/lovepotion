@@ -51,7 +51,7 @@ namespace love
 
         static bool IsDefaultActive(StandardShader type)
         {
-            if (current == defaults[type])
+            if (current == defaults[type] && defaults[type])
                 return true;
 
             return false;

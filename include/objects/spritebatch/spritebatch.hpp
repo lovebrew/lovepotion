@@ -45,7 +45,7 @@ namespace love
 
         void SetColor();
 
-        Color GetColor(bool& active) const;
+        Color GetColor() const;
 
         int GetCount() const;
 

@@ -26,6 +26,12 @@ namespace love
             this->graphics->GetTransform().TransformXYVert(dst, src, count);
         }
 
+        template<typename vDst, typename vSrc>
+        void TransformXYPure(vDst dst, vSrc src, int count)
+        {
+            this->graphics->GetTransform().TransformXYVertPure(dst, src, count);
+        }
+
         ~TempTransform()
         {
             this->graphics->PopTransform();

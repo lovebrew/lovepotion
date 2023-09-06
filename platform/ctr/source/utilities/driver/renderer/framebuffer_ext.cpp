@@ -57,7 +57,7 @@ void Framebuffer<Console::CTR>::SetSize(int width, int height, gfxScreen_t scree
     this->viewport = { 0, 0, width, height };
     this->scissor  = { 0, 0, width, height };
 
-    this->SetViewport();
+    Mtx_OrthoTilt(&this->projView, 0, width, height, 0, Z_NEAR, Z_FAR, true);
     this->SetScissor();
 }
 
@@ -92,10 +92,7 @@ void Framebuffer<Console::CTR>::SetScissor(const Rect& scissor, bool canvasActiv
     if (viewport == Rect::EMPTY)
         newScissor = this->CalculateBounds(this->scissor);
 
-    if (!canvasActive)
-        C3D_SetScissor(mode, newScissor.x, newScissor.y, newScissor.w, newScissor.h);
-    else
-        C3D_SetScissor(mode, newScissor.y, newScissor.x, newScissor.h, newScissor.w);
+    C3D_SetScissor(mode, newScissor.y, newScissor.x, newScissor.h, newScissor.w);
 }
 
 void Framebuffer<Console::CTR>::UseProjection(Shader<Console::CTR>::Uniforms uniforms)

@@ -56,10 +56,8 @@ int Wrap_SpriteBatch::Set(lua_State* L)
 
 int Wrap_SpriteBatch::GetTexture(lua_State* L)
 {
-    auto* self          = Wrap_SpriteBatch::CheckSpriteBatch(L, 1);
-    const auto* texture = self->GetTexture();
-
-    luax::PushType(L, texture);
+    auto* self = Wrap_SpriteBatch::CheckSpriteBatch(L, 1);
+    luax::PushType(L, self->GetTexture());
 
     return 1;
 }
@@ -196,8 +194,7 @@ static constexpr luaL_Reg functions[] =
     { "set",           Wrap_SpriteBatch::Set           },
     { "setColor",      Wrap_SpriteBatch::SetColor      },
     { "setDrawRange",  Wrap_SpriteBatch::SetDrawRange  },
-    { "setTexture",    Wrap_SpriteBatch::SetTexture    },
-    { 0,               0                               }
+    { "setTexture",    Wrap_SpriteBatch::SetTexture    }
 };
 // clang-format on
 

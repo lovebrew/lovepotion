@@ -53,6 +53,17 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
         this->SetBufferSize(this->size * 2);
 
     const Vector2* quadPositions = quad->GetVertexPositions();
+
+    if (Console::Is(Console::CTR))
+    {
+        const auto& viewport = quad->GetViewport();
+
+        double width  = NextPo2(this->texture->GetPixelWidth());
+        double height = NextPo2(this->texture->GetPixelHeight());
+
+        quad->Refresh(viewport, width, height);
+    }
+
     const Vector2* textureCoords = quad->GetVertexTextureCoords();
 
     size_t offset  = index == -1 ? this->next : index;
@@ -61,17 +72,28 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
     std::array<float, 0x04> color = { 1.0f, 1.0f, 1.0f, 1.0f };
 
     // clang-format off
-    const std::array<Vertex, 0x06> textureVertices = 
+    /*
+    0    3
+
+    1    2
+    */
+    std::array<Vertex, 0x06> textureVertices = 
     {
-        /*        x        y                                z                u      v      */
-        Vertex {{ quadPositions[0].x,   quadPositions[0].y, 0.0f }, color, { textureCoords[0].x,  1.0f - textureCoords[0].y }},
-        Vertex {{ quadPositions[1].x,   quadPositions[1].y, 0.0f }, color, { textureCoords[1].x,  1.0f - textureCoords[1].y }},
-        Vertex {{ quadPositions[2].x,   quadPositions[2].y, 0.0f }, color, { textureCoords[2].x,  1.0f - textureCoords[2].y }},
-        Vertex {{ quadPositions[2].x,   quadPositions[2].y, 0.0f }, color, { textureCoords[2].x,  1.0f - textureCoords[2].y }},
-        Vertex {{ quadPositions[3].x,   quadPositions[3].y, 0.0f }, color, { textureCoords[3].x,  1.0f - textureCoords[3].y }},
-        Vertex {{ quadPositions[0].x,   quadPositions[0].y, 0.0f }, color, { textureCoords[0].x,  1.0f - textureCoords[0].y }}
+        /*        x                     y                   z                u                    v      */
+        Vertex {{ quadPositions[0].x,   quadPositions[0].y, 0.0f }, color, { textureCoords[0].x,  textureCoords[0].y }},
+        Vertex {{ quadPositions[1].x,   quadPositions[1].y, 0.0f }, color, { textureCoords[1].x,  textureCoords[1].y }},
+        Vertex {{ quadPositions[2].x,   quadPositions[2].y, 0.0f }, color, { textureCoords[2].x,  textureCoords[2].y }},
+        Vertex {{ quadPositions[2].x,   quadPositions[2].y, 0.0f }, color, { textureCoords[2].x,  textureCoords[2].y }},
+        Vertex {{ quadPositions[3].x,   quadPositions[3].y, 0.0f }, color, { textureCoords[3].x,  textureCoords[3].y }},
+        Vertex {{ quadPositions[0].x,   quadPositions[0].y, 0.0f }, color, { textureCoords[0].x,  textureCoords[0].y }}
     };
     // clang-format on
+
+    if (Console::Is(Console::CTR))
+    {
+        for (auto& vertex : textureVertices)
+            vertex.texcoord[1] = 1.0f - vertex.texcoord[1];
+    }
 
     matrix.TransformXYVertPure(vertices, textureVertices.data(), 0x06);
 
@@ -126,8 +148,6 @@ Texture<Console::Which>* SpriteBatch::GetTexture() const
 
 void SpriteBatch::SetColor(const Color& color)
 {
-    this->colorActive = true;
-
     Color clamped {};
 
     clamped.r = std::clamp(color.r, 0.0f, 1.0f);
@@ -138,15 +158,8 @@ void SpriteBatch::SetColor(const Color& color)
     this->color = clamped;
 }
 
-void SpriteBatch::SetColor()
+Color SpriteBatch::GetColor() const
 {
-    this->colorActive = false;
-    this->color       = Color(1.0f, 1.0f, 1.0f, 1.0f);
-}
-
-Color SpriteBatch::GetColor(bool& active) const
-{
-    active = this->colorActive;
     return this->color;
 }
 
@@ -242,7 +255,10 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console
     if (count <= 0)
         return;
 
-    DrawCommand<Console::CTR> command(count, PRIMITIVE_TRIANGLES, Shader<>::STANDARD_TEXTURE);
+    const auto shaderType =
+        Console::Is(Console::CTR) ? Shader<>::STANDARD_DEFAULT : Shader<>::STANDARD_TEXTURE;
+
+    DrawCommand<Console::CTR> command(count, PRIMITIVE_TRIANGLES, shaderType);
     command.format = CommonFormat::TEXTURE;
 
 #if defined(__3DS__)
