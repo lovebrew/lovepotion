@@ -16,6 +16,7 @@
 #include <objects/textbatch/textbatch.tcc>
 #include <objects/texture/texture.tcc>
 
+#include <objects/mesh/mesh.hpp>
 #include <objects/quad/quad.hpp>
 #include <objects/spritebatch/spritebatch.hpp>
 
@@ -403,6 +404,16 @@ namespace love
         SpriteBatch* NewSpriteBatch(Texture<Console::Which>* texture, int size) const
         {
             return new SpriteBatch(texture, size);
+        }
+
+        Mesh* NewMesh(int vertexCount, vertex::PrimitiveType mode) const
+        {
+            return new Mesh(vertexCount, mode);
+        }
+
+        Mesh* NewMesh(const void* data, size_t size, vertex::PrimitiveType mode) const
+        {
+            return new Mesh(data, size, mode);
         }
 
         void SetRenderTargetsInternal(const RenderTargets& targets, int width, int height,

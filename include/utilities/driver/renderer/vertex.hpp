@@ -80,6 +80,13 @@ namespace love
             "fan",   TRIANGLE_FAN,
             "quads", TRIANGLE_QUADS
         };
+
+        static constexpr BidirectionalMap primitiveTypes = {
+            "triangles",  PRIMITIVE_TRIANGLES,
+            "strip",      PRIMITIVE_TRIANGLE_STRIP,
+            "fan",        PRIMITIVE_TRIANGLE_FAN,
+            "points",     PRIMITIVE_POINTS
+        };
         // clang-format on
     } // namespace vertex
 } // namespace love

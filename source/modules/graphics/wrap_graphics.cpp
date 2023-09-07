@@ -7,6 +7,7 @@
 
 #include <objects/font/wrap_font.hpp>
 #include <objects/imagedata/wrap_imagedata.hpp>
+#include <objects/mesh/wrap_mesh.hpp>
 #include <objects/quad/wrap_quad.hpp>
 #include <objects/rasterizer/wrap_rasterizer.hpp>
 #include <objects/spritebatch/wrap_spritebatch.hpp>
@@ -1564,6 +1565,100 @@ int Wrap_Graphics::NewSpriteBatch(lua_State* L)
     return 1;
 }
 
+static PrimitiveType checkMeshDrawMode(lua_State* L, int index)
+{
+    std::optional<PrimitiveType> mode;
+    const char* name = luaL_checkstring(L, index);
+
+    if (!(mode = vertex::primitiveTypes.Find(name)))
+        luaL_error(L, "Invalid draw mode: %s", name);
+
+    return *mode;
+}
+
+static Mesh* newStandardMesh(lua_State* L)
+{
+    Mesh* mesh         = nullptr;
+    PrimitiveType mode = checkMeshDrawMode(L, 2);
+
+    // unused for compatability
+    const char* usage = luaL_optstring(L, 3, "");
+
+    if (lua_istable(L, 1))
+    {
+        size_t vertexCount = luax::ObjectLength(L, 1);
+        std::vector<Vertex> vertices {};
+        vertices.reserve(vertexCount);
+
+        for (size_t index = 1; index <= vertexCount; index++)
+        {
+            lua_rawgeti(L, 1, (int)index);
+
+            if (lua_type(L, -1) != LUA_TTABLE)
+            {
+                luax::TypeError(L, 1, "table of tables");
+                return nullptr;
+            }
+
+            for (int j = 1; j <= 8; j++)
+                lua_rawgeti(L, -j, j);
+
+            Vertex vertex {};
+
+            vertex.position[0] = luaL_checknumber(L, -8);
+            vertex.position[1] = luaL_checknumber(L, -7);
+            vertex.position[2] = 0.0f;
+
+            vertex.texcoord[0] = luaL_optnumber(L, -6, 0.0f);
+            vertex.texcoord[1] = luaL_optnumber(L, -5, 0.0f);
+
+            vertex.color[0] = luax::OptNumberClamped01(L, -4, 1.0);
+            vertex.color[1] = luax::OptNumberClamped01(L, -3, 1.0);
+            vertex.color[2] = luax::OptNumberClamped01(L, -2, 1.0);
+            vertex.color[3] = luax::OptNumberClamped01(L, -1, 1.0);
+
+            lua_pop(L, 9);
+            vertices.push_back(vertex);
+        }
+
+        luax::CatchException(L, [&]() {
+            mesh = instance()->NewMesh(vertices.data(), vertices.size() * VERTEX_SIZE, mode);
+        });
+    }
+    else
+    {
+        int count = luaL_checkinteger(L, 1);
+        luax::CatchException(L, [&]() { mesh = instance()->NewMesh(count, mode); });
+    }
+
+    return mesh;
+}
+
+int Wrap_Graphics::NewMesh(lua_State* L)
+{
+    checkGraphicsCreated(L);
+
+    int firstType = lua_type(L, 1);
+    if (firstType != LUA_TTABLE && firstType != LUA_TNUMBER)
+        luaL_argerror(L, 1, "table or number expected.");
+
+    Mesh* mesh = nullptr;
+
+    int secondType = lua_type(L, 2);
+    if (firstType == LUA_TTABLE &&
+        (secondType == LUA_TTABLE || secondType == LUA_TNUMBER || secondType == LUA_TUSERDATA))
+    {
+        throw love::Exception("Custom meshes are not supported.");
+    }
+    else
+        mesh = newStandardMesh(L);
+
+    luax::PushType(L, mesh);
+    mesh->Release();
+
+    return 1;
+}
+
 int Wrap_Graphics::IsGammaCorrect(lua_State* L)
 {
     luax::PushBoolean(L, Graphics<>::IsGammaCorrect());
@@ -1997,6 +2092,7 @@ static constexpr luaL_Reg functions[] =
     { "getHeight",             Wrap_Graphics::GetHeight             },
     { "getDimensions",         Wrap_Graphics::GetDimensions         },
     { "newFont",               Wrap_Graphics::NewFont               },
+    { "newMesh",               Wrap_Graphics::NewMesh               },
     { "newQuad",               Wrap_Graphics::NewQuad               },
     { "newSpriteBatch",        Wrap_Graphics::NewSpriteBatch        },
     { "newTextBatch",          Wrap_Graphics::NewTextBatch          },
@@ -2020,6 +2116,7 @@ static constexpr lua_CFunction types[] =
     Wrap_Quad::Register,
     Wrap_TextBatch::Register,
     Wrap_SpriteBatch::Register,
+    Wrap_Mesh::Register,
     nullptr
 };
 // clang-format on
