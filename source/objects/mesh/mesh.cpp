@@ -4,6 +4,7 @@
 
 #include <objects/texture_ext.hpp>
 
+#include <utilities/log/logfile.hpp>
 #include <utilities/temptransform.hpp>
 
 using namespace love;
@@ -11,9 +12,6 @@ using namespace love::vertex;
 
 Type Mesh::type("Mesh", &Drawable::type);
 
-/*
-TODO: this is wrong, but it's a start
-*/
 Mesh::Mesh(const void* data, size_t dataSize, PrimitiveType mode) :
     mode(mode),
     drawRange {},
@@ -22,10 +20,12 @@ Mesh::Mesh(const void* data, size_t dataSize, PrimitiveType mode) :
     if (dataSize == 0)
         throw Exception("Mesh data size cannot be zero.");
 
-    this->buffer.resize(dataSize / VERTEX_SIZE);
+    size_t vertexCount = dataSize / VERTEX_SIZE;
+    this->buffer.resize(vertexCount);
+
     std::memcpy(this->buffer.data(), data, dataSize);
 
-    this->vertexCount  = dataSize / VERTEX_SIZE;
+    this->vertexCount  = vertexCount;
     this->vertexStride = VERTEX_SIZE;
 }
 
@@ -34,7 +34,7 @@ Mesh::Mesh(int vertexCount, PrimitiveType mode) : mode(mode), drawRange {}, useI
     if (vertexCount == 0)
         throw Exception("Mesh vertex count cannot be zero.");
 
-    this->buffer.resize(vertexCount * VERTEX_SIZE);
+    this->buffer.resize(vertexCount);
 
     this->vertexCount  = vertexCount;
     this->vertexStride = VERTEX_SIZE;
@@ -183,16 +183,13 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Consol
     {
     }
 
-    if (this->mode == TRIANGLE_FAN && this->useIndexBuffer && !this->indexBuffer.empty())
+    if (this->mode == PRIMITIVE_TRIANGLE_FAN && this->useIndexBuffer && !this->indexBuffer.empty())
     {
         throw love::Exception(
             "The 'fan' Mesh draw mode cannot be used with an index buffer or vertex map.");
     }
 
     this->Flush();
-
-    if (Shader<Console::Which>::IsDefaultActive())
-        Shader<Console::Which>::AttachDefault(Shader<>::STANDARD_DEFAULT);
 
     TempTransform transform(graphics, matrix);
     Range range = this->drawRange;
@@ -207,16 +204,26 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Consol
         if (range.isValid())
             _range.intersect(range);
 
-        DrawCommand<Console::Which> command;
-        command.type  = this->mode;
-        command.count = _range.getSize();
+        auto shader = Shader<>::STANDARD_TEXTURE;
+        if (Console::Is(Console::CTR))
+            shader = Shader<>::STANDARD_DEFAULT;
+
+        DrawCommand<Console::Which> command(_range.getSize(), this->mode, shader);
+        command.FillVertices(this->buffer.data());
+
+        transform.TransformXYPure(command.vertices.get(), &this->buffer[_range.getOffset()],
+                                  command.count);
 
 #if defined(__3DS__)
         if (this->texture != nullptr)
+        {
             command.handles = { this->texture->GetHandle() };
+            command.format  = CommonFormat::TEXTURE;
+        }
 #else
         command.handles = { this->texture };
 #endif
+
         command.cullMode = graphics.GetMeshCullMode();
 
         if (command.count > 0)

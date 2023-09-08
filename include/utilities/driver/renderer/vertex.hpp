@@ -53,6 +53,33 @@ namespace love
             FONT
         };
 
+        enum AttributeStep
+        {
+            STEP_PER_VERTEX,
+            STEP_PER_INSTANCE,
+            STEP_MAX_ENUM
+        };
+
+        enum BuiltinVertexAttribute
+        {
+            ATTRIB_POS = 0,
+            ATTRIB_TEXCOORD,
+            ATTRIB_COLOR,
+            ATTRIB_MAX_ENUM
+        };
+
+        enum BuiltinVertexAttributeFlags
+        {
+            ATTRIBFLAG_POS      = 1 << ATTRIB_POS,
+            ATTRIBFLAG_TEXCOORD = 1 << ATTRIB_TEXCOORD,
+            ATTRIBFLAG_COLOR    = 1 << ATTRIB_COLOR,
+        };
+
+        struct VertexAttributes
+        {
+            static constexpr uint32_t MAX = 32;
+        };
+
         struct Vertex
         {
             std::array<float, 3> position;
