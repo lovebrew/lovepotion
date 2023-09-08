@@ -14,6 +14,12 @@ namespace love
 {
     using namespace vertex;
 
+#if defined(__3DS__)
+    using Handle = C3D_Tex;
+#else
+    using Handle = Texture<Console::Which>;
+#endif
+
     template<Console::Platform T = Console::ALL>
     struct DrawCommand
     {
@@ -157,11 +163,7 @@ namespace love
         CommonFormat format;
         PrimitiveType type;
         Shader<>::StandardShader shader;
-
-#if not defined(__3DS__)
-        std::vector<Texture<Console::Which>*> handles;
-#else
-        std::vector<C3D_Tex*> handles;
-#endif
+        std::vector<Handle*> handles;
+        CullMode cullMode;
     }; // namespace love
 } // namespace love

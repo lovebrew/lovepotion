@@ -158,6 +158,8 @@ namespace Wrap_Graphics
 
     int NewSpriteBatch(lua_State* L);
 
+    int NewMesh(lua_State* L);
+
     int Print(lua_State* L);
 
     int Printf(lua_State* L);
