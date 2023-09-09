@@ -556,6 +556,8 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
     float heightOffset = 0.0f;
     if (this->rasterizers[0]->GetDataType() == Rasterizer<>::DATA_TRUETYPE)
         heightOffset = this->GetBaseline();
+    else if (this->rasterizers[0]->GetDataType() == Rasterizer<>::DATA_BCFNT)
+        heightOffset = -this->GetBaseline();
 
     int maxWidth = 0;
     std::vector<DrawCommand> commands;
@@ -650,6 +652,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
                 vertices.back().color = currentColor.array();
             }
 
+#if !defined(__3DS__)
             if (commands.empty() || commands.back().texture != glyphData.texture)
             {
                 DrawCommand command {};
@@ -659,6 +662,18 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
 
                 commands.push_back(command);
             }
+#else
+            if (commands.empty() || commands.back().sheet != glyphData.sheet)
+            {
+                DrawCommand command {};
+                command.start   = (int)vertices.size() - 6;
+                command.count   = 0;
+                command.texture = glyphData.texture;
+                command.sheet   = glyphData.sheet;
+
+                commands.push_back(command);
+            }
+#endif
 
             commands.back().count += 6;
         }
@@ -672,16 +687,18 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& t
         previousGlyph = glyph;
     }
 
-    /* texture binds are expensive, so we should sort by that first */
-    const auto drawsort = [](const DrawCommand& a, const DrawCommand& b) -> bool {
-        if (a.texture != b.texture)
-            return a.texture < b.texture;
-        else
-            return a.start < b.start;
-    };
-
     if (!Console::Is(Console::CTR))
+    {
+        /* texture binds are expensive, so we should sort by that first */
+        const auto drawsort = [](const DrawCommand& a, const DrawCommand& b) -> bool {
+            if (a.texture != b.texture)
+                return a.texture < b.texture;
+            else
+                return a.start < b.start;
+        };
+
         std::sort(commands.begin(), commands.end(), drawsort);
+    }
 
     if (dx > maxWidth)
         maxWidth = (int)dx;
@@ -822,7 +839,7 @@ void Font::Printv(Graphics<Console::Which>& graphics, const Matrix4<Console::Whi
         matrix.TransformXYVert(drawCommand.Positions().get(), &vertices[command.start],
                                command.count);
 
-        drawCommand.FillVertices(vertices.data());
+        drawCommand.FillVertices(&vertices[command.start]);
         Renderer<Console::Which>::Instance().Render(drawCommand);
     }
 }
