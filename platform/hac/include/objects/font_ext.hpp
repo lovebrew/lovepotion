@@ -1,7 +1,5 @@
 #pragma once
 
-#include <objects/font/font.tcc>
-
 #include <modules/graphics_ext.hpp>
 
 #include <utilities/driver/vertex_ext.hpp>
@@ -125,7 +123,7 @@ namespace love
 
         const Glyph<>& FindGlyph(uint32_t glyph);
 
-        void Printv(Graphics<Console::HAC>& graphics, const Matrix4<Console::HAC>& transform,
+        void Printv(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& transform,
                     const std::vector<DrawCommand<>>& drawCommands,
                     const std::vector<vertex::Vertex>& vertices);
 
@@ -138,9 +136,9 @@ namespace love
 
         uint32_t textureCacheID;
 
-        std::vector<StrongReference<Texture<Console::HAC>>> textures;
+        std::vector<StrongReference<Texture<Console::Which>>> textures;
 
-        std::unordered_map<uint32_t, Glyph<>> glyphs;
+        std::unordered_map<uint32_t, Glyph> glyphs;
         std::unordered_map<uint64_t, float> kernings;
         std::vector<StrongRasterizer> rasterizers;
     };

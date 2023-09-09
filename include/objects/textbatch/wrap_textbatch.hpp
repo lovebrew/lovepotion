@@ -1,10 +1,7 @@
 #pragma once
 
 #include <common/luax.hpp>
-
-#include <objects/font/wrap_font.hpp>
 #include <objects/textbatch_ext.hpp>
-#include <objects/transform/wrap_transform.hpp>
 
 namespace Wrap_TextBatch
 {

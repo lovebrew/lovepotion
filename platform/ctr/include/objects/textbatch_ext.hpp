@@ -2,7 +2,7 @@
 
 #include <objects/textbatch/textbatch.tcc>
 
-#include <modules/graphics_ext.hpp>
+#include <modules/graphics/graphics.tcc>
 
 #include <numeric>
 
@@ -15,24 +15,24 @@ namespace love
         struct AlignData
         {
             float limit;
-            Font<>::AlignMode mode;
+            Font::AlignMode mode;
         };
 
-        TextBatch(Font<Console::CTR>* font, const Font<>::ColoredStrings& text = {});
+        TextBatch(Font* font, const Font::ColoredStrings& text = {});
 
         virtual ~TextBatch();
 
-        void AddText(const Font<>::ColoredStrings& text);
+        void AddText(const Font::ColoredStrings& text);
 
-        void AddText(const Font<>::ColoredStrings& text, const Matrix4<Console::CTR>& matrix);
+        void AddText(const Font::ColoredStrings& text, const Matrix4<Console::CTR>& matrix);
 
-        void Set(const Font<>::ColoredStrings& text);
+        void Set(const Font::ColoredStrings& text);
 
-        void Set(const Font<>::ColoredStrings& text, float wrap, Font<>::AlignMode align);
+        void Set(const Font::ColoredStrings& text, float wrap, Font::AlignMode align);
 
-        int Add(const Font<>::ColoredStrings& text, const Matrix4<Console::CTR>& transform);
+        int Add(const Font::ColoredStrings& text, const Matrix4<Console::CTR>& transform);
 
-        int Addf(const Font<>::ColoredStrings& text, float wrap, Font<>::AlignMode mode,
+        int Addf(const Font::ColoredStrings& text, float wrap, Font::AlignMode mode,
                  const Matrix4<Console::CTR>& transform);
 
         void Clear();
@@ -56,7 +56,7 @@ namespace love
         std::string vertices;
 
         float wrap;
-        Font<>::AlignMode align;
-        std::vector<Font<>::TextInfo> textInfo;
+        Font::AlignMode align;
+        std::vector<Font::TextInfo> textInfo;
     };
 } // namespace love

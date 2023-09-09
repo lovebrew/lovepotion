@@ -5,7 +5,7 @@
 #include <common/exception.hpp>
 #include <common/strongreference.hpp>
 
-#include <objects/font/font.tcc>
+#include <objects/font/font.hpp>
 
 namespace love
 {
@@ -15,15 +15,15 @@ namespace love
       public:
         static inline Type type = Type("TextBatch", &Drawable::type);
 
-        TextBatch(Font<Console::Which>* font) : font(font)
+        TextBatch(Font* font) : font(font)
         {}
 
-        Font<Console::Which>* GetFont() const
+        Font* GetFont() const
         {
             return this->font.Get();
         }
 
-        void SetFont(Font<Console::Which>* font)
+        void SetFont(Font* font)
         {
             this->font.Set(font);
         }
@@ -32,6 +32,6 @@ namespace love
         // 0;
 
       protected:
-        StrongReference<Font<Console::Which>> font;
+        StrongReference<Font> font;
     };
 } // namespace love

@@ -1,7 +1,6 @@
 #include <objects/font/wrap_font.hpp>
 
 using namespace love;
-using Font = love::Font<Console::Which>;
 
 #if !defined(__3DS__)
 std::function<void(lua_State*)> Wrap_Font::wrap_extension;
@@ -9,9 +8,9 @@ std::function<void(lua_State*)> Wrap_Font::wrap_extension;
 std::span<const luaL_Reg> Wrap_Font::extensions;
 #endif
 
-void Wrap_Font::CheckColoredString(lua_State* L, int index, ::Font::ColoredStrings& strings)
+void Wrap_Font::CheckColoredString(lua_State* L, int index, Font::ColoredStrings& strings)
 {
-    ::Font::ColoredString coloredString {};
+    Font::ColoredString coloredString {};
     coloredString.color = Color { 1.0f, 1.0f, 1.0f, 1.0f };
 
     if (lua_istable(L, index))
@@ -50,9 +49,9 @@ void Wrap_Font::CheckColoredString(lua_State* L, int index, ::Font::ColoredStrin
     }
 }
 
-::Font* Wrap_Font::CheckFont(lua_State* L, int index)
+Font* Wrap_Font::CheckFont(lua_State* L, int index)
 {
-    return luax::CheckType<::Font>(L, index);
+    return luax::CheckType<Font>(L, index);
 }
 
 int Wrap_Font::GetWidth(lua_State* L)
@@ -227,7 +226,7 @@ int Wrap_Font::GetKerning(lua_State* L)
 int Wrap_Font::SetFallbacks(lua_State* L)
 {
     auto* self = Wrap_Font::CheckFont(L, 1);
-    std::vector<::Font*> fallbacks;
+    std::vector<Font*> fallbacks;
 
     for (int index = 2; index <= lua_gettop(L); index++)
         fallbacks.push_back(Wrap_Font::CheckFont(L, index));
@@ -267,7 +266,7 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_Font::Register(lua_State* L)
 {
-    int result = luax::RegisterType(L, &::Font::type, functions, extensions);
+    int result = luax::RegisterType(L, &Font::type, functions, extensions);
 
     if (Wrap_Font::wrap_extension)
         Wrap_Font::wrap_extension(L);

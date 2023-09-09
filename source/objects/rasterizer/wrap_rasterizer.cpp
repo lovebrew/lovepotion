@@ -1,5 +1,7 @@
 #include <objects/rasterizer/wrap_rasterizer.hpp>
 
+#include <objects/glyphdata/glyphdata.hpp>
+
 using namespace love;
 using Rasterizer = love::Rasterizer<Console::Which>;
 
