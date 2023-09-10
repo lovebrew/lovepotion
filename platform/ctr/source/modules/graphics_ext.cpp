@@ -1,11 +1,8 @@
+#include <modules/fontmodule_ext.hpp>
 #include <modules/graphics_ext.hpp>
 
-#include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
 
-#include <objects/font_ext.hpp>
-#include <objects/rasterizer_ext.hpp>
-#include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 using Renderer = love::Renderer<love::Console::CTR>;
@@ -28,7 +25,7 @@ Graphics<Console::CTR>::Graphics()
 
 /* objects */
 
-Font<Console::CTR>* Graphics<Console::CTR>::NewDefaultFont(int size) const
+Font* Graphics<Console::CTR>::NewDefaultFont(int size) const
 {
     auto fontModule = Module::GetInstance<FontModule<Console::CTR>>(M_FONT);
 
@@ -52,18 +49,12 @@ void Graphics<Console::CTR>::CheckSetDefaultFont()
     this->states.back().font.Set(this->defaultFont.Get());
 }
 
-Font<Console::CTR>* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
+Font* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
 {
-    return new Font<Console::CTR>(data, this->states.back().defaultSamplerState);
+    return new Font(data, this->states.back().defaultSamplerState);
 }
 
-TextBatch<Console::CTR>* Graphics<Console::CTR>::NewTextBatch(Font<Console::CTR>* font,
-                                                              const Font<>::ColoredStrings& text)
-{
-    return new TextBatch<Console::CTR>(font, text);
-}
-
-void Graphics<Console::CTR>::Print(const Font<>::ColoredStrings& strings,
+void Graphics<Console::CTR>::Print(const Font::ColoredStrings& strings,
                                    const Matrix4<Console::CTR>& matrix)
 {
     this->CheckSetDefaultFont();
@@ -72,14 +63,14 @@ void Graphics<Console::CTR>::Print(const Font<>::ColoredStrings& strings,
         this->Print(strings, this->states.back().font.Get(), matrix);
 }
 
-void Graphics<Console::CTR>::Print(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font,
+void Graphics<Console::CTR>::Print(const Font::ColoredStrings& strings, Font* font,
                                    const Matrix4<Console::CTR>& matrix)
 {
     font->Print(*this, strings, matrix, this->states.back().foreground);
 }
 
-void Graphics<Console::CTR>::Printf(const Font<>::ColoredStrings& strings, float wrap,
-                                    Font<>::AlignMode align, const Matrix4<Console::CTR>& matrix)
+void Graphics<Console::CTR>::Printf(const Font::ColoredStrings& strings, float wrap,
+                                    Font::AlignMode align, const Matrix4<Console::CTR>& matrix)
 {
     this->CheckSetDefaultFont();
 
@@ -87,9 +78,8 @@ void Graphics<Console::CTR>::Printf(const Font<>::ColoredStrings& strings, float
         this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
 }
 
-void Graphics<Console::CTR>::Printf(const Font<>::ColoredStrings& strings, Font<Console::CTR>* font,
-                                    float wrap, Font<>::AlignMode align,
-                                    const Matrix4<Console::CTR>& matrix)
+void Graphics<Console::CTR>::Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
+                                    Font::AlignMode align, const Matrix4<Console::CTR>& matrix)
 {
     font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
 }

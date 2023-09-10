@@ -10,6 +10,6 @@ using namespace love;
 std::function<void(lua_State* L)> Wrap_Font::wrap_extension = [](lua_State* L)
 {
     luax::WrapObject(L, wrap_font_lua, sizeof(wrap_font_lua), "=[love \"wrap_font.lua\"]",
-                     Font<Console::CTR>::type);
+                     Font::type);
 };
 // clang-format on

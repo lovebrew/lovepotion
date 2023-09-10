@@ -1,18 +1,20 @@
+#include <objects/transform/wrap_transform.hpp>
+
+#include <objects/font/wrap_font.hpp>
 #include <objects/textbatch/wrap_textbatch.hpp>
 
-using TextBatch = love::TextBatch<love::Console::Which>;
 using namespace love;
 
-::TextBatch* Wrap_TextBatch::CheckTextBatch(lua_State* L, int index)
+TextBatch* Wrap_TextBatch::CheckTextBatch(lua_State* L, int index)
 {
-    return luax::CheckType<::TextBatch>(L, index);
+    return luax::CheckType<TextBatch>(L, index);
 }
 
 int Wrap_TextBatch::Set(lua_State* L)
 {
     auto* self = Wrap_TextBatch::CheckTextBatch(L, 1);
 
-    Font<>::ColoredStrings newText {};
+    Font::ColoredStrings newText {};
     Wrap_Font::CheckColoredString(L, 2, newText);
 
     luax::CatchException(L, [&]() { self->Set(newText); });
@@ -25,13 +27,13 @@ int Wrap_TextBatch::Setf(lua_State* L)
     auto* self  = Wrap_TextBatch::CheckTextBatch(L, 1);
     float limit = luaL_checknumber(L, 3);
 
-    std::optional<Font<>::AlignMode> align;
+    std::optional<Font::AlignMode> align;
     const char* alignMode = luaL_checkstring(L, 4);
 
-    if (!(align = Font<>::alignModes.Find(alignMode)))
-        return luax::EnumError(L, "align mode", Font<>::alignModes, alignMode);
+    if (!(align = Font::alignModes.Find(alignMode)))
+        return luax::EnumError(L, "align mode", Font::alignModes, alignMode);
 
-    Font<>::ColoredStrings newText {};
+    Font::ColoredStrings newText {};
     Wrap_Font::CheckColoredString(L, 2, newText);
 
     luax::CatchException(L, [&]() { self->Set(newText, limit, *align); });
@@ -44,7 +46,7 @@ int Wrap_TextBatch::Add(lua_State* L)
     auto* self = Wrap_TextBatch::CheckTextBatch(L, 1);
 
     int index = 0;
-    Font<>::ColoredStrings text {};
+    Font::ColoredStrings text {};
     Wrap_Font::CheckColoredString(L, 2, text);
 
     if (luax::IsType(L, 3, Transform::type))
@@ -79,16 +81,16 @@ int Wrap_TextBatch::Addf(lua_State* L)
 
     int index = 0;
 
-    Font<>::ColoredStrings text {};
+    Font::ColoredStrings text {};
     Wrap_Font::CheckColoredString(L, 2, text);
 
     float wrap = luaL_checknumber(L, 3);
 
-    std::optional<Font<>::AlignMode> align;
+    std::optional<Font::AlignMode> align;
     const char* alignName = luaL_checkstring(L, 4);
 
-    if (!(align = Font<>::alignModes.Find(alignName)))
-        return luax::EnumError(L, "align mode", Font<>::alignModes, alignName);
+    if (!(align = Font::alignModes.Find(alignName)))
+        return luax::EnumError(L, "align mode", Font::alignModes, alignName);
 
     if (luax::IsType(L, 5, Transform::type))
     {
@@ -129,7 +131,7 @@ int Wrap_TextBatch::Clear(lua_State* L)
 int Wrap_TextBatch::SetFont(lua_State* L)
 {
     auto* self = Wrap_TextBatch::CheckTextBatch(L, 1);
-    auto* font = luax::CheckType<Font<Console::Which>>(L, 2);
+    auto* font = luax::CheckType<Font>(L, 2);
 
     luax::CatchException(L, [&]() { self->SetFont(font); });
 
@@ -195,5 +197,5 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_TextBatch::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &::TextBatch::type, functions);
+    return luax::RegisterType(L, &TextBatch::type, functions);
 }

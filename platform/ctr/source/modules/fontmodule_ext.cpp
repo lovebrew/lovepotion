@@ -1,5 +1,7 @@
 #include <modules/fontmodule_ext.hpp>
 
+#include <objects/rasterizer_ext.hpp>
+
 using namespace love;
 
 static CFNT_s* loadFromArchive(uint64_t title, const char* path)

@@ -1,15 +1,13 @@
 #pragma once
 
 #include <common/luax.hpp>
-
-#include <objects/font_ext.hpp>
+#include <objects/font/font.hpp>
 
 namespace Wrap_Font
 {
-    love::Font<love::Console::Which>* CheckFont(lua_State* L, int index);
+    love::Font* CheckFont(lua_State* L, int index);
 
-    void CheckColoredString(lua_State* L, int index,
-                            love::Font<love::Console::Which>::ColoredStrings& strings);
+    void CheckColoredString(lua_State* L, int index, love::Font::ColoredStrings& strings);
 
     int GetWidth(lua_State* L);
 

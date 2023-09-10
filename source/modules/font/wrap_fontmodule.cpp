@@ -1,5 +1,7 @@
 #include <modules/font/wrap_fontmodule.hpp>
 
+#include <objects/rasterizer/wrap_rasterizer.hpp>
+
 #include <modules/filesystem/wrap_filesystem.hpp>
 #include <modules/fontmodule_ext.hpp>
 

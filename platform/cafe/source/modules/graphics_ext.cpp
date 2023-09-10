@@ -7,8 +7,6 @@
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
 
-#include <objects/font_ext.hpp>
-#include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 #include <objects/shader_ext.hpp>
@@ -27,12 +25,6 @@ Graphics<Console::CAFE>::Graphics()
         if (window->IsOpen())
             window->SetWindow();
     }
-}
-
-TextBatch<Console::CAFE>* Graphics<Console::CAFE>::NewTextBatch(
-    Font<Console::CAFE>* font, const Font<>::ColoredStrings& text) const
-{
-    return new TextBatch<Console::CAFE>(font, text);
 }
 
 bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)
@@ -93,13 +85,13 @@ void Graphics<Console::CAFE>::CheckSetDefaultFont()
     states.back().font.Set(this->defaultFont.Get());
 }
 
-Font<Console::CAFE>* Graphics<Console::CAFE>::NewFont(Rasterizer<Console::CAFE>* data) const
+Font* Graphics<Console::CAFE>::NewFont(Rasterizer<Console::CAFE>* data) const
 {
-    return new Font<Console::CAFE>(data, this->GetDefaultSamplerState());
+    return new Font(data, this->GetDefaultSamplerState());
 }
 
-Font<Console::CAFE>* Graphics<Console::CAFE>::NewDefaultFont(
-    int size, Rasterizer<Console::CAFE>::Hinting hinting) const
+Font* Graphics<Console::CAFE>::NewDefaultFont(int size,
+                                              Rasterizer<Console::CAFE>::Hinting hinting) const
 {
     auto* font = Module::GetInstance<FontModule<Console::CAFE>>(M_FONT);
 
@@ -129,7 +121,7 @@ void Graphics<Console::CAFE>::Draw(Texture<Console::CAFE>* texture, Quad* quad,
     texture->Draw(*this, quad, matrix);
 }
 
-void Graphics<Console::CAFE>::Print(const Font<>::ColoredStrings& strings,
+void Graphics<Console::CAFE>::Print(const Font::ColoredStrings& strings,
                                     const Matrix4<Console::CAFE>& matrix)
 {
     this->CheckSetDefaultFont();
@@ -138,14 +130,14 @@ void Graphics<Console::CAFE>::Print(const Font<>::ColoredStrings& strings,
         this->Print(strings, this->states.back().font.Get(), matrix);
 }
 
-void Graphics<Console::CAFE>::Print(const Font<>::ColoredStrings& strings,
-                                    Font<Console::CAFE>* font, const Matrix4<Console::CAFE>& matrix)
+void Graphics<Console::CAFE>::Print(const Font::ColoredStrings& strings, Font* font,
+                                    const Matrix4<Console::CAFE>& matrix)
 {
     font->Print(*this, strings, matrix, this->states.back().foreground);
 }
 
-void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings, float wrap,
-                                     Font<>::AlignMode align, const Matrix4<Console::CAFE>& matrix)
+void Graphics<Console::CAFE>::Printf(const Font::ColoredStrings& strings, float wrap,
+                                     Font::AlignMode align, const Matrix4<Console::CAFE>& matrix)
 {
     this->CheckSetDefaultFont();
 
@@ -168,9 +160,8 @@ void Graphics<Console::CAFE>::SetShader(Shader<Console::CAFE>* shader)
     this->states.back().shader.Set(shader);
 }
 
-void Graphics<Console::CAFE>::Printf(const Font<>::ColoredStrings& strings,
-                                     Font<Console::CAFE>* font, float wrap, Font<>::AlignMode align,
-                                     const Matrix4<Console::CAFE>& matrix)
+void Graphics<Console::CAFE>::Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
+                                     Font::AlignMode align, const Matrix4<Console::CAFE>& matrix)
 {
     font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
 }

@@ -2,8 +2,6 @@
 
 #include <common/luax.hpp>
 
-#include <objects/rasterizer/wrap_rasterizer.hpp>
-
 namespace Wrap_FontModule
 {
     int NewRasterizer(lua_State* L);

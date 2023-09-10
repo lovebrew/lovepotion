@@ -1,6 +1,7 @@
+#include <modules/graphics_ext.hpp>
+
 #include <modules/graphics/wrap_graphics.hpp>
 
-#include <modules/graphics_ext.hpp>
 #include <modules/image/imagemodule.hpp>
 
 #include <modules/filesystem/wrap_filesystem.hpp>
@@ -9,10 +10,11 @@
 #include <objects/imagedata/wrap_imagedata.hpp>
 #include <objects/mesh/wrap_mesh.hpp>
 #include <objects/quad/wrap_quad.hpp>
-#include <objects/rasterizer/wrap_rasterizer.hpp>
 #include <objects/spritebatch/wrap_spritebatch.hpp>
 #include <objects/textbatch/wrap_textbatch.hpp>
 #include <objects/texture/wrap_texture.hpp>
+
+#include <objects/rasterizer/wrap_rasterizer.hpp>
 
 #include <utilities/driver/renderer_ext.hpp>
 
@@ -394,7 +396,7 @@ int Wrap_Graphics::NewFont(lua_State* L)
 {
     checkGraphicsCreated(L);
 
-    Font<Console::Which>* font = nullptr;
+    Font* font = nullptr;
     if (!luax::IsType(L, 1, Rasterizer<Console::Which>::type))
     {
         std::vector<int> indices;
@@ -424,7 +426,7 @@ int Wrap_Graphics::SetFont(lua_State* L)
 
 int Wrap_Graphics::GetFont(lua_State* L)
 {
-    Font<Console::Which>* font = nullptr;
+    Font* font = nullptr;
 
     luax::CatchException(L, [&]() {
         instance()->CheckSetDefaultFont();
@@ -438,10 +440,10 @@ int Wrap_Graphics::GetFont(lua_State* L)
 
 int Wrap_Graphics::Print(lua_State* L)
 {
-    Font<>::ColoredStrings strings {};
+    Font::ColoredStrings strings {};
     Wrap_Font::CheckColoredString(L, 1, strings);
 
-    if (luax::IsType(L, 2, Font<>::type))
+    if (luax::IsType(L, 2, Font::type))
     {
         auto* font = Wrap_Font::CheckFont(L, 2);
 
@@ -461,13 +463,13 @@ int Wrap_Graphics::Print(lua_State* L)
 
 int Wrap_Graphics::Printf(lua_State* L)
 {
-    Font<>::ColoredStrings strings {};
+    Font::ColoredStrings strings {};
     Wrap_Font::CheckColoredString(L, 1, strings);
 
-    Font<Console::Which>* font = nullptr;
-    int start                  = 2;
+    Font* font = nullptr;
+    int start  = 2;
 
-    if (luax::IsType(L, start, Font<>::type))
+    if (luax::IsType(L, start, Font::type))
     {
         font = Wrap_Font::CheckFont(L, start);
         start++;
@@ -500,10 +502,10 @@ int Wrap_Graphics::Printf(lua_State* L)
     float wrap            = luaL_checknumber(L, formatIndex);
     const char* alignment = luaL_checkstring(L, formatIndex + 1);
 
-    std::optional<Font<>::AlignMode> align;
+    std::optional<Font::AlignMode> align;
 
-    if (!(align = Font<>::alignModes.Find(alignment)))
-        return luax::EnumError(L, "alignment", Font<>::alignModes, alignment);
+    if (!(align = Font::alignModes.Find(alignment)))
+        return luax::EnumError(L, "alignment", Font::alignModes, alignment);
 
     if (font != nullptr)
         luax::CatchException(L, [&]() { instance()->Printf(strings, font, wrap, *align, matrix); });
@@ -1357,6 +1359,9 @@ int Wrap_Graphics::Points(lua_State* L)
 
     luax::CatchException(L, [&]() { instance()->Points(positionsSpan, colorsSpan); });
 
+    delete positions;
+    delete colors;
+
     return 0;
 }
 
@@ -1529,14 +1534,14 @@ int Wrap_Graphics::NewTextBatch(lua_State* L)
 {
     checkGraphicsCreated(L);
 
-    auto* font                           = Wrap_Font::CheckFont(L, 1);
-    TextBatch<Console::Which>* textBatch = nullptr;
+    auto* font           = Wrap_Font::CheckFont(L, 1);
+    TextBatch* textBatch = nullptr;
 
     if (lua_isnoneornil(L, 2))
         luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font); });
     else
     {
-        Font<>::ColoredStrings text {};
+        Font::ColoredStrings text {};
         Wrap_Font::CheckColoredString(L, 2, text);
 
         luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font, text); });

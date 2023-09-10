@@ -18,13 +18,9 @@ namespace love
 
         void CheckSetDefaultFont();
 
-        TextBatch<Console::CAFE>* NewTextBatch(Font<Console::CAFE>* font,
-                                               const Font<>::ColoredStrings& strings = {}) const;
+        Font* NewFont(Rasterizer<Console::CAFE>* data) const;
 
-        Font<Console::CAFE>* NewFont(Rasterizer<Console::CAFE>* data) const;
-
-        Font<Console::CAFE>* NewDefaultFont(int size,
-                                            Rasterizer<Console::CAFE>::Hinting hinting) const;
+        Font* NewDefaultFont(int size, Rasterizer<Console::CAFE>::Hinting hinting) const;
 
         Texture<Console::CAFE>* NewTexture(const Texture<>::Settings& settings,
                                            const Texture<>::Slices* slices = nullptr) const;
@@ -34,16 +30,16 @@ namespace love
 
         void Draw(Drawable* drawable, const Matrix4<Console::CAFE>& matrix);
 
-        void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::CAFE>& matrix);
+        void Print(const Font::ColoredStrings& strings, const Matrix4<Console::CAFE>& matrix);
 
-        void Print(const Font<>::ColoredStrings& strings, Font<Console::CAFE>* font,
+        void Print(const Font::ColoredStrings& strings, Font* font,
                    const Matrix4<Console::CAFE>& matrix);
 
-        void Printf(const Font<>::ColoredStrings& strings, float wrap, Font<>::AlignMode align,
+        void Printf(const Font::ColoredStrings& strings, float wrap, Font::AlignMode align,
                     const Matrix4<Console::CAFE>& matrix);
 
-        void Printf(const Font<>::ColoredStrings& strings, Font<Console::CAFE>* font, float wrap,
-                    Font<>::AlignMode align, const Matrix4<Console::CAFE>& matrix);
+        void Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
+                    Font::AlignMode align, const Matrix4<Console::CAFE>& matrix);
 
         void SetViewportSize(int width, int height);
 

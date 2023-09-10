@@ -11,14 +11,14 @@
 #include <modules/math/math.hpp>
 #include <modules/window/window.tcc>
 
-#include <objects/font/font.tcc>
 #include <objects/shader/shader.tcc>
-#include <objects/textbatch/textbatch.tcc>
 #include <objects/texture/texture.tcc>
 
+#include <objects/font/font.hpp>
 #include <objects/mesh/mesh.hpp>
 #include <objects/quad/quad.hpp>
 #include <objects/spritebatch/spritebatch.hpp>
+#include <objects/textbatch/textbatch.hpp>
 
 #include <utilities/driver/renderer/drawcommand.tcc>
 
@@ -210,7 +210,7 @@ namespace love
             RenderState::BlendState blendState = RenderState::ComputeBlendState(
                 RenderState::BLEND_ALPHA, RenderState::BLENDALPHA_MULTIPLY);
 
-            StrongReference<Font<Console::Which>> font;
+            StrongReference<Font> font;
             StrongReference<Shader<Console::Which>> shader;
             RenderTargetsStrongReference renderTargets;
 
@@ -386,17 +386,17 @@ namespace love
 
         /* objects */
 
-        Font<Console::Which>* NewFont(Rasterizer<Console::Which>* data) const
+        Font* NewFont(Rasterizer<Console::Which>* data) const
         {
-            return new Font<Console::Which>(data, this->states.back().defaultSamplerState);
+            return new Font(data, this->states.back().defaultSamplerState);
         }
 
-        void SetFont(Font<Console::Which>* font)
+        void SetFont(Font* font)
         {
             this->states.back().font = font;
         }
 
-        Font<Console::Which>* GetFont()
+        Font* GetFont()
         {
             return this->states.back().font;
         }
@@ -404,6 +404,11 @@ namespace love
         SpriteBatch* NewSpriteBatch(Texture<Console::Which>* texture, int size) const
         {
             return new SpriteBatch(texture, size);
+        }
+
+        TextBatch* NewTextBatch(Font* font, const Font::ColoredStrings& text = {}) const
+        {
+            return new TextBatch(font, text);
         }
 
         Mesh* NewMesh(int vertexCount, vertex::PrimitiveType mode) const
@@ -695,7 +700,7 @@ namespace love
 
             stats.drawCalls            = Renderer<>::drawCalls;
             stats.textures             = Texture<>::textureCount;
-            stats.fonts                = Font<>::fontCount;
+            stats.fonts                = Font::fontCount;
             stats.shaderSwitches       = Shader<>::shaderSwitches;
             stats.textureMemory        = Texture<>::totalGraphicsMemory;
             stats.drawCallsBatched     = Renderer<>::drawCallsBatched;
@@ -1308,10 +1313,18 @@ namespace love
 
         void Points(std::span<Vector2> points, std::span<Color> colors)
         {
+            if (Console::Is(Console::CTR))
+            {
+                for (const auto& point : points)
+                    this->Circle(DRAW_FILL, point.x, point.y, this->states.back().pointSize);
+
+                return;
+            }
+
             const auto& transform = this->GetTransform();
             bool is2D             = transform.IsAffine2DTransform();
 
-            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_TRIANGLE_FAN);
+            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_POINTS);
 
             if (is2D)
                 transform.TransformXY(command.Positions().get(), points.data(), points.size());
@@ -1453,6 +1466,6 @@ namespace love
 
         int renderTargetSwitchCount;
 
-        StrongReference<Font<Console::Which>> defaultFont;
+        StrongReference<Font> defaultFont;
     };
 } // namespace love

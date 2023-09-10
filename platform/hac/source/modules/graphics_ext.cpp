@@ -3,8 +3,6 @@
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
 
-#include <objects/font_ext.hpp>
-#include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 #include <objects/shader_ext.hpp>
@@ -111,19 +109,13 @@ void Graphics<Console::HAC>::CheckSetDefaultFont()
     states.back().font.Set(this->defaultFont.Get());
 }
 
-TextBatch<Console::HAC>* Graphics<Console::HAC>::NewTextBatch(
-    Font<Console::HAC>* font, const Font<>::ColoredStrings& text) const
+Font* Graphics<Console::HAC>::NewFont(Rasterizer<Console::HAC>* data) const
 {
-    return new TextBatch<Console::HAC>(font, text);
+    return new Font(data, this->GetDefaultSamplerState());
 }
 
-Font<Console::HAC>* Graphics<Console::HAC>::NewFont(Rasterizer<Console::HAC>* data) const
-{
-    return new Font<Console::HAC>(data, this->GetDefaultSamplerState());
-}
-
-Font<Console::HAC>* Graphics<Console::HAC>::NewDefaultFont(
-    int size, Rasterizer<Console::HAC>::Hinting hinting) const
+Font* Graphics<Console::HAC>::NewDefaultFont(int size,
+                                             Rasterizer<Console::HAC>::Hinting hinting) const
 {
     auto* font = Module::GetInstance<FontModule<Console::HAC>>(M_FONT);
 
@@ -153,7 +145,7 @@ void Graphics<Console::HAC>::Draw(Texture<Console::HAC>* texture, Quad* quad,
     texture->Draw(*this, quad, matrix);
 }
 
-void Graphics<Console::HAC>::Print(const Font<>::ColoredStrings& strings,
+void Graphics<Console::HAC>::Print(const Font::ColoredStrings& strings,
                                    const Matrix4<Console::HAC>& matrix)
 {
     this->CheckSetDefaultFont();
@@ -162,14 +154,14 @@ void Graphics<Console::HAC>::Print(const Font<>::ColoredStrings& strings,
         this->Print(strings, this->states.back().font.Get(), matrix);
 }
 
-void Graphics<Console::HAC>::Print(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font,
+void Graphics<Console::HAC>::Print(const Font::ColoredStrings& strings, Font* font,
                                    const Matrix4<Console::HAC>& matrix)
 {
     font->Print(*this, strings, matrix, this->states.back().foreground);
 }
 
-void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, float wrap,
-                                    Font<>::AlignMode align, const Matrix4<Console::HAC>& matrix)
+void Graphics<Console::HAC>::Printf(const Font::ColoredStrings& strings, float wrap,
+                                    Font::AlignMode align, const Matrix4<Console::HAC>& matrix)
 {
     this->CheckSetDefaultFont();
 
@@ -177,9 +169,8 @@ void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, float
         this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
 }
 
-void Graphics<Console::HAC>::Printf(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font,
-                                    float wrap, Font<>::AlignMode align,
-                                    const Matrix4<Console::HAC>& matrix)
+void Graphics<Console::HAC>::Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
+                                    Font::AlignMode align, const Matrix4<Console::HAC>& matrix)
 {
     font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
 }

@@ -411,6 +411,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/file/file.cpp
     source/objects/file/physfs/file.cpp
     source/objects/file/wrap_file.cpp
+    source/objects/font/font.cpp
     source/objects/font/wrap_font.cpp
     source/objects/glyphdata/glyphdata.cpp
     source/objects/glyphdata/wrap_glyphdata.cpp
@@ -426,6 +427,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/source/wrap_source.cpp
     source/objects/spritebatch/spritebatch.cpp
     source/objects/spritebatch/wrap_spritebatch.cpp
+    source/objects/textbatch/textbatch.cpp
     source/objects/textbatch/wrap_textbatch.cpp
     source/objects/texture/wrap_texture.cpp
     source/objects/thread/luathread.cpp

@@ -1,9 +1,6 @@
 #pragma once
 
 #include <common/luax.hpp>
-
-#include <objects/glyphdata/glyphdata.hpp>
-
 #include <objects/rasterizer_ext.hpp>
 
 namespace Wrap_Rasterizer

@@ -131,7 +131,8 @@ namespace love
         static constexpr BidirectionalMap pixelFormats = {
             PIXELFORMAT_RGBA8_UNORM,  GPU_RGBA8,
             PIXELFORMAT_RGB8,         GPU_RGB8,
-            PIXELFORMAT_RGB565_UNORM, GPU_RGB565
+            PIXELFORMAT_RGB565_UNORM, GPU_RGB565,
+            PIXELFORMAT_LA8_UNORM,    GPU_LA8
         };
 
         static constexpr BidirectionalMap blendEquations = {
