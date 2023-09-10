@@ -1359,6 +1359,9 @@ int Wrap_Graphics::Points(lua_State* L)
 
     luax::CatchException(L, [&]() { instance()->Points(positionsSpan, colorsSpan); });
 
+    delete positions;
+    delete colors;
+
     return 0;
 }
 

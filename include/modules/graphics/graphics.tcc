@@ -1313,10 +1313,18 @@ namespace love
 
         void Points(std::span<Vector2> points, std::span<Color> colors)
         {
+            if (Console::Is(Console::CTR))
+            {
+                for (const auto& point : points)
+                    this->Circle(DRAW_FILL, point.x, point.y, this->states.back().pointSize);
+
+                return;
+            }
+
             const auto& transform = this->GetTransform();
             bool is2D             = transform.IsAffine2DTransform();
 
-            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_TRIANGLE_FAN);
+            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_POINTS);
 
             if (is2D)
                 transform.TransformXY(command.Positions().get(), points.data(), points.size());

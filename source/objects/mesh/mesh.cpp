@@ -4,7 +4,6 @@
 
 #include <objects/texture_ext.hpp>
 
-#include <utilities/log/logfile.hpp>
 #include <utilities/temptransform.hpp>
 
 using namespace love;
