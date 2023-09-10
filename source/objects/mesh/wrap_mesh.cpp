@@ -5,6 +5,7 @@
 #include <algorithm>
 
 using namespace love;
+using namespace love::vertex;
 
 Mesh* Wrap_Mesh::CheckMesh(lua_State* L, int index)
 {
