@@ -204,25 +204,35 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Consol
         if (range.isValid())
             _range.intersect(range);
 
-        auto shader = Shader<>::STANDARD_TEXTURE;
-        if (Console::Is(Console::CTR))
-            shader = Shader<>::STANDARD_DEFAULT;
-
-        DrawCommand<Console::Which> command(_range.getSize(), this->mode, shader);
+        DrawCommand<Console::Which> command(_range.getSize(), this->mode);
         command.FillVertices(this->buffer.data());
 
         transform.TransformXYPure(command.vertices.get(), &this->buffer[_range.getOffset()],
                                   command.count);
 
-#if defined(__3DS__)
-        if (this->texture != nullptr)
+        if (this->texture.Get())
         {
+            command.shader = Shader<>::STANDARD_DEFAULT;
+            if (!Console::Is(Console::CTR))
+                command.shader = Shader<>::STANDARD_TEXTURE;
+            else
+            {
+                /* flip v coordinates */
+                for (size_t index = 0; index < command.count; index++)
+                {
+                    command.vertices[index].texcoord[1] =
+                        1.0f - command.vertices[index].texcoord[1];
+                }
+            }
+
+            command.format = CommonFormat::TEXTURE;
+
+#if defined(__3DS__)
             command.handles = { this->texture->GetHandle() };
-            command.format  = CommonFormat::TEXTURE;
-        }
 #else
-        command.handles = { this->texture };
+            command.handles = { this->texture };
 #endif
+        }
 
         command.cullMode = graphics.GetMeshCullMode();
 

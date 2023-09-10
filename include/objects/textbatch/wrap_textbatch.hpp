@@ -1,11 +1,11 @@
 #pragma once
 
 #include <common/luax.hpp>
-#include <objects/textbatch_ext.hpp>
+#include <objects/textbatch/textbatch.hpp>
 
 namespace Wrap_TextBatch
 {
-    love::TextBatch<love::Console::Which>* CheckTextBatch(lua_State* L, int index);
+    love::TextBatch* CheckTextBatch(lua_State* L, int index);
 
     int Set(lua_State* L);
 

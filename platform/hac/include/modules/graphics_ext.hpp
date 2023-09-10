@@ -22,13 +22,9 @@ namespace love
 
         void SetShader(Shader<Console::HAC>* shader);
 
-        Font<Console::HAC>* NewFont(Rasterizer<Console::HAC>* data) const;
+        Font* NewFont(Rasterizer<Console::HAC>* data) const;
 
-        TextBatch<Console::HAC>* NewTextBatch(Font<Console::HAC>* font,
-                                              const Font<>::ColoredStrings& strings = {}) const;
-
-        Font<Console::HAC>* NewDefaultFont(int size,
-                                           Rasterizer<Console::HAC>::Hinting hinting) const;
+        Font* NewDefaultFont(int size, Rasterizer<Console::HAC>::Hinting hinting) const;
 
         Texture<Console::HAC>* NewTexture(const Texture<>::Settings& settings,
                                           const Texture<>::Slices* slices = nullptr) const;
@@ -37,16 +33,16 @@ namespace love
 
         void Draw(Drawable* drawable, const Matrix4<Console::HAC>& matrix);
 
-        void Print(const Font<>::ColoredStrings& strings, const Matrix4<Console::HAC>& matrix);
+        void Print(const Font::ColoredStrings& strings, const Matrix4<Console::HAC>& matrix);
 
-        void Print(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font,
+        void Print(const Font::ColoredStrings& strings, Font* font,
                    const Matrix4<Console::HAC>& matrix);
 
-        void Printf(const Font<>::ColoredStrings& strings, float wrap, Font<>::AlignMode align,
+        void Printf(const Font::ColoredStrings& strings, float wrap, Font::AlignMode align,
                     const Matrix4<Console::HAC>& matrix);
 
-        void Printf(const Font<>::ColoredStrings& strings, Font<Console::HAC>* font, float wrap,
-                    Font<>::AlignMode align, const Matrix4<Console::HAC>& matrix);
+        void Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
+                    Font::AlignMode align, const Matrix4<Console::HAC>& matrix);
 
         void SetViewportSize(int width, int height);
     }; // namespace love

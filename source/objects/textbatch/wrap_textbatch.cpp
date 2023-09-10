@@ -1,14 +1,13 @@
-#include <objects/textbatch/wrap_textbatch.hpp>
-
-#include <objects/font/wrap_font.hpp>
 #include <objects/transform/wrap_transform.hpp>
 
-using TextBatch = love::TextBatch<love::Console::Which>;
+#include <objects/font/wrap_font.hpp>
+#include <objects/textbatch/wrap_textbatch.hpp>
+
 using namespace love;
 
-::TextBatch* Wrap_TextBatch::CheckTextBatch(lua_State* L, int index)
+TextBatch* Wrap_TextBatch::CheckTextBatch(lua_State* L, int index)
 {
-    return luax::CheckType<::TextBatch>(L, index);
+    return luax::CheckType<TextBatch>(L, index);
 }
 
 int Wrap_TextBatch::Set(lua_State* L)
@@ -198,5 +197,5 @@ static constexpr luaL_Reg functions[] =
 
 int Wrap_TextBatch::Register(lua_State* L)
 {
-    return luax::RegisterType(L, &::TextBatch::type, functions);
+    return luax::RegisterType(L, &TextBatch::type, functions);
 }

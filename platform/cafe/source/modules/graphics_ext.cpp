@@ -8,7 +8,6 @@
 #include <modules/window_ext.hpp>
 
 #include <objects/font_ext.hpp>
-#include <objects/textbatch_ext.hpp>
 #include <objects/texture_ext.hpp>
 
 #include <objects/shader_ext.hpp>
@@ -27,12 +26,6 @@ Graphics<Console::CAFE>::Graphics()
         if (window->IsOpen())
             window->SetWindow();
     }
-}
-
-TextBatch<Console::CAFE>* Graphics<Console::CAFE>::NewTextBatch(
-    Font<Console::CAFE>* font, const Font<>::ColoredStrings& text) const
-{
-    return new TextBatch<Console::CAFE>(font, text);
 }
 
 bool Graphics<Console::CAFE>::SetMode(int x, int y, int width, int height)

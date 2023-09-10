@@ -1,6 +1,4 @@
 #include <modules/fontmodule_ext.hpp>
-#include <objects/textbatch_ext.hpp>
-
 #include <modules/graphics_ext.hpp>
 
 #include <modules/window_ext.hpp>
@@ -54,12 +52,6 @@ void Graphics<Console::CTR>::CheckSetDefaultFont()
 Font* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
 {
     return new Font(data, this->states.back().defaultSamplerState);
-}
-
-TextBatch<Console::CTR>* Graphics<Console::CTR>::NewTextBatch(Font* font,
-                                                              const Font::ColoredStrings& text)
-{
-    return new TextBatch<Console::CTR>(font, text);
 }
 
 void Graphics<Console::CTR>::Print(const Font::ColoredStrings& strings,

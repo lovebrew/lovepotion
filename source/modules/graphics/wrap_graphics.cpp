@@ -1531,8 +1531,8 @@ int Wrap_Graphics::NewTextBatch(lua_State* L)
 {
     checkGraphicsCreated(L);
 
-    auto* font                           = Wrap_Font::CheckFont(L, 1);
-    TextBatch<Console::Which>* textBatch = nullptr;
+    auto* font           = Wrap_Font::CheckFont(L, 1);
+    TextBatch* textBatch = nullptr;
 
     if (lua_isnoneornil(L, 2))
         luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font); });

@@ -427,6 +427,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/source/wrap_source.cpp
     source/objects/spritebatch/spritebatch.cpp
     source/objects/spritebatch/wrap_spritebatch.cpp
+    source/objects/textbatch/textbatch.cpp
     source/objects/textbatch/wrap_textbatch.cpp
     source/objects/texture/wrap_texture.cpp
     source/objects/thread/luathread.cpp

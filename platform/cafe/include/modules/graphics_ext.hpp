@@ -18,9 +18,6 @@ namespace love
 
         void CheckSetDefaultFont();
 
-        TextBatch<Console::CAFE>* NewTextBatch(Font<Console::CAFE>* font,
-                                               const Font<>::ColoredStrings& strings = {}) const;
-
         Font<Console::CAFE>* NewFont(Rasterizer<Console::CAFE>* data) const;
 
         Font<Console::CAFE>* NewDefaultFont(int size,

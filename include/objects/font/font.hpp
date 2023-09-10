@@ -21,7 +21,7 @@
     #include <citro3d.h>
 using TextureHandle = C3D_Tex;
 #else
-using TextureHandle = Texture<Console::Which>;
+using TextureHandle = love::Texture<love::Console::Which>;
 #endif
 
 namespace love
@@ -130,15 +130,9 @@ namespace love
                     AlignMode alignment, const Matrix4<Console::Which>& localTransform,
                     const Color& color);
 
-        int GetAscent() const
-        {
-            return std::floor(this->rasterizers[0]->GetAscent() / this->dpiScale + 0.5f);
-        }
+        int GetAscent() const;
 
-        int GetDescent() const
-        {
-            return std::floor(this->rasterizers[0]->GetDescent() / this->dpiScale + 0.5f);
-        }
+        int GetDescent() const;
 
         float GetHeight() const
         {
@@ -249,6 +243,8 @@ namespace love
 
         static constexpr uint32_t NEWLINE_GLYPH  = 10;
         static constexpr uint32_t CARRIAGE_GLYPH = 13;
+
+        static constexpr int TEXTURE_PADDING = 2;
 
         float lineHeight;
         float height;

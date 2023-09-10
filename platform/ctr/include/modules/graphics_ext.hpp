@@ -26,8 +26,6 @@ namespace love
         Texture<Console::CTR>* NewTexture(const Texture<>::Settings& settings,
                                           const Texture<>::Slices* slices = nullptr) const;
 
-        TextBatch<Console::CTR>* NewTextBatch(Font* font, const Font::ColoredStrings& text = {});
-
         void Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4<Console::CTR>& matrix);
 
         void Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix);

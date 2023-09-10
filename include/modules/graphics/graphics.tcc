@@ -12,13 +12,13 @@
 #include <modules/window/window.tcc>
 
 #include <objects/shader/shader.tcc>
-#include <objects/textbatch/textbatch.tcc>
 #include <objects/texture/texture.tcc>
 
 #include <objects/font/font.hpp>
 #include <objects/mesh/mesh.hpp>
 #include <objects/quad/quad.hpp>
 #include <objects/spritebatch/spritebatch.hpp>
+#include <objects/textbatch/textbatch.hpp>
 
 #include <utilities/driver/renderer/drawcommand.tcc>
 
@@ -404,6 +404,11 @@ namespace love
         SpriteBatch* NewSpriteBatch(Texture<Console::Which>* texture, int size) const
         {
             return new SpriteBatch(texture, size);
+        }
+
+        TextBatch* NewTextBatch(Font* font, const Font::ColoredStrings& text = {}) const
+        {
+            return new TextBatch(font, text);
         }
 
         Mesh* NewMesh(int vertexCount, vertex::PrimitiveType mode) const
