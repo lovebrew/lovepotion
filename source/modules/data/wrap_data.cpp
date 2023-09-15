@@ -224,7 +224,7 @@ int Wrap_DataModule::Encode(lua_State* L)
 
 int Wrap_DataModule::Decode(lua_State* L)
 {
-    DataModule::ContainerType containerType = Wrap_DataModule::CheckContainerType(L, 1);
+    auto containerType = Wrap_DataModule::CheckContainerType(L, 1);
 
     const char* formatName = luaL_checkstring(L, 2);
     DataModule::EncodeFormat format;

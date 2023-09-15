@@ -8,6 +8,7 @@
 #include <objects/file/wrap_file.hpp>
 
 #include <filesystem>
+#include <format>
 
 #include <utilities/functions.hpp>
 
@@ -758,7 +759,10 @@ Data* Wrap_Filesystem::GetData(lua_State* L, int index)
 
     if (!data && !file)
     {
-        luaL_argerror(L, index, "filename, File, or Data expected");
+        const auto error =
+            std::format("filename, File, or Data expected, got {}", luaL_typename(L, index));
+
+        luaL_argerror(L, index, error.c_str());
         return nullptr; // Never reached.
     }
 

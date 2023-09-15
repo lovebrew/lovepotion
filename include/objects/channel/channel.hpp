@@ -16,8 +16,7 @@ namespace love
       public:
         static Type type;
 
-        Channel() : sent(0), received(0)
-        {}
+        Channel();
 
         virtual ~Channel()
         {}
@@ -46,7 +45,11 @@ namespace love
 
         void UnlockMutex();
 
-      protected:
+      private:
+        uint64_t _Push(const Variant& variant);
+
+        bool _Pop(Variant* variant);
+
         uint64_t sent;
         uint64_t received;
 

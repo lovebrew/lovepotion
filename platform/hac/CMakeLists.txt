@@ -52,5 +52,4 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/npad.cpp
     source/utilities/sensor/accelerometer.cpp
     source/utilities/sensor/gyroscope.cpp
-    source/utilities/threads/thread_ext.cpp
 )

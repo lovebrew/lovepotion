@@ -466,5 +466,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/result.cpp
     source/utilities/stream/stream.cpp
     source/utilities/stream/types/datastream.cpp
+    source/utilities/threads/thread.cpp
     source/utilities/threads/threadable.cpp
 )

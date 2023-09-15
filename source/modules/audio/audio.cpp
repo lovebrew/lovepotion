@@ -4,7 +4,6 @@ using namespace love;
 
 Audio::Audio()
 {
-
     try
     {
         DSP<Console::Which>::Instance().Initialize();

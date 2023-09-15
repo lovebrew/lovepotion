@@ -292,6 +292,9 @@ end
 local debug, print, tostring, error = debug, print, tostring, error
 
 function love.threaderror(t, err)
+    if is_debug then
+        file:echo("Thread error (" .. tostring(t) .. ")\n\n" .. err)
+    end
     error("Thread error (" .. tostring(t) .. ")\n\n" .. err, 0)
 end
 

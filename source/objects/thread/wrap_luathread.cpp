@@ -26,7 +26,7 @@ int Wrap_LuaThread::Start(lua_State* L)
         }
     }
 
-    luax::PushBoolean(L, self->Start(args));
+    luax::CatchException(L, [&]() { luax::PushBoolean(L, self->Start(args)); });
 
     return 1;
 }

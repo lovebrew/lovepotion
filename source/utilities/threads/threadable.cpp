@@ -1,4 +1,3 @@
-#include <utilities/threads/thread_ext.hpp>
 #include <utilities/threads/threadable.hpp>
 
 using namespace love;
@@ -7,7 +6,7 @@ Type Threadable::type("Threadable", &Object::type);
 
 Threadable::Threadable()
 {
-    this->owner = new Thread<Console::Which>(this);
+    this->owner = new love::Thread(this);
 }
 
 Threadable::~Threadable()

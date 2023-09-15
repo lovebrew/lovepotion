@@ -2,7 +2,7 @@
 
 #include <common/object.hpp>
 
-#include <utilities/threads/thread_ext.hpp>
+#include <utilities/threads/thread.hpp>
 
 namespace love
 {
@@ -26,7 +26,7 @@ namespace love
         const char* GetThreadName() const;
 
       protected:
-        Thread<Console::Which>* owner;
+        love::Thread* owner;
         std::string name;
     };
 } // namespace love

@@ -14,7 +14,7 @@ int Wrap_Channel::Push(lua_State* L)
     auto* self = Wrap_Channel::CheckChannel(L, 1);
 
     luax::CatchException(L, [&]() {
-        love::Variant variant = luax::CheckVariant(L, 2);
+        auto variant = luax::CheckVariant(L, 2);
 
         if (variant.GetType() == love::Variant::UNKNOWN)
             luaL_argerror(L, 2, "boolean, number, string, love type, or table expected");
@@ -32,7 +32,7 @@ int Wrap_Channel::Supply(lua_State* L)
     bool result = false;
 
     luax::CatchException(L, [&]() {
-        love::Variant variant = luax::CheckVariant(L, 2);
+        auto variant = luax::CheckVariant(L, 2);
 
         if (variant.GetType() == love::Variant::UNKNOWN)
             luaL_argerror(L, 2, "boolean, number, string, love type, or table expected");

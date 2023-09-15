@@ -665,7 +665,7 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
         if (module == nullptr)
             luaL_error(L, "Cannot load images without the image module.");
 
-        StrongReference<Data> data(Wrap_Filesystem::GetFileData(L, index), Acquire::NORETAIN);
+        StrongReference<Data> data(Wrap_Filesystem::GetData(L, index), Acquire::NORETAIN);
 
         if (dpiScale != nullptr)
             parseDPIScale(data, dpiScale);

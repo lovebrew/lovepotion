@@ -2,8 +2,6 @@
 
 #include <thread/ctr_thread.h>
 
-#include <mutex>
-
 namespace love
 {
     using mutex       = ctr::mutex;

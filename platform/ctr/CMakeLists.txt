@@ -48,5 +48,4 @@ source/utilities/driver/renderer/renderer_ext.cpp
 source/utilities/formathandler/types/t3xhandler.cpp
 source/utilities/sensor/accelerometer.cpp
 source/utilities/sensor/gyroscope.cpp
-source/utilities/threads/thread_ext.cpp
 )

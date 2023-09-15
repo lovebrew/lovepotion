@@ -9,22 +9,27 @@ using Timer = love::Timer<Console::Which>;
 
 Type Channel::type("Channel", &Object::type);
 
-uint64_t Channel::Push(const Variant& variant)
-{
-    std::unique_lock lock(this->mutex);
+Channel::Channel() : sent(0), received(0)
+{}
 
+uint64_t Channel::_Push(const Variant& variant)
+{
     this->queue.push(variant);
     this->condition.notify_all();
 
-    ++this->sent;
+    return ++this->sent;
+}
 
-    return this->sent;
+uint64_t Channel::Push(const Variant& variant)
+{
+    std::unique_lock lock(this->mutex);
+    return this->_Push(variant);
 }
 
 bool Channel::Supply(const Variant& variant)
 {
     std::unique_lock lock(this->mutex);
-    uint64_t id = this->Push(variant);
+    uint64_t id = this->_Push(variant);
 
     while (this->received < id)
         this->condition.wait(lock);
@@ -35,32 +40,28 @@ bool Channel::Supply(const Variant& variant)
 bool Channel::Supply(const Variant& variant, double timeout)
 {
     std::unique_lock lock(this->mutex);
-    uint64_t id = this->Push(variant);
+    uint64_t id = this->_Push(variant);
 
     while (timeout >= 0)
     {
         if (this->received >= id)
             return true;
 
-        if (timeout == 0)
-            this->condition.wait(lock);
-        else
-        {
-            double start = ::Timer::GetTime();
-            this->condition.wait_for(lock, std::chrono::milliseconds((int64_t)timeout * 1000));
-            double stop = ::Timer::GetTime();
+        const auto start = ::Timer::GetTime();
+        const auto ms    = std::chrono::milliseconds((int64_t)timeout * 1000);
 
-            timeout -= (stop - start);
-        }
+        this->condition.wait_for(lock, ms);
+
+        const auto stop = ::Timer::GetTime();
+
+        timeout -= (stop - start);
     }
 
     return false;
 }
 
-bool Channel::Pop(Variant* variant)
+bool Channel::_Pop(Variant* variant)
 {
-    std::unique_lock lock(this->mutex);
-
     if (this->queue.empty())
         return false;
 
@@ -73,11 +74,17 @@ bool Channel::Pop(Variant* variant)
     return true;
 }
 
+bool Channel::Pop(Variant* variant)
+{
+    std::unique_lock lock(this->mutex);
+    return this->_Pop(variant);
+}
+
 bool Channel::Demand(Variant* variant)
 {
     std::unique_lock lock(this->mutex);
 
-    while (!this->Pop(variant))
+    while (!this->_Pop(variant))
         this->condition.wait(lock);
 
     return true;
@@ -89,19 +96,20 @@ bool Channel::Demand(Variant* variant, double timeout)
 
     while (timeout >= 0)
     {
-        if (this->Pop(variant))
+        if (this->_Pop(variant))
             return true;
 
-        if (timeout == 0)
-            this->condition.wait(lock);
-        else
-        {
-            double start = ::Timer::GetTime();
-            this->condition.wait_for(lock, std::chrono::milliseconds((int64_t)timeout * 1000));
-            double stop = ::Timer::GetTime();
+        const auto start = ::Timer::GetTime();
+        const auto ms    = std::chrono::milliseconds((int64_t)timeout * 1000);
 
-            timeout -= (stop - start);
-        }
+        this->condition.wait_for(lock, ms);
+
+        const auto stop = ::Timer::GetTime();
+
+        timeout -= (stop - start);
+
+        if (timeout == 0)
+            return false;
     }
 
     return false;
