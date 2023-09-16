@@ -181,7 +181,7 @@ function love.init()
             data = true,
             event = true,
             keyboard = true,
-            mouse = true,
+            mouse = false,
             timer = true,
             joystick = true,
             touch = true,
@@ -189,14 +189,14 @@ function love.init()
             graphics = true,
             audio = true,
             math = true,
-            physics = true,
+            physics = false,
             sensor = true,
             sound = true,
             system = true,
             font = true,
             thread = true,
             window = true,
-            video = true,
+            video = false,
         },
         audio = {
             mixwithsystem = true, -- Only relevant for Android / iOS.
@@ -322,7 +322,7 @@ function love.init()
         "physics",
     } do
         if c.modules[v] then
-            pcall(require, "love." .. v)
+            require("love." .. v)
         end
     end
 

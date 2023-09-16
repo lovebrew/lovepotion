@@ -25,15 +25,21 @@ void love::Thread::Wait()
 
 bool love::Thread::Start()
 {
-    {
-        std::unique_lock lock(this->mutex);
+    std::unique_lock lock(this->mutex);
 
-        if (this->thread.joinable())
-            return false;
-    }
+    if (this->running)
+        return false;
+
+    if (this->thread)
+        this->thread.join();
+
+    this->threadable->Retain();
 
     this->thread  = love::thread(&love::Thread::Runner, this);
     this->running = this->thread.joinable();
+
+    if (!this->running)
+        this->threadable->Release();
 
     return this->running;
 }

@@ -182,6 +182,8 @@ namespace Wrap_Graphics
 
     /* OTHER STUFF */
 
+    int GetRendererInfo(lua_State* L);
+
     int GetStats(lua_State* L);
 
     int Push(lua_State* L);

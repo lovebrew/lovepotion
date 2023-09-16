@@ -2040,6 +2040,19 @@ int Wrap_Graphics::GetStats(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::GetRendererInfo(lua_State* L)
+{
+    ::Renderer::Info info {};
+    luax::CatchException(L, [&]() { info = ::Renderer::Instance().GetRendererInfo(); });
+
+    luax::PushString(L, info.name);
+    luax::PushString(L, info.version);
+    luax::PushString(L, info.vendor);
+    luax::PushString(L, info.device);
+
+    return 4;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -2091,6 +2104,7 @@ static constexpr luaL_Reg functions[] =
     { "getLineStyle",          Wrap_Graphics::GetLineStyle          },
     { "getLineWidth",          Wrap_Graphics::GetLineWidth          },
     { "getMeshCullMode",       Wrap_Graphics::GetMeshCullMode       },
+    { "getRendererInfo",       Wrap_Graphics::GetRendererInfo       },
     { "getScreens",            Wrap_Graphics::GetScreens            },
     { "getStats",              Wrap_Graphics::GetStats              },
     { "getWidth",              Wrap_Graphics::GetWidth              },
