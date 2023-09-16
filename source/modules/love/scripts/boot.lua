@@ -299,6 +299,9 @@ function love.init()
         love._requestRecordingPermission(c.audio and c.audio.mic)
     end
 
+    -- for 3DS
+    local dsp_error = false
+
     -- Gets desired modules.
     for k, v in ipairs {
         "data",
@@ -309,9 +312,9 @@ function love.init()
         "joystick",
         "mouse",
         "touch",
-        "sensor",
         "sound",
         "system",
+        "sensor",
         "audio",
         "image",
         "video",
@@ -322,7 +325,10 @@ function love.init()
         "physics",
     } do
         if c.modules[v] then
-            require("love." .. v)
+            local success, error_msg = pcall(require, "love." .. v)
+            if v == "audio" and not success then
+                dsp_error = error_msg
+            end
         end
     end
 
@@ -345,6 +351,10 @@ function love.init()
     --         end
     --     end
     -- end
+
+    if dsp_error then
+        error(dsp_error)
+    end
 
     if not confok and conferr then
         error(conferr)

@@ -4,9 +4,10 @@ using namespace love;
 
 Audio::Audio()
 {
+    DSP<Console::Which>::Instance().Initialize();
+
     try
     {
-        DSP<Console::Which>::Instance().Initialize();
 
         this->pool = new AudioPool();
     }

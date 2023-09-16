@@ -33,7 +33,7 @@ function love.createhandlers()
 
     -- Standard callback handlers.
     love.handlers = setmetatable({
-        -- REGION UNUSED --
+        --#region unused
         -- keypressed = function(button, scancode, isRepeat)
         --     if love.keypressed then
         --         return love.keypressed(button, scancode, isRepeat)
@@ -44,13 +44,13 @@ function love.createhandlers()
         --         return love.keyreleased(button, scancode)
         --     end
         -- end,
-        -- END REGION UNUSED --
+        --#endregion
         textinput = function(text)
             if love.textinput then
                 return love.textinput(text)
             end
         end,
-        -- REGION UNUSED --
+        --#region unused
         -- textedited = function(text, start, length)
         --     if love.textedited then
         --         return love.textedited(text, start, length)
@@ -76,7 +76,7 @@ function love.createhandlers()
         --         return love.wheelmoved(x, y)
         --     end
         -- end,
-        -- END REGION UNUSED
+        --#endregion
         touchpressed = function(id, x, y, dx, dy, pressure)
             if love.touchpressed then
                 return love.touchpressed(id, x, y, dx, dy, pressure)
@@ -92,33 +92,33 @@ function love.createhandlers()
                 return love.touchmoved(id, x, y, dx, dy, pressure)
             end
         end,
-        -- joystickpressed = function(joystick, button)
-        --     if love.joystickpressed then
-        --         return love.joystickpressed(joystick, button)
-        --     end
-        -- end,
-        -- joystickreleased = function(joystick, button)
-        --     if love.joystickreleased then
-        --         return love.joystickreleased(joystick, button)
-        --     end
-        -- end,
-        -- joystickaxis = function(joystick, axis, value)
-        --     if love.joystickaxis then
-        --         return love.joystickaxis(joystick, axis, value)
-        --     end
-        -- end,
+        joystickpressed = function(joystick, button)
+            if love.joystickpressed then
+                return love.joystickpressed(joystick, button)
+            end
+        end,
+        joystickreleased = function(joystick, button)
+            if love.joystickreleased then
+                return love.joystickreleased(joystick, button)
+            end
+        end,
+        joystickaxis = function(joystick, axis, value)
+            if love.joystickaxis then
+                return love.joystickaxis(joystick, axis, value)
+            end
+        end,
         joysticksensorupdated = function(joystick, sensor, ...)
             if love.joysticksensorupdated then
                 return love.joysticksensorupdated(joystick, sensor, ...)
             end
         end,
-        -- REGION UNIMPLEMENTED --
+        --#region unused
         -- joystickhat = function(joystick, hat, value)
         --     if love.joystickhat then
         --         return love.joystickhat(joystick, hat, value)
         --     end
         -- end,
-        -- END REGION UNIMPLEMENTED --
+        --#endregion unused
         gamepadpressed = function(joystick, button)
             if love.gamepadpressed then
                 return love.gamepadpressed(joystick, button)
@@ -149,13 +149,13 @@ function love.createhandlers()
                 return love.focus(focused)
             end
         end,
-        -- REGION UNUSED --
+        --#region unused
         -- mousefocus = function(mouseFocused)
         --     if love.mousefocus then
         --         return love.mousefocus(mouseFocused)
         --     end
         -- end,
-        -- END REGION UNUSED --
+        --#endregion unused
         visible = function(visible)
             if love.visible then
                 return love.visible(visible)
@@ -174,7 +174,7 @@ function love.createhandlers()
                 return love.resize(width, height)
             end
         end,
-        -- REGION UNUSED --
+        --#region unused
         -- filedropped = function(file)
         --     if love.filedropped then
         --         return love.filedropped(file)
@@ -185,7 +185,7 @@ function love.createhandlers()
         --         return love.directorydropped(directory)
         --     end
         -- end,
-        -- END REGION UNUSED --
+        --#endregion unused
         lowmemory = function()
             if love.lowmemory then
                 love.lowmemory()
@@ -309,21 +309,25 @@ local function error_printer(msg, layer)
     end
 end
 
-function love.errorhandler(msg)
+function love.errhand(msg)
     msg = tostring(msg)
 
     error_printer(msg, 2)
-
+    
+    file:echo("!")
     if not love.window or not love.graphics or not love.event then
         return
     end
+    file:echo("!!")
 
+    file:echo("!!!")
     if not love.graphics.isCreated() or not love.window.isOpen() then
         local success, status = pcall(love.window.setMode, 800, 600)
         if not success or not status then
             return
         end
     end
+    file:echo("!!!!")
 
     -- Reset state.
     if love.mouse then
@@ -476,8 +480,6 @@ function love.errorhandler(msg)
         end
     end
 end
-
-love.errhand = love.errorhandler
 
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
 --)luastring"--"

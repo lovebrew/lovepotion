@@ -13,7 +13,12 @@ static void audioCallback(void* data)
 void DSP<Console::CTR>::Initialize()
 {
     if (Result result; R_FAILED(result = ndspInit()))
+    {
+        if ((uint32_t)result == 0xD880A7FA)
+            throw love::Exception("Failed to initialize ndsp (dspfirm.cdc not found)");
+
         throw love::Exception("Failed to initialize ndsp: %x", result);
+    }
 
     this->initialized = true;
 
