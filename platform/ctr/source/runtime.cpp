@@ -76,6 +76,8 @@ extern "C"
 
         romfsExit();
 
+#if !defined(__EMULATION__)
         mcuHwcExit();
+#endif
     }
 }

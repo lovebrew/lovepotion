@@ -30,7 +30,7 @@ bool love::Thread::Start()
     if (this->running)
         return false;
 
-    if (this->thread)
+    if (this->thread.joinable())
         this->thread.join();
 
     this->threadable->Retain();
