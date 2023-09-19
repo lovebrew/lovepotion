@@ -30,7 +30,9 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo Wii U-${{ steps.commit.outputs.short }}
-          path: build/*.wuhb
+          path: |
+            build/*.elf
+            build/*.wuhb
 
   WiiU-Debug:
     runs-on: ubuntu-latest

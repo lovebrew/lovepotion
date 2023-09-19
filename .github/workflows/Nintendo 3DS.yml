@@ -30,7 +30,9 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: Nintendo 3DS-${{ steps.commit.outputs.short }}
-          path: build/*.3dsx
+          path: |
+            build/*.elf
+            build/*.3dsx
 
   N3DS-Debug:
     runs-on: ubuntu-latest
