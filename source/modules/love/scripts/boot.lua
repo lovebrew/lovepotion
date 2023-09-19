@@ -48,7 +48,6 @@ local main_file = "main.lua"
 
 -- This can't be overridden.
 function love.boot()
-
     -- This is absolutely needed.
     require("love.filesystem")
 
@@ -130,9 +129,9 @@ function love.boot()
         identity = love.path.leaf(realdir)
     end
 
-    identity = identity:gsub("^([%.]+)", "") -- strip leading "."'s
+    identity = identity:gsub("^([%.]+)", "")    -- strip leading "."'s
     identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
-    identity = identity:gsub("%.", "_") -- replace remaining "."'s with "_"
+    identity = identity:gsub("%.", "_")         -- replace remaining "."'s with "_"
     identity = #identity > 0 and identity or "game"
 
     -- When conf.lua is initially loaded, the main source should be checked
@@ -147,13 +146,13 @@ function love.boot()
     end
 
     if not can_has_game then
+        invalid_game_path = false
         local nogame = require("love.nogame")
         nogame()
     end
 end
 
 function love.init()
-
     -- Create default configuration settings.
     -- NOTE: Adding a new module to the modules list
     -- will NOT make it load, see below.
@@ -200,12 +199,12 @@ function love.init()
         },
         audio = {
             mixwithsystem = true, -- Only relevant for Android / iOS.
-            mic = false, -- Only relevant for Android.
+            mic = false,          -- Only relevant for Android.
         },
-        console = false, -- Only relevant for windows.
+        console = false,          -- Only relevant for windows.
         identity = false,
         appendidentity = false,
-        externalstorage = false, -- Only relevant for Android.
+        externalstorage = false,      -- Only relevant for Android.
         accelerometerjoystick = true, -- Only relevant for Android / iOS.
         gammacorrect = false,
         highdpi = false,
@@ -417,9 +416,11 @@ function love.init()
         local gamepath = opts.game.set and opts.game.arg[1] or ""
         local gamestr = gamepath == "" and "" or " at " .. '"' .. gamepath .. '"'
 
-        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder."):format(gamestr, main_file))
+        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder.")
+        :format(gamestr, main_file))
     elseif invalid_game_path then
-        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(invalid_game_path))
+        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(
+        invalid_game_path))
     end
 end
 
@@ -483,6 +484,5 @@ return function()
 
     return 1
 end
-
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
 --)luastring"--"

@@ -58,6 +58,21 @@ Renderer<Console::HAC>::~Renderer()
     this->uniformBuffer.destroy();
 }
 
+Renderer<Console::HAC>::Info Renderer<Console::HAC>::GetRendererInfo()
+{
+    if (this->info.filled)
+        return this->info;
+
+    this->info.device  = Renderer::RENDERER_DEVICE;
+    this->info.name    = Renderer::RENDERER_NAME;
+    this->info.vendor  = Renderer::RENDERER_VENDOR;
+    this->info.version = Renderer::RENDERER_VERSION;
+
+    this->info.filled = true;
+
+    return this->info;
+}
+
 CMemPool& Renderer<Console::HAC>::GetMemPool(MemPoolType type)
 {
     switch (type)

@@ -6,11 +6,30 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 # declare an asset target for the executable's RomFS (optional)
 dkp_add_asset_target(${PROJECT_NAME}_ctr_romfs romfs)
 
-ctr_add_shader_library(main_v_pica
-    "shaders/main.v.pica"
+ctr_add_graphics_target(cartridge
+    IMAGE
+    OPTIONS -f rgba8888 -z auto
+    INPUTS "assets/nogame/cartridge.png"
 )
 
-dkp_install_assets (${PROJECT_NAME}_ctr_romfs
+ctr_add_graphics_target(nogame
+    IMAGE
+    OPTIONS -f rgba8888 -z auto
+    INPUTS "assets/nogame/nogame.png"
+)
+
+dkp_install_assets(${PROJECT_NAME}_ctr_romfs
+    DESTINATION "nogame"
+    TARGETS
+        cartridge
+        nogame
+)
+
+ctr_add_shader_library(main_v_pica
+    "assets/shaders/main.v.pica"
+)
+
+dkp_install_assets(${PROJECT_NAME}_ctr_romfs
     DESTINATION "shaders"
     TARGETS
         main_v_pica

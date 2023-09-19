@@ -91,6 +91,21 @@ Renderer<Console::CAFE>::Renderer() :
     this->modelView = glm::mat4(1.0f);
 }
 
+Renderer<Console::CAFE>::Info Renderer<Console::CAFE>::GetRendererInfo()
+{
+    if (this->info.filled)
+        return this->info;
+
+    this->info.device  = Renderer::RENDERER_DEVICE;
+    this->info.name    = Renderer::RENDERER_NAME;
+    this->info.vendor  = Renderer::RENDERER_VENDOR;
+    this->info.version = Renderer::RENDERER_VERSION;
+
+    this->info.filled = true;
+
+    return this->info;
+}
+
 uint32_t Renderer<Console::CAFE>::ProcUIAcquired(void* arg)
 {
     return Renderer<Console::CAFE>::Instance().OnForegroundAcquired();
@@ -353,12 +368,12 @@ bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
 
 void Renderer<Console::CAFE>::Present()
 {
+    GX2DrawDone();
+
     FlushVertices();
 
     this->inFrame  = false;
     m_vertexOffset = 0;
-
-    GX2DrawDone();
 
     if (Keyboard()->IsShowing())
     {
@@ -475,13 +490,14 @@ void Renderer<Console::CAFE>::SetViewport(const Rect& viewport)
 
     const size_t count = sizeof(glm::mat4) / sizeof(uint32_t);
 
-    unsigned int* model = (unsigned int*)glm::value_ptr(this->modelView);
-    for (size_t index = 0; index < count; index++)
-        dstModel[index] = __builtin_bswap32(model[index]);
-
+    unsigned int* model      = (unsigned int*)glm::value_ptr(this->modelView);
     unsigned int* projection = (unsigned int*)glm::value_ptr(ortho);
+
     for (size_t index = 0; index < count; index++)
-        dstProj[index] = __builtin_bswap32(projection[index]);
+    {
+        dstModel[index] = __builtin_bswap32(model[index]);
+        dstProj[index]  = __builtin_bswap32(projection[index]);
+    }
 }
 
 void Renderer<Console::CAFE>::SetScissor(const Rect& scissor, bool canvasActive)
