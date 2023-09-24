@@ -169,7 +169,7 @@ int Wrap_ImageData::Encode(lua_State* L)
     }
 
     FileData* data = nullptr;
-    luax::CatchException(L, [&]() { data = self->Encode(*format, filename, hasFilename); });
+    luax::CatchException(L, [&]() { data = self->Encode(*format, filename.c_str(), hasFilename); });
 
     luax::PushType(L, data);
     data->Release();

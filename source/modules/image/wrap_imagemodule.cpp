@@ -3,6 +3,7 @@
 
 #include <modules/filesystem/wrap_filesystem.hpp>
 
+#include <objects/compressedimagedata/wrap_compressedimagedata.hpp>
 #include <objects/data/wrap_data.hpp>
 #include <objects/imagedata/wrap_imagedata.hpp>
 
@@ -91,10 +92,19 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
     return luax::TypeError(L, 1, "value");
 }
 
-// To do
 int Wrap_ImageModule::NewCompressedData(lua_State* L)
 {
-    return 0;
+    Data* data = Wrap_Filesystem::GetData(L, 1);
+
+    CompressedImageData* compressedData = nullptr;
+    luax::CatchException(
+        L, [&]() { compressedData = instance()->NewCompressedImageData(data); },
+        [&](bool) { data->Release(); });
+
+    luax::PushType(L, CompressedImageData::type, compressedData);
+    compressedData->Release();
+
+    return 1;
 }
 
 int Wrap_ImageModule::IsCompressed(lua_State* L)
@@ -120,6 +130,7 @@ static constexpr luaL_Reg functions[] =
 static constexpr lua_CFunction types[] =
 {
     Wrap_ImageData::Register,
+    Wrap_CompressedImageData::Register,
     nullptr
 };
 // clang-format on

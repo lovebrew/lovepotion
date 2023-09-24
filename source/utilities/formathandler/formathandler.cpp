@@ -1,8 +1,6 @@
-#include <utilities/formathandler/formathandler.hpp>
-
 #include <common/exception.hpp>
 
-#include <objects/compressedimagedata/compressedslice.hpp>
+#include <utilities/formathandler/formathandler.hpp>
 
 using namespace love;
 

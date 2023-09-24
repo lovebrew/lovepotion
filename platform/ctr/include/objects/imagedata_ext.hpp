@@ -16,7 +16,7 @@ namespace love
         ImageData(Data* data);
 
         ImageData(int width, int height, PixelFormat format = PIXELFORMAT_RGBA8_UNORM) :
-            ImageData<Console::ALL>(format, width, height)
+            ImageData<Console::ALL>(width, height, format)
         {
             if (!this->ValidPixelFormat(format))
             {
@@ -28,7 +28,7 @@ namespace love
         }
 
         ImageData(int width, int height, PixelFormat format, void* data, bool own) :
-            ImageData<Console::ALL>(format, width, height)
+            ImageData<Console::ALL>(width, height, format)
         {
             if (!this->ValidPixelFormat(format))
             {
@@ -43,7 +43,7 @@ namespace love
         }
 
         ImageData(const ImageData& other) :
-            ImageData<Console::ALL>(other.format, other.width, other.height)
+            ImageData<Console::ALL>(other.width, other.height, other.format)
         {
             this->Create(width, height, format, other.GetData());
         }

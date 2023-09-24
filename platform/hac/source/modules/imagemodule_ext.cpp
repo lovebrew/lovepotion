@@ -4,5 +4,6 @@ using namespace love;
 
 ImageModule::ImageModule()
 {
-    this->formatHandlers = { new JPGHandler(), new PNGHandler() };
+    this->formatHandlers = { new JPGHandler(), new PNGHandler(), new DDSHandler(), new PKMHandler(),
+                             new ASTCHandler() };
 }

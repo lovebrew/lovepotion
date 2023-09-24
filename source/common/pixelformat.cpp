@@ -109,7 +109,6 @@ namespace love
         { 4, 12, 10, 1, true, false, false, true, false, PIXELFORMAT_TYPE_UNORM }, // PIXELFORMAT_ASTC_12x10
         { 4, 12, 12, 1, true, false, false, true, false, PIXELFORMAT_TYPE_UNORM }, // PIXELFORMAT_ASTC_12x12
     };
-    // clang-format on
 
     static constexpr int FORMATS_LIST_SIZE = sizeof(formatInfo) / sizeof(PixelFormatInfo);
     static_assert(FORMATS_LIST_SIZE == PIXELFORMAT_MAX_ENUM,

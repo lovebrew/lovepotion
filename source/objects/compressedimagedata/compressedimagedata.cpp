@@ -1,3 +1,4 @@
+#include <common/exception.hpp>
 #include <objects/compressedimagedata/compressedimagedata.hpp>
 
 using namespace love;
@@ -22,12 +23,12 @@ CompressedImageData::CompressedImageData(const std::list<FormatHandler*>& format
     if (parser == nullptr)
         throw love::Exception("Could not parse compressed data: Unknown format.");
 
-    memory = parser->ParseCompressed(fileData, this->images, format, sRGB);
+    this->memory = parser->ParseCompressed(fileData, this->images, this->format, this->sRGB);
 
-    if (memory == nullptr)
+    if (this->memory == nullptr)
         throw love::Exception("Could not parse compressed data.");
 
-    if (format == PIXELFORMAT_UNKNOWN)
+    if (this->format == PIXELFORMAT_UNKNOWN)
         throw love::Exception("Could not parse compressed data: Unknown format.");
 
     if (this->images.size() == 0 || this->memory->GetSize() == 0)

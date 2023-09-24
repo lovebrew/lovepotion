@@ -6,6 +6,7 @@
 
 #include <modules/filesystem/wrap_filesystem.hpp>
 
+#include <objects/compressedimagedata/wrap_compressedimagedata.hpp>
 #include <objects/font/wrap_font.hpp>
 #include <objects/imagedata/wrap_imagedata.hpp>
 #include <objects/mesh/wrap_mesh.hpp>
@@ -656,7 +657,7 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
         image.Set(Wrap_ImageData::CheckImageData(L, index));
     else if (luax::IsType(L, index, CompressedImageData::type))
     {
-        /* todo */
+        compressed.Set(Wrap_CompressedImageData::CheckCompressedImageData(L, index));
     }
     else if (Wrap_Filesystem::CanGetData(L, index))
     {
@@ -672,15 +673,17 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
 
         if (allowCompressed && module->IsCompressed(data))
         {
+            LOG("Loading compressed image.");
             luax::CatchException(L, [&]() {
-                /* todo */
-                // compressed.Set(module->NewCompressedData(fileData), Acquire::NORETAIN);
+                compressed.Set(module->NewCompressedImageData(data), Acquire::NORETAIN);
             });
+            LOG("Compressed image loaded.");
         }
         else
         {
             luax::CatchException(
                 L, [&]() { image.Set(module->NewImageData(data), Acquire::NORETAIN); });
+            LOG("Imagedata loaded.");
         }
     }
     else

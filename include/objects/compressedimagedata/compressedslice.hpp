@@ -5,11 +5,11 @@
 #include <common/strongreference.hpp>
 
 #include <objects/data/bytedata/bytedata.hpp>
-#include <objects/imagedata_ext.hpp>
+#include <objects/imagedata/imagedatabase.hpp>
 
 namespace love
 {
-    class CompressedSlice : public ImageData<Console::Which>
+    class CompressedSlice : public ImageDataBase
     {
       public:
         CompressedSlice(PixelFormat format, int width, int height, ByteData* memory, size_t offset,
@@ -24,7 +24,7 @@ namespace love
 
         void* GetData() const override
         {
-            return (uint8_t*)this->memory->GetData() + offset;
+            return (uint8_t*)this->memory->GetData() + this->offset;
         }
 
         size_t GetSize() const override
@@ -32,7 +32,7 @@ namespace love
             return this->dataSize;
         }
 
-        bool IsSRGB() const
+        bool IsSRGB() const override
         {
             return this->sRGB;
         }

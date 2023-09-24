@@ -20,7 +20,8 @@ namespace love
 
         CompressedImageData(const CompressedImageData& data);
 
-        virtual ~CompressedImageData();
+        virtual ~CompressedImageData()
+        {}
 
         CompressedImageData* Clone() const override;
 

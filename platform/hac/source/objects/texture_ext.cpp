@@ -310,6 +310,27 @@ void Texture<Console::HAC>::ReplacePixels(ImageData<Console::HAC>* data, int sli
             rectangle.x, rectangle.y, rectangle.w, rectangle.h, mipWidth, mipHeight);
     }
 
+    if (love::IsPixelFormatCompressed(data->GetFormat()) &&
+        (rectangle.x != 0 || rectangle.y != 0 || rectangle.w != mipWidth ||
+         rectangle.h != mipHeight))
+    {
+        const auto& info = love::GetPixelFormatInfo(data->GetFormat());
+
+        int blockWidth  = info.blockWidth;
+        int blockHeight = info.blockHeight;
+
+        if (rectangle.x % blockWidth != 0 || rectangle.y % blockHeight != 0 ||
+            rectangle.w % blockWidth != 0 || rectangle.h % blockHeight != 0)
+        {
+            const char* name = love::GetPixelFormatName(data->GetFormat());
+
+            throw love::Exception(
+                "Compressed texture format %s only supports replacing a sub-rectangle with offset "
+                "and dimensions that are a multiple of %d x %d.",
+                name, blockWidth, blockHeight);
+        }
+    }
+
     this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rectangle, false);
 }
 

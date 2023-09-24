@@ -19,7 +19,7 @@
 
 namespace love
 {
-    using VectorMipmapLayers = std::vector<std::vector<StrongReference<ImageData<Console::Which>>>>;
+    using VectorMipmapLayers = std::vector<std::vector<StrongReference<ImageDataBase>>>;
 
     template<Console::Platform T = Console::ALL>
     class Texture : public Drawable
@@ -89,7 +89,7 @@ namespace love
                 this->data.clear();
             }
 
-            void Set(int slice, int mipmap, ImageData<Console::Which>* data)
+            void Set(int slice, int mipmap, ImageDataBase* data)
             {
                 if (this->textureType == TEXTURE_VOLUME)
                 {
@@ -113,7 +113,7 @@ namespace love
                 }
             }
 
-            ImageData<Console::Which>* Get(int slice, int mipmap) const
+            ImageDataBase* Get(int slice, int mipmap) const
             {
                 if (slice < 0 || slice >= this->GetSliceCount(mipmap))
                     return nullptr;
