@@ -26,7 +26,7 @@ namespace love
             PixelFormat& format, bool& sRGB) override;
 
         // clang-format off
-        static constexpr BidirectionalMap<BlockDim, PixelFormat, 14> blockDims = 
+        static constexpr BidirectionalMap blockDims = 
         {
             BlockDim {4,   4},   PIXELFORMAT_ASTC_4x4,
             BlockDim {5,   4},   PIXELFORMAT_ASTC_5x4,
