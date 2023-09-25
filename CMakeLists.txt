@@ -458,6 +458,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/formathandler/types/astchandler.cpp
     source/utilities/formathandler/types/ddshandler.cpp
     source/utilities/formathandler/types/jpghandler.cpp
+    source/utilities/formathandler/types/ktxhandler.cpp
     source/utilities/formathandler/types/pkmhandler.cpp
     source/utilities/formathandler/types/pnghandler.cpp
     source/utilities/guid.cpp

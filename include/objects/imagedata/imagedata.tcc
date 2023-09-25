@@ -20,6 +20,7 @@
 #else
     #include <utilities/formathandler/types/astchandler.hpp>
     #include <utilities/formathandler/types/ddshandler.hpp>
+    #include <utilities/formathandler/types/ktxhandler.hpp>
     #include <utilities/formathandler/types/pkmhandler.hpp>
 
     #include <utilities/formathandler/types/jpghandler.hpp>
