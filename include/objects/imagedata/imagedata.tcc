@@ -293,8 +293,16 @@ namespace love
             if (!this->Inside(x, y))
                 throw love::Exception("Attempt to set out-of-range pixel!");
 
-            size_t size = this->GetPixelSize();
-            auto* pixel = (Pixel*)(this->data.get() + (y * this->width + x) * size);
+            size_t size  = this->GetPixelSize();
+            Pixel* pixel = nullptr;
+
+            if (Console::Is(Console::CTR))
+            {
+                const auto _width = NextPo2(this->width);
+                pixel             = (Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
+            }
+            else
+                pixel = (Pixel*)(this->data.get() + (y * this->width + x) * size);
 
             if (this->pixelSetFunction == nullptr)
             {
@@ -312,8 +320,16 @@ namespace love
             if (!this->Inside(x, y))
                 throw love::Exception("Attempt to set out-of-range pixel!");
 
-            size_t size       = this->GetPixelSize();
-            const auto* pixel = (const Pixel*)(this->data.get() + (y * this->width + x) * size);
+            size_t size  = this->GetPixelSize();
+            Pixel* pixel = nullptr;
+
+            if (Console::Is(Console::CTR))
+            {
+                const auto _width = NextPo2(this->width);
+                pixel             = (Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
+            }
+            else
+                pixel = (Pixel*)(this->data.get() + (y * this->width + x) * size);
 
             if (this->pixelGetFunction == nullptr)
             {
@@ -475,7 +491,7 @@ namespace love
             this->pixelGetFunction = GetPixelGetFunction(format);
         }
 
-        virtual void Decode(Data* data);
+        void Decode(Data* data);
 
         std::unique_ptr<uint8_t[]> data;
         mutable love::mutex mutex;

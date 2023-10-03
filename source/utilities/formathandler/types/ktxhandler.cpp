@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include <bit>
+#include <cmath>
 
 using namespace love;
 using CompressedSlices = std::vector<StrongReference<CompressedSlice>>;
@@ -54,7 +55,7 @@ StrongReference<ByteData> KTXHandler::ParseCompressed(Data* data, CompressedSlic
             array[index] = std::byteswap(array[index]);
     }
 
-    header.numberOfMipmapLevels = std::max(header.numberOfMipmapLevels, 1U);
+    header.numberOfMipmapLevels = std::max(header.numberOfMipmapLevels, (uint32_t)1);
 
     bool isSRGB  = false;
     auto _format = convertFormat(header.glInternalFormat, isSRGB);
@@ -105,8 +106,8 @@ StrongReference<ByteData> KTXHandler::ParseCompressed(Data* data, CompressedSlic
         fileOffset += sizeof(uint32_t);
         uint32_t mipSizePadded = (mipSize + 3) & ~uint32_t(3);
 
-        int width  = (int)std::max(header.pixelWidth >> index, 1U);
-        int height = (int)std::max(header.pixelHeight >> index, 1U);
+        int width  = (int)std::max(header.pixelWidth >> index, (uint32_t)1);
+        int height = (int)std::max(header.pixelHeight >> index, (uint32_t)1);
 
         std::memcpy((uint8_t*)memory->GetData() + dataOffset, fileBytes + fileOffset, mipSize);
         auto slice = new CompressedSlice(_format, width, height, memory, dataOffset, mipSize);

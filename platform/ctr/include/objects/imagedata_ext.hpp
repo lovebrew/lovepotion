@@ -11,7 +11,7 @@ namespace love
     class ImageData<Console::CTR> : public ImageData<Console::ALL>
     {
       public:
-        using ImageData::ImageData;
+        using ImageData<Console::ALL>::ImageData;
 
         virtual ~ImageData()
         {}
@@ -29,10 +29,5 @@ namespace love
             throw love::Exception("This platform does not support encoding images.");
             return nullptr;
         }
-
-      private:
-        void Create(int width, int height, PixelFormat format, void* data = nullptr);
-
-        void Decode(Data* data);
     };
 } // namespace love

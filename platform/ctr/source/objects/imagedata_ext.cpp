@@ -8,14 +8,17 @@ void ImageData<Console::CTR>::Paste(ImageData* source, int x, int y, Rect& sourc
     PixelFormat destFormat = this->GetFormat();
     PixelFormat srcFormat  = source->GetFormat();
 
+    if (destFormat != srcFormat)
+        throw love::Exception("Pixel formats do not match.");
+
+    if (srcFormat != PIXELFORMAT_RGBA8_UNORM && destFormat != PIXELFORMAT_RGBA8_UNORM)
+        throw love::Exception("Both source and destination formats must be RGBA8.");
+
     const auto srcWidth  = source->GetWidth();
     const auto srcHeight = source->GetHeight();
 
     const auto destWidth  = this->GetWidth();
     const auto destHeight = this->GetHeight();
-
-    size_t srcPixelSize = source->GetPixelSize();
-    size_t dstPixelSize = this->GetPixelSize();
 
     this->AdjustPaste(source, x, y, destWidth, destHeight, sourceRect);
 

@@ -44,7 +44,8 @@ void ImageData<Console::ALL>::Decode(Data* data)
         }
     }
 
-    const auto sliceSize = love::GetPixelFormatSliceSize(image.format, image.width, image.height);
+    const auto sliceSize =
+        love::GetPixelFormatSliceSize(image.format, image.width, image.height, false);
 
     if (image.size != sliceSize)
         throw love::Exception("Could not convert image!");
