@@ -119,7 +119,7 @@ GlyphData* Rasterizer<Console::HAC>::GetGlyphData(uint32_t glyph) const
                 destination[4 * (y * bitmap.width + x) + 2] = value;
                 destination[4 * (y * bitmap.width + x) + 3] = value ? 255 : 0;
             }
-            pixels += bitmap.width;
+            pixels += bitmap.pitch;
         }
     }
     else if (bitmap.pixel_mode == FT_PIXEL_MODE_GRAY)

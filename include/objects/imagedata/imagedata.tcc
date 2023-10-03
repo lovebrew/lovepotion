@@ -188,22 +188,107 @@ namespace love
                    destY >= destHeight || destY + destHeight < 0;
         }
 
-        virtual void Paste(ImageData* source, int x, int y, Rect& sourceRect)
+        void AdjustPaste(const ImageData* source, int& x, int& y, const int width, const int height,
+                         Rect& sourceRect)
+        {
+            if (Outside(x, y, width, height, sourceRect))
+                return;
+
+            // Normalize values to the inside of both images.
+            if (x < 0)
+            {
+                sourceRect.w += x;
+                sourceRect.x -= x;
+                x = 0;
+            }
+
+            if (y < 0)
+            {
+                sourceRect.h += y;
+                sourceRect.y -= y;
+                y = 0;
+            }
+
+            if (sourceRect.x < 0)
+            {
+                sourceRect.w += sourceRect.x;
+                x -= sourceRect.x;
+                sourceRect.x = 0;
+            }
+
+            if (sourceRect.y < 0)
+            {
+                sourceRect.h += sourceRect.y;
+                y -= sourceRect.y;
+                sourceRect.y = 0;
+            }
+
+            sourceRect.w = std::min(sourceRect.w, width - x);
+            sourceRect.h = std::min(sourceRect.h, height - y);
+
+            sourceRect.w = std::min(sourceRect.w, source->GetWidth() - sourceRect.x);
+            sourceRect.h = std::min(sourceRect.h, source->GetHeight() - sourceRect.y);
+        }
+
+        void Paste(ImageData* source, int x, int y, Rect& sourceRect)
         {
             PixelFormat destFormat = this->GetFormat();
             PixelFormat srcFormat  = source->GetFormat();
 
-            int srcWidth  = source->GetWidth();
-            int srcHeight = source->GetHeight();
+            const auto srcWidth  = source->GetWidth();
+            const auto srcHeight = source->GetHeight();
 
-            int destWidth  = this->GetWidth();
-            int destHeight = this->GetHeight();
+            const auto destWidth  = this->GetWidth();
+            const auto destHeight = this->GetHeight();
 
-            if (Outside(x, y, destWidth, destHeight, sourceRect))
-                return;
+            size_t srcPixelSize = source->GetPixelSize();
+            size_t dstPixelSize = this->GetPixelSize();
+
+            this->AdjustPaste(source, x, y, destWidth, destHeight, sourceRect);
+
+            std::unique_lock lock(source->mutex);
+            std::unique_lock other(this->mutex);
+
+            uint8_t* srcData = (uint8_t*)source->GetData();
+            uint8_t* dstData = (uint8_t*)this->GetData();
+
+            auto getFunction = source->pixelGetFunction;
+            auto setFunction = this->pixelSetFunction;
+
+            if (srcFormat == destFormat && (sourceRect.w == destWidth && destWidth == srcWidth &&
+                                            sourceRect.h == destHeight && destHeight == srcHeight))
+            {
+                std::memcpy(dstData, srcData, source->GetSize());
+            }
+            else if (sourceRect.w > 0)
+            {
+                // Otherwise, copy each row individually.
+                for (int i = 0; i < sourceRect.h; i++)
+                {
+                    Row rowsrc = { srcData +
+                                   (sourceRect.x + (i + sourceRect.y) * srcWidth) * srcPixelSize };
+                    Row rowdst = { dstData + (x + (i + y) * destWidth) * dstPixelSize };
+
+                    if (srcFormat == destFormat)
+                        std::memcpy(rowdst.u8, rowsrc.u8, srcPixelSize * sourceRect.w);
+                    else
+                    {
+                        // Slow path: convert src -> Colorf -> dst.
+                        Color color {};
+                        for (int x = 0; x < sourceRect.w; x++)
+                        {
+                            auto srcPixel = (const Pixel*)(rowsrc.u8 + x * srcPixelSize);
+                            auto dstPixel = (Pixel*)(rowdst.u8 + x * dstPixelSize);
+
+                            getFunction(srcPixel, color);
+                            setFunction(color, dstPixel);
+                        }
+                    }
+                }
+            }
         }
 
-        virtual void SetPixel(int x, int y, const Color& color)
+        void SetPixel(int x, int y, const Color& color)
         {
             if (!this->Inside(x, y))
                 throw love::Exception("Attempt to set out-of-range pixel!");
@@ -352,13 +437,14 @@ namespace love
         // clang-format on
 
       protected:
-        virtual void Create(int width, int height, PixelFormat format, void* data = nullptr)
+        void Create(int width, int height, PixelFormat format, void* data = nullptr)
         {
             const auto size = GetPixelFormatSliceSize(format, width, height);
 
             try
             {
                 this->data = std::make_unique<uint8_t[]>(size);
+                std::memset(this->data.get(), 0, size);
             }
             catch (std::bad_alloc&)
             {
@@ -366,7 +452,21 @@ namespace love
             }
 
             if (data)
-                std::copy_n((uint8_t*)data, size, this->data.get());
+            {
+                if (Console::Is(Console::CTR))
+                {
+                    if (width % 8 != 0 && height % 8 != 0)
+                        throw love::Exception(
+                            "Cannot create ImageData that is not a multiple of 8.");
+
+                    if (format == PIXELFORMAT_RGB565_UNORM)
+                        this->CopyBytesTiled<uint16_t>(data, width, height);
+                    else
+                        this->CopyBytesTiled<uint32_t>(data, width, height);
+                }
+                else
+                    std::copy_n((uint8_t*)data, size, this->data.get());
+            }
 
             this->decoder = nullptr;
             this->format  = format;

@@ -417,10 +417,10 @@ const Font::Glyph& Font::AddGlyph(uint32_t glyph)
             /*        x                            y                             z                u      v      */
             Vertex {{ -offset,                     -offset,                      0.0f }, color, { left,  top    }},
             Vertex {{ -offset,                     (height + offset) / dpiScale, 0.0f }, color, { left,  bottom }},
-            Vertex {{ (width + offset) / dpiScale, -offset,                      0.0f }, color, { right, top    }},
-            Vertex {{ (width + offset) / dpiScale, -offset,                      0.0f }, color, { right, top    }},
             Vertex {{ (width + offset) / dpiScale, (height + offset) / dpiScale, 0.0f }, color, { right, bottom }},
-            Vertex {{ -offset,                     (height + offset) / dpiScale, 0.0f }, color, { left,  bottom }}
+            Vertex {{ (width + offset) / dpiScale, (height + offset) / dpiScale, 0.0f }, color, { right, bottom }},
+            Vertex {{ (width + offset) / dpiScale, -offset,                      0.0f }, color, { right, top    }},
+            Vertex {{ -offset,                     -offset,                      0.0f }, color, { left,  top    }}
         };
         // clang-format on
 

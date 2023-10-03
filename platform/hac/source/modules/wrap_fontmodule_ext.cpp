@@ -41,7 +41,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
     else
     {
         Data* data = nullptr;
-        std::optional<uint8_t> systemFont;
+        std::optional<PlSharedFontType> systemFont;
 
         if (luax::IsType(L, 1, Data::type))
         {

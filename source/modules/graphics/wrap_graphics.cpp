@@ -1740,6 +1740,21 @@ int Wrap_Graphics::IntersectScissor(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::GetScissor(lua_State* L)
+{
+    Rect rectangle {};
+
+    if (!instance()->GetScissor(rectangle))
+        return 0;
+
+    lua_pushinteger(L, rectangle.x);
+    lua_pushinteger(L, rectangle.y);
+    lua_pushinteger(L, rectangle.w);
+    lua_pushinteger(L, rectangle.h);
+
+    return 4;
+}
+
 int Wrap_Graphics::SetColorMask(lua_State* L)
 {
     RenderState::ColorMask mask;
@@ -2109,6 +2124,7 @@ static constexpr luaL_Reg functions[] =
     { "getMeshCullMode",       Wrap_Graphics::GetMeshCullMode       },
     { "getRendererInfo",       Wrap_Graphics::GetRendererInfo       },
     { "getScreens",            Wrap_Graphics::GetScreens            },
+    { "getScissor",            Wrap_Graphics::GetScissor            },
     { "getStats",              Wrap_Graphics::GetStats              },
     { "getWidth",              Wrap_Graphics::GetWidth              },
     { "getHeight",             Wrap_Graphics::GetHeight             },

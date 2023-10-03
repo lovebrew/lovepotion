@@ -998,6 +998,14 @@ namespace love
             Renderer<Console::Which>::Instance().SetScissor(Rect::EMPTY, false);
         }
 
+        bool GetScissor(Rect& rectangle) const
+        {
+            const auto& state = this->states.back().scissor;
+            rectangle         = state.bounds;
+
+            return state.active;
+        }
+
         void SetMeshCullMode(vertex::CullMode mode)
         {
             this->states.back().cullMode = mode;
