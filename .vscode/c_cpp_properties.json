@@ -5,7 +5,7 @@
             "${workspaceFolder}/libraries/**"
         ],
         "defaultCStandard": "c11",
-        "defaultCppStandard": "c++20",
+        "defaultCppStandard": "c++23",
         "defaultDefines": [
             "__APP_VERSION__=\"3.0.0\"",
             "__LOVE_VERSION__=\"12.0\"",
@@ -63,7 +63,7 @@
             ],
             "compilerPath": "${env:ctrCompilerPath}",
             "cStandard": "c11",
-            "cppStandard": "c++20",
+            "cppStandard": "${env:defaultCppStandard}",
             "intelliSenseMode": "linux-gcc-arm"
         },
         {
@@ -79,7 +79,7 @@
             ],
             "compilerPath": "${env:ctrCompilerPath}",
             "cStandard": "c11",
-            "cppStandard": "c++20",
+            "cppStandard": "${env:defaultCppStandard}",
             "intelliSenseMode": "linux-gcc-arm"
         },
         {
@@ -95,7 +95,7 @@
             ],
             "compilerPath": "${env:hacCompilerPath}",
             "cStandard": "c11",
-            "cppStandard": "c++20",
+            "cppStandard": "${env:defaultCppStandard}",
             "intelliSenseMode": "linux-gcc-arm64"
         },
         {
@@ -111,7 +111,7 @@
             ],
             "compilerPath": "${env:hacCompilerPath}",
             "cStandard": "c11",
-            "cppStandard": "c++20",
+            "cppStandard": "${env:defaultCppStandard}",
             "intelliSenseMode": "linux-gcc-arm64"
         },
         {
@@ -127,7 +127,7 @@
             ],
             "compilerPath": "${env:cafeCompilerPath}",
             "cStandard": "c11",
-            "cppStandard": "c++20",
+            "cppStandard": "${env:defaultCppStandard}",
             "intelliSenseMode": "linux-gcc-arm"
         },
         {
@@ -143,7 +143,7 @@
             ],
             "compilerPath": "${env:cafeCompilerPath}",
             "cStandard": "c11",
-            "cppStandard": "c++20",
+            "cppStandard": "${env:defaultCppStandard}",
             "intelliSenseMode": "linux-gcc-arm"
         }
     ],

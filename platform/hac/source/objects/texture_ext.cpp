@@ -42,7 +42,7 @@ static void dkImageRectFromRect(const Rect& rectangle, DkImageRect& out)
 }
 
 static void createTextureObject(dk::Image& image, CMemPool::Handle& memory,
-                                dk::ImageDescriptor& descriptor, const void* data,
+                                dk::ImageDescriptor& descriptor, const void* data, size_t realSize,
                                 PixelFormat format, Rect rectangle)
 {
     if (data == nullptr)
@@ -52,7 +52,10 @@ static void createTextureObject(dk::Image& image, CMemPool::Handle& memory,
     if (!(imageFormat = Renderer<Console::HAC>::pixelFormats.Find(format)))
         throw love::Exception("Invalid image format.");
 
-    const auto size = love::GetPixelFormatSliceSize(format, rectangle.w, rectangle.h);
+    auto size = love::GetPixelFormatSliceSize(format, rectangle.w, rectangle.h);
+
+    if (realSize != 0)
+        size = realSize;
 
     if (size <= 0)
         throw love::Exception("Invalid PixelFormat slice size.");
@@ -231,12 +234,13 @@ void Texture<Console::HAC>::CreateTexture()
         {
             std::vector<uint8_t> empty(_width * _height, 0);
             createTextureObject(this->image, this->memory, this->descriptor, empty.data(),
-                                this->format, rectangle);
+                                empty.size(), this->format, rectangle);
         }
         else
         {
             createTextureObject(this->image, this->memory, this->descriptor,
-                                this->slices.Get(0, 0)->GetData(), this->format, rectangle);
+                                this->slices.Get(0, 0)->GetData(),
+                                this->slices.Get(0, 0)->GetSize(), this->format, rectangle);
         }
     }
 
@@ -262,8 +266,8 @@ void Texture<Console::HAC>::UnloadVolatile()
     this->memory.destroy();
 }
 
-void Texture<Console::HAC>::ReplacePixels(ImageData<Console::HAC>* data, int slice, int mipmap,
-                                          int x, int y, bool reloadMipmaps)
+void Texture<Console::HAC>::ReplacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
+                                          bool reloadMipmaps)
 {
     if (!this->IsReadable())
         throw love::Exception("replacePixels can only be called on readable Textures.");
@@ -308,6 +312,27 @@ void Texture<Console::HAC>::ReplacePixels(ImageData<Console::HAC>* data, int sli
         throw love::Exception(
             "Invalid rectangle dimensions (x = %d, y = %d, w = %d, h = %d) for %dx%d Texture.",
             rectangle.x, rectangle.y, rectangle.w, rectangle.h, mipWidth, mipHeight);
+    }
+
+    if (love::IsPixelFormatCompressed(data->GetFormat()) &&
+        (rectangle.x != 0 || rectangle.y != 0 || rectangle.w != mipWidth ||
+         rectangle.h != mipHeight))
+    {
+        const auto& info = love::GetPixelFormatInfo(data->GetFormat());
+
+        int blockWidth  = info.blockWidth;
+        int blockHeight = info.blockHeight;
+
+        if (rectangle.x % blockWidth != 0 || rectangle.y % blockHeight != 0 ||
+            rectangle.w % blockWidth != 0 || rectangle.h % blockHeight != 0)
+        {
+            const char* name = love::GetPixelFormatName(data->GetFormat());
+
+            throw love::Exception(
+                "Compressed texture format %s only supports replacing a sub-rectangle with offset "
+                "and dimensions that are a multiple of %d x %d.",
+                name, blockWidth, blockHeight);
+        }
     }
 
     this->ReplacePixels(data->GetData(), data->GetSize(), slice, mipmap, rectangle, false);

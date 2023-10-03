@@ -119,9 +119,9 @@ int Wrap_ImageData::SetPixel(lua_State* L)
 
         if (components > 1)
             color.g = luaL_checknumber(L, 5);
-        else if (components > 2)
+        if (components > 2)
             color.b = luaL_checknumber(L, 6);
-        else if (components > 3)
+        if (components > 3)
             color.a = luaL_optnumber(L, 7, 1.0f);
     }
 
@@ -169,7 +169,7 @@ int Wrap_ImageData::Encode(lua_State* L)
     }
 
     FileData* data = nullptr;
-    luax::CatchException(L, [&]() { data = self->Encode(*format, filename, hasFilename); });
+    luax::CatchException(L, [&]() { data = self->Encode(*format, filename.c_str(), hasFilename); });
 
     luax::PushType(L, data);
     data->Release();

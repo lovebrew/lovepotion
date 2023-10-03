@@ -56,6 +56,27 @@ int Wrap_Source::SetVolume(lua_State* L)
     return 0;
 }
 
+int Wrap_Source::SetPitch(lua_State* L)
+{
+    auto* self  = Wrap_Source::CheckSource(L, 1);
+    float pitch = luaL_checknumber(L, 2);
+
+    if (pitch != pitch)
+        return luaL_error(L, "Pitch cannot be NaN.");
+
+    if (pitch > std::numeric_limits<lua_Number>::max() || pitch <= 0.0f)
+        return luaL_error(L, "Pitch has to be non-zero, positive, finite number.");
+
+    // self->SetPitch(pitch);
+
+    return 0;
+}
+
+int Wrap_Source::GetPitch(lua_State* L)
+{
+    return 0;
+}
+
 int Wrap_Source::GetVolume(lua_State* L)
 {
     auto* self = Wrap_Source::CheckSource(L, 1);

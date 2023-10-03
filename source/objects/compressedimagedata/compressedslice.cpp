@@ -6,17 +6,19 @@ using namespace love;
 
 CompressedSlice::CompressedSlice(PixelFormat format, int width, int height, ByteData* memory,
                                  size_t offset, size_t size) :
-    ImageData<Console::Which>(width, height, format),
+    ImageDataBase(format, width, height),
     memory(memory),
     offset(offset),
-    dataSize(size)
+    dataSize(size),
+    sRGB(false)
 {}
 
 CompressedSlice::CompressedSlice(const CompressedSlice& slice) :
-    ImageData<Console::Which>(slice.width, slice.height, slice.format),
+    ImageDataBase(slice.format, slice.width, slice.height),
     memory(slice.memory),
     offset(slice.offset),
-    dataSize(slice.dataSize)
+    dataSize(slice.dataSize),
+    sRGB(slice.sRGB)
 {}
 
 CompressedSlice* CompressedSlice::Clone() const

@@ -25,6 +25,11 @@ ImageData<Console::Which>* ImageModule::NewImageData(int width, int height, Pixe
     return new ImageData<Console::Which>(width, height, format, data, own);
 }
 
+CompressedImageData* ImageModule::NewCompressedImageData(Data* data) const
+{
+    return new CompressedImageData(this->formatHandlers, data);
+}
+
 const std::list<love::FormatHandler*>& ImageModule::GetFormatHandlers() const
 {
     return this->formatHandlers;

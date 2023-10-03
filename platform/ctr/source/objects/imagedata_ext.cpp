@@ -3,266 +3,54 @@
 
 using namespace love;
 
-static void setPixelRGBA8(const Color& color, ImageData<Console::CTR>::Pixel* pixel)
+void ImageData<Console::CTR>::Paste(ImageData* source, int x, int y, Rect& sourceRect)
 {
-    pixel->packed32 = color.abgr();
-}
+    PixelFormat destFormat = this->GetFormat();
+    PixelFormat srcFormat  = source->GetFormat();
 
-static void getPixelRGBA8(const ImageData<Console::CTR>::Pixel* pixel, Color& color)
-{
-    color = Color(pixel->packed32);
-}
+    if (destFormat != srcFormat)
+        throw love::Exception("Pixel formats do not match.");
 
-ImageData<Console::CTR>::ImageData(Data* data) : ImageData<>(PIXELFORMAT_UNKNOWN, 0, 0)
-{
-    this->Decode(data);
-}
+    if (srcFormat != PIXELFORMAT_RGBA8_UNORM && destFormat != PIXELFORMAT_RGBA8_UNORM)
+        throw love::Exception("Both source and destination formats must be RGBA8.");
 
-ImageData<Console::CTR>::~ImageData()
-{}
+    const auto srcWidth  = source->GetWidth();
+    const auto srcHeight = source->GetHeight();
 
-void ImageData<Console::CTR>::Decode(Data* data)
-{
-    FormatHandler* formatDecoder = nullptr;
-    FormatHandler::DecodedImage image {};
+    const auto destWidth  = this->GetWidth();
+    const auto destHeight = this->GetHeight();
 
-    auto* module = Module::GetInstance<ImageModule>(Module::M_IMAGE);
+    this->AdjustPaste(source, x, y, destWidth, destHeight, sourceRect);
 
-    if (!module)
-        throw love::Exception("love.image must be loaded in order to decode ImageData.");
+    std::unique_lock lock(source->mutex);
+    std::unique_lock other(this->mutex);
 
-    for (auto* handler : module->GetFormatHandlers())
+    uint8_t* srcData = (uint8_t*)source->GetData();
+    uint8_t* dstData = (uint8_t*)this->GetData();
+
+    auto getFunction = source->pixelGetFunction;
+    auto setFunction = this->pixelSetFunction;
+
+    const auto _srcWidth = NextPo2(srcWidth);
+    const auto _dstWidth = NextPo2(destWidth);
+
+    for (int _y = 0; _y < std::min(sourceRect.h, destHeight - y); _y++)
     {
-        if (handler->CanDecode(data))
-        {
-            formatDecoder = handler;
-            break;
-        }
-    }
-
-    if (formatDecoder)
-        image = formatDecoder->Decode(data);
-
-    if (image.data == nullptr)
-    {
-        auto* fileData = (FileData*)data;
-
-        if (fileData)
-        {
-            const auto* name = fileData->GetFilename().c_str();
-            throw love::Exception(
-                "Could not decode file '%s' to ImageData: unsupported file format.", name);
-        }
-        else
-            throw love::Exception(
-                "Could not decode data to ImageData: unsupported encoded format.");
-    }
-
-    const auto expected =
-        love::GetPixelFormatSliceSize(image.format, image.width, image.height, false);
-
-    if (image.size != expected)
-        throw love::Exception("Could not decode image!");
-
-    // clean up old data
-    this->data.reset();
-
-    this->width  = image.width;
-    this->height = image.height;
-    this->data   = std::move(image.data);
-    this->format = image.format;
-
-    this->decoder = decoder;
-
-    this->pixelGetFunction = getPixelRGBA8;
-    this->pixelSetFunction = setPixelRGBA8;
-}
-
-FileData* ImageData<Console::CTR>::Encode(FormatHandler::EncodedFormat encodedFormat,
-                                          std::string_view filename, bool writeFile) const
-{
-    throw love::Exception("No suitable image encoder for the %s pixel format.",
-                          love::GetPixelFormatName(this->format));
-
-    return nullptr;
-}
-
-/*
-** ImageData::Create will internally make NextPo2 sized pixel data for citro3d textures
-** ImageData's c'tors that take with/height will assign non-Po2 sizes to those variables
-**   - This ensures that we can't possibly mess up this information in the future
-*/
-void ImageData<Console::CTR>::Create(int width, int height, PixelFormat format, void* data)
-{
-    const auto size = GetPixelFormatSliceSize(format, width, height);
-
-    try
-    {
-        this->data = std::make_unique<uint8_t[]>(size);
-        std::memset(this->data.get(), 0, size);
-    }
-    catch (std::bad_alloc&)
-    {
-        throw love::Exception("Out of memory.");
-    }
-
-    if (data != nullptr)
-    {
-        if (width % 8 != 0 && height % 8 != 0)
-            throw love::Exception("Cannot create ImageData that is not a multiple of 8.");
-
-        if (format == PIXELFORMAT_RGB565_UNORM)
-            this->CopyBytesTiled<uint16_t>(data, width, height);
-        else
-            this->CopyBytesTiled<uint32_t>(data, width, height);
-    }
-
-    this->pixelSetFunction = setPixelRGBA8;
-    this->pixelGetFunction = getPixelRGBA8;
-
-    this->decoder = nullptr;
-}
-
-void ImageData<Console::CTR>::Paste(ImageData* sourceData, int x, int y, Rect& paste)
-{
-    PixelFormat sourceFormat = sourceData->GetFormat();
-    PixelFormat destFormat   = this->GetFormat();
-
-    bool sourceRGBA8 = (sourceFormat == PIXELFORMAT_RGBA8_UNORM);
-    bool destRGBA8   = (destFormat == PIXELFORMAT_RGBA8_UNORM);
-
-    if (sourceFormat != destFormat || (!sourceRGBA8 && !destRGBA8))
-        return;
-
-    int sourceWidth  = sourceData->GetWidth();
-    int sourceHeight = sourceData->GetHeight();
-
-    int destinationWidth  = this->GetWidth();
-    int destinationHeight = this->GetHeight();
-
-    size_t sourcePixelSize      = sourceData->GetPixelSize();
-    size_t destinationPixelSize = this->GetPixelSize();
-
-    bool outsideSourceBounds = paste.x >= sourceWidth || paste.x + paste.w < 0 ||
-                               paste.y >= sourceHeight || paste.y + paste.h < 0;
-
-    bool outsideDestinationBounds =
-        x >= destinationWidth || x + paste.w < 0 || y >= destinationHeight || y + paste.h < 0;
-
-    if (outsideSourceBounds || outsideDestinationBounds)
-        return;
-
-    if (x < 0)
-    {
-        paste.w += x;
-        paste.x -= x;
-        x = 0;
-    }
-
-    if (y < 0)
-    {
-        paste.h += y;
-        paste.y -= y;
-        y = 0;
-    }
-
-    if (paste.x < 0)
-    {
-        paste.w += paste.x;
-        x -= paste.x;
-        paste.x = 0;
-    }
-
-    if (paste.y < 0)
-    {
-        paste.h += paste.y;
-        y -= paste.y;
-        paste.y = 0;
-    }
-
-    if (x + paste.w > destinationWidth)
-        paste.w = destinationWidth - x;
-
-    if (y + paste.h > destinationHeight)
-        paste.h = destinationHeight - y;
-
-    if (paste.x + paste.w > sourceWidth)
-        paste.w = sourceWidth - paste.x;
-
-    if (paste.y + paste.h > sourceHeight)
-        paste.h = sourceHeight - paste.y;
-
-    std::unique_lock lockTwo(sourceData->mutex);
-    std::unique_lock lockOne(this->mutex);
-
-    uint32_t* source      = (uint32_t*)sourceData->GetData();
-    uint32_t* destination = (uint32_t*)this->GetData();
-
-    const auto getFunction = sourceData->pixelGetFunction;
-    const auto setFunction = this->pixelSetFunction;
-
-    unsigned _sourceWidth      = NextPo2(sourceData->width);
-    unsigned _destinationWidth = NextPo2(this->width);
-
-    for (int _y = 0; _y < std::min(paste.h, destinationHeight - y); _y++)
-    {
-        for (int _x = 0; _x < std::min(paste.w, destinationWidth - x); _x++)
+        for (int _x = 0; _x < std::min(sourceRect.w, destWidth - x); _x++)
         {
             Color color {};
 
             // clang-format off
-            Vector2 sourcePosition { (paste.x + _x), (paste.y + _y) };
-            const auto* sourcePixel = Color::FromTile(source, _sourceWidth, sourcePosition);
+            Vector2 srcPosition { (sourceRect.x + _x), (sourceRect.y + _y) };
+            const auto* sourcePixel = Color::FromTile(srcData, _srcWidth, srcPosition);
 
             getFunction((const Pixel*)sourcePixel, color);
 
-            Vector2 destinationPosition { (x + _x), (y + _y) };
-            auto* destinationPixel = Color::FromTile(destination, _destinationWidth, destinationPosition);
+            Vector2 dstPosition { (x + _x), (y + _y) };
+            auto* destinationPixel = Color::FromTile(dstData, _dstWidth, dstPosition);
 
             setFunction(color, (Pixel*)destinationPixel);
             // clang-format on
         }
     }
-}
-
-Color ImageData<Console::CTR>::GetPixel(int x, int y)
-{
-    Color color {};
-    this->GetPixel(x, y, color);
-
-    return color;
-}
-
-void ImageData<Console::CTR>::GetPixel(int x, int y, Color& color)
-{
-    if (!this->Inside(x, y))
-        throw love::Exception("Attempt to get out-of-range pixel!");
-
-    size_t pixelSize = this->GetPixelSize();
-
-    const auto _width  = NextPo2(this->width);
-    const Pixel* pixel = (const Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
-
-    if (this->pixelGetFunction == nullptr)
-        throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", format);
-
-    std::unique_lock lock(this->mutex);
-    this->pixelGetFunction(pixel, color);
-}
-
-void ImageData<Console::CTR>::SetPixel(int x, int y, const Color& color)
-{
-    if (!this->Inside(x, y))
-        throw love::Exception("Attempt to set out-of-range pixel!");
-
-    size_t pixelSize = this->GetPixelSize();
-
-    const auto _width = NextPo2(this->width);
-    Pixel* pixel      = (Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
-
-    if (this->pixelSetFunction == nullptr)
-        throw love::Exception("Unhandled pixel format %d in ImageData::setPixel", this->format);
-
-    std::unique_lock lock(this->mutex);
-    this->pixelSetFunction(color, pixel);
 }

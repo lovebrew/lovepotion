@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 # Declare project containing a single eponymous executable
 project(lovepotion LANGUAGES C CXX ASM)
 add_executable(${PROJECT_NAME})
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 # Generate symbol list and map information (useful for debugging)
@@ -396,6 +396,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/channel/wrap_channel.cpp
     source/objects/compressedimagedata/compressedimagedata.cpp
     source/objects/compressedimagedata/compressedslice.cpp
+    source/objects/compressedimagedata/wrap_compressedimagedata.cpp
     source/objects/data/bytedata/bytedata.cpp
     source/objects/data/bytedata/wrap_bytedata.cpp
     source/objects/data/compresseddata/compresseddata.cpp
@@ -415,6 +416,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/font/wrap_font.cpp
     source/objects/glyphdata/glyphdata.cpp
     source/objects/glyphdata/wrap_glyphdata.cpp
+    source/objects/imagedata/imagedata.cpp
+    source/objects/imagedata/imagedatabase.cpp
     source/objects/imagedata/wrap_imagedata.cpp
     source/objects/joystick/wrap_joystick.cpp
     source/objects/mesh/mesh.cpp
@@ -452,7 +455,11 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/renderer/renderstate.cpp
     source/utilities/driver/renderer/samplerstate.cpp
     source/utilities/formathandler/formathandler.cpp
+    source/utilities/formathandler/types/astchandler.cpp
+    source/utilities/formathandler/types/ddshandler.cpp
     source/utilities/formathandler/types/jpghandler.cpp
+    source/utilities/formathandler/types/ktxhandler.cpp
+    source/utilities/formathandler/types/pkmhandler.cpp
     source/utilities/formathandler/types/pnghandler.cpp
     source/utilities/guid.cpp
     source/utilities/hashfunction/hashfunction.cpp

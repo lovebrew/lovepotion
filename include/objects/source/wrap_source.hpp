@@ -19,6 +19,10 @@ namespace Wrap_Source
 
     int GetVolume(lua_State* L);
 
+    int SetPitch(lua_State* L);
+
+    int GetPitch(lua_State* L);
+
     int Seek(lua_State* L);
 
     int Tell(lua_State* L);

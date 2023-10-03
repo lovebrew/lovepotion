@@ -6,6 +6,7 @@
 
 #include <modules/filesystem/wrap_filesystem.hpp>
 
+#include <objects/compressedimagedata/wrap_compressedimagedata.hpp>
 #include <objects/font/wrap_font.hpp>
 #include <objects/imagedata/wrap_imagedata.hpp>
 #include <objects/mesh/wrap_mesh.hpp>
@@ -656,7 +657,7 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
         image.Set(Wrap_ImageData::CheckImageData(L, index));
     else if (luax::IsType(L, index, CompressedImageData::type))
     {
-        /* todo */
+        compressed.Set(Wrap_CompressedImageData::CheckCompressedImageData(L, index));
     }
     else if (Wrap_Filesystem::CanGetData(L, index))
     {
@@ -672,15 +673,17 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
 
         if (allowCompressed && module->IsCompressed(data))
         {
+            LOG("Loading compressed image.");
             luax::CatchException(L, [&]() {
-                /* todo */
-                // compressed.Set(module->NewCompressedData(fileData), Acquire::NORETAIN);
+                compressed.Set(module->NewCompressedImageData(data), Acquire::NORETAIN);
             });
+            LOG("Compressed image loaded.");
         }
         else
         {
             luax::CatchException(
                 L, [&]() { image.Set(module->NewImageData(data), Acquire::NORETAIN); });
+            LOG("Imagedata loaded.");
         }
     }
     else
@@ -1737,6 +1740,21 @@ int Wrap_Graphics::IntersectScissor(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::GetScissor(lua_State* L)
+{
+    Rect rectangle {};
+
+    if (!instance()->GetScissor(rectangle))
+        return 0;
+
+    lua_pushinteger(L, rectangle.x);
+    lua_pushinteger(L, rectangle.y);
+    lua_pushinteger(L, rectangle.w);
+    lua_pushinteger(L, rectangle.h);
+
+    return 4;
+}
+
 int Wrap_Graphics::SetColorMask(lua_State* L)
 {
     RenderState::ColorMask mask;
@@ -2106,6 +2124,7 @@ static constexpr luaL_Reg functions[] =
     { "getMeshCullMode",       Wrap_Graphics::GetMeshCullMode       },
     { "getRendererInfo",       Wrap_Graphics::GetRendererInfo       },
     { "getScreens",            Wrap_Graphics::GetScreens            },
+    { "getScissor",            Wrap_Graphics::GetScissor            },
     { "getStats",              Wrap_Graphics::GetStats              },
     { "getWidth",              Wrap_Graphics::GetWidth              },
     { "getHeight",             Wrap_Graphics::GetHeight             },
