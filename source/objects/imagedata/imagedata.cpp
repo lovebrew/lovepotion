@@ -1,5 +1,6 @@
 #include <objects/imagedata/imagedata.tcc>
 
+#include <modules/filesystem/physfs/filesystem.hpp>
 #include <modules/image/imagemodule.hpp>
 
 using namespace love;
@@ -59,4 +60,84 @@ void ImageData<Console::ALL>::Decode(Data* data)
 
     this->pixelSetFunction = GetPixelSetFunction(this->format);
     this->pixelGetFunction = GetPixelGetFunction(this->format);
+}
+
+template<>
+FileData* ImageData<Console::ALL>::Encode(FormatHandler::EncodedFormat encodedFormat,
+                                          const char* filename, bool writeFile) const
+{
+    FormatHandler* encoder = nullptr;
+    FormatHandler::EncodedImage image {};
+    FormatHandler::DecodedImage rawImage {};
+
+    rawImage.width  = width;
+    rawImage.height = height;
+    rawImage.size   = this->GetSize();
+
+    rawImage.data = std::make_unique<uint8_t[]>(rawImage.size);
+    std::memcpy(rawImage.data.get(), this->data.get(), rawImage.size);
+
+    rawImage.format = this->format;
+
+    auto module = Module::GetInstance<ImageModule>(Module::M_IMAGE);
+    if (module == nullptr)
+        throw love::Exception("love.image must be loaded in order to encode an ImageData.");
+
+    for (auto* handler : module->GetFormatHandlers())
+    {
+        if (handler->CanEncode(this->format, encodedFormat))
+        {
+            encoder = handler;
+            break;
+        }
+    }
+
+    if (encoder)
+    {
+        std::unique_lock lock(this->mutex);
+        image = encoder->Encode(rawImage, encodedFormat);
+    }
+
+    if (encoder == nullptr || image.data == nullptr)
+    {
+        const char* formatName = love::GetPixelFormatName(this->format);
+        throw love::Exception("No suitable image encoder for the %s format.", formatName);
+    }
+
+    FileData* fileData = nullptr;
+
+    try
+    {
+        fileData = new FileData(image.size, filename);
+    }
+    catch (love::Exception&)
+    {
+        throw;
+    }
+
+    std::memcpy(fileData->GetData(), image.data.get(), image.size);
+
+    if (writeFile)
+    {
+        auto filesystem = Module::GetInstance<Filesystem>(Module::M_FILESYSTEM);
+
+        if (filesystem == nullptr)
+        {
+            fileData->Release();
+            throw love::Exception(
+                "love.filesystem must be loaded in order to encode an ImageData.");
+        }
+
+        try
+        {
+            filesystem->Write(filename, fileData->GetData(), fileData->GetSize());
+        }
+        catch (love::Exception&)
+        {
+            fileData->Release();
+            throw;
+        }
+    }
+
+    return fileData;
 }

@@ -33,8 +33,8 @@ namespace love
 
         struct EncodedImage
         {
-            size_t size   = 0;
-            uint8_t* data = nullptr;
+            size_t size                     = 0;
+            std::unique_ptr<uint8_t[]> data = nullptr;
         };
 
         virtual ~FormatHandler()

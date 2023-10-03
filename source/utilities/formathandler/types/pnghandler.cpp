@@ -91,10 +91,10 @@ PNGHandler::EncodedImage PNGHandler::Encode(const DecodedImage& decoded, Encoded
     if (!success)
         throw love::Exception("Failed to get memory size for PNG.");
 
-    encoded.data = new uint8_t[encoded.size];
+    encoded.data = std::make_unique<uint8_t[]>(encoded.size);
 
-    success = png_image_write_to_memory(&image, encoded.data, &encoded.size, 1, decoded.data.get(),
-                                        PNG_IMAGE_ROW_STRIDE(image), NULL);
+    success = png_image_write_to_memory(&image, encoded.data.get(), &encoded.size, 1,
+                                        decoded.data.get(), PNG_IMAGE_ROW_STRIDE(image), NULL);
 
     if (!success)
         throw love::Exception("An error occurred on png_image_write_to_memory!");

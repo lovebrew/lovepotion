@@ -351,10 +351,7 @@ namespace love
         }
 
         FileData* Encode(FormatHandler::EncodedFormat format, const char* filename,
-                         bool writeFile) const
-        {
-            return nullptr;
-        }
+                         bool writeFile) const;
 
         bool IsSRGB() const override
         {
