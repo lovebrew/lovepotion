@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/luax.hpp>
-#include <objects/rasterizer_ext.hpp>
+#include <objects/rasterizer/rasterizer.hpp>
 
 namespace Wrap_Rasterizer
 {
@@ -21,7 +21,7 @@ namespace Wrap_Rasterizer
 
     int HasGlyphs(lua_State* L);
 
-    love::Rasterizer<love::Console::Which>* CheckRasterizer(lua_State* L, int index);
+    love::Rasterizer* CheckRasterizer(lua_State* L, int index);
 
     int Register(lua_State* L);
 } // namespace Wrap_Rasterizer

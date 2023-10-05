@@ -3,7 +3,7 @@
 #include <common/console.hpp>
 #include <common/drawable.hpp>
 #include <common/exception.hpp>
-#include <common/range.h>
+#include <common/range.hpp>
 #include <common/strongreference.hpp>
 
 #include <objects/font/font.hpp>
