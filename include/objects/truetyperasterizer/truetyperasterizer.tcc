@@ -39,8 +39,7 @@ namespace love
         TrueTypeRasterizer(FT_Library library, Data* data, int size, float dpiSacale,
                            Hinting hinting);
 
-        virtual ~TrueTypeRasterizer()
-        {}
+        virtual ~TrueTypeRasterizer();
 
         int GetLineHeight() const override;
 

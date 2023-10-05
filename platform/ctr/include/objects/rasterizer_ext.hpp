@@ -1,6 +1,6 @@
 #pragma once
 
-#include <objects/rasterizer/rasterizer.tcc>
+#include <objects/rasterizer/rasterizer.hpp>
 
 #include <common/strongreference.hpp>
 
