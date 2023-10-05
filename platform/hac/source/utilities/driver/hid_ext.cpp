@@ -89,19 +89,8 @@ void HID<Console::HAC>::CheckFocus()
     }
 }
 
-bool HID<Console::HAC>::Poll(LOVE_Event* event)
+void HID<Console::HAC>::_Poll()
 {
-    if (!this->events.empty())
-    {
-        *event = this->events.front();
-        this->events.pop_front();
-
-        return true;
-    }
-
-    if (this->hysteresis)
-        return this->hysteresis = false;
-
     this->CheckFocus();
 
     hidGetTouchScreenStates(&this->touchState, 1);
@@ -111,37 +100,31 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
     {
         for (int id = 0; id < touchCount; id++)
         {
-            auto& newEvent = this->events.emplace_back();
-            newEvent.type  = TYPE_TOUCH;
+            auto touchType = SUBTYPE_TOUCHPRESS;
 
             if (touchCount > this->previousTouchCount && id >= this->previousTouchCount)
             {
                 this->stateTouches[id]    = this->touchState.touches[id];
                 this->oldStateTouches[id] = this->stateTouches[id];
 
-                newEvent.subType = SUBTYPE_TOUCHPRESS;
+                touchType = SUBTYPE_TOUCHPRESS;
             }
             else
             {
                 this->oldStateTouches[id] = this->stateTouches[id];
                 this->stateTouches[id]    = this->touchState.touches[id];
 
-                newEvent.subType = SUBTYPE_TOUCHMOVED;
+                touchType = SUBTYPE_TOUCHMOVED;
             }
 
-            newEvent.touchFinger.id = id;
-            newEvent.touchFinger.x  = this->stateTouches[id].x;
-            newEvent.touchFinger.y  = this->stateTouches[id].y;
+            float x = this->stateTouches[id].x, y = this->stateTouches[id].y;
 
             int32_t dx = this->stateTouches[id].x - this->oldStateTouches[id].x;
             int32_t dy = (int32_t)this->stateTouches[id].y - this->oldStateTouches[id].y;
 
-            newEvent.touchFinger.dx       = dx;
-            newEvent.touchFinger.dy       = dy;
-            newEvent.touchFinger.pressure = 1.0f;
+            this->SendTouchEvent(touchType, id, x, y, dx, dy, 1.0f);
 
-            if (newEvent.subType == SUBTYPE_TOUCHMOVED && !newEvent.touchFinger.dx &&
-                !newEvent.touchFinger.dy)
+            if (touchType == SUBTYPE_TOUCHMOVED && !dx && !dy)
             {
                 this->events.pop_back();
                 continue;
@@ -153,131 +136,79 @@ bool HID<Console::HAC>::Poll(LOVE_Event* event)
     {
         for (int id = 0; id < this->previousTouchCount; ++id)
         {
-            auto& newEvent = this->events.emplace_back();
-
-            newEvent.type    = TYPE_TOUCH;
-            newEvent.subType = SUBTYPE_TOUCHRELEASE;
-
-            newEvent.touchFinger.id       = id;
-            newEvent.touchFinger.x        = this->stateTouches[id].x;
-            newEvent.touchFinger.y        = this->stateTouches[id].y;
-            newEvent.touchFinger.dx       = 0.0f;
-            newEvent.touchFinger.dy       = 0.0f;
-            newEvent.touchFinger.pressure = 0.0f;
+            float x = this->stateTouches[id].x, y = this->stateTouches[id].y;
+            this->SendTouchEvent(SUBTYPE_TOUCHRELEASE, id, x, y, 0.0f, 0.0f, 0.0f);
         }
     }
 
     this->previousTouchCount = touchCount;
 
-    if (Module())
+    if (!Module())
+        return;
+
+    for (auto event : this->statusEvents)
     {
-        for (auto event : this->statusEvents)
+        /* a controller was updated! */
+        if (R_SUCCEEDED(eventWait(&event, 0)))
         {
-            /* a controller was updated! */
-            if (R_SUCCEEDED(eventWait(&event, 0)))
+            auto types = Module()->GetActiveStyleSets();
+
+            this->previousGamepadTypes = types;
+
+            auto ids = Module()->AcquireCurrentJoystickIds();
+
+            /* joystick removed */
+            if (ids.size() < this->previousJoystickState.size())
             {
-                auto types = Module()->GetActiveStyleSets();
-
-                this->previousGamepadTypes = types;
-
-                auto ids = Module()->AcquireCurrentJoystickIds();
-
-                /* joystick removed */
-                if (ids.size() < this->previousJoystickState.size())
+                for (auto id : this->previousJoystickState)
                 {
-                    for (auto id : this->previousJoystickState)
+                    if (std::find(ids.begin(), ids.end(), id) == ids.end())
                     {
-                        if (std::find(ids.begin(), ids.end(), id) == ids.end())
-                        {
-                            this->SendJoystickStatus((size_t)id, false);
-                            break;
-                        }
+                        this->SendJoystickStatus((size_t)id, false);
+                        break;
                     }
-                } /* joystick added */
-                else if (ids.size() > this->previousJoystickState.size())
-                    this->SendJoystickStatus((size_t)ids.back(), true);
-
-                this->previousJoystickState = ids;
-            }
-        }
-
-        for (size_t index = 0; index < Module()->GetJoystickCount(); index++)
-        {
-            auto* joystick = Module()->GetJoystick(index);
-
-            if (joystick)
-            {
-                joystick->Update();
-                Joystick<>::JoystickInput input {};
-
-                for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
-                {
-                    const auto sensor = (Sensor::SensorType)index;
-
-                    if (joystick->IsSensorEnabled(sensor))
-                        this->SendJoystickSensorUpdated(index, sensor,
-                                                        joystick->GetSensorData(sensor));
                 }
+            } /* joystick added */
+            else if (ids.size() > this->previousJoystickState.size())
+                this->SendJoystickStatus((size_t)ids.back(), true);
 
-                if (joystick->IsDown(input))
-                {
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADDOWN;
-
-                    newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                    newEvent.padButton.id     = joystick->GetInstanceID();
-                    newEvent.padButton.button = input.buttonNumber;
-                }
-
-                if (joystick->IsUp(input))
-                {
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADUP;
-
-                    newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                    newEvent.padButton.id     = joystick->GetInstanceID();
-                    newEvent.padButton.button = input.buttonNumber;
-                }
-
-                /* handle trigger and stick inputs */
-                for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
-                {
-                    const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
-                    const auto axisValue = joystick->GetAxis(axis);
-
-                    if (axisValue == this->stickValues[index][axisEnum])
-                        continue;
-
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADAXIS;
-
-                    newEvent.padAxis.id = joystick->GetInstanceID();
-
-                    const char* axisName = *Joystick<>::axisTypes.ReverseFind(axisEnum);
-
-                    newEvent.padAxis.axis  = axis;
-                    newEvent.padAxis.value = axisValue;
-                    newEvent.padAxis.name  = axisName;
-
-                    this->stickValues[index][axisEnum] = axisValue;
-                }
-            }
+            this->previousJoystickState = ids;
         }
     }
 
-    /* return our events */
+    const auto joystickCount = Module()->GetJoystickCount();
 
-    if (this->events.empty())
-        return false;
+    for (size_t index = 0; index < joystickCount; index++)
+    {
+        auto* joystick = Module()->GetJoystick(index);
 
-    *event = this->events.front();
-    this->events.pop_front();
+        if (joystick)
+        {
+            joystick->Update();
+            Joystick<>::JoystickInput input {};
 
-    return this->hysteresis = true;
+            for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
+            {
+                const auto sensor = (Sensor::SensorType)index;
+
+                if (joystick->IsSensorEnabled(sensor))
+                    this->SendJoystickSensorUpdated(index, sensor, joystick->GetSensorData(sensor));
+            }
+
+            if (joystick->IsDown(input))
+                this->SendGamepadPress(true, joystick->GetID(), input.button, input.buttonNumber);
+
+            if (joystick->IsUp(input))
+                this->SendGamepadPress(false, joystick->GetID(), input.button, input.buttonNumber);
+
+            /* handle trigger and stick inputs */
+            for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+            {
+                const auto axis  = (Joystick<>::GamepadAxis)index;
+                const auto value = joystick->GetAxis(index);
+
+                this->SendGamepadAxis(joystick->GetID(), axis, index, value);
+            }
+        }
+    }
 }

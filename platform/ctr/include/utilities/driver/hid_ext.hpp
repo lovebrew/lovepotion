@@ -18,7 +18,7 @@ namespace love
 
         ~HID();
 
-        bool Poll(LOVE_Event* event);
+        virtual void _Poll() override;
 
       private:
         HID();

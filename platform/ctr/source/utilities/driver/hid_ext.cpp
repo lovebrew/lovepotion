@@ -57,87 +57,41 @@ HID<Console::CTR>::~HID()
     aptUnhook(&s_aptHookCookie);
 }
 
-bool HID<Console::CTR>::Poll(LOVE_Event* event)
+void HID<Console::CTR>::_Poll()
 {
-    if (!this->events.empty())
-    {
-        *event = this->events.front();
-        this->events.pop_front();
-
-        return true;
-    }
-
-    if (this->hysteresis)
-        return this->hysteresis = false;
-
     hidScanInput();
 
-    /* touch screen */
-
-    uint32_t touchDown     = hidKeysDown();
-    uint32_t touchHeld     = hidKeysHeld();
-    uint32_t touchReleased = hidKeysUp();
+    const auto touchDown     = hidKeysDown();
+    const auto touchHeld     = hidKeysHeld();
+    const auto touchReleased = hidKeysUp();
 
     if (touchDown & KEY_TOUCH || touchHeld & KEY_TOUCH)
         hidTouchRead(&this->touchState.current);
 
-    if (!this->touchHeld && (touchDown & KEY_TOUCH))
+    if (touchDown & KEY_TOUCH)
     {
-        auto& newEvent = this->events.emplace_back();
-
-        newEvent.type    = TYPE_TOUCH;
-        newEvent.subType = SUBTYPE_TOUCHPRESS;
-
-        newEvent.touchFinger.id       = 0;
-        newEvent.touchFinger.x        = this->touchState.current.px;
-        newEvent.touchFinger.y        = this->touchState.current.py;
-        newEvent.touchFinger.dx       = 0.0f;
-        newEvent.touchFinger.dy       = 0.0f;
-        newEvent.touchFinger.pressure = 1.0f;
+        float x = this->touchState.current.px, y = this->touchState.current.py;
+        this->SendTouchEvent(SUBTYPE_TOUCHPRESS, 0, x, y, 0.0f, 0.0f, 1.0f);
 
         this->touchState.previous = this->touchState.current;
     }
-
-    if (touchHeld & KEY_TOUCH)
+    else if (touchHeld & KEY_TOUCH)
     {
-        float dx = this->touchState.previous.px - this->touchState.current.px;
-        float dy = this->touchState.previous.py - this->touchState.current.py;
+        float x = this->touchState.current.px, y = this->touchState.current.py;
+
+        float dx = this->touchState.current.px - this->touchState.previous.px;
+        float dy = this->touchState.current.py - this->touchState.previous.py;
 
         if (dx != 0.0f || dy != 0.0f)
-        {
-            auto& newEvent = this->events.emplace_back();
+            this->SendTouchEvent(SUBTYPE_TOUCHMOVED, 0, x, y, dx, dy, 1.0f);
 
-            newEvent.type    = TYPE_TOUCH;
-            newEvent.subType = SUBTYPE_TOUCHMOVED;
-
-            newEvent.touchFinger.id       = 0;
-            newEvent.touchFinger.x        = this->touchState.current.px;
-            newEvent.touchFinger.y        = this->touchState.current.py;
-            newEvent.touchFinger.dx       = dx;
-            newEvent.touchFinger.dy       = dy;
-            newEvent.touchFinger.pressure = 1.0f;
-
-            this->touchHeld = true;
-        }
+        this->touchState.previous = this->touchState.current;
     }
 
     if (touchReleased & KEY_TOUCH)
     {
-        auto& newEvent            = this->events.emplace_back();
-        this->touchState.previous = this->touchState.current;
-
-        newEvent.type    = TYPE_TOUCH;
-        newEvent.subType = SUBTYPE_TOUCHRELEASE;
-
-        newEvent.touchFinger.id       = 0;
-        newEvent.touchFinger.x        = this->touchState.previous.px;
-        newEvent.touchFinger.y        = this->touchState.previous.py;
-        newEvent.touchFinger.dx       = 0.0f;
-        newEvent.touchFinger.dy       = 0.0f;
-        newEvent.touchFinger.pressure = 0.0f;
-
-        if (this->touchHeld)
-            this->touchHeld = false;
+        float x = this->touchState.previous.px, y = this->touchState.previous.py;
+        this->SendTouchEvent(SUBTYPE_TOUCHPRESS, 0, x, y, 0.0f, 0.0f, 0.0f);
     }
 
     Joystick<Console::Which>* joystick = nullptr;
@@ -159,59 +113,18 @@ bool HID<Console::CTR>::Poll(LOVE_Event* event)
         }
 
         if (joystick->IsDown(input))
-        {
-            auto& newEvent = this->events.emplace_back();
-
-            newEvent.type    = TYPE_GAMEPAD;
-            newEvent.subType = SUBTYPE_GAMEPADDOWN;
-
-            newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-            newEvent.padButton.id     = joystick->GetID();
-            newEvent.padButton.button = input.buttonNumber;
-        }
+            this->SendGamepadPress(true, joystick->GetID(), input.button, input.buttonNumber);
 
         if (joystick->IsUp(input))
-        {
-            auto& newEvent = this->events.emplace_back();
-
-            newEvent.type    = TYPE_GAMEPAD;
-            newEvent.subType = SUBTYPE_GAMEPADUP;
-
-            newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-            newEvent.padButton.id     = joystick->GetID();
-            newEvent.padButton.button = input.buttonNumber;
-        }
+            this->SendGamepadPress(false, joystick->GetID(), input.button, input.buttonNumber);
 
         /* handle trigger and stick inputs */
         for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
         {
-            const auto axisEnum = (Joystick<>::GamepadAxis)index;
+            const auto axis = (Joystick<>::GamepadAxis)index;
 
-            if (joystick->IsAxisChanged(axisEnum))
-            {
-                auto& newEvent = this->events.emplace_back();
-
-                newEvent.type    = TYPE_GAMEPAD;
-                newEvent.subType = SUBTYPE_GAMEPADAXIS;
-
-                newEvent.padAxis.id = joystick->GetID();
-
-                const char* axis = *Joystick<>::axisTypes.ReverseFind(axisEnum);
-
-                newEvent.padAxis.axis  = index;
-                newEvent.padAxis.value = joystick->GetAxis(index);
-                newEvent.padAxis.name  = axis;
-            }
+            if (joystick->IsAxisChanged(axis))
+                this->SendGamepadAxis(0, axis, index, joystick->GetAxis(index));
         }
     }
-
-    /* return our events */
-
-    if (this->events.empty())
-        return false;
-
-    *event = this->events.front();
-    this->events.pop_front();
-
-    return this->hysteresis = true;
 }

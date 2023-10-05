@@ -56,6 +56,8 @@ namespace love
             return true;
         }
 
+        bool IsAxisChanged(GamepadAxis axis);
+
         guid::GamepadType GetGamepadType() const;
 
         float GetGamepadAxis(GamepadAxis axis);

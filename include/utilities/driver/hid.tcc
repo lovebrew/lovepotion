@@ -19,8 +19,34 @@ namespace love
             return instance;
         }
 
-        HID() : touchHeld(false), hysteresis(false), focused(false), events(), stickValues {}
+        HID() : hysteresis(false), touchHeld(false), focused(false), events()
         {}
+
+        bool Poll(LOVE_Event* event)
+        {
+            if (!this->events.empty())
+            {
+                *event = this->events.front();
+                this->events.pop_front();
+
+                return true;
+            }
+
+            if (this->hysteresis)
+                return this->hysteresis = false;
+
+            this->_Poll();
+
+            /* return our events */
+
+            if (this->events.empty())
+                return false;
+
+            *event = this->events.front();
+            this->events.pop_front();
+
+            return this->hysteresis = true;
+        }
 
         void SendFocus(bool focus)
         {
@@ -34,6 +60,14 @@ namespace love
             this->focused = focus;
         }
 
+        void SendQuit()
+        {
+            auto& event = this->events.emplace_back();
+
+            event.type    = TYPE_GENERAL;
+            event.subType = SUBTYPE_QUIT;
+        }
+
         void SendTextInput(std::string_view string)
         {
             auto& event = this->events.emplace_back();
@@ -44,20 +78,13 @@ namespace love
             event.keyboard.text = string;
         }
 
+      protected:
         void SendLowMemory()
         {
             auto& event = this->events.emplace_back();
 
             event.type    = TYPE_GENERAL;
             event.subType = SUBTYPE_LOWMEMORY;
-        }
-
-        void SendQuit()
-        {
-            auto& event = this->events.emplace_back();
-
-            event.type    = TYPE_GENERAL;
-            event.subType = SUBTYPE_QUIT;
         }
 
         void SendResize(int width, int height)
@@ -103,12 +130,60 @@ namespace love
             event.padStatus.id = id;
         }
 
+        void SendTouchEvent(SubEventType type, size_t id, float x, float y, float dx, float dy,
+                            float pressure)
+        {
+            auto& newEvent = this->events.emplace_back();
+
+            newEvent.type    = TYPE_TOUCH;
+            newEvent.subType = type;
+
+            newEvent.touchFinger.id       = id;
+            newEvent.touchFinger.x        = x;
+            newEvent.touchFinger.y        = y;
+            newEvent.touchFinger.dx       = dx;
+            newEvent.touchFinger.dy       = dy;
+            newEvent.touchFinger.pressure = pressure;
+        }
+
+        void SendGamepadPress(bool pressed, size_t id, Joystick<>::GamepadButton button,
+                              int buttonIndex)
+        {
+            auto& newEvent = this->events.emplace_back();
+
+            newEvent.type    = TYPE_GAMEPAD;
+            newEvent.subType = pressed ? SUBTYPE_GAMEPADDOWN : SUBTYPE_GAMEPADUP;
+
+            newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(button);
+            newEvent.padButton.id     = id;
+            newEvent.padButton.button = buttonIndex;
+        }
+
+        void SendGamepadAxis(size_t id, Joystick<>::GamepadAxis axis, int axisIndex, float value)
+        {
+            auto& newEvent = this->events.emplace_back();
+
+            newEvent.type    = TYPE_GAMEPAD;
+            newEvent.subType = SUBTYPE_GAMEPADAXIS;
+
+            newEvent.padAxis.id = id;
+
+            const char* axisName  = *Joystick<>::axisTypes.ReverseFind(axis);
+            newEvent.padAxis.name = axisName;
+
+            newEvent.padAxis.axis  = (int)axis;
+            newEvent.padAxis.value = value;
+        }
+
+      private:
+        bool hysteresis;
+
       protected:
         bool touchHeld;
-        bool hysteresis;
         bool focused;
 
         std::list<LOVE_Event> events;
-        float stickValues[5][Joystick<>::GAMEPAD_AXIS_MAX_ENUM];
+
+        virtual void _Poll() = 0;
     };
 } // namespace love

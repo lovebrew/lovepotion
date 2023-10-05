@@ -22,7 +22,7 @@ namespace love
         virtual void Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
                           const Matrix4<Console::Which>& transform) override;
 
-        void ReplacePixels(ImageData<Console::CAFE>* data, int slice, int mipmap, int x, int y,
+        void ReplacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
                            bool reloadMipmaps);
 
         void ReplacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,

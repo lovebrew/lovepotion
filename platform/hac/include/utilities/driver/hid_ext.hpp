@@ -21,12 +21,12 @@ namespace love
 
         ~HID();
 
-        bool Poll(LOVE_Event* event);
-
       private:
         HID();
 
         static constexpr int MAX_TOUCHES = 16;
+
+        virtual void _Poll() override;
 
         void CheckFocus();
 

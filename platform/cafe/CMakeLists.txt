@@ -34,7 +34,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/window_ext.cpp
     source/modules/wrap_fontmodule_ext.cpp
     source/objects/gamepad.cpp
-    source/objects/imagedata_ext.cpp
     source/objects/procontroller.cpp
     source/objects/rasterizer_ext.cpp
     source/objects/shader_ext.cpp

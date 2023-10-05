@@ -221,8 +221,8 @@ void Texture<Console::CAFE>::UnloadVolatile()
         delete this->framebuffer;
 }
 
-void Texture<Console::CAFE>::ReplacePixels(ImageData<Console::CAFE>* data, int slice, int mipmap,
-                                           int x, int y, bool reloadMipmaps)
+void Texture<Console::CAFE>::ReplacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
+                                           bool reloadMipmaps)
 {
     if (!this->IsReadable())
         throw love::Exception("replacePixels can only be called on readable Textures.");

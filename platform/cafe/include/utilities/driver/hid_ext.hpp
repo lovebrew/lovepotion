@@ -21,10 +21,10 @@ namespace love
 
         ~HID();
 
-        bool Poll(LOVE_Event* event);
-
       private:
         HID();
+
+        virtual void _Poll() override;
 
         void CheckFocus();
 

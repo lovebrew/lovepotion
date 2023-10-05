@@ -9,6 +9,8 @@
 
 #include <nn/swkbd.h>
 
+#include <utilities/log/logfile.hpp>
+
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 #define Module()   (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
 
@@ -53,150 +55,80 @@ void HID<Console::CAFE>::CheckSoftwareKeyboard(VPADStatus vpadStatus)
     }
 }
 
-bool HID<Console::CAFE>::Poll(LOVE_Event* event)
+void HID<Console::CAFE>::_Poll()
 {
-    if (!this->events.empty())
-    {
-        *event = this->events.front();
-        this->events.pop_front();
-
-        return true;
-    }
-
-    if (this->hysteresis)
-        return this->hysteresis = false;
-
     this->CheckFocus();
 
-    if (Module())
+    if (!Module())
+        return;
+
+    auto status = ((Gamepad*)Module()->GetJoystickFromId(0))->GetVPADStatus();
+
+    if (Keyboard()->IsShowing())
+        this->CheckSoftwareKeyboard(status);
+
+    auto tpNormal  = status.tpNormal;
+    auto touchType = SUBTYPE_TOUCHPRESS;
+
+    // TODO: find out how to fix initial touch issues
+    // also why the fuck is this lagging so much
+    if (tpNormal.touched)
     {
-        for (size_t index = 0; index < (size_t)Module()->GetJoystickCount(); index++)
+        VPADGetTPCalibratedPointEx(VPAD_CHAN_0, VPAD_TP_854X480, &tpNormal, &tpNormal);
+
+        float x = tpNormal.x, y = tpNormal.y;
+        float dx = 0, dy = 0;
+
+        dx = (tpNormal.x - this->previousTouch.x);
+        dy = (tpNormal.y - this->previousTouch.y);
+
+        if (dx == 0 && dy == 0)
+            touchType = SUBTYPE_TOUCHPRESS;
+        else
+            touchType = SUBTYPE_TOUCHMOVED;
+
+        this->SendTouchEvent(touchType, 0, x, y, dx, dy, 1.0f);
+        this->previousTouch = tpNormal;
+
+        if (touchType == SUBTYPE_TOUCHMOVED && !dx && !dy)
+            this->events.pop_back();
+    }
+    else
+    {
+        this->SendTouchEvent(SUBTYPE_TOUCHRELEASE, 0, this->previousTouch.x, this->previousTouch.y,
+                             0, 0, 1.0f);
+    }
+
+    for (size_t index = 0; index < (size_t)Module()->GetJoystickCount(); index++)
+    {
+        auto* joystick = Module()->GetJoystickFromId(index);
+
+        if (joystick)
         {
-            auto* joystick = Module()->GetJoystickFromId(index);
+            joystick->Update();
+            Joystick<>::JoystickInput input {};
 
-            if (joystick)
+            for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
             {
-                joystick->Update();
-                Joystick<>::JoystickInput input {};
+                const auto sensor = (Sensor::SensorType)index;
 
-                for (int index = 0; index < Sensor::SENSOR_MAX_ENUM; index++)
-                {
-                    const auto sensor = (Sensor::SensorType)index;
+                if (joystick->IsSensorEnabled(sensor))
+                    this->SendJoystickSensorUpdated(index, sensor, joystick->GetSensorData(sensor));
+            }
 
-                    if (joystick->IsSensorEnabled(sensor))
-                        this->SendJoystickSensorUpdated(index, sensor,
-                                                        joystick->GetSensorData(sensor));
-                }
+            if (joystick->IsDown(input))
+                this->SendGamepadPress(true, joystick->GetID(), input.button, input.buttonNumber);
 
-                if (joystick->GetGamepadType() == guid::GAMEPAD_TYPE_WII_U_GAMEPAD)
-                {
-                    auto status = ((Gamepad*)joystick)->GetVPADStatus();
+            if (joystick->IsUp(input))
+                this->SendGamepadPress(false, joystick->GetID(), input.button, input.buttonNumber);
 
-                    if (Keyboard()->IsShowing())
-                        this->CheckSoftwareKeyboard(status);
+            for (size_t index = 0; index < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; index++)
+            {
+                const auto axis  = (Joystick<>::GamepadAxis)index;
+                const auto value = joystick->GetAxis(axis);
 
-                    const auto tpNormal = status.tpNormal;
-
-                    if (tpNormal.touched)
-                    {
-                        auto& newEvent = this->events.emplace_back();
-
-                        newEvent.type = TYPE_TOUCH;
-
-                        uint16_t dx = this->previousTouch.x - tpNormal.x;
-                        uint16_t dy = this->previousTouch.y - tpNormal.y;
-
-                        if (dx == 0 && dy == 0)
-                            newEvent.subType = SUBTYPE_TOUCHPRESS;
-                        else
-                            newEvent.subType = SUBTYPE_TOUCHMOVED;
-
-                        newEvent.touchFinger.id       = 0;
-                        newEvent.touchFinger.x        = tpNormal.x;
-                        newEvent.touchFinger.y        = tpNormal.y;
-                        newEvent.touchFinger.dx       = (double)(dx / 0xFFFF);
-                        newEvent.touchFinger.dy       = (double)(dy / 0xFFFF);
-                        newEvent.touchFinger.pressure = 1.0f;
-
-                        this->touchHeld     = true;
-                        this->previousTouch = tpNormal;
-                    }
-
-                    if (!tpNormal.touched && this->touchHeld)
-                    {
-                        auto& newEvent      = this->events.emplace_back();
-                        this->previousTouch = tpNormal;
-
-                        newEvent.type    = TYPE_TOUCH;
-                        newEvent.subType = SUBTYPE_TOUCHRELEASE;
-
-                        newEvent.touchFinger.id       = 0;
-                        newEvent.touchFinger.x        = tpNormal.x;
-                        newEvent.touchFinger.y        = tpNormal.y;
-                        newEvent.touchFinger.dx       = 0.0f;
-                        newEvent.touchFinger.dy       = 0.0f;
-                        newEvent.touchFinger.pressure = 1.0f;
-
-                        if (this->touchHeld)
-                            this->touchHeld = false;
-                    }
-                }
-
-                if (joystick->IsDown(input))
-                {
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADDOWN;
-
-                    newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                    newEvent.padButton.id     = joystick->GetID();
-                    newEvent.padButton.button = input.buttonNumber;
-                }
-
-                if (joystick->IsUp(input))
-                {
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADUP;
-
-                    newEvent.padButton.name   = *Joystick<>::buttonTypes.ReverseFind(input.button);
-                    newEvent.padButton.id     = joystick->GetID();
-                    newEvent.padButton.button = input.buttonNumber;
-                }
-
-                for (size_t axis = 0; axis < Joystick<>::GAMEPAD_AXIS_MAX_ENUM; axis++)
-                {
-                    const auto axisEnum  = (Joystick<>::GamepadAxis)axis;
-                    const auto axisValue = joystick->GetAxis(axis);
-
-                    auto& newEvent = this->events.emplace_back();
-
-                    newEvent.type    = TYPE_GAMEPAD;
-                    newEvent.subType = SUBTYPE_GAMEPADAXIS;
-
-                    newEvent.padAxis.id = joystick->GetInstanceID();
-
-                    const char* axisName = *Joystick<>::axisTypes.ReverseFind(axisEnum);
-
-                    newEvent.padAxis.axis  = axis;
-                    newEvent.padAxis.value = axisValue;
-                    newEvent.padAxis.name  = axisName;
-
-                    this->stickValues[index][axisEnum] = axisValue;
-                }
+                this->SendGamepadAxis(joystick->GetID(), axis, index, value);
             }
         }
     }
-
-    /* return our events */
-
-    if (this->events.empty())
-        return false;
-
-    *event = this->events.front();
-    this->events.pop_front();
-
-    return this->hysteresis = true;
 }
