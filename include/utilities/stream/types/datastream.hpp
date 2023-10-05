@@ -39,14 +39,10 @@ namespace love
         DataStream(const DataStream& other);
 
         StrongReference<Data> data;
+        const uint8_t* memory;
+        uint8_t* writeable;
 
-        struct DataStreamMemory
-        {
-            std::unique_ptr<const uint8_t[]> readOnly;
-            std::unique_ptr<uint8_t[]> writeable;
-
-            size_t offset;
-            size_t size;
-        } memory;
+        size_t offset;
+        size_t size;
     };
 } // namespace love
