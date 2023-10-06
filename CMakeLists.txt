@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 # Declare project containing a single eponymous executable
 project(lovepotion LANGUAGES C CXX ASM)
 add_executable(${PROJECT_NAME})
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_23)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 
 # Generate symbol list and map information (useful for debugging)

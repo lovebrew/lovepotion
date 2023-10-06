@@ -11,7 +11,10 @@ System<>::PowerState System<Console::CTR>::GetPowerInfo(uint8_t& percent) const
     uint8_t batteryState = 0;
     PowerState state     = PowerState::POWER_UNKNOWN;
 
-    MCUHWC_GetBatteryLevel(&percent);
+    uint8_t percentRaw = 0;
+    MCUHWC_GetBatteryLevel(&percentRaw);
+
+    percent = (percentRaw / 0xFF) * 100;
     PTMU_GetBatteryChargeState(&batteryState);
 
     state = (batteryState) ? PowerState::POWER_CHARGING : PowerState::POWER_BATTERY;

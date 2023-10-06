@@ -13,7 +13,7 @@ namespace love
       public:
         VorbisDecoder(Stream* stream, int bufferSize);
 
-        ~VorbisDecoder();
+        virtual ~VorbisDecoder();
 
         Decoder* Clone() override;
 

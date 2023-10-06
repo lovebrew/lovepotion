@@ -5,7 +5,7 @@
             "${workspaceFolder}/libraries/**"
         ],
         "defaultCStandard": "c11",
-        "defaultCppStandard": "c++23",
+        "defaultCppStandard": "c++20",
         "defaultDefines": [
             "__APP_VERSION__=\"3.0.0\"",
             "__LOVE_VERSION__=\"12.0\"",
@@ -20,7 +20,7 @@
         "ctrDefines": [
             "__3DS__",
             "__OS__=\"Horizon\"",
-            "__CONSOLE__=\"3DS\"",
+            "__CONSOLE__=\"3DS\""
         ],
         "ctrCompilerPath": "C:/msys64/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++",
         "hacIncludePaths": [
@@ -53,8 +53,7 @@
             "name": "3DS",
             "includePath": [
                 "${env:defaultIncludePath}",
-                "${env:ctrIncludePaths}",
-                "C:/msys64/opt/devkitpro/devkitARM/arm-none-eabi/include/c++/12.2.0"
+                "${env:ctrIncludePaths}"
             ],
             "defines": [
                 "${env:defaultDefines}",

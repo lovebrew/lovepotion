@@ -12,6 +12,12 @@
 using namespace love;
 using CompressedSlices = std::vector<StrongReference<CompressedSlice>>;
 
+static inline uint32_t swapuint32(uint32_t x)
+{
+    return ((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) | ((x & 0x00FF0000) >> 8) |
+           ((x & 0xFF000000) >> 24);
+}
+
 PixelFormat convertFormat(uint32_t glFormat, bool& sRGB)
 {
     sRGB = false;
@@ -52,7 +58,7 @@ StrongReference<ByteData> KTXHandler::ParseCompressed(Data* data, CompressedSlic
     {
         uint32_t* array = (uint32_t*)&header.glType;
         for (int index = 0; index < 12; index++)
-            array[index] = std::byteswap(array[index]);
+            array[index] = swapuint32(array[index]);
     }
 
     header.numberOfMipmapLevels = std::max(header.numberOfMipmapLevels, (uint32_t)1);
@@ -84,7 +90,7 @@ StrongReference<ByteData> KTXHandler::ParseCompressed(Data* data, CompressedSlic
 
         auto mipSize = *(uint32_t*)(fileBytes + fileOffset);
         if (header.endianness == KTX_ENDIAN_REF_REV)
-            mipSize = std::byteswap(mipSize);
+            mipSize = swapuint32(mipSize);
 
         fileOffset += sizeof(uint32_t);
         uint32_t mipSizePadded = (mipSize + 3) & ~uint32_t(3);
@@ -101,7 +107,7 @@ StrongReference<ByteData> KTXHandler::ParseCompressed(Data* data, CompressedSlic
     {
         auto mipSize = *(uint32_t*)(fileBytes + fileOffset);
         if (header.endianness == KTX_ENDIAN_REF_REV)
-            mipSize = std::byteswap(mipSize);
+            mipSize = swapuint32(mipSize);
 
         fileOffset += sizeof(uint32_t);
         uint32_t mipSizePadded = (mipSize + 3) & ~uint32_t(3);

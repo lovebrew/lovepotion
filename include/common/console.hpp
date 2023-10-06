@@ -26,6 +26,11 @@ namespace love
             return Which == platform;
         }
 
+        static constexpr bool IsBigEndian()
+        {
+            return Which == CAFE;
+        }
+
         static void SetMainCore(uint32_t id)
         {
             if (Console::coreIdSet)

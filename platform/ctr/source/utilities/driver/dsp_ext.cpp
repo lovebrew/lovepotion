@@ -46,7 +46,7 @@ void DSP<Console::CTR>::SetMasterVolume(float volume)
 
 float DSP<Console::CTR>::GetMasterVolume() const
 {
-    return 1.0f;
+    return ndspGetMasterVol();
 }
 
 bool DSP<Console::CTR>::ChannelReset(size_t id, int channels, int bitDepth, int sampleRate)
@@ -80,7 +80,10 @@ void DSP<Console::CTR>::ChannelSetVolume(size_t id, float volume)
 
 float DSP<Console::CTR>::ChannelGetVolume(size_t id) const
 {
-    return 1.0f;
+    float mix[12] { 0.0f };
+    ndspChnGetMix(id, mix);
+
+    return mix[0];
 }
 
 size_t DSP<Console::CTR>::ChannelGetSampleOffset(size_t id) const

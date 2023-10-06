@@ -9,21 +9,21 @@ using namespace love;
 
 Type DataStream::type("DataStream", &Stream::type);
 
-DataStream::DataStream(Data* data) : data(data), memory {}
-{
-    this->memory.readOnly.reset((const uint8_t*)data->GetData());
-    this->memory.writeable.reset((uint8_t*)data->GetData());
+DataStream::DataStream(Data* data) :
+    data(data),
+    memory((const uint8_t*)data->GetData()),
+    writeable((uint8_t*)data->GetData()),
+    offset(0),
+    size(data->GetSize())
+{}
 
-    this->memory.size = data->GetSize();
-}
-
-DataStream::DataStream(const DataStream& other) : data(other.data), memory {}
-{
-    this->memory.readOnly.reset(other.memory.readOnly.get());
-    this->memory.writeable.reset(other.memory.writeable.get());
-
-    this->memory.size = other.memory.size;
-}
+DataStream::DataStream(const DataStream& other) :
+    data(other.data),
+    memory(other.memory),
+    writeable(other.writeable),
+    offset(0),
+    size(other.size)
+{}
 
 DataStream* DataStream::Clone()
 {
@@ -37,7 +37,7 @@ bool DataStream::IsReadable() const
 
 bool DataStream::IsWritable() const
 {
-    return this->memory.writeable != nullptr;
+    return this->writeable != nullptr;
 }
 
 bool DataStream::IsSeekable() const
@@ -50,30 +50,28 @@ int64_t DataStream::Read(void* data, int64_t size)
     if (size <= 0)
         return 0;
 
-    if ((int64_t)this->memory.offset >= this->memory.size)
+    if ((int64_t)this->offset >= this->GetSize())
         return 0;
 
-    auto readSize = std::min<int64_t>(size, this->memory.size - this->memory.offset);
-    std::copy_n(this->memory.readOnly.get() + this->memory.offset, readSize, (uint8_t*)data);
+    auto readSize = std::min<int64_t>(size, this->GetSize() - this->offset);
+    std::memcpy(data, this->memory + this->offset, readSize);
 
-    this->memory.offset += readSize;
-
+    this->offset += readSize;
     return readSize;
 }
 
 bool DataStream::Write(const void* data, int64_t size)
 {
-    if (size <= 0 || !this->memory.writeable)
+    if (size <= 0 || this->writeable == nullptr)
         return false;
 
-    if ((int64_t)this->memory.offset >= this->memory.size)
+    if ((int64_t)this->offset >= this->size)
         return false;
 
-    auto writeSize = std::min<int64_t>(size, this->memory.size - this->memory.offset);
-    std::copy_n((uint8_t*)data, writeSize, this->memory.writeable.get() + this->memory.offset);
+    auto writeSize = std::min<int64_t>(size, this->GetSize() - this->offset);
+    std::memcpy(this->writeable + this->offset, data, writeSize);
 
-    this->memory.offset += writeSize;
-
+    this->offset += writeSize;
     return true;
 }
 
@@ -84,25 +82,24 @@ bool DataStream::Flush()
 
 int64_t DataStream::GetSize()
 {
-    return this->memory.size;
+    return this->size;
 }
 
 bool DataStream::Seek(int64_t position, SeekOrigin origin)
 {
     if (origin == SeekOrigin::ORIGIN_CURRENT)
-        position += this->memory.offset;
+        position += this->offset;
     else if (origin == SeekOrigin::ORIGIN_END)
-        position += this->memory.size;
+        position += this->size;
 
-    if (position < 0 || position > (int64_t)this->memory.size)
+    if (position < 0 || position > (int64_t)this->size)
         return false;
 
-    this->memory.offset = position;
-
+    this->offset = position;
     return true;
 }
 
 int64_t DataStream::Tell()
 {
-    return this->memory.offset;
+    return this->offset;
 }
