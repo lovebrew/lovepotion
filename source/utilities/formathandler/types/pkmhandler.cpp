@@ -11,10 +11,10 @@ using CompressedSlices = std::vector<StrongReference<CompressedSlice>>;
 
 static inline uint16_t swap16big(uint16_t x)
 {
-    if (std::endian::native == std::endian::big)
+    if (Console::IsBigEndian())
         return x;
 
-    return std::byteswap(x);
+    return (x >> 8) | (x << 8);
 }
 
 static PixelFormat convertFormat(uint16_t format)

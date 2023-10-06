@@ -25,7 +25,7 @@ RandomGenerator::Seed Wrap_RandomGenerator::CheckSeed(lua_State* L, int index)
     if (!lua_isnoneornil(L, index + 1))
     {
         seed.b32.low  = checkRandomSeed_Part<uint32_t>(L, index);
-        seed.b32.high = checkRandomSeed_Part<uint16_t>(L, index + 1);
+        seed.b32.high = checkRandomSeed_Part<uint32_t>(L, index + 1);
     }
     else
         seed.b64 = checkRandomSeed_Part<uint64_t>(L, index);
@@ -71,12 +71,11 @@ int Wrap_RandomGenerator::SetSeed(lua_State* L)
 
 int Wrap_RandomGenerator::GetSeed(lua_State* L)
 {
-    auto* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    auto* self      = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
+    const auto seed = self->GetSeed();
 
-    RandomGenerator::Seed seed = self->GetSeed();
-
-    lua_pushnumber(L, seed.b32.low);
-    lua_pushnumber(L, seed.b32.high);
+    lua_pushnumber(L, (lua_Number)seed.b32.low);
+    lua_pushnumber(L, (lua_Number)seed.b32.high);
 
     return 2;
 }
@@ -92,7 +91,7 @@ int Wrap_RandomGenerator::SetState(lua_State* L)
 
 int Wrap_RandomGenerator::GetState(lua_State* L)
 {
-    auto* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 2);
+    auto* self = Wrap_RandomGenerator::CheckRandomGenerator(L, 1);
 
     luax::PushString(L, self->GetState());
 

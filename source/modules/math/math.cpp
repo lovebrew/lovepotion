@@ -49,7 +49,7 @@ static bool isEar(const Vector2& a, const Vector2& b, const Vector2& c,
 
 Math::Math() : randomGenerator()
 {
-    RandomGenerator::Seed seed;
+    RandomGenerator::Seed seed {};
     seed.b64 = (uint64_t)time(nullptr);
 
     this->randomGenerator.SetSeed(seed);

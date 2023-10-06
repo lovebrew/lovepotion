@@ -90,8 +90,7 @@ bool File::Open(Mode mode)
         if (error == nullptr)
             error = "unknown error";
 
-        throw love::Exception("Could not open file %s (errno %d: %s).", filename.c_str(), errno,
-                              error);
+        throw love::Exception("Could not open file %s (%s).", filename.c_str(), error);
     }
 
     this->file     = handle;

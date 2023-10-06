@@ -11,7 +11,7 @@ using namespace love;
 
 int Wrap_File::Close(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     lua_pushboolean(L, self->Close());
 
@@ -20,7 +20,7 @@ int Wrap_File::Close(lua_State* L)
 
 int Wrap_File::Flush(lua_State* L)
 {
-    File* self   = Wrap_File::CheckFile(L, 1);
+    auto* self   = Wrap_File::CheckFile(L, 1);
     bool success = false;
 
     try
@@ -39,15 +39,16 @@ int Wrap_File::Flush(lua_State* L)
 
 int Wrap_File::GetBuffer(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self        = Wrap_File::CheckFile(L, 1);
+    const auto buffer = self->GetBuffer();
 
     int64_t size;
+    std::optional<const char*> bufferMode;
 
-    if (auto found = File::bufferModes.ReverseFind(self->GetBuffer(size)))
-        lua_pushstring(L, *found);
-    else
+    if (!(bufferMode = File::bufferModes.ReverseFind(buffer)))
         return luax::IOError(L, "Unknown file buffer mode.");
 
+    lua_pushstring(L, *bufferMode);
     lua_pushnumber(L, (lua_Number)size);
 
     return 2;
@@ -55,7 +56,7 @@ int Wrap_File::GetBuffer(lua_State* L)
 
 int Wrap_File::GetFilename(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     lua_pushstring(L, self->GetFilename().c_str());
 
@@ -64,21 +65,22 @@ int Wrap_File::GetFilename(lua_State* L)
 
 int Wrap_File::GetMode(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     File::Mode mode = self->GetMode();
+    std::optional<const char*> modeString;
 
-    if (auto found = File::modes.ReverseFind(mode))
-        lua_pushstring(L, *found);
-    else
+    if (!(modeString = File::modes.ReverseFind(mode)))
         return luax::IOError(L, "Unknown file mode.");
+
+    lua_pushstring(L, *modeString);
 
     return 1;
 }
 
 int Wrap_File::GetSize(lua_State* L)
 {
-    File* self   = Wrap_File::CheckFile(L, 1);
+    auto* self   = Wrap_File::CheckFile(L, 1);
     int64_t size = -1;
 
     try
@@ -102,7 +104,7 @@ int Wrap_File::GetSize(lua_State* L)
 
 int Wrap_File::IsEOF(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     lua_pushboolean(L, self->IsEOF());
 
@@ -111,7 +113,7 @@ int Wrap_File::IsEOF(lua_State* L)
 
 int Wrap_File::IsOpen(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     lua_pushboolean(L, self->IsOpen());
 
@@ -132,7 +134,7 @@ int Wrap_File::Lines_I(lua_State* L)
     ** restore userpos (bool, optional)
     */
 
-    File* self = luax::CheckType<File>(L, lua_upvalueindex(1));
+    auto* self = luax::CheckType<File>(L, lua_upvalueindex(1));
 
     if (self->GetMode() != File::MODE_READ)
         return luaL_error(L, "File needs to stay in read mode.");
@@ -232,7 +234,7 @@ int Wrap_File::Lines_I(lua_State* L)
 */
 int Wrap_File::Lines(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     lua_pushstring(L, "");
     lua_pushnumber(L, 0);
@@ -261,7 +263,7 @@ int Wrap_File::Lines(lua_State* L)
 
 int Wrap_File::Open(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     const char* string = luaL_checkstring(L, 2);
     std::optional<File::Mode> mode;
@@ -283,7 +285,7 @@ int Wrap_File::Open(lua_State* L)
 
 int Wrap_File::Read(lua_State* L)
 {
-    File* self                     = Wrap_File::CheckFile(L, 1);
+    auto* self                     = Wrap_File::CheckFile(L, 1);
     StrongReference<FileData> data = nullptr;
 
     auto type = DataModule::CONTAINER_STRING;
@@ -318,7 +320,7 @@ int Wrap_File::Read(lua_State* L)
 
 int Wrap_File::Seek(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     lua_Number position = luaL_checknumber(L, 2);
 
@@ -332,7 +334,7 @@ int Wrap_File::Seek(lua_State* L)
 
 int Wrap_File::SetBuffer(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     const char* mode = luaL_checkstring(L, 2);
     int64_t size     = (int64_t)luaL_optnumber(L, 3, 0.0);
@@ -360,7 +362,7 @@ int Wrap_File::SetBuffer(lua_State* L)
 
 int Wrap_File::Tell(lua_State* L)
 {
-    File* self = Wrap_File::CheckFile(L, 1);
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     int64_t position = self->Tell();
 
@@ -376,7 +378,7 @@ int Wrap_File::Tell(lua_State* L)
 
 int Wrap_File::Write(lua_State* L)
 {
-    File* self   = Wrap_File::CheckFile(L, 1);
+    auto* self   = Wrap_File::CheckFile(L, 1);
     bool success = false;
 
     if (lua_isstring(L, 2))
@@ -418,7 +420,7 @@ int Wrap_File::Write(lua_State* L)
     return 1;
 }
 
-File* Wrap_File::CheckFile(lua_State* L, int index)
+auto* Wrap_File::CheckFile(lua_State* L, int index)
 {
     return luax::CheckType<File>(L, index);
 }

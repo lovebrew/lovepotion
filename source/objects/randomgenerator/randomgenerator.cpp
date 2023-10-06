@@ -70,7 +70,7 @@ void RandomGenerator::SetSeed(RandomGenerator::Seed newSeed)
     // Xorshift also can't handle a state value of 0, so we avoid that.
     do
     {
-        this->seed.b64 = wangHash64(newSeed.b64);
+        newSeed.b64 = wangHash64(newSeed.b64);
     } while (newSeed.b64 == 0);
 
     this->randomState = newSeed;
@@ -92,7 +92,7 @@ void RandomGenerator::SetState(const std::string& stateString)
     if (stateString.find("0x") != 0 || stateString.size() < 3)
         throw love::Exception("Invalid random state: %s", stateString.c_str());
 
-    Seed state = {};
+    Seed state {};
 
     char* end = nullptr;
     state.b64 = strtoull(stateString.c_str(), &end, 16);
@@ -108,8 +108,8 @@ std::string_view RandomGenerator::GetState() const
 {
     // For this implementation we'll return a hex string representing the 64-bit
     // state integer xorshift uses.
-    char result[255];
-    snprintf(result, sizeof(result), "0x%llx", this->randomState.b64);
+    char result[255] { '\0' };
+    snprintf(result, sizeof(result), "0x%016llx", this->randomState.b64);
 
     return result;
 }

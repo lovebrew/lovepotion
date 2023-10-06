@@ -189,12 +189,12 @@ bool Filesystem::SetIdentity(const char* identity, bool appendToPath)
             return false;
     }
 
-    std::array<bool, CommonPath::PATH_MAX_ENUM> oldPathsMounted = { false };
+    std::array<bool, CommonPath::PATH_MAX_ENUM> oldMountedCommonPaths = { false };
 
     /* prevent save paths from accumulating on new identity sets */
     for (auto path : this->appCommonPaths)
     {
-        oldPathsMounted[path] = this->commonPathMountInfo[path].mounted;
+        oldMountedCommonPaths[path] = this->commonPathMountInfo[path].mounted;
 
         if (this->commonPathMountInfo[path].mounted)
             this->UnMount(path);
@@ -204,7 +204,7 @@ bool Filesystem::SetIdentity(const char* identity, bool appendToPath)
     for (auto path : this->appCommonPaths)
         this->fullPaths[path].clear();
 
-    this->saveIdentity         = identity;
+    this->saveIdentity         = std::string(identity);
     this->appendIdentityToPath = appendToPath;
 
     /* mount the save directory */
@@ -217,14 +217,11 @@ bool Filesystem::SetIdentity(const char* identity, bool appendToPath)
     /* mount the remaining common paths */
     for (auto path : this->appCommonPaths)
     {
-        if (oldPathsMounted[path] && path != CommonPath::APP_SAVEDIR)
+        if (oldMountedCommonPaths[path] && path != CommonPath::APP_SAVEDIR)
         {
-            auto info    = this->commonPathMountInfo[path];
-            bool success = this->MountCommonPathInternal(path, info.mountPoint.c_str(),
-                                                         info.permissions, appendToPath, true);
-
-            if (!success)
-                throw love::Exception("Failed to mount CommonPath at %s:", info.mountPoint);
+            auto info = this->commonPathMountInfo[path];
+            this->MountCommonPathInternal(path, info.mountPoint.c_str(), info.permissions,
+                                          appendToPath, true);
         }
     }
 
@@ -371,10 +368,7 @@ bool Filesystem::MountFullPath(const char* archive, const char* mountPoint,
 
     /* temp hack */
     if (permissions == MountPermissions::MOUNT_READWRITE)
-    {
-        if (!PHYSFS_setWriteDir(archive))
-            return false;
-    }
+        return PHYSFS_setWriteDir(archive) != 0;
 
     // if (permissions == MountPermissions::READWRITE)
     //     return PHYSFS_mountRW(archive, mountPoint, appendToPath) != 0;
