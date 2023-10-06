@@ -39,10 +39,11 @@ int Wrap_File::Flush(lua_State* L)
 
 int Wrap_File::GetBuffer(lua_State* L)
 {
-    auto* self        = Wrap_File::CheckFile(L, 1);
-    const auto buffer = self->GetBuffer();
+    auto* self = Wrap_File::CheckFile(L, 1);
 
     int64_t size;
+    const auto buffer = self->GetBuffer(size);
+
     std::optional<const char*> bufferMode;
 
     if (!(bufferMode = File::bufferModes.ReverseFind(buffer)))
