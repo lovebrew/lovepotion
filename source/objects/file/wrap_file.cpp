@@ -421,7 +421,7 @@ int Wrap_File::Write(lua_State* L)
     return 1;
 }
 
-auto* Wrap_File::CheckFile(lua_State* L, int index)
+File* Wrap_File::CheckFile(lua_State* L, int index)
 {
     return luax::CheckType<File>(L, index);
 }
