@@ -8,9 +8,9 @@ std::function<void(lua_State*)> Wrap_Font::wrap_extension;
 std::span<const luaL_Reg> Wrap_Font::extensions;
 #endif
 
-void Wrap_Font::CheckColoredString(lua_State* L, int index, Font::ColoredStrings& strings)
+void Wrap_Font::CheckColoredString(lua_State* L, int index, ColoredStrings& strings)
 {
-    Font::ColoredString coloredString {};
+    ColoredString coloredString {};
     coloredString.color = Color { 1.0f, 1.0f, 1.0f, 1.0f };
 
     if (lua_istable(L, index))
@@ -35,7 +35,7 @@ void Wrap_Font::CheckColoredString(lua_State* L, int index, Font::ColoredStrings
             }
             else
             {
-                coloredString.string = luaL_checkstring(L, -1);
+                coloredString.str = luaL_checkstring(L, -1);
                 strings.push_back(coloredString);
             }
 
@@ -44,7 +44,7 @@ void Wrap_Font::CheckColoredString(lua_State* L, int index, Font::ColoredStrings
     }
     else
     {
-        coloredString.string = luaL_checkstring(L, index);
+        coloredString.str = luaL_checkstring(L, index);
         strings.push_back(coloredString);
     }
 }

@@ -386,7 +386,7 @@ namespace love
 
         /* objects */
 
-        Font* NewFont(Rasterizer<Console::Which>* data) const
+        Font* NewFont(Rasterizer* data) const
         {
             return new Font(data, this->states.back().defaultSamplerState);
         }
@@ -406,7 +406,7 @@ namespace love
             return new SpriteBatch(texture, size);
         }
 
-        TextBatch* NewTextBatch(Font* font, const Font::ColoredStrings& text = {}) const
+        TextBatch* NewTextBatch(Font* font, const ColoredStrings& text = {}) const
         {
             return new TextBatch(font, text);
         }

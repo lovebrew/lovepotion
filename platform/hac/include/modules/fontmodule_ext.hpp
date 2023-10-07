@@ -5,7 +5,6 @@
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <objects/data/filedata/filedata.hpp>
-#include <objects/rasterizer_ext.hpp>
 
 #include <switch.h>
 
@@ -45,29 +44,18 @@ namespace love
       public:
         FontModule();
 
-        ~FontModule();
+        using FontModule<Console::ALL>::NewTrueTypeRasterizer;
 
-        Rasterizer<Console::HAC>* NewRasterizer(FileData* data) const;
+        Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting,
+                                          PlSharedFontType type) const;
 
-        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
-            int size, Rasterizer<Console::HAC>::Hinting hinting) const;
+        Rasterizer* NewTrueTypeRasterizer(Data* data, int size,
+                                          TrueTypeRasterizer<>::Hinting hinting) const override;
 
-        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
-            int size, PlSharedFontType type, Rasterizer<Console::HAC>::Hinting hinting) const;
+        Rasterizer* NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
+                                          TrueTypeRasterizer<>::Hinting hinting) const override;
 
-        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
-            int size, float dpiScale, Rasterizer<Console::HAC>::Hinting hinting) const;
-
-        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
-            Data* data, int size, Rasterizer<Console::HAC>::Hinting hinting) const;
-
-        Rasterizer<Console::HAC>* NewTrueTypeRasterizer(
-            Data* data, int size, float dpiScale, Rasterizer<Console::HAC>::Hinting hinting) const;
-
-        GlyphData* NewGlyphData(Rasterizer<Console::HAC>* rasterizer,
-                                const std::string& text) const;
-
-        GlyphData* NewGlyphData(Rasterizer<Console::HAC>* rasterizer, uint32_t glyph) const;
+        Rasterizer* NewRasterizer(FileData* data) const;
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {
@@ -79,8 +67,5 @@ namespace love
           "nintendo extended",           PlSharedFontType_NintendoExt
         };
         // clang-format on
-
-      private:
-        FT_Library library;
     };
 } // namespace love

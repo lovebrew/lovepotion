@@ -32,6 +32,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
     source/common/matrix_ext.cpp
     source/common/screen_ext.cpp
+    ${PROJECT_SOURCE_DIR}/source/modules/font/fontmodule.cpp
     source/modules/fontmodule_ext.cpp
     source/modules/graphics_ext.cpp
     source/modules/imagemodule_ext.cpp
@@ -43,7 +44,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/window_ext.cpp
     source/modules/wrap_fontmodule_ext.cpp
     source/objects/joystick_ext.cpp
-    source/objects/rasterizer_ext.cpp
+    ${PROJECT_SOURCE_DIR}/source/objects/truetyperasterizer/truetyperasterizer.cpp
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp
     source/objects/texture_ext.cpp

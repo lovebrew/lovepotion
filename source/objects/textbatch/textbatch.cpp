@@ -11,7 +11,7 @@
 using namespace love;
 using namespace love::vertex;
 
-TextBatch::TextBatch(Font* font, const Font::ColoredStrings& strings) :
+TextBatch::TextBatch(Font* font, const ColoredStrings& strings) :
     font(font),
     modifiedVertices(),
     vertexOffset(0),
@@ -72,13 +72,13 @@ void TextBatch::AddTextData(const TextData& text)
 {
     std::vector<Vertex> vertices {};
     std::vector<Font::DrawCommand> newCommands {};
-    Font::TextInfo info {};
+    TextShaper::TextInfo info {};
 
     Color constantColor(Color::WHITE);
     if (text.align == Font::ALIGN_MAX_ENUM)
     {
-        newCommands = this->font->GenerateVertices(text.codepoints, constantColor, vertices, 0.0f,
-                                                   Vector2(0.0f, 0.0f), &info);
+        newCommands = this->font->GenerateVertices(text.codepoints, Range(), constantColor,
+                                                   vertices, 0.0f, Vector2(0.0f, 0.0f), &info);
     }
     else
     {
@@ -138,32 +138,32 @@ void TextBatch::Clear()
     this->vertexOffset   = 0;
 }
 
-void TextBatch::Set(const Font::ColoredStrings& text)
+void TextBatch::Set(const ColoredStrings& text)
 {
     this->Set(text, -1.0f, Font::ALIGN_MAX_ENUM);
 }
 
-void TextBatch::Set(const Font::ColoredStrings& strings, float wrap, Font::AlignMode align)
+void TextBatch::Set(const ColoredStrings& strings, float wrap, Font::AlignMode align)
 {
-    if (strings.empty() || (strings.size() == 1 && strings[0].string.empty()))
+    if (strings.empty() || (strings.size() == 1 && strings[0].str.empty()))
         return this->Clear();
 
-    Font::ColoredCodepoints codepoints {};
-    Font::GetCodepointsFromString(strings, codepoints);
+    ColoredCodepoints codepoints {};
+    GetCodepointsFromString(strings, codepoints);
 
     this->AddTextData({ codepoints, wrap, align, {}, false, false, Matrix4<Console::Which>() });
 }
 
-int TextBatch::Add(const Font::ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
+int TextBatch::Add(const ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
 {
     return this->Addf(strings, -1.0f, Font::ALIGN_MAX_ENUM, matrix);
 }
 
-int TextBatch::Addf(const Font::ColoredStrings& strings, float wrap, Font::AlignMode align,
+int TextBatch::Addf(const ColoredStrings& strings, float wrap, Font::AlignMode align,
                     const Matrix4<Console::Which>& matrix)
 {
-    Font::ColoredCodepoints codepoints {};
-    Font::GetCodepointsFromString(strings, codepoints);
+    ColoredCodepoints codepoints {};
+    GetCodepointsFromString(strings, codepoints);
 
     this->AddTextData({ codepoints, wrap, align, {}, true, true, matrix });
 

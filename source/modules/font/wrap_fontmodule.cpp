@@ -21,7 +21,6 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 
 using namespace love;
 
-using Rasterizer = love::Rasterizer<Console::Which>;
 #define instance() (Module::GetInstance<FontModule<Console::Which>>(Module::M_FONT))
 
 int Wrap_FontModule::NewRasterizer(lua_State* L)
@@ -35,7 +34,7 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     }
     else if (lua_isnoneornil(L, 2))
     {
-        ::Rasterizer* self = nullptr;
+        Rasterizer* self = nullptr;
 
         const char* name           = luaL_checkstring(L, 1);
         const auto systemFontValid = FontModule<Console::Which>::systemFonts.Find(name);

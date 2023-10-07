@@ -52,24 +52,8 @@ namespace love
 
         ~FontModule();
 
-        Rasterizer<Console::CAFE>* NewRasterizer(FileData* data) const;
-
-        Rasterizer<Console::CAFE>* NewTrueTypeRasterizer(
-            int size, Rasterizer<Console::CAFE>::Hinting hinting) const;
-
-        Rasterizer<Console::CAFE>* NewTrueTypeRasterizer(
-            int size, float dpiScale, Rasterizer<Console::CAFE>::Hinting hinting) const;
-
-        Rasterizer<Console::CAFE>* NewTrueTypeRasterizer(
-            Data* data, int size, Rasterizer<Console::CAFE>::Hinting hinting) const;
-
-        Rasterizer<Console::CAFE>* NewTrueTypeRasterizer(
-            Data* data, int size, float dpiScale, Rasterizer<Console::CAFE>::Hinting hinting) const;
-
-        GlyphData* NewGlyphData(Rasterizer<Console::CAFE>* rasterizer,
-                                const std::string& text) const;
-
-        GlyphData* NewGlyphData(Rasterizer<Console::CAFE>* rasterizer, uint32_t glyph) const;
+        Rasterizer* NewTrueTypeRasterizer(int size, OSSharedDataType type,
+                                          TrueTypeRasterizer<>::Hinting hinting) const;
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {

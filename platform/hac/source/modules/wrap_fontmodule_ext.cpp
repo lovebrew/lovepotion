@@ -1,32 +1,33 @@
+#include <modules/fontmodule_ext.hpp>
+
+#include <objects/data/wrap_data.hpp>
+
 #include <modules/font/wrap_fontmodule.hpp>
 
 #include <modules/filesystem/wrap_filesystem.hpp>
 
-#include <objects/data/wrap_data.hpp>
-
-#include <modules/fontmodule_ext.hpp>
-
 #include <utilities/functions.hpp>
 
-using Rasterizer = love::Rasterizer<love::Console::HAC>;
 using namespace love;
 
 #define instance() (Module::GetInstance<FontModule<Console::Which>>(Module::M_FONT))
 
 int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
 {
-    ::Rasterizer* self            = nullptr;
-    ::Rasterizer::Hinting hinting = ::Rasterizer::HINTING_NORMAL;
+    Rasterizer* self = nullptr;
+    std::optional<TrueTypeRasterizer<>::Hinting> hinting;
 
     if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
     {
         int size = luaL_optinteger(L, 1, 13);
 
         const char* hint = luaL_optstring(L, 2, "normal");
-        std::optional<::Rasterizer::Hinting> hinting;
 
-        if (!(hinting = ::Rasterizer::hintings.Find(hint)))
-            return luax::EnumError(L, "TrueType font hinting mode", ::Rasterizer::hintings, hint);
+        if (!(hinting = TrueTypeRasterizer<>::hintings.Find(hint)))
+        {
+            return luax::EnumError(L, "TrueType font hinting mode", TrueTypeRasterizer<>::hintings,
+                                   hint);
+        }
 
         // clang-format off
         if (lua_isnoneornil(L, 3))
@@ -65,10 +66,13 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
         int size = luaL_optinteger(L, 2, 12);
 
         const char* hint = luaL_optstring(L, 3, "normal");
-        std::optional<::Rasterizer::Hinting> hinting;
+        std::optional<TrueTypeRasterizer<>::Hinting> hinting;
 
-        if (!(hinting = ::Rasterizer::hintings.Find(hint)))
-            return luax::EnumError(L, "TrueType font hinting mode", ::Rasterizer::hintings, hint);
+        if (!(hinting = TrueTypeRasterizer<>::hintings.Find(hint)))
+        {
+            return luax::EnumError(L, "TrueType font hinting mode", TrueTypeRasterizer<>::hintings,
+                                   hint);
+        }
 
         if (lua_isnoneornil(L, 4))
         {
@@ -76,7 +80,7 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
             if (systemFont)
             {
                 luax::CatchException(L,
-                    [&]() { self = instance()->NewTrueTypeRasterizer(size, *systemFont, *hinting);});
+                    [&]() { self = instance()->NewTrueTypeRasterizer(size, *hinting, *systemFont);});
             }
             else
             {
@@ -110,9 +114,11 @@ int Wrap_FontModule::NewSystemFontRasterizer(lua_State* L, uint8_t systemFont)
 {
     ::Rasterizer* self = nullptr;
     const auto type    = (PlSharedFontType)systemFont;
-    const auto hinting = ::Rasterizer::HINTING_NORMAL;
+    const auto hinting = TrueTypeRasterizer<>::HINTING_NORMAL;
 
-    luax::CatchException(L, [&]() { self = instance()->NewTrueTypeRasterizer(13, type, hinting); });
+    luax::CatchException(L, [&]() {
+        self = instance()->NewTrueTypeRasterizer(13, hinting, (PlSharedFontType)type);
+    });
 
     luax::PushType(L, self);
     self->Release();

@@ -4,7 +4,7 @@
 
 #include <utilities/shaper/textshaper.hpp>
 
-#include <utf8/utf8.h>
+#include <utf8.h>
 
 using namespace love;
 
@@ -105,6 +105,8 @@ bool TextShaper::HasGlyphs(const std::string& text) const
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
+
+    return true;
 }
 
 int TextShaper::GetAscent() const
@@ -177,6 +179,8 @@ float TextShaper::GetKerning(const std::string& left, const std::string& right)
     {
         throw love::Exception("UTF-8 decoding error: %s", e.what());
     }
+
+    return this->GetKerning(leftGlyph, rightGlyph);
 }
 
 int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* index)

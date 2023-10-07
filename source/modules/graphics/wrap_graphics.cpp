@@ -398,7 +398,7 @@ int Wrap_Graphics::NewFont(lua_State* L)
     checkGraphicsCreated(L);
 
     Font* font = nullptr;
-    if (!luax::IsType(L, 1, Rasterizer<Console::Which>::type))
+    if (!luax::IsType(L, 1, Rasterizer::type))
     {
         std::vector<int> indices;
         for (int i = 0; i < lua_gettop(L); i++)
@@ -441,7 +441,7 @@ int Wrap_Graphics::GetFont(lua_State* L)
 
 int Wrap_Graphics::Print(lua_State* L)
 {
-    Font::ColoredStrings strings {};
+    ColoredStrings strings {};
     Wrap_Font::CheckColoredString(L, 1, strings);
 
     if (luax::IsType(L, 2, Font::type))
@@ -464,7 +464,7 @@ int Wrap_Graphics::Print(lua_State* L)
 
 int Wrap_Graphics::Printf(lua_State* L)
 {
-    Font::ColoredStrings strings {};
+    ColoredStrings strings {};
     Wrap_Font::CheckColoredString(L, 1, strings);
 
     Font* font = nullptr;
@@ -1544,7 +1544,7 @@ int Wrap_Graphics::NewTextBatch(lua_State* L)
         luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font); });
     else
     {
-        Font::ColoredStrings text {};
+        ColoredStrings text {};
         Wrap_Font::CheckColoredString(L, 2, text);
 
         luax::CatchException(L, [&]() { textBatch = instance()->NewTextBatch(font, text); });

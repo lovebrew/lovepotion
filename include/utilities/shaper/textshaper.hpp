@@ -21,6 +21,8 @@ namespace love
         Color color;
     };
 
+    using ColoredStrings = std::vector<ColoredString>;
+
     struct IndexedColor
     {
         Color color;
@@ -124,6 +126,16 @@ namespace love
 
         virtual int ComputeWordWrapIndex(const ColoredCodepoints& codepoints, Range range,
                                          float wrapLimit, float* width) = 0;
+
+        static uint64_t PackGlyphIndex(GlyphIndex index)
+        {
+            return (static_cast<uint64_t>(index.rasterizerIndex) << 32) | (uint64_t)index.index;
+        }
+
+        static GlyphIndex UnpackGlyphIndex(uint64_t packed)
+        {
+            return { static_cast<int>(packed & 0xFFFFFFFF), static_cast<int>(packed >> 32) };
+        }
 
       protected:
         TextShaper(Rasterizer* rasterizer);

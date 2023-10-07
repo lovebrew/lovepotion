@@ -2,6 +2,8 @@
 
 #include <objects/truetyperasterizer/truetyperasterizer.tcc>
 
+#include <utilities/shaper/genericshaper.hpp>
+
 #include <cmath>
 
 using namespace love;
@@ -16,14 +18,15 @@ static constexpr BidirectionalMap loadOptions =
 };
 // clang-format on
 
+template<>
 TrueTypeRasterizer<Console::ALL>::TrueTypeRasterizer(FT_Library library, Data* data, int size,
-                                                     float dpiSacale,
+                                                     float dpiScale,
                                                      TrueTypeRasterizer<>::Hinting hinting) :
     data(data),
     hinting(hinting)
 {
-    this->dpiScale = dpiSacale;
-    size           = std::floor(size * dpiSacale + 0.5f);
+    this->dpiScale = dpiScale;
+    size           = std::floor(size * dpiScale + 0.5f);
 
     if (size <= 0)
         throw Exception("Invalid TrueType font size: %d", size);
@@ -53,16 +56,31 @@ TrueTypeRasterizer<Console::ALL>::TrueTypeRasterizer(FT_Library library, Data* d
     metrics.height    = (int)(s.height >> 6);
 }
 
+template<>
 TrueTypeRasterizer<Console::ALL>::~TrueTypeRasterizer()
 {
     FT_Done_Face(face);
 }
 
+template<>
+TextShaper* TrueTypeRasterizer<Console::ALL>::NewTextShaper()
+{
+    return new GenericShaper(this);
+}
+
+template<>
 int TrueTypeRasterizer<Console::ALL>::GetLineHeight() const
 {
     return (int)(this->GetHeight() * 1.25);
 }
 
+template<>
+bool TrueTypeRasterizer<Console::ALL>::HasGlyph(uint32_t glyph) const
+{
+    return FT_Get_Char_Index(this->face, glyph) != 0;
+}
+
+template<>
 int TrueTypeRasterizer<Console::ALL>::GetGlyphSpacing(uint32_t glyph) const
 {
     FT_Glyph ftglyph;
@@ -84,11 +102,13 @@ int TrueTypeRasterizer<Console::ALL>::GetGlyphSpacing(uint32_t glyph) const
     return (int)(ftglyph->advance.x >> 16);
 }
 
+template<>
 int TrueTypeRasterizer<Console::ALL>::GetGlyphIndex(uint32_t glyph) const
 {
     return FT_Get_Char_Index(this->face, glyph);
 }
 
+template<>
 GlyphData* TrueTypeRasterizer<Console::ALL>::GetGlyphDataForIndex(int index) const
 {
     GlyphData::GlyphMetrics glyphMetrics = {};
@@ -174,19 +194,20 @@ GlyphData* TrueTypeRasterizer<Console::ALL>::GetGlyphDataForIndex(int index) con
     return glyphData;
 }
 
+template<>
 int TrueTypeRasterizer<Console::ALL>::GetGlyphCount() const
 {
     return this->face->num_glyphs;
 }
 
+template<>
 float TrueTypeRasterizer<Console::ALL>::GetKerning(uint32_t left, uint32_t right) const
 {
     FT_Vector kerning {};
     FT_Error error = FT_Err_Ok;
 
     error = FT_Get_Kerning(this->face, FT_Get_Char_Index(this->face, left),
-                           FT_Get_Char_Index(this->face, right), FT_KERNING_DEFAULT | *loadoption,
-                           &kerning);
+                           FT_Get_Char_Index(this->face, right), FT_KERNING_DEFAULT, &kerning);
 
     if (error != FT_Err_Ok)
         return 0;
@@ -194,11 +215,13 @@ float TrueTypeRasterizer<Console::ALL>::GetKerning(uint32_t left, uint32_t right
     return (float)(kerning.x >> 6);
 }
 
+template<>
 Rasterizer::DataType TrueTypeRasterizer<Console::ALL>::GetDataType() const
 {
     return Rasterizer::DataType::DATA_TRUETYPE;
 }
 
+template<>
 bool TrueTypeRasterizer<Console::ALL>::Accepts(FT_Library library, Data* data)
 {
     const FT_Byte* fbase = (const FT_Byte*)data->GetData();

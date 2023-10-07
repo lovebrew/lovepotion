@@ -426,6 +426,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/quad/wrap_quad.cpp
     source/objects/randomgenerator/randomgenerator.cpp
     source/objects/randomgenerator/wrap_randomgenerator.cpp
+    source/objects/rasterizer/rasterizer.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/source/wrap_source.cpp
     source/objects/spritebatch/spritebatch.cpp
@@ -471,6 +472,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/pool/sources.cpp
     source/utilities/pool/vibrations.cpp
     source/utilities/result.cpp
+    source/utilities/shaper/genericshaper.cpp
+    source/utilities/shaper/textshaper.cpp
     source/utilities/stream/stream.cpp
     source/utilities/stream/types/datastream.cpp
     source/utilities/threads/thread.cpp
