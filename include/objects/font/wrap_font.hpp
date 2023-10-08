@@ -7,7 +7,7 @@ namespace Wrap_Font
 {
     love::Font* CheckFont(lua_State* L, int index);
 
-    void CheckColoredString(lua_State* L, int index, love::Font::ColoredStrings& strings);
+    void CheckColoredString(lua_State* L, int index, love::ColoredStrings& strings);
 
     int GetWidth(lua_State* L);
 

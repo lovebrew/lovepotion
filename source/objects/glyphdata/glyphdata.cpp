@@ -16,11 +16,19 @@ GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format) :
         this->data = std::make_unique<uint8_t[]>(this->GetSize());
 }
 
+GlyphData::GlyphData(uint32_t glyph, GlyphMetrics metrics, GlyphSheetInfo info,
+                     PixelFormat format) :
+    GlyphData(glyph, metrics, format)
+{
+    this->sheetInfo = info;
+}
+
 GlyphData::GlyphData(const GlyphData& other) :
     glyph(other.glyph),
     metrics(other.metrics),
     data(nullptr),
-    format(other.format)
+    format(other.format),
+    sheetInfo(other.sheetInfo)
 {
     if (metrics.width > 0 && metrics.height > 0)
     {

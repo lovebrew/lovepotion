@@ -368,7 +368,10 @@ bool Filesystem::MountFullPath(const char* archive, const char* mountPoint,
 
     /* temp hack */
     if (permissions == MountPermissions::MOUNT_READWRITE)
-        return PHYSFS_setWriteDir(archive) != 0;
+    {
+        if (!PHYSFS_setWriteDir(archive))
+            return false;
+    }
 
     // if (permissions == MountPermissions::READWRITE)
     //     return PHYSFS_mountRW(archive, mountPoint, appendToPath) != 0;

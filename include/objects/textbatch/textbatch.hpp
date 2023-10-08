@@ -3,7 +3,7 @@
 #include <common/console.hpp>
 #include <common/drawable.hpp>
 #include <common/exception.hpp>
-#include <common/range.h>
+#include <common/range.hpp>
 #include <common/strongreference.hpp>
 
 #include <objects/font/font.hpp>
@@ -15,17 +15,17 @@ namespace love
       public:
         static inline Type type = Type("TextBatch", &Drawable::type);
 
-        TextBatch(Font* font, const Font::ColoredStrings& text = {});
+        TextBatch(Font* font, const ColoredStrings& text = {});
 
         virtual ~TextBatch();
 
-        void Set(const Font::ColoredStrings& text);
+        void Set(const ColoredStrings& text);
 
-        void Set(const Font::ColoredStrings& text, float wrap, Font::AlignMode align);
+        void Set(const ColoredStrings& text, float wrap, Font::AlignMode align);
 
-        int Add(const Font::ColoredStrings& text, const Matrix4<Console::Which>& matrix);
+        int Add(const ColoredStrings& text, const Matrix4<Console::Which>& matrix);
 
-        int Addf(const Font::ColoredStrings& text, float wrap, Font::AlignMode align,
+        int Addf(const ColoredStrings& text, float wrap, Font::AlignMode align,
                  const Matrix4<Console::Which>& matrix);
 
         void Clear();
@@ -47,10 +47,10 @@ namespace love
       private:
         struct TextData
         {
-            Font::ColoredCodepoints codepoints;
+            ColoredCodepoints codepoints;
             float wrap;
             Font::AlignMode align;
-            Font::TextInfo textInfo;
+            TextShaper::TextInfo textInfo;
             bool useMatrix;
             bool appendVertices;
             Matrix4<Console::Which> matrix;

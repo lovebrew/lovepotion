@@ -299,7 +299,7 @@ namespace love
             if (Console::Is(Console::CTR))
             {
                 const auto _width = NextPo2(this->width);
-                pixel             = (Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
+                pixel = (Pixel*)Color::FromTile(this->data.get(), _width, { (float)x, (float)y });
             }
             else
                 pixel = (Pixel*)(this->data.get() + (y * this->width + x) * size);
@@ -326,7 +326,7 @@ namespace love
             if (Console::Is(Console::CTR))
             {
                 const auto _width = NextPo2(this->width);
-                pixel             = (Pixel*)Color::FromTile(this->data.get(), _width, { x, y });
+                pixel = (Pixel*)Color::FromTile(this->data.get(), _width, { (float)x, (float)y });
             }
             else
                 pixel = (Pixel*)(this->data.get() + (y * this->width + x) * size);

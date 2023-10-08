@@ -12,8 +12,11 @@
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
-#include <objects/rasterizer_ext.hpp>
+#include <objects/glyphdata/glyphdata.hpp>
 #include <objects/texture/texture.tcc>
+
+#include <objects/rasterizer/rasterizer.hpp>
+#include <utilities/shaper/textshaper.hpp>
 
 #include <vector>
 
@@ -26,7 +29,7 @@ using TextureHandle = love::Texture<love::Console::Which>;
 
 namespace love
 {
-    using StrongRasterizer = StrongReference<Rasterizer<Console::Which>>;
+    using StrongRasterizer = StrongReference<Rasterizer>;
 
     class Font : public Object
     {
@@ -42,32 +45,6 @@ namespace love
             ALIGN_RIGHT,
             ALIGN_JUSTIFY,
             ALIGN_MAX_ENUM
-        };
-
-        struct ColoredString
-        {
-            std::string string;
-            Color color;
-        };
-
-        using ColoredStrings = std::vector<ColoredString>;
-
-        struct IndexedColor
-        {
-            Color color;
-            int index;
-        };
-
-        struct ColoredCodepoints
-        {
-            std::vector<uint32_t> codepoints;
-            std::vector<IndexedColor> colors;
-        };
-
-        struct TextInfo
-        {
-            int width;
-            int height;
         };
 
         struct Glyph
@@ -90,43 +67,38 @@ namespace love
 
         static inline int fontCount = 0;
 
-        Font(Rasterizer<Console::Which>* rasterizer, const SamplerState& state);
+        Font(Rasterizer* rasterizer, const SamplerState& state);
 
         virtual ~Font()
         {
             Font::fontCount--;
         }
 
-        int GetWidth(std::string_view text);
+        int GetWidth(const std::string& text);
 
         int GetWidth(uint32_t glyph);
 
-        bool HasGlyphs(std::string_view text) const;
+        bool HasGlyphs(const std::string& text) const;
 
         bool HasGlyph(uint32_t glyph) const;
 
         float GetKerning(uint32_t left, uint32_t right);
 
-        float GetKerning(std::string_view left, std::string_view right);
+        float GetKerning(const std::string& left, const std::string& right);
 
-        static void GetCodepointsFromString(std::string_view text, Codepoints& codepoints);
-
-        static void GetCodepointsFromString(const ColoredStrings& strings,
-                                            ColoredCodepoints& codepoints);
-
-        void GetWrap(const std::vector<ColoredString>& text, float wraplimit,
-                     std::vector<std::string>& lines, std::vector<int>* line_widths = nullptr);
+        void GetWrap(const ColoredStrings& text, float w32raplimit, std::vector<std::string>& lines,
+                     std::vector<int>* line_widths = nullptr);
 
         void GetWrap(const ColoredCodepoints& codepoints, float wraplimit,
-                     std::vector<ColoredCodepoints>& lines, std::vector<int>* linewidths = nullptr);
+                     std::vector<Range>& ranges, std::vector<int>* linewidths = nullptr);
 
         void SetFallbacks(const std::vector<Font*>& fallbacks)
         {}
 
-        void Print(Graphics<Console::Which>& graphics, const ColoredStrings& text,
+        void Print(Graphics<Console::ALL>& graphics, const ColoredStrings& text,
                    const Matrix4<Console::Which>& localTransform, const Color& color);
 
-        void Printf(Graphics<Console::Which>& graphics, const ColoredStrings& text, float wrap,
+        void Printf(Graphics<Console::ALL>& graphics, const ColoredStrings& text, float wrap,
                     AlignMode alignment, const Matrix4<Console::Which>& localTransform,
                     const Color& color);
 
@@ -134,10 +106,7 @@ namespace love
 
         int GetDescent() const;
 
-        float GetHeight() const
-        {
-            return std::floor(this->height / this->dpiScale + 0.5f);
-        }
+        float GetHeight() const;
 
         uint32_t GetTextureCacheID() const
         {
@@ -146,29 +115,21 @@ namespace love
 
         float GetBaseline() const;
 
-        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints,
+        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints, Range range,
                                                   const Color& color,
                                                   std::vector<vertex::Vertex>& vertices,
                                                   float extraSpacing = 0.0f, Vector2 offset = {},
-                                                  TextInfo* info = nullptr);
+                                                  TextShaper::TextInfo* info = nullptr);
 
         std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
                                                            const Color& color, float wrap,
                                                            AlignMode align,
                                                            std::vector<vertex::Vertex>& vertices,
-                                                           TextInfo* info = nullptr);
+                                                           TextShaper::TextInfo* info = nullptr);
 
-        void SetFont(Font* font);
+        void SetLineHeight(float height);
 
-        void SetLineHeight(float height)
-        {
-            this->lineHeight = height;
-        }
-
-        float GetLineHeight() const
-        {
-            return this->lineHeight;
-        }
+        float GetLineHeight() const;
 
         void SetSamplerState(const SamplerState& state);
 
@@ -208,13 +169,13 @@ namespace love
 
         TextureSize GetNextTextureSize() const;
 
-        GlyphData* GetRasterizerGlyphData(uint32_t glyph, float& dpiScale);
+        GlyphData* GetRasterizerGlyphData(TextShaper::GlyphIndex glyphIndex, float& dpiScale);
 
-        const Glyph& AddGlyph(uint32_t glyph);
+        const Glyph& AddGlyph(TextShaper::GlyphIndex glyphIndex);
 
-        const Glyph& FindGlyph(uint32_t glyph);
+        const Glyph& FindGlyph(TextShaper::GlyphIndex glyphIndex);
 
-        void Printv(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& transform,
+        void Printv(Graphics<Console::ALL>& graphics, const Matrix4<Console::Which>& transform,
                     const std::vector<DrawCommand>& drawCommands,
                     const std::vector<vertex::Vertex>& vertices);
 
@@ -230,12 +191,13 @@ namespace love
 #if defined(__3DS__)
         std::vector<C3D_Tex> textures;
 #else
-        std::vector<StrongReference<Texture<Console::Which>>> textures;
+        std::vector<StrongReference<Texture<Console::Which> > > textures;
 #endif
+
+        StrongReference<TextShaper> shaper;
 
         std::unordered_map<uint32_t, Glyph> glyphs;
         std::unordered_map<uint64_t, float> kernings;
-        std::vector<StrongRasterizer> rasterizers;
 
         static constexpr auto SPACES_PER_TAB  = 0x04;
         static constexpr uint32_t TAB_GLYPH   = 9;
@@ -245,9 +207,6 @@ namespace love
         static constexpr uint32_t CARRIAGE_GLYPH = 13;
 
         static constexpr int TEXTURE_PADDING = 2;
-
-        float lineHeight;
-        float height;
 
         SamplerState samplerState;
         float dpiScale;

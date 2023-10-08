@@ -48,15 +48,14 @@ source/modules/love_ext.cpp
 source/modules/system_ext.cpp
 source/modules/timer_ext.cpp
 source/modules/window_ext.cpp
-source/modules/wrap_fontmodule_ext.cpp
 source/modules/wrap_graphics_ext.cpp
 source/modules/wrap_system_ext.cpp
 source/objects/imagedata_ext.cpp
 source/objects/joystick_ext.cpp
-source/objects/rasterizer_ext.cpp
 source/objects/shader_ext.cpp
 source/objects/source_ext.cpp
 source/objects/texture_ext.cpp
+source/objects/truetyperasterizer_ext.cpp
 source/objects/wrap_font_ext.cpp
 source/objects/wrap_imagedata_ext.cpp
 source/runtime.cpp

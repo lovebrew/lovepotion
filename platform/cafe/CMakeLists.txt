@@ -32,10 +32,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
     source/modules/window_ext.cpp
-    source/modules/wrap_fontmodule_ext.cpp
     source/objects/gamepad.cpp
     source/objects/procontroller.cpp
-    source/objects/rasterizer_ext.cpp
+    ${PROJECT_SOURCE_DIR}/source/objects/truetyperasterizer/truetyperasterizer.cpp
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp
     source/objects/texture_ext.cpp

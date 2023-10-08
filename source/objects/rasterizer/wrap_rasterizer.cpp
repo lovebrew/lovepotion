@@ -3,9 +3,8 @@
 #include <objects/glyphdata/glyphdata.hpp>
 
 using namespace love;
-using Rasterizer = love::Rasterizer<Console::Which>;
 
-::Rasterizer* Wrap_Rasterizer::CheckRasterizer(lua_State* L, int index)
+Rasterizer* Wrap_Rasterizer::CheckRasterizer(lua_State* L, int index)
 {
     return luax::CheckType<::Rasterizer>(L, index);
 }

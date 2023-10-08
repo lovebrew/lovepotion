@@ -14,7 +14,7 @@ int Wrap_TextBatch::Set(lua_State* L)
 {
     auto* self = Wrap_TextBatch::CheckTextBatch(L, 1);
 
-    Font::ColoredStrings newText {};
+    ColoredStrings newText {};
     Wrap_Font::CheckColoredString(L, 2, newText);
 
     luax::CatchException(L, [&]() { self->Set(newText); });
@@ -33,7 +33,7 @@ int Wrap_TextBatch::Setf(lua_State* L)
     if (!(align = Font::alignModes.Find(alignMode)))
         return luax::EnumError(L, "align mode", Font::alignModes, alignMode);
 
-    Font::ColoredStrings newText {};
+    ColoredStrings newText {};
     Wrap_Font::CheckColoredString(L, 2, newText);
 
     luax::CatchException(L, [&]() { self->Set(newText, limit, *align); });
@@ -46,7 +46,7 @@ int Wrap_TextBatch::Add(lua_State* L)
     auto* self = Wrap_TextBatch::CheckTextBatch(L, 1);
 
     int index = 0;
-    Font::ColoredStrings text {};
+    ColoredStrings text {};
     Wrap_Font::CheckColoredString(L, 2, text);
 
     if (luax::IsType(L, 3, Transform::type))
@@ -81,7 +81,7 @@ int Wrap_TextBatch::Addf(lua_State* L)
 
     int index = 0;
 
-    Font::ColoredStrings text {};
+    ColoredStrings text {};
     Wrap_Font::CheckColoredString(L, 2, text);
 
     float wrap = luaL_checknumber(L, 3);

@@ -1,30 +1,16 @@
 #pragma once
 
-#include <common/console.hpp>
-#include <common/exception.hpp>
-
 #include <common/object.hpp>
 
 #include <objects/glyphdata/glyphdata.hpp>
 
-#include <utf8.h>
-
 namespace love
 {
-    using Utf8Iterator = utf8::iterator<std::string_view::const_iterator>;
+    class TextShaper;
 
-    template<Console::Platform T = Console::ALL>
     class Rasterizer : public Object
     {
       public:
-        enum Hinting
-        {
-            HINTING_NORMAL,
-            HINTING_LIGHT,
-            HINTING_MONO,
-            HINTING_NONE
-        };
-
         struct FontMetrics
         {
             int advance;
@@ -40,7 +26,7 @@ namespace love
             DATA_BCFNT
         };
 
-        static inline Type type = Type("Rasterizer", &Object::type);
+        static Type type;
 
         virtual ~Rasterizer()
         {}
@@ -65,24 +51,42 @@ namespace love
             return this->metrics.height;
         }
 
-        float GetKerning(uint32_t /* left */, uint32_t /* right */) const
-        {
-            return 0.0f;
-        }
+        virtual int GetLineHeight() const = 0;
+
+        virtual int GetGlyphSpacing(uint32_t glyph) const = 0;
+
+        virtual int GetGlyphIndex(uint32_t glyph) const = 0;
+
+        GlyphData* GetGlyphData(uint32_t glyph) const;
+
+        GlyphData* GetGlyphData(const std::string& text) const;
+
+        virtual GlyphData* GetGlyphDataForIndex(int index) const = 0;
+
+        virtual int GetGlyphCount() const = 0;
+
+        virtual bool HasGlyph(uint32_t glyph) const = 0;
+
+        virtual bool HasGlyphs(const std::string& text) const;
+
+        virtual float GetKerning(uint32_t left, uint32_t right) const;
 
         float GetDPIScale() const
         {
             return this->dpiScale;
         }
 
-        DataType GetDataType() const
+        virtual DataType GetDataType() const = 0;
+
+        virtual void* GetHandle() const
         {
-            return this->dataType;
+            return nullptr;
         }
+
+        virtual TextShaper* NewTextShaper() = 0;
 
       protected:
         FontMetrics metrics;
         float dpiScale;
-        DataType dataType;
     };
 } // namespace love

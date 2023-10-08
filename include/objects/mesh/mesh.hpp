@@ -1,7 +1,7 @@
 #pragma once
 
 #include <common/drawable.hpp>
-#include <common/range.h>
+#include <common/range.hpp>
 #include <common/strongreference.hpp>
 
 #include <objects/texture/texture.tcc>
