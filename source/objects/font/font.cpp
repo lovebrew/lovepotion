@@ -339,7 +339,7 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
         const auto _width  = (double)this->textureWidth;
         const auto _height = (double)this->textureHeight;
 
-        const auto offset = 1.0f;
+        offset = 1.0f;
 
         /* texture coordinates */
         left   = (float)((x - offset) / _width);
@@ -522,7 +522,8 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
         }
     };
 
-    // std::sort(commands.begin(), commands.end(), drawSort);
+    if (!Console::Is(Console::CTR))
+        std::sort(commands.begin(), commands.end(), drawSort);
 
     return commands;
 }

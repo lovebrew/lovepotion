@@ -88,8 +88,8 @@ int TrueTypeRasterizer<Console::Which>::GetGlyphSpacing(uint32_t glyph) const
 
     std::optional<long> loadoption = loadOptions.Find(this->hinting);
 
-    error = FT_Load_Glyph(this->face, FT_Get_Char_Index(this->face, glyph),
-                          FT_LOAD_DEFAULT | *loadoption);
+    const auto glyphIndex = FT_Get_Char_Index(this->face, glyph);
+    error                 = FT_Load_Glyph(this->face, glyphIndex, FT_LOAD_DEFAULT | *loadoption);
 
     if (error != FT_Err_Ok)
         return 0;
@@ -210,13 +210,15 @@ float TrueTypeRasterizer<Console::Which>::GetKerning(uint32_t left, uint32_t rig
     FT_Vector kerning {};
     FT_Error error = FT_Err_Ok;
 
-    error = FT_Get_Kerning(this->face, FT_Get_Char_Index(this->face, left),
-                           FT_Get_Char_Index(this->face, right), FT_KERNING_DEFAULT, &kerning);
+    const auto leftChar  = FT_Get_Char_Index(this->face, left);
+    const auto rightChar = FT_Get_Char_Index(this->face, right);
+
+    error = FT_Get_Kerning(this->face, leftChar, rightChar, FT_KERNING_DEFAULT, &kerning);
 
     if (error != FT_Err_Ok)
         return 0;
 
-    return (float)(kerning.x >> 6);
+    return float(kerning.x >> 6);
 }
 
 template<>

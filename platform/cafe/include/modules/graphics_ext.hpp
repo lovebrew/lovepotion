@@ -2,8 +2,6 @@
 
 #include <modules/graphics/graphics.tcc>
 
-#include <objects/rasterizer/rasterizer.hpp>
-
 namespace love
 {
     template<>

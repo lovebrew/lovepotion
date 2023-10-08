@@ -8,8 +8,6 @@
 
 #include <modules/fontmodule_ext.hpp>
 
-#include <objects/truetyperasterizer_ext.hpp>
-
 using namespace love;
 
 #define instance() (Module::GetInstance<FontModule<Console::Which>>(Module::M_FONT))

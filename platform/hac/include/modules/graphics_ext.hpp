@@ -2,8 +2,6 @@
 
 #include <modules/graphics/graphics.tcc>
 
-#include <objects/truetyperasterizer_ext.hpp>
-
 namespace love
 {
     template<>
@@ -19,8 +17,6 @@ namespace love
         void SetShader();
 
         void SetShader(Shader<Console::HAC>* shader);
-
-        Font* NewDefaultFont(int size, TrueTypeRasterizer<>::Hinting hinting) const;
 
         Texture<Console::HAC>* NewTexture(const Texture<>::Settings& settings,
                                           const Texture<>::Slices* slices = nullptr) const;
