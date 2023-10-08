@@ -2,7 +2,7 @@
 
 #include <modules/fontmodule_ext.hpp>
 
-#include <objects/truetyperasterizer_ext.hpp>
+#include <objects/truetyperasterizer/truetyperasterizer.tcc>
 
 #include <utilities/shaper/genericshaper.hpp>
 

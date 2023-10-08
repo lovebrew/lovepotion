@@ -51,7 +51,7 @@ namespace love
       public:
         FontModule();
 
-        ~FontModule();
+        virtual ~FontModule() {};
 
         using FontModule<Console::ALL>::NewTrueTypeRasterizer;
 

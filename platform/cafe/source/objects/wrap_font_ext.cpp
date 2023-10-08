@@ -6,7 +6,7 @@ int Wrap_Font::GetWrap(lua_State* L)
 {
     auto* self = Wrap_Font::CheckFont(L, 1);
 
-    std::vector<Font::ColoredString> text;
+    std::vector<ColoredString> text;
     Wrap_Font::CheckColoredString(L, 2, text);
 
     float wrap = luaL_checknumber(L, 3);

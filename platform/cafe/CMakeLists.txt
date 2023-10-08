@@ -32,7 +32,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/system_ext.cpp
     source/modules/timer_ext.cpp
     source/modules/window_ext.cpp
-    source/modules/fontmodule.cpp
     source/objects/gamepad.cpp
     source/objects/procontroller.cpp
     ${PROJECT_SOURCE_DIR}/source/objects/truetyperasterizer/truetyperasterizer.cpp

@@ -2,8 +2,6 @@
 
 #include <modules/fontmodule_ext.hpp>
 
-#include <objects/truetyperasterizer_ext.hpp>
-
 using namespace love;
 
 SystemFont::SystemFont(CFG_Region region)
