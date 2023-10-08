@@ -78,9 +78,9 @@ namespace love
 
         virtual DataType GetDataType() const = 0;
 
-        virtual ptrdiff_t GetHandle() const
+        virtual void* GetHandle() const
         {
-            return 0;
+            return nullptr;
         }
 
         virtual TextShaper* NewTextShaper() = 0;

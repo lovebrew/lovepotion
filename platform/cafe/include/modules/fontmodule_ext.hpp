@@ -2,15 +2,16 @@
 
 #include <modules/font/fontmodule.tcc>
 
-#include <objects/data/filedata/filedata.hpp>
-#include <objects/rasterizer_ext.hpp>
-
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
+
+#include <objects/data/filedata/filedata.hpp>
 
 #include <coreinit/memory.h>
 
 namespace love
 {
+    using SystemFontType = OSSharedDataType;
+
     class SystemFont : public Data
     {
       public:
@@ -52,8 +53,18 @@ namespace love
 
         ~FontModule();
 
-        Rasterizer* NewTrueTypeRasterizer(int size, OSSharedDataType type,
-                                          TrueTypeRasterizer<>::Hinting hinting) const;
+        using FontModule<Console::ALL>::NewTrueTypeRasterizer;
+
+        Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting,
+                                          OSSharedDataType type) const;
+
+        Rasterizer* NewTrueTypeRasterizer(Data* data, int size,
+                                          TrueTypeRasterizer<>::Hinting hinting) const override;
+
+        Rasterizer* NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
+                                          TrueTypeRasterizer<>::Hinting hinting) const override;
+
+        Rasterizer* NewRasterizer(FileData* data) const;
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {

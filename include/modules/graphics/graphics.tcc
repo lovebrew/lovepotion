@@ -8,6 +8,7 @@
 
 #include <common/matrix_ext.hpp>
 
+#include <modules/font/fontmodule.tcc>
 #include <modules/math/math.hpp>
 #include <modules/window/window.tcc>
 
@@ -687,6 +688,59 @@ namespace love
         {
             if (shader == nullptr)
                 return this->SetShader();
+        }
+
+        Font* NewDefaultFont(int size, TrueTypeRasterizer<>::Hinting hinting) const
+        {
+            auto module = Module::GetInstance<FontModule<Console::ALL>>(M_FONT);
+
+            if (!module)
+                throw love::Exception("Font module has not been loaded.");
+
+            StrongRasterizer rasterizer(module->NewTrueTypeRasterizer(size, hinting));
+            return this->NewFont(rasterizer.Get());
+        }
+
+        void CheckSetDefaultFont()
+        {
+            if (this->states.back().font.Get() != nullptr)
+                return;
+
+            if (!this->defaultFont.Get())
+            {
+                this->defaultFont.Set(
+                    this->NewDefaultFont(13, TrueTypeRasterizer<>::HINTING_NORMAL));
+            }
+
+            this->states.back().font.Set(this->defaultFont.Get());
+        }
+
+        void Print(const ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
+        {
+            this->CheckSetDefaultFont();
+
+            if (this->states.back().font.Get() != nullptr)
+                this->Print(strings, this->states.back().font.Get(), matrix);
+        }
+
+        void Print(const ColoredStrings& strings, Font* font, const Matrix4<Console::Which>& matrix)
+        {
+            font->Print(*this, strings, matrix, this->states.back().foreground);
+        }
+
+        void Printf(const ColoredStrings& strings, float wrap, Font::AlignMode align,
+                    const Matrix4<Console::Which>& matrix)
+        {
+            this->CheckSetDefaultFont();
+
+            if (this->states.back().font.Get() != nullptr)
+                this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
+        }
+
+        void Printf(const ColoredStrings& strings, Font* font, float wrap, Font::AlignMode align,
+                    const Matrix4<Console::Which>& matrix)
+        {
+            font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
         }
 
         Shader<Console::Which>* GetShader() const

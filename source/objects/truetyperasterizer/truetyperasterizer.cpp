@@ -19,9 +19,9 @@ static constexpr BidirectionalMap loadOptions =
 // clang-format on
 
 template<>
-TrueTypeRasterizer<Console::ALL>::TrueTypeRasterizer(FT_Library library, Data* data, int size,
-                                                     float dpiScale,
-                                                     TrueTypeRasterizer<>::Hinting hinting) :
+TrueTypeRasterizer<Console::Which>::TrueTypeRasterizer(FT_Library library, Data* data, int size,
+                                                       float dpiScale,
+                                                       TrueTypeRasterizer<>::Hinting hinting) :
     data(data),
     hinting(hinting)
 {
@@ -57,31 +57,31 @@ TrueTypeRasterizer<Console::ALL>::TrueTypeRasterizer(FT_Library library, Data* d
 }
 
 template<>
-TrueTypeRasterizer<Console::ALL>::~TrueTypeRasterizer()
+TrueTypeRasterizer<Console::Which>::~TrueTypeRasterizer()
 {
     FT_Done_Face(face);
 }
 
 template<>
-TextShaper* TrueTypeRasterizer<Console::ALL>::NewTextShaper()
+TextShaper* TrueTypeRasterizer<Console::Which>::NewTextShaper()
 {
     return new GenericShaper(this);
 }
 
 template<>
-int TrueTypeRasterizer<Console::ALL>::GetLineHeight() const
+int TrueTypeRasterizer<Console::Which>::GetLineHeight() const
 {
     return (int)(this->GetHeight() * 1.25);
 }
 
 template<>
-bool TrueTypeRasterizer<Console::ALL>::HasGlyph(uint32_t glyph) const
+bool TrueTypeRasterizer<Console::Which>::HasGlyph(uint32_t glyph) const
 {
     return FT_Get_Char_Index(this->face, glyph) != 0;
 }
 
 template<>
-int TrueTypeRasterizer<Console::ALL>::GetGlyphSpacing(uint32_t glyph) const
+int TrueTypeRasterizer<Console::Which>::GetGlyphSpacing(uint32_t glyph) const
 {
     FT_Glyph ftglyph;
     FT_Error error = FT_Err_Ok;
@@ -103,13 +103,16 @@ int TrueTypeRasterizer<Console::ALL>::GetGlyphSpacing(uint32_t glyph) const
 }
 
 template<>
-int TrueTypeRasterizer<Console::ALL>::GetGlyphIndex(uint32_t glyph) const
+int TrueTypeRasterizer<Console::Which>::GetGlyphIndex(uint32_t glyph) const
 {
-    return FT_Get_Char_Index(this->face, glyph);
+    const auto index      = FT_Get_Char_Index(this->face, glyph);
+    this->glyphMap[glyph] = index;
+
+    return this->glyphMap[glyph];
 }
 
 template<>
-GlyphData* TrueTypeRasterizer<Console::ALL>::GetGlyphDataForIndex(int index) const
+GlyphData* TrueTypeRasterizer<Console::Which>::GetGlyphDataForIndex(int index) const
 {
     GlyphData::GlyphMetrics glyphMetrics = {};
     FT_Glyph ftglyph;
@@ -145,7 +148,8 @@ GlyphData* TrueTypeRasterizer<Console::ALL>::GetGlyphDataForIndex(int index) con
     glyphMetrics.bearingY = bitmapGlyph->top;
     glyphMetrics.advance  = (int)(ftglyph->advance.x >> 16);
 
-    GlyphData* glyphData = new GlyphData(0, glyphMetrics, PIXELFORMAT_RGBA8_UNORM);
+    GlyphData* glyphData =
+        new GlyphData(this->glyphMap[index], glyphMetrics, PIXELFORMAT_RGBA8_UNORM);
 
     const uint8_t* pixels = bitmap.buffer;
     uint8_t* destination  = (uint8_t*)glyphData->GetData();
@@ -195,13 +199,13 @@ GlyphData* TrueTypeRasterizer<Console::ALL>::GetGlyphDataForIndex(int index) con
 }
 
 template<>
-int TrueTypeRasterizer<Console::ALL>::GetGlyphCount() const
+int TrueTypeRasterizer<Console::Which>::GetGlyphCount() const
 {
     return this->face->num_glyphs;
 }
 
 template<>
-float TrueTypeRasterizer<Console::ALL>::GetKerning(uint32_t left, uint32_t right) const
+float TrueTypeRasterizer<Console::Which>::GetKerning(uint32_t left, uint32_t right) const
 {
     FT_Vector kerning {};
     FT_Error error = FT_Err_Ok;
@@ -216,13 +220,13 @@ float TrueTypeRasterizer<Console::ALL>::GetKerning(uint32_t left, uint32_t right
 }
 
 template<>
-Rasterizer::DataType TrueTypeRasterizer<Console::ALL>::GetDataType() const
+Rasterizer::DataType TrueTypeRasterizer<Console::Which>::GetDataType() const
 {
     return Rasterizer::DataType::DATA_TRUETYPE;
 }
 
 template<>
-bool TrueTypeRasterizer<Console::ALL>::Accepts(FT_Library library, Data* data)
+bool TrueTypeRasterizer<Console::Which>::Accepts(FT_Library library, Data* data)
 {
     const FT_Byte* fbase = (const FT_Byte*)data->GetData();
     FT_Long fsize        = (FT_Long)data->GetSize();

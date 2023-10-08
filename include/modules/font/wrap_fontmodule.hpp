@@ -8,11 +8,7 @@ namespace Wrap_FontModule
 
     int NewGlyphData(lua_State* L);
 
-    int NewSystemFontRasterizer(lua_State* L, uint8_t systemFont);
-
     int NewTrueTypeRasterizer(lua_State* L);
-
-    int NewBCFNTRasterizer(lua_State* L);
 
     int Register(lua_State* L);
 

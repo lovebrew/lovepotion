@@ -25,65 +25,6 @@ Graphics<Console::CTR>::Graphics()
 
 /* objects */
 
-Font* Graphics<Console::CTR>::NewDefaultFont(int size) const
-{
-    auto fontModule = Module::GetInstance<FontModule<Console::CTR>>(M_FONT);
-
-    if (!fontModule)
-        throw love::Exception("Font module has not been loaded.");
-
-    StrongReference<Rasterizer<Console::CTR>> rasterizer(fontModule->NewBCFNTRasterizer(size),
-                                                         Acquire::NORETAIN);
-
-    return this->NewFont(rasterizer.Get());
-}
-
-void Graphics<Console::CTR>::CheckSetDefaultFont()
-{
-    if (this->states.back().font.Get() != nullptr)
-        return;
-
-    if (!this->defaultFont.Get())
-        this->defaultFont.Set(this->NewDefaultFont(12), Acquire::NORETAIN);
-
-    this->states.back().font.Set(this->defaultFont.Get());
-}
-
-Font* Graphics<Console::CTR>::NewFont(Rasterizer<Console::CTR>* data) const
-{
-    return new Font(data, this->states.back().defaultSamplerState);
-}
-
-void Graphics<Console::CTR>::Print(const Font::ColoredStrings& strings,
-                                   const Matrix4<Console::CTR>& matrix)
-{
-    this->CheckSetDefaultFont();
-
-    if (this->states.back().font.Get() != nullptr)
-        this->Print(strings, this->states.back().font.Get(), matrix);
-}
-
-void Graphics<Console::CTR>::Print(const Font::ColoredStrings& strings, Font* font,
-                                   const Matrix4<Console::CTR>& matrix)
-{
-    font->Print(*this, strings, matrix, this->states.back().foreground);
-}
-
-void Graphics<Console::CTR>::Printf(const Font::ColoredStrings& strings, float wrap,
-                                    Font::AlignMode align, const Matrix4<Console::CTR>& matrix)
-{
-    this->CheckSetDefaultFont();
-
-    if (this->states.back().font.Get() != nullptr)
-        this->Printf(strings, this->states.back().font.Get(), wrap, align, matrix);
-}
-
-void Graphics<Console::CTR>::Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
-                                    Font::AlignMode align, const Matrix4<Console::CTR>& matrix)
-{
-    font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
-}
-
 void Graphics<Console::CTR>::SetShader()
 {
     Shader<Console::CTR>::AttachDefault(Shader<>::STANDARD_DEFAULT);

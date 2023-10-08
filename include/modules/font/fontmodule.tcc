@@ -22,8 +22,7 @@ namespace love
       public:
         FontModule();
 
-        virtual ~FontModule()
-        {}
+        virtual ~FontModule();
 
         virtual ModuleType GetModuleType() const
         {
@@ -35,20 +34,18 @@ namespace love
             return "love.font";
         }
 
-        Rasterizer* NewTrueTypeRasterizer(int size,
-                                          TrueTypeRasterizer<Console::ALL>::Hinting hinting) const;
+        Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting) const;
 
         Rasterizer* NewTrueTypeRasterizer(int size, float dpiScale,
-                                          TrueTypeRasterizer<Console::ALL>::Hinting hinting) const;
+                                          TrueTypeRasterizer<>::Hinting hinting) const;
 
-        virtual Rasterizer* NewTrueTypeRasterizer(
-            Data* data, int size, TrueTypeRasterizer<Console::ALL>::Hinting hinting) const = 0;
+        virtual Rasterizer* NewTrueTypeRasterizer(Data* data, int size,
+                                                  TrueTypeRasterizer<>::Hinting hinting) const = 0;
 
-        virtual Rasterizer* NewTrueTypeRasterizer(
-            Data* data, int size, float dpiScale,
-            TrueTypeRasterizer<Console::ALL>::Hinting hinting) const = 0;
+        virtual Rasterizer* NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
+                                                  TrueTypeRasterizer<>::Hinting hinting) const = 0;
 
-        GlyphData* NewGlyphData(Rasterizer* rasterizer, const std::string& glyph) const;
+        GlyphData* NewGlyphData(Rasterizer* rasterizer, const std::string& text) const;
 
         GlyphData* NewGlyphData(Rasterizer* rasterizer, uint32_t glyph) const;
 

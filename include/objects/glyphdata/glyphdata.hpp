@@ -26,7 +26,18 @@ namespace love
             int bearingY;
         };
 
+        struct GlyphSheetInfo
+        {
+            int index;
+            float left;
+            float top;
+            float right;
+            float bottom;
+        };
+
         GlyphData(uint32_t glyph, GlyphMetrics metrics, PixelFormat format);
+
+        GlyphData(uint32_t glyph, GlyphMetrics metrics, GlyphSheetInfo info, PixelFormat format);
 
         GlyphData(const GlyphData& other);
 
@@ -65,10 +76,17 @@ namespace love
 
         int GetMaxY() const;
 
+        const GlyphSheetInfo& GetGlyphSheetInfo() const
+        {
+            return this->sheetInfo;
+        }
+
       protected:
         uint32_t glyph;
         GlyphMetrics metrics;
         std::unique_ptr<uint8_t[]> data;
         PixelFormat format;
+
+        GlyphSheetInfo sheetInfo;
     };
 } // namespace love

@@ -146,11 +146,16 @@ float TextShaper::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
 
     for (const auto& rasterizer : this->rasterizers)
     {
+        if (rasterizer->GetDataType() == Rasterizer::DATA_BCFNT)
+            return 0.0f;
+
         if (rasterizer->HasGlyph(leftGlyph) && rasterizer->HasGlyph(rightGlyph))
         {
-            found   = true;
-            kerning = std::floor(
-                rasterizer->GetKerning(leftGlyph, rightGlyph) / rasterizer->GetDPIScale() + 0.5f);
+            found = true;
+
+            const auto textKerning = rasterizer->GetKerning(leftGlyph, rightGlyph);
+            kerning                = std::floor(textKerning / rasterizer->GetDPIScale() + 0.5f);
+
             break;
         }
     }

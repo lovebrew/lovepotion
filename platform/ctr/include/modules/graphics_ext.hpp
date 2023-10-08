@@ -17,29 +17,12 @@ namespace love
 
         /* objects */
 
-        void CheckSetDefaultFont();
-
-        Font* NewDefaultFont(int size) const;
-
-        Font* NewFont(Rasterizer<Console::CTR>* data) const;
-
         Texture<Console::CTR>* NewTexture(const Texture<>::Settings& settings,
                                           const Texture<>::Slices* slices = nullptr) const;
 
         void Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4<Console::CTR>& matrix);
 
         void Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix);
-
-        void Print(const Font::ColoredStrings& strings, const Matrix4<Console::CTR>& matrix);
-
-        void Print(const Font::ColoredStrings& strings, Font* font,
-                   const Matrix4<Console::CTR>& matrix);
-
-        void Printf(const Font::ColoredStrings& strings, float wrap, Font::AlignMode align,
-                    const Matrix4<Console::CTR>& matrix);
-
-        void Printf(const Font::ColoredStrings& strings, Font* font, float wrap,
-                    Font::AlignMode align, const Matrix4<Console::CTR>& matrix);
 
         void SetShader();
 

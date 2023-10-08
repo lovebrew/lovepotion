@@ -1,10 +1,17 @@
+#include <modules/window_ext.hpp>
+
 #include <modules/fontmodule_ext.hpp>
 
-#include <objects/rasterizer_ext.hpp>
+#include <objects/truetyperasterizer_ext.hpp>
 
 using namespace love;
 
-static CFNT_s* loadFromArchive(uint64_t title, const char* path)
+SystemFont::SystemFont(CFG_Region region)
+{
+    this->font = FontModule<Console::CTR>::LoadSystemFont(region, this->size);
+}
+
+static CFNT_s* loadFromArchive(uint64_t title, const char* path, size_t& outSize)
 {
     std::unique_ptr<uint8_t[]> fontData;
     uint32_t size = 0;
@@ -44,7 +51,8 @@ static CFNT_s* loadFromArchive(uint64_t title, const char* path)
     romfsUnmount("font");
 
     uint32_t fontSize = *(uint32_t*)fontData.get() >> 0x08;
-    font              = (CFNT_s*)linearAlloc(fontSize);
+
+    font = (CFNT_s*)linearAlloc(fontSize);
 
     if (font && !decompress_LZ11(font, fontSize, nullptr, fontData.get() + 4, size - 4))
     {
@@ -52,7 +60,7 @@ static CFNT_s* loadFromArchive(uint64_t title, const char* path)
         throw love::Exception("Failed to decompress '%s'", path);
     }
 
-    fontFixPointers(font);
+    outSize = fontSize;
 
     return font;
 }
@@ -73,31 +81,12 @@ static size_t getFontIndex(CFG_Region region)
     }
 }
 
-CFNT_s* FontModule<Console::CTR>::LoadSystemFont(CFG_Region region)
+CFNT_s* FontModule<Console::CTR>::LoadSystemFont(CFG_Region region, size_t& size)
 {
-    size_t index         = getFontIndex(region);
-    uint8_t systemRegion = 0;
+    size_t index = getFontIndex(region);
 
-    Result result = CFGU_SecureInfoGetRegion(&systemRegion);
-
-    if (R_FAILED(result) || index == getFontIndex((CFG_Region)systemRegion))
-        return fontGetSystemFont();
-
-    return loadFromArchive(FontModule::FONT_ARCHIVE | (index << 8), FontModule::fontPaths[index]);
-}
-
-CFNT_s* FontModule<Console::CTR>::LoadFontFromFile(const void* data, size_t size)
-{
-    CFNT_s* font = (CFNT_s*)linearAlloc(size);
-
-    if (font != nullptr)
-        std::memcpy((uint8_t*)font, data, size);
-    else
-        throw love::Exception("Failed to allocate font.");
-
-    fontFixPointers(font);
-
-    return font;
+    const auto archive = FontModule::FONT_ARCHIVE | (index << 8);
+    return loadFromArchive(archive, FontModule::fontPaths[index], size);
 }
 
 FontModule<Console::CTR>::FontModule()
@@ -105,49 +94,37 @@ FontModule<Console::CTR>::FontModule()
     this->defaultFontData.Set(new SystemFont(), Acquire::NORETAIN);
 }
 
-Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewRasterizer(FileData* data) const
+Rasterizer* FontModule<Console::CTR>::NewRasterizer(FileData* data) const
 {
-    if (Rasterizer<Console::CTR>::Accepts(data))
-        return new Rasterizer<Console::CTR>(data, 12);
+    if (TrueTypeRasterizer<Console::CTR>::Accepts(this->library, data))
+        return this->NewTrueTypeRasterizer(data, 12, TrueTypeRasterizer<>::HINTING_NORMAL);
 
-    throw love::Exception("Invalid font file: %s", data->GetFilename());
+    throw love::Exception("Invalid font file: %s", data->GetFilename().c_str());
+    return nullptr;
 }
 
-Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(int size)
+Rasterizer* FontModule<Console::CTR>::NewTrueTypeRasterizer(int size,
+                                                            TrueTypeRasterizer<>::Hinting hinting,
+                                                            CFG_Region type) const
 {
-    return this->NewBCFNTRasterizer(size, CFG_REGION_USA);
+    StrongReference<SystemFont> data(new SystemFont(type), Acquire::NORETAIN);
+    return this->NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
-Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(Data* data, int size) const
+Rasterizer* FontModule<Console::CTR>::NewTrueTypeRasterizer(
+    Data* data, int size, TrueTypeRasterizer<>::Hinting hinting) const
 {
-    return new Rasterizer<Console::CTR>(data, size);
+    float dpiScale = 1.0f;
+    auto window    = Module::GetInstance<Window<Console::Which>>(Module::M_WINDOW);
+
+    if (window != nullptr)
+        dpiScale = window->GetDPIScale();
+
+    return this->NewTrueTypeRasterizer(data, size, dpiScale, hinting);
 }
 
-Rasterizer<Console::CTR>* FontModule<Console::CTR>::NewBCFNTRasterizer(int size,
-                                                                       CFG_Region region) const
+Rasterizer* FontModule<Console::CTR>::NewTrueTypeRasterizer(
+    Data* data, int size, float dpiScale, TrueTypeRasterizer<>::Hinting hinting) const
 {
-    return new Rasterizer<Console::CTR>(region, size);
-}
-
-GlyphData* FontModule<Console::CTR>::NewGlyphData(Rasterizer<Console::CTR>* rasterizer,
-                                                  const std::string& text) const
-{
-    uint32_t codepoint = 0;
-
-    try
-    {
-        codepoint = utf8::peek_next(text.begin(), text.end());
-    }
-    catch (utf8::exception& e)
-    {
-        throw love::Exception("UTF-8 decoding error: %s", e.what());
-    }
-
-    return rasterizer->GetGlyphData(codepoint);
-}
-
-GlyphData* FontModule<Console::CTR>::NewGlyphData(Rasterizer<Console::CTR>* rasterizer,
-                                                  uint32_t glyph) const
-{
-    return rasterizer->GetGlyphData(glyph);
+    return new TrueTypeRasterizer<Console::CTR>(this->library, data, size, dpiScale, hinting);
 }

@@ -19,6 +19,8 @@ void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, R
 
     if (this->rasterizers[0]->GetDataType() == Rasterizer::DATA_TRUETYPE)
         offset.y += this->GetBaseline();
+    else if (this->rasterizers[0]->GetDataType() == Rasterizer::DATA_BCFNT)
+        offset.y += -this->GetBaseline();
 
     Vector2 currentPosition = offset;
 

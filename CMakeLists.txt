@@ -370,6 +370,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/filesystem/filesystem.cpp
     source/modules/filesystem/physfs/filesystem.cpp
     source/modules/filesystem/wrap_filesystem.cpp
+    source/modules/font/fontmodule.cpp
     source/modules/font/wrap_fontmodule.cpp
     source/modules/graphics/wrap_graphics.cpp
     source/modules/image/imagemodule.cpp

@@ -5,19 +5,18 @@
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
 #include <objects/data/filedata/filedata.hpp>
-#include <objects/rasterizer_ext.hpp>
+#include <objects/rasterizer/rasterizer.hpp>
 
 #include <3ds.h>
 
 namespace love
 {
+    using SystemFontType = CFG_Region;
+
     class SystemFont : public Data
     {
       public:
-        SystemFont(CFG_Region region = CFG_REGION_USA)
-        {
-            // this->font = FontModule<Console::CTR>::LoadSystemFont(region);
-        }
+        SystemFont(CFG_Region region = CFG_REGION_USA);
 
         SystemFont* Clone() const override
         {
@@ -26,18 +25,24 @@ namespace love
 
         size_t GetSize() const override
         {
-            return 0;
+            return this->size;
         }
 
         void* GetData() const override
         {
-            return nullptr;
+            return (void*)this->font;
         }
 
         static inline Type type = Type("SystemFont", &Object::type);
 
         ~SystemFont()
-        {}
+        {
+            linearFree(this->font);
+        }
+
+      private:
+        CFNT_s* font;
+        size_t size;
     };
 
     template<>
@@ -51,23 +56,20 @@ namespace love
         virtual ~FontModule()
         {}
 
-        static CFNT_s* LoadSystemFont(CFG_Region region);
+        static CFNT_s* LoadSystemFont(CFG_Region region, size_t& size);
 
-        static CFNT_s* LoadFontFromFile(const void* data, size_t size);
+        using FontModule<Console::ALL>::NewTrueTypeRasterizer;
 
-        Rasterizer<Console::CTR>* NewRasterizer(FileData* data) const;
+        Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting,
+                                          CFG_Region type) const;
 
-        Rasterizer<Console::CTR>* NewBCFNTRasterizer(Data* data, int size) const;
+        Rasterizer* NewTrueTypeRasterizer(Data* data, int size,
+                                          TrueTypeRasterizer<>::Hinting hinting) const override;
 
-        Rasterizer<Console::CTR>* NewBCFNTRasterizer(int size);
+        Rasterizer* NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
+                                          TrueTypeRasterizer<>::Hinting hinting) const override;
 
-        Rasterizer<Console::CTR>* NewBCFNTRasterizer(int size,
-                                                     CFG_Region region = CFG_REGION_USA) const;
-
-        GlyphData* NewGlyphData(Rasterizer<Console::CTR>* rasterizer,
-                                const std::string& text) const;
-
-        GlyphData* NewGlyphData(Rasterizer<Console::CTR>* rasterizer, uint32_t glyph) const;
+        Rasterizer* NewRasterizer(FileData* data) const;
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {

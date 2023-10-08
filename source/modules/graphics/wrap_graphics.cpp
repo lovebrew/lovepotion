@@ -1401,8 +1401,8 @@ int Wrap_Graphics::Translate(lua_State* L)
 
 int Wrap_Graphics::Scale(lua_State* L)
 {
-    float x = luaL_checknumber(L, 1);
-    float y = luaL_checknumber(L, 2);
+    float x = luaL_optnumber(L, 1, 1.0f);
+    float y = luaL_optnumber(L, 2, x);
 
     instance()->Scale(x, y);
 

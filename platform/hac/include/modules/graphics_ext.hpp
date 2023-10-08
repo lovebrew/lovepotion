@@ -16,13 +16,9 @@ namespace love
 
         bool SetMode(int x, int y, int width, int height);
 
-        void CheckSetDefaultFont();
-
         void SetShader();
 
         void SetShader(Shader<Console::HAC>* shader);
-
-        Font* NewFont(Rasterizer* data) const;
 
         Font* NewDefaultFont(int size, TrueTypeRasterizer<>::Hinting hinting) const;
 
@@ -32,16 +28,6 @@ namespace love
         void Draw(Texture<Console::HAC>* texture, Quad* quad, const Matrix4<Console::HAC>& matrix);
 
         void Draw(Drawable* drawable, const Matrix4<Console::HAC>& matrix);
-
-        void Print(const ColoredStrings& strings, const Matrix4<Console::HAC>& matrix);
-
-        void Print(const ColoredStrings& strings, Font* font, const Matrix4<Console::HAC>& matrix);
-
-        void Printf(const ColoredStrings& strings, float wrap, Font::AlignMode align,
-                    const Matrix4<Console::HAC>& matrix);
-
-        void Printf(const ColoredStrings& strings, Font* font, float wrap, Font::AlignMode align,
-                    const Matrix4<Console::HAC>& matrix);
 
         void SetViewportSize(int width, int height);
     }; // namespace love

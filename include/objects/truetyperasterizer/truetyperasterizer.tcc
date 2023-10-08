@@ -7,14 +7,15 @@
 
 #include <utilities/bidirectionalmap/bidirectionalmap.hpp>
 
+#include <unordered_map>
+
 #if defined(__3DS__)
 struct FT_Library
 {
 };
 
-struct FT_Face
-{
-};
+    #include <3ds.h>
+using FT_Face = CFNT_s*;
 #else
     #include <freetype2/ft2build.h>
     #include FT_FREETYPE_H
@@ -23,7 +24,7 @@ struct FT_Face
 
 namespace love
 {
-    template<Console::Platform T = Console::ALL>
+    template<Console::Platform T = Console::Which>
     class TrueTypeRasterizer : public Rasterizer
     {
       public:
@@ -35,6 +36,9 @@ namespace love
             HINTING_NONE,
             HINTING_MAX_ENUM
         };
+
+        TrueTypeRasterizer()
+        {}
 
         TrueTypeRasterizer(FT_Library library, Data* data, int size, float dpiSacale,
                            Hinting hinting);
@@ -59,9 +63,9 @@ namespace love
 
         TextShaper* NewTextShaper() override;
 
-        ptrdiff_t GetHandle() const override
+        void* GetHandle() const override
         {
-            return (ptrdiff_t)face;
+            return (void*)this->face;
         }
 
         static bool Accepts(FT_Library library, Data* data);
@@ -76,9 +80,13 @@ namespace love
         };
         // clang-format on
 
-      private:
-        FT_Face face;
+      protected:
+        mutable FT_Face face;
         StrongReference<Data> data;
         Hinting hinting;
+
+        mutable std::unordered_map<uint32_t, int> glyphMap;
+        mutable int glyphCount;
+        float scale;
     };
 } // namespace love

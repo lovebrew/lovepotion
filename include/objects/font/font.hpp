@@ -95,10 +95,10 @@ namespace love
         void SetFallbacks(const std::vector<Font*>& fallbacks)
         {}
 
-        void Print(Graphics<Console::Which>& graphics, const ColoredStrings& text,
+        void Print(Graphics<Console::ALL>& graphics, const ColoredStrings& text,
                    const Matrix4<Console::Which>& localTransform, const Color& color);
 
-        void Printf(Graphics<Console::Which>& graphics, const ColoredStrings& text, float wrap,
+        void Printf(Graphics<Console::ALL>& graphics, const ColoredStrings& text, float wrap,
                     AlignMode alignment, const Matrix4<Console::Which>& localTransform,
                     const Color& color);
 
@@ -126,8 +126,6 @@ namespace love
                                                            AlignMode align,
                                                            std::vector<vertex::Vertex>& vertices,
                                                            TextShaper::TextInfo* info = nullptr);
-
-        void SetFont(Font* font);
 
         void SetLineHeight(float height);
 
@@ -177,7 +175,7 @@ namespace love
 
         const Glyph& FindGlyph(TextShaper::GlyphIndex glyphIndex);
 
-        void Printv(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& transform,
+        void Printv(Graphics<Console::ALL>& graphics, const Matrix4<Console::Which>& transform,
                     const std::vector<DrawCommand>& drawCommands,
                     const std::vector<vertex::Vertex>& vertices);
 

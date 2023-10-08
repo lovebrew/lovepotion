@@ -48,7 +48,7 @@ Font::Font(Rasterizer* rasterizer, const SamplerState& state) :
     this->format    = glyphData->GetFormat();
     glyphData->Release();
 
-    auto* graphics = Module::GetInstance<Graphics<Console::Which>>(Module::M_GRAPHICS);
+    auto* graphics = Module::GetInstance<Graphics<>>(Module::M_GRAPHICS);
 
     auto usage = PIXELFORMAT_USAGE_FLAGS_SAMPLE;
     if (format == PIXELFORMAT_LA8_UNORM && !graphics->IsPixelFormatSupported(format, usage))
@@ -214,7 +214,7 @@ void Font::CreateTexture()
 #else
 void Font::CreateTexture()
 {
-    auto* font            = this->rasterizers[0]->GetFont();
+    CFNT_s* font          = (CFNT_s*)this->shaper->GetRasterizers()[0]->GetHandle();
     const auto* glyphInfo = fontGetGlyphInfo(font);
 
     this->textures.reserve(glyphInfo->nSheets);
@@ -249,15 +249,29 @@ GlyphData* Font::GetRasterizerGlyphData(TextShaper::GlyphIndex glyphIndex, float
     return rasterizer->GetGlyphDataForIndex(glyphIndex.index);
 }
 
-#if !defined(__3DS__)
 const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
 {
     float dpiScale = this->GetDPIScale();
     StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyphIndex, dpiScale),
                                     Acquire::NORETAIN);
 
-    auto width             = data->GetWidth();
-    auto height            = data->GetHeight();
+    auto width  = data->GetWidth();
+    auto height = data->GetHeight();
+
+    float offset = 0.0f;
+
+    float left   = 0.0f;
+    float right  = 0.0f;
+    float bottom = 0.0f;
+    float top    = 0.0f;
+
+    Glyph _glyph {};
+    _glyph.texture = nullptr;
+    _glyph.spacing = std::floor(data->GetAdvance() / dpiScale + 0.5f);
+
+    std::fill_n(_glyph.vertices.data(), 6, Vertex {});
+
+#if !defined(__3DS__)
     const auto glyphFormat = data->GetFormat();
 
     const auto glyphWidthPadding  = width + Font::TEXTURE_PADDING * 2;
@@ -282,11 +296,6 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
             return this->AddGlyph(glyphIndex);
         }
     }
-
-    Glyph _glyph {};
-    _glyph.texture = nullptr;
-    _glyph.spacing = std::floor(data->GetAdvance() / dpiScale + 0.5f);
-    std::fill_n(_glyph.vertices.data(), 6, Vertex {});
 
     /* don't waste space on empty glyphs */
     if (width > 0 && height > 0)
@@ -331,13 +340,31 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
         const auto _height = (double)this->textureHeight;
 
         const auto offset = 1.0f;
-        const auto color  = Color(Color::WHITE).array();
 
         /* texture coordinates */
-        const auto left   = (float)((x - offset) / _width);
-        const auto top    = (float)((y - offset) / _height);
-        const auto right  = (float)((x + width + offset) / _width);
-        const auto bottom = (float)((y + height + offset) / _height);
+        left   = (float)((x - offset) / _width);
+        top    = (float)((y - offset) / _height);
+        right  = (float)((x + width + offset) / _width);
+        bottom = (float)((y + height + offset) / _height);
+    }
+#else
+    if (width > 0 && height > 0)
+    {
+        const auto& sheetInfo = data->GetGlyphSheetInfo();
+
+        _glyph.sheet   = sheetInfo.index;
+        _glyph.texture = &this->textures[_glyph.sheet];
+
+        left   = sheetInfo.left;
+        top    = sheetInfo.top;
+        right  = sheetInfo.right;
+        bottom = sheetInfo.bottom;
+    }
+#endif
+
+    if (width > 0 && height > 0)
+    {
+        const auto color = Color(Color::WHITE).array();
 
         // clang-format off
         const std::array<Vertex, 0x06> vertices =
@@ -353,7 +380,7 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
         // clang-format on
 
         /* copy the vertex data into the Glyph and set proper bearing */
-        for (size_t index = 0; index < 6; index++)
+        for (size_t index = 0; index < vertices.size(); index++)
         {
             _glyph.vertices[index] = vertices[index];
 
@@ -365,86 +392,15 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
         this->rowHeight = std::max(this->rowHeight, height + Font::TEXTURE_PADDING);
     }
 
-    const auto index    = TextShaper::PackGlyphIndex(glyphIndex);
-    this->glyphs[index] = _glyph;
-    return this->glyphs[index];
+    const auto packedIndex    = TextShaper::PackGlyphIndex(glyphIndex);
+    this->glyphs[packedIndex] = _glyph;
+    return this->glyphs[packedIndex];
 }
-#else
-static Rasterizer<Console::CTR>::GlyphSheetInfo& getGlyphSheetInfo(
-    const std::vector<StrongRasterizer>& rasterizers, uint32_t glyph, bool useSpacesAsTab)
-{
-    if (glyph == 9 && useSpacesAsTab)
-        return rasterizers[0]->GetSheetInfo(32);
-
-    for (const auto& rasterizer : rasterizers)
-    {
-        if (rasterizer->HasGlyph(glyph))
-            return rasterizer->GetSheetInfo(glyph);
-    }
-
-    return rasterizers[0]->GetSheetInfo(glyph);
-}
-
-const Font::Glyph& Font::AddGlyph(uint32_t glyph)
-{
-    float dpiScale = this->GetDPIScale();
-    StrongReference<GlyphData> data(this->GetRasterizerGlyphData(glyph, dpiScale),
-                                    Acquire::NORETAIN);
-
-    auto width  = (float)data->GetWidth();
-    auto height = (float)data->GetHeight();
-
-    Glyph _glyph {};
-
-    _glyph.texture = nullptr;
-    _glyph.spacing = std::floor(data->GetAdvance());
-    std::fill_n(_glyph.vertices.data(), 6, Vertex {});
-
-    if (width > 0 && height > 0)
-    {
-        const auto& sheetInfo = getGlyphSheetInfo(this->rasterizers, glyph, this->useSpacesAsTab);
-
-        _glyph.sheet   = sheetInfo.index;
-        _glyph.texture = &this->textures[_glyph.sheet];
-
-        const auto color = Color(Color::WHITE).array();
-
-        const auto left   = sheetInfo.left;
-        const auto top    = sheetInfo.top;
-        const auto right  = sheetInfo.right;
-        const auto bottom = sheetInfo.bottom;
-
-        // clang-format off
-        const std::array<Vertex, 0x06> vertices = 
-        {
-            /*        x        y       z                u      v      */
-            Vertex {{ 0,       0,      0.0f }, color, { left,  top    }},
-            Vertex {{ 0,       height, 0.0f }, color, { left,  bottom }},
-            Vertex {{ width,   height, 0.0f }, color, { right, bottom }},
-            Vertex {{ width,   height, 0.0f }, color, { right, bottom }},
-            Vertex {{ width,   0,      0.0f }, color, { right, top    }},
-            Vertex {{ 0,       0,      0.0f }, color, { left,  top    }}
-        };
-        // clang-format on
-
-        for (size_t index = 0; index < 0x06; index++)
-        {
-            _glyph.vertices[index] = vertices[index];
-
-            _glyph.vertices[index].position[0] += data->GetBearingX();
-            _glyph.vertices[index].position[1] += data->GetBearingY();
-        }
-    }
-
-    this->glyphs[glyph] = _glyph;
-    return this->glyphs[glyph];
-}
-#endif
 
 const Font::Glyph& Font::FindGlyph(TextShaper::GlyphIndex glyphIndex)
 {
-    const auto index    = TextShaper::PackGlyphIndex(glyphIndex);
-    const auto iterator = this->glyphs.find(index);
+    const auto packedIndex = TextShaper::PackGlyphIndex(glyphIndex);
+    const auto iterator    = this->glyphs.find(packedIndex);
 
     if (iterator != this->glyphs.end())
         return iterator->second;
@@ -528,7 +484,19 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
                 vertices.back().color = currentColor.array();
             }
 
-            if (commands.empty() || commands.back().texture != glyph.texture)
+            bool shouldAddCommand = false;
+            if (!commands.empty())
+            {
+                const auto notSameTex   = commands.back().texture != glyph.texture;
+                const auto notSameSheet = commands.back().sheet != glyph.sheet;
+
+                if (Console::Is(Console::CTR))
+                    shouldAddCommand = notSameSheet;
+                else
+                    shouldAddCommand = notSameTex;
+            }
+
+            if (commands.empty() || shouldAddCommand)
             {
                 DrawCommand command {};
                 command.start   = (int)vertices.size() - 6;
@@ -554,7 +522,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
         }
     };
 
-    std::sort(commands.begin(), commands.end(), drawSort);
+    // std::sort(commands.begin(), commands.end(), drawSort);
 
     return commands;
 }
@@ -663,7 +631,7 @@ std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
     return commands;
 }
 
-void Font::Printv(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& transform,
+void Font::Printv(Graphics<>& graphics, const Matrix4<Console::Which>& transform,
                   const std::vector<DrawCommand>& commands, const std::vector<Vertex>& vertices)
 {
     if (vertices.empty() || commands.empty())
@@ -692,7 +660,7 @@ void Font::Printv(Graphics<Console::Which>& graphics, const Matrix4<Console::Whi
     }
 }
 
-void Font::Print(Graphics<Console::Which>& graphics, const ColoredStrings& text,
+void Font::Print(Graphics<>& graphics, const ColoredStrings& text,
                  const Matrix4<Console::Which>& matrix, const Color& color)
 {
     ColoredCodepoints codepoints {};
@@ -704,8 +672,8 @@ void Font::Print(Graphics<Console::Which>& graphics, const ColoredStrings& text,
     this->Printv(graphics, matrix, commands, vertices);
 }
 
-void Font::Printf(Graphics<Console::Which>& graphics, const ColoredStrings& text, float wrap,
-                  AlignMode alignment, const Matrix4<Console::Which>& matrix, const Color& color)
+void Font::Printf(Graphics<>& graphics, const ColoredStrings& text, float wrap, AlignMode alignment,
+                  const Matrix4<Console::Which>& matrix, const Color& color)
 {
     ColoredCodepoints codepoints {};
     GetCodepointsFromString(text, codepoints);

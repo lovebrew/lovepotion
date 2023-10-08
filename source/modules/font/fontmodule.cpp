@@ -9,26 +9,30 @@ using namespace love;
 template<>
 FontModule<Console::ALL>::FontModule()
 {
+#if !defined(__3DS__)
     if (auto error = FT_Init_FreeType(&this->library); error != FT_Err_Ok)
         throw love::Exception("Failed to initialize FreeType: (%s)", FT_Error_String(error));
+#endif
 }
 
 template<>
 FontModule<Console::ALL>::~FontModule()
 {
+#if !defined(__3DS__)
     FT_Done_FreeType(this->library);
+#endif
 }
 
 template<>
 Rasterizer* FontModule<Console::ALL>::NewTrueTypeRasterizer(
-    int size, TrueTypeRasterizer<Console::ALL>::Hinting hinting) const
+    int size, TrueTypeRasterizer<>::Hinting hinting) const
 {
     return this->NewTrueTypeRasterizer(this->defaultFontData.Get(), size, hinting);
 }
 
 template<>
 Rasterizer* FontModule<Console::ALL>::NewTrueTypeRasterizer(
-    int size, float dpiScale, TrueTypeRasterizer<Console::ALL>::Hinting hinting) const
+    int size, float dpiScale, TrueTypeRasterizer<>::Hinting hinting) const
 {
     return this->NewTrueTypeRasterizer(this->defaultFontData.Get(), size, dpiScale, hinting);
 }
