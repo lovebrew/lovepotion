@@ -22,16 +22,20 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     {
         Rasterizer* self = nullptr;
 
-        const char* name          = luaL_checkstring(L, 1);
-        const auto systemFontType = FontModule<Console::Which>::systemFonts.Find(name);
+        const char* name      = luaL_checkstring(L, 1);
+        const auto systemFont = FontModule<Console::Which>::systemFonts.Find(name);
 
         FileData* fileData = nullptr;
-        if (systemFontType)
+        if (systemFont)
         {
-            SystemFont data(*systemFontType);
+            luax::CatchException(L, [&]() {
+                StrongReference<SystemFont> data(new SystemFont(*systemFont), Acquire::NORETAIN);
 
-            fileData = new FileData(data.GetSize(), name);
-            std::copy_n((uint8_t*)data.GetData(), data.GetSize(), (uint8_t*)fileData->GetData());
+                fileData = new FileData(data->GetSize(), name);
+                fileData->Retain();
+
+                std::memcpy(fileData->GetData(), data->GetData(), data->GetSize());
+            });
         }
         else
             fileData = Wrap_Filesystem::GetFileData(L, 1);

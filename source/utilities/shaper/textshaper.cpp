@@ -215,8 +215,9 @@ int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* index)
     }
 
     const auto& rasterizer = this->rasterizers[rasterizerIndex];
-    int advance =
-        std::floor(rasterizer->GetGlyphSpacing(realGlyph) / rasterizer->GetDPIScale() + 0.5f);
+    const auto spacing     = rasterizer->GetGlyphSpacing(realGlyph);
+
+    int advance = std::floor(spacing / rasterizer->GetDPIScale() + 0.5f);
 
     if (glyph == '\t' && realGlyph == ' ')
         advance *= TextShaper::SPACES_PER_TAB;

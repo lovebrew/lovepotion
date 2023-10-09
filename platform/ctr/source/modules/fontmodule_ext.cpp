@@ -12,7 +12,7 @@ SystemFont::SystemFont(CFG_Region region)
 static CFNT_s* loadFromArchive(uint64_t title, const char* path, size_t& outSize)
 {
     std::unique_ptr<uint8_t[]> fontData;
-    uint32_t size = 0;
+    long size = 0;
 
     Result result = 0;
     CFNT_s* font  = nullptr;
@@ -20,18 +20,24 @@ static CFNT_s* loadFromArchive(uint64_t title, const char* path, size_t& outSize
     result = romfsMountFromTitle(title, MEDIATYPE_NAND, "font");
 
     if (R_FAILED(result))
+    {
+        throw love::Exception("Failed to mount 'font:/' from NAND: %x", result);
         return nullptr;
+    }
 
-    std::FILE* file = std::fopen(path, "rb");
+    auto* file = std::fopen(path, "rb");
 
     if (!file)
     {
         std::fclose(file);
+        romfsUnmount("font");
+
+        throw love::Exception("Failed to open '%s'", path);
         return nullptr;
     }
 
     std::fseek(file, 0, SEEK_END);
-    size = (uint32_t)std::ftell(file);
+    size = std::ftell(file);
     std::rewind(file);
 
     try
