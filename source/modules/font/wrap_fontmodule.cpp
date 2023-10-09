@@ -180,11 +180,7 @@ static void convertImageData(lua_State* L, int index)
 int Wrap_FontModule::NewBMFontRasterizer(lua_State* L)
 {
     if (Console::Is(Console::CTR))
-    {
-        throw love::Exception("Cannot use BMFont rasterizer on the 3DS.");
-
-        return 0;
-    }
+        return luaL_error(L, "Cannot use BMFontRasterizer on the 3DS.");
 
     Rasterizer* rasterizer = nullptr;
 
@@ -235,7 +231,7 @@ int Wrap_FontModule::NewBMFontRasterizer(lua_State* L)
 int Wrap_FontModule::NewImageRasterizer(lua_State* L)
 {
     if (Console::Is(Console::CTR))
-        throw love::Exception("Cannot use Image rasterizer on the 3DS.");
+        return luaL_error(L, "Cannot use ImageRasterizer on the 3DS.");
 
     Rasterizer* rasterizer = nullptr;
 
