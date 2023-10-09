@@ -37,7 +37,8 @@ namespace love
 
         ~SystemFont()
         {
-            linearFree(this->font);
+            if (this->font)
+                linearFree(this->font);
         }
 
       private:
@@ -60,16 +61,13 @@ namespace love
 
         using FontModule<Console::ALL>::NewTrueTypeRasterizer;
 
-        Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting,
-                                          CFG_Region type) const;
+        Rasterizer* NewRasterizer(FileData* data) const;
 
         Rasterizer* NewTrueTypeRasterizer(Data* data, int size,
                                           TrueTypeRasterizer<>::Hinting hinting) const override;
 
         Rasterizer* NewTrueTypeRasterizer(Data* data, int size, float dpiScale,
                                           TrueTypeRasterizer<>::Hinting hinting) const override;
-
-        Rasterizer* NewRasterizer(FileData* data) const;
 
         // clang-format off
         static constexpr BidirectionalMap systemFonts = {

@@ -10,6 +10,8 @@
 
 namespace love
 {
+    using SystemFontType = PlSharedFontType;
+
     class SystemFont : public Data
     {
       public:

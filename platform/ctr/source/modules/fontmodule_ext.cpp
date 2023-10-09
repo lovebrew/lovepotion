@@ -95,7 +95,10 @@ CFNT_s* FontModule<Console::CTR>::LoadSystemFont(CFG_Region region, size_t& size
 
 FontModule<Console::CTR>::FontModule()
 {
-    this->defaultFontData.Set(new SystemFont(), Acquire::NORETAIN);
+    size_t size = 0;
+    void* data  = FontModule<Console::CTR>::LoadSystemFont(CFG_REGION_USA, size);
+
+    this->defaultFontData.Set(new ByteData(data, size, true), Acquire::NORETAIN);
 }
 
 Rasterizer* FontModule<Console::CTR>::NewRasterizer(FileData* data) const
@@ -105,14 +108,6 @@ Rasterizer* FontModule<Console::CTR>::NewRasterizer(FileData* data) const
 
     throw love::Exception("Invalid font file: %s", data->GetFilename().c_str());
     return nullptr;
-}
-
-Rasterizer* FontModule<Console::CTR>::NewTrueTypeRasterizer(int size,
-                                                            TrueTypeRasterizer<>::Hinting hinting,
-                                                            CFG_Region type) const
-{
-    StrongReference<SystemFont> data(new SystemFont(type), Acquire::NORETAIN);
-    return this->NewTrueTypeRasterizer(data.Get(), size, hinting);
 }
 
 Rasterizer* FontModule<Console::CTR>::NewTrueTypeRasterizer(

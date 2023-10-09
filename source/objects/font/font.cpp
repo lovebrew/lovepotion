@@ -418,6 +418,14 @@ float Font::GetKerning(const std::string& left, const std::string& right)
     return this->shaper->GetKerning(left, right);
 }
 
+static bool shouldAddCommand(const Font::DrawCommand& command, const Font::Glyph& glyph)
+{
+    if (Console::Is(Console::CTR))
+        return command.sheet != glyph.sheet;
+
+    return command.texture != glyph.texture;
+}
+
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& codepoints,
                                                       Range range, const Color& color,
                                                       std::vector<Vertex>& vertices,
@@ -476,7 +484,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
 
         if (glyph.texture != nullptr)
         {
-            for (int j = 0; j < 6; j++)
+            for (int j = 0; j < glyph.vertices.size(); j++)
             {
                 vertices.push_back(glyph.vertices[j]);
                 vertices.back().position[0] += info.position.x;
@@ -484,19 +492,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
                 vertices.back().color = currentColor.array();
             }
 
-            bool shouldAddCommand = false;
-            if (!commands.empty())
-            {
-                const auto notSameTex   = commands.back().texture != glyph.texture;
-                const auto notSameSheet = commands.back().sheet != glyph.sheet;
-
-                if (Console::Is(Console::CTR))
-                    shouldAddCommand = notSameSheet;
-                else
-                    shouldAddCommand = notSameTex;
-            }
-
-            if (commands.empty() || shouldAddCommand)
+            if (commands.empty() || shouldAddCommand(commands.back(), glyph))
             {
                 DrawCommand command {};
                 command.start   = (int)vertices.size() - 6;

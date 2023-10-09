@@ -38,7 +38,6 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/shader_ext.cpp
     source/objects/source_ext.cpp
     source/objects/texture_ext.cpp
-    source/objects/wrap_font_ext.cpp
     source/objects/wrap_imagedata_ext.cpp
     source/utilities/driver/dsp_ext.cpp
     source/utilities/driver/framebuffer.cpp

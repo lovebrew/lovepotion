@@ -2,12 +2,6 @@
 
 using namespace love;
 
-#if !defined(__3DS__)
-std::function<void(lua_State*)> Wrap_Font::wrap_extension;
-#else
-std::span<const luaL_Reg> Wrap_Font::extensions;
-#endif
-
 void Wrap_Font::CheckColoredString(lua_State* L, int index, ColoredStrings& strings)
 {
     ColoredString coloredString {};
@@ -245,6 +239,37 @@ int Wrap_Font::GetDPIScale(lua_State* L)
     return 1;
 }
 
+int Wrap_Font::GetWrap(lua_State* L)
+{
+    auto* self = Wrap_Font::CheckFont(L, 1);
+
+    std::vector<ColoredString> text {};
+    Wrap_Font::CheckColoredString(L, 2, text);
+
+    float wrap = luaL_checknumber(L, 3);
+
+    int maxWidth = 0;
+
+    std::vector<std::string> lines {};
+    std::vector<int> widths {};
+
+    luax::CatchException(L, [&]() { self->GetWrap(text, wrap, lines, &widths); });
+
+    for (const auto width : widths)
+        maxWidth = std::max(maxWidth, width);
+
+    lua_pushinteger(L, maxWidth);
+    lua_createtable(L, lines.size(), 0);
+
+    for (size_t index = 0; index < lines.size(); index++)
+    {
+        lua_pushstring(L, lines[index].c_str());
+        lua_rawseti(L, -2, index + 1);
+    }
+
+    return 2;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -260,16 +285,12 @@ static constexpr luaL_Reg functions[] =
     { "hasGlyphs",     Wrap_Font::HasGlyphs     },
     { "getKerning",    Wrap_Font::GetKerning    },
     { "setFallbacks",  Wrap_Font::SetFallbacks  },
-    { "getDPIScale",   Wrap_Font::GetDPIScale   }
+    { "getDPIScale",   Wrap_Font::GetDPIScale   },
+    { "getWrap",       Wrap_Font::GetWrap       }
 };
 // clang-format on
 
 int Wrap_Font::Register(lua_State* L)
 {
-    int result = luax::RegisterType(L, &Font::type, functions, extensions);
-
-    if (Wrap_Font::wrap_extension)
-        Wrap_Font::wrap_extension(L);
-
-    return result;
+    return luax::RegisterType(L, &Font::type, functions);
 }
