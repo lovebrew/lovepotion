@@ -535,6 +535,7 @@ namespace love
             "height",       SETTING_HEIGHT,
             "layers",       SETTING_LAYERS,
             "mipmaps",      SETTING_MIPMAPS,
+            "mipmapcount",  SETTING_MIPMAP_COUNT,
             "format",       SETTING_FORMAT,
             "linear",       SETTING_LINEAR,
             "type",         SETTING_TYPE,

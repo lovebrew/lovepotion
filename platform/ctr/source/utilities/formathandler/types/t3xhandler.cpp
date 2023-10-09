@@ -53,7 +53,7 @@ T3XHandler::DecodedImage T3XHandler::Decode(Data* data)
     decoded.format = *pixelFormat;
 
     const auto size       = data->GetSize() - sizeof(header);
-    const auto compressed = (uint8_t*)(data->GetData() + sizeof(header));
+    const auto compressed = ((uint8_t*)data->GetData() + sizeof(header));
 
     size_t outSize = 0;
     if (decompressHeader(nullptr, &outSize, nullptr, compressed, size) < 0)

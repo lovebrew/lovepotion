@@ -314,20 +314,16 @@ function love.errhand(msg)
 
     error_printer(msg, 2)
     
-    file:echo("!")
     if not love.window or not love.graphics or not love.event then
         return
     end
-    file:echo("!!")
 
-    file:echo("!!!")
     if not love.graphics.isCreated() or not love.window.isOpen() then
         local success, status = pcall(love.window.setMode, 800, 600)
         if not success or not status then
             return
         end
     end
-    file:echo("!!!!")
 
     -- Reset state.
     if love.mouse then

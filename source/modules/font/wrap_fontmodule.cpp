@@ -8,6 +8,8 @@
 
 #include <modules/fontmodule_ext.hpp>
 
+#include <utilities/functions.hpp>
+
 using namespace love;
 
 #define instance() (Module::GetInstance<FontModule<Console::Which>>(Module::M_FONT))
@@ -20,24 +22,28 @@ int Wrap_FontModule::NewRasterizer(lua_State* L)
     {
         Rasterizer* self = nullptr;
 
-        const char* name           = luaL_checkstring(L, 1);
-        const auto systemFontValid = FontModule<Console::Which>::systemFonts.Find(name);
+        const char* name          = luaL_checkstring(L, 1);
+        const auto systemFontType = FontModule<Console::Which>::systemFonts.Find(name);
 
-        if (!systemFontValid)
+        FileData* fileData = nullptr;
+        if (systemFontType)
         {
-            auto* fileData = Wrap_Filesystem::GetFileData(L, 1);
+            SystemFont data(*systemFontType);
 
-            luax::CatchException(
-                L, [&]() { self = instance()->NewRasterizer(fileData); },
-                [&](bool) { fileData->Release(); });
-
-            luax::PushType(L, self);
-            self->Release();
-
-            return 1;
+            fileData = new FileData(data.GetSize(), name);
+            std::copy_n((uint8_t*)data.GetData(), data.GetSize(), (uint8_t*)fileData->GetData());
         }
         else
-            return 0;
+            fileData = Wrap_Filesystem::GetFileData(L, 1);
+
+        luax::CatchException(
+            L, [&]() { self = instance()->NewRasterizer(fileData); },
+            [&](bool) { fileData->Release(); });
+
+        luax::PushType(L, self);
+        self->Release();
+
+        return 1;
     }
 
     return 0;
@@ -85,7 +91,18 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
             data->Retain();
         }
         else
-            data = Wrap_Filesystem::GetFileData(L, 1);
+        {
+            std::optional<SystemFontType> systemFontType;
+            const char* constant = lua_isstring(L, 1) ? luaL_checkstring(L, 1) : nullptr;
+
+            if (constant != nullptr)
+                systemFontType = FontModule<Console::Which>::systemFonts.Find(constant);
+
+            if (systemFontType)
+                data = new SystemFont(*systemFontType);
+            else
+                data = Wrap_Filesystem::GetFileData(L, 1);
+        }
 
         int size = luaL_optinteger(L, 2, 12);
 
@@ -115,7 +132,10 @@ int Wrap_FontModule::NewTrueTypeRasterizer(lua_State* L)
         }
     }
 
-    return 0;
+    luax::PushType(L, rasterizer);
+    rasterizer->Release();
+
+    return 1;
 }
 
 int Wrap_FontModule::NewGlyphData(lua_State* L)

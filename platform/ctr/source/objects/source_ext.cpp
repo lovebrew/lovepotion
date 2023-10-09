@@ -65,12 +65,12 @@ Source<Console::CTR>::Source(AudioPool* pool, int sampleRate, int bitDepth, int 
     this->bufferCount   = buffers;
     this->samplesOffset = 0;
 
-    if (buffers < 1 || buffers > Source::MAX_BUFFERS)
+    if (buffers < 1 || (size_t)buffers > Source::MAX_BUFFERS)
         buffers = MAX_BUFFERS;
 
     std::fill_n(this->buffers, this->bufferCount, ndspWaveBuf {});
 
-    for (size_t index = 0; index < this->bufferCount; index++)
+    for (size_t index = 0; index < (size_t)this->bufferCount; index++)
         this->buffers[index].status = NDSP_WBUF_DONE;
 }
 

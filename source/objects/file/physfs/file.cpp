@@ -154,7 +154,7 @@ bool File::Write(const void* data, int64_t size)
     if (size < 0)
         throw love::Exception("Invalid write size: %lld", size);
 
-    int64_t written = PHYSFS_writeBytes(this->file, data, size);
+    int64_t written = PHYSFS_writeBytes(this->file, data, (PHYSFS_uint64)size);
 
     if (written != size)
         return false;
@@ -202,7 +202,7 @@ bool File::Seek(int64_t position, SeekOrigin origin)
     if (position < 0)
         return false;
 
-    return ((this->file != nullptr) && (PHYSFS_seek(this->file, position) != 0));
+    return ((this->file != nullptr) && (PHYSFS_seek(this->file, (PHYSFS_uint64)position) != 0));
 }
 
 bool File::SetBuffer(BufferMode bufferMode, int64_t size)

@@ -48,7 +48,9 @@ FileData* File::Read(int64_t size)
         StrongReference<FileData> temp(new FileData(bytesRead, this->GetFilename()),
                                        Acquire::NORETAIN);
 
-        std::copy_n((const uint8_t*)fileData->GetData(), bytesRead, (uint8_t*)temp->GetData());
+        std::copy_n((const uint8_t*)fileData->GetData(), (size_t)bytesRead,
+                    (uint8_t*)temp->GetData());
+
         fileData = temp;
     }
 
@@ -56,7 +58,6 @@ FileData* File::Read(int64_t size)
         this->Close();
 
     fileData->Retain();
-
     return fileData;
 }
 

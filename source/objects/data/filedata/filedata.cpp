@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <limits>
 
+#include <filesystem>
+
 using namespace love;
 
 Type FileData::type("FileData", &Data::type);
@@ -22,15 +24,15 @@ FileData::FileData(uint64_t size, const std::string& filename) :
         throw love::Exception("Out of memory.");
     }
 
-    size_t extPos = filename.rfind('.');
+    const auto path = std::filesystem::path(filename);
 
-    if (extPos != std::string::npos)
+    if (path.has_extension())
     {
-        this->extension = filename.substr(extPos + 1);
-        this->name      = filename.substr(0, extPos);
+        this->extension = path.extension();
+        this->name      = path.filename();
     }
     else
-        this->name = filename;
+        this->name = path.filename();
 }
 
 FileData::FileData(const FileData& content) :

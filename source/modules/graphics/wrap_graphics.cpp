@@ -1677,19 +1677,44 @@ int Wrap_Graphics::IsGammaCorrect(lua_State* L)
 /* todo */
 int Wrap_Graphics::GetPixelWidth(lua_State* L)
 {
-    return 0;
+    auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
+    Screen screen;
+
+    if (!love::CheckScreenName(screenName, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), screenName);
+
+    lua_pushinteger(L, love::GetScreenWidth(screen));
+
+    return 1;
 }
 
 /* todo */
 int Wrap_Graphics::GetPixelHeight(lua_State* L)
 {
-    return 0;
+    auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
+    Screen screen;
+
+    if (!love::CheckScreenName(screenName, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), screenName);
+
+    lua_pushinteger(L, love::GetScreenHeight(screen));
+
+    return 1;
 }
 
 /* todo */
 int Wrap_Graphics::GetPixelDimensions(lua_State* L)
 {
-    return 0;
+    auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
+    Screen screen;
+
+    if (!love::CheckScreenName(screenName, screen))
+        return luax::EnumError(L, "screen name", love::GetScreens(), screenName);
+
+    lua_pushinteger(L, love::GetScreenWidth(screen));
+    lua_pushinteger(L, love::GetScreenHeight(screen));
+
+    return 2;
 }
 
 /* todo */
@@ -2123,6 +2148,9 @@ static constexpr luaL_Reg functions[] =
     { "getLineWidth",          Wrap_Graphics::GetLineWidth          },
     { "getMeshCullMode",       Wrap_Graphics::GetMeshCullMode       },
     { "getRendererInfo",       Wrap_Graphics::GetRendererInfo       },
+    { "getPixelWidth",         Wrap_Graphics::GetPixelWidth         },
+    { "getPixelHeight",        Wrap_Graphics::GetPixelHeight        },
+    { "getPixelDimensions",    Wrap_Graphics::GetPixelDimensions    },
     { "getScreens",            Wrap_Graphics::GetScreens            },
     { "getScissor",            Wrap_Graphics::GetScissor            },
     { "getStats",              Wrap_Graphics::GetStats              },
