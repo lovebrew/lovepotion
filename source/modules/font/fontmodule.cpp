@@ -39,7 +39,6 @@ Rasterizer* FontModule<Console::ALL>::NewImageRasterizer(ImageData<Console::Whic
                                                          const std::string& text, int extraSpacing,
                                                          float dpiScale) const
 {
-
     std::vector<uint32_t> glyphs {};
     glyphs.reserve(text.size());
 
