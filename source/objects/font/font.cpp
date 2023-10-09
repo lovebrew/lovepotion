@@ -385,7 +385,11 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
             _glyph.vertices[index] = vertices[index];
 
             _glyph.vertices[index].position[0] += data->GetBearingX() / dpiScale;
-            _glyph.vertices[index].position[1] -= data->GetBearingY() / dpiScale;
+
+            if (Console::Is(Console::CTR))
+                _glyph.vertices[index].position[1] += data->GetBearingY() / dpiScale;
+            else
+                _glyph.vertices[index].position[1] -= data->GetBearingY() / dpiScale;
         }
 
         this->textureX += width + Font::TEXTURE_PADDING;
