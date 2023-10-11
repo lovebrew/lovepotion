@@ -52,6 +52,6 @@ namespace love
         std::vector<ImageGlyphData> imageGlyphs;
         std::map<uint32_t, int> glyphIndicies;
 
-        Color spacer;
+        Color32 spacer;
     };
 } // namespace love

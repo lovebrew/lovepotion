@@ -192,7 +192,7 @@ int Wrap_FontModule::NewBMFontRasterizer(lua_State* L)
     if (lua_istable(L, 2))
     {
         const auto length = luax::ObjectLength(L, 2);
-        for (int index = 1; index <= length; index++)
+        for (int index = 1; index <= (int)length; index++)
         {
             lua_rawgeti(L, 2, index);
 
@@ -207,11 +207,14 @@ int Wrap_FontModule::NewBMFontRasterizer(lua_State* L)
     }
     else
     {
-        convertImageData(L, 2);
+        if (!lua_isnoneornil(L, 2))
+        {
+            convertImageData(L, 2);
 
-        auto* imageData = Wrap_ImageData::CheckImageData(L, 2);
-        images.push_back(imageData);
-        imageData->Retain();
+            auto* imageData = Wrap_ImageData::CheckImageData(L, 2);
+            images.push_back(imageData);
+            imageData->Retain();
+        }
     }
 
     luax::CatchException(

@@ -65,7 +65,7 @@ if(NINTENDO_3DS)
         ROMFS ${PROJECT_NAME}_ctr_romfs
     )
 
-    set(APP_LIBS citro2d citro3d)
+    set(APP_LIBS citro3d)
 
     add_custom_target(dist COMMAND
         ${CMAKE_COMMAND} -E tar "cfv" "${PROJECT_NAME}-3ds-${COMMIT_HASH}.zip" --format=zip

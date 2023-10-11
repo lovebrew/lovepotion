@@ -40,11 +40,13 @@ namespace love
                                         const std::vector<ImageData<Console::Which>*>& images,
                                         float dpiScale) const;
 
-        Rasterizer* NewImageRasterizer(ImageData<Console::Which>* data, const std::string& text,
-                                       int extraSpacing, float dpiScale) const;
+        virtual Rasterizer* NewImageRasterizer(ImageData<Console::Which>* data,
+                                               const std::string& text, int extraSpacing,
+                                               float dpiScale) const = 0;
 
-        Rasterizer* NewImageRasterizer(ImageData<Console::Which>* data, uint32_t* glyphs,
-                                       int glyphCount, int extraSpacing, float dpiScale) const;
+        virtual Rasterizer* NewImageRasterizer(ImageData<Console::Which>* data, uint32_t* glyphs,
+                                               int glyphCount, int extraSpacing,
+                                               float dpiScale) const = 0;
 
         Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting) const;
 

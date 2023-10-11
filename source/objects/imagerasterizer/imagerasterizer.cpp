@@ -49,46 +49,48 @@ int ImageRasterizer::GetGlyphIndex(uint32_t glyph) const
 
 GlyphData* ImageRasterizer::GetGlyphDataForIndex(int index) const
 {
-    GlyphData::GlyphMetrics metrics {};
-    uint32_t codepoint = 0;
+    GlyphData::GlyphMetrics glyphMetrics {};
+    uint32_t glyph = 0;
 
     if (index >= 0 && index < (int)this->imageGlyphs.size())
     {
-        codepoint = this->imageGlyphs[index].glyph;
-
-        metrics.advance = this->imageGlyphs[index].width + this->extraSpacing;
-        metrics.width   = this->imageGlyphs[index].width;
+        glyphMetrics.width   = this->imageGlyphs[index].width;
+        glyphMetrics.advance = this->imageGlyphs[index].width + this->extraSpacing;
+        glyph                = this->imageGlyphs[index].glyph;
     }
 
-    metrics.height = this->metrics.height;
+    glyphMetrics.height = this->metrics.height;
 
-    auto* data = new GlyphData(codepoint, metrics, PIXELFORMAT_RGBA8_UNORM);
+    auto* glyphData = new GlyphData(glyph, glyphMetrics, PIXELFORMAT_RGBA8_UNORM);
 
-    if (metrics.width == 0)
-        return data;
+    if (glyphMetrics.width == 0)
+        return glyphData;
 
     std::unique_lock lock(this->imageData->GetMutex());
 
-    Color* pixels            = (Color*)this->imageData->GetData();
-    const Color* imagePixels = (const Color*)this->imageData->GetData();
+    auto* pixels       = (Color32*)glyphData->GetData();
+    const auto* source = (const Color32*)this->imageData->GetData();
 
-    for (int index = 0; index < data->GetWidth() * data->GetHeight(); index++)
+    const auto size  = glyphData->GetWidth() * glyphData->GetHeight();
+    const auto width = this->imageData->GetWidth();
+
+    for (int idx = 0; idx < size; idx++)
     {
-        const auto add = (imageData->GetWidth() * (index / metrics.width));
-        Color color    = imagePixels[this->imageGlyphs[index].x + (index % metrics.width) + add];
+        const auto add = (width * (idx / glyphMetrics.width));
+        auto color     = source[this->imageGlyphs[index].x + (idx % glyphMetrics.width) + add];
 
-        if (color == spacer)
-            pixels[index] = Color(0, 0, 0, 0);
+        if (color == this->spacer)
+            pixels[idx] = Color32(0, 0, 0, 0);
         else
-            pixels[index] = color;
+            pixels[idx] = color;
     }
 
-    return data;
+    return glyphData;
 }
 
 void ImageRasterizer::Load(const uint32_t* glyphs, int glyphCount)
 {
-    auto* pixels = (const Color*)this->imageData->GetData();
+    const auto* pixels = (const Color32*)this->imageData->GetData();
 
     const auto width  = this->imageData->GetWidth();
     const auto height = this->imageData->GetHeight();
@@ -103,9 +105,9 @@ void ImageRasterizer::Load(const uint32_t* glyphs, int glyphCount)
 
     {
         ImageGlyphData nullGlyph {};
-        nullGlyph.glyph = 0;
-        nullGlyph.width = 0;
         nullGlyph.x     = 0;
+        nullGlyph.width = 0;
+        nullGlyph.glyph = 0;
 
         this->imageGlyphs.push_back(nullGlyph);
         this->glyphIndicies[0] = (int)this->imageGlyphs.size() - 1;

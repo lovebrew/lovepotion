@@ -59,7 +59,7 @@ size_t GlyphData::GetPixelSize() const
 
 size_t GlyphData::GetSize() const
 {
-    return size_t(this->GetWidth() * this->GetHeight() * this->GetPixelSize());
+    return size_t(this->GetWidth() * this->GetHeight()) * this->GetPixelSize();
 }
 
 int GlyphData::GetHeight() const

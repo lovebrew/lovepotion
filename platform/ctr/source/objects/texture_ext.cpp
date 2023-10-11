@@ -256,11 +256,15 @@ void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int sli
     switch (this->GetPixelFormat())
     {
         case PIXELFORMAT_RGB565_UNORM:
+        {
             _replacePixels<uint16_t>(data, this->texture->data, rect, this->width, this->height);
             break;
+        }
         default:
+        {
             _replacePixels<uint32_t>(data, this->texture->data, rect, this->width, this->height);
             break;
+        }
     }
 
     C3D_TexFlush(this->texture);

@@ -55,8 +55,12 @@ namespace love
 
         using FontModule<Console::ALL>::NewTrueTypeRasterizer;
 
-        Rasterizer* NewTrueTypeRasterizer(int size, TrueTypeRasterizer<>::Hinting hinting,
-                                          OSSharedDataType type) const;
+        Rasterizer* NewImageRasterizer(ImageData<Console::Which>* data, const std::string& text,
+                                       int extraSpacing, float dpiScale) const override;
+
+        Rasterizer* NewImageRasterizer(ImageData<Console::Which>* data, uint32_t* glyphs,
+                                       int glyphCount, int extraSpacing,
+                                       float dpiScale) const override;
 
         Rasterizer* NewTrueTypeRasterizer(Data* data, int size,
                                           TrueTypeRasterizer<>::Hinting hinting) const override;

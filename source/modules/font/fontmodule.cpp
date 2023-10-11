@@ -35,38 +35,6 @@ Rasterizer* FontModule<Console::ALL>::NewBMFontRasterizer(
 }
 
 template<>
-Rasterizer* FontModule<Console::ALL>::NewImageRasterizer(ImageData<Console::Which>* data,
-                                                         const std::string& text, int extraSpacing,
-                                                         float dpiScale) const
-{
-    std::vector<uint32_t> glyphs {};
-    glyphs.reserve(text.size());
-
-    try
-    {
-        utf8::iterator<std::string::const_iterator> it(text.begin(), text.begin(), text.end());
-        utf8::iterator<std::string::const_iterator> end(text.end(), text.begin(), text.end());
-
-        while (it != end)
-            glyphs.push_back(*it++);
-    }
-    catch (utf8::exception& e)
-    {
-        throw love::Exception("UTF-8 decoding error: %s", e.what());
-    }
-
-    return new ImageRasterizer(data, &glyphs[0], (int)glyphs.size(), extraSpacing, dpiScale);
-}
-
-template<>
-Rasterizer* FontModule<Console::ALL>::NewImageRasterizer(ImageData<Console::Which>* data,
-                                                         uint32_t* glyphs, int glyphCount,
-                                                         int extraSpacing, float dpiScale) const
-{
-    return new ImageRasterizer(data, glyphs, glyphCount, extraSpacing, dpiScale);
-}
-
-template<>
 Rasterizer* FontModule<Console::ALL>::NewTrueTypeRasterizer(
     int size, TrueTypeRasterizer<>::Hinting hinting) const
 {
