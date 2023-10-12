@@ -53,14 +53,6 @@ Rasterizer* FontModule<Console::HAC>::NewRasterizer(FileData* data) const
     return nullptr;
 }
 
-Rasterizer* FontModule<Console::HAC>::NewTrueTypeRasterizer(int size,
-                                                            TrueTypeRasterizer<>::Hinting hinting,
-                                                            PlSharedFontType type) const
-{
-    StrongReference<SystemFont> data(new SystemFont(type), Acquire::NORETAIN);
-    return this->NewTrueTypeRasterizer(data.Get(), size, hinting);
-}
-
 Rasterizer* FontModule<Console::HAC>::NewTrueTypeRasterizer(
     Data* data, int size, TrueTypeRasterizer<>::Hinting hinting) const
 {
