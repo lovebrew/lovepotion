@@ -205,16 +205,13 @@ int Wrap_FontModule::NewBMFontRasterizer(lua_State* L)
             lua_pop(L, 1);
         }
     }
-    else
+    else if (!lua_isnoneornil(L, 2))
     {
-        if (!lua_isnoneornil(L, 2))
-        {
-            convertImageData(L, 2);
+        convertImageData(L, 2);
 
-            auto* imageData = Wrap_ImageData::CheckImageData(L, 2);
-            images.push_back(imageData);
-            imageData->Retain();
-        }
+        auto* imageData = Wrap_ImageData::CheckImageData(L, 2);
+        images.push_back(imageData);
+        imageData->Retain();
     }
 
     luax::CatchException(
