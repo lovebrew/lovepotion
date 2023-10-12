@@ -10,6 +10,10 @@ namespace Wrap_FontModule
 
     int NewTrueTypeRasterizer(lua_State* L);
 
+    int NewBMFontRasterizer(lua_State* L);
+
+    int NewImageRasterizer(lua_State* L);
+
     int Register(lua_State* L);
 
     extern std::span<const luaL_Reg> extensions;

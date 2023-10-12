@@ -2,6 +2,9 @@
 
 #include <modules/fontmodule_ext.hpp>
 
+#include <objects/bmfontrasterizer/bmfontrasterizer.hpp>
+#include <objects/imagerasterizer/imagerasterizer.hpp>
+
 using namespace love;
 
 SystemFont::SystemFont(CFG_Region region)
@@ -99,6 +102,36 @@ FontModule<Console::CTR>::FontModule()
     void* data  = FontModule<Console::CTR>::LoadSystemFont(CFG_REGION_USA, size);
 
     this->defaultFontData.Set(new ByteData(data, size, true), Acquire::NORETAIN);
+}
+
+Rasterizer* FontModule<Console::CTR>::NewImageRasterizer(ImageData<Console::Which>* data,
+                                                         const std::string& text, int extraSpacing,
+                                                         float dpiScale) const
+{
+    std::vector<uint32_t> glyphs {};
+    glyphs.reserve(text.size());
+
+    try
+    {
+        utf8::iterator<std::string::const_iterator> it(text.begin(), text.begin(), text.end());
+        utf8::iterator<std::string::const_iterator> end(text.end(), text.begin(), text.end());
+
+        while (it != end)
+            glyphs.push_back(*it++);
+    }
+    catch (utf8::exception& e)
+    {
+        throw love::Exception("UTF-8 decoding error: %s", e.what());
+    }
+
+    return this->NewImageRasterizer(data, &glyphs[0], (int)glyphs.size(), extraSpacing, dpiScale);
+}
+
+Rasterizer* FontModule<Console::CTR>::NewImageRasterizer(ImageData<Console::Which>* data,
+                                                         uint32_t* glyphs, int glyphCount,
+                                                         int extraSpacing, float dpiScale) const
+{
+    return new ImageRasterizer(data, glyphs, glyphCount, extraSpacing, dpiScale);
 }
 
 Rasterizer* FontModule<Console::CTR>::NewRasterizer(FileData* data) const

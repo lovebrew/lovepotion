@@ -437,7 +437,7 @@ namespace love
             }
         }
 
-        love::mutex& GetMutex()
+        love::mutex& GetMutex() const
         {
             return this->mutex;
         }

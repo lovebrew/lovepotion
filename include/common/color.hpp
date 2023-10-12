@@ -159,3 +159,20 @@ struct Color
         return (uint8_t)(255.0f * std::clamp(in, 0.0f, 1.0f) + 0.5f);
     }
 };
+
+struct Color32
+{
+  public:
+    Color32() : r(0), g(0), b(0), a(0)
+    {}
+
+    Color32(uint8_t r, uint8_t g, uint8_t b, uint8_t a) : r(r), g(g), b(b), a(a)
+    {}
+
+    constexpr std::strong_ordering operator<=>(const Color32&) const noexcept = default;
+
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+};

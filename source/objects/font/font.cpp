@@ -364,7 +364,7 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
 
     if (width > 0 && height > 0)
     {
-        const auto color = Color(Color::WHITE).array();
+        const auto color = Color(1, 1, 1, 1).array();
 
         // clang-format off
         const std::array<Vertex, 0x06> vertices =

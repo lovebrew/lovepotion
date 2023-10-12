@@ -74,7 +74,7 @@ void TextBatch::AddTextData(const TextData& text)
     std::vector<Font::DrawCommand> newCommands {};
     TextShaper::TextInfo info {};
 
-    Color constantColor(Color::WHITE);
+    Color constantColor(1, 1, 1, 1);
     if (text.align == Font::ALIGN_MAX_ENUM)
     {
         newCommands = this->font->GenerateVertices(text.codepoints, Range(), constantColor,

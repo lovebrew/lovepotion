@@ -4,6 +4,10 @@
 
 #include <objects/truetyperasterizer/truetyperasterizer.tcc>
 
+#include <objects/imagerasterizer/imagerasterizer.hpp>
+
+#include <objects/bmfontrasterizer/bmfontrasterizer.hpp>
+
 using namespace love;
 
 template<>
@@ -21,6 +25,13 @@ FontModule<Console::ALL>::~FontModule()
 #if !defined(__3DS__)
     FT_Done_FreeType(this->library);
 #endif
+}
+
+template<>
+Rasterizer* FontModule<Console::ALL>::NewBMFontRasterizer(
+    FileData* data, const std::vector<ImageData<Console::Which>*>& images, float dpiScale) const
+{
+    return new BMFontRasterizer(data, images, dpiScale);
 }
 
 template<>
