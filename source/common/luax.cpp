@@ -2,6 +2,7 @@
 
 #include <common/module.hpp>
 #include <common/object.hpp>
+#include <common/reference.hpp>
 #include <common/variant.hpp>
 
 #include <cstddef>
@@ -945,6 +946,26 @@ int luax::AssertNilError(lua_State* L, int index)
             return luaL_error(L, "assertion failed!");
     }
     return 0;
+}
+
+int luax::AssertIsFunction(lua_State* L, int index)
+{
+    if (!lua_isfunction(L, index))
+        return luaL_error(L, "Expected function, got %s", lua_typename(L, lua_type(L, index)));
+
+    return 0;
+}
+
+love::Reference* luax::RefIfType(lua_State* L, int type)
+{
+    Reference* result = nullptr;
+
+    if (lua_type(L, -1) == type)
+        result = new Reference(L);
+    else
+        lua_pop(L, 1);
+
+    return result;
 }
 
 int luax::Traceback(lua_State* L)

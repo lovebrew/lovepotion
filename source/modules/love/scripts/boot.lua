@@ -188,7 +188,7 @@ function love.init()
             graphics = true,
             audio = true,
             math = true,
-            physics = false,
+            physics = true,
             sensor = true,
             sound = true,
             system = true,

@@ -357,6 +357,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/module.cpp
     source/common/object.cpp
     source/common/pixelformat.cpp
+    source/common/reference.cpp
     source/common/type.cpp
     source/common/variant.cpp
     source/common/vector.cpp
@@ -380,6 +381,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/modules/love/love.cpp
     source/modules/math/math.cpp
     source/modules/math/wrap_math.cpp
+    source/modules/physics/physics.cpp
+    source/modules/physics/wrap_physics.cpp
     source/modules/sensor/sensor.cpp
     source/modules/sensor/wrap_sensor.cpp
     source/modules/sound/sound.cpp
@@ -394,12 +397,15 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/beziercurve/beziercurve.cpp
     source/objects/beziercurve/wrap_beziercurve.cpp
     source/objects/bmfontrasterizer/bmfontrasterizer.cpp
-    source/objects/imagerasterizer/imagerasterizer.cpp
+    source/objects/body/body.cpp
+    source/objects/body/wrap_body.cpp
     source/objects/channel/channel.cpp
     source/objects/channel/wrap_channel.cpp
     source/objects/compressedimagedata/compressedimagedata.cpp
     source/objects/compressedimagedata/compressedslice.cpp
     source/objects/compressedimagedata/wrap_compressedimagedata.cpp
+    source/objects/contact/contact.cpp
+    source/objects/contact/wrap_contact.cpp
     source/objects/data/bytedata/bytedata.cpp
     source/objects/data/bytedata/wrap_bytedata.cpp
     source/objects/data/compresseddata/compresseddata.cpp
@@ -422,6 +428,9 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/imagedata/imagedata.cpp
     source/objects/imagedata/imagedatabase.cpp
     source/objects/imagedata/wrap_imagedata.cpp
+    source/objects/imagerasterizer/imagerasterizer.cpp
+    source/objects/joint/joint.cpp
+    source/objects/joint/wrap_joint.cpp
     source/objects/joystick/wrap_joystick.cpp
     source/objects/mesh/mesh.cpp
     source/objects/mesh/wrap_mesh.cpp
@@ -431,6 +440,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/randomgenerator/wrap_randomgenerator.cpp
     source/objects/rasterizer/rasterizer.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
+    source/objects/shape/shape.cpp
+    source/objects/shape/wrap_shape.cpp
     source/objects/source/wrap_source.cpp
     source/objects/spritebatch/spritebatch.cpp
     source/objects/spritebatch/wrap_spritebatch.cpp
@@ -441,6 +452,8 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/thread/wrap_luathread.cpp
     source/objects/transform/transform.cpp
     source/objects/transform/wrap_transform.cpp
+    source/objects/world/world.cpp
+    source/objects/world/wrap_world.cpp
     source/utilities/base64.cpp
     source/utilities/bytes.cpp
     source/utilities/compressor/compressor.cpp
