@@ -15,7 +15,6 @@ Sensor::SensorType Wrap_Sensor::CheckSensorType(lua_State* L, int index)
     return *type;
 }
 
-// TODO
 int Wrap_Sensor::HasSensor(lua_State* L)
 {
     auto type = Wrap_Sensor::CheckSensorType(L, 1);

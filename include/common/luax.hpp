@@ -27,6 +27,7 @@ namespace love
 {
     class Object;
     class Module;
+    class Reference;
     class Variant;
 
     template<typename T>
@@ -374,6 +375,8 @@ namespace luax
 
     int Traceback(lua_State* L);
 
+    love::Reference* RefIfType(lua_State* L, int type);
+
     template<typename T>
     int CatchException(lua_State* L, const T& func)
     {
@@ -429,6 +432,22 @@ namespace luax
 
         return true;
     }
+
+    template<int min, int max = -1>
+    int AssertArgCount(lua_State* L)
+    {
+        const auto count = lua_gettop(L);
+
+        if (count < min)
+            return luaL_error(L, "Expected at least %d argument(s), got %d.", min, count);
+
+        if (count > max && max != -1)
+            return luaL_error(L, "Expected at most %d argument(s), got %d.", max, count);
+
+        return 0;
+    }
+
+    int AssertIsFunction(lua_State* L, int index);
 
     int AssertNilError(lua_State* L, int idx);
 } // namespace luax
