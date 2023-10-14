@@ -198,6 +198,104 @@ ChainShape* Physics::NewChainShape(Body* body, bool loop, const std::span<Vector
 
 // #endregion Shape
 
+// #region Joint
+
+DistanceJoint* Physics::NewDistanceJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                         float y2, bool collideConnected) const
+{
+    return new DistanceJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+}
+
+FrictionJoint* Physics::NewFrictionJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                         float y2, bool collideConnected) const
+{
+    return new FrictionJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+}
+
+GearJoint* Physics::NewGearJoint(Joint* jointA, Joint* jointB, float ratio,
+                                 bool collideConnected) const
+{
+    return new GearJoint(jointA, jointB, ratio, collideConnected);
+}
+
+MotorJoint* Physics::NewMotorJoint(Body* bodyA, Body* bodyB)
+{
+    return new MotorJoint(bodyA, bodyB);
+}
+
+MotorJoint* Physics::NewMotorJoint(Body* bodyA, Body* bodyB, float correctionFactor,
+                                   bool collideConnected) const
+{
+    return new MotorJoint(bodyA, bodyB, correctionFactor, collideConnected);
+}
+
+MouseJoint* Physics::NewMouseJoint(Body* body, float x, float y) const
+{
+    return new MouseJoint(body, x, y);
+}
+
+PrismaticJoint* Physics::NewPrismaticJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                           float y2, float axisX, float axisY,
+                                           bool collideConnected) const
+{
+    return new PrismaticJoint(bodyA, bodyB, x1, y1, x2, y2, axisX, axisY, collideConnected);
+}
+
+PrismaticJoint* Physics::NewPrismaticJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                           float y2, float axisX, float axisY,
+                                           bool collideConnected, float referenceAngle) const
+{
+    return new PrismaticJoint(bodyA, bodyB, x1, y1, x2, y2, axisX, axisY, collideConnected,
+                              referenceAngle);
+}
+
+PulleyJoint* Physics::NewPulleyJoint(Body* bodyA, Body* bodyB, b2Vec2 groundAnchorA,
+                                     b2Vec2 groundAnchorB, b2Vec2 anchorA, b2Vec2 anchorB,
+                                     float ratio, bool collideConnected) const
+{
+    return new PulleyJoint(bodyA, bodyB, groundAnchorA, groundAnchorB, anchorA, anchorB, ratio,
+                           collideConnected);
+}
+
+RevoluteJoint* Physics::NewRevoluteJoint(Body* bodyA, Body* bodyB, float xA, float yA, float xB,
+                                         float yB, bool collideConnected) const
+{
+    return new RevoluteJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected);
+}
+
+RevoluteJoint* Physics::NewRevoluteJoint(Body* bodyA, Body* bodyB, float xA, float yA, float xB,
+                                         float yB, bool collideConnected,
+                                         float referenceAngle) const
+{
+    return new RevoluteJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected, referenceAngle);
+}
+
+RopeJoint* Physics::NewRopeJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                 float maxLength, bool collideConnected) const
+{
+    return new RopeJoint(bodyA, bodyB, x1, y1, x2, y2, maxLength, collideConnected);
+}
+
+WeldJoint* Physics::NewWeldJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                 bool collideConnected) const
+{
+    return new WeldJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+}
+
+WeldJoint* Physics::NewWeldJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                 bool collideConnected, float referenceAngle) const
+{
+    return new WeldJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected, referenceAngle);
+}
+
+WheelJoint* Physics::NewWheelJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                   float axisX, float axisY, bool collideConnected) const
+{
+    return new WheelJoint(bodyA, bodyB, x1, y1, x2, y2, axisX, axisY, collideConnected);
+}
+
+// #endregion Joint
+
 void Physics::SetMeter(float scale)
 {
     if (scale < 1.0f)

@@ -430,6 +430,28 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/imagedata/wrap_imagedata.cpp
     source/objects/imagerasterizer/imagerasterizer.cpp
     source/objects/joint/joint.cpp
+    source/objects/joint/types/distancejoint/distancejoint.cpp
+    source/objects/joint/types/distancejoint/wrap_distancejoint.cpp
+    source/objects/joint/types/frictionjoint/frictionjoint.cpp
+    source/objects/joint/types/frictionjoint/wrap_frictionjoint.cpp
+    source/objects/joint/types/gearjoint/gearjoint.cpp
+    source/objects/joint/types/gearjoint/wrap_gearjoint.cpp
+    source/objects/joint/types/motorjoint/motorjoint.cpp
+    source/objects/joint/types/motorjoint/wrap_motorjoint.cpp
+    source/objects/joint/types/mousejoint/mousejoint.cpp
+    source/objects/joint/types/mousejoint/wrap_mousejoint.cpp
+    source/objects/joint/types/prismaticjoint/prismaticjoint.cpp
+    source/objects/joint/types/prismaticjoint/wrap_prismaticjoint.cpp
+    source/objects/joint/types/pulleyjoint/pulleyjoint.cpp
+    source/objects/joint/types/pulleyjoint/wrap_pulleyjoint.cpp
+    source/objects/joint/types/revolutejoint/revolutejoint.cpp
+    source/objects/joint/types/revolutejoint/wrap_revolutejoint.cpp
+    source/objects/joint/types/ropejoint/ropejoint.cpp
+    source/objects/joint/types/ropejoint/wrap_ropejoint.cpp
+    source/objects/joint/types/weldjoint/weldjoint.cpp
+    source/objects/joint/types/weldjoint/wrap_weldjoint.cpp
+    source/objects/joint/types/wheeljoint/wheeljoint.cpp
+    source/objects/joint/types/wheeljoint/wrap_wheeljoint.cpp
     source/objects/joint/wrap_joint.cpp
     source/objects/joystick/wrap_joystick.cpp
     source/objects/mesh/mesh.cpp

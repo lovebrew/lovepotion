@@ -2,6 +2,18 @@
 
 #include <objects/body/wrap_body.hpp>
 #include <objects/contact/wrap_contact.hpp>
+
+#include <objects/joint/types/distancejoint/wrap_distancejoint.hpp>
+#include <objects/joint/types/frictionjoint/wrap_frictionjoint.hpp>
+#include <objects/joint/types/gearjoint/wrap_gearjoint.hpp>
+#include <objects/joint/types/motorjoint/wrap_motorjoint.hpp>
+#include <objects/joint/types/mousejoint/wrap_mousejoint.hpp>
+#include <objects/joint/types/prismaticjoint/wrap_prismaticjoint.hpp>
+#include <objects/joint/types/pulleyjoint/wrap_pulleyjoint.hpp>
+#include <objects/joint/types/revolutejoint/wrap_revolutejoint.hpp>
+#include <objects/joint/types/ropejoint/wrap_ropejoint.hpp>
+#include <objects/joint/types/weldjoint/wrap_weldjoint.hpp>
+#include <objects/joint/types/wheeljoint/wrap_wheeljoint.hpp>
 #include <objects/joint/wrap_joint.hpp>
 
 #include <objects/shape/types/chainshape/wrap_chainshape.hpp>
@@ -467,6 +479,346 @@ int Wrap_Physics::NewChainShape(lua_State* L)
 
 // #region Joint
 
+int Wrap_Physics::NewDistanceJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float x1              = luaL_checknumber(L, 3);
+    float y1              = luaL_checknumber(L, 4);
+    float x2              = luaL_checknumber(L, 5);
+    float y2              = luaL_checknumber(L, 6);
+    bool collideConnected = luax::OptBoolean(L, 7, false);
+
+    DistanceJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        joint = instance()->NewDistanceJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewFrictionJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float x1 = luaL_checknumber(L, 3);
+    float y1 = luaL_checknumber(L, 4);
+
+    float x2, y2 = 0.0f;
+    bool collideConnected = false;
+
+    if (lua_gettop(L) >= 6)
+    {
+        x2               = luaL_checknumber(L, 5);
+        y2               = luaL_checknumber(L, 6);
+        collideConnected = luax::OptBoolean(L, 7, false);
+    }
+    else
+    {
+        x2               = x1;
+        y2               = y1;
+        collideConnected = luax::OptBoolean(L, 5, false);
+    }
+
+    FrictionJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        joint = instance()->NewFrictionJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewGearJoint(lua_State* L)
+{
+    auto* jointA          = Wrap_Joint::CheckJoint(L, 1);
+    auto* jointB          = Wrap_Joint::CheckJoint(L, 2);
+    float ratio           = luaL_checknumber(L, 3);
+    bool collideConnected = luax::OptBoolean(L, 4, false);
+
+    GearJoint* joint = nullptr;
+    luax::CatchException(
+        L, [&]() { joint = instance()->NewGearJoint(jointA, jointB, ratio, collideConnected); });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewMotorJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    MotorJoint* joint = nullptr;
+    if (!lua_isnoneornil(L, 3))
+    {
+        float correctionFactor = luaL_checknumber(L, 3);
+        bool collideConnected  = luax::OptBoolean(L, 4, false);
+
+        luax::CatchException(L, [&]() {
+            joint = instance()->NewMotorJoint(bodyA, bodyB, correctionFactor, collideConnected);
+        });
+    }
+    else
+        luax::CatchException(L, [&]() { joint = instance()->NewMotorJoint(bodyA, bodyB); });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewMouseJoint(lua_State* L)
+{
+    auto* body = Wrap_Body::CheckBody(L, 1);
+    float x    = luaL_checknumber(L, 2);
+    float y    = luaL_checknumber(L, 3);
+
+    MouseJoint* joint = nullptr;
+    luax::CatchException(L, [&]() { joint = instance()->NewMouseJoint(body, x, y); });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewPrismaticJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB, aX, aY = 0.0f;
+    bool collideConnected = false;
+
+    if (lua_gettop(L) >= 8)
+    {
+        xB               = luaL_checknumber(L, 5);
+        yB               = luaL_checknumber(L, 6);
+        aX               = luaL_checknumber(L, 7);
+        aY               = luaL_checknumber(L, 8);
+        collideConnected = luax::OptBoolean(L, 9, false);
+    }
+    else
+    {
+        xB               = xA;
+        yB               = yA;
+        aX               = luaL_checknumber(L, 5);
+        aY               = luaL_checknumber(L, 6);
+        collideConnected = luax::OptBoolean(L, 7, false);
+    }
+
+    PrismaticJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        if (lua_gettop(L) >= 10)
+        {
+            float referenceAngle = luaL_checknumber(L, 10);
+            joint = instance()->NewPrismaticJoint(bodyA, bodyB, xA, yA, xB, yB, aX, aY,
+                                                  referenceAngle, collideConnected);
+        }
+        else
+            joint = instance()->NewPrismaticJoint(bodyA, bodyB, xA, yA, xB, yB, aX, aY,
+                                                  collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewPulleyJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float groundX1        = luaL_checknumber(L, 3);
+    float groundY1        = luaL_checknumber(L, 4);
+    float groundX2        = luaL_checknumber(L, 5);
+    float groundY2        = luaL_checknumber(L, 6);
+    float x1              = luaL_checknumber(L, 7);
+    float y1              = luaL_checknumber(L, 8);
+    float x2              = luaL_checknumber(L, 9);
+    float y2              = luaL_checknumber(L, 10);
+    float ratio           = luaL_checknumber(L, 11);
+    bool collideConnected = luax::OptBoolean(L, 12, false);
+
+    PulleyJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        const auto groundA = b2Vec2(groundX1, groundY1);
+        const auto groundB = b2Vec2(groundX2, groundY2);
+
+        const auto anchorA = b2Vec2(x1, y1);
+        const auto anchorB = b2Vec2(x2, y2);
+
+        joint = instance()->NewPulleyJoint(bodyA, bodyB, groundA, groundB, anchorA, anchorB, ratio,
+                                           collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewRevoluteJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB = 0.0f;
+    bool collideConnected = false;
+
+    if (lua_gettop(L) >= 6)
+    {
+        xB               = luaL_checknumber(L, 5);
+        yB               = luaL_checknumber(L, 6);
+        collideConnected = luax::OptBoolean(L, 7, false);
+    }
+    else
+    {
+        xB               = xA;
+        yB               = yA;
+        collideConnected = luax::OptBoolean(L, 5, false);
+    }
+
+    RevoluteJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        if (lua_gettop(L) >= 8)
+        {
+            float referenceAngle = luaL_checknumber(L, 8);
+            joint = instance()->NewRevoluteJoint(bodyA, bodyB, xA, yA, xB, yB, referenceAngle,
+                                                 collideConnected);
+        }
+        else
+            joint = instance()->NewRevoluteJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewRopeJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float x1              = luaL_checknumber(L, 3);
+    float y1              = luaL_checknumber(L, 4);
+    float x2              = luaL_checknumber(L, 5);
+    float y2              = luaL_checknumber(L, 6);
+    float maxLength       = luaL_checknumber(L, 7);
+    bool collideConnected = luax::OptBoolean(L, 8, false);
+
+    RopeJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        joint = instance()->NewRopeJoint(bodyA, bodyB, x1, y1, x2, y2, maxLength, collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewWeldJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB = 0.0f;
+    bool collideConnected = false;
+
+    if (lua_gettop(L) >= 6)
+    {
+        xB               = luaL_checknumber(L, 5);
+        yB               = luaL_checknumber(L, 6);
+        collideConnected = luax::OptBoolean(L, 7, false);
+    }
+    else
+    {
+        xB               = xA;
+        yB               = yA;
+        collideConnected = luax::OptBoolean(L, 5, false);
+    }
+
+    WeldJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        if (lua_gettop(L) >= 8)
+        {
+            float referenceAngle = luaL_checknumber(L, 8);
+            joint = instance()->NewWeldJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected,
+                                             referenceAngle);
+        }
+        else
+            joint = instance()->NewWeldJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewWheelJoint(lua_State* L)
+{
+    auto* bodyA = Wrap_Body::CheckBody(L, 1);
+    auto* bodyB = Wrap_Body::CheckBody(L, 2);
+
+    float xA = luaL_checknumber(L, 3);
+    float yA = luaL_checknumber(L, 4);
+
+    float xB, yB, aX, aY = 0.0f;
+    bool collideConnected = false;
+
+    if (lua_gettop(L) >= 8)
+    {
+        xB               = luaL_checknumber(L, 5);
+        yB               = luaL_checknumber(L, 6);
+        aX               = luaL_checknumber(L, 7);
+        aY               = luaL_checknumber(L, 8);
+        collideConnected = luax::OptBoolean(L, 9, false);
+    }
+    else
+    {
+        xB               = xA;
+        yB               = yA;
+        aX               = luaL_checknumber(L, 5);
+        aY               = luaL_checknumber(L, 6);
+        collideConnected = luax::OptBoolean(L, 7, false);
+    }
+
+    WheelJoint* joint = nullptr;
+    luax::CatchException(L, [&]() {
+        joint = instance()->NewWheelJoint(bodyA, bodyB, xA, yA, xB, yB, aX, aY, collideConnected);
+    });
+
+    luax::PushType(L, joint);
+    joint->Release();
+
+    return 1;
+}
+
 // #endregion Joint
 
 int Wrap_Physics::GetDistance(lua_State* L)
@@ -596,6 +948,17 @@ static constexpr luaL_Reg functions[] =
     { "newEdgeShape",            Wrap_Physics::NewEdgeShape            },
     { "newPolygonShape",         Wrap_Physics::NewPolygonShape         },
     { "newChainShape",           Wrap_Physics::NewChainShape           },
+    { "newDistanceJoint",        Wrap_Physics::NewDistanceJoint        },
+    { "newFrictionJoint",        Wrap_Physics::NewFrictionJoint        },
+    { "newGearJoint",            Wrap_Physics::NewGearJoint            },
+    { "newMotorJoint",           Wrap_Physics::NewMotorJoint           },
+    { "newMouseJoint",           Wrap_Physics::NewMouseJoint           },
+    { "newPrismaticJoint",       Wrap_Physics::NewPrismaticJoint       },
+    { "newPulleyJoint",          Wrap_Physics::NewPulleyJoint          },
+    { "newRevoluteJoint",        Wrap_Physics::NewRevoluteJoint        },
+    { "newRopeJoint",            Wrap_Physics::NewRopeJoint            },
+    { "newWeldJoint",            Wrap_Physics::NewWeldJoint            },
+    { "newWheelJoint",           Wrap_Physics::NewWheelJoint           },
     { "getDistance",             Wrap_Physics::GetDistance             },
     { "getMeter",                Wrap_Physics::GetMeter                },
     { "setMeter",                Wrap_Physics::SetMeter                },
@@ -616,6 +979,17 @@ static constexpr lua_CFunction types[] =
     Wrap_EdgeShape::Register,
     Wrap_ChainShape::Register,
     Wrap_Joint::Register,
+    Wrap_DistanceJoint::Register,
+    Wrap_FrictionJoint::Register,
+    Wrap_GearJoint::Register,
+    Wrap_MotorJoint::Register,
+    Wrap_MouseJoint::Register,
+    Wrap_PrismaticJoint::Register,
+    Wrap_PulleyJoint::Register,
+    Wrap_RevoluteJoint::Register,
+    Wrap_RopeJoint::Register,
+    Wrap_WeldJoint::Register,
+    Wrap_WheelJoint::Register,
     nullptr
 };
 // clang-format on

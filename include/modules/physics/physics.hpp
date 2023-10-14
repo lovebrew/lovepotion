@@ -5,7 +5,19 @@
 
 #include <objects/body/body.hpp>
 #include <objects/contact/contact.hpp>
+
 #include <objects/joint/joint.hpp>
+#include <objects/joint/types/distancejoint/distancejoint.hpp>
+#include <objects/joint/types/frictionjoint/frictionjoint.hpp>
+#include <objects/joint/types/gearjoint/gearjoint.hpp>
+#include <objects/joint/types/motorjoint/motorjoint.hpp>
+#include <objects/joint/types/mousejoint/mousejoint.hpp>
+#include <objects/joint/types/prismaticjoint/prismaticjoint.hpp>
+#include <objects/joint/types/pulleyjoint/pulleyjoint.hpp>
+#include <objects/joint/types/revolutejoint/revolutejoint.hpp>
+#include <objects/joint/types/ropejoint/ropejoint.hpp>
+#include <objects/joint/types/weldjoint/weldjoint.hpp>
+#include <objects/joint/types/wheeljoint/wheeljoint.hpp>
 
 #include <objects/shape/shape.hpp>
 #include <objects/shape/types/chainshape/chainshape.hpp>
@@ -66,6 +78,53 @@ namespace love
         PolygonShape* NewPolygonShape(Body* body, const std::span<Vector2>& points) const;
 
         ChainShape* NewChainShape(Body* body, bool loop, const std::span<Vector2>& points) const;
+
+        DistanceJoint* NewDistanceJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                        float y2, bool collideConnected) const;
+
+        FrictionJoint* NewFrictionJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                        float y2, bool collideConnected) const;
+
+        GearJoint* NewGearJoint(Joint* jointA, Joint* jointB, float ratio,
+                                bool collideConnected) const;
+
+        MotorJoint* NewMotorJoint(Body* bodyA, Body* bodyB);
+
+        MotorJoint* NewMotorJoint(Body* bodyA, Body* bodyB, float corrrectionFactor,
+                                  bool collideConnected) const;
+
+        MouseJoint* NewMouseJoint(Body* body, float x, float y) const;
+
+        PrismaticJoint* NewPrismaticJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                          float y2, float axisX, float axisY,
+                                          bool collideConnected) const;
+
+        PrismaticJoint* NewPrismaticJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                          float y2, float axisX, float axisY, bool collideConnected,
+                                          float referenceAngle) const;
+
+        PulleyJoint* NewPulleyJoint(Body* bodyA, Body* bodyB, b2Vec2 groundAnchorA,
+                                    b2Vec2 groundAnchorB, b2Vec2 anchorA, b2Vec2 anchorB,
+                                    float ratio, bool collideConnected) const;
+
+        RevoluteJoint* NewRevoluteJoint(Body* bodyA, Body* bodyB, float xA, float yA, float xB,
+                                        float yB, bool collideConnected) const;
+
+        RevoluteJoint* NewRevoluteJoint(Body* bodyA, Body* bodyB, float xA, float yA, float xB,
+                                        float yB, bool collideConnected,
+                                        float referenceAngle) const;
+
+        RopeJoint* NewRopeJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                float maxLength, bool collideConnected) const;
+
+        WeldJoint* NewWeldJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                bool collideConnected) const;
+
+        WeldJoint* NewWeldJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                bool collideConnected, float referenceAngle) const;
+
+        WheelJoint* NewWheelJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                  float axisX, float axisY, bool collideConnected) const;
 
         int GetDistance(lua_State* L);
 
