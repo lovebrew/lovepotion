@@ -14,6 +14,26 @@ void Wrap_Shape::PushShape(lua_State* L, Shape* shape)
 
     switch (shape->GetType())
     {
+        case Shape::SHAPE_CIRCLE:
+        {
+            luax::PushType(L, (CircleShape*)shape);
+            break;
+        }
+        case Shape::SHAPE_POLYGON:
+        {
+            luax::PushType(L, (PolygonShape*)shape);
+            break;
+        }
+        case Shape::SHAPE_EDGE:
+        {
+            luax::PushType(L, (EdgeShape*)shape);
+            break;
+        }
+        case Shape::SHAPE_CHAIN:
+        {
+            luax::PushType(L, (ChainShape*)shape);
+            break;
+        }
         default:
         {
             luax::PushType(L, shape);

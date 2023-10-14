@@ -3,6 +3,8 @@
 #include <common/luax.hpp>
 #include <objects/shape/shape.hpp>
 
+#include <modules/physics/wrap_physics.hpp>
+
 namespace Wrap_Shape
 {
     void PushShape(lua_State* L, love::Shape* shape);

@@ -441,6 +441,14 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/objects/rasterizer/rasterizer.cpp
     source/objects/rasterizer/wrap_rasterizer.cpp
     source/objects/shape/shape.cpp
+    source/objects/shape/types/chainshape/chainshape.cpp
+    source/objects/shape/types/chainshape/wrap_chainshape.cpp
+    source/objects/shape/types/circleshape/circleshape.cpp
+    source/objects/shape/types/circleshape/wrap_circleshape.cpp
+    source/objects/shape/types/edgeshape/edgeshape.cpp
+    source/objects/shape/types/edgeshape/wrap_edgeshape.cpp
+    source/objects/shape/types/polygonshape/polygonshape.cpp
+    source/objects/shape/types/polygonshape/wrap_polygonshape.cpp
     source/objects/shape/wrap_shape.cpp
     source/objects/source/wrap_source.cpp
     source/objects/spritebatch/spritebatch.cpp

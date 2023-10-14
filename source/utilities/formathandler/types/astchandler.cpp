@@ -6,7 +6,6 @@
 using namespace love;
 using CompressedSlices = std::vector<StrongReference<CompressedSlice>>;
 
-// TODO: use bidirectionalmap to replace this if-elseif-else chain
 static PixelFormat convertFormat(uint32_t blockX, uint32_t blockY, uint32_t blockZ)
 {
     if (blockZ > 1)
@@ -27,9 +26,9 @@ bool ASTCHandler::CanParseCompressed(Data* data)
     const auto* header = (const ASTCHeader*)data->GetData();
 
     // clang-format off
-    const auto identifier =   (uint32_t)header->identifier[0] 
-                            + ((uint32_t)header->identifier[1] << 8) 
-                            + ((uint32_t)header->identifier[2] << 16) 
+    const auto identifier =   (uint32_t)header->identifier[0]
+                            + ((uint32_t)header->identifier[1] << 8)
+                            + ((uint32_t)header->identifier[2] << 16)
                             + ((uint32_t)header->identifier[3] << 24);
     // clang-format on
 

@@ -1,6 +1,8 @@
 #include <modules/physics/physics.hpp>
 
 #include <common/math.hpp>
+#include <common/strongreference.hpp>
+
 #include <objects/body/wrap_body.hpp>
 
 // TODO: remove this
@@ -23,6 +25,8 @@ World* Physics::NewWorld(float gravityX, float gravityY, bool sleep) const
     return new World(b2Vec2(gravityX, gravityY), sleep);
 }
 
+// #region Body
+
 Body* Physics::NewBody(World* world, float x, float y, Body::Type type) const
 {
     return new Body(world, b2Vec2(x, y), type);
@@ -32,6 +36,167 @@ Body* Physics::NewBody(World* world, Body::Type type) const
 {
     return new Body(world, b2Vec2(0, 0), type);
 }
+
+Body* Physics::NewCircleBody(World* world, Body::Type type, float x, float y, float radius) const
+{
+    StrongReference<Body> body(this->NewBody(world, x, y, type), Acquire::NORETAIN);
+    StrongReference<CircleShape> shape(this->NewCircleShape(body, 0, 0, radius), Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewRectangleBody(World* world, Body::Type type, float x, float y, float width,
+                                float height, float angle) const
+{
+    StrongReference<Body> body(this->NewBody(world, x, y, type), Acquire::NORETAIN);
+    StrongReference<PolygonShape> shape(this->NewRectangleShape(body, 0, 0, width, height, angle),
+                                        Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewPolygonBody(World* world, Body::Type type, const std::span<Vector2>& points) const
+{
+    Vector2 origin(0, 0);
+    for (int index = 0; index < points.size(); index++)
+        origin += points[index] / points.size();
+
+    std::vector<Vector2> localCoords {};
+    for (int index = 0; index < points.size(); index++)
+        localCoords.push_back(points[index] - origin);
+
+    StrongReference<Body> body(this->NewBody(world, origin.x, origin.y, type), Acquire::NORETAIN);
+    StrongReference<PolygonShape> shape(this->NewPolygonShape(body, localCoords),
+                                        Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewEdgeBody(World* world, Body::Type type, float x1, float y1, float x2, float y2,
+                           bool oneSided) const
+{
+    float x = (x2 - x1) / 2.0f;
+    float y = (y2 - y1) / 2.0f;
+
+    Vector2 xOrigin(x1 - x, y1 - y);
+    Vector2 yOrigin(x2 - x, y2 - y);
+
+    StrongReference<Body> body(this->NewBody(world, x, y, type), Acquire::NORETAIN);
+    StrongReference<EdgeShape> shape(
+        this->NewEdgeShape(body, xOrigin.x, xOrigin.y, yOrigin.x, yOrigin.y, oneSided),
+        Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewChainBody(World* world, Body::Type type, bool loop,
+                            const std::span<Vector2>& points) const
+{
+    Vector2 origin(0, 0);
+    for (int index = 0; index < points.size(); index++)
+        origin += points[index] / points.size();
+
+    std::vector<Vector2> localCoords {};
+    for (int index = 0; index < points.size(); index++)
+        localCoords.push_back(points[index] - origin);
+
+    StrongReference<Body> body(this->NewBody(world, origin.x, origin.y, type), Acquire::NORETAIN);
+    StrongReference<ChainShape> shape(this->NewChainShape(body, loop, localCoords),
+                                      Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+// #endregion Body
+
+// #region Shape
+
+CircleShape* Physics::NewCircleShape(Body* body, float x, float y, float radius) const
+{
+    b2CircleShape shape {};
+    shape.m_p      = Physics::ScaleDown(b2Vec2(x, y));
+    shape.m_radius = Physics::ScaleDown(radius);
+
+    return new CircleShape(body, shape);
+}
+
+PolygonShape* Physics::NewRectangleShape(Body* body, float x, float y, float width, float height,
+                                         float angle) const
+{
+    b2PolygonShape shape {};
+
+    const auto _width  = Physics::ScaleDown(width / 2.0f);
+    const auto _height = Physics::ScaleDown(height / 2.0f);
+    const auto center  = Physics::ScaleDown(b2Vec2(x, y));
+
+    shape.SetAsBox(_width, _height, center, angle);
+    return new PolygonShape(body, shape);
+}
+
+EdgeShape* Physics::NewEdgeShape(Body* body, float x1, float y1, float x2, float y2,
+                                 bool oneSided) const
+{
+    b2EdgeShape shape {};
+    if (oneSided)
+    {
+        auto v1 = Physics::ScaleDown(b2Vec2(x1, y1));
+        auto v2 = Physics::ScaleDown(b2Vec2(x2, y2));
+
+        shape.SetOneSided(v1, v1, v2, v2);
+    }
+    else
+    {
+        auto v1 = Physics::ScaleDown(b2Vec2(x1, y1));
+        auto v2 = Physics::ScaleDown(b2Vec2(x2, y2));
+
+        shape.SetTwoSided(v1, v2);
+    }
+
+    return new EdgeShape(body, shape);
+}
+
+PolygonShape* Physics::NewPolygonShape(Body* body, const std::span<Vector2>& points) const
+{
+    if (points.size() < 3)
+        throw love::Exception("Expected a minimum of 3 vertices, got %d.", points.size());
+    else if (points.size() > b2_maxPolygonVertices)
+    {
+        throw love::Exception("Expected a maximum of %d vertices, got %d.", b2_maxPolygonVertices,
+                              points.size());
+    }
+
+    b2Vec2 vertices[b2_maxPolygonVertices] {};
+    for (int index = 0; index < points.size(); index++)
+        vertices[index] = Physics::ScaleDown(b2Vec2(points[index].x, points[index].y));
+
+    b2PolygonShape shape {};
+    shape.Set(vertices, points.size());
+
+    return new PolygonShape(body, shape);
+}
+
+ChainShape* Physics::NewChainShape(Body* body, bool loop, const std::span<Vector2>& points) const
+{
+    std::vector<b2Vec2> vertices {};
+    for (int index = 0; index < points.size(); index++)
+        vertices.push_back(Physics::ScaleDown(b2Vec2(points[index].x, points[index].y)));
+
+    b2ChainShape shape {};
+
+    if (loop)
+        shape.CreateLoop(vertices.data(), points.size());
+    else
+        shape.CreateChain(vertices.data(), points.size(), vertices[0], vertices[points.size() - 1]);
+
+    return new ChainShape(body, shape);
+}
+
+// #endregion Shape
 
 void Physics::SetMeter(float scale)
 {

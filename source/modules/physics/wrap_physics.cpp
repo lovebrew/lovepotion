@@ -3,7 +3,13 @@
 #include <objects/body/wrap_body.hpp>
 #include <objects/contact/wrap_contact.hpp>
 #include <objects/joint/wrap_joint.hpp>
+
+#include <objects/shape/types/chainshape/wrap_chainshape.hpp>
+#include <objects/shape/types/circleshape/wrap_circleshape.hpp>
+#include <objects/shape/types/edgeshape/wrap_edgeshape.hpp>
+#include <objects/shape/types/polygonshape/wrap_polygonshape.hpp>
 #include <objects/shape/wrap_shape.hpp>
+
 #include <objects/world/wrap_world.hpp>
 
 using namespace love;
@@ -49,6 +55,195 @@ int Wrap_Physics::NewBody(lua_State* L)
     return 1;
 }
 
+int Wrap_Physics::NewCircleBody(lua_State* L)
+{
+    auto* world            = Wrap_World::CheckWorld(L, 1);
+    const char* typeString = luaL_checkstring(L, 2);
+
+    std::optional<Body::Type> bodyType(Body::BODY_STATIC);
+    if (!(bodyType = Body::bodyTypes.Find(typeString)))
+        return luax::EnumError(L, "Body type", Body::bodyTypes, typeString);
+
+    float x      = luaL_checknumber(L, 3);
+    float y      = luaL_checknumber(L, 4);
+    float radius = luaL_checknumber(L, 5);
+
+    Body* body = nullptr;
+    luax::CatchException(
+        L, [&]() { body = instance()->NewCircleBody(world, *bodyType, x, y, radius); });
+
+    luax::PushType(L, body);
+    body->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewRectangleBody(lua_State* L)
+{
+    auto* world            = Wrap_World::CheckWorld(L, 1);
+    const char* typeString = luaL_checkstring(L, 2);
+
+    std::optional<Body::Type> bodyType(Body::BODY_STATIC);
+    if (!(bodyType = Body::bodyTypes.Find(typeString)))
+        return luax::EnumError(L, "Body type", Body::bodyTypes, typeString);
+
+    float x      = luaL_checknumber(L, 3);
+    float y      = luaL_checknumber(L, 4);
+    float width  = luaL_checknumber(L, 5);
+    float height = luaL_checknumber(L, 6);
+    float angle  = luaL_optnumber(L, 7, 0.0f);
+
+    Body* body = nullptr;
+    luax::CatchException(L, [&]() {
+        body = instance()->NewRectangleBody(world, *bodyType, x, y, width, height, angle);
+    });
+
+    luax::PushType(L, body);
+    body->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewPolygonBody(lua_State* L)
+{
+    auto* world            = Wrap_World::CheckWorld(L, 1);
+    const char* typeString = luaL_checkstring(L, 2);
+
+    std::optional<Body::Type> bodyType(Body::BODY_STATIC);
+    if (!(bodyType = Body::bodyTypes.Find(typeString)))
+        return luax::EnumError(L, "Body type", Body::bodyTypes, typeString);
+
+    auto count         = lua_gettop(L);
+    const auto isTable = lua_istable(L, 3);
+
+    if (isTable)
+        count = (int)luax::ObjectLength(L, 3);
+
+    if (count % 2 != 0)
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+
+    int vertexCount = count / 2;
+    std::vector<Vector2> coords {};
+
+    if (isTable)
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            lua_rawgeti(L, 3, 1 + index * 2);
+            lua_rawgeti(L, 3, 2 + index * 2);
+
+            float x = luaL_checknumber(L, -2);
+            float y = luaL_checknumber(L, -1);
+
+            coords.emplace_back(x, y);
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            float x = luaL_checknumber(L, 3 + index * 2);
+            float y = luaL_checknumber(L, 4 + index * 2);
+
+            coords.emplace_back(x, y);
+        }
+    }
+
+    Body* body = nullptr;
+
+    luax::CatchException(L, [&]() { body = instance()->NewPolygonBody(world, *bodyType, coords); });
+
+    luax::PushType(L, body);
+    body->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewEdgeBody(lua_State* L)
+{
+    auto* world            = Wrap_World::CheckWorld(L, 1);
+    const char* typeString = luaL_checkstring(L, 2);
+
+    std::optional<Body::Type> bodyType(Body::BODY_STATIC);
+    if (!(bodyType = Body::bodyTypes.Find(typeString)))
+        return luax::EnumError(L, "Body type", Body::bodyTypes, typeString);
+
+    float x1 = luaL_checknumber(L, 3);
+    float y1 = luaL_checknumber(L, 4);
+    float x2 = luaL_checknumber(L, 5);
+    float y2 = luaL_checknumber(L, 6);
+
+    bool oneSided = luax::OptBoolean(L, 7, false);
+
+    Body* body = nullptr;
+
+    luax::CatchException(
+        L, [&]() { body = instance()->NewEdgeBody(world, *bodyType, x1, y1, x2, y2, oneSided); });
+
+    luax::PushType(L, body);
+    body->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewChainBody(lua_State* L)
+{
+    auto* world            = Wrap_World::CheckWorld(L, 1);
+    const char* typeString = luaL_checkstring(L, 2);
+
+    std::optional<Body::Type> bodyType(Body::BODY_STATIC);
+    if (!(bodyType = Body::bodyTypes.Find(typeString)))
+        return luax::EnumError(L, "Body type", Body::bodyTypes, typeString);
+
+    const auto loop = luax::CheckBoolean(L, 3);
+    auto count      = lua_gettop(L) - 3;
+
+    const auto isTable = lua_istable(L, 4);
+    if (isTable)
+        count = (int)luax::ObjectLength(L, 4);
+
+    if (count == 0 || ((count % 2) != 0))
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+
+    const auto vertexCount = count / 2;
+    std::vector<Vector2> coords {};
+
+    if (isTable)
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            lua_rawgeti(L, 4, 1 + index * 2);
+            lua_rawgeti(L, 4, 2 + index * 2);
+
+            float x = lua_tonumber(L, -2);
+            float y = lua_tonumber(L, -1);
+
+            coords.emplace_back(x, y);
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            float x = luaL_checknumber(L, 4 + index * 2);
+            float y = luaL_checknumber(L, 5 + index * 2);
+
+            coords.emplace_back(x, y);
+        }
+    }
+
+    Body* body = nullptr;
+    luax::CatchException(
+        L, [&]() { body = instance()->NewChainBody(world, *bodyType, loop, coords); });
+
+    luax::PushType(L, body);
+    body->Release();
+
+    return 1;
+}
+
 // #endregion Body
 
 // #region Shape
@@ -59,6 +254,213 @@ static Body* optBodyForShape(lua_State* L, int index)
         return Wrap_Body::CheckBody(L, index);
 
     return nullptr;
+}
+
+int Wrap_Physics::NewCircleShape(lua_State* L)
+{
+    auto* body    = optBodyForShape(L, 1);
+    int bodyIndex = body ? 1 : 0;
+
+    const auto top = lua_gettop(L) - bodyIndex;
+
+    if (top == 1)
+    {
+        float radius       = luaL_checknumber(L, bodyIndex + 1);
+        CircleShape* shape = nullptr;
+
+        luax::CatchException(
+            L, [&]() { shape = instance()->NewCircleShape(body, 0.0f, 0.0f, radius); });
+
+        luax::PushType(L, shape);
+        shape->Release();
+
+        return 1;
+    }
+    else if (top == 3)
+    {
+        float x      = luaL_checknumber(L, bodyIndex + 1);
+        float y      = luaL_checknumber(L, bodyIndex + 2);
+        float radius = luaL_checknumber(L, bodyIndex + 3);
+
+        CircleShape* shape = nullptr;
+
+        luax::CatchException(L, [&]() { shape = instance()->NewCircleShape(body, x, y, radius); });
+
+        luax::PushType(L, shape);
+        shape->Release();
+
+        return 1;
+    }
+    else
+        return luaL_error(L, "Invalid number of parameters.");
+}
+
+int Wrap_Physics::NewRectangleShape(lua_State* L)
+{
+    auto* body    = optBodyForShape(L, 1);
+    int bodyIndex = body ? 1 : 0;
+
+    const auto top = lua_gettop(L) - bodyIndex;
+
+    if (top == 2)
+    {
+        float width         = luaL_checknumber(L, bodyIndex + 1);
+        float height        = luaL_checknumber(L, bodyIndex + 2);
+        PolygonShape* shape = nullptr;
+
+        luax::CatchException(L, [&]() {
+            shape = instance()->NewRectangleShape(body, 0.0f, 0.0f, width, height, 0.0f);
+        });
+
+        luax::PushType(L, shape);
+        shape->Release();
+
+        return 1;
+    }
+    else if (top == 4 || top == 5)
+    {
+        float x      = luaL_checknumber(L, bodyIndex + 1);
+        float y      = luaL_checknumber(L, bodyIndex + 2);
+        float width  = luaL_checknumber(L, bodyIndex + 3);
+        float height = luaL_checknumber(L, bodyIndex + 4);
+        float angle  = luaL_optnumber(L, bodyIndex + 5, 0.0f);
+
+        PolygonShape* shape = nullptr;
+        luax::CatchException(
+            L, [&]() { shape = instance()->NewRectangleShape(body, x, y, width, height, angle); });
+
+        luax::PushType(L, shape);
+        shape->Release();
+
+        return 1;
+    }
+    else
+        return luaL_error(L, "Invalid number of parameters.");
+}
+
+int Wrap_Physics::NewEdgeShape(lua_State* L)
+{
+    auto* body    = optBodyForShape(L, 1);
+    int bodyIndex = body ? 1 : 0;
+
+    float x1      = luaL_checknumber(L, bodyIndex + 1);
+    float y1      = luaL_checknumber(L, bodyIndex + 2);
+    float x2      = luaL_checknumber(L, bodyIndex + 3);
+    float y2      = luaL_checknumber(L, bodyIndex + 4);
+    bool oneSided = luax::OptBoolean(L, bodyIndex + 5, false);
+
+    EdgeShape* shape = nullptr;
+    luax::CatchException(
+        L, [&]() { shape = instance()->NewEdgeShape(body, x1, y1, x2, y2, oneSided); });
+
+    luax::PushType(L, shape);
+    shape->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewPolygonShape(lua_State* L)
+{
+    auto* body    = optBodyForShape(L, 1);
+    int bodyIndex = body ? 1 : 0;
+
+    auto top           = lua_gettop(L) - bodyIndex;
+    const auto isTable = lua_istable(L, bodyIndex + 1);
+
+    if (isTable)
+        top = (int)luax::ObjectLength(L, bodyIndex + 1);
+
+    if ((top % 2) != 0)
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+
+    const auto vertexCount = top / 2;
+    std::vector<Vector2> coords {};
+
+    if (isTable)
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            lua_rawgeti(L, bodyIndex + 1, 1 + index * 2);
+            lua_rawgeti(L, bodyIndex + 1, 2 + index * 2);
+
+            float x = luaL_checknumber(L, -2);
+            float y = luaL_checknumber(L, -1);
+
+            coords.emplace_back(x, y);
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            float x = luaL_checknumber(L, bodyIndex + 1 + index * 2);
+            float y = luaL_checknumber(L, bodyIndex + 2 + index * 2);
+
+            coords.emplace_back(x, y);
+        }
+    }
+
+    PolygonShape* shape = nullptr;
+    luax::CatchException(L, [&]() { shape = instance()->NewPolygonShape(body, coords); });
+
+    luax::PushType(L, shape);
+    shape->Release();
+
+    return 1;
+}
+
+int Wrap_Physics::NewChainShape(lua_State* L)
+{
+    auto* body    = optBodyForShape(L, 1);
+    int bodyIndex = body ? 1 : 0;
+
+    auto top     = lua_gettop(L) - 1 - bodyIndex;
+    bool isTable = lua_istable(L, bodyIndex + 2);
+
+    if (isTable)
+        top = (int)luax::ObjectLength(L, bodyIndex + 2);
+
+    if (top == 0 || ((top % 2) != 0))
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+
+    const auto vertexCount = top / 2;
+    std::vector<Vector2> coords {};
+
+    const auto loop = luax::CheckBoolean(L, bodyIndex + 1);
+
+    if (isTable)
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            lua_rawgeti(L, bodyIndex + 2, 1 + index * 2);
+            lua_rawgeti(L, bodyIndex + 2, 2 + index * 2);
+
+            float x = luaL_checknumber(L, -2);
+            float y = luaL_checknumber(L, -1);
+
+            coords.emplace_back(x, y);
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < vertexCount; index++)
+        {
+            float x = luaL_checknumber(L, bodyIndex + 2 + index * 2);
+            float y = luaL_checknumber(L, bodyIndex + 3 + index * 2);
+
+            coords.emplace_back(x, y);
+        }
+    }
+
+    ChainShape* shape = nullptr;
+    luax::CatchException(L, [&]() { shape = instance()->NewChainShape(body, loop, coords); });
+
+    luax::PushType(L, shape);
+    shape->Release();
+
+    return 1;
 }
 
 // #endregion Shape
@@ -184,6 +586,16 @@ static constexpr luaL_Reg functions[] =
 {
     { "newWorld",                Wrap_Physics::NewWorld                },
     { "newBody",                 Wrap_Physics::NewBody                 },
+    { "newCircleBody",           Wrap_Physics::NewCircleBody           },
+    { "newRectangleBody",        Wrap_Physics::NewRectangleBody        },
+    { "newPolygonBody",          Wrap_Physics::NewPolygonBody          },
+    { "newEdgeBody",             Wrap_Physics::NewEdgeBody             },
+    { "newChainBody",            Wrap_Physics::NewChainBody            },
+    { "newCircleShape",          Wrap_Physics::NewCircleShape          },
+    { "newRectangleShape",       Wrap_Physics::NewRectangleShape       },
+    { "newEdgeShape",            Wrap_Physics::NewEdgeShape            },
+    { "newPolygonShape",         Wrap_Physics::NewPolygonShape         },
+    { "newChainShape",           Wrap_Physics::NewChainShape           },
     { "getDistance",             Wrap_Physics::GetDistance             },
     { "getMeter",                Wrap_Physics::GetMeter                },
     { "setMeter",                Wrap_Physics::SetMeter                },
@@ -199,6 +611,10 @@ static constexpr lua_CFunction types[] =
     Wrap_Contact::Register,
     Wrap_Body::Register,
     Wrap_Shape::Register,
+    Wrap_CircleShape::Register,
+    Wrap_PolygonShape::Register,
+    Wrap_EdgeShape::Register,
+    Wrap_ChainShape::Register,
     Wrap_Joint::Register,
     nullptr
 };

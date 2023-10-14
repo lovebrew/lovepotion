@@ -6,7 +6,13 @@
 #include <objects/body/body.hpp>
 #include <objects/contact/contact.hpp>
 #include <objects/joint/joint.hpp>
+
 #include <objects/shape/shape.hpp>
+#include <objects/shape/types/chainshape/chainshape.hpp>
+#include <objects/shape/types/circleshape/circleshape.hpp>
+#include <objects/shape/types/edgeshape/edgeshape.hpp>
+#include <objects/shape/types/polygonshape/polygonshape.hpp>
+
 #include <objects/world/world.hpp>
 
 namespace love
@@ -35,6 +41,31 @@ namespace love
         Body* NewBody(World* world, float x, float y, Body::Type type) const;
 
         Body* NewBody(World* world, Body::Type type) const;
+
+        Body* NewCircleBody(World* world, Body::Type type, float x, float y, float radius) const;
+
+        Body* NewRectangleBody(World* world, Body::Type type, float x, float y, float width,
+                               float height, float angle) const;
+
+        Body* NewPolygonBody(World* world, Body::Type type, const std::span<Vector2>& points) const;
+
+        Body* NewEdgeBody(World* world, Body::Type type, float x1, float y1, float x2, float y2,
+                          bool oneSided) const;
+
+        Body* NewChainBody(World* world, Body::Type type, bool loop,
+                           const std::span<Vector2>& points) const;
+
+        CircleShape* NewCircleShape(Body* body, float x, float y, float radius) const;
+
+        PolygonShape* NewRectangleShape(Body* body, float x, float y, float width, float height,
+                                        float angle) const;
+
+        EdgeShape* NewEdgeShape(Body* body, float x1, float y1, float x2, float y2,
+                                bool oneSided) const;
+
+        PolygonShape* NewPolygonShape(Body* body, const std::span<Vector2>& points) const;
+
+        ChainShape* NewChainShape(Body* body, bool loop, const std::span<Vector2>& points) const;
 
         int GetDistance(lua_State* L);
 

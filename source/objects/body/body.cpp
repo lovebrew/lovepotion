@@ -1,11 +1,14 @@
 #include <objects/body/body.hpp>
 
 #include <objects/contact/contact.hpp>
-#include <objects/joint/joint.hpp>
-#include <objects/shape/shape.hpp>
-#include <objects/world/world.hpp>
 
+#include <objects/joint/joint.hpp>
 #include <objects/joint/wrap_joint.hpp>
+
+#include <objects/shape/shape.hpp>
+#include <objects/shape/wrap_shape.hpp>
+
+#include <objects/world/world.hpp>
 
 #include <modules/physics/physics.hpp>
 
@@ -16,7 +19,7 @@ Type love::Body::type("Body", &Object::type);
 Body::Body(World* world, b2Vec2 position, Body::Type type) : world(world), hasCustomMass(false)
 {
     b2BodyDef bodyDef {};
-    bodyDef.position         = position;
+    bodyDef.position         = Physics::ScaleDown(position);
     bodyDef.userData.pointer = (uintptr_t)this;
 
     this->body = world->world->CreateBody(&bodyDef);
@@ -513,24 +516,24 @@ Shape* Body::GetShape() const
 int Body::GetShapes(lua_State* L) const
 {
     lua_newtable(L);
-    const auto* joints = this->body->GetJointList();
+    auto* fixtures = this->body->GetFixtureList();
 
     int index = 1;
 
     do
     {
-        if (joints == nullptr)
+        if (fixtures == nullptr)
             break;
 
-        auto* joint = (Joint*)(joints->joint->GetUserData().pointer);
+        auto* shape = (Shape*)(fixtures->GetUserData().pointer);
 
-        if (joint == nullptr)
+        if (shape == nullptr)
             throw love::Exception("A Joint has escaped Memoizer!");
 
-        Wrap_Joint::PushJoint(L, joint);
+        Wrap_Shape::PushShape(L, shape);
         lua_rawseti(L, -2, index);
         index++;
-    } while ((joints = joints->next));
+    } while ((fixtures = fixtures->GetNext()));
 
     return 1;
 }
@@ -560,7 +563,6 @@ int Body::GetJoints(lua_State* L) const
     return 1;
 }
 
-// TODO: Implement this
 int Body::GetContacts(lua_State* L) const
 {
     lua_newtable(L);
