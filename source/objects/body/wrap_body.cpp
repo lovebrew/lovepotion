@@ -715,7 +715,11 @@ int Wrap_Body::GetShape(lua_State* L)
     auto* self = Wrap_Body::CheckBody(L, 1);
 
     auto* shape = self->GetShape();
-    luax::PushType(L, shape);
+
+    if (shape)
+        Wrap_Shape::PushShape(L, shape);
+    else
+        lua_pushnil(L);
 
     return 1;
 }

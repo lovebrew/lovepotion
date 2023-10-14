@@ -1674,7 +1674,6 @@ int Wrap_Graphics::IsGammaCorrect(lua_State* L)
     return 1;
 }
 
-/* todo */
 int Wrap_Graphics::GetPixelWidth(lua_State* L)
 {
     auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
@@ -1688,7 +1687,6 @@ int Wrap_Graphics::GetPixelWidth(lua_State* L)
     return 1;
 }
 
-/* todo */
 int Wrap_Graphics::GetPixelHeight(lua_State* L)
 {
     auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());
@@ -1702,7 +1700,6 @@ int Wrap_Graphics::GetPixelHeight(lua_State* L)
     return 1;
 }
 
-/* todo */
 int Wrap_Graphics::GetPixelDimensions(lua_State* L)
 {
     auto screenName = luax::OptString(L, 1, love::GetDefaultScreen());

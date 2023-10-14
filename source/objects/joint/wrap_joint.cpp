@@ -16,7 +16,6 @@
 
 using namespace love;
 
-// TODO: Finish this
 void Wrap_Joint::PushJoint(lua_State* L, Joint* joint)
 {
     if (joint == nullptr)
