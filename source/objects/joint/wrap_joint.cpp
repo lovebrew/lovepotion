@@ -2,6 +2,18 @@
 
 #include <objects/body/body.hpp>
 
+#include <objects/joint/types/distancejoint/distancejoint.hpp>
+#include <objects/joint/types/frictionjoint/frictionjoint.hpp>
+#include <objects/joint/types/gearjoint/gearjoint.hpp>
+#include <objects/joint/types/motorjoint/motorjoint.hpp>
+#include <objects/joint/types/mousejoint/mousejoint.hpp>
+#include <objects/joint/types/prismaticjoint/prismaticjoint.hpp>
+#include <objects/joint/types/pulleyjoint/pulleyjoint.hpp>
+#include <objects/joint/types/revolutejoint/revolutejoint.hpp>
+#include <objects/joint/types/ropejoint/ropejoint.hpp>
+#include <objects/joint/types/weldjoint/weldjoint.hpp>
+#include <objects/joint/types/wheeljoint/wheeljoint.hpp>
+
 using namespace love;
 
 // TODO: Finish this
@@ -12,6 +24,28 @@ void Wrap_Joint::PushJoint(lua_State* L, Joint* joint)
 
     switch (joint->GetType())
     {
+        case Joint::Type::JOINT_DISTANCE:
+            return luax::PushType(L, DistanceJoint::type, joint);
+        case Joint::Type::JOINT_FRICTION:
+            return luax::PushType(L, FrictionJoint::type, joint);
+        case Joint::Type::JOINT_GEAR:
+            return luax::PushType(L, GearJoint::type, joint);
+        case Joint::Type::JOINT_MOTOR:
+            return luax::PushType(L, MotorJoint::type, joint);
+        case Joint::Type::JOINT_MOUSE:
+            return luax::PushType(L, MouseJoint::type, joint);
+        case Joint::Type::JOINT_PRISMATIC:
+            return luax::PushType(L, PrismaticJoint::type, joint);
+        case Joint::Type::JOINT_PULLEY:
+            return luax::PushType(L, PulleyJoint::type, joint);
+        case Joint::Type::JOINT_REVOLUTE:
+            return luax::PushType(L, RevoluteJoint::type, joint);
+        case Joint::Type::JOINT_ROPE:
+            return luax::PushType(L, RopeJoint::type, joint);
+        case Joint::Type::JOINT_WELD:
+            return luax::PushType(L, WeldJoint::type, joint);
+        case Joint::Type::JOINT_WHEEL:
+            return luax::PushType(L, WheelJoint::type, joint);
         default:
             return lua_pushnil(L);
     }
