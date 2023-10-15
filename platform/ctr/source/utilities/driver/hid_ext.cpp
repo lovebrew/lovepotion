@@ -91,7 +91,7 @@ void HID<Console::CTR>::_Poll()
     if (touchReleased & KEY_TOUCH)
     {
         float x = this->touchState.previous.px, y = this->touchState.previous.py;
-        this->SendTouchEvent(SUBTYPE_TOUCHPRESS, 0, x, y, 0.0f, 0.0f, 0.0f);
+        this->SendTouchEvent(SUBTYPE_TOUCHRELEASE, 0, x, y, 0.0f, 0.0f, 0.0f);
     }
 
     Joystick<Console::Which>* joystick = nullptr;
