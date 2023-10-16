@@ -2,15 +2,27 @@ build
 distribute
 .vscodecounter
 logs
+settings.json
 distribute
 
+launch.json
+
+todo.md
 *.log
+*.love
+test
+*.code-workspace
+*.txt
+*.py
+
+*.exe
+
+*.elf
 
 *.3dsx
-*.elf
-*.t3x
-
 *.smdh
+*.t3x
+*.shbin
 
 *.nro
 *.nso
@@ -18,4 +30,8 @@ distribute
 *.pfs0
 *.dksh
 
+*.rpx
+*.wuhb
+
 *.zip
+debug.py

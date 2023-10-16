@@ -1,27 +1,305 @@
-#include "modules/physics/physics.h"
-#include <box2d/b2_distance.h>
+#include <modules/physics/physics.hpp>
 
-#include "fixture/fixture.h"
-#include "shape/shape.h"
-#include "world/world.h"
+#include <common/math.hpp>
+#include <common/strongreference.hpp>
+
+#include <objects/body/wrap_body.hpp>
+
+// TODO: remove this
+#include <box2d/b2_distance.h>
 
 using namespace love;
 
-/* Apparently LÖVE wants to make this not static */
 float Physics::meter = Physics::DEFAULT_METER;
 
-Physics::Physics()
+Physics::Physics() : allocator {}
 {
-    Physics::meter = Physics::DEFAULT_METER;
+    Physics::meter = DEFAULT_METER;
 }
 
 Physics::~Physics()
 {}
 
+World* Physics::NewWorld(float gravityX, float gravityY, bool sleep) const
+{
+    return new World(b2Vec2(gravityX, gravityY), sleep);
+}
+
+// #region Body
+
+Body* Physics::NewBody(World* world, float x, float y, Body::Type type) const
+{
+    return new Body(world, b2Vec2(x, y), type);
+}
+
+Body* Physics::NewBody(World* world, Body::Type type) const
+{
+    return new Body(world, b2Vec2(0, 0), type);
+}
+
+Body* Physics::NewCircleBody(World* world, Body::Type type, float x, float y, float radius) const
+{
+    StrongReference<Body> body(this->NewBody(world, x, y, type), Acquire::NORETAIN);
+    StrongReference<CircleShape> shape(this->NewCircleShape(body, 0, 0, radius), Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewRectangleBody(World* world, Body::Type type, float x, float y, float width,
+                                float height, float angle) const
+{
+    StrongReference<Body> body(this->NewBody(world, x, y, type), Acquire::NORETAIN);
+    StrongReference<PolygonShape> shape(this->NewRectangleShape(body, 0, 0, width, height, angle),
+                                        Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewPolygonBody(World* world, Body::Type type, const std::span<Vector2>& points) const
+{
+    Vector2 origin(0, 0);
+    for (int index = 0; index < points.size(); index++)
+        origin += points[index] / points.size();
+
+    std::vector<Vector2> localCoords {};
+    for (int index = 0; index < points.size(); index++)
+        localCoords.push_back(points[index] - origin);
+
+    StrongReference<Body> body(this->NewBody(world, origin.x, origin.y, type), Acquire::NORETAIN);
+    StrongReference<PolygonShape> shape(this->NewPolygonShape(body, localCoords),
+                                        Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewEdgeBody(World* world, Body::Type type, float x1, float y1, float x2, float y2,
+                           bool oneSided) const
+{
+    float x = (x2 - x1) / 2.0f;
+    float y = (y2 - y1) / 2.0f;
+
+    Vector2 xOrigin(x1 - x, y1 - y);
+    Vector2 yOrigin(x2 - x, y2 - y);
+
+    StrongReference<Body> body(this->NewBody(world, x, y, type), Acquire::NORETAIN);
+    StrongReference<EdgeShape> shape(
+        this->NewEdgeShape(body, xOrigin.x, xOrigin.y, yOrigin.x, yOrigin.y, oneSided),
+        Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+Body* Physics::NewChainBody(World* world, Body::Type type, bool loop,
+                            const std::span<Vector2>& points) const
+{
+    Vector2 origin(0, 0);
+    for (int index = 0; index < points.size(); index++)
+        origin += points[index] / points.size();
+
+    std::vector<Vector2> localCoords {};
+    for (int index = 0; index < points.size(); index++)
+        localCoords.push_back(points[index] - origin);
+
+    StrongReference<Body> body(this->NewBody(world, origin.x, origin.y, type), Acquire::NORETAIN);
+    StrongReference<ChainShape> shape(this->NewChainShape(body, loop, localCoords),
+                                      Acquire::NORETAIN);
+
+    body->Retain();
+    return body.Get();
+}
+
+// #endregion Body
+
+// #region Shape
+
+CircleShape* Physics::NewCircleShape(Body* body, float x, float y, float radius) const
+{
+    b2CircleShape shape {};
+    shape.m_p      = Physics::ScaleDown(b2Vec2(x, y));
+    shape.m_radius = Physics::ScaleDown(radius);
+
+    return new CircleShape(body, shape);
+}
+
+PolygonShape* Physics::NewRectangleShape(Body* body, float x, float y, float width, float height,
+                                         float angle) const
+{
+    b2PolygonShape shape {};
+
+    const auto _width  = Physics::ScaleDown(width / 2.0f);
+    const auto _height = Physics::ScaleDown(height / 2.0f);
+    const auto center  = Physics::ScaleDown(b2Vec2(x, y));
+
+    shape.SetAsBox(_width, _height, center, angle);
+    return new PolygonShape(body, shape);
+}
+
+EdgeShape* Physics::NewEdgeShape(Body* body, float x1, float y1, float x2, float y2,
+                                 bool oneSided) const
+{
+    b2EdgeShape shape {};
+    if (oneSided)
+    {
+        auto v1 = Physics::ScaleDown(b2Vec2(x1, y1));
+        auto v2 = Physics::ScaleDown(b2Vec2(x2, y2));
+
+        shape.SetOneSided(v1, v1, v2, v2);
+    }
+    else
+    {
+        auto v1 = Physics::ScaleDown(b2Vec2(x1, y1));
+        auto v2 = Physics::ScaleDown(b2Vec2(x2, y2));
+
+        shape.SetTwoSided(v1, v2);
+    }
+
+    return new EdgeShape(body, shape);
+}
+
+PolygonShape* Physics::NewPolygonShape(Body* body, const std::span<Vector2>& points) const
+{
+    if (points.size() < 3)
+        throw love::Exception("Expected a minimum of 3 vertices, got %d.", points.size());
+    else if (points.size() > b2_maxPolygonVertices)
+    {
+        throw love::Exception("Expected a maximum of %d vertices, got %d.", b2_maxPolygonVertices,
+                              points.size());
+    }
+
+    b2Vec2 vertices[b2_maxPolygonVertices] {};
+    for (int index = 0; index < points.size(); index++)
+        vertices[index] = Physics::ScaleDown(b2Vec2(points[index].x, points[index].y));
+
+    b2PolygonShape shape {};
+    shape.Set(vertices, points.size());
+
+    return new PolygonShape(body, shape);
+}
+
+ChainShape* Physics::NewChainShape(Body* body, bool loop, const std::span<Vector2>& points) const
+{
+    std::vector<b2Vec2> vertices {};
+    for (int index = 0; index < points.size(); index++)
+        vertices.push_back(Physics::ScaleDown(b2Vec2(points[index].x, points[index].y)));
+
+    b2ChainShape shape {};
+
+    if (loop)
+        shape.CreateLoop(vertices.data(), points.size());
+    else
+        shape.CreateChain(vertices.data(), points.size(), vertices[0], vertices[points.size() - 1]);
+
+    return new ChainShape(body, shape);
+}
+
+// #endregion Shape
+
+// #region Joint
+
+DistanceJoint* Physics::NewDistanceJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                         float y2, bool collideConnected) const
+{
+    return new DistanceJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+}
+
+FrictionJoint* Physics::NewFrictionJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                         float y2, bool collideConnected) const
+{
+    return new FrictionJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+}
+
+GearJoint* Physics::NewGearJoint(Joint* jointA, Joint* jointB, float ratio,
+                                 bool collideConnected) const
+{
+    return new GearJoint(jointA, jointB, ratio, collideConnected);
+}
+
+MotorJoint* Physics::NewMotorJoint(Body* bodyA, Body* bodyB)
+{
+    return new MotorJoint(bodyA, bodyB);
+}
+
+MotorJoint* Physics::NewMotorJoint(Body* bodyA, Body* bodyB, float correctionFactor,
+                                   bool collideConnected) const
+{
+    return new MotorJoint(bodyA, bodyB, correctionFactor, collideConnected);
+}
+
+MouseJoint* Physics::NewMouseJoint(Body* body, float x, float y) const
+{
+    return new MouseJoint(body, x, y);
+}
+
+PrismaticJoint* Physics::NewPrismaticJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                           float y2, float axisX, float axisY,
+                                           bool collideConnected) const
+{
+    return new PrismaticJoint(bodyA, bodyB, x1, y1, x2, y2, axisX, axisY, collideConnected);
+}
+
+PrismaticJoint* Physics::NewPrismaticJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2,
+                                           float y2, float axisX, float axisY,
+                                           bool collideConnected, float referenceAngle) const
+{
+    return new PrismaticJoint(bodyA, bodyB, x1, y1, x2, y2, axisX, axisY, collideConnected,
+                              referenceAngle);
+}
+
+PulleyJoint* Physics::NewPulleyJoint(Body* bodyA, Body* bodyB, b2Vec2 groundAnchorA,
+                                     b2Vec2 groundAnchorB, b2Vec2 anchorA, b2Vec2 anchorB,
+                                     float ratio, bool collideConnected) const
+{
+    return new PulleyJoint(bodyA, bodyB, groundAnchorA, groundAnchorB, anchorA, anchorB, ratio,
+                           collideConnected);
+}
+
+RevoluteJoint* Physics::NewRevoluteJoint(Body* bodyA, Body* bodyB, float xA, float yA, float xB,
+                                         float yB, bool collideConnected) const
+{
+    return new RevoluteJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected);
+}
+
+RevoluteJoint* Physics::NewRevoluteJoint(Body* bodyA, Body* bodyB, float xA, float yA, float xB,
+                                         float yB, bool collideConnected,
+                                         float referenceAngle) const
+{
+    return new RevoluteJoint(bodyA, bodyB, xA, yA, xB, yB, collideConnected, referenceAngle);
+}
+
+RopeJoint* Physics::NewRopeJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                 float maxLength, bool collideConnected) const
+{
+    return new RopeJoint(bodyA, bodyB, x1, y1, x2, y2, maxLength, collideConnected);
+}
+
+WeldJoint* Physics::NewWeldJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                 bool collideConnected) const
+{
+    return new WeldJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected);
+}
+
+WeldJoint* Physics::NewWeldJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                 bool collideConnected, float referenceAngle) const
+{
+    return new WeldJoint(bodyA, bodyB, x1, y1, x2, y2, collideConnected, referenceAngle);
+}
+
+WheelJoint* Physics::NewWheelJoint(Body* bodyA, Body* bodyB, float x1, float y1, float x2, float y2,
+                                   float axisX, float axisY, bool collideConnected) const
+{
+    return new WheelJoint(bodyA, bodyB, x1, y1, x2, y2, axisX, axisY, collideConnected);
+}
+
+// #endregion Joint
+
 void Physics::SetMeter(float scale)
 {
     if (scale < 1.0f)
-        throw love::Exception("Physics error: invalid meter. Scale must be > 1.");
+        throw love::Exception("Physics error: invalid meter: %f", scale);
 
     Physics::meter = scale;
 }
@@ -31,38 +309,11 @@ float Physics::GetMeter()
     return Physics::meter;
 }
 
-/* Scale Down */
-
 void Physics::ScaleDown(float& x, float& y)
 {
     x /= Physics::meter;
     y /= Physics::meter;
 }
-
-float Physics::ScaleDown(float scale)
-{
-    return scale / Physics::meter;
-}
-
-b2Vec2 Physics::ScaleDown(const b2Vec2& v)
-{
-    b2Vec2 t = v;
-    Physics::ScaleDown(t.x, t.y);
-
-    return t;
-}
-
-b2AABB Physics::ScaleDown(const b2AABB& aabb)
-{
-    b2AABB t;
-
-    t.lowerBound = Physics::ScaleDown(aabb.lowerBound);
-    t.upperBound = Physics::ScaleDown(aabb.upperBound);
-
-    return t;
-}
-
-/* Scale Up */
 
 void Physics::ScaleUp(float& x, float& y)
 {
@@ -70,39 +321,103 @@ void Physics::ScaleUp(float& x, float& y)
     y *= Physics::meter;
 }
 
-float Physics::ScaleUp(float scale)
+float Physics::ScaleDown(float value)
 {
-    return scale * Physics::meter;
+    return value / Physics::meter;
 }
 
-b2Vec2 Physics::ScaleUp(const b2Vec2& v)
+float Physics::ScaleUp(float value)
 {
-    b2Vec2 t = v;
-    Physics::ScaleUp(t.x, t.y);
+    return value * Physics::meter;
+}
 
-    return t;
+b2Vec2 Physics::ScaleDown(const b2Vec2& vector)
+{
+    b2Vec2 result = vector;
+    Physics::ScaleDown(result.x, result.y);
+
+    return result;
+}
+
+b2Vec2 Physics::ScaleUp(const b2Vec2& vector)
+{
+    b2Vec2 result = vector;
+    Physics::ScaleUp(result.x, result.y);
+
+    return result;
+}
+
+b2AABB Physics::ScaleDown(const b2AABB& aabb)
+{
+    b2AABB result {};
+    result.lowerBound = Physics::ScaleDown(aabb.lowerBound);
+    result.upperBound = Physics::ScaleDown(aabb.upperBound);
+
+    return result;
 }
 
 b2AABB Physics::ScaleUp(const b2AABB& aabb)
 {
-    b2AABB t;
+    b2AABB result {};
+    result.lowerBound = Physics::ScaleUp(aabb.lowerBound);
+    result.upperBound = Physics::ScaleUp(aabb.upperBound);
 
-    t.lowerBound = Physics::ScaleUp(aabb.lowerBound);
-    t.upperBound = Physics::ScaleUp(aabb.upperBound);
-
-    return t;
+    return result;
 }
 
-void Physics::b2LinearFrequency(float& frequency, float& ratio, float stiffness, float damping,
-                                b2Body* bodyA, b2Body* bodyB)
+int Physics::GetDistance(lua_State* L)
 {
-    float massA = bodyA->GetMass();
-    float massB = bodyB->GetMass();
+    auto* shapeA = luax::CheckType<Shape>(L, 1);
+    auto* shapeB = luax::CheckType<Shape>(L, 2);
 
-    float mass;
+    b2DistanceProxy proxyA, proxyB {};
+    b2DistanceInput input {};
+    b2DistanceOutput output {};
+    b2SimplexCache cache {};
+    cache.count = 0;
+
+    luax::CatchException(L, [&]() {
+        if (!shapeA->IsShapeValid() || !shapeB->IsShapeValid())
+            throw love::Exception("The given Shape is not active in the physics World.");
+
+        proxyA.Set(shapeA->fixture->GetShape(), 0);
+        proxyB.Set(shapeB->fixture->GetShape(), 0);
+
+        input.proxyA = proxyA;
+        input.proxyB = proxyB;
+
+        input.transformA = shapeA->fixture->GetBody()->GetTransform();
+        input.transformB = shapeB->fixture->GetBody()->GetTransform();
+        input.useRadii   = true;
+
+        b2Distance(&output, &cache, &input);
+    });
+
+    lua_pushnumber(L, Physics::ScaleUp(output.distance));
+    lua_pushnumber(L, Physics::ScaleUp(output.pointA.x));
+    lua_pushnumber(L, Physics::ScaleUp(output.pointA.y));
+    lua_pushnumber(L, Physics::ScaleUp(output.pointB.x));
+    lua_pushnumber(L, Physics::ScaleUp(output.pointB.y));
+
+    return 5;
+}
+
+void Physics::ComputeLinearStiffness(float& stiffness, float& damping, float frequency,
+                                     float dampingRatio, const b2Body* bodyA, const b2Body* bodyB)
+{
+    b2LinearStiffness(stiffness, damping, frequency, dampingRatio, bodyA, bodyB);
+}
+
+void Physics::ComputeLinearFrequency(float& frequency, float& dampingRatio, float stiffness,
+                                     float damping, b2Body* bodyA, b2Body* bodyB)
+{
+    const auto massA = bodyA->GetMass();
+    const auto massB = bodyB->GetMass();
+
+    float mass = 0.0f;
 
     if (massA > 0.0f && massB > 0.0f)
-        mass = massA * massB / (massA / massB);
+        mass = massA * massB / (massA + massB);
     else if (massA > 0.0f)
         mass = massA;
     else
@@ -110,27 +425,32 @@ void Physics::b2LinearFrequency(float& frequency, float& ratio, float stiffness,
 
     if (mass == 0.0f || stiffness <= 0.0f)
     {
-        frequency = 0.0f;
-        ratio     = 0.0f;
-
+        frequency    = 0.0f;
+        dampingRatio = 0.0f;
         return;
     }
 
-    float omega = b2Sqrt(stiffness / mass);
-    frequency   = omega / (2.0f * b2_pi);
-    ratio       = damping / (mass * 2.0f * omega);
+    float omega  = b2Sqrt(stiffness / mass);
+    frequency    = omega / (2.0f * b2_pi);
+    dampingRatio = damping / (mass * 2.0f * omega);
 }
 
-void Physics::b2AngularFrequency(float& frequency, float& ratio, float stiffness, float damping,
-                                 b2Body* bodyA, b2Body* bodyB)
+void Physics::ComputeAngularStiffness(float& frequency, float& dampingRatio, float stiffness,
+                                      float damping, const b2Body* bodyA, const b2Body* bodyB)
 {
-    float inertiaA = bodyA->GetInertia();
-    float inertiaB = bodyB->GetInertia();
+    b2AngularStiffness(frequency, dampingRatio, stiffness, damping, bodyA, bodyB);
+}
 
-    float inertia;
+void Physics::ComputeAngularFrequency(float& frequency, float& ratio, float stiffness,
+                                      float damping, const b2Body* bodyA, const b2Body* bodyB)
+{
+    const auto inertiaA = bodyA->GetInertia();
+    const auto inertiaB = bodyB->GetInertia();
+
+    float inertia = 0.0f;
 
     if (inertiaA > 0.0f && inertiaB > 0.0f)
-        inertia = inertiaA * inertiaB / (inertiaA * inertiaB);
+        inertia = inertiaA * inertiaB / (inertiaA + inertiaB);
     else if (inertiaA > 0.0f)
         inertia = inertiaA;
     else
@@ -140,345 +460,10 @@ void Physics::b2AngularFrequency(float& frequency, float& ratio, float stiffness
     {
         frequency = 0.0f;
         ratio     = 0.0f;
-
         return;
     }
 
     float omega = b2Sqrt(stiffness / inertia);
     frequency   = omega / (2.0f * b2_pi);
     ratio       = damping / (inertia * 2.0f * omega);
-}
-
-/* lua methods */
-
-World* Physics::NewWorld(float gx, float gy, bool sleep)
-{
-    return new World(b2Vec2(gx, gy), sleep);
-}
-
-Body* Physics::NewBody(World* world, float x, float y, Body::Type type)
-{
-    return new Body(world, b2Vec2(x, y), type);
-}
-
-Body* Physics::NewBody(World* world, Body::Type type)
-{
-    return new Body(world, b2Vec2(0, 0), type);
-}
-
-CircleShape* Physics::NewCircleShape(float radius)
-{
-    return this->NewCircleShape(0, 0, radius);
-}
-
-CircleShape* Physics::NewCircleShape(float x, float y, float radius)
-{
-    b2CircleShape* shape = new b2CircleShape();
-
-    shape->m_p      = Physics::ScaleDown(b2Vec2(x, y));
-    shape->m_radius = Physics::ScaleDown(radius);
-
-    return new CircleShape(shape);
-}
-
-PolygonShape* Physics::NewRectangleShape(float width, float height)
-{
-    return this->NewRectangleShape(0, 0, width, height, 0);
-}
-
-PolygonShape* Physics::NewRectangleShape(float x, float y, float width, float height, float angle)
-{
-    b2PolygonShape* polygonShape = new b2PolygonShape();
-
-    float halfWidth  = Physics::ScaleDown(width / 2.0f);
-    float halfHeight = Physics::ScaleDown(height / 2.0f);
-
-    b2Vec2 center = Physics::ScaleDown(b2Vec2(x, y));
-
-    polygonShape->SetAsBox(halfWidth, halfHeight, center, angle);
-
-    return new PolygonShape(polygonShape);
-}
-
-EdgeShape* Physics::NewEdgeShape(float x1, float y1, float x2, float y2, bool oneSided)
-{
-    b2EdgeShape* edgeShape = new b2EdgeShape();
-
-    if (oneSided)
-    {
-        b2Vec2 vec1 = Physics::ScaleDown(b2Vec2(x1, y1));
-        b2Vec2 vec2 = Physics::ScaleDown(b2Vec2(x2, y2));
-
-        edgeShape->SetOneSided(vec1, vec1, vec2, vec2);
-    }
-    else
-        edgeShape->SetTwoSided(Physics::ScaleDown(b2Vec2(x1, y1)),
-                               Physics::ScaleDown(b2Vec2(x2, y2)));
-
-    return new EdgeShape(edgeShape);
-}
-
-int Physics::NewPolygonShape(lua_State* L)
-{
-    int argc     = lua_gettop(L);
-    bool isTable = lua_istable(L, 1);
-
-    if (isTable)
-        argc = lua_objlen(L, 1);
-
-    if ((argc % 2) != 0)
-        return luaL_error(L, "Number of vertex components must not be a multiple of two.");
-
-    int vertexCount = argc / 2;
-
-    if (vertexCount < 3)
-        return luaL_error(L, "Expected a minimum of 3 vertices, got %d.", vertexCount);
-    else if (vertexCount > b2_maxPolygonVertices)
-        return luaL_error(L, "Expected a maximum of %d vertices, got %d.", b2_maxPolygonVertices,
-                          vertexCount);
-
-    b2Vec2 vectors[b2_maxPolygonVertices];
-
-    if (isTable)
-    {
-        for (int index = 0; index < vertexCount; index++)
-        {
-            lua_rawgeti(L, 1, 1 + index * 2);
-            lua_rawgeti(L, 1, 2 + index * 2);
-
-            float x = luaL_checknumber(L, -2);
-            float y = luaL_checknumber(L, -1);
-
-            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
-
-            lua_pop(L, 2);
-        }
-    }
-    else
-    {
-        for (int index = 0; index < vertexCount; index++)
-        {
-            float x = luaL_checknumber(L, 1 + index * 2);
-            float y = luaL_checknumber(L, 2 + index * 2);
-
-            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
-        }
-    }
-
-    b2PolygonShape* polygonShape = new b2PolygonShape();
-
-    try
-    {
-        polygonShape->Set(vectors, vertexCount);
-    }
-    catch (love::Exception&)
-    {
-        delete polygonShape;
-        throw;
-    }
-
-    PolygonShape* p = new PolygonShape(polygonShape);
-
-    Luax::PushType(L, p);
-    p->Release();
-
-    return 1;
-}
-
-int Physics::NewChainShape(lua_State* L)
-{
-    int argc     = lua_gettop(L) - 1;
-    bool isTable = lua_istable(L, 2);
-
-    if (isTable)
-        argc = lua_objlen(L, 2);
-
-    if (argc == 0 || ((argc % 2) != 0))
-        return luaL_error(L, "Number of vertex components must be a multiple of two.");
-
-    int vertexCount = argc / 2;
-    bool isLooping  = lua_toboolean(L, 1);
-
-    b2Vec2* vectors = new b2Vec2[vertexCount];
-
-    if (isTable)
-    {
-        for (int index = 0; index < vertexCount; index++)
-        {
-            lua_rawgeti(L, 2, 1 + index * 2);
-            lua_rawgeti(L, 2, 2 + index * 2);
-
-            float x = lua_tonumber(L, -2);
-            float y = lua_tonumber(L, -1);
-
-            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
-
-            lua_pop(L, 2);
-        }
-    }
-    else
-    {
-        for (int index = 0; index < vertexCount; index++)
-        {
-            float x = luaL_checknumber(L, 2 + index * 2);
-            float y = luaL_checknumber(L, 3 + index * 2);
-
-            vectors[index] = Physics::ScaleDown(b2Vec2(x, y));
-        }
-    }
-
-    b2ChainShape* chainShape = new b2ChainShape();
-
-    try
-    {
-        if (isLooping)
-            chainShape->CreateLoop(vectors, vertexCount);
-        else
-            chainShape->CreateChain(vectors, vertexCount, vectors[0], vectors[vertexCount - 1]);
-    }
-    catch (love::Exception&)
-    {
-        delete[] vectors;
-        delete chainShape;
-        throw;
-    }
-
-    delete[] vectors;
-
-    ChainShape* c = new ChainShape(chainShape);
-
-    Luax::PushType(L, c);
-    c->Release();
-
-    return 1;
-}
-
-DistanceJoint* Physics::NewDistanceJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,
-                                         bool collideConnected)
-{
-    return new DistanceJoint(a, b, x1, y1, x2, y2, collideConnected);
-}
-
-MouseJoint* Physics::NewMouseJoint(Body* body, float x, float y)
-{
-    return new MouseJoint(body, x, y);
-}
-
-RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                         bool collideConnected)
-{
-    return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected);
-}
-
-RevoluteJoint* Physics::NewRevoluteJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                         bool collideConnected, float referenceAngle)
-{
-    return new RevoluteJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
-}
-
-PrismaticJoint* Physics::NewPrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                           float ax, float ay, bool collideConnected)
-{
-    return new PrismaticJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
-}
-
-PrismaticJoint* Physics::NewPrismaticJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                           float ax, float ay, bool collideConnected,
-                                           float referenceAngle)
-{
-    return new PrismaticJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected, referenceAngle);
-}
-
-PulleyJoint* Physics::NewPulleyJoint(Body* a, Body* b, b2Vec2 groundAnchor1, b2Vec2 groundAnchor2,
-                                     b2Vec2 anchor1, b2Vec2 anchor2, float ratio,
-                                     bool collideConnected)
-{
-    return new PulleyJoint(a, b, groundAnchor1, groundAnchor2, anchor1, anchor2, ratio,
-                           collideConnected);
-}
-
-GearJoint* Physics::NewGearJoint(Joint* a, Joint* b, float ratio, bool collideConnected)
-{
-    return new GearJoint(a, b, ratio, collideConnected);
-}
-
-FrictionJoint* Physics::NewFrictionJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                         bool collideConnected)
-{
-    return new FrictionJoint(a, b, xA, yA, xB, yB, collideConnected);
-}
-
-WeldJoint* Physics::NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                 bool collideConnected)
-{
-    return new WeldJoint(a, b, xA, yA, xB, yB, collideConnected);
-}
-
-WeldJoint* Physics::NewWeldJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                 bool collideConnected, float referenceAngle)
-{
-    return new WeldJoint(a, b, xA, yA, xB, yB, collideConnected, referenceAngle);
-}
-
-WheelJoint* Physics::NewWheelJoint(Body* a, Body* b, float xA, float yA, float xB, float yB,
-                                   float ax, float ay, bool collideConnected)
-{
-    return new WheelJoint(a, b, xA, yA, xB, yB, ax, ay, collideConnected);
-}
-
-RopeJoint* Physics::NewRopeJoint(Body* a, Body* b, float x1, float y1, float x2, float y2,
-                                 float maxLength, bool collideConnected)
-{
-    return new RopeJoint(a, b, x1, y1, x2, y2, maxLength, collideConnected);
-}
-
-MotorJoint* Physics::NewMotorJoint(Body* a, Body* b)
-{
-    return new MotorJoint(a, b);
-}
-
-MotorJoint* Physics::NewMotorJoint(Body* a, Body* b, float correctionFactor, bool collideConnected)
-{
-    return new MotorJoint(a, b, correctionFactor, collideConnected);
-}
-
-Fixture* Physics::NewFixture(Body* body, Shape* shape, float density)
-{
-    return new Fixture(body, shape, density);
-}
-
-int Physics::GetDistance(lua_State* L)
-{
-    Fixture* fixtureA = Luax::CheckType<Fixture>(L, 1);
-    Fixture* fixtureB = Luax::CheckType<Fixture>(L, 2);
-
-    b2DistanceProxy pA, pB;
-    b2DistanceInput i;
-    b2DistanceOutput o;
-    b2SimplexCache c;
-
-    c.count = 0;
-
-    Luax::CatchException(L, [&]() {
-        pA.Set(fixtureA->fixture->GetShape(), 0);
-        pB.Set(fixtureB->fixture->GetShape(), 0);
-
-        i.proxyA = pA;
-        i.proxyB = pB;
-
-        i.transformA = fixtureA->fixture->GetBody()->GetTransform();
-        i.transformB = fixtureB->fixture->GetBody()->GetTransform();
-
-        i.useRadii = true;
-
-        b2Distance(&o, &c, &i);
-    });
-
-    lua_pushnumber(L, Physics::ScaleUp(o.distance));
-    lua_pushnumber(L, Physics::ScaleUp(o.pointA.x));
-    lua_pushnumber(L, Physics::ScaleUp(o.pointA.y));
-    lua_pushnumber(L, Physics::ScaleUp(o.pointB.x));
-    lua_pushnumber(L, Physics::ScaleUp(o.pointB.y));
-
-    return 5;
 }

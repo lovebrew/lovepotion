@@ -66,12 +66,12 @@ end
 
 -- Converts any path into a full path.
 function love.path.getFull(p)
-
     if love.path.abs(p) then
         return love.path.normalslashes(p)
     end
 
     local cwd = love.filesystem.getWorkingDirectory()
+
     cwd = love.path.normalslashes(cwd)
     cwd = love.path.endslash(cwd)
 
@@ -90,10 +90,10 @@ function love.path.leaf(p)
     local last = p
 
     while a do
-        a = p:find("/", a+1)
+        a = p:find("/", a + 1)
 
         if a then
-            last = p:sub(a+1)
+            last = p:sub(a + 1)
         end
     end
 
@@ -104,7 +104,7 @@ end
 -- will typically the executable, for instance "lua5.1.exe".
 function love.arg.getLow(a)
     local m = math.huge
-    for k,v in pairs(a) do
+    for k, v in pairs(a) do
         if k < m then
             m = k
         end
@@ -114,7 +114,7 @@ end
 
 love.arg.options = {
     console = { a = 0 },
-    fused = {a = 0 },
+    fused = { a = 0 },
     game = { a = 1 }
 }
 
@@ -162,7 +162,7 @@ function love.arg.parseOptions()
         if game then
             love.arg.parseOption(love.arg.options.game, game or 0)
         else
-            love.arg.options.game = { a = 1, set = true, arg = { "game" }}
+            love.arg.options.game = { a = 1, set = true, arg = { "game" } }
         end
     end
 end

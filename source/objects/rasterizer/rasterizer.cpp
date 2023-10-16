@@ -1,32 +1,15 @@
-#include "objects/rasterizer/rasterizer.h"
+#include <objects/rasterizer/rasterizer.hpp>
 
-#include "utf8/utf8.h"
+#include <utf8.h>
 
 using namespace love;
 
-love::Type Rasterizer::type("Rasterizer", &Object::type);
+Type Rasterizer::type("Rasterizer", &Object::type);
 
-Rasterizer::~Rasterizer()
-{}
-
-int Rasterizer::GetHeight() const
+GlyphData* Rasterizer::GetGlyphData(uint32_t glyph) const
 {
-    return this->metrics.height;
-}
-
-int Rasterizer::GetAdvance() const
-{
-    return this->metrics.advance;
-}
-
-int Rasterizer::GetAscent() const
-{
-    return this->metrics.ascent;
-}
-
-int Rasterizer::GetDescent() const
-{
-    return this->metrics.descent;
+    const auto index = GetGlyphIndex(glyph);
+    return this->GetGlyphDataForIndex(index);
 }
 
 GlyphData* Rasterizer::GetGlyphData(const std::string& text) const
@@ -52,12 +35,12 @@ bool Rasterizer::HasGlyphs(const std::string& text) const
 
     try
     {
-        utf8::iterator<std::string::const_iterator> i(text.begin(), text.begin(), text.end());
+        utf8::iterator<std::string::const_iterator> it(text.begin(), text.begin(), text.end());
         utf8::iterator<std::string::const_iterator> end(text.end(), text.begin(), text.end());
 
-        while (i != end)
+        while (it != end)
         {
-            uint32_t codepoint = *i++;
+            uint32_t codepoint = *it++;
 
             if (!this->HasGlyph(codepoint))
                 return false;
@@ -71,12 +54,7 @@ bool Rasterizer::HasGlyphs(const std::string& text) const
     return true;
 }
 
-float Rasterizer::GetKerning(uint32_t /*leftglyph*/, uint32_t /*rightglyph*/) const
+float Rasterizer::GetKerning(uint32_t, uint32_t) const
 {
     return 0.0f;
-}
-
-float Rasterizer::GetDPIScale() const
-{
-    return this->dpiScale;
 }

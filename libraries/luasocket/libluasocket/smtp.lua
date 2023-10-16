@@ -1,3 +1,4 @@
+R"luastring"--(
 -----------------------------------------------------------------------------
 -- SMTP client support for the Lua language.
 -- LuaSocket toolkit.
@@ -219,13 +220,13 @@ function send_message(mesgt)
     else send_string(mesgt) end
 end
 
--- set default headers
+-- set defaul headers
 local function adjust_headers(mesgt)
     local lower = lower_headers(mesgt.headers)
     lower["date"] = lower["date"] or
         os.date("!%a, %d %b %Y %H:%M:%S ") .. (mesgt.zone or _M.ZONE)
     lower["x-mailer"] = lower["x-mailer"] or socket._VERSION
-    -- this can't be overridden
+    -- this can't be overriden
     lower["mime-version"] = "1.0"
     return lower
 end
@@ -254,3 +255,5 @@ _M.send = socket.protect(function(mailt)
 end)
 
 return _M
+-- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
+--)luastring"--"

@@ -1,4 +1,4 @@
-#include "objects/imagedata/imagedatabase.h"
+#include <objects/imagedata/imagedatabase.hpp>
 
 using namespace love;
 

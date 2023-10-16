@@ -1,19 +1,15 @@
-#include "modules/touch/touch.h"
+#include <modules/touch/touch.hpp>
 
-#include "common/exception.h"
-#include "modules/event/event.h"
-
-#include "driver/hidrv.h"
+#include <algorithm>
 
 using namespace love;
-using namespace love::driver;
 
-const std::vector<Touch::TouchInfo>& Touch::GetTouches() const
+const std::vector<Finger>& Touch::GetTouches() const
 {
     return this->touches;
 }
 
-const Touch::TouchInfo& Touch::GetTouch(int64_t id) const
+const Finger& Touch::GetTouch(int64_t id) const
 {
     for (const auto& touch : this->touches)
     {
@@ -24,32 +20,36 @@ const Touch::TouchInfo& Touch::GetTouch(int64_t id) const
     throw love::Exception("Invalid active touch ID: %d.", id);
 }
 
-void Touch::OnEvent(int type, const Touch::TouchInfo& info)
+void Touch::OnEvent(SubEventType type, const Finger& info)
 {
-    auto compare = [&](const TouchInfo& touch) -> bool { return touch.id == info.id; };
+    auto compare = [&](const Finger& touch) -> bool { return touch.id == info.id; };
 
     switch (type)
     {
-        case Hidrv::TYPE_TOUCHPRESS:
+        case SUBTYPE_TOUCHPRESS:
         {
-            this->touches.erase(std::remove_if(this->touches.begin(), this->touches.end(), compare),
-                                this->touches.end());
+            const auto iter = std::remove_if(this->touches.begin(), this->touches.end(), compare);
+
+            this->touches.erase(iter, this->touches.end());
             this->touches.push_back(info);
+
             break;
         }
-        case Hidrv::TYPE_TOUCHMOVED:
+        case SUBTYPE_TOUCHMOVED:
         {
-            for (TouchInfo& touch : this->touches)
+            for (Finger& touch : this->touches)
             {
                 if (touch.id == info.id)
                     touch = info;
             }
+
             break;
         }
-        case Hidrv::TYPE_TOUCHRELEASE:
+        case SUBTYPE_TOUCHRELEASE:
         {
-            this->touches.erase(std::remove_if(this->touches.begin(), this->touches.end(), compare),
-                                this->touches.end());
+            const auto iter = std::remove_if(this->touches.begin(), this->touches.end(), compare);
+            this->touches.erase(iter, this->touches.end());
+
             break;
         }
         default:

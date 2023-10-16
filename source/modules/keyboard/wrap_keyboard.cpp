@@ -1,90 +1,133 @@
-#include "modules/keyboard/wrap_keyboard.h"
+#include <modules/keyboard/wrap_keyboard.hpp>
+#include <modules/keyboard_ext.hpp>
 
-#include "modules/event/event.h"
+#include <utilities/driver/renderer_ext.hpp>
 
+#include <common/message.hpp>
+#include <common/strongreference.hpp>
+#include <common/variant.hpp>
+
+#include <modules/event/event.hpp>
+
+using Keyboard = love::Keyboard<love::Console::Which>;
 using namespace love;
 
-#define instance()     (Module::GetInstance<Keyboard>(Module::M_KEYBOARD))
-#define EVENT_MODULE() (Module::GetInstance<love::Event>(Module::M_EVENT))
+#define instance() (Module::GetInstance<::Keyboard>(Module::M_KEYBOARD))
+#define Event()    (Module::GetInstance<love::Event>(Module::M_EVENT))
 
 int Wrap_Keyboard::SetTextInput(lua_State* L)
 {
-    Keyboard::SwkbdOpt options;
+    bool enable = luax::CheckBoolean(L, 1);
 
-    options.type       = Keyboard::KeyboardType::TYPE_NORMAL;
+    if (!enable)
+        return 0;
+
+    ::Keyboard::KeyboardOptions options {};
+    options.type       = ::Keyboard::KeyboardType::TYPE_NORMAL;
     options.hint       = "Enter String";
     options.isPassword = false;
-    options.maxLength  = Keyboard::DEFAULT_INPUT_LENGTH;
+    options.maxLength  = ::Keyboard::DEFAULT_INPUT_LENGTH;
 
-    if (!lua_isnoneornil(L, 1))
+    if (!lua_isnoneornil(L, 2))
     {
-        Luax::CheckTableFields<Keyboard::KeyboardOption>(L, 1, "keyboard setting name",
-                                                         common::Keyboard::GetConstant);
 
-        /* keyboard type option */
+        luax::CheckTableFields<::Keyboard::KeyboardOptions>(
+            L, 2, "keyboard setting name", [](const char* v) {
+                std::optional<::Keyboard::KeyboardOption> value;
+                return (::Keyboard::keyboardOptions.Find(v) != std::nullopt);
+            });
 
-        lua_getfield(L, 1, common::Keyboard::GetConstant(Keyboard::OPTION_TYPE));
-        if (!lua_isnoneornil(L, -1))
+        auto optionType = ::Keyboard::keyboardOptions.ReverseFind(::Keyboard::OPTION_TYPE);
+
+        if (optionType)
         {
-            const char* string = luaL_checkstring(L, -1);
-            if (!Keyboard::GetConstant(string, options.type))
-                return Luax::EnumError(L, "keyboard type", string);
+            lua_getfield(L, 2, *optionType);
+
+            if (!lua_isnoneornil(L, -1))
+            {
+                const char* string = luaL_checkstring(L, -1);
+                std::optional<uint8_t> type;
+
+                if (!(type = ::Keyboard::keyboardTypes.Find(string)))
+                    return luax::EnumError(L, "keyboard type", string);
+
+                options.type = *type;
+            }
         }
         lua_pop(L, 1);
 
-        /* Hint string option */
+        auto optionHint = ::Keyboard::keyboardOptions.ReverseFind(::Keyboard::OPTION_HINT);
 
-        lua_getfield(L, 1, common::Keyboard::GetConstant(Keyboard::OPTION_HINT));
-        if (!lua_isnoneornil(L, -1))
-            options.hint = Luax::CheckString(L, -1);
-        lua_pop(L, 1);
-
-        /* passcode field option -- hides input */
-
-        lua_getfield(L, 1, common::Keyboard::GetConstant(Keyboard::OPTION_PASSCODE));
-        if (!lua_isnoneornil(L, -1))
-            options.isPassword = Luax::CheckBoolean(L, -1);
-        lua_pop(L, 1);
-
-        /* max input length option */
-
-        lua_getfield(L, 1, common::Keyboard::GetConstant(Keyboard::OPTION_MAX_LEN));
-        if (!lua_isnoneornil(L, -1))
+        if (optionHint)
         {
-            uint32_t length = luaL_checknumber(L, -1);
-            options.maxLength =
-                std::clamp(length, Keyboard::MINIMUM_INPUT_LENGTH, Keyboard::MAX_INPUT_LENGTH);
+            lua_getfield(L, 2, *optionHint);
+
+            if (!lua_isnoneornil(L, -1))
+                options.hint = luax::CheckString(L, -1);
+        }
+        lua_pop(L, 1);
+
+        auto optionPasscode = ::Keyboard::keyboardOptions.ReverseFind(::Keyboard::OPTION_PASSCODE);
+
+        if (optionPasscode)
+        {
+            lua_getfield(L, 2, *optionPasscode);
+
+            if (!lua_isnoneornil(L, -1))
+                options.isPassword = luax::CheckBoolean(L, -1);
+        }
+        lua_pop(L, 1);
+
+        auto optionLength = ::Keyboard::keyboardOptions.ReverseFind(::Keyboard::OPTION_MAX_LENGTH);
+
+        if (optionLength)
+        {
+            lua_getfield(L, 2, *optionLength);
+
+            if (!lua_isnoneornil(L, -1))
+            {
+                uint32_t length   = luaL_checknumber(L, -1);
+                options.maxLength = std::clamp<uint32_t>(length, ::Keyboard::MINIMUM_INPUT_LENGTH,
+                                                         ::Keyboard::MAX_INPUT_LENGTH);
+            }
         }
         lua_pop(L, 1);
     }
 
-    std::string text = instance()->SetTextInput(options);
-
-    Luax::CatchException(L, [&]() {
-        std::vector<Variant> args = { text };
-
-        StrongReference<Message> message(new Message("textinput", args), Acquire::NORETAIN);
-
-        EVENT_MODULE()->Push(message);
-    });
+    instance()->SetTextInput(options);
 
     return 0;
+}
+
+int Wrap_Keyboard::HasTextInput(lua_State* L)
+{
+    luax::PushBoolean(L, instance()->HasTextInput());
+
+    return 1;
+}
+
+int Wrap_Keyboard::HasScreenKeyboard(lua_State* L)
+{
+    luax::PushBoolean(L, instance()->HasScreenKeyboard());
+
+    return 1;
 }
 
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "setTextInput", Wrap_Keyboard::SetTextInput },
-    { 0,              0                           }
+    { "setTextInput",      Wrap_Keyboard::SetTextInput      },
+    { "hasTextInput",      Wrap_Keyboard::HasTextInput      },
+    { "hasScreenKeyboard", Wrap_Keyboard::HasScreenKeyboard }
 };
 // clang-format on
 
 int Wrap_Keyboard::Register(lua_State* L)
 {
-    Keyboard* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new Keyboard(); });
+        luax::CatchException(L, [&]() { instance = new ::Keyboard(); });
     else
         instance->Retain();
 
@@ -96,5 +139,5 @@ int Wrap_Keyboard::Register(lua_State* L)
     wrappedModule.type      = &Module::type;
     wrappedModule.types     = nullptr;
 
-    return Luax::RegisterModule(L, wrappedModule);
+    return luax::RegisterModule(L, wrappedModule);
 }

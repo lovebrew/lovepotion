@@ -1,127 +1,117 @@
-#include "modules/window/wrap_window.h"
+#include <modules/window/wrap_window.hpp>
+#include <modules/window_ext.hpp>
 
-#include "window_button_lua.h"
-#include "window_messagebox_lua.h"
-#include "wrap_window_lua.h"
+static constexpr char wrap_window_lua[] = {
+#include "scripts/wrap_window.lua"
+};
+
+static constexpr char wrap_window_messagebox_lua[] = {
+#include "scripts/wrap_window_messagebox.lua"
+};
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Window>(Module::M_WINDOW))
+#define instance() (Module::GetInstance<Window<Console::Which>>(Module::M_WINDOW))
 
-int Wrap_Window::GetDisplayCount(lua_State* L)
+int Wrap_Window::SetMode(lua_State* L)
 {
-    lua_pushinteger(L, instance()->GetDisplayCount());
+    int width  = luaL_checkinteger(L, 1);
+    int height = luaL_checkinteger(L, 2);
 
-    return 1;
-}
+    Window<>::WindowSettings settings {};
 
-int Wrap_Window::GetFullscreenModes(lua_State* L)
-{
-    unsigned int display = luaL_optnumber(L, 1, 1);
-    auto displaySizes    = instance()->GetFullscreenModes();
+    /* force to the console size on switch */
+    instance()->GetWindow(width, height, settings);
 
-    if (!display || display > displaySizes.size())
+    if (lua_isnoneornil(L, 3))
     {
-        lua_newtable(L);
+        // clang-format off
+        luax::CatchException(L, [&]() {
+            luax::PushBoolean(L, instance()->SetWindow(width, height));
+        });
+        // clang-format on
 
         return 1;
     }
 
-    display = std::clamp((int)display - 1, 0, (int)displaySizes.size() - 1);
+    // readWindowSettings(L, 3, settings) -- unneeded
 
-    lua_createtable(L, 1, 0);
-    lua_pushnumber(L, 1);
-
-    lua_createtable(L, 0, 2);
-
-    // Inner table attributes
-    lua_pushnumber(L, displaySizes[display].first);
-    lua_setfield(L, -2, "width");
-
-    lua_pushnumber(L, displaySizes[display].second);
-    lua_setfield(L, -2, "height");
-    // End table attributes
-
-    lua_settable(L, -3);
+    // clang-format off
+    luax::CatchException(L, [&]() {
+        luax::PushBoolean(L, instance()->SetWindow(width, height, &settings));
+     });
+    // clang-format on
 
     return 1;
 }
 
 int Wrap_Window::IsOpen(lua_State* L)
 {
-    lua_pushboolean(L, instance()->IsOpen());
+    luax::PushBoolean(L, instance()->IsOpen());
 
     return 1;
 }
 
-int Wrap_Window::SetMode(lua_State* L)
+int Wrap_Window::SetTitle(lua_State* L)
 {
-    Luax::CatchException(L, [&]() { lua_pushboolean(L, instance()->SetMode()); });
-
-    return 1;
+    return 0;
 }
 
-int Wrap_Window::LoadButtons(lua_State* L)
+int Wrap_Window::SetIcon(lua_State* L)
 {
-    if (luaL_loadbuffer(L, (const char*)window_button_lua, window_button_lua_size,
-                        "window_button.lua") == 0)
-        lua_call(L, 0, 1);
-    else
-        lua_error(L);
-
-    return 1;
-}
-
-int Wrap_Window::LoadMessageBox(lua_State* L)
-{
-    if (luaL_loadbuffer(L, (const char*)window_messagebox_lua, window_messagebox_lua_size,
-                        "window_messagebox.lua") == 0)
-        lua_call(L, 0, 1);
-    else
-        lua_error(L);
-
-    return 1;
+    return 0;
 }
 
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "getDisplayCount",    Wrap_Window::GetDisplayCount    },
-    { "getFullscreenModes", Wrap_Window::GetFullscreenModes },
-    { "isOpen",             Wrap_Window::IsOpen             },
-    { "setMode",            Wrap_Window::SetMode            },
-    { 0,                    0                               }
+    { "isOpen",   Wrap_Window::IsOpen   },
+    { "setIcon",  Wrap_Window::SetIcon  },
+    { "setMode",  Wrap_Window::SetMode  },
+    { "setTitle", Wrap_Window::SetTitle }
 };
 // clang-format on
 
+static int loadMessagebox(lua_State* L)
+{
+    if (luaL_loadbuffer(L, (const char*)wrap_window_messagebox_lua,
+                        sizeof(wrap_window_messagebox_lua), "wrap_window_messagebox.lua") == 0)
+    {
+        lua_call(L, 0, 1);
+    }
+    else
+        lua_error(L);
+
+    return 1;
+}
+
 int Wrap_Window::Register(lua_State* L)
 {
-    Window* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new Window(); });
+        luax::CatchException(L, [&]() { instance = new Window<Console::Which>(); });
     else
-        instance->Retain();
+        instance()->Retain();
 
-    WrappedModule wrappedModule;
-
+    WrappedModule wrappedModule {};
     wrappedModule.instance  = instance;
     wrappedModule.name      = "window";
     wrappedModule.type      = &Module::type;
     wrappedModule.functions = functions;
     wrappedModule.types     = nullptr;
 
-    int ret = Luax::RegisterModule(L, wrappedModule);
+    int result = luax::RegisterModule(L, wrappedModule);
 
-    Luax::Preload(L, Wrap_Window::LoadButtons, "window_button");
-    Luax::Preload(L, Wrap_Window::LoadMessageBox, "window_messagebox");
+    luax::Preload(L, loadMessagebox, "wrap_window_messagebox");
 
-    /* load window buffer */
-    if (luaL_loadbuffer(L, (const char*)wrap_window_lua, wrap_window_lua_size, "wrap_window.lua") ==
-        0)
+    if (luaL_loadbuffer(L, (const char*)wrap_window_lua, sizeof(wrap_window_lua),
+                        "wrap_window.lua") == 0)
+    {
         lua_call(L, 0, 0);
+    }
     else
         lua_error(L);
 
-    return ret;
+    return result;
 }

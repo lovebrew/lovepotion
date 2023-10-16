@@ -1,14 +1,19 @@
-#include "modules/system/wrap_system.h"
+#include <modules/system/wrap_system.hpp>
+#include <modules/system_ext.hpp>
 
-#include "modules/system/system.h"
+#if !defined(__3DS__)
+std::span<const luaL_Reg> Wrap_System::extensions;
+#endif
 
 using namespace love;
 
-#define instance() (Module::GetInstance<System>(Module::M_SYSTEM))
+#define instance() (Module::GetInstance<System<Console::Which>>(Module::M_SYSTEM))
 
 int Wrap_System::GetOS(lua_State* L)
 {
-    Luax::PushString(L, instance()->GetOS());
+    auto* osName = System<Console::Which>::GetOS();
+
+    luax::PushString(L, osName);
 
     return 1;
 }
@@ -23,14 +28,13 @@ int Wrap_System::GetProcessorCount(lua_State* L)
 int Wrap_System::GetPowerInfo(lua_State* L)
 {
     uint8_t percent = -1;
-    const char* str = nullptr;
 
-    System::PowerState state = instance()->GetPowerInfo(percent);
+    auto state = instance()->GetPowerInfo(percent);
 
-    if (!common::System::GetConstant(state, str))
-        str = "unknown";
-
-    lua_pushstring(L, str);
+    if (auto found = System<>::powerStates.ReverseFind(state))
+        lua_pushstring(L, *found);
+    else
+        lua_pushstring(L, "unknown");
 
     if (percent >= 0)
         lua_pushinteger(L, percent);
@@ -44,15 +48,15 @@ int Wrap_System::GetPowerInfo(lua_State* L)
 
 int Wrap_System::GetNetworkInfo(lua_State* L)
 {
-    uint8_t signal  = -1;
-    const char* str = nullptr;
+    uint8_t signal = -1;
 
-    System::NetworkState state = instance()->GetNetworkInfo(signal);
+    auto state = instance()->GetNetworkInfo(signal);
 
-    if (!common::System::GetConstant(state, str))
-        str = "unknown";
+    if (auto found = System<>::networkStates.ReverseFind(state))
+        lua_pushstring(L, *found);
+    else
+        lua_pushstring(L, "unknown");
 
-    lua_pushstring(L, str);
     lua_pushinteger(L, signal);
 
     return 2;
@@ -60,10 +64,10 @@ int Wrap_System::GetNetworkInfo(lua_State* L)
 
 int Wrap_System::GetPreferredLocales(lua_State* L)
 {
-    std::string language = instance()->GetPreferredLocales();
+    auto locale = instance()->GetPreferredLocales();
 
     lua_createtable(L, 1, 0);
-    Luax::PushString(L, language);
+    luax::PushString(L, locale);
     lua_rawseti(L, -2, 1);
 
     return 1;
@@ -71,118 +75,83 @@ int Wrap_System::GetPreferredLocales(lua_State* L)
 
 int Wrap_System::GetModel(lua_State* L)
 {
-    std::string model = instance()->GetModel();
+    auto model = instance()->GetModel();
 
-    Luax::PushString(L, model);
-
-    return 1;
-}
-
-int Wrap_System::GetRegion(lua_State* L)
-{
-    std::string region = instance()->GetRegion();
-
-    Luax::PushString(L, region);
-
-    return 1;
-}
-
-int Wrap_System::GetUsername(lua_State* L)
-{
-    std::string username = instance()->GetUsername();
-
-    Luax::PushString(L, username);
+    luax::PushString(L, model);
 
     return 1;
 }
 
 int Wrap_System::GetVersion(lua_State* L)
 {
-    std::string version = instance()->GetVersion();
+    auto version = instance()->GetVersion();
 
-    Luax::PushString(L, version);
+    luax::PushString(L, version);
 
     return 1;
 }
 
-int Wrap_System::GetFriendCode(lua_State* L)
+int Wrap_System::GetFriendInfo(lua_State* L)
 {
-    std::string friendCode = instance()->GetFriendCode();
+    if (lua_istable(L, 1))
+        lua_pushvalue(L, 1);
+    else
+        lua_createtable(L, 0, 3);
 
-    Luax::PushString(L, friendCode);
+    auto username = instance()->GetUsername();
+
+    luax::PushString(L, username);
+    lua_setfield(L, -2, "username");
+
+    auto friendInfo = instance()->GetFriendInfo();
+
+    luax::PushString(L, friendInfo);
+    lua_setfield(L, -2, "code");
 
     return 1;
 }
 
 int Wrap_System::GetSystemTheme(lua_State* L)
 {
-    std::string theme = instance()->GetSystemTheme();
+    auto theme = instance()->GetSystemTheme();
 
-    Luax::PushString(L, theme);
-
-    return 1;
-}
-
-#if defined(__3DS__)
-int Wrap_System::SetPlayCoins(lua_State* L)
-{
-    int amount = luaL_checknumber(L, 1);
-
-    Luax::CatchException(L, [&]() { instance()->SetPlayCoins(amount); });
-
-    return 0;
-}
-
-int Wrap_System::GetPlayCoins(lua_State* L)
-{
-    int amount = 0;
-
-    Luax::CatchException(L, [&]() { amount = instance()->GetPlayCoins(); });
-
-    lua_pushnumber(L, amount);
+    luax::PushString(L, theme);
 
     return 1;
 }
-#endif
 
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
     { "getColorTheme",       Wrap_System::GetSystemTheme      },
-    { "getFriendCode",       Wrap_System::GetFriendCode       },
+    { "getFriendInfo",       Wrap_System::GetFriendInfo       },
     { "getPreferredLocales", Wrap_System::GetPreferredLocales },
     { "getModel",            Wrap_System::GetModel            },
     { "getNetworkInfo",      Wrap_System::GetNetworkInfo      },
     { "getOS",               Wrap_System::GetOS               },
     { "getPowerInfo",        Wrap_System::GetPowerInfo        },
     { "getProcessorCount",   Wrap_System::GetProcessorCount   },
-    { "getRegion",           Wrap_System::GetRegion           },
-    { "getUsername",         Wrap_System::GetUsername         },
-    { "getVersion",          Wrap_System::GetVersion          },
-#if defined(__3DS__)
-    { "getPlayCoins",        Wrap_System::GetPlayCoins        },
-    { "setPlayCoins",        Wrap_System::SetPlayCoins        },
-#endif
-    { 0,                     0                                }
+    { "getVersion",          Wrap_System::GetVersion          }
 };
 // clang-format on
 
 int Wrap_System::Register(lua_State* L)
 {
-    System* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new System(); });
+        luax::CatchException(L, [&]() { instance = new System<Console::Which>(); });
     else
         instance->Retain();
 
     WrappedModule wrappedModule;
 
-    wrappedModule.instance  = instance;
-    wrappedModule.name      = "system";
-    wrappedModule.type      = &Module::type;
-    wrappedModule.functions = functions;
-    wrappedModule.types     = nullptr;
+    wrappedModule.instance          = instance;
+    wrappedModule.name              = "system";
+    wrappedModule.type              = &Module::type;
+    wrappedModule.functions         = functions;
+    wrappedModule.extendedFunctions = extensions;
+    wrappedModule.types             = nullptr;
 
-    return Luax::RegisterModule(L, wrappedModule);
+    return luax::RegisterModule(L, wrappedModule);
 }

@@ -1,14 +1,16 @@
-#include "objects/transform/transform.h"
-#include "common/bidirectionalmap.h"
+#include <objects/transform/transform.hpp>
 
 using namespace love;
 
-love::Type Transform::type("Transform", &Object::type);
+Type Transform::type("Transform", &Object::type);
 
 Transform::Transform() : matrix(), inverseDirty(true), inverseMatrix()
 {}
 
-Transform::Transform(const Matrix4& m) : matrix(m), inverseDirty(true), inverseMatrix()
+Transform::Transform(const Matrix4<Console::Which>& matrix) :
+    matrix(matrix),
+    inverseDirty(true),
+    inverseMatrix()
 {}
 
 Transform::Transform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx,
@@ -71,51 +73,29 @@ void Transform::SetTransformation(float x, float y, float a, float sx, float sy,
     this->inverseDirty = true;
 }
 
-love::Vector2 Transform::TransformPoint(love::Vector2 p) const
+Vector2 Transform::TransformPoint(Vector2 point) const
 {
-    love::Vector2 result;
-    this->matrix.TransformXY(&result, &p, 1);
+    Vector2 result;
+    this->matrix.TransformXY(&result, &point, 1);
 
     return result;
 }
 
-love::Vector2 Transform::InverseTransformPoint(love::Vector2 p)
+Vector2 Transform::InverseTransformPoint(Vector2 point)
 {
-    love::Vector2 result;
-    this->GetInverseMatrix().TransformXY(&result, &p, 1);
+    Vector2 result;
+    this->GetInverseMatrix().TransformXY(&result, &point, 1);
 
     return result;
 }
 
-const Matrix4& Transform::GetMatrix() const
+Matrix4<Console::Which>& Transform::GetMatrix()
 {
     return this->matrix;
 }
 
-void Transform::SetMatrix(const Matrix4& m)
+void Transform::SetMatrix(const Matrix4<Console::Which>& matrix)
 {
-    this->matrix       = m;
+    this->matrix       = matrix;
     this->inverseDirty = true;
-}
-
-// clang-format off
-constexpr auto matrixLayouts = BidirectionalMap<>::Create(
-    "row",    Transform::MatrixLayout::MATRIX_ROW_MAJOR,
-    "column", Transform::MatrixLayout::MATRIX_COLUMN_MAJOR
-);
-// clang-format on
-
-bool Transform::GetConstant(const char* in, MatrixLayout& out)
-{
-    return matrixLayouts.Find(in, out);
-}
-
-bool Transform::GetConstant(MatrixLayout in, const char*& out)
-{
-    return matrixLayouts.ReverseFind(in, out);
-}
-
-std::vector<const char*> Transform::GetConstants(MatrixLayout)
-{
-    return matrixLayouts.GetNames();
 }

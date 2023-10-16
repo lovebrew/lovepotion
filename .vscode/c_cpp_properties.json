@@ -1,89 +1,150 @@
 {
-  "configurations": [
-    {
-      "name": "3DS",
-      "includePath": [
-        "${workspaceFolder}/include/**",
-        "${workspaceFolder}/platform/3ds/include/**",
-        "${workspaceFolder}/libraries/**",
-        "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
-        "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
-        "${env:DEVKITPRO}/libctru/include/**",
-        "${env:DEVKITPRO}/portlibs/3ds/include/**"
-      ],
-      "defines": ["__3DS__", "__CONSOLE__=\"3DS\""],
-      "compilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
-      "cStandard": "c11",
-      "cppStandard": "c++20",
-      "intelliSenseMode": "linux-gcc-arm",
-      "compilerArgs": [],
-      "customConfigurationVariables": { "console": "ctr" }
+    "env": {
+        "defaultIncludePath": [
+            "${workspaceFolder}/include/**",
+            "${workspaceFolder}/libraries/**"
+        ],
+        "defaultCStandard": "c11",
+        "defaultCppStandard": "c++20",
+        "defaultDefines": [
+            "__APP_VERSION__=\"3.0.0\"",
+            "__LOVE_VERSION__=\"12.0\"",
+            "_USE_MATH_DEFINES"
+        ],
+        "ctrIncludePaths": [
+            "${workspaceFolder}/platform/ctr/include/**",
+            "${workspaceFolder}/platform/ctr/libraries/**",
+            "C:/msys64/opt/devkitpro/libctru/include/**",
+            "C:/msys64/opt/devkitpro/portlibs/3ds/include/**"
+        ],
+        "ctrDefines": [
+            "__3DS__",
+            "__OS__=\"Horizon\"",
+            "__CONSOLE__=\"3DS\""
+        ],
+        "ctrCompilerPath": "C:/msys64/opt/devkitpro/devkitARM/bin/arm-none-eabi-g++",
+        "hacIncludePaths": [
+            "${workspaceFolder}/platform/hac/include/**",
+            "C:/msys64/opt/devkitpro/libnx/include/**",
+            "C:/msys64/opt/devkitpro/portlibs/switch/include/**"
+        ],
+        "hacDefines": [
+            "__SWITCH__",
+            "__BSD_VISIBLE",
+            "__CONSOLE__=\"Switch\"",
+            "__OS__=\"Horizon\""
+        ],
+        "hacCompilerPath": "C:/msys64/opt/devkitpro/devkitA64/bin/aarch64-none-elf-g++",
+        "cafeIncludePaths": [
+            "${workspaceFolder}/platform/cafe/include/**",
+            "C:/msys64/opt/devkitpro/wut/include/**",
+            "C:/msys64/opt/devkitpro/portlibs/wiiu/include/**",
+            "C:/msys64/opt/devkitpro/portlibs/ppc/include/**"
+        ],
+        "cafeDefines": [
+            "__WIIU__",
+            "__OS__=\"Cafe\"",
+            "__CONSOLE__=\"Wii U\""
+        ],
+        "cafeCompilerPath": "C:/msys64/opt/devkitpro/devkitPPC/bin/powerpc-eabi-g++"
     },
-
-    {
-      "name": "3DS {Debug}",
-      "includePath": [
-        "${workspaceFolder}/include/**",
-        "${workspaceFolder}/platform/3ds/include/**",
-        "${workspaceFolder}/libraries/**",
-        "${env:DEVKITPRO}/devkitARM/arm-none-eabi/include/**",
-        "${env:DEVKITPRO}/devkitARM/lib/gcc/arm-none-eabi/**",
-        "${env:DEVKITPRO}/libctru/include/**",
-        "${env:DEVKITPRO}/portlibs/3ds/include/**"
-      ],
-      "defines": ["__3DS__", "__DEBUG__", "__CONSOLE__=\"3DS\""],
-      "compilerPath": "${env:DEVKITPRO}/devkitARM/bin/arm-none-eabi-gcc",
-      "cStandard": "c11",
-      "cppStandard": "c++20",
-      "intelliSenseMode": "linux-gcc-arm",
-      "compilerArgs": [],
-      "customConfigurationVariables": { "console": "ctr-debug" }
-    },
-
-    {
-      "name": "Switch",
-      "includePath": [
-        "${workspaceFolder}/include/**",
-        "${workspaceFolder}/platform/switch/include/**",
-        "${workspaceFolder}/libraries/**",
-        "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-        "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
-        "${env:DEVKITPRO}/libnx/include/**",
-        "${env:DEVKITPRO}/portlibs/switch/include/**"
-      ],
-      "defines": ["__SWITCH__", "__BSD_VISIBLE", "__CONSOLE__=\"Switch\""],
-      "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-g++",
-      "cStandard": "c11",
-      "cppStandard": "c++20",
-      "intelliSenseMode": "linux-gcc-arm64",
-      "compilerArgs": [],
-      "customConfigurationVariables": { "console": "hac" }
-    },
-
-    {
-      "name": "Switch {Debug}",
-      "includePath": [
-        "${workspaceFolder}/include/**",
-        "${workspaceFolder}/platform/switch/include/**",
-        "${workspaceFolder}/libraries/**",
-        "${env:DEVKITPRO}/devkitA64/aarch64-none-elf/include/**",
-        "${env:DEVKITPRO}/devkitA64/lib/gcc/aarch64-none-elf/**",
-        "${env:DEVKITPRO}/libnx/include/**",
-        "${env:DEVKITPRO}/portlibs/switch/include/**"
-      ],
-      "defines": [
-        "__SWITCH__",
-        "__BSD_VISIBLE",
-        "__DEBUG__",
-        "__CONSOLE__=\"Switch\""
-      ],
-      "compilerPath": "${env:DEVKITPRO}/devkitA64/bin/aarch64-none-elf-gcc",
-      "cStandard": "c11",
-      "cppStandard": "c++20",
-      "intelliSenseMode": "linux-gcc-arm64",
-      "compilerArgs": [],
-      "customConfigurationVariables": { "console": "hac-debug" }
-    }
-  ],
-  "version": 4
+    "configurations": [
+        {
+            "name": "3DS",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:ctrIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:ctrDefines}",
+                "__DEBUG__=0"
+            ],
+            "compilerPath": "${env:ctrCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "3DS {Debug}",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:ctrIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:ctrDefines}",
+                "__DEBUG__=1"
+            ],
+            "compilerPath": "${env:ctrCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "Switch",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:hacIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:hacDefines}",
+                "__DEBUG__=0"
+            ],
+            "compilerPath": "${env:hacCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm64"
+        },
+        {
+            "name": "Switch {Debug}",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:hacIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:hacDefines}",
+                "__DEBUG__=1"
+            ],
+            "compilerPath": "${env:hacCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm64"
+        },
+        {
+            "name": "Wii U",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:cafeIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:cafeDefines}",
+                "__DEBUG__=0"
+            ],
+            "compilerPath": "${env:cafeCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        },
+        {
+            "name": "Wii U {Debug}",
+            "includePath": [
+                "${env:defaultIncludePath}",
+                "${env:cafeIncludePaths}"
+            ],
+            "defines": [
+                "${env:defaultDefines}",
+                "${env:cafeDefines}",
+                "__DEBUG__=1"
+            ],
+            "compilerPath": "${env:cafeCompilerPath}",
+            "cStandard": "c11",
+            "cppStandard": "${env:defaultCppStandard}",
+            "intelliSenseMode": "linux-gcc-arm"
+        }
+    ],
+    "version": 4
 }

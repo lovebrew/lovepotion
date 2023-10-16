@@ -22,224 +22,209 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 --]]
 
-local love = require("love")
+local love          = require("love")
+local is_debug, log = pcall(require, "love.log")
+local file          = nil
+if is_debug then
+    file = log.new("callbacks.log")
+end
 
 function love.createhandlers()
 
     -- Standard callback handlers.
     love.handlers = setmetatable({
-        -- REGION UNUSED --
-        keypressed = function(button, scancode, isRepeat)
-            if love.keypressed then
-                return love.keypressed(button, scancode, isRepeat)
-            end
-        end,
-        keyreleased = function(button, scancode)
-            if love.keyreleased then
-                return love.keyreleased(button, scancode)
-            end
-        end,
-        -- END REGION UNUSED --
+        --#region unused
+        -- keypressed = function(button, scancode, isRepeat)
+        --     if love.keypressed then
+        --         return love.keypressed(button, scancode, isRepeat)
+        --     end
+        -- end,
+        -- keyreleased = function(button, scancode)
+        --     if love.keyreleased then
+        --         return love.keyreleased(button, scancode)
+        --     end
+        -- end,
+        --#endregion
         textinput = function(text)
             if love.textinput then
                 return love.textinput(text)
             end
         end,
-        -- REGION UNUSED --
-        textedited = function (text, start, length)
-            if love.textedited then
-                return love.textedited(text, start, length)
-            end
-        end,
-        mousemoved = function (x, y, dx, dy, isTouch)
-            if love.mousemoved then
-                return love.mousemoved(x, y, dx, dy, isTouch)
-            end
-        end,
-        mousepressed = function (x, y, button, isTouch, presses)
-            if love.mousepressed then
-                return love.mousepressed(x, y, button, isTouch, presses)
-            end
-        end,
-        mousereleased = function (x, y, button, isTouch, presses)
-            if love.mousereleased then
-                return love.mousereleased(x, y, button, isTouch, presses)
-            end
-        end,
-        wheelmoved = function (x, y)
-            if love.wheelmoved then
-                return love.wheelmoved(x, y)
-            end
-        end,
-        -- END REGION UNUSED
-        touchpressed = function (id, x, y, dx, dy, pressure)
+        --#region unused
+        -- textedited = function(text, start, length)
+        --     if love.textedited then
+        --         return love.textedited(text, start, length)
+        --     end
+        -- end,
+        -- mousemoved = function(x, y, dx, dy, isTouch)
+        --     if love.mousemoved then
+        --         return love.mousemoved(x, y, dx, dy, isTouch)
+        --     end
+        -- end,
+        -- mousepressed = function(x, y, button, isTouch, presses)
+        --     if love.mousepressed then
+        --         return love.mousepressed(x, y, button, isTouch, presses)
+        --     end
+        -- end,
+        -- mousereleased = function(x, y, button, isTouch, presses)
+        --     if love.mousereleased then
+        --         return love.mousereleased(x, y, button, isTouch, presses)
+        --     end
+        -- end,
+        -- wheelmoved = function(x, y)
+        --     if love.wheelmoved then
+        --         return love.wheelmoved(x, y)
+        --     end
+        -- end,
+        --#endregion
+        touchpressed = function(id, x, y, dx, dy, pressure)
             if love.touchpressed then
                 return love.touchpressed(id, x, y, dx, dy, pressure)
             end
         end,
-        touchreleased = function (id, x, y, dx, dy, pressure)
+        touchreleased = function(id, x, y, dx, dy, pressure)
             if love.touchreleased then
                 return love.touchreleased(id, x, y, dx, dy, pressure)
             end
         end,
-        touchmoved = function (id, x, y, dx, dy, pressure)
+        touchmoved = function(id, x, y, dx, dy, pressure)
             if love.touchmoved then
                 return love.touchmoved(id, x, y, dx, dy, pressure)
             end
         end,
-        joystickpressed = function (joystick, button)
+        joystickpressed = function(joystick, button)
             if love.joystickpressed then
                 return love.joystickpressed(joystick, button)
             end
         end,
-        joystickreleased = function (joystick, button)
+        joystickreleased = function(joystick, button)
             if love.joystickreleased then
                 return love.joystickreleased(joystick, button)
             end
         end,
-        joystickaxis = function (joystick, axis, value)
+        joystickaxis = function(joystick, axis, value)
             if love.joystickaxis then
                 return love.joystickaxis(joystick, axis, value)
             end
         end,
-        -- REGION UNIMPLEMENTED --
-        joystickhat = function (joystick, hat, value)
-            if love.joystickhat then
-                return love.joystickhat(joystick, hat, value)
+        joysticksensorupdated = function(joystick, sensor, ...)
+            if love.joysticksensorupdated then
+                return love.joysticksensorupdated(joystick, sensor, ...)
             end
         end,
-        -- END REGION UNIMPLEMENTED --
-        gamepadpressed = function (joystick, button)
+        --#region unused
+        -- joystickhat = function(joystick, hat, value)
+        --     if love.joystickhat then
+        --         return love.joystickhat(joystick, hat, value)
+        --     end
+        -- end,
+        --#endregion unused
+        gamepadpressed = function(joystick, button)
             if love.gamepadpressed then
                 return love.gamepadpressed(joystick, button)
             end
         end,
-        gamepadreleased = function (joystick, button)
+        gamepadreleased = function(joystick, button)
             if love.gamepadreleased then
                 return love.gamepadreleased(joystick, button)
             end
         end,
-        gamepadaxis = function (joystick, axis, value)
+        gamepadaxis = function(joystick, axis, value)
             if love.gamepadaxis then
                 return love.gamepadaxis(joystick, axis, value)
             end
         end,
-        joystickadded = function (joystick)
-            if love.joystickadded then
-                return love.joystickadded(joystick)
-            end
-        end,
-        joystickremoved = function (joystick)
-            if love.joystickremoved then
-                return love.joystickremoved(joystick)
-            end
-        end,
-        focus = function (focused)
+        -- joystickadded = function(joystick)
+        --     if love.joystickadded then
+        --         return love.joystickadded(joystick)
+        --     end
+        -- end,
+        -- joystickremoved = function(joystick)
+        --     if love.joystickremoved then
+        --         return love.joystickremoved(joystick)
+        --     end
+        -- end,
+        focus = function(focused)
             if love.focus then
                 return love.focus(focused)
             end
         end,
-        -- REGION UNUSED --
-        mousefocus = function (mouseFocused)
-            if love.mousefocus then
-                return love.mousefocus(mouseFocused)
-            end
-        end,
-        -- END REGION UNUSED --
-        visible = function (visible)
+        --#region unused
+        -- mousefocus = function(mouseFocused)
+        --     if love.mousefocus then
+        --         return love.mousefocus(mouseFocused)
+        --     end
+        -- end,
+        --#endregion unused
+        visible = function(visible)
             if love.visible then
                 return love.visible(visible)
             end
         end,
-        quit = function ()
+        quit = function()
             return
         end,
-        threaderror = function (thread, error)
+        threaderror = function(thread, error)
             if love.threaderror then
                 return love.threaderror(thread, error)
             end
         end,
-        resize = function (width, height)
+        resize = function(width, height)
             if love.resize then
                 return love.resize(width, height)
             end
         end,
-        -- REGION UNUSED --
-        filedropped = function (file)
-            if love.filedropped then
-                return love.filedropped(file)
-            end
-        end,
-        directorydropped = function (directory)
-            if love.directorydropped then
-                return love.directorydropped(directory)
-            end
-        end,
-        -- END REGION UNUSED --
-        lowmemory = function ()
+        --#region unused
+        -- filedropped = function(file)
+        --     if love.filedropped then
+        --         return love.filedropped(file)
+        --     end
+        -- end,
+        -- directorydropped = function(directory)
+        --     if love.directorydropped then
+        --         return love.directorydropped(directory)
+        --     end
+        -- end,
+        --#endregion unused
+        lowmemory = function()
             if love.lowmemory then
                 love.lowmemory()
             end
             collectgarbage()
             collectgarbage()
         end,
-        displayrotated = function (display, orient)
-            if love.displayrotated then
-                return love.displayrotated(display, orient)
-            end
-        end,
+        -- displayrotated = function(display, orient)
+        --     if love.displayrotated then
+        --         return love.displayrotated(display, orient)
+        --     end
+        -- end,
     }, {
         __index = function(self, name)
             error("Unknown event: " .. name)
         end,
     })
-
 end
 
 -----------------------------------------------------------
 -- Default callbacks.
 -----------------------------------------------------------
 
-local function saveError(text)
-    if not love.filesystem then
-        return
+-- we need to fix some bugs/inconsistencies on Wii U
+local is_wii_u = love._os == "Cafe"
+
+-- Checks if `love.draw("gamepad")` should fire
+-- This happens only when the software keyboard is shown
+-- For some reason the software keyboard has some kind of depth testing enabled
+local function shouldDraw(screen)
+    if not is_wii_u then
+        return true
     end
 
-    love.filesystem.createDirectory("errors")
-
-    local date = os.date("%H%M%S_%m%d%y")
-    local filename = string.format("errors/love_error_%s.txt", date)
-
-    love.filesystem.write(filename, text)
-
-    return filename
-end
-
-local function hackForMissingFilename(error)
-    -- assume that all missing filenames which are required
-    -- use this in their error message
-    if not error:find("module") then
-        return error
+    -- when gamepad and keyboard shown, do not draw
+    if screen == "gamepad" and love.keyboard.hasTextInput() then
+        return false
     end
-
-    local split = {}
-
-    -- split by newlines
-    for line in error:gmatch("(.-)\n") do
-        local value = line:gsub("'", "")
-        if value:sub(-3) ~= ".so" and not value:find("/usr/") then
-            table.insert(split, line)
-        end
-    end
-
-    -- return our new string
-    return table.concat(split, "\n")
-end
-
-local function is3DHack()
-    if love._console_name == "3DS" then
-        return love.graphics.get3D()
-    end
+    -- when tv, always draw
     return true
 end
 
@@ -254,12 +239,6 @@ function love.run()
 
     local delta = 0
 
-    local normalScreens = love.graphics.getScreens()
-    local plainScreens
-    if love._console_name == "3DS" then
-        plainScreens = {"top", "bottom"}
-    end
-
     return function()
         if love.window and g_windowShown then
             return
@@ -271,10 +250,10 @@ function love.run()
             for name, a, b, c, d, e, f in love.event.poll() do
                 if name == "quit" then
                     if not love.quit or not love.quit() then
+                        love.audio.stop()
                         return a or 0
                     end
                 end
-
                 love.handlers[name](a, b, c, d, e, f)
             end
         end
@@ -288,7 +267,7 @@ function love.run()
         end
 
         if love.graphics and love.graphics.isActive() then
-            local screens = is3DHack() and normalScreens or plainScreens
+            local screens = love.graphics.getScreens()
 
             for _, screen in ipairs(screens) do
                 love.graphics.origin()
@@ -296,7 +275,7 @@ function love.run()
                 love.graphics.setActiveScreen(screen)
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
-                if love.draw then
+                if love.draw and shouldDraw(screen) then
                     love.draw(screen)
                 end
             end
@@ -313,65 +292,52 @@ end
 local debug, print, tostring, error = debug, print, tostring, error
 
 function love.threaderror(t, err)
-    error("Thread error ("..tostring(t)..")\n\n".. err, 0)
+    if is_debug then
+        file:echo("Thread error (" .. tostring(t) .. ")\n\n" .. err)
+    end
+    error("Thread error (" .. tostring(t) .. ")\n\n" .. err, 0)
 end
 
 local utf8 = require("utf8")
 
 local function error_printer(msg, layer)
-    print((debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")))
+    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
+    print(trace)
+
+    if file then
+        file:echo(trace)
+    end
 end
 
-local max_lines = 14
-local function fix_long_error(font, text, max_width)
-    local text_result, result = "", 0
+function love.errhand(msg)
+    msg = tostring(msg)
 
-    for line in text:gmatch("(.-)\n") do
-        if result < max_lines then
-            local width = 10
-            for index = 1, #line do
-                local glyph = line:sub(index, index)
-                width = width + font:getWidth(glyph)
-                if width > max_width then
-                    text_result = text_result .. "\n"
-                    result = result + 1
-                    width = 10
-                end
-                text_result = text_result .. glyph
-            end
-            text_result = text_result .. "\n"
-        end
-        result = result + 1
-    end
-
-    -- note: don't forget to concat this
-    local str = "%s\n... and %d more lines."
-    local extra_lines = (result - max_lines)
-
-    if extra_lines > 0 then
-        return str:format(text_result, extra_lines)
-    end
-    return text
-end
-
-function love.errorhandler(message)
-    message = tostring(message)
-
-    error_printer(message, 2)
-
-    if not love.window or not love.event then
+    error_printer(msg, 2)
+    
+    if not love.window or not love.graphics or not love.event then
         return
     end
 
-    if not love.window.isOpen() then
-        local success, status = pcall(love.window.setMode)
+    if not love.graphics.isCreated() or not love.window.isOpen() then
+        local success, status = pcall(love.window.setMode, 800, 600)
         if not success or not status then
             return
         end
     end
 
+    -- Reset state.
+    if love.mouse then
+        love.mouse.setVisible(true)
+        love.mouse.setGrabbed(false)
+        love.mouse.setRelativeMode(false)
+        if love.mouse.isCursorSupported() then
+            love.mouse.setCursor()
+        end
+    end
+
     if love.joystick then
-        for _, v in ipairs(love.joystick.getJoysticks()) do
+        -- Stop all joystick vibrations.
+        for i, v in ipairs(love.joystick.getJoysticks()) do
             v:setVibration()
         end
     end
@@ -381,117 +347,124 @@ function love.errorhandler(message)
     end
 
     love.graphics.reset()
+    local font = love.graphics.newFont(14)
 
-    local fontSize = 12
-    if love._console_name == "Switch" then
-        fontSize = 24
-    end
-
-    love.graphics.origin()
-
-    local font = love.graphics.setNewFont(fontSize)
-
-    love.graphics.setColor(1, 1, 1, 1)
+    love.graphics.setColor(1, 1, 1)
 
     local trace = debug.traceback()
 
-    -- love.graphics.origin
+    love.graphics.origin()
 
-    local sanitized = {}
-    for char in message:gmatch(utf8.charpattern) do
-        table.insert(sanitized, char)
+    local sanitizedmsg = {}
+    for char in msg:gmatch(utf8.charpattern) do
+        table.insert(sanitizedmsg, char)
     end
-    sanitized = table.concat(sanitized)
+    sanitizedmsg = table.concat(sanitizedmsg)
 
     local err = {}
 
     table.insert(err, "Error\n")
-    table.insert(err, sanitized)
+    table.insert(err, sanitizedmsg)
 
-    if #sanitized ~= #message then
-        table.insert(err, "Invalid UTF-8 string in error message.\n")
+    if #sanitizedmsg ~= #msg then
+        table.insert(err, "Invalid UTF-8 string in error message.")
     end
 
-    for line in trace:gmatch("(.-)\n") do
-        if not line:match("boot.lua") then
-            line = line:gsub("stack traceback:", "\nTraceback\n")
-            table.insert(err, line)
+    table.insert(err, "\n")
+
+    for l in trace:gmatch("(.-)\n") do
+        if not l:match("boot.lua") then
+            l = l:gsub("stack traceback:", "Traceback\n")
+            table.insert(err, l)
         end
     end
 
-    local pretty = table.concat(err, "\n")
+    local p = table.concat(err, "\n")
 
-    pretty = pretty:gsub("\t", "    ")
-    pretty = pretty:gsub("%[string \"(.-)\"%]", "%1")
+    p = p:gsub("\t", "")
+    p = p:gsub("%[string \"(.-)\"%]", "%1")
 
-    local screen = "left"
-    if love._console_name == "Switch" then
-        screen = nil
-    end
-    local pretty_fixed = fix_long_error(font, pretty, love.graphics.getWidth(screen) * 0.75)
+    local screens = love.graphics.getScreens()
 
-    -- tell the user about how to quit the error handler
-    pretty_fixed = pretty_fixed .. "\n\nPress A to save this error or Start to quit.\n"
+    local _, text = font:getWrap(p, love.graphics.getWidth() - 20)
 
-    if not love.window.isOpen() then
-        return
+    if #text > 14 then
+        for index = 15, #text do
+            text[index] = nil
+        end
     end
 
-    local normalScreens = love.graphics.getScreens()
-    local plainScreens
-    if love._console_name == "3DS" then
-        plainScreens = {"top", "bottom"}
-    end
+    table.insert(text, "")
+
+    local not_saved_message = "Press Start to quit or A save this error."
+    local saved_message = "Error saved. Press Start to quit."
+
+    table.insert(text, not_saved_message)
 
     local function draw()
-        if love.graphics then
-            local screens = is3DHack() and normalScreens or plainScreens
+        if not love.graphics.isActive() then
+            return
+        end
 
-            for _, screen in ipairs(screens) do
-                love.graphics.origin()
+        for _, screen in ipairs(screens) do
+            love.graphics.origin()
 
-                love.graphics.setActiveScreen(screen)
-                love.graphics.clear(0.35, 0.62, 0.86)
+            love.graphics.setActiveScreen(screen)
+            love.graphics.clear(0.35, 0.62, 0.86)
 
-                if screen ~= "bottom" then
-                    local line_num = 1
-                    for line in pretty_fixed:gmatch("(.-)\n") do
-                        love.graphics.print(line, 10, 5 + (line_num - 1) * font:getHeight())
-                        line_num = line_num + 1
-                    end
+            if screen ~= "bottom" then
+                for index = 1, #text do
+                    love.graphics.print(text[index], font, 5, (index - 1) * 16)
                 end
             end
-
-            love.graphics.present()
         end
+
+        love.graphics.present()
     end
 
-    local fullErrorText = pretty
-    local saved = false
-
-    local function updateError()
-        if not saved then
-            local filename = saveError(fullErrorText)
-            pretty_fixed = pretty_fixed .. "Saved to " .. filename .. "!\n"
-
-            draw()
-            saved = true
+    local fullErrorText, savedMessage = p, false
+    local function saveErrorToFile()
+        if savedMessage then
+            return
         end
+
+        local date = os.date("%H%M%S_%m%d%y")
+        local filename = string.format("errors/love_error_%s.txt", date)
+
+        if not love.filesystem then
+            return
+        end
+
+        love.filesystem.createDirectory("errors")
+        love.filesystem.write(filename, fullErrorText)
+
+        text[#text] = saved_message
+        savedMessage = true
     end
 
     return function()
-        if love.event then
-            love.event.pump()
+        love.event.pump()
 
-            for name, a, b, c, d, e, f in love.event.poll() do
-                if name == "quit" then
+        for e, a, b, c in love.event.poll() do
+            if e == "quit" then
+                return 1
+            elseif e == "gamepadpressed" and b == "start" then
+                return 1
+            elseif e == "gamepadpressed" and b == "a" then
+                saveErrorToFile()
+            elseif e == "touchpressed" then
+                local name = love.filesystem.getIdentity()
+
+                if #name == 0 or name == "Untitled" then
+                    name = "Game"
+                end
+
+                local buttons = { "OK", "Cancel" }
+
+                local pressed = love.window.showMessageBox("Quit " .. name .. "?", "", buttons)
+
+                if pressed == 1 then
                     return 1
-                elseif name == "gamepadpressed" then
-                    if b == "start" then
-                        return 1
-                    elseif b == "a" then
-                        updateError()
-                    end
                 end
             end
         end
@@ -503,8 +476,6 @@ function love.errorhandler(message)
         end
     end
 end
-
-love.errhand = love.errorhandler
 
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
 --)luastring"--"

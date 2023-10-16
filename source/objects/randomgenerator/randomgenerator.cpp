@@ -1,11 +1,12 @@
-#include "objects/random/randomgenerator.h"
+#include <objects/randomgenerator/randomgenerator.hpp>
 
+#include <cmath>
+#include <cstdlib>
 #include <iomanip>
-#include <sstream>
 
 using namespace love;
 
-love::Type RandomGenerator::type("RandomGenerator", &Object::type);
+Type RandomGenerator::type("RandomGenerator", &Object::type);
 
 // Thomas Wang's 64-bit integer hashing function:
 // https://web.archive.org/web/20110807030012/http://www.cris.com/%7ETtwang/tech/inthash.htm
@@ -24,50 +25,56 @@ static uint64_t wangHash64(uint64_t key)
 
 RandomGenerator::RandomGenerator() : lastRandomNormal(std::numeric_limits<double>::infinity())
 {
-    Seed newSeed;
+    Seed newSeed {};
     newSeed.b32.low  = 0xCBBF7A44;
     newSeed.b32.high = 0x0139408D;
 
     this->SetSeed(newSeed);
 }
 
-u64 RandomGenerator::UniformRandom()
+uint64_t RandomGenerator::Rand()
 {
-    this->state.b64 ^= (this->state.b64 >> 12);
-    this->state.b64 ^= (this->state.b64 << 25);
-    this->state.b64 ^= (this->state.b64 >> 27);
+    this->randomState.b64 ^= (this->randomState.b64 >> 12);
+    this->randomState.b64 ^= (this->randomState.b64 << 25);
+    this->randomState.b64 ^= (this->randomState.b64 >> 27);
 
-    return this->state.b64 * 2685821657736338717ULL;
+    return this->randomState.b64 * RANDOM_STATE_MUL;
 }
 
-double RandomGenerator::RandomNormal(double stddev)
+// Box–Muller transform
+double RandomGenerator::RandomNormal(double stdDev)
 {
+    // use cached number if possible
     if (this->lastRandomNormal != std::numeric_limits<double>::infinity())
     {
         double random          = this->lastRandomNormal;
         this->lastRandomNormal = std::numeric_limits<double>::infinity();
 
-        return random * stddev;
+        return random * stdDev;
     }
 
-    double random = sqrt(-2.0 * log(1.0 - this->Random()));
-    double phi    = 2.0 * M_PI * (1.0 - this->Random());
+    double r   = sqrt(-2.0 * log(1.0 - this->Random()));
+    double phi = 2.0 * LOVE_M_PI * (1.0 - this->Random());
 
-    this->lastRandomNormal = random * cos(phi);
-
-    return random * sin(phi) * stddev;
+    this->lastRandomNormal = r * cos(phi);
+    return r * sin(phi) * stdDev;
 }
 
-void RandomGenerator::SetSeed(Seed newSeed)
+void RandomGenerator::SetSeed(RandomGenerator::Seed newSeed)
 {
     this->seed = newSeed;
 
+    // Xorshift isn't designed to give a good distribution of values across many
+    // similar seeds, so we hash the state integer before using it.
+    // http://www.reedbeta.com/blog/2013/01/12/quick-and-easy-gpu-random-numbers-in-d3d11/
+    // Xorshift also can't handle a state value of 0, so we avoid that.
     do
     {
         newSeed.b64 = wangHash64(newSeed.b64);
     } while (newSeed.b64 == 0);
 
-    this->state            = newSeed;
+    this->randomState = newSeed;
+
     this->lastRandomNormal = std::numeric_limits<double>::infinity();
 }
 
@@ -82,26 +89,27 @@ void RandomGenerator::SetState(const std::string& stateString)
     // 64-bit state integer xorshift uses.
 
     // Hex string must start with 0x.
-
     if (stateString.find("0x") != 0 || stateString.size() < 3)
         throw love::Exception("Invalid random state: %s", stateString.c_str());
 
-    Seed state = {};
-    char* end  = nullptr;
+    Seed state {};
 
-    this->state.b64 = strtoull(stateString.c_str(), &end, 16);
+    char* end = nullptr;
+    state.b64 = strtoull(stateString.c_str(), &end, 16);
 
     if (end != nullptr && *end != 0)
         throw love::Exception("Invalid random state: %s", stateString.c_str());
 
-    this->state            = state;
+    this->randomState      = state;
     this->lastRandomNormal = std::numeric_limits<double>::infinity();
 }
 
-std::string RandomGenerator::GetState() const
+std::string_view RandomGenerator::GetState() const
 {
-    std::stringstream ss;
-    ss << "0x" << std::setfill('0') << std::setw(16) << std::hex << this->state.b64;
+    // For this implementation we'll return a hex string representing the 64-bit
+    // state integer xorshift uses.
+    char result[255] { '\0' };
+    snprintf(result, sizeof(result), "0x%016llx", this->randomState.b64);
 
-    return ss.str();
+    return result;
 }

@@ -1,38 +1,46 @@
-#include "objects/data/byte/bytedata.h"
+#include "objects/data/bytedata/bytedata.hpp"
+#include "common/exception.hpp"
 
+#include <algorithm>
 #include <cstring>
 
 using namespace love;
 
-love::Type ByteData::type("ByteData", &Data::type);
+Type ByteData::type("ByteData", &Data::type);
 
-ByteData::ByteData(size_t size) : size(size)
+ByteData::ByteData(size_t size, bool clear) : size(size)
 {
     this->Create();
-    memset(this->data, 0, size);
+
+    if (clear)
+        std::fill_n(this->data.get(), this->size, 0);
 }
 
 ByteData::ByteData(const void* data, size_t size) : size(size)
 {
     this->Create();
-    memcpy(this->data, data, size);
+
+    if (data != nullptr)
+        std::copy_n((const char*)data, size, this->data.get());
 }
 
 ByteData::ByteData(void* data, size_t size, bool own) : size(size)
 {
     if (own)
-        this->data = (char*)data;
+        this->data.reset((char*)data);
     else
     {
         this->Create();
-        memcpy(this->data, data, size);
+
+        if (data != nullptr)
+            std::copy_n((char*)data, size, this->data.get());
     }
 }
 
 ByteData::ByteData(const ByteData& other) : size(other.size)
 {
     this->Create();
-    memcpy(this->data, other.data, this->size);
+    std::copy_n(other.data.get(), this->size, this->data.get());
 }
 
 void ByteData::Create()
@@ -42,7 +50,7 @@ void ByteData::Create()
 
     try
     {
-        this->data = new char[this->size];
+        this->data = std::make_unique<char[]>(this->size);
     }
     catch (std::bad_alloc&)
     {
@@ -57,15 +65,10 @@ ByteData* ByteData::Clone() const
 
 void* ByteData::GetData() const
 {
-    return this->data;
+    return this->data.get();
 }
 
 size_t ByteData::GetSize() const
 {
     return this->size;
-}
-
-ByteData::~ByteData()
-{
-    delete[] this->data;
 }

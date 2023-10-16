@@ -1,3 +1,4 @@
+R"luastring"--(
 -----------------------------------------------------------------------------
 -- Canonic header field capitalization
 -- LuaSocket toolkit.
@@ -102,3 +103,5 @@ _M.canonic = {
 }
 
 return _M
+-- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
+--)luastring"--"

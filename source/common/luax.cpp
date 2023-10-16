@@ -1,49 +1,172 @@
-#include "common/luax.h"
+#include <common/luax.hpp>
 
-#include "common/module.h"
-#include "objects/object.h"
+#include <common/module.hpp>
+#include <common/object.hpp>
+#include <common/reference.hpp>
+#include <common/variant.hpp>
 
-// C++
-#include <algorithm>
-#include <cmath>
 #include <cstddef>
-#include <cstdio>
-#include <iostream>
-#include <sstream>
+#include <math.h>
 
 using namespace love;
 
-int Luax::TableInsert(lua_State* L, int tindex, int vindex, int pos)
+static constexpr const char* MAIN_THREAD_KEY = "_love_mainthread";
+static constexpr auto MAX_OBJECT_KEY         = 0x20000000000000ULL;
+
+/* main stuff */
+
+int luax::Preload(lua_State* L, lua_CFunction func, const char* name)
 {
-    if (tindex < 0)
-        tindex = lua_gettop(L) + 1 + tindex;
-
-    if (vindex < 0)
-        vindex = lua_gettop(L) + 1 + vindex;
-
-    if (pos == -1)
-    {
-        lua_pushvalue(L, vindex);
-        lua_rawseti(L, tindex, (int)lua_objlen(L, tindex) + 1);
-
-        return 0;
-    }
-    else if (pos < 0)
-        pos = (int)lua_objlen(L, tindex) + 1 + pos;
-
-    for (int i = (int)lua_objlen(L, tindex) + 1; i > pos; i--)
-    {
-        lua_rawgeti(L, tindex, i - 1);
-        lua_rawseti(L, tindex, i);
-    }
-
-    lua_pushvalue(L, vindex);
-    lua_rawseti(L, tindex, pos);
+    lua_getglobal(L, "package");
+    lua_getfield(L, -1, "preload");
+    lua_pushcfunction(L, func);
+    lua_setfield(L, -2, name);
+    lua_pop(L, 2);
 
     return 0;
 }
 
-int Luax::RegisterSearcher(lua_State* L, lua_CFunction function, int position)
+int luax::Require(lua_State* L, const char* name)
+{
+    lua_getglobal(L, "require");
+    lua_pushstring(L, name);
+    lua_call(L, 1, 1);
+
+    return 1;
+}
+
+int luax::InsistGlobal(lua_State* L, const char* field)
+{
+    lua_getglobal(L, field);
+
+    if (!lua_istable(L, -1))
+    {
+        lua_pop(L, 1); // Pop the non-table.
+        lua_newtable(L);
+        lua_pushvalue(L, -1);
+        lua_setglobal(L, field);
+    }
+
+    return 1;
+}
+
+lua_State* luax::InsistPinnedThread(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
+
+    if (lua_isnoneornil(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_pushthread(L);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
+    }
+
+    lua_State* thread = lua_tothread(L, -1);
+    lua_pop(L, 1);
+
+    return thread;
+}
+
+lua_State* luax::GetPinnedThread(lua_State* L)
+{
+    lua_getfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
+    lua_State* thread = lua_tothread(L, -1);
+    lua_pop(L, 1);
+
+    return thread;
+}
+
+int luax::Insist(lua_State* L, int index, const char* key)
+{
+    if (index < 0 && index > LUA_REGISTRYINDEX)
+        index += lua_gettop(L) + 1;
+
+    lua_getfield(L, index, key);
+
+    if (!lua_istable(L, -1))
+    {
+        lua_pop(L, 1);
+        lua_newtable(L);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, index, key);
+    }
+
+    return 1;
+}
+
+int luax::InsistLOVE(lua_State* L, const char* key)
+{
+    luax::InsistGlobal(L, "love");
+    luax::Insist(L, -1, key);
+
+    // replace with top stack item
+    lua_replace(L, -2);
+
+    return 1;
+}
+
+int luax::GetLOVE(lua_State* L, const char* key)
+{
+    lua_getglobal(L, "love");
+
+    if (!lua_isnil(L, -1))
+    {
+        lua_getfield(L, -1, key);
+        lua_replace(L, -2);
+    }
+
+    return 1;
+}
+
+int luax::RegisterModule(lua_State* L, const WrappedModule& wrappedModule)
+{
+    wrappedModule.type->Initialize();
+
+    luax::InsistRegistry(L, Registry::REGISTRY_MODULES);
+
+    Proxy* proxy = (love::Proxy*)lua_newuserdata(L, sizeof(Proxy));
+
+    proxy->object = wrappedModule.instance;
+    proxy->type   = wrappedModule.type;
+
+    luaL_newmetatable(L, wrappedModule.instance->GetName());
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+
+    lua_pushcfunction(L, GarbageCollect);
+    lua_setfield(L, -2, "__gc");
+
+    lua_setmetatable(L, -2);
+    lua_setfield(L, -2, wrappedModule.name);
+    lua_pop(L, 1);
+
+    luax::InsistGlobal(L, "love");
+
+    lua_newtable(L);
+
+    if (!wrappedModule.functions.empty())
+        luax::RegisterTypeInner(L, wrappedModule.functions);
+
+    if (!wrappedModule.extendedFunctions.empty())
+        luax::RegisterTypeInner(L, wrappedModule.extendedFunctions);
+
+    if (wrappedModule.types != nullptr)
+    {
+        for (const auto* func = wrappedModule.types; *func != nullptr; func++)
+            (*func)(L);
+    }
+
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -3, wrappedModule.name);
+    lua_remove(L, -2);
+
+    Module::RegisterInstance(wrappedModule.instance);
+
+    return 1;
+}
+
+int luax::RegisterSearcher(lua_State* L, lua_CFunction function, int position)
 {
     // Add the package loader to the package.loaders table.
     lua_getglobal(L, "package");
@@ -64,477 +187,17 @@ int Luax::RegisterSearcher(lua_State* L, lua_CFunction function, int position)
         return luaL_error(L, "Can't register searcher: package.loaders table does not exist.");
 
     lua_pushcfunction(L, function);
-    Luax::TableInsert(L, -2, -1, position);
+    luax::TableInsert(L, -2, -1, position);
     lua_pop(L, 3);
 
     return 0;
 }
 
-/*
-** @func Preload
-** Preloads a Lua C function <func> into package.preload
-** with <name>. See the Lua 5.1 manual for more details:
-** https://www.lua.org/manual/5.1/manual.html#pdf-package.preload
-*/
-int Luax::Preload(lua_State* L, lua_CFunction func, const char* name)
+void luax::RegisterTypeInit(lua_State* L, love::Type* type)
 {
-    lua_getglobal(L, "package");
-    lua_getfield(L, -1, "preload");
-    lua_pushcfunction(L, func);
-    lua_setfield(L, -2, name);
-    lua_pop(L, 2);
+    type->Initialize();
 
-    return 0;
-}
-
-int Luax::Resume(lua_State* L, int nargs)
-{
-#if LUA_VERSION_NUM >= 502
-    return lua_resume(L, nullptr, nargs);
-#else
-    return lua_resume(L, nargs);
-#endif
-}
-
-bool Luax::BoolFlag(lua_State* L, int table_index, const char* key, bool defaultValue)
-{
-    lua_getfield(L, table_index, key);
-
-    bool retval;
-    if (lua_isnoneornil(L, -1))
-        retval = defaultValue;
-    else
-        retval = lua_toboolean(L, -1) != 0;
-
-    lua_pop(L, 1);
-    return retval;
-}
-
-int Luax::IntFlag(lua_State* L, int table_index, const char* key, int defaultValue)
-{
-    lua_getfield(L, table_index, key);
-
-    int retval;
-    if (!lua_isnumber(L, -1))
-        retval = defaultValue;
-    else
-        retval = (int)lua_tointeger(L, -1);
-
-    lua_pop(L, 1);
-    return retval;
-}
-
-double Luax::NumberFlag(lua_State* L, int table_index, const char* key, double defaultValue)
-{
-    lua_getfield(L, table_index, key);
-
-    double retval;
-    if (!lua_isnumber(L, -1))
-        retval = defaultValue;
-    else
-        retval = lua_tonumber(L, -1);
-
-    lua_pop(L, 1);
-    return retval;
-}
-
-bool Luax::ToBoolean(lua_State* L, int index)
-{
-    return (lua_toboolean(L, index) != 0);
-}
-
-bool Luax::CheckBoolean(lua_State* L, int index)
-{
-    luaL_checktype(L, index, LUA_TBOOLEAN);
-    return Luax::ToBoolean(L, index);
-}
-
-void Luax::PushBoolean(lua_State* L, bool boolean)
-{
-    lua_pushboolean(L, boolean ? 1 : 0);
-}
-
-/*
-** @func DoBuffer
-** Runs a specified Lua Buffer
-*/
-int Luax::DoBuffer(lua_State* L, const char* buffer, size_t size, const char* name)
-{
-    return (luaL_loadbuffer(L, buffer, size, name) || lua_pcall(L, 0, LUA_MULTRET, 0));
-}
-
-int Luax::Require(lua_State* L, const char* name)
-{
-    lua_getglobal(L, "require");
-    lua_pushstring(L, name);
-    lua_call(L, 1, 1);
-
-    return 1;
-}
-
-int Luax::ConvertObject(lua_State* L, int idx, const char* mod, const char* fn)
-{
-    // Convert to absolute index if necessary.
-    if (idx < 0 && idx > LUA_REGISTRYINDEX)
-        idx += lua_gettop(L) + 1;
-
-    // Convert string to a file.
-    Luax::GetLOVEFunction(L, mod, fn);
-    lua_pushvalue(L, idx); // The initial argument.
-    lua_call(L, 1, 2); // Call the function, one arg, one return value (plus optional errstring.)
-
-    Luax::AssertNilError(L, -2); // Make sure the function returned something.
-    lua_pop(L, 1);               // Pop the second return value now that we don't need it.
-    lua_replace(L, idx);         // Replace the initial argument with the new object.
-
-    return 0;
-}
-
-int Luax::ConvertObject(lua_State* L, const int idxs[], int n, const char* mod, const char* fn)
-{
-    Luax::GetLOVEFunction(L, mod, fn);
-    for (int i = 0; i < n; i++)
-        lua_pushvalue(L, idxs[i]); // The arguments.
-
-    lua_call(L, n, 2); // Call the function, n args, one return value (plus optional errstring.)
-
-    Luax::AssertNilError(L, -2); // Make sure the function returned something.
-    lua_pop(L, 1);               // Pop the second return value now that we don't need it.
-    if (n > 0)
-        lua_replace(L, idxs[0]); // Replace the initial argument with the new object.
-
-    return 0;
-}
-
-int Luax::ConvertObject(lua_State* L, const std::vector<int>& idxs, const char* moduleName,
-                        const char* function)
-{
-    const int* idxPtr = idxs.size() > 0 ? &idxs[0] : nullptr;
-
-    return Luax::ConvertObject(L, idxPtr, (int)idxs.size(), moduleName, function);
-}
-
-/*
-** @func InsistRegistry
-** Creates the @registry if necessary, pushing it to the stack
-*/
-int Luax::InsistRegistry(lua_State* L, Registry registry)
-{
-    switch (registry)
-    {
-        case Registry::REGISTRY_MODULES:
-            return Luax::InsistLove(L, "_modules");
-        case Registry::REGISTRY_OBJECTS:
-            return Luax::Insist(L, LUA_REGISTRYINDEX, "_loveobjects");
-        default:
-            return luaL_error(L, "Attempted to use invalid registry");
-    }
-}
-
-/*
-** @func GetRegistry
-** Gets the field for the Lua registry index <registry>.
-** This is necessary to store userdata and push it later.
-*/
-int Luax::GetRegistry(lua_State* L, Registry registry)
-{
-    switch (registry)
-    {
-        case Registry::REGISTRY_OBJECTS:
-            lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
-            return 1;
-        case Registry::REGISTRY_MODULES:
-            return Luax::GetLove(L, "_modules");
-        default:
-            return luaL_error(L, "Attempted to use invalid registry");
-    }
-}
-
-int Luax::AssertNilError(lua_State* L, int idx)
-{
-    if (lua_isnoneornil(L, idx))
-    {
-        if (lua_isstring(L, idx + 1))
-            return luaL_error(L, lua_tostring(L, idx + 1));
-        else
-            return luaL_error(L, "assertion failed!");
-    }
-    return 0;
-}
-
-int Luax::GetLOVEFunction(lua_State* L, const char* mod, const char* fn)
-{
-    lua_getglobal(L, "love");
-    if (lua_isnil(L, -1))
-        return luaL_error(L, "Could not find global love!");
-
-    lua_getfield(L, -1, mod);
-    if (lua_isnil(L, -1))
-        return luaL_error(L, "Could not find love.%s!", mod);
-
-    lua_getfield(L, -1, fn);
-    if (lua_isnil(L, -1))
-        return luaL_error(L, "Could not find love.%s.%s!", mod, fn);
-
-    lua_remove(L, -2); // remove mod
-    lua_remove(L, -2); // remove fn
-
-    return 0;
-}
-
-/*
-** @func Insist
-** Make sure @index with @key exists
-*/
-int Luax::Insist(lua_State* L, int index, const char* key)
-{
-    if (index < 0 && index > LUA_REGISTRYINDEX)
-        index += lua_gettop(L) + 1;
-
-    lua_getfield(L, index, key);
-
-    if (!lua_istable(L, -1))
-    {
-        lua_pop(L, 1);
-        lua_newtable(L);
-        lua_pushvalue(L, -1);
-        lua_setfield(L, index, key);
-    }
-
-    return 1;
-}
-
-static const char* MAIN_THREAD_KEY = "_love_mainthread";
-
-lua_State* Luax::InsistPinnedThread(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
-
-    if (lua_isnoneornil(L, -1))
-    {
-        lua_pop(L, 1);
-        lua_pushthread(L);
-        lua_pushvalue(L, -1);
-        lua_setfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
-    }
-
-    lua_State* thread = lua_tothread(L, -1);
-    lua_pop(L, 1);
-
-    return thread;
-}
-
-lua_State* Luax::GetPinnedThread(lua_State* L)
-{
-    lua_getfield(L, LUA_REGISTRYINDEX, MAIN_THREAD_KEY);
-    lua_State* thread = lua_tothread(L, -1);
-    lua_pop(L, 1);
-
-    return thread;
-}
-
-int Luax::InsistGlobal(lua_State* L, const char* field)
-{
-    lua_getglobal(L, field);
-
-    if (!lua_istable(L, -1))
-    {
-        lua_pop(L, 1); // Pop the non-table.
-        lua_newtable(L);
-        lua_pushvalue(L, -1);
-        lua_setglobal(L, field);
-    }
-
-    return 1;
-}
-
-int Luax::InsistLove(lua_State* L, const char* key)
-{
-    Luax::InsistGlobal(L, "love");
-    Luax::Insist(L, -1, key);
-
-    // replace with top stack item
-    lua_replace(L, -2);
-
-    return 1;
-}
-
-int Luax::GetLove(lua_State* L, const char* key)
-{
-    lua_getglobal(L, "love");
-
-    if (!lua_isnil(L, -1))
-    {
-        lua_getfield(L, -1, key);
-        lua_replace(L, -2);
-    }
-
-    return 1;
-}
-
-int Luax::RegisterModule(lua_State* L, const WrappedModule& wrappedModule)
-{
-    wrappedModule.type->Init();
-
-    Luax::InsistRegistry(L, Registry::REGISTRY_MODULES);
-
-    Proxy* proxy = (Proxy*)lua_newuserdata(L, sizeof(Proxy));
-
-    proxy->object = wrappedModule.instance;
-    proxy->type   = wrappedModule.type;
-
-    luaL_newmetatable(L, wrappedModule.instance->GetName());
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -2, "__index");
-
-    lua_pushcfunction(L, GarbageCollect);
-    lua_setfield(L, -2, "__gc");
-
-    lua_setmetatable(L, -2);
-    lua_setfield(L, -2, wrappedModule.name);
-    lua_pop(L, 1);
-
-    Luax::InsistGlobal(L, "love");
-
-    lua_newtable(L);
-
-    if (wrappedModule.functions != nullptr)
-        Luax::SetFunctions(L, wrappedModule.functions);
-
-    if (wrappedModule.types != nullptr)
-    {
-        for (const lua_CFunction* func = wrappedModule.types; *func != nullptr; func++)
-            (*func)(L);
-    }
-
-    lua_pushvalue(L, -1);
-    lua_setfield(L, -3, wrappedModule.name);
-    lua_remove(L, -2);
-
-    Module::RegisterInstance(wrappedModule.instance);
-
-    return 1;
-}
-
-void Luax::SetFunctions(lua_State* L, const luaL_Reg* reg)
-{
-    if (reg == nullptr)
-        return;
-
-    for (; reg->name != nullptr; reg++)
-    {
-        lua_pushcfunction(L, reg->func);
-        lua_setfield(L, -2, reg->name);
-    }
-}
-
-int Luax::GarbageCollect(lua_State* L)
-{
-    Proxy* proxy = (Proxy*)lua_touserdata(L, 1);
-
-    if (proxy->object != nullptr)
-    {
-        proxy->object->Release();
-        proxy->object = nullptr;
-    }
-
-    return 0;
-}
-
-int Luax::Type(lua_State* L)
-{
-    lua_pushvalue(L, lua_upvalueindex(1));
-
-    return 1;
-}
-
-int Luax::ToString(lua_State* L)
-{
-    Proxy* proxy         = (Proxy*)lua_touserdata(L, 1);
-    const char* typeName = lua_tostring(L, lua_upvalueindex(1));
-
-    lua_pushfstring(L, "%s: %p", typeName, proxy->object);
-
-    return 1;
-}
-
-love::Type* Luax::Type(lua_State* L, int index)
-{
-    const char* name = luaL_checkstring(L, index);
-    return love::Type::ByName(name);
-}
-
-bool Luax::IsType(lua_State* L, int index, love::Type& type)
-{
-    if (lua_type(L, index) != LUA_TUSERDATA)
-        return false;
-
-    Proxy* proxy = (Proxy*)lua_touserdata(L, index);
-
-    if (proxy->type != nullptr)
-        return proxy->type->IsA(type);
-    else
-        return false;
-}
-
-int Luax::TypeOf(lua_State* L)
-{
-    Proxy* proxy     = (Proxy*)lua_touserdata(L, 1);
-    love::Type* type = Luax::Type(L, 2);
-
-    if (!type)
-        lua_pushboolean(L, 0);
-    else
-        lua_pushboolean(L, proxy->type->IsA(*type));
-
-    return 1;
-}
-
-int Luax::Equal(lua_State* L)
-{
-    Proxy* a = (Proxy*)lua_touserdata(L, 1);
-    Proxy* b = (Proxy*)lua_touserdata(L, 2);
-
-    bool areEqual = (a->object == b->object) && a->object != nullptr;
-
-    lua_pushboolean(L, areEqual);
-
-    return 1;
-}
-
-int Luax::Release(lua_State* L)
-{
-    Proxy* proxy   = (Proxy*)lua_touserdata(L, 1);
-    Object* object = proxy->object;
-
-    if (object != nullptr)
-    {
-        proxy->object = nullptr;
-        object->Release();
-
-        Luax::GetRegistry(L, Registry::REGISTRY_OBJECTS);
-
-        if (lua_istable(L, -1))
-        {
-            lua_Number key = Luax::ComputeObjectKey(L, object);
-            lua_pushnumber(L, key);
-            lua_pushnil(L);
-            lua_settable(L, -3);
-        }
-
-        lua_pop(L, 1);
-    }
-
-    lua_pushboolean(L, object != nullptr);
-
-    return 1;
-}
-
-int Luax::RegisterType(lua_State* L, love::Type* type, ...)
-{
-    type->Init();
-
-    Luax::GetRegistry(L, Registry::REGISTRY_OBJECTS);
+    luax::GetRegistry(L, Registry::REGISTRY_OBJECTS);
 
     if (!lua_istable(L, -1))
     {
@@ -577,43 +240,82 @@ int Luax::RegisterType(lua_State* L, love::Type* type, ...)
 
     lua_pushcfunction(L, Release);
     lua_setfield(L, -2, "release");
+}
 
-    va_list funcs;
-    va_start(funcs, type);
+void luax::RegisterTypeInner(lua_State* L, std::span<const luaL_Reg> values)
+{
+    for (const auto& registry : values)
+    {
+        lua_pushcfunction(L, registry.func);
+        lua_setfield(L, -2, registry.name);
+    }
+}
 
-    for (const luaL_Reg* f = va_arg(funcs, const luaL_Reg*); f; f = va_arg(funcs, const luaL_Reg*))
-        Luax::SetFunctions(L, f);
+int luax::TableInsert(lua_State* L, int tindex, int vindex, int pos)
+{
+    if (tindex < 0)
+        tindex = lua_gettop(L) + 1 + tindex;
 
-    va_end(funcs);
+    if (vindex < 0)
+        vindex = lua_gettop(L) + 1 + vindex;
 
-    lua_pop(L, 1);
+    if (pos == -1)
+    {
+        lua_pushvalue(L, vindex);
+        lua_rawseti(L, tindex, (int)luax::ObjectLength(L, tindex) + 1);
+
+        return 0;
+    }
+    else if (pos < 0)
+        pos = (int)luax::ObjectLength(L, tindex) + 1 + pos;
+
+    for (int i = (int)luax::ObjectLength(L, tindex) + 1; i > pos; i--)
+    {
+        lua_rawgeti(L, tindex, i - 1);
+        lua_rawseti(L, tindex, i);
+    }
+
+    lua_pushvalue(L, vindex);
+    lua_rawseti(L, tindex, pos);
 
     return 0;
 }
 
-void Luax::GetTypeMetaTable(lua_State* L, const love::Type& type)
+int luax::GetLOVEFunction(lua_State* L, const char* mod, const char* fn)
 {
-    const char* name = type.GetName();
-    lua_getfield(L, LUA_REGISTRYINDEX, name);
+    lua_getglobal(L, "love");
+    if (lua_isnil(L, -1))
+        return luaL_error(L, "Could not find global love!");
+
+    lua_getfield(L, -1, mod);
+    if (lua_isnil(L, -1))
+        return luaL_error(L, "Could not find love.%s!", mod);
+
+    lua_getfield(L, -1, fn);
+    if (lua_isnil(L, -1))
+        return luaL_error(L, "Could not find love.%s.%s!", mod, fn);
+
+    lua_remove(L, -2); // remove mod
+    lua_remove(L, -2); // remove fn
+
+    return 0;
 }
 
-void Luax::RunWrapper(lua_State* L, const char* filedata, size_t length, const char* filename,
-                      const love::Type& type)
-{
-    Luax::GetTypeMetaTable(L, type);
+/* objects */
 
-    if (lua_istable(L, -1))
+void luax::SetFunctions(lua_State* L, const luaL_Reg* reg)
+{
+    if (reg == nullptr)
+        return;
+
+    for (; reg->name != nullptr; reg++)
     {
-        luaL_loadbuffer(L, filedata, length, filename);
-        lua_pushvalue(L, -2);
-        lua_pushnil(L);
-        lua_call(L, 2, 0);
+        lua_pushcfunction(L, reg->func);
+        lua_setfield(L, -2, reg->name);
     }
-
-    lua_pop(L, 1);
 }
 
-void Luax::RawNewType(lua_State* L, love::Type& type, Object* object)
+void luax::RawNewType(lua_State* L, love::Type& type, Object* object)
 {
     Proxy* userdata = (Proxy*)lua_newuserdata(L, sizeof(Proxy));
 
@@ -639,59 +341,226 @@ void Luax::RawNewType(lua_State* L, love::Type& type, Object* object)
     lua_setmetatable(L, -2);
 }
 
-lua_Number Luax::ComputeObjectKey(lua_State* L, Object* object)
+objectkey_t luax::ComputeObjectKey(lua_State* L, Object* object)
 {
     // Compute a key to store our userdata
     const size_t minAlign = alignof(std::max_align_t);
     uintptr_t key         = (uintptr_t)object;
 
     if ((key & (minAlign - 1)) != 0)
+    {
         luaL_error(L, "Cannot push LOVE object. Unexpected alignment (%p should be %d).", object,
                    minAlign);
+    }
 
     static const size_t shift = (size_t)log2(alignof(std::max_align_t));
     key >>= shift;
 
-    if (key > MAX_LUAOBJ_KEY)
-        luaL_error(L, "Cannot push LOVE object. Pointer value %p is too large.", object);
-
-    return (lua_Number)key;
+    return key;
 }
 
-int Luax::IOError(lua_State* L, const char* format, ...)
+static bool isFullLightUserdataSupported(lua_State* L)
 {
-    va_list args;
-    va_start(args, format);
+    static bool checked   = false;
+    static bool supported = false;
 
-    lua_pushnil(L);
-    lua_pushvfstring(L, format, args);
-
-    va_end(args);
-
-    return 2;
-}
-
-int Luax::EnumError(lua_State* L, const char* enumName, const char* value)
-{
-    return luaL_error(L, "Invalid %s: %s", enumName, value);
-}
-
-int Luax::EnumError(lua_State* L, const char* enumName, const std::vector<const char*>& values,
-                    const char* value)
-{
-    std::string enums;
-    bool first = true;
-
-    for (auto& item : values)
+    if (!checked)
     {
-        enums += (first ? "'" : ", '") + std::string(item) + "'";
-        first = false;
+        lua_pushcclosure(
+            L,
+            [](lua_State* L) -> int {
+                lua_pushlightuserdata(L, (void*)(~((size_t)0)));
+                return 1;
+            },
+            0);
+
+        supported = lua_pcall(L, 0, 1, 0) == 0;
+        checked   = true;
+
+        lua_pop(L, 1);
     }
 
-    return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumName, value, enums.c_str());
+    return supported;
 }
 
-void Luax::PushType(lua_State* L, love::Type& type, Object* object)
+void luax::PushObjectKey(lua_State* L, objectkey_t key)
+{
+    if (isFullLightUserdataSupported(L))
+        lua_pushlightuserdata(L, (void*)key);
+    else if (key > MAX_OBJECT_KEY)
+        luaL_error(L, "Cannot push love object to Lua: pointer value %p is too large", key);
+    else
+        lua_pushnumber(L, (lua_Number)key);
+}
+
+love::Type* luax::Type(lua_State* L, int index)
+{
+    const char* name = luaL_checkstring(L, index);
+
+    return love::Type::ByName(name);
+}
+
+int luax::Resume(lua_State* L, int numArgs)
+{
+#if LUA_VERSION_NUM >= 502
+    return lua_resume(L, nullptr, nargs);
+#else
+    return lua_resume(L, numArgs);
+#endif
+}
+
+/* registry */
+
+int luax::InsistRegistry(lua_State* L, Registry registry)
+{
+    switch (registry)
+    {
+        case Registry::REGISTRY_MODULES:
+            return luax::InsistLOVE(L, "_modules");
+        case Registry::REGISTRY_OBJECTS:
+            return luax::Insist(L, LUA_REGISTRYINDEX, "_loveobjects");
+        default:
+            return luaL_error(L, "Attempted to use invalid registry");
+    }
+}
+
+int luax::GetRegistry(lua_State* L, Registry registry)
+{
+    switch (registry)
+    {
+        case Registry::REGISTRY_OBJECTS:
+            lua_getfield(L, LUA_REGISTRYINDEX, "_loveobjects");
+            return 1;
+        case Registry::REGISTRY_MODULES:
+            return luax::GetLOVE(L, "_modules");
+        default:
+            return luaL_error(L, "Attempted to use invalid registry");
+    }
+}
+
+/* object functionality */
+
+int luax::Equal(lua_State* L)
+{
+    Proxy* a = (Proxy*)lua_touserdata(L, 1);
+    Proxy* b = (Proxy*)lua_touserdata(L, 2);
+
+    bool areEqual = (a->object == b->object) && a->object != nullptr;
+
+    lua_pushboolean(L, areEqual);
+
+    return 1;
+}
+
+bool luax::IsType(lua_State* L, int index, love::Type& type)
+{
+    if (lua_type(L, index) != LUA_TUSERDATA)
+        return false;
+
+    Proxy* proxy = (Proxy*)lua_touserdata(L, index);
+
+    if (proxy->type != nullptr)
+        return proxy->type->IsA(type);
+    else
+        return false;
+}
+
+int luax::GarbageCollect(lua_State* L)
+{
+    Proxy* proxy = (Proxy*)lua_touserdata(L, 1);
+
+    if (proxy->object != nullptr)
+    {
+        proxy->object->Release();
+        proxy->object = nullptr;
+    }
+
+    return 0;
+}
+
+int luax::Release(lua_State* L)
+{
+    Proxy* proxy   = (Proxy*)lua_touserdata(L, 1);
+    Object* object = proxy->object;
+
+    if (object != nullptr)
+    {
+        proxy->object = nullptr;
+        object->Release();
+
+        luax::GetRegistry(L, Registry::REGISTRY_OBJECTS);
+
+        if (lua_istable(L, -1))
+        {
+            objectkey_t objectKey = luax::ComputeObjectKey(L, object);
+
+            luax::PushObjectKey(L, objectKey);
+            lua_pushnil(L);
+            lua_settable(L, -3);
+        }
+
+        lua_pop(L, 1);
+    }
+
+    lua_pushboolean(L, object != nullptr);
+
+    return 1;
+}
+
+int luax::ToString(lua_State* L)
+{
+    Proxy* proxy         = (Proxy*)lua_touserdata(L, 1);
+    const char* typeName = lua_tostring(L, lua_upvalueindex(1));
+
+    lua_pushfstring(L, "%s: %p", typeName, proxy->object);
+
+    return 1;
+}
+
+int luax::Type(lua_State* L)
+{
+    lua_pushvalue(L, lua_upvalueindex(1));
+
+    return 1;
+}
+
+int luax::TypeOf(lua_State* L)
+{
+    Proxy* proxy     = (Proxy*)lua_touserdata(L, 1);
+    love::Type* type = luax::Type(L, 2);
+
+    if (!type)
+        lua_pushboolean(L, 0);
+    else
+        lua_pushboolean(L, proxy->type->IsA(*type));
+
+    return 1;
+}
+
+void luax::GetTypeMetaTable(lua_State* L, const love::Type& type)
+{
+    const auto* name = type.GetName();
+    lua_getfield(L, LUA_REGISTRYINDEX, name);
+}
+
+void luax::WrapObject(lua_State* L, const char* filedata, size_t length, const char* filename,
+                      const love::Type& type)
+{
+    luax::GetTypeMetaTable(L, type);
+
+    if (lua_istable(L, -1))
+    {
+        luaL_loadbuffer(L, filedata, length, filename);
+        lua_pushvalue(L, -2);
+        lua_pushnil(L);
+
+        lua_call(L, 2, 0);
+    }
+
+    lua_pop(L, 1);
+}
+
+void luax::PushType(lua_State* L, love::Type& type, Object* object)
 {
     if (object == nullptr)
     {
@@ -699,28 +568,28 @@ void Luax::PushType(lua_State* L, love::Type& type, Object* object)
         return;
     }
 
-    Luax::GetRegistry(L, Registry::REGISTRY_OBJECTS);
+    luax::GetRegistry(L, Registry::REGISTRY_OBJECTS);
 
     // if it doesn't exist, make it exist
     if (lua_isnoneornil(L, -1))
     {
         lua_pop(L, 1);
-        return Luax::RawNewType(L, type, object);
+        return luax::RawNewType(L, type, object);
     }
 
-    lua_Number key = Luax::ComputeObjectKey(L, object);
+    objectkey_t key = luax::ComputeObjectKey(L, object);
 
     // push using that key
-    lua_pushnumber(L, key);
+    luax::PushObjectKey(L, key);
     lua_gettable(L, -2);
 
     // if the proxy doesn't exist in registry, add it
     if (lua_type(L, -1) != LUA_TUSERDATA)
     {
         lua_pop(L, 1);
-        Luax::RawNewType(L, type, object);
+        luax::RawNewType(L, type, object);
 
-        lua_pushnumber(L, key);
+        luax::PushObjectKey(L, key);
         lua_pushvalue(L, -2);
 
         lua_settable(L, -4);
@@ -730,15 +599,246 @@ void Luax::PushType(lua_State* L, love::Type& type, Object* object)
     lua_remove(L, -2);
 }
 
-int Luax::TypeErrror(lua_State* L, int narg, const char* name)
+int luax::ConvertObject(lua_State* L, int idx, const char* mod, const char* fn)
 {
-    int argtype          = lua_type(L, narg);
+    // Convert to absolute index if necessary.
+    if (idx < 0 && idx > LUA_REGISTRYINDEX)
+        idx += lua_gettop(L) + 1;
+
+    // Convert string to a file.
+    luax::GetLOVEFunction(L, mod, fn);
+    lua_pushvalue(L, idx); // The initial argument.
+    lua_call(L, 1, 2); // Call the function, one arg, one return value (plus optional errstring.)
+
+    luax::AssertNilError(L, -2); // Make sure the function returned something.
+    lua_pop(L, 1);               // Pop the second return value now that we don't need it.
+    lua_replace(L, idx);         // Replace the initial argument with the new object.
+
+    return 0;
+}
+
+int luax::ConvertObject(lua_State* L, const int idxs[], int n, const char* mod, const char* fn)
+{
+    luax::GetLOVEFunction(L, mod, fn);
+    for (int i = 0; i < n; i++)
+        lua_pushvalue(L, idxs[i]); // The arguments.
+
+    lua_call(L, n, 2); // Call the function, n args, one return value (plus optional errstring.)
+
+    luax::AssertNilError(L, -2); // Make sure the function returned something.
+    lua_pop(L, 1);               // Pop the second return value now that we don't need it.
+    if (n > 0)
+        lua_replace(L, idxs[0]); // Replace the initial argument with the new object.
+
+    return 0;
+}
+
+int luax::ConvertObject(lua_State* L, const std::vector<int>& idxs, const char* moduleName,
+                        const char* function)
+{
+    const int* idxPtr = idxs.size() > 0 ? &idxs[0] : nullptr;
+
+    return luax::ConvertObject(L, idxPtr, (int)idxs.size(), moduleName, function);
+}
+
+/* helpers */
+
+size_t luax::ObjectLength(lua_State* L, int index)
+{
+#if LUA_VERSION_NUM == 501
+    return lua_objlen(L, index);
+#else
+    return lua_rawlen(L, indx);
+#endif
+}
+
+static Proxy* tryExtractProxy(lua_State* L, int index)
+{
+    Proxy* proxy = (Proxy*)lua_touserdata(L, index);
+
+    if (proxy == nullptr || proxy->type == nullptr)
+        return nullptr;
+
+    if (dynamic_cast<Object*>(proxy->object) != nullptr)
+        return proxy;
+
+    return nullptr;
+}
+
+love::Variant luax::CheckVariant(lua_State* L, int index, bool allowUserdata,
+                                 std::set<const void*>* tableSet)
+{
+    size_t length      = 0;
+    const char* string = nullptr;
+
+    Proxy* proxy = nullptr;
+
+    if (index < 0)
+        index += lua_gettop(L) + 1;
+
+    switch (lua_type(L, index))
+    {
+        case LUA_TBOOLEAN:
+            return Variant(luax::ToBoolean(L, index));
+        case LUA_TNUMBER:
+            return Variant(lua_tonumber(L, index));
+        case LUA_TSTRING:
+        {
+            string = lua_tolstring(L, index, &length);
+            return Variant(string, length);
+        }
+        case LUA_TLIGHTUSERDATA:
+            return Variant(lua_touserdata(L, index));
+        case LUA_TUSERDATA:
+        {
+            if (!allowUserdata)
+            {
+                luax::TypeError(L, index, "copyable Lua value");
+                return Variant();
+            }
+
+            proxy = tryExtractProxy(L, index);
+            if (proxy != nullptr)
+                return Variant(proxy->type, proxy->object);
+            else
+            {
+                luax::TypeError(L, index, "love type");
+                return Variant();
+            }
+        }
+        case LUA_TNIL:
+            return Variant();
+        case LUA_TTABLE:
+        {
+            bool success = true;
+            std::set<const void*> topTableSet;
+
+            if (tableSet == nullptr)
+                tableSet = &topTableSet;
+
+            const void* tablePointer = lua_topointer(L, index);
+
+            {
+                auto result = tableSet->insert(tablePointer);
+                if (!result.second)
+                    throw love::Exception("Cycle detected in table!");
+            }
+
+            auto* table   = new Variant::SharedTable();
+            size_t length = luax::ObjectLength(L, -1);
+
+            if (length > 0)
+                table->pairs.reserve(length);
+
+            lua_pushnil(L);
+
+            while (lua_next(L, index))
+            {
+                // clang-format off
+                table->pairs.emplace_back(
+                    luax::CheckVariant(L, -2, allowUserdata, tableSet),
+                    luax::CheckVariant(L, -1, allowUserdata, tableSet)
+                );
+                // clang-format on
+
+                lua_pop(L, 1);
+
+                const auto& pair = table->pairs.back();
+                if (pair.first.Is(Variant::UNKNOWN) || pair.second.Is(Variant::UNKNOWN))
+                {
+                    success = false;
+                    break;
+                }
+            }
+
+            tableSet->erase(tablePointer);
+
+            if (success)
+                return Variant(table);
+            else
+                table->Release();
+        }
+        break;
+    }
+
+    return Variant::Unknown();
+}
+
+void luax::PushVariant(lua_State* L, const Variant& variant)
+{
+    const Variant::Data& data = variant.GetData();
+
+    switch (variant.GetType())
+    {
+        case Variant::BOOLEAN:
+        {
+            lua_pushboolean(L, data.boolean);
+            break;
+        }
+        case Variant::NUMBER:
+        {
+            lua_pushnumber(L, data.number);
+            break;
+        }
+        case Variant::STRING:
+        {
+            lua_pushlstring(L, data.string->string, data.string->length);
+            break;
+        }
+        case Variant::SMALLSTRING:
+        {
+            lua_pushlstring(L, data.smallstring.str, data.smallstring.len);
+            break;
+        }
+        case Variant::LUSERDATA:
+        {
+            lua_pushlightuserdata(L, data.userdata);
+            break;
+        }
+        case Variant::LOVEOBJECT:
+        {
+            luax::PushType(L, *data.objectproxy.type, data.objectproxy.object);
+            break;
+        }
+        case Variant::TABLE:
+        {
+            auto& table   = data.table->pairs;
+            int tableSize = (int)table.size();
+
+            lua_createtable(L, 0, tableSize);
+
+            for (int index = 0; index < tableSize; ++index)
+            {
+                Variant::VariantPair& keyValue = table[index];
+
+                luax::PushVariant(L, keyValue.first);
+                luax::PushVariant(L, keyValue.second);
+
+                lua_settable(L, -3);
+            }
+
+            break;
+        }
+        case Variant::NIL:
+        default:
+        {
+            lua_pushnil(L);
+            break;
+        }
+    }
+}
+
+/* errors */
+
+int luax::TypeError(lua_State* L, int argc, const char* name)
+{
+    int argType          = lua_type(L, argc);
     const char* typeName = nullptr;
 
     // We want to use the love type name for userdata, if possible.
-    if (argtype == LUA_TUSERDATA && luaL_getmetafield(L, narg, "type") != 0)
+    if (argType == LUA_TUSERDATA && luaL_getmetafield(L, argc, "type") != 0)
     {
-        lua_pushvalue(L, narg);
+        lua_pushvalue(L, argc);
         if (lua_pcall(L, 1, 1, 0) == 0 && lua_type(L, -1) == LUA_TSTRING)
         {
             typeName = lua_tostring(L, -1);
@@ -751,26 +851,124 @@ int Luax::TypeErrror(lua_State* L, int narg, const char* name)
     }
 
     if (typeName == nullptr)
-        typeName = lua_typename(L, argtype);
+        typeName = lua_typename(L, argType);
 
     const char* msg = lua_pushfstring(L, "%s expected, got %s", name, typeName);
-    return luaL_argerror(L, narg, msg);
+
+    return luaL_argerror(L, argc, msg);
 }
 
-Reference* Luax::RefIf(lua_State* L, int type)
+bool luax::BoolFlag(lua_State* L, int tableIndex, const char* key, bool defaultValue)
 {
-    Reference* r = nullptr;
+    lua_getfield(L, tableIndex, key);
 
-    // Create a reference only if the test succeeds.
+    bool retval;
+    if (lua_isnoneornil(L, -1))
+        retval = defaultValue;
+    else
+        retval = lua_toboolean(L, -1) != 0;
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+int luax::IntFlag(lua_State* L, int tableIndex, const char* key, int defaultValue)
+{
+    lua_getfield(L, tableIndex, key);
+
+    int retval;
+    if (!lua_isnumber(L, -1))
+        retval = defaultValue;
+    else
+        retval = (int)lua_tointeger(L, -1);
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+double luax::NumberFlag(lua_State* L, int tableIndex, const char* key, double defaultValue)
+{
+    lua_getfield(L, tableIndex, key);
+
+    double retval;
+    if (!lua_isnumber(L, -1))
+        retval = defaultValue;
+    else
+        retval = lua_tonumber(L, -1);
+
+    lua_pop(L, 1);
+    return retval;
+}
+
+int luax::CheckIntFlag(lua_State* L, int tableIndex, const char* key)
+{
+    lua_getfield(L, tableIndex, key);
+
+    int retval;
+    if (!lua_isnumber(L, -1))
+    {
+        std::string err = "expected integer field " + std::string(key) + " in table";
+        return luaL_argerror(L, tableIndex, err.c_str());
+    }
+    else
+        retval = (int)luaL_checkinteger(L, -1);
+
+    lua_pop(L, 1);
+
+    return retval;
+}
+
+int luax::EnumError(lua_State* L, const char* enumName, const char* value)
+{
+    return luaL_error(L, "Invalid %s: %s", enumName, value);
+}
+
+int luax::IOError(lua_State* L, const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    lua_pushnil(L);
+    lua_pushvfstring(L, format, args);
+
+    va_end(args);
+
+    return 2;
+}
+
+int luax::AssertNilError(lua_State* L, int index)
+{
+    if (lua_isnoneornil(L, index))
+    {
+        if (lua_isstring(L, index + 1))
+            return luaL_error(L, lua_tostring(L, index + 1));
+        else
+            return luaL_error(L, "assertion failed!");
+    }
+    return 0;
+}
+
+int luax::AssertIsFunction(lua_State* L, int index)
+{
+    if (!lua_isfunction(L, index))
+        return luaL_error(L, "Expected function, got %s", lua_typename(L, lua_type(L, index)));
+
+    return 0;
+}
+
+love::Reference* luax::RefIfType(lua_State* L, int type)
+{
+    Reference* result = nullptr;
+
     if (lua_type(L, -1) == type)
-        r = new Reference(L);
-    else // Pop the value manually if it fails (done by Reference if it succeeds).
+        result = new Reference(L);
+    else
         lua_pop(L, 1);
 
-    return r;
+    return result;
 }
 
-int Luax::Traceback(lua_State* L)
+int luax::Traceback(lua_State* L)
 {
     if (!lua_isstring(L, 1)) // 'message' not a string?
         return 1;            // keep it intact

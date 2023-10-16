@@ -1,5 +1,11 @@
-#include "modules/image/wrap_imagemodule.h"
-#include "modules/image/imagemodule.h"
+#include <modules/image/imagemodule.hpp>
+#include <modules/image/wrap_imagemodule.hpp>
+
+#include <modules/filesystem/wrap_filesystem.hpp>
+
+#include <objects/compressedimagedata/wrap_compressedimagedata.hpp>
+#include <objects/data/wrap_data.hpp>
+#include <objects/imagedata/wrap_imagedata.hpp>
 
 using namespace love;
 
@@ -15,98 +21,100 @@ int Wrap_ImageModule::NewImageData(lua_State* L)
         if (width <= 0 || height <= 0)
             return luaL_error(L, "Invalid image size.");
 
-        PixelFormat format = PIXELFORMAT_RGBA8;
-        if (Luax::IsCTR())
-            format = PIXELFORMAT_TEX3DS_RGBA8;
+        std::optional<PixelFormat> format = PIXELFORMAT_RGBA8_UNORM;
 
         if (!lua_isnoneornil(L, 3))
         {
-            const char* formatStr = luaL_checkstring(L, 3);
-            if (!ImageModule::GetConstant(formatStr, format))
-                return Luax::EnumError(L, "pixel format", formatStr);
+            const char* formatName = luaL_checkstring(L, 3);
+
+            if (!(format = pixelFormats.Find(formatName)))
+                return luax::EnumError(L, "pixel format", pixelFormats, formatName);
         }
 
-        size_t numberOfBytes = 0;
-        const char* bytes    = nullptr;
+        size_t numBytes   = 0;
+        const char* bytes = nullptr;
 
-        if (Luax::IsType(L, 4, Data::type))
+        if (luax::IsType(L, 4, Data::type))
         {
-            Data* data = Wrap_Data::CheckData(L, 4);
+            auto* data = Wrap_Data::CheckData(L, 4);
 
-            bytes         = (const char*)data->GetData();
-            numberOfBytes = data->GetSize();
+            numBytes = data->GetSize();
+            bytes    = (const char*)data->GetData();
         }
         else if (!lua_isnoneornil(L, 4))
-            bytes = luaL_checklstring(L, 4, &numberOfBytes);
+            bytes = luaL_checklstring(L, 4, &numBytes);
 
-        ImageData* imageData = nullptr;
-        Luax::CatchException(
-            L, [&]() { imageData = instance()->NewImageData(width, height, format); });
+        ImageData<Console::Which>* data = nullptr;
+        luax::CatchException(L, [&]() { data = instance()->NewImageData(width, height, *format); });
 
         if (bytes)
         {
-            if (numberOfBytes != imageData->GetSize())
+            if (numBytes != data->GetSize())
             {
-                imageData->Release();
-                return luaL_error(L, "The size of the raw byte string must match the "
-                                     "ImageData's actual size in bytes.");
+                data->Release();
+                return luaL_error(L, "The size of the raw byte string must match the ImageData's "
+                                     "actual size in bytes.");
             }
-            memcpy(imageData->GetData(), bytes, imageData->GetSize());
+
+            if (Console::Is(Console::CTR))
+            {
+                luax::CatchException(L, [&]() {
+                    if (*format == PIXELFORMAT_RGB565_UNORM)
+                        data->CopyBytesTiled<uint16_t>(bytes, width, height);
+                    else if (*format == PIXELFORMAT_RGBA8_UNORM)
+                        data->CopyBytesTiled<uint32_t>(bytes, width, height);
+                });
+            }
+            else
+                data->CopyBytes(bytes, data->GetSize());
         }
 
-        Luax::PushType(L, imageData);
-        imageData->Release();
+        luax::PushType(L, data);
+        data->Release();
 
         return 1;
     }
     else if (Wrap_Filesystem::CanGetData(L, 1))
     {
-        Data* data           = Wrap_Filesystem::GetData(L, 1);
-        ImageData* imageData = nullptr;
+        auto* data                           = Wrap_Filesystem::GetData(L, 1);
+        ImageData<Console::Which>* imageData = nullptr;
 
-        Luax::CatchException(
+        luax::CatchException(
             L, [&]() { imageData = instance()->NewImageData(data); },
             [&](bool) { data->Release(); });
 
-        Luax::PushType(L, imageData);
+        luax::PushType(L, imageData);
         imageData->Release();
 
         return 1;
     }
-    else
-        return Luax::TypeErrror(L, 1, "value");
 
-    /* should never happen */
-
-    return 0;
+    return luax::TypeError(L, 1, "value");
 }
 
 int Wrap_ImageModule::NewCompressedData(lua_State* L)
 {
-    Data* data                = Wrap_Filesystem::GetData(L, 1);
-    CompressedImageData* self = nullptr;
+    Data* data = Wrap_Filesystem::GetData(L, 1);
 
-    // clang-format off
-    Luax::CatchException(
-        L, [&]() { self = instance()->NewCompressedData(data); },
-        [&](bool) { data->Release();
-    });
-    // clang-format on
+    CompressedImageData* compressedData = nullptr;
+    luax::CatchException(
+        L, [&]() { compressedData = instance()->NewCompressedImageData(data); },
+        [&](bool) { data->Release(); });
 
-    Luax::PushType(L, CompressedImageData::type, self);
-    self->Release();
+    luax::PushType(L, CompressedImageData::type, compressedData);
+    compressedData->Release();
 
     return 1;
 }
 
 int Wrap_ImageModule::IsCompressed(lua_State* L)
 {
-    Data* data = Wrap_Filesystem::GetData(L, 1);
-
+    auto* data      = Wrap_Filesystem::GetData(L, 1);
     bool compressed = instance()->IsCompressed(data);
+
     data->Release();
 
-    Luax::PushBoolean(L, compressed);
+    luax::PushBoolean(L, compressed);
 
     return 1;
 }
@@ -116,33 +124,32 @@ static constexpr luaL_Reg functions[] =
 {
     { "newImageData",      Wrap_ImageModule::NewImageData      },
     { "newCompressedData", Wrap_ImageModule::NewCompressedData },
-    { "isCompressed",      Wrap_ImageModule::IsCompressed      },
-    { 0,                   0                                   }
+    { "isCompressed",      Wrap_ImageModule::IsCompressed      }
 };
 
 static constexpr lua_CFunction types[] =
 {
     Wrap_ImageData::Register,
-    Wrap_CompressedData::Register,
+    Wrap_CompressedImageData::Register,
     nullptr
 };
 // clang-format on
 
 int Wrap_ImageModule::Register(lua_State* L)
 {
-    ImageModule* instance = instance();
+    auto* instance = instance();
 
     if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new ImageModule(); });
+        luax::CatchException(L, [&]() { instance = new ImageModule(); });
     else
-        instance->Retain();
+        instance()->Retain();
 
-    WrappedModule module;
+    WrappedModule module {};
     module.instance  = instance;
     module.name      = "image";
-    module.type      = &Module::type;
     module.functions = functions;
+    module.type      = &Module::type;
     module.types     = types;
 
-    return Luax::RegisterModule(L, module);
+    return luax::RegisterModule(L, module);
 }

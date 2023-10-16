@@ -1,3 +1,4 @@
+R"luastring"--(
 -----------------------------------------------------------------------------
 -- Unified SMTP/FTP subsystem
 -- LuaSocket toolkit.
@@ -132,3 +133,5 @@ function _M.connect(host, port, timeout, create)
 end
 
 return _M
+-- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
+--)luastring"--"

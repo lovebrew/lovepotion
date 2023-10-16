@@ -1,59 +1,67 @@
-#include "common/type.h"
+#include <common/type.hpp>
+
+#include <string>
 
 using namespace love;
 
-Type::Type(const char* name, Type* parent) : name(name), parent(parent), id(0), initialized(false)
+static std::unordered_map<std::string, Type*> types;
+
+Type::Type(const char* name, Type* parent) :
+    name(name),
+    parent(parent),
+    id(0),
+    initialized(false)
 {}
 
-void Type::Init()
+void Type::Initialize()
 {
-    static uint32_t nextID = 1;
+    static uint32_t next = 1;
 
-    if (initialized)
+    if (this->initialized)
         return;
 
-    m_types[this->name] = this;
-    this->id            = nextID++;
+    types[this->name] = this;
+    this->id          = next++;
 
-    m_bits[this->id] = true;
-    initialized      = true;
+    this->bits[this->id] = true;
+    this->initialized    = true;
 
     if (!this->parent)
         return;
 
     if (!this->parent->initialized)
-        this->parent->Init();
+        this->parent->Initialize();
 
-    m_bits |= this->parent->m_bits;
+    this->bits |= this->parent->bits;
 }
 
 bool Type::IsA(const Type& other)
 {
-    if (!initialized)
-        Init();
+    if (!this->initialized)
+        this->Initialize();
 
-    return m_bits[other.id];
+    return this->bits[other.id];
 }
 
-bool Type::IsA(const uint32_t& other)
+bool Type::IsA(const uint32_t& id)
 {
-    if (!initialized)
-        Init();
+    if (!this->initialized)
+        this->Initialize();
 
-    return m_bits[other];
+    return this->bits[id];
 }
 
 Type* Type::ByName(const char* name)
 {
-    auto position = m_types.find(name);
+    auto position = types.find(name);
 
-    if (position == m_types.end())
+    if (position == types.end())
         return nullptr;
 
     return position->second;
 }
 
-const char* love::Type::GetName() const
+const char* Type::GetName() const
 {
     return this->name;
 }

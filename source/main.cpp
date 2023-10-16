@@ -1,63 +1,23 @@
-#include "common/luax.h"
-#include "modules/love.h"
+#include <common/console.hpp>
+#include <common/luax.hpp>
+#include <common/variant.hpp>
+#include <utilities/result.hpp>
 
-#if defined(__3DS__)
-    #include <3ds.h>
-#elif defined(__SWITCH__)
-    #include <switch.h>
-#endif
+#include <modules/love/love.hpp>
+#include <string.h>
 
-enum DoneAction
+using namespace love;
+
+DoneAction RunLOVE(int argc, char** argv, int& retval, Variant& restartValue)
 {
-    DONE_QUIT,
-    DONE_RESTART
-};
-
-static bool IsApplicationType()
-{
-#if defined(__SWITCH__)
-    /* check for applet type */
-
-    AppletType type = appletGetAppletType();
-
-    bool isApplication = (type == AppletType_Application || type == AppletType_SystemApplication);
-
-    if (isApplication)
-        return true;
-
-    const char* TITLE_TAKEOVER_ERROR = "Please run LÖVE Potion under "
-                                       "Atmosphère title takeover.";
-
-    ErrorApplicationConfig config;
-
-    errorApplicationCreate(&config, TITLE_TAKEOVER_ERROR, NULL);
-    errorApplicationShow(&config);
-
-    return false;
-#endif
-
-    return true;
-}
-
-static int love_preload(lua_State* L, lua_CFunction f, const char* name)
-{
-    lua_getglobal(L, "package");
-    lua_getfield(L, -1, "preload");
-    lua_pushcfunction(L, f);
-    lua_setfield(L, -2, name);
-    lua_pop(L, 2);
-
-    return 0;
-}
-
-DoneAction Run_Love_Potion(int argc, char** argv, int& retval)
-{
-    // Make a new Lua state
+    /* make a new lua state */
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
 
-    // preload love
-    love_preload(L, love::Initialize, "love");
+    luaopen_bit(L);
+
+    /* preload "love" */
+    luax::Preload(L, love::Initialize, "love");
 
     {
         lua_newtable(L);
@@ -80,63 +40,78 @@ DoneAction Run_Love_Potion(int argc, char** argv, int& retval)
         lua_setglobal(L, "arg");
     }
 
-    // require "love"
+    /* require "love" */
     lua_getglobal(L, "require");
     lua_pushstring(L, "love");
     lua_call(L, 1, 1);
+
+    /* love.restart = value, clear it */
+    luax::PushVariant(L, restartValue);
+    lua_setfield(L, -2, "restart");
+    restartValue = Variant();
+
+    /* pop the love table */
     lua_pop(L, 1);
 
-    // boot!
+    /* boot! */
     lua_getglobal(L, "require");
     lua_pushstring(L, "love.boot");
     lua_call(L, 1, 1);
 
-    // put this on a new lua thread
+    /* put this on a new lua thread */
     lua_newthread(L);
     lua_pushvalue(L, -2);
 
-    /*
-    ** get what's on the stack
-    ** this will keep running until "quit"
-    */
-    int stackpos = lua_gettop(L);
+    int stackPosition = lua_gettop(L);
 
-#if defined(__3DS__)
-    while (Luax::Resume(L, 0) == LUA_YIELD && aptMainLoop())
-#elif defined(__SWITCH__)
-    while (Luax::Resume(L, 0) == LUA_YIELD)
-#endif
-        lua_pop(L, lua_gettop(L) - stackpos);
+    /* execute the main loop */
+    while (love::MainLoop<Console::Which>(L, 0))
+        lua_pop(L, lua_gettop(L) - stackPosition);
 
     retval          = 0;
-    DoneAction done = DONE_QUIT;
+    DoneAction done = DoneAction::DONE_QUIT;
 
-    // if we wish to "restart", start up again after closing
-    if (lua_type(L, -1) == LUA_TSTRING && strcmp(lua_tostring(L, -1), "restart") == 0)
-        done = DONE_RESTART;
+    int returnIndex = stackPosition;
+    if (!lua_isnoneornil(L, returnIndex))
+    {
+        if (lua_type(L, returnIndex) == LUA_TSTRING &&
+            strcmp(lua_tostring(L, returnIndex), "restart") == 0)
+        {
+            done = DONE_RESTART;
+        }
 
-    // custom quit value
-    if (lua_isnumber(L, -1))
-        retval = (int)lua_tonumber(L, -1);
+        if (lua_isnumber(L, returnIndex))
+            retval = lua_tonumber(L, returnIndex);
+
+        if (returnIndex < lua_gettop(L))
+            restartValue = luax::CheckVariant(L, returnIndex + 1, false);
+    }
 
     lua_close(L);
 
-    // actually return quit
     return done;
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char** argv)
 {
-    if (!IsApplicationType())
-        return 0;
+    love::PreInit<Console::Which>();
 
-    DoneAction done = DONE_QUIT;
-    int retval      = 0;
+    if (love::g_EarlyExit)
+    {
+        love::OnExit<Console::Which>();
+        return 0;
+    }
+
+    DoneAction done = love::DONE_QUIT;
+    int returnValue = 0;
+    Variant restartValue;
 
     do
     {
-        done = Run_Love_Potion(argc, argv, retval);
-    } while (done != DoneAction::DONE_QUIT);
+        done = RunLOVE(argc, argv, returnValue, restartValue);
+    } while (done != love::DONE_QUIT);
 
-    return retval;
+    love::OnExit<Console::Which>();
+
+    return returnValue;
 }

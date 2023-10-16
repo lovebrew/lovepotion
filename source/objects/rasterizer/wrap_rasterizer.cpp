@@ -1,10 +1,17 @@
-#include "objects/rasterizer/wrap_rasterizer.h"
+#include <objects/rasterizer/wrap_rasterizer.hpp>
+
+#include <objects/glyphdata/glyphdata.hpp>
 
 using namespace love;
 
+Rasterizer* Wrap_Rasterizer::CheckRasterizer(lua_State* L, int index)
+{
+    return luax::CheckType<::Rasterizer>(L, index);
+}
+
 int Wrap_Rasterizer::GetHeight(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     lua_pushinteger(L, self->GetHeight());
 
@@ -13,7 +20,7 @@ int Wrap_Rasterizer::GetHeight(lua_State* L)
 
 int Wrap_Rasterizer::GetAdvance(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     lua_pushinteger(L, self->GetAdvance());
 
@@ -22,7 +29,7 @@ int Wrap_Rasterizer::GetAdvance(lua_State* L)
 
 int Wrap_Rasterizer::GetAscent(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     lua_pushinteger(L, self->GetAscent());
 
@@ -31,7 +38,7 @@ int Wrap_Rasterizer::GetAscent(lua_State* L)
 
 int Wrap_Rasterizer::GetDescent(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     lua_pushinteger(L, self->GetDescent());
 
@@ -40,7 +47,7 @@ int Wrap_Rasterizer::GetDescent(lua_State* L)
 
 int Wrap_Rasterizer::GetLineHeight(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     lua_pushinteger(L, self->GetLineHeight());
 
@@ -49,17 +56,17 @@ int Wrap_Rasterizer::GetLineHeight(lua_State* L)
 
 int Wrap_Rasterizer::GetGlyphData(lua_State* L)
 {
-    Rasterizer* self             = Wrap_Rasterizer::CheckRasterizer(L, 1);
-    common::GlyphData* glyphData = nullptr;
+    auto* self           = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    GlyphData* glyphData = nullptr;
 
     /*
     ** getGlyphData accepts a unicode character
     ** or a codepoint number
     */
-    Luax::CatchException(L, [&]() {
+    luax::CatchException(L, [&]() {
         if (lua_type(L, 2) == LUA_TSTRING)
         {
-            std::string glyph = Luax::CheckString(L, 2);
+            std::string glyph = luax::CheckString(L, 2);
             glyphData         = self->GetGlyphData(glyph);
         }
         else
@@ -69,7 +76,7 @@ int Wrap_Rasterizer::GetGlyphData(lua_State* L)
         }
     });
 
-    Luax::PushType(L, glyphData);
+    luax::PushType(L, glyphData);
     glyphData->Release();
 
     return 1;
@@ -77,7 +84,7 @@ int Wrap_Rasterizer::GetGlyphData(lua_State* L)
 
 int Wrap_Rasterizer::GetGlyphCount(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     lua_pushinteger(L, self->GetGlyphCount());
 
@@ -86,18 +93,18 @@ int Wrap_Rasterizer::GetGlyphCount(lua_State* L)
 
 int Wrap_Rasterizer::HasGlyphs(lua_State* L)
 {
-    Rasterizer* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
+    auto* self = Wrap_Rasterizer::CheckRasterizer(L, 1);
 
     bool hasGlyph = false;
 
     int count = lua_gettop(L) - 1;
     count     = (count < 1) ? 1 : count;
 
-    Luax::CatchException(L, [&]() {
+    luax::CatchException(L, [&]() {
         for (int i = 2; i < count + 2; i++)
         {
             if (lua_type(L, i) == LUA_TSTRING)
-                hasGlyph = self->HasGlyphs(Luax::CheckString(L, i));
+                hasGlyph = self->HasGlyphs(luax::CheckString(L, i));
             else
                 hasGlyph = self->HasGlyph((uint32_t)luaL_checknumber(L, i));
 
@@ -111,11 +118,6 @@ int Wrap_Rasterizer::HasGlyphs(lua_State* L)
     return 1;
 }
 
-Rasterizer* Wrap_Rasterizer::CheckRasterizer(lua_State* L, int index)
-{
-    return Luax::CheckType<Rasterizer>(L, index);
-}
-
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -126,12 +128,11 @@ static constexpr luaL_Reg functions[] =
     { "getGlyphData",  Wrap_Rasterizer::GetGlyphData  },
     { "getHeight",     Wrap_Rasterizer::GetHeight     },
     { "getLineHeight", Wrap_Rasterizer::GetLineHeight },
-    { "hasGlyphs",     Wrap_Rasterizer::HasGlyphs     },
-    { 0,               0                              }
+    { "hasGlyphs",     Wrap_Rasterizer::HasGlyphs     }
 };
 // clang-format on
 
 int Wrap_Rasterizer::Register(lua_State* L)
 {
-    return Luax::RegisterType(L, &Rasterizer::type, functions, nullptr);
+    return luax::RegisterType(L, &::Rasterizer::type, functions);
 }

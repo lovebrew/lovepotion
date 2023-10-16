@@ -1,64 +1,81 @@
 {
-    // See https://go.microsoft.com/fwlink/?LinkId=733558
-    // for the documentation about the tasks.json format
-    "version": "2.0.0",
-    "tasks":
-    [
-        {
-            "label": "Build Console",
-            "type": "shell",
-            "command": "make ${input:args} -j6",
-
-            "presentation":
-            {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel":"shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Clean All",
-            "type": "shell",
-            "command": "make clean",
-
-            "presentation": {
-                "echo": true,
-                "reveal": "always",
-                "focus": true,
-                "panel": "shared",
-                "showReuseMessage": false,
-                "clear": true
-            },
-
-            "group": "build",
-            "problemMatcher": []
-        },
-
-        {
-            "label": "Format All Code",
-            "type": "shell",
-            "command": "bash",
-            "args": [
-                "-c",
-                "clang-format -style=file -i $(find ./include ./platform ./source -name \\*.h -o -name \\*.cpp)"
-            ]
-        }
-    ],
-
-    "inputs":
-    [
-        {
-            "id": "args",
-            "type": "command",
-            "command": "cpptools.activeConfigCustomVariable",
-            "args": "console"
-        }
-    ]
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "mode",
+      "description": "CMake release mode",
+      "type": "pickString",
+      "options": [
+        "Release",
+        "Debug"
+      ],
+      "default": "Release"
+    },
+    {
+      "id": "emulation",
+      "description": "Enable Emulation",
+      "type": "pickString",
+      "options": [
+        "0",
+        "1"
+      ],
+      "default": "0"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "Configure 3DS",
+      "type": "shell",
+      "command": "${env:DEVKITPRO}/portlibs/3ds/bin/arm-none-eabi-cmake",
+      "args": [
+        "-DCMAKE_BUILD_TYPE=${input:mode}",
+        "-D__EMULATION__=${input:emulation}",
+        "-S",
+        ".",
+        "-B",
+        "build"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Configure Switch",
+      "type": "shell",
+      "command": "${env:DEVKITPRO}/portlibs/switch/bin/aarch64-none-elf-cmake",
+      "args": [
+        "-DCMAKE_BUILD_TYPE=${input:mode}",
+        "-D__EMULATION__=${input:emulation}",
+        "-S",
+        ".",
+        "-B",
+        "build"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Configure Wii U",
+      "type": "shell",
+      "command": "${env:DEVKITPRO}/portlibs/wiiu/bin/powerpc-eabi-cmake",
+      "args": [
+        "-DCMAKE_BUILD_TYPE=${input:mode}",
+        "-D__EMULATION__=${input:emulation}",
+        "-S",
+        ".",
+        "-B",
+        "build"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    },
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "make -C build",
+      "group": "build",
+      "problemMatcher": []
+    }
+  ]
 }

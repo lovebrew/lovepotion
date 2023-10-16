@@ -1,3 +1,4 @@
+R"luastring"--(
 -----------------------------------------------------------------------------
 -- LuaSocket helper module
 -- Author: Diego Nehab
@@ -147,3 +148,5 @@ sourcet["default"] = sourcet["until-closed"]
 _M.source = _M.choose(sourcet)
 
 return _M
+-- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
+--)luastring"--"

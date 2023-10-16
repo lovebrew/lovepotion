@@ -1,16 +1,18 @@
-#include "modules/sound/sound.h"
+#include <common/data.hpp>
 
-#include <algorithm>
-#include <vector>
+#include <modules/sound/sound.hpp>
+
+#include <utilities/decoder/types/flacdecoder.hpp>
+#include <utilities/decoder/types/modplugdecoder.hpp>
+#include <utilities/decoder/types/mp3decoder.hpp>
+#include <utilities/decoder/types/vorbisdecoder.hpp>
+#include <utilities/decoder/types/wavedecoder.hpp>
 
 using namespace love;
 
-love::Type Sound::type("Sound", &Module::type);
-
 struct DecoderImpl
 {
-    Decoder* (*Create)(FileData* data, int bufferSize);
-    bool (*Accepts)(const std::string& ext);
+    Decoder* (*Create)(Stream* stream, int bufferSize);
 };
 
 template<typename DecoderType>
@@ -18,56 +20,48 @@ DecoderImpl DecoderImplFor()
 {
     DecoderImpl decoderImpl;
 
-    decoderImpl.Create = [](FileData* data, int bufferSize) -> Decoder* {
-        return new DecoderType(data, bufferSize);
+    decoderImpl.Create = [](Stream* stream, int bufferSize) -> Decoder* {
+        return new DecoderType(stream, bufferSize);
     };
-
-    decoderImpl.Accepts = [](const std::string& ext) -> bool { return DecoderType::Accepts(ext); };
 
     return decoderImpl;
 }
 
 Sound::~Sound()
+{}
+
+Decoder* Sound::NewDecoder(Stream* stream, int bufferSize)
 {
-    MP3Decoder::Quit();
-}
-
-Decoder* Sound::NewDecoder(FileData* data, int bufferSize)
-{
-    std::string ext = data->GetExtension();
-    std::transform(ext.begin(), ext.end(), ext.begin(), tolower);
-
-    std::vector<DecoderImpl> possibilities = { DecoderImplFor<VorbisDecoder>(),
-                                               DecoderImplFor<MP3Decoder>(),
-                                               DecoderImplFor<WaveDecoder>(),
-                                               DecoderImplFor<FLACDecoder>(),
-                                               DecoderImplFor<ModPlugDecoder>() };
-
-    for (DecoderImpl& item : possibilities)
+    // clang-format off
+    std::vector<DecoderImpl> possibleDecoders =
     {
-        if (item.Accepts(ext))
-            return item.Create(data, bufferSize);
-    }
+        DecoderImplFor<WaveDecoder>(),
+        DecoderImplFor<VorbisDecoder>(),
+        DecoderImplFor<MP3Decoder>(),
+        DecoderImplFor<FLACDecoder>(),
+        DecoderImplFor<ModPlugDecoder>()
+    };
+    // clang-format on
 
-    /* extension detection fails, let's probe 'em */
-    std::string decodingErrors = "Failed to determine file type:\n";
+    std::string errors;
 
-    for (DecoderImpl& item : possibilities)
+    for (auto& possibleDecoder : possibleDecoders)
     {
         try
         {
-            Decoder* decoder = item.Create(data, bufferSize);
+            stream->Seek(0);
+            auto* decoder = possibleDecoder.Create(stream, bufferSize);
 
             return decoder;
         }
         catch (love::Exception& e)
         {
-            decodingErrors += e.what() + '\n';
+            errors += std::string(e.what()) + "\n";
         }
     }
 
     /* probing failure, throw the errors */
-    throw love::Exception(decodingErrors.c_str());
+    throw love::Exception("No suitable audio decoders found.\n%s", errors.c_str());
 
     return nullptr;
 }

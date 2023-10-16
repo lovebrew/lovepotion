@@ -1,138 +1,129 @@
-#include "modules/audio/wrap_audio.h"
+#include <modules/audio/audio.hpp>
+#include <modules/audio/wrap_audio.hpp>
+
+#include <objects/source/wrap_source.hpp>
+
+#include <modules/filesystem/wrap_filesystem.hpp>
 
 using namespace love;
+using Source = love::Source<Console::Which>;
 
 #define instance() (Module::GetInstance<Audio>(Module::M_AUDIO))
 
-int Wrap_Audio::GetVolume(lua_State* L)
+int Wrap_Audio::GetActiveSourceCount(lua_State* L)
 {
-    lua_pushnumber(L, instance()->GetVolume());
+    lua_pushinteger(L, instance()->GetActiveSourceCount());
 
     return 1;
 }
 
 int Wrap_Audio::NewSource(lua_State* L)
 {
-    Source::Type type = Source::TYPE_STREAM;
-
-    if (!Luax::IsType(L, 1, SoundData::type) && !Luax::IsType(L, 1, Decoder::type))
+    auto type = ::Source::TYPE_STREAM;
+    if (!luax::IsType(L, 1, SoundData::type))
     {
-        const char* typeString = luaL_checkstring(L, 2);
+        if (!luax::IsType(L, 1, Decoder::type))
+        {
+            auto* typeName = lua_isnoneornil(L, 2) ? "stream" : luaL_checkstring(L, 2);
+            if (auto found = ::Source::sourceTypes.Find(typeName))
+                type = *found;
+            else
+                return luax::EnumError(L, "source type", ::Source::sourceTypes, typeName);
 
-        if (typeString && !Source::GetConstant(typeString, type))
-            return Luax::EnumError(L, "source type", Source::GetConstants(type), typeString);
+            if (type == ::Source::TYPE_QUEUE)
+                return luaL_error(L, "Cannot create queueable sources using newSource. Use "
+                                     "newQueueableSource instead.");
+        }
 
-        if (type == Source::TYPE_QUEUE)
-            return luaL_error(
-                L,
-                "Cannot create queueable sources using newSource. Use newQueueableSource instead.");
+        if (Wrap_Filesystem::CanGetData(L, 1))
+        {
+            if (type == ::Source::TYPE_STATIC)
+                lua_pushstring(L, "memory");
+            else if (!lua_isnone(L, 3))
+                lua_pushvalue(L, 3);
+            else
+                lua_pushnil(L);
+
+            lua_pushnil(L);
+
+            int indexes[] = { 1, lua_gettop(L), lua_gettop(L) - 1 };
+            luax::ConvertObject(L, indexes, 3, "sound", "newDecoder");
+        }
     }
 
-    if (lua_isstring(L, 1) || Luax::IsType(L, 1, File::type) || Luax::IsType(L, 1, FileData::type))
-        Luax::ConvertObject(L, 1, "sound", "newDecoder");
+    if (type == ::Source::TYPE_STATIC && luax::IsType(L, 1, Decoder::type))
+        luax::ConvertObject(L, 1, "sound", "newSoundData");
 
-    if (type == Source::TYPE_STATIC && Luax::IsType(L, 1, Decoder::type))
-        Luax::ConvertObject(L, 1, "sound", "newSoundData");
+    ::Source* self = nullptr;
 
-    Source* source = nullptr;
-
-    Luax::CatchException(L, [&]() {
-        if (Luax::IsType(L, 1, SoundData::type))
-            source = instance()->NewSource(Luax::ToType<SoundData>(L, 1));
-        else if (Luax::IsType(L, 1, Decoder::type))
-            source = instance()->NewSource(Luax::ToType<Decoder>(L, 1));
+    luax::CatchException(L, [&]() {
+        if (luax::IsType(L, 1, SoundData::type))
+            self = instance()->NewSource(luax::ToType<SoundData>(L, 1));
+        else if (luax::IsType(L, 1, Decoder::type))
+            self = instance()->NewSource(luax::ToType<Decoder>(L, 1));
     });
 
-    if (source != nullptr)
-    {
-        Luax::PushType(L, source);
-        source->Release();
+    if (!self)
+        return luax::TypeError(L, 1, "Decoder or SoundData");
 
-        return 1;
-    }
-    else
-        return Luax::TypeErrror(L, 1, "Decoder or SoundData");
+    luax::PushType(L, self);
+    self->Release();
+
+    return 1;
 }
 
-static std::vector<common::Source*> ReadSourceList(lua_State* L, int index)
+int Wrap_Audio::NewQueueableSource(lua_State* L)
 {
-    if (index < 0)
-        index += lua_gettop(L) + 1;
+    return 0;
+}
 
-    size_t numItems = lua_objlen(L, index);
-    std::vector<common::Source*> sources(numItems);
+static std::vector<::Source*> readSourceList(lua_State* L, int stackPosition)
+{
+    if (stackPosition < 0)
+        stackPosition += lua_gettop(L) + 1;
 
-    for (size_t i = 0; i < numItems; i++)
+    int count = luax::ObjectLength(L, stackPosition);
+    std::vector<::Source*> sources(count);
+
+    for (int index = 0; index < count; index++)
     {
-        lua_rawgeti(L, index, i + 1);
-        sources[i] = Wrap_Source::CheckSource(L, -1);
+        lua_rawgeti(L, stackPosition, index + 1);
+        sources[index] = Wrap_Source::CheckSource(L, -1);
         lua_pop(L, 1);
     }
 
     return sources;
 }
 
-static std::vector<common::Source*> ReadSourceVaArg(lua_State* L, int index)
+static std::vector<::Source*> readSourceVararg(lua_State* L, int stackPosition)
 {
     const int top = lua_gettop(L);
 
-    if (index < 0)
-        index += top + 1;
+    if (stackPosition < 0)
+        stackPosition += top + 1;
 
-    size_t numItems = top - index + 1;
-    std::vector<common::Source*> sources(numItems);
+    int count = (top - stackPosition + 1);
+    std::vector<::Source*> sources(count);
 
-    for (int position = 0; index <= top; index++, position++)
-        sources[position] = Wrap_Source::CheckSource(L, index);
+    for (int position = 0; position <= top; stackPosition++, position++)
+        sources[position] = Wrap_Source::CheckSource(L, stackPosition);
 
     return sources;
 }
 
 int Wrap_Audio::Play(lua_State* L)
 {
-
     if (lua_istable(L, 1))
-        Luax::PushBoolean(L, instance()->Play(ReadSourceList(L, 1)));
+        return 0;
     else if (lua_gettop(L) > 1)
-        Luax::PushBoolean(L, instance()->Play(ReadSourceVaArg(L, 1)));
+        return 0;
     else
     {
-        Source* source = Wrap_Source::CheckSource(L, 1);
-
-        lua_pushboolean(L, instance()->Play(source));
+        auto* self = Wrap_Source::CheckSource(L, 1);
+        luax::PushBoolean(L, instance()->Play(self));
     }
 
     return 1;
-}
-
-int Wrap_Audio::Pause(lua_State* L)
-{
-    if (lua_isnone(L, 1))
-    {
-        auto sources = instance()->Pause();
-
-        lua_createtable(L, sources.size(), 0);
-
-        for (size_t index = 0; index < sources.size(); index++)
-        {
-            Luax::PushType(L, sources[index]);
-            lua_rawseti(L, -2, index + 1);
-        }
-
-        return 1;
-    }
-    else if (lua_istable(L, 1))
-        instance()->Pause(ReadSourceList(L, 1));
-    else if (lua_gettop(L) > 1)
-        instance()->Pause(ReadSourceVaArg(L, 1));
-    else
-    {
-        Source* self = Wrap_Source::CheckSource(L, 1);
-
-        self->Pause();
-    }
-
-    return 0;
 }
 
 int Wrap_Audio::Stop(lua_State* L)
@@ -140,47 +131,61 @@ int Wrap_Audio::Stop(lua_State* L)
     if (lua_isnone(L, 1))
         instance()->Stop();
     else if (lua_istable(L, 1))
-        instance()->Stop(ReadSourceList(L, 1));
+        instance()->Stop(readSourceList(L, 1));
     else if (lua_gettop(L) > 1)
-        instance()->Stop(ReadSourceVaArg(L, 1));
+        instance()->Stop(readSourceVararg(L, 1));
     else
     {
-        Source* source = Wrap_Source::CheckSource(L, 1);
-
-        source->Stop();
+        auto* self = Wrap_Source::CheckSource(L, 1);
+        self->Stop();
     }
 
     return 0;
 }
 
-int Wrap_Audio::GetActiveSourceCount(lua_State* L)
+int Wrap_Audio::Pause(lua_State* L)
 {
-    int count = instance()->GetActiveSourceCount();
+    if (lua_isnone(L, 1))
+        instance()->Pause();
+    else if (lua_istable(L, 1))
+        instance()->Pause(readSourceList(L, 1));
+    else if (lua_gettop(L) > 1)
+        instance()->Pause(readSourceVararg(L, 1));
+    else
+    {
+        auto* self = Wrap_Source::CheckSource(L, 1);
+        self->Pause();
+    }
 
-    lua_pushnumber(L, count);
-
-    return 1;
+    return 0;
 }
 
 int Wrap_Audio::SetVolume(lua_State* L)
 {
-    float volume = (float)luaL_checknumber(L, 1);
+    float volume = luaL_checknumber(L, 1);
     instance()->SetVolume(volume);
 
     return 0;
 }
 
+int Wrap_Audio::GetVolume(lua_State* L)
+{
+    float volume = instance()->GetVolume();
+    lua_pushnumber(L, volume);
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "getVolume",            Wrap_Audio::GetVolume            },
     { "getActiveSourceCount", Wrap_Audio::GetActiveSourceCount },
+    { "getVolume",            Wrap_Audio::GetVolume            },
     { "newSource",            Wrap_Audio::NewSource            },
-    { "pause",                Wrap_Audio::Pause                },
     { "play",                 Wrap_Audio::Play                 },
-    { "setVolume",            Wrap_Audio::SetVolume            },
+    { "pause",                Wrap_Audio::Pause                },
     { "stop",                 Wrap_Audio::Stop                 },
-    { 0,                      0                                }
+    { "setVolume",            Wrap_Audio::SetVolume            }
 };
 
 static constexpr lua_CFunction types[] =
@@ -192,20 +197,19 @@ static constexpr lua_CFunction types[] =
 
 int Wrap_Audio::Register(lua_State* L)
 {
-    Audio* instance = instance();
+    auto* instance = instance();
 
-    if (instance == nullptr)
-        Luax::CatchException(L, [&]() { instance = new Audio(); });
+    if (!instance)
+        luax::CatchException(L, [&]() { instance = new Audio(); });
     else
         instance->Retain();
 
-    WrappedModule wrappedModule;
-
+    WrappedModule wrappedModule {};
     wrappedModule.instance  = instance;
     wrappedModule.name      = "audio";
     wrappedModule.type      = &Module::type;
     wrappedModule.functions = functions;
     wrappedModule.types     = types;
 
-    return Luax::RegisterModule(L, wrappedModule);
+    return luax::RegisterModule(L, wrappedModule);
 }
