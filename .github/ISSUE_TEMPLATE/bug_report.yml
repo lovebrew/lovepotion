@@ -55,7 +55,7 @@ body:
       options:
         - Nintendo Switch
         - Nintendo 3DS
-        - Nintendo Wii U (Beta)
+        - Nintendo Wii U
     validations:
       required: true
   - type: input
@@ -82,7 +82,7 @@ body:
       label: Execution Method
       options:
         - Homebrew Menu
-        - Wii U Menu (Beta)
+        - Wii U Menu
         - Other
     validations:
       required: true
@@ -92,7 +92,7 @@ body:
       label: Code of Conduct
       description:
         By submitting this issue, you agree that the above information is correct and accurate.
-        Please note that if you selected 'Other' for Execution Method, your issue may be closed
+        Please note that if you selected 'Other' or 'Wii U Menu' for Execution Method, your issue may be closed
         without comment.
       options:
         - label: I have read the Code of Conduct and agree to these terms
