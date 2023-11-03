@@ -23,6 +23,7 @@
 
 // STD
 #include <cmath>
+#include <utility>
 
 namespace love
 {
@@ -40,6 +41,32 @@ namespace love
 
         Vector2(const Vector2& v) : x(v.x), y(v.y)
         {}
+
+        float& operator[](int index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return x;
+                case 1:
+                    return y;
+                default:
+                    std::unreachable();
+            }
+        }
+
+        const float& operator[](int index) const
+        {
+            switch (index)
+            {
+                case 0:
+                    return x;
+                case 1:
+                    return y;
+                default:
+                    std::unreachable();
+            }
+        }
 
         float getLength() const;
         float getLengthSquare() const;

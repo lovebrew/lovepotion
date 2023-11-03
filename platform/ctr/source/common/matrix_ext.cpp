@@ -4,9 +4,9 @@
 
 using namespace love;
 
-void Matrix4<Console::CTR>::Multiply(const Matrix4& a, const Matrix4& b, C3D_Mtx& c)
+void Matrix4<Console::CTR>::Multiply(const Matrix4& a, const Matrix4& b, Elements& t)
 {
-    Mtx_Multiply(&c, &a.matrix, &b.matrix);
+    Mtx_Multiply(&t, &a.matrix, &b.matrix);
 }
 
 void Matrix4<Console::CTR>::Multiply(const Matrix4& a, const Matrix4& b, Matrix4& c)
@@ -14,12 +14,7 @@ void Matrix4<Console::CTR>::Multiply(const Matrix4& a, const Matrix4& b, Matrix4
     Multiply(a, b, c.matrix);
 }
 
-Matrix4<Console::CTR>::Matrix4()
-{
-    this->SetIdentity();
-}
-
-Matrix4<Console::CTR>::Matrix4(const C3D_Mtx& a)
+Matrix4<Console::CTR>::Matrix4(const Elements& a)
 {
     Mtx_Copy(&this->matrix, &a);
 }
@@ -182,26 +177,14 @@ void Matrix4<Console::CTR>::Shear(float kx, float ky)
     Mtx_Multiply(&this->matrix, &this->matrix, &mtx);
 }
 
-void Matrix4<Console::CTR>::TransformXY()
-{
-    auto instance = Renderer<Console::CTR>::Instance();
-    Mtx_Copy(&instance.GetModelView(), &this->matrix);
-}
-
-void Matrix4<Console::CTR>::TransformXY(const C3D_Mtx& elements)
-{
-    auto instance = Renderer<Console::CTR>::Instance();
-    Mtx_Copy(&instance.GetModelView(), &elements);
-}
-
 Matrix4<Console::CTR> Matrix4<Console::CTR>::Inverse() const
 {
-    Matrix4 inv;
-    Mtx_Copy(&inv.matrix, &this->matrix);
+    Matrix4 inverse {};
+    Mtx_Copy(&inverse.matrix, &this->matrix);
 
-    Mtx_Inverse(&inv.matrix);
+    Mtx_Inverse(&inverse.matrix);
 
-    return inv;
+    return inverse;
 }
 
 Matrix4<Console::CTR> Matrix4<Console::CTR>::Ortho(float left, float right, float bottom, float top,
@@ -211,4 +194,13 @@ Matrix4<Console::CTR> Matrix4<Console::CTR>::Ortho(float left, float right, floa
     Mtx_Ortho(&ortho.matrix, left, right, bottom, top, near, far, true);
 
     return ortho;
+}
+
+Matrix4<Console::CTR> Matrix4<Console::CTR>::Perspective(float verticalfov, float aspect,
+                                                         float near, float far)
+{
+    Matrix4 perspective {};
+    Mtx_Persp(&perspective.matrix, verticalfov, aspect, near, far, true);
+
+    return perspective;
 }

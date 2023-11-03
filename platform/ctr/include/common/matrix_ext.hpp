@@ -1,9 +1,6 @@
 #pragma once
 
 #include <common/matrix.tcc>
-#include <common/vector.hpp>
-
-#include <utilities/driver/renderer/vertex.hpp>
 
 #include <citro3d.h>
 
@@ -12,35 +9,61 @@ namespace love
     template<>
     class Matrix4<Console::CTR> : public Matrix4<Console::ALL>
     {
-      public:
-        Matrix4();
+      private:
+        static void Multiply(const Matrix4& a, const Matrix4& b, Elements& t);
 
-        Matrix4(const C3D_Mtx& matrix);
+      public:
+        static void Multiply(const Matrix4& a, const Matrix4& b, Matrix4& result);
+
+        Matrix4()
+        {
+            this->SetIdentity();
+        }
+
+        Matrix4(const Elements& elements);
 
         Matrix4(const Matrix4& a, const Matrix4& b);
 
         Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
                 float ky);
 
-        Matrix4(float t00, float t10, float t01, float t11, float x, float y);
+        void operator*=(const Matrix4& other);
 
-        const C3D_Mtx& GetElements() const
+        Matrix4 operator*(const Matrix4& other) const;
+
+        const Elements* GetElements() const
         {
-            return this->matrix;
+            return &this->matrix;
         }
+
+        void SetRow(int row, const Vector4& vector);
+
+        Vector4 GetRow(int row);
+
+        void SetColumn(int column, const Vector4& vector);
+
+        Vector4 GetColumn(int column);
 
         void SetIdentity();
 
-        void Transpose()
-        {
-            Mtx_Transpose(&this->matrix);
-        }
-
         void SetTranslation(float x, float y);
+
+        void SetRotation(float rotation);
+
+        void SetScale(float sx, float sy);
+
+        void SetShear(float kx, float ky);
+
+        void GetApproximateScale(float& sx, float& sy) const;
+
+        void SetRawTransformation(float t00, float t10, float t01, float t11, float x, float y);
+
+        void SetTransformation(float x, float y, float angle, float sx, float sy, float ox,
+                               float oy, float kx, float ky);
 
         void Translate(float x, float y);
 
-        void Rotate(float r);
+        void Rotate(float rotation);
 
         void Scale(float sx, float sy);
 
@@ -52,130 +75,9 @@ namespace love
 
         Matrix4 Inverse() const;
 
-        void SetRawTransformation(float t00, float t10, float t01, float t11, float x, float y);
-
-        void SetTransformation(float x, float y, float angle, float sx, float sy, float ox,
-                               float oy, float kx, float ky);
-
-        void Translation(float x, float y);
-
-        void SetRotation(float r);
-
-        void SetScale(float x, float y);
-
-        void SetShear(float kx, float ky);
-
-        void GetApproximateScale(float& sx, float& sy) const;
-
-        Matrix4 operator*(const Matrix4& m) const;
-
-        void operator*=(const Matrix4& m);
-
         static Matrix4 Ortho(float left, float right, float bottom, float top, float near,
                              float far);
 
-        static void Multiply(const Matrix4& a, const Matrix4& b, Matrix4& result);
-
-        float Get(const unsigned row, const unsigned column) const
-        {
-            return this->matrix.m[row * 4 + (3 - column)];
-        }
-
-        void Set(const unsigned row, const unsigned column, const float value)
-        {
-            this->matrix.m[row * 4 + (3 - column)] = value;
-        }
-
-        void TransformXY(const C3D_Mtx& elements);
-
-        void TransformXY();
-
-        /**
-         * Transforms an array of 2-component vertices by this Matrix. The source
-         * and destination arrays may be the same.
-         **/
-        template<typename Vdst, typename Vsrc>
-        void TransformXY(Vdst* dst, const Vsrc* src, int size) const;
-
-        template<typename Vdst, typename Vsrc>
-        void TransformXYVert(Vdst* dst, const Vsrc* src, int size) const
-        {
-            for (int i = 0; i < size; i++)
-            {
-                // Store in temp variables in case src = dst
-                float x = (this->matrix.r[0].x * src[i].position[0]) +
-                          (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[0].w);
-
-                float y = (this->matrix.r[1].x * src[i].position[0]) +
-                          (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
-
-                dst[i].x = x;
-                dst[i].y = y;
-            }
-        }
-
-        template<typename Vdst, typename Vsrc>
-        void TransformXYVertPure(Vdst* dst, const Vsrc* src, int size) const
-        {
-            for (int i = 0; i < size; i++)
-            {
-                // Store in temp variables in case src = dst
-                float x = (this->matrix.r[0].x * src[i].position[0]) +
-                          (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[0].w);
-
-                float y = (this->matrix.r[1].x * src[i].position[0]) +
-                          (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
-
-                dst[i].position[0] = x;
-                dst[i].position[1] = y;
-            }
-        }
-        /**
-         * Transforms an array of 2-component vertices by this Matrix, and stores
-         * them in an array of 3-component vertices.
-         **/
-        template<typename Vdst, typename Vsrc>
-        void TransformXY0(Vdst* dst, const Vsrc* src, int size) const;
-
-        void TransformXY(Vector2* dst, const vertex::Vertex* src, int size) const;
-
-      private:
-        static void Multiply(const Matrix4& a, const Matrix4& b, C3D_Mtx& c);
-
-        C3D_Mtx matrix;
+        static Matrix4 Perspective(float verticalfov, float aspect, float near, float far);
     };
-
-    template<typename Vdst, typename Vsrc>
-    void Matrix4<Console::CTR>::TransformXY(Vdst* dst, const Vsrc* src, int size) const
-    {
-        for (int i = 0; i < size; i++)
-        {
-            // Store in temp variables in case src = dst
-
-            // clang-format off
-            float x = (this->matrix.r[0].x * src[i].x) + (this->matrix.r[0].y * src[i].y) + (0) + (this->matrix.r[0].w);
-            float y = (this->matrix.r[1].x * src[i].x) + (this->matrix.r[1].y * src[i].y) + (0) + (this->matrix.r[1].w);
-            // clang-format on
-
-            dst[i].x = x;
-            dst[i].y = y;
-        }
-    }
-
-    inline void Matrix4<Console::CTR>::TransformXY(Vector2* dst, const vertex::Vertex* src,
-                                                   int size) const
-    {
-        for (int i = 0; i < size; i++)
-        {
-            // Store in temp variables in case src = dst
-
-            // clang-format off
-            float x = (this->matrix.r[0].x * src[i].position[0]) + (this->matrix.r[0].y * src[i].position[1]) + (0) + (this->matrix.r[0].w);
-            float y = (this->matrix.r[1].x * src[i].position[0]) + (this->matrix.r[1].y * src[i].position[1]) + (0) + (this->matrix.r[1].w);
-            //clang-format on
-
-            dst[i].x = x;
-            dst[i].y = y;
-        }
-    }
 } // namespace love

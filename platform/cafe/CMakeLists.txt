@@ -3,15 +3,15 @@ dkp_add_asset_target(${PROJECT_NAME}_cafe_content content)
 
 dkp_track_assets(${PROJECT_NAME}_cafe_content
     FOLDER shaders
-    FILES 
-        color.gsh 
+    FILES
+        color.gsh
         texture.gsh
 )
 
 dkp_track_assets(${PROJECT_NAME}_cafe_content
     FOLDER nogame
-    FILES 
-        cartridge.png 
+    FILES
+        cartridge.png
         nogame.png
 )
 
@@ -21,7 +21,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
-    source/common/matrix_ext.cpp
     source/common/screen_ext.cpp
     source/modules/fontmodule_ext.cpp
     source/modules/graphics_ext.cpp

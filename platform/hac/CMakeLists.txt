@@ -11,9 +11,9 @@ nx_add_shader_program(video_fsh     "shaders/video_fsh.glsl"     "frag")
 dkp_install_assets (${PROJECT_NAME}_hac_romfs
     DESTINATION "shaders"
     TARGETS
-        transform_vsh 
-        color_fsh 
-        texture_fsh 
+        transform_vsh
+        color_fsh
+        texture_fsh
         video_fsh
 )
 
@@ -30,7 +30,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
-    source/common/matrix_ext.cpp
     source/common/screen_ext.cpp
     source/modules/fontmodule_ext.cpp
     source/modules/graphics_ext.cpp
