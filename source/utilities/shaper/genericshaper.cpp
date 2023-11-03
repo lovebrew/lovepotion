@@ -14,7 +14,7 @@ void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, R
                                           std::vector<GlyphPosition>* positions,
                                           std::vector<IndexedColor>* colors, TextInfo* info)
 {
-    if (!range.isValid())
+    if (!range.isValid() && !codepoints.cps.empty())
         range = Range(0, codepoints.cps.size());
 
     if (this->rasterizers[0]->GetDataType() == Rasterizer::DATA_TRUETYPE)
@@ -61,6 +61,7 @@ void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, R
             if (currentPosition.x > maxWidth)
                 maxWidth = currentPosition.x;
 
+            /* wrap the newline, don't output a position for it */
             currentPosition.y += std::floor(this->GetHeight() + this->GetLineHeight() + 0.5f);
             currentPosition.x = offset.x;
             previousGlyph     = 0;
@@ -88,7 +89,7 @@ void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, R
 
         if (positions)
         {
-            Vector2 position { currentPosition.x, currentPosition.y };
+            Vector2 position(currentPosition.x, currentPosition.y);
             positions->push_back({ position, glyphIndex });
         }
 
@@ -140,6 +141,7 @@ int GenericShaper::ComputeWordWrapIndex(const ColoredCodepoints& codepoints, Ran
         int advance    = this->GetGlyphAdvance(glyph);
         float newWidth = currentWidth + this->GetKerning(previousGlyph, glyph) + advance;
 
+        /* don't count trailing spaces */
         if (this->IsWhitespace(glyph))
         {
             if (!this->IsWhitespace(previousGlyph))
@@ -150,8 +152,10 @@ int GenericShaper::ComputeWordWrapIndex(const ColoredCodepoints& codepoints, Ran
             if (this->IsWhitespace(previousGlyph))
                 firstIndexAfterSpace = index;
 
+            /* only wrap at non-space character */
             if (newWidth > wrapLimit)
             {
+                /* if this is the first char, wrap the next one instead of current */
                 int wrapIndex = index > (int)range.first ? index : (int)range.first + 1;
 
                 if (firstIndexAfterSpace != -1)
@@ -176,5 +180,6 @@ int GenericShaper::ComputeWordWrapIndex(const ColoredCodepoints& codepoints, Ran
     if (width)
         *width = outWidth;
 
+    /* no wrap in the middle of the range */
     return range.last + 1;
 }

@@ -394,12 +394,13 @@ namespace love
 
         void SetFont(Font* font)
         {
-            this->states.back().font = font;
+            this->states.back().font.Set(font);
         }
 
         Font* GetFont()
         {
-            return this->states.back().font;
+            this->CheckSetDefaultFont();
+            return this->states.back().font.Get();
         }
 
         SpriteBatch* NewSpriteBatch(Texture<Console::Which>* texture, int size) const
@@ -884,13 +885,18 @@ namespace love
             this->SetColor(state.foreground);
             this->SetBackgroundColor(state.background);
 
-            /* todo: set blend state */
+            this->SetBlendState(state.blendState);
 
             this->SetLineWidth(state.line.width);
             this->SetLineStyle(state.line.style);
             this->SetLineJoin(state.line.join);
 
             this->SetPointSize(state.pointSize);
+
+            if (state.scissor.active)
+                this->SetScissor(state.scissor.bounds);
+            else
+                this->SetScissor();
 
             this->SetMeshCullMode(state.cullMode);
             this->SetFrontFaceWinding(state.windingMode);
@@ -926,7 +932,8 @@ namespace love
 
             this->SetBackgroundColor(state.background);
 
-            /* todo set blend state */
+            if (!(state.blendState == current.blendState))
+                this->SetBlendState(state.blendState);
 
             this->SetLineWidth(state.line.width);
             this->SetLineStyle(state.line.style);
@@ -934,6 +941,17 @@ namespace love
 
             if (state.pointSize != current.pointSize)
                 this->SetPointSize(state.pointSize);
+
+            bool scissorActive     = state.scissor.active != current.scissor.active;
+            bool sameScissorBounds = state.scissor.bounds == current.scissor.bounds;
+
+            if (scissorActive || (state.scissor.active && !sameScissorBounds))
+            {
+                if (state.scissor.active)
+                    this->SetScissor(state.scissor.bounds);
+                else
+                    this->SetScissor();
+            }
 
             this->SetMeshCullMode(state.cullMode);
 

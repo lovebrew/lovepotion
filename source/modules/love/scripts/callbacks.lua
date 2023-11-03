@@ -23,10 +23,15 @@ freely, subject to the following restrictions:
 --]]
 
 local love          = require("love")
+
 local is_debug, log = pcall(require, "love.log")
-local file          = nil
+local function TRACE(format, ...) end
+
 if is_debug then
-    file = log.new("callbacks.log")
+    local file = log.new("callbacks.log")
+    TRACE = function(format, ...)
+        file:trace(format, ...)
+    end
 end
 
 function love.createhandlers()
@@ -302,18 +307,14 @@ local utf8 = require("utf8")
 
 local function error_printer(msg, layer)
     local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
-    print(trace)
-
-    if file then
-        file:echo(trace)
-    end
+    TRACE(trace)
 end
 
 function love.errhand(msg)
     msg = tostring(msg)
 
     error_printer(msg, 2)
-    
+
     if not love.window or not love.graphics or not love.event then
         return
     end

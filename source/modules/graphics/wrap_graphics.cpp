@@ -1781,7 +1781,9 @@ int Wrap_Graphics::SetColorMask(lua_State* L)
 {
     RenderState::ColorMask mask;
 
-    if (lua_gettop(L) <= 1)
+    if (lua_isnoneornil(L, 1))
+        mask.r = mask.g = mask.b = mask.a = true;
+    else if (lua_gettop(L) <= 1)
         mask.r = mask.g = mask.b = mask.a = luax::CheckBoolean(L, 1);
     else
     {

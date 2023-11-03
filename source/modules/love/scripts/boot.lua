@@ -31,15 +31,28 @@ require("love.arg")
 require("love.callbacks")
 
 local is_debug, log = pcall(require, "love.log")
-local file          = nil
+local function TRACE(format, ...) end
+
 if is_debug then
-    file = log.new("boot.log")
+    local file = log.new("boot.log")
+    TRACE = function(format, ...)
+        file:trace(format, ...)
+    end
 end
 
 local function uridecode(s)
     return s:gsub("%%%x%x", function(str)
         return string.char(tonumber(str:sub(2), 16))
     end)
+end
+
+local function https_setup_certs()
+    local https = require("https")
+
+    if love._os == "Cafe" then
+        return https.setCertificateFile("/sdcard/config/ssl/cacert.pem")
+    end
+    https.setCertificateFile("sdmc/config/ssl/cacert.pem")
 end
 
 local no_game_code = false
@@ -144,6 +157,8 @@ function love.boot()
     if can_has_game and not (has_main_file or (not custom_main_file and has_conf_file)) then
         no_game_code = true
     end
+
+    https_setup_certs()
 
     if not can_has_game then
         invalid_game_path = false
@@ -428,11 +443,7 @@ local print, debug, tostring = print, debug, tostring
 
 local function error_printer(msg, layer)
     local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
-    print(trace)
-
-    if file then
-        file:echo(trace)
-    end
+    TRACE(trace)
 end
 
 -----------------------------------------------------------

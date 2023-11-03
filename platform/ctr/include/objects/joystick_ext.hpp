@@ -88,7 +88,11 @@ namespace love
             return false;
         }
 
-        void GetVibration(float& left, float& right) {};
+        void GetVibration(float& left, float& right)
+        {
+            left  = 0;
+            right = 0;
+        };
 
         bool HasSensor(Sensor::SensorType type) const;
 

@@ -30,7 +30,7 @@ Renderer<Console::CTR>::Renderer() : targets {}, currentTexture(nullptr)
     AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
 
     BufInfo_Init(&this->bufferInfo);
-    m_vertices = (Vertex*)linearAlloc(VERTEX_BUFFER_SIZE * VERTEX_SIZE);
+    m_vertices = (Vertex*)linearAlloc(TOTAL_BUFFER_SIZE);
 
     if (!m_vertices)
         throw love::Exception("Out of memory.");
@@ -130,9 +130,6 @@ void Renderer<Console::CTR>::FlushVertices()
 {
     for (const auto& command : m_commands)
     {
-        if (command.count + m_vertexOffset > MAX_OBJECTS)
-            m_vertexOffset = 0;
-
         std::memcpy(m_vertices + m_vertexOffset, command.Vertices().get(), command.size);
 
         if (m_format != command.format)
@@ -164,6 +161,12 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
 
         C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &this->context.projection);
         C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
+    }
+
+    if ((command.count + m_vertexOffset) * VERTEX_SIZE > TOTAL_BUFFER_SIZE)
+    {
+        FlushVertices();
+        m_vertexOffset = 0;
     }
 
     // check if texture is the same, or no texture at all
