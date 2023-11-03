@@ -1,7 +1,6 @@
 #include <common/luax.hpp>
 #include <common/version.hpp>
 
-#include <common/HTTPSCommon.h>
 #include <luasocket.hpp>
 
 #include <modules/love/love.hpp>
@@ -31,6 +30,8 @@ static constexpr char logfile_lua[] = {
 static constexpr char nestlink_lua[] = {
 #include "scripts/nestlink.lua"
 };
+
+#include <modules/graphics/graphics.tcc>
 
 #include <modules/audio/wrap_audio.hpp>
 #include <modules/data/wrap_data.hpp>
@@ -85,9 +86,34 @@ static constexpr luaL_Reg modules[] =
 // clang-format on
 
 #include <modules/system_ext.hpp>
+#include <utilities/log/logfile.hpp>
+
+static void addCompatibilityAlias(lua_State* L, const char* module, const char* name,
+                                  const char* alias)
+{
+    lua_getglobal(L, module);
+
+    if (lua_istable(L, -1))
+    {
+        lua_getfield(L, -1, alias);
+        bool hasAlias = !lua_isnoneornil(L, -1);
+        lua_pop(L, 1);
+
+        if (!hasAlias)
+        {
+            lua_getfield(L, -1, name);
+            lua_setfield(L, -2, alias);
+        }
+    }
+
+    lua_pop(L, 1);
+}
 
 int love::Initialize(lua_State* L)
 {
+    for (size_t i = 0; modules[i].name != nullptr; i++)
+        luax::Preload(L, modules[i].func, modules[i].name);
+
     luax::InsistPinnedThread(L);
     luax::InsistGlobal(L, "love");
 
@@ -130,22 +156,48 @@ int love::Initialize(lua_State* L)
     lua_pushnumber(L, LOVE_POTION.micro);
     lua_setfield(L, -2, "_potion_version_revision");
 
-    lua_pushcfunction(L, GetVersion);
+    lua_newtable(L);
+    for (int index = 0; love::COMPATIBILITY[index] != nullptr; index++)
+    {
+        lua_pushstring(L, love::COMPATIBILITY[index]);
+        lua_rawseti(L, -2, index + 1);
+    }
+    lua_setfield(L, -2, "_version_compat");
+
+    lua_pushcfunction(L, love::GetVersion);
     lua_setfield(L, -2, "getVersion");
 
-    lua_pushcfunction(L, IsVersionCompatible);
+    lua_pushcfunction(L, love::IsVersionCompatible);
     lua_setfield(L, -2, "isVersionCompatible");
 
-    for (size_t i = 0; modules[i].name != nullptr; i++)
-        luax::Preload(L, modules[i].func, modules[i].name);
+    lua_pushstring(L, System<Console::Which>::GetOS());
+    lua_setfield(L, -2, "_os");
+
+    lua_pushstring(L, __CONSOLE__);
+    lua_setfield(L, -2, "_console");
 
     luax::Require(L, "love.data");
     lua_pop(L, 1);
+
+#if LUA_VERSION_NUM <= 501
+    addCompatibilityAlias(L, "math", "fmod", "mod");
+    addCompatibilityAlias(L, "string", "gmatch", "gfind");
+#endif
 
     love::luasocket::preload(L);
 
     luax::Preload(L, luaopen_luautf8, "utf8");
     luax::Preload(L, luaopen_https, "https");
+
+    {
+        lua_atpanic(L, [](lua_State* L) -> int {
+            auto location       = std::source_location::current();
+            const auto* message = "PANIC: unprotected error in call to Lua API (%s)\n";
+            Log::Instance(true).Write(location, message, lua_tostring(L, -1));
+
+            return 0;
+        });
+    }
 
     return 1;
 }
@@ -158,6 +210,13 @@ int love::GetVersion(lua_State* L)
     lua_pushstring(L, CODENAME);
 
     return 4;
+}
+
+int love::SetGammaCorrect(lua_State* L)
+{
+    love::Graphics<>::SetGammaCorrect((bool)lua_toboolean(L, 1));
+
+    return 0;
 }
 
 int love::IsVersionCompatible(lua_State* L)
