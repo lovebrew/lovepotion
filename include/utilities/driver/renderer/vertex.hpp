@@ -82,7 +82,7 @@ namespace love
 
         struct Vertex
         {
-            std::array<float, 3> position;
+            Vector3 position;
             std::array<float, 4> color;
             std::array<float, 2> texcoord;
         };

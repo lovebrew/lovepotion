@@ -17,6 +17,6 @@ namespace love
         {}
 
         virtual void Draw(Graphics<Console::Which>& graphics,
-                          const Matrix4<Console::Which>& matrix) = 0;
+                          const Matrix4& matrix) = 0;
     };
 } // namespace love

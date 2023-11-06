@@ -100,13 +100,13 @@ Texture<Console::HAC>* Graphics<Console::HAC>::NewTexture(const Texture<>::Setti
     return new Texture<Console::HAC>(this, settings, slices);
 }
 
-void Graphics<Console::HAC>::Draw(Drawable* drawable, const Matrix4<Console::HAC>& matrix)
+void Graphics<Console::HAC>::Draw(Drawable* drawable, const Matrix4& matrix)
 {
     drawable->Draw(*this, matrix);
 }
 
 void Graphics<Console::HAC>::Draw(Texture<Console::HAC>* texture, Quad* quad,
-                                  const Matrix4<Console::HAC>& matrix)
+                                  const Matrix4& matrix)
 {
     texture->Draw(*this, quad, matrix);
 }

@@ -2,7 +2,7 @@
 
 #include <utilities/driver/renderer_ext.hpp>
 
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>

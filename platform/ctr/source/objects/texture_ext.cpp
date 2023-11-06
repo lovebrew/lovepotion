@@ -271,7 +271,7 @@ void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int sli
 }
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
-                                 const Matrix4<Console::CTR>& matrix)
+                                 const Matrix4& matrix)
 {
     this->Draw(graphics, this->quad, matrix);
 }
@@ -315,7 +315,7 @@ static void refreshQuad(StrongReference<Quad> quad, const Quad::Viewport& viewpo
 }
 
 void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
-                                 const Matrix4<Console::CTR>& matrix)
+                                 const Matrix4& matrix)
 {
     if (!this->readable)
         throw love::Exception("Textures with non-readable formats cannot be drawn.");
@@ -333,15 +333,14 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
     const auto& transform = graphics.GetTransform();
     bool is2D             = transform.IsAffine2DTransform();
 
-    Matrix4<Console::CTR> translated(graphics.GetTransform(), matrix);
+    Matrix4 translated(graphics.GetTransform(), matrix);
 
     DrawCommand<Console::CTR> command(0x04, vertex::PRIMITIVE_TRIANGLE_FAN);
     command.handles = { this->texture };
     command.format  = CommonFormat::TEXTURE;
 
     if (is2D)
-        translated.TransformXY(command.Positions().get(), quad->GetVertexPositions(),
-                               command.count);
+        translated.TransformXY(std::span(command.Positions().get(), command.count), std::span(quad->GetVertexPositions(), command.count));
 
     const auto* coords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), coords);

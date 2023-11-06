@@ -42,30 +42,22 @@ namespace love
         Vector2(const Vector2& v) : x(v.x), y(v.y)
         {}
 
-        float& operator[](int index)
+        float& operator[](size_t i)
         {
-            switch (index)
+            if (i == 0)
             {
-                case 0:
-                    return x;
-                case 1:
-                    return y;
-                default:
-                    std::unreachable();
+                return x;
             }
+            return y;
         }
 
-        const float& operator[](int index) const
+        const float& operator[](size_t i) const
         {
-            switch (index)
+            if (i == 0)
             {
-                case 0:
-                    return x;
-                case 1:
-                    return y;
-                default:
-                    std::unreachable();
+                return x;
             }
+            return y;
         }
 
         float getLength() const;
@@ -125,6 +117,32 @@ namespace love
         Vector3(const Vector2& v, float z = 0.0f) : x(v.x), y(v.y), z(z)
         {}
 
+        float& operator[](size_t i)
+        {
+            if (i == 0)
+            {
+                return x;
+            }
+            else if (i == 1)
+            {
+                return y;
+            }
+            return z;
+        }
+
+        const float& operator[](size_t i) const
+        {
+            if (i == 0)
+            {
+                return x;
+            }
+            else if (i == 1)
+            {
+                return y;
+            }
+            return z;
+        }
+
         bool isZero() const
         {
             return this->x == 0.0f && this->y == 0.0f && this->z == 0.0f;
@@ -177,6 +195,40 @@ namespace love
 
         Vector4(const Vector3& v, float w = 0.0f) : x(v.x), y(v.y), z(v.z), w(w)
         {}
+
+        float& operator[](size_t i)
+        {
+            if (i == 0)
+            {
+                return x;
+            }
+            else if (i == 1)
+            {
+                return y;
+            }
+            else if (i == 2)
+            {
+                return z;
+            }
+            return w;
+        }
+
+        const float& operator[](size_t i) const
+        {
+            if (i == 0)
+            {
+                return x;
+            }
+            else if (i == 1)
+            {
+                return y;
+            }
+            else if (i == 2)
+            {
+                return z;
+            }
+            return w;
+        }
 
         float getLength() const;
         float getLengthSquare() const;

@@ -2,15 +2,14 @@
 
 #include "console.hpp"
 #include "math.hpp"
+#include "utilities/driver/renderer/vertex.hpp"
+#include "vector.hpp"
 
 #include <cstring>
+#include <ranges>
+#include <utility>
 
-#if defined(__3DS__)
-    #include <citro3d.h>
-using Elements = C3D_Mtx;
-#else
 using Elements = float[0x10];
-#endif
 
 #if defined(__SWITCH__)
     #include <arm_neon.h>
@@ -20,10 +19,38 @@ using Elements = float[0x10];
 
 namespace love
 {
-    template<Console::Platform T = Console::ALL>
+    template<typename R, typename T>
+    concept ValidTransformRange =
+        std::ranges::random_access_range<R> &&
+        (std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<R>>,
+                        std::remove_cvref_t<T>> ||
+         (std::is_same_v<std::remove_cvref_t<T>, Vector3> &&
+          std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<R>>, vertex::Vertex>));
+
+    template<typename R>
+    concept Vector3TransformRange = ValidTransformRange<R, Vector3>;
+    template<typename R>
+    concept Vector2TransformRange = ValidTransformRange<R, Vector2>;
+    template<typename R>
+    concept VectorAtLeast2TransformRange =
+        ValidTransformRange<R, Vector2> || ValidTransformRange<R, Vector3>;
+
     class Matrix4
     {
       protected:
+        template<VectorAtLeast2TransformRange R>
+        static auto DeVertexize(R&& r) -> decltype(auto)
+        {
+            if constexpr (std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<R>>,
+                                         vertex::Vertex>)
+            {
+                return r | std::views::transform([](auto&& e) -> auto& { return e.position; });
+            }
+            else
+            {
+                return std::forward<decltype(r)>(r);
+            }
+        }
         static void Multiply(const Matrix4& a, const Matrix4& b, Elements t)
         {
 #if defined(__SWITCH__)
@@ -57,41 +84,41 @@ namespace love
             vst1q_f32(&t[8], col3);
             vst1q_f32(&t[12], col4);
 #else
-            matrix[0] = (a.matrix[0] * b.matrix[0]) + (a.matrix[4] * b.matrix[1]) +
-                        (a.matrix[8] * b.matrix[2]) + (a.matrix[12] * b.matrix[3]);
-            matrix[4] = (a.matrix[0] * b.matrix[4]) + (a.matrix[4] * b.matrix[5]) +
-                        (a.matrix[8] * b.matrix[6]) + (a.matrix[12] * b.matrix[7]);
-            matrix[8] = (a.matrix[0] * b.matrix[8]) + (a.matrix[4] * b.matrix[9]) +
-                        (a.matrix[8] * b.matrix[10]) + (a.matrix[12] * b.matrix[11]);
-            matrix[12] = (a.matrix[0] * b.matrix[12]) + (a.matrix[4] * b.matrix[13]) +
-                         (a.matrix[8] * b.matrix[14]) + (a.matrix[12] * b.matrix[15]);
+            t[0] = (a.matrix[0] * b.matrix[0]) + (a.matrix[4] * b.matrix[1]) +
+                   (a.matrix[8] * b.matrix[2]) + (a.matrix[12] * b.matrix[3]);
+            t[4] = (a.matrix[0] * b.matrix[4]) + (a.matrix[4] * b.matrix[5]) +
+                   (a.matrix[8] * b.matrix[6]) + (a.matrix[12] * b.matrix[7]);
+            t[8] = (a.matrix[0] * b.matrix[8]) + (a.matrix[4] * b.matrix[9]) +
+                   (a.matrix[8] * b.matrix[10]) + (a.matrix[12] * b.matrix[11]);
+            t[12] = (a.matrix[0] * b.matrix[12]) + (a.matrix[4] * b.matrix[13]) +
+                    (a.matrix[8] * b.matrix[14]) + (a.matrix[12] * b.matrix[15]);
 
-            matrix[1] = (a.matrix[1] * b.matrix[0]) + (a.matrix[5] * b.matrix[1]) +
-                        (a.matrix[9] * b.matrix[2]) + (a.matrix[13] * b.matrix[3]);
-            matrix[5] = (a.matrix[1] * b.matrix[4]) + (a.matrix[5] * b.matrix[5]) +
-                        (a.matrix[9] * b.matrix[6]) + (a.matrix[13] * b.matrix[7]);
-            matrix[9] = (a.matrix[1] * b.matrix[8]) + (a.matrix[5] * b.matrix[9]) +
-                        (a.matrix[9] * b.matrix[10]) + (a.matrix[13] * b.matrix[11]);
-            matrix[13] = (a.matrix[1] * b.matrix[12]) + (a.matrix[5] * b.matrix[13]) +
-                         (a.matrix[9] * b.matrix[14]) + (a.matrix[13] * b.matrix[15]);
+            t[1] = (a.matrix[1] * b.matrix[0]) + (a.matrix[5] * b.matrix[1]) +
+                   (a.matrix[9] * b.matrix[2]) + (a.matrix[13] * b.matrix[3]);
+            t[5] = (a.matrix[1] * b.matrix[4]) + (a.matrix[5] * b.matrix[5]) +
+                   (a.matrix[9] * b.matrix[6]) + (a.matrix[13] * b.matrix[7]);
+            t[9] = (a.matrix[1] * b.matrix[8]) + (a.matrix[5] * b.matrix[9]) +
+                   (a.matrix[9] * b.matrix[10]) + (a.matrix[13] * b.matrix[11]);
+            t[13] = (a.matrix[1] * b.matrix[12]) + (a.matrix[5] * b.matrix[13]) +
+                    (a.matrix[9] * b.matrix[14]) + (a.matrix[13] * b.matrix[15]);
 
-            matrix[2] = (a.matrix[2] * b.matrix[0]) + (a.matrix[6] * b.matrix[1]) +
-                        (a.matrix[10] * b.matrix[2]) + (a.matrix[14] * b.matrix[3]);
-            matrix[6] = (a.matrix[2] * b.matrix[4]) + (a.matrix[6] * b.matrix[5]) +
-                        (a.matrix[10] * b.matrix[6]) + (a.matrix[14] * b.matrix[7]);
-            matrix[10] = (a.matrix[2] * b.matrix[8]) + (a.matrix[6] * b.matrix[9]) +
-                         (a.matrix[10] * b.matrix[10]) + (a.matrix[14] * b.matrix[11]);
-            matrix[14] = (a.matrix[2] * b.matrix[12]) + (a.matrix[6] * b.matrix[13]) +
-                         (a.matrix[10] * b.matrix[14]) + (a.matrix[14] * b.matrix[15]);
+            t[2] = (a.matrix[2] * b.matrix[0]) + (a.matrix[6] * b.matrix[1]) +
+                   (a.matrix[10] * b.matrix[2]) + (a.matrix[14] * b.matrix[3]);
+            t[6] = (a.matrix[2] * b.matrix[4]) + (a.matrix[6] * b.matrix[5]) +
+                   (a.matrix[10] * b.matrix[6]) + (a.matrix[14] * b.matrix[7]);
+            t[10] = (a.matrix[2] * b.matrix[8]) + (a.matrix[6] * b.matrix[9]) +
+                    (a.matrix[10] * b.matrix[10]) + (a.matrix[14] * b.matrix[11]);
+            t[14] = (a.matrix[2] * b.matrix[12]) + (a.matrix[6] * b.matrix[13]) +
+                    (a.matrix[10] * b.matrix[14]) + (a.matrix[14] * b.matrix[15]);
 
-            matrix[3] = (a.matrix[3] * b.matrix[0]) + (a.matrix[7] * b.matrix[1]) +
-                        (a.matrix[11] * b.matrix[2]) + (a.matrix[15] * b.matrix[3]);
-            matrix[7] = (a.matrix[3] * b.matrix[4]) + (a.matrix[7] * b.matrix[5]) +
-                        (a.matrix[11] * b.matrix[6]) + (a.matrix[15] * b.matrix[7]);
-            matrix[11] = (a.matrix[3] * b.matrix[8]) + (a.matrix[7] * b.matrix[9]) +
-                         (a.matrix[11] * b.matrix[10]) + (a.matrix[15] * b.matrix[11]);
-            matrix[15] = (a.matrix[3] * b.matrix[12]) + (a.matrix[7] * b.matrix[13]) +
-                         (a.matrix[11] * b.matrix[14]) + (a.matrix[15] * b.matrix[15]);
+            t[3] = (a.matrix[3] * b.matrix[0]) + (a.matrix[7] * b.matrix[1]) +
+                   (a.matrix[11] * b.matrix[2]) + (a.matrix[15] * b.matrix[3]);
+            t[7] = (a.matrix[3] * b.matrix[4]) + (a.matrix[7] * b.matrix[5]) +
+                   (a.matrix[11] * b.matrix[6]) + (a.matrix[15] * b.matrix[7]);
+            t[11] = (a.matrix[3] * b.matrix[8]) + (a.matrix[7] * b.matrix[9]) +
+                    (a.matrix[11] * b.matrix[10]) + (a.matrix[15] * b.matrix[11]);
+            t[15] = (a.matrix[3] * b.matrix[12]) + (a.matrix[7] * b.matrix[13]) +
+                    (a.matrix[11] * b.matrix[14]) + (a.matrix[15] * b.matrix[15]);
 #endif
         }
 
@@ -108,8 +135,7 @@ namespace love
 
         Matrix4(float t00, float t10, float t01, float t11, float x, float y)
         {
-            this->SetRawTransformation(float t00, float t10, float t01, float t11, float x,
-                                       float y);
+            this->SetRawTransformation(t00, t10, t01, t11, x, y);
         }
 
         Matrix4(const Elements elements)
@@ -119,14 +145,13 @@ namespace love
 
         Matrix4(const Matrix4& a, const Matrix4& b)
         {
-            this->Multiply(a, b);
+            this->Multiply(a, b, this->matrix);
         }
 
         Matrix4(float x, float y, float angle, float sx, float sy, float ox, float oy, float kx,
                 float ky)
         {
-            this->SetTransformation(float x, float y, float angle, float sx, float sy, float ox,
-                                    float oy, float kx, float ky);
+            this->SetTransformation(x, y, angle, sx, sy, ox, oy, kx, ky);
         }
 
         Matrix4 operator*(const Matrix4& other) const
@@ -141,37 +166,37 @@ namespace love
             std::copy_n(elements, 16, this->matrix);
         }
 
-        const Elements* GetElements() const
+        const Elements& GetElements() const
         {
             return this->matrix;
         }
 
         void SetRow(int row, const Vector4& vector)
         {
-            this->matrix[0 * 4 + r] = v.x;
-            this->matrix[1 * 4 + r] = v.y;
-            this->matrix[2 * 4 + r] = v.z;
-            this->matrix[3 * 4 + r] = v.w;
+            this->matrix[0 * 4 + row] = vector.x;
+            this->matrix[1 * 4 + row] = vector.y;
+            this->matrix[2 * 4 + row] = vector.z;
+            this->matrix[3 * 4 + row] = vector.w;
         }
 
         Vector4 GetRow(int row)
         {
-            return Vector4(this->matrix[0 * 4 + r], this->matrix[1 * 4 + r],
-                           this->matrix[2 * 4 + r], this->matrix[3 * 4 + r]);
+            return Vector4(this->matrix[0 * 4 + row], this->matrix[1 * 4 + row],
+                           this->matrix[2 * 4 + row], this->matrix[3 * 4 + row]);
         }
 
         void SetColumn(int column, const Vector4& vector)
         {
-            this->matrix[c * 4 + 0] = v.x;
-            this->matrix[c * 4 + 1] = v.y;
-            this->matrix[c * 4 + 2] = v.z;
-            this->matrix[c * 4 + 3] = v.w;
+            this->matrix[column * 4 + 0] = vector.x;
+            this->matrix[column * 4 + 1] = vector.y;
+            this->matrix[column * 4 + 2] = vector.z;
+            this->matrix[column * 4 + 3] = vector.w;
         }
 
         Vector4 GetColumn(int column)
         {
-            return Vector4(this->matrix[c * 4 + 0], this->matrix[c * 4 + 1],
-                           this->matrix[c * 4 + 2], this->matrix[c * 4 + 3]);
+            return Vector4(this->matrix[column * 4 + 0], this->matrix[column * 4 + 1],
+                           this->matrix[column * 4 + 2], this->matrix[column * 4 + 3]);
         }
 
         void SetIdentity()
@@ -290,50 +315,71 @@ namespace love
 
         bool IsAffine3DTransform() const;
 
-        template<typename Vdst, typename Vsrc>
-        void TransformXY0(Vdst*, const Vsrc*, int size) const;
+        template<Vector3TransformRange Vdst, VectorAtLeast2TransformRange Vsrc>
+        void TransformXY0(Vdst&&, const Vsrc&&, int size) const;
 
-        template<typename Vdst, typename Vsrc>
+        template<VectorAtLeast2TransformRange Vdst, VectorAtLeast2TransformRange Vsrc>
         /* transform Vector2 src into Vector2 dst */
-        void TransformXY(std::span<Vdst> dst, std::span<const Vsrc> src, int size) const
+        void TransformXY(Vdst&& dst, Vsrc&& src) const
         {
-            static_assert(dst.size() == size, "Mismatching dst size");
-            static_assert(src.size() == size, "Mismatching src size");
-
-            for (int i = 0; i < size; i++)
+            if constexpr (std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<Vdst>>,
+                                         vertex::Vertex> ||
+                          std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<Vsrc>>,
+                                         vertex::Vertex>)
             {
-                float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) + (0) +
-                          (this->matrix[12]);
+                TransformXY(DeVertexize(dst), DeVertexize(src));
+                return;
+            }
+            else
+            {
+                // This might need to be an assert; jury's out
+                // static_assert(std::ranges::size(dst) == std::ranges::size(src));
 
-                float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) + (0) +
-                          (this->matrix[13]);
+                for (size_t i = 0; i < std::ranges::size(dst); i++)
+                {
+                    float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) + (0) +
+                              (this->matrix[12]);
 
-                dst[i].x = x;
-                dst[i].y = y;
+                    float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) + (0) +
+                              (this->matrix[13]);
+
+                    dst[i].x = x;
+                    dst[i].y = y;
+                }
             }
         }
 
-        template<typename Vdst, typename Vsrc>
+        template<Vector3TransformRange Vdst, Vector3TransformRange Vsrc>
         /* transform Vector3 src into Vector3 dst */
-        void TransformXYZ(std::span<Vdst> dst, std::span<const Vsrc> src, int size) const
+        void TransformXYZ(Vdst&& dst, Vsrc&& src) const
         {
-            static_assert(dst.size() == size, "Mismatching dst size");
-            static_assert(src.size() == size, "Mismatching src size");
-
-            for (int i = 0; i < size; i++)
+            if constexpr (std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<Vdst>>,
+                                         vertex::Vertex> ||
+                          std::is_same_v<std::remove_cvref_t<std::ranges::range_value_t<Vsrc>>,
+                                         vertex::Vertex>)
             {
-                float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) +
-                          (this->matrix[8] * src[i].z) + (this->matrix[12]);
+                TransformXYZ(DeVertexize(dst), DeVertexize(src));
+                return;
+            }
+            else
+            {
+                // static_assert(std::ranges::size(dst) == std::ranges::size(src));
 
-                float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) +
-                          (this->matrix[9] * src[i].z) + (this->matrix[13]);
+                for (size_t i = 0; i < std::ranges::size(dst); i++)
+                {
+                    float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) +
+                              (this->matrix[8] * src[i].z) + (this->matrix[12]);
 
-                float z = (this->matrix[2] * src[i].x) + (this->matrix[6] * src[i].y) +
-                          (this->matrix[10] * src[i].z) + (this->matrix[14]);
+                    float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) +
+                              (this->matrix[9] * src[i].z) + (this->matrix[13]);
 
-                dst[i].x = x;
-                dst[i].y = y;
-                dst[i].z = z;
+                    float z = (this->matrix[2] * src[i].x) + (this->matrix[6] * src[i].y) +
+                              (this->matrix[10] * src[i].z) + (this->matrix[14]);
+
+                    dst[i].x = x;
+                    dst[i].y = y;
+                    dst[i].z = z;
+                }
             }
         }
 

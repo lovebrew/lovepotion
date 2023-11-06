@@ -16,10 +16,10 @@ namespace love
         virtual ~Texture();
 
         virtual void Draw(Graphics<Console::HAC>& graphics,
-                          const Matrix4<Console::Which>& matrix) override;
+                          const Matrix4& matrix) override;
 
         virtual void Draw(Graphics<Console::HAC>& graphics, Quad* quad,
-                          const Matrix4<Console::Which>& transform) override;
+                          const Matrix4& transform) override;
 
         void ReplacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
                            bool reloadMipmaps);

@@ -17,6 +17,8 @@
 #include <algorithm>
 #include <stddef.h>
 
+#include <common/matrix.tcc>
+
 namespace love
 {
     using VectorMipmapLayers = std::vector<std::vector<StrongReference<ImageDataBase>>>;
@@ -510,11 +512,10 @@ namespace love
             return this->quad;
         }
 
-        virtual void Draw(Graphics<Console::Which>& graphics,
-                          const Matrix4<Console::Which>& transform) = 0;
+        virtual void Draw(Graphics<Console::Which>& graphics, const Matrix4& transform) = 0;
 
         virtual void Draw(Graphics<Console::Which>& graphics, Quad* quad,
-                          const Matrix4<Console::Which>& transform) = 0;
+                          const Matrix4& transform) = 0;
 
         // clang-format off
         static constexpr BidirectionalMap textureTypes = {

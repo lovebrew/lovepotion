@@ -69,10 +69,10 @@ namespace love
         bool GetDrawRange(int& start, int& count) const;
 
         void Draw(Graphics<Console::Which>& graphics,
-                  const Matrix4<Console::Which>& matrix) override;
+                  const Matrix4& matrix) override;
 
       private:
-        void DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& matrix,
+        void DrawInternal(Graphics<Console::Which>& graphics, const Matrix4& matrix,
                           int instanceCount, std::vector<vertex::Vertex>* indirectArgs,
                           int argsIndex);
 
