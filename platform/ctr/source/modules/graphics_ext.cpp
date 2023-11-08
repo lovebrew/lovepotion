@@ -40,13 +40,13 @@ void Graphics<Console::CTR>::SetShader(Shader<Console::CTR>* shader)
     this->states.back().shader.Set(shader);
 }
 
-void Graphics<Console::CTR>::Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix)
+void Graphics<Console::CTR>::Draw(Drawable* drawable, const Matrix4& matrix)
 {
     drawable->Draw(*this, matrix);
 }
 
 void Graphics<Console::CTR>::Draw(Texture<Console::CTR>* texture, Quad* quad,
-                                  const Matrix4<Console::CTR>& matrix)
+                                  const Matrix4& matrix)
 {
     texture->Draw(*this, quad, matrix);
 }

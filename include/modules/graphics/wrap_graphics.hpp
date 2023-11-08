@@ -2,7 +2,7 @@
 
 #include <common/luax.hpp>
 
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 #include <objects/transform/transform.hpp>
 
 namespace Wrap_Graphics
@@ -26,7 +26,7 @@ namespace Wrap_Graphics
             float oy = luaL_optnumber(L, index + 6, 0.0);
             float kx = luaL_optnumber(L, index + 7, 0.0);
             float ky = luaL_optnumber(L, index + 8, 0.0);
-            func(love::Matrix4<love::Console::Which>(x, y, a, sx, sy, ox, oy, kx, ky));
+            func(love::Matrix4(x, y, a, sx, sy, ox, oy, kx, ky));
         }
     }
 

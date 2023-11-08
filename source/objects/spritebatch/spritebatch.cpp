@@ -38,12 +38,12 @@ SpriteBatch::SpriteBatch(Texture<Console::Which>* texture, int size) :
 SpriteBatch::~SpriteBatch()
 {}
 
-int SpriteBatch::Add(const Matrix4<Console::Which>& matrix, int index)
+int SpriteBatch::Add(const Matrix4& matrix, int index)
 {
     return this->Add(this->texture->GetQuad(), matrix, index);
 }
 
-int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int index)
+int SpriteBatch::Add(Quad* quad, const Matrix4& matrix, int index)
 {
     /*  todo: layers */
 
@@ -90,7 +90,7 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
     };
     // clang-format on
 
-    matrix.TransformXYVertPure(vertices, textureVertices.data(), textureVertices.size());
+    matrix.TransformXY(std::span(vertices, textureVertices.size()), textureVertices);
 
     for (size_t index = 0; index < textureVertices.size(); index++)
     {
@@ -109,12 +109,12 @@ int SpriteBatch::Add(Quad* quad, const Matrix4<Console::Which>& matrix, int inde
     return index;
 }
 
-int SpriteBatch::AddLayer(int layer, const Matrix4<Console::Which>& matrix, int index)
+int SpriteBatch::AddLayer(int layer, const Matrix4& matrix, int index)
 {
     return this->AddLayer(layer, this->texture->GetQuad(), matrix, index);
 }
 
-int SpriteBatch::AddLayer(int layer, Quad* quad, const Matrix4<Console::Which>& matrix, int index)
+int SpriteBatch::AddLayer(int layer, Quad* quad, const Matrix4& matrix, int index)
 {
     if (index < -1 || index >= size)
         throw love::Exception("Invalid sprite index %d.", index);
@@ -222,7 +222,7 @@ bool SpriteBatch::GetDrawRange(int& start, int& count) const
     return true;
 }
 
-void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& matrix)
+void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix)
 {
     if (this->next == 0)
         return;
@@ -254,7 +254,8 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console
     command.handles = { this->texture };
 #endif
 
-    transform.TransformXYPure(command.vertices.get(), &this->buffer[start], command.count);
+    transform.TransformXYPure(std::span(command.vertices.get(), command.count),
+                              std::span(&this->buffer[start], command.count));
     for (size_t index = 0; index < command.count; index++)
     {
         command.vertices[index].texcoord = this->buffer[start * 0x06 + index].texcoord;

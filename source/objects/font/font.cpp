@@ -647,13 +647,13 @@ std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
     return drawCommands;
 }
 
-void Font::Printv(Graphics<>& graphics, const Matrix4<Console::Which>& transform,
+void Font::Printv(Graphics<>& graphics, const Matrix4& transform,
                   const std::vector<DrawCommand>& commands, const std::vector<Vertex>& vertices)
 {
     if (vertices.empty() || commands.empty())
         return;
 
-    Matrix4<Console::Which> matrix(graphics.GetTransform(), transform);
+    Matrix4 matrix(graphics.GetTransform(), transform);
 
     for (const auto& command : commands)
     {
@@ -668,15 +668,16 @@ void Font::Printv(Graphics<>& graphics, const Matrix4<Console::Which>& transform
 
         drawCommand.handles = { command.texture };
 
-        matrix.TransformXY(drawCommand.Positions().get(), &vertices[command.start], command.count);
+        matrix.TransformXY(std::span(drawCommand.Positions().get(), command.count),
+                           std::span(&vertices[command.start], command.count));
 
         drawCommand.FillVertices(&vertices[command.start]);
         Renderer<Console::Which>::Instance().Render(drawCommand);
     }
 }
 
-void Font::Print(Graphics<>& graphics, const ColoredStrings& text,
-                 const Matrix4<Console::Which>& matrix, const Color& color)
+void Font::Print(Graphics<>& graphics, const ColoredStrings& text, const Matrix4& matrix,
+                 const Color& color)
 {
     ColoredCodepoints codepoints {};
     love::GetCodepointsFromString(text, codepoints);
@@ -688,7 +689,7 @@ void Font::Print(Graphics<>& graphics, const ColoredStrings& text,
 }
 
 void Font::Printf(Graphics<>& graphics, const ColoredStrings& text, float wrap, AlignMode alignment,
-                  const Matrix4<Console::Which>& matrix, const Color& color)
+                  const Matrix4& matrix, const Color& color)
 {
     ColoredCodepoints codepoints {};
     love::GetCodepointsFromString(text, codepoints);

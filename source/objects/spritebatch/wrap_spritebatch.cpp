@@ -23,7 +23,7 @@ static inline int addOrSet(lua_State* L, SpriteBatch* self, int start, int index
     else if (lua_isnil(L, start) && !lua_isnoneornil(L, start + 1))
         return luax::TypeError(L, start, "Quad");
 
-    Wrap_Graphics::CheckStandardTransform(L, start, [&](const Matrix4<Console::Which>& matrix) {
+    Wrap_Graphics::CheckStandardTransform(L, start, [&](const Matrix4& matrix) {
         luax::CatchException(L, [&]() {
             if (quad)
                 index = self->Add(quad, matrix, index);

@@ -137,7 +137,6 @@ int Wrap_Transform::SetTransformation(lua_State* L)
     return 1;
 }
 
-/* todo */
 int Wrap_Transform::SetMatrix(lua_State* L)
 {
     auto* self = Wrap_Transform::CheckTransform(L, 1);
@@ -157,7 +156,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
         index++;
     }
 
-    auto& matrix = self->GetMatrix();
+    float elements[16] { 0.0f };
 
     if (lua_istable(L, index))
     {
@@ -177,7 +176,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                     for (int row = 0; row < 4; row++)
                     {
                         lua_rawgeti(L, -(row + 1), row + 1);
-                        matrix.Set(row, column, luaL_checknumber(L, -1));
+                        elements[column * 4 + row] = luaL_checknumber(L, -1);
                     }
 
                     lua_pop(L, 4 + 1);
@@ -192,7 +191,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                     for (int column = 0; column < 4; column++)
                     {
                         lua_rawgeti(L, -(column + 1), column + 1);
-                        matrix.Set(row, column, luaL_checknumber(L, -1));
+                        elements[column * 4 + row] = luaL_checknumber(L, -1);
                     }
 
                     lua_pop(L, 4 + 1);
@@ -208,7 +207,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                     for (int row = 0; row < 4; row++)
                     {
                         lua_rawgeti(L, index, column * 4 + row + 1);
-                        matrix.Set(row, column, luaL_checknumber(L, -1));
+                        elements[column * 4 + row] = luaL_checknumber(L, -1);
                     }
                 }
             }
@@ -219,7 +218,7 @@ int Wrap_Transform::SetMatrix(lua_State* L)
                     for (int row = 0; row < 4; row++)
                     {
                         lua_rawgeti(L, index, row * 4 + column + 1);
-                        matrix.Set(row, column, luaL_checknumber(L, -1));
+                        elements[column * 4 + row] = luaL_checknumber(L, -1);
                     }
                 }
             }
@@ -231,25 +230,20 @@ int Wrap_Transform::SetMatrix(lua_State* L)
     {
         if (columnMajor)
         {
-            for (int column = 0; column < 4; column++)
-            {
-                for (int row = 0; row < 4; row++)
-                    matrix.Set(row, column, luaL_checknumber(L, column * 4 + row + index));
-            }
+            for (int i = 0; i < 16; i++)
+                elements[i] = luaL_checknumber(L, index + i);
         }
         else
         {
             for (int column = 0; column < 4; column++)
             {
                 for (int row = 0; row < 4; row++)
-                    matrix.Set(row, column, luaL_checknumber(L, row * 4 + column + index));
+                    elements[column * 4 + row] = luaL_checknumber(L, row * 4 + column + index);
             }
         }
     }
 
-    if (columnMajor)
-        matrix.Transpose();
-
+    self->SetMatrix(Matrix4(elements));
     lua_pushvalue(L, 1);
 
     return 1;
@@ -258,12 +252,12 @@ int Wrap_Transform::SetMatrix(lua_State* L)
 int Wrap_Transform::GetMatrix(lua_State* L)
 {
     auto* self           = Wrap_Transform::CheckTransform(L, 1);
-    const auto& elements = self->GetMatrix();
+    const auto* elements = self->GetMatrix().GetElements();
 
     for (int row = 0; row < 4; row++)
     {
         for (int column = 0; column < 4; column++)
-            lua_pushnumber(L, elements.Get(row, column));
+            lua_pushnumber(L, elements[column * 4 + row]);
     }
 
     return 16;

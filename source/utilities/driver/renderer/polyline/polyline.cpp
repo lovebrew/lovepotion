@@ -48,7 +48,7 @@ void Polyline::render(const Vector2* coords, size_t count, size_t size_hint, flo
     Vector2 segment;
     if (!is_looping) // virtual starting point at second point mirrored on first point
         segment = coords[1] - coords[0];
-    else             // virtual starting point at last vertex
+    else // virtual starting point at last vertex
         segment = coords[0] - coords[count - 2];
 
     float segmentLength   = segment.getLength();
@@ -195,7 +195,8 @@ void Polyline::draw(Graphics<Console::ALL>* gfx)
         DrawCommand<Console::Which> command(totalVertices, mode);
 
         if (is2D)
-            t.TransformXY(command.Positions().get(), verts, totalVertices);
+            t.TransformXY(std::span(command.Positions().get(), totalVertices),
+                          std::span(verts, totalVertices));
 
         Color colordata[totalVertices] {};
 
