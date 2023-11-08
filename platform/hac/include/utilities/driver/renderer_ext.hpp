@@ -88,6 +88,13 @@ namespace love
             return instance;
         }
 
+        void ClearCanvas(Texture<Console::ALL>* texture)
+        {
+            this->BindFramebuffer(texture);
+            this->Clear(Color::TRANSPARENT);
+            this->BindFramebuffer();
+        }
+
         virtual ~Renderer();
 
         Info GetRendererInfo();

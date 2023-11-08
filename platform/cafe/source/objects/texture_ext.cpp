@@ -303,14 +303,13 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
     GX2Invalidate(Texture::INVALIDATE_MODE, this->texture->surface.image, imageSize);
 }
 
-void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics,
-                                  const Matrix4<Console::CAFE>& matrix)
+void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, const Matrix4& matrix)
 {
     this->Draw(graphics, this->quad, matrix);
 }
 
 void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
-                                  const Matrix4<Console::CAFE>& matrix)
+                                  const Matrix4& matrix)
 {
     if (!this->readable)
         throw love::Exception("Textures with non-readable formats cannot be drawn.");

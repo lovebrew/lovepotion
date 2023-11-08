@@ -220,13 +220,8 @@ void Texture<Console::HAC>::CreateTexture()
     {
         bool clear = !hasData;
 
-        auto& instance = Renderer<Console::HAC>::Instance();
-
         createFramebufferObject(this->image, this->memory, this->descriptor, _width, _height);
-
-        instance.BindFramebuffer(this);
-        instance.Clear({ 0, 0, 0, 0 });
-        instance.BindFramebuffer(nullptr);
+        Renderer<Console::HAC>::Instance().ClearCanvas(this);
     }
     else
     {
