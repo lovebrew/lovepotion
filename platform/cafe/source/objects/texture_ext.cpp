@@ -320,7 +320,7 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
     const auto& stateTransform = graphics.GetTransform();
     bool is2D                  = stateTransform.IsAffine2DTransform();
 
-    Matrix4<Console::CAFE> transform(stateTransform, matrix);
+    Matrix4 transform(stateTransform, matrix);
 
     love::DrawCommand<Console::CAFE> command(4);
     command.shader  = Shader<>::STANDARD_TEXTURE;
