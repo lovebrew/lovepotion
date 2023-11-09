@@ -1,10 +1,6 @@
 name: Nintendo 3DS
 
-on:
-  push:
-    branches:
-      - dev/3.0
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   N3DS-Release:

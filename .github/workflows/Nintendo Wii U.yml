@@ -1,10 +1,6 @@
 name: Nintendo Wii U
 
-on:
-  push:
-    branches:
-      - dev/3.0
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   WiiU-Release:
