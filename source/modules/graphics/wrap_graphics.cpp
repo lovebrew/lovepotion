@@ -478,19 +478,22 @@ int Wrap_Graphics::Printf(lua_State* L)
         start++;
     }
 
+    std::optional<Font::AlignMode> align(Font::ALIGN_LEFT);
     Matrix4 matrix;
 
     int formatIndex = start + 2;
 
-    if (luax::IsType(L, start, love::Transform::type))
+    if (luax::IsType(L, start, Transform::type))
     {
         Transform* transform = luax::ToType<Transform>(L, start);
         matrix               = transform->GetMatrix();
+        formatIndex          = start + 1;
     }
     else
     {
-        float x  = luaL_optnumber(L, start + 0, 0.0);
-        float y  = luaL_optnumber(L, start + 1, 0.0);
+        float x = luaL_checknumber(L, start + 0);
+        float y = luaL_checknumber(L, start + 1);
+
         float a  = luaL_optnumber(L, start + 4, 0.0);
         float sx = luaL_optnumber(L, start + 5, 1.0);
         float sy = luaL_optnumber(L, start + 6, sx);
@@ -502,12 +505,12 @@ int Wrap_Graphics::Printf(lua_State* L)
         matrix = Matrix4(x, y, a, sx, sy, ox, oy, kx, ky);
     }
 
-    float wrap            = luaL_checknumber(L, formatIndex);
-    const char* alignment = luaL_checkstring(L, formatIndex + 1);
+    float wrap = luaL_checknumber(L, formatIndex);
 
-    std::optional<Font::AlignMode> align;
+    const auto hasNoAlignment = lua_isnoneornil(L, formatIndex + 1);
+    const auto* alignment     = hasNoAlignment ? nullptr : luaL_checkstring(L, formatIndex + 1);
 
-    if (!(align = Font::alignModes.Find(alignment)))
+    if ((alignment && !(align = Font::alignModes.Find(alignment))))
         return luax::EnumError(L, "alignment", Font::alignModes, alignment);
 
     if (font != nullptr)
