@@ -23,10 +23,10 @@ namespace love
 
         void Set(const ColoredStrings& text, float wrap, Font::AlignMode align);
 
-        int Add(const ColoredStrings& text, const Matrix4<Console::Which>& matrix);
+        int Add(const ColoredStrings& text, const Matrix4& matrix);
 
         int Addf(const ColoredStrings& text, float wrap, Font::AlignMode align,
-                 const Matrix4<Console::Which>& matrix);
+                 const Matrix4& matrix);
 
         void Clear();
 
@@ -42,7 +42,7 @@ namespace love
         int GetHeight(int index = 0) const;
 
         void Draw(Graphics<Console::Which>& graphics,
-                  const Matrix4<Console::Which>& matrix) override;
+                  const Matrix4& matrix) override;
 
       private:
         struct TextData
@@ -53,7 +53,7 @@ namespace love
             TextShaper::TextInfo textInfo;
             bool useMatrix;
             bool appendVertices;
-            Matrix4<Console::Which> matrix;
+            Matrix4 matrix;
         };
 
         void UploadVertices(const std::vector<vertex::Vertex>& vertices, size_t offset);

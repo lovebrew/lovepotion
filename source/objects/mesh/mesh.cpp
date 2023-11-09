@@ -163,12 +163,12 @@ bool Mesh::GetDrawRange(int& start, int& count) const
     return true;
 }
 
-void Mesh::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& matrix)
+void Mesh::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix)
 {
     this->DrawInternal(graphics, matrix, 1, nullptr, 0);
 }
 
-void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& matrix,
+void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4& matrix,
                         int instanceCount, std::vector<Vertex>* indirectArgs, int argsIndex)
 {
     if (this->vertexCount <= 0 || (instanceCount <= 0 && indirectArgs == nullptr))
@@ -179,8 +179,7 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Consol
 
     // TODO what do we do?
     if (indirectArgs != nullptr)
-    {
-    }
+    {}
 
     if (this->mode == PRIMITIVE_TRIANGLE_FAN && this->useIndexBuffer && !this->indexBuffer.empty())
     {
@@ -206,8 +205,8 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4<Consol
         DrawCommand<Console::Which> command(_range.getSize(), this->mode);
         command.FillVertices(this->buffer.data());
 
-        transform.TransformXYPure(command.vertices.get(), &this->buffer[_range.getOffset()],
-                                  command.count);
+        transform.TransformXYPure(std::span(command.vertices.get(), command.count),
+                                  std::span(&this->buffer[_range.getOffset()], command.count));
 
         if (this->texture.Get())
         {

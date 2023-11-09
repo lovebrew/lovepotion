@@ -14,9 +14,9 @@
 class Log
 {
   public:
-    static Log& Instance()
+    static Log& Instance(bool enable = false)
     {
-        static Log instance;
+        static Log instance(enable);
         return instance;
     }
 
@@ -51,9 +51,9 @@ class Log
     static inline const char* FILENAME         = "debug.log";
     static constexpr const char* BUFFER_FORMAT = "%s(%zu:%zu): `%s`:\n%s\n\n";
 
-    Log() : file(nullptr)
+    Log(bool enable) : file(nullptr)
     {
-        if (m_enabled)
+        if (m_enabled || enable)
             this->file = fopen(FILENAME, "w");
     }
 

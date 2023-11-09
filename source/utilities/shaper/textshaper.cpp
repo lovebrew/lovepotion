@@ -19,8 +19,8 @@ void love::GetCodepointsFromString(const std::string& string, std::vector<uint32
 
         while (i != end)
         {
-            uint32_t g = *i++;
-            codepoints.push_back(g);
+            uint32_t glyph = *i++;
+            codepoints.push_back(glyph);
         }
     }
     catch (utf8::exception& e)
@@ -47,7 +47,7 @@ void love::GetCodepointsFromString(const std::vector<ColoredString>& strings,
         IndexedColor c = { cstr.color, (int)codepoints.cps.size() };
         codepoints.colors.push_back(c);
 
-        GetCodepointsFromString(cstr.str, codepoints.cps);
+        love::GetCodepointsFromString(cstr.str, codepoints.cps);
     }
 
     if (codepoints.colors.size() == 1)
@@ -135,6 +135,9 @@ float TextShaper::GetBaseline() const
 
 float TextShaper::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
 {
+    if (this->rasterizers[0]->GetDataType() == Rasterizer::DATA_BCFNT)
+        return 0.0f;
+
     uint64_t packedGlyphs = ((uint64_t)leftGlyph << 32) | (uint64_t)rightGlyph;
 
     const auto iterator = this->kernings.find(packedGlyphs);
@@ -146,9 +149,6 @@ float TextShaper::GetKerning(uint32_t leftGlyph, uint32_t rightGlyph)
 
     for (const auto& rasterizer : this->rasterizers)
     {
-        if (rasterizer->GetDataType() == Rasterizer::DATA_BCFNT)
-            return 0.0f;
-
         if (rasterizer->HasGlyph(leftGlyph) && rasterizer->HasGlyph(rightGlyph))
         {
             found = true;
@@ -188,13 +188,14 @@ float TextShaper::GetKerning(const std::string& left, const std::string& right)
     return this->GetKerning(leftGlyph, rightGlyph);
 }
 
-int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* index)
+int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* glyphIndex)
 {
     const auto iterator = this->glyphAdvances.find(glyph);
+
     if (iterator != this->glyphAdvances.end())
     {
-        if (index)
-            *index = iterator->second.second;
+        if (glyphIndex)
+            *glyphIndex = iterator->second.second;
 
         return iterator->second.first;
     }
@@ -209,7 +210,7 @@ int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* index)
     {
         if (this->rasterizers[index]->HasGlyph(realGlyph))
         {
-            rasterizerIndex = index;
+            rasterizerIndex = (int)index;
             break;
         }
     }
@@ -222,11 +223,11 @@ int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* index)
     if (glyph == '\t' && realGlyph == ' ')
         advance *= TextShaper::SPACES_PER_TAB;
 
-    GlyphIndex glyphIndex      = { rasterizer->GetGlyphIndex(realGlyph), rasterizerIndex };
-    this->glyphAdvances[glyph] = std::make_pair(advance, glyphIndex);
+    GlyphIndex _glyphIndex     = { rasterizer->GetGlyphIndex(realGlyph), rasterizerIndex };
+    this->glyphAdvances[glyph] = std::make_pair(advance, _glyphIndex);
 
-    if (index)
-        *index = glyphIndex;
+    if (glyphIndex)
+        *glyphIndex = _glyphIndex;
 
     return advance;
 }
@@ -240,7 +241,8 @@ int TextShaper::GetWidth(const std::string& string)
     love::GetCodepointsFromString(string, codepoints.cps);
 
     TextInfo info {};
-    this->ComputeGlyphPositions(codepoints, Range(), Vector2(), 0.0f, nullptr, nullptr, &info);
+    this->ComputeGlyphPositions(codepoints, Range(), Vector2(0.0f, 0.0f), 0.0f, nullptr, nullptr,
+                                &info);
 
     return info.width;
 }
@@ -261,11 +263,12 @@ void TextShaper::GetWrap(const ColoredCodepoints& codepoints, float wrapLimit,
 {
     size_t nextNewline = findNewLine(codepoints, 0);
 
-    for (size_t index = 0; index < codepoints.cps.size(); index++)
+    for (size_t index = 0; index < codepoints.cps.size();)
     {
         if (nextNewline < index)
             nextNewline = findNewLine(codepoints, index);
 
+        /* empty line */
         if (nextNewline == index)
         {
             lineRanges.push_back(Range());
@@ -293,6 +296,7 @@ void TextShaper::GetWrap(const ColoredCodepoints& codepoints, float wrapLimit,
                 index++;
             }
 
+            /* already handled the line, skip newline */
             if (nextNewline == index)
                 index++;
 

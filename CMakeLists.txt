@@ -229,22 +229,33 @@ add_library(lua53
 )
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
-add_library(luahttps
-    libraries/luahttps/common/Connection.h
-    libraries/luahttps/common/ConnectionClient.h
-    libraries/luahttps/common/HTTPRequest.cpp
-    libraries/luahttps/common/HTTPRequest.h
-    libraries/luahttps/common/HTTPSClient.cpp
-    libraries/luahttps/common/HTTPSClient.h
-    libraries/luahttps/common/HTTPSCommon.cpp
-    libraries/luahttps/common/HTTPSCommon.h
-    libraries/luahttps/common/PlaintextConnection.cpp
-    libraries/luahttps/common/PlaintextConnection.h
-    libraries/luahttps/generic/CurlClient.cpp
-    libraries/luahttps/generic/CurlClient.h
-    libraries/luahttps/https.cpp
+FetchContent_Declare(lua-https
+    GIT_REPOSITORY https://github.com/lovebrew/lua-https
+    GIT_TAG        TurtleP/certs
 )
-target_link_libraries(luahttps PRIVATE PkgConfig::lua51)
+
+FetchContent_MakeAvailable(lua-https)
+
+add_library(lua-https STATIC
+    ${lua-https_SOURCE_DIR}/src/common/config.h
+    ${lua-https_SOURCE_DIR}/src/common/Connection.h
+    ${lua-https_SOURCE_DIR}/src/common/ConnectionClient.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPS.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPS.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.h
+    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.cpp
+    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.h
+    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.h
+    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.h
+    ${lua-https_SOURCE_DIR}/src/lua/luahttps.cpp
+)
+
+target_compile_definitions(lua-https PRIVATE HTTPS_BACKEND_CURL HTTPS_BACKEND_CURL_LINKED)
 
 # luasocket
 add_library(luasocket
@@ -311,7 +322,6 @@ add_library(wuff
     libraries/wuff/wuff_memory.c
 )
 
-
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     __APP_VERSION__=\"${VERSION}\" __LOVE_VERSION__=\"${LOVE_VERSION}\"
     __EMULATION__
@@ -326,12 +336,12 @@ target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::lua51)
 
 # link curl
 pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
-target_link_libraries(luahttps PRIVATE PkgConfig::libcurl)
+target_link_libraries(lua-https PRIVATE PkgConfig::lua51 PkgConfig::libcurl)
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
     ${APP_LIBS} physfs box2d z turbojpeg png vorbisidec ogg
-    modplug luabit lua53 wuff ddsparse luahttps luasocket noise1234
+    modplug luabit lua53 wuff ddsparse lua-https luasocket noise1234
 )
 
 # Include directories
@@ -340,7 +350,6 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     libraries/ddsparse
     libraries/dr
     libraries/lua53
-    libraries/luahttps
     libraries/luasocket
     libraries/noise1234
     libraries/utf8

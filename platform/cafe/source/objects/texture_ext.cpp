@@ -303,14 +303,13 @@ void Texture<Console::CAFE>::ReplacePixels(const void* data, size_t size, int sl
     GX2Invalidate(Texture::INVALIDATE_MODE, this->texture->surface.image, imageSize);
 }
 
-void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics,
-                                  const Matrix4<Console::CAFE>& matrix)
+void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, const Matrix4& matrix)
 {
     this->Draw(graphics, this->quad, matrix);
 }
 
 void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
-                                  const Matrix4<Console::CAFE>& matrix)
+                                  const Matrix4& matrix)
 {
     if (!this->readable)
         throw love::Exception("Textures with non-readable formats cannot be drawn.");
@@ -321,7 +320,7 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
     const auto& stateTransform = graphics.GetTransform();
     bool is2D                  = stateTransform.IsAffine2DTransform();
 
-    Matrix4<Console::CAFE> transform(stateTransform, matrix);
+    Matrix4 transform(stateTransform, matrix);
 
     love::DrawCommand<Console::CAFE> command(4);
     command.shader  = Shader<>::STANDARD_TEXTURE;
@@ -330,7 +329,8 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
     command.handles = { this };
 
     if (is2D)
-        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);
+        transform.TransformXY(std::span(command.Positions().get(), command.count),
+                              std::span(quad->GetVertexPositions(), command.count));
 
     const auto* textureCoords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), textureCoords);

@@ -68,7 +68,7 @@ bool TrueTypeRasterizer<Console::CTR>::HasGlyph(uint32_t glyph) const
     int index        = fontGlyphIndexFromCodePoint(this->face, glyph);
     const auto* info = fontGetInfo(this->face);
 
-    return index != info->alterCharIndex;
+    return index != info->alterCharIndex && glyph != '\t';
 }
 
 template<>

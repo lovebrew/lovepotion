@@ -36,4 +36,11 @@ namespace love
     int GetVersion(lua_State* L);
 
     int IsVersionCompatible(lua_State* L);
+
+    int SetGammaCorrect(lua_State* L);
 } // namespace love
+
+extern "C"
+{
+    extern int luaopen_https(lua_State*);
+}

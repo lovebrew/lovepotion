@@ -20,9 +20,9 @@ namespace love
         Texture<Console::CTR>* NewTexture(const Texture<>::Settings& settings,
                                           const Texture<>::Slices* slices = nullptr) const;
 
-        void Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4<Console::CTR>& matrix);
+        void Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4& matrix);
 
-        void Draw(Drawable* drawable, const Matrix4<Console::CTR>& matrix);
+        void Draw(Drawable* drawable, const Matrix4& matrix);
 
         void SetShader();
 

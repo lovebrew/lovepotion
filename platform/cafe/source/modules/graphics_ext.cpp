@@ -2,7 +2,7 @@
 
 #include <utilities/driver/renderer_ext.hpp>
 
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 
 #include <modules/fontmodule_ext.hpp>
 #include <modules/window_ext.hpp>
@@ -75,13 +75,13 @@ Texture<Console::CAFE>* Graphics<Console::CAFE>::NewTexture(const Texture<>::Set
     return new Texture<Console::CAFE>(this, settings, slices);
 }
 
-void Graphics<Console::CAFE>::Draw(Drawable* drawable, const Matrix4<Console::CAFE>& matrix)
+void Graphics<Console::CAFE>::Draw(Drawable* drawable, const Matrix4& matrix)
 {
     drawable->Draw(*this, matrix);
 }
 
 void Graphics<Console::CAFE>::Draw(Texture<Console::CAFE>* texture, Quad* quad,
-                                   const Matrix4<Console::CAFE>& matrix)
+                                   const Matrix4& matrix)
 {
     texture->Draw(*this, quad, matrix);
 }

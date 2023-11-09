@@ -220,13 +220,8 @@ void Texture<Console::HAC>::CreateTexture()
     {
         bool clear = !hasData;
 
-        auto& instance = Renderer<Console::HAC>::Instance();
-
         createFramebufferObject(this->image, this->memory, this->descriptor, _width, _height);
-
-        instance.BindFramebuffer(this);
-        instance.Clear({ 0, 0, 0, 0 });
-        instance.BindFramebuffer(nullptr);
+        Renderer<Console::HAC>::Instance().ClearCanvas(this);
     }
     else
     {
@@ -385,14 +380,13 @@ void Texture<Console::HAC>::ReplacePixels(const void* data, size_t size, int sli
     tempImageMemory.destroy();
 }
 
-void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics,
-                                 const Matrix4<Console::HAC>& matrix)
+void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics, const Matrix4& matrix)
 {
     this->Draw(graphics, this->quad, matrix);
 }
 
 void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics, Quad* quad,
-                                 const Matrix4<Console::HAC>& matrix)
+                                 const Matrix4& matrix)
 {
     if (!this->readable)
         throw love::Exception("Textures with non-readable formats cannot be drawn.");
@@ -403,7 +397,7 @@ void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics, Quad* quad,
     const auto& stateTransform = graphics.GetTransform();
     bool is2D                  = stateTransform.IsAffine2DTransform();
 
-    Matrix4<Console::HAC> transform(stateTransform, matrix);
+    Matrix4 transform(stateTransform, matrix);
 
     DrawCommand<Console::HAC> command(4);
     command.shader  = Shader<>::STANDARD_TEXTURE;
@@ -412,7 +406,10 @@ void Texture<Console::HAC>::Draw(Graphics<Console::HAC>& graphics, Quad* quad,
     command.handles = { this };
 
     if (is2D)
-        transform.TransformXY(command.Positions().get(), quad->GetVertexPositions(), command.count);
+    {
+        transform.TransformXY(std::span(command.Positions().get(), command.count),
+                              std::span(quad->GetVertexPositions(), command.count));
+    }
 
     const auto* textureCoords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), textureCoords);

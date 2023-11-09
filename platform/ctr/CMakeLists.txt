@@ -37,7 +37,6 @@ dkp_install_assets(${PROJECT_NAME}_ctr_romfs
 
 # find source -type f | grep "\.cpp$" | clip
 target_sources(${PROJECT_NAME} PRIVATE
-    source/common/matrix_ext.cpp
     source/common/screen_ext.cpp
     source/modules/fontmodule_ext.cpp
     source/modules/graphics_ext.cpp

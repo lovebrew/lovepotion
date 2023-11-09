@@ -3,7 +3,7 @@
 #include <common/drawable.hpp>
 
 #include <common/color.hpp>
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 #include <common/strongreference.hpp>
 
 #include <objects/texture/texture.tcc>
@@ -23,13 +23,13 @@ namespace love
 
         virtual ~SpriteBatch();
 
-        int Add(const Matrix4<Console::Which>& matrix, int index = -1);
+        int Add(const Matrix4& matrix, int index = -1);
 
-        int Add(Quad* quad, const Matrix4<Console::Which>& matrix, int index = -1);
+        int Add(Quad* quad, const Matrix4& matrix, int index = -1);
 
-        int AddLayer(int layer, const Matrix4<Console::Which>& matrix, int index = -1);
+        int AddLayer(int layer, const Matrix4& matrix, int index = -1);
 
-        int AddLayer(int layer, Quad* quad, const Matrix4<Console::Which>& matrix, int index = -1);
+        int AddLayer(int layer, Quad* quad, const Matrix4& matrix, int index = -1);
 
         void Clear();
 
@@ -58,7 +58,7 @@ namespace love
         bool GetDrawRange(int& start, int& count) const;
 
         void Draw(Graphics<Console::Which>& graphics,
-                  const Matrix4<Console::Which>& matrix) override;
+                  const Matrix4& matrix) override;
 
       private:
         void SetBufferSize(int size);

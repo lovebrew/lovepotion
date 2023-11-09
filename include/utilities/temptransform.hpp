@@ -12,8 +12,7 @@ namespace love
             this->graphics->PushTransform();
         }
 
-        TempTransform(Graphics<Console::Which>& graphics,
-                      const Matrix4<Console::Which>& transform) :
+        TempTransform(Graphics<Console::Which>& graphics, const Matrix4& transform) :
             TempTransform(graphics)
         {
             this->graphics->PushTransform();
@@ -21,15 +20,17 @@ namespace love
         }
 
         template<typename vDst, typename vSrc>
-        void TransformXY(vDst dst, vSrc src, int count)
+        void TransformXY(vDst&& dst, vSrc&& src)
         {
-            this->graphics->GetTransform().TransformXYVert(dst, src, count);
+            this->graphics->GetTransform().TransformXY(std::forward<decltype(dst)>(dst),
+                                                       std::forward<decltype(src)>(src));
         }
 
         template<typename vDst, typename vSrc>
-        void TransformXYPure(vDst dst, vSrc src, int count)
+        void TransformXYPure(vDst&& dst, vSrc&& src)
         {
-            this->graphics->GetTransform().TransformXYVertPure(dst, src, count);
+            this->graphics->GetTransform().TransformXY(std::forward<decltype(dst)>(dst),
+                                                       std::forward<decltype(src)>(src));
         }
 
         ~TempTransform()

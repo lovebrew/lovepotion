@@ -19,6 +19,8 @@
 
 #include <utilities/driver/renderer_ext.hpp>
 
+#include <common/optional.hpp>
+
 using Renderer = love::Renderer<love::Console::Which>;
 
 using namespace love;
@@ -78,10 +80,10 @@ int Wrap_Graphics::Clear(lua_State* L)
 
             OptionalColor newColor {};
 
-            newColor.value().r = luaL_checknumber(L, 1);
-            newColor.value().g = luaL_checknumber(L, 2);
-            newColor.value().b = luaL_checknumber(L, 3);
-            newColor.value().a = luaL_optnumber(L, 4, 1.0);
+            newColor.value.r = luaL_checknumber(L, 1);
+            newColor.value.g = luaL_checknumber(L, 2);
+            newColor.value.b = luaL_checknumber(L, 3);
+            newColor.value.a = luaL_optnumber(L, 4, 1.0);
 
             colors.push_back(newColor);
 
@@ -92,10 +94,10 @@ int Wrap_Graphics::Clear(lua_State* L)
         start = 2;
     else if (argtype != LUA_TNONE && argtype != LUA_TNIL)
     {
-        color.value().r = luaL_checknumber(L, 1);
-        color.value().g = luaL_checknumber(L, 2);
-        color.value().b = luaL_checknumber(L, 3);
-        color.value().a = luaL_optnumber(L, 4, 1.0);
+        color.value.r = luaL_checknumber(L, 1);
+        color.value.g = luaL_checknumber(L, 2);
+        color.value.b = luaL_checknumber(L, 3);
+        color.value.a = luaL_optnumber(L, 4, 1.0);
 
         start = 5;
     }
@@ -108,7 +110,7 @@ int Wrap_Graphics::Clear(lua_State* L)
         {
         }
         else if (argtype == LUA_TNUMBER)
-            stencil.value() = luaL_checkinteger(L, start);
+            stencil.value = luaL_checkinteger(L, start);
 
         argtype = lua_type(L, start + 1);
 
@@ -116,7 +118,7 @@ int Wrap_Graphics::Clear(lua_State* L)
         {
         }
         else if (argtype == LUA_TNUMBER)
-            depth.value() = luaL_checknumber(L, start + 1);
+            depth.value = luaL_checknumber(L, start + 1);
     }
 
     if (colors.empty())
@@ -448,13 +450,13 @@ int Wrap_Graphics::Print(lua_State* L)
     {
         auto* font = Wrap_Font::CheckFont(L, 2);
 
-        Wrap_Graphics::CheckStandardTransform(L, 3, [&](const Matrix4<Console::Which>& matrix) {
+        Wrap_Graphics::CheckStandardTransform(L, 3, [&](const Matrix4& matrix) {
             luax::CatchException(L, [&]() { instance()->Print(strings, font, matrix); });
         });
     }
     else
     {
-        Wrap_Graphics::CheckStandardTransform(L, 2, [&](const Matrix4<Console::Which>& matrix) {
+        Wrap_Graphics::CheckStandardTransform(L, 2, [&](const Matrix4& matrix) {
             luax::CatchException(L, [&]() { instance()->Print(strings, matrix); });
         });
     }
@@ -476,7 +478,7 @@ int Wrap_Graphics::Printf(lua_State* L)
         start++;
     }
 
-    Matrix4<Console::Which> matrix;
+    Matrix4 matrix;
 
     int formatIndex = start + 2;
 
@@ -497,7 +499,7 @@ int Wrap_Graphics::Printf(lua_State* L)
         float kx = luaL_optnumber(L, start + 9, 0.0);
         float ky = luaL_optnumber(L, start + 10, 0.0);
 
-        matrix = Matrix4<Console::Which>(x, y, a, sx, sy, ox, oy, kx, ky);
+        matrix = Matrix4(x, y, a, sx, sy, ox, oy, kx, ky);
     }
 
     float wrap            = luaL_checknumber(L, formatIndex);
@@ -516,33 +518,36 @@ int Wrap_Graphics::Printf(lua_State* L)
     return 0;
 }
 
+static std::optional<const char*> getTextureKey(Texture<>::SettingType type)
+{
+    return Texture<>::settingsTypes.ReverseFind(type);
+}
+
 static void checkTextureSettings(lua_State* L, int index, bool option, bool checkType,
-                                 bool checkDimensions, std::optional<bool> forceRenderTarget,
+                                 bool checkDimensions, OptionalBool forceRenderTarget,
                                  Texture<>::Settings& settings, bool& setDpiScale)
 {
     setDpiScale = false;
 
-    if (forceRenderTarget.has_value())
-        settings.renderTarget = forceRenderTarget.value();
+    if (forceRenderTarget.hasValue)
+        settings.renderTarget = forceRenderTarget.value;
 
     if (option && lua_isnoneornil(L, index))
         return;
 
     luax::CheckTableFields<Texture<>::SettingType>(
         L, index, "texture setting name", [](const char* v) {
-            std::optional<::Texture<>::SettingType> value;
+            std::optional<Texture<>::SettingType> value;
             return (Texture<>::settingsTypes.Find(v) != std::nullopt);
         });
 
-    if (!forceRenderTarget.has_value())
+    if (!forceRenderTarget.hasValue)
     {
-        bool defaultValue = settings.renderTarget;
-        const char* key   = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_RENDER_TARGET);
-
-        settings.renderTarget = luax::BoolFlag(L, index, key, defaultValue);
+        const auto key        = getTextureKey(Texture<>::SETTING_RENDER_TARGET);
+        settings.renderTarget = luax::BoolFlag(L, index, *key, settings.renderTarget);
     }
 
-    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_FORMAT));
+    lua_getfield(L, index, *getTextureKey(Texture<>::SETTING_FORMAT));
     if (!lua_isnoneornil(L, -1))
     {
         const char* string = luaL_checkstring(L, -1);
@@ -550,12 +555,14 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
 
         if (!(format = pixelFormats.Find(string)))
             luax::EnumError(L, "pixel format", string);
+
+        settings.format = *format;
     }
     lua_pop(L, 1);
 
     if (checkType)
     {
-        lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_TYPE));
+        lua_getfield(L, index, *getTextureKey(Texture<>::SETTING_TYPE));
         if (!lua_isnoneornil(L, -1))
         {
             const char* string = luaL_checkstring(L, -1);
@@ -563,14 +570,16 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
 
             if (!(type = Texture<>::textureTypes.Find(string)))
                 luax::EnumError(L, "texture type", string);
+
+            settings.type = *type;
         }
         lua_pop(L, 1);
     }
 
     if (checkDimensions)
     {
-        const char* keyWidth  = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_WIDTH);
-        const char* keyHeight = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_HEIGHT);
+        const char* keyWidth  = *getTextureKey(Texture<>::SETTING_WIDTH);
+        const char* keyHeight = *getTextureKey(Texture<>::SETTING_HEIGHT);
 
         settings.width  = luax::CheckIntFlag(L, index, keyWidth);
         settings.height = luax::CheckIntFlag(L, index, keyHeight);
@@ -578,14 +587,12 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
         if (settings.type == Texture<>::TEXTURE_2D_ARRAY ||
             settings.type == Texture<>::TEXTURE_VOLUME)
         {
-            const char* keyLayers =
-                *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_LAYERS);
-
-            settings.layers = luax::CheckIntFlag(L, index, keyLayers);
+            const char* keyLayers = *getTextureKey(Texture<>::SETTING_LAYERS);
+            settings.layers       = luax::CheckIntFlag(L, index, keyLayers);
         }
     }
 
-    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_MIPMAPS));
+    lua_getfield(L, index, *getTextureKey(Texture<>::SETTING_MIPMAPS));
     if (!lua_isnoneornil(L, -1))
     {
         if (lua_type(L, -1) == LUA_TBOOLEAN)
@@ -600,32 +607,33 @@ static void checkTextureSettings(lua_State* L, int index, bool option, bool chec
 
             if (!(mode = Texture<>::mipmapModes.Find(string)))
                 luax::EnumError(L, "Texture mipmap mode", Texture<>::mipmapModes, string);
+
+            settings.mipmaps = *mode;
         }
     }
     lua_pop(L, 1);
 
-    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_MIPMAP_COUNT));
+    lua_getfield(L, index, *getTextureKey(Texture<>::SETTING_MIPMAP_COUNT));
     if (!lua_isnoneornil(L, -1))
         settings.mipmapCount = luaL_checkinteger(L, -1);
     lua_pop(L, 1);
 
-    const char* keyLinear = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_LINEAR);
-    const char* keyMSAA   = *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_MSAA);
+    const char* keyLinear = *getTextureKey(Texture<>::SETTING_LINEAR);
+    const char* keyMSAA   = *getTextureKey(Texture<>::SETTING_MSAA);
 
     settings.linear = luax::BoolFlag(L, index, keyLinear, settings.linear);
     settings.msaa   = luax::IntFlag(L, index, keyMSAA, settings.msaa);
 
-    const char* keyComputeWrite =
-        *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_COMPUTE_WRITE);
+    const char* keyComputeWrite = *getTextureKey(Texture<>::SETTING_COMPUTE_WRITE);
 
     settings.computeWrite = luax::BoolFlag(L, index, keyComputeWrite, settings.computeWrite);
 
-    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_READABLE));
+    lua_getfield(L, index, *getTextureKey(Texture<>::SETTING_READABLE));
     if (!lua_isnoneornil(L, -1))
         settings.readable = luax::CheckBoolean(L, -1);
     lua_pop(L, 1);
 
-    lua_getfield(L, index, *Texture<>::settingsTypes.ReverseFind(Texture<>::SETTING_DPI_SCALE));
+    lua_getfield(L, index, *getTextureKey(Texture<>::SETTING_DPI_SCALE));
     if (lua_isnumber(L, -1))
     {
         settings.dpiScale = lua_tonumber(L, -1);
@@ -733,7 +741,7 @@ int Wrap_Graphics::Draw(lua_State* L)
     }
 
     // clang-format off
-    Wrap_Graphics::CheckStandardTransform(L, start, [&](const Matrix4<Console::Which>& matrix) {
+    Wrap_Graphics::CheckStandardTransform(L, start, [&](const Matrix4& matrix) {
         luax::CatchException(L, [&](){
             if (texture && quad)
                 instance()->Draw(texture, quad, matrix);
@@ -819,7 +827,7 @@ int Wrap_Graphics::NewCanvas(lua_State* L)
     checkGraphicsCreated(L);
 
     Texture<>::Settings settings {};
-    std::optional<bool> forceRenderTarget(true);
+    OptionalBool forceRenderTarget(true);
     bool setDPIScale = false;
 
     if (lua_istable(L, 1))
@@ -1430,7 +1438,7 @@ int Wrap_Graphics::Shear(lua_State* L)
 
 int Wrap_Graphics::ApplyTransform(lua_State* L)
 {
-    Wrap_Graphics::CheckStandardTransform(L, 1, [&](const Matrix4<Console::Which>& matrix) {
+    Wrap_Graphics::CheckStandardTransform(L, 1, [&](const Matrix4& matrix) {
         luax::CatchException(L, [&]() { instance()->ApplyTransform(matrix); });
     });
 
@@ -1439,7 +1447,7 @@ int Wrap_Graphics::ApplyTransform(lua_State* L)
 
 int Wrap_Graphics::ReplaceTransform(lua_State* L)
 {
-    Wrap_Graphics::CheckStandardTransform(L, 1, [&](const Matrix4<Console::Which>& matrix) {
+    Wrap_Graphics::CheckStandardTransform(L, 1, [&](const Matrix4& matrix) {
         luax::CatchException(L, [&]() { instance()->ReplaceTransform(matrix); });
     });
 
@@ -1781,7 +1789,9 @@ int Wrap_Graphics::SetColorMask(lua_State* L)
 {
     RenderState::ColorMask mask;
 
-    if (lua_gettop(L) <= 1)
+    if (lua_isnoneornil(L, 1))
+        mask.r = mask.g = mask.b = mask.a = true;
+    else if (lua_gettop(L) <= 1)
         mask.r = mask.g = mask.b = mask.a = luax::CheckBoolean(L, 1);
     else
     {

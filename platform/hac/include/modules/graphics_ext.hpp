@@ -21,9 +21,9 @@ namespace love
         Texture<Console::HAC>* NewTexture(const Texture<>::Settings& settings,
                                           const Texture<>::Slices* slices = nullptr) const;
 
-        void Draw(Texture<Console::HAC>* texture, Quad* quad, const Matrix4<Console::HAC>& matrix);
+        void Draw(Texture<Console::HAC>* texture, Quad* quad, const Matrix4& matrix);
 
-        void Draw(Drawable* drawable, const Matrix4<Console::HAC>& matrix);
+        void Draw(Drawable* drawable, const Matrix4& matrix);
 
         void SetViewportSize(int width, int height);
     }; // namespace love

@@ -1,4 +1,4 @@
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 
 #include <objects/textbatch/textbatch.hpp>
 
@@ -97,7 +97,7 @@ void TextBatch::AddTextData(const TextData& text)
     }
 
     if (text.useMatrix && !vertices.empty())
-        text.matrix.TransformXYVertPure(vertices.data(), vertices.data(), (int)vertices.size());
+        text.matrix.TransformXY(vertices, vertices);
 
     this->UploadVertices(vertices, vertexOffset);
 
@@ -151,16 +151,16 @@ void TextBatch::Set(const ColoredStrings& strings, float wrap, Font::AlignMode a
     ColoredCodepoints codepoints {};
     GetCodepointsFromString(strings, codepoints);
 
-    this->AddTextData({ codepoints, wrap, align, {}, false, false, Matrix4<Console::Which>() });
+    this->AddTextData({ codepoints, wrap, align, {}, false, false, Matrix4() });
 }
 
-int TextBatch::Add(const ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
+int TextBatch::Add(const ColoredStrings& strings, const Matrix4& matrix)
 {
     return this->Addf(strings, -1.0f, Font::ALIGN_MAX_ENUM, matrix);
 }
 
 int TextBatch::Addf(const ColoredStrings& strings, float wrap, Font::AlignMode align,
-                    const Matrix4<Console::Which>& matrix)
+                    const Matrix4& matrix)
 {
     ColoredCodepoints codepoints {};
     GetCodepointsFromString(strings, codepoints);
@@ -192,7 +192,7 @@ int TextBatch::GetHeight(int index) const
     return this->textData[index].textInfo.height;
 }
 
-void TextBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console::Which>& matrix)
+void TextBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix)
 {
     if (this->buffer.empty() || this->drawCommands.empty())
         return;
@@ -227,8 +227,8 @@ void TextBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4<Console::
 
         drawCommand.handles = { command.texture };
 
-        transform.TransformXY(drawCommand.Positions().get(), &this->buffer[command.start],
-                              command.count);
+        transform.TransformXY(std::span(drawCommand.Positions().get(), command.count),
+                              std::span(&this->buffer[command.start], command.count));
 
         drawCommand.FillVertices(&this->buffer[command.start]);
         Renderer<Console::Which>::Instance().Render(drawCommand);

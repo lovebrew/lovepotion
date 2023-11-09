@@ -7,10 +7,7 @@ Type Transform::type("Transform", &Object::type);
 Transform::Transform() : matrix(), inverseDirty(true), inverseMatrix()
 {}
 
-Transform::Transform(const Matrix4<Console::Which>& matrix) :
-    matrix(matrix),
-    inverseDirty(true),
-    inverseMatrix()
+Transform::Transform(const Matrix4& matrix) : matrix(matrix), inverseDirty(true), inverseMatrix()
 {}
 
 Transform::Transform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx,
@@ -76,7 +73,7 @@ void Transform::SetTransformation(float x, float y, float a, float sx, float sy,
 Vector2 Transform::TransformPoint(Vector2 point) const
 {
     Vector2 result;
-    this->matrix.TransformXY(&result, &point, 1);
+    this->matrix.TransformXY(std::views::single(result), std::views::single(point));
 
     return result;
 }
@@ -84,17 +81,17 @@ Vector2 Transform::TransformPoint(Vector2 point) const
 Vector2 Transform::InverseTransformPoint(Vector2 point)
 {
     Vector2 result;
-    this->GetInverseMatrix().TransformXY(&result, &point, 1);
+    this->GetInverseMatrix().TransformXY(std::views::single(result), std::views::single(point));
 
     return result;
 }
 
-Matrix4<Console::Which>& Transform::GetMatrix()
+Matrix4& Transform::GetMatrix()
 {
     return this->matrix;
 }
 
-void Transform::SetMatrix(const Matrix4<Console::Which>& matrix)
+void Transform::SetMatrix(const Matrix4& matrix)
 {
     this->matrix       = matrix;
     this->inverseDirty = true;

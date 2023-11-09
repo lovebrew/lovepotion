@@ -4,9 +4,10 @@
 #include <common/console.hpp>
 #include <common/math.hpp>
 #include <common/module.hpp>
+#include <common/optional.hpp>
 #include <common/strongreference.hpp>
 
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 
 #include <modules/font/fontmodule.tcc>
 #include <modules/math/math.hpp>
@@ -38,9 +39,7 @@
 
 namespace love
 {
-    using OptionalColor  = std::optional<Color>;
-    using OptionalInt    = std::optional<int>;
-    using OptionalDouble = std::optional<double>;
+    using OptionalColor = Optional<Color>;
 
     template<Console::Platform T = Console::ALL>
     class Graphics : public Module
@@ -301,7 +300,7 @@ namespace love
             renderTargetSwitchCount(0)
         {
             this->transformStack.reserve(16);
-            this->transformStack.push_back(Matrix4<Console::Which>());
+            this->transformStack.push_back(Matrix4());
 
             this->pixelScaleStack.reserve(16);
             this->pixelScaleStack.push_back(1.0);
@@ -330,22 +329,22 @@ namespace love
         {
             Renderer<Console::Which>::Instance().BindFramebuffer();
 
-            if (color.has_value())
+            if (color.hasValue)
             {
                 // GammaCorrectColor(color);
-                Renderer<Console::Which>::Instance().Clear(color.value());
+                Renderer<Console::Which>::Instance().Clear(color.value);
             }
 
-            if (stencil.has_value() && depth.has_value())
-                Renderer<Console::Which>::Instance().ClearDepthStencil(stencil.value(), 0xFF,
-                                                                       depth.value());
+            if (stencil.hasValue && depth.hasValue)
+                Renderer<Console::Which>::Instance().ClearDepthStencil(stencil.value, 0xFF,
+                                                                       depth.value);
         }
 
         void Clear(std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth)
         {
             int colorCount = colors.size();
 
-            if (colorCount == 0 || !stencil.has_value() || !depth.has_value())
+            if (colorCount == 0 || !stencil.hasValue || !depth.hasValue)
                 this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
         }
 
@@ -394,12 +393,13 @@ namespace love
 
         void SetFont(Font* font)
         {
-            this->states.back().font = font;
+            this->states.back().font.Set(font);
         }
 
         Font* GetFont()
         {
-            return this->states.back().font;
+            this->CheckSetDefaultFont();
+            return this->states.back().font.Get();
         }
 
         SpriteBatch* NewSpriteBatch(Texture<Console::Which>* texture, int size) const
@@ -715,7 +715,7 @@ namespace love
             this->states.back().font.Set(this->defaultFont.Get());
         }
 
-        void Print(const ColoredStrings& strings, const Matrix4<Console::Which>& matrix)
+        void Print(const ColoredStrings& strings, const Matrix4& matrix)
         {
             this->CheckSetDefaultFont();
 
@@ -723,13 +723,13 @@ namespace love
                 this->Print(strings, this->states.back().font.Get(), matrix);
         }
 
-        void Print(const ColoredStrings& strings, Font* font, const Matrix4<Console::Which>& matrix)
+        void Print(const ColoredStrings& strings, Font* font, const Matrix4& matrix)
         {
             font->Print(*this, strings, matrix, this->states.back().foreground);
         }
 
         void Printf(const ColoredStrings& strings, float wrap, Font::AlignMode align,
-                    const Matrix4<Console::Which>& matrix)
+                    const Matrix4& matrix)
         {
             this->CheckSetDefaultFont();
 
@@ -738,7 +738,7 @@ namespace love
         }
 
         void Printf(const ColoredStrings& strings, Font* font, float wrap, Font::AlignMode align,
-                    const Matrix4<Console::Which>& matrix)
+                    const Matrix4& matrix)
         {
             font->Printf(*this, strings, wrap, align, matrix, this->states.back().foreground);
         }
@@ -802,7 +802,7 @@ namespace love
 
         void PushIdentityTransform()
         {
-            this->transformStack.push_back(Matrix4<Console::Which>());
+            this->transformStack.push_back(Matrix4());
         }
 
         void PopTransform()
@@ -810,7 +810,7 @@ namespace love
             this->transformStack.pop_back();
         }
 
-        const Matrix4<Console::Which>& GetTransform() const
+        const Matrix4& GetTransform() const
         {
             return this->transformStack.back();
         }
@@ -826,7 +826,7 @@ namespace love
             this->pixelScaleStack.back() *= (fabs(x) + fabs(y)) / 2.0;
         }
 
-        void ApplyTransform(const Matrix4<Console::Which>& matrix)
+        void ApplyTransform(const Matrix4& matrix)
         {
             auto& current = this->transformStack.back();
             current *= matrix;
@@ -836,7 +836,7 @@ namespace love
             this->pixelScaleStack.back() = (scaleX + scaleY) / 2.0;
         }
 
-        void ReplaceTransform(const Matrix4<Console::Which>& matrix)
+        void ReplaceTransform(const Matrix4& matrix)
         {
             this->transformStack.back() = matrix;
 
@@ -848,7 +848,8 @@ namespace love
         Vector2 TransformPoint(Vector2 point)
         {
             Vector2 result {};
-            this->transformStack.back().TransformXY(&result, &point, 1);
+            this->transformStack.back().TransformXY(std::views::single(result),
+                                                    std::views::single(point));
 
             return result;
         }
@@ -856,7 +857,8 @@ namespace love
         Vector2 InverseTransformPoint(Vector2 point)
         {
             Vector2 result {};
-            this->transformStack.back().Inverse().TransformXY(&result, &point, 1);
+            this->transformStack.back().Inverse().TransformXY(std::views::single(result),
+                                                              std::views::single(point));
 
             return result;
         }
@@ -884,13 +886,18 @@ namespace love
             this->SetColor(state.foreground);
             this->SetBackgroundColor(state.background);
 
-            /* todo: set blend state */
+            this->SetBlendState(state.blendState);
 
             this->SetLineWidth(state.line.width);
             this->SetLineStyle(state.line.style);
             this->SetLineJoin(state.line.join);
 
             this->SetPointSize(state.pointSize);
+
+            if (state.scissor.active)
+                this->SetScissor(state.scissor.bounds);
+            else
+                this->SetScissor();
 
             this->SetMeshCullMode(state.cullMode);
             this->SetFrontFaceWinding(state.windingMode);
@@ -926,7 +933,8 @@ namespace love
 
             this->SetBackgroundColor(state.background);
 
-            /* todo set blend state */
+            if (!(state.blendState == current.blendState))
+                this->SetBlendState(state.blendState);
 
             this->SetLineWidth(state.line.width);
             this->SetLineStyle(state.line.style);
@@ -934,6 +942,17 @@ namespace love
 
             if (state.pointSize != current.pointSize)
                 this->SetPointSize(state.pointSize);
+
+            bool scissorActive     = state.scissor.active != current.scissor.active;
+            bool sameScissorBounds = state.scissor.bounds == current.scissor.bounds;
+
+            if (scissorActive || (state.scissor.active && !sameScissorBounds))
+            {
+                if (state.scissor.active)
+                    this->SetScissor(state.scissor.bounds);
+                else
+                    this->SetScissor();
+            }
 
             this->SetMeshCullMode(state.cullMode);
 
@@ -1150,7 +1169,8 @@ namespace love
                 DrawCommand<Console::Which> command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
                 if (is2D)
-                    transform.TransformXY(command.Positions().get(), points.data(), command.count);
+                    transform.TransformXY(std::span(command.Positions().get(), command.count),
+                                          points);
 
                 command.FillVertices(this->GetColor());
 
@@ -1389,7 +1409,7 @@ namespace love
             DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_POINTS);
 
             if (is2D)
-                transform.TransformXY(command.Positions().get(), points.data(), points.size());
+                transform.TransformXY(std::span(command.Positions().get(), points.size()), points);
 
             if (colors.size() > 1)
                 command.FillVertices(colors);
@@ -1460,7 +1480,7 @@ namespace love
             }
         }
 
-        void InternalScale(const Matrix4<Console::Which>& transform)
+        void InternalScale(const Matrix4& transform)
         {
             this->transformStack.back() *= transform;
         }
@@ -1512,7 +1532,7 @@ namespace love
 
       protected:
         std::vector<double> pixelScaleStack;
-        std::vector<Matrix4<Console::Which>> transformStack;
+        std::vector<Matrix4> transformStack;
 
         std::vector<DisplayState> states;
         std::vector<StackType> stackTypeStack;

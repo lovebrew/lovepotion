@@ -29,6 +29,7 @@ namespace love
 
         static inline constexpr int MAX_OBJECTS        = 0x1000;
         static inline constexpr int VERTEX_BUFFER_SIZE = 6 * MAX_OBJECTS;
+        static inline constexpr auto TOTAL_BUFFER_SIZE = VERTEX_BUFFER_SIZE * VERTEX_SIZE;
 
         static inline constexpr uint8_t MAX_RENDERTARGETS = 0x03;
 
@@ -119,7 +120,7 @@ namespace love
         }
 
         // clang-format off
-        static constexpr BidirectionalMap primitiveModes = 
+        static constexpr BidirectionalMap primitiveModes =
         {
             vertex::PRIMITIVE_TRIANGLES,      GPU_TRIANGLES,
             vertex::PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP,

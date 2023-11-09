@@ -96,10 +96,10 @@ namespace love
         {}
 
         void Print(Graphics<Console::ALL>& graphics, const ColoredStrings& text,
-                   const Matrix4<Console::Which>& localTransform, const Color& color);
+                   const Matrix4& localTransform, const Color& color);
 
         void Printf(Graphics<Console::ALL>& graphics, const ColoredStrings& text, float wrap,
-                    AlignMode alignment, const Matrix4<Console::Which>& localTransform,
+                    AlignMode alignment, const Matrix4& localTransform,
                     const Color& color);
 
         int GetAscent() const;
@@ -175,7 +175,7 @@ namespace love
 
         const Glyph& FindGlyph(TextShaper::GlyphIndex glyphIndex);
 
-        void Printv(Graphics<Console::ALL>& graphics, const Matrix4<Console::Which>& transform,
+        void Printv(Graphics<Console::ALL>& graphics, const Matrix4& transform,
                     const std::vector<DrawCommand>& drawCommands,
                     const std::vector<vertex::Vertex>& vertices);
 

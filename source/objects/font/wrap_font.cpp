@@ -259,7 +259,7 @@ int Wrap_Font::GetWrap(lua_State* L)
         maxWidth = std::max(maxWidth, width);
 
     lua_pushinteger(L, maxWidth);
-    lua_createtable(L, lines.size(), 0);
+    lua_createtable(L, (int)lines.size(), 0);
 
     for (size_t index = 0; index < lines.size(); index++)
     {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/matrix_ext.hpp>
+#include <common/matrix.tcc>
 #include <common/object.hpp>
 #include <common/vector.hpp>
 
@@ -21,7 +21,7 @@ namespace love
 
         Transform();
 
-        Transform(const Matrix4<Console::Which>& matrix);
+        Transform(const Matrix4& matrix);
 
         Transform(float x, float y, float a, float sx, float sy, float ox, float oy, float kx,
                   float ky);
@@ -52,9 +52,9 @@ namespace love
 
         Vector2 InverseTransformPoint(Vector2 point);
 
-        Matrix4<Console::Which>& GetMatrix();
+        Matrix4& GetMatrix();
 
-        void SetMatrix(const Matrix4<Console::Which>& matrix);
+        void SetMatrix(const Matrix4& matrix);
 
         // clang-format off
         static constexpr BidirectionalMap matrixLayouts = {
@@ -64,7 +64,7 @@ namespace love
         // clang-format on
 
       private:
-        inline const Matrix4<Console::Which>& GetInverseMatrix()
+        inline const Matrix4& GetInverseMatrix()
         {
             if (this->inverseDirty)
             {
@@ -75,8 +75,8 @@ namespace love
             return this->inverseMatrix;
         }
 
-        Matrix4<Console::Which> matrix;
+        Matrix4 matrix;
         bool inverseDirty;
-        Matrix4<Console::Which> inverseMatrix;
+        Matrix4 inverseMatrix;
     };
 } // namespace love
