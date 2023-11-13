@@ -163,12 +163,6 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
         C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
     }
 
-    if ((command.count + m_vertexOffset) * VERTEX_SIZE > TOTAL_BUFFER_SIZE)
-    {
-        FlushVertices();
-        m_vertexOffset = 0;
-    }
-
     // check if texture is the same, or no texture at all
     if (command.handles.empty() ||
         (command.handles.size() > 0 && this->currentTexture == command.handles.back()))

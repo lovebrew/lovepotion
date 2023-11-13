@@ -145,17 +145,17 @@ int Wrap_Mesh::GetDrawRange(lua_State* L)
 }
 
 // clang-format off
-static constexpr luaL_Reg functions[] 
+static constexpr luaL_Reg functions[]
 {
     { "getVertexCount", Wrap_Mesh::GetVertexCount },
-    { "flush",          Wrap_Mesh::Flush },
-    { "getVertexMap",   Wrap_Mesh::GetVertexMap },
-    { "setTexture",     Wrap_Mesh::SetTexture },
-    { "getTexture",     Wrap_Mesh::GetTexture },
-    { "setDrawMode",    Wrap_Mesh::SetDrawMode },
-    { "getDrawMode",    Wrap_Mesh::GetDrawMode },
-    { "setDrawRange",   Wrap_Mesh::SetDrawRange },
-    { "getDrawRange",   Wrap_Mesh::GetDrawRange },
+    { "flush",          Wrap_Mesh::Flush          },
+    { "getVertexMap",   Wrap_Mesh::GetVertexMap   },
+    { "setTexture",     Wrap_Mesh::SetTexture     },
+    { "getTexture",     Wrap_Mesh::GetTexture     },
+    { "setDrawMode",    Wrap_Mesh::SetDrawMode    },
+    { "getDrawMode",    Wrap_Mesh::GetDrawMode    },
+    { "setDrawRange",   Wrap_Mesh::SetDrawRange   },
+    { "getDrawRange",   Wrap_Mesh::GetDrawRange   }
 };
 // clang-format on
 

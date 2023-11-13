@@ -89,14 +89,14 @@ int Wrap_CompressedImageData::GetFormat(lua_State* L)
 }
 
 // clang-format off
-static constexpr luaL_Reg functions[] = 
+static constexpr luaL_Reg functions[] =
 {
     { "clone",          Wrap_CompressedImageData::Clone          },
     { "getWidth",       Wrap_CompressedImageData::GetWidth       },
     { "getHeight",      Wrap_CompressedImageData::GetHeight      },
     { "getDimensions",  Wrap_CompressedImageData::GetDimensions  },
     { "getMipmapCount", Wrap_CompressedImageData::GetMipmapCount },
-    { "getFormat",      Wrap_CompressedImageData::GetFormat      },
+    { "getFormat",      Wrap_CompressedImageData::GetFormat      }
 };
 // clang-format on
 
