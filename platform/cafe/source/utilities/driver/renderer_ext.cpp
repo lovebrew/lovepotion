@@ -318,7 +318,7 @@ void Renderer<Console::CAFE>::FlushVertices()
     m_commands.clear();
 }
 
-bool Renderer<Console::CAFE>::Render(DrawCommand<Console::CAFE>& command)
+bool Renderer<Console::CAFE>::Render(DrawCommand& command)
 {
     if (!Shader<Console::CAFE>::IsDefaultActive(command.shader))
     {

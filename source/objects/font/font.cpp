@@ -266,7 +266,6 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
 
     Glyph _glyph {};
     _glyph.texture = nullptr;
-    _glyph.spacing = std::floor(data->GetAdvance() / dpiScale + 0.5f);
 
     std::fill_n(_glyph.vertices.data(), 6, Vertex {});
 
@@ -380,16 +379,17 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
         // clang-format on
 
         /* copy the vertex data into the Glyph and set proper bearing */
+        _glyph.vertices = vertices;
+
         for (size_t index = 0; index < vertices.size(); index++)
         {
-            _glyph.vertices[index] = vertices[index];
-
             _glyph.vertices[index].position[0] += data->GetBearingX() / dpiScale;
+            auto bearingY = data->GetBearingY() / dpiScale;
 
-            if (Console::Is(Console::CTR))
-                _glyph.vertices[index].position[1] += data->GetBearingY() / dpiScale;
-            else
-                _glyph.vertices[index].position[1] -= data->GetBearingY() / dpiScale;
+            if (!Console::Is(Console::CTR))
+                bearingY = -bearingY;
+
+            _glyph.vertices[index].position[1] += bearingY;
         }
 
         this->textureX += width + Font::TEXTURE_PADDING;
@@ -430,6 +430,25 @@ static bool shouldCreateCommand(const Font::DrawCommand& command, const Font::Gl
     return command.texture != glyph.texture;
 }
 
+struct PositionedGlyph
+{
+    const TextShaper::GlyphPosition* position;
+    const Font::Glyph* glyph;
+};
+
+static int glyphCompare(const void* a, const void* b)
+{
+    const auto* glyph = (const PositionedGlyph*)a;
+    const auto* other = (const PositionedGlyph*)b;
+
+    const int result = glyph->glyph->sheet - other->glyph->sheet;
+
+    if (result == 0)
+        return (int)glyph->glyph - (int)other->glyph;
+
+    return result;
+}
+
 std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& codepoints,
                                                       Range range, const Color& color,
                                                       std::vector<Vertex>& vertices,
@@ -451,14 +470,30 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
     int currentColorIndex = 0;
     int colorCount        = colors.size();
 
+    /* sort glyphs on 3DS beforehand */
+    std::vector<PositionedGlyph> glyphs {};
+
+    {
+        for (int index = 0; index < (int)positions.size(); index++)
+        {
+            const auto& info  = positions[index];
+            const auto& glyph = this->FindGlyph(info.glyphIndex);
+
+            glyphs.emplace_back(&info, &glyph);
+        }
+    }
+
+    if (Console::Is(Console::CTR))
+        std::qsort(glyphs.data(), glyphs.size(), sizeof(PositionedGlyph), glyphCompare);
+
     std::vector<DrawCommand> commands {};
 
     for (int index = 0; index < (int)positions.size(); index++)
     {
-        const auto& info = positions[index];
+        const auto& info = *glyphs[index].position;
         uint32_t cacheId = this->textureCacheID;
 
-        const auto& glyph = this->FindGlyph(info.glyphIndex);
+        const auto& glyph = *glyphs[index].glyph;
 
         if (cacheId != this->textureCacheID)
         {
@@ -514,15 +549,10 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
     }
 
     const auto drawSort = [](const DrawCommand& left, const DrawCommand& right) -> bool {
-        if (Console::Is(Console::CTR))
-            return left.sheet < right.sheet;
+        if (left.texture != right.texture)
+            return left.texture < right.texture;
         else
-        {
-            if (left.texture != right.texture)
-                return left.texture < right.texture;
-            else
-                return left.start < right.start;
-        }
+            return left.start < right.start;
     };
 
     if (!Console::Is(Console::CTR))
@@ -647,17 +677,19 @@ std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
     return drawCommands;
 }
 
-void Font::Printv(Graphics<>& graphics, const Matrix4& transform,
-                  const std::vector<DrawCommand>& commands, const std::vector<Vertex>& vertices)
+void Font::Render(Graphics<>& graphics, const Matrix4& transform,
+                  const std::vector<DrawCommand>& drawCommands, const std::vector<Vertex>& vertices)
 {
-    if (vertices.empty() || commands.empty())
+    if (vertices.empty() || drawCommands.empty())
         return;
 
     Matrix4 matrix(graphics.GetTransform(), transform);
 
-    for (const auto& command : commands)
+    for (const auto& command : drawCommands)
     {
-        love::DrawCommand<Console::Which> drawCommand(command.count);
+        /* total vertices for the quads */
+        love::DrawCommand drawCommand(command.count);
+
         if (!Console::Is(Console::CTR))
         {
             drawCommand.shader = Shader<>::STANDARD_TEXTURE;
@@ -666,12 +698,15 @@ void Font::Printv(Graphics<>& graphics, const Matrix4& transform,
         else
             drawCommand.format = CommonFormat::FONT;
 
+        /* texture to use - single texture */
         drawCommand.handles = { command.texture };
 
-        matrix.TransformXY(std::span(drawCommand.Positions().get(), command.count),
-                           std::span(&vertices[command.start], command.count));
+        const auto start = command.start;
+        const auto count = command.count;
 
-        drawCommand.FillVertices(&vertices[command.start]);
+        std::memcpy(drawCommand.Vertices().get(), &vertices[start], drawCommand.size);
+        matrix.TransformXY(drawCommand.GetVertices(), std::span(&vertices[start], count));
+
         Renderer<Console::Which>::Instance().Render(drawCommand);
     }
 }
@@ -685,7 +720,7 @@ void Font::Print(Graphics<>& graphics, const ColoredStrings& text, const Matrix4
     std::vector<Vertex> vertices {};
     auto commands = this->GenerateVertices(codepoints, Range(), color, vertices);
 
-    this->Printv(graphics, matrix, commands, vertices);
+    this->Render(graphics, matrix, commands, vertices);
 }
 
 void Font::Printf(Graphics<>& graphics, const ColoredStrings& text, float wrap, AlignMode alignment,
@@ -697,7 +732,7 @@ void Font::Printf(Graphics<>& graphics, const ColoredStrings& text, float wrap, 
     std::vector<Vertex> vertices {};
     auto commands = this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
 
-    this->Printv(graphics, matrix, commands, vertices);
+    this->Render(graphics, matrix, commands, vertices);
 }
 
 #if !defined(__3DS__)

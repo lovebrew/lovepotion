@@ -82,7 +82,6 @@ void Renderer<Console::CTR>::DestroyFramebuffers()
 
 void Renderer<Console::CTR>::Clear(const Color& color)
 {
-    C3D_FrameSplit(0);
     C3D_RenderTargetClear(this->context.target, C3D_CLEAR_ALL, color.abgr(), 0);
 }
 
@@ -152,20 +151,22 @@ void Renderer<Console::CTR>::FlushVertices()
     m_commands.clear();
 }
 
-bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
+bool Renderer<Console::CTR>::Render(DrawCommand& command)
 {
     {
         Shader<Console::CTR>::defaults[command.shader]->Attach();
-
         auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
 
-        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &this->context.projection);
-        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
+        if (this->context.dirtyProjection)
+        {
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &this->context.projection);
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
+            this->context.dirtyProjection = false;
+        }
     }
 
     // check if texture is the same, or no texture at all
-    if (command.handles.empty() ||
-        (command.handles.size() > 0 && this->currentTexture == command.handles.back()))
+    if (command.handles.empty() || (this->currentTexture == command.handles.back()))
     {
         ++drawCalls;
         m_commands.push_back(command.Clone());
@@ -182,6 +183,7 @@ bool Renderer<Console::CTR>::Render(DrawCommand<Console::CTR>& command)
 
             C3D_TexBind(0, command.handles.back());
         }
+
         ++drawCalls;
         m_commands.push_back(command.Clone());
         return true;
@@ -221,17 +223,20 @@ void Renderer<Console::CTR>::SetViewport(const Rect& rect, bool tilt)
         if (newView.w == GSP_SCREEN_HEIGHT_TOP || newView.w == GSP_SCREEN_HEIGHT_TOP_2X)
         {
             Mtx_Copy(&this->context.projection, &this->targets[0].GetProjView());
+            this->context.dirtyProjection = true;
             return;
         }
         else if (newView.w == GSP_SCREEN_HEIGHT_BOTTOM)
         {
             Mtx_Copy(&this->context.projection, &this->targets[2].GetProjView());
+            this->context.dirtyProjection = true;
             return;
         }
     }
 
     auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
     ortho(&this->context.projection, 0.0f, rect.w, rect.h, 0.0f, Z_NEAR, Z_FAR, true);
+    this->context.dirtyProjection = true;
 
     C3D_SetViewport(0, 0, rect.w, rect.h);
 }
@@ -259,7 +264,11 @@ void Renderer<Console::CTR>::SetMeshCullMode(vertex::CullMode mode)
     if (!(cullMode = Renderer::cullModes.Find(mode)))
         return;
 
+    if (this->context.cullMode == mode)
+        return;
+
     C3D_CullFace(*cullMode);
+    this->context.cullMode = mode;
 }
 
 /* ??? */
@@ -300,6 +309,10 @@ void Renderer<Console::CTR>::SetColorMask(const RenderState::ColorMask& mask)
     uint8_t writeMask = GPU_WRITE_DEPTH;
     writeMask |= mask.GetColorMask();
 
+    if (this->context.colorMask == mask)
+        return;
+
+    this->context.colorMask = mask;
     C3D_DepthTest(true, GPU_GEQUAL, (GPU_WRITEMASK)writeMask);
 }
 
@@ -329,5 +342,9 @@ void Renderer<Console::CTR>::SetBlendMode(const RenderState::BlendState& state)
     if (!(dstAlpha = Renderer::blendFactors.Find(state.dstFactorA)))
         return;
 
+    if (this->context.blendState == state)
+        return;
+
+    this->context.blendState = state;
     C3D_AlphaBlend(*opRGB, *opAlpha, *srcColor, *dstColor, *srcAlpha, *dstAlpha);
 }

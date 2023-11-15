@@ -322,7 +322,7 @@ void Renderer<Console::HAC>::SetAttributes(const vertex::attributes::Attribs& at
     this->commandBuffer.bindVtxBufferState(attributes.bufferState);
 }
 
-bool Renderer<Console::HAC>::Render(const DrawCommand<Console::HAC>& command)
+bool Renderer<Console::HAC>::Render(const DrawCommand& command)
 {
     if (command.count > (this->vertices.getSize() - this->firstVertex))
         return false;

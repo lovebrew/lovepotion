@@ -215,7 +215,7 @@ void TextBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix)
 
     for (const auto& command : drawCommands)
     {
-        love::DrawCommand<Console::Which> drawCommand(command.count);
+        love::DrawCommand drawCommand(command.count);
 
         if (!Console::Is(Console::CTR))
         {

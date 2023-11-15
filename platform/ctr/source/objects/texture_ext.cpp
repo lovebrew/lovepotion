@@ -335,7 +335,7 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
 
     Matrix4 translated(graphics.GetTransform(), matrix);
 
-    DrawCommand<Console::CTR> command(0x04, vertex::PRIMITIVE_TRIANGLE_FAN);
+    DrawCommand command(0x04, vertex::PRIMITIVE_TRIANGLE_FAN);
     command.handles = { this->texture };
     command.format  = CommonFormat::TEXTURE;
 

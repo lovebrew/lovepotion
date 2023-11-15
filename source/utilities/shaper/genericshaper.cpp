@@ -14,7 +14,7 @@ void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, R
                                           std::vector<GlyphPosition>* positions,
                                           std::vector<IndexedColor>* colors, TextInfo* info)
 {
-    if (!range.isValid() && !codepoints.cps.empty())
+    if (!range.isValid())
         range = Range(0, codepoints.cps.size());
 
     if (this->rasterizers[0]->GetDataType() == Rasterizer::DATA_TRUETYPE)

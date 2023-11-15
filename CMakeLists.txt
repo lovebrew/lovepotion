@@ -234,7 +234,11 @@ FetchContent_Declare(lua-https
     GIT_TAG        TurtleP/certs
 )
 
-FetchContent_MakeAvailable(lua-https)
+FetchContent_GetProperties(lua-https)
+if(NOT lua-https_POPULATED)
+  FetchContent_Populate(lua-https)
+  add_subdirectory(${lua-https_SOURCE_DIR} ${lua-https_BINARY_DIR})
+endif()
 
 add_library(lua-https STATIC
     ${lua-https_SOURCE_DIR}/src/common/config.h

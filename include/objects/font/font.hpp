@@ -18,6 +18,7 @@
 #include <objects/rasterizer/rasterizer.hpp>
 #include <utilities/shaper/textshaper.hpp>
 
+#include <map>
 #include <vector>
 
 #if defined(__3DS__)
@@ -99,8 +100,7 @@ namespace love
                    const Matrix4& localTransform, const Color& color);
 
         void Printf(Graphics<Console::ALL>& graphics, const ColoredStrings& text, float wrap,
-                    AlignMode alignment, const Matrix4& localTransform,
-                    const Color& color);
+                    AlignMode alignment, const Matrix4& localTransform, const Color& color);
 
         int GetAscent() const;
 
@@ -175,7 +175,7 @@ namespace love
 
         const Glyph& FindGlyph(TextShaper::GlyphIndex glyphIndex);
 
-        void Printv(Graphics<Console::ALL>& graphics, const Matrix4& transform,
+        void Render(Graphics<Console::ALL>& graphics, const Matrix4& transform,
                     const std::vector<DrawCommand>& drawCommands,
                     const std::vector<vertex::Vertex>& vertices);
 
@@ -196,7 +196,7 @@ namespace love
 
         StrongReference<TextShaper> shaper;
 
-        std::unordered_map<uint32_t, Glyph> glyphs;
+        std::map<uint32_t, Glyph> glyphs;
         std::unordered_map<uint64_t, float> kernings;
 
         static constexpr auto SPACES_PER_TAB  = 0x04;

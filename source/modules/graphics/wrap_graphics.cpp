@@ -684,17 +684,14 @@ getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
 
         if (allowCompressed && module->IsCompressed(data))
         {
-            LOG("Loading compressed image.");
             luax::CatchException(L, [&]() {
                 compressed.Set(module->NewCompressedImageData(data), Acquire::NORETAIN);
             });
-            LOG("Compressed image loaded.");
         }
         else
         {
             luax::CatchException(
                 L, [&]() { image.Set(module->NewImageData(data), Acquire::NORETAIN); });
-            LOG("Imagedata loaded.");
         }
     }
     else

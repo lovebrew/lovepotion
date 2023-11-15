@@ -149,6 +149,23 @@ namespace love
             }
         };
 
+        struct StencilState
+        {
+            CompareMode compare  = COMPARE_ALWAYS;
+            StencilAction action = STENCIL_KEEP;
+
+            int value          = 0;
+            uint32_t readMask  = 0xFFFFFFFF;
+            uint32_t writeMask = 0xFFFFFFFF;
+
+            bool operator==(const StencilState& other) const
+            {
+                return this->compare == other.compare && this->action == other.action &&
+                       this->value == other.value && this->readMask == other.readMask &&
+                       this->writeMask == other.writeMask;
+            }
+        };
+
         struct ColorMask
         {
             bool r : 1, g : 1, b : 1, a : 1;

@@ -179,7 +179,8 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4& matri
 
     // TODO what do we do?
     if (indirectArgs != nullptr)
-    {}
+    {
+    }
 
     if (this->mode == PRIMITIVE_TRIANGLE_FAN && this->useIndexBuffer && !this->indexBuffer.empty())
     {
@@ -202,7 +203,7 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4& matri
         if (range.isValid())
             _range.intersect(range);
 
-        DrawCommand<Console::Which> command(_range.getSize(), this->mode);
+        DrawCommand command(_range.getSize(), this->mode);
         command.FillVertices(this->buffer.data());
 
         transform.TransformXYPure(std::span(command.vertices.get(), command.count),

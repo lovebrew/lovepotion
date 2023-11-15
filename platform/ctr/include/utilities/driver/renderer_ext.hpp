@@ -8,6 +8,7 @@
 
 #include <utilities/driver/framebuffer_ext.hpp>
 #include <utilities/driver/renderer/drawcommand.tcc>
+#include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
 
@@ -65,7 +66,7 @@ namespace love
         /* todo: canvases */
         void BindFramebuffer(Texture<Console::ALL>* texture = nullptr);
 
-        bool Render(DrawCommand<Console::CTR>& command);
+        bool Render(DrawCommand& command);
 
         void Present();
 
@@ -202,6 +203,13 @@ namespace love
             C3D_Mtx modelView;
             C3D_Mtx projection;
             C3D_RenderTarget* target;
+            bool dirtyProjection;
+
+            vertex::CullMode cullMode;
+
+            love::RenderState::ColorMask colorMask;
+            love::RenderState::BlendState blendState;
+            love::RenderState::StencilState stencilState;
         } context;
 
         std::vector<std::function<void()>> deferred;
@@ -212,7 +220,7 @@ namespace love
         static inline PrimitiveType currentPrimitiveType = PRIMITIVE_MAX_ENUM;
         static inline int totalVertices                  = 0;
 
-        static inline std::vector<DrawCommand<Console::CTR>> m_commands {};
+        static inline std::vector<DrawCommand> m_commands {};
 
         C3D_BufInfo bufferInfo;
 

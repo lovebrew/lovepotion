@@ -78,7 +78,7 @@ int SpriteBatch::Add(Quad* quad, const Matrix4& matrix, int index)
 
     1    2
     */
-    std::array<Vertex, 0x06> textureVertices = 
+    std::array<Vertex, 0x06> textureVertices =
     {
         /*        x                     y                   z                u                    v      */
         Vertex {{ quadPositions[0].x,   quadPositions[0].y, 0.0f }, color, { textureCoords[0].x,  textureCoords[0].y }},
@@ -245,7 +245,7 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix
     if (Console::Is(Console::CTR))
         shaderType = Shader<>::STANDARD_DEFAULT;
 
-    DrawCommand<Console::Which> command(count * 0x06, PRIMITIVE_TRIANGLES, shaderType);
+    DrawCommand command(count * 0x06, PRIMITIVE_TRIANGLES, shaderType);
     command.format = CommonFormat::TEXTURE;
 
 #if defined(__3DS__)

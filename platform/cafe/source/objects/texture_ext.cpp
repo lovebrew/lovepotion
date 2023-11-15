@@ -322,7 +322,7 @@ void Texture<Console::CAFE>::Draw(Graphics<Console::CAFE>& graphics, Quad* quad,
 
     Matrix4 transform(stateTransform, matrix);
 
-    love::DrawCommand<Console::CAFE> command(4);
+    love::DrawCommand command(4);
     command.shader  = Shader<>::STANDARD_TEXTURE;
     command.format  = vertex::CommonFormat::TEXTURE;
     command.type    = vertex::PRIMITIVE_QUADS;

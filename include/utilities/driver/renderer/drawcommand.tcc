@@ -19,8 +19,6 @@ namespace love
 #else
     using Handle = Texture<Console::Which>;
 #endif
-
-    template<Console::Platform T = Console::ALL>
     struct DrawCommand
     {
       public:
@@ -68,9 +66,19 @@ namespace love
             return this->positions;
         }
 
+        const std::span<Vector2> GetPositions() const
+        {
+            return std::span<Vector2>(this->positions.get(), this->count);
+        }
+
         const std::unique_ptr<Vertex[]>& Vertices() const
         {
             return this->vertices;
+        }
+
+        const std::span<Vertex> GetVertices() const
+        {
+            return std::span<Vertex>(this->vertices.get(), this->count);
         }
 
         /* primitive */

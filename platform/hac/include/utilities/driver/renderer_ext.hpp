@@ -137,7 +137,7 @@ namespace love
 
         void CheckDescriptorsDirty(const std::vector<DkResHandle>& handles);
 
-        bool Render(const DrawCommand<Console::HAC>& command);
+        bool Render(const DrawCommand& command);
 
         void UseProgram(Shader<Console::Which>::Program program);
 

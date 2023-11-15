@@ -1166,7 +1166,7 @@ namespace love
                 bool is2D            = transform.IsAffine2DTransform();
 
                 const int count = points.size() - (skipLastVertex ? 1 : 0);
-                DrawCommand<Console::Which> command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
+                DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
                 if (is2D)
                     transform.TransformXY(std::span(command.Positions().get(), command.count),
@@ -1398,7 +1398,7 @@ namespace love
             const auto& transform = this->GetTransform();
             bool is2D             = transform.IsAffine2DTransform();
 
-            DrawCommand<Console::Which> command(points.size(), vertex::PRIMITIVE_POINTS);
+            DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
 
             if (is2D)
                 transform.TransformXY(std::span(command.Positions().get(), points.size()), points);
