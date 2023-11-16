@@ -48,6 +48,25 @@ namespace love
             }
         }
 
+        DrawCommand(size_t count, Shader<>::StandardShader shader, CommonFormat format) :
+            count(count),
+            size(count * VERTEX_SIZE),
+            format(format),
+            shader(shader)
+        {
+            if (count == 0)
+                throw love::Exception("Vertex count cannot be zero.");
+
+            try
+            {
+                this->vertices = std::make_unique<Vertex[]>(count);
+            }
+            catch (std::bad_alloc&)
+            {
+                throw love::Exception("Out of memory.");
+            }
+        }
+
         DrawCommand Clone()
         {
             /* init count, size, shader, and type */
@@ -55,7 +74,9 @@ namespace love
             clone.format  = this->format;
             clone.handles = this->handles;
 
-            std::copy_n(this->Positions().get(), this->count, clone.Positions().get());
+            if (this->positions)
+                std::copy_n(this->Positions().get(), this->count, clone.Positions().get());
+
             std::copy_n(this->Vertices().get(), this->count, clone.Vertices().get());
 
             return clone;
