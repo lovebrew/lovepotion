@@ -3,7 +3,7 @@
 #include <common/drawable.hpp>
 
 #include <common/color.hpp>
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 #include <common/strongreference.hpp>
 
 #include <objects/texture/texture.tcc>

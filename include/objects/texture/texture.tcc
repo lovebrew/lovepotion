@@ -17,7 +17,7 @@
 #include <algorithm>
 #include <stddef.h>
 
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 
 namespace love
 {

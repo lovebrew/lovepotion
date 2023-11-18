@@ -368,6 +368,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/data.cpp
     source/common/exception.cpp
     source/common/luax.cpp
+    source/common/matrix.cpp
     source/common/module.cpp
     source/common/object.cpp
     source/common/pixelformat.cpp

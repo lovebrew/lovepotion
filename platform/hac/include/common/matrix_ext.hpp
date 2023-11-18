@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 
 namespace love
 {

@@ -1,4 +1,4 @@
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 
 #include <objects/textbatch/textbatch.hpp>
 

@@ -2,7 +2,7 @@
 
 #include <common/luax.hpp>
 
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 #include <objects/transform/transform.hpp>
 
 namespace Wrap_Graphics

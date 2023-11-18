@@ -33,6 +33,8 @@ namespace Wrap_Filesystem
 
     int Load(lua_State* L);
 
+    int Exists(lua_State* L);
+
     int GetInfo(lua_State* L);
 
     int GetSaveDirectory(lua_State* L);

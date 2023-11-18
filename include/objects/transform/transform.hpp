@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 #include <common/object.hpp>
 #include <common/vector.hpp>
 

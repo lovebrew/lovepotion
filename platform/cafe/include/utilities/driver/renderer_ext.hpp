@@ -253,7 +253,7 @@ namespace love
         Framebuffer* current;
         GX2ContextState* state;
 
-        static inline std::vector<DrawCommand m_commands {};
+        static inline std::vector<DrawCommand> m_commands {};
         static inline CommonFormat m_format = CommonFormat::NONE;
         static inline GX2RBuffer m_buffer {};
         static inline size_t m_vertexOffset = 0;

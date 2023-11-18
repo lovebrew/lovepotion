@@ -1,6 +1,6 @@
 #pragma once
 
-#include "matrix.tcc"
+#include "matrix.hpp"
 #include "object.hpp"
 
 namespace love

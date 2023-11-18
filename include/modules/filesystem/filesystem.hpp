@@ -113,6 +113,8 @@ namespace love
 
         virtual std::string GetRealDirectory(const char* filename) const = 0;
 
+        virtual bool Exists(const char* filename) const = 0;
+
         virtual bool GetInfo(const char* filename, Info& info) const = 0;
 
         virtual bool CreateDirectory(const char* name) = 0;
@@ -161,7 +163,7 @@ namespace love
             "userhome",      Filesystem::USER_HOME,
             "userdocuments", Filesystem::USER_DOCUMENTS
         };
-        
+
         static constexpr BidirectionalMap mountPermissions = {
             "read",      Filesystem::MOUNT_READ,
             "readwrite", Filesystem::MOUNT_READWRITE

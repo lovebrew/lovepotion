@@ -7,7 +7,7 @@
 #include <common/optional.hpp>
 #include <common/strongreference.hpp>
 
-#include <common/matrix.tcc>
+#include <common/matrix.hpp>
 
 #include <modules/font/fontmodule.tcc>
 #include <modules/math/math.hpp>

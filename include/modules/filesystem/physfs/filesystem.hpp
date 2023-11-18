@@ -72,6 +72,8 @@ namespace love::physfs
 
         std::string GetRealDirectory(const char* filename) const override;
 
+        bool Exists(const char* filename) const override;
+
         bool GetInfo(const char* filepath, Info& info) const override;
 
         bool CreateDirectory(const char* directory) override;

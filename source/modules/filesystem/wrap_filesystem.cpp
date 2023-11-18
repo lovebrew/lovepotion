@@ -345,6 +345,15 @@ int Wrap_Filesystem::GetIdentity(lua_State* L)
     return 1;
 }
 
+int Wrap_Filesystem::Exists(lua_State* L)
+{
+    const char* filename = luaL_checkstring(L, 1);
+
+    lua_pushboolean(L, instance()->Exists(filename));
+
+    return 1;
+}
+
 int Wrap_Filesystem::GetInfo(lua_State* L)
 {
     const char* filepath = luaL_checkstring(L, 1);
@@ -797,6 +806,7 @@ static constexpr luaL_Reg functions[] =
 {
     { "append",                 Wrap_Filesystem::Append                 },
     { "createDirectory",        Wrap_Filesystem::CreateDirectory        },
+    { "exists",                 Wrap_Filesystem::Exists                 },
     { "getDirectoryItems",      Wrap_Filesystem::GetDirectoryItems      },
     { "getExecutablePath",      Wrap_Filesystem::GetExecutablePath      },
     { "getIdentity",            Wrap_Filesystem::GetIdentity            },
