@@ -25,8 +25,6 @@
 
 using namespace love::physfs;
 
-#include <utilities/log/logfile.hpp>
-
 static std::string getApplicationPath(std::string origin)
 {
 #if defined(__EMULATION__)

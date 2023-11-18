@@ -6,8 +6,6 @@
 
 #include <utilities/bidirectionalmap/smallvector.hpp>
 
-#include <utilities/log/logfile.hpp>
-
 namespace love
 {
     struct ScreenInfo

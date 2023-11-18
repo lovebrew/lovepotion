@@ -52,18 +52,34 @@ namespace love
                 C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
             }
 
-            static inline AttributeSetFunction GetTexEnvFunction(CommonFormat format)
+            static inline CommonFormat s_format = CommonFormat::NONE;
+
+            static inline void SetTexEnvFunction(CommonFormat format)
             {
+                if (format == s_format)
+                    return;
+
                 switch (format)
                 {
                     case CommonFormat::PRIMITIVE:
                     default:
-                        return SetPrimitiveAttribute;
+                    {
+                        SetPrimitiveAttribute();
+                        break;
+                    }
                     case CommonFormat::TEXTURE:
-                        return SetTextureAttribute;
+                    {
+                        SetTextureAttribute();
+                        break;
+                    }
                     case CommonFormat::FONT:
-                        return SetFontAttribute;
+                    {
+                        SetFontAttribute();
+                        break;
+                    }
                 }
+
+                s_format = format;
             }
         } // namespace attributes
     }     // namespace vertex

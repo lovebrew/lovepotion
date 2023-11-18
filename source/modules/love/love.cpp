@@ -52,6 +52,8 @@ static constexpr char nestlink_lua[] = {
 #include <modules/touch/wrap_touch.hpp>
 #include <modules/window/wrap_window.hpp>
 
+#include <utilities/debug/logfile.hpp>
+
 // clang-format off
 static constexpr luaL_Reg modules[] =
 {
@@ -86,7 +88,6 @@ static constexpr luaL_Reg modules[] =
 // clang-format on
 
 #include <modules/system_ext.hpp>
-#include <utilities/log/logfile.hpp>
 
 static void addCompatibilityAlias(lua_State* L, const char* module, const char* name,
                                   const char* alias)

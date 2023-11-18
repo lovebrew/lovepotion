@@ -11,6 +11,12 @@
 
 using namespace love;
 
+static C3D_Mtx s_projection;
+static C3D_Mtx s_modelView;
+static bool s_dirtyProjection;
+static std::optional<GPU_Primitive_t> s_primitive;
+static PrimitiveType s_primitiveType;
+
 Renderer<Console::CTR>::Renderer() : targets {}, currentTexture(nullptr)
 {
     gfxInitDefault();
@@ -41,8 +47,8 @@ Renderer<Console::CTR>::Renderer() : targets {}, currentTexture(nullptr)
     if (result < 0)
         throw love::Exception("Failed to add C3D_BufInfo.");
 
-    Mtx_Identity(&this->context.projection);
-    Mtx_Identity(&this->context.modelView);
+    Mtx_Identity(&s_projection);
+    Mtx_Identity(&s_modelView);
 }
 
 Renderer<Console::CTR>::~Renderer()
@@ -125,26 +131,35 @@ void Renderer<Console::CTR>::BindFramebuffer(Texture<Console::ALL>* texture)
     this->SetViewport(viewport, this->context.target->linked);
 }
 
+#include <utilities/debug/measure.hpp>
+using namespace vertex::attributes;
+
 void Renderer<Console::CTR>::FlushVertices()
 {
+    if (s_dirtyProjection)
+    {
+        const auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &s_projection);
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &s_modelView);
+
+        s_dirtyProjection = false;
+    }
+
     for (const auto& command : m_commands)
     {
         std::memcpy(m_vertices + m_vertexOffset, command.Vertices().get(), command.size);
+        SetTexEnvFunction(command.format);
 
-        if (m_format != command.format)
+        if (s_primitiveType != command.type)
         {
-            const auto setTexEnvFunction = vertex::attributes::GetTexEnvFunction(command.format);
-            setTexEnvFunction();
+            if (!(s_primitive = primitiveModes.Find(command.type)))
+                throw love::Exception("Invalid primitive mode");
 
-            m_format = command.format;
+            s_primitiveType = command.type;
         }
 
-        std::optional<GPU_Primitive_t> primitive;
-        if (!(primitive = primitiveModes.Find(command.type)))
-            throw love::Exception("Invalid primitive mode");
-
         ++drawCallsBatched;
-        C3D_DrawArrays(*primitive, m_vertexOffset, command.count);
+        C3D_DrawArrays(*s_primitive, m_vertexOffset, command.count);
         m_vertexOffset += command.count;
     }
 
@@ -153,17 +168,7 @@ void Renderer<Console::CTR>::FlushVertices()
 
 bool Renderer<Console::CTR>::Render(DrawCommand& command)
 {
-    {
-        Shader<Console::CTR>::defaults[command.shader]->Attach();
-        auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
-
-        if (this->context.dirtyProjection)
-        {
-            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &this->context.projection);
-            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &this->context.modelView);
-            this->context.dirtyProjection = false;
-        }
-    }
+    Shader<Console::CTR>::defaults[command.shader]->Attach();
 
     // check if texture is the same, or no texture at all
     if (command.handles.empty() || (this->currentTexture == command.handles.back()))
@@ -216,27 +221,30 @@ void Renderer<Console::CTR>::Present()
 
 void Renderer<Console::CTR>::SetViewport(const Rect& rect, bool tilt)
 {
-    Rect newView = rect;
+    if (this->viewport == rect)
+        return;
 
-    if (newView.h == GSP_SCREEN_WIDTH && tilt)
+    this->viewport = rect;
+
+    if (rect.h == GSP_SCREEN_WIDTH && tilt)
     {
-        if (newView.w == GSP_SCREEN_HEIGHT_TOP || newView.w == GSP_SCREEN_HEIGHT_TOP_2X)
+        if (rect.w == GSP_SCREEN_HEIGHT_TOP || rect.w == GSP_SCREEN_HEIGHT_TOP_2X)
         {
-            Mtx_Copy(&this->context.projection, &this->targets[0].GetProjView());
-            this->context.dirtyProjection = true;
+            Mtx_Copy(&s_projection, &this->targets[0].GetProjView());
+            s_dirtyProjection = true;
             return;
         }
-        else if (newView.w == GSP_SCREEN_HEIGHT_BOTTOM)
+        else if (rect.w == GSP_SCREEN_HEIGHT_BOTTOM)
         {
-            Mtx_Copy(&this->context.projection, &this->targets[2].GetProjView());
-            this->context.dirtyProjection = true;
+            Mtx_Copy(&s_projection, &this->targets[2].GetProjView());
+            s_dirtyProjection = true;
             return;
         }
     }
 
     auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
-    ortho(&this->context.projection, 0.0f, rect.w, rect.h, 0.0f, Z_NEAR, Z_FAR, true);
-    this->context.dirtyProjection = true;
+    ortho(&s_projection, 0.0f, rect.w, rect.h, 0.0f, Z_NEAR, Z_FAR, true);
+    s_dirtyProjection = true;
 
     C3D_SetViewport(0, 0, rect.w, rect.h);
 }

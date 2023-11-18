@@ -9,8 +9,6 @@
 
 #include <nn/swkbd.h>
 
-#include <utilities/log/logfile.hpp>
-
 #define Keyboard() (Module::GetInstance<Keyboard<Console::CAFE>>(Module::M_KEYBOARD))
 #define Module()   (Module::GetInstance<JoystickModule<Console::CAFE>>(Module::M_JOYSTICK))
 
