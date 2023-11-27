@@ -192,10 +192,10 @@ int Wrap_Shape::TestPoint(lua_State* L)
         float pointX = luaL_checknumber(L, 5);
         float pointY = luaL_checknumber(L, 6);
 
-        hit = luax::CatchException(L, [&]() { self->TestPoint(x, y, angle, pointX, pointY); });
+        luax::CatchException(L, [&]() { hit = self->TestPoint(x, y, angle, pointX, pointY); });
     }
     else
-        hit = luax::CatchException(L, [&]() { self->TestPoint(x, y); });
+        luax::CatchException(L, [&]() { hit = self->TestPoint(x, y); });
 
     luax::PushBoolean(L, hit);
 

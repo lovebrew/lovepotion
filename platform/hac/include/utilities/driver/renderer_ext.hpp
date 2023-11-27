@@ -39,7 +39,7 @@ namespace love
     {
       private:
         static constexpr const char* RENDERER_NAME    = "deko3d";
-        static constexpr const char* RENDERER_VERSION = "0.4.0";
+        static constexpr const char* RENDERER_VERSION = "0.5.0";
         static constexpr const char* RENDERER_VENDOR  = "devkitPro";
         static constexpr const char* RENDERER_DEVICE  = "NVIDIA Tegra X1";
 
