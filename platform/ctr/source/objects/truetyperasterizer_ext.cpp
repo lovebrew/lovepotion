@@ -83,6 +83,17 @@ int TrueTypeRasterizer<Console::CTR>::GetGlyphSpacing(uint32_t glyph) const
 }
 
 template<>
+int TrueTypeRasterizer<Console::CTR>::GetGlyphWidth(uint32_t glyph) const
+{
+    fontGlyphPos_s out {};
+
+    int index = fontGlyphIndexFromCodePoint(this->face, glyph);
+    fontCalcGlyphPos(&out, this->face, index, GLYPH_POS_CALC_VTXCOORD, this->scale, this->scale);
+
+    return out.width;
+}
+
+template<>
 int TrueTypeRasterizer<Console::CTR>::GetGlyphIndex(uint32_t glyph) const
 {
     const auto index      = fontGlyphIndexFromCodePoint(this->face, glyph);

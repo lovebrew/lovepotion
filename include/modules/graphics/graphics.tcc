@@ -22,7 +22,7 @@
 #include <objects/spritebatch/spritebatch.hpp>
 #include <objects/textbatch/textbatch.hpp>
 
-#include <utilities/driver/renderer/drawcommand.tcc>
+#include <utilities/driver/renderer/drawcommand.hpp>
 
 #include <utilities/driver/renderer/polyline/polyline.hpp>
 
@@ -1169,8 +1169,7 @@ namespace love
                 DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
                 if (is2D)
-                    transform.TransformXY(std::span(command.Positions().get(), command.count),
-                                          points);
+                    transform.TransformXY(std::span(*command.Positions()), points);
 
                 command.FillVertices(this->GetColor());
 
@@ -1401,7 +1400,7 @@ namespace love
             DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
 
             if (is2D)
-                transform.TransformXY(std::span(command.Positions().get(), points.size()), points);
+                transform.TransformXY(std::span(*command.Positions()), points);
 
             if (colors.size() > 1)
                 command.FillVertices(colors);

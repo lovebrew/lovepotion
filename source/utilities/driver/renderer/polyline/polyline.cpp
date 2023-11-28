@@ -195,8 +195,7 @@ void Polyline::draw(Graphics<Console::ALL>* gfx)
         DrawCommand command(totalVertices, mode);
 
         if (is2D)
-            t.TransformXY(std::span(command.Positions().get(), totalVertices),
-                          std::span(verts, totalVertices));
+            t.TransformXY(std::span(*command.Positions()), std::span(verts, totalVertices));
 
         Color colordata[totalVertices] {};
 

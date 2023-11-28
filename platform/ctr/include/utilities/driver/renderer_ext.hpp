@@ -7,7 +7,7 @@
 #include <common/pixelformat.hpp>
 
 #include <utilities/driver/framebuffer_ext.hpp>
-#include <utilities/driver/renderer/drawcommand.tcc>
+#include <utilities/driver/renderer/drawcommand.hpp>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>
@@ -15,7 +15,7 @@
 #include <vector>
 
 #include <3ds.h>
-#include <citro2d.h>
+#include <citro3d.h>
 
 namespace love
 {
@@ -46,6 +46,13 @@ namespace love
         ~Renderer();
 
         static void FlushVertices();
+
+        static std::span<Vertex> AllocateVertices(size_t count)
+        {
+            std::span<Vertex> ret = std::span<Vertex>(m_vertices + m_vertexOffset, count);
+            m_vertexOffset += count;
+            return ret;
+        }
 
         Info GetRendererInfo();
 

@@ -7,12 +7,12 @@ namespace love
     class TempTransform
     {
       public:
-        TempTransform(Graphics<Console::Which>& graphics) : graphics(&graphics)
+        TempTransform(Graphics<Console::ALL>& graphics) : graphics(&graphics)
         {
             this->graphics->PushTransform();
         }
 
-        TempTransform(Graphics<Console::Which>& graphics, const Matrix4& transform) :
+        TempTransform(Graphics<Console::ALL>& graphics, const Matrix4& transform) :
             TempTransform(graphics)
         {
             this->graphics->PushTransform();
@@ -26,19 +26,12 @@ namespace love
                                                        std::forward<decltype(src)>(src));
         }
 
-        template<typename vDst, typename vSrc>
-        void TransformXYPure(vDst&& dst, vSrc&& src)
-        {
-            this->graphics->GetTransform().TransformXY(std::forward<decltype(dst)>(dst),
-                                                       std::forward<decltype(src)>(src));
-        }
-
         ~TempTransform()
         {
             this->graphics->PopTransform();
         }
 
       private:
-        Graphics<Console::Which>* graphics;
+        Graphics<Console::ALL>* graphics;
     };
 } // namespace love

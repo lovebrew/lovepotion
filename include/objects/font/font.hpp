@@ -54,7 +54,7 @@ namespace love
             int spacing;
             std::array<vertex::Vertex, 0x06> vertices;
 
-            int sheet;
+            bool requiresDraw;
         };
 
         struct DrawCommand
@@ -62,8 +62,6 @@ namespace love
             TextureHandle* texture;
             int start;
             int count;
-
-            int sheet;
         };
 
         static inline int fontCount = 0;
@@ -117,15 +115,41 @@ namespace love
 
         std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints, Range range,
                                                   const Color& color,
+                                                  std::span<vertex::Vertex>& vertices,
+                                                  float extraSpacing = 0.0f, Vector2 offset = {},
+                                                  TextShaper::TextInfo* info = nullptr)
+        {
+            return RealGenerateVertices(codepoints, range, color, vertices, extraSpacing, offset,
+                                        info);
+        }
+
+        std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
+                                                           const Color& color, float wrap,
+                                                           AlignMode align,
+                                                           std::span<vertex::Vertex>& vertices,
+                                                           TextShaper::TextInfo* info = nullptr)
+        {
+            return RealGenerateVerticesFormatted(codepoints, color, wrap, align, vertices, info);
+        }
+
+        std::vector<DrawCommand> GenerateVertices(const ColoredCodepoints& codepoints, Range range,
+                                                  const Color& color,
                                                   std::vector<vertex::Vertex>& vertices,
                                                   float extraSpacing = 0.0f, Vector2 offset = {},
-                                                  TextShaper::TextInfo* info = nullptr);
+                                                  TextShaper::TextInfo* info = nullptr)
+        {
+            return RealGenerateVertices(codepoints, range, color, vertices, extraSpacing, offset,
+                                        info);
+        }
 
         std::vector<DrawCommand> GenerateVerticesFormatted(const ColoredCodepoints& codepoints,
                                                            const Color& color, float wrap,
                                                            AlignMode align,
                                                            std::vector<vertex::Vertex>& vertices,
-                                                           TextShaper::TextInfo* info = nullptr);
+                                                           TextShaper::TextInfo* info = nullptr)
+        {
+            return RealGenerateVerticesFormatted(codepoints, color, wrap, align, vertices, info);
+        }
 
         void SetLineHeight(float height);
 
@@ -161,6 +185,10 @@ namespace love
 
         static constexpr int MAX_TEXTURE_SIZE = 2048;
 
+        void AllocateVertices(std::span<vertex::Vertex>& vertices, size_t count);
+
+        void AllocateVertices(std::vector<vertex::Vertex>& vertices, size_t count);
+
         bool LoadVolatile();
 
         void UnloadVolatile();
@@ -177,7 +205,24 @@ namespace love
 
         void Render(Graphics<Console::ALL>& graphics, const Matrix4& transform,
                     const std::vector<DrawCommand>& drawCommands,
-                    const std::vector<vertex::Vertex>& vertices);
+                    const std::span<vertex::Vertex>& vertices);
+
+        template<typename Container>
+        requires std::same_as<Container, std::vector<vertex::Vertex>> ||
+                 std::same_as<Container, std::span<vertex::Vertex>>
+        std::vector<DrawCommand> RealGenerateVertices(const ColoredCodepoints& codepoints,
+                                                      Range range, const Color& color,
+                                                      Container& vertices,
+                                                      float extraSpacing         = 0.0f,
+                                                      Vector2 offset             = {},
+                                                      TextShaper::TextInfo* info = nullptr);
+
+        template<typename Container>
+        requires std::same_as<Container, std::vector<vertex::Vertex>> ||
+                 std::same_as<Container, std::span<vertex::Vertex>>
+        std::vector<DrawCommand> RealGenerateVerticesFormatted(
+            const ColoredCodepoints& codepoints, const Color& color, float wrap, AlignMode align,
+            Container& vertices, TextShaper::TextInfo* info = nullptr);
 
         int textureX;
         int textureY;
@@ -191,12 +236,12 @@ namespace love
 #if defined(__3DS__)
         std::vector<C3D_Tex> textures;
 #else
-        std::vector<StrongReference<Texture<Console::Which> > > textures;
+        std::vector<StrongReference<Texture<Console::Which>>> textures;
 #endif
 
         StrongReference<TextShaper> shaper;
 
-        std::map<uint32_t, Glyph> glyphs;
+        std::unordered_map<uint32_t, Glyph> glyphs;
         std::unordered_map<uint64_t, float> kernings;
 
         static constexpr auto SPACES_PER_TAB  = 0x04;
@@ -214,4 +259,22 @@ namespace love
 
         PixelFormat format;
     };
+
+    extern template std::vector<Font::DrawCommand> Font::RealGenerateVertices(
+        const ColoredCodepoints& codepoints, Range range, const Color& color,
+        std::span<vertex::Vertex>& vertices, float extraSpacing = 0.0f, Vector2 offset = {},
+        TextShaper::TextInfo* info = nullptr);
+
+    extern template std::vector<Font::DrawCommand> Font::RealGenerateVertices(
+        const ColoredCodepoints& codepoints, Range range, const Color& color,
+        std::vector<vertex::Vertex>& vertices, float extraSpacing = 0.0f, Vector2 offset = {},
+        TextShaper::TextInfo* info = nullptr);
+
+    extern template std::vector<Font::DrawCommand> Font::RealGenerateVerticesFormatted(
+        const ColoredCodepoints& codepoints, const Color& color, float wrap, AlignMode align,
+        std::span<vertex::Vertex>& vertices, TextShaper::TextInfo* info = nullptr);
+
+    extern template std::vector<Font::DrawCommand> Font::RealGenerateVerticesFormatted(
+        const ColoredCodepoints& codepoints, const Color& color, float wrap, AlignMode align,
+        std::vector<vertex::Vertex>& vertices, TextShaper::TextInfo* info = nullptr);
 } // namespace love

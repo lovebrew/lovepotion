@@ -147,7 +147,6 @@ void Renderer<Console::CTR>::FlushVertices()
 
     for (const auto& command : m_commands)
     {
-        std::memcpy(m_vertices + m_vertexOffset, command.Vertices().get(), command.size);
         SetTexEnvFunction(command.format);
 
         if (s_primitiveType != command.type)
@@ -159,8 +158,7 @@ void Renderer<Console::CTR>::FlushVertices()
         }
 
         ++drawCallsBatched;
-        C3D_DrawArrays(*s_primitive, m_vertexOffset, command.count);
-        m_vertexOffset += command.count;
+        C3D_DrawArrays(*s_primitive, command.vertices.data() - m_vertices, command.count);
     }
 
     m_commands.clear();
@@ -174,7 +172,7 @@ bool Renderer<Console::CTR>::Render(DrawCommand& command)
     if (command.handles.empty() || (this->currentTexture == command.handles.back()))
     {
         ++drawCalls;
-        m_commands.push_back(command.Clone());
+        m_commands.push_back(std::move(command));
         return true;
     }
     else
@@ -190,7 +188,7 @@ bool Renderer<Console::CTR>::Render(DrawCommand& command)
         }
 
         ++drawCalls;
-        m_commands.push_back(command.Clone());
+        m_commands.push_back(std::move(command));
         return true;
     }
 

@@ -270,8 +270,7 @@ void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int sli
     C3D_TexFlush(this->texture);
 }
 
-void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
-                                 const Matrix4& matrix)
+void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, const Matrix4& matrix)
 {
     this->Draw(graphics, this->quad, matrix);
 }
@@ -340,7 +339,8 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
     command.format  = CommonFormat::TEXTURE;
 
     if (is2D)
-        translated.TransformXY(std::span(command.Positions().get(), command.count), std::span(quad->GetVertexPositions(), command.count));
+        translated.TransformXY(std::span(*command.Positions()),
+                               std::span(quad->GetVertexPositions(), command.count));
 
     const auto* coords = quad->GetVertexTextureCoords();
     command.FillVertices(graphics.GetColor(), coords);

@@ -15,6 +15,7 @@ namespace love
     using namespace vertex;
 
 #if defined(__3DS__)
+    #include <citro3d.h>
     using Handle = C3D_Tex;
 #else
     using Handle = Texture<Console::Which>;
@@ -24,6 +25,8 @@ namespace love
       public:
         DrawCommand()
         {}
+
+        std::span<vertex::Vertex> AllocateVertices(size_t count);
 
         DrawCommand(size_t count, PrimitiveType type = PRIMITIVE_TRIANGLES,
                     Shader<>::StandardShader shader = Shader<>::STANDARD_DEFAULT) :
@@ -39,8 +42,8 @@ namespace love
 
             try
             {
-                this->positions = std::make_unique<Vector2[]>(count);
-                this->vertices  = std::make_unique<Vertex[]>(count);
+                this->positions = std::vector<Vector2>(count);
+                this->vertices  = AllocateVertices(count);
             }
             catch (std::bad_alloc&)
             {
@@ -59,7 +62,7 @@ namespace love
 
             try
             {
-                this->vertices = std::make_unique<Vertex[]>(count);
+                this->vertices = AllocateVertices(count);
             }
             catch (std::bad_alloc&)
             {
@@ -67,39 +70,42 @@ namespace love
             }
         }
 
-        DrawCommand Clone()
+        DrawCommand(std::span<vertex::Vertex> vertices, PrimitiveType type,
+                    Shader<>::StandardShader shader, CommonFormat format) :
+            vertices(vertices),
+            count(vertices.size()),
+            size(count * VERTEX_SIZE),
+            format(format),
+            type(type),
+            shader(shader)
         {
-            /* init count, size, shader, and type */
-            DrawCommand clone(this->count, this->type, this->shader);
-            clone.format  = this->format;
-            clone.handles = this->handles;
-
-            if (this->positions)
-                std::copy_n(this->Positions().get(), this->count, clone.Positions().get());
-
-            std::copy_n(this->Vertices().get(), this->count, clone.Vertices().get());
-
-            return clone;
+            if (this->count == 0)
+                throw love::Exception("Vertex count cannot be zero.");
         }
 
-        const std::unique_ptr<Vector2[]>& Positions() const
+        std::optional<std::vector<Vector2>>& Positions()
         {
             return this->positions;
         }
 
-        const std::span<Vector2> GetPositions() const
+        const std::optional<std::vector<Vector2>>& Positions() const
         {
-            return std::span<Vector2>(this->positions.get(), this->count);
+            return this->positions;
         }
 
-        const std::unique_ptr<Vertex[]>& Vertices() const
+        std::span<const Vector2> GetPositions() const
+        {
+            return this->positions ? *this->positions : std::span<const Vector2> {};
+        }
+
+        std::span<const Vertex> Vertices() const
+        {
+            return std::span<const Vertex>(this->vertices.data(), this->vertices.size());
+        }
+
+        std::span<Vertex> Vertices()
         {
             return this->vertices;
-        }
-
-        const std::span<Vertex> GetVertices() const
-        {
-            return std::span<Vertex>(this->vertices.get(), this->count);
         }
 
         /* primitive */
@@ -110,7 +116,7 @@ namespace love
                 // clang-format off
                 this->vertices[index] =
                 {
-                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .position = { (*this->positions)[index].x, (*this->positions)[index].y, 0 },
                     .color    = color.array(),
                     .texcoord = { 0.0f, 0.0f }
                 };
@@ -126,7 +132,7 @@ namespace love
                 // clang-format off
                 this->vertices[index] =
                 {
-                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .position = { (*this->positions)[index].x, (*this->positions)[index].y, 0 },
                     .color    = colors[index].array(),
                     .texcoord = { 0, 0 }
                 };
@@ -142,7 +148,7 @@ namespace love
                 // clang-format off
                 this->vertices[index] =
                 {
-                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .position = { (*this->positions)[index].x, (*this->positions)[index].y, 0 },
                     .color    = colors[index].array(),
                     .texcoord = { 0, 0 }
                 };
@@ -158,7 +164,7 @@ namespace love
                 // clang-format off
                 this->vertices[index] =
                 {
-                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .position = { (*this->positions)[index].x, (*this->positions)[index].y, 0 },
                     .color    = color.array(),
                     .texcoord = { textureCoords[index].x, textureCoords[index].y }
                 };
@@ -174,7 +180,7 @@ namespace love
                 // clang-format off
                 this->vertices[index] =
                 {
-                    .position = { this->positions[index].x, this->positions[index].y, 0 },
+                    .position = { (*this->positions)[index].x, (*this->positions)[index].y, 0 },
                     .color    = source[index].color,
                     .texcoord = source[index].texcoord
                 };
@@ -183,8 +189,8 @@ namespace love
         }
 
       public:
-        std::unique_ptr<Vector2[]> positions;
-        std::unique_ptr<Vertex[]> vertices;
+        std::optional<std::vector<Vector2>> positions;
+        std::span<Vertex> vertices;
 
         size_t count;
         size_t size;

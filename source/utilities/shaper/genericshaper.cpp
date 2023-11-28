@@ -12,7 +12,8 @@ GenericShaper::GenericShaper(Rasterizer* rasterizer) : TextShaper(rasterizer)
 void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, Range range,
                                           Vector2 offset, float spacing,
                                           std::vector<GlyphPosition>* positions,
-                                          std::vector<IndexedColor>* colors, TextInfo* info)
+                                          std::vector<IndexedColor>* colors, TextInfo* info,
+                                          size_t* drawnGlyphs)
 {
     if (!range.isValid())
         range = Range(0, codepoints.cps.size());
@@ -84,8 +85,14 @@ void GenericShaper::ComputeGlyphPositions(const ColoredCodepoints& codepoints, R
 
         currentPosition.x += this->GetKerning(previousGlyph, glyph);
 
-        GlyphIndex glyphIndex {};
-        int advance = this->GetGlyphAdvance(glyph, &glyphIndex);
+        int advance           = this->GetGlyphAdvance(glyph);
+        int width             = this->GetGlyphWidth(glyph);
+        GlyphIndex glyphIndex = this->GetGlyphIndex(glyph);
+
+        if (width != 0 && drawnGlyphs)
+        {
+            (*drawnGlyphs)++;
+        }
 
         if (positions)
         {

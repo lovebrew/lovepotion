@@ -5,6 +5,7 @@
 
 #include <utilities/driver/renderer_ext.hpp>
 #include <utilities/functions.hpp>
+#include <utilities/temptransform.hpp>
 
 #include <utf8.h>
 
@@ -265,7 +266,8 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
     float top    = 0.0f;
 
     Glyph _glyph {};
-    _glyph.texture = nullptr;
+    _glyph.texture      = nullptr;
+    _glyph.requiresDraw = (width != 0);
 
     std::fill_n(_glyph.vertices.data(), 6, Vertex {});
 
@@ -350,8 +352,7 @@ const Font::Glyph& Font::AddGlyph(TextShaper::GlyphIndex glyphIndex)
     {
         const auto& sheetInfo = data->GetGlyphSheetInfo();
 
-        _glyph.sheet   = sheetInfo.index;
-        _glyph.texture = &this->textures[_glyph.sheet];
+        _glyph.texture = &this->textures[sheetInfo.index];
 
         left   = sheetInfo.left;
         top    = sheetInfo.top;
@@ -423,8 +424,8 @@ float Font::GetKerning(const std::string& left, const std::string& right)
 
 struct PositionedGlyph
 {
-    const TextShaper::GlyphPosition* position;
-    const Font::Glyph* glyph;
+    TextShaper::GlyphPosition position;
+    Font::Glyph glyph;
     Color color;
 };
 
@@ -432,35 +433,44 @@ static bool sortGlyphs(const PositionedGlyph& left, const PositionedGlyph& right
 {
     if (Console::Is(Console::CTR))
     {
-        const auto result = left.glyph->texture - right.glyph->texture;
+        const auto result = left.glyph.texture - right.glyph.texture;
         return result < 0;
     }
 
-    return left.glyph->texture < right.glyph->texture;
+    return left.glyph.texture < right.glyph.texture;
 }
 
 static inline bool isSimilarCommand(const Font::DrawCommand& previous,
                                     std::vector<love::Font::DrawCommand>::iterator current)
 {
-    if (Console::Is(Console::CTR))
-        return previous.sheet == current->sheet;
-
     return previous.texture == current->texture;
 }
 
-std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& codepoints,
-                                                      Range range, const Color& color,
-                                                      std::vector<Vertex>& vertices,
-                                                      float extraSpacing, Vector2 offset,
-                                                      TextShaper::TextInfo* info)
+void Font::AllocateVertices(std::span<vertex::Vertex>& vertices, size_t count)
+{
+    vertices = Renderer<Console::Which>::AllocateVertices(count);
+}
+
+void Font::AllocateVertices(std::vector<vertex::Vertex>& vertices, size_t count)
+{
+    vertices.clear();
+    vertices.resize(count);
+}
+template<typename Container>
+requires std::same_as<Container, std::vector<Vertex>> || std::same_as<Container, std::span<Vertex>>
+std::vector<Font::DrawCommand> Font::RealGenerateVertices(const ColoredCodepoints& codepoints,
+                                                          Range range, const Color& color,
+                                                          Container& allVertices,
+                                                          float extraSpacing, Vector2 offset,
+                                                          TextShaper::TextInfo* info)
 {
     std::vector<TextShaper::GlyphPosition> positions {};
     std::vector<IndexedColor> colors {};
 
-    this->shaper->ComputeGlyphPositions(codepoints, range, offset, extraSpacing, &positions,
-                                        &colors, info);
+    size_t drawnGlyphs = 0;
 
-    size_t vertexStartSize = vertices.size();
+    this->shaper->ComputeGlyphPositions(codepoints, range, offset, extraSpacing, &positions,
+                                        &colors, info, &drawnGlyphs);
 
     const auto linearColor = Graphics<>::GammaCorrectColor(color);
     auto currentColor      = linearColor;
@@ -469,7 +479,7 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
     int colorCount        = colors.size();
 
     std::vector<PositionedGlyph> glyphs {};
-    glyphs.reserve(positions.size());
+    glyphs.reserve(drawnGlyphs);
 
     for (int index = 0; index < (int)positions.size(); index++)
     {
@@ -478,83 +488,82 @@ std::vector<Font::DrawCommand> Font::GenerateVertices(const ColoredCodepoints& c
 
         const auto& glyph = this->FindGlyph(info.glyphIndex);
 
-        if (cacheId != this->textureCacheID)
+        if (glyph.requiresDraw)
         {
-            index = -1;
-            glyphs.clear();
-            vertices.resize(vertexStartSize);
-            currentColorIndex = 0;
-            currentColor      = color;
-            continue;
+            if (cacheId != this->textureCacheID)
+            {
+                index = -1;
+                glyphs.clear();
+                currentColorIndex = 0;
+                currentColor      = color;
+                continue;
+            }
+
+            if (currentColorIndex < colorCount && colors[currentColorIndex].index == index)
+            {
+                auto newColor = colors[currentColorIndex].color;
+
+                newColor.r = std::clamp(newColor.r, 0.0f, 1.0f);
+                newColor.g = std::clamp(newColor.g, 0.0f, 1.0f);
+                newColor.b = std::clamp(newColor.b, 0.0f, 1.0f);
+                newColor.a = std::clamp(newColor.a, 0.0f, 1.0f);
+
+                Graphics<>::GammaCorrectColor(newColor);
+                newColor *= linearColor;
+                Graphics<>::UnGammaCorrectColor(newColor);
+
+                currentColor = newColor;
+                currentColorIndex++;
+            }
+
+            glyphs.emplace_back(info, glyph, currentColor);
         }
-
-        if (currentColorIndex < colorCount && colors[currentColorIndex].index == index)
-        {
-            auto newColor = colors[currentColorIndex].color;
-
-            newColor.r = std::clamp(newColor.r, 0.0f, 1.0f);
-            newColor.g = std::clamp(newColor.g, 0.0f, 1.0f);
-            newColor.b = std::clamp(newColor.b, 0.0f, 1.0f);
-            newColor.a = std::clamp(newColor.a, 0.0f, 1.0f);
-
-            Graphics<>::GammaCorrectColor(newColor);
-            newColor *= linearColor;
-            Graphics<>::UnGammaCorrectColor(newColor);
-
-            currentColor = newColor;
-            currentColorIndex++;
-        }
-
-        glyphs.emplace_back(&info, &glyph, currentColor);
     }
 
     std::sort(glyphs.begin(), glyphs.end(), sortGlyphs);
 
     std::vector<DrawCommand> commands {};
 
+    if (!glyphs.empty())
+        this->AllocateVertices(allVertices, glyphs.size() * glyphs[0].glyph.vertices.size());
+
     for (int index = 0; index < (int)glyphs.size(); index++)
     {
-        const auto& info = *glyphs[index].position;
-
-        const auto& glyph = *glyphs[index].glyph;
+        const auto& info  = glyphs[index].position;
+        const auto& glyph = glyphs[index].glyph;
         const auto& color = glyphs[index].color;
 
         if (glyph.texture != nullptr)
         {
             for (int j = 0; j < (int)glyph.vertices.size(); j++)
             {
-                vertices.push_back(glyph.vertices[j]);
-                vertices.back().position[0] += info.position.x;
-                vertices.back().position[1] += info.position.y;
-                vertices.back().color = color.array();
+                allVertices[index * glyph.vertices.size() + j] = glyph.vertices[j];
+                allVertices[index * glyph.vertices.size() + j].position.x += info.position.x;
+                allVertices[index * glyph.vertices.size() + j].position.y += info.position.y;
+                allVertices[index * glyph.vertices.size() + j].color = color.array();
             }
 
-            // check if a glyph texture or sheet has changed since last iteration
             if (commands.empty() || commands.back().texture != glyph.texture)
-            {
-                DrawCommand& command = commands.emplace_back();
-                command.start        = (int)vertices.size() - 0x06;
-                command.count        = 0x0;
-                command.texture      = glyph.texture;
-            }
+                commands.emplace_back(glyph.texture, index * glyph.vertices.size(), 0);
 
-            commands.back().count += 0x06;
+            commands.back().count += glyph.vertices.size();
         }
     }
 
     return commands;
 }
 
-std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
+template<typename Container>
+requires std::same_as<Container, std::vector<Vertex>> || std::same_as<Container, std::span<Vertex>>
+std::vector<Font::DrawCommand> Font::RealGenerateVerticesFormatted(
     const ColoredCodepoints& codepoints, const Color& color, float wrap, AlignMode align,
-    std::vector<vertex::Vertex>& vertices, TextShaper::TextInfo* info)
+    Container& allVertices, TextShaper::TextInfo* info)
 {
     wrap = std::max(wrap, 0.0f);
 
     uint32_t cacheId = this->textureCacheID;
 
     std::vector<DrawCommand> drawCommands {};
-    vertices.reserve(codepoints.cps.size() * 6);
 
     std::vector<Range> ranges {};
     std::vector<int> widths {};
@@ -612,27 +621,28 @@ std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
         }
 
         auto newCommands =
-            this->GenerateVertices(codepoints, range, color, vertices, extraSpacing, offset);
+            this->RealGenerateVertices(codepoints, range, color, allVertices, extraSpacing, offset);
 
-        if (!newCommands.empty())
-        {
-            auto firstCommand = newCommands.begin();
+        // Probably useless?
+        // if (!newCommands.empty())
+        // {
+        //     auto firstCommand = newCommands.begin();
 
-            if (!drawCommands.empty())
-            {
-                auto prevCommand = drawCommands.back();
-                bool isSimilar   = isSimilarCommand(prevCommand, firstCommand);
+        //     if (!drawCommands.empty())
+        //     {
+        //         auto prevCommand = drawCommands.back();
+        //         bool isSimilar   = isSimilarCommand(prevCommand, firstCommand);
 
-                if (isSimilar && (prevCommand.start + prevCommand.count) == firstCommand->start)
-                {
-                    drawCommands.back().count += firstCommand->count;
-                    ++firstCommand;
-                }
-            }
+        //         if (isSimilar && (prevCommand.start + prevCommand.count) == firstCommand->start)
+        //         {
+        //             drawCommands.back().count += firstCommand->count;
+        //             ++firstCommand;
+        //         }
+        //     }
 
-            /* append new commands to the built list */
-            drawCommands.insert(drawCommands.end(), firstCommand, newCommands.end());
-        }
+        //     /* append new commands to the built list */
+        //     drawCommands.insert(drawCommands.end(), firstCommand, newCommands.end());
+        // }
 
         y += this->GetHeight() * this->GetLineHeight();
     }
@@ -643,45 +653,50 @@ std::vector<Font::DrawCommand> Font::GenerateVerticesFormatted(
         info->height = y;
     }
 
-    if (cacheId != this->textureCacheID)
-    {
-        vertices.clear();
-        drawCommands = this->GenerateVerticesFormatted(codepoints, color, wrap, align, vertices);
-    }
+    // Doesn't seem necessary?
+    // if (cacheId != this->textureCacheID)
+    // {
+    //     // vertices.clear();
+    //     drawCommands = this->GenerateVerticesFormatted(codepoints, color, wrap, align,
+    //     vertices);
+    // }
 
     return drawCommands;
 }
 
-void Font::Render(Graphics<>& graphics, const Matrix4& transform,
-                  const std::vector<DrawCommand>& drawCommands, const std::vector<Vertex>& vertices)
+void Font::Render(Graphics<>& graphics, const Matrix4& matrix,
+                  const std::vector<DrawCommand>& drawCommands, const std::span<Vertex>& vertices)
 {
     if (vertices.empty() || drawCommands.empty())
         return;
 
-    Matrix4 matrix(graphics.GetTransform(), transform);
+    TempTransform transform(graphics, matrix);
 
     for (const auto& command : drawCommands)
     {
         /* total vertices for the quads */
-        CommonFormat format = CommonFormat::TEXTURE;
-        if (Console::Is(Console::CTR))
-            format = CommonFormat::FONT;
+        CommonFormat format;
+        Shader<>::StandardShader shader;
 
-        auto shader = Shader<>::STANDARD_TEXTURE;
-        if (Console::Is(Console::CTR))
+        if (!Console::Is(Console::CTR))
+        {
+            shader = Shader<>::STANDARD_TEXTURE;
+            format = CommonFormat::TEXTURE;
+        }
+        else
+        {
             shader = Shader<>::STANDARD_DEFAULT;
+            format = CommonFormat::FONT;
+        }
 
-        love::DrawCommand drawCommand(command.count, shader, format);
-        drawCommand.type = PrimitiveType::PRIMITIVE_TRIANGLES;
+        auto drawVertices = vertices.subspan(command.start, command.count);
+        love::DrawCommand drawCommand(drawVertices, PrimitiveType::PRIMITIVE_TRIANGLES, shader,
+                                      format);
 
         /* texture to use - single texture */
         drawCommand.handles = { command.texture };
 
-        const auto start = command.start;
-        const auto count = command.count;
-
-        std::memcpy(drawCommand.Vertices().get(), &vertices[start], drawCommand.size);
-        matrix.TransformXY(drawCommand.GetVertices(), std::span(&vertices[start], count));
+        transform.TransformXY(drawCommand.Vertices(), drawCommand.Vertices());
 
         Renderer<Console::Which>::Instance().Render(drawCommand);
     }
@@ -693,7 +708,8 @@ void Font::Print(Graphics<>& graphics, const ColoredStrings& text, const Matrix4
     ColoredCodepoints codepoints {};
     love::GetCodepointsFromString(text, codepoints);
 
-    std::vector<Vertex> vertices {};
+    std::span<Vertex> vertices;
+
     auto commands = this->GenerateVertices(codepoints, Range(), color, vertices);
 
     this->Render(graphics, matrix, commands, vertices);
@@ -705,7 +721,7 @@ void Font::Printf(Graphics<>& graphics, const ColoredStrings& text, float wrap, 
     ColoredCodepoints codepoints {};
     love::GetCodepointsFromString(text, codepoints);
 
-    std::vector<Vertex> vertices {};
+    std::span<Vertex> vertices;
     auto commands = this->GenerateVerticesFormatted(codepoints, color, wrap, alignment, vertices);
 
     this->Render(graphics, matrix, commands, vertices);
@@ -756,3 +772,21 @@ void Font::GetWrap(const ColoredCodepoints& codepoints, float wraplimit, std::ve
 {
     this->shaper->GetWrap(codepoints, wraplimit, ranges, linewidths);
 }
+
+template std::vector<Font::DrawCommand> Font::RealGenerateVertices(
+    const ColoredCodepoints& codepoints, Range range, const Color& color,
+    std::span<vertex::Vertex>& vertices, float extraSpacing = 0.0f, Vector2 offset = {},
+    TextShaper::TextInfo* info = nullptr);
+
+template std::vector<Font::DrawCommand> Font::RealGenerateVertices(
+    const ColoredCodepoints& codepoints, Range range, const Color& color,
+    std::vector<vertex::Vertex>& vertices, float extraSpacing = 0.0f, Vector2 offset = {},
+    TextShaper::TextInfo* info = nullptr);
+
+template std::vector<Font::DrawCommand> Font::RealGenerateVerticesFormatted(
+    const ColoredCodepoints& codepoints, const Color& color, float wrap, AlignMode align,
+    std::span<vertex::Vertex>& vertices, TextShaper::TextInfo* info = nullptr);
+
+template std::vector<Font::DrawCommand> Font::RealGenerateVerticesFormatted(
+    const ColoredCodepoints& codepoints, const Color& color, float wrap, AlignMode align,
+    std::vector<vertex::Vertex>& vertices, TextShaper::TextInfo* info = nullptr);

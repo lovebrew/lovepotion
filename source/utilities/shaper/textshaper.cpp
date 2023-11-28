@@ -188,18 +188,8 @@ float TextShaper::GetKerning(const std::string& left, const std::string& right)
     return this->GetKerning(leftGlyph, rightGlyph);
 }
 
-int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* glyphIndex)
+TextShaper::CachedGlyphData& TextShaper::CalcGlyphInfo(uint32_t glyph)
 {
-    const auto iterator = this->glyphAdvances.find(glyph);
-
-    if (iterator != this->glyphAdvances.end())
-    {
-        if (glyphIndex)
-            *glyphIndex = iterator->second.second;
-
-        return iterator->second.first;
-    }
-
     int rasterizerIndex = 0;
     uint32_t realGlyph  = glyph;
 
@@ -217,19 +207,64 @@ int TextShaper::GetGlyphAdvance(uint32_t glyph, GlyphIndex* glyphIndex)
 
     const auto& rasterizer = this->rasterizers[rasterizerIndex];
     const auto spacing     = rasterizer->GetGlyphSpacing(realGlyph);
+    const auto rawWidth    = rasterizer->GetGlyphWidth(realGlyph);
 
     int advance = std::floor(spacing / rasterizer->GetDPIScale() + 0.5f);
+    int width   = std::floor(width / rasterizer->GetDPIScale() + 0.5f);
 
     if (glyph == '\t' && realGlyph == ' ')
         advance *= TextShaper::SPACES_PER_TAB;
 
-    GlyphIndex _glyphIndex     = { rasterizer->GetGlyphIndex(realGlyph), rasterizerIndex };
-    this->glyphAdvances[glyph] = std::make_pair(advance, _glyphIndex);
+    return this->cachedGlyphs
+        .emplace(glyph,
+                 CachedGlyphData {
+                     .advance = advance,
+                     .width   = width,
+                     .index   = {rasterizer->GetGlyphIndex(realGlyph), rasterizerIndex}
+    })
+        .first->second;
+}
 
-    if (glyphIndex)
-        *glyphIndex = _glyphIndex;
+int TextShaper::GetGlyphAdvance(uint32_t glyph)
+{
+    const auto iterator = this->cachedGlyphs.find(glyph);
 
-    return advance;
+    if (iterator != this->cachedGlyphs.end())
+    {
+        return iterator->second.advance;
+    }
+    else
+    {
+        return CalcGlyphInfo(glyph).advance;
+    }
+}
+
+int TextShaper::GetGlyphWidth(uint32_t glyph)
+{
+    const auto iterator = this->cachedGlyphs.find(glyph);
+
+    if (iterator != this->cachedGlyphs.end())
+    {
+        return iterator->second.width;
+    }
+    else
+    {
+        return CalcGlyphInfo(glyph).width;
+    }
+}
+
+TextShaper::GlyphIndex TextShaper::GetGlyphIndex(uint32_t glyph)
+{
+    const auto iterator = this->cachedGlyphs.find(glyph);
+
+    if (iterator != this->cachedGlyphs.end())
+    {
+        return iterator->second.index;
+    }
+    else
+    {
+        return CalcGlyphInfo(glyph).index;
+    }
 }
 
 int TextShaper::GetWidth(const std::string& string)
@@ -242,7 +277,7 @@ int TextShaper::GetWidth(const std::string& string)
 
     TextInfo info {};
     this->ComputeGlyphPositions(codepoints, Range(), Vector2(0.0f, 0.0f), 0.0f, nullptr, nullptr,
-                                &info);
+                                &info, nullptr);
 
     return info.width;
 }
@@ -346,7 +381,7 @@ void TextShaper::SetFallbacks(const std::vector<Rasterizer*>& fallbacks)
             throw love::Exception("Font fallbacks must be of the same font type.");
 
         this->kernings.clear();
-        this->glyphAdvances.clear();
+        this->cachedGlyphs.clear();
 
         this->rasterizers.resize(1);
         this->dpiScales.resize(1);

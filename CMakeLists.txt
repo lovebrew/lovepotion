@@ -510,6 +510,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/decoder/types/mp3decoder.cpp
     source/utilities/decoder/types/vorbisdecoder.cpp
     source/utilities/decoder/types/wavedecoder.cpp
+    source/utilities/driver/renderer/drawcommand.cpp
     source/utilities/driver/renderer/polyline/polyline.cpp
     source/utilities/driver/renderer/polyline/types/beveljoin.cpp
     source/utilities/driver/renderer/polyline/types/miterjoin.cpp

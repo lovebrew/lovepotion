@@ -55,6 +55,8 @@ namespace love
 
         virtual int GetGlyphSpacing(uint32_t glyph) const = 0;
 
+        virtual int GetGlyphWidth(uint32_t glyph) const = 0;
+
         virtual int GetGlyphIndex(uint32_t glyph) const = 0;
 
         GlyphData* GetGlyphData(uint32_t glyph) const;

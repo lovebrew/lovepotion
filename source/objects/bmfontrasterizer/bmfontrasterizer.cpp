@@ -254,6 +254,15 @@ int BMFontRasterizer::GetGlyphSpacing(uint32_t glyph) const
     return this->characters[iterator->second].metrics.advance;
 }
 
+int BMFontRasterizer::GetGlyphWidth(uint32_t glyph) const
+{
+    const auto iterator = this->characterIndices.find(glyph);
+    if (iterator == this->characterIndices.end())
+        return 0;
+
+    return this->characters[iterator->second].metrics.width;
+}
+
 int BMFontRasterizer::GetGlyphIndex(uint32_t glyph) const
 {
     const auto iterator = this->characterIndices.find(glyph);

@@ -200,16 +200,8 @@ void TextBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix)
     if (Shader<Console::Which>::IsDefaultActive())
         Shader<Console::Which>::AttachDefault(Shader<>::STANDARD_DEFAULT);
 
-    TextureHandle* firstTexture = nullptr;
-    if (!this->drawCommands.empty())
-        firstTexture = this->drawCommands[0].texture;
-
     if (this->font->GetTextureCacheID() != this->textureCacheId)
         this->RegenerateVertices();
-
-    int totalVertices = 0;
-    for (const auto& command : drawCommands)
-        totalVertices = std::max(command.start + command.count, totalVertices);
 
     TempTransform transform(graphics, matrix);
 
@@ -227,10 +219,16 @@ void TextBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix)
 
         drawCommand.handles = { command.texture };
 
-        transform.TransformXY(std::span(drawCommand.Positions().get(), command.count),
-                              std::span(&this->buffer[command.start], command.count));
+        std::copy(this->buffer.begin() + command.start,
+                  this->buffer.begin() + command.start + command.count,
+                  drawCommand.Vertices().begin());
 
-        drawCommand.FillVertices(&this->buffer[command.start]);
+        transform.TransformXY(drawCommand.Vertices(), drawCommand.Vertices());
+
+        // transform.TransformXY(std::span(*drawCommand.Positions()),
+        //                       std::span(&this->buffer[command.start], command.count));
+
+        // drawCommand.FillVertices(&this->buffer[command.start]);
         Renderer<Console::Which>::Instance().Render(drawCommand);
     }
 }

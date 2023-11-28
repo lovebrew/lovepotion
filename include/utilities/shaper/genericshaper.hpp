@@ -14,7 +14,8 @@ namespace love
 
         void ComputeGlyphPositions(const ColoredCodepoints& codepoints, Range range, Vector2 offset,
                                    float extraspacing, std::vector<GlyphPosition>* positions,
-                                   std::vector<IndexedColor>* colors, TextInfo* info) override;
+                                   std::vector<IndexedColor>* colors, TextInfo* info,
+                                   size_t* drawnGlyphs) override;
 
         int ComputeWordWrapIndex(const ColoredCodepoints& codepoints, Range range, float wraplimit,
                                  float* width) override;

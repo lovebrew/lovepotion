@@ -206,8 +206,8 @@ void Mesh::DrawInternal(Graphics<Console::Which>& graphics, const Matrix4& matri
         DrawCommand command(_range.getSize(), this->mode);
         command.FillVertices(this->buffer.data());
 
-        transform.TransformXYPure(std::span(command.vertices.get(), command.count),
-                                  std::span(&this->buffer[_range.getOffset()], command.count));
+        transform.TransformXY(command.Vertices(),
+                              std::span(&this->buffer[_range.getOffset()], command.count));
 
         if (this->texture.Get())
         {

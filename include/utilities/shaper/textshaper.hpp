@@ -107,7 +107,11 @@ namespace love
 
         float GetKerning(const std::string& left, const std::string& right);
 
-        int GetGlyphAdvance(uint32_t glyph, GlyphIndex* index = nullptr);
+        int GetGlyphAdvance(uint32_t glyph);
+
+        int GetGlyphWidth(uint32_t glyph);
+
+        GlyphIndex GetGlyphIndex(uint32_t glyph);
 
         int GetWidth(const std::string& string);
 
@@ -122,7 +126,8 @@ namespace love
         virtual void ComputeGlyphPositions(const ColoredCodepoints& codepoints, Range range,
                                            Vector2 offset, float extraSpacing,
                                            std::vector<GlyphPosition>* positions,
-                                           std::vector<IndexedColor>* colors, TextInfo* info) = 0;
+                                           std::vector<IndexedColor>* colors, TextInfo* info,
+                                           size_t* drawnGlyphs) = 0;
 
         virtual int ComputeWordWrapIndex(const ColoredCodepoints& codepoints, Range range,
                                          float wrapLimit, float* width) = 0;
@@ -153,7 +158,16 @@ namespace love
         float lineHeight;
         bool useSpacesForTab;
 
-        std::unordered_map<uint32_t, std::pair<int, GlyphIndex>> glyphAdvances;
+        struct CachedGlyphData
+        {
+            int advance;
+            int width;
+            GlyphIndex index;
+        };
+
+        CachedGlyphData& CalcGlyphInfo(uint32_t glyph);
+
+        std::unordered_map<uint32_t, CachedGlyphData> cachedGlyphs;
         std::unordered_map<uint64_t, float> kernings;
     };
 } // namespace love

@@ -49,6 +49,11 @@ namespace love
 
         int GetGlyphSpacing(uint32_t glyph) const override;
 
+        int GetGlyphWidth(uint32_t glyph) const override
+        {
+            return GetGlyphSpacing(glyph);
+        }
+
         int GetGlyphIndex(uint32_t glyph) const override;
 
         GlyphData* GetGlyphDataForIndex(int index) const override;

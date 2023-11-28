@@ -8,7 +8,7 @@
 
 #include <objects/shader_ext.hpp>
 
-#include <utilities/driver/renderer/drawcommand.tcc>
+#include <utilities/driver/renderer/drawcommand.hpp>
 #include <utilities/driver/renderer/renderstate.hpp>
 #include <utilities/driver/renderer/samplerstate.hpp>
 #include <utilities/driver/renderer/vertex.hpp>

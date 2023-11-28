@@ -10,17 +10,7 @@ namespace love
     {
         namespace attributes
         {
-            typedef void (*AttributeSetFunction)(void);
-
-            enum TEXENV_MODE
-            {
-                TEXENV_MODE_PRIMITIVE,
-                TEXENV_MODE_TEXTURE,
-                TEXENV_MODE_TEXT,
-                TEXENV_MODE_MAX_ENUM
-            };
-
-            void SetPrimitiveAttribute()
+            inline void SetPrimitiveAttribute()
             {
                 C3D_TexEnv* env = C3D_GetTexEnv(0);
                 C3D_TexEnvInit(env);
@@ -30,7 +20,7 @@ namespace love
                 C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
             }
 
-            void SetTextureAttribute()
+            inline void SetTextureAttribute()
             {
                 C3D_TexEnv* env = C3D_GetTexEnv(0);
                 C3D_TexEnvInit(env);
@@ -39,7 +29,7 @@ namespace love
                 C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
             }
 
-            void SetFontAttribute()
+            inline void SetFontAttribute()
             {
                 C3D_TexEnv* env = C3D_GetTexEnv(0);
                 C3D_TexEnvInit(env);

@@ -9,7 +9,7 @@
 using namespace love;
 
 // clang-format off
-static constexpr BidirectionalMap loadOptions = 
+static constexpr BidirectionalMap loadOptions =
 {
     TrueTypeRasterizer<>::HINTING_NORMAL, FT_LOAD_TARGET_NORMAL,
     TrueTypeRasterizer<>::HINTING_LIGHT,  FT_LOAD_TARGET_LIGHT,

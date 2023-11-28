@@ -254,8 +254,7 @@ void SpriteBatch::Draw(Graphics<Console::Which>& graphics, const Matrix4& matrix
     command.handles = { this->texture };
 #endif
 
-    transform.TransformXYPure(std::span(command.vertices.get(), command.count),
-                              std::span(&this->buffer[start], command.count));
+    transform.TransformXY(command.Vertices(), std::span(&this->buffer[start], command.count));
     for (size_t index = 0; index < command.count; index++)
     {
         command.vertices[index].texcoord = this->buffer[start * 0x06 + index].texcoord;

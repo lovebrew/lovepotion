@@ -38,6 +38,15 @@ int ImageRasterizer::GetGlyphSpacing(uint32_t glyph) const
     return this->imageGlyphs[it->second].width + this->extraSpacing;
 }
 
+int ImageRasterizer::GetGlyphWidth(uint32_t glyph) const
+{
+    auto it = this->glyphIndicies.find(glyph);
+    if (it == this->glyphIndicies.end())
+        return 0;
+
+    return this->imageGlyphs[it->second].width;
+}
+
 int ImageRasterizer::GetGlyphIndex(uint32_t glyph) const
 {
     auto it = this->glyphIndicies.find(glyph);
