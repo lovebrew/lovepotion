@@ -84,6 +84,17 @@ namespace love
 
         void SetColorMask(const RenderState::ColorMask& mask);
 
+        void PrepareDraw(Graphics<Console::ALL>* gfx);
+
+        void SetVertexAttributes(const vertex::VertexAttributes& attributes,
+                                 const BufferBindings& buffers);
+
+        void BindTextureToUnit(Texture<Console::CTR>* texture, int unit);
+
+        void DrawArrays(PrimitiveType mode, size_t start, size_t count);
+
+        void DrawElements(PrimitiveType mode, size_t count, uint16_t* data, size_t offset);
+
         Framebuffer<Console::CTR>& GetCurrent()
         {
             return this->targets[love::GetActiveScreen()];

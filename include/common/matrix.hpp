@@ -145,6 +145,42 @@ namespace love
             }
         }
 
+        template<typename Vdst, typename Vsrc>
+        /* transform Vector2 src into Vector2 dst */
+        void TransformXY(Vdst&& dst, Vsrc&& src, size_t count) const
+        {
+            for (size_t i = 0; i < count; i++)
+            {
+                float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) + (0) +
+                          (this->matrix[12]);
+
+                float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) + (0) +
+                          (this->matrix[13]);
+
+                dst[i].x = x;
+                dst[i].y = y;
+            }
+        }
+
+        template<typename Vdst, typename Vsrc>
+        void TransformXY0(Vdst* dst, const Vsrc* src, int size) const
+        {
+            for (int i = 0; i < size; i++)
+            {
+                // Store in temp variables in case src = dst
+                float x = (this->matrix[0] * src[i].x) + (this->matrix[4] * src[i].y) + (0) +
+                          (this->matrix[12]);
+                float y = (this->matrix[1] * src[i].x) + (this->matrix[5] * src[i].y) + (0) +
+                          (this->matrix[13]);
+                float z = (this->matrix[2] * src[i].x) + (this->matrix[6] * src[i].y) + (0) +
+                          (this->matrix[14]);
+
+                dst[i].x = x;
+                dst[i].y = y;
+                dst[i].z = z;
+            }
+        }
+
         template<Vector3TransformRange Vdst, Vector3TransformRange Vsrc>
         /* transform Vector3 src into Vector3 dst */
         void TransformXYZ(Vdst&& dst, Vsrc&& src) const

@@ -270,8 +270,7 @@ void Texture<Console::CTR>::ReplacePixels(const void* data, size_t size, int sli
     C3D_TexFlush(this->texture);
 }
 
-void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics,
-                                 const Matrix4& matrix)
+void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, const Matrix4& matrix)
 {
     this->Draw(graphics, this->quad, matrix);
 }
@@ -333,17 +332,28 @@ void Texture<Console::CTR>::Draw(Graphics<Console::CTR>& graphics, Quad* quad,
     const auto& transform = graphics.GetTransform();
     bool is2D             = transform.IsAffine2DTransform();
 
-    Matrix4 translated(graphics.GetTransform(), matrix);
+    Graphics<>::BatchedDrawCommand command {};
+    command.formats[0]  = vertex::GetSinglePositionFormat(is2D);
+    command.formats[1]  = CommonFormat::STf_RGBAf;
+    command.indexMode   = TRIANGLEINDEX_QUADS;
+    command.vertexCount = 4;
+    command.texture     = this;
 
-    DrawCommand command(0x04, vertex::PRIMITIVE_TRIANGLE_FAN);
-    command.handles = { this->texture };
-    command.format  = CommonFormat::TEXTURE;
+    auto data = graphics.RequestBatchedDraw(command);
+    Matrix4 transformed(transform, matrix);
 
     if (is2D)
-        translated.TransformXY(std::span(command.Positions().get(), command.count), std::span(quad->GetVertexPositions(), command.count));
+        transformed.TransformXY((Vector2*)data.stream[0], quad->GetVertexPositions(), 4);
+    else
+        transformed.TransformXY0((Vector3*)data.stream[0], quad->GetVertexPositions(), 4);
 
-    const auto* coords = quad->GetVertexTextureCoords();
-    command.FillVertices(graphics.GetColor(), coords);
+    const auto* texCoords = quad->GetVertexTextureCoords();
+    auto* vertexData      = (vertex::STf_RGBAf*)data.stream[1];
 
-    Renderer<Console::CTR>::Instance().Render(command);
+    for (int index = 0; index < 4; index++)
+    {
+        vertexData[index].s     = texCoords[index].x;
+        vertexData[index].t     = texCoords[index].y;
+        vertexData[index].color = graphics.GetColor();
+    }
 }

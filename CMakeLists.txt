@@ -376,6 +376,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/common/type.cpp
     source/common/variant.cpp
     source/common/vector.cpp
+    source/common/volatile.cpp
     source/main.cpp
     source/modules/audio/audio.cpp
     source/modules/audio/wrap_audio.cpp
@@ -516,6 +517,7 @@ target_sources(${PROJECT_NAME} PRIVATE
     source/utilities/driver/renderer/polyline/types/nonejoin.cpp
     source/utilities/driver/renderer/renderstate.cpp
     source/utilities/driver/renderer/samplerstate.cpp
+    source/utilities/driver/renderer/vertex.cpp
     source/utilities/formathandler/formathandler.cpp
     source/utilities/formathandler/types/astchandler.cpp
     source/utilities/formathandler/types/ddshandler.cpp

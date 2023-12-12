@@ -79,7 +79,7 @@ void Polyline::render(const Vector2* coords, size_t count, size_t size_hint, flo
         // extra degenerate triangle in between the core line and the overdraw
         // line in order to break up the strip into two. This will let us draw
         // everything in one draw call.
-        if (triangle_mode == vertex::TRIANGLE_STRIP)
+        if (triangle_mode == vertex::TRIANGLEINDEX_STRIP)
             extra_vertices = 2;
     }
 
@@ -179,7 +179,7 @@ void Polyline::draw(Graphics<Console::ALL>* gfx)
     int maxvertices = LOVE_UINT16_MAX - 3;
 
     int advance = maxvertices;
-    if (triangle_mode == vertex::TRIANGLE_STRIP)
+    if (triangle_mode == vertex::TRIANGLEINDEX_STRIP)
         advance -= 2;
 
     for (int vertex_start = 0; vertex_start < total_vertex_count; vertex_start += advance)
@@ -189,7 +189,7 @@ void Polyline::draw(Graphics<Console::ALL>* gfx)
         int totalVertices = std::min(maxvertices, total_vertex_count - vertex_start);
 
         auto mode = vertex::PRIMITIVE_TRIANGLE_STRIP;
-        if (this->triangle_mode == vertex::TRIANGLE_QUADS)
+        if (this->triangle_mode == vertex::TRIANGLEINDEX_QUADS)
             mode = vertex::PRIMITIVE_QUADS;
 
         DrawCommand command(totalVertices, mode);

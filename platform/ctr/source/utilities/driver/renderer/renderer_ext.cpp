@@ -35,18 +35,6 @@ Renderer<Console::CTR>::Renderer() : targets {}, currentTexture(nullptr)
     AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4); // color
     AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2); // texcoord
 
-    BufInfo_Init(&this->bufferInfo);
-    m_vertices = (Vertex*)linearAlloc(TOTAL_BUFFER_SIZE);
-
-    if (!m_vertices)
-        throw love::Exception("Out of memory.");
-
-    int result = BufInfo_Add(&this->bufferInfo, (void*)m_vertices, VERTEX_SIZE, 0x03, 0x210);
-    C3D_SetBufInfo(&this->bufferInfo);
-
-    if (result < 0)
-        throw love::Exception("Failed to add C3D_BufInfo.");
-
     Mtx_Identity(&s_projection);
     Mtx_Identity(&s_modelView);
 }
@@ -164,6 +152,66 @@ void Renderer<Console::CTR>::FlushVertices()
     }
 
     m_commands.clear();
+}
+
+void Renderer<Console::CTR>::PrepareDraw(Graphics<Console::ALL>* graphics)
+{
+    if (Shader<Console::CTR>::current != nullptr)
+    {
+        if (s_dirtyProjection)
+        {
+            const auto uniforms = Shader<Console::CTR>::current->GetUniformLocations();
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocProjMtx, &s_projection);
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.uLocMdlView, &s_modelView);
+
+            s_dirtyProjection = false;
+        }
+    }
+}
+
+void Renderer<Console::CTR>::SetVertexAttributes(const vertex::VertexAttributes& attributes,
+                                                 const BufferBindings& buffers)
+{}
+
+void Renderer<Console::CTR>::BindTextureToUnit(Texture<Console::CTR>* texture, int unit)
+{
+    if (texture == nullptr)
+        return;
+
+    if (this->currentTexture == texture->GetHandle())
+        return;
+
+    this->currentTexture = texture->GetHandle();
+    C3D_TexBind(unit, this->currentTexture);
+}
+
+void Renderer<Console::CTR>::DrawArrays(PrimitiveType mode, size_t start, size_t count)
+{
+    if (s_primitiveType != mode)
+    {
+        if (!(s_primitive = primitiveModes.Find(mode)))
+            throw love::Exception("Invalid primitive mode");
+
+        s_primitiveType = mode;
+    }
+
+    ++drawCallsBatched;
+    C3D_DrawArrays(*s_primitive, start, count);
+}
+
+void Renderer<Console::CTR>::DrawElements(PrimitiveType mode, size_t count, uint16_t* data,
+                                          size_t offset)
+{
+    if (s_primitiveType != mode)
+    {
+        if (!(s_primitive = primitiveModes.Find(mode)))
+            throw love::Exception("Invalid primitive mode");
+
+        s_primitiveType = mode;
+    }
+
+    ++drawCallsBatched;
+    C3D_DrawElements(*s_primitive, count, C3D_UNSIGNED_SHORT, &data[offset]);
 }
 
 bool Renderer<Console::CTR>::Render(DrawCommand& command)

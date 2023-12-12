@@ -45,8 +45,7 @@ void Graphics<Console::CTR>::Draw(Drawable* drawable, const Matrix4& matrix)
     drawable->Draw(*this, matrix);
 }
 
-void Graphics<Console::CTR>::Draw(Texture<Console::CTR>* texture, Quad* quad,
-                                  const Matrix4& matrix)
+void Graphics<Console::CTR>::Draw(Texture<Console::CTR>* texture, Quad* quad, const Matrix4& matrix)
 {
     texture->Draw(*this, quad, matrix);
 }
@@ -91,6 +90,19 @@ void Graphics<Console::CTR>::SetMode(int x, int y, int width, int height)
 
     if (!Shader<Console::CTR>::current)
         Shader<Console::CTR>::defaults[Shader<>::STANDARD_DEFAULT]->Attach();
+
+    if (this->batchedDrawState.vertexBuffer[0] == nullptr)
+    {
+        // Initial sizes that should be good enough for most cases. It will
+        // resize to fit if needed, later.
+        batchedDrawState.vertexBuffer[0] = CreateStreamBuffer(BUFFERUSAGE_VERTEX, 1024 * 1024 * 1);
+        batchedDrawState.vertexBuffer[1] = CreateStreamBuffer(BUFFERUSAGE_VERTEX, 256 * 1024 * 1);
+        batchedDrawState.indexBuffer =
+            CreateStreamBuffer(BUFFERUSAGE_INDEX, sizeof(uint16_t) * LOVE_UINT16_MAX);
+    }
+
+    if (!Volatile::LoadAll())
+        LOG("Failed to reload all Volatile objects.");
 
     this->created = true;
 }

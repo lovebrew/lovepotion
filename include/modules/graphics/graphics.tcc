@@ -35,10 +35,16 @@
 #include <utilities/driver/renderer/vertex.hpp>
 #include <utilities/driver/renderer_ext.hpp>
 
+#include <utilities/driver/renderer/buffer.hpp>
+#include <utilities/driver/renderer/streamclient.hpp>
+
 #include <cmath>
+
+#include <utilities/debug/logfile.hpp>
 
 namespace love
 {
+    using namespace love::vertex;
     using OptionalColor = Optional<Color>;
 
     template<Console::Platform T = Console::ALL>
@@ -242,6 +248,73 @@ namespace love
             SamplerState defaultSamplerState = SamplerState {};
         };
 
+        struct BatchedDrawState
+        {
+            StreamBuffer* vertexBuffer[0x02];
+            StreamBuffer* indexBuffer = nullptr;
+
+            PrimitiveType primitiveMode = PRIMITIVE_TRIANGLES;
+            CommonFormat formats[0x02];
+            StrongReference<Texture<Console::Which>> texture;
+            Shader<>::StandardShader shaderType = Shader<>::STANDARD_DEFAULT;
+
+            int vertexCount = 0;
+            int indexCount  = 0;
+
+            StreamBuffer::MapInfo vertexMap[0x02];
+            StreamBuffer::MapInfo indexMap = StreamBuffer::MapInfo();
+
+            BatchedDrawState()
+            {
+                this->vertexBuffer[0] = this->vertexBuffer[1] = nullptr;
+                this->formats[0] = this->formats[1] = CommonFormat::NONE;
+                this->vertexMap[0] = this->vertexMap[1] = StreamBuffer::MapInfo();
+            }
+        };
+
+        struct BatchedDrawCommand
+        {
+            PrimitiveType primitiveMode         = PRIMITIVE_TRIANGLES;
+            CommonFormat formats[0x02]          = { CommonFormat::NONE };
+            TriangleIndexMode indexMode         = TRIANGLEINDEX_NONE;
+            int vertexCount                     = 0;
+            Texture<Console::Which>* texture    = nullptr;
+            Shader<>::StandardShader shaderType = Shader<>::STANDARD_DEFAULT;
+        };
+
+        struct DrawIndexedCommand
+        {
+            PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+
+            const VertexAttributes* attributes;
+            const BufferBindings* buffers;
+
+            int indexCount    = 0;
+            int instanceCount = 1;
+
+            IndexDataType indexType = INDEX_UINT16;
+            Resource* indexBuffer;
+            size_t indexBufferOffset = 0;
+
+            Buffer* indirectBuffer      = nullptr;
+            size_t indirectBufferOffset = 0;
+
+            Texture<Console::Which>* texture = nullptr;
+            CullMode cullMode                = CULL_NONE;
+
+            DrawIndexedCommand(const VertexAttributes* attributes, const BufferBindings* buffers,
+                               Resource* indexBuffer) :
+                attributes(attributes),
+                buffers(buffers),
+                indexBuffer(indexBuffer)
+            {}
+        };
+
+        struct BatchedVertexData
+        {
+            void* stream[0x02];
+        };
+
         static inline bool gammaCorrectColor = false;
 
         static void SetGammaCorrect(bool enable)
@@ -297,7 +370,8 @@ namespace love
             pixelHeight(0),
             created(false),
             active(true),
-            renderTargetSwitchCount(0)
+            renderTargetSwitchCount(0),
+            batchedDrawState {}
         {
             this->transformStack.reserve(16);
             this->transformStack.push_back(Matrix4());
@@ -335,6 +409,9 @@ namespace love
                 Renderer<Console::Which>::Instance().Clear(color.value);
             }
 
+            if (color.hasValue || stencil.hasValue || depth.hasValue)
+                this->FlushBatchedDraws();
+
             if (stencil.hasValue && depth.hasValue)
                 Renderer<Console::Which>::Instance().ClearDepthStencil(stencil.value, 0xFF,
                                                                        depth.value);
@@ -344,8 +421,13 @@ namespace love
         {
             int colorCount = colors.size();
 
-            if (colorCount == 0 || !stencil.hasValue || !depth.hasValue)
+            if (colorCount == 0 && !stencil.hasValue && !depth.hasValue)
+                return;
+
+            if (colorCount <= 1)
                 this->Clear(colorCount > 0 ? colors[0] : Color {}, stencil, depth);
+
+            this->FlushBatchedDraws();
         }
 
         void Present()
@@ -355,6 +437,276 @@ namespace love
             Renderer<Console::Which>::drawCalls        = 0;
             Renderer<Console::Which>::drawCallsBatched = 0;
             Shader<Console::Which>::shaderSwitches     = 0;
+        }
+
+        struct DrawCommand
+        {
+            PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+
+            const VertexAttributes* attributes;
+            const BufferBindings* buffers;
+
+            int vertexStart   = 0;
+            int vertexCount   = 0;
+            int instanceCount = 1;
+
+            Buffer* indirectBuffer      = nullptr;
+            size_t indirectBufferOffset = 0;
+
+            Texture<Console::Which>* texture = nullptr;
+            CullMode cullMode                = CULL_NONE;
+
+            DrawCommand(const VertexAttributes* attributes, const BufferBindings* buffers) :
+                attributes(attributes),
+                buffers(buffers)
+            {}
+        };
+
+        BatchedVertexData RequestBatchedDraw(const BatchedDrawCommand& cmd)
+        {
+            BatchedDrawState& state = this->batchedDrawState;
+
+            bool shouldFlush  = false;
+            bool shouldResize = false;
+
+            if (cmd.primitiveMode != state.primitiveMode || cmd.formats[0] != state.formats[0] ||
+                cmd.formats[1] != state.formats[1] ||
+                ((cmd.indexMode != TRIANGLEINDEX_NONE) != (state.indexCount > 0)) ||
+                cmd.texture != state.texture || cmd.shaderType != state.shaderType)
+            {
+                shouldFlush = true;
+            }
+
+            int totalVertices = state.vertexCount + cmd.vertexCount;
+
+            if (totalVertices > LOVE_UINT16_MAX && cmd.indexMode != TRIANGLEINDEX_NONE)
+                shouldFlush = true;
+
+            int requestIndexCount = vertex::GetIndexCount(cmd.indexMode, cmd.vertexCount);
+            int requestIndexSize  = requestIndexCount * sizeof(uint16_t);
+
+            size_t newDataSizes[0x02] { 0, 0 };
+            size_t bufferSizes[0x03] { 0, 0, 0 };
+
+            for (int index = 0; index < 2; index++)
+            {
+                if (cmd.formats[index] == CommonFormat::NONE)
+                    continue;
+
+                size_t stride   = vertex::GetFormatStride(cmd.formats[index]);
+                size_t dataSize = stride * totalVertices;
+
+                if (state.vertexMap[index].data != nullptr &&
+                    dataSize > state.vertexMap[index].size)
+                {
+                    shouldResize = true;
+                }
+
+                if (dataSize > state.vertexBuffer[index]->GetUsableSize())
+                {
+                    bufferSizes[index] =
+                        std::max(dataSize, state.vertexBuffer[index]->GetSize() * 2);
+                    shouldResize = true;
+                }
+
+                newDataSizes[index] = stride * cmd.vertexCount;
+            }
+
+            if (cmd.indexMode != TRIANGLEINDEX_NONE)
+            {
+                size_t dataSize = (state.indexCount + requestIndexCount) * sizeof(uint16_t);
+
+                if (state.indexMap.data != nullptr && dataSize > state.indexMap.size)
+                    shouldFlush = true;
+
+                if (dataSize > state.indexBuffer->GetUsableSize())
+                {
+                    bufferSizes[2] = std::max(dataSize, state.indexBuffer->GetSize() * 2);
+                    shouldResize   = true;
+                }
+            }
+
+            if (shouldFlush || shouldResize)
+            {
+                this->FlushBatchedDraws();
+                state.primitiveMode = cmd.primitiveMode;
+                state.formats[0]    = cmd.formats[0];
+                state.formats[1]    = cmd.formats[1];
+                state.texture       = cmd.texture;
+                state.shaderType    = cmd.shaderType;
+            }
+
+            if (state.vertexCount == 0)
+            {
+                if (Shader<Console::Which>::IsDefaultActive())
+                    Shader<Console::Which>::AttachDefault(state.shaderType);
+
+                // if (Shader<Console::Which>::current != nullptr)
+                // Shader<Console::Which>::current->ValidateDrawState??
+            }
+
+            if (shouldResize)
+            {
+                for (int index = 0; index < 2; index++)
+                {
+                    if (state.vertexBuffer[index]->GetSize() < bufferSizes[index])
+                    {
+                        state.vertexBuffer[index]->Release();
+                        state.vertexBuffer[index] =
+                            CreateStreamBuffer(vertex::BUFFERUSAGE_VERTEX, bufferSizes[index]);
+                    }
+                }
+
+                if (state.indexBuffer->GetSize() < bufferSizes[2])
+                {
+                    state.indexBuffer->Release();
+                    state.indexBuffer =
+                        CreateStreamBuffer(vertex::BUFFERUSAGE_INDEX, bufferSizes[2]);
+                }
+            }
+
+            if (cmd.indexMode != TRIANGLEINDEX_NONE)
+            {
+                if (state.indexMap.data == nullptr)
+                    state.indexMap = state.indexBuffer->Map(requestIndexSize);
+
+                uint16_t* indices = (uint16_t*)state.indexMap.data;
+                vertex::FillIndices(cmd.indexMode, state.vertexCount, cmd.vertexCount, indices);
+
+                state.indexMap.data += requestIndexSize;
+            }
+
+            BatchedVertexData data {};
+
+            for (int index = 0; index < 2; index++)
+            {
+                if (newDataSizes[index] > 0)
+                {
+                    if (state.vertexMap[index].data == nullptr)
+                    {
+                        state.vertexMap[index] =
+                            state.vertexBuffer[index]->Map(newDataSizes[index]);
+                    }
+
+                    data.stream[index] = state.vertexMap[index].data;
+                    state.vertexMap[index].data += newDataSizes[index];
+                }
+            }
+
+            if (state.vertexCount > 0)
+                Renderer<>::drawCallsBatched++;
+
+            state.vertexCount += cmd.vertexCount;
+            state.indexCount += requestIndexCount;
+
+            return data;
+        }
+
+        void FlushBatchedDraws()
+        {
+            auto& state = this->batchedDrawState;
+
+            if (state.vertexCount == 0 && state.indexCount == 0)
+                return;
+
+            VertexAttributes attributes {};
+            BufferBindings buffers {};
+
+            size_t usedSizes[0x03] { 0 };
+
+            for (int index = 0; index < 2; index++)
+            {
+                if (state.formats[index] == CommonFormat::NONE)
+                    continue;
+
+                attributes.SetCommonFormat(state.formats[index], (uint8_t)index);
+                usedSizes[index] = VERTEX_SIZE * state.vertexCount;
+
+                size_t offset = state.vertexBuffer[index]->Unmap(usedSizes[index]);
+                buffers.Set(index, state.vertexBuffer[index], offset);
+
+                state.vertexMap[index] = StreamBuffer::MapInfo();
+            }
+
+            if (attributes.enableBits == 0)
+                return;
+
+            Color color = this->GetColor();
+            if (attributes.IsEnabled(vertex::ATTRIB_COLOR))
+                this->SetColor(Color::WHITE);
+
+            this->PushIdentityTransform();
+
+            if (state.indexCount > 0)
+            {
+                usedSizes[2] = sizeof(uint16_t) * state.indexCount;
+
+                DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
+                command.primitiveType     = state.primitiveMode;
+                command.indexCount        = state.indexCount;
+                command.indexType         = INDEX_UINT16;
+                command.indexBufferOffset = state.indexBuffer->Unmap(usedSizes[2]);
+                command.texture           = state.texture;
+
+                this->Draw(command);
+
+                state.indexMap = StreamBuffer::MapInfo();
+            }
+            else
+            {
+                DrawCommand command(&attributes, &buffers);
+                command.primitiveType = state.primitiveMode;
+                command.vertexStart   = 0;
+                command.vertexCount   = state.vertexCount;
+                command.texture       = state.texture;
+
+                // this->Draw(command);
+            }
+
+            for (int index = 0; index < 2; index++)
+            {
+                if (usedSizes[index] > 0)
+                    state.vertexBuffer[index]->MarkUsed(usedSizes[index]);
+            }
+
+            if (usedSizes[2] > 0)
+                state.indexBuffer->MarkUsed(usedSizes[2]);
+
+            this->PopTransform();
+
+            if (attributes.IsEnabled(vertex::ATTRIB_COLOR))
+                this->SetColor(color);
+
+            state.vertexCount = 0;
+            state.indexCount  = 0;
+        }
+
+        static void FlushBatchedDrawsGlobal()
+        {
+            Graphics* instance = Module::GetInstance<Graphics<Console::Which>>(M_GRAPHICS);
+            if (instance != nullptr)
+                instance->FlushBatchedDraws();
+        }
+
+        void Draw(const DrawCommand& cmd)
+        {
+            Renderer<Console::Which>::Instance().PrepareDraw(this);
+            Renderer<Console::Which>::Instance().SetVertexAttributes(*cmd.attributes, *cmd.buffers);
+            Renderer<Console::Which>::Instance().BindTextureToUnit(cmd.texture, 0);
+            Renderer<Console::Which>::Instance().SetMeshCullMode(cmd.cullMode);
+        }
+
+        void Draw(const DrawIndexedCommand& cmd)
+        {
+            BatchedDrawState& state = this->batchedDrawState;
+
+            Renderer<Console::Which>::Instance().PrepareDraw(this);
+            Renderer<Console::Which>::Instance().SetVertexAttributes(*cmd.attributes, *cmd.buffers);
+            Renderer<Console::Which>::Instance().BindTextureToUnit(cmd.texture, 0);
+            Renderer<Console::Which>::Instance().SetMeshCullMode(cmd.cullMode);
+
+            Renderer<Console::Which>::Instance().DrawElements(
+                cmd.primitiveType, cmd.indexCount, (uint16_t*)state.vertexMap[0].data, 0);
         }
 
         /* graphics state */
@@ -778,6 +1130,7 @@ namespace love
 
         void SetActive(bool active)
         {
+            this->FlushBatchedDraws();
             this->active = active;
         }
 
@@ -1166,15 +1519,15 @@ namespace love
                 bool is2D            = transform.IsAffine2DTransform();
 
                 const int count = points.size() - (skipLastVertex ? 1 : 0);
-                DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
+                // DrawCommand command(count, vertex::PRIMITIVE_TRIANGLE_FAN);
 
-                if (is2D)
-                    transform.TransformXY(std::span(command.Positions().get(), command.count),
-                                          points);
+                // if (is2D)
+                //     transform.TransformXY(std::span(command.Positions().get(), command.count),
+                //                           points);
 
-                command.FillVertices(this->GetColor());
+                // command.FillVertices(this->GetColor());
 
-                Renderer<Console::Which>::Instance().Render(command);
+                // Renderer<Console::Which>::Instance().Render(command);
             }
         }
 
@@ -1398,17 +1751,18 @@ namespace love
             const auto& transform = this->GetTransform();
             bool is2D             = transform.IsAffine2DTransform();
 
-            DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
+            // DrawCommand command(points.size(), vertex::PRIMITIVE_POINTS);
 
-            if (is2D)
-                transform.TransformXY(std::span(command.Positions().get(), points.size()), points);
+            // if (is2D)
+            //     transform.TransformXY(std::span(command.Positions().get(), points.size()),
+            //     points);
 
-            if (colors.size() > 1)
-                command.FillVertices(colors);
-            else
-                command.FillVertices(colors[0]);
+            // if (colors.size() > 1)
+            //     command.FillVertices(colors);
+            // else
+            //     command.FillVertices(colors[0]);
 
-            Renderer<Console::Which>::Instance().Render(command);
+            // Renderer<Console::Which>::Instance().Render(command);
         }
 
         void Line(std::span<Vector2> points)
@@ -1541,5 +1895,6 @@ namespace love
         int renderTargetSwitchCount;
 
         StrongReference<Font> defaultFont;
+        BatchedDrawState batchedDrawState;
     };
 } // namespace love

@@ -13,7 +13,7 @@ namespace love
     class NoneJoinPolyline : public Polyline
     {
       public:
-        NoneJoinPolyline() : Polyline(vertex::TRIANGLE_QUADS)
+        NoneJoinPolyline() : Polyline(vertex::TRIANGLEINDEX_QUADS)
         {}
 
         void render(const Vector2* vertices, size_t count, float halfwidth, float pixel_size,

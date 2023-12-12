@@ -26,7 +26,7 @@ namespace love
       public:
         static constexpr float LINES_PARALLEL_EPS = 0.05f;
 
-        Polyline(vertex::TriangleIndexMode mode = vertex::TRIANGLE_STRIP) :
+        Polyline(vertex::TriangleIndexMode mode = vertex::TRIANGLEINDEX_STRIP) :
             vertices(nullptr),
             overdraw(nullptr),
             vertex_count(0),
