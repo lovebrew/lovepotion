@@ -332,7 +332,6 @@ add_library(wuff
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     __APP_VERSION__=\"${VERSION}\" __LOVE_VERSION__=\"${LOVE_VERSION}\"
-    __EMULATION__
 )
 
 # link lz4
