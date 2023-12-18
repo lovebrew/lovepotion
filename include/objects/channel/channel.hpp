@@ -53,8 +53,8 @@ namespace love
         uint64_t sent;
         uint64_t received;
 
-        love::mutex mutex;
-        love::conditional condition;
+        love::recursive_mutex mutex;
+        love::condvar_any condition;
 
         std::queue<Variant> queue;
     };
