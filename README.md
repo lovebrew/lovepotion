@@ -4,9 +4,19 @@
 
 You can find the API reference and how to start making your own games [on the Wiki!](https://lovebrew.org)
 
+# Testing
+
+To test LÖVE Potion, you must first intialize the submodules:
+
+```bash
+git submodule update --init
+```
+
+Then you can use the latest version from the [releases page](https://github.com/lovebrew/lovepotion/releases/latest) and use the submodule content as your game directory. Alternatively, making a fused game with the content is possible as well.
+
 ## Build Statuses
 
-[![Nintendo 3DS](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%203DS.yml/badge.svg?branch=dev%2F3.0)](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%203DS.yml) [![Nintendo Switch](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Switch.yml/badge.svg?branch=dev%2F3.0)](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Switch.yml) [![Nintendo Wii U](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Wii%20U.yml/badge.svg?branch=dev%2F3.0)](https://github.com/lovebrew/lovepotion/actions/workflows/Nintendo%20Wii%20U.yml)
+N/A
 
 ## Help and Support
 

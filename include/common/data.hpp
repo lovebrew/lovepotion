@@ -1,8 +1,10 @@
 #pragma once
 
-#include <common/object.hpp>
+#include "common/Object.hpp"
 
-#include <stdint.h>
+#include <stddef.h>
+
+#include <mutex>
 
 namespace love
 {
@@ -11,13 +13,21 @@ namespace love
       public:
         static Type type;
 
-        virtual ~Data()
+        Data()
         {}
 
-        virtual Data* Clone() const = 0;
+        virtual ~Data();
 
-        virtual void* GetData() const = 0;
+        virtual Data* clone() const = 0;
 
-        virtual size_t GetSize() const = 0;
+        virtual void* getData() const = 0;
+
+        virtual size_t getSize() const = 0;
+
+        std::mutex* getMutex();
+
+      private:
+        std::mutex* mutex = nullptr;
+        std::once_flag mutexCreated;
     };
 } // namespace love

@@ -1,22 +1,31 @@
 #pragma once
 
-#include <common/luax.hpp>
-#include <common/object.hpp>
+#include "common/Object.hpp"
+#include "common/int.hpp"
 
-#include <algorithm>
 #include <cstring>
-#include <set>
+#include <string>
 #include <vector>
 
 namespace love
 {
     class Variant
     {
-
       public:
-        using VariantPair = std::pair<Variant, Variant>;
+        static constexpr int MAX_SMALL_STRING_LENGTH = 15;
 
-        static constexpr int MAX_SMALL_STRING_LENGTH = 0x0F;
+        enum Type
+        {
+            UNKNOWN = 0,
+            BOOLEAN,
+            NUMBER,
+            STRING,
+            SMALLSTRING,
+            LUSERDATA,
+            LOVEOBJECT,
+            NIL,
+            TABLE
+        };
 
         class SharedString : public Object
         {
@@ -29,7 +38,7 @@ namespace love
                 std::memcpy(this->string, string, length);
             }
 
-            virtual ~SharedString()
+            ~SharedString()
             {
                 delete[] this->string;
             }
@@ -47,20 +56,7 @@ namespace love
             virtual ~SharedTable()
             {}
 
-            std::vector<VariantPair> pairs;
-        };
-
-        enum Type
-        {
-            UNKNOWN = 0,
-            BOOLEAN,
-            NUMBER,
-            STRING,
-            SMALLSTRING,
-            LUSERDATA,
-            LOVEOBJECT,
-            NIL,
-            TABLE
+            std::vector<std::pair<Variant, Variant>> pairs;
         };
 
         union Data
@@ -69,7 +65,7 @@ namespace love
             double number;
             SharedString* string;
             void* userdata;
-            Proxy objectproxy;
+            Proxy proxy;
             SharedTable* table;
             struct
             {
@@ -84,13 +80,13 @@ namespace love
 
         Variant(double number);
 
-        Variant(const char* str, size_t len);
+        Variant(const char* string, size_t length);
 
-        Variant(const std::string& str);
+        Variant(const std::string& string);
+
+        Variant(love::Type* type, Object* object);
 
         Variant(void* lightuserdata);
-
-        Variant(love::Type* type, love::Object* object);
 
         Variant(SharedTable* table);
 
@@ -102,35 +98,25 @@ namespace love
 
         Variant& operator=(const Variant& other);
 
-        Variant::Type GetType() const
+        Type getType() const
         {
             return this->type;
-        };
+        }
 
-        const Data& GetData() const
+        const Data& getData() const
         {
             return this->data;
         }
 
-        static Variant Unknown()
+        static Variant unknown()
         {
             return Variant(UNKNOWN);
         }
 
-        bool Is(Variant::Type type)
-        {
-            return this->type == type;
-        }
-
-        bool Is(Variant::Type type) const
-        {
-            return this->type == type;
-        }
-
       private:
-        Variant::Type type;
-        Data data;
+        Variant(Type type);
 
-        Variant(Variant::Type type);
+        Type type;
+        Data data;
     };
 } // namespace love

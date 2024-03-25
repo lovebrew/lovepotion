@@ -1,12 +1,12 @@
 #pragma once
 
-#include <common/type.hpp>
-
-#include <utilities/bidirectionalmap/bidirectionalmap.hpp>
-#include <utilities/bidirectionalmap/smallvector.hpp>
+#include "common/Object.hpp"
+#include "common/Variant.hpp"
+#include "common/types.hpp"
 
 extern "C"
 {
+#define LUA_COMPAT_ALL
 #include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
@@ -17,374 +17,160 @@ extern "C"
     extern int luaopen_bit(lua_State*);
 }
 
-#include <numeric>
-#include <ranges>
+#include <algorithm>
+#include <exception>
 #include <set>
 #include <span>
-#include <vector>
+
+#include <cstdarg>
 
 namespace love
 {
-    class Object;
     class Module;
     class Reference;
-    class Variant;
 
     template<typename T>
-    class StrongReference;
+    class StrongRef;
 
     enum Registry
     {
-        REGISTRY_OBJECTS,
-        REGISTRY_MODULES
-    };
-
-    struct Proxy
-    {
-        Type* type;
-        Object* object;
+        REGISTRY_MODULES,
+        REGISTRY_OBJECTS
     };
 
     struct WrappedModule
     {
+        Module* instance;
         const char* name;
         Type* type;
-
         std::span<const luaL_Reg> functions;
-        std::span<const luaL_Reg> extendedFunctions;
-        const lua_CFunction* types;
-
-        Module* instance;
+        std::span<const lua_CFunction> types;
     };
-} // namespace love
 
-typedef uint64_t objectkey_t;
+    static constexpr uint64_t LUAX_MAX_OBJECT_KEY = 0x20000000000000ULL;
 
-namespace luax
-{
-    /* ----- main stuff ----- */
+    static constexpr const char* MAIN_THREAD_KEY      = "_love_mainthread";
+    static constexpr const char* OBJECTS_REGISTRY_KEY = "_loveobjects";
+    static constexpr const char* MODULES_REGISTRY_KEY = "_modules";
 
-    int Preload(lua_State* L, lua_CFunction function, const char* name);
+    using ObjectKey = uint64_t;
 
-    int Require(lua_State* L, const char* name);
+    // #region Startup
 
-    int InsistGlobal(lua_State* L, const char* field);
+    int luax_preload(lua_State* L, lua_CFunction function, const char* name);
 
-    lua_State* InsistPinnedThread(lua_State* L);
+    lua_State* luax_insistpinnedthread(lua_State* L);
 
-    lua_State* GetPinnedThread(lua_State* L);
+    lua_State* luax_getpinnedthread(lua_State* L);
 
-    int Insist(lua_State* L, int index, const char* key);
+    int luax_insist(lua_State* L, int index, const char* name);
 
-    int InsistLOVE(lua_State* L, const char* key);
+    int luax_insistglobal(lua_State* L, const char* name);
 
-    int GetLOVE(lua_State* L, const char* key);
+    int luax_insistlove(lua_State* L, const char* name);
 
-    int RegisterModule(lua_State* L, const love::WrappedModule& moduleName);
+    int luax_getlove(lua_State* L, const char* name);
 
-    int RegisterSearcher(lua_State* L, lua_CFunction function, int position);
+    int luax_insistregistry(lua_State* L, Registry registry);
 
-    // int RegisterType(lua_State* L, love::Type* object, ...);
+    int luax_getregistry(lua_State* L, Registry registry);
 
-    void RegisterTypeInit(lua_State* L, love::Type* type);
+    int luax_isfulllightuserdatasupported(lua_State* L);
 
-    void RegisterTypeInner(lua_State* L, std::span<const luaL_Reg> values);
+    int luax_resume(lua_State* L, int argc, int* nres);
 
-    template<typename... T>
-    inline int RegisterType(lua_State* L, love::Type* type, T&&... values)
-    {
-        RegisterTypeInit(L, type);
-        (RegisterTypeInner(L, std::forward<T>(values)), ...);
+    // #endregion
 
-        lua_pop(L, 1);
+    // #region Helpers
 
-        return 0;
-    }
+    int luax_require(lua_State* L, const char* name);
 
-    int TableInsert(lua_State* L, int index, int vindex, int position);
+    bool luax_isarrayoftables(lua_State* L, int index);
 
-    int GetLOVEFunction(lua_State* L, const char* mod, const char* fn);
+    bool luax_toboolean(lua_State* L, int index);
 
-    void SetFunctions(lua_State* L, const luaL_Reg* l);
+    bool luax_checkboolean(lua_State* L, int index);
 
-    void RawNewType(lua_State* L, love::Type& type, love::Object* object);
+    void luax_pushboolean(lua_State* L, bool boolean);
 
-    objectkey_t ComputeObjectKey(lua_State* L, love::Object* object);
+    bool luax_optboolean(lua_State* L, int index, bool default_value);
 
-    void PushObjectKey(lua_State* L, objectkey_t key);
+    std::string luax_tostring(lua_State* L, int index);
 
-    love::Type* Type(lua_State* L, int idx);
+    std::string luax_checkstring(lua_State* L, int index);
 
-    int Resume(lua_State* L, int numArgs);
+    void luax_pushstring(lua_State* L, std::string_view string);
 
-    /* ----- registry ----- */
+    void luax_pushpointerasstring(lua_State* L, const void* pointer);
 
-    int InsistRegistry(lua_State* L, love::Registry registry);
+    bool luax_istype(lua_State* L, int index, Type& type);
 
-    int GetRegistry(lua_State* L, love::Registry registry);
-
-    /* ---- object functionality ----- */
-
-    int Equal(lua_State* L);
-
-    bool IsType(lua_State* L, int index, love::Type& type);
-
-    int GarbageCollect(lua_State* L);
-
-    int Release(lua_State* L);
-
-    int ToString(lua_State* L);
-
-    int Type(lua_State* L);
-
-    int TypeOf(lua_State* L);
+    Type* luax_type(lua_State* L, int index);
 
     template<typename T>
-    T* ToType(lua_State* L, int index, const love::Type& /*type*/)
+    T* luax_totype(lua_State* L, int index, const Type& type)
     {
-        T* object = (T*)(((love::Proxy*)lua_touserdata(L, index))->object);
+        if (lua_type(L, index) != LUA_TUSERDATA)
+            return nullptr;
 
-        if (object == nullptr)
-            luaL_error(L, "Cannot use object after it has been released.");
+        Proxy* userdata = (Proxy*)lua_touserdata(L, index);
 
-        return object;
+        if (userdata->type != nullptr && userdata->type->isA(type))
+        {
+            if (userdata->object == nullptr)
+                luaL_error(L, "Cannot use object after it has been released.");
+
+            return (T*)userdata->object;
+        }
+
+        return nullptr;
     }
 
     template<typename T>
-    T* ToType(lua_State* L, int index)
+    T* luax_totype(lua_State* L, int index)
     {
-        return ToType<T>(L, index, T::type);
+        return luax_totype<T>(L, index, T::type);
     }
 
-    int TypeError(lua_State* L, int narg, const char* name);
+    int luax_typeerror(lua_State* L, int argc, const char* name);
 
     template<typename T>
-    T* CheckType(lua_State* L, int index, const love::Type& type)
+    T* luax_checktype(lua_State* L, int index, const Type& type)
     {
-        // If not userdata, error out
         if (lua_type(L, index) != LUA_TUSERDATA)
         {
-            const char* name = type.GetName();
-            luax::TypeError(L, index, name);
+            const char* name = type.getName();
+            luaL_typerror(L, index, name);
         }
 
-        love::Proxy* proxy = (love::Proxy*)lua_touserdata(L, index);
+        Proxy* userdata = (Proxy*)lua_touserdata(L, index);
 
-        // Check that it has a type and matches input
-        if (proxy->type == nullptr || !proxy->type->IsA(type))
+        if (userdata->type == nullptr || !userdata->type->isA(type))
         {
-            const char* name = type.GetName();
-            luax::TypeError(L, index, name);
+            const char* name = type.getName();
+            luax_typeerror(L, index, name);
         }
 
-        if (proxy->object == nullptr)
+        if (userdata->object == nullptr)
             luaL_error(L, "Cannot use object after it has been released.");
 
-        return (T*)proxy->object;
+        return (T*)userdata->object;
     }
 
     template<typename T>
-    T* CheckType(lua_State* L, int index)
+    T* luax_checktype(lua_State* L, int index)
     {
-        return CheckType<T>(L, index, T::type);
-    }
-
-    void PushType(lua_State* L, love::Type& type, love::Object* object);
-
-    template<typename T>
-    void PushType(lua_State* L, T* object)
-    {
-        PushType(L, T::type, object);
+        return luax_checktype<T>(L, index, T::type);
     }
 
     template<typename T>
-    void PushType(lua_State* L, love::StrongReference<T>& object)
-    {
-        PushType(L, T::type, object);
-    }
-
-    int ConvertObject(lua_State* L, int idx, const char* mod, const char* fn);
-
-    int ConvertObject(lua_State* L, const int idxs[], int n, const char* mod, const char* fn);
-
-    int ConvertObject(lua_State* L, const std::vector<int>& idxs, const char* moduleName,
-                      const char* function);
-
-    /* helper functions */
-
-    inline void PushString(lua_State* L, std::string_view str)
-    {
-        lua_pushlstring(L, str.data(), str.size());
-    }
-
-    inline bool OptBoolean(lua_State* L, int index, bool boolean)
-    {
-        if (lua_isboolean(L, index) == 1)
-            return (lua_toboolean(L, index) == 1) ? true : false;
-
-        return boolean;
-    }
-
-    inline std::string_view OptString(lua_State* L, int index, std::string_view string)
-    {
-        if (lua_isstring(L, index) == 1)
-        {
-            size_t length = 0;
-            return lua_tolstring(L, index, &length);
-        }
-
-        return string;
-    }
-
-    inline lua_Number CheckNumberClamped(lua_State* L, int index, double min, double max)
-    {
-        return std::clamp(luaL_checknumber(L, index), min, max);
-    }
-
-    inline lua_Number OptNumberClamped(lua_State* L, int index, double min, double max,
-                                       double defaultValue)
-    {
-        return std::clamp(luaL_optnumber(L, index, defaultValue), min, max);
-    }
-
-    inline lua_Number CheckNumberClamped01(lua_State* L, int index)
-    {
-        return CheckNumberClamped(L, index, 0.0, 1.0);
-    }
-
-    inline lua_Number OptNumberClamped01(lua_State* L, int index, double defaultValue)
-    {
-        return OptNumberClamped(L, index, 0.0, 1.0, defaultValue);
-    }
-
-    inline bool ToBoolean(lua_State* L, int index)
-    {
-        return (lua_toboolean(L, index) != 0);
-    }
-
-    inline bool CheckBoolean(lua_State* L, int index)
-    {
-        luaL_checktype(L, index, LUA_TBOOLEAN);
-        return luax::ToBoolean(L, index);
-    }
-
-    inline float CheckFloat(lua_State* L, int index)
-    {
-        return static_cast<float>(luaL_checknumber(L, index));
-    }
-
-    inline std::string CheckString(lua_State* L, int index)
-    {
-        size_t length      = 0;
-        const char* string = lua_tolstring(L, index, &length);
-
-        return std::string(string, length);
-    }
-
-    inline std::string ToString(lua_State* L, int index)
-    {
-        size_t length;
-        const char* string = lua_tolstring(L, index, &length);
-
-        return std::string(string, length);
-    }
-
-    void GetTypeMetaTable(lua_State* L, const love::Type& type);
-
-    void WrapObject(lua_State* L, const char* filedata, size_t length, const char* filename,
-                    const love::Type& type);
-
-    inline void PushBoolean(lua_State* L, bool boolean)
-    {
-        lua_pushboolean(L, boolean ? 1 : 0);
-    }
-
-    void PushVariant(lua_State* L, const love::Variant& variant);
-
-    love::Variant CheckVariant(lua_State* L, int index, bool allowUserdata = true,
-                               std::set<const void*>* tableSet = nullptr);
-
-    size_t ObjectLength(lua_State* L, int index);
-
-    /* ----- errors ----- */
-
-    int IOError(lua_State* L, const char* format, ...);
-
-    int EnumError(lua_State* L, const char* enumName, const char* value);
-
-    template<typename T>
-    void CheckTableFields(lua_State* L, int idx, const char* enumName,
-                          bool (*getConstant)(const char*))
-    {
-        luaL_checktype(L, idx, LUA_TTABLE);
-
-        /* we want to error for invalid / misspelled */
-        /* fields in the table. */
-
-        lua_pushnil(L);
-
-        while (lua_next(L, idx))
-        {
-            if (lua_type(L, -2) != LUA_TSTRING)
-                luax::TypeError(L, -2, "string");
-
-            const char* key = luaL_checkstring(L, -2);
-
-            bool value;
-            if (!(value = getConstant(key)))
-                luax::EnumError(L, enumName, key);
-
-            lua_pop(L, 1);
-        }
-    }
-
-    bool BoolFlag(lua_State* L, int tableIndex, const char* key, bool defaultValue);
-
-    int IntFlag(lua_State* L, int tableIndex, const char* key, int defaultValue);
-
-    double NumberFlag(lua_State* L, int tableIndex, const char* key, double defaultValue);
-
-    int CheckIntFlag(lua_State* L, int tableIndex, const char* key);
-
-    inline std::string concat(std::string&& first, const std::string_view& second)
-    {
-        return first.empty() ? std::string(second) : first + ", " + std::string(second);
-    }
-
-    template<std::ranges::range Range>
-    requires(std::is_convertible_v<std::ranges::range_value_t<Range>, std::string_view>)
-    int EnumError(lua_State* L, std::string_view type, const Range& values, std::string_view value)
-    {
-        std::string enums =
-            std::accumulate(std::begin(values), std::end(values), std::string {}, concat);
-
-        const char* enumValue = std::string(value).c_str();
-        const char* enumType  = std::string(type).c_str();
-
-        return luaL_error(L, "Invalid %s '%s', expected one of: %s", enumType, enumValue,
-                          enums.c_str());
-    }
-
-    // clang-format off
-    template<typename K, typename V, std::size_t S, std::equivalence_relation<K, K> KC, std::equivalence_relation<V, V> VC>
-    int EnumError(lua_State* L, std::string_view enumName, const BidirectionalMap<K, V, S, KC, VC>& map, std::string_view value)
-    {
-        return EnumError(L, enumName, map.GetNames(), value);
-    }
-    // clang-format on
-
-    int Traceback(lua_State* L);
-
-    love::Reference* RefIfType(lua_State* L, int type);
-
-    template<typename T>
-    int CatchException(lua_State* L, const T& func)
+    int luax_catchexcept(lua_State* L, const T& function)
     {
         bool shouldError = false;
 
         try
         {
-            func();
+            function();
         }
         catch (const std::exception& e)
         {
@@ -399,55 +185,107 @@ namespace luax
     }
 
     template<typename T, typename F>
-    int CatchException(lua_State* L, const T& func, const F& finallyfunc)
+    int luax_catchexcept(lua_State* L, const T& function, const F& finally)
     {
-        bool should_error = false;
+        bool shouldError = false;
 
         try
         {
-            func();
+            function();
         }
         catch (const std::exception& e)
         {
-            should_error = true;
+            shouldError = true;
             lua_pushstring(L, e.what());
         }
 
-        finallyfunc(should_error);
+        finally(shouldError);
 
-        if (should_error)
+        if (shouldError)
             return luaL_error(L, "%s", lua_tostring(L, -1));
 
         return 0;
     }
 
-    template<int count>
-    int AreArgsNil(lua_State* L, int start)
+    int luax_ioerror(lua_State* L, const char* format, ...);
+
+    int luax_register_searcher(lua_State* L, lua_CFunction function, int index);
+
+    size_t luax_objlen(lua_State* L, int index);
+
+    int luax_table_insert(lua_State* L, int tableIndex, int vIndex, int position);
+
+    void luax_pushvariant(lua_State* L, const Variant& v);
+
+    Variant luax_checkvariant(lua_State* L, int index, bool allowuserdata = true,
+                              std::set<const void*>* tableSet = nullptr);
+
+    int luax_convobj(lua_State* L, int index, const char* module, const char* function);
+
+    int luax_convobj(lua_State* L, const int indices[], int argc, const char* module,
+                     const char* function);
+
+    int luax_convobj(lua_State* L, const std::vector<int>& indices, const char* module,
+                     const char* function);
+
+    int luax_getfunction(lua_State* L, const char* module, const char* name);
+
+    // #endregion
+
+    // #region Registry
+
+    int luax_register_module(lua_State* L, const WrappedModule& module);
+
+    void luax_register_type_init(lua_State* L, Type* type);
+
+    void luax_register_type_inner(lua_State* L, std::span<const luaL_Reg> values);
+
+    template<typename... T>
+    inline int luax_register_type(lua_State* L, Type* type, T&&... values)
     {
-        for (size_t index = 0; index < count; index++)
-        {
-            if (!lua_isnil(L, start + index))
-                return false;
-        }
+        luax_register_type_init(L, type);
+        (luax_register_type_inner(L, std::forward<T>(values)), ...);
 
-        return true;
-    }
-
-    template<int min, int max = -1>
-    int AssertArgCount(lua_State* L)
-    {
-        const auto count = lua_gettop(L);
-
-        if (count < min)
-            return luaL_error(L, "Expected at least %d argument(s), got %d.", min, count);
-
-        if (count > max && max != -1)
-            return luaL_error(L, "Expected at most %d argument(s), got %d.", max, count);
+        lua_pop(L, 1);
 
         return 0;
     }
 
-    int AssertIsFunction(lua_State* L, int index);
+    void luax_register_types(lua_State* L, std::span<const lua_CFunction> types);
 
-    int AssertNilError(lua_State* L, int idx);
-} // namespace luax
+    void luax_rawnewtype(lua_State* L, Type& type, Object* object);
+
+    void luax_pushtype(lua_State* L, Type& type, Object* object);
+
+    template<typename T>
+    void luax_pushtype(lua_State* L, T* object)
+    {
+        luax_pushtype(L, T::type, object);
+    }
+
+    template<typename T>
+    void luax_pushtype(lua_State* L, StrongRef<T>& object)
+    {
+        luax_pushtype(L, T::type, object);
+    }
+
+    Proxy* luax_tryextractproxy(lua_State* L, int index);
+
+    template<typename T>
+    int luax_enumerror(lua_State* L, const char* name, const T& map, std::string_view value)
+    {
+        std::string expected = map.expected(name, value);
+        return luaL_error(L, "%s", expected.c_str());
+    }
+    // #endregion
+
+    // #region Other
+
+    // #endregion
+
+    // #region Debug
+
+    int luax_traceback(lua_State* L);
+
+    // #endregion
+} // namespace love

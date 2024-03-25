@@ -1,29 +1,26 @@
 #pragma once
 
-#include <common/luax.hpp>
-#include <modules/data/data.hpp>
+#include "common/Data.hpp"
+#include "common/luax.hpp"
 
-namespace Wrap_DataModule
+namespace love
 {
-    love::DataModule::ContainerType CheckContainerType(lua_State* L, int index);
+    Data* luax_checkdata(lua_State* L, int idx);
 
-    int Hash(lua_State* L);
+    int open_data(lua_State* L);
+} // namespace love
 
-    int Compress(lua_State* L);
+namespace Wrap_Data
+{
+    int getString(lua_State* L);
 
-    int Decompress(lua_State* L);
+    int getPointer(lua_State* L);
 
-    int Encode(lua_State* L);
+    int getFFIPointer(lua_State* L);
 
-    int Decode(lua_State* L);
+    int getSize(lua_State* L);
 
-    int NewByteData(lua_State* L);
+    int performAtomic(lua_State* L);
 
-    int NewDataView(lua_State* L);
-
-    int Pack(lua_State* L);
-
-    int Unpack(lua_State* L);
-
-    int Register(lua_State* L);
-} // namespace Wrap_DataModule
+    extern luaL_Reg functions[13];
+} // namespace Wrap_Data

@@ -1,36 +1,36 @@
-#include <common/strongreference.hpp>
+#include "common/StrongRef.hpp"
 
-#include <modules/event/event.hpp>
-#include <modules/event/wrap_event.hpp>
+#include "modules/event/Event.hpp"
+#include "modules/event/wrap_Event.hpp"
 
-#include <modules/love/love.hpp>
+#include <algorithm>
 
-static constexpr char wrap_event_lua[] = {
-#include <scripts/wrap_event.lua>
+static constexpr char event_lua[] = {
+#include "modules/event/wrap_Event.lua"
 };
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Event>(Module::M_EVENT))
+#define instance() (Module::getInstance<Event>(Module::M_EVENT))
 
-static int pushMessage(lua_State* L, const Message& message)
+static int luax_pushmessage(lua_State* L, const Message& message)
 {
-    luax::PushString(L, message.name);
+    luax_pushstring(L, message.name);
 
-    for (auto& variant : message.args)
-        luax::PushVariant(L, variant);
+    for (const Variant& variant : message.args)
+        luax_pushvariant(L, variant);
 
-    return (int)message.args.size() + 1;
+    return message.args.size() + 1;
 }
 
-static int poll_i(lua_State* L)
+static int w_poll_i(lua_State* L)
 {
     Message* message = nullptr;
 
-    if (instance()->Poll(message) && message != nullptr)
+    if (instance()->poll(message) && message)
     {
-        int args = pushMessage(L, *message);
-        message->Release();
+        int args = luax_pushmessage(L, *message);
+        message->release();
 
         return args;
     }
@@ -38,99 +38,99 @@ static int poll_i(lua_State* L)
     return 0;
 }
 
-int Wrap_Event::Clear(lua_State* L)
+int Wrap_Event::pump(lua_State* L)
 {
-    luax::CatchException(L, [&]() { instance()->Clear(); });
+    luax_catchexcept(L, [&] { instance()->pump(); });
 
     return 0;
 }
 
-int Wrap_Event::Pump(lua_State* L)
+int Wrap_Event::wait(lua_State* L)
 {
-    luax::CatchException(L, [&]() { instance()->Pump(); });
+    Message* message = nullptr;
+    luax_catchexcept(L, [&] { message = instance()->wait(); });
+
+    if (message)
+    {
+        int args = luax_pushmessage(L, *message);
+        message->release();
+
+        return args;
+    }
 
     return 0;
 }
 
-int Wrap_Event::Push(lua_State* L)
+int Wrap_Event::push(lua_State* L)
 {
-    std::string name = luax::CheckString(L, 1);
-    std::vector<Variant> args;
+    std::string name = luaL_checkstring(L, 1);
+    std::vector<Variant> args {};
 
-    int argCount = lua_gettop(L);
+    const int argc = lua_gettop(L);
 
-    for (int index = 2; index <= argCount; index++)
+    for (int index = 2; index <= argc; index++)
     {
         if (lua_isnoneornil(L, index))
             break;
 
-        luax::CatchException(L, [&]() { args.push_back(luax::CheckVariant(L, index)); });
+        luax_catchexcept(L, [&] { args.push_back(luax_checkvariant(L, index)); });
 
-        if (args.back().GetType() == Variant::UNKNOWN)
+        if (args.back().getType() == Variant::UNKNOWN)
         {
             args.clear();
-            return luaL_error(L,
-                              "Argument %d can't be stored safely! Expected boolean, number, "
-                              "string or userdata.",
-                              index);
+            return luaL_error(L, "Unknown variant type.");
         }
     }
 
-    StrongReference<Message> message(new Message(name, args), Acquire::NORETAIN);
+    StrongRef<Message> message(new Message(name, args), Acquire::NO_RETAIN);
+    instance()->push(message);
 
-    instance()->Push(message);
-    luax::PushBoolean(L, true);
+    luax_pushboolean(L, true);
 
     return 1;
 }
 
-int Wrap_Event::Wait(lua_State* L)
+int Wrap_Event::clear(lua_State* L)
 {
-    Message* message = nullptr;
-
-    luax::CatchException(L, [&]() { message = instance()->Wait(); });
-
-    if (message)
-    {
-        int args = pushMessage(L, *message);
-        message->Release();
-
-        return args;
-    }
+    luax_catchexcept(L, [&] { instance()->clear(); });
 
     return 0;
 }
 
-int Wrap_Event::Quit(lua_State* L)
+int Wrap_Event::quit(lua_State* L)
 {
-    luax::CatchException(L, [&]() {
-        std::vector<Variant> args;
-        for (int index = 1; index <= std::max(1, lua_gettop(L)); index++)
-            args.push_back(luax::CheckVariant(L, index));
+    const int length = std::max(lua_gettop(L), 1);
+    std::vector<Variant> args {};
 
-        StrongReference<Message> message(new Message("quit", args), Acquire::NORETAIN);
-        instance()->Push(message);
+    luax_catchexcept(L, [&] {
+        for (int index = 1; index <= length; index++)
+            args.push_back(luax_checkvariant(L, index));
+
+        StrongRef<Message> message(new Message("quit", args), Acquire::NO_RETAIN);
+        instance()->push(message);
     });
 
-    lua_pushboolean(L, true);
+    luax_pushboolean(L, true);
 
     return 1;
 }
 
-int Wrap_Event::Restart(lua_State* L)
+int Wrap_Event::restart(lua_State* L)
 {
-    luax::CatchException(L, [&]() {
-        std::vector<Variant> args;
+    const int length = lua_gettop(L);
+    std::vector<Variant> args {};
+
+    luax_catchexcept(L, [&] {
         args.emplace_back("restart", strlen("restart"));
 
-        for (int index = 1; index <= lua_gettop(L); index++)
-            args.push_back(luax::CheckVariant(L, index));
+        for (int index = 1; index <= length; index++)
+            args.push_back(luax_checkvariant(L, index));
 
-        StrongReference<Message> message(new Message("quit", args), Acquire::NORETAIN);
-        instance()->Push(message);
+        StrongRef<Message> message(new Message("quit", args), Acquire::NO_RETAIN);
+        instance()->push(message);
     });
 
-    luax::PushBoolean(L, true);
+    luax_pushboolean(L, true);
 
     return 1;
 }
@@ -138,40 +138,38 @@ int Wrap_Event::Restart(lua_State* L)
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "clear",     Wrap_Event::Clear   },
-    { "poll_i",    poll_i              },
-    { "pump",      Wrap_Event::Pump    },
-    { "push",      Wrap_Event::Push    },
-    { "quit",      Wrap_Event::Quit    },
-    { "restart",   Wrap_Event::Restart },
-    { "wait",      Wrap_Event::Wait    }
+    { "clear",   Wrap_Event::clear   },
+    { "poll_i",  w_poll_i            },
+    { "pump",    Wrap_Event::pump    },
+    { "push",    Wrap_Event::push    },
+    { "quit",    Wrap_Event::quit    },
+    { "restart", Wrap_Event::restart },
+    { "wait",    Wrap_Event::wait    }
 };
-
 // clang-format on
 
-int Wrap_Event::Register(lua_State* L)
+int Wrap_Event::open(lua_State* L)
 {
     auto* instance = instance();
 
     if (instance == nullptr)
-        luax::CatchException(L, [&]() { instance = new Event(); });
+        luax_catchexcept(L, [&]() { instance = new Event(); });
     else
-        instance->Retain();
+        instance->retain();
 
-    WrappedModule wrappedModule;
+    WrappedModule module {};
+    module.instance  = instance;
+    module.name      = "event";
+    module.type      = &Module::type;
+    module.functions = functions;
+    module.types     = {};
 
-    wrappedModule.instance  = instance;
-    wrappedModule.name      = "event";
-    wrappedModule.functions = functions;
-    wrappedModule.type      = &Module::type;
-    wrappedModule.types     = nullptr;
+    int result = luax_register_module(L, module);
 
-    int ret = luax::RegisterModule(L, wrappedModule);
-
-    if (luaL_loadbuffer(L, wrap_event_lua, sizeof(wrap_event_lua), "wrap_event.lua") == 0)
+    if (luaL_loadbuffer(L, event_lua, sizeof(event_lua), "event.lua") == 0)
         lua_call(L, 0, 0);
     else
         lua_error(L);
 
-    return ret;
+    return result;
 }

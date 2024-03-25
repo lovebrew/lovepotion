@@ -1,104 +1,128 @@
-#include <common/variant.hpp>
+/**
+ * Copyright (c) 2006-2024 LOVE Development Team
+ *
+ * This software is provided 'as-is', without any express or implied
+ * warranty.  In no event will the authors be held liable for any damages
+ * arising from the use of this software.
+ *
+ * Permission is granted to anyone to use this software for any purpose,
+ * including commercial applications, and to alter it and redistribute it
+ * freely, subject to the following restrictions:
+ *
+ * 1. The origin of this software must not be misrepresented; you must not
+ *    claim that you wrote the original software. If you use this software
+ *    in a product, an acknowledgment in the product documentation would be
+ *    appreciated but is not required.
+ * 2. Altered source versions must be plainly marked as such, and must not be
+ *    misrepresented as being the original software.
+ * 3. This notice may not be removed or altered from any source distribution.
+ **/
 
-using namespace love;
+#include <memory>
 
-Variant::Variant(Type vtype) : type(vtype)
-{}
+#include "common/Variant.hpp"
 
-Variant::Variant() : type(NIL)
-{}
-
-Variant::Variant(bool boolean) : type(BOOLEAN)
+namespace love
 {
-    this->data.boolean = boolean;
-}
+    Variant::Variant(Type vtype) : type(vtype)
+    {}
 
-Variant::Variant(double number) : type(NUMBER)
-{
-    this->data.number = number;
-}
+    Variant::Variant() : type(NIL)
+    {}
 
-Variant::Variant(const char* string, size_t len)
-{
-    if (len <= MAX_SMALL_STRING_LENGTH)
+    Variant::Variant(bool boolean) : type(BOOLEAN)
     {
-        type = SMALLSTRING;
-        std::copy_n(string, len, this->data.smallstring.str);
-        this->data.smallstring.len = (uint8_t)len;
+        data.boolean = boolean;
     }
-    else
+
+    Variant::Variant(double number) : type(NUMBER)
     {
-        type              = STRING;
-        this->data.string = new SharedString(string, len);
+        data.number = number;
     }
-}
 
-Variant::Variant(const std::string& str) : Variant(str.c_str(), str.length())
-{}
+    Variant::Variant(const char* str, size_t len)
+    {
+        if (len <= MAX_SMALL_STRING_LENGTH)
+        {
+            type = SMALLSTRING;
+            std::memcpy(data.smallstring.str, str, len);
+            data.smallstring.len = (uint8_t)len;
+        }
+        else
+        {
+            type        = STRING;
+            data.string = new SharedString(str, len);
+        }
+    }
 
-Variant::Variant(void* lightuserdata) : type(LUSERDATA)
-{
-    this->data.userdata = lightuserdata;
-}
+    Variant::Variant(const std::string& str) : Variant(str.c_str(), str.length())
+    {}
 
-Variant::Variant(love::Type* lovetype, love::Object* object) : type(LOVEOBJECT)
-{
-    this->data.objectproxy.type   = lovetype;
-    this->data.objectproxy.object = object;
+    Variant::Variant(void* lightuserdata) : type(LUSERDATA)
+    {
+        data.userdata = lightuserdata;
+    }
 
-    if (this->data.objectproxy.object != nullptr)
-        this->data.objectproxy.object->Retain();
-}
+    Variant::Variant(love::Type* lovetype, love::Object* object) : type(LOVEOBJECT)
+    {
+        data.proxy.type   = lovetype;
+        data.proxy.object = object;
 
-// Variant gets ownership of the vector.
-Variant::Variant(SharedTable* table) : type(TABLE)
-{
-    this->data.table = table;
-}
+        if (data.proxy.object != nullptr)
+            data.proxy.object->retain();
+    }
 
-Variant::Variant(const Variant& v) : type(v.type), data(v.data)
-{
-    if (this->type == STRING)
-        this->data.string->Retain();
-    else if (this->type == LOVEOBJECT && this->data.objectproxy.object != nullptr)
-        this->data.objectproxy.object->Retain();
-    else if (this->type == TABLE)
-        this->data.table->Retain();
-}
+    // Variant gets ownership of the vector.
+    Variant::Variant(SharedTable* table) : type(TABLE)
+    {
+        data.table = table;
+    }
 
-Variant::Variant(Variant&& other) : type(std::move(other.type)), data(std::move(other.data))
-{
-    other.type = NIL;
-}
+    Variant::Variant(const Variant& v) : type(v.type), data(v.data)
+    {
+        if (type == STRING)
+            data.string->retain();
+        else if (type == LOVEOBJECT && data.proxy.object != nullptr)
+            data.proxy.object->retain();
+        else if (type == TABLE)
+            data.table->retain();
+    }
 
-Variant::~Variant()
-{
-    if (this->type == STRING)
-        this->data.string->Release();
-    else if (this->type == LOVEOBJECT && this->data.objectproxy.object != nullptr)
-        this->data.objectproxy.object->Release();
-    else if (this->type == TABLE)
-        this->data.table->Release();
-}
+    Variant::Variant(Variant&& v) : type(std::move(v.type)), data(std::move(v.data))
+    {
+        v.type = NIL;
+    }
 
-Variant& Variant::operator=(const Variant& v)
-{
-    if (v.type == STRING)
-        v.data.string->Retain();
-    else if (v.type == LOVEOBJECT && v.data.objectproxy.object != nullptr)
-        v.data.objectproxy.object->Retain();
-    else if (v.type == TABLE)
-        v.data.table->Retain();
+    Variant::~Variant()
+    {
+        if (type == STRING)
+            data.string->release();
+        else if (type == LOVEOBJECT && data.proxy.object != nullptr)
+            data.proxy.object->release();
+        else if (type == TABLE)
+            data.table->release();
+    }
 
-    if (type == STRING)
-        this->data.string->Release();
-    else if (type == LOVEOBJECT && this->data.objectproxy.object != nullptr)
-        this->data.objectproxy.object->Release();
-    else if (type == TABLE)
-        this->data.table->Release();
+    Variant& Variant::operator=(const Variant& v)
+    {
+        if (v.type == STRING)
+            v.data.string->retain();
+        else if (v.type == LOVEOBJECT && v.data.proxy.object != nullptr)
+            v.data.proxy.object->retain();
+        else if (v.type == TABLE)
+            v.data.table->retain();
 
-    type = v.type;
-    data = v.data;
+        if (type == STRING)
+            data.string->release();
+        else if (type == LOVEOBJECT && data.proxy.object != nullptr)
+            data.proxy.object->release();
+        else if (type == TABLE)
+            data.table->release();
 
-    return *this;
-}
+        type = v.type;
+        data = v.data;
+
+        return *this;
+    }
+
+} // namespace love

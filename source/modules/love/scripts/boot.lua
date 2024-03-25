@@ -3,7 +3,7 @@ R"luastring"--(
 -- There is a matching delimiter at the bottom of the file.
 
 --[[
-Copyright (c) 2006-2022 LOVE Development Team
+Copyright (c) 2006-2024 LOVE Development Team
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -24,21 +24,10 @@ freely, subject to the following restrictions:
 
 -- Make sure love exists.
 local love = require("love")
-local nestlink = nil
 
 -- Essential code boot/init.
 require("love.arg")
 require("love.callbacks")
-
-local is_debug, log = pcall(require, "love.log")
-local function TRACE(format, ...) end
-
-if is_debug then
-    local file = log.new("boot.log")
-    TRACE = function(format, ...)
-        file:trace(format, ...)
-    end
-end
 
 local function uridecode(s)
     return s:gsub("%%%x%x", function(str)
@@ -46,13 +35,8 @@ local function uridecode(s)
     end)
 end
 
-local function https_setup_certs()
-    local https = require("https")
-
-    if love._os == "Cafe" then
-        return https.setCertificateFile("/sdcard/config/ssl/cacert.pem")
-    end
-    https.setCertificateFile("sdmc/config/ssl/cacert.pem")
+local function isIPAddress(address)
+    return address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
 end
 
 local no_game_code = false
@@ -61,13 +45,13 @@ local main_file = "main.lua"
 
 -- This can't be overridden.
 function love.boot()
+
     -- This is absolutely needed.
     require("love.filesystem")
 
     love.rawGameArguments = arg
 
     local arg0 = love.arg.getLow(love.rawGameArguments)
-
     love.filesystem.init(arg0)
 
     local exepath = love.filesystem.getExecutablePath()
@@ -119,11 +103,10 @@ function love.boot()
             main_file = source_leaf
             custom_main_file = true
             full_source = love.path.getFull(full_source:sub(1, -(#source_leaf + 1)))
-        elseif nouri:match("%.love$") then
-            full_source = nouri
         end
 
         can_has_game = pcall(love.filesystem.setSource, full_source)
+
         if not can_has_game then
             invalid_game_path = full_source
         end
@@ -142,32 +125,27 @@ function love.boot()
         identity = love.path.leaf(realdir)
     end
 
-    identity = identity:gsub("^([%.]+)", "")    -- strip leading "."'s
+    identity = identity:gsub("^([%.]+)", "") -- strip leading "."'s
     identity = identity:gsub("%.([^%.]+)$", "") -- strip extension
-    identity = identity:gsub("%.", "_")         -- replace remaining "."'s with "_"
-    identity = #identity > 0 and identity or "game"
+    identity = identity:gsub("%.", "_") -- replace remaining "."'s with "_"
+    identity = #identity > 0 and identity or "lovegame"
 
     -- When conf.lua is initially loaded, the main source should be checked
     -- before the save directory (the identity should be appended.)
     pcall(love.filesystem.setIdentity, identity, true)
 
-    local has_main_file = love.filesystem.getInfo(main_file)
-    local has_conf_file = love.filesystem.getInfo("conf.lua")
-
-    if can_has_game and not (has_main_file or (not custom_main_file and has_conf_file)) then
+    if can_has_game and not (love.filesystem.getInfo(main_file) or (not custom_main_file and love.filesystem.getInfo("conf.lua"))) then
         no_game_code = true
     end
 
-    https_setup_certs()
-
     if not can_has_game then
-        invalid_game_path = false
-        local nogame = require("love.nogame")
-        nogame()
+        -- local nogame = require("love.nogame")
+        -- nogame()
     end
 end
 
 function love.init()
+
     -- Create default configuration settings.
     -- NOTE: Adding a new module to the modules list
     -- will NOT make it load, see below.
@@ -194,38 +172,45 @@ function love.init()
         modules = {
             data = true,
             event = true,
-            keyboard = true,
+            keyboard = false,
             mouse = false,
             timer = true,
-            joystick = true,
-            touch = true,
-            image = true,
-            graphics = true,
-            audio = true,
-            math = true,
-            physics = true,
-            sensor = true,
-            sound = true,
-            system = true,
-            font = true,
-            thread = true,
-            window = true,
+            joystick = false,
+            touch = false,
+            image = false,
+            graphics = false,
+            audio = false,
+            math = false,
+            physics = false,
+            sensor = false,
+            sound = false,
+            system = false,
+            font = false,
+            thread = false,
+            window = false,
             video = false,
         },
         audio = {
             mixwithsystem = true, -- Only relevant for Android / iOS.
-            mic = false,          -- Only relevant for Android.
+            mic = false, -- Only relevant for Android.
         },
-        console = false,          -- Only relevant for windows.
+        console = false, -- Only relevant for windows.
         identity = false,
         appendidentity = false,
-        externalstorage = false,      -- Only relevant for Android.
-        accelerometerjoystick = true, -- Only relevant for Android / iOS.
+        externalstorage = false, -- Only relevant for Android.
+        accelerometerjoystick = nil, -- Only relevant for Android / iOS, deprecated.
         gammacorrect = false,
         highdpi = false,
         renderers = nil,
         excluderenderers = nil,
     }
+
+    -- Console hack, part 1.
+    local openedconsole = false
+    if love.arg.options.console.set and love._openConsole then
+        love._openConsole()
+        openedconsole = true
+    end
 
     -- If config file exists, load it and allow it to update config table.
     local confok, conferr
@@ -241,14 +226,9 @@ function love.init()
         -- the error message can be displayed in the window.
     end
 
-    -- Open the nestlink client
-    local console_ok, console_error
-    if c.console and type(c.console) == "table" then
-        console_ok, nestlink = pcall(require, "nestlink")
-
-        if console_ok then
-            console_ok, console_error = pcall(function() nestlink.connect(unpack(c.console)) end)
-        end
+    -- Console hack, part 2.
+    if c.console and love._openConsole and not openedconsole then
+        love._openConsole(c.console)
     end
 
     -- Hack for disabling accelerometer-as-joystick on Android / iOS.
@@ -264,7 +244,7 @@ function love.init()
         local renderers = love._getDefaultRenderers()
         if type(c.renderers) == "table" then
             renderers = {}
-            for i, v in ipairs(c.renderers) do
+            for i,v in ipairs(c.renderers) do
                 renderers[i] = v
             end
         end
@@ -286,8 +266,8 @@ function love.init()
         end
 
         if type(excluderenderers) == "table" then
-            for i, v in ipairs(excluderenderers) do
-                for j = #renderers, 1, -1 do
+            for i,v in ipairs(excluderenderers) do
+                for j=#renderers, 1, -1 do
                     if renderers[j] == v then
                         table.remove(renderers, j)
                         break
@@ -313,11 +293,8 @@ function love.init()
         love._requestRecordingPermission(c.audio and c.audio.mic)
     end
 
-    -- for 3DS
-    local dsp_error = false
-
     -- Gets desired modules.
-    for k, v in ipairs {
+    for k,v in ipairs{
         "data",
         "thread",
         "timer",
@@ -339,9 +316,9 @@ function love.init()
         "physics",
     } do
         if c.modules[v] then
-            local success, error_msg = pcall(require, "love." .. v)
-            if v == "audio" and not success then
-                dsp_error = error_msg
+            local success, msg = pcall(require, "love." .. v)
+            if v == "audio" and not success and msg:find("ndsp") then
+                error(msg)
             end
         end
     end
@@ -351,12 +328,12 @@ function love.init()
     end
 
     -- Check the version
-    -- c.potionversion = tostring(c.potionversion)
-    -- if not love.isVersionCompatible(c.potionversion) then
-    --     local major, minor, revision = c.potionversion:match("^(%d+)%.(%d+)%.(%d+)$")
-    --     if (not major or not minor or not revision) or (major ~= love._potion_version_major and minor ~= love._potion_version_minor) then
-    --         local msg = ("This game indicates it was made for version '%s' of LOVE.\n" ..
-    --             "It may not be compatible with the running version (%s)."):format(c.potionversion, love._potion_version)
+    c.version = tostring(c.version)
+    -- if not love.isVersionCompatible(c.version) then
+    --     local major, minor, revision = c.version:match("^(%d+)%.(%d+)%.(%d+)$")
+    --     if (not major or not minor or not revision) or (major ~= love._version_major and minor ~= love._version_minor) then
+    --         local msg = ("This game indicates it was made for version '%s' of LOVE.\n"..
+    --             "It may not be compatible with the running version (%s)."):format(c.version, love._version)
 
     --         print(msg)
 
@@ -366,40 +343,33 @@ function love.init()
     --     end
     -- end
 
-    if dsp_error then
-        error(dsp_error)
-    end
-
     if not confok and conferr then
         error(conferr)
     end
 
-    if not console_ok and console_error then
-        error(console_error)
-    end
-
     -- Setup window here.
-    if c.window and c.modules.window and love.window then
+    if c.window and c.modules.window then
         love.window.setTitle(c.window.title or c.title)
         assert(love.window.setMode(c.window.width, c.window.height,
-            {
-                fullscreen = c.window.fullscreen,
-                fullscreentype = c.window.fullscreentype,
-                vsync = c.window.vsync,
-                msaa = c.window.msaa,
-                stencil = c.window.stencil,
-                depth = c.window.depth,
-                resizable = c.window.resizable,
-                minwidth = c.window.minwidth,
-                minheight = c.window.minheight,
-                borderless = c.window.borderless,
-                centered = c.window.centered,
-                display = c.window.display,
-                highdpi = c.window.highdpi, -- deprecated
-                usedpiscale = c.window.usedpiscale,
-                x = c.window.x,
-                y = c.window.y,
-            }), "Could not set window mode")
+        {
+            fullscreen = c.window.fullscreen,
+            fullscreentype = c.window.fullscreentype,
+            vsync = c.window.vsync,
+            msaa = c.window.msaa,
+            stencil = c.window.stencil,
+            depth = c.window.depth,
+            resizable = c.window.resizable,
+            minwidth = c.window.minwidth,
+            minheight = c.window.minheight,
+            borderless = c.window.borderless,
+            centered = c.window.centered,
+            displayindex = c.window.displayindex,
+            display = c.window.display, -- deprecated
+            highdpi = c.window.highdpi, -- deprecated
+            usedpiscale = c.window.usedpiscale,
+            x = c.window.x,
+            y = c.window.y,
+        }), "Could not set window mode")
         if c.window.icon then
             assert(love.image, "If an icon is set in love.conf, love.image must be loaded!")
             love.window.setIcon(love.image.newImageData(c.window.icon))
@@ -410,7 +380,7 @@ function love.init()
     -- while. We'd rather hit that slowdown here than in event processing
     -- within the first frames.
     if love.event then
-        for _ = 1, 2 do love.event.pump() end
+        for i = 1, 2 do love.event.pump() end
     end
 
     -- Our first timestep, because window creation can take some time
@@ -419,7 +389,7 @@ function love.init()
     end
 
     if love.filesystem then
-        -- love.filesystem._setAndroidSaveExternal(c.externalstorage)
+        --love.filesystem._setAndroidSaveExternal(c.externalstorage)
         love.filesystem.setIdentity(c.identity or love.filesystem.getIdentity(), c.appendidentity)
         if love.filesystem.getInfo(main_file) then
             require(main_file:gsub("%.lua$", ""))
@@ -429,21 +399,17 @@ function love.init()
     if no_game_code then
         local opts = love.arg.options
         local gamepath = opts.game.set and opts.game.arg[1] or ""
-        local gamestr = gamepath == "" and "" or " at " .. '"' .. gamepath .. '"'
-
-        error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder.")
-        :format(gamestr, main_file))
+        local gamestr = gamepath == "" and "" or " at ".. gamepath
+        error("No code to run" .. gamestr .. "\nYour game might be packaged incorrectly.\nMake sure " .. main_file.. " is at the top level of the zip or folder.")
     elseif invalid_game_path then
-        error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(
-        invalid_game_path))
+        error("Cannot load game at path '" .. invalid_game_path .. "'.\nMake sure a folder exists at the specified path.")
     end
 end
 
 local print, debug, tostring = print, debug, tostring
 
 local function error_printer(msg, layer)
-    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
-    TRACE(trace)
+    print(debug.traceback("Error: " .. tostring(msg), 1+(layer or 1)):gsub("\n[^\n]+$", ""))
 end
 
 -----------------------------------------------------------
@@ -484,16 +450,12 @@ return function()
 
     while func do
         local _, retval, restartvalue = xpcall(func, deferErrhand)
-        if retval then
-            if nestlink then
-                nestlink.disconnect()
-            end
-            return retval, restartvalue
-        end
+        if retval then return retval, restartvalue end
         coroutine.yield()
     end
 
     return 1
 end
+
 -- DO NOT REMOVE THE NEXT LINE. It is used to load this file as a C++ string.
 --)luastring"--"

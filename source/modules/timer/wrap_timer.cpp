@@ -1,60 +1,48 @@
-#include <modules/timer/wrap_timer.hpp>
-#include <modules/timer_ext.hpp>
+#include "modules/timer/wrap_Timer.hpp"
+#include "modules/timer/Timer.hpp"
 
 using namespace love;
 
-#define instance() (Module::GetInstance<Timer<Console::Which>>(Module::M_TIMER))
+#define instance() (Module::getInstance<Timer>(Module::M_TIMER))
 
-int Wrap_Timer::GetAverageDelta(lua_State* L)
+int Wrap_Timer::step(lua_State* L)
 {
-    double average = instance()->GetAverageDelta();
-
-    lua_pushnumber(L, average);
+    lua_pushnumber(L, instance()->step());
 
     return 1;
 }
 
-int Wrap_Timer::GetDelta(lua_State* L)
+int Wrap_Timer::getDelta(lua_State* L)
 {
-    float delta = instance()->GetDelta();
-
-    lua_pushnumber(L, delta);
+    lua_pushnumber(L, instance()->getDelta());
 
     return 1;
 }
 
-int Wrap_Timer::GetFPS(lua_State* L)
+int Wrap_Timer::getFPS(lua_State* L)
 {
-    int fps = instance()->GetFPS();
-
-    lua_pushinteger(L, fps);
+    lua_pushinteger(L, (int)instance()->getFPS());
 
     return 1;
 }
 
-int Wrap_Timer::GetTime(lua_State* L)
+int Wrap_Timer::getAverageDelta(lua_State* L)
 {
-    double time = instance()->GetTime();
-
-    lua_pushnumber(L, time);
+    lua_pushnumber(L, instance()->getAverageDelta());
 
     return 1;
 }
 
-int Wrap_Timer::Sleep(lua_State* L)
+int Wrap_Timer::sleep(lua_State* L)
 {
-    float seconds = luaL_checknumber(L, 1);
-
-    instance()->Sleep(seconds);
+    instance()->sleep(luaL_checknumber(L, 1));
 
     return 0;
 }
 
-int Wrap_Timer::Step(lua_State* L)
+int Wrap_Timer::getTime(lua_State* L)
 {
-    double dt = instance()->Step();
-
-    lua_pushnumber(L, dt);
+    lua_pushnumber(L, instance()->getTime());
 
     return 1;
 }
@@ -62,31 +50,30 @@ int Wrap_Timer::Step(lua_State* L)
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
-    { "getAverageDelta", Wrap_Timer::GetAverageDelta },
-    { "getDelta",        Wrap_Timer::GetDelta        },
-    { "getFPS",          Wrap_Timer::GetFPS          },
-    { "getTime",         Wrap_Timer::GetTime         },
-    { "sleep",           Wrap_Timer::Sleep           },
-    { "step",            Wrap_Timer::Step            }
+    { "step",            Wrap_Timer::step            },
+    { "getDelta",        Wrap_Timer::getDelta        },
+    { "getFPS",          Wrap_Timer::getFPS          },
+    { "getAverageDelta", Wrap_Timer::getAverageDelta },
+    { "sleep",           Wrap_Timer::sleep           },
+    { "getTime",         Wrap_Timer::getTime         }
 };
 // clang-format on
 
-int Wrap_Timer::Register(lua_State* L)
+int Wrap_Timer::open(lua_State* L)
 {
     auto* instance = instance();
 
     if (instance == nullptr)
-        luax::CatchException(L, [&]() { instance = new Timer<Console::Which>(); });
+        luax_catchexcept(L, [&]() { instance = new Timer(); });
     else
-        instance->Retain();
+        instance->retain();
 
-    WrappedModule wrappedModule;
+    WrappedModule module {};
+    module.instance  = instance;
+    module.name      = "timer";
+    module.type      = &Module::type;
+    module.functions = functions;
+    module.types     = {};
 
-    wrappedModule.instance  = instance;
-    wrappedModule.name      = "timer";
-    wrappedModule.functions = functions;
-    wrappedModule.type      = &Module::type;
-    wrappedModule.types     = nullptr;
-
-    return luax::RegisterModule(L, wrappedModule);
+    return luax_register_module(L, module);
 }

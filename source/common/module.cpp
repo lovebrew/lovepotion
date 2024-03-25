@@ -1,17 +1,19 @@
-#include <common/exception.hpp>
-#include <common/module.hpp>
+#include "common/Module.hpp"
+#include "common/Exception.hpp"
 
-using namespace love;
+#include <map>
+#include <string>
+#include <utility>
 
 namespace
 {
-    typedef std::map<std::string, Module*> ModuleRegistry;
+    using ModuleRegistry = std::map<std::string, love::Module*>;
 
     ModuleRegistry* registry = nullptr;
 
-    ModuleRegistry& RegistryInstance()
+    ModuleRegistry& registryInstance()
     {
-        if (!registry)
+        if (registry == nullptr)
             registry = new ModuleRegistry();
 
         return *registry;
@@ -27,72 +29,77 @@ namespace
     }
 } // namespace
 
-// Make our "type" and empty our instances
-Type Module::type("Module", &Object::type);
+#define W_MODULE_OVERRIDE   "Warning: overwriting module instance %s with new instance %s\n"
+#define W_MODULE_REGISTERED "Module '%s' already registered!"
 
-Module* Module::instances[] = {};
-
-Module::~Module()
+namespace love
 {
-    ModuleRegistry& registry = RegistryInstance();
+    Type Module::type("Module", &Object::type);
 
-    // Destroy registry
-    for (auto it = registry.begin(); it != registry.end(); ++it)
+    Module* Module::instances[] {};
+
+    Module::Module(ModuleType type, const char* name) : moduleType(type), name(name)
     {
-        if (it->second == this)
+        registerInstance(this);
+    }
+
+    Module::~Module()
+    {
+        ModuleRegistry& registry = registryInstance();
+        for (auto it = registry.begin(); it != registry.end(); ++it)
         {
-            registry.erase(it);
-            break;
+            if (it->second == this)
+            {
+                registry.erase(it);
+                break;
+            }
+        }
+
+        for (int index = 0; index < (int)M_MAX_ENUM; index++)
+        {
+            if (instances[index] == this)
+                instances[index] = nullptr;
+        }
+
+        freeEmptyRegistry();
+    }
+
+    void Module::registerInstance(Module* instance)
+    {
+        if (instance == nullptr)
+            throw Exception("Module instance is null.");
+
+        ModuleRegistry& registry = registryInstance();
+        auto iterator            = registry.find(instance->name);
+
+        if (iterator != registry.end())
+        {
+            if (iterator->second != instance)
+                return;
+
+            throw Exception(W_MODULE_REGISTERED, instance->getName());
+        }
+
+        registry.insert(std::make_pair(instance->name, instance));
+        ModuleType type = instance->getModuleType();
+
+        if (type != M_UNKNOWN)
+        {
+            if (instances[type] != nullptr)
+                printf(W_MODULE_OVERRIDE, instances[type]->getName(), instance->getName());
+
+            instances[type] = instance;
         }
     }
 
-    for (int i = 0; i < (int)M_MAX_ENUM; i++)
+    Module* Module::getInstance(const char* name)
     {
-        if (instances[i] == this)
-            instances[i] = nullptr;
+        ModuleRegistry& registry = registryInstance();
+        auto iterator            = registry.find(name);
+
+        if (iterator == registry.end())
+            return nullptr;
+
+        return iterator->second;
     }
-
-    freeEmptyRegistry();
-}
-
-void Module::RegisterInstance(Module* instance)
-{
-    if (!instance)
-        throw love::Exception("Module instance is null.");
-
-    std::string name(instance->GetName());
-
-    ModuleRegistry& registry = RegistryInstance();
-
-    auto it = registry.find(name);
-
-    if (it != registry.end())
-    {
-        if (it->second == instance)
-            return;
-
-        throw love::Exception("Module %s is already registered.", instance->GetName());
-    }
-
-    // insert our new registered instance pair
-    registry.insert(std::make_pair(name, instance));
-    ModuleType otherType = instance->GetModuleType();
-
-    if (instances[otherType] != nullptr)
-        printf("Warning: overwriting module instance %s with new instance %s\n",
-               instances[otherType]->GetName(), instance->GetName());
-
-    instances[otherType] = instance;
-}
-
-Module* Module::GetInstance(const std::string& name)
-{
-    ModuleRegistry& registry = RegistryInstance();
-
-    auto it = registry.find(name);
-
-    if (registry.end() == it)
-        return nullptr;
-
-    return it->second;
-}
+} // namespace love

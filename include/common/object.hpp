@@ -1,6 +1,6 @@
 #pragma once
 
-#include <common/type.hpp>
+#include "common/types.hpp"
 
 #include <atomic>
 
@@ -17,13 +17,25 @@ namespace love
 
         virtual ~Object() = 0;
 
-        void Retain();
+        int getReferenceCount() const;
 
-        int GetReferenceCount() const;
+        void retain();
 
-        void Release();
+        void release();
 
       private:
         std::atomic<int> count;
+    };
+
+    struct Proxy
+    {
+        Type* type;
+        Object* object;
+    };
+
+    enum class Acquire : uint8_t
+    {
+        RETAIN,
+        NO_RETAIN
     };
 } // namespace love

@@ -3,7 +3,7 @@ R"luastring"--(
 -- There is a matching delimiter at the bottom of the file.
 
 --[[
-Copyright (c) 2006-2021 LOVE Development Team
+Copyright (c) 2006-2024 LOVE Development Team
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
@@ -61,7 +61,6 @@ function love.path.abs(p)
 
     -- Relative.
     return false
-
 end
 
 -- Converts any path into a full path.
@@ -71,7 +70,6 @@ function love.path.getFull(p)
     end
 
     local cwd = love.filesystem.getWorkingDirectory()
-
     cwd = love.path.normalslashes(cwd)
     cwd = love.path.endslash(cwd)
 
@@ -90,10 +88,10 @@ function love.path.leaf(p)
     local last = p
 
     while a do
-        a = p:find("/", a + 1)
+        a = p:find("/", a+1)
 
         if a then
-            last = p:sub(a + 1)
+            last = p:sub(a+1)
         end
     end
 
@@ -104,7 +102,7 @@ end
 -- will typically the executable, for instance "lua5.1.exe".
 function love.arg.getLow(a)
     local m = math.huge
-    for k, v in pairs(a) do
+    for k,v in pairs(a) do
         if k < m then
             m = k
         end
@@ -115,7 +113,9 @@ end
 love.arg.options = {
     console = { a = 0 },
     fused = { a = 0 },
-    game = { a = 1 }
+    game = { a = 1 },
+    renderers = { a = 1 },
+    excluderenderers = { a = 1 },
 }
 
 love.arg.optionIndices = {}
@@ -125,17 +125,17 @@ function love.arg.parseOption(m, i)
 
     if m.a > 0 then
         m.arg = {}
-        for j = i, i + m.a - 1 do
+        for j=i,i+m.a-1 do
             love.arg.optionIndices[j] = true
             table.insert(m.arg, arg[j])
         end
     end
 
-    table.insert(m.arg, "game")
     return m.a
 end
 
-function love.arg.parseOptions()
+function love.arg.parseOptions(arg)
+
     local game
     local argc = #arg
 
@@ -146,7 +146,7 @@ function love.arg.parseOptions()
 
         if m and m ~= "" and love.arg.options[m] and not love.arg.options[m].set then
             love.arg.optionIndices[i] = true
-            i = i + love.arg.parseOption(love.arg.options[m], i + 1)
+            i = i + love.arg.parseOption(love.arg.options[m], i+1)
         elseif m == "" then -- handle '--' as an option
             love.arg.optionIndices[i] = true
             if not game then -- handle '--' followed by game name
@@ -172,7 +172,7 @@ function love.arg.parseGameArguments(a)
     local _, lowindex = love.arg.getLow(a)
 
     local o = lowindex
-    for i = lowindex, #a do
+    for i=lowindex, #a do
         if not love.arg.optionIndices[i] then
             out[o] = a[i]
             o = o + 1

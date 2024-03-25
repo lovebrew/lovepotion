@@ -1,66 +1,56 @@
 #pragma once
 
-#include <common/console.hpp>
-#include <common/module.hpp>
+#include "common/Module.hpp"
 
 #include <chrono>
-using namespace std::chrono_literals;
 
 namespace love
 {
-    template<Console::Platform T = Console::ALL>
-    class Timer : public Module
+    template<class T>
+    class TimerBase : public Module
     {
       public:
-        Timer() :
-            currentTime(0),
-            previousFpsUpdate(0),
+        TimerBase() :
+            Module(M_TIMER, "love.timer"),
+            currTime(0),
+            prevFpsUpdate(0),
             fps(0),
             averageDelta(0),
             fpsUpdateFrequency(1),
             frames(0),
-            delta(0)
+            dt(0)
         {}
 
-        virtual ~Timer()
+        virtual ~TimerBase()
         {}
 
-        const char* GetName() const override
+        double getDelta() const
         {
-            return "love.timer";
+            return this->dt;
         }
 
-        ModuleType GetModuleType() const override
-        {
-            return M_TIMER;
-        }
-
-        double GetDelta() const
-        {
-            return this->delta;
-        }
-
-        double GetAverageDelta() const
+        double getAverageDelta() const
         {
             return this->averageDelta;
         }
 
-        int GetFPS() const
+        double getFPS() const
         {
             return this->fps;
         }
 
       protected:
-        double currentTime;
-        double previousFpsUpdate;
-
-        double previousTime;
+        double currTime;
+        double prevTime;
+        double prevFpsUpdate;
 
         int fps;
         double averageDelta;
+
         double fpsUpdateFrequency;
 
         int frames;
-        double delta;
+
+        double dt;
     };
 } // namespace love
