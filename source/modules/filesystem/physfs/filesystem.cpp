@@ -501,10 +501,8 @@ namespace love
                 break;
             }
             case COMMONPATH_USER_DOCUMENTS:
-                this->fullPaths[path] = normalize("sdmc:/");
                 break;
             case COMMONPATH_USER_DESKTOP:
-                this->fullPaths[path] = normalize(PHYSFS_getUserDir());
                 break;
             case COMMONPATH_MAX_ENUM:
             default:
