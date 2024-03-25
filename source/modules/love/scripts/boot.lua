@@ -24,21 +24,10 @@ freely, subject to the following restrictions:
 
 -- Make sure love exists.
 local love = require("love")
-local nestlink = nil
 
 -- Essential code boot/init.
 require("love.arg")
 require("love.callbacks")
-
-local is_debug, log = pcall(require, "love.log")
-local function TRACE(format, ...) end
-
-if is_debug then
-    local file = log.new("boot.log")
-    TRACE = function(format, ...)
-        file:trace(format, ...)
-    end
-end
 
 local function uridecode(s)
     return s:gsub("%%%x%x", function(str)
@@ -227,6 +216,12 @@ function love.init()
         excluderenderers = nil,
     }
 
+    local openedconsole = false
+    if love.arg.options.console.set and love._openConsole then
+        love._openConsole()
+        openedconsole = true
+    end
+
     -- If config file exists, load it and allow it to update config table.
     local confok, conferr
     if (not love.conf) and love.filesystem and love.filesystem.getInfo("conf.lua") then
@@ -241,14 +236,10 @@ function love.init()
         -- the error message can be displayed in the window.
     end
 
-    -- Open the nestlink client
+    -- Open the console
     local console_ok, console_error
-    if c.console and type(c.console) == "table" then
-        console_ok, nestlink = pcall(require, "nestlink")
-
-        if console_ok then
-            console_ok, console_error = pcall(function() nestlink.connect(unpack(c.console)) end)
-        end
+    if c.console and love._openConsole and not openedconsole then
+        love._openConsole(c.console)
     end
 
     -- Hack for disabling accelerometer-as-joystick on Android / iOS.
@@ -432,18 +423,17 @@ function love.init()
         local gamestr = gamepath == "" and "" or " at " .. '"' .. gamepath .. '"'
 
         error(("No code to run %s\nYour game might be packaged incorrectly.\nMake sure %s is at the top level of the zip or folder.")
-        :format(gamestr, main_file))
+            :format(gamestr, main_file))
     elseif invalid_game_path then
         error(("Cannot load game at path '%s'.\nMake sure a folder exists at the specified path."):format(
-        invalid_game_path))
+            invalid_game_path))
     end
 end
 
 local print, debug, tostring = print, debug, tostring
 
 local function error_printer(msg, layer)
-    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
-    TRACE(trace)
+    print(debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", ""))
 end
 
 -----------------------------------------------------------
@@ -485,9 +475,6 @@ return function()
     while func do
         local _, retval, restartvalue = xpcall(func, deferErrhand)
         if retval then
-            if nestlink then
-                nestlink.disconnect()
-            end
             return retval, restartvalue
         end
         coroutine.yield()

@@ -23,14 +23,6 @@ static constexpr char nogame_lua[] = {
 #include <scripts/nogame.lua>
 };
 
-static constexpr char logfile_lua[] = {
-#include "scripts/logfile.lua"
-};
-
-static constexpr char nestlink_lua[] = {
-#include "scripts/nestlink.lua"
-};
-
 #include <modules/graphics/graphics.tcc>
 
 #include <modules/audio/wrap_audio.hpp>
@@ -52,7 +44,7 @@ static constexpr char nestlink_lua[] = {
 #include <modules/touch/wrap_touch.hpp>
 #include <modules/window/wrap_window.hpp>
 
-#include <utilities/debug/logfile.hpp>
+#include <arpa/inet.h>
 
 // clang-format off
 static constexpr luaL_Reg modules[] =
@@ -75,14 +67,10 @@ static constexpr luaL_Reg modules[] =
     { "love.timer",      Wrap_Timer::Register          },
     { "love.touch",      Wrap_Touch::Register          },
     { "love.window",     Wrap_Window::Register         },
-    #if defined(__DEBUG__)
-    { "love.log",        love::LoadLogFile             },
-    #endif
     { "love.arg",        love::LoadArgs                },
     { "love.callbacks",  love::LoadCallbacks           },
     { "love.boot",       love::Boot                    },
     { "love.nogame",     love::NoGame                  },
-    { "nestlink",        love::OpenNestlink            },
     { 0,                 0                             }
 };
 // clang-format on
@@ -147,6 +135,11 @@ int love::Initialize(lua_State* L)
     lua_pushstring(L, CODENAME);
     lua_setfield(L, -2, "_version_codename");
 
+    lua_pushcfunction(L, love::OpenConsole);
+    lua_setfield(L, -2, "_openConsole");
+
+    lua_register(L, "print", love::Print);
+
     // love._potion_(major, minor, micro)
     lua_pushnumber(L, LOVE_POTION.major);
     lua_setfield(L, -2, "_potion_version_major");
@@ -190,17 +183,86 @@ int love::Initialize(lua_State* L)
     luax::Preload(L, luaopen_luautf8, "utf8");
     luax::Preload(L, luaopen_https, "https");
 
-    {
-        lua_atpanic(L, [](lua_State* L) -> int {
-            auto location       = std::source_location::current();
-            const auto* message = "PANIC: unprotected error in call to Lua API (%s)\n";
-            Log::Instance(true).Write(location, message, lua_tostring(L, -1));
+    return 1;
+}
 
-            return 0;
-        });
+int love::OpenConsole(lua_State* L)
+{
+    struct sockaddr_in server;
+    int lsockfd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if (lsockfd < 0)
+    {
+        luax::PushBoolean(L, false);
+        return 1;
     }
 
+    /* make piepie happy :) */
+    std::fill_n(&server, 1, sockaddr_in {});
+
+    server.sin_family      = AF_INET;
+    server.sin_addr.s_addr = 0;
+    server.sin_port        = htons(STDIO_PORT);
+
+    if (bind(lsockfd, (struct sockaddr*)&server, sizeof(server)) < 0)
+    {
+        luax::PushBoolean(L, false);
+        close(lsockfd);
+        return 1;
+    }
+
+    if (listen(lsockfd, 5) < 0)
+    {
+        luax::PushBoolean(L, false);
+        close(lsockfd);
+        return 1;
+    }
+
+    int sockfd = accept(lsockfd, NULL, NULL);
+    close(lsockfd);
+
+    if (sockfd < 0)
+    {
+        luax::PushBoolean(L, false);
+        return 1;
+    }
+
+    std::fflush(stdout);
+    dup2(sockfd, STDOUT_FILENO);
+
+    close(sockfd);
+
+    luax::PushBoolean(L, true);
     return 1;
+}
+
+int love::Print(lua_State* L)
+{
+    int argc = lua_gettop(L);
+    lua_getglobal(L, "tostring");
+
+    std::string result {};
+
+    for (int index = 1; index <= argc; index++)
+    {
+        lua_pushvalue(L, -1);
+        lua_pushvalue(L, index);
+        lua_call(L, 1, 1);
+
+        const char* string = lua_tostring(L, -1);
+        if (string == nullptr)
+            return luaL_error(L, "'tostring' must return a string to 'print'");
+
+        if (index > 1)
+            result += "\t";
+
+        result += string;
+
+        lua_pop(L, 1);
+    }
+
+    std::printf("[LOVE] %s\r\n", result.c_str());
+    return 0;
 }
 
 int love::GetVersion(lua_State* L)
@@ -249,14 +311,6 @@ int love::IsVersionCompatible(lua_State* L)
     return 1;
 }
 
-int love::LoadLogFile(lua_State* L)
-{
-    if (luaL_loadbuffer(L, logfile_lua, sizeof(logfile_lua), "=[love \"logfile.lua\"]") == 0)
-        lua_call(L, 0, 1);
-
-    return 1;
-}
-
 int love::LoadArgs(lua_State* L)
 {
     if (luaL_loadbuffer(L, arg_lua, sizeof(arg_lua), "=[love \"arg.lua\"]") == 0)
@@ -284,14 +338,6 @@ int love::Boot(lua_State* L)
 int love::NoGame(lua_State* L)
 {
     if (luaL_loadbuffer(L, nogame_lua, sizeof(nogame_lua), "=[love \"nogame.lua\"]") == 0)
-        lua_call(L, 0, 1);
-
-    return 1;
-}
-
-int love::OpenNestlink(lua_State* L)
-{
-    if (luaL_loadbuffer(L, nestlink_lua, sizeof(nestlink_lua), "=[love \"nestlink.lua\"]") == 0)
         lua_call(L, 0, 1);
 
     return 1;

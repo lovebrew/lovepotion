@@ -22,20 +22,9 @@ freely, subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 --]]
 
-local love          = require("love")
-
-local is_debug, log = pcall(require, "love.log")
-local function TRACE(format, ...) end
-
-if is_debug then
-    local file = log.new("callbacks.log")
-    TRACE = function(format, ...)
-        file:trace(format, ...)
-    end
-end
+local love = require("love")
 
 function love.createhandlers()
-
     -- Standard callback handlers.
     love.handlers = setmetatable({
         --#region unused
@@ -306,8 +295,7 @@ end
 local utf8 = require("utf8")
 
 local function error_printer(msg, layer)
-    local trace = debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", "")
-    TRACE(trace)
+    print(debug.traceback("Error: " .. tostring(msg), 1 + (layer or 1)):gsub("\n[^\n]+$", ""))
 end
 
 function love.errhand(msg)

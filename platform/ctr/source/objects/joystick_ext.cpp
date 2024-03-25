@@ -167,7 +167,7 @@ float Joystick<Console::CTR>::GetAxis(int index)
         circlePosition leftStick {};
         hidCircleRead(&leftStick);
 
-        float value = (index == 1) ? leftStick.dx : leftStick.dy;
+        float value = (index == 1) ? leftStick.dy : leftStick.dx;
         return std::clamp<float>(value / Joystick::JoystickMax, -1.0f, 1.0f);
     }
     else if (index == 2 || index == 3)
@@ -175,7 +175,7 @@ float Joystick<Console::CTR>::GetAxis(int index)
         circlePosition rightStick {};
         irrstCstickRead(&rightStick);
 
-        float value = (index == 3) ? rightStick.dx : rightStick.dy;
+        float value = (index == 3) ? rightStick.dy : rightStick.dx;
         return std::clamp<float>(value / Joystick::JoystickMax, -1.0f, 1.0f);
     }
     else if (index == 4)

@@ -24,10 +24,11 @@ namespace love
 
         enum GamepadAxis
         {
-            GAMEPAD_AXIS_LEFTY,
+            GAMEPAD_AXIS_INVALID,
             GAMEPAD_AXIS_LEFTX,
-            GAMEPAD_AXIS_RIGHTY,
+            GAMEPAD_AXIS_LEFTY,
             GAMEPAD_AXIS_RIGHTX,
+            GAMEPAD_AXIS_RIGHTY,
             GAMEPAD_AXIS_TRIGGERLEFT,
             GAMEPAD_AXIS_TRIGGERRIGHT,
             GAMEPAD_AXIS_MAX_ENUM

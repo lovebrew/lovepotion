@@ -26,9 +26,9 @@ namespace love
 
     int NoGame(lua_State* L);
 
-    int LoadLogFile(lua_State* L);
+    int Print(lua_State* L);
 
-    int OpenNestlink(lua_State* L);
+    int OpenConsole(lua_State* L);
 
     template<Console::Platform T>
     bool MainLoop(lua_State* L, int numArgs);
@@ -38,6 +38,8 @@ namespace love
     int IsVersionCompatible(lua_State* L);
 
     int SetGammaCorrect(lua_State* L);
+
+    static constexpr int STDIO_PORT = 8000;
 } // namespace love
 
 extern "C"
