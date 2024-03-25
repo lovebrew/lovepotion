@@ -45,6 +45,7 @@ static constexpr char nogame_lua[] = {
 #include <modules/window/wrap_window.hpp>
 
 #include <arpa/inet.h>
+#include <sys/socket.h>
 
 // clang-format off
 static constexpr luaL_Reg modules[] =
