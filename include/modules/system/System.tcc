@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/module.hpp"
+#include "common/Module.hpp"
 #include "utility/map.hpp"
 
 namespace love
