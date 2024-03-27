@@ -35,10 +35,6 @@ local function uridecode(s)
     end)
 end
 
-local function isIPAddress(address)
-    return address:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
-end
-
 local no_game_code = false
 local invalid_game_path = nil
 local main_file = "main.lua"
@@ -184,9 +180,9 @@ function love.init()
             physics = false,
             sensor = false,
             sound = false,
-            system = false,
+            system = true,
             font = false,
-            thread = false,
+            thread = true,
             window = false,
             video = false,
         },

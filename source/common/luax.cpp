@@ -6,6 +6,8 @@
 #include <cmath>
 #include <cstring>
 
+#include "utility/logfile.hpp"
+
 #define LOVE_UNUSED(x) (void)sizeof(x)
 
 namespace love
@@ -692,6 +694,71 @@ namespace love
         return tableOfTables;
     }
 
+    int luax_assert_nilerror(lua_State* L, int index)
+    {
+        if (lua_isnoneornil(L, index))
+        {
+            if (lua_isstring(L, index + 1))
+                return luaL_error(L, lua_tostring(L, index + 1));
+            else
+                return luaL_error(L, "assertion failed!");
+        }
+
+        return 0;
+    }
+
+    int luax_getfunction(lua_State* L, const char* module, const char* function)
+    {
+        lua_getglobal(L, "love");
+        if (lua_isnil(L, -1))
+            return luaL_error(L, "Could not find global love!");
+
+        lua_getfield(L, -1, module);
+        if (lua_isnil(L, -1))
+            return luaL_error(L, "Could not find module love.%s!", module);
+
+        lua_getfield(L, -1, function);
+        if (lua_isnil(L, -1))
+            return luaL_error(L, "Could not find function love.%s.%s!", module, function);
+
+        lua_remove(L, -2);
+        lua_remove(L, -2);
+
+        return 0;
+    }
+
+    int luax_convobj(lua_State* L, int index, const char* module, const char* function)
+    {
+        if (index < 0 && index > LUA_REGISTRYINDEX)
+            index += lua_gettop(L) + 1;
+
+        luax_getfunction(L, module, function);
+        lua_pushvalue(L, index);
+        lua_call(L, 1, 2);
+        luax_assert_nilerror(L, -2);
+        lua_pop(L, 1);
+        lua_replace(L, index);
+
+        return 0;
+    }
+
+    int luax_convobj(lua_State* L, std::span<int> indices, const char* module, const char* function)
+    {
+        luax_getfunction(L, module, function);
+
+        for (int index : indices)
+            lua_pushvalue(L, index);
+
+        lua_call(L, (int)indices.size(), 2);
+        luax_assert_nilerror(L, -2);
+        lua_pop(L, 1);
+
+        if (indices.size() > 0)
+            lua_replace(L, indices[0]);
+
+        return 0;
+    }
+
     // #endregion
 
     // #region Registry
@@ -723,6 +790,9 @@ namespace love
 
         if (!module.functions.empty())
             luax_register_type_inner(L, module.functions);
+
+        if (!module.platformFunctions.empty())
+            luax_register_type_inner(L, module.platformFunctions);
 
         if (!module.types.empty())
             luax_register_types(L, module.types);
@@ -796,6 +866,32 @@ namespace love
     {
         for (const auto& registry : types)
             registry(L);
+    }
+
+    int luax_traceback(lua_State* L)
+    {
+        if (!lua_isstring(L, 1))
+            return 1;
+
+        lua_getglobal(L, "debug");
+        if (!lua_istable(L, -1))
+        {
+            lua_pop(L, 1);
+            return 1;
+        }
+
+        lua_getfield(L, -1, "traceback");
+        if (!lua_isfunction(L, -1))
+        {
+            lua_pop(L, 2);
+            return 1;
+        }
+
+        lua_pushvalue(L, 1);
+        lua_pushinteger(L, 2);
+        lua_call(L, 2, 1);
+
+        return 1;
     }
 
     // #endregion

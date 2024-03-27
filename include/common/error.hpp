@@ -37,4 +37,7 @@ namespace love
 #define E_DATA_PACK_OFFSET_FORMAT_PARAMS \
     "The given byte offset and pack format parameters do not fit within the ByteData's size."
 #define E_DATA_SIZE_MUST_BE_POSITIVE "Data size must be a positive number."
+// Thread
+#define E_CHANNEL_VARIANT_UNKNOWN "boolean, number, string, love type, or table expected."
+#define E_THREAD_VARIANT_UNKNOWN  "boolean, number, string, love type, or flat table expected."
 } // namespace love

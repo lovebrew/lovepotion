@@ -6,6 +6,8 @@
 #include "modules/data/wrap_DataModule.hpp"
 #include "modules/event/wrap_Event.hpp"
 #include "modules/filesystem/wrap_Filesystem.hpp"
+#include "modules/system/wrap_System.hpp"
+#include "modules/thread/wrap_Thread.hpp"
 #include "modules/timer/wrap_Timer.hpp"
 
 #include "boot.hpp"
@@ -33,18 +35,19 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr luaL_Reg modules[] =
-{
+static constexpr std::array<const luaL_Reg, 10> modules =
+{{
     { "love.data",       Wrap_DataModule::open },
     { "love.timer",      Wrap_Timer::open      },
+    { "love.thread",     Wrap_Thread::open     },
     { "love.event",      Wrap_Event::open      },
     { "love.filesystem", Wrap_Filesystem::open },
+    { "love.system",     Wrap_System::open     },
     { "love.arg",        love_openArg          },
     { "love.callbacks",  love_openCallbacks    },
     { "love.boot",       love_openBoot         },
-    { "love.nogame",     love_openNoGame       },
-    { 0,                 0                     }
-};
+    { "love.nogame",     love_openNoGame       }
+}};
 // clang-format on
 
 const char* love_getVersion()
@@ -137,8 +140,8 @@ static void luax_addcompatibilityalias(lua_State* L, const char* module, const c
 
 int love_initialize(lua_State* L)
 {
-    for (size_t i = 0; modules[i].name != nullptr; i++)
-        love::luax_preload(L, modules[i].func, modules[i].name);
+    for (auto& module : modules)
+        love::luax_preload(L, module.func, module.name);
 
     love::luax_insistpinnedthread(L);
     love::luax_insistglobal(L, "love");

@@ -5,6 +5,7 @@
 
 #include "events.hpp"
 
+#include <mutex>
 #include <queue>
 
 namespace love
@@ -27,7 +28,7 @@ namespace love
         Message* wait();
 
       private:
-        std::mutex mutex;
+        std::recursive_mutex mutex;
         std::queue<Message*> messages;
 
         LOVE_Event event;

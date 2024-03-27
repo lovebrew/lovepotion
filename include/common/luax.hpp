@@ -44,6 +44,7 @@ namespace love
         const char* name;
         Type* type;
         std::span<const luaL_Reg> functions;
+        std::span<const luaL_Reg> platformFunctions;
         std::span<const lua_CFunction> types;
     };
 
@@ -220,15 +221,14 @@ namespace love
     Variant luax_checkvariant(lua_State* L, int index, bool allowuserdata = true,
                               std::set<const void*>* tableSet = nullptr);
 
-    int luax_convobj(lua_State* L, int index, const char* module, const char* function);
-
-    int luax_convobj(lua_State* L, const int indices[], int argc, const char* module,
-                     const char* function);
-
-    int luax_convobj(lua_State* L, const std::vector<int>& indices, const char* module,
-                     const char* function);
+    int luax_assert_nilerror(lua_State* L, int index);
 
     int luax_getfunction(lua_State* L, const char* module, const char* name);
+
+    int luax_convobj(lua_State* L, int index, const char* module, const char* function);
+
+    int luax_convobj(lua_State* L, std::span<int> indices, const char* module,
+                     const char* function);
 
     // #endregion
 
@@ -277,6 +277,7 @@ namespace love
         std::string expected = map.expected(name, value);
         return luaL_error(L, "%s", expected.c_str());
     }
+
     // #endregion
 
     // #region Other

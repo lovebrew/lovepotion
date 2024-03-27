@@ -211,5 +211,14 @@ source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
 source/modules/love/love.cpp
+source/modules/system/wrap_System.cpp
+source/modules/thread/Channel.cpp
+source/modules/thread/LuaThread.cpp
+source/modules/thread/Thread.cpp
+source/modules/thread/Threadable.cpp
+source/modules/thread/ThreadModule.cpp
+source/modules/thread/wrap_Channel.cpp
+source/modules/thread/wrap_LuaThread.cpp
+source/modules/thread/wrap_Thread.cpp
 source/modules/timer/wrap_Timer.cpp
 )
