@@ -21,6 +21,8 @@ namespace love
     {
         osSetSpeedupEnable(true);
 
+        romfsInit();
+
         socBuffer = (uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE);
         socInit(socBuffer, SOC_BUFFER_SIZE);
 
@@ -40,5 +42,7 @@ namespace love
 
         if (socBuffer)
             free(socBuffer);
+
+        romfsExit();
     }
 } // namespace love
