@@ -47,6 +47,8 @@ namespace love
 
             timeout -= (stop - start);
         }
+
+        return false;
     }
 
     bool Channel::pop(Variant* value)

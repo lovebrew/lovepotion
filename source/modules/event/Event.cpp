@@ -2,6 +2,9 @@
 
 #include "modules/event/Event.hpp"
 
+#include "modules/joystick/JoystickModule.hpp"
+#include "modules/touch/Touch.hpp"
+
 #include <mutex>
 
 namespace love
@@ -60,6 +63,79 @@ namespace love
     static Message* convertTouchEvent(const LOVE_Event& event, std::vector<Variant>& args)
     {
         Message* result = nullptr;
+        Finger finger {};
+
+        switch (event.subtype)
+        {
+            case SUBTYPE_TOUCHPRESS:
+            case SUBTYPE_TOUCHMOVED:
+            case SUBTYPE_TOUCHRELEASE:
+            {
+                finger.id       = event.finger.id;
+                finger.x        = event.finger.x;
+                finger.y        = event.finger.y;
+                finger.dx       = event.finger.dx;
+                finger.dy       = event.finger.dy;
+                finger.pressure = event.finger.pressure;
+
+                auto module = Module::getInstance<Touch>(Module::M_TOUCH);
+
+                if (module)
+                    module->onEvent(event.subtype, finger);
+
+                args.emplace_back((void*)(intptr_t)finger.id);
+                args.emplace_back(finger.x);
+                args.emplace_back(finger.y);
+                args.emplace_back(finger.dx);
+                args.emplace_back(finger.dy);
+                args.emplace_back(finger.pressure);
+
+                if (event.subtype == SUBTYPE_TOUCHPRESS)
+                    result = new Message("touchpressed", args);
+                else if (event.subtype == SUBTYPE_TOUCHMOVED)
+                    result = new Message("touchmoved", args);
+                else if (event.subtype == SUBTYPE_TOUCHRELEASE)
+                    result = new Message("touchreleased", args);
+
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    static Message* convertJoystickEvent(const LOVE_Event& event, std::vector<Variant>& args)
+    {
+        Message* result = nullptr;
+        auto* module    = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
+
+        JoystickBase* joystick = nullptr;
+        Type* joystickType     = &JoystickBase::type;
+
+        switch (event.subtype)
+        {
+            case SUBTYPE_GAMEPADADDED:
+            {
+                joystick = module->addJoystick(event.gamepadStatus.which);
+                if (joystick)
+                {
+                    args.emplace_back(joystickType, joystick);
+                    result = new Message("joystickadded", args);
+                }
+                break;
+            }
+            case SUBTYPE_GAMEPADREMOVED:
+            {
+                joystick = module->getJoystickFromID(event.gamepadStatus.which);
+                if (joystick)
+                {
+                    module->removeJoystick(joystick);
+                    args.emplace_back(joystickType, joystick);
+                    result = new Message("joystickremoved", args);
+                }
+                break;
+            }
+        }
 
         return result;
     }
@@ -81,6 +157,11 @@ namespace love
             case TYPE_TOUCH:
             {
                 message = convertTouchEvent(event, args);
+                break;
+            }
+            case TYPE_GAMEPAD:
+            {
+                message = convertJoystickEvent(event, args);
                 break;
             }
             default:

@@ -5,7 +5,7 @@
 
 #include "modules/filesystem/FileData.hpp"
 
-#include "utility/map.hpp"
+#include "common/map.hpp"
 
 #include <filesystem>
 #include <string>
@@ -17,7 +17,6 @@
 
 namespace love
 {
-    template<class T>
     class FilesystemBase : public Module
     {
       private:

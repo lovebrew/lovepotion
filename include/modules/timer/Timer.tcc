@@ -3,10 +3,10 @@
 #include "common/Module.hpp"
 
 #include <chrono>
+using namespace std::chrono_literals;
 
 namespace love
 {
-    template<class T>
     class TimerBase : public Module
     {
       public:
@@ -52,5 +52,7 @@ namespace love
         int frames;
 
         double dt;
+
+        static constexpr double SECONDS_TO_NS = 1.0E9;
     };
 } // namespace love

@@ -8,7 +8,8 @@ namespace love
 #define E_POINTER_TOO_LARGE "Cannot push love object to Lua: pointer value %p is too large!"
 
 // General
-#define E_OUT_OF_MEMORY "Out of memory."
+#define E_OUT_OF_MEMORY  "Out of memory."
+#define E_TITLE_TAKEOVER "Please run LÖVE Potion under Atmosphère title takeover."
 // Filesystem
 #define E_PHYSFS_NOT_INITIALIZED     "PHYSFS is not initialized."
 #define E_DATA_NOT_WRITTEN           "Data could not be written."

@@ -2,7 +2,7 @@
 
 #include "common/Data.hpp"
 #include "common/Module.hpp"
-#include "utility/map.hpp"
+#include "common/map.hpp"
 
 #include "modules/thread/Channel.hpp"
 #include "modules/thread/LuaThread.hpp"

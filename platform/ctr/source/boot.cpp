@@ -1,33 +1,62 @@
+#include "common/service.hpp"
+
 #include "boot.hpp"
 
 #include <3ds.h>
 
 #include <stdlib.h>
 
+#include <format>
+#include <string>
+
 namespace love
 {
+    std::unique_ptr<uint32_t[], unique_deleter> socBuffer;
+
     // clang-format off
-    static constexpr std::array services =
-    {
-        std::pair { &mcuHwcInit, &mcuHwcExit },
-        std::pair { &ptmuInit,   &ptmuExit   },
-        std::pair { &acInit,     &acExit     },
-        std::pair { &cfguInit,   &cfguExit   },
-        std::pair { &frdInit,    &frdExit    }
-    };
+    static constexpr std::array<const Service, 8> services =
+    {{
+        /* I don't know why socExit is a Result return, we don't care about the exit value */
+        { "soc:u",   BIND(socInit, socBuffer.get(), SOC_BUFFER_SIZE), []() { socExit(); }    },
+        { "mcu:Hwc", BIND(mcuHwcInit),                                &mcuHwcExit            },
+        { "ptm:u",   BIND(ptmuInit),                                  &ptmuExit              },
+        { "ac:u",    BIND(acInit),                                    &acExit                },
+        { "cfg:u",   BIND(cfguInit),                                  &cfguExit              },
+        { "frd:u",   BIND(frdInit),                                   &frdExit               },
+        { "ir:rst",  BIND(irrstInit),                                 &irrstExit             },
+        { "gsp:Gpu", BIND(gfxInitDefault),                            &gfxExit               }
+    }};
     // clang-format on
 
-    void preInit()
+    template<typename... Args>
+    static int displayError(const char* format, int32_t result, Args&&... args)
+    {
+        std::string message = std::vformat(format, std::make_format_args(args...));
+
+        errorConf config {};
+        errorInit(&config, ERROR_TEXT_WORD_WRAP, CFG_LANGUAGE_EN);
+        errorCode(&config, result);
+        errorText(&config, message.c_str());
+        errorDisp(&config);
+
+        return -1;
+    }
+
+    int preInit()
     {
         osSetSpeedupEnable(true);
 
-        romfsInit();
-
-        socBuffer = (uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE);
-        socInit(socBuffer, SOC_BUFFER_SIZE);
+        socBuffer.reset((uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
 
         for (auto& service : services)
-            service.first();
+        {
+            if (auto result = service.init(); !result)
+                return displayError("Failed to initialize {:s}.", result.get(), service.name);
+        }
+
+        romfsInit();
+
+        return 0;
     }
 
     bool mainLoop(lua_State* L, int argc, int* nres)
@@ -37,12 +66,9 @@ namespace love
 
     void onExit()
     {
-        for (auto it = services.rbegin(); it != services.rend(); ++it)
-            it->second();
-
-        if (socBuffer)
-            free(socBuffer);
-
         romfsExit();
+
+        for (auto it = services.rbegin(); it != services.rend(); ++it)
+            it->exit();
     }
 } // namespace love

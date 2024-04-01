@@ -66,6 +66,17 @@ namespace love
             event.resize  = { width, height };
         }
 
+        void sendJoystickStatus(bool added, int which)
+        {
+            auto& event = this->events.emplace_back();
+
+            event.type    = TYPE_GAMEPAD;
+            event.subtype = added ? SUBTYPE_GAMEPADADDED : SUBTYPE_GAMEPADREMOVED;
+
+            event.gamepadStatus.added = added;
+            event.gamepadStatus.which = which;
+        }
+
       private:
         bool hysteresis;
 

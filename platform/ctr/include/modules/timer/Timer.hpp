@@ -6,7 +6,7 @@
 
 namespace love
 {
-    class Timer : public TimerBase<Timer>
+    class Timer : public TimerBase
     {
       public:
         Timer();

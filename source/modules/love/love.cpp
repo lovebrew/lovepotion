@@ -6,6 +6,8 @@
 #include "modules/data/wrap_DataModule.hpp"
 #include "modules/event/wrap_Event.hpp"
 #include "modules/filesystem/wrap_Filesystem.hpp"
+#include "modules/joystick/wrap_JoystickModule.hpp"
+#include "modules/sensor/wrap_Sensor.hpp"
 #include "modules/system/wrap_System.hpp"
 #include "modules/thread/wrap_Thread.hpp"
 #include "modules/timer/wrap_Timer.hpp"
@@ -13,7 +15,12 @@
 #include "boot.hpp"
 
 #include <arpa/inet.h>
+#include <netinet/tcp.h>
 #include <sys/socket.h>
+
+#if defined(__WIIU__)
+    #include <unistd.h>
+#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -35,20 +42,24 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 10> modules =
+static constexpr std::array<const luaL_Reg, 12> modules =
 {{
-    { "love.data",       Wrap_DataModule::open },
-    { "love.timer",      Wrap_Timer::open      },
-    { "love.thread",     Wrap_Thread::open     },
-    { "love.event",      Wrap_Event::open      },
-    { "love.filesystem", Wrap_Filesystem::open },
-    { "love.system",     Wrap_System::open     },
-    { "love.arg",        love_openArg          },
-    { "love.callbacks",  love_openCallbacks    },
-    { "love.boot",       love_openBoot         },
-    { "love.nogame",     love_openNoGame       }
+    { "love.data",       Wrap_DataModule::open     },
+    { "love.joystick",   Wrap_JoystickModule::open },
+    { "love.sensor",     Wrap_Sensor::open         },
+    { "love.timer",      Wrap_Timer::open          },
+    { "love.thread",     Wrap_Thread::open         },
+    { "love.event",      Wrap_Event::open          },
+    { "love.filesystem", Wrap_Filesystem::open     },
+    { "love.system",     Wrap_System::open         },
+    { "love.arg",        love_openArg              },
+    { "love.callbacks",  love_openCallbacks        },
+    { "love.boot",       love_openBoot             },
+    { "love.nogame",     love_openNoGame           }
 }};
 // clang-format on
+
+#include "utility/logfile.hpp"
 
 const char* love_getVersion()
 {
@@ -253,12 +264,6 @@ int love_openConsole(lua_State* L)
         love::luax_pushboolean(L, false);
         return 1;
     }
-
-    // {
-    //     SEND(sockfd, "HTTP/1.1 200 OK\r\n");
-    //     SEND(sockfd, "Content-Type: text/plain; charset=utf-8\r\n");
-    //     SEND(sockfd, "\r\n");
-    // }
 
     std::fflush(stdout);
     dup2(sockfd, STDOUT_FILENO);

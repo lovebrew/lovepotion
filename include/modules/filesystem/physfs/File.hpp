@@ -6,7 +6,7 @@
 
 namespace love
 {
-    class File : public FileBase<File>
+    class File : public FileBase
     {
       public:
         File(std::string_view filename, Mode mode);

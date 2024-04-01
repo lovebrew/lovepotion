@@ -23,7 +23,7 @@ namespace Wrap_System
 
     int getNetworkInfo(lua_State* L);
 
-    int getInfo(lua_State* L);
+    int getProductInfo(lua_State* L);
 
     int getOS(lua_State* L);
 

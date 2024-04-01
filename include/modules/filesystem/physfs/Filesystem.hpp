@@ -7,7 +7,7 @@
 
 namespace love
 {
-    class Filesystem final : public FilesystemBase<Filesystem>
+    class Filesystem final : public FilesystemBase
     {
       public:
         static const char* getLastError();

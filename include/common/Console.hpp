@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include <string_view>
 
 namespace love
@@ -32,9 +33,9 @@ namespace love
             Console::mainCoreIdSet = true;
         }
 
-        static uint32_t getMainCoreId()
+        static uint32_t isMainCoreId(uint32_t id)
         {
-            return Console::mainCoreId;
+            return Console::mainCoreId == id;
         }
 
         static uint32_t mainCoreId;

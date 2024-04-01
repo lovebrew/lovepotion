@@ -1,5 +1,3 @@
-#include "common/result.hpp"
-
 #include "modules/system/System.hpp"
 
 namespace love
@@ -95,7 +93,7 @@ namespace love
         return info;
     }
 
-    System::SystemInfo System::getOSInfo() const
+    System::ProductInfo System::getProductInfo() const
     {
         CFG_SystemModel model = (CFG_SystemModel)-1;
         CFGU_GetSystemModel((uint8_t*)&model);
@@ -106,9 +104,16 @@ namespace love
 
         char version[0x100] { 0 };
         if (R_FAILED(osGetSystemVersionDataString(NULL, NULL, version, 0x100)))
-            return { std::string(result), "Unknown" };
+            return { std::string(result), "Unknown", "Unknown" };
 
-        return { std::string(result), version };
+        CFG_Region region = (CFG_Region)-1;
+        CFGU_SecureInfoGetRegion((uint8_t*)&region);
+
+        std::string_view regionStr {};
+        if (!System::getConstant(region, regionStr))
+            regionStr = "Unknown";
+
+        return { std::string(result), version, std::string(regionStr) };
     }
 
     std::vector<std::string> System::getPreferredLocales() const

@@ -8,13 +8,12 @@
 
 #include "modules/filesystem/FileData.hpp"
 
-#include "utility/map.hpp"
+#include "common/map.hpp"
 
 #include <string_view>
 
 namespace love
 {
-    template<class T>
     class FileBase : public Stream
     {
       public:

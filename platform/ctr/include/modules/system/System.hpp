@@ -6,7 +6,7 @@
 
 namespace love
 {
-    class System : public SystemBase<System>
+    class System : public SystemBase
     {
       public:
         int getProcessorCount() const;
@@ -17,13 +17,13 @@ namespace love
 
         FriendInfo getFriendInfo() const;
 
-        SystemInfo getOSInfo() const;
+        ProductInfo getProductInfo() const;
+
+        std::vector<std::string> getPreferredLocales() const;
 
         int getPlayCoins() const;
 
         void setPlayCoins(int amount);
-
-        std::vector<std::string> getPreferredLocales() const;
 
         // clang-format off
         STRINGMAP_DECLARE(systemLanguages, CFG_Language,

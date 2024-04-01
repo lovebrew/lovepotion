@@ -18,14 +18,19 @@ enum DoneAction
     DONE_QUIT,
     DONE_RESTART
 };
-
+#include "utility/logfile.hpp"
 static DoneAction runLove(char** argv, int argc, int& result, love::Variant& restartValue)
 {
+    if (love::preInit() != 0)
+    {
+        love::onExit();
+        return DONE_QUIT;
+    }
+
     lua_State* L = luaL_newstate();
     luaL_openlibs(L);
     luaopen_bit(L);
 
-    love::preInit();
     love::luax_preload(L, love_initialize, "love");
 
     {
@@ -37,8 +42,11 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
             lua_rawseti(L, -2, -2);
         }
 
+        for (int index = 0; index < argc; index++)
+            LOG("argv[{}] = {}", index, argv[index]);
+
         // on 3DS and Switch, argv[0] is the binary path
-        // on Wii U, argv[0] is.. something else
+        // on Wii U, argv[0] is "safe.rpx"
         // args[-1] is "embedded boot.lua"
         // args[1] is "game" for the game folder
         // this should allow "game" to be used in love.filesystem.setSource

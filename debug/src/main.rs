@@ -1,11 +1,12 @@
-use std::env;
-use std::fs;
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
+use std::io::{Read, Write};
+use std::net::TcpStream;
+use std::fs::File;
+use std::fs;
 
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = std::env::args().collect();
 
     let ip = match args.get(1) {
         Some(ip) => ip,
@@ -15,9 +16,13 @@ fn main() {
         }
     };
 
+    let verbose = match args.get(2) {
+        Some(verbose) => verbose.parse().unwrap_or(false),
+        None => false,
+    };
+
     fs::create_dir_all("logs").expect("Failed to create logs directory");
 
-    let os = std::env::consts::OS;
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .expect("Failed to get current timestamp")
@@ -25,22 +30,25 @@ fn main() {
 
     let filename = format!("logs/{}.log", timestamp);
 
-    match os {
-        "windows" => {
-            Command::new("telnet")
-                .args(&[ip, "8000", "-f", &filename])
-                .spawn()
-                .expect("Failed to start telnet: command not found.");
+    let mut stream = TcpStream::connect(format!("{}:8000", ip))
+        .expect("Failed to connect to the IP address");
+
+    let mut buffer = [0; 1024];
+    let mut file = File::create(&filename).expect("Failed to create log file");
+
+    loop {
+        let bytes_read = stream.read(&mut buffer) else { break; };
+
+        if bytes_read == 0 {
+            break;
         }
-        "linux" | "macos" => {
-            Command::new("netcat")
-                .args(&[ip, "8000", ">", &filename, "2>&1"])
-                .spawn()
-                .expect("Failed to start netcat: command not found.");
+
+        let data = &buffer[..bytes_read];
+
+        if verbose {
+            print!("{}", String::from_utf8_lossy(data));
         }
-        _ => {
-            eprintln!("Unsupported operating system: {}", os);
-            return;
-        }
+
+        file.write_all(data).expect("Failed to write data to file");
     }
 }

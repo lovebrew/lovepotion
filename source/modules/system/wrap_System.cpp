@@ -43,12 +43,12 @@ int Wrap_System::setClipboardText(lua_State* L)
     return 0;
 }
 
-int Wrap_System::vibrate(lua_State* L)
+int Wrap_System::vibrate(lua_State*)
 {
     return 0;
 }
 
-int Wrap_System::openURL(lua_State* L)
+int Wrap_System::openURL(lua_State*)
 {
     return 0;
 }
@@ -98,14 +98,15 @@ int Wrap_System::getNetworkInfo(lua_State* L)
     return 2;
 }
 
-int Wrap_System::getInfo(lua_State* L)
+int Wrap_System::getProductInfo(lua_State* L)
 {
-    auto info = instance()->getOSInfo();
+    auto info = instance()->getProductInfo();
 
     luax_pushstring(L, info.model);
     luax_pushstring(L, info.version);
+    luax_pushstring(L, info.region);
 
-    return 2;
+    return 3;
 }
 
 // clang-format off
@@ -120,7 +121,7 @@ static constexpr luaL_Reg functions[] =
     { "hasBackgroundMusic",  Wrap_System::hasBackgroundMusic  },
     { "getPreferredLocales", Wrap_System::getPreferredLocales },
     { "getNetworkInfo",      Wrap_System::getNetworkInfo      },
-    { "getInfo",             Wrap_System::getInfo             },
+    { "getProductInfo",      Wrap_System::getProductInfo      },
     { "getOS",               Wrap_System::getOS               }
 };
 

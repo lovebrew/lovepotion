@@ -12,6 +12,12 @@
 #define APPDATA_PREFIX ""
 #define PATH_SEPARATOR "/"
 
+#if defined(__WIIU__)
+    #include <coreinit/dynload.h>
+#endif
+
+#include "utility/logfile.hpp"
+
 #define parentize(x) std::string(std::filesystem::path((x)).parent_path())
 
 /**
@@ -21,6 +27,7 @@
  */
 static std::string getApplicationPath(std::string argv0)
 {
+
     if (argv0 == "embedded boot.lua")
     {
         switch (love::Console::Current)
@@ -38,8 +45,7 @@ static std::string getApplicationPath(std::string argv0)
 
 #if defined(__WIIU__)
     OSDynLoad_Module module;
-    const auto success = 0;
-    const auto name    = "RL_GetPathOfRunningExecutable";
+    const char* name = "RL_GetPathOfRunningExecutable";
 
     if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
     {
@@ -51,15 +57,13 @@ static std::string getApplicationPath(std::string argv0)
         // clang-format off
         if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, name, function) == OS_DYNLOAD_OK)
         {
-            if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == success)
+            if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == 0)
                 return path;
         }
         // clang-format on
     }
 
     return std::string {};
-#else
-    return argv0;
 #endif
 }
 
@@ -133,7 +137,7 @@ namespace love
 
         if (this->executablePath.empty())
             throw love::Exception("Error getting application path.");
-
+        LOG("Executable path: {:s}", this->executablePath);
         if (!PHYSFS_init(this->executablePath.c_str()))
         {
             const char* error = this->getLastError();

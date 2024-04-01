@@ -1,11 +1,10 @@
 #pragma once
 
 #include "common/Module.hpp"
-#include "utility/map.hpp"
+#include "common/map.hpp"
 
 namespace love
 {
-    template<class T>
     class SystemBase : public Module
     {
       public:
@@ -54,10 +53,11 @@ namespace love
             std::string friendCode;
         };
 
-        struct SystemInfo
+        struct ProductInfo
         {
             std::string version;
             std::string model;
+            std::string region;
         };
 
         // clang-format off

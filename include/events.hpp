@@ -3,6 +3,7 @@
 #include <string>
 
 #include <stddef.h>
+#include <stdint.h>
 
 namespace love
 {
@@ -21,6 +22,12 @@ namespace love
 
         size_t axis;
         float value;
+    };
+
+    struct GamepadStatus
+    {
+        bool added;
+        int which;
     };
 
     struct Finger
@@ -91,6 +98,8 @@ namespace love
 
         GamepadButton gamepadButton;
         GamepadAxis gamepadAxis;
+
+        GamepadStatus gamepadStatus;
 
         Finger finger;
 

@@ -82,14 +82,46 @@ if (NINTENDO_SWITCH)
         __CONSOLE__="Switch" __OS__="Horizon"
     )
 
+    set(APP_ICON platform/hac/icon.jpg)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(APP_ICON platform/hac/icon-dev.jpg)
+    endif()
+
+    nx_generate_nacp(${PROJECT_NAME}.nacp
+        NAME    "${APP_TITLE}"
+        AUTHOR  ${APP_AUTHOR}
+        VERSION ${APP_VERSION}
+    )
+
+    nx_create_nro(${PROJECT_NAME}
+        ICON  ${APP_ICON}
+        NACP  ${PROJECT_NAME}.nacp
+        ROMFS ${PROJECT_NAME}_hac_romfs
+    )
+
     set(OUTPUT_FILENAME "${PROJECT_NAME}.nro")
 endif()
 
-if (NINTENDO_WII_U)
+if (NINTENDO_WIIU)
     add_subdirectory(platform/cafe)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         __CONSOLE__="Wii U" __OS__="Cafe" __LOVE_BIG_ENDIAN__
+    )
+
+    set(APP_ICON platform/cafe/icon.png)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(APP_ICON platform/cafe/icon-dev.png)
+    endif()
+
+    wut_create_rpx(${PROJECT_NAME})
+
+    wut_create_wuhb(${PROJECT_NAME}
+        NAME       "${APP_TITLE}"
+        CONTENT    ${PROJECT_NAME}_cafe_content
+        SHORTNAME  "${APP_TITLE}"
+        AUTHOR     ${APP_AUTHOR}
+        ICON       ${APP_ICON}
     )
 
     set(OUTPUT_FILENAME "${PROJECT_NAME}.wuhb")
@@ -210,7 +242,12 @@ source/modules/filesystem/physfs/Filesystem.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
+source/modules/joystick/JoystickModule.cpp
+source/modules/joystick/wrap_Joystick.cpp
+source/modules/joystick/wrap_JoystickModule.cpp
 source/modules/love/love.cpp
+source/modules/sensor/Sensor.cpp
+source/modules/sensor/wrap_Sensor.cpp
 source/modules/system/wrap_System.cpp
 source/modules/thread/Channel.cpp
 source/modules/thread/LuaThread.cpp
@@ -221,4 +258,7 @@ source/modules/thread/wrap_Channel.cpp
 source/modules/thread/wrap_LuaThread.cpp
 source/modules/thread/wrap_Thread.cpp
 source/modules/timer/wrap_Timer.cpp
+source/modules/touch/Touch.cpp
+source/modules/touch/wrap_Touch.cpp
+source/utility/guid.cpp
 )
