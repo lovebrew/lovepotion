@@ -37,7 +37,7 @@ fn main() {
     let mut file = File::create(&filename).expect("Failed to create log file");
 
     loop {
-        let bytes_read = stream.read(&mut buffer) else { break; };
+        let bytes_read = stream.read(&mut buffer).expect("Failed to read data from stream");
 
         if bytes_read == 0 {
             break;

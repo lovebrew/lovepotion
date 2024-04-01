@@ -14,7 +14,7 @@ namespace love
 #define E_PHYSFS_NOT_INITIALIZED     "PHYSFS is not initialized."
 #define E_DATA_NOT_WRITTEN           "Data could not be written."
 #define E_COULD_NOT_OPEN_FILE        "Could not open file at path {}."
-#define E_PHYSFS_COULD_NOT_OPEN_FILE "Could not open file {} {:s}"
+#define E_PHYSFS_COULD_NOT_OPEN_FILE "Could not open file {} ({:s})"
 #define E_FILE_NOT_OPEN_FOR_WRITING  "File not open for writing."
 #define E_INVALID_READ_SIZE          "Invalid read size."
 #define E_INVALID_WRITE_SIZE         "Invalid write size."

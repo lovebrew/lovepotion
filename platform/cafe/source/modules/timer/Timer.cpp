@@ -15,13 +15,15 @@ namespace love
     double Timer::getTime()
     {
         const auto ns = OSTicksToNanoseconds(OSGetSystemTick() - Timer::reference);
-        return ns / 1'000'000'000.0;
+        return ns / Timer::SECONDS_TO_NS;
     }
 
     void Timer::sleep(double seconds) const
     {
-        const auto time = std::chrono::duration<double>(seconds);
-        OSSleepTicks(std::chrono::duration<double, std::nano>(time).count());
+        const auto time        = std::chrono::duration<double>(seconds);
+        const auto nanoseconds = std::chrono::duration<double, std::nano>(time).count();
+
+        OSSleepTicks(OSNanosecondsToTicks(nanoseconds));
     }
 
     double Timer::step()
