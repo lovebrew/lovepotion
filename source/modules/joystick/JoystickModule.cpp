@@ -57,9 +57,9 @@ namespace love
         if (deviceId < 0 || (size_t)deviceId >= joystick::getJoystickCount())
             return nullptr;
 
-        std::string guid   = this->getDeviceGUID(deviceId);
-        Joystick* joystick = nullptr;
-        bool reused        = false;
+        std::string guid       = this->getDeviceGUID(deviceId);
+        JoystickBase* joystick = nullptr;
+        bool reused            = false;
 
         for (auto* stick : this->joysticks)
         {
