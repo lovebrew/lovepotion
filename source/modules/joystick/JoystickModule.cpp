@@ -10,7 +10,7 @@ namespace love
 
     JoystickModule::~JoystickModule()
     {
-        for (Joystick* joystick : this->joysticks)
+        for (JoystickBase* joystick : this->joysticks)
         {
             joystick->close();
             joystick->release();

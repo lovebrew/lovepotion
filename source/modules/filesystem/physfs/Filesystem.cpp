@@ -64,6 +64,8 @@ static std::string getApplicationPath(std::string argv0)
     }
 
     return std::string {};
+#else
+    return argv0;
 #endif
 }
 

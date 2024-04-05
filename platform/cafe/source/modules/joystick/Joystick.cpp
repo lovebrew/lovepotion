@@ -28,7 +28,7 @@ namespace love
     static GamepadType getSystemGamepadType(int id)
     {
         if (id == 0)
-            return GAMEPAD_TYPE_WII_U_GAMEPAD;
+            return GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD;
 
         KPADStatus status {};
         KPADError error = KPAD_ERROR_OK;
@@ -122,7 +122,7 @@ namespace love
 
         switch (this->gamepadType)
         {
-            case GAMEPAD_TYPE_WII_U_PRO:
+            case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
             {
                 switch (axis)
                 {
@@ -154,9 +154,9 @@ namespace love
     {
         switch (this->gamepadType)
         {
-            case GAMEPAD_TYPE_WII_U_GAMEPAD:
+            case GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD:
                 return this->getVPADAxis(axis);
-            case GAMEPAD_TYPE_WII_U_PRO:
+            case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
                 return this->getKPADAxis(axis);
             default:
                 return 0.0f;
@@ -216,7 +216,7 @@ namespace love
     {
         switch (this->gamepadType)
         {
-            case GAMEPAD_TYPE_WII_U_PRO:
+            case GAMEPAD_TYPE_NINTENDO_WII_U_PRO:
                 return isProControllerDown(this->kpadStatus, buttons);
             default:
                 break;

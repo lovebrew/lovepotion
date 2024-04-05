@@ -20,7 +20,7 @@ namespace love
 
         bool isDRCGamepad() const
         {
-            return this->gamepadType == GAMEPAD_TYPE_WII_U_GAMEPAD;
+            return this->gamepadType == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD;
         }
 
         VPADStatus& getVPADStatus()
@@ -108,7 +108,7 @@ namespace love
         );
 
         ENUMMAP_DECLARE(WpadTypes, GamepadType, WPADExtensionType,
-            { GAMEPAD_TYPE_WII_U_PRO, WPAD_EXT_PRO_CONTROLLER }
+            { GAMEPAD_TYPE_NINTENDO_WII_U_PRO, WPAD_EXT_PRO_CONTROLLER }
         );
         // clang-format on
 

@@ -24,7 +24,7 @@ namespace love
         {
             auto* joystick = JOYSTICK_MODULE()->getJoystick(index);
 
-            if (joystick->getGamepadType() == GAMEPAD_TYPE_WII_U_GAMEPAD)
+            if (joystick->getGamepadType() == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD)
                 this->gamepad = (Joystick*)joystick;
 
             JOYSTICK_MODULE()->getJoystick(index)->update();
