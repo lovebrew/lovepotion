@@ -43,12 +43,13 @@ fn main() {
             break;
         }
 
-        let data = &buffer[..bytes_read];
+        let data_str = &buffer[..bytes_read];
+        let data = String::from_utf8_lossy(data_str).to_string();
 
         if verbose {
-            print!("{}", String::from_utf8_lossy(data));
+            print!("{}", data);
         }
 
-        file.write_all(data).expect("Failed to write data to file");
+        file.write_all(data.as_bytes()).expect("Failed to write data to file");
     }
 }
