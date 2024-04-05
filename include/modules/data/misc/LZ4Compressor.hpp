@@ -40,7 +40,7 @@ namespace love
                 throw love::Exception(E_OUT_OF_MEMORY);
             }
 
-#if defined(__LOVE_BIG_ENDIAN__)
+#if defined(LOVE_BIG_ENDIAN)
             *(uint32_t*)compressedBytes = swap_uint32((uint32_t)dataSize);
 #else
             *(uint32_t*)compressedBytes = (uint32_t)dataSize;
@@ -90,7 +90,7 @@ namespace love
             if (dataSize < headerSize)
                 throw love::Exception("Invalid LZ4-compressed data size.");
 
-#if defined(__LOVE_BIG_ENDIAN__)
+#if defined(LOVE_BIG_ENDIAN)
             uint32_t rawSize = swap_uint32(*(uint32_t*)data);
 #else
             uint32_t rawSize = *(uint32_t*)data;

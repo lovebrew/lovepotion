@@ -6,4 +6,9 @@ namespace love::joystick
     {
         return 1;
     }
+
+    JoystickBase* openJoystick(int index)
+    {
+        return new Joystick(index);
+    }
 } // namespace love::joystick

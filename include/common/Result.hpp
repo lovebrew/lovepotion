@@ -26,14 +26,28 @@ namespace love
         Result(T t) : value(t.value)
         {}
 
+        /**
+         * @brief Check if the result was successful (>= 0).
+         */
         bool success() const
         {
             return this->value >= 0;
         }
 
+        /**
+         * @brief Check if the result was a failure (< 0).
+         */
         bool failed() const
         {
             return this->value < 0;
+        }
+
+        /**
+         * @brief Check if the result was a failure with a specific error code.
+         */
+        bool failed(uint32_t error) const
+        {
+            return this->value == error;
         }
 
         int32_t get() const

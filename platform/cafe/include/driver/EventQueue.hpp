@@ -1,6 +1,7 @@
 #pragma once
 
 #include "driver/EventQueue.tcc"
+#include "modules/joystick/Joystick.hpp"
 
 #include <vpad/input.h>
 
@@ -17,5 +18,6 @@ namespace love
 
       private:
         VPADTouchData previousTouch;
+        Joystick* gamepad;
     };
 } // namespace love

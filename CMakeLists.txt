@@ -106,7 +106,7 @@ if (NINTENDO_WIIU)
     add_subdirectory(platform/cafe)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
-        __CONSOLE__="Wii U" __OS__="Cafe" __LOVE_BIG_ENDIAN__
+        __CONSOLE__="Wii U" __OS__="Cafe" LOVE_BIG_ENDIAN
     )
 
     set(APP_ICON platform/cafe/icon.png)

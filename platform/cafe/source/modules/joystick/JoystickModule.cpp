@@ -1,16 +1,21 @@
 #include "modules/joystick/JoystickModule.hpp"
 
 #include <padscore/kpad.h>
+#include <vpad/input.h>
 
 namespace love::joystick
 {
-    /**
-     * The Wii U Gamepad is always connected.
-     * So the count starts at 1.
-     */
     int getJoystickCount()
     {
-        int count = 1;
+        int count = 0;
+
+        VPADStatus status {};
+        VPADReadError error = VPAD_READ_SUCCESS;
+
+        VPADRead(VPAD_CHAN_0, &status, 1, &error);
+
+        if (error == VPAD_READ_SUCCESS)
+            count++;
 
         for (int channel = 0; channel < 4; channel++)
         {
@@ -24,5 +29,13 @@ namespace love::joystick
         }
 
         return count;
+    }
+
+    /*
+    ** TODO: open either vpad::Joystick or kpad::Joystick based on what opens first.
+    */
+    JoystickBase* openJoystick(int index)
+    {
+        return nullptr;
     }
 } // namespace love::joystick

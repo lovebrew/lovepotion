@@ -8,14 +8,6 @@
 #include <string>
 #include <vector>
 
-#if defined(__3DS__)
-    #define MAX_JOYSTICKS 1
-#elif defined(__SWITCH__)
-    #define MAX_JOYSTICKS 8
-#else
-    #define MAX_JOYSTICKS 2
-#endif
-
 namespace love
 {
     class JoystickModule : public Module
@@ -42,8 +34,8 @@ namespace love
 
         std::string getDeviceGUID(int64_t deviceId) const;
 
-        std::vector<Joystick*> activeSticks;
-        std::list<Joystick*> joysticks;
+        std::vector<JoystickBase*> activeSticks;
+        std::list<JoystickBase*> joysticks;
 
         std::map<std::string, bool> recentGamepadGUIDs;
     };
@@ -55,5 +47,7 @@ namespace love
         ** This is implemented in the platform-specific code.
         */
         int getJoystickCount();
+
+        JoystickBase* openJoystick(int index);
     } // namespace joystick
 } // namespace love

@@ -31,4 +31,9 @@ namespace love::joystick
 
         return count;
     }
+
+    JoystickBase* openJoystick(int index)
+    {
+        return new Joystick(index);
+    }
 } // namespace love::joystick

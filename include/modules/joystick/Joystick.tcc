@@ -217,20 +217,23 @@ namespace love
         );
 
         STRINGMAP_DECLARE(GamepadTypes, GamepadType,
-            { "unknown",        GAMEPAD_TYPE_UNKNOWN                  },
-            { "3ds",            GAMEPAD_TYPE_NINTENDO_3DS             },
-            { "3dsxl",          GAMEPAD_TYPE_NINTENDO_3DS_XL          },
-            { "new3ds",         GAMEPAD_TYPE_NEW_NINTENDO_3DS         },
-            { "new3dsxl",       GAMEPAD_TYPE_NEW_NINTENDO_3DS_XL      },
-            { "2ds",            GAMEPAD_TYPE_NINTENDO_2DS             },
-            { "new2dsxl",       GAMEPAD_TYPE_NEW_NINTENDO_2DS_XL      },
-            { "switchhandheld", GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD },
-            { "switchpro",      GAMEPAD_TYPE_NINTENDO_SWITCH_PRO      },
-            { "joyconleft",     GAMEPAD_TYPE_JOYCON_LEFT              },
-            { "joyconright",    GAMEPAD_TYPE_JOYCON_RIGHT             },
-            { "joyconpair",     GAMEPAD_TYPE_JOYCON_PAIR              },
-            { "wiiugamepad",    GAMEPAD_TYPE_WII_U_GAMEPAD            },
-            { "wiiupro",        GAMEPAD_TYPE_WII_U_PRO                }
+            { "unknown",           GAMEPAD_TYPE_UNKNOWN                      },
+            { "3ds",               GAMEPAD_TYPE_NINTENDO_3DS                 },
+            { "3dsxl",             GAMEPAD_TYPE_NINTENDO_3DS_XL              },
+            { "new3ds",            GAMEPAD_TYPE_NEW_NINTENDO_3DS             },
+            { "new3dsxl",          GAMEPAD_TYPE_NEW_NINTENDO_3DS_XL          },
+            { "2ds",               GAMEPAD_TYPE_NINTENDO_2DS                 },
+            { "new2dsxl",          GAMEPAD_TYPE_NEW_NINTENDO_2DS_XL          },
+            { "wiiremote",         GAMEPAD_TYPE_NINTENDO_WII_REMOTE          },
+            { "wiiremotenunchuck", GAMEPAD_TYPE_NINTENDO_WII_REMOTE_NUNCHUCK },
+            { "wiiclassic",        GAMEPAD_TYPE_NINTENDO_WII_CLASSIC         },
+            { "wiiugamepad",       GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD       },
+            { "wiiupro",           GAMEPAD_TYPE_NINTENDO_WII_U_PRO           },
+            { "switchhandheld",    GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD     },
+            { "switchpro",         GAMEPAD_TYPE_NINTENDO_SWITCH_PRO          },
+            { "joyconleft",        GAMEPAD_TYPE_JOYCON_LEFT                  },
+            { "joyconright",       GAMEPAD_TYPE_JOYCON_RIGHT                 },
+            { "joyconpair",        GAMEPAD_TYPE_JOYCON_PAIR                  }
         );
 
         STRINGMAP_DECLARE(JoystickTypes, JoystickType,
