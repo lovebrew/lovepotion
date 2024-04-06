@@ -17,7 +17,7 @@ namespace love
         void pollInternal() override;
 
       private:
-        VPADTouchData previousTouch;
         Joystick* gamepad;
+        VPADTouchData previousTouch;
     };
 } // namespace love

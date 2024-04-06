@@ -1,7 +1,7 @@
 #pragma once
 
+#include "common/Map.hpp"
 #include "common/Object.hpp"
-#include "common/map.hpp"
 
 #include "modules/sensor/Sensor.hpp"
 

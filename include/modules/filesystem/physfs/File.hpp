@@ -23,7 +23,7 @@ namespace love
 
         int64_t getSize() override;
 
-        bool seek(int64_t position, SeekOrigin origin = SEEKORIGIN_BEGIN);
+        virtual bool seek(int64_t position, SeekOrigin origin = SEEKORIGIN_BEGIN) override;
 
         int64_t tell() override;
 

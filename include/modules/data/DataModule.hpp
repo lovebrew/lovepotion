@@ -7,7 +7,7 @@
 #include "modules/data/DataView.hpp"
 #include "modules/data/misc/HashFunction.hpp"
 
-#include "common/map.hpp"
+#include "common/Map.hpp"
 
 #include <memory>
 #include <string>

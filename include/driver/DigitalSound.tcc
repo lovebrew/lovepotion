@@ -1,7 +1,7 @@
 #pragma once
 
+#include "common/Map.hpp"
 #include "common/Singleton.tcc"
-#include "common/map.hpp"
 
 namespace love
 {

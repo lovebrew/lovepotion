@@ -36,6 +36,8 @@ namespace love
 
         bool write(Data* source);
 
+        virtual bool seek(int64_t position, SeekOrigin origin = SEEKORIGIN_BEGIN) = 0;
+
         virtual bool isSeekable() const = 0;
 
         virtual bool isWritable() const = 0;

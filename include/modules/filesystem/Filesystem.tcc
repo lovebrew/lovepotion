@@ -5,7 +5,7 @@
 
 #include "modules/filesystem/FileData.hpp"
 
-#include "common/map.hpp"
+#include "common/Map.hpp"
 
 #include <filesystem>
 #include <string>

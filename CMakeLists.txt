@@ -200,15 +200,31 @@ add_library(love_physfs
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE love_physfs)
 
+# libwuff
+add_library(wuff
+    libraries/wuff/wuff.c
+    libraries/wuff/wuff.h
+    libraries/wuff/wuff_config.h
+    libraries/wuff/wuff_convert.c
+    libraries/wuff/wuff_convert.h
+    libraries/wuff/wuff_internal.c
+    libraries/wuff/wuff_internal.h
+    libraries/wuff/wuff_memory.c
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE wuff)
+
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53
+    ${APP_LIBS} z luabit lua53 vorbisidec ogg modplug
 )
 
 include_directories(
     include
+    libraries/dr
     libraries/lua53
+    libraries/noise1234
     libraries/physfs
+    libraries/wuff
 )
 
 # find source -type f -name \*.cpp | clip
@@ -226,6 +242,7 @@ source/main.cpp
 source/modules/data/ByteData.cpp
 source/modules/data/CompressedData.cpp
 source/modules/data/DataModule.cpp
+source/modules/data/DataStream.cpp
 source/modules/data/DataView.cpp
 source/modules/data/misc/Compressor.cpp
 source/modules/data/misc/HashFunction.cpp
@@ -248,6 +265,17 @@ source/modules/joystick/wrap_JoystickModule.cpp
 source/modules/love/love.cpp
 source/modules/sensor/Sensor.cpp
 source/modules/sensor/wrap_Sensor.cpp
+source/modules/sound/Decoder.cpp
+source/modules/sound/lullaby/FLACDecoder.cpp
+source/modules/sound/lullaby/ModPlugDecoder.cpp
+source/modules/sound/lullaby/MP3Decoder.cpp
+source/modules/sound/lullaby/VorbisDecoder.cpp
+source/modules/sound/lullaby/WaveDecoder.cpp
+source/modules/sound/Sound.cpp
+source/modules/sound/SoundData.cpp
+source/modules/sound/wrap_Decoder.cpp
+source/modules/sound/wrap_Sound.cpp
+source/modules/sound/wrap_SoundData.cpp
 source/modules/system/wrap_System.cpp
 source/modules/thread/Channel.cpp
 source/modules/thread/LuaThread.cpp

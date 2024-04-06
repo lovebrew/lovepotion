@@ -20,9 +20,12 @@ namespace love
         if (!JOYSTICK_MODULE())
             return;
 
-        for (int index = 0; index < joystick::getJoystickCount(); index++)
+        for (int index = 0; index < JOYSTICK_MODULE()->getJoystickCount(); index++)
         {
             auto* joystick = JOYSTICK_MODULE()->getJoystick(index);
+
+            if (joystick == nullptr)
+                continue;
 
             if (joystick->getGamepadType() == GAMEPAD_TYPE_NINTENDO_WII_U_GAMEPAD)
                 this->gamepad = (Joystick*)joystick;

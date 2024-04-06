@@ -8,6 +8,7 @@
 #include "modules/filesystem/wrap_Filesystem.hpp"
 #include "modules/joystick/wrap_JoystickModule.hpp"
 #include "modules/sensor/wrap_Sensor.hpp"
+#include "modules/sound/wrap_Sound.hpp"
 #include "modules/system/wrap_System.hpp"
 #include "modules/thread/wrap_Thread.hpp"
 #include "modules/timer/wrap_Timer.hpp"
@@ -42,11 +43,12 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 12> modules =
+static constexpr std::array<const luaL_Reg, 13> modules =
 {{
     { "love.data",       Wrap_DataModule::open     },
     { "love.joystick",   Wrap_JoystickModule::open },
     { "love.sensor",     Wrap_Sensor::open         },
+    { "love.sound",      Wrap_Sound::open          },
     { "love.timer",      Wrap_Timer::open          },
     { "love.thread",     Wrap_Thread::open         },
     { "love.event",      Wrap_Event::open          },

@@ -9,11 +9,11 @@ using NdspInterpType   = decltype(NDSP_INTERP_LINEAR);
 
 namespace love
 {
+    using AudioBuffer = ndspWaveBuf;
+
     class DigitalSound : public DigitalSoundBase<DigitalSound>
     {
       public:
-        using Buffer = ndspWaveBuf;
-
         ~DigitalSound();
 
         virtual void initialize() override;
@@ -32,7 +32,7 @@ namespace love
 
         size_t channelGetSampleOffset(size_t id) const;
 
-        bool channelAddBuffer(size_t id, Buffer* buffer);
+        bool channelAddBuffer(size_t id, AudioBuffer* buffer);
 
         void channelPause(size_t id, bool paused);
 
@@ -55,7 +55,7 @@ namespace love
         // clang-format on
 
       private:
-        static constexpr uint32_t DSP_FIRM_MISSING_ERROR_CODE = 0xD880A7FA;
+        static constexpr int32_t DSP_FIRM_MISSING_ERROR_CODE = 0xD880A7FA;
 
         LightEvent event;
 

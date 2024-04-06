@@ -1,8 +1,8 @@
 #pragma once
 
 #include "common/Data.hpp"
+#include "common/Map.hpp"
 #include "common/Module.hpp"
-#include "common/map.hpp"
 
 #include "modules/thread/Channel.hpp"
 #include "modules/thread/LuaThread.hpp"

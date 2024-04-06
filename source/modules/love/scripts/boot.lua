@@ -179,7 +179,7 @@ function love.init()
             math = false,
             physics = false,
             sensor = true,
-            sound = false,
+            sound = true,
             system = true,
             font = false,
             thread = true,

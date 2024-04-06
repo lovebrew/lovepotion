@@ -3,6 +3,8 @@
 #include <padscore/kpad.h>
 #include <vpad/input.h>
 
+#include "utility/logfile.hpp"
+
 namespace love::joystick
 {
     int getJoystickCount()
@@ -14,7 +16,7 @@ namespace love::joystick
 
         VPADRead(VPAD_CHAN_0, &status, 1, &error);
 
-        if (error == VPAD_READ_SUCCESS)
+        if (error == VPAD_READ_SUCCESS || error == VPAD_READ_NO_SAMPLES)
             count++;
 
         for (int channel = 0; channel < 4; channel++)
@@ -23,8 +25,9 @@ namespace love::joystick
             KPADError error = KPAD_ERROR_OK;
 
             KPADReadEx((KPADChan)channel, &status, 1, &error);
+            bool success = error == KPAD_ERROR_OK || error == KPAD_ERROR_NO_SAMPLES;
 
-            if (error == KPAD_ERROR_OK && status.extensionType != 0xFF)
+            if (success && status.extensionType != 0xFF)
                 count++;
         }
 

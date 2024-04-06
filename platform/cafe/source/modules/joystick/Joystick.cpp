@@ -19,7 +19,7 @@ namespace love
 
     void Joystick::update()
     {
-        if (this->isGamepad())
+        if (this->isDRCGamepad())
             VPADRead(VPAD_CHAN_0, &this->vpadStatus, 1, &this->vpadError);
         else
             KPADReadEx(KPADChan(this->id - 1), &this->kpadStatus, 1, &this->kpadError);
@@ -33,7 +33,7 @@ namespace love
         KPADStatus status {};
         KPADError error = KPAD_ERROR_OK;
 
-        KPADReadEx(KPADChan(id - 1), &status, 16, &error);
+        KPADReadEx(KPADChan(id - 1), &status, 1, &error);
 
         GamepadType type = GAMEPAD_TYPE_UNKNOWN;
         Joystick::getConstant((WPADExtensionType)status.extensionType, type);
@@ -67,6 +67,7 @@ namespace love
 
     bool Joystick::isConnected() const
     {
+        LOG("isDRCGamepad {:d}", this->isDRCGamepad());
         if (this->isDRCGamepad())
         {
             LOG("VPADStatus: {}", (int)this->vpadError);

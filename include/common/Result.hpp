@@ -45,7 +45,7 @@ namespace love
         /**
          * @brief Check if the result was a failure with a specific error code.
          */
-        bool failed(uint32_t error) const
+        bool failed(int32_t error) const
         {
             return this->value == error;
         }

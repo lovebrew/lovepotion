@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/map.hpp"
+#include "common/Map.hpp"
 
 #include <stddef.h>
 

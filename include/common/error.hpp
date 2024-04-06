@@ -37,7 +37,8 @@ namespace love
 #define E_INVALID_COMPRESSION_FORMAT_ZLIB "Invalid format (expecting zlib or gzip)."
 #define E_DATA_PACK_OFFSET_FORMAT_PARAMS \
     "The given byte offset and pack format parameters do not fit within the ByteData's size."
-#define E_DATA_SIZE_MUST_BE_POSITIVE "Data size must be a positive number."
+#define E_DATA_SIZE_MUST_BE_POSITIVE       "Data size must be a positive number."
+#define E_SOUNDDATA_MISMATCH_CHANNEL_COUNT "Channel count mismatch: {:d} vs {:d}"
 // Thread
 #define E_CHANNEL_VARIANT_UNKNOWN "boolean, number, string, love type, or table expected."
 #define E_THREAD_VARIANT_UNKNOWN  "boolean, number, string, love type, or flat table expected."

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define LOVE_INT8_MAX   0x7F
 #define LOVE_UINT8_MAX  0xFF
 #define LOVE_INT16_MAX  0x7FFF

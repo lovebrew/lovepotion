@@ -3,7 +3,7 @@
 #include "common/Data.hpp"
 #include "common/int.hpp"
 
-#include "common/map.hpp"
+#include "common/Map.hpp"
 
 namespace love
 {

@@ -87,7 +87,7 @@ namespace love
         return ndspChnGetSamplePos(id);
     }
 
-    bool DigitalSound::channelAddBuffer(size_t id, Buffer* buffer)
+    bool DigitalSound::channelAddBuffer(size_t id, AudioBuffer* buffer)
     {
         ndspChnWaveBufAdd(id, buffer);
 
