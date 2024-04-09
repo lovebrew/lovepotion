@@ -117,6 +117,7 @@ namespace love
                         continue;
 
                     AXVoiceBegin(this->buffers[index]);
+
                     AXSetVoiceType(this->buffers[index], AX_VOICE_TYPE_UNKNOWN);
                     AXSetVoiceVe(this->buffers[index], &ve);
 
@@ -140,10 +141,7 @@ namespace love
                     }
                     // clang-format on
 
-                    float ratio = (float)sampleRate / (float)AXGetInputSamplesPerSec();
-                    if (auto result = AXSetVoiceSrcRatio(this->buffers[index], ratio); result != 0)
-                        return false;
-
+                    AXSetVoiceSrcRatio(this->buffers[index], 1.0f);
                     AXSetVoiceCurrentOffset(this->buffers[index], 0);
                     AXSetVoiceSrcType(this->buffers[index], AX_VOICE_SRC_TYPE_LINEAR);
 

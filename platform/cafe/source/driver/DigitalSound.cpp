@@ -9,12 +9,16 @@
 namespace love
 {
     void audioCallback()
-    {}
+    {
+        OSSignalEvent(&DigitalSound::getInstance().getEvent());
+    }
 
     // clang-format off
-    static AXInitParams AX_INIT_PARAMS = {
-        .renderer = AX_INIT_RENDERER_48KHZ,
-        .pipeline = AX_INIT_PIPELINE_SINGLE
+    static AXInitParams AX_INIT_PARAMS =
+    {
+        AX_INIT_RENDERER_48KHZ,
+        AX_INIT_PIPELINE_SINGLE,
+        0
     };
     // clang-format on
 
@@ -31,13 +35,13 @@ namespace love
         if (!AXIsInit())
             throw love::Exception("Failed to initialize AX.");
 
-        // OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
-        // AXRegisterAppFrameCallback(audioCallback);
+        OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
+        AXRegisterAppFrameCallback(audioCallback);
     }
 
     void DigitalSound::updateImpl()
     {
-        OSSleepTicks(OSMillisecondsToTicks(3));
+        OSWaitEventWithTimeout(&this->event, 0);
     }
 
     void DigitalSound::setMasterVolume(float volume)
@@ -53,12 +57,10 @@ namespace love
 
     AudioBuffer* DigitalSound::createBuffer(int size)
     {
-        AXVoice* voice = new AXVoice();
+        auto* voice = AXAcquireVoice(0x1F, nullptr, nullptr);
 
         AXVoiceBegin(voice);
-
         AXSetVoiceState(voice, AX_VOICE_STATE_STOPPED);
-
         AXVoiceEnd(voice);
 
         return voice;

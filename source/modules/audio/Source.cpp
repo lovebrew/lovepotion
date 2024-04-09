@@ -144,7 +144,11 @@ namespace love
 
         while (!this->unusedBuffers.empty())
         {
+#if !defined(__WIIU__)
             delete this->unusedBuffers.top();
+#else
+            AXFreeVoice(this->unusedBuffers.top());
+#endif
             this->unusedBuffers.pop();
         }
     }
