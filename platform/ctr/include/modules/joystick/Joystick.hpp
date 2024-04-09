@@ -29,6 +29,10 @@ namespace love
 
         virtual bool isDown(std::span<GamepadButton> buttons) const override;
 
+        virtual bool isUp(std::span<GamepadButton> buttons) const override;
+
+        virtual bool isAxisChanged(GamepadAxis axis) const override;
+
         virtual void setPlayerIndex(int index) override;
 
         virtual int getPlayerIndex() const override;
@@ -53,6 +57,16 @@ namespace love
 
         virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+        enum HidAxisType
+        {
+            HIDAXIS_LEFTX        = KEY_CPAD_LEFT | KEY_CPAD_RIGHT,
+            HIDAXIS_LEFTY        = KEY_CPAD_UP | KEY_CPAD_DOWN,
+            HIDAXIS_RIGHTX       = KEY_CSTICK_LEFT | KEY_CSTICK_RIGHT,
+            HIDAXIS_RIGHTY       = KEY_CSTICK_UP | KEY_CSTICK_DOWN,
+            HIDAXIS_TRIGGERLEFT  = KEY_ZL,
+            HIDAXIS_TRIGGERRIGHT = KEY_ZR
+        };
+
         // clang-format off
         ENUMMAP_DECLARE(CtrGamepadButtons, GamepadButton, HidKeyType,
           { GAMEPAD_BUTTON_A,             KEY_A      },
@@ -70,6 +84,15 @@ namespace love
 
           { GAMEPAD_BUTTON_LEFTSHOULDER,  KEY_L      },
           { GAMEPAD_BUTTON_RIGHTSHOULDER, KEY_R      }
+        );
+
+        ENUMMAP_DECLARE(CtrGamepadAxes, GamepadAxis, HidAxisType,
+          { GAMEPAD_AXIS_LEFTX,        HIDAXIS_LEFTX        },
+          { GAMEPAD_AXIS_LEFTY,        HIDAXIS_LEFTY        },
+          { GAMEPAD_AXIS_RIGHTX,       HIDAXIS_RIGHTX       },
+          { GAMEPAD_AXIS_RIGHTY,       HIDAXIS_RIGHTY       },
+          { GAMEPAD_AXIS_TRIGGERLEFT,  HIDAXIS_TRIGGERLEFT  },
+          { GAMEPAD_AXIS_TRIGGERRIGHT, HIDAXIS_TRIGGERRIGHT }
         );
 
         ENUMMAP_DECLARE(CtrGamepadTypes, GamepadType, CFG_SystemModel,

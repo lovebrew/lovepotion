@@ -620,6 +620,11 @@ namespace love
         lua_pushlstring(L, string, sizeof(void*));
     }
 
+    int luax_enumerror(lua_State* L, const char* enumName, const char* value)
+    {
+        return luaL_error(L, "Invalid %s: %s", enumName, value);
+    }
+
     int luax_ioerror(lua_State* L, const char* format, ...)
     {
         std::va_list args;

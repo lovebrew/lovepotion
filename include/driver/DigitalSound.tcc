@@ -11,8 +11,8 @@ namespace love
       public:
         enum InterpretedFormat
         {
-            FORMAT_MONO,
-            FORMAT_STEREO,
+            FORMAT_MONO   = 0x01,
+            FORMAT_STEREO = 0x02,
             FORMAT_MAX_ENUM
         };
 

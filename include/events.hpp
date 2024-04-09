@@ -5,23 +5,28 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <vector>
+
 namespace love
 {
     struct GamepadButton
     {
-        size_t id;
-        std::string name;
-
+        int which;
         int button;
     };
 
     struct GamepadAxis
     {
-        size_t id;
-        std::string name;
-
-        size_t axis;
+        int which;
+        int axis;
         float value;
+    };
+
+    struct GamepadSensor
+    {
+        int which;
+        int sensor;
+        std::vector<float> data;
     };
 
     struct GamepadStatus
@@ -66,8 +71,11 @@ namespace love
     enum SubEventType
     {
         SUBTYPE_GAMEPADAXIS,
+        SUBTYPE_JOYSTICKAXIS,
         SUBTYPE_GAMEPADDOWN,
+        SUBTYPE_JOYSTICKDOWN,
         SUBTYPE_GAMEPADUP,
+        SUBTYPE_JOYSTICKUP,
 
         SUBTYPE_GAMEPADADDED,
         SUBTYPE_GAMEPADREMOVED,
@@ -98,6 +106,7 @@ namespace love
 
         GamepadButton gamepadButton;
         GamepadAxis gamepadAxis;
+        GamepadSensor gamepadSensor;
 
         GamepadStatus gamepadStatus;
 

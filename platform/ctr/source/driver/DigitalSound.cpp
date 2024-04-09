@@ -21,11 +21,15 @@ namespace love
 
         if (result.failed(DSP_FIRM_MISSING_ERROR_CODE))
             throw love::Exception(E_AUDIO_NOT_INITIALIZED " (dspfirm.cdc not found)");
-        else
-            throw love::Exception(E_AUDIO_NOT_INITIALIZED ": %x", result.get());
+
+        if (result.failed())
+            throw love::Exception(E_AUDIO_NOT_INITIALIZED ": {:x}", result.get());
 
         LightEvent_Init(&this->event, RESET_ONESHOT);
         ndspSetCallback(audioCallback, &this->event);
+
+        for (size_t index = 0; index < 24; index++)
+            this->channelSetVolume(index, 1.0f);
     }
 
     void DigitalSound::updateImpl()
@@ -43,14 +47,66 @@ namespace love
         return ndspGetMasterVol();
     }
 
+    AudioBuffer* DigitalSound::createBuffer(int size)
+    {
+        AudioBuffer* buffer = new AudioBuffer();
+
+        if (size != 0)
+        {
+            buffer->data_pcm16 = (int16_t*)linearAlloc(size);
+
+            if (buffer->data_pcm16 == nullptr)
+                throw love::Exception(E_OUT_OF_MEMORY);
+        }
+        else
+            buffer->data_pcm16 = nullptr;
+
+        buffer->status = NDSP_WBUF_DONE;
+
+        return buffer;
+    }
+
+    bool DigitalSound::isBufferDone(AudioBuffer* buffer) const
+    {
+        if (buffer == nullptr)
+            return false;
+
+        return buffer->status == NDSP_WBUF_DONE;
+    }
+
+    void DigitalSound::prepareBuffer(AudioBuffer* buffer, size_t nsamples, const void* data,
+                                     size_t size, bool looping)
+    {
+        if (buffer == nullptr || data == nullptr)
+            return;
+
+        if (buffer->data_pcm16 != nullptr)
+            std::copy_n((int16_t*)data, size, buffer->data_pcm16);
+        else
+            buffer->data_pcm16 = (int16_t*)data;
+
+        DSP_FlushDataCache(buffer->data_pcm16, size);
+
+        buffer->nsamples = nsamples;
+        buffer->looping  = looping;
+    }
+
+    void DigitalSound::setLooping(AudioBuffer* buffer, bool looping)
+    {
+        if (buffer == nullptr)
+            return;
+
+        buffer->looping = looping;
+    }
+
     // #region Channels
 
     bool DigitalSound::channelReset(size_t id, int channels, int bitDepth, int sampleRate)
     {
         ndspChnReset(id);
 
-        uint8_t format = 0;
-        if ((format = DigitalSound::getNdspFormat(bitDepth, channels)) < 0)
+        int8_t format = 0;
+        if ((format = DigitalSound::getFormat(channels, bitDepth)) < 0)
             return false;
 
         ndspInterpType interpType;
@@ -116,12 +172,12 @@ namespace love
 
     // #endregion
 
-    uint8_t DigitalSound::getNdspFormat(int bitDepth, int channels)
+    int8_t DigitalSound::getFormat(int channels, int bitDepth)
     {
         if (bitDepth != 8 && bitDepth != 16)
             return -1;
 
-        if (channels < 1 && channels > 2)
+        if (channels < 1 || channels > 2)
             return -2;
 
         NdspEncodingType encoding;

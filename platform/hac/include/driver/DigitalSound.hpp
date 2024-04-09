@@ -1,0 +1,68 @@
+#pragma once
+
+#include "driver/DigitalSound.tcc"
+
+#include <mutex>
+#include <thread>
+
+#include <switch.h>
+
+namespace love
+{
+    using AudioBuffer = AudioDriverWaveBuf;
+
+    class DigitalSound : public DigitalSoundBase<DigitalSound>
+    {
+      public:
+        ~DigitalSound();
+
+        virtual void initialize() override;
+
+        void updateImpl();
+
+        void setMasterVolume(float volume);
+
+        float getMasterVolume() const;
+
+        AudioBuffer* createBuffer(int size = 0);
+
+        bool isBufferDone(AudioBuffer* buffer) const;
+
+        void prepareBuffer(AudioBuffer* buffer, size_t nsamples, const void* data, size_t size,
+                           bool looping);
+
+        void setLooping(AudioBuffer* buffer, bool looping);
+
+        bool channelReset(size_t id, int channels, int bitDepth, int sampleRate);
+
+        void channelSetVolume(size_t id, float volume);
+
+        float channelGetVolume(size_t id) const;
+
+        size_t channelGetSampleOffset(size_t id);
+
+        bool channelAddBuffer(size_t id, AudioBuffer* buffer);
+
+        void channelPause(size_t id, bool paused);
+
+        bool isChannelPaused(size_t id);
+
+        bool isChannelPlaying(size_t id);
+
+        void channelStop(size_t id);
+
+        // clang-format off
+        ENUMMAP_DECLARE(AudioFormats, EncodingFormat, PcmFormat,
+            { ENCODING_PCM8,  PcmFormat_Int8  },
+            { ENCODING_PCM16, PcmFormat_Int16 }
+        );
+        // clang-format on
+
+        static int8_t getFormat(int channels, int bitDepth);
+
+      private:
+        std::mutex mutex;
+        AudioDriver driver;
+        bool resetChannel;
+    };
+} // namespace love

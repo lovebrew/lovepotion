@@ -1,5 +1,14 @@
 #include "driver/EventQueue.hpp"
 
+#include "modules/joystick/Joystick.hpp"
+#include "modules/joystick/JoystickModule.hpp"
+
+#include <vector>
+
+using namespace love;
+
+#define JOYSTICK_MODULE() Module::getInstance<JoystickModule>(Module::M_JOYSTICK)
+
 static aptHookCookie s_aptHookCookie;
 
 static void aptEventHook(const APT_HookType type, void*)
@@ -73,6 +82,40 @@ namespace love
         {
             float x = this->touchState.current.px, y = this->touchState.current.py;
             this->sendTouchEvent(SUBTYPE_TOUCHRELEASE, 0, x, y, 0.0f, 0.0, 0.0f);
+        }
+
+        const auto* joystick = JOYSTICK_MODULE()->getJoystick(0);
+
+        if (!joystick)
+            return;
+
+        for (int input = 0; input < Joystick::GAMEPAD_BUTTON_MAX_ENUM; input++)
+        {
+            std::vector<Joystick::GamepadButton> inputs = { Joystick::GamepadButton(input) };
+
+            if (joystick->isDown(inputs))
+                this->sendGamepadButtonEvent(SUBTYPE_GAMEPADDOWN, 0, input);
+
+            if (joystick->isUp(inputs))
+                this->sendGamepadButtonEvent(SUBTYPE_GAMEPADUP, 0, input);
+        }
+
+        for (int input = 0; input < Joystick::GAMEPAD_AXIS_MAX_ENUM; input++)
+        {
+            if (joystick->isAxisChanged(Joystick::GamepadAxis(input)))
+            {
+                float value = joystick->getAxis(Joystick::GamepadAxis(input));
+                this->sendGamepadAxisEvent(0, input, value);
+            }
+        }
+
+        for (int input = 0; input < Sensor::SENSOR_MAX_ENUM; input++)
+        {
+            if (!joystick->isSensorEnabled(Sensor::SensorType(input)))
+                continue;
+
+            auto data = joystick->getSensorData(Sensor::SensorType(input));
+            this->sendGamepadSensorEvent(0, input, data);
         }
     }
 } // namespace love

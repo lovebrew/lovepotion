@@ -11,16 +11,16 @@ namespace love
         return 1;
     }
 
-    static size_t vorbisRead(void* pointer, size_t byteSize, size_t sizeToRead, void* datasource)
+    static size_t vorbisRead(void* pointer, size_t byteSize, size_t sizeToRead, void* source)
     {
-        auto stream = (Stream*)datasource;
+        auto stream = (Stream*)source;
 
         return stream->read(pointer, byteSize * sizeToRead);
     }
 
-    static int vorbisSeek(void* datasource, ogg_int64_t offset, int whence)
+    static int vorbisSeek(void* source, ogg_int64_t offset, int whence)
     {
-        auto stream = (Stream*)datasource;
+        auto stream = (Stream*)source;
         auto origin = Stream::SEEKORIGIN_BEGIN;
 
         switch (whence)
@@ -41,9 +41,9 @@ namespace love
         return stream->seek(offset, origin) ? 0 : -1;
     }
 
-    static long vorbisTell(void* datasource)
+    static long vorbisTell(void* source)
     {
-        auto stream = (Stream*)datasource;
+        auto stream = (Stream*)source;
 
         return (long)stream->tell();
     }
@@ -52,10 +52,10 @@ namespace love
         Decoder(stream, bufferSize),
         duration(-2.0)
     {
-        ov_callbacks callbacks;
-        callbacks.read_func  = vorbisRead;
-        callbacks.seek_func  = vorbisSeek;
+        ov_callbacks callbacks {};
         callbacks.close_func = vorbisClose;
+        callbacks.seek_func  = vorbisSeek;
+        callbacks.read_func  = vorbisRead;
         callbacks.tell_func  = vorbisTell;
 
         if (ov_open_callbacks(stream, &this->handle, nullptr, 0, callbacks) < 0)

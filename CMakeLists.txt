@@ -15,6 +15,7 @@ if(GIT_FOUND AND EXISTS "${PROJECT_SOURCE_DIR}/.git")
         OUTPUT_STRIP_TRAILING_WHITESPACE
     )
 endif()
+include(FetchContent)
 
 set(LOVE_VERSION "12.0")
 set(APP_VERSION  "3.1.0")
@@ -161,6 +162,48 @@ add_library(lua53
 )
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
+FetchContent_Declare(lua-https
+    GIT_REPOSITORY https://github.com/bartbes/lua-https
+    GIT_TAG        selectable_library_loaders
+)
+
+FetchContent_GetProperties(lua-https)
+if(NOT lua-https_POPULATED)
+    FetchContent_Populate(lua-https)
+endif()
+
+add_library(lua-https STATIC
+    ${lua-https_SOURCE_DIR}/src/common/config.h
+    ${lua-https_SOURCE_DIR}/src/common/LibraryLoader.h
+    ${lua-https_SOURCE_DIR}/src/common/Connection.h
+    ${lua-https_SOURCE_DIR}/src/common/ConnectionClient.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPS.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPS.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.h
+    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.cpp
+    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.h
+    ${lua-https_SOURCE_DIR}/src/generic/LinktimeLibraryLoader.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.h
+    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.h
+    ${lua-https_SOURCE_DIR}/src/lua/main.cpp
+)
+
+set(LIBRARY_LOADER "linktime")
+target_compile_definitions(lua-https PRIVATE
+    HTTPS_LIBRARY_LOADER_LINKTIME
+    HTTPS_BACKEND_CURL
+)
+
+# link curl
+pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
+target_link_libraries(lua-https PRIVATE PkgConfig::lua51 PkgConfig::libcurl)
+
+
 add_library(love_physfs
     libraries/physfs/physfs.c
     libraries/physfs/physfs.h
@@ -215,7 +258,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE wuff)
 
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 vorbisidec ogg modplug
+    ${APP_LIBS} z luabit lua53 vorbisidec ogg modplug lua-https
 )
 
 include_directories(
@@ -225,6 +268,7 @@ include_directories(
     libraries/noise1234
     libraries/physfs
     libraries/wuff
+    libraries/utf8
 )
 
 # find source -type f -name \*.cpp | clip
@@ -239,6 +283,11 @@ source/common/Stream.cpp
 source/common/types.cpp
 source/common/Variant.cpp
 source/main.cpp
+source/modules/audio/Audio.cpp
+source/modules/audio/Pool.cpp
+source/modules/audio/Source.cpp
+source/modules/audio/wrap_Audio.cpp
+source/modules/audio/wrap_Source.cpp
 source/modules/data/ByteData.cpp
 source/modules/data/CompressedData.cpp
 source/modules/data/DataModule.cpp
@@ -262,6 +311,7 @@ source/modules/filesystem/wrap_Filesystem.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/joystick/wrap_Joystick.cpp
 source/modules/joystick/wrap_JoystickModule.cpp
+source/modules/keyboard/wrap_Keyboard.cpp
 source/modules/love/love.cpp
 source/modules/sensor/Sensor.cpp
 source/modules/sensor/wrap_Sensor.cpp

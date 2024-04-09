@@ -22,9 +22,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
 source/boot.cpp
 source/common/screen.cpp
+source/driver/DigitalSound.cpp
 source/driver/EventQueue.cpp
+source/modules/audio/Source.cpp
 source/modules/joystick/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
+source/modules/keyboard/Keyboard.cpp
 source/modules/system/System.cpp
 source/modules/timer/Timer.cpp
 )

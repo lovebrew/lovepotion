@@ -27,6 +27,10 @@ namespace love
 
         virtual bool isDown(std::span<GamepadButton> buttons) const override;
 
+        virtual bool isUp(std::span<GamepadButton> buttons) const override;
+
+        virtual bool isAxisChanged(GamepadAxis axis) const override;
+
         virtual void setPlayerIndex(int index) override;
 
         virtual int getPlayerIndex() const override;
@@ -51,6 +55,23 @@ namespace love
 
         virtual std::vector<float> getSensorData(Sensor::SensorType type) const override;
 
+        using JoystickBase::getConstant;
+
+        virtual void update()
+        {
+            padUpdate(&this->state);
+        }
+
+        enum HidNpadAxis
+        {
+            HidNpadAxis_LeftX    = HidNpadButton_StickLLeft | HidNpadButton_StickLRight,
+            HidNpadAxis_LeftY    = HidNpadButton_StickLDown | HidNpadButton_StickLUp,
+            HidNpadAxis_RightX   = HidNpadButton_StickRLeft | HidNpadButton_StickRRight,
+            HidNpadAxis_RightY   = HidNpadButton_StickRDown | HidNpadButton_StickRUp,
+            HidNpadAxis_TriggerL = HidNpadButton_ZL,
+            HidNpadAxis_TriggerR = HidNpadButton_ZR
+        };
+
         // clang-format off
         ENUMMAP_DECLARE(HacButtonTypes, GamepadButton, HidNpadButton,
             { GAMEPAD_BUTTON_A,             HidNpadButton_A      },
@@ -72,6 +93,15 @@ namespace love
             { GAMEPAD_BUTTON_RIGHTSTICK,    HidNpadButton_StickR }
         );
 
+        ENUMMAP_DECLARE(HacGamepadAxes, GamepadAxis, HidNpadAxis,
+            { GAMEPAD_AXIS_LEFTX,        HidNpadAxis_LeftX    },
+            { GAMEPAD_AXIS_LEFTY,        HidNpadAxis_LeftY    },
+            { GAMEPAD_AXIS_RIGHTX,       HidNpadAxis_RightX   },
+            { GAMEPAD_AXIS_RIGHTY,       HidNpadAxis_RightY   },
+            { GAMEPAD_AXIS_TRIGGERLEFT,  HidNpadAxis_TriggerL },
+            { GAMEPAD_AXIS_TRIGGERRIGHT, HidNpadAxis_TriggerR }
+        );
+
         ENUMMAP_DECLARE(HacGamepadTypes, GamepadType, HidNpadStyleTag,
             { GAMEPAD_TYPE_JOYCON_LEFT,              HidNpadStyleTag_NpadJoyLeft  },
             { GAMEPAD_TYPE_JOYCON_RIGHT,             HidNpadStyleTag_NpadJoyRight },
@@ -80,13 +110,6 @@ namespace love
             { GAMEPAD_TYPE_NINTENDO_SWITCH_HANDHELD, HidNpadStyleTag_NpadHandheld }
         );
         // clang-format on
-
-        using JoystickBase::getConstant;
-
-        virtual void update()
-        {
-            padUpdate(&this->state);
-        }
 
       private:
         HidNpadIdType getHandleCount(int& handles, HidNpadStyleTag& tag) const;

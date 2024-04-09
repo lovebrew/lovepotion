@@ -2,6 +2,11 @@
 
 struct lua_State;
 
+extern "C"
+{
+    extern int luaopen_https(lua_State*);
+}
+
 static constexpr int STDIO_PORT = 8000;
 
 const char* love_getVersion();

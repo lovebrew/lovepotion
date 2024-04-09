@@ -40,6 +40,10 @@ namespace love
 
         virtual bool isDown(std::span<GamepadButton> buttons) const override;
 
+        virtual bool isUp(std::span<GamepadButton> buttons) const override;
+
+        virtual bool isAxisChanged(GamepadAxis axis) const override;
+
         virtual void setPlayerIndex(int index) override;
 
         virtual int getPlayerIndex() const override;
@@ -66,6 +70,24 @@ namespace love
 
         using JoystickBase::getConstant;
 
+        enum VPADAxis
+        {
+            VPADAXIS_LEFTX        = VPAD_STICK_L_EMULATION_LEFT | VPAD_STICK_L_EMULATION_RIGHT,
+            VPADAXIS_LEFTY        = VPAD_STICK_L_EMULATION_UP | VPAD_STICK_L_EMULATION_DOWN,
+            VPADAXIS_RIGHTX       = VPAD_STICK_R_EMULATION_LEFT | VPAD_STICK_R_EMULATION_RIGHT,
+            VPADAXIS_RIGHTY       = VPAD_STICK_R_EMULATION_UP | VPAD_STICK_R_EMULATION_DOWN,
+            VPADAXIS_TRIGGERLEFT  = VPAD_BUTTON_ZL,
+            VPADAXIS_TRIGGERRIGHT = VPAD_BUTTON_ZR
+        };
+
+        enum WPADProAxis
+        {
+            WPADPROAXIS_LEFTX  = WPAD_PRO_STICK_L_EMULATION_LEFT | WPAD_PRO_STICK_L_EMULATION_RIGHT,
+            WPADPROAXIS_LEFTY  = WPAD_PRO_STICK_L_EMULATION_UP | WPAD_PRO_STICK_L_EMULATION_DOWN,
+            WPADPROAXIS_RIGHTX = WPAD_PRO_STICK_R_EMULATION_LEFT | WPAD_PRO_STICK_R_EMULATION_RIGHT,
+            WPADPROAXIS_RIGHTY = WPAD_PRO_STICK_R_EMULATION_UP | WPAD_PRO_STICK_R_EMULATION_DOWN
+        };
+
         // clang-format off
         ENUMMAP_DECLARE(WpadProButtons, GamepadButton, WPADProButton,
             { GAMEPAD_BUTTON_A,             WPAD_PRO_BUTTON_A       },
@@ -85,6 +107,15 @@ namespace love
 
             { GAMEPAD_BUTTON_LEFTSTICK,     WPAD_PRO_BUTTON_STICK_L },
             { GAMEPAD_BUTTON_RIGHTSTICK,    WPAD_PRO_BUTTON_STICK_R }
+        );
+
+        ENUMMAP_DECLARE(VpadAxes, GamepadAxis, VPADAxis,
+            { GAMEPAD_AXIS_LEFTX,        VPADAXIS_LEFTX        },
+            { GAMEPAD_AXIS_LEFTY,        VPADAXIS_LEFTY        },
+            { GAMEPAD_AXIS_RIGHTX,       VPADAXIS_RIGHTX       },
+            { GAMEPAD_AXIS_RIGHTY,       VPADAXIS_RIGHTY       },
+            { GAMEPAD_AXIS_TRIGGERLEFT,  VPADAXIS_TRIGGERLEFT  },
+            { GAMEPAD_AXIS_TRIGGERRIGHT, VPADAXIS_TRIGGERRIGHT }
         );
 
         ENUMMAP_DECLARE(VpadButtons, GamepadButton, VPADButtons,

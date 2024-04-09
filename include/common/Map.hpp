@@ -174,8 +174,12 @@ using StringMap = MapT<std::string_view, V, N>;
     static inline bool getConstant(type in, std::string_view& out)                           \
     {                                                                                        \
         return name.getKey(in, out);                                                         \
-    }
-// clang-format on
+    }                                                                                        \
+    static inline const char* getConstant(type in)                                           \
+    {                                                                                        \
+        std::string_view out {};                                                             \
+        return name.getKey(in, out) ? out.data() : nullptr;                                  \
+    } // clang-format on
 
 template<typename T>
 concept MapTIsEnumType = std::is_enum_v<T>;

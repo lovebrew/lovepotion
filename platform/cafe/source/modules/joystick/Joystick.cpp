@@ -239,6 +239,41 @@ namespace love
         return false;
     }
 
+    bool Joystick::isUp(std::span<GamepadButton> buttons) const
+    {
+        if (!this->isConnected())
+            return false;
+
+        VPADButtons result;
+
+        for (GamepadButton button : buttons)
+        {
+            if (!Joystick::getConstant(button, result))
+                continue;
+
+            if (this->vpadStatus.release & result)
+                return true;
+        }
+
+        return false;
+    }
+
+    bool Joystick::isAxisChanged(GamepadAxis axis) const
+    {
+        if (!this->isConnected())
+            return false;
+
+        VPADAxis result;
+
+        if (!Joystick::getConstant(axis, result))
+            return false;
+
+        if ((this->vpadStatus.hold & result) || (this->vpadStatus.release & result))
+            return true;
+
+        return false;
+    }
+
     void Joystick::setPlayerIndex(int)
     {}
 

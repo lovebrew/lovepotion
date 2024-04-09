@@ -158,6 +158,10 @@ namespace love
 
         virtual bool isDown(std::span<GamepadButton> buttons) const = 0;
 
+        virtual bool isUp(std::span<GamepadButton> buttons) const = 0;
+
+        virtual bool isAxisChanged(GamepadAxis axis) const = 0;
+
         virtual void setPlayerIndex(int index) = 0;
 
         virtual int getPlayerIndex() const = 0;
@@ -256,11 +260,21 @@ namespace love
             return std::clamp(value / MAX_AXIS_VALUE, -1.0f, 1.0f);
         }
 
-        JoystickBase(int id) : joystickType(JOYSTICK_TYPE_UNKNOWN), instanceId(-1), id(id)
-        {}
+        JoystickBase(int id) :
+            joystickType(JOYSTICK_TYPE_UNKNOWN),
+            instanceId(-1),
+            id(id),
+            sensors()
+        {
+            this->sensors[Sensor::SENSOR_ACCELEROMETER] = false;
+            this->sensors[Sensor::SENSOR_GYROSCOPE]     = false;
+        }
 
-        JoystickBase(int id, int) : instanceId(-1), id(id)
-        {}
+        JoystickBase(int id, int) : instanceId(-1), id(id), sensors()
+        {
+            this->sensors[Sensor::SENSOR_ACCELEROMETER] = false;
+            this->sensors[Sensor::SENSOR_GYROSCOPE]     = false;
+        }
 
         JoystickType joystickType;
         GamepadType gamepadType;

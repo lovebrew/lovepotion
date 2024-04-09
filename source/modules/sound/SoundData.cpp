@@ -20,8 +20,7 @@ namespace love
         if (decoder->getBitDepth() != 8 && decoder->getBitDepth() != 16)
             throw love::Exception("Invalid bit depth: {:d}", decoder->getBitDepth());
 
-        size_t bufferSize = 524288; // 0x80000
-        int decoded       = decoder->decode();
+        int decoded = decoder->decode();
 
         while (decoded > 0)
         {
@@ -34,8 +33,9 @@ namespace love
                 throw love::Exception(E_OUT_OF_MEMORY);
             }
 
-            std::copy_n((uint8_t*)decoder->getBuffer(), decoded,
-                        this->data.data() + (this->data.size() - decoded));
+            // clang-format off
+            std::copy_n((uint8_t*)decoder->getBuffer(), decoded, this->data.data() + (this->data.size() - decoded));
+            // clang-format on
 
             decoded = decoder->decode();
         }

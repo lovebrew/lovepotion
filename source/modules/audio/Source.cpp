@@ -1,0 +1,673 @@
+#include "common/Exception.hpp"
+
+#include "modules/audio/Source.hpp"
+
+#include "modules/audio/Pool.hpp"
+
+#include <algorithm>
+
+namespace love
+{
+    Type Source::type("Source", &Object::type);
+
+    class InvalidFormatException : public love::Exception
+    {
+      public:
+        InvalidFormatException(int channels, int bitdepth) :
+            Exception("{:d}-channel Sources with {:d} bits per sample are not supported.", channels,
+                      bitdepth)
+        {}
+    };
+
+    class QueueFormatMismatchException : public love::Exception
+    {
+      public:
+        QueueFormatMismatchException() :
+            Exception("Queued sound data must have same format as sound Source.")
+        {}
+    };
+
+    class QueueTypeMismatchException : public love::Exception
+    {
+      public:
+        QueueTypeMismatchException() :
+            Exception("Only queueable Sources can be queued with sound data.")
+        {}
+    };
+
+    class QueueMalformedLengthException : public love::Exception
+    {
+      public:
+        QueueMalformedLengthException(int bytes) :
+            Exception("Data length must be a multiple of sample size ({:d} bytes).", bytes)
+        {}
+    };
+
+    class QueueLoopingException : public love::Exception
+    {
+      public:
+        QueueLoopingException() : Exception("Queueable Sources can not be looped.")
+        {}
+    };
+
+    Source::Source(Pool* pool, SoundData* soundData) :
+        sourceType(TYPE_STATIC),
+        pool(pool),
+        sampleRate(soundData->getSampleRate()),
+        channels(soundData->getChannelCount()),
+        bitDepth(soundData->getBitDepth())
+    {
+        if (DigitalSound::getFormat(soundData->getChannelCount(), soundData->getBitDepth()) < 0)
+            throw InvalidFormatException(soundData->getChannelCount(), soundData->getBitDepth());
+
+        // clang-format off
+        this->staticBuffer.set(new StaticDataBuffer(soundData->getData(), soundData->getSize(), soundData->getSampleCount()), Acquire::NO_RETAIN);
+        this->unusedBuffers.push(DigitalSound::getInstance().createBuffer());
+        // clang-format on
+    }
+
+    Source::Source(Pool* pool, Decoder* decoder) :
+        sourceType(TYPE_STREAM),
+        pool(pool),
+        sampleRate(decoder->getSampleRate()),
+        channels(decoder->getChannelCount()),
+        bitDepth(decoder->getBitDepth()),
+        decoder(decoder),
+        buffers(DEFAULT_BUFFERS)
+    {
+        if (DigitalSound::getFormat(decoder->getChannelCount(), decoder->getBitDepth()) < 0)
+            throw InvalidFormatException(decoder->getChannelCount(), decoder->getBitDepth());
+
+        for (int index = 0; index < this->buffers; index++)
+            this->unusedBuffers.push(DigitalSound::getInstance().createBuffer(decoder->getSize()));
+    }
+
+    Source::Source(Pool* pool, int sampleRate, int bitDepth, int channels, int buffers) :
+        sourceType(TYPE_QUEUE),
+        pool(pool),
+        sampleRate(sampleRate),
+        channels(channels),
+        bitDepth(bitDepth),
+        buffers(buffers)
+    {
+        if (DigitalSound::getFormat(channels, bitDepth) < 0)
+            throw InvalidFormatException(channels, bitDepth);
+
+        this->buffers = std::clamp(buffers, 1, MAX_BUFFERS);
+
+        for (int index = 0; index < this->buffers; index++)
+            this->unusedBuffers.push(DigitalSound::getInstance().createBuffer());
+    }
+
+    Source::Source(const Source& other) :
+        sourceType(other.sourceType),
+        pool(other.pool),
+        valid(false),
+        staticBuffer(other.staticBuffer),
+        pitch(other.pitch),
+        volume(other.volume),
+        looping(other.looping),
+        minVolume(other.minVolume),
+        maxVolume(other.maxVolume),
+        offsetSamples(0),
+        sampleRate(other.sampleRate),
+        channels(other.channels),
+        bitDepth(other.bitDepth),
+        decoder(nullptr),
+        buffers(other.buffers)
+    {
+        if (this->sourceType == TYPE_STREAM)
+        {
+            if (other.decoder.get())
+                this->decoder.set(other.decoder->clone(), Acquire::NO_RETAIN);
+        }
+
+        if (this->sourceType != TYPE_STATIC)
+        {
+            for (int index = 0; index < this->buffers; index++)
+                this->unusedBuffers.push(new AudioBuffer());
+        }
+    }
+
+    Source::~Source()
+    {
+        this->stop();
+
+        if (this->sourceType != TYPE_STATIC)
+        {
+            while (!this->streamBuffers.empty())
+            {
+                delete this->streamBuffers.front();
+                this->streamBuffers.pop();
+            }
+        }
+
+        while (!this->unusedBuffers.empty())
+        {
+            delete this->unusedBuffers.top();
+            this->unusedBuffers.pop();
+        }
+    }
+
+    bool Source::update()
+    {
+        if (!this->valid)
+            return false;
+
+        switch (this->sourceType)
+        {
+            case TYPE_STATIC:
+                return !this->isFinished();
+            case TYPE_STREAM:
+            {
+                if (!this->isFinished())
+                {
+                    while (!this->unusedBuffers.empty())
+                    {
+                        auto* buffer = this->unusedBuffers.top();
+                        if (this->streamAtomic(buffer, this->decoder.get()) > 0)
+                        {
+                            DigitalSound::getInstance().channelAddBuffer(this->channel, buffer);
+                            this->unusedBuffers.pop();
+                        }
+                        else
+                            break;
+                    }
+                    return true;
+                }
+                return false;
+            }
+            case TYPE_QUEUE:
+                break;
+            default:
+                break;
+        }
+
+        return false;
+    }
+
+    Source* Source::clone()
+    {
+        return new Source(*this);
+    }
+
+    bool Source::play()
+    {
+        uint8_t wasPlaying;
+
+        {
+            auto lock = this->pool->lock();
+
+            if (!this->pool->assignSource(this, this->channel, wasPlaying))
+                return this->valid = false;
+        }
+
+        if (!wasPlaying)
+        {
+            if (!(this->valid = this->playAtomic(this->unusedBuffers.top())))
+                return false;
+
+            this->unusedBuffers.pop();
+            this->resumeAtomic();
+
+            {
+                auto lock = this->pool->lock();
+                this->pool->addSource(this, this->channel);
+            }
+
+            return this->valid;
+        }
+
+        this->resumeAtomic();
+        return this->valid = true;
+    }
+
+    // clang-format off
+    void Source::reset()
+    {
+        #if !defined(__WIIU__)
+            if (!DigitalSound::getInstance().channelReset(this->channel, this->channels, this->bitDepth, this->sampleRate))
+                std::printf("Failed to reset channel %zu\n", this->channel);
+        #else
+            if (!DigitalSound::getInstance().channelReset(this->channel, this->source, this->channels, this->bitDepth, this->sampleRate))
+                std::printf("Failed to reset channel %zu\n", this->channel);
+        #endif
+    }
+    // clang-format on
+
+    void Source::stop()
+    {
+        if (!this->valid)
+            return;
+
+        auto lock = this->pool->lock();
+        this->pool->releaseSource(this);
+    }
+
+    bool Source::play(const std::vector<Source*>& sources)
+    {
+        // if (sources.size() == 0)
+        //     return true;
+
+        // auto* pool = ((Source*)sources[0])->pool;
+        // auto lock  = pool->lock();
+
+        // std::vector<uint8_t> wasPlaying(sources.size());
+        // std::vector<size_t> channels(sources.size());
+
+        // for (size_t index = 0; index < sources.size(); index++)
+        // {
+        //     auto* source = (Source*)sources[index];
+
+        //     if (!pool->assignSource(source, channels[index], wasPlaying[index]))
+        //     {
+        //         for (size_t j = 0; j < index; j++)
+        //         {
+        //             if (!wasPlaying[j])
+        //                 pool->releaseSource(sources[j], false);
+
+        //             return false;
+        //         }
+        //     }
+        // }
+
+        // std::vector<size_t> channelsToPlay;
+        // channelsToPlay.reserve(sources.size());
+
+        // for (size_t index = 0; index < sources.size(); index++)
+        // {
+        //     if (wasPlaying[index] && sources[index]->isPlaying())
+        //         continue;
+
+        //     if (!wasPlaying[index])
+        //     {
+        //         auto* source    = (Source*)sources[index];
+        //         source->channel = channels[index];
+        //         source->prepareAtomic();
+        //     }
+
+        //     channelsToPlay.push_back(channels[index]);
+        // }
+
+        // bool success = false;
+        // for (auto& channel : channelsToPlay)
+        // {
+        //     if (DigitalSound::getInstance().channelAddBuffer(channel, sources[channel]))
+        // }
+    }
+
+    void Source::stop(const std::vector<Source*>& sources)
+    {
+        if (sources.size() == 0)
+            return;
+
+        auto pool = ((Source*)sources[0])->pool;
+        auto lock = pool->lock();
+
+        for (auto& _source : sources)
+        {
+            auto* source = (Source*)_source;
+
+            if (source->valid)
+                source->teardownAtomic();
+
+            pool->releaseSource(source, false);
+        }
+    }
+
+    void Source::pause(const std::vector<Source*>& sources)
+    {
+        if (sources.size() == 0)
+            return;
+
+        auto lock = ((Source*)sources[0])->pool->lock();
+
+        std::vector<size_t> channels;
+        channels.reserve(sources.size());
+
+        for (auto& _source : sources)
+        {
+            auto* source = (Source*)_source;
+
+            if (source->valid)
+                channels.push_back(source->channel);
+        }
+
+        for (auto& channel : channels)
+            DigitalSound::getInstance().channelPause(channel, true);
+    }
+
+    std::vector<Source*> Source::pause(Pool* pool)
+    {
+        auto lock    = pool->lock();
+        auto sources = pool->getPlayingSources();
+
+        // clang-format off
+        auto end = std::remove_if(sources.begin(), sources.end(), [](Source* source) {  return !source->isPlaying(); });
+        // clang-format on
+
+        sources.erase(end, sources.end());
+        Source::pause(sources);
+
+        return sources;
+    }
+
+    void Source::pause()
+    {
+        auto lock = this->pool->lock();
+
+        if (this->pool->isPlaying(this))
+            this->pauseAtomic();
+    }
+
+    void Source::stop(Pool* pool)
+    {
+        auto lock = pool->lock();
+        Source::stop(pool->getPlayingSources());
+    }
+
+    bool Source::isPlaying() const
+    {
+        if (!this->valid)
+            return false;
+
+        return DigitalSound::getInstance().isChannelPaused(this->channel) == false;
+    }
+
+    bool Source::isFinished() const
+    {
+        if (!this->valid)
+            return false;
+
+        if (this->sourceType == TYPE_STREAM && (this->isLooping() || !this->decoder->isFinished()))
+            return false;
+
+        if (this->sourceType == TYPE_STATIC)
+            return DigitalSound::getInstance().isBufferDone(this->source);
+
+        return DigitalSound::getInstance().isChannelPlaying(this->channel) == false;
+    }
+
+    void Source::setVolume(float volume)
+    {
+        if (this->valid)
+            DigitalSound::getInstance().channelSetVolume(this->channel, this->volume);
+
+        this->volume = volume;
+    }
+
+    float Source::getVolume() const
+    {
+        if (this->valid)
+            return DigitalSound::getInstance().channelGetVolume(this->channel);
+
+        return this->volume;
+    }
+
+    void Source::seek(double offset, Unit unit)
+    {
+        auto lock = this->pool->lock();
+
+        int offsetSamples    = 0;
+        double offsetSeconds = 0.0;
+
+        switch (unit)
+        {
+            case UNIT_SAMPLES:
+            {
+                offsetSamples = (int)offset;
+                offsetSeconds = offset / ((double)this->sampleRate / this->channels);
+                break;
+            }
+            case UNIT_SECONDS:
+            default:
+            {
+                offsetSamples = (int)(offset * this->sampleRate * this->channels);
+                offsetSeconds = offset;
+                break;
+            }
+        }
+
+        bool wasPlaying = this->isPlaying();
+
+        switch (this->sourceType)
+        {
+            case TYPE_STATIC:
+            {
+                if (this->valid)
+                    this->stop();
+
+                this->offsetSamples = offsetSamples;
+
+                if (wasPlaying)
+                    this->play();
+
+                break;
+            }
+            case TYPE_STREAM:
+            {
+                if (this->valid)
+                    this->stop();
+
+                this->decoder->seek(offsetSeconds);
+
+                if (wasPlaying)
+                    this->play();
+
+                break;
+            }
+            case TYPE_QUEUE:
+                break;
+        }
+
+        if (wasPlaying && (this->sourceType == TYPE_STREAM && !this->isPlaying()))
+        {
+            this->stop();
+
+            if (this->isLooping())
+                this->play();
+
+            return;
+        }
+
+        this->offsetSamples = offsetSamples;
+    }
+
+    double Source::tell(Unit unit)
+    {
+        auto lock = this->pool->lock();
+
+        int offset = 0;
+
+        if (this->valid)
+            offset = DigitalSound::getInstance().channelGetSampleOffset(this->channel);
+
+        offset += this->offsetSamples;
+
+        return (unit == UNIT_SAMPLES) ? offset : (offset / this->sampleRate);
+    }
+
+    double Source::getDuration(Unit unit)
+    {
+        auto lock = this->pool->lock();
+
+        switch (this->sourceType)
+        {
+            case TYPE_STATIC:
+            {
+                const auto size     = this->staticBuffer->getSize();
+                const auto nsamples = ((size / this->channels) / (this->bitDepth / 8)) -
+                                      (this->offsetSamples / this->channels);
+
+                return (unit == UNIT_SAMPLES) ? nsamples : (nsamples / this->sampleRate);
+            }
+            case TYPE_STREAM:
+            {
+                double seconds = this->decoder->getDuration();
+                return (unit == UNIT_SAMPLES) ? (seconds * this->sampleRate) : seconds;
+            }
+            case TYPE_QUEUE:
+                return 0.0;
+            default:
+                return 0.0;
+        }
+
+        return 0.0;
+    }
+
+    int Source::getFreeBufferCount() const
+    {
+        switch (this->sourceType)
+        {
+            case TYPE_STATIC:
+                return 0;
+            case TYPE_STREAM:
+                return this->unusedBuffers.size();
+            case TYPE_QUEUE:
+                return this->unusedBuffers.size();
+            case TYPE_MAX_ENUM:
+                return 0;
+        }
+
+        return 0;
+    }
+
+    void Source::setLooping(bool looping)
+    {
+        if (this->sourceType == TYPE_STREAM)
+            throw QueueLoopingException();
+
+        if (this->valid && this->sourceType == TYPE_STATIC)
+            DigitalSound::getInstance().setLooping(this->source, this->looping);
+
+        this->looping = looping;
+    }
+
+    bool Source::isLooping() const
+    {
+        return this->looping;
+    }
+
+    // clang-format off
+    void Source::prepareAtomic()
+    {
+        this->reset();
+
+        switch (this->sourceType)
+        {
+            case TYPE_STATIC:
+            {
+                const auto size     = this->staticBuffer->getSize();
+                const auto nsamples = this->staticBuffer->getSampleCount() - (this->offsetSamples / this->channels);
+
+                auto* buffer = this->staticBuffer->getBuffer() + this->offsetSamples;
+
+                DigitalSound::getInstance().prepareBuffer(this->source, nsamples, buffer, size, this->looping);
+                break;
+            }
+            case TYPE_STREAM:
+            {
+                while (!this->unusedBuffers.empty())
+                {
+                    auto* buffer = this->unusedBuffers.top();
+                    if (this->streamAtomic(buffer, this->decoder.get()) == 0)
+                        break;
+
+                    DigitalSound::getInstance().channelAddBuffer(this->channel, buffer);
+                    this->unusedBuffers.pop();
+
+                    if (this->decoder->isFinished())
+                        break;
+                }
+                break;
+            }
+            case TYPE_QUEUE:
+                break;
+            default:
+                break;
+        }
+    }
+    // clang-format on
+
+    void Source::teardownAtomic()
+    {
+        DigitalSound::getInstance().channelStop(this->channel);
+        std::printf("Stopped channel %zu\n", this->channel);
+
+        switch (this->sourceType)
+        {
+            case TYPE_STATIC:
+                std::printf("Creating buffer\n");
+                this->unusedBuffers.push(DigitalSound::getInstance().createBuffer());
+                break;
+            case TYPE_STREAM:
+                break; //???
+            case TYPE_QUEUE:
+                break;
+            default:
+                break;
+        }
+
+        this->valid         = false;
+        this->offsetSamples = 0;
+    }
+
+    int Source::streamAtomic(AudioBuffer* buffer, Decoder* decoder)
+    {
+        int decoded = std::max(decoder->decode(), 0);
+
+        if (decoded > 0)
+        {
+            int nsamples = ((decoded / this->channels) / (this->bitDepth / 8));
+            auto* data   = decoder->getBuffer();
+
+            DigitalSound::getInstance().prepareBuffer(buffer, nsamples, data, decoded,
+                                                      this->looping);
+        }
+
+        if (decoder->isFinished() && this->isLooping())
+            decoder->rewind();
+
+        return decoded;
+    }
+
+    bool Source::playAtomic(AudioBuffer* buffer)
+    {
+        this->source = buffer;
+        this->prepareAtomic();
+
+        DigitalSound::getInstance().channelAddBuffer(this->channel, this->source);
+
+        if (this->sourceType != TYPE_STREAM)
+            this->offsetSamples = 0;
+
+        if (this->sourceType == TYPE_STREAM)
+            this->valid = true;
+
+        return true;
+    }
+
+    void Source::stopAtomic()
+    {
+        if (!this->valid)
+            return;
+
+        this->teardownAtomic();
+    }
+
+    void Source::pauseAtomic()
+    {
+        if (!this->valid)
+            return;
+
+        DigitalSound::getInstance().channelPause(this->channel, true);
+    }
+
+    void Source::resumeAtomic()
+    {
+        if (!this->valid)
+            return;
+
+        DigitalSound::getInstance().channelPause(this->channel, false);
+    }
+} // namespace love

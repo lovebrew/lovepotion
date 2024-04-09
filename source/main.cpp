@@ -18,7 +18,7 @@ enum DoneAction
     DONE_QUIT,
     DONE_RESTART
 };
-#include "utility/logfile.hpp"
+
 static DoneAction runLove(char** argv, int argc, int& result, love::Variant& restartValue)
 {
     if (love::preInit() != 0)
@@ -41,9 +41,6 @@ static DoneAction runLove(char** argv, int argc, int& result, love::Variant& res
             lua_pushstring(L, argv[0]);
             lua_rawseti(L, -2, -2);
         }
-
-        for (int index = 0; index < argc; index++)
-            LOG("argv[{}] = {}", index, argv[index]);
 
         // on 3DS and Switch, argv[0] is the binary path
         // on Wii U, argv[0] is "safe.rpx"

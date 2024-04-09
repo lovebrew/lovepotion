@@ -3,10 +3,12 @@
 
 #include "modules/love/love.hpp"
 
+#include "modules/audio/wrap_Audio.hpp"
 #include "modules/data/wrap_DataModule.hpp"
 #include "modules/event/wrap_Event.hpp"
 #include "modules/filesystem/wrap_Filesystem.hpp"
 #include "modules/joystick/wrap_JoystickModule.hpp"
+#include "modules/keyboard/wrap_Keyboard.hpp"
 #include "modules/sensor/wrap_Sensor.hpp"
 #include "modules/sound/wrap_Sound.hpp"
 #include "modules/system/wrap_System.hpp"
@@ -43,10 +45,12 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 13> modules =
+static constexpr std::array<const luaL_Reg, 15> modules =
 {{
+    { "love.audio",      Wrap_Audio::open          },
     { "love.data",       Wrap_DataModule::open     },
     { "love.joystick",   Wrap_JoystickModule::open },
+    { "love.keyboard",   Wrap_Keyboard::open       },
     { "love.sensor",     Wrap_Sensor::open         },
     { "love.sound",      Wrap_Sound::open          },
     { "love.timer",      Wrap_Timer::open          },
@@ -212,13 +216,13 @@ int love_initialize(lua_State* L)
 
     // love::luasocket::preload(L);
     love::luax_preload(L, luaopen_luautf8, "utf8");
-    // love::luax_preload(L, luaopen_https, "https");
+    love::luax_preload(L, luaopen_https, "https");
 
     return 1;
 }
 
 /**
- * @brief Initializes the standard input/output for 3dslink.
+ * @brief Initializes the console output.
  *
  * Users will need to use telnet on Windows or netcat on Linux/macOS:
  * `telnet/netcat 192.168.x.x 8000`

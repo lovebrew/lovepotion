@@ -73,6 +73,8 @@ namespace love
 
         signal = (status > 0) ? 100 : 0;
         state = (status > 0) ? NetworkState::NETWORK_CONNECTED : NetworkState::NETWORK_DISCONNECTED;
+
+        return state;
     }
 
     System::FriendInfo System::getFriendInfo() const

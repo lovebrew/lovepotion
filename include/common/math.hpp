@@ -79,7 +79,7 @@ namespace love
         if (x <= 2)
             return x;
 
-        unsigned result = 1u << (32 - __builtin_clz(x - 1));
+        size_t result = 1U << (32 - __builtin_clz(x - 1));
         return std::clamp(result, LOVE_TEX3DS_MIN, LOVE_TEX3DS_MAX);
     }
 } // namespace love

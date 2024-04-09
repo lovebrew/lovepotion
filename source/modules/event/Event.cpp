@@ -99,6 +99,8 @@ namespace love
 
                 break;
             }
+            default:
+                break;
         }
 
         return result;
@@ -109,8 +111,13 @@ namespace love
         Message* result = nullptr;
         auto* module    = Module::getInstance<JoystickModule>(Module::M_JOYSTICK);
 
+        if (!module)
+            return nullptr;
+
         JoystickBase* joystick = nullptr;
         Type* joystickType     = &JoystickBase::type;
+
+        std::string_view name {};
 
         switch (event.subtype)
         {
@@ -135,6 +142,99 @@ namespace love
                 }
                 break;
             }
+            case SUBTYPE_JOYSTICKAXIS:
+            {
+                joystick = module->getJoystickFromID(event.gamepadAxis.which);
+
+                if (!joystick)
+                    break;
+
+                args.emplace_back(joystickType, joystick);
+                args.emplace_back(((double)event.gamepadAxis.axis) + 1);
+                args.emplace_back((double)event.gamepadAxis.value);
+
+                result = new Message("joystickaxis", args);
+                break;
+            }
+            case SUBTYPE_JOYSTICKDOWN:
+            case SUBTYPE_JOYSTICKUP:
+            {
+                joystick = module->getJoystickFromID(event.gamepadButton.which);
+
+                if (!joystick)
+                    break;
+
+                args.emplace_back(joystickType, joystick);
+                args.emplace_back(((double)event.gamepadButton.button) + 1);
+
+                const auto* callback =
+                    event.subtype == SUBTYPE_JOYSTICKDOWN ? "joystickpressed" : "joystickreleased";
+
+                result = new Message(callback, args);
+
+                break;
+            }
+            case SUBTYPE_GAMEPADAXIS:
+            {
+                if (!Joystick::getConstant((Joystick::GamepadAxis)event.gamepadAxis.axis, name))
+                    break;
+
+                joystick = module->getJoystickFromID(event.gamepadAxis.which);
+
+                if (!joystick)
+                    break;
+
+                args.emplace_back(joystickType, joystick);
+                args.emplace_back(name.data(), name.length());
+                args.emplace_back((double)event.gamepadAxis.value);
+
+                result = new Message("gamepadaxis", args);
+                break;
+            }
+            case SUBTYPE_GAMEPADDOWN:
+            case SUBTYPE_GAMEPADUP:
+            {
+                // clang-format off
+                if (!Joystick::getConstant((Joystick::GamepadButton)event.gamepadButton.button, name))
+                    break;
+                // clang-format on
+
+                joystick = module->getJoystickFromID(event.gamepadButton.which);
+
+                if (!joystick)
+                    break;
+
+                args.emplace_back(joystickType, joystick);
+                args.emplace_back(name.data(), name.length());
+
+                const auto* callback =
+                    event.subtype == SUBTYPE_GAMEPADDOWN ? "gamepadpressed" : "gamepadreleased";
+
+                result = new Message(callback, args);
+
+                break;
+            }
+            case SUBTYPE_GAMEPADSENSORUPDATED:
+            {
+                joystick = module->getJoystickFromID(event.gamepadSensor.which);
+
+                if (!joystick)
+                    break;
+
+                if (!Sensor::getConstant((Sensor::SensorType)event.gamepadSensor.sensor, name))
+                    break;
+
+                args.emplace_back(joystickType, joystick);
+                args.emplace_back(name.data(), name.length());
+
+                for (auto value : event.gamepadSensor.data)
+                    args.emplace_back(value);
+
+                result = new Message("joysticksensorupdated", args);
+                break;
+            }
+            default:
+                break;
         }
 
         return result;
@@ -150,20 +250,14 @@ namespace love
         switch (event.type)
         {
             case TYPE_GENERAL:
-            {
                 message = convertGeneralEvent(event);
                 break;
-            }
             case TYPE_TOUCH:
-            {
                 message = convertTouchEvent(event, args);
                 break;
-            }
             case TYPE_GAMEPAD:
-            {
                 message = convertJoystickEvent(event, args);
                 break;
-            }
             default:
                 break;
         }

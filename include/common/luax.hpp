@@ -108,6 +108,8 @@ namespace love
 
     Type* luax_type(lua_State* L, int index);
 
+    int luax_enumerror(lua_State* L, const char* enumName, const char* value);
+
     template<typename T>
     T* luax_totype(lua_State* L, int index, const Type& type)
     {
@@ -134,6 +136,29 @@ namespace love
     }
 
     int luax_typeerror(lua_State* L, int argc, const char* name);
+
+    template<typename T>
+    void luax_checktablefields(lua_State* L, int idx, const char* enumName,
+                               bool (*getConstant)(const char*, T&))
+    {
+        luaL_checktype(L, idx, LUA_TTABLE);
+
+        // We want to error for invalid / misspelled fields in the table.
+        lua_pushnil(L);
+        while (lua_next(L, idx))
+        {
+            if (lua_type(L, -2) != LUA_TSTRING)
+                luax_typeerror(L, -2, "string");
+
+            const char* key = luaL_checkstring(L, -2);
+            T value;
+
+            if (!getConstant(key, value))
+                luax_enumerror(L, enumName, key);
+
+            lua_pop(L, 1);
+        }
+    }
 
     template<typename T>
     T* luax_checktype(lua_State* L, int index, const Type& type)

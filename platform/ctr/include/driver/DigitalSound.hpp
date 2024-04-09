@@ -24,6 +24,15 @@ namespace love
 
         float getMasterVolume() const;
 
+        AudioBuffer* createBuffer(int size = 0);
+
+        bool isBufferDone(AudioBuffer* buffer) const;
+
+        void prepareBuffer(AudioBuffer* buffer, size_t nsamples, const void* data, size_t size,
+                           bool looping);
+
+        void setLooping(AudioBuffer* buffer, bool looping);
+
         bool channelReset(size_t id, int channels, int bitDepth, int sampleRate);
 
         void channelSetVolume(size_t id, float volume);
@@ -54,11 +63,11 @@ namespace love
         );
         // clang-format on
 
+        static int8_t getFormat(int channels, int bitDepth);
+
       private:
         static constexpr int32_t DSP_FIRM_MISSING_ERROR_CODE = 0xD880A7FA;
 
         LightEvent event;
-
-        static uint8_t getNdspFormat(int channels, int bitDepth);
     };
 } // namespace love

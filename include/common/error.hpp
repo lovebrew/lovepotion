@@ -3,9 +3,9 @@ namespace love
 // Startup
 #define E_UNEXPECTED_ALIGNMENT \
     "Cannot push love object to Lua: unexpected alignment\
-    (pointer is %p but alignment should be %d)."
+    (pointer is {} but alignment should be {:d})."
 
-#define E_POINTER_TOO_LARGE "Cannot push love object to Lua: pointer value %p is too large!"
+#define E_POINTER_TOO_LARGE "Cannot push love object to Lua: pointer value {} is too large!"
 
 // General
 #define E_OUT_OF_MEMORY  "Out of memory."
