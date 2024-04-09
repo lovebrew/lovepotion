@@ -52,6 +52,21 @@ int Wrap_Source::setLooping(lua_State* L)
     return 0;
 }
 
+int Wrap_Source::tell(lua_State* L)
+{
+    auto* self = luax_checksource(L, 1);
+
+    auto type        = Source::UNIT_SECONDS;
+    const char* name = lua_isnoneornil(L, 2) ? nullptr : lua_tostring(L, 2);
+
+    if (name && !Source::getConstant(name, type))
+        return luax_enumerror(L, "time unit", Source::SourceUnits, name);
+
+    lua_pushnumber(L, self->tell(type));
+
+    return 1;
+}
+
 // clang-format off
 static constexpr luaL_Reg functions[] =
 {
@@ -59,7 +74,8 @@ static constexpr luaL_Reg functions[] =
     { "play",       Wrap_Source::play       },
     { "pause",      Wrap_Source::pause      },
     { "stop",       Wrap_Source::stop       },
-    { "setLooping", Wrap_Source::setLooping }
+    { "setLooping", Wrap_Source::setLooping },
+    { "tell",       Wrap_Source::tell       }
 };
 // clang-format on
 

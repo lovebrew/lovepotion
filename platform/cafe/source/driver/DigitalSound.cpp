@@ -84,9 +84,9 @@ namespace love
         if (buffer == nullptr || data == nullptr)
             return;
 
-        AXVoiceBegin(buffer);
+        DCFlushRange(data, size);
 
-        DCStoreRange(data, size);
+        AXVoiceBegin(buffer);
 
         AXSetVoiceState(buffer, AX_VOICE_STATE_STOPPED);
         AXSetVoiceLoop(buffer, looping ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED);
@@ -97,6 +97,7 @@ namespace love
         offsets.data          = (int16_t*)data;
         offsets.currentOffset = 0;
         offsets.endOffset     = nsamples;
+        offsets.loopOffset    = 0;
 
         AXSetVoiceOffsets(buffer, &offsets);
 

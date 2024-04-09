@@ -21,4 +21,6 @@ namespace Wrap_Source
     int stop(lua_State* L);
 
     int setLooping(lua_State* L);
+
+    int tell(lua_State* L);
 } // namespace Wrap_Source

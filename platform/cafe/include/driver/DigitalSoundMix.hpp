@@ -29,7 +29,8 @@ static AXVoiceDeviceMixData STEREO_MIX[2][AX_NUM_CHANNELS] =
     }
 };
 
-static AXVoiceDeviceMixData MONO_MIX[1][AX_NUM_CHANNELS] = {
+static AXVoiceDeviceMixData MONO_MIX[1][AX_NUM_CHANNELS] =
+{
     {  // AX_VOICE(0)
         {  // AX_CHANNEL_LEFT
             .bus = { { .volume = 0x8000 } }

@@ -144,8 +144,14 @@ namespace love
                     if (auto result = AXSetVoiceSrcRatio(this->buffers[index], ratio); result != 0)
                         return false;
 
+                    AXSetVoiceCurrentOffset(this->buffers[index], 0);
                     AXSetVoiceSrcType(this->buffers[index], AX_VOICE_SRC_TYPE_LINEAR);
-                    this->buffers[index]->offsets.dataType = (AXVoiceFormat)format;
+
+                    AXVoiceOffsets offsets {};
+                    AXGetVoiceOffsets(this->buffers[index], &offsets);
+
+                    offsets.dataType = (AXVoiceFormat)format;
+                    AXSetVoiceOffsets(this->buffers[index], &offsets);
 
                     AXVoiceEnd(this->buffers[index]);
                 }
