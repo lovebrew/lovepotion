@@ -1,14 +1,11 @@
 #pragma once
 
+#include "driver/AudioBuffer.hpp"
 #include "driver/DigitalSound.tcc"
 #include "driver/DigitalSoundMix.hpp"
 #include "driver/SoundChannel.hpp"
 
 #include <coreinit/event.h>
-
-#include <sndcore2/core.h>
-#include <sndcore2/device.h>
-#include <sndcore2/voice.h>
 
 extern "C"
 {
@@ -18,11 +15,8 @@ extern "C"
 
 namespace love
 {
-    using AudioBuffer = AXVoice;
-
     class DigitalSound : public DigitalSoundBase<DigitalSound>
     {
-
       public:
         ~DigitalSound();
 
@@ -71,15 +65,7 @@ namespace love
         );
         // clang-format on
 
-        OSEvent& getEvent()
-        {
-            return event;
-        }
-
       private:
-        OSEvent event;
-
         std::array<SoundChannel, 24> channels;
-        bool shutdown = false;
     };
 } // namespace love

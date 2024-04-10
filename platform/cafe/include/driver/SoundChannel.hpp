@@ -9,7 +9,7 @@
 #include "driver/DigitalSoundMix.hpp"
 
 #include <algorithm>
-#include <array>
+#include <queue>
 
 namespace love
 {
@@ -24,78 +24,33 @@ namespace love
             STATE_DONE
         };
 
-        SoundChannel() : buffers {}, state(STATE_DONE), channels(0), volume(1.0f)
+        SoundChannel() : buffers {}, state(STATE_DONE), volume(1.0f)
         {}
 
-        void begin(AXVoice* voice, int channels)
+        bool reset(AudioBuffer* buffer, int channels, float volume)
         {
-            for (int index = 0; index < channels; index++)
-                this->buffers[index] = voice;
+            if (!buffer->isInitialized())
+                return false;
 
-            this->channels = channels;
-        }
+            this->current = buffer;
 
-        void setFormat(AXVoiceFormat format)
-        {
-            for (int index = 0; index < this->channels; index++)
-            {
-                AXVoiceBegin(this->buffers[index]);
-
-                AXVoiceOffsets offsets {};
-                AXGetVoiceOffsets(this->buffers[index], &offsets);
-                offsets.dataType = format;
-
-                AXSetVoiceOffsets(this->buffers[index], &offsets);
-
-                AXVoiceEnd(this->buffers[index]);
-            }
-        }
-
-        bool reset(int channels, int sampleRate, float volume)
-        {
             volume = std::clamp(volume, 0.0f, 1.0f);
 
-            AXVoiceVeData ve {};
-            ve.volume = volume * 0x8000;
-
-            float ratio = (float)sampleRate / (float)AXGetInputSamplesPerSec();
-
-            for (int index = 0; index < channels; index++)
+            switch (channels)
             {
-                if (this->buffers[index] == nullptr)
-                    continue;
-
-                AXVoiceBegin(this->buffers[index]);
-
-                AXSetVoiceType(this->buffers[index], AX_VOICE_TYPE_UNKNOWN);
-                AXSetVoiceVe(this->buffers[index], &ve);
-
-                switch (channels)
-                {
-                    case AX_VOICE_MONO:
-                        DEVICE_MIX[0].bus[0].volume = 0x8000;
-                        break;
-                    case AX_VOICE_STEREO:
-                        DEVICE_MIX[0].bus[0].volume = 0x8000;
-                        DEVICE_MIX[1].bus[0].volume = 0x8000;
-                        break;
-                    default:
-                        return false;
-                }
-
-                AXSetVoiceDeviceMix(this->buffers[index], AX_DEVICE_TYPE_TV, 0, DEVICE_MIX);
-                AXSetVoiceDeviceMix(this->buffers[index], AX_DEVICE_TYPE_DRC, 0, DEVICE_MIX);
-
-                // clang-format off
-                if (AXSetVoiceSrcRatio(this->buffers[index], ratio) != AX_VOICE_RATIO_RESULT_SUCCESS)
+                case AX_VOICE_MONO:
+                    DEVICE_MIX[0].bus[0].volume = 0x8000;
+                    break;
+                case AX_VOICE_STEREO:
+                    DEVICE_MIX[0].bus[0].volume = 0x8000;
+                    DEVICE_MIX[1].bus[0].volume = 0x8000;
+                    break;
+                default:
                     return false;
-                // clang-format on
-
-                AXSetVoiceSrcType(this->buffers[index], AX_VOICE_SRC_TYPE_LINEAR);
-                AXSetVoiceCurrentOffset(this->buffers[index], 0);
-
-                AXVoiceEnd(this->buffers[index]);
             }
+
+            this->current->setDeviceMix(DEVICE_MIX);
+            this->current->setVolume(volume);
 
             return true;
         }
@@ -104,16 +59,7 @@ namespace love
         {
             volume = std::clamp(volume, 0.0f, 1.0f);
 
-            AXVoiceVeData ve {};
-            ve.volume = volume * 0x8000;
-
-            for (int index = 0; index < this->channels; index++)
-            {
-                AXVoiceBegin(this->buffers[index]);
-                AXSetVoiceVe(this->buffers[index], &ve);
-                AXVoiceEnd(this->buffers[index]);
-            }
-
+            this->current->setVolume(volume);
             this->volume = volume;
         }
 
@@ -124,26 +70,14 @@ namespace love
 
         void setLooping(bool looping)
         {
-            auto voiceLooping = looping ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED;
-
-            for (int index = 0; index < this->channels; index++)
-            {
-                AXVoiceBegin(this->buffers[index]);
-                AXSetVoiceLoop(this->buffers[index], voiceLooping);
-                AXVoiceEnd(this->buffers[index]);
-            }
+            this->current->setLooping(looping);
         }
 
         bool play()
         {
-            for (int index = 0; index < this->channels; index++)
-            {
-                AXVoiceBegin(this->buffers[index]);
-                AXSetVoiceState(this->buffers[index], AX_VOICE_STATE_PLAYING);
-                AXVoiceEnd(this->buffers[index]);
-            }
-
+            this->current->setState(AX_VOICE_STATE_PLAYING);
             this->state = STATE_PLAYING;
+
             return true;
         }
 
@@ -154,26 +88,14 @@ namespace love
 
         void stop()
         {
-            for (int index = 0; index < this->channels; index++)
-            {
-                AXVoiceBegin(this->buffers[index]);
-                AXSetVoiceState(this->buffers[index], AX_VOICE_STATE_STOPPED);
-                AXVoiceEnd(this->buffers[index]);
-            }
-
+            this->current->setState(AX_VOICE_STATE_STOPPED);
             this->state = STATE_STOPPED;
         }
 
         void setPaused(bool paused)
         {
             auto voiceState = paused ? AX_VOICE_STATE_STOPPED : AX_VOICE_STATE_PLAYING;
-
-            for (int index = 0; index < this->channels; index++)
-            {
-                AXVoiceBegin(this->buffers[index]);
-                AXSetVoiceState(this->buffers[index], voiceState);
-                AXVoiceEnd(this->buffers[index]);
-            }
+            this->current->setState(voiceState);
 
             this->state = paused ? STATE_PAUSED : STATE_PLAYING;
         }
@@ -185,20 +107,15 @@ namespace love
 
         size_t getSampleOffset() const
         {
-            AXVoiceOffsets offsets {};
-
-            AXVoiceBegin(this->buffers[0]);
-            AXGetVoiceOffsets(this->buffers[0], &offsets);
-            AXVoiceEnd(this->buffers[0]);
-
-            return offsets.currentOffset;
+            return this->current->getSampleOffset();
         }
 
       private:
-        std::array<AXVoice*, 2> buffers;
+        std::queue<AudioBuffer*> buffers;
+        AudioBuffer* current;
+
         ChannelState state;
 
-        int channels;
         float volume;
     };
 } // namespace love

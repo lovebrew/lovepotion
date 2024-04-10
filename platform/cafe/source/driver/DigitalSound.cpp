@@ -49,15 +49,9 @@ namespace love
         return volume / (float)0x8000;
     }
 
-    AudioBuffer* DigitalSound::createBuffer(int size)
+    AudioBuffer* DigitalSound::createBuffer(int)
     {
-        auto* voice = AXAcquireVoice(0x1F, nullptr, nullptr);
-
-        AXVoiceBegin(voice);
-        AXSetVoiceState(voice, AX_VOICE_STATE_STOPPED);
-        AXVoiceEnd(voice);
-
-        return voice;
+        return new AudioBuffer();
     }
 
     bool DigitalSound::isBufferDone(AudioBuffer* buffer) const
@@ -65,13 +59,7 @@ namespace love
         if (buffer == nullptr)
             return false;
 
-        bool done = false;
-
-        AXVoiceBegin(buffer);
-        done = buffer->state == AX_VOICE_STATE_STOPPED;
-        AXVoiceEnd(buffer);
-
-        return done;
+        return buffer->isFinished();
     }
 
     void DigitalSound::prepareBuffer(AudioBuffer* buffer, size_t nsamples, void* data, size_t size,
@@ -80,24 +68,7 @@ namespace love
         if (buffer == nullptr || data == nullptr)
             return;
 
-        AXVoiceBegin(buffer);
-
-        AXSetVoiceState(buffer, AX_VOICE_STATE_STOPPED);
-        AXSetVoiceLoop(buffer, looping ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED);
-
-        AXVoiceOffsets offsets {};
-        AXGetVoiceOffsets(buffer, &offsets);
-
-        DCFlushRange(data, size);
-
-        offsets.currentOffset = 0;
-        offsets.endOffset     = nsamples;
-        offsets.loopOffset    = 0;
-        offsets.data          = data;
-
-        AXSetVoiceOffsets(buffer, &offsets);
-
-        AXVoiceEnd(buffer);
+        buffer->prepare(nsamples, data, size, looping);
     }
 
     void DigitalSound::setLooping(AudioBuffer* buffer, bool looping)
@@ -105,11 +76,7 @@ namespace love
         if (buffer == nullptr)
             return;
 
-        AXVoiceBegin(buffer);
-
-        AXSetVoiceLoop(buffer, looping ? AX_VOICE_LOOP_ENABLED : AX_VOICE_LOOP_DISABLED);
-
-        AXVoiceEnd(buffer);
+        buffer->setLooping(looping);
     }
 
     bool DigitalSound::channelReset(size_t id, AudioBuffer* buffer, int channels, int bitDepth,
@@ -118,14 +85,14 @@ namespace love
         if (id >= this->channels.size())
             return false;
 
-        this->channels[id].begin(buffer, channels);
-
         int32_t format = 0;
-        if (format = DigitalSound::getFormat(channels, bitDepth); format < 0)
+        if ((format = DigitalSound::getFormat(channels, bitDepth)) < 0)
             return false;
 
-        this->channels[id].setFormat(format);
-        return this->channels[id].reset(channels, sampleRate, 1.0f);
+        buffer->initialize(channels, format);
+        buffer->setSampleRate(sampleRate);
+
+        return this->channels[id].reset(buffer, channels, 1.0f);
     }
 
     void DigitalSound::channelSetVolume(size_t id, float volume)
