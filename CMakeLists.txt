@@ -256,10 +256,18 @@ add_library(wuff
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE wuff)
 
+if (NINTENDO_WIIU)
+    target_link_libraries(${PROJECT_NAME} PRIVATE vorbisfile vorbis)
+else()
+    target_link_libraries(${PROJECT_NAME} PRIVATE vorbisidec)
+endif()
+
 # link everything else
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    ${APP_LIBS} z luabit lua53 vorbisidec ogg modplug lua-https
+    ${APP_LIBS} z luabit lua53 ogg modplug lua-https
 )
+
+
 
 include_directories(
     include

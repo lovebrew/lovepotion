@@ -77,25 +77,33 @@ namespace love
 
     int VorbisDecoder::decode()
     {
-        int size      = 0;
-        int bitStream = 0;
+        int size = 0;
+        int bit  = 0;
+
+        int word  = (this->getBitDepth() == 16 ? 2 : 1);
+        long read = 0;
 
         while (size < this->bufferSize)
         {
-            int length  = this->bufferSize - size;
-            long result = ov_read(&this->handle, (char*)this->buffer + size, length, &bitStream);
+            int length = this->bufferSize - size;
 
-            if (result == OV_HOLE)
+#if !defined(__WIIU__)
+            read = ov_read(&this->handle, (char*)this->buffer + size, length, &bit);
+#else
+            read = ov_read(&this->handle, (char*)this->buffer + size, length, 1, word, 1, &bit);
+#endif
+
+            if (read == OV_HOLE)
                 continue;
-            else if (result <= OV_EREAD)
+            else if (read <= OV_EREAD)
                 return -1;
-            else if (result == 0)
+            else if (read == 0)
             {
                 this->eof = true;
                 break;
             }
-            else if (result > 0)
-                size += result;
+            else if (read > 0)
+                size += read;
         }
 
         return size;

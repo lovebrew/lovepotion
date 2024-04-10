@@ -8,11 +8,6 @@
 
 namespace love
 {
-    void audioCallback()
-    {
-        OSSignalEvent(&DigitalSound::getInstance().getEvent());
-    }
-
     // clang-format off
     static AXInitParams AX_INIT_PARAMS =
     {
@@ -35,13 +30,12 @@ namespace love
         if (!AXIsInit())
             throw love::Exception("Failed to initialize AX.");
 
-        OSInitEvent(&this->event, false, OS_EVENT_MODE_AUTO);
-        AXRegisterAppFrameCallback(audioCallback);
+        std::memset(DEVICE_MIX, 0, sizeof(DEVICE_MIX));
     }
 
     void DigitalSound::updateImpl()
     {
-        OSWaitEventWithTimeout(&this->event, 0);
+        OSSleepTicks(OSMillisecondsToTicks(5));
     }
 
     void DigitalSound::setMasterVolume(float volume)
@@ -86,8 +80,6 @@ namespace love
         if (buffer == nullptr || data == nullptr)
             return;
 
-        DCFlushRange(data, size);
-
         AXVoiceBegin(buffer);
 
         AXSetVoiceState(buffer, AX_VOICE_STATE_STOPPED);
@@ -96,10 +88,12 @@ namespace love
         AXVoiceOffsets offsets {};
         AXGetVoiceOffsets(buffer, &offsets);
 
-        offsets.data          = (int16_t*)data;
+        DCFlushRange(data, size);
+
         offsets.currentOffset = 0;
         offsets.endOffset     = nsamples;
         offsets.loopOffset    = 0;
+        offsets.data          = data;
 
         AXSetVoiceOffsets(buffer, &offsets);
 
@@ -125,7 +119,13 @@ namespace love
             return false;
 
         this->channels[id].begin(buffer, channels);
-        return this->channels[id].reset(channels, bitDepth, sampleRate, 1.0f);
+
+        int32_t format = 0;
+        if (format = DigitalSound::getFormat(channels, bitDepth); format < 0)
+            return false;
+
+        this->channels[id].setFormat(format);
+        return this->channels[id].reset(channels, sampleRate, 1.0f);
     }
 
     void DigitalSound::channelSetVolume(size_t id, float volume)

@@ -5,8 +5,13 @@
 #include "modules/sound/Decoder.hpp"
 
 #define OV_EXCLUDE_STATIC_CALLBACKS
-#include <tremor/ivorbiscodec.h>
-#include <tremor/ivorbisfile.h>
+#if !defined(__WIIU__)
+    #include <tremor/ivorbiscodec.h>
+    #include <tremor/ivorbisfile.h>
+#else
+    #include <vorbis/codec.h>
+    #include <vorbis/vorbisfile.h>
+#endif
 
 namespace love
 {

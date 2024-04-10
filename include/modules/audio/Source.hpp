@@ -92,9 +92,15 @@ namespace love
 
         bool update();
 
-        void setPitch(float pitch);
+        void setPitch(float pitch)
+        {
+            this->pitch = pitch;
+        }
 
-        float getPitch() const;
+        float getPitch() const
+        {
+            return this->pitch;
+        }
 
         void setVolume(float volume);
 
@@ -120,14 +126,20 @@ namespace love
             return this->sourceType;
         }
 
-        void setMinVolume(float minVolume);
+        void setMinVolume(float minVolume)
+        {
+            this->minVolume = minVolume;
+        }
 
         float getMinVolume() const
         {
             return this->minVolume;
         }
 
-        void setMaxVolume(float maxVolume);
+        void setMaxVolume(float maxVolume)
+        {
+            this->maxVolume = maxVolume;
+        }
 
         float getMaxVolume() const
         {

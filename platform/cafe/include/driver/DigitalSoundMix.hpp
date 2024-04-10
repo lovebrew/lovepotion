@@ -2,6 +2,8 @@
 
 #include <sndcore2/voice.h>
 
+#include <cstring>
+
 #define AX_VOICE(x)      x
 #define AX_CHANNEL_LEFT  0
 #define AX_CHANNEL_RIGHT 1
@@ -15,29 +17,5 @@
 #define AX_VOICE_STEREO 2
 
 // clang-format off
-static AXVoiceDeviceMixData STEREO_MIX[2][AX_NUM_CHANNELS] =
-{
-    {  // AX_VOICE(0)
-        {  // AX_CHANNEL_LEFT
-            .bus = { { .volume = 0x8000, .delta = 0 } }
-        }
-    },
-    {  // AX_VOICE(1)
-        {  // AX_CHANNEL_RIGHT
-            .bus = { { .volume = 0x8000, .delta = 0 } }
-        }
-    }
-};
-
-static AXVoiceDeviceMixData MONO_MIX[1][AX_NUM_CHANNELS] =
-{
-    {  // AX_VOICE(0)
-        {  // AX_CHANNEL_LEFT
-            .bus = { { .volume = 0x8000, .delta = 0 } }
-        },
-        {  // AX_CHANNEL_RIGHT
-            .bus = { { .volume = 0x8000, .delta = 0 } }
-        }
-    }
-};
+static AXVoiceDeviceMixData DEVICE_MIX[0x06];
 // clang-format on

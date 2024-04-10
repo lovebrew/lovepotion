@@ -298,6 +298,7 @@ namespace love
         // {
         //     if (DigitalSound::getInstance().channelAddBuffer(channel, sources[channel]))
         // }
+        return false;
     }
 
     void Source::stop(const std::vector<Source*>& sources)
