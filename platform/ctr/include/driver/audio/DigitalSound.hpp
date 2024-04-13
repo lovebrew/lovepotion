@@ -24,14 +24,17 @@ namespace love
 
         float getMasterVolume() const;
 
-        AudioBuffer* createBuffer(int size = 0);
+        AudioBuffer createBuffer(int size = 0);
 
-        bool isBufferDone(AudioBuffer* buffer) const;
+        void freeBuffer(const AudioBuffer& buffer);
 
-        void prepareBuffer(AudioBuffer* buffer, size_t nsamples, const void* data, size_t size,
-                           bool looping);
+        bool isBufferDone(const AudioBuffer& buffer) const;
 
-        void setLooping(AudioBuffer* buffer, bool looping);
+        void prepare(AudioBuffer& buffer, const void* data, size_t size, int samples);
+
+        size_t getSampleCount(const AudioBuffer& buffer) const;
+
+        void setLooping(AudioBuffer& buffer, bool looping);
 
         bool channelReset(size_t id, int channels, int bitDepth, int sampleRate);
 

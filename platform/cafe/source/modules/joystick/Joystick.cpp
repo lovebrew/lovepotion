@@ -20,9 +20,21 @@ namespace love
     void Joystick::update()
     {
         if (this->isDRCGamepad())
+        {
             VPADRead(VPAD_CHAN_0, &this->vpadStatus, 1, &this->vpadError);
+
+            const auto& status = this->vpadStatus;
+            if (this->vpadError != VPAD_READ_NO_SAMPLES)
+                this->state = { status.trigger, status.release, status.hold };
+        }
         else
+        {
             KPADReadEx(KPADChan(this->id - 1), &this->kpadStatus, 1, &this->kpadError);
+
+            const auto& status = this->kpadStatus;
+            if (this->kpadError != KPAD_ERROR_NO_SAMPLES)
+                this->state = { status.trigger, status.release, status.hold };
+        }
     }
 
     static GamepadType getSystemGamepadType(int id)
@@ -67,10 +79,8 @@ namespace love
 
     bool Joystick::isConnected() const
     {
-        LOG("isDRCGamepad {:d}", this->isDRCGamepad());
         if (this->isDRCGamepad())
         {
-            LOG("VPADStatus: {}", (int)this->vpadError);
             switch (this->vpadError)
             {
                 case VPAD_READ_INVALID_CONTROLLER:
@@ -81,7 +91,6 @@ namespace love
             }
         }
 
-        LOG("KPADStatus: {}", (int)this->kpadError);
         switch (this->kpadError)
         {
             case KPAD_ERROR_INVALID_CONTROLLER:
@@ -189,8 +198,11 @@ namespace love
             if (!Joystick::getConstant(button, result))
                 continue;
 
-            if (this->vpadStatus.trigger & result)
+            if (this->state.pressed & result)
+            {
+                this->state.pressed ^= result;
                 return true;
+            }
         }
 
         return false;
@@ -251,8 +263,11 @@ namespace love
             if (!Joystick::getConstant(button, result))
                 continue;
 
-            if (this->vpadStatus.release & result)
+            if (this->state.released & result)
+            {
+                this->state.released ^= result;
                 return true;
+            }
         }
 
         return false;
@@ -268,8 +283,11 @@ namespace love
         if (!Joystick::getConstant(axis, result))
             return false;
 
-        if ((this->vpadStatus.hold & result) || (this->vpadStatus.release & result))
+        if ((this->state.held & result) || (this->state.released & result))
+        {
+            this->state.held ^= result;
             return true;
+        }
 
         return false;
     }

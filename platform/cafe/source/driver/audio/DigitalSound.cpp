@@ -1,10 +1,13 @@
 #include "common/Exception.hpp"
+#include "common/config.hpp"
 #include "common/int.hpp"
 
-#include "driver/DigitalSound.hpp"
+#include "driver/audio/DigitalSound.hpp"
 
 #include <coreinit/cache.h>
 #include <sndcore2/core.h>
+
+#include <cstring>
 
 namespace love
 {
@@ -13,7 +16,7 @@ namespace love
     {
         AX_INIT_RENDERER_48KHZ,
         AX_INIT_PIPELINE_SINGLE,
-        0
+        0,
     };
     // clang-format on
 
@@ -29,12 +32,13 @@ namespace love
 
         if (!AXIsInit())
             throw love::Exception("Failed to initialize AX.");
-
-        std::memset(DEVICE_MIX, 0, sizeof(DEVICE_MIX));
     }
 
     void DigitalSound::updateImpl()
     {
+        for (auto& channel : this->channels)
+            channel.update();
+
         OSSleepTicks(OSMillisecondsToTicks(5));
     }
 
@@ -49,50 +53,67 @@ namespace love
         return volume / (float)0x8000;
     }
 
-    AudioBuffer* DigitalSound::createBuffer(int)
+    AudioBuffer DigitalSound::createBuffer(int channels)
     {
-        return new AudioBuffer();
+        AudioBuffer buffer {};
+        buffer.initialize(channels);
+
+        return buffer;
     }
 
-    bool DigitalSound::isBufferDone(AudioBuffer* buffer) const
+    void DigitalSound::freeBuffer(const AudioBuffer& buffer)
     {
-        if (buffer == nullptr)
-            return false;
-
-        return buffer->isFinished();
+        if (buffer.data)
+            free(buffer.data);
     }
 
-    void DigitalSound::prepareBuffer(AudioBuffer* buffer, size_t nsamples, void* data, size_t size,
-                                     bool looping)
+    bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
     {
-        if (buffer == nullptr || data == nullptr)
+        return buffer.isFinished();
+    }
+
+    void DigitalSound::prepare(AudioBuffer& buffer, void* data, size_t size, int samples)
+    {
+        if (data == nullptr)
             return;
 
-        buffer->prepare(nsamples, data, size, looping);
+        buffer.data     = (int16_t*)malloc(size);
+        buffer.nsamples = samples;
+
+        if (buffer.data == nullptr)
+            throw love::Exception(E_OUT_OF_MEMORY);
+
+        std::memcpy(buffer.data, data, size);
+        DCFlushRange(buffer.data, size);
     }
 
-    void DigitalSound::setLooping(AudioBuffer* buffer, bool looping)
+    size_t DigitalSound::getSampleCount(const AudioBuffer& buffer) const
     {
-        if (buffer == nullptr)
-            return;
-
-        buffer->setLooping(looping);
+        return buffer.getSampleCount();
     }
 
-    bool DigitalSound::channelReset(size_t id, AudioBuffer* buffer, int channels, int bitDepth,
-                                    int sampleRate)
+    void DigitalSound::setLooping(AudioBuffer& buffer, bool looping)
+    {
+        buffer.setLooping(looping);
+    }
+
+    bool DigitalSound::channelReset(size_t id, int channels, int bitDepth, int sampleRate)
     {
         if (id >= this->channels.size())
             return false;
+
+        this->channels[id].reset();
 
         int32_t format = 0;
         if ((format = DigitalSound::getFormat(channels, bitDepth)) < 0)
             return false;
 
-        buffer->initialize(channels, format);
-        buffer->setSampleRate(sampleRate);
+        this->channels[id].setFormat(format);
+        this->channels[id].setSampleRate((float)sampleRate);
+        this->channels[id].setInterpType(channels);
 
-        return this->channels[id].reset(buffer, channels, 1.0f);
+        this->channels[id].setVolume(this->channels[id].getVolume());
+        return true;
     }
 
     void DigitalSound::channelSetVolume(size_t id, float volume)
@@ -107,12 +128,12 @@ namespace love
 
     size_t DigitalSound::channelGetSampleOffset(size_t id)
     {
-        return this->channels[id].getSampleOffset();
+        return this->channels[id].getSamplePosition();
     }
 
-    bool DigitalSound::channelAddBuffer(size_t id, AudioBuffer*)
+    bool DigitalSound::channelAddBuffer(size_t id, AudioBuffer* buffer)
     {
-        return this->channels[id].play();
+        return this->channels[id].addWaveBuffer(buffer);
     }
 
     void DigitalSound::channelStop(size_t id)

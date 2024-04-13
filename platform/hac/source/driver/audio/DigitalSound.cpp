@@ -1,8 +1,10 @@
 #include "common/Exception.hpp"
 #include "common/Result.hpp"
 
-#include "driver/DigitalSound.hpp"
-#include "driver/DigitalSoundMem.hpp"
+#include "driver/audio/DigitalSound.hpp"
+#include "driver/audio/DigitalSoundMem.hpp"
+
+#include <cstring>
 
 namespace love
 {
@@ -19,7 +21,7 @@ namespace love
 
     void DigitalSound::initialize()
     {
-        if (bool result = DigitalSoundMemory::getInstance().initMemoryPool(); !result)
+        if (bool result = DigitalSoundMemory::getInstance().initialize(); !result)
             throw love::Exception("Failed to create audio memory pool!");
 
         if (auto result = Result(audrenInitialize(&config)); !result)
@@ -29,7 +31,8 @@ namespace love
             throw love::Exception("Failed to create audio driver: {:x}", result.get());
 
         // clang-format off
-        int poolId = audrvMemPoolAdd(&this->driver, DigitalSoundMemory::getInstance().getBaseAddress(), DigitalSoundMemory::getInstance().getSize());
+        const auto size = DigitalSoundMemory::getInstance().getSize();
+        int poolId = audrvMemPoolAdd(&this->driver, DigitalSoundMemory::getInstance().getBaseAddress(), size);
         // clang-format on
 
         if (poolId == -1)
@@ -81,58 +84,54 @@ namespace love
         return this->driver.in_mixes[0].volume;
     }
 
-    AudioBuffer* DigitalSound::createBuffer(int size)
+    AudioBuffer DigitalSound::createBuffer(int size)
     {
-        AudioBuffer* buffer = new AudioBuffer();
+        AudioBuffer buffer {};
 
         if (size != 0)
         {
-            size_t aligned     = 0;
-            buffer->data_pcm16 = (int16_t*)DigitalSoundMemory::getInstance().align(size, aligned);
+            buffer.data_pcm16 = (int16_t*)DigitalSoundMemory::getInstance().allocate(size);
 
-            if (buffer->data_pcm16 == nullptr)
+            if (buffer.data_pcm16 == nullptr)
                 throw love::Exception(E_OUT_OF_MEMORY);
         }
         else
-            buffer->data_pcm16 = nullptr;
-
-        buffer->state = AudioDriverWaveBufState_Done;
+            throw love::Exception("Size cannot be zero.");
 
         return buffer;
     }
 
-    bool DigitalSound::isBufferDone(AudioBuffer* buffer) const
+    void DigitalSound::freeBuffer(const AudioBuffer& buffer)
     {
-        if (buffer == nullptr)
-            return true;
-
-        return buffer->state == AudioDriverWaveBufState_Done;
+        DigitalSoundMemory::getInstance().free(buffer.data_pcm16);
     }
 
-    void DigitalSound::prepareBuffer(AudioBuffer* buffer, size_t nsamples, const void* data,
-                                     size_t size, bool looping)
+    bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
     {
-        if (buffer == nullptr || data == nullptr)
-            return;
-
-        if (buffer->data_pcm16 != nullptr)
-            std::copy_n((int16_t*)data, size, buffer->data_pcm16);
-        else
-            buffer->data_pcm16 = (int16_t*)data;
-
-        armDCacheFlush(buffer->data_pcm16, size);
-
-        buffer->size              = size;
-        buffer->end_sample_offset = nsamples;
-        buffer->is_looping        = looping;
+        return buffer.state == AudioDriverWaveBufState_Done;
     }
 
-    void DigitalSound::setLooping(AudioBuffer* buffer, bool looping)
+    void DigitalSound::prepare(AudioBuffer& buffer, const void* data, size_t size, int samples)
     {
-        if (buffer == nullptr)
+        if (data == nullptr)
             return;
 
-        buffer->is_looping = looping;
+        buffer.size              = size;
+        buffer.end_sample_offset = samples;
+
+        std::memcpy(buffer.data_pcm16, data, size);
+
+        armDCacheFlush(buffer.data_pcm16, size);
+    }
+
+    size_t DigitalSound::getSampleCount(const AudioBuffer& buffer) const
+    {
+        return buffer.end_sample_offset;
+    }
+
+    void DigitalSound::setLooping(AudioBuffer& buffer, bool looping)
+    {
+        buffer.is_looping = looping;
     }
 
     bool DigitalSound::channelReset(size_t id, int channels, int bitDepth, int sampleRate)

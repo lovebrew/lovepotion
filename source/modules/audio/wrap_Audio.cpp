@@ -20,8 +20,7 @@ int Wrap_Audio::newSource(lua_State* L)
                 return luax_enumerror(L, "source type", Source::SourceTypes, typeName);
 
             if (type == Source::TYPE_QUEUE)
-                return luaL_error(L, "Cannot create queueable sources using newSource. Use "
-                                     "newQueueableSource instead.");
+                return luaL_error(L, E_CANNOT_CREATE_QUEUE_SOURCE);
         }
 
         if (luax_cangetdata(L, 1))

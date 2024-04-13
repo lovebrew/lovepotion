@@ -1,24 +1,46 @@
 #include "modules/audio/Source.hpp"
-#include "driver/DigitalSoundMem.hpp"
+#include "driver/audio/DigitalSoundMem.hpp"
+
+#include <cstring>
 
 namespace love
 {
-    StaticDataBuffer::StaticDataBuffer(const void* data, size_t size, size_t nsamples) :
-        buffer(nullptr),
-        size(size),
-        nsamples(nsamples)
+    StaticDataBuffer::StaticDataBuffer(const SoundData* data) :
+        buffer {},
+        size(data->getSize()),
+        nsamples(data->getSampleCount()),
+        bufferClone {}
     {
-        this->buffer = (int16_t*)DigitalSoundMemory::getInstance().align(size, this->alignSize);
+        this->buffer.data_pcm16 = (int16_t*)DigitalSoundMemory::getInstance().allocate(size);
 
-        if (this->buffer == nullptr)
+        if (this->buffer.data_pcm16 == nullptr)
             throw love::Exception(E_OUT_OF_MEMORY);
 
-        std::copy_n((int16_t*)data, size, this->buffer);
+        std::memcpy(this->buffer.data_pcm16, data->getData(), size);
+        armDCacheFlush(this->buffer.data_pcm16, size);
+    }
+
+    void* StaticDataBuffer::getBuffer() const
+    {
+        return this->buffer.data_pcm16;
+    }
+
+    void StaticDataBuffer::setLooping(bool looping)
+    {
+        this->buffer.is_looping = looping;
+    }
+
+    AudioBuffer& StaticDataBuffer::clone(const size_t offsetSamples, const int channels)
+    {
+        this->bufferClone.data_pcm16        = (int16_t*)this->getBuffer() + offsetSamples;
+        this->bufferClone.end_sample_offset = this->getSampleCount() - (offsetSamples / channels);
+        this->bufferClone.is_looping        = this->buffer.is_looping;
+
+        return bufferClone;
     }
 
     StaticDataBuffer::~StaticDataBuffer()
     {
-        if (this->buffer != nullptr)
-            DigitalSoundMemory::getInstance().free(this->buffer, this->alignSize);
+        DigitalSoundMemory::getInstance().free(this->buffer.data_pcm16);
     }
 } // namespace love

@@ -99,6 +99,9 @@ namespace love
                 return DRMP3_FALSE;
         }
 
+        if (position < decoder->offset)
+            return DRMP3_FALSE;
+
         return decoder->stream->seek(offset, Stream::SEEKORIGIN_BEGIN) ? DRMP3_TRUE : DRMP3_FALSE;
     }
 
@@ -116,7 +119,7 @@ namespace love
         if (!drmp3_get_mp3_and_pcm_frame_count(&this->handle, &mp3FrameCount, &pcmCount))
         {
             drmp3_uninit(&this->handle);
-            throw love::Exception("Could not get MP3 frame count.");
+            throw love::Exception("Could not calculate mp3 duration.");
         }
         this->duration = ((double)pcmCount) / this->handle.sampleRate;
 

@@ -1,4 +1,5 @@
 #include "common/Exception.hpp"
+#include "common/config.hpp"
 
 #include "modules/audio/Source.hpp"
 
@@ -60,10 +61,17 @@ namespace love
         if (DigitalSound::getFormat(soundData->getChannelCount(), soundData->getBitDepth()) < 0)
             throw InvalidFormatException(soundData->getChannelCount(), soundData->getBitDepth());
 
-        // clang-format off
-        this->staticBuffer.set(new StaticDataBuffer(soundData->getData(), soundData->getSize(), soundData->getSampleCount()), Acquire::NO_RETAIN);
-        this->unusedBuffers.push(DigitalSound::getInstance().createBuffer());
-        // clang-format on
+        this->staticBuffer.set(new StaticDataBuffer(soundData), Acquire::NO_RETAIN);
+    }
+
+    static AudioBuffer generateBuffer(int size, int channels)
+    {
+#if defined(__WIIU__)
+        LOVE_UNUSED(size);
+        return DigitalSound::getInstance().createBuffer(channels);
+#else
+        return DigitalSound::getInstance().createBuffer(size);
+#endif
     }
 
     Source::Source(Pool* pool, Decoder* decoder) :
@@ -72,14 +80,16 @@ namespace love
         sampleRate(decoder->getSampleRate()),
         channels(decoder->getChannelCount()),
         bitDepth(decoder->getBitDepth()),
-        decoder(decoder),
-        buffers(DEFAULT_BUFFERS)
+        buffers(DEFAULT_BUFFERS),
+        decoder(decoder)
     {
         if (DigitalSound::getFormat(decoder->getChannelCount(), decoder->getBitDepth()) < 0)
             throw InvalidFormatException(decoder->getChannelCount(), decoder->getBitDepth());
 
+        // clang-format off
         for (int index = 0; index < this->buffers; index++)
-            this->unusedBuffers.push(DigitalSound::getInstance().createBuffer(decoder->getSize()));
+            this->streamBuffers.push_back(generateBuffer(decoder->getSize(), this->channels));
+        // clang-format on
     }
 
     Source::Source(Pool* pool, int sampleRate, int bitDepth, int channels, int buffers) :
@@ -95,8 +105,10 @@ namespace love
 
         this->buffers = std::clamp(buffers, 1, MAX_BUFFERS);
 
+        // clang-format off
         for (int index = 0; index < this->buffers; index++)
-            this->unusedBuffers.push(DigitalSound::getInstance().createBuffer());
+            this->streamBuffers.push_back(generateBuffer(decoder->getSize(), this->channels));
+        // clang-format on
     }
 
     Source::Source(const Source& other) :
@@ -113,8 +125,8 @@ namespace love
         sampleRate(other.sampleRate),
         channels(other.channels),
         bitDepth(other.bitDepth),
-        decoder(nullptr),
-        buffers(other.buffers)
+        buffers(other.buffers),
+        decoder(nullptr)
     {
         if (this->sourceType == TYPE_STREAM)
         {
@@ -122,11 +134,13 @@ namespace love
                 this->decoder.set(other.decoder->clone(), Acquire::NO_RETAIN);
         }
 
+        // clang-format off
         if (this->sourceType != TYPE_STATIC)
         {
             for (int index = 0; index < this->buffers; index++)
-                this->unusedBuffers.push(new AudioBuffer());
+                this->streamBuffers.push_back(generateBuffer(decoder->getSize(), this->channels));
         }
+        // clang-format on
     }
 
     Source::~Source()
@@ -135,17 +149,8 @@ namespace love
 
         if (this->sourceType != TYPE_STATIC)
         {
-            while (!this->streamBuffers.empty())
-            {
-                delete this->streamBuffers.front();
-                this->streamBuffers.pop();
-            }
-        }
-
-        while (!this->unusedBuffers.empty())
-        {
-            delete this->unusedBuffers.top();
-            this->unusedBuffers.pop();
+            for (size_t index = 0; index < this->streamBuffers.size(); index++)
+                DigitalSound::getInstance().freeBuffer(this->streamBuffers[index]);
         }
     }
 
@@ -160,25 +165,25 @@ namespace love
                 return !this->isFinished();
             case TYPE_STREAM:
             {
-                if (!this->isFinished())
+                if (this->isFinished())
+                    return false;
+
+                for (auto& buffer : this->streamBuffers)
                 {
-                    while (!this->unusedBuffers.empty())
-                    {
-                        auto* buffer = this->unusedBuffers.top();
-                        if (this->streamAtomic(buffer, this->decoder.get()) > 0)
-                        {
-                            DigitalSound::getInstance().channelAddBuffer(this->channel, buffer);
-                            this->unusedBuffers.pop();
-                        }
-                        else
-                            break;
-                    }
-                    return true;
+                    if (!DigitalSound::getInstance().isBufferDone(buffer))
+                        continue;
+
+                    if (this->streamAtomic(buffer, this->decoder.get()) == 0)
+                        break;
+
+                    DigitalSound::getInstance().channelAddBuffer(this->channel, &buffer);
+                    this->offsetSamples += DigitalSound::getInstance().getSampleCount(buffer);
                 }
-                return false;
+
+                return true;
             }
             case TYPE_QUEUE:
-                break;
+                return !this->isFinished();
             default:
                 break;
         }
@@ -204,10 +209,9 @@ namespace love
 
         if (!wasPlaying)
         {
-            if (!(this->valid = this->playAtomic(this->unusedBuffers.top())))
+            if (!(this->valid = this->playAtomic()))
                 return false;
 
-            this->unusedBuffers.pop();
             this->resumeAtomic();
 
             {
@@ -225,13 +229,8 @@ namespace love
     // clang-format off
     void Source::reset()
     {
-        #if !defined(__WIIU__)
-            if (!DigitalSound::getInstance().channelReset(this->channel, this->channels, this->bitDepth, this->sampleRate))
-                std::printf("Failed to reset channel %zu\n", this->channel);
-        #else
-            if (!DigitalSound::getInstance().channelReset(this->channel, this->source, this->channels, this->bitDepth, this->sampleRate))
-                std::printf("Failed to reset channel %zu\n", this->channel);
-        #endif
+        if (!DigitalSound::getInstance().channelReset(this->channel, this->channels, this->bitDepth, this->sampleRate))
+            std::printf("Failed to reset channel %zu\n", this->channel);
     }
     // clang-format on
 
@@ -344,7 +343,9 @@ namespace love
         auto sources = pool->getPlayingSources();
 
         // clang-format off
-        auto end = std::remove_if(sources.begin(), sources.end(), [](Source* source) {  return !source->isPlaying(); });
+        auto end = std::remove_if(sources.begin(), sources.end(), [](Source* source) {
+            return !source->isPlaying();
+        });
         // clang-format on
 
         sources.erase(end, sources.end());
@@ -382,9 +383,6 @@ namespace love
 
         if (this->sourceType == TYPE_STREAM && (this->isLooping() || !this->decoder->isFinished()))
             return false;
-
-        if (this->sourceType == TYPE_STATIC)
-            return DigitalSound::getInstance().isBufferDone(this->source);
 
         return DigitalSound::getInstance().isChannelPlaying(this->channel) == false;
     }
@@ -459,6 +457,8 @@ namespace love
             }
             case TYPE_QUEUE:
                 break;
+            default:
+                break;
         }
 
         if (wasPlaying && (this->sourceType == TYPE_STREAM && !this->isPlaying()))
@@ -481,9 +481,12 @@ namespace love
         int offset = 0;
 
         if (this->valid)
-            offset = DigitalSound::getInstance().channelGetSampleOffset(this->channel);
-
-        offset += this->offsetSamples;
+        {
+            if (this->sourceType == TYPE_STATIC)
+                offset = DigitalSound::getInstance().channelGetSampleOffset(this->channel);
+            else
+                offset = this->offsetSamples;
+        }
 
         return (unit == UNIT_SAMPLES) ? offset : (offset / this->sampleRate);
     }
@@ -523,9 +526,18 @@ namespace love
             case TYPE_STATIC:
                 return 0;
             case TYPE_STREAM:
-                return this->unusedBuffers.size();
             case TYPE_QUEUE:
-                return this->unusedBuffers.size();
+            {
+                int count = 0;
+
+                for (const auto& buffer : this->streamBuffers)
+                {
+                    if (DigitalSound::getInstance().isBufferDone(buffer))
+                        count++;
+                }
+
+                return count;
+            }
             case TYPE_MAX_ENUM:
                 return 0;
         }
@@ -539,7 +551,7 @@ namespace love
             throw QueueLoopingException();
 
         if (this->valid && this->sourceType == TYPE_STATIC)
-            DigitalSound::getInstance().setLooping(this->source, this->looping);
+            this->staticBuffer->setLooping(this->looping);
 
         this->looping = looping;
     }
@@ -558,24 +570,17 @@ namespace love
         {
             case TYPE_STATIC:
             {
-                const auto size     = this->staticBuffer->getSize();
-                const auto nsamples = this->staticBuffer->getSampleCount() - (this->offsetSamples / this->channels);
+                auto& buffer = this->staticBuffer->clone(this->offsetSamples, this->channels);
+                DigitalSound::getInstance().channelAddBuffer(this->channel, &buffer);
 
-                auto* buffer = this->staticBuffer->getBuffer() + this->offsetSamples;
-
-                DigitalSound::getInstance().prepareBuffer(this->source, nsamples, buffer, size, this->looping);
                 break;
             }
             case TYPE_STREAM:
             {
-                while (!this->unusedBuffers.empty())
+                for (auto& buffer : this->streamBuffers)
                 {
-                    auto* buffer = this->unusedBuffers.top();
                     if (this->streamAtomic(buffer, this->decoder.get()) == 0)
                         break;
-
-                    DigitalSound::getInstance().channelAddBuffer(this->channel, buffer);
-                    this->unusedBuffers.pop();
 
                     if (this->decoder->isFinished())
                         break;
@@ -593,17 +598,20 @@ namespace love
     void Source::teardownAtomic()
     {
         DigitalSound::getInstance().channelStop(this->channel);
-        std::printf("Stopped channel %zu\n", this->channel);
 
         switch (this->sourceType)
         {
             case TYPE_STATIC:
-                std::printf("Creating buffer\n");
-                this->unusedBuffers.push(DigitalSound::getInstance().createBuffer());
                 break;
             case TYPE_STREAM:
-                break; //???
+            {
+                this->decoder->rewind();
+                DigitalSound::getInstance().channelStop(this->channel);
+
+                break;
+            }
             case TYPE_QUEUE:
+                DigitalSound::getInstance().channelStop(this->channel);
                 break;
             default:
                 break;
@@ -613,17 +621,16 @@ namespace love
         this->offsetSamples = 0;
     }
 
-    int Source::streamAtomic(AudioBuffer* buffer, Decoder* decoder)
+    int Source::streamAtomic(AudioBuffer& buffer, Decoder* decoder)
     {
         int decoded = std::max(decoder->decode(), 0);
 
         if (decoded > 0)
         {
-            int nsamples = ((decoded / this->channels) / (this->bitDepth / 8));
-            auto* data   = decoder->getBuffer();
+            DigitalSound::getInstance().setLooping(buffer, this->looping);
 
-            DigitalSound::getInstance().prepareBuffer(buffer, nsamples, data, decoded,
-                                                      this->looping);
+            const int samples = int((decoded / this->channels) / (this->bitDepth / 8));
+            DigitalSound::getInstance().prepare(buffer, decoder->getBuffer(), decoded, samples);
         }
 
         if (decoder->isFinished() && this->isLooping())
@@ -632,18 +639,33 @@ namespace love
         return decoded;
     }
 
-    bool Source::playAtomic(AudioBuffer* buffer)
+    bool Source::playAtomic()
     {
-        this->source = buffer;
         this->prepareAtomic();
 
-        DigitalSound::getInstance().channelAddBuffer(this->channel, this->source);
+        if (this->sourceType != TYPE_STATIC)
+        {
+            for (auto& buffer : this->streamBuffers)
+                DigitalSound::getInstance().channelAddBuffer(this->channel, &buffer);
+        }
+
+        bool success = false;
+        if (this->sourceType == TYPE_STREAM)
+        {
+            this->valid = true;
+
+            if (!this->isPlaying())
+                success = false;
+        }
+
+        if (!success)
+        {
+            this->valid = true;
+            this->stop();
+        }
 
         if (this->sourceType != TYPE_STREAM)
             this->offsetSamples = 0;
-
-        if (this->sourceType == TYPE_STREAM)
-            this->valid = true;
 
         return true;
     }

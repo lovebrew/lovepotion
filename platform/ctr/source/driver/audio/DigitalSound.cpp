@@ -1,7 +1,9 @@
 #include "common/Exception.hpp"
 #include "common/Result.hpp"
 
-#include "driver/DigitalSound.hpp"
+#include "driver/audio/DigitalSound.hpp"
+
+#include <cstring>
 
 static void audioCallback(void* data)
 {
@@ -47,56 +49,52 @@ namespace love
         return ndspGetMasterVol();
     }
 
-    AudioBuffer* DigitalSound::createBuffer(int size)
+    AudioBuffer DigitalSound::createBuffer(int size)
     {
-        AudioBuffer* buffer = new AudioBuffer();
+        AudioBuffer buffer {};
 
         if (size != 0)
         {
-            buffer->data_pcm16 = (int16_t*)linearAlloc(size);
+            buffer.data_pcm16 = (int16_t*)linearAlloc(size);
 
-            if (buffer->data_pcm16 == nullptr)
+            if (buffer.data_pcm16 == nullptr)
                 throw love::Exception(E_OUT_OF_MEMORY);
         }
         else
-            buffer->data_pcm16 = nullptr;
-
-        buffer->status = NDSP_WBUF_DONE;
+            throw love::Exception("Size cannot be zero.");
 
         return buffer;
     }
 
-    bool DigitalSound::isBufferDone(AudioBuffer* buffer) const
+    void DigitalSound::freeBuffer(const AudioBuffer& buffer)
     {
-        if (buffer == nullptr)
-            return false;
-
-        return buffer->status == NDSP_WBUF_DONE;
+        linearFree(buffer.data_pcm16);
     }
 
-    void DigitalSound::prepareBuffer(AudioBuffer* buffer, size_t nsamples, const void* data,
-                                     size_t size, bool looping)
+    bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
     {
-        if (buffer == nullptr || data == nullptr)
-            return;
-
-        if (buffer->data_pcm16 != nullptr)
-            std::copy_n((int16_t*)data, size, buffer->data_pcm16);
-        else
-            buffer->data_pcm16 = (int16_t*)data;
-
-        DSP_FlushDataCache(buffer->data_pcm16, size);
-
-        buffer->nsamples = nsamples;
-        buffer->looping  = looping;
+        return buffer.status == NDSP_WBUF_DONE;
     }
 
-    void DigitalSound::setLooping(AudioBuffer* buffer, bool looping)
+    void DigitalSound::prepare(AudioBuffer& buffer, const void* data, size_t size, int samples)
     {
-        if (buffer == nullptr)
+        if (data == nullptr)
             return;
 
-        buffer->looping = looping;
+        buffer.nsamples = samples;
+        std::memcpy(buffer.data_pcm16, data, size);
+
+        DSP_FlushDataCache(buffer.data_pcm16, size);
+    }
+
+    size_t DigitalSound::getSampleCount(const AudioBuffer& buffer) const
+    {
+        return buffer.nsamples;
+    }
+
+    void DigitalSound::setLooping(AudioBuffer& buffer, bool looping)
+    {
+        buffer.looping = looping;
     }
 
     // #region Channels

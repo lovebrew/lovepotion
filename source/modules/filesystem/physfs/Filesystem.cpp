@@ -139,7 +139,7 @@ namespace love
 
         if (this->executablePath.empty())
             throw love::Exception("Error getting application path.");
-        LOG("Executable path: {:s}", this->executablePath);
+
         if (!PHYSFS_init(this->executablePath.c_str()))
         {
             const char* error = this->getLastError();

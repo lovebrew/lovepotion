@@ -1,4 +1,5 @@
 #include "common/luax.hpp"
+#include "common/config.hpp"
 
 #include "common/Module.hpp"
 #include "common/Object.hpp"
@@ -7,8 +8,6 @@
 #include <cstring>
 
 #include "utility/logfile.hpp"
-
-#define LOVE_UNUSED(x) (void)sizeof(x)
 
 namespace love
 {

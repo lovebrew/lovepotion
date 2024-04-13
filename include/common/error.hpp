@@ -21,6 +21,8 @@ namespace love
 #define E_NO_FILE_IN_LOVE_DIRS       "\n\tno '{}' in LOVE game directories."
 // Audio
 #define E_AUDIO_NOT_INITIALIZED "Failed to initialize ndsp"
+#define E_CANNOT_CREATE_QUEUE_SOURCE \
+    "Cannot create queueable sources using newSource. Use newQueueableSource instead."
 // Data
 #define E_INVALID_SIZE_PARAMETER  "Invalid size parameter (must be greater than 0)."
 #define E_INVALID_COUNT_PARAMETER "Invalid count parameter (must be greater than 0)."

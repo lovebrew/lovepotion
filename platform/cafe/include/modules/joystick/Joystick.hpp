@@ -150,6 +150,13 @@ namespace love
         KPADStatus kpadStatus;
         KPADError kpadError;
 
+        mutable struct State
+        {
+            uint32_t pressed;
+            uint32_t released;
+            uint32_t held;
+        } state;
+
         float getVPADAxis(GamepadAxis axis) const;
 
         bool isVPADButtonDown(std::span<GamepadButton> buttons) const;

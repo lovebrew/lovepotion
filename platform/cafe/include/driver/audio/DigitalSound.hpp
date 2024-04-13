@@ -1,9 +1,8 @@
 #pragma once
 
-#include "driver/AudioBuffer.hpp"
 #include "driver/DigitalSound.tcc"
-#include "driver/DigitalSoundMix.hpp"
-#include "driver/SoundChannel.hpp"
+#include "driver/audio/AudioBuffer.hpp"
+#include "driver/audio/SoundChannel.hpp"
 
 #include <coreinit/event.h>
 
@@ -18,6 +17,12 @@ namespace love
     class DigitalSound : public DigitalSoundBase<DigitalSound>
     {
       public:
+        enum InterpType
+        {
+            CHANNEL_MONO,
+            CHANNEL_STEREO
+        };
+
         ~DigitalSound();
 
         virtual void initialize() override;
@@ -28,17 +33,19 @@ namespace love
 
         float getMasterVolume() const;
 
-        AudioBuffer* createBuffer(int size = 0);
+        AudioBuffer createBuffer(int channels);
 
-        bool isBufferDone(AudioBuffer* buffer) const;
+        void freeBuffer(const AudioBuffer& buffer);
 
-        void prepareBuffer(AudioBuffer* buffer, size_t nsamples, void* data, size_t size,
-                           bool looping);
+        bool isBufferDone(const AudioBuffer& buffer) const;
 
-        void setLooping(AudioBuffer* buffer, bool looping);
+        void prepare(AudioBuffer& buffer, void* data, size_t size, int samples);
 
-        bool channelReset(size_t id, AudioBuffer* buffer, int channels, int bitDepth,
-                          int sampleRate);
+        size_t getSampleCount(const AudioBuffer& buffer) const;
+
+        void setLooping(AudioBuffer& buffer, bool looping);
+
+        bool channelReset(size_t id, int channels, int bitDepth, int sampleRate);
 
         void channelSetVolume(size_t id, float volume);
 

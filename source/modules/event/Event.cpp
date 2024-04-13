@@ -171,7 +171,6 @@ namespace love
                     event.subtype == SUBTYPE_JOYSTICKDOWN ? "joystickpressed" : "joystickreleased";
 
                 result = new Message(callback, args);
-
                 break;
             }
             case SUBTYPE_GAMEPADAXIS:
@@ -211,7 +210,6 @@ namespace love
                     event.subtype == SUBTYPE_GAMEPADDOWN ? "gamepadpressed" : "gamepadreleased";
 
                 result = new Message(callback, args);
-
                 break;
             }
             case SUBTYPE_GAMEPADSENSORUPDATED:

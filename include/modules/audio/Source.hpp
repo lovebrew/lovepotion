@@ -1,7 +1,7 @@
 #pragma once
 
 #include "common/Object.hpp"
-#include "driver/DigitalSound.hpp"
+#include "driver/audio/DigitalSound.hpp"
 
 #include "modules/sound/Decoder.hpp"
 #include "modules/sound/SoundData.hpp"
@@ -18,7 +18,7 @@ namespace love
     class StaticDataBuffer : public Object
     {
       public:
-        StaticDataBuffer(const void* data, size_t size, size_t nsamples);
+        StaticDataBuffer(const SoundData* data);
 
         virtual ~StaticDataBuffer();
 
@@ -27,22 +27,24 @@ namespace love
             return this->nsamples;
         }
 
-        void* getBuffer() const
-        {
-            return this->buffer;
-        }
+        AudioBuffer& clone(const size_t offsetSamples, const int channels);
+
+        void* getBuffer() const;
 
         size_t getSize() const
         {
             return this->size;
         }
 
-      private:
-        int16_t* buffer;
-        size_t size;
-        size_t nsamples;
+        void setLooping(bool looping);
 
-        size_t alignSize;
+      private:
+        AudioBuffer buffer;
+        AudioBuffer _clone;
+
+        int16_t* data;
+        size_t size;
+        int nsamples;
     };
 
     class Source : public Object
@@ -152,7 +154,7 @@ namespace love
 
         void teardownAtomic();
 
-        bool playAtomic(AudioBuffer* buffer);
+        bool playAtomic();
 
         void stopAtomic();
 
@@ -186,7 +188,7 @@ namespace love
       private:
         void reset();
 
-        int streamAtomic(AudioBuffer* buffer, Decoder* decoder);
+        int streamAtomic(AudioBuffer& buffer, Decoder* decoder);
 
         Type sourceType;
         Pool* pool = nullptr;
@@ -194,12 +196,20 @@ namespace love
         AudioBuffer* source = nullptr;
         bool valid          = false;
 
+#if !defined(__3DS__)
         static constexpr int DEFAULT_BUFFERS = 8;
         static constexpr int MAX_BUFFERS     = 64;
+#else
+        /*
+        ** 3DS linearMem is only like 16MB.
+        ** Let's not go overboard with the buffers.
+        ** Since we need some of that for other things.
+        */
+        static constexpr int DEFAULT_BUFFERS = 2;
+        static constexpr int MAX_BUFFERS     = 4;
+#endif
 
-        std::queue<AudioBuffer*> streamBuffers;
-        std::stack<AudioBuffer*> unusedBuffers;
-
+        std::vector<AudioBuffer> streamBuffers;
         StrongRef<StaticDataBuffer> staticBuffer;
 
         float pitch  = 1.0f;

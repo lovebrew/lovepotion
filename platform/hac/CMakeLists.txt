@@ -29,7 +29,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 target_sources(${PROJECT_NAME} PRIVATE
 source/boot.cpp
 source/common/screen.cpp
-source/driver/DigitalSound.cpp
+source/driver/audio/MemoryPool.cpp
+source/driver/audio/DigitalSound.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/joystick/Joystick.cpp

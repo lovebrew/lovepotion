@@ -1,7 +1,7 @@
 #include "modules/audio/Audio.hpp"
 #include "modules/audio/Pool.hpp"
 
-#include "driver/DigitalSound.hpp"
+#include "driver/audio/DigitalSound.hpp"
 
 namespace love
 {
