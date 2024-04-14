@@ -10,7 +10,7 @@ namespace love
         buffer {},
         _clone {},
         size(data->getSize()),
-        nsamples(data->getSampleCount()),
+        nsamples(data->getSampleCount())
     {
         this->buffer.data_pcm16 = (int16_t*)linearAlloc(size);
         this->buffer.nsamples   = nsamples;
@@ -34,12 +34,12 @@ namespace love
 
     AudioBuffer& StaticDataBuffer::clone(const size_t offsetSamples, const int channels)
     {
-        this->bufferClone.data_pcm16 = (int16_t*)this->getBuffer() + offsetSamples;
-        this->bufferClone.nsamples   = this->nsamples - (offsetSamples / channels);
-        this->bufferClone.looping    = this->buffer.looping;
-        this->bufferClone.status     = NDSP_WBUF_DONE;
+        this->_clone.data_pcm16 = (int16_t*)this->getBuffer() + offsetSamples;
+        this->_clone.nsamples   = this->nsamples - (offsetSamples / channels);
+        this->_clone.looping    = this->buffer.looping;
+        this->_clone.status     = NDSP_WBUF_DONE;
 
-        return bufferClone;
+        return this->_clone;
     }
 
     StaticDataBuffer::~StaticDataBuffer()

@@ -125,12 +125,19 @@ namespace love
     void SoundChannel::update()
     {
         if (this->buffers.empty())
+        {
+            this->state = STATE_DONE;
             return;
+        }
 
-        auto buffer = this->buffers.front();
+        auto* buffer = this->buffers.front();
 
         if (buffer->isFinished())
+        {
             this->buffers.pop();
+            if (this->buffers.empty())
+                this->state = STATE_DONE;
+        }
     }
 
     void SoundChannel::stop()
@@ -141,6 +148,7 @@ namespace love
             this->buffers.front()->setState(AX_VOICE_STATE_STOPPED);
             this->buffers.pop();
         }
+
         this->state = STATE_DONE;
     }
 

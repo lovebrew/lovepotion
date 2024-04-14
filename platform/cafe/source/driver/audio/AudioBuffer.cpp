@@ -21,13 +21,13 @@ namespace love
         {
             this->voices[index] = AXAcquireVoice(0x1F, nullptr, nullptr);
 
-            if (!this->voices[index])
-                throw love::Exception("Failed to initialize voices.");
-
             AXVoiceBegin(this->voices[index]);
             AXSetVoiceType(this->voices[index], AX_VOICE_TYPE_UNKNOWN);
             AXVoiceEnd(this->voices[index]);
         }
+
+        if (channels == 2 && !this->voices.back())
+            throw love::Exception("Stereo voices require 2 voices to be available.");
 
         this->channels = channels;
         this->ready    = true;

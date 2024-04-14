@@ -7,9 +7,9 @@ namespace love
 {
     StaticDataBuffer::StaticDataBuffer(const SoundData* data) :
         buffer {},
+        _clone {},
         size(data->getSize()),
         nsamples(data->getSampleCount()),
-        bufferClone {}
     {
         this->buffer.data_pcm16 = (int16_t*)DigitalSoundMemory::getInstance().allocate(size);
 
@@ -32,11 +32,11 @@ namespace love
 
     AudioBuffer& StaticDataBuffer::clone(const size_t offsetSamples, const int channels)
     {
-        this->bufferClone.data_pcm16        = (int16_t*)this->getBuffer() + offsetSamples;
-        this->bufferClone.end_sample_offset = this->getSampleCount() - (offsetSamples / channels);
-        this->bufferClone.is_looping        = this->buffer.is_looping;
+        this->_clone.data_pcm16        = (int16_t*)this->getBuffer() + offsetSamples;
+        this->_clone.end_sample_offset = this->getSampleCount() - (offsetSamples / channels);
+        this->_clone.is_looping        = this->buffer.is_looping;
 
-        return bufferClone;
+        return this->clone;
     }
 
     StaticDataBuffer::~StaticDataBuffer()

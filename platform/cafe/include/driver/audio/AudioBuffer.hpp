@@ -17,6 +17,19 @@ namespace love
       public:
         AudioBuffer();
 
+        AudioBuffer(const AudioBuffer&) = delete;
+
+        AudioBuffer(AudioBuffer&& other) noexcept
+        {
+            this->voices   = std::move(other.voices);
+            this->channels = other.channels;
+            this->ready    = other.ready;
+            this->data     = other.data;
+            this->nsamples = other.nsamples;
+
+            other.ready = false;
+        }
+
         ~AudioBuffer();
 
         void initialize(int channels);
