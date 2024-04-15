@@ -14,9 +14,8 @@ namespace love
     // clang-format off
     static AXInitParams AX_INIT_PARAMS =
     {
-        AX_INIT_RENDERER_48KHZ,
-        AX_INIT_PIPELINE_SINGLE,
-        0,
+        .renderer = AX_INIT_RENDERER_48KHZ,
+        .pipeline = AX_INIT_PIPELINE_SINGLE
     };
     // clang-format on
 
@@ -53,18 +52,30 @@ namespace love
         return volume / (float)0x8000;
     }
 
-    AudioBuffer DigitalSound::createBuffer(int channels)
+    AudioBuffer DigitalSound::createBuffer(int size, int channels)
     {
         AudioBuffer buffer {};
-        buffer.initialize(channels);
+
+        for (int channel = 0; channel < channels; channel++)
+        {
+            buffer.data_pcm16[channel] = (int16_t*)malloc(size);
+
+            if (buffer.data_pcm16[channel] == nullptr)
+                throw love::Exception(E_OUT_OF_MEMORY);
+        }
+
+        buffer.setChannelCount(channels);
 
         return buffer;
     }
 
     void DigitalSound::freeBuffer(const AudioBuffer& buffer)
     {
-        if (buffer.data)
-            free(buffer.data);
+        if (buffer.data_pcm16[0])
+            free(buffer.data_pcm16[0]);
+
+        if (buffer.data_pcm16[1])
+            free(buffer.data_pcm16[1]);
     }
 
     bool DigitalSound::isBufferDone(const AudioBuffer& buffer) const
@@ -77,14 +88,31 @@ namespace love
         if (data == nullptr)
             return;
 
-        buffer.data     = (int16_t*)malloc(size);
         buffer.nsamples = samples;
 
-        if (buffer.data == nullptr)
-            throw love::Exception(E_OUT_OF_MEMORY);
+        switch (buffer.getChannelCount())
+        {
+            case 1:
+                std::memcpy(buffer.data_pcm16[0], data, size);
+                DCFlushRange(buffer.data_pcm16[0], size);
 
-        std::memcpy(buffer.data, data, size);
-        DCFlushRange(buffer.data, size);
+                break;
+            case 2:
+            {
+                for (size_t index = 0; index < size; index += 2)
+                {
+                    buffer.data_pcm16[0][index / 2] = ((int16_t*)data)[index];
+                    buffer.data_pcm16[1][index / 2] = ((int16_t*)data)[index + 1];
+                }
+
+                DCFlushRange(buffer.data_pcm16[0], size);
+                DCFlushRange(buffer.data_pcm16[1], size);
+
+                break;
+            }
+            default:
+                throw love::Exception("Unsupported channel count");
+        }
     }
 
     size_t DigitalSound::getSampleCount(const AudioBuffer& buffer) const

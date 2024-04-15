@@ -49,7 +49,7 @@ namespace love
         return ndspGetMasterVol();
     }
 
-    AudioBuffer DigitalSound::createBuffer(int size)
+    AudioBuffer DigitalSound::createBuffer(int size, int)
     {
         AudioBuffer buffer {};
 

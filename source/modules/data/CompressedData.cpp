@@ -2,6 +2,8 @@
 
 #include "common/Exception.hpp"
 
+#include <cstring>
+
 namespace love
 {
     Type CompressedData::type("CompressedData", &Data::type);
@@ -26,7 +28,7 @@ namespace love
                 throw love::Exception(E_OUT_OF_MEMORY);
             }
 
-            std::copy_n(data, this->dataSize, this->data);
+            std::memcpy(this->data, data, this->dataSize);
         }
     }
 
@@ -45,7 +47,7 @@ namespace love
             throw love::Exception(E_OUT_OF_MEMORY);
         }
 
-        std::copy_n(other.data, this->dataSize, this->data);
+        std::memcpy(this->data, other.data, this->dataSize);
     }
 
     CompressedData::~CompressedData()

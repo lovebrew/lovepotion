@@ -22,7 +22,7 @@ namespace love
         this->create();
 
         if (data != nullptr)
-            std::copy_n((const char*)data, size, this->data);
+            std::memcpy(this->data, data, size);
     }
 
     ByteData::ByteData(void* data, size_t size, bool owned) : size(size)
@@ -34,15 +34,14 @@ namespace love
             this->create();
 
             if (data != nullptr)
-                std::copy_n((const char*)data, size, this->data);
+                std::memcpy(this->data, data, size);
         }
     }
 
     ByteData::ByteData(const ByteData& other) : size(other.size)
     {
         this->create();
-
-        std::copy_n(other.data, this->size, this->data);
+        std::memcpy(this->data, other.data, this->size);
     }
 
     ByteData::~ByteData()

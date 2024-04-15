@@ -64,16 +64,6 @@ namespace love
         this->staticBuffer.set(new StaticDataBuffer(soundData), Acquire::NO_RETAIN);
     }
 
-    static AudioBuffer generateBuffer(int size, int channels)
-    {
-#if defined(__WIIU__)
-        LOVE_UNUSED(size);
-        return DigitalSound::getInstance().createBuffer(channels);
-#else
-        return DigitalSound::getInstance().createBuffer(size);
-#endif
-    }
-
     Source::Source(Pool* pool, Decoder* decoder) :
         sourceType(TYPE_STREAM),
         pool(pool),
@@ -88,7 +78,10 @@ namespace love
 
         // clang-format off
         for (int index = 0; index < this->buffers; index++)
-            this->streamBuffers.push_back(generateBuffer(decoder->getSize(), this->channels));
+        {
+            std::printf("Creating buffer %d\n", index);
+            this->streamBuffers.push_back(DigitalSound::getInstance().createBuffer(decoder->getSize(), this->channels));
+        }
         // clang-format on
     }
 
@@ -107,7 +100,7 @@ namespace love
 
         // clang-format off
         for (int index = 0; index < this->buffers; index++)
-            this->streamBuffers.push_back(generateBuffer(decoder->getSize(), this->channels));
+            this->streamBuffers.push_back(DigitalSound::getInstance().createBuffer(decoder->getSize(), this->channels));
         // clang-format on
     }
 
@@ -138,7 +131,7 @@ namespace love
         if (this->sourceType != TYPE_STATIC)
         {
             for (int index = 0; index < this->buffers; index++)
-                this->streamBuffers.push_back(generateBuffer(decoder->getSize(), this->channels));
+                this->streamBuffers.push_back(DigitalSound::getInstance().createBuffer(decoder->getSize(), this->channels));
         }
         // clang-format on
     }

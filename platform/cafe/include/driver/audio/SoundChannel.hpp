@@ -30,14 +30,14 @@ namespace love
         void reset();
 
         /**
-        ** @brief Sets the interpolation type of the channel.
-        ** @param channels The interpolation type to set.
+        ** @brief Sets the interpolation type (stereo or mono) of the channel.
+        ** @param channels The number of channels for the interpolation type.
         */
         void setInterpType(int channels);
 
         /*
         ** @brief Gets the interpolation type of the channel.
-        ** @return The interpolation type of the channel.
+        ** @return The interpolation channel count of the channel.
         */
         int getInterpType() const;
 
@@ -99,6 +99,11 @@ namespace love
         ** @return True if the channel is playing, false otherwise.
         */
         bool isPlaying() const;
+
+        /*
+        ** @brief Plays the buffer at the front of the queue.
+        */
+        void play();
 
         /*
         ** @brief Stops the buffer at the front of the queue.

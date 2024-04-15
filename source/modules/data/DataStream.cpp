@@ -6,6 +6,8 @@
 
 #include <algorithm>
 
+#include <cstring>
+
 namespace love
 {
     Type DataStream::type("DataStream", &Stream::type);
@@ -58,7 +60,7 @@ namespace love
             return 0;
 
         auto readSize = std::min<int64_t>(size, this->getSize() - this->offset);
-        std::copy_n(this->memory + this->offset, readSize, (uint8_t*)data);
+        std::memcpy(data, this->memory + this->offset, readSize);
 
         this->offset += readSize;
         return readSize;
@@ -73,7 +75,7 @@ namespace love
             return false;
 
         auto writeSize = std::min<int64_t>(size, this->getSize() - this->offset);
-        std::copy_n((const uint8_t*)data, writeSize, this->writableMemory + this->offset);
+        std::memcpy(this->writableMemory + this->offset, data, writeSize);
 
         this->offset += writeSize;
         return true;

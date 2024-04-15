@@ -84,7 +84,7 @@ namespace love
         return this->driver.in_mixes[0].volume;
     }
 
-    AudioBuffer DigitalSound::createBuffer(int size)
+    AudioBuffer DigitalSound::createBuffer(int size, int)
     {
         AudioBuffer buffer {};
 

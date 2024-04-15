@@ -24,7 +24,7 @@ namespace love
 
         float getMasterVolume() const;
 
-        AudioBuffer createBuffer(int size = 0);
+        AudioBuffer createBuffer(int size, int channels);
 
         void freeBuffer(const AudioBuffer& buffer);
 

@@ -1,9 +1,15 @@
 #include "driver/audio/AudioBuffer.hpp"
 #include "driver/audio/DigitalSoundMix.hpp"
 
+#include <cstring>
+
 namespace love
 {
-    AudioBuffer::AudioBuffer() : data(nullptr), nsamples(0), voices {}, ready(false)
+    AudioBuffer::AudioBuffer() :
+        data_pcm16 { nullptr, nullptr },
+        nsamples(0),
+        voices {},
+        ready(false)
     {}
 
     AudioBuffer::~AudioBuffer()
@@ -21,13 +27,13 @@ namespace love
         {
             this->voices[index] = AXAcquireVoice(0x1F, nullptr, nullptr);
 
+            if (!this->voices[index])
+                throw love::Exception("Failed to acquire Voice.");
+
             AXVoiceBegin(this->voices[index]);
             AXSetVoiceType(this->voices[index], AX_VOICE_TYPE_UNKNOWN);
             AXVoiceEnd(this->voices[index]);
         }
-
-        if (channels == 2 && !this->voices.back())
-            throw love::Exception("Stereo voices require 2 voices to be available.");
 
         this->channels = channels;
         this->ready    = true;
@@ -38,14 +44,15 @@ namespace love
         if (!this->ready)
             return false;
 
-        if (!this->data || !this->nsamples)
+        if (!this->data_pcm16[0])
+            return false;
+
+        if (!this->data_pcm16[1] && this->channels == 2)
             return false;
 
         for (int index = 0; index < this->channels; index++)
         {
             AXVoiceBegin(this->voices[index]);
-
-            AXSetVoiceState(this->voices[index], AX_VOICE_STATE_STOPPED);
 
             AXVoiceOffsets offsets {};
             AXGetVoiceOffsets(this->voices[index], &offsets);
@@ -53,10 +60,9 @@ namespace love
             offsets.currentOffset = 0;
             offsets.endOffset     = this->nsamples;
             offsets.loopOffset    = 0;
-            offsets.data          = this->data;
+            offsets.data          = this->data_pcm16[index];
 
             AXSetVoiceOffsets(this->voices[index], &offsets);
-            AXSetVoiceCurrentOffset(this->voices[index], 0);
 
             AXVoiceEnd(this->voices[index]);
         }
@@ -101,11 +107,12 @@ namespace love
         for (int index = 0; index < this->channels; index++)
         {
             AXVoiceBegin(this->voices[index]);
-
             AXSetVoiceState(this->voices[index], state);
 
             AXVoiceEnd(this->voices[index]);
         }
+
+        this->playing = (state == AX_VOICE_STATE_PLAYING);
     }
 
     bool AudioBuffer::setFormat(AXVoiceFormat format)
@@ -137,23 +144,26 @@ namespace love
         if (!this->ready)
             return false;
 
-        AXVoiceBegin(this->voices[0]);
+        if (!this->playing)
+            return true;
 
-        bool done = this->voices[0]->state == AX_VOICE_STATE_STOPPED;
+        AXVoiceOffsets offsets {};
 
-        AXVoiceEnd(this->voices[0]);
+        bool running = false;
 
-        return done == true;
+        AXGetVoiceOffsets(this->voices[0], &offsets);
+        running = AXIsVoiceRunning(this->voices[0]);
+
+        return (offsets.currentOffset == offsets.endOffset) ||
+               (!running && offsets.currentOffset == 0);
     }
 
     void AudioBuffer::setVolume(float volume)
     {
         volume = std::clamp(volume, 0.0f, 1.0f);
 
-        AXVoiceVeData ve {
-            .volume = 0x8000,
-            .delta  = 0,
-        };
+        AXVoiceVeData ve {};
+        ve.volume = volume * 0x8000;
 
         for (int index = 0; index < this->channels; index++)
         {
@@ -172,7 +182,7 @@ namespace love
         {
             AXVoiceBegin(this->voices[index]);
 
-            auto result = AXSetVoiceSrcRatio(this->voices[index], ratio);
+            AXSetVoiceSrcRatio(this->voices[index], ratio);
             AXSetVoiceSrcType(this->voices[index], AX_VOICE_SRC_TYPE_LINEAR);
 
             AXVoiceEnd(this->voices[index]);
@@ -183,17 +193,20 @@ namespace love
 
     size_t AudioBuffer::getSampleOffset() const
     {
-        AXVoiceOffsets offsets {};
+        if (!this->ready || !this->playing)
+            return 0;
 
-        AXVoiceBegin(this->voices[0]);
+        AXVoiceOffsets offsets {};
         AXGetVoiceOffsets(this->voices[0], &offsets);
-        AXVoiceEnd(this->voices[0]);
 
         return offsets.currentOffset;
     }
 
     void AudioBuffer::setLooping(bool looping)
     {
+        if (!this->ready)
+            return;
+
         for (int index = 0; index < this->channels; index++)
         {
             AXVoiceBegin(this->voices[index]);
@@ -211,6 +224,9 @@ namespace love
 
     bool AudioBuffer::isLooping() const
     {
+        if (!this->ready)
+            return false;
+
         AXVoiceOffsets offsets {};
 
         AXVoiceBegin(this->voices[0]);

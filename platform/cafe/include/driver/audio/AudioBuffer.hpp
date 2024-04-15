@@ -8,7 +8,9 @@
 #include <sndcore2/voice.h>
 
 #include <algorithm>
+
 #include <array>
+#include <vector>
 
 namespace love
 {
@@ -19,15 +21,17 @@ namespace love
 
         AudioBuffer(const AudioBuffer&) = delete;
 
-        AudioBuffer(AudioBuffer&& other) noexcept
+        AudioBuffer(AudioBuffer&& other)
         {
-            this->voices   = std::move(other.voices);
-            this->channels = other.channels;
-            this->ready    = other.ready;
-            this->data     = other.data;
-            this->nsamples = other.nsamples;
+            this->data_pcm16 = std::move(other.data_pcm16);
+            this->nsamples   = other.nsamples;
+            this->voices     = std::move(other.voices);
+            this->channels   = other.channels;
+            this->ready      = other.ready;
+            this->playing    = other.playing;
 
-            other.ready = false;
+            other.ready   = false;
+            other.playing = false;
         }
 
         ~AudioBuffer();
@@ -64,8 +68,18 @@ namespace love
 
         bool isLooping() const;
 
+        int getChannelCount() const
+        {
+            return this->channels;
+        }
+
+        void setChannelCount(int channels)
+        {
+            this->channels = channels;
+        }
+
       public:
-        int16_t* data;
+        std::array<int16_t*, 2> data_pcm16;
         size_t nsamples;
 
       private:
@@ -78,5 +92,6 @@ namespace love
         int channels;
 
         bool ready;
+        bool playing;
     };
 } // namespace love

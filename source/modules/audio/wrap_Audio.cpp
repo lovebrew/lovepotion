@@ -11,9 +11,9 @@ int Wrap_Audio::newSource(lua_State* L)
 {
     auto type = Source::TYPE_STREAM;
 
-    if (!luax_istype(L, 1, Decoder::type))
+    if (!luax_istype(L, 1, SoundData::type))
     {
-        if (!luax_istype(L, 1, SoundData::type))
+        if (!luax_istype(L, 1, Decoder::type))
         {
             const char* typeName = luaL_checkstring(L, 2);
             if (typeName && !Source::getConstant(typeName, type))

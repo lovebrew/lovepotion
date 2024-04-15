@@ -3,7 +3,7 @@
 
 namespace love
 {
-    void Sensor::setEnabled(SensorType type, bool enable)
+    void Sensor::setEnabled(SensorType type, bool)
     {
         std::string_view name;
         Sensor::getConstant(type, name);

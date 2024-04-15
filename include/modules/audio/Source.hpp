@@ -42,7 +42,6 @@ namespace love
         AudioBuffer buffer;
         AudioBuffer _clone;
 
-        int16_t* data;
         size_t size;
         int nsamples;
     };

@@ -4,6 +4,8 @@
 #include <filesystem>
 #include <limits>
 
+#include <cstring>
+
 namespace love
 {
     Type FileData::type("FileData", &Data::type);
@@ -49,7 +51,7 @@ namespace love
             throw love::Exception(E_OUT_OF_MEMORY);
         }
 
-        std::copy_n((char*)other.data, this->size, (char*)this->data);
+        std::memcpy(this->data, other.data, (size_t)this->size);
     }
 
     FileData::~FileData()

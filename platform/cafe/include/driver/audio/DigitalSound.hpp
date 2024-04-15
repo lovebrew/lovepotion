@@ -17,12 +17,6 @@ namespace love
     class DigitalSound : public DigitalSoundBase<DigitalSound>
     {
       public:
-        enum InterpType
-        {
-            CHANNEL_MONO,
-            CHANNEL_STEREO
-        };
-
         ~DigitalSound();
 
         virtual void initialize() override;
@@ -33,7 +27,7 @@ namespace love
 
         float getMasterVolume() const;
 
-        AudioBuffer createBuffer(int channels);
+        AudioBuffer createBuffer(int size, int channels);
 
         void freeBuffer(const AudioBuffer& buffer);
 
@@ -65,6 +59,17 @@ namespace love
 
         static int32_t getFormat(int channels, int bitDepth);
 
+        OSEvent& getEvent()
+        {
+            return this->event;
+        }
+
+        void updateChannels()
+        {
+            for (auto& channel : this->channels)
+                channel.update();
+        }
+
         // clang-format off
         ENUMMAP_DECLARE(AudioFormats, EncodingFormat, AX_VOICE_FORMAT,
             { ENCODING_PCM8,  AX_VOICE_FORMAT_LPCM8  },
@@ -74,5 +79,6 @@ namespace love
 
       private:
         std::array<SoundChannel, 24> channels;
+        OSEvent event;
     };
 } // namespace love

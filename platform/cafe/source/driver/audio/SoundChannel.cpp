@@ -119,6 +119,7 @@ namespace love
         buffer->setDeviceMix(this->channels);
 
         this->buffers.push(buffer);
+
         return true;
     }
 
@@ -135,14 +136,23 @@ namespace love
         if (buffer->isFinished())
         {
             this->buffers.pop();
-            if (this->buffers.empty())
-                this->state = STATE_DONE;
+            this->play();
         }
+    }
+
+    void SoundChannel::play()
+    {
+        if (this->buffers.empty())
+            return;
+
+        auto* buffer = this->buffers.front();
+
+        buffer->setState(AX_VOICE_STATE_PLAYING);
+        this->state = STATE_PLAYING;
     }
 
     void SoundChannel::stop()
     {
-        LOG("Stopping")
         while (!this->buffers.empty())
         {
             this->buffers.front()->setState(AX_VOICE_STATE_STOPPED);

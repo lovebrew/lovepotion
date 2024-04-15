@@ -10,6 +10,7 @@
 
 #include "common/Map.hpp"
 
+#include <cstring>
 #include <string_view>
 
 namespace love
@@ -112,7 +113,7 @@ namespace love
             {
                 // clang-format off
                 StrongRef<FileData> temp(new FileData(bytesRead, this->getFilename()), Acquire::NO_RETAIN);
-                std::copy_n((const uint8_t*)data->getData(), (size_t)bytesRead, (uint8_t*)temp->getData());
+                std::memcpy(temp->getData(), data->getData(), bytesRead);
                 // clang-format on
 
                 data = temp;
