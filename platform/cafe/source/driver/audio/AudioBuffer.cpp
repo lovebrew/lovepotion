@@ -9,7 +9,9 @@ namespace love
         data_pcm16 { nullptr, nullptr },
         nsamples(0),
         voices {},
-        ready(false)
+        ready(false),
+        playing(false),
+        started(false)
     {}
 
     AudioBuffer::~AudioBuffer()
@@ -67,6 +69,9 @@ namespace love
             AXVoiceEnd(this->voices[index]);
         }
 
+        this->started = false;
+        this->offset  = 0;
+
         return true;
     }
 
@@ -113,6 +118,9 @@ namespace love
         }
 
         this->playing = (state == AX_VOICE_STATE_PLAYING);
+
+        if (state == AX_VOICE_STATE_STOPPED)
+            this->started = false;
     }
 
     bool AudioBuffer::setFormat(AXVoiceFormat format)
@@ -139,23 +147,31 @@ namespace love
         return true;
     }
 
+    bool AudioBuffer::isPlaying() const
+    {
+        if (!this->ready)
+            return false;
+
+        return this->playing;
+    }
+
     bool AudioBuffer::isFinished() const
     {
         if (!this->ready)
             return false;
 
-        if (!this->playing)
-            return true;
-
         AXVoiceOffsets offsets {};
-
-        bool running = false;
-
         AXGetVoiceOffsets(this->voices[0], &offsets);
-        running = AXIsVoiceRunning(this->voices[0]);
 
-        return (offsets.currentOffset == offsets.endOffset) ||
-               (!running && offsets.currentOffset == 0);
+        if (!this->started && offsets.currentOffset > 0)
+            this->started = true;
+        else
+            return false;
+
+        bool running = AXIsVoiceRunning(this->voices[0]);
+
+        /* the voice resets to zero when done?? */
+        return this->started && (!running && offsets.currentOffset == 0);
     }
 
     void AudioBuffer::setVolume(float volume)

@@ -4,17 +4,18 @@
 
 #include <3ds.h>
 
+#include <malloc.h>
 #include <stdlib.h>
 
 #include <format>
 #include <string>
 
+#include "driver/display/Renderer.hpp"
+
 namespace love
 {
-    std::unique_ptr<uint32_t[], unique_deleter> socBuffer;
-
     // clang-format off
-    static constexpr std::array<const Service, 8> services =
+    static constexpr std::array<const Service, 7> services =
     {{
         /* I don't know why socExit is a Result return, we don't care about the exit value */
         { "soc:u",   BIND(socInit, socBuffer.get(), SOC_BUFFER_SIZE), []() { socExit(); }    },
@@ -23,8 +24,7 @@ namespace love
         { "ac:u",    BIND(acInit),                                    &acExit                },
         { "cfg:u",   BIND(cfguInit),                                  &cfguExit              },
         { "frd:u",   BIND(frdInit),                                   &frdExit               },
-        { "ir:rst",  BIND(irrstInit),                                 &irrstExit             },
-        { "gsp:Gpu", BIND(gfxInitDefault),                            &gfxExit               }
+        { "ir:rst",  BIND(irrstInit),                                 &irrstExit             }
     }};
     // clang-format on
 
@@ -42,11 +42,22 @@ namespace love
         return -1;
     }
 
+    std::string getApplicationPath(const std::string& argv0)
+    {
+        if (argv0 == "embedded boot.lua")
+            return "sdmc:/lovepotion.3dsx";
+
+        return argv0;
+    }
+
     int preInit()
     {
         osSetSpeedupEnable(true);
 
-        socBuffer.reset((uint32_t*)aligned_alloc(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
+        socBuffer.reset((uint32_t*)memalign(SOC_BUFFER_ALIGN, SOC_BUFFER_SIZE));
+
+        if (socBuffer.get() == nullptr)
+            return displayError("Failed to allocate soc:u buffer.", -1, "");
 
         for (auto& service : services)
         {

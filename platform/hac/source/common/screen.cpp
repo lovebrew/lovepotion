@@ -5,22 +5,22 @@
 namespace love
 {
     // clang-format off
-    inline constinit ScreenInfo screenInfo[0x01] =
+    inline constinit ScreenInfo HANDHELD_MODE[0x01] =
     {
-        { 0, "default", -1, -1 },
+        { 0, 0, "default", 1280, 720 },
+    };
+
+    inline constinit ScreenInfo DOCKED_MODE[0x01] =
+    {
+        { 0, 0, "default", 1920, 1080 },
     };
     // clang-format on
 
     std::span<ScreenInfo> getScreenInfo()
     {
-        return screenInfo;
-    }
+        if (appletGetOperationMode() == AppletOperationMode_Handheld)
+            return HANDHELD_MODE;
 
-    inline void setScreenSize(int width, int height)
-    {
-        auto& info = screenInfo[0];
-
-        info.width  = width;
-        info.height = height;
+        return DOCKED_MODE;
     }
 } // namespace love

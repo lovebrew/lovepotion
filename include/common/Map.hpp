@@ -58,6 +58,11 @@ class MapT
         });
     }
 
+    constexpr size_t size() const
+    {
+        return this->items.size();
+    }
+
     /**
      * @brief Get the value associated with the key
      * @param key The key to search for

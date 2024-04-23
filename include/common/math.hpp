@@ -47,18 +47,22 @@ namespace love
 {
     struct Rect
     {
+        static constexpr int EMPTY[4] = { 0, 0, 0, 0 };
+
         int x, y, w, h;
 
         Rect() : x(0), y(0), w(0), h(0)
         {}
 
-        Rect(const int (&rect)[4]) : x(rect[0]), y(rect[1]), w(rect[2]), h(rect[3])
-        {}
+        Rect(const int (&rect)[4])
+        {
+            this->x = rect[0];
+            this->y = rect[1];
+            this->w = rect[2];
+            this->h = rect[3];
+        }
 
         Rect(int x, int y, int w, int h) : x(x), y(y), w(w), h(h)
-        {}
-
-        Rect(const Rect& other) : x(other.x), y(other.y), w(other.w), h(other.h)
         {}
 
         bool operator==(const Rect& other) const

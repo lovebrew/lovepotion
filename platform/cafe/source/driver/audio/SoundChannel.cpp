@@ -133,10 +133,13 @@ namespace love
 
         auto* buffer = this->buffers.front();
 
+        if (!buffer->isPlaying())
+            this->play();
+
         if (buffer->isFinished())
         {
+            buffer->setState(AX_VOICE_STATE_STOPPED);
             this->buffers.pop();
-            this->play();
         }
     }
 

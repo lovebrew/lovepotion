@@ -53,6 +53,8 @@ if(NINTENDO_3DS)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         __CONSOLE__="3DS" __OS__="Horizon"
+        __RENDERER_NAME__="citro3d" __RENDERER_VERSION__ = "1.7.0"
+        __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="DMP PICA200"
     )
 
     set(APP_ICON platform/ctr/icon.png)
@@ -81,11 +83,16 @@ if (NINTENDO_SWITCH)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         __CONSOLE__="Switch" __OS__="Horizon"
+        __RENDERER_NAME__="deko3d" __RENDERER_VERSION__="0.5.0"
+        __RENDERER_VENDOR__="devkitPro" __RENDERER_DEVICE__="NVIDIA Tegra X1"
     )
 
     set(APP_ICON platform/hac/icon.jpg)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(APP_ICON platform/hac/icon-dev.jpg)
+        target_link_libraries(${PROJECT_NAME} PRIVATE deko3dd)
+    else()
+        target_link_libraries(${PROJECT_NAME} PRIVATE deko3d)
     endif()
 
     nx_generate_nacp(${PROJECT_NAME}.nacp
@@ -108,6 +115,8 @@ if (NINTENDO_WIIU)
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE
         __CONSOLE__="Wii U" __OS__="Cafe" LOVE_BIG_ENDIAN
+        __RENDERER_NAME__="GX2" __RENDERER_VERSION__="1.0.0"
+        __RENDERER_VENDOR__="AMD" __RENDERER_DEVICE__="GPU7"
     )
 
     set(APP_ICON platform/cafe/icon.png)
@@ -163,8 +172,8 @@ add_library(lua53
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
 FetchContent_Declare(lua-https
-    GIT_REPOSITORY https://github.com/bartbes/lua-https
-    GIT_TAG        selectable_library_loaders
+    GIT_REPOSITORY https://github.com/love2d/lua-https
+    GIT_TAG        main
 )
 
 FetchContent_GetProperties(lua-https)
@@ -284,9 +293,11 @@ target_sources(${PROJECT_NAME} PRIVATE
 source/common/b64.cpp
 source/common/Data.cpp
 source/common/luax.cpp
+source/common/Matrix.cpp
 source/common/Message.cpp
 source/common/Module.cpp
 source/common/Object.cpp
+source/common/pixelformat.cpp
 source/common/Stream.cpp
 source/common/types.cpp
 source/common/Variant.cpp
@@ -316,6 +327,9 @@ source/modules/filesystem/physfs/Filesystem.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
+source/modules/graphics/renderstate.cpp
+source/modules/graphics/Volatile.cpp
+source/modules/graphics/wrap_Graphics.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/joystick/wrap_Joystick.cpp
 source/modules/joystick/wrap_JoystickModule.cpp
@@ -346,5 +360,6 @@ source/modules/thread/wrap_Thread.cpp
 source/modules/timer/wrap_Timer.cpp
 source/modules/touch/Touch.cpp
 source/modules/touch/wrap_Touch.cpp
+source/modules/window/wrap_Window.cpp
 source/utility/guid.cpp
 )

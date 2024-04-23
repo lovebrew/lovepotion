@@ -174,7 +174,7 @@ function love.init()
             joystick = true,
             touch = true,
             image = false,
-            graphics = false,
+            graphics = true,
             audio = true,
             math = false,
             physics = false,
@@ -183,7 +183,7 @@ function love.init()
             system = true,
             font = false,
             thread = true,
-            window = false,
+            window = true,
             video = false,
         },
         audio = {

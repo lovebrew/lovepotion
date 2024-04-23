@@ -45,6 +45,14 @@ namespace love
         return -1;
     }
 
+    std::string getApplicationPath(const std::string& argv0)
+    {
+        if (argv0 == "embedded boot.lua")
+            return "sdmc:/lovepotion.nro";
+
+        return argv0;
+    }
+
     int preInit()
     {
         if (!isUnderTitleTakeover())

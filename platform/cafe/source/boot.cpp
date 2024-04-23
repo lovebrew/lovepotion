@@ -6,6 +6,7 @@
 
 #include <coreinit/bsp.h>
 #include <coreinit/core.h>
+#include <coreinit/dynload.h>
 #include <coreinit/exit.h>
 #include <coreinit/filesystem.h>
 #include <coreinit/foreground.h>
@@ -36,8 +37,38 @@ namespace love
     uint32_t Console::mainCoreId = 0;
     bool Console::mainCoreIdSet  = false;
 
+    std::string getApplicationPath(const std::string& argv0)
+    {
+        if (argv0 == "embedded boot.lua")
+            return "fs:/vol/external01/lovepotion.wuhb";
+
+        OSDynLoad_Module module;
+        const auto type  = OS_DYNLOAD_EXPORT_FUNC;
+        const char* name = "RL_GetPathOfRunningExecutable";
+
+        if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
+        {
+            char path[256];
+
+            bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
+            auto** function = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
+
+            if (OSDynLoad_FindExport(module, type, name, function) == OS_DYNLOAD_OK)
+            {
+                if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == 0)
+                    return path;
+            }
+        }
+
+        return std::string {};
+    }
+
     int preInit()
     {
+        /* we aren't running Aroma */
+        if (getApplicationPath().empty())
+            return -1;
+
         for (const auto& service : services)
         {
             if (!service.init().success())

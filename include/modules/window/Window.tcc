@@ -5,24 +5,21 @@
 #include "common/math.hpp"
 
 #include "common/Map.hpp"
+#include "common/screen.hpp"
 
 namespace love
 {
+    static inline bool highDPIAllowed = false;
 
-    namespace window
+    inline void setHighDPIAllowed(bool allow)
     {
-        static inline bool highDPIAllowed = false;
+        highDPIAllowed = allow;
+    }
 
-        void setHighDPIAllowed(bool allow)
-        {
-            highDPIAllowed = allow;
-        }
-
-        bool isHighDPIAllowed()
-        {
-            return highDPIAllowed;
-        }
-    } // namespace window
+    inline bool isHighDPIAllowed()
+    {
+        return highDPIAllowed;
+    }
 
     template<class T>
     class WindowBase : public Module
@@ -121,14 +118,146 @@ namespace love
             bool attachToWindow;
         };
 
-        WindowBase() : Module(M_WINDOW, "love.window")
+        WindowBase(const char* name) :
+            Module(M_WINDOW, name),
+            pixelWidth(0),
+            pixelHeight(0),
+            windowWidth(0),
+            windowHeight(0),
+            open(false)
         {}
 
         virtual ~WindowBase()
         {}
 
+        bool isOpen() const
+        {
+            return this->open;
+        }
+
+        void close()
+        {
+            this->close(true);
+        }
+
+        void updateSettings(const WindowSettings& newSettings, bool updateGraphicsViewport)
+        {
+            this->pixelWidth  = windowWidth;
+            this->pixelHeight = windowHeight;
+
+            this->settings.fullscreen = newSettings.fullscreen;
+            this->settings.fsType     = newSettings.fsType;
+
+            this->settings.vsync = newSettings.vsync;
+
+            this->settings.minwidth  = newSettings.minwidth;
+            this->settings.minheight = newSettings.minheight;
+
+            this->settings.resizable  = newSettings.resizable;
+            this->settings.borderless = newSettings.borderless;
+            this->settings.centered   = newSettings.centered;
+
+            this->settings.usedpiscale = newSettings.usedpiscale;
+
+            this->settings.stencil = newSettings.stencil;
+            this->settings.depth   = newSettings.depth;
+
+            static_cast<T*>(this)->updateSettingsImpl(newSettings, updateGraphicsViewport);
+        }
+
+        void getWindow(int& width, int& height, WindowSettings& newSettings)
+        {
+            width       = this->windowWidth;
+            height      = this->windowHeight;
+            newSettings = this->settings;
+        }
+
+        bool setFullscreen(bool fullscreen, FullscreenType fstype)
+        {
+            WindowSettings newSettings = settings;
+            newSettings.fullscreen     = fullscreen;
+            newSettings.fsType         = fstype;
+
+            this->updateSettings(newSettings, true);
+
+            return true;
+        }
+
+        bool setFullscreen(bool fullscreen)
+        {
+            return this->setFullscreen(fullscreen, this->settings.fsType);
+        }
+
+        int getDisplayCount() const
+        {
+            return love::getScreenInfo().size();
+        }
+
+        std::string_view getDisplayName(int displayIndex) const
+        {
+            const auto& info = love::getScreenInfo((Screen)displayIndex);
+
+            return info.name;
+        }
+
+        std::vector<WindowSize> getFullscreenSizes(int displayIndex) const
+        {
+            const auto& info = love::getScreenInfo((Screen)displayIndex);
+
+            return { { info.width, info.height } };
+        }
+
+        void getDesktopDimensions(int displayIndex, int& width, int& height) const
+        {
+            const auto result = this->getFullscreenSizes(displayIndex);
+
+            width  = result.back().width;
+            height = result.back().height;
+        }
+
+        DisplayOrientation getDisplayOrientation(int displayIndex) const
+        {
+            return ORIENTATION_LANDSCAPE;
+        }
+
+        double getDPIScale() const
+        {
+            return 1.0;
+        }
+
+        double getNativeDPIScale() const
+        {
+            return 1.0;
+        }
+
+        double toPixels(double x) const
+        {
+            return x * this->getDPIScale();
+        }
+
+        void toPixels(double x, double y, double& pixelx, double& pixely) const
+        {
+            double scale = this->getDPIScale();
+
+            pixelx = x * scale;
+            pixely = y * scale;
+        }
+
+        void fromPixels(int pixelx, int pixely, double& x, double& y) const
+        {
+            double scale = this->getDPIScale();
+
+            x = pixelx / scale;
+            y = pixely / scale;
+        }
+
+        double fromPixels(int pixels) const
+        {
+            return pixels / this->getDPIScale();
+        }
+
         // clang-format off
-        STRINGMAP_DECLARE(settings, Setting,
+        STRINGMAP_DECLARE(Settings, Setting,
             { "fullscreen",     SETTING_FULLSCREEN      },
             { "fullscreentype", SETTING_FULLSCREEN_TYPE },
             { "vsync",          SETTING_VSYNC           },
@@ -147,18 +276,18 @@ namespace love
             { "y",              SETTING_Y               },
         );
 
-        STRINGMAP_DECLARE(fullscreenTypes, FullscreenType,
+        STRINGMAP_DECLARE(FullscreenTypes, FullscreenType,
             { "exclusive", FULLSCREEN_EXCLUSIVE },
             { "desktop",   FULLSCREEN_DESKTOP   }
         );
 
-        STRINGMAP_DECLARE(messageBoxTypes, MessageBoxType,
+        STRINGMAP_DECLARE(MessageBoxTypes, MessageBoxType,
             { "error",   MESSAGEBOX_ERROR   },
             { "warning", MESSAGEBOX_WARNING },
             { "info",    MESSAGEBOX_INFO    }
         );
 
-        STRINGMAP_DECLARE(displayOrientations, DisplayOrientation,
+        STRINGMAP_DECLARE(DisplayOrientations, DisplayOrientation,
             { "unknown",          ORIENTATION_UNKNOWN           },
             { "landscape",        ORIENTATION_LANDSCAPE         },
             { "landscapeflipped", ORIENTATION_LANDSCAPE_FLIPPED },
@@ -166,5 +295,27 @@ namespace love
             { "portraitflipped",  ORIENTATION_PORTRAIT_FLIPPED  }
         );
         // clang-format on
+
+      protected:
+        void close(bool allowExceptions)
+        {
+            this->open = false;
+        }
+
+        bool createWindowAndContext(int x, int y, int width, int height, uint32_t flags)
+        {
+            this->open = true;
+            return true;
+        }
+
+        int pixelWidth;
+        int pixelHeight;
+
+        int windowWidth;
+        int windowHeight;
+
+        bool open;
+
+        WindowSettings settings;
     };
 } // namespace love

@@ -12,62 +12,9 @@
 #define APPDATA_PREFIX ""
 #define PATH_SEPARATOR "/"
 
-#if defined(__WIIU__)
-    #include <coreinit/dynload.h>
-#endif
-
-#include "utility/logfile.hpp"
+#include "boot.hpp"
 
 #define parentize(x) std::string(std::filesystem::path((x)).parent_path())
-
-/**
- * @brief Get the application path for the current console.
- * @param argv0 The first argument passed to the application.
- * @return The application path.
- */
-static std::string getApplicationPath(std::string argv0)
-{
-
-    if (argv0 == "embedded boot.lua")
-    {
-        switch (love::Console::Current)
-        {
-            case love::Console::CTR:
-                return "sdmc:/lovepotion.3dsx";
-            case love::Console::HAC:
-                return "sdmc:/lovepotion.nro";
-            case love::Console::CAFE:
-                return "fs:/vol/external01/lovepotion.wuhb";
-            default:
-                return std::string {};
-        }
-    }
-
-#if defined(__WIIU__)
-    OSDynLoad_Module module;
-    const char* name = "RL_GetPathOfRunningExecutable";
-
-    if (OSDynLoad_Acquire("homebrew_rpx_loader", &module) == OS_DYNLOAD_OK)
-    {
-        char path[256];
-
-        bool (*RL_GetPathOfRunningExecutable)(char*, uint32_t);
-        auto** function = reinterpret_cast<void**>(&RL_GetPathOfRunningExecutable);
-
-        // clang-format off
-        if (OSDynLoad_FindExport(module, OS_DYNLOAD_EXPORT_FUNC, name, function) == OS_DYNLOAD_OK)
-        {
-            if (RL_GetPathOfRunningExecutable(path, sizeof(path)) == 0)
-                return path;
-        }
-        // clang-format on
-    }
-
-    return std::string {};
-#else
-    return argv0;
-#endif
-}
 
 namespace love
 {
@@ -526,7 +473,7 @@ namespace love
         this->currentDirectory = std::filesystem::current_path().string();
 
         if (Console::is(Console::CAFE))
-            this->currentDirectory = parentize(getApplicationPath(""));
+            this->currentDirectory = parentize(this->executablePath);
 
         return this->currentDirectory;
     }

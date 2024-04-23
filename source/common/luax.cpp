@@ -619,6 +619,38 @@ namespace love
         lua_pushlstring(L, string, sizeof(void*));
     }
 
+    bool luax_boolflag(lua_State* L, int index, const char* name, bool default_value)
+    {
+        lua_getfield(L, index, name);
+
+        bool result;
+
+        if (lua_isnoneornil(L, -1))
+            result = default_value;
+        else
+            result = lua_toboolean(L, -1) != 0;
+
+        lua_pop(L, 1);
+
+        return result;
+    }
+
+    int luax_intflag(lua_State* L, int index, const char* name, int default_value)
+    {
+        lua_getfield(L, index, name);
+
+        int result;
+
+        if (!lua_isnumber(L, -1))
+            result = default_value;
+        else
+            result = lua_tointeger(L, -1);
+
+        lua_pop(L, 1);
+
+        return result;
+    }
+
     int luax_enumerror(lua_State* L, const char* enumName, const char* value)
     {
         return luaL_error(L, "Invalid %s: %s", enumName, value);

@@ -25,7 +25,6 @@ freely, subject to the following restrictions:
 local love = require("love")
 
 function love.createhandlers()
-
     -- Standard callback handlers.
     love.handlers = setmetatable({
         --#region unused
@@ -223,6 +222,21 @@ local function shouldDraw(screen)
     return true
 end
 
+local function get3DDepth(screen)
+    if love._console ~= "3ds" then
+        return nil
+    end
+
+    local depth = love.graphics.getDepth()
+    if screen == "bottom" then
+        depth = -depth
+    elseif screen == "bottom" then
+        return nil
+    end
+
+    return depth
+end
+
 function love.run()
     if love.load then
         love.load(love.parsedGameArguments, love.rawGameArguments)
@@ -273,7 +287,7 @@ function love.run()
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
                 if love.draw and shouldDraw(screen) then
-                    love.draw(screen)
+                    love.draw(screen, get3DDepth(screen))
                 end
             end
 

@@ -7,6 +7,7 @@
 #include "modules/data/wrap_DataModule.hpp"
 #include "modules/event/wrap_Event.hpp"
 #include "modules/filesystem/wrap_Filesystem.hpp"
+#include "modules/graphics/wrap_Graphics.hpp"
 #include "modules/joystick/wrap_JoystickModule.hpp"
 #include "modules/keyboard/wrap_Keyboard.hpp"
 #include "modules/sensor/wrap_Sensor.hpp"
@@ -14,6 +15,8 @@
 #include "modules/system/wrap_System.hpp"
 #include "modules/thread/wrap_Thread.hpp"
 #include "modules/timer/wrap_Timer.hpp"
+#include "modules/touch/wrap_Touch.hpp"
+#include "modules/window/wrap_Window.hpp"
 
 #include "boot.hpp"
 
@@ -45,23 +48,26 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 15> modules =
+static constexpr std::array<const luaL_Reg, 18> modules =
 {{
     { "love.audio",      Wrap_Audio::open          },
     { "love.data",       Wrap_DataModule::open     },
+    { "love.event",      Wrap_Event::open          },
+    { "love.filesystem", Wrap_Filesystem::open     },
+    { "love.graphics",   Wrap_Graphics::open       },
     { "love.joystick",   Wrap_JoystickModule::open },
     { "love.keyboard",   Wrap_Keyboard::open       },
     { "love.sensor",     Wrap_Sensor::open         },
     { "love.sound",      Wrap_Sound::open          },
-    { "love.timer",      Wrap_Timer::open          },
-    { "love.thread",     Wrap_Thread::open         },
-    { "love.event",      Wrap_Event::open          },
-    { "love.filesystem", Wrap_Filesystem::open     },
     { "love.system",     Wrap_System::open         },
+    { "love.thread",     Wrap_Thread::open         },
+    { "love.timer",      Wrap_Timer::open          },
+    { "love.touch",      Wrap_Touch::open          },
+    { "love.window",     Wrap_Window::open         },
+    { "love.nogame",     love_openNoGame           },
     { "love.arg",        love_openArg              },
     { "love.callbacks",  love_openCallbacks        },
-    { "love.boot",       love_openBoot             },
-    { "love.nogame",     love_openNoGame           }
+    { "love.boot",       love_openBoot             }
 }};
 // clang-format on
 

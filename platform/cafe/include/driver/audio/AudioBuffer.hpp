@@ -56,6 +56,8 @@ namespace love
 
         bool setFormat(AXVoiceFormat format);
 
+        bool isPlaying() const;
+
         bool isFinished() const;
 
         void setVolume(float volume);
@@ -78,9 +80,15 @@ namespace love
             this->channels = channels;
         }
 
+        void setPlaying(bool playing)
+        {
+            this->playing = playing;
+        }
+
       public:
         std::array<int16_t*, 2> data_pcm16;
         size_t nsamples;
+        uint32_t offset;
 
       private:
         static AXVoiceLoop getLooping(bool looping)
@@ -93,5 +101,6 @@ namespace love
 
         bool ready;
         bool playing;
+        mutable bool started;
     };
 } // namespace love

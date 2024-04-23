@@ -6,17 +6,21 @@
 
 namespace love
 {
-    struct unique_deleter
+    struct deleter
     {
-        void operator()(void* ptr) const
+        void operator()(void* pointer)
         {
-            free(ptr);
+            free(pointer);
         }
     };
 
     static constexpr int SOC_BUFFER_SIZE  = 0x100000;
     static constexpr int SOC_BUFFER_ALIGN = 0x1000;
-    extern std::unique_ptr<uint32_t[], unique_deleter> socBuffer;
+    inline std::unique_ptr<uint32_t[], deleter> socBuffer;
+
+    std::string getApplicationPath(const std::string& argv0);
+
+    static bool mcuHwcInited = false;
 
     int preInit();
 

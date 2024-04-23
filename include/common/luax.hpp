@@ -100,6 +100,10 @@ namespace love
 
     std::string luax_checkstring(lua_State* L, int index);
 
+    bool luax_boolflag(lua_State* L, int index, const char* name, bool default_value);
+
+    int luax_intflag(lua_State* L, int index, const char* name, int default_value);
+
     void luax_pushstring(lua_State* L, std::string_view string);
 
     void luax_pushpointerasstring(lua_State* L, const void* pointer);

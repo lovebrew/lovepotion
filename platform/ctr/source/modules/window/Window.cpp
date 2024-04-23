@@ -6,7 +6,7 @@
 
 namespace love
 {
-    Window::Window() : open(false)
+    Window::Window() : WindowBase("love.window.citro3d")
     {
         this->setDisplaySleepEnabled(false);
     }
@@ -14,62 +14,39 @@ namespace love
     Window::~Window()
     {
         this->close(false);
-    }
-
-    void Window::close(bool allowExceptions)
-    {
-        this->open = false;
-    }
-
-    void Window::close()
-    {
-        this->close(true);
-    }
-
-    bool Window::createWindowAndContext(int x, int y, int width, int height, uint32_t flags)
-    {
-        this->open = true;
-        return true;
+        this->graphics.set(nullptr);
     }
 
     bool Window::setWindow(int width, int height, WindowSettings* settings)
     {
+        if (!this->graphics.get())
+            this->graphics.set(Module::getInstance<Graphics>(Module::M_GRAPHICS));
+
+        this->close();
+
+        if (!this->createWindowAndContext(0, 0, width, height, 0))
+            return false;
+
+        if (this->graphics.get())
+            this->graphics->setMode(width, height, width, height, false, false, 0);
+
         return true;
     }
 
-    void Window::getWindow(int& width, int& height, WindowSettings& settings)
-    {}
+    void Window::updateSettingsImpl(const WindowSettings& settings, bool updateGraphicsViewport)
+    {
+        if (updateGraphicsViewport && this->graphics.get())
+        {
+            double scaledw, scaledh;
+            this->fromPixels(this->pixelWidth, this->pixelHeight, scaledw, scaledh);
+
+            this->graphics->setViewport(0, 0, scaledw, scaledh);
+        }
+    }
 
     bool Window::onSizeChanged(int width, int height)
     {
         return false;
-    }
-
-    int Window::getDisplayCount() const
-    {
-        return love::getScreenInfo().size();
-    }
-
-    std::string_view Window::getDisplayName(int displayIndex) const
-    {
-        const auto& info = love::getScreenInfo((Screen)displayIndex);
-
-        return info.name;
-    }
-
-    std::vector<Window::WindowSize> Window::getFullscreenSizes(int displayIndex) const
-    {
-        const auto& info = love::getScreenInfo((Screen)displayIndex);
-
-        return { { info.width, info.height } };
-    }
-
-    void Window::getDesktopDimensions(int displayIndex, int& width, int& height) const
-    {
-        const auto result = this->getFullscreenSizes(displayIndex);
-
-        width  = result.back().width;
-        height = result.back().height;
     }
 
     void Window::setDisplaySleepEnabled(bool enable)

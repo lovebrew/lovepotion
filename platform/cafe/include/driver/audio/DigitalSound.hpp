@@ -64,10 +64,9 @@ namespace love
             return this->event;
         }
 
-        void updateChannels()
+        bool isFinishing() const
         {
-            for (auto& channel : this->channels)
-                channel.update();
+            return this->finish;
         }
 
         // clang-format off
@@ -80,5 +79,6 @@ namespace love
       private:
         std::array<SoundChannel, 24> channels;
         OSEvent event;
+        bool finish;
     };
 } // namespace love

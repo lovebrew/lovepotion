@@ -38,7 +38,7 @@ namespace love
         for (auto& channel : this->channels)
             channel.update();
 
-        OSSleepTicks(OSMillisecondsToTicks(5));
+        OSSleepTicks(OSMillisecondsToTicks(3));
     }
 
     void DigitalSound::setMasterVolume(float volume)
