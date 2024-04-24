@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure
         run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -S . -B build
@@ -21,9 +21,9 @@ jobs:
         run: make -C build
 
       - id: commit
-        uses: pr-mpt/actions-commit-hash@v1
+        uses: prompt/actions-commit-hash@v3
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo Wii U-${{ steps.commit.outputs.short }}
           path: |
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Configure
         run: /opt/devkitpro/portlibs/wiiu/bin/powerpc-eabi-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
@@ -48,9 +48,9 @@ jobs:
         run: make -C build
 
       - id: commit
-        uses: pr-mpt/actions-commit-hash@v1
+        uses: prompt/actions-commit-hash@v3
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: Nintendo Wii U (Debug)-${{ steps.commit.outputs.short }}
           path: |
