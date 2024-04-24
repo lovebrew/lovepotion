@@ -265,6 +265,15 @@ add_library(wuff
 )
 target_link_libraries(${PROJECT_NAME} PRIVATE wuff)
 
+# noise1234
+add_library(noise1234
+    libraries/noise1234/noise1234.cpp
+    libraries/noise1234/noise1234.h
+    libraries/noise1234/simplexnoise1234.cpp
+    libraries/noise1234/simplexnoise1234.h
+)
+target_link_libraries(${PROJECT_NAME} PRIVATE noise1234)
+
 if (NINTENDO_WIIU)
     target_link_libraries(${PROJECT_NAME} PRIVATE vorbisfile vorbis)
 else()
@@ -335,6 +344,14 @@ source/modules/joystick/wrap_Joystick.cpp
 source/modules/joystick/wrap_JoystickModule.cpp
 source/modules/keyboard/wrap_Keyboard.cpp
 source/modules/love/love.cpp
+source/modules/math/BezierCurve.cpp
+source/modules/math/MathModule.cpp
+source/modules/math/RandomGenerator.cpp
+source/modules/math/Transform.cpp
+source/modules/math/wrap_BezierCurve.cpp
+source/modules/math/wrap_MathModule.cpp
+source/modules/math/wrap_RandomGenerator.cpp
+source/modules/math/wrap_Transform.cpp
 source/modules/sensor/Sensor.cpp
 source/modules/sensor/wrap_Sensor.cpp
 source/modules/sound/Decoder.cpp

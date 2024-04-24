@@ -256,8 +256,14 @@ namespace love
 
     int luax_convobj(lua_State* L, int index, const char* module, const char* function);
 
-    int luax_convobj(lua_State* L, std::span<int> indices, const char* module,
-                     const char* function);
+    int luax_convobj(lua_State* L, std::span<int> indices, const char* module, const char* function);
+
+    void luax_gettypemetatable(lua_State* L, const Type& type);
+
+    void luax_runwrapper(lua_State* L, const char* filedata, size_t datalen, const char* filename,
+                         const Type& type);
+
+    lua_Number luax_checknumberclamped01(lua_State* L, int index);
 
     // #endregion
 

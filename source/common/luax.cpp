@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "utility/logfile.hpp"
+#include <algorithm>
 
 namespace love
 {
@@ -474,8 +474,7 @@ namespace love
         }
     }
 
-    Variant luax_checkvariant(lua_State* L, int index, bool allowuserdata,
-                              std::set<const void*>* tableSet)
+    Variant luax_checkvariant(lua_State* L, int index, bool allowuserdata, std::set<const void*>* tableSet)
     {
         size_t len;
         const char* str;
@@ -544,8 +543,7 @@ namespace love
                     lua_pop(L, 1);
 
                     const auto& p = table->pairs.back();
-                    if (p.first.getType() == Variant::UNKNOWN ||
-                        p.second.getType() == Variant::UNKNOWN)
+                    if (p.first.getType() == Variant::UNKNOWN || p.second.getType() == Variant::UNKNOWN)
                     {
                         success = false;
                         break;
@@ -793,6 +791,34 @@ namespace love
             lua_replace(L, indices[0]);
 
         return 0;
+    }
+
+    void luax_gettypemetatable(lua_State* L, const Type& type)
+    {
+        const char* name = type.getName();
+        lua_getfield(L, LUA_REGISTRYINDEX, name);
+    }
+
+    void luax_runwrapper(lua_State* L, const char* filedata, size_t datalen, const char* filename,
+                         const Type& type)
+    {
+        luax_gettypemetatable(L, type);
+
+        if (lua_istable(L, -1))
+        {
+            const auto name = std::format("=[love \"{:s}\"]", filename);
+            luaL_loadbuffer(L, filedata, datalen, name.c_str());
+            lua_pushvalue(L, -2);
+            lua_pushnil(L);
+            lua_call(L, 2, 0);
+        }
+
+        lua_pop(L, 1);
+    }
+
+    lua_Number luax_checknumberclamped01(lua_State* L, int index)
+    {
+        return std::clamp((float)luaL_checknumber(L, index), 0.0f, 1.0f);
     }
 
     // #endregion

@@ -10,6 +10,7 @@
 #include "modules/graphics/wrap_Graphics.hpp"
 #include "modules/joystick/wrap_JoystickModule.hpp"
 #include "modules/keyboard/wrap_Keyboard.hpp"
+#include "modules/math/wrap_MathModule.hpp"
 #include "modules/sensor/wrap_Sensor.hpp"
 #include "modules/sound/wrap_Sound.hpp"
 #include "modules/system/wrap_System.hpp"
@@ -48,7 +49,7 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 18> modules =
+static constexpr std::array<const luaL_Reg, 19> modules =
 {{
     { "love.audio",      Wrap_Audio::open          },
     { "love.data",       Wrap_DataModule::open     },
@@ -57,6 +58,7 @@ static constexpr std::array<const luaL_Reg, 18> modules =
     { "love.graphics",   Wrap_Graphics::open       },
     { "love.joystick",   Wrap_JoystickModule::open },
     { "love.keyboard",   Wrap_Keyboard::open       },
+    { "love.math",       Wrap_MathModule::open     },
     { "love.sensor",     Wrap_Sensor::open         },
     { "love.sound",      Wrap_Sound::open          },
     { "love.system",     Wrap_System::open         },
@@ -139,8 +141,7 @@ static int love_setDeprecationOutput(lua_State* L)
     return 0;
 }
 
-static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name,
-                                       const char* alias)
+static void luax_addcompatibilityalias(lua_State* L, const char* module, const char* name, const char* alias)
 {
     lua_getglobal(L, module);
 
