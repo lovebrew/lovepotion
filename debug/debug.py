@@ -32,6 +32,7 @@ def main() -> None:
 
     try:
         tcp_socket.connect((args.host, 8000))
+        # tcp_socket.settimeout(3)
     except (ConnectionRefusedError, TimeoutError):
         print(f"Failed to connect to {args.host}:8000")
         sys.exit(1)
@@ -63,6 +64,9 @@ def main() -> None:
             print("Connection reset by peer")
             break
         except KeyboardInterrupt:
+            break
+        except TimeoutError:
+            print("Connection timed out")
             break
 
     tcp_socket.close()

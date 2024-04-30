@@ -8,7 +8,8 @@
 #include "driver/display/Framebuffer.hpp"
 #include "driver/display/Renderer.tcc"
 
-#include "modules/graphics/vertex.hpp"
+#include "modules/graphics/renderstate.hpp"
+#include "modules/graphics/samplerstate.hpp"
 
 namespace love
 {
@@ -41,6 +42,8 @@ namespace love
 
         void setVertexWinding(Winding winding);
 
+        void setSamplerState(C3D_Tex* texture, SamplerState state);
+
         void setWideMode(bool wide)
         {
             this->modeChanged([this, wide]() { gfxSetWide(wide); });
@@ -69,10 +72,11 @@ namespace love
         );
 
         ENUMMAP_DECLARE(PixelFormats, PixelFormat, GPU_TEXCOLOR,
-            { PIXELFORMAT_RGBA8_UNORM,  GPU_RGBA8  },
-            { PIXELFORMAT_RGBA8_UNORM,  GPU_RGB8   },
-            { PIXELFORMAT_RGBA4_UNORM,  GPU_RGBA4  },
-            { PIXELFORMAT_RGB565_UNORM, GPU_RGB565 },
+            { PIXELFORMAT_RGBA8_UNORM,  GPU_RGBA8    },
+            { PIXELFORMAT_RGBA4_UNORM,  GPU_RGBA4    },
+            { PIXELFORMAT_RGB565_UNORM, GPU_RGB565   },
+            { PIXELFORMAT_RGB5A1_UNORM, GPU_RGBA5551 },
+            { PIXELFORMAT_ETC1_UNORM,   GPU_ETC1     }
         );
 
         ENUMMAP_DECLARE(CullModes, CullMode, GPU_CULLMODE,
@@ -102,9 +106,18 @@ namespace love
             { BLENDFACTOR_ONE_MINUS_DST_ALPHA,  GPU_ONE_MINUS_DST_ALPHA  },
             { BLENDFACTOR_SRC_ALPHA_SATURATED,  GPU_SRC_ALPHA_SATURATE   }
         );
+
+        ENUMMAP_DECLARE(IndexDataTypes, IndexDataType, decltype(C3D_UNSIGNED_BYTE),
+            { INDEX_UINT16, C3D_UNSIGNED_SHORT }
+        );
         // clang-format on
 
       private:
+        static GPU_TEXTURE_WRAP_PARAM getWrapMode(SamplerState::WrapMode mode);
+
+        static constexpr int MAX_OBJECTS        = 0x1000;
+        static constexpr int VERTEX_BUFFER_SIZE = 6 * MAX_OBJECTS; // 6 vertices per object
+
         void ensureInFrame();
 
         void createFramebuffers();
@@ -123,6 +136,7 @@ namespace love
         {
             C3D_Mtx modelView;
             C3D_Mtx projection;
+
             Framebuffer target;
         } context;
 

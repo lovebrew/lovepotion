@@ -215,9 +215,9 @@ namespace love
             height = result.back().height;
         }
 
-        DisplayOrientation getDisplayOrientation(int displayIndex) const
+        DisplayOrientation getDisplayOrientation(int) const
         {
-            return ORIENTATION_LANDSCAPE;
+            return DisplayOrientation::ORIENTATION_LANDSCAPE;
         }
 
         double getDPIScale() const
@@ -297,7 +297,7 @@ namespace love
         // clang-format on
 
       protected:
-        void close(bool allowExceptions)
+        void close(bool)
         {
             this->open = false;
         }

@@ -47,7 +47,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     $<$<COMPILE_LANGUAGE:CXX>:-fexceptions -fno-rtti>
 )
 
-
 if(NINTENDO_3DS)
     add_subdirectory(platform/ctr)
 
@@ -76,6 +75,10 @@ if(NINTENDO_3DS)
 
     set(APP_LIBS citro3d)
     set(OUTPUT_FILENAME "${PROJECT_NAME}.3dsx")
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/T3XHandler.cpp
+    )
 endif()
 
 if (NINTENDO_SWITCH)
@@ -108,6 +111,15 @@ if (NINTENDO_SWITCH)
     )
 
     set(OUTPUT_FILENAME "${PROJECT_NAME}.nro")
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/ASTCHandler.cpp
+        source/modules/image/magpie/ddsHandler.cpp
+        source/modules/image/magpie/JPGHandler.cpp
+        source/modules/image/magpie/KTXHandler.cpp
+        source/modules/image/magpie/PKMHandler.cpp
+        source/modules/image/magpie/PNGHandler.cpp
+    )
 endif()
 
 if (NINTENDO_WIIU)
@@ -135,6 +147,15 @@ if (NINTENDO_WIIU)
     )
 
     set(OUTPUT_FILENAME "${PROJECT_NAME}.wuhb")
+
+    target_sources(${PROJECT_NAME} PRIVATE
+        source/modules/image/magpie/ASTCHandler.cpp
+        source/modules/image/magpie/ddsHandler.cpp
+        source/modules/image/magpie/JPGHandler.cpp
+        source/modules/image/magpie/KTXHandler.cpp
+        source/modules/image/magpie/PKMHandler.cpp
+        source/modules/image/magpie/PNGHandler.cpp
+    )
 endif()
 
 add_custom_target(test
@@ -299,8 +320,10 @@ include_directories(
 
 # find source -type f -name \*.cpp | clip
 target_sources(${PROJECT_NAME} PRIVATE
+source/main.cpp
 source/common/b64.cpp
 source/common/Data.cpp
+source/common/float.cpp
 source/common/luax.cpp
 source/common/Matrix.cpp
 source/common/Message.cpp
@@ -310,7 +333,7 @@ source/common/pixelformat.cpp
 source/common/Stream.cpp
 source/common/types.cpp
 source/common/Variant.cpp
-source/main.cpp
+source/utility/guid.cpp
 source/modules/audio/Audio.cpp
 source/modules/audio/Pool.cpp
 source/modules/audio/Source.cpp
@@ -321,8 +344,6 @@ source/modules/data/CompressedData.cpp
 source/modules/data/DataModule.cpp
 source/modules/data/DataStream.cpp
 source/modules/data/DataView.cpp
-source/modules/data/misc/Compressor.cpp
-source/modules/data/misc/HashFunction.cpp
 source/modules/data/wrap_ByteData.cpp
 source/modules/data/wrap_CompressedData.cpp
 source/modules/data/wrap_Data.cpp
@@ -331,14 +352,29 @@ source/modules/data/wrap_DataView.cpp
 source/modules/event/Event.cpp
 source/modules/event/wrap_Event.cpp
 source/modules/filesystem/FileData.cpp
-source/modules/filesystem/physfs/File.cpp
-source/modules/filesystem/physfs/Filesystem.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
+source/modules/graphics/Graphics.cpp
 source/modules/graphics/renderstate.cpp
+source/modules/graphics/samplerstate.cpp
+source/modules/graphics/StreamBuffer.cpp
+source/modules/graphics/Shader.cpp
+source/modules/graphics/Quad.cpp
 source/modules/graphics/Volatile.cpp
+source/modules/graphics/vertex.cpp
 source/modules/graphics/wrap_Graphics.cpp
+source/modules/graphics/wrap_Texture.cpp
+source/modules/graphics/Texture.cpp
+source/modules/image/CompressedImageData.cpp
+source/modules/image/CompressedSlice.cpp
+source/modules/image/FormatHandler.cpp
+source/modules/image/Image.cpp
+source/modules/image/ImageData.cpp
+source/modules/image/ImageDataBase.cpp
+source/modules/image/wrap_CompressedImageData.cpp
+source/modules/image/wrap_Image.cpp
+source/modules/image/wrap_ImageData.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/joystick/wrap_Joystick.cpp
 source/modules/joystick/wrap_JoystickModule.cpp
@@ -355,11 +391,6 @@ source/modules/math/wrap_Transform.cpp
 source/modules/sensor/Sensor.cpp
 source/modules/sensor/wrap_Sensor.cpp
 source/modules/sound/Decoder.cpp
-source/modules/sound/lullaby/FLACDecoder.cpp
-source/modules/sound/lullaby/ModPlugDecoder.cpp
-source/modules/sound/lullaby/MP3Decoder.cpp
-source/modules/sound/lullaby/VorbisDecoder.cpp
-source/modules/sound/lullaby/WaveDecoder.cpp
 source/modules/sound/Sound.cpp
 source/modules/sound/SoundData.cpp
 source/modules/sound/wrap_Decoder.cpp
@@ -378,5 +409,13 @@ source/modules/timer/wrap_Timer.cpp
 source/modules/touch/Touch.cpp
 source/modules/touch/wrap_Touch.cpp
 source/modules/window/wrap_Window.cpp
-source/utility/guid.cpp
+source/modules/data/misc/Compressor.cpp
+source/modules/data/misc/HashFunction.cpp
+source/modules/filesystem/physfs/File.cpp
+source/modules/filesystem/physfs/Filesystem.cpp
+source/modules/sound/lullaby/FLACDecoder.cpp
+source/modules/sound/lullaby/ModPlugDecoder.cpp
+source/modules/sound/lullaby/MP3Decoder.cpp
+source/modules/sound/lullaby/VorbisDecoder.cpp
+source/modules/sound/lullaby/WaveDecoder.cpp
 )

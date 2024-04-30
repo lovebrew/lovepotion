@@ -40,8 +40,8 @@
 #define LOVE_TODEG(x)   (float)(x * LOVE_M_TODEG)
 
 /* 3DS Texture Limits */
-#define LOVE_TEX3DS_MIN (size_t)0x08
-#define LOVE_TEX3DS_MAX (size_t)0x400
+#define LOVE_TEX3DS_MIN (size_t)8
+#define LOVE_TEX3DS_MAX (size_t)1024
 
 namespace love
 {

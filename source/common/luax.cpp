@@ -617,6 +617,25 @@ namespace love
         lua_pushlstring(L, string, sizeof(void*));
     }
 
+    bool luax_checkboolflag(lua_State* L, int tableIndex, const char* key)
+    {
+        lua_getfield(L, tableIndex, key);
+
+        bool result = false;
+
+        if (lua_type(L, -1) != LUA_TBOOLEAN)
+        {
+            auto error = std::format("expected boolean field '{:s}' in table", key);
+            luaL_argerror(L, tableIndex, error.c_str());
+        }
+        else
+            result = luax_toboolean(L, -1);
+
+        lua_pop(L, 1);
+
+        return result;
+    }
+
     bool luax_boolflag(lua_State* L, int index, const char* name, bool default_value)
     {
         lua_getfield(L, index, name);
@@ -627,6 +646,25 @@ namespace love
             result = default_value;
         else
             result = lua_toboolean(L, -1) != 0;
+
+        lua_pop(L, 1);
+
+        return result;
+    }
+
+    int luax_checkintflag(lua_State* L, int tableIndex, const char* key)
+    {
+        lua_getfield(L, tableIndex, key);
+
+        int result;
+
+        if (!lua_isnumber(L, -1))
+        {
+            auto error = std::format("expected integer field '{:s}' in table", key);
+            luaL_argerror(L, tableIndex, error.c_str());
+        }
+        else
+            result = luaL_checkinteger(L, -1);
 
         lua_pop(L, 1);
 

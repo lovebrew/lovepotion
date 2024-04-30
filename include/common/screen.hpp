@@ -35,7 +35,7 @@ namespace love
         return info[id];
     }
 
-    const inline Screen getScreenId(std::string_view name)
+    inline Screen getScreenId(std::string_view name)
     {
         const auto& info = getScreenInfo();
 

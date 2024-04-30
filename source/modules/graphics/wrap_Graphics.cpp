@@ -2,6 +2,16 @@
 
 #include "modules/graphics/wrap_Graphics.hpp"
 
+#include "modules/filesystem/wrap_Filesystem.hpp"
+
+#include "modules/graphics/wrap_Texture.hpp"
+
+#include "modules/image/Image.hpp"
+#include "modules/image/ImageData.hpp"
+#include "modules/image/wrap_CompressedImageData.hpp"
+#include "modules/image/wrap_Image.hpp"
+#include "modules/image/wrap_ImageData.hpp"
+
 using namespace love;
 
 #define instance() (Module::getInstance<Graphics>(Module::M_GRAPHICS))
@@ -14,7 +24,7 @@ static int luax_checkgraphicscreated(lua_State* L)
     return 0;
 }
 
-int Wrap_Graphics::reset(lua_State* L)
+int Wrap_Graphics::reset(lua_State*)
 {
     instance()->reset();
 
@@ -547,8 +557,7 @@ int Wrap_Graphics::setScissor(lua_State* L)
 {
     int argc = lua_gettop(L);
 
-    if (argc == 0 ||
-        (argc == 4 && lua_isnil(L, 1) && lua_isnil(L, 2) && lua_isnil(L, 3) && lua_isnil(L, 4)))
+    if (argc == 0 || (argc == 4 && lua_isnil(L, 1) && lua_isnil(L, 2) && lua_isnil(L, 3) && lua_isnil(L, 4)))
     {
         instance()->setScissor();
         return 0;
@@ -665,7 +674,7 @@ int Wrap_Graphics::shear(lua_State* L)
     return 0;
 }
 
-int Wrap_Graphics::origin(lua_State* L)
+int Wrap_Graphics::origin(lua_State*)
 {
     instance()->origin();
 
@@ -720,6 +729,309 @@ int Wrap_Graphics::inverseTransformPoint(lua_State* L)
     lua_pushnumber(L, point.y);
 
     return 2;
+}
+
+static void parseDPIScale(Data*, float*)
+{}
+
+// clang-format off
+static std::pair<StrongRef<ImageData>, StrongRef<CompressedImageData>>
+getImageData(lua_State* L, int index, bool allowCompressed, float* dpiScale)
+{
+    StrongRef<ImageData> imageData;
+    StrongRef<CompressedImageData> compressedImageData;
+
+    if (luax_istype(L, index, ImageData::type))
+        imageData.set(luax_checkimagedata(L, index));
+    else if (luax_istype(L, index, CompressedImageData::type))
+        compressedImageData.set(luax_checkcompressedimagedata(L, index));
+    else if (luax_cangetdata(L, index))
+    {
+        auto* module = Module::getInstance<Image>(Module::M_IMAGE);
+        if (module == nullptr)
+            luaL_error(L, "Cannot load images without the love.image module.");
+
+        StrongRef<Data> fileData(luax_getdata(L, index), Acquire::NO_RETAIN);
+
+        if (dpiScale != nullptr)
+            parseDPIScale(fileData, dpiScale);
+
+        if (allowCompressed && module->isCompressed(fileData))
+            luax_catchexcept(L, [&]() { compressedImageData.set(module->newCompressedData(fileData), Acquire::NO_RETAIN); });
+        else
+            luax_catchexcept(L, [&]() { imageData.set(module->newImageData(fileData), Acquire::NO_RETAIN); });
+    }
+    else
+        imageData.set(luax_checkimagedata(L, index));
+
+    return { imageData, compressedImageData };
+}
+// clang-format on
+
+static void luax_checktexturesettings(lua_State* L, int index, bool optional, bool checkType,
+                                      bool checkDimensions, OptionalBool forceRenderTarget,
+                                      Texture::Settings& settings, bool& setDPIScale)
+{
+    setDPIScale = false;
+
+    if (forceRenderTarget.hasValue)
+        settings.renderTarget = forceRenderTarget.value;
+
+    if (optional && lua_isnoneornil(L, index))
+        return;
+
+    luax_checktablefields<Texture::SettingType>(L, index, "texture setting name", Texture::getConstant);
+
+    if (!forceRenderTarget.hasValue)
+    {
+        const char* name      = Texture::getConstant(Texture::SETTING_RENDER_TARGET);
+        settings.renderTarget = luax_boolflag(L, index, name, settings.renderTarget);
+    }
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_DEBUGNAME));
+    if (!lua_isnoneornil(L, -1))
+        settings.debugName = luaL_checkstring(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_FORMAT));
+    if (!lua_isnoneornil(L, -1))
+    {
+        const char* formatName = luaL_checkstring(L, -1);
+        if (!love::getConstant(formatName, settings.format))
+            luax_enumerror(L, "pixel format", formatName);
+    }
+    lua_pop(L, 1);
+
+    if (checkType)
+    {
+        lua_getfield(L, index, Texture::getConstant(Texture::SETTING_TYPE));
+        if (!lua_isnoneornil(L, -1))
+        {
+            const char* typeName = luaL_checkstring(L, -1);
+            if (!Texture::getConstant(typeName, settings.type))
+                luax_enumerror(L, "texture type", Texture::TextureTypes, typeName);
+        }
+        lua_pop(L, 1);
+    }
+
+    // clang-format off
+    if (checkDimensions)
+    {
+        settings.width = luax_checkintflag(L, index, Texture::getConstant(Texture::SETTING_WIDTH));
+        settings.height = luax_checkintflag(L, index, Texture::getConstant(Texture::SETTING_HEIGHT));
+
+        if (settings.type == TEXTURE_2D_ARRAY || settings.type == TEXTURE_VOLUME)
+            settings.layers = luax_checkintflag(L, index, Texture::getConstant(Texture::SETTING_LAYERS));
+    }
+    else
+    {
+        settings.width = luax_intflag(L, index, Texture::getConstant(Texture::SETTING_WIDTH), settings.width);
+        settings.height = luax_intflag(L, index, Texture::getConstant(Texture::SETTING_HEIGHT), settings.height);
+
+        if (settings.type == TEXTURE_2D_ARRAY || settings.type == TEXTURE_VOLUME)
+            settings.layers = luax_intflag(L, index, Texture::getConstant(Texture::SETTING_LAYERS), settings.layers);
+    }
+    // clang-format on
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_MIPMAPS));
+    if (!lua_isnoneornil(L, -1))
+    {
+        if (lua_type(L, -1) == LUA_TBOOLEAN)
+            settings.mipmaps = luax_toboolean(L, -1) ? Texture::MIPMAPS_MANUAL : Texture::MIPMAPS_NONE;
+        else
+        {
+            const char* name = luaL_checkstring(L, -1);
+            if (!Texture::getConstant(name, settings.mipmaps))
+                luax_enumerror(L, "mipmap mode", Texture::MipmapsModes, name);
+        }
+    }
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_MIPMAP_COUNT));
+    if (!lua_isnoneornil(L, -1))
+        settings.mipmapCount = luaL_checkinteger(L, -1);
+    lua_pop(L, 1);
+
+    settings.linear = luax_boolflag(L, index, Texture::getConstant(Texture::SETTING_LINEAR), settings.linear);
+    settings.msaa   = luax_intflag(L, index, Texture::getConstant(Texture::SETTING_MSAA), settings.msaa);
+
+    settings.computeWrite =
+        luax_boolflag(L, index, Texture::getConstant(Texture::SETTING_COMPUTE_WRITE), settings.computeWrite);
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_VIEW_FORMATS));
+    if (!lua_isnoneornil(L, -1))
+    {
+        if (lua_type(L, -1) != LUA_TTABLE)
+            luaL_argerror(L, index, "expected field 'viewformats' to be a table type");
+
+        for (int index = 1; index <= (int)luax_objlen(L, -1); index++)
+        {
+            lua_rawgeti(L, -1, index);
+            const char* formatName = luaL_checkstring(L, -1);
+
+            PixelFormat format;
+            if (!love::getConstant(formatName, format))
+                luax_enumerror(L, "pixel format", formatName);
+
+            settings.viewFormats.push_back(format);
+            lua_pop(L, 1);
+        }
+    }
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_READABLE));
+    if (!lua_isnoneornil(L, -1))
+        settings.readable.set(luax_checkboolean(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, index, Texture::getConstant(Texture::SETTING_DPI_SCALE));
+    if (lua_isnumber(L, -1))
+    {
+        settings.dpiScale = luaL_checknumber(L, -1);
+        setDPIScale       = true;
+    }
+    lua_pop(L, 1);
+}
+
+static int pushNewTexture(lua_State* L, TextureBase::Slices* slices, const Texture::Settings& settings)
+{
+    StrongRef<Texture> texture;
+
+    // clang-format off
+    luax_catchexcept(L,
+        [&]() { texture.set(instance()->newTexture(settings, slices), Acquire::NO_RETAIN); },
+        [&](bool) { if (slices) slices->clear(); }
+    );
+    // clang-format on
+
+    luax_pushtype(L, texture);
+    return 1;
+}
+
+int Wrap_Graphics::newTexture(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    Texture::Slices slices(TEXTURE_2D);
+    Texture::Slices* slicesRef = &slices;
+
+    Texture::Settings settings {};
+    settings.type    = TEXTURE_2D;
+    bool dpiScaleSet = false;
+
+    if (lua_type(L, 1) == LUA_TNUMBER)
+    {
+        slicesRef = nullptr;
+
+        settings.width  = luaL_checkinteger(L, 1);
+        settings.height = luaL_checkinteger(L, 2);
+
+        int start = 3;
+
+        if (lua_type(L, 3) == LUA_TNUMBER)
+        {
+            settings.layers = luaL_checkinteger(L, 3);
+            settings.type   = TEXTURE_2D_ARRAY;
+            start           = 4;
+        }
+
+        luax_checktexturesettings(L, start, true, true, false, OptionalBool(), settings, dpiScaleSet);
+    }
+    else
+    {
+        luax_checktexturesettings(L, 2, true, false, false, OptionalBool(), settings, dpiScaleSet);
+        float* autoDpiScale = dpiScaleSet ? nullptr : &settings.dpiScale;
+
+        if (lua_istable(L, 1))
+        {
+            const int length = luax_objlen(L, 1);
+
+            for (int index = 0; index < length; index++)
+            {
+                lua_rawgeti(L, 1, index + 1);
+
+                auto data = getImageData(L, -1, true, index == 0 ? autoDpiScale : nullptr);
+
+                if (data.first.get())
+                    slices.set(0, index, data.first);
+                else
+                    slices.set(0, index, data.second->getSlice(0, 0));
+            }
+
+            lua_pop(L, length);
+        }
+        else
+        {
+            auto data = getImageData(L, 1, true, autoDpiScale);
+
+            if (data.first.get())
+                slices.set(0, 0, data.first);
+            else
+                slices.add(data.second, 0, 0, false, settings.mipmaps != Texture::MIPMAPS_NONE);
+        }
+    }
+
+    return pushNewTexture(L, slicesRef, settings);
+}
+
+int Wrap_Graphics::newImage(lua_State* L)
+{
+    return newTexture(L);
+}
+
+int Wrap_Graphics::draw(lua_State* L)
+{
+    Drawable* drawable = nullptr;
+    Texture* texture   = nullptr;
+
+    Quad* quad = luax_totype<Quad>(L, 2);
+    int start  = 2;
+
+    if (quad != nullptr)
+    {
+        texture = luax_checktexture(L, 1);
+        start   = 3;
+    }
+    else if (lua_isnil(L, 2) && !lua_isnoneornil(L, 3))
+        return luax_typeerror(L, 2, "Quad");
+    else
+    {
+        drawable = luax_checktype<Drawable>(L, 1);
+        start    = 2;
+    }
+
+    luax_checkstandardtransform(L, start, [&](const Matrix4& transform) {
+        if (texture && quad)
+            instance()->draw(texture, quad, transform);
+        else
+            instance()->draw(drawable, transform);
+    });
+
+    return 0;
+}
+
+int Wrap_Graphics::getStats(lua_State* L)
+{
+    auto stats = instance()->getStats();
+
+    if (lua_istable(L, 1))
+        lua_pushvalue(L, 1);
+    else
+        lua_createtable(L, 0, 7);
+
+    lua_pushinteger(L, stats.drawCalls);
+    lua_setfield(L, -2, "drawcalls");
+
+    lua_pushinteger(L, stats.drawCallsBatched);
+    lua_setfield(L, -2, "drawcallsbatched");
+
+    lua_pushinteger(L, stats.textures);
+    lua_setfield(L, -2, "textures");
+
+    lua_pushnumber(L, (lua_Number)stats.textureMemory);
+    lua_setfield(L, -2, "texturememory");
+
+    return 1;
 }
 
 // Homebrew Stuff™
@@ -846,9 +1158,26 @@ static constexpr luaL_Reg functions[] =
     { "replaceTransform",       Wrap_Graphics::replaceTransform      },
     { "transformPoint",         Wrap_Graphics::transformPoint        },
     { "inverseTransformPoint",  Wrap_Graphics::inverseTransformPoint },
+    { "getStats",               Wrap_Graphics::getStats              },
+
+    { "draw",                   Wrap_Graphics::draw                  },
+
+    { "newTexture",             Wrap_Graphics::newTexture            },
+    { "newImage",               Wrap_Graphics::newImage              },
 
     { "setActiveScreen", Wrap_Graphics::setActiveScreen },
     { "getScreens",      Wrap_Graphics::getScreens      },
+};
+
+static int open_drawable(lua_State* L)
+{
+    return luax_register_type(L, &Drawable::type);
+}
+
+static constexpr lua_CFunction types[] =
+{
+    open_drawable,
+    love::open_texture
 };
 // clang-format on
 
@@ -866,6 +1195,7 @@ int Wrap_Graphics::open(lua_State* L)
     module.type              = &Module::type;
     module.functions         = functions;
     module.platformFunctions = platformFunctions;
+    module.types             = types;
 
     return luax_register_module(L, module);
 }

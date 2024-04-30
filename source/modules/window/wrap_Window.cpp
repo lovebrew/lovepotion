@@ -277,7 +277,7 @@ int Wrap_Window::isOpen(lua_State* L)
     return 1;
 }
 
-int Wrap_Window::close(lua_State* L)
+int Wrap_Window::close(lua_State*)
 {
     instance()->close();
 
@@ -297,7 +297,7 @@ int Wrap_Window::getDesktopDimensions(lua_State* L)
     return 2;
 }
 
-int Wrap_Window::setVSync(lua_State* L)
+int Wrap_Window::setVSync(lua_State*)
 {
     return 0;
 }
@@ -468,12 +468,12 @@ int Wrap_Window::showMessageBox(lua_State* L)
     return 1;
 }
 
-int Wrap_Window::setTitle(lua_State* L)
+int Wrap_Window::setTitle(lua_State*)
 {
     return 0;
 }
 
-int Wrap_Window::setIcon(lua_State* L)
+int Wrap_Window::setIcon(lua_State*)
 {
     return 0;
 }

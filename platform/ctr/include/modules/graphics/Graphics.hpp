@@ -1,40 +1,57 @@
 #pragma once
 
 #include "modules/graphics/Graphics.tcc"
+#include "modules/graphics/Texture.hpp"
 
 namespace love
 {
-    class Graphics : public GraphicsBase<Graphics>
+    class Graphics : public GraphicsBase
     {
       public:
         Graphics();
 
-        void clearImpl(OptionalColor color, OptionalInt depth, OptionalDouble stencil);
+        void clear(OptionalColor color, OptionalInt depth, OptionalDouble stencil);
 
-        using GraphicsBase<Graphics>::clear;
+        void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth);
 
-        void presentImpl();
+        void present();
 
-        void setScissorImpl(const Rect& scissor);
+        void setScissor(const Rect& scissor);
 
-        void setScissorImpl();
+        void setScissor();
 
-        void setFrontFaceWindingImpl(Winding winding);
+        void setFrontFaceWinding(Winding winding);
 
-        void setColorMaskImpl(ColorChannelMask mask);
+        void setColorMask(ColorChannelMask mask);
 
-        void setBlendStateImpl(const BlendState& state);
+        void setBlendState(const BlendState& state);
 
-        void getRendererInfoImpl(RendererInfo& info) const;
+        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                     bool backBufferDepth, int msaa);
 
-        bool setModeImpl(int width, int height, int pixelWidth, int pixelHeight,
-                         bool backBufferStencil, bool backBufferDepth, int msaa);
+        void draw(Drawable* drawable, const Matrix4& matrix);
+
+        void draw(TextureBase* texture, Quad* quad, const Matrix4& matrix);
+
+        virtual void draw(const DrawCommand& command) override;
+
+        virtual void draw(const DrawIndexedCommand& command) override;
 
         bool isActive() const;
 
-        void unsetModeImpl();
+        void unsetMode();
 
         void setViewport(int x, int y, int width, int height);
+
+        Texture* newTexture(const Texture::Settings& settings, const Texture::Slices* data = nullptr);
+
+        bool isPixelFormatSupported(PixelFormat format, uint32_t usage);
+
+        /* TODO: implement properly */
+        bool isRenderTargetActive(Texture* texture)
+        {
+            return false;
+        }
 
         bool is3D() const;
 

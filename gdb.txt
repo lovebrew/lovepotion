@@ -1,0 +1,2 @@
+C:\msys64\home\jpost/.gdbinit:23: Error in sourced command file:
+Undefined item: "UTF-8".

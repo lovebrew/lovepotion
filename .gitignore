@@ -7,3 +7,5 @@ target/
 *.3dsx
 *.nro
 *.wuhb
+*.py
+__pycache__/

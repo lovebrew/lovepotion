@@ -43,6 +43,9 @@ source/driver/display/Renderer.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp
+source/modules/graphics/StreamBuffer.cpp
+source/modules/graphics/Shader.cpp
+source/modules/graphics/Texture.cpp
 source/modules/joystick/Joystick.cpp
 source/modules/joystick/JoystickModule.cpp
 source/modules/keyboard/Keyboard.cpp

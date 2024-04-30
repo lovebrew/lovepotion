@@ -3,6 +3,7 @@
 #include "common/Singleton.tcc"
 
 #include "modules/graphics/renderstate.hpp"
+#include "modules/graphics/vertex.hpp"
 
 #include <array>
 
@@ -20,6 +21,16 @@ namespace love
             RENDERER_INFO_DEVICE
         };
 
+        size_t getVertexCount() const
+        {
+            return this->renderCtx.vertexCount;
+        }
+
+        Vertex* getVertices()
+        {
+            return this->data;
+        }
+
       protected:
         struct ContextBase
         {
@@ -36,5 +47,13 @@ namespace love
 
         bool initialized = false;
         bool inFrame     = false;
+
+        Vertex* data;
+
+        struct RenderContext
+        {
+            size_t vertexCount;
+            size_t indexCount;
+        } renderCtx;
     };
 } // namespace love

@@ -149,6 +149,14 @@ namespace Wrap_Graphics
 
     int inverseTransformPoint(lua_State* L);
 
+    int newTexture(lua_State* L);
+
+    int newImage(lua_State* L);
+
+    int newCanvas(lua_State* L);
+
+    int draw(lua_State* L);
+
     int getScreens(lua_State* L);
 
     int setActiveScreen(lua_State* L);

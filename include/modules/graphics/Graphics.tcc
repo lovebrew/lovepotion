@@ -9,8 +9,15 @@
 #include "common/int.hpp"
 #include "common/pixelformat.hpp"
 
+#include "modules/math/MathModule.hpp"
+
+#include "modules/graphics/Shader.tcc"
+#include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
 #include "modules/graphics/renderstate.hpp"
+#include "modules/graphics/samplerstate.hpp"
+
+#include "modules/graphics/BatchedDrawState.hpp"
 
 #include <string>
 #include <vector>
@@ -25,27 +32,42 @@ namespace love
 
     using OptionalColor = Optional<Color>;
 
-    static bool gammaCorrect = false;
-
-    inline void setGammaCorrect(bool enable)
+    inline void gammaCorrectColor(Color& color)
     {
-        gammaCorrect = enable;
+        if (love::isGammaCorrect())
+        {
+            color.r = love::gammaToLinear(color.r);
+            color.g = love::gammaToLinear(color.g);
+            color.b = love::gammaToLinear(color.b);
+        }
     }
 
-    inline bool isGammaCorrect()
+    inline void unGammaCorrectColor(Color& color)
     {
-        return gammaCorrect;
+        if (love::isGammaCorrect())
+        {
+            color.r = love::linearToGamma(color.r);
+            color.g = love::linearToGamma(color.g);
+            color.b = love::linearToGamma(color.b);
+        }
     }
 
-    void gammaCorrectColor(Color& color);
+    inline Color gammaCorrectColor(const Color& color)
+    {
+        Color result = color;
+        gammaCorrectColor(result);
 
-    void unGammaCorrectColor(Color& color);
+        return result;
+    }
 
-    Color gammaCorrectColor(const Color& color);
+    inline Color unGammaCorrectColor(const Color& color)
+    {
+        Color result = color;
+        unGammaCorrectColor(result);
 
-    Color unGammaCorrectColor(const Color& color);
+        return result;
+    }
 
-    template<class T>
     class GraphicsBase : public Module
     {
       public:
@@ -152,124 +174,119 @@ namespace love
             bool useCustomProjection = false;
             Matrix4 customProjection;
 
-            // SamplerState defaultSampleState = SamplerState();
+            SamplerState defaultSampleState = SamplerState();
         };
 
-        GraphicsBase(const char* name) :
-            Module(M_GRAPHICS, name),
-            width(0),
-            height(0),
-            pixelWidth(0),
-            pixelHeight(0),
-            created(false),
-            active(true),
-            deviceProjectionMatrix()
+        class TempTransform
         {
-            this->transformStack.reserve(16);
-            this->transformStack.push_back(Matrix4());
-
-            this->pixelScaleStack.reserve(16);
-            this->pixelScaleStack.push_back(1.0);
-
-            this->states.reserve(10);
-            this->states.push_back(DisplayState());
-        }
-
-        virtual ~GraphicsBase()
-        {
-            this->states.clear();
-        }
-
-        void restoreState(const DisplayState& state)
-        {
-            this->setColor(state.color);
-            this->setBackgroundColor(state.backgroundColor);
-
-            this->setBlendState(state.blend);
-
-            this->setLineWidth(state.lineWidth);
-            this->setLineStyle(state.lineStyle);
-            this->setLineJoin(state.lineJoin);
-
-            this->setPointSize(state.pointSize);
-
-            if (state.scissor)
-                this->setScissor(state.scissorRect);
-            else
-                this->setScissor();
-
-            this->setMeshCullMode(state.meshCullMode);
-            this->setFrontFaceWinding(state.winding);
-
-            // this->setFont(state.font.get());
-            // this->setShader(state.shader.get());
-            // this->setRenderTargets(state.renderTargets);
-
-            // this->setStencilState(state.stencil);
-            // this->setDepthMode(state.depthTest, state.depthWrite);
-
-            this->setColorMask(state.colorMask);
-
-            // this->setDefaultSamplerState(state.defaultSampleState);
-
-            if (state.useCustomProjection)
-                this->updateDeviceProjection(state.customProjection);
-            else
-                this->resetProjection();
-        }
-
-        void restoreStateChecked(const DisplayState& state)
-        {
-            const auto& current = this->states.back();
-
-            if (state.color != current.color)
-                this->setColor(state.color);
-
-            this->setBackgroundColor(state.backgroundColor);
-
-            if (state.blend != current.blend)
-                this->setBlendState(state.blend);
-
-            this->setLineWidth(state.lineWidth);
-            this->setLineStyle(state.lineStyle);
-            this->setLineJoin(state.lineJoin);
-
-            if (state.pointSize != current.pointSize)
-                this->setPointSize(state.pointSize);
-
-            if (state.scissor != current.scissor ||
-                (state.scissor && !(state.scissorRect != current.scissorRect)))
+          public:
+            TempTransform(GraphicsBase* graphics) : graphics(graphics)
             {
-                if (state.scissor)
-                    this->setScissor(state.scissorRect);
-                else
-                    this->setScissor();
+                graphics->pushTransform();
             }
 
-            this->setMeshCullMode(state.meshCullMode);
+            TempTransform(GraphicsBase* graphics, const Matrix4& transform) : graphics(graphics)
+            {
+                graphics->pushTransform();
+                graphics->transformStack.back() *= transform;
+            }
 
-            if (state.winding != current.winding)
-                this->setFrontFaceWinding(state.winding);
+            ~TempTransform()
+            {
+                graphics->popTransform();
+            }
 
-            // this->setFont(state.font.get());
-            // this->setShader(state.shader.get());
+          private:
+            GraphicsBase* graphics;
+        };
 
-            // if (this->stencil != state.stencil)
-            //     this->setStencilState(state.stencil);
+        GraphicsBase(const char* name);
 
-            // if (this->depthTest != state.depthTest || this->depthWrite != state.depthWrite)
-            //     this->setDepthMode(state.depthTest, state.depthWrite);
+        virtual ~GraphicsBase();
 
-            if (state.colorMask != current.colorMask)
-                this->setColorMask(state.colorMask);
+        void restoreState(const DisplayState& state);
 
-            // this->setDefaultSamplerState(state.defaultSampleState);
+        struct BatchedVertexData
+        {
+            void* stream[2];
+        };
 
-            if (state.useCustomProjection)
-                this->updateDeviceProjection(state.customProjection);
-            else if (current.useCustomProjection)
-                this->resetProjection();
-        }
+        struct BatchedDrawCommand
+        {
+            PrimitiveType primitiveMode           = PRIMITIVE_TRIANGLES;
+            CommonFormat formats[2]               = { CommonFormat::NONE, CommonFormat::NONE };
+            TriangleIndexMode indexMode           = TRIANGLEINDEX_NONE;
+            int vertexCount                       = 0;
+            TextureBase* texture                  = nullptr;
+            ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;
+        };
+
+        struct DrawIndexedCommand
+        {
+            PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+
+            const VertexAttributes* attributes;
+            const BufferBindings* buffers;
+
+            int indexCount    = 0;
+            int instanceCount = 1;
+
+            IndexDataType indexType = INDEX_UINT16;
+            Resource* indexBuffer;
+            size_t indexBufferOffset = 0;
+
+            Buffer* indirectBuffer      = nullptr;
+            size_t indirectBufferOffset = 0;
+
+            TextureBase* texture = nullptr;
+
+            CullMode cullMode = CULL_NONE;
+
+            DrawIndexedCommand(const VertexAttributes* attributes, const BufferBindings* buffers,
+                               Resource* indexBuffer) :
+                attributes(attributes),
+                buffers(buffers),
+                indexBuffer(indexBuffer)
+            {}
+        };
+
+        struct DrawCommand
+        {
+            PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
+
+            const VertexAttributes* attributes;
+            const BufferBindings* buffers;
+
+            int vertexStart   = 0;
+            int vertexCount   = 0;
+            int instanceCount = 1;
+
+            Resource* vertexBuffer;
+
+            Buffer* indirectBuffer      = nullptr;
+            size_t indirectBufferOffset = 0;
+
+            TextureBase* texture = nullptr;
+
+            CullMode cullMode = CULL_NONE;
+
+            DrawCommand(const VertexAttributes* attributes, const BufferBindings* buffers) :
+                attributes(attributes),
+                buffers(buffers)
+            {}
+        };
+
+        BatchedVertexData requestBatchedDraw(const BatchedDrawCommand& command);
+
+        void flushBatchedDraws();
+
+        static void flushBatchedDrawsGlobal();
+
+        void restoreStateChecked(const DisplayState& state);
+
+        virtual void draw(const DrawCommand& command) = 0;
+
+        virtual void draw(const DrawIndexedCommand& command) = 0;
 
         /* TODO: implement when they exist */
         bool isRenderTargetActive() const
@@ -302,27 +319,19 @@ namespace love
             this->states.back().backgroundColor = color;
         }
 
-        void setScissor(const Rect& scissor)
+        const SamplerState& getDefaultSamplerState() const
         {
-            auto& state = this->states.back();
-
-            Rect rect {};
-            rect.x = scissor.x;
-            rect.y = scissor.y;
-            rect.w = std::max(0, scissor.w);
-            rect.h = std::max(0, scissor.h);
-
-            static_cast<T*>(this)->setScissorImpl(scissor);
-
-            state.scissorRect = rect;
-            state.scissor     = true;
+            return this->states.back().defaultSampleState;
         }
 
-        void setScissor()
+        void setDefaultSamplerState(const SamplerState& state)
         {
-            this->states.back().scissor = false;
-            static_cast<T*>(this)->setScissorImpl();
+            this->states.back().defaultSampleState = state;
         }
+
+        void setScissor(const Rect& scissor);
+
+        void setScissor();
 
         void intersectScissor(const Rect& scissor)
         {
@@ -369,52 +378,22 @@ namespace love
             return this->states.back().meshCullMode;
         }
 
-        void setFrontFaceWinding(Winding winding)
-        {
-            static_cast<T*>(this)->setFrontFaceWindingImpl(winding);
-            this->states.back().winding = winding;
-        }
+        void setFrontFaceWinding(Winding winding);
 
-        Winding getFrontFaceWinding() const
-        {
-            return this->states.back().winding;
-        }
+        Winding getFrontFaceWinding() const;
 
-        void setColorMask(ColorChannelMask mask)
-        {
-            static_cast<T*>(this)->setColorMaskImpl(mask);
-            this->states.back().colorMask = mask;
-        }
+        void setColorMask(ColorChannelMask mask);
 
-        ColorChannelMask getColorMask() const
-        {
-            return this->states.back().colorMask;
-        }
+        ColorChannelMask getColorMask() const;
 
-        void setBlendMode(BlendMode mode, BlendAlpha alphaMode)
-        {
-            if (alphaMode == BLENDALPHA_MULTIPLY && !isAlphaMultiplyBlendSupported(mode))
-            {
-                std::string_view modeName = "unknown";
-                love::getConstant(mode, modeName);
-
-                throw love::Exception("The '{}' blend mode must be used with premultiplied alpha.",
-                                      modeName);
-            }
-
-            this->setBlendState(computeBlendState(mode, alphaMode));
-        }
+        void setBlendMode(BlendMode mode, BlendAlpha alphaMode);
 
         BlendMode getBlendMode(BlendAlpha& alphaMode) const
         {
             return computeBlendMode(this->states.back().blend, alphaMode);
         }
 
-        void setBlendState(const BlendState& blend)
-        {
-            static_cast<T*>(this)->setBlendStateImpl(blend);
-            this->states.back().blend = blend;
-        }
+        void setBlendState(const BlendState& blend);
 
         const BlendState& getBlendState() const
         {
@@ -477,14 +456,6 @@ namespace love
             }
         }
 
-        // bool isPixelFormatSupported(PixelFormat format, uint32_t usage)
-        // {
-        //     format = getSizedFormat(format);
-
-        //     bool readable = (usage & PIXELFORMATUSAGEFLAGS_SAMPLE) != 0;
-        //     return (usage & pixelFormatUsage[format][readable ? 1 : 0]) == usage;
-        // }
-
         RendererInfo getRendererInfo() const
         {
 
@@ -496,12 +467,7 @@ namespace love
             return info;
         }
 
-        Stats getStats() const
-        {
-            Stats stats {};
-
-            return stats;
-        }
+        Stats getStats() const;
 
         size_t getStackDepth() const
         {
@@ -649,52 +615,6 @@ namespace love
             this->origin();
         }
 
-        void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth)
-        {
-            static_cast<T*>(this)->clearImpl(color, stencil, depth);
-        }
-
-        void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
-                   OptionalDouble depth)
-        {
-            if (colors.size() == 0 && !stencil.hasValue && !depth.hasValue)
-                return;
-
-            const int numColors = (int)colors.size();
-
-            if (numColors <= 1)
-            {
-                this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
-                return;
-            }
-        }
-
-        void present()
-        {
-            static_cast<T*>(this)->presentImpl();
-        }
-
-        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
-                     bool backBufferDepth, int msaa)
-        {
-            static_cast<T*>(this)->setModeImpl(width, height, pixelWidth, pixelHeight,
-                                               backBufferStencil, backBufferDepth, msaa);
-
-            this->created = true;
-
-            if (!Volatile::loadAll())
-                std::printf("Failed to load all volatile objects.\n");
-
-            this->restoreState(this->states.back());
-
-            return true;
-        }
-
-        void unsetMode()
-        {
-            static_cast<T*>(this)->unsetModeImpl();
-        }
-
         double getCurrentDPIScale()
         {
             return 1.0;
@@ -751,5 +671,10 @@ namespace love
 
         int pixelWidth;
         int pixelHeight;
+
+        BatchedDrawState batchedDrawState;
+
+        int drawCallsBatched;
+        int drawCalls;
     };
 } // namespace love

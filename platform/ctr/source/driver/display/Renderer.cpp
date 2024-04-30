@@ -1,6 +1,7 @@
 #include "common/screen.hpp"
 
 #include "driver/display/Renderer.hpp"
+#include "modules/graphics/Shader.hpp"
 
 namespace love
 {
@@ -22,6 +23,13 @@ namespace love
         C3D_CullFace(GPU_CULL_NONE);
         C3D_DepthTest(true, GPU_GEQUAL, GPU_WRITE_ALL);
 
+        C3D_AttrInfo* attributes = C3D_GetAttrInfo();
+        AttrInfo_Init(attributes);
+
+        AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3);
+        AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4);
+        AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2);
+
         Mtx_Identity(&this->context.modelView);
         Mtx_Identity(&this->context.projection);
 
@@ -40,9 +48,10 @@ namespace love
 
     void Renderer::createFramebuffers()
     {
-        const auto& info = getScreenInfo();
+        const auto& info          = getScreenInfo();
+        const int numFramebuffers = info.size();
 
-        for (size_t index = 0; index < info.size(); ++index)
+        for (size_t index = 0; index < numFramebuffers; ++index)
         {
             Framebuffer target {};
             target.create(info[index]);
@@ -85,6 +94,19 @@ namespace love
 
         C3D_FrameDrawOn(this->context.target.get());
         this->setViewport(viewport, this->context.target.get()->linked);
+
+        if (this->context.dirtyProjection)
+        {
+            if (Shader::current != nullptr)
+            {
+                auto uniforms = Shader::current->getUniforms();
+
+                C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.projMtx, &this->context.projection);
+                C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.mdlvMtx, &this->context.modelView);
+            }
+
+            this->context.dirtyProjection = false;
+        }
     }
 
     void Renderer::present()
@@ -95,6 +117,9 @@ namespace love
             this->inFrame = false;
         }
     }
+
+    // void Renderer::render(BatchedDrawCommand& command)
+    // {}
 
     void Renderer::setViewport(const Rect& viewport, bool tilt)
     {
@@ -147,7 +172,7 @@ namespace love
         this->context.cullMode = mode;
     }
 
-    void Renderer::setVertexWinding(Winding winding)
+    void Renderer::setVertexWinding(Winding)
     {}
 
     void Renderer::setColorMask(ColorChannelMask mask)
@@ -193,5 +218,33 @@ namespace love
 
         C3D_AlphaBlend(operationRGB, operationA, sourceColor, destColor, sourceAlpha, destAlpha);
         this->context.blendState = state;
+    }
+
+    void Renderer::setSamplerState(C3D_Tex* texture, SamplerState state)
+    {
+        auto magFilter = (state.minFilter == SamplerState::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
+        auto minFilter = (state.magFilter == SamplerState::FILTER_NEAREST) ? GPU_NEAREST : GPU_LINEAR;
+
+        C3D_TexSetFilter(texture, magFilter, minFilter);
+
+        auto wrapU = Renderer::getWrapMode(state.wrapU);
+        auto wrapV = Renderer::getWrapMode(state.wrapV);
+
+        C3D_TexSetWrap(texture, wrapU, wrapV);
+    }
+
+    GPU_TEXTURE_WRAP_PARAM Renderer::getWrapMode(SamplerState::WrapMode mode)
+    {
+        switch (mode)
+        {
+            case SamplerState::WRAP_CLAMP:
+                return GPU_CLAMP_TO_EDGE;
+            case SamplerState::WRAP_REPEAT:
+                return GPU_REPEAT;
+            case SamplerState::WRAP_MIRRORED_REPEAT:
+                return GPU_MIRRORED_REPEAT;
+            default:
+                return GPU_CLAMP_TO_EDGE;
+        }
     }
 } // namespace love
