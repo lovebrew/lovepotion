@@ -26,14 +26,30 @@ namespace love
         C3D_AttrInfo* attributes = C3D_GetAttrInfo();
         AttrInfo_Init(attributes);
 
-        AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 3);
-        AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 4);
-        AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 2);
+        AttrInfo_AddLoader(attributes, 0, GPU_FLOAT, 2); //< position
+        AttrInfo_AddLoader(attributes, 1, GPU_FLOAT, 2); //< texcoord
+        AttrInfo_AddLoader(attributes, 2, GPU_FLOAT, 4); //< color
 
         Mtx_Identity(&this->context.modelView);
         Mtx_Identity(&this->context.projection);
 
         this->set3DMode(true);
+
+        this->batchedDrawState.vertices     = (Vertex*)linearAlloc(sizeof(Vertex) * LOVE_UINT16_MAX);
+        this->batchedDrawState.verticesSize = LOVE_UINT16_MAX;
+
+        if (!this->batchedDrawState.vertices)
+            throw love::Exception("Failed to allocate vertex buffer.");
+
+        BufInfo_Init(&this->context.buffer);
+
+        if (BufInfo_Add(&this->context.buffer, this->batchedDrawState.vertices, sizeof(Vertex), 3, 0x210) < 0)
+        {
+            linearFree(this->batchedDrawState.vertices);
+            throw love::Exception("Failed to initialize vertex buffer.");
+        }
+
+        C3D_SetBufInfo(&this->context.buffer);
 
         this->initialized = true;
     }
@@ -41,6 +57,8 @@ namespace love
     Renderer::~Renderer()
     {
         this->destroyFramebuffers();
+
+        linearFree(this->batchedDrawState.vertices);
 
         C3D_Fini();
         gfxExit();
@@ -88,13 +106,29 @@ namespace love
     void Renderer::bindFramebuffer()
     {
         this->ensureInFrame();
+        this->flushBatchedDraws();
 
         this->context.target = this->targets[currentScreen];
         auto viewport        = this->context.target.getViewport();
 
-        C3D_FrameDrawOn(this->context.target.get());
         this->setViewport(viewport, this->context.target.get()->linked);
 
+        C3D_FrameDrawOn(this->context.target.get());
+    }
+
+    void Renderer::present()
+    {
+        if (this->inFrame)
+        {
+            this->flushBatchedDraws();
+
+            C3D_FrameEnd(0);
+            this->inFrame = false;
+        }
+    }
+
+    void Renderer::updateUniforms()
+    {
         if (this->context.dirtyProjection)
         {
             if (Shader::current != nullptr)
@@ -109,23 +143,8 @@ namespace love
         }
     }
 
-    void Renderer::present()
-    {
-        if (this->inFrame)
-        {
-            C3D_FrameEnd(0);
-            this->inFrame = false;
-        }
-    }
-
-    // void Renderer::render(BatchedDrawCommand& command)
-    // {}
-
     void Renderer::setViewport(const Rect& viewport, bool tilt)
     {
-        if (this->context.viewport == viewport)
-            return;
-
         this->context.viewport = viewport;
 
         if (viewport.h == GSP_SCREEN_WIDTH && tilt)
@@ -146,9 +165,10 @@ namespace love
             }
         }
 
+        // clang-format off
         auto* ortho = tilt ? Mtx_OrthoTilt : Mtx_Ortho;
-        ortho(&this->context.projection, 0.0f, viewport.w, viewport.h, 0.0f, Framebuffer::Z_NEAR,
-              Framebuffer::Z_FAR, true);
+        ortho(&this->context.projection, 0.0f, viewport.w, viewport.h, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR, true);
+        // clang-format on
 
         this->context.dirtyProjection = true;
         C3D_SetViewport(0, 0, (uint32_t)viewport.w, (uint32_t)viewport.h);
@@ -231,6 +251,28 @@ namespace love
         auto wrapV = Renderer::getWrapMode(state.wrapV);
 
         C3D_TexSetWrap(texture, wrapU, wrapV);
+    }
+
+    void Renderer::draw(const DrawIndexedCommand& command)
+    {
+        if (command.texture != nullptr)
+        {
+            this->setAttribute(TEXENV_TEXTURE);
+            C3D_TexBind(0, (C3D_Tex*)command.texture->getHandle());
+        }
+        else
+            this->setAttribute(TEXENV_PRIMITIVE);
+
+        GPU_Primitive_t primitiveType;
+        if (!Renderer::getConstant(command.primitiveType, primitiveType))
+            throw love::Exception("Invalid primitive type: {:d}.", (int)command.primitiveType);
+
+        decltype(C3D_UNSIGNED_BYTE) indexType;
+        if (!Renderer::getConstant(command.indexType, indexType))
+            throw love::Exception("Invalid index type: {:d}.", (int)command.indexType);
+
+        const void* elements = (const void*)command.indexBufferOffset;
+        C3D_DrawElements(primitiveType, command.indexCount, indexType, elements);
     }
 
     GPU_TEXTURE_WRAP_PARAM Renderer::getWrapMode(SamplerState::WrapMode mode)

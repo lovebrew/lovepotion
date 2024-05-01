@@ -17,8 +17,6 @@
 #include "modules/graphics/renderstate.hpp"
 #include "modules/graphics/samplerstate.hpp"
 
-#include "modules/graphics/BatchedDrawState.hpp"
-
 #include <string>
 #include <vector>
 
@@ -206,87 +204,7 @@ namespace love
 
         void restoreState(const DisplayState& state);
 
-        struct BatchedVertexData
-        {
-            void* stream[2];
-        };
-
-        struct BatchedDrawCommand
-        {
-            PrimitiveType primitiveMode           = PRIMITIVE_TRIANGLES;
-            CommonFormat formats[2]               = { CommonFormat::NONE, CommonFormat::NONE };
-            TriangleIndexMode indexMode           = TRIANGLEINDEX_NONE;
-            int vertexCount                       = 0;
-            TextureBase* texture                  = nullptr;
-            ShaderBase::StandardShader shaderType = ShaderBase::STANDARD_DEFAULT;
-        };
-
-        struct DrawIndexedCommand
-        {
-            PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
-
-            const VertexAttributes* attributes;
-            const BufferBindings* buffers;
-
-            int indexCount    = 0;
-            int instanceCount = 1;
-
-            IndexDataType indexType = INDEX_UINT16;
-            Resource* indexBuffer;
-            size_t indexBufferOffset = 0;
-
-            Buffer* indirectBuffer      = nullptr;
-            size_t indirectBufferOffset = 0;
-
-            TextureBase* texture = nullptr;
-
-            CullMode cullMode = CULL_NONE;
-
-            DrawIndexedCommand(const VertexAttributes* attributes, const BufferBindings* buffers,
-                               Resource* indexBuffer) :
-                attributes(attributes),
-                buffers(buffers),
-                indexBuffer(indexBuffer)
-            {}
-        };
-
-        struct DrawCommand
-        {
-            PrimitiveType primitiveType = PRIMITIVE_TRIANGLES;
-
-            const VertexAttributes* attributes;
-            const BufferBindings* buffers;
-
-            int vertexStart   = 0;
-            int vertexCount   = 0;
-            int instanceCount = 1;
-
-            Resource* vertexBuffer;
-
-            Buffer* indirectBuffer      = nullptr;
-            size_t indirectBufferOffset = 0;
-
-            TextureBase* texture = nullptr;
-
-            CullMode cullMode = CULL_NONE;
-
-            DrawCommand(const VertexAttributes* attributes, const BufferBindings* buffers) :
-                attributes(attributes),
-                buffers(buffers)
-            {}
-        };
-
-        BatchedVertexData requestBatchedDraw(const BatchedDrawCommand& command);
-
-        void flushBatchedDraws();
-
-        static void flushBatchedDrawsGlobal();
-
         void restoreStateChecked(const DisplayState& state);
-
-        virtual void draw(const DrawCommand& command) = 0;
-
-        virtual void draw(const DrawIndexedCommand& command) = 0;
 
         /* TODO: implement when they exist */
         bool isRenderTargetActive() const
@@ -671,8 +589,6 @@ namespace love
 
         int pixelWidth;
         int pixelHeight;
-
-        BatchedDrawState batchedDrawState;
 
         int drawCallsBatched;
         int drawCalls;

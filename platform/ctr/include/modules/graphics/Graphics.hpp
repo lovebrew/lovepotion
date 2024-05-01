@@ -31,11 +31,7 @@ namespace love
 
         void draw(Drawable* drawable, const Matrix4& matrix);
 
-        void draw(TextureBase* texture, Quad* quad, const Matrix4& matrix);
-
-        virtual void draw(const DrawCommand& command) override;
-
-        virtual void draw(const DrawIndexedCommand& command) override;
+        void draw(Texture* texture, Quad* quad, const Matrix4& matrix);
 
         bool isActive() const;
 

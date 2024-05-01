@@ -10,19 +10,20 @@
 
 ; Inputs
 .in inPosition     v0
-.in inColor        v1
-.in inTexCoord     v2
+.in inTexCoord     v1
+.in inColor        v2
 
 ; Outputs
 .out outPosition  position
-.out outColor     color
 .out outTexCoord0 texcoord0
+.out outColor     color
 
 ; void main()
 .proc main
     ; r0 = vec4(inPosition, 1.0)
-    mov r0.xyz, inPosition
-    mov r0.w,   ones
+    mov r0.xy, inPosition
+    mov r0.z,  zeros
+    mov r0.w,  ones
 
     ; pos = mdlvMtx * inPosition;
     dp4 r1.x, mdlvMtx[0], r0

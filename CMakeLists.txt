@@ -358,7 +358,6 @@ source/modules/filesystem/wrap_Filesystem.cpp
 source/modules/graphics/Graphics.cpp
 source/modules/graphics/renderstate.cpp
 source/modules/graphics/samplerstate.cpp
-source/modules/graphics/StreamBuffer.cpp
 source/modules/graphics/Shader.cpp
 source/modules/graphics/Quad.cpp
 source/modules/graphics/Volatile.cpp

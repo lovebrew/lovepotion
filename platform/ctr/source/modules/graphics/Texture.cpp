@@ -2,6 +2,7 @@
 #include "modules/graphics/Graphics.hpp"
 
 #include "driver/display/Renderer.hpp"
+#include "driver/graphics/DrawCommand.hpp"
 
 namespace love
 {
@@ -173,38 +174,34 @@ namespace love
 
         const auto& viewport = quad->getViewport();
 
-        Vector2 physicalDim = { (float)this->texture->width, (float)this->texture->height };
-        Vector2 virtualDim  = { (float)this->pixelWidth, (float)this->pixelHeight };
+        Vector2 physicalDim { (float)this->texture->width, (float)this->texture->height };
+        Vector2 virtualDim { (float)this->pixelWidth, (float)this->pixelHeight };
 
         refreshQuad(quad, viewport, virtualDim, physicalDim, this->renderTarget);
 
         const auto& transform = graphics.getTransform();
         bool is2D             = transform.isAffine2DTransform();
 
-        Graphics::BatchedDrawCommand command {};
-        command.formats[0]  = getSinglePositionFormat(is2D);
-        command.formats[1]  = CommonFormat::STf_RGBAf;
+        DrawCommand command {};
+        command.format      = CommonFormat::XYf_STf_RGBAf;
         command.indexMode   = TRIANGLEINDEX_QUADS;
         command.vertexCount = 4;
         command.texture     = this;
 
-        Graphics::BatchedVertexData data = graphics.requestBatchedDraw(command);
+        auto data = Renderer::getInstance().requestBatchDraw(command);
 
         Matrix4 translated(transform, matrix);
 
         if (is2D)
-            translated.transformXY((Vector2*)data.stream[0], quad->getVertexPositions(), 4);
-        else
-            translated.transformXY0((Vector3*)data.stream[0], quad->getVertexPositions(), 4);
+            translated.transformXY(data.stream, quad->getVertexPositions(), 4);
 
         const auto* texCoords = quad->getTextureCoordinates();
-        STf_RGBAf* vertices   = (STf_RGBAf*)data.stream[1];
 
         for (int index = 0; index < 4; index++)
         {
-            vertices[index].s     = texCoords[index].x;
-            vertices[index].t     = texCoords[index].y;
-            vertices[index].color = graphics.getColor();
+            data.stream[index].s     = texCoords[index].x;
+            data.stream[index].t     = texCoords[index].y;
+            data.stream[index].color = graphics.getColor();
         }
     }
 

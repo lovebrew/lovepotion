@@ -9,29 +9,16 @@ namespace love
     class StreamBufferClientMemory final : public StreamBufferBase
     {
       public:
-        StreamBufferClientMemory(BufferUsage mode, size_t size) :
-            StreamBufferBase(mode, size),
-            data(nullptr),
-            vbo(new C3D_BufInfo())
+        StreamBufferClientMemory(BufferUsage mode, size_t size) : StreamBufferBase(mode, size), data(nullptr)
         {
             this->data = (uint8_t*)linearAlloc(size);
 
             if (this->data == nullptr)
                 throw love::Exception("Failed to allocate memory for StreamBufferClientMemory");
-
-            BufInfo_Init(this->vbo);
-
-            int result = BufInfo_Add(this->vbo, this->data, sizeof(Vertex), 3, 0x210);
-
-            if (result != 0)
-                throw love::Exception("Failed to create StreamBufferClientMemory");
         }
 
         virtual ~StreamBufferClientMemory()
         {
-            delete this->vbo;
-            this->vbo = nullptr;
-
             linearFree(this->data);
         }
 
@@ -55,12 +42,11 @@ namespace love
 
         ptrdiff_t getHandle() const override
         {
-            return (ptrdiff_t)this->vbo;
+            return 0;
         }
 
       private:
         uint8_t* data;
-        C3D_BufInfo* vbo;
     };
 
     StreamBufferBase* createStreamBuffer(BufferUsage usage, size_t size)

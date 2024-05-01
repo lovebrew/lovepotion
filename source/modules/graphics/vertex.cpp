@@ -64,8 +64,9 @@ namespace love
                     indices[i++] = vertexStart + index + 1 + (index & 1);
                     indices[i++] = vertexStart + index + 2 - (index & 1);
                 }
+
+                break;
             }
-            break;
             case TRIANGLEINDEX_FAN:
             {
                 int i = 0;
@@ -75,13 +76,14 @@ namespace love
                     indices[i++] = vertexStart + index - 1;
                     indices[i++] = vertexStart + index;
                 }
+
+                break;
             }
-            break;
             case TRIANGLEINDEX_QUADS:
             {
-                // 0---3
-                // | \ |
-                // 1---2
+                // 0---2
+                // | / |
+                // 1---3
                 int count = vertexCount / 4;
                 for (int i = 0; i < count; i++)
                 {
@@ -93,11 +95,12 @@ namespace love
                     indices[ii + 2] = vi + 2;
 
                     indices[ii + 3] = vi + 2;
-                    indices[ii + 4] = vi + 3;
-                    indices[ii + 5] = vi + 0;
+                    indices[ii + 4] = vi + 1;
+                    indices[ii + 5] = vi + 3;
                 }
+
+                break;
             }
-            break;
         }
     }
 

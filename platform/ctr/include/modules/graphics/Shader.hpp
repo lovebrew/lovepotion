@@ -23,6 +23,8 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
+        void updateUniforms(const C3D_Mtx& mdlView, const C3D_Mtx& proj);
+
       private:
         struct TextureUnit
         {

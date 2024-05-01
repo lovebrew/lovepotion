@@ -18,8 +18,6 @@ namespace love
 
         void destroy();
 
-        void setViewport(const Rect& viewport);
-
         void setScissor(const Rect& scissor);
 
         C3D_RenderTarget* get() const
@@ -42,8 +40,7 @@ namespace love
 
         static constexpr auto DISPLAY_TRANSFER_FLAGS =
             GX_TRANSFER_FLIP_VERT(0) | GX_TRANSFER_OUT_TILED(0) | GX_TRANSFER_RAW_COPY(0) |
-            GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) |
-            GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
+            GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGB8) |
             GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO);
 
         C3D_RenderTarget* target;

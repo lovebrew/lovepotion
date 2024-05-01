@@ -51,6 +51,12 @@ namespace love
         current = this;
     }
 
+    void Shader::updateUniforms(const C3D_Mtx& mdlView, const C3D_Mtx& proj)
+    {
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->locations.mdlvMtx, &mdlView);
+        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->locations.projMtx, &proj);
+    }
+
     ptrdiff_t Shader::getHandle() const
     {
         return 0;

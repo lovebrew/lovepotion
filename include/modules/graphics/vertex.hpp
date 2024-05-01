@@ -235,6 +235,13 @@ namespace love
 
     using Vertex = XYf_STf_RGBAf;
 
+    inline void DEBUG_VERTEX(const Vertex& v)
+    {
+        std::printf("Position: %.2f, %.2f\n", v.x, v.y);
+        std::printf("Texture Coordinates: %f, %f\n", v.s, v.t);
+        std::printf("Color: %.2f, %.2f, %.2f, %.2f\n", v.color.r, v.color.g, v.color.b, v.color.a);
+    }
+
     inline CommonFormat getSinglePositionFormat(bool is2D)
     {
         return is2D ? CommonFormat::XYf : CommonFormat::XYf;

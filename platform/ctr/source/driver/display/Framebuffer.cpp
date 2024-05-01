@@ -19,10 +19,19 @@ namespace love
             throw love::Exception("Failed to create render target.");
 
         const auto screen = (gfxScreen_t)info.id;
-        C3D_RenderTargetSetOutput(this->target, screen, side, Framebuffer::DISPLAY_TRANSFER_FLAGS);
+        C3D_RenderTargetSetOutput(this->target, screen, side, DISPLAY_TRANSFER_FLAGS);
 
         this->width  = info.width;
         this->height = info.height;
+
+        // clang-format off
+        Mtx_OrthoTilt(&this->projection, 0.0f, (float)this->width, (float)this->height, 0.0f, Z_NEAR, Z_FAR, true);
+        // clang-format on
+
+        this->viewport = { 0, 0, this->width, this->height };
+        this->scissor  = { 0, 0, this->width, this->height };
+
+        this->setScissor(Rect::EMPTY);
     }
 
     void Framebuffer::destroy()
@@ -46,19 +55,6 @@ namespace love
         return { (int)left, (int)top, (int)right, (int)bottom };
     }
 
-    void Framebuffer::setViewport(const Rect& viewport)
-    {
-        auto result = calculateBounds(viewport, this->width, this->height);
-
-        if (result == Rect::EMPTY)
-            result = { 0, 0, this->width, this->height };
-
-        Mtx_OrthoTilt(&this->projection, (float)result.x, (float)this->width, (float)this->height,
-                      (float)result.h, Framebuffer::Z_NEAR, Framebuffer::Z_FAR, true);
-
-        this->viewport = result;
-    }
-
     void Framebuffer::setScissor(const Rect& scissor)
     {
         const bool enabled   = scissor != Rect::EMPTY;
@@ -67,10 +63,9 @@ namespace love
         auto result = calculateBounds(scissor, this->width, this->height);
 
         if (result == Rect::EMPTY)
-            result = { 0, 0, this->width, this->height };
+            result = calculateBounds(this->scissor, this->width, this->height);
 
-        C3D_SetScissor(mode, result.x, result.y, result.w, result.h);
-
+        C3D_SetScissor(mode, result.y, result.x, result.h, result.w);
         this->scissor = result;
     }
 } // namespace love

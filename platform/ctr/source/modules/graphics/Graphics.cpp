@@ -53,8 +53,6 @@ namespace love
             this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
             return;
         }
-
-        this->flushBatchedDraws();
     }
 
     void Graphics::present()
@@ -62,7 +60,6 @@ namespace love
         if (!this->isActive())
             return;
 
-        this->flushBatchedDraws();
         Renderer::getInstance().present();
 
         this->drawCalls        = 0;
@@ -108,15 +105,6 @@ namespace love
 
         if (!Volatile::loadAll())
             std::printf("Failed to load all volatile objects.\n");
-
-        // clang-format off
-        if (this->batchedDrawState.vb[0] == nullptr)
-        {
-            this->batchedDrawState.vb[0] = createStreamBuffer(BUFFERUSAGE_VERTEX, 1024 * 1024 * 1);
-            this->batchedDrawState.vb[1] = createStreamBuffer(BUFFERUSAGE_VERTEX, 256 * 1024 * 1);
-            this->batchedDrawState.indexBuffer = createStreamBuffer(BUFFERUSAGE_INDEX, sizeof(uint16_t) * LOVE_UINT16_MAX);
-        }
-        // clang-format on
 
         this->restoreState(this->states.back());
 
@@ -164,7 +152,7 @@ namespace love
         drawable->draw(*this, matrix);
     }
 
-    void Graphics::draw(TextureBase* texture, Quad* quad, const Matrix4& matrix)
+    void Graphics::draw(Texture* texture, Quad* quad, const Matrix4& matrix)
     {
         texture->draw(*this, quad, matrix);
     }
@@ -178,70 +166,6 @@ namespace love
         bool supported = Renderer::getConstant(format, color);
 
         return readable && supported;
-    }
-
-    void Graphics::draw(const DrawCommand& command)
-    {
-        // C3D_SetBufInfo((C3D_BufInfo*)command->getHandle());
-
-        // auto* env = C3D_GetTexEnv(0);
-        // C3D_TexEnvInit(env);
-
-        // if (command.texture == nullptr)
-        // {
-        //     C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-        //     C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-        // }
-        // else
-        // {
-        //     C3D_TexBind(0, (C3D_Tex*)command.texture->getHandle());
-        //     C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-        //     C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
-        // }
-
-        // GPU_Primitive_t primitive;
-        // if (!Renderer::getConstant(command.primitiveType, primitive))
-        //     throw love::Exception("Invalid primitive type: {:d}", (int)command.primitiveType);
-
-        // C3D_DrawArrays(primitive, command.vertexStart, command.vertexCount);
-
-        // ++this->drawCalls;
-    }
-
-    void Graphics::draw(const DrawIndexedCommand& command)
-    {
-        std::printf("Binding C3D_BufInfo\n");
-        C3D_SetBufInfo((C3D_BufInfo*)command.indexBuffer->getHandle());
-        std::printf("Resetting TexEnv\n");
-        auto* env = C3D_GetTexEnv(0);
-        C3D_TexEnvInit(env);
-
-        if (command.texture == nullptr)
-        {
-            std::printf("Setting up texture environment for no texture\n");
-            C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-        }
-        else
-        {
-            std::printf("Setting up texture environment for texture\n");
-            C3D_TexBind(0, (C3D_Tex*)command.texture->getHandle());
-            C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
-        }
-
-        GPU_Primitive_t primitive;
-        if (!Renderer::getConstant(command.primitiveType, primitive))
-            throw love::Exception("Invalid primitive type: {:d}", (int)command.primitiveType);
-
-        decltype(C3D_UNSIGNED_BYTE) type;
-        if (!Renderer::getConstant(command.indexType, type))
-            throw love::Exception("Invalid index type: {:d}", (int)command.indexType);
-        std::printf("Drawing elements\n");
-        const void* indices = BUFFER_OFFSET(command.indexBufferOffset);
-        C3D_DrawElements(primitive, command.indexCount, type, indices);
-
-        ++this->drawCalls;
     }
 
     bool Graphics::is3D() const
