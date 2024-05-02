@@ -232,8 +232,8 @@ namespace love
         if (!Renderer::getConstant(state.dstFactorA, destAlpha))
             return;
 
-        C3D_AlphaBlend(operationRGB, operationA, sourceColor, destColor, sourceAlpha, destAlpha);
         this->context.blendState = state;
+        C3D_AlphaBlend(operationRGB, operationA, sourceColor, destColor, sourceAlpha, destAlpha);
     }
 
     void Renderer::setSamplerState(C3D_Tex* texture, SamplerState state)
