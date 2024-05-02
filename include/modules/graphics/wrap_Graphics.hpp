@@ -3,39 +3,51 @@
 #include "common/luax.hpp"
 #include "modules/graphics/Graphics.hpp"
 
-template<typename T>
-static void luax_checkstandardtransform(lua_State* L, int index, const T& func)
+#include "modules/math/Transform.hpp"
+
+namespace love
 {
-    /* TODO: check Transform type */
-
-    int nargs = lua_gettop(L);
-
-    float x  = luaL_optnumber(L, index + 0, 0.0);
-    float y  = luaL_optnumber(L, index + 1, 0.0);
-    float a  = luaL_optnumber(L, index + 2, 0.0);
-    float sx = luaL_optnumber(L, index + 3, 1.0);
-    float sy = luaL_optnumber(L, index + 4, sx);
-
-    float ox = 0.0f;
-    float oy = 0.0f;
-
-    if (nargs >= index + 5)
+    template<typename T>
+    static void luax_checkstandardtransform(lua_State* L, int index, const T& func)
     {
-        ox = luaL_optnumber(L, index + 5, 0.0);
-        oy = luaL_optnumber(L, index + 6, 0.0);
+        /* TODO: check Transform type */
+
+        auto* transform = luax_totype<Transform>(L, index);
+
+        if (transform != nullptr)
+            func(transform->getMatrix());
+        else
+        {
+            int nargs = lua_gettop(L);
+
+            float x  = luaL_optnumber(L, index + 0, 0.0);
+            float y  = luaL_optnumber(L, index + 1, 0.0);
+            float a  = luaL_optnumber(L, index + 2, 0.0);
+            float sx = luaL_optnumber(L, index + 3, 1.0);
+            float sy = luaL_optnumber(L, index + 4, sx);
+
+            float ox = 0.0f;
+            float oy = 0.0f;
+
+            if (nargs >= index + 5)
+            {
+                ox = luaL_optnumber(L, index + 5, 0.0);
+                oy = luaL_optnumber(L, index + 6, 0.0);
+            }
+
+            float kx = 0.0f;
+            float ky = 0.0f;
+
+            if (nargs >= index + 7)
+            {
+                kx = luaL_optnumber(L, index + 7, 0.0);
+                ky = luaL_optnumber(L, index + 8, 0.0);
+            }
+
+            func(love::Matrix4(x, y, a, sx, sy, ox, oy, kx, ky));
+        }
     }
-
-    float kx = 0.0f;
-    float ky = 0.0f;
-
-    if (nargs >= index + 7)
-    {
-        kx = luaL_optnumber(L, index + 7, 0.0);
-        ky = luaL_optnumber(L, index + 8, 0.0);
-    }
-
-    func(love::Matrix4(x, y, a, sx, sy, ox, oy, kx, ky));
-}
+} // namespace love
 
 namespace Wrap_Graphics
 {

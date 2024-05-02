@@ -119,4 +119,31 @@ namespace love
         TextureBase* texture;
         CullMode cullMode = CULL_NONE;
     };
+
+    struct BatchedVertexData
+    {
+        Vertex* stream;
+    };
+
+    struct BatchedDrawState
+    {
+        Vertex* vertices;
+        size_t verticesSize;
+
+        StreamBuffer::MapInfo vertexMap = StreamBuffer::MapInfo();
+
+        StreamBuffer* indexBuffer;
+        StreamBuffer::MapInfo indexMap = StreamBuffer::MapInfo();
+
+        PrimitiveType primitiveMode       = PRIMITIVE_TRIANGLES;
+        ShaderBase::StandardShader shader = ShaderBase::STANDARD_DEFAULT;
+        CommonFormat format               = CommonFormat::NONE;
+
+        StrongRef<TextureBase> texture;
+
+        int vertexCount = 0;
+        int indexCount  = 0;
+
+        bool flushing = false;
+    };
 } // namespace love

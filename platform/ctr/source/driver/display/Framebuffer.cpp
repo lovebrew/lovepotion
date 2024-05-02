@@ -13,10 +13,10 @@ namespace love
     {
         const auto side = (gfxIs3D() && info.name == "right") ? GFX_RIGHT : GFX_LEFT;
 
-        this->target = C3D_RenderTargetCreate(info.width, info.height, GPU_RB_RGBA8, FORMAT);
+        this->target = C3D_RenderTargetCreate(info.width, info.height, COLOR_FORMAT, DEPTH_FORMAT);
 
         if (!this->target)
-            throw love::Exception("Failed to create render target.");
+            throw love::Exception("Failed to create render target '{:s}'.", info.name);
 
         const auto screen = (gfxScreen_t)info.id;
         C3D_RenderTargetSetOutput(this->target, screen, side, DISPLAY_TRANSFER_FLAGS);
@@ -30,8 +30,6 @@ namespace love
 
         this->viewport = { 0, 0, this->width, this->height };
         this->scissor  = { 0, 0, this->width, this->height };
-
-        this->setScissor(Rect::EMPTY);
     }
 
     void Framebuffer::destroy()
@@ -43,7 +41,7 @@ namespace love
         }
     }
 
-    static const Rect calculateBounds(const Rect& bounds, int width, int height)
+    void Framebuffer::calculateBounds(const Rect& bounds, Rect& out, const int width, const int height)
     {
         // clang-format off
         const uint32_t left   = height > (bounds.y + bounds.h) ? height - (bounds.y + bounds.h) : 0;
@@ -52,7 +50,7 @@ namespace love
         const uint32_t bottom = width  - bounds.x;
         // clang-format on
 
-        return { (int)left, (int)top, (int)right, (int)bottom };
+        out = { (int)left, (int)top, (int)right, (int)bottom };
     }
 
     void Framebuffer::setScissor(const Rect& scissor)
@@ -60,12 +58,10 @@ namespace love
         const bool enabled   = scissor != Rect::EMPTY;
         GPU_SCISSORMODE mode = enabled ? GPU_SCISSOR_NORMAL : GPU_SCISSOR_DISABLE;
 
-        auto result = calculateBounds(scissor, this->width, this->height);
+        Rect result {};
+        calculateBounds(scissor, result, this->width, this->height);
 
-        if (result == Rect::EMPTY)
-            result = calculateBounds(this->scissor, this->width, this->height);
-
-        C3D_SetScissor(mode, result.y, result.x, result.h, result.w);
         this->scissor = result;
+        C3D_SetScissor(mode, result.y, result.x, result.h, result.w);
     }
 } // namespace love

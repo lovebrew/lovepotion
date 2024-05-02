@@ -244,7 +244,7 @@ namespace love
 
     inline CommonFormat getSinglePositionFormat(bool is2D)
     {
-        return is2D ? CommonFormat::XYf : CommonFormat::XYf;
+        return is2D ? CommonFormat::XYf : CommonFormat::XYZf;
     }
 
     struct DataFormatInfo

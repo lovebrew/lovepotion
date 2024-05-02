@@ -1,6 +1,7 @@
 #pragma once
 
 #include <climits> // for CHAR_BIT
+#include <cstdio>
 #include <cstdlib> // for rand() and RAND_MAX
 
 #include <algorithm>
@@ -47,7 +48,7 @@ namespace love
 {
     struct Rect
     {
-        static constexpr int EMPTY[4] = { 0, 0, 0, 0 };
+        static constexpr int EMPTY[4] = { -1, -1, -1, -1 };
 
         int x, y, w, h;
 
@@ -70,6 +71,11 @@ namespace love
             return x == other.x && y == other.y && w == other.w && h == other.h;
         }
     };
+
+    inline void DEBUG_RECT(const Rect& rectangle)
+    {
+        std::printf("x: %d, y: %d, w: %d, h: %d\n", rectangle.x, rectangle.y, rectangle.w, rectangle.h);
+    }
 
     /*
      ** Clamps 3DS textures between min

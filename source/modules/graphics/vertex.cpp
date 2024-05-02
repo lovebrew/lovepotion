@@ -45,6 +45,7 @@ namespace love
             case CommonFormat::XYf_STPf_RGBAf:
                 return sizeof(XYf_STPf_RGBAf);
         }
+
         return 0;
     }
 

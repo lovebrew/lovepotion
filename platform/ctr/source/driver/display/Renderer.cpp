@@ -111,9 +111,8 @@ namespace love
         this->context.target = this->targets[currentScreen];
         auto viewport        = this->context.target.getViewport();
 
-        this->setViewport(viewport, this->context.target.get()->linked);
-
         C3D_FrameDrawOn(this->context.target.get());
+        this->setViewport(viewport, this->context.target.get()->linked);
     }
 
     void Renderer::present()
@@ -145,22 +144,20 @@ namespace love
 
     void Renderer::setViewport(const Rect& viewport, bool tilt)
     {
-        this->context.viewport = viewport;
+        this->context.viewport        = viewport;
+        this->context.dirtyProjection = true;
 
         if (viewport.h == GSP_SCREEN_WIDTH && tilt)
         {
             if (viewport.w == GSP_SCREEN_HEIGHT_TOP || viewport.w == GSP_SCREEN_HEIGHT_TOP_2X)
             {
                 Mtx_Copy(&this->context.projection, &this->targets[0].getProjection());
-                this->context.dirtyProjection = true;
                 return;
             }
             else if (viewport.w == GSP_SCREEN_HEIGHT_BOTTOM)
             {
                 const auto index = gfxIs3D() ? 2 : 1;
-
                 Mtx_Copy(&this->context.projection, &this->targets[index].getProjection());
-                this->context.dirtyProjection = true;
                 return;
             }
         }
@@ -170,7 +167,6 @@ namespace love
         ortho(&this->context.projection, 0.0f, viewport.w, viewport.h, 0.0f, Framebuffer::Z_NEAR, Framebuffer::Z_FAR, true);
         // clang-format on
 
-        this->context.dirtyProjection = true;
         C3D_SetViewport(0, 0, (uint32_t)viewport.w, (uint32_t)viewport.h);
     }
 

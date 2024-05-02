@@ -129,9 +129,6 @@ namespace love
       private:
         static GPU_TEXTURE_WRAP_PARAM getWrapMode(SamplerState::WrapMode mode);
 
-        static constexpr int MAX_OBJECTS        = 0x1000;
-        static constexpr int VERTEX_BUFFER_SIZE = 6 * MAX_OBJECTS; // 6 vertices per object
-
         void ensureInFrame();
 
         void createFramebuffers();
