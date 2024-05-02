@@ -13,7 +13,7 @@ namespace love
     {
         const auto side = (gfxIs3D() && info.name == "right") ? GFX_RIGHT : GFX_LEFT;
 
-        this->target = C3D_RenderTargetCreate(info.width, info.height, COLOR_FORMAT, DEPTH_FORMAT);
+        this->target = C3D_RenderTargetCreate(info.height, info.width, COLOR_FORMAT, DEPTH_FORMAT);
 
         if (!this->target)
             throw love::Exception("Failed to create render target '{:s}'.", info.name);

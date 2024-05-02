@@ -1034,6 +1034,269 @@ int Wrap_Graphics::getStats(lua_State* L)
     return 1;
 }
 
+int Wrap_Graphics::polygon(lua_State* L)
+{
+    int argc = lua_gettop(L) - 1;
+
+    Graphics::DrawMode mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!Graphics::getConstant(name, mode))
+        return luax_enumerror(L, "draw mode", Graphics::DrawModes, name);
+
+    bool isTable = false;
+
+    if (argc == 1 && lua_istable(L, 2))
+    {
+        argc    = (int)luax_objlen(L, 2);
+        isTable = true;
+    }
+
+    if (argc % 2 != 0)
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+    else if (argc < 6)
+        return luaL_error(L, "Need at least three vertices to draw a polygon.");
+
+    int numVertices = argc / 2;
+    auto* coords    = instance()->getScratchBuffer<Vector2>(numVertices + 1);
+
+    if (isTable)
+    {
+        for (int index = 0; index < numVertices; index++)
+        {
+            lua_rawgeti(L, 2, (index * 2) + 1);
+            lua_rawgeti(L, 2, (index * 2) + 2);
+
+            coords[index].x = luax_checkfloat(L, -2);
+            coords[index].y = luax_checkfloat(L, -1);
+
+            lua_pop(L, 2);
+        }
+    }
+    else
+    {
+        for (int index = 0; index < numVertices; ++index)
+        {
+            coords[index].x = luax_checkfloat(L, (index * 2) + 2);
+            coords[index].y = luax_checkfloat(L, (index * 2) + 3);
+        }
+    }
+
+    coords[numVertices] = coords[0];
+
+    luax_catchexcept(L, [&]() { instance()->polygon(mode, std::span(coords, numVertices + 1)); });
+
+    return 0;
+}
+
+int Wrap_Graphics::rectangle(lua_State* L)
+{
+    Graphics::DrawMode mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!Graphics::getConstant(name, mode))
+        return luax_enumerror(L, "draw mode", Graphics::DrawModes, name);
+
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
+    float w = luaL_checknumber(L, 4);
+    float h = luaL_checknumber(L, 5);
+
+    if (lua_isnoneornil(L, 6))
+    {
+        luax_catchexcept(L, [&]() { instance()->rectangle(mode, x, y, w, h); });
+        return 0;
+    }
+
+    float rx = luaL_optnumber(L, 6, 0.0f);
+    float ry = luaL_optnumber(L, 7, rx);
+
+    if (lua_isnoneornil(L, 8))
+        luax_catchexcept(L, [&]() { instance()->rectangle(mode, x, y, w, h, rx, ry); });
+    else
+    {
+        int points = luaL_checkinteger(L, 8);
+        luax_catchexcept(L, [&]() { instance()->rectangle(mode, x, y, w, h, rx, ry, points); });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::circle(lua_State* L)
+{
+    Graphics::DrawMode mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!Graphics::getConstant(name, mode))
+        return luax_enumerror(L, "draw mode", Graphics::DrawModes, name);
+
+    float x      = luaL_checknumber(L, 2);
+    float y      = luaL_checknumber(L, 3);
+    float radius = luaL_checknumber(L, 4);
+
+    if (lua_isnoneornil(L, 5))
+        luax_catchexcept(L, [&]() { instance()->circle(mode, x, y, radius); });
+    else
+    {
+        int points = luaL_checkinteger(L, 5);
+        luax_catchexcept(L, [&]() { instance()->circle(mode, x, y, radius, points); });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::ellipse(lua_State* L)
+{
+    Graphics::DrawMode mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!Graphics::getConstant(name, mode))
+        return luax_enumerror(L, "draw mode", Graphics::DrawModes, name);
+
+    float x = luaL_checknumber(L, 2);
+    float y = luaL_checknumber(L, 3);
+    float a = luaL_checknumber(L, 4);
+    float b = luaL_optnumber(L, 5, a);
+
+    if (lua_isnoneornil(L, 6))
+        luax_catchexcept(L, [&]() { instance()->ellipse(mode, x, y, a, b); });
+    else
+    {
+        int points = luaL_checkinteger(L, 6);
+        luax_catchexcept(L, [&]() { instance()->ellipse(mode, x, y, a, b, points); });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::arc(lua_State* L)
+{
+    Graphics::DrawMode mode;
+    const char* name = luaL_checkstring(L, 1);
+
+    if (!Graphics::getConstant(name, mode))
+        return luax_enumerror(L, "draw mode", Graphics::DrawModes, name);
+
+    int start = 2;
+
+    Graphics::ArcMode arcMode = Graphics::ARC_PIE;
+
+    if (lua_type(L, 2) == LUA_TSTRING)
+    {
+        const char* arcName = luaL_checkstring(L, 2);
+
+        if (!Graphics::getConstant(arcName, arcMode))
+            return luax_enumerror(L, "arc mode", Graphics::ArcModes, arcName);
+
+        start = 3;
+    }
+
+    float x      = luaL_checknumber(L, start + 0);
+    float y      = luaL_checknumber(L, start + 1);
+    float radius = luaL_checknumber(L, start + 2);
+    float angle1 = luaL_checknumber(L, start + 3);
+    float angle2 = luaL_checknumber(L, start + 4);
+
+    if (lua_isnoneornil(L, start + 5))
+        luax_catchexcept(L, [&]() { instance()->arc(mode, arcMode, x, y, radius, angle1, angle2); });
+    else
+    {
+        int points = luaL_checkinteger(L, start + 5);
+        luax_catchexcept(L, [&]() { instance()->arc(mode, arcMode, x, y, radius, angle1, angle2, points); });
+    }
+
+    return 0;
+}
+
+int Wrap_Graphics::points(lua_State* L)
+{
+    int argc = lua_gettop(L);
+
+    bool isTable         = false;
+    bool isTableOfTables = false;
+
+    if (argc == 1 && lua_istable(L, 1))
+    {
+        isTable = true;
+        argc    = (int)luax_objlen(L, 1);
+
+        lua_rawgeti(L, 1, 1);
+        isTableOfTables = lua_istable(L, -1);
+        lua_pop(L, 1);
+    }
+
+    if (argc % 2 != 0 && !isTableOfTables)
+        return luaL_error(L, "Number of vertex components must be a multiple of two.");
+
+    int numPositions = argc / 2;
+
+    if (isTableOfTables)
+        numPositions = argc;
+
+    Vector2* positions = nullptr;
+    Color* colors      = nullptr;
+
+    if (isTableOfTables)
+    {
+        size_t size   = (sizeof(Vector2) + sizeof(Color)) * numPositions;
+        uint8_t* data = instance()->getScratchBuffer<uint8_t>(size);
+
+        positions = (Vector2*)data;
+        colors    = (Color*)(data + sizeof(Vector2) * numPositions);
+    }
+    else
+        positions = instance()->getScratchBuffer<Vector2>(numPositions);
+
+    if (isTable)
+    {
+        if (isTableOfTables)
+        {
+            for (int index = 0; index < argc; index++)
+            {
+                lua_rawgeti(L, 1, index + 1);
+
+                for (int j = 1; j <= 6; j++)
+                    lua_rawgeti(L, -j, j);
+
+                positions[index].x = luax_checkfloat(L, -6);
+                positions[index].y = luax_checkfloat(L, -5);
+
+                colors[index].r = (float)luax_optnumberclamped01(L, -4, 1.0);
+                colors[index].g = (float)luax_optnumberclamped01(L, -3, 1.0);
+                colors[index].b = (float)luax_optnumberclamped01(L, -2, 1.0);
+                colors[index].a = (float)luax_optnumberclamped01(L, -1, 1.0);
+
+                lua_pop(L, 7);
+            }
+        }
+        else
+        {
+            for (int index = 0; index < numPositions; index++)
+            {
+                lua_rawgeti(L, 1, index * 2 + 1);
+                lua_rawgeti(L, 1, index * 2 + 2);
+
+                positions[index].x = luax_checkfloat(L, -2);
+                positions[index].y = luax_checkfloat(L, -1);
+
+                lua_pop(L, 2);
+            }
+        }
+    }
+    else
+    {
+        for (int index = 0; index < numPositions; index++)
+        {
+            positions[index].x = luax_checkfloat(L, index * 2 + 1);
+            positions[index].y = luax_checkfloat(L, index * 2 + 2);
+        }
+    }
+
+    luax_catchexcept(L, [&]() { instance()->points(positions, colors, numPositions); });
+
+    return 0;
+}
+
 // Homebrew Stuff™
 
 int Wrap_Graphics::getScreens(lua_State* L)
@@ -1161,6 +1424,13 @@ static constexpr luaL_Reg functions[] =
     { "getStats",               Wrap_Graphics::getStats              },
 
     { "draw",                   Wrap_Graphics::draw                  },
+
+    { "polygon",                Wrap_Graphics::polygon               },
+    { "rectangle",              Wrap_Graphics::rectangle             },
+    { "circle",                 Wrap_Graphics::circle                },
+    { "ellipse",                Wrap_Graphics::ellipse               },
+    { "arc",                    Wrap_Graphics::arc                   },
+    { "points",                 Wrap_Graphics::points                },
 
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newImage",               Wrap_Graphics::newImage              },

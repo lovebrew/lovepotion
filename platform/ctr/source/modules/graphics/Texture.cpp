@@ -188,7 +188,7 @@ namespace love
         command.vertexCount = 4;
         command.texture     = this;
 
-        auto data = Renderer::getInstance().requestBatchDraw(command);
+        auto data = graphics.requestBatchDraw(command);
 
         Matrix4 translated(transform, matrix);
 

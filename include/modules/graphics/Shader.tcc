@@ -41,17 +41,6 @@ namespace love
                 this->attachDefault(STANDARD_DEFAULT);
         }
 
-        struct Uniform
-        {
-            uint32_t mdlvMtx;
-            uint32_t projMtx;
-        };
-
-        Uniform getUniforms() const
-        {
-            return this->locations;
-        }
-
         virtual void attach() = 0;
 
         static void attachDefault(StandardShader type)
@@ -78,8 +67,5 @@ namespace love
 
             return false;
         }
-
-      protected:
-        Uniform locations;
     };
 } // namespace love

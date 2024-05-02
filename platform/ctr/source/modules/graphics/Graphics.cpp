@@ -4,7 +4,7 @@
 #include "modules/graphics/Shader.hpp"
 #include "modules/window/Window.hpp"
 
-#define BUFFER_OFFSET(i) ((char*)NULL + (i))
+#include "modules/graphics/attributes.hpp"
 
 namespace love
 {
@@ -100,6 +100,7 @@ namespace love
                            bool backBufferDepth, int msaa)
     {
         Renderer::getInstance().initialize();
+        Renderer::getInstance().setupContext(this->batchedDrawState);
 
         this->created = true;
 
@@ -147,6 +148,29 @@ namespace love
         return new Texture(*this, settings, data);
     }
 
+    void Graphics::points(Vector2* positions, const Color* colors, int count)
+    {
+        // Vector2* coords = positions;
+
+        // float twoPi = float(LOVE_M_PI * 2);
+        // float shift = twoPi / count;
+        // float phi   = 0.0f;
+
+        // float x = coords[0].x;
+        // float y = coords[0].y;
+
+        // float radius = this->states.back().pointSize;
+
+        // for (int index = 0; index < count; ++index, phi += shift)
+        // {
+        //     coords[index].x = x + radius * std::cos(phi);
+        //     coords[index].y = y + radius * std::sin(phi);
+        // }
+
+        // coords[count] = coords[0];
+        // this->polygon(DRAW_FILL, std::span(coords, count + 2), false);
+    }
+
     void Graphics::draw(Drawable* drawable, const Matrix4& matrix)
     {
         drawable->draw(*this, matrix);
@@ -155,6 +179,30 @@ namespace love
     void Graphics::draw(Texture* texture, Quad* quad, const Matrix4& matrix)
     {
         texture->draw(*this, quad, matrix);
+    }
+
+    void Graphics::draw(const DrawIndexedCommand& command)
+    {
+        Renderer::getInstance().prepareDraw();
+
+        if (command.texture != nullptr)
+        {
+            setTexEnvAttribute(TEXENV_MODE_TEXTURE);
+            C3D_TexBind(0, (C3D_Tex*)command.texture->getHandle());
+        }
+        else
+            setTexEnvAttribute(TEXENV_MODE_PRIMITIVE);
+
+        GPU_Primitive_t primitiveType;
+        if (!Renderer::getConstant(command.primitiveType, primitiveType))
+            throw love::Exception("Invalid primitive type: {:d}.", (int)command.primitiveType);
+
+        decltype(C3D_UNSIGNED_BYTE) indexType;
+        if (!Renderer::getConstant(command.indexType, indexType))
+            throw love::Exception("Invalid index type: {:d}.", (int)command.indexType);
+
+        const void* elements = (const void*)command.indexBufferOffset;
+        C3D_DrawElements(primitiveType, command.indexCount, indexType, elements);
     }
 
     bool Graphics::isPixelFormatSupported(PixelFormat format, uint32_t usage)

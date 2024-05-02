@@ -656,7 +656,7 @@ namespace love
     {
         lua_getfield(L, tableIndex, key);
 
-        int result;
+        int result = 0;
 
         if (!lua_isnumber(L, -1))
         {
@@ -852,11 +852,6 @@ namespace love
         }
 
         lua_pop(L, 1);
-    }
-
-    lua_Number luax_checknumberclamped01(lua_State* L, int index)
-    {
-        return std::clamp((float)luaL_checknumber(L, index), 0.0f, 1.0f);
     }
 
     // #endregion

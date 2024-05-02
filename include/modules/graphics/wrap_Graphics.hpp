@@ -167,6 +167,18 @@ namespace Wrap_Graphics
 
     int newCanvas(lua_State* L);
 
+    int polygon(lua_State* L);
+
+    int rectangle(lua_State* L);
+
+    int circle(lua_State* L);
+
+    int ellipse(lua_State* L);
+
+    int arc(lua_State* L);
+
+    int points(lua_State* L);
+
     int draw(lua_State* L);
 
     int getScreens(lua_State* L);

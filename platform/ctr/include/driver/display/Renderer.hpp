@@ -18,17 +18,11 @@ namespace love
     class Renderer : public RendererBase<Renderer>
     {
       public:
-        enum TexEnvMode
-        {
-            TEXENV_PRIMITIVE,
-            TEXENV_TEXTURE,
-            TEXENV_FONT,
-            TEXENV_MAX_ENUM
-        };
-
         Renderer();
 
         void initialize();
+
+        void setupContext(BatchedDrawState& state);
 
         ~Renderer();
 
@@ -54,9 +48,7 @@ namespace love
 
         void setSamplerState(C3D_Tex* texture, SamplerState state);
 
-        void draw(const DrawIndexedCommand& command) override;
-
-        virtual void updateUniforms() override;
+        virtual void prepareDraw() override;
 
         void setWideMode(bool wide)
         {
@@ -143,63 +135,10 @@ namespace love
             this->createFramebuffers();
         }
 
-        void setPrimitiveAttribute()
-        {
-            C3D_TexEnv* env = C3D_GetTexEnv(0);
-            C3D_TexEnvInit(env);
-
-            C3D_TexEnvSrc(env, C3D_Both, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-        }
-
-        void setTextureAttribute()
-        {
-            C3D_TexEnv* env = C3D_GetTexEnv(0);
-            C3D_TexEnvInit(env);
-
-            C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Both, GPU_MODULATE);
-        }
-
-        void setFontAttribute()
-        {
-            C3D_TexEnv* env = C3D_GetTexEnv(0);
-            C3D_TexEnvInit(env);
-
-            C3D_TexEnvSrc(env, C3D_RGB, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_RGB, GPU_REPLACE);
-
-            C3D_TexEnvSrc(env, C3D_Alpha, GPU_PRIMARY_COLOR, GPU_TEXTURE0, GPU_PRIMARY_COLOR);
-            C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
-        }
-
-        void setAttribute(TexEnvMode mode)
-        {
-            if (this->context.mode == mode || mode == TEXENV_MAX_ENUM)
-                return;
-
-            switch (mode)
-            {
-                default:
-                case TEXENV_PRIMITIVE:
-                    this->setPrimitiveAttribute();
-                    break;
-                case TEXENV_TEXTURE:
-                    this->setTextureAttribute();
-                    break;
-                case TEXENV_FONT:
-                    this->setFontAttribute();
-                    break;
-            }
-
-            this->context.mode = mode;
-        }
-
         struct Context : public ContextBase
         {
             C3D_Mtx modelView;
             C3D_Mtx projection;
-            TexEnvMode mode = TEXENV_MAX_ENUM;
             C3D_BufInfo buffer;
 
             Framebuffer target;

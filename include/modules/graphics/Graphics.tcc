@@ -17,6 +17,8 @@
 #include "modules/graphics/renderstate.hpp"
 #include "modules/graphics/samplerstate.hpp"
 
+#include "driver/graphics/DrawCommand.hpp"
+
 #include <string>
 #include <vector>
 
@@ -385,6 +387,14 @@ namespace love
             return info;
         }
 
+        BatchedVertexData requestBatchDraw(const DrawCommand& command);
+
+        void flushBatchedDraws();
+
+        static void flushBatchedDrawsGlobal();
+
+        virtual void draw(const DrawIndexedCommand& command) = 0;
+
         Stats getStats() const;
 
         size_t getStackDepth() const
@@ -543,6 +553,42 @@ namespace love
             return 1.0;
         }
 
+        void polyline(const std::span<Vector2> vertices);
+
+        void polygon(DrawMode mode, const std::span<Vector2> vertices, bool skipLastVertex = true);
+
+        void rectangle(DrawMode mode, float x, float y, float w, float h);
+
+        void rectangle(DrawMode mode, float x, float y, float w, float h, float rx, float ry, int points);
+
+        void rectangle(DrawMode mode, float x, float y, float w, float h, float rx, float ry);
+
+        void circle(DrawMode mode, float x, float y, float radius, int points);
+
+        void circle(DrawMode mode, float x, float y, float radius);
+
+        void ellipse(DrawMode mode, float x, float y, float a, float b, int points);
+
+        void ellipse(DrawMode mode, float x, float y, float a, float b);
+
+        void arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1, float angle2,
+                 int points);
+
+        void arc(DrawMode mode, ArcMode arcMode, float x, float y, float radius, float angle1, float angle2);
+
+        void points(const Vector2* points, const Color* colors, int count);
+
+        template<typename T>
+        T* getScratchBuffer(size_t count)
+        {
+            size_t bytes = count * sizeof(T);
+
+            if (this->scratchBuffer.size() < bytes)
+                this->scratchBuffer.resize(bytes);
+
+            return (T*)this->scratchBuffer.data();
+        }
+
         // clang-format off
         STRINGMAP_DECLARE(DrawModes, DrawMode,
             { "line", DRAW_LINE },
@@ -572,6 +618,9 @@ namespace love
         );
         // clang-format on
 
+      private:
+        int calculateEllipsePoints(float a, float b) const;
+
       protected:
         bool created;
         bool active;
@@ -592,5 +641,8 @@ namespace love
 
         int drawCallsBatched;
         int drawCalls;
+
+        BatchedDrawState batchedDrawState;
+        std::vector<uint8_t> scratchBuffer;
     };
 } // namespace love

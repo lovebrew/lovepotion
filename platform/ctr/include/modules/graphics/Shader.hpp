@@ -11,6 +11,12 @@ namespace love
     class Shader final : public ShaderBase, public Volatile
     {
       public:
+        struct UniformInfo
+        {
+            int8_t location;
+            std::string name;
+        };
+
         Shader();
 
         virtual ~Shader();
@@ -23,25 +29,19 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        void updateUniforms(const C3D_Mtx& mdlView, const C3D_Mtx& proj);
+        const UniformInfo getUniform(const std::string& name) const;
+
+        bool hasUniform(const std::string& name) const;
+
+        void updateBuiltinUniforms(const C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx);
 
       private:
-        struct TextureUnit
-        {
-            C3D_Tex* texture   = nullptr;
-            TextureType type   = TextureType::TEXTURE_2D;
-            bool isTexelBuffer = false;
-            bool active        = false;
-        };
-
         bool validate(const char* filepath, std::string& error);
 
         DVLB_s* dvlb = nullptr;
         shaderProgram_s program;
 
         std::vector<uint32_t> data;
-        std::vector<TextureUnit> textureUnits;
-
-        Uniform locations;
+        UniformInfo uniforms[0x02];
     };
 } // namespace love

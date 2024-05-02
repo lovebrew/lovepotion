@@ -7,7 +7,7 @@
 
 namespace love
 {
-    Shader::Shader() : locations {}
+    Shader::Shader() : uniforms {}
     {
         this->loadVolatile();
     }
@@ -30,8 +30,8 @@ namespace love
         shaderProgramInit(&this->program);
         shaderProgramSetVsh(&this->program, &this->dvlb->DVLE[0]);
 
-        this->locations.mdlvMtx = shaderInstanceGetUniformLocation(this->program.vertexShader, "mdlvMtx");
-        this->locations.projMtx = shaderInstanceGetUniformLocation(this->program.vertexShader, "projMtx");
+        this->uniforms[0] = this->getUniform("mdlvMtx");
+        this->uniforms[1] = this->getUniform("projMtx");
 
         return true;
     }
@@ -42,19 +42,42 @@ namespace love
         DVLB_Free(this->dvlb);
     }
 
-    void Shader::attach()
+    const Shader::UniformInfo Shader::getUniform(const std::string& name) const
     {
-        if (current == this)
-            return;
+        int8_t location = 0;
+        if ((location = shaderInstanceGetUniformLocation(this->program.vertexShader, name.c_str())) < 0)
+            throw love::Exception("Failed to get uniform location: {:s}", name);
 
-        C3D_BindProgram(&this->program);
-        current = this;
+        return { location, name };
     }
 
-    void Shader::updateUniforms(const C3D_Mtx& mdlView, const C3D_Mtx& proj)
+    bool Shader::hasUniform(const std::string& name) const
     {
-        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->locations.mdlvMtx, &mdlView);
-        C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->locations.projMtx, &proj);
+        for (int index = 0; index < 2; index++)
+        {
+            if (this->uniforms[index].name == name)
+                return true;
+        }
+
+        return false;
+    }
+
+    void Shader::updateBuiltinUniforms(const C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx)
+    {
+        if (this->hasUniform("mdlvMtx"))
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[0].location, &mdlvMtx);
+
+        if (this->hasUniform("projMtx"))
+            C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[1].location, &projMtx);
+    }
+
+    void Shader::attach()
+    {
+        if (current != this)
+        {
+            C3D_BindProgram(&this->program);
+            current = this;
+        }
     }
 
     ptrdiff_t Shader::getHandle() const

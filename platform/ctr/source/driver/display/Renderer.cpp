@@ -35,30 +35,30 @@ namespace love
 
         this->set3DMode(true);
 
-        this->batchedDrawState.vertices     = (Vertex*)linearAlloc(sizeof(Vertex) * LOVE_UINT16_MAX);
-        this->batchedDrawState.verticesSize = LOVE_UINT16_MAX;
+        this->initialized = true;
+    }
 
-        if (!this->batchedDrawState.vertices)
-            throw love::Exception("Failed to allocate vertex buffer.");
+    void Renderer::setupContext(BatchedDrawState& state)
+    {
+        size_t size       = sizeof(uint16_t) * LOVE_UINT16_MAX;
+        state.indexBuffer = new StreamBuffer(BUFFERUSAGE_INDEX, size);
 
         BufInfo_Init(&this->context.buffer);
 
-        if (BufInfo_Add(&this->context.buffer, this->batchedDrawState.vertices, sizeof(Vertex), 3, 0x210) < 0)
-        {
-            linearFree(this->batchedDrawState.vertices);
-            throw love::Exception("Failed to initialize vertex buffer.");
-        }
+        state.vertices     = (Vertex*)linearAlloc(sizeof(Vertex) * LOVE_UINT16_MAX);
+        state.verticesSize = LOVE_UINT16_MAX;
+
+        int result = BufInfo_Add(&this->context.buffer, state.vertices, sizeof(Vertex), 3, 0x210);
+
+        if (result < 0)
+            throw love::Exception("Failed to add buffer to BufInfo: {:d}", result);
 
         C3D_SetBufInfo(&this->context.buffer);
-
-        this->initialized = true;
     }
 
     Renderer::~Renderer()
     {
         this->destroyFramebuffers();
-
-        linearFree(this->batchedDrawState.vertices);
 
         C3D_Fini();
         gfxExit();
@@ -106,7 +106,7 @@ namespace love
     void Renderer::bindFramebuffer()
     {
         this->ensureInFrame();
-        this->flushBatchedDraws();
+        GraphicsBase::flushBatchedDrawsGlobal();
 
         this->context.target = this->targets[currentScreen];
         auto viewport        = this->context.target.getViewport();
@@ -119,26 +119,10 @@ namespace love
     {
         if (this->inFrame)
         {
-            this->flushBatchedDraws();
+            GraphicsBase::flushBatchedDrawsGlobal();
 
             C3D_FrameEnd(0);
             this->inFrame = false;
-        }
-    }
-
-    void Renderer::updateUniforms()
-    {
-        if (this->context.dirtyProjection)
-        {
-            if (Shader::current != nullptr)
-            {
-                auto uniforms = Shader::current->getUniforms();
-
-                C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.projMtx, &this->context.projection);
-                C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uniforms.mdlvMtx, &this->context.modelView);
-            }
-
-            this->context.dirtyProjection = false;
         }
     }
 
@@ -249,26 +233,14 @@ namespace love
         C3D_TexSetWrap(texture, wrapU, wrapV);
     }
 
-    void Renderer::draw(const DrawIndexedCommand& command)
+    void Renderer::prepareDraw()
     {
-        if (command.texture != nullptr)
+        if (Shader::current != nullptr)
         {
-            this->setAttribute(TEXENV_TEXTURE);
-            C3D_TexBind(0, (C3D_Tex*)command.texture->getHandle());
+            // clang-format off
+            ((Shader*)Shader::current)->updateBuiltinUniforms(this->context.modelView, this->context.projection);
+            // clang-format on
         }
-        else
-            this->setAttribute(TEXENV_PRIMITIVE);
-
-        GPU_Primitive_t primitiveType;
-        if (!Renderer::getConstant(command.primitiveType, primitiveType))
-            throw love::Exception("Invalid primitive type: {:d}.", (int)command.primitiveType);
-
-        decltype(C3D_UNSIGNED_BYTE) indexType;
-        if (!Renderer::getConstant(command.indexType, indexType))
-            throw love::Exception("Invalid index type: {:d}.", (int)command.indexType);
-
-        const void* elements = (const void*)command.indexBufferOffset;
-        C3D_DrawElements(primitiveType, command.indexCount, indexType, elements);
     }
 
     GPU_TEXTURE_WRAP_PARAM Renderer::getWrapMode(SamplerState::WrapMode mode)

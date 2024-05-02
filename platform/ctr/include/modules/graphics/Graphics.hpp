@@ -33,6 +33,10 @@ namespace love
 
         void draw(Texture* texture, Quad* quad, const Matrix4& matrix);
 
+        void draw(const DrawIndexedCommand& command) override;
+
+        void points(Vector2* positions, const Color* colors, int count);
+
         bool isActive() const;
 
         void unsetMode();
