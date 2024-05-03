@@ -216,6 +216,7 @@ namespace love
 
         void setActive(bool active)
         {
+            this->flushBatchedDraws();
             this->active = active;
         }
 
@@ -308,6 +309,13 @@ namespace love
 
         void setBlendMode(BlendMode mode, BlendAlpha alphaMode);
 
+        virtual TextureBase* newTexture(const TextureBase::Settings& settings,
+                                        const TextureBase::Slices* data = nullptr) = 0;
+
+        TextureBase* getDefaultTexture(TextureType type);
+
+        TextureBase* getDefaultTexture(TextureBase* texture);
+
         BlendMode getBlendMode(BlendAlpha& alphaMode) const
         {
             return computeBlendMode(this->states.back().blend, alphaMode);
@@ -352,6 +360,9 @@ namespace love
 
         void setPointSize(float size)
         {
+            if (size != this->states.back().pointSize)
+                this->flushBatchedDraws();
+
             this->states.back().pointSize = size;
         }
 
@@ -387,7 +398,7 @@ namespace love
             return info;
         }
 
-        BatchedVertexData requestBatchDraw(const DrawCommand& command);
+        BatchedVertexData requestBatchDraw(const BatchedDrawCommand& command);
 
         void flushBatchedDraws();
 
@@ -529,6 +540,8 @@ namespace love
 
         void resetProjection()
         {
+            this->flushBatchedDraws();
+
             auto& state = this->states.back();
 
             state.useCustomProjection = false;
@@ -578,6 +591,10 @@ namespace love
 
         void points(const Vector2* points, const Color* colors, int count);
 
+        void draw(Drawable* drawable, const Matrix4& matrix);
+
+        void draw(TextureBase* texture, Quad* quad, const Matrix4& matrix);
+
         template<typename T>
         T* getScratchBuffer(size_t count)
         {
@@ -619,9 +636,11 @@ namespace love
         // clang-format on
 
       private:
-        int calculateEllipsePoints(float a, float b) const;
+        TextureBase* defaultTextures[TEXTURE_MAX_ENUM];
 
       protected:
+        int calculateEllipsePoints(float a, float b) const;
+
         bool created;
         bool active;
 

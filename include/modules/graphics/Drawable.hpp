@@ -5,7 +5,7 @@
 
 namespace love
 {
-    class Graphics;
+    class GraphicsBase;
 
     class Drawable : public Object
     {
@@ -15,6 +15,6 @@ namespace love
         virtual ~Drawable()
         {}
 
-        virtual void draw(Graphics& graphics, const Matrix4& transform) = 0;
+        virtual void draw(GraphicsBase* graphics, const Matrix4& transform) = 0;
     };
 } // namespace love

@@ -1,6 +1,8 @@
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Graphics.tcc"
 
+#include "common/Console.hpp"
+
 using namespace love;
 
 int TextureBase::textureCount            = 0;
@@ -168,7 +170,7 @@ namespace love
 
     // #endregion
 
-    TextureBase::TextureBase(GraphicsBase& graphics, const Settings& settings, const Slices* slices) :
+    TextureBase::TextureBase(GraphicsBase* graphics, const Settings& settings, const Slices* slices) :
         textureType(settings.type),
         format(settings.format),
         renderTarget(settings.renderTarget),
@@ -244,7 +246,7 @@ namespace love
         else
             this->readable = !this->renderTarget || !love::isPixelFormatDepthStencil(this->format);
 
-        this->format = graphics.getSizedFormat(this->format);
+        this->format = graphics->getSizedFormat(this->format);
         if (!love::isGammaCorrect() || settings.linear)
             format = love::getLinearPixelFormat(format);
 
@@ -317,6 +319,50 @@ namespace love
         size                     = std::max(size, (int64_t)0);
         this->graphicsMemorySize = size;
         totalGraphicsMemory += size;
+    }
+
+    void TextureBase::draw(GraphicsBase* graphics, const Matrix4& matrix)
+    {
+        this->draw(graphics, this->quad, matrix);
+    }
+
+    void TextureBase::draw(GraphicsBase* graphics, Quad* quad, const Matrix4& matrix)
+    {
+        if (!this->readable)
+            throw love::Exception("Textures with non-readable formats cannot be drawn.");
+
+        // if (this->renderTarget && graphics.isRenderTargetActive(this))
+        //     throw love::Exception("Cannot render a Texture to itself.");
+
+        const auto& transform = graphics->getTransform();
+        bool is2D             = transform.isAffine2DTransform();
+
+        BatchedDrawCommand command {};
+        command.format      = CommonFormat::XYf_STf_RGBAf;
+        command.indexMode   = TRIANGLEINDEX_QUADS;
+        command.vertexCount = 4;
+        command.texture     = this;
+
+        auto data = graphics->requestBatchDraw(command);
+
+        Matrix4 translated(transform, matrix);
+
+        XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
+
+        if (is2D)
+            translated.transformXY(stream, quad->getVertexPositions(), 4);
+
+        if constexpr (Console::is(Console::CTR))
+            this->updateQuad(quad);
+
+        const auto* texCoords = quad->getTextureCoordinates();
+
+        for (int index = 0; index < 4; index++)
+        {
+            stream[index].s     = texCoords[index].x;
+            stream[index].t     = texCoords[index].y;
+            stream[index].color = graphics->getColor();
+        }
     }
 
     void TextureBase::validateViewFormats() const

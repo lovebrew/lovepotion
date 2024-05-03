@@ -895,7 +895,7 @@ static void luax_checktexturesettings(lua_State* L, int index, bool optional, bo
 
 static int pushNewTexture(lua_State* L, TextureBase::Slices* slices, const Texture::Settings& settings)
 {
-    StrongRef<Texture> texture;
+    StrongRef<TextureBase> texture;
 
     // clang-format off
     luax_catchexcept(L,
@@ -981,8 +981,8 @@ int Wrap_Graphics::newImage(lua_State* L)
 
 int Wrap_Graphics::draw(lua_State* L)
 {
-    Drawable* drawable = nullptr;
-    Texture* texture   = nullptr;
+    Drawable* drawable   = nullptr;
+    TextureBase* texture = nullptr;
 
     Quad* quad = luax_totype<Quad>(L, 2);
     int start  = 2;

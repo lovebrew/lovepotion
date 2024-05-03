@@ -27,13 +27,16 @@ namespace love
         }
     }
 
+    Graphics::~Graphics()
+    {}
+
     void Graphics::clear(OptionalColor color, OptionalInt depth, OptionalDouble stencil)
     {
         Renderer::getInstance().bindFramebuffer();
 
         if (color.hasValue)
         {
-            // gammaCorrectColor(color.value);
+            gammaCorrectColor(color.value);
             Renderer::getInstance().clear(color.value);
         }
 
@@ -53,6 +56,8 @@ namespace love
             this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
             return;
         }
+
+        this->flushBatchedDraws();
     }
 
     void Graphics::present()
@@ -60,7 +65,11 @@ namespace love
         if (!this->isActive())
             return;
 
+        this->flushBatchedDraws();
         Renderer::getInstance().present();
+
+        this->batchedDrawState.vertexBuffer->nextFrame();
+        this->batchedDrawState.indexBuffer->nextFrame();
 
         this->drawCalls        = 0;
         this->drawCallsBatched = 0;
@@ -93,14 +102,23 @@ namespace love
     void Graphics::setBlendState(const BlendState& state)
     {
         GraphicsBase::setBlendState(state);
-        Renderer::getInstance().setBlendState(state);
+
+        if (state.enable)
+            Renderer::getInstance().setBlendState(state);
     }
 
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                            bool backBufferDepth, int msaa)
     {
         Renderer::getInstance().initialize();
-        Renderer::getInstance().setupContext(this->batchedDrawState);
+
+        // clang-format off
+        if (this->batchedDrawState.vertexBuffer == nullptr)
+        {
+            this->batchedDrawState.indexBuffer  = new StreamBuffer(BUFFERUSAGE_INDEX, sizeof(uint16_t) * LOVE_UINT16_MAX);
+            this->batchedDrawState.vertexBuffer = new StreamBuffer(BUFFERUSAGE_VERTEX, 64 * 1024 * 1);
+        }
+        // clang-format on
 
         this->created = true;
 
@@ -130,7 +148,12 @@ namespace love
     }
 
     void Graphics::unsetMode()
-    {}
+    {
+        if (!this->isCreated())
+            return;
+
+        this->flushBatchedDraws();
+    }
 
     bool Graphics::isActive() const
     {
@@ -143,42 +166,87 @@ namespace love
         Renderer::getInstance().setViewport({ x, y, width, height }, true);
     }
 
-    Texture* Graphics::newTexture(const Texture::Settings& settings, const Texture::Slices* data)
+    TextureBase* Graphics::newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data)
     {
-        return new Texture(*this, settings, data);
+        return new Texture(this, settings, data);
     }
 
     void Graphics::points(Vector2* positions, const Color* colors, int count)
     {
-        // Vector2* coords = positions;
+        const float twoPi     = float(LOVE_M_PI * 2);
+        const int extraPoints = 2;
 
-        // float twoPi = float(LOVE_M_PI * 2);
-        // float shift = twoPi / count;
-        // float phi   = 0.0f;
+        const float pointSize = this->states.back().pointSize;
 
-        // float x = coords[0].x;
-        // float y = coords[0].y;
+        int points        = this->calculateEllipsePoints(pointSize, pointSize);
+        const float shift = twoPi / (float)points;
 
-        // float radius = this->states.back().pointSize;
+        const Matrix4& transform = this->getTransform();
+        bool is2D                = transform.isAffine2DTransform();
 
-        // for (int index = 0; index < count; ++index, phi += shift)
-        // {
-        //     coords[index].x = x + radius * std::cos(phi);
-        //     coords[index].y = y + radius * std::sin(phi);
-        // }
+        BatchedDrawCommand command {};
+        command.format      = CommonFormat::XYf_STf_RGBAf;
+        command.indexMode   = TRIANGLEINDEX_FAN;
+        command.vertexCount = count * (points + extraPoints);
 
-        // coords[count] = coords[0];
-        // this->polygon(DRAW_FILL, std::span(coords, count + 2), false);
-    }
+        BatchedVertexData data = this->requestBatchDraw(command);
 
-    void Graphics::draw(Drawable* drawable, const Matrix4& matrix)
-    {
-        drawable->draw(*this, matrix);
-    }
+        XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
 
-    void Graphics::draw(Texture* texture, Quad* quad, const Matrix4& matrix)
-    {
-        texture->draw(*this, quad, matrix);
+        for (int index = 0; index < count; index++)
+        {
+            const float x = positions[index].x;
+            const float y = positions[index].y;
+
+            float phi = 0.0f;
+
+            stream[0].x = x;
+            stream[0].y = y;
+
+            for (int j = 1; j <= points; ++j, phi += shift)
+            {
+                stream[j].x = x + pointSize * std::cos(phi);
+                stream[j].y = y + pointSize * std::sin(phi);
+            }
+
+            stream[points + 1] = stream[0];
+            stream += (points + extraPoints);
+        }
+
+        if (is2D)
+            transform.transformXY(stream, positions, command.vertexCount);
+
+        if (!colors)
+        {
+            Color color = this->getColor();
+
+            for (int index = 0; index < command.vertexCount; index++)
+                stream[index].color = color;
+
+            return;
+        }
+
+        Color color = this->getColor();
+        gammaCorrectColor(color);
+
+        if (isGammaCorrect())
+        {
+            for (int index = 0; index < command.vertexCount; index++)
+            {
+                Color current = colors[index];
+
+                gammaCorrectColor(current);
+                current *= color;
+                unGammaCorrectColor(current);
+
+                stream[index].color = current;
+            }
+        }
+        else
+        {
+            for (int index = 0; index < command.vertexCount; index++)
+                stream[index].color = colors[index];
+        }
     }
 
     void Graphics::draw(const DrawIndexedCommand& command)
@@ -193,16 +261,12 @@ namespace love
         else
             setTexEnvAttribute(TEXENV_MODE_PRIMITIVE);
 
-        GPU_Primitive_t primitiveType;
-        if (!Renderer::getConstant(command.primitiveType, primitiveType))
-            throw love::Exception("Invalid primitive type: {:d}.", (int)command.primitiveType);
+        const void* elements     = (const void*)command.indexBufferOffset;
+        const auto primitiveType = Renderer::getPrimitiveType(command.primitiveType);
+        const auto dataType      = Renderer::getIndexType(command.indexType);
 
-        decltype(C3D_UNSIGNED_BYTE) indexType;
-        if (!Renderer::getConstant(command.indexType, indexType))
-            throw love::Exception("Invalid index type: {:d}.", (int)command.indexType);
-
-        const void* elements = (const void*)command.indexBufferOffset;
-        C3D_DrawElements(primitiveType, command.indexCount, indexType, elements);
+        C3D_DrawElements(primitiveType, command.indexCount, dataType, elements);
+        ++this->drawCalls;
     }
 
     bool Graphics::isPixelFormatSupported(PixelFormat format, uint32_t usage)

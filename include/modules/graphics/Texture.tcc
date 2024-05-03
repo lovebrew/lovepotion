@@ -211,9 +211,12 @@ namespace love
             return this->viewFormats;
         }
 
-        virtual void draw(Graphics& graphics, const Matrix4& matrix) = 0;
+        virtual void updateQuad(Quad* quad)
+        {}
 
-        virtual void draw(Graphics& graphics, Quad* quad, const Matrix4& matrix) = 0;
+        virtual void draw(GraphicsBase* graphics, const Matrix4& matrix) override;
+
+        void draw(GraphicsBase* graphics, Quad* quad, const Matrix4& matrix);
 
         bool isCompressed() const
         {
@@ -291,6 +294,14 @@ namespace love
             return this->samplerState;
         }
 
+        virtual void setSamplerState(const SamplerState& state) = 0;
+
+        virtual void replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
+                                   bool reloadMipmaps) = 0;
+
+        virtual void replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
+                                   bool reloadMipmaps) = 0;
+
         static int getTotalMipmapCount(int width, int height)
         {
             return (int)std::log2(std::max(width, height)) + 1;
@@ -335,7 +346,7 @@ namespace love
         // clang-format on
 
       protected:
-        TextureBase(GraphicsBase& graphics, const Settings& settings, const Slices* slices);
+        TextureBase(GraphicsBase* graphics, const Settings& settings, const Slices* slices);
 
         virtual ~TextureBase();
 

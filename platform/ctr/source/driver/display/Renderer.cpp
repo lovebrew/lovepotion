@@ -39,22 +39,7 @@ namespace love
     }
 
     void Renderer::setupContext(BatchedDrawState& state)
-    {
-        size_t size       = sizeof(uint16_t) * LOVE_UINT16_MAX;
-        state.indexBuffer = new StreamBuffer(BUFFERUSAGE_INDEX, size);
-
-        BufInfo_Init(&this->context.buffer);
-
-        state.vertices     = (Vertex*)linearAlloc(sizeof(Vertex) * LOVE_UINT16_MAX);
-        state.verticesSize = LOVE_UINT16_MAX;
-
-        int result = BufInfo_Add(&this->context.buffer, state.vertices, sizeof(Vertex), 3, 0x210);
-
-        if (result < 0)
-            throw love::Exception("Failed to add buffer to BufInfo: {:d}", result);
-
-        C3D_SetBufInfo(&this->context.buffer);
-    }
+    {}
 
     Renderer::~Renderer()
     {
@@ -235,12 +220,10 @@ namespace love
 
     void Renderer::prepareDraw()
     {
+        // clang-format off
         if (Shader::current != nullptr)
-        {
-            // clang-format off
             ((Shader*)Shader::current)->updateBuiltinUniforms(this->context.modelView, this->context.projection);
-            // clang-format on
-        }
+        // clang-format on
     }
 
     GPU_TEXTURE_WRAP_PARAM Renderer::getWrapMode(SamplerState::WrapMode mode)

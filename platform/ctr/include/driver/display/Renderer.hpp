@@ -50,6 +50,36 @@ namespace love
 
         virtual void prepareDraw() override;
 
+        static decltype(C3D_UNSIGNED_BYTE) getIndexType(IndexDataType type)
+        {
+            switch (type)
+            {
+                case INDEX_UINT16:
+                default:
+                    return C3D_UNSIGNED_SHORT;
+            }
+
+            throw love::Exception("Invalid index type: {:d}.", (int)type);
+            return C3D_UNSIGNED_BYTE;
+        }
+
+        static GPU_Primitive_t getPrimitiveType(PrimitiveType type)
+        {
+            switch (type)
+            {
+                case PRIMITIVE_TRIANGLES:
+                    return GPU_TRIANGLES;
+                case PRIMITIVE_TRIANGLE_FAN:
+                    return GPU_TRIANGLE_FAN;
+                case PRIMITIVE_TRIANGLE_STRIP:
+                    return GPU_TRIANGLE_STRIP;
+                default:
+                    break;
+            }
+
+            throw love::Exception("Invalid primitive type: {:d}.", (int)type);
+        }
+
         void setWideMode(bool wide)
         {
             this->modeChanged([this, wide]() { gfxSetWide(wide); });
@@ -71,12 +101,6 @@ namespace love
         }
 
         // clang-format off
-        ENUMMAP_DECLARE(PrimitiveModes, PrimitiveType, GPU_Primitive_t,
-            { PRIMITIVE_TRIANGLES,      GPU_TRIANGLES      },
-            { PRIMITIVE_TRIANGLE_FAN,   GPU_TRIANGLE_FAN   },
-            { PRIMITIVE_TRIANGLE_STRIP, GPU_TRIANGLE_STRIP }
-        );
-
         ENUMMAP_DECLARE(PixelFormats, PixelFormat, GPU_TEXCOLOR,
             { PIXELFORMAT_RGBA8_UNORM,  GPU_RGBA8    },
             { PIXELFORMAT_RGBA4_UNORM,  GPU_RGBA4    },
@@ -112,10 +136,6 @@ namespace love
             { BLENDFACTOR_ONE_MINUS_DST_ALPHA,  GPU_ONE_MINUS_DST_ALPHA  },
             { BLENDFACTOR_SRC_ALPHA_SATURATED,  GPU_SRC_ALPHA_SATURATE   }
         );
-
-        ENUMMAP_DECLARE(IndexDataTypes, IndexDataType, decltype(C3D_UNSIGNED_BYTE),
-            { INDEX_UINT16, C3D_UNSIGNED_SHORT }
-        );
         // clang-format on
 
       private:
@@ -139,7 +159,6 @@ namespace love
         {
             C3D_Mtx modelView;
             C3D_Mtx projection;
-            C3D_BufInfo buffer;
 
             Framebuffer target;
         } context;

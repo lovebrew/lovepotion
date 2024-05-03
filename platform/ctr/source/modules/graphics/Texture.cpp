@@ -30,13 +30,13 @@ namespace love
             throw love::Exception("Failed to create texture object!");
     }
 
-    Texture::Texture(Graphics& graphics, const Settings& settings, const Slices* data) :
+    Texture::Texture(GraphicsBase* graphics, const Settings& settings, const Slices* data) :
         TextureBase(graphics, settings, data),
         slices(settings.type)
     {
-        this->validateDimensions(true);
+        // this->validateDimensions(true);
 
-        this->validatePixelFormat(graphics);
+        // this->validatePixelFormat(graphics);
 
         if (data != nullptr)
             slices = *data;
@@ -111,20 +111,28 @@ namespace love
         const auto powTwoWidth  = NextPo2(this->pixelWidth);
         const auto powTwoHeight = NextPo2(this->pixelHeight);
 
-        if (this->isRenderTarget())
-            createFramebufferObject(this->target, this->texture, powTwoWidth, powTwoHeight, clear);
-        else
+        try
         {
-            createTextureObject(this->texture, this->format, powTwoWidth, powTwoHeight, clear);
-
-            const auto size = love::getPixelFormatSliceSize(this->format, powTwoWidth, powTwoHeight, false);
-
-            if (!hasData)
-                std::memset(this->texture->data, 0, size);
+            if (this->isRenderTarget())
+                createFramebufferObject(this->target, this->texture, powTwoWidth, powTwoHeight, clear);
             else
-                std::memcpy(this->texture->data, this->slices.get(0, 0)->getData(), size);
+            {
+                createTextureObject(this->texture, this->format, powTwoWidth, powTwoHeight, clear);
 
-            C3D_TexFlush(this->texture);
+                const auto size =
+                    love::getPixelFormatSliceSize(this->format, powTwoWidth, powTwoHeight, false);
+
+                if (!hasData)
+                    std::memset(this->texture->data, 0, size);
+                else
+                    std::memcpy(this->texture->data, this->slices.get(0, 0)->getData(), size);
+
+                C3D_TexFlush(this->texture);
+            }
+        }
+        catch (love::Exception& e)
+        {
+            throw;
         }
 
         this->setSamplerState(this->samplerState);
@@ -159,81 +167,20 @@ namespace love
         quad->setTextureCoordinate(3, getVertex(virtualSize.x, 0.0f, virtualSize, realSize));
     }
 
-    void Texture::draw(Graphics& graphics, const Matrix4& matrix)
+    void Texture::updateQuad(Quad* quad)
     {
-        this->draw(graphics, this->quad, matrix);
-    }
-
-    void Texture::draw(Graphics& graphics, Quad* quad, const Matrix4& matrix)
-    {
-        if (!this->readable)
-            throw love::Exception("Textures with non-readable formats cannot be drawn.");
-
-        if (this->renderTarget && graphics.isRenderTargetActive(this))
-            throw love::Exception("Cannot render a Texture to itself.");
-
         const auto& viewport = quad->getViewport();
 
         Vector2 physicalDim { (float)this->texture->width, (float)this->texture->height };
         Vector2 virtualDim { (float)this->pixelWidth, (float)this->pixelHeight };
 
         refreshQuad(quad, viewport, virtualDim, physicalDim, this->renderTarget);
-
-        const auto& transform = graphics.getTransform();
-        bool is2D             = transform.isAffine2DTransform();
-
-        DrawCommand command {};
-        command.format      = CommonFormat::XYf_STf_RGBAf;
-        command.indexMode   = TRIANGLEINDEX_QUADS;
-        command.vertexCount = 4;
-        command.texture     = this;
-
-        auto data = graphics.requestBatchDraw(command);
-
-        Matrix4 translated(transform, matrix);
-
-        if (is2D)
-            translated.transformXY(data.stream, quad->getVertexPositions(), 4);
-
-        const auto* texCoords = quad->getTextureCoordinates();
-
-        for (int index = 0; index < 4; index++)
-        {
-            data.stream[index].s     = texCoords[index].x;
-            data.stream[index].t     = texCoords[index].y;
-            data.stream[index].color = graphics.getColor();
-        }
     }
 
     void Texture::setSamplerState(const SamplerState& state)
     {
         this->samplerState = this->validateSamplerState(state);
         Renderer::getInstance().setSamplerState(this->texture, this->samplerState);
-    }
-
-    bool Texture::validateDimensions(bool throwException) const
-    {
-        bool success = true;
-
-        int largestSize  = 0;
-        const char* name = nullptr;
-
-        const bool widthIsLarge  = ((size_t)this->pixelWidth > LOVE_TEX3DS_MAX);
-        const bool heightIsLarge = ((size_t)this->pixelHeight > LOVE_TEX3DS_MAX);
-
-        // clang-format off
-        if ((this->textureType == TEXTURE_2D || this->textureType == TEXTURE_2D_ARRAY) && (widthIsLarge || heightIsLarge))
-        {
-            success = false;
-            largestSize = std::max(this->pixelWidth, this->pixelHeight);
-            name = this->pixelWidth > this->pixelHeight ? "pixel width" : "pixel height";
-        }
-
-        if (throwException && name != nullptr)
-            throw love::Exception("Cannot create texture: {:s} of {:d} is too large for this system.", name, largestSize);
-        // clang-format on
-
-        return success;
     }
 
     SamplerState Texture::validateSamplerState(SamplerState state) const
@@ -250,28 +197,142 @@ namespace love
         if (this->textureType == TEXTURE_CUBE)
             state.wrapU = state.wrapV = state.wrapW = SamplerState::WRAP_CLAMP;
 
+        Graphics::flushBatchedDrawsGlobal();
+
         return state;
     }
 
-    void Texture::validatePixelFormat(Graphics& graphics) const
+    void Texture::replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y, bool reloadMipmaps)
     {
-        uint32_t usage = PIXELFORMATUSAGEFLAGS_NONE;
+        if (!this->isReadable())
+            throw love::Exception("replacePixels can only be called on a readable Texture.");
 
-        if (renderTarget)
-            usage |= PIXELFORMATUSAGEFLAGS_RENDERTARGET;
-        if (readable)
-            usage |= PIXELFORMATUSAGEFLAGS_SAMPLE;
-        if (computeWrite)
-            usage |= PIXELFORMATUSAGEFLAGS_COMPUTEWRITE;
+        if (this->getMSAA() > 1)
+            throw love::Exception("replacePixels cannot be called on a multisampled Texture.");
 
-        if (!graphics.isPixelFormatSupported(format, (PixelFormatUsageFlags)usage))
+        auto* graphics = Module::getInstance<Graphics>(Module::M_GRAPHICS);
+        if (graphics == nullptr && graphics->isRenderTargetActive(this))
+            throw love::Exception("Cannot replace pixels of a Texture that is currently being rendered to.");
+
+        if (this->getHandle() == 0)
+            return;
+
+        if (data->getFormat() != this->getPixelFormat())
+            throw love::Exception("Image data format does not match Texture format.");
+
+        if (mipmap < 0 || mipmap >= this->getMipmapCount())
+            throw love::Exception("Invalid mipmap level: {:d}.", mipmap);
+
+        if (slice < 0 || (this->textureType == TEXTURE_CUBE && slice >= 6) ||
+            (this->textureType == TEXTURE_VOLUME && slice >= this->getDepth(mipmap)) ||
+            (this->textureType == TEXTURE_2D_ARRAY && slice >= this->getLayerCount()))
         {
-            std::string_view name = "unknown";
-            love::getConstant(format, name);
+            throw love::Exception("Invalid slice: {:d}.", slice);
+        }
 
-            throw love::Exception("The pixel format '{:s}' is not supported by this system.", name);
+        Rect rectangle = { x, y, data->getWidth(), data->getHeight() };
+
+        int mipmapWidth  = this->getPixelWidth(mipmap);
+        int mipmapHeight = this->getPixelHeight(mipmap);
+
+        if (rectangle.x < 0 || rectangle.y < 0 || rectangle.w <= 0 || rectangle.h <= 0 ||
+            (rectangle.x + rectangle.w) > mipmapWidth || (rectangle.y + rectangle.h) > mipmapHeight)
+        {
+            throw love::Exception("Invalid rectangle dimensions (x: {:d}, y: {:d}, w: {:d}, h: {:d}).",
+                                  rectangle.x, rectangle.y, rectangle.w, rectangle.h);
+        }
+
+        Graphics::flushBatchedDrawsGlobal();
+
+        this->replacePixels(data->getData(), data->getSize(), slice, mipmap, rectangle, reloadMipmaps);
+    }
+
+    template<typename T>
+    void replaceTiledPixels(const void* source, void* texture, const Rect& rect, const int width,
+                            const int height)
+    {
+        const int sourcePowerTwo = NextPo2(rect.w);
+        const int destPowerTwo   = NextPo2(width);
+
+        for (int y = 0; y < std::min(rect.h, height - rect.y); y++)
+        {
+            for (int x = 0; x < std::min(rect.w, width - rect.x); x++)
+            {
+                const auto* sourcePixel = Color::fromTile<T>(source, sourcePowerTwo, x, y);
+                auto* destPixel         = Color::fromTile<T>(texture, destPowerTwo, rect.x + x, rect.y + y);
+
+                *destPixel = *sourcePixel;
+            }
         }
     }
+
+    void Texture::replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
+                                bool reloadMipmaps)
+    {
+        // clang-format off
+        switch (this->getPixelFormat())
+        {
+            case PIXELFORMAT_RGB565_UNORM:
+                replaceTiledPixels<uint16_t>(data, this->texture->data, rect, this->texture->width, this->texture->height);
+                break;
+            case PIXELFORMAT_RGBA8_UNORM:
+            default:
+                replaceTiledPixels<uint32_t>(data, this->texture->data, rect, this->texture->width, this->texture->height);
+                break;
+        }
+        // clang-format on
+
+        C3D_TexFlush(this->texture);
+
+        Graphics::flushBatchedDrawsGlobal();
+    }
+
+    // void Texture::validatePixelFormat(Graphics& graphics) const
+    // {
+    //     uint32_t usage = PIXELFORMATUSAGEFLAGS_NONE;
+
+    //     if (renderTarget)
+    //         usage |= PIXELFORMATUSAGEFLAGS_RENDERTARGET;
+    //     if (readable)
+    //         usage |= PIXELFORMATUSAGEFLAGS_SAMPLE;
+    //     if (computeWrite)
+    //         usage |= PIXELFORMATUSAGEFLAGS_COMPUTEWRITE;
+
+    //     if (!graphics.isPixelFormatSupported(format, (PixelFormatUsageFlags)usage))
+    //     {
+    //         std::string_view name = "unknown";
+    //         love::getConstant(format, name);
+
+    //         throw love::Exception("The pixel format '{:s}' is not supported by this system.", name);
+    //     }
+    // }
+
+    // bool Texture::validateDimensions(bool throwException) const
+    // {
+    //     bool success = true;
+
+    //     int largestSize  = 0;
+    //     const char* name = nullptr;
+
+    //     const bool widthIsLarge  = ((size_t)this->pixelWidth > LOVE_TEX3DS_MAX);
+    //     const bool heightIsLarge = ((size_t)this->pixelHeight > LOVE_TEX3DS_MAX);
+
+    //     // clang-format off
+    //     if ((this->textureType == TEXTURE_2D || this->textureType == TEXTURE_2D_ARRAY) && (widthIsLarge ||
+    //     heightIsLarge))
+    //     {
+    //         success = false;
+    //         largestSize = std::max(this->pixelWidth, this->pixelHeight);
+    //         name = this->pixelWidth > this->pixelHeight ? "pixel width" : "pixel height";
+    //     }
+
+    //     if (throwException && name != nullptr)
+    //         throw love::Exception("Cannot create texture: {:s} of {:d} is too large for this system.",
+    //         name, largestSize);
+    //     // clang-format on
+
+    //     return success;
+    // }
 
     ptrdiff_t Texture::getHandle() const
     {

@@ -10,7 +10,7 @@ namespace love
     class Texture final : public TextureBase, public Volatile
     {
       public:
-        Texture(Graphics& graphics, const Settings& settings, const Slices* data);
+        Texture(GraphicsBase* graphics, const Settings& settings, const Slices* data);
 
         virtual ~Texture();
 
@@ -20,17 +20,21 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
-        void draw(Graphics& graphics, const Matrix4& matrix);
+        void updateQuad(Quad* quad);
 
-        void draw(Graphics& graphics, Quad* quad, const Matrix4& matrix);
+        void setSamplerState(const SamplerState& state) override;
 
-        void setSamplerState(const SamplerState& state);
+        void replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
+                           bool reloadMipmaps) override;
+
+        void replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
+                           bool reloadMipmaps) override;
 
         SamplerState validateSamplerState(SamplerState state) const;
 
-        bool validateDimensions(bool throwException) const;
+        // bool validateDimensions(bool throwException) const;
 
-        void validatePixelFormat(Graphics& graphics) const;
+        // void validatePixelFormat(Graphics& graphics) const;
 
       private:
         void createTexture();

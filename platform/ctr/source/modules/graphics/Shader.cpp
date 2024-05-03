@@ -64,6 +64,9 @@ namespace love
 
     void Shader::updateBuiltinUniforms(const C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx)
     {
+        if (current == this)
+            Graphics::flushBatchedDrawsGlobal();
+
         if (this->hasUniform("mdlvMtx"))
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[0].location, &mdlvMtx);
 
@@ -75,6 +78,8 @@ namespace love
     {
         if (current != this)
         {
+            Graphics::flushBatchedDrawsGlobal();
+
             C3D_BindProgram(&this->program);
             current = this;
         }
