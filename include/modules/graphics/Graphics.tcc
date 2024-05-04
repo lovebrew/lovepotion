@@ -398,7 +398,7 @@ namespace love
             return info;
         }
 
-        BatchedVertexData requestBatchDraw(const BatchedDrawCommand& command);
+        BatchedVertexData requestBatchedDraw(const BatchedDrawCommand& command);
 
         void flushBatchedDraws();
 
@@ -566,9 +566,9 @@ namespace love
             return 1.0;
         }
 
-        void polyline(const std::span<Vector2> vertices);
+        void polyline(std::span<const Vector2> vertices);
 
-        void polygon(DrawMode mode, const std::span<Vector2> vertices, bool skipLastVertex = true);
+        void polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastVertex = true);
 
         void rectangle(DrawMode mode, float x, float y, float w, float h);
 

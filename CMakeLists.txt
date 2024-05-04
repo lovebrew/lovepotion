@@ -364,6 +364,7 @@ source/modules/graphics/Volatile.cpp
 source/modules/graphics/vertex.cpp
 source/modules/graphics/wrap_Graphics.cpp
 source/modules/graphics/wrap_Texture.cpp
+source/modules/graphics/wrap_Quad.cpp
 source/modules/graphics/Texture.cpp
 source/modules/image/CompressedImageData.cpp
 source/modules/image/CompressedSlice.cpp

@@ -7,7 +7,7 @@
 namespace love
 {
     static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture, uint16_t width,
-                                        uint16_t height, bool clear)
+                                        uint16_t height)
     {
         texture = new C3D_Tex();
 
@@ -17,8 +17,7 @@ namespace love
         target = C3D_RenderTargetCreateFromTex(texture, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH16);
     }
 
-    static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t width, uint16_t height,
-                                    bool clear)
+    static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t width, uint16_t height)
     {
         GPU_TEXCOLOR gpuFormat;
         if (!love::Renderer::getConstant(format, gpuFormat))
@@ -114,17 +113,13 @@ namespace love
         try
         {
             if (this->isRenderTarget())
-                createFramebufferObject(this->target, this->texture, powTwoWidth, powTwoHeight, clear);
+                createFramebufferObject(this->target, this->texture, powTwoWidth, powTwoHeight);
             else
             {
-                createTextureObject(this->texture, this->format, powTwoWidth, powTwoHeight, clear);
+                createTextureObject(this->texture, this->format, powTwoWidth, powTwoHeight);
+                auto size = love::getPixelFormatSliceSize(this->format, powTwoWidth, powTwoHeight, false);
 
-                const auto size =
-                    love::getPixelFormatSliceSize(this->format, powTwoWidth, powTwoHeight, false);
-
-                if (!hasData)
-                    std::memset(this->texture->data, 0, size);
-                else
+                if (hasData)
                     std::memcpy(this->texture->data, this->slices.get(0, 0)->getData(), size);
 
                 C3D_TexFlush(this->texture);

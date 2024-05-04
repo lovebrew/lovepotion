@@ -18,6 +18,8 @@ namespace love
       public:
         static Type type;
 
+        static int shaderSwitches;
+
         enum StandardShader
         {
             STANDARD_DEFAULT,
@@ -29,43 +31,12 @@ namespace love
         static ShaderBase* current;
         static ShaderBase* standardShaders[STANDARD_MAX_ENUM];
 
-        virtual ~ShaderBase()
-        {
-            for (int index = 0; index < STANDARD_MAX_ENUM; index++)
-            {
-                if (this == standardShaders[index])
-                    standardShaders[index] = nullptr;
-            }
-
-            if (current == this)
-                this->attachDefault(STANDARD_DEFAULT);
-        }
+        virtual ~ShaderBase();
 
         virtual void attach() = 0;
 
-        static void attachDefault(StandardShader type)
-        {
-            auto* defaultShader = standardShaders[type];
+        static void attachDefault(StandardShader type);
 
-            if (defaultShader == nullptr)
-            {
-                current = nullptr;
-                return;
-            }
-
-            if (current != defaultShader)
-                defaultShader->attach();
-        }
-
-        static bool isDefaultActive()
-        {
-            for (int index = 0; index < STANDARD_MAX_ENUM; index++)
-            {
-                if (current == standardShaders[index])
-                    return true;
-            }
-
-            return false;
-        }
+        static bool isDefaultActive();
     };
 } // namespace love

@@ -343,7 +343,7 @@ namespace love
         command.vertexCount = 4;
         command.texture     = this;
 
-        auto data = graphics->requestBatchDraw(command);
+        auto data = graphics->requestBatchedDraw(command);
 
         Matrix4 translated(transform, matrix);
 

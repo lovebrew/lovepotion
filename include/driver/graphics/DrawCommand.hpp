@@ -69,4 +69,7 @@ namespace love
 
         bool flushing = false;
     };
+
+    static constexpr auto INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX;
+    static constexpr auto INIT_VERTEX_BUFFER_SIZE = 64 * 1024 * 1;
 } // namespace love

@@ -38,6 +38,16 @@ namespace love
             return this->viewport;
         }
 
+        void setLayer(int layer)
+        {
+            this->layer = layer;
+        }
+
+        int getLayer() const
+        {
+            return this->layer;
+        }
+
         double getTextureWidth() const
         {
             return this->sourceWidth;
@@ -65,5 +75,7 @@ namespace love
         Viewport viewport;
         double sourceWidth;
         double sourceHeight;
+
+        int layer;
     };
 } // namespace love

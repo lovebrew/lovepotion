@@ -4,6 +4,7 @@
 
 #include "modules/filesystem/wrap_Filesystem.hpp"
 
+#include "modules/graphics/wrap_Quad.hpp"
 #include "modules/graphics/wrap_Texture.hpp"
 
 #include "modules/image/Image.hpp"
@@ -1025,6 +1026,9 @@ int Wrap_Graphics::getStats(lua_State* L)
     lua_pushinteger(L, stats.drawCallsBatched);
     lua_setfield(L, -2, "drawcallsbatched");
 
+    lua_pushinteger(L, stats.shaderSwitches);
+    lua_setfield(L, -2, "shaderswitches");
+
     lua_pushinteger(L, stats.textures);
     lua_setfield(L, -2, "textures");
 
@@ -1447,7 +1451,8 @@ static int open_drawable(lua_State* L)
 static constexpr lua_CFunction types[] =
 {
     open_drawable,
-    love::open_texture
+    love::open_texture,
+    love::open_quad
 };
 // clang-format on
 

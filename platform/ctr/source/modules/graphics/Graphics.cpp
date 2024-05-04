@@ -115,8 +115,8 @@ namespace love
         // clang-format off
         if (this->batchedDrawState.vertexBuffer == nullptr)
         {
-            this->batchedDrawState.indexBuffer  = new StreamBuffer(BUFFERUSAGE_INDEX, sizeof(uint16_t) * LOVE_UINT16_MAX);
-            this->batchedDrawState.vertexBuffer = new StreamBuffer(BUFFERUSAGE_VERTEX, 64 * 1024 * 1);
+            this->batchedDrawState.indexBuffer  = new StreamBuffer(BUFFERUSAGE_INDEX, INIT_INDEX_BUFFER_SIZE);
+            this->batchedDrawState.vertexBuffer = new StreamBuffer(BUFFERUSAGE_VERTEX, INIT_VERTEX_BUFFER_SIZE);
         }
         // clang-format on
 
@@ -173,65 +173,16 @@ namespace love
 
     void Graphics::points(Vector2* positions, const Color* colors, int count)
     {
-        const float twoPi     = float(LOVE_M_PI * 2);
-        const int extraPoints = 2;
-
-        const float pointSize = this->states.back().pointSize;
-
-        int points        = this->calculateEllipsePoints(pointSize, pointSize);
-        const float shift = twoPi / (float)points;
-
-        const Matrix4& transform = this->getTransform();
-        bool is2D                = transform.isAffine2DTransform();
-
-        BatchedDrawCommand command {};
-        command.format      = CommonFormat::XYf_STf_RGBAf;
-        command.indexMode   = TRIANGLEINDEX_FAN;
-        command.vertexCount = count * (points + extraPoints);
-
-        BatchedVertexData data = this->requestBatchDraw(command);
-
-        XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
+        const auto pointSize = this->states.back().pointSize;
 
         for (int index = 0; index < count; index++)
         {
-            const float x = positions[index].x;
-            const float y = positions[index].y;
+            const auto& position = positions[index];
+            auto& color          = colors[index];
 
-            float phi = 0.0f;
+            gammaCorrectColor(this->getColor());
 
-            stream[0].x = x;
-            stream[0].y = y;
-
-            for (int j = 1; j <= points; ++j, phi += shift)
-            {
-                stream[j].x = x + pointSize * std::cos(phi);
-                stream[j].y = y + pointSize * std::sin(phi);
-            }
-
-            stream[points + 1] = stream[0];
-            stream += (points + extraPoints);
-        }
-
-        if (is2D)
-            transform.transformXY(stream, positions, command.vertexCount);
-
-        if (!colors)
-        {
-            Color color = this->getColor();
-
-            for (int index = 0; index < command.vertexCount; index++)
-                stream[index].color = color;
-
-            return;
-        }
-
-        Color color = this->getColor();
-        gammaCorrectColor(color);
-
-        if (isGammaCorrect())
-        {
-            for (int index = 0; index < command.vertexCount; index++)
+            if (isGammaCorrect())
             {
                 Color current = colors[index];
 
@@ -239,13 +190,12 @@ namespace love
                 current *= color;
                 unGammaCorrectColor(current);
 
-                stream[index].color = current;
+                this->setColor(current);
             }
-        }
-        else
-        {
-            for (int index = 0; index < command.vertexCount; index++)
-                stream[index].color = colors[index];
+            else
+                this->setColor(color);
+
+            this->circle(DRAW_FILL, position.x, position.y, pointSize);
         }
     }
 

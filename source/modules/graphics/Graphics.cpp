@@ -171,6 +171,7 @@ namespace love
         stats.drawCallsBatched = this->drawCallsBatched;
         stats.textures         = TextureBase::textureCount;
         stats.textureMemory    = TextureBase::totalGraphicsMemory;
+        stats.shaderSwitches   = ShaderBase::shaderSwitches;
 
         return stats;
     }
@@ -220,7 +221,7 @@ namespace love
         this->states.back().blend = state;
     }
 
-    BatchedVertexData GraphicsBase::requestBatchDraw(const BatchedDrawCommand& command)
+    BatchedVertexData GraphicsBase::requestBatchedDraw(const BatchedDrawCommand& command)
     {
         BatchedDrawState& state = this->batchedDrawState;
 
@@ -355,9 +356,7 @@ namespace love
         {
             usedSizes[0] = getFormatStride(state.format) * state.vertexCount;
 
-            auto offset = state.vertexBuffer->unmap(usedSizes[0]);
-            state.vertexBuffer->bind((const void*)offset);
-
+            state.vertexBuffer->unmap(usedSizes[0]);
             state.vertexMap = StreamBuffer::MapInfo();
         }
 
@@ -447,10 +446,10 @@ namespace love
         return texture;
     }
 
-    void GraphicsBase::polyline(const std::span<Vector2> vertices)
+    void GraphicsBase::polyline(std::span<const Vector2> vertices)
     {}
 
-    void GraphicsBase::polygon(DrawMode mode, std::span<Vector2> vertices, bool skipLastVertex)
+    void GraphicsBase::polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastVertex)
     {
         if (mode == DRAW_LINE)
             this->polyline(vertices);
@@ -464,7 +463,7 @@ namespace love
             command.indexMode   = TRIANGLEINDEX_FAN;
             command.vertexCount = (int)vertices.size() - (skipLastVertex ? 1 : 0);
 
-            BatchedVertexData data = this->requestBatchDraw(command);
+            BatchedVertexData data = this->requestBatchedDraw(command);
 
             constexpr float inf = std::numeric_limits<float>::infinity();
             Vector2 minimum(inf, inf);
@@ -711,7 +710,7 @@ namespace love
         command.format        = CommonFormat::XYf_STf_RGBAf;
         command.vertexCount   = count;
 
-        BatchedVertexData data = this->requestBatchDraw(command);
+        BatchedVertexData data = this->requestBatchedDraw(command);
 
         XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
 
