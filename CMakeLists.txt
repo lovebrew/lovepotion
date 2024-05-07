@@ -230,39 +230,45 @@ add_library(lua53
 target_link_libraries(lua53 PRIVATE PkgConfig::lua51)
 
 FetchContent_Declare(lua-https
-    GIT_REPOSITORY https://github.com/lovebrew/lua-https
-    GIT_TAG        TurtleP/certs
+    GIT_REPOSITORY https://github.com/love2d/lua-https
+    GIT_TAG        main
 )
 
 FetchContent_GetProperties(lua-https)
 if(NOT lua-https_POPULATED)
     FetchContent_Populate(lua-https)
-
-    add_library(lua-https STATIC
-        ${lua-https_SOURCE_DIR}/src/common/config.h
-        ${lua-https_SOURCE_DIR}/src/common/Connection.h
-        ${lua-https_SOURCE_DIR}/src/common/ConnectionClient.h
-        ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.cpp
-        ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.h
-        ${lua-https_SOURCE_DIR}/src/common/HTTPS.cpp
-        ${lua-https_SOURCE_DIR}/src/common/HTTPS.h
-        ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.cpp
-        ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.h
-        ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.cpp
-        ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.h
-        ${lua-https_SOURCE_DIR}/src/generic/CurlClient.cpp
-        ${lua-https_SOURCE_DIR}/src/generic/CurlClient.h
-        ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.cpp
-        ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.h
-        ${lua-https_SOURCE_DIR}/src/lua/luahttps.cpp
-    )
-
-    target_compile_definitions(lua-https PRIVATE HTTPS_BACKEND_CURL HTTPS_BACKEND_CURL_LINKED)
-
-    # link curl
-    pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
-    target_link_libraries(lua-https PRIVATE PkgConfig::lua51 PkgConfig::libcurl)
 endif()
+
+add_library(lua-https STATIC
+    ${lua-https_SOURCE_DIR}/src/common/config.h
+    ${lua-https_SOURCE_DIR}/src/common/LibraryLoader.h
+    ${lua-https_SOURCE_DIR}/src/common/Connection.h
+    ${lua-https_SOURCE_DIR}/src/common/ConnectionClient.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPRequest.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPS.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPS.h
+    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.cpp
+    ${lua-https_SOURCE_DIR}/src/common/HTTPSClient.h
+    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.cpp
+    ${lua-https_SOURCE_DIR}/src/common/PlaintextConnection.h
+    ${lua-https_SOURCE_DIR}/src/generic/LinktimeLibraryLoader.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/CurlClient.h
+    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.cpp
+    ${lua-https_SOURCE_DIR}/src/generic/OpenSSLConnection.h
+    ${lua-https_SOURCE_DIR}/src/lua/main.cpp
+)
+
+set(LIBRARY_LOADER "linktime")
+target_compile_definitions(lua-https PRIVATE
+    HTTPS_LIBRARY_LOADER_LINKTIME
+    HTTPS_BACKEND_CURL
+)
+
+# link curl
+pkg_check_modules(libcurl REQUIRED IMPORTED_TARGET libcurl)
+target_link_libraries(lua-https PRIVATE PkgConfig::lua51 PkgConfig::libcurl)
 
 
 # luasocket
