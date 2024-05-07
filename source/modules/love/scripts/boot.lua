@@ -147,7 +147,7 @@ function love.boot()
         no_game_code = true
     end
 
-    https_setup_certs()
+    -- https_setup_certs()
 
     if not can_has_game then
         invalid_game_path = false
