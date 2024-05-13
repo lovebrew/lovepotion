@@ -7,10 +7,7 @@ namespace love
 {
     Type DataView::type("DataView", &Data::type);
 
-    DataView::DataView(Data* data, size_t offset, size_t size) :
-        data(data),
-        offset(offset),
-        size(size)
+    DataView::DataView(Data* data, size_t offset, size_t size) : data(data), offset(offset), size(size)
     {
         if (offset >= data->getSize() || size > data->getSize() || offset > data->getSize() - size)
             throw love::Exception(E_DATAVIEW_OFFSET_AND_SIZE);
@@ -19,10 +16,7 @@ namespace love
             throw love::Exception(E_DATAVIEW_INVALID_SIZE);
     }
 
-    DataView::DataView(const DataView& other) :
-        data(other.data),
-        offset(other.offset),
-        size(other.size)
+    DataView::DataView(const DataView& other) : data(other.data), offset(other.offset), size(other.size)
     {}
 
     DataView::~DataView()

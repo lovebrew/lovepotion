@@ -1,19 +1,26 @@
 #include "modules/graphics/Graphics.tcc"
 
 #include "common/Console.hpp"
+#include "common/screen.hpp"
 
 namespace love
 {
     GraphicsBase::GraphicsBase(const char* name) :
         Module(M_GRAPHICS, name),
+        defaultTextures(),
+        created(false),
+        active(true),
+        deviceProjectionMatrix(),
         width(0),
         height(0),
         pixelWidth(0),
         pixelHeight(0),
-        created(false),
-        active(true),
-        deviceProjectionMatrix(),
-        batchedDrawState()
+        drawCallsBatched(0),
+        drawCalls(0),
+        batchedDrawState(),
+        cpuProcessingTime(0.0f),
+        gpuDrawingTime(0.0f),
+        capabilities()
     {
         this->transformStack.reserve(16);
         this->transformStack.push_back(Matrix4());
@@ -43,6 +50,34 @@ namespace love
 
         if (this->batchedDrawState.indexBuffer)
             this->batchedDrawState.indexBuffer->release();
+    }
+
+    void GraphicsBase::resetProjection()
+    {
+        this->flushBatchedDraws();
+
+        auto& state = this->states.back();
+
+        state.useCustomProjection = false;
+        this->updateDeviceProjection(Matrix4::ortho(0.0f, 0, 0, 0.0f, -10.0f, 10.0f));
+    }
+
+    void GraphicsBase::reset()
+    {
+        DisplayState state {};
+        this->restoreState(state);
+
+        this->origin();
+    }
+
+    double GraphicsBase::getCurrentDPIScale() const
+    {
+        return 1.0;
+    }
+
+    double GraphicsBase::getScreenDPIScale() const
+    {
+        return 1.0;
     }
 
     void GraphicsBase::restoreState(const DisplayState& state)
@@ -255,7 +290,7 @@ namespace love
             size_t stride   = getFormatStride(command.format);
             size_t dataSize = stride * totalVertices;
 
-            if (state.vertexMap.data != nullptr && dataSize > state.vertexMap.size)
+            if (state.vertexBufferMap.data != nullptr && dataSize > state.vertexBufferMap.size)
                 shouldFlush = true;
 
             if (dataSize > state.vertexBuffer->getUsableSize())
@@ -271,7 +306,7 @@ namespace love
         {
             size_t dataSize = (state.indexCount + requestedIndexCount) * sizeof(uint16_t);
 
-            if (state.indexMap.data != nullptr && dataSize > state.indexMap.size)
+            if (state.indexBufferMap.data != nullptr && dataSize > state.indexBufferMap.size)
                 shouldFlush = true;
 
             if (dataSize > state.indexBuffer->getUsableSize())
@@ -302,36 +337,36 @@ namespace love
             if (state.vertexBuffer->getSize() < bufferSizes[0])
             {
                 state.vertexBuffer->release();
-                state.vertexBuffer = new StreamBuffer(BUFFERUSAGE_VERTEX, bufferSizes[0]);
+                state.vertexBuffer = newVertexBuffer(bufferSizes[0]);
             }
 
             if (state.indexBuffer->getSize() < bufferSizes[1])
             {
                 state.indexBuffer->release();
-                state.indexBuffer = new StreamBuffer(BUFFERUSAGE_INDEX, bufferSizes[1]);
+                state.indexBuffer = newIndexBuffer(bufferSizes[1]);
             }
         }
 
         if (command.indexMode != TRIANGLEINDEX_NONE)
         {
-            if (state.indexMap.data == nullptr)
-                state.indexMap = state.indexBuffer->map();
+            if (state.indexBufferMap.data == nullptr)
+                state.indexBufferMap = state.indexBuffer->map(requestedIndexSize);
 
-            uint16_t* indices = (uint16_t*)state.indexMap.data;
+            auto* indices = state.indexBufferMap.data;
             fillIndices(command.indexMode, state.vertexCount, command.vertexCount, indices);
 
-            state.indexMap.data += requestedIndexSize;
+            state.indexBufferMap.data += requestedIndexCount;
         }
 
         BatchedVertexData data {};
 
         if (newDataSize > 0)
         {
-            if (state.vertexMap.data == nullptr)
-                state.vertexMap = state.vertexBuffer->map();
+            if (state.vertexBufferMap.data == nullptr)
+                state.vertexBufferMap = state.vertexBuffer->map(newDataSize);
 
-            data.stream = state.vertexMap.data;
-            state.vertexMap.data += newDataSize;
+            data.stream = state.vertexBufferMap.data;
+            state.vertexBufferMap.data += command.vertexCount;
         }
 
         if (state.vertexCount > 0)
@@ -350,17 +385,31 @@ namespace love
         if ((state.vertexCount == 0 && state.indexCount == 0) || state.flushing)
             return;
 
+        VertexAttributes attributes {};
+        BufferBindings buffers {};
+
         size_t usedSizes[2] = { 0, 0 };
 
         if (state.format != CommonFormat::NONE)
         {
+            attributes.setCommonFormat(state.format, (uint8_t)0);
+
             usedSizes[0] = getFormatStride(state.format) * state.vertexCount;
 
-            state.vertexBuffer->unmap(usedSizes[0]);
-            state.vertexMap = StreamBuffer::MapInfo();
+            size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
+            buffers.set(0, state.vertexBuffer, offset, state.vertexCount);
+
+            state.vertexBufferMap = MapInfo<Vertex>();
         }
 
+        if (attributes.enableBits == 0)
+            return;
+
         state.flushing = true;
+
+        auto originalColor = this->getColor();
+        if (attributes.isEnabled(ATTRIB_COLOR))
+            this->setColor(Color::WHITE);
 
         this->pushIdentityTransform();
 
@@ -368,7 +417,7 @@ namespace love
         {
             usedSizes[1] = sizeof(uint16_t) * state.indexCount;
 
-            DrawIndexedCommand command {};
+            DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
             command.primitiveType     = state.primitiveMode;
             command.indexCount        = state.indexCount;
             command.indexType         = INDEX_UINT16;
@@ -376,16 +425,29 @@ namespace love
             command.texture           = state.texture;
             this->draw(command);
 
-            state.indexMap = StreamBuffer::MapInfo();
+            state.indexBufferMap = MapInfo<uint16_t>();
+        }
+        else
+        {
+            DrawCommand command {};
+            command.primitiveType = state.primitiveMode;
+            command.vertexStart   = 0;
+            command.vertexCount   = state.vertexCount;
+            command.texture       = state.texture;
+
+            this->draw(command);
         }
 
         if (usedSizes[0] > 0)
-            state.vertexBuffer->markUsed(usedSizes[0]);
+            state.vertexBuffer->markUsed(state.vertexCount);
 
         if (usedSizes[1] > 0)
-            state.indexBuffer->markUsed(usedSizes[1]);
+            state.indexBuffer->markUsed(state.indexCount);
 
         this->popTransform();
+
+        if (attributes.isEnabled(ATTRIB_COLOR))
+            this->setColor(originalColor);
 
         state.vertexCount = 0;
         state.indexCount  = 0;
@@ -400,15 +462,219 @@ namespace love
             instance->flushBatchedDraws();
     }
 
+    void GraphicsBase::advanceStreamBuffers()
+    {
+        if (this->batchedDrawState.vertexBuffer)
+            this->batchedDrawState.vertexBuffer->nextFrame();
+
+        if (this->batchedDrawState.indexBuffer)
+            this->batchedDrawState.indexBuffer->nextFrame();
+    }
+
+    void GraphicsBase::advanceStreamBuffersGlobal()
+    {
+        auto* instance = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+
+        if (instance != nullptr)
+            instance->advanceStreamBuffers();
+    }
+
     TextureBase* GraphicsBase::getDefaultTexture(TextureBase* texture)
     {
         if (texture != nullptr)
             return texture;
 
-        return getDefaultTexture(TEXTURE_2D);
+        return getDefaultTexture(TEXTURE_2D, DATA_BASETYPE_FLOAT);
     }
 
-    TextureBase* GraphicsBase::getDefaultTexture(TextureType type)
+    void GraphicsBase::push(StackType type)
+    {
+        if (this->getStackDepth() == MAX_USER_STACK_DEPTH)
+            throw love::Exception("Maximum stack depth reached (more pushes than pops?)");
+
+        this->pushTransform();
+        this->pixelScaleStack.push_back(this->pixelScaleStack.back());
+
+        if (type == STACK_ALL)
+            this->states.push_back(this->states.back());
+
+        this->stackTypeStack.push_back(type);
+    }
+
+    void GraphicsBase::pop()
+    {
+        if (this->getStackDepth() < 1)
+            throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
+
+        this->popTransform();
+        this->pixelScaleStack.pop_back();
+
+        if (this->stackTypeStack.back() == STACK_ALL)
+        {
+            DisplayState state = this->states[this->states.size() - 2];
+            this->restoreStateChecked(state);
+
+            this->states.pop_back();
+        }
+
+        this->stackTypeStack.pop_back();
+    }
+
+    void GraphicsBase::applyTransform(const Matrix4& transform)
+    {
+        Matrix4& current = this->transformStack.back();
+        current *= transform;
+
+        float sx, sy;
+        current.getApproximateScale(sx, sy);
+        this->pixelScaleStack.back() *= (sx + sy) / 2.0;
+    }
+
+    void GraphicsBase::replaceTransform(const Matrix4& transform)
+    {
+        this->transformStack.back() = transform;
+
+        float sx, sy;
+        transform.getApproximateScale(sx, sy);
+        this->pixelScaleStack.back() = (sx + sy) / 2.0;
+    }
+
+    Vector2 GraphicsBase::transformPoint(Vector2 point) const
+    {
+        Vector2 result {};
+        this->transformStack.back().transformXY(&result, &point, 1);
+
+        return result;
+    }
+
+    Vector2 GraphicsBase::inverseTransformPoint(Vector2 point) const
+    {
+        Vector2 result {};
+        this->transformStack.back().inverse().transformXY(&result, &point, 1);
+
+        return result;
+    }
+
+    PixelFormat GraphicsBase::getSizedFormat(PixelFormat format)
+    {
+        switch (format)
+        {
+            case PIXELFORMAT_NORMAL:
+                if (isGammaCorrect())
+                    return PIXELFORMAT_RGBA8_sRGB;
+                else
+                    return PIXELFORMAT_RGBA8_UNORM;
+            case PIXELFORMAT_HDR:
+                return PIXELFORMAT_RGBA16_FLOAT;
+            default:
+                return format;
+        }
+    }
+
+    int GraphicsBase::getWidth() const
+    {
+        auto& info = love::getScreenInfo(currentScreen);
+        return info.width;
+    }
+
+    int GraphicsBase::getHeight() const
+    {
+        auto& info = love::getScreenInfo(currentScreen);
+        return info.width;
+    }
+
+    GraphicsBase::RendererInfo GraphicsBase::getRendererInfo() const
+
+    {
+        RendererInfo info {};
+        info.name    = __RENDERER_NAME__;
+        info.version = __RENDERER_VERSION__;
+        info.vendor  = __RENDERER_VENDOR__;
+        info.device  = __RENDERER_DEVICE__;
+
+        return info;
+    }
+
+    void GraphicsBase::intersectScissor(const Rect& scissor)
+    {
+        auto current = this->states.back().scissorRect;
+
+        if (!this->states.back().scissor)
+        {
+            current.x = 0;
+            current.y = 0;
+
+            current.w = std::numeric_limits<int>::max();
+            current.h = std::numeric_limits<int>::max();
+        }
+
+        int x1 = std::max(current.x, scissor.x);
+        int y1 = std::max(current.y, scissor.y);
+        int x2 = std::min(current.x + current.w, scissor.x + scissor.w);
+        int y2 = std::min(current.y + current.h, scissor.y + scissor.h);
+
+        Rect newScisssor = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
+        this->setScissor(newScisssor);
+    }
+
+    bool GraphicsBase::getScissor(Rect& scissor) const
+    {
+        const auto& state = this->states.back();
+
+        scissor = state.scissorRect;
+        return state.scissor;
+    }
+
+    bool GraphicsBase::isRenderTargetActive() const
+    {
+        const auto& targets = this->states.back().renderTargets;
+        return !targets.colors.empty() || targets.depthStencil.texture != nullptr;
+    }
+
+    bool GraphicsBase::isRenderTargetActive(TextureBase* texture) const
+    {
+        auto* root          = texture->getRootViewInfo().texture;
+        const auto& targets = this->states.back().renderTargets;
+
+        for (const auto& target : targets.colors)
+        {
+            if (target.texture.get() && target.texture->getRootViewInfo().texture == root)
+                return true;
+        }
+
+        // clang-format off
+        if (targets.depthStencil.texture.get() && targets.depthStencil.texture->getRootViewInfo().texture == root)
+            return true;
+        // clang-format on
+
+        return false;
+    }
+
+    bool GraphicsBase::isRenderTargetActive(TextureBase* texture, int slice) const
+    {
+        const auto& rootInfo = texture->getRootViewInfo();
+        slice += rootInfo.startLayer;
+
+        const auto& targets = this->states.back().renderTargets;
+
+        for (const auto& target : targets.colors)
+        {
+            const auto& info = target.texture->getRootViewInfo();
+            if (rootInfo.texture == info.texture && target.slice + info.startLayer == slice)
+                return true;
+        }
+
+        if (targets.depthStencil.texture.get())
+        {
+            const auto& info = targets.depthStencil.texture->getRootViewInfo();
+            if (rootInfo.texture == info.texture && targets.depthStencil.slice + info.startLayer == slice)
+                return true;
+        }
+
+        return false;
+    }
+
+    TextureBase* GraphicsBase::getDefaultTexture(TextureType type, DataBaseType dataType)
     {
         TextureBase* texture = this->defaultTextures[type];
 
@@ -416,7 +682,23 @@ namespace love
             return texture;
 
         TextureBase::Settings settings {};
-        settings.type = type;
+        settings.type   = type;
+        settings.width  = 1;
+        settings.height = 1;
+
+        switch (dataType)
+        {
+            case DATA_BASETYPE_INT:
+                settings.format = PIXELFORMAT_RGBA8_INT;
+                break;
+            case DATA_BASETYPE_UINT:
+                settings.format = PIXELFORMAT_RGBA8_UINT;
+                break;
+            case DATA_BASETYPE_FLOAT:
+            default:
+                settings.format = PIXELFORMAT_RGBA8_UNORM;
+                break;
+        }
 
         if constexpr (Console::is(Console::CTR))
         {
@@ -438,7 +720,7 @@ namespace love
 
         // clang-format off
         for (int slice = 0; slice < (type == TEXTURE_CUBE ? 6 : 1); slice++)
-            texture->replacePixels(pixel, sizeof(pixel), slice, 0, { 0, 0, settings.width + 1, settings.height + 1 }, false);
+            texture->replacePixels(pixel, sizeof(pixel), slice, 0, { 0, 0, settings.width, settings.height }, false);
         // clang-format on
 
         this->defaultTextures[type] = texture;
@@ -449,7 +731,7 @@ namespace love
     void GraphicsBase::polyline(std::span<const Vector2> vertices)
     {}
 
-    void GraphicsBase::polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastVertex)
+    void GraphicsBase::polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastFilledVertex)
     {
         if (mode == DRAW_LINE)
             this->polyline(vertices);
@@ -461,33 +743,42 @@ namespace love
             BatchedDrawCommand command {};
             command.format      = CommonFormat::XYf_STf_RGBAf;
             command.indexMode   = TRIANGLEINDEX_FAN;
-            command.vertexCount = (int)vertices.size() - (skipLastVertex ? 1 : 0);
+            command.vertexCount = (int)vertices.size() - (skipLastFilledVertex ? 1 : 0);
 
             BatchedVertexData data = this->requestBatchedDraw(command);
 
-            constexpr float inf = std::numeric_limits<float>::infinity();
-            Vector2 minimum(inf, inf);
-            Vector2 maximum(-inf, -inf);
+            // constexpr float inf = std::numeric_limits<float>::infinity();
+            // Vector2 minimum(inf, inf);
+            // Vector2 maximum(-inf, -inf);
 
-            for (int index = 0; index < command.vertexCount; index++)
-            {
-                Vector2 vector = vertices[index];
-                minimum.x      = std::min(minimum.x, vector.x);
-                minimum.y      = std::min(minimum.y, vector.y);
-                maximum.x      = std::max(maximum.x, vector.x);
-                maximum.y      = std::max(maximum.y, vector.y);
-            }
+            // for (int index = 0; index < command.vertexCount; index++)
+            // {
+            //     Vector2 vector = vertices[index];
+            //     minimum.x      = std::min(minimum.x, vector.x);
+            //     minimum.y      = std::min(minimum.y, vector.y);
+            //     maximum.x      = std::max(maximum.x, vector.x);
+            //     maximum.y      = std::max(maximum.y, vector.y);
+            // }
 
-            Vector2 invSize(1.0f / (maximum.x - minimum.x), 1.0f / (maximum.y - minimum.y));
-            Vector2 start(minimum.x * invSize.x, minimum.y * invSize.y);
+            // Vector2 invSize(1.0f / (maximum.x - minimum.x), 1.0f / (maximum.y - minimum.y));
+            // Vector2 start(minimum.x * invSize.x, minimum.y * invSize.y);
 
             XYf_STf_RGBAf* stream = (XYf_STf_RGBAf*)data.stream;
 
+            // for (int index = 0; index < command.vertexCount; index++)
+            // {
+            //     stream[index].s     = vertices[index].x * invSize.x - start.x;
+            //     stream[index].t     = vertices[index].y * invSize.y - start.y;
+            //     stream[index].color = this->getColor();
+            // }
+
+            Color color = this->getColor();
+
             for (int index = 0; index < command.vertexCount; index++)
             {
-                stream[index].s     = vertices[index].x * invSize.x - start.x;
-                stream[index].t     = vertices[index].y * invSize.y - start.y;
-                stream[index].color = this->getColor();
+                stream[index].s     = 0.0f;
+                stream[index].t     = 0.0f;
+                stream[index].color = color;
             }
 
             if (is2D)
@@ -504,9 +795,8 @@ namespace love
 
     void GraphicsBase::rectangle(DrawMode mode, float x, float y, float w, float h)
     {
-        // clang-format off
-        std::array<Vector2, 5> coords = { Vector2(x, y), Vector2(x, y + h), Vector2(x + w, y + h), Vector2(x + w, y), Vector2(x, y) };
-        // clang-format on
+        Vector2 coords[] = { Vector2(x, y), Vector2(x, y + h), Vector2(x + w, y + h), Vector2(x + w, y),
+                             Vector2(x, y) };
 
         this->polygon(mode, coords);
     }

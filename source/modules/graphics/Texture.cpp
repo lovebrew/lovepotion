@@ -343,7 +343,7 @@ namespace love
         command.vertexCount = 4;
         command.texture     = this;
 
-        auto data = graphics->requestBatchedDraw(command);
+        BatchedVertexData data = graphics->requestBatchedDraw(command);
 
         Matrix4 translated(transform, matrix);
 
@@ -356,12 +356,13 @@ namespace love
             this->updateQuad(quad);
 
         const auto* texCoords = quad->getTextureCoordinates();
+        Color color           = graphics->getColor();
 
         for (int index = 0; index < 4; index++)
         {
             stream[index].s     = texCoords[index].x;
             stream[index].t     = texCoords[index].y;
-            stream[index].color = graphics->getColor();
+            stream[index].color = color;
         }
     }
 

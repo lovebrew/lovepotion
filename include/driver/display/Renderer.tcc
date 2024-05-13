@@ -11,34 +11,13 @@
 #include <array>
 #include <vector>
 
-#define BUFFER_OFFSET(i) ((char*)NULL + (i))
-
 namespace love
 {
-    template<class T>
-    class RendererBase : public Singleton<T>
+    class RendererBase
     {
       public:
-        enum RENDERER_INFO
-        {
-            RENDERER_INFO_NAME,
-            RENDERER_INFO_VERSION,
-            RENDERER_INFO_VENDOR,
-            RENDERER_INFO_DEVICE
-        };
-
         RendererBase()
         {}
-
-        size_t getVertexCount() const
-        {
-            return this->renderCtx.vertexCount;
-        }
-
-        Vertex* getVertices()
-        {
-            return this->data;
-        }
 
         virtual void prepareDraw() = 0;
 
@@ -54,8 +33,6 @@ namespace love
 
             Rect scissor;
             Rect viewport;
-
-            ShaderBase::StandardShader shader = ShaderBase::STANDARD_DEFAULT;
         };
 
         bool initialized = false;

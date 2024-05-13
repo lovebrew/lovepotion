@@ -20,6 +20,8 @@ namespace love
 
         ptrdiff_t getHandle() const override;
 
+        ptrdiff_t getRenderTargetHandle() const override;
+
         void updateQuad(Quad* quad);
 
         void setSamplerState(const SamplerState& state) override;

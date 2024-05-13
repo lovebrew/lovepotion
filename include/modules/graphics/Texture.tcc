@@ -229,6 +229,16 @@ namespace love
             return !isPixelFormatSRGB(this->format);
         }
 
+        const ViewInfo& getRootViewInfo() const
+        {
+            return this->rootView;
+        }
+
+        const ViewInfo& getParentViewInfo() const
+        {
+            return this->parentView;
+        }
+
         bool isValidSlice(int slice, int mip) const
         {
             return slice >= 0 && slice < this->getSliceCount(mip);
@@ -293,6 +303,8 @@ namespace love
         {
             return this->samplerState;
         }
+
+        virtual ptrdiff_t getRenderTargetHandle() const = 0;
 
         virtual void setSamplerState(const SamplerState& state) = 0;
 

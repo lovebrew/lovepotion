@@ -103,6 +103,48 @@ namespace love
             LINE_JOIN_MAX_ENUM
         };
 
+        enum Feature
+        {
+            FEATURE_MULTI_RENDER_TARGET_FORMATS,
+            FEATURE_CLAMP_ZERO,
+            FEATURE_CLAMP_ONE,
+            FEATURE_BLEND_MINMAX,
+            FEATURE_LIGHTEN, // Deprecated
+            FEATURE_FULL_NPOT,
+            FEATURE_PIXEL_SHADER_HIGHP,
+            FEATURE_SHADER_DERIVATIVES,
+            FEATURE_GLSL3,
+            FEATURE_GLSL4,
+            FEATURE_INSTANCING,
+            FEATURE_TEXEL_BUFFER,
+            FEATURE_INDEX_BUFFER_32BIT,
+            FEATURE_COPY_BUFFER,
+            FEATURE_COPY_BUFFER_TO_TEXTURE,
+            FEATURE_COPY_TEXTURE_TO_BUFFER,
+            FEATURE_COPY_RENDER_TARGET_TO_BUFFER,
+            FEATURE_MIPMAP_RANGE,
+            FEATURE_INDIRECT_DRAW,
+            FEATURE_MAX_ENUM
+        };
+
+        enum SystemLimit
+        {
+            LIMIT_POINT_SIZE,
+            LIMIT_TEXTURE_SIZE,
+            LIMIT_VOLUME_TEXTURE_SIZE,
+            LIMIT_CUBE_TEXTURE_SIZE,
+            LIMIT_TEXTURE_LAYERS,
+            LIMIT_TEXEL_BUFFER_SIZE,
+            LIMIT_SHADER_STORAGE_BUFFER_SIZE,
+            LIMIT_THREADGROUPS_X,
+            LIMIT_THREADGROUPS_Y,
+            LIMIT_THREADGROUPS_Z,
+            LIMIT_RENDER_TARGETS,
+            LIMIT_TEXTURE_MSAA,
+            LIMIT_ANISOTROPY,
+            LIMIT_MAX_ENUM
+        };
+
         enum StackType
         {
             STACK_ALL,
@@ -114,6 +156,13 @@ namespace love
         {
             TEMPORARY_RT_DEPTH   = (1 << 0),
             TEMPORARY_RT_STENCIL = (1 << 1)
+        };
+
+        struct Capabilities
+        {
+            double limits[LIMIT_MAX_ENUM];
+            bool features[FEATURE_MAX_ENUM];
+            bool textureTypes[TEXTURE_MAX_ENUM];
         };
 
         struct RendererInfo
@@ -135,6 +184,138 @@ namespace love
             int buffers;
             int64_t textureMemory;
             int64_t bufferMemory;
+            float cpuProcessingTime;
+            float gpuDrawingTime;
+        };
+
+        class TempTransform
+        {
+          public:
+            TempTransform(GraphicsBase* graphics) : graphics(graphics)
+            {
+                graphics->pushTransform();
+            }
+
+            TempTransform(GraphicsBase* graphics, const Matrix4& transform) : graphics(graphics)
+            {
+                graphics->pushTransform();
+                graphics->transformStack.back() *= transform;
+            }
+
+            ~TempTransform()
+            {
+                graphics->popTransform();
+            }
+
+          private:
+            GraphicsBase* graphics;
+        };
+
+        struct ScreenshotInfo;
+        typedef void (*ScreenshotCallback)(const ScreenshotInfo* info, ImageData* i, void* ud);
+
+        struct ScreenshotInfo
+        {
+            ScreenshotCallback callback = nullptr;
+            void* data                  = nullptr;
+        };
+
+        struct RenderTargetStrongRef;
+
+        struct RenderTarget
+        {
+            TextureBase* texture;
+            int slice;
+            int mipmap;
+
+            RenderTarget(TextureBase* texture, int slice = 0, int mipmap = 0) :
+                texture(texture),
+                slice(slice),
+                mipmap(mipmap)
+            {}
+
+            RenderTarget() : texture(nullptr), slice(0), mipmap(0)
+            {}
+
+            bool operator!=(const RenderTarget& other) const
+            {
+                return this->texture != other.texture || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            bool operator!=(const RenderTargetStrongRef& other) const
+            {
+                return this->texture != other.texture.get() || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+        };
+
+        struct RenderTargetStrongRef
+        {
+            StrongRef<TextureBase> texture;
+            int slice  = 0;
+            int mipmap = 0;
+
+            RenderTargetStrongRef(TextureBase* texture, int slice = 0, int mipmap = 0) :
+                texture(texture),
+                slice(slice),
+                mipmap(mipmap)
+            {}
+
+            bool operator!=(const RenderTargetStrongRef& other) const
+            {
+                return this->texture.get() != other.texture.get() || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+
+            bool operator!=(const RenderTarget& other)
+            {
+                return this->texture.get() != other.texture || this->slice != other.slice ||
+                       this->mipmap != other.mipmap;
+            }
+        };
+
+        struct RenderTargetsStrongRef
+        {
+            std::vector<RenderTargetStrongRef> colors;
+            RenderTargetStrongRef depthStencil;
+            uint32_t temporaryFlags;
+
+            RenderTargetsStrongRef() : depthStencil(nullptr), temporaryFlags(0)
+            {}
+        };
+
+        struct RenderTargets
+        {
+            std::vector<RenderTarget> colors;
+            RenderTarget depthStencil;
+            uint32_t temporaryFlags;
+
+            RenderTargets() : depthStencil(nullptr), temporaryFlags(0)
+            {}
+
+            const RenderTarget& getFirstTarget() const
+            {
+                return this->colors.empty() ? this->depthStencil : this->colors[0];
+            }
+
+            bool operator==(const RenderTargets& other) const
+            {
+                size_t numColors = this->colors.size();
+                if (numColors != other.colors.size())
+                    return false;
+
+                for (size_t index = 0; index < numColors; index++)
+                {
+                    if (this->colors[index] != other.colors[index])
+                        return false;
+                }
+
+                if (this->depthStencil != other.depthStencil || this->temporaryFlags != other.temporaryFlags)
+                    return false;
+
+                return true;
+            }
         };
 
         struct DisplayState
@@ -167,7 +348,7 @@ namespace love
             // StrongRef<Font> font;
             // StrongRef<Shader> shader;
 
-            // RenderTargetsStrongRef renderTargets;
+            RenderTargetsStrongRef renderTargets;
 
             ColorChannelMask colorMask;
 
@@ -175,29 +356,6 @@ namespace love
             Matrix4 customProjection;
 
             SamplerState defaultSampleState = SamplerState();
-        };
-
-        class TempTransform
-        {
-          public:
-            TempTransform(GraphicsBase* graphics) : graphics(graphics)
-            {
-                graphics->pushTransform();
-            }
-
-            TempTransform(GraphicsBase* graphics, const Matrix4& transform) : graphics(graphics)
-            {
-                graphics->pushTransform();
-                graphics->transformStack.back() *= transform;
-            }
-
-            ~TempTransform()
-            {
-                graphics->popTransform();
-            }
-
-          private:
-            GraphicsBase* graphics;
         };
 
         GraphicsBase(const char* name);
@@ -208,11 +366,11 @@ namespace love
 
         void restoreStateChecked(const DisplayState& state);
 
-        /* TODO: implement when they exist */
-        bool isRenderTargetActive() const
-        {
-            return false;
-        }
+        bool isRenderTargetActive() const;
+
+        bool isRenderTargetActive(TextureBase* texture) const;
+
+        bool isRenderTargetActive(TextureBase* texture, int slice) const;
 
         void setActive(bool active)
         {
@@ -250,39 +408,13 @@ namespace love
             this->states.back().defaultSampleState = state;
         }
 
-        void setScissor(const Rect& scissor);
+        virtual void setScissor(const Rect& scissor) = 0;
 
-        void setScissor();
+        virtual void setScissor() = 0;
 
-        void intersectScissor(const Rect& scissor)
-        {
-            auto current = this->states.back().scissorRect;
+        void intersectScissor(const Rect& scissor);
 
-            if (!this->states.back().scissor)
-            {
-                current.x = 0;
-                current.y = 0;
-
-                current.w = std::numeric_limits<int>::max();
-                current.h = std::numeric_limits<int>::max();
-            }
-
-            int x1 = std::max(current.x, scissor.x);
-            int y1 = std::max(current.y, scissor.y);
-            int x2 = std::min(current.x + current.w, scissor.x + scissor.w);
-            int y2 = std::min(current.y + current.h, scissor.y + scissor.h);
-
-            Rect newScisssor = { x1, y1, std::max(0, x2 - x1), std::max(0, y2 - y1) };
-            this->setScissor(newScisssor);
-        }
-
-        bool getScissor(Rect& scissor) const
-        {
-            const auto& state = this->states.back();
-
-            scissor = state.scissorRect;
-            return state.scissor;
-        }
+        bool getScissor(Rect& scissor) const;
 
         Color getBackgroundColor() const
         {
@@ -299,11 +431,11 @@ namespace love
             return this->states.back().meshCullMode;
         }
 
-        void setFrontFaceWinding(Winding winding);
+        virtual void setFrontFaceWinding(Winding winding) = 0;
 
         Winding getFrontFaceWinding() const;
 
-        void setColorMask(ColorChannelMask mask);
+        virtual void setColorMask(ColorChannelMask mask) = 0;
 
         ColorChannelMask getColorMask() const;
 
@@ -312,16 +444,20 @@ namespace love
         virtual TextureBase* newTexture(const TextureBase::Settings& settings,
                                         const TextureBase::Slices* data = nullptr) = 0;
 
-        TextureBase* getDefaultTexture(TextureType type);
+        virtual void initCapabilities() = 0;
 
         TextureBase* getDefaultTexture(TextureBase* texture);
+
+        TextureBase* getDefaultTexture(TextureType type, DataBaseType dataType);
 
         BlendMode getBlendMode(BlendAlpha& alphaMode) const
         {
             return computeBlendMode(this->states.back().blend, alphaMode);
         }
 
-        void setBlendState(const BlendState& blend);
+        virtual void setBlendState(const BlendState& blend) = 0;
+
+        void captureScreenshot(const ScreenshotInfo& info);
 
         const BlendState& getBlendState() const
         {
@@ -371,32 +507,14 @@ namespace love
             return this->states.back().pointSize;
         }
 
-        PixelFormat getSizedFormat(PixelFormat format)
+        Capabilities getCapabilities() const
         {
-            switch (format)
-            {
-                case PIXELFORMAT_NORMAL:
-                    if (isGammaCorrect())
-                        return PIXELFORMAT_RGBA8_sRGB;
-                    else
-                        return PIXELFORMAT_RGBA8_UNORM;
-                case PIXELFORMAT_HDR:
-                    return PIXELFORMAT_RGBA16_FLOAT;
-                default:
-                    return format;
-            }
+            return this->capabilities;
         }
 
-        RendererInfo getRendererInfo() const
-        {
+        PixelFormat getSizedFormat(PixelFormat format);
 
-            RendererInfo info { .name    = __RENDERER_NAME__,
-                                .version = __RENDERER_VERSION__,
-                                .vendor  = __RENDERER_VENDOR__,
-                                .device  = __RENDERER_DEVICE__ };
-
-            return info;
-        }
+        RendererInfo getRendererInfo() const;
 
         BatchedVertexData requestBatchedDraw(const BatchedDrawCommand& command);
 
@@ -404,7 +522,13 @@ namespace love
 
         static void flushBatchedDrawsGlobal();
 
+        void advanceStreamBuffers();
+
+        static void advanceStreamBuffersGlobal();
+
         virtual void draw(const DrawIndexedCommand& command) = 0;
+
+        virtual void draw(const DrawCommand& command) = 0;
 
         Stats getStats() const;
 
@@ -413,38 +537,9 @@ namespace love
             return this->stackTypeStack.size();
         }
 
-        void push(StackType type = STACK_TRANSFORM)
-        {
-            if (this->getStackDepth() == MAX_USER_STACK_DEPTH)
-                throw love::Exception("Maximum stack depth reached (more pushes than pops?)");
+        void push(StackType type = STACK_TRANSFORM);
 
-            this->pushTransform();
-            this->pixelScaleStack.push_back(this->pixelScaleStack.back());
-
-            if (type == STACK_ALL)
-                this->states.push_back(this->states.back());
-
-            this->stackTypeStack.push_back(type);
-        }
-
-        void pop()
-        {
-            if (this->getStackDepth() < 1)
-                throw love::Exception("Minimum stack depth reached (more pops than pushes?)");
-
-            this->popTransform();
-            this->pixelScaleStack.pop_back();
-
-            if (this->stackTypeStack.back() == STACK_ALL)
-            {
-                DisplayState state = this->states[this->states.size() - 2];
-                this->restoreStateChecked(state);
-
-                this->states.pop_back();
-            }
-
-            this->stackTypeStack.pop_back();
-        }
+        void pop();
 
         const Matrix4& getTransform() const
         {
@@ -493,40 +588,17 @@ namespace love
             this->pixelScaleStack.back() = 1.0;
         }
 
-        void applyTransform(const Matrix4& transform)
-        {
-            Matrix4& current = this->transformStack.back();
-            current *= transform;
+        int getWidth() const;
 
-            float sx, sy;
-            current.getApproximateScale(sx, sy);
-            this->pixelScaleStack.back() *= (sx + sy) / 2.0;
-        }
+        int getHeight() const;
 
-        void replaceTransform(const Matrix4& transform)
-        {
-            this->transformStack.back() = transform;
+        void applyTransform(const Matrix4& transform);
 
-            float sx, sy;
-            transform.getApproximateScale(sx, sy);
-            this->pixelScaleStack.back() = (sx + sy) / 2.0;
-        }
+        void replaceTransform(const Matrix4& transform);
 
-        Vector2 transformPoint(Vector2 point) const
-        {
-            Vector2 result {};
-            this->transformStack.back().transformXY(&result, &point, 1);
+        Vector2 transformPoint(Vector2 point) const;
 
-            return result;
-        }
-
-        Vector2 inverseTransformPoint(Vector2 point) const
-        {
-            Vector2 result {};
-            this->transformStack.back().inverse().transformXY(&result, &point, 1);
-
-            return result;
-        }
+        Vector2 inverseTransformPoint(Vector2 point) const;
 
         void updateDeviceProjection(const Matrix4& projection)
         {
@@ -538,37 +610,35 @@ namespace love
             return this->deviceProjectionMatrix;
         }
 
-        void resetProjection()
-        {
-            this->flushBatchedDraws();
+        void resetProjection();
 
-            auto& state = this->states.back();
+        void reset();
 
-            state.useCustomProjection = false;
-            this->updateDeviceProjection(Matrix4::ortho(0.0f, 0, 0, 0.0f, -10.0f, 10.0f));
-        }
+        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) = 0;
 
-        void reset()
-        {
-            DisplayState state {};
-            this->restoreState(state);
+        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                           OptionalDouble depth) = 0;
 
-            this->origin();
-        }
+        virtual void present(void* screenshotCallbackData) = 0;
 
-        double getCurrentDPIScale()
-        {
-            return 1.0;
-        }
+        virtual bool setMode(int width, int height, int pixelwidth, int pixelheight, bool backbufferstencil,
+                             bool backbufferdepth, int msaa) = 0;
 
-        double getScreenDPIScale()
-        {
-            return 1.0;
-        }
+        virtual void unsetMode() = 0;
+
+        virtual void setActiveScreen()
+        {}
+
+        virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                              bool hasSRGBTexture) = 0;
+
+        double getCurrentDPIScale() const;
+
+        double getScreenDPIScale() const;
 
         void polyline(std::span<const Vector2> vertices);
 
-        void polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastVertex = true);
+        void polygon(DrawMode mode, std::span<const Vector2> vertices, bool skipLastFilledVertex = true);
 
         void rectangle(DrawMode mode, float x, float y, float w, float h);
 
@@ -663,5 +733,12 @@ namespace love
 
         BatchedDrawState batchedDrawState;
         std::vector<uint8_t> scratchBuffer;
+
+        float cpuProcessingTime;
+        float gpuDrawingTime;
+
+        Capabilities capabilities;
+
+        std::vector<ScreenshotInfo> pendingScreenshotCallbacks;
     };
 } // namespace love

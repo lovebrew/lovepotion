@@ -134,11 +134,11 @@ namespace love
                 break;
             case CommonFormat::STf_RGBAf:
                 set(ATTRIB_TEXCOORD, DATAFORMAT_FLOAT_VEC2, 0, bufferindex);
-                set(ATTRIB_COLOR, DATAFORMAT_UNORM8_VEC4, uint16_t(sizeof(float) * 2), bufferindex);
+                set(ATTRIB_COLOR, DATAFORMAT_FLOAT_VEC4, uint16_t(sizeof(float) * 2), bufferindex);
                 break;
             case CommonFormat::STPf_RGBAf:
                 set(ATTRIB_TEXCOORD, DATAFORMAT_FLOAT_VEC3, 0, bufferindex);
-                set(ATTRIB_COLOR, DATAFORMAT_UNORM8_VEC4, uint16_t(sizeof(float) * 3), bufferindex);
+                set(ATTRIB_COLOR, DATAFORMAT_FLOAT_VEC4, uint16_t(sizeof(float) * 3), bufferindex);
                 break;
             case CommonFormat::XYf_STf:
                 set(ATTRIB_POS, DATAFORMAT_FLOAT_VEC2, 0, bufferindex);
@@ -151,18 +151,18 @@ namespace love
             case CommonFormat::XYf_STf_RGBAf:
                 set(ATTRIB_POS, DATAFORMAT_FLOAT_VEC2, 0, bufferindex);
                 set(ATTRIB_TEXCOORD, DATAFORMAT_FLOAT_VEC2, uint16_t(sizeof(float) * 2), bufferindex);
-                set(ATTRIB_COLOR, DATAFORMAT_UNORM8_VEC4, uint16_t(sizeof(float) * 4), bufferindex);
+                set(ATTRIB_COLOR, DATAFORMAT_FLOAT_VEC4, uint16_t(sizeof(float) * 4), bufferindex);
                 break;
             case CommonFormat::XYf_STus_RGBAf:
                 set(ATTRIB_POS, DATAFORMAT_FLOAT_VEC2, 0, bufferindex);
                 set(ATTRIB_TEXCOORD, DATAFORMAT_UNORM16_VEC2, uint16_t(sizeof(float) * 2), bufferindex);
-                set(ATTRIB_COLOR, DATAFORMAT_UNORM8_VEC4, uint16_t(sizeof(float) * 2 + sizeof(uint16_t) * 2),
+                set(ATTRIB_COLOR, DATAFORMAT_FLOAT_VEC4, uint16_t(sizeof(float) * 2 + sizeof(uint16_t) * 2),
                     bufferindex);
                 break;
             case CommonFormat::XYf_STPf_RGBAf:
                 set(ATTRIB_POS, DATAFORMAT_FLOAT_VEC2, 0, bufferindex);
                 set(ATTRIB_TEXCOORD, DATAFORMAT_FLOAT_VEC3, uint16_t(sizeof(float) * 2), bufferindex);
-                set(ATTRIB_COLOR, DATAFORMAT_UNORM8_VEC4, uint16_t(sizeof(float) * 5), bufferindex);
+                set(ATTRIB_COLOR, DATAFORMAT_FLOAT_VEC4, uint16_t(sizeof(float) * 5), bufferindex);
                 break;
         }
     }

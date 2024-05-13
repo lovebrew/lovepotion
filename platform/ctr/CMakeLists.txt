@@ -39,7 +39,7 @@ source/boot.cpp
 source/common/screen.cpp
 source/driver/audio/DigitalSound.cpp
 source/driver/display/Framebuffer.cpp
-source/driver/display/Renderer.cpp
+source/driver/display/citro3d.cpp
 source/driver/EventQueue.cpp
 source/modules/audio/Source.cpp
 source/modules/graphics/Graphics.cpp

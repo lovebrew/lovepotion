@@ -47,4 +47,17 @@ namespace love
 
         return INVALID_SCREEN;
     }
+
+    inline void nextScreen()
+    {
+        const auto& info = getScreenInfo();
+
+        if (currentScreen == INVALID_SCREEN)
+            currentScreen = DEFAULT_SCREEN;
+        else
+            currentScreen = (Screen)((int)currentScreen + 1);
+
+        if (currentScreen >= (Screen)info.size())
+            currentScreen = DEFAULT_SCREEN;
+    }
 } // namespace love

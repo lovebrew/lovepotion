@@ -1,16 +1,29 @@
 namespace love
 {
-// Startup
+// #region Startup
 #define E_UNEXPECTED_ALIGNMENT \
     "Cannot push love object to Lua: unexpected alignment\
     (pointer is {} but alignment should be {:d})."
-
 #define E_POINTER_TOO_LARGE "Cannot push love object to Lua: pointer value {} is too large!"
+// #endregion
 
-// General
+// #region General
 #define E_OUT_OF_MEMORY  "Out of memory."
 #define E_TITLE_TAKEOVER "Please run LÖVE Potion under Atmosphère title takeover."
-// Filesystem
+// #endregion
+
+// #region Audio
+#define E_AUDIO_NOT_INITIALIZED "Failed to initialize ndsp"
+#define E_CANNOT_CREATE_QUEUE_SOURCE \
+    "Cannot create queueable sources using newSource. Use newQueueableSource instead."
+#define E_INVALID_AUDIO_FORMAT   "{:d}-channel Sources with {:d} bits per sample are not supported."
+#define E_QUEUE_FORMAT_MISMATCH  "Queued sound data must have same format as sound Source."
+#define E_QUEUE_TYPE_MISMATCH    "Only queueable Sources can be queued with sound data."
+#define E_QUEUE_LENGTH_MALFORMED "Data length must be a multiple of sample size ({:d} bytes)."
+#define E_QUEUE_CANNOT_BE_LOOPED "Queueable Sources can not be looped."
+// #endregion
+
+// #region Filesystem
 #define E_PHYSFS_NOT_INITIALIZED     "PHYSFS is not initialized."
 #define E_DATA_NOT_WRITTEN           "Data could not be written."
 #define E_COULD_NOT_OPEN_FILE        "Could not open file at path {}."
@@ -19,17 +32,13 @@ namespace love
 #define E_INVALID_READ_SIZE          "Invalid read size."
 #define E_INVALID_WRITE_SIZE         "Invalid write size."
 #define E_NO_FILE_IN_LOVE_DIRS       "\n\tno '{}' in LOVE game directories."
-// Audio
-#define E_AUDIO_NOT_INITIALIZED "Failed to initialize ndsp"
-#define E_CANNOT_CREATE_QUEUE_SOURCE \
-    "Cannot create queueable sources using newSource. Use newQueueableSource instead."
-// Data
-#define E_INVALID_SIZE_PARAMETER  "Invalid size parameter (must be greater than 0)."
-#define E_INVALID_COUNT_PARAMETER "Invalid count parameter (must be greater than 0)."
-#define E_INVALID_OFFSET_AND_SIZE \
-    "The given offset and size parameters don't fit within the Data's size."
-#define E_DATAVIEW_OFFSET_AND_SIZE \
-    "Offset and size of Data View must fit within the original Data's size."
+// #endregion
+
+// #region Data
+#define E_INVALID_SIZE_PARAMETER   "Invalid size parameter (must be greater than 0)."
+#define E_INVALID_COUNT_PARAMETER  "Invalid count parameter (must be greater than 0)."
+#define E_INVALID_OFFSET_AND_SIZE  "The given offset and size parameters don't fit within the Data's size."
+#define E_DATAVIEW_OFFSET_AND_SIZE " Offset and size of Data View must fit within the original Data's size."
 #define E_OFFSET_AND_SIZE_ARGS_FIT_WITHIN_DATA \
     "Offset and size arguments must fit within the given Data's size."
 #define E_DATAVIEW_INVALID_SIZE           "DataView size mn ust be greater than 0."
@@ -41,6 +50,12 @@ namespace love
     "The given byte offset and pack format parameters do not fit within the ByteData's size."
 #define E_DATA_SIZE_MUST_BE_POSITIVE       "Data size must be a positive number."
 #define E_SOUNDDATA_MISMATCH_CHANNEL_COUNT "Channel count mismatch: {:d} vs {:d}"
+// #endregion
+
+// #region Graphics
+#define E_BLEND_MIN_MAX_NOT_SUPPORTED "The 'min' and 'max' blend operations are not supported on this system."
+// # endregion
+
 // Thread
 #define E_CHANNEL_VARIANT_UNKNOWN "boolean, number, string, love type, or table expected."
 #define E_THREAD_VARIANT_UNKNOWN  "boolean, number, string, love type, or flat table expected."

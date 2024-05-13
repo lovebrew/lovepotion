@@ -278,12 +278,13 @@ namespace love
         {
             Resource* buffer;
             size_t offset;
+            int vertexCount;
         } info[MAX];
 
-        void set(uint32_t index, Resource* r, size_t offset)
+        void set(uint32_t index, Resource* r, size_t offset, int vertexCount)
         {
             useBits |= (1u << index);
-            info[index] = { r, offset };
+            info[index] = { r, offset, vertexCount };
         }
 
         void disable(uint32_t index)

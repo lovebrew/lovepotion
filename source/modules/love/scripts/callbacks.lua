@@ -248,6 +248,11 @@ function love.run()
 
     local delta = 0
 
+    local screens, current_screen = nil, 1
+    if love.graphics and love.graphics.isActive() then
+        screens = love.graphics.getScreens()
+    end
+
     return function()
         if love.window and g_windowShown then
             return
@@ -278,15 +283,13 @@ function love.run()
         end
 
         if love.graphics and love.graphics.isActive() then
-            local screens = love.graphics.getScreens()
-
             for _, screen in ipairs(screens) do
-                love.graphics.origin()
-
                 love.graphics.setActiveScreen(screen)
+
+                love.graphics.origin()
                 love.graphics.clear(love.graphics.getBackgroundColor())
 
-                if love.draw and shouldDraw(screen) then
+                if love.draw then
                     love.draw(screen, get3DDepth(screen))
                 end
             end

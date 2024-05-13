@@ -12,26 +12,34 @@ namespace love
 
         ~Graphics();
 
-        void clear(OptionalColor color, OptionalInt depth, OptionalDouble stencil);
+        virtual void initCapabilities() override;
 
-        void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil, OptionalDouble depth);
+        virtual void clear(OptionalColor color, OptionalInt stencil, OptionalDouble depth) override;
 
-        void present();
+        virtual void clear(const std::vector<OptionalColor>& colors, OptionalInt stencil,
+                           OptionalDouble depth) override;
 
-        void setScissor(const Rect& scissor);
+        virtual void present(void* screenshotCallbackData) override;
 
-        void setScissor();
+        virtual void setScissor(const Rect& scissor) override;
 
-        void setFrontFaceWinding(Winding winding);
+        virtual void setScissor() override;
 
-        void setColorMask(ColorChannelMask mask);
+        virtual void setFrontFaceWinding(Winding winding) override;
 
-        void setBlendState(const BlendState& state);
+        virtual void setColorMask(ColorChannelMask mask) override;
 
-        bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
-                     bool backBufferDepth, int msaa);
+        virtual void setBlendState(const BlendState& state) override;
+
+        virtual bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
+                             bool backBufferDepth, int msaa) override;
+
+        virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
+                                              bool hasSRGBTexture) override;
 
         void draw(const DrawIndexedCommand& command) override;
+
+        void draw(const DrawCommand& command) override;
 
         using GraphicsBase::draw;
 
@@ -39,21 +47,19 @@ namespace love
 
         bool isActive() const;
 
-        void unsetMode();
+        virtual void unsetMode() override;
+
+        void setActiveScreen() override;
 
         void setViewport(int x, int y, int width, int height);
+
+        C3D_RenderTarget* getInternalBackbuffer() const;
 
         // clang-format off
         virtual TextureBase* newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data = nullptr) override;
         // clang-format on
 
         bool isPixelFormatSupported(PixelFormat format, uint32_t usage);
-
-        /* TODO: implement properly */
-        bool isRenderTargetActive(Texture* texture)
-        {
-            return false;
-        }
 
         bool is3D() const;
 

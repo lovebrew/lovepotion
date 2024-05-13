@@ -1,5 +1,5 @@
 #include "modules/graphics/Shader.hpp"
-#include "driver/display/Renderer.hpp"
+#include "driver/display/citro3d.hpp"
 
 #define SHADERS_DIR "romfs:/shaders/"
 
@@ -64,9 +64,6 @@ namespace love
 
     void Shader::updateBuiltinUniforms(const C3D_Mtx& mdlvMtx, const C3D_Mtx& projMtx)
     {
-        if (current == this)
-            Graphics::flushBatchedDrawsGlobal();
-
         if (this->hasUniform("mdlvMtx"))
             C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, this->uniforms[0].location, &mdlvMtx);
 

@@ -10,8 +10,6 @@
 #include <format>
 #include <string>
 
-#include "driver/display/Renderer.hpp"
-
 namespace love
 {
     // clang-format off

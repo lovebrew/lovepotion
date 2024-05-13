@@ -27,11 +27,23 @@ namespace love
         int indexCount              = 0;
         int instanceCount           = 1;
 
+        const VertexAttributes* attributes;
+        const BufferBindings* buffers;
+
+        Resource* indexBuffer = nullptr;
+
         IndexDataType indexType  = INDEX_UINT16;
         size_t indexBufferOffset = 0;
 
         TextureBase* texture = nullptr;
         CullMode cullMode    = CULL_NONE;
+
+        DrawIndexedCommand(const VertexAttributes* attributes, const BufferBindings* buffers,
+                           Resource* indexBuffer) :
+            attributes(attributes),
+            buffers(buffers),
+            indexBuffer(indexBuffer)
+        {}
     };
 
     struct DrawCommand
@@ -53,8 +65,8 @@ namespace love
 
     struct BatchedDrawState
     {
-        StreamBuffer* vertexBuffer = nullptr;
-        StreamBuffer* indexBuffer  = nullptr;
+        StreamBuffer<Vertex>* vertexBuffer  = nullptr;
+        StreamBuffer<uint16_t>* indexBuffer = nullptr;
 
         PrimitiveType primitiveMode = PRIMITIVE_TRIANGLES;
         CommonFormat format         = CommonFormat::NONE;
@@ -64,12 +76,22 @@ namespace love
         int vertexCount = 0;
         int indexCount  = 0;
 
-        StreamBuffer::MapInfo vertexMap = StreamBuffer::MapInfo();
-        StreamBuffer::MapInfo indexMap  = StreamBuffer::MapInfo();
+        MapInfo<Vertex> vertexBufferMap  = MapInfo<Vertex>();
+        MapInfo<uint16_t> indexBufferMap = MapInfo<uint16_t>();
 
         bool flushing = false;
     };
 
-    static constexpr auto INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX;
-    static constexpr auto INIT_VERTEX_BUFFER_SIZE = 64 * 1024 * 1;
+    constexpr size_t INIT_VERTEX_BUFFER_SIZE = sizeof(Vertex) * 4096 * 1;
+    constexpr size_t INIT_INDEX_BUFFER_SIZE  = sizeof(uint16_t) * LOVE_UINT16_MAX * 1;
+
+    inline StreamBuffer<Vertex>* newVertexBuffer(size_t size)
+    {
+        return new StreamBuffer<Vertex>(BUFFERUSAGE_VERTEX, size);
+    }
+
+    inline StreamBuffer<uint16_t>* newIndexBuffer(size_t size)
+    {
+        return new StreamBuffer<uint16_t>(BUFFERUSAGE_INDEX, size);
+    }
 } // namespace love

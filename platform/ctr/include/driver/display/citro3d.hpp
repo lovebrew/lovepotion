@@ -13,30 +13,43 @@
 
 #include "driver/graphics/DrawCommand.hpp"
 
+using C3D_IndexType = decltype(C3D_UNSIGNED_BYTE);
+
 namespace love
 {
-    class Renderer : public RendererBase<Renderer>
+
+    class citro3d : public RendererBase
     {
       public:
-        Renderer();
+        enum TexEnvMode
+        {
+            TEXENV_MODE_PRIMITIVE,
+            TEXENV_MODE_TEXTURE,
+            TEXENV_MODE_FONT,
+            TEXENV_MODE_MAX_ENUM
+        };
+
+        citro3d();
 
         void initialize();
 
-        void setupContext(BatchedDrawState& state);
+        void setupContext();
 
-        ~Renderer();
+        ~citro3d();
 
         void clear(const Color& color);
 
         void clearDepthStencil(int depth, uint8_t mask, double stencil);
 
-        void bindFramebuffer();
+        C3D_RenderTarget* getFramebuffer();
+
+        void bindFramebuffer(C3D_RenderTarget* framebuffer);
 
         void present();
 
         void setBlendState(const BlendState& state);
 
-        void setViewport(const Rect& viewport, bool tilt);
+        void setViewport(int width, int height, bool tilt);
 
         void setScissor(const Rect& scissor);
 
@@ -50,35 +63,14 @@ namespace love
 
         virtual void prepareDraw() override;
 
-        static decltype(C3D_UNSIGNED_BYTE) getIndexType(IndexDataType type)
-        {
-            switch (type)
-            {
-                case INDEX_UINT16:
-                default:
-                    return C3D_UNSIGNED_SHORT;
-            }
+        void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
 
-            throw love::Exception("Invalid index type: {:d}.", (int)type);
-            return C3D_UNSIGNED_BYTE;
-        }
+        void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool restorePrevious,
+                               bool bindForEdit = true);
 
-        static GPU_Primitive_t getPrimitiveType(PrimitiveType type)
-        {
-            switch (type)
-            {
-                case PRIMITIVE_TRIANGLES:
-                    return GPU_TRIANGLES;
-                case PRIMITIVE_TRIANGLE_FAN:
-                    return GPU_TRIANGLE_FAN;
-                case PRIMITIVE_TRIANGLE_STRIP:
-                    return GPU_TRIANGLE_STRIP;
-                default:
-                    break;
-            }
+        void bindTextureToUnit(TextureBase* texture, int unit, bool restorePrevious, bool bindForEdit = true);
 
-            throw love::Exception("Invalid primitive type: {:d}.", (int)type);
-        }
+        C3D_RenderTarget* getInternalBackbuffer() const;
 
         void setWideMode(bool wide)
         {
@@ -99,6 +91,12 @@ namespace love
         {
             return gfxIs3D();
         }
+
+        void ensureInFrame();
+
+        // static C3D_IndexType getIndexType(IndexDataType type);
+
+        static GPU_Primitive_t getPrimitiveType(PrimitiveType type);
 
         // clang-format off
         ENUMMAP_DECLARE(PixelFormats, PixelFormat, GPU_TEXCOLOR,
@@ -141,7 +139,21 @@ namespace love
       private:
         static GPU_TEXTURE_WRAP_PARAM getWrapMode(SamplerState::WrapMode mode);
 
-        void ensureInFrame();
+        static int getTextureUnit(GPU_TEXUNIT unit);
+
+        struct Context : public ContextBase
+        {
+            C3D_Mtx modelView;
+            C3D_Mtx projection;
+
+            C3D_RenderTarget* boundFramebuffer = nullptr;
+
+            int currentTextureUnit = 0;
+            std::vector<C3D_Tex*> boundTextures[TEXTURE_MAX_ENUM + 1];
+            TexEnvMode texEnvMode = TEXENV_MODE_MAX_ENUM;
+        } context;
+
+        bool isDefaultFramebufferActive() const;
 
         void createFramebuffers();
 
@@ -155,14 +167,10 @@ namespace love
             this->createFramebuffers();
         }
 
-        struct Context : public ContextBase
-        {
-            C3D_Mtx modelView;
-            C3D_Mtx projection;
-
-            Framebuffer target;
-        } context;
-
         std::vector<Framebuffer> targets;
+
+        void updateTexEnvMode(TexEnvMode mode);
     };
+
+    extern citro3d c3d;
 } // namespace love

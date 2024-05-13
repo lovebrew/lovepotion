@@ -1,6 +1,5 @@
 #include "common/Exception.hpp"
-
-#include "driver/display/Renderer.hpp"
+#include "driver/display/citro3d.hpp"
 
 #include "modules/image/magpie/T3XHandler.hpp"
 
@@ -41,7 +40,7 @@ namespace love
         else if (header.type != GPU_TEX_2D)
             return false;
 
-        if (!Renderer::getConstant((GPU_TEXCOLOR)header.format, format))
+        if (!citro3d::getConstant((GPU_TEXCOLOR)header.format, format))
             return false;
 
         return true;
@@ -72,7 +71,7 @@ namespace love
         PixelFormat result = PIXELFORMAT_MAX_ENUM;
         const auto format  = (GPU_TEXCOLOR)header.format;
 
-        Renderer::getConstant(format, result);
+        citro3d::getConstant(format, result);
 
         const size_t width  = 1 << (header.width_log2 + 3);
         const size_t height = 1 << (header.height_log2 + 3);
@@ -127,7 +126,7 @@ namespace love
         std::memcpy(&header, filedata->getData(), sizeof(Tex3DSHeader));
 
         auto convertedFormat = PIXELFORMAT_MAX_ENUM;
-        if (!Renderer::getConstant((GPU_TEXCOLOR)header.format, convertedFormat))
+        if (!citro3d::getConstant((GPU_TEXCOLOR)header.format, convertedFormat))
             throw love::Exception("Invalid texture format.");
 
         const size_t width  = 1 << (header.width_log2 + 3);

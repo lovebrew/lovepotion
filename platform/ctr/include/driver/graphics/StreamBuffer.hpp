@@ -8,58 +8,64 @@
 
 namespace love
 {
-    class StreamBuffer final : public StreamBufferBase, public Volatile
+    template<typename T>
+    class StreamBuffer final : public StreamBufferBase<T>
     {
       public:
-        StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase(usage, size), buffer(nullptr)
+        StreamBuffer(BufferUsage usage, size_t size) : StreamBufferBase<T>(usage, size), buffer {}
         {
-            this->loadVolatile();
-        }
-
-        bool loadVolatile()
-        {
-            const auto size = this->getSize() * BUFFER_FRAMES;
-            this->data      = (uint8_t*)linearAlloc(size);
+            this->data = (T*)linearAlloc(this->bufferSize);
 
             if (this->data == nullptr)
-                return false;
+                throw love::Exception(E_OUT_OF_MEMORY);
 
-            if (this->usage != BufferUsage::BUFFERUSAGE_VERTEX)
-                return true;
+            if (usage != BUFFERUSAGE_VERTEX)
+                return;
 
-            this->buffer = new C3D_BufInfo();
-            BufInfo_Init(this->buffer);
+            BufInfo_Init(&this->buffer);
+            BufInfo_Add(&this->buffer, this->data, sizeof(Vertex), 3, 0x210);
 
-            BufInfo_Add(this->buffer, this->data, sizeof(Vertex), 3, 0x210);
-            C3D_SetBufInfo(this->buffer);
-
-            return true;
-        }
-
-        void unloadVolatile()
-        {
-            linearFree(this->data);
-
-            delete this->buffer;
-            this->buffer = nullptr;
+            C3D_SetBufInfo(&this->buffer);
         }
 
         ~StreamBuffer()
         {
-            this->unloadVolatile();
+            linearFree(this->data);
+        }
+
+        MapInfo<T> map(size_t) override
+        {
+            MapInfo<T> info {};
+            info.data = &this->data[this->index];
+            info.size = this->bufferSize - this->frameGPUReadOffset;
+
+            return info;
         }
 
         size_t unmap(size_t) override
         {
-            return (size_t)this->data;
+            return this->index;
+        }
+
+        void markUsed(int count) override
+        {
+            this->index += count;
+            this->frameGPUReadOffset += (count * sizeof(T));
+        }
+
+        void nextFrame() override
+        {
+            this->index              = 0;
+            this->frameGPUReadOffset = 0;
         }
 
         ptrdiff_t getHandle() const override
         {
-            return 0;
+            return (ptrdiff_t)this->data;
         }
 
       private:
-        C3D_BufInfo* buffer;
+        T* data;
+        C3D_BufInfo buffer;
     };
 } // namespace love

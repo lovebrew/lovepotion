@@ -123,7 +123,7 @@ int Wrap_Graphics::clear(lua_State* L)
 
 int Wrap_Graphics::present(lua_State* L)
 {
-    luax_catchexcept(L, [&]() { instance()->present(); });
+    luax_catchexcept(L, [&]() { instance()->present(L); });
 
     return 0;
 }
@@ -1035,6 +1035,12 @@ int Wrap_Graphics::getStats(lua_State* L)
     lua_pushnumber(L, (lua_Number)stats.textureMemory);
     lua_setfield(L, -2, "texturememory");
 
+    lua_pushnumber(L, (lua_Number)stats.cpuProcessingTime);
+    lua_setfield(L, -2, "cpuprocessingtime");
+
+    lua_pushnumber(L, (lua_Number)stats.gpuDrawingTime);
+    lua_setfield(L, -2, "gpudrawingtime");
+
     return 1;
 }
 
@@ -1301,6 +1307,50 @@ int Wrap_Graphics::points(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::getWidth(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getWidth());
+
+    return 1;
+}
+
+int Wrap_Graphics::getHeight(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getHeight());
+
+    return 1;
+}
+
+int Wrap_Graphics::getDimensions(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getWidth());
+    lua_pushinteger(L, instance()->getHeight());
+
+    return 2;
+}
+
+int Wrap_Graphics::getPixelWidth(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getWidth());
+
+    return 1;
+}
+
+int Wrap_Graphics::getPixelHeight(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getHeight());
+
+    return 1;
+}
+
+int Wrap_Graphics::getPixelDimensions(lua_State* L)
+{
+    lua_pushinteger(L, instance()->getWidth());
+    lua_pushinteger(L, instance()->getHeight());
+
+    return 2;
+}
+
 // Homebrew Stuff™
 
 int Wrap_Graphics::getScreens(lua_State* L)
@@ -1323,6 +1373,8 @@ int Wrap_Graphics::setActiveScreen(lua_State* L)
     Screen screen    = love::getScreenId(name);
 
     love::currentScreen = screen;
+
+    instance()->setActiveScreen();
 
     return 0;
 }
@@ -1426,6 +1478,13 @@ static constexpr luaL_Reg functions[] =
     { "transformPoint",         Wrap_Graphics::transformPoint        },
     { "inverseTransformPoint",  Wrap_Graphics::inverseTransformPoint },
     { "getStats",               Wrap_Graphics::getStats              },
+
+    { "getWidth",               Wrap_Graphics::getWidth              },
+    { "getHeight",              Wrap_Graphics::getHeight             },
+    { "getDimensions",          Wrap_Graphics::getDimensions         },
+    { "getPixelWidth",          Wrap_Graphics::getPixelWidth         },
+    { "getPixelHeight",         Wrap_Graphics::getPixelHeight        },
+    { "getPixelDimensions",     Wrap_Graphics::getPixelDimensions    },
 
     { "draw",                   Wrap_Graphics::draw                  },
 

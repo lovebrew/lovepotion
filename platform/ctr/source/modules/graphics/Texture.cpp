@@ -1,26 +1,35 @@
 #include "modules/graphics/Texture.hpp"
 #include "modules/graphics/Graphics.hpp"
 
-#include "driver/display/Renderer.hpp"
+#include "driver/display/citro3d.hpp"
 #include "driver/graphics/DrawCommand.hpp"
 
 namespace love
 {
     static void createFramebufferObject(C3D_RenderTarget*& target, C3D_Tex* texture, uint16_t width,
-                                        uint16_t height)
+                                        uint16_t height, bool clear)
     {
         texture = new C3D_Tex();
 
         if (!C3D_TexInitVRAM(texture, width, height, GPU_RGBA8))
             throw love::Exception("Failed to create framebuffer texture!");
 
+        auto* previousFramebuffer = c3d.getFramebuffer();
+
         target = C3D_RenderTargetCreateFromTex(texture, GPU_TEXFACE_2D, 0, GPU_RB_DEPTH16);
+
+        c3d.bindFramebuffer(target);
+
+        if (clear)
+            c3d.clear({ 0, 0, 0, 0 });
+
+        c3d.bindFramebuffer(previousFramebuffer);
     }
 
     static void createTextureObject(C3D_Tex*& texture, PixelFormat format, uint16_t width, uint16_t height)
     {
         GPU_TEXCOLOR gpuFormat;
-        if (!love::Renderer::getConstant(format, gpuFormat))
+        if (!citro3d::getConstant(format, gpuFormat))
             throw love::Exception("Invalid GPU texture format: {:s}.", love::getConstant(format));
 
         texture = new C3D_Tex();
@@ -113,7 +122,7 @@ namespace love
         try
         {
             if (this->isRenderTarget())
-                createFramebufferObject(this->target, this->texture, powTwoWidth, powTwoHeight);
+                createFramebufferObject(this->target, this->texture, powTwoWidth, powTwoHeight, clear);
             else
             {
                 createTextureObject(this->texture, this->format, powTwoWidth, powTwoHeight);
@@ -175,7 +184,7 @@ namespace love
     void Texture::setSamplerState(const SamplerState& state)
     {
         this->samplerState = this->validateSamplerState(state);
-        Renderer::getInstance().setSamplerState(this->texture, this->samplerState);
+        c3d.setSamplerState(this->texture, this->samplerState);
     }
 
     SamplerState Texture::validateSamplerState(SamplerState state) const
@@ -332,5 +341,10 @@ namespace love
     ptrdiff_t Texture::getHandle() const
     {
         return (ptrdiff_t)this->texture;
+    }
+
+    ptrdiff_t Texture::getRenderTargetHandle() const
+    {
+        return (ptrdiff_t)this->target;
     }
 } // namespace love
