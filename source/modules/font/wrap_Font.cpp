@@ -1,6 +1,6 @@
 #include "modules/font/wrap_Font.hpp"
 
-#include "modules/font/font.hpp"
+#include "modules/font/Font.hpp"
 
 #include "modules/font/wrap_GlyphData.hpp"
 #include "modules/font/wrap_Rasterizer.hpp"
