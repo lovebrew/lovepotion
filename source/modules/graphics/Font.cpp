@@ -120,7 +120,7 @@ namespace love
         const auto& rasterizer = shaper->getRasterizers()[glyphindex.rasterizerIndex];
         dpiScale               = rasterizer->getDPIScale();
 
-        return rasterizer->getGlyphData(glyphindex.index);
+        return rasterizer->getGlyphDataForIndex(glyphindex.index);
     }
 
     const FontBase::Glyph& FontBase::findGlyph(TextShaper::GlyphIndex glyphindex)
@@ -295,7 +295,7 @@ namespace love
             auto data               = graphics->requestBatchedDraw(command);
             GlyphVertex* vertexdata = (GlyphVertex*)data.stream;
 
-            memcpy(vertexdata, &vertices[cmd.startVertex], sizeof(GlyphVertex) * cmd.vertexCount);
+            std::copy_n(vertexdata, cmd.vertexCount, &vertices[cmd.startVertex]);
             m.transformXY(vertexdata, &vertices[cmd.startVertex], cmd.vertexCount);
         }
     }

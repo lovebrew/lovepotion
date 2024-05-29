@@ -36,9 +36,60 @@ int Wrap_FontModule::newRasterizer(lua_State* L)
         return newBMFontRasterizer(L);
 }
 
+static Rasterizer::Settings luax_checktruetypesettings(lua_State* L, int index)
+{
+    Rasterizer::Settings settings {};
+
+    if (lua_type(L, index))
+    {
+        const char* hinting = lua_isnoneornil(L, index) ? nullptr : luaL_checkstring(L, index);
+        if (hinting && !Rasterizer::getConstant(hinting, settings.hinting))
+            luax_enumerror(L, "Font hinting mode", Rasterizer::Hintings, hinting);
+
+        if (!lua_isnoneornil(L, index + 1))
+            settings.dpiScale.set((float)luaL_checknumber(L, index + 1));
+    }
+    else
+    {
+        luaL_checktype(L, index, LUA_TTABLE);
+
+        lua_getfield(L, index, "hinting");
+        if (!lua_isnoneornil(L, -1))
+        {
+            const char* hinting = luaL_checkstring(L, -1);
+            if (!Rasterizer::getConstant(hinting, settings.hinting))
+                luax_enumerror(L, "Font hinting mode", Rasterizer::Hintings, hinting);
+        }
+        lua_pop(L, 1);
+
+        lua_getfield(L, index, "dpiscale");
+        if (!lua_isnoneornil(L, -1))
+            settings.dpiScale.set((float)luaL_checknumber(L, -1));
+        lua_pop(L, 1);
+    }
+
+    return settings;
+}
+
 int Wrap_FontModule::newTrueTypeRasterizer(lua_State* L)
 {
-    return 0;
+    Rasterizer* rasterizer = nullptr;
+
+    if (lua_type(L, 1) == LUA_TNUMBER || lua_isnone(L, 1))
+    {
+        int size = luaL_optinteger(L, 1, 13);
+        Rasterizer::Settings settings {};
+
+        if (!lua_isnoneornil(L, 2))
+            settings = luax_checktruetypesettings(L, 2);
+
+        luax_catchexcept(L, [&] { rasterizer = instance()->newTrueTypeRasterizer(size, settings); });
+    }
+
+    luax_pushtype(L, rasterizer);
+    rasterizer->release();
+
+    return 1;
 }
 
 int Wrap_FontModule::newBMFontRasterizer(lua_State* L)

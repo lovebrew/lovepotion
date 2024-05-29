@@ -82,7 +82,9 @@ namespace love
         if (this->size == 0)
             throw love::Exception("Invalid font size: {:d}", this->size);
 
-        fontFixPointers((CFNT_s*)data->getData());
+        /* if we already have this data loaded, fixing this (again) is a bad time™ */
+        if ((uintptr_t)fontGetInfo((CFNT_s*)data->getData())->tglp < (uintptr_t)data->getData())
+            fontFixPointers((CFNT_s*)data->getData());
 
         auto* fontInfo  = fontGetInfo((CFNT_s*)data->getData());
         auto* sheetInfo = fontInfo->tglp;
@@ -94,6 +96,7 @@ namespace love
         this->metrics.descent = scaleMetric((fontInfo->height - fontInfo->ascent), this->scale);
         this->metrics.height  = scaleMetric(sheetInfo->cellHeight, this->scale);
 
+        /* todo: more accuracy? */
         for (auto map = fontInfo->cmap; map != nullptr; map = map->next)
             this->glyphCount += (map->codeEnd - map->codeBegin) + 1;
 

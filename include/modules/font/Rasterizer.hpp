@@ -102,6 +102,15 @@ namespace love
             return dpiScale;
         }
 
+        // clang-format off
+        STRINGMAP_DECLARE(Hintings, Hinting,
+            { "normal", HINTING_NORMAL },
+            { "light",  HINTING_LIGHT  },
+            { "mono",   HINTING_MONO   },
+            { "none",   HINTING_NONE   }
+        );
+        // clang-format on
+
       protected:
         FontMetrics metrics;
         float dpiScale;

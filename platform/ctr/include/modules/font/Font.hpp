@@ -18,6 +18,8 @@ namespace love
         Rasterizer* newTrueTypeRasterizer(Data* data, int size,
                                           const Rasterizer::Settings& settings) const override;
 
+        using FontModuleBase::newTrueTypeRasterizer;
+
       private:
         static constexpr auto FONT_ARCHIVE_TITLE = 0x0004009B00014002ULL;
 

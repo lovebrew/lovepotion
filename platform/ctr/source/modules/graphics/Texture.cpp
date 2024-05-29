@@ -272,8 +272,6 @@ namespace love
         const auto mipWidth  = this->getPixelWidth(level);
         const auto mipHeight = this->getPixelHeight(level);
 
-        std::printf("Data Size: %zu/Texture Size: %zu\n", size, this->texture->size);
-
         // copy it directly if the size is the whole thing
         if (rect == Rect(0, 0, mipWidth, mipHeight))
             std::memcpy(textureData, data, size);

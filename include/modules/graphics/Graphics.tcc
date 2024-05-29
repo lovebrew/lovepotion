@@ -325,8 +325,8 @@ namespace love
             DisplayState()
             {}
 
-            Color color           = Color::WHITE;
-            Color backgroundColor = Color::BLACK;
+            Color color           = Color(1.0f, 1.0f, 1.0f, 1.0f);
+            Color backgroundColor = Color(0.0f, 0.0f, 0.0f, 1.0f);
 
             BlendState blend = computeBlendState(BLEND_ALPHA, BLENDALPHA_MULTIPLY);
 

@@ -14,11 +14,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure
-        run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -S . -B build
-
       - name: Build
-        run: make -C build
+        run: catnip -T 3DS
 
       - id: commit
         uses: prompt/actions-commit-hash@v3
@@ -27,8 +24,8 @@ jobs:
         with:
           name: Nintendo 3DS-${{ steps.commit.outputs.short }}
           path: |
-            build/*.elf
-            build/*.3dsx
+            build/**.elf
+            build/**.3dsx
 
   N3DS-Debug:
     runs-on: ubuntu-latest
@@ -41,11 +38,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure
-        run: /opt/devkitpro/portlibs/3ds/bin/arm-none-eabi-cmake -DCMAKE_BUILD_TYPE=Debug -S . -B build
-
       - name: Build
-        run: make -C build
+        run: catnip -T 3DS debug
 
       - id: commit
         uses: prompt/actions-commit-hash@v3
