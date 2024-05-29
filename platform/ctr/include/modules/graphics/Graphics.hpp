@@ -31,11 +31,17 @@ namespace love
 
         virtual void setBlendState(const BlendState& state) override;
 
+        virtual FontBase* newFont(Rasterizer* data) override;
+
+        virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) override;
+
         virtual bool setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
                              bool backBufferDepth, int msaa) override;
 
         virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                               bool hasSRGBTexture) override;
+
+        virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) override;
 
         void draw(const DrawIndexedCommand& command) override;
 
@@ -58,8 +64,6 @@ namespace love
         // clang-format off
         virtual TextureBase* newTexture(const TextureBase::Settings& settings, const TextureBase::Slices* data = nullptr) override;
         // clang-format on
-
-        bool isPixelFormatSupported(PixelFormat format, uint32_t usage);
 
         bool is3D() const;
 

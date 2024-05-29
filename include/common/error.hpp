@@ -56,6 +56,30 @@ namespace love
 #define E_BLEND_MIN_MAX_NOT_SUPPORTED "The 'min' and 'max' blend operations are not supported on this system."
 // # endregion
 
+// #region Image
+#define E_CANNOT_CREATE_TEXTURE "Cannot create texture: {:s} of {:d} is too large for this system."
+#define E_CUSTOM_MIPMAP_RANGES_NOT_SUPPORTED                                                                \
+    "Custom mipmap ranges for a texture are not supported on this system ({:d} mipmap levels are required " \
+    "but only {:d} levels were provided.)"
+#define E_COMPRESSED_TEXTURES_MISMATCHED_VIEW                                                           \
+    "Compressed textures cannot use different pixel formats for texture views, aside from sRGB versus " \
+    "linear variants of the same pixel format."
+#define E_COLOR_FORMAT_TEXTURES_MISMATCHED_VIEW \
+    "Color-format textures cannot use depth/stencil pixel formats and vice versa, in texture views."
+#define E_DEPTH_STENCIL_TEXTURES_MISMATCHED_VIEW                                                       \
+    "Using different pixel formats for texture views is not currently supported for depth or stencil " \
+    "formats."
+#define E_TEXTURE_VIEW_BITS_PER_PIXEL_MISMATCHED \
+    "Texture view pixel formats must have the same bits per pixel as the base texture's pixel format."
+#define E_TEXTURE_PIXELFORMAT_NOT_SUPPORTED "The {:s} {:s} pixel format is not supported {:s} on this system."
+#define E_INVALID_RECT_DIMENSIONS \
+    "Invalid rectangle dimensions (x: {:d}, y: {:d}, w: {:d}, h: {:d}) for {:d}x{:d} Texture."
+#define E_AUTO_MIPMAPS_NOT_SUPPORTED \
+    "Automatic mipmap generation is not supported for textures with the {:s} pixel format."
+#define E_CANNOT_GENERATE_MIPMAPS_RT \
+    "generateMipmaps cannot be called on this Texture while it's an active render target."
+// #endregion
+
 // Thread
 #define E_CHANNEL_VARIANT_UNKNOWN "boolean, number, string, love type, or table expected."
 #define E_THREAD_VARIANT_UNKNOWN  "boolean, number, string, love type, or flat table expected."

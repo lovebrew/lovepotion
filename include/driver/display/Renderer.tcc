@@ -21,6 +21,11 @@ namespace love
 
         virtual void prepareDraw() = 0;
 
+        bool isInFrame() const
+        {
+            return this->inFrame;
+        }
+
       protected:
         struct ContextBase
         {

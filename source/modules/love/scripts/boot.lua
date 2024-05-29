@@ -181,7 +181,7 @@ function love.init()
             sensor = true,
             sound = true,
             system = true,
-            font = false,
+            font = true,
             thread = true,
             window = true,
             video = false,

@@ -110,7 +110,7 @@ namespace love
 
         this->setColorMask(state.colorMask);
 
-        this->setDefaultSamplerState(state.defaultSampleState);
+        this->setDefaultSamplerState(state.defaultSamplerState);
 
         if (state.useCustomProjection)
             this->updateDeviceProjection(state.customProjection);
@@ -163,7 +163,7 @@ namespace love
         if (state.colorMask != current.colorMask)
             this->setColorMask(state.colorMask);
 
-        this->setDefaultSamplerState(state.defaultSampleState);
+        this->setDefaultSamplerState(state.defaultSamplerState);
 
         if (state.useCustomProjection)
             this->updateDeviceProjection(state.customProjection);
@@ -324,6 +324,7 @@ namespace love
             state.format        = command.format;
             state.texture       = command.texture;
             state.shaderType    = command.shaderType;
+            state.isFont        = command.isFont;
         }
 
         if (state.vertexCount == 0)
@@ -372,15 +373,48 @@ namespace love
         if (state.vertexCount > 0)
             this->drawCallsBatched++;
 
+        state.lastVertexCount += command.vertexCount;
+        state.lastIndexCount += requestedIndexCount;
+
         state.vertexCount += command.vertexCount;
         state.indexCount += requestedIndexCount;
 
         return data;
     }
 
+    void GraphicsBase::checkSetDefaultFont()
+    {
+        if (this->states.back().font.get() != nullptr)
+            return;
+
+        if (!this->defaultFont.get())
+        {
+            Rasterizer::Settings settings {};
+            this->defaultFont.set(this->newDefaultFont(13, settings), Acquire::NO_RETAIN);
+        }
+
+        this->states.back().font.set(this->defaultFont.get());
+    }
+
+    void GraphicsBase::print(const std::vector<ColoredString>& string, const Matrix4& matrix)
+    {
+        this->checkSetDefaultFont();
+
+        if (this->states.back().font.get() != nullptr)
+            this->print(string, this->states.back().font.get(), matrix);
+    }
+
+    void GraphicsBase::print(const std::vector<ColoredString>& string, FontBase* font, const Matrix4& matrix)
+    {
+        font->print(this, string, matrix, this->states.back().color);
+    }
+
     void GraphicsBase::flushBatchedDraws()
     {
         BatchedDrawState& state = this->batchedDrawState;
+
+        if ((state.lastIndexCount == 0 && state.lastVertexCount == 0) || state.flushing)
+            return;
 
         if ((state.vertexCount == 0 && state.indexCount == 0) || state.flushing)
             return;
@@ -394,7 +428,7 @@ namespace love
         {
             attributes.setCommonFormat(state.format, (uint8_t)0);
 
-            usedSizes[0] = getFormatStride(state.format) * state.vertexCount;
+            usedSizes[0] = state.lastVertexCount;
 
             size_t offset = state.vertexBuffer->unmap(usedSizes[0]);
             buffers.set(0, state.vertexBuffer, offset, state.vertexCount);
@@ -405,7 +439,7 @@ namespace love
         if (attributes.enableBits == 0)
             return;
 
-        state.flushing = true;
+        // state.flushing = true;
 
         auto originalColor = this->getColor();
         if (attributes.isEnabled(ATTRIB_COLOR))
@@ -415,11 +449,11 @@ namespace love
 
         if (state.indexCount > 0)
         {
-            usedSizes[1] = sizeof(uint16_t) * state.indexCount;
+            usedSizes[1] = state.lastIndexCount;
 
             DrawIndexedCommand command(&attributes, &buffers, state.indexBuffer);
             command.primitiveType     = state.primitiveMode;
-            command.indexCount        = state.indexCount;
+            command.indexCount        = state.lastIndexCount;
             command.indexType         = INDEX_UINT16;
             command.indexBufferOffset = state.indexBuffer->unmap(usedSizes[1]);
             command.texture           = state.texture;
@@ -432,26 +466,25 @@ namespace love
             DrawCommand command {};
             command.primitiveType = state.primitiveMode;
             command.vertexStart   = 0;
-            command.vertexCount   = state.vertexCount;
+            command.vertexCount   = state.lastVertexCount;
             command.texture       = state.texture;
 
             this->draw(command);
         }
 
         if (usedSizes[0] > 0)
-            state.vertexBuffer->markUsed(state.vertexCount);
+            state.vertexBuffer->markUsed(usedSizes[0]);
 
         if (usedSizes[1] > 0)
-            state.indexBuffer->markUsed(state.indexCount);
+            state.indexBuffer->markUsed(usedSizes[1]);
 
         this->popTransform();
 
         if (attributes.isEnabled(ATTRIB_COLOR))
             this->setColor(originalColor);
 
-        state.vertexCount = 0;
-        state.indexCount  = 0;
-        state.flushing    = false;
+        state.lastVertexCount = 0;
+        state.lastIndexCount  = 0;
     }
 
     void GraphicsBase::flushBatchedDrawsGlobal()
@@ -469,6 +502,9 @@ namespace love
 
         if (this->batchedDrawState.indexBuffer)
             this->batchedDrawState.indexBuffer->nextFrame();
+
+        this->batchedDrawState.vertexCount = 0;
+        this->batchedDrawState.indexCount  = 0;
     }
 
     void GraphicsBase::advanceStreamBuffersGlobal()

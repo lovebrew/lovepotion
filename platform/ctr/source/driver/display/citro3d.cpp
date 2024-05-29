@@ -316,30 +316,17 @@ namespace love
         // clang-format on
     }
 
-    void citro3d::bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool restorePrevious,
-                                    bool bindForEdit)
+    void citro3d::bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool isFont)
     {
         if (texture == nullptr)
             return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
 
-        int oldTextureUnit = this->context.currentTextureUnit;
+        isFont ? this->updateTexEnvMode(TEXENV_MODE_FONT) : this->updateTexEnvMode(TEXENV_MODE_TEXTURE);
 
-        int activeUnit = 0;
-        if (oldTextureUnit != unit)
-            activeUnit = getTextureUnit(GPU_TEXUNIT0) + unit;
-
-        this->updateTexEnvMode(TEXENV_MODE_TEXTURE);
-        this->context.boundTextures[target][unit] = texture;
-
-        C3D_TexBind(activeUnit, texture);
-
-        if (restorePrevious && oldTextureUnit != unit)
-            activeUnit = getTextureUnit(GPU_TEXUNIT0) + unit;
-        else
-            this->context.currentTextureUnit = unit;
+        C3D_TexBind(0, texture);
     }
 
-    void citro3d::bindTextureToUnit(TextureBase* texture, int unit, bool restorePrevious, bool bindForEdit)
+    void citro3d::bindTextureToUnit(TextureBase* texture, int unit, bool isFont)
     {
         if (texture == nullptr)
             return this->updateTexEnvMode(TEXENV_MODE_PRIMITIVE);
@@ -347,11 +334,23 @@ namespace love
         auto textureType = texture->getTextureType();
         auto* handle     = (C3D_Tex*)texture->getHandle();
 
-        this->bindTextureToUnit(textureType, handle, unit, restorePrevious, bindForEdit);
+        this->bindTextureToUnit(textureType, handle, unit, isFont);
     }
 
     void citro3d::setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers)
     {}
+
+    GPU_TEXTURE_MODE_PARAM citro3d::getTextureType(TextureType type)
+    {
+        switch (type)
+        {
+            case TEXTURE_2D:
+            default:
+                return GPU_TEX_2D;
+            case TEXTURE_CUBE:
+                return GPU_TEX_CUBE_MAP;
+        }
+    }
 
     GPU_TEXTURE_WRAP_PARAM citro3d::getWrapMode(SamplerState::WrapMode mode)
     {

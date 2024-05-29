@@ -51,6 +51,7 @@ namespace love
         PIXELFORMAT_RG8_UNORM,
         PIXELFORMAT_RG8_INT,
         PIXELFORMAT_RG8_UINT,
+        PIXELFORMAT_A4_UNORM,
         PIXELFORMAT_LA8_UNORM, // Same as RG8, but accessed as (L, L, L, A)
         PIXELFORMAT_RG16_UNORM,
         PIXELFORMAT_RG16_FLOAT,
@@ -289,6 +290,8 @@ namespace love
         { "r32f",  PIXELFORMAT_R32_FLOAT },
         { "r32i",  PIXELFORMAT_R32_INT   },
         { "r32ui", PIXELFORMAT_R32_UINT  },
+
+        { "a4",    PIXELFORMAT_A4_UNORM  },
 
         { "rg8",    PIXELFORMAT_RG8_UNORM  },
         { "rg8i",   PIXELFORMAT_RG8_INT    },

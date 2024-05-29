@@ -246,8 +246,7 @@ namespace love
 
         int getSliceCount(int mip) const;
 
-        void generateMipmaps()
-        {}
+        void generateMipmaps();
 
         const std::string& getDebugName() const
         {
@@ -308,11 +307,12 @@ namespace love
 
         virtual void setSamplerState(const SamplerState& state) = 0;
 
-        virtual void replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
-                                   bool reloadMipmaps) = 0;
+        void replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y, bool reloadMipmaps);
 
-        virtual void replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
-                                   bool reloadMipmaps) = 0;
+        void replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
+                           bool reloadMipmaps);
+
+        SamplerState validateSamplerState(SamplerState state) const;
 
         static int getTotalMipmapCount(int width, int height)
         {
@@ -363,6 +363,19 @@ namespace love
         virtual ~TextureBase();
 
         void setGraphicsMemorySize(int64_t size);
+
+        void uploadImageData(ImageDataBase* data, int level, int slice, int x, int y);
+
+        virtual void uploadByteData(const void* data, size_t size, int level, int slice,
+                                    const Rect& rect) = 0;
+
+        bool supportsGenerateMipmaps(const char*& outReason) const;
+
+        virtual void generateMipmapsInternal() = 0;
+
+        bool validateDimensions(bool throwException) const;
+
+        void validatePixelFormat(GraphicsBase* graphics) const;
 
         TextureType textureType;
         PixelFormat format;

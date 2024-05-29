@@ -4,6 +4,8 @@
 #include "modules/graphics/Shader.hpp"
 #include "modules/window/Window.hpp"
 
+#include "modules/graphics/Font.hpp"
+
 namespace love
 {
     Graphics::Graphics() : GraphicsBase("love.graphics.citro3d")
@@ -130,13 +132,13 @@ namespace love
         const auto& targets       = this->states.back().renderTargets.colors;
         const int numColorTargets = targets.size();
 
-        // clang-format off
-        if (numColors <= 1 && (numColorTargets == 0 || (numColorTargets == 1 && targets[0].texture.get() != nullptr && !isPixelFormatInteger(targets[0].texture->getPixelFormat()))))
+        if (numColors <= 1 &&
+            (numColorTargets == 0 || (numColorTargets == 1 && targets[0].texture.get() != nullptr &&
+                                      !isPixelFormatInteger(targets[0].texture->getPixelFormat()))))
         {
             this->clear(colors.size() > 0 ? colors[0] : OptionalColor(), stencil, depth);
             return;
         }
-        // clang-format on
 
         this->flushBatchedDraws();
 
@@ -242,6 +244,23 @@ namespace love
             c3d.setBlendState(state);
 
         this->states.back().blend = state;
+    }
+
+    FontBase* Graphics::newFont(Rasterizer* data)
+    {
+        return new Font(data, this->states.back().defaultSamplerState);
+    }
+
+    FontBase* Graphics::newDefaultFont(int size, const Rasterizer::Settings& settings)
+    {
+        auto* module = Module::getInstance<FontModuleBase>(Module::M_FONT);
+
+        if (module == nullptr)
+            throw love::Exception("Font module has not been loaded.");
+
+        StrongRef<Rasterizer> rasterizer = module->newTrueTypeRasterizer(size, settings);
+
+        return this->newFont(rasterizer.get());
     }
 
     bool Graphics::setMode(int width, int height, int pixelWidth, int pixelHeight, bool backBufferStencil,
@@ -363,11 +382,22 @@ namespace love
         }
     }
 
+    bool Graphics::isPixelFormatSupported(PixelFormat format, uint32_t usage)
+    {
+        format        = this->getSizedFormat(format);
+        bool readable = (usage & PIXELFORMATUSAGEFLAGS_SAMPLE) != 0;
+
+        GPU_TEXCOLOR color;
+        bool supported = citro3d::getConstant(format, color);
+
+        return readable && supported;
+    }
+
     void Graphics::draw(const DrawIndexedCommand& command)
     {
         c3d.prepareDraw();
         // c3d.setVertexAttributes(*command.attributes, *command.buffers);
-        c3d.bindTextureToUnit(command.texture, 0, false);
+        c3d.bindTextureToUnit(command.texture, 0, command.isFont);
 
         const auto* indices = (const uint16_t*)command.indexBuffer->getHandle();
         const size_t offset = command.indexBufferOffset;
@@ -384,23 +414,12 @@ namespace love
     {
         c3d.prepareDraw();
         // c3d.setVertexAttributes(*command.attributes, *command.buffers);
-        c3d.bindTextureToUnit(command.texture, 0, false);
+        c3d.bindTextureToUnit(command.texture, 0, command.isFont);
 
         const auto primitiveType = citro3d::getPrimitiveType(command.primitiveType);
 
         C3D_DrawArrays(primitiveType, command.vertexStart, command.vertexCount);
         ++this->drawCalls;
-    }
-
-    bool Graphics::isPixelFormatSupported(PixelFormat format, uint32_t usage)
-    {
-        format        = this->getSizedFormat(format);
-        bool readable = (usage & PIXELFORMATUSAGEFLAGS_SAMPLE) != 0;
-
-        GPU_TEXCOLOR color;
-        bool supported = citro3d::getConstant(format, color);
-
-        return readable && supported;
     }
 
     bool Graphics::is3D() const

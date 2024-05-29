@@ -102,43 +102,6 @@ class MapT
     }
 
     /**
-     * @brief Get the keys of the map
-     * @return std::span<const K> containing the keys
-     */
-    constexpr std::span<const K> getKeys() const
-    {
-        return std::ranges::ref_view(this->items) | keys | std::views::take(N);
-    }
-
-    /**
-     * @brief Get the names of the map (only available if K is std::string_view)
-     * @return std::span<const K> containing the keys
-     */
-    constexpr std::span<const K> getNames() const
-    requires(std::is_same_v<K, std::string_view>)
-    {
-        return this->getKeys();
-    }
-
-    /**
-     * @brief Get the values of the map
-     * @return std::span<const V> containing the values
-     */
-    constexpr std::span<const V> getValues() const
-    {
-        return std::ranges::ref_view(this->items) | values | std::views::take(N);
-    }
-
-    /**
-     * @brief Get the items of the map
-     * @return std::span<Entry> containing the items
-     */
-    constexpr std::span<Entry> getItems() const
-    {
-        return this->items;
-    }
-
-    /**
      * Get the expected values of the map
      * @param type The type of the map (e.g. "Color")
      * @param value The value that was not found

@@ -7,6 +7,7 @@
 #include "modules/data/wrap_DataModule.hpp"
 #include "modules/event/wrap_Event.hpp"
 #include "modules/filesystem/wrap_Filesystem.hpp"
+#include "modules/font/wrap_Font.hpp"
 #include "modules/graphics/wrap_Graphics.hpp"
 #include "modules/image/wrap_Image.hpp"
 #include "modules/joystick/wrap_JoystickModule.hpp"
@@ -50,12 +51,13 @@ static constexpr char nogame_lua[] = {
 };
 
 // clang-format off
-static constexpr std::array<const luaL_Reg, 20> modules =
+static constexpr std::array<const luaL_Reg, 21> modules =
 {{
     { "love.audio",      Wrap_Audio::open          },
     { "love.data",       Wrap_DataModule::open     },
     { "love.event",      Wrap_Event::open          },
     { "love.filesystem", Wrap_Filesystem::open     },
+    { "love.font",       Wrap_FontModule::open     },
     { "love.graphics",   Wrap_Graphics::open       },
     { "love.joystick",   Wrap_JoystickModule::open },
     { "love.image",      Wrap_Image::open          },

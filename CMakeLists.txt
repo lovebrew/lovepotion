@@ -355,7 +355,16 @@ source/modules/filesystem/FileData.cpp
 source/modules/filesystem/wrap_File.cpp
 source/modules/filesystem/wrap_FileData.cpp
 source/modules/filesystem/wrap_Filesystem.cpp
+source/modules/font/Font.cpp
+source/modules/font/GlyphData.cpp
+source/modules/font/Rasterizer.cpp
+source/modules/font/TextShaper.cpp
+source/modules/font/GenericShaper.cpp
+source/modules/font/wrap_Font.cpp
+source/modules/font/wrap_Rasterizer.cpp
+source/modules/font/wrap_GlyphData.cpp
 source/modules/graphics/Graphics.cpp
+source/modules/graphics/Font.cpp
 source/modules/graphics/renderstate.cpp
 source/modules/graphics/samplerstate.cpp
 source/modules/graphics/Shader.cpp
@@ -364,6 +373,7 @@ source/modules/graphics/Volatile.cpp
 source/modules/graphics/vertex.cpp
 source/modules/graphics/wrap_Graphics.cpp
 source/modules/graphics/wrap_Texture.cpp
+source/modules/graphics/wrap_Font.cpp
 source/modules/graphics/wrap_Quad.cpp
 source/modules/graphics/Texture.cpp
 source/modules/image/CompressedImageData.cpp

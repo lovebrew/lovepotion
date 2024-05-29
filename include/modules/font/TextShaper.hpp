@@ -78,11 +78,20 @@ namespace love
             return this->useSpacesForTab;
         }
 
-        float getHeight();
+        float getHeight() const
+        {
+            return this->height;
+        }
 
-        void setLineHeight(float height);
+        void setLineHeight(float height)
+        {
+            this->lineHeight = height;
+        }
 
-        float getLineHeight() const;
+        float getLineHeight() const
+        {
+            return this->lineHeight;
+        }
 
         int getAscent() const;
 
@@ -94,25 +103,25 @@ namespace love
 
         bool hasGlyphs(const std::string& text) const;
 
-        float getKerning(uint32_t left, uint32_t right) const;
+        float getKerning(uint32_t left, uint32_t right);
 
-        float getKerning(const std::string& left, const std::string& right) const;
+        float getKerning(const std::string& left, const std::string& right);
 
-        float getGlyphAdvance(uint32_t codepoint, GlyphIndex* glyphIndex = nullptr) const;
+        float getGlyphAdvance(uint32_t codepoint, GlyphIndex* glyphIndex = nullptr);
 
-        int getWidth(const std::string& text) const;
+        int getWidth(const std::string& text);
 
         void getWrap(const std::vector<ColoredString>& text, float limit, std::vector<std::string>& lines,
-                     std::vector<int>* lineWidths = nullptr) const;
+                     std::vector<int>* lineWidths = nullptr);
 
         void getWrap(const ColoredCodepoints& codepoints, float limit, std::vector<Range>& lineRanges,
-                     std::vector<int>* lineWidths = nullptr) const;
+                     std::vector<int>* lineWidths = nullptr);
 
         virtual void setFallbacks(const std::vector<Rasterizer*>& fallbacks);
 
         virtual void computeGlyphPositions(const ColoredCodepoints& codepoints, Range range, Vector2 offset,
-                                           float extraspacing, std::vector<GlyphPosition>* positions,
-                                           std::vector<IndexedColor>* colors, TextInfo* info) const = 0;
+                                           float extraSpacing, std::vector<GlyphPosition>* positions,
+                                           std::vector<IndexedColor>* colors, TextInfo* info) = 0;
 
         virtual int computeWordWrapIndex(const ColoredCodepoints& codepoints, Range range, float wraplimit,
                                          float* width) = 0;

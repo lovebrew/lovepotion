@@ -26,13 +26,9 @@ namespace love
 
         void setSamplerState(const SamplerState& state) override;
 
-        void replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
-                           bool reloadMipmaps) override;
+        void uploadByteData(const void* data, size_t size, int slice, int mipmap, const Rect& rect) override;
 
-        void replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
-                           bool reloadMipmaps) override;
-
-        SamplerState validateSamplerState(SamplerState state) const;
+        void generateMipmapsInternal() override;
 
         // bool validateDimensions(bool throwException) const;
 

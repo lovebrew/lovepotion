@@ -30,6 +30,7 @@ namespace love
         { 2, 1, 1, 2, true, false, false, false, false, PIXELFORMATTYPE_UNORM  }, // PIXELFORMAT_RG8_UNORM
         { 2, 1, 1, 2, true, false, false, false, false, PIXELFORMATTYPE_SINT   }, // PIXELFORMAT_RG8_INT
         { 2, 1, 1, 2, true, false, false, false, false, PIXELFORMATTYPE_UINT   }, // PIXELFORMAT_RG8_UINT
+        { 2, 1, 1, 1, true, false, false, false, false, PIXELFORMATTYPE_UNORM  }, // PIXELFORMAT_A4_UNORM
         { 2, 1, 1, 2, true, false, false, false, false, PIXELFORMATTYPE_UNORM  }, // PIXELFORMAT_LA8_UNORM
         { 2, 1, 1, 4, true, false, false, false, false, PIXELFORMATTYPE_UNORM  }, // PIXELFORMAT_RG16_UNORM
         { 2, 1, 1, 4, true, false, false, false, false, PIXELFORMATTYPE_SFLOAT }, // PIXELFORMAT_RG16_FLOAT

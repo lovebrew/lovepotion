@@ -9,8 +9,10 @@
 #include "common/int.hpp"
 #include "common/pixelformat.hpp"
 
+#include "modules/font/Font.tcc"
 #include "modules/math/MathModule.hpp"
 
+#include "modules/graphics/Font.tcc"
 #include "modules/graphics/Shader.tcc"
 #include "modules/graphics/Texture.tcc"
 #include "modules/graphics/Volatile.hpp"
@@ -345,7 +347,7 @@ namespace love
             CullMode meshCullMode = CULL_NONE;
             Winding winding       = WINDING_CCW;
 
-            // StrongRef<Font> font;
+            StrongRef<FontBase> font;
             // StrongRef<Shader> shader;
 
             RenderTargetsStrongRef renderTargets;
@@ -355,7 +357,7 @@ namespace love
             bool useCustomProjection = false;
             Matrix4 customProjection;
 
-            SamplerState defaultSampleState = SamplerState();
+            SamplerState defaultSamplerState = SamplerState();
         };
 
         GraphicsBase(const char* name);
@@ -400,12 +402,12 @@ namespace love
 
         const SamplerState& getDefaultSamplerState() const
         {
-            return this->states.back().defaultSampleState;
+            return this->states.back().defaultSamplerState;
         }
 
         void setDefaultSamplerState(const SamplerState& state)
         {
-            this->states.back().defaultSampleState = state;
+            this->states.back().defaultSamplerState = state;
         }
 
         virtual void setScissor(const Rect& scissor) = 0;
@@ -443,6 +445,22 @@ namespace love
 
         virtual TextureBase* newTexture(const TextureBase::Settings& settings,
                                         const TextureBase::Slices* data = nullptr) = 0;
+
+        virtual FontBase* newFont(Rasterizer* data) = 0;
+
+        virtual FontBase* newDefaultFont(int size, const Rasterizer::Settings& settings) = 0;
+
+        void checkSetDefaultFont();
+
+        void print(const std::vector<ColoredString>& string, const Matrix4& matrix);
+
+        void print(const std::vector<ColoredString>& string, FontBase* font, const Matrix4& matrix);
+
+        void printf(const std::vector<ColoredString>& string, float wrap, FontBase::AlignMode align,
+                    const Matrix4& matrix);
+
+        void printf(const std::vector<ColoredString>& string, FontBase* font, float wrap,
+                    FontBase::AlignMode align, const Matrix4& matrix);
 
         virtual void initCapabilities() = 0;
 
@@ -632,6 +650,8 @@ namespace love
         virtual void setRenderTargetsInternal(const RenderTargets& targets, int pixelWidth, int pixelHeight,
                                               bool hasSRGBTexture) = 0;
 
+        virtual bool isPixelFormatSupported(PixelFormat format, uint32_t usage) = 0;
+
         double getCurrentDPIScale() const;
 
         double getScreenDPIScale() const;
@@ -738,6 +758,8 @@ namespace love
         float gpuDrawingTime;
 
         Capabilities capabilities;
+
+        StrongRef<FontBase> defaultFont;
 
         std::vector<ScreenshotInfo> pendingScreenshotCallbacks;
     };

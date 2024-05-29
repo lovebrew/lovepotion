@@ -65,10 +65,9 @@ namespace love
 
         void setVertexAttributes(const VertexAttributes& attributes, const BufferBindings& buffers);
 
-        void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool restorePrevious,
-                               bool bindForEdit = true);
+        void bindTextureToUnit(TextureType target, C3D_Tex* texture, int unit, bool isFont = false);
 
-        void bindTextureToUnit(TextureBase* texture, int unit, bool restorePrevious, bool bindForEdit = true);
+        void bindTextureToUnit(TextureBase* texture, int unit, bool isFont = false);
 
         C3D_RenderTarget* getInternalBackbuffer() const;
 
@@ -94,7 +93,7 @@ namespace love
 
         void ensureInFrame();
 
-        // static C3D_IndexType getIndexType(IndexDataType type);
+        static GPU_TEXTURE_MODE_PARAM getTextureType(TextureType type);
 
         static GPU_Primitive_t getPrimitiveType(PrimitiveType type);
 
@@ -104,7 +103,9 @@ namespace love
             { PIXELFORMAT_RGBA4_UNORM,  GPU_RGBA4    },
             { PIXELFORMAT_RGB565_UNORM, GPU_RGB565   },
             { PIXELFORMAT_RGB5A1_UNORM, GPU_RGBA5551 },
-            { PIXELFORMAT_ETC1_UNORM,   GPU_ETC1     }
+            { PIXELFORMAT_ETC1_UNORM,   GPU_ETC1     },
+            { PIXELFORMAT_LA8_UNORM,    GPU_LA8      },
+            { PIXELFORMAT_A4_UNORM,     GPU_A4       }
         );
 
         ENUMMAP_DECLARE(CullModes, CullMode, GPU_CULLMODE,

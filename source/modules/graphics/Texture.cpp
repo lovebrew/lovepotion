@@ -192,6 +192,7 @@ namespace love
         rootView { this, 0, 0 },
         parentView { this, 0, 0 }
     {
+        const auto& capabilities = graphics->getCapabilities();
         int requestedMipmapCount = settings.mipmapCount;
 
         if (slices != nullptr && slices->getMipmapCount() > 0 && slices->getSliceCount() > 0)
@@ -251,7 +252,7 @@ namespace love
             format = love::getLinearPixelFormat(format);
 
         if (this->mipmapsMode == MIPMAPS_AUTO && this->isCompressed())
-            this->mipmapsMode = MIPMAPS_NONE;
+            this->mipmapsMode = MIPMAPS_MANUAL;
 
         if (this->mipmapsMode != MIPMAPS_NONE)
         {
@@ -262,8 +263,18 @@ namespace love
             else
                 this->mipmapCount = totalMipmapCount;
 
-            if (this->mipmapCount != totalMipmapCount)
-                throw love::Exception("Custom mipmap ranges for a texture are not supported.");
+            // clang-format off
+            if (this->mipmapCount != totalMipmapCount && !capabilities.features[GraphicsBase::FEATURE_MIPMAP_RANGE])
+                throw love::Exception(E_CUSTOM_MIPMAP_RANGES_NOT_SUPPORTED, totalMipmapCount, this->mipmapCount);
+            // clang-format on
+        }
+
+        const char* mipmapError = nullptr;
+        if (this->mipmapsMode == MIPMAPS_AUTO && !this->supportsGenerateMipmaps(mipmapError))
+        {
+            std::string_view name = "unknown";
+            love::getConstant(this->format, name);
+            throw love::Exception(E_AUTO_MIPMAPS_NOT_SUPPORTED, name);
         }
 
         if (this->pixelWidth <= 0 || this->pixelHeight <= 0 || this->layers <= 0 || this->depth <= 0)
@@ -287,7 +298,37 @@ namespace love
         if (this->isCompressed() && this->renderTarget)
             throw love::Exception("Compressed textures cannot be render targets.");
 
-        this->validateViewFormats();
+        for (auto viewFormat : this->viewFormats)
+        {
+            if (getLinearPixelFormat(viewFormat) == getLinearPixelFormat(this->format))
+                continue;
+
+            if (isPixelFormatCompressed(this->format) || isPixelFormatCompressed(viewFormat))
+                throw love::Exception(E_COMPRESSED_TEXTURES_MISMATCHED_VIEW);
+
+            if (isPixelFormatColor(this->format) != isPixelFormatColor(viewFormat))
+                throw love::Exception(E_COLOR_FORMAT_TEXTURES_MISMATCHED_VIEW);
+
+            if (isPixelFormatDepthStencil(viewFormat))
+                throw love::Exception(E_DEPTH_STENCIL_TEXTURES_MISMATCHED_VIEW);
+
+            size_t viewBytes = getPixelFormatBlockSize(viewFormat);
+            size_t baseBytes = getPixelFormatBlockSize(this->format);
+
+            if (viewBytes != baseBytes)
+                throw love::Exception(E_TEXTURE_VIEW_BITS_PER_PIXEL_MISMATCHED);
+        }
+
+        this->validatePixelFormat(graphics);
+
+        if (!capabilities.textureTypes[this->textureType])
+        {
+            std::string_view name = "unknown";
+            TextureBase::getConstant(this->textureType, name);
+            throw love::Exception("{:s} textures are not supported on this system.", name);
+        }
+
+        this->validateDimensions(true);
 
         if (this->getMipmapCount() == 1)
             this->samplerState.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
@@ -331,8 +372,8 @@ namespace love
         if (!this->readable)
             throw love::Exception("Textures with non-readable formats cannot be drawn.");
 
-        // if (this->renderTarget && graphics.isRenderTargetActive(this))
-        //     throw love::Exception("Cannot render a Texture to itself.");
+        if (this->renderTarget && graphics->isRenderTargetActive(this))
+            throw love::Exception("Cannot render a Texture to itself.");
 
         const auto& transform = graphics->getTransform();
         bool is2D             = transform.isAffine2DTransform();
@@ -366,8 +407,248 @@ namespace love
         }
     }
 
-    void TextureBase::validateViewFormats() const
-    {}
+    void TextureBase::uploadImageData(ImageDataBase* data, int level, int slice, int x, int y)
+    {
+        Rect rectangle = { x, y, data->getWidth(), data->getHeight() };
+
+        const auto size = getPixelFormatSliceSize(this->format, data->getWidth(), data->getHeight());
+        this->uploadByteData(data->getData(), size, level, slice, rectangle);
+    }
+
+    void TextureBase::replacePixels(ImageDataBase* data, int slice, int mipmap, int x, int y,
+                                    bool reloadMipmaps)
+    {
+        if (!this->isReadable())
+            throw love::Exception("replacePixels can only be called on a readable Texture.");
+
+        if (this->getMSAA() > 1)
+            throw love::Exception("replacePixels cannot be called on a multisampled Texture.");
+
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+        if (graphics == nullptr && graphics->isRenderTargetActive(this))
+            throw love::Exception("Cannot replace pixels of a Texture that is currently being rendered to.");
+
+        if (this->getHandle() == 0)
+            return;
+
+        if (getLinearPixelFormat(data->getFormat()) != getLinearPixelFormat(this->getPixelFormat()))
+            throw love::Exception("Pixel formats must match.");
+
+        if (mipmap < 0 || mipmap >= this->getMipmapCount())
+            throw love::Exception("Invalid texture mipmap index {:d}.", mipmap);
+
+        if (slice < 0 || (this->textureType == TEXTURE_CUBE && slice >= 6) ||
+            (this->textureType == TEXTURE_VOLUME && slice >= this->getDepth(mipmap)) ||
+            (this->textureType == TEXTURE_2D_ARRAY && slice >= this->getLayerCount()))
+        {
+            throw love::Exception("Invalid slice index {:d}.", slice);
+        }
+
+        Rect rect = { x, y, data->getWidth(), data->getHeight() };
+
+        int mipW = this->getPixelWidth(mipmap);
+        int mipH = this->getPixelHeight(mipmap);
+
+        const bool rectSizeInvalid = rect.x < 0 || rect.y < 0 || rect.w <= 0 || rect.h <= 0;
+        if (rectSizeInvalid || (rect.x + rect.w) > mipW || (rect.y + rect.h) > mipH)
+            throw love::Exception(E_INVALID_RECT_DIMENSIONS, rect.x, rect.y, rect.w, rect.h, mipW, mipH);
+
+        this->uploadImageData(data, mipmap, slice, x, y);
+
+        if (reloadMipmaps && mipmap == 0 && this->getMipmapCount() > 1)
+            this->generateMipmaps();
+    }
+
+    void TextureBase::replacePixels(const void* data, size_t size, int slice, int mipmap, const Rect& rect,
+                                    bool reloadMipmaps)
+    {
+        if (!this->isReadable() || this->getMSAA() > 1)
+            return;
+
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+
+        if (graphics != nullptr && graphics->isRenderTargetActive(this))
+            return;
+
+        this->uploadByteData(data, size, mipmap, slice, rect);
+
+        if (reloadMipmaps && mipmap == 0 && this->getMipmapCount() > 1)
+            this->generateMipmaps();
+    }
+
+    SamplerState TextureBase::validateSamplerState(SamplerState state) const
+    {
+        if (this->readable)
+            return state;
+
+        if (state.depthSampleMode.hasValue && !love::isPixelFormatDepth(this->format))
+            throw love::Exception("Only depth textures can have a depth sample compare mode.");
+
+        if (state.mipmapFilter != SamplerState::MIPMAP_FILTER_NONE && this->getMipmapCount() == 1)
+            state.mipmapFilter = SamplerState::MIPMAP_FILTER_NONE;
+
+        if (this->textureType == TEXTURE_CUBE)
+            state.wrapU = state.wrapV = state.wrapW = SamplerState::WRAP_CLAMP;
+
+        if (state.minFilter == SamplerState::FILTER_LINEAR ||
+            state.magFilter == SamplerState::FILTER_LINEAR ||
+            state.mipmapFilter == SamplerState::MIPMAP_FILTER_LINEAR)
+        {
+            auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+            if (!graphics->isPixelFormatSupported(this->format, PIXELFORMATUSAGE_LINEAR))
+            {
+                state.minFilter = state.magFilter = SamplerState::FILTER_NEAREST;
+                if (state.mipmapFilter == SamplerState::MIPMAP_FILTER_LINEAR)
+                    state.mipmapFilter = SamplerState::MIPMAP_FILTER_NEAREST;
+            }
+        }
+
+        return state;
+    }
+
+    bool TextureBase::supportsGenerateMipmaps(const char*& outReason) const
+    {
+        // clang-format off
+        if (this->getMipmapsMode() == MIPMAPS_NONE)
+        {
+            outReason = "generateMipmaps can only be called on a Texture which was created with mipmaps enabled.";
+            return false;
+        }
+
+        if (isPixelFormatCompressed(this->format))
+        {
+            outReason = "generateMipmaps cannot be called on a compressed Texture.";
+            return false;
+        }
+
+        if (isPixelFormatDepthStencil(this->format))
+        {
+            outReason = "generateMipmaps cannot be called on a depth/stencil Texture.";
+            return false;
+        }
+
+        if (isPixelFormatInteger(this->format))
+        {
+            outReason = "generateMipmaps cannot be called on an integer Texture.";
+            return false;
+        }
+
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+        if (graphics != nullptr && !graphics->isPixelFormatSupported(format, PIXELFORMATUSAGE_LINEAR))
+        {
+            outReason = "generateMipmaps cannot be called on textures with formats that don't support linear filtering on this system.";
+            return false;
+        }
+        // clang-format on
+
+        return true;
+    }
+
+    void TextureBase::generateMipmaps()
+    {
+        const char* error = nullptr;
+        if (!this->supportsGenerateMipmaps(error))
+            throw love::Exception("{:s}", error);
+
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+        if (graphics != nullptr && graphics->isRenderTargetActive(this))
+            throw love::Exception(E_CANNOT_GENERATE_MIPMAPS_RT);
+
+        this->generateMipmapsInternal();
+    }
+
+    bool TextureBase::validateDimensions(bool throwException) const
+    {
+        bool success = true;
+
+        auto* graphics = Module::getInstance<GraphicsBase>(Module::M_GRAPHICS);
+
+        if (graphics == nullptr)
+            return false;
+
+        const auto& capabilities = graphics->getCapabilities();
+
+        int max2DSize   = capabilities.limits[GraphicsBase::LIMIT_TEXTURE_SIZE];
+        int max3DSize   = capabilities.limits[GraphicsBase::LIMIT_VOLUME_TEXTURE_SIZE];
+        int maxCubeSize = capabilities.limits[GraphicsBase::LIMIT_CUBE_TEXTURE_SIZE];
+        int maxLayers   = capabilities.limits[GraphicsBase::LIMIT_TEXTURE_LAYERS];
+
+        int largestDimension    = 0;
+        const char* largestName = nullptr;
+
+        if ((this->textureType == TEXTURE_2D || this->textureType == TEXTURE_2D_ARRAY) &&
+            (this->pixelWidth > max2DSize || pixelHeight > max2DSize))
+        {
+            success          = false;
+            largestDimension = std::max(this->pixelWidth, this->pixelHeight);
+            largestName      = this->pixelWidth > this->pixelHeight ? "pixel width" : "pixel height";
+        }
+        else if (this->textureType == TEXTURE_2D_ARRAY && layers > maxLayers)
+        {
+            success          = false;
+            largestDimension = layers;
+            largestName      = "array layer count";
+        }
+        else if (this->textureType == TEXTURE_CUBE &&
+                 (this->pixelWidth > maxCubeSize || this->pixelWidth != this->pixelHeight))
+        {
+            success          = false;
+            largestDimension = std::max(this->pixelWidth, this->pixelHeight);
+            largestName      = this->pixelWidth > this->pixelHeight ? "pixel width" : "pixel height";
+
+            if (throwException && this->pixelWidth != this->pixelHeight)
+                throw love::Exception("Cubemap textures must have equal width and height.");
+        }
+        else if (this->textureType == TEXTURE_VOLUME &&
+                 (this->pixelWidth > max3DSize || this->pixelHeight > max3DSize || this->depth > max3DSize))
+        {
+            success          = false;
+            largestDimension = std::max(this->pixelWidth, std::max(this->pixelHeight, this->depth));
+            if (largestDimension == this->pixelWidth)
+                largestName = "pixel width";
+            else if (largestDimension == this->pixelHeight)
+                largestName = "pixel height";
+            else
+                largestName = "pixel depth";
+        }
+
+        if (throwException && largestName != nullptr)
+            throw love::Exception(E_CANNOT_CREATE_TEXTURE, largestName, largestDimension);
+
+        return success;
+    }
+
+    void TextureBase::validatePixelFormat(GraphicsBase* graphics) const
+    {
+        uint32_t usage = PIXELFORMATUSAGEFLAGS_NONE;
+
+        if (this->renderTarget)
+            usage |= PIXELFORMATUSAGEFLAGS_RENDERTARGET;
+
+        if (this->readable)
+            usage |= PIXELFORMATUSAGEFLAGS_SAMPLE;
+
+        if (this->computeWrite)
+            usage |= PIXELFORMATUSAGEFLAGS_COMPUTEWRITE;
+
+        if (!graphics->isPixelFormatSupported(this->format, usage))
+        {
+            std::string_view name = "unknown";
+            love::getConstant(this->format, name);
+
+            std::string_view readableString = "";
+            if (this->readable != !isPixelFormatDepthStencil(this->format))
+                readableString = this->readable ? "readable" : "non-readable";
+
+            std::string_view rtargetStr = "";
+            if (this->computeWrite)
+                rtargetStr = "as a compute shader-writable texture";
+            else if (this->renderTarget)
+                rtargetStr = "as a render target";
+
+            throw love::Exception(E_TEXTURE_PIXELFORMAT_NOT_SUPPORTED, name, readableString, rtargetStr);
+        }
+    }
 
     int TextureBase::getSliceCount(int mipmap) const
     {

@@ -181,6 +181,10 @@ namespace Wrap_Graphics
 
     int draw(lua_State* L);
 
+    int newFont(lua_State* L);
+
+    int print(lua_State* L);
+
     int getScreens(lua_State* L);
 
     int setActiveScreen(lua_State* L);

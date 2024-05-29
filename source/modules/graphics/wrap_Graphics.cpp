@@ -4,6 +4,7 @@
 
 #include "modules/filesystem/wrap_Filesystem.hpp"
 
+#include "modules/graphics/wrap_Font.hpp"
 #include "modules/graphics/wrap_Quad.hpp"
 #include "modules/graphics/wrap_Texture.hpp"
 
@@ -1011,6 +1012,55 @@ int Wrap_Graphics::draw(lua_State* L)
     return 0;
 }
 
+int Wrap_Graphics::newFont(lua_State* L)
+{
+    luax_checkgraphicscreated(L);
+
+    FontBase* font = nullptr;
+
+    if (!luax_istype(L, 1, Rasterizer::type))
+    {
+        std::vector<int> indices {};
+
+        for (int index = 0; index < lua_gettop(L); index++)
+            indices.push_back(index + 1);
+
+        luax_convobj(L, indices, "font", "newRasterizer");
+    }
+
+    auto* rasterizer = luax_checktype<Rasterizer>(L, 1);
+    luax_catchexcept(L, [&]() { font = instance()->newFont(rasterizer); });
+
+    luax_pushtype(L, font);
+    font->release();
+
+    return 1;
+}
+
+int Wrap_Graphics::print(lua_State* L)
+{
+    std::vector<ColoredString> strings {};
+    luax_checkcoloredstring(L, 1, strings);
+
+    // clang-format off
+    if (luax_istype(L, 2, FontBase::type))
+    {
+        auto* font = luax_checkfont(L, 2);
+        luax_checkstandardtransform(L, 3, [&](const Matrix4& transform) {
+            instance()->print(strings, font, transform);
+        });
+    }
+    else
+    {
+        luax_checkstandardtransform(L, 2, [&](const Matrix4& transform) {
+            instance()->print(strings, transform);
+        });
+    }
+    // clang-format on
+
+    return 0;
+}
+
 int Wrap_Graphics::getStats(lua_State* L)
 {
     auto stats = instance()->getStats();
@@ -1497,6 +1547,9 @@ static constexpr luaL_Reg functions[] =
 
     { "newTexture",             Wrap_Graphics::newTexture            },
     { "newImage",               Wrap_Graphics::newImage              },
+
+    { "newFont",                Wrap_Graphics::newFont               },
+    { "print",                  Wrap_Graphics::print                 },
 
     { "setActiveScreen", Wrap_Graphics::setActiveScreen },
     { "getScreens",      Wrap_Graphics::getScreens      },
